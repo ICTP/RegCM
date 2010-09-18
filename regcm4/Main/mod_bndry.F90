@@ -25,6 +25,7 @@
       use mod_bats
       use mod_leaftemp
       use mod_drag
+      use service_mod
 !
       private
 !
@@ -80,6 +81,10 @@
 !
       real(8) :: fact , qsatd , rai
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='bndry'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
  
 !=======================================================================
 !l    1.   initialize
@@ -255,6 +260,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index) 
       end subroutine bndry
 !
 !=======================================================================
@@ -268,6 +274,10 @@
       implicit none
 !
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='vcover'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       do i = 2 , iym1
         do n = 1 , nnsg
@@ -293,6 +303,7 @@
         end do
       end do
 !
+      call time_end(subroutine_name,index) 
       end subroutine vcover
 !
 !=======================================================================
@@ -306,6 +317,10 @@
       implicit none
 !
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='drip'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       do i = 2 , iym1
         do n = 1 , nnsg
@@ -334,6 +349,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index) 
       end subroutine drip
 ! 
 !=======================================================================
@@ -358,6 +374,10 @@
                & rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss ,  &
                & wtt
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='tseaice'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       do i = 2 , iym1
         do n = 1 , nnsg
@@ -448,6 +468,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index) 
       end subroutine tseaice
 !
 !=======================================================================
@@ -490,6 +511,10 @@
            & rsubss , rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 ,&
            & xkmx2 , xkmxr
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='water'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !=======================================================================
 !     1.   define soil water fluxes
@@ -697,6 +722,7 @@
         end do
       end do
 !
+      call time_end(subroutine_name,index) 
       end subroutine water
 ! 
 !=======================================================================
@@ -729,6 +755,11 @@
                & sge , tage
       integer :: n , i
       real(8) , dimension(nnsg,iym1) :: sold
+!
+      CHARACTER (len=50) :: subroutine_name='snow'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       age3 = 0.3
  
@@ -794,6 +825,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index) 
       end subroutine snow
 !
 !=======================================================================
@@ -845,12 +877,18 @@
       real(8) :: fct1 , fsc , fsk
       real(8) :: dtbat2 , rdtbat2
       integer :: n , i
+      CHARACTER (len=50) :: subroutine_name='tgrund'
+      INTEGER :: index=0
+!
+!
  
       fsk(x) = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
       fsc(x) = (0.23+x)*4.186E6
       fct1(x) = wlhf*0.25*1.414/x
- 
-      dtbat2 = dtbat*2.
+! 
+      CALL time_begin(subroutine_name,index)
+! 
+     dtbat2 = dtbat*2.
       rdtbat2 = 1./dtbat2
 
 !=======================================================================
@@ -1006,7 +1044,7 @@
           end if
         end do
       end do
- 
+      call time_end(subroutine_name,index) 
       end subroutine tgrund
 !
       end module mod_bndry

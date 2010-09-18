@@ -32,6 +32,7 @@
       use mod_ncio
       use mod_date
       use mod_cvaria
+      use service_mod
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -87,6 +88,10 @@
 !
         subroutine allocate_mod_bdycon
         implicit none
+        CHARACTER (len=50) :: subroutine_name='allocate_mod_bdycon'
+        INTEGER :: index=0
+!
+        CALL time_begin(subroutine_name,index)
 #ifdef MPP1
         allocate(ps0(iy,0:jxp+1))
         allocate(ps1(iy,0:jxp+1))
@@ -269,6 +274,10 @@
       real(8) , dimension(iy,jx) :: psdot , tdum
 #endif
       integer :: n
+      CHARACTER (len=50) :: subroutine_name='bdyin'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       if ( dabs(xtime).gt.0.0001 ) return
 !
@@ -1007,6 +1016,10 @@
 #ifdef MPP1
       integer :: ierr
 #endif
+      CHARACTER (len=50) :: subroutine_name='bdyuv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 #ifdef MPP1
 !----------------------------------------------------------------------
@@ -1425,6 +1438,10 @@
       integer :: jp1
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='bdyval'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !*********************************************************************
 !*****fill up the boundary value for xxb variables from xxa variables:

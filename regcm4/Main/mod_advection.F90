@@ -25,7 +25,7 @@
       use mod_runparams
       use mod_cvaria
       use mod_main
-
+      use service_mod
       private
  
       public :: hadv_t , hadv_u , hadv_v , hadvqv , hadvqc , hadvch
@@ -67,6 +67,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
+      CHARACTER (len=50) :: subroutine_name='hadv_t'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -147,6 +151,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadv_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -166,6 +171,10 @@
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
+      CHARACTER (len=50) :: subroutine_name='hadv_u'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jp1 = j + 1
 !
@@ -256,6 +265,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadv_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -274,6 +284,10 @@
 #endif
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      CHARACTER (len=50) :: subroutine_name='hadv_v'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -359,6 +373,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadv_v
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -375,6 +390,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
+      CHARACTER (len=50) :: subroutine_name='hadvqv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -447,6 +466,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadvqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -463,6 +483,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
+      CHARACTER (len=50) :: subroutine_name='hadvqcv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -535,6 +559,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadvqc
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -552,6 +577,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
 !
+      CHARACTER (len=50) :: subroutine_name='hadvch'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jp1 = j + 1
 #if defined(BAND) && (!defined(MPP1))
@@ -607,6 +636,7 @@
                  & ' you required is not available.'
         stop
       end if
+      CALL time_end(subroutine_name,index)
       end subroutine hadvch
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -643,6 +673,10 @@
       real(8) , dimension(iy,kz) :: fg
       integer :: i , k
 !
+      CHARACTER (len=50) :: subroutine_name='vadv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       integer :: jm1
 !----------------------------------------------------------------------
@@ -1012,6 +1046,7 @@
       end if
 !
 #endif
+      CALL time_end(subroutine_name,index)
       end subroutine vadv
 !
       end module mod_advection

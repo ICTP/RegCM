@@ -37,6 +37,7 @@
       use mod_radiation
       use mod_split
       use mod_savefile
+      use service_mod
 
 #ifdef MPP1
       use mod_mppio
@@ -75,6 +76,10 @@
       logical :: there
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='output'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !----------------------------------------------------------------------
 !
@@ -2033,7 +2038,7 @@
          & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.           &
          & nnnnnn.ne.nnnend ) call mkfile
 #endif
-
+      call time_end(subroutine_name,index) 
       end subroutine output
 !
       subroutine outname(ctype,idate,ffout)
@@ -2131,6 +2136,10 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       implicit none
+      CHARACTER (len=50) :: subroutine_name='outatm'
+      INTEGER :: index=0
+!
+!      CALL time_begin(subroutine_name,index)
 
 #ifdef MPP1
       call writerec_atm(jx,iy,kz,nnsg,ua_io,va_io,omega_io,ta_io,qva_io,&
@@ -2143,6 +2152,7 @@
  
       write (*,*) 'ATM variables written at ' , idatex , xtime
  
+!      call time_end(subroutine_name,index)
       end subroutine outatm
 !
       subroutine outsrf
@@ -2153,6 +2163,10 @@
 !
       integer :: i , j
 !
+      CHARACTER (len=50) :: subroutine_name='outsrf'
+      INTEGER :: index=0
+!
+!      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       i = iy-2
       j = jx
@@ -2168,6 +2182,7 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
+!      call time_end(subroutine_name,index)
       end subroutine outsrf
 !
       subroutine outsub
@@ -2176,6 +2191,10 @@
 
       integer :: i , j
 
+      CHARACTER (len=50) :: subroutine_name='outsub'
+      INTEGER :: index=0
+!
+!      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       i = iym2sg
       j = jxsg
@@ -2192,6 +2211,7 @@
 
       write (*,*) 'SUB variables written at ' , idatex , xtime
 
+!      call time_end(subroutine_name,index)
       end subroutine outsub
 !
       subroutine outrad
@@ -2200,6 +2220,10 @@
 !
       integer :: i , j , imax , jmax
 !
+      CHARACTER (len=50) :: subroutine_name='outrad'
+      INTEGER :: index=0
+!
+!      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       imax = iym2
       jmax = jx
@@ -2230,6 +2254,7 @@
 
       print * , 'RAD variables written at ' , idatex , xtime
  
+!      call time_end(subroutine_name,index)
       end subroutine outrad
 !
       subroutine outche
@@ -2246,6 +2271,10 @@
 !
       integer :: ni , itr , nj , nk , is , ie , js , je
 
+      CHARACTER (len=50) :: subroutine_name='outche'
+      INTEGER :: index=0
+!
+!      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       ni = iym2
       nj = jx
@@ -2289,6 +2318,7 @@
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
 
+!      call time_end(subroutine_name,index)
       end subroutine outche
 !
       end module mod_output

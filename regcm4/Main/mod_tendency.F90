@@ -52,6 +52,7 @@
       use mod_nudge
       use mod_che_tend
       use mod_diagnosis
+      use service_mod
 #ifdef MPP1
 #ifdef CLM
       use mod_clm
@@ -131,6 +132,10 @@
 #else
       real(8) , dimension(iy,kz,jx) :: ttld
 #endif
+      CHARACTER (len=50) :: subroutine_name='tend'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !----------------------------------------------------------------------
 !-----fill up the boundary slices:
@@ -2327,6 +2332,7 @@
 #endif
       end if
 !
+      call time_end(subroutine_name,index)
       end subroutine tend
 !
       end module mod_tendency

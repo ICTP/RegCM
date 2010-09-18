@@ -82,6 +82,7 @@
       use mod_param
       use mod_tendency
       use mod_tstep
+      use service_mod
 #ifdef MPP1
       use mpi
 #ifdef CLM
@@ -115,6 +116,8 @@
 
 #endif
 !
+
+      call activate_debug()
 !**********************************************************************
 !
 !     Read input global namelist
@@ -260,6 +263,7 @@
 !**********************************************************************
 !
       call output
+      call time_print(6,'inizialization phase')
 !
 !**********************************************************************
 !
@@ -304,6 +308,7 @@
         extime = extime + dtinc
 
       end do
+      call time_print(6,'evolution phase')
 !
 !**********************************************************************
 !
@@ -316,6 +321,8 @@
       write (aline, 99002) xtime , ktau , jyear
       call say
 !
+
+
 !**********************************************************************
 !
 !     Set length of next run (auto-restart option)

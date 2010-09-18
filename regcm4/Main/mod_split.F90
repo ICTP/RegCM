@@ -31,6 +31,7 @@
       use mod_main
       use mod_date
       use mod_savefile
+      use service_mod
 !
       private
 !
@@ -55,7 +56,11 @@
       contains 
 !
       subroutine allocate_mod_split
-        implicit none
+      implicit none
+      CHARACTER (len=50) :: subroutine_name='allocate_mod_split'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
         call allocate_mod_vmodes
         allocate(m(nsplit))
         allocate(am(kz,nsplit))
@@ -83,6 +88,7 @@
         allocate(uuu(iy,kz,jx))
         allocate(vvv(iy,kz,jx))
 #endif 
+        call time_end(subroutine_name,index)
         end subroutine allocate_mod_split
 !
 ! Intial computation of vertical modes.
@@ -108,6 +114,10 @@
       integer :: ierr
 #endif
       integer :: jp1
+      CHARACTER (len=50) :: subroutine_name='spinit'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !     lstand = .true. if standard atmosphere t to be used (ignore input
 !     tbarh and xps in that case).  otherwise, xps and tbarh must
@@ -480,6 +490,7 @@
         end do
       end if
 !
+      call time_end(subroutine_name,index)
       end subroutine spinit
 !
 ! Compute deld, delh, integrate in time and add correction terms appropriately
@@ -504,6 +515,10 @@
       integer :: ierr , ii
       real(8) , dimension(iy*nsplit) :: wkrecv , wksend
 #endif
+      CHARACTER (len=50) :: subroutine_name='splitf'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       do l = 1 , 3
         do n = 1 , nsplit
@@ -975,6 +990,7 @@
 !
 !=======================================================================
 !
+      call time_end(subroutine_name,index)
       end subroutine splitf
 !
       subroutine spstep(hhbar,dx2,dtau,im)
@@ -1000,7 +1016,12 @@
       integer :: ierr
       real(8) , dimension(iy*2) :: wkrecv , wksend
 #endif
+      CHARACTER (len=50) :: subroutine_name='spstep'
+      INTEGER :: index=0
 !
+      CALL time_begin(subroutine_name,index)
+!--
+      
       do n = 1 , nsplit
 #ifdef MPP1
         do j = 1 , jendl
@@ -1394,6 +1415,7 @@
 !
       end do
 !
+      call time_end(subroutine_name,index)
       end subroutine spstep
 !
       end module mod_split

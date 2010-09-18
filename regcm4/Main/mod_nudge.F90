@@ -25,6 +25,7 @@
       use mod_runparams
       use mod_bdycod
       use mod_main
+      use service_mod
 !
       private
 !
@@ -91,10 +92,14 @@
       integer :: jwb , jeb
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='nudge_p'
+      INTEGER :: index=0
+!
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -454,6 +459,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine nudge_p
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -483,10 +489,14 @@
       integer :: jwb , jeb
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='nudge_t'
+      INTEGER :: index=0
+!
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -901,6 +911,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine nudge_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -930,10 +941,15 @@
       integer :: jwb , jeb
 #endif
 #endif
+
+!
+      cHARACTER (len=50) :: subroutine_name='nudgeqv'
+      INTEGER :: index=0
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -1348,6 +1364,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine nudgeqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1377,10 +1394,14 @@
       integer :: jew
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='nudge_u'
+      INTEGER :: index=0
+!
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -1787,6 +1808,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine nudge_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1816,10 +1838,14 @@
       integer :: jew
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='nudge_v'
+      INTEGER :: index=0
+!
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
       xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
 !
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -2226,6 +2252,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine nudge_v
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2269,6 +2296,10 @@
 #endif
 #endif
 !
+      CHARACTER (len=50) :: subroutine_name='sponge_p'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 #ifdef BAND
 !----------------------------------------------------------------------
 !
@@ -2356,6 +2387,7 @@
       end if
 
 #endif
+      call time_end(subroutine_name,index)
       end subroutine sponge_p
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2379,6 +2411,10 @@
       integer :: jwb , jeb
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='sponge_t'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -2479,6 +2515,7 @@
       end if
 #endif
 
+      call time_end(subroutine_name,index)
       end subroutine sponge_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2502,6 +2539,10 @@
       integer :: jwb , jeb
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='spongeqv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -2600,6 +2641,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine spongeqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2623,6 +2665,10 @@
       integer :: jew
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='sponge_u'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 
 !
 #ifdef BAND
@@ -2715,6 +2761,7 @@
       else
       end if
 #endif
+      call time_end(subroutine_name,index)
       end subroutine sponge_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2738,6 +2785,10 @@
       integer :: jew
 #endif
 #endif
+      CHARACTER (len=50) :: subroutine_name='sponge_v'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -2829,6 +2880,8 @@
       else
       end if
 #endif
+
+      call time_end(subroutine_name,index)
       end subroutine sponge_v
 !
       end module mod_nudge
