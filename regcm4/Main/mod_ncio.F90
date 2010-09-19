@@ -1855,15 +1855,15 @@
           if (ctype == 'SUB') then
             yiy(1) = -(dble((o_nig-1)-1)/2.0) * ds
             xjx(1) = -(dble((o_njg-1)-1)/2.0) * ds
-            do i = o_isg , o_ieg
+            do i = 2 , o_nig
               yiy(i) = yiy(i-1)+ds
             end do
-            do j = o_jsg , o_jeg
+            do j = 2 , o_njg
               xjx(j) = xjx(j-1)+ds
             end do
-            istatus = nf90_put_var(ncid, ivvar(1), yiy(o_isg:o_ieg))
+            istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_nig))
             call check_ok('Error variable iy write', fterr)
-            istatus = nf90_put_var(ncid, ivvar(2), xjx(o_jsg:o_jeg))
+            istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_njg))
             call check_ok('Error variable jx write', fterr)
             istatus = nf90_put_var(ncid, illtpvar(1), ioxlat_s)
             call check_ok('Error variable xlat write', fterr)
@@ -1874,15 +1874,15 @@
           else
             yiy(1) = -(dble(o_ni-1)/2.0) * ds
             xjx(1) = -(dble(o_nj-1)/2.0) * ds
-            do i = o_is , o_ie
+            do i = 2 , o_ni
               yiy(i) = yiy(i-1)+ds
             end do
-            do j = o_js , o_je
+            do j = 2 , o_nj
               xjx(j) = xjx(j-1)+ds
             end do
-            istatus = nf90_put_var(ncid, ivvar(1), yiy(o_is:o_ie))
+            istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
             call check_ok('Error variable iy write', fterr)
-            istatus = nf90_put_var(ncid, ivvar(2), xjx(o_js:o_je))
+            istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_nj))
             call check_ok('Error variable jx write', fterr)
             istatus = nf90_put_var(ncid, illtpvar(1), ioxlat)
             call check_ok('Error variable xlat write', fterr)
@@ -2268,11 +2268,12 @@
           iradrec = iradrec + 1
         end subroutine writerec_rad
 
-        subroutine writerec_atm(nx, ny, nz, ns, u, v, omega, t, qv, qc, &
-                                ps, rc, rnc, tgb, swt, rno, mask, idate)
+        subroutine writerec_atm(nx, ny, nnx, nny, nz, ns, u, v, omega,  &
+                                t, qv, qc, ps, rc, rnc, tgb, swt, rno,  &
+                                mask, idate)
           use netcdf
           implicit none
-          integer , intent(in) :: nx , ny , ns , nz , idate
+          integer , intent(in) :: nx , nnx, nny , ny , ns , nz , idate
           real(8) , dimension(ny,nz,nx) , intent(in) :: u
           real(8) , dimension(ny,nz,nx) , intent(in) :: v
           real(8) , dimension(ny,nz,nx) , intent(in) :: omega
@@ -2282,19 +2283,21 @@
           real(8) , dimension(ny,nx) , intent(in) :: ps
           real(8) , dimension(ny,nx) , intent(in) :: rc
           real(8) , dimension(ny,nx) , intent(in) :: rnc
-          real(8) , dimension(ns,ny-1,nx-1) , intent(in) :: tgb
-          real(8) , dimension(ns,ny-1,nx-1) , intent(in) :: swt
-          real(8) , dimension(ns,ny-1,nx-1) , intent(in) :: rno
-          real(8) , dimension(ns,ny-1,nx-1) , intent(in) :: mask
+          real(8) , dimension(ns,nny,nnx) , intent(in) :: tgb
+          real(8) , dimension(ns,nny,nnx) , intent(in) :: swt
+          real(8) , dimension(ns,nny,nnx) , intent(in) :: rno
+          real(8) , dimension(ns,nny,nnx) , intent(in) :: mask
           integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
           integer , dimension(4) :: istart , icount
           real(8) , dimension(1) :: xtime
           character(len=10) :: ctime
 
-          if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
+          if (nx < o_nj .or. ny < o_ni .or. nz > o_nz .or. &
+              nnx < o_nj .or. nny < o_ni) then
             write (6,*) 'Error writing record on ATM file'
             write (6,*) 'Expecting layers ', o_nz, 'x', o_nj, 'x', o_ni
-            write (6,*) 'Got layers       ', nz, 'x', nx, 'x', ny
+            write (6,*) 'Got layers 0     ', nz, 'x', nx, 'x', ny
+            write (6,*) 'Got layers 1     ', nz, 'x', nnx, 'x', nny
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
 
@@ -2534,29 +2537,30 @@
           iatmrec = iatmrec + 1
         end subroutine writerec_atm
 
-        subroutine writerec_che(nx, ny, nz, nt, chia, aerext, aerssa,  &
-                                aerasp, dtrace, wdlsc, wdcvc, ddsfc,   &
-                                wxsg, wxaq, cemtrac, aertarf, aersrrf, &
-                                aertalwrf, aersrlwrf, ps, idate)
+        subroutine writerec_che(nx, ny, nnx, nny, nz, nt, chia, aerext, &
+                                aerssa, aerasp, dtrace, wdlsc, wdcvc,   &
+                                ddsfc, wxsg, wxaq, cemtrac, aertarf,    &
+                                aersrrf, aertalwrf, aersrlwrf, ps,      &
+                                idate)
           use netcdf
           implicit none
-          integer , intent(in) :: nx , ny , nz , nt , idate
-          real(8) , dimension(ny,nz,nx,nt) , intent(in) :: chia
-          real(8) , dimension(ny,nz,nx) , intent(in) :: aerext
-          real(8) , dimension(ny,nz,nx) , intent(in) :: aerssa
-          real(8) , dimension(ny,nz,nx) , intent(in) :: aerasp
-          real(8) , dimension(ny,nx,nt) , intent(in) :: dtrace
-          real(8) , dimension(ny,nx,nt) , intent(in) :: wdlsc
-          real(8) , dimension(ny,nx,nt) , intent(in) :: wdcvc
-          real(8) , dimension(ny,nx,nt) , intent(in) :: ddsfc
-          real(8) , dimension(ny,nx,nt) , intent(in) :: wxsg
-          real(8) , dimension(ny,nx,nt) , intent(in) :: wxaq
-          real(8) , dimension(ny,nx,nt) , intent(in) :: cemtrac
-          real(8) , dimension(ny,nx) , intent(in) :: ps
-          real(8) , dimension(ny,nx) , intent(in) :: aertarf
-          real(8) , dimension(ny,nx) , intent(in) :: aersrrf
-          real(8) , dimension(ny,nx) , intent(in) :: aertalwrf
-          real(8) , dimension(ny,nx) , intent(in) :: aersrlwrf
+          integer , intent(in) :: nx , ny , nnx , nny , nz , nt , idate
+          real(8) , dimension(iy,kz,jx,nt) , intent(in) :: chia
+          real(8) , dimension(nny,nz,nnx) , intent(in) :: aerext
+          real(8) , dimension(nny,nz,nnx) , intent(in) :: aerssa
+          real(8) , dimension(nny,nz,nnx) , intent(in) :: aerasp
+          real(8) , dimension(iy,jx,nt) , intent(in) :: dtrace
+          real(8) , dimension(iy,jx,nt) , intent(in) :: wdlsc
+          real(8) , dimension(iy,jx,nt) , intent(in) :: wdcvc
+          real(8) , dimension(iy,jx,nt) , intent(in) :: ddsfc
+          real(8) , dimension(iy,jx,nt) , intent(in) :: wxsg
+          real(8) , dimension(iy,jx,nt) , intent(in) :: wxaq
+          real(8) , dimension(iy,jx,nt) , intent(in) :: cemtrac
+          real(8) , dimension(iy,jx) , intent(in) :: ps
+          real(8) , dimension(nny,nnx) , intent(in) :: aertarf
+          real(8) , dimension(nny,nnx) , intent(in) :: aersrrf
+          real(8) , dimension(nny,nnx) , intent(in) :: aertalwrf
+          real(8) , dimension(nny,nnx) , intent(in) :: aersrlwrf
           integer :: n , k
           integer , dimension(5) :: istart , icount
           real(8) , dimension(1) :: xtime
@@ -2578,7 +2582,7 @@
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
 
-          dumio(:,:,1) = transpose(ps+rpt)*10.0
+          dumio(:,:,1) = transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*10.0
           istart(3) = icherec
           istart(2) = 1
           istart(1) = 1
@@ -2601,7 +2605,8 @@
             icount(2) = o_ni
             icount(1) = o_nj
             do k = 1 , nz
-              dumio(:,:,k) = transpose(chia(:,k,:,n)/ps)
+              dumio(:,:,k) = transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
+                                       ps(o_is:o_ie,o_js:o_je))
             end do
             istatus = nf90_put_var(ncche, ichevar(3), &
                                  dumio, istart, icount)
@@ -2618,21 +2623,21 @@
           icount(2) = o_ni
           icount(1) = o_nj
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerext(:,:,k))
+            dumio(:,:,k) = transpose(aerext(o_is:o_ie,k,o_js:o_je))
           end do
           istatus = nf90_put_var(ncche, ichevar(4), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(4)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerssa(:,:,k))
+            dumio(:,:,k) = transpose(aerssa(o_is:o_ie,k,o_js:o_je))
           end do
           istatus = nf90_put_var(ncche, ichevar(5), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(5)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerasp(:,:,k))
+            dumio(:,:,k) = transpose(aerasp(o_is:o_ie,k,o_js:o_je))
           end do
           istatus = nf90_put_var(ncche, ichevar(6), &
                                  dumio, istart(1:4), icount(1:4))
@@ -2647,37 +2652,37 @@
             icount(3) = 1
             icount(2) = o_ni
             icount(1) = o_nj
-            dumio(:,:,1) = transpose(dtrace(:,:,n))
+            dumio(:,:,1) = transpose(dtrace(o_is:o_ie,o_js:o_je,n))
             istatus = nf90_put_var(ncche, ichevar(7), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(7)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdlsc(:,:,n))*cfd
+            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(8), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(8)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdcvc(:,:,n))*cfd
+            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(9), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(9)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(ddsfc(:,:,n))*cfd
+            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(10), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(10)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxsg(:,:,n))*cfd
+            dumio(:,:,1) = transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(11), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(11)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxaq(:,:,n))*cfd
+            dumio(:,:,1) = transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(12), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(12)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(cemtrac(:,:,n))*cfd
+            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd
             istatus = nf90_put_var(ncche, ichevar(13), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(13)// &
@@ -2689,22 +2694,22 @@
           icount(3) = 1
           icount(2) = o_ni
           icount(1) = o_nj
-          dumio(:,:,1) = transpose(aertarf)
+          dumio(:,:,1) = transpose(aertarf(o_is:o_ie,o_js:o_je))
           istatus = nf90_put_var(ncche, ichevar(14), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(14)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrrf)
+          dumio(:,:,1) = transpose(aersrrf(o_is:o_ie,o_js:o_je))
           istatus = nf90_put_var(ncche, ichevar(15), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(15)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aertalwrf)
+          dumio(:,:,1) = transpose(aertalwrf(o_is:o_ie,o_js:o_je))
           istatus = nf90_put_var(ncche, ichevar(16), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(16)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrlwrf)
+          dumio(:,:,1) = transpose(aersrlwrf(o_is:o_ie,o_js:o_je))
           istatus = nf90_put_var(ncche, ichevar(17), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(17)//' at '//ctime, &

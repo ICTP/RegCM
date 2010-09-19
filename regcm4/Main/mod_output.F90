@@ -293,7 +293,7 @@
                         & mpi_real4,rad_0,(iym2)                 &
                         & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,          &
                         & mpi_comm_world,ierr)
-         call mpi_gather(psa, iy*jxp,mpi_real8,                    &
+         call mpi_gather(psa(:,1:jxp), iy*jxp,mpi_real8,           &
                         & psa_io,iy*jxp,mpi_real8,                 &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
@@ -2141,13 +2141,23 @@
 !
 !      CALL time_begin(subroutine_name,index)
 
-#ifdef MPP1
-      call writerec_atm(jx,iy,kz,nnsg,ua_io,va_io,omega_io,ta_io,qva_io,&
-                        qca_io,psa_io,rainc_io,rainnc_io,tgb2d_io, &
-                        swt2d_io,rno2d_io,ocld2d_io,idatex)
+      integer :: jjx , iiy
+#ifdef BAND
+      jjx = jx
+      iiy = iym1
 #else
-      call writerec_atm(jx,iy,kz,nnsg,ua,va,omega,ta,qva,qca,psa,rainc, &
-                        rainnc,tgb2d,swt2d,rno2d,ocld2d,idatex)
+      jjx = jxm1
+      iiy = iym1
+#endif
+
+#ifdef MPP1
+      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,ua_io,va_io,omega_io,    &
+                        ta_io,qva_io,qca_io,psa_io,rainc_io,rainnc_io, &
+                        tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
+#else
+      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,ua,va,omega,ta,qva,qca,  &
+                        psa,rainc,rainnc,tgb2d,swt2d,rno2d,ocld2d,     &
+                        idatex)
 #endif
  
       write (*,*) 'ATM variables written at ' , idatex , xtime
@@ -2218,7 +2228,7 @@
 !
       implicit none
 !
-      integer :: i , j , imax , jmax
+      integer :: i , j , imax , jmax , istart, jstart
 !
       CHARACTER (len=50) :: subroutine_name='outrad'
       INTEGER :: index=0
@@ -2227,17 +2237,21 @@
 #ifdef BAND
       imax = iym2
       jmax = jx
+      istart = 1
+      jstart = 0
 #else
       imax = iym2
       jmax = jxm2
+      istart = 1
+      jstart = 1
 #endif
 
       do i = 1 , imax
         do j = 1 , jmax
 #ifdef MPP1
-          radpsa_io(j,i) = (psa_io(i+1,j)+r8pt)*10.
+          radpsa_io(j,i) = (psa_io(i+istart,j+jstart)+r8pt)*10.
 #else
-          radpsa(j,i) = (psa(i+1,j)+r8pt)*10.
+          radpsa(j,i) = (psa(i+istart,j+jstart)+r8pt)*10.
 #endif
         end do
       end do
@@ -2296,25 +2310,16 @@
 #endif
 
 #ifdef MPP1
-     call writerec_che(nj, ni, nk, itr, chia_io(is:ie,:,js:je,:),     &
-                aerext_io(is:ie,:,js:je), aerssa_io(is:ie,:,js:je),   &
-                aerasp_io(is:ie,:,js:je), dtrace_io(is:ie,js:je,:),   &
-                wdlsc_io(is:ie,js:je,:), wdcvc_io(is:ie,js:je,:),     &
-                ddsfc_io(is:ie,js:je,:), wxsg_io(is:ie,js:je,:),      &
-                wxaq_io(is:ie,js:je,:), cemtrac_io(is:ie,js:je,:),    &
-                aertarf_io(is:ie,js:je), aersrrf_io(is:ie,js:je),     &
-                aertalwrf_io(is:ie,js:je), aersrlwrf_io(is:ie,js:je), &
-                psa_io(is:ie,js:je), idatex)
+     call writerec_che(nj, ni, je, ie, nk, itr, chia_io,     &
+                aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
+                wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
+                wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
+                aertalwrf_io, aersrlwrf_io, psa_io, idatex)
 #else
-     call writerec_che(nj, ni, nk, itr, chia(is:ie,:,js:je,:),  &
-                aerext(is:ie,:,js:je), aerssa(is:ie,:,js:je),   &
-                aerasp(is:ie,:,js:je), dtrace(is:ie,js:je,:),   &
-                wdlsc(is:ie,js:je,:), wdcvc(is:ie,js:je,:),     &
-                ddsfc(is:ie,js:je,:), wxsg(is:ie,js:je,:),      &
-                wxaq(is:ie,js:je,:), cemtrac(is:ie,js:je,:),    &
-                aertarf(is:ie,js:je), aersrrf(is:ie,js:je),     &
-                aertalwrf(is:ie,js:je), aersrlwrf(is:ie,js:je), &
-                psa(is:ie,js:je), idatex)
+     call writerec_che(nj, ni, nk, itr, chia, aerext, aerssa,   &
+                aerasp, dtrace, wdlsc, wdcvc, ddsfc, wxsg,      &
+                wxaq, cemtrac, aertarf, aersrrf, aertalwrf,     &
+                aersrlwrf, psa, idatex)
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
 
