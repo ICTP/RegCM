@@ -26,6 +26,7 @@
       use mod_main
       use mod_message
       use mod_date
+      use service_mod
 !
 #ifdef CLM
       use mod_clm
@@ -67,6 +68,10 @@
 !
 !----------------------------------------------------------------------
 !
+      CHARACTER (len=50) :: subroutine_name='solar1'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 #ifdef CLM
       log_print = .false.
 
@@ -105,6 +110,7 @@
 99001 format (11x,'*** Day ',f12.8,' solar declination angle = ',f12.8,&
           &   ' degrees.')
 !
+      call time_end(subroutine_name,index)
       end subroutine solar1
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -131,6 +137,10 @@
 #else
       real(8) :: omega , tlocap , xt24 , xxlat
 #endif
+      CHARACTER (len=50) :: subroutine_name='zenitm'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
 !***********************************************************************
 !
@@ -159,6 +169,7 @@
       end do
 #endif
 !
+      call time_end(subroutine_name,index)
       end subroutine zenitm
 !
       end module mod_sun

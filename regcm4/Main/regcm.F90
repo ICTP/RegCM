@@ -264,6 +264,7 @@
 !
       call output
       call time_print(6,'inizialization phase')
+      call time_reset()
 !
 !**********************************************************************
 !

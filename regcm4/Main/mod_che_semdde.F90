@@ -29,6 +29,7 @@
       use mod_aerosol
       use mod_message
       use mod_ncio
+      use service_mod 
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
@@ -116,6 +117,11 @@
       integer :: itr , ierr
 #endif
 !
+      CHARACTER (len=50) :: subroutine_name='chsrfem'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
+
 
 ! fisrt activate dust initialization
 
@@ -284,6 +290,7 @@
         write (*,*) '! OPDATA CHECKED !'
 #endif
       end if
+      call time_end(subroutine_name,index) 
       end subroutine chsrfem
 !
 !**************************************************************
@@ -354,6 +361,10 @@
  
       real(8) , parameter :: z10 = 10.0
       real(8) , dimension(isize) :: avesize
+      CHARACTER (len=50) :: subroutine_name='chdrydep'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 
       i = 0
       do n = 1 , isize
@@ -743,6 +754,7 @@
         end if
       end do
 ! 
+      call time_end(subroutine_name,index)
       end subroutine chdrydep
 !
       end module mod_che_semdde

@@ -23,7 +23,7 @@
       use mod_dynparam
       use mod_runparams
       use mod_message
-
+      use service_mod
       private
 
       public :: allocate_mod_vmodes , vmodes
@@ -149,6 +149,10 @@
 !
       data lprint/.false./  ! true if all matrices to be printed
 !
+      CHARACTER (len=50) :: subroutine_name='vmodes'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       numerr = 0
       lprint = .false.
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -531,6 +535,7 @@
              &' errors detected   (should be 0)')
 99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
  
+      call time_end(subroutine_name,index)
       end subroutine vmodes
 !
 !  Check that eigenvalues are real and positive valued.
@@ -598,7 +603,7 @@
                &' using library routine     ier=',i4)
       end if
 !
-      end subroutine vcheki
+       end subroutine vcheki
 !
 !  This routine normalizes the columns of z such that the component
 !  with the largest absolute value is positive, and the sum of the
@@ -656,6 +661,10 @@
 !     uses subroutines sgefa/sgedi from library linpack
 !     see dick valent, (SCD, consulting) if problems
 !
+      CHARACTER (len=50) :: subroutine_name='invmtrx'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       if ( n.ne.na .or. n.ne.nv ) call fatal(__FILE__,__LINE__,         &
           &'valent invmtx: equate n, na, nv')
 !
@@ -673,6 +682,7 @@
       job = 11
       call sgedi(v,n,n,ip,d,work,job)
       ier = info
+      call time_end(subroutine_name,index)  
       end subroutine invmtrx
 !
 !  This routine orders the components of hbar so they are largest to
@@ -737,7 +747,7 @@
  
       print 99001 , nam , a
 99001 format ('0',a8,1x,1p,11G11.3,1x,/,9x,1p,11G11.3)
-      end subroutine vprntv
+       end subroutine vprntv
 !
 !
 ! 
@@ -784,6 +794,10 @@
       integer :: k
       logical :: lstab
 !
+      CHARACTER (len=50) :: subroutine_name='vchekt'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       lstab = .true.
       do k = 1 , nk - 1
         ds1 = sigmaf(k+1) - sigmaf(k)
@@ -799,7 +813,9 @@
 99001   format ('0 indication that tbarh statically unstable')
       end if
 !
+      call time_end(subroutine_name,index)
       end subroutine vchekt
+
 !
       subroutine vtlaps(t,sigma,pt,pd,nk)
 
@@ -836,5 +852,7 @@
       end do
 !
       end subroutine vtlaps
+
+
 !
       end module mod_vmodes

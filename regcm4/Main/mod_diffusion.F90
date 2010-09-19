@@ -25,7 +25,7 @@
       use mod_runparams
       use mod_slice
       use mod_main
-
+      use service_mod 
       private
 
       public :: diffu_u , diffu_v , diffut_t , diffutqv , diffutqc , &
@@ -65,6 +65,10 @@
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
+      CHARACTER (len=50) :: subroutine_name='diffu_u'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jm2 = j - 2
       jp1 = j + 1
@@ -191,6 +195,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index) 
       end subroutine diffu_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -207,6 +212,10 @@
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
+      CHARACTER (len=50) :: subroutine_name='diffu_v'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jm2 = j - 2
       jp1 = j + 1
@@ -332,6 +341,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index)
       end subroutine diffu_v
 !
       subroutine diffut_t(ften,xkc,j)
@@ -346,6 +356,10 @@
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
+      CHARACTER (len=50) :: subroutine_name='diffut_t'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !-----compute the diffusion term for t:
 !
       jm1 = j - 1
@@ -433,6 +447,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index)
       end subroutine diffut_t
 !
       subroutine diffutqv(ften,xkc,j)
@@ -447,6 +462,10 @@
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
+      CHARACTER (len=50) :: subroutine_name='diffutqv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !-----compute the diffusion term for qv:
 !
       jm1 = j - 1
@@ -540,6 +559,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index)
       end subroutine diffutqv
 !
       subroutine diffutqc(ften,xkc,j)
@@ -556,6 +576,10 @@
 !
 !-----compute the diffusion term for qc:
 !
+      CHARACTER (len=50) :: subroutine_name='diffutqc'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jm2 = j - 2
       jp1 = j + 1
@@ -647,6 +671,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index)
       end subroutine diffutqc
 !
       subroutine diffutch(ften,xkc,n,j)
@@ -663,6 +688,10 @@
 !
 !-----compute the diffusion term for chi:
 !
+      CHARACTER (len=50) :: subroutine_name='diffutch'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       jm1 = j - 1
       jm2 = j - 2
       jp1 = j + 1
@@ -754,6 +783,7 @@
       end if
 !
 #endif
+      call time_end(subroutine_name,index) 
       end subroutine diffutch
 !
       end module mod_diffusion

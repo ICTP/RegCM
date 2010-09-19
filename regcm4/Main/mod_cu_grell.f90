@@ -19,6 +19,7 @@
  
       module mod_cu_grell
 
+      use service_mod 
       contains
 
       subroutine cuparan(tten,qten,j)
@@ -50,6 +51,10 @@
                                   & tn , vsp
       real(8) , dimension(iy) :: pret , psur , qcrit , ter11
 !
+      CHARACTER (len=50) :: subroutine_name='cuparan'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !     zero out radiative clouds
 !
       cldlwc = 0.0
@@ -138,6 +143,7 @@
       end do
       icon(j) = iconj
 !
+      call time_end(subroutine_name,index)
       end subroutine cuparan
 !
 !    GRELL CUMULUS SCHEME
@@ -193,6 +199,10 @@
       integer :: i , iph , ipho , k , kbcono , kclth , kk , lpt
       integer , dimension(iy) :: jmin , k22 , kb , kbcon , kds , ktop
 !
+      CHARACTER (len=50) :: subroutine_name='cup'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       tcrit = 50.
  
       tfinv = 1./tzero
@@ -943,6 +953,7 @@
         end if
  
       end do
+      call time_end(subroutine_name,index)
       end subroutine cup
 !
 !
@@ -963,6 +974,10 @@
 !
       integer :: i , k
       real(8) :: x
+      CHARACTER (len=50) :: subroutine_name='minimi'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !
       do i = istart , iend
         kt(i) = ks(i)
@@ -975,7 +990,8 @@
         end do
       end do
 !
-      end subroutine minimi
+      call time_end(subroutine_name,index) 
+       end subroutine minimi
 !
 !
 !
@@ -996,6 +1012,10 @@
       integer :: i , k
       real(8) :: x , xar
 !
+      CHARACTER (len=50) :: subroutine_name='maximi'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
       do i = istart , iend
         imax(i) = ks
         x = array(i,ks)
@@ -1008,6 +1028,7 @@
         end do
       end do
 !
+      call time_end(subroutine_name,index) 
       end subroutine maximi
 
       end module mod_cu_grell

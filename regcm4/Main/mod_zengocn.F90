@@ -31,6 +31,7 @@
       use mod_bats
       use mod_date
       use mod_bdycod
+      use service_mod
 #ifdef CLM
       use clm_varsur , only : landmask
 #endif
@@ -73,6 +74,10 @@
       real(8) , parameter :: nu = 0.3
       real(8) , parameter :: d = 3 ! reference depth for bulk SST
 !
+      CHARACTER (len=50) :: subroutine_name='zengocndrv'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 #ifdef CLM
       jj = (jxp*myid) + j
 #endif
@@ -202,6 +207,7 @@
         end do
       end do
 !
+      call time_end(subroutine_name,index)
       end subroutine zengocndrv
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -259,6 +265,10 @@
                & wc , xlv , z10 , zbeta , zeta , zetam , zetat , zoq
       integer :: i
 !
+      CHARACTER (len=50) :: subroutine_name='zengocn'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 !***********************************************************************
 !
       zbeta = 1.   ! -  (in computing W_*)
@@ -411,6 +421,7 @@
       else
         u10 = u + (ustar/vonkar)*(dlog(z10/hu)+5.*zeta-5.*hu/obu)
       end if
+      call time_end(subroutine_name,index)  
       end subroutine zengocn
 !
 ! stability function for rb < 0
