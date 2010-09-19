@@ -676,10 +676,11 @@
       CHARACTER (len=50) :: subroutine_name='vadv'
       INTEGER :: index=0
 !
-      CALL time_begin(subroutine_name,index)
 #ifdef BAND
       integer :: jm1
 !----------------------------------------------------------------------
+!----------------------------------------------------------------------
+      CALL time_begin(subroutine_name,index)
 #ifdef MPP1
       jm1 = j-1
 #else
@@ -869,6 +870,7 @@
 !
 #else
 !----------------------------------------------------------------------
+      CALL time_begin(subroutine_name,index)
 !
       if ( ind.eq.1 ) then
 !

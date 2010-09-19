@@ -121,7 +121,7 @@ CONTAINS
     LOGICAL :: safe=.TRUE.
     INTEGER :: ierr1,idum
     INTEGER,EXTERNAL :: intstr
-#ifndef SERIAL
+#ifdef MPP1
 
     INCLUDE 'mpif.h'  
 
@@ -365,7 +365,7 @@ CONTAINS
 
 #ifdef DEBUG
 
-#ifndef SERIAL
+#ifdef MPP1
     INCLUDE 'mpif.h'  
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
 #endif  
@@ -389,7 +389,7 @@ CONTAINS
     ALLOCATE(array_tmp(0:mxnode-1))
     ALLOCATE(array_entries(0:mxnode-1))
 
-#ifndef SERIAL
+#ifdef MPP1
     ! check if the calling tree is the same on all nodes 
     CALL gather_i(array_entries,n_of_ENTRY)
     test=array_entries(0)  
@@ -410,7 +410,7 @@ CONTAINS
     IF (L_ENTRY) THEN
        DO ENTRY=1,n_of_ENTRY
 
-#ifndef SERIAL
+#ifdef MPP1 
           L_times_on_pe=.FALSE.
           CALL gather_i(a_tmp,info_serial(ENTRY)%n_of_time)
           ! check the number of time
@@ -463,7 +463,7 @@ CONTAINS
     END DO
 
 
-#ifndef SERIAL
+#ifdef MPP1
 
     IF (node==0) THEN
        WRITE(iunit,"(1x,'!',19x,a30,/)") 'Communication subroutines :   '
@@ -548,7 +548,7 @@ CONTAINS
     REAL (kind=8) :: f_sub
 
 #ifdef DEBUG
-#ifdef SERIAL
+#ifndef MPP1 
     f_collect(1)=f_sub
 #else
     INCLUDE 'mpif.h'  
@@ -569,7 +569,7 @@ CONTAINS
 
 
 
-#ifndef SERIAL 
+#ifdef MPP1 
   !!>
   !!   ROUTINE : GATHER_I
   !!   PACKAGE VERSION : DLPROTEIN-2.1
@@ -636,7 +636,7 @@ CONTAINS
 
   !!>
   !!   ROUTINE : ERROR_PROT
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
+  !!   PACKAGE VERSION : regcm4 (inerithed by dlprotein2.1) 
   !!   ACTION : general purpose error/debug routine. Arguments are
   !!            sub: name of calling subroutine
   !!            ierr > 0: warning. Returns control to calling subroutine.
@@ -648,7 +648,7 @@ CONTAINS
 
 
     IMPLICIT NONE
-#ifndef SERIAL 
+#ifdef MPP1 
     INCLUDE 'mpif.h'    
 #endif
     CHARACTER*(*), INTENT(in) :: sub
@@ -693,7 +693,7 @@ CONTAINS
     IF (err_code > 0) THEN
 
        CLOSE (nrite)
-#ifdef SERIAL 
+#ifndef  MPP1 
        STOP 
 #else
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr) 
@@ -888,6 +888,6 @@ CONTAINS
     CALL SYSTEM_CLOCK (COUNT=C, COUNT_RATE=R, COUNT_MAX=M)
     timer= dble(C)/dble(R)
     return
-  end
+  end function
 
 END MODULE service_mod
