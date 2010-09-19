@@ -203,7 +203,7 @@ CONTAINS
     WRITE(string,'(A29,A20,A6,A8)') &
          'Debugging started in routine:',substr(1:20),', line',SLINE  
     WRITE(ndebug+NODE,'(A80)') string
-    CALL flush(ndebug+node)
+    CALL flusha(ndebug+node)
     IF (LDEBUG) THEN 
        WRITE(ndebug+NODE,*) 'Debug already active, debug level=',debug_level
     ELSE 
@@ -246,7 +246,7 @@ CONTAINS
     LDEBUG=.FALSE.
     debug_level=0
     WRITE(ndebug+NODE,'(A80)') string
-    CALL flush(ndebug+node)
+    CALL flusha(ndebug+node)
 #endif
   END SUBROUTINE STOP_DEBUG
 
@@ -278,7 +278,7 @@ CONTAINS
        nlevel=nlevel+1
        IF (nlevel.LE.4) THEN 
           WRITE(ndebug+node,*) stringa(1:nlevel*2),name(1:20),"(in)",nlevel
-          CALL flush(ndebug+node)
+          CALL flusha(ndebug+node)
        ENDIF
     END IF
 #endif 
@@ -311,7 +311,7 @@ CONTAINS
        IF (nlevel.LE.4) THEN 
           WRITE(ndebug+node,*) &
                stringa(1:nlevel*2),name_of_section(1:20),"(out)",nlevel
-          CALL flush(ndebug+node)
+          CALL flusha(ndebug+node)
        END IF
        nlevel=nlevel-1
     END IF
@@ -458,7 +458,7 @@ CONTAINS
           WRITE(ndebug+NODE,102) NAME, & 
                info_serial(ENTRY)%n_of_time, &
                info_serial(ENTRY)%total_time
-          call flush(ndebug+NODE)
+          call flusha(ndebug+NODE)
        ENDIF
     END DO
 
@@ -498,7 +498,7 @@ CONTAINS
 #endif
     IF(node==0) THEN  
        WRITE(iunit,"(/,1x,10('!'),' End of Specific TIMING ', 47('!'),/)")
-       call flush(iunit)
+       call flusha(iunit)
     ENDIF
 100 FORMAT(1x,'!',A15,1x,I10,1x,F9.4,1x,F9.4,'(',i3,')',1x,f9.4,'(',i3,')')   
 
@@ -685,7 +685,7 @@ CONTAINS
                error_TYPE, err_code, sub, message
 
        ENDIF
-       CALL FLUSH(nrite)
+       CALL flusha(nrite)
 
     ENDIF
 
@@ -726,7 +726,7 @@ CONTAINS
     ELSE
        WRITE(ndebug+node,'(A20,'':'',A,i10)') sub(1:20),variable,value
     END IF
-    CALL flush(ndebug+node)
+    CALL flusha(ndebug+node)
 
 #endif
   END SUBROUTINE printa_i
@@ -753,7 +753,7 @@ CONTAINS
     ELSE
        WRITE(ndebug+node,'(A20,'':'',A,f20.10)') sub(1:20),variable,value
     END IF
-    CALL flush(ndebug+node)
+    CALL flusha(ndebug+node)
 
 #endif
   END SUBROUTINE printa_r
@@ -783,7 +783,7 @@ CONTAINS
        WRITE(string,'(A20,'':'',A24,A20)') &
             sub(1:20),'error allocating: ',variable(1:20)
     END IF
-    CALL flush(ndebug+node)
+    CALL flusha(ndebug+node)
     !! if an error occours stops the program... 
     CALL error_prot(sub_e,3000,string)
   END SUBROUTINE e_alloca
@@ -821,7 +821,7 @@ CONTAINS
     WRITE(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
          string,varia,subro,sline
 
-    CALL flush(ndebug+node) 
+    CALL flusha(ndebug+node) 
 
   END SUBROUTINE check_memory_r
 
@@ -858,7 +858,7 @@ CONTAINS
     WRITE(ndebug+node,"(A36,'for ',A10, ' in sub ',A20,'at line=',A7)") &
          string,varia,subro,sline
 
-    CALL flush(ndebug+node) 
+    CALL flusha(ndebug+node) 
 
   END SUBROUTINE check_memory_i
 
@@ -889,5 +889,20 @@ CONTAINS
     timer= dble(C)/dble(R)
     return
   end function
+
+  subroutine flusha( lunit, errno )
+  integer, intent(in)  :: lunit
+  integer, intent(out),optional :: ERRNO
+  if ( PRESENT(ERRNO) ) errno=0
+
+! If whe have a FLUSH, use it 
+!  On IBM, flush is flush_ 
+#ifdef IBM 
+	call FLUSH_(lunit)  
+#else
+	call flush(lunit)
+#endif        
+ end subroutine flusha
+
 
 END MODULE service_mod
