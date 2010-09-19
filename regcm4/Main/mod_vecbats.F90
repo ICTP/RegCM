@@ -30,6 +30,7 @@
       use mod_bndry
       use mod_drag
       use mod_main
+      use service_mod
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -162,6 +163,11 @@
 ! Dummy arguments
 !
       integer, intent(in) :: j , k , istart , iend , ng
+!!
+      CHARACTER (len=50) :: subroutine_name='vecbats'
+      integer :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 
 !---------------------------------------------------------------------
 
@@ -184,6 +190,7 @@
 ! 
 ! ****************************************************************
 ! 
+      call time_end(subroutine_name,index)
       end subroutine vecbats
 !
       subroutine initb
@@ -219,6 +226,11 @@
  
 !     ****** typically resp=1.0 kg/m**2/s and changes by<10% in 10 days
 !
+!!
+      CHARACTER (len=50) :: subroutine_name='initb'
+      integer :: index=0
+!
+      CALL time_begin(subroutine_name,index)
 #ifdef MPP1
       do jll = 1 , jendx
 #else
@@ -340,6 +352,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index)
       end subroutine initb
 !
       subroutine interf(ivers,j,k,istart,iend,ng)
@@ -388,6 +401,11 @@
 !     19.  convective precipitation
 !     20.  surface pressure
 !     21.  pbl height
+!!
+      CHARACTER (len=50) :: subroutine_name='interf'
+      integer :: index=0
+!
+      CALL time_begin(subroutine_name,index)
  
       if ( ivers.eq.1 ) then ! regcm2d --> bats
 
@@ -1045,6 +1063,7 @@
       else ! end ivers test
       end if
 !
+      call time_end(subroutine_name,index)
       end subroutine interf
 !
       subroutine albedov(j,iemiss)
@@ -1067,6 +1086,10 @@
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas
       integer :: kolour , n , i
+      CHARACTER (len=50) :: subroutine_name='albedov'
+      integer :: index=0
+!
+ 
 !
 !     Albedo calculates fragmented albedos (direct and diffuse) in
 !     wavelength regions split at 0.7um.
@@ -1096,6 +1119,8 @@
 !     =================================================================
       fseas(x) = dmax1(0.D0,1.D0-0.0016D0*dmax1(298.D0-x,0.D0)**2)
 !
+!
+      call time_begin(subroutine_name,index)
 !     1.1 constants
 !
 !     Solar flux partitioned at wavelength of 0.7micr
@@ -1341,6 +1366,7 @@
  
       end do
  
+      call time_end(subroutine_name,index)
       end subroutine albedov
       subroutine soilbc
 
@@ -1367,6 +1393,11 @@
 !     capacity is assumed to be 2 mm/day (baver et al., 1972)
 !     ===============================================================
 !
+!
+      CHARACTER (len=50) :: subroutine_name='soilbc'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
  
       do i = 2 , iym1
         do n = 1 , nnsg
@@ -1406,6 +1437,7 @@
         end do
       end do
  
+      call time_end(subroutine_name,index)
       end subroutine soilbc
 !
       subroutine zenith(dec,alat,fjd,coszrs,frac,imax)
@@ -1458,6 +1490,11 @@
       real(8) :: cc , cosz , dlon , ha , ss , tpifjd
       integer :: i
 !
+      CHARACTER (len=50) :: subroutine_name='zenith'
+      INTEGER :: index=0
+!
+      CALL time_begin(subroutine_name,index)
+!
 !***********************************************************************
 !
       ss = dsin(alat)*dsin(dec)
@@ -1472,6 +1509,7 @@
         coszrs(i) = cosz
       end do
 !
+      call time_end(subroutine_name,index)
       end subroutine zenith
 !
       subroutine slice1D(j)

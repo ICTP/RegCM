@@ -242,6 +242,7 @@
         allocate(vjl(iy,kz))
         allocate(vjlx(iy,kz))
 #endif
+        CALL time_end(subroutine_name,index)
         end subroutine allocate_mod_bdycon
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -978,7 +979,7 @@
         end do
       end if
 #endif
-
+      call time_end(subroutine_name,index)
       end subroutine bdyin
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1396,6 +1397,7 @@
 
 #endif
 !
+      CALL time_end(subroutine_name,index)
       end subroutine bdyuv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -2485,6 +2487,7 @@
       end if
 #endif
 !
+      CALL time_end(subroutine_name,index)
       end subroutine bdyval
 !
       end module mod_bdycod
