@@ -132,8 +132,8 @@ CONTAINS
     CALL MPI_initialized(called_mpi,ierr1)
 
     ! Number of processes 
-    CALL MPI_COMM_RANK( MPI_COMM_WORLD,node,ierr1)	
-    CALL MPI_COMM_SIZE( MPI_COMM_WORLD,mxnode,ierr1)	
+    CALL MPI_COMM_RANK( MPI_COMM_WORLD,node,ierr1)
+    CALL MPI_COMM_SIZE( MPI_COMM_WORLD,mxnode,ierr1)
 
     !! allocate and initialize this vector needed in timing routines..
     ALLOCATE(a_tmp(0:mxnode-1))
@@ -293,7 +293,7 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER (len=50) ::  name_of_section
     INTEGER, INTENT(IN) :: index
-    INTEGER, OPTIONAL :: isize  	
+    INTEGER, OPTIONAL :: isize
     REAL (Kind=8)  :: time_CALL
     CHARACTER (len=50) :: name
     CHARACTER (len=50)  :: stringa=' '
@@ -356,7 +356,7 @@ CONTAINS
     REAL (kind=8)  , ALLOCATABLE :: array_tmp(:)
     INTEGER , ALLOCATABLE :: array_entries(:)
     LOGICAL :: called=.TRUE.,FLAG_ENTRY=.FALSE.,L_TIMES_on_PE=.FALSE.
-    LOGICAL :: L_ENTRY=.TRUE.	
+    LOGICAL :: L_ENTRY=.TRUE.
     INTEGER :: nwords,ierr,nword_send,nword_receive,ierr1
     REAL    :: total_comm_time=0.0
     REAL    :: avg_value
@@ -519,7 +519,7 @@ CONTAINS
   !!<
   SUBROUTINE time_reset
     IMPLICIT NONE 
-    INTEGER :: ENTRY 	
+    INTEGER :: ENTRY
 
 #ifdef DEBUG
 
@@ -552,7 +552,7 @@ CONTAINS
     f_collect(1)=f_sub
 #else
     INCLUDE 'mpif.h'  
-    LOGICAL :: called 	
+    LOGICAL :: called
     INTEGER :: nwords,ierr,nword_send,nword_receive
     Nword_send=1
     Nword_receive=Nword_send
@@ -581,7 +581,7 @@ CONTAINS
     ! assumed shaped array... 
     INTEGER , DIMENSION(:)  :: f_collect 
     INTEGER  :: f_sub
-    LOGICAL :: called 	
+    LOGICAL :: called
     INTEGER :: nwords,ierr,nword_send,nword_receive
 
 #ifdef DEBUG
