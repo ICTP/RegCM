@@ -264,7 +264,7 @@
       implicit none
 !
       real(8) :: dtbdys
-      integer :: i , j , k , nn , nnb
+      integer :: i , j , k , nn , nnb , mmrec
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nxeb , nxwb
 #ifndef BAND
@@ -294,7 +294,7 @@
             end do
           end do
         end if
-        ndate1 = mdatez(nnnchk+1)
+        call addhours(ndate1, ibdyfrq)
         mmrec = icbc_search(ndate1)
         if (mmrec < 0) then
           call open_icbc(imonfirst(ndate1))
@@ -639,8 +639,7 @@
 !bxqOCT2001_
  
       nnbase = nnnnnn
-      nyear = mdate/1000000
-      nmonth = (mdate-nyear*1000000)/10000
+      call split_idate(mdate, nyear, nmonth, nday, nhour)
 
 !-----------------------------------------------------------------------
       if ( ldatez.lt.ndate1 ) then
@@ -694,7 +693,7 @@
           end do
         end do
       end if
-      ndate1 = mdatez(nnnchk+1)
+      call addhours(ndate1, ibdyfrq)
       mmrec = icbc_search(ndate1)
       if (mmrec < 0) then
         call open_icbc(imonfirst(ndate1))
@@ -935,8 +934,7 @@
 !bxqOCT2001_
  
       nnbase = nnnnnn
-      nyear = mdate/1000000
-      nmonth = (mdate-nyear*1000000)/10000
+      call split_idate(mdate, nyear, nmonth, nday, nhour)
  
 !-----------------------------------------------------------------------
       if ( ldatez.lt.ndate1 ) then

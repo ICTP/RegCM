@@ -2208,21 +2208,12 @@
       xtime = xtime + dtmin
       ntime = ntime + nint(dtmin*60.)
       if ( dabs(xtime-ibdyfrq*60.).lt.0.00001 ) then
-        lhour = lhour + ibdyfrq
-        if ( lhour.eq.24 ) then
-          call finddate(nnnnnn,ldatez)
-          ldatez = mdatez(nnnnnn+1)
-          lyear = ldatez/1000000
-          lmonth = (ldatez-lyear*1000000)/10000
-          lday = (ldatez-lyear*1000000-lmonth*10000)/100
-          lhour = mod(ldatez,100)
-        else
-          ldatez = ldatez + ibdyfrq
-        end if
+        call addhours(ldatez, ibdyfrq)
+        call split_idate(ldatez, lyear, lmonth, lday, lhour)
         nnnnnn = nnnnnn + 1
         xtime = 0.0
-        if ( mod(ldatez,1000000).eq.10100 .and. xtime.lt.0.0001 ) then
-          jyear = ldatez/1000000
+        if ( lfirstjanatmidnight(ldatez) .and. xtime.lt.0.0001 ) then
+          jyear = lyear
           ktau = 0
           ntime = 0
         end if

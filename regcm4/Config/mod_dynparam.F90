@@ -268,8 +268,6 @@
 
 ! Fixed dimensions
 
-      integer , dimension(289276) :: mdatez
-
       integer , parameter :: numbat = 21 + 6
       integer , parameter :: numsub = 16
       integer , parameter :: nrad2d = 21

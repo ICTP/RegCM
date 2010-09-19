@@ -80,14 +80,12 @@
 !
 ! Local variables
 !
-      real(8) :: afracl , afracs , bb , cc , chibot , daymax , delsig , &
+      real(8) :: afracl , afracs , bb , cc , chibot , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
                & wkp1 , xbot , xtop , xx , yy
       real(8) , dimension(nsplit) :: dtsplit
-      integer :: i , j , k , kbase , ktop , m , mdate1 ,&
-               & mday , mmon , myear , ns
-      integer , dimension(12) :: mmd
+      integer :: i , j , k , kbase , ktop , ns
       character(5) , dimension(maxntr) :: inpchtrname
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
@@ -111,9 +109,6 @@
 !
       data vqrang /5.0E-4/
 !
-      data (mmd(i),i=1,12)/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , &
-          & 31 , 30 , 31/
- 
 !----------------------------------------------------------------------
 !-----namelist:
 !
@@ -650,22 +645,25 @@
 !sb   end lake model mods
 !
       call set_scenario(scenario)
-      call initdate
-      call finddate(nstrt0,idate0)
-      call finddate(nstart,idate1)
-      call finddate(nnnend,idate2)
+!
+      nstrt0 = 0
+      nstart = idatediff(idate1,idate0)/ibdyfrq
+      nnnend = idatediff(idate2,idate0)/ibdyfrq
       nnnchk = nstart
- 
+! 
 !     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
-      ntimax = (nnnend-nstrt0)*ibdyfrq*60
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1
       call say
       write (aline,*) 'param:   final date of this '// &
                       'simulation: IDATE2' , idate2
       call say
+      write (aline,'(a,i10,a)')  &
+           'param: total simulation lenght ' ,  &
+            idatediff(idate2,idate1) , ' hours'
+      call say
       write (aline,'(a,f9.4)')  &
-           'param: dtmin(timestep in minutes)' , dtmin
+           'param: dtmin (timestep in minutes)' , dtmin
       call say
       ldatez = idate1
       nnnnnn = nstart
@@ -699,26 +697,13 @@
       write (aline, *) 'param: initial date of the global '// &
                        'simulation: mdate  = ' , mdate0
       call say
-      myear = mdate0/1000000
-      nyear = idate1/1000000
-      nmonth = (idate1-nyear*1000000)/10000
-      mdate1 = mdate0 - myear*1000000
-      mmon = mdate1/10000
-      mday = (mdate1-mmon*10000)/100
-      gmt = mdate1 - mmon*10000 - mday*100
+      call split_idate(mdate0, myear, mmonth, mday, mhour)
+      gmt = mhour
       jyear0 = myear
-!rst-fix_
 !
-!.....find the year is a leap year or not (assume the initial data
-!     is within this century.):
+!.....find the julian day of the year and calulate dectim
 !
-      if ( myear.lt.100 ) myear = 1900 + myear
-      if ( mod(myear,400).eq.0 .or.                                     &
-       & ( mod(myear,4).eq.0 .and. mod(myear,100).ne.0 ) ) mmd(2) = 29
-      julday = mday
-      do m = 1 , mmon - 1
-        julday = julday + mmd(m)
-      end do
+      julday = idayofyear(mdate0)
       dectim = (1440.-gmt*60.)
  
 !-----specify the constants used in the model.
@@ -1414,13 +1399,6 @@
 !
 !-----print out the parameters specified in the model.
 !
-!     print outparam
-!     print physicsparam
-!     print timeparam
-!.....for large domain:
-!
-      daymax = ntimax/1440.
-
 #ifdef MPP1
       if ( myid.eq.0 ) then
         if ( ibltyp.eq.0 ) print 99002
@@ -1440,7 +1418,6 @@
               & twt(k,2) , qcon(k)
         end do
         print 99012 , kzp1 , sigma(kzp1)
-        print 99013 , daymax
         print 99014 , dt
         print 99015 , dx
         print 99016 , jx , iy
@@ -1466,7 +1443,6 @@
             & twt(k,2) , qcon(k)
       end do
       print 99012 , kzp1 , sigma(kzp1)
-      print 99013 , daymax
       print 99014 , dt
       print 99015 , dx
       print 99016 , jx , iy
@@ -1493,7 +1469,6 @@
              &'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
 99011 format (1x,i2,5x,f6.4,5x,f6.4,5x,f6.4,5x,f8.4,5x,f8.4,5x,f8.4)
 99012 format (1x,i2,5x,f6.4)
-99013 format (//' maximum time = ',f8.3,' days.')
 99014 format (' time step = ',f7.2,' seconds')
 99015 format (' dx = ',f7.0,' meters')
 99016 format (' grid points (x,y) = (',i4,',',i4,')')

@@ -139,6 +139,8 @@
       w10x_o = -1.E30
       psmn_o =  1.E30
 
+      ndate0 = idate1
+      ndate1 = ndate0
       if (ndate0.eq.globidate1 .or.                                   &
          (((ndate0/10000)*100+1)*100 .eq.                             &
          ((globidate1/10000)*100+1)*100 ) ) then
@@ -195,7 +197,6 @@
         if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
         if ( myid.eq.0 ) then
-          ndate0 = mdatez(nnnchk)
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                    &     tb0_io,qb0_io,so0_io)
           ps0_io = ps0_io/10.0
@@ -226,7 +227,6 @@
 !
 !       Start transmission of data to other processors
 !
-        call mpi_bcast(ndate0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                        & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -316,7 +316,6 @@
             end do
          end do
         end do
-        mdate = ndate0
 !
 !       Initialize variables and convert to double precision
 !
@@ -407,7 +406,6 @@
           svegfrac2d = 0.0
         end if
 #else
-        ndate0 = mdatez(nnnchk)
         call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
 !
 !       Convert surface pressure to pstar
