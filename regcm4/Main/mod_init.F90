@@ -669,8 +669,8 @@
           end do
         end if
 
-        call mpi_scatter(inisrf_0(1,1,1),iy*(nnsg*3+8)*jxp,mpi_real8,   &
-                       & inisrf0(1,1,1), iy*(nnsg*3+8)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0,iy*(nnsg*3+8)*jxp,mpi_real8,   &
+                       & inisrf0, iy*(nnsg*3+8)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
 
         do j = 1 , jxp
@@ -714,12 +714,12 @@
             end if
           end do
         end if
-        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         if ( ehso4 )                                                    &
-          &  call mpi_scatter(sav_0s(1,1,1),iy*kz*jxp,mpi_real8,        &
-          &                   sav0s(1,1,1), iy*kz*jxp,mpi_real8,        &
+          &  call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,        &
+          &                   sav0s, iy*kz*jxp,mpi_real8,        &
           &                   0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -759,8 +759,8 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -792,8 +792,8 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -835,8 +835,8 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0(1,1,1),iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0(1,1,1), iy*(kz*4+2)*jxp,mpi_real8,        &
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
+                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -885,8 +885,8 @@
           end do
         end if
         allrec = kz + 5 + nnsg
-        call mpi_scatter(sav_0a(1,1,1),iy*allrec*jxp,mpi_real8,         &
-                       & sav0a(1,1,1), iy*allrec*jxp,mpi_real8,         &
+        call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
+                       & sav0a, iy*allrec*jxp,mpi_real8,         &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do i = 1 , iy
@@ -908,9 +908,9 @@
             end do
           end do
         end do
-        if ( iocnflx.eq.2 )                                             &
-          & call mpi_scatter(zpbl_io(1,1),iy*jxp,mpi_real8,             &
-          &                  zpbl(1,1),   iy*jxp,mpi_real8,             &
+        if ( iocnflx.eq.2 )                                        &
+          & call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,             &
+          &                  zpbl,   iy*jxp,mpi_real8,             &
           &                  0,mpi_comm_world,ierr)
         if ( icup.eq.1 ) then
           if ( myid.eq.0 ) then
@@ -923,8 +923,8 @@
               end do
             end do
           end if
-          call mpi_scatter(sav_0c(1,1,1),iy*kz*2*jxp,mpi_real8,         &
-                         & sav0c(1,1,1), iy*kz*2*jxp,mpi_real8,         &
+          call mpi_scatter(sav_0c,iy*kz*2*jxp,mpi_real8,         &
+                         & sav0c, iy*kz*2*jxp,mpi_real8,         &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do k = 1 , kz
@@ -947,8 +947,8 @@
               end do
             end do
           end if
-          call mpi_scatter(sav_0b(1,1,1),iy*(kzp1)*jxp,mpi_real8,       &
-                         & sav0b(1,1,1), iy*(kzp1)*jxp,mpi_real8,       &
+          call mpi_scatter(sav_0b,iy*(kzp1)*jxp,mpi_real8,       &
+                         & sav0b, iy*(kzp1)*jxp,mpi_real8,       &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do k = 1 , kz
@@ -961,8 +961,8 @@
             end do
           end do
         else if ( icup.eq.4 ) then
-          call mpi_scatter(cbmf2d_io(1,1),iy*jxp,mpi_real8,             &
-                         & cbmf2d(1,1),   iy*jxp,mpi_real8,             &
+          call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,             &
+                         & cbmf2d,   iy*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)
         else
         end if
@@ -1009,8 +1009,8 @@
           allrec = allrec + kzp1
         end if
         allrec = kz*4 + (kzp1*kzp2)
-        call mpi_scatter(sav_1(1,1,1),iym1*allrec*jxp,mpi_real8,        &
-                       & sav1(1,1,1), iym1*allrec*jxp,mpi_real8,        &
+        call mpi_scatter(sav_1,iym1*allrec*jxp,mpi_real8,        &
+                       & sav1, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do l = 1 , 4
@@ -1062,8 +1062,8 @@
           end do
         end if
         allrec = nnsg*4 + 4
-        call mpi_scatter(sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,        &
-                       & sav2(1,1,1), iym1*allrec*jxp,mpi_real8,        &
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
+                       & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
@@ -1104,8 +1104,8 @@
           end do
         end if
         allrec = nnsg*4 + 4
-        call mpi_scatter(sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,        &
-                       & sav2(1,1,1), iym1*allrec*jxp,mpi_real8,        &
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
+                       & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
@@ -1146,8 +1146,8 @@
           end do
         end if
         allrec = nnsg*4 + 4
-        call mpi_scatter(sav_2(1,1,1),iym1*allrec*jxp,mpi_real8,        &
-                       & sav2(1,1,1), iym1*allrec*jxp,mpi_real8,        &
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
+                       & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
@@ -1186,8 +1186,8 @@
           end do
         end if
         allrec = nnsg*5 + 1
-        call mpi_scatter(sav_2a(1,1,1),iym1*allrec*jxp,mpi_real8,       &
-                       & sav2a(1,1,1), iym1*allrec*jxp,mpi_real8,       &
+        call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,       &
+                       & sav2a, iym1*allrec*jxp,mpi_real8,       &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
@@ -1228,8 +1228,8 @@
             allrec = allrec + ntr
           end if
           allrec = ntr*(kz*4+1)
-          call mpi_scatter(sav_4(1,1,1),iy*allrec*jxp,mpi_real8,        &
-                         & sav4(1,1,1), iy*allrec*jxp,mpi_real8,        &
+          call mpi_scatter(sav_4,iy*allrec*jxp,mpi_real8,        &
+                         & sav4, iy*allrec*jxp,mpi_real8,        &
                          & 0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do n = 1 , ntr

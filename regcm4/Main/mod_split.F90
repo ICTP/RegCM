@@ -266,8 +266,8 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0d(1,1,1),iy*nsplit*2*jxp,mpi_real8,       &
-                       & sav0d(1,1,1), iy*nsplit*2*jxp,mpi_real8,       &
+        call mpi_scatter(sav_0d,iy*nsplit*2*jxp,mpi_real8,       &
+                       & sav0d, iy*nsplit*2*jxp,mpi_real8,       &
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do n = 1 , nsplit
@@ -277,8 +277,8 @@
             end do
           end do
         end do
-        call mpi_scatter(sav_6(1,1,1),kz*8*jxp,mpi_real8,               &
-                       & sav6(1,1,1),kz*8*jxp,mpi_real8,0,              &
+        call mpi_scatter(sav_6,kz*8*jxp,mpi_real8,               &
+                       & sav6,kz*8*jxp,mpi_real8,0,              &
                        & mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
