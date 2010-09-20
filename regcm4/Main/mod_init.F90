@@ -1338,10 +1338,6 @@
         if (debug_level > 2) call mpidiag
 #endif
 
-!------lake model
-        if ( lakemod.eq.1 ) then
-          call mpilake
-        end if
         call mpi_sendrecv(ht(1,jxp),iy,mpi_real8,ieast,1,               &
                         & ht(1,0),iy,mpi_real8,iwest,1,                 &
                         & mpi_comm_world,mpi_status_ignore,ierr)
@@ -1444,6 +1440,32 @@
 !     ****** initialize and define constants for vector bats
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) call initb
+
+! initialize hostetler lake model
+
+      if ( lakemod.eq.1 ) then
+        write (aline,*) 'Depth for lake calculation not implemented'
+        call say
+        write (aline,*) 'All lakes are initialized to 25 meters depth'
+        call say
+#ifdef MPP1
+        lkdpth_io = 25.0
+#else
+        lkdpth = 25.0
+#endif
+
+#ifdef MPP1
+        if (myid == 0 .and. (.not. ifrest)) then
+#else
+        if (.not. ifrest) then
+#endif
+          call initlk
+        end if
+#ifdef MPP1
+        call mpilake
+#endif
+      end if
+
       if ( iemiss.eq.1 ) then
 #ifdef MPP1
         do j = 1 , jendx

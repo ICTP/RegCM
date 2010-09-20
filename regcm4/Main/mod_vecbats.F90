@@ -20,6 +20,7 @@
       module mod_vecbats
 
       use mod_constants
+      use mod_message
       use mod_dynparam
       use mod_runparams
       use mod_bats
@@ -264,21 +265,6 @@
         end do
       end do
  
-!     ******  initialize hostetler lake model
-      if ( lakemod.eq.1 ) then
-        write (6,*) 'Depth for lake calculation not implemented'
-        write (6,*) 'All lakes are initialized to 25 meters depth'
-#ifdef MPP1
-        where (veg2d1_io == 14)
-          lkdpth_io = 25.0
-#else
-        where (veg2d1 == 14)
-          lkdpth = 25.0
-#endif
-        end where
-        call initlk
-      end if
-
 #ifdef MPP1
       do jll = 1 , jendx
 #else

@@ -25,7 +25,6 @@
       use mod_constants
       use mod_dynparam
       use mod_bats
-      use mod_date
       use mod_runparams
       use mod_message
 #ifdef MPP1
@@ -35,27 +34,25 @@
       private
 
       integer :: lkpts
-      integer , parameter :: iutlak = 58
 
       integer , dimension(:,:,:) , allocatable :: lakemask
 
-      integer , dimension(:) , allocatable :: xndpt
-      integer , dimension(:) , allocatable :: xfreeze
-      integer , dimension(:) , allocatable :: xhi
-      integer , dimension(:) , allocatable :: xhii
-      integer , dimension(:) , allocatable :: xhs
+      integer , dimension(:) , allocatable :: ndpts
+      integer , dimension(:) , allocatable :: ifreeze
+      real(8) , dimension(:) , allocatable :: xhi
+      real(8) , dimension(:) , allocatable :: xhii
+      real(8) , dimension(:) , allocatable :: xhs
       real(8) , dimension(:) , allocatable :: xeta
 
       integer , parameter :: maxdep = 400
       real(8) , dimension(:,:) , allocatable :: xt
 
-      public :: iutlak
       public :: lakedrv , initlk
       public :: lakesavread , lakesavwrite , allocate_lake
 #ifdef MPP1
       public :: mpilake
 #endif
-
+!
       contains
 !
 !-----------------------------------------------------------------------
@@ -64,66 +61,83 @@
       subroutine mpilake
         use mpi
         implicit none
-        integer :: i , ierr
+        integer :: ierr
+        call mpi_barrier(mpi_comm_world,ierr)
         call mpi_bcast(lkpts,1,mpi_integer,0,mpi_comm_world,ierr)
-        if (myid /= 0) call allocate_lake
-        call mpi_bcast(xndpt,lkpts,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(xfreeze,lkpts,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(xhi,lkpts,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(xhii,lkpts,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(xhs,lkpts,mpi_integer,0,mpi_comm_world,ierr)
+        if (myid /= 0) then
+#ifdef BAND
+          allocate(lakemask(nnsg,iym1,jx))
+#else
+          allocate(lakemask(nnsg,iym1,jxm1))
+#endif
+          call allocate_lake
+        endif
+        call mpi_bcast(ndpts,lkpts,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(ifreeze,lkpts,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(xhi,lkpts,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(xhii,lkpts,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(xhs,lkpts,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(xeta,lkpts,mpi_real8,0,mpi_comm_world,ierr)
-        do i = 1 , lkpts
-          call mpi_bcast(xt(i,:),maxdep,mpi_real8,0,mpi_comm_world,ierr)
-        end do
+        call mpi_bcast(xt,lkpts*maxdep,mpi_real8,0,mpi_comm_world,ierr)
+#ifdef BAND
+        call mpi_bcast(lakemask,nnsg*iym1*jx, &
+                       mpi_integer,0,mpi_comm_world,ierr)
+#else
+        call mpi_bcast(lakemask,nnsg*iym1*jxm1, &
+                       mpi_integer,0,mpi_comm_world,ierr)
+#endif
+
       end subroutine mpilake
 #endif
 
       subroutine allocate_lake
         implicit none
-        allocate(xndpt(lkpts))
+        allocate(ndpts(lkpts))
+        allocate(ifreeze(lkpts))
         allocate(xeta(lkpts))
-        allocate(xfreeze(lkpts))
         allocate(xhi(lkpts))
         allocate(xhii(lkpts))
         allocate(xhs(lkpts))
         allocate(xt(lkpts,maxdep))
-        xndpt = 0
+        ndpts = 0
+        ifreeze = 0
         xeta = 0.0D0
-        xfreeze = 0
-        xhi = 0
-        xhii = 0
-        xhs = 0
-        xt = 0
+        xhi = 0.0D0
+        xhii = 0.0D0
+        xhs = 0.0D0
+        xt = 0.0D0
       end subroutine
 
       subroutine initlk
         implicit none
-        integer :: ilak , i , j , n , imax , jmax
+        integer :: ilak , i , j , n , ie , je
         real(8) :: dpt
 !
 #ifdef BAND
         allocate(lakemask(nnsg,iym1,jx))
-        imax = iym1
-        jmax = jx
+        ie = iym1
+        je = jx
 #else
         allocate(lakemask(nnsg,iym1,jxm1))
-        imax = iym1
-        jmax = jxm1
+        ie = iym1
+        je = jxm1
 #endif
 #ifdef MPP1
-        where (veg2d1_io == 14)
+        where (satbrt1_io(:,1:ie,1:je) > 13.9 .and. &
+               satbrt1_io(:,1:ie,1:je) < 14.1)
 #else
-        where (veg2d1 == 14)
+        where (satbrt1(:,1:ie,1:je) > 13.9 .and. &
+               satbrt1(:,1:ie,1:je) < 14.1)
 #endif
           lakemask = 1
         elsewhere
           lakemask = 0
         end where
+
         lkpts = 0
         do n = 1 , nnsg
-          do i = 1 , imax
-            do j = 1 , jmax
+          do i = 1 , ie
+            do j = 1 , je
               if (lakemask(n,i,j) > 0) then
                 lkpts = lkpts + 1
                 lakemask(n,i,j) = lkpts
@@ -133,40 +147,41 @@
         end do
 
         if (lkpts == 0) then
-          write (6,*) 'No points for lake model.'
+          write (6,*) 'lakemod : No points for lake model.'
+        else
+          write (6,*) 'lakemod : ', lkpts, ' points for lake model.'
         end if
 
-        if (.not. ifrest ) then
-          call allocate_lake
-          ilak = 1
-          do n = 1 , nnsg
-            do i = 1 , imax
-              do j = 1 , jmax
-                if (lakemask(n,i,j) > 0) then
+        call allocate_lake
+
+        ilak = 1
+        do n = 1 , nnsg
+          do i = 1 , ie
+            do j = 1 , je
+              if (lakemask(n,i,j) > 0) then
 #ifdef MPP1
-                  dpt = lkdpth_io(n,i,j)
+                dpt = lkdpth_io(n,i,j)
 #else
-                  dpt = lkdpth(n,i,j)
+                dpt = lkdpth(n,i,j)
 #endif
-                  if (dpt < 50.0) then
-                    xeta(ilak) = 7.0
-                  else if (dpt > 100.0) then
-                    xeta(ilak) = 3.0
-                  else
-                    xeta(ilak) = 5.0
-                  end if
-                  xndpt(ilak) = min(int(dpt), maxdep)
-                  xfreeze(ilak) = 1
-                  xt(ilak,:) = 6.0
-                  xhi(ilak) = 0.01
-                  xhii(ilak) = 0.0
-                  xhs(ilak) = 0.0
+                if (dpt < 50.0) then
+                  xeta(ilak) = 7.0
+                else if (dpt > 100.0) then
+                  xeta(ilak) = 3.0
+                else
+                  xeta(ilak) = 5.0
                 end if
+                ndpts(ilak) = min(int(dpt), maxdep)
+                ifreeze(ilak) = 1
+                xt(ilak,:) = 6.0
+                xhi(ilak) = 0.01
+                xhii(ilak) = 0.0
+                xhs(ilak) = 0.0
                 ilak = ilak + 1
-              end do
+              end if
             end do
           end do
-        end if
+        end do
  
       end subroutine initlk
 !
@@ -175,29 +190,31 @@
         integer, intent(in) :: iut
         write(iut) lkpts
         if (lkpts > 0) then
-          write(iut) xndpt , xfreeze , xhi , xhii , xhs , xeta , xt
+          write(iut) ndpts , ifreeze , xhi , xhii , xhs , xeta , xt
         end if
       end subroutine lakesavwrite
 !
       subroutine lakesavread(iut)
         implicit none
         integer, intent(in) :: iut
-        integer :: ilak , i , j , n , imax , jmax
+        integer :: ilak , i , j , n , ie , je
         read(iut) ilak
 !
 #ifdef BAND
         allocate(lakemask(nnsg,iym1,jx))
-        imax = iym1
-        jmax = jx
+        ie = iym1
+        je = jx
 #else
         allocate(lakemask(nnsg,iym1,jxm1))
-        imax = iym1
-        jmax = jxm1
+        ie = iym1
+        je = jxm1
 #endif
 #ifdef MPP1
-        where (veg2d1_io == 14)
+        where (satbrt1_io(:,1:ie,1:je) > 13.9 .and. &
+               satbrt1_io(:,1:ie,1:je) < 14.1)
 #else
-        where (veg2d1 == 14)
+        where (satbrt1(:,1:ie,1:je) > 13.9 .and. &
+               satbrt1(:,1:ie,1:je) < 14.1)
 #endif
           lakemask = 1
         elsewhere
@@ -205,8 +222,8 @@
         end where
         lkpts = 0
         do n = 1 , nnsg
-          do i = 1 , imax
-            do j = 1 , jmax
+          do i = 1 , ie
+            do j = 1 , je
               if (lakemask(n,i,j) > 0) then
                 lkpts = lkpts + 1
                 lakemask(n,i,j) = lkpts
@@ -229,8 +246,8 @@
         end if
 
         call allocate_lake
+        read(iut) ndpts , ifreeze , xhi , xhii , xhs , xeta , xt
 
-        read(iut) xndpt , xfreeze , xhi , xhii , xhs , xeta , xt
       end subroutine lakesavread
 !
       subroutine lakedrv(jslc)
@@ -243,18 +260,18 @@
 !
 ! Local variables
 !
-      real(8) :: aveice , dayl , evl , flw , fsw , hlat , hsen , prec , &
+      real(8) :: aveice , evl , flw , fsw , hlat , hsen , prec , &
                & ql , hsnow , tgl , tl , vl , zl
-      integer :: ilake , i, n
+      integer :: ilake , i , n , jj
 !
 
       if (lkpts == 0) return
 
       do i = 1 , iym1
         do n = 1 , nnsg
-          if ( lakemask(n,i,jslc) > 0 ) then
-            ilake = lakemask(n,i,jslc)
-            dayl = (nnnnnn-nstrt0)/4. + (xtime+dtmin)/1440.
+          jj = (jxp*myid) + jslc
+          if ( lakemask(n,i,jj) > 0 ) then
+            ilake = lakemask(n,i,jj)
             tl = ts1d(n,i)
             vl = dsqrt(us1d(i)**2+vs1d(i)**2)
             zl = z1d(n,i)
@@ -265,7 +282,7 @@
             hsen = -1.*sent1d(n,i)
             hlat = -1.*evpr1d(n,i)
 
-            call lake(ilake,dayl,dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat, &
+            call lake(ilake,dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat, &
                     & tgl,evl,prec,aveice,hsnow)
  
             tg1d(n,i) = tgl
@@ -289,25 +306,24 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine lake(ilak,day,dt,ta,ua,za,q,sw,lnet,hsen,hlat,ts,    &
+      subroutine lake(ilak,dt,ta,ua,za,q,sw,lnet,hsen,hlat,ts,    &
                     & evap,prec,hice,hsnow)
  
       implicit none
 !
 ! Dummy arguments
 !
-      real(8) :: day , dt , evap , hice , hlat , hsen , hsnow , lnet ,  &
+      real(8) :: dt , evap , hice , hlat , hsen , hsnow , lnet ,  &
                & prec , q , sw , ta , ts , ua , za
       integer :: ilak
-      intent (in) day , hlat , hsen , ilak , q , ta , ua , za
-      intent (out) ts
-      intent (inout) evap , hice , hsnow
+      intent (in) hlat , hsen , ilak , q , ta , ua , za
+      intent (out) ts , evap , hice , hsnow
 !
 ! Local variables
 !
       real(8) , dimension(maxdep) :: de , dnsty
       real(8) , dimension(maxdep,2) :: t
-      integer :: depth , freeze , j , k , kmin
+      integer :: ndep , nfrz , kmin
       real(8) :: ea , eta , hi , hs , ld , lu , qe , qh , tac , surf ,  &
               &  tcutoff , tk , u2
 !
@@ -328,17 +344,16 @@
  
 !     Set current values for lake point
 
-      depth = xndpt(ilak)
-      freeze = xfreeze(ilak)
+      ndep = ndpts(ilak)
+      nfrz = ifreeze(ilak)
+
       hi = xhi(ilak)
       hice = xhii(ilak)
       hsnow = xhs(ilak)
       eta = xeta(ilak)
-      t(1:depth,1) = xt(ilak,1:depth)
 
-      do k = 1 , depth
-        t(k,2) = t(k,1)
-      end do
+      t(:,1) = xt(ilak,:)
+      t(:,2) = t(:,1)
  
       tac = ta - tzero
       tk = tzero + t(1,1)
@@ -353,46 +368,37 @@
 !     ******    Check if conditions exist for lake ice
       tcutoff = -0.001
       if ( (hice.eq.0.0) .and. (t(1,1).gt.tcutoff) ) then
- 
 !       ******    Calculate eddy diffusivities
-        call eddy(dt,surf,dz,vonkar,u2,t,dnsty,de,depth)
- 
+        call eddy(dt,surf,dz,vonkar,u2,t,dnsty,de,ndep)
 !       ******    Lake temperature calc using BATS sensible and latent
 !       heats
-        call temp(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de,eta,maxdep,depth)
- 
+        call temp(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de,eta,maxdep,ndep)
 !       ******    Convective mixer
         kmin = 1
-        call mixer(kmin,surf,dz,t,dnsty,maxdep,depth)
- 
+        call mixer(kmin,surf,dz,t,dnsty,maxdep,ndep)
       else
- 
-        call ice(sw,ld,tac,u2,ea,hs,hi,hice,evap,t,depth,prec)
-        if ( freeze.eq.0 ) t(1,1) = t(1,2)
- 
+        call ice(sw,ld,tac,u2,ea,hs,hi,hice,evap,t,ndep,prec)
+        if ( nfrz.eq.0 ) t(1,1) = t(1,2)
       end if
  
-      xndpt(ilak) = depth
-      xfreeze(ilak) = freeze
+      ndpts(ilak) = ndep
+      ifreeze(ilak) = nfrz
       xhi(ilak) = hi
       xhii(ilak) = hice
       xhs(ilak) = hsnow
       xeta(ilak) = eta
-      xt(ilak,1:depth) = t(1:depth,1)
- 
-      write (iutlak) day , ilak, depth , evap , hi , hice ,   &
-                   & hsnow , (t(j,1),j=1,depth)
- 
+      xt(ilak,:) = t(:,1)
+
       ts = t(1,1) + tzero
       evap = evap/3600.          !  convert evap from mm/hr to mm/sec
       hice = hice*1000.          !  convert ice  from m to mm
-      hsnow = hsnow*100.         !  convert snow from m depth to mm h20
+      hsnow = hsnow*100.         !  convert snow from m depth to mm h2o
  
       end subroutine lake
 !
 !-----------------------------------------------------------------------
 !
-      subroutine eddy(dt,surf,dz,kv,u2,t,dnsty,de,depth)
+      subroutine eddy(dt,surf,dz,kv,u2,t,dnsty,de,ndep)
  
 ! Computes density, eddy diffusivity and variable time step
  
@@ -405,11 +411,11 @@
 !
 ! Dummy arguments
 !
-      integer :: depth
+      integer :: ndep
       real(8) :: dt , dz , kv , surf , u2
-      real(8) , dimension(depth) :: de , dnsty
-      real(8) , dimension(depth,2) :: t
-      intent (in) depth , dt , dz , kv , surf , t
+      real(8) , dimension(ndep) :: de , dnsty
+      real(8) , dimension(ndep,2) :: t
+      intent (in) ndep , dt , dz , kv , surf , t
       intent (inout) de , dnsty , u2
 !
 ! Local variables
@@ -420,7 +426,7 @@
       demax = .5*dz**2/dt
       demax = .99*demax
       rimax = 0.0
-      do k = 1 , depth
+      do k = 1 , ndep
         dnsty(k) = 1000.0*(1.0-1.9549E-05*(dabs((t(k,1)+tzero)-277.0))  &
                  & **1.68)
       end do
@@ -437,7 +443,7 @@
       ws = 0.0012*u2
       po = 1.0
  
-      do k = 1 , depth - 1
+      do k = 1 , ndep - 1
         dpdz = (dnsty(k+1)-dnsty(k))/dz   ! gtb removed /2.0
         n2 = dpdz/dnsty(k)*gti            ! gtb removed minus
         z = surf + dble(k-1)              ! gtb: k was k-1
@@ -448,14 +454,14 @@
         if ( de(k).gt.demax ) de(k) = demax
         if ( dabs(ri).gt.rimax ) rimax = dabs(ri)
       end do
-      de(depth) = 0.0
+      de(ndep) = 0.0
  
       end subroutine eddy
 !
 !-----------------------------------------------------------------------
 !
       subroutine temp(dt,surf,dz,t,sw,lnet,qe,qh,dnsty,de,eta,maxdep,   &
-                    & depth)
+                    & ndep)
 !*****************BEGIN SUBROUTINE TEMP********************
 !             COMPUTES TEMPERATURE PROFILE                *
 !**********************************************************
@@ -463,11 +469,11 @@
 !
 ! Dummy arguments
 !
-      integer :: maxdep , depth
+      integer :: maxdep , ndep
       real(8) :: dt , dz , eta , lnet , qe , qh , surf , sw
       real(8) , dimension(maxdep) :: de , dnsty
       real(8) , dimension(maxdep,2) :: t
-      intent (in) de , maxdep , depth , dt , dz , eta , lnet , qe , qh ,&
+      intent (in) de , maxdep , ndep , dt , dz , eta , lnet , qe , qh ,&
                 & sw
       intent (inout) dnsty , surf , t
 !
@@ -479,7 +485,7 @@
       surf = 1.0
  
 !******    solve differential equations of heat transfer
-      do k = 1 , depth
+      do k = 1 , ndep
         t(k,2) = t(k,1)
       end do
  
@@ -489,7 +495,7 @@
       t2 = -de(k)*(t(k,1)-t(k+1,1))/surf
       t(k,2) = t(k,2) + (t1+t2)*dt
  
-      do k = 2 , depth - 1
+      do k = 2 , ndep - 1
         top = (surf+(k-2)*dz)
         bot = (surf+(k-1)*dz)
         t1 = sw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cpw)
@@ -497,14 +503,14 @@
         t(k,2) = t(k,2) + (t1+t2)*dt
       end do
  
-      k = depth
+      k = ndep
       top = (surf+(k-2)*dz)
       t1 = sw*dexp(-eta*top)/(dz*dnsty(k)*cpw)
-      t2 = de(k-1)*(t(depth-1,1)-t(depth,1))/dz
+      t2 = de(k-1)*(t(ndep-1,1)-t(ndep,1))/dz
       t(k,2) = t(k,2) + (t1+t2)*dt
  
       tdiff = 0.
-      do k = 1 , depth
+      do k = 1 , ndep
         tdiff = tdiff + t(k,2) - t(k,1)
         if ( k.eq.1 ) tdiff = tdiff*surf
         t(k,1) = t(k,2)
@@ -518,7 +524,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine mixer(kmin,surf,dz,t,dnsty,maxdep,depth)
+      subroutine mixer(kmin,surf,dz,t,dnsty,maxdep,ndep)
 !
 ! Simulates convective mixing
 !
@@ -526,11 +532,11 @@
 !
 ! Dummy arguments
 !
-      integer :: maxdep , depth , kmin
+      integer :: maxdep , ndep , kmin
       real(8) :: dz , surf
       real(8) , dimension(maxdep) :: dnsty
       real(8) , dimension(maxdep,2) :: t
-      intent (in) maxdep , depth , dz , kmin , surf
+      intent (in) maxdep , ndep , dz , kmin , surf
       intent (inout) dnsty , t
 !
 ! Local variables
@@ -538,7 +544,7 @@
       real(8) :: avet , avev , tav , tdiff , vol
       integer :: k , k2 , m
 ! 
-      do k = kmin , depth - 1
+      do k = kmin , ndep - 1
         avet = 0.0
         avev = 0.0
  
@@ -565,7 +571,7 @@
       end do ! K loop
  
       tdiff = 0.0
-      do k = kmin , depth
+      do k = kmin , ndep
         tdiff = tdiff + t(k,2) - t(k,1)
         if ( k.eq.1 ) tdiff = tdiff*surf
         t(k,1) = t(k,2)
@@ -611,7 +617,7 @@
  
 !-----------------------------------------------------------------------
 !
-      subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,depth,precip)
+      subroutine ice(kd,ld,ta,u2,ea,hs,hi,hii,evap,t,ndep,precip)
 
       implicit none
 !
@@ -626,10 +632,10 @@
 !
 ! Dummy arguments
 !
-      integer :: depth
+      integer :: ndep
       real(8) :: ea , evap , hi , hii , hs , kd , ld , precip , ta , u2
-      real(8) , dimension(depth,2) :: t
-      intent (in) depth , ea , ld , precip , ta , u2
+      real(8) , dimension(ndep,2) :: t
+      intent (in) ndep , ea , ld , precip , ta , u2
       intent (out) evap
       intent (inout) hi , hii , hs , kd , t
 !
@@ -658,7 +664,7 @@
 !CC   +      *(x-air)-kd)-1/khat*(qpen1+tf-x)
  
       if ( (ta.le.0.0) .and. (hii.gt.0.0) ) hs = hs + precip*10./1000.
-                                     ! convert precip(mm) to depth(m)
+                                     ! convert precip(mm) to ndep(m)
  
       t0 = t(1,1)
       tf = 0.0

@@ -181,8 +181,7 @@ mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_radiation.o mod_dynparam.o mod_mppio.o mod_trachem.o mod_ncio.o \
         mod_lake.o mod_sun.o mod_savefile.o
 endif
-mod_lake.o: mod_lake.F90 mod_bats.o mod_date.o mod_runparams.o mod_dynparam.o \
-            mod_mppio.o
+mod_lake.o: mod_lake.F90 mod_bats.o mod_runparams.o mod_dynparam.o mod_mppio.o
 mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
                 mod_runparams.o mod_dynparam.o
 mod_main.o: mod_main.f90 mod_dynparam.o
@@ -299,7 +298,8 @@ mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o
 mod_tstep.o: mod_tstep.f90 mod_date.o mod_runparams.o mod_dynparam.o
 mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
                mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \
-               mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o
+               mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o \
+               mod_message.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_dynparam.o \
               mod_constants.o mod_message.o
 ifeq ($(USECLM),1)

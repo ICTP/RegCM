@@ -2041,18 +2041,6 @@
       call time_end(subroutine_name,idindx) 
       end subroutine output
 !
-      subroutine outname(ctype,idate,ffout)
-        use mod_dynparam
-        implicit none
-        character(3) , intent(in) :: ctype
-        integer , intent(in) :: idate
-        character(256) , intent(out) :: ffout
-        character(32) :: fbname
-        write (fbname,99001) trim(ctype) , idate
-        ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
-99001 format (a,'.',i10)
-      end subroutine outname
-!
       subroutine mkfile
  
       implicit none
@@ -2060,7 +2048,6 @@
 ! Local variables
 !
       integer , parameter :: nfmax = 999
-      character(256) :: ffout
       integer , dimension(nfmax) :: idate1d , imo , iyr
       integer :: idatepp , n , nmo
 !
@@ -2090,13 +2077,6 @@
         end if
       end if
 
-      if ( lakemod.eq.1 ) then
-        close (iutlak)
-        call outname('LAK',idatex,ffout)
-        open (iutlak,file=ffout,status='replace',form='unformatted')
-        print * , 'OPENING NEW LAK FILE: ',trim(ffout)
-      end if
- 
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         nmo = (idate2/1000000-idate0/1000000)                           &
             & *12 + (idate2/10000-(idate2/1000000)*100)                 &

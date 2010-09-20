@@ -250,8 +250,8 @@
         end do
       end do
 
-      call mpi_scatter(src_1(1,1,1),iy*jxp*nats,mpi_real8, &
-                     & src1(1,1,1),iy*jxp*nats,mpi_real8,0,  &
+      call mpi_scatter(src_1,iy*jxp*nats,mpi_real8, &
+                     & src1,iy*jxp*nats,mpi_real8,0,  &
                      & mpi_comm_world,ierr)
 
 
