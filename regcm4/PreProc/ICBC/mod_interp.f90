@@ -262,21 +262,16 @@
               j2 = jj + 1
               exit
             else if ( alat(i,j)<=hlat(1) ) then
-              if ( alat(i,j)>=-90. ) then
-                q1 = alat(i,j) + 90.
-                q2 = hlat(1) - alat(i,j)
-                j1 = 0
-                j2 = 1
-                exit
-              end if
+              q1 = 1.0
+              q2 = 1.0
+              j1 = 1
+              j2 = 1
+              exit
             else if ( alat(i,j)>=hlat(nlat) ) then
-              if ( alat(i,j)<=90. ) then
-                q1 = alat(i,j) - hlat(nlat)
-                q2 = 90. - alat(i,j)
-                j1 = nlat
-                j2 = nlat + 1
-                exit
-              end if
+              q1 = 1.0
+              q2 = 1.0
+              j1 = nlat
+              j2 = nlat
             end if
           end do
           if ( j1==1000 ) stop 'Could not find the right latitude'
