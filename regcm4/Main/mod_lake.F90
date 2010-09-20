@@ -352,8 +352,8 @@
       hsnow = xhs(ilak)
       eta = xeta(ilak)
 
-      t(:,1) = xt(ilak,:)
-      t(:,2) = t(:,1)
+      t(1:ndep,1) = xt(ilak,1:ndep)
+      t(1:ndep,2) = t(1:ndep,1)
  
       tac = ta - tzero
       tk = tzero + t(1,1)
@@ -387,7 +387,7 @@
       xhii(ilak) = hice
       xhs(ilak) = hsnow
       xeta(ilak) = eta
-      xt(ilak,:) = t(:,1)
+      xt(ilak,1:ndep) = t(1:ndep,1)
 
       ts = t(1,1) + tzero
       evap = evap/3600.          !  convert evap from mm/hr to mm/sec
