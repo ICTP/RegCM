@@ -30,7 +30,6 @@
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
- ntex = 17,
  h2opct = 75.,
  dirter = '/set/this/to/where/your/domain/file/is',
  inpter = '/set/this/to/where/your/surface/dataset/is',

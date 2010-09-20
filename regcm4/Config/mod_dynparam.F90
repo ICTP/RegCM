@@ -253,10 +253,6 @@
       logical :: fudge_tex
       logical :: fudge_tex_s
 
-! Number of Soil texture categories, leave it to 17
-
-      integer :: ntex
-
 ! Terrain output files
 
       character(64) :: domname
@@ -273,7 +269,11 @@
       integer , parameter :: nrad2d = 21
       integer , parameter :: nrad3d = 5
       integer , parameter :: mpy = 12
-      integer , parameter :: nats = 12 ! Should be ntex-5. Left tex to 17?
+
+! Number of Soil texture categories, leave it to 17
+
+      integer , parameter :: ntex = 17 
+      integer , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
       character(1), parameter :: pthsep = '/'
 
@@ -316,8 +316,8 @@
                      & plon , truelatl, truelath , i_band
         namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
                      & ifanal , smthbdy , lakadj , lakedpth, fudge_lnd ,&
-                     & fudge_lnd_s , fudge_tex , fudge_tex_s , ntex ,   &
-                     & h2opct , dirter , inpter
+                     & fudge_lnd_s , fudge_tex , fudge_tex_s , h2opct , &
+                     & dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ ibyte
         namelist /debugparam/ debug_level , dbgfrq

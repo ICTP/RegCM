@@ -62,7 +62,6 @@
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid
  fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
- ntex = 17,              ! Number of Soil texture categories, leave it to 17
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
  dirter = '../../Input', ! Output directory for terrain files
  inpter = '../DATA',     ! Input directory for SURFACE dataset
