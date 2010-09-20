@@ -190,6 +190,8 @@ def main(argv):
         except :
             print "Unable to write log!"
             writelog=False
+
+        exit_status = 0
         
         # run preproc
         # handle log+errors better with subproc??
@@ -200,6 +202,7 @@ def main(argv):
         if p_terrain.wait() != 0:
             print "\nError: Terrain in",testname,"crashed!!\n"
             runMain = False
+            exit_status = 1
         else:
             print "Terrain in",testname,"passed."
     
@@ -207,6 +210,7 @@ def main(argv):
         if p_sst.wait() != 0:
             print "\nError: SST in",testname,"crashed!!\n"
             runMain = False
+            exit_status = 1
         else :
             print "SST in",testname,"passed."
             
@@ -214,6 +218,7 @@ def main(argv):
         if p_icbc.wait() != 0:
             print "\nError: ICBC in",testname,"crashed!!\n"
             runMain = False
+            exit_status = 1
         else :
             print "ICBC in",testname,"passed."
 
@@ -222,6 +227,7 @@ def main(argv):
             if p_clmpre.wait() != 0:
                 print "\nError: clm2rcm in",testname,"crashed!!\n"
                 runMain = False
+                exit_status = 1
             else :
                 print "clm2rcm in",testname,"passed."
 
@@ -243,6 +249,7 @@ def main(argv):
                 
             if p_regcm.wait() != 0:
                 print "\nError: RegCM",testname,"crashed!!\n"
+                exit_status = 1
             else :
                 print "RegCM",testname,"passed."
         else :
@@ -250,13 +257,23 @@ def main(argv):
 
         log.close()
 
+        if exit_status == 1:
+            outlog = open(testname+".log","r")
+            stdouterr = outlog.read()
+            print stdouterr
+
 	sys.stdout.flush()
 
         # compare main output
         # to do
 
     # end of the big loop
+    if exit_status == 1:
+        print "Warning! Some tests failed!"
+
     print "\n****  Test script terminated.  ****"
+
+    sys.exit(exit_status)
     
 if __name__ == "__main__":
     main(sys.argv[1:])
