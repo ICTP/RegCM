@@ -1166,8 +1166,7 @@
               albgsd=albgs
               albgld=albgl
             end if
-          end if
-          if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
+          else if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils
 !c          data *** reduces albedo at low temps !!!!!should respond to
