@@ -2316,9 +2316,9 @@
                 wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
                 aertalwrf_io, aersrlwrf_io, psa_io, idatex)
 #else
-     call writerec_che(nj, ni, nk, itr, chia, aerext, aerssa,   &
-                aerasp, dtrace, wdlsc, wdcvc, ddsfc, wxsg,      &
-                wxaq, cemtrac, aertarf, aersrrf, aertalwrf,     &
+     call writerec_che(nj, ni, je , ie , nk, itr, chia, aerext,   &
+                aerssa, aerasp, dtrace, wdlsc, wdcvc, ddsfc,      &
+                wxsg, wxaq, cemtrac, aertarf, aersrrf, aertalwrf, &
                 aersrlwrf, psa, idatex)
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
