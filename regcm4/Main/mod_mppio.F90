@@ -22,7 +22,6 @@
       module mod_mppio
 
       use mod_dynparam
-      use mod_dust , only : nats
       use mod_message
 !
       real(8) , private :: total_allocation_size

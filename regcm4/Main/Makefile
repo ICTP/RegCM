@@ -160,7 +160,7 @@ mod_diffusion.o: mod_diffusion.F90 mod_main.o mod_dynparam.o mod_slice.o \
 mod_drag.o: mod_drag.F90 mod_constants.o mod_bats.o mod_dynparam.o \
             mod_runparams.o
 mod_dust.o: mod_dust.F90 mod_trachem.o mod_dynparam.o mod_constants.o \
-            mod_trachem.o mod_ncio.o
+            mod_trachem.o mod_ncio.o mod_mppio.o
 mod_header.o: mod_header.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<
 mod_holtbl.o: mod_holtbl.F90 mod_bats.o mod_constants.o mod_cvaria.o \
@@ -188,7 +188,7 @@ mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
 mod_main.o: mod_main.f90 mod_dynparam.o
 mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o
 mod_message.o: mod_message.F90 mod_dynparam.o
-mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_dust.o
+mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
             mod_date.o mod_runparams.o
 	$(F90) $(NETCDFINC) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<

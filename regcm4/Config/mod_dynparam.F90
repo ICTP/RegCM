@@ -273,6 +273,7 @@
       integer , parameter :: nrad2d = 21
       integer , parameter :: nrad3d = 5
       integer , parameter :: mpy = 12
+      integer , parameter :: nats = 12 ! Should be ntex-5. Left tex to 17?
 
       character(1), parameter :: pthsep = '/'
 

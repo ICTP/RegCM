@@ -27,13 +27,12 @@
       use mod_trachem
       use mod_message
 #ifdef MPP1
-      use mod_mmpio
+      use mod_mppio
 #endif
 
       implicit none
 !
       integer , parameter :: nsoil = 152
-      integer , parameter :: nats = 12 ! ntex - 5
       integer , parameter :: mode = 3
       integer , parameter :: jsoilm = 1 
       integer , parameter :: jfs =1 

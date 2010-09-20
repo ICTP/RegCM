@@ -310,7 +310,6 @@
         vnbt = 0.0D0
         vsb = 0.0D0
         vsbt = 0.0D0
-#endif 
 #ifndef BAND
         uj1 = 0.0D0
         uj2 = 0.0D0
