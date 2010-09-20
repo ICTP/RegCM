@@ -60,6 +60,7 @@
       subroutine allocate_mod_o3blk
         implicit none
         allocate(prlevh(kzp2))
+        prlevh = 0.0D0
       end subroutine allocate_mod_o3blk
 !
 !----------------------------------------------------------------------

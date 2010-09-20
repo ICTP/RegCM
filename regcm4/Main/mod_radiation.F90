@@ -136,10 +136,10 @@
 
       subroutine allocate_mod_radiation 
         implicit none        
-      CHARACTER (len=50) :: subroutine_name='allocate_mod_radiation'
-      INTEGER :: index=0
+        character (len=50) :: subroutine_name='allocate_mod_radiation'
+        integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+        call time_begin(subroutine_name,indx)
 #ifdef MPP1
         allocate(absnxt(iym1,kz,4,jxp))
         allocate(abstot(iym1,kzp1,kzp1,jxp))
@@ -165,10 +165,17 @@
         allocate(abstot0(iym1,kzp1,kzp1,jxm1))
         allocate(emstot0(iym1,kzp1,jxm1))
         allocate(xuinpl(iym1,kzp1,4,jxm1))       
+#endif
 #endif 
+        absnxt = 0.0D0
+        abstot = 0.0D0
+        emstot = 0.0D0
+        absnxt0 = 0.0D0
+        abstot0 = 0.0D0
+        emstot0 = 0.0D0
+        xuinpl = 0.0D0
+        call time_end(subroutine_name,indx)
 
-#endif 
-      call time_end(subroutine_name,index)
       end subroutine allocate_mod_radiation 
 
       subroutine radini
@@ -200,10 +207,10 @@
       real(8) :: amd , p0 , v0
       integer :: iband
 
-      CHARACTER (len=50) :: subroutine_name='radini'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radini'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
 !     Set general radiation consts; convert to cgs units where
 !     appropriate:
@@ -304,7 +311,7 @@
       cplos = v0/(amd*gti)*100.0
       cplol = v0/(amd*gti*p0)*0.5*100.0
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radini
 !
       subroutine radctl(jslc,alat,coslat,ts,pmid,pint,pmln,piln,t,      &
@@ -440,10 +447,10 @@
       integer :: i
       real(8) , dimension(iym1,kz) :: o3mmr , pbr , rh
       real(8) , dimension(iym1,kzp1) :: plco2 , plh2o , pnm , tclrsf
-      CHARACTER (len=50) :: subroutine_name='radctl'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radctl'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
 !     Instead of interpolating the o3vmr from the time-interpolated
 !     values, we pass compute o3vmr in getdat() and pass it directly
@@ -533,7 +540,7 @@
         call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
       end if   
 
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radctl
 !
       subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
@@ -906,10 +913,10 @@
          & 1.000 , 1.000 , .000 , .000 , .000 , .000 , .000 , .000 ,    &
          & .000 , .000 , .000/
 !
-      CHARACTER (len=50) :: subroutine_name='radcsw'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radcsw'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !     Initialize output fields:
 !
       fsds(:) = 0.0
@@ -1577,7 +1584,7 @@
         fsds(i) = fswdn(i,kzp1)
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radcsw
 !
       subroutine radclw(jslc,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
@@ -1750,10 +1757,10 @@
       real(8) , dimension(iym1,kzp1,kzp1) :: tone
 !
 !
-      CHARACTER (len=50) :: subroutine_name='radclw'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radclw'
+      integer :: idindx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       tone(:,:,:)=1. 
 
@@ -2182,7 +2189,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine radclw
 !
       subroutine radclr(coszrs,trayoslp,pflx,abh2o,abo3,abco2,abo2,     &
@@ -2327,8 +2334,8 @@
       real(8) , dimension(iym1) :: taugab , tauray
 !
 !
-      CHARACTER (len=50) :: subroutine_name='radclw'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radclw'
+      integer :: idindx = 0
 !
       alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
       xgamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
@@ -2340,7 +2347,7 @@
       n(uu,et) = ((uu+1.)*(uu+1.)/et) - ((uu-1.)*(uu-1.)*et)
 !
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !-----------------------------------------------------------------------
 !
 !     Initialize all total transmimission values to 0, so that nighttime
@@ -2509,7 +2516,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine radclr
 !
       subroutine radded(coszrs,trayoslp,pflx,abh2o,abo3,abco2,abo2,uh2o,&
@@ -2692,8 +2699,8 @@
       real(8) , dimension(iym1) :: taugab , tauray
 !
 !
-      CHARACTER (len=50) :: subroutine_name='radded'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radded'
+      integer :: idindx = 0
 !
       alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
       xgamm(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
@@ -2704,7 +2711,7 @@
       u(w,g,e) = 1.5*(1.-w*g)/e
       n(uu,et) = ((uu+1.)*(uu+1.)/et) - ((uu-1.)*(uu-1.)*et)
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !-----------------------------------------------------------------------
 !
 !     Initialize all total transmission values to 0, so that nighttime
@@ -2909,7 +2916,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine radded
 !
       subroutine radabs(pbr,pnm,co2em,co2eml,tplnka,s2c,s2t,w,h2otr,    &
@@ -3212,8 +3219,8 @@
       real(8) , dimension(iym1,2) :: term7 , term8 , trline
 !
 !
-      CHARACTER (len=50) :: subroutine_name='radabs'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radabs'
+      integer :: indx = 0
 !
 !--------------------------Statement function---------------------------
 !
@@ -3221,7 +3228,7 @@
               & *t)/(1.0+(-6.1364820707E-3+1.5550319767E-5*t)*t)
 !
 !-----------------------------------------------------------------------
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
 !     Initialize
 !
@@ -3769,7 +3776,7 @@
         end do
       end do                    !  end of nearest layer level loop
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radabs
 !
       subroutine radems(s2c,s2t,w,tplnke,plh2o,pnm,plco2,tint,tint4,    &
@@ -4037,8 +4044,8 @@
       real(8) , dimension(iym1,2) :: term6 , term7 , term8 , term9 ,   &
                                     & trline
 !
-      CHARACTER (len=50) :: subroutine_name='radems'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radems'
+      integer :: indx = 0
 !---------------------------Statement functions-------------------------
 !
 !     Statement functions
@@ -4052,7 +4059,7 @@
       fo3(ux,vx) = ux/dsqrt(4.D0+ux*(1.D0+vx))
 !
 !-----------------------------------------------------------------------
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
 !     Initialize
 !
@@ -4312,7 +4319,7 @@
         end do
       end do            ! End of interface loop
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radems
 !
       subroutine radoz2(o3vmr,pint,plol,plos)
@@ -4361,10 +4368,10 @@
 ! Local variables
 !
       integer :: i , k
-      CHARACTER (len=50) :: subroutine_name='radoz2'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radoz2'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
 !     Evaluate the ozone path length integrals to interfaces;
 !     factors of .1 and .01 to convert pressures from cgs to mks:
@@ -4384,7 +4391,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radoz2
 !
       subroutine radtpl(tnm,ts,qnm,pnm,plh2o,tplnka,s2c,s2t,w,tplnke,   &
@@ -4453,10 +4460,10 @@
 !
       real(8) :: dpnm , dpnmsq , dy , r296 , repsil , rtnm
       integer :: i , k
-      CHARACTER (len=50) :: subroutine_name='radtpl'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radtpl'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 !
       r296 = 1./296.D0
       repsil = 1./ep2
@@ -4533,7 +4540,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radtpl
 !
       subroutine radinp(pmid,pint,h2ommr,cld,o3vmr,pmidrd,pintrd,plco2, &
@@ -4617,10 +4624,10 @@
 !
 !     Compute eccentricity factor (sun-earth distance factor)
 !
-      CHARACTER (len=50) :: subroutine_name='radinp'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='radinp'
+      integer :: indx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,indx)
 #ifdef CLM
       eccf  = r2ceccf
 #else
@@ -4669,7 +4676,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,indx)
       end subroutine radinp
 !
       function isrchfgt(n,array,inc,rtarg)

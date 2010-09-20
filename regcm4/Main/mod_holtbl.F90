@@ -99,6 +99,17 @@
       allocate(xhfx(iy,jx))        
       allocate(xqfx(iy,jx))        
 #endif 
+      cgh = 0.0D0
+      kvc = 0.0D0
+      kvh = 0.0D0
+      kvm = 0.0D0
+      kvq = 0.0D0
+      hfxv = 0.0D0
+      obklen = 0.0D0
+      th10 = 0.0D0
+      ustr = 0.0D0
+      xhfx = 0.0D0
+      xqfx = 0.0D0
       end  subroutine allocate_mod_holtbl
 !
       subroutine holtbl

@@ -26,6 +26,9 @@
       use mod_ncio
       use mod_trachem
       use mod_message
+#ifdef MPP1
+      use mod_mmpio
+#endif
 
       implicit none
 !
@@ -63,17 +66,11 @@
 ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
 ! in each texture type.
 
-#ifdef MPP1
-      real(8) , allocatable , dimension(:,:,:) :: src1
-      real(8) , allocatable , dimension(:,:,:) :: src_1
-      real(8) , allocatable , dimension(:,:,:) :: dustsotex_io
-#endif
-      
       real(8) , allocatable, dimension(:,:,:) :: clay2row2 , sand2row2 ,&
            & silt2row2
-      real(8) ,allocatable,  dimension(:,:) :: clayrow2 ,   &
+      real(8) , allocatable,  dimension(:,:) :: clayrow2 ,   &
            & sandrow2
-      real(8) ,allocatable,  dimension(:,:,:,:) :: srel2d
+      real(8) , allocatable,  dimension(:,:,:,:) :: srel2d
       real(8) , allocatable , dimension(:,:,:) ::dustsotex
       real(8) , dimension(nsoil) :: dp
 !
@@ -93,16 +90,15 @@
         allocate(frac1(isize))
         allocate(frac2(isize))
         allocate(frac3(isize)) 
-
+        frac1 = 0.0D0
+        frac2 = 0.0D0
+        frac3 = 0.0D0
 #ifdef MPP1
-        allocate(src1(iy,nats,jxp))
-        allocate(src_1(iy,nats,jx))
         allocate(clay2row2(iy,nats,jxp))
         allocate(sand2row2(iy,nats,jxp))
         allocate(silt2row2(iy,nats,jxp))
         allocate(clayrow2(iy,jxp))
         allocate(dustsotex(iy,jxp,nats))
-        allocate(dustsotex_io(iy,jx,nats))
         allocate(sandrow2(iy,jxp))
         allocate(srel2d(iy,jxp,nsoil,nats))
 #else        
@@ -114,6 +110,13 @@
         allocate(sandrow2(iy,jx))
         allocate(srel2d(iy,jx,nsoil,nats))
 #endif 
+        clay2row2 = 0.0D0
+        sand2row2 = 0.0D0
+        silt2row2 = 0.0D0
+        clayrow2 = 0.0D0
+        dustsotex = 0.0D0
+        sandrow2 = 0.0D0
+        srel2d = 0.0D0
 
       end subroutine allocate_mod_dust
 !

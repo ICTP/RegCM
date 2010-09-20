@@ -30,8 +30,6 @@
       real(8) , allocatable , dimension(:,:,:) :: ddsfc , dtrace ,      &
                                        & wdcvc , wdlsc , wxaq , wxsg
 
-      real(4) , allocatable , dimension(:,:) :: fchem
-
       contains 
 
         subroutine allocate_mod_mainchem(lmpi,lband)
@@ -61,11 +59,16 @@
           allocate(wxaq(iy,jx,ntr))
           allocate(wxsg(iy,jx,ntr))
         end if
-        if (lband) then
-          allocate(fchem(jx,iym2))
-        else
-          allocate(fchem(jxm2,iym2))
-        end if
+        chemsrc = 0.0D0
+        chia = 0.0D0
+        chib = 0.0D0
+        srclp2 = 0.0D0
+        ddsfc = 0.0D0
+        dtrace = 0.0D0
+        wdcvc = 0.0D0
+        wdlsc = 0.0D0
+        wxaq = 0.0D0
+        wxsg = 0.0D0
        end subroutine allocate_mod_mainchem
 !
       end module mod_mainchem

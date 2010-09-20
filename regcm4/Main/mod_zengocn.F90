@@ -74,10 +74,10 @@
       real(8) , parameter :: nu = 0.3
       real(8) , parameter :: d = 3 ! reference depth for bulk SST
 !
-      CHARACTER (len=50) :: subroutine_name='zengocndrv'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='zengocndrv'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 #ifdef CLM
       jj = (jxp*myid) + j
 #endif
@@ -207,7 +207,7 @@
         end do
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine zengocndrv
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -265,10 +265,10 @@
                & wc , xlv , z10 , zbeta , zeta , zetam , zetat , zoq
       integer :: i
 !
-      CHARACTER (len=50) :: subroutine_name='zengocn'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='zengocn'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !***********************************************************************
 !
       zbeta = 1.   ! -  (in computing W_*)
@@ -421,7 +421,7 @@
       else
         u10 = u + (ustar/vonkar)*(dlog(z10/hu)+5.*zeta-5.*hu/obu)
       end if
-      call time_end(subroutine_name,index)  
+      call time_end(subroutine_name,idindx)  
       end subroutine zengocn
 !
 ! stability function for rb < 0

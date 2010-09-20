@@ -343,6 +343,30 @@
       allocate(utaer(iym1,ntr))
       allocate(waer(iym1,ntr))
       allocate(aerlwtr(iym1,kzp1,kzp1))
+      aermm = 0.0D0
+      aermmb = 0.0D0
+      aermmr = 0.0D0
+      ftota_mix = 0.0D0
+      gtota_mix = 0.0D0
+      tauasc_mix = 0.0D0
+      tauxar_mix = 0.0D0
+      ftota_mix_cs = 0.0D0
+      gtota_mix_cs = 0.0D0
+      tauasc_mix_cs = 0.0D0
+      tauxar_mix_cs = 0.0D0
+      aermtot = 0.0D0
+      aervtot = 0.0D0
+      aerlwtr = 0.0D0
+      fa = 0.0D0
+      ga = 0.0D0
+      tauxar = 0.0D0
+      uaer = 0.0D0
+      wa = 0.0D0
+      faer = 0.0D0
+      gaer = 0.0D0
+      tauaer = 0.0D0
+      utaer = 0.0D0
+      waer = 0.0D0
       end subroutine allocate_mod_aerosol
 !
 !-----------------------------------------------------------------------

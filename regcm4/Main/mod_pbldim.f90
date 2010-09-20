@@ -35,6 +35,7 @@
         implicit none
         logical , intent(in) :: lmpi
 !        
+        allocate(zq(iy,kzp1))
         if (lmpi) then
           allocate(dzq(iy,kz,jxp))
           allocate(thvx(iy,kz,jxp))
@@ -48,7 +49,12 @@
           allocate(za(iy,kz,jx))
           allocate(rhox2d(iy,jx))
         end if
-        allocate(zq(iy,kzp1))
+        zq = 0.0D0
+        dzq = 0.0D0
+        thvx = 0.0D0
+        thx3d = 0.0D0
+        za = 0.0D0
+        rhox2d = 0.0D0
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim

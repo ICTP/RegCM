@@ -70,6 +70,15 @@
         allocate(wgtd(nspgd))
         allocate(wgtx(nspgx))
         allocate(dtau(nsplit))
+        a = 0.0D0
+        anudg = 0.0D0
+        dsigma = 0.0D0
+        qcon = 0.0D0
+        sigma = 0.0D0
+        twt = 0.0D0
+        wgtd = 0.0D0
+        wgtx = 0.0D0
+        dtau = 0.0D0
       end subroutine allocate_mod_runparams
 !
       end module mod_runparams

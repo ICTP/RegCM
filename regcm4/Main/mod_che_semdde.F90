@@ -82,6 +82,8 @@
         implicit none
         allocate(aest(nveg))
         allocate(arye(nveg))
+        aest = 0.0D0
+        arye = 0.0D0
 
         if ( nveg==20 ) then
           aest = aest_bats
@@ -117,10 +119,10 @@
       integer :: itr , ierr
 #endif
 !
-      CHARACTER (len=50) :: subroutine_name='chsrfem'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='chsrfem'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 
 
 ! fisrt activate dust initialization
@@ -290,7 +292,7 @@
         write (*,*) '! OPDATA CHECKED !'
 #endif
       end if
-      call time_end(subroutine_name,index) 
+      call time_end(subroutine_name,idindx) 
       end subroutine chsrfem
 !
 !**************************************************************
@@ -361,10 +363,10 @@
  
       real(8) , parameter :: z10 = 10.0
       real(8) , dimension(isize) :: avesize
-      CHARACTER (len=50) :: subroutine_name='chdrydep'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='chdrydep'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 
       i = 0
       do n = 1 , isize
@@ -754,7 +756,7 @@
         end if
       end do
 ! 
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine chdrydep
 !
       end module mod_che_semdde

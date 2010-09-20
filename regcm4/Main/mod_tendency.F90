@@ -132,10 +132,10 @@
 #else
       real(8) , dimension(iy,kz,jx) :: ttld
 #endif
-      CHARACTER (len=50) :: subroutine_name='tend'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='tend'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 !----------------------------------------------------------------------
 !-----fill up the boundary slices:
@@ -2323,7 +2323,7 @@
 #endif
       end if
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine tend
 !
       end module mod_tendency

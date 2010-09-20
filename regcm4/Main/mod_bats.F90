@@ -185,13 +185,72 @@
         allocate(xlon1(nnsg,iy,nj))
         allocate(fbat(njm2,iym2,numbat))
         allocate(fsub(nnsg,njm2,iym2,numsub))
+        flw2d = 0.0D0
+        flwa2d = 0.0D0
+        flwd2d = 0.0D0
+        flwda2d = 0.0D0
+        fsw2d = 0.0D0
+        fswa2d = 0.0D0
+        pptc = 0.0D0
+        pptnc = 0.0D0
+        prca2d = 0.0D0
+        prnca2d = 0.0D0
+        sabv2d = 0.0D0
+        sdelqk2d = 0.0D0
+        sdeltk2d = 0.0D0
+        sfracb2d = 0.0D0
+        sfracs2d = 0.0D0
+        sfracv2d = 0.0D0
+        sina2d = 0.0D0
+        sinc2d = 0.0D0
+        sol2d = 0.0D0
+        solvd2d = 0.0D0
+        solvs2d = 0.0D0
+        ssw2da = 0.0D0
+        svegfrac2d = 0.0D0
+        svga2d = 0.0D0
+        veg2d = 0.0D0
+        col2d = 0.0D0
+        dew2d = 0.0D0
+        emiss2d = 0.0D0
+        evpa2d = 0.0D0
+        gwet2d = 0.0D0
+        ircp2d = 0.0D0
+        ocld2d = 0.0D0
+        rno2d = 0.0D0
+        rnos2d = 0.0D0
+        sag2d = 0.0D0
+        scv2d = 0.0D0
+        sena2d = 0.0D0
+        sice2d = 0.0D0
+        srw2d = 0.0D0
+        ssw2d = 0.0D0
+        swt2d = 0.0D0
+        taf2d = 0.0D0
+        text2d = 0.0D0
+        tg2d = 0.0D0
+        tgb2d = 0.0D0
+        tlef2d = 0.0D0
+        veg2d1 = 0.0D0
+        lkdpth = 0.0D0
+        ht1 = 0.0D0
+        satbrt1 = 0.0D0
+        xlat1 = 0.0D0
+        xlon1 = 0.0D0
+        fbat = 0.0
+        fsub = 0.0
         if (idcsst == 1) then
           allocate(deltas(iy,nj))
           allocate(tdeltas(iy,nj))
           allocate(dtskin(iy,nj))
           allocate(firstcall(iy,nj))
+          deltas = 0.0D+0
+          tdeltas = 0.0D+0
+          dtskin = 0.0D+0
+          firstcall = .false.
         end if
         allocate(spacebs1d(nnsg,iym1,123))
+        spacebs1d = 0.0D0
         p1d0     => spacebs1d(:,:,1)
         qs1d0    => spacebs1d(:,:,2)
         ts1d0    => spacebs1d(:,:,3)
@@ -317,7 +376,10 @@
         wtsqi    => spacebs1d(:,:,123)
         allocate(imelt(nnsg,iym1))
         allocate(lveg(nnsg,iym1))
+        imelt = 0
+        lveg = 0
         allocate(spaceb1d(iym1,24))
+        spaceb1d = 0.0D0
         flw1d   => spaceb1d(:,1)
         fsw1d   => spaceb1d(:,2)
         us1d    => spaceb1d(:,3)
@@ -343,6 +405,7 @@
         solvd   => spaceb1d(:,23)
         solvs   => spaceb1d(:,24)
         allocate(coszrs(iy))
+        coszrs = 0.0D0
         ps_o   => fbat(:,:,1)
         u10m_o => fbat(:,:,2)
         v10m_o => fbat(:,:,3)
@@ -386,7 +449,6 @@
         scv_s  => fsub(:,:,:,14)
         sena_s => fsub(:,:,:,15)
         prcv_s => fsub(:,:,:,16)
-        if (idcsst == 1) firstcall(:,:) = .false.
 !
       end subroutine allocate_mod_bats 
 !

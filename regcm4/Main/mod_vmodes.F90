@@ -96,6 +96,44 @@
         allocate(zmatxr(kz,kz))
         allocate(sigmah(kzp1))
         allocate(varpa2(kzp1,kzp1))
+        a0 = 0.0D0
+        a1 = 0.0D0
+        a2 = 0.0D0
+        a3 = 0.0D0
+        a4 = 0.0D0
+        d1 = 0.0D0
+        d2 = 0.0D0
+        e1 = 0.0D0
+        e2 = 0.0D0
+        e3 = 0.0D0
+        g1 = 0.0D0
+        g2 = 0.0D0
+        g3 = 0.0D0
+        s1 = 0.0D0
+        s2 = 0.0D0
+        w1 = 0.0D0
+        w2 = 0.0D0
+        x1 = 0.0D0
+        iw2 = 0.0D0
+        thetah = 0.0D0
+        tweigh = 0.0D0
+        tbarf = 0.0D0
+        thetaf = 0.0D0
+        w3 = 0.0D0
+        cpfac = 0.0D0
+        sdsigma = 0.0D0
+        hbar = 0.0D0
+        hweigh = 0.0D0
+        tbarh = 0.0D0
+        hydroc = 0.0D0
+        varpa1 = 0.0D0
+        hydror = 0.0D0
+        hydros = 0.0D0
+        tau = 0.0D0
+        zmatx = 0.0D0
+        zmatxr = 0.0D0
+        sigmah = 0.0D0
+        varpa2 = 0.0D0
       end subroutine allocate_mod_vmodes
 
       subroutine vmodes(lstand,sigmaf,kv1)
@@ -149,10 +187,10 @@
 !
       data lprint/.false./  ! true if all matrices to be printed
 !
-      CHARACTER (len=50) :: subroutine_name='vmodes'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='vmodes'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
       numerr = 0
       lprint = .false.
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -535,7 +573,7 @@
              &' errors detected   (should be 0)')
 99004 format ('0alpha1 =',1p,1E16.5,'       alpha2 =',1p,1E16.5)
  
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine vmodes
 !
 !  Check that eigenvalues are real and positive valued.
@@ -661,10 +699,10 @@
 !     uses subroutines sgefa/sgedi from library linpack
 !     see dick valent, (SCD, consulting) if problems
 !
-      CHARACTER (len=50) :: subroutine_name='invmtrx'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='invmtrx'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
       if ( n.ne.na .or. n.ne.nv ) call fatal(__FILE__,__LINE__,         &
           &'valent invmtx: equate n, na, nv')
 !
@@ -682,7 +720,7 @@
       job = 11
       call sgedi(v,n,n,ip,d,work,job)
       ier = info
-      call time_end(subroutine_name,index)  
+      call time_end(subroutine_name,idindx)  
       end subroutine invmtrx
 !
 !  This routine orders the components of hbar so they are largest to
@@ -794,10 +832,10 @@
       integer :: k
       logical :: lstab
 !
-      CHARACTER (len=50) :: subroutine_name='vchekt'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='vchekt'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
       lstab = .true.
       do k = 1 , nk - 1
         ds1 = sigmaf(k+1) - sigmaf(k)
@@ -813,7 +851,7 @@
 99001   format ('0 indication that tbarh statically unstable')
       end if
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine vchekt
 
 !

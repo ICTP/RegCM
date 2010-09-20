@@ -79,7 +79,30 @@
         allocate(dlstaf(nnsg,iym1))
         allocate(rib(nnsg,iym1))
         allocate(rib1(nnsg,iym1))
-
+        lfta = 0.0D0
+        lftb = 0.0D0
+        lftra = 0.0D0
+        lftrs = 0.0D0
+        cdrd = 0.0D0
+        vpdc = 0.0D0
+        rppq = 0.0D0
+        efe = 0.0D0
+        qsatld = 0.0D0
+        dcd = 0.0D0
+        etrc = 0.0D0
+        dels = 0.0D0
+        efpot = 0.0D0
+        tbef = 0.0D0
+        fsol0 = 0.0D0
+        fsold = 0.0D0
+        radf = 0.0D0
+        rmini = 0.0D0
+        trup = 0.0D0
+        trupd = 0.0D0
+        cdrmin = 0.0D0
+        dlstaf = 0.0D0
+        rib = 0.0D0
+        rib1 = 0.0D0
       end subroutine allocate_mod_leaftemp
 !
 !=======================================================================

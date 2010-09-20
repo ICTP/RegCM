@@ -68,10 +68,10 @@
 !
 !----------------------------------------------------------------------
 !
-      CHARACTER (len=50) :: subroutine_name='solar1'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='solar1'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 #ifdef CLM
       log_print = .false.
 
@@ -110,7 +110,7 @@
 99001 format (11x,'*** Day ',f12.8,' solar declination angle = ',f12.8,&
           &   ' degrees.')
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine solar1
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -137,10 +137,10 @@
 #else
       real(8) :: omega , tlocap , xt24 , xxlat
 #endif
-      CHARACTER (len=50) :: subroutine_name='zenitm'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='zenitm'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 !***********************************************************************
 !
@@ -169,7 +169,7 @@
       end do
 #endif
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine zenitm
 !
       end module mod_sun

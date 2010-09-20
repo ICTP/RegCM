@@ -57,10 +57,10 @@
 !
       subroutine allocate_mod_split
       implicit none
-      CHARACTER (len=50) :: subroutine_name='allocate_mod_split'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='allocate_mod_split'
+      integer :: idindx = 0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
         call allocate_mod_vmodes
         allocate(m(nsplit))
         allocate(am(kz,nsplit))
@@ -88,7 +88,20 @@
         allocate(uuu(iy,kz,jx))
         allocate(vvv(iy,kz,jx))
 #endif 
-        call time_end(subroutine_name,index)
+        m = 0.0D0
+        am = 0.0D0
+        an = 0.0D0
+        ddsum = 0.0D0
+        deld = 0.0D0
+        delh = 0.0D0
+        dhsum = 0.0D0
+        psdot = 0.0D0
+        work = 0.0D0
+        uu = 0.0D0
+        vv = 0.0D0
+        uuu = 0.0D0
+        vvv = 0.0D0
+        call time_end(subroutine_name,idindx)
         end subroutine allocate_mod_split
 !
 ! Intial computation of vertical modes.
@@ -114,10 +127,10 @@
       integer :: ierr
 #endif
       integer :: jp1
-      CHARACTER (len=50) :: subroutine_name='spinit'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='spinit'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 !     lstand = .true. if standard atmosphere t to be used (ignore input
 !     tbarh and xps in that case).  otherwise, xps and tbarh must
@@ -490,7 +503,7 @@
         end do
       end if
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine spinit
 !
 ! Compute deld, delh, integrate in time and add correction terms appropriately
@@ -515,10 +528,10 @@
       integer :: ierr , ii
       real(8) , dimension(iy*nsplit) :: wkrecv , wksend
 #endif
-      CHARACTER (len=50) :: subroutine_name='splitf'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='splitf'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       do l = 1 , 3
         do n = 1 , nsplit
@@ -990,7 +1003,7 @@
 !
 !=======================================================================
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine splitf
 !
       subroutine spstep(hhbar,dx2,dtau,im)
@@ -1016,10 +1029,10 @@
       integer :: ierr
       real(8) , dimension(iy*2) :: wkrecv , wksend
 #endif
-      CHARACTER (len=50) :: subroutine_name='spstep'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='spstep'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !--
       
       do n = 1 , nsplit
@@ -1415,7 +1428,7 @@
 !
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine spstep
 !
       end module mod_split

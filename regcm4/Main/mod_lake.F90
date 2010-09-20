@@ -88,6 +88,13 @@
         allocate(xhii(lkpts))
         allocate(xhs(lkpts))
         allocate(xt(lkpts,maxdep))
+        xndpt = 0
+        xeta = 0.0D0
+        xfreeze = 0
+        xhi = 0
+        xhii = 0
+        xhs = 0
+        xt = 0
       end subroutine
 
       subroutine initlk

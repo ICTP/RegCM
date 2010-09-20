@@ -113,6 +113,38 @@
 #endif
         allocate(qvcs(iy,kz))
 !
+        diffq = 0.0D0
+        difft = 0.0D0
+        difuu = 0.0D0
+        difuv = 0.0D0
+        omega = 0.0D0
+        qcc = 0.0D0
+        qcten = 0.0D0
+        qvc = 0.0D0
+        qvten = 0.0D0
+        tc = 0.0D0
+        td = 0.0D0
+        tten = 0.0D0
+        uc = 0.0D0
+        uten = 0.0D0
+        vc = 0.0D0
+        vten = 0.0D0
+        xkc = 0.0D0
+        pdota = 0.0D0
+        psc = 0.0D0
+        pten = 0.0D0
+        phi = 0.0D0
+        psd = 0.0D0
+        qc = 0.0D0
+        qv = 0.0D0
+        t = 0.0D0
+        u = 0.0D0
+        v = 0.0D0
+        chi = 0.0D0
+        chic = 0.0D0
+        chiten = 0.0D0
+        qdot = 0.0D0
+        qvcs = 0.0D0
       end  subroutine allocate_mod_cvaria
 !
       end module mod_cvaria

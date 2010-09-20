@@ -130,6 +130,46 @@
         end if
         allocate(usk(iy,kz))
         allocate(vsk(iy,kz))
+        cldefi = 0.0D0
+        f = 0.0D0
+        hfx = 0.0D0
+        hgfact = 0.0D0
+        htsd = 0.0D0
+        qfx = 0.0D0
+        rainc = 0.0D0
+        rainnc = 0.0D0
+        tgb = 0.0D0
+        tgbb = 0.0D0
+        xlat = 0.0D0
+        xlong = 0.0D0
+        zpbl = 0.0D0
+        ht = 0.0D0
+        msfd = 0.0D0
+        msfx = 0.0D0
+        pdotb = 0.0D0
+        psa = 0.0D0
+        psb = 0.0D0
+        rainp = 0.0D0
+        qca = 0.0D0
+        qcb = 0.0D0
+        qva = 0.0D0
+        qvb = 0.0D0
+        ta = 0.0D0
+        tb = 0.0D0
+        ua = 0.0D0
+        ub = 0.0D0
+        va = 0.0D0
+        vb = 0.0D0
+        satbrt = 0.0D0
+        tga = 0.0D0
+        snowc = 0.0D0
+        so4 = 0.0D0
+        tbase = 0.0D0
+        uvdrag = 0.0D0
+        dstor = 0.0D0
+        hstor = 0.0D0
+        usk = 0.0D0
+        vsk = 0.0D0
         end subroutine allocate_mod_main 
 !
       end module mod_main

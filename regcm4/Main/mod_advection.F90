@@ -67,10 +67,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
-      CHARACTER (len=50) :: subroutine_name='hadv_t'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadv_t'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -151,7 +151,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadv_t
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -171,10 +171,10 @@
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
-      CHARACTER (len=50) :: subroutine_name='hadv_u'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadv_u'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
       jm1 = j - 1
       jp1 = j + 1
 !
@@ -265,7 +265,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadv_u
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -284,10 +284,10 @@
 #endif
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      CHARACTER (len=50) :: subroutine_name='hadv_v'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadv_v'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -373,7 +373,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadv_v
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -390,10 +390,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
-      CHARACTER (len=50) :: subroutine_name='hadvqv'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadvqv'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -466,7 +466,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadvqv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -483,10 +483,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
-      CHARACTER (len=50) :: subroutine_name='hadvqcv'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadvqcv'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       jm1 = j - 1
       jp1 = j + 1
@@ -559,7 +559,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadvqc
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -577,10 +577,10 @@
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
 !
-      CHARACTER (len=50) :: subroutine_name='hadvch'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='hadvch'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
       jm1 = j - 1
       jp1 = j + 1
 #if defined(BAND) && (!defined(MPP1))
@@ -636,7 +636,7 @@
                  & ' you required is not available.'
         stop
       end if
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine hadvch
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -673,14 +673,14 @@
       real(8) , dimension(iy,kz) :: fg
       integer :: i , k
 !
-      CHARACTER (len=50) :: subroutine_name='vadv'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='vadv'
+      integer :: idindx=0
 !
 #ifdef BAND
       integer :: jm1
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 #ifdef MPP1
       jm1 = j-1
 #else
@@ -870,7 +870,7 @@
 !
 #else
 !----------------------------------------------------------------------
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       if ( ind.eq.1 ) then
 !
@@ -1048,7 +1048,7 @@
       end if
 !
 #endif
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine vadv
 !
       end module mod_advection

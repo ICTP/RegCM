@@ -121,16 +121,44 @@
         allocate(rxsaq2(iy,kz,jx,ntr))
         allocate(rxsg(iy,kz,jx,ntr))
 #endif 
+        icumbot = 0
+        icumdwd = 0
+        icumtop = 0
+        aerasp = 0.0D0
+        aerext = 0.0D0
+        aerssa = 0.0D0
+        aersrrf = 0.0D0
+        aertalwrf = 0.0D0
+        aersrlwrf = 0.0D0
+
+        aertarf = 0.0D0
+        cemtr = 0.0D0
+        cemtrac = 0.0D0
+        remdrd = 0.0D0
+        remcvc = 0.0D0
+        remlsc = 0.0D0
+        rxsaq1 = 0.0D0
+        rxsaq2 = 0.0D0
+        rxsg = 0.0D0
+
         allocate(chtrname(ntr))
+        chtrname = ' '
         allocate(chtrdpv(ntr,2))
         allocate(chtrsize(nbin,2))
-        allocate(dustbsiz(nbin,2))
         allocate(chtrsol(ntr))
-        allocate(idust(nbin))
+        allocate(dustbsiz(nbin,2))
         allocate(mflx(iy,2))
         allocate(rembc(iy,kz))
         allocate(remrat(iy,kz))
-
+        chtrdpv = 0.0D0
+        chtrsize = 0.0D0
+        chtrsol = 0.0D0
+        dustbsiz = 0.0D0
+        mflx = 0.0D0
+        rembc = 0.0D0
+        remrat = 0.0D0
+        allocate(idust(nbin))
+        idust = 0
         end subroutine allocate_mod_trachem
 
       end module mod_trachem

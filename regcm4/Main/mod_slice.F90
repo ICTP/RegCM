@@ -73,6 +73,18 @@
         allocate(ubd3d(iy,kz,jx))
         allocate(vbd3d(iy,kz,jx))
 #endif
+        chib3d = 0.0D0
+        pb3d = 0.0D0
+        qsb3d = 0.0D0
+        rhb3d = 0.0D0
+        rhob3d = 0.0D0
+        ubx3d = 0.0D0
+        vbx3d = 0.0D0
+        qcb3d = 0.0D0
+        qvb3d = 0.0D0
+        tb3d = 0.0D0
+        ubd3d = 0.0D0
+        vbd3d = 0.0D0
 !
       end subroutine allocate_mod_slice
 !

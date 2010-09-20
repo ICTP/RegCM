@@ -164,10 +164,10 @@
 !
       integer, intent(in) :: j , k , istart , iend , ng
 !!
-      CHARACTER (len=50) :: subroutine_name='vecbats'
-      integer :: index=0
+      character (len=50) :: subroutine_name='vecbats'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 
 !---------------------------------------------------------------------
 
@@ -190,7 +190,7 @@
 ! 
 ! ****************************************************************
 ! 
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine vecbats
 !
       subroutine initb
@@ -227,10 +227,10 @@
 !     ****** typically resp=1.0 kg/m**2/s and changes by<10% in 10 days
 !
 !!
-      CHARACTER (len=50) :: subroutine_name='initb'
-      integer :: index=0
+      character (len=50) :: subroutine_name='initb'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 #ifdef MPP1
       do jll = 1 , jendx
 #else
@@ -352,7 +352,7 @@
         end do
       end do
  
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine initb
 !
       subroutine interf(ivers,j,k,istart,iend,ng)
@@ -402,10 +402,10 @@
 !     20.  surface pressure
 !     21.  pbl height
 !!
-      CHARACTER (len=50) :: subroutine_name='interf'
-      integer :: index=0
+      character (len=50) :: subroutine_name='interf'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
  
       if ( ivers.eq.1 ) then ! regcm2d --> bats
 
@@ -1063,7 +1063,7 @@
       else ! end ivers test
       end if
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine interf
 !
       subroutine albedov(j,iemiss)
@@ -1086,8 +1086,8 @@
                                  & aldifs_s , aldirl_s , aldirs_s
       real(8) :: fseas
       integer :: kolour , n , i
-      CHARACTER (len=50) :: subroutine_name='albedov'
-      integer :: index=0
+      character (len=50) :: subroutine_name='albedov'
+      integer :: idindx=0
 !
  
 !
@@ -1120,7 +1120,7 @@
       fseas(x) = dmax1(0.D0,1.D0-0.0016D0*dmax1(298.D0-x,0.D0)**2)
 !
 !
-      call time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !     1.1 constants
 !
 !     Solar flux partitioned at wavelength of 0.7micr
@@ -1366,7 +1366,7 @@
  
       end do
  
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine albedov
       subroutine soilbc
 
@@ -1394,10 +1394,10 @@
 !     ===============================================================
 !
 !
-      CHARACTER (len=50) :: subroutine_name='soilbc'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='soilbc'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
  
       do i = 2 , iym1
         do n = 1 , nnsg
@@ -1437,7 +1437,7 @@
         end do
       end do
  
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine soilbc
 !
       subroutine zenith(dec,alat,fjd,coszrs,frac,imax)
@@ -1490,10 +1490,10 @@
       real(8) :: cc , cosz , dlon , ha , ss , tpifjd
       integer :: i
 !
-      CHARACTER (len=50) :: subroutine_name='zenith'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='zenith'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 !***********************************************************************
 !
@@ -1509,7 +1509,7 @@
         coszrs(i) = cosz
       end do
 !
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine zenith
 !
       subroutine slice1D(j)

@@ -47,6 +47,10 @@
             allocate(o3prof(iym1,kzp1,jxm1))
           end if
         end if
+        cldfra = 0.0D0
+        cldlwc = 0.0D0
+        heatrt = 0.0D0
+        o3prof = 0.0D0
         end subroutine  allocate_mod_rad
 
       end module mod_rad

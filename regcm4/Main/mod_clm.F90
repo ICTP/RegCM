@@ -172,6 +172,7 @@
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
       allocate(clmspace(jx,iy,45))
+      clmspace = 0.0D0
       r2ctb_all     => clmspace(:,:,1)
       r2cqb_all     => clmspace(:,:,2)
       r2czga_all    => clmspace(:,:,3)
@@ -220,7 +221,11 @@
       allocate(c2rprocmap(jx,iy))
       allocate(c2rngc(nproc))
       allocate(c2rdisps(nproc))
+      c2rprocmap = 0
+      c2rngc = 0
+      c2rdisps = 0
       allocate(spaceclm(iym1,njm1,12))
+      spaceclm = 0.0D0
       sols2d   => spaceclm(:,:,1)
       soll2d   => spaceclm(:,:,2)
       solsd2d  => spaceclm(:,:,3)

@@ -88,10 +88,10 @@
 !
         subroutine allocate_mod_bdycon
         implicit none
-        CHARACTER (len=50) :: subroutine_name='allocate_mod_bdycon'
-        INTEGER :: index=0
+        character (len=50) :: subroutine_name='allocate_mod_bdycon'
+        integer :: idindx=0
 !
-        CALL time_begin(subroutine_name,index)
+        call time_begin(subroutine_name,idindx)
 #ifdef MPP1
         allocate(ps0(iy,0:jxp+1))
         allocate(ps1(iy,0:jxp+1))
@@ -242,7 +242,86 @@
         allocate(vjl(iy,kz))
         allocate(vjlx(iy,kz))
 #endif
-        CALL time_end(subroutine_name,index)
+        ps0 = 0.0D0
+        ps1 = 0.0D0
+        ts0 = 0.0D0
+        ts1 = 0.0D0
+        qb0 = 0.0D0
+        qb1 = 0.0D0
+        so0 = 0.0D0
+        so1 = 0.0D0
+        tb0 = 0.0D0
+        tb1 = 0.0D0
+        ub0 = 0.0D0
+        ub1 = 0.0D0
+        vb0 = 0.0D0
+        vb1 = 0.0D0
+#ifndef BAND
+        peb = 0.0D0
+        pebt = 0.0D0
+        pwb = 0.0D0
+        pwbt = 0.0D0
+#endif
+        pnb = 0.0D0
+        pnbt = 0.0D0
+        psbt = 0.0D0
+        pss = 0.0D0
+#ifndef BAND
+        qeb = 0.0D0
+        qebt = 0.0D0
+        qwb = 0.0D0
+        qwbt = 0.0D0
+        teb = 0.0D0
+        tebt = 0.0D0
+        twb = 0.0D0
+        twbt = 0.0D0
+#endif
+        qnb = 0.0D0
+        qnbt = 0.0D0
+        qsb = 0.0D0
+        qsbt = 0.0D0
+        tnb = 0.0D0
+        tnbt = 0.0D0
+        tsb = 0.0D0
+        tsbt = 0.0D0
+#ifndef BAND
+        ueb = 0.0D0
+        uebt = 0.0D0
+        uwb = 0.0D0
+        uwbt = 0.0D0
+        veb = 0.0D0
+        vebt = 0.0D0
+        vwb = 0.0D0
+        vwbt = 0.0D0
+#endif
+        ui1 = 0.0D0
+        ui2 = 0.0D0
+        uil = 0.0D0
+        uilx = 0.0D0
+        vi1 = 0.0D0
+        vi2 = 0.0D0
+        vil = 0.0D0
+        vilx = 0.0D0
+        unb = 0.0D0
+        unbt = 0.0D0
+        usb = 0.0D0
+        usbt = 0.0D0
+        vnb = 0.0D0
+        vnbt = 0.0D0
+        vsb = 0.0D0
+        vsbt = 0.0D0
+#endif 
+#ifndef BAND
+        uj1 = 0.0D0
+        uj2 = 0.0D0
+        ujl = 0.0D0
+        ujlx = 0.0D0
+        vj1 = 0.0D0
+        vj2 = 0.0D0
+        vjl = 0.0D0
+        vjlx = 0.0D0
+#endif
+        call time_end(subroutine_name,idindx)
         end subroutine allocate_mod_bdycon
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -275,10 +354,10 @@
       real(8) , dimension(iy,jx) :: psdot , tdum
 #endif
       integer :: n
-      CHARACTER (len=50) :: subroutine_name='bdyin'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='bdyin'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
       if ( dabs(xtime).gt.0.0001 ) return
 !
@@ -977,7 +1056,7 @@
         end do
       end if
 #endif
-      call time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine bdyin
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1015,10 +1094,10 @@
 #ifdef MPP1
       integer :: ierr
 #endif
-      CHARACTER (len=50) :: subroutine_name='bdyuv'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='bdyuv'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 #ifdef MPP1
 !----------------------------------------------------------------------
@@ -1395,7 +1474,7 @@
 
 #endif
 !
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine bdyuv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1438,10 +1517,10 @@
       integer :: jp1
 #endif
 #endif
-      CHARACTER (len=50) :: subroutine_name='bdyval'
-      INTEGER :: index=0
+      character (len=50) :: subroutine_name='bdyval'
+      integer :: idindx=0
 !
-      CALL time_begin(subroutine_name,index)
+      call time_begin(subroutine_name,idindx)
 !
 !*********************************************************************
 !*****fill up the boundary value for xxb variables from xxa variables:
@@ -2485,7 +2564,7 @@
       end if
 #endif
 !
-      CALL time_end(subroutine_name,index)
+      call time_end(subroutine_name,idindx)
       end subroutine bdyval
 !
       end module mod_bdycod

@@ -78,11 +78,36 @@
       allocate(fcc(iy,kz,nj))
       allocate(rsheat(iy,kz,nj))
       allocate(rswat(iy,kz,nj))
+      cbmf2d = 0.0D0
+      cgul = 0.0D0
+      dtauc2d = 0.0D0
+      edtmax2d = 0.0D0
+      edtmaxo2d = 0.0D0
+      edtmaxx2d = 0.0D0
+      edtmin2d = 0.0D0
+      edtmino2d = 0.0D0
+      edtminx2d = 0.0D0
+      htmax2d = 0.0D0
+      htmin2d = 0.0D0
+      mincld2d = 0.0D0
+      pbcmax2d = 0.0D0
+      qck1 = 0.0D0
+      rh0 = 0.0D0
+      shrmax2d = 0.0D0
+      shrmin2d = 0.0D0
+      fcc = 0.0D0
+      rsheat = 0.0D0
+      rswat = 0.0D0
       allocate(icon(nj))
       allocate(kbmax2d(iy,nj))
+      icon = 0
+      kbmax2d = 0
       allocate(qwght(kz))
       allocate(twght(kz,5:kz,1:kz-3))
       allocate(vqflx(kz,5:kz,1:kz-3))
+      qwght = 0.0D0
+      twght = 0.0D0
+      vqflx = 0.0D0
 !
       end subroutine allocate_mod_pmoist
 !

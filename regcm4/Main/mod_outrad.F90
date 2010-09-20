@@ -57,8 +57,10 @@
         allocate(frad3d(jxm2,iym2,kz,nrad3d))
         allocate(radpsa(jxm2,iym2))
 #endif
+        radpsa = 0.0
 #endif
-
+        frad2d = 0.0
+        frad3d = 0.0
         end subroutine allocate_mod_outrad
 ! 
         subroutine radout(solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla, &

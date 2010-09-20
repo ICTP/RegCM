@@ -64,6 +64,16 @@
         allocate(trxsaq2(ntr,2))
         allocate(trxsg(ntr,2))
         allocate(ttrace(ntr,2))
+        tchiad = 0.0D0
+        tchie = 0.0D0
+        tchitb = 0.0D0
+        tremcvc = 0.0D0
+        tremdrd = 0.0D0
+        tremlsc = 0.0D0
+        trxsaq1 = 0.0D0
+        trxsaq2 = 0.0D0
+        trxsg = 0.0D0
+        ttrace = 0.0D0
       end subroutine allocate_mod_diagnosis
 !
       subroutine initdiag
