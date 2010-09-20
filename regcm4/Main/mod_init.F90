@@ -40,9 +40,9 @@
       use mod_ncio
       use mod_savefile
       use mod_diagnosis
+      use mod_lake
 #ifdef MPP1
       use mod_mppio
-      use mod_lake
 #ifdef CLM
       use mod_clm
       use clm_varsur , only : init_tgb , init_grid
