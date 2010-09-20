@@ -59,6 +59,15 @@ clean:
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
 	@$(MAKE) -C $(REGCM_BASE_DIR)/Main clean 
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean 
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo "SUCCESSFULLY CLEANED ALL BINARY FILES"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+cleanall:
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/ICBC clean 
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Main clean
+	@$(MAKE) -C $(REGCM_BASE_DIR)/PostProc clean
 	@rm -f Bin/*
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CLEANED ALL BINARY FILES"
