@@ -25,7 +25,7 @@
       use mod_bats
       use mod_leaftemp
       use mod_drag
-      use service_mod
+      use mod_service
 !
       private
 !

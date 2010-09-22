@@ -29,7 +29,7 @@
       use mod_aerosol
       use mod_message
       use mod_ncio
-      use service_mod 
+      use mod_service 
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM

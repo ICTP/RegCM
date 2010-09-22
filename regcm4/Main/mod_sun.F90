@@ -26,7 +26,7 @@
       use mod_main
       use mod_message
       use mod_date
-      use service_mod
+      use mod_service
 !
 #ifdef CLM
       use mod_clm

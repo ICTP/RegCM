@@ -32,7 +32,7 @@
       use mod_ncio
       use mod_date
       use mod_cvaria
-      use service_mod
+      use mod_service
 #ifdef MPP1
       use mod_mppio
 #endif

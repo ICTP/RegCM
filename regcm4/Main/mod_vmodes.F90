@@ -23,7 +23,7 @@
       use mod_dynparam
       use mod_runparams
       use mod_message
-      use service_mod
+      use mod_service
       private
 
       public :: allocate_mod_vmodes , vmodes

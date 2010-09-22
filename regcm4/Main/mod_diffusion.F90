@@ -25,7 +25,7 @@
       use mod_runparams
       use mod_slice
       use mod_main
-      use service_mod 
+      use mod_service 
       private
 
       public :: diffu_u , diffu_v , diffut_t , diffutqv , diffutqc , &

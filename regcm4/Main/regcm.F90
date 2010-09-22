@@ -82,7 +82,7 @@
       use mod_param
       use mod_tendency
       use mod_tstep
-      use service_mod
+      use mod_service
 #ifdef MPP1
       use mpi
 #ifdef CLM

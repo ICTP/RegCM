@@ -19,7 +19,7 @@
  
       module mod_cu_grell
 
-      use service_mod 
+      use mod_service 
       contains
 
       subroutine cuparan(tten,qten,j)

@@ -52,7 +52,7 @@
       use mod_nudge
       use mod_che_tend
       use mod_diagnosis
-      use service_mod
+      use mod_service
 #ifdef MPP1
 #ifdef CLM
       use mod_clm

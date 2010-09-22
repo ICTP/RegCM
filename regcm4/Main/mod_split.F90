@@ -31,7 +31,7 @@
       use mod_main
       use mod_date
       use mod_savefile
-      use service_mod
+      use mod_service
 !
       private
 !

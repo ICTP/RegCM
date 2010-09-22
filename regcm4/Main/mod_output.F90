@@ -37,7 +37,7 @@
       use mod_radiation
       use mod_split
       use mod_savefile
-      use service_mod
+      use mod_service
 
 #ifdef MPP1
       use mod_mppio

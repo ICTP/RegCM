@@ -25,7 +25,7 @@
       use mod_runparams
       use mod_cvaria
       use mod_main
-      use service_mod
+      use mod_service
       private
  
       public :: hadv_t , hadv_u , hadv_v , hadvqv , hadvqc , hadvch

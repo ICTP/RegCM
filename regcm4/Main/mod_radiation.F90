@@ -26,7 +26,7 @@
       use mod_aerosol
       use mod_date
       use mod_message
-      use service_mod
+      use mod_service
 #ifdef CLM
       use mod_clm
 #endif

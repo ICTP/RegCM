@@ -21,7 +21,7 @@ CLMLIB =
 all:: program
 endif
 
-SHROBJS = mod_constants.o mod_dynparam.o mod_bats_param.o service_mod.o
+SHROBJS = mod_constants.o mod_dynparam.o mod_bats_param.o mod_service.o
 
 MODOBJS = \
 mod_mppio.o      mod_param.o      mod_mainchem.o   mod_vecbats.o     \
@@ -268,7 +268,7 @@ mod_scenarios.o: mod_scenarios.F90 mod_message.o
 mod_slice.o: mod_slice.F90 mod_dynparam.o mod_constants.o mod_main.o \
              mod_runparams.o mod_mainchem.o mod_pbldim.o mod_pmoist.o
 mod_split.o: mod_split.F90 mod_dynparam.o mod_main.o mod_runparams.o \
-             mod_constants.o mod_vmodes.o mod_date.o mod_savefile.o service_mod.o
+             mod_constants.o mod_vmodes.o mod_date.o mod_savefile.o mod_service.o
 ifeq ($(USECLM),1)
 mod_sun.o: mod_sun.F90 $(CLMLIB) mod_clm.o mod_message.o mod_date.o \
              mod_constants.o mod_dynparam.o mod_main.o

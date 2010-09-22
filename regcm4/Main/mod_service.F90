@@ -1,7 +1,7 @@
 !!>
 !!c*******************************************************************
 !!c
-!!c   MODULE: service_mod
+!!c   MODULE: mod_service
 !!c   PACKAGE VERSION: coming from DLPROTEIN-2.1  package.. 
 !!c   ACTION: basic service module: 
 !!c           Timing/Debugging/Error routines 
@@ -15,7 +15,7 @@
 !!        call activate_debug
 !!
 !! 2) The timer is activated when in each subroutine is inserted 
-!!        use service_mod 
+!!        use mod_service 
 !!    and having declared the two following local variables: 
 !!        character (len=50) :: sub='name_of_your_subroutine' 
 !!        integer :: index=0
@@ -53,7 +53,7 @@
 !!  -_real time_et,time_bt_    : array where to store timing info
 !!
 !!<
-MODULE service_mod
+MODULE mod_service
 
   use mod_dynparam , only : debug_level
   TYPE timing_info
@@ -898,11 +898,11 @@ CONTAINS
 ! If whe have a FLUSH, use it 
 !  On IBM, flush is flush_ 
 #ifdef IBM 
-	call FLUSH_(lunit)  
+  call FLUSH_(lunit)  
 #else
-	call flush(lunit)
+  call flush(lunit)
 #endif        
  end subroutine flusha
 
 
-END MODULE service_mod
+END MODULE mod_service

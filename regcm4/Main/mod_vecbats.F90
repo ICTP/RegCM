@@ -31,7 +31,7 @@
       use mod_bndry
       use mod_drag
       use mod_main
-      use service_mod
+      use mod_service
 #ifdef MPP1
       use mod_mppio
 #endif

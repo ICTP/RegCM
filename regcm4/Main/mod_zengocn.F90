@@ -31,7 +31,7 @@
       use mod_bats
       use mod_date
       use mod_bdycod
-      use service_mod
+      use mod_service
 #ifdef CLM
       use clm_varsur , only : landmask
 #endif

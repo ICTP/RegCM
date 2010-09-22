@@ -25,7 +25,7 @@
       use mod_runparams
       use mod_bdycod
       use mod_main
-      use service_mod
+      use mod_service
 !
       private
 !
