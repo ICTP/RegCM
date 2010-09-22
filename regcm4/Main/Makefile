@@ -47,7 +47,7 @@ restFileMod.o
 
 OBJS =  regcm.o
 
-NETLIBOBJS = linpack.o eispack.o
+NETLIB = netlib/libnetlib.a
 
 EXTRAOBJS = mod_co2.o
 
@@ -74,9 +74,12 @@ ifeq ($(origin PARALLEL), undefined)
 endif
 	$(MAKE) -C $(CLMPTH)
 
-regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS) $(NETLIBOBJS)
+$(NETLIB):
+	$(MAKE) -C netlib
+
+regcm: $(SHROBJS) $(CLMLIB) $(MODOBJS) $(OBJS) $(NETLIB)
 	$(F90) $(F90FLAGS) $(LDFLAGS) -o $@ $(MODOBJS) $(OBJS) $(SHROBJS) \
-               $(NETLIBOBJS) $(LCLMLIB) $(NETCDFLIB)
+               $(NETLIB) $(LCLMLIB) $(NETCDFLIB)
 
 mod_constants.o: ../Config/mod_constants.F90
 	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
