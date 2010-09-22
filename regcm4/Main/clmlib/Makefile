@@ -9,7 +9,7 @@ all:: libclm.a
 
 REGCMSRC = $(REGCM_BASE_DIR)/Main
 BSP      = $(REGCMSRC)/clmlib
-CLMSRC   = $(REGCMSRC)/clm4.0
+CLMSRC   = $(REGCMSRC)/clm3.5
 
 VPATH = $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
         $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\

@@ -339,11 +339,6 @@ mod_mtrxclm.o: mod_mtrxclm.F90 mod_bats.o mod_dynparam.o mod_drag.o \
 	$(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 #
-# Netlib libraries
-#
-linpack.o: linpack.f90
-eispack.o: eispack.f90
-#
 # Now unused, my be activated (?)
 #
 mod_co2.o: mod_co2.f90 mod_dynparam.o mod_runparams.o mod_bats.o mod_leaftemp.o
