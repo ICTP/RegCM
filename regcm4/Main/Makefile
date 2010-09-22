@@ -99,10 +99,12 @@ mod_bats_param.o: ../Config/mod_bats_param.F90
 ifeq ($(USECLM),1)
 clean:
 	rm -f *.mod *.o regcm
-	cd clmlib && $(MAKE) clean
+	$(MAKE) -C $(CLMPTH) clean
+	$(MAKE) -C netlib clean
 else
 clean:
 	rm -f *.mod *.o regcm
+	$(MAKE) -C netlib clean
 endif
 
 #
