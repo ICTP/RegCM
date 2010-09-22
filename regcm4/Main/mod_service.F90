@@ -2,7 +2,7 @@
 !!c*******************************************************************
 !!c
 !!c   MODULE: mod_service
-!!c   PACKAGE VERSION: coming from DLPROTEIN-2.1  package.. 
+!!c   PACKAGE VERSION:  regcm4  coming from DLPROTEIN-2.1  package.. 
 !!c   ACTION: basic service module: 
 !!c           Timing/Debugging/Error routines 
 !!c
@@ -104,7 +104,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : activate_DEBUG
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : Open Debugging files and activates debugging
   !!            Set variables needed in the timing routines 
   !!            It is executed only if the code is compiled with DEBUG enabled
@@ -170,6 +169,7 @@ CONTAINS
      CALL write_info(sub, "DEBUGGING FILE CORRECTLY OPEN:unit is",idum)
      if (present(level)) debug_level=level
      CALL write_info(sub,"debug_level not specified in regcm.in file:default is ",debug_level)
+     ldebug=.true.
 
   END SUBROUTINE activate_debug
 
@@ -253,7 +253,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : TIME_BEGIN
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : start recording time for the calling subroutine
   !!<
   SUBROUTINE time_begin(name,index)
@@ -337,7 +336,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : TIME_PRINT
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : print out times collected among processors
   !!            on unit iunit (meant to be the OUTPUT file)
   !!<
@@ -449,7 +447,7 @@ CONTAINS
     ENDIF
 
     !save anyway the data for each pe on debug unit:
-    
+    if (ldebug) then  
     CALL write_info(sub,'Specific local time up to checkpoint for node',node) 
     DO ENTRY=1,n_of_ENTRY
        NAME=info_serial(ENTRY)%name_of_section
@@ -461,7 +459,7 @@ CONTAINS
           call flusha(ndebug+NODE)
        ENDIF
     END DO
-
+    endif 
 
 #ifdef MPP1
 
@@ -514,7 +512,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : TIME_RESET
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION :reset all the data structures 
   !!<
   SUBROUTINE time_reset
@@ -708,7 +705,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : PRINTA_I
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : general purpose error printing routine for integers
   !!<
   SUBROUTINE printa_i(sub,variable,value,line)
@@ -733,7 +729,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : PRINTA_R
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : general purpose error printing routine for reals
   !!<
 
@@ -760,7 +755,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : E_ALLOCA
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION :signal error on allocation
   !!<                                                                     
   SUBROUTINE e_alloca(sub,variable,line)
@@ -791,7 +785,6 @@ CONTAINS
 
   !!>
   !! ROUTINE : CHECK_MEMORY_R
-  !! PACKAGE VERSION : DLPROTEIN-2.1 
   !! ACTION : check the address of real variable
   !!<
   SUBROUTINE check_memory_r(variable,name_of_variable,sub,line)
@@ -827,7 +820,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : CHECK_MEMORY_I
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION :check the address of real variable
   !!           It may use the loc function (not architecture-universal)
   !!<
@@ -865,7 +857,6 @@ CONTAINS
 
   !!>
   !!   ROUTINE : LEN_STRIM
-  !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : trimming of string
   !!< 
   FUNCTION len_strim (string) RESULT (len_trim_RESULT)
@@ -898,11 +889,11 @@ CONTAINS
 ! If whe have a FLUSH, use it 
 !  On IBM, flush is flush_ 
 #ifdef IBM 
-  call FLUSH_(lunit)  
+	call FLUSH_(lunit)  
 #else
-  call flush(lunit)
+	call flush(lunit)
 #endif        
  end subroutine flusha
 
 
-END MODULE mod_service
+END MODULE  mod_service

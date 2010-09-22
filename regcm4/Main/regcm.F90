@@ -248,6 +248,10 @@
 !
 !**********************************************************************
 !
+! this below enable debugging
+#ifdef DEBUG 
+      call start_debug()
+#endif 
       call init
 ! 
       call bdyin
@@ -309,6 +313,10 @@
         extime = extime + dtinc
 
       end do
+!this below close down debug 
+#ifdef DEBUG
+      call stop_debug()
+#endif 
       call time_print(6,'evolution phase')
 !
 !**********************************************************************

@@ -2116,11 +2116,6 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       implicit none
-      character (len=50) :: subroutine_name='outatm'
-      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-
       integer :: jjx , iiy
 #ifdef BAND
       jjx = jx
@@ -2142,7 +2137,6 @@
  
       write (*,*) 'ATM variables written at ' , idatex , xtime
  
-!      call time_end(subroutine_name,idindx)
       end subroutine outatm
 !
       subroutine outsrf
@@ -2153,10 +2147,6 @@
 !
       integer :: i , j
 !
-      character (len=50) :: subroutine_name='outsrf'
-      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
 #ifdef BAND
       i = iy-2
       j = jx
@@ -2172,7 +2162,6 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
-!      call time_end(subroutine_name,idindx)
       end subroutine outsrf
 !
       subroutine outsub
@@ -2181,10 +2170,6 @@
 
       integer :: i , j
 
-      character (len=50) :: subroutine_name='outsub'
-      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
 #ifdef BAND
       i = iym2sg
       j = jxsg
@@ -2201,7 +2186,6 @@
 
       write (*,*) 'SUB variables written at ' , idatex , xtime
 
-!      call time_end(subroutine_name,idindx)
       end subroutine outsub
 !
       subroutine outrad
@@ -2210,8 +2194,8 @@
 !
       integer :: i , j , imax , jmax , istart, jstart
 !
-      character (len=50) :: subroutine_name='outrad'
-      integer :: idindx=0
+!      character (len=50) :: subroutine_name='outrad'
+!      integer :: idindx=0
 !
 !      call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -2265,8 +2249,8 @@
 !
       integer :: ni , itr , nj , nk , is , ie , js , je
 
-      character (len=50) :: subroutine_name='outche'
-      integer :: idindx=0
+!      character (len=50) :: subroutine_name='outche'
+!      integer :: idindx=0
 !
 !      call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -2303,7 +2287,6 @@
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
 
-!      call time_end(subroutine_name,idindx)
       end subroutine outche
 !
       end module mod_output
