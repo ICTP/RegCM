@@ -1,3 +1,79 @@
+! 
+! http://people.sc.fsu.edu/~jburkardt/f_src/linpack_d/linpack_d.html
+!
+! LINPACK
+! Linear Algebra Library
+! Real*8 version
+!
+! LINPACK is a FORTRAN90 library which solves systems of linear equations for
+! a variety of matrix types and storage modes.
+!
+! LINPACK has officially been superseded by the LAPACK library. The LAPACK
+! library uses more modern algorithms and code structure. However, the LAPACK
+! library can be extraordinarily complex; what is done in a single LINPACK
+! routine may correspond to 10 or 20 utility routines in LAPACK. This is fine
+! if you treat LAPACK as a black box. But if you wish to learn how the
+! algorithm works, or to adapt it, or to convert the code to another language,
+! this is a real drawback. This is one reason I still keep a copy of LINPACK
+! around.
+!
+! Versions of LINPACK in various arithmetic precisions are available through the
+! NETLIB web site.
+! Licensing:
+!
+! This computer code is distributed under the GNU LGPL license.
+!
+! List of Routines:
+!
+! DCHDC computes the Cholesky decomposition of a positive definite matrix.
+! DCHDD downdates an augmented Cholesky decomposition.
+! DCHEX updates the Cholesky factorization of a positive definite matrix.
+! DCHUD updates an augmented Cholesky decomposition.
+! DGBCO factors a real*8 band matrix and estimates its condition.
+! DGBDI computes the determinant of a band matrix factored by DGBCO or DGBFA.
+! DGBFA factors a real*8 band matrix by elimination.
+! DGBSL solves a real*8 banded system factored by DGBCO or DGBFA.
+! DGECO factors a real*8 matrix and estimates its condition number.
+! DGEDI computes the determinant and inverse of a matrix factored by DGECO or
+!       DGEFA.
+! DGEFA factors a real*8 matrix.
+! DGESL solves a real*8 general linear system A * X = B.
+! DGTSL solves a general tridiagonal linear system.
+! DPBCO factors a real*8 symmetric positive definite banded matrix.
+! DPBDI computes the determinant of a matrix factored by DPBCO or DPBFA.
+! DPBFA factors a real*8 symmetric positive definite matrix stored in band form.
+! DPBSL solves a real*8 symmetric positive definite band factored by DPBCO or
+!       DPBFA.
+! DPOCO factors a real*8 symmetric positive definite matrix and estimates its
+!       condition.
+! DPODI computes the determinant and inverse of a certain matrix.
+! DPOFA factors a real*8 symmetric positive definite matrix.
+! DPOSL solves a linear system factored by DPOCO or DPOFA.
+! DPPCO factors a real*8 symmetric positive definite matrix in packed form.
+! DPPDI computes the determinant and inverse of a matrix factored by DPPCO or
+!       DPPFA.
+! DPPFA factors a real*8 symmetric positive definite matrix in packed form.
+! DPPSL solves a real*8 symmetric positive definite system factored by DPPCO or
+!       DPPFA.
+! DPTSL solves a positive definite tridiagonal linear system.
+! DQRDC computes the QR factorization of a real*8 rectangular matrix.
+! DQRSL computes transformations, projections, and least squares solutions.
+! DSICO factors a real*8 symmetric matrix and estimates its condition.
+! DSIDI computes the determinant, inertia and inverse of a real*8 symmetric
+!       matrix.
+! DSIFA factors a real*8 symmetric matrix.
+! DSISL solves a real*8 symmetric system factored by DSIFA.
+! DSPCO factors a real*8 symmetric matrix stored in packed form.
+! DSPDI computes the determinant, inertia and inverse of a real*8 symmetric
+!       matrix.
+! DSPFA factors a real*8 symmetric matrix stored in packed form.
+! DSPSL solves the real*8 symmetric system factored by DSPFA.
+! DSVDC computes the singular value decomposition of a real*8 rectangular
+!       matrix.
+! DTRCO estimates the condition of a real*8 triangular matrix.
+! DTRDI computes the determinant and inverse of a real*8 triangular matrix.
+! DTRSL solves triangular linear systems.
+!
 subroutine i_swap ( i, j )
 !
 !*******************************************************************************

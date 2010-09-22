@@ -1,0 +1,436 @@
+
+                              FAQ for Netlib
+                      netlib_maintainers@netlib.org
+
+
+   
+------------------------------
+
+Table of Contents
+
+1)  General
+    1.1)  What is this FAQ for?
+    1.2)  Where can I get a copy of this FAQ?
+    1.3)  Where should I send comments and corrections for this FAQ?
+    1.4)  What is Netlib Question and Answer Forum?
+
+2)  Netlib
+    2.1)  What is Netlib?
+    2.2)  How do I retrieve software or documents from Netlib?
+    2.3)  Are there restrictions on the use of software retrieved
+		from Netlib?
+    2.4)  How do I submit software or documents to Netlib?	
+    2.5)  Where are the Netlib mirror sites?
+    2.6)  Which sites use the Netlib email server to distribute other
+		types of software?
+    2.7)  Where can I find more information about Netlib?
+    2.8)  What is Xnetlib?
+    2.9)  How do I find a particular routine?
+    2.10)  How do I find software to solve a particular problem?
+    2.11) I can't get a program to work.  What should I do?
+    2.12) Where can I find documentation for a particular program?
+    2.13) What is dependency checking and how does it work?
+    2.14) I requested some software but didn't get all the routines
+		I needed.  Why?
+    2.15) What and where are the BLAS?
+    2.16) Why don't I get needed BLAS automatically when I select 
+		LAPACK routines?
+    2.17) What and where are r1mach, d1mach, and i1mach?
+    2.18) How can I unpack foo.tar.z?
+    2.19) How can I unpack foo.tgz?
+    2.20) Does Netlib offer technical support?
+    2.21) Can I download all/lots of the Netlib repository?
+    2.22) How can I become a Netlib site?
+    2.23) How can I use the Netlib program to run my own repository?
+    2.24) What if I have other questions about Netlib?
+
+------------------------------
+
+1)  General
+
+------------------------------
+
+    1.1)  What is this FAQ for?
+
+To provide basic introductory information and answers to frequently
+asked questions about Netlib.
+
+------------------------------
+
+    1.2)  Where can I get a copy of this FAQ?
+
+The most recent version of this FAQ can be retrieved from
+	http://www.netlib.org/misc/faq.html
+or
+	ftp://ftp.netlib.org/misc/faq
+
+------------------------------
+
+    1.3)  Where should I send comments and corrections for this FAQ?
+
+Send email to netlib_maintainers@netlib.org.
+
+------------------------------
+    1.4)  What is Netlib Question and Answer Forum?
+
+Netlib Question and Answer Forum is bulletin board moderated by
+netlib group . Feel free to post, answer, and discuss questions
+of other people. 
+------------------------------
+ 
+2)  Netlib
+
+------------------------------
+
+    2.1) What is Netlib?  
+
+The Netlib repository contains freely available software, documents,
+and databases of interest to the numerical, scientific computing, and
+other communities. The repository is maintained by AT&T Bell
+Laboratories, the University of Tennessee and Oak Ridge National
+Laboratory, and by colleagues world-wide.  The collection is
+replicated at several sites around the world, automatically
+synchronized, to provide reliable and network efficient service to the
+global community.
+
+------------------------------
+
+    2.2)  How do I retrieve software or documents from Netlib?
+
+Mechanisms include the World Wide Web (WWW), email, ftp, gopher, xnetlib,
+and cd-rom:
+
+        (a)  World Wide Web (WWW)
+
+		Point your WWW browser to
+			http://www.netlib.org/
+
+	(b)  email
+
+	        Send the message
+			send index
+		to 
+			netlib@netlib.org 
+		to receive a contents summary and instructions.
+			
+	(c)  ftp
+
+		Anonymous ftp to
+			ftp.netlib.org
+
+	(d)  gopher
+
+		Point your gopher browser to
+			gopher.netlib.org
+
+	(e)  xnetlib
+
+		See Question 2.7.
+
+	(f) cd-rom
+
+       Netlib (other than toms) is available on CD-ROM from 
+
+       Prime Time Freeware
+       370 Altair Way, Suite 150
+       Sunnyvale, CA 94086, USA
+       http://www.ptf.com/
+       info@ptf.com
+       Tel: +1 408-433-9662; Fax: +1 408-433-0727
+
+       and from 
+
+       Walnut Creek CDROM
+       4041 Pike Lane, Ste D-902
+       Concord CA 94520, USA
+       http://www.cdrom.com/
+       orders@cdrom.com
+       Tel: +1 800-786-9907; Fax: +1 510-674-0821
+
+       Both companies have done an excellent job. The PTF version uses
+       compressed tar files and therefore has room to combine netlib
+       with other mathematical and statistical freeware. The Walnut
+       Creek version focuses exclusively on netlib and unpacks
+       everything for greater convenience of reading. Walnut Creek has
+       generously offered a review copy of their disk to authors who
+       have contributed code to netlib.
+
+       Although much of the collection is quite stable, there are parts
+       that change or for some reason did not make it onto the
+       CD-ROMs.  When in doubt, check www.netlib.org or netlib.bell-labs.com
+       for the latest version.
+
+------------------------------
+
+    2.3) Are there restrictions on the use of software
+		 retrieved from Netlib?
+
+Most netlib software packages have no restrictions on their use but we
+recommend you check with the authors to be sure.  Checking with the
+authors is a nice courtesy anyway since many authors like to know how
+their codes are being used.
+
+------------------------------
+
+    2.4)  How do I submit software or documents to Netlib?	
+
+Direct inqueries to netlib_maintainers@netlib.org
+
+------------------------------
+
+    2.5)  Where are the Netlib mirror sites?
+
+See
+	http://www.netlib.org/bib/mirrors.html
+for the list of official Netlib mirror sites.
+
+
+------------------------------
+
+    2.6)  Which sites use the Netlib email server to distribute other
+		types of software?
+
+A collection of statistical software is available from
+          statlib@temper.stat.cmu.edu
+
+The TeX User Group distributes TeX-related software from
+          tuglib@math.utah.edu 
+
+The symbolic algebra system REDUCE is supported by
+          reduce-netlib@rand.org
+
+Parallel software and information about parallel processing
+is available from
+          parlib@hubcap.clemson.edu
+
+Dozens of other specialized sites also use the processor, which 
+can be found in /netlib/misc/netlib .
+------------------------------
+
+    2.7)  Where can I find more information about Netlib?
+
+A collection of working notes related to the Netlib repository
+is available at 
+	http://www.netlib.org/srwn/
+
+------------------------------
+
+    2.8)  What is Xnetlib?
+
+Xnetlib is an X Window System application that provides interactive
+file access and database query processing from multiple servers
+through TCP/IP connections. Xnetlib currently provides access to the
+Netlib software and document repository and the NA-NET Whitepages
+Database.
+
+The last release of Xnetlib was version 1.3.  Since its release, most
+of its capabilites have been superceded by World Wide Web browsers like
+Mosiac or Netscape.  Since most of the efforts at Netlib are presently
+geared more towards the World Wide Web, we recommend using a WWW
+browser.
+
+------------------------------
+
+    2.9)  How do I find a particular routine?
+
+The most powerful search capabilities in Netlib are provided through the
+interface at
+	http://www.netlib.org/utk/misc/netlib_query.html
+One way to search for a particular routine, say "foo", would be to submit
+the search query "file=foo".
+
+The Netlib email interface has a similar capability.  Send the email message
+"find foo" to netlib@netlib.org or another Netlib site.
+
+------------------------------
+
+    2.10)  How do I find software to solve a particular problem?
+
+One way is to identify appropriate keywords and then use the Web search
+interface at
+	http://www.netlib.org/utk/misc/netlib_query.html
+or the "find" feature of the Netlib email interface and send the email message
+to netlib@netlib.org or another Netlib site.  
+
+The GAMS mathematical software classification system enables users to
+find suitable software by browsing the problem hierarchy.  You can use
+GAMS from the search interface or by linking to
+	http://www.netlib.org/gams.html
+or
+	http://gams.nist.gov/
+Send the message "send gams from bib" to netlib@netlib.org to
+retrieve the GAMS classification by email.
+
+Another way is to browse the Netlib libraries list and to identify libraries
+appropriate to your problem.  You can then browse the contents of these
+individual libraries.  Using a Web interface, look at
+	http://www.netlib.org/liblist.html
+Using an email interface, send the message "send index" to netlib@netlib.org
+or another Netlib site to receive a descriptive list of the libraries in
+Netlib.  Send the message "send index for foo" to receive the index for
+library foo.
+
+
+------------------------------
+
+    2.11) I can't get a program to work.  What should I do?
+
+Technical questions about the proper use of a software package should
+be directed to the authors of that package.
+
+------------------------------
+
+    2.12) Where can I find documentation for a particular program?
+
+Documentation for a particular software package generally comes with
+the software bundle or resides in the same directory as the software.
+Note that much of the software in Netlib is self-documenting - the
+comments in the code provide all the documentation you need.
+
+------------------------------
+
+    2.13) What is dependency checking and how does it work?
+
+Dependency checking is Netlib's mechanism for sending routines called
+by those routines a user has explicitly selected.  A single request
+for the highest level routine should therefore get all the routines a
+user needs.
+
+Dependencies are generated from a script that looks at the load
+map for each software package.  A manually edited file tells Netlib
+which directories to scan for dependent routines.
+
+------------------------------
+
+    2.14) I requested some software but didn't get all the routines
+		I needed.  Why?
+
+Send email to netlib_maintainers@netlib.org describing the behavior.
+
+
+------------------------------
+
+    2.15) What and where are the BLAS?
+
+The BLAS (Basic Linear Algebra Subprograms) are high quality
+"building block" routines for performing basic vector and matrix
+operations.  Level 1 BLAS do vector-vector operations, Level 2
+BLAS do matrix-vector operations, and Level 3 BLAS do
+matrix-matrix operations.  Because the BLAS are efficient,
+portable, and widely available, they're commonly used in the
+development of high quality linear algebra software, LINPACK
+and LAPACK for example.  
+
+The BLAS are located in the blas directory of Netlib.
+
+------------------------------
+
+    2.16) Why don't I get needed BLAS automatically when I select 
+		LAPACK routines?
+
+LAPACK is designed especially for high-performance computing so the
+LAPACK group prefers that users use tuned vendor-supplied BLAS
+whenever possible.
+
+------------------------------
+
+    2.17) What and where are r1mach, d1mach, and i1mach?
+
+These routines are used to specify machine-dependent parameters such
+as your machine's precision.  They're used by several packages, most
+commonly to ensure that tolerances used in the software is reasonable
+for a particular machine.  
+
+The easiest to use versions of the routines r1mach, d1mach, and i1mach 
+are located in the blas directory of Netlib.  These versions of r1mach
+and d1mach attempt to determine machine characteristics automatically.
+
+The original versions of r1mach, d1mach, and i1mach, in the slatec/src
+directory, require a user to scan their source and to uncomment the
+statements specifying the constants for his particular machine.
+Constants for some architectures are not explicitly identified in the
+comments of r1mach, d1mach, and i1mach.  For those architectures
+conforming to the IEEE floating-point standard, and most newer ones
+do, you can locate and uncomment the IEEE-conforming constants in the
+routines.
+
+
+------------------------------
+
+    2.18) How can I unpack foo.tar.z?
+
+	mv foo.tar.z foo.tar.Z
+	uncompress foo.tar.Z
+	tar xvf foo.tar
+
+------------------------------
+
+    2.19) How can I unpack foo.tgz?
+
+        gunzip foo.tgz
+	tar xvf foo.tar
+
+Windows users can obtain WinZip from www.winzip.com which knows how
+to handle tgz files.
+
+------------------------------
+
+    2.20) Does Netlib offer technical support?
+
+No.  Technical questions should be directed to the authors of the
+software package.
+
+------------------------------
+
+    2.21) Can I download all/lots of the Netlib repository?
+
+Yes.  Note however that downloading software that isn't going to be
+used right away tends to waste time and space.  When you're finally
+ready to use it you may end up downloading it again from Netlib just
+be sure you have the latest version.  For this same reason,
+downloading all of Netlib's software and storing it someplace is not
+the best way to build a local software repository.
+
+------------------------------
+
+    2.22) How can I become a Netlib mirror site?
+
+First check the list of mirror sites (Question 2.5) to see if an
+existing Netlib site could meet your needs.  Then read the policy on
+becoming a Netlib mirror site at
+	http://www.netlib.org/bib/mirrors.html.
+Direct inquiries to netlib_maintainers@netlib.org.
+
+See the contents of the directory /netlib/crc for technical information 
+on mirroring.
+
+------------------------------
+
+    2.23) How can I use the Netlib program to run my own repository?
+
+You can retrieve the source code for the Netlib email system from the
+"netlib" directory of the Netlib repository.  For example, to retrieve
+the Netlib program by email send the message
+	send netlib from netlib
+to netlib@netlib.org.
+
+------------------------------
+
+    2.24) What if I have other questions about Netlib?
+
+The srwn directory contains papers that may be of assistance.
+Point your Web browser to
+	http://www.netlib.org/srwn/
+or send the message
+	send index from srwn
+to
+	netlib@netlib.org
+
+Send your questions to netlib_maintainers@netlib.org.	
+
+------------------------------
+
+-- 
+netlib_maintainers@netlib.org
+URL: http://www.netlib.org/utk/icl/maintainers.html
+
