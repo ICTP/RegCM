@@ -143,8 +143,8 @@
 !
 !**   zero new arrays
 
-      dstor = 0.0
-      hstor = 0.0
+      spsav%dstor = 0.0
+      spsav%hstor = 0.0
 !
 !**   compute m.
       do ns = 1 , nsplit
@@ -176,7 +176,7 @@
 #endif
 #endif
         do i = 1 , iym1
-          xps = xps + psa(i,j)/ijlx
+          xps = xps + atm1%ps(i,j)/ijlx
         end do
       end do
 
@@ -191,7 +191,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            tbarh(k) = tbarh(k) + ta(i,k,j)/(psa(i,j)*ijlx)
+            tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(atm1%ps(i,j)*ijlx)
           end do
         end do
       end do
@@ -285,8 +285,8 @@
         do j = 1 , jendl
           do n = 1 , nsplit
             do i = 1 , iy
-              dstor(i,j,n) = sav0d(i,n,j)
-              hstor(i,j,n) = sav0d(i,n+nsplit,j)
+              spsav%dstor(i,j,n) = sav0d(i,n,j)
+              spsav%hstor(i,j,n) = sav0d(i,n+nsplit,j)
             end do
           end do
         end do
@@ -397,15 +397,15 @@
 #ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
-              uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
-              vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+              uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
+              vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
             end do
           end do
 #else
           do j = 1 , jx
             do i = 1 , iy
-              uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
-              vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+              uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
+              vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
             end do
           end do
 #endif
@@ -423,13 +423,13 @@
 #ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
-              dstor(i,j,l) = 0.
+              spsav%dstor(i,j,l) = 0.
             end do
           end do
 #else
           do j = 1 , jx
             do i = 1 , iy
-              dstor(i,j,l) = 0.
+              spsav%dstor(i,j,l) = 0.
             end do
           end do
 #endif
@@ -450,8 +450,8 @@
               if(jp1.eq.jx+1) jp1 = 1
 #endif
               do i = 1 , iym1
-                fac = dx2*msfx(i,j)*msfx(i,j)
-                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
+                fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
+                spsav%dstor(i,j,l) = spsav%dstor(i,j,l) + zmatxr(l,k) &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
                              & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
                              & -vvv(i,k,j)-vvv(i,k,jp1))/fac
@@ -476,8 +476,8 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(psb(i,j)-pd)
-              hstor(i,j,l) = pdlog + eps
+              eps = eps1*(atm2%ps(i,j)-pd)
+              spsav%hstor(i,j,l) = pdlog + eps
             end do
           end do
 
@@ -494,9 +494,9 @@
 #endif
 #endif
               do i = 1 , iym1
-                eps = eps1*(psb(i,j)-pd)
-                hstor(i,j,l) = hstor(i,j,l) + pdlog + tau(l,k)*tb(i,k,j)&
-                             & /psb(i,j) + eps
+                eps = eps1*(atm2%ps(i,j)-pd)
+                spsav%hstor(i,j,l) = spsav%hstor(i,j,l) + pdlog + &
+                            tau(l,k)*atm2%t(i,k,j)/atm2%ps(i,j) + eps
               end do
             end do
           end do
@@ -561,8 +561,8 @@
 !     satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the
 !     i's.
 #ifdef MPP1
-      call mpi_sendrecv(psa(1,jxp),iy,mpi_real8,ieast,1,                &
-                      & psa(1,0),iy,mpi_real8,iwest,1,                  &
+      call mpi_sendrecv(atm1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
+                      & atm1%ps(1,0),iy,mpi_real8,iwest,1,        &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 #ifdef MPP1
@@ -579,19 +579,20 @@
         if(jm1.eq.0) jm1=jx
 #endif
         do i = 2 , iym1
-          psdot(i,j)=0.25*(psa(i,j)+psa(i-1,j)+psa(i,jm1)+psa(i-1,jm1))
+          psdot(i,j)=0.25*(atm1%ps(i,j)+atm1%ps(i-1,j)+ &
+                           atm1%ps(i,jm1)+atm1%ps(i-1,jm1))
         end do
       end do
 !
 #ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
-        if ( myid.eq.0 ) psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
+        if ( myid.eq.0 ) psdot(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
         if ( myid.eq.nproc-1 ) psdot(i,jendl)                           &
-           & = 0.5*(psa(i,jendx)+psa(i-1,jendx))
+           & = 0.5*(atm1%ps(i,jendx)+atm1%ps(i-1,jendx))
 #else
-        psdot(i,1) = 0.5*(psa(i,1)+psa(i-1,1))
-        psdot(i,jx) = 0.5*(psa(i,jxm1)+psa(i-1,jxm1))
+        psdot(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
+        psdot(i,jx) = 0.5*(atm1%ps(i,jxm1)+atm1%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -609,25 +610,25 @@
 #if defined(BAND) && (!defined(MPP1))
         if(jm1.eq.0) jm1=jx
 #endif
-        psdot(1,j) = 0.5*(psa(1,j)+psa(1,jm1))
-        psdot(iy,j) = 0.5*(psa(iym1,j)+psa(iym1,jm1))
+        psdot(1,j) = 0.5*(atm1%ps(1,j)+atm1%ps(1,jm1))
+        psdot(iy,j) = 0.5*(atm1%ps(iym1,j)+atm1%ps(iym1,jm1))
       end do
 !
 #ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        psdot(1,1) = psa(1,1)
-        psdot(iy,1) = psa(iym1,1)
+        psdot(1,1) = atm1%ps(1,1)
+        psdot(iy,1) = atm1%ps(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
-        psdot(1,jendl) = psa(1,jendx)
-        psdot(iy,jendl) = psa(iym1,jendx)
+        psdot(1,jendl) = atm1%ps(1,jendx)
+        psdot(iy,jendl) = atm1%ps(iym1,jendx)
       end if
 #else
-      psdot(1,1) = psa(1,1)
-      psdot(iy,1) = psa(iym1,1)
-      psdot(1,jx) = psa(1,jxm1)
-      psdot(iy,jx) = psa(iym1,jxm1)
+      psdot(1,1) = atm1%ps(1,1)
+      psdot(iy,1) = atm1%ps(iym1,1)
+      psdot(1,jx) = atm1%ps(1,jxm1)
+      psdot(iy,jx) = atm1%ps(iym1,jxm1)
 #endif
 #endif
 !
@@ -641,8 +642,8 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            deld(i,j,n,1) = dstor(i,j,n)
-            delh(i,j,n,1) = hstor(i,j,n)
+            deld(i,j,n,1) = spsav%dstor(i,j,n)
+            delh(i,j,n,1) = spsav%hstor(i,j,n)
           end do
         end do
       end do
@@ -656,8 +657,8 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            uuu(i,k,j) = ua(i,k,j)*msfd(i,j)
-            vvv(i,k,j) = va(i,k,j)*msfd(i,j)
+            uuu(i,k,j) = atm1%u(i,k,j)*mddom%msfd(i,j)
+            vvv(i,k,j) = atm1%v(i,k,j)*mddom%msfd(i,j)
           end do
         end do
       end do
@@ -695,7 +696,7 @@
             if(jp1.eq.jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
-              fac = dx2*msfx(i,j)*msfx(i,j)
+              fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)      &
                    & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j) &
                    & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1) &
@@ -728,8 +729,8 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            uuu(i,k,j) = ub(i,k,j)*msfd(i,j)
-            vvv(i,k,j) = vb(i,k,j)*msfd(i,j)
+            uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
+            vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
           end do
         end do
       end do
@@ -766,7 +767,7 @@
             if(jp1.eq.jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
-              fac = dx2*msfx(i,j)*msfx(i,j)
+              fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)     &
                   & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j) &
                   & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1) &
@@ -804,7 +805,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            eps = eps1*(psa(i,j)-pd)
+            eps = eps1*(atm1%ps(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
           end do
         end do
@@ -821,9 +822,9 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(psa(i,j)-pd)
-              delh(i,j,l,3) = delh(i,j,l,3) + pdlog + tau(l,k)*ta(i,k,j)&
-                            & /psa(i,j) + eps
+              eps = eps1*(atm1%ps(i,j)-pd)
+              delh(i,j,l,3) = delh(i,j,l,3) + pdlog +  &
+                      tau(l,k)*atm1%t(i,k,j)/atm1%ps(i,j) + eps
             end do
           end do
         end do
@@ -857,7 +858,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            eps = eps1*(psb(i,j)-pd)
+            eps = eps1*(atm2%ps(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
           end do
         end do
@@ -874,9 +875,9 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(psb(i,j)-pd)
-              delh(i,j,l,2) = delh(i,j,l,2) + pdlog + tau(l,k)*tb(i,k,j)&
-                            & /psb(i,j) + eps
+              eps = eps1*(atm2%ps(i,j)-pd)
+              delh(i,j,l,2) = delh(i,j,l,2) + pdlog +  &
+                       tau(l,k)*atm2%t(i,k,j)/atm2%ps(i,j) + eps
             end do
           end do
         end do
@@ -902,8 +903,8 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            dstor(i,j,n) = deld(i,j,n,2)
-            hstor(i,j,n) = delh(i,j,n,2)
+            spsav%dstor(i,j,n) = deld(i,j,n,2)
+            spsav%hstor(i,j,n) = delh(i,j,n,2)
           end do
         end do
       end do
@@ -925,8 +926,8 @@
 #endif
 #endif
           do i = 2 , iym2
-            psa(i,j) = psa(i,j) - an(l)*ddsum(i,j,l)
-            psb(i,j) = psb(i,j) - gnuan*ddsum(i,j,l)
+            atm1%ps(i,j) = atm1%ps(i,j) - an(l)*ddsum(i,j,l)
+            atm2%ps(i,j) = atm2%ps(i,j) - gnuan*ddsum(i,j,l)
           end do
         end do
       end do
@@ -943,8 +944,8 @@
 #endif
 #endif
             do i = 2 , iym2
-              ta(i,k,j) = ta(i,k,j) + am(k,l)*ddsum(i,j,l)
-              tb(i,k,j) = tb(i,k,j) + gnuam*ddsum(i,j,l)
+              atm1%t(i,k,j) = atm1%t(i,k,j) + am(k,l)*ddsum(i,j,l)
+              atm2%t(i,k,j) = atm2%t(i,k,j) + gnuam*ddsum(i,j,l)
             end do
           end do
         end do
@@ -986,16 +987,16 @@
             if(jm1.eq.0) jm1 = jx
 #endif
             do i = 2 , iym1
-              fac = psdot(i,j)/(dx2*msfd(i,j))
+              fac = psdot(i,j)/(dx2*mddom%msfd(i,j))
               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,jm1,l) &
                 & -dhsum(i-1,jm1,l))
               y = fac*(dhsum(i,j,l)-dhsum(i-1,j,l)+dhsum(i,jm1,l) &
                 & -dhsum(i-1,jm1,l))
 !
-              ua(i,k,j) = ua(i,k,j) - zmatx(k,l)*x
-              va(i,k,j) = va(i,k,j) - zmatx(k,l)*y
-              ub(i,k,j) = ub(i,k,j) - gnuzm*x
-              vb(i,k,j) = vb(i,k,j) - gnuzm*y
+              atm1%u(i,k,j) = atm1%u(i,k,j) - zmatx(k,l)*x
+              atm1%v(i,k,j) = atm1%v(i,k,j) - zmatx(k,l)*y
+              atm2%u(i,k,j) = atm2%u(i,k,j) - gnuzm*x
+              atm2%v(i,k,j) = atm2%v(i,k,j) - gnuzm*y
             end do
           end do
         end do
@@ -1110,7 +1111,7 @@
           if(jm1.eq.0) jm1=jx
 #endif
           do i = 2 , iym1
-            fac = dx2*msfx(i,j)
+            fac = dx2*mddom%msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)  &
                         & -delh(i,jm1,ns,n0)-delh(i-1,jm1,ns,n0))/fac
             work(i,j,2) = (delh(i,j,ns,n0)+delh(i,jm1,ns,n0) &
@@ -1151,8 +1152,8 @@
 #endif
 #endif
           do i = 2 , iym1
-            uu(i,j) = work(i,j,1)*msfd(i,j)
-            vv(i,j) = work(i,j,2)*msfd(i,j)
+            uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
+            vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
           end do
         end do
 !
@@ -1184,7 +1185,7 @@
           if(jp1.eq.jx+1) jp1=1
 #endif
           do i = 2 , iym2
-            fac = dx2*msfx(i,j)*msfx(i,j)
+            fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
                          & +vv(i+1,j)+vv(i+1,jp1)-vv(i,j)-vv(i,jp1))/fac
           end do
@@ -1205,9 +1206,9 @@
 !           work3: 2,iym2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
-            delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hhbar(ns)      &
-                            & *deld(i,j,ns,n0)/psa(i,j) + delh(i,j,ns,3)&
-                            & /m2
+            delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hhbar(ns) &
+                            & *deld(i,j,ns,n0)/atm1%ps(i,j) +      &
+                               delh(i,j,ns,3)/m2
           end do
         end do
  
@@ -1279,7 +1280,7 @@
             if(jm1.eq.0) jm1=jx
 #endif
             do i = 2 , iym1
-              fac = dx2*msfx(i,j)
+              fac = dx2*mddom%msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)  &
                             -delh(i,jm1,ns,n1)-delh(i-1,jm1,ns,n1))/fac
               work(i,j,2) = (delh(i,j,ns,n1)+delh(i,jm1,ns,n1)  &
@@ -1319,8 +1320,8 @@
 #endif
 #endif
             do i = 2 , iym1
-              uu(i,j) = work(i,j,1)*msfd(i,j)
-              vv(i,j) = work(i,j,2)*msfd(i,j)
+              uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
+              vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
             end do
           end do
 !
@@ -1352,7 +1353,7 @@
             if(jp1.eq.jx+1) jp1=1
 #endif
             do i = 2 , iym2
-              fac = dx2*msfx(i,j)*msfx(i,j)
+              fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
                           & +vv(i+1,j)+vv(i+1,jp1)-vv(i,j)-vv(i,jp1)) &
                           & /fac
@@ -1374,7 +1375,7 @@
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hhbar(ns)       &
-                              & *deld(i,j,ns,n1)/psa(i,j)               &
+                              & *deld(i,j,ns,n1)/atm1%ps(i,j)           &
                               & + delh(i,j,ns,3)/m(ns)
             end do
           end do

@@ -244,7 +244,7 @@
         do ill = 1 , iym1
           pptnc(ill,jll) = 0.
           pptc(ill,jll) = 0.
-!MM4      ist=nint(satbrt(ill,jll))
+!MM4      ist=nint(mddom%satbrt(ill,jll))
 !MM4      if(ist.le.13)then
 !MM4      ist=ist
 !MM4      else
@@ -252,15 +252,16 @@
 !MM4      end if
 !MM4      veg2d(ill,jll)=vgtran(ist)
 !eros     note:  when using bats dataset comment line above
-          veg2d(ill,jll) = satbrt(ill,jll)
-          if ( satbrt(ill,jll).gt.13.9 .and. satbrt(ill,jll).lt.15.1 )  &
-             & veg2d(ill,jll) = 0.
+          veg2d(ill,jll) = mddom%satbrt(ill,jll)
+          if ( mddom%satbrt(ill,jll).gt.13.9 .and. &
+               mddom%satbrt(ill,jll).lt.15.1 )  veg2d(ill,jll) = 0.
         end do
         do ill = 1 , iym1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
-            if ( satbrt1(k,ill,jll).gt.13.9 .and. satbrt1(k,ill,jll)    &
-               & .lt.15.1 ) veg2d1(k,ill,jll) = 0.
+            if ( satbrt1(k,ill,jll).gt.13.9 .and. &
+                 satbrt1(k,ill,jll).lt.15.1 ) &
+              veg2d1(k,ill,jll) = 0.
           end do
         end do
       end do
@@ -289,10 +290,10 @@
             end if
 !sol        itex=int(text2d(k,ill,jll))
             itex = iexsol(nlveg)
-            tg2d(k,ill,jll) = tgb(ill,jll)
-            tgb2d(k,ill,jll) = tgb(ill,jll)
-            taf2d(k,ill,jll) = tgb(ill,jll)
-            tlef2d(k,ill,jll) = tgb(ill,jll)
+            tg2d(k,ill,jll) = atm2%tg(ill,jll)
+            tgb2d(k,ill,jll) = atm2%tg(ill,jll)
+            taf2d(k,ill,jll) = atm2%tg(ill,jll)
+            tlef2d(k,ill,jll) = atm2%tg(ill,jll)
 
 !           ******  initialize soil moisture in the 3 layers
             is = nint(satbrt1(k,ill,jll))
@@ -397,7 +398,7 @@
 
         do i = istart, iend
           do n = 1 , ng
-            p1d0(n,i) = (psb(i,j)+r8pt)*1000.
+            p1d0(n,i) = (atm2%ps(i,j)+r8pt)*1000.
             z1d(n,i) = za(i,k,j)
             ts1d0(n,i) = thx3d(i,k,j)
             qs1d0(n,i) = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
@@ -408,7 +409,8 @@
             rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
-            ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)-ht(i,j))
+            ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)- &
+                                                 mddom%ht(i,j))
             p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
             hl = lh0 - lh1*(ts1d(n,i)-tzero)
@@ -432,8 +434,8 @@
             scv1d(n,i) = scv2d(n,i,j)
             sice1d(n,i) = sice2d(n,i,j)
             gwet1d(n,i) = gwet2d(n,i,j)
-            sent1d(n,i) = hfx(i,j)
-            evpr1d(n,i) = qfx(i,j)
+            sent1d(n,i) = sfsta%hfx(i,j)
+            evpr1d(n,i) = sfsta%qfx(i,j)
             ldoc1d(n,i) = ocld2d(n,i,j)
             ircp1d(n,i) = ircp2d(n,i,j)
             lveg(n,i) = nint(veg2d1(n,i,j))
@@ -474,12 +476,12 @@
       else if ( ivers.eq.2 ) then ! bats --> regcm2d
  
         do i = istart, iend
-          uvdrag(i,j) = 0.0
-          hfx(i,j) = 0.0
-          qfx(i,j) = 0.0
-          tgb(i,j) = 0.0
-          tga(i,j) = 0.0
-          tgbb(i,j) = 0.0
+          sfsta%uvdrag(i,j) = 0.0
+          sfsta%hfx(i,j) = 0.0
+          sfsta%qfx(i,j) = 0.0
+          atm2%tg(i,j) = 0.0
+          atm1%tg(i,j) = 0.0
+          sfsta%tgbb(i,j) = 0.0
 !chem2
           ssw2da(i,j) = 0.0
           sdeltk2d(i,j) = 0.0
@@ -490,11 +492,11 @@
           svegfrac2d(i,j) = 0.0
 !chem2_
           do n = 1 , ng
-            uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
-            hfx(i,j) = hfx(i,j) + sent1d(n,i)
-            qfx(i,j) = qfx(i,j) + evpr1d(n,i)
-            tgb(i,j) = tgb(i,j) + tg1d(n,i)
-            tga(i,j) = tga(i,j) + tg1d(n,i)
+            sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
+            sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
+            sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
+            atm2%tg(i,j) = atm2%tg(i,j) + tg1d(n,i)
+            atm1%tg(i,j) = atm1%tg(i,j) + tg1d(n,i)
 !chem2
             ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
             sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
@@ -508,11 +510,11 @@
 !chem2_
             if ( iocnflx.eq.1 .or.                                      &
                & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5) ) then
-              tgbb(i,j) = tgbb(i,j)                                     &
+              sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                         &
                         & + ((1.-veg1d(n,i))*tg1d(n,i)**4+veg1d(n,i)    &
                         & *tlef1d(n,i)**4)**0.25
             else
-              tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
+              sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
             end if
             if ( ocld2d(n,i,j).lt.0.5 ) then
               ssw1d(n,i) = -1.E34
@@ -523,12 +525,12 @@
               scv1d(n,i) = -1.E34
             end if
           end do
-          uvdrag(i,j) = uvdrag(i,j)/float(ng)
-          hfx(i,j) = hfx(i,j)/float(ng)
-          qfx(i,j) = qfx(i,j)/float(ng)
-          tgb(i,j) = tgb(i,j)/float(ng)
-          tga(i,j) = tga(i,j)/float(ng)
-          tgbb(i,j) = tgbb(i,j)/float(ng)
+          sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(ng)
+          sfsta%hfx(i,j) = sfsta%hfx(i,j)/float(ng)
+          sfsta%qfx(i,j) = sfsta%qfx(i,j)/float(ng)
+          atm2%tg(i,j) = atm2%tg(i,j)/float(ng)
+          atm1%tg(i,j) = atm1%tg(i,j)/float(ng)
+          sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/float(ng)
 !chem2
           ssw2da(i,j) = ssw2da(i,j)/float(ng)
           sdeltk2d(i,j) = sdeltk2d(i,j)/float(ng)
@@ -637,7 +639,7 @@
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+    &
                         & v10m_o(j,i-1)**2))
-          real_4 = (psb(i,j)+r8pt)*10.
+          real_4 = (atm2%ps(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
 #ifdef BAND
@@ -689,7 +691,7 @@
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**&
                           & 2+v10m_o(j,i-1)**2))
-          real_4 = (psb(i,j)+r8pt)*10.
+          real_4 = (atm2%ps(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
           u10m_o(j-1,i-1) = 0.0
@@ -740,7 +742,7 @@
           t2mn_o(j-1,i-1) = amin1(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
           w10x_o(j-1,i-1) = amax1(w10x_o(j-1,i-1),sqrt(u10m_o(j-1,i-1)**&
                           & 2+v10m_o(j-1,i-1)**2))
-          real_4 = (psb(i,j)+r8pt)*10.
+          real_4 = (atm2%ps(i,j)+r8pt)*10.
           psmn_o(j-1,i-1) = amin1(psmn_o(j-1,i-1),real_4)
 #endif
 #endif
@@ -803,8 +805,8 @@
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
             sina_o(j,i-1) = sina2d(i,j)*wpm2
             prcv_o(j,i-1) = prca2d(i,j)*mmpd
-            ps_o(j,i-1) = (psb(i,j)+r8pt)*10.
-            zpbl_o(j,i-1) = zpbl(i,j)
+            ps_o(j,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            zpbl_o(j,i-1) = sfsta%zpbl(i,j)
  
             tlef_o(j,i-1) = 0.0
             ssw_o(j,i-1) = 0.0
@@ -894,8 +896,8 @@
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
             sina_o(j,i-1) = sina2d(i,j)*wpm2
             prcv_o(j,i-1) = prca2d(i,j)*mmpd
-            ps_o(j,i-1) = (psb(i,j)+r8pt)*10.
-            zpbl_o(j,i-1) = zpbl(i,j)
+            ps_o(j,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            zpbl_o(j,i-1) = sfsta%zpbl(i,j)
 
             tlef_o(j,i-1) = 0.0
             ssw_o(j,i-1) = 0.0
@@ -980,8 +982,8 @@
             flwd_o(j-1,i-1) = flwda2d(i,j)*wpm2
             sina_o(j-1,i-1) = sina2d(i,j)*wpm2
             prcv_o(j-1,i-1) = prca2d(i,j)*mmpd
-            ps_o(j-1,i-1) = (psb(i,j)+r8pt)*10.
-            zpbl_o(j-1,i-1) = zpbl(i,j)
+            ps_o(j-1,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            zpbl_o(j-1,i-1) = sfsta%zpbl(i,j)
 
             tlef_o(j-1,i-1) = 0.0
             ssw_o(j-1,i-1) = 0.0
@@ -1529,7 +1531,8 @@
           else
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           end if
-          ts1d(n,i) = thx3d(i,kz,j)-6.5E-3*rgti*(ht1(n,i,j)-ht(i,j))
+          ts1d(n,i) = thx3d(i,kz,j)-6.5E-3*rgti*(ht1(n,i,j)- &
+                                                 mddom%ht(i,j))
           scv1d(n,i) = scv2d(n,i,j)
           sag1d(n,i) = sag2d(n,i,j)
         end do

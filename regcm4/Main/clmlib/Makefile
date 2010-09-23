@@ -33,6 +33,10 @@ FPPFLAGS = $(CPPFLAGS)
 DEFFLAGS = $(CPPFLAGS)
 endif
 
+ifeq ($(F90),gfortran)
+F90FLAGS += -fno-range-check
+endif
+
 F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
             -I$(REGCMSRC) $(NETCDFINC)
 
@@ -92,7 +96,7 @@ m_SpatialIntegralV.F90 m_StrTemplate.F90 m_String.F90 m_TraceBack.F90 \
 m_Transfer.F90 m_chars.F90 m_die.F90 m_dropdead.F90 m_flow.F90 \
 m_inpak90.F90 m_ioutil.F90 m_mall.F90 m_mpif.F90 m_mpif90.F90 \
 m_mpout.F90 m_rankMerge.F90 m_realkinds.F90 m_stdio.F90 m_zeit.F90 \
-mct_mod.F90 mkarbinitMod.F90 nanMod.F90 ncdio.F90 ndepFileMod.F90 \
+mct_mod.F90 mkarbinitMod.F90 nanMod.F90 ndepFileMod.F90 \
 perf_mod.F90 pft2colMod.F90 pftdynMod.F90 pftvarcon.F90 program_csm.F90 \
 program_offMod.F90 restFileMod.F90 rtcrate.F90 scam_setlatlonidx.F90 \
 shr_alarm_mod.F90 shr_cal_mod.F90 shr_const_mod.F90 shr_date_mod.F90 \
@@ -117,7 +121,7 @@ $(BSP)/iniTimeConst.F90 $(BSP)/mkarbinitMod.F90 \
 $(BSP)/perf_mod.F90 $(BSP)/restFileMod.F90 $(BSP)/shr_orb_mod.F90 \
 $(BSP)/STATICEcosysDynMod.F90 $(BSP)/subgridMod.F90 \
 $(BSP)/SurfaceAlbedoMod.F90 $(BSP)/surfrdMod.F90 $(BSP)/VOCEmissionMod.F90 \
-BalanceCheckMod.F90 initGridCellsMod.F90 clm_time_manager.F90 \
+$(BSP)/ncdio.F90 BalanceCheckMod.F90 initGridCellsMod.F90 clm_time_manager.F90 \
 abortutils.F90 Meat.F90 wrf_error_fatal.F90 wrf_message.F90 \
 scam_setlatlonidx.F90 gptl.c gptl_papi.c gptlutil.c f_wrappers.c \
 threadutil.c mkarbinitMod.F90 getdatetime.F90 snowdp2lev.F90 \
@@ -166,6 +170,7 @@ SurfaceAlbedoMod.o: $(BSP)/SurfaceAlbedoMod.F90
 surfrdMod.o: $(BSP)/surfrdMod.F90
 VOCEmissionMod.o: $(BSP)/VOCEmissionMod.F90
 clm_time_manager.o: $(BSP)/clm_time_manager.F90
+ncdio.o: $(BSP)/ncdio.F90
 
 $(BSP)/clm_time_manager.F90: $(BSP)/patchset/clm_time_manager.F90.patch shr_kind_mod.o spmdMod.o ESMF_Mod.o clm_varctl.o abortutils.o ncdio.o misc.h preproc.h
 	cp -f $(CLMSRC)/src/main/clm_time_manager.F90 .
@@ -282,6 +287,10 @@ $(BSP)/surfrdMod.F90: $(BSP)/patchset/surfrdMod.F90.patch clm_varsur.o spmdMod.o
 $(BSP)/VOCEmissionMod.F90: $(BSP)/patchset/VOCEmissionMod.F90.patch shr_kind_mod.o clmtype.o shr_const_mod.o clm_varpar.o clm_atmlnd.o clm_varvoc.o abortutils.o misc.h preproc.h
 	cp -f $(CLMSRC)/src/biogeochem/VOCEmissionMod.F90 .
 	patch -p1 -i $(BSP)/patchset/VOCEmissionMod.F90.patch
+
+$(BSP)/ncdio.F90: $(BSP)/patchset/ncdio.F90.patch clm_mct_mod.o spmdMod.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o nanMod.o misc.h preproc.h
+	cp -f $(CLMSRC)/src/main/ncdio.F90 .
+	patch -p1 -i $(BSP)/patchset/ncdio.F90.patch
 
 BalanceCheckMod.o: BalanceCheckMod.F90 clm_varpar.o abortutils.o clmtype.o shr_kind_mod.o subgridAveMod.o clm_time_manager.o clm_atmlnd.o misc.h preproc.h
 BiogeophysRestMod.o: BiogeophysRestMod.F90 clm_varpar.o shr_kind_mod.o clm_varctl.o abortutils.o clmtype.o clm_varcon.o initSurfAlbMod.o ncdio.o decompMod.o misc.h preproc.h
@@ -441,7 +450,6 @@ m_stdio.o: m_stdio.F90
 m_zeit.o: m_zeit.F90 m_SortingTools.o m_ioutil.o m_die.o m_stdio.o m_mpif90.o 
 mct_mod.o: mct_mod.F90 m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_List.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o m_Router.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_die.o m_Transfer.o shr_kind_mod.o m_stdio.o m_SparseMatrix.o m_Rearranger.o m_GlobalSegMap.o m_inpak90.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_mpi_mod.o m_MCTWorld.o m_Permuter.o m_MergeSorts.o 
 nanMod.o: nanMod.F90 shr_kind_mod.o 
-ncdio.o: ncdio.F90 clm_mct_mod.o spmdMod.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o nanMod.o misc.h preproc.h
 ndepFileMod.o: ndepFileMod.F90 spmdMod.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o decompMod.o clm_time_manager.o clm_atmlnd.o ncdio.o misc.h preproc.h
 pft2colMod.o: pft2colMod.F90 subgridAveMod.o clmtype.o shr_kind_mod.o misc.h preproc.h
 pftdynMod.o: pftdynMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o clm_time_manager.o ncdio.o misc.h preproc.h

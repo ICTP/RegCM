@@ -242,13 +242,15 @@
         end if
       end if
 #endif
-      do j=1,jx
-        do n=1,nats
+      if (myid.eq.0 ) then
+        do j=1,jx
+          do n=1,nats
             do i=1,iy
               src_1(i,n,j)=dustsotex_io(i,j,n)
             end do
+          end do
         end do
-      end do
+      end if
 
       call mpi_scatter(src_1,iy*jxp*nats,mpi_real8, &
                      & src1,iy*jxp*nats,mpi_real8,0,  &

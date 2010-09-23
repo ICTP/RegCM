@@ -538,7 +538,7 @@
       call allocate_mod_dust
       call allocate_mod_leaftemp
       call allocate_mod_main(lmpi)
-      call allocate_mod_mainchem(lmpi,lband)
+      call allocate_mod_mainchem(lmpi)
       call allocate_mod_outrad
       call allocate_mod_o3blk
       call allocate_mod_pbldim(lmpi)
@@ -898,14 +898,14 @@
         call mpi_barrier(mpi_comm_world,ierr)
         do j = 1 , jxp
           do i = 1 , iy
-            ht(i,j) = inisrf0(i,1,j)
-            htsd(i,j) = inisrf0(i,2,j)
-            satbrt(i,j) = inisrf0(i,3,j)
-            xlat(i,j) = inisrf0(i,4,j)
-            xlong(i,j) = inisrf0(i,5,j)
-            msfx(i,j) = inisrf0(i,6,j)
-            msfd(i,j) = inisrf0(i,7,j)
-            f(i,j) = inisrf0(i,8,j)
+            mddom%ht(i,j) = inisrf0(i,1,j)
+            mddom%htsd(i,j) = inisrf0(i,2,j)
+            mddom%satbrt(i,j) = inisrf0(i,3,j)
+            mddom%xlat(i,j) = inisrf0(i,4,j)
+            mddom%xlong(i,j) = inisrf0(i,5,j)
+            mddom%msfx(i,j) = inisrf0(i,6,j)
+            mddom%msfd(i,j) = inisrf0(i,7,j)
+            mddom%f(i,j) = inisrf0(i,8,j)
           end do
           do n = 1 , nnsg
             do i = 1 , iy
@@ -920,13 +920,13 @@
 !
         do j = 1 , jendl
           do i = 1 , iy
-            msfd(i,j) = 1./msfd(i,j)
+            mddom%msfd(i,j) = 1./mddom%msfd(i,j)
           end do
         end do
         do j = 1 , jendl
           do i = 1 , iy
-            msfx(i,j) = 1./msfx(i,j)
-            ht(i,j) = ht(i,j)*gti
+            mddom%msfx(i,j) = 1./mddom%msfx(i,j)
+            mddom%ht(i,j) = mddom%ht(i,j)*gti
           end do
         end do
         if ( myid.eq.0 ) then
@@ -952,38 +952,39 @@
           print * , ' '
  
         end if
-        call mpi_sendrecv(ht(1,jxp),iy,mpi_real8,ieast,1,               &
-                        & ht(1,0),iy,mpi_real8,iwest,1,                 &
+        call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
+                        & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(ht(1,1),iy,mpi_real8,iwest,2,                 &
-                        & ht(1,jxp+1),iy,mpi_real8,ieast,2,             &
+        call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
+                        & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,jxp-1),iy*2,mpi_real8,ieast,           &
-                        & 1,msfx(1,-1),iy*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                        & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,1),iy*2,mpi_real8,iwest,2,             &
-                        & msfx(1,jxp+1),iy*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
+                        & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,jxp-1),iy*2,mpi_real8,ieast,           &
-                        & 1,msfd(1,-1),iy*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                        & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,1),iy*2,mpi_real8,iwest,2,             &
-                        & msfd(1,jxp+1),iy*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
+                        & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
       end if
 #else
       if ( .not.ifrest ) then
         write (aline, *) 'Reading in DOMAIN data'
         call say
-        call read_domain(ht,htsd,satbrt,xlat,xlong, &
-                      &  msfx,msfd,f,snowc)
+        call read_domain(mddom%ht,mddom%htsd,mddom%satbrt, &
+                         mddom%xlat,mddom%xlong,mddom%msfx,&
+                         mddom%msfd,mddom%f,snowc)
         if ( nsg.gt.1 ) then
           call read_subdomain(ht1,satbrt1,xlat1,xlon1)
         else
           do j = 1 , jx
             do i = 1 , iy
-              ht1(1,i,j) = ht(i,j)*gti
-              satbrt1(1,i,j) = satbrt(i,j)
+              ht1(1,i,j) = mddom%ht(i,j)*gti
+              satbrt1(1,i,j) = mddom%satbrt(i,j)
             end do
           end do
         end if
@@ -993,13 +994,13 @@
 
         do j = 1 , jx
           do i = 1 , iy
-            msfd(i,j) = 1./msfd(i,j)
+            mddom%msfd(i,j) = 1./mddom%msfd(i,j)
           end do
         end do
         do j = 1 , jx
           do i = 1 , iy
-            msfx(i,j) = 1./msfx(i,j)
-            ht(i,j) = ht(i,j)*gti
+            mddom%msfx(i,j) = 1./mddom%msfx(i,j)
+            mddom%ht(i,j) = mddom%ht(i,j)*gti
           end do
         end do
         print * , ' '
@@ -1245,6 +1246,7 @@
                        &' properly implemented'
         call say
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
+        call allocate_mod_cu_bm(lmpi)
       else if ( icup.eq.4 ) then
         cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.

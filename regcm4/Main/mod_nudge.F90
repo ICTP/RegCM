@@ -118,19 +118,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -145,19 +145,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - psb(i,jm1)
-            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - atm2%ps(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - atm2%ps(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - psb(ii,jm1)
-            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - atm2%ps(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - atm2%ps(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -174,19 +174,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -201,19 +201,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - psb(i,jm1)
-            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - psb(i,jp1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - atm2%ps(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - atm2%ps(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - psb(ii,jm1)
-            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - psb(ii,jp1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - atm2%ps(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - atm2%ps(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -257,19 +257,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
@@ -284,19 +284,19 @@
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
 !........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+              fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -310,17 +310,17 @@
             gcx = gcoef*xfun(jsls)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - psb(i,j)
-              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - psb(i-1,j)
-              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - psb(i+1,j)
-              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - psb(i,j-1)
-              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - psb(i,j+1)
+              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - atm2%ps(i,j)
+              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - atm2%ps(i-1,j)
+              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - atm2%ps(i+1,j)
+              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - atm2%ps(i,j-1)
+              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - atm2%ps(i,j+1)
 #else
-              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - psb(i,j)
-              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - psb(i-1,j)
-              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - psb(i+1,j)
-              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
-              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
+              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - atm2%ps(i,j)
+              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - atm2%ps(i-1,j)
+              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - atm2%ps(i+1,j)
+              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - atm2%ps(i,j-1)
+              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - atm2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -331,17 +331,17 @@
             gcx = gcoef*xfun(jsls)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - psb(i,j)
-              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - psb(i-1,j)
-              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - psb(i+1,j)
-              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - psb(i,j-1)
-              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - psb(i,j+1)
+              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - atm2%ps(i,j)
+              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - atm2%ps(i-1,j)
+              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - atm2%ps(i+1,j)
+              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - atm2%ps(i,j-1)
+              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - atm2%ps(i,j+1)
 #else
-              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - psb(i,j)
-              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - psb(i-1,j)
-              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - psb(i+1,j)
-              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
-              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
+              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - atm2%ps(i,j)
+              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - atm2%ps(i-1,j)
+              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - atm2%ps(i+1,j)
+              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - atm2%ps(i,j-1)
+              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - atm2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -362,19 +362,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
@@ -389,19 +389,19 @@
               fcx = fcoef*xfune(i,kz)
               gcx = gcoef*xfune(i,kz)
 !.........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - psb(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - psb(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - psb(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - psb(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - psb(i+1,j)
+              fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
+              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
+              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
+              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
+              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - psb(ii,j)
-              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - psb(ii,j-1)
-              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - psb(ii,j+1)
-              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - psb(ii-1,j)
-              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - psb(ii+1,j)
+              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
+              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
+              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
+              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
+              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -415,17 +415,17 @@
             gcx = gcoef*xfune(jsls,kz)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - psb(i,j)
-              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - psb(i-1,j)
-              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - psb(i+1,j)
-              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - psb(i,j-1)
-              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - psb(i,j+1)
+              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - atm2%ps(i,j)
+              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - atm2%ps(i-1,j)
+              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - atm2%ps(i+1,j)
+              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - atm2%ps(i,j-1)
+              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - atm2%ps(i,j+1)
 #else
-              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - psb(i,j)
-              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - psb(i-1,j)
-              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - psb(i+1,j)
-              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - psb(i,j-1)
-              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - psb(i,j+1)
+              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - atm2%ps(i,j)
+              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - atm2%ps(i-1,j)
+              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - atm2%ps(i+1,j)
+              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - atm2%ps(i,j-1)
+              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - atm2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -436,17 +436,17 @@
             gcx = gcoef*xfune(jsls,kz)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - psb(i,j)
-              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - psb(i-1,j)
-              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - psb(i+1,j)
-              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - psb(i,j-1)
-              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - psb(i,j+1)
+              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - atm2%ps(i,j)
+              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - atm2%ps(i-1,j)
+              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - atm2%ps(i+1,j)
+              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - atm2%ps(i,j-1)
+              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - atm2%ps(i,j+1)
 #else
-              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - psb(i,j)
-              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - psb(i-1,j)
-              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - psb(i+1,j)
-              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - psb(i,j-1)
-              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - psb(i,j+1)
+              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - atm2%ps(i,j)
+              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - atm2%ps(i-1,j)
+              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - atm2%ps(i+1,j)
+              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - atm2%ps(i,j-1)
+              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - atm2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -516,19 +516,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - atm2%t(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - atm2%t(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - atm2%t(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -545,19 +545,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - tb(i,k,jm1)
-              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - tb(i,k,jp1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - atm2%t(i,k,jm1)
+              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - atm2%t(i,k,jp1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - tb(ii,k,jm1)
-              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - tb(ii,k,jp1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - atm2%t(ii,k,jm1)
+              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - atm2%t(ii,k,jp1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -575,19 +575,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - atm2%t(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - atm2%t(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - atm2%t(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -604,19 +604,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - tb(i,k,jm1)
-              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - tb(i,k,jp1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,jm1)+dtb*tsbt(i,k,jm1)) - atm2%t(i,k,jm1)
+              fls2 = (tsb(i,k,jp1)+dtb*tsbt(i,k,jp1)) - atm2%t(i,k,jp1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - tb(ii,k,jm1)
-              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - tb(ii,k,jp1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - atm2%t(ii,k,jm1)
+              fls2 = (tnb(i,k,jp1)+dtb*tnbt(i,k,jp1)) - atm2%t(ii,k,jp1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -662,19 +662,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - atm2%t(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - atm2%t(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - atm2%t(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -691,19 +691,19 @@
               gcx = gcoef*xfun(i)
               do k = 1 , kz
 !........south  boundary:
-                fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-                fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-                fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-                fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-                fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+                fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+                fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1))-atm2%t(i,k,j-1)
+                fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1))-atm2%t(i,k,j+1)
+                fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j))-atm2%t(i-1,k,j)
+                fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j))-atm2%t(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-                fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-                fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-                fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-                fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+                fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+                fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1))-atm2%t(ii,k,j-1)
+                fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1))-atm2%t(ii,k,j+1)
+                fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j))-atm2%t(ii-1,k,j)
+                fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j))-atm2%t(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -719,25 +719,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - tb(i,k,j)
+                fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - atm2%t(i,k,j)
                 fls1 = (twb(i-1,k,jwb)+dtb*twbt(i-1,k,jwb))             &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (twb(i+1,k,jwb)+dtb*twbt(i+1,k,jwb))             &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (twb(i,k,jwb-1)+dtb*twbt(i,k,jwb-1))             &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (twb(i,k,jwb+1)+dtb*twbt(i,k,jwb+1))             &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #else
-                fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls)) - tb(i,k,j)
+                fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls))-atm2%t(i,k,j)
                 fls1 = (twb(i-1,k,jsls)+dtb*twbt(i-1,k,jsls))           &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (twb(i+1,k,jsls)+dtb*twbt(i+1,k,jsls))           &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (twb(i,k,jsls-1)+dtb*twbt(i,k,jsls-1))           &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (twb(i,k,jsls+1)+dtb*twbt(i,k,jsls+1))           &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -750,25 +750,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - tb(i,k,j)
+                fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - atm2%t(i,k,j)
                 fls1 = (teb(i-1,k,jeb)+dtb*tebt(i-1,k,jeb))             &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (teb(i+1,k,jeb)+dtb*tebt(i+1,k,jeb))             &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (teb(i,k,jeb-1)+dtb*tebt(i,k,jeb-1))             &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (teb(i,k,jeb+1)+dtb*tebt(i,k,jeb+1))             &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #else
-                fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls)) - tb(i,k,j)
+                fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls))-atm2%t(i,k,j)
                 fls1 = (teb(i-1,k,jsls)+dtb*tebt(i-1,k,jsls))           &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (teb(i+1,k,jsls)+dtb*tebt(i+1,k,jsls))           &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (teb(i,k,jsls-1)+dtb*tebt(i,k,jsls-1))           &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (teb(i,k,jsls+1)+dtb*tebt(i,k,jsls+1))           &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -791,19 +791,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+              fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+              fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - atm2%t(i,k,j-1)
+              fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - atm2%t(i,k,j+1)
+              fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
+              fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+              fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+              fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
+              fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - atm2%t(ii,k,j+1)
+              fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
+              fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -820,19 +820,19 @@
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
 !.........south boundary:
-                fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - tb(i,k,j)
-                fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1)) - tb(i,k,j-1)
-                fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1)) - tb(i,k,j+1)
-                fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - tb(i-1,k,j)
-                fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - tb(i+1,k,j)
+                fls0 = (tsb(i,k,j)+dtb*tsbt(i,k,j)) - atm2%t(i,k,j)
+                fls1 = (tsb(i,k,j-1)+dtb*tsbt(i,k,j-1))-atm2%t(i,k,j-1)
+                fls2 = (tsb(i,k,j+1)+dtb*tsbt(i,k,j+1))-atm2%t(i,k,j+1)
+                fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j))-atm2%t(i-1,k,j)
+                fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j))-atm2%t(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - tb(ii,k,j)
-                fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - tb(ii,k,j-1)
-                fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1)) - tb(ii,k,j+1)
-                fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - tb(ii-1,k,j)
-                fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - tb(ii+1,k,j)
+                fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
+                fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1))-atm2%t(ii,k,j-1)
+                fls2 = (tnb(i,k,j+1)+dtb*tnbt(i,k,j+1))-atm2%t(ii,k,j+1)
+                fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j))-atm2%t(ii-1,k,j)
+                fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j))-atm2%t(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -848,25 +848,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - tb(i,k,j)
+                fls0 = (twb(i,k,jwb)+dtb*twbt(i,k,jwb)) - atm2%t(i,k,j)
                 fls1 = (twb(i-1,k,jwb)+dtb*twbt(i-1,k,jwb))             &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (twb(i+1,k,jwb)+dtb*twbt(i+1,k,jwb))             &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (twb(i,k,jwb-1)+dtb*twbt(i,k,jwb-1))             &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (twb(i,k,jwb+1)+dtb*twbt(i,k,jwb+1))             &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #else
-                fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls)) - tb(i,k,j)
+                fls0 = (twb(i,k,jsls)+dtb*twbt(i,k,jsls))-atm2%t(i,k,j)
                 fls1 = (twb(i-1,k,jsls)+dtb*twbt(i-1,k,jsls))           &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (twb(i+1,k,jsls)+dtb*twbt(i+1,k,jsls))           &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (twb(i,k,jsls-1)+dtb*twbt(i,k,jsls-1))           &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (twb(i,k,jsls+1)+dtb*twbt(i,k,jsls+1))           &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -879,25 +879,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - tb(i,k,j)
+                fls0 = (teb(i,k,jeb)+dtb*tebt(i,k,jeb)) - atm2%t(i,k,j)
                 fls1 = (teb(i-1,k,jeb)+dtb*tebt(i-1,k,jeb))             &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (teb(i+1,k,jeb)+dtb*tebt(i+1,k,jeb))             &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (teb(i,k,jeb-1)+dtb*tebt(i,k,jeb-1))             &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (teb(i,k,jeb+1)+dtb*tebt(i,k,jeb+1))             &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #else
-                fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls)) - tb(i,k,j)
+                fls0 = (teb(i,k,jsls)+dtb*tebt(i,k,jsls))-atm2%t(i,k,j)
                 fls1 = (teb(i-1,k,jsls)+dtb*tebt(i-1,k,jsls))           &
-                     & - tb(i-1,k,j)
+                     & - atm2%t(i-1,k,j)
                 fls2 = (teb(i+1,k,jsls)+dtb*tebt(i+1,k,jsls))           &
-                     & - tb(i+1,k,j)
+                     & - atm2%t(i+1,k,j)
                 fls3 = (teb(i,k,jsls-1)+dtb*tebt(i,k,jsls-1))           &
-                     & - tb(i,k,j-1)
+                     & - atm2%t(i,k,j-1)
                 fls4 = (teb(i,k,jsls+1)+dtb*tebt(i,k,jsls+1))           &
-                     & - tb(i,k,j+1)
+                     & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -969,19 +969,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - atm2%qv(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - atm2%qv(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1))-atm2%qv(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -998,19 +998,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - qvb(i,k,jm1)
-              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - qvb(i,k,jp1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - atm2%qv(i,k,jm1)
+              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - atm2%qv(i,k,jp1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1)) - qvb(ii,k,jm1)
-              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1)) - qvb(ii,k,jp1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1))-atm2%qv(ii,k,jm1)
+              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1))-atm2%qv(ii,k,jp1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1028,19 +1028,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - atm2%qv(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - atm2%qv(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1))-atm2%qv(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1057,19 +1057,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - qvb(i,k,jm1)
-              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - qvb(i,k,jp1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,jm1)+dtb*qsbt(i,k,jm1)) - atm2%qv(i,k,jm1)
+              fls2 = (qsb(i,k,jp1)+dtb*qsbt(i,k,jp1)) - atm2%qv(i,k,jp1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1)) - qvb(ii,k,jm1)
-              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1)) - qvb(ii,k,jp1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1))-atm2%qv(ii,k,jm1)
+              fls2 = (qnb(i,k,jp1)+dtb*qnbt(i,k,jp1))-atm2%qv(ii,k,jp1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1115,19 +1115,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - atm2%qv(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - atm2%qv(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1))-atm2%qv(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1144,19 +1144,23 @@
               gcx = gcoef*xfun(i)
               do k = 1 , kz
 !........south  boundary:
-                fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-                fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-                fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-                fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-                fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+                fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+                fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1))-atm2%qv(i,k,j-1)
+                fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1))-atm2%qv(i,k,j+1)
+                fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j))-atm2%qv(i-1,k,j)
+                fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j))-atm2%qv(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-                fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-                fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-                fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-                fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+                fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+                fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))- &
+                       atm2%qv(ii,k,j-1)
+                fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1))- &
+                       atm2%qv(ii,k,j+1)
+                fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))- &
+                       atm2%qv(ii-1,k,j)
+                fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))- &
+                       atm2%qv(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -1172,25 +1176,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - qvb(i,k,j)
+                fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - atm2%qv(i,k,j)
                 fls1 = (qwb(i-1,k,jwb)+dtb*qwbt(i-1,k,jwb))             &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qwb(i+1,k,jwb)+dtb*qwbt(i+1,k,jwb))             &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qwb(i,k,jwb-1)+dtb*qwbt(i,k,jwb-1))             &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qwb(i,k,jwb+1)+dtb*qwbt(i,k,jwb+1))             &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #else
-                fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls)) - qvb(i,k,j)
+                fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls))-atm2%qv(i,k,j)
                 fls1 = (qwb(i-1,k,jsls)+dtb*qwbt(i-1,k,jsls))           &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qwb(i+1,k,jsls)+dtb*qwbt(i+1,k,jsls))           &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qwb(i,k,jsls-1)+dtb*qwbt(i,k,jsls-1))           &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qwb(i,k,jsls+1)+dtb*qwbt(i,k,jsls+1))           &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1203,25 +1207,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - qvb(i,k,j)
+                fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - atm2%qv(i,k,j)
                 fls1 = (qeb(i-1,k,jeb)+dtb*qebt(i-1,k,jeb))             &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qeb(i+1,k,jeb)+dtb*qebt(i+1,k,jeb))             &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qeb(i,k,jeb-1)+dtb*qebt(i,k,jeb-1))             &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qeb(i,k,jeb+1)+dtb*qebt(i,k,jeb+1))             &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #else
-                fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls)) - qvb(i,k,j)
+                fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls))-atm2%qv(i,k,j)
                 fls1 = (qeb(i-1,k,jsls)+dtb*qebt(i-1,k,jsls))           &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qeb(i+1,k,jsls)+dtb*qebt(i+1,k,jsls))           &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qeb(i,k,jsls-1)+dtb*qebt(i,k,jsls-1))           &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qeb(i,k,jsls+1)+dtb*qebt(i,k,jsls+1))           &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1244,19 +1248,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+              fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+              fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - atm2%qv(i,k,j-1)
+              fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - atm2%qv(i,k,j+1)
+              fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
+              fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+              fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+              fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
+              fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1))-atm2%qv(ii,k,j+1)
+              fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
+              fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1273,19 +1277,23 @@
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
 !.........south boundary:
-                fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - qvb(i,k,j)
-                fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1)) - qvb(i,k,j-1)
-                fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1)) - qvb(i,k,j+1)
-                fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - qvb(i-1,k,j)
-                fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - qvb(i+1,k,j)
+                fls0 = (qsb(i,k,j)+dtb*qsbt(i,k,j)) - atm2%qv(i,k,j)
+                fls1 = (qsb(i,k,j-1)+dtb*qsbt(i,k,j-1))-atm2%qv(i,k,j-1)
+                fls2 = (qsb(i,k,j+1)+dtb*qsbt(i,k,j+1))-atm2%qv(i,k,j+1)
+                fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j))-atm2%qv(i-1,k,j)
+                fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j))-atm2%qv(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - qvb(ii,k,j)
-                fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - qvb(ii,k,j-1)
-                fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - qvb(ii,k,j+1)
-                fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - qvb(ii-1,k,j)
-                fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - qvb(ii+1,k,j)
+                fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
+                fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - &
+                       atm2%qv(ii,k,j-1)
+                fls2 = (qnb(i,k,j+1)+dtb*qnbt(i,k,j+1)) - &
+                       atm2%qv(ii,k,j+1)
+                fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j)) - &
+                       atm2%qv(ii-1,k,j)
+                fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - &
+                       atm2%qv(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -1301,25 +1309,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - qvb(i,k,j)
+                fls0 = (qwb(i,k,jwb)+dtb*qwbt(i,k,jwb)) - atm2%qv(i,k,j)
                 fls1 = (qwb(i-1,k,jwb)+dtb*qwbt(i-1,k,jwb))             &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qwb(i+1,k,jwb)+dtb*qwbt(i+1,k,jwb))             &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qwb(i,k,jwb-1)+dtb*qwbt(i,k,jwb-1))             &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qwb(i,k,jwb+1)+dtb*qwbt(i,k,jwb+1))             &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #else
-                fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls)) - qvb(i,k,j)
+                fls0 = (qwb(i,k,jsls)+dtb*qwbt(i,k,jsls))-atm2%qv(i,k,j)
                 fls1 = (qwb(i-1,k,jsls)+dtb*qwbt(i-1,k,jsls))           &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qwb(i+1,k,jsls)+dtb*qwbt(i+1,k,jsls))           &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qwb(i,k,jsls-1)+dtb*qwbt(i,k,jsls-1))           &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qwb(i,k,jsls+1)+dtb*qwbt(i,k,jsls+1))           &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1332,25 +1340,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - qvb(i,k,j)
+                fls0 = (qeb(i,k,jeb)+dtb*qebt(i,k,jeb)) - atm2%qv(i,k,j)
                 fls1 = (qeb(i-1,k,jeb)+dtb*qebt(i-1,k,jeb))             &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qeb(i+1,k,jeb)+dtb*qebt(i+1,k,jeb))             &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qeb(i,k,jeb-1)+dtb*qebt(i,k,jeb-1))             &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qeb(i,k,jeb+1)+dtb*qebt(i,k,jeb+1))             &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #else
-                fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls)) - qvb(i,k,j)
+                fls0 = (qeb(i,k,jsls)+dtb*qebt(i,k,jsls))-atm2%qv(i,k,j)
                 fls1 = (qeb(i-1,k,jsls)+dtb*qebt(i-1,k,jsls))           &
-                     & - qvb(i-1,k,j)
+                     & - atm2%qv(i-1,k,j)
                 fls2 = (qeb(i+1,k,jsls)+dtb*qebt(i+1,k,jsls))           &
-                     & - qvb(i+1,k,j)
+                     & - atm2%qv(i+1,k,j)
                 fls3 = (qeb(i,k,jsls-1)+dtb*qebt(i,k,jsls-1))           &
-                     & - qvb(i,k,j-1)
+                     & - atm2%qv(i,k,j-1)
                 fls4 = (qeb(i,k,jsls+1)+dtb*qebt(i,k,jsls+1))           &
-                     & - qvb(i,k,j+1)
+                     & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1421,19 +1429,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - atm2%u(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - atm2%u(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - atm2%u(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1450,19 +1458,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - ub(i,k,jm1)
-              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - ub(i,k,jp1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - atm2%u(i,k,jm1)
+              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - atm2%u(i,k,jp1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - ub(ii,k,jm1)
-              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - ub(ii,k,jp1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - atm2%u(ii,k,jm1)
+              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - atm2%u(ii,k,jp1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1479,19 +1487,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - atm2%u(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - atm2%u(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - atm2%u(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1508,19 +1516,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - ub(i,k,jm1)
-              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - ub(i,k,jp1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,jm1)+dtb*usbt(i,k,jm1)) - atm2%u(i,k,jm1)
+              fls2 = (usb(i,k,jp1)+dtb*usbt(i,k,jp1)) - atm2%u(i,k,jp1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - ub(ii,k,jm1)
-              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - ub(ii,k,jp1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - atm2%u(ii,k,jm1)
+              fls2 = (unb(i,k,jp1)+dtb*unbt(i,k,jp1)) - atm2%u(ii,k,jp1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1559,19 +1567,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - atm2%u(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - atm2%u(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - atm2%u(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1588,19 +1596,19 @@
               gcx = gcoef*xfun(i)
               do k = 1 , kz
 !........south  boundary:
-                fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-                fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-                fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-                fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-                fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+                fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+                fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1))- atm2%u(i,k,j-1)
+                fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1))- atm2%u(i,k,j+1)
+                fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j))- atm2%u(i-1,k,j)
+                fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j))- atm2%u(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-                fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-                fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-                fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-                fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+                fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+                fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1))-atm2%u(ii,k,j-1)
+                fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1))-atm2%u(ii,k,j+1)
+                fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j))-atm2%u(ii-1,k,j)
+                fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j))-atm2%u(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -1616,25 +1624,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - ub(i,k,j)
+                fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - atm2%u(i,k,j)
                 fls1 = (uwb(i-1,k,jew)+dtb*uwbt(i-1,k,jew))             &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (uwb(i+1,k,jew)+dtb*uwbt(i+1,k,jew))             &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (uwb(i,k,jew-1)+dtb*uwbt(i,k,jew-1))             &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (uwb(i,k,jew+1)+dtb*uwbt(i,k,jew+1))             &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #else
-                fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls)) - ub(i,k,j)
+                fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls))-atm2%u(i,k,j)
                 fls1 = (uwb(i-1,k,jsls)+dtb*uwbt(i-1,k,jsls))           &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (uwb(i+1,k,jsls)+dtb*uwbt(i+1,k,jsls))           &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (uwb(i,k,jsls-1)+dtb*uwbt(i,k,jsls-1))           &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (uwb(i,k,jsls+1)+dtb*uwbt(i,k,jsls+1))           &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1647,25 +1655,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - ub(i,k,j)
+                fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - atm2%u(i,k,j)
                 fls1 = (ueb(i-1,k,jew)+dtb*uebt(i-1,k,jew))             &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (ueb(i+1,k,jew)+dtb*uebt(i+1,k,jew))             &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (ueb(i,k,jew-1)+dtb*uebt(i,k,jew-1))             &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (ueb(i,k,jew+1)+dtb*uebt(i,k,jew+1))             &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #else
-                fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls)) - ub(i,k,j)
+                fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls))-atm2%u(i,k,j)
                 fls1 = (ueb(i-1,k,jsls)+dtb*uebt(i-1,k,jsls))           &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (ueb(i+1,k,jsls)+dtb*uebt(i+1,k,jsls))           &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (ueb(i,k,jsls-1)+dtb*uebt(i,k,jsls-1))           &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (ueb(i,k,jsls+1)+dtb*uebt(i,k,jsls+1))           &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1688,19 +1696,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+              fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+              fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - atm2%u(i,k,j-1)
+              fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - atm2%u(i,k,j+1)
+              fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
+              fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+              fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+              fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
+              fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - atm2%u(ii,k,j+1)
+              fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
+              fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1717,19 +1725,19 @@
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
 !.........south boundary:
-                fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - ub(i,k,j)
-                fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1)) - ub(i,k,j-1)
-                fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1)) - ub(i,k,j+1)
-                fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - ub(i-1,k,j)
-                fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - ub(i+1,k,j)
+                fls0 = (usb(i,k,j)+dtb*usbt(i,k,j)) - atm2%u(i,k,j)
+                fls1 = (usb(i,k,j-1)+dtb*usbt(i,k,j-1))-atm2%u(i,k,j-1)
+                fls2 = (usb(i,k,j+1)+dtb*usbt(i,k,j+1))-atm2%u(i,k,j+1)
+                fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j))-atm2%u(i-1,k,j)
+                fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j))-atm2%u(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - ub(ii,k,j)
-                fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - ub(ii,k,j-1)
-                fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1)) - ub(ii,k,j+1)
-                fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - ub(ii-1,k,j)
-                fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - ub(ii+1,k,j)
+                fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
+                fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1))-atm2%u(ii,k,j-1)
+                fls2 = (unb(i,k,j+1)+dtb*unbt(i,k,j+1))-atm2%u(ii,k,j+1)
+                fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j))-atm2%u(ii-1,k,j)
+                fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j))-atm2%u(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -1745,25 +1753,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - ub(i,k,j)
+                fls0 = (uwb(i,k,jew)+dtb*uwbt(i,k,jew)) - atm2%u(i,k,j)
                 fls1 = (uwb(i-1,k,jew)+dtb*uwbt(i-1,k,jew))             &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (uwb(i+1,k,jew)+dtb*uwbt(i+1,k,jew))             &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (uwb(i,k,jew-1)+dtb*uwbt(i,k,jew-1))             &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (uwb(i,k,jew+1)+dtb*uwbt(i,k,jew+1))             &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #else
-                fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls)) - ub(i,k,j)
+                fls0 = (uwb(i,k,jsls)+dtb*uwbt(i,k,jsls))-atm2%u(i,k,j)
                 fls1 = (uwb(i-1,k,jsls)+dtb*uwbt(i-1,k,jsls))           &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (uwb(i+1,k,jsls)+dtb*uwbt(i+1,k,jsls))           &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (uwb(i,k,jsls-1)+dtb*uwbt(i,k,jsls-1))           &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (uwb(i,k,jsls+1)+dtb*uwbt(i,k,jsls+1))           &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1776,25 +1784,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - ub(i,k,j)
+                fls0 = (ueb(i,k,jew)+dtb*uebt(i,k,jew)) - atm2%u(i,k,j)
                 fls1 = (ueb(i-1,k,jew)+dtb*uebt(i-1,k,jew))             &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (ueb(i+1,k,jew)+dtb*uebt(i+1,k,jew))             &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (ueb(i,k,jew-1)+dtb*uebt(i,k,jew-1))             &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (ueb(i,k,jew+1)+dtb*uebt(i,k,jew+1))             &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #else
-                fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls)) - ub(i,k,j)
+                fls0 = (ueb(i,k,jsls)+dtb*uebt(i,k,jsls))-atm2%u(i,k,j)
                 fls1 = (ueb(i-1,k,jsls)+dtb*uebt(i-1,k,jsls))           &
-                     & - ub(i-1,k,j)
+                     & - atm2%u(i-1,k,j)
                 fls2 = (ueb(i+1,k,jsls)+dtb*uebt(i+1,k,jsls))           &
-                     & - ub(i+1,k,j)
+                     & - atm2%u(i+1,k,j)
                 fls3 = (ueb(i,k,jsls-1)+dtb*uebt(i,k,jsls-1))           &
-                     & - ub(i,k,j-1)
+                     & - atm2%u(i,k,j-1)
                 fls4 = (ueb(i,k,jsls+1)+dtb*uebt(i,k,jsls+1))           &
-                     & - ub(i,k,j+1)
+                     & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -1865,19 +1873,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - atm2%v(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - atm2%v(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - atm2%v(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1894,19 +1902,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - vb(i,k,jm1)
-              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - vb(i,k,jp1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - atm2%v(i,k,jm1)
+              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - atm2%v(i,k,jp1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - vb(ii,k,jm1)
-              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - vb(ii,k,jp1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - atm2%v(ii,k,jm1)
+              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - atm2%v(ii,k,jp1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1923,19 +1931,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - atm2%v(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - atm2%v(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - atm2%v(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -1952,19 +1960,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - vb(i,k,jm1)
-              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - vb(i,k,jp1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,jm1)+dtb*vsbt(i,k,jm1)) - atm2%v(i,k,jm1)
+              fls2 = (vsb(i,k,jp1)+dtb*vsbt(i,k,jp1)) - atm2%v(i,k,jp1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - vb(ii,k,jm1)
-              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - vb(ii,k,jp1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - atm2%v(ii,k,jm1)
+              fls2 = (vnb(i,k,jp1)+dtb*vnbt(i,k,jp1)) - atm2%v(ii,k,jp1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -2003,19 +2011,19 @@
             gcx = gcoef*xfun(i)
             do k = 1 , kz
 !.......south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - atm2%v(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - atm2%v(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - atm2%v(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -2032,19 +2040,19 @@
               gcx = gcoef*xfun(i)
               do k = 1 , kz
 !........south  boundary:
-                fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-                fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-                fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-                fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-                fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+                fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+                fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1))-atm2%v(i,k,j-1)
+                fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1))-atm2%v(i,k,j+1)
+                fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j))-atm2%v(i-1,k,j)
+                fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j))-atm2%v(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-                fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-                fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-                fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-                fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+                fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+                fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1))-atm2%v(ii,k,j-1)
+                fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1))-atm2%v(ii,k,j+1)
+                fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j))-atm2%v(ii-1,k,j)
+                fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j))-atm2%v(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -2060,25 +2068,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - vb(i,k,j)
+                fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - atm2%v(i,k,j)
                 fls1 = (vwb(i-1,k,jew)+dtb*vwbt(i-1,k,jew))             &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (vwb(i+1,k,jew)+dtb*vwbt(i+1,k,jew))             &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (vwb(i,k,jew-1)+dtb*vwbt(i,k,jew-1))             &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (vwb(i,k,jew+1)+dtb*vwbt(i,k,jew+1))             &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #else
-                fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls)) - vb(i,k,j)
+                fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls))-atm2%v(i,k,j)
                 fls1 = (vwb(i-1,k,jsls)+dtb*vwbt(i-1,k,jsls))           &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (vwb(i+1,k,jsls)+dtb*vwbt(i+1,k,jsls))           &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (vwb(i,k,jsls-1)+dtb*vwbt(i,k,jsls-1))           &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (vwb(i,k,jsls+1)+dtb*vwbt(i,k,jsls+1))           &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -2091,25 +2099,25 @@
             do k = 1 , kz
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - vb(i,k,j)
+                fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - atm2%v(i,k,j)
                 fls1 = (veb(i-1,k,jew)+dtb*vebt(i-1,k,jew))             &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (veb(i+1,k,jew)+dtb*vebt(i+1,k,jew))             &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (veb(i,k,jew-1)+dtb*vebt(i,k,jew-1))             &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (veb(i,k,jew+1)+dtb*vebt(i,k,jew+1))             &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #else
-                fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls)) - vb(i,k,j)
+                fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls))-atm2%v(i,k,j)
                 fls1 = (veb(i-1,k,jsls)+dtb*vebt(i-1,k,jsls))           &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (veb(i+1,k,jsls)+dtb*vebt(i+1,k,jsls))           &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (veb(i,k,jsls-1)+dtb*vebt(i,k,jsls-1))           &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (veb(i,k,jsls+1)+dtb*vebt(i,k,jsls+1))           &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -2132,19 +2140,19 @@
               fcx = fcoef*xfune(i,k)
               gcx = gcoef*xfune(i,k)
 !........south boundary:
-              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+              fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+              fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - atm2%v(i,k,j-1)
+              fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - atm2%v(i,k,j+1)
+              fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
+              fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+              fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+              fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
+              fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - atm2%v(ii,k,j+1)
+              fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
+              fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -2161,19 +2169,19 @@
                 fcx = fcoef*xfune(i,k)
                 gcx = gcoef*xfune(i,k)
 !.........south boundary:
-                fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - vb(i,k,j)
-                fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1)) - vb(i,k,j-1)
-                fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1)) - vb(i,k,j+1)
-                fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - vb(i-1,k,j)
-                fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - vb(i+1,k,j)
+                fls0 = (vsb(i,k,j)+dtb*vsbt(i,k,j)) - atm2%v(i,k,j)
+                fls1 = (vsb(i,k,j-1)+dtb*vsbt(i,k,j-1))-atm2%v(i,k,j-1)
+                fls2 = (vsb(i,k,j+1)+dtb*vsbt(i,k,j+1))-atm2%v(i,k,j+1)
+                fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j))-atm2%v(i-1,k,j)
+                fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j))-atm2%v(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-                fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - vb(ii,k,j)
-                fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - vb(ii,k,j-1)
-                fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1)) - vb(ii,k,j+1)
-                fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - vb(ii-1,k,j)
-                fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - vb(ii+1,k,j)
+                fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
+                fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1))-atm2%v(ii,k,j-1)
+                fls2 = (vnb(i,k,j+1)+dtb*vnbt(i,k,j+1))-atm2%v(ii,k,j+1)
+                fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j))-atm2%v(ii-1,k,j)
+                fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j))-atm2%v(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
                            & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
@@ -2189,25 +2197,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - vb(i,k,j)
+                fls0 = (vwb(i,k,jew)+dtb*vwbt(i,k,jew)) - atm2%v(i,k,j)
                 fls1 = (vwb(i-1,k,jew)+dtb*vwbt(i-1,k,jew))             &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (vwb(i+1,k,jew)+dtb*vwbt(i+1,k,jew))             &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (vwb(i,k,jew-1)+dtb*vwbt(i,k,jew-1))             &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (vwb(i,k,jew+1)+dtb*vwbt(i,k,jew+1))             &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #else
-                fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls)) - vb(i,k,j)
+                fls0 = (vwb(i,k,jsls)+dtb*vwbt(i,k,jsls))-atm2%v(i,k,j)
                 fls1 = (vwb(i-1,k,jsls)+dtb*vwbt(i-1,k,jsls))           &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (vwb(i+1,k,jsls)+dtb*vwbt(i+1,k,jsls))           &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (vwb(i,k,jsls-1)+dtb*vwbt(i,k,jsls-1))           &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (vwb(i,k,jsls+1)+dtb*vwbt(i,k,jsls+1))           &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -2220,25 +2228,25 @@
               gcx = gcoef*xfune(jsls,k)
               do i = ibeg , iend
 #ifdef MPP1
-                fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - vb(i,k,j)
+                fls0 = (veb(i,k,jew)+dtb*vebt(i,k,jew)) - atm2%v(i,k,j)
                 fls1 = (veb(i-1,k,jew)+dtb*vebt(i-1,k,jew))             &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (veb(i+1,k,jew)+dtb*vebt(i+1,k,jew))             &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (veb(i,k,jew-1)+dtb*vebt(i,k,jew-1))             &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (veb(i,k,jew+1)+dtb*vebt(i,k,jew+1))             &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #else
-                fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls)) - vb(i,k,j)
+                fls0 = (veb(i,k,jsls)+dtb*vebt(i,k,jsls))-atm2%v(i,k,j)
                 fls1 = (veb(i-1,k,jsls)+dtb*vebt(i-1,k,jsls))           &
-                     & - vb(i-1,k,j)
+                     & - atm2%v(i-1,k,j)
                 fls2 = (veb(i+1,k,jsls)+dtb*vebt(i+1,k,jsls))           &
-                     & - vb(i+1,k,j)
+                     & - atm2%v(i+1,k,j)
                 fls3 = (veb(i,k,jsls-1)+dtb*vebt(i,k,jsls-1))           &
-                     & - vb(i,k,j-1)
+                     & - atm2%v(i,k,j-1)
                 fls4 = (veb(i,k,jsls+1)+dtb*vebt(i,k,jsls+1))           &
-                     & - vb(i,k,j+1)
+                     & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)

@@ -110,7 +110,7 @@
 !
 !-----dry air (unit = kg):
 !
-        call mpi_gather(psa,   iy*jxp,mpi_real8, &
+        call mpi_gather(atm1%ps,   iy*jxp,mpi_real8, &
                       & psa_io,iy*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
@@ -129,7 +129,7 @@
 !
 !-----water substance (unit = kg):
 !
-        call mpi_gather(qva,   iy*kz*jxp,mpi_real8, &
+        call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8, &
                       & qva_io,iy*kz*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
@@ -146,7 +146,7 @@
         end if
         call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
 !
-        call mpi_gather(qca,   iy*kz*jxp,mpi_real8,              &
+        call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
                       & qca_io,iy*kz*jxp,mpi_real8,              &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
@@ -174,7 +174,7 @@
           tttmp = 0.
           do j = 1 , jxm1
             do i = 1 , iym1
-              tttmp = tttmp + psa(i,j)
+              tttmp = tttmp + atm1%ps(i,j)
             end do
           end do
           tdini = tdini + tttmp*dsigma(k)
@@ -187,7 +187,7 @@
           tttmp = 0.
           do j = 1 , jxm1
             do i = 1 , iym1
-              tttmp = tttmp + qva(i,k,j)
+              tttmp = tttmp + atm1%qv(i,k,j)
             end do
           end do
           tvmass = tvmass + tttmp*dsigma(k)
@@ -198,7 +198,7 @@
           tttmp = 0.
           do j = 1 , jxm1
             do i = 1 , iym1
-              tttmp = tttmp + qca(i,k,j)
+              tttmp = tttmp + atm1%qc(i,k,j)
             end do
           end do
           tcmass = tcmass + tttmp*dsigma(k)
@@ -337,15 +337,16 @@
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
-                       & /(msfx(i,jendx)*msfx(i,jendx))
+            worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) /      &
+                       &  (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
           end do
         end do
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
+            workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) / &
+                          (mddom%msfx(i,1)*mddom%msfx(i,1))
           end do
         end do
       end if
@@ -356,9 +357,10 @@
 #else
       do k = 1 , kz
         do i = 1 , iym1
-          worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & /(msfx(i,jxm1)*msfx(i,jxm1))
-          workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))/(msfx(i,1)*msfx(i,1))
+          worka(i,k) = (atm1%u(i+1,k,jx)+atm1%u(i,k,jx)) / &
+                        (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1))
+          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) / &
+                        (mddom%msfx(i,1)*mddom%msfx(i,1))
         end do
       end do
 #endif
@@ -374,8 +376,8 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kz
-          vaix(k,j) = va(iy,k,j)
-          va01(k,j) = va(1,k,j)
+          vaix(k,j) = atm1%v(iy,k,j)
+          va01(k,j) = atm1%v(1,k,j)
         end do
       end do
       call mpi_gather(vaix,  kz*jxp,mpi_real8,                     &
@@ -387,10 +389,10 @@
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tdadv = tdadv - dtmin*3.E4*dsigma(k)                        &
-                  & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
-                  & /(msfx_io(iym1,j)*msfx_io(iym1,j))                  &
-                  & -(va01_g(k,j+1)+va01_g(k,j))                        &
+            tdadv = tdadv - dtmin*3.E4*dsigma(k)              &
+                  & *dx*((vaix_g(k,j+1)+vaix_g(k,j))          &
+                  & /(msfx_io(iym1,j)*msfx_io(iym1,j))        &
+                  & -(va01_g(k,j+1)+va01_g(k,j))              &
                   & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
           end do
         end do
@@ -399,10 +401,11 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*((va(iy,k,j+1)+va(iy,k,j))                        &
-                & /(msfx(iym1,j)*msfx(iym1,j))-(va(1,k,j+1)+va(1,k,j))  &
-                & /(msfx(1,j)*msfx(1,j)))*rgti
+          tdadv = tdadv - dtmin*3.E4*dsigma(k)                &
+                  *dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j)) /    &
+                  (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) - &
+                  (atm1%v(1,k,j+1)+atm1%v(1,k,j)) /           &
+                  (mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
       end do
 #endif
@@ -416,17 +419,18 @@
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
-                       & *(qva(i,k,jendx)/psa(i,jendx))                 &
-                       & /(msfx(i,jendx)*msfx(i,jendx))
+            worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl))    &
+                       & *(atm1%qv(i,k,jendx)/atm1%ps(i,jendx))     &
+                       & /(mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
           end do
         end do
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))  &
-                       & /(msfx(i,1)*msfx(i,1))
+            workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) * &
+                          (atm1%qv(i,k,1)/atm1%ps(i,1)) / &
+                          (mddom%msfx(i,1)*mddom%msfx(i,1))
           end do
         end do
       end if
@@ -437,11 +441,11 @@
 #else
       do k = 1 , kz
         do i = 1 , iym1
-          worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & *(qva(i,k,jxm1)/psa(i,jxm1))                     &
-                     & /(msfx(i,jxm1)*msfx(i,jxm1))
-          workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qva(i,k,1)/psa(i,1))    &
-                     & /(msfx(i,1)*msfx(i,1))
+          worka(i,k) = (atm1%u(i+1,k,jx)+atm1%u(i,k,jx))     &
+                     & *(atm1%qv(i,k,jxm1)/atm1%ps(i,jxm1))  &
+                     & /(mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1))
+          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))*(atm1%qv(i,k,1)/ &
+                       atm1%ps(i,1))/(mddom%msfx(i,1)*mddom%msfx(i,1))
         end do
       end do
 #endif
@@ -457,11 +461,11 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kz
-          qvailx(k,j) = qva(iym1,k,j)
-          qva01(k,j) = qva(1,k,j)
+          qvailx(k,j) = atm1%qv(iym1,k,j)
+          qva01(k,j) = atm1%qv(1,k,j)
         end do
-        psailx(j) = psa(iym1,j)
-        psa01(j) = psa(1,j)
+        psailx(j) = atm1%ps(iym1,j)
+        psa01(j) = atm1%ps(1,j)
       end do
       call mpi_gather(qvailx,  kz*jxp,mpi_real8,                   &
                     & qvailx_g,kz*jxp,mpi_real8,                   &
@@ -490,11 +494,12 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*((va(iy,k,j+1)+va(iy,k,j))                        &
-                & *(qva(iym1,k,j)/psa(iym1,j))/(msfx(iym1,j)            &
-                & *msfx(iym1,j))-(va(1,k,j+1)+va(1,k,j))                &
-                & *(qva(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))*rgti
+          tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
+               dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*      &
+               (atm1%qv(iym1,k,j)/atm1%ps(iym1,j)) /       &
+               (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) - &
+               (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qv(1,k,j) /   &
+               atm1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
       end do
 #endif
@@ -507,17 +512,18 @@
       if ( myid.eq.nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            worka(i,k) = (ua(i+1,k,jendl)+ua(i,k,jendl))                &
-                       & *(qca(i,k,jendx)/psa(i,jendx))                 &
-                       & /(msfx(i,jendx)*msfx(i,jendx))
+            worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl))        &
+                       & *(atm1%qc(i,k,jendx)/atm1%ps(i,jendx))         &
+                       & /(mddom%msfx(i,jendx)*mddom%msfx(i,jendx))
           end do
         end do
       end if
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do i = 1 , iym1
-            workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))  &
-                       & /(msfx(i,1)*msfx(i,1))
+            workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))* &
+                         (atm1%qc(i,k,1)/atm1%ps(i,1)) /  &
+                         (mddom%msfx(i,1)*mddom%msfx(i,1))
           end do
         end do
       end if
@@ -528,11 +534,11 @@
 #else
       do k = 1 , kz
         do i = 1 , iym1
-          worka(i,k) = (ua(i+1,k,jx)+ua(i,k,jx))                        &
-                     & *(qca(i,k,jxm1)/psa(i,jxm1))                     &
-                     & /(msfx(i,jxm1)*msfx(i,jxm1))
-          workb(i,k) = (ua(i+1,k,1)+ua(i,k,1))*(qca(i,k,1)/psa(i,1))    &
-                     & /(msfx(i,1)*msfx(i,1))
+          worka(i,k) = (atm1%u(i+1,k,jx)+atm1%u(i,k,jx))      &
+                     & *(atm1%qc(i,k,jxm1)/atm1%ps(i,jxm1))   &
+                     & /(mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1))
+          workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))*(atm1%qc(i,k,1) /&
+                     atm1%ps(i,1))/(mddom%msfx(i,1)*mddom%msfx(i,1))
         end do
       end do
 #endif
@@ -548,8 +554,8 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kz
-          qcailx(k,j) = qca(iym1,k,j)
-          qca01(k,j) = qca(1,k,j)
+          qcailx(k,j) = atm1%qc(iym1,k,j)
+          qca01(k,j) = atm1%qc(1,k,j)
         end do
       end do
       call mpi_gather(qcailx,  kz*jxp,mpi_real8,                   &
@@ -575,11 +581,12 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
-                & *dx*((va(iy,k,j+1)+va(iy,k,j))                        &
-                & *(qca(iym1,k,j)/psa(iym1,j))/(msfx(iym1,j)            &
-                & *msfx(iym1,j))-(va(1,k,j+1)+va(1,k,j))                &
-                & *(qca(1,k,j)/psa(1,j))/(msfx(1,j)*msfx(1,j)))*rgti
+          tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
+                dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*     &
+                (atm1%qc(iym1,k,j)/atm1%ps(iym1,j)) /      &
+                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))- &
+                (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qc(1,k,j) /  &
+                atm1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
       end do
 #endif
@@ -629,7 +636,7 @@
 !
       tdrym = 0.
 #ifdef MPP1
-      call mpi_gather(psa,   iy*jxp,mpi_real8,                     &
+      call mpi_gather(atm1%ps,   iy*jxp,mpi_real8,                     &
                     & psa_io,iy*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
@@ -650,7 +657,7 @@
         tttmp = 0.
         do j = 1 , jxm1
           do i = 1 , iym1
-            tttmp = tttmp + psa(i,j)
+            tttmp = tttmp + atm1%ps(i,j)
           end do
         end do
         tdrym = tdrym + tttmp*dsigma(k)
@@ -662,7 +669,7 @@
 !
       tvmass = 0.
 #ifdef MPP1
-      call mpi_gather(qva,   iy*kz*jxp,mpi_real8,                &
+      call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8,                &
                     & qva_io,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
@@ -684,7 +691,7 @@
         tttmp = 0.
         do j = 1 , jxm1
           do i = 1 , iym1
-            tttmp = tttmp + qva(i,k,j)
+            tttmp = tttmp + atm1%qv(i,k,j)
           end do
         end do
         tvmass = tvmass + tttmp*dsigma(k)
@@ -695,7 +702,7 @@
       tcmass = 0.
 
 #ifdef MPP1
-      call mpi_gather(qca,   iy*kz*jxp,mpi_real8,                &
+      call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,                &
                     & qca_io,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
@@ -717,7 +724,7 @@
         tttmp = 0.
         do j = 1 , jxm1
           do i = 1 , iym1
-            tttmp = tttmp + qca(i,k,j)
+            tttmp = tttmp + atm1%qc(i,k,j)
           end do
         end do
         tcmass = tcmass + tttmp*dsigma(k)
@@ -739,10 +746,10 @@
 !-----total raifall at this time:
 !
 #ifdef MPP1
-      call mpi_gather(rainc,   iy*jxp,mpi_real8,                   &
+      call mpi_gather(sfsta%rainc,   iy*jxp,mpi_real8,                   &
                     & rainc_io,iy*jxp,mpi_real8,                   &
                     & 0,mpi_comm_world,ierr)
-      call mpi_gather(rainnc,   iy*jxp,mpi_real8,                  &
+      call mpi_gather(sfsta%rainnc,   iy*jxp,mpi_real8,                  &
                     & rainnc_io,iy*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
@@ -762,8 +769,8 @@
       tncrai = 0.
       do j = 1 , jxm1
         do i = 1 , iym1
-          tcrai = tcrai + rainc(i,j)*dxsq
-          tncrai = tncrai + rainnc(i,j)*dxsq
+          tcrai = tcrai + sfsta%rainc(i,j)*dxsq
+          tncrai = tncrai + sfsta%rainnc(i,j)*dxsq
         end do
       end do
       tqrai = tcrai + tncrai
@@ -884,31 +891,35 @@
         do k = 1 , kz
           do i = 2 , iym2
             if ( myid.eq.nproc-1 ) then
-              uavg2 = 0.5*(ua(i+1,k,jendx)+ua(i,k,jendx))
+              uavg2 = 0.5*(atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))
               if ( uavg2.lt.0. ) then
-                worka(i,k,n) = -uavg2*(fact1*chia(i,k,jendx,n)/psa(i,   &
-                             & jendx)/(msfx(i,jendx)*msfx(i,jendx))     &
-                             & +fact2*chia(i,k,jendm,n)/psa(i,jendm)    &
-                             & /(msfx(i,jendm)*msfx(i,jendm)))
+                worka(i,k,n) =  &
+                    -uavg2*(fact1*chia(i,k,jendx,n)/atm1%ps(i,jendx)/ &
+                    (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))+      &
+                    fact2*chia(i,k,jendm,n)/atm1%ps(i,jendm)/         &
+                    (mddom%msfx(i,jendm)*mddom%msfx(i,jendm)))
               else
-                worka(i,k,n) = -uavg2*(fact1*chia(i,k,jendm,n)/psa(i,   &
-                             & jendm)/(msfx(i,jendm)*msfx(i,jendm))     &
-                             & +fact2*chia(i,k,jendx,n)/psa(i,jendx)    &
-                             & /(msfx(i,jendx)*msfx(i,jendx)))
+                worka(i,k,n) = &
+                    -uavg2*(fact1*chia(i,k,jendm,n)/atm1%ps(i,jendm)/ &
+                    (mddom%msfx(i,jendm)*mddom%msfx(i,jendm))+      &
+                    fact2*chia(i,k,jendx,n)/atm1%ps(i,jendx) /        &
+                    (mddom%msfx(i,jendx)*mddom%msfx(i,jendx)))
               end if
             end if
             if ( myid.eq.0 ) then
-              uavg1 = 0.5*(ua(i+1,k,1+1)+ua(i,k,1+1))
+              uavg1 = 0.5*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
               if ( uavg1.gt.0. ) then
-                workb(i,k,n) = -uavg1*(fact1*chia(i,k,1,n)/psa(i,1)/(   &
-                             & msfx(i,1)*msfx(i,1))                     &
-                             & +fact2*chia(i,k,1+1,n)/psa(i,1+1)        &
-                             & /(msfx(i,1+1)*msfx(i,1+1)))
+                workb(i,k,n) = &
+                    -uavg1*(fact1*chia(i,k,1,n)/atm1%ps(i,1)/ &
+                    (mddom%msfx(i,1)*mddom%msfx(i,1)) +     &
+                    fact2*chia(i,k,1+1,n)/atm1%ps(i,1+1) /    &
+                    (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)))
               else
-                workb(i,k,n) = -uavg1*(fact1*chia(i,k,1+1,n)/psa(i,1+1) &
-                             & /(msfx(i,1+1)*msfx(i,1+1))               &
-                             & +fact2*chia(i,k,1,n)/psa(i,1)            &
-                             & /(msfx(i,1)*msfx(i,1)))
+                workb(i,k,n) = & 
+                    -uavg1*(fact1*chia(i,k,1+1,n)/atm1%ps(i,1+1) / &
+                    (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)) +      &
+                    fact2*chia(i,k,1,n)/atm1%ps(i,1) /             &
+                    (mddom%msfx(i,1)*mddom%msfx(i,1)))
               end if
             end if
           end do
@@ -920,29 +931,34 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,jxm1)+ua(i,k,jxm1))
+            uavg2 = 0.5*(atm1%u(i+1,k,jxm1)+atm1%u(i,k,jxm1))
             if ( uavg2.lt.0. ) then
-              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jxm1,n)/psa(i,jxm1) &
-                           & /(msfx(i,jxm1)*msfx(i,jxm1))               &
-                           & +fact2*chia(i,k,jxm2,n)/psa(i,jxm2)        &
-                           & /(msfx(i,jxm2)*msfx(i,jxm2)))
+              worka(i,k,n) =  &
+                  -uavg2*(fact1*chia(i,k,jxm1,n)/atm1%ps(i,jxm1) / &
+                  (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)) +      &
+                  fact2*chia(i,k,jxm2,n)/atm1%ps(i,jxm2) /         &
+                  (mddom%msfx(i,jxm2)*mddom%msfx(i,jxm2)))
             else
-              worka(i,k,n) = -uavg2*(fact1*chia(i,k,jxm2,n)/psa(i,jxm2  &
-                           & )/(msfx(i,jxm2)*msfx(i,jxm2))              &
-                           & +fact2*chia(i,k,jxm1,n)/psa(i,jxm1)        &
-                           & /(msfx(i,jxm1)*msfx(i,jxm1)))
+              worka(i,k,n) = &
+                  -uavg2*(fact1*chia(i,k,jxm2,n)/atm1%ps(i,jxm2) / & 
+                  (mddom%msfx(i,jxm2)*mddom%msfx(i,jxm2)) +      &
+                  fact2*chia(i,k,jxm1,n)/atm1%ps(i,jxm1) /         &
+                  (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)))
             end if
  
-            uavg1 = 0.5*(ua(i+1,k,1+1)+ua(i,k,1+1))
+            uavg1 = 0.5*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
             if ( uavg1.gt.0. ) then
-              workb(i,k,n) = -uavg1*(fact1*chia(i,k,1,n)/psa(i,1)/(msfx(&
-                           & i,1)*msfx(i,1))+fact2*chia(i,k,1+1,n)      &
-                           & /psa(i,1+1)/(msfx(i,1+1)*msfx(i,1+1)))
+              workb(i,k,n) = &
+                  -uavg1*(fact1*chia(i,k,1,n)/atm1%ps(i,1) / &
+                  (mddom%msfx(i,1)*mddom%msfx(i,1)) +      &
+                  fact2*chia(i,k,1+1,n)/atm1%ps(i,1+1) /     &
+                  (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)))
             else
-              workb(i,k,n) = -uavg1*(fact1*chia(i,k,1+1,n)/psa(i,1+1)   &
-                           & /(msfx(i,1+1)*msfx(i,1+1))                 &
-                           & +fact2*chia(i,k,1,n)/psa(i,1)              &
-                           & /(msfx(i,1)*msfx(i,1)))
+              workb(i,k,n) = &
+                  -uavg1*(fact1*chia(i,k,1+1,n)/atm1%ps(i,1+1) / &
+                  (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)) +      &
+                  fact2*chia(i,k,1,n)/atm1%ps(i,1) /             &
+                  (mddom%msfx(i,1)*mddom%msfx(i,1)))
             end if
           end do
         end do
@@ -952,8 +968,8 @@
 #ifdef MPP1
       do j = 1 , jendl
         do k = 1 , kz
-          vaill(k,j) = va(iym1,k,j)
-          va02(k,j) = va(2,k,j)
+          vaill(k,j) = atm1%v(iym1,k,j)
+          va02(k,j) = atm1%v(2,k,j)
           xkcill1(k,j) = xkc(iym2,k,j)
           xkc02(k,j) = xkc(2,k,j)
           do n = 1 , ntr
@@ -963,10 +979,10 @@
             chia02(k,n,j) = chia(2,k,j,n)
           end do
         end do
-        psaill(j) = psa(iym1,j)
-        psaill1(j) = psa(iym2,j)
-        psa01(j) = psa(1,j)
-        psa02(j) = psa(2,j)
+        psaill(j) = atm1%ps(iym1,j)
+        psaill1(j) = atm1%ps(iym2,j)
+        psa01(j) = atm1%ps(1,j)
+        psa02(j) = atm1%ps(2,j)
       end do
       call mpi_gather(vaill,  kz*jxp,mpi_real8,                    &
                     & vaill_g,kz*jxp,mpi_real8,                    &
@@ -1004,7 +1020,7 @@
         do n = 1 , ntr
           do k = 1 , kz
             do i = 2 , iym2
-              tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)              &
+              tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)     &
                         & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
             end do
           end do
@@ -1060,27 +1076,30 @@
         do k = 1 , kz
           do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = 0.5*(va(iym1,k,j+1)+va(iym1,k,j))
+            vavg2 = 0.5*(atm1%v(iym1,k,j+1)+atm1%v(iym1,k,j))
             if ( vavg2.lt.0. ) then
-              fx2 = -vavg2*(fact1*chia(iym1,k,j,n)/psa(iym1,j)          &
-                  & /(msfx(iym1,j)*msfx(iym1,j))+fact2*chia(iym2,k,j,n) &
-                  & /psa(iym2,j)/(msfx(iym2,j)*msfx(iym2,j)))
+              fx2 = -vavg2*(fact1*chia(iym1,k,j,n)/atm1%ps(iym1,j) / &
+                      (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) +    &
+                       fact2*chia(iym2,k,j,n)/atm1%ps(iym2,j) /      &
+                       (mddom%msfx(iym2,j)*mddom%msfx(iym2,j)))
             else
-              fx2 = -vavg2*(fact1*chia(iym2,k,j,n)/psa(iym2,j)          &
-                  & /(msfx(iym2,j)*msfx(iym2,j))                        &
-                  & +fact2*chia(iym1,k,j,n)/psa(iym1,j)                 &
-                  & /(msfx(iym1,j)*msfx(iym1,j)))
+              fx2 = -vavg2*(fact1*chia(iym2,k,j,n)/atm1%ps(iym2,j) &
+                  & /(mddom%msfx(iym2,j)*mddom%msfx(iym2,j))     &
+                  & +fact2*chia(iym1,k,j,n)/atm1%ps(iym1,j)        &
+                  & /(mddom%msfx(iym1,j)*mddom%msfx(iym1,j)))
             end if
  
-            vavg1 = 0.5*(va(1+1,k,j+1)+va(1+1,k,j))
+            vavg1 = 0.5*(atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))
             if ( vavg1.gt.0. ) then
-              fx1 = -vavg1*(fact1*chia(1,k,j,n)/psa(1,j)                &
-                  & /(msfx(1,j)*msfx(1,j))+fact2*chia(1+1,k,j,n)        &
-                  & /psa(1+1,j)/(msfx(1+1,j)*msfx(1+1,j)))
+              fx1 = -vavg1*(fact1*chia(1,k,j,n)/atm1%ps(1,j) / &
+                      (mddom%msfx(1,j)*mddom%msfx(1,j)) +    &
+                       fact2*chia(1+1,k,j,n)/atm1%ps(1+1,j) /  &
+                       (mddom%msfx(1+1,j)*mddom%msfx(1+1,j)))
             else
-              fx1 = -vavg1*(fact1*chia(1+1,k,j,n)/psa(1+1,j)            &
-                  & /(msfx(1+1,j)*msfx(1+1,j))+fact2*chia(1,k,j,n)      &
-                  & /psa(1,j)/(msfx(1,j)*msfx(1,j)))
+              fx1 = -vavg1*(fact1*chia(1+1,k,j,n)/atm1%ps(1+1,j) / &
+                      (mddom%msfx(1+1,j)*mddom%msfx(1+1,j)) +    &
+                       fact2*chia(1,k,j,n)/atm1%ps(1,j) /          &
+                       (mddom%msfx(1,j)*mddom%msfx(1,j)))
             end if
  
             tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*            &
@@ -1098,12 +1117,14 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            if ( myid.eq.nproc-1 ) worka(i,k,n) = xkc(i,k,jendm)        &
-               & *psa(i,jendm)                                          &
-               & *(chia(i,k,jendm,n)/psa(i,jendm)-chia(i,k,jendx,n)     &
-               & /psa(i,jendx))
-            if ( myid.eq.0 ) workb(i,k,n) = xkc(i,k,2)*psa(i,2)         &
-               & *(chia(i,k,2,n)/psa(i,2)-chia(i,k,1,n)/psa(i,1))
+            if ( myid.eq.nproc-1 )  &
+              worka(i,k,n) = xkc(i,k,jendm)*atm1%ps(i,jendm) * &
+                  (chia(i,k,jendm,n)/atm1%ps(i,jendm)-         &
+                   chia(i,k,jendx,n)/atm1%ps(i,jendx))
+            if ( myid.eq.0 ) &
+              workb(i,k,n) = xkc(i,k,2)*atm1%ps(i,2) *  &
+                  (chia(i,k,2,n)/atm1%ps(i,2) -         &
+                   chia(i,k,1,n)/atm1%ps(i,1))
           end do
         end do
       end do
@@ -1113,12 +1134,12 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            worka(i,k,n) = xkc(i,k,jxm2)*psa(i,jxm2)                    &
-                         & *(chia(i,k,jxm2,n)/psa(i,jxm2)               &
-                         & -chia(i,k,jxm1,n)/psa(i,jxm1))
-            workb(i,k,n) = xkc(i,k,2)*psa(i,2)                          &
-                         & *(chia(i,k,2,n)/psa(i,2)-chia(i,k,1,n)       &
-                         & /psa(i,1))
+            worka(i,k,n) = xkc(i,k,jxm2)*atm1%ps(i,jxm2)       &
+                         & *(chia(i,k,jxm2,n)/atm1%ps(i,jxm2)  &
+                         & -chia(i,k,jxm1,n)/atm1%ps(i,jxm1))
+            workb(i,k,n) = xkc(i,k,2)*atm1%ps(i,2)             &
+                         & *(chia(i,k,2,n)/atm1%ps(i,2)-chia(i,k,1,n) &
+                         & /atm1%ps(i,1))
           end do
         end do
       end do
@@ -1492,7 +1513,7 @@
 #endif
       integer :: i , j
 #ifdef MPP1
-      call mpi_gather(qfx,   iy*jxp,mpi_real8,  &
+      call mpi_gather(sfsta%qfx,   iy*jxp,mpi_real8,  &
                     & qfx_io,iy*jxp,mpi_real8,  &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
@@ -1506,7 +1527,7 @@
 #else
       do j = 2 , jxm2
         do i = 2 , iym2
-          tqeva = tqeva + qfx(i,j)*dx*dx*dtmin*60.
+          tqeva = tqeva + sfsta%qfx(i,j)*dx*dx*dtmin*60.
         end do
       end do
 #endif

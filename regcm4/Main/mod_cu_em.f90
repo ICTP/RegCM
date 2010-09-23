@@ -87,7 +87,7 @@
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*psb(i,j)+r8pt)*10.        ! [hPa]
+          phcup(k) = (sigma(kk)*atm2%ps(i,j)+r8pt)*10.        ! [hPa]
         end do
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
@@ -115,13 +115,13 @@
 !         **** Tendencies
           do k = 1 , kz
             kk = kzp1 - k
-            tten(i,kk,j) = ft(k)*psb(i,j) + tten(i,kk,j)
-            qvten(i,kk,j) = fq(k)/(1.-fq(k))*psb(i,j) + qvten(i,kk,j)
+            tten(i,kk,j) = ft(k)*atm2%ps(i,j) + tten(i,kk,j)
+            qvten(i,kk,j) = fq(k)/(1.-fq(k))*atm2%ps(i,j)+qvten(i,kk,j)
 !           There is a bit of an inconsistency here...  The wind
 !           tendencies from convection are on cross points, but the
 !           model wants them on dot points.
-            uten(i,kk,j) = fu(k)*psb(i,j) + uten(i,kk,j)
-            vten(i,kk,j) = fv(k)*psb(i,j) + vten(i,kk,j)
+            uten(i,kk,j) = fu(k)*atm2%ps(i,j) + uten(i,kk,j)
+            vten(i,kk,j) = fv(k)*atm2%ps(i,j) + vten(i,kk,j)
           end do
  
 !         **** Cloud fraction and cloud water
@@ -135,7 +135,7 @@
  
 !         **** Precipitation
           if ( fppt.gt.0. ) then
-            rainc(i,j) = rainc(i,j) + fppt*uconv ! mm
+            sfsta%rainc(i,j) = sfsta%rainc(i,j) + fppt*uconv ! mm
             pptc(i,j) = pptc(i,j) + fppt*aprdiv  ! mm/s
             iconj = iconj + 1
           end if

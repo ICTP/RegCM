@@ -89,12 +89,12 @@
           if ( ocld2d(n,i,j).lt.0.5 ) then
 #endif
             uv995 = sqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
-            tsurf = tgb(i,j) - tzero
+            tsurf = atm2%tg(i,j) - tzero
             t995 = tb3d(i,k,j) - tzero
             q995 = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
             z995 = za(i,k,j)
-            zi = zpbl(i,j)
-            psurf = (psb(i,j)+r8pt)*10.
+            zi = sfsta%zpbl(i,j)
+            psurf = (atm2%ps(i,j)+r8pt)*10.
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
                        & uv10,tau,lh,sh,dth,dqh,ustar,zo)
             if (idcsst == 1) then
@@ -104,7 +104,7 @@
 !             handle the first call of the scheme
               if ( .not.firstcall(i,j) ) then
                 deltas(i,j) = 0.001
-                tdeltas(i,j) = tgb(i,j) - 0.001
+                tdeltas(i,j) = atm2%tg(i,j) - 0.001
                 firstcall(i,j) = .true.
                 td = tdeltas(i,j)
               end if
@@ -184,10 +184,10 @@
               tdeltas(i,j) = tdelta
               dtskin(i,j) = tskin-td
 !             now feedback tskin in surface variable
-              tgb(i,j) = tskin
+              atm2%tg(i,j) = tskin
             end if
-            tg1d(n,i) = tgb(i,j)
-            tgb1d(n,i) = tgb(i,j)
+            tg1d(n,i) = atm2%tg(i,j)
+            tgb1d(n,i) = atm2%tg(i,j)
             sent1d(n,i) = sh
             evpr1d(n,i) = lh/wlhv
 !           Back out Drag Coefficient
@@ -201,7 +201,7 @@
                & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then
               facttq = dlog(z995/2.)/dlog(z995/zo)
               q2m_1d(n,i) = q995 - dqh*facttq
-              tgb2d(n,i,j) = tgb(i,j)
+              tgb2d(n,i,j) = atm2%tg(i,j)
             end if
           end if
         end do

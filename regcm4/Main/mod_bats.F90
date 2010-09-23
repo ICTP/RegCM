@@ -85,7 +85,7 @@
            & swt2d , taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1 ,  &
            & lkdpth
       real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
-                                             &  xlon1
+                                             &  xlon1 , snowc
 !
       real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
                                      & flwd_o , fswa_o , prcv_o ,       &
@@ -183,6 +183,7 @@
         allocate(satbrt1(nnsg,iy,nj))
         allocate(xlat1(nnsg,iy,nj))
         allocate(xlon1(nnsg,iy,nj))
+        allocate(snowc(nnsg,iy,nj))
         allocate(fbat(njm2,iym2,numbat))
         allocate(fsub(nnsg,njm2,iym2,numsub))
         flw2d = 0.0D0
@@ -237,6 +238,7 @@
         satbrt1 = 0.0D0
         xlat1 = 0.0D0
         xlon1 = 0.0D0
+        snowc = 0.0D0
         fbat = 0.0
         fsub = 0.0
         if (idcsst == 1) then

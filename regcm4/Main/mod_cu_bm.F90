@@ -69,11 +69,28 @@
       real(8) , dimension(itb,jtb) :: ptbl
       real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
       real(8) , dimension(jtb,itb) :: ttbl
+      real(8) , allocatable , dimension(:,:,:) :: tbase
+      real(8) , allocatable , dimension(:,:) :: cldefi
 
-      public :: bmpara , lutbl
+      public :: bmpara , lutbl , allocate_mod_cu_bm
+      public :: tbase , cldefi
 
       contains
 !
+      subroutine allocate_mod_cu_bm(lmpi)
+        implicit none
+        logical , intent(in) :: lmpi
+        if (lmpi) then
+          allocate(tbase(iy,kz,jxp))
+          allocate(cldefi(iy,jxp))
+        else
+          allocate(tbase(iy,kz,jx))
+          allocate(cldefi(iy,jx))
+        end if
+        tbase = 0.0D0
+        cldefi = 0.0D0
+      end subroutine allocate_mod_cu_bm
+
       subroutine bmpara(tten,qten,j)
 !
 !*****************************************************************
@@ -217,10 +234,10 @@
       end do
       do i = 2 , iym2
         do k = 1 , kz
-          t(i,k) = tb(i,k,j)/psb(i,j)
+          t(i,k) = atm2%t(i,k,j)/atm2%ps(i,j)
           if ( t(i,k).gt.tzero .and. ml(i).eq.kzp1 ) ml(i) = k
-          q(i,k) = qvb(i,k,j)/psb(i,j)
-          pppk = (a(k)*psb(i,j)+r8pt)*1000.
+          q(i,k) = atm2%qv(i,k,j)/atm2%ps(i,j)
+          pppk = (a(k)*atm2%ps(i,j)+r8pt)*1000.
           ape(i,k) = (pppk/h10e5)**dm2859
         end do
         lbot(i) = kz
@@ -232,7 +249,7 @@
 !...ip300 is the highest model level in the lowest 300 mb...
         ifbuoy(i) = 0
         ip300(i) = 0
-        cell = r8pt/psb(i,j)
+        cell = r8pt/atm2%ps(i,j)
         do k = 1 , kz
           dzq(k) = rovg*tbase(i,k,j)                                    &
                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
@@ -246,15 +263,15 @@
       do k = 1 , kz
         do i = 2 , iym2
           if ( q(i,k).lt.epsq ) q(i,k) = epsq
-          pdiff = (1.-a(k))*psb(i,j)
+          pdiff = (1.-a(k))*atm2%ps(i,j)
           if ( pdiff.lt.30. .and. ip300(i).eq.0 ) ip300(i) = k
         end do
       end do
 !--------------search for maximum buoyancy level------------------------
       do kb = 1 , kz
         do i = 2 , iym2
-          pkl = (a(kb)*psb(i,j)+r8pt)*1000.
-          psfck = (a(kz)*psb(i,j)+r8pt)*1000.
+          pkl = (a(kb)*atm2%ps(i,j)+r8pt)*1000.
+          psfck = (a(kz)*atm2%ps(i,j)+r8pt)*1000.
           if ( pkl.ge.psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
@@ -277,7 +294,7 @@
       do k = 1 , lm1
         ak = a(k)
         do i = 2 , iym2
-          p(i) = (ak*psb(i,j)+r8pt)*1000.
+          p(i) = (ak*atm2%ps(i,j)+r8pt)*1000.
 !         cloud bottom cannot be above 200 mb
           if ( p(i).lt.psp(i) .and. p(i).ge.pqm ) lbot(i) = k + 1
         end do
@@ -285,15 +302,15 @@
 !***  warning: lbot must not be gt kz-1 in shallow convection
 !***  make sure the cloud base is at least 25 mb above the surface
       do i = 2 , iym2
-        pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
-        psfck = (a(kz)*psb(i,j)+r8pt)*1000.
+        pbot(i) = (a(lbot(i))*atm2%ps(i,j)+r8pt)*1000.
+        psfck = (a(kz)*atm2%ps(i,j)+r8pt)*1000.
         if ( pbot(i).ge.psfck-pone .or. lbot(i).ge.kz ) then
 !***      cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , lm1
-            p(i) = (a(kz)*psb(i,j)+r8pt)*1000.
+            p(i) = (a(kz)*atm2%ps(i,j)+r8pt)*1000.
             if ( p(i).lt.psfck-pone ) lbot(i) = k
           end do
-          pbot(i) = (a(lbot(i))*psb(i,j)+r8pt)*1000.
+          pbot(i) = (a(lbot(i))*atm2%ps(i,j)+r8pt)*1000.
         end if
       end do
 !--------------cloud top computation------------------------------------
@@ -305,7 +322,7 @@
         l = lp1 - ivi
 !--------------find environmental saturation equiv pot temp...
         do i = 2 , iym2
-          p(i) = (a(l)*psb(i,j)+r8pt)*1000.
+          p(i) = (a(l)*atm2%ps(i,j)+r8pt)*1000.
           es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
           qs = ep2*es/(p(i)-es)
           ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
@@ -323,7 +340,7 @@
 !--------------cloud top pressure---------------------------------------
       do i = 2 , iym2
 !       if(kf(i).eq.1) goto 275
-        prtop(i) = (a(ltop(i))*psb(i,j)+r8pt)*1000.
+        prtop(i) = (a(ltop(i))*atm2%ps(i,j)+r8pt)*1000.
       end do
 !-----------------------------------------------------------------------
 !--------------define and smooth dsps and cldefi------------------------
@@ -369,7 +386,7 @@
         end if
         cldhgt(i) = z0(i,ltop(i)) - z0(i,lbot(i))
 !       cloud is less than 90 mb deep or less than 3 sigma layers deep
-        if ( cldhgt(i).lt.zno ) cldefi(i,j) = avgefi*xsm(i)             &
+        if ( cldhgt(i).lt.zno ) cldefi(i,j) = avgefi*xsm(i) &
            & + stefi*(h1-xsm(i))
 !       cloud has to be at least 290 mb deep
         if ( cldhgt(i).ge.zsh ) then
@@ -402,7 +419,7 @@
           qkl = q(i,k)
           qk(k) = qkl
           qrefk(k) = qkl
-          pkl = (a(k)*psb(i,j)+r8pt)*1000.
+          pkl = (a(k)*atm2%ps(i,j)+r8pt)*1000.
 !**************
           tref(i,k) = tpfc(pkl,thesp(i),t(i,k),d273,wlhv,qu,ape(i,k))
 !***************
@@ -539,7 +556,7 @@
         icond = icond + 1
 !***    keep the land value of efi equal to 1 until precip surpasses
 !***    a threshold value, currently set to 0.25 inches per 24 hrs
-        pthrs = cthrs/psb(i,j)
+        pthrs = cthrs/atm2%ps(i,j)
         drheat = (preck*xsm(i)+dmax1(epsp,preck-pthrs)*(h1-xsm(i)))     &
                & *cpd/avrgt
         efi = efifc*dentpy/drheat
@@ -562,8 +579,8 @@
 !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         preck = preck*fefi
 !--------------update precipitation, temperature & moisture-------------
-        prainx = 0.5*((psb(i,j)*1000.*preck*cprlg)*100.)
-        rainc(i,j) = prainx + rainc(i,j)
+        prainx = 0.5*((atm2%ps(i,j)*1000.*preck*cprlg)*100.)
+        sfsta%rainc(i,j) = prainx + sfsta%rainc(i,j)
 !.....................precipitation rate for bats (mm/s)
         aprdiv = dble(nbatst)
         if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
@@ -617,7 +634,7 @@
           qk(k) = qkl
           qrefk(k) = qkl
           qsatk(k) = qkl
-          pkl = (a(k)*psb(i,j)+r8pt)*1000.
+          pkl = (a(k)*atm2%ps(i,j)+r8pt)*1000.
           pk(k) = pkl
           apekl = ape(i,k)
           apek(k) = apekl
@@ -694,7 +711,7 @@
         end if
 !--------------scaling potential temperature & table index at top-------
         thtpk = t(i,ltp1)*ape(i,ltp1)
-        pkl = (a(ltp1)*psb(i,j)+r8pt)*1000.
+        pkl = (a(ltp1)*atm2%ps(i,j)+r8pt)*1000.
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
         tdpt = 1./(d273-rwat/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
@@ -857,8 +874,8 @@
 !-----------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
-          tten(i,k) = tten(i,k) + tmod(i,k)*psb(i,j)
-          qten(i,k) = qten(i,k) + qqmod(i,k)*psb(i,j)
+          tten(i,k) = tten(i,k) + tmod(i,k)*atm2%ps(i,j)
+          qten(i,k) = qten(i,k) + qqmod(i,k)*atm2%ps(i,j)
         end do
       end do
       icon(j) = icond

@@ -78,33 +78,25 @@
         do i = 2 + icut , iym2 - icut
           kk = kz - k + 1
 
-!! move to sunroutinr tend
-!         us = ua(i,kk,j)/psb(i,j)
-!         vs = va(i,kk,j)/psb(i,j)
-!         us = 0.25*(ua(i,kk,j)/psb(i,j)+ua(i+1,kk,j)/psb(i+1,j)        &
-!            & +ua(i,kk,j+1)/psb(i,j+1)+ua(i+1,kk,j+1)/psb(i+1,j+1))
-!         vs = 0.25*(va(i,kk,j)/psb(i,j)+va(i+1,kk,j)/psb(i+1,j)        &
-!            & +va(i,kk,j+1)/psb(i,j+1)+va(i+1,kk,j+1)/psb(i+1,j+1))
+          us = sfsta%usk(i,kk)
+          vs = sfsta%vsk(i,kk)
 
-          us = usk(i,kk)
-          vs = vsk(i,kk)
-
-          t(i,k) = tb(i,kk,j)/psb(i,j)
-          q(i,k) = qvb(i,kk,j)/psb(i,j)
+          t(i,k) = atm2%t(i,kk,j)/atm2%ps(i,j)
+          q(i,k) = atm2%qv(i,kk,j)/atm2%ps(i,j)
           if ( q(i,k).lt.1.E-08 ) q(i,k) = 1.E-08
-          tn(i,k) = t(i,k) + (tten(i,kk))/psb(i,j)*dtime
-          qo(i,k) = q(i,k) + (qten(i,kk))/psb(i,j)*dtime
-          p(i,k) = 10.*psb(i,j)*a(kk) + 10.*r8pt
+          tn(i,k) = t(i,k) + (tten(i,kk))/atm2%ps(i,j)*dtime
+          qo(i,k) = q(i,k) + (qten(i,kk))/atm2%ps(i,j)*dtime
+          p(i,k) = 10.*atm2%ps(i,j)*a(kk) + 10.*r8pt
           vsp(i,k) = dsqrt(us**2+vs**2)
           if ( qo(i,k).lt.1.E-08 ) qo(i,k) = 1.E-08
 !
           po(i,k) = p(i,k)
-          psur(i) = 10.*psb(i,j) + 10.*r8pt
+          psur(i) = 10.*atm2%ps(i,j) + 10.*r8pt
           outt(i,k) = 0.
           pkk = psur(i) - po(i,k)
           if ( pkk.le.pkdcut ) kdet(i) = kdet(i) + 1
           outq(i,k) = 0.
-          ter11(i) = ht(i,j)*rgti
+          ter11(i) = mddom%ht(i,j)*rgti
           if ( ter11(i).le.0. ) ter11(i) = 1.E-05
           qcrit(i) = qcrit(i) + qten(i,kk)
         end do
@@ -118,8 +110,8 @@
         do i = istart , iend
           if ( pret(i).gt.0. ) then
             kk = kz - k + 1
-            tten(i,kk) = psb(i,j)*outt(i,k) + tten(i,kk)
-            qten(i,kk) = psb(i,j)*outq(i,k) + qten(i,kk)
+            tten(i,kk) = atm2%ps(i,j)*outt(i,k) + tten(i,kk)
+            qten(i,kk) = atm2%ps(i,j)*outq(i,k) + qten(i,kk)
           end if
         end do
       end do
@@ -130,8 +122,8 @@
       iconj = 0
       do i = istart , iend
         if ( pret(i).gt.0. ) then
-          rainc(i,j) = rainc(i,j) + pret(i)*calc*dt
-!         print *,'rainc(',i,j,')=',rainc(i,j)
+          sfsta%rainc(i,j) = sfsta%rainc(i,j) + pret(i)*calc*dt
+!         print *,'sfsta%rainc(',i,j,')=',sfsta%rainc(i,j)
           iconj = iconj + 1
 !.....................precipitation rate for bats (mm/s)
           aprdiv = dble(nbatst)

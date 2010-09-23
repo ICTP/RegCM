@@ -93,14 +93,12 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(t(i,k,jp1)      &
-                      & +t(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))              &
-                      & *(t(i,k,j)+t(i,k,jm1))                          &
-                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
-                      & *(t(i+1,k,j)+t(i,k,j))-(va(i,k,jp1)+va(i,k,j))  &
-                      & *(t(i-1,k,j)+t(i,k,j)))                         &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+            ften(i,k) = ften(i,k) -                             &
+             ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(t(i,k,jp1)+t(i,k,j))-&
+              (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(t(i,k,j)+t(i,k,jm1))+    &
+              (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(t(i+1,k,j)+t(i,k,j))-&
+              (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(t(i-1,k,j)+t(i,k,j)))/   &
+              (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
 !
@@ -117,8 +115,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
+            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2.ge.0. ) then
               fx2 = fact1*t(i,k,j) + fact2*t(i,k,jp1)
             else
@@ -129,8 +127,8 @@
             else
               fx1 = fact1*t(i,k,j) + fact2*t(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
+            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*t(i,k,j) + fact2*t(i+1,k,j)
             else
@@ -143,7 +141,7 @@
             end if
             ften(i,k) = ften(i,k)                                       &
                       & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else
@@ -202,21 +200,23 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,jp1) + 2.*va(idx,k,j) + va(idx,k,jm1)
-            ucmonb = ua(idxp1,k,jp1) + 2.*ua(idx,k,jp1)             &
-                   & + ua(idxm1,k,jp1) + ucmona
-            vcmonb = va(idxp1,k,jp1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,jm1) + vcmona
-            ucmonc = ua(idxp1,k,jm1) + 2.*ua(idx,k,jm1)             &
-                   & + ua(idxm1,k,jm1) + ucmona
-            vcmonc = va(idxm1,k,jp1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,jm1) + vcmona
+            ucmona = atm1%u(idxp1,k,j) +  &
+                     2.*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
+            vcmona = atm1%v(idx,k,jp1) +  &
+                     2.*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
+            ucmonb = atm1%u(idxp1,k,jp1) + 2.*atm1%u(idx,k,jp1)  &
+                   & + atm1%u(idxm1,k,jp1) + ucmona
+            vcmonb = atm1%v(idxp1,k,jp1) + 2.*atm1%v(idxp1,k,j)  &
+                   & + atm1%v(idxp1,k,jm1) + vcmona
+            ucmonc = atm1%u(idxp1,k,jm1) + 2.*atm1%u(idx,k,jm1)  &
+                   & + atm1%u(idxm1,k,jm1) + ucmona
+            vcmonc = atm1%v(idxm1,k,jp1) + 2.*atm1%v(idxm1,k,j)  &
+                   & + atm1%v(idxm1,k,jm1) + vcmona
             ften(i,k) = ften(i,k)                                       &
                       & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
                       & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
                       & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
+                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
 !
@@ -239,23 +239,23 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j)                 &
-                   & + ua(idxm1,k,j)
-            vcmona = va(idx,k,jdp1) + 2.*va(idx,k,j)                 &
-                   & + va(idx,k,jdm1)
-            ucmonb = ua(idxp1,k,jdp1) + 2.*ua(idx,k,jdp1)             &
-                   & + ua(idxm1,k,jdp1) + ucmona
-            vcmonb = va(idxp1,k,jdp1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,jdm1) + vcmona
-            ucmonc = ua(idxp1,k,jdm1) + 2.*ua(idx,k,jdm1)             &
-                   & + ua(idxm1,k,jdm1) + ucmona
-            vcmonc = va(idxm1,k,jdp1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,jdm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
-                      & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
+            ucmona = atm1%u(idxp1,k,j) + 2.*atm1%u(idx,k,j)        &
+                   & + atm1%u(idxm1,k,j)
+            vcmona = atm1%v(idx,k,jdp1) + 2.*atm1%v(idx,k,j)       &
+                   & + atm1%v(idx,k,jdm1)
+            ucmonb = atm1%u(idxp1,k,jdp1) + 2.*atm1%u(idx,k,jdp1)  &
+                   & + atm1%u(idxm1,k,jdp1) + ucmona
+            vcmonb = atm1%v(idxp1,k,jdp1) + 2.*atm1%v(idxp1,k,j)   &
+                   & + atm1%v(idxp1,k,jdm1) + vcmona
+            ucmonc = atm1%u(idxp1,k,jdm1) + 2.*atm1%u(idx,k,jdm1)  &
+                   & + atm1%u(idxm1,k,jdm1) + ucmona
+            vcmonc = atm1%v(idxm1,k,jdp1) + 2.*atm1%v(idxm1,k,j)   &
+                   & + atm1%v(idxm1,k,jdm1) + vcmona
+            ften(i,k) = ften(i,k)                                  &
+                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)  &
+                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))  &
+                      & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)      &
+                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
 #endif
@@ -310,21 +310,23 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j) + ua(idxm1,k,j)
-            vcmona = va(idx,k,jp1) + 2.*va(idx,k,j) + va(idx,k,jm1)
-            ucmonb = ua(idxp1,k,jp1) + 2.*ua(idx,k,jp1)             &
-                   & + ua(idxm1,k,jp1) + ucmona
-            vcmonb = va(idxp1,k,jp1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,jm1) + vcmona
-            ucmonc = ua(idxp1,k,jm1) + 2.*ua(idx,k,jm1)             &
-                   & + ua(idxm1,k,jm1) + ucmona
-            vcmonc = va(idxm1,k,jp1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,jm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
+            ucmona = atm1%u(idxp1,k,j) + &
+                     2.*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
+            vcmona = atm1%v(idx,k,jp1) + &
+                     2.*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
+            ucmonb = atm1%u(idxp1,k,jp1) + &
+                     2.*atm1%u(idx,k,jp1) + atm1%u(idxm1,k,jp1) + ucmona
+            vcmonb = atm1%v(idxp1,k,jp1) + 2.*atm1%v(idxp1,k,j)      &
+                   & + atm1%v(idxp1,k,jm1) + vcmona
+            ucmonc = atm1%u(idxp1,k,jm1) + 2.*atm1%u(idx,k,jm1)      &
+                   & + atm1%u(idxm1,k,jm1) + ucmona
+            vcmonc = atm1%v(idxm1,k,jp1) + 2.*atm1%v(idxm1,k,j)      &
+                   & + atm1%v(idxm1,k,jm1) + vcmona
+            ften(i,k) = ften(i,k)                                    &
+                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)    &
+                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))    &
+                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)        &
+                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
 !
@@ -347,23 +349,23 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = ua(idxp1,k,j) + 2.*ua(idx,k,j)                 &
-                   & + ua(idxm1,k,j)
-            vcmona = va(idx,k,jdp1) + 2.*va(idx,k,j)                 &
-                   & + va(idx,k,jdm1)
-            ucmonb = ua(idxp1,k,jdp1) + 2.*ua(idx,k,jdp1)             &
-                   & + ua(idxm1,k,jdp1) + ucmona
-            vcmonb = va(idxp1,k,jdp1) + 2.*va(idxp1,k,j)             &
-                   & + va(idxp1,k,jdm1) + vcmona
-            ucmonc = ua(idxp1,k,jdm1) + 2.*ua(idx,k,jdm1)             &
-                   & + ua(idxm1,k,jdm1) + ucmona
-            vcmonc = va(idxm1,k,jdp1) + 2.*va(idxm1,k,j)             &
-                   & + va(idxm1,k,jdm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)       &
-                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))       &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)           &
-                      & /(dxx*msfd(i,j)*msfd(i,j))
+            ucmona = atm1%u(idxp1,k,j) + 2.*atm1%u(idx,k,j)          &
+                   & + atm1%u(idxm1,k,j)
+            vcmona = atm1%v(idx,k,jdp1) + 2.*atm1%v(idx,k,j)         &
+                   & + atm1%v(idx,k,jdm1)
+            ucmonb = atm1%u(idxp1,k,jdp1) + 2.*atm1%u(idx,k,jdp1)    &
+                   & + atm1%u(idxm1,k,jdp1) + ucmona
+            vcmonb = atm1%v(idxp1,k,jdp1) + 2.*atm1%v(idxp1,k,j)     &
+                   & + atm1%v(idxp1,k,jdm1) + vcmona
+            ucmonc = atm1%u(idxp1,k,jdm1) + 2.*atm1%u(idx,k,jdm1)    &
+                   & + atm1%u(idxm1,k,jdm1) + ucmona
+            vcmonc = atm1%v(idxm1,k,jdp1) + 2.*atm1%v(idxm1,k,j)     &
+                   & + atm1%v(idxm1,k,jdm1) + vcmona
+            ften(i,k) = ften(i,k)                                    &
+                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)    &
+                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))    &
+                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)        &
+                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
 #endif
@@ -409,14 +411,12 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(qv(i,k,jp1)     &
-                      & +qv(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qv(i,k,j)+qv(i,k,jm1))                        &
-                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
-                      & *(qv(i+1,k,j)+qv(i,k,j))-(va(i,k,jp1)+va(i,k,j))&
-                      & *(qv(i-1,k,j)+qv(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+            ften(i,k) = ften(i,k) -                             &
+          ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(qv(i,k,jp1)+qv(i,k,j))- &
+           (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(qv(i,k,j)+qv(i,k,jm1))+     &
+           (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(qv(i+1,k,j)+qv(i,k,j))- &
+           (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(qv(i-1,k,j)+qv(i,k,j))) /   &
+            (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else if ( ind.eq.2 ) then
@@ -432,8 +432,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
+            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2.ge.0. ) then
               fx2 = fact1*qv(i,k,j) + fact2*qv(i,k,jp1)
             else
@@ -444,8 +444,8 @@
             else
               fx1 = fact1*qv(i,k,j) + fact2*qv(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
+            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*qv(i,k,j) + fact2*qv(i+1,k,j)
             else
@@ -458,7 +458,7 @@
             end if
             ften(i,k) = ften(i,k)                                       &
                       & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else
@@ -502,14 +502,12 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((ua(i+1,k,jp1)+ua(i,k,jp1))*(qc(i,k,jp1)     &
-                      & +qc(i,k,j))-(ua(i+1,k,j)+ua(i,k,j))             &
-                      & *(qc(i,k,j)+qc(i,k,jm1))                        &
-                      & +(va(i+1,k,jp1)+va(i+1,k,j))                    &
-                      & *(qc(i+1,k,j)+qc(i,k,j))-(va(i,k,jp1)+va(i,k,j))&
-                      & *(qc(i-1,k,j)+qc(i,k,j)))                       &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+            ften(i,k) = ften(i,k) - &
+           ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(qc(i,k,jp1)+qc(i,k,j))-&
+            (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(qc(i,k,j)+qc(i,k,jm1)) +   &
+            (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(qc(i+1,k,j)+qc(i,k,j))-&
+            (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(qc(i-1,k,j)+qc(i,k,j))) /  &
+             (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else if ( ind.eq.2 ) then
@@ -525,8 +523,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
+            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2.ge.0. ) then
               fx2 = fact1*qc(i,k,j) + fact2*qc(i,k,jp1)
             else
@@ -537,8 +535,8 @@
             else
               fx1 = fact1*qc(i,k,j) + fact2*qc(i,k,jm1)
             end if
-            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
+            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*qc(i,k,j) + fact2*qc(i+1,k,j)
             else
@@ -551,7 +549,7 @@
             end if
             ften(i,k) = ften(i,k)                                       &
                       & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else
@@ -602,8 +600,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(ua(i+1,k,jp1)+ua(i,k,jp1))
-            uavg1 = 0.5*(ua(i+1,k,j)+ua(i,k,j))
+            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2.ge.0. ) then
               fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jp1,n)
             else
@@ -614,8 +612,8 @@
             else
               fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jm1,n)
             end if
-            vavg2 = 0.5*(va(i+1,k,jp1)+va(i+1,k,j))
-            vavg1 = 0.5*(va(i,k,jp1)+va(i,k,j))
+            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2.ge.0. ) then
               fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
             else
@@ -628,7 +626,7 @@
             end if
             ften(i,k) = ften(i,k)                                       &
                       & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*msfx(i,j)*msfx(i,j))
+                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
       else
@@ -703,11 +701,12 @@
         end do
         do k = 2 , kz
           do i = 2 , iym2
-            fg(i,k) = twt(k,1)*fa(i,k)                                  &
-                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k)+r8pt))  &
-                    & **0.287 + twt(k,2)*fa(i,k-1)                      &
-                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k-1)+r8pt))&
-                    & **0.287
+            fg(i,k) = twt(k,1)*fa(i,k) * &
+                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (atm1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    & twt(k,2)*fa(i,k-1) * &
+                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (atm1%ps(i,j)*a(k-1)+r8pt))**0.287
           end do
         end do
 !......k = 1
@@ -717,9 +716,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz
@@ -752,9 +755,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz
@@ -812,7 +819,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/msfd(i,j)
+            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
@@ -855,9 +862,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz
@@ -882,11 +893,12 @@
         end do
         do k = 2 , kz
           do i = 2 , iym2
-            fg(i,k) = twt(k,1)*fa(i,k)                                  &
-                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k)+r8pt))  &
-                    & **0.287 + twt(k,2)*fa(i,k-1)                      &
-                    & *((psa(i,j)*sigma(k)+r8pt)/(psa(i,j)*a(k-1)+r8pt))&
-                    & **0.287
+            fg(i,k) = twt(k,1)*fa(i,k) * &
+                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (atm1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    & twt(k,2)*fa(i,k-1) * &
+                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (atm1%ps(i,j)*a(k-1)+r8pt))**0.287
           end do
         end do
 !......k = 1
@@ -896,9 +908,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz
@@ -931,9 +947,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz
@@ -991,7 +1011,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/msfd(i,j)
+            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
@@ -1034,9 +1054,13 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            ften(i,k) = ften(i,k)                                       &
+            if (abs(ften(i,k)) < 1E-37) then
+              ften(i,k) = 0.0
+            else
+              ften(i,k) = ften(i,k)                                     &
                       & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
                       & /dsigma(k)
+            end if
           end do
         end do
 !,.....k = kz

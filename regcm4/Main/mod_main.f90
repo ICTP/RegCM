@@ -22,154 +22,179 @@
       use mod_dynparam
 !
 ! Storage for all the 3d prognostic variables in two
-!     timesteps and all the 2d variavles and constants
+!     timesteps and all the 2d variables and constants
 !
-      real(8) , allocatable, dimension(:,:) :: rainp
-      real(8) , allocatable, dimension(:,:) :: cldefi , f , hfx ,       &
-                                   & hgfact , htsd ,                    &
-                                   & qfx , rainc , rainnc , tgb , tgbb ,&
-                                   & xlat , xlong , zpbl
-      real(8) , allocatable, dimension(:,:) :: ht
-      real(8) , allocatable, dimension(:,:) :: msfd , msfx , pdotb , psa
-      real(8) , allocatable, dimension(:,:) :: psb
-      real(8) , allocatable, dimension(:,:,:) :: qca , qcb , qva , qvb ,    &
-                                   & ta , tb , ua , ub , va , vb
-      real(8) , allocatable, dimension(:,:) :: satbrt , tga
-      real(8) , allocatable, dimension(:,:,:) :: snowc
-      real(8) , allocatable, dimension(:,:,:) :: so4 , tbase
-      real(8) , allocatable, dimension(:,:) :: uvdrag
+      type sulfate
+        real(8) , allocatable , dimension(:,:,:) :: so4
+      end type sulfate
 
-      real(8) , allocatable, dimension(:,:) :: usk,vsk
+      type atmstate
+        real(8) , allocatable , dimension(:,:,:) :: u
+        real(8) , allocatable , dimension(:,:,:) :: v
+        real(8) , allocatable , dimension(:,:,:) :: t
+        real(8) , allocatable , dimension(:,:,:) :: qc
+        real(8) , allocatable , dimension(:,:,:) :: qv
+        real(8) , allocatable , dimension(:,:) :: ps
+        real(8) , allocatable , dimension(:,:) :: tg
+      end type atmstate
 
-      real(8) , allocatable, dimension(:,:,:) :: dstor , hstor
+      type domain
+        real(8) , allocatable , dimension(:,:) :: ht
+        real(8) , allocatable , dimension(:,:) :: htsd
+        real(8) , allocatable , dimension(:,:) :: xlat
+        real(8) , allocatable , dimension(:,:) :: xlong
+        real(8) , allocatable , dimension(:,:) :: satbrt
+        real(8) , allocatable , dimension(:,:) :: msfx
+        real(8) , allocatable , dimension(:,:) :: msfd
+        real(8) , allocatable , dimension(:,:) :: f
+        real(8) , allocatable , dimension(:,:) :: hgfact
+      end type domain
+
+      type surfstate
+        real(8) , allocatable , dimension(:,:) :: rainc
+        real(8) , allocatable , dimension(:,:) :: rainnc
+        real(8) , allocatable , dimension(:,:) :: hfx
+        real(8) , allocatable , dimension(:,:) :: qfx
+        real(8) , allocatable , dimension(:,:) :: pdotb
+        real(8) , allocatable , dimension(:,:) :: tgbb
+        real(8) , allocatable , dimension(:,:) :: zpbl
+        real(8) , allocatable , dimension(:,:) :: uvdrag
+        real(8) , allocatable , dimension(:,:) :: usk
+        real(8) , allocatable , dimension(:,:) :: vsk
+      end type surfstate
+
+      type splitsave
+        real(8) , allocatable, dimension(:,:,:) :: dstor
+        real(8) , allocatable, dimension(:,:,:) :: hstor
+      end type splitsave
+
+      type(atmstate) , public :: atm1 , atm2
+      type(sulfate) , public :: sulf
+      type(domain) , public :: mddom
+      type(surfstate) , public :: sfsta
+      type(splitsave) , public :: spsav
+
+      public :: allocate_mod_main , allocate_atmstate
+
+      private
 !
-      contains 
+      contains
+!
+        subroutine allocate_atmstate(atm,lmpi)
+          implicit none
+          logical , intent(in) :: lmpi
+          type(atmstate) , intent(out) :: atm
+          if (lmpi) then
+            allocate(atm%u(iy,kz,-1:jxp+2))
+            allocate(atm%v(iy,kz,-1:jxp+2))
+            allocate(atm%t(iy,kz,-1:jxp+2))
+            allocate(atm%qv(iy,kz,-1:jxp+2))
+            allocate(atm%qc(iy,kz,-1:jxp+2))
+            allocate(atm%ps(iy,-1:jxp+2))
+            allocate(atm%tg(iy,jxp+1))
+          else
+            allocate(atm%u(iy,kz,jx))
+            allocate(atm%v(iy,kz,jx))
+            allocate(atm%t(iy,kz,jx))
+            allocate(atm%qv(iy,kz,jx))
+            allocate(atm%qc(iy,kz,jx))
+            allocate(atm%ps(iy,jx))
+            allocate(atm%tg(iy,jx)) 
+          end if
+          atm%u  = 0.0D0
+          atm%v  = 0.0D0
+          atm%t  = 0.0D0
+          atm%qv = 0.0D0
+          atm%qc = 0.0D0
+          atm%ps = 0.0D0
+          atm%tg = 0.0D0
+        end subroutine allocate_atmstate
 !
         subroutine allocate_mod_main(lmpi)
         implicit none
         logical , intent(in) :: lmpi
 
         if (lmpi) then
-          allocate(cldefi(iy,jxp))
-          allocate(f(iy,jxp))
-          allocate(hfx(iy,jxp))
-          allocate(hgfact(iy,jxp))
-          allocate(htsd(iy,jxp))
-          allocate(qfx(iy,jxp))
-          allocate(rainc(iy,jxp))
-          allocate(rainnc(iy,jxp))
-          allocate(tgb(iy,jxp))
-          allocate(tgbb(iy,jxp))
-          allocate(xlat(iy,jxp))
-          allocate(xlong(iy,jxp))
-          allocate(zpbl(iy,jxp))
-          allocate(ht(iy,0:jxp+1))
-          allocate(msfd(iy,-1:jxp+2))
-          allocate(msfx(iy,-1:jxp+2))
-          allocate(pdotb(iy,-1:jxp+2))
-          allocate(psa(iy,-1:jxp+2))
-          allocate(rainp(iy,-1:jxp+2)) 
-          allocate(psb(iy,0:jxp+2))
-          allocate(qca(iy,kz,-1:jxp+2))
-          allocate(qcb(iy,kz,-1:jxp+2))
-          allocate(qva(iy,kz,-1:jxp+2))
-          allocate(qvb(iy,kz,-1:jxp+2))
-          allocate(ta(iy,kz,-1:jxp+2))
-          allocate(tb(iy,kz,-1:jxp+2))
-          allocate(ua(iy,kz,-1:jxp+2))
-          allocate(ub(iy,kz,-1:jxp+2))
-          allocate(va(iy,kz,-1:jxp+2))
-          allocate(vb(iy,kz,-1:jxp+2))
-          allocate(satbrt(iy,jxp+1)) 
-          allocate(tga(iy,jxp+1)) 
-          allocate(snowc(nnsg,iy,jxp)) 
-          allocate(so4(iy,kz,jxp))
-          allocate(tbase(iy,kz,jxp)) 
-          allocate(uvdrag(iy,0:jxp))
-          allocate(dstor(iy,0:jxp+1,nsplit))
-          allocate(hstor(iy,0:jxp+1,nsplit))
+          allocate(mddom%ht(iy,0:jxp+1))
+          allocate(mddom%htsd(iy,jxp))
+          allocate(mddom%satbrt(iy,jxp+1)) 
+          allocate(mddom%xlat(iy,jxp))
+          allocate(mddom%xlong(iy,jxp))
+          allocate(mddom%msfx(iy,-1:jxp+2))
+          allocate(mddom%msfd(iy,-1:jxp+2))
+          allocate(mddom%f(iy,jxp))
+          allocate(mddom%hgfact(iy,jxp))
+
+          allocate(sfsta%hfx(iy,jxp))
+          allocate(sfsta%qfx(iy,jxp))
+          allocate(sfsta%rainc(iy,jxp))
+          allocate(sfsta%rainnc(iy,jxp))
+          allocate(sfsta%tgbb(iy,jxp))
+          allocate(sfsta%zpbl(iy,jxp))
+          allocate(sfsta%pdotb(iy,-1:jxp+2))
+          allocate(sfsta%uvdrag(iy,0:jxp))
+
+          allocate(sulf%so4(iy,kz,jxp))
+
+          allocate(spsav%dstor(iy,0:jxp+1,nsplit))
+          allocate(spsav%hstor(iy,0:jxp+1,nsplit))
+
         else
-          allocate(cldefi(iy,jx))
-          allocate(f(iy,jx))
-          allocate(hfx(iy,jx))
-          allocate(hgfact(iy,jx))
-          allocate(htsd(iy,jx))
-          allocate(qfx(iy,jx))
-          allocate(rainc(iy,jx))
-          allocate(rainnc(iy,jx))
-          allocate(tgb(iy,jx))
-          allocate(tgbb(iy,jx))
-          allocate(xlat(iy,jx))
-          allocate(xlong(iy,jx))
-          allocate(zpbl(iy,jx))
-          allocate(ht(iy,jx))
-          allocate(msfd(iy,jx))
-          allocate(msfx(iy,jx))
-          allocate(pdotb(iy,jx))
-          allocate(psa(iy,jx))
-          allocate(psb(iy,jx))
-          allocate(rainp(iy,jx)) 
-          allocate(qca(iy,kz,jx))
-          allocate(qcb(iy,kz,jx))
-          allocate(qva(iy,kz,jx))
-          allocate(qvb(iy,kz,jx))
-          allocate(ta(iy,kz,jx))
-          allocate(tb(iy,kz,jx))
-          allocate(ua(iy,kz,jx))
-          allocate(ub(iy,kz,jx))
-          allocate(va(iy,kz,jx))
-          allocate(vb(iy,kz,jx))
-          allocate(satbrt(iy,jx)) 
-          allocate(tga(iy,jx)) 
-          allocate(snowc(nnsg,iy,jx)) 
-          allocate(so4(iy,kz,jx))
-          allocate(tbase(iy,kz,jx)) 
-          allocate(uvdrag(iy,jx))
-          allocate(dstor(iy,jx,nsplit))
-          allocate(hstor(iy,jx,nsplit))
+
+          allocate(mddom%ht(iy,jx))
+          allocate(mddom%htsd(iy,jx))
+          allocate(mddom%satbrt(iy,jx)) 
+          allocate(mddom%xlat(iy,jx))
+          allocate(mddom%xlong(iy,jx))
+          allocate(mddom%msfx(iy,jx))
+          allocate(mddom%msfd(iy,jx))
+          allocate(mddom%f(iy,jx))
+          allocate(mddom%hgfact(iy,jx))
+
+          allocate(sfsta%hfx(iy,jx))
+          allocate(sfsta%qfx(iy,jx))
+          allocate(sfsta%rainc(iy,jx))
+          allocate(sfsta%rainnc(iy,jx))
+          allocate(sfsta%tgbb(iy,jx))
+          allocate(sfsta%zpbl(iy,jx))
+          allocate(sfsta%pdotb(iy,jx))
+          allocate(sfsta%uvdrag(iy,jx))
+
+          allocate(sulf%so4(iy,kz,jx))
+
+          allocate(spsav%dstor(iy,jx,nsplit))
+          allocate(spsav%hstor(iy,jx,nsplit))
+
         end if
-        allocate(usk(iy,kz))
-        allocate(vsk(iy,kz))
-        cldefi = 0.0D0
-        f = 0.0D0
-        hfx = 0.0D0
-        hgfact = 0.0D0
-        htsd = 0.0D0
-        qfx = 0.0D0
-        rainc = 0.0D0
-        rainnc = 0.0D0
-        tgb = 0.0D0
-        tgbb = 0.0D0
-        xlat = 0.0D0
-        xlong = 0.0D0
-        zpbl = 0.0D0
-        ht = 0.0D0
-        msfd = 0.0D0
-        msfx = 0.0D0
-        pdotb = 0.0D0
-        psa = 0.0D0
-        psb = 0.0D0
-        rainp = 0.0D0
-        qca = 0.0D0
-        qcb = 0.0D0
-        qva = 0.0D0
-        qvb = 0.0D0
-        ta = 0.0D0
-        tb = 0.0D0
-        ua = 0.0D0
-        ub = 0.0D0
-        va = 0.0D0
-        vb = 0.0D0
-        satbrt = 0.0D0
-        tga = 0.0D0
-        snowc = 0.0D0
-        so4 = 0.0D0
-        tbase = 0.0D0
-        uvdrag = 0.0D0
-        dstor = 0.0D0
-        hstor = 0.0D0
-        usk = 0.0D0
-        vsk = 0.0D0
+        allocate(sfsta%usk(iy,kz))
+        allocate(sfsta%vsk(iy,kz))
+
+        call allocate_atmstate(atm1,lmpi)
+        call allocate_atmstate(atm2,lmpi)
+
+        mddom%ht = 0.0D0
+        mddom%htsd = 0.0D0
+        mddom%satbrt = 0.0D0
+        mddom%xlat = 0.0D0
+        mddom%xlong = 0.0D0
+        mddom%msfx = 0.0D0
+        mddom%msfd = 0.0D0
+        mddom%f = 0.0D0
+        mddom%hgfact = 0.0D0
+        sfsta%hfx = 0.0D0
+        sfsta%qfx = 0.0D0
+        sfsta%rainc = 0.0D0
+        sfsta%rainnc = 0.0D0
+        sfsta%tgbb = 0.0D0
+        sfsta%zpbl = 0.0D0
+        sfsta%pdotb = 0.0D0
+        sfsta%uvdrag = 0.0D0
+        sulf%so4 = 0.0D0
+        spsav%dstor = 0.0D0
+        spsav%hstor = 0.0D0
+        sfsta%usk = 0.0D0
+        sfsta%vsk = 0.0D0
+!
         end subroutine allocate_mod_main 
 !
       end module mod_main

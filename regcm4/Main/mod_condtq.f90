@@ -75,10 +75,10 @@
 !---------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
-          tmp3(i,k) = (tb(i,k,j)+dt*tten(i,k,j))/psc(i,j)
-          qvcs(i,k) = dmax1((qvb(i,k,j)+dt*qvten(i,k,j))/psc(i,j),      &
+          tmp3(i,k) = (atm2%t(i,k,j)+dt*tten(i,k,j))/psc(i,j)
+          qvcs(i,k) = dmax1((atm2%qv(i,k,j)+dt*qvten(i,k,j))/psc(i,j),  &
                     & 1.D-30)
-          qccs(i,k) = dmax1((qcb(i,k,j)+dt*qcten(i,k,j))/psc(i,j),      &
+          qccs(i,k) = dmax1((atm2%qc(i,k,j)+dt*qcten(i,k,j))/psc(i,j),  &
                     & 1.D-30)
         end do
       end do

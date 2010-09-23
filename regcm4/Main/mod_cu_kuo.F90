@@ -131,9 +131,9 @@
 !
           eqtm = 0.0
           do k = k700 , kz
-            ttp = ta(i,k,j)/psa(i,j) + pert
-            q = qva(i,k,j)/psa(i,j) + perq
-            psg = psa(i,j)*a(k) + r8pt
+            ttp = atm1%t(i,k,j)/atm1%ps(i,j) + pert
+            q = atm1%qv(i,k,j)/atm1%ps(i,j) + perq
+            psg = atm1%ps(i,j)*a(k) + r8pt
             t1 = ttp*(100./psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt.gt.eqtm ) then
@@ -155,7 +155,7 @@
           tmean = 0.5*(tmax+tlcl)
           dlnp = (gti*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
-          siglcl = (plcl-r8pt)/psa(i,j)
+          siglcl = (plcl-r8pt)/atm1%ps(i,j)
 !
 !--3--compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
@@ -169,8 +169,8 @@
 !.....kbase is the layer where lcl is located.
 !
           do k = 1 , kbase
-            ttp = ta(i,k,j)/psa(i,j)
-            psg = psa(i,j)*a(k) + r8pt
+            ttp = atm1%t(i,k,j)/atm1%ps(i,j)
+            psg = atm1%ps(i,j)*a(k) + r8pt
             es = .611*dexp(19.84659-5418.12/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(100./psg)**rovcp
@@ -228,15 +228,15 @@
               suma = 0.
               sumb = 0.
               arh = 0.
-              psx = psa(i,j)
+              psx = atm1%ps(i,j)
               do k = 1 , kz
                 qwght(k) = 0.0
               end do
               do k = ktop , kz
                 pux = psx*a(k) + r8pt
-                e1 = .611*dexp(19.84659-5418.12/(ta(i,k,j)/psx))
+                e1 = .611*dexp(19.84659-5418.12/(atm1%t(i,k,j)/psx))
                 qs = ep2*e1/(pux-e1)
-                rh = qva(i,k,j)/(qs*psx)
+                rh = atm1%qv(i,k,j)/(qs*psx)
                 rh = dmin1(rh,1.D0)
                 xsav = (1.0-rh)*qs
                 qwght(k) = xsav
@@ -280,7 +280,7 @@
               end if
 !.....the     unit for rainfall is mm.
               prainx = (1.-c301)*sca*dtmin*60000.*rgti
-              rainc(i,j) = rainc(i,j) + prainx
+              sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)
               if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
@@ -303,10 +303,11 @@
 !
         tmp3(i,1) = 0.
         do k = 2 , kz
-          if ( qva(i,k,j).lt.1.E-15 ) then
+          if ( atm1%qv(i,k,j).lt.1.E-15 ) then
             tmp3(i,k) = 0.0
           else
-            tmp3(i,k) = qva(i,k,j)*(qva(i,k-1,j)/qva(i,k,j))**qcon(k)
+            tmp3(i,k) = atm1%qv(i,k,j)*(atm1%qv(i,k-1,j)/ &
+                        atm1%qv(i,k,j))**qcon(k)
           end if
         end do
         qvten(i,1,j) = qvten(i,1,j) - qdot(i,2,j)*tmp3(i,2)/dsigma(1)

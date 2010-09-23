@@ -38,7 +38,7 @@
       use mod_split
       use mod_savefile
       use mod_service
-
+      use mod_cu_bm
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
@@ -107,18 +107,18 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                atm0(i,k,j) = ua(i,k,j)
-                atm0(i,k+kz,j) = va(i,k,j)
+                atm0(i,k,j) = atm1%u(i,k,j)
+                atm0(i,k+kz,j) = atm1%v(i,k,j)
                 atm0(i,k+kz*2,j) = omega(i,k,j)
-                atm0(i,k+kz*3,j) = ta(i,k,j)
-                atm0(i,k+kz*4,j) = qva(i,k,j)
-                atm0(i,k+kz*5,j) = qca(i,k,j)
+                atm0(i,k+kz*3,j) = atm1%t(i,k,j)
+                atm0(i,k+kz*4,j) = atm1%qv(i,k,j)
+                atm0(i,k+kz*5,j) = atm1%qc(i,k,j)
               end do
             end do
             do i = 1 , iy
-              atm0(i,1+kz*6,j) = psa(i,j)
-              atm0(i,2+kz*6,j) = rainc(i,j)
-              atm0(i,3+kz*6,j) = rainnc(i,j)
+              atm0(i,1+kz*6,j) = atm1%ps(i,j)
+              atm0(i,2+kz*6,j) = sfsta%rainc(i,j)
+              atm0(i,3+kz*6,j) = sfsta%rainnc(i,j)
             end do
           end do
           do j = 1 , jendx
@@ -175,8 +175,8 @@
               do n = 1 , nnsg
                 rno2d(n,i,j) = 0.
               end do
-              rainc(i,j) = 0.
-              rainnc(i,j) = 0.
+              sfsta%rainc(i,j) = 0.
+              sfsta%rainnc(i,j) = 0.
             end do
           end do
         end if
@@ -291,10 +291,10 @@
           end do
           call mpi_gather(rad0,iym2*(nrad3d*kz+nrad2d)*jxp,      &
                         & mpi_real4,rad_0,(iym2)                 &
-                        & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,          &
+                        & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,   &
                         & mpi_comm_world,ierr)
-         call mpi_gather(psa(:,1:jxp), iy*jxp,mpi_real8,           &
-                        & psa_io,iy*jxp,mpi_real8,                 &
+         call mpi_gather(atm1%ps(:,1:jxp), iy*jxp,mpi_real8,     &
+                        & psa_io,iy*jxp,mpi_real8,               &
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
             do n = 1 , nrad2d
@@ -378,7 +378,7 @@
           end do
           do j = 1 , jendl
             do i = 1 , iy
-              chem0(i,(ntr+3)*kz+ntr*7+5,j) = psa(i,j)
+              chem0(i,(ntr+3)*kz+ntr*7+5,j) = atm1%ps(i,j)
             end do
           end do
           call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*7+5)*jxp,            &
@@ -568,15 +568,15 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = ua(i,k,j)
-                sav0(i,kz+k,j) = ub(i,k,j)
-                sav0(i,kz*2+k,j) = va(i,k,j)
-                sav0(i,kz*3+k,j) = vb(i,k,j)
+                sav0(i,k,j) = atm1%u(i,k,j)
+                sav0(i,kz+k,j) = atm2%u(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = psa(i,j)
-              sav0(i,kz*4+2,j) = psb(i,j)
+              sav0(i,kz*4+1,j) = atm1%ps(i,j)
+              sav0(i,kz*4+2,j) = atm2%ps(i,j)
             end do
           end do
           allrec = kz*4 + 2
@@ -602,15 +602,15 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = ta(i,k,j)
-                sav0(i,kz+k,j) = tb(i,k,j)
-                sav0(i,kz*2+k,j) = qva(i,k,j)
-                sav0(i,kz*3+k,j) = qvb(i,k,j)
+                sav0(i,k,j) = atm1%t(i,k,j)
+                sav0(i,kz+k,j) = atm2%t(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = tga(i,j)
-              sav0(i,kz*4+2,j) = tgb(i,j)
+              sav0(i,kz*4+1,j) = atm1%tg(i,j)
+              sav0(i,kz*4+2,j) = atm2%tg(i,j)
             end do
           end do
           allrec = kz*4 + 2
@@ -636,14 +636,14 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = qca(i,k,j)
-                sav0(i,kz+k,j) = qcb(i,k,j)
+                sav0(i,k,j) = atm1%qc(i,k,j)
+                sav0(i,kz+k,j) = atm2%qc(i,k,j)
                 sav0(i,kz*2+k,j) = fcc(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = rainc(i,j)
-              sav0(i,kz*4+2,j) = rainnc(i,j)
+              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
+              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
             end do
           end do
           do j = 1 , jendx
@@ -685,10 +685,10 @@
           end if
           do j = 1 , jendl
             do i = 1 , iy
-              sav0a(i,1,j) = hfx(i,j)
-              sav0a(i,2,j) = qfx(i,j)
-              sav0a(i,3,j) = uvdrag(i,j)
-              sav0a(i,4,j) = tgbb(i,j)
+              sav0a(i,1,j) = sfsta%hfx(i,j)
+              sav0a(i,2,j) = sfsta%qfx(i,j)
+              sav0a(i,3,j) = sfsta%uvdrag(i,j)
+              sav0a(i,4,j) = sfsta%tgbb(i,j)
             end do
             do n = 1 , nnsg
               do i = 1 , iy
@@ -733,8 +733,8 @@
               end do
             end do
           end if
-          if ( iocnflx.eq.2 )                                           &
-             & call mpi_gather(zpbl,   iy*jxp,mpi_real8,           &
+          if ( iocnflx.eq.2 )                                      &
+             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
              &                 zpbl_io,iy*jxp,mpi_real8,           &
              &                 0,mpi_comm_world,ierr)
           if ( icup.eq.1 ) then
@@ -1152,8 +1152,8 @@
           do j = 1 , jendl
             do n = 1 , nsplit
               do i = 1 , iy
-                sav0d(i,n,j) = dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = hstor(i,j,n)
+                sav0d(i,n,j) = spsav%dstor(i,j,n)
+                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
               end do
             end do
           end do
@@ -1272,15 +1272,15 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = ua(i,k,j)
-                sav0(i,kz+k,j) = ub(i,k,j)
-                sav0(i,kz*2+k,j) = va(i,k,j)
-                sav0(i,kz*3+k,j) = vb(i,k,j)
+                sav0(i,k,j) = atm1%u(i,k,j)
+                sav0(i,kz+k,j) = atm2%u(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = psa(i,j)
-              sav0(i,kz*4+2,j) = psb(i,j)
+              sav0(i,kz*4+1,j) = atm1%ps(i,j)
+              sav0(i,kz*4+2,j) = atm2%ps(i,j)
             end do
           end do
           allrec = kz*4 + 2
@@ -1306,15 +1306,15 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = ta(i,k,j)
-                sav0(i,kz+k,j) = tb(i,k,j)
-                sav0(i,kz*2+k,j) = qva(i,k,j)
-                sav0(i,kz*3+k,j) = qvb(i,k,j)
+                sav0(i,k,j) = atm1%t(i,k,j)
+                sav0(i,kz+k,j) = atm2%t(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = tga(i,j)
-              sav0(i,kz*4+2,j) = tgb(i,j)
+              sav0(i,kz*4+1,j) = atm1%tg(i,j)
+              sav0(i,kz*4+2,j) = atm2%tg(i,j)
             end do
           end do
           allrec = kz*4 + 2
@@ -1340,14 +1340,14 @@
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
-                sav0(i,k,j) = qca(i,k,j)
-                sav0(i,kz+k,j) = qcb(i,k,j)
+                sav0(i,k,j) = atm1%qc(i,k,j)
+                sav0(i,kz+k,j) = atm2%qc(i,k,j)
                 sav0(i,kz*2+k,j) = fcc(i,k,j)
               end do
             end do
             do i = 1 , iy
-              sav0(i,kz*4+1,j) = rainc(i,j)
-              sav0(i,kz*4+2,j) = rainnc(i,j)
+              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
+              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
             end do
           end do
           do j = 1 , jendx
@@ -1389,10 +1389,10 @@
           end if
           do j = 1 , jendl
             do i = 1 , iy
-              sav0a(i,1,j) = hfx(i,j)
-              sav0a(i,2,j) = qfx(i,j)
-              sav0a(i,3,j) = uvdrag(i,j)
-              sav0a(i,4,j) = tgbb(i,j)
+              sav0a(i,1,j) = sfsta%hfx(i,j)
+              sav0a(i,2,j) = sfsta%qfx(i,j)
+              sav0a(i,3,j) = sfsta%uvdrag(i,j)
+              sav0a(i,4,j) = sfsta%tgbb(i,j)
             end do
             do n = 1 , nnsg
               do i = 1 , iy
@@ -1437,8 +1437,8 @@
               end do
             end do
           end if
-          if ( iocnflx.eq.2 )                                           &
-             & call mpi_gather(zpbl,   iy*jxp,mpi_real8,           &
+          if ( iocnflx.eq.2 )                                      &
+             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
              &                 zpbl_io,iy*jxp,mpi_real8,           &
              &                 0,mpi_comm_world,ierr)
           if ( icup.eq.1 ) then
@@ -1856,8 +1856,8 @@
           do j = 1 , jendl
             do n = 1 , nsplit
               do i = 1 , iy
-                sav0d(i,n,j) = dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = hstor(i,j,n)
+                sav0d(i,n,j) = spsav%dstor(i,j,n)
+                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
               end do
             end do
           end do
@@ -2130,9 +2130,9 @@
                         ta_io,qva_io,qca_io,psa_io,rainc_io,rainnc_io, &
                         tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
 #else
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,ua,va,omega,ta,qva,qca,  &
-                        psa,rainc,rainnc,tgb2d,swt2d,rno2d,ocld2d,     &
-                        idatex)
+      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1%u,atm1%v,omega, &
+                        atm1%t,atm1%qv,atm1%qc,atm1%ps,sfsta%rainc,&
+                        sfsta%rainnc,tgb2d,swt2d,rno2d,ocld2d,idatex)
 #endif
  
       write (*,*) 'ATM variables written at ' , idatex , xtime
@@ -2215,7 +2215,7 @@
 #ifdef MPP1
           radpsa_io(j,i) = (psa_io(i+istart,j+jstart)+r8pt)*10.
 #else
-          radpsa(j,i) = (psa(i+istart,j+jstart)+r8pt)*10.
+          radpsa(j,i) = (atm1%ps(i+istart,j+jstart)+r8pt)*10.
 #endif
         end do
       end do
@@ -2283,7 +2283,7 @@
      call writerec_che(nj, ni, je , ie , nk, itr, chia, aerext,   &
                 aerssa, aerasp, dtrace, wdlsc, wdcvc, ddsfc,      &
                 wxsg, wxaq, cemtrac, aertarf, aersrrf, aertalwrf, &
-                aersrlwrf, psa, idatex)
+                aersrlwrf, atm1%ps, idatex)
 #endif
       write (*,*) 'CHE variables written at ' , idatex , xtime
 

@@ -32,6 +32,7 @@
         use mod_date
         use mod_radiation
         use mod_lake
+        use mod_cu_bm
 #ifndef BAND
         use mod_diagnosis
 #endif
@@ -176,19 +177,21 @@
           else
             read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
           end if
-          read (iutrst) ua
-          read (iutrst) ub
-          read (iutrst) va
-          read (iutrst) vb
-          read (iutrst) ta
-          read (iutrst) tb
-          read (iutrst) qva
-          read (iutrst) qvb
-          read (iutrst) qca
-          read (iutrst) qcb
-          read (iutrst) psa , psb , satbrt , satbrt1 , f
-          read (iutrst) ht , ht1 , msfx , msfd , xlat , xlong
-          read (iutrst) tga , tgb , rainc , rainnc
+          read (iutrst) atm1%u
+          read (iutrst) atm2%u
+          read (iutrst) atm1%v
+          read (iutrst) atm2%v
+          read (iutrst) atm1%t
+          read (iutrst) atm2%t
+          read (iutrst) atm1%qv
+          read (iutrst) atm2%qv
+          read (iutrst) atm1%qc
+          read (iutrst) atm2%qc
+          read (iutrst) atm1%ps , atm2%ps , mddom%satbrt , &
+                        satbrt1 , mddom%f
+          read (iutrst) mddom%ht , ht1 , mddom%msfx , mddom%msfd , &
+                        mddom%xlat , mddom%xlong
+          read (iutrst) atm1%tg , atm2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
           else if ( icup.eq.3 ) then
@@ -197,7 +200,7 @@
             read (iutrst) cbmf2d
           else
           end if
-          read (iutrst) hfx , qfx , snowc , uvdrag
+          read (iutrst) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
 #ifndef BAND
           if (debug_level > 2) call restdiag(iutrst)
 #endif
@@ -205,12 +208,12 @@
           if ( ipptls.eq.1 ) read (iutrst) fcc
           read (iutrst) sol2d , solvd2d , solvs2d , flw2d , flwd2d ,    &
                      & fsw2d , sabv2d , sinc2d
-          read (iutrst) taf2d , tlef2d , tgbb , ssw2d , srw2d , tg2d ,  &
-                     & tgb2d , swt2d , scv2d , gwet2d , veg2d , veg2d1 ,&
-                     & sag2d , sice2d , dew2d , ircp2d , text2d ,       &
-                     & col2d , ocld2d , heatrt , o3prof
+          read (iutrst) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,   &
+                     & tg2d ,  tgb2d , swt2d , scv2d , gwet2d , veg2d , &
+                     & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
+                     & text2d , col2d , ocld2d , heatrt , o3prof
           read (iutrst) pptnc , pptc , prca2d , prnca2d
-          if ( iocnflx.eq.2 ) read (iutrst) zpbl
+          if ( iocnflx.eq.2 ) read (iutrst) sfsta%zpbl
           if ( ichem.eq.1 ) then
             read (iutrst) chia
             read (iutrst) chib
@@ -257,8 +260,8 @@
 #endif
           read (iutrst) vi1_io , vi2_io , vilx_io , vil_io
 #else
-          read (iutrst) dstor
-          read (iutrst) hstor
+          read (iutrst) spsav%dstor
+          read (iutrst) spsav%hstor
 #ifndef BAND
           read (iutrst) uj1 , uj2 , ujlx , ujl
 #endif
@@ -391,19 +394,21 @@
           else
             write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
           end if
-          write (iutsav) ua
-          write (iutsav) ub
-          write (iutsav) va
-          write (iutsav) vb
-          write (iutsav) ta
-          write (iutsav) tb
-          write (iutsav) qva
-          write (iutsav) qvb
-          write (iutsav) qca
-          write (iutsav) qcb
-          write (iutsav) psa , psb , satbrt , satbrt1 , f
-          write (iutsav) ht , ht1 , msfx , msfd , xlat , xlong
-          write (iutsav) tga , tgb , rainc , rainnc
+          write (iutsav) atm1%u
+          write (iutsav) atm2%u
+          write (iutsav) atm1%v
+          write (iutsav) atm2%v
+          write (iutsav) atm1%t
+          write (iutsav) atm2%t
+          write (iutsav) atm1%qv
+          write (iutsav) atm2%qv
+          write (iutsav) atm1%qc
+          write (iutsav) atm2%qc
+          write (iutsav) atm1%ps , atm2%ps , mddom%satbrt , satbrt1 ,  &
+                         mddom%f
+          write (iutsav) mddom%ht , ht1 , mddom%msfx , mddom%msfd ,  &
+                         mddom%xlat , mddom%xlong
+          write (iutsav) atm1%tg , atm2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat
           else if ( icup.eq.3 ) then
@@ -412,7 +417,7 @@
             write (iutsav) cbmf2d
           else
           end if
-          write (iutsav) hfx , qfx , snowc , uvdrag
+          write (iutsav) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
 #ifndef BAND
           if (debug_level > 2) call savediag(iutsav)
 #endif
@@ -420,12 +425,12 @@
           if ( ipptls.eq.1 ) write (iutsav) fcc
           write (iutsav) sol2d , solvd2d , solvs2d , flw2d , flwd2d ,   &
                      & fsw2d , sabv2d , sinc2d
-          write (iutsav) taf2d , tlef2d , tgbb , ssw2d , srw2d , tg2d , &
-                     & tgb2d , swt2d , scv2d , gwet2d , veg2d , veg2d1 ,&
-                     & sag2d , sice2d , dew2d , ircp2d , text2d ,       &
-                     & col2d , ocld2d , heatrt , o3prof
+          write (iutsav) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,  &
+                     & tg2d , tgb2d , swt2d , scv2d , gwet2d , veg2d ,  &
+                     & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
+                     & text2d , col2d , ocld2d , heatrt , o3prof
           write (iutsav) pptnc , pptc , prca2d , prnca2d
-          if ( iocnflx.eq.2 ) write (iutsav) zpbl
+          if ( iocnflx.eq.2 ) write (iutsav) sfsta%zpbl
           if ( ichem.eq.1 ) then
             write (iutsav) chia
             write (iutsav) chib
@@ -461,8 +466,8 @@
 #endif
           write (iutsav) vi1_io , vi2_io , vilx_io , vil_io
 #else
-          write (iutsav) dstor
-          write (iutsav) hstor
+          write (iutsav) spsav%dstor
+          write (iutsav) spsav%hstor
 #ifndef BAND
           write (iutsav) uj1 , uj2 , ujlx , ujl
 #endif

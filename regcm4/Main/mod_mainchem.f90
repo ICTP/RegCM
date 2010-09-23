@@ -32,9 +32,9 @@
 
       contains 
 
-        subroutine allocate_mod_mainchem(lmpi,lband)
+        subroutine allocate_mod_mainchem(lmpi)
         implicit none
-        logical , intent(in) :: lmpi , lband
+        logical , intent(in) :: lmpi
 
         if (lmpi) then
           allocate(chemsrc(iy,jxp,mpy,ntr))

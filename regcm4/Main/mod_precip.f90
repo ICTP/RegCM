@@ -132,10 +132,10 @@
 !           [kg/kg/s]
             pptnew = dmin1(pptmax,pptacc+pptnew)             ![kg/kg/s][avg]
 !           1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psb(i,j)*thog                  ![kg/m2]
+            dpovg = dsigma(1)*atm2%ps(i,j)*thog              ![kg/m2]
             pptsum(i) = pptnew*dpovg                         ![kg/m2/s][avg]
 !           1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,1,j) = qcten(i,1,j) - pptnew*psb(i,j)    ![kg/kg/s*cb][avg]
+            qcten(i,1,j) = qcten(i,1,j) - pptnew*atm2%ps(i,j)![kg/kg/s*cb][avg]
           else  ! Cloud but no new precipitation
             pptsum(i) = 0.0                                  ![kg/m2/s][avg]
           end if
@@ -172,7 +172,7 @@
  
 !         1bb. Convert accumlated precipitation to kg/kg/s.
 !         Used for raindrop evaporation and accretion.
-          dpovg = dsigma(k)*psb(i,j)*thog                    ![kg/m2][avg]
+          dpovg = dsigma(k)*atm2%ps(i,j)*thog                ![kg/m2][avg]
           pptkm1 = pptsum(i)/dpovg                           ![kg/kg/s][avg]
  
 !         1bc. Compute the raindrop evaporation in the clear portion of
@@ -193,9 +193,9 @@
 !           evaporation [kg/m2/s]
             pptsum(i) = pptsum(i) - rdevap*dpovg             ![kg/m2/s][avg]
 !           2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-            qvten(i,k,j) = qvten(i,k,j) + rdevap*psb(i,j)    ![kg/kg/s*cb][avg]
+            qvten(i,k,j) = qvten(i,k,j) + rdevap*atm2%ps(i,j)![kg/kg/s*cb][avg]
 !           2bcf. Compute the temperature tendency [K/s*cb]
-            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*psb(i,j)
+            tten(i,k,j) = tten(i,k,j) - wlhvocp*rdevap*atm2%ps(i,j)
                                                              ![k/s*cb][avg]
           else
               ! no precipitation from above
@@ -240,7 +240,7 @@
 !           1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(i) = pptsum(i) + pptnew*dpovg             ![kg/m2/s][avg]
 !           1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            qcten(i,k,j) = qcten(i,k,j) - pptnew*psb(i,j)    ![kg/kg/s*cb][avg]
+            qcten(i,k,j) = qcten(i,k,j) - pptnew*atm2%ps(i,j)![kg/kg/s*cb][avg]
           else
             pptnew = 0.0                                     ![kg/kg/s][avg]
           end if
@@ -264,7 +264,7 @@
             if ( remrat(i,k).gt.0. ) then
               do kk = 1 , k - 1
                 rembc(i,k) = rembc(i,k) + remrat(i,kk)*qcb3d(i,kk,j)    &
-                           & *psb(i,j)*dsigma(kk)*uch
+                           & *atm2%ps(i,j)*dsigma(kk)*uch
                                                 ! mm/hr
               end do
               rembc(i,k) = 6.5*1.E-5*rembc(i,k)**.68   ! s^-1
@@ -283,7 +283,7 @@
       aprdiv = 1./dble(nbatst)
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
       do i = istart , iend
-        rainnc(i,j) = rainnc(i,j) + pptsum(i)*uconv
+        sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + pptsum(i)*uconv
         pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
       end do
  

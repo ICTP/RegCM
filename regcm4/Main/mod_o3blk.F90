@@ -111,7 +111,7 @@
         do i = 1 , iym1
           do k = klevp1 , 1 , -1
             kj = klevp1 - k + 1
-            prlevh(kj) = (sigma(k)*psb(i,j)+r8pt)*10.
+            prlevh(kj) = (sigma(k)*atm2%ps(i,j)+r8pt)*10.
           end do
           ppwrkh(1) = 1100.
           do k = 2 , 31

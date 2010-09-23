@@ -158,10 +158,10 @@
 #else
       xt24 = dmod(lhour*60.+xtime,1440.D0)
       do ill = 1 , ivmx
-        tlocap = xt24/60. + xlong(ill,jslc)/15.
+        tlocap = xt24/60. + mddom%xlong(ill,jslc)/15.
         tlocap = dmod(tlocap+24.,24.D0)
         omega = 15.*(tlocap-12.)*degrad
-        xxlat = xlat(ill,jslc)*degrad
+        xxlat = mddom%xlat(ill,jslc)*degrad
 !       coszrs = cosine of solar zenith angle
         coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)           &
                     & *dcos(xxlat)*dcos(omega)

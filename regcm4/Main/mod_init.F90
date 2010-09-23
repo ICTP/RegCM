@@ -41,6 +41,7 @@
       use mod_savefile
       use mod_diagnosis
       use mod_lake
+      use mod_cu_bm
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
@@ -161,8 +162,8 @@
 !
 !------set rainwater and cloud water equal to zero initially.
 !
-        qca = 0.0
-        qcb = 0.0
+        atm1%qc = 0.0
+        atm2%qc = 0.0
 !
 !chem2
         if ( ichem.eq.1 ) then
@@ -180,8 +181,8 @@
 !------set the variables related to blackadar pbl equal to 0 initially.
 !
         if ( ibltyp.ne.0 ) then
-          hfx = 0.0
-          qfx = 0.0
+          sfsta%hfx = 0.0
+          sfsta%qfx = 0.0
         end if
 !
         if ( icup.eq.1 ) then
@@ -322,23 +323,23 @@
         do k = 1 , kz
           do j = 1 , jendl
             do i = 1 , iy
-              ua(i,k,j) = ub0(i,k,j)
-              ub(i,k,j) = ub0(i,k,j)
-              va(i,k,j) = vb0(i,k,j)
-              vb(i,k,j) = vb0(i,k,j)
-              qva(i,k,j) = qb0(i,k,j)
-              qvb(i,k,j) = qb0(i,k,j)
-              ta(i,k,j) = tb0(i,k,j)
-              tb(i,k,j) = tb0(i,k,j)
+              atm1%u(i,k,j) = ub0(i,k,j)
+              atm2%u(i,k,j) = ub0(i,k,j)
+              atm1%v(i,k,j) = vb0(i,k,j)
+              atm2%v(i,k,j) = vb0(i,k,j)
+              atm1%qv(i,k,j) = qb0(i,k,j)
+              atm2%qv(i,k,j) = qb0(i,k,j)
+              atm1%t(i,k,j) = tb0(i,k,j)
+              atm2%t(i,k,j) = tb0(i,k,j)
             end do
           end do
         end do
         do j = 1 , jendl
           do i = 1 , iy
-            psa(i,j) = ps0(i,j)
-            psb(i,j) = ps0(i,j)
-            tga(i,j) = ts0(i,j)
-            tgb(i,j) = ts0(i,j)
+            atm1%ps(i,j) = ps0(i,j)
+            atm2%ps(i,j) = ps0(i,j)
+            atm1%tg(i,j) = ts0(i,j)
+            atm2%tg(i,j) = ts0(i,j)
           end do
         end do
         if (iseaice == 1) then
@@ -346,8 +347,8 @@
             do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
                 if ( ts0(i,j).le.271.38 ) then
-                  tga(i,j) = 271.38
-                  tgb(i,j) = 271.38
+                  atm1%tg(i,j) = 271.38
+                  atm2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
 !                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
@@ -364,18 +365,20 @@
             end do
           end do
         end if
-        do k = 1 , kz
-          do j = 1 , jendl
-            do i = 1 , iy
-              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+r8pt)/100.)
+        if (icup == 3) then
+          do k = 1 , kz
+            do j = 1 , jendl
+              do i = 1 , iy
+                tbase(i,k,j) = ts00 + tlp*dlog((atm1%ps(i,j)*a(k)+r8pt)/100.)
+              end do
             end do
           end do
-        end do
+        end if
         if ( ehso4 ) then
           do k = 1 , kz
             do j = 1 , jendl
               do i = 1 , iy
-                so4(i,k,j) = so0(i,k,j)
+                sulf%so4(i,k,j) = so0(i,k,j)
               end do
             end do
           end do
@@ -383,10 +386,10 @@
 !
         do j = 1 , jendx
           do i = 1 , iym1
-            tga(i,j) = ta(i,kz,j)/psa(i,j)
-            tgb(i,j) = tb(i,kz,j)/psb(i,j)
-            tgbb(i,j) = tb(i,kz,j)/psb(i,j)
-            zpbl(i,j) = 500.  ! For Zeng Ocean Flux Scheme
+            atm1%tg(i,j) = atm1%t(i,kz,j)/atm1%ps(i,j)
+            atm2%tg(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sfsta%zpbl(i,j) = 500.  ! For Zeng Ocean Flux Scheme
           end do
         end do
         do j = 1 , jendx
@@ -482,23 +485,23 @@
         do k = 1 , kz
           do j = 1 , jx
             do i = 1 , iy
-              ua(i,k,j) = ub0(i,k,j)
-              ub(i,k,j) = ub0(i,k,j)
-              va(i,k,j) = vb0(i,k,j)
-              vb(i,k,j) = vb0(i,k,j)
-              qva(i,k,j) = qb0(i,k,j)
-              qvb(i,k,j) = qb0(i,k,j)
-              ta(i,k,j) = tb0(i,k,j)
-              tb(i,k,j) = tb0(i,k,j)
+              atm1%u(i,k,j) = ub0(i,k,j)
+              atm2%u(i,k,j) = ub0(i,k,j)
+              atm1%v(i,k,j) = vb0(i,k,j)
+              atm2%v(i,k,j) = vb0(i,k,j)
+              atm1%qv(i,k,j) = qb0(i,k,j)
+              atm2%qv(i,k,j) = qb0(i,k,j)
+              atm1%t(i,k,j) = tb0(i,k,j)
+              atm2%t(i,k,j) = tb0(i,k,j)
             end do
           end do
         end do
         do j = 1 , jx
           do i = 1 , iy
-            psa(i,j) = ps0(i,j)
-            psb(i,j) = ps0(i,j)
-            tga(i,j) = ts0(i,j)
-            tgb(i,j) = ts0(i,j)
+            atm1%ps(i,j) = ps0(i,j)
+            atm2%ps(i,j) = ps0(i,j)
+            atm1%tg(i,j) = ts0(i,j)
+            atm2%tg(i,j) = ts0(i,j)
           end do
         end do
         if (iseaice == 1) then
@@ -510,8 +513,8 @@
             do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
                 if ( ts0(i,j).le.271.38 ) then
-                  tga(i,j) = 271.38
-                  tgb(i,j) = 271.38
+                  atm1%tg(i,j) = 271.38
+                  atm2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
 !                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
@@ -528,18 +531,21 @@
             end do
           end do
         end if
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              tbase(i,k,j) = ts00 + tlp*dlog((psa(i,j)*a(k)+r8pt)/100.)
+        if (icup == 3) then
+          do k = 1 , kz
+            do j = 1 , jx
+              do i = 1 , iy
+                tbase(i,k,j) = ts00 + &
+                           tlp*dlog((atm1%ps(i,j)*a(k)+r8pt)/100.)
+              end do
             end do
           end do
-        end do
+        end if
         if ( ehso4 ) then
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-                so4(i,k,j) = so0(i,k,j)
+                sulf%so4(i,k,j) = so0(i,k,j)
               end do
             end do
           end do
@@ -551,10 +557,10 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            tga(i,j) = ta(i,kz,j)/psa(i,j)
-            tgb(i,j) = tb(i,kz,j)/psb(i,j)
-            tgbb(i,j) = tb(i,kz,j)/psb(i,j)
-            zpbl(i,j) = 500.
+            atm1%tg(i,j) = atm1%t(i,kz,j)/atm1%ps(i,j)
+            atm2%tg(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sfsta%zpbl(i,j) = 500.
                        ! For Zeng Ocean Flux Scheme
           end do
         end do
@@ -596,10 +602,10 @@
 #ifdef MPP1
               do j = 1 , jendx
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = psa(i,j)*0.0D0
-                  chib(i,k,j,itr) = psb(i,j)*0.0D0
-!                 chia(i,k,j,itr)=psa(i,j)*1.e-11
-!                 chib(i,k,j,itr)=psb(i,j)*1.e-11
+                  chia(i,k,j,itr) = atm1%ps(i,j)*0.0D0
+                  chib(i,k,j,itr) = atm2%ps(i,j)*0.0D0
+!                 chia(i,k,j,itr)=atm1%ps(i,j)*1.e-11
+!                 chib(i,k,j,itr)=atm2%ps(i,j)*1.e-11
                 end do
               end do
 #else
@@ -609,10 +615,10 @@
               do j = 1 , jxm1
 #endif
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = psa(i,j)*0.0D0
-                  chib(i,k,j,itr) = psb(i,j)*0.0D0
-!                 chia(i,k,j,itr)=psa(i,j)*1.e-11
-!                 chib(i,k,j,itr)=psb(i,j)*1.e-11
+                  chia(i,k,j,itr) = atm1%ps(i,j)*0.0D0
+                  chib(i,k,j,itr) = atm2%ps(i,j)*0.0D0
+!                 chia(i,k,j,itr)=atm1%ps(i,j)*1.e-11
+!                 chib(i,k,j,itr)=atm2%ps(i,j)*1.e-11
                 end do
               end do
 #endif
@@ -624,8 +630,8 @@
 !
 !------set rainc and rainnc equal to 0. initially
 !
-        rainc  = 0.0
-        rainnc = 0.0
+        sfsta%rainc  = 0.0
+        sfsta%rainnc = 0.0
  
         if ( icup.eq.4 ) then
           cbmf2d = 0.0
@@ -675,13 +681,13 @@
 
         do j = 1 , jxp
           do i = 1 , iy
-            ht(i,j) = inisrf0(i,1,j)
-            satbrt(i,j) = inisrf0(i,2,j)
-            xlat(i,j) = inisrf0(i,3,j)
-            xlong(i,j) = inisrf0(i,4,j)
-            msfx(i,j) = inisrf0(i,5,j)
-            msfd(i,j) = inisrf0(i,6,j)
-            f(i,j) = inisrf0(i,7,j)
+            mddom%ht(i,j) = inisrf0(i,1,j)
+            mddom%satbrt(i,j) = inisrf0(i,2,j)
+            mddom%xlat(i,j) = inisrf0(i,3,j)
+            mddom%xlong(i,j) = inisrf0(i,4,j)
+            mddom%msfx(i,j) = inisrf0(i,5,j)
+            mddom%msfd(i,j) = inisrf0(i,6,j)
+            mddom%f(i,j) = inisrf0(i,7,j)
           end do
           do n = 1 , nnsg
             do i = 1 , iy
@@ -765,15 +771,15 @@
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
-              ua(i,k,j) = sav0(i,k,j)
-              ub(i,k,j) = sav0(i,kz+k,j)
-              va(i,k,j) = sav0(i,kz*2+k,j)
-              vb(i,k,j) = sav0(i,kz*3+k,j)
+              atm1%u(i,k,j) = sav0(i,k,j)
+              atm2%u(i,k,j) = sav0(i,kz+k,j)
+              atm1%v(i,k,j) = sav0(i,kz*2+k,j)
+              atm2%v(i,k,j) = sav0(i,kz*3+k,j)
             end do
           end do
           do i = 1 , iy
-            psa(i,j) = sav0(i,kz*4+1,j)
-            psb(i,j) = sav0(i,kz*4+2,j)
+            atm1%ps(i,j) = sav0(i,kz*4+1,j)
+            atm2%ps(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -798,15 +804,15 @@
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
-              ta(i,k,j) = sav0(i,k,j)
-              tb(i,k,j) = sav0(i,kz+k,j)
-              qva(i,k,j) = sav0(i,kz*2+k,j)
-              qvb(i,k,j) = sav0(i,kz*3+k,j)
+              atm1%t(i,k,j) = sav0(i,k,j)
+              atm2%t(i,k,j) = sav0(i,kz+k,j)
+              atm1%qv(i,k,j) = sav0(i,kz*2+k,j)
+              atm2%qv(i,k,j) = sav0(i,kz*3+k,j)
             end do
           end do
           do i = 1 , iy
-            tga(i,j) = sav0(i,kz*4+1,j)
-            tgb(i,j) = sav0(i,kz*4+2,j)
+            atm1%tg(i,j) = sav0(i,kz*4+1,j)
+            atm2%tg(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -841,14 +847,14 @@
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
-              qca(i,k,j) = sav0(i,k,j)
-              qcb(i,k,j) = sav0(i,kz+k,j)
+              atm1%qc(i,k,j) = sav0(i,k,j)
+              atm2%qc(i,k,j) = sav0(i,kz+k,j)
               fcc(i,k,j) = sav0(i,kz*2+k,j)
             end do
           end do
           do i = 1 , iy
-            rainc(i,j) = sav0(i,kz*4+1,j)
-            rainnc(i,j) = sav0(i,kz*4+2,j)
+            sfsta%rainc(i,j) = sav0(i,kz*4+1,j)
+            sfsta%rainnc(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         do j = 1 , jendx
@@ -890,10 +896,10 @@
                        & 0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do i = 1 , iy
-            hfx(i,j) = sav0a(i,1,j)
-            qfx(i,j) = sav0a(i,2,j)
-            uvdrag(i,j) = sav0a(i,3,j)
-            tgbb(i,j) = sav0a(i,4,j)
+            sfsta%hfx(i,j) = sav0a(i,1,j)
+            sfsta%qfx(i,j) = sav0a(i,2,j)
+            sfsta%uvdrag(i,j) = sav0a(i,3,j)
+            sfsta%tgbb(i,j) = sav0a(i,4,j)
           end do
           do n = 1 , nnsg
             do i = 1 , iy
@@ -910,7 +916,7 @@
         end do
         if ( iocnflx.eq.2 )                                        &
           & call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,             &
-          &                  zpbl,   iy*jxp,mpi_real8,             &
+          &                  sfsta%zpbl,   iy*jxp,mpi_real8,       &
           &                  0,mpi_comm_world,ierr)
         if ( icup.eq.1 ) then
           if ( myid.eq.0 ) then
@@ -1338,23 +1344,23 @@
         if (debug_level > 2) call mpidiag
 #endif
 
-        call mpi_sendrecv(ht(1,jxp),iy,mpi_real8,ieast,1,               &
-                        & ht(1,0),iy,mpi_real8,iwest,1,                 &
+        call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
+                        & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(ht(1,1),iy,mpi_real8,iwest,2,                 &
-                        & ht(1,jxp+1),iy,mpi_real8,ieast,2,             &
+        call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
+                        & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
                         & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,jxp-1),iy*2,mpi_real8,ieast,           &
-                        & 1,msfx(1,-1),iy*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                        & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfx(1,1),iy*2,mpi_real8,iwest,2,             &
-                        & msfx(1,jxp+1),iy*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
+                        & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,jxp-1),iy*2,mpi_real8,ieast,           &
-                        & 1,msfd(1,-1),iy*2,mpi_real8,iwest,            &
+        call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                        & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
                         & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(msfd(1,1),iy*2,mpi_real8,iwest,2,             &
-                        & msfd(1,jxp+1),iy*2,mpi_real8,ieast,           &
+        call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
+                        & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
 
         dt = dt2 ! First timestep successfully read in
@@ -1382,7 +1388,8 @@
 #ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
-            if ( satbrt(i,j).gt.13.9 .and. satbrt(i,j).lt.15.1 ) then
+            if ( mddom%satbrt(i,j).gt.13.9 .and. &
+                 mddom%satbrt(i,j).lt.15.1 ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1400,7 +1407,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if ( satbrt(i,j).gt.13.9 .and. satbrt(i,j).lt.15.1 ) then
+            if ( mddom%satbrt(i,j).gt.13.9 .and.  &
+                 mddom%satbrt(i,j).lt.15.1 ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1520,7 +1528,7 @@
       do j = 1 , jx
 #endif
         do i = 1 , iy
-          hgfact(i,j) = 1.
+          mddom%hgfact(i,j) = 1.
         end do
       end do
 #ifdef BAND
@@ -1557,12 +1565,12 @@
         do i = 2 , iym2
           im1h = max0(i-1,2)
           ip1h = min0(i+1,iym2)
-          hg1 = dabs((ht(i,j)-ht(im1h,j))/dx)
-          hg2 = dabs((ht(i,j)-ht(ip1h,j))/dx)
-          hg3 = dabs((ht(i,j)-ht(i,jm1))/dx)
-          hg4 = dabs((ht(i,j)-ht(i,jp1))/dx)
+          hg1 = dabs((mddom%ht(i,j)-mddom%ht(im1h,j))/dx)
+          hg2 = dabs((mddom%ht(i,j)-mddom%ht(ip1h,j))/dx)
+          hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
+          hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
           hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
+          mddom%hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
         end do
       end do
 !

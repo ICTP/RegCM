@@ -22,6 +22,7 @@
       module mod_mppio
 
       use mod_dynparam
+      use mod_runparams
       use mod_message
 !
       real(8) , private :: total_allocation_size
@@ -530,30 +531,38 @@
           allocate(chib_io(iy,kz,jx,ntr),stat=ierr)
           call check_alloc(ierr,'chib_io',size(chib_io))
           chib_io = 0.0D0
-          allocate(spacesurf(iy,jx,20),stat=ierr)
+          if (icup == 3) then
+            allocate(spacesurf(iy,jx,20),stat=ierr)
+          else
+            allocate(spacesurf(iy,jx,19),stat=ierr)
+          end if
           call check_alloc(ierr,'spacesurf',size(spacesurf))
           spacesurf = 0.0D0
-          cldefi_io => spacesurf(:,:,1)
-          f_io      => spacesurf(:,:,2)
-          hfx_io    => spacesurf(:,:,3)
-          htsd_io   => spacesurf(:,:,4)
-          ht_io     => spacesurf(:,:,5)
-          msfd_io   => spacesurf(:,:,6)
-          msfx_io   => spacesurf(:,:,7)
-          psa_io    => spacesurf(:,:,8)
-          psb_io    => spacesurf(:,:,9)
-          qfx_io    => spacesurf(:,:,10)
-          rainc_io  => spacesurf(:,:,11)
-          rainnc_io => spacesurf(:,:,12)
-          satbrt_io => spacesurf(:,:,13)
-          tga_io    => spacesurf(:,:,14)
-          tgbb_io   => spacesurf(:,:,15)
-          tgb_io    => spacesurf(:,:,16)
-          uvdrag_io => spacesurf(:,:,17)
-          xlat_io   => spacesurf(:,:,18)
-          xlong_io  => spacesurf(:,:,19)
-          zpbl_io   => spacesurf(:,:,20)
-          allocate(spaceair(iy,kz,jx,12),stat=ierr)
+          f_io      => spacesurf(:,:,1)
+          hfx_io    => spacesurf(:,:,2)
+          htsd_io   => spacesurf(:,:,3)
+          ht_io     => spacesurf(:,:,4)
+          msfd_io   => spacesurf(:,:,5)
+          msfx_io   => spacesurf(:,:,6)
+          psa_io    => spacesurf(:,:,7)
+          psb_io    => spacesurf(:,:,8)
+          qfx_io    => spacesurf(:,:,9)
+          rainc_io  => spacesurf(:,:,10)
+          rainnc_io => spacesurf(:,:,11)
+          satbrt_io => spacesurf(:,:,12)
+          tga_io    => spacesurf(:,:,13)
+          tgbb_io   => spacesurf(:,:,14)
+          tgb_io    => spacesurf(:,:,15)
+          uvdrag_io => spacesurf(:,:,16)
+          xlat_io   => spacesurf(:,:,17)
+          xlong_io  => spacesurf(:,:,18)
+          zpbl_io   => spacesurf(:,:,19)
+          if (icup == 3) cldefi_io => spacesurf(:,:,20)
+          if (icup == 3) then
+            allocate(spaceair(iy,kz,jx,12),stat=ierr)
+          else
+            allocate(spaceair(iy,kz,jx,11),stat=ierr)
+          end if
           call check_alloc(ierr,'spaceair',size(spaceair))
           spaceair = 0.0D0
           omega_io => spaceair(:,:,:,1)
@@ -562,12 +571,12 @@
           qva_io   => spaceair(:,:,:,4)
           qvb_io   => spaceair(:,:,:,5)
           ta_io    => spaceair(:,:,:,6)
-          tbase_io => spaceair(:,:,:,7)
-          tb_io    => spaceair(:,:,:,8)
-          ua_io    => spaceair(:,:,:,9)
-          ub_io    => spaceair(:,:,:,10)
-          va_io    => spaceair(:,:,:,11)
-          vb_io    => spaceair(:,:,:,12)
+          tb_io    => spaceair(:,:,:,7)
+          ua_io    => spaceair(:,:,:,8)
+          ub_io    => spaceair(:,:,:,9)
+          va_io    => spaceair(:,:,:,10)
+          vb_io    => spaceair(:,:,:,11)
+          if (icup == 3) tbase_io => spaceair(:,:,:,12)
 #ifdef CLM
           if (lband) then
             allocate(spaceclm(iym1,jx,9))

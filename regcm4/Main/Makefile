@@ -177,7 +177,7 @@ mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
         mod_diagnosis.o mod_main.o mod_mainchem.o mod_message.o \
         mod_runparams.o mod_pmoist.o mod_rad.o mod_vecbats.o mod_o3blk.o \
         mod_radiation.o mod_dynparam.o mod_mppio.o mod_trachem.o mod_lake.o \
-        mod_ncio.o mod_sun.o mod_savefile.o $(CLMLIB)
+        mod_ncio.o mod_sun.o mod_savefile.o mod_cu_bm.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_constants.o mod_date.o \
@@ -192,7 +192,7 @@ mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
 mod_main.o: mod_main.f90 mod_dynparam.o
 mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o
 mod_message.o: mod_message.F90 mod_dynparam.o
-mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o
+mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
             mod_date.o mod_runparams.o
 	$(F90) $(NETCDFINC) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<
@@ -205,13 +205,13 @@ mod_output.o: mod_output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_runparams.o mod_pmoist.o mod_rad.o mod_diagnosis.o \
           mod_radiation.o mod_dynparam.o mod_split.o mod_clm.o \
           mod_trachem.o mod_mppio.o mod_ncio.o mod_lake.o mod_savefile.o \
-          $(CLMLIB)
+          mod_cu_bm.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 mod_output.o: mod_output.F90 mod_bats.o mod_bdycod.o mod_cvaria.o mod_date.o \
           mod_main.o mod_mainchem.o mod_message.o mod_outrad.o \
           mod_runparams.o mod_pmoist.o mod_rad.o mod_diagnosis.o \
-          mod_radiation.o mod_dynparam.o mod_split.o \
+          mod_radiation.o mod_dynparam.o mod_split.o mod_cu_bm.o \
           mod_trachem.o mod_mppio.o mod_lake.o mod_ncio.o mod_savefile.o
 endif
 ifeq ($(USECLM),1)
@@ -256,13 +256,14 @@ ifeq ($(USECLM),1)
 mod_savefile.o: mod_savefile.F90 mod_dynparam.o mod_message.o mod_runparams.o \
                 mod_bats.o mod_pmoist.o mod_main.o mod_mainchem.o mod_bdycod.o \
                 mod_rad.o mod_trachem.o mod_date.o mod_radiation.o \
-                mod_diagnosis.o mod_mppio.o mod_clm.o mod_lake.o $(CLMLIB)
+                mod_diagnosis.o mod_mppio.o mod_lake.o mod_cu_bm.o \
+                mod_clm.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 mod_savefile.o: mod_savefile.F90 mod_dynparam.o mod_message.o mod_runparams.o \
                 mod_bats.o mod_pmoist.o mod_main.o mod_mainchem.o mod_bdycod.o \
                 mod_rad.o mod_trachem.o mod_date.o mod_radiation.o \
-                mod_diagnosis.o mod_mppio.o mod_lake.o
+                mod_diagnosis.o mod_mppio.o mod_lake.o mod_cu_bm.o
 endif
 mod_scenarios.o: mod_scenarios.F90 mod_message.o
 mod_slice.o: mod_slice.F90 mod_dynparam.o mod_constants.o mod_main.o \

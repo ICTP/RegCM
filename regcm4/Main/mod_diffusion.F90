@@ -91,16 +91,19 @@
                       & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
                       & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
                       & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
-                      & +12.*ubd3d(i,k,j))*pdotb(i,j)
+                      & +12.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
           else
             ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp2)/msfd(i,jp2)             &
-                      & +ubd3d(i,k,jm2)/msfd(i,jm2)+ubd3d(i+2,k,j)    &
-                      & /msfd(i+2,j)+ubd3d(i-2,k,j)/msfd(i-2,j)       &
-                      & -4.*(ubd3d(i,k,jp1)/msfd(i,jp1)+ubd3d(i,k,jm1)&
-                      & /msfd(i,jm1)+ubd3d(i+1,k,j)/msfd(i+1,j)       &
-                      & +ubd3d(i-1,k,j)/msfd(i-1,j))+12.*ubd3d(i,k,j) &
-                      & /msfd(i,j))*pdotb(i,j)
+                      & *c203*(ubd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
+                      & +ubd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
+                      & ubd3d(i+2,k,j)/mddom%msfd(i+2,j)+            &
+                      & ubd3d(i-2,k,j)/mddom%msfd(i-2,j)             &
+                      & -4.*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
+                      & ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+            &
+                      & ubd3d(i+1,k,j)/mddom%msfd(i+1,j)             &
+                      & +ubd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
+                      & 12.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
+                      & sfsta%pdotb(i,j)
           end if
         end do
       end do
@@ -110,14 +113,16 @@
           if ( ind.eq.0 ) then
             ften(i,k) = ften(i,k) + xkc(i,k)                          &
                       & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
-                      & )*pdotb(i,j)
+                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
+                      & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
           else
             ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
-                      & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
-                      & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
-                      & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                      & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                      & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                      &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                      &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                      & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
+                      & sfsta%pdotb(i,j)
           end if
         end do
       end do
@@ -138,14 +143,16 @@
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
-                        & )*pdotb(i,j)
+                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
+                        & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
-                        & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
-                        & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
-                        & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                        & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                        & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                        &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                        &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                        & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do
@@ -161,16 +168,19 @@
                         & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
                         & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
                         & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
-                        & +12.*ubd3d(i,k,j))*pdotb(i,j)
+                        & +12.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp2)/msfd(i,jp2)             &
-                        & +ubd3d(i,k,jm2)/msfd(i,jm2)+ubd3d(i+2,k,j)    &
-                        & /msfd(i+2,j)+ubd3d(i-2,k,j)/msfd(i-2,j)       &
-                        & -4.*(ubd3d(i,k,jp1)/msfd(i,jp1)+ubd3d(i,k,jm1)&
-                        & /msfd(i,jm1)+ubd3d(i+1,k,j)/msfd(i+1,j)       &
-                        & +ubd3d(i-1,k,j)/msfd(i-1,j))+12.*ubd3d(i,k,j) &
-                        & /msfd(i,j))*pdotb(i,j)
+                        & *c203*(ubd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
+                        & +ubd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
+                        &  ubd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
+                        &  ubd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
+                        & -4.*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
+                        &      ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+       &
+                        &      ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+       &
+                        &      ubd3d(i-1,k,j)/mddom%msfd(i-1,j))+      &
+                        & 12.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do
@@ -180,14 +190,16 @@
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)-4.*ubd3d(i,k,j)&
-                        & )*pdotb(i,j)
+                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
+                        & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)/msfd(i,jp1)             &
-                        & +ubd3d(i,k,jm1)/msfd(i,jm1)+ubd3d(i+1,k,j)    &
-                        & /msfd(i+1,j)+ubd3d(i-1,k,j)/msfd(i-1,j)       &
-                        & -4.*ubd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                        & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                        & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                        &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                        &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                        & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do
@@ -238,16 +250,19 @@
                       & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
                       & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
                       & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
-                      & +12.*vbd3d(i,k,j))*pdotb(i,j)
+                      & +12.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
           else
             ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp2)/msfd(i,jp2)             &
-                      & +vbd3d(i,k,jm2)/msfd(i,jm2)+vbd3d(i+2,k,j)    &
-                      & /msfd(i+2,j)+vbd3d(i-2,k,j)/msfd(i-2,j)       &
-                      & -4.*(vbd3d(i,k,jp1)/msfd(i,jp1)+vbd3d(i,k,jm1)&
-                      & /msfd(i,jm1)+vbd3d(i+1,k,j)/msfd(i+1,j)       &
-                      & +vbd3d(i-1,k,j)/msfd(i-1,j))+12.*vbd3d(i,k,j) &
-                      & /msfd(i,j))*pdotb(i,j)
+                      & *c203*(vbd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
+                      & +vbd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
+                      &  vbd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
+                      &  vbd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
+                      & -4.*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
+                      &  vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                      &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                      &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
+                      & 12.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
+                      & sfsta%pdotb(i,j)
           end if
         end do
       end do
@@ -257,14 +272,16 @@
           if ( ind.eq.0 ) then
             ften(i,k) = ften(i,k) + xkc(i,k)                          &
                       & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
-                      & )*pdotb(i,j)
+                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
+                      & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
           else
             ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
-                      & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
-                      & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
-                      & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                      & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                      & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                      &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                      &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                      & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
+                      & sfsta%pdotb(i,j)
           end if
         end do
       end do
@@ -284,14 +301,16 @@
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
-                        & )*pdotb(i,j)
+                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
+                        & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
-                        & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
-                        & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
-                        & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                        & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                        & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                        & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do
@@ -307,16 +326,19 @@
                         & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
                         & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
                         & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
-                        & +12.*vbd3d(i,k,j))*pdotb(i,j)
+                        & +12.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp2)/msfd(i,jp2)             &
-                        & +vbd3d(i,k,jm2)/msfd(i,jm2)+vbd3d(i+2,k,j)    &
-                        & /msfd(i+2,j)+vbd3d(i-2,k,j)/msfd(i-2,j)       &
-                        & -4.*(vbd3d(i,k,jp1)/msfd(i,jp1)+vbd3d(i,k,jm1)&
-                        & /msfd(i,jm1)+vbd3d(i+1,k,j)/msfd(i+1,j)       &
-                        & +vbd3d(i-1,k,j)/msfd(i-1,j))+12.*vbd3d(i,k,j) &
-                        & /msfd(i,j))*pdotb(i,j)
+                        & *c203*(vbd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
+                        & +vbd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
+                        &  vbd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
+                        &  vbd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
+                        & -4.*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
+                        &  vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
+                        & 12.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do
@@ -326,14 +348,16 @@
             if ( ind.eq.0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
                         & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)-4.*vbd3d(i,k,j)&
-                        & )*pdotb(i,j)
+                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
+                        & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)/msfd(i,jp1)             &
-                        & +vbd3d(i,k,jm1)/msfd(i,jm1)+vbd3d(i+1,k,j)    &
-                        & /msfd(i+1,j)+vbd3d(i-1,k,j)/msfd(i-1,j)       &
-                        & -4.*vbd3d(i,k,j)/msfd(i,j))*pdotb(i,j)
+                        & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
+                        & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
+                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
+                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
+                        & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
+                        & atm2%ps(i,j)
             end if
           end do
         end do
@@ -382,7 +406,7 @@
                     & *c203*(tb3d(i,k,jp2)+tb3d(i,k,jm2)+tb3d(i+2,k,j)&
                     & +tb3d(i-2,k,j)                                  &
                     & -4.*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+                    & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*atm2%ps(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
@@ -390,13 +414,13 @@
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
       end do
       i = iym2
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
       end do
 !
 #else
@@ -414,7 +438,7 @@
           do i = 2 , iym2
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)&
-                      & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+                      & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
           end do
         end do
 !
@@ -427,7 +451,7 @@
                       & *c203*(tb3d(i,k,jp2)+tb3d(i,k,jm2)+tb3d(i+2,k,j)&
                       & +tb3d(i-2,k,j)                                  &
                       & -4.*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*psb(i,j)
+                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*atm2%ps(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
@@ -435,13 +459,13 @@
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
         end do
         i = iym2
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*psb(i,j)
+                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
         end do
 !
       end if
@@ -488,8 +512,8 @@
                     & *c203*(qvb3d(i,k,jp2)+qvb3d(i,k,jm2)            &
                     & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
                     & -4.*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
-                    & )*psb(i,j)
+                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))                 &
+                    & +12.*qvb3d(i,k,j))*atm2%ps(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
@@ -498,14 +522,14 @@
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
                   & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                  & *psb(i,j)
+                  & *atm2%ps(i,j)
       end do
       i = iym2
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
                   & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                  & *psb(i,j)
+                  & *atm2%ps(i,j)
       end do
 #else
 !----------------------------------------------------------------------
@@ -523,7 +547,7 @@
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)            &
                       & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j)) &
-                      & *psb(i,j)
+                      & *atm2%ps(i,j)
           end do
         end do
 !
@@ -536,8 +560,8 @@
                       & *c203*(qvb3d(i,k,jp2)+qvb3d(i,k,jm2)            &
                       & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
                       & -4.*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))+12.*qvb3d(i,k,j)&
-                      & )*psb(i,j)
+                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))                 &
+                      & +12.*qvb3d(i,k,j))*atm2%ps(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
@@ -546,14 +570,14 @@
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
                     & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                    & *psb(i,j)
+                    & *atm2%ps(i,j)
         end do
         i = iym2
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
                     & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                    & *psb(i,j)
+                    & *atm2%ps(i,j)
         end do
 !
       end if
@@ -600,8 +624,8 @@
                     & *c203*(qcb3d(i,k,jp2)+qcb3d(i,k,jm2)            &
                     & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
                     & -4.*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
-                    & )*psb(i,j)
+                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))                 &
+                    & +12.*qcb3d(i,k,j))*atm2%ps(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
@@ -610,14 +634,14 @@
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
                   & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                  & *psb(i,j)
+                  & *atm2%ps(i,j)
       end do
       i = iym2
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
                   & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                  & *psb(i,j)
+                  & *atm2%ps(i,j)
       end do
 #else
 !----------------------------------------------------------------------
@@ -635,7 +659,7 @@
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)            &
                       & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j)) &
-                      & *psb(i,j)
+                      & *atm2%ps(i,j)
           end do
         end do
 !
@@ -648,8 +672,8 @@
                       & *c203*(qcb3d(i,k,jp2)+qcb3d(i,k,jm2)            &
                       & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
                       & -4.*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))+12.*qcb3d(i,k,j)&
-                      & )*psb(i,j)
+                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))                 &
+                      & +12.*qcb3d(i,k,j))*atm2%ps(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
@@ -658,14 +682,14 @@
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
                     & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                    & *psb(i,j)
+                    & *atm2%ps(i,j)
         end do
         i = iym2
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
                     & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                    & *psb(i,j)
+                    & *atm2%ps(i,j)
         end do
 !
       end if
@@ -713,7 +737,7 @@
                     & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
                     & -4.*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
-                    & +12.*chib3d(i,k,j,n))*psb(i,j)
+                    & +12.*chib3d(i,k,j,n))*atm2%ps(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
@@ -722,14 +746,14 @@
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                   & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                  & -4.*chib3d(i,k,j,n))*psb(i,j)
+                  & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
       end do
       i = iym2
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k)                              &
                   & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                   & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                  & -4.*chib3d(i,k,j,n))*psb(i,j)
+                  & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
       end do
 #else
 !----------------------------------------------------------------------
@@ -747,7 +771,7 @@
             ften(i,k) = ften(i,k) + xkc(i,k)                            &
                       & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)      &
                       & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)            &
-                      & -4.*chib3d(i,k,j,n))*psb(i,j)
+                      & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
           end do
         end do
 !
@@ -761,7 +785,7 @@
                       & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
                       & -4.*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                       & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
-                      & +12.*chib3d(i,k,j,n))*psb(i,j)
+                      & +12.*chib3d(i,k,j,n))*atm2%ps(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
@@ -770,14 +794,14 @@
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+                    & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
         end do
         i = iym2
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k)                              &
                     & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
                     & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                    & -4.*chib3d(i,k,j,n))*psb(i,j)
+                    & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
         end do
 !
       end if
