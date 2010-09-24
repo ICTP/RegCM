@@ -1411,12 +1411,11 @@
 !
 !..t..compute the horizontal advection term:
 !
-!         call hadv_T(tten(1,1,j),ua,va,t,mddom%msfx,dx4,j,1)
-          call hadv_t(tten(1,1,j),dx4,j,1)
+          call hadv_x(tten(:,:,j),t,dx4,j,1)
 !
 !..t..compute the vertical advection term:
 !
-          call vadv(tten(1,1,j),atm1%t(1,1,j),j,1)
+          call vadv(tten(1,1,j),qdot,atm1%t(1,1,j),j,1)
 !
 !..t..compute the adiabatic term:
 !
@@ -1448,8 +1447,8 @@
 !....icup = 4 : emanuel (1991)
 !
           if ( icup.ne.1 ) then
-            call hadvqv(qvten(1,1,j),dx4,j,1)
-            call vadv(qvten(1,1,j),atm1%qv(1,1,j),j,2)
+            call hadv_x(qvten(:,:,j),qv,dx4,j,1)
+            call vadv(qvten(:,:,j),qdot,atm1%qv(:,:,j),j,2)
           end if
  
           if ( icup.eq.1 ) then
@@ -1491,10 +1490,8 @@
           end if
  
           if ( ipptls.eq.1 ) then
-            call hadvqc(qcten(1,1,j),dx4,j,1)
-!           call hadvQC(qcten(1,1,j),dx,j,2)
-!fix        call vadv(qcten(1,1,j),atm1%qc(1,1,j),j,3)
-            call vadv(qcten(1,1,j),atm1%qc(1,1,j),j,5)
+            call hadv_x(qcten(:,:,j),qc,dx4,j,1)
+            call vadv(qcten(:,:,j),qdot,atm1%qc(:,:,j),j,5)
             call pcp(j , 2 , iym2 , kz)
             call cldfrac(j)
  
@@ -1896,8 +1893,8 @@
           end do
         end do
 !
-        call hadv_u(uten(1,1,j),dx16,j,3)
-        call hadv_v(vten(1,1,j),dx16,j,3)
+        call hadv_d(uten(:,:,j),u,dx16,j,3)
+        call hadv_d(vten(:,:,j),v,dx16,j,3)
 !
 !..uv.compute coriolis terms:
 !
@@ -2084,8 +2081,8 @@
 !
 !..uv.compute teh vertical advection terms:
 !
-        call vadv(uten(1,1,j),atm1%u(1,1,j),j,4)
-        call vadv(vten(1,1,j),atm1%v(1,1,j),j,4)
+        call vadv(uten(1,1,j),qdot,atm1%u(1,1,j),j,4)
+        call vadv(vten(1,1,j),qdot,atm1%v(1,1,j),j,4)
 !
 !..uv.apply the sponge boundary condition on u and v:
 !

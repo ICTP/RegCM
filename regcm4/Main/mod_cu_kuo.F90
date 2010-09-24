@@ -91,7 +91,7 @@
 !
 !-----compute the horizontal advection terms:
 !
-      call hadvqv(qvten(1,1,j),dx4,j,1)
+      call hadv_x(qvten(:,:,j),qv,dx4,j,1)
 !---------------
 !chem2
       if ( ichem.eq.1 ) then

@@ -136,11 +136,11 @@
  
       do itr = 1 , ntr
 !
-        call hadvch(chiten(1,1,j,itr),dx,itr,j,2)
+        call hadv_x(chiten(:,:,j,itr),chi,dx,j,2)
  
-        call vadv(chiten(1,1,j,itr),chia(1,1,j,itr),j,5)
+        call vadv(chiten(:,:,j,itr),qdot,chia(:,:,j,itr),j,5)
  
-!       call vadv(chiten(1,1,j,itr),chia(1,1,j,itr),j,3)
+!       call vadv(chiten(1,1,j,itr),qdot,chia(1,1,j,itr),j,3)
  
 !----horizontal diffusion: initialize scratch vars to 0.
 !       need to compute tracer tendencies due to diffusion

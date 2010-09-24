@@ -23,12 +23,11 @@
 !
       use mod_dynparam
       use mod_runparams
-      use mod_cvaria
       use mod_main
       use mod_service
       private
  
-      public :: hadv_t , hadv_u , hadv_v , hadvqv , hadvqc , hadvch
+      public :: hadv_x , hadv_d
       public :: vadv
 
       contains
@@ -55,19 +54,24 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine hadv_t(ften,dxx,j,ind)
+      subroutine hadv_x(ften,var,dxx,j,ind)
 !
       implicit none
 !
       real(8) ,intent (in) :: dxx
       integer ,intent (in) :: ind , j
       real(8) ,intent (inout), dimension(iy,kz) :: ften
+#ifdef MPP1
+      real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
+#else
+      real(8) ,intent (in) , dimension(iy,kz,jx) :: var
+#endif
 !
       integer :: jm1 , jp1
       real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
                & vavg1 , vavg2
       integer :: i , k
-      character (len=50) :: subroutine_name='hadv_t'
+      character (len=50) :: subroutine_name='hadv_x'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -93,12 +97,16 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            ften(i,k) = ften(i,k) -                             &
-             ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(t(i,k,jp1)+t(i,k,j))-&
-              (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(t(i,k,j)+t(i,k,jm1))+    &
-              (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(t(i+1,k,j)+t(i,k,j))-&
-              (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(t(i-1,k,j)+t(i,k,j)))/   &
-              (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
+            ften(i,k) = ften(i,k) -                    &
+                ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1)) * &
+                 (var(i,k,jp1)+var(i,k,j)) -           &
+                 (atm1%u(i+1,k,j)+atm1%u(i,k,j)) *     &
+                 (var(i,k,j)+var(i,k,jm1)) +           &
+                 (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j)) * &
+                 (var(i+1,k,j)+var(i,k,j)) -           &
+                 (atm1%v(i,k,jp1)+atm1%v(i,k,j)) *     &
+                 (var(i-1,k,j)+var(i,k,j))) /          &
+                 (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
           end do
         end do
 !
@@ -118,26 +126,26 @@
             uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
             uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2.ge.0. ) then
-              fx2 = fact1*t(i,k,j) + fact2*t(i,k,jp1)
+              fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
             else
-              fx2 = fact1*t(i,k,jp1) + fact2*t(i,k,j)
+              fx2 = fact1*var(i,k,jp1) + fact2*var(i,k,j)
             end if
             if ( uavg1.ge.0. ) then
-              fx1 = fact1*t(i,k,jm1) + fact2*t(i,k,j)
+              fx1 = fact1*var(i,k,jm1) + fact2*var(i,k,j)
             else
-              fx1 = fact1*t(i,k,j) + fact2*t(i,k,jm1)
+              fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
             end if
             vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
             vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2.ge.0. ) then
-              fy2 = fact1*t(i,k,j) + fact2*t(i+1,k,j)
+              fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
             else
-              fy2 = fact1*t(i+1,k,j) + fact2*t(i,k,j)
+              fy2 = fact1*var(i+1,k,j) + fact2*var(i,k,j)
             end if
             if ( vavg1.ge.0. ) then
-              fy1 = fact1*t(i-1,k,j) + fact2*t(i,k,j)
+              fy1 = fact1*var(i-1,k,j) + fact2*var(i,k,j)
             else
-              fy1 = fact1*t(i,k,j) + fact2*t(i-1,k,j)
+              fy1 = fact1*var(i,k,j) + fact2*var(i-1,k,j)
             end if
             ften(i,k) = ften(i,k)                                       &
                       & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
@@ -145,22 +153,27 @@
           end do
         end do
       else
-        write(*,*) 'The T advection scheme ',ind, &
+        write(*,*) 'The advection scheme ',ind, &
                  & ' you required is not available.'
         stop
       end if
       call time_end(subroutine_name,idindx)
-      end subroutine hadv_t
+      end subroutine hadv_x
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine hadv_u(ften,dxx,j,ind)
+      subroutine hadv_d(ften,var,dxx,j,ind)
 !
       implicit none
 !
       real(8) ,intent (in) :: dxx
       integer ,intent (in) :: ind , j
       real(8) ,intent (inout), dimension(iy,kz) :: ften
+#ifdef MPP1
+      real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
+#else
+      real(8) ,intent (in) , dimension(iy,kz,jx) :: var
+#endif
 !
       integer :: jm1 , jp1
 #ifndef BAND
@@ -169,7 +182,7 @@
       integer :: i , k , idx , idxm1 , idxp1
       real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
-      character (len=50) :: subroutine_name='hadv_u'
+      character (len=50) :: subroutine_name='hadv_d'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -212,10 +225,11 @@
                    & + atm1%u(idxm1,k,jm1) + ucmona
             vcmonc = atm1%v(idxm1,k,jp1) + 2.*atm1%v(idxm1,k,j)  &
                    & + atm1%v(idxm1,k,jm1) + vcmona
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)       &
-                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))       &
-                      & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)           &
+            ften(i,k) = ften(i,k)                            &
+                      & - ((var(i,k,jp1)+var(i,k,j))*ucmonb- &
+                      &    (var(i,k,j)+var(i,k,jm1))*ucmonc+ &
+                      &    (var(i+1,k,j)+var(i,k,j))*vcmonb- &
+                      &    (var(i,k,j)+var(i-1,k,j))*vcmonc) &
                       & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
@@ -251,391 +265,23 @@
                    & + atm1%u(idxm1,k,jdm1) + ucmona
             vcmonc = atm1%v(idxm1,k,jdp1) + 2.*atm1%v(idxm1,k,j)   &
                    & + atm1%v(idxm1,k,jdm1) + vcmona
-            ften(i,k) = ften(i,k)                                  &
-                      & - ((u(i,k,jp1)+u(i,k,j))*ucmonb-(u(i,k,j)  &
-                      & +u(i,k,jm1))*ucmonc+(u(i+1,k,j)+u(i,k,j))  &
-                      & *vcmonb-(u(i,k,j)+u(i-1,k,j))*vcmonc)      &
+            ften(i,k) = ften(i,k) -                        &
+                      & ((var(i,k,jp1)+var(i,k,j))*ucmonb- &
+                      &  (var(i,k,j)+var(i,k,jm1))*ucmonc+ &
+                      &  (var(i+1,k,j)+var(i,k,j))*vcmonb- &
+                      &  (var(i,k,j)+var(i-1,k,j))*vcmonc) &
                       & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
           end do
         end do
 #endif
 !
       else
-        write(*,*) 'The U advection scheme ',ind, &
+        write(*,*) 'The advection scheme ',ind, &
                  & ' you required is not available.'
         stop
       end if
       call time_end(subroutine_name,idindx)
-      end subroutine hadv_u
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-      subroutine hadv_v(ften,dxx,j,ind)
-!
-      implicit none
-!
-      real(8) ,intent (in) :: dxx
-      integer ,intent (in) :: ind , j
-      real(8) ,intent (inout), dimension(iy,kz) :: ften
-!
-      integer :: jm1 , jp1
-#ifndef BAND
-      integer :: jdm1 , jdp1
-#endif
-      integer :: i , k , idx , idxm1 , idxp1
-      real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      character (len=50) :: subroutine_name='hadv_v'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-!
-      jm1 = j - 1
-      jp1 = j + 1
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.3 ) then
-!
-!-----for u and v:
-!
-#ifdef BAND
-#if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1 = jx
-        if(jp1.eq.jx+1) jp1 = 1
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = atm1%u(idxp1,k,j) + &
-                     2.*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
-            vcmona = atm1%v(idx,k,jp1) + &
-                     2.*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
-            ucmonb = atm1%u(idxp1,k,jp1) + &
-                     2.*atm1%u(idx,k,jp1) + atm1%u(idxm1,k,jp1) + ucmona
-            vcmonb = atm1%v(idxp1,k,jp1) + 2.*atm1%v(idxp1,k,j)      &
-                   & + atm1%v(idxp1,k,jm1) + vcmona
-            ucmonc = atm1%u(idxp1,k,jm1) + 2.*atm1%u(idx,k,jm1)      &
-                   & + atm1%u(idxm1,k,jm1) + ucmona
-            vcmonc = atm1%v(idxm1,k,jp1) + 2.*atm1%v(idxm1,k,j)      &
-                   & + atm1%v(idxm1,k,jm1) + vcmona
-            ften(i,k) = ften(i,k)                                    &
-                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)    &
-                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))    &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)        &
-                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
-          end do
-        end do
-!
-!----------------------------------------------------------------------
-#else
-        jdp1 = j + 1
-        jdm1 = j - 1
-#ifdef MPP1
-        if ( myid.eq.0 ) jdm1 = max0(jdm1,2)
-        if ( myid.eq.nproc-1 ) jdp1 = min0(jdp1,jendl-1)
-#else
-        jdp1 = min0(jdp1,jxm1)
-        jdm1 = max0(jdm1,2)
-#endif
-!
-        do k = 1 , kz
-          do i = 2 , iym1
-            idx = i
-            idxp1 = i + 1
-            idxp1 = min0(idxp1,iym1)
-            idxm1 = i - 1
-            idxm1 = max0(idxm1,2)
-            ucmona = atm1%u(idxp1,k,j) + 2.*atm1%u(idx,k,j)          &
-                   & + atm1%u(idxm1,k,j)
-            vcmona = atm1%v(idx,k,jdp1) + 2.*atm1%v(idx,k,j)         &
-                   & + atm1%v(idx,k,jdm1)
-            ucmonb = atm1%u(idxp1,k,jdp1) + 2.*atm1%u(idx,k,jdp1)    &
-                   & + atm1%u(idxm1,k,jdp1) + ucmona
-            vcmonb = atm1%v(idxp1,k,jdp1) + 2.*atm1%v(idxp1,k,j)     &
-                   & + atm1%v(idxp1,k,jdm1) + vcmona
-            ucmonc = atm1%u(idxp1,k,jdm1) + 2.*atm1%u(idx,k,jdm1)    &
-                   & + atm1%u(idxm1,k,jdm1) + ucmona
-            vcmonc = atm1%v(idxm1,k,jdp1) + 2.*atm1%v(idxm1,k,j)     &
-                   & + atm1%v(idxm1,k,jdm1) + vcmona
-            ften(i,k) = ften(i,k)                                    &
-                      & - ((v(i,k,jp1)+v(i,k,j))*ucmonb-(v(i,k,j)    &
-                      & +v(i,k,jm1))*ucmonc+(v(i+1,k,j)+v(i,k,j))    &
-                      & *vcmonb-(v(i,k,j)+v(i-1,k,j))*vcmonc)        &
-                      & /(dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
-          end do
-        end do
-#endif
-!
-      else
-        write(*,*) 'The V advection scheme ',ind, &
-                 & ' you required is not available.'
-        stop
-      end if
-      call time_end(subroutine_name,idindx)
-      end subroutine hadv_v
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-      subroutine hadvqv(ften,dxx,j,ind)
-!
-      implicit none
-!
-      real(8) ,intent (in) :: dxx
-      integer ,intent (in) :: ind , j
-      real(8) ,intent (inout), dimension(iy,kz) :: ften
-!
-      integer :: jm1 , jp1
-      real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & vavg1 , vavg2
-      integer :: i , k
-      character (len=50) :: subroutine_name='hadvqv'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-!
-      jm1 = j - 1
-      jp1 = j + 1
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.eq.0) jm1 = jx
-      if(jp1.eq.jx+1) jp1 = 1
-#endif
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k) -                             &
-          ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(qv(i,k,jp1)+qv(i,k,j))- &
-           (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(qv(i,k,j)+qv(i,k,jm1))+     &
-           (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(qv(i+1,k,j)+qv(i,k,j))- &
-           (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(qv(i-1,k,j)+qv(i,k,j))) /   &
-            (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-          end do
-        end do
-      else if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
-            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*qv(i,k,j) + fact2*qv(i,k,jp1)
-            else
-              fx2 = fact1*qv(i,k,jp1) + fact2*qv(i,k,j)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*qv(i,k,jm1) + fact2*qv(i,k,j)
-            else
-              fx1 = fact1*qv(i,k,j) + fact2*qv(i,k,jm1)
-            end if
-            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
-            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*qv(i,k,j) + fact2*qv(i+1,k,j)
-            else
-              fy2 = fact1*qv(i+1,k,j) + fact2*qv(i,k,j)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*qv(i-1,k,j) + fact2*qv(i,k,j)
-            else
-              fy1 = fact1*qv(i,k,j) + fact2*qv(i-1,k,j)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-          end do
-        end do
-      else
-        write(*,*) 'The QV advection scheme ',ind, &
-                 & ' you required is not available.'
-        stop
-      end if
-      call time_end(subroutine_name,idindx)
-      end subroutine hadvqv
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-      subroutine hadvqc(ften,dxx,j,ind)
-!
-      implicit none
-!
-      real(8) ,intent (in) :: dxx
-      integer ,intent (in) :: ind , j
-      real(8) ,intent (inout), dimension(iy,kz) :: ften
-!
-      integer :: jm1 , jp1
-      real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & vavg1 , vavg2
-      integer :: i , k
-      character (len=50) :: subroutine_name='hadvqcv'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-!
-      jm1 = j - 1
-      jp1 = j + 1
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.eq.0) jm1 = jx
-      if(jp1.eq.jx+1) jp1 = 1
-#endif
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.1 ) then
-!
-!-----for t and qv:
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k) - &
-           ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*(qc(i,k,jp1)+qc(i,k,j))-&
-            (atm1%u(i+1,k,j)+atm1%u(i,k,j))*(qc(i,k,j)+qc(i,k,jm1)) +   &
-            (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*(qc(i+1,k,j)+qc(i,k,j))-&
-            (atm1%v(i,k,jp1)+atm1%v(i,k,j))*(qc(i-1,k,j)+qc(i,k,j))) /  &
-             (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-          end do
-        end do
-      else if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
-            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*qc(i,k,j) + fact2*qc(i,k,jp1)
-            else
-              fx2 = fact1*qc(i,k,jp1) + fact2*qc(i,k,j)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*qc(i,k,jm1) + fact2*qc(i,k,j)
-            else
-              fx1 = fact1*qc(i,k,j) + fact2*qc(i,k,jm1)
-            end if
-            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
-            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*qc(i,k,j) + fact2*qc(i+1,k,j)
-            else
-              fy2 = fact1*qc(i+1,k,j) + fact2*qc(i,k,j)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*qc(i-1,k,j) + fact2*qc(i,k,j)
-            else
-              fy1 = fact1*qc(i,k,j) + fact2*qc(i-1,k,j)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-          end do
-        end do
-      else
-        write(*,*) 'The QC advection scheme ',ind, &
-                 & ' you required is not available.'
-        stop
-      end if
-      call time_end(subroutine_name,idindx)
-      end subroutine hadvqc
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-      subroutine hadvch(ften,dxx,n,j,ind)
-!
-      implicit none
-!
-      real(8) ,intent (in) :: dxx
-      integer ,intent (in) :: ind , j , n
-      real(8) ,intent (inout), dimension(iy,kz) :: ften
-!
-      integer :: jm1 , jp1
-      integer :: i , k
-      real(8) :: fact1 , fact2 , fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
-               & vavg1 , vavg2
-!
-      character (len=50) :: subroutine_name='hadvch'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-      jm1 = j - 1
-      jp1 = j + 1
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.eq.0) jm1 = jx
-      if(jp1.eq.jx+1) jp1 = 1
-#endif
-!----------------------------------------------------------------------
-!
-      if ( ind.eq.2 ) then
-!
-!       implement a "relaxed" upstream scheme
-!
-!hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-        do k = 1 , kz
-          do i = 2 , iym2
-            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
-            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-            if ( uavg2.ge.0. ) then
-              fx2 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jp1,n)
-            else
-              fx2 = fact1*chi(i,k,jp1,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( uavg1.ge.0. ) then
-              fx1 = fact1*chi(i,k,jm1,n) + fact2*chi(i,k,j,n)
-            else
-              fx1 = fact1*chi(i,k,j,n) + fact2*chi(i,k,jm1,n)
-            end if
-            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
-            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-            if ( vavg2.ge.0. ) then
-              fy2 = fact1*chi(i,k,j,n) + fact2*chi(i+1,k,j,n)
-            else
-              fy2 = fact1*chi(i+1,k,j,n) + fact2*chi(i,k,j,n)
-            end if
-            if ( vavg1.ge.0. ) then
-              fy1 = fact1*chi(i-1,k,j,n) + fact2*chi(i,k,j,n)
-            else
-              fy1 = fact1*chi(i,k,j,n) + fact2*chi(i-1,k,j,n)
-            end if
-            ften(i,k) = ften(i,k)                                       &
-                      & - (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)     &
-                      & /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-          end do
-        end do
-      else
-        write(*,*) 'The CH advection scheme ',ind, &
-                 & ' you required is not available.'
-        stop
-      end if
-      call time_end(subroutine_name,idindx)
-      end subroutine hadvch
+      end subroutine hadv_d
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -656,12 +302,17 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine vadv(ften,fa,j,ind)
+      subroutine vadv(ften,qdot,fa,j,ind)
 !
       implicit none
 !
       integer :: ind , j
       real(8) , dimension(iy,kz) :: fa , ften
+#ifdef MPP1
+      real(8) , dimension(iy,kzp1,0:jxp+1) , intent(in) :: qdot
+#else
+      real(8) , dimension(iy,kzp1,jx) , intent(in) :: qdot
+#endif
       intent (in) fa , ind , j
       intent (inout) ften
 !

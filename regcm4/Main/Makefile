@@ -110,8 +110,7 @@ endif
 #
 # Modules
 #
-mod_advection.o: mod_advection.F90 mod_cvaria.o mod_main.o mod_runparams.o \
-                 mod_dynparam.o
+mod_advection.o: mod_advection.F90 mod_main.o mod_runparams.o mod_dynparam.o
 mod_aerosol.o: mod_aerosol.F90 mod_constants.o mod_main.o mod_mainchem.o \
                mod_message.o mod_runparams.o mod_dynparam.o mod_trachem.o \
                mod_slice.o
