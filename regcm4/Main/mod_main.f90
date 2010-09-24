@@ -99,7 +99,7 @@
             is = 1-ib
             ie = iy+ib
             js = 1-jb
-            je = jxp+ib
+            je = jxp+jb
             allocate(atm%u(is:ie,kz,js:je))
             allocate(atm%v(is:ie,kz,js:je))
             allocate(atm%t(is:ie,kz,js:je))
