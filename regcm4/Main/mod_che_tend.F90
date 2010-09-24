@@ -644,15 +644,10 @@
  
           do i = 2 , iym2
             do k = 2 , kz - 1
-              settend(i,k) = 0.0D0
-              if (abs(wk(i,k+1)) > 1E-37) then
-                settend(i,k) = wk(i,k+1)*pdepv(i,k+1,ibin)
-              end if
-              if (abs(wk(i,k)) > 1E-37) then
-                settend(i,k) = settend(i,k)-wk(i,k)*pdepv(i,k,ibin)
-              end if
                         ! do not apply to the first level
-              settend(i,k) = settend(i,k)*gti*1.E-3/dsigma(k)
+              settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin) - &
+                              wk(i,k)*pdepv(i,k,ibin))*     &
+                              gti*1.E-3/dsigma(k)
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !

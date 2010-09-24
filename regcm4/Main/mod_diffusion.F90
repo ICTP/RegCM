@@ -357,7 +357,7 @@
                         &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
                         &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
                         & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & atm2%ps(i,j)
+                        & sfsta%pdotb(i,j)
             end if
           end do
         end do

@@ -946,11 +946,7 @@
 !
             do k = 1 , kz
               do i = 2 , iym1
-                if (abs(chib(i,k,j,itr)) > 1E-37) then
-                  chix(i,k) = chib(i,k,j,itr)/atm2%ps(i,j)
-                else
-                  chix(i,k) = 0.0D0
-                end if
+                chix(i,k) = chib(i,k,j,itr)/atm2%ps(i,j)
               end do
             end do
 !
@@ -987,11 +983,7 @@
 !
             do k = kz - 1 , 1 , -1
               do i = 2 , iym1
-                if (abs(tpred1(i,k+1)) < 1E-37) then
-                  tpred1(i,k) = 0.0
-                else
-                  tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
-                end if
+                tpred1(i,k) = coefe(i,k)*tpred1(i,k+1) + coeff1(i,k)
               end do
             end do
 !

@@ -716,13 +716,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
@@ -755,13 +751,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
@@ -862,13 +854,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
@@ -908,13 +896,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
@@ -947,13 +931,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
@@ -1054,13 +1034,9 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if (abs(ften(i,k)) < 1E-37) then
-              ften(i,k) = 0.0
-            else
-              ften(i,k) = ften(i,k)                                     &
-                      & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
-                      & /dsigma(k)
-            end if
+            ften(i,k) = ften(i,k)                                     &
+                    & - (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k)) &
+                    & /dsigma(k)
           end do
         end do
 !,.....k = kz
