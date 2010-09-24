@@ -29,17 +29,14 @@
       implicit none
 !
       real(8) , allocatable , dimension(:,:,:) :: diffq , difft ,   &
-                               & difuu , difuv , omega , td , xkc
-      real(8) , allocatable , dimension(:,:) :: psc , pten
-      real(8) , allocatable , dimension(:,:,:) :: phi
-      real(8) , allocatable , dimension(:,:) :: psd
-      real(8) , allocatable , dimension(:,:,:) :: qdot
-      real(8) , allocatable , dimension(:,:) :: qvcs
+                                                & difuu , difuv
+      real(8) , allocatable , dimension(:,:) :: psc , pten , psd
+      real(8) , allocatable , dimension(:,:,:) :: phi , qdot , omega
 !
       real(8) , allocatable , dimension(:,:,:,:) :: chi
       real(8) , allocatable , dimension(:,:,:,:) :: chic , chiten
 
-      type(atmstate) , public :: atmx , atmc , atmt
+      type(atmstate) , public :: atmx , atmc , aten
 
       contains 
 
@@ -49,7 +46,7 @@
 
           call allocate_atmstate(atmx,lmpi,0,1)
           call allocate_atmstate(atmc,lmpi,0,0)
-          call allocate_atmstate(atmt,lmpi,0,0)
+          call allocate_atmstate(aten,lmpi,0,0)
 
           if (lmpi) then
             allocate(diffq(iy,kz,jxp))
@@ -57,8 +54,6 @@
             allocate(difuu(iy,kz,jxp))
             allocate(difuv(iy,kz,jxp))
             allocate(omega(iy,kz,jxp))
-            allocate(td(iy,kz,jxp))
-            allocate(xkc(iy,kz,jxp))
             allocate(psc(iy,jxp))
             allocate(pten(iy,jxp))
             allocate(phi(iy,kz,0:jxp))
@@ -73,8 +68,6 @@
             allocate(difuu(iy,kz,jx))
             allocate(difuv(iy,kz,jx))
             allocate(omega(iy,kz,jx))
-            allocate(td(iy,kz,jx))
-            allocate(xkc(iy,kz,jx))
             allocate(psc(iy,jx))
             allocate(pten(iy,jx))
             allocate(phi(iy,kz,jx))
@@ -84,15 +77,12 @@
             allocate(chiten(iy,kz,jx,ntr))
             allocate(qdot(iy,kzp1,jx))
           end if
-          allocate(qvcs(iy,kz))
 !
           diffq = 0.0D0
           difft = 0.0D0
           difuu = 0.0D0
           difuv = 0.0D0
           omega = 0.0D0
-          td = 0.0D0
-          xkc = 0.0D0
           psc = 0.0D0
           pten = 0.0D0
           phi = 0.0D0
@@ -101,7 +91,6 @@
           chic = 0.0D0
           chiten = 0.0D0
           qdot = 0.0D0
-          qvcs = 0.0D0
         end  subroutine allocate_mod_cvaria
 !
       end module mod_cvaria
