@@ -154,7 +154,7 @@ mod_cu_grell.o: mod_cu_grell.f90 mod_pmoist.o mod_rad.o mod_dynparam.o \
 mod_cu_kuo.o: mod_cu_kuo.F90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_runparams.o mod_pmoist.o mod_rad.o \
               mod_dynparam.o mod_trachem.o mod_advection.o
-mod_cvaria.o: mod_cvaria.F90 mod_dynparam.o
+mod_cvaria.o: mod_cvaria.f90 mod_dynparam.o mod_main.o
 mod_date.o: mod_date.F90 mod_message.o mod_runparams.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.F90 mod_dynparam.o mod_constants.o \
                  mod_runparams.o mod_main.o mod_mppio.o mod_date.o \

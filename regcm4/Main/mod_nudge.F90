@@ -118,19 +118,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -145,19 +145,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - atm2%ps(i,jm1)
-            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - atm2%ps(i,jp1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - sps2%ps(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - sps2%ps(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - atm2%ps(ii,jm1)
-            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - atm2%ps(ii,jp1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - sps2%ps(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - sps2%ps(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -174,19 +174,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -201,19 +201,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - atm2%ps(i,jm1)
-            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - atm2%ps(i,jp1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,jm1)+dtb*psbt(i,jm1)) - sps2%ps(i,jm1)
+            fls2 = (pss(i,jp1)+dtb*psbt(i,jp1)) - sps2%ps(i,jp1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - atm2%ps(ii,jm1)
-            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - atm2%ps(ii,jp1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - sps2%ps(ii,jm1)
+            fls2 = (pnb(i,jp1)+dtb*pnbt(i,jp1)) - sps2%ps(ii,jp1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
@@ -257,19 +257,19 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
@@ -284,19 +284,19 @@
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
 !........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+              fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -310,17 +310,17 @@
             gcx = gcoef*xfun(jsls)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - atm2%ps(i,j)
-              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - atm2%ps(i-1,j)
-              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - atm2%ps(i+1,j)
-              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - atm2%ps(i,j-1)
-              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - atm2%ps(i,j+1)
+              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - sps2%ps(i,j)
+              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - sps2%ps(i-1,j)
+              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - sps2%ps(i+1,j)
+              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - sps2%ps(i,j-1)
+              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - sps2%ps(i,j+1)
 #else
-              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - atm2%ps(i,j)
-              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - atm2%ps(i-1,j)
-              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - atm2%ps(i+1,j)
-              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - atm2%ps(i,j-1)
-              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - atm2%ps(i,j+1)
+              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - sps2%ps(i,j)
+              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - sps2%ps(i-1,j)
+              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - sps2%ps(i+1,j)
+              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - sps2%ps(i,j-1)
+              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -331,17 +331,17 @@
             gcx = gcoef*xfun(jsls)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - atm2%ps(i,j)
-              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - atm2%ps(i-1,j)
-              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - atm2%ps(i+1,j)
-              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - atm2%ps(i,j-1)
-              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - atm2%ps(i,j+1)
+              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - sps2%ps(i,j)
+              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - sps2%ps(i-1,j)
+              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - sps2%ps(i+1,j)
+              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - sps2%ps(i,j-1)
+              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - sps2%ps(i,j+1)
 #else
-              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - atm2%ps(i,j)
-              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - atm2%ps(i-1,j)
-              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - atm2%ps(i+1,j)
-              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - atm2%ps(i,j-1)
-              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - atm2%ps(i,j+1)
+              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - sps2%ps(i,j)
+              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - sps2%ps(i-1,j)
+              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - sps2%ps(i+1,j)
+              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - sps2%ps(i,j-1)
+              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -362,19 +362,19 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !........north boundary:
-            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+            fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+            fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+            fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+            fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+            fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
           end do
@@ -389,19 +389,19 @@
               fcx = fcoef*xfune(i,kz)
               gcx = gcoef*xfune(i,kz)
 !.........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - atm2%ps(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - atm2%ps(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - atm2%ps(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - atm2%ps(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - atm2%ps(i+1,j)
+              fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
 !.........north boundary:
-              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - atm2%ps(ii,j)
-              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - atm2%ps(ii,j-1)
-              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - atm2%ps(ii,j+1)
-              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - atm2%ps(ii-1,j)
-              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - atm2%ps(ii+1,j)
+              fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
+              fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
+              fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
+              fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
+              fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
@@ -415,17 +415,17 @@
             gcx = gcoef*xfune(jsls,kz)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - atm2%ps(i,j)
-              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - atm2%ps(i-1,j)
-              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - atm2%ps(i+1,j)
-              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - atm2%ps(i,j-1)
-              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - atm2%ps(i,j+1)
+              fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - sps2%ps(i,j)
+              fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - sps2%ps(i-1,j)
+              fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - sps2%ps(i+1,j)
+              fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - sps2%ps(i,j-1)
+              fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - sps2%ps(i,j+1)
 #else
-              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - atm2%ps(i,j)
-              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - atm2%ps(i-1,j)
-              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - atm2%ps(i+1,j)
-              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - atm2%ps(i,j-1)
-              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - atm2%ps(i,j+1)
+              fls0 = (pwb(i,jsls)+dtb*pwbt(i,jsls)) - sps2%ps(i,j)
+              fls1 = (pwb(i-1,jsls)+dtb*pwbt(i-1,jsls)) - sps2%ps(i-1,j)
+              fls2 = (pwb(i+1,jsls)+dtb*pwbt(i+1,jsls)) - sps2%ps(i+1,j)
+              fls3 = (pwb(i,jsls-1)+dtb*pwbt(i,jsls-1)) - sps2%ps(i,j-1)
+              fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
@@ -436,17 +436,17 @@
             gcx = gcoef*xfune(jsls,kz)
             do i = ibeg , iend
 #ifdef MPP1
-              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - atm2%ps(i,j)
-              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - atm2%ps(i-1,j)
-              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - atm2%ps(i+1,j)
-              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - atm2%ps(i,j-1)
-              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - atm2%ps(i,j+1)
+              fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - sps2%ps(i,j)
+              fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - sps2%ps(i-1,j)
+              fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - sps2%ps(i+1,j)
+              fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - sps2%ps(i,j-1)
+              fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - sps2%ps(i,j+1)
 #else
-              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - atm2%ps(i,j)
-              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - atm2%ps(i-1,j)
-              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - atm2%ps(i+1,j)
-              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - atm2%ps(i,j-1)
-              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - atm2%ps(i,j+1)
+              fls0 = (peb(i,jsls)+dtb*pebt(i,jsls)) - sps2%ps(i,j)
+              fls1 = (peb(i-1,jsls)+dtb*pebt(i-1,jsls)) - sps2%ps(i-1,j)
+              fls2 = (peb(i+1,jsls)+dtb*pebt(i+1,jsls)) - sps2%ps(i+1,j)
+              fls3 = (peb(i,jsls-1)+dtb*pebt(i,jsls-1)) - sps2%ps(i,j-1)
+              fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)

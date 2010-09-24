@@ -297,7 +297,7 @@
             r2cuxb(j,i) = ubx3d(ci,kz,cj)
             r2cvxb(j,i) = vbx3d(ci,kz,cj)
 !           Surface Pressure in Pa from hPa
-            r2cpsb(j,i) = (atm2%ps(ci,cj)+ptop)*1000.
+            r2cpsb(j,i) = (sps2%ps(ci,cj)+ptop)*1000.
 !
             r2crnc(j,i) = pptc(ci,cj)
             r2crnnc(j,i) = pptnc(ci,cj)
@@ -713,9 +713,9 @@
           if ( .not.ifrest ) then
             do n = 1 , nnsg
               ocld2d(n,i,jj) = dble(landmask(j,i))
-              tgb2d(n,i,jj) = atm2%tg(i,jj)
-              taf2d(n,i,jj) = atm2%tg(i,jj)
-              tlef2d(n,i,jj) = atm2%tg(i,jj)
+              tgb2d(n,i,jj) = sts2%tg(i,jj)
+              taf2d(n,i,jj) = sts2%tg(i,jj)
+              tlef2d(n,i,jj) = sts2%tg(i,jj)
               dew2d(n,i,jj) = 0.
               sag2d(n,i,jj) = 0.
               scv2d(n,i,jj) = dmax1(snowc(n,i,jj),0.D0)
@@ -1186,7 +1186,7 @@
             r2cuxb(j,i) = ubx3d(ci,kz,cj)
             r2cvxb(j,i) = vbx3d(ci,kz,cj)
 !           Surface Pressure in Pa from cbar
-            r2cpsb(j,i) = (atm2%ps(ci,cj)+ptop)*1000.
+            r2cpsb(j,i) = (sps2%ps(ci,cj)+ptop)*1000.
 !           Rainfall
             r2crnc(j,i) = pptc(ci,cj)
             r2crnnc(j,i) = pptnc(ci,cj)
@@ -1365,8 +1365,8 @@
             sfsta%uvdrag(i,j) = 0.0
             sfsta%hfx(i,j) = 0.0
             sfsta%qfx(i,j) = 0.0
-            atm2%tg(i,j) = 0.0
-            atm1%tg(i,j) = 0.0
+            sts2%tg(i,j) = 0.0
+            sts1%tg(i,j) = 0.0
             sfsta%tgbb(i,j) = 0.0
 !chem2
             ssw2da(i,j) = 0.0
@@ -1377,8 +1377,8 @@
             sfracs2d(i,j) = 0.0
 !chem2_
             if ( landmask(jj,ci)==1 ) then
-              atm2%tg(i,j) = c2rtgb(jj,ci)
-              atm1%tg(i,j) = c2rtgb(jj,ci)
+              sts2%tg(i,j) = c2rtgb(jj,ci)
+              sts1%tg(i,j) = c2rtgb(jj,ci)
               sfsta%hfx(i,j) = c2rsenht(jj,ci)
               sfsta%qfx(i,j) = c2rlatht(jj,ci)
               sfsta%uvdrag(i,j) = c2ruvdrag(jj,ci)
@@ -1452,8 +1452,8 @@
                 sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
                 sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
                 sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-                atm2%tg(i,j) = atm2%tg(i,j) + tg1d(n,i)
-                atm1%tg(i,j) = atm1%tg(i,j) + tg1d(n,i)
+                sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
+                sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
 !chem2
                 ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
                 sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
@@ -1485,8 +1485,8 @@
               sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(nnsg)
               sfsta%hfx(i,j) = sfsta%hfx(i,j)/float(nnsg)
               sfsta%qfx(i,j) = sfsta%qfx(i,j)/float(nnsg)
-              atm2%tg(i,j) = atm2%tg(i,j)/float(nnsg)
-              atm1%tg(i,j) = atm1%tg(i,j)/float(nnsg)
+              sts2%tg(i,j) = sts2%tg(i,j)/float(nnsg)
+              sts1%tg(i,j) = sts1%tg(i,j)/float(nnsg)
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/float(nnsg)
 !chem2
               ssw2da(i,j) = ssw2da(i,j)/float(nnsg)
@@ -1552,8 +1552,8 @@
                 sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
                 sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
                 sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-                atm2%tg(i,j) = atm2%tg(i,j) + tg1d(n,i)
-                atm1%tg(i,j) = atm1%tg(i,j) + tg1d(n,i)
+                sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
+                sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
 !chem2
                 ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
                 sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
@@ -1603,18 +1603,18 @@
                                c2rsenht(jj,ci)*landfrac(jj,ci)
               sfsta%qfx(i,j) = sfsta%qfx(i,j)*(1-landfrac(jj,ci)) +     &
                                c2rlatht(jj,ci)*landfrac(jj,ci)
-              atm2%tg(i,j) = atm2%tg(i,j)*(1-landfrac(jj,ci)) +         &
+              sts2%tg(i,j) = sts2%tg(i,j)*(1-landfrac(jj,ci)) +         &
                              c2rtgb(jj,ci)*landfrac(jj,ci)
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)*(1-landfrac(jj,ci)) +   &
                                 c2rtgbb(jj,ci)*landfrac(jj,ci)
-              atm1%tg(i,j) = atm1%tg(i,j)*(1-landfrac(jj,ci)) +         &
+              sts1%tg(i,j) = sts1%tg(i,j)*(1-landfrac(jj,ci)) +         &
                              c2rtgb(jj,ci)*landfrac(jj,ci)
  
               sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(nnsg)
               sfsta%hfx(i,j) = sfsta%hfx(i,j)/float(nnsg)
               sfsta%qfx(i,j) = sfsta%qfx(i,j)/float(nnsg)
-              atm2%tg(i,j) = atm2%tg(i,j)/float(nnsg)
-              atm1%tg(i,j) = atm1%tg(i,j)/float(nnsg)
+              sts2%tg(i,j) = sts2%tg(i,j)/float(nnsg)
+              sts1%tg(i,j) = sts1%tg(i,j)/float(nnsg)
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/float(nnsg)
 !chem2
               ssw2da(i,j) = ssw2da(i,j)/float(nnsg)
@@ -1726,7 +1726,7 @@
             t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
             w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+  &
                           & v10m_o(j,i-1)**2))
-            real_4 = (atm2%ps(i,j)+ptop)*10.
+            real_4 = (sps2%ps(i,j)+ptop)*10.
             psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
  
           end do
@@ -1793,7 +1793,7 @@
               flwd_o(j,i-1) = flwda2d(ci,j)*wpm2
               sina_o(j,i-1) = sina2d(ci,j)*wpm2
               prcv_o(j,i-1) = prca2d(ci,j)*mmpd
-              ps_o(j,i-1) = (atm2%ps(i,j)+ptop)*10.
+              ps_o(j,i-1) = (sps2%ps(i,j)+ptop)*10.
               zpbl_o(j,i-1) = sfsta%zpbl(i,j)
  
               tlef_o(j,i-1) = 0.0

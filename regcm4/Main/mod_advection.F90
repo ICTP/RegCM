@@ -353,11 +353,11 @@
         do k = 2 , kz
           do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k) * &
-                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (atm1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287 + &
                     & twt(k,2)*fa(i,k-1) * &
-                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (atm1%ps(i,j)*a(k-1)+r8pt))**0.287
+                    & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287
           end do
         end do
 !......k = 1
@@ -533,11 +533,11 @@
         do k = 2 , kz
           do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k) * &
-                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (atm1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287 + &
                     & twt(k,2)*fa(i,k-1) * &
-                    & ((atm1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (atm1%ps(i,j)*a(k-1)+r8pt))**0.287
+                    & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
+                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287
           end do
         end do
 !......k = 1

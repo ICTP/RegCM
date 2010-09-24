@@ -121,6 +121,8 @@
 #ifdef MPP1
       integer :: ierr , icons_mpi , numrec
       real(8) , dimension(iy,kz,jxp) :: ttld
+      real(8) , dimension(iy,kz,jxp) :: xkc
+      real(8) , dimension(iy,kz,jxp) :: td
 #ifndef BAND
       real(8) , dimension(iy,kz*16+4) :: bdyewrcv , bdyewsnd
 #endif
@@ -131,6 +133,8 @@
       real(8) , dimension(iy,kz*(ntr+11)+1) :: tvar1rcv , tvar1snd
 #else
       real(8) , dimension(iy,kz,jx) :: ttld
+      real(8) , dimension(iy,kz,jx) :: xkc
+      real(8) , dimension(iy,kz,jx) :: td
 #endif
       character (len=50) :: subroutine_name='tend'
       integer :: idindx=0
@@ -166,11 +170,11 @@
         end do
       end do
 #ifdef MPP1
-      call mpi_sendrecv(atm1%ps(1,jxp),iy,mpi_real8,ieast,1,            &
-                      & atm1%ps(1,0),iy,mpi_real8,iwest,1,              &
+      call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,            &
+                      & sps1%ps(1,0),iy,mpi_real8,iwest,1,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(atm1%ps(1,1),iy,mpi_real8,iwest,2,              &
-                      & atm1%ps(1,jxp+1),iy,mpi_real8,ieast,2,          &
+      call mpi_sendrecv(sps1%ps(1,1),iy,mpi_real8,iwest,2,              &
+                      & sps1%ps(1,jxp+1),iy,mpi_real8,ieast,2,          &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -188,17 +192,17 @@
 !-----------west boundary:
           do k = 1 , kz
             do i = 1 , iy
-              u(i,k,j) = uj1(i,k)
-              v(i,k,j) = vj1(i,k)
+              atmx%u(i,k,j) = uj1(i,k)
+              atmx%v(i,k,j) = vj1(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
             do k = 1 , kz
               do i = 1 , iy
-                if ( u(i,k,j).lt.0. ) then
-                  v(i,k,j) = vj2(i,k)
-                  u(i,k,j) = uj2(i,k)
+                if ( atmx%u(i,k,j).lt.0. ) then
+                  atmx%v(i,k,j) = vj2(i,k)
+                  atmx%u(i,k,j) = uj2(i,k)
                 end if
               end do
             end do
@@ -210,22 +214,22 @@
 #endif
           do k = 1 , kz
             do i = 1 , iy
-              u(i,k,j) = uj2(i,k)
-              v(i,k,j) = vj2(i,k)
+              atmx%u(i,k,j) = uj2(i,k)
+              atmx%v(i,k,j) = vj2(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
             do k = 1 , kz
 !.................south boundary:
-              if ( v(1,k,j).lt.0. ) then
-                v(1,k,j) = v(2,k,j)
-                u(1,k,j) = u(2,k,j)
+              if ( atmx%v(1,k,j).lt.0. ) then
+                atmx%v(1,k,j) = atmx%v(2,k,j)
+                atmx%u(1,k,j) = atmx%u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(iy,k,j).ge.0. ) then
-                v(iy,k,j) = v(iym1,k,j)
-                u(iy,k,j) = u(iym1,k,j)
+              if ( atmx%v(iy,k,j).ge.0. ) then
+                atmx%v(iy,k,j) = atmx%v(iym1,k,j)
+                atmx%u(iy,k,j) = atmx%u(iym1,k,j)
               end if
             end do
           end if
@@ -236,22 +240,22 @@
 #endif
           do k = 1 , kz
             do i = 1 , iy
-              u(i,k,j) = ujlx(i,k)
-              v(i,k,j) = vjlx(i,k)
+              atmx%u(i,k,j) = ujlx(i,k)
+              atmx%v(i,k,j) = vjlx(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
             do k = 1 , kz
 !.................south boundary:
-              if ( v(1,k,j).lt.0. ) then
-                v(1,k,j) = v(2,k,j)
-                u(1,k,j) = u(2,k,j)
+              if ( atmx%v(1,k,j).lt.0. ) then
+                atmx%v(1,k,j) = atmx%v(2,k,j)
+                atmx%u(1,k,j) = atmx%u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(iy,k,j).ge.0. ) then
-                v(iy,k,j) = v(iym1,k,j)
-                u(iy,k,j) = u(iym1,k,j)
+              if ( atmx%v(iy,k,j).ge.0. ) then
+                atmx%v(iy,k,j) = atmx%v(iym1,k,j)
+                atmx%u(iy,k,j) = atmx%u(iym1,k,j)
               end if
             end do
           end if
@@ -266,17 +270,17 @@
 !
           do k = 1 , kz
             do i = 1 , iy
-              u(i,k,j) = ujl(i,k)
-              v(i,k,j) = vjl(i,k)
+              atmx%u(i,k,j) = ujl(i,k)
+              atmx%v(i,k,j) = vjl(i,k)
             end do
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
             do k = 1 , kz
               do i = 1 , iy
-                if ( u(i,k,j).ge.0. ) then
-                  v(i,k,j) = vjlx(i,k)
-                  u(i,k,j) = ujlx(i,k)
+                if ( atmx%u(i,k,j).ge.0. ) then
+                  atmx%v(i,k,j) = vjlx(i,k)
+                  atmx%u(i,k,j) = ujlx(i,k)
                 end if
               end do
             end do
@@ -310,11 +314,11 @@
 #endif
           do k = 1 , kz
             do i = 3 , iym2
-              psabar=0.25*(atm1%ps(i,j)+atm1%ps(i,jm1)+ &
-                           atm1%ps(i-1,j)+atm1%ps(i-1,jm1))
+              psabar=0.25*(sps1%ps(i,j)+sps1%ps(i,jm1)+ &
+                           sps1%ps(i-1,j)+sps1%ps(i-1,jm1))
               xmsf = mddom%msfd(i,j)
-              u(i,k,j) = atm1%u(i,k,j)/(psabar*xmsf)
-              v(i,k,j) = atm1%v(i,k,j)/(psabar*xmsf)
+              atmx%u(i,k,j) = atm1%u(i,k,j)/(psabar*xmsf)
+              atmx%v(i,k,j) = atm1%v(i,k,j)/(psabar*xmsf)
             end do
           end do
 !
@@ -323,28 +327,28 @@
 !
           do k = 1 , kz
 !..............for i=2 and i=iym1:
-            u(2,k,j) = ui2(k,j)
-            u(iym1,k,j) = uilx(k,j)
-            v(2,k,j) = vi2(k,j)
-            v(iym1,k,j) = vilx(k,j)
+            atmx%u(2,k,j) = ui2(k,j)
+            atmx%u(iym1,k,j) = uilx(k,j)
+            atmx%v(2,k,j) = vi2(k,j)
+            atmx%v(iym1,k,j) = vilx(k,j)
 !..............for i=1 and i=ix:
-            u(1,k,j) = ui1(k,j)
-            u(iy,k,j) = uil(k,j)
-            v(1,k,j) = vi1(k,j)
-            v(iy,k,j) = vil(k,j)
+            atmx%u(1,k,j) = ui1(k,j)
+            atmx%u(iy,k,j) = uil(k,j)
+            atmx%v(1,k,j) = vi1(k,j)
+            atmx%v(iy,k,j) = vil(k,j)
           end do
           if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
 !..............inflow/outflow dependence:
             do k = 1 , kz
 !.................south boundary:
-              if ( v(1,k,j).lt.0. ) then
-                v(1,k,j) = v(2,k,j)
-                u(1,k,j) = u(2,k,j)
+              if ( atmx%v(1,k,j).lt.0. ) then
+                atmx%v(1,k,j) = atmx%v(2,k,j)
+                atmx%u(1,k,j) = atmx%u(2,k,j)
               end if
 !.................north boundary:
-              if ( v(iy,k,j).ge.0. ) then
-                v(iy,k,j) = v(iym1,k,j)
-                u(iy,k,j) = u(iym1,k,j)
+              if ( atmx%v(iy,k,j).ge.0. ) then
+                atmx%v(iy,k,j) = atmx%v(iym1,k,j)
+                atmx%u(iy,k,j) = atmx%u(iym1,k,j)
               end if
             end do
           end if
@@ -364,9 +368,9 @@
 #endif
         do k = 1 , kz
           do i = 1 , iym1
-            t(i,k,j) = atm1%t(i,k,j)/atm1%ps(i,j)
-            qv(i,k,j) = atm1%qv(i,k,j)/atm1%ps(i,j)
-            qc(i,k,j) = atm1%qc(i,k,j)/atm1%ps(i,j)
+            atmx%t(i,k,j) = atm1%t(i,k,j)/sps1%ps(i,j)
+            atmx%qv(i,k,j) = atm1%qv(i,k,j)/sps1%ps(i,j)
+            atmx%qc(i,k,j) = atm1%qc(i,k,j)/sps1%ps(i,j)
           end do
         end do
       end do
@@ -387,7 +391,7 @@
 #endif
             do k = 1 , kz
               do i = 1 , iym1
-                chi(i,k,j,n) = chia(i,k,j,n)/atm1%ps(i,j)
+                chi(i,k,j,n) = chia(i,k,j,n)/sps1%ps(i,j)
               end do
             end do
           end do
@@ -401,7 +405,7 @@
       if ( myid.ne.nproc-1 ) then
 #endif
         do i = 1 , iy
-          tvar1snd(i,1) = atm2%ps(i,jxp)
+          tvar1snd(i,1) = sps2%ps(i,jxp)
         end do
         do k = 1 , kz
           do i = 1 , iy
@@ -409,11 +413,11 @@
             tvar1snd(i,1+kz+k) = atm2%qv(i,k,jxp)
             tvar1snd(i,1+kz*2+k) = atm2%u(i,k,jxp)
             tvar1snd(i,1+kz*3+k) = atm2%v(i,k,jxp)
-            tvar1snd(i,1+kz*4+k) = u(i,k,jxp)
-            tvar1snd(i,1+kz*5+k) = v(i,k,jxp)
-            tvar1snd(i,1+kz*6+k) = t(i,k,jxp)
-            tvar1snd(i,1+kz*7+k) = qv(i,k,jxp)
-            tvar1snd(i,1+kz*8+k) = qc(i,k,jxp)
+            tvar1snd(i,1+kz*4+k) = atmx%u(i,k,jxp)
+            tvar1snd(i,1+kz*5+k) = atmx%v(i,k,jxp)
+            tvar1snd(i,1+kz*6+k) = atmx%t(i,k,jxp)
+            tvar1snd(i,1+kz*7+k) = atmx%qv(i,k,jxp)
+            tvar1snd(i,1+kz*8+k) = atmx%qc(i,k,jxp)
             tvar1snd(i,1+kz*9+k) = atm1%u(i,k,jxp)
             tvar1snd(i,1+kz*10+k) = atm1%v(i,k,jxp)
           end do
@@ -440,7 +444,7 @@
       if ( myid.ne.0 ) then
 #endif
         do i = 1 , iy
-          atm2%ps(i,0) = tvar1rcv(i,1)
+          sps2%ps(i,0) = tvar1rcv(i,1)
         end do
         do k = 1 , kz
           do i = 1 , iy
@@ -448,11 +452,11 @@
             atm2%qv(i,k,0) = tvar1rcv(i,1+kz+k)
             atm2%u(i,k,0) = tvar1rcv(i,1+kz*2+k)
             atm2%v(i,k,0) = tvar1rcv(i,1+kz*3+k)
-            u(i,k,0) = tvar1rcv(i,1+kz*4+k)
-            v(i,k,0) = tvar1rcv(i,1+kz*5+k)
-            t(i,k,0) = tvar1rcv(i,1+kz*6+k)
-            qv(i,k,0) = tvar1rcv(i,1+kz*7+k)
-            qc(i,k,0) = tvar1rcv(i,1+kz*8+k)
+            atmx%u(i,k,0) = tvar1rcv(i,1+kz*4+k)
+            atmx%v(i,k,0) = tvar1rcv(i,1+kz*5+k)
+            atmx%t(i,k,0) = tvar1rcv(i,1+kz*6+k)
+            atmx%qv(i,k,0) = tvar1rcv(i,1+kz*7+k)
+            atmx%qc(i,k,0) = tvar1rcv(i,1+kz*8+k)
             atm1%u(i,k,0) = tvar1rcv(i,1+kz*9+k)
             atm1%v(i,k,0) = tvar1rcv(i,1+kz*10+k)
           end do
@@ -472,7 +476,7 @@
 #endif
 !
         do i = 1 , iy
-          tvar1snd(i,1) = atm2%ps(i,1)
+          tvar1snd(i,1) = sps2%ps(i,1)
         end do
         do k = 1 , kz
           do i = 1 , iy
@@ -480,11 +484,11 @@
             tvar1snd(i,1+kz+k) = atm2%qv(i,k,1)
             tvar1snd(i,1+kz*2+k) = atm2%u(i,k,1)
             tvar1snd(i,1+kz*3+k) = atm2%v(i,k,1)
-            tvar1snd(i,1+kz*4+k) = u(i,k,1)
-            tvar1snd(i,1+kz*5+k) = v(i,k,1)
-            tvar1snd(i,1+kz*6+k) = t(i,k,1)
-            tvar1snd(i,1+kz*7+k) = qv(i,k,1)
-            tvar1snd(i,1+kz*8+k) = qc(i,k,1)
+            tvar1snd(i,1+kz*4+k) = atmx%u(i,k,1)
+            tvar1snd(i,1+kz*5+k) = atmx%v(i,k,1)
+            tvar1snd(i,1+kz*6+k) = atmx%t(i,k,1)
+            tvar1snd(i,1+kz*7+k) = atmx%qv(i,k,1)
+            tvar1snd(i,1+kz*8+k) = atmx%qc(i,k,1)
             tvar1snd(i,1+kz*9+k) = atm1%u(i,k,1)
             tvar1snd(i,1+kz*10+k) = atm1%v(i,k,1)
           end do
@@ -511,7 +515,7 @@
       if ( myid.ne.nproc-1 ) then
 #endif
         do i = 1 , iy
-          atm2%ps(i,jxp+1) = tvar1rcv(i,1)
+          sps2%ps(i,jxp+1) = tvar1rcv(i,1)
         end do
         do k = 1 , kz
           do i = 1 , iy
@@ -519,11 +523,11 @@
             atm2%qv(i,k,jxp+1) = tvar1rcv(i,1+kz+k)
             atm2%u(i,k,jxp+1) = tvar1rcv(i,1+kz*2+k)
             atm2%v(i,k,jxp+1) = tvar1rcv(i,1+kz*3+k)
-            u(i,k,jxp+1) = tvar1rcv(i,1+kz*4+k)
-            v(i,k,jxp+1) = tvar1rcv(i,1+kz*5+k)
-            t(i,k,jxp+1) = tvar1rcv(i,1+kz*6+k)
-            qv(i,k,jxp+1) = tvar1rcv(i,1+kz*7+k)
-            qc(i,k,jxp+1) = tvar1rcv(i,1+kz*8+k)
+            atmx%u(i,k,jxp+1) = tvar1rcv(i,1+kz*4+k)
+            atmx%v(i,k,jxp+1) = tvar1rcv(i,1+kz*5+k)
+            atmx%t(i,k,jxp+1) = tvar1rcv(i,1+kz*6+k)
+            atmx%qv(i,k,jxp+1) = tvar1rcv(i,1+kz*7+k)
+            atmx%qc(i,k,jxp+1) = tvar1rcv(i,1+kz*8+k)
             atm1%u(i,k,jxp+1) = tvar1rcv(i,1+kz*9+k)
             atm1%v(i,k,jxp+1) = tvar1rcv(i,1+kz*10+k)
           end do
@@ -559,8 +563,8 @@
          if(jm1.eq.0) jm1=jx
 #endif
         do i = 2 , iym1
-          sfsta%pdotb(i,j)=0.25*(atm2%ps(i,j)+atm2%ps(i-1,j)+ &
-                                 atm2%ps(i,jm1)+atm2%ps(i-1,jm1))
+          sps2%pdot(i,j)=0.25*(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
+                                 sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
         end do
       end do
 !
@@ -570,13 +574,13 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 )  &
-           sfsta%pdotb(i,1) = 0.5*(atm2%ps(i,1)+atm2%ps(i-1,1))
+           sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
         if ( myid.eq.nproc-1 ) &
-           sfsta%pdotb(i,jendl) = 0.5*(atm2%ps(i,jendx)+ &
-                                       atm2%ps(i-1,jendx))
+           sps2%pdot(i,jendl) = 0.5*(sps2%ps(i,jendx)+ &
+                                       sps2%ps(i-1,jendx))
 #else
-        sfsta%pdotb(i,1) = 0.5*(atm2%ps(i,1)+atm2%ps(i-1,1))
-        sfsta%pdotb(i,jx) = 0.5*(atm2%ps(i,jxm1)+atm2%ps(i-1,jxm1))
+        sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
+        sps2%pdot(i,jx) = 0.5*(sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -596,8 +600,8 @@
 #if defined(BAND) && (!defined(MPP1))
          if(jm1.eq.0) jm1=jx
 #endif
-        sfsta%pdotb(1,j) = 0.5*(atm2%ps(1,j)+atm2%ps(1,jm1))
-        sfsta%pdotb(iy,j) = 0.5*(atm2%ps(iym1,j)+atm2%ps(iym1,jm1))
+        sps2%pdot(1,j) = 0.5*(sps2%ps(1,j)+sps2%ps(1,jm1))
+        sps2%pdot(iy,j) = 0.5*(sps2%ps(iym1,j)+sps2%ps(iym1,jm1))
       end do
 !
 !-----corner points:
@@ -605,18 +609,18 @@
 #ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        sfsta%pdotb(1,1) = atm2%ps(1,1)
-        sfsta%pdotb(iy,1) = atm2%ps(iym1,1)
+        sps2%pdot(1,1) = sps2%ps(1,1)
+        sps2%pdot(iy,1) = sps2%ps(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
-        sfsta%pdotb(1,jendl) = atm2%ps(1,jendx)
-        sfsta%pdotb(iy,jendl) = atm2%ps(iym1,jendx)
+        sps2%pdot(1,jendl) = sps2%ps(1,jendx)
+        sps2%pdot(iy,jendl) = sps2%ps(iym1,jendx)
       end if
 #else
-      sfsta%pdotb(1,1) = atm2%ps(1,1)
-      sfsta%pdotb(iy,1) = atm2%ps(iym1,1)
-      sfsta%pdotb(1,jx) = atm2%ps(1,jxm1)
-      sfsta%pdotb(iy,jx) = atm2%ps(iym1,jxm1)
+      sps2%pdot(1,1) = sps2%ps(1,1)
+      sps2%pdot(iy,1) = sps2%ps(iym1,1)
+      sps2%pdot(1,jx) = sps2%ps(1,jxm1)
+      sps2%pdot(iy,jx) = sps2%ps(iym1,jxm1)
 #endif
 #endif
 !
@@ -846,7 +850,7 @@
            do i = 2 , iym2
               qdot(i,k,j) = qdot(i,k-1,j)                               &
                        & - (pten(i,j)+divl(i,k-1)/(dx2*mddom%msfx(i,j) &
-                       & *mddom%msfx(i,j)))*dsigma(k-1)/atm1%ps(i,j)
+                       & *mddom%msfx(i,j)))*dsigma(k-1)/sps1%ps(i,j)
            end do
         end do
 #ifndef BAND
@@ -890,12 +894,14 @@
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = 0.5*atm1%ps(i,j)* &
+              omega(i,k,j) = 0.5*sps1%ps(i,j)* &
                        & (qdot(i,k+1,j)+qdot(i,k,j))+a(k)*(pten(i,j)+   &
-                       & ((u(i,k,j)+u(i+1,k,j)+u(i+1,k,jp1)+u(i,k,jp1))*&
-                       & (atm1%ps(i,jp1)-atm1%ps(i,jm1))+               &
-                       & (v(i,k,j)+v(i+1,k,j)+v(i+1,k,jp1)+v(i,k,jp1))* &
-                       & (atm1%ps(i+1,j)-atm1%ps(i-1,j)))/              &
+                       & ((atmx%u(i,k,j)+atmx%u(i+1,k,j)+               &
+                       &   atmx%u(i+1,k,jp1)+atmx%u(i,k,jp1))*          &
+                       & (sps1%ps(i,jp1)-sps1%ps(i,jm1))+               &
+                       & (atmx%v(i,k,j)+atmx%v(i+1,k,j)+                &
+                       &  atmx%v(i+1,k,jp1)+atmx%v(i,k,jp1))*           &
+                       & (sps1%ps(i+1,j)-sps1%ps(i-1,j)))/              &
                        & (dx8*mddom%msfx(i,j)))
            end do
         end do
@@ -1223,8 +1229,8 @@
         if ( j.eq.1 ) then
 #endif
           do i = 1 , iym1
-            psc(i,j) = atm2%ps(i,j) + dt*pwbt(i,j)
-            psd(i,j) = atm1%ps(i,j)
+            psc(i,j) = sps2%ps(i,j) + dt*pwbt(i,j)
+            psd(i,j) = sps1%ps(i,j)
           end do
 #ifdef MPP1
         else if ( myid.eq.nproc-1 .and. j.eq.jendx ) then
@@ -1232,7 +1238,7 @@
         else if ( j.eq.jxm1 ) then
 #endif
           do i = 1 , iym1
-            psd(i,j) = atm1%ps(i,j)
+            psd(i,j) = sps1%ps(i,j)
           end do
         else
         end if
@@ -1260,19 +1266,19 @@
 !..p..forecast pressure:
 !
          do i = 2 , iym2
-            psc(i,j) = atm2%ps(i,j) + pten(i,j)*dt
+            psc(i,j) = sps2%ps(i,j) + pten(i,j)*dt
          end do
 !
 !..p..weighted p* (psd)
 !
          do i = 2 , iym2
-            psd(i,j) = atm1%ps(i,j)
+            psd(i,j) = sps1%ps(i,j)
          end do
 !
-         psc(1,j) = atm2%ps(1,j) + dt*psbt(1,j)
-         psc(iym1,j) = atm2%ps(iym1,j) + dt*pnbt(1,j)
-         psd(1,j) = atm1%ps(1,j)
-         psd(iym1,j) = atm1%ps(iym1,j)
+         psc(1,j) = sps2%ps(1,j) + dt*psbt(1,j)
+         psc(iym1,j) = sps2%ps(iym1,j) + dt*pnbt(1,j)
+         psd(1,j) = sps1%ps(1,j)
+         psd(iym1,j) = sps1%ps(iym1,j)
 #ifndef BAND
         end if
 #endif
@@ -1290,8 +1296,8 @@
         do i = 1 , iy
           ps4(i,1,j) = pten(i,j)
           ps4(i,2,j) = psc(i,j)
-          ps4(i,3,j) = atm2%ps(i,j)
-          ps4(i,4,j) = atm1%ps(i,j)
+          ps4(i,3,j) = sps2%ps(i,j)
+          ps4(i,4,j) = sps1%ps(i,j)
         end do
       end do
       call mpi_gather(ps4,iy*4*jxp,mpi_real8,ps_4,iy*4*jxp,mpi_real8, &
@@ -1335,7 +1341,7 @@
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+ &
-                       atm2%ps(i,j)-2.*atm1%ps(i,j))/(0.25*dt*dt))
+                       sps2%ps(i,j)-2.*sps1%ps(i,j))/(0.25*dt*dt))
             end do
           end if
 #ifndef BAND
@@ -1402,29 +1408,29 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tten(i,k,j) = 0.
-              qvten(i,k,j) = 0.
-              qcten(i,k,j) = 0.
+              aten%t(i,k,j) = 0.
+              aten%qv(i,k,j) = 0.
+              aten%qc(i,k,j) = 0.
             end do
           end do
  
 !
 !..t..compute the horizontal advection term:
 !
-          call hadv_x(tten(:,:,j),t,dx4,j,1)
+          call hadv_x(aten%t(:,:,j),atmx%t,dx4,j,1)
 !
 !..t..compute the vertical advection term:
 !
-          call vadv(tten(1,1,j),qdot,atm1%t(1,1,j),j,1)
+          call vadv(aten%t(1,1,j),qdot,atm1%t(1,1,j),j,1)
 !
 !..t..compute the adiabatic term:
 !
           do k = 1 , kz
             do i = 2 , iym2
-              rovcpm = rgas/(cpd*(1.+0.8*(qv(i,k,j))))
-              tv = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tten(i,k,j) = tten(i,k,j) + (omega(i,k,j)*rovcpm*tv)   &
-                          & /(r8pt/atm1%ps(i,j)+a(k))
+              rovcpm = rgas/(cpd*(1.+0.8*(atmx%qv(i,k,j))))
+              tv = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+              aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv)   &
+                          & /(r8pt/sps1%ps(i,j)+a(k))
             end do
           end do
 !
@@ -1437,7 +1443,7 @@
             end do
           end do
 !
-          call diffu_x(difft(:,:,j),tb3d,atm2%ps,xkc(:,:,j),j)
+          call diffu_x(difft(:,:,j),tb3d,sps2%ps,xkc(:,:,j),j)
 !
 !**q**compute the moisture tendencies:
 !
@@ -1447,8 +1453,8 @@
 !....icup = 4 : emanuel (1991)
 !
           if ( icup.ne.1 ) then
-            call hadv_x(qvten(:,:,j),qv,dx4,j,1)
-            call vadv(qvten(:,:,j),qdot,atm1%qv(:,:,j),j,2)
+            call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
+            call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2)
           end if
  
           if ( icup.eq.1 ) then
@@ -1462,20 +1468,20 @@
 #if defined(BAND) && (!defined(MPP1))
                 if ( jp1.eq.jx+1 ) jp1 = 1
 #endif
-!               usk(i,k) = atm1%u(i,k,j)/atm2%ps(i,j)
-!               vsk(i,k) = atm1%v(i,k,j)/atm2%ps(i,j)
-                sfsta%usk(i,k) = 0.25*(atm1%u(i,k,j)/atm2%ps(i,j)+      &
-                          &      atm1%u(i+1,k,j)/atm2%ps(i+1,j)+        &
-                          &      atm1%u(i,k,jp1)/atm2%ps(i,jp1)+        &
-                          &      atm1%u(i+1,k,jp1)/atm2%ps(i+1,jp1))
-                sfsta%vsk(i,k) = 0.25*(atm1%v(i,k,j)/atm2%ps(i,j)+      &
-                          &      atm1%v(i+1,k,j)/atm2%ps(i+1,j)+        &
-                          &      atm1%v(i,k,jp1)/atm2%ps(i,jp1)+        &
-                          &      atm1%v(i+1,k,jp1)/atm2%ps(i+1,jp1))
+!               usk(i,k) = atm1%u(i,k,j)/sps2%ps(i,j)
+!               vsk(i,k) = atm1%v(i,k,j)/sps2%ps(i,j)
+                sfsta%usk(i,k) = 0.25*(atm1%u(i,k,j)/sps2%ps(i,j)+      &
+                          &      atm1%u(i+1,k,j)/sps2%ps(i+1,j)+        &
+                          &      atm1%u(i,k,jp1)/sps2%ps(i,jp1)+        &
+                          &      atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))
+                sfsta%vsk(i,k) = 0.25*(atm1%v(i,k,j)/sps2%ps(i,j)+      &
+                          &      atm1%v(i+1,k,j)/sps2%ps(i+1,j)+        &
+                          &      atm1%v(i,k,jp1)/sps2%ps(i,jp1)+        &
+                          &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))
               end do
             end do
 !!
-            call cuparan(tten(1,1,j),qvten(1,1,j),j)
+            call cuparan(aten%t(1,1,j),aten%qv(1,1,j),j)
           else if ( icup.eq.3 ) then
             write (aline,*)                                             &
                 & 'ICTP RegCM team thinks the Betts-Miller code',       &
@@ -1483,15 +1489,15 @@
             call say
             call fatal(__FILE__,__LINE__,                               &
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
-            call bmpara(tten(1,1,j),qvten(1,1,j),j)
+            call bmpara(aten%t(1,1,j),aten%qv(1,1,j),j)
           else if ( icup.eq.4 ) then
             call cupemandrv(j)
           else
           end if
  
           if ( ipptls.eq.1 ) then
-            call hadv_x(qcten(:,:,j),qc,dx4,j,1)
-            call vadv(qcten(:,:,j),qdot,atm1%qc(:,:,j),j,5)
+            call hadv_x(aten%qc(:,:,j),atmx%qc,dx4,j,1)
+            call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5)
             call pcp(j , 2 , iym2 , kz)
             call cldfrac(j)
  
@@ -1504,17 +1510,17 @@
  
 !-----compute the diffusion terms:
 !           the diffusion term for qv is stored in diffq. before
-!           completing qvten computation, do not use diffq for other
+!           completing aten%qv computation, do not use diffq for other
 
 !           purpose.
-            call diffu_x(diffq(:,:,j),qvb3d,atm2%ps,xkc(:,:,j),j)
-            call diffu_x(qcten(:,:,j),qcb3d,atm2%ps,xkc(:,:,j),j)
+            call diffu_x(diffq(:,:,j),qvb3d,sps2%ps,xkc(:,:,j),j)
+            call diffu_x(aten%qc(:,:,j),qcb3d,sps2%ps,xkc(:,:,j),j)
           end if
 !
 !chem2    compute the tracers tendencies
           if ( ichem.eq.1 ) then
             call zenitm(coszrs,iy,j)
-            call tractend2(j)
+            call tractend2(j,xkc)
           end if
 !chem2_
 !
@@ -1528,8 +1534,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uten(i,k,j) = 0.
-            vten(i,k,j) = 0.
+            aten%u(i,k,j) = 0.
+            aten%v(i,k,j) = 0.
           end do
         end do
  
@@ -1622,7 +1628,7 @@
         do k = 1 , kz
           do i = 2 , iym2
             ! heating rate in deg/sec
-            tten(i,k,j) = tten(i,k,j) + atm2%ps(i,j)*heatrt(i,k,j)
+            aten%t(i,k,j) = aten%t(i,k,j) + sps2%ps(i,j)*heatrt(i,k,j)
           end do
         end do
 !
@@ -1634,19 +1640,19 @@
 #endif
 #endif
 !
-!..tq.add horizontal diffusion and pbl tendencies for t and qv to tten
-!         and qvten for calculating condensational term in subroutine
+!..tq.add horizontal diffusion and pbl tendencies for t and qv to aten%t
+!         and aten%qv for calculating condensational term in subroutine
 !         "condtq".
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
+              aten%t(i,k,j) = aten%t(i,k,j) + difft(i,k,j)
             end do
           end do
 !
           do k = 1 , kz
             do i = 2 , iym2
-              qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
+              aten%qv(i,k,j) = aten%qv(i,k,j) + diffq(i,k,j)
             end do
           end do
 !
@@ -1655,30 +1661,30 @@
 !
           call condtq(j)
 !
-!..tq.subtract horizontal diffusion and pbl tendencies from tten and
-!         qvten for appling the sponge boundary conditions on t and qv:
+!..tq.subtract horizontal diffusion and pbl tendencies from aten%t and
+!         aten%qv for appling the sponge boundary conditions on t and qv:
 !
           if ( iboudy.eq.4 ) then
             do k = 1 , kz
               do i = 2 , iym2
-                tten(i,k,j) = tten(i,k,j) - difft(i,k,j)
+                aten%t(i,k,j) = aten%t(i,k,j) - difft(i,k,j)
               end do
             end do
-            call sponge_t(ispgx,wgtx,tten(1,1,j),j)
+            call sponge_t(ispgx,wgtx,aten%t(1,1,j),j)
             do k = 1 , kz
               do i = 2 , iym2
-                tten(i,k,j) = tten(i,k,j) + difft(i,k,j)
+                aten%t(i,k,j) = aten%t(i,k,j) + difft(i,k,j)
               end do
             end do
             do k = 1 , kz
               do i = 2 , iym2
-                qvten(i,k,j) = qvten(i,k,j) - diffq(i,k,j)
+                aten%qv(i,k,j) = aten%qv(i,k,j) - diffq(i,k,j)
               end do
             end do
-            call spongeqv(ispgx,wgtx,qvten(1,1,j),j)
+            call spongeqv(ispgx,wgtx,aten%qv(1,1,j),j)
             do k = 1 , kz
               do i = 2 , iym2
-                qvten(i,k,j) = qvten(i,k,j) + diffq(i,k,j)
+                aten%qv(i,k,j) = aten%qv(i,k,j) + diffq(i,k,j)
               end do
             end do
           end if
@@ -1689,9 +1695,9 @@
             xtm1 = xtime - dtmin
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )        &
                & xtm1 = -dtmin
-            call nudge_t(ispgx,fnudge,gnudge,xtm1,tten(1,1,j),j,   &
+            call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(1,1,j),j,   &
                        & iboudy)
-            call nudgeqv(ispgx,fnudge,gnudge,xtm1,qvten(1,1,j),j,  &
+            call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(1,1,j),j,  &
                        & iboudy)
           end if
 !
@@ -1699,19 +1705,19 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              qvc(i,k,j) = atm2%qv(i,k,j) + dt*qvten(i,k,j)
+              atmc%qv(i,k,j) = atm2%qv(i,k,j) + dt*aten%qv(i,k,j)
             end do
           end do
 !
           do k = 1 , kz
             do i = 2 , iym2
-              qcc(i,k,j) = atm2%qc(i,k,j) + dt*qcten(i,k,j)
+              atmc%qc(i,k,j) = atm2%qc(i,k,j) + dt*aten%qc(i,k,j)
             end do
           end do
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tc(i,k,j) = atm2%t(i,k,j) + dt*tten(i,k,j)
+              atmc%t(i,k,j) = atm2%t(i,k,j) + dt*aten%t(i,k,j)
             end do
           end do
 !
@@ -1745,16 +1751,16 @@
           if ( ipgf.eq.1 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-                ttld(i,k,j) = td(i,k,j) - atm1%ps(i,j)                  &
-                            & *t00pg*((a(k)*atm1%ps(i,j)+r8pt)/p00pg)   &
+                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j)                  &
+                            & *t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)   &
                             & **pgfaa1
               end do
             end do
           else if ( ipgf.eq.0 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
               end do
             end do
           else
@@ -1766,21 +1772,21 @@
         else if ( j.eq.jxm1 ) then
 #endif
 !
-!-----set td and psd at j=jlx equal to ta and atm1%ps:
+!-----set td and psd at j=jlx equal to ta and sps1%ps:
 !
           if ( ipgf.eq.1 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-                ttld(i,k,j) = td(i,k,j) - atm1%ps(i,j)                  &
-                            & *t00pg*((a(k)*atm1%ps(i,j)+r8pt)/p00pg)   &
+                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j)                  &
+                            & *t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)   &
                             & **pgfaa1
               end do
             end do
           else if ( ipgf.eq.0 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
               end do
             end do
           else
@@ -1818,21 +1824,21 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
-              tva = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/atm2%ps(i,j))
+              tvc = atmc%t(i,k,j)*(1.+ep1*(atmc%qv(i,k,j))/psc(i,j))
+              tva = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/sps2%ps(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
               ttld(i,k,j) = td(i,k,j) - psd(i,j)                        &
                           & *t00pg*((a(k)*psd(i,j)+r8pt)/p00pg)**pgfaa1
             end do
           end do
           do k = 1 , kz
-            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            ttld(1,k,j) = td(1,k,j) - atm1%ps(1,j)                      &
-                      & *t00pg*((a(k)*atm1%ps(1,j)+r8pt)/p00pg)**pgfaa1
-            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
-            ttld(iym1,k,j) = td(iym1,k,j) - atm1%ps(iym1,j)             &
-                          & *t00pg*((a(k)*atm1%ps(iym1,j)+r8pt)/p00pg)  &
+            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(atmx%qv(1,k,j)))
+            ttld(1,k,j) = td(1,k,j) - sps1%ps(1,j)                      &
+                      & *t00pg*((a(k)*sps1%ps(1,j)+r8pt)/p00pg)**pgfaa1
+            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(atmx%qv(iym1,k,j)))
+            ttld(iym1,k,j) = td(iym1,k,j) - sps1%ps(iym1,j)             &
+                          & *t00pg*((a(k)*sps1%ps(iym1,j)+r8pt)/p00pg)  &
                           & **pgfaa1
           end do
 !
@@ -1840,15 +1846,15 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tvc = tc(i,k,j)*(1.+ep1*(qvc(i,k,j))/psc(i,j))
-              tva = atm1%t(i,k,j)*(1.+ep1*(qv(i,k,j)))
-              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/atm2%ps(i,j))
+              tvc = atmc%t(i,k,j)*(1.+ep1*(atmc%qv(i,k,j))/psc(i,j))
+              tva = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/sps2%ps(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
             end do
           end do
           do k = 1 , kz
-            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(qv(1,k,j)))
-            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(qv(iym1,k,j)))
+            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(atmx%qv(1,k,j)))
+            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(atmx%qv(iym1,k,j)))
           end do
  
         end if
@@ -1874,35 +1880,35 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            difuu(i,k,j) = uten(i,k,j)
-            difuv(i,k,j) = vten(i,k,j)
+            difuu(i,k,j) = aten%u(i,k,j)
+            difuv(i,k,j) = aten%v(i,k,j)
           end do
         end do
 !
-        call diffu_d(difuu(:,:,j),ubd3d,sfsta%pdotb,mddom%msfd, &
+        call diffu_d(difuu(:,:,j),ubd3d,sps2%pdot,mddom%msfd, &
                      xkc(:,:,j),j,1)
-        call diffu_d(difuv(:,:,j),vbd3d,sfsta%pdotb,mddom%msfd, &
+        call diffu_d(difuv(:,:,j),vbd3d,sps2%pdot,mddom%msfd, &
                      xkc(:,:,j),j,1)
 !
 !..uv.compute the horizontal advection terms for u and v:
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uten(i,k,j) = 0.
-            vten(i,k,j) = 0.
+            aten%u(i,k,j) = 0.
+            aten%v(i,k,j) = 0.
           end do
         end do
 !
-        call hadv_d(uten(:,:,j),u,dx16,j,3)
-        call hadv_d(vten(:,:,j),v,dx16,j,3)
+        call hadv_d(aten%u(:,:,j),atmx%u,dx16,j,3)
+        call hadv_d(aten%v(:,:,j),atmx%v,dx16,j,3)
 !
 !..uv.compute coriolis terms:
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uten(i,k,j) = uten(i,k,j) + &
+            aten%u(i,k,j) = aten%u(i,k,j) + &
                          mddom%f(i,j)*atm1%v(i,k,j)/mddom%msfd(i,j)
-            vten(i,k,j) = vten(i,k,j) - &
+            aten%v(i,k,j) = aten%v(i,k,j) - &
                          mddom%f(i,j)*atm1%u(i,k,j)/mddom%msfd(i,j)
           end do
         end do
@@ -1929,19 +1935,19 @@
             do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,jm1) + psd(i-1,jm1)
               sigpsa = psasum
-              tv1 = t(i-1,k,jm1)*(1.+ep1*(qv(i-1,k,jm1)))
-              tv2 = t(i,k,jm1)*(1.+ep1*(qv(i,k,jm1)))
-              tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
-              tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
+              tv1 = atmx%t(i-1,k,jm1)*(1.+ep1*(atmx%qv(i-1,k,jm1)))
+              tv2 = atmx%t(i,k,jm1)*(1.+ep1*(atmx%qv(i,k,jm1)))
+              tv3 = atmx%t(i-1,k,j)*(1.+ep1*(atmx%qv(i-1,k,j)))
+              tv4 = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 -                           &
                     & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.
-              uten(i,k,j) = uten(i,k,j)                                 &
+              aten%u(i,k,j) = aten%u(i,k,j)                             &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
                           & +r8pt)                                      &
                           & -dlog(0.5*(psd(i,jm1)+psd(i-1,jm1))*a(k)    &
                           & +r8pt))/(dx*mddom%msfd(i,j))
-              vten(i,k,j) = vten(i,k,j)                                 &
+              aten%v(i,k,j) = aten%v(i,k,j)                             &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,jm1))*a(k)&
                           & +r8pt)                                      &
                           & -dlog(0.5*(psd(i-1,jm1)+psd(i-1,j))*a(k)    &
@@ -1953,17 +1959,17 @@
             do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,jm1) + psd(i-1,jm1)
               sigpsa = psasum
-              tv1 = t(i-1,k,jm1)*(1.+ep1*(qv(i-1,k,jm1)))
-              tv2 = t(i,k,jm1)*(1.+ep1*(qv(i,k,jm1)))
-              tv3 = t(i-1,k,j)*(1.+ep1*(qv(i-1,k,j)))
-              tv4 = t(i,k,j)*(1.+ep1*(qv(i,k,j)))
+              tv1 = atmx%t(i-1,k,jm1)*(1.+ep1*(atmx%qv(i-1,k,jm1)))
+              tv2 = atmx%t(i,k,jm1)*(1.+ep1*(atmx%qv(i,k,jm1)))
+              tv3 = atmx%t(i-1,k,j)*(1.+ep1*(atmx%qv(i-1,k,j)))
+              tv4 = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.
-              uten(i,k,j) = uten(i,k,j)                                 &
+              aten%u(i,k,j) = aten%u(i,k,j)                             &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
                           & +r8pt)                                      &
                           & -dlog(0.5*(psd(i,jm1)+psd(i-1,jm1))*a(k)    &
                           & +r8pt))/(dx*mddom%msfd(i,j))
-              vten(i,k,j) = vten(i,k,j)                                 &
+              aten%v(i,k,j) = aten%v(i,k,j)                             &
                           & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,jm1))*a(k)&
                           & +r8pt)                                      &
                           & -dlog(0.5*(psd(i-1,jm1)+psd(i-1,j))*a(k)    &
@@ -1989,7 +1995,8 @@
         if ( ipgf.eq.1 ) then
  
           do i = 1 , iym1
-            tv = (ttld(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
+            tv = (ttld(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/ &
+                 (1.+atmx%qv(i,kz,j)))
             phi(i,kz,j) = mddom%ht(i,j)                                &
                         & + rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)   &
                         & **pgfaa1
@@ -2001,9 +2008,10 @@
           do k = 1 , kzm1
             lev = kz - k
             do i = 1 , iym1
-              tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)*      &
-                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
-                    & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
+              tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)* &
+                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+       &
+                    & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/       &
+                    & (1.+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
                            & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
                            & /(a(lev+1)+r8pt/psd(i,j)))
@@ -2013,18 +2021,20 @@
         else if ( ipgf.eq.0 ) then
  
           do i = 1 , iym1
-            tv = (td(i,kz,j)/psd(i,j))/(1.+qc(i,kz,j)/(1.+qv(i,kz,j)))
-            phi(i,kz,j) = mddom%ht(i,j)                                &
-                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/         &
+            tv = (td(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/  &
+                 (1.+atmx%qv(i,kz,j)))
+            phi(i,kz,j) = mddom%ht(i,j)                            &
+                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/    &
                         & (1.+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
             lev = kz - k
             do i = 1 , iym1
-              tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*          &
-                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+            &
-                    & dsigma(lev+1))))/(1.+qc(i,lev,j)/(1.+qv(i,lev,j)))
+              tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*   &
+                    & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+     &
+                    & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/     &
+                    & (1.+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j)                             &
                            & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
                            & /(a(lev+1)+r8pt/psd(i,j)))
@@ -2057,11 +2067,11 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uten(i,k,j) = uten(i,k,j)                                   &
+            aten%u(i,k,j) = aten%u(i,k,j)                               &
                         & -(psd(i-1,jm1)+psd(i,jm1)+psd(i-1,j)+psd(i,j))&
                         & *(phi(i,k,j)+phi(i-1,k,j)-phi(i,k,jm1)-       &
                         & phi(i-1,k,jm1))/(dx8*mddom%msfd(i,j))
-            vten(i,k,j) = vten(i,k,j)                                   &
+            aten%v(i,k,j) = aten%v(i,k,j)                               &
                         & -(psd(i-1,jm1)+psd(i,jm1)+psd(i-1,j)+psd(i,j))&
                         & *(phi(i,k,j)+phi(i,k,jm1)-phi(i-1,k,j)-       &
                         & phi(i-1,k,jm1))/(dx8*mddom%msfd(i,j))
@@ -2081,31 +2091,31 @@
 !
 !..uv.compute teh vertical advection terms:
 !
-        call vadv(uten(1,1,j),qdot,atm1%u(1,1,j),j,4)
-        call vadv(vten(1,1,j),qdot,atm1%v(1,1,j),j,4)
+        call vadv(aten%u(1,1,j),qdot,atm1%u(1,1,j),j,4)
+        call vadv(aten%v(1,1,j),qdot,atm1%v(1,1,j),j,4)
 !
 !..uv.apply the sponge boundary condition on u and v:
 !
         if ( iboudy.eq.4 ) then
-          call sponge_u(ispgd,wgtd,uten(1,1,j),j)
-          call sponge_v(ispgd,wgtd,vten(1,1,j),j)
+          call sponge_u(ispgd,wgtd,aten%u(1,1,j),j)
+          call sponge_v(ispgd,wgtd,aten%v(1,1,j),j)
         end if
 !
 !..uv.apply the nudging boundary conditions:
 !
         if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
-          call nudge_u(ispgd,fnudge,gnudge,xtm1,uten(1,1,j),j,     &
+          call nudge_u(ispgd,fnudge,gnudge,xtm1,aten%u(1,1,j),j,     &
                      & iboudy)
-          call nudge_v(ispgd,fnudge,gnudge,xtm1,vten(1,1,j),j,     &
+          call nudge_v(ispgd,fnudge,gnudge,xtm1,aten%v(1,1,j),j,     &
                      & iboudy)
         end if
 !
-!..uv.add the diffusion and pbl tendencies to uten and vten:
+!..uv.add the diffusion and pbl tendencies to aten%u and aten%v:
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uten(i,k,j) = uten(i,k,j) + difuu(i,k,j)
-            vten(i,k,j) = vten(i,k,j) + difuv(i,k,j)
+            aten%u(i,k,j) = aten%u(i,k,j) + difuu(i,k,j)
+            aten%v(i,k,j) = aten%v(i,k,j) + difuv(i,k,j)
           end do
         end do
 !
@@ -2113,8 +2123,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            uc(i,k,j) = atm2%u(i,k,j) + dt*uten(i,k,j)
-            vc(i,k,j) = atm2%v(i,k,j) + dt*vten(i,k,j)
+            atmc%u(i,k,j) = atm2%u(i,k,j) + dt*aten%u(i,k,j)
+            atmc%v(i,k,j) = atm2%v(i,k,j) + dt*aten%v(i,k,j)
           end do
         end do
 !
@@ -2138,11 +2148,11 @@
         do k = 1 , kz
           do i = 2 , iym1
             atm2%u(i,k,j) = omuhf*atm1%u(i,k,j)/mddom%msfd(i,j)  &
-                      & + gnuhf*(atm2%u(i,k,j)+uc(i,k,j))
+                      & + gnuhf*(atm2%u(i,k,j)+atmc%u(i,k,j))
             atm2%v(i,k,j) = omuhf*atm1%v(i,k,j)/mddom%msfd(i,j)  &
-                      & + gnuhf*(atm2%v(i,k,j)+vc(i,k,j))
-            atm1%u(i,k,j) = uc(i,k,j)
-            atm1%v(i,k,j) = vc(i,k,j)
+                      & + gnuhf*(atm2%v(i,k,j)+atmc%v(i,k,j))
+            atm1%u(i,k,j) = atmc%u(i,k,j)
+            atm1%v(i,k,j) = atmc%v(i,k,j)
           end do
         end do
       end do
@@ -2159,22 +2169,23 @@
         do k = 1 , kz
           do i = 2 , iym2
             atm2%t(i,k,j) = omuhf*atm1%t(i,k,j) + &
-                            gnuhf*(atm2%t(i,k,j)+tc(i,k,j))
-            atm1%t(i,k,j) = tc(i,k,j)
+                            gnuhf*(atm2%t(i,k,j)+atmc%t(i,k,j))
+            atm1%t(i,k,j) = atmc%t(i,k,j)
           end do
           do i = 2 , iym2
             qvbs = omuhf*atm1%qv(i,k,j) + &
-                   gnuhf*(atm2%qv(i,k,j)+qvc(i,k,j))
-            qvas = qvc(i,k,j)
+                   gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
+            qvas = atmc%qv(i,k,j)
             atm2%qv(i,k,j) = dmax1(qvbs,1.D-99)
             atm1%qv(i,k,j) = dmax1(qvas,1.D-99)
           end do
           do i = 2 , iym2
-            qcbs = omu*atm1%qc(i,k,j) + gnu*(atm2%qc(i,k,j)+qcc(i,k,j))
+            qcbs = omu*atm1%qc(i,k,j) + &
+                   gnu*(atm2%qc(i,k,j)+atmc%qc(i,k,j))
             atm2%qc(i,k,j) = dmax1(qcbs,0.D0)
           end do
           do i = 2 , iym2
-            qcas = qcc(i,k,j)
+            qcas = atmc%qc(i,k,j)
             atm1%qc(i,k,j) = dmax1(qcas,0.D0)
           end do
 !chem2
@@ -2192,9 +2203,9 @@
 !chem2_
         end do
         do i = 2 , iym2
-          atm2%ps(i,j) = omuhf*atm1%ps(i,j) + &
-                         gnuhf*(atm2%ps(i,j)+psc(i,j))
-          atm1%ps(i,j) = psc(i,j)
+          sps2%ps(i,j) = omuhf*sps1%ps(i,j) + &
+                         gnuhf*(sps2%ps(i,j)+psc(i,j))
+          sps1%ps(i,j) = psc(i,j)
         end do
       end do
       if ( ehso4 ) then

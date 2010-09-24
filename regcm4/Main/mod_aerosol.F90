@@ -463,7 +463,7 @@
 ! 
           if ( ichem.eq.1 ) then
             do itr = 1 , ntrac
-              aermmr(i,k,itr) = chia(i,k,j,itr)/atm1%ps(i,j)
+              aermmr(i,k,itr) = chia(i,k,j,itr)/sps1%ps(i,j)
             end do
           else if ( ehso4 ) then
             do itr = 1 , ntrac

@@ -187,11 +187,11 @@
           read (iutrst) atm2%qv
           read (iutrst) atm1%qc
           read (iutrst) atm2%qc
-          read (iutrst) atm1%ps , atm2%ps , mddom%satbrt , &
+          read (iutrst) sps1%ps , sps2%ps , mddom%satbrt , &
                         satbrt1 , mddom%f
           read (iutrst) mddom%ht , ht1 , mddom%msfx , mddom%msfd , &
                         mddom%xlat , mddom%xlong
-          read (iutrst) atm1%tg , atm2%tg , sfsta%rainc , sfsta%rainnc
+          read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
           else if ( icup.eq.3 ) then
@@ -404,11 +404,11 @@
           write (iutsav) atm2%qv
           write (iutsav) atm1%qc
           write (iutsav) atm2%qc
-          write (iutsav) atm1%ps , atm2%ps , mddom%satbrt , satbrt1 ,  &
+          write (iutsav) sps1%ps , sps2%ps , mddom%satbrt , satbrt1 ,  &
                          mddom%f
           write (iutsav) mddom%ht , ht1 , mddom%msfx , mddom%msfd ,  &
                          mddom%xlat , mddom%xlong
-          write (iutsav) atm1%tg , atm2%tg , sfsta%rainc , sfsta%rainnc
+          write (iutsav) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat
           else if ( icup.eq.3 ) then

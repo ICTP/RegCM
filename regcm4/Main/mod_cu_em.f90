@@ -87,7 +87,7 @@
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*atm2%ps(i,j)+r8pt)*10.        ! [hPa]
+          phcup(k) = (sigma(kk)*sps2%ps(i,j)+r8pt)*10.        ! [hPa]
         end do
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
@@ -115,13 +115,14 @@
 !         **** Tendencies
           do k = 1 , kz
             kk = kzp1 - k
-            tten(i,kk,j) = ft(k)*atm2%ps(i,j) + tten(i,kk,j)
-            qvten(i,kk,j) = fq(k)/(1.-fq(k))*atm2%ps(i,j)+qvten(i,kk,j)
+            aten%t(i,kk,j) = ft(k)*sps2%ps(i,j) + aten%t(i,kk,j)
+            aten%qv(i,kk,j) = fq(k)/(1.-fq(k))* &
+                              sps2%ps(i,j)+aten%qv(i,kk,j)
 !           There is a bit of an inconsistency here...  The wind
 !           tendencies from convection are on cross points, but the
 !           model wants them on dot points.
-            uten(i,kk,j) = fu(k)*atm2%ps(i,j) + uten(i,kk,j)
-            vten(i,kk,j) = fv(k)*atm2%ps(i,j) + vten(i,kk,j)
+            aten%u(i,kk,j) = fu(k)*sps2%ps(i,j) + aten%u(i,kk,j)
+            aten%v(i,kk,j) = fv(k)*sps2%ps(i,j) + aten%v(i,kk,j)
           end do
  
 !         **** Cloud fraction and cloud water

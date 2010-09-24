@@ -534,7 +534,7 @@
       call allocate_mod_bats(lmpi,lband)
       call allocate_mod_bdycon
       call allocate_mod_holtbl
-      call allocate_mod_cvaria
+      call allocate_mod_cvaria(lmpi)
       call allocate_mod_dust
       call allocate_mod_leaftemp
       call allocate_mod_main(lmpi)

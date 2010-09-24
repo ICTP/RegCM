@@ -183,8 +183,8 @@
 !     tendencies.
 !
 #ifdef MPP1
-      call mpi_sendrecv(atm2%ps(1,jxp),iy,mpi_real8,ieast,1,            &
-                      & atm2%ps(1,0),iy,mpi_real8,iwest,1,              &
+      call mpi_sendrecv(sps2%ps(1,jxp),iy,mpi_real8,ieast,1,            &
+                      & sps2%ps(1,0),iy,mpi_real8,iwest,1,              &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,       &
                       & sfsta%uvdrag(1,0),iy,mpi_real8,iwest,1,         &
@@ -205,8 +205,8 @@
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
-            dumr = 4./(atm2%ps(i,j)+atm2%ps(i,jm1)+ &
-                       atm2%ps(i-1,j)+atm2%ps(i-1,jm1))
+            dumr = 4./(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
+                       sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
             auxx(i,k,j) = atm2%u(i,k,j)*dumr
             avxx(i,k,j) = atm2%v(i,k,j)*dumr
           end do
@@ -231,7 +231,7 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            qcx(i,k,j) = atm2%qc(i,k,j)/atm2%ps(i,j)
+            qcx(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
           end do
         end do
 !
@@ -241,8 +241,8 @@
         do k = 1 , kzm1
           do i = 2 , iym1
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
-            xps = (a(k)*atm2%ps(i,j)+r8pt)*1000.
-            ps2 = (a(k+1)*atm2%ps(i,j)+r8pt)*1000.
+            xps = (a(k)*sps2%ps(i,j)+r8pt)*1000.
+            ps2 = (a(k+1)*sps2%ps(i,j)+r8pt)*1000.
             rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
           end do
         end do
@@ -342,7 +342,7 @@
  
         do i = 2 , iym1
           sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+1)
-!         th10(i,j) = ((thx3d(i,kz,j)+atm2%tg(i,j))/2.0)*(1.0+0.61*sh10)
+!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))/2.0)*(1.0+0.61*sh10)
 !         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))
 !         1            *dlog(za(i,kz,j)/10.)
  
@@ -351,9 +351,9 @@
             th10(i,j) = thvx(i,kz,j)
           else
 !           th10(i,j) =
-!----       (0.25*thx3d(i,kz,j)+0.75*atm2%tg(i,j))*(1.0+0.61*sh10) first
+!----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(1.0+0.61*sh10) first
 !           approximation for obhukov length
-            oblen = -0.5*(thx3d(i,kz,j)+atm2%tg(i,j))*(1.0+0.61*sh10)   &
+            oblen = -0.5*(thx3d(i,kz,j)+sts2%tg(i,j))*(1.0+0.61*sh10)   &
                   & *ustr(i,j)                                          &
                   & **3/(gti*vonkar*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
             if ( oblen.ge.za(i,kz,j) ) then
@@ -369,9 +369,9 @@
                         & *6*dlog(za(i,kz,j)/10.)
             else
             end if
-            th10(i,j) = dmax1(th10(i,j),atm2%tg(i,j))
+            th10(i,j) = dmax1(th10(i,j),sts2%tg(i,j))
           end if
-!gtb      th10(i,j) = dmin1(th10(i,j),atm2%tg(i,j))  ! gtb add to minimize
+!gtb      th10(i,j) = dmin1(th10(i,j),sts2%tg(i,j))  ! gtb add to minimize
  
 !         obklen compute obukhov length
           obklen(i,j) = -th10(i,j)*ustr(i,j)                            &
@@ -392,7 +392,7 @@
           do i = 2 , iym1
             if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
                & /dza(i,k-1,j)
-            akzz2(i,k,j) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+            akzz2(i,k,j) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
           end do
         end do
 #ifndef BAND
@@ -439,7 +439,7 @@
           do i = 2 , iym1
             if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
                & /dza(i,k-1,j)
-            akzz2(i,k,j) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+            akzz2(i,k,j) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
           end do
         end do
       end do
@@ -621,11 +621,11 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            dumr = 0.25*(atm2%ps(i,j)+atm2%ps(i,jm1)+ &
-                         atm2%ps(i-1,j)+atm2%ps(i-1,jm1))
-            uten(i,k,j) = uten(i,k,j) + (tpred1(i,k)-auxx(i,k,j))       &
+            dumr = 0.25*(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
+                         sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
+            aten%u(i,k,j) = aten%u(i,k,j) + (tpred1(i,k)-auxx(i,k,j))   &
                         & /dt*dumr
-            vten(i,k,j) = vten(i,k,j) + (tpred2(i,k)-avxx(i,k,j))       &
+            aten%v(i,k,j) = aten%v(i,k,j) + (tpred2(i,k)-avxx(i,k,j))   &
                         & /dt*dumr
           end do
         end do
@@ -639,7 +639,7 @@
           do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -716,7 +716,7 @@
           do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -778,8 +778,8 @@
         do k = 1 , kz
           do i = 2 , iym1
             diffq(i,k,j) = diffq(i,k,j)                                 &
-                         & + (tpred1(i,k)-atm2%qv(i,k,j)/atm2%ps(i,j))  &
-                         & /dt*atm2%ps(i,j)
+                         & + (tpred1(i,k)-atm2%qv(i,k,j)/sps2%ps(i,j))  &
+                         & /dt*sps2%ps(i,j)
           end do
         end do
  
@@ -789,7 +789,7 @@
           do i = 2 , iym1
             if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+            alphak(i,k) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
           end do
         end do
  
@@ -850,9 +850,9 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            qcten(i,k,j) = qcten(i,k,j)                                 &
-                         & + (tpred1(i,k)-atm2%qc(i,k,j)/atm2%ps(i,j))  &
-                         & /dt*atm2%ps(i,j)
+            aten%qc(i,k,j) = aten%qc(i,k,j)                             &
+                         & + (tpred1(i,k)-atm2%qc(i,k,j)/sps2%ps(i,j))  &
+                         & /dt*sps2%ps(i,j)
           end do
         end do
  
@@ -868,7 +868,7 @@
 !trapuv_
         do k = 2 , kz
           do i = 2 , iym1
-            sf = atm2%t(i,k,j)/(atm2%ps(i,j)*thx3d(i,k,j))
+            sf = atm2%t(i,k,j)/(sps2%ps(i,j)*thx3d(i,k,j))
             ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
           end do
         end do
@@ -901,7 +901,7 @@
             do i = 2 , iym1
               if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
                  & /dza(i,k-1,j)
-              alphak(i,k) = gti/(atm2%ps(i,j)*1000.)/dsigma(k)
+              alphak(i,k) = gti/(sps2%ps(i,j)*1000.)/dsigma(k)
             end do
           end do
  
@@ -946,7 +946,7 @@
 !
             do k = 1 , kz
               do i = 2 , iym1
-                chix(i,k) = chib(i,k,j,itr)/atm2%ps(i,j)
+                chix(i,k) = chib(i,k,j,itr)/sps2%ps(i,j)
               end do
             end do
 !
@@ -999,9 +999,9 @@
 !CGAFFE         TEST diffusion/10
                 chiten(i,k,j,itr) = chiten(i,k,j,itr)                   &
                                   & + (tpred1(i,k)-chix(i,k))           &
-                                  & /dt*atm2%ps(i,j)
+                                  & /dt*sps2%ps(i,j)
 !               chiten(i,k,j,itr)=chiten(i,k,j,itr)+0.1 *(tpred1(i,k)-
-!               1  chix(i,k))/dt *atm2%ps(i,j)
+!               1  chix(i,k))/dt *sps2%ps(i,j)
  
               end do
             end do
@@ -1009,8 +1009,8 @@
  
               if ( chtrname(itr).ne.'DUST' ) &
                 remdrd(i,j,itr) = remdrd(i,j,itr) + chix(i,kz)* &
-                    vdep(i,itr)*atm2%ps(i,j)*dt/2.*rhox2d(i,j)* &
-                    gti/(atm2%ps(i,j)*1000.*dsigma(kz))
+                    vdep(i,itr)*sps2%ps(i,j)*dt/2.*rhox2d(i,j)* &
+                    gti/(sps2%ps(i,j)*1000.*dsigma(kz))
  
             end do
           end do

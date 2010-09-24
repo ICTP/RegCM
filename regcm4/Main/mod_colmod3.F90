@@ -536,9 +536,9 @@
 !-----surface pressure and scaled pressure, from which level pressures
 !-----are computed
       do n = 1 , iym1
-        ps(n) = (atm2%ps(n,jslc)+r8pt)*10.
+        ps(n) = (sps2%ps(n,jslc)+r8pt)*10.
         do nll = 1 , kz
-          pmidm1(n,nll) = (atm2%ps(n,jslc)*a(nll)+r8pt)*10.
+          pmidm1(n,nll) = (sps2%ps(n,jslc)*a(nll)+r8pt)*10.
 !KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
         end do
       end do
@@ -557,7 +557,7 @@
       end do
       do k = 1 , kzp1
         do i = 1 , iym1
-          pintm1(i,k) = (atm2%ps(i,jslc)*sigma(k)+r8pt)*1000.
+          pintm1(i,k) = (sps2%ps(i,jslc)*sigma(k)+r8pt)*1000.
           pilnm1(i,k) = dlog(pintm1(i,k))
         end do
       end do
@@ -567,7 +567,7 @@
 !-----
       do nll = 1 , kz
         do n = 1 , iym1
-          tm1(n,nll) = atm2%t(n,nll,jslc)/atm2%ps(n,jslc)
+          tm1(n,nll) = atm2%t(n,nll,jslc)/sps2%ps(n,jslc)
         end do
       end do
 !-----
@@ -579,7 +579,7 @@
       do nll = 1 , kz
         do n = 1 , iym1
           h2ommr(n,nll) = dmax1(1.D-7, &
-                                atm2%qv(n,nll,jslc)/atm2%ps(n,jslc))
+                                atm2%qv(n,nll,jslc)/sps2%ps(n,jslc))
           qm1(n,nll) = h2ommr(n,nll)
         end do
       end do

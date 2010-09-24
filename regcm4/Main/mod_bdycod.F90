@@ -731,18 +731,18 @@
             if ( veg2d(i,j).le.0.00001 ) then
 #endif
               if (idcsst == 1) then
-                atm1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-                atm2%tg(i,j) = tdum(i,j) + dtskin(i,j)
+                sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
+                sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
               else
-                atm1%tg(i,j) = tdum(i,j)
-                atm2%tg(i,j) = tdum(i,j)
+                sts1%tg(i,j) = tdum(i,j)
+                sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
                 if ( tdum(i,j).le.271.38 ) then
 !                 print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
 !                       & ' t=',tdum(i,j)
-                  atm1%tg(i,j) = 271.38
-                  atm2%tg(i,j) = 271.38
+                  sts1%tg(i,j) = 271.38
+                  sts2%tg(i,j) = 271.38
                   tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
@@ -1025,18 +1025,18 @@
           do i = 1 , iym1
             if ( veg2d(i,j).le.0.00001 ) then
               if (idcsst == 1) then
-                atm1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-                atm2%tg(i,j) = tdum(i,j) + dtskin(i,j)
+                sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
+                sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
               else
-                atm1%tg(i,j) = tdum(i,j)
-                atm2%tg(i,j) = tdum(i,j)
+                sts1%tg(i,j) = tdum(i,j)
+                sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
                 if ( tdum(i,j).le.271.38 ) then
 !                 print *,'Setting ocld2d to ice at i=',i,' j=',j,      &
 !                       & ' t=',tdum(i,j)
-                  atm1%tg(i,j) = 271.38
-                  atm2%tg(i,j) = 271.38
+                  sts1%tg(i,j) = 271.38
+                  sts2%tg(i,j) = 271.38
                   tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
@@ -1103,8 +1103,8 @@
 !-----compute the p* at dot points:
 !
 !=======================================================================
-      call mpi_sendrecv(atm1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
-                      & atm1%ps(1,0),iy,mpi_real8,iwest,1,        &
+      call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
+                      & sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !=======================================================================
@@ -1114,8 +1114,8 @@
 #ifdef MPP1
       do j = jbegin , jendx
         do i = 2 , iym1
-          pdota(i,j) = 0.25*(atm1%ps(i,j)+atm1%ps(i-1,j)+     &
-                             atm1%ps(i,j-1)+atm1%ps(i-1,j-1))
+          sps1%pdot(i,j) = 0.25*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
+                                 sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
         end do
       end do
 #else
@@ -1125,14 +1125,14 @@
       do j = 2 , jxm1
 #endif
         do i = 2 , iym1
-          pdota(i,j) = 0.25*(atm1%ps(i,j)+atm1%ps(i-1,j)+     &
-                             atm1%ps(i,j-1)+atm1%ps(i-1,j-1))
+          sps1%pdot(i,j) = 0.25*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
+                                 sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
         end do
       end do
 #ifdef BAND
       do i = 2 , iym1
-        pdota(i,1) = 0.25*(atm1%ps(i,1)+atm1%ps(i-1,1)+   &
-                           atm1%ps(i,jx)+atm1%ps(i-1,jx))
+        sps1%pdot(i,1) = 0.25*(sps1%ps(i,1)+sps1%ps(i-1,1)+   &
+                               sps1%ps(i,jx)+sps1%ps(i-1,jx))
       enddo
 #endif
 #endif
@@ -1142,12 +1142,13 @@
 #ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
-        if ( myid.eq.0 ) pdota(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
-        if ( myid.eq.nproc-1 ) pdota(i,jendl)                           &
-           & = 0.5*(atm1%ps(i,jendx)+atm1%ps(i-1,jendx))
+        if ( myid.eq.0 )  &
+          sps1%pdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        if ( myid.eq.nproc-1 ) &
+          sps1%pdot(i,jendl) = 0.5*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
 #else
-        pdota(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
-        pdota(i,jx) = 0.5*(atm1%ps(i,jxm1)+atm1%ps(i-1,jxm1))
+        sps1%pdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        sps1%pdot(i,jx) = 0.5*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -1156,21 +1157,21 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        pdota(1,j) = 0.5*(atm1%ps(1,j)+atm1%ps(1,j-1))
-        pdota(iy,j) = 0.5*(atm1%ps(iym1,j)+atm1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
 #else
 #ifdef BAND
       do j = 2 , jx
-        pdota(1,j) = 0.5*(atm1%ps(1,j)+atm1%ps(1,j-1))
-        pdota(iy,j) = 0.5*(atm1%ps(iym1,j)+atm1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
-      pdota(1,1) = 0.5*(atm1%ps(1,1)+atm1%ps(1,jx))
-      pdota(iy,1) = 0.5*(atm1%ps(iym1,1)+atm1%ps(iym1,jx))
+      sps1%pdot(1,1) = 0.5*(sps1%ps(1,1)+sps1%ps(1,jx))
+      sps1%pdot(iy,1) = 0.5*(sps1%ps(iym1,1)+sps1%ps(iym1,jx))
 #else
       do j = 2 , jxm1
-        pdota(1,j) = 0.5*(atm1%ps(1,j)+atm1%ps(1,j-1))
-        pdota(iy,j) = 0.5*(atm1%ps(iym1,j)+atm1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
 #endif
 #endif
@@ -1180,18 +1181,18 @@
 #ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        pdota(1,1) = atm1%ps(1,1)
-        pdota(iy,1) = atm1%ps(iym1,1)
+        sps1%pdot(1,1) = sps1%ps(1,1)
+        sps1%pdot(iy,1) = sps1%ps(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
-        pdota(1,jendl) = atm1%ps(1,jendx)
-        pdota(iy,jendl) = atm1%ps(iym1,jendx)
+        sps1%pdot(1,jendl) = sps1%ps(1,jendx)
+        sps1%pdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
 #else
-      pdota(1,1) = atm1%ps(1,1)
-      pdota(iy,1) = atm1%ps(iym1,1)
-      pdota(1,jx) = atm1%ps(1,jxm1)
-      pdota(iy,jx) = atm1%ps(iym1,jxm1)
+      sps1%pdot(1,1) = sps1%ps(1,1)
+      sps1%pdot(iy,1) = sps1%ps(iym1,1)
+      sps1%pdot(1,jx) = sps1%ps(1,jxm1)
+      sps1%pdot(iy,jx) = sps1%ps(iym1,jxm1)
 #endif
 #endif
 !=======================================================================
@@ -1206,18 +1207,18 @@
         do i = 2 , iym1
 #ifdef MPP1
           if ( myid.eq.0 ) then
-            uj2(i,k) = atm1%u(i,k,2)/pdota(i,2)
-            vj2(i,k) = atm1%v(i,k,2)/pdota(i,2)
+            uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(i,2)
+            vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(i,2)
           end if
           if ( myid.eq.nproc-1 ) then
-            ujlx(i,k) = atm1%u(i,k,jendx)/pdota(i,jendx)
-            vjlx(i,k) = atm1%v(i,k,jendx)/pdota(i,jendx)
+            ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(i,jendx)
+            vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(i,jendx)
           end if
 #else
-          uj2(i,k) = atm1%u(i,k,2)/pdota(i,2)
-          vj2(i,k) = atm1%v(i,k,2)/pdota(i,2)
-          ujlx(i,k) = atm1%u(i,k,jxm1)/pdota(i,jxm1)
-          vjlx(i,k) = atm1%v(i,k,jxm1)/pdota(i,jxm1)
+          uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(i,2)
+          vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(i,2)
+          ujlx(i,k) = atm1%u(i,k,jxm1)/sps1%pdot(i,jxm1)
+          vjlx(i,k) = atm1%v(i,k,jxm1)/sps1%pdot(i,jxm1)
 #endif
         end do
 #endif
@@ -1230,10 +1231,10 @@
 #else
         do j = jbegin , jendx
 #endif
-          ui2(k,j) = atm1%u(2,k,j)/pdota(2,j)
-          vi2(k,j) = atm1%v(2,k,j)/pdota(2,j)
-          uilx(k,j) = atm1%u(iym1,k,j)/pdota(iym1,j)
-          vilx(k,j) = atm1%v(iym1,k,j)/pdota(iym1,j)
+          ui2(k,j) = atm1%u(2,k,j)/sps1%pdot(2,j)
+          vi2(k,j) = atm1%v(2,k,j)/sps1%pdot(2,j)
+          uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(iym1,j)
+          vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(iym1,j)
         end do
 #else
 #ifdef BAND
@@ -1241,10 +1242,10 @@
 #else
         do j = 2 , jxm1
 #endif
-          ui2(k,j) = atm1%u(2,k,j)/pdota(2,j)
-          vi2(k,j) = atm1%v(2,k,j)/pdota(2,j)
-          uilx(k,j) = atm1%u(iym1,k,j)/pdota(iym1,j)
-          vilx(k,j) = atm1%v(iym1,k,j)/pdota(iym1,j)
+          ui2(k,j) = atm1%u(2,k,j)/sps1%pdot(2,j)
+          vi2(k,j) = atm1%v(2,k,j)/sps1%pdot(2,j)
+          uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(iym1,j)
+          vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(iym1,j)
         end do
 #endif
 !
@@ -1265,18 +1266,18 @@
           do i = 1 , iy
 #ifdef MPP1
             if ( myid.eq.0 ) then
-              uj1(i,k) = uwb(i,k,1)/pdota(i,1)
-              vj1(i,k) = vwb(i,k,1)/pdota(i,1)
+              uj1(i,k) = uwb(i,k,1)/sps1%pdot(i,1)
+              vj1(i,k) = vwb(i,k,1)/sps1%pdot(i,1)
             end if
             if ( myid.eq.nproc-1 ) then
-              ujl(i,k) = ueb(i,k,1)/pdota(i,jendl)
-              vjl(i,k) = veb(i,k,1)/pdota(i,jendl)
+              ujl(i,k) = ueb(i,k,1)/sps1%pdot(i,jendl)
+              vjl(i,k) = veb(i,k,1)/sps1%pdot(i,jendl)
             end if
 #else
-            uj1(i,k) = uwb(i,k,1)/pdota(i,1)
-            vj1(i,k) = vwb(i,k,1)/pdota(i,1)
-            ujl(i,k) = ueb(i,k,1)/pdota(i,jx)
-            vjl(i,k) = veb(i,k,1)/pdota(i,jx)
+            uj1(i,k) = uwb(i,k,1)/sps1%pdot(i,1)
+            vj1(i,k) = vwb(i,k,1)/sps1%pdot(i,1)
+            ujl(i,k) = ueb(i,k,1)/sps1%pdot(i,jx)
+            vjl(i,k) = veb(i,k,1)/sps1%pdot(i,jx)
 #endif
           end do
 #endif
@@ -1285,17 +1286,17 @@
 !
 #ifdef MPP1
           do j = 1 , jendl
-            ui1(k,j) = usb(1,k,j)/pdota(1,j)
-            vi1(k,j) = vsb(1,k,j)/pdota(1,j)
-            uil(k,j) = unb(1,k,j)/pdota(iy,j)
-            vil(k,j) = vnb(1,k,j)/pdota(iy,j)
+            ui1(k,j) = usb(1,k,j)/sps1%pdot(1,j)
+            vi1(k,j) = vsb(1,k,j)/sps1%pdot(1,j)
+            uil(k,j) = unb(1,k,j)/sps1%pdot(iy,j)
+            vil(k,j) = vnb(1,k,j)/sps1%pdot(iy,j)
           end do
 #else
           do j = 1 , jx
-            ui1(k,j) = usb(1,k,j)/pdota(1,j)
-            vi1(k,j) = vsb(1,k,j)/pdota(1,j)
-            uil(k,j) = unb(1,k,j)/pdota(iy,j)
-            vil(k,j) = vnb(1,k,j)/pdota(iy,j)
+            ui1(k,j) = usb(1,k,j)/sps1%pdot(1,j)
+            vi1(k,j) = vsb(1,k,j)/sps1%pdot(1,j)
+            uil(k,j) = unb(1,k,j)/sps1%pdot(iy,j)
+            vil(k,j) = vnb(1,k,j)/sps1%pdot(iy,j)
           end do
 #endif
         end do
@@ -1311,18 +1312,18 @@
           do i = 1 , iy
 #ifdef MPP1
             if ( myid.eq.0 ) then
-              uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
-              vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
+              uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/sps1%pdot(i,1)
+              vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/sps1%pdot(i,1)
             end if
             if ( myid.eq.nproc-1 ) then
-              ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jendl)
-              vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jendl)
+              ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/sps1%pdot(i,jendl)
+              vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/sps1%pdot(i,jendl)
             end if
 #else
-            uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/pdota(i,1)
-            vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/pdota(i,1)
-            ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/pdota(i,jx)
-            vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/pdota(i,jx)
+            uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/sps1%pdot(i,1)
+            vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/sps1%pdot(i,1)
+            ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/sps1%pdot(i,jx)
+            vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/sps1%pdot(i,jx)
 #endif
           end do
 #endif
@@ -1331,17 +1332,17 @@
 !
 #ifdef MPP1
           do j = 1 , jendl
-            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
-            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
-            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/sps1%pdot(1,j)
+            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/sps1%pdot(1,j)
+            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/sps1%pdot(iy,j)
+            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/sps1%pdot(iy,j)
           end do
 #else
           do j = 1 , jx
-            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/pdota(1,j)
-            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/pdota(1,j)
-            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/pdota(iy,j)
-            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/pdota(iy,j)
+            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/sps1%pdot(1,j)
+            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/sps1%pdot(1,j)
+            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/sps1%pdot(iy,j)
+            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/sps1%pdot(iy,j)
           end do
 #endif
 !
@@ -1534,13 +1535,13 @@
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) atm2%ps(i,1) = atm1%ps(i,1)
-          if ( myid.eq.nproc-1 ) atm2%ps(i,jendx) = atm1%ps(i,jendx)
+          if ( myid.eq.0 ) sps2%ps(i,1) = sps1%ps(i,1)
+          if ( myid.eq.nproc-1 ) sps2%ps(i,jendx) = sps1%ps(i,jendx)
         end do
 #endif
         do j = jbegin , jendm
-          atm2%ps(1,j) = atm1%ps(1,j)
-          atm2%ps(iym1,j) = atm1%ps(iym1,j)
+          sps2%ps(1,j) = sps1%ps(1,j)
+          sps2%ps(iym1,j) = sps1%ps(iym1,j)
         end do
 !
 !-----for p*u and p*v:
@@ -1654,13 +1655,13 @@
 !.....fixed boundary conditions:
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm1%ps(i,1) = pwb(i,1)
-            if ( myid.eq.nproc-1 ) atm1%ps(i,jendx) = peb(i,1)
+            if ( myid.eq.0 ) sps1%ps(i,1) = pwb(i,1)
+            if ( myid.eq.nproc-1 ) sps1%ps(i,jendx) = peb(i,1)
           end do
 #endif
           do j = jbegin , jendm
-            atm1%ps(1,j) = pss(1,j)
-            atm1%ps(iym1,j) = pnb(1,j)
+            sps1%ps(1,j) = pss(1,j)
+            sps1%ps(iym1,j) = pnb(1,j)
           end do
 !
           do k = 1 , kz
@@ -1689,14 +1690,14 @@
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) atm1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
+          if ( myid.eq.0 ) sps1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
           if ( myid.eq.nproc-1 )  &
-            atm1%ps(i,jendx) = peb(i,1) + dtb*pebt(i,1)
+            sps1%ps(i,jendx) = peb(i,1) + dtb*pebt(i,1)
         end do
 #endif
         do j = jbegin , jendm
-          atm1%ps(1,j) = pss(1,j) + dtb*psbt(1,j)
-          atm1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
+          sps1%ps(1,j) = pss(1,j) + dtb*psbt(1,j)
+          sps1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
         end do
 !
         do k = 1 , kz
@@ -1798,15 +1799,15 @@
 !
           if ( myid.eq.0 ) then
             do i = 1 , iym1
-              qvx1 = atm1%qv(i,k,1)/atm1%ps(i,1)
-              qvx2 = atm1%qv(i,k,2)/atm1%ps(i,2)
+              qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
+              qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
               if ( uavg.ge.0. ) then
                 qvx = qvx1
               else
                 qvx = qvx2
               end if
-              atm1%qv(i,k,1) = qvx*atm1%ps(i,1)
+              atm1%qv(i,k,1) = qvx*sps1%ps(i,1)
             end do
           end if
 !
@@ -1814,15 +1815,15 @@
 !
           if ( myid.eq.nproc-1 ) then
             do i = 1 , iym1
-              qvx1 = atm1%qv(i,k,jendx)/atm1%ps(i,jendx)
-              qvx2 = atm1%qv(i,k,jendm)/atm1%ps(i,jendm)
+              qvx1 = atm1%qv(i,k,jendx)/sps1%ps(i,jendx)
+              qvx2 = atm1%qv(i,k,jendm)/sps1%ps(i,jendm)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
               if ( uavg.lt.0. ) then
                 qvx = qvx1
               else
                 qvx = qvx2
               end if
-              atm1%qv(i,k,jendx) = qvx*atm1%ps(i,jendx)
+              atm1%qv(i,k,jendx) = qvx*sps1%ps(i,jendx)
             end do
           end if
 #endif
@@ -1830,29 +1831,29 @@
 !.....south boundary:
 !
           do j = jbegin , jendm
-            qvx1 = atm1%qv(1,k,j)/atm1%ps(1,j)
-            qvx2 = atm1%qv(2,k,j)/atm1%ps(2,j)
+            qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
+            qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
             if ( vavg.ge.0. ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(1,k,j) = qvx*atm1%ps(1,j)
+            atm1%qv(1,k,j) = qvx*sps1%ps(1,j)
           end do
 !
 !.....north boundary:
 !
           do j = jbegin , jendm
-            qvx1 = atm1%qv(iym1,k,j)/atm1%ps(iym1,j)
-            qvx2 = atm1%qv(iym2,k,j)/atm1%ps(iym2,j)
+            qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
+            qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
             if ( vavg.lt.0. ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(iym1,k,j) = qvx*atm1%ps(iym1,j)
+            atm1%qv(iym1,k,j) = qvx*sps1%ps(iym1,j)
           end do
 !
         end do
@@ -1876,14 +1877,14 @@
 !
         if ( myid.eq.0 ) then
           do i = 1 , iym1
-            qcx2 = atm1%qc(i,k,2)/atm1%ps(i,2)
+            qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
             if ( uavg.ge.0. ) then
               qcx = 0.
             else
               qcx = qcx2
             end if
-            atm1%qc(i,k,1) = qcx*atm1%ps(i,1)
+            atm1%qc(i,k,1) = qcx*sps1%ps(i,1)
           end do
         end if
 !
@@ -1891,14 +1892,14 @@
 !
         if ( myid.eq.nproc-1 ) then
           do i = 1 , iym1
-            qcx2 = atm1%qc(i,k,jendm)/atm1%ps(i,jendm)
+            qcx2 = atm1%qc(i,k,jendm)/sps1%ps(i,jendm)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
             if ( uavg.lt.0. ) then
               qcx = 0.
             else
               qcx = qcx2
             end if
-            atm1%qc(i,k,jendx) = qcx*atm1%ps(i,jendx)
+            atm1%qc(i,k,jendx) = qcx*sps1%ps(i,jendx)
           end do
         end if
 #endif
@@ -1906,27 +1907,27 @@
 !.....south boundary:
 !
         do j = jbegin , jendm
-          qcx2 = atm1%qc(2,k,j)/atm1%ps(2,j)
+          qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
           if ( vavg.ge.0. ) then
             qcx = 0.
           else
             qcx = qcx2
           end if
-          atm1%qc(1,k,j) = qcx*atm1%ps(1,j)
+          atm1%qc(1,k,j) = qcx*sps1%ps(1,j)
         end do
 !
 !.....north boundary:
 !
         do j = jbegin , jendm
-          qcx2 = atm1%qc(iym2,k,j)/atm1%ps(iym2,j)
+          qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
           if ( vavg.lt.0. ) then
             qcx = 0.
           else
             qcx = qcx2
           end if
-          atm1%qc(iym1,k,j) = qcx*atm1%ps(iym1,j)
+          atm1%qc(iym1,k,j) = qcx*sps1%ps(iym1,j)
         end do
 !
       end do
@@ -1944,15 +1945,15 @@
 !
             if ( myid.eq.0 ) then
               do i = 1 , iym1
-                chix1 = chia(i,k,1,itr)/atm1%ps(i,1)
-                chix2 = chia(i,k,2,itr)/atm1%ps(i,2)
+                chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
+                chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
                 uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
                 if ( uavg.ge.0. ) then
                   chix = chix1
                 else
                   chix = chix2
                 end if
-                chia(i,k,1,itr) = chix*atm1%ps(i,1)
+                chia(i,k,1,itr) = chix*sps1%ps(i,1)
               end do
             end if
 !
@@ -1960,15 +1961,15 @@
 !
             if ( myid.eq.nproc-1 ) then
               do i = 1 , iym1
-                chix1 = chia(i,k,jendx,itr)/atm1%ps(i,jendx)
-                chix2 = chia(i,k,jendm,itr)/atm1%ps(i,jendm)
+                chix1 = chia(i,k,jendx,itr)/sps1%ps(i,jendx)
+                chix2 = chia(i,k,jendm,itr)/sps1%ps(i,jendm)
                 uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
                 if ( uavg.lt.0. ) then
                   chix = chix1
                 else
                   chix = chix2
                 end if
-                chia(i,k,jendx,itr) = chix*atm1%ps(i,jendx)
+                chia(i,k,jendx,itr) = chix*sps1%ps(i,jendx)
               end do
             end if
 #endif
@@ -1976,29 +1977,29 @@
 !.....south boundary:
 !
             do j = jbegin , jendm
-              chix1 = chia(1,k,j,itr)/atm1%ps(1,j)
-              chix2 = chia(2,k,j,itr)/atm1%ps(2,j)
+              chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
+              chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
               if ( vavg.ge.0. ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(1,k,j,itr) = chix*atm1%ps(1,j)
+              chia(1,k,j,itr) = chix*sps1%ps(1,j)
             end do
 !
 !.....north boundary:
 !
             do j = jbegin , jendm
-              chix1 = chia(iym1,k,j,itr)/atm1%ps(iym1,j)
-              chix2 = chia(iym2,k,j,itr)/atm1%ps(iym2,j)
+              chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
+              chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
               if ( vavg.lt.0. ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(iym1,k,j,itr) = chix*atm1%ps(iym1,j)
+              chia(iym1,k,j,itr) = chix*sps1%ps(iym1,j)
             end do
           end do
         end do
@@ -2010,8 +2011,8 @@
 !
 #ifndef BAND
         do i = 1 , iym1
-          atm2%ps(i,1) = atm1%ps(i,1)
-          atm2%ps(i,jxm1) = atm1%ps(i,jxm1)
+          sps2%ps(i,1) = sps1%ps(i,1)
+          sps2%ps(i,jxm1) = sps1%ps(i,jxm1)
         end do
 #endif
 #ifdef BAND
@@ -2019,8 +2020,8 @@
 #else
         do j = 2 , jxm2
 #endif
-          atm2%ps(1,j) = atm1%ps(1,j)
-          atm2%ps(iym1,j) = atm1%ps(iym1,j)
+          sps2%ps(1,j) = sps1%ps(1,j)
+          sps2%ps(iym1,j) = sps1%ps(iym1,j)
         end do
 !
 !-----for p*u and p*v:
@@ -2147,8 +2148,8 @@
 !.....fixed boundary conditions:
 #ifndef BAND
           do i = 1 , iym1
-            atm1%ps(i,1) = pwb(i,1)
-            atm1%ps(i,jxm1) = peb(i,1)
+            sps1%ps(i,1) = pwb(i,1)
+            sps1%ps(i,jxm1) = peb(i,1)
           end do
 #endif
 #ifdef BAND
@@ -2156,8 +2157,8 @@
 #else
           do j = 2 , jxm2
 #endif
-            atm1%ps(1,j) = pss(1,j)
-            atm1%ps(iym1,j) = pnb(1,j)
+            sps1%ps(1,j) = pss(1,j)
+            sps1%ps(iym1,j) = pnb(1,j)
           end do
 !
           do k = 1 , kz
@@ -2186,8 +2187,8 @@
 !
 #ifndef BAND
         do i = 1 , iym1
-          atm1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
-          atm1%ps(i,jxm1) = peb(i,1) + dtb*pebt(i,1)
+          sps1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
+          sps1%ps(i,jxm1) = peb(i,1) + dtb*pebt(i,1)
         end do
 #endif
 #ifdef BAND
@@ -2195,8 +2196,8 @@
 #else
         do j = 2 , jxm2
 #endif
-          atm1%ps(1,j) = pss(1,j) + dtb*psbt(1,j)
-          atm1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
+          sps1%ps(1,j) = pss(1,j) + dtb*psbt(1,j)
+          sps1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
         end do
 !
         do k = 1 , kz
@@ -2311,29 +2312,29 @@
 !.....west boundary:
 !
           do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,1)/atm1%ps(i,1)
-            qvx2 = atm1%qv(i,k,2)/atm1%ps(i,2)
+            qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
+            qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
             if ( uavg.ge.0. ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(i,k,1) = qvx*atm1%ps(i,1)
+            atm1%qv(i,k,1) = qvx*sps1%ps(i,1)
           end do
 !
 !.....east boundary:
 !
           do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,jxm1)/atm1%ps(i,jxm1)
-            qvx2 = atm1%qv(i,k,jxm2)/atm1%ps(i,jxm2)
+            qvx1 = atm1%qv(i,k,jxm1)/sps1%ps(i,jxm1)
+            qvx2 = atm1%qv(i,k,jxm2)/sps1%ps(i,jxm2)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
             if ( uavg.lt.0. ) then
               qvx = qvx1
             else
               qvx = qvx2
             end if
-            atm1%qv(i,k,jxm1) = qvx*atm1%ps(i,jxm1)
+            atm1%qv(i,k,jxm1) = qvx*sps1%ps(i,jxm1)
           end do
 #endif
 !
@@ -2343,13 +2344,13 @@
           do j = 1 , jx
             jp1 = j+1
             if(jp1.eq.jx+1) jp1=1
-            qvx1 = atm1%qv(1,k,j)/atm1%ps(1,j)
-            qvx2 = atm1%qv(2,k,j)/atm1%ps(2,j)
+            qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
+            qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
           do j = 2 , jxm2
-            qvx1 = atm1%qv(1,k,j)/atm1%ps(1,j)
-            qvx2 = atm1%qv(2,k,j)/atm1%ps(2,j)
+            qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
+            qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
             if ( vavg.ge.0. ) then
@@ -2357,7 +2358,7 @@
             else
               qvx = qvx2
             end if
-            atm1%qv(1,k,j) = qvx*atm1%ps(1,j)
+            atm1%qv(1,k,j) = qvx*sps1%ps(1,j)
           end do
 !
 !.....north boundary:
@@ -2366,13 +2367,13 @@
           do j = 1 , jx
             jp1 = j+1
             if(jp1.eq.jx+1) jp1=1
-            qvx1 = atm1%qv(iym1,k,j)/atm1%ps(iym1,j)
-            qvx2 = atm1%qv(iym2,k,j)/atm1%ps(iym2,j)
+            qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
+            qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
           do j = 2 , jxm2
-            qvx1 = atm1%qv(iym1,k,j)/atm1%ps(iym1,j)
-            qvx2 = atm1%qv(iym2,k,j)/atm1%ps(iym2,j)
+            qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
+            qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
             if ( vavg.lt.0. ) then
@@ -2380,7 +2381,7 @@
             else
               qvx = qvx2
             end if
-            atm1%qv(iym1,k,j) = qvx*atm1%ps(iym1,j)
+            atm1%qv(iym1,k,j) = qvx*sps1%ps(iym1,j)
           end do
 !
         end do
@@ -2403,27 +2404,27 @@
 !.....west boundary:
 !
         do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,2)/atm1%ps(i,2)
+          qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
           uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
           if ( uavg.ge.0. ) then
             qcx = 0.
           else
             qcx = qcx2
           end if
-          atm1%qc(i,k,1) = qcx*atm1%ps(i,1)
+          atm1%qc(i,k,1) = qcx*sps1%ps(i,1)
         end do
 !
 !.....east boundary:
 !
         do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,jxm2)/atm1%ps(i,jxm2)
+          qcx2 = atm1%qc(i,k,jxm2)/sps1%ps(i,jxm2)
           uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
           if ( uavg.lt.0. ) then
             qcx = 0.
           else
             qcx = qcx2
           end if
-          atm1%qc(i,k,jxm1) = qcx*atm1%ps(i,jxm1)
+          atm1%qc(i,k,jxm1) = qcx*sps1%ps(i,jxm1)
         end do
 #endif
 !
@@ -2433,11 +2434,11 @@
         do j = 1 , jx
           jp1 = j+1
           if(jp1.eq.jx+1) jp1=1
-          qcx2 = atm1%qc(2,k,j)/atm1%ps(2,j)
+          qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
         do j = 2 , jxm2
-          qcx2 = atm1%qc(2,k,j)/atm1%ps(2,j)
+          qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
           if ( vavg.ge.0. ) then
@@ -2445,7 +2446,7 @@
           else
             qcx = qcx2
           end if
-          atm1%qc(1,k,j) = qcx*atm1%ps(1,j)
+          atm1%qc(1,k,j) = qcx*sps1%ps(1,j)
         end do
 !
 !.....north boundary:
@@ -2454,11 +2455,11 @@
         do j = 1 , jx
           jp1 = j+1
           if(jp1.eq.jx+1) jp1=1
-          qcx2 = atm1%qc(iym2,k,j)/atm1%ps(iym2,j)
+          qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
         do j = 2 , jxm2
-          qcx2 = atm1%qc(iym2,k,j)/atm1%ps(iym2,j)
+          qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
           if ( vavg.lt.0. ) then
@@ -2466,7 +2467,7 @@
           else
             qcx = qcx2
           end if
-          atm1%qc(iym1,k,j) = qcx*atm1%ps(iym1,j)
+          atm1%qc(iym1,k,j) = qcx*sps1%ps(iym1,j)
         end do
 !
       end do
@@ -2485,31 +2486,31 @@
  
             do i = 1 , iym1
 !             FAB force to zero inflow conditions
-!             chix1 = chia(i,k,1,itr)/atm1%ps(i,1)
+!             chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
               chix1 = 0. 
-              chix2 = chia(i,k,2,itr)/atm1%ps(i,2)
+              chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
               if ( uavg.ge.0. ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,1,itr) = chix*atm1%ps(i,1)
+              chia(i,k,1,itr) = chix*sps1%ps(i,1)
             end do
 !
 !.....east  boundary:
 !
             do i = 1 , iym1
-!             chix1 = chia(i,k,jxm1,itr)/atm1%ps(i,jxm1)
+!             chix1 = chia(i,k,jxm1,itr)/sps1%ps(i,jxm1)
               chix1 = 0.
-              chix2 = chia(i,k,jxm2,itr)/atm1%ps(i,jxm2)
+              chix2 = chia(i,k,jxm2,itr)/sps1%ps(i,jxm2)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
               if ( uavg.lt.0. ) then
                 chix = chix1
               else
                 chix = chix2
               end if
-              chia(i,k,jxm1,itr) = chix*atm1%ps(i,jxm1)
+              chia(i,k,jxm1,itr) = chix*sps1%ps(i,jxm1)
             end do
 #endif
 !
@@ -2520,13 +2521,13 @@
               jp1 = j+1
               if(jp1.eq.jx+1) jp1=1
               chix1 = 0.
-              chix2 = chia(2,k,j,itr)/atm1%ps(2,j)
+              chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
             do j = 2 , jxm2
-!             chix1 = chia(1,k,j,itr)/atm1%ps(1,j)
+!             chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
               chix1 = 0.
-              chix2 = chia(2,k,j,itr)/atm1%ps(2,j)
+              chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
               if ( vavg.ge.0. ) then
@@ -2534,7 +2535,7 @@
               else
                 chix = chix2
               end if
-              chia(1,k,j,itr) = chix*atm1%ps(1,j)
+              chia(1,k,j,itr) = chix*sps1%ps(1,j)
             end do
 !
 !.....north boundary:
@@ -2543,15 +2544,15 @@
             do j = 1 , jx
               jp1 = j+1
               if(jp1.eq.jx+1) jp1=1
-!             chix1 = chia(iym1,k,j,itr)/atm1%ps(iym1,j)
+!             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix1 = 0.
-              chix2 = chia(iym2,k,j,itr)/atm1%ps(iym2,j)
+              chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
             do j = 2 , jxm2
-!             chix1 = chia(iym1,k,j,itr)/atm1%ps(iym1,j)
+!             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix1 = 0.
-              chix2 = chia(iym2,k,j,itr)/atm1%ps(iym2,j)
+              chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
               if ( vavg.lt.0. ) then
@@ -2559,7 +2560,7 @@
               else
                 chix = chix2
               end if
-              chia(iym1,k,j,itr) = chix*atm1%ps(iym1,j)
+              chia(iym1,k,j,itr) = chix*sps1%ps(iym1,j)
             end do
           end do
         end do

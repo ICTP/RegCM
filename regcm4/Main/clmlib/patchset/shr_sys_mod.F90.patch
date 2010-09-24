@@ -1,0 +1,30 @@
+diff -Naurb 1/shr_sys_mod.F90 2/shr_sys_mod.F90
+--- 1/shr_sys_mod.F90	2010-09-24 22:06:54.000000000 +0200
++++ 2/shr_sys_mod.F90	2010-09-24 22:15:32.000000000 +0200
+@@ -42,7 +42,7 @@
+ #if (defined CRAY) || (defined UNICOSMP)
+    integer(SHR_KIND_IN),external    :: ishell ! function to envoke shell command
+ #endif
+-#if (defined OSF1 || defined SUNOS || (defined LINUX && !defined G95) || (defined LINUX && !defined CATAMOUNT))
++#if (defined OSF1 || defined SUNOS || (defined LINUX && !defined G95) || (defined LINUX && !defined CATAMOUNT && !defined G95))
+    integer(SHR_KIND_IN),external    :: system ! function to envoke shell command
+ #endif
+ 
+@@ -68,7 +68,7 @@
+    rcode=ishell(str)
+ #endif
+ 
+-#if (defined IRIX64 || defined NEC_SX)
++#if (defined IRIX64 || defined NEC_SX || defined LINUX && defined G95)
+    rcode = 0
+    call system(str)
+ #endif
+@@ -77,7 +77,7 @@
+    call system(str,rcode)
+ #endif
+ 
+-#if (defined OSF1 || defined SUNOS || defined LINUX && !defined CATAMOUNT)
++#if (defined OSF1 || defined SUNOS || defined LINUX && !defined CATAMOUNT && !defined G95)
+    rcode = system(str)
+ #endif
+ 

@@ -58,10 +58,15 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine tractend2(j)
+      subroutine tractend2(j,xkc)
       implicit none
 !
-      integer :: j
+      integer , intent(in) :: j
+#ifdef MPP1
+      real(8) , dimension(iy,kz,jxp) :: xkc
+#else
+      real(8) , dimension(iy,kz,jx) :: xkc
+#endif
 !
       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
                & facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
@@ -95,9 +100,9 @@
 !     the unit: rho - kg/m3, wl - g/m3
       do k = 1 , kz
         do i = 2 , iym2
-          rho(i,k) = (atm2%ps(i,j)*a(k)+r8pt)* &
-                      1000./287./atm2%t(i,k,j)*atm2%ps(i,j)
-          wl(i,k) = atm2%qc(i,k,j)/atm2%ps(i,j)*1000.*rho(i,k)
+          rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
+                      1000./287./atm2%t(i,k,j)*sps2%ps(i,j)
+          wl(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)*1000.*rho(i,k)
         end do
       end do
  
@@ -144,7 +149,7 @@
  
 !----horizontal diffusion: initialize scratch vars to 0.
 !       need to compute tracer tendencies due to diffusion
-        call diffu_x(chiten(:,:,j,itr),chib3d,atm2%ps,xkc(:,:,j),j)
+        call diffu_x(chiten(:,:,j,itr),chib3d,sps2%ps,xkc(:,:,j),j)
  
       end do ! end tracer loop
  
@@ -153,7 +158,7 @@
       if ( ichcumtra.eq.2 ) then
         do k = 2 , kz
           do i = 2 , iym2
-            wk(i,k) = (1./atm1%ps(i,j))                                 &
+            wk(i,k) = (1./sps1%ps(i,j))                                 &
                     & *(twt(k,1)*chib(i,k,j,itr)+twt(k,2)*chib(i,k-1,j, &
                     & itr))
  
@@ -243,7 +248,7 @@
               oh1 = 15.E5                                ! molecules/cm3
               if ( coszrs(i).lt.0.001 ) oh1 = oh1*0.01   ! diurnal evolution
  
-              ak0tm = 3.E-31*(atm1%t(i,k,j)/atm1%ps(i,j)/300.)**(-3.3)* &
+              ak0tm = 3.E-31*(atm1%t(i,k,j)/sps1%ps(i,j)/300.)**(-3.3)* &
                       rho(i,k)*2.084E19                  ! k0(T)*[M]
               ak00t = 1.5E-12                            ! K00(T)
               akval = ak0tm/(1.+ak0tm/ak00t)                            &
@@ -275,10 +280,10 @@
           do k = 1 , kz
             do i = 2 , iym2
 !bxq          h2o2mol = 1.e-6 * h2o2conc(i,j,k)
-              chimol = 28.9/64.*chib(i,k,j,iso2)/atm2%ps(i,j) ! kg/kg to mole
-!             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*atm2%ps(i,j)  !
+              chimol = 28.9/64.*chib(i,k,j,iso2)/sps2%ps(i,j) ! kg/kg to mole
+!             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*sps2%ps(i,j)  !
 !             cb*kg/kg do tests, suppose h2o2 always enough
-              concmin(i,k) = chimol*64./28.9*atm2%ps(i,j)     ! cb*kg/kg
+              concmin(i,k) = chimol*64./28.9*sps2%ps(i,j)     ! cb*kg/kg
             end do
           end do
  
@@ -500,10 +505,10 @@
  
           do i = 2 , iym2
             ivegcov(i) = nint(veg2d(i,j))
-            psurf(i) = atm2%ps(i,j)*1000. + r8pt
+            psurf(i) = sps2%ps(i,j)*1000. + r8pt
  
             do k = 1 , kz
-              ttb(i,k) = atm2%t(i,k,j)/atm2%ps(i,j)
+              ttb(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
 !             zza(i,k) = za(i,k,j)
             end do
  
@@ -533,8 +538,8 @@
             end if
  
 !           10 m wind
-            u10 = (atm2%u(i,kz,j)/atm2%ps(i,j))*(1-fact)
-            v10 = (atm2%v(i,kz,j)/atm2%ps(i,j))*(1-fact)
+            u10 = (atm2%u(i,kz,j)/sps2%ps(i,j))*(1-fact)
+            v10 = (atm2%v(i,kz,j)/sps2%ps(i,j))*(1-fact)
             wid10(i) = sqrt(u10**2+v10**2)
 !           wid10(5) = 15
 !           10 m air temperature
@@ -542,8 +547,8 @@
             temp10(i) = ttb(i,kz) - sdeltk2d(i,j)*fact
  
 !           specific  humidity at 10m
-            shu10 = (atm2%qv(i,kz,j)/atm2%ps(i,j))/ &
-                    (1.+atm2%qv(i,kz,j)/atm2%ps(i,j))-sdelqk2d(i,j)*fact
+            shu10 = (atm2%qv(i,kz,j)/sps2%ps(i,j))/ &
+                    (1.+atm2%qv(i,kz,j)/sps2%ps(i,j))-sdelqk2d(i,j)*fact
  
 !           retransform in mixing ratio
  
@@ -566,8 +571,8 @@
 !           friction velocity ( not used fo the moment)
 !
             ustar(i) = sqrt ( sfsta%uvdrag(i,j)             *           &
-           &           sqrt ( (atm2%u(i,kz,j)/atm2%ps(i,j) )**2   +     &
-           &                  (atm2%v(i,kz,j)/atm2%ps(i,j) )**2 ) /     &
+           &           sqrt ( (atm2%u(i,kz,j)/sps2%ps(i,j) )**2   +     &
+           &                  (atm2%v(i,kz,j)/sps2%ps(i,j) )**2 ) /     &
            &                   rho(i,kz) )
  
 !           soil wetness
@@ -593,7 +598,7 @@
               tsurf(i) = ttb(i,kz) - sdeltk2d(i,j)
             else
 !             ocean temperature in this case
-              tsurf(i) = atm2%tg(i,j)
+              tsurf(i) = sts2%tg(i,j)
             end if
  
 !           aborbed solar radiation ( for stb criteria)
@@ -635,7 +640,7 @@
 !         deposition
           do k = 2 , kz
             do i = 2 , iym2
-              wk(i,k) = (1./atm2%ps(i,j))*          &
+              wk(i,k) = (1./sps2%ps(i,j))*          &
                       & (twt(k,1)*chib(i,k,j,itr)+ &
                       &  twt(k,2)*chib(i,k-1,j,itr))
             end do

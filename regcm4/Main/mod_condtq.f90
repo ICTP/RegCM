@@ -69,16 +69,21 @@
                & rh0adj , rhc , satvp
       integer :: i , k
       real(8) , dimension(iy,kz) :: qccs , tmp1 , tmp2 , tmp3
+      real(8) , allocatable , save , dimension(:,:) :: qvcs
+
+      if (.not.allocated(qvcs)) then
+        allocate(qvcs(iy,kz))
+      end if
 !
 !---------------------------------------------------------------------
 !     1.  Compute t, qv, and qc at tau+1 without condensational term
 !---------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
-          tmp3(i,k) = (atm2%t(i,k,j)+dt*tten(i,k,j))/psc(i,j)
-          qvcs(i,k) = dmax1((atm2%qv(i,k,j)+dt*qvten(i,k,j))/psc(i,j),  &
+          tmp3(i,k) = (atm2%t(i,k,j)+dt*aten%t(i,k,j))/psc(i,j)
+          qvcs(i,k) = dmax1((atm2%qv(i,k,j)+dt*aten%qv(i,k,j))/psc(i,j),&
                     & 1.D-30)
-          qccs(i,k) = dmax1((atm2%qc(i,k,j)+dt*qcten(i,k,j))/psc(i,j),  &
+          qccs(i,k) = dmax1((atm2%qc(i,k,j)+dt*aten%qc(i,k,j))/psc(i,j),&
                     & 1.D-30)
         end do
       end do
@@ -118,7 +123,7 @@
           else                                     ! Partial cloud cover
             fccc = 1. - sqrt(1.-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),1.0D0)
-            qvc_cld = dmax1((qsb3d(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),    &
+            qvc_cld = dmax1((qsb3d(i,k,j)+dt*aten%qv(i,k,j)/psc(i,j)),  &
                     & 0.0D0)
             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
             tmp1(i,k) = r1*dqv*fccc        ! grid cell average
@@ -141,9 +146,9 @@
 !---------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
-          qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
-          qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
-          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
+          aten%qv(i,k,j) = aten%qv(i,k,j) - psc(i,j)*tmp2(i,k)
+          aten%qc(i,k,j) = aten%qc(i,k,j) + psc(i,j)*tmp2(i,k)
+          aten%t(i,k,j) = aten%t(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
         end do
       end do
  

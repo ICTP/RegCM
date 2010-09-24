@@ -336,10 +336,10 @@
         end do
         do j = 1 , jendl
           do i = 1 , iy
-            atm1%ps(i,j) = ps0(i,j)
-            atm2%ps(i,j) = ps0(i,j)
-            atm1%tg(i,j) = ts0(i,j)
-            atm2%tg(i,j) = ts0(i,j)
+            sps1%ps(i,j) = ps0(i,j)
+            sps2%ps(i,j) = ps0(i,j)
+            sts1%tg(i,j) = ts0(i,j)
+            sts2%tg(i,j) = ts0(i,j)
           end do
         end do
         if (iseaice == 1) then
@@ -347,8 +347,8 @@
             do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
                 if ( ts0(i,j).le.271.38 ) then
-                  atm1%tg(i,j) = 271.38
-                  atm2%tg(i,j) = 271.38
+                  sts1%tg(i,j) = 271.38
+                  sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
 !                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
@@ -369,7 +369,7 @@
           do k = 1 , kz
             do j = 1 , jendl
               do i = 1 , iy
-                tbase(i,k,j) = ts00 + tlp*dlog((atm1%ps(i,j)*a(k)+r8pt)/100.)
+                tbase(i,k,j) = ts00 + tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
               end do
             end do
           end do
@@ -386,9 +386,9 @@
 !
         do j = 1 , jendx
           do i = 1 , iym1
-            atm1%tg(i,j) = atm1%t(i,kz,j)/atm1%ps(i,j)
-            atm2%tg(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
-            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
+            sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
+            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%zpbl(i,j) = 500.  ! For Zeng Ocean Flux Scheme
           end do
         end do
@@ -498,10 +498,10 @@
         end do
         do j = 1 , jx
           do i = 1 , iy
-            atm1%ps(i,j) = ps0(i,j)
-            atm2%ps(i,j) = ps0(i,j)
-            atm1%tg(i,j) = ts0(i,j)
-            atm2%tg(i,j) = ts0(i,j)
+            sps1%ps(i,j) = ps0(i,j)
+            sps2%ps(i,j) = ps0(i,j)
+            sts1%tg(i,j) = ts0(i,j)
+            sts2%tg(i,j) = ts0(i,j)
           end do
         end do
         if (iseaice == 1) then
@@ -513,8 +513,8 @@
             do i = 1 , iym1
               if ( veg2d(i,j).le.0.00001 ) then
                 if ( ts0(i,j).le.271.38 ) then
-                  atm1%tg(i,j) = 271.38
-                  atm2%tg(i,j) = 271.38
+                  sts1%tg(i,j) = 271.38
+                  sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
 !                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
@@ -536,7 +536,7 @@
             do j = 1 , jx
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                           tlp*dlog((atm1%ps(i,j)*a(k)+r8pt)/100.)
+                           tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
               end do
             end do
           end do
@@ -557,9 +557,9 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            atm1%tg(i,j) = atm1%t(i,kz,j)/atm1%ps(i,j)
-            atm2%tg(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
-            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/atm2%ps(i,j)
+            sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
+            sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
+            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%zpbl(i,j) = 500.
                        ! For Zeng Ocean Flux Scheme
           end do
@@ -602,10 +602,10 @@
 #ifdef MPP1
               do j = 1 , jendx
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = atm1%ps(i,j)*0.0D0
-                  chib(i,k,j,itr) = atm2%ps(i,j)*0.0D0
-!                 chia(i,k,j,itr)=atm1%ps(i,j)*1.e-11
-!                 chib(i,k,j,itr)=atm2%ps(i,j)*1.e-11
+                  chia(i,k,j,itr) = sps1%ps(i,j)*0.0D0
+                  chib(i,k,j,itr) = sps2%ps(i,j)*0.0D0
+!                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
+!                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
                 end do
               end do
 #else
@@ -615,10 +615,10 @@
               do j = 1 , jxm1
 #endif
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = atm1%ps(i,j)*0.0D0
-                  chib(i,k,j,itr) = atm2%ps(i,j)*0.0D0
-!                 chia(i,k,j,itr)=atm1%ps(i,j)*1.e-11
-!                 chib(i,k,j,itr)=atm2%ps(i,j)*1.e-11
+                  chia(i,k,j,itr) = sps1%ps(i,j)*0.0D0
+                  chib(i,k,j,itr) = sps2%ps(i,j)*0.0D0
+!                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
+!                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
                 end do
               end do
 #endif
@@ -778,8 +778,8 @@
             end do
           end do
           do i = 1 , iy
-            atm1%ps(i,j) = sav0(i,kz*4+1,j)
-            atm2%ps(i,j) = sav0(i,kz*4+2,j)
+            sps1%ps(i,j) = sav0(i,kz*4+1,j)
+            sps2%ps(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -811,8 +811,8 @@
             end do
           end do
           do i = 1 , iy
-            atm1%tg(i,j) = sav0(i,kz*4+1,j)
-            atm2%tg(i,j) = sav0(i,kz*4+2,j)
+            sts1%tg(i,j) = sav0(i,kz*4+1,j)
+            sts2%tg(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
         if ( myid.eq.0 ) then

@@ -290,10 +290,10 @@
             end if
 !sol        itex=int(text2d(k,ill,jll))
             itex = iexsol(nlveg)
-            tg2d(k,ill,jll) = atm2%tg(ill,jll)
-            tgb2d(k,ill,jll) = atm2%tg(ill,jll)
-            taf2d(k,ill,jll) = atm2%tg(ill,jll)
-            tlef2d(k,ill,jll) = atm2%tg(ill,jll)
+            tg2d(k,ill,jll) = sts2%tg(ill,jll)
+            tgb2d(k,ill,jll) = sts2%tg(ill,jll)
+            taf2d(k,ill,jll) = sts2%tg(ill,jll)
+            tlef2d(k,ill,jll) = sts2%tg(ill,jll)
 
 !           ******  initialize soil moisture in the 3 layers
             is = nint(satbrt1(k,ill,jll))
@@ -398,7 +398,7 @@
 
         do i = istart, iend
           do n = 1 , ng
-            p1d0(n,i) = (atm2%ps(i,j)+r8pt)*1000.
+            p1d0(n,i) = (sps2%ps(i,j)+r8pt)*1000.
             z1d(n,i) = za(i,k,j)
             ts1d0(n,i) = thx3d(i,k,j)
             qs1d0(n,i) = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
@@ -479,8 +479,8 @@
           sfsta%uvdrag(i,j) = 0.0
           sfsta%hfx(i,j) = 0.0
           sfsta%qfx(i,j) = 0.0
-          atm2%tg(i,j) = 0.0
-          atm1%tg(i,j) = 0.0
+          sts2%tg(i,j) = 0.0
+          sts1%tg(i,j) = 0.0
           sfsta%tgbb(i,j) = 0.0
 !chem2
           ssw2da(i,j) = 0.0
@@ -495,8 +495,8 @@
             sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
             sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
             sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-            atm2%tg(i,j) = atm2%tg(i,j) + tg1d(n,i)
-            atm1%tg(i,j) = atm1%tg(i,j) + tg1d(n,i)
+            sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
+            sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
 !chem2
             ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
             sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
@@ -528,8 +528,8 @@
           sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(ng)
           sfsta%hfx(i,j) = sfsta%hfx(i,j)/float(ng)
           sfsta%qfx(i,j) = sfsta%qfx(i,j)/float(ng)
-          atm2%tg(i,j) = atm2%tg(i,j)/float(ng)
-          atm1%tg(i,j) = atm1%tg(i,j)/float(ng)
+          sts2%tg(i,j) = sts2%tg(i,j)/float(ng)
+          sts1%tg(i,j) = sts1%tg(i,j)/float(ng)
           sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/float(ng)
 !chem2
           ssw2da(i,j) = ssw2da(i,j)/float(ng)
@@ -639,7 +639,7 @@
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+    &
                         & v10m_o(j,i-1)**2))
-          real_4 = (atm2%ps(i,j)+r8pt)*10.
+          real_4 = (sps2%ps(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
 #ifdef BAND
@@ -691,7 +691,7 @@
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**&
                           & 2+v10m_o(j,i-1)**2))
-          real_4 = (atm2%ps(i,j)+r8pt)*10.
+          real_4 = (sps2%ps(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
           u10m_o(j-1,i-1) = 0.0
@@ -742,7 +742,7 @@
           t2mn_o(j-1,i-1) = amin1(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
           w10x_o(j-1,i-1) = amax1(w10x_o(j-1,i-1),sqrt(u10m_o(j-1,i-1)**&
                           & 2+v10m_o(j-1,i-1)**2))
-          real_4 = (atm2%ps(i,j)+r8pt)*10.
+          real_4 = (sps2%ps(i,j)+r8pt)*10.
           psmn_o(j-1,i-1) = amin1(psmn_o(j-1,i-1),real_4)
 #endif
 #endif
@@ -805,7 +805,7 @@
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
             sina_o(j,i-1) = sina2d(i,j)*wpm2
             prcv_o(j,i-1) = prca2d(i,j)*mmpd
-            ps_o(j,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            ps_o(j,i-1) = (sps2%ps(i,j)+r8pt)*10.
             zpbl_o(j,i-1) = sfsta%zpbl(i,j)
  
             tlef_o(j,i-1) = 0.0
@@ -896,7 +896,7 @@
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
             sina_o(j,i-1) = sina2d(i,j)*wpm2
             prcv_o(j,i-1) = prca2d(i,j)*mmpd
-            ps_o(j,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            ps_o(j,i-1) = (sps2%ps(i,j)+r8pt)*10.
             zpbl_o(j,i-1) = sfsta%zpbl(i,j)
 
             tlef_o(j,i-1) = 0.0
@@ -982,7 +982,7 @@
             flwd_o(j-1,i-1) = flwda2d(i,j)*wpm2
             sina_o(j-1,i-1) = sina2d(i,j)*wpm2
             prcv_o(j-1,i-1) = prca2d(i,j)*mmpd
-            ps_o(j-1,i-1) = (atm2%ps(i,j)+r8pt)*10.
+            ps_o(j-1,i-1) = (sps2%ps(i,j)+r8pt)*10.
             zpbl_o(j-1,i-1) = sfsta%zpbl(i,j)
 
             tlef_o(j-1,i-1) = 0.0

@@ -35,6 +35,7 @@ endif
 
 ifeq ($(F90),gfortran)
 F90FLAGS += -fno-range-check
+CPPFLAGS += -DG95
 endif
 
 F90FLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
@@ -103,7 +104,7 @@ shr_alarm_mod.F90 shr_cal_mod.F90 shr_const_mod.F90 shr_date_mod.F90 \
 shr_file_mod.F90 shr_flux_mod.F90 shr_inputinfo_mod.F90 shr_jlcp.c \
 shr_kind_mod.F90 shr_map_mod.F90 shr_mpi_mod.F90 shr_msg_mod.F90 \
 shr_ncio_mod.F90 shr_ncread_mod.F90 shr_orb_mod.F90 shr_stream_mod.F90 \
-shr_string_mod.F90 shr_sys_mod.F90 shr_tInterp_mod.F90 shr_timer_mod.F90 \
+shr_string_mod.F90 shr_tInterp_mod.F90 shr_timer_mod.F90 \
 shr_vmath_fwrap.c shr_vmath_mod.F90 snowdp2lev.F90 spmdGathScatMod.F90 \
 spmdMod.F90 subgridAveMod.F90 subgridMod.F90 subgridRestMod.F90 \
 surfrdMod.F90 system_messages.F90 threadutil.c wrf_error_fatal.F90 \
@@ -121,7 +122,8 @@ $(BSP)/iniTimeConst.F90 $(BSP)/mkarbinitMod.F90 \
 $(BSP)/perf_mod.F90 $(BSP)/restFileMod.F90 $(BSP)/shr_orb_mod.F90 \
 $(BSP)/STATICEcosysDynMod.F90 $(BSP)/subgridMod.F90 \
 $(BSP)/SurfaceAlbedoMod.F90 $(BSP)/surfrdMod.F90 $(BSP)/VOCEmissionMod.F90 \
-$(BSP)/ncdio.F90 BalanceCheckMod.F90 initGridCellsMod.F90 clm_time_manager.F90 \
+$(BSP)/ncdio.F90 $(BSP)/shr_sys_mod.F90 \
+BalanceCheckMod.F90 initGridCellsMod.F90 clm_time_manager.F90 \
 abortutils.F90 Meat.F90 wrf_error_fatal.F90 wrf_message.F90 \
 scam_setlatlonidx.F90 gptl.c gptl_papi.c gptlutil.c f_wrappers.c \
 threadutil.c mkarbinitMod.F90 getdatetime.F90 snowdp2lev.F90 \
@@ -171,6 +173,11 @@ surfrdMod.o: $(BSP)/surfrdMod.F90
 VOCEmissionMod.o: $(BSP)/VOCEmissionMod.F90
 clm_time_manager.o: $(BSP)/clm_time_manager.F90
 ncdio.o: $(BSP)/ncdio.F90
+shr_sys_mod.o: $(BSP)/shr_sys_mod.F90
+
+$(BSP)/shr_sys_mod.F90: $(BSP)/patchset/shr_sys_mod.F90.patch shr_kind_mod.o shr_mpi_mod.o 
+	cp -f $(CLMSRC)/src/csm_share/shr/shr_sys_mod.F90 .
+	patch -p1 -i $(BSP)/patchset/shr_sys_mod.F90.patch
 
 $(BSP)/clm_time_manager.F90: $(BSP)/patchset/clm_time_manager.F90.patch shr_kind_mod.o spmdMod.o ESMF_Mod.o clm_varctl.o abortutils.o ncdio.o misc.h preproc.h
 	cp -f $(CLMSRC)/src/main/clm_time_manager.F90 .
@@ -474,7 +481,6 @@ shr_ncio_mod.o: shr_ncio_mod.F90 shr_string_mod.o shr_sys_mod.o shr_kind_mod.o s
 shr_ncread_mod.o: shr_ncread_mod.F90 shr_string_mod.o shr_sys_mod.o shr_file_mod.o shr_kind_mod.o shr_cal_mod.o 
 shr_stream_mod.o: shr_stream_mod.F90 shr_string_mod.o shr_sys_mod.o shr_kind_mod.o shr_const_mod.o shr_ncread_mod.o 
 shr_string_mod.o: shr_string_mod.F90 shr_sys_mod.o shr_kind_mod.o shr_timer_mod.o shr_cal_mod.o 
-shr_sys_mod.o: shr_sys_mod.F90 shr_kind_mod.o shr_mpi_mod.o 
 shr_tInterp_mod.o: shr_tInterp_mod.F90 shr_sys_mod.o shr_kind_mod.o shr_const_mod.o shr_cal_mod.o 
 shr_timer_mod.o: shr_timer_mod.F90 shr_sys_mod.o shr_kind_mod.o 
 shr_vmath_fwrap.o: shr_vmath_fwrap.c  

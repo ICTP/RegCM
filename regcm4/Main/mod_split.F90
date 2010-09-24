@@ -176,7 +176,7 @@
 #endif
 #endif
         do i = 1 , iym1
-          xps = xps + atm1%ps(i,j)/ijlx
+          xps = xps + sps1%ps(i,j)/ijlx
         end do
       end do
 
@@ -191,7 +191,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(atm1%ps(i,j)*ijlx)
+            tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(sps1%ps(i,j)*ijlx)
           end do
         end do
       end do
@@ -476,7 +476,7 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(atm2%ps(i,j)-pd)
+              eps = eps1*(sps2%ps(i,j)-pd)
               spsav%hstor(i,j,l) = pdlog + eps
             end do
           end do
@@ -494,9 +494,9 @@
 #endif
 #endif
               do i = 1 , iym1
-                eps = eps1*(atm2%ps(i,j)-pd)
+                eps = eps1*(sps2%ps(i,j)-pd)
                 spsav%hstor(i,j,l) = spsav%hstor(i,j,l) + pdlog + &
-                            tau(l,k)*atm2%t(i,k,j)/atm2%ps(i,j) + eps
+                            tau(l,k)*atm2%t(i,k,j)/sps2%ps(i,j) + eps
               end do
             end do
           end do
@@ -561,8 +561,8 @@
 !     satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the
 !     i's.
 #ifdef MPP1
-      call mpi_sendrecv(atm1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
-                      & atm1%ps(1,0),iy,mpi_real8,iwest,1,        &
+      call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
+                      & sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 #ifdef MPP1
@@ -579,20 +579,20 @@
         if(jm1.eq.0) jm1=jx
 #endif
         do i = 2 , iym1
-          psdot(i,j)=0.25*(atm1%ps(i,j)+atm1%ps(i-1,j)+ &
-                           atm1%ps(i,jm1)+atm1%ps(i-1,jm1))
+          psdot(i,j)=0.25*(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
+                           sps1%ps(i,jm1)+sps1%ps(i-1,jm1))
         end do
       end do
 !
 #ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
-        if ( myid.eq.0 ) psdot(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
+        if ( myid.eq.0 ) psdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
         if ( myid.eq.nproc-1 ) psdot(i,jendl)                           &
-           & = 0.5*(atm1%ps(i,jendx)+atm1%ps(i-1,jendx))
+           & = 0.5*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
 #else
-        psdot(i,1) = 0.5*(atm1%ps(i,1)+atm1%ps(i-1,1))
-        psdot(i,jx) = 0.5*(atm1%ps(i,jxm1)+atm1%ps(i-1,jxm1))
+        psdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        psdot(i,jx) = 0.5*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -610,25 +610,25 @@
 #if defined(BAND) && (!defined(MPP1))
         if(jm1.eq.0) jm1=jx
 #endif
-        psdot(1,j) = 0.5*(atm1%ps(1,j)+atm1%ps(1,jm1))
-        psdot(iy,j) = 0.5*(atm1%ps(iym1,j)+atm1%ps(iym1,jm1))
+        psdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,jm1))
+        psdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,jm1))
       end do
 !
 #ifndef BAND
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        psdot(1,1) = atm1%ps(1,1)
-        psdot(iy,1) = atm1%ps(iym1,1)
+        psdot(1,1) = sps1%ps(1,1)
+        psdot(iy,1) = sps1%ps(iym1,1)
       end if
       if ( myid.eq.nproc-1 ) then
-        psdot(1,jendl) = atm1%ps(1,jendx)
-        psdot(iy,jendl) = atm1%ps(iym1,jendx)
+        psdot(1,jendl) = sps1%ps(1,jendx)
+        psdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
 #else
-      psdot(1,1) = atm1%ps(1,1)
-      psdot(iy,1) = atm1%ps(iym1,1)
-      psdot(1,jx) = atm1%ps(1,jxm1)
-      psdot(iy,jx) = atm1%ps(iym1,jxm1)
+      psdot(1,1) = sps1%ps(1,1)
+      psdot(iy,1) = sps1%ps(iym1,1)
+      psdot(1,jx) = sps1%ps(1,jxm1)
+      psdot(iy,jx) = sps1%ps(iym1,jxm1)
 #endif
 #endif
 !
@@ -805,7 +805,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            eps = eps1*(atm1%ps(i,j)-pd)
+            eps = eps1*(sps1%ps(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
           end do
         end do
@@ -822,9 +822,9 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(atm1%ps(i,j)-pd)
+              eps = eps1*(sps1%ps(i,j)-pd)
               delh(i,j,l,3) = delh(i,j,l,3) + pdlog +  &
-                      tau(l,k)*atm1%t(i,k,j)/atm1%ps(i,j) + eps
+                      tau(l,k)*atm1%t(i,k,j)/sps1%ps(i,j) + eps
             end do
           end do
         end do
@@ -858,7 +858,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            eps = eps1*(atm2%ps(i,j)-pd)
+            eps = eps1*(sps2%ps(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
           end do
         end do
@@ -875,9 +875,9 @@
 #endif
 #endif
             do i = 1 , iym1
-              eps = eps1*(atm2%ps(i,j)-pd)
+              eps = eps1*(sps2%ps(i,j)-pd)
               delh(i,j,l,2) = delh(i,j,l,2) + pdlog +  &
-                       tau(l,k)*atm2%t(i,k,j)/atm2%ps(i,j) + eps
+                       tau(l,k)*atm2%t(i,k,j)/sps2%ps(i,j) + eps
             end do
           end do
         end do
@@ -926,8 +926,8 @@
 #endif
 #endif
           do i = 2 , iym2
-            atm1%ps(i,j) = atm1%ps(i,j) - an(l)*ddsum(i,j,l)
-            atm2%ps(i,j) = atm2%ps(i,j) - gnuan*ddsum(i,j,l)
+            sps1%ps(i,j) = sps1%ps(i,j) - an(l)*ddsum(i,j,l)
+            sps2%ps(i,j) = sps2%ps(i,j) - gnuan*ddsum(i,j,l)
           end do
         end do
       end do
@@ -1207,7 +1207,7 @@
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
             delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hhbar(ns) &
-                            & *deld(i,j,ns,n0)/atm1%ps(i,j) +      &
+                            & *deld(i,j,ns,n0)/sps1%ps(i,j) +      &
                                delh(i,j,ns,3)/m2
           end do
         end do
@@ -1375,7 +1375,7 @@
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/m(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hhbar(ns)       &
-                              & *deld(i,j,ns,n1)/atm1%ps(i,j)           &
+                              & *deld(i,j,ns,n1)/sps1%ps(i,j)           &
                               & + delh(i,j,ns,3)/m(ns)
             end do
           end do

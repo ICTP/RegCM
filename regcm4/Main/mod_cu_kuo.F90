@@ -85,13 +85,13 @@
       end do
       do k = 1 , kz
         do i = 1 , iym1
-          qvten(i,k,j) = 0.
+          aten%qv(i,k,j) = 0.
         end do
       end do
 !
 !-----compute the horizontal advection terms:
 !
-      call hadv_x(qvten(:,:,j),qv,dx4,j,1)
+      call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
 !---------------
 !chem2
       if ( ichem.eq.1 ) then
@@ -108,14 +108,14 @@
 !chem2__
 !
 !-----compute the moisture convergence in a column:
-!     at this stage, qvten(i,k,j) only includes horizontal advection.
+!     at this stage, aten%qv(i,k,j) only includes horizontal advection.
 !     sca: is the amount of total moisture convergence
 !
       do i = 2 , iym2
 !
         sca = 0.0
         do k = 1 , kz
-          sca = sca + qvten(i,k,j)*dsigma(k)
+          sca = sca + aten%qv(i,k,j)*dsigma(k)
         end do
 !
 !-----determine if moist convection exists:
@@ -131,9 +131,9 @@
 !
           eqtm = 0.0
           do k = k700 , kz
-            ttp = atm1%t(i,k,j)/atm1%ps(i,j) + pert
-            q = atm1%qv(i,k,j)/atm1%ps(i,j) + perq
-            psg = atm1%ps(i,j)*a(k) + r8pt
+            ttp = atm1%t(i,k,j)/sps1%ps(i,j) + pert
+            q = atm1%qv(i,k,j)/sps1%ps(i,j) + perq
+            psg = sps1%ps(i,j)*a(k) + r8pt
             t1 = ttp*(100./psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt.gt.eqtm ) then
@@ -155,7 +155,7 @@
           tmean = 0.5*(tmax+tlcl)
           dlnp = (gti*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
-          siglcl = (plcl-r8pt)/atm1%ps(i,j)
+          siglcl = (plcl-r8pt)/sps1%ps(i,j)
 !
 !--3--compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
@@ -169,8 +169,8 @@
 !.....kbase is the layer where lcl is located.
 !
           do k = 1 , kbase
-            ttp = atm1%t(i,k,j)/atm1%ps(i,j)
-            psg = atm1%ps(i,j)*a(k) + r8pt
+            ttp = atm1%t(i,k,j)/sps1%ps(i,j)
+            psg = sps1%ps(i,j)*a(k) + r8pt
             es = .611*dexp(19.84659-5418.12/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(100./psg)**rovcp
@@ -228,7 +228,7 @@
               suma = 0.
               sumb = 0.
               arh = 0.
-              psx = atm1%ps(i,j)
+              psx = sps1%ps(i,j)
               do k = 1 , kz
                 qwght(k) = 0.0
               end do
@@ -263,7 +263,7 @@
 !               qteva=',e12.4)
                 apcnt = (1.0-c301)*sca/4.3E-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
-                qvten(i,k,j) = eddyf
+                aten%qv(i,k,j) = eddyf
                 rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dt/2.
               end do
 !
@@ -310,13 +310,13 @@
                         atm1%qv(i,k,j))**qcon(k)
           end if
         end do
-        qvten(i,1,j) = qvten(i,1,j) - qdot(i,2,j)*tmp3(i,2)/dsigma(1)
+        aten%qv(i,1,j) = aten%qv(i,1,j)-qdot(i,2,j)*tmp3(i,2)/dsigma(1)
         do k = 2 , kzm1
-          qvten(i,k,j) = qvten(i,k,j)                                   &
+          aten%qv(i,k,j) = aten%qv(i,k,j)                               &
                        & - (qdot(i,k+1,j)*tmp3(i,k+1)-qdot(i,k,j)       &
                        & *tmp3(i,k))/dsigma(k)
         end do
-        qvten(i,kz,j) = qvten(i,kz,j) + qdot(i,kz,j)*tmp3(i,kz)         &
+        aten%qv(i,kz,j) = aten%qv(i,kz,j) + qdot(i,kz,j)*tmp3(i,kz)     &
                       & /dsigma(kz)
 !
       end do           !end i=2,iym2 loop
@@ -327,8 +327,8 @@
           rswat(i,k,j) = dmax1(rswat(i,k,j),0.D0)
           rsht = rsheat(i,k,j)/tauht
           rswt = rswat(i,k,j)/tauht
-          tten(i,k,j) = tten(i,k,j) + rsht
-          qvten(i,k,j) = qvten(i,k,j) + rswt
+          aten%t(i,k,j) = aten%t(i,k,j) + rsht
+          aten%qv(i,k,j) = aten%qv(i,k,j) + rswt
           rsheat(i,k,j) = rsheat(i,k,j)*(1.-dt/(2.*tauht))
           rswat(i,k,j) = rswat(i,k,j)*(1.-dt/(2.*tauht))
 !bxq if(rsht/psb(i,j).gt..0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
