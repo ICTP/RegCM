@@ -39,6 +39,7 @@
       use mod_diffusion
       use mod_advection
       use mod_diagnosis
+      use mod_slice
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -143,7 +144,7 @@
  
 !----horizontal diffusion: initialize scratch vars to 0.
 !       need to compute tracer tendencies due to diffusion
-        call diffutch(chiten(1,1,j,itr),xkc(1,1,j),itr,j)
+        call diffu_x(chiten(:,:,j,itr),chib3d,atm2%ps,xkc(:,:,j),j)
  
       end do ! end tracer loop
  

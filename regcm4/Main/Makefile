@@ -135,7 +135,7 @@ mod_che_tend.o: mod_che_tend.F90 mod_constants.o mod_bats.o mod_cvaria.o \
                 mod_date.o mod_dust.o mod_main.o mod_mainchem.o mod_message.o \
                 mod_runparams.o mod_pbldim.o mod_pmoist.o mod_rad.o \
                 mod_dynparam.o mod_trachem.o mod_che_semdde.o mod_diffusion.o \
-                mod_advection.o mod_diagnosis.o mod_mppio.o
+                mod_advection.o mod_diagnosis.o mod_mppio.o mod_slice.o
 mod_cldfrac.o: mod_cldfrac.f90 mod_pmoist.o mod_rad.o mod_dynparam.o mod_slice.o
 mod_clm.o: mod_clm.F90 mod_dynparam.o
 mod_colmod3.o: mod_colmod3.F90 mod_constants.o mod_bats.o mod_runparams.o \
@@ -160,8 +160,7 @@ mod_date.o: mod_date.F90 mod_message.o mod_runparams.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.F90 mod_dynparam.o mod_constants.o \
                  mod_runparams.o mod_main.o mod_mppio.o mod_date.o \
                  mod_mainchem.o
-mod_diffusion.o: mod_diffusion.F90 mod_main.o mod_dynparam.o mod_slice.o \
-                 mod_runparams.o
+mod_diffusion.o: mod_diffusion.F90 mod_dynparam.o mod_runparams.o
 mod_drag.o: mod_drag.F90 mod_constants.o mod_bats.o mod_dynparam.o \
             mod_runparams.o
 mod_dust.o: mod_dust.F90 mod_trachem.o mod_dynparam.o mod_constants.o \

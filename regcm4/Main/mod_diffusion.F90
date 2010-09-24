@@ -23,13 +23,10 @@
 !
       use mod_dynparam
       use mod_runparams
-      use mod_slice
-      use mod_main
       use mod_service 
       private
 
-      public :: diffu_u , diffu_v , diffut_t , diffutqv , diffutqc , &
-                diffutch
+      public :: diffu_d , diffu_x
 !
       contains
 !
@@ -42,14 +39,14 @@
 !                                                                     c
 !     xkc     : horizontal diffusion coefficient                      c
 !                                                                     c
-!     j       : j'th slice of variable ubd3d                          c
+!     j       : j'th slice of variable bd3d on dot points             c
 !                                                                     c
 !     ind = 1 : var is already multiplied by map scale factor         c
 !         = 0 : var is "not"   multiplied by map scale factor         c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      subroutine diffu_u(ften,xkc,j,ind)
+      subroutine diffu_d(ften,bd3d,press,mapf,xkc,j,ind)
 !
       implicit none
 !
@@ -57,6 +54,15 @@
 !
       integer :: ind , j
       real(8) , dimension(iy,kz) :: ften , xkc
+#ifdef MPP1
+      real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bd3d
+      real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
+      real(8) , dimension(iy,-1:jxp+2) , intent(in) :: mapf
+#else
+      real(8) , dimension(iy,kz,jx) , intent(in) :: bd3d
+      real(8) , dimension(iy,jx) , intent(in) :: press
+      real(8) , dimension(iy,jx) , intent(in) :: mapf
+#endif
       intent (in) ind , j , xkc
       intent (inout) ften
 !
@@ -65,7 +71,7 @@
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
-      character (len=50) :: subroutine_name='diffu_u'
+      character (len=50) :: subroutine_name='diffu_d'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -86,24 +92,24 @@
       do k = 1 , kz
         do i = 3 , iym1 - 1
           if ( ind.eq.0 ) then
-            ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp2)+ubd3d(i,k,jm2)          &
-                      & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
-                      & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
-                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
-                      & +12.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
+            ften(i,k) = ften(i,k) - xkc(i,k)                  &
+                      & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
+                      & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
+                      & -4.*(bd3d(i,k,jp1)+bd3d(i,k,jm1)      &
+                      & +bd3d(i+1,k,j)+bd3d(i-1,k,j))         &
+                      & +12.*bd3d(i,k,j))*press(i,j)
           else
-            ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
-                      & +ubd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
-                      & ubd3d(i+2,k,j)/mddom%msfd(i+2,j)+            &
-                      & ubd3d(i-2,k,j)/mddom%msfd(i-2,j)             &
-                      & -4.*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
-                      & ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+            &
-                      & ubd3d(i+1,k,j)/mddom%msfd(i+1,j)             &
-                      & +ubd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
-                      & 12.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
-                      & sfsta%pdotb(i,j)
+            ften(i,k) = ften(i,k) - xkc(i,k)                  &
+                      & *c203*(bd3d(i,k,jp2)/mapf(i,jp2)      &
+                      & +bd3d(i,k,jm2)/mapf(i,jm2)+           &
+                      & bd3d(i+2,k,j)/mapf(i+2,j)+            &
+                      & bd3d(i-2,k,j)/mapf(i-2,j)             &
+                      & -4.*(bd3d(i,k,jp1)/mapf(i,jp1)+       &
+                      & bd3d(i,k,jm1)/mapf(i,jm1)+            &
+                      & bd3d(i+1,k,j)/mapf(i+1,j)             &
+                      & +bd3d(i-1,k,j)/mapf(i-1,j))+          &
+                      & 12.*bd3d(i,k,j)/mapf(i,j))*           &
+                      & press(i,j)
           end if
         end do
       end do
@@ -111,18 +117,18 @@
       do i = 2 , iym1 , iym1 - 2
         do k = 1 , kz
           if ( ind.eq.0 ) then
-            ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                      & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
-                      & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
+            ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                      & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
+                      & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
+                      & -4.*bd3d(i,k,j))*press(i,j)
           else
-            ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                      & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                      &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                      &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                      & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
-                      & sfsta%pdotb(i,j)
+            ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                      & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
+                      & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
+                      &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
+                      &  bd3d(i-1,k,j)/mapf(i-1,j)            &
+                      & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                      & press(i,j)
           end if
         end do
       end do
@@ -131,7 +137,7 @@
 !---------------------------------------------------------------------
 !
 #ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
+      if ( (myid.eq.0 .and. j.eq.2) .or.                        &
          & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
 #else
       if (j.eq.2 .or. j.eq.jxm1) then
@@ -141,18 +147,18 @@
         do k = 1 , kz
           do i = 2 , iym1
             if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
-                        & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
+                        & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
+                        & -4.*bd3d(i,k,j))*press(i,j)
             else
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                        & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                        &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                        &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                        & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
+                        & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
+                        &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
+                        &  bd3d(i-1,k,j)/mapf(i-1,j)            &
+                        & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & press(i,j)
             end if
           end do
         end do
@@ -163,24 +169,24 @@
         do k = 1 , kz
           do i = 3 , iym1 - 1
             if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp2)+ubd3d(i,k,jm2)          &
-                        & +ubd3d(i+2,k,j)+ubd3d(i-2,k,j)                &
-                        & -4.*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)            &
-                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j))               &
-                        & +12.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) - xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
+                        & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
+                        & -4.*(bd3d(i,k,jp1)+bd3d(i,k,jm1)      &
+                        & +bd3d(i+1,k,j)+bd3d(i-1,k,j))         &
+                        & +12.*bd3d(i,k,j))*press(i,j)
             else
-              ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
-                        & +ubd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
-                        &  ubd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
-                        &  ubd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
-                        & -4.*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
-                        &      ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+       &
-                        &      ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+       &
-                        &      ubd3d(i-1,k,j)/mddom%msfd(i-1,j))+      &
-                        & 12.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) - xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp2)/mapf(i,jp2)      &
+                        & +bd3d(i,k,jm2)/mapf(i,jm2)+           &
+                        &  bd3d(i+2,k,j)/mapf(i+2,j)+           &
+                        &  bd3d(i-2,k,j)/mapf(i-2,j)            &
+                        & -4.*(bd3d(i,k,jp1)/mapf(i,jp1)+       &
+                        &      bd3d(i,k,jm1)/mapf(i,jm1)+       &
+                        &      bd3d(i+1,k,j)/mapf(i+1,j)+       &
+                        &      bd3d(i-1,k,j)/mapf(i-1,j))+      &
+                        & 12.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & press(i,j)
             end if
           end do
         end do
@@ -188,18 +194,18 @@
         do i = 2 , iym1 , iym1 - 2
           do k = 1 , kz
             if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)+ubd3d(i,k,jm1)          &
-                        & +ubd3d(i+1,k,j)+ubd3d(i-1,k,j)                &
-                        & -4.*ubd3d(i,k,j))*sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
+                        & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
+                        & -4.*bd3d(i,k,j))*press(i,j)
             else
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(ubd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                        & +ubd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                        &  ubd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                        &  ubd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                        & -4.*ubd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
+              ften(i,k) = ften(i,k) + xkc(i,k)                  &
+                        & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
+                        & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
+                        &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
+                        &  bd3d(i-1,k,j)/mapf(i-1,j)            &
+                        & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & press(i,j)
             end if
           end do
         end do
@@ -208,179 +214,28 @@
 !
 #endif
       call time_end(subroutine_name,idindx) 
-      end subroutine diffu_u
+      end subroutine diffu_d
 !
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-      subroutine diffu_v(ften,xkc,j,ind)
-!
-      implicit none
-!
-      integer :: ind , j
-      real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) ind , j , xkc
-      intent (inout) ften
-!
-      integer :: i , k
-      integer :: jm1 , jm2 , jp1, jp2
-!
-      character (len=50) :: subroutine_name='diffu_v'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-      jm1 = j - 1
-      jm2 = j - 2
-      jp1 = j + 1
-      jp2 = j + 2
-#ifdef BAND
-!---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
-#endif
-!
-!.....fourth-order scheme for interior:
-      do k = 1 , kz
-        do i = 3 , iym1 - 1
-          if ( ind.eq.0 ) then
-            ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp2)+vbd3d(i,k,jm2)          &
-                      & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
-                      & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
-                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
-                      & +12.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
-          else
-            ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
-                      & +vbd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
-                      &  vbd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
-                      &  vbd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
-                      & -4.*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
-                      &  vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                      &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                      &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
-                      & 12.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                      & sfsta%pdotb(i,j)
-          end if
-        end do
-      end do
-!......second-order scheme for north and south boundaries:
-      do i = 2 , iym1 , iym1 - 2
-        do k = 1 , kz
-          if ( ind.eq.0 ) then
-            ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                      & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
-                      & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
-          else
-            ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                      & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                      & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                      &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                      &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                      & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                      & sfsta%pdotb(i,j)
-          end if
-        end do
-      end do
-#else
-!---------------------------------------------------------------------
-!
-#ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
-         & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
-#else
-      if (j.eq.2 .or. j.eq.jxm1) then
-#endif
-!
-!......second-order scheme for east or west boundary:
-        do k = 1 , kz
-          do i = 2 , iym1
-            if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
-                        & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
-            else
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                        & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                        & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
-            end if
-          end do
-        end do
-!
-      else
-!
-!.....fourth-order scheme for interior:
-        do k = 1 , kz
-          do i = 3 , iym1 - 1
-            if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp2)+vbd3d(i,k,jm2)          &
-                        & +vbd3d(i+2,k,j)+vbd3d(i-2,k,j)                &
-                        & -4.*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)            &
-                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j))               &
-                        & +12.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
-            else
-              ften(i,k) = ften(i,k) - xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp2)/mddom%msfd(i,jp2)      &
-                        & +vbd3d(i,k,jm2)/mddom%msfd(i,jm2)+           &
-                        &  vbd3d(i+2,k,j)/mddom%msfd(i+2,j)+           &
-                        &  vbd3d(i-2,k,j)/mddom%msfd(i-2,j)            &
-                        & -4.*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)+       &
-                        &  vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j))+          &
-                        & 12.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
-            end if
-          end do
-        end do
-!......second-order scheme for north and south boundaries:
-        do i = 2 , iym1 , iym1 - 2
-          do k = 1 , kz
-            if ( ind.eq.0 ) then
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)+vbd3d(i,k,jm1)          &
-                        & +vbd3d(i+1,k,j)+vbd3d(i-1,k,j)                &
-                        & -4.*vbd3d(i,k,j))*sfsta%pdotb(i,j)
-            else
-              ften(i,k) = ften(i,k) + xkc(i,k)                          &
-                        & *c203*(vbd3d(i,k,jp1)/mddom%msfd(i,jp1)      &
-                        & +vbd3d(i,k,jm1)/mddom%msfd(i,jm1)+           &
-                        &  vbd3d(i+1,k,j)/mddom%msfd(i+1,j)+           &
-                        &  vbd3d(i-1,k,j)/mddom%msfd(i-1,j)            &
-                        & -4.*vbd3d(i,k,j)/mddom%msfd(i,j))*           &
-                        & sfsta%pdotb(i,j)
-            end if
-          end do
-        end do
-!
-      end if
-!
-#endif
-      call time_end(subroutine_name,idindx)
-      end subroutine diffu_v
-!
-      subroutine diffut_t(ften,xkc,j)
+      subroutine diffu_x(ften,bc3d,press,xkc,j)
 !
       implicit none
 !
       integer :: j
       real(8) , dimension(iy,kz) :: ften , xkc
+#ifdef MPP1
+      real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bc3d
+      real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
+#else
+      real(8) , dimension(iy,kz,jx) , intent(in) :: bc3d
+      real(8) , dimension(iy,jx) , intent(in) :: press
+#endif
       intent (in) j , xkc
       intent (inout) ften
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2
 !
-      character (len=50) :: subroutine_name='diffut_t'
+      character (len=50) :: subroutine_name='diffu_x'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -402,25 +257,28 @@
 !......fourth-order scheme for interior:
       do k = 1 , kz
         do i = 3 , iym3
-          ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                    & *c203*(tb3d(i,k,jp2)+tb3d(i,k,jm2)+tb3d(i+2,k,j)&
-                    & +tb3d(i-2,k,j)                                  &
-                    & -4.*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*atm2%ps(i,j)
+          ften(i,k) = ften(i,k) - xkc(i,k) *              &
+                    & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+  &
+                    &       bc3d(i+2,k,j)+bc3d(i-2,k,j)   &
+                    &  -4.*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+  &
+                    &       bc3d(i+1,k,j)+bc3d(i-1,k,j))+ &
+                    &   12.*bc3d(i,k,j))*press(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
       i = 2
       do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
+        ften(i,k) = ften(i,k) + xkc(i,k) *             &
+                  & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                  &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
+                  &   -4.*bc3d(i,k,j))*press(i,j)
       end do
       i = iym2
       do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                  & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
+        ften(i,k) = ften(i,k) + xkc(i,k) *             &
+                  & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                  &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
+                  &   -4.*bc3d(i,k,j))*press(i,j)
       end do
 !
 #else
@@ -436,9 +294,10 @@
 !......second-order scheme for east or west boundary:
         do k = 1 , kz
           do i = 2 , iym2
-            ften(i,k) = ften(i,k) + xkc(i,k)                            &
-                      & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)&
-                      & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
+            ften(i,k) = ften(i,k) + xkc(i,k) *             &
+                      & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                      &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
+                      &   -4.*bc3d(i,k,j))*press(i,j)
           end do
         end do
 !
@@ -447,367 +306,34 @@
 !......fourth-order scheme for interior:
         do k = 1 , kz
           do i = 3 , iym3
-            ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                      & *c203*(tb3d(i,k,jp2)+tb3d(i,k,jm2)+tb3d(i+2,k,j)&
-                      & +tb3d(i-2,k,j)                                  &
-                      & -4.*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                      & +tb3d(i-1,k,j))+12.*tb3d(i,k,j))*atm2%ps(i,j)
+            ften(i,k) = ften(i,k) - xkc(i,k) *             &
+                      & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+ &
+                      &       bc3d(i+2,k,j)+bc3d(i-2,k,j)  &
+                      &  -4.*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                      &       bc3d(i+1,k,j)+bc3d(i-1,k,j)) &
+                      &  +12.*bc3d(i,k,j))*press(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
         i = 2
         do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
+          ften(i,k) = ften(i,k) + xkc(i,k) *             &
+                    & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                    &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
+                    &   -4.*bc3d(i,k,j))*press(i,j)
         end do
         i = iym2
         do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(tb3d(i,k,jp1)+tb3d(i,k,jm1)+tb3d(i+1,k,j)  &
-                    & +tb3d(i-1,k,j)-4.*tb3d(i,k,j))*atm2%ps(i,j)
+          ften(i,k) = ften(i,k) + xkc(i,k) *             &
+                    & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                    &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
+                    &   -4.*bc3d(i,k,j))*press(i,j)
         end do
 !
       end if
 !
 #endif
       call time_end(subroutine_name,idindx)
-      end subroutine diffut_t
-!
-      subroutine diffutqv(ften,xkc,j)
-!
-      implicit none
-!
-      integer :: j
-      real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) j , xkc
-      intent (inout) ften
-!
-      integer :: i , k
-      integer :: jm1 , jm2 , jp1, jp2
-!
-      character (len=50) :: subroutine_name='diffutqv'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-!-----compute the diffusion term for qv:
-!
-      jm1 = j - 1
-      jm2 = j - 2
-      jp1 = j + 1
-      jp2 = j + 2
-#ifdef BAND
-!---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
-#endif
-!
-!......fourth-order scheme for interior:
-      do k = 1 , kz
-        do i = 3 , iym3
-          ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                    & *c203*(qvb3d(i,k,jp2)+qvb3d(i,k,jm2)            &
-                    & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
-                    & -4.*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))                 &
-                    & +12.*qvb3d(i,k,j))*atm2%ps(i,j)
-        end do
-      end do
-!......second-order scheme for north and south boundaries:
-      i = 2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                  & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                  & *atm2%ps(i,j)
-      end do
-      i = iym2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                  & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                  & *atm2%ps(i,j)
-      end do
-#else
-!----------------------------------------------------------------------
-!
-#ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
-         & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
-#else
-      if ( j.eq.2 .or. j.eq.jxm2 ) then
-#endif
-!
-!......second-order scheme for east or west boundary:
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k) + xkc(i,k)                            &
-                      & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)            &
-                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j)) &
-                      & *atm2%ps(i,j)
-          end do
-        end do
-!
-      else
-!
-!......fourth-order scheme for interior:
-        do k = 1 , kz
-          do i = 3 , iym3
-            ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                      & *c203*(qvb3d(i,k,jp2)+qvb3d(i,k,jm2)            &
-                      & +qvb3d(i+2,k,j)+qvb3d(i-2,k,j)                  &
-                      & -4.*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                      & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j))                 &
-                      & +12.*qvb3d(i,k,j))*atm2%ps(i,j)
-          end do
-        end do
-!......second-order scheme for north and south boundaries:
-        i = 2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                    & *atm2%ps(i,j)
-        end do
-        i = iym2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(qvb3d(i,k,jp1)+qvb3d(i,k,jm1)              &
-                    & +qvb3d(i+1,k,j)+qvb3d(i-1,k,j)-4.*qvb3d(i,k,j))   &
-                    & *atm2%ps(i,j)
-        end do
-!
-      end if
-!
-#endif
-      call time_end(subroutine_name,idindx)
-      end subroutine diffutqv
-!
-      subroutine diffutqc(ften,xkc,j)
-!
-      implicit none
-!
-      integer :: j
-      real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) j , xkc
-      intent (inout) ften
-!
-      integer :: i , k
-      integer :: jm1 , jm2 , jp1, jp2
-!
-!-----compute the diffusion term for qc:
-!
-      character (len=50) :: subroutine_name='diffutqc'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-      jm1 = j - 1
-      jm2 = j - 2
-      jp1 = j + 1
-      jp2 = j + 2
-#ifdef BAND
-!---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
-#endif
-!
-!......fourth-order scheme for interior:
-      do k = 1 , kz
-        do i = 3 , iym3
-          ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                    & *c203*(qcb3d(i,k,jp2)+qcb3d(i,k,jm2)            &
-                    & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
-                    & -4.*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))                 &
-                    & +12.*qcb3d(i,k,j))*atm2%ps(i,j)
-        end do
-      end do
-!......second-order scheme for north and south boundaries:
-      i = 2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                  & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                  & *atm2%ps(i,j)
-      end do
-      i = iym2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                  & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                  & *atm2%ps(i,j)
-      end do
-#else
-!----------------------------------------------------------------------
-!
-#ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
-         & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
-#else
-      if ( j.eq.2 .or. j.eq.jxm2 ) then
-#endif
-!
-!......second-order scheme for east or west boundary:
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k) + xkc(i,k)                            &
-                      & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)            &
-                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j)) &
-                      & *atm2%ps(i,j)
-          end do
-        end do
-!
-      else
-!
-!......fourth-order scheme for interior:
-        do k = 1 , kz
-          do i = 3 , iym3
-            ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                      & *c203*(qcb3d(i,k,jp2)+qcb3d(i,k,jm2)            &
-                      & +qcb3d(i+2,k,j)+qcb3d(i-2,k,j)                  &
-                      & -4.*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                      & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j))                 &
-                      & +12.*qcb3d(i,k,j))*atm2%ps(i,j)
-          end do
-        end do
-!......second-order scheme for north and south boundaries:
-        i = 2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                    & *atm2%ps(i,j)
-        end do
-        i = iym2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(qcb3d(i,k,jp1)+qcb3d(i,k,jm1)              &
-                    & +qcb3d(i+1,k,j)+qcb3d(i-1,k,j)-4.*qcb3d(i,k,j))   &
-                    & *atm2%ps(i,j)
-        end do
-!
-      end if
-!
-#endif
-      call time_end(subroutine_name,idindx)
-      end subroutine diffutqc
-!
-      subroutine diffutch(ften,xkc,n,j)
-!
-      implicit none
-!
-      integer :: j , n
-      real(8) , dimension(iy,kz) :: ften , xkc
-      intent (in) j , n , xkc
-      intent (inout) ften
-!
-      integer :: i , k
-      integer :: jm1 , jm2 , jp1, jp2
-!
-!-----compute the diffusion term for chi:
-!
-      character (len=50) :: subroutine_name='diffutch'
-      integer :: idindx=0
-!
-      call time_begin(subroutine_name,idindx)
-      jm1 = j - 1
-      jm2 = j - 2
-      jp1 = j + 1
-      jp2 = j + 2
-#ifdef BAND
-!---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
-#endif
-!
-!......fourth-order scheme for interior:
-      do k = 1 , kz
-        do i = 3 , iym3
-          ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                    & *c203*(chib3d(i,k,jp2,n)+chib3d(i,k,jm2,n)      &
-                    & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
-                    & -4.*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
-                    & +12.*chib3d(i,k,j,n))*atm2%ps(i,j)
-        end do
-      end do
-!......second-order scheme for north and south boundaries:
-      i = 2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                  & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                  & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
-      end do
-      i = iym2
-      do k = 1 , kz
-        ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                  & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                  & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                  & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
-      end do
-#else
-!----------------------------------------------------------------------
-!
-#ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
-         & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
-#else
-      if ( j.eq.2 .or. j.eq.jxm2 ) then
-#endif
-!
-!......second-order scheme for east or west boundary:
-        do k = 1 , kz
-          do i = 2 , iym2
-            ften(i,k) = ften(i,k) + xkc(i,k)                            &
-                      & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)      &
-                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)            &
-                      & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
-          end do
-        end do
-!
-      else
-!
-!......fourth-order scheme for interior:
-        do k = 1 , kz
-          do i = 3 , iym3
-            ften(i,k) = ften(i,k) - xkc(i,k)                            &
-                      & *c203*(chib3d(i,k,jp2,n)+chib3d(i,k,jm2,n)      &
-                      & +chib3d(i+2,k,j,n)+chib3d(i-2,k,j,n)            &
-                      & -4.*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                      & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n))           &
-                      & +12.*chib3d(i,k,j,n))*atm2%ps(i,j)
-          end do
-        end do
-!......second-order scheme for north and south boundaries:
-        i = 2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                    & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
-        end do
-        i = iym2
-        do k = 1 , kz
-          ften(i,k) = ften(i,k) + xkc(i,k)                              &
-                    & *c203*(chib3d(i,k,jp1,n)+chib3d(i,k,jm1,n)        &
-                    & +chib3d(i+1,k,j,n)+chib3d(i-1,k,j,n)              &
-                    & -4.*chib3d(i,k,j,n))*atm2%ps(i,j)
-        end do
-!
-      end if
-!
-#endif
-      call time_end(subroutine_name,idindx) 
-      end subroutine diffutch
+      end subroutine diffu_x
 !
       end module mod_diffusion

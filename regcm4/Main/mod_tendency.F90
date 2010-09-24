@@ -1438,7 +1438,7 @@
             end do
           end do
 !
-          call diffut_t(difft(1,1,j),xkc(1,1,j),j)
+          call diffu_x(difft(:,:,j),tb3d,atm2%ps,xkc(:,:,j),j)
 !
 !**q**compute the moisture tendencies:
 !
@@ -1510,8 +1510,8 @@
 !           completing qvten computation, do not use diffq for other
 
 !           purpose.
-            call diffutqv(diffq(1,1,j),xkc(1,1,j),j)
-            call diffutqc(qcten(1,1,j),xkc(1,1,j),j)
+            call diffu_x(diffq(:,:,j),qvb3d,atm2%ps,xkc(:,:,j),j)
+            call diffu_x(qcten(:,:,j),qcb3d,atm2%ps,xkc(:,:,j),j)
           end if
 !
 !chem2    compute the tracers tendencies
@@ -1882,8 +1882,10 @@
           end do
         end do
 !
-        call diffu_u(difuu(1,1,j),xkc(1,1,j),j,1)
-        call diffu_v(difuv(1,1,j),xkc(1,1,j),j,1)
+        call diffu_d(difuu(:,:,j),ubd3d,sfsta%pdotb,mddom%msfd, &
+                     xkc(:,:,j),j,1)
+        call diffu_d(difuv(:,:,j),vbd3d,sfsta%pdotb,mddom%msfd, &
+                     xkc(:,:,j),j,1)
 !
 !..uv.compute the horizontal advection terms for u and v:
 !
