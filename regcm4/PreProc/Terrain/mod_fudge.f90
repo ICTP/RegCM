@@ -30,7 +30,7 @@
 ! Dummy arguments
 !
       character(*) :: char_lnd
-      logical :: fudge
+      logical :: fudge,there
       integer :: iy , jx
       character(1) , dimension(iy,jx) :: ch
       real(4) , dimension(iy,jx) :: htgrid , lndout
@@ -42,6 +42,12 @@
       integer :: i , j
 !
       if ( fudge ) then
+        inquire (file=char_lnd,exist=there)
+        if ( .not.there ) then
+          print * , 'ERROR OPENING ' , char_lnd ,                          &
+             &' FILE:  FILE DOES NOT EXIST'
+           stop ' IN SUBROUTINE lndfudge'
+        endif 
         open (13,file=char_lnd,form='formatted')
         do i = iy , 1 , -1
           read (13,99001) (ch(i,j),j=1,jx)
@@ -168,7 +174,7 @@
 ! Dummy arguments
 !
       character(*) :: char_tex
-      logical :: fudge
+      logical :: fudge, there
       integer :: iy , jx
       character(1) , dimension(iy,jx) :: ch
       real(4) , dimension(iy,jx) :: htgrid , texout
@@ -181,6 +187,12 @@
       integer :: i , j
 !
       if ( fudge ) then
+         inquire (file=char_tex,exist=there)
+             if ( .not.there ) then
+               print * , 'ERROR OPENING ' , char_tex ,                          &
+               &' FILE:  FILE DOES NOT EXIST'
+               stop ' IN SUBROUTINE texfudge'
+             endif 
         open (13,file=char_tex,form='formatted')
         do i = iy , 1 , -1
           read (13,99001) (ch(i,j),j=1,jx)
