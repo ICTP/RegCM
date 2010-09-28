@@ -485,7 +485,8 @@
  100  continue
       print * , 'ERROR OPENING AEROSOL FILE'
       stop
-      end program aerosol
+
+      contains
 !
       subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx, &
                       & nflds)
@@ -595,3 +596,5 @@
           stop
         end if
       end subroutine check_ok
+
+      end program aerosol

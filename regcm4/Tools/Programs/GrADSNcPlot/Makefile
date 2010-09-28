@@ -4,11 +4,15 @@ include ../../../Makefile.inc
 
 # CPPFLAGS += -DNETCDF4_HDF5
 
-all: GrADSNcPlot
+all: GrADSNcPlot GrADSNcPrepare
 
 OBJS = mod_projections.o mod_constants.o
 
 GrADSNcPlot: GrADSNcPlot.f90 $(OBJS)
+	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
+               $(NETCDFLIB)
+
+GrADSNcPrepare: GrADSNcPrepare.f90 $(OBJS)
 	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
                $(NETCDFLIB)
 
@@ -19,10 +23,10 @@ mod_constants.o: ../../../Config/mod_constants.F90
 mod_projections.o: ../../../PreProc/Terrain/mod_projections.f90 mod_constants.o
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c -o $@ $<
 
-install: GrADSNcPlot
-	@cp GrADSNcPlot $(BINDIR)
-	@chmod 755  $(BINDIR)/GrADSNcPlot
-	@echo "Executable GrADSNcPlot is installed now in $(BINDIR)"
+install: GrADSNcPlot GrADSNcPrepare
+	@cp GrADSNcPlot GrADSNcPrepare $(BINDIR)
+	@chmod 755  $(BINDIR)/GrADSNcPlot GrADSNcPrepare
+	@echo "Executables are installed now in $(BINDIR)"
 
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
@@ -31,7 +35,7 @@ install: GrADSNcPlot
 	$(F90) $(CPPFLAGS) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
 
 clean:
-	rm -f *.mod *.o GrADSNcPlot
+	rm -f *.mod *.o GrADSNcPlot GrADSNcPrepare
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

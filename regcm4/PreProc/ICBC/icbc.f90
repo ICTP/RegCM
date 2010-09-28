@@ -187,34 +187,31 @@
 
         call split_idate(idate, iyr, imon, iday, ihr)
 
-        if ( nnn == 1 .or. .not. lsame_month(idate, iodate) ) then
-          if ( nnn>1 ) then
-            if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
-              call getncep(idate)
-            else if ( dattyp=='NRP2W' ) then
-              call getncepw(idate)
-            else if ( dattyp=='ECMWF' ) then
-              call getecwcp(idate)
-            else if ( dattyp=='ERA40' ) then
-              call getera40(idate)
-            else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
-              call getein15(idate)
-            else if ( dattyp=='EIN75' ) then
-              call getein75(idate)
-            else if ( dattyp=='EIN25' ) then
-              call getein25(idate)
-            else if ( dattyp=='GFS11' ) then
-              call getgfs11(idate)
-            else if ( dattyp=='ERAHI' ) then
-              call geterahi(idate)
-            else if ( dattyp=='EH5OM' ) then
-              call geteh5om(idate)
-            else if ( dattyp=='FVGCM' ) then
-              call getfvgcm(idate)
-            else if ( dattyp=='FNEST' ) then
-              call get_nest(idate,0)
-            else
-            end if
+        if (.not. lsame_month(idate, iodate) ) then
+          if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
+            call getncep(idate)
+          else if ( dattyp=='NRP2W' ) then
+            call getncepw(idate)
+          else if ( dattyp=='ECMWF' ) then
+            call getecwcp(idate)
+          else if ( dattyp=='ERA40' ) then
+            call getera40(idate)
+          else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
+            call getein15(idate)
+          else if ( dattyp=='EIN75' ) then
+            call getein75(idate)
+          else if ( dattyp=='EIN25' ) then
+            call getein25(idate)
+          else if ( dattyp=='GFS11' ) then
+            call getgfs11(idate)
+          else if ( dattyp=='ERAHI' ) then
+            call geterahi(idate)
+          else if ( dattyp=='EH5OM' ) then
+            call geteh5om(idate)
+          else if ( dattyp=='FVGCM' ) then
+            call getfvgcm(idate)
+          else if ( dattyp=='FNEST' ) then
+            call get_nest(idate,0)
           end if
           call newfile(idate)
         end if

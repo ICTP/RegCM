@@ -24,6 +24,8 @@
       use mod_runparams
       use mod_message
       use mod_service
+      use linpack
+      use eispack
       private
 
       public :: allocate_mod_vmodes , vmodes

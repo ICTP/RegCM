@@ -350,7 +350,6 @@
                   sts1%tg(i,j) = 271.38
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
-!                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
                     ocld2d(n,i,j)=2.
                     sice2d(n,i,j)=1000.
@@ -516,7 +515,6 @@
                   sts1%tg(i,j) = 271.38
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
-!                 write(*,*) 'Sea Ice point:', i,j
                   do n = 1, nnsg
                     ocld2d(n,i,j)=2.
                     sice2d(n,i,j)=1000.

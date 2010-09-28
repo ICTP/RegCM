@@ -224,13 +224,14 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
-#ifdef CLM
-          if ( ocld2d(n,i,jslc).gt.0.1 .and. sice1d(n,i).eq.0.0 ) then
-#else
-          if ( ldoc1d(n,i).gt.0.1 .and. sice1d(n,i).eq.0.0 ) then
-#endif
+          if (iseaice == 1) then
+            if ( ocld2d(n,i,jslc).gt.1.5) then
+              ii2 = ii2 + 1
+            end if
+          else if ( ocld2d(n,i,jslc).gt.0.1 .and. &
+                    sice1d(n,i).lt.0.0001 ) then
             ii1 = ii1 + 1
-          else if ( sice1d(n,i).gt.0.0 ) then
+          else if ( sice1d(n,i).ge.0.0001 ) then
             ii2 = ii2 + 1
           else
             ii0 = ii0 + 1

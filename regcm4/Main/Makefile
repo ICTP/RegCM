@@ -305,12 +305,13 @@ mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
                mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o \
                mod_message.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_dynparam.o \
-              mod_constants.o mod_message.o
+              mod_constants.o mod_message.o $(NETLIB)
+	$(F90) $(CPPFLAGS) -Inetlib $(F90FLAGS) -c $<
 ifeq ($(USECLM),1)
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_runparams.o mod_pbldim.o mod_dynparam.o \
                mod_slice.o mod_bdycod.o $(CLMLIB)
-	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
+	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS) -c $<
 else
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_runparams.o mod_pbldim.o mod_dynparam.o \

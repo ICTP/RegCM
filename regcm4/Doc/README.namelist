@@ -220,6 +220,7 @@
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
+ idesseas =          0, ! Model desert seasonal albedo variability
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)

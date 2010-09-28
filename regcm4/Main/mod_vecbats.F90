@@ -232,6 +232,7 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
+!
 #ifdef MPP1
       do jll = 1 , jendx
 #else
@@ -277,12 +278,17 @@
 #endif
         do ill = 1 , iym1
           do k = 1 , nnsg
-            if ( veg2d1(k,ill,jll).lt.0.5 ) then
-              ocld2d(k,ill,jll) = 0.
-            else
-              ocld2d(k,ill,jll) = 1.
+            if ( iseaice .ne. 1 ) then
+              if ( veg2d1(k,ill,jll).lt.0.5 ) then
+                ocld2d(k,ill,jll) = 0.
+              else
+                ocld2d(k,ill,jll) = 1.
+              end if
             end if
             nlveg = nint(veg2d1(k,ill,jll))
+            if (iseaice == 1) then
+              if ( ocld2d(k,ill,jll) > 1.5 ) nlveg = 12
+            end if
             if ( nlveg.eq.0 ) then
               nlveg = 15
             else
@@ -310,7 +316,9 @@
             evpa2d(k,ill,jll) = 0.
             rnos2d(k,ill,jll) = 0.
             rno2d(k,ill,jll) = 0.
-            if ( sice2d(k,ill,jll).gt.0. ) ocld2d(k,ill,jll) = 2.
+            if ( sice2d(k,ill,jll).gt.0. ) then
+              ocld2d(k,ill,jll) = 2.
+            end if
             ircp2d(k,ill,jll) = 0.
           end do
         end do
@@ -439,6 +447,9 @@
             ldoc1d(n,i) = ocld2d(n,i,j)
             ircp1d(n,i) = ircp2d(n,i,j)
             lveg(n,i) = nint(veg2d1(n,i,j))
+            if (iseaice == 1) then
+              if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
+            end if
             amxtem = dmax1(298.-tgb1d(n,i),0.D0)
             sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
             if ( lveg(n,i).eq.0 ) then
@@ -509,7 +520,7 @@
             svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
 !chem2_
             if ( iocnflx.eq.1 .or.                                      &
-               & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5) ) then
+               & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5 ) ) then
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                         &
                         & + ((1.-veg1d(n,i))*tg1d(n,i)**4+veg1d(n,i)    &
                         & *tlef1d(n,i)**4)**0.25
@@ -517,12 +528,12 @@
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
             end if
             if ( ocld2d(n,i,j).lt.0.5 ) then
-              ssw1d(n,i) = -1.E34
-              rsw1d(n,i) = -1.E34
-              tsw1d(n,i) = -1.E34
-              rno1d(n,i) = -1.E34
+              ssw1d(n,i)  = -1.E34
+              rsw1d(n,i)  = -1.E34
+              tsw1d(n,i)  = -1.E34
+              rno1d(n,i)  = -1.E34
               rnos1d(n,i) = -1.E34
-              scv1d(n,i) = -1.E34
+              scv1d(n,i)  = -1.E34
             end if
           end do
           sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(ng)
@@ -1120,7 +1131,25 @@
 !     Short and long wave albedo for sea ice
       sical0 = 0.6D0
       sical1 = 0.4D0
- 
+!
+!     Desert seasonal albedo (are we sure this algo is correct?)
+!     Works for Sahara desert and generally northern emisphere
+!     (China and US).
+!
+      if (idesseas == 1) then
+        if (lmonth==1.or.lmonth==2.or.lmonth==12) then
+          solour(1)=0.12
+        endif        
+        if (lmonth==3.or.lmonth==4.or.lmonth==5) then
+          solour(1)=0.14
+        endif        
+        if (lmonth==6.or.lmonth==7.or.lmonth==8) then
+          solour(1)=0.16
+        endif        
+        if (lmonth==9.or.lmonth==10.or.lmonth==11) then
+          solour(1)=0.14
+        endif
+      end if
 !
 !     In depth, wt is frac of grid square covered by snow;
 !     depends on average snow depth, vegetation, etc.
@@ -1159,14 +1188,14 @@
 !
           if (iseaice == 1) then
             if ( ldoc1d(n,i).gt.1.5 ) then
-              tdiffs=ts1d(n,i)-tzero
-              tdiff=dmax1(tdiffs,0.d0)
-              tdiffs=dmin1(tdiff,20.d0)
-              albgl=sical1-1.1e-2*tdiffs
-              albgs=sical0-2.45e-2*tdiffs
-              albg=fsol1*albgs+fsol2*albgl
-              albgsd=albgs
-              albgld=albgl
+              tdiffs = ts1d(n,i) - tzero
+              tdiff = dmax1(tdiffs,0.d0)
+              tdiffs = dmin1(tdiff,20.d0)
+              albgl = sical1 - 1.1E-2*tdiffs
+              albgs = sical0 - 2.45e-2*tdiffs
+              albg = fsol1*albgs + fsol2*albgl
+              albgsd = albgs
+              albgld = albgl
             end if
           else if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
@@ -1248,7 +1277,6 @@
             albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
             albgld = albgl
-          else
           end if
 ! ===================================================================
 !         4.  correct for snow cover
@@ -1515,8 +1543,7 @@
 ! 
 !     ********* For albedov
 !     **********            This is taken from subroutine interf so that
-!     **********            radiation can be called in tend (not
-!     vecbats).
+!     **********            radiation can be called in tend (not vecbats).
       do i = 2 , iym1
         do n = 1 , nnsg
           ldoc1d(n,i) = ocld2d(n,i,j)
@@ -1524,6 +1551,9 @@
           tgb1d(n,i) = tgb2d(n,i,j)
           ssw1d(n,i) = ssw2d(n,i,j)
           lveg(n,i) = nint(veg2d1(n,i,j))
+          if (iseaice == 1) then
+            if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
+          end if
           amxtem = dmax1(298.-tgb1d(n,i),0.D0)
           sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
           if ( lveg(n,i).eq.0 ) then

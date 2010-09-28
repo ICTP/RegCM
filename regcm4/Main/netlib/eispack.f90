@@ -106,6 +106,106 @@
 ! TRIDIB computes some eigenvalues of a real symmetric tridiagonal matrix.
 ! TSTURM computes some eigenvalues/vectors, real symmetric tridiagonal matrix.
 !
+module eispack
+
+contains
+
+function pythag ( a, b )
+
+!*****************************************************************************80
+!
+!! PYTHAG computes SQRT ( A * A + B * B ) carefully.
+!
+!  Discussion:
+!
+!    The formula
+!
+!      PYTHAG = sqrt ( A * A + B * B )
+!
+!    is reasonably accurate, but can fail if, for example, A**2 is larger 
+!    than the machine overflow.  The formula can lose most of its accuracy 
+!    if the sum of the squares is very large or very small.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    18 October 2009
+!
+!  Author:
+!
+!    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+!    Klema, Moler.
+!    FORTRAN90 version by John Burkardt.
+!
+!  Reference:
+!
+!    James Wilkinson, Christian Reinsch,
+!    Handbook for Automatic Computation,
+!    Volume II, Linear Algebra, Part 2,
+!    Springer, 1971,
+!    ISBN: 0387054146,
+!    LC: QA251.W67.
+!
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+!    Matrix Eigensystem Routines, EISPACK Guide,
+!    Lecture Notes in Computer Science, Volume 6,
+!    Springer Verlag, 1976,
+!    ISBN13: 978-3540075462,
+!    LC: QA193.M37.
+!
+!  Modified:
+!
+!    04 February 2003
+!
+!  Parameters:
+!
+!    Input, real ( kind = 8 ) A, B, the two legs of a right triangle.
+!
+!    Output, real ( kind = 8 ) PYTHAG, the length of the hypotenuse.
+!
+  implicit none
+
+  real    ( kind = 8 ) a
+  real    ( kind = 8 ) b
+  real    ( kind = 8 ) p
+  real    ( kind = 8 ) pythag
+  real    ( kind = 8 ) r
+  real    ( kind = 8 ) s
+  real    ( kind = 8 ) t
+  real    ( kind = 8 ) u
+
+  p = max ( abs ( a ), abs ( b ) )
+
+  if ( p /= 0.0D+00 ) then
+
+    r = ( min ( abs ( a ), abs ( b ) ) / p )**2
+
+    do
+
+      t = 4.0D+00 + r
+
+      if ( t == 4.0D+00 ) then
+        exit
+      end if
+
+      s = r / t
+      u = 1.0D+00 + 2.0D+00 * s
+      p = u * p
+      r = ( s / u )**2 * r
+
+    end do
+
+  end if
+
+  pythag = p
+
+  return
+end function pythag
+
 subroutine bakvec ( n, t, e, m, z, ierr )
 
 !*****************************************************************************80
@@ -216,7 +316,8 @@ subroutine bakvec ( n, t, e, m, z, ierr )
   end do
 
   return
-end
+end subroutine bakvec
+
 subroutine balanc ( n, a, low, igh, xscale )
 
 !*****************************************************************************80
@@ -467,7 +568,8 @@ subroutine balanc ( n, a, low, igh, xscale )
   igh = l
 
   return
-end
+end subroutine balanc
+
 subroutine balbak ( n, low, igh, xscale, m, z )
 
 !*****************************************************************************80
@@ -579,7 +681,8 @@ subroutine balbak ( n, low, igh, xscale, m, z )
   end do
 
   return
-end
+end subroutine balbak
+
 subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 
 !*****************************************************************************80
@@ -933,7 +1036,8 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
   e2(1) = 0.0D+00
 
   return
-end
+end subroutine bandr
+
 subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
 !*****************************************************************************80
@@ -1064,7 +1168,6 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
   integer ( kind = 4 ) mb
   real    ( kind = 8 ) norm
   real    ( kind = 8 ) order
-  real    ( kind = 8 ) pythag
   integer ( kind = 4 ) r
   real    ( kind = 8 ) rv(n*(2*mbw-1))
   real    ( kind = 8 ) rv6(n)
@@ -1392,7 +1495,8 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
   end do
 
   return
-end
+end subroutine bandv
+
 subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 
 !*****************************************************************************80
@@ -1791,7 +1895,8 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
   ub = t2
 
   return
-end
+end subroutine bisect
+
 subroutine bqr ( n, mb, a, t, r, ierr )
 
 !*****************************************************************************80
@@ -1913,7 +2018,6 @@ subroutine bqr ( n, mb, a, t, r, ierr )
   integer ( kind = 4 ) mn
   integer ( kind = 4 ) mz
   integer ( kind = 4 ) ni
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) q
   real    ( kind = 8 ) r
   real    ( kind = 8 ) rv(2*mb*mb+4*mb-3)
@@ -2169,7 +2273,8 @@ subroutine bqr ( n, mb, a, t, r, ierr )
   end do
 
   return
-end
+end subroutine bqr
+
 subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 
 !*****************************************************************************80
@@ -2287,7 +2392,8 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
   end do
 
   return
-end
+end subroutine cbabk2
+
 subroutine cbal ( n, ar, ai, low, igh, xscale )
 
 !*****************************************************************************80
@@ -2538,7 +2644,8 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
   igh = l
 
   return
-end
+end subroutine cbal
+
 subroutine cdiv ( ar, ai, br, bi, cr, ci )
 
 !*****************************************************************************80
@@ -2616,7 +2723,8 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
   ci = ( ais * brs - ars * bis ) / s
 
   return
-end
+end subroutine cdiv
+
 subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 
 !*****************************************************************************80
@@ -2726,7 +2834,8 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
   end if
 
   return
-end
+end subroutine cg
+
 subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 
 !*****************************************************************************80
@@ -2830,7 +2939,8 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
   end if
 
   return
-end
+end subroutine ch
+
 subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 
 !*****************************************************************************80
@@ -2929,7 +3039,6 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
   integer ( kind = 4 ) mp
   real    ( kind = 8 ) norm
   real    ( kind = 8 ) normv
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) rlambd
   real    ( kind = 8 ) rm1(n,n)
   real    ( kind = 8 ) rm2(n,n)
@@ -3183,7 +3292,8 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
  1001 continue
   m = s - 1
   return
-end
+end subroutine cinvit
+
 subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 
 !*****************************************************************************80
@@ -3306,7 +3416,8 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
   end do
 
   return
-end
+end subroutine combak
+
 subroutine comhes ( n, low, igh, ar, ai, ia )
 
 !*****************************************************************************80
@@ -3452,7 +3563,8 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
   end do
 
   return
-end
+end subroutine comhes
+
 subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 
 !*****************************************************************************80
@@ -3743,7 +3855,8 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
   wi(en) = hi(en,en) + ti
   en = enm1
   go to 220
-end
+end subroutine comlr
+
 subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
 !*****************************************************************************80
@@ -4238,7 +4351,8 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
   ierr = en
   return
-end
+end subroutine comlr2
+
 subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
 !*****************************************************************************80
@@ -4323,7 +4437,6 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
   integer ( kind = 4 ) ll
   integer ( kind = 4 ) low
   real    ( kind = 8 ) norm
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) si
   real    ( kind = 8 ) sr
   real    ( kind = 8 ) ti
@@ -4554,7 +4667,8 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
   ierr = en
   return
-end
+end subroutine comqr
+
 subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
 !*****************************************************************************80
@@ -4659,7 +4773,6 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   real    ( kind = 8 ) norm
   real    ( kind = 8 ) orti(igh)
   real    ( kind = 8 ) ortr(igh)
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) si
   real    ( kind = 8 ) sr
   real    ( kind = 8 ) ti
@@ -5120,7 +5233,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
   ierr = en
   return
-end
+end subroutine comqr2
+
 subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 
 !*****************************************************************************80
@@ -5249,7 +5363,8 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
   end do
 
   return
-end
+end subroutine cortb
+
 subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 
 !*****************************************************************************80
@@ -5330,7 +5445,6 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
   integer ( kind = 4 ) m,mp,low
   real    ( kind = 8 ) orti(igh)
   real    ( kind = 8 ) ortr(igh)
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) xscale
 
   la = igh - 1
@@ -5428,7 +5542,8 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
   end do
 
   return
-end
+end subroutine corth
+
 subroutine csroot ( xr, xi, yr, yi )
 
 !*****************************************************************************80
@@ -5482,7 +5597,6 @@ subroutine csroot ( xr, xi, yr, yi )
 !
   implicit none
 
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) s
   real    ( kind = 8 ) ti
   real    ( kind = 8 ) tr
@@ -5506,7 +5620,8 @@ subroutine csroot ( xr, xi, yr, yi )
   end if
 
   return
-end
+end subroutine csroot
+
 subroutine elmbak ( n, low, igh, a, ind, m, z )
 
 !*****************************************************************************80
@@ -5625,7 +5740,8 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
   end do
 
   return
-end
+end subroutine elmbak
+
 subroutine elmhes ( n, low, igh, a, ind )
 
 !*****************************************************************************80
@@ -5760,7 +5876,8 @@ subroutine elmhes ( n, low, igh, a, ind )
   end do
 
   return
-end
+end subroutine elmhes
+
 subroutine eltran ( n, low, igh, a, ind, z )
 
 !*****************************************************************************80
@@ -5875,7 +5992,8 @@ subroutine eltran ( n, low, igh, a, ind, z )
   end do
 
   return
-end
+end subroutine eltran
+
 subroutine figi ( n, t, d, e, e2, ierr )
 
 !*****************************************************************************80
@@ -5992,7 +6110,8 @@ subroutine figi ( n, t, d, e, e2, ierr )
   end do
 
   return
-end
+end subroutine figi
+
 subroutine figi2 ( n, t, d, e, z, ierr )
 
 !*****************************************************************************80
@@ -6115,7 +6234,8 @@ subroutine figi2 ( n, t, d, e, z, ierr )
   end do
 
   return
-end
+end subroutine figi2
+
 subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 
 !*****************************************************************************80
@@ -6490,7 +6610,8 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 
   en = enm2
   go to 60
-end
+end subroutine hqr
+
 subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
 !*****************************************************************************80
@@ -7172,7 +7293,8 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
   end do
 
   return
-end
+end subroutine hqr2
+
 subroutine htrib3 ( n, a, tau, m, zr, zi )
 
 !*****************************************************************************80
@@ -7295,7 +7417,8 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
   end do
 
   return
-end
+end subroutine htrib3
+
 subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 
 !*****************************************************************************80
@@ -7419,7 +7542,8 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
   end do
 
   return
-end
+end subroutine htribk
+
 subroutine htrid3 ( n, a, d, e, e2, tau )
 
 !*****************************************************************************80
@@ -7505,7 +7629,6 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) xscale
   real    ( kind = 8 ) si
   real    ( kind = 8 ) tau(2,n)
@@ -7637,7 +7760,8 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
   end do
 
   return
-end
+end subroutine htrid3
+
 subroutine htridi ( n, ar, ai, d, e, e2, tau )
 
 !*****************************************************************************80
@@ -7722,7 +7846,6 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) xscale
   real    ( kind = 8 ) si
   real    ( kind = 8 ) tau(2,n)
@@ -7854,7 +7977,8 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
   end do
 
   return
-end
+end subroutine htridi
+
 subroutine imtql1 ( n, d, e, ierr )
 
 !*****************************************************************************80
@@ -7932,7 +8056,6 @@ subroutine imtql1 ( n, d, e, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) s
   real    ( kind = 8 ) tst1
@@ -8047,7 +8170,8 @@ subroutine imtql1 ( n, d, e, ierr )
   end do
 
   return
-end
+end subroutine imtql1
+
 subroutine imtql2 ( n, d, e, z, ierr )
 
 !*****************************************************************************80
@@ -8136,7 +8260,6 @@ subroutine imtql2 ( n, d, e, z, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) s
   real    ( kind = 8 ) t(n)
@@ -8271,7 +8394,8 @@ subroutine imtql2 ( n, d, e, z, ierr )
   end do
 
   return
-end
+end subroutine imtql2
+
 subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 
 !*****************************************************************************80
@@ -8364,7 +8488,6 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) rv1(n)
   real    ( kind = 8 ) s
@@ -8492,7 +8615,8 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
   end do
 
   return
-end
+end subroutine imtqlv
+
 subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
 !*****************************************************************************80
@@ -8600,7 +8724,6 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
   real    ( kind = 8 ) norm
   real    ( kind = 8 ) normv
   integer ( kind = 4 ) ns
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) rlambd
   real    ( kind = 8 ) rm1(n,n)
   real    ( kind = 8 ) rv1(n)
@@ -9056,7 +9179,8 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
   m = s - 1 - abs ( ip )
 
   return
-end
+end subroutine invit
+
 subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 
 !*****************************************************************************80
@@ -9161,7 +9285,6 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   integer ( kind = 4 ) ll
   integer ( kind = 4 ) m
   integer ( kind = 4 ) m1
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) rv1(n)
   real    ( kind = 8 ) s
   real    ( kind = 8 ) xscale
@@ -9456,7 +9579,8 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   end do
 
   return
-end
+end subroutine minfit
+
 subroutine ortbak ( n, low, igh, a, ort, m, z )
 
 !*****************************************************************************80
@@ -9564,7 +9688,8 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
   end do
 
   return
-end
+end subroutine ortbak
+
 subroutine orthes ( n, low, igh, a, ort )
 
 !*****************************************************************************80
@@ -9702,7 +9827,8 @@ subroutine orthes ( n, low, igh, a, ort )
   end do
 
   return
-end
+end subroutine orthes
+
 subroutine ortran ( n, low, igh, a, ort, z )
 
 !*****************************************************************************80
@@ -9817,102 +9943,8 @@ subroutine ortran ( n, low, igh, a, ort, z )
   end do
 
   return
-end
-function pythag ( a, b )
+end subroutine ortran
 
-!*****************************************************************************80
-!
-!! PYTHAG computes SQRT ( A * A + B * B ) carefully.
-!
-!  Discussion:
-!
-!    The formula
-!
-!      PYTHAG = sqrt ( A * A + B * B )
-!
-!    is reasonably accurate, but can fail if, for example, A**2 is larger 
-!    than the machine overflow.  The formula can lose most of its accuracy 
-!    if the sum of the squares is very large or very small.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    18 October 2009
-!
-!  Author:
-!
-!    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-!    Klema, Moler.
-!    FORTRAN90 version by John Burkardt.
-!
-!  Reference:
-!
-!    James Wilkinson, Christian Reinsch,
-!    Handbook for Automatic Computation,
-!    Volume II, Linear Algebra, Part 2,
-!    Springer, 1971,
-!    ISBN: 0387054146,
-!    LC: QA251.W67.
-!
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
-!    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-!    Matrix Eigensystem Routines, EISPACK Guide,
-!    Lecture Notes in Computer Science, Volume 6,
-!    Springer Verlag, 1976,
-!    ISBN13: 978-3540075462,
-!    LC: QA193.M37.
-!
-!  Modified:
-!
-!    04 February 2003
-!
-!  Parameters:
-!
-!    Input, real ( kind = 8 ) A, B, the two legs of a right triangle.
-!
-!    Output, real ( kind = 8 ) PYTHAG, the length of the hypotenuse.
-!
-  implicit none
-
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) u
-
-  p = max ( abs ( a ), abs ( b ) )
-
-  if ( p /= 0.0D+00 ) then
-
-    r = ( min ( abs ( a ), abs ( b ) ) / p )**2
-
-    do
-
-      t = 4.0D+00 + r
-
-      if ( t == 4.0D+00 ) then
-        exit
-      end if
-
-      s = r / t
-      u = 1.0D+00 + 2.0D+00 * s
-      p = u * p
-      r = ( s / u )**2 * r
-
-    end do
-
-  end if
-
-  pythag = p
-
-  return
-end
 subroutine qzhes ( n, a, b, matz, z )
 
 !*****************************************************************************80
@@ -10150,7 +10182,8 @@ subroutine qzhes ( n, a, b, matz, z )
   end do
 
   return
-end
+end subroutine qzhes
+
 subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
 !*****************************************************************************80
@@ -10704,7 +10737,8 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
   end if
 
   return
-end
+end subroutine qzit
+
 subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
 !*****************************************************************************80
@@ -11129,7 +11163,8 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
   b(n,1) = epsb
 
   return
-end
+end subroutine qzval
+
 subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
 !*****************************************************************************80
@@ -11526,7 +11561,8 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
   end do
 
   return
-end
+end subroutine qzvec
+
 subroutine r8_swap ( x, y )
 
 !*****************************************************************************80
@@ -11561,7 +11597,8 @@ subroutine r8_swap ( x, y )
   y = z
 
   return
-end
+end subroutine r8_swap
+
 subroutine r8mat_print ( m, n, a, title )
 
 !*****************************************************************************80
@@ -11605,7 +11642,8 @@ subroutine r8mat_print ( m, n, a, title )
   call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
 
   return
-end
+end subroutine r8mat_print
+
 subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
 !*****************************************************************************80
@@ -11708,7 +11746,8 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
   end do
 
   return
-end
+end subroutine r8mat_print_some
+
 subroutine r8vec_print ( n, a, title )
 
 !*****************************************************************************80
@@ -11751,7 +11790,8 @@ subroutine r8vec_print ( n, a, title )
   end do
 
   return
-end
+end subroutine r8vec_print
+
 subroutine r8vec2_print ( n, a1, a2, title )
 
 !*****************************************************************************80
@@ -11809,7 +11849,8 @@ subroutine r8vec2_print ( n, a1, a2, title )
   end if
 
   return
-end
+end subroutine r8vec2_print
+
 subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
 !*****************************************************************************80
@@ -12130,7 +12171,8 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
   ierr = 6 * n + 1
   return
-end
+end subroutine ratqr
+
 subroutine rebak ( n, b, dl, m, z )
 
 !*****************************************************************************80
@@ -12208,7 +12250,8 @@ subroutine rebak ( n, b, dl, m, z )
   end do
 
   return
-end
+end subroutine rebak
+
 subroutine rebakb ( n, b, dl, m, z )
 
 !*****************************************************************************80
@@ -12290,7 +12333,8 @@ subroutine rebakb ( n, b, dl, m, z )
   end do
 
   return
-end
+end subroutine rebakb
+
 subroutine reduc ( n, a, b, dl, ierr )
 
 !*****************************************************************************80
@@ -12454,7 +12498,8 @@ subroutine reduc ( n, a, b, dl, ierr )
   end do
 
   return
-end
+end subroutine reduc
+
 subroutine reduc2 ( n, a, b, dl, ierr )
 
 !*****************************************************************************80
@@ -12621,7 +12666,8 @@ subroutine reduc2 ( n, a, b, dl, ierr )
   end do
 
   return
-end
+end subroutine reduc2
+
 subroutine rg ( n, a, wr, wi, matz, z, ierr )
 
 !*****************************************************************************80
@@ -12732,7 +12778,8 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rg
+
 subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 
 !*****************************************************************************80
@@ -12846,7 +12893,8 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rgg
+
 subroutine rs ( n, a, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -12935,7 +12983,8 @@ subroutine rs ( n, a, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rs
+
 subroutine rsb ( n, mb, a, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13049,7 +13098,8 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rsb
+
 subroutine rsg ( n, a, b, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13170,7 +13220,8 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rsg
+
 subroutine rsgab ( n, a, b, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13274,7 +13325,8 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rsgab
+
 subroutine rsgba ( n, a, b, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13380,7 +13432,8 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rsgba
+
 subroutine rsm ( n, a, w, m, z, ierr )
 
 !*****************************************************************************80
@@ -13484,7 +13537,8 @@ subroutine rsm ( n, a, w, m, z, ierr )
   end if
 
   return
-end
+end subroutine rsm
+
 subroutine rsp ( n, nv, a, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13604,7 +13658,8 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rsp
+
 subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 
 !*****************************************************************************80
@@ -13746,7 +13801,8 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
   end if
 
   return
-end
+end subroutine rspp
+
 subroutine rst ( n, w, e, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13853,7 +13909,8 @@ subroutine rst ( n, w, e, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rst
+
 subroutine rt ( n, a, w, matz, z, ierr )
 
 !*****************************************************************************80
@@ -13973,7 +14030,8 @@ subroutine rt ( n, a, w, matz, z, ierr )
   end if
 
   return
-end
+end subroutine rt
+
 subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 
 !*****************************************************************************80
@@ -14084,7 +14142,6 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
   logical              matu
   logical              matv
   integer ( kind = 4 ) mn
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) rv1(n)
   real    ( kind = 8 ) s
   real    ( kind = 8 ) xscale
@@ -14431,7 +14488,8 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
   end do
 
   return
-end
+end subroutine svd
+
 subroutine timestamp ( )
 
 !*****************************************************************************80
@@ -14512,7 +14570,8 @@ subroutine timestamp ( )
     trim ( month(m) ), d, y, h, ':', n, ':', s, '.', mm, trim ( ampm )
 
   return
-end
+end subroutine timestamp
+
 subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 
 !*****************************************************************************80
@@ -14610,7 +14669,6 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
   real    ( kind = 8 ) norm
   real    ( kind = 8 ) order
   integer ( kind = 4 ) p
-  real    ( kind = 8 ) pythag
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
   real    ( kind = 8 ) rv1(n)
@@ -14871,7 +14929,8 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
   if ( q < n ) go to 100
 
   return
-end
+end subroutine tinvit
+
 subroutine tql1 ( n, d, e, ierr )
 
 !*****************************************************************************80
@@ -14962,7 +15021,6 @@ subroutine tql1 ( n, d, e, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) s
   real    ( kind = 8 ) s2
@@ -15080,7 +15138,8 @@ subroutine tql1 ( n, d, e, ierr )
   end do
 
   return
-end
+end subroutine tql1
+
 subroutine tql2 ( n, d, e, z, ierr )
 
 !*****************************************************************************80
@@ -15179,7 +15238,6 @@ subroutine tql2 ( n, d, e, z, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) s
   real    ( kind = 8 ) s2
@@ -15321,7 +15379,8 @@ subroutine tql2 ( n, d, e, z, ierr )
   end do
 
   return
-end
+end subroutine tql2
+
 subroutine tqlrat ( n, d, e2, ierr )
 
 !*****************************************************************************80
@@ -15407,7 +15466,6 @@ subroutine tqlrat ( n, d, e2, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
   real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
   real    ( kind = 8 ) r
   real    ( kind = 8 ) s
   real    ( kind = 8 ) t
@@ -15521,7 +15579,8 @@ subroutine tqlrat ( n, d, e2, ierr )
   end do
 
   return
-end
+end subroutine tqlrat
+
 subroutine trbak1 ( n, a, e, m, z ) 
 
 !*****************************************************************************80
@@ -15624,7 +15683,8 @@ subroutine trbak1 ( n, a, e, m, z )
   continue
 
   return
-end
+end subroutine trbak1
+
 subroutine trbak3 ( n, nv, a, m, z )
 
 !*****************************************************************************80
@@ -15738,7 +15798,8 @@ subroutine trbak3 ( n, nv, a, m, z )
   end do
 
   return
-end
+end subroutine trbak3
+
 subroutine tred1 ( n, a, d, e, e2 )
 
 !*****************************************************************************80
@@ -15926,7 +15987,8 @@ subroutine tred1 ( n, a, d, e, e2 )
   end do
 
   return
-end
+end subroutine tred1
+
 subroutine tred2 ( n, a, d, e, z )
 
 !*****************************************************************************80
@@ -16143,7 +16205,8 @@ subroutine tred2 ( n, a, d, e, z )
   e(1) = 0.0D+00
 
   return
-end
+end subroutine tred2
+
 subroutine tred3 ( n, nv, a, d, e, e2 )
 
 !*****************************************************************************80
@@ -16318,7 +16381,8 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
   end do
 
   return
-end
+end subroutine tred3
+
 subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 
 !*****************************************************************************80
@@ -16774,7 +16838,8 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   lb = t1
   ub = t2
   return
-end
+end subroutine tridib
+
 subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
 !*****************************************************************************80
@@ -16892,7 +16957,6 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   integer ( kind = 4 ) m2
   real    ( kind = 8 ) norm
   integer ( kind = 4 ) p
-  real    ( kind = 8 ) pythag
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
   real    ( kind = 8 ) rv1(n)
@@ -17318,4 +17382,6 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   ub = t2
 
   return
-end
+end subroutine tsturm
+
+end module eispack

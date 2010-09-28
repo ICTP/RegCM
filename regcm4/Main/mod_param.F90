@@ -122,7 +122,8 @@
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
-      & medium_nudge, low_nudge , scenario , idcsst , iseaice
+      & medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
+      & idesseas
 !chem2_
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -291,6 +292,7 @@
       scenario = 'A1B'
       idcsst = 0
       iseaice = 0
+      idesseas = 0
       high_nudge = 3 
       medium_nudge=2
       low_nudge=1   
@@ -455,6 +457,7 @@
       call mpi_bcast(scenario,3,mpi_character,0,mpi_comm_world,ierr)
       call mpi_bcast(idcsst,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iseaice,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(idesseas,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -790,6 +793,9 @@
       call say 
       write  (aline,'(a,i2)') ' Use sea ice effect '// &
                               '(0=no,1=yes):  iseaice =' , iseaice 
+      call say
+      write  (aline,'(a,i2)') ' Use desert seasonal effect '// &
+                              '(0=no,1=yes):  idesseas =' , idesseas 
       call say
       write  (aline,'(a,f9.6)') ' Nudge value high range   =', &
                                 high_nudge 

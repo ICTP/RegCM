@@ -287,8 +287,12 @@
         implicit none
         logical :: lsame_month
         integer , intent(in) :: idate1 , idate2
+        integer :: iy1 , im1 , id1 , ih1
+        integer :: iy2 , im2 , id2 , ih2
+        call split_idate(idate2, iy2, im2, id2, ih2)
+        call split_idate(idate1, iy1, im1, id1, ih1)
         lsame_month = .false.
-        if (abs(idate1-idate2) < 10000) lsame_month = .true.
+        if (im2 == im1) lsame_month = .true.
       end function
 
       function imondiff(idate2, idate1)

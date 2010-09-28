@@ -74,6 +74,10 @@
 ! DTRDI computes the determinant and inverse of a real*8 triangular matrix.
 ! DTRSL solves triangular linear systems.
 !
+module linpack
+
+contains
+
 subroutine i_swap ( i, j )
 !
 !*******************************************************************************
@@ -105,7 +109,8 @@ subroutine i_swap ( i, j )
   j = k
 
   return
-end
+end subroutine i_swap
+
 function isamax ( n, x, incx )
 !
 !*******************************************************************************
@@ -150,8 +155,8 @@ function isamax ( n, x, incx )
   integer isamax
   integer ix
   integer n
-  real(8) samax
   real(8) x(*)
+  real(8) samax
 !
   if ( n <= 0 ) then
 
@@ -199,7 +204,8 @@ function isamax ( n, x, incx )
   end if
 
   return
-end
+end function isamax
+
 subroutine r_swap ( x, y )
 !
 !*******************************************************************************
@@ -231,7 +237,8 @@ subroutine r_swap ( x, y )
   y = z
 
   return
-end
+end subroutine r_swap
+
 function samax ( n, x, incx )
 !
 !*******************************************************************************
@@ -301,7 +308,8 @@ function samax ( n, x, incx )
   end if
 
   return
-end
+end function samax
+
 function sasum ( n, x, incx )
 !
 !*******************************************************************************
@@ -349,7 +357,8 @@ function sasum ( n, x, incx )
   sasum = sum ( abs ( x(1:1+(n-1)*incx:incx) ) )
 
   return
-end
+end function sasum
+
 subroutine saxpy ( n, sa, x, incx, y, incy )
 !
 !*******************************************************************************
@@ -434,7 +443,8 @@ subroutine saxpy ( n, sa, x, incx, y, incy )
   end if
 
   return
-end
+end subroutine saxpy
+
 subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !*******************************************************************************
@@ -687,7 +697,8 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
   end do
 
   return
-end
+end subroutine schdc
+
 subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !*******************************************************************************
@@ -805,7 +816,6 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
   real(8) rho(nz)
   real(8) s(p)
   real(8) scale
-  real(8) snrm2
   real(8) t
   real(8) x(p)
   real(8) xx
@@ -879,7 +889,8 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
   end do
 
   return
-end
+end subroutine schdd
+
 subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !
 !*******************************************************************************
@@ -1133,7 +1144,8 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
   end if
 
   return
-end
+end subroutine schex
+
 subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !
 !*******************************************************************************
@@ -1277,7 +1289,8 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
   end do
 
   return
-end
+end subroutine schud
+
 subroutine scopy ( n, x, incx, y, incy )
 !
 !*******************************************************************************
@@ -1356,7 +1369,8 @@ subroutine scopy ( n, x, incx, y, incy )
   end if
 
   return
-end
+end subroutine scopy
+
 function sdot ( n, x, incx, y, incy )
 !
 !*******************************************************************************
@@ -1449,7 +1463,8 @@ function sdot ( n, x, incx, y, incy )
   end if
 
   return
-end
+end function sdot
+
 subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !*******************************************************************************
@@ -1761,7 +1776,8 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
   end if
 
   return
-end
+end subroutine sgbco
+
 subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !
 !*******************************************************************************
@@ -1842,7 +1858,8 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
   end do
 
   return
-end
+end subroutine sgbdi
+
 subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !*******************************************************************************
@@ -1899,7 +1916,6 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
   integer i0
   integer info
   integer ipvt(n)
-  integer isamax
   integer j
   integer j0
   integer j1
@@ -1993,7 +2009,8 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
   end if
 
   return
-end
+end subroutine sgbfa
+
 subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !
 !*******************************************************************************
@@ -2136,7 +2153,8 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
   end if
 
   return
-end
+end subroutine sgbsl
+
 subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !*******************************************************************************
@@ -2374,7 +2392,8 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
   end if
 
   return
-end
+end subroutine sgeco
+
 subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !
 !*******************************************************************************
@@ -2514,7 +2533,8 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
   end if
 
   return
-end
+end subroutine sgedi
+
 subroutine sgefa ( a, lda, n, ipvt, info )
 !
 !*******************************************************************************
@@ -2563,7 +2583,6 @@ subroutine sgefa ( a, lda, n, ipvt, info )
   real(8) a(lda,n)
   integer info
   integer ipvt(n)
-  integer isamax
   integer j
   integer k
   integer l
@@ -2617,7 +2636,8 @@ subroutine sgefa ( a, lda, n, ipvt, info )
   end if
 
   return
-end
+end subroutine sgefa
+
 subroutine sgesl ( a, lda, n, ipvt, b, job )
 !
 !*******************************************************************************
@@ -2729,7 +2749,8 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
   end if
 
   return
-end
+end subroutine sgesl
+
 subroutine sgtsl ( n, c, d, e, b, info )
 !
 !*******************************************************************************
@@ -2842,7 +2863,8 @@ subroutine sgtsl ( n, c, d, e, b, info )
   end if
 
   return
-end
+end subroutine sgtsl
+
 function snrm2 ( n, x, incx )
 !
 !*******************************************************************************
@@ -2879,7 +2901,6 @@ function snrm2 ( n, x, incx )
   integer incx
   integer ix
   integer n
-  real(8) samax
   real(8) snrm2
   real(8) stemp
   real(8) x(*)
@@ -2918,7 +2939,8 @@ function snrm2 ( n, x, incx )
   end if
 
   return
-end
+end function snrm2
+
 subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !*******************************************************************************
@@ -3211,7 +3233,8 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
   end if
 
   return
-end
+end subroutine spbco
+
 subroutine spbdi ( abd, lda, n, m, det )
 !
 !*******************************************************************************
@@ -3284,7 +3307,8 @@ subroutine spbdi ( abd, lda, n, m, det )
   end do
 
   return
-end
+end subroutine spbdi
+
 subroutine spbfa ( abd, lda, n, m, info )
 !
 !*******************************************************************************
@@ -3352,7 +3376,6 @@ subroutine spbfa ( abd, lda, n, m, info )
   integer k
   integer m
   integer mu
-  real(8) sdot
   real(8) s
   real(8) t
 !
@@ -3386,7 +3409,8 @@ subroutine spbfa ( abd, lda, n, m, info )
   info = 0
 
   return
-end
+end subroutine spbfa
+
 subroutine spbsl ( abd, lda, n, m, b )
 !
 !*******************************************************************************
@@ -3468,7 +3492,8 @@ subroutine spbsl ( abd, lda, n, m, b )
   end do
 
   return
-end
+end subroutine spbsl
+
 subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !*******************************************************************************
@@ -3696,7 +3721,8 @@ subroutine spoco ( a, lda, n, rcond, z, info )
      end if
 
   return
-end
+end subroutine spoco
+
 subroutine spodi ( a, lda, n, det, job )
 !
 !*******************************************************************************
@@ -3824,7 +3850,8 @@ subroutine spodi ( a, lda, n, det, job )
   end if
 
   return
-end
+end subroutine spodi
+
 subroutine spofa ( a, lda, n, info )
 !
 !*******************************************************************************
@@ -3904,7 +3931,8 @@ subroutine spofa ( a, lda, n, info )
   info = 0
 
   return
-end
+end subroutine spofa
+
 subroutine sposl ( a, lda, n, b )
 !
 !*******************************************************************************
@@ -3976,7 +4004,8 @@ subroutine sposl ( a, lda, n, b )
   end do
 
   return
-end
+end subroutine sposl
+
 subroutine sppco ( ap, n, rcond, z, info )
 !
 !*******************************************************************************
@@ -4067,7 +4096,6 @@ subroutine sppco ( ap, n, rcond, z, info )
   integer kp1
   real(8) rcond
   real(8) s
-  real(8) sdot
   real(8) sm
   real(8) t
   real(8) wk
@@ -4238,7 +4266,8 @@ subroutine sppco ( ap, n, rcond, z, info )
      end if
 
   return
-end
+end subroutine sppco
+
 subroutine sppdi ( ap, n, det, job )
 !
 !*******************************************************************************
@@ -4385,7 +4414,8 @@ subroutine sppdi ( ap, n, det, job )
   end if
 
   return
-end
+end subroutine sppdi
+
 subroutine sppfa ( ap, n, info )
 !
 !*******************************************************************************
@@ -4445,7 +4475,6 @@ subroutine sppfa ( ap, n, info )
   integer kj
   integer kk
   real(8) s
-  real(8) sdot
   real(8) t
 !
   info = 0
@@ -4481,7 +4510,8 @@ subroutine sppfa ( ap, n, info )
   end do
 
   return
-end
+end subroutine sppfa
+
 subroutine sppsl ( ap, n, b )
 !
 !*******************************************************************************
@@ -4535,7 +4565,6 @@ subroutine sppsl ( ap, n, b )
   real(8) b(n)
   integer k
   integer kk
-  real(8) sdot
   real(8) t
 !
   kk = 0
@@ -4554,7 +4583,8 @@ subroutine sppsl ( ap, n, b )
   end do
 
   return
-end
+end subroutine sppsl
+
 subroutine sptsl ( n, d, e, b )
 !
 !*******************************************************************************
@@ -4660,7 +4690,8 @@ subroutine sptsl ( n, d, e, b )
   end if
 
   return
-end
+end subroutine sptsl
+
 subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !*******************************************************************************
@@ -4746,8 +4777,6 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
   real(8) nrmxl
   integer pl
   integer pu
-  real(8) sdot
-  real(8) snrm2
   logical swapj
   real(8) t
   real(8) tt
@@ -4898,7 +4927,8 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
   end do
 
   return
-end
+end subroutine sqrdc
+
 subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !
 !*******************************************************************************
@@ -5047,7 +5077,6 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
   real(8) qty(n)
   real(8) qy(n)
   real(8) rsd(n)
-  real(8) sdot
   real(8) t
   real(8) temp
   real(8) y(n)
@@ -5226,7 +5255,8 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
   end if
 
   return
-end
+end subroutine sqrsl
+
 subroutine srot ( n, x, incx, y, incy, c, s )
 !
 !*******************************************************************************
@@ -5310,7 +5340,8 @@ subroutine srot ( n, x, incx, y, incy, c, s )
   end if
 
   return
-end
+end subroutine srot
+
 subroutine srotg ( sa, sb, c, s )
 !
 !*******************************************************************************
@@ -5376,7 +5407,8 @@ subroutine srotg ( sa, sb, c, s )
   sb = z
 
   return
-end
+end subroutine srotg
+
 subroutine sscal ( n, sa, x, incx )
 !
 !*******************************************************************************
@@ -5448,7 +5480,8 @@ subroutine sscal ( n, sa, x, incx )
   end if
 
   return
-end
+end subroutine sscal
+
 subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !*******************************************************************************
@@ -5531,7 +5564,6 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
   integer ks
   real(8) rcond
   real(8) s
-  real(8) sdot
   real(8) ynorm
   real(8) z(n)
 !
@@ -5766,7 +5798,8 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
   end if
 
   return
-end
+end subroutine ssico
+
 subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
 !*******************************************************************************
@@ -5844,7 +5877,6 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   integer kpvt(n)
   integer ks
   integer kstep
-  real(8) sdot
   real(8) t
   real, parameter :: ten = 10.0D+00
   real(8) work(n)
@@ -6020,7 +6052,8 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   end if
 
   return
-end
+end subroutine ssidi
+
 subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !*******************************************************************************
@@ -6088,7 +6121,6 @@ subroutine ssifa ( a, lda, n, kpvt, info )
   integer imax
   integer imaxp1
   integer info
-  integer isamax
   integer j
   integer jj
   integer jmax
@@ -6274,7 +6306,8 @@ subroutine ssifa ( a, lda, n, kpvt, info )
   end do
 
   return
-end
+end subroutine ssifa
+
 subroutine ssisl ( a, lda, n, kpvt, b )
 !
 !*******************************************************************************
@@ -6334,7 +6367,6 @@ subroutine ssisl ( a, lda, n, kpvt, b )
   integer k
   integer kp
   integer kpvt(n)
-  real(8) sdot
 !
 !  Loop backward applying the transformations and D inverse to B.
 !
@@ -6457,7 +6489,8 @@ subroutine ssisl ( a, lda, n, kpvt, b )
   end do
 
   return
-end
+end subroutine ssisl
+
 subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !*******************************************************************************
@@ -6562,7 +6595,6 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
   integer ks
   real(8) rcond
   real(8) s
-  real(8) sdot
   real(8) t
   real(8) ynorm
   real(8) z(n)
@@ -6835,7 +6867,8 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
   end if
 
   return
-end
+end subroutine sspco
+
 subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !*******************************************************************************
@@ -6922,7 +6955,6 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
   integer ksj
   integer kskp1
   integer kstep
-  real(8) sdot
   real(8) t
   real, parameter :: ten = 10.0D+00
   real(8) work(n)
@@ -7125,7 +7157,8 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
   end if
 
   return
-end
+end subroutine sspdi
+
 subroutine sspfa ( ap, n, kpvt, info )
 !
 !*******************************************************************************
@@ -7211,7 +7244,6 @@ subroutine sspfa ( ap, n, kpvt, info )
   integer imj
   integer imk
   integer info
-  integer isamax
   integer j
   integer jj
   integer jk
@@ -7442,7 +7474,8 @@ subroutine sspfa ( ap, n, kpvt, info )
      k = k - kstep
 
   go to 10
-end
+end subroutine sspfa
+
 subroutine sspsl ( ap, n, kpvt, b )
 !
 !*******************************************************************************
@@ -7505,7 +7538,6 @@ subroutine sspsl ( ap, n, kpvt, b )
   integer km1km1
   integer kp
   integer kpvt(n)
-  real(8) sdot
 !
 !  Loop backward applying the transformations and D inverse to B.
 !
@@ -7642,7 +7674,8 @@ subroutine sspsl ( ap, n, kpvt, b )
   end do
 
   return
-end
+end subroutine sspsl
+
 subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !*******************************************************************************
@@ -7762,13 +7795,11 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   integer nrtp1
   real(8) s(*)
   real(8) scale
-  real(8) sdot
   real(8) shift
   real(8) sl
   real(8) sm
   real(8) smm1
   real(8) sn
-  real(8) snrm2
   real(8) t
   real(8) t1
   real(8) test
@@ -8224,7 +8255,8 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   end do
 
   return
-end
+end subroutine ssvdc
+
 subroutine sswap ( n, x, incx, y, incy )
 !
 !*******************************************************************************
@@ -8322,7 +8354,8 @@ subroutine sswap ( n, x, incx, y, incy )
   end if
 
   return
-end
+end subroutine sswap
+
 subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !*******************************************************************************
@@ -8539,7 +8572,8 @@ subroutine strco ( t, ldt, n, rcond, z, job )
   end if
 
   return
-end
+end subroutine strco
+
 subroutine strdi ( t, ldt, n, det, job, info )
 !
 !***********************************************************************
@@ -8692,7 +8726,8 @@ subroutine strdi ( t, ldt, n, det, job, info )
   end if
 
   return
-end
+end subroutine strdi
+
 subroutine strsl ( t, ldt, n, b, job, info )
 !
 !*******************************************************************************
@@ -8751,7 +8786,6 @@ subroutine strsl ( t, ldt, n, b, job, info )
   integer j
   integer jj
   integer job
-  real(8) sdot
   real(8) t(ldt,n)
   real(8) temp
 !
@@ -8829,4 +8863,6 @@ subroutine strsl ( t, ldt, n, b, job, info )
   end if
 
   return
-end
+end subroutine strsl
+
+end module linpack

@@ -295,6 +295,18 @@
           end select
         end subroutine cdumseaice
 
+        subroutine cdumdesseas
+          implicit none
+          select case (idesseas)
+            case(0)
+             write (cdum,'(a)') 'Not active'
+            case(1)
+             write (cdum,'(a)') 'Active'
+            case default 
+             write (cdum,'(a)') 'Unknown or not specified'
+          end select
+        end subroutine cdumdesseas
+
         function ivarname_lookup(ctype,sname)
           implicit none
           integer :: ivarname_lookup
@@ -1311,6 +1323,10 @@
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_seaice_effect' , trim(cdum))
           call check_ok('Error adding global seaice', fterr)
+          call cdumdesseas
+          istatus = nf90_put_att(ncid, nf90_global,  &
+                  'model_seasonal_desert_albedo_effect' , trim(cdum))
+          call check_ok('Error adding global desseas', fterr)
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_simulation_initial_start' , globidate1)
           call check_ok('Error adding global globidate1', fterr)

@@ -321,14 +321,13 @@
         call check_ok(istatus,'Error adding jx units')
 
         ! XLAT
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'xlat', nf90_float, idims(1:2),  &
-                            &  ivar(1), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'xlat', nf90_float, idims(1:2),  &
                             &  ivar(1))
-#endif
         call check_ok(istatus,'Error adding variable xlat')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(1), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on xlat')
+#endif
         istatus = nf90_put_att(incout, ivar(1), 'standard_name',        &
                             &  'latitude')
         call check_ok(istatus,'Error adding xlat standard_name')
@@ -341,14 +340,13 @@
         ! XLAT
 
         ! XLON
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'xlon', nf90_float, idims(1:2),  &
-                            &  ivar(2), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'xlon', nf90_float, idims(1:2),  &
                             &  ivar(2))
-#endif
         call check_ok(istatus,'Error adding variable xlon')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(2), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on xlon')
+#endif
         istatus = nf90_put_att(incout, ivar(2), 'standard_name',        &
                             &  'longitude')
         call check_ok(istatus,'Error adding xlon standard_name')
@@ -361,14 +359,13 @@
         ! XLON
 
         ! DLAT
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'dlat', nf90_float, idims(1:2),  &
-                            &  ivar(3), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'dlat', nf90_float, idims(1:2),  &
                             &  ivar(3))
-#endif
         call check_ok(istatus,'Error adding variable dlat')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(3), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on dlat')
+#endif
         istatus = nf90_put_att(incout, ivar(3), 'standard_name',        &
                             &  'latitude')
         call check_ok(istatus,'Error adding dlat standard_name')
@@ -381,14 +378,13 @@
         ! DLAT
 
         ! DLON
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'dlon', nf90_float, idims(1:2),  &
-                            &  ivar(4), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'dlon', nf90_float, idims(1:2),  &
                             &  ivar(4))
-#endif
         call check_ok(istatus,'Error adding variable dlon')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(4), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on dlon')
+#endif
         istatus = nf90_put_att(incout, ivar(4), 'standard_name',        &
                             &  'longitude')
         call check_ok(istatus,'Error adding dlon standard_name')
@@ -400,14 +396,13 @@
         call check_ok(istatus,'Error adding dlon units')
         ! DLON
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'topo', nf90_float, idims(1:2),  &
-                            &  ivar(5), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'topo', nf90_float, idims(1:2),  &
                             &  ivar(5))
-#endif
         call check_ok(istatus,'Error adding variable topo')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(5), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on topo')
+#endif
         istatus = nf90_put_att(incout, ivar(5), 'standard_name',        &
                             &  'surface_altitude')
         call check_ok(istatus,'Error adding topo standard_name')
@@ -420,14 +415,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding topo coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'htsd', nf90_float, idims(1:2),  &
-                            &  ivar(6), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'htsd', nf90_float, idims(1:2),  &
                             &  ivar(6))
-#endif
         call check_ok(istatus,'Error adding variable htsd')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on htsd')
+#endif
         istatus = nf90_put_att(incout, ivar(6), 'cell_method',          &
                             &  'area: standard_deviation')
         call check_ok(istatus,'Error adding htsd cell_method')
@@ -443,14 +437,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding htsd coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'landuse', nf90_float,idims(1:2),&
-                            &  ivar(7), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'landuse', nf90_float,idims(1:2),&
                             &  ivar(7))
-#endif
         call check_ok(istatus,'Error adding variable landuse')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(7), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on landuse')
+#endif
         istatus = nf90_put_att(incout, ivar(7), 'legend',               &
                 & '1  => Crop/mixed farming'//char(10)//                &
                 & '2  => Short grass'//char(10)//                       &
@@ -485,14 +478,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding landuse coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'xmap', nf90_float, idims(1:2),  &
-                            &  ivar(8), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'xmap', nf90_float, idims(1:2),  &
                             &  ivar(8))
-#endif
         call check_ok(istatus,'Error adding variable xmap')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(8), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on xmap')
+#endif
         istatus = nf90_put_att(incout, ivar(8), 'standard_name',        &
                             &  'map_factor')
         call check_ok(istatus,'Error adding xmap standard_name')
@@ -505,14 +497,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding xmap coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'dmap', nf90_float, idims(1:2),  &
-                            &  ivar(9), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'dmap', nf90_float, idims(1:2),  &
                             &  ivar(9))
-#endif
         call check_ok(istatus,'Error adding variable dmap')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(9), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on dmap')
+#endif
         istatus = nf90_put_att(incout, ivar(9), 'standard_name',        &
                             &  'map_factor')
         call check_ok(istatus,'Error adding dmap standard_name')
@@ -525,14 +516,13 @@
                             &  'dlon dlat')
         call check_ok(istatus,'Error adding dmap coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'coriol', nf90_float, idims(1:2),&
-                            &  ivar(10), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'coriol', nf90_float, idims(1:2),&
                             &  ivar(10))
-#endif
         call check_ok(istatus,'Error adding variable coriol')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(10), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on coriol')
+#endif
         istatus = nf90_put_att(incout, ivar(10), 'standard_name',       &
                             &  'coriolis_parameter')
         call check_ok(istatus,'Error adding coriol standard_name')
@@ -545,14 +535,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding coriol coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'snowam', nf90_float, idims(1:2),&
-                            &  ivar(11), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'snowam', nf90_float, idims(1:2),&
                             &  ivar(11))
-#endif
         call check_ok(istatus,'Error adding variable snowam')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(11), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on snowam')
+#endif
         istatus = nf90_put_att(incout, ivar(11), 'standard_name',       &
                             &  'snowfall_amount')
         call check_ok(istatus,'Error adding snowam standard_name')
@@ -565,14 +554,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding snowam coordinates')
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(incout, 'mask', nf90_float, idims(1:2),  &
-                            &  ivar(12), deflate_level=9)
-#else
         istatus = nf90_def_var(incout, 'mask', nf90_float, idims(1:2),  &
                             &  ivar(12))
-#endif
         call check_ok(istatus,'Error adding variable mask')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(12), 1, 1, 9)
+        call check_ok(istatus,'Error setting deflate on mask')
+#endif
         istatus = nf90_put_att(incout, ivar(12), 'standard_name',       &
                             &  'land_binary_mask')
         call check_ok(istatus,'Error adding mask standard_name')
@@ -586,14 +574,13 @@
         call check_ok(istatus,'Error adding mask coordinates')
 
         if ( aertyp(7:7)=='1' ) then
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var(incout, 'texture', nf90_float,         &
-                              & idims(1:2), itvar(1), deflate_level=9)
-#else
           istatus = nf90_def_var(incout, 'texture', nf90_float,         &
                               & idims(1:2), itvar(1))
-#endif
           call check_ok(istatus,'Error adding variable texture')
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var_deflate(ncid, itvar(1), 1, 1, 9)
+          call check_ok(istatus,'Error setting deflate on texture')
+#endif
           istatus = nf90_put_att(incout, itvar(1), 'legend',            &
                 & '1  => Sand'//char(10)//                              &
                 & '2  => Loamy Sand'//char(10)//                        &
@@ -625,14 +612,13 @@
                               &  'xlon xlat')
           call check_ok(istatus,'Error adding texture coordinates')
 
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
-                              & idims(1:3), itvar(2), deflate_level=9)
-#else
           istatus = nf90_def_var(incout, 'texture_fraction', nf90_float,&
                               & idims(1:3), itvar(2))
+          call check_ok(istatus,'Error adding variable texture_fract')
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var_deflate(ncid, itvar(2), 1, 1, 9)
+          call check_ok(istatus,'Error setting deflate on text_fract')
 #endif
-          call check_ok(istatus,'Error adding variable texture_frac')
           istatus = nf90_put_att(incout, itvar(2), 'standard_name',     &
                               &  'soil_type_fraction')
           call check_ok(istatus,'Error adding text_frac standard_name')
