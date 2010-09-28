@@ -276,8 +276,6 @@
                        &   'hours since '//csdate)
         call check_ok(istatus,'Error adding time units')
         istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
-                            &  ivar(2), deflate_level=9)
-        istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
                             &  ivar(2))
         call check_ok(istatus,'Error adding variable ps')
 #ifdef NETCDF4_HDF5
