@@ -275,14 +275,15 @@
         istatus = nf90_put_att(ncid, ivar(1), 'units', &
                        &   'hours since '//csdate)
         call check_ok(istatus,'Error adding time units')
-#ifdef NETCDF4_HDF5
         istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
                             &  ivar(2), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
                             &  ivar(2))
-#endif
         call check_ok(istatus,'Error adding variable ps')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(2), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on ps')
+#endif
         istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
                             &  'surface_air_pressure')
         call check_ok(istatus,'Error adding ps standard_name')
@@ -294,14 +295,13 @@
         istatus = nf90_put_att(ncid, ivar(2), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding ps coordinates')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(ncid, 'ts', nf90_float, idims(1:3),  &
-                            &  ivar(3), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 'ts', nf90_float, idims(1:3),  &
                             &  ivar(3))
-#endif
         call check_ok(istatus,'Error adding variable ts')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(3), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on ts')
+#endif
         istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &
                             &  'surface_temperature')
         call check_ok(istatus,'Error adding ts standard_name')
@@ -313,14 +313,13 @@
         istatus = nf90_put_att(ncid, ivar(3), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding ts coordinates')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(ncid, 'u', nf90_float, x3ddim,  &
-                            &  ivar(4), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 'u', nf90_float, x3ddim,  &
                             &  ivar(4))
-#endif
         call check_ok(istatus,'Error adding variable u')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(4), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on u')
+#endif
         istatus = nf90_put_att(ncid, ivar(4), 'standard_name', &
                             &  'eastward_wind')
         call check_ok(istatus,'Error adding u standard_name')
@@ -332,14 +331,13 @@
         istatus = nf90_put_att(ncid, ivar(4), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding u coordinates')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(ncid, 'v', nf90_float, x3ddim,  &
-                            &  ivar(5), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 'v', nf90_float, x3ddim,  &
                             &  ivar(5))
-#endif
         call check_ok(istatus,'Error adding variable v')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(5), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on v')
+#endif
         istatus = nf90_put_att(ncid, ivar(5), 'standard_name', &
                             &  'northward_wind')
         call check_ok(istatus,'Error adding v standard_name')
@@ -351,14 +349,13 @@
         istatus = nf90_put_att(ncid, ivar(5), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding v coordinates')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(ncid, 't', nf90_float, x3ddim,  &
-                            &  ivar(6), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 't', nf90_float, x3ddim,  &
                             &  ivar(6))
-#endif
         call check_ok(istatus,'Error adding variable t')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on t')
+#endif
         istatus = nf90_put_att(ncid, ivar(6), 'standard_name', &
                             &  'air_temperature')
         call check_ok(istatus,'Error adding t standard_name')
@@ -370,14 +367,13 @@
         istatus = nf90_put_att(ncid, ivar(6), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding t coordinates')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var(ncid, 'qv', nf90_float, x3ddim,  &
-                            &  ivar(7), deflate_level=9)
-#else
         istatus = nf90_def_var(ncid, 'qv', nf90_float, x3ddim,  &
                             &  ivar(7))
-#endif
         call check_ok(istatus,'Error adding variable qv')
+#ifdef NETCDF4_HDF5
+        istatus = nf90_def_var_deflate(ncid, ivar(7), 1, 1, 9)
+        call check_ok(istatus,'Error setting compression on qv')
+#endif
         istatus = nf90_put_att(ncid, ivar(7), 'standard_name', &
                             &  'humidity_mixing_ratio')
         call check_ok(istatus,'Error adding qv standard_name')
@@ -390,14 +386,13 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding qv coordinates')
         if ( dattyp=='EH5OM' .and. ehso4) then
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var(ncid, 'so4', nf90_float, x3ddim, &
-                              &  ivar(8), deflate_level=9)
-#else
           istatus = nf90_def_var(ncid, 'so4', nf90_float, x3ddim, &
                               &  ivar(8))
-#endif
           call check_ok(istatus,'Error adding variable so4')
+#ifdef NETCDF4_HDF5
+          istatus = nf90_def_var_deflate(ncid, ivar(8), 1, 1, 9)
+          call check_ok(istatus,'Error setting compression on qv')
+#endif
           istatus = nf90_put_att(ncid, ivar(8), 'standard_name', &
                               &  'atmosphere_sulfate_content')
           call check_ok(istatus,'Error adding so4 standard_name')
