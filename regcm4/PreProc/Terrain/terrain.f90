@@ -573,30 +573,39 @@
           end do
         end do
 
-        do i = 1 , iysg
-          do j = 1 , jxsg
-            if ( lndout_s(i,j)>13.5 .and. lndout_s(i,j)<15.5 ) then
-              mask_s(i,j) = 0.0
-            else
-              mask_s(i,j) = 2.0
-            end if
-          end do
-        end do
+        where ( lndout_s > 13.5 .and. lndout_s < 15.5 )
+          mask_s = 0.0
+        elsewhere
+          mask_s = 2.0
+        end where
+
+        print *, 'To be implemented.'
+        print *, 'Lake depth read from bathymetry ETOPO1 dataset'
+        print *, 'Setting dpth = 25'
+
+        where (lndout_s == 14)
+          dpth_s = 25.0
+        end where
 
         call write_domain(.true.)
         print * , 'Subgrid data written to output file'
         call free_subgrid
       end if
 
-      do i = 1 , iy
-        do j = 1 , jx
-          if ( lndout(i,j)>13.5 .and. lndout(i,j)<15.5 ) then
-            mask(i,j) = 0.0
-          else
-            mask(i,j) = 2.0
-          end if
-        end do
-      end do
+      where ( lndout > 13.5 .and. lndout < 15.5 )
+        mask = 0.0
+      elsewhere
+        mask = 2.0
+      end where
+
+      print *, 'To be implemented.'
+      print *, 'Lake depth read from bathymetry ETOPO1 dataset'
+      print *, 'Setting dpth = 25'
+
+      where (lndout == 14)
+        dpth = 25.0
+      end where
+
       call write_domain(.false.)
       print * , 'Grid data written to output file'
       call free_grid

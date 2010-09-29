@@ -538,7 +538,7 @@
 
         end subroutine open_domain
 
-        subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw)
+        subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw,ldpt)
           use netcdf
           implicit none
 
@@ -551,6 +551,7 @@
           real(8) , dimension(iy,jx) , intent(out) :: dmap
           real(8) , dimension(iy,jx) , intent(out) :: f
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: snw
+          real(8) , dimension(nnsg,iy,jx) , intent(out) :: ldpt
 
           integer :: ivarid , n
           real(4) , dimension(jx,iy) :: sp2d
@@ -615,6 +616,16 @@
           do n = 1 , nnsg
             snw(n,:,:) = transpose(sp2d)
           end do
+          if (lakemod == 1) then
+            istatus = nf90_inq_varid(idmin, 'lkdpth', ivarid)
+            call check_ok('Variable lkdpth missing', 'DOMAIN FILE ERROR')
+            istatus = nf90_get_var(idmin, ivarid, sp2d)
+            call check_ok('Variable lkdpth read error', &
+                          'DOMAIN FILE ERROR')
+            do n = 1 , nnsg
+              ldpt(n,:,:) = transpose(sp2d)
+            end do
+          end if
         end subroutine read_domain
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)

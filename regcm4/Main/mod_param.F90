@@ -859,7 +859,7 @@
         if ( myid.eq.0 ) then
           call read_domain(mddom_io%ht,mddom_io%htsd,mddom_io%satbrt, &
                            mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
-                           mddom_io%msfd,mddom_io%f,snowc_io)
+                           mddom_io%msfd,mddom_io%f,snowc_io,lkdpth_io)
           if ( nsg.gt.1 ) then
             call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
           else
@@ -984,7 +984,7 @@
         call say
         call read_domain(mddom%ht,mddom%htsd,mddom%satbrt, &
                          mddom%xlat,mddom%xlong,mddom%msfx,&
-                         mddom%msfd,mddom%f,snowc)
+                         mddom%msfd,mddom%f,snowc,lkdpth)
         if ( nsg.gt.1 ) then
           call read_subdomain(ht1,satbrt1,xlat1,xlon1)
         else

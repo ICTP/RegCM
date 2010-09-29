@@ -1450,16 +1450,6 @@
 ! initialize hostetler lake model
 
       if ( lakemod.eq.1 ) then
-        write (aline,*) 'Depth for lake calculation not implemented'
-        call say
-        write (aline,*) 'All lakes are initialized to 25 meters depth'
-        call say
-#ifdef MPP1
-        lkdpth_io = 25.0
-#else
-        lkdpth = 25.0
-#endif
-
 #ifdef MPP1
         if (myid == 0 .and. (.not. ifrest)) then
 #else
