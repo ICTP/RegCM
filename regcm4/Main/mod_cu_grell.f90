@@ -78,8 +78,8 @@
         do i = 2 + icut , iym2 - icut
           kk = kz - k + 1
 
-          us = sfsta%usk(i,kk)
-          vs = sfsta%vsk(i,kk)
+          us = gwnd%usk(i,kk)
+          vs = gwnd%vsk(i,kk)
 
           t(i,k) = atm2%t(i,kk,j)/sps2%ps(i,j)
           q(i,k) = atm2%qv(i,kk,j)/sps2%ps(i,j)

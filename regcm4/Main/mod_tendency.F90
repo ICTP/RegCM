@@ -1468,13 +1468,11 @@
 #if defined(BAND) && (!defined(MPP1))
                 if ( jp1.eq.jx+1 ) jp1 = 1
 #endif
-!               usk(i,k) = atm1%u(i,k,j)/sps2%ps(i,j)
-!               vsk(i,k) = atm1%v(i,k,j)/sps2%ps(i,j)
-                sfsta%usk(i,k) = 0.25*(atm1%u(i,k,j)/sps2%ps(i,j)+      &
+                gwnd%usk(i,k) = 0.25*(atm1%u(i,k,j)/sps2%ps(i,j)+       &
                           &      atm1%u(i+1,k,j)/sps2%ps(i+1,j)+        &
                           &      atm1%u(i,k,jp1)/sps2%ps(i,jp1)+        &
                           &      atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))
-                sfsta%vsk(i,k) = 0.25*(atm1%v(i,k,j)/sps2%ps(i,j)+      &
+                gwnd%vsk(i,k) = 0.25*(atm1%v(i,k,j)/sps2%ps(i,j)+       &
                           &      atm1%v(i+1,k,j)/sps2%ps(i+1,j)+        &
                           &      atm1%v(i,k,jp1)/sps2%ps(i,jp1)+        &
                           &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))

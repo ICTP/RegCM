@@ -20,6 +20,7 @@
       module mod_main
 !
       use mod_dynparam
+      use mod_runparams
 !
 ! Storage for all the 3d prognostic variables in two
 !     timesteps and all the 2d variables and constants
@@ -64,8 +65,6 @@
         real(8) , allocatable , dimension(:,:) :: tgbb
         real(8) , allocatable , dimension(:,:) :: zpbl
         real(8) , allocatable , dimension(:,:) :: uvdrag
-        real(8) , allocatable , dimension(:,:) :: usk
-        real(8) , allocatable , dimension(:,:) :: vsk
       end type surfstate
 
       type sulfate
@@ -77,6 +76,11 @@
         real(8) , allocatable, dimension(:,:,:) :: hstor
       end type splitsave
 
+      type grellwinds
+        real(8) , allocatable , dimension(:,:) :: usk
+        real(8) , allocatable , dimension(:,:) :: vsk
+      end type grellwinds
+
       type(domain) , public :: mddom
       type(atmstate) , public :: atm1 , atm2
       type(surfpstate) , public :: sps1 , sps2
@@ -85,6 +89,7 @@
       type(sulfate) , public :: sulf
       type(splitsave) , public :: spsav
       type(domfact) , public :: domfc
+      type(grellwinds) , public :: gwnd
 
       public :: atmstate , domain
       public :: allocate_mod_main , allocate_atmstate , allocate_domain
@@ -196,6 +201,14 @@
           dfa%hgfact = 0.0D0
         end subroutine allocate_domfact
 !
+        subroutine allocate_grellwinds
+          implicit none
+          allocate(gwnd%usk(iy,kz))
+          allocate(gwnd%vsk(iy,kz))
+          gwnd%usk = 0.0D0
+          gwnd%vsk = 0.0D0
+        end subroutine allocate_grellwinds
+
         subroutine allocate_mod_main(lmpi)
         implicit none
         logical , intent(in) :: lmpi
@@ -209,6 +222,9 @@
         call allocate_atmstate(atm2,lmpi,0,2)
         call allocate_surfpstate(sps2,lmpi)
         call allocate_surftstate(sts2,lmpi)
+        if (icup == 2) then
+          call allocate_grellwinds
+        end if
 
         if (lmpi) then
           allocate(sfsta%hfx(iy,jxp))
@@ -233,8 +249,6 @@
           allocate(spsav%dstor(iy,jx,nsplit))
           allocate(spsav%hstor(iy,jx,nsplit))
         end if
-        allocate(sfsta%usk(iy,kz))
-        allocate(sfsta%vsk(iy,kz))
 
         sfsta%hfx = 0.0D0
         sfsta%qfx = 0.0D0
@@ -246,8 +260,6 @@
         sulf%so4 = 0.0D0
         spsav%dstor = 0.0D0
         spsav%hstor = 0.0D0
-        sfsta%usk = 0.0D0
-        sfsta%vsk = 0.0D0
 !
         end subroutine allocate_mod_main 
 !
