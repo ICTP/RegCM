@@ -208,8 +208,8 @@
       if ( myid==0 ) then
         do j = 1 , jx
           do i = 1 , iy
-            ht_rcm(i,j) = ht_io(i,j)
-            satbrt_clm(i,j) = satbrt_io(i,j)
+            ht_rcm(i,j) = mddom_io%ht(i,j)
+            satbrt_clm(i,j) = mddom_io%satbrt(i,j)
             init_tgb(i,j) = ts0_io(i,j)
             clm_fracveg(i,j) = 0
           end do
