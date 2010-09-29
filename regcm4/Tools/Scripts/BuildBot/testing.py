@@ -69,6 +69,52 @@ def parse_config(filename):
             options[option] = value
     f.close()
     return options
+
+def compare_nc_file(filename,refname,varname):
+
+    #print filename
+    #print refname
+    
+    try :
+        p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+        #print "ncdiff ok"
+    except OSError :
+        print "Could not run ncdiff!"
+        output,error = p_1.communicate()
+        return output
+
+    if p_1.wait() == 0 :
+        try :
+            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc && rm temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+        except OSError :
+           print "Could not run ncwa!"
+           output,error = p_2.communicate()
+           return output  
+    else :
+        print "Step 1 failed!"
+        output,error = p_1.communicate()
+        return output
+
+    if p_2.wait() == 0 :
+        try :
+            p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc && rm rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        except OSError :
+            print "Could not run ncks!"
+            output,error = p_3.communicate()
+            return output
+    else :
+        print "Step 2 failed!"
+        output,error = p_2.communicate()
+        return output    
+    
+    if p_3.wait() != 0:
+        print "Step 3 failed!"
+        output,error = p_3.communicate()
+        return output+error
+    else:
+        output,error = p_3.communicate()
+        
+    return output
                 
 def main(argv):
 
@@ -84,12 +130,14 @@ def main(argv):
     bindir = options["BINDIR"]
     testdir = options["TESTDIR"]
     namelistdir = options["NLDIR"]
+    referencedir = options["REFDIR"]
     teststodo = options["TESTSTODO"]
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
     bindir = os.path.abspath(bindir)
-
+    referencedir = os.path.abspath(referencedir)
+    
     if teststodo.rfind(",") > -1 :
         tests=teststodo.split(",")
         listtype=0
@@ -101,7 +149,6 @@ def main(argv):
     else :
         tests=int(teststodo)
         listtype=2
-
 
     # main loop over tests
     # number of total tests present
@@ -137,6 +184,7 @@ def main(argv):
             testname="test_00"+str(i)
 
         simdir=testdir+"/"+testname
+        testrefdir=referencedir+"/"+testname
 
         if not os.path.isdir(simdir):
             os.mkdir(simdir)
@@ -160,24 +208,26 @@ def main(argv):
         for line in file_content:
             if line.find("globidate1") > -1 :
                 linea=line.rsplit("=")
-                globidate1=linea[1]
+                globidate1=linea[1].rstrip(" ,")
             if line.find(" idate0 ") > -1 :
                 linea=line.rsplit("=")
                 idate0=linea[1]
+                idate0=filter(lambda x:x.isdigit(),idate0)
             if line.find(" idate1 ") > -1 :
                 linea=line.rsplit("=")
-                idate1=linea[1]
+                idate1=linea[1].rstrip(" ,")
             if line.find(" idate2 ") > -1 :
                 linea=line.rsplit("=")
-                idate2=linea[1]
+                idate2=linea[1].rstrip(" ,")
 
-        #print globidate1,idate0,idate1,idate2
+        #print "a"+idate0+"a"
                 
         #edit the namelist here
 
         edit_namelist(namelist,datadir,simdir)
 
         mpistring=options["MPISTRING"]
+        run_preproc=int(options["PREPROC"])
         run_clm=int(options["USECLM"])
         run_band=int(options["USEBAND"])
 
@@ -192,49 +242,74 @@ def main(argv):
             writelog=False
 
         exit_status = 0
-        
-        # run preproc
-        # handle log+errors better with subproc??
 
         runMain = True # won't run Main if PreProc crashes...
-         
-        p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
-        if p_terrain.wait() != 0:
-            print "\nError: Terrain in",testname,"crashed!!\n"
-            runMain = False
-            exit_status = 1
-        else:
-            print "Terrain in",testname,"passed."
-    
-        p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
-        if p_sst.wait() != 0:
-            print "\nError: SST in",testname,"crashed!!\n"
-            runMain = False
-            exit_status = 1
-        else :
-            print "SST in",testname,"passed."
-            
-        p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
-        if p_icbc.wait() != 0:
-            print "\nError: ICBC in",testname,"crashed!!\n"
-            runMain = False
-            exit_status = 1
-        else :
-            print "ICBC in",testname,"passed."
+        
+        # run preproc
 
-        if run_clm == 1:
-            p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist)
-            if p_clmpre.wait() != 0:
-                print "\nError: clm2rcm in",testname,"crashed!!\n"
+        if (run_preproc == 1):
+        
+            p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
+            if p_terrain.wait() != 0:
+                print "\nError: Terrain in",testname,"crashed!!\n"
+                runMain = False
+                exit_status = 1
+            else:
+                print "Terrain in",testname,"passed."
+    
+            p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
+            if p_sst.wait() != 0:
+                print "\nError: SST in",testname,"crashed!!\n"
                 runMain = False
                 exit_status = 1
             else :
-                print "clm2rcm in",testname,"passed."
+                print "SST in",testname,"passed."
+            
+            p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
+            if p_icbc.wait() != 0:
+                print "\nError: ICBC in",testname,"crashed!!\n"
+                runMain = False
+                exit_status = 1
+            else :
+                print "ICBC in",testname,"passed."
 
-	sys.stdout.flush()
+            if run_clm == 1:
+                print bindir+"/clm2rcm "+namelist
+                p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist)
+                print bindir+"/clm2rcm "+namelist
+                if p_clmpre.wait() != 0:
+                    print "\nError: clm2rcm in",testname,"crashed!!\n"
+                    runMain = False
+                    exit_status = 1
+                else :
+                    print "clm2rcm in",testname,"passed."
 
-        # compare preproc output
-        # to do
+            sys.stdout.flush()
+
+            # compare preproc output only if everything went ok
+            if runMain :
+
+                dom_diff={}
+                icbc_diff={}
+
+                domain_file = "/input/"+testname+"_DOMAIN000.nc"
+                icbc_file = "/input/"+testname+"_ICBC."+idate0+".nc"
+
+                domain_vars = ["topo","landuse"]
+                icbc_vars = ["u","v","t","ts"]
+
+                # domain
+                for var in domain_vars :    
+                    dom_diff[var] = compare_nc_file(simdir+domain_file,testrefdir+domain_file,var).rstrip("\n")
+                    print var+" =",dom_diff[var]
+
+                # icbc
+
+                for var in icbc_vars :
+                    icbc_diff[var] = compare_nc_file(simdir+icbc_file,testrefdir+icbc_file,var).rstrip("\n")
+                    print var+" =",icbc_diff[var]
+            
+        #runMain = False
 
         # if preproc is ok, run main
         if runMain :
@@ -262,10 +337,23 @@ def main(argv):
             stdouterr = outlog.read()
             print stdouterr
 
+        # if everything ok compare output
+        
+        if exit_status == 0:
+
+            srf_diff={}
+            srf_file="/output/"+testname+"_SRF."+idate0+".nc"
+
+            srf_vars = ["t2m"]
+
+            for var in srf_vars :
+                srf_diff[var] = compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
+                print var+" =",srf_diff[var]
+            
+
 	sys.stdout.flush()
 
-        # compare main output
-        # to do
+        
 
     # end of the big loop
     if exit_status == 1:
