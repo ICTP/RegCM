@@ -656,13 +656,13 @@
         if ( myid.eq.0 ) then
           do j = 1 , jx
             do i = 1 , iy
-              inisrf_0(i,1,j) = ht_io(i,j)
-              inisrf_0(i,2,j) = satbrt_io(i,j)
-              inisrf_0(i,3,j) = xlat_io(i,j)
-              inisrf_0(i,4,j) = xlong_io(i,j)
-              inisrf_0(i,5,j) = msfx_io(i,j)
-              inisrf_0(i,6,j) = msfd_io(i,j)
-              inisrf_0(i,7,j) = f_io(i,j)
+              inisrf_0(i,1,j) = mddom_io%ht(i,j)
+              inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
+              inisrf_0(i,3,j) = mddom_io%xlat(i,j)
+              inisrf_0(i,4,j) = mddom_io%xlong(i,j)
+              inisrf_0(i,5,j) = mddom_io%msfx(i,j)
+              inisrf_0(i,6,j) = mddom_io%msfd(i,j)
+              inisrf_0(i,7,j) = mddom_io%f(i,j)
             end do
             do n = 1 , nnsg
               do i = 1 , iy
@@ -751,10 +751,10 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = ua_io(i,k,j)
-                sav_0(i,kz+k,j) = ub_io(i,k,j)
-                sav_0(i,kz*2+k,j) = va_io(i,k,j)
-                sav_0(i,kz*3+k,j) = vb_io(i,k,j)
+                sav_0(i,k,j) = atm1_io%u(i,k,j)
+                sav_0(i,kz+k,j) = atm2_io%u(i,k,j)
+                sav_0(i,kz*2+k,j) = atm1_io%v(i,k,j)
+                sav_0(i,kz*3+k,j) = atm2_io%v(i,k,j)
               end do
             end do
             do i = 1 , iy
@@ -784,10 +784,10 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = ta_io(i,k,j)
-                sav_0(i,kz+k,j) = tb_io(i,k,j)
-                sav_0(i,kz*2+k,j) = qva_io(i,k,j)
-                sav_0(i,kz*3+k,j) = qvb_io(i,k,j)
+                sav_0(i,k,j) = atm1_io%t(i,k,j)
+                sav_0(i,kz+k,j) = atm2_io%t(i,k,j)
+                sav_0(i,kz*2+k,j) = atm1_io%qv(i,k,j)
+                sav_0(i,kz*3+k,j) = atm2_io%qv(i,k,j)
               end do
             end do
             do i = 1 , iy
@@ -817,8 +817,8 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = qca_io(i,k,j)
-                sav_0(i,kz+k,j) = qcb_io(i,k,j)
+                sav_0(i,k,j) = atm1_io%qc(i,k,j)
+                sav_0(i,kz+k,j) = atm2_io%qc(i,k,j)
                 sav_0(i,kz*2+k,j) = fcc_io(i,k,j)
               end do
             end do
@@ -1526,7 +1526,7 @@
       do j = 1 , jx
 #endif
         do i = 1 , iy
-          mddom%hgfact(i,j) = 1.
+          domfc%hgfact(i,j) = 1.
         end do
       end do
 #ifdef BAND
@@ -1568,7 +1568,7 @@
           hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
           hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
           hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          mddom%hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
+          domfc%hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
         end do
       end do
 !

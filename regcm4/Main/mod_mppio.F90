@@ -23,6 +23,8 @@
 
       use mod_dynparam
       use mod_runparams
+      use mod_main , only : atmstate , allocate_atmstate
+      use mod_main , only : domain , allocate_domain
       use mod_message
 !
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacesubm1
@@ -32,9 +34,8 @@
       real(8) , allocatable , target , dimension(:,:,:,:) :: space3d
       real(8) , allocatable , target , dimension(:,:,:) :: spacev
       real(8) , allocatable , target , dimension(:,:,:) :: spacesurf
-      real(8) , allocatable , target , dimension(:,:,:,:) :: spaceair
       private :: spacesubm1 , spacesub , spacebat
-      private :: space2d , space3d , spacev , spacesurf , spaceair
+      private :: space2d , space3d , spacev , spacesurf
 #ifdef CLM
       real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
       private :: spaceclm
@@ -109,17 +110,16 @@
 
       real(8) , allocatable , dimension(:,:,:,:) :: chia_io , chib_io
 
-      real(8) , pointer , dimension(:,:) :: cldefi_io , f_io , hfx_io , &
-                                   & htsd_io , ht_io , msfd_io ,        &
-                                   & msfx_io , psa_io , psb_io ,        &
+      real(8) , pointer , dimension(:,:) :: cldefi_io , hfx_io , &
+                                   & psa_io , psb_io ,        &
                                    & qfx_io , rainc_io , rainnc_io ,    &
-                                   & satbrt_io , tga_io , tgbb_io ,     &
-                                   & tgb_io , uvdrag_io , xlat_io ,     &
-                                   & xlong_io , zpbl_io
-      real(8) , pointer , dimension(:,:,:) :: omega_io , qca_io ,       &
-                              & qcb_io , qva_io , qvb_io , ta_io ,      &
-                                      & tbase_io , tb_io , ua_io ,      &
-                                      & ub_io , va_io , vb_io
+                                   & tga_io , tgbb_io ,     &
+                                   & tgb_io , uvdrag_io , &
+                                   & zpbl_io
+      real(8) , pointer , dimension(:,:,:) :: omega_io , tbase_io
+
+      type(atmstate) :: atm1_io , atm2_io
+      type(domain) :: mddom_io
 
       real(8) , allocatable , dimension(:,:,:) :: inisrf0
       real(8) , allocatable , dimension(:,:,:) :: inisrf_0
@@ -226,6 +226,11 @@
         src1 = 0.0D0
 
         if (myid == 0) then
+
+          call allocate_domain(mddom_io,.false.)
+          call allocate_atmstate(atm1_io,.false.,0,0)
+          call allocate_atmstate(atm2_io,.false.,0,0)
+
           allocate(inisrf_0(iy,nnsg*3+8,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = 0.0D0
@@ -531,51 +536,32 @@
           call check_alloc(ierr,myname,'chib_io',size(chib_io))
           chib_io = 0.0D0
           if (icup == 3) then
-            allocate(spacesurf(iy,jx,20),stat=ierr)
+            allocate(spacesurf(iy,jx,11),stat=ierr)
           else
-            allocate(spacesurf(iy,jx,19),stat=ierr)
+            allocate(spacesurf(iy,jx,12),stat=ierr)
           end if
           call check_alloc(ierr,myname,'spacesurf',size(spacesurf))
           spacesurf = 0.0D0
-          f_io      => spacesurf(:,:,1)
-          hfx_io    => spacesurf(:,:,2)
-          htsd_io   => spacesurf(:,:,3)
-          ht_io     => spacesurf(:,:,4)
-          msfd_io   => spacesurf(:,:,5)
-          msfx_io   => spacesurf(:,:,6)
-          psa_io    => spacesurf(:,:,7)
-          psb_io    => spacesurf(:,:,8)
-          qfx_io    => spacesurf(:,:,9)
-          rainc_io  => spacesurf(:,:,10)
-          rainnc_io => spacesurf(:,:,11)
-          satbrt_io => spacesurf(:,:,12)
-          tga_io    => spacesurf(:,:,13)
-          tgbb_io   => spacesurf(:,:,14)
-          tgb_io    => spacesurf(:,:,15)
-          uvdrag_io => spacesurf(:,:,16)
-          xlat_io   => spacesurf(:,:,17)
-          xlong_io  => spacesurf(:,:,18)
-          zpbl_io   => spacesurf(:,:,19)
-          if (icup == 3) cldefi_io => spacesurf(:,:,20)
+          hfx_io    => spacesurf(:,:,1)
+          psa_io    => spacesurf(:,:,2)
+          psb_io    => spacesurf(:,:,3)
+          qfx_io    => spacesurf(:,:,4)
+          rainc_io  => spacesurf(:,:,5)
+          rainnc_io => spacesurf(:,:,6)
+          tga_io    => spacesurf(:,:,7)
+          tgbb_io   => spacesurf(:,:,8)
+          tgb_io    => spacesurf(:,:,9)
+          uvdrag_io => spacesurf(:,:,10)
+          zpbl_io   => spacesurf(:,:,11)
+          if (icup == 3) cldefi_io => spacesurf(:,:,12)
+          allocate(omega_io(iy,kz,jx),stat=ierr)
+          call check_alloc(ierr,myname,'tbase_io',size(omega_io))
+          omega_io = 0.0D0
           if (icup == 3) then
-            allocate(spaceair(iy,kz,jx,12),stat=ierr)
-          else
-            allocate(spaceair(iy,kz,jx,11),stat=ierr)
+            allocate(tbase_io(iy,kz,jx),stat=ierr)
+            call check_alloc(ierr,myname,'tbase_io',size(tbase_io))
+            tbase_io = 0.0D0
           end if
-          call check_alloc(ierr,myname,'spaceair',size(spaceair))
-          spaceair = 0.0D0
-          omega_io => spaceair(:,:,:,1)
-          qca_io   => spaceair(:,:,:,2)
-          qcb_io   => spaceair(:,:,:,3)
-          qva_io   => spaceair(:,:,:,4)
-          qvb_io   => spaceair(:,:,:,5)
-          ta_io    => spaceair(:,:,:,6)
-          tb_io    => spaceair(:,:,:,7)
-          ua_io    => spaceair(:,:,:,8)
-          ub_io    => spaceair(:,:,:,9)
-          va_io    => spaceair(:,:,:,10)
-          vb_io    => spaceair(:,:,:,11)
-          if (icup == 3) tbase_io => spaceair(:,:,:,12)
 #ifdef CLM
           if (lband) then
             allocate(spaceclm(iym1,jx,9))

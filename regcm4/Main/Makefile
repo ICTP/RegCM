@@ -190,7 +190,7 @@ mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
 mod_main.o: mod_main.f90 mod_dynparam.o
 mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o
 mod_message.o: mod_message.F90 mod_dynparam.o
-mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o
+mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o mod_main.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
             mod_date.o mod_runparams.o
 	$(F90) $(NETCDFINC) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS)   -c $<

@@ -92,19 +92,21 @@
             read (iutrst) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
                        & ts0_io
           end if
-          read (iutrst) ua_io
-          read (iutrst) ub_io
-          read (iutrst) va_io
-          read (iutrst) vb_io
-          read (iutrst) ta_io
-          read (iutrst) tb_io
-          read (iutrst) qva_io
-          read (iutrst) qvb_io
-          read (iutrst) qca_io
-          read (iutrst) qcb_io
-          read (iutrst) psa_io , psb_io , satbrt_io , satbrt1_io , f_io
-          read (iutrst) ht_io , ht1_io , msfx_io , msfd_io , xlat_io , &
-                     & xlong_io
+          read (iutrst) atm1_io%u
+          read (iutrst) atm1_io%v
+          read (iutrst) atm1_io%t
+          read (iutrst) atm1_io%qv
+          read (iutrst) atm1_io%qc
+          read (iutrst) atm2_io%u
+          read (iutrst) atm2_io%v
+          read (iutrst) atm2_io%t
+          read (iutrst) atm2_io%qv
+          read (iutrst) atm2_io%qc
+          read (iutrst) psa_io , psb_io
+          read (iutrst) mddom_io%ht , mddom_io%xlat ,      &
+                        mddom_io%xlong , mddom_io%satbrt , &
+                        mddom_io%msfx , mddom_io%msfd , mddom_io%f
+          read (iutrst) ht1_io , satbrt1_io
           read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             read (iutrst) rsheat_io , rswat_io
@@ -178,19 +180,20 @@
             read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
           end if
           read (iutrst) atm1%u
-          read (iutrst) atm2%u
           read (iutrst) atm1%v
-          read (iutrst) atm2%v
           read (iutrst) atm1%t
-          read (iutrst) atm2%t
           read (iutrst) atm1%qv
-          read (iutrst) atm2%qv
           read (iutrst) atm1%qc
+          read (iutrst) atm2%u
+          read (iutrst) atm2%v
+          read (iutrst) atm2%t
+          read (iutrst) atm2%qv
           read (iutrst) atm2%qc
-          read (iutrst) sps1%ps , sps2%ps , mddom%satbrt , &
-                        satbrt1 , mddom%f
-          read (iutrst) mddom%ht , ht1 , mddom%msfx , mddom%msfd , &
-                        mddom%xlat , mddom%xlong
+          read (iutrst) sps1%ps , sps2%ps
+          read (iutrst) mddom%ht , mddom%xlat ,        &
+                        mddom%xlong , mddom%satbrt ,   &
+                        mddom%msfx , mddom%msfd , mddom%f
+          read (iutrst) ht1 , satbrt1
           read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
@@ -309,19 +312,21 @@
             write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
                        & ts0_io
           end if
-          write (iutsav) ua_io
-          write (iutsav) ub_io
-          write (iutsav) va_io
-          write (iutsav) vb_io
-          write (iutsav) ta_io
-          write (iutsav) tb_io
-          write (iutsav) qva_io
-          write (iutsav) qvb_io
-          write (iutsav) qca_io
-          write (iutsav) qcb_io
-          write (iutsav) psa_io , psb_io , satbrt_io , satbrt1_io , f_io
-          write (iutsav) ht_io , ht1_io , msfx_io , msfd_io , xlat_io , &
-                     & xlong_io
+          write (iutsav) atm1_io%u
+          write (iutsav) atm1_io%v
+          write (iutsav) atm1_io%t
+          write (iutsav) atm1_io%qv
+          write (iutsav) atm1_io%qc
+          write (iutsav) atm2_io%u
+          write (iutsav) atm2_io%v
+          write (iutsav) atm2_io%t
+          write (iutsav) atm2_io%qv
+          write (iutsav) atm2_io%qc
+          write (iutsav) psa_io , psb_io
+          write (iutsav) mddom_io%ht , mddom_io%xlat ,      &
+                         mddom_io%xlong , mddom_io%satbrt , &
+                         mddom_io%msfx , mddom_io%msfd , mddom_io%f
+          write (iutsav) ht1_io , satbrt1_io
           write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             write (iutsav) rsheat_io , rswat_io
@@ -395,19 +400,20 @@
             write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
           end if
           write (iutsav) atm1%u
-          write (iutsav) atm2%u
           write (iutsav) atm1%v
-          write (iutsav) atm2%v
           write (iutsav) atm1%t
-          write (iutsav) atm2%t
           write (iutsav) atm1%qv
-          write (iutsav) atm2%qv
           write (iutsav) atm1%qc
+          write (iutsav) atm2%u
+          write (iutsav) atm2%v
+          write (iutsav) atm2%t
+          write (iutsav) atm2%qv
           write (iutsav) atm2%qc
-          write (iutsav) sps1%ps , sps2%ps , mddom%satbrt , satbrt1 ,  &
-                         mddom%f
-          write (iutsav) mddom%ht , ht1 , mddom%msfx , mddom%msfd ,  &
-                         mddom%xlat , mddom%xlong
+          write (iutsav) sps1%ps , sps2%ps
+          write (iutsav) mddom%ht , mddom%xlat ,      &
+                         mddom%xlong , mddom%satbrt , &
+                         mddom%msfx , mddom%msfd , mddom%f
+          write (iutsav) ht1 , satbrt1
           write (iutsav) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat

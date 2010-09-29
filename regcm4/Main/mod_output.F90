@@ -138,12 +138,12 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  ua_io(i,k,j) = atm_0(i,k,j)
-                  va_io(i,k,j) = atm_0(i,k+kz,j)
+                  atm1_io%u(i,k,j) = atm_0(i,k,j)
+                  atm1_io%v(i,k,j) = atm_0(i,k+kz,j)
                   omega_io(i,k,j) = atm_0(i,k+kz*2,j)
-                  ta_io(i,k,j) = atm_0(i,k+kz*3,j)
-                  qva_io(i,k,j) = atm_0(i,k+kz*4,j)
-                  qca_io(i,k,j) = atm_0(i,k+kz*5,j)
+                  atm1_io%t(i,k,j) = atm_0(i,k+kz*3,j)
+                  atm1_io%qv(i,k,j) = atm_0(i,k+kz*4,j)
+                  atm1_io%qc(i,k,j) = atm_0(i,k+kz*5,j)
                 end do
               end do
               do i = 1 , iy
@@ -587,10 +587,10 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  ua_io(i,k,j) = sav_0(i,k,j)
-                  ub_io(i,k,j) = sav_0(i,kz+k,j)
-                  va_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  vb_io(i,k,j) = sav_0(i,kz*3+k,j)
+                  atm1_io%u(i,k,j) = sav_0(i,k,j)
+                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
                 end do
               end do
               do i = 1 , iy
@@ -621,10 +621,10 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  ta_io(i,k,j) = sav_0(i,k,j)
-                  tb_io(i,k,j) = sav_0(i,kz+k,j)
-                  qva_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  qvb_io(i,k,j) = sav_0(i,kz*3+k,j)
+                  atm1_io%t(i,k,j) = sav_0(i,k,j)
+                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
                 end do
               end do
               do i = 1 , iy
@@ -661,8 +661,8 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  qca_io(i,k,j) = sav_0(i,k,j)
-                  qcb_io(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
+                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
                   fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
                 end do
               end do
@@ -1291,10 +1291,10 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  ua_io(i,k,j) = sav_0(i,k,j)
-                  ub_io(i,k,j) = sav_0(i,kz+k,j)
-                  va_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  vb_io(i,k,j) = sav_0(i,kz*3+k,j)
+                  atm1_io%u(i,k,j) = sav_0(i,k,j)
+                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
                 end do
               end do
               do i = 1 , iy
@@ -1325,10 +1325,10 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  ta_io(i,k,j) = sav_0(i,k,j)
-                  tb_io(i,k,j) = sav_0(i,kz+k,j)
-                  qva_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  qvb_io(i,k,j) = sav_0(i,kz*3+k,j)
+                  atm1_io%t(i,k,j) = sav_0(i,k,j)
+                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
                 end do
               end do
               do i = 1 , iy
@@ -1365,8 +1365,8 @@
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  qca_io(i,k,j) = sav_0(i,k,j)
-                  qcb_io(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
+                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
                   fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
                 end do
               end do
@@ -2126,8 +2126,8 @@
 #endif
 
 #ifdef MPP1
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,ua_io,va_io,omega_io,    &
-                        ta_io,qva_io,qca_io,psa_io,rainc_io,rainnc_io, &
+      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,omega_io,    &
+                        atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,rainc_io,rainnc_io, &
                         tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
 #else
       call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1%u,atm1%v,omega, &

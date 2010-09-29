@@ -857,15 +857,16 @@
         call say
 
         if ( myid.eq.0 ) then
-          call read_domain(ht_io,htsd_io,satbrt_io,xlat_io,xlong_io, &
-                        &  msfx_io,msfd_io,f_io,snowc_io)
+          call read_domain(mddom_io%ht,mddom_io%htsd,mddom_io%satbrt, &
+                           mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
+                           mddom_io%msfd,mddom_io%f,snowc_io)
           if ( nsg.gt.1 ) then
             call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
           else
             do j = 1 , jx
               do i = 1 , iy
-                ht1_io(1,i,j) = ht_io(i,j)*gti
-                satbrt1_io(1,i,j) = satbrt_io(i,j)
+                ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
+                satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
               end do
             end do
           end if
@@ -873,14 +874,14 @@
  
           do j = 1 , jx
             do i = 1 , iy
-              inisrf_0(i,1,j) = ht_io(i,j)
-              inisrf_0(i,2,j) = htsd_io(i,j)
-              inisrf_0(i,3,j) = satbrt_io(i,j)
-              inisrf_0(i,4,j) = xlat_io(i,j)
-              inisrf_0(i,5,j) = xlong_io(i,j)
-              inisrf_0(i,6,j) = msfx_io(i,j)
-              inisrf_0(i,7,j) = msfd_io(i,j)
-              inisrf_0(i,8,j) = f_io(i,j)
+              inisrf_0(i,1,j) = mddom_io%ht(i,j)
+              inisrf_0(i,2,j) = mddom_io%htsd(i,j)
+              inisrf_0(i,3,j) = mddom_io%satbrt(i,j)
+              inisrf_0(i,4,j) = mddom_io%xlat(i,j)
+              inisrf_0(i,5,j) = mddom_io%xlong(i,j)
+              inisrf_0(i,6,j) = mddom_io%msfx(i,j)
+              inisrf_0(i,7,j) = mddom_io%msfd(i,j)
+              inisrf_0(i,8,j) = mddom_io%f(i,j)
             end do
             do n = 1 , nnsg
               do i = 1 , iy
@@ -892,7 +893,7 @@
           end do
           do j = 1 , jx
             do i = 1 , iy
-              ht_io(i,j) = ht_io(i,j)*gti
+              mddom_io%ht(i,j) = mddom_io%ht(i,j)*gti
             end do
           end do
         end if  ! end if (myid.eq.0)

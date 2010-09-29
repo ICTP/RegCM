@@ -130,14 +130,14 @@
 !-----water substance (unit = kg):
 !
         call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8, &
-                      & qva_io,iy*kz*jxp,mpi_real8, &
+                      & atm1_io%qv,iy*kz*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
           do k = 1 , kz
             tttmp = 0.
             do j = 1 , jxm1
               do i = 1 , iym1
-                tttmp = tttmp + qva_io(i,k,j)
+                tttmp = tttmp + atm1_io%qv(i,k,j)
               end do
             end do
             tvmass = tvmass + tttmp*dsigma(k)
@@ -147,14 +147,14 @@
         call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
 !
         call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
-                      & qca_io,iy*kz*jxp,mpi_real8,              &
+                      & atm1_io%qc,iy*kz*jxp,mpi_real8,              &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
           do k = 1 , kz
             tttmp = 0.
             do j = 1 , jxm1
               do i = 1 , iym1
-                tttmp = tttmp + qca_io(i,k,j)
+                tttmp = tttmp + atm1_io%qc(i,k,j)
               end do
             end do
             tcmass = tcmass + tttmp*dsigma(k)
@@ -389,11 +389,11 @@
       if ( myid.eq.0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tdadv = tdadv - dtmin*3.E4*dsigma(k)              &
-                  & *dx*((vaix_g(k,j+1)+vaix_g(k,j))          &
-                  & /(msfx_io(iym1,j)*msfx_io(iym1,j))        &
-                  & -(va01_g(k,j+1)+va01_g(k,j))              &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
+            tdadv = tdadv - dtmin*3.E4*dsigma(k)                   &
+                  & *dx*((vaix_g(k,j+1)+vaix_g(k,j))               &
+                  & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) &
+                  & -(va01_g(k,j+1)+va01_g(k,j))                   &
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
           end do
         end do
       end if
@@ -403,7 +403,7 @@
         do j = 1 , jxm1
           tdadv = tdadv - dtmin*3.E4*dsigma(k)                &
                   *dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j)) /    &
-                  (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) - &
+                  (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                   (atm1%v(1,k,j+1)+atm1%v(1,k,j)) /           &
                   (mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
@@ -483,10 +483,10 @@
             tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qvailx_g(k,j)/psailx_g(j))                        &
-                  & /(msfx_io(iym1,j)*msfx_io(iym1,j))                  &
+                  & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qva01_g(k,j)/psa01_g(j))                          &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
           end do
         end do
       end if
@@ -497,7 +497,7 @@
           tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
                dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*      &
                (atm1%qv(iym1,k,j)/sps1%ps(iym1,j)) /       &
-               (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) - &
+               (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qv(1,k,j) /   &
                sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
@@ -570,10 +570,10 @@
             tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qcailx_g(k,j)/psailx_g(j))                        &
-                  & /(msfx_io(iym1,j)*msfx_io(iym1,j))                  &
+                  & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qca01_g(k,j)/psa01_g(j))                          &
-                  & /(msfx_io(1,j)*msfx_io(1,j)))*rgti
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
           end do
         end do
       end if
@@ -584,7 +584,7 @@
           tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
                 dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*     &
                 (atm1%qc(iym1,k,j)/sps1%ps(iym1,j)) /      &
-                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))- &
+                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))-   &
                 (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qc(1,k,j) /  &
                 sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
         end do
@@ -670,14 +670,14 @@
       tvmass = 0.
 #ifdef MPP1
       call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8,                &
-                    & qva_io,iy*kz*jxp,mpi_real8,                &
+                    & atm1_io%qv,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
           tttmp = 0.
           do j = 1 , jxm1
             do i = 1 , iym1
-              tttmp = tttmp + qva_io(i,k,j)
+              tttmp = tttmp + atm1_io%qv(i,k,j)
             end do
           end do
           tvmass = tvmass + tttmp*dsigma(k)
@@ -703,14 +703,14 @@
 
 #ifdef MPP1
       call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,                &
-                    & qca_io,iy*kz*jxp,mpi_real8,                &
+                    & atm1_io%qc,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do k = 1 , kz
           tttmp = 0.
           do j = 1 , jxm1
             do i = 1 , iym1
-              tttmp = tttmp + qca_io(i,k,j)
+              tttmp = tttmp + atm1_io%qc(i,k,j)
             end do
           end do
           tcmass = tcmass + tttmp*dsigma(k)
@@ -1033,25 +1033,27 @@
               vavg2 = 0.5*(vaill_g(k,j+1)+vaill_g(k,j))
               if ( vavg2.lt.0. ) then
                 fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j)        &
-                    & /(msfx_io(iym1,j)*msfx_io(iym1,j))                &
+                    & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))    &
                     & +fact2*chiaill1_g(k,n,j)/psaill1_g(j)             &
-                    & /(msfx_io(iym2,j)*msfx_io(iym2,j)))
+                    & /(mddom_io%msfx(iym2,j)*mddom_io%msfx(iym2,j)))
               else
                 fx2 = -vavg2*(fact1*chiaill1_g(k,n,j)/psaill1_g(j)      &
-                    & /(msfx_io(iym2,j)*msfx_io(iym2,j))                &
+                    & /(mddom_io%msfx(iym2,j)*mddom_io%msfx(iym2,j))    &
                     & +fact2*chiaill_g(k,n,j)/psaill_g(j)               &
-                    & /(msfx_io(iym1,j)*msfx_io(iym1,j)))
+                    & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)))
               end if
  
               vavg1 = 0.5*(va02_g(k,j+1)+va02_g(k,j))
               if ( vavg1.gt.0. ) then
                 fx1 = -vavg1*(fact1*chia01_g(k,n,j)/psa01_g(j)          &
-                    & /(msfx_io(1,j)*msfx_io(1,j))+fact2*chia02_g(k,n,j)&
-                    & /psa02_g(j)/(msfx_io(2,j)*msfx_io(2,j)))
+                    & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j))+         &
+                    & fact2*chia02_g(k,n,j)/psa02_g(j)                  &
+                    & /(mddom_io%msfx(2,j)*mddom_io%msfx(2,j)))
               else
-                fx1 = -vavg1*(fact1*chia02_g(k,n,j)/psa02_g(j)          &
-                    & /(msfx_io(2,j)*msfx_io(2,j))+fact2*chia01_g(k,n,j)&
-                    & /psa01_g(j)/(msfx_io(1,j)*msfx_io(1,j)))
+                fx1 = -vavg1*(fact1*chia02_g(k,n,j)/psa02_g(j)     &
+                    & /(mddom_io%msfx(2,j)*mddom_io%msfx(2,j))+    &
+                    & fact2*chia01_g(k,n,j)/psa01_g(j)             &
+                    & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
               end if
               tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*(fx2-fx1) &
                         & *rgti

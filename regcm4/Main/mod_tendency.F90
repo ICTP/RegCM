@@ -1378,8 +1378,8 @@
                    atm2%u(i,k,j)   - atm2%u(i,k,jp1)
             dvdy = atm2%v(i+1,k,j) + atm2%v(i+1,k,jp1) - &
                    atm2%v(i,k,j)   - atm2%v(i,k,jp1)
-!fil        cell=(xkhz*mddom%hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
-            cell = (xkhz*mddom%hgfact(i,j)                             &
+!fil        cell=(xkhz*domfc%hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
+            cell = (xkhz*domfc%hgfact(i,j)                             &
                  & +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)      &
                  & *(dvdx+dudy)))
             xkc(i,k,j) = dmin1(cell,xkhmax)
