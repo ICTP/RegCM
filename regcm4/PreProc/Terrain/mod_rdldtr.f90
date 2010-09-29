@@ -483,4 +483,130 @@
              &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr_nc
 !
+! Read a netcdf file with a 1min global dataset, i.e.:
+!
+!       ETOPO1 - http://www.ngdc.noaa.gov/mgg/global/global.html
+!       GLCC2  - http://edc2.usgs.gov/glcc/globe_int.php
+!
+      subroutine read_nc1min(cfile,ntype,values)
+        use netcdf
+        use mod_block
+        use mod_dynparam
+        implicit none
+        integer , intent(in) :: ntype
+        real(4) , dimension(:,:) , allocatable :: values
+        character(len=*) , intent(in) :: cfile
+        character(256) :: nc1minf
+        integer :: ncid , ivar , istatus
+        integer :: nlat , nlon , iolat , iolon , itl
+        integer :: i , j
+        integer , dimension(2) :: istart, icount
+        real(4) , dimension(:,:) , allocatable :: readbuf
+        integer , parameter :: nlo1m = 360*60
+        integer , parameter :: nla1m = 180*60
+        integer , parameter :: hnlo1m = nlo1m/2
+        integer , parameter :: hnla1m = nla1m/2
+
+        if (mod(nlo1m,ntype) /= 0) then
+          print *, 'Sorry, subroutine read_nc1min does not support'// &
+                   ' ntype = ',ntype
+          stop
+        end if
+
+        ! Align on degree
+        grdltmn = floor(xminlat)
+        grdltma = ceiling(xmaxlat)
+        if (lonwrap) then
+          grdlnmn = -180.
+          grdlnma = 180.
+        else
+          grdlnmn = floor(xminlon)
+          grdlnma = ceiling(xmaxlon)
+        end if
+        nlat = (ceiling(xmaxlat)-floor(xminlat))*60
+        if (lonwrap) then
+          nlon = nlo1m ! 1 minute => 360 deg is 21600 minutes
+        else if (lcrosstime) then
+          nlon = ((180.0-floor(xminlon))+(180.0+ceiling(xmaxlon)))*60
+        else
+          nlon = (ceiling(xmaxlon)-floor(xminlon))*60
+        end if
+
+        print *, nlon
+        print *, nlat
+
+        iolat = (nlat/ntype)+1
+        iolon = (nlon/ntype)+1
+        nlat = nlat+1
+        nlon = nlon+1
+
+        allocate(values(iolat,iolon),stat=istatus)
+        if (istatus /= 0) then
+          print *, 'Memory error on allocating ',iolat*iolon*4,' bytes.'
+          stop
+        end if
+
+        allocate(readbuf(nlon,nlat), stat=istatus)
+        if (istatus /= 0) then
+          print *, 'Memory error on allocating ',nlat*nlon*4,' bytes.'
+          stop
+        end if
+
+        nc1minf = trim(inpter)//pthsep//cfile
+        istatus = nf90_open(nc1minf, nf90_nowrite, ncid)
+        call checkerr(istatus)
+        istatus = nf90_inq_varid(ncid, 'z', ivar)
+        call checkerr(istatus)
+
+        istart(2) = hnla1m+(floor(xminlat)*60)
+        if (lonwrap) then
+          istart(1) = 1
+        else
+          istart(1) = hnlo1m+(floor(xminlon)*60)
+        end if
+        if (.not. lcrosstime) then
+          ! Simple case: not crossing timeline
+          icount(2) = nlat
+          icount(1) = nlon
+          istatus = nf90_get_var(ncid, ivar, readbuf, istart, icount)
+          call checkerr(istatus)
+        else
+          ! Crossing timeline
+          itl = nlo1m - istart(1)
+          icount(2) = nlat
+          icount(1) = itl
+          print *, istart(1), icount(1)
+          istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
+                                 istart, icount)
+          call checkerr(istatus)
+          istart(1) = 1
+          icount(1) = nlon-itl
+          print *, istart(1), icount(1)
+          istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
+                                 istart, icount)
+          call checkerr(istatus)
+        end if
+
+        istatus = nf90_close(ncid)
+        call checkerr(istatus)
+
+        do i = 1 , iolat
+          do j = 1 , iolon
+            values(i,j) = readbuf((j-1)*ntype+1,(i-1)*ntype+1)
+          end do
+        end do
+        deallocate(readbuf)
+
+      end subroutine read_nc1min
+
+      subroutine checkerr(ierr)
+        use netcdf
+        implicit none
+        integer , intent(in) :: ierr
+        if ( ierr /= nf90_noerr ) then
+          write (6, *) nf90_strerror(ierr)
+          stop
+        end if
+      end subroutine checkerr
+
       end module mod_rdldtr
