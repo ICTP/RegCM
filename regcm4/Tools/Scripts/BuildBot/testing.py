@@ -124,6 +124,7 @@ def main(argv):
         
     cfg=sys.argv[1]
 
+    # get all the options from cfg file
     options = parse_config(cfg)
 
     datadir = options["DATADIR"]
@@ -132,12 +133,17 @@ def main(argv):
     namelistdir = options["NLDIR"]
     referencedir = options["REFDIR"]
     teststodo = options["TESTSTODO"]
+    mpistring=options["MPISTRING"]
+    run_preproc=int(options["PREPROC"])
+    run_clm=int(options["USECLM"])
+    run_band=int(options["USEBAND"])
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
     bindir = os.path.abspath(bindir)
     referencedir = os.path.abspath(referencedir)
-    
+
+    # check what tests to do
     if teststodo.rfind(",") > -1 :
         tests=teststodo.split(",")
         listtype=0
@@ -149,6 +155,8 @@ def main(argv):
     else :
         tests=int(teststodo)
         listtype=2
+
+    # will put here wether to do the diff and the variables
 
     # main loop over tests
     # number of total tests present
@@ -208,51 +216,40 @@ def main(argv):
         for line in file_content:
             if line.find("globidate1") > -1 :
                 linea=line.rsplit("=")
-                globidate1=linea[1].rstrip(" ,")
+                globidate1=linea[1]
+                globidate1=filter(lambda x:x.isdigit(),globidate1)
             if line.find(" idate0 ") > -1 :
                 linea=line.rsplit("=")
                 idate0=linea[1]
                 idate0=filter(lambda x:x.isdigit(),idate0)
             if line.find(" idate1 ") > -1 :
                 linea=line.rsplit("=")
-                idate1=linea[1].rstrip(" ,")
+                idate1=linea[1]
+                idate1=filter(lambda x:x.isdigit(),idate1)
             if line.find(" idate2 ") > -1 :
                 linea=line.rsplit("=")
-                idate2=linea[1].rstrip(" ,")
-
-        #print "a"+idate0+"a"
+                idate2=linea[1]
+                idate2=filter(lambda x:x.isdigit(),idate2)
                 
         #edit the namelist here
-
         edit_namelist(namelist,datadir,simdir)
 
-        mpistring=options["MPISTRING"]
-        run_preproc=int(options["PREPROC"])
-        run_clm=int(options["USECLM"])
-        run_band=int(options["USEBAND"])
-
         # open log file
-
         writelog=True
-
         try:
             log = open(testname+".log","w")
         except :
             print "Unable to write log!"
             writelog=False
 
-        exit_status = 0
-
-        runMain = True # won't run Main if PreProc crashes...
+        exit_status = 0 # won't run Main if PreProc crashes...
         
         # run preproc
-
         if (run_preproc == 1):
         
             p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
             if p_terrain.wait() != 0:
                 print "\nError: Terrain in",testname,"crashed!!\n"
-                runMain = False
                 exit_status = 1
             else:
                 print "Terrain in",testname,"passed."
@@ -260,7 +257,6 @@ def main(argv):
             p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
             if p_sst.wait() != 0:
                 print "\nError: SST in",testname,"crashed!!\n"
-                runMain = False
                 exit_status = 1
             else :
                 print "SST in",testname,"passed."
@@ -268,7 +264,6 @@ def main(argv):
             p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
             if p_icbc.wait() != 0:
                 print "\nError: ICBC in",testname,"crashed!!\n"
-                runMain = False
                 exit_status = 1
             else :
                 print "ICBC in",testname,"passed."
@@ -279,15 +274,12 @@ def main(argv):
                 print bindir+"/clm2rcm "+namelist
                 if p_clmpre.wait() != 0:
                     print "\nError: clm2rcm in",testname,"crashed!!\n"
-                    runMain = False
                     exit_status = 1
                 else :
                     print "clm2rcm in",testname,"passed."
 
-            sys.stdout.flush()
-
             # compare preproc output only if everything went ok
-            if runMain :
+            if exit_status == 0 :
 
                 dom_diff={}
                 icbc_diff={}
@@ -304,15 +296,14 @@ def main(argv):
                     print var+" =",dom_diff[var]
 
                 # icbc
-
                 for var in icbc_vars :
                     icbc_diff[var] = compare_nc_file(simdir+icbc_file,testrefdir+icbc_file,var).rstrip("\n")
                     print var+" =",icbc_diff[var]
-            
-        #runMain = False
+                    
+            sys.stdout.flush()
 
         # if preproc is ok, run main
-        if runMain :
+        if exit_status == 0 :
             if (int(options["SERIAL"]) == 1):
                 p_regcm=subprocess.Popen(bindir+"/regcmSerial "+namelist,stdout=log,stderr=log,shell=True)
             elif int(run_clm == 1):
@@ -337,8 +328,7 @@ def main(argv):
             stdouterr = outlog.read()
             print stdouterr
 
-        # if everything ok compare output
-        
+        # if everything ok compare output      
         if exit_status == 0:
 
             srf_diff={}
@@ -349,11 +339,8 @@ def main(argv):
             for var in srf_vars :
                 srf_diff[var] = compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
                 print var+" =",srf_diff[var]
-            
 
 	sys.stdout.flush()
-
-        
 
     # end of the big loop
     if exit_status == 1:
