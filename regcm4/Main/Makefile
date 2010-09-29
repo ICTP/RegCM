@@ -249,7 +249,7 @@ mod_radiation.o: mod_radiation.F90 mod_constants.o mod_date.o mod_message.o \
                  mod_dynparam.o mod_tracer.o mod_scenarios.o mod_aerosol.o \
                  mod_bats.o mod_runparams.o
 endif
-mod_runparams.o: mod_runparams.f90 mod_dynparam.o
+mod_runparams.o: mod_runparams.F90 mod_message.o mod_dynparam.o
 ifeq ($(USECLM),1)
 mod_savefile.o: mod_savefile.F90 mod_dynparam.o mod_message.o mod_runparams.o \
                 mod_bats.o mod_pmoist.o mod_main.o mod_mainchem.o mod_bdycod.o \

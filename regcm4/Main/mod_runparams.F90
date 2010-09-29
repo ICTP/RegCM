@@ -20,6 +20,7 @@
       module mod_runparams
 
       use mod_dynparam
+      use mod_message
 
       implicit none
  
@@ -57,6 +58,9 @@
 
       character(len=3) :: scenario
 
+      real(8) , private :: total_allocation_size
+      data total_allocation_size /0.0/
+
       contains
 
       subroutine allocate_mod_runparams
@@ -80,5 +84,21 @@
         wgtx = 0.0D0
         dtau = 0.0D0
       end subroutine allocate_mod_runparams
+!
+      subroutine check_alloc(ierr,where,what,isize)
+        implicit none
+        integer , intent(in) :: ierr , isize
+        character(len=*) :: what , where
+        if (ierr /= 0) then
+          call fatal(__FILE__,__LINE__,what//' CANNOT BE allocated')
+        end if
+        total_allocation_size = total_allocation_size + isize
+      end subroutine check_alloc
+!
+      subroutine report_alloc
+        implicit none
+        write(aline,*) 'total allocation (in Kbyte)=', total_allocation_size*8/1024
+        call say
+      end subroutine report_alloc
 !
       end module mod_runparams
