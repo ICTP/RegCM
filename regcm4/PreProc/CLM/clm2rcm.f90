@@ -166,10 +166,10 @@
       call check_ok(istatus,'Error adding global clon')
       if (iproj == 'ROTMER') then
         istatus = nf90_put_att(ncid, nf90_global, &
-                 &   'latitude_of_projection_pole', plat)
+                 &   'grid_north_pole_latitude', plat)
         call check_ok(istatus,'Error adding global plat')
         istatus = nf90_put_att(ncid, nf90_global, &
-                 &   'longitude_of_projection_pole', plon)
+                 &   'grid_north_pole_longitude', plon)
         call check_ok(istatus,'Error adding global plon')
       else if (iproj == 'LAMCON') then
         trlat(1) = truelatl

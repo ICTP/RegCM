@@ -124,14 +124,14 @@
         if(iprojx.eq."ROTMER")then
           !Read plat
           call handle_nc_err(  &
-             nf90_get_att(incin, NF90_GLOBAL,"latitude_of_projection_pole", &
+             nf90_get_att(incin, NF90_GLOBAL,"grid_north_pole_latitude", &
                           platx), &
-            "Reading","latitude_of_projection_pole")
+            "Reading","grid_north_pole_latitude")
           !Read plon
           call handle_nc_err(  &
-             nf90_get_att(incin, NF90_GLOBAL,"longitude_of_projection_pole", &
+             nf90_get_att(incin, NF90_GLOBAL,"grid_north_pole_longitude", &
                           plonx), &
-            "Reading","longitude_of_projection_pole")
+            "Reading","grid_north_pole_longitude")
         else
           platx = clatx
           plonx = clonx

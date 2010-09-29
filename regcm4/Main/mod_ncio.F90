@@ -93,6 +93,8 @@
         real(4) , dimension(:,:,:) , allocatable :: dumio
         real(4) , dimension(:,:,:) , allocatable :: atmsrfmask
         real(4) , dimension(:,:) , allocatable :: atmsrfsum
+        real(4) , dimension(2) :: latrange
+        real(4) , dimension(2) :: lonrange
 
         character(len=8) , dimension(n_atmvar) :: atm_names
         character(len=8) , dimension(n_srfvar) :: srf_names
@@ -581,12 +583,14 @@
           call check_ok('Variable xlat read error', 'DOMAIN FILE ERROR')
           xlat = transpose(sp2d)
           ioxlat = sp2d(o_js:o_je,o_is:o_ie)
+          latrange = (/minval(ioxlat),maxval(ioxlat)/)
           istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
           call check_ok('Variable xlon missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable xlon read error', 'DOMAIN FILE ERROR')
           xlon = transpose(sp2d)
           ioxlon = sp2d(o_js:o_je,o_is:o_ie)
+          lonrange = (/minval(ioxlon(:,1)),maxval(ioxlon(:,-1))/)
           istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok('Variable xmap missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -1244,6 +1248,23 @@
           call check_ok('Error adding global experiment', fterr)
           istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
           call check_ok('Error adding global projection', fterr)
+          if (iproj == 'LAMCON') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                         'grid_mapping_name', 'lambert_conformal_conic')
+            call check_ok('Error adding global grid_mapping_name', fterr)
+          else if (iproj == 'POLSTR') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                         'grid_mapping_name', 'stereographic')
+            call check_ok('Error adding global grid_mapping_name', fterr)
+          else if (iproj == 'NORMER') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                         'grid_mapping_name', 'mercator')
+            call check_ok('Error adding global grid_mapping_name', fterr)
+          else if (iproj == 'ROTMER') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                         'grid_mapping_name', 'rotated_latitude_longitude')
+            call check_ok('Error adding global grid_mapping_name', fterr)
+          end if
           istatus = nf90_put_att(ncid, nf90_global,   &
                    &   'grid_size_in_meters', ds*1000.0)
           call check_ok('Error adding global gridsize', fterr)
@@ -1253,12 +1274,15 @@
           istatus = nf90_put_att(ncid, nf90_global,   &
                    &   'longitude_of_projection_origin', clon)
           call check_ok('Error adding global clon', fterr)
+          istatus = nf90_put_att(ncid, nf90_global,   &
+                   &   'longitude_of_central_meridian', clon)
+          call check_ok('Error adding global gmtllon', fterr)
           if (iproj == 'ROTMER') then
             istatus = nf90_put_att(ncid, nf90_global, &
-                     &   'latitude_of_projection_pole', plat)
+                     &   'grid_north_pole_latitude', plat)
             call check_ok('Error adding global plat', fterr)
             istatus = nf90_put_att(ncid, nf90_global, &
-                     &   'longitude_of_projection_pole', plon)
+                     &   'grid_north_pole_longitude', plon)
             call check_ok('Error adding global plon', fterr)
           else if (iproj == 'LAMCON') then
             trlat(1) = truelatl
@@ -1266,6 +1290,15 @@
             istatus = nf90_put_att(ncid, nf90_global, &
                      &   'standard_parallel', trlat)
             call check_ok('Error adding global truelat', fterr)
+          else if (iproj == 'NORMER') then
+            istatus = nf90_put_att(ncid, nf90_global, &
+                     &   'standard_parallel', clat)
+            call check_ok('Error adding global truelat', fterr)
+          else if (iproj == 'POLSTR') then
+            trlat(1) = 1.0
+            istatus = nf90_put_att(ncid, nf90_global, &
+                     &   'scale_factor_at_projection_origin', trlat(1:1))
+            call check_ok('Error adding global scfac', fterr)
           end if
 !
 !         ADD RUN PARAMETERS
@@ -1465,28 +1498,28 @@
           call check_ok('Error adding ptop long_name', fterr)
           istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
           call check_ok('Error adding ptop units', fterr)
-          istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
+          istatus = nf90_def_var(ncid, 'y_range', nf90_float, idims(2), &
                             &  ivvar(1))
-          call check_ok('Error adding variable iy', fterr)
+          call check_ok('Error adding variable y_range', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
                             &  'projection_y_coordinate')
-          call check_ok('Error adding iy standard_name', fterr)
+          call check_ok('Error adding y_range standard_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'long_name', &
                             &  'y-coordinate in Cartesian system')
-          call check_ok('Error adding iy long_name', fterr)
+          call check_ok('Error adding y_range long_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-          call check_ok('Error adding iy units', fterr)
-          istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
+          call check_ok('Error adding y_range units', fterr)
+          istatus = nf90_def_var(ncid, 'x_range', nf90_float, idims(1), &
                             &  ivvar(2))
-          call check_ok('Error adding variable jx', fterr)
+          call check_ok('Error adding variable x_range', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                             &  'projection_x_coordinate')
-          call check_ok('Error adding jx standard_name', fterr)
+          call check_ok('Error adding x_range standard_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'long_name', &
                             &  'x-coordinate in Cartesian system')
-          call check_ok('Error adding jx long_name', fterr)
+          call check_ok('Error adding x_range long_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-          call check_ok('Error adding jx units', fterr)
+          call check_ok('Error adding x_range units', fterr)
           istatus = nf90_def_var(ncid, 'xlat', nf90_float, &
                              &   idims(1:2), illtpvar(1))
           call check_ok('Error adding variable xlat', fterr)
@@ -1499,6 +1532,9 @@
           istatus = nf90_put_att(ncid, illtpvar(1), 'units', &
                             &  'degrees_north')
           call check_ok('Error adding xlat units', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(1), 'actual_range', &
+                            &    latrange)
+          call check_ok('Error adding xlat actual_range', fterr)
           istatus = nf90_def_var(ncid, 'xlon', nf90_float, &
                              &   idims(1:2), illtpvar(2))
           call check_ok('Error adding variable xlon', fterr)
@@ -1511,6 +1547,9 @@
           istatus = nf90_put_att(ncid, illtpvar(2), 'units',  &
                             &  'degrees_east')
           call check_ok('Error adding xlon units', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(2), 'actual_range', &
+                            &    lonrange)
+          call check_ok('Error adding xlon actual_range', fterr)
           istatus = nf90_def_var(ncid, 'topo', nf90_float, &
                              &   idims(1:2), illtpvar(3))
           call check_ok('Error adding variable topo', fterr)

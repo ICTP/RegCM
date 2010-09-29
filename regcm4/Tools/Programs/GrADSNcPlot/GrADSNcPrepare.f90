@@ -286,17 +286,17 @@ program ncprepare
       end do
     end do
   else if (iproj == 'ROTMER') then
-    istatus = nf90_get_att(ncid, nf90_global, 'latitude_of_projection_pole', &
+    istatus = nf90_get_att(ncid, nf90_global, 'grid_north_pole_latitude', &
                            plat)
     if ( istatus /= nf90_noerr) then
-      write (6,*) 'Error reading latitude_of_projection_pole attribute'
+      write (6,*) 'Error reading grid_north_pole_latitude attribute'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    istatus = nf90_get_att(ncid, nf90_global, 'longitude_of_projection_pole', &
+    istatus = nf90_get_att(ncid, nf90_global, 'grid_north_pole_longitude', &
                            plon)
     if ( istatus /= nf90_noerr) then
-      write (6,*) 'Error reading longitude_of_projection_pole attribute'
+      write (6,*) 'Error reading grid_north_pole_longitude attribute'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
