@@ -742,12 +742,14 @@
           istatus = nf90_put_var(ncid, ivar(12), transpose(mask))
         end if
         call check_ok(istatus,'Error variable mask write')
-        if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(13), transpose(dpth_s))
-        else
-          istatus = nf90_put_var(ncid, ivar(13), transpose(dpth))
+        if ( lakedpth == 1 ) then
+          if (lsub) then
+            istatus = nf90_put_var(ncid, ivar(13), transpose(dpth_s))
+          else
+            istatus = nf90_put_var(ncid, ivar(13), transpose(dpth))
+          end if
+          call check_ok(istatus,'Error variable lkdpth write')
         end if
-        call check_ok(istatus,'Error variable lkdpth write')
 
         if ( aertyp(7:7)=='1' ) then
           if (lsub) then

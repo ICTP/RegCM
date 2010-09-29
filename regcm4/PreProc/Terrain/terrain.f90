@@ -579,13 +579,14 @@
           mask_s = 2.0
         end where
 
-        print *, 'To be implemented.'
-        print *, 'Lake depth read from bathymetry ETOPO1 dataset'
-        print *, 'Setting dpth = 25'
-
-        where (lndout_s == 14)
-          dpth_s = 25.0
-        end where
+        if (lakedpth == 1 ) then
+          print *, 'To be implemented.'
+          print *, 'Lake depth read from bathymetry ETOPO1 dataset'
+          print *, 'Setting dpth = 25'
+          where (lndout_s == 14)
+            dpth_s = 25.0
+          end where
+        end if
 
         call write_domain(.true.)
         print * , 'Subgrid data written to output file'
@@ -598,13 +599,14 @@
         mask = 2.0
       end where
 
-      print *, 'To be implemented.'
-      print *, 'Lake depth read from bathymetry ETOPO1 dataset'
-      print *, 'Setting dpth = 25'
-
-      where (lndout == 14)
-        dpth = 25.0
-      end where
+      if (lakedpth == 1 ) then
+        print *, 'To be implemented.'
+        print *, 'Lake depth read from bathymetry ETOPO1 dataset'
+        print *, 'Setting dpth = 25'
+        where (lndout == 14)
+          dpth = 25.0
+        end where
+      end if
 
       call write_domain(.false.)
       print * , 'Grid data written to output file'
