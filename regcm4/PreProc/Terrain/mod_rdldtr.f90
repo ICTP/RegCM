@@ -501,15 +501,15 @@
         real(4) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , iolat , iolon , itl
-        integer :: i , j , iosec , inpsec , iopsec
+        integer :: i , j , iosec , inpsec , iopsec , ifrac
         integer , dimension(2) :: istart, icount
         real(4) , dimension(:,:) , allocatable :: readbuf
         integer :: nlo1m , nla1m , hnlo1m , hnla1m
         integer , parameter :: secpd = 3600
+        integer , parameter :: secpm = 60
 
-        iosec = iores*60
+        iosec = iores*secpm
         inpsec = secpd/iires
-        iopsec = secpd/iosec
         nlo1m = 360*inpsec
         nla1m = 180*inpsec
         if (mod(nlo1m,iosec) /= 0) then
@@ -519,6 +519,8 @@
         end if
         hnlo1m = nlo1m/2
         hnla1m = nla1m/2
+        iopsec = secpd/iosec
+        ifrac = inpsec/iopsec
 
         ! Align on degree
         grdltmn = floor(xminlat)
@@ -540,13 +542,10 @@
           nlon = (ceiling(xmaxlon)-floor(xminlon))*inpsec
         end if
 
-        iolat = (nlat/iopsec)+1
-        iolon = (nlon/iopsec)+1
+        iolat = (nlat/ifrac)+1
+        iolon = (nlon/ifrac)+1
         nlat = nlat+1
         nlon = nlon+1
-
-        print *, iolat , iolon
-        print *, nlat , nlon
 
         allocate(values(iolat,iolon),stat=istatus)
         if (istatus /= 0) then
@@ -599,7 +598,7 @@
 
         do i = 1 , iolat
           do j = 1 , iolon
-            values(i,j) = readbuf((j-1)*iopsec+1,(i-1)*iopsec+1)
+            values(i,j) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
           end do
         end do
         deallocate(readbuf)
