@@ -483,30 +483,34 @@
              &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr_nc
 !
+!
 ! Read a netcdf file with a global dataset on a regular latitude/longitude grid
 !
 !  cfile = name of the input file
 !  cvar = name of the var in the file
 !  iires = file resolution in arc seconds
 !  iores = output wanted resolution in minutes
+!  lreg = flag for grid vertex or center registering
 !  values = allocated space by the sub containing data: the caller is
 !           in charge of the deallocate
 !
-      subroutine read_ncglob(cfile,cvar,iires,iores,values)
+      subroutine read_ncglob(cfile,cvar,iires,iores,lreg,values)
         use netcdf
         use mod_block
         implicit none
         character(len=*) , intent(in) :: cfile , cvar
         integer , intent(in) :: iires, iores
+        logical , intent(in) :: lreg
         real(4) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , iolat , iolon , itl
-        integer :: i , j , iosec , inpsec , iopsec , ifrac
+        integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
         integer , dimension(2) :: istart, icount
         real(4) , dimension(:,:) , allocatable :: readbuf
         integer :: nlo1m , nla1m , hnlo1m , hnla1m
         integer , parameter :: secpd = 3600
         integer , parameter :: secpm = 60
+        real(4) :: delta
 
         iosec = iores*secpm
         inpsec = secpd/iires
@@ -522,24 +526,29 @@
         iopsec = secpd/iosec
         ifrac = inpsec/iopsec
 
-        ! Align on degree
-        grdltmn = floor(xminlat)
-        grdltma = ceiling(xmaxlat)
+        ireg = 0
+        if (lreg) ireg = 1
+        delta = real(iires)/real(secpd)*ireg
+
+        grdltmn = floor(xminlat)  -delta
+        grdltma = ceiling(xmaxlat)+delta
+        if (grdltmn < -90+delta) grdltmn = -90.0+delta
+        if (grdltma > +90-delta) grdltma =  90.0-delta
         if (lonwrap) then
-          grdlnmn = -180.
-          grdlnma = 180.
+          grdlnmn = -180.0+delta
+          grdlnma =  180.0-delta
         else
-          grdlnmn = floor(xminlon)
-          grdlnma = ceiling(xmaxlon)
+          grdlnmn = floor(xminlon)  -delta
+          grdlnma = ceiling(xmaxlon)+delta
         end if
 
-        nlat = (ceiling(xmaxlat)-floor(xminlat))*inpsec
+        nlat = (grdltma-grdltmn)*inpsec
         if (lonwrap) then
-          nlon = nlo1m
+          nlon = nlo1m-ireg
         else if (lcrosstime) then
-          nlon = ((180.0-floor(xminlon))+(180.0+ceiling(xmaxlon)))*inpsec
+          nlon = ((180.0-delta-grdlnmn)+(180.0-delta+grdlnma))*inpsec
         else
-          nlon = (ceiling(xmaxlon)-floor(xminlon))*inpsec
+          nlon = (grdlnma-grdlnmn)*inpsec
         end if
 
         iolat = (nlat/ifrac)+1
@@ -564,11 +573,11 @@
         istatus = nf90_inq_varid(ncid, cvar, ivar)
         call checkerr(istatus)
 
-        istart(2) = hnla1m+(floor(xminlat)*inpsec)
+        istart(2) = (hnla1m-ireg)+(grdltmn*inpsec)
         if (lonwrap) then
           istart(1) = 1
         else
-          istart(1) = hnlo1m+(floor(xminlon)*inpsec)
+          istart(1) = (hnlo1m-ireg)+(grdlnmn*inpsec)
         end if
         if (.not. lcrosstime) then
           ! Simple case: not crossing timeline
@@ -581,13 +590,11 @@
           itl = nlo1m - istart(1)
           icount(2) = nlat
           icount(1) = itl
-          print *, istart(1), icount(1)
           istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
                                  istart, icount)
           call checkerr(istatus)
           istart(1) = 1
           icount(1) = nlon-itl
-          print *, istart(1), icount(1)
           istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
                                  istart, icount)
           call checkerr(istatus)
