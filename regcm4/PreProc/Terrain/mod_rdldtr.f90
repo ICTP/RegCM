@@ -483,35 +483,42 @@
              &' must be greater than ',i8,10x,'iblk = ',i8)
       end subroutine rdldtr_nc
 !
-! Read a netcdf file with a 1min global dataset, i.e.:
+! Read a netcdf file with a global dataset on a regular latitude/longitude grid
 !
-!       ETOPO1 - http://www.ngdc.noaa.gov/mgg/global/global.html
-!       GLCC2  - http://edc2.usgs.gov/glcc/globe_int.php
+!  cfile = name of the input file
+!  cvar = name of the var in the file
+!  iires = file resolution in arc seconds
+!  iores = output wanted resolution in minutes
+!  values = allocated space by the sub containing data: the caller is
+!           in charge of the deallocate
 !
-      subroutine read_nc1min(cfile,ntype,values)
+      subroutine read_ncglob(cfile,cvar,iires,iores,values)
         use netcdf
         use mod_block
-        use mod_dynparam
         implicit none
-        integer , intent(in) :: ntype
-        real(4) , dimension(:,:) , allocatable :: values
-        character(len=*) , intent(in) :: cfile
-        character(256) :: nc1minf
+        character(len=*) , intent(in) :: cfile , cvar
+        integer , intent(in) :: iires, iores
+        real(4) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , iolat , iolon , itl
-        integer :: i , j
+        integer :: i , j , iosec , inpsec , iopsec
         integer , dimension(2) :: istart, icount
         real(4) , dimension(:,:) , allocatable :: readbuf
-        integer , parameter :: nlo1m = 360*60
-        integer , parameter :: nla1m = 180*60
-        integer , parameter :: hnlo1m = nlo1m/2
-        integer , parameter :: hnla1m = nla1m/2
+        integer :: nlo1m , nla1m , hnlo1m , hnla1m
+        integer , parameter :: secpd = 3600
 
-        if (mod(nlo1m,ntype) /= 0) then
-          print *, 'Sorry, subroutine read_nc1min does not support'// &
-                   ' ntype = ',ntype
+        iosec = iores*60
+        inpsec = secpd/iires
+        iopsec = secpd/iosec
+        nlo1m = 360*inpsec
+        nla1m = 180*inpsec
+        if (mod(nlo1m,iosec) /= 0) then
+          print *, 'Sorry, subroutine read_ncglob does not support'// &
+                   ' iores = ',iores
           stop
         end if
+        hnlo1m = nlo1m/2
+        hnla1m = nla1m/2
 
         ! Align on degree
         grdltmn = floor(xminlat)
@@ -523,22 +530,23 @@
           grdlnmn = floor(xminlon)
           grdlnma = ceiling(xmaxlon)
         end if
-        nlat = (ceiling(xmaxlat)-floor(xminlat))*60
+
+        nlat = (ceiling(xmaxlat)-floor(xminlat))*inpsec
         if (lonwrap) then
-          nlon = nlo1m ! 1 minute => 360 deg is 21600 minutes
+          nlon = nlo1m
         else if (lcrosstime) then
-          nlon = ((180.0-floor(xminlon))+(180.0+ceiling(xmaxlon)))*60
+          nlon = ((180.0-floor(xminlon))+(180.0+ceiling(xmaxlon)))*inpsec
         else
-          nlon = (ceiling(xmaxlon)-floor(xminlon))*60
+          nlon = (ceiling(xmaxlon)-floor(xminlon))*inpsec
         end if
 
-        print *, nlon
-        print *, nlat
-
-        iolat = (nlat/ntype)+1
-        iolon = (nlon/ntype)+1
+        iolat = (nlat/iopsec)+1
+        iolon = (nlon/iopsec)+1
         nlat = nlat+1
         nlon = nlon+1
+
+        print *, iolat , iolon
+        print *, nlat , nlon
 
         allocate(values(iolat,iolon),stat=istatus)
         if (istatus /= 0) then
@@ -552,17 +560,16 @@
           stop
         end if
 
-        nc1minf = trim(inpter)//pthsep//cfile
-        istatus = nf90_open(nc1minf, nf90_nowrite, ncid)
+        istatus = nf90_open(cfile, nf90_nowrite, ncid)
         call checkerr(istatus)
-        istatus = nf90_inq_varid(ncid, 'z', ivar)
+        istatus = nf90_inq_varid(ncid, cvar, ivar)
         call checkerr(istatus)
 
-        istart(2) = hnla1m+(floor(xminlat)*60)
+        istart(2) = hnla1m+(floor(xminlat)*inpsec)
         if (lonwrap) then
           istart(1) = 1
         else
-          istart(1) = hnlo1m+(floor(xminlon)*60)
+          istart(1) = hnlo1m+(floor(xminlon)*inpsec)
         end if
         if (.not. lcrosstime) then
           ! Simple case: not crossing timeline
@@ -592,13 +599,13 @@
 
         do i = 1 , iolat
           do j = 1 , iolon
-            values(i,j) = readbuf((j-1)*ntype+1,(i-1)*ntype+1)
+            values(i,j) = readbuf((j-1)*iopsec+1,(i-1)*iopsec+1)
           end do
         end do
         deallocate(readbuf)
 
-      end subroutine read_nc1min
-
+      end subroutine read_ncglob
+!
       subroutine checkerr(ierr)
         use netcdf
         implicit none
@@ -608,5 +615,5 @@
           stop
         end if
       end subroutine checkerr
-
+!
       end module mod_rdldtr
