@@ -1855,8 +1855,8 @@
                 'Tracers mixing ratios','kg kg-1', &
                 tczyx,.false.,ichevar(3))
             call addvara(ncid,ctype,'aext8', &
-                'aerosol_extincion_coefficient', &
-                'aer mix. ext. coef','1',tzyx,.false.,ichevar(4))
+                'aerosol_optical_depth', &
+                'aer mix. aod.','1',tzyx,.false.,ichevar(4))
             call addvara(ncid,ctype,'assa8', &
                 'aerosol_single_scattering_albedo', &
                 'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(5))
@@ -1864,7 +1864,7 @@
                 'aerosol_asymmetry_parameter', &
                 'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(6))
             call addvara(ncid,ctype,'colb', &
-                'instantaneous_deposition_of_tracer', &
+                'instantaneous_column_burden', &
                 'columnburden inst','mg m-2',tcyx,.false.,ichevar(7))
             call addvara(ncid,ctype,'wdlsc', &
                 'tendency_of_wet_deposition_of_tracer'// &
@@ -1897,15 +1897,15 @@
                 'TOArad SW forcing av.','W m-2', &
                 tyx,.false.,ichevar(14))
             call addvara(ncid,ctype,'acstsrrf', &
-                'surface_instantaneous_shortwave_radiative_forcing', &
+                'surface_shortwave_radiative_forcing', &
                 'SRFrad SW forcing av.','W m-2', &
                 tyx,.false.,ichevar(15))
             call addvara(ncid,ctype,'acstalrf', &
-                'toa_instantaneous_longwave_radiative_forcing', &
+                'toa_longwave_radiative_forcing', &
                 'TOArad LW forcing av.','W m-2', &
                 tyx,.false.,ichevar(16))
             call addvara(ncid,ctype,'acssrlrf', &
-                'surface_instantaneous_longwave_radiative_forcing', &
+                'surface_longwave_radiative_forcing', &
                 'SRFrad LW forcing av.','W m-2', &
                 tyx,.false.,ichevar(17))
           end if
