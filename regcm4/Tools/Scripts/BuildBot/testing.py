@@ -77,7 +77,6 @@ def compare_nc_file(filename,refname,varname):
     
     try :
         p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-        #print "ncdiff ok"
     except OSError :
         print "Could not run ncdiff!"
         output,error = p_1.communicate()
@@ -85,7 +84,8 @@ def compare_nc_file(filename,refname,varname):
 
     if p_1.wait() == 0 :
         try :
-            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc && rm temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            os.remove("temp.nc")
         except OSError :
            print "Could not run ncwa!"
            output,error = p_2.communicate()
@@ -97,7 +97,8 @@ def compare_nc_file(filename,refname,varname):
 
     if p_2.wait() == 0 :
         try :
-            p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc && rm rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            os.remove("rms.nc")
         except OSError :
             print "Could not run ncks!"
             output,error = p_3.communicate()
@@ -134,15 +135,19 @@ def main(argv):
     referencedir = options["REFDIR"]
     teststodo = options["TESTSTODO"]
     mpistring=options["MPISTRING"]
+    run_serial=int(options["SERIAL"])
     run_preproc=int(options["PREPROC"])
     run_clm=int(options["USECLM"])
     run_band=int(options["USEBAND"])
+    run_diff=int(options["DIFF"])
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
     bindir = os.path.abspath(bindir)
     referencedir = os.path.abspath(referencedir)
 
+    # will put the diff variables here?
+    
     # check what tests to do
     if teststodo.rfind(",") > -1 :
         tests=teststodo.split(",")
@@ -155,12 +160,8 @@ def main(argv):
     else :
         tests=int(teststodo)
         listtype=2
-
-    # will put here wether to do the diff and the variables
-
-    # main loop over tests
-    # number of total tests present
-    TOT_TESTS = 10
+    
+    TOT_TESTS = 10 # number of total tests present
 
     if not os.path.isdir(testdir):
         os.mkdir(testdir)
@@ -179,36 +180,34 @@ def main(argv):
         imin = 0
         imax = len(tests)-1
 
-
     #print "imin =",imin
     #print "imax =",imax
-        
+
+    # main loop over tests        
     for i in range(imin,imax+1):
 
         if listtype == 0 :
             testname="test_00"+str(tests[i])
         else :
-            # make this better!
+            # improve for testno > 9
             testname="test_00"+str(i)
 
+        # create simulation directory tree
         simdir=testdir+"/"+testname
         testrefdir=referencedir+"/"+testname
 
         if not os.path.isdir(simdir):
             os.mkdir(simdir)
 
-        # create simulation directory tree
         if not os.path.isdir(simdir+"/input"):
             os.mkdir(simdir+"/input")
         if not os.path.isdir(simdir+"/output"):
             os.mkdir(simdir+"/output")
 
         namelist = simdir+"/regcm.in"
-
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
-        # parse for idate0 and idate2
-
+        # parse for idateX
         infile = open(namelist,"r")
         file_content = infile.readlines()
         infile.close()
@@ -279,7 +278,8 @@ def main(argv):
                     print "clm2rcm in",testname,"passed."
 
             # compare preproc output only if everything went ok
-            if exit_status == 0 :
+            # and diff selected
+            if (exit_status == 0) && (run_diff == 1) :
 
                 dom_diff={}
                 icbc_diff={}
@@ -304,11 +304,11 @@ def main(argv):
 
         # if preproc is ok, run main
         if exit_status == 0 :
-            if (int(options["SERIAL"]) == 1):
+            if (run_serial == 1):
                 p_regcm=subprocess.Popen(bindir+"/regcmSerial "+namelist,stdout=log,stderr=log,shell=True)
-            elif int(run_clm == 1):
+            elif run_clm == 1 :
                 p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_clM "+namelist,stdout=log,stderr=log,shell=True)
-            elif int(run_band == 1):
+            elif run_band == 1 :
                 p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_band "+namelist,stdout=log,stderr=log,shell=True)
             else :
                 p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcmMPI "+namelist,stdout=log,stderr=log,shell=True)
@@ -328,8 +328,8 @@ def main(argv):
             stdouterr = outlog.read()
             print stdouterr
 
-        # if everything ok compare output      
-        if exit_status == 0:
+        # if everything ok and diff enabled compare output      
+        if (exit_status == 0) && (run_diff == 1):
 
             srf_diff={}
             srf_file="/output/"+testname+"_SRF."+idate0+".nc"
