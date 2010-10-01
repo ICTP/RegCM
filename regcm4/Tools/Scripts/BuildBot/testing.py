@@ -85,7 +85,6 @@ def compare_nc_file(filename,refname,varname):
     if p_1.wait() == 0 :
         try :
             p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-            os.remove("temp.nc")
         except OSError :
            print "Could not run ncwa!"
            output,error = p_2.communicate()
@@ -96,9 +95,9 @@ def compare_nc_file(filename,refname,varname):
         return output
 
     if p_2.wait() == 0 :
+        os.remove("temp.nc")
         try :
             p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-            os.remove("rms.nc")
         except OSError :
             print "Could not run ncks!"
             output,error = p_3.communicate()
@@ -113,6 +112,7 @@ def compare_nc_file(filename,refname,varname):
         output,error = p_3.communicate()
         return output+error
     else:
+        os.remove("rms.nc")
         output,error = p_3.communicate()
         
     return output
@@ -279,7 +279,7 @@ def main(argv):
 
             # compare preproc output only if everything went ok
             # and diff selected
-            if (exit_status == 0) && (run_diff == 1) :
+            if (exit_status == 0) and (run_diff == 1) :
 
                 dom_diff={}
                 icbc_diff={}
@@ -329,7 +329,7 @@ def main(argv):
             print stdouterr
 
         # if everything ok and diff enabled compare output      
-        if (exit_status == 0) && (run_diff == 1):
+        if (exit_status == 0) and (run_diff == 1):
 
             srf_diff={}
             srf_file="/output/"+testname+"_SRF."+idate0+".nc"
