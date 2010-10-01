@@ -116,8 +116,9 @@
 
 #endif
 !
-
+#ifdef DEBUG 
       call activate_debug()
+#endif
 !**********************************************************************
 !
 !     Read input global namelist

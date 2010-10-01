@@ -668,7 +668,7 @@
 
         write(aline,*) 'allocate_mod_mppio'
         call say
-        call report_alloc
+        call report_alloc('allocate_mod_mppio')
         write(aline,*) 'allocate_mod_mppio'
         call say
       end subroutine allocate_mod_mppio
