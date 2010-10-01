@@ -573,7 +573,7 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding mask coordinates')
 
-        if ( lakedpth == .true. ) then
+        if ( lakedpth .eqv. .true. ) then
           istatus = nf90_def_var(ncid, 'lkdpth', nf90_float, idims(1:2),  &
                               &  ivar(13))
           call check_ok(istatus,'Error adding variable lkdpth')
@@ -742,7 +742,7 @@
           istatus = nf90_put_var(ncid, ivar(12), transpose(mask))
         end if
         call check_ok(istatus,'Error variable mask write')
-        if ( lakedpth == .true. ) then
+        if ( lakedpth .eqv. .true. ) then
           if (lsub) then
             istatus = nf90_put_var(ncid, ivar(13), transpose(dpth_s))
           else

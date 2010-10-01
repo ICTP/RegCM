@@ -579,7 +579,7 @@
           mask_s = 2.0
         end where
 
-        if (lakedpth == .true. ) then
+        if (lakedpth) then
           print *, 'To be implemented.'
           print *, 'Lake depth read from bathymetry ETOPO1 dataset'
           print *, 'Setting dpth = 25'
@@ -599,7 +599,7 @@
         mask = 2.0
       end where
 
-      if (lakedpth == .true. ) then
+      if (lakedpth ) then
         print *, 'To be implemented.'
         print *, 'Lake depth read from bathymetry ETOPO1 dataset'
         print *, 'Setting dpth = 25'
