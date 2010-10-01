@@ -591,7 +591,11 @@
           call check_ok('Variable xlon read error', 'DOMAIN FILE ERROR')
           xlon = transpose(sp2d)
           ioxlon = sp2d(o_js:o_je,o_is:o_ie)
-          lonrange = (/minval(ioxlon(:,1)),maxval(ioxlon(:,-1))/)
+
+! tmp: commented out: makes the code crash in DEBUG mode 
+! : lonrange is defined here but never used..
+!          lonrange = (/minval(ioxlon(:,1)),maxval(ioxlon(:,-1))/)
+!
           istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok('Variable xmap missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
