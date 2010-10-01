@@ -268,9 +268,7 @@ def main(argv):
                 print "ICBC in",testname,"passed."
 
             if run_clm == 1:
-                print bindir+"/clm2rcm "+namelist
-                p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist)
-                print bindir+"/clm2rcm "+namelist
+                p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist,stdout=log,stderr=log,shell=True)
                 if p_clmpre.wait() != 0:
                     print "\nError: clm2rcm in",testname,"crashed!!\n"
                     exit_status = 1
