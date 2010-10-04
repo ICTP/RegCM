@@ -1,0 +1,135 @@
+! small European domain
+ &dimparam
+ iy     = 88,
+ jx     = 64,
+ kz     = 18,
+ nsg    = 1,
+ /
+ &geoparam
+ iproj = 'LAMCON',
+ ds = 60.0,
+ ptop = 5.0,
+ clat = 50.00,
+ clon = 55.00,
+ plat = 45.39,
+ plon = 13.48,
+ truelatl = 35.0,
+ truelath = 60.0,
+ i_band = 0,
+ i_lake = 1,
+ /
+ &terrainparam
+ domname = 'test_012',
+ itype_in = 1,
+ ntypec = 10,
+ ntypec_s = 10,
+ ifanal = .true.,
+ smthbdy = .false.,
+ lake_adj = .false.,
+ fudge_lnd   = .false.,
+ fudge_lnd_s = .false.,
+ fudge_tex   = .false.,
+ fudge_tex_s = .false.,
+ h2opct = 75.,
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
+ /
+ &ioparam
+ ibyte = 4,
+ /
+ &debugparam
+ debug_level = 1,
+ dbgfrq = 3,
+ /
+ &boundaryparam
+ nspgx  = 12,
+ nspgd  = 12,
+ /
+ &modesparam
+ nsplit = 2,
+ /
+ &globdatparam
+ ibdyfrq = 6,
+ ssttyp = 'OI_WK',
+ dattyp = 'EIN15',
+ ehso4 = .false.,
+ globidate1 = 1990053100,
+ globidate2 = 1990060200,
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is',
+ /
+ &globwindow
+ lat0 = 0.0
+ lat1 = 0.0
+ lon0 = 0.0
+ lon1 = 0.0
+ /
+ &aerosolparam
+ aertyp = 'AER00D0'
+ ntr = 10,
+ nbin = 4,
+ /
+ &restartparam
+ ifrest  = .false. ,
+ idate0  = 1990053100,
+ idate1  = 1990053100,
+ idate2  = 1990060200,
+ /
+ &timeparam
+ radfrq  =    30.,
+ abemh   =    18.,
+ abatm   =   600.,
+ dt      =   150.,
+ /
+ &outparam
+ ifsave  = .true. ,
+   savfrq  =    7200.,
+ iftape  = .true. ,
+   tapfrq  =     6.,
+ ifrad   = .true. ,
+   radisp  =     6.,
+ ifbat   = .true. ,
+ ifsub   = .true. ,
+   batfrq  =     3.,
+ ifchem  = .false.,
+   chemfrq =     6.,
+ dirout='/set/this/to/where/your/output/files/will/be/written'
+ /
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup    =          4,
+   igcc    =          1,
+ ipptls  =          1,
+ iocnflx =          2,
+ ipgf    =          0,
+ iemiss  =          0,
+ lakemod =          1,
+ ichem   =          0,
+ scenario = 'A1B',
+ idcsst = 0,
+ iseaice = 0,
+ idesseas = 0,
+ /
+ &subexparam
+ qck1land=   .250E-03,
+ qck1oce =   .250E-03,
+ cevap   =   .100E-02,
+ caccr   =      3.000,
+ /
+ &grellparam
+ /
+ &emanparam
+ /
+  &chemparam
+ idirect   =    1,
+ inpchtrname  =   '',
+ inpchtrsol   =   .00,
+ inpchtrdpv   =  .00000, .00000,
+ inpdustbsiz  =   .00,  .00,
+ /
+ &clmparam
+ dirclm = '/set/this/to/where/your/input/clm/data/are',
+ imask  = 1,
+ clmfrq = 12.,
+ /
