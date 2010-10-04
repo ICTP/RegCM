@@ -2071,10 +2071,11 @@
         call prepare_common_out(idatex,'RAD')
       end if
  
-      if ( ichem.eq.1 ) then
-        if ( ifchem ) then
-          call prepare_common_out(idatex,'CHE')
-        end if
+      if ( ifchem ) then
+         do n=1,ntr
+         write(*,*)'OUTPUT file for  ',chtrname(n),xtime
+         call prepare_chem_out(idatex,n)
+         end do
       end if
 
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
