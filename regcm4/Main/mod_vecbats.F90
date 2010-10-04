@@ -24,10 +24,10 @@
       use mod_dynparam
       use mod_runparams
       use mod_bats
+      use mod_lake, only : initlake
       use mod_slice
       use mod_pbldim
       use mod_date
-      use mod_lake
       use mod_bndry
       use mod_drag
       use mod_main
@@ -178,18 +178,6 @@
 !
       call soilbc
       call bndry
- 
-!
-! ****************************************************************
-!
-!     call hostetler lake model hourly at lake points
-!
-      if ( lakemod.eq.1 ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           &  mod(ktau+1,klake).eq.0 ) call lakedrv(j)
-      end if
-! 
-! ****************************************************************
 ! 
       call time_end(subroutine_name,idindx)
       end subroutine vecbats
@@ -266,6 +254,9 @@
           end do
         end do
       end do
+
+!     ******  initialize hostetler lake model
+      if (lakemod.eq.1) call initlake
  
 #ifdef MPP1
       do jll = 1 , jendx

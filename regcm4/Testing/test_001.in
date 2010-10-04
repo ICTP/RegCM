@@ -14,7 +14,9 @@
  plat = 45.39,
  plon = 13.48,
  truelatl = 30.0,
- truelath = 60,
+ truelath = 60.0,
+ i_band = 0,
+ i_lake = 0,
  /
  &terrainparam
  domname = 'test_001',
@@ -23,8 +25,7 @@
  ntypec_s = 10,
  ifanal = .true.,
  smthbdy = .false.,
- lakadj = .false.,
- lakedpth = .false.,
+ lake_adj = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,

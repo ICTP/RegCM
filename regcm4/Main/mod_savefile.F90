@@ -23,6 +23,7 @@
         use mod_message
         use mod_runparams
         use mod_bats
+        use mod_lake, only : lakesav_i, lakesav_o
         use mod_pmoist
         use mod_main
         use mod_mainchem
@@ -31,7 +32,6 @@
         use mod_trachem
         use mod_date
         use mod_radiation
-        use mod_lake
         use mod_cu_bm
 #ifndef BAND
         use mod_diagnosis
@@ -237,8 +237,9 @@
 #endif
           end if
 #endif
+!------lake model
           if ( lakemod.eq.1 ) then
-            call lakesavread(iutrst)
+            call lakesav_i(iutrst)
           end if
           lrp1 = .true.
         end subroutine read_savefile_part1
@@ -458,7 +459,7 @@
           end if
 #endif
           if ( lakemod.eq.1 ) then
-            call lakesavwrite(iutsav)
+            call lakesav_o(iutsav)
           end if
 #ifdef MPP1
           write (iutsav) dstor_io

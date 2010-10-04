@@ -189,7 +189,7 @@
            &   'boundary_smoothing', 'No')
         end if
         call check_ok(istatus,'Error adding global boundary_smoothing')
-        if (lakadj) then
+        if (lake_adj) then
           istatus = nf90_put_att(ncid, nf90_global,                   &
            &   'great_lakes_adjustment', 'Yes')
         else
@@ -573,25 +573,25 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding mask coordinates')
 
-        if ( lakedpth .eqv. .true. ) then
-          istatus = nf90_def_var(ncid, 'lkdpth', nf90_float, idims(1:2),  &
+        if ( i_lake==1 ) then
+          istatus = nf90_def_var(ncid, 'dhlake', nf90_float, idims(1:2),  &
                               &  ivar(13))
-          call check_ok(istatus,'Error adding variable lkdpth')
+          call check_ok(istatus,'Error adding variable dhlake')
 #ifdef NETCDF4_HDF5
           istatus = nf90_def_var_deflate(ncid, ivar(13), 1, 1, 9)
-          call check_ok(istatus,'Error setting deflate on lkdpth')
+          call check_ok(istatus,'Error setting deflate on dhlake')
 #endif
           istatus = nf90_put_att(ncid, ivar(13), 'standard_name',       &
                               &  'depth')
-          call check_ok(istatus,'Error adding lkdpth standard_name')
+          call check_ok(istatus,'Error adding dhlake standard_name')
           istatus = nf90_put_att(ncid, ivar(13), 'long_name',           &
                               &  'Depth')
           call check_ok(istatus,'Error adding mask long_name')
           istatus = nf90_put_att(ncid, ivar(13), 'units', 'm')
-          call check_ok(istatus,'Error adding lkdpth units')
+          call check_ok(istatus,'Error adding dhlake units')
           istatus = nf90_put_att(ncid, ivar(13), 'coordinates',         &
                               &  'xlon xlat')
-          call check_ok(istatus,'Error adding lkdpth coordinates')
+          call check_ok(istatus,'Error adding dhlake coordinates')
         end if
 
         if ( aertyp(7:7)=='1' ) then
@@ -742,14 +742,14 @@
           istatus = nf90_put_var(ncid, ivar(12), transpose(mask))
         end if
         call check_ok(istatus,'Error variable mask write')
-        if ( lakedpth .eqv. .true. ) then
+        if (i_lake==1) then
           if (lsub) then
-            istatus = nf90_put_var(ncid, ivar(13), transpose(dpth_s))
+            istatus = nf90_put_var(ncid, ivar(13), transpose(dhlake_s))
           else
-            istatus = nf90_put_var(ncid, ivar(13), transpose(dpth))
+            istatus = nf90_put_var(ncid, ivar(13), transpose(dhlake))
           end if
-          call check_ok(istatus,'Error variable lkdpth write')
-        end if
+          call check_ok(istatus,'Error variable dhlake write')
+        endif
 
         if ( aertyp(7:7)=='1' ) then
           if (lsub) then

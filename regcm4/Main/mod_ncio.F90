@@ -28,7 +28,8 @@
         private
 !
         public :: init_mod_ncio , release_mod_ncio
-        public :: open_domain , read_domain , read_subdomain , &
+        public :: open_domain , read_domain , read_domain_lake, &
+                  read_subdomain , read_subdomain_lake,         &
                   read_texture , close_domain
         public :: open_icbc , read_icbc , icbc_search
         public :: read_aerosol
@@ -539,7 +540,7 @@
 
         end subroutine open_domain
 
-        subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw,ldpt)
+        subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw)
           use netcdf
           implicit none
 
@@ -552,7 +553,6 @@
           real(8) , dimension(iy,jx) , intent(out) :: dmap
           real(8) , dimension(iy,jx) , intent(out) :: f
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: snw
-          real(8) , dimension(nnsg,iy,jx) , intent(out) :: ldpt
 
           integer :: ivarid , n
           real(4) , dimension(jx,iy) :: sp2d
@@ -621,17 +621,30 @@
           do n = 1 , nnsg
             snw(n,:,:) = transpose(sp2d)
           end do
-          if (lakemod == 1) then
-            istatus = nf90_inq_varid(idmin, 'lkdpth', ivarid)
-            call check_ok('Variable lkdpth missing', 'DOMAIN FILE ERROR')
-            istatus = nf90_get_var(idmin, ivarid, sp2d)
-            call check_ok('Variable lkdpth read error', &
-                          'DOMAIN FILE ERROR')
-            do n = 1 , nnsg
-              ldpt(n,:,:) = transpose(sp2d)
-            end do
-          end if
         end subroutine read_domain
+
+        subroutine read_domain_lake(dhlake)
+          use netcdf
+          implicit none
+
+          real(8) , dimension(iy,jx) , intent(out) :: dhlake
+
+          integer :: ivarid , n
+          real(4) , dimension(jx,iy) :: sp2d
+
+          if (idmin < 0) then
+            write (6,*) 'Error : Domain file not in open state'
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+
+          istatus = nf90_inq_varid(idmin, 'dhlake', ivarid)
+          call check_ok('Variable dhlake missing', 'DOMAIN FILE ERROR')
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
+          call check_ok('Variable dhlake read error', 'DOMAIN FILE ERROR')
+
+          dhlake = transpose(sp2d)
+
+        end subroutine read_domain_lake
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
           use netcdf
@@ -724,6 +737,40 @@
           end do
           ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
         end subroutine read_subdomain
+
+        subroutine read_subdomain_lake(dhlake1)
+          use netcdf
+          implicit none
+
+          real(8) , dimension(nnsg,iy,jx) , intent(out) :: dhlake1
+
+          integer :: ivarid
+          integer :: i , j , n , ii , jj
+          real(4) , dimension(jxsg,iysg) :: sp2d1
+          
+          if (isdmin < 0) then
+            write (6,*) 'Error : Subdom file not in open state'
+            call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+          end if
+
+          istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
+          call check_ok('Variable dhlake missing', 'SUBDOMAIN FILE ERROR')
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
+          call check_ok('Variable dhlake read error', &
+                        'SUBDOMAIN FILE ERROR')
+          do j = 1 , jxsg
+            do i = 1 , iysg
+              jj = mod(j,nsg)
+              if ( jj.eq.0 ) jj = nsg
+              ii = mod(i,nsg)
+              if ( ii.eq.0 ) ii = nsg
+              n = (jj-1)*nsg + ii
+              jj = (j+nsg-1)/nsg
+              ii = (i+nsg-1)/nsg
+              dhlake1(n,ii,jj) = sp2d1(j,i)*gti
+            end do
+          end do
+        end subroutine read_subdomain_lake
 
         subroutine close_domain
           use netcdf
@@ -1171,6 +1218,8 @@
         subroutine prepare_common_out(idate,ctype)
           use netcdf
           implicit none
+          integer , parameter :: iutlak = 58
+          character(14) :: fillake
           integer , intent(in) :: idate
           character(3) , intent(in) :: ctype
           character(64) :: title
@@ -1209,6 +1258,15 @@
             isrfrefdate = idate
             isrfrec = 1
             lxtime = 0
+
+            if ( lakemod.eq.1 ) then
+              close (iutlak)
+              write (fillake,'(a4,i10)') 'LAK.' , idatex
+              open (iutlak,file=trim(dirout)//pthsep//fillake,           &
+                   & status='replace',form='unformatted')
+              print * , 'OPENING NEW LAK FILE: ',trim(dirout),'/',fillake
+            endif
+
           else if (ctype == 'SUB') then
             ncid = ncsub
             title = 'ICTP Regional Climatic model V4 SUB output'

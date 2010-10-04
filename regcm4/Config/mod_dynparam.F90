@@ -57,6 +57,10 @@
  
       integer :: i_band
 
+! Control flag for lake model (Hostetler, etal. 1991, 1993a,b, 1995)
+ 
+      integer :: i_lake
+
 ! Grid point horizontal resolution in km
 
       real(4) :: ds
@@ -230,13 +234,7 @@
 !
 !     true  -> Adjust Great Lakes Levels according to obs
 
-      logical :: lakadj
-
-! Add lake depths field to output
-!
-!     true -> Add lake depth for inland water points
-
-      logical :: lakedpth
+      logical :: lake_adj
 
 ! I/O format
 !
@@ -313,9 +311,9 @@
         integer , intent(out) :: ierr
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                     & plon , truelatl, truelath , i_band
+                     & plon , truelatl, truelath , i_band, i_lake
         namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
-                     & ifanal , smthbdy , lakadj , lakedpth, fudge_lnd ,&
+                     & ifanal , smthbdy , lake_adj , fudge_lnd ,&
                      & fudge_lnd_s , fudge_tex , fudge_tex_s , h2opct , &
                      & dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
@@ -357,6 +355,8 @@
 
         i_band = 0
 
+        i_lake = 0
+
         read(ipunit, geoparam, err=102)
 
         if ( i_band.eq.1 ) then
@@ -373,6 +373,8 @@
         dirglob = '../../Input'
 
         read(ipunit, terrainparam, err=103)
+
+        if(i_lake.eq.1) lake_adj = .true.
 
         ! Set convenient defaults for I/O parameters
         ibyte = 4

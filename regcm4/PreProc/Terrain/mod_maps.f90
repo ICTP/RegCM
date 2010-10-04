@@ -22,8 +22,8 @@
       implicit none
 
       real(4) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
-                     & dmap , htgrid , htsdgrid , lndout , mask , dpth ,&
-                     & snowam , texout , xlat , xlon , xmap
+                     & dmap , htgrid , htsdgrid , dhlake , lndout ,     &
+                     & mask , snowam , texout , xlat , xlon , xmap
       real(4) , allocatable , dimension(:,:,:) :: frac_tex
       integer , allocatable , dimension(:,:) :: intext , lnduse
       real(4) , allocatable , dimension(:,:) :: hscr1
@@ -31,9 +31,9 @@
       real(4) , allocatable , dimension(:,:,:) :: itex , land
 
       real(4) , allocatable , dimension(:,:) :: coriol_s , dlat_s ,     &
-           & dlon_s , dmap_s , htgrid_s , htsdgrid_s , lndout_s ,       &
-           & mask_s , dpth_s , snowam_s , texout_s , xlat_s , xlon_s ,  &
-           & xmap_s
+           & dlon_s , dmap_s , htgrid_s , htsdgrid_s , dhlake_s ,       &
+           & lndout_s , mask_s , snowam_s , texout_s , xlat_s ,&
+           & xlon_s , xmap_s
       real(4) , allocatable , dimension(:,:,:) :: frac_tex_s
       integer , allocatable , dimension(:,:) :: intext_s , lnduse_s
       real(4) , allocatable , dimension(:,:) :: hscr1_s
@@ -62,9 +62,9 @@
         allocate(dmap(iy,jx))
         allocate(htgrid(iy,jx))
         allocate(htsdgrid(iy,jx))
+        allocate(dhlake(iy,jx))
         allocate(lndout(iy,jx))
         allocate(mask(iy,jx))
-        allocate(dpth(iy,jx))
         allocate(snowam(iy,jx))
         allocate(texout(iy,jx))
         allocate(intext(iy,jx))
@@ -88,9 +88,9 @@
         allocate(dmap_s(iysg,jxsg))
         allocate(htgrid_s(iysg,jxsg))
         allocate(htsdgrid_s(iysg,jxsg))
+        allocate(dhlake_s(iysg,jxsg))
         allocate(lndout_s(iysg,jxsg))
         allocate(mask_s(iysg,jxsg))
-        allocate(dpth_s(iysg,jxsg))
         allocate(snowam_s(iysg,jxsg))
         allocate(texout_s(iysg,jxsg))
         allocate(intext_s(iysg,jxsg))
@@ -114,9 +114,9 @@
         deallocate(dmap)
         deallocate(htgrid)
         deallocate(htsdgrid)
+        deallocate(dhlake)
         deallocate(lndout)
         deallocate(mask)
-        deallocate(dpth)
         deallocate(snowam)
         deallocate(texout)
         deallocate(intext)
@@ -139,9 +139,9 @@
         deallocate(dmap_s)
         deallocate(htgrid_s)
         deallocate(htsdgrid_s)
+        deallocate(dhlake_s)
         deallocate(lndout_s)
         deallocate(mask_s)
-        deallocate(dpth_s)
         deallocate(snowam_s)
         deallocate(texout_s)
         deallocate(intext_s)

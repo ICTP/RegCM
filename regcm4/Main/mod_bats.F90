@@ -82,8 +82,7 @@
       real(8) , allocatable, dimension(:,:,:) :: col2d , dew2d ,        &
            & emiss2d , evpa2d , gwet2d , ircp2d , ocld2d , rno2d ,      &
            & rnos2d , sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , &
-           & swt2d , taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1 ,  &
-           & lkdpth
+           & swt2d , taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
       real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
                                              &  xlon1 , snowc
 !
@@ -178,7 +177,6 @@
         allocate(tgb2d(nnsg,iym1,njm1))
         allocate(tlef2d(nnsg,iym1,njm1))
         allocate(veg2d1(nnsg,iym1,njm1))
-        allocate(lkdpth(nnsg,iym1,njm1))
         allocate(ht1(nnsg,iy,nj))
         allocate(satbrt1(nnsg,iy,nj))
         allocate(xlat1(nnsg,iy,nj))
@@ -233,7 +231,6 @@
         tgb2d = 0.0D0
         tlef2d = 0.0D0
         veg2d1 = 0.0D0
-        lkdpth = 0.0D0
         ht1 = 0.0D0
         satbrt1 = 0.0D0
         xlat1 = 0.0D0

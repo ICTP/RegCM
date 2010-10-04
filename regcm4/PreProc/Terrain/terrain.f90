@@ -298,20 +298,27 @@
           frac_tex_s(iysg/2,jxsg/2,14) = 100.0
         end if
         print * , 'Surface grids successfully filled'
+
+        if ( i_lake==1) then
+          dhlake_s = -9999.
+          dhlake = -9999.
+        endif
 !       **** Adjust the Great Lake Heights to their actual values.
-        if ( lakadj ) then
+        if ( lake_adj ) then
           print * ,                                                     &
                &'Calling lakeadj for the first time (before 2dx pass)'
-          call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
+          call lakeadj(lnduse_s,htgrid_s,dhlake_s,xlat_s,xlon_s,        &
+                     & iysg,jxsg,i_lake)
         end if
         call smth121(htgrid_s,iysg,jxsg,hscr1_s)
         call smth121(htsdgrid_s,iysg,jxsg,hscr1_s)
 !       **** Readjust the Great Lake Heights to their actual values
 !       again.
-        if ( lakadj ) then
+        if ( lake_adj ) then
           print * ,                                                     &
                &'Calling lakeadj for the second time (after 2dx pass)'
-          call lakeadj(lnduse_s,htgrid_s,xlat_s,xlon_s,iysg,jxsg)
+          call lakeadj(lnduse_s,htgrid_s,dhlake_s,xlat_s,xlon_s,        &
+                     & iysg,jxsg,i_lake)
         end if
         if ( ibndry ) then
           do j = 2 , jxsg - 1
@@ -472,9 +479,9 @@
       end if
 
 !     **** Adjust the Great Lake Heights to their actual values.
-      if ( lakadj ) then
+      if ( lake_adj ) then
         print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-        call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lnduse,htgrid,dhlake,xlat,xlon,iy,jx,i_lake)
       end if
  
 !     ******           preliminary heavy smoothing of boundaries
@@ -485,9 +492,9 @@
       call smth121(htsdgrid,iy,jx,hscr1)
  
 !     **** Readjust the Great Lake Heights to their actual values again.
-      if ( lakadj ) then
+      if ( lake_adj ) then
         print * , 'Calling lakeadj for the second time (after 2dx pass)'
-        call lakeadj(lnduse,htgrid,xlat,xlon,iy,jx)
+        call lakeadj(lnduse,htgrid,dhlake,xlat,xlon,iy,jx,i_lake)
       end if
  
       if ( ibndry ) then
@@ -579,15 +586,6 @@
           mask_s = 2.0
         end where
 
-        if (lakedpth) then
-          print *, 'To be implemented.'
-          print *, 'Lake depth read from bathymetry ETOPO1 dataset'
-          print *, 'Setting dpth = 25'
-          where (lndout_s == 14)
-            dpth_s = 25.0
-          end where
-        end if
-
         call write_domain(.true.)
         print * , 'Subgrid data written to output file'
         call free_subgrid
@@ -598,15 +596,6 @@
       elsewhere
         mask = 2.0
       end where
-
-      if (lakedpth ) then
-        print *, 'To be implemented.'
-        print *, 'Lake depth read from bathymetry ETOPO1 dataset'
-        print *, 'Setting dpth = 25'
-        where (lndout == 14)
-          dpth = 25.0
-        end where
-      end if
 
       call write_domain(.false.)
       print * , 'Grid data written to output file'

@@ -29,6 +29,7 @@
       use mod_precip
       use mod_rad
       use mod_bats
+      use mod_lake, only : lakedrv, outlake
       use mod_vecbats
       use mod_holtbl
       use mod_trachem
@@ -1577,12 +1578,23 @@
           call vecbats(j, kz , 2 , iym1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
+!         Hostetler lake model for every BATS timestep at lake points
+          if ( lakemod.eq.1 ) then
+            dtlake = dtbat
+            call lakedrv(j)
+          endif
 !         ****** accumulate quantities for energy and moisture budgets
           call interf(2 , j , kz , 2 , iym1 , nnsg)
         end if
 #endif
  
       end do
+#ifndef CLM
+      if ( lakemod.eq.1 ) then
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+           &  mod(ktau+1,nbatst).eq.0 ) call outlake
+      endif
+#endif
 
 #ifdef CLM
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &

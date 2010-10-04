@@ -26,6 +26,7 @@
       use mod_o3blk
       use mod_runparams
       use mod_bats
+      use mod_lake, only : lakesav0_i
       use mod_vecbats
       use mod_pmoist
       use mod_main
@@ -40,7 +41,6 @@
       use mod_ncio
       use mod_savefile
       use mod_diagnosis
-      use mod_lake
       use mod_cu_bm
 #ifdef MPP1
       use mod_mppio
@@ -650,6 +650,9 @@
           print 99005 , xtime , ktau , jyear
 !
         end if
+        if ( lakemod.eq.1 ) then
+          call lakesav0_i
+        endif
 !
 !       Start sending data to all processors : surface data
 !
@@ -1446,21 +1449,6 @@
 !     ****** initialize and define constants for vector bats
  
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) call initb
-
-! initialize hostetler lake model
-
-      if ( lakemod.eq.1 ) then
-#ifdef MPP1
-        if (myid == 0 .and. (.not. ifrest)) then
-#else
-        if (.not. ifrest) then
-#endif
-          call initlk
-        end if
-#ifdef MPP1
-        call mpilake
-#endif
-      end if
 
       if ( iemiss.eq.1 ) then
 #ifdef MPP1

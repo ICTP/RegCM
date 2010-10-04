@@ -45,7 +45,16 @@
            & evpa2d_io , gwet2d_io , ircp2d_io , ocld2d_io , rno2d_io , &
            & rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
            & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
-           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io , lkdpth_io
+           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
+
+      real(8) , allocatable , dimension(:,:,:) :: dhlake1_io
+      integer , allocatable , dimension(:,:,:) :: depth2d_io
+      real(8) , allocatable , dimension(:,:,:) :: eta2d_io
+      real(8) , allocatable , dimension(:,:,:) :: hi2d_io
+      real(8) , allocatable , dimension(:,:,:) :: aveice2d_io
+      real(8) , allocatable , dimension(:,:,:) :: hsnow2d_io
+      real(8) , allocatable , dimension(:,:,:) :: evl2d_io
+      real(8) , allocatable , dimension(:,:,:,:,:) :: tlak3d_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
                                          &    xlat1_io , xlon1_io ,     &
@@ -259,9 +268,9 @@
           call check_alloc(ierr,myname,'src_1',size(src_1))
           src_1 = 0.0D0
           if (lband) then
-            allocate(spacesubm1(nnsg,iym1,jx,22),stat=ierr)
+            allocate(spacesubm1(nnsg,iym1,jx,21),stat=ierr)
           else
-            allocate(spacesubm1(nnsg,iym1,jxm1,22),stat=ierr)
+            allocate(spacesubm1(nnsg,iym1,jxm1,21),stat=ierr)
           end if
           call check_alloc(ierr,myname,'spacesubm1',size(spacesubm1))
           spacesubm1 = 0.0D0
@@ -286,7 +295,6 @@
           tgb2d_io  => spacesubm1(:,:,:,19)
           tlef2d_io => spacesubm1(:,:,:,20)
           veg2d1_io => spacesubm1(:,:,:,21)
-          lkdpth_io => spacesubm1(:,:,:,22)
           allocate(spacesub(nnsg,iy,jx,5),stat=ierr)
           call check_alloc(ierr,myname,'spacesub',size(spacesub))
           spacesub = 0.0D0
@@ -295,6 +303,16 @@
           snowc_io   => spacesub(:,:,:,3)
           xlat1_io   => spacesub(:,:,:,4)
           xlon1_io   => spacesub(:,:,:,5)
+!         if (lakemod.eq.1) then
+            allocate(dhlake1_io(nnsg,iy,jx))
+            allocate(depth2d_io(nnsg,iym1,jx))
+            allocate(eta2d_io(nnsg,iym1,jx))
+            allocate(hi2d_io(nnsg,iym1,jx))
+            allocate(aveice2d_io(nnsg,iym1,jx))
+            allocate(hsnow2d_io(nnsg,iym1,jx))
+            allocate(evl2d_io(nnsg,iym1,jx))
+            allocate(tlak3d_io(400,2,nnsg,iym1,jx))
+!         endif
           if (lband) then
             allocate(spacebat(iym1,jx,16),stat=ierr)
           else

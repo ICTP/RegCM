@@ -24,6 +24,7 @@
       use mod_runparams
       use mod_pmoist
       use mod_bats
+      use mod_lake , only: allocate_lake, dhlake1
       use mod_main
       use mod_trachem
       use mod_date
@@ -532,6 +533,7 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
+      if(lakemod.eq.1) call allocate_lake
       call allocate_mod_che_semdde
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
@@ -859,10 +861,12 @@
         if ( myid.eq.0 ) then
           call read_domain(mddom_io%ht,mddom_io%htsd,mddom_io%satbrt, &
                            mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
-                           mddom_io%msfd,mddom_io%f,snowc_io,lkdpth_io)
+                           mddom_io%msfd,mddom_io%f,snowc_io)
           if ( nsg.gt.1 ) then
             call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
+            if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1_io)
           else
+            if ( lakemod.eq.1 ) call read_domain_lake(dhlake1_io)
             do j = 1 , jx
               do i = 1 , iy
                 ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
@@ -871,7 +875,7 @@
             end do
           end if
           call close_domain
- 
+
           do j = 1 , jx
             do i = 1 , iy
               inisrf_0(i,1,j) = mddom_io%ht(i,j)
@@ -897,6 +901,12 @@
             end do
           end do
         end if  ! end if (myid.eq.0)
+
+        if(lakemod.eq.1) then
+          call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
+                       &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
+                       &   0,mpi_comm_world,ierr)
+        endif
  
         call mpi_barrier(mpi_comm_world,ierr)
         call mpi_scatter(inisrf_0,iy*(nnsg*3+8)*jxp,mpi_real8,   &
@@ -984,10 +994,12 @@
         call say
         call read_domain(mddom%ht,mddom%htsd,mddom%satbrt, &
                          mddom%xlat,mddom%xlong,mddom%msfx,&
-                         mddom%msfd,mddom%f,snowc,lkdpth)
+                         mddom%msfd,mddom%f,snowc)
         if ( nsg.gt.1 ) then
           call read_subdomain(ht1,satbrt1,xlat1,xlon1)
+          if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1)
         else
+          if ( lakemod.eq.1 ) call read_domain_lake(dhlake1)
           do j = 1 , jx
             do i = 1 , iy
               ht1(1,i,j) = mddom%ht(i,j)*gti
