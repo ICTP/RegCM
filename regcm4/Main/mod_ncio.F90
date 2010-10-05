@@ -45,7 +45,7 @@
 
         integer :: idmin , isdmin , ibcin , ncatm , ncsrf , &
                              ncsub , ncrad 
-        integer, dimension(2)  :: ncche        !added by A. Shalaby
+        integer, dimension(:), allocatable   :: ncche        !added by A. Shalaby: ncid for netcdf file: one for species
         integer :: istatus
         integer :: ibcrec , ibcnrec
         integer :: iatmrec , isrfrec , isubrec , iradrec , &
@@ -121,7 +121,7 @@
         data isubrec / 1/
         data ncrad   /-1/
         data iradrec / 1/
-!        data ncche   /15,16/       !A. Shalaby
+!       data ncche(1:ntr) /ntr*0/       !A. Shalaby ! corrected by S.Cozzini
         data icherec / 1/
         data atm_names / 'time', 'ps', 'u', 'v', 'omega', 't',         &
                          'qv', 'qc', 'tpr', 'tgb', 'swt', 'rno' /
@@ -1198,7 +1198,7 @@
           integer , intent(in)    :: itr
           if (ncid >= 0) then
             istatus = nf90_close(ncid)
-            call check_ok('Error Closing  '//chtrname(itr)//' file', &
+            call check_ok('Error Closing Chemistry'//chtrname(itr)//' file', &
                      &  chtrname(itr)//' FILE ERROR')
             ncid = -1
           end if
@@ -2032,9 +2032,13 @@
           integer , dimension(9) :: tcyx
           integer , dimension(9) :: tczyx
 
-!          ncche(:) = -1
+!
+	   if (.not.allocated(ncche)) then 
+		allocate( ncche(ntr))
+                ncche(:) = -1
+           endif 
 
-!            ncid = ncche(itr)
+            ncid = ncche(itr)
 !            write(*,*)'inside prepare',ncche,ncid
             title = 'ICTP Regional Climatic model V4  '  &
                      //chtrname(itr)//' output'
@@ -3316,9 +3320,11 @@
           call close_common(ncsub,'SUB')
           call close_common(ncrad,'RAD')
 !Added by A. Shalaby
+          if (allocated(ncche)) then 
           do itr=1,ntr
           call close_chem(ncche(itr),itr)
           end do
+          end if 
           if (allocated(ioxlat)) deallocate(ioxlat)
           if (allocated(ioxlon)) deallocate(ioxlon)
           if (allocated(iotopo)) deallocate(iotopo)
