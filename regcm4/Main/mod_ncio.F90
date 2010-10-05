@@ -1187,6 +1187,7 @@
 
         subroutine close_chem(ncid, itr)
           use netcdf
+          use mod_trachem
           implicit none
           integer , intent(inout) :: ncid
           integer , intent(in)    :: itr
