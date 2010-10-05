@@ -10,7 +10,7 @@ mod_date.o: ../../../PreProc/ICBC/mod_date.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c -o $@ $<
 
 ReadRegcmio: ReadRegcmio.F90 $(OBJS)
-	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
+	$(F90) $(LDFLAGS) $(CPPFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
                $(NETCDFLIB)
 
 %.o: %.F90
