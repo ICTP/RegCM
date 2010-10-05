@@ -206,7 +206,7 @@
         allocate(var1rcv(kz,8),stat=ierr)
         call check_alloc(ierr,myname,'var1rcv',size(var1rcv))
         var1rcv = 0.0D0
-        allocate(inisrf0(iy,nnsg*3+8,jxp),stat=ierr)
+        allocate(inisrf0(iy,nnsg*3+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = 0.0D0
         allocate(atm0(iy,kz*6+3+nnsg*4,jxp),stat=ierr)
@@ -240,7 +240,7 @@
           call allocate_atmstate(atm1_io,.false.,0,0)
           call allocate_atmstate(atm2_io,.false.,0,0)
 
-          allocate(inisrf_0(iy,nnsg*3+8,jx),stat=ierr)
+          allocate(inisrf_0(iy,nnsg*3+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = 0.0D0
           allocate(atm_0(iy,kz*6+3+nnsg*4,jx),stat=ierr)

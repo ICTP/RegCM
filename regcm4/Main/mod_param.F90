@@ -859,7 +859,7 @@
         call say
 
         if ( myid.eq.0 ) then
-          call read_domain(mddom_io%ht,mddom_io%htsd,mddom_io%satbrt, &
+          call read_domain(mddom_io%ht,mddom_io%satbrt, &
                            mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
                            mddom_io%msfd,mddom_io%f,snowc_io)
           if ( nsg.gt.1 ) then
@@ -879,19 +879,18 @@
           do j = 1 , jx
             do i = 1 , iy
               inisrf_0(i,1,j) = mddom_io%ht(i,j)
-              inisrf_0(i,2,j) = mddom_io%htsd(i,j)
-              inisrf_0(i,3,j) = mddom_io%satbrt(i,j)
-              inisrf_0(i,4,j) = mddom_io%xlat(i,j)
-              inisrf_0(i,5,j) = mddom_io%xlong(i,j)
-              inisrf_0(i,6,j) = mddom_io%msfx(i,j)
-              inisrf_0(i,7,j) = mddom_io%msfd(i,j)
-              inisrf_0(i,8,j) = mddom_io%f(i,j)
+              inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
+              inisrf_0(i,3,j) = mddom_io%xlat(i,j)
+              inisrf_0(i,4,j) = mddom_io%xlong(i,j)
+              inisrf_0(i,5,j) = mddom_io%msfx(i,j)
+              inisrf_0(i,6,j) = mddom_io%msfd(i,j)
+              inisrf_0(i,7,j) = mddom_io%f(i,j)
             end do
             do n = 1 , nnsg
               do i = 1 , iy
-                inisrf_0(i,8+n,j) = ht1_io(n,i,j)
-                inisrf_0(i,8+nnsg+n,j) = satbrt1_io(n,i,j)
-                inisrf_0(i,8+nnsg*2+n,j) = snowc_io(n,i,j)
+                inisrf_0(i,7+n,j) = ht1_io(n,i,j)
+                inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
+                inisrf_0(i,7+nnsg*2+n,j) = snowc_io(n,i,j)
               end do
             end do
           end do
@@ -916,19 +915,18 @@
         do j = 1 , jxp
           do i = 1 , iy
             mddom%ht(i,j) = inisrf0(i,1,j)
-            mddom%htsd(i,j) = inisrf0(i,2,j)
-            mddom%satbrt(i,j) = inisrf0(i,3,j)
-            mddom%xlat(i,j) = inisrf0(i,4,j)
-            mddom%xlong(i,j) = inisrf0(i,5,j)
-            mddom%msfx(i,j) = inisrf0(i,6,j)
-            mddom%msfd(i,j) = inisrf0(i,7,j)
-            mddom%f(i,j) = inisrf0(i,8,j)
+            mddom%satbrt(i,j) = inisrf0(i,2,j)
+            mddom%xlat(i,j) = inisrf0(i,3,j)
+            mddom%xlong(i,j) = inisrf0(i,4,j)
+            mddom%msfx(i,j) = inisrf0(i,5,j)
+            mddom%msfd(i,j) = inisrf0(i,6,j)
+            mddom%f(i,j) = inisrf0(i,7,j)
           end do
           do n = 1 , nnsg
             do i = 1 , iy
-              ht1(n,i,j) = inisrf0(i,8+n,j)
-              satbrt1(n,i,j) = inisrf0(i,8+nnsg+n,j)
-              snowc(n,i,j) = inisrf0(i,8+nnsg*2+n,j)
+              ht1(n,i,j) = inisrf0(i,7+n,j)
+              satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
+              snowc(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
             end do
           end do
         end do
@@ -992,7 +990,7 @@
       if ( .not.ifrest ) then
         write (aline, *) 'Reading in DOMAIN data'
         call say
-        call read_domain(mddom%ht,mddom%htsd,mddom%satbrt, &
+        call read_domain(mddom%ht,mddom%satbrt, &
                          mddom%xlat,mddom%xlong,mddom%msfx,&
                          mddom%msfd,mddom%f,snowc)
         if ( nsg.gt.1 ) then

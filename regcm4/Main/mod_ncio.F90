@@ -44,8 +44,9 @@
         integer , parameter :: n_chevar = 17
 
         integer :: idmin , isdmin , ibcin , ncatm , ncsrf , &
-                             ncsub , ncrad 
-        integer, dimension(:), allocatable   :: ncche        !added by A. Shalaby: ncid for netcdf file: one for species
+                             ncsub , ncrad
+        !added by A. Shalaby: ncid for netcdf file: one for species
+        integer, dimension(:), allocatable :: ncche
         integer :: istatus
         integer :: ibcrec , ibcnrec
         integer :: iatmrec , isrfrec , isubrec , iradrec , &
@@ -348,13 +349,13 @@
                 exit
               end if
             end do
-!          else if (ctype == 'CHE') then
-!            do i = 1 , n_chevar
-!              if (sname == che_names(i)) then
-!                ivarname_lookup = i
-!                exit
-!              end if
-!            end do
+!         else if (ctype == 'CHE') then
+!           do i = 1 , n_chevar
+!             if (sname == che_names(i)) then
+!               ivarname_lookup = i
+!               exit
+!             end if
+!           end do
           endif
         end function ivarname_lookup
 
@@ -540,12 +541,11 @@
 
         end subroutine open_domain
 
-        subroutine read_domain(ht,htsd,lnd,xlat,xlon,xmap,dmap,f,snw)
+        subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f,snw)
           use netcdf
           implicit none
 
           real(8) , dimension(iy,jx) , intent(out) :: ht
-          real(8) , dimension(iy,jx) , intent(out) :: htsd
           real(8) , dimension(iy,jx) , intent(out) :: lnd
           real(8) , dimension(iy,jx) , intent(out) :: xlat
           real(8) , dimension(iy,jx) , intent(out) :: xlon
@@ -568,11 +568,6 @@
           call check_ok('Variable topo read error', 'DOMAIN FILE ERROR')
           ht = transpose(sp2d)
           iotopo = sp2d(o_js:o_je,o_is:o_ie)
-          istatus = nf90_inq_varid(idmin, 'htsd', ivarid)
-          call check_ok('Variable htsd missing', 'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(idmin, ivarid, sp2d)
-          call check_ok('Variable htsd read error', 'DOMAIN FILE ERROR')
-          htsd = transpose(sp2d)
           istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
           call check_ok('Variable landuse missing','DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -640,8 +635,8 @@
           istatus = nf90_inq_varid(idmin, 'dhlake', ivarid)
           call check_ok('Variable dhlake missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
-          call check_ok('Variable dhlake read error', 'DOMAIN FILE ERROR')
-
+          call check_ok('Variable dhlake read error', &
+                        'DOMAIN FILE ERROR')
           dhlake = transpose(sp2d)
 
         end subroutine read_domain_lake
@@ -754,7 +749,8 @@
           end if
 
           istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
-          call check_ok('Variable dhlake missing', 'SUBDOMAIN FILE ERROR')
+          call check_ok('Variable dhlake missing', &
+                        'SUBDOMAIN FILE ERROR')
           istatus = nf90_get_var(isdmin, ivarid, sp2d1)
           call check_ok('Variable dhlake read error', &
                         'SUBDOMAIN FILE ERROR')
@@ -1189,21 +1185,19 @@
           end if
         end subroutine close_common
 
-!Added by A. Shalaby        
         subroutine close_chem(ncid, itr)
-          use mod_trachem
           use netcdf
           implicit none
           integer , intent(inout) :: ncid
           integer , intent(in)    :: itr
           if (ncid >= 0) then
             istatus = nf90_close(ncid)
-            call check_ok('Error Closing Chemistry'//chtrname(itr)//' file', &
-                     &  chtrname(itr)//' FILE ERROR')
+            call check_ok('Error Closing Chemistry'//chtrname(itr)// &
+                          ' file', chtrname(itr)//' FILE ERROR')
             ncid = -1
           end if
         end subroutine close_chem
-!----------------------------------------------
+
         function icbc_search(idate)
           implicit none
           integer :: icbc_search
@@ -1277,11 +1271,11 @@
             title = 'ICTP Regional Climatic model V4 RAD output'
             iradrefdate = idate
             iradrec = 1
-!          else if (ctype == 'CHE') then
-!            ncid = ncche
-!            title = 'ICTP Regional Climatic model V4 CHE output'
-!            icherefdate = idate
-!            icherec = 1
+!         else if (ctype == 'CHE') then
+!           ncid = ncche
+!           title = 'ICTP Regional Climatic model V4 CHE output'
+!           icherefdate = idate
+!           icherec = 1
           else
             write (aline,*) 'UNKNOWN IO TYPE : ', ctype
             call say
@@ -1554,10 +1548,10 @@
             istatus = nf90_def_dim(ncid, 'nv', 2, idims(8))
             call check_ok('Error creating dimension nv', fterr)
           end  if
-!          if (ctype == 'CHE') then
-!            istatus = nf90_def_dim(ncid, 'tracer', ntr, idims(9))
-!            call check_ok('Error creating dimension tracer', fterr)
-!          end if
+!         if (ctype == 'CHE') then
+!           istatus = nf90_def_dim(ncid, 'tracer', ntr, idims(9))
+!           call check_ok('Error creating dimension tracer', fterr)
+!         end if
           istatus = nf90_def_var(ncid, 'sigma', nf90_float, &
                               &  idims(4), izvar(1))
           call check_ok('Error adding variable sigma', fterr)
@@ -2033,22 +2027,23 @@
           integer , dimension(9) :: tczyx
 
 !
-	   if (.not.allocated(ncche)) then 
-		allocate( ncche(ntr))
-                ncche(:) = -1
-           endif 
+          if (.not.allocated(ncche)) then 
+            allocate( ncche(ntr))
+            ncche(:) = -1
+          endif 
 
-            ncid = ncche(itr)
-!            write(*,*)'inside prepare',ncche,ncid
-            title = 'ICTP Regional Climatic model V4  '  &
+          ncid = ncche(itr)
+!         write(*,*)'inside prepare',ncche,ncid
+          title = 'ICTP Regional Climatic model V4  '  &
                      //chtrname(itr)//' output'
-            icherefdate = idate
-            icherec = 1
+          icherefdate = idate
+          icherec = 1
 
-!          call close_chem(ncid, itr)
+!         call close_chem(ncid, itr)
 
           write (fterr, '(a3,a)') chtrname(itr), ' FILE ERROR'
-                write (fbname,'(a,a,i10)') trim(chtrname(itr)), '.', idate
+                write (fbname,'(a,a,i10)') trim(chtrname(itr)), &
+                '.', idate
                 ofname = trim(dirout)//pthsep//trim(domname)// &
                 &  '_'//trim(fbname)//'.nc'
           call split_idate(idate,iyy,im,id,ih)
@@ -2066,7 +2061,7 @@
 #endif
           call check_ok(('Error creating file '//trim(ofname)), fterr)
           ncche(itr) = ncid
-            write(*,*)'inside prepare',ncche,ncid
+          write(*,*)'inside prepare',ncche,ncid
 
           istatus = nf90_put_att(ncid, nf90_global, 'title', title)
           call check_ok('Error adding global title', fterr)
@@ -2391,65 +2386,65 @@
           tczyx = (/idims(1),idims(2),idims(4), &
                     idims(9),idims(3),-1,-1,-1,-1/)
 
-            ichevar = -1
-            ichevar(1) = itvar
-            ichevar(2) = illtpvar(4)
-            call addvara(ncid,chtrname(itr),chtrname(itr), &
+          ichevar = -1
+          ichevar(1) = itvar
+          ichevar(2) = illtpvar(4)
+          call addvara(ncid,chtrname(itr),chtrname(itr), &
                 'atmosphere_mixing_ratio_of_tracer', &
                 'Tracers mixing ratios','kg kg-1', &
                 tzyx,.false.,ichevar(3))
-                write(*,*)'ichevar(3)   ',ichevar(3)
-            call addvara(ncid,chtrname(itr),'aext8', &
+          write(*,*)'ichevar(3)   ',ichevar(3)
+          call addvara(ncid,chtrname(itr),'aext8', &
                 'aerosol_optical_depth', &
                 'aer mix. aod.','1',tzyx,.false.,ichevar(4))
-            call addvara(ncid,chtrname(itr),'assa8', &
+          call addvara(ncid,chtrname(itr),'assa8', &
                 'aerosol_single_scattering_albedo', &
                 'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(5))
-            call addvara(ncid,chtrname(itr),'agfu8', &
+          call addvara(ncid,chtrname(itr),'agfu8', &
                 'aerosol_asymmetry_parameter', &
                 'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(6))
-            call addvara(ncid,chtrname(itr),'colb', &
+          call addvara(ncid,chtrname(itr),'colb', &
                 'instantaneous_column_burden', &
                 'columnburden inst','mg m-2',tyx,.false.,ichevar(7))
-            call addvara(ncid,chtrname(itr),'wdlsc', &
+          call addvara(ncid,chtrname(itr),'wdlsc', &
                 'tendency_of_wet_deposition_of_tracer'// &
                 '_due_to_large_scale_precipitation', &
                 'wet dep lgscale','mg m-2 day-1', &
                 tyx,.false.,ichevar(8))
-            call addvara(ncid,chtrname(itr),'wdcvc', &
+          call addvara(ncid,chtrname(itr),'wdcvc', &
                 'tendency_of_wet_deposition_of_tracer'// &
                 '_due_to_convective_precipitation', &
                 'wet dep convect','mg m-2 day-1', &
                 tyx,.false.,ichevar(9))
-            call addvara(ncid,chtrname(itr),'sdrdp', &
+          call addvara(ncid,chtrname(itr),'sdrdp', &
                 'tendency_of_dry_deposition_of_tracer', &
                 'surf dry depos','mg m-2 day-1', &
                 tyx,.false.,ichevar(10))
-            call addvara(ncid,chtrname(itr),'xgasc', &
+          call addvara(ncid,chtrname(itr),'xgasc', &
                 'tendency_of_gas_conversion_of_tracer', &
                 'chem gas conv','mg m-2 day-1', &
                 tyx,.false.,ichevar(11))
-            call addvara(ncid,chtrname(itr),'xaquc', &
+          call addvara(ncid,chtrname(itr),'xaquc', &
                 'tendency_of_aqueous_conversion_of_tracer', &
                 'chem aqu conv','mg m-2 day-1', &
                 tyx,.false.,ichevar(12))
-            call addvara(ncid,chtrname(itr),'emiss', &
+          call addvara(ncid,chtrname(itr),'emiss', &
                 'tendency_of_surface_emission_of_tracer', &
                 'surf emission','mg m-2 day-1', &
                 tyx,.false.,ichevar(13))
-            call addvara(ncid,chtrname(itr),'acstoarf', &
+          call addvara(ncid,chtrname(itr),'acstoarf', &
                 'toa_instantaneous_shortwave_radiative_forcing', &
                 'TOArad SW forcing av.','W m-2', &
                 tyx,.false.,ichevar(14))
-            call addvara(ncid,chtrname(itr),'acstsrrf', &
+          call addvara(ncid,chtrname(itr),'acstsrrf', &
                 'surface_shortwave_radiative_forcing', &
                 'SRFrad SW forcing av.','W m-2', &
                 tyx,.false.,ichevar(15))
-            call addvara(ncid,chtrname(itr),'acstalrf', &
+          call addvara(ncid,chtrname(itr),'acstalrf', &
                 'toa_longwave_radiative_forcing', &
                 'TOArad LW forcing av.','W m-2', &
                 tyx,.false.,ichevar(16))
-            call addvara(ncid,chtrname(itr),'acssrlrf', &
+          call addvara(ncid,chtrname(itr),'acssrlrf', &
                 'surface_longwave_radiative_forcing', &
                 'SRFrad LW forcing av.','W m-2', &
                 tyx,.false.,ichevar(17))
@@ -2463,32 +2458,31 @@
           istatus = nf90_put_var(ncid, izvar(2), hptop)
           call check_ok('Error variable ptop write', fterr)
 
-            yiy(1) = -(dble(o_ni-1)/2.0) * ds
-            xjx(1) = -(dble(o_nj-1)/2.0) * ds
-            do i = 2 , o_ni
-              yiy(i) = yiy(i-1)+ds
-            end do
-            do j = 2 , o_nj
-              xjx(j) = xjx(j-1)+ds
-            end do
-            istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
-            call check_ok('Error variable iy write', fterr)
-            istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_nj))
-            call check_ok('Error variable jx write', fterr)
-            istatus = nf90_put_var(ncid, illtpvar(1), ioxlat)
-            call check_ok('Error variable xlat write', fterr)
-            istatus = nf90_put_var(ncid, illtpvar(2), ioxlon)
-            call check_ok('Error variable xlon write', fterr)
-            istatus = nf90_put_var(ncid, illtpvar(3), iotopo)
-            call check_ok('Error variable topo write', fterr)
-
+          yiy(1) = -(dble(o_ni-1)/2.0) * ds
+          xjx(1) = -(dble(o_nj-1)/2.0) * ds
+          do i = 2 , o_ni
+            yiy(i) = yiy(i-1)+ds
+          end do
+          do j = 2 , o_nj
+            xjx(j) = xjx(j-1)+ds
+          end do
+          istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
+          call check_ok('Error variable iy write', fterr)
+          istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_nj))
+          call check_ok('Error variable jx write', fterr)
+          istatus = nf90_put_var(ncid, illtpvar(1), ioxlat)
+          call check_ok('Error variable xlat write', fterr)
+          istatus = nf90_put_var(ncid, illtpvar(2), ioxlon)
+          call check_ok('Error variable xlon write', fterr)
+          istatus = nf90_put_var(ncid, illtpvar(3), iotopo)
+          call check_ok('Error variable topo write', fterr)
 
           istatus = nf90_sync(ncid)
-            call check_ok('Error initial sync', fterr)
+          call check_ok('Error initial sync', fterr)
 
 
-            ncche(itr) = ncid
-            write(*,*)'FINAL ncche',ncche(itr)
+          ncche(itr) = ncid
+          write(*,*)'FINAL ncche',ncche(itr)
         end subroutine prepare_chem_out
 
         subroutine addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss, &
@@ -3166,9 +3160,9 @@
                                  dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing ps at '//ctime, 'CHE FILE ERROR')
 
-!          do n =  1 , nt
-!            istart(5) = icherec
-!            istart(4) = n
+!         do n =  1 , nt
+!           istart(5) = icherec
+!           istart(4) = n
             istart(4) = icherec
             istart(3) = 1
             istart(2) = 1
@@ -3189,7 +3183,7 @@
                            che_names(3),istatus
             call check_ok('Error writing '//che_names(3)//' at '//ctime,&
                           'CHE FILE ERROR')
-!          end do
+!         end do
 
           istart(4) = icherec
           istart(3) = 1
@@ -3220,9 +3214,9 @@
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(6)//' at '//ctime, &
                         'CHE FILE ERROR')
-!          do n = 1 , nt
-!            istart(4) = icherec
-!            istart(3) = n
+!         do n = 1 , nt
+!           istart(4) = icherec
+!           istart(3) = n
             istart(3) = icherec
             istart(2) = 1
             istart(1) = 1
@@ -3265,7 +3259,7 @@
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(13)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-!          end do
+!         end do
           istart(3) = icherec
           istart(2) = 1
           istart(1) = 1
@@ -3319,11 +3313,10 @@
           call close_common(ncsrf,'SRF')
           call close_common(ncsub,'SUB')
           call close_common(ncrad,'RAD')
-!Added by A. Shalaby
           if (allocated(ncche)) then 
-          do itr=1,ntr
-          call close_chem(ncche(itr),itr)
-          end do
+            do itr = 1 , ntr
+              call close_chem(ncche(itr),itr)
+            end do
           end if 
           if (allocated(ioxlat)) deallocate(ioxlat)
           if (allocated(ioxlon)) deallocate(ioxlon)

@@ -27,7 +27,6 @@
 !
       type domain
         real(8) , allocatable , dimension(:,:) :: ht
-        real(8) , allocatable , dimension(:,:) :: htsd
         real(8) , allocatable , dimension(:,:) :: satbrt
         real(8) , allocatable , dimension(:,:) :: xlat
         real(8) , allocatable , dimension(:,:) :: xlong
@@ -162,7 +161,6 @@
 
           if (lmpi) then
             allocate(dom%ht(iy,0:jxp+1))
-            allocate(dom%htsd(iy,jxp))
             allocate(dom%satbrt(iy,jxp+1)) 
             allocate(dom%xlat(iy,jxp))
             allocate(dom%xlong(iy,jxp))
@@ -171,7 +169,6 @@
             allocate(dom%f(iy,jxp))
           else
             allocate(dom%ht(iy,jx))
-            allocate(dom%htsd(iy,jx))
             allocate(dom%satbrt(iy,jx)) 
             allocate(dom%xlat(iy,jx))
             allocate(dom%xlong(iy,jx))
@@ -180,7 +177,6 @@
             allocate(dom%f(iy,jx))
           end if
           dom%ht = 0.0D0
-          dom%htsd = 0.0D0
           dom%satbrt = 0.0D0
           dom%xlat = 0.0D0
           dom%xlong = 0.0D0
