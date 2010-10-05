@@ -22,7 +22,7 @@
       implicit none
 
       real(4) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
-           & msfx , snowcv , topogm , toposdgm , xlandu , xlat , xlon
+           & msfx , snowcv , topogm , xlandu , xlat , xlon
       real(4) , allocatable , dimension(:,:) :: pa , sst1 , sst2 ,      &
            & tlayer , za , ice1 , ice2
       real(4) , allocatable , dimension(:,:) :: b3pd
@@ -43,7 +43,6 @@
         allocate(msfx(jx,iy))
         allocate(snowcv(jx,iy))
         allocate(topogm(jx,iy))
-        allocate(toposdgm(jx,iy))
         allocate(xlandu(jx,iy))
         allocate(xlat(jx,iy))
         allocate(xlon(jx,iy))
@@ -71,7 +70,6 @@
         deallocate(msfx)
         deallocate(snowcv)
         deallocate(topogm)
-        deallocate(toposdgm)
         deallocate(xlandu)
         deallocate(xlat)
         deallocate(xlon)
@@ -169,18 +167,6 @@
         istatus = nf90_get_var(incin, ivarid, topogm)
         if (istatus /= nf90_noerr) then
           write (6,*) 'Error reading topo variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
-        istatus = nf90_inq_varid(incin, "htsd", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error htsd variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
-        istatus = nf90_get_var(incin, ivarid, toposdgm)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading htsd variable'
           write (6,*) nf90_strerror(istatus)
           stop
         end if
