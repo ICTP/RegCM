@@ -187,10 +187,9 @@ def main(argv):
     for i in range(imin,imax+1):
 
         if listtype == 0 :
-            testname="test_00"+str(tests[i])
+            testname="test_"+str(tests[i]).zfill(3)
         else :
-            # improve for testno > 9
-            testname="test_00"+str(i)
+            testname="test_"+str(i).zfill(3)
 
         # create simulation directory tree
         simdir=testdir+"/"+testname
