@@ -14,24 +14,23 @@
  plat = 45.39,
  plon = 13.48,
  truelatl = 30.0,
- truelath = 60,
+ truelath = 60.0,
  /
  &terrainparam
- domname = 'TER',
+ domname = 'test_011',
  itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
  ifanal = .true.,
  smthbdy = .false.,
- lakadj = .false.,
- lakedpth = .false.,
+ lake_adj = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
  h2opct = 75.,
- dirter = './input',
- inpter = './PreProc/DATA/',
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
  ibyte = 4,
@@ -54,8 +53,8 @@
  ehso4 = .false.,
  globidate1 = 1990060100,
  globidate2 = 1990070100,
- dirglob = './input',
- inpglob = './PreProc/DATA/',
+ dirglob = '/set/this/to/where/your/icbc/for/model/is',
+ inpglob = '/set/this/to/where/your/input/global/data/is',
  /
  &globwindow
  lat0 = 0.0
@@ -92,7 +91,7 @@
    batfrq  =     3.,
  ifchem  = .true.,
    chemfrq =     6.,
- dirout='./output'
+ dirout='/set/this/to/where/your/output/files/will/be/written'
  /
  &physicsparam
  iboudy  =          5,
