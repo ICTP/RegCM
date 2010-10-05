@@ -51,6 +51,9 @@ program ncplot
   real(4) :: alat , alon , angle
   integer :: i , j
   logical :: lvarsplit
+#ifdef IBM
+  integer , external :: iargc
+#endif
 
   data cmon/'jan','feb','mar','apr','may','jun', &
             'jul','aug','sep','oct','nov','dec'/

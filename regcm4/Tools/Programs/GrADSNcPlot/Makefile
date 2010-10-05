@@ -8,11 +8,11 @@ all: GrADSNcPlot GrADSNcPrepare
 
 OBJS = mod_projections.o mod_constants.o
 
-GrADSNcPlot: GrADSNcPlot.f90 $(OBJS)
+GrADSNcPlot: GrADSNcPlot.F90 $(OBJS)
 	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
                $(NETCDFLIB)
 
-GrADSNcPrepare: GrADSNcPrepare.f90 $(OBJS)
+GrADSNcPrepare: GrADSNcPrepare.F90 $(OBJS)
 	$(F90) $(LDFLAGS) $(NETCDFINC) $(F90FLAGS) -o $@ $< $(OBJS) \
                $(NETCDFLIB)
 
