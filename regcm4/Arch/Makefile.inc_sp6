@@ -88,4 +88,3 @@ LDFLAGS =
 # You should not change the lines below unless you are a developer
 
 SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'
-CXXSVN := -D'SVN_REV="$(shell svnversion -n .)"'
