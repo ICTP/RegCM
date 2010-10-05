@@ -176,10 +176,6 @@
  ifbat   = .true. ,    ! Output SRF ?
  ifsub   = .true. ,    ! Output SUB ?
  batfrq  =     3.,     ! Frequency in hours to write to SRF (and CLM)
- ifprt   = .false.,    ! Printout. WARNING: WORKS ONLY FOR SERIAL
- prtfrq  =    12.,     ! Frequency in hours for printout
- kxout   =     6,      ! Printout control for vertical level
- jxsex   =     40,     ! Printout control for horizontal point
  ifchem  = .true.,     ! Output CHE ?
  chemfrq =     6.,     ! Frequency in hours to write to CHE
  dirout  = './output', ! Path where all output will be placed
