@@ -71,7 +71,7 @@
            & sandrow2
       real(8) , allocatable,  dimension(:,:,:,:) :: srel2d
       real(8) , allocatable , dimension(:,:,:) ::dustsotex
-      real(8) , dimension(nsoil) :: dp
+      real(8) , dimension(nsoil) :: dp_array  ! Name of variable changed ! SC. 06.10.2010
 !
 ! Initialise sub bin aerosol distribution 
 !
@@ -304,10 +304,10 @@
       end do ! end j loop
 
 
-      dp(1) = 0.0001  !cm
+      dp_array(1) = 0.0001  !cm
       do ns = 2 , nsoil
-        dp(ns) = dp(ns-1)*exp(0.0460517018598807)
-        deldp = dp(ns) - dp(ns-1)
+        dp_array(ns) = dp_array(ns-1)*exp(0.0460517018598807)
+        deldp = dp_array(ns) - dp_array(ns-1)
       end do
  
 #ifdef MPP1
@@ -330,15 +330,15 @@
                   if ( (pcent(nm,nt).gt.eps) .and.                    &
                        & (sigma(nm,nt).ne.0.0) ) then
                     xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
-                    xl = ((log(dp(ns))-log(mmd(nm,nt)*1.E-4))**2)     &
+                    xl = ((log(dp_array(ns))-log(mmd(nm,nt)*1.E-4))**2)     &
                          & /(2.0*(log(sigma(nm,nt)))**2)
                     xm = xk*exp(-xl)
                   else
                     xm = 0.0
                   end if
-                  xn = rhop*(2.0/3.0)*(dp(ns)/2.0)
+                  xn = rhop*(2.0/3.0)*(dp_array(ns)/2.0)
                   deldp = 0.0460517018598807
-                                              ! dp(2)-dp(1) ss(nsoil)
+                                              ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)
                 end do
                 stotal = stotal + ss(ns)
@@ -683,19 +683,18 @@
  
       end do       ! end i loop
  
-      call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
+      call uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop)
  
       call emission(ilg,il1,il2,rhop,ftex,uth,roarow,rc,utheff,     &
                   & ustar,srel,rsfrow,trsize,vegfrac)
  
       end subroutine dust_module
 ! 
-      subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop,dp)
+      subroutine uthefft(il1,il2,ilg,ust,nsoil,roarow,utheff,rhop)
       implicit none
 !
       integer :: il1 , il2 , ilg , nsoil , ust
       real(8) :: rhop
-      real(8) , dimension(nsoil) :: dp
       real(8) , dimension(ilg) :: roarow
       real(8) , dimension(ilg,nsoil) :: utheff
       intent (in) il1 , il2 , ilg , nsoil , ust
@@ -705,8 +704,8 @@
 !
       do i = 1 , nsoil
         do j = il1 , il2
-          if ( ust.eq.0 ) utheff(j,i) = ustart0(rhop,dp(i),roarow(j))
-          if ( ust.eq.1 ) utheff(j,i) = ustart01(rhop,dp(i),roarow(j))
+          if ( ust.eq.0 ) utheff(j,i) = ustart0(rhop,dp_array(i),roarow(j))
+          if ( ust.eq.1 ) utheff(j,i) = ustart01(rhop,dp_array(i),roarow(j))
         end do
       end do
  
@@ -772,7 +771,7 @@
                 dec = fsoil(i,nt)*beta
 !               individual kinetic energy for an aggregate of size dp (
 !               g cm2 s-2) cf alfaro (dp) is in cm
-                ec = (mathpi/12)*rhop*1E-3*(dp(ns)**3.0)*                &
+                ec = (mathpi/12)*rhop*1E-3*(dp_array(ns)**3.0)*                &
                     & (20*ustar(i))**2.0
  
                 if ( ec.gt.e1 ) then
