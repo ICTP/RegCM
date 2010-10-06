@@ -146,6 +146,25 @@ def main(argv):
     bindir = os.path.abspath(bindir)
     referencedir = os.path.abspath(referencedir)
 
+    # check running options compatibility + choose binary
+
+    main_bin = "regcmMPI"
+
+    if (run_clm + run_band) > 1:
+        print "Running with BAND and CLM enabled is currently not supported!"
+        os.sys.exit(1)
+
+    if run_serial == 1 :
+        main_bin = "regcmSerial"
+    elif run_clm == 1 :
+        main_bin = "regcm_clM"
+    elif run_band == 1 :
+        main_bin = "regcm_band"
+
+    # now check if bins exist
+    
+    #print "bin = ",main_bin
+    
     # will put the diff variables here?
     
     # check what tests to do
@@ -161,7 +180,7 @@ def main(argv):
         tests=int(teststodo)
         listtype=2
     
-    TOT_TESTS = 10 # number of total tests present
+    TOT_TESTS = 12 # number of total tests present
 
     if not os.path.isdir(testdir):
         os.mkdir(testdir)
@@ -244,6 +263,11 @@ def main(argv):
         
         # run preproc
         if (run_preproc == 1):
+
+            # check if binaries actually exist
+            if not (os.path.isfile(bindir+"/terrain")) :
+                print "Terrain binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
         
             p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
             if p_terrain.wait() != 0:
@@ -251,6 +275,10 @@ def main(argv):
                 exit_status = 1
             else:
                 print "Terrain in",testname,"passed."
+
+            if not (os.path.isfile(bindir+"/sst")) :
+                print "SST binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
     
             p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
             if p_sst.wait() != 0:
@@ -258,6 +286,10 @@ def main(argv):
                 exit_status = 1
             else :
                 print "SST in",testname,"passed."
+
+            if not (os.path.isfile(bindir+"/icbc")) :
+                print "ICBC binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
             
             p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
             if p_icbc.wait() != 0:
@@ -265,8 +297,12 @@ def main(argv):
                 exit_status = 1
             else :
                 print "ICBC in",testname,"passed."
-
+            
             if run_clm == 1:
+                if not (os.path.isfile(bindir+"/clm2rcm")) :
+                    print "clm2rcm binary not found! Skipping further steps."
+                    os.sys.exit(exit_status)
+                    
                 p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist,stdout=log,stderr=log,shell=True)
                 if p_clmpre.wait() != 0:
                     print "\nError: clm2rcm in",testname,"crashed!!\n"
@@ -301,22 +337,20 @@ def main(argv):
 
         # if preproc is ok, run main
         if exit_status == 0 :
-            if (run_serial == 1):
-                p_regcm=subprocess.Popen(bindir+"/regcmSerial "+namelist,stdout=log,stderr=log,shell=True)
-            elif run_clm == 1 :
-                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_clM "+namelist,stdout=log,stderr=log,shell=True)
-            elif run_band == 1 :
-                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcm_band "+namelist,stdout=log,stderr=log,shell=True)
-            else :
-                p_regcm=subprocess.Popen(mpistring+" "+bindir+"/regcmMPI "+namelist,stdout=log,stderr=log,shell=True)
-                
+
+            if not os.path.isfile(bindir+"/"+main_bin) :
+                print "Main RegCM binary not found! Skipping further steps."
+                log.close()
+                os.sys.exit(exit_status)
+            
+            p_regcm=subprocess.Popen(bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True) 
             if p_regcm.wait() != 0:
                 print "\nError: RegCM",testname,"crashed!!\n"
                 exit_status = 1
             else :
                 print "RegCM",testname,"passed."
         else :
-            print "PreProc did not complete correctly, RegCM main skipped..."
+            print "Preprocessing did not complete correctly, RegCM main skipped."
 
         log.close()
 

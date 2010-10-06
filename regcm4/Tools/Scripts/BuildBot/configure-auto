@@ -228,7 +228,7 @@ def hdf5_search(hdf5lib):
     
     try :
         path_a=os.environ['HDF5']
-        print path_a
+        #print path_a
         if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
             hdf5lib = path_a+"/lib"
         else :
