@@ -26,7 +26,7 @@ import os,sys,shutil,fileinput
 
 def main(argv):
 
-    numargs = 5
+    numargs = 4
 
     # command line args are:
     # 1 - compiler type
@@ -64,7 +64,8 @@ def main(argv):
     hdf5lib = hdf5_search(hdf5lib)
 
     # Defaults to 0 (it can still be set manually to 1)
-    dbg = int(sys.argv[5])
+    #dbg = int(sys.argv[5]) 
+    dbg = 0
 
     # Parallel or serial?
     mpi = int(sys.argv[2])
