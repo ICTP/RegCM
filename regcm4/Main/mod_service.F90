@@ -5,7 +5,7 @@
 !!c   PACKAGE VERSION:  regcm4  coming from DLPROTEIN-2.1  package.. 
 !!c   ACTION: basic service module: 
 !!c           Timing/Debugging/Error routines 
-!!c
+!!c           defines sp and dp parameters 
 !!c*******************************************************************
 !! 
 !!                                  
@@ -56,6 +56,21 @@
 MODULE mod_service
 
   use mod_dynparam , only : debug_level
+
+!!! definition of single and double precision 
+
+    integer, parameter, public :: sp = kind( 1.0 )
+    integer, parameter, public :: dp = kind( 1.0d0 )
+
+!! all constant/numbers used in the code should be defined as
+!!  DD.DD_dp for double precision numbers: 
+!!  DD.DD_sp for single precision numbers: 
+!! 
+!! examples: 
+!!      3.745566_dp : double precision numbers 
+!!      4.2_sp      : single precision numbers  
+!! 
+
   TYPE timing_info
      INTEGER :: n_of_time
      CHARACTER (len=50) :: name_of_section
