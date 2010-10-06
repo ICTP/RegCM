@@ -186,7 +186,7 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
