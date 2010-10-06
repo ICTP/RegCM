@@ -207,7 +207,7 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
             if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
                 line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
             else :
-                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+"-lhdf5_hl -lhdf5")
+                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
                 
             line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
             line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5 ")
