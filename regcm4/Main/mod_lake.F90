@@ -104,8 +104,7 @@
 !     ******  initialize hostetler lake model
             if( (satbrt1(n,i,j).gt.13.9.and.satbrt1(n,i,j)  &
                & .lt.15.1) .and. dhlake1(n,i,j).gt.-9990.) then
-!             depth2d(n,i,j) = dmin1(1.d0,dmax1(dhlake1(n,i,j),400.d0))
-              depth2d(n,i,j) = dmin1(2.d0,dmax1(dhlake1(n,i,j),400.d0))
+              depth2d(n,i,j) = dmax1(2.d0,dmin1(dhlake1(n,i,j),400.d0))
               if(depth2d(n,i,j).lt.50) then
                 eta2d(n,i,j) = .7
               else if(depth2d(n,i,j).gt.100) then
