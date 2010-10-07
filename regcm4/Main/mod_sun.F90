@@ -59,7 +59,7 @@
 !
       real(8) :: calday , decdeg , delta
 #ifdef CLM
-      real(8) mvelp , obliq
+      real(8) :: mvelp , obliq
       integer :: iyear_ad
       logical :: log_print
 #else

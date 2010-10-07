@@ -79,7 +79,7 @@
 ! 
 ! Local variables
 !
-      integer i, j, n
+      integer :: i, j, n
 #ifdef MPP1
       integer :: ierr
 #endif

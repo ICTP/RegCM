@@ -444,7 +444,7 @@
 
       function imonmiddle(idate)
         implicit none
-        integer imonmiddle
+        integer :: imonmiddle
         integer , intent(in) :: idate
         real(4) :: rmom
         integer :: iy , im , id , ih , imom

@@ -691,9 +691,9 @@
 !
       subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
       implicit none
-      integer na , nv , n , ier , info , ip(n)
-      real(kind=8) a(n,n) , v(n,n) , work(n) , d(2)
-      integer i , j , job
+      integer :: na , nv , n , ier , info , ip(n)
+      real(8) :: a(n,n) , v(n,n) , work(n) , d(2)
+      integer :: i , j , job
 !
 !     08/23/91 version 1.0
 !     12/10/92 updated to correct bugs

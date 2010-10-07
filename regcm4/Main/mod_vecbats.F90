@@ -208,11 +208,6 @@
          & 0.90 , 0.80 , 0.20 , 0.90 , 0.90 , 1.00 , 1.00 , 0.50 ,      &
          & 0.50 , 0.65 , 0.60 , 0.60/       !BATS land types
  
-!     ****** vgtran transforms mm4 surface types into bats surface types
-!MM4  real(kind=8)  vgtran(13)
-!MM4  data vgtran /5.,1.,2.,5.,3.,18.,0.,13.,11.,9.,12.,6.,7./
-!MM4  integer ist
- 
 !     ****** typically resp=1.0 kg/m**2/s and changes by<10% in 10 days
 !
 !!

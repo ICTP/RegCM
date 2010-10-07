@@ -85,9 +85,9 @@
                                & zeff , ustar
       real(8) , dimension(iy,nbin) :: rsfrow
 !
-!bxq  real(kind=8)  h2o2mol
-!     real(kind=8)  ustar(iy)
-!     real(kind=8)  zza(iy,kz)
+!bxq  real(kind=8) :: h2o2mol
+!     real(kind=8) :: ustar(iy)
+!     real(kind=8) :: zza(iy,kz)
 !
 !     clmin = non-precipitating cloud conversion threshold,
 !     clmin=0.01g/m3

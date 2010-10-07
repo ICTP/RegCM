@@ -867,9 +867,6 @@
       integer :: i , j , k , n
       real(8) , dimension(iym1,kz,ntr) :: worka , workb
 !
-!     real(kind=8)  chixp1,chiym1,chiyp1,chiym1,chi00,chidx,chidy
-!     real(kind=8)  chixp2,chiym2,chiyp2,chiym2
- 
 !ccccccccccccccccccccccccccccccccccccccccccccccc
  
 !-------------------------

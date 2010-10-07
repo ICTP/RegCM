@@ -653,6 +653,18 @@
 !
       nstrt0 = 0
       nstart = idatediff(idate1,idate0)/ibdyfrq
+#ifdef MPP1
+      if (myid == 0) then
+#endif
+      if (ifrest .and. nstart == 0) then
+        write (6,*) 'Error in parameter set.'
+        write (6,*) 'Cannot set idate0 == idate1 on restart run'
+        write (6,*) 'Correct idate0.'
+        call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+      end if
+#ifdef MPP1
+      end if
+#endif
       nnnend = idatediff(idate2,idate0)/ibdyfrq
       nnnchk = nstart
 ! 
