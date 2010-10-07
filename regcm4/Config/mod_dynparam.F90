@@ -59,7 +59,7 @@
 
 ! Control flag for lake model (Hostetler, etal. 1991, 1993a,b, 1995)
  
-      integer :: lakedpth
+      logical :: lakedpth
 
 ! Grid point horizontal resolution in km
 
