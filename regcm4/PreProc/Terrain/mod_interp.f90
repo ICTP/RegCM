@@ -31,6 +31,7 @@
       integer , dimension(maxbins) :: bincnt
       real(8) , dimension(maxbins) :: bmindist
       logical , dimension(2,maxbins) :: lndwt
+      integer , dimension(2,maxbins) :: indwt
 !
       data wt/1 , 0 , -3 , 2 , 4*0 , -3 , 0 , 9 , -6 , 2 , 0 , -6 , 4 , &
          & 8*0 , 3 , 0 , -9 , 6 , -2 , 0 , 6 , -4 , 10*0 , 9 , -6 ,     &
@@ -46,6 +47,7 @@
          & 1 , 2*0 , 2 , -2 , 2*0 , -1 , 1/
 !
        data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
+       data indwt /26*0,1,1,1,11*0/
 !
       contains
 !
@@ -151,7 +153,7 @@
 !     Set point to land if less than fixed percent of water
       wtp = (sum(bincnt,mask=lndwt(ibnty,:))/totpoints)*100.0
       if (wtp > 0.0 .and. wtp < h2opct) then
-        bincnt(lndwt(ibnty,:)) = 0
+        bincnt(indwt(ibnty,:)) = 0
       end if
       mostaround = -1
       lastc = -1
@@ -400,8 +402,8 @@
         do jj = 1 , jx
           yy = (dble(xlat(ii,jj))-milat)*rinc + 1.0D+00
           if (lcross) then
-            xx = (mod((dble(xlon(ii,jj))+360.0),360.0)-milon)*rinc + &
-                      1.0D+00
+            xx = (mod((dble(xlon(ii,jj))+360.0D0),360.0D0)-milon) * &
+                  rinc + 1.0D+00
           else
             xx = (dble(xlon(ii,jj))-milon)*rinc + 1.0D+00
           end if
