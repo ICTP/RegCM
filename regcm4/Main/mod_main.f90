@@ -93,7 +93,7 @@
       public :: atmstate , domain
       public :: allocate_mod_main , allocate_atmstate , allocate_domain
 
-      private
+!     private
 !
       contains
 !

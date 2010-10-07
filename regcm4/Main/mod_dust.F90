@@ -84,6 +84,7 @@
       contains 
 !
       subroutine allocate_mod_dust 
+
         implicit none
 
         allocate(frac1(isize))
