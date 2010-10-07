@@ -19,42 +19,13 @@
 
       module mod_block
       implicit none
-      integer :: nobs
-      integer :: nnc
-      integer :: iblk , iter, jter
-      real(4) , allocatable , dimension(:) :: ht , ht2 , htsd
-      real(8) , allocatable , dimension(:) :: xobs , yobs
-      real(4) , dimension(50) :: stores
-      real(4) :: xmaxlat , xmaxlon , xminlat , xminlon
-      real(4) :: dsinm , rin , xnc
+      real(4) , allocatable , dimension(:,:) :: ht , lnd , text , dpt
       real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
+      real(8) :: xmaxlat , xmaxlon , xminlat , xminlon
+      integer :: nlatin , nlonin
       logical :: lonwrap , lcrosstime
 
       contains
-
-      subroutine allocate_block(ni, nj)
-        implicit none
-        integer , intent(in) :: ni , nj
-        iter = ni
-        jter = nj
-        iblk = (iter*jter)/2
-        allocate(ht(iblk))
-        allocate(ht2(iblk))
-        allocate(htsd(iblk))
-        allocate(xobs(iblk))
-        allocate(yobs(iblk))
-      end subroutine
-
-      subroutine free_block
-        iter = 0
-        jter = 0
-        iblk = 0
-        if (allocated(ht)) deallocate(ht)
-        if (allocated(ht2)) deallocate(ht2)
-        if (allocated(htsd)) deallocate(htsd)
-        if (allocated(xobs)) deallocate(xobs)
-        if (allocated(yobs)) deallocate(yobs)
-      end subroutine
 
       subroutine mxmnll(iy,jx,xlon,xlat)
       implicit none
@@ -103,13 +74,6 @@
         if (xmaxlon > 0.0 .and. xtstlon2 < 0.0) xmaxlon = xtstlon2
         print *, 'Special case for timeline crossing'
       end if
-
-!--------initialize minimum lat and lon of data from tape
-
-      grdltmn = xminlat + 5.0
-      grdltma = xmaxlat - 5.0
-      grdlnmn = xminlon + 5.0
-      grdlnma = xmaxlon - 5.0
 
       print *, 'Calculated large extrema:'
       print *, '         MINLAT = ', xminlat

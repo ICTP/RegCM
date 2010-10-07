@@ -18,252 +18,392 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_interp
-
+!
       implicit none
-
+!
+      private
+!
+      public :: interp
+!
+      real(8) , dimension(4,4) :: c
+      real(8) , dimension(16,16) :: wt
+      integer , parameter :: maxbins = 20
+      integer , dimension(maxbins) :: bincnt
+      real(8) , dimension(maxbins) :: bmindist
+      logical , dimension(2,maxbins) :: lndwt
+!
+      data wt/1 , 0 , -3 , 2 , 4*0 , -3 , 0 , 9 , -6 , 2 , 0 , -6 , 4 , &
+         & 8*0 , 3 , 0 , -9 , 6 , -2 , 0 , 6 , -4 , 10*0 , 9 , -6 ,     &
+         & 2*0 , -6 , 4 , 2*0 , 3 , -2 , 6*0 , -9 , 6 , 2*0 , 6 , -4 ,  &
+         & 4*0 , 1 , 0 , -3 , 2 , -2 , 0 , 6 , -4 , 1 , 0 , -3 , 2 ,    &
+         & 8*0 , -1 , 0 , 3 , -2 , 1 , 0 , -3 , 2 , 10*0 , -3 , 2 ,     &
+         & 2*0 , 3 , -2 , 6*0 , 3 , -2 , 2*0 , -6 , 4 , 2*0 , 3 , -2 ,  &
+         & 0 , 1 , -2 , 1 , 5*0 , -3 , 6 , -3 , 0 , 2 , -4 , 2 , 9*0 ,  &
+         & 3 , -6 , 3 , 0 , -2 , 4 , -2 , 10*0 , -3 , 3 , 2*0 , 2 , -2 ,&
+         & 2*0 , -1 , 1 , 6*0 , 3 , -3 , 2*0 , -2 , 2 , 5*0 , 1 , -2 ,  &
+         & 1 , 0 , -2 , 4 , -2 , 0 , 1 , -2 , 1 , 9*0 , -1 , 2 , -1 ,   &
+         & 0 , 1 , -2 , 1 , 10*0 , 1 , -1 , 2*0 , -1 , 1 , 6*0 , -1 ,   &
+         & 1 , 2*0 , 2 , -2 , 2*0 , -1 , 1/
+!
+       data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
+!
       contains
-
-      function oned(x,a,b,c,d)
+!
+      function inear(x,m,lwrap)
       implicit none
-!
-! Dummy arguments
-!
-      real(8) :: a , b , c , d , x
-      real(8) :: oned
-      intent (in) a , b , c , d , x
-!
-      oned = 0.
-      if ( x==0. ) oned = b
-      if ( x==1. ) oned = c
-      if ( b*c==0. ) return
-      if ( a*d==0. ) then
-        oned = b*(1.0-x) + c*x
-        if ( a/=0.0 ) oned = b + x*(0.5*(c-a)+x*(0.5*(c+a)-b))
-        if ( d/=0.0 ) oned = c + (1.0-x)                                &
-                           & *(0.5*(b-d)+(1.0-x)*(0.5*(b+d)-c))
-        return
-      end if
-      oned = (1.0-x)*(b+x*(0.5*(c-a)+x*(0.5*(c+a)-b)))                  &
-           & + x*(c+(1.0-x)*(0.5*(b-d)+(1.0-x)*(0.5*(b+d)-c)))
-      end function oned
-
-      function bint(xx,yy,list,iii,jjj,flag)
-
-      implicit none
-!
-! Dummy arguments
-!
-      logical :: flag
-      integer :: iii , jjj
-      real(8) :: xx , yy
-      real(8) :: bint
-      real(8) , dimension(iii,jjj) :: list
-      intent (in) flag , iii , jjj , list , xx , yy
-!
-! Local variables
-!
-      real(8) :: a , b , c , d , e , f , g , h , x , y
-      integer :: i , j , k , kk , knear , l , ll , lnear , n
-      real(8) , dimension(4,4) :: stl
-!
-!-----bilinear interpolation among four grid values
-!
-      bint = 0.0
-      n = 0
-      i = int(xx)
-      j = int(yy)
-      x = xx - i
-      y = yy - j
-      if ( abs(x)>0.001 .and. abs(y)>0.001 ) then
-        do k = 1 , 4
-          kk = i + k - 2
-          do l = 1 , 4
-            stl(k,l) = 0.
-            if ( .not.(flag .and. (l==1)) ) then
-              if ( .not.(flag .and. (l==4)) ) then
-                if ( .not.(flag .and. (k==1)) ) then
-                  if ( .not.(flag .and. (k==4)) ) then
-                    ll = j + l - 2
-                    if ( kk>=1 .and. kk<=iii ) then
-                      if ( ll<=jjj .and. ll>=1 ) then
-                        stl(k,l) = list(kk,ll)
-                        n = n + 1
-                        if ( stl(k,l)<=0.0 ) stl(k,l) = -1.E-20
-                      end if
-                    end if
-                  end if
-                end if
-              end if
-            end if
-          end do
-        end do
-!
-!-----find index of closest point to xx,yy.
-!
-        knear = float(2) + x + 0.5
-        lnear = float(2) + y + 0.5
-        a = oned(x,stl(1,1),stl(2,1),stl(3,1),stl(4,1))
-        b = oned(x,stl(1,2),stl(2,2),stl(3,2),stl(4,2))
-        c = oned(x,stl(1,3),stl(2,3),stl(3,3),stl(4,3))
-        d = oned(x,stl(1,4),stl(2,4),stl(3,4),stl(4,4))
-        bint = oned(y,a,b,c,d)
-!
-!--------if closest point is ocean, automatically reset terrain to
-!--------preserve coastline.
-!
-        if ( .not.flag .and. stl(knear,lnear)<=0.001 ) bint = -0.00001
-        if ( n==16 ) return
-        if ( flag .and. n==4 ) return
-        e = oned(y,stl(1,1),stl(1,2),stl(1,3),stl(1,4))
-        f = oned(y,stl(2,1),stl(2,2),stl(2,3),stl(2,4))
-        g = oned(y,stl(3,1),stl(3,2),stl(3,3),stl(3,4))
-        h = oned(y,stl(4,1),stl(4,2),stl(4,3),stl(4,4))
-        bint = (bint+oned(x,e,f,g,h))/2.
-        if ( .not.flag .and. stl(knear,lnear)<=0.001 ) bint = -0.00001
-        return
-      end if
-
-      bint = list(i,j)
-
-      end function bint
-
-      subroutine interp(iy, jx, xlat , xlon , htg, htsdg, ntypec)
- 
-      use mod_block
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: iy , jx , ntypec
-      real(4) , dimension(iy, jx) :: xlat , xlon , htg , htsdg
-      intent(in) iy , jx , ntypec , xlat , xlon
-      intent(out) htg , htsdg
-!
-! Local variables
-!
-      logical :: flag
-      real(8) :: xx , yy , xd , yd , wc , wm , rinc , dsgrid
-      integer :: ii , jj , iindex , jindex , mxi , mxj
-      real(8) , dimension(:,:) , allocatable :: xin1 , xin2
-      logical , dimension(:,:) , allocatable :: lmask
-!
-      rinc = nnc
-      if (lcrosstime) then
-        mxj = nint((mod((grdlnma+360.0D0),360.0D0)-grdlnmn)*rinc) + 1
+      integer :: inear
+      real(8) , intent(in) :: x
+      integer , intent(in) :: m
+      logical , intent(in) :: lwrap
+      if (.not. lwrap) then
+        inear = min(max(nint(x),1),m)
       else
-        mxj = nint((grdlnma-grdlnmn)*rinc) + 1
-      end if
-      mxi = nint((grdltma-grdltmn)*rinc) + 1
-
-      if (lonwrap) then
-        mxj = mxj + 4
-      end if
-
-      print *, 'Allocating 2x', mxi, 'x', mxj
-
-      allocate(xin1(mxi,mxj))
-      allocate(xin2(mxi,mxj))
-      allocate(lmask(mxi,mxj))
-
-      xin1 = 0.0
-      xin2 = 0.0
-      lmask = .false.
-      flag = .false.
-      dsgrid = float(ntypec)/60.
-
-      do ii = 1 , nobs
-        if (lcrosstime) then
-          jindex = nint((mod((xobs(ii)+360.0D0),360.0D0) - &
-                              grdlnmn)*rinc) + 1
-        else
-          jindex = nint((xobs(ii)-grdlnmn)*rinc) + 1
+        inear = nint(x)
+        if (inear < 1) then
+          inear = m - inear
         end if
-        iindex = nint((yobs(ii)-grdltmn)*rinc) + 1
-        if ( iindex < 1 .or. iindex>mxi .or. &
-             jindex < 1 .or. jindex>mxj ) then
-          print 99001 , ii , xobs(ii) , nnc , yobs(ii) , iindex , jindex
-          stop 400
+        if (inear > m) then
+          inear = inear - m
         end if
-        xin1(iindex,jindex) = ht(ii)/100.
-        if (ht2(ii) <= 400000000.0) xin2(iindex,jindex) = &
-                   ht2(ii)/100000.
-        lmask(iindex,jindex) = .true.
+      end if
+      end function inear
+!
+      function jnear(y,n)
+      implicit none
+      integer :: jnear
+      real(8) , intent(in) :: y
+      integer , intent(in) :: n
+      jnear = min(max(nint(y),1),n)
+      end function jnear
+!
+      function ifloor(x,m,lwrap)
+      implicit none
+      integer :: ifloor
+      real(8) , intent(in) :: x
+      integer , intent(in) :: m
+      logical , intent(in) :: lwrap
+      if (.not. lwrap) then
+        ifloor = min(max(floor(x),1),m)
+      else
+        ifloor = floor(x)
+        if (ifloor < 1) then
+          ifloor = m - ifloor
+        end if
+        if (ifloor > m) then
+          ifloor = ifloor - m
+        end if
+      end if
+      end function ifloor
+!
+      function jfloor(y,n)
+      implicit none
+      integer :: jfloor
+      real(8) , intent(in) :: y
+      integer , intent(in) :: n
+      jfloor = min(max(floor(y),1),n)
+      end function jfloor
+!
+      function nearpoint(x,y,m,n,grid,lwrap)
+      implicit none
+      real(8) :: nearpoint
+      integer :: m , n
+      real(8) :: x , y
+      logical :: lwrap
+      real(4) , dimension(m,n) :: grid
+      intent (in) lwrap , m , n , grid , x , y
+      nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
+      end function nearpoint
+!
+      function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
+      implicit none
+      real(8) :: mostaround
+      integer , intent(in) :: m , n , nbox , ibnty
+      real(8) , intent(in) :: x , y
+      logical , intent(in) :: lwrap
+      real(4) , intent(in) , dimension(m,n) :: grid
+      real(4) , intent(in) :: h2opct
+!
+      real(8) , dimension(nbox*nbox) :: binval , bindist
+      real(8) :: dist , rx , ry , wtp
+      integer :: ii0 , jj0 , ii , jj
+      integer :: totpoints , i , j , lastc
+
+      totpoints = nbox*nbox
+      ii0 = ifloor(x,m,lwrap)
+      jj0 = jfloor(y,n)
+      do i = 1 , nbox
+        do j = 1 , nbox
+          rx = ii0 + i - nbox/2
+          ry = jj0 + j - nbox/2
+          ii = ifloor(rx,m,lwrap)
+          jj = jfloor(ry,n)
+          binval((i-1)*nbox+j) = grid(ii,jj)
+          bindist((i-1)*nbox+j) = sqrt((x-rx)**2+(y-ry)**2)
+        end do
       end do
+      bincnt = 0.0
+      bmindist = 2*nbox
+      do i = 1 , totpoints
+        bincnt(int(binval(i))) = bincnt(int(binval(i))) + 1
+        if (bindist(i) < bmindist(int(binval(i)))) &
+          bmindist(int(binval(i))) = bindist(i)
+      end do
+!     Set point to land if less than fixed percent of water
+      wtp = (sum(bincnt,mask=lndwt(ibnty,:))/totpoints)*100.0
+      if (wtp > 0.0 .and. wtp < h2opct) then
+        bincnt(lndwt(ibnty,:)) = 0
+      end if
+      mostaround = -1
+      lastc = -1
+      do i = 1 , maxbins
+        if (bincnt(i) > 0) then
+          if (bincnt(i) > lastc) then
+            mostaround = dble(i)
+            dist = bmindist(i)
+            lastc = bincnt(i)
+          else if (bincnt(i) == lastc) then
+            if (bmindist(i) < dist) then
+              mostaround = dble(i)
+              dist = bmindist(i)
+              lastc = bincnt(i)
+            end if
+          end if
+        end if
+      end do
+      end function mostaround
 !
-!       Fill the matrix using nearest point to missing one.
+      function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
+      implicit none
+      real(8) :: pctaround
+      integer :: m , n , ival , nbox
+      real(8) :: x , y , rx , ry
+      logical :: lwrap
+      real(4) , dimension(m,n) :: grid
+      intent (in) lwrap , m , n , grid , x , y , ival
 !
-      do ii = 1 , mxi-1
-        do jj = 1 , mxj-1
-          if (.not. lmask(ii,jj)) then
-            yy = ((ii*dsgrid)-grdltmn)*rinc + 1.0D+00
-            xx = ((jj*dsgrid)-grdlnmn)*rinc + 1.0D+00
-            wc = 999.0
-            wm = 999.0
-            if (ii > 1) then
-              if (lmask(ii-1,jj)) then
-                yd = (((ii-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                wc = (yy-yd)
-                xin1(ii,jj) = xin1(ii-1,jj)
-                xin2(ii,jj) = xin2(ii-1,jj)
-                wm = wc
-              end if
-            end if
-            if (lmask(ii+1,jj)) then
-              yd = (((ii+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-              wc = (yy-yd)
-              if (wc < wm) then
-                xin1(ii,jj) = xin1(ii+1,jj)
-                xin2(ii,jj) = xin2(ii+1,jj)
-                wm = wc
-              end if
-            end if
-            if (jj > 1) then
-              if (lmask(ii,jj-1)) then
-                xd = (((jj-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                wc = (xx-xd)
-                if (wc < wm) then
-                  xin1(ii,jj) = xin1(ii,jj-1)
-                  xin2(ii,jj) = xin2(ii,jj-1)
-                  wm = wc
-                end if
-              end if
-            end if
-            if (lmask(ii,jj+1)) then
-              xd = (((jj+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-              wc = (xx-xd)
-              if (wc < wm) then
-                xin1(ii,jj) = xin1(ii,jj+1)
-                xin2(ii,jj) = xin2(ii,jj+1)
-                wm = wc
-              end if
-            end if
+      integer :: ii0 , jj0 , ii , jj
+      integer :: i , j
+      real(8) :: pc
+
+      pctaround = 0.0D0
+      pc = nbox*nbox
+      ii0 = ifloor(x,m,lwrap)
+      jj0 = jfloor(y,n)
+      do i = 1 , nbox
+        do j = 1 , nbox
+          rx = ii0 + i - nbox/2
+          ry = jj0 + j - nbox/2
+          ii = ifloor(rx,m,lwrap)
+          jj = jfloor(ry,n)
+          if (int(grid(ii,jj)) == ival) then
+            pctaround = pctaround + 1
           end if
         end do
       end do
-      deallocate(lmask)
- 
-      if (lonwrap) then
-        xin1 = cshift(xin1,shift=-2,dim=2)
-        xin1(:,1) = xin1(:,mxj-3)
-        xin1(:,2) = xin1(:,mxj-4)
-        xin1(:,mxj-2) = xin1(:,3)
-        xin1(:,mxj-1) = xin1(:,4)
-        xin2 = cshift(xin2,shift=-2,dim=2)
-        xin2(:,1) = xin2(:,mxj-3)
-        xin2(:,2) = xin2(:,mxj-4)
-        xin2(:,mxj-2) = xin2(:,3)
-        xin2(:,mxj-1) = xin2(:,4)
-      end if
+      pctaround = (pctaround / pc) * 100.0D0
+      end function pctaround
+!
+      function bilinear(x,y,m,n,grid,lwrap)
 
+      implicit none
+!
+      real(8) :: bilinear
+      integer :: m , n
+      real(8) :: x , y
+      logical :: lwrap
+      real(4) , dimension(m,n) :: grid
+      intent (in) lwrap , m , n , grid , x , y
+!
+      real(8) :: dx, dy, p12, p03
+      real(8) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
+      integer :: i0, j0, i1, j1, i2, j2, i3, j3
+!
+!-----bilinear interpolation among four grid values
+!
+      if (.not. lwrap) then
+        ii0 = min(max(floor(x),1),m)
+        ii2 = min(max(ceiling(x),1),m)
+        dx = (x-ii0)
+      else
+        ii0 = floor(x)
+        ii2 = ceiling(x)
+        dx = (x-ii0)
+        if (ii0 < 1) then
+          ii0 = m
+        end if
+        if (ii2 > m) then
+          ii2 = 1
+        end if
+      end if
+      ii1 = ii0
+      ii3 = ii2
+      jj0 = min(max(floor(y),1),n)
+      dy = (y-jj0)
+      jj3 = jj0
+      jj1 = min(max(ceiling(y),1),n)
+      jj2 = jj1
+
+      i0 = int(ii0)
+      j0 = int(jj0)
+      i1 = int(ii1)
+      j1 = int(jj1)
+      i2 = int(ii2)
+      j2 = int(jj2)
+      i3 = int(ii3)
+      j3 = int(jj3)
+
+      p12 = dx*grid(j2,i2)+(1-dx)*grid(j1,i1)
+      p03 = dx*grid(j3,i3)+(1-dx)*grid(j0,i0)
+      bilinear = dy*p12+(1-dy)*p03
+
+      end function bilinear
+!
+      function bicubic(x,y,m,n,grid,lwrap)
+ 
+      implicit none
+!
+      real(8) :: bicubic
+      integer :: m , n
+      real(8) :: x , y
+      logical :: lwrap
+      real(4) , dimension(m,n) :: grid
+      intent (in) grid , m , n , x , y , lwrap
+!
+      real(8) , dimension(4) :: f , f1 , f12 , f2
+      real(8) :: xl , xu , yl , yu
+      integer :: i , ii , j , mm , nn , im , imp1 , imn1
+
+      mm = int(x)
+      nn = int(y)
+      if ( .not. lwrap) then
+        mm = max(2, min(m-2,mm))
+      end if
+      nn = max(2, min(n-2,nn))
+
+      xl = mm
+      xu = mm + 1
+      yl = nn
+      yu = nn + 1
+      do j = nn , nn + 1
+        do i = mm , mm + 1
+          ii = 1 + (i-mm) + 3*(j-nn)
+          if ( ii==5 ) ii = 3
+          if (lwrap) then
+            im = i
+            imp1 = i+1
+            imn1 = i-1
+            if ( i < 1 ) im = m-i
+            if ( i > m ) im = i-m
+            if ( imp1 < 1 ) imp1 = m-i+1
+            if ( imp1 > m ) imp1 = i+1-m
+            if ( imn1 < 1 ) imn1 = m-i-1
+            if ( imn1 > m ) imn1 = i-1-m
+          else
+            im = i
+            imp1 = i+1
+            imn1 = i-1
+          end if
+          f(ii) = grid(im,j)
+          f1(ii) = (grid(imp1,j)-grid(imn1,j))/(2D0)
+          f2(ii) = (grid(im,j+1)-grid(im,j-1))/(2D0)
+          f12(ii) = (grid(imp1,j+1)-grid(imp1,j-1)-grid(imn1,j+1)  &
+                  & +grid(imn1,j-1))/(4D0)
+        end do
+      end do
+ 
+      call bcuint(f,f1,f2,f12,xl,xu,yl,yu,x,y,bicubic)
+ 
+      end function bicubic
+!
+      subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
+      implicit none
+!
+      real(8) :: a , x1 , x1l , x1u , x2 , x2l , x2u
+      real(8) , dimension(4) :: y , y1 , y12 , y2
+      intent (in) x1 , x1l , x1u , x2 , x2l , x2u , y , y1 , y12 , y2
+      intent (out) a
+!
+      integer :: i
+      real(8) :: t , u
+!
+      call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
+      t = (x1-x1l)/(x1u-x1l)
+      u = (x2-x2l)/(x2u-x2l)
+      a = 0D0
+      do i = 4 , 1 , -1
+        a = t*a + ((c(i,4)*u+c(i,3))*u+c(i,2))*u + c(i,1)
+      end do
+      end subroutine bcuint
+!
+      subroutine bcucof(y,y1,y2,y12,d1,d2)
+      implicit none
+!
+      real(8) :: d1 , d2
+      real(8) , dimension(4) :: y , y1 , y12 , y2
+      intent (in) d1 , d2 , y , y1 , y12 , y2
+!
+      real(8) , dimension(16) :: cl , x
+      real(8) :: d1d2 , xx
+      integer :: i , j , k , l
+
+      d1d2 = d1*d2
+      do i = 1 , 4
+        x(i) = y(i)
+        x(i+4) = y1(i)*d1
+        x(i+8) = y2(i)*d2
+        x(i+12) = y12(i)*d1d2
+      end do
+      do i = 1 , 16
+        xx = 0D0
+        do k = 1 , 16
+          xx = xx + wt(i,k)*x(k)
+        end do
+        cl(i) = xx
+      end do
+      l = 0
+      do i = 1 , 4
+        do j = 1 , 4
+          l = l + 1
+          c(i,j) = cl(l)
+        end do
+      end do
+      end subroutine bcucof
+!
+! Interpolates input regolar lat/lon grid on output model grid
+!
+      subroutine interp(iy,jx,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
+                        ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
+ 
+      implicit none
+!
+      integer , intent(in) :: iy , jx , iniy , injx , ntypec , itype
+      real(4) , intent(in) , dimension(iy, jx) :: xlat , xlon
+      real(4) , intent(in) , dimension(injx, iniy) :: imt
+      real(8) , intent(in) :: milat , milon
+      logical , intent(in) :: lwrap , lcross
+      integer , intent(in) , optional :: ival
+      integer , intent(in) , optional :: ibnty
+      real(4) , intent(in) , optional :: h2opct
+      real(4) , intent(out) , dimension(iy, jx) :: omt
+!
+      integer :: nbox , ii , jj , jwrapp , jwrapm
+      real(8) :: xx , yy , rinc
+!
+      rinc = 1.0D0/(dble(ntypec)/60.0D0)
+!
+      if (itype < 1 .or. itype > 5) then
+        print *, 'Unknown interpolation type'
+        stop
+      end if
+!
       do ii = 1 , iy
         do jj = 1 , jx
- 
-          yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
-          if (lcrosstime) then
-            xx = (mod((xlon(ii,jj)+360.0),360.0)-grdlnmn)*rinc + &
+          yy = (dble(xlat(ii,jj))-milat)*rinc + 1.0D+00
+          if (lcross) then
+            xx = (mod((dble(xlon(ii,jj))+360.0),360.0)-milon)*rinc + &
                       1.0D+00
           else
-            xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
+            xx = (dble(xlon(ii,jj))-milon)*rinc + 1.0D+00
           end if
  
 !         yy and xx are the exact index values of a point i,j of the
@@ -272,364 +412,75 @@
 !         is assumed that the earth grid has equal spacing in both
 !         latitude and longitude.
  
-          htsdg(ii,jj) = bint(yy,xx,xin2,mxi,mxj,flag)
-          htg(ii,jj) = bint(yy,xx,xin1,mxi,mxj,flag)
+          if (itype == 1) then
+            omt(ii,jj) = bilinear(xx,yy,injx,iniy,imt,lwrap)
+          else if (itype == 2) then
+            omt(ii,jj) = bicubic(xx,yy,injx,iniy,imt,lwrap)
+          else if (itype == 3) then
+            omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+          else if (itype == 4) then
+            if (lwrap) then
+              if (ii == 1 .or. ii == iy ) then 
+                nbox = 4
+              else
+                jwrapp = jj+1
+                jwrapm = jj-1
+                if (jwrapp > jx) jwrapp = 1
+                if (jwrapm < 1) jwrapm = jx
+                nbox = nint(max((xlon(ii,jwrapm)-xlon(ii,jwrapp))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
+                            dble(nbox)))
+              end if
+            else
+              if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
+                nbox = 4
+              else
+                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
+                            dble(nbox)))
+              end if
+            end if
+            nbox = nbox/2
+            if (mod(nbox,2) > 0) nbox = nbox + 1
+            omt(ii,jj) = mostaround(xx,yy,injx,iniy,imt,nbox, &
+                                    ibnty,h2opct,lwrap)
+          else if (itype == 5) then
+            if (lwrap) then
+              if (ii == 1 .or. ii == iy ) then 
+                nbox = 4
+              else
+                jwrapp = jj+1
+                jwrapm = jj-1
+                if (jwrapp > jx) jwrapp = 1
+                if (jwrapm < 1) jwrapm = jx
+                nbox = nint(max((xlon(ii,jwrapm)-xlon(ii,jwrapp))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
+                            dble(nbox)))
+              end if
+            else
+              if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
+                nbox = 4
+              else
+                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
+                            4.0D0))
+                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
+                            dble(nbox)))
+              end if
+            end if
+            nbox = nbox/2
+            if (mod(nbox,2) > 0) nbox = nbox + 1
+            omt(ii,jj) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
+          end if
         end do
       end do
 
-      deallocate(xin1)
-      deallocate(xin2)
- 
-99001 format (1x,'ii = ',i6,' xobs(ii) = ',f10.4,' incr = ',i3,         &
-             &'yobs(ii) = ',f10.4,' iindex = ',i10,'  jindex = ',i10)
- 
       end subroutine interp
-
-      subroutine anal2(iy, jx, htg, htsdg)
-
-      use mod_block
-
-      implicit none
 !
-! Dummy arguments
-!
-      integer :: iy , jx
-      real(4) , dimension(iy,jx) :: htg , htsdg
-      intent (in) iy , jx
-      intent (out) htg , htsdg
-!
-! Local variables
-!
-      real(4) , dimension(2,iy,jx) :: cor
-      real(4) , dimension(2,iy,jx) :: htsav
-      real(4) , dimension(2,iy,jx) :: xsum
-      real(4) , dimension(2,iy,jx) :: wtmax
-      integer , dimension(2,iy,jx) :: ns
-      real(4) :: riobs , ris , ris2 , rjobs , rsq , rx , ry , wt , x ,  &
-               & xmaxj , xminj , y , ymaxi , ymini , h1 , h2
-      integer :: i , j , kk , maxi , maxj , mini , minj
-!
-!     objective analysis to fill a grid based on observations
-!     xobs and yobs are x and y positions on observations, not
-!     necessarily grid points.
-!
-!-----grid lengths in x and y directions are unity.
-!-----rin is radius of influence in grid units
-!
-      ris = sqrt(rin**2)
-      ris2 = 2.*ris
-!
-      wtmax = 0.0
-      ns = 0
-      cor = 0.0
-      xsum = 0.0
-      htsav = 0.0
-!
-!-----begin to process the nobs observations
-!
-      do kk = 1 , nobs
-!
-!-----convert obs. location to grid increment values of i and j
-!
-        riobs = yobs(kk)
-        rjobs = xobs(kk)
-!
-        ymaxi = riobs + rin
-        maxi = int(ymaxi+0.99)
-        maxi = min(maxi,iy)
-!
-        ymini = riobs - rin
-        mini = int(ymini)
-        mini = max(mini,1)
-!
-        xmaxj = rjobs + rin
-        maxj = int(xmaxj+0.99)
-        maxj = min(maxj,jx)
-!
-        xminj = rjobs - rin
-        minj = int(xminj)
-        minj = max(minj,1)
-!
-        do i = mini , maxi
-          do j = minj , maxj
-            x = j
-            y = i
-!-----compute distance of k_th station from i,jth grid point
-            rx = x - rjobs
-            ry = y - riobs
-            rsq = (rx**2 + ry**2)
-            if ( rsq<ris2 ) then
-              wt = (ris-rsq)/(ris+rsq)
-!
-!-----save      max. weighting factor and terrain height to check if
-!-----point     grid should be treated as a land or sea point.
-!
-              if ( wt>0.0 ) then
-
-                h1 = ht(kk)/100.0
-                h2 = ht2(kk)/100000.0
-
-                wtmax(1,i,j) = max(wt,wtmax(1,i,j))
-                ns(1,i,j) = ns(1,i,j) + 1
-                cor(1,i,j) = cor(1,i,j) + wt*h1
-                xsum(1,i,j) = xsum(1,i,j) + wt
-                if ( abs(wt-wtmax(1,i,j))<0.00001 ) then
-                  htsav(1,i,j) = h1
-                end if
-                if (h2 <= 400.0) then
-                  wtmax(2,i,j) = max(wt,wtmax(2,i,j))
-                  cor(2,i,j) = cor(2,i,j) + wt*h2
-                  ns(2,i,j) = ns(2,i,j) + 1
-                  xsum(2,i,j) = xsum(2,i,j) + wt
-                  if ( abs(wt-wtmax(2,i,j))<0.00001 ) then
-                    htsav(2,i,j) = h2
-                  end if
-                end if
-
-              end if
-            end if
-          end do
-        end do
-      end do
-!
-!-----now apply summed weights and weighted observations to determine
-!-----terrain value at i,j points
-!--------if closest observation to i,j is ocean, override to
-!--------preserve the coastline.
-!
-      do i = 1 , iy
-        do j = 1 , jx
-          if ( ns(1,i,j)/=0 ) then
-            cor(1,i,j) = cor(1,i,j)/xsum(1,i,j)
-            htg(i,j) = cor(1,i,j)
-            if (htsav(1,i,j) .le. 0.001) htg(i,j) = htsav(1,i,j)
-          end if
-          if ( ns(2,i,j)/=0 ) then
-            cor(2,i,j) = cor(2,i,j)/xsum(2,i,j)
-            htsdg(i,j) = cor(2,i,j)
-            if (htsav(2,i,j) .le. 0.001) htsdg(i,j) = htsav(2,i,j)
-          end if
-        end do
-      end do
-
-      end subroutine anal2
-
-      subroutine surf(xlat,xlon,lnduse,iy,jx,incr,dsgrid,lndout,land,   &
-                    & nrec,h2opct,nveg,aertyp,intext,texout,frac_tex,   &
-                    & ntex)
-      use mod_block
-      implicit none
-!
-! Dummy arguments
-!
-      character(7) :: aertyp
-      real(4) :: dsgrid , h2opct
-      integer :: incr , iy , jx , nrec , ntex , nveg
-      real(4) , dimension(iy,jx) :: lndout , texout , xlat , xlon
-      real(4) , dimension(iy,jx,ntex) :: frac_tex
-      integer , dimension(iy,jx) :: intext , lnduse
-      real(4) , dimension(iy,jx,2) :: land
-      intent (in) aertyp , dsgrid , h2opct , incr , &
-                & iy , jx , nrec , ntex , nveg , xlat
-      intent (out) frac_tex , intext , lnduse
-      intent (inout) land , lndout , texout , xlon
-!
-! Local variables
-!
-      logical :: flag
-      integer :: i , ii , iindex , ilev , j , jindex , jj , lrec ,  &
-               & lengdo , nbase , mxi , mxj
-      real(4) , dimension(iy,jx,2) :: itex
-      real(8) :: xx , yy , rinc , xd , yd , wc , wm
-      logical , dimension(:,:) , allocatable :: lmask
-      real(8) , dimension(:,:) , allocatable :: lnd8
-!
-      flag = .true.
-      lrec = 0
-      land = 0.0
-      itex = 0.0
-      rinc = incr
-!
-      print *, 'Input data point MIN is at ', grdltmn , grdlnmn
-      print *, 'Input data point MAX is at ', grdltma , grdlnma
-      print *, 'Input data resolution is   ', dsgrid
-      if (lcrosstime) then
-        mxj = nint((mod((grdlnma+360.0D0),360.0D0)-grdlnmn)*rinc) + 1
-      else
-        mxj = nint((grdlnma-grdlnmn)*rinc) + 1
-      end if
-      mxi = nint((grdltma-grdltmn)*rinc) + 1
-
-      if ( aertyp(7:7)=='1' ) then
-        lengdo = nveg + ntex
-      else
-        lengdo = nveg
-      end if
-
-      if (lonwrap) then
-        mxj = mxj + 4
-      end if
-
-      print *, 'Allocating ', mxi, 'x', mxj
-
-      allocate(lmask(mxi,mxj))
-      allocate(lnd8(mxi,mxj))
-
-      do ilev = 1 , lengdo
-        lmask(:,:) = .false.
-        rewind (48)
-        do lrec = 1 , nrec
-          read (48) stores
-          if (lcrosstime) then
-            jindex = nint((mod((stores(2)+360.0),360.0)-grdlnmn)*       &
-                           rinc) + 1
-          else
-            jindex = nint((stores(2)-grdlnmn)*rinc) + 1
-          end if
-          iindex = nint((stores(1)-grdltmn)*rinc) + 1
-          if ( iindex < 1 .or. iindex>mxi .or. &
-               jindex < 1 .or. jindex>mxj ) then
-            print 99001 , iindex , jindex , lrec , stores(1) ,          &
-                & stores(2) , grdltmn , grdlnmn
-            stop 60
-          end if
-          lnd8(iindex,jindex) = stores(ilev+4)
-          lmask(iindex,jindex) = .true.
-        end do
-!
-!       Fill the matrix using nearest point to missing one.
-!
-        do ii = 1 , mxi-1
-          do jj = 1 , mxj-1
-            if (.not. lmask(ii,jj)) then
-              yy = ((ii*dsgrid)-grdltmn)*rinc + 1.0D+00
-              xx = ((jj*dsgrid)-grdlnmn)*rinc + 1.0D+00
-              wc = 999.0
-              wm = 999.0
-              if (ii > 1) then
-                if (lmask(ii-1,jj)) then
-                  yd = (((ii-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                  wc = (yy-yd)
-                  lnd8(ii,jj) = lnd8(ii-1,jj)
-                  wm = wc
-                end if
-              end if
-              if (lmask(ii+1,jj)) then
-                yd = (((ii+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                wc = (yy-yd)
-                if (wc < wm) then
-                  lnd8(ii,jj) = lnd8(ii+1,jj)
-                  wm = wc
-                end if
-              end if
-              if (jj > 1) then
-                if (lmask(ii,jj-1)) then
-                  xd = (((jj-1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                  wc = (xx-xd)
-                  if (wc < wm) then
-                    lnd8(ii,jj) = lnd8(ii,jj-1)
-                    wm = wc
-                  end if
-                end if
-              end if
-              if (lmask(ii,jj+1)) then
-                xd = (((jj+1)*dsgrid)-grdltmn)*rinc + 1.0D+00
-                wc = (xx-xd)
-                if (wc < wm) then
-                  lnd8(ii,jj) = lnd8(ii,jj+1)
-                  wm = wc
-                end if
-              end if
-            end if
-          end do
-        end do
-!
-!       Special case for wrapping of longitude
-!
-        if (lonwrap) then
-          lnd8 = cshift(lnd8,shift=-2,dim=2)
-          lnd8(:,1) = lnd8(:,mxj-3)
-          lnd8(:,2) = lnd8(:,mxj-4)
-          lnd8(:,mxj-2) = lnd8(:,3)
-          lnd8(:,mxj-1) = lnd8(:,4)
-        end if
-
-        if ( ilev<=nveg ) then
-          do ii = 1 , iy
-            do jj = 1 , jx
-              yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
-              if (lcrosstime) then
-                xx = (mod((xlon(ii,jj)+360.0),360.0)-grdlnmn)*rinc + &
-                      1.0D+00
-              else
-                xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
-              end if
-              lndout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
-!
-!             note: it is desirable to force grid boxes with less
-!             than 75 percent water to be a land category,
-!             even if water is the largest single category.
-!
-              if ( .not.((ilev==14 .or. ilev==15) .and.                 &
-                     &    lndout(ii,jj)<h2opct) ) then
-                if ( ilev/=25 .or. lndout(ii,jj) >=h2opct ) then
-                  if ( lndout(ii,jj)>land(ii,jj,1) ) then
-                    land(ii,jj,1) = lndout(ii,jj)
-                    land(ii,jj,2) = ilev
-                  end if
-                end if
-              end if
-            end do
-          end do
-        else if ( ilev>nveg .and. aertyp(7:7) == '1' ) then
-          nbase = nveg
-          do ii = 1 , iy
-            do jj = 1 , jx
-              yy = (xlat(ii,jj)-grdltmn)*rinc + 1.0D+00
-              if (lcrosstime) then
-                xx = (mod((xlon(ii,jj)+360.0),360.0)-grdlnmn)*rinc + &
-                     1.0D+00
-              else
-                xx = (xlon(ii,jj)-grdlnmn)*rinc + 1.0D+00
-              end if
-              texout(ii,jj) = bint(yy,xx,lnd8,mxi,mxj,flag)
-              frac_tex(ii,jj,ilev-nbase) = texout(ii,jj)
-!
-!             note: it is desirable to force grid boxes with less
-!             than 75 percent water to be a land category,
-!             even if water is the largest single category.
-!
-              if ( ilev/=nveg+14 .or. texout(ii,jj) >=h2opct ) then
-                if ( ilev/=nveg+18 .or. texout(ii,jj)>=h2opct ) then
-                  if ( texout(ii,jj)>itex(ii,jj,1) ) then
-                    itex(ii,jj,1) = texout(ii,jj)
-                    itex(ii,jj,2) = ilev - nbase
-                  end if
-                end if
-              end if
-            end do
-          end do
-        end if
-      end do
-!
-      deallocate(lmask)
-      deallocate(lnd8)
-!
-      do i = 1 , iy
-        do j = 1 , jx
-          lndout(i,j) = land(i,j,2)
-          lnduse(i,j) = int(land(i,j,2))
-          if ( aertyp(7:7)=='1' ) then
-            texout(i,j) = itex(i,j,2)
-            intext(i,j) = int(itex(i,j,2))
-          end if
-        end do
-      end do
-!
-99001 format (1x,'*** iindex = ',i4,'   jindex = ',i4,'   lrec = ',i5,  &
-             &'   lat = ',f10.3,3x,'lon = ',f10.3,3x,'grdltmn = ',f10.3,&
-            & 5x,'grdlnmn = ',f10.3)
-!
-      end subroutine surf
-
       end module mod_interp

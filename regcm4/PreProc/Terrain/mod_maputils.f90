@@ -180,59 +180,5 @@
       end if
  
       end subroutine rotmer
-
-      subroutine xyobsll(iy,jx,iproj,clat,clon,plat,plon,truelatl,      &
-                       & truelath)
-      use mod_maps
-      use mod_block
-      use mod_projections
-      implicit none
-!
-! Dummy arguments
-!
-      real(4) :: clat , clon , plat , plon , truelath , truelatl
-      character(6) :: iproj
-      integer :: iy , jx
-      intent (in) iy , jx
-      intent (in) clat , clon , iproj , truelath , truelatl
-      real(4) :: cntrj , cntri , alon , alat , ri , rj
-      integer :: ii
-!
-! Local variables
-!
-      cntri = float(iy)/2.
-      cntrj = float(jx)/2.
-!
-      if ( iproj=='LAMCON' ) then
-       call setup_lcc(clat,clon,cntrj,cntri,dsinm,clon,truelatl,       &
-                     & truelath)
-      else if (iproj == 'POLSTR') then
-        call setup_plr(clat,clon,cntrj,cntri,dsinm,clon)
-      else if (iproj == 'NORMER') then
-        call setup_mrc(clat,clon,cntrj,cntri,dsinm)
-      else if (iproj == 'ROTMER') then
-        call setup_rmc(clat,clon,cntrj,cntri,dsinm,plon,plat)
-      else
-        write (6,*) 'Unknown projection in xyobsll'
-        stop
-      end if
-
-      do ii = 1 , nobs
-        alon = xobs(ii)
-        alat = yobs(ii)
-        if ( iproj=='LAMCON' ) then
-          call llij_lc(alat,alon,rj,ri)
-        else if ( iproj=='POLSTR' ) then
-          call llij_ps(alat,alon,rj,ri)
-        else if ( iproj=='NORMER' ) then
-          call llij_mc(alat,alon,rj,ri)
-        else if ( iproj=='ROTMER' ) then
-          call llij_rc(alat,alon,rj,ri)
-        end if
-        xobs(ii) = rj
-        yobs(ii) = ri
-      end do
-
-      end subroutine xyobsll
 !
       end module mod_maputils

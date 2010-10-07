@@ -39,9 +39,6 @@
 !
  &terrainparam
  domname  = 'AQWA',      ! Name of the domain. Controls naming of input files
- itype_in = 1,           ! I/O format
-                         ! 1 => direct access binary
-                         ! 2 => netcdf
  ntypec = 5,             ! Resolution of the global terrain and landuse data
                          ! Use 60, for  1  degree resolution
                          !     30, for 30 minutes resolution
@@ -50,14 +47,10 @@
                          !      3, for  3 minutes resolution
                          !      2, for  2 minutes resolution
  ntypec_s = 2,           ! Same for subgrid (Used only if nsg > 1)
- ifanal = .true.,        ! Interpolation Control flag.
-                         !  true  -> Perform cressman-type objective analysis
-                         !  false -> 16-point overlapping parabolic interp.
  smthbdy = .false.,      ! Smoothing Control flag
                          !  true  -> Perform extra smoothing in boundaries
- lakadj = .false.,       ! Great Lakes levels adjustment Control Flag
-                         !   (Set true only if US EastCoast)
-                         !  true  -> Adjust Great Lakes Levels according to obs
+ lakedpth    = .false.,  ! If using lakemod (see below), produce from
+                         ! terrain program the domain bathymetry
  fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid 
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid
@@ -99,12 +92,6 @@
 !
  &modesparam
  nsplit = 2, ! Number od split exp modes
- /
-!
-! Lake Model
-!
- &lakemodparam
- lkpts  = 10, ! Number of lake points for lake model
  /
 !
 ! ICBC Global data input control

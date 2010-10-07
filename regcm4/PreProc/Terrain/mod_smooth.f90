@@ -21,19 +21,20 @@
 
       contains
 
-      subroutine smth121(htgrid,iy,jx,hscr1)
+      subroutine smth121(htgrid,iy,jx)
       implicit none
 !
 ! Dummy arguments
 !
       integer :: iy , jx
-      real(4) , dimension(iy,jx) :: hscr1 , htgrid
+      real(4) , dimension(iy,jx) :: htgrid
       intent (in) iy , jx
-      intent (inout) hscr1 , htgrid
+      intent (inout) htgrid
 !
 ! Local variables
 !
       integer :: i , j
+      real(4) , dimension(iy,jx) :: hscr1
 !
 !     PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
 !     2DX WAVES FROM THE FIELDS htgrid

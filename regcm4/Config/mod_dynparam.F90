@@ -59,7 +59,7 @@
 
 ! Control flag for lake model (Hostetler, etal. 1991, 1993a,b, 1995)
  
-      integer :: i_lake
+      integer :: lakedpth
 
 ! Grid point horizontal resolution in km
 
@@ -217,32 +217,11 @@
 
       integer :: ntypec_s
 
-! Interpolation Control flag.
-!
-!     true  -> Perform cressman-type objective analysis
-!     false -> 16-point overlapping parabolic interpolation
-
-      logical :: ifanal
-
 ! Smoothing Control flag
 !
 !     true  -> Perform extra smoothing in boundaries
 
       logical :: smthbdy
-
-! Great Lakes levels adjustment Control Flag (Set true only if US EC)
-!
-!     true  -> Adjust Great Lakes Levels according to obs
-
-      logical :: lake_adj
-
-! I/O format
-!
-!     1 => direct access binary
-!     2 => netcdf
-
-      integer :: itype_in
-!     integer :: itype_out
 
 ! Fudging for landuse and texture for grid and subgrid
 
@@ -311,11 +290,10 @@
         integer , intent(out) :: ierr
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                     & plon , truelatl, truelath , i_band, i_lake
-        namelist /terrainparam/ domname , itype_in , ntypec , ntypec_s ,&
-                     & ifanal , smthbdy , lake_adj , fudge_lnd ,&
-                     & fudge_lnd_s , fudge_tex , fudge_tex_s , h2opct , &
-                     & dirter , inpter
+                     & plon , truelatl, truelath , i_band
+        namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
+                    & smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
+                    & fudge_tex , fudge_tex_s , h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ ibyte
         namelist /debugparam/ debug_level , dbgfrq
@@ -355,8 +333,6 @@
 
         i_band = 0
 
-        i_lake = 0
-
         read(ipunit, geoparam, err=102)
 
         if ( i_band.eq.1 ) then
@@ -373,8 +349,6 @@
         dirglob = '../../Input'
 
         read(ipunit, terrainparam, err=103)
-
-        if(i_lake.eq.1) lake_adj = .true.
 
         ! Set convenient defaults for I/O parameters
         ibyte = 4

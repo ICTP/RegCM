@@ -22,7 +22,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                      !
 !   TERRAIN is the first component of the REGional Climate Modeling    !
-!   (RegCM) system version 3.0 and used to access archived terrain     !
+!   (RegCM) system version 4.0 and used to access archived terrain     !
 !   height and landuse charactistics data at regular latitude-         !
 !   longititude intervals and interpolate to the mesoscale grid for    !
 !   a specified map projection.                                        !
@@ -43,34 +43,34 @@
 !  related to map factors, are just calculated and stored in TERRAIN
 !  for later use.
 !
-!  This program reads terrain height data from the NCAR air force
-!  terrain tapes (1 deg., 30', or 5') or terrain and landuse data
-!  from the PSU/NCAR combined landuse tapes (1 deg., 30', 10'), or 10'
-!  GLCC landuse data (Loveland et al 1999) and analyzes heights and/or
-!  landuse values to a given grid.
+!  This program reads terrain height data from :
+!
+!      GTOPO 30s DEM in NetCDF format
+!      GLCC V2 BATS  in NetCDF format
+!      SOIL ZOBLER   in NetCDF format
+!      ETOPO BATHYM  in NetCDF format
+!
+!  and analyzes heights and landuse values to a given grid.
 !
 !---------------------------------------------------------------------
       use mod_dynparam
       use mod_maps
       use mod_block
       use mod_smooth , only : smth121 , smthtr
-      use mod_maputils , only : lambrt , mappol , normer , rotmer ,  &
-                                &  xyobsll
-      use mod_interp , only : anal2 , interp , surf
-      use mod_fudge , only : lndfudge , texfudge , lakeadj
-      use mod_rdldtr , only : rdldtr , rdldtr_nc
-      use mod_write , only : setup , write_domain
+      use mod_maputils , only : lambrt , mappol , normer , rotmer
+      use mod_interp , only : interp
+      use mod_fudge , only : lndfudge , texfudge
+      use mod_rdldtr , only : read_ncglob
+      use mod_write , only : setup , write_domain , dsinm
       use mod_header , only : header
       implicit none
 !
 ! Local variables
 !
-      integer :: maxiter , maxjter , maxdim
       character(256) :: char_lnd , char_tex
       character(256) :: namelistfile , prgname
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
-      integer :: nunitc , nunitc_s , ctlunit , ctlunit_s
       real(4) :: clong , hsum , have
 !
       data ibndry /.true./
@@ -174,30 +174,11 @@
 
 !---------------------------------------------------------------------
 !
-!     iblk = dimension of arrays xobs,yobs,ht,htsd
-!     estimate iblk = ihmax*jhmax where ihmax = (xmaxlat-xminlat)/xnc
-!     and jhmax = (xmaxlon-xminlon)/xnc.  xnc = 1,0.5,1./6.or 5./60. for
-!     1 deg, 30 min, 10 min or 5 min data, respectively.  add 1-2000 to
-!     estimate of iblk for safety.  if you underestimate the
-!     dimensions the program will abort with a diagnostic message
-!     indicating the correct dimensions required .
-!     iter,jter = dimensions of array lnd8.
-!     within the search region. at present, iter and jter must be
-!     equal and >= max(ihmax,jhmax) where ihmax and jhmax are
-!     as calculated above.
-!
-      open (48,status='scratch',form='unformatted')
-!
       clong = clon
       if ( clong>180. ) clong = clong - 360.
       if ( clong<=-180. ) clong = clong + 360.
 
-      nunitc  = 109
-      ctlunit = 110
-
       if ( nsg>1 ) then
-        nunitc_s  = 119
-        ctlunit_s = 120
 
         call setup(iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,clong)
         print * , 'Subgrid setup done'
@@ -234,104 +215,67 @@
         print * , 'Subgrid Geo mapping done'
 !
 !       reduce the search area for the domain
-!       [minlat:maxlat,minlon:maxlon]
         call mxmnll(iysg,jxsg,xlon_s,xlat_s)
         print * , 'Determined Subgrid coordinate range'
 !
-        maxiter = (xmaxlat-xminlat)/xnc
-        if (xmaxlon < 0.0 .and. xminlon > 0.0) then
-          maxjter = ((xmaxlon+360)-xminlon)/xnc
-        else
-          maxjter = (xmaxlon-xminlon)/xnc
-        end if
-        maxdim = max(maxiter,maxjter) + 1000
-        print *, 'Allocating blocks of dimension ' , maxdim
-        call allocate_block(maxdim,maxdim)
+        call read_ncglob(trim(inpter)//pthsep//'GTOPO_DEM_30s.nc','z', &
+                         30,ntypec_s,.true.,ht)
+        print *, 'Static DEM data successfully read in'
+        call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
+                    nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                    ntypec_s,2,lonwrap,lcrosstime)
+        print *, 'Interpolated DEM on SUBGRID'
+        deallocate(ht)
 !
-!       read in the terrain & landuse data
-        if ( itype_in==1 ) then
-          call rdldtr(inpter,ntypec_s,nveg,ntex,aertyp,ibyte)
-        else if ( itype_in==2 ) then
-          call rdldtr_nc(inpter,ntypec_s,nveg,ntex,aertyp)
-        else
-          write (6,*) 'itype_in =', itype_in
-          write (6,*) 'Unsupported input type selected.'
-          write (6,*) 'Set itype_in to one in 1,2'
-          stop
-        endif
-        print *, 'Static terrain data successfully read in'
-        if ( ifanal ) then
-          print *, 'Using anal2 to fill output elevation subgrid'
-!         convert xobs and yobs from LON and LAT to x and y in mesh
-          call xyobsll(iysg,jxsg,iproj,clat,clong,plat,plon,        &
-                     & truelatl,truelath)
-!         create the terrain height fields
-          call anal2(iysg,jxsg,htgrid_s,htsdgrid_s)
-        else
-          print *, 'Using interpo to fill output elevation subgrid'
-          call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s,htsdgrid_s,      &
-                    & ntypec_s)
-        end if
-        do j = 1 , jxsg
-          do i = 1 , iysg
-            htgrid_s(i,j) = amax1(htgrid_s(i,j)*100.,0.0)
-            htsdgrid_s(i,j) = amax1(htsdgrid_s(i,j)*100000.,0.0)
-            htsdgrid_s(i,j) = sqrt(amax1(htsdgrid_s(i,j) - &
-                                         htgrid_s(i,j)**2,0.0))
+        call read_ncglob(trim(inpter)//pthsep//'GLCC_BATS_30s.nc', &
+                   'landcover',30,ntypec_s,.true.,lnd)
+        print *, 'Static landcover BATS data successfully read in'
+        call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
+                    nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                    ntypec_s,4,lonwrap,lcrosstime,     &
+                    ibnty=1,h2opct=h2opct)
+        print *, 'Interpolated landcover on SUBGRID'
+        deallocate(lnd)
+!
+        if ( aertyp(7:7)=='1' ) then
+          call read_ncglob(trim(inpter)//pthsep//'GLZB_SOIL_30s.nc', &
+                           'soiltype',30,ntypec_s,.true.,text)
+          print *, 'Static texture data successfully read in'
+          call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
+                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      ntypec_s,4,lonwrap,lcrosstime,      &
+                      ibnty=2,h2opct=h2opct)
+          do i = 1 , ntex
+            call interp(iysg,jxsg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
+                        nlatin,nlonin,grdltmn,grdlnmn,text,         &
+                        ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
-        end do
-        print * , 'Elevetion grids successfully filled'
-!       create surface landuse types
-        call surf(xlat_s,xlon_s,lnduse_s,iysg,jxsg,nnc,xnc,lndout_s,    &
-                & land_s,nobs,h2opct,nveg,aertyp,intext_s,texout_s,     &
-                & frac_tex_s,ntex)
-        if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
-          lndout_s(iysg/2,jxsg/2) = 12
-          texout_s(iysg/2,jxsg/2) = 16
-          frac_tex_s(iysg/2,jxsg/2,:) = -1e-20
-          frac_tex_s(iysg/2,jxsg/2,16) = 1.0
+          print *, 'Interpolated texture on SUBGRID'
+          deallocate(text)
         end if
-        if (iproj == 'POLSTR' .and. abs(clat-90.0) < 0.001) then
-          lndout_s(iysg/2,jxsg/2) = 15
-          texout_s(iysg/2,jxsg/2) = 14
-          frac_tex_s(iysg/2,jxsg/2,:) = -1e-20
-          frac_tex_s(iysg/2,jxsg/2,14) = 100.0
-        end if
-        print * , 'Surface grids successfully filled'
 
-        if ( i_lake==1) then
-          dhlake_s = -9999.
-          dhlake = -9999.
-        endif
-!       **** Adjust the Great Lake Heights to their actual values.
-        if ( lake_adj ) then
-          print * ,                                                     &
-               &'Calling lakeadj for the first time (before 2dx pass)'
-          call lakeadj(lnduse_s,htgrid_s,dhlake_s,xlat_s,xlon_s,        &
-                     & iysg,jxsg,i_lake)
+        if ( lakedpth ) then
+          call read_ncglob(trim(inpter)//pthsep//'ETOPO_BTM_30s.nc', &
+                             'z',30,ntypec_s,.true.,dpt)
+          print *, 'Static bathymetry data successfully read in'
+          call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
+                      nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                      ntypec_s,2,lonwrap,lcrosstime)
+          print *, 'Interpolated bathymetry on SUBGRID'
+          deallocate(dpt)
         end if
-        call smth121(htgrid_s,iysg,jxsg,hscr1_s)
-        call smth121(htsdgrid_s,iysg,jxsg,hscr1_s)
-!       **** Readjust the Great Lake Heights to their actual values
-!       again.
-        if ( lake_adj ) then
-          print * ,                                                     &
-               &'Calling lakeadj for the second time (after 2dx pass)'
-          call lakeadj(lnduse_s,htgrid_s,dhlake_s,xlat_s,xlon_s,        &
-                     & iysg,jxsg,i_lake)
-        end if
+
+!     ******           grell smoothing to eliminate 2 delx wave (6/90):
+        call smth121(htgrid_s,iysg,jxsg)
+
         if ( ibndry ) then
           do j = 2 , jxsg - 1
             htgrid_s(1,j) = htgrid_s(2,j)
             htgrid_s(iysg,j) = htgrid_s(iysg-1,j)
-            lnduse_s(1,j) = lnduse_s(2,j)
-            lnduse_s(iysg,j) = lnduse_s(iysg-1,j)
             lndout_s(1,j) = lndout_s(2,j)
             lndout_s(iysg,j) = lndout_s(iysg-1,j)
  
             if ( aertyp(7:7)=='1' ) then
-              intext_s(1,j) = intext_s(2,j)
-              intext_s(iysg,j) = intext_s(iysg-1,j)
               texout_s(1,j) = texout_s(2,j)
               texout_s(iysg,j) = texout_s(iysg-1,j)
               do k = 1 , ntex
@@ -343,14 +287,10 @@
           do i = 1 , iysg
             htgrid_s(i,1) = htgrid_s(i,2)
             htgrid_s(i,jxsg) = htgrid_s(i,jxsg-1)
-            lnduse_s(i,1) = lnduse_s(i,2)
-            lnduse_s(i,jxsg) = lnduse_s(i,jxsg-1)
             lndout_s(i,1) = lndout_s(i,2)
             lndout_s(i,jxsg) = lndout_s(i,jxsg-1)
  
             if ( aertyp(7:7)=='1' ) then
-              intext_s(i,1) = intext_s(i,2)
-              intext_s(i,jxsg) = intext_s(i,jxsg-1)
               texout_s(i,1) = texout_s(i,2)
               texout_s(i,jxsg) = texout_s(i,jxsg-1)
               do k = 1 , ntex
@@ -366,16 +306,15 @@
           end do
         end do
 !       land/sea mask fudging
-        write (char_lnd,99001) trim(dirter), pthsep, trim(domname),     &
+        write (char_lnd,99001) trim(dirter), pthsep, trim(domname), &
            &   '_LANDUSE' , nsg
-        write (char_tex,99001) trim(dirter), pthsep, trim(domname),     &
+        write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
            &   '_TEXTURE' , nsg
-        call lndfudge(fudge_lnd_s,ch_s,lndout_s,htgrid_s,iysg,jxsg,     &
+        call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,iysg,jxsg, &
                     & trim(char_lnd))
-        if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,ch_s,texout_s,&
+        if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,texout_s, &
            & htgrid_s,iysg,jxsg,trim(char_tex))
         print * , 'Fudging data (if requested) succeeded'
-        call free_block
 
       end if
 !
@@ -413,102 +352,70 @@
       print * , 'Geo mapping done'
 !
 !     reduce the search area for the domain
-!     [minlat:maxlat,minlon:maxlon]
       call mxmnll(iy,jx,xlon,xlat)
       print *, 'Determined Grid coordinate range'
-
-      maxiter = (xmaxlat-xminlat)/xnc
-      if (xmaxlon < 0.0 .and. xminlon > 0.0) then
-        maxjter = ((xmaxlon+360)-xminlon)/xnc
-      else
-        maxjter = (xmaxlon-xminlon)/xnc
-      end if
-      maxdim = max(maxiter,maxjter) + 1000
-      print *, 'Allocating blocks of dimension ' , maxdim
-      call allocate_block(maxdim,maxdim)
 !
-!     read in the terrain & landuse data
-      if ( itype_in==1 ) then
-        call rdldtr(inpter,ntypec,nveg,ntex,aertyp,ibyte)
-      else if (itype_in==2 ) then
-        call rdldtr_nc(inpter,ntypec,nveg,ntex,aertyp)
-      else
-        write (6,*) 'itype_in =', itype_in
-        write (6,*) 'Unsupported input type selected.'
-        write (6,*) 'Set itype_in to one in 1,2'
-        stop
-      endif
-      print * , 'Static terrain data successfully read in'
- 
-      if ( ifanal ) then
-        print *, 'Using anal2 to fill output elevation grid'
-!       convert xobs and yobs from LON and LAT to x and y in mesh
-        call xyobsll(iy,jx,iproj,clat,clong,plat,plon,truelatl,         &
-                  &  truelath)
-!       create the terrain height fields
-        call anal2(iy,jx,htgrid,htsdgrid)
-      else
-        print*, 'Using interpolation to fill output elevation grid'
-        call interp(jx,iy,xlat,xlon,htgrid,htsdgrid,ntypec)
-      end if
-      do j = 1 , jx
-        do i = 1 , iy
-          htgrid(i,j) = amax1(htgrid(i,j)*100.,0.0)
-          htsdgrid(i,j) = amax1(htsdgrid(i,j)*100000.,0.0)
-          htsdgrid(i,j) = sqrt(amax1(htsdgrid(i,j)-htgrid(i,j)**2,0.0)&
-                        & )
+      call read_ncglob(trim(inpter)//pthsep//'GTOPO_DEM_30s.nc','z', &
+                       30,ntypec,.true.,ht)
+      print *, 'Static DEM data successfully read in'
+      call interp(iy,jx,xlat,xlon,htgrid,           &
+                  nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                  ntypec,2,lonwrap,lcrosstime)
+      print *, 'Interpolated DEM on model GRID'
+      deallocate(ht)
+!
+      call read_ncglob(trim(inpter)//pthsep//'GLCC_BATS_30s.nc', &
+                   'landcover',30,ntypec,.true.,lnd)
+      print *, 'Static landcover BATS data successfully read in'
+      call interp(iy,jx,xlat,xlon,lndout,            &
+                  nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                  ntypec,4,lonwrap,lcrosstime,       &
+                  ibnty=1,h2opct=h2opct)
+      print *, 'Interpolated landcover on model GRID'
+      deallocate(lnd)
+!
+      if ( aertyp(7:7)=='1' ) then
+        call read_ncglob(trim(inpter)//pthsep//'GLZB_SOIL_30s.nc', &
+                         'soiltype',30,ntypec,.true.,text)
+        print *, 'Static texture data successfully read in'
+        call interp(iy,jx,xlat,xlon,texout,             &
+                    nlatin,nlonin,grdltmn,grdlnmn,text, &
+                    ntypec,4,lonwrap,lcrosstime,        &
+                    ibnty=2,h2opct=h2opct)
+        do i = 1 , ntex
+          call interp(iy,jx,xlat,xlon,frac_tex(:,:,i),   &
+                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
-      end do
-      print * , 'Elevetion grids successfully filled'
- 
-!     create surface landuse types
-      call surf(xlat,xlon,lnduse,iy,jx,nnc,xnc,lndout,land,nobs,h2opct, &
-             & nveg,aertyp,intext,texout,frac_tex,ntex)
-      print * , 'Surface grids successfully filled'
-      if (iproj == 'POLSTR' .and. abs(clat+90.0) < 0.001) then
-        lndout(iy/2,jx/2) = 12
-        texout(iy/2,jx/2) = 16
-        frac_tex(iy/2,jx/2,:) = -1e-20
-        frac_tex(iy/2,jx/2,16) = 1.0
-      end if
-      if (iproj == 'POLSTR' .and. abs(clat-90.0) < 0.001) then
-        lndout(iy/2,jx/2) = 15
-        texout(iy/2,jx/2) = 14
-        frac_tex(iy/2,jx/2,:) = -1e-20
-        frac_tex(iy/2,jx/2,14) = 100.0
+        print *, 'Interpolated texture on model GRID'
+        deallocate(text)
       end if
 
-!     **** Adjust the Great Lake Heights to their actual values.
-      if ( lake_adj ) then
-        print * , 'CALLING LAKEADJ FOR THE FIRST TIME (before 2dx pass)'
-        call lakeadj(lnduse,htgrid,dhlake,xlat,xlon,iy,jx,i_lake)
+      if ( lakedpth ) then
+        call read_ncglob(trim(inpter)//pthsep//'ETOPO_BTM_30s.nc', &
+                           'z',30,ntypec,.true.,dpt)
+        print *, 'Static bathymetry data successfully read in'
+        call interp(iy,jx,xlat,xlon,dpth,              &
+                    nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                    ntypec,2,lonwrap,lcrosstime)
+        print *, 'Interpolated bathymetry on model GRID'
+        deallocate(dpt)
       end if
- 
+
 !     ******           preliminary heavy smoothing of boundaries
       if ( smthbdy ) call smthtr(htgrid,iy,jx)
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-      call smth121(htgrid,iy,jx,hscr1)
-      call smth121(htsdgrid,iy,jx,hscr1)
- 
-!     **** Readjust the Great Lake Heights to their actual values again.
-      if ( lake_adj ) then
-        print * , 'Calling lakeadj for the second time (after 2dx pass)'
-        call lakeadj(lnduse,htgrid,dhlake,xlat,xlon,iy,jx,i_lake)
-      end if
- 
+      call smth121(htgrid,iy,jx)
+
       if ( ibndry ) then
         do j = 2 , jx - 1
           htgrid(1,j) = htgrid(2,j)
           htgrid(iy,j) = htgrid(iy-1,j)
-          lnduse(1,j) = lnduse(2,j)
-          lnduse(iy,j) = lnduse(iy-1,j)
           lndout(1,j) = lndout(2,j)
           lndout(iy,j) = lndout(iy-1,j)
  
           if ( aertyp(7:7)=='1' ) then
-            intext(1,j) = intext(2,j)
-            intext(iy,j) = intext(iy-1,j)
             texout(1,j) = texout(2,j)
             texout(iy,j) = texout(iy-1,j)
             do k = 1 , ntex
@@ -520,14 +427,10 @@
         do i = 1 , iy
           htgrid(i,1) = htgrid(i,2)
           htgrid(i,jx) = htgrid(i,jx-1)
-          lnduse(i,1) = lnduse(i,2)
-          lnduse(i,jx) = lnduse(i,jx-1)
           lndout(i,1) = lndout(i,2)
           lndout(i,jx) = lndout(i,jx-1)
  
           if ( aertyp(7:7)=='1' ) then
-            intext(i,1) = intext(i,2)
-            intext(i,jx) = intext(i,jx-1)
             texout(i,1) = texout(i,2)
             texout(i,jx) = texout(i,jx-1)
             do k = 1 , ntex
@@ -544,15 +447,24 @@
         end do
       end do
 !     land/sea mask fudging
-      write (char_lnd,99002) trim(dirter), pthsep, trim(domname),       &
+      write (char_lnd,99002) trim(dirter), pthsep, trim(domname), &
            &   '_LANDUSE'
-      write (char_tex,99002) trim(dirter), pthsep, trim(domname),       &
+      write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
            &   '_TEXTURE'
-      call lndfudge(fudge_lnd,ch,lndout,htgrid,iy,jx,trim(char_lnd))
-      if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,ch,texout,htgrid, &
+      call lndfudge(fudge_lnd,lndout,htgrid,iy,jx,trim(char_lnd))
+      if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,texout,htgrid, &
          & iy,jx,trim(char_tex))
       print * , 'Fudging data (if requested) succeeded'
-      call free_block
+
+      where ( lndout > 14.5 .and. lndout < 15.5 )
+        htgrid = 0.0
+      end where
+      where ( lndout > 13.5 .and. lndout < 15.5 )
+        mask = 0.0
+      elsewhere
+        mask = 2.0
+        dpth = 0.0
+      end where
 
       if ( nsg>1 ) then
         do i = 1 , iy
@@ -580,10 +492,14 @@
           end do
         end do
 
+        where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
+          htgrid_s = 0.0
+        end where
         where ( lndout_s > 13.5 .and. lndout_s < 15.5 )
           mask_s = 0.0
         elsewhere
           mask_s = 2.0
+          dpth_s = 0.0
         end where
 
         call write_domain(.true.)
@@ -591,17 +507,9 @@
         call free_subgrid
       end if
 
-      where ( lndout > 13.5 .and. lndout < 15.5 )
-        mask = 0.0
-      elsewhere
-        mask = 2.0
-      end where
-
       call write_domain(.false.)
       print * , 'Grid data written to output file'
       call free_grid
-
-      close (48, status='delete')
 
       print *, 'Successfully completed terrain fields generation'
 !

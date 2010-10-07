@@ -19,6 +19,8 @@
 
       module mod_write
 
+      real(4) :: dsinm
+
       contains
 
       subroutine setup(iy,jx,ntypec,iproj,ds,clat,clon)
@@ -32,12 +34,7 @@
       character(6) :: iproj
       intent (in) clat , clon , ds , iproj , iy , jx , ntypec
 !
-      rin = 1.5          ! 1.5 rad of influence-coarse mesh
-!
       dsinm = ds*1000.
-!
-      nnc = nint(60./float(ntypec))
-      xnc = float(ntypec)/60.
 !
       write (6,*) ' '
       write (6,*) 'Doing Domain Setup with following parameters'
@@ -48,10 +45,7 @@
       write (6,*) 'ds     = ' , ds
       write (6,*) 'clat   = ' , clat
       write (6,*) 'clon   = ' , clon
-      write (6,*) 'rin    = ' , rin
       write (6,*) 'iproj  = ' , iproj
-      write (6,*) ' '
-      write (6,*) '***** Terrain resolution (min): ' , xnc*60.
       write (6,*) ' '
 !
       end subroutine setup
@@ -69,7 +63,7 @@
         integer , dimension(4) :: idims
         integer , dimension(3) :: istart
         integer , dimension(3) :: icount
-        integer , dimension(13) :: ivar
+        integer , dimension(12) :: ivar
         integer , dimension(2) :: itvar
         integer , dimension(2) :: ivdim
         integer , dimension(2) :: izdim
@@ -173,14 +167,6 @@
                    &   'standard_parallel', trlat)
           call check_ok(istatus,'Error adding global truelat')
         end if
-        if (ifanal) then
-          istatus = nf90_put_att(ncid, nf90_global,                   &
-           &   'data_interpolation', 'Cressman type objective analysis')
-        else
-          istatus = nf90_put_att(ncid, nf90_global,                   &
-           &   'data_interpolation', 'Overlapping parabolic 16 points')
-        end if
-        call check_ok(istatus,'Error adding global data_interpolation')
         if (smthbdy) then
           istatus = nf90_put_att(ncid, nf90_global,                   &
            &   'boundary_smoothing', 'Yes')
@@ -189,14 +175,6 @@
            &   'boundary_smoothing', 'No')
         end if
         call check_ok(istatus,'Error adding global boundary_smoothing')
-        if (lake_adj) then
-          istatus = nf90_put_att(ncid, nf90_global,                   &
-           &   'great_lakes_adjustment', 'Yes')
-        else
-          istatus = nf90_put_att(ncid, nf90_global,                   &
-           &   'great_lakes_adjustment', 'No')
-        end if
-        call check_ok(istatus,'Error adding global great_lakes_adjust')
         istatus = nf90_put_att(ncid, nf90_global,                     &
                  &   'minimum_h2o_pct_for_water', h2opct)
         call check_ok(istatus,'Error adding global min_h2o_pct_for_wat')
@@ -415,36 +393,14 @@
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding topo coordinates')
 
-        istatus = nf90_def_var(ncid, 'htsd', nf90_float, idims(1:2),  &
-                            &  ivar(6))
-        call check_ok(istatus,'Error adding variable htsd')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
-        call check_ok(istatus,'Error setting deflate on htsd')
-#endif
-        istatus = nf90_put_att(ncid, ivar(6), 'cell_method',          &
-                            &  'area: standard_deviation')
-        call check_ok(istatus,'Error adding htsd cell_method')
-        istatus = nf90_put_att(ncid, ivar(6), 'standard_name',        &
-                            &  'surface_altitude')
-        call check_ok(istatus,'Error adding htsd standard_name')
-        istatus = nf90_put_att(ncid, ivar(6), 'long_name',            &
-                      &  'Domain surface elevation standard deviation')
-        call check_ok(istatus,'Error adding htsd long_name')
-        istatus = nf90_put_att(ncid, ivar(6), 'units', 'm')
-        call check_ok(istatus,'Error adding htsd units')
-        istatus = nf90_put_att(ncid, ivar(6), 'coordinates',          &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding htsd coordinates')
-
         istatus = nf90_def_var(ncid, 'landuse', nf90_float,idims(1:2),&
-                            &  ivar(7))
+                            &  ivar(6))
         call check_ok(istatus,'Error adding variable landuse')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(7), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on landuse')
 #endif
-        istatus = nf90_put_att(ncid, ivar(7), 'legend',               &
+        istatus = nf90_put_att(ncid, ivar(6), 'legend',               &
                 & '1  => Crop/mixed farming'//char(10)//                &
                 & '2  => Short grass'//char(10)//                       &
                 & '3  => Evergreen needleleaf tree'//char(10)//         &
@@ -466,130 +422,130 @@
                 & '19 => Forest/Field mosaic'//char(10)//               &
                 & '20 => Water and Land mixture')
         call check_ok(istatus,'Error adding landuse legend')
-        istatus = nf90_put_att(ncid, ivar(7), 'standard_name',        &
+        istatus = nf90_put_att(ncid, ivar(6), 'standard_name',        &
                             &  'land_type')
         call check_ok(istatus,'Error adding landuse standard_name')
-        istatus = nf90_put_att(ncid, ivar(7), 'long_name',            &
+        istatus = nf90_put_att(ncid, ivar(6), 'long_name',            &
                       &  'Landuse category as defined in BATS1E')
         call check_ok(istatus,'Error adding landuse long_name')
-        istatus = nf90_put_att(ncid, ivar(7), 'units', '1')
+        istatus = nf90_put_att(ncid, ivar(6), 'units', '1')
         call check_ok(istatus,'Error adding landuse units')
-        istatus = nf90_put_att(ncid, ivar(7), 'coordinates',          &
+        istatus = nf90_put_att(ncid, ivar(6), 'coordinates',          &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding landuse coordinates')
 
         istatus = nf90_def_var(ncid, 'xmap', nf90_float, idims(1:2),  &
-                            &  ivar(8))
+                            &  ivar(7))
         call check_ok(istatus,'Error adding variable xmap')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(8), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(7), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on xmap')
 #endif
-        istatus = nf90_put_att(ncid, ivar(8), 'standard_name',        &
+        istatus = nf90_put_att(ncid, ivar(7), 'standard_name',        &
                             &  'map_factor')
         call check_ok(istatus,'Error adding xmap standard_name')
-        istatus = nf90_put_att(ncid, ivar(8), 'long_name',            &
+        istatus = nf90_put_att(ncid, ivar(7), 'long_name',            &
                             &  'Map factor in domain cross points')
         call check_ok(istatus,'Error adding xmap long_name')
-        istatus = nf90_put_att(ncid, ivar(8), 'units', '1')
+        istatus = nf90_put_att(ncid, ivar(7), 'units', '1')
         call check_ok(istatus,'Error adding xmap units')
-        istatus = nf90_put_att(ncid, ivar(8), 'coordinates',          &
+        istatus = nf90_put_att(ncid, ivar(7), 'coordinates',          &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding xmap coordinates')
 
         istatus = nf90_def_var(ncid, 'dmap', nf90_float, idims(1:2),  &
-                            &  ivar(9))
+                            &  ivar(8))
         call check_ok(istatus,'Error adding variable dmap')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(9), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(8), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on dmap')
 #endif
-        istatus = nf90_put_att(ncid, ivar(9), 'standard_name',        &
+        istatus = nf90_put_att(ncid, ivar(8), 'standard_name',        &
                             &  'map_factor')
         call check_ok(istatus,'Error adding dmap standard_name')
-        istatus = nf90_put_att(ncid, ivar(9), 'long_name',            &
+        istatus = nf90_put_att(ncid, ivar(8), 'long_name',            &
                             &  'Map factor in domain dot points')
         call check_ok(istatus,'Error adding dmap long_name')
-        istatus = nf90_put_att(ncid, ivar(9), 'units', '1')
+        istatus = nf90_put_att(ncid, ivar(8), 'units', '1')
         call check_ok(istatus,'Error adding dmap units')
-        istatus = nf90_put_att(ncid, ivar(9), 'coordinates',          &
+        istatus = nf90_put_att(ncid, ivar(8), 'coordinates',          &
                             &  'dlon dlat')
         call check_ok(istatus,'Error adding dmap coordinates')
 
         istatus = nf90_def_var(ncid, 'coriol', nf90_float, idims(1:2),&
-                            &  ivar(10))
+                            &  ivar(9))
         call check_ok(istatus,'Error adding variable coriol')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(10), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(9), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on coriol')
 #endif
-        istatus = nf90_put_att(ncid, ivar(10), 'standard_name',       &
+        istatus = nf90_put_att(ncid, ivar(9), 'standard_name',       &
                             &  'coriolis_parameter')
         call check_ok(istatus,'Error adding coriol standard_name')
-        istatus = nf90_put_att(ncid, ivar(10), 'long_name',           &
+        istatus = nf90_put_att(ncid, ivar(9), 'long_name',           &
                             &  'Coriolis force parameter')
         call check_ok(istatus,'Error adding coriol long_name')
-        istatus = nf90_put_att(ncid, ivar(10), 'units', 's-1')
+        istatus = nf90_put_att(ncid, ivar(9), 'units', 's-1')
         call check_ok(istatus,'Error adding coriol units')
-        istatus = nf90_put_att(ncid, ivar(10), 'coordinates',         &
+        istatus = nf90_put_att(ncid, ivar(9), 'coordinates',         &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding coriol coordinates')
 
         istatus = nf90_def_var(ncid, 'snowam', nf90_float, idims(1:2),&
-                            &  ivar(11))
+                            &  ivar(10))
         call check_ok(istatus,'Error adding variable snowam')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(11), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(10), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on snowam')
 #endif
-        istatus = nf90_put_att(ncid, ivar(11), 'standard_name',       &
+        istatus = nf90_put_att(ncid, ivar(10), 'standard_name',       &
                             &  'snowfall_amount')
         call check_ok(istatus,'Error adding snowam standard_name')
-        istatus = nf90_put_att(ncid, ivar(11), 'long_name',           &
+        istatus = nf90_put_att(ncid, ivar(10), 'long_name',           &
                             &  'Snow initial amount in mm')
         call check_ok(istatus,'Error adding snowam long_name')
-        istatus = nf90_put_att(ncid, ivar(11), 'units', 'kg m-2')
+        istatus = nf90_put_att(ncid, ivar(10), 'units', 'kg m-2')
         call check_ok(istatus,'Error adding snowam units')
-        istatus = nf90_put_att(ncid, ivar(11), 'coordinates',         &
+        istatus = nf90_put_att(ncid, ivar(10), 'coordinates',         &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding snowam coordinates')
 
         istatus = nf90_def_var(ncid, 'mask', nf90_float, idims(1:2),  &
-                            &  ivar(12))
+                            &  ivar(11))
         call check_ok(istatus,'Error adding variable mask')
 #ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(12), 1, 1, 9)
+        istatus = nf90_def_var_deflate(ncid, ivar(11), 1, 1, 9)
         call check_ok(istatus,'Error setting deflate on mask')
 #endif
-        istatus = nf90_put_att(ncid, ivar(12), 'standard_name',       &
+        istatus = nf90_put_att(ncid, ivar(11), 'standard_name',       &
                             &  'land_binary_mask')
         call check_ok(istatus,'Error adding mask standard_name')
-        istatus = nf90_put_att(ncid, ivar(12), 'long_name',           &
+        istatus = nf90_put_att(ncid, ivar(11), 'long_name',           &
                             &  'Land Sea mask')
         call check_ok(istatus,'Error adding mask long_name')
-        istatus = nf90_put_att(ncid, ivar(12), 'units', '1')
+        istatus = nf90_put_att(ncid, ivar(11), 'units', '1')
         call check_ok(istatus,'Error adding mask units')
-        istatus = nf90_put_att(ncid, ivar(12), 'coordinates',         &
+        istatus = nf90_put_att(ncid, ivar(11), 'coordinates',         &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding mask coordinates')
 
-        if ( i_lake==1 ) then
+        if ( lakedpth ) then
           istatus = nf90_def_var(ncid, 'dhlake', nf90_float, idims(1:2),  &
-                              &  ivar(13))
+                              &  ivar(12))
           call check_ok(istatus,'Error adding variable dhlake')
 #ifdef NETCDF4_HDF5
-          istatus = nf90_def_var_deflate(ncid, ivar(13), 1, 1, 9)
+          istatus = nf90_def_var_deflate(ncid, ivar(12), 1, 1, 9)
           call check_ok(istatus,'Error setting deflate on dhlake')
 #endif
-          istatus = nf90_put_att(ncid, ivar(13), 'standard_name',       &
+          istatus = nf90_put_att(ncid, ivar(12), 'standard_name',       &
                               &  'depth')
           call check_ok(istatus,'Error adding dhlake standard_name')
-          istatus = nf90_put_att(ncid, ivar(13), 'long_name',           &
+          istatus = nf90_put_att(ncid, ivar(12), 'long_name',           &
                               &  'Depth')
           call check_ok(istatus,'Error adding mask long_name')
-          istatus = nf90_put_att(ncid, ivar(13), 'units', 'm')
+          istatus = nf90_put_att(ncid, ivar(12), 'units', 'm')
           call check_ok(istatus,'Error adding dhlake units')
-          istatus = nf90_put_att(ncid, ivar(13), 'coordinates',         &
+          istatus = nf90_put_att(ncid, ivar(12), 'coordinates',         &
                               &  'xlon xlat')
           call check_ok(istatus,'Error adding dhlake coordinates')
         end if
@@ -701,52 +657,46 @@
         end if
         call check_ok(istatus,'Error variable topo write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(6), transpose(htsdgrid_s))
+          istatus = nf90_put_var(ncid, ivar(6), transpose(lndout_s))
         else
-          istatus = nf90_put_var(ncid, ivar(6), transpose(htsdgrid))
-        end if
-        call check_ok(istatus,'Error variable htsd write')
-        if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(7), transpose(lndout_s))
-        else
-          istatus = nf90_put_var(ncid, ivar(7), transpose(lndout))
+          istatus = nf90_put_var(ncid, ivar(6), transpose(lndout))
         end if
         call check_ok(istatus,'Error variable landuse write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(8), transpose(xmap_s))
+          istatus = nf90_put_var(ncid, ivar(7), transpose(xmap_s))
         else
-          istatus = nf90_put_var(ncid, ivar(8), transpose(xmap))
+          istatus = nf90_put_var(ncid, ivar(7), transpose(xmap))
         end if
         call check_ok(istatus,'Error variable xmap write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(9), transpose(dmap_s))
+          istatus = nf90_put_var(ncid, ivar(8), transpose(dmap_s))
         else
-          istatus = nf90_put_var(ncid, ivar(9), transpose(dmap))
+          istatus = nf90_put_var(ncid, ivar(8), transpose(dmap))
         end if
         call check_ok(istatus,'Error variable dmap write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(10), transpose(coriol_s))
+          istatus = nf90_put_var(ncid, ivar(9), transpose(coriol_s))
         else
-          istatus = nf90_put_var(ncid, ivar(10), transpose(coriol))
+          istatus = nf90_put_var(ncid, ivar(9), transpose(coriol))
         end if
         call check_ok(istatus,'Error variable coriol write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(11), transpose(snowam_s))
+          istatus = nf90_put_var(ncid, ivar(10), transpose(snowam_s))
         else
-          istatus = nf90_put_var(ncid, ivar(11), transpose(snowam))
+          istatus = nf90_put_var(ncid, ivar(10), transpose(snowam))
         end if
         call check_ok(istatus,'Error variable snowam write')
         if (lsub) then
-          istatus = nf90_put_var(ncid, ivar(12), transpose(mask_s))
+          istatus = nf90_put_var(ncid, ivar(11), transpose(mask_s))
         else
-          istatus = nf90_put_var(ncid, ivar(12), transpose(mask))
+          istatus = nf90_put_var(ncid, ivar(11), transpose(mask))
         end if
         call check_ok(istatus,'Error variable mask write')
-        if (i_lake==1) then
+        if (lakedpth) then
           if (lsub) then
-            istatus = nf90_put_var(ncid, ivar(13), transpose(dhlake_s))
+            istatus = nf90_put_var(ncid, ivar(12), transpose(dpth_s))
           else
-            istatus = nf90_put_var(ncid, ivar(13), transpose(dhlake))
+            istatus = nf90_put_var(ncid, ivar(12), transpose(dpth))
           end if
           call check_ok(istatus,'Error variable dhlake write')
         endif
@@ -761,14 +711,16 @@
           istart(1) = 1
           istart(2) = 1
           icount(3) = 1
-          icount(2) = iy
-          icount(1) = jx
           do i = 1 , ntex
             istart(3) = i
             if (lsub) then
+              icount(2) = iysg
+              icount(1) = jxsg
               istatus = nf90_put_var(ncid, itvar(2),                  &
                          & transpose(frac_tex_s(:,:,i)),istart,icount)
             else
+              icount(2) = iy
+              icount(1) = jx
               istatus = nf90_put_var(ncid, itvar(2),                  &
                          & transpose(frac_tex(:,:,i)),istart,icount)
             end if

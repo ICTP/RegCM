@@ -18,12 +18,10 @@
  /
  &terrainparam
  domname = 'test_011',
- itype_in = 1,
  ntypec = 10,
  ntypec_s = 10,
- ifanal = .true.,
  smthbdy = .false.,
- lake_adj = .false.,
+ lakedpth = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
