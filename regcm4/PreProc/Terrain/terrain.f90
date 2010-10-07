@@ -218,7 +218,8 @@
         call mxmnll(iysg,jxsg,xlon_s,xlat_s)
         print * , 'Determined Subgrid coordinate range'
 !
-        call read_ncglob(trim(inpter)//pthsep//'GTOPO_DEM_30s.nc','z', &
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//'GTOPO_DEM_30s.nc','z',   &
                          30,ntypec_s,.true.,ht)
         print *, 'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
@@ -227,8 +228,9 @@
         print *, 'Interpolated DEM on SUBGRID'
         deallocate(ht)
 !
-        call read_ncglob(trim(inpter)//pthsep//'GLCC_BATS_30s.nc', &
-                   'landcover',30,ntypec_s,.true.,lnd)
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//'GLCC_BATS_30s.nc',       &
+                         'landcover',30,ntypec_s,.true.,lnd)
         print *, 'Static landcover BATS data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
                     nlatin,nlonin,grdltmn,grdlnmn,lnd, &
@@ -238,7 +240,8 @@
         deallocate(lnd)
 !
         if ( aertyp(7:7)=='1' ) then
-          call read_ncglob(trim(inpter)//pthsep//'GLZB_SOIL_30s.nc', &
+          call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                           pthsep//'GLZB_SOIL_30s.nc',       &
                            'soiltype',30,ntypec_s,.true.,text)
           print *, 'Static texture data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
@@ -255,8 +258,9 @@
         end if
 
         if ( lakedpth ) then
-          call read_ncglob(trim(inpter)//pthsep//'ETOPO_BTM_30s.nc', &
-                             'z',30,ntypec_s,.true.,dpt)
+          call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                           pthsep//'ETOPO_BTM_30s.nc',       &
+                           'z',30,ntypec_s,.true.,dpt)
           print *, 'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
                       nlatin,nlonin,grdltmn,grdlnmn,dpt, &
@@ -355,7 +359,8 @@
       call mxmnll(iy,jx,xlon,xlat)
       print *, 'Determined Grid coordinate range'
 !
-      call read_ncglob(trim(inpter)//pthsep//'GTOPO_DEM_30s.nc','z', &
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                       pthsep//'GTOPO_DEM_30s.nc','z',   &
                        30,ntypec,.true.,ht)
       print *, 'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
@@ -364,8 +369,9 @@
       print *, 'Interpolated DEM on model GRID'
       deallocate(ht)
 !
-      call read_ncglob(trim(inpter)//pthsep//'GLCC_BATS_30s.nc', &
-                   'landcover',30,ntypec,.true.,lnd)
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                       pthsep//'GLCC_BATS_30s.nc',       &
+                       'landcover',30,ntypec,.true.,lnd)
       print *, 'Static landcover BATS data successfully read in'
       call interp(iy,jx,xlat,xlon,lndout,            &
                   nlatin,nlonin,grdltmn,grdlnmn,lnd, &
@@ -375,7 +381,8 @@
       deallocate(lnd)
 !
       if ( aertyp(7:7)=='1' ) then
-        call read_ncglob(trim(inpter)//pthsep//'GLZB_SOIL_30s.nc', &
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//'GLZB_SOIL_30s.nc',       &
                          'soiltype',30,ntypec,.true.,text)
         print *, 'Static texture data successfully read in'
         call interp(iy,jx,xlat,xlon,texout,             &
@@ -392,8 +399,9 @@
       end if
 
       if ( lakedpth ) then
-        call read_ncglob(trim(inpter)//pthsep//'ETOPO_BTM_30s.nc', &
-                           'z',30,ntypec,.true.,dpt)
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//'ETOPO_BTM_30s.nc',       &
+                         'z',30,ntypec,.true.,dpt)
         print *, 'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
                     nlatin,nlonin,grdltmn,grdlnmn,dpt, &
