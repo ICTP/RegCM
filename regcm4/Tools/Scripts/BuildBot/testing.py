@@ -116,7 +116,9 @@ def compare_nc_file(filename,refname,varname):
         output,error = p_3.communicate()
         
     return output
-                
+
+import calendar
+
 def main(argv):
 
     if (len(sys.argv) < 2):
@@ -140,6 +142,7 @@ def main(argv):
     run_clm=int(options["USECLM"])
     run_band=int(options["USEBAND"])
     run_diff=int(options["DIFF"])
+    simdays=int(options["SIMDAYS"])
 
     datadir = os.path.abspath(datadir)
     testdir = os.path.abspath(testdir)
@@ -225,7 +228,7 @@ def main(argv):
         namelist = simdir+"/regcm.in"
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
-        # parse for idateX
+        # parse for idateX (maybe put in separate function?)
         infile = open(namelist,"r")
         file_content = infile.readlines()
         infile.close()
@@ -248,6 +251,29 @@ def main(argv):
                 idate2=linea[1]
                 idate2=filter(lambda x:x.isdigit(),idate2)
                 
+        year = int(idate0[:4])
+        month = int(idate0[4:6])
+        day_start = int(idate0[6:8])
+        day_end = int(idate2[6:8])
+
+        maxdate = calendar.monthrange(year,month)[1]
+
+        if (day_start + simdays) <= maxdate :
+            day_end = day_start + simdays
+
+        print idate2
+        print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
+        
+        for line in fileinput.FileInput(namelist,inplace=1):
+            line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
+            print line.rstrip()
+
+        fileinput.close()
+        
+        os.sys.exit(0)
+        # finished setting dates
+        
+        
         #edit the namelist here
         edit_namelist(namelist,datadir,simdir)
 
