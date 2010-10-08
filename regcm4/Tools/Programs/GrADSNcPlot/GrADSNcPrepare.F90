@@ -49,7 +49,7 @@ program ncprepare
   integer :: jxdimid , iydimid , kzdimid , itdimid
   integer :: jx , iy , kz, nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
-  integer :: i , j
+  integer :: i , j , iid
   logical :: lvarsplit , existing
 #ifdef IBM
   integer , external :: iargc
@@ -69,6 +69,7 @@ program ncprepare
   end if
 
   call getarg(1, ncfile)
+  iid = scan(ncfile, '/', .true.)
   tmpctl = trim(ncfile)//'.ctl'
 
   istatus = nf90_open(ncfile, nf90_nowrite, ncid)
@@ -89,7 +90,7 @@ program ncprepare
   allocate(dimids(ndims))
 
   open(11, file=tmpctl, form='formatted', status='replace')
-  write(11, '(a)') 'dset '//trim(ncfile)
+  write(11, '(a)') 'dset ^'//trim(ncfile(iid+1:))
   write(11, '(a)') 'dtype netcdf'
   write(11, '(a)') 'undef -1e+34_FillValue'
 
@@ -318,7 +319,7 @@ program ncprepare
     stop
   end if
 
-  tmpcoord = trim(experiment)//'.coord'
+  tmpcoord = ncfile(1:iid)//trim(experiment)//'.coord'
   inquire (file=tmpcoord, exist=existing)
   if (.not. existing) then
     open(12, file=tmpcoord, form='unformatted', status='replace')
@@ -331,7 +332,7 @@ program ncprepare
   end if
 
   write(11, '(a,i4,i4,a,a)') 'pdef ', jx , iy ,                         &
-         ' bilin sequential binary-big ', trim(tmpcoord)
+         ' bilin sequential binary-big ', trim(experiment)//'.coord'
   write(11, '(a,i5,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc 
   write(11, '(a,i5,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
