@@ -28,17 +28,19 @@ from optparse import OptionParser
 class MyOptions(object):
     
     def __init__(self):
-        regcm_root=os.getcwd()+"/../../"
-        usage = "usage: %s [-d data directory] [-s simulation directory] [-n namelist]" % sys.argv[0]
+        usage = "usage: %s [-d data directory] [-s simulation directory] [-b binaries directory] [-n namelist]" % sys.argv[0]
         self.parser = OptionParser(usage)
-        self.parser.add_option("-d","--data-dir",dest="datadir",default=regcm_root+"/data",
-                      help="Directory with the data needed by preproc", metavar="DIR")
-#        self.parser.add_option("-q", "--quiet",
-#                      action="store_false", dest="verbose", default=True,
-#                      help="Don't print status messages to stdout")
-        self.parser.add_option("-s","--sim-dir", dest="simdir",
+        
+        self.parser.add_option("-d","--data-dir",dest="datadir",default="./data",
+                  help="Directory with the data needed by preproc", metavar="DIR")
+        
+        self.parser.add_option("-s","--sim-dir", dest="simdir",default ="./",
                   help="Directory where to run the simulation", metavar="DIR")
-        self.parser.add_option("-n","--namelist", dest="namelist",default=regcm_root+"/regcm.in_template",
+        
+        self.parser.add_option("-b","--bin-dir", dest="bindir",default="../../Bin",
+                  help="Directory where RegCM binaries are", metavar="DIR")
+        
+        self.parser.add_option("-n","--namelist", dest="namelist",default="./regcm.in",
                   help="RegCM input namelist file", metavar="FILE")
 
     def parse(self,args):
@@ -46,6 +48,7 @@ class MyOptions(object):
         (self.options, self.args) = self.parser.parse_args(args=args)
         self.datadir = self.options.datadir
         self.simdir = self.options.simdir
+        self.bindir = self.options.bindir
         self.namelist = self.options.namelist
 
         if not self.simdir:
@@ -53,6 +56,10 @@ class MyOptions(object):
               self.parser.error("not enough arguments.")
         if not os.path.isdir(self.datadir):
             print "The directory",self.datadir,"does not exist or is not accessible!"
+            sys.exit(1)
+
+        if not os.path.isdir(self.bindir):
+            print "The directory",self.bindir,"does not exist or is not accessible!"
             sys.exit(1)
 
         if not os.path.isdir(self.simdir):
@@ -87,17 +94,17 @@ def edit_namelist(namelist,datadir,simdir):
             
 def main():
 
-    regcm_root=os.getcwd()+"/../../"
-
     options = MyOptions()
     options.parse(sys.argv[1:])
 
     datadir = options.datadir
     simdir = options.simdir
+    bindir = options.bindir
     namelist = options.namelist
 
     datadir = os.path.abspath(datadir)
     simdir = os.path.abspath(simdir)
+    bindir = os.path.abspath(bindir)
 
     # create simulation directory tree
     if not os.path.isdir(simdir+"/input"):
@@ -105,6 +112,7 @@ def main():
     if not os.path.isdir(simdir+"/output"):
         os.mkdir(simdir+"/output")
 
+    # copy namelist file
     if os.path.isfile(simdir+"/regcm.in"):
         shutil.copy(simdir+"/regcm.in",simdir+"/regcm.bak")
         shutil.copy(namelist,simdir+"/regcm.in")
@@ -113,19 +121,20 @@ def main():
     
     namelist = simdir+"/regcm.in"
 
+    # link binaries directory
     if os.path.islink(simdir+"/Bin"):
         os.rename(simdir+"/Bin",simdir+"/Bin-old")
-        os.symlink(regcm_root+"/Bin",simdir+"/Bin")
+        os.symlink(bindir,simdir+"/Bin")
     else :
-        os.symlink(regcm_root+"/Bin",simdir+"/Bin")
+        os.symlink(bindir,simdir+"/Bin")
 
-    #edit the namelist here
-
+    #edit the namelist
     edit_namelist(namelist,datadir,simdir)
 
-    print datadir
-    print simdir
-    print namelist
+    # print some info
+    print "Preprocessing data will be read from",datadir
+    print "Simulation will be run in",simdir,"using binaries found in",bindir
+    print "Please note that no checks are performed on the actual presence of data and/or binaries."
 
 if __name__ == "__main__":
     main()
