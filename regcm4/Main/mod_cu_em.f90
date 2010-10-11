@@ -74,6 +74,7 @@
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
       iconj = 0
       do i = 2 , iym2
+        if ( icup==99 .and. cumcon%cuscheme(i,j)/=4 ) cycle
         do k = 1 , kz
           kk = kzp1 - k
           cldlwc(i,k) = 0.          ! Zero out cloud water content

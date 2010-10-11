@@ -80,6 +80,10 @@
         real(8) , allocatable , dimension(:,:) :: vsk
       end type grellwinds
 
+      type cumcontrol
+        integer , allocatable , dimension(:,:) :: cuscheme
+      end type cumcontrol
+
       type(domain) , public :: mddom
       type(atmstate) , public :: atm1 , atm2
       type(surfpstate) , public :: sps1 , sps2
@@ -89,6 +93,7 @@
       type(splitsave) , public :: spsav
       type(domfact) , public :: domfc
       type(grellwinds) , public :: gwnd
+      type(cumcontrol), public :: cumcon
 
       public :: atmstate , domain
       public :: allocate_mod_main , allocate_atmstate , allocate_domain
@@ -205,6 +210,43 @@
           gwnd%vsk = 0.0D0
         end subroutine allocate_grellwinds
 
+        subroutine allocate_cumcontrol(cc)
+          implicit none
+          type(cumcontrol) , intent(out) :: cc
+          allocate(cc%cuscheme(iy,jx))
+          cc%cuscheme(:,:) = -1
+        end subroutine allocate_cumcontrol
+
+        subroutine allocate_surfstate(sfs,lmpi)
+          implicit none
+          logical , intent(in) :: lmpi
+          type(surfstate) , intent(out) :: sfs
+          if (lmpi) then
+            allocate(sfs%hfx(iy,jxp))
+            allocate(sfs%qfx(iy,jxp))
+            allocate(sfs%rainc(iy,jxp))
+            allocate(sfs%rainnc(iy,jxp))
+            allocate(sfs%tgbb(iy,jxp))
+            allocate(sfs%zpbl(iy,jxp))
+            allocate(sfs%uvdrag(iy,0:jxp))
+          else
+            allocate(sfs%hfx(iy,jx))
+            allocate(sfs%qfx(iy,jx))
+            allocate(sfs%rainc(iy,jx))
+            allocate(sfs%rainnc(iy,jx))
+            allocate(sfs%tgbb(iy,jx))
+            allocate(sfs%zpbl(iy,jx))
+            allocate(sfs%uvdrag(iy,jx))
+          end if
+          sfs%hfx = 0.0D0
+          sfs%qfx = 0.0D0
+          sfs%rainc = 0.0D0
+          sfs%rainnc = 0.0D0
+          sfs%tgbb = 0.0D0
+          sfs%zpbl = 0.0D0
+          sfs%uvdrag = 0.0D0
+        end subroutine allocate_surfstate
+
         subroutine allocate_mod_main(lmpi)
         implicit none
         logical , intent(in) :: lmpi
@@ -218,41 +260,24 @@
         call allocate_atmstate(atm2,lmpi,0,2)
         call allocate_surfpstate(sps2,lmpi)
         call allocate_surftstate(sts2,lmpi)
-        if (icup == 2) then
+        call allocate_surfstate(sfsta,lmpi)
+        if (icup == 2 .or. icup == 99) then
           call allocate_grellwinds
+        end if
+        if (icup == 99) then
+          call allocate_cumcontrol(cumcon)
         end if
 
         if (lmpi) then
-          allocate(sfsta%hfx(iy,jxp))
-          allocate(sfsta%qfx(iy,jxp))
-          allocate(sfsta%rainc(iy,jxp))
-          allocate(sfsta%rainnc(iy,jxp))
-          allocate(sfsta%tgbb(iy,jxp))
-          allocate(sfsta%zpbl(iy,jxp))
-          allocate(sfsta%uvdrag(iy,0:jxp))
           allocate(sulf%so4(iy,kz,jxp))
           allocate(spsav%dstor(iy,0:jxp+1,nsplit))
           allocate(spsav%hstor(iy,0:jxp+1,nsplit))
         else
-          allocate(sfsta%hfx(iy,jx))
-          allocate(sfsta%qfx(iy,jx))
-          allocate(sfsta%rainc(iy,jx))
-          allocate(sfsta%rainnc(iy,jx))
-          allocate(sfsta%tgbb(iy,jx))
-          allocate(sfsta%zpbl(iy,jx))
-          allocate(sfsta%uvdrag(iy,jx))
           allocate(sulf%so4(iy,kz,jx))
           allocate(spsav%dstor(iy,jx,nsplit))
           allocate(spsav%hstor(iy,jx,nsplit))
         end if
 
-        sfsta%hfx = 0.0D0
-        sfsta%qfx = 0.0D0
-        sfsta%rainc = 0.0D0
-        sfsta%rainnc = 0.0D0
-        sfsta%tgbb = 0.0D0
-        sfsta%zpbl = 0.0D0
-        sfsta%uvdrag = 0.0D0
         sulf%so4 = 0.0D0
         spsav%dstor = 0.0D0
         spsav%hstor = 0.0D0

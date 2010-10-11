@@ -1452,6 +1452,7 @@
 !....icup = 2 : grell cumulus paramterization scheme
 !....icup = 3 : betts-miller (1986)
 !....icup = 4 : emanuel (1991)
+!....icup = 99: grell over land, emanuel over ocean
 !
           if ( icup.ne.1 ) then
             call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
@@ -1460,7 +1461,7 @@
  
           if ( icup.eq.1 ) then
             call cupara(j)
-          else if ( icup.eq.2 ) then
+          else if ( icup.eq.2 .or. icup.eq.99) then
 
 !! the following part moved from subroutine cuparan
             do k = 1 , kz
@@ -1479,7 +1480,6 @@
                           &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))
               end do
             end do
-!!
             call cuparan(aten%t(1,1,j),aten%qv(1,1,j),j)
           else if ( icup.eq.3 ) then
             write (aline,*)                                             &
@@ -1489,9 +1489,8 @@
             call fatal(__FILE__,__LINE__,                               &
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
             call bmpara(aten%t(1,1,j),aten%qv(1,1,j),j)
-          else if ( icup.eq.4 ) then
+          else if ( icup.eq.4 .or. icup.eq.99 ) then
             call cupemandrv(j)
-          else
           end if
  
           if ( ipptls.eq.1 ) then

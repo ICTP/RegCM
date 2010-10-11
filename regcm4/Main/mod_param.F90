@@ -198,6 +198,7 @@
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
+!     = 99; variable: grell over land and emanuel over ocean
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
 !     = 1 ; Arakawa & Schubert (1974)
@@ -398,10 +399,10 @@
         read (ipunit, subexparam)
         print * , 'param: SUBEXPARAM namelist READ IN'
       end if
-      if ( icup.eq.2 ) then
+      if ( icup.eq.2 .or. icup.eq.99 ) then
         read (ipunit, grellparam)
         print * , 'param: GRELLPARAM namelist READ IN'
-      else if ( icup.eq.4 ) then
+      else if ( icup.eq.4 .or. icup.eq.99 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
       else
@@ -483,7 +484,7 @@
         call mpi_bcast(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.2 ) then
+      if ( icup.eq.2 .or. icup.eq.99 ) then
         call mpi_bcast(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -499,7 +500,7 @@
         call mpi_bcast(skbmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
  
-      else if ( icup.eq.4 ) then
+      else if ( icup.eq.4 .or. icup.eq.99 ) then
         call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -561,7 +562,7 @@
 #endif
 #endif
 #ifndef BAND
-      if (debug_level > 2) call allocate_mod_diagnosis
+      if (debug_level .gt. 2) call allocate_mod_diagnosis
 #endif
 !
 !-----------------------------------------------------------------------
@@ -654,9 +655,9 @@
       nstrt0 = 0
       nstart = idatediff(idate1,idate0)/ibdyfrq
 #ifdef MPP1
-      if (myid == 0) then
+      if (myid .eq. 0) then
 #endif
-      if (ifrest .and. nstart == 0) then
+      if (ifrest .and. nstart .eq. 0) then
         write (6,*) 'Error in parameter set.'
         write (6,*) 'Cannot set idate0 == idate1 on restart run'
         write (6,*) 'Correct idate0.'
@@ -1186,6 +1187,17 @@
       write (aline, *) ' '
       call say
  
+      if (icup .eq. 99) then
+        write (aline,*) 'Variable cumulus scheme: will use grell '// &
+             'over land and Emanuel over ocean.'
+        call say
+        where (mddom%satbrt .gt. 13.5 .and. mddom%satbrt .lt. 15.5)
+          cumcon%cuscheme = 4
+        elsewhere
+          cumcon%cuscheme = 2
+        end where
+      end if
+
       if ( icup.eq.1 ) then
         write (aline, *) '*********************************'
         call say
@@ -1193,7 +1205,7 @@
         call say
         write (aline, *) '*********************************'
         call say
-      else if ( icup.eq.2 ) then
+      else if ( icup.eq.2 .or. icup.eq.99 ) then
         kbmax = kz
         do k = 1 , kz - 1
           if ( a(k).le.skbmax ) kbmax = kz - k
@@ -1242,6 +1254,7 @@
           call say
         else
         end if
+
         write (aline, *) '*********************************'
         call say
 #ifdef MPP1
@@ -1276,7 +1289,7 @@
         call say
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
         call allocate_mod_cu_bm(lmpi)
-      else if ( icup.eq.4 ) then
+      else if ( icup.eq.4 .or. icup.eq.99 ) then
         cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
         minorig = kz

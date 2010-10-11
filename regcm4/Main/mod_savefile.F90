@@ -112,7 +112,7 @@
             read (iutrst) rsheat_io , rswat_io
           else if ( icup.eq.3 ) then
             read (iutrst) tbase_io , cldefi_io
-          else if ( icup.eq.4 ) then
+          else if ( icup.eq.4 .or. icup.eq.99 ) then
             read (iutrst) cbmf2d_io
           else
           end if
@@ -199,7 +199,7 @@
             read (iutrst) rsheat , rswat
           else if ( icup.eq.3 ) then
             read (iutrst) tbase , cldefi
-          else if ( icup.eq.4 ) then
+          else if ( icup.eq.4 .or. icup.eq.99 ) then
             read (iutrst) cbmf2d
           else
           end if
@@ -333,7 +333,7 @@
             write (iutsav) rsheat_io , rswat_io
           else if ( icup.eq.3 ) then
             write (iutsav) tbase_io , cldefi_io
-          else if ( icup.eq.4 ) then
+          else if ( icup.eq.4 .or. icup.eq.99 ) then
             write (iutsav) cbmf2d_io
           else
           end if
@@ -420,7 +420,7 @@
             write (iutsav) rsheat , rswat
           else if ( icup.eq.3 ) then
             write (iutsav) tbase , cldefi
-          else if ( icup.eq.4 ) then
+          else if ( icup.eq.4 .or. icup.eq.99 ) then
             write (iutsav) cbmf2d
           else
           end if

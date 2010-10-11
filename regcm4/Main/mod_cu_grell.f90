@@ -19,22 +19,23 @@
 
 module mod_cu_grell
 
+  use mod_constants
+  use mod_dynparam
+  use mod_runparams
+  use mod_main
+  use mod_bats
+  use mod_pmoist
+  use mod_rad
+  use mod_trachem
+  use mod_date
   use mod_service 
- 	
+ 
 contains
 
   subroutine cuparan(tten,qten,j)
 
     !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     !
-    use mod_dynparam
-    use mod_runparams , only : dt , dtmin , nbatst , r8pt , a
-    use mod_pmoist
-    use mod_rad
-    use mod_bats , only : pptc
-    use mod_main
-    use mod_constants , only : rgti
-    use mod_date , only : jyear , jyear0 , ktau
     implicit none
     !
     ! Dummy arguments
@@ -146,13 +147,6 @@ contains
 
     !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     !
-    use mod_dynparam
-    use mod_runparams
-    use mod_pmoist
-    use mod_rad
-    use mod_trachem
-    use mod_constants , only : gti , rgti , cpd , tzero , wlhv ,      &
-         & rwat , rcpd , wlhvocp , rgas , ep2
     implicit none
     !
     ! Dummy arguments
@@ -252,6 +246,9 @@ contains
        !       xqkb(i)=0.
        aa1(i) = 0.
        aa0(i) = 0.
+       if ( icup==99 .and. cumcon%cuscheme(i,jslc)/=2 ) then
+         aa0(i) = -1
+       end if
        if ( qcrit(i).le.0. ) aa0(i) = -1.
        xaa0(i) = 0.
        xpwav(i) = 0.

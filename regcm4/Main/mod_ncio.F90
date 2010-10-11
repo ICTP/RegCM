@@ -175,6 +175,9 @@
              write (cdum,'(a)') 'Betts-Miller (1986)'
             case(4)
              write (cdum,'(a)') 'Emanuel (1991)'
+            case(99)
+             write (cdum,'(a)') &
+               'Emanuel (1991) over ocean, Grell over land'
             case default 
              write (cdum,'(a)') 'Unknown or not specified'
           end select
@@ -1398,7 +1401,7 @@
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_cumulous_convection_scheme' , trim(cdum))
           call check_ok('Error adding global icup', fterr)
-          if (icup == 2) then
+          if (icup == 2 .or. icup ==99) then
             call cdumcumcl
             istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_convective_closure_assumption' , trim(cdum))
@@ -2156,7 +2159,7 @@
           istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_cumulous_convection_scheme' , trim(cdum))
           call check_ok('Error adding global icup', fterr)
-          if (icup == 2) then
+          if (icup == 2 .or. icup == 99) then
             call cdumcumcl
             istatus = nf90_put_att(ncid, nf90_global,  &
                   'model_convective_closure_assumption' , trim(cdum))
