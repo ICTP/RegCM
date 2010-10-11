@@ -22,9 +22,12 @@
 # Script for running RegCM regression tests by M. Scarcia
 #
 
-import os,sys,shutil,fileinput,subprocess
+import os,sys,shutil,fileinput,subprocess,calendar
 
-def edit_namelist(namelist,datadir,simdir):
+
+# define various subs here
+
+def edit_namelist(namelist,datadir,simdir): # needs module fileinput
 
     for line in fileinput.FileInput(namelist,inplace=1):
 
@@ -41,11 +44,12 @@ def edit_namelist(namelist,datadir,simdir):
         print line.rstrip()
         
     fileinput.close()
-
-COMMENT_CHAR = '#'
-OPTION_CHAR =  '='
  
-def parse_config(filename):
+def parse_config(filename): # needs module sys
+
+    COMMENT_CHAR = '#'
+    OPTION_CHAR =  '='
+    
     options = {}
     try:
         f = open(filename)
@@ -70,7 +74,7 @@ def parse_config(filename):
     f.close()
     return options
 
-def compare_nc_file(filename,refname,varname):
+def compare_nc_file(filename,refname,varname): # needs module subprocess
 
     #print filename
     #print refname
@@ -117,7 +121,50 @@ def compare_nc_file(filename,refname,varname):
         
     return output
 
-import calendar
+def parse_dates(namelist,simdays): # needs modules fileinput and calendar
+
+    infile = open(namelist,"r")
+    file_content = infile.readlines()
+    infile.close()
+        
+    for line in file_content:
+            #if line.find("globidate1") > -1 :
+            #    linea=line.rsplit("=")
+            #    globidate1=linea[1]
+            #    globidate1=filter(lambda x:x.isdigit(),globidate1)
+            if line.find(" idate0 ") > -1 :
+                linea=line.rsplit("=")
+                idate0=linea[1]
+                idate0=filter(lambda x:x.isdigit(),idate0)
+            #if line.find(" idate1 ") > -1 :
+            #   linea=line.rsplit("=")
+            #   idate1=linea[1]
+            #   idate1=filter(lambda x:x.isdigit(),idate1)
+            if line.find(" idate2 ") > -1 :
+                linea=line.rsplit("=")
+                idate2=linea[1]
+                idate2=filter(lambda x:x.isdigit(),idate2)
+                
+    year = int(idate0[:4])
+    month = int(idate0[4:6])
+    day_start = int(idate0[6:8])
+    day_end = int(idate2[6:8])
+
+    maxdate = calendar.monthrange(year,month)[1]
+
+    if (day_start + simdays) <= maxdate :
+        day_end = day_start + simdays
+
+    print idate2
+    print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
+        
+    for line in fileinput.FileInput(namelist,inplace=1):
+        line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
+        print line.rstrip()
+
+    fileinput.close()
+
+    return idate0 # if others needed will put a list as output
 
 def main(argv):
 
@@ -228,51 +275,8 @@ def main(argv):
         namelist = simdir+"/regcm.in"
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
-        # parse for idateX (maybe put in separate function?)
-        infile = open(namelist,"r")
-        file_content = infile.readlines()
-        infile.close()
-        
-        for line in file_content:
-            if line.find("globidate1") > -1 :
-                linea=line.rsplit("=")
-                globidate1=linea[1]
-                globidate1=filter(lambda x:x.isdigit(),globidate1)
-            if line.find(" idate0 ") > -1 :
-                linea=line.rsplit("=")
-                idate0=linea[1]
-                idate0=filter(lambda x:x.isdigit(),idate0)
-            if line.find(" idate1 ") > -1 :
-                linea=line.rsplit("=")
-                idate1=linea[1]
-                idate1=filter(lambda x:x.isdigit(),idate1)
-            if line.find(" idate2 ") > -1 :
-                linea=line.rsplit("=")
-                idate2=linea[1]
-                idate2=filter(lambda x:x.isdigit(),idate2)
-                
-        year = int(idate0[:4])
-        month = int(idate0[4:6])
-        day_start = int(idate0[6:8])
-        day_end = int(idate2[6:8])
-
-        maxdate = calendar.monthrange(year,month)[1]
-
-        if (day_start + simdays) <= maxdate :
-            day_end = day_start + simdays
-
-        print idate2
-        print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
-        
-        for line in fileinput.FileInput(namelist,inplace=1):
-            line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
-            print line.rstrip()
-
-        fileinput.close()
-        
-        os.sys.exit(0)
-        # finished setting dates
-        
+        # find idate0 and edit namelist for desired sim length
+        idate0 = parse_dates(namelist,simdays)
         
         #edit the namelist here
         edit_namelist(namelist,datadir,simdir)
