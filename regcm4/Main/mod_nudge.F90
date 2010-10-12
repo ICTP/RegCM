@@ -96,8 +96,8 @@
       integer :: idindx=0
 !
 !
-      xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+      xfun(mm) = dble(nspgd-mm)/(dble(nspgd)-2.0)
+      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -494,7 +494,7 @@
 !
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -947,7 +947,7 @@
       integer :: idindx=0
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -1407,7 +1407,7 @@
 !
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -1851,7 +1851,7 @@
 !
 !
       xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = dexp(-dble(mm-2)/anudg(kk))
+      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND

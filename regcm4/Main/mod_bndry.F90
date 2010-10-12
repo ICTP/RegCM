@@ -872,20 +872,13 @@
            & sks , swtrta , swtrtd
       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
              & depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,&
-             & t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds , x ,   &
+             & t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds ,       &
              & xkperi , xnu , xnua
-      real(8) :: fct1 , fsc , fsk
       real(8) :: dtbat2 , rdtbat2
       integer :: n , i
       character (len=50) :: subroutine_name='tgrund'
       integer :: idindx=0
 !
-!
- 
-      fsk(x) = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
-      fsc(x) = (0.23+x)*4.186E6
-      fct1(x) = wlhf*0.25*1.414/x
-! 
       call time_begin(subroutine_name,idindx)
 ! 
       dtbat2 = dtbat*2.
@@ -1045,6 +1038,28 @@
         end do
       end do
       call time_end(subroutine_name,idindx) 
+
+      contains
+
+      function fsk(x)
+        implicit none
+        real(8) :: fsk
+        real(8) , intent(in) :: x
+        fsk = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
+      end function fsk
+      function fsc(x)
+        implicit none
+        real(8) :: fsc
+        real(8) , intent(in) :: x
+        fsc = (0.23+x)*4.186E6
+      end function fsc
+      function fct1(x)
+        implicit none
+        real(8) :: fct1
+        real(8) , intent(in) :: x
+        fct1 = wlhf*0.25*1.414/x
+      end function fct1
+! 
       end subroutine tgrund
 !
       end module mod_bndry

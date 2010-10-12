@@ -295,7 +295,7 @@
 
             dew2d(k,ill,jll) = 0.
             sag2d(k,ill,jll) = 0.
-            scv2d(k,ill,jll) = dmax1(snowc(k,ill,jll),0.D0)
+            scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
             sice2d(k,ill,jll) = 0.
             gwet2d(k,ill,jll) = 0.5
             sena2d(k,ill,jll) = 0.
@@ -400,7 +400,7 @@
  
             hl = lh0 - lh1*(ts1d0(n,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(1./tzero-1./ts1d0(n,i)))
-            rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
+            rh0 = max(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
             ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)- &
@@ -409,7 +409,7 @@
  
             hl = lh0 - lh1*(ts1d(n,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(1./tzero-1./ts1d(n,i)))
-            qs1d(n,i) = dmax1(rh0*ep2*satvp/(p1d(n,i)*0.01-satvp),0.D0)
+            qs1d(n,i) = max(rh0*ep2*satvp/(p1d(n,i)*0.01-satvp),0.D0)
  
             tg1d(n,i) = tg2d(n,i,j)
             rhs1d(n,i) = p1d(n,i)/(rgas*ts1d(n,i))
@@ -436,8 +436,8 @@
             if (iseaice == 1) then
               if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
             end if
-            amxtem = dmax1(298.-tgb1d(n,i),0.D0)
-            sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
+            amxtem = max(298.-tgb1d(n,i),0.D0)
+            sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
             if ( lveg(n,i).eq.0 ) then
               veg1d(n,i) = 0.
             else
@@ -452,7 +452,7 @@
           end do
           rh0 = rh0/ng
           do n = 1 , ng
-            qs1d(n,i) = dmax1(qs1d(n,i)-rh0,0.0D0)
+            qs1d(n,i) = max(qs1d(n,i)-rh0,0.0D0)
           end do
  
           us1d(i) = ubx3d(i,k,j)
@@ -467,7 +467,7 @@
           else
             fracd(i) = 0.2
           end if
-          czen(i) = dmax1(coszrs(i),0.D0)
+          czen(i) = max(coszrs(i),0.D0)
         end do
  
       else if ( ivers.eq.2 ) then ! bats --> regcm2d
@@ -1066,10 +1066,9 @@
                & albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                & conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                & dralbs , fsol1 , fsol2 , sfac , sical0 , sical1 , sl , &
-               & sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet , x
+               & sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet
       real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  & aldifs_s , aldirl_s , aldirs_s
-      real(8) :: fseas
       integer :: kolour , n , i
       character (len=50) :: subroutine_name='albedov'
       integer :: idindx=0
@@ -1102,7 +1101,6 @@
 !     =================================================================
 !     1. set initial parameters
 !     =================================================================
-      fseas(x) = dmax1(0.D0,1.D0-0.0016D0*dmax1(298.D0-x,0.D0)**2)
 !
 !
       call time_begin(subroutine_name,idindx)
@@ -1151,7 +1149,7 @@
 !     do loop 50 in ccm not used here )
  
       do i = 2 , iym1
-        czen(i) = dmax1(coszrs(i),0.D0)
+        czen(i) = max(coszrs(i),0.D0)
         czeta = czen(i)
         do n = 1 , nnsg
           albgs = 0.0D0
@@ -1175,7 +1173,7 @@
           if (iseaice == 1) then
             if ( ldoc1d(n,i).gt.1.5 ) then
               tdiffs = ts1d(n,i) - tzero
-              tdiff = dmax1(tdiffs,0.d0)
+              tdiff = max(tdiffs,0.d0)
               tdiffs = dmin1(tdiff,20.d0)
               albgl = sical1 - 1.1E-2*tdiffs
               albgs = sical0 - 2.45e-2*tdiffs
@@ -1200,7 +1198,7 @@
 !             (soil albedo depends on moisture)
               kolour = kolsol(lveg(n,i))
               wet = ssw1d(n,i)/depuv(lveg(n,i))
-              alwet = dmax1((11.D0-40.D0*wet),0.D0)*0.01D0
+              alwet = max((11.D0-40.D0*wet),0.D0)*0.01D0
               alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
 !             if((lveg(n,i).eq.8)) albg=0.40      !Laura, cambiato il
@@ -1256,7 +1254,7 @@
 !           the ts **********          dependence accounts for melt
 !           water puddles.
             tdiffs = ts1d(n,i) - tzero
-            tdiff = dmax1(tdiffs,0.D0)
+            tdiff = max(tdiffs,0.D0)
             tdiffs = dmin1(tdiff,20.D0)
             albgl = sical1 - 1.1E-2*tdiffs
             albgs = sical0 - 2.45E-2*tdiffs
@@ -1291,7 +1289,7 @@
 !           **********            czf corrects albedo of new snow for
 !           solar zenith
             cf1 = ((1.D0+sli)/(1.D0+sl2*czen(i))-sli)
-            cff = dmax1(cf1,0.D0)
+            cff = max(cf1,0.D0)
             czf = 0.4D0*cff*(1.D0-dfalbs)
             dralbs = dfalbs + czf
             dfalbl = snal1*(1.D0-conn*age)
@@ -1368,7 +1366,18 @@
       end do
  
       call time_end(subroutine_name,idindx)
+
+      contains
+
+        function fseas(x)
+          implicit none
+          real(8) :: fseas
+          real(8) , intent(in) :: x
+          fseas = max(0.D0,(1.D0-0.0016D0*max(298.D0-x,0.D0)**2.0D0))
+        end function fseas
+
       end subroutine albedov
+!
       subroutine soilbc
 
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1506,7 +1515,7 @@
         frac(i) = 1.0
         ha = (i-1)*dlon + tpifjd
 !       if cosz is negative, the sun is below the horizon.
-        cosz = dmax1(0.D0,ss+cc*dcos(ha))
+        cosz = max(0.D0,ss+cc*dcos(ha))
         coszrs(i) = cosz
       end do
 !
@@ -1540,8 +1549,8 @@
           if (iseaice == 1) then
             if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
           end if
-          amxtem = dmax1(298.-tgb1d(n,i),0.D0)
-          sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
+          amxtem = max(298.-tgb1d(n,i),0.D0)
+          sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
           if ( lveg(n,i).eq.0 ) then
             veg1d(n,i) = 0.
           else

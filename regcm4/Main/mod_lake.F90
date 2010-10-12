@@ -140,7 +140,7 @@
 !
 ! Local variables
 !
-      real(8) :: evl , flw , fsw , hlat , hsen , prec , &
+      real(8) :: flw , fsw , hlat , hsen , prec , &
                & ql , tgl , tl , vl , zl
       integer :: i , n
 !
@@ -208,7 +208,7 @@
 ! Local variables
 !
       real(8) , dimension(depmax) :: de , dnsty
-      integer :: freeze , j , k , kmin
+      integer :: freeze , k , kmin
       real(8) :: ea , hs , ld , lu , qe , qh , tac , surf ,  &
               &  tcutoff , tk , u2
 !
