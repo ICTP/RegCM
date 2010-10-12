@@ -126,6 +126,13 @@ CONTAINS
   !!< 
   SUBROUTINE activate_debug(level)
 
+#ifdef MPP1
+#ifndef IBM
+    use mpi
+#else
+    INCLUDE 'mpif.h'  
+#endif
+#endif
     IMPLICIT NONE
     INTEGER, optional :: LEVEL
     CHARACTER(len=3) ::  np='   '
@@ -135,9 +142,8 @@ CONTAINS
     LOGICAL :: safe=.TRUE.
     INTEGER :: ierr1,idum
     INTEGER,EXTERNAL :: intstr
-#ifdef MPP1
 
-    INCLUDE 'mpif.h'  
+#ifdef MPP1
 
     ! check if MPI is on.
     called_mpi=.FALSE.
@@ -357,6 +363,13 @@ CONTAINS
 
   SUBROUTINE time_print(iunit,name_of_section)
 
+#ifdef MPP1
+#ifndef IBM
+    use mpi
+#else
+    INCLUDE 'mpif.h'  
+#endif
+#endif
     IMPLICIT NONE
     ! arguments:
     CHARACTER (len=*),OPTIONAL :: name_of_section
@@ -379,7 +392,6 @@ CONTAINS
 #ifdef DEBUG
 
 #ifdef MPP1
-    INCLUDE 'mpif.h'  
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
 #endif  
 
@@ -555,6 +567,13 @@ CONTAINS
   !!<
 
   SUBROUTINE gather(f_collect,f_sub)
+#ifdef MPP1
+#ifndef IBM
+    use mpi
+#else
+    INCLUDE 'mpif.h'  
+#endif
+#endif
     IMPLICIT NONE 
     REAL (kind=8), DIMENSION(:)  :: f_collect 
     REAL (kind=8) :: f_sub
@@ -563,7 +582,6 @@ CONTAINS
 #ifndef MPP1 
     f_collect(1)=f_sub
 #else
-    INCLUDE 'mpif.h'  
     LOGICAL :: called
     INTEGER :: nwords,ierr,nword_send,nword_receive
     Nword_send=1
@@ -588,8 +606,14 @@ CONTAINS
   !!   ACTION : another gathering routine
   !!<
   SUBROUTINE gather_i(f_collect,f_sub)
-    IMPLICIT NONE 
+#ifdef MPP1
+#ifndef IBM
+    use mpi
+#else
     INCLUDE 'mpif.h'  
+#endif
+#endif
+    IMPLICIT NONE 
     ! assumed shaped array... 
     INTEGER , DIMENSION(:)  :: f_collect 
     INTEGER  :: f_sub
@@ -658,11 +682,14 @@ CONTAINS
   !!<
   SUBROUTINE error_prot(sub,err_code,message,line) 
 
-
-    IMPLICIT NONE
-#ifdef MPP1 
-    INCLUDE 'mpif.h'    
+#ifdef MPP1
+#ifndef IBM
+    use mpi
+#else
+    INCLUDE 'mpif.h'  
 #endif
+#endif
+    IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
     INTEGER, INTENT(in) :: err_code
     CHARACTER*(*), OPTIONAL, INTENT(in) :: message
