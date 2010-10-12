@@ -1492,7 +1492,7 @@
           else if ( icup.eq.4 .or. icup.eq.99 ) then
             call cupemandrv(j)
           end if
- 
+
           if ( ipptls.eq.1 ) then
             call hadv_x(aten%qc(:,:,j),atmx%qc,dx4,j,1)
             call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5)

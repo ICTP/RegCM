@@ -246,8 +246,10 @@ contains
        !       xqkb(i)=0.
        aa1(i) = 0.
        aa0(i) = 0.
-       if ( icup==99 .and. cumcon%cuscheme(i,jslc)/=2 ) then
-         aa0(i) = -1
+       if ( icup==99) then
+         if (cumcon%cuscheme(i,jslc)/=2 ) then
+           aa0(i) = -1
+         end if
        end if
        if ( qcrit(i).le.0. ) aa0(i) = -1.
        xaa0(i) = 0.
