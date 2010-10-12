@@ -105,9 +105,12 @@ program ncprepare
 
   istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
   if (istatus /= nf90_noerr) then
-    write (6,*) 'Dimension jx missing'
-    write (6,*) nf90_strerror(istatus)
-    stop
+    istatus = nf90_inq_dimid(ncid, "x", jxdimid)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Dimension jx missing'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
   end if
   istatus = nf90_inquire_dimension(ncid, jxdimid, len=jx)
   if (istatus /= nf90_noerr) then
@@ -117,9 +120,12 @@ program ncprepare
   end if
   istatus = nf90_inq_dimid(ncid, "iy", iydimid)
   if (istatus /= nf90_noerr) then
-    write (6,*) 'Dimension iy missing'
-    write (6,*) nf90_strerror(istatus)
-    stop
+    istatus = nf90_inq_dimid(ncid, "y", iydimid)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Dimension iy missing'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
   end if
   istatus = nf90_inquire_dimension(ncid, iydimid, len=iy)
   if (istatus /= nf90_noerr) then
