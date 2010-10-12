@@ -448,14 +448,11 @@
 !
       implicit none
 !
-      real(8) :: difzen , g , radfi , seas , vpdf , x , fseas
+      real(8) :: difzen , g , radfi , seas , vpdf
       integer :: il , ilmax , n , i
       real(8) , dimension(10) :: rad , radd
 !
 !     ***** seasonal temperature factor
-!
-      fseas(x) = dmax1(0.0D0,1.-0.0016*dmax1(298.-x,0.D0)**2)
- 
 !     ***** g is average leaf crosssection per unit lai
 !     ***** difzen is ave of inverse of cos of angle of diffuse vis
 !     light ***** ilmax is number of canopy layers
@@ -529,6 +526,16 @@
           end if
         end do
       end do
+!
+      contains
+
+      function fseas(x)
+        implicit none
+        real(8) :: fseas
+        real(8) , intent(in) :: x
+        fseas = max(0.0D0,1.-0.0016*max(298.-x,0.D0)**2.0D0)
+      end function fseas
+ 
       end subroutine stomat
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

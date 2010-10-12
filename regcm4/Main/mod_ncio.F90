@@ -627,7 +627,7 @@
 
           real(8) , dimension(iy,jx) , intent(out) :: dhlake
 
-          integer :: ivarid , n
+          integer :: ivarid
           real(4) , dimension(jx,iy) :: sp2d
 
           if (idmin < 0) then
@@ -1235,7 +1235,7 @@
           integer , dimension(2) :: ivvar
           integer , dimension(4) :: isrvvar
           integer , dimension(4) :: illtpvar
-          integer :: itvar , iyy , im , id , ih , i , j,itr
+          integer :: itvar , iyy , im , id , ih , i , j
 
           integer , dimension(9) :: tyx
           integer , dimension(9) :: tzyx
@@ -2007,18 +2007,16 @@
           integer , intent(in) :: itr
           character(64) :: title
           character(32) :: fbname , csdate
-          character(64) :: cmethodmax , cmethodmin
           character(16) :: fterr
           character(256) :: ofname , history
           integer , dimension(8) :: tvals
-          real(4) :: hptop , rdum1
-          real(4) , dimension(2) :: trlat , rdum2
+          real(4) :: hptop
+          real(4) , dimension(2) :: trlat
           real(4) , dimension(iysg) :: yiy
           real(4) , dimension(jxsg) :: xjx
           integer :: ncid
           integer , dimension(2) :: izvar
           integer , dimension(2) :: ivvar
-          integer , dimension(4) :: isrvvar
           integer , dimension(4) :: illtpvar
           integer :: itvar , iyy , im , id , ih , i , j
 

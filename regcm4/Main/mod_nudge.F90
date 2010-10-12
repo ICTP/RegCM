@@ -77,8 +77,7 @@
       intent (inout) xpten
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ii , kk , mm
-      real(8) :: xfun , xfune
+      integer :: i , ii
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
 #else
@@ -94,10 +93,6 @@
 #endif
       character (len=50) :: subroutine_name='nudge_p'
       integer :: idindx=0
-!
-!
-      xfun(mm) = dble(nspgd-mm)/(dble(nspgd)-2.0)
-      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -475,8 +470,7 @@
       intent (inout) ften
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ii , k , kk , mm
-      real(8) :: xfun , xfune
+      integer :: i , ii , k
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
 #else
@@ -491,10 +485,6 @@
 #endif
       character (len=50) :: subroutine_name='nudge_t'
       integer :: idindx=0
-!
-!
-      xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -927,8 +917,7 @@
       intent (inout) ften
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ii , k , kk , mm
-      real(8) :: xfun , xfune
+      integer :: i , ii , k
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
 #else
@@ -941,13 +930,9 @@
       integer :: jwb , jeb
 #endif
 #endif
-
 !
       cHARACTER (len=50) :: subroutine_name='nudgeqv'
       integer :: idindx=0
-!
-      xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -1388,8 +1373,7 @@
       intent (inout) ften
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ii , k , kk , mm
-      real(8) :: xfun , xfune
+      integer :: i , ii , k
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
 #else
@@ -1404,10 +1388,6 @@
 #endif
       character (len=50) :: subroutine_name='nudge_u'
       integer :: idindx=0
-!
-!
-      xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -1832,8 +1812,7 @@
       intent (inout) ften
 !
       real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-      integer :: i , ii , k , kk , mm
-      real(8) :: xfun , xfune
+      integer :: i , ii , k
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls
 #else
@@ -1848,10 +1827,6 @@
 #endif
       character (len=50) :: subroutine_name='nudge_v'
       integer :: idindx=0
-!
-!
-      xfun(mm) = dble(nspgd-mm)/(nspgd-2.)
-      xfune(mm,kk) = exp(-dble(mm-2)/anudg(kk))
 !
       call time_begin(subroutine_name,idindx)
 #ifdef BAND
@@ -2677,7 +2652,6 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-
 !
 #ifdef BAND
 !----------------------------------------------------------------------
@@ -2891,5 +2865,18 @@
 
       call time_end(subroutine_name,idindx)
       end subroutine sponge_v
+!
+      function xfun(mm)
+        implicit none
+        real(8) :: xfun
+        integer , intent(in) :: mm
+        xfun = dble(nspgd-mm)/(dble(nspgd)-2.0)
+      end function xfun
+      function xfune(mm,kk)
+        implicit none
+        real(8) :: xfune
+        integer , intent(in) :: mm , kk
+        xfune = exp(-dble(mm-2)/anudg(kk))
+        end function xfune
 !
       end module mod_nudge

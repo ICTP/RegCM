@@ -105,7 +105,9 @@
         implicit none
         integer , intent(in) :: ierr , isize
         character(len=*) :: what , where
+#ifdef DEBUG
         character(len=50) :: buffer
+#endif
 
         real(8) :: storage 
         if (ierr /= 0) then
@@ -113,9 +115,10 @@
         end if
         storage=isize*kind(wgtd(1))
 #ifdef DEBUG 
-	if (debug_level.gt.3) then 
-           write (buffer,*)  what, "  allocated succesfully: global size is"
-	   CALL write_info(where,buffer,isize)
+        if (debug_level.gt.3) then 
+           write (buffer,*)  what, &
+             '  allocated succesfully: global size is'
+           CALL write_info(where,buffer,isize)
         end if 
 #endif           
         total_allocation_size = total_allocation_size + isize
@@ -124,7 +127,8 @@
       subroutine report_alloc(where)
         implicit none
         character(len=*) ::  where
-        write(aline,*) where, ': total allocation (in Kbyte)=', total_allocation_size*8/1024
+        write(aline,*) where, &
+          ': total allocation (in Kbyte)=', total_allocation_size*8/1024
         call say
       end subroutine report_alloc
 !

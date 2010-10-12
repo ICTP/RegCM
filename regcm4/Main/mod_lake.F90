@@ -22,6 +22,7 @@
 !
       module mod_lake
 
+      use mod_constants
       use mod_dynparam
 
       implicit none
@@ -186,7 +187,6 @@
       subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,tgl,  &
                     & prec,depth,eta,hi,aveice,hsnow,evl,t)
  
-      use mod_constants , only : ep2 , tzero , sigm , wlhv
       implicit none
 !
 ! PARAMETER definitions
@@ -276,7 +276,6 @@
  
 ! Computes density, eddy diffusivity and variable time step
  
-      use mod_constants , only : gti , tzero , vonkar
       implicit none
 !
 ! PARAMETER definitions
@@ -340,7 +339,6 @@
 !*****************BEGIN SUBROUTINE TEMP********************
 !             COMPUTES TEMPERATURE PROFILE                *
 !**********************************************************
-      use mod_constants , only : tzero , cpw
       implicit none
 !
 ! Dummy arguments
@@ -404,7 +402,6 @@
 !
 ! Simulates convective mixing
 !
-      use mod_constants , only : tzero
       implicit none
 !
 ! Dummy arguments
@@ -460,7 +457,6 @@
 !
       subroutine ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,t,depth,prec)
 
-      use mod_constants , only : ep2 , tzero , sigm , wlhv,stdpmb,tboil
       implicit none
 !
 ! PARAMETER definitions
@@ -484,27 +480,12 @@
 ! Local variables
 !
       real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-               & t2 , tf , theta , x
-      real(8) :: f , t4 , tr1 , eomb
+               & t2 , tf , theta
       integer :: nits
 !
 !****************************SUBROUINE ICE*****************************
 !     SIMULATES LAKE ICE                           
 !**********************************************************************
- 
-      t4(x) = (x+tzero)**4
- 
-! Computes air vapor pressure as a function of temp (in K)
-      tr1(x) = 1.0 - (tboil/(x+tzero))
-      eomb(x) = stdpmb*dexp(13.3185*tr1(x)-1.976*tr1(x)**2   &
-           &   -0.6445*tr1(x)**3- 0.1299*tr1(x)**4)
-
-!     ****** g. bates changed air to tac, qpen1 to qpen (4/92)
-      f(x) = (-ld+0.97*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)    &
-           & - 1./khat*(qpen+tf-x)
- 
-!CC   f(x)=(-ld+0.97*sigm*t4(x)+psi*(eomb(x)-ea)+theta
-!CC   +      *(x-air)-fsw)-1/khat*(qpen1+tf-x)
  
       if ( (tac.le.0.0) .and. (aveice.gt.0.0) ) hs = hs + prec*10./1000.
                                      ! convert prec(mm) to depth(m)
@@ -583,6 +564,39 @@
         end if
         exit
       end do
+ 
+      contains
+
+      function t4(x)
+        implicit none
+        real(8) :: t4
+        real(8) , intent(in) :: x
+        t4 = (x+tzero)**4.0D0
+      end function t4
+      ! Computes air vapor pressure as a function of temp (in K)
+      function tr1(x)
+        implicit none
+        real(8) :: tr1
+        real(8) , intent(in) :: x
+        tr1 = 1.0D0 - (tboil/(x+tzero))
+      end function tr1
+      function eomb(x)
+        implicit none
+        real(8) :: eomb
+        real(8) , intent(in) :: x
+        eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2.D0   &
+           &   -0.6445D0*tr1(x)**3.D0- 0.1299D0*tr1(x)**4.D0)
+       end function eomb
+      function f(x)
+        implicit none
+        real(8) :: f
+        real(8) , intent(in) :: x
+!     ****** g. bates changed air to tac, qpen1 to qpen (4/92)
+!       f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta
+!              *(x-air)-fsw)-1.0D0/khat*(qpen1+tf-x)
+        f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
+            - 1.0D0/khat*(qpen+tf-x)
+      end function f
  
       end subroutine ice
 !

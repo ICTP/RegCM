@@ -407,13 +407,12 @@
       real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4
       real(8) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                & acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
-               & b , dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,   &
+               & dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
                & dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
                & du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
                & phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
-               & tch4 , tlw , u , w1
+               & tch4 , tlw , w1
       real(8) , dimension(iym1) :: ds2c , duptyp , sqti , tt
-      real(8) :: func
       integer :: i , l
       real(8) , dimension(iym1,6) :: tw
 !
@@ -433,8 +432,6 @@
       data bbp/ - 1.3139E-4 , -5.5688E-5 , -4.6380E-5 , -8.0362E-5 ,    &
          & -1.0115E-4 , -8.8061E-5/
 !------------------------------------------------------------------
-      func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
-!
       do i = 1 , iym1
         sqti(i) = dsqrt(to3co2(i))
 !       h2o transmission
@@ -651,13 +648,12 @@
       real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4
       real(8) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                & acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
-               & b , dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,   &
+               & dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
                & dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
                & du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
                & phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
-               & tch4 , tlw , u , w1
+               & tch4 , tlw , w1
       real(8) , dimension(iym1) :: ds2c , duptyp , rsqti , sqti , tt
-      real(8) :: func
       integer :: i , l
       real(8) , dimension(iym1,6) :: tw
       data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
@@ -676,7 +672,6 @@
       data bbp/ - 1.3139E-4 , -5.5688E-5 , -4.6380E-5 , -8.0362E-5 ,    &
          & -1.0115E-4 , -8.8061E-5/
 !------------------------------------------------------------------
-      func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
 !
       do i = 1 , iym1
         sqti(i) = dsqrt(tbar(i,kn))
@@ -966,13 +961,12 @@
 ! tch4   - ch4 overlap factor
 !
       real(8) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4
-      real(8) :: b , beta01 , beta02 , beta03 , beta11 , betac ,        &
+      real(8) :: beta01 , beta02 , beta03 , beta11 , betac ,        &
                & betac1 , betac2 , ecfc1 , ecfc2 , ecfc3 , ecfc4 ,      &
                & ecfc5 , ecfc6 , ecfc7 , ecfc8 , ech4 , eco21 , eco22 , &
                & en2o1 , en2o2 , en2o3 , p1 , phi1 , psi1 , tcfc3 ,     &
-               & tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , u , u01 , &
+               & tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , u01 , &
                & u02 , u03 , u11 , u12 , w1
-      real(8) :: func
       integer :: i , l
       real(8) , dimension(iym1) :: sqti , tt
       real(8) , dimension(iym1,6) :: tw
@@ -993,7 +987,6 @@
          & 2.9458D-2 , 1.9892D-2/
       data bbp/ - 1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 ,    &
          & -1.0115D-4 , -8.8061D-5/
-      func(u,b) = u/dsqrt(4.0+u*(1.0+1.0/b))
 !
       do i = 1 , iym1
         sqti(i) = dsqrt(co2t(i,k))
@@ -1076,5 +1069,12 @@
                     & eco21 + eco22
       end do
       end subroutine trcems
+!
+      function func(u,b)
+        implicit none
+        real(8) :: func
+        real(8) , intent(in) :: u , b
+        func = u/sqrt(4.0D0+u*(1.0D0+1.0D0/b))
+      end function func
 !
       end module mod_tracer

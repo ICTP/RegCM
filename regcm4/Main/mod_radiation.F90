@@ -2325,10 +2325,9 @@
 !
 ! Local variables
 !
-      real(8) :: alp , amg , apg , arg , e , et , extins , f , ftot ,   &
-               & g , gam , gs , gtot , lm , ne , rdenom , rdirexp , t , &
-               & tautot , tdnmexp , ts , ue , uu , w , ws , wtot
-      real(8) :: alpha , asys , el , xgamma , n , omgs , taus , u
+      real(8) :: alp , amg , apg , arg , extins , ftot ,   &
+               & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+               & tautot , tdnmexp , ts , ue , ws , wtot
       integer :: i , ii , k , nn , nval
       integer , dimension(iym1) :: indx
       real(8) , dimension(iym1) :: taugab , tauray
@@ -2337,14 +2336,6 @@
       character (len=50) :: subroutine_name='radclw'
       integer :: idindx = 0
 !
-      alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
-      xgamma(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
-      el(w,g) = dsqrt(3.*(1-w)*(1.-w*g))
-      taus(w,f,t) = (1.-w*f)*t
-      omgs(w,f) = (1.-f)*w/(1.-w*f)
-      asys(g,f) = (g-f)/(1.-f)
-      u(w,g,e) = 1.5*(1.-w*g)/e
-      n(uu,et) = ((uu+1.)*(uu+1.)/et) - ((uu-1.)*(uu-1.)*et)
 !
 !
       call time_begin(subroutine_name,idindx)
@@ -2461,7 +2452,7 @@
             ws = omgs(wtot,ftot)
             gs = asys(gtot,ftot)
             lm = el(ws,gs)
-            alp = alpha(ws,coszrs(i),gs,lm)
+            alp = xalpha(ws,coszrs(i),gs,lm)
             gam = xgamma(ws,coszrs(i),gs,lm)
             ue = u(ws,gs,lm)
 !
@@ -2689,11 +2680,10 @@
 !
 ! Local variables
 !
-      real(8) :: alp , amg , apg , arg , e , et , extins , f , ftot ,   &
-               & g , gam , gs , gtot , lm , ne , rdenom , rdirexp , t , &
-               & taucsc , tautot , tdnmexp , ts , ue , uu , w , ws ,    &
+      real(8) :: alp , amg , apg , arg , extins , ftot ,   &
+               & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+               & taucsc , tautot , tdnmexp , ts , ue , ws ,    &
                & wt , wtau , wtot
-      real(8) :: alpha , asys , el , xgamm , n , omgs , taus , u
       integer :: i , ii , k , nn , nval
       integer , dimension(iym1) :: indx
       real(8) , dimension(iym1) :: taugab , tauray
@@ -2701,15 +2691,6 @@
 !
       character (len=50) :: subroutine_name='radded'
       integer :: idindx = 0
-!
-      alpha(w,uu,g,e) = .75*w*uu*((1.+g*(1-w))/(1.-e*e*uu*uu))
-      xgamm(w,uu,g,e) = .50*w*((3.*g*(1.-w)*uu*uu+1.)/(1.-e*e*uu*uu))
-      el(w,g) = dsqrt(3.*(1-w)*(1.-w*g))
-      taus(w,f,t) = (1.-w*f)*t
-      omgs(w,f) = (1.-f)*w/(1.-w*f)
-      asys(g,f) = (g-f)/(1.-f)
-      u(w,g,e) = 1.5*(1.-w*g)/e
-      n(uu,et) = ((uu+1.)*(uu+1.)/et) - ((uu-1.)*(uu-1.)*et)
 !
       call time_begin(subroutine_name,idindx)
 !-----------------------------------------------------------------------
@@ -2748,8 +2729,8 @@
           ws = omgs(wtot,ftot)
           gs = asys(gtot,ftot)
           lm = el(ws,gs)
-          alp = alpha(ws,coszrs(i),gs,lm)
-          gam = xgamm(ws,coszrs(i),gs,lm)
+          alp = xalpha(ws,coszrs(i),gs,lm)
+          gam = xgamma(ws,coszrs(i),gs,lm)
           ue = u(ws,gs,lm)
 !
 !         Limit argument of exponential to 25, in case lm*ts very large:
@@ -2859,8 +2840,8 @@
             ws = omgs(wtot,ftot)
             gs = asys(gtot,ftot)
             lm = el(ws,gs)
-            alp = alpha(ws,coszrs(i),gs,lm)
-            gam = xgamm(ws,coszrs(i),gs,lm)
+            alp = xalpha(ws,coszrs(i),gs,lm)
+            gam = xgamma(ws,coszrs(i),gs,lm)
             ue = u(ws,gs,lm)
 !
 !           Limit argument of exponential to 25, in case lm very large:
@@ -3193,7 +3174,7 @@
                & oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
                & r250 , r293 , r2sslp , r300 , r3205 , r80257 ,         &
                & rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
-               & rphat , rsqti , rsslp , rsum , sqwp , t , t1t4 , t2t5 ,&
+               & rphat , rsqti , rsslp , rsum , sqwp , t1t4 , t2t5 ,&
                & tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
                & tr1 , tr2 , tr5 , tr6 , u1 , u13 , u2 , u8 , u9 ,      &
                & ubar , wco2
@@ -3207,7 +3188,6 @@
                                   & tr9 , trab2 , trab4 , trab6 , u ,   &
                                   & u7 , uc , uc1
       real(8) , dimension(14,iym1,4) :: bplnk
-      real(8) :: dbvt
       real(8) , dimension(iym1,kzp1) :: dbvtit , pnmsq , term6 , term9
       real(8) , dimension(iym1,kz) :: dbvtly
       real(8) , dimension(iym1,4) :: emm , o3emm , pinpl , tbar ,      &
@@ -3222,10 +3202,6 @@
       character (len=50) :: subroutine_name='radabs'
       integer :: indx = 0
 !
-!--------------------------Statement function---------------------------
-!
-      dbvt(t) = (-2.8911366682E-4+(2.3771251896E-6+1.1305188929E-10*t)  &
-              & *t)/(1.0+(-6.1364820707E-3+1.5550319767E-5*t)*t)
 !
 !-----------------------------------------------------------------------
       call time_begin(subroutine_name,indx)
@@ -4030,13 +4006,11 @@
                & g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
                & phi , pi , posqt , psi , r250 , r300 , r80257 ,        &
                & rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
-               & sqti , sqwp , t , t1co2 , t1i , t1t4 , t2t5 ,          &
+               & sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 ,              &
                & tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
-               & tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , ux , vx ,&
-               & wco2
+               & tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2
       real(8) , dimension(iym1,kzp1) :: co2ems , emstrc , h2oems ,    &
            & o3ems , troco2
-      real(8) :: dbvt , fo3
       real(8) , dimension(iym1,4) :: emis , term1 , term2 , term3 ,    &
                                     & term4 , term5
       real(8) , dimension(14,iym1) :: emplnk
@@ -4046,17 +4020,6 @@
 !
       character (len=50) :: subroutine_name='radems'
       integer :: indx = 0
-!---------------------------Statement functions-------------------------
-!
-!     Statement functions
-!     Derivative of planck function at 9.6 micro-meter wavelength, and
-!     an absorption function factor:
-!
-!
-      dbvt(t) = (-2.8911366682D-4+(2.3771251896D-6+1.1305188929D-10*t)  &
-              & *t)/(1.D0+(-6.1364820707D-3+1.5550319767D-5*t)*t)
-!
-      fo3(ux,vx) = ux/dsqrt(4.D0+ux*(1.D0+vx))
 !
 !-----------------------------------------------------------------------
       call time_begin(subroutine_name,indx)
@@ -4883,5 +4846,70 @@
         end if
       end do
       end function intmax
+!
+      function xalpha(w,uu,g,e)
+        implicit none
+        real(8) :: xalpha
+        real(8) , intent(in) :: w , uu , g , e
+        xalpha = 0.75D0*w*uu*((1.0D0+g*(1.0D0-w))/(1.0D0-e*e*uu*uu))
+      end function xalpha
+      function xgamma(w,uu,g,e)
+        implicit none
+        real(8) :: xgamma
+        real(8) , intent(in) :: w , uu , g , e
+        xgamma = 0.50D0*w*((3.0D0*g*(1.0D0-w)*uu*uu+1.0D0)/ &
+                           (1.0D0-e*e*uu*uu))
+      end function xgamma
+      function el(w,g)
+        implicit none
+        real(8) :: el
+        real(8) , intent(in) :: w , g
+        el = sqrt(3.0D0*(10D0-w)*(1.0D0-w*g))
+      end function el
+      function taus(w,f,t)
+        implicit none
+        real(8) :: taus
+        real(8) , intent(in) :: w , f , t
+        taus = (1.0D0-w*f)*t
+      end function taus
+      function omgs(w,f)
+        implicit none
+        real(8) :: omgs
+        real(8) , intent(in) :: w , f
+        omgs = (1.0D0-f)*w/(1.0D0-w*f)
+      end function omgs
+      function asys(g,f)
+        implicit none
+        real(8) :: asys
+        real(8) , intent(in) :: g , f
+        asys = (g-f)/(1.0D0-f)
+      end function asys
+      function u(w,g,e)
+        implicit none
+        real(8) :: u
+        real(8) , intent(in) :: w , g , e
+        u = 1.50D0*(1.0D0-w*g)/e
+      end function u
+      function n(uu,et)
+        implicit none
+        real(8) :: n
+        real(8) , intent(in) :: uu , et
+        n = ((uu+1.0D0)*(uu+1.0D0)/et) - ((uu-1.0D0)*(uu-1.0D0)*et)
+      end function n
+      function dbvt(t)
+!       Derivative of planck function at 9.6 micro-meter wavelength
+        implicit none
+        real(8) :: dbvt
+        real(8) , intent(in) :: t
+        dbvt = (-2.8911366682D-4+(2.3771251896D-6+1.1305188929D-10*t)  &
+               *t)/(1.0D0+(-6.1364820707D-3+1.5550319767D-5*t)*t)
+      end function dbvt
+      function fo3(ux,vx)
+!       an absorption function factor
+        implicit none
+        real(8) :: fo3
+        real(8) , intent(in) :: ux , vx
+        fo3 = ux/sqrt(4.D0+ux*(1.D0+vx))
+      end function fo3
 !
       end module mod_radiation

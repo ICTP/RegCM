@@ -777,8 +777,8 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
     CHARACTER*(*), INTENT(in) :: variable
-    CHARACTER*10  :: sub_e='e_alloca'
-    CHARACTER*80  :: string=' ' 
+    CHARACTER(len=10)  :: sub_e='e_alloca'
+    CHARACTER(len=80)  :: string=' ' 
     INTEGER, OPTIONAL, INTENT(in) :: line
 
     IF (PRESENT(line)) THEN 
@@ -904,9 +904,9 @@ CONTAINS
 ! If whe have a FLUSH, use it 
 !  On IBM, flush is flush_ 
 #ifdef IBM 
-	call FLUSH_(lunit)  
+  call FLUSH_(lunit)  
 #else
-	call flush(lunit)
+  call flush(lunit)
 #endif        
  end subroutine flusha
 
