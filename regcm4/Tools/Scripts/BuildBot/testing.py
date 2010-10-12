@@ -153,10 +153,12 @@ def parse_dates(namelist,simdays): # needs modules fileinput and calendar
     maxdate = calendar.monthrange(year,month)[1]
 
     if (day_start + simdays) <= maxdate :
-        day_end = day_start + simdays
+    	day_end = day_start + simdays
+    else :
+	day_end = maxdate
 
-    print idate2
-    print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
+    #print idate2
+    #print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
         
     for line in fileinput.FileInput(namelist,inplace=1):
         line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
@@ -275,6 +277,13 @@ def main(argv):
         namelist = simdir+"/regcm.in"
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
+        if (run_clm == 1) :
+	    try :
+            	shutil.copy(datadir+"/CLM/pft-physiology.c070207",simdir+"/input") # hardcoded for now
+	    except IOError :
+		print "File",datadir+"/CLM/pft-physiology.c070207","not found. Stopping execution."
+		os.sys.exit(1)
+            
         # find idate0 and edit namelist for desired sim length
         idate0 = parse_dates(namelist,simdays)
         
