@@ -3,9 +3,10 @@
   
 include ../../Makefile.inc
 
-all: aerosol sst icbc install
+all: aerosol sst icbc oxidant install
 
-OXIDANTOBJ =  mod_oxidant.o oxidant.o mod_wrtoxd.o mod_date.o
+OXIDANTOBJ =  mod_oxidant.o oxidant.o mod_wrtoxd.o mod_date.o mod_grid.o \
+							mod_header.o mod_interp.o
 AEROSOLOBJ = aerosol.o mod_date.o
 SSTOBJ = sst.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_1deg.o \
          mod_sst_ccsm.o mod_interp.o mod_date.o mod_sst_grid.o mod_header.o
@@ -20,9 +21,8 @@ MODOBJ = mod_ccsm.o mod_date.o mod_vectutil.o mod_ecwcp.o mod_eh5om.o \
 
 ICBCOBJ = icbc.o
 
-oxidant : $(SHRMOD) $(MODOBJ) $(OXIDANTOBJ)
-	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(OXIDANTOBJ) \
-        $(NETCDFLIB)
+oxidant : $(SHRMOD) $(OXIDANTOBJ)
+	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(OXIDANTOBJ) $(NETCDFLIB)
 
 aerosol: $(AEROSOLOBJ) $(SHRMOD)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(AEROSOLOBJ) $(SHRMOD) \
@@ -36,9 +36,9 @@ icbc: $(SHRMOD) $(MODOBJ) $(ICBCOBJ)
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $(SHRMOD) $(MODOBJ) $(ICBCOBJ) \
                $(NETCDFLIB)
 
-install: aerosol icbc sst
-	@cp aerosol icbc sst $(BINDIR)
-	@chmod 755 $(BINDIR)/aerosol $(BINDIR)/icbc $(BINDIR)/sst
+install: aerosol icbc sst oxidant
+	@cp aerosol icbc sst oxidant $(BINDIR)
+	@chmod 755 $(BINDIR)/aerosol $(BINDIR)/icbc $(BINDIR)/sst $(BINDIR)/oxidant
 	@echo "Programs all installed in $(BINDIR)" 
 
 mod_constants.o: ../../Config/mod_constants.F90
@@ -113,7 +113,7 @@ mod_wrtoxd.o : mod_wrtoxd.F90 mod_grid.o mod_date.o mod_dynparam.o
 mod_oxidant.o : mod_oxidant.f90 mod_dynparam.o mod_date.o mod_wrtoxd.o \
 	              mod_grid.o mod_interp.o
 oxidant.o : oxidant.f90 mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o \
-              mod_header.o
+            mod_header.o mod_oxidant.o
 aerosol.o: aerosol.f90 mod_dynparam.o mod_date.o
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o
 mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o

@@ -33,7 +33,7 @@
       integer :: irefdate
       integer :: itime
       integer , dimension(5) :: idims
-      integer , dimension(8) :: ivar
+      integer , dimension(6) :: ivar
       integer :: istatus
 
       real(4) , allocatable , dimension(:,:,:) :: oh4 , ho24 , o34 , &
