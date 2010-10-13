@@ -49,6 +49,7 @@
       use mod_ncio
       use mod_scenarios
       use mod_diagnosis
+      use mod_chem 
 
 #ifdef MPP1
       use mod_mppio
