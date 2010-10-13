@@ -241,13 +241,14 @@
         do k = 1 , kzm1
           do i = 2 , iym1
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
-            xps = (a(k)*sps2%ps(i,j)+r8pt)*1000.
-            ps2 = (a(k+1)*sps2%ps(i,j)+r8pt)*1000.
+            xps = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
+            ps2 = (a(k+1)*sps2%ps(i,j)+r8pt)*1000.0D0
             rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
           end do
         end do
 !
         do i = 2 , iym1
+          xps = thx3d(i,kz,j)
           govrth(i) = gti/thx3d(i,kz,j)
         end do
 !

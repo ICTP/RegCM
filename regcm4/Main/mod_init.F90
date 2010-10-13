@@ -941,7 +941,8 @@
               end do
             end do
           end do
-        else if ( icup.eq.3 ) then
+        end if
+        if ( icup.eq.3 ) then
           if ( myid.eq.0 ) then
             do j = 1 , jx
               do k = 1 , kz
@@ -967,11 +968,11 @@
               cldefi(i,j) = sav0b(i,kzp1,j)
             end do
           end do
-        else if ( icup.eq.4 .or. icup.eq.99 ) then
+        end if
+        if ( icup.eq.4 .or. icup.eq.99 ) then
           call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,             &
                          & cbmf2d,   iy*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)
-        else
         end if
         if ( myid.eq.0 ) then
 #ifdef BAND

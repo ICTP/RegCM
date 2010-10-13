@@ -1461,7 +1461,8 @@
  
           if ( icup.eq.1 ) then
             call cupara(j)
-          else if ( icup.eq.2 .or. icup.eq.99) then
+          end if
+          if ( icup.eq.2 .or. icup.eq.99 ) then
 
 !! the following part moved from subroutine cuparan
             do k = 1 , kz
@@ -1480,8 +1481,9 @@
                           &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))
               end do
             end do
-            call cuparan(aten%t(1,1,j),aten%qv(1,1,j),j)
-          else if ( icup.eq.3 ) then
+            call cuparan(aten%t(:,:,j),aten%qv(:,:,j),j)
+          end if
+          if ( icup.eq.3 ) then
             write (aline,*)                                             &
                 & 'ICTP RegCM team thinks the Betts-Miller code',       &
                 & ' is not ready for Regional Climate Run yet.'
@@ -1489,7 +1491,8 @@
             call fatal(__FILE__,__LINE__,                               &
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
             call bmpara(aten%t(1,1,j),aten%qv(1,1,j),j)
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             call cupemandrv(j)
           end if
 
@@ -1760,7 +1763,7 @@
           if ( ipgf.eq.1 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j)                  &
                             & *t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)   &
                             & **pgfaa1
@@ -1769,7 +1772,7 @@
           else if ( ipgf.eq.0 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               end do
             end do
           else
@@ -1786,7 +1789,7 @@
           if ( ipgf.eq.1 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
                 ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j)                  &
                             & *t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)   &
                             & **pgfaa1
@@ -1795,7 +1798,7 @@
           else if ( ipgf.eq.0 ) then
             do k = 1 , kz
               do i = 1 , iym1
-                td(i,k,j) = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+                td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               end do
             end do
           else
@@ -1834,18 +1837,20 @@
           do k = 1 , kz
             do i = 2 , iym2
               tvc = atmc%t(i,k,j)*(1.+ep1*(atmc%qv(i,k,j))/psc(i,j))
-              tva = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
-              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/sps2%ps(i,j))
+              tva = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
+              tvb = atm2%t(i,k,j)*(1.0D0+ep1* &
+                                   (atm2%qv(i,k,j))/sps2%ps(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
               ttld(i,k,j) = td(i,k,j) - psd(i,j)                        &
                           & *t00pg*((a(k)*psd(i,j)+r8pt)/p00pg)**pgfaa1
             end do
           end do
           do k = 1 , kz
-            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(atmx%qv(1,k,j)))
+            td(1,k,j) = atm1%t(1,k,j)*(1.0D0+ep1*(atmx%qv(1,k,j)))
             ttld(1,k,j) = td(1,k,j) - sps1%ps(1,j)                      &
                       & *t00pg*((a(k)*sps1%ps(1,j)+r8pt)/p00pg)**pgfaa1
-            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(atmx%qv(iym1,k,j)))
+            td(iym1,k,j) = atm1%t(iym1,k,j)* &
+                          (1.0D0+ep1*(atmx%qv(iym1,k,j)))
             ttld(iym1,k,j) = td(iym1,k,j) - sps1%ps(iym1,j)             &
                           & *t00pg*((a(k)*sps1%ps(iym1,j)+r8pt)/p00pg)  &
                           & **pgfaa1
@@ -1855,15 +1860,17 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tvc = atmc%t(i,k,j)*(1.+ep1*(atmc%qv(i,k,j))/psc(i,j))
-              tva = atm1%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
-              tvb = atm2%t(i,k,j)*(1.+ep1*(atm2%qv(i,k,j))/sps2%ps(i,j))
+              tvc = atmc%t(i,k,j)*(1.0D0+ep1*(atmc%qv(i,k,j))/psc(i,j))
+              tva = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
+              tvb = atm2%t(i,k,j)*(1.0D0+ep1* &
+                   (atm2%qv(i,k,j))/sps2%ps(i,j))
               td(i,k,j) = alpha*(tvc+tvb) + beta*tva
             end do
           end do
           do k = 1 , kz
-            td(1,k,j) = atm1%t(1,k,j)*(1.+ep1*(atmx%qv(1,k,j)))
-            td(iym1,k,j) = atm1%t(iym1,k,j)*(1.+ep1*(atmx%qv(iym1,k,j)))
+            td(1,k,j) = atm1%t(1,k,j)*(1.0D0+ep1*(atmx%qv(1,k,j)))
+            td(iym1,k,j) = atm1%t(iym1,k,j)* &
+                           (1.0D0+ep1*(atmx%qv(iym1,k,j)))
           end do
  
         end if
@@ -1944,23 +1951,21 @@
             do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,jm1) + psd(i-1,jm1)
               sigpsa = psasum
-              tv1 = atmx%t(i-1,k,jm1)*(1.+ep1*(atmx%qv(i-1,k,jm1)))
-              tv2 = atmx%t(i,k,jm1)*(1.+ep1*(atmx%qv(i,k,jm1)))
-              tv3 = atmx%t(i-1,k,j)*(1.+ep1*(atmx%qv(i-1,k,j)))
-              tv4 = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
+              tv1 = atmx%t(i-1,k,jm1)*(1.0D0+ep1*(atmx%qv(i-1,k,jm1)))
+              tv2 = atmx%t(i,k,jm1)*(1.0D0+ep1*(atmx%qv(i,k,jm1)))
+              tv3 = atmx%t(i-1,k,j)*(1.0D0+ep1*(atmx%qv(i-1,k,j)))
+              tv4 = atmx%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 -                           &
                     & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
-              rtbar = rgas*rtbar*sigpsa/16.
-              aten%u(i,k,j) = aten%u(i,k,j)                             &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i,jm1)+psd(i-1,jm1))*a(k)    &
-                          & +r8pt))/(dx*mddom%msfd(i,j))
-              aten%v(i,k,j) = aten%v(i,k,j)                             &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,jm1))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i-1,jm1)+psd(i-1,j))*a(k)    &
-                          & +r8pt))/(dx*mddom%msfd(i,j))
+              rtbar = rgas*rtbar*sigpsa/16.D0
+              aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
+                     (log(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -      &
+                      log(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/  &
+                      (dx*mddom%msfd(i,j))
+              aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
+                     (log(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -      &
+                      log(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/  &
+                      (dx*mddom%msfd(i,j))
             end do
           end do
         else if ( ipgf.eq.0 ) then
@@ -1968,21 +1973,19 @@
             do i = 2 , iym1
               psasum = psd(i,j) + psd(i-1,j) + psd(i,jm1) + psd(i-1,jm1)
               sigpsa = psasum
-              tv1 = atmx%t(i-1,k,jm1)*(1.+ep1*(atmx%qv(i-1,k,jm1)))
-              tv2 = atmx%t(i,k,jm1)*(1.+ep1*(atmx%qv(i,k,jm1)))
-              tv3 = atmx%t(i-1,k,j)*(1.+ep1*(atmx%qv(i-1,k,j)))
-              tv4 = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
-              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.
-              aten%u(i,k,j) = aten%u(i,k,j)                             &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i-1,j))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i,jm1)+psd(i-1,jm1))*a(k)    &
-                          & +r8pt))/(dx*mddom%msfd(i,j))
-              aten%v(i,k,j) = aten%v(i,k,j)                             &
-                          & - rtbar*(dlog(0.5*(psd(i,j)+psd(i,jm1))*a(k)&
-                          & +r8pt)                                      &
-                          & -dlog(0.5*(psd(i-1,jm1)+psd(i-1,j))*a(k)    &
-                          & +r8pt))/(dx*mddom%msfd(i,j))
+              tv1 = atmx%t(i-1,k,jm1)*(1.0D0+ep1*(atmx%qv(i-1,k,jm1)))
+              tv2 = atmx%t(i,k,jm1)*(1.0D0+ep1*(atmx%qv(i,k,jm1)))
+              tv3 = atmx%t(i-1,k,j)*(1.0D0+ep1*(atmx%qv(i-1,k,j)))
+              tv4 = atmx%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
+              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
+              aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
+                      (log(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
+                       log(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
+                       (dx*mddom%msfd(i,j))
+              aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
+                      (log(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
+                       log(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
+                       (dx*mddom%msfd(i,j))
             end do
           end do
         else   ! ipgf if block
@@ -2009,9 +2012,8 @@
             phi(i,kz,j) = mddom%ht(i,j)                                &
                         & + rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)   &
                         & **pgfaa1
-            phi(i,kz,j) = phi(i,kz,j)                                   &
-                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/(1.+     &
-                        & r8pt/psd(i,j)))
+            phi(i,kz,j) = phi(i,kz,j) - rgas * &
+                     tv*log((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -2021,9 +2023,9 @@
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+       &
                     & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/       &
                     & (1.+atmx%qv(i,lev,j)))
-              phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
-                           & /(a(lev+1)+r8pt/psd(i,j)))
+              phi(i,lev,j) = phi(i,lev+1,j) - rgas *   &
+                     tvavg*log((a(lev)+r8pt/psd(i,j))/ &
+                               (a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
  
@@ -2031,10 +2033,9 @@
  
           do i = 1 , iym1
             tv = (td(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/  &
-                 (1.+atmx%qv(i,kz,j)))
-            phi(i,kz,j) = mddom%ht(i,j)                            &
-                        & - rgas*tv*dlog((a(kz)+r8pt/psd(i,j))/    &
-                        & (1.+r8pt/psd(i,j)))
+                 (1.0D0+atmx%qv(i,kz,j)))
+            phi(i,kz,j) = mddom%ht(i,j) - rgas * &
+                 tv*log((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -2044,8 +2045,8 @@
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+     &
                     & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/     &
                     & (1.+atmx%qv(i,lev,j)))
-              phi(i,lev,j) = phi(i,lev+1,j)                             &
-                           & - rgas*tvavg*dlog((a(lev)+r8pt/psd(i,j))   &
+              phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
+                     tvavg*log((a(lev)+r8pt/psd(i,j))   &
                            & /(a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
@@ -2185,17 +2186,17 @@
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
             qvas = atmc%qv(i,k,j)
-            atm2%qv(i,k,j) = dmax1(qvbs,1.D-99)
-            atm1%qv(i,k,j) = dmax1(qvas,1.D-99)
+            atm2%qv(i,k,j) = max(qvbs,1.D-99)
+            atm1%qv(i,k,j) = max(qvas,1.D-99)
           end do
           do i = 2 , iym2
             qcbs = omu*atm1%qc(i,k,j) + &
                    gnu*(atm2%qc(i,k,j)+atmc%qc(i,k,j))
-            atm2%qc(i,k,j) = dmax1(qcbs,0.D0)
+            atm2%qc(i,k,j) = max(qcbs,0.D0)
           end do
           do i = 2 , iym2
             qcas = atmc%qc(i,k,j)
-            atm1%qc(i,k,j) = dmax1(qcas,0.D0)
+            atm1%qc(i,k,j) = max(qcas,0.D0)
           end do
 !chem2
           if ( ichem.eq.1 ) then
@@ -2203,9 +2204,9 @@
               do i = 2 , iym2
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
-                chib(i,k,j,itr) = dmax1(chibs,0.D0)
+                chib(i,k,j,itr) = max(chibs,0.D0)
                 chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = dmax1(chias,0.D0)
+                chia(i,k,j,itr) = max(chias,0.D0)
               end do
             end do
           end if

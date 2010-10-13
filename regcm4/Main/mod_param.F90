@@ -403,10 +403,10 @@
       if ( icup.eq.2 .or. icup.eq.99 ) then
         read (ipunit, grellparam)
         print * , 'param: GRELLPARAM namelist READ IN'
-      else if ( icup.eq.4 .or. icup.eq.99 ) then
+      end if
+      if ( icup.eq.4 .or. icup.eq.99 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
-      else
       end if
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
@@ -500,8 +500,9 @@
         call mpi_bcast(htmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(skbmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
+      end if
  
-      else if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 ) then
         call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -517,7 +518,6 @@
         call mpi_bcast(dtmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(alphae,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(damp,1,mpi_real8,0,mpi_comm_world,ierr)
-      else
       end if
  
       if ( ichem.eq.1 ) then
@@ -535,7 +535,8 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-      if(lakemod.eq.1) call allocate_lake
+      if ( lakemod.eq.1 ) call allocate_lake
+      if ( ichem.eq.1 ) call allocate_mod_chem(lmpi)
       call allocate_mod_che_semdde
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
@@ -1206,7 +1207,8 @@
         call say
         write (aline, *) '*********************************'
         call say
-      else if ( icup.eq.2 .or. icup.eq.99 ) then
+      end if
+      if ( icup.eq.2 .or. icup.eq.99 ) then
         kbmax = kz
         do k = 1 , kz - 1
           if ( a(k).le.skbmax ) kbmax = kz - k
@@ -1253,7 +1255,6 @@
           call say
           write (aline, *) '     ABE removal timescale: dtauc=' , dtauc
           call say
-        else
         end if
 
         write (aline, *) '*********************************'
@@ -1284,13 +1285,15 @@
             dtauc2d(i,j) = dtauc*60.
           end do
         end do
-      else if ( icup.eq.3 ) then
+      end if
+      if ( icup.eq.3 ) then
         write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                        &' properly implemented'
         call say
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
         call allocate_mod_cu_bm(lmpi)
-      else if ( icup.eq.4 .or. icup.eq.99 ) then
+      end if
+      if ( icup.eq.4 .or. icup.eq.99 ) then
         cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
         minorig = kz
@@ -1350,7 +1353,6 @@
         call say
         write (aline, *) ' '
         call say
-      else
       end if
  
 !     Convective Cloud Cover

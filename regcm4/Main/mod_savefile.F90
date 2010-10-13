@@ -110,11 +110,12 @@
           read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             read (iutrst) rsheat_io , rswat_io
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             read (iutrst) tbase_io , cldefi_io
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             read (iutrst) cbmf2d_io
-          else
           end if
           read (iutrst) hfx_io , qfx_io , snowc_io , uvdrag_io
 #ifndef BAND
@@ -197,11 +198,12 @@
           read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             read (iutrst) tbase , cldefi
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             read (iutrst) cbmf2d
-          else
           end if
           read (iutrst) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
 #ifndef BAND
@@ -331,11 +333,12 @@
           write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             write (iutsav) rsheat_io , rswat_io
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             write (iutsav) tbase_io , cldefi_io
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             write (iutsav) cbmf2d_io
-          else
           end if
           write (iutsav) hfx_io , qfx_io , snowc_io , uvdrag_io
 #ifndef BAND
@@ -418,11 +421,12 @@
           write (iutsav) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             write (iutsav) tbase , cldefi
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             write (iutsav) cbmf2d
-          else
           end if
           write (iutsav) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
 #ifndef BAND

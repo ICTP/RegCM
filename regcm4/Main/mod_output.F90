@@ -760,7 +760,8 @@
                 end do
               end do
             end if
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
@@ -787,11 +788,11 @@
                 end do
               end do
             end if
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
                           & cbmf2d_io,iy*jxp,mpi_real8,            &
                           & 0,mpi_comm_world,ierr)
-          else
           end if
           do j = 1 , jendx
             do l = 1 , 4
@@ -1464,7 +1465,8 @@
                 end do
               end do
             end if
-          else if ( icup.eq.3 ) then
+          end if
+          if ( icup.eq.3 ) then
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
@@ -1491,11 +1493,11 @@
                 end do
               end do
             end if
-          else if ( icup.eq.4 .or. icup.eq.99 ) then
+          end if
+          if ( icup.eq.4 .or. icup.eq.99 ) then
             call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
                           & cbmf2d_io,iy*jxp,mpi_real8,            &
                           & 0,mpi_comm_world,ierr)
-          else
           end if
           do j = 1 , jendx
             do l = 1 , 4

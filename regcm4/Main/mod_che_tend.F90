@@ -72,7 +72,7 @@
       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
                & facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
                & remcum , rxs1 , rxs11 , rxs2 , rxs21 , satvp , shu10 , &
-               & u10 , v10
+               & u10 , v10 , h2o2mol
       real(8) , dimension(ntr) :: agingtend , wetrem , wetrem_cvc
       real(8) , dimension(iy,kz) :: concmin , cutend_dwd , cutend_up ,  &
                                   & fracloud , fracum , rho , settend , &
@@ -86,7 +86,6 @@
                                & zeff , ustar
       real(8) , dimension(iy,nbin) :: rsfrow
 !
-      real(8) :: h2o2mol
 !     real(kind=8) :: ustar(iy)
 !     real(kind=8) :: zza(iy,kz)
 !
@@ -246,7 +245,7 @@
 !             oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
 !             molecules/cm3 test j eprends directement une valeur de oh1
  
-              oh1 = oh(i,k,j) ! 15.E5                                ! molecules/cm3
+              oh1 = oh(i,k,j)                            ! molecules/cm3
               if ( coszrs(i).lt.0.001 ) oh1 = oh1*0.01   ! diurnal evolution
  
               ak0tm = 3.E-31*(atm1%t(i,k,j)/sps1%ps(i,j)/300.)**(-3.3)* &
@@ -281,7 +280,6 @@
           do k = 1 , kz
             do i = 2 , iym2
               h2o2mol = h2o2(i,k,j)
-
               chimol = 28.9/64.*chib(i,k,j,iso2)/sps2%ps(i,j) ! kg/kg to mole
 !             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*sps2%ps(i,j)  !
 !             cb*kg/kg do tests, suppose h2o2 always enough

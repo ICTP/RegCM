@@ -69,9 +69,9 @@
       real(8) , dimension(kzp1) :: phcup
 !
       dtime = dt
-      uconv = 0.5*dt
-      aprdiv = 1.0/float(nbatst)
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+      uconv = 0.5D0*dt
+      aprdiv = 1.0D0/dble(nbatst)
+      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
       iconj = 0
       do i = 2 , iym2
         if ( icup==99 ) then
@@ -79,18 +79,18 @@
         end if
         do k = 1 , kz
           kk = kzp1 - k
-          cldlwc(i,k) = 0.          ! Zero out cloud water content
-          cldfra(i,k) = 0.          ! Zero out cloud fraction coverage
+          cldlwc(i,k) = 0.0D0       ! Zero out cloud water content
+          cldfra(i,k) = 0.0D0       ! Zero out cloud fraction coverage
           tcup(k) = tb3d(i,kk,j)                          ! [k]
-          qcup(k) = qvb3d(i,kk,j)/(1.+qvb3d(i,kk,j))      ! [kg/kg]
-          qscup(k) = qsb3d(i,kk,j)/(1.+qsb3d(i,kk,j))     ! [kg/kg]
+          qcup(k) = qvb3d(i,kk,j)/(1.0D0+qvb3d(i,kk,j))   ! [kg/kg]
+          qscup(k) = qsb3d(i,kk,j)/(1.0D0+qsb3d(i,kk,j))  ! [kg/kg]
           ucup(k) = ubx3d(i,kk,j)                         ! [m/s]
           vcup(k) = vbx3d(i,kk,j)                         ! [m/s]
-          pcup(k) = pb3d(i,kk,j)*10.                      ! [hPa]
+          pcup(k) = pb3d(i,kk,j)*10.0D0                   ! [hPa]
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*sps2%ps(i,j)+r8pt)*10.        ! [hPa]
+          phcup(k) = (sigma(kk)*sps2%ps(i,j)+r8pt)*10.0D0 ! [hPa]
         end do
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
@@ -119,7 +119,7 @@
           do k = 1 , kz
             kk = kzp1 - k
             aten%t(i,kk,j) = ft(k)*sps2%ps(i,j) + aten%t(i,kk,j)
-            aten%qv(i,kk,j) = fq(k)/(1.-fq(k))* &
+            aten%qv(i,kk,j) = fq(k)/(1.0D0-fq(k))* &
                               sps2%ps(i,j)+aten%qv(i,kk,j)
 !           There is a bit of an inconsistency here...  The wind
 !           tendencies from convection are on cross points, but the
@@ -130,17 +130,17 @@
  
 !         **** Cloud fraction and cloud water
           kclth = ktop - kbase + 1
-          akclth = 1./float(kclth)
+          akclth = 1.0D0/dble(kclth)
           do k = kbase , ktop
             kk = kzp1 - k
             cldlwc(i,kk) = cllwcv
-            cldfra(i,kk) = 1. - (1.-clfrcv)**akclth
+            cldfra(i,kk) = 1.0D0 - (1.0D0-clfrcv)**akclth
           end do
  
 !         **** Precipitation
-          if ( fppt.gt.0. ) then
+          if ( fppt.gt.0.0D0 ) then
             sfsta%rainc(i,j) = sfsta%rainc(i,j) + fppt*uconv ! mm
-            pptc(i,j) = pptc(i,j) + fppt*aprdiv  ! mm/s
+            pptc(i,j)        = pptc(i,j) + fppt*aprdiv       ! mm/s
             iconj = iconj + 1
           end if
  
@@ -357,33 +357,33 @@
 !     ***              those used in calling program              ***
 !     ***     note: these are also specified in subroutine tlift  ***
 !
-      cl = 2500.0
-      rowl = 1000.0
+      cl = 2500.0D0
+      rowl = 1000.0D0
 !
       cpvmcl = cl - cpv
       eps = rgas/rwat
-      epsi = 1./eps
-      delti = 1.0/delt
+      epsi = 1.0D0/eps
+      delti = 1.0D0/delt
 !
 !     ***  initialize output arrays and parameters  ***
 !
       do i = 1 , nd
-        ft(i) = 0.0
-        fq(i) = 0.0
-        fu(i) = 0.0
-        fv(i) = 0.0
+        ft(i) = 0.0D0
+        fq(i) = 0.0D0
+        fu(i) = 0.0D0
+        fv(i) = 0.0D0
         do j = 1 , ntra
-          ftra(i,j) = 0.0
+          ftra(i,j) = 0.0D0
         end do
       end do
       do i = 1 , nl + 1
-        rdcp = (rgas*(1.-q(i))+q(i)*rwat)/(cpd*(1.-q(i))+q(i)*cpv)
-        th(i) = t(i)*(1000.0/p(i))**rdcp
+        rdcp = (rgas*(1.0D0-q(i))+q(i)*rwat)/(cpd*(1.0D0-q(i))+q(i)*cpv)
+        th(i) = t(i)*(1000.0D0/p(i))**rdcp
       end do
-      precip = 0.0
-      wd = 0.0
-      tprime = 0.0
-      qprime = 0.0
+      precip = 0.0D0
+      wd = 0.0D0
+      tprime = 0.0D0
+      qprime = 0.0D0
       iflag = 0
 !
       if ( ipbl.ne.0 ) then
@@ -393,25 +393,25 @@
         jc = 0
         do i = nl - 1 , 1 , -1
           jn = 0
-          asum = th(i)*(1.+q(i)*epsi-q(i))
+          asum = th(i)*(1.0D0+q(i)*epsi-q(i))
           do j = i + 1 , nl
-            asum = asum + th(j)*(1.+q(j)*epsi-q(j))
-            thbar = asum/float(j+1-i)
-            if ( (th(j)*(1.+q(j)*epsi-q(j))).lt.thbar ) jn = j
+            asum = asum + th(j)*(1.0D0+q(j)*epsi-q(j))
+            thbar = asum/dble(j+1-i)
+            if ( (th(j)*(1.0D0+q(j)*epsi-q(j))).lt.thbar ) jn = j
           end do
           if ( i.eq.1 ) jn = max(jn,2)
           if ( jn.ne.0 ) then
             do
-              ahm = 0.0
-              rm = 0.0
-              um = 0.0
-              vm = 0.0
+              ahm = 0.0D0
+              rm = 0.0D0
+              um = 0.0D0
+              vm = 0.0D0
               do k = 1 , ntra
-                tratm(k) = 0.0
+                tratm(k) = 0.0D0
               end do
               do j = i , jn
-                ahm = ahm + (cpd*(1.-q(j))+q(j)*cpv)*t(j)               &
-                    & *(ph(j)-ph(j+1))
+                ahm = ahm + (cpd*(1.0D0-q(j))+q(j)*cpv)*t(j)* &
+                            (ph(j)-ph(j+1))
                 rm = rm + q(j)*(ph(j)-ph(j+1))
                 um = um + u(j)*(ph(j)-ph(j+1))
                 vm = vm + v(j)*(ph(j)-ph(j+1))
@@ -419,14 +419,14 @@
                   tratm(k) = tratm(k) + tra(j,k)*(ph(j)-ph(j+1))
                 end do
               end do
-              dphinv = 1./(ph(i)-ph(jn+1))
+              dphinv = 1.0D0/(ph(i)-ph(jn+1))
               rm = rm*dphinv
               um = um*dphinv
               vm = vm*dphinv
               do k = 1 , ntra
                 tratm(k) = tratm(k)*dphinv
               end do
-              a2 = 0.0
+              a2 = 0.0D0
               do j = i , jn
                 q(j) = rm
                 u(j) = um
@@ -434,23 +434,23 @@
                 do k = 1 , ntra
                   tra(j,k) = tratm(k)
                 end do
-                rdcp = (rgas*(1.-q(j))+q(j)*rwat)/                      &
-                     & (cpd*(1.-q(j))+q(j)*cpv)
-                x = (0.001*p(j))**rdcp
+                rdcp = (rgas*(1.0D0-q(j))+q(j)*rwat) / &
+                       (cpd*(1.0D0-q(j))+q(j)*cpv)
+                x = (0.001D0*p(j))**rdcp
                 told(j) = t(j)
                 t(j) = x
-                a2 = a2 + (cpd*(1.-q(j))+q(j)*cpv)*x*(ph(j)-ph(j+1))
+                a2 = a2 + (cpd*(1.0D0-q(j))+q(j)*cpv)*x*(ph(j)-ph(j+1))
               end do
               do j = i , jn
                 th(j) = ahm/a2
                 t(j) = t(j)*th(j)
                 tc = told(j) - tzero
                 alv = wlhv - cpvmcl*tc
-                qs(j) = qs(j) + qs(j)*(1.+qs(j)*(epsi-1.))              &
-                      & *alv*(t(j)-told(j))/(rwat*told(j)*told(j))
+                qs(j) = qs(j) + qs(j)*(1.0D0+qs(j)*(epsi-1.0D0)) * &
+                        alv*(t(j)-told(j))/(rwat*told(j)*told(j))
               end do
-              if ( ((th(jn+1)*(1.+q(jn+1)*epsi-q(jn+1))).lt.(th(jn)*(1.+&
-                 & q(jn)*epsi-q(jn)))) ) then
+              if ( ((th(jn+1)*(1.0D0+q(jn+1)*epsi-q(jn+1))).lt. &
+                    (th(jn)*(1.0D0+q(jn)*epsi-q(jn)))) ) then
                 jn = jn + 1
                 cycle
               end if
@@ -466,15 +466,15 @@
           do j = 1 , jc
             if ( qs(j).lt.q(j) ) then
               alv = wlhv - cpvmcl*(t(j)-tzero)
-              tnew = t(j) + alv*(q(j)-qs(j))                            &
-                   & /(cpd*(1.-q(j))+cl*q(j)+qs(j)                      &
-                   & *(cpv-cl+alv*alv/(rwat*t(j)*t(j))))
+              tnew = t(j) + alv*(q(j)-qs(j)) /             &
+                      (cpd*(1.0D0-q(j))+cl*q(j)+qs(j) *    &
+                      (cpv-cl+alv*alv/(rwat*t(j)*t(j))))
               alvnew = wlhv - cpvmcl*(tnew-tzero)
-              qnew = (alv*q(j)-(tnew-t(j))*(cpd*(1.-q(j))+cl*q(j)))     &
-                   & /alvnew
+              qnew = (alv*q(j)-(tnew-t(j)) * &
+                     (cpd*(1.0D0-q(j))+cl*q(j)))/alvnew
 !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
-              precip = precip + 1.0E5*(ph(j)-ph(j+1))*(q(j)-qnew)*rgti  &
-                     & /(delt*rowl)                         ! mm/s
+              precip = precip + 1.0D5*(ph(j)-ph(j+1))*(q(j)-qnew)*rgti/ &
+                        (delt*rowl)                         ! mm/s
               t(j) = tnew
               q(j) = qnew
               qs(j) = qnew
@@ -486,28 +486,28 @@
 !
 !     *** calculate arrays of geopotential, heat capacity and static
 !     energy
-      gz(1) = 0.0
-      cpn(1) = cpd*(1.-q(1)) + q(1)*cpv
+      gz(1) = 0.0D0
+      cpn(1) = cpd*(1.0D0-q(1)) + q(1)*cpv
       h(1) = t(1)*cpn(1)
       lv(1) = wlhv - cpvmcl*(t(1)-tzero)
       hm(1) = lv(1)*q(1)
-      tv(1) = t(1)*(1.+q(1)*epsi-q(1))
-      ahmin = 1.0E12
+      tv(1) = t(1)*(1.0D0+q(1)*epsi-q(1))
+      ahmin = 1.0D12
       ihmin = nl
       do i = 2 , nl + 1
-        tvx = t(i)*(1.+q(i)*epsi-q(i))
-        tvy = t(i-1)*(1.+q(i-1)*epsi-q(i-1))
-        gz(i) = gz(i-1) + 0.5*rgas*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
-        cpn(i) = cpd*(1.-q(i)) + cpv*q(i)
+        tvx = t(i)*(1.0D0+q(i)*epsi-q(i))
+        tvy = t(i-1)*(1.0D0+q(i-1)*epsi-q(i-1))
+        gz(i) = gz(i-1) + 0.5D0*rgas*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
+        cpn(i) = cpd*(1.0D0-q(i)) + cpv*q(i)
         h(i) = t(i)*cpn(i) + gz(i)
         lv(i) = wlhv - cpvmcl*(t(i)-tzero)
-        hm(i) = (cpd*(1.-q(i))+cl*q(i))*(t(i)-t(1)) + lv(i)*q(i) + gz(i)
-        tv(i) = t(i)*(1.+q(i)*epsi-q(i))
+        hm(i) = (cpd*(1.0D0-q(i))+cl*q(i))*(t(i)-t(1))+lv(i)*q(i)+gz(i)
+        tv(i) = t(i)*(1.0D0+q(i)*epsi-q(i))
 !
 !       ***  find level of minimum moist static energy    ***
 !
-        if ( i.ge.minorig .and. hm(i).lt.ahmin .and. hm(i).lt.hm(i-1) ) &
-           & then
+        if ( i.ge.minorig .and. hm(i).lt.ahmin .and. &
+             hm(i).lt.hm(i-1) ) then
           ahmin = hm(i)
           ihmin = i
         end if
@@ -517,7 +517,7 @@
 !     ***     find that model level below the level of minimum moist   
 !     *** ***  static energy that has the maximum value of moist static
 !     energy ***
-      ahmax = 0.0
+      ahmax = 0.0D0
       nk = nl
       do i = minorig , ihmin
         if ( hm(i).gt.ahmax ) then
@@ -530,9 +530,10 @@
 !     *** ***                          are reasonable                  
 !     *** ***      skip convection if hm increases monotonically upward
 !     ***
-      if ( t(nk).lt.250.0 .or. q(nk).le.0.0 .or. ihmin.eq.(nl-1) ) then
+      if ( t(nk).lt.250.0D0 .or. q(nk).le.0.0D0 .or. &
+           ihmin.eq.(nl-1) ) then
         iflag = 0
-        cbmf = 0.0
+        cbmf = 0.0D0
         return
       end if
 !
@@ -540,11 +541,11 @@
 !     level *** ***       (within 0.2% of formula of bolton, mon. wea.
 !     rev.,1980)      ***
       rh = q(nk)/qs(nk)
-      chi = t(nk)/(1669.0-122.0*rh-t(nk))
+      chi = t(nk)/(1669.0D0-122.0D0*rh-t(nk))
       plcl = p(nk)*(rh**chi)
-      if ( plcl.lt.200.0 .or. plcl.ge.2000.0 ) then
+      if ( plcl.lt.200.0D0 .or. plcl.ge.2000.0D0 ) then
         iflag = 2
-        cbmf = 0.0
+        cbmf = 0.0D0
         return
       end if
 !
@@ -556,7 +557,7 @@
       end do
       if ( icb.ge.(nl-1) ) then
         iflag = 3
-        cbmf = 0.0
+        cbmf = 0.0D0
         return
       end if
 !
@@ -574,7 +575,7 @@
 !     ***  if there was no convection at last time step and parcel   
 !     *** ***       is stable at icb then skip rest of calculation     
 !     ***
-      if ( cbmf.eq.0.0 .and. tvp(icb).le.(tv(icb)-dtmax) ) then
+      if ( cbmf.eq.0.0D0 .and. tvp(icb).le.(tv(icb)-dtmax) ) then
         iflag = 0
         return
       end if
@@ -592,19 +593,19 @@
 !     ***      these may be functions of tp(i), p(i) and clw(i)     ***
 !
       do i = 1 , nk
-        ep(i) = 0.0
+        ep(i) = 0.0D0
         sigp(i) = sigs
       end do
       do i = nk + 1 , nl
         tca = tp(i) - tzero
-        if ( tca.ge.0.0 ) then
+        if ( tca.ge.0.0D0 ) then
           elacrit = elcrit
         else
-          elacrit = elcrit*(1.0-tca/tlcrit)
+          elacrit = elcrit*(1.0D0-tca/tlcrit)
         end if
         elacrit = max(elacrit,0.0D0)
-        epmax = 0.999
-        ep(i) = epmax*(1.0-elacrit/max(clw(i),1.0D-8))
+        epmax = 0.999D0
+        ep(i) = epmax*(1.0D0-elacrit/max(clw(i),1.0D-8))
         ep(i) = max(ep(i),0.0D0)
         ep(i) = min(ep(i),epmax)
         sigp(i) = sigs
@@ -623,17 +624,17 @@
       do i = 1 , nl + 1
         hp(i) = h(i)
         nent(i) = 0
-        water(i) = 0.0
-        evap(i) = 0.0
+        water(i) = 0.0D0
+        evap(i) = 0.0D0
         wt(i) = omtsnow
-        mp(i) = 0.0
-        m(i) = 0.0
+        mp(i) = 0.0D0
+        m(i) = 0.0D0
         lvcp(i) = lv(i)/cpn(i)
         do j = 1 , nl + 1
           qent(i,j) = q(j)
-          elij(i,j) = 0.0
-          ment(i,j) = 0.0
-          sij(i,j) = 0.0
+          elij(i,j) = 0.0D0
+          ment(i,j) = 0.0D0
+          sij(i,j) = 0.0D0
           uent(i,j) = u(j)
           vent(i,j) = v(j)
           do k = 1 , ntra
@@ -660,16 +661,16 @@
 !     ***          highest level of neutral buoyancy                 ***
 !     ***     and the highest level of positive cape (inb)           ***
 !
-      cape = 0.0
-      capem = 0.0
+      cape = 0.0D0
+      capem = 0.0D0
       inb = icb + 1
       inb1 = inb
-      byp = 0.0
+      byp = 0.0D0
       do i = icb + 1 , nl - 1
         by = (tvp(i)-tv(i))*(ph(i)-ph(i+1))/p(i)
         cape = cape + by
-        if ( by.ge.0.0 ) inb1 = i + 1
-        if ( cape.gt.0.0 ) then
+        if ( by.ge.0.0D0 ) inb1 = i + 1
+        if ( cape.gt.0.0D0 ) then
           inb = i + 1
           byp = (tvp(i+1)-tv(i+1))*(ph(i+1)-ph(i+2))/p(i+1)
           capem = cape
@@ -692,7 +693,7 @@
 !     ***  calculate cloud base mass flux and rates of mixing, m(i), 
 !     *** ***                   at each model level                    
 !     ***
-      dbosum = 0.0
+      dbosum = 0.0D0
 !
 !     ***     interpolate difference between lifted parcel and      ***
 !     ***  environmental temperatures to lifted condensation level  ***
@@ -701,7 +702,7 @@
               & /(cpn(icb-1)*p(icb-1))
       tvaplcl = tv(icb) + (tvp(icb)-tvp(icb+1))*(plcl-p(icb))           &
               & /(p(icb)-p(icb+1))
-      dtpbl = 0.0
+      dtpbl = 0.0D0
       do i = nk , icb - 1
         dtpbl = dtpbl + (tvp(i)-tv(i))*(ph(i)-ph(i+1))
       end do
@@ -712,26 +713,21 @@
 !     ***  adjust cloud base mass flux   ***
 !
       cbmfold = cbmf
-      delt0 = 300.0
+      delt0 = 300.0D0
       damps = damp*delt/delt0
-      cbmf = (1.-damps)*cbmf + 0.1*alphae*dtma
+      cbmf = (1.0D0-damps)*cbmf + 0.1D0*alphae*dtma
       cbmf = max(cbmf,0.0D0)
-!rcm  addin
-!     cbmfmax = delti*rgti*(ph(minorig)-ph(minorig+1))/(0.01*2.)
-!     cbmfmax = delti*rgti*(ph(1)-ph(2))/(0.01*2.)
-!     cbmf=min(cbmf,0.75*cbmfmax)
-!rcm  end addin
 !
 !     *** if cloud base mass flux is zero, skip rest of calculation  ***
 !
-      if ( cbmf.eq.0.0 .and. cbmfold.eq.0.0 ) return
+      if ( cbmf.eq.0.0D0 .and. cbmfold.eq.0.0D0 ) return
 !
 !     ***   calculate rates of mixing,  m(i)   ***
 !
-      m(icb) = 0.0
+      m(icb) = 0.0D0
       do i = icb + 1 , inb
         k = min(i,inb1)
-        dbo = abs(tv(k)-tvp(k)) + entp*0.02*(ph(k)-ph(k+1))
+        dbo = abs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
         dbosum = dbosum + dbo
         m(i) = cbmf*dbo
       end do
@@ -746,37 +742,37 @@
       do i = icb + 1 , inb
         qti = q(nk) - ep(i)*clw(i)
         do j = icb , inb
-          bf2 = 1. + lv(j)*lv(j)*qs(j)/(rwat*t(j)*t(j)*cpd)
+          bf2 = 1.0D0 + lv(j)*lv(j)*qs(j)/(rwat*t(j)*t(j)*cpd)
           anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
           dei = denom
-          if ( abs(dei).lt.0.01 ) dei = 0.01
+          if ( abs(dei).lt.0.01D0 ) dei = 0.01D0
           sij(i,j) = anum/dei
-          sij(i,i) = 1.0
-          altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
+          sij(i,i) = 1.0D0
+          altem = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti - qs(j)
           altem = altem/bf2
-          cwat = clw(j)*(1.-ep(j))
+          cwat = clw(j)*(1.0D0-ep(j))
           stemp = sij(i,j)
-          if ( (stemp.lt.0.0 .or. stemp.gt.1.0 .or. altem.gt.cwat) .and.&
-             & j.gt.i ) then
+          if ( (stemp.lt.0.0D0 .or. stemp.gt.1.0D0 .or. &
+                altem.gt.cwat) .and. j.gt.i ) then
             anum = anum - lv(j)*(qti-qs(j)-cwat*bf2)
             denom = denom + lv(j)*(q(i)-qti)
-            if ( abs(denom).lt.0.01 ) denom = 0.01
+            if ( abs(denom).lt.0.01D0 ) denom = 0.01D0
             sij(i,j) = anum/denom
             altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
             altem = altem - (bf2-1.)*cwat
           end if
-          if ( sij(i,j).gt.0.0 .and. sij(i,j).lt.0.9 ) then
-            qent(i,j) = sij(i,j)*q(i) + (1.-sij(i,j))*qti
-            uent(i,j) = sij(i,j)*u(i) + (1.-sij(i,j))*u(nk)
-            vent(i,j) = sij(i,j)*v(i) + (1.-sij(i,j))*v(nk)
+          if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
+            qent(i,j) = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti
+            uent(i,j) = sij(i,j)*u(i) + (1.0D0-sij(i,j))*u(nk)
+            vent(i,j) = sij(i,j)*v(i) + (1.0D0-sij(i,j))*v(nk)
             do k = 1 , ntra
-              traent(i,j,k) = sij(i,j)*tra(i,k) + (1.-sij(i,j))         &
-                            & *tra(nk,k)
+              traent(i,j,k) = sij(i,j)*tra(i,k) + &
+                              (1.0D0-sij(i,j))*tra(nk,k)
             end do
             elij(i,j) = altem
             elij(i,j) = max(0.0D0,elij(i,j))
-            ment(i,j) = m(i)/(1.-sij(i,j))
+            ment(i,j) = m(i)/(1.0D0-sij(i,j))
             nent(i) = nent(i) + 1
           end if
           sij(i,j) = max(0.0D0,sij(i,j))
@@ -795,10 +791,10 @@
             traent(i,i,j) = tra(nk,j)
           end do
           elij(i,i) = clw(i)
-          sij(i,i) = 1.0
+          sij(i,i) = 1.0D0
         end if
       end do
-      sij(inb,inb) = 1.0
+      sij(inb,inb) = 1.0D0
 !
 !     ***  normalize entrained air mass fluxes to represent equal  ***
 !     ***              probabilities of mixing                     ***
@@ -808,15 +804,15 @@
           qp1 = q(nk) - ep(i)*clw(i)
           anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
           denom = h(i) - hp(i) + lv(i)*(q(i)-qp1)
-          if ( abs(denom).lt.0.01 ) denom = 0.01
+          if ( abs(denom).lt.0.01D0 ) denom = 0.01D0
           scrit = anum/denom
           alt = qp1 - qs(i) + scrit*(q(i)-qp1)
-          if ( alt.lt.0.0 ) scrit = 1.0
+          if ( alt.lt.0.0D0 ) scrit = 1.0D0
           scrit = max(scrit,0.0D0)
-          asij = 0.0
-          smin = 1.0
+          asij = 0.0D0
+          smin = 1.0D0
           do j = icb , inb
-            if ( sij(i,j).gt.0.0 .and. sij(i,j).lt.0.9 ) then
+            if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
               if ( j.gt.i ) then
                 smid = min(sij(i,j),scrit)
                 sjmax = smid
@@ -830,7 +826,7 @@
               else
                 sjmax = max(sij(i,j+1),scrit)
                 smid = max(sij(i,j),scrit)
-                sjmin = 0.0
+                sjmin = 0.0D0
                 if ( j.gt.1 ) sjmin = sij(i,j-1)
                 sjmin = max(sjmin,scrit)
               end if
@@ -841,15 +837,15 @@
             end if
           end do
           asij = max(1.0D-21,asij)
-          asij = 1.0/asij
+          asij = 1.0D0/asij
           do j = icb , inb
             ment(i,j) = ment(i,j)*asij
           end do
-          bsum = 0.0
+          bsum = 0.0D0
           do j = icb , inb
             bsum = bsum + ment(i,j)
           end do
-          if ( bsum.lt.1.0E-18 ) then
+          if ( bsum.lt.1.0D-18 ) then
             nent(i) = 0
             ment(i,i) = m(i)
             qent(i,i) = q(nk) - ep(i)*clw(i)
@@ -859,7 +855,7 @@
               traent(i,i,j) = tra(nk,j)
             end do
             elij(i,i) = clw(i)
-            sij(i,i) = 1.0
+            sij(i,i) = 1.0D0
           end if
         end if
       end do
@@ -867,7 +863,7 @@
 !     ***  check whether ep(inb)=0, if so, skip precipitating    ***
 !     ***             downdraft calculation                      ***
 !
-      if ( ep(inb).ge.0.0001 ) then
+      if ( ep(inb).ge.0.0001D0 ) then
 !
 !       ***  integrate liquid water equation to find condensed water  
 !       *** ***                and condensed water flux                
@@ -904,15 +900,15 @@
             coeff = coeffr
             wt(i) = omtrain
           end if
-          qsm = 0.5*(q(i)+qp(i+1))
-          afac = coeff*ph(i)*(qs(i)-qsm)/(1.0E4+2.0E3*ph(i)*qs(i))
+          qsm = 0.50D0*(q(i)+qp(i+1))
+          afac = coeff*ph(i)*(qs(i)-qsm)/(1.0D4+2.0D3*ph(i)*qs(i))
           afac = max(afac,0.0D0)
           sigt = sigp(i)
           sigt = max(0.0D0,sigt)
           sigt = min(1.0D0,sigt)
-          b6 = 100.*(ph(i)-ph(i+1))*sigt*afac/wt(i)
+          b6 = 100.0D0*(ph(i)-ph(i+1))*sigt*afac/wt(i)
           c6 = (water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
-          revap = 0.5*(-b6+sqrt(b6*b6+4.*c6))
+          revap = 0.5D0*(-b6+sqrt(b6*b6+4.0D0*c6))
           evap(i) = sigt*afac*revap
           water(i) = revap*revap
 !
@@ -922,18 +918,18 @@
           if ( i.ne.1 ) then
             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
             dhdp = max(dhdp,10.0D0)
-            mp(i) = 100.*rgti*lv(i)*sigd*evap(i)/dhdp
+            mp(i) = 100.0D0*rgti*lv(i)*sigd*evap(i)/dhdp
             mp(i) = max(mp(i),0.0D0)
 !
 !           ***   add small amount of inertia to downdraft             
 !           ***
-            fac = 20.0/(ph(i-1)-ph(i))
-            mp(i) = (fac*mp(i+1)+mp(i))/(1.+fac)
+            fac = 20.0D0/(ph(i-1)-ph(i))
+            mp(i) = (fac*mp(i+1)+mp(i))/(1.0D0+fac)
 !
 !           ***      force mp to decrease linearly to zero             
 !           *** ***      between about 950 mb and the surface          
 !           ***
-            if ( p(i).gt.(0.949*p(1)) ) then
+            if ( p(i).gt.(0.949D0*p(1)) ) then
               jtt = max(jtt,i)
               mp(i) = mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
             end if
@@ -949,14 +945,14 @@
             end if
             if ( mp(i).gt.mp(i+1) ) then
               rat = mp(i+1)/mp(i)
-              qp(i) = qp(i+1)*rat + q(i)*(1.0-rat)                      &
-                    & + 100.*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
+              qp(i) = qp(i+1)*rat + q(i)*(1.0D0-rat)                    &
+                    & + 100.D0*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
               up(i) = up(i+1)*rat + u(i)*(1.-rat)
               vp(i) = vp(i+1)*rat + v(i)*(1.-rat)
               do j = 1 , ntra
-                trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(1.-rat)
+                trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(1.0D0-rat)
               end do
-            else if ( mp(i+1).gt.0.0 ) then
+            else if ( mp(i+1).gt.0.0D0 ) then
               qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(i+1)*(cl-cpd))  &
                     & +cpd*(t(i+1)-t(i)))/(lv(i)+t(i)*(cl-cpd))
               up(i) = up(i+1)
@@ -974,7 +970,7 @@
 !       ***  calculate surface precipitation in mm/s     ***
 !
 !rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
-        precip = precip + wt(1)*sigd*water(1)*1000./(rowl*gti)
+        precip = precip + wt(1)*sigd*water(1)*1000.0D0/(rowl*gti)
                                                         ! mm/s
       end if
 !
@@ -982,21 +978,21 @@
 !     ***  calculate downdraft velocity scale and surface temperature
 !     and  *** ***                    water vapor fluctuations         
 !     ***
-      wd = betae*abs(mp(icb))*0.01*rgas*t(icb)/(sigd*p(icb))
-      qprime = 0.5*(qp(1)-q(1))
+      wd = betae*abs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
+      qprime = 0.5D0*(qp(1)-q(1))
       tprime = wlhv*qprime*rcpd
 !
 !     ***  calculate tendencies of lowest level potential temperature 
 !     *** ***                      and mixing ratio                    
 !     ***
-      dpinv = 0.01/(ph(1)-ph(2))
-      am = 0.0
+      dpinv = 0.01D0/(ph(1)-ph(2))
+      am = 0.0D0
       if ( nk.eq.1 ) then
         do k = 2 , inb
           am = am + m(k)
         end do
       end if
-      if ( (2.*gti*dpinv*am).ge.delti ) iflag = 4
+      if ( (2.0D0*gti*dpinv*am).ge.delti ) iflag = 4
       ft(1) = ft(1) + gti*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
       ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
       ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))          &
@@ -1006,9 +1002,8 @@
       fu(1) = fu(1) + gti*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
       fv(1) = fv(1) + gti*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
       do j = 1 , ntra
-        ftra(1,j) = ftra(1,j)                                           &
-                  & + gti*dpinv*(mp(2)*(trap(2,j)-tra(1,j))+am*(tra(2,j)&
-                  & -tra(1,j)))
+        ftra(1,j) = ftra(1,j) + gti*dpinv*(mp(2)*(trap(2,j)-tra(1,j)) + &
+                    am*(tra(2,j)-tra(1,j)))
       end do
       do j = 2 , inb
         fq(1) = fq(1) + gti*dpinv*ment(j,1)*(qent(j,1)-q(1))
@@ -1027,10 +1022,10 @@
 !     fluxes  *** ***                      through each level          
 !     ***
       do i = 2 , inb
-        dpinv = 0.01/(ph(i)-ph(i+1))
-        cpinv = 1.0/cpn(i)
-        amp1 = 0.0
-        ad = 0.0
+        dpinv = 0.01D0/(ph(i)-ph(i+1))
+        cpinv = 1.0D0/cpn(i)
+        amp1 = 0.0D0
+        ad = 0.0D0
         if ( i.ge.nk ) then
           do k = i + 1 , inb + 1
             amp1 = amp1 + m(k)
@@ -1041,16 +1036,15 @@
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (2.*gti*dpinv*amp1).ge.delti ) iflag = 4
+        if ( (2.0D0*gti*dpinv*amp1).ge.delti ) iflag = 4
         do k = 1 , i - 1
           do j = i , inb
             ad = ad + ment(j,k)
           end do
         end do
-        ft(i) = ft(i)                                                   &
-              & + gti*dpinv*(amp1*(t(i+1)-t(i)+(gz(i+1)-gz(i))*cpinv)   &
-              & -ad*(t(i)-t(i-1)+(gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i) &
-              & *evap(i)
+        ft(i) = ft(i) + gti*dpinv*(amp1*(t(i+1)-t(i)+ &
+                   (gz(i+1)-gz(i))*cpinv)-ad*(t(i)-t(i-1)+ &
+                   (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(i) = ft(i) + gti*dpinv*ment(i,i)                             &
               & *(hp(i)-h(i)+t(i)*(cpv-cpd)*(q(i)-qent(i,i)))*cpinv
         ft(i) = ft(i) + sigd*wt(i+1)*(cl-cpd)*water(i+1)*(t(i+1)-t(i))  &
@@ -1064,7 +1058,7 @@
                     & (tra(i,k)-tra(i-1,k)))
         end do
         do k = 1 , i - 1
-          awat = elij(k,i) - (1.-ep(i))*clw(i)
+          awat = elij(k,i) - (1.0D0-ep(i))*clw(i)
           awat = max(awat,0.0D0)
           fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
           fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
@@ -1105,21 +1099,21 @@
                 & + frac*fqold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))&
                 & *lv(inb)/lv(inb-1)
       ftold = ft(inb)
-      ft(inb) = ft(inb)*(1.-frac)
+      ft(inb) = ft(inb)*(1.0D0-frac)
       ft(inb-1) = ft(inb-1)                                             &
                 & + frac*ftold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))&
                 & *cpn(inb)/cpn(inb-1)
       fuold = fu(inb)
-      fu(inb) = fu(inb)*(1.-frac)
+      fu(inb) = fu(inb)*(1.0D0-frac)
       fu(inb-1) = fu(inb-1)                                             &
                 & + frac*fuold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
       fvold = fv(inb)
-      fv(inb) = fv(inb)*(1.-frac)
+      fv(inb) = fv(inb)*(1.0D0-frac)
       fv(inb-1) = fv(inb-1)                                             &
                 & + frac*fvold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
       do k = 1 , ntra
         ftraold = ftra(inb,k)
-        ftra(inb,k) = ftra(inb,k)*(1.-frac)
+        ftra(inb,k) = ftra(inb,k)*(1.0D0-frac)
         ftra(inb-1,k) = ftra(inb-1,k) + frac*ftraold*(ph(inb)-ph(inb+1))&
                       & /(ph(inb-1)-ph(inb))
       end do
@@ -1127,9 +1121,9 @@
 !     ***   very slightly adjust tendencies to force exact   ***
 !     ***     enthalpy, momentum and tracer conservation     ***
 !
-      ents = 0.0
-      uav = 0.0
-      vav = 0.0
+      ents = 0.0D0
+      uav = 0.0D0
+      vav = 0.0D0
       do i = 1 , inb
         ents = ents + (cpn(i)*ft(i)+lv(i)*fq(i))*(ph(i)-ph(i+1))
         uav = uav + fu(i)*(ph(i)-ph(i+1))
@@ -1140,11 +1134,11 @@
       vav = vav/(ph(1)-ph(inb+1))
       do i = 1 , inb
         ft(i) = ft(i) - ents/cpn(i)
-        fu(i) = (1.-cu)*(fu(i)-uav)
-        fv(i) = (1.-cu)*(fv(i)-vav)
+        fu(i) = (1.0D0-cu)*(fu(i)-uav)
+        fv(i) = (1.0D0-cu)*(fv(i)-vav)
       end do
       do k = 1 , ntra
-        traav = 0.0
+        traav = 0.0D0
         do i = 1 , inb
           traav = traav + ftra(i,k)*(ph(i)-ph(i+1))
         end do
@@ -1177,29 +1171,29 @@
 !
 !     ***   assign values of thermodynamic constants     ***
 !
-      cl = 2500.0
+      cl = 2500.0D0
 !
       cpvmcl = cl - cpv
       eps = rgas/rwat
-      epsi = 1./eps
+      epsi = 1.0D0/eps
 !
 !     ***  calculate certain parcel quantities, including static energy
 !     ***
-      ah0 = (cpd*(1.-q(nk))+cl*q(nk))*t(nk) + q(nk)                     &
+      ah0 = (cpd*(1.0D0-q(nk))+cl*q(nk))*t(nk) + q(nk)   &
           & *(wlhv-cpvmcl*(t(nk)-tzero)) + gz(nk)
-      cpp = cpd*(1.-q(nk)) + q(nk)*cpv
-      cpinv = 1./cpp
+      cpp = cpd*(1.0D0-q(nk)) + q(nk)*cpv
+      cpinv = 1.0D0/cpp
 !
       if ( kk.eq.1 ) then
 !
 !       ***   calculate lifted parcel quantities below cloud base   ***
 !
         do i = 1 , icb - 1
-          clw(i) = 0.0
+          clw(i) = 0.0D0
         end do
         do i = nk , icb - 1
           tpk(i) = t(nk) - (gz(i)-gz(nk))*cpinv
-          tvp(i) = tpk(i)*(1.+q(nk)*epsi)
+          tvp(i) = tpk(i)*(1.0D0+q(nk)*epsi)
         end do
       end if
 !
@@ -1222,20 +1216,20 @@
           tg = tg + s*(ah0-ahg)
           tg = max(tg,35.0D0)
           tc = tg - tzero
-          denom = 243.5 + tc
-          if ( tc.ge.0.0 ) then
-            es = 6.112*exp(17.67*tc/denom)
+          denom = 243.5D0 + tc
+          if ( tc.ge.0.0D0 ) then
+            es = 6.112D0*exp(17.67D0*tc/denom)
           else
-            es = exp(23.33086-6111.72784/tg+0.15215*log(tg))
+            es = exp(23.33086D0-6111.72784D0/tg+0.15215D0*log(tg))
           end if
-          qg = eps*es/(p(i)-es*(1.-eps))
+          qg = eps*es/(p(i)-es*(1.0D0-eps))
         end do
         alv = wlhv - cpvmcl*(t(i)-tzero)
         tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
         clw(i) = q(nk) - qg
         clw(i) = max(0.0D0,clw(i))
-        rg = qg/(1.-q(nk))
-        tvp(i) = tpk(i)*(1.+rg*epsi)
+        rg = qg/(1.0D0-q(nk))
+        tvp(i) = tpk(i)*(1.0D0+rg*epsi)
       end do
 !
       end subroutine tlift
