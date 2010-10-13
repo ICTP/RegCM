@@ -2,118 +2,101 @@
 !
 !    This file is part of ICTP RegCM.
 !
-!    ICTP RegCM is free software: you can redistribute it and/or
-!    modify
-!    it under the terms of the GNU General Public License as
-!    published by
-!    the Free Software Foundation, either version 3 of the
-!    License, or
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
 !    (at your option) any later version.
 !
 !    ICTP RegCM is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty
-!    of
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
 !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !    GNU General Public License for more details.
 !
-!    You should have received a copy of the GNU General Public
-!    License
-!    along with ICTP RegCM.  If not, see
-!    <http://www.gnu.org/licenses/>.
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+ 
       module mod_chem
+
       use mod_dynparam
+      use mod_date
+      use mod_message
+#ifdef MPP1
+      use mod_mppio
+#endif
+
       implicit none
 
       real(8), allocatable, dimension(:,:,:)  :: oh,ho2,o3,no3,h2o2
       real(8), allocatable, dimension(:,:,:)  :: oh_io,ho2_io,o3_io, &
                                                  no3_io,h2o2_io
 
-
+      integer , parameter , private :: iutox = 123
 
       contains
-      subroutine allocate_mod_chem
 
-#ifdef MPP1
-      allocate(oh(iy,kz,jxp))                                           
-      allocate(ho2(iy,kz,jxp))                                           
-      allocate(o3(iy,kz,jxp))                                           
-      allocate(no3(iy,kz,jxp))                                           
-      allocate(h2o2(iy,kz,jxp))                                           
-
-!      allocate(oh_io(iy,kz,jxp))                                           
-!      allocate(ho2_io(iy,kz,jxp))                                           
-!      allocate(o3_io(iy,kz,jxp))                                           
-!      allocate(no3_io(iy,kz,jxp))                                           
-!      allocate(h2o2_io(iy,kz,jxp))                                           
-      allocate(oh_io(iy,kz,jx))                                           
-      allocate(ho2_io(iy,kz,jx))                                           
-      allocate(o3_io(iy,kz,jx))                                           
-      allocate(no3_io(iy,kz,jx))                                           
-      allocate(h2o2_io(iy,kz,jx))                                           
-
-#else
-      allocate(oh(iy,kz,jx))                                           
-      allocate(ho2(iy,kz,jx))                                           
-      allocate(o3(iy,kz,jx))                                           
-      allocate(no3(iy,kz,jx))                                           
-      allocate(h2o2(iy,kz,jx))                                           
-
-      allocate(oh_io(iy,kz,jx))                                           
-      allocate(ho2_io(iy,kz,jx))                                           
-      allocate(o3_io(iy,kz,jx))                                           
-      allocate(no3_io(iy,kz,jx))                                           
-      allocate(h2o2_io(iy,kz,jx))                                           
-#endif
-
+      subroutine allocate_mod_chem(lmpi)
+        implicit none
+        logical , intent(in) :: lmpi
+        if (lmpi) then
+          allocate(oh(iy,kz,jxp))
+          allocate(ho2(iy,kz,jxp))
+          allocate(o3(iy,kz,jxp))
+          allocate(no3(iy,kz,jxp))
+          allocate(h2o2(iy,kz,jxp))
+!         allocate(oh_io(iy,kz,jxp))                                           
+!         allocate(ho2_io(iy,kz,jxp))                                           
+!         allocate(o3_io(iy,kz,jxp))                                           
+!         allocate(no3_io(iy,kz,jxp))                                           
+!         allocate(h2o2_io(iy,kz,jxp))
+          allocate(oh_io(iy,kz,jx))
+          allocate(ho2_io(iy,kz,jx))
+          allocate(o3_io(iy,kz,jx))
+          allocate(no3_io(iy,kz,jx))
+          allocate(h2o2_io(iy,kz,jx))
+        else
+          allocate(oh(iy,kz,jx))
+          allocate(ho2(iy,kz,jx))
+          allocate(o3(iy,kz,jx))
+          allocate(no3(iy,kz,jx))
+          allocate(h2o2(iy,kz,jx))
+        end if
       end subroutine allocate_mod_chem
-
-
+!
       subroutine init_chem
-      use mod_dynparam
-      use mod_iunits
-      use mod_date 
-      use mod_message
-      use mod_tmpsav
 #ifdef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif
-      logical :: existing
+      logical        :: existing
       character(256) :: finm
       integer        :: i,j,k,ierr
       integer        :: nxxx , nyyy, kzzz 
       real(4) , dimension(iy,jx) :: io2d
+!
       existing = .false.
 
-
 #ifdef MPP1
-      call allocate_mod_chem 
-
-        write(*,*)'-------------------',iy,jx
-
       if ( myid.eq.0 ) then
         if (ndate0.eq.globidate1 .or.  &
-         (((ndate0/10000)*100+1)*100 .eq. &
-         ((globidate1/10000)*100+1)*100 ) ) then
-         write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',&
-         & globidate1
+           (((ndate0/10000)*100+1)*100 .eq. &
+           ((globidate1/10000)*100+1)*100 ) ) then
+          write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',&
+         &       globidate1
         else
           write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',&
-          & ((ndate0/10000)*100+1)*100
+          &         ((ndate0/10000)*100+1)*100
         end if
         inquire (file=finm,exist=existing)
         if (.not.existing) then
-            write (aline,*) 'The following ICBC File does not exist:' ,  & 
+          write (aline,*) 'The following OXBC File does not exist:' ,  & 
         &            trim(finm), 'please check location'
-        call say
-        call fatal(__FILE__,__LINE__, 'OXBC FILE NOT FOUND')
+          call say
+          call fatal(__FILE__,__LINE__, 'OXBC FILE NOT FOUND')
         else
-          write(*,*)'HHHHHHHHHHHHHH',trim(finm)
-            open (iutox,file=finm,form='unformatted',status='old', &
+          open (iutox,file=finm,form='unformatted',status='old', &
               & access='direct',recl=iy*jx*ibyte)
         end if
         oxrec = 0
@@ -122,46 +105,46 @@
       if (ndate0.eq.globidate1 .or.                                     &
          (((ndate0/10000)*100+1)*100 .eq.                               &
          ((globidate1/10000)*100+1)*100 ) ) then
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
+        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',  &
              & globidate1
       else
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_ICBC',  &
+        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',  &
              & ((ndate0/10000)*100+1)*100
       end if
       inquire(file=finm,exist=existing)
-        if (.not.existing) then
-          write (aline,*) 'The following IBC File does not exist: ' ,   &
+      if (.not.existing) then
+        write (aline,*) 'The following OXBC File does not exist: ' ,   &
               &            trim(finm), 'please check location'
-          call say
-          call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
-        else 
-           open (iutox,file=finm,form='unformatted',status='old',       &
-           &access='direct',recl=iy*jx*ibyte)
-          oxrec = 0
-        end if
+        call say
+        call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
+      else 
+        open (iutox,file=finm,form='unformatted',status='old',       &
+          &     access='direct',recl=iy*jx*ibyte)
+      end if
+      oxrec = 0
 #endif
-!!!!!!!!!!!!!!!!!!!
       do
-          if ( myid.eq.0 ) then
-            oxrec = oxrec + 1
-            write(*,*)'OOOOOOOOOOOOXXXXXXXX',oxrec
-            read (iutox,rec=oxrec) ndate0 , nxxx , nyyy , kzzz
-            if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
-              write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
+#ifdef MPP1
+        if ( myid.eq.0 ) then
+#endif
+        oxrec = oxrec + 1
+        read (iutox,rec=oxrec) ndate0 , nxxx , nyyy , kzzz
+        if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
+          write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
                             & jx , ' KX=' , kz
-              call say
-              write (aline,*) 'SET IN ICBC: NY=' , nyyy , ' NX=' ,      &
+          call say
+          write (aline,*) 'SET IN OXBC: NY=' , nyyy , ' NX=' ,      &
                             & nxxx , ' NZ=' , kzzz
-              call say
-              call fatal(__FILE__,__LINE__,                             &
+          call say
+          call fatal(__FILE__,__LINE__,                             &
                         &'IMPROPER DIMENSION SPECIFICATION')
-            end if
-            print * , 'READING INITAL CONDITIONS' , ndate0
-            if ( ndate0.lt.mdatez(nnnchk) ) then
-              print * , ndate0 , mdatez(nnnchk) , nnnchk
-              print * , 'read in datasets at :' , ndate0
-              oxrec = oxrec + kz*5
-              print * , 'Searching for proper date: ' , ndate1 ,        &
+        end if
+        print * , 'READING INITAL CONDITIONS' , ndate0
+        if ( ndate0.lt.mdatez(nnnchk) ) then
+          print * , ndate0 , mdatez(nnnchk) , nnnchk
+          print * , 'read in datasets at :' , ndate0
+          oxrec = oxrec + kz*5
+          print * , 'Searching for proper date: ' , ndate1 ,        &
                   & mdatez(nnnchk+1)
               print * , ndate0 , mdatez(nnnchk)
               cycle ! Proper date not found
@@ -260,11 +243,9 @@
          end do
       end do
 
-
 99001 format (a,a,a,a,i0.10)
       end subroutine init_chem
 
-       
       subroutine bdyin_chem
       use mod_dynparam
       use mod_iunits
@@ -395,9 +376,6 @@
 !      write(*,*)'H2O2==',h2o2_io(17,kz,32)*1e9
       write(*,*)'MAX H2O2',maxval(h2o2_io(:,kz,:))*1e9
 
-
-
-
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -409,14 +387,12 @@
               end do
             end do
           end do  
+#ifdef MPP1
         end if ! end if myid=0
+#endif
 !
 !       Start transmission of data to other processors
 !
-        call mpi_bcast(ndate0,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nxxx,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nyyy,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(kzzz,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_scatter(sav_7(1,1,1),iy*(kz*5)*jxp,mpi_real8,        &
                        & sav7(1,1,1), iy*(kz*5)*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -436,12 +412,9 @@
       write(*,*)'MAX O3 2',maxval(o3(:,kz,:))*1e9
       write(*,*)'MAX H2O2 2',maxval(h2o2(:,kz,:))*1e9
 
-
-
 99001 format (a,a,a,a,i0.10)
 
       end subroutine bdyin_chem
-
 
       end module mod_chem
 
