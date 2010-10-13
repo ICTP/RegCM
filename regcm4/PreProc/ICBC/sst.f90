@@ -33,7 +33,7 @@
       character(256) :: terfile
 
 !     call and print header
-      call header(2)
+      call header('sst')
 
 !
 !     Read input global namelist

@@ -120,7 +120,7 @@
       integer :: ierr
       character(256) :: namelistfile, prgname
 !
-      call header(0)
+      call header('icbc')
 !
 !
 !     Read input global namelist

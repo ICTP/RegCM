@@ -21,9 +21,9 @@
 
       contains
 
-      subroutine header(myid)
+      subroutine header(myname)
       implicit none 
-      integer , intent(in) :: myid
+      character (len=*) , intent(in) :: myname
       integer :: ihost , idir
       integer :: hostnm
       integer :: getcwd
@@ -33,16 +33,9 @@
       character (len=256) :: directory='?'
       integer , parameter :: nrite=6
   
-      if ( myid.eq.0 )  then 
 
-        write (nrite,                                                   &
-           &   "(/,2x,'This is ICBC part of the RegCM version 4 ')")
-      else 
-        write (nrite,                                                   &
-           &   "(/,2x,'This is SST part of the RegCM version 4 ')")
-       end if 
-
-        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+      write (nrite,99002)  myname 
+      write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
         hostname='ibm platform '
@@ -62,6 +55,7 @@
         write (nrite,*) ": in directory         : ",trim(directory)
         write (nrite,*) "                      " 
       return 
+99002 format(/,1x,' This is ',A,' part of the RegCM version 4')
 99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
         &    '  time: ',A,/)
       end subroutine header
