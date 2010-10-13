@@ -382,7 +382,7 @@ def main(argv):
                 log.close()
                 os.sys.exit(exit_status)
             
-            p_regcm=subprocess.Popen(bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True) 
+            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True) 
             if p_regcm.wait() != 0:
                 print "\nError: RegCM",testname,"crashed!!\n"
                 exit_status = 1
