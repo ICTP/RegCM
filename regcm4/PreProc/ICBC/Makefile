@@ -5,7 +5,7 @@ include ../../Makefile.inc
 
 all: aerosol sst icbc install
 
-OXIDANTOBJ =  mod_oxidant.o main_oxd.o mod_wrtoxd.o mod_date.o
+OXIDANTOBJ =  mod_oxidant.o oxidant.o mod_wrtoxd.o mod_date.o
 AEROSOLOBJ = aerosol.o mod_date.o
 SSTOBJ = sst.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_1deg.o \
          mod_sst_ccsm.o mod_interp.o mod_date.o mod_sst_grid.o mod_header.o
@@ -109,9 +109,10 @@ mod_uvrot.o: mod_uvrot.f90 mod_constants.o
 mod_vectutil.o: mod_vectutil.f90
 mod_vertint.o: mod_vertint.f90 mod_constants.o
 mod_write.o: mod_write.F90 mod_dynparam.o mod_date.o
-mod_wrtoxd.o : mod_wrtoxd.f90
-mod_oxidant.o : mod_oxidant.f90 mod_dynparam.o mod_date.o mod_wrtoxd.o
-main_oxd.o : main_oxd.f90 mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o \
+mod_wrtoxd.o : mod_wrtoxd.F90 mod_grid.o mod_date.o mod_dynparam.o
+mod_oxidant.o : mod_oxidant.f90 mod_dynparam.o mod_date.o mod_wrtoxd.o \
+	              mod_grid.o mod_interp.o
+oxidant.o : oxidant.f90 mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o \
               mod_header.o
 aerosol.o: aerosol.f90 mod_dynparam.o mod_date.o
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o

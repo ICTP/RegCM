@@ -17,67 +17,56 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_write
+      module mod_wrtoxd
 
       use mod_dynparam
+      use mod_date
+      use mod_grid
 
-      implicit none
+      private
 
-      integer , private :: ncid
-      character(256) , private :: ofname
-      integer , private :: irefdate
-      integer , private :: itime
-      integer , dimension(5) , private :: idims
-      integer , dimension(8) , private :: ivar
+      public :: oh4 , ho24 , o34 , no34 , h2o24
+      public :: init_outoxd , free_outoxd , newfile , writeox
 
-      real(4) , allocatable , dimension(:,:) :: ps4 , ts4
-      real(4) , allocatable , dimension(:,:,:) :: c4 , h4 , q4
-      real(4) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
-      real(4) , allocatable , dimension(:,:,:) :: sulfate4
+      integer :: ncid
+      character(256) :: ofname
+      integer :: irefdate
+      integer :: itime
+      integer , dimension(5) :: idims
+      integer , dimension(8) :: ivar
+      integer :: istatus
+
+      real(4) , allocatable , dimension(:,:,:) :: oh4 , ho24 , o34 , &
+                                                  no34 , h2o24
 
       data ncid /-1/
 
       contains
 
-      subroutine init_output
-      implicit none
-        allocate(ps4(jx,iy))
-        allocate(ts4(jx,iy))
-        allocate(c4(jx,iy,kz))
-        allocate(h4(jx,iy,kz))
-        allocate(q4(jx,iy,kz))
-        allocate(t4(jx,iy,kz))
-        allocate(u4(jx,iy,kz))
-        allocate(v4(jx,iy,kz))
-        if ( dattyp=='EH5OM' .and. ehso4) then
-          allocate(sulfate4(jx,iy,kz))
-        end if
-      end subroutine init_output
+      subroutine init_outoxd
+        implicit none
+        allocate(oh4(jx,iy,kz))
+        allocate(ho24(jx,iy,kz))
+        allocate(o34(jx,iy,kz))
+        allocate(no34(jx,iy,kz))
+        allocate(h2o24(jx,iy,kz))
+      end subroutine init_outoxd
 
-      subroutine free_output
+      subroutine free_outoxd
         use netcdf
         implicit none
-        integer :: istatus
-        deallocate(ps4)
-        deallocate(ts4)
-        deallocate(c4)
-        deallocate(h4)
-        deallocate(q4)
-        deallocate(t4)
-        deallocate(u4)
-        deallocate(v4)
-        if ( dattyp=='EH5OM' .and. ehso4) then
-          deallocate(sulfate4)
-        end if
+        deallocate(oh4)
+        deallocate(ho24)
+        deallocate(o34)
+        deallocate(no34)
+        deallocate(h2o24)
         if (ncid > 0) then
           istatus = nf90_close(ncid)
           call check_ok(istatus,('Error closing file '//trim(ofname)))
         end if
-      end subroutine free_output
+      end subroutine free_outoxd
 
       subroutine newfile(idate1)
-        use mod_date
-        use mod_grid , only : xlat , xlon , sigma2
         use netcdf
         implicit none
         integer , intent(in) :: idate1
@@ -90,7 +79,7 @@
         integer , dimension(4) :: x3ddim
         real(4) , allocatable , dimension(:) :: yiy
         real(4) , allocatable , dimension(:) :: xjx
-        character(64) :: csdate , cdum
+        character(64) :: csdate
         character(256) :: history
         real(4) , dimension(2) :: trlat
         real(4) :: hptop
@@ -101,7 +90,7 @@
         end if
 
         write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
-              &     '_ICBC.', idate1, '.nc'
+              &     '_OXBC.', idate1, '.nc'
 
         irefdate = idate1
         itime = 1
@@ -119,7 +108,7 @@
         call check_ok(istatus,('Error creating file '//trim(ofname)))
 
         istatus = nf90_put_att(ncid, nf90_global, 'title',  &
-                & 'ICTP Regional Climatic model V4 ICBC program output')
+            & 'ICTP Regional Climatic model V4 oxidant program output')
         call check_ok(istatus,'Error adding global title')
         istatus = nf90_put_att(ncid, nf90_global, 'institution', &
                  & 'ICTP')
@@ -134,7 +123,7 @@
         write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
              tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
              tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
-             ' : Created by RegCM icbc program'
+             ' : Created by RegCM oxidant program'
         istatus = nf90_put_att(ncid, nf90_global, 'history', history)
         call check_ok(istatus,'Error adding global history')
         istatus = nf90_put_att(ncid, nf90_global, 'references', &
@@ -171,16 +160,6 @@
         istatus = nf90_put_att(ncid, nf90_global,  &
                            &   'global_data_source', dattyp)
         call check_ok(istatus,'Error adding global data_source')
-        if (dattyp == 'EH5OM') then
-          if (ehso4) then
-            cdum = 'Yes'
-          else
-            cdum = 'No'
-          end if
-          istatus = nf90_put_att(ncid, nf90_global,  &
-                             &   'sulfate_data_present', cdum)
-          call check_ok(istatus,'Error adding global sulfate_present')
-        end if
         istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
         call check_ok(istatus,'Error creating dimension iy')
         istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
@@ -275,134 +254,96 @@
         istatus = nf90_put_att(ncid, ivar(1), 'units', &
                        &   'hours since '//csdate)
         call check_ok(istatus,'Error adding time units')
-        istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3),  &
+        istatus = nf90_def_var(ncid, 'oh', nf90_float, x3ddim,  &
                             &  ivar(2))
-        call check_ok(istatus,'Error adding variable ps')
+        call check_ok(istatus,'Error adding variable oh')
 #ifdef NETCDF4_HDF5
         istatus = nf90_def_var_deflate(ncid, ivar(2), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on ps')
+        call check_ok(istatus,'Error setting compression on oh')
 #endif
         istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
-                            &  'surface_air_pressure')
-        call check_ok(istatus,'Error adding ps standard_name')
+                            &  'hydroxide_molecular_density')
+        call check_ok(istatus,'Error adding oh standard_name')
         istatus = nf90_put_att(ncid, ivar(2), 'long_name',     &
-                            &  'Surface pressure')
-        call check_ok(istatus,'Error adding ps long_name')
-        istatus = nf90_put_att(ncid, ivar(2), 'units', 'hPa')
-        call check_ok(istatus,'Error adding ps units')
+                            & 'Hydroxide molecular density')
+        call check_ok(istatus,'Error adding oh long_name')
+        istatus = nf90_put_att(ncid, ivar(2), 'units', 'moleculs cm-3')
+        call check_ok(istatus,'Error adding oh units')
         istatus = nf90_put_att(ncid, ivar(2), 'coordinates', &
                             &  'xlon xlat')
-        call check_ok(istatus,'Error adding ps coordinates')
-        istatus = nf90_def_var(ncid, 'ts', nf90_float, idims(1:3),  &
+        call check_ok(istatus,'Error adding oh coordinates')
+        istatus = nf90_def_var(ncid, 'ho2', nf90_float, x3ddim,  &
                             &  ivar(3))
-        call check_ok(istatus,'Error adding variable ts')
+        call check_ok(istatus,'Error adding variable ho2')
 #ifdef NETCDF4_HDF5
         istatus = nf90_def_var_deflate(ncid, ivar(3), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on ts')
+        call check_ok(istatus,'Error setting compression on ho2')
 #endif
         istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &
-                            &  'surface_temperature')
-        call check_ok(istatus,'Error adding ts standard_name')
+                          & 'hydrogen_dioxide_molecular_density')
+        call check_ok(istatus,'Error adding ho2 standard_name')
         istatus = nf90_put_att(ncid, ivar(3), 'long_name',     &
-                            &  'Surface Temperature')
-        call check_ok(istatus,'Error adding ts long_name')
-        istatus = nf90_put_att(ncid, ivar(3), 'units', 'K')
-        call check_ok(istatus,'Error adding ts units')
+                          & 'Hydrogen dioxide molecular density')
+        call check_ok(istatus,'Error adding ho2 long_name')
+        istatus = nf90_put_att(ncid, ivar(3), 'units', 'moleculs cm-3')
+        call check_ok(istatus,'Error adding ho2 units')
         istatus = nf90_put_att(ncid, ivar(3), 'coordinates', &
                             &  'xlon xlat')
-        call check_ok(istatus,'Error adding ts coordinates')
-        istatus = nf90_def_var(ncid, 'u', nf90_float, x3ddim,  &
+        call check_ok(istatus,'Error adding ho2 coordinates')
+        istatus = nf90_def_var(ncid, 'o3', nf90_float, x3ddim,  &
                             &  ivar(4))
-        call check_ok(istatus,'Error adding variable u')
+        call check_ok(istatus,'Error adding variable o3')
 #ifdef NETCDF4_HDF5
         istatus = nf90_def_var_deflate(ncid, ivar(4), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on u')
+        call check_ok(istatus,'Error setting compression on o3')
 #endif
         istatus = nf90_put_att(ncid, ivar(4), 'standard_name', &
-                            &  'eastward_wind')
-        call check_ok(istatus,'Error adding u standard_name')
+                            &  'ozone_mixing_ratio')
+        call check_ok(istatus,'Error adding o3 standard_name')
         istatus = nf90_put_att(ncid, ivar(4), 'long_name',     &
-                            &  'U component (westerly) of wind')
-        call check_ok(istatus,'Error adding u long_name')
-        istatus = nf90_put_att(ncid, ivar(4), 'units', 'm s-1')
-        call check_ok(istatus,'Error adding u units')
+                            &  'Ozone mixing ratio')
+        call check_ok(istatus,'Error adding o3 long_name')
+        istatus = nf90_put_att(ncid, ivar(4), 'units', 'm^3/m^3')
+        call check_ok(istatus,'Error adding o3 units')
         istatus = nf90_put_att(ncid, ivar(4), 'coordinates', &
                             &  'xlon xlat')
-        call check_ok(istatus,'Error adding u coordinates')
-        istatus = nf90_def_var(ncid, 'v', nf90_float, x3ddim,  &
+        call check_ok(istatus,'Error adding o3 coordinates')
+        istatus = nf90_def_var(ncid, 'no3', nf90_float, x3ddim,  &
                             &  ivar(5))
-        call check_ok(istatus,'Error adding variable v')
+        call check_ok(istatus,'Error adding variable no3')
 #ifdef NETCDF4_HDF5
         istatus = nf90_def_var_deflate(ncid, ivar(5), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on v')
+        call check_ok(istatus,'Error setting compression on no3')
 #endif
         istatus = nf90_put_att(ncid, ivar(5), 'standard_name', &
-                            &  'northward_wind')
-        call check_ok(istatus,'Error adding v standard_name')
+                            &  'nitrate_molecular_density')
+        call check_ok(istatus,'Error adding no3 standard_name')
         istatus = nf90_put_att(ncid, ivar(5), 'long_name',     &
-                            &  'V component (southerly) of wind')
-        call check_ok(istatus,'Error adding v long_name')
-        istatus = nf90_put_att(ncid, ivar(5), 'units', 'm s-1')
-        call check_ok(istatus,'Error adding v units')
+                            &  'Nitrate molecular density')
+        call check_ok(istatus,'Error adding no3 long_name')
+        istatus = nf90_put_att(ncid, ivar(5), 'units', 'moleculs cm^3')
+        call check_ok(istatus,'Error adding no3 units')
         istatus = nf90_put_att(ncid, ivar(5), 'coordinates', &
                             &  'xlon xlat')
-        call check_ok(istatus,'Error adding v coordinates')
-        istatus = nf90_def_var(ncid, 't', nf90_float, x3ddim,  &
-                            &  ivar(6))
-        call check_ok(istatus,'Error adding variable t')
+        call check_ok(istatus,'Error adding no3 coordinates')
+        istatus = nf90_def_var(ncid, 'h2o2', nf90_float, x3ddim, &
+                              &  ivar(6))
+        call check_ok(istatus,'Error adding variable h2o2')
 #ifdef NETCDF4_HDF5
         istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on t')
+        call check_ok(istatus,'Error setting compression on h2o2')
 #endif
         istatus = nf90_put_att(ncid, ivar(6), 'standard_name', &
-                            &  'air_temperature')
-        call check_ok(istatus,'Error adding t standard_name')
+                           &  'hydrogen_peroxide_mixing_ratio')
+        call check_ok(istatus,'Error adding h2o2 standard_name')
         istatus = nf90_put_att(ncid, ivar(6), 'long_name',     &
-                            &  'Temperature')
-        call check_ok(istatus,'Error adding t long_name')
-        istatus = nf90_put_att(ncid, ivar(6), 'units', 'K')
-        call check_ok(istatus,'Error adding t units')
+                           &  'Hydrogen peroxide mixing ratio')
+        call check_ok(istatus,'Error adding h2o2 long_name')
+        istatus = nf90_put_att(ncid, ivar(6), 'units', 'm^3/m^3')
+        call check_ok(istatus,'Error adding h2o2 units')
         istatus = nf90_put_att(ncid, ivar(6), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding t coordinates')
-        istatus = nf90_def_var(ncid, 'qv', nf90_float, x3ddim,  &
-                            &  ivar(7))
-        call check_ok(istatus,'Error adding variable qv')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(7), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on qv')
-#endif
-        istatus = nf90_put_att(ncid, ivar(7), 'standard_name', &
-                            &  'humidity_mixing_ratio')
-        call check_ok(istatus,'Error adding qv standard_name')
-        istatus = nf90_put_att(ncid, ivar(7), 'long_name',     &
-                            &  'Water vapor mixing ratio')
-        call check_ok(istatus,'Error adding qv long_name')
-        istatus = nf90_put_att(ncid, ivar(7), 'units', 'kg kg-1')
-        call check_ok(istatus,'Error adding qv units')
-        istatus = nf90_put_att(ncid, ivar(7), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding qv coordinates')
-        if ( dattyp=='EH5OM' .and. ehso4) then
-          istatus = nf90_def_var(ncid, 'so4', nf90_float, x3ddim, &
-                              &  ivar(8))
-          call check_ok(istatus,'Error adding variable so4')
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var_deflate(ncid, ivar(8), 1, 1, 9)
-          call check_ok(istatus,'Error setting compression on qv')
-#endif
-          istatus = nf90_put_att(ncid, ivar(8), 'standard_name', &
-                              &  'atmosphere_sulfate_content')
-          call check_ok(istatus,'Error adding so4 standard_name')
-          istatus = nf90_put_att(ncid, ivar(8), 'long_name',     &
-                              &  'Sulfate')
-          call check_ok(istatus,'Error adding so4 long_name')
-          istatus = nf90_put_att(ncid, ivar(8), 'units', 'kg m-2')
-          call check_ok(istatus,'Error adding so4 units')
-          istatus = nf90_put_att(ncid, ivar(8), 'coordinates', &
-                              &  'xlon xlat')
-          call check_ok(istatus,'Error adding so4 coordinates')
-        end if
+                           &  'xlon xlat')
+        call check_ok(istatus,'Error adding h2o2 coordinates')
 !
         istatus = nf90_enddef(ncid)
         call check_ok(istatus,'Error End Definitions NetCDF output')
@@ -437,9 +378,8 @@
 
       end subroutine newfile
 
-      subroutine writef(idate)
+      subroutine writeox(idate)
         use netcdf
-        use mod_date
         implicit none
         integer , intent(in) :: idate
         integer :: istatus
@@ -452,19 +392,6 @@
         xdate(1) = dble(idatediff(idate,irefdate))
         istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
         call check_ok(istatus,'Error variable time write')
-        istart(3) = itime
-        istart(2) = 1
-        istart(1) = 1
-        icount(3) = 1
-        icount(2) = iy
-        icount(1) = jx
-        ps4 = (ps4+ptop)*10.0
-        istatus = nf90_put_var(ncid, ivar(2), ps4, istart(1:3), &
-                               icount(1:3))
-        call check_ok(istatus,'Error variable ps write')
-        istatus = nf90_put_var(ncid, ivar(3), ts4, istart(1:3), &
-                               icount(1:3))
-        call check_ok(istatus,'Error variable ts write')
         istart(4) = itime
         istart(3) = 1
         istart(2) = 1
@@ -473,22 +400,19 @@
         icount(3) = kz
         icount(2) = iy
         icount(1) = jx
-        istatus = nf90_put_var(ncid, ivar(4), u4, istart, icount)
-        call check_ok(istatus,'Error variable u write')
-        istatus = nf90_put_var(ncid, ivar(5), v4, istart, icount)
-        call check_ok(istatus,'Error variable v write')
-        istatus = nf90_put_var(ncid, ivar(6), t4, istart, icount)
-        call check_ok(istatus,'Error variable t write')
-        istatus = nf90_put_var(ncid, ivar(7), q4, istart, icount)
-        call check_ok(istatus,'Error variable qv write')
-        if ( dattyp=='EH5OM' .and. ehso4) then
-          istatus = nf90_put_var(ncid, ivar(8), sulfate4,  &
-                            &    istart, icount)
-          call check_ok(istatus,'Error variable so4 write')
-        end if
+        istatus = nf90_put_var(ncid, ivar(2), oh4, istart, icount)
+        call check_ok(istatus,'Error variable oh write')
+        istatus = nf90_put_var(ncid, ivar(3), ho24, istart, icount)
+        call check_ok(istatus,'Error variable ho2 write')
+        istatus = nf90_put_var(ncid, ivar(4), o34, istart, icount)
+        call check_ok(istatus,'Error variable o3 write')
+        istatus = nf90_put_var(ncid, ivar(5), no34, istart, icount)
+        call check_ok(istatus,'Error variable no3 write')
+        istatus = nf90_put_var(ncid, ivar(6), h2o24, istart, icount)
+        call check_ok(istatus,'Error variable h2o2 write')
         itime = itime + 1
 !
-      end subroutine writef
+      end subroutine writeox
 !
       subroutine check_ok(ierr,message)
         use netcdf
@@ -502,4 +426,4 @@
         end if
       end subroutine check_ok
 !
-      end module mod_write
+      end module mod_wrtoxd
