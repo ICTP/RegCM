@@ -65,7 +65,7 @@
         allocate(no33(jx,iy,ilev))
         allocate(h2o23(jx,iy,ilev))
 
-        istatus=nf90_open(trim(inpglob)//pthsep//'OXIDANTS'//pthsep// &
+        istatus=nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                           'oxid_3d_64x128_L26_c030722.nc', &
                           nf90_nowrite,ncid)
         if ( istatus/=nf90_noerr ) then
