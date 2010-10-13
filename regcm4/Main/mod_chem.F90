@@ -33,11 +33,13 @@
       real(8), allocatable, dimension(:,:,:)  :: oh,ho2,o3,no3,h2o2
       real(8), allocatable, dimension(:,:,:)  :: oh_io,ho2_io,o3_io, &
                                                  no3_io,h2o2_io
+      real(8), allocatable, dimension(:,:,:)  :: sav7,sav_7
 
-      integer , parameter , private :: iutox = 123
+      integer , private :: iutox = 123
       integer , private :: oxrec
 
       contains
+
 
       subroutine allocate_mod_chem(lmpi)
         implicit none
@@ -48,11 +50,8 @@
           allocate(o3(iy,kz,jxp))
           allocate(no3(iy,kz,jxp))
           allocate(h2o2(iy,kz,jxp))
-!         allocate(oh_io(iy,kz,jxp))                                           
-!         allocate(ho2_io(iy,kz,jxp))                                           
-!         allocate(o3_io(iy,kz,jxp))                                           
-!         allocate(no3_io(iy,kz,jxp))                                           
-!         allocate(h2o2_io(iy,kz,jxp))
+          allocate(sav7(iy,5*kz,jxp))
+          allocate(sav_7(iy,5*kz,jx))
           allocate(oh_io(iy,kz,jx))
           allocate(ho2_io(iy,kz,jx))
           allocate(o3_io(iy,kz,jx))
@@ -68,6 +67,12 @@
       end subroutine allocate_mod_chem
 !
       subroutine init_chem
+      implicit none 
+!
+! this routine reads the oxidant data written by 
+! the oxidant program 
+!
+
 #ifdef IBM
       use mpi
 #else 
@@ -141,23 +146,24 @@
           call say
           call fatal(__FILE__,__LINE__,                             &
                         &'IMPROPER DIMENSION SPECIFICATION')
-        end if
-        print * , 'READING INITAL CONDITIONS' , ndate0
-        if ( ndate0.lt.mdatez(nnnchk) ) then
-          print * , ndate0 , mdatez(nnnchk) , nnnchk
-          print * , 'read in datasets at :' , ndate0
-          oxrec = oxrec + kz*5
-          print * , 'Searching for proper date: ' , ndate1 ,        &
-                  & mdatez(nnnchk+1)
-              print * , ndate0 , mdatez(nnnchk)
-              cycle ! Proper date not found
-            else if ( ndate0.gt.mdatez(nnnchk) ) then
-              write (aline,*) ndate0 , mdatez(nnnchk)
-              call say
-              call fatal(__FILE__,__LINE__,                             &
-                        &'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
-            else
             end if
+            print * , 'READING INITAL CONDITIONS' , ndate0
+!!            if ( ndate0.lt.mdatez(nnnchk) ) then
+!!            if ( ndate0.lt.0 ) then
+!!              print * , ndate0 , mdatez(nnnchk) , nnnchk
+!!              print * , 'read in datasets at :' , ndate0
+!!              oxrec = oxrec + kz*5
+!!              print * , 'Searching for proper date: ' , ndate1 
+!!                 & mdatez(nnnchk+1)
+!!              print * , ndate0 , mdatez(nnnchk)
+!!              cycle ! Proper date not found
+!!            else if ( ndate0.gt.mdatez(nnnchk) ) then
+!!              write (aline,*) ndate0 , mdatez(nnnchk)
+!!              call say
+!!              call fatal(__FILE__,__LINE__,                             &
+!!                        &'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
+!!            else
+!!            end if
           end if
           exit ! Found proper date
       end do
@@ -273,7 +279,7 @@
           do
           oxrec=oxrec+1
           read (iutox,rec=oxrec,iostat=ierr1) ndate1
-          write(*,*)'NNNNNNOXXXXX',ndate1,mdatez(nnnchk)
+!          write(*,*)'NNNNNNOXXXXX',ndate1,mdatez(nnnchk)
             if ( ierr1.ne.0 ) then
               close (iutox)
               iutox = iutox + 1
@@ -296,20 +302,20 @@
                  & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
               cycle
             end if
-            if ( ndate1.lt.mdatez(nnnchk) ) then
-              if ( ndate1.lt.mdatez(nnnchk) ) then
-                print * , 'Searching for proper date: ' , ndate1 ,      &
-                    & mdatez(nnnchk+1)
-                print * , 'read in datasets at :' , ndate0
-                oxrec = oxrec + kz*5
-                cycle
-              end if
-            else if ( ndate1.gt.mdatez(nnnchk+1) ) then
-              print * , 'DATE IN OX BC FILE EXCEEDED DATE IN RegCM'
-              print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
-              call fatal(__FILE__,__LINE__,'ICBC date')
-            else
-            end if
+!            if ( ndate1.lt.mdatez(nnnchk) ) then
+!              if ( ndate1.lt.mdatez(nnnchk) ) then
+!                print * , 'Searching for proper date: ' , ndate1 ,      &
+!                    & mdatez(nnnchk+1)
+!                print * , 'read in datasets at :' , ndate0
+!                oxrec = oxrec + kz*5
+!                cycle
+!              end if
+!            else if ( ndate1.gt.mdatez(nnnchk+1) ) then
+!              print * , 'DATE IN OX BC FILE EXCEEDED DATE IN RegCM'
+!              print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
+!              call fatal(__FILE__,__LINE__,'ICBC date')
+!            else
+!            end if
             exit
           end do
         end if
