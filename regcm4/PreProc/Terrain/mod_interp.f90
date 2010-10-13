@@ -254,8 +254,8 @@
       i3 = int(ii3)
       j3 = int(jj3)
 
-      p12 = dx*grid(j2,i2)+(1-dx)*grid(j1,i1)
-      p03 = dx*grid(j3,i3)+(1-dx)*grid(j0,i0)
+      p12 = dx*grid(i2,j2)+(1-dx)*grid(i1,j1)
+      p03 = dx*grid(i3,j3)+(1-dx)*grid(i0,j0)
       bilinear = dy*p12+(1-dy)*p03
 
       end function bilinear
