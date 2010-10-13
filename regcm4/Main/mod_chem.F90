@@ -22,6 +22,7 @@
       use mod_dynparam
       use mod_date
       use mod_message
+      use mod_runparams
 #ifdef MPP1
       use mod_mppio
 #endif
@@ -33,6 +34,7 @@
                                                  no3_io,h2o2_io
 
       integer , parameter , private :: iutox = 123
+      integer , private :: oxrec
 
       contains
 
@@ -247,12 +249,6 @@
       end subroutine init_chem
 
       subroutine bdyin_chem
-      use mod_dynparam
-      use mod_iunits
-      use mod_date 
-      use mod_message
-      use mod_tmpsav
-      use mod_param1, only: ibdyfrq
 #ifdef IBM
       use mpi
 #else 

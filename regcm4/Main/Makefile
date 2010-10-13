@@ -37,7 +37,7 @@ mod_zengocn.o    mod_ncio.o       mod_cu_grell.o   mod_radiation.o   \
 mod_cu_kuo.o     mod_savefile.o   mod_leaftemp.o   mod_che_semdde.o  \
 mod_cldfrac.o    mod_init.o       mod_cumtran.o    mod_header.o      \
 mod_condtq.o     mod_diffusion.o  mod_advection.o  mod_nudge.o       \
-mod_tendency.o   mod_che_tend.o
+mod_tendency.o   mod_che_tend.o   mod_chem.o
 
 CLMOBJS = \
 initializeMod.o  shr_orb_mod.o    shr_kind_mod.o  clm_varpar.o       \
@@ -120,6 +120,7 @@ mod_bdycod.o: mod_bdycod.F90 mod_dynparam.o mod_runparams.o mod_main.o \
               mod_mppio.o mod_mainchem.o
 mod_bndry.o: mod_bndry.F90 mod_constants.o mod_bats.o mod_leaftemp.o \
              mod_runparams.o mod_dynparam.o mod_drag.o
+mod_chem.o: mod_chem.F90 mod_dynparam.o mod_date.o mod_message.o mod_mppio.o
 ifeq ($(USECLM),1)
 mod_che_semdde.o: mod_che_semdde.F90 mod_aerosol.o mod_dust.o mod_mainchem.o \
                   mod_message.o mod_dynparam.o mod_trachem.o mod_constants.o \
@@ -223,7 +224,7 @@ ifeq ($(USECLM),1)
 mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
              mod_main.o mod_message.o mod_runparams.o mod_o3blk.o \
              mod_pmoist.o mod_dynparam.o mod_trachem.o mod_mppio.o \
-             mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
+             mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o mod_chem.o \
              mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_clm.o \
              mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o
 else
@@ -231,7 +232,7 @@ mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
              mod_main.o mod_message.o mod_runparams.o mod_o3blk.o \
              mod_pmoist.o mod_dynparam.o mod_trachem.o mod_mppio.o \
              mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
-             mod_che_semdde.o mod_ncio.o mod_leaftemp.o \
+             mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_chem.o \
              mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o
 endif
 mod_pbldim.o: mod_pbldim.f90 mod_dynparam.o
@@ -323,12 +324,12 @@ endif
 ifeq ($(USECLM),1)
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o $(CLMLIB)
+         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o
+         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o
 endif
 #
 # CLM subroutines
