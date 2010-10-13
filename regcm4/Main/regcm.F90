@@ -83,7 +83,9 @@
       use mod_tendency
       use mod_tstep
       use mod_service
+#ifdef CHEMTEST
       use mod_chem
+#endif
 #ifdef MPP1
       use mpi
 #ifdef CLM
@@ -256,10 +258,12 @@
 #endif 
       call init
 ! 
+#ifdef CHEMTEST
       if ( ichem.eq.1 ) theb
         call init_chem
         call bdyin_chem
       end if
+#endif
       call bdyin
 ! 
       call spinit(sigma,kzp1)
@@ -288,7 +292,9 @@
 !
         if ( nnnnnn.gt.nnbase ) then
           call bdyin
+#ifdef CHEMTEST
           if ( ichem.eq.1 ) call bdyin_chem
+#endif
         end if
 !
 !       Refined start

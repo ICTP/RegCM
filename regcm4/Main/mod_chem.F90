@@ -19,6 +19,7 @@
  
       module mod_chem
 
+#ifdef CHEMTEST
       use mod_dynparam
       use mod_date
       use mod_message
@@ -411,6 +412,8 @@
 99001 format (a,a,a,a,i0.10)
 
       end subroutine bdyin_chem
+
+#endif
 
       end module mod_chem
 

@@ -49,7 +49,9 @@
       use mod_ncio
       use mod_scenarios
       use mod_diagnosis
+#ifdef CHEMTEST
       use mod_chem 
+#endif
 
 #ifdef MPP1
       use mod_mppio
@@ -536,7 +538,9 @@
 !-----------------------------------------------------------------------
 !
       if ( lakemod.eq.1 ) call allocate_lake
+#ifdef CHEMTEST
       if ( ichem.eq.1 ) call allocate_mod_chem(lmpi)
+#endif
       call allocate_mod_che_semdde
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
