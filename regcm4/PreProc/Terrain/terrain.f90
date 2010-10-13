@@ -271,6 +271,7 @@
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
         call smth121(htgrid_s,iysg,jxsg)
+        call smth121(htgrid_s,iysg,jxsg)
 
         if ( ibndry ) then
           do j = 2 , jxsg - 1
