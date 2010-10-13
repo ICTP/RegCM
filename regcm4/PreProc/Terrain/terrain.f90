@@ -224,7 +224,7 @@
         print *, 'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
                     nlatin,nlonin,grdltmn,grdlnmn,ht, &
-                    ntypec_s,1,lonwrap,lcrosstime)
+                    ntypec_s,2,lonwrap,lcrosstime)
         print *, 'Interpolated DEM on SUBGRID'
         deallocate(ht)
 !
@@ -264,7 +264,7 @@
           print *, 'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
                       nlatin,nlonin,grdltmn,grdlnmn,dpt, &
-                      ntypec_s,1,lonwrap,lcrosstime)
+                      ntypec_s,2,lonwrap,lcrosstime)
           print *, 'Interpolated bathymetry on SUBGRID'
           deallocate(dpt)
         end if
@@ -365,7 +365,7 @@
       print *, 'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
                   nlatin,nlonin,grdltmn,grdlnmn,ht, &
-                  ntypec,1,lonwrap,lcrosstime)
+                  ntypec,2,lonwrap,lcrosstime)
       print *, 'Interpolated DEM on model GRID'
       deallocate(ht)
 !
@@ -405,7 +405,7 @@
         print *, 'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
                     nlatin,nlonin,grdltmn,grdlnmn,dpt, &
-                    ntypec,1,lonwrap,lcrosstime)
+                    ntypec,2,lonwrap,lcrosstime)
         print *, 'Interpolated bathymetry on model GRID'
         deallocate(dpt)
       end if
@@ -414,6 +414,7 @@
       if ( smthbdy ) call smthtr(htgrid,iy,jx)
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
+      call smth121(htgrid,iy,jx)
       call smth121(htgrid,iy,jx)
 
       if ( ibndry ) then
