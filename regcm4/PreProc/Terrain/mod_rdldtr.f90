@@ -112,6 +112,7 @@
           stop
         end if
 
+        print *, 'Opening '//trim(cfile)
         istatus = nf90_open(cfile, nf90_nowrite, ncid)
         call checkerr(istatus)
         istatus = nf90_inq_varid(ncid, cvar, ivar)
@@ -161,6 +162,7 @@
         implicit none
         integer , intent(in) :: ierr
         if ( ierr /= nf90_noerr ) then
+          write (6, *) 'NetCDF library error.'
           write (6, *) nf90_strerror(ierr)
           stop
         end if
