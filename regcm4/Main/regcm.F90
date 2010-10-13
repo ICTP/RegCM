@@ -259,7 +259,7 @@
       call init
 ! 
 #ifdef CHEMTEST
-      if ( ichem.eq.1 ) theb
+      if ( ichem.eq.1 ) then
         call init_chem
         call bdyin_chem
       end if
