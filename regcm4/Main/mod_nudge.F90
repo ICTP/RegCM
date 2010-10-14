@@ -2870,7 +2870,7 @@
         implicit none
         real(8) :: xfun
         integer , intent(in) :: mm
-        xfun = dble(nspgd-mm)/(dble(nspgd)-2.0)
+        xfun = dble(nspgd-mm)/(dble(nspgd)-2.0D0)
       end function xfun
       function xfune(mm,kk)
         implicit none

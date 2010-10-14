@@ -325,37 +325,37 @@
       clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
  
 !------namelist grellparam:
-      shrmin = 0.25     ! Minimum Shear effect on precip eff.
-      shrmax = 0.50     ! Maximum Shear effect on precip eff.
-      edtmin = 0.25     ! Minimum Precipitation Efficiency
-      edtmax = 1.00     ! Maximum Precipitation Efficiency
-      edtmino = 0.0     ! Minimum Precipitation Efficiency (o var)
-      edtmaxo = 1.00    ! Maximum Precipitation Efficiency (o var)
-      edtminx = 0.25    ! Minimum Precipitation Efficiency (x var)
-      edtmaxx = 1.00    ! Maximum Precipitation Efficiency (x var)
-      pbcmax = 150.     ! Max depth (mb) of stable layer b/twn LCL & LFC
-      mincld = 150.     ! Min cloud depth (mb).
-      htmin = -250.     ! Min convective heating
-      htmax = 500.      ! Max convective heating
-      skbmax = 0.4      ! Max cloud base height in sigma
-      dtauc = 30.       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+      shrmin = 0.25D0   ! Minimum Shear effect on precip eff.
+      shrmax = 0.50D0   ! Maximum Shear effect on precip eff.
+      edtmin = 0.25D0   ! Minimum Precipitation Efficiency
+      edtmax = 1.00D0   ! Maximum Precipitation Efficiency
+      edtmino = 0.0D0   ! Minimum Precipitation Efficiency (o var)
+      edtmaxo = 1.00D0  ! Maximum Precipitation Efficiency (o var)
+      edtminx = 0.25D0  ! Minimum Precipitation Efficiency (x var)
+      edtmaxx = 1.00D0  ! Maximum Precipitation Efficiency (x var)
+      pbcmax = 150.D0   ! Max depth (mb) of stable layer b/twn LCL & LFC
+      mincld = 150.D0   ! Min cloud depth (mb).
+      htmin = -250.D0   ! Min convective heating
+      htmax = 500.D0    ! Max convective heating
+      skbmax = 0.4D0    ! Max cloud base height in sigma
+      dtauc = 30.D0     ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  
 !------namelist emanparam:
-      minsig = 0.95     ! Lowest sigma level from which convection can originate
-      elcrit = 0.0011   ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
-      tlcrit = -55.0    ! BELOW TLCRIT AUTO-CONVERSION THRESHOLD IS ZERO
-      entp = 1.5        ! COEFFICIENT OF MIXING IN THE ENTRAINMENT FORMULATION
-      sigd = 0.05       ! FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT
-      sigs = 0.12       ! FRACTION OF PRECIPITATION FALLING OUTSIDE OF CLOUD
-      omtrain = 50.0    ! FALL SPEED OF RAIN (P/s)
-      omtsnow = 5.5     ! FALL SPEED OF SNOW (P/s)
-      coeffr = 1.0      ! COEFFICIENT GOVERNING THE RATE OF RAIN EVAPORATION
-      coeffs = 0.8      ! COEFFICIENT GOVERNING THE RATE OF SNOW EVAPORATION
-      cu = 0.7          ! COEFFICIENT GOVERNING CONVECTIVE MOMENTUM TRANSPORT
-      betae = 10.0      ! CONTROLS DOWNDRAFT VELOCITY SCALE
-      dtmax = 0.9       ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
-      alphae = 0.2      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
-      damp = 0.1        ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+      minsig = 0.95D0   ! Lowest sigma level from which convection can originate
+      elcrit = 0.0011D0 ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
+      tlcrit = -55.0D0  ! BELOW TLCRIT AUTO-CONVERSION THRESHOLD IS ZERO
+      entp = 1.5D0      ! COEFFICIENT OF MIXING IN THE ENTRAINMENT FORMULATION
+      sigd = 0.05D0     ! FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT
+      sigs = 0.12D0     ! FRACTION OF PRECIPITATION FALLING OUTSIDE OF CLOUD
+      omtrain = 50.0D0  ! FALL SPEED OF RAIN (P/s)
+      omtsnow = 5.5D0   ! FALL SPEED OF SNOW (P/s)
+      coeffr = 1.0D0    ! COEFFICIENT GOVERNING THE RATE OF RAIN EVAPORATION
+      coeffs = 0.8D0    ! COEFFICIENT GOVERNING THE RATE OF SNOW EVAPORATION
+      cu = 0.7D0        ! COEFFICIENT GOVERNING CONVECTIVE MOMENTUM TRANSPORT
+      betae = 10.0D0    ! CONTROLS DOWNDRAFT VELOCITY SCALE
+      dtmax = 0.9D0     ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
+      alphae = 0.2D0    ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+      damp = 0.1D0      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
 !
 !c------namelist chemparam ; ( 0= none, 1= activated)
       ichremlsc = 1     ! tracer removal by large scale clouds
@@ -1298,8 +1298,8 @@
         call allocate_mod_cu_bm(lmpi)
       end if
       if ( icup.eq.4 .or. icup.eq.99 ) then
-        cllwcv = 0.5E-4    ! Cloud liquid water content for convective precip.
-        clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
+        cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
+        clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
         minorig = kz
         do k = 1 , kz
           if ( a(k).le.minsig ) minorig = kz - k

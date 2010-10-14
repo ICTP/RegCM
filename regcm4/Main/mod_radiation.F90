@@ -4857,14 +4857,14 @@
         implicit none
         real(8) :: xgamma
         real(8) , intent(in) :: w , uu , g , e
-        xgamma = 0.50D0*w*((3.0D0*g*(1.0D0-w)*uu*uu+1.0D0)/ &
+        xgamma = 0.50D0*w*((3.0D0*g*(1.0D0-w)*uu*uu+1.0D0) / &
                            (1.0D0-e*e*uu*uu))
       end function xgamma
       function el(w,g)
         implicit none
         real(8) :: el
         real(8) , intent(in) :: w , g
-        el = sqrt(3.0D0*(10D0-w)*(1.0D0-w*g))
+        el = sqrt(3.0D0*(1.0D0-w)*(1.0D0-w*g))
       end function el
       function taus(w,f,t)
         implicit none
@@ -4894,15 +4894,16 @@
         implicit none
         real(8) :: n
         real(8) , intent(in) :: uu , et
-        n = ((uu+1.0D0)*(uu+1.0D0)/et) - ((uu-1.0D0)*(uu-1.0D0)*et)
+        n = ((uu+1.0D0)*(uu+1.0D0)/et)-((uu-1.0D0)*(uu-1.0D0)*et)
       end function n
       function dbvt(t)
 !       Derivative of planck function at 9.6 micro-meter wavelength
         implicit none
         real(8) :: dbvt
         real(8) , intent(in) :: t
-        dbvt = (-2.8911366682D-4+(2.3771251896D-6+1.1305188929D-10*t)  &
-               *t)/(1.0D0+(-6.1364820707D-3+1.5550319767D-5*t)*t)
+        dbvt = (-2.8911366682D-4 +                             &
+                (2.3771251896D-6+1.1305188929D-10*t)*t) /      &
+                (1.0D0+(-6.1364820707D-3+1.5550319767D-5*t)*t)
       end function dbvt
       function fo3(ux,vx)
 !       an absorption function factor

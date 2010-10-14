@@ -1045,19 +1045,19 @@
         implicit none
         real(8) :: fsk
         real(8) , intent(in) :: x
-        fsk = (2.9E-7*x+4.E-9)/(((1.-0.6*x)*x+0.09)*(0.23+x))
+        fsk = (2.9D-7*x+4.D-9)/(((1.0D0-0.6D0*x)*x+0.09D0)*(0.23D0+x))
       end function fsk
       function fsc(x)
         implicit none
         real(8) :: fsc
         real(8) , intent(in) :: x
-        fsc = (0.23+x)*4.186E6
+        fsc = (0.23D0+x)*4.186D6
       end function fsc
       function fct1(x)
         implicit none
         real(8) :: fct1
         real(8) , intent(in) :: x
-        fct1 = wlhf*0.25*1.414/x
+        fct1 = wlhf*0.25D0*1.414D0/x
       end function fct1
 ! 
       end subroutine tgrund
