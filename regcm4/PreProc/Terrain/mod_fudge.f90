@@ -44,7 +44,9 @@
       if ( fudge ) then
         inquire (file=char_lnd,exist=there)
         if ( .not.there ) then
-          print * , 'ERROR OPENING ' , char_lnd ,                          &
+          print *, 'Fudging requested for landuse but missing input'// &
+                   ' ascii file ',trim(char_lnd)
+          print * , 'ERROR OPENING ' , char_lnd ,  &
              &' FILE:  FILE DOES NOT EXIST'
            stop ' IN SUBROUTINE lndfudge'
         endif 
@@ -187,12 +189,14 @@
       integer :: i , j
 !
       if ( fudge ) then
-         inquire (file=char_tex,exist=there)
-             if ( .not.there ) then
-               print * , 'ERROR OPENING ' , char_tex ,                          &
-               &' FILE:  FILE DOES NOT EXIST'
-               stop ' IN SUBROUTINE texfudge'
-             endif 
+        inquire (file=char_tex,exist=there)
+        if ( .not.there ) then
+          print *, 'Fudging requested for texture but missing input'// &
+                   ' ascii file ',trim(char_tex)
+          print * , 'ERROR OPENING ' , char_tex ,   &
+                  &' FILE:  FILE DOES NOT EXIST'
+          stop ' IN SUBROUTINE texfudge'
+        endif 
         open (13,file=char_tex,form='formatted')
         do i = iy , 1 , -1
           read (13,99001) (ch(i,j),j=1,jx)
