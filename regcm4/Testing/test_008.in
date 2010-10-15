@@ -68,9 +68,9 @@
  /
  &restartparam
  ifrest  = .false. ,
- idate0  = 2006051500,
- idate1  = 2006051500,
- idate2  = 2006070100,
+ idate0  = 2006060100,
+ idate1  = 2006060100,
+ idate2  = 2006060500,
  /
  &timeparam
  radfrq  =    30.,

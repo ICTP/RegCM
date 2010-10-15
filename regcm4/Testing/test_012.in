@@ -1,4 +1,4 @@
-! small European domain
+! testing the lakemod: provided by Bi 
  &dimparam
  iy     = 88,
  jx     = 64,
