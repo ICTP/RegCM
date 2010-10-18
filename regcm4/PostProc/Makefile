@@ -17,7 +17,7 @@ sigma2p: sigma2p.f90
 	$(F90) $(LDFLAGS) $(F90FLAGS) -o $@ $<
 
 clean:
-	rm -f average regrid sigma2p *.mod
+	rm -f average regrid sigma2p *.mod *__genmod*
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

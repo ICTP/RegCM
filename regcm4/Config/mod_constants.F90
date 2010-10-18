@@ -59,6 +59,8 @@
       real(8) , parameter :: vtmpc1 = rwat/rgas - 1.0D+00
       real(8) , parameter :: vtmpc2 = cpv*rcpd - 1.0D+00
       real(8) , parameter :: rhoh2o = 1000.0D+00
+      real(8) , parameter :: rhos = 330.0D+00
+      real(8) , parameter :: rhoi = 917.0D+00
       real(8) , parameter :: tzero = 273.15D+00
       real(8) , parameter :: rtzero = 1.0D+00/tzero
       real(8) , parameter :: wattp = 273.16D+00
@@ -236,5 +238,8 @@
       real(8) , parameter :: p00pg = 101.325D+00     ! stdp ?
       real(8) , parameter :: alam  = 6.5D-03         ! Lapse rate ?
       real(8) , parameter :: pgfaa1 = alam*rgas*rgti ! Utility constant
+
+      ! Molecular heat diffusion coefficient in water
+      real(8) , parameter :: hdmw = 1.3889D-07  ! m^2/s
 
       end module mod_constants
