@@ -252,6 +252,10 @@
       integer , parameter :: ntex = 17 
       integer , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
+! Maximum number of depths in lake model
+
+      integer , parameter :: ndpmax = 400 ! This means 400 m max depth
+
       character(1), parameter :: pthsep = '/'
 
 ! Paths

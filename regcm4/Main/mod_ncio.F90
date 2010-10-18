@@ -766,7 +766,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              dhlake1(n,ii,jj) = sp2d1(j,i)*gti
+              dhlake1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
         end subroutine read_subdomain_lake

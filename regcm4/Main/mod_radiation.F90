@@ -1751,7 +1751,7 @@
       logical , dimension(iym1) :: done , start
       real(8) :: tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
-               & km3 , km4 , iym1c , rad , n , nradaer
+               & km3 , km4 , iym1c , irad , n , nradaer
       integer , dimension(iym1) :: indx , khiv , khivm , klov
       real(8) , dimension(iym1,kzp1,kzp1) :: s , s0
       real(8) , dimension(iym1,kzp1,kzp1) :: tone
@@ -1883,9 +1883,9 @@
         nradaer = 1
       end if
 
-      do rad = 1 , nradaer
+      do irad = 1 , nradaer
 
-        if (ichem==1 .and. idirect > 0 .and. rad==2 ) then
+        if (ichem==1 .and. idirect > 0 .and. irad==2 ) then
           abstot(:,:,:,jslc) = 1-(1-abstot0(:,:,:,jslc))*aerlwtr(:,:,:)
           emstot(:,:,jslc) = 1-(1-emstot0(:,:,jslc))*aerlwtr(:,:,1)
           do k = 1 , kz  ! aerlwtr defined on plev levels
@@ -1999,7 +1999,7 @@
 
 !     FAB radiative forcing sur fsul
 
-        if (ichem==1 .and. idirect > 0 .and. rad==1 ) then
+        if (ichem==1 .and. idirect > 0 .and. irad==1 ) then
           fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
           fsdl0(:,:) = fsdl(:,:)!
           ful0(:,:) = ful(:,:)

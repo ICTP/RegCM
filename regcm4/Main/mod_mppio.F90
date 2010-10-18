@@ -48,7 +48,7 @@
            & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
 
       real(8) , allocatable , dimension(:,:,:) :: dhlake1_io
-      integer , allocatable , dimension(:,:,:) :: depth2d_io
+      integer , allocatable , dimension(:,:,:) :: idep2d_io
       real(8) , allocatable , dimension(:,:,:) :: eta2d_io
       real(8) , allocatable , dimension(:,:,:) :: hi2d_io
       real(8) , allocatable , dimension(:,:,:) :: aveice2d_io
@@ -303,16 +303,16 @@
           snowc_io   => spacesub(:,:,:,3)
           xlat1_io   => spacesub(:,:,:,4)
           xlon1_io   => spacesub(:,:,:,5)
-!         if (lakemod.eq.1) then
+          if (lakemod.eq.1) then
             allocate(dhlake1_io(nnsg,iy,jx))
-            allocate(depth2d_io(nnsg,iym1,jx))
+            allocate(idep2d_io(nnsg,iym1,jx))
             allocate(eta2d_io(nnsg,iym1,jx))
             allocate(hi2d_io(nnsg,iym1,jx))
             allocate(aveice2d_io(nnsg,iym1,jx))
             allocate(hsnow2d_io(nnsg,iym1,jx))
             allocate(evl2d_io(nnsg,iym1,jx))
-            allocate(tlak3d_io(400,2,nnsg,iym1,jx))
-!         endif
+            allocate(tlak3d_io(ndpmax,2,nnsg,iym1,jx))
+          endif
           if (lband) then
             allocate(spacebat(iym1,jx,16),stat=ierr)
           else
