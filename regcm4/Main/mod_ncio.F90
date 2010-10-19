@@ -1220,8 +1220,11 @@
           integer , dimension(2) :: ivvar
           integer , dimension(4) :: isrvvar
           integer , dimension(4) :: illtpvar
-          integer :: itvar , iyy , im , id , ih , i , j , ichname
+          integer :: itvar , iyy , im , id , ih , i , j , ibnd
+          integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
           integer , dimension(2) :: inmlen
+          integer , dimension(2) :: idpv
+          integer , dimension(2) :: ibinsiz
 
           integer , dimension(9) :: tyx
           integer , dimension(9) :: tzyx
@@ -1324,19 +1327,19 @@
           if (iproj == 'LAMCON') then
             istatus = nf90_put_att(ncid, nf90_global, &
                          'grid_mapping_name', 'lambert_conformal_conic')
-            call check_ok('Error adding global grid_mapping_name', fterr)
+            call check_ok('Error adding global grid_mapping_name',fterr)
           else if (iproj == 'POLSTR') then
             istatus = nf90_put_att(ncid, nf90_global, &
                          'grid_mapping_name', 'stereographic')
-            call check_ok('Error adding global grid_mapping_name', fterr)
+            call check_ok('Error adding global grid_mapping_name',fterr)
           else if (iproj == 'NORMER') then
             istatus = nf90_put_att(ncid, nf90_global, &
                          'grid_mapping_name', 'mercator')
-            call check_ok('Error adding global grid_mapping_name', fterr)
+            call check_ok('Error adding global grid_mapping_name',fterr)
           else if (iproj == 'ROTMER') then
             istatus = nf90_put_att(ncid, nf90_global, &
-                         'grid_mapping_name', 'rotated_latitude_longitude')
-            call check_ok('Error adding global grid_mapping_name', fterr)
+                  'grid_mapping_name', 'rotated_latitude_longitude')
+            call check_ok('Error adding global grid_mapping_name',fterr)
           end if
           istatus = nf90_put_att(ncid, nf90_global,   &
                    &   'grid_size_in_meters', ds*1000.0)
@@ -1370,7 +1373,7 @@
           else if (iproj == 'POLSTR') then
             trlat(1) = 1.0
             istatus = nf90_put_att(ncid, nf90_global, &
-                     &   'scale_factor_at_projection_origin', trlat(1:1))
+                   &   'scale_factor_at_projection_origin', trlat(1:1))
             call check_ok('Error adding global scfac', fterr)
           end if
 !
@@ -1541,9 +1544,17 @@
           if (ctype == 'CHE') then
             istatus = nf90_def_dim(ncid, 'tracer', ntr, idims(9))
             call check_ok('Error creating dimension tracer', fterr)
-            inmlen(1) = idims(9)
-            istatus = nf90_def_dim(ncid, 'namelen', 6, inmlen(2))
+            istatus = nf90_def_dim(ncid, 'dust', nbin, ibin)
+            call check_ok('Error creating dimension dust', fterr)
+            istatus = nf90_def_dim(ncid, 'bnd', 2, ibnd)
+            call check_ok('Error creating dimension dust', fterr)
+            istatus = nf90_def_dim(ncid, 'namelen', 6, inmlen(1))
             call check_ok('Error creating dimension namelen', fterr)
+            inmlen(2) = idims(9)
+            idpv(1) = idims(9)
+            idpv(2) = ibnd
+            ibinsiz(1) = ibin
+            ibinsiz(2) = ibnd
           end if
           istatus = nf90_def_var(ncid, 'sigma', nf90_float, &
                               &  idims(4), izvar(1))
@@ -1915,6 +1926,15 @@
             istatus = nf90_def_var(ncid, 'chtrname', nf90_char, &
                                    inmlen, ichname)
             call check_ok('Error adding variable chtrname', fterr)
+            istatus = nf90_def_var(ncid, 'chtrsol', nf90_double, &
+                                   idims(9), ichtrsol)
+            call check_ok('Error adding variable chtrsol', fterr)
+            istatus = nf90_def_var(ncid, 'chtrdpv', nf90_double, &
+                                   idpv, ichtrdpv)
+            call check_ok('Error adding variable chtrdpv', fterr)
+            istatus = nf90_def_var(ncid, 'dustbinsiz', nf90_double, &
+                                   ibinsiz, idubinsiz)
+            call check_ok('Error adding variable dustbinsiz', fterr)
             ichevar = -1
             ichevar(1) = itvar
             ichevar(2) = illtpvar(4)
@@ -2040,6 +2060,12 @@
           if (ctype == 'CHE') then
             istatus = nf90_put_var(ncid, ichname, chtrname)
             call check_ok('Error variable chtrname write', fterr)
+            istatus = nf90_put_var(ncid, ichtrsol, chtrsol)
+            call check_ok('Error variable chtrsol write', fterr)
+            istatus = nf90_put_var(ncid, ichtrdpv, chtrdpv)
+            call check_ok('Error variable chtrdpv write', fterr)
+            istatus = nf90_put_var(ncid, idubinsiz, dustbsiz)
+            call check_ok('Error variable dustbsiz write', fterr)
           end if
 
           istatus = nf90_sync(ncid)
