@@ -234,6 +234,7 @@
 !
 !     interpolate winds at z1 m to 2m via log wind profile
       u2 = vl*log(z2/zo)/log(zl/zo)
+      if ( u2.lt.0.5D0 ) u2 = 0.5D0
  
 !******    depth: 1-m slices of lake depth
 
@@ -298,15 +299,13 @@
 !
       subroutine eddy(ndpt,dtlake,u2,tprof)
  
-! Computes density, eddy diffusivity and variable time step
+! Computes density and eddy diffusivity
  
       implicit none
 !
-      integer :: ndpt
-      real(8) :: dtlake , u2
-      real(8) , dimension(ndpmax) :: tprof
-      intent (in) ndpt , dtlake , tprof
-      intent (inout) u2
+      integer , intent (in) :: ndpt
+      real(8) , intent (in) :: dtlake , u2
+      real(8) , dimension(ndpmax) , intent (in) :: tprof
 !
       real(8) :: demax , demin , dpdz , ks , n2 , po , rad , ri , ws , z
       integer :: k
@@ -319,8 +318,6 @@
         dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
                       (abs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
- 
-      if ( u2.lt.0.5D0 ) u2 = 0.5D0
  
 ! compute eddy diffusion profile
 !
