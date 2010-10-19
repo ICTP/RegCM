@@ -47,14 +47,14 @@
            & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
            & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
 
-      real(8) , allocatable , dimension(:,:,:) :: dhlake1_io
       integer , allocatable , dimension(:,:,:) :: idep2d_io
+      real(8) , allocatable , dimension(:,:,:) :: dhlake1_io
       real(8) , allocatable , dimension(:,:,:) :: eta2d_io
       real(8) , allocatable , dimension(:,:,:) :: hi2d_io
       real(8) , allocatable , dimension(:,:,:) :: aveice2d_io
       real(8) , allocatable , dimension(:,:,:) :: hsnow2d_io
       real(8) , allocatable , dimension(:,:,:) :: evl2d_io
-      real(8) , allocatable , dimension(:,:,:,:,:) :: tlak3d_io
+      real(8) , allocatable , dimension(:,:,:,:) :: tlak3d_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
                                          &    xlat1_io , xlon1_io ,     &
@@ -304,14 +304,23 @@
           xlat1_io   => spacesub(:,:,:,4)
           xlon1_io   => spacesub(:,:,:,5)
           if (lakemod.eq.1) then
-            allocate(dhlake1_io(nnsg,iy,jx))
-            allocate(idep2d_io(nnsg,iym1,jx))
-            allocate(eta2d_io(nnsg,iym1,jx))
-            allocate(hi2d_io(nnsg,iym1,jx))
-            allocate(aveice2d_io(nnsg,iym1,jx))
-            allocate(hsnow2d_io(nnsg,iym1,jx))
-            allocate(evl2d_io(nnsg,iym1,jx))
-            allocate(tlak3d_io(ndpmax,2,nnsg,iym1,jx))
+            allocate(dhlake1_io(nnsg,iy,jx),stat=ierr)
+            call check_alloc(ierr,myname,'dhlake1_io',size(dhlake1_io))
+            allocate(idep2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'idep2d_io',size(idep2d_io))
+            allocate(eta2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'eta2d_io',size(eta2d_io))
+            allocate(hi2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'hi2d_io',size(hi2d_io))
+            allocate(aveice2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'aveice2d_io', &
+                             size(aveice2d_io))
+            allocate(hsnow2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'hsnow2d_io',size(hsnow2d_io))
+            allocate(evl2d_io(nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'evl2d_io',size(evl2d_io))
+            allocate(tlak3d_io(ndpmax,nnsg,iym1,jx),stat=ierr)
+            call check_alloc(ierr,myname,'tlak3d_io',size(tlak3d_io))
           endif
           if (lband) then
             allocate(spacebat(iym1,jx,16),stat=ierr)

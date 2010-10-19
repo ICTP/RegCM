@@ -44,9 +44,14 @@
       real(8) , allocatable , dimension(:,:,:) :: aveice2d
       real(8) , allocatable , dimension(:,:,:) :: hsnow2d
       real(8) , allocatable , dimension(:,:,:) :: evl2d
-      real(8) , allocatable , dimension(:,:,:,:,:) :: tlak3d
+      real(8) , allocatable , dimension(:,:,:,:) :: tlak3d
 !
-      real(8) , dimension(ndpmax) :: de , dnsty
+      real(8) , dimension(ndpmax) :: de , dnsty , tt
+!
+!     surface thickness
+      real(8) , parameter :: surf = 1.0D0
+!     vertical grid spacing in m
+      real(8) , parameter :: dz = surf
 !
       contains
 !
@@ -62,7 +67,7 @@
       allocate(aveice2d(nnsg,iym1,jxp))
       allocate(hsnow2d(nnsg,iym1,jxp))
       allocate(evl2d(nnsg,iym1,jxp))
-      allocate(tlak3d(ndpmax,2,nnsg,iym1,jxp))
+      allocate(tlak3d(ndpmax,nnsg,iym1,jxp))
 #else
       allocate(dhlake1(nnsg,iy,jx))
       allocate(idep2d(nnsg,iym1,jx))
@@ -71,8 +76,16 @@
       allocate(aveice2d(nnsg,iym1,jx))
       allocate(hsnow2d(nnsg,iym1,jx))
       allocate(evl2d(nnsg,iym1,jx))
-      allocate(tlak3d(ndpmax,2,nnsg,iym1,jx))
+      allocate(tlak3d(ndpmax,nnsg,iym1,jx))
 #endif
+      dhlake1 = 0.0D0
+      idep2d = 0
+      eta2d = 0.0D0
+      hi2d = 0.0D0
+      aveice2d = 0.0D0
+      hsnow2d = 0.0D0
+      evl2d = 0.0D0
+      tlak3d = 0.0D0
       end subroutine allocate_lake
 
       subroutine initlake
@@ -95,11 +108,13 @@
       integer :: ierr
 #endif
 
-      hi2d = 0.01
-      aveice2d = 0.0
-      hsnow2d = 0.0
-      eta2d = 0.5
-      tlak3d  = 6.
+      hi2d = 0.01D0
+      aveice2d = 0.0D0
+      hsnow2d = 0.0D0
+      eta2d = 0.5D0
+      tlak3d  = 6.0D0
+      idep2d = 0
+
 #ifdef MPP1
       do j = jbegin , jendx
 #else
@@ -116,7 +131,7 @@
             if ( (satbrt1(n,i,j).gt.13.9.and.satbrt1(n,i,j)  &
                & .lt.14.1) .and. dhlake1(n,i,j).gt.1.0) then
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
-                                   dble(ndpmax))))
+                                   dble(ndpmax)))/dz)
               if (idep2d(n,i,j).lt.50) then
                 eta2d(n,i,j) = .7
               else if (idep2d(n,i,j).gt.100) then
@@ -141,8 +156,7 @@
       subroutine lakedrv(jslc)
       implicit none
 !
-      integer :: jslc
-      intent (in) jslc
+      integer , intent(in) :: jslc
 !
       real(8) :: flw , fsw , hlat , hsen , prec , &
                & ql , tgl , tl , vl , zl
@@ -165,10 +179,12 @@
                     &  tgl,prec,idep2d(n,i,jslc),eta2d(n,i,jslc),   &
                     &  hi2d(n,i,jslc),aveice2d(n,i,jslc),  &
                     &  hsnow2d(n,i,jslc),evl2d(n,i,jslc),  &
-                    &  tlak3d(:,:,n,i,jslc) )
- 
+                    &  tlak3d(:,n,i,jslc) )
+
+!           Feed back ground temperature
             tg1d(n,i) = tgl
             tgb1d(n,i) = tgl
+
             if ( aveice2d(n,i,jslc).le.10.0D0 ) then
               ldoc1d(n,i) = 0.0D0
               sice1d(n,i) = 0.0D0
@@ -188,19 +204,19 @@
 !-----------------------------------------------------------------------
 !
       subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,tgl,  &
-                    & prec,ndpt,eta,hi,aveice,hsnow,evl,t)
+                    & prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
  
       implicit none
 !
       real(8) :: dtlake , evl , aveice , hlat , hsen , hsnow , flw , &
                & prec , ql , fsw , tl , tgl , vl , zl , eta , hi
-      real(8) , dimension(ndpmax,2) :: t
+      real(8) , dimension(ndpmax) :: tprof
       integer :: ndpt
       intent (in) hlat , hsen , ql , tl , vl , zl
       intent (in) ndpt , eta
       intent (out) tgl
       intent (inout) evl , aveice , hsnow
-      intent (inout) t
+      intent (inout) tprof
 !
 ! Local variables
 !
@@ -208,12 +224,8 @@
       real(8) :: ea , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
-!***  surf:surface thickness
-!***  dz:  vertical grid spacing in m
-!***  zo:  surface roughness length
+!***  zo:      surface roughness length
 !
-      real(8) , parameter :: surf = 1.0D0
-      real(8) , parameter :: dz = surf
       real(8) , parameter :: zo = 0.001D0
       real(8) , parameter :: z2 = 2.0D0
       real(8) , parameter :: tcutoff = -0.001D0
@@ -225,40 +237,57 @@
  
 !******    depth: 1-m slices of lake depth
 
-      do k = 1 , ndpt
-        t(k,2) = t(k,1)
-      end do
- 
       tac = tl - tzero
-      tk = tzero + t(1,1)
+      tk = tzero + tprof(1)
       lu = -0.97D0*sigm*tk**4.0D0
       ld = flw - lu
       qe = hlat*wlhv
       qh = hsen
  
 !     ******    Check if conditions exist for lake ice
-      if ( (aveice.eq.0.0D0) .and. (t(1,1).gt.tcutoff) ) then
+      if ( (aveice.eq.0.0D0) .and. (tprof(1).gt.tcutoff) ) then
  
 !       ******    Calculate eddy diffusivities
-        call eddy(dtlake,surf,dz,u2,t,ndpt)
+        call eddy(ndpt,dtlake,u2,tprof)
+        do k = 1 , ndpmax
+          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
+            print *, 'EDDY: At k = ',k
+            print *, 'NAN'
+            call fatal(__FILE__,__LINE__,'NaN in lake')
+          end if
+        end do
  
 !       ******    Lake temperature calc using sensible and latent heats
-        call temp(dtlake,surf,dz,t,fsw,flw,qe,qh,eta,ndpt)
+        call temp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
+        do k = 1 , ndpmax
+          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
+            print *, 'TEMP: At k = ',k
+            print *, 'NAN'
+            call fatal(__FILE__,__LINE__,'NaN in lake')
+          end if
+        end do
  
 !       ******    Convective mixer
-        call mixer(kmin,surf,dz,t,ndpt)
+        call mixer(kmin,ndpt,tprof)
+        do k = 1 , ndpmax
+          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
+            print *, 'MIX: At k = ',k
+            print *, 'NAN'
+            call fatal(__FILE__,__LINE__,'NaN in lake')
+          end if
+        end do
  
       else
  
 !       convert mixing ratio to air vapor pressure
         ea = ql*88.0D0/(ep2+0.378D0*ql)
  
-        call ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,t,prec)
-        if ( lfreeze ) t(1,1) = t(1,2)
+        call ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
+        if ( lfreeze ) tprof(1) = tt(1)
  
       end if
  
-      tgl = t(1,1) + tzero
+      tgl = tprof(1) + tzero
       evl = evl/3600.0D0          !  convert evl from mm/hr to mm/sec
       aveice = aveice*1000.0D0    !  convert ice  from m to mm
       hsnow = hsnow*100.0D0       !  convert snow from m depth to mm h20
@@ -267,16 +296,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine eddy(dtlake,surf,dz,u2,t,ndpt)
+      subroutine eddy(ndpt,dtlake,u2,tprof)
  
 ! Computes density, eddy diffusivity and variable time step
  
       implicit none
 !
       integer :: ndpt
-      real(8) :: dtlake , dz , surf , u2
-      real(8) , dimension(ndpmax,2) :: t
-      intent (in) ndpt , dtlake , dz , surf , t
+      real(8) :: dtlake , u2
+      real(8) , dimension(ndpmax) :: tprof
+      intent (in) ndpt , dtlake , tprof
       intent (inout) u2
 !
       real(8) :: demax , demin , dpdz , ks , n2 , po , rad , ri , ws , z
@@ -288,26 +317,38 @@
 
       do k = 1 , ndpt
         dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
-                      (abs((t(k,1)+tzero)-277.0D0))**1.68D0)
+                      (abs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
  
       if ( u2.lt.0.5D0 ) u2 = 0.5D0
  
-!******     compute eddy diffusion profile
-!     N2    Brunt-Vaisala number
-!     Ri    gradient Richardson number
+! compute eddy diffusion profile
+!
+!     n2    Brunt-Vaisala frequency squared
+!     ri    gradient Richardson number
 !     demin molecular diffusion of water
  
+! Decay constant of shear velocity: Shouldn't it be function of latitude?
       ks = 0.745D0*u2**(-1.84D0)
+! Surface shear velocity
       ws = 0.0012D0*u2
+! Prandtl number
       po = 1.0D0
  
       do k = 1 , ndpt - 1
-        dpdz = (dnsty(k+1)-dnsty(k))/dz   ! gtb removed /2.0
-        n2 = dpdz/dnsty(k)*gti            ! gtb removed minus
-        z = surf + dble(k-1)*dz           ! gtb: k was k-1
-        rad = 1.0D0 + 40.D0*n2*(vonkar*z*exp(ks*z)/ws)**2.0D0
-        if ( rad.lt.0.0D0 ) rad = 0.0D0
+        dpdz = (dnsty(k+1)-dnsty(k))/dz
+        n2 = (dpdz/dnsty(k))*gti
+        z = surf + dble(k-1)*dz
+!
+! This line has problems:
+!
+!       rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(-ks*z)))**2.0D0
+!
+! I am proposing to change the previous to the below (change sign in
+! the exponential).
+! But I have no reference for this. Where this formula is taken from?
+! Ciao!
+        rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(ks*z)))**2.0D0
         ri = (-1.0D0+sqrt(rad))/20.0D0
         de(k) = demin + vonkar*ws*z*po*exp(-ks*z)/(1.0D0+37.0D0*ri**2.0D0)
         if ( de(k).lt.demin ) de(k) = demin
@@ -319,7 +360,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine temp(dtlake,surf,dz,t,fsw,flw,qe,qh,eta,ndpt)
+      subroutine temp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
 !
 !*****************BEGIN SUBROUTINE TEMP********************
 !             COMPUTES TEMPERATURE PROFILE                *
@@ -327,64 +368,59 @@
 !
       implicit none
 !
-      integer :: ndpt
-      real(8) :: dtlake , dz , eta , flw , qe , qh , surf , fsw
-      real(8) , dimension(ndpmax,2) :: t
-      intent (in) ndpt , dtlake , dz , eta , flw , &
-                  qe , qh , fsw , surf
-      intent (inout) t
+      integer , intent(in) :: ndpt
+      real(8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
+      real(8) , dimension(ndpmax) , intent(inout) :: tprof
 !
       real(8) :: bot , dt1 , dt2 , top
       integer :: k
  
 !******    solve differential equations of heat transfer
 
-      t(1:ndpt,2) = t(1:ndpt,1)
+      tt(1:ndpt) = tprof(1:ndpt)
  
       dt1 = (fsw*(1.0D0-exp(-eta*surf))+(flw+qe+qh)) / &
               (surf*dnsty(1)*cpw)
-      dt2 = -de(1)*(t(1,1)-t(2,1))/surf
-      t(1,2) = t(1,2) + (dt1+dt2)*dtlake
+      dt2 = -de(1)*(tprof(1)-tprof(2))/surf
+      tt(1) = tt(1) + (dt1+dt2)*dtlake
  
       do k = 2 , ndpt - 1
         top = (surf+(k-2)*dz)
         bot = (surf+(k-1)*dz)
         dt1 = fsw*(exp(-eta*top)-exp(-eta*bot))/(dz*dnsty(k)*cpw)
-        dt2 = (de(k-1)*(t(k-1,1)-t(k,1))-de(k)*(t(k,1)-t(k+1,1)))/dz
-        t(k,2) = t(k,2) + (dt1+dt2)*dtlake
+        dt2 = (de(k-1)*(tprof(k-1)-tprof(k))    -    &
+               de(k)  *(tprof(k)  -tprof(k+1))) / dz
+        tt(k) = tt(k) + (dt1+dt2)*dtlake
       end do
  
       top = (surf+(ndpt-2)*dz)
       dt1 = fsw*exp(-eta*top)/(dz*dnsty(ndpt)*cpw)
-      dt2 = de(ndpt-1)*(t(ndpt-1,1)-t(ndpt,1))/dz
-      t(ndpt,2) = t(ndpt,2) + (dt1+dt2)*dtlake
+      dt2 = de(ndpt-1)*(tprof(ndpt-1)-tprof(ndpt))/dz
+      tt(ndpt) = tt(ndpt) + (dt1+dt2)*dtlake
  
       do k = 1 , ndpt
-        t(k,1) = t(k,2)
+        tprof(k) = tt(k)
         dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
-                   (abs((t(k,2)+tzero)-277.0D0))**1.68D0)
+                   (abs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
 
       end subroutine temp
 !
 !-----------------------------------------------------------------------
 !
-      subroutine mixer(kmin,surf,dz,t,ndpt)
+      subroutine mixer(kmin,ndpt,tprof)
 !
 ! Simulates convective mixing
 !
       implicit none
 !
-      integer :: ndpt , kmin
-      real(8) :: dz , surf
-      real(8) , dimension(ndpmax,2) :: t
-      intent (in) ndpt , dz , kmin , surf
-      intent (inout) t
+      integer , intent(in) :: ndpt , kmin
+      real(8) , intent(inout) , dimension(ndpmax) :: tprof
 !
       real(8) :: avet , avev , tav , vol
       integer :: k , k2
 ! 
-      t(kmin:ndpt,2) = t(kmin:ndpt,1)
+      tt(kmin:ndpt) = tprof(kmin:ndpt)
  
       do k = kmin , ndpt - 1
         avet = 0.0D0
@@ -398,14 +434,14 @@
             else
               vol = dz
             end if
-            avet = avet + t(k2,2)*vol
+            avet = avet + tt(k2)*vol
             avev = avev + vol
           end do
  
           tav = avet/avev
 
           do k2 = kmin , k + 1
-            t(k2,2) = tav
+            tt(k2) = tav
             dnsty(k2) = 1000.0D0*(1.0D0-1.9549D-05 * &
                         (abs((tav+tzero)-277.0D0))**1.68D0)
           end do
@@ -413,17 +449,27 @@
  
       end do ! K loop
  
-      t(kmin:ndpt,1) = t(kmin:ndpt,2)
+      tprof(kmin:ndpt) = tt(kmin:ndpt)
  
       end subroutine mixer
 !
 !-----------------------------------------------------------------------
 !
-      subroutine ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,t,prec)
+      subroutine ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
 
       implicit none
+      real(8) :: ea , evl , hi , aveice , hs , fsw , &
+                 ld , prec , tac , u2
+      real(8) , dimension(ndpmax) :: tprof
+      intent (in) ea , ld , prec , tac , u2
+      intent (out) evl
+      intent (inout) hi , aveice , hs , fsw , tprof
 !
-      real(8) , parameter :: surf = 0.6D0
+      real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
+               & t2 , tf , theta , rho
+      integer :: nits
+!
+      real(8) , parameter :: isurf = 0.6D0
       real(8) , parameter :: lami1 = 1.5D0
       real(8) , parameter :: lami2 = 20.0D0
       real(8) , parameter :: lams1 = 6.0D0
@@ -436,18 +482,6 @@
       real(8) , parameter :: cd = 0.001D0
       real(8) , parameter :: sec = 3600.0D0
 !
-      real(8) :: ea , evl , hi , aveice , hs , fsw , &
-                 ld , prec , tac , u2
-      real(8) , dimension(ndpmax,2) :: t
-      intent (in) ea , ld , prec , tac , u2
-      intent (out) evl
-      intent (inout) hi , aveice , hs , fsw , t
-!
-! Local variables
-!
-      real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-               & t2 , tf , theta , rho
-      integer :: nits
 !
 !****************************SUBROUINE ICE*****************************
 !     SIMULATES LAKE ICE                           
@@ -456,7 +490,7 @@
       if ( (tac.le.0.0D0) .and. (aveice.gt.0.0D0) ) &
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
  
-      t0 = t(1,1)
+      t0 = tprof(1)
       tf = 0.0D0
       rho = rhoh2o/1000.0D0
  
@@ -497,7 +531,7 @@
             hs = hs + ds
             if ( hs.lt.0.0D0 ) then
               hs = 0.0D0
-              t(1,1) = (aveice*t0+(surf-aveice)*t(2,1))/surf
+              tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
             end if
           end if
           if ( (hs.eq.0.0D0) .and. (aveice.gt.0.0D0) ) then
@@ -523,10 +557,10 @@
           hi = 0.01D0
           aveice = 0.0D0
           hs = 0.0D0
-          t(1,1) = (hi*t0+(surf-hi)*t(2,1))/surf
+          tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf
         else
           aveice = hi
-          t(1,1) = t0
+          tprof(1) = t0
         end if
         exit
       end do
@@ -608,8 +642,8 @@
       call mpi_gather(evl2d,nnsg*iym1*jxp,mpi_real8, &
                     & evl2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(tlak3d,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
-                    & tlak3d_io,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                    & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
 #ifdef BAND
@@ -623,7 +657,7 @@
                 write(58) dayl, i, j, idep2d_io(n,i,j),  &
                         evl2d_io(n,i,j),hi2d_io(n,i,j), &
                         aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                        (tlak3d_io(k,1,n,i,j),k=1,idep2d_io(n,i,j))  
+                        (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
               end if
             end do
           end do
@@ -641,7 +675,7 @@
             if ( idep2d(n,i,j).gt.1 ) then
               write(58) dayl, i, j, idep2d(n,i,j), evl2d(n,i,j), &
                    & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
-                   & (tlak3d(k,1,n,i,j),k=1,idep2d(n,i,j))  
+                   & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
             end if
           end do
         end do
@@ -685,8 +719,8 @@
       call mpi_gather(hsnow2d,nnsg*iym1*jxp,mpi_real8, &
                     & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(tlak3d,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
-                    & tlak3d_io,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                    & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
 #endif
 
@@ -737,7 +771,7 @@
               write(iutl) n, i, j, idep2d_io(n,i,j), eta2d_io(n,i,j), &
                    & hi2d_io(n,i,j), &
                    & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                   & (tlak3d_io(k,1,n,i,j),k=1,idep2d_io(n,i,j))  
+                   & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
             end if
           end do
         end do
@@ -776,7 +810,7 @@
               write(iutl) n, i, j, idep2d(n,i,j), eta2d(n,i,j), &
                    & hi2d(n,i,j), &
                    & aveice2d(n,i,j), hsnow2d(n,i,j), &
-                   & (tlak3d(k,1,n,i,j),k=1,idep2d(n,i,j))  
+                   & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
             end if
           end do
         end do
@@ -818,7 +852,7 @@
           read(iutl) n, i, j, idep2d_io(n,i,j), eta2d_io(n,i,j), &
                    & hi2d_io(n,i,j), &
                    & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                   & (tlak3d_io(k,1,n,i,j),k=1,idep2d_io(n,i,j))  
+                   & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
         end do
       end if
 #else
@@ -833,7 +867,7 @@
         read(iutl) n, i, j, idep2d(n,i,j), eta2d(n,i,j), &
                  & hi2d(n,i,j), &
                  & aveice2d(n,i,j), hsnow2d(n,i,j), &
-                 & (tlak3d(k,1,n,i,j),k=1,idep2d(n,i,j))  
+                 & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
       end do
 #endif
 
@@ -878,8 +912,8 @@
       call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
                      & hsnow2d,nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
-      call mpi_scatter(tlak3d_io,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
-                     & tlak3d,ndpmax*2*nnsg*iym1*jxp,mpi_real8, &
+      call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                     & tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
 #endif
 
