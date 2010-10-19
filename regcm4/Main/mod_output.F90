@@ -2041,17 +2041,12 @@
          & nnnnnn.ne.nnnend ) call mkfile
 #endif
       call time_end(subroutine_name,idindx) 
+
       end subroutine output
 !
       subroutine mkfile
  
       implicit none
-!
-! Local variables
-!
-      integer , parameter :: nfmax = 999
-      integer , dimension(nfmax) :: idate1d , imo , iyr
-      integer :: idatepp , n , nmo
 !
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex
@@ -2073,39 +2068,12 @@
         call prepare_common_out(idatex,'RAD')
       end if
  
-      if ( ifchem ) then
-        do n = 1 , ntr
-          call prepare_chem_out(idatex,n)
-        end do
+      if ( ichem.eq.1 ) then
+        if ( ifchem ) then
+          call prepare_common_out(idatex,'CHE')
+        end if
       end if
 
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
-        nmo = (idate2/1000000-idate0/1000000)                           &
-            & *12 + (idate2/10000-(idate2/1000000)*100)                 &
-            & - (idate0/10000-(idate0/1000000)*100)
-        nmo = min(nmo,nfmax)
-        idatepp = idate0
-        iyr(1) = idatepp/1000000
-        imo(1) = (idatepp-iyr(1)*1000000)/10000
-        idate1d(1) = idatepp
-        do n = 2 , nmo
-          idatepp = (idatepp/10000)*10000 + 10100
-          iyr(n) = idatepp/1000000
-          imo(n) = (idatepp-iyr(n)*1000000)/10000
-          if ( imo(n).gt.12 ) then
-            iyr(n) = iyr(n) + 1
-            imo(n) = 1
-            idatepp = iyr(n)*1000000 + imo(n)*10000 + 100
-          end if
-          idate1d(n) = idatepp
-        end do
-        if ( nmo.le.1 ) then
-          nmo = 1
-          idate1d(2) = idate0
-        end if
- 
-      end if
- 
       end subroutine mkfile
 !
       subroutine outatm
