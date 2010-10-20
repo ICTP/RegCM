@@ -671,13 +671,15 @@
               do i = 1 , iy
                 inisrf_0(i,7+n,j) = ht1_io(n,i,j)
                 inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
+                inisrf_0(i,7+2*nnsg+n,j) = xlat1_io(n,i,j)
+                inisrf_0(i,7+3*nnsg+n,j) = xlon1_io(n,i,j)
               end do
             end do
           end do
         end if
 
-        call mpi_scatter(inisrf_0,iy*(nnsg*3+8)*jxp,mpi_real8,   &
-                       & inisrf0, iy*(nnsg*3+8)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0,iy*(nnsg*5+8)*jxp,mpi_real8,   &
+                       & inisrf0, iy*(nnsg*5+8)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
 
         do j = 1 , jxp
@@ -694,6 +696,8 @@
             do i = 1 , iy
               ht1(n,i,j) = inisrf0(i,7+n,j)
               satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
+              xlat1(n,i,j) = inisrf0(i,7+2*nnsg+n,j)
+              xlon1(n,i,j) = inisrf0(i,7+3*nnsg+n,j)
             end do
           end do
         end do

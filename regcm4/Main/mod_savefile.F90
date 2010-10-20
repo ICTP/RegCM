@@ -106,7 +106,7 @@
           read (iutrst) mddom_io%ht , mddom_io%xlat ,      &
                         mddom_io%xlong , mddom_io%satbrt , &
                         mddom_io%msfx , mddom_io%msfd , mddom_io%f
-          read (iutrst) ht1_io , satbrt1_io
+          read (iutrst) ht1_io , satbrt1_io , xlat1_io , xlon1_io
           read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             read (iutrst) rsheat_io , rswat_io
@@ -194,7 +194,7 @@
           read (iutrst) mddom%ht , mddom%xlat ,        &
                         mddom%xlong , mddom%satbrt ,   &
                         mddom%msfx , mddom%msfd , mddom%f
-          read (iutrst) ht1 , satbrt1
+          read (iutrst) ht1 , satbrt1 , xlat1 , xlon1
           read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
@@ -329,7 +329,7 @@
           write (iutsav) mddom_io%ht , mddom_io%xlat ,      &
                          mddom_io%xlong , mddom_io%satbrt , &
                          mddom_io%msfx , mddom_io%msfd , mddom_io%f
-          write (iutsav) ht1_io , satbrt1_io
+          write (iutsav) ht1_io , satbrt1_io , xlat1_io , xlon1_io
           write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             write (iutsav) rsheat_io , rswat_io
@@ -417,7 +417,7 @@
           write (iutsav) mddom%ht , mddom%xlat ,      &
                          mddom%xlong , mddom%satbrt , &
                          mddom%msfx , mddom%msfd , mddom%f
-          write (iutsav) ht1 , satbrt1
+          write (iutsav) ht1 , satbrt1 , xlat1 , xlon1
           write (iutsav) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat

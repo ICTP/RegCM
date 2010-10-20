@@ -25,6 +25,7 @@
       use mod_constants
       use mod_dynparam
       use mod_runparams
+      use mod_main
       use mod_bats
       use mod_date
 #ifdef MPP1
@@ -159,7 +160,7 @@
       integer , intent(in) :: jslc
 !
       real(8) :: flw , fsw , hlat , hsen , prec , &
-               & ql , tgl , tl , vl , zl
+               & ql , tgl , tl , vl , zl , xl
       integer :: i , n
 !
       do i = 2 , iym1
@@ -174,11 +175,16 @@
             prec = prca2d(i,jslc)      !  units of prec = mm
             hsen = -1.0D0*sent1d(n,i)
             hlat = -1.0D0*evpr1d(n,i)
+            if (nnsg == 1) then
+              xl = mddom%xlat(i,jslc)
+            else
+              xl = xlat1(n,i,jslc)
+            end if
 
-            call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat, &
-                    &  tgl,prec,idep2d(n,i,jslc),eta2d(n,i,jslc),   &
-                    &  hi2d(n,i,jslc),aveice2d(n,i,jslc),  &
-                    &  hsnow2d(n,i,jslc),evl2d(n,i,jslc),  &
+            call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,xl,    &
+                    &  tgl,prec,idep2d(n,i,jslc),eta2d(n,i,jslc),  &
+                    &  hi2d(n,i,jslc),aveice2d(n,i,jslc),          &
+                    &  hsnow2d(n,i,jslc),evl2d(n,i,jslc),          &
                     &  tlak3d(:,n,i,jslc) )
 
 !           Feed back ground temperature
@@ -186,11 +192,13 @@
             tgb1d(n,i) = tgl
 
             if ( aveice2d(n,i,jslc).le.10.0D0 ) then
+              ocld2d(n,i,jslc) = 0.0D0 
               ldoc1d(n,i) = 0.0D0
               sice1d(n,i) = 0.0D0
               scv1d(n,i) = 0.0D0
               sag1d(n,i) = 0.0D0
             else
+              ocld2d(n,i,jslc) = 2.0D0 
               ldoc1d(n,i) = 2.0D0
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i) = hsnow2d(n,i,jslc)    !  units of snow = mm h2o
@@ -203,13 +211,13 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,tgl,  &
+      subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,xl,tgl,  &
                     & prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
  
       implicit none
 !
       real(8) :: dtlake , evl , aveice , hlat , hsen , hsnow , flw , &
-               & prec , ql , fsw , tl , tgl , vl , zl , eta , hi
+               & prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
       real(8) , dimension(ndpmax) :: tprof
       integer :: ndpt
       intent (in) hlat , hsen , ql , tl , vl , zl
@@ -220,7 +228,6 @@
 !
 ! Local variables
 !
-      integer :: k
       real(8) :: ea , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
@@ -249,34 +256,13 @@
       if ( (aveice.eq.0.0D0) .and. (tprof(1).gt.tcutoff) ) then
  
 !       ******    Calculate eddy diffusivities
-        call eddy(ndpt,dtlake,u2,tprof)
-        do k = 1 , ndpmax
-          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
-            print *, 'EDDY: At k = ',k
-            print *, 'NAN'
-            call fatal(__FILE__,__LINE__,'NaN in lake')
-          end if
-        end do
+        call eddy(ndpt,dtlake,u2,xl,tprof)
  
 !       ******    Lake temperature calc using sensible and latent heats
         call temp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
-        do k = 1 , ndpmax
-          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
-            print *, 'TEMP: At k = ',k
-            print *, 'NAN'
-            call fatal(__FILE__,__LINE__,'NaN in lake')
-          end if
-        end do
  
 !       ******    Convective mixer
         call mixer(kmin,ndpt,tprof)
-        do k = 1 , ndpmax
-          if ((tprof(k)/=tprof(k)) .or. ((tprof(k)>0.0).eqv.(tprof(k)<=0.0))) then
-            print *, 'MIX: At k = ',k
-            print *, 'NAN'
-            call fatal(__FILE__,__LINE__,'NaN in lake')
-          end if
-        end do
  
       else
  
@@ -297,59 +283,79 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine eddy(ndpt,dtlake,u2,tprof)
+      subroutine eddy(ndpt,dtlake,u2,xl,tprof)
  
 ! Computes density and eddy diffusivity
  
       implicit none
 !
       integer , intent (in) :: ndpt
-      real(8) , intent (in) :: dtlake , u2
+      real(8) , intent (in) :: dtlake , u2 , xl
       real(8) , dimension(ndpmax) , intent (in) :: tprof
 !
-      real(8) :: demax , demin , dpdz , ks , n2 , po , rad , ri , ws , z
+      real(8) :: demax , demin , dpdz , ks , n2 , po
+      real(8) :: eld , rad , ri , ws , z
       integer :: k
 !
+!     demin molecular diffusion of heat in water
       demin = hdmw
+!
       demax = .50D0*dz**2.0D0/dtlake
       demax = .99D0*demax
-
+!
       do k = 1 , ndpt
         dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
                       (abs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
- 
-! compute eddy diffusion profile
+! 
+! Compute eddy diffusion profile
 !
-!     n2    Brunt-Vaisala frequency squared
-!     ri    gradient Richardson number
-!     demin molecular diffusion of water
+! Reference:
+!
+! B. Henderson-Sellers
+!  New formulation of eddy diffusion thermocline models.
+!  Appl. Math. Modelling, 1985, Vol. 9 December, pp. 441-446
+!
  
-! Decay constant of shear velocity: Shouldn't it be function of latitude?
-      ks = 0.745D0*u2**(-1.84D0)
-! Surface shear velocity
+!     Decay constant of shear velocity - Ekman profile parameter
+      ks = 6.6D0*sqrt(sin(xl*degrad))*u2**(-1.84D0)
+!     Ekman layer depth where eddy diffusion happens
+      eld = 40.0D0/ks
+
+!     Surface shear velocity
       ws = 0.0012D0*u2
-! Prandtl number
+
+!     Inverse of turbulent Prandtl number
       po = 1.0D0
  
       do k = 1 , ndpt - 1
-        dpdz = (dnsty(k+1)-dnsty(k))/dz
-        n2 = (dpdz/dnsty(k))*gti
+
+!       Actual depth from surface
         z = surf + dble(k-1)*dz
-!
-! This line has problems:
-!
-!       rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(-ks*z)))**2.0D0
-!
-! I am proposing to change the previous to the below (change sign in
-! the exponential).
-! But I have no reference for this. Where this formula is taken from?
-! Ciao!
-        rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(ks*z)))**2.0D0
+        if (z >= eld) then
+          de(k) = demin
+          cycle
+        end if
+
+        if ( k == 1 ) then
+          dpdz = (dnsty(k+1)-dnsty(k))/surf
+        else
+          dpdz = (dnsty(k+1)-dnsty(k))/dz
+        end if
+
+!       Brunt Vaisala frequency squared
+        n2 = (dpdz/dnsty(k))*gti
+
+!       Richardson number estimate
+        rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(-ks*z)))**2.0D0
         ri = (-1.0D0+sqrt(rad))/20.0D0
-        de(k) = demin + vonkar*ws*z*po*exp(-ks*z)/(1.0D0+37.0D0*ri**2.0D0)
+
+!       Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
+        de(k) = demin + vonkar*ws*z*po*exp(-ks*z) / &
+                        (1.0D0+37.0D0*ri**2.0D0)
         if ( de(k).lt.demin ) de(k) = demin
         if ( de(k).gt.demax ) de(k) = demax
+
       end do
       de(ndpt) = demin
  

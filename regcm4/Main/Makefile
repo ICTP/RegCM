@@ -324,12 +324,13 @@ endif
 ifeq ($(USECLM),1)
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o $(CLMLIB)
+         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o \
+         $(CLMLIB)
 	$(F90) $(CPPFLAGS) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o
+         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o
 endif
 #
 # CLM subroutines

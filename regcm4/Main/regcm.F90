@@ -87,6 +87,7 @@
       use mod_chem
 #endif
 #ifdef MPP1
+      use mod_mppio
       use mpi
 #ifdef CLM
       use perf_mod
@@ -269,6 +270,10 @@
       call spinit(sigma,kzp1)
 ! 
       if ( ichem.eq.1 ) call chsrfem
+!
+#ifdef MPP1
+      call free_mpp_initspace
+#endif
 ! 
 !**********************************************************************
 !

@@ -206,7 +206,7 @@
         allocate(var1rcv(kz,8),stat=ierr)
         call check_alloc(ierr,myname,'var1rcv',size(var1rcv))
         var1rcv = 0.0D0
-        allocate(inisrf0(iy,nnsg*3+7,jxp),stat=ierr)
+        allocate(inisrf0(iy,nnsg*5+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = 0.0D0
         allocate(atm0(iy,kz*6+3+nnsg*4,jxp),stat=ierr)
@@ -227,12 +227,14 @@
         allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp),stat=ierr)
         call check_alloc(ierr,myname,'chem0',size(chem0))
         chem0 = 0.0D0
-        allocate(src0(iy,mpy,ntr,jxp),stat=ierr)
-        call check_alloc(ierr,myname,'src0',size(src0))
-        src0 = 0.0D0
-        allocate(src1(iy,nats,jxp),stat=ierr)
-        call check_alloc(ierr,myname,'src1',size(src1))
-        src1 = 0.0D0
+        if (ichem == 1) then
+          allocate(src0(iy,mpy,ntr,jxp),stat=ierr)
+          call check_alloc(ierr,myname,'src0',size(src0))
+          src0 = 0.0D0
+          allocate(src1(iy,nats,jxp),stat=ierr)
+          call check_alloc(ierr,myname,'src1',size(src1))
+          src1 = 0.0D0
+        end if
 
         if (myid == 0) then
 
@@ -240,7 +242,7 @@
           call allocate_atmstate(atm1_io,.false.,0,0)
           call allocate_atmstate(atm2_io,.false.,0,0)
 
-          allocate(inisrf_0(iy,nnsg*3+7,jx),stat=ierr)
+          allocate(inisrf_0(iy,nnsg*5+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = 0.0D0
           allocate(atm_0(iy,kz*6+3+nnsg*4,jx),stat=ierr)
@@ -261,12 +263,14 @@
           allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx),stat=ierr)
           call check_alloc(ierr,myname,'chem_0',size(chem_0))
           chem_0 = 0.0D0
-          allocate(src_0(iy,mpy,ntr,jx),stat=ierr)
-          call check_alloc(ierr,myname,'src_0',size(src_0))
-          src_0 = 0.0D0
-          allocate(src_1(iy,nats,jx),stat=ierr)
-          call check_alloc(ierr,myname,'src_1',size(src_1))
-          src_1 = 0.0D0
+          if (ichem == 1) then
+            allocate(src_0(iy,mpy,ntr,jx),stat=ierr)
+            call check_alloc(ierr,myname,'src_0',size(src_0))
+            src_0 = 0.0D0
+            allocate(src_1(iy,nats,jx),stat=ierr)
+            call check_alloc(ierr,myname,'src_1',size(src_1))
+            src_1 = 0.0D0
+          end if
           if (lband) then
             allocate(spacesubm1(nnsg,iym1,jx,21),stat=ierr)
           else
@@ -699,6 +703,22 @@
         write(aline,*) 'allocate_mod_mppio'
         call say
       end subroutine allocate_mod_mppio
+!
+      subroutine free_mpp_initspace
+        implicit none
+        deallocate(inisrf0)
+        if (ichem == 1) then
+          deallocate(src0)
+          deallocate(src1)
+        end if
+        if (myid == 0) then
+          deallocate(inisrf_0)
+          if (ichem == 1) then
+            deallocate(src_0)
+            deallocate(src_1)
+          end if
+        end if
+      end subroutine free_mpp_initspace
 !
       end module mod_mppio
 

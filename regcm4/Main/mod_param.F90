@@ -890,6 +890,8 @@
               do i = 1 , iy
                 ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
                 satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
+                xlat1_io(1,i,j) = mddom_io%xlat(i,j)
+                xlon1_io(1,i,j) = mddom_io%xlong(i,j)
               end do
             end do
           end if
@@ -910,6 +912,8 @@
                 inisrf_0(i,7+n,j) = ht1_io(n,i,j)
                 inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
                 inisrf_0(i,7+nnsg*2+n,j) = snowc_io(n,i,j)
+                inisrf_0(i,7+nnsg*3+n,j) = xlat1_io(n,i,j)
+                inisrf_0(i,7+nnsg*4+n,j) = xlon1_io(n,i,j)
               end do
             end do
           end do
@@ -927,8 +931,8 @@
         endif
  
         call mpi_barrier(mpi_comm_world,ierr)
-        call mpi_scatter(inisrf_0,iy*(nnsg*3+7)*jxp,mpi_real8,   &
-                       & inisrf0, iy*(nnsg*3+7)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
+                       & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
         call mpi_barrier(mpi_comm_world,ierr)
         do j = 1 , jxp
@@ -946,6 +950,8 @@
               ht1(n,i,j) = inisrf0(i,7+n,j)
               satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
               snowc(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
+              xlat1(n,i,j) = inisrf0(i,7+nnsg*3+n,j)
+              xlon1(n,i,j) = inisrf0(i,7+nnsg*4+n,j)
             end do
           end do
         end do
@@ -1021,6 +1027,8 @@
             do i = 1 , iy
               ht1(1,i,j) = mddom%ht(i,j)*gti
               satbrt1(1,i,j) = mddom%satbrt(i,j)
+              xlat1(1,i,j) = mddom_io%xlat(i,j)
+              xlon1(1,i,j) = mddom_io%xlon(i,j)
             end do
           end do
         end if
