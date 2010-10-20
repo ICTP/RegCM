@@ -347,14 +347,16 @@
 
 !       Brunt Vaisala frequency squared : we do not mind stability,
 !       we just look for energy here.
-        n2 = abs((dpdz/dnsty(k))*gti)
-        if (n2 < 1.0D-30) then
+!        n2 = abs((dpdz/dnsty(k))*gti)
+        n2 = (dpdz/dnsty(k))*gti
+        if (abs(n2) < 1.0D-30) then
           de(k) = demin
           cycle
         end if
 
 !       Richardson number estimate
         rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(-ks*z)))**2.0D0
+        if (rad < 0.0D0) rad = 0.0D0
         ri = (-1.0D0+sqrt(rad))/20.0D0
 
 !       Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
