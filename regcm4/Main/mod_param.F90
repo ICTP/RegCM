@@ -1027,8 +1027,8 @@
             do i = 1 , iy
               ht1(1,i,j) = mddom%ht(i,j)*gti
               satbrt1(1,i,j) = mddom%satbrt(i,j)
-              xlat1(1,i,j) = mddom_io%xlat(i,j)
-              xlon1(1,i,j) = mddom_io%xlon(i,j)
+              xlat1(1,i,j) = mddom%xlat(i,j)
+              xlon1(1,i,j) = mddom%xlong(i,j)
             end do
           end do
         end if
