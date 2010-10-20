@@ -294,12 +294,13 @@
       real(8) , dimension(ndpmax) , intent (in) :: tprof
 !
       real(8) :: demax , demin , dpdz , ks , n2 , po
-      real(8) :: eld , rad , ri , ws , z
+      real(8) :: zmax , rad , ri , ws , z
       integer :: k
 !
 !     demin molecular diffusion of heat in water
       demin = hdmw
 !
+!     Added to keep numerical stability of code
       demax = .50D0*dz**2.0D0/dtlake
       demax = .99D0*demax
 !
@@ -319,8 +320,9 @@
  
 !     Decay constant of shear velocity - Ekman profile parameter
       ks = 6.6D0*sqrt(sin(xl*degrad))*u2**(-1.84D0)
+
 !     Ekman layer depth where eddy diffusion happens
-      eld = 40.0D0/ks
+      zmax = ceiling(surf+40.0D0/(vonkar*ks))
 
 !     Surface shear velocity
       ws = 0.0012D0*u2
@@ -332,7 +334,7 @@
 
 !       Actual depth from surface
         z = surf + dble(k-1)*dz
-        if (z >= eld) then
+        if (z >= zmax) then
           de(k) = demin
           cycle
         end if
@@ -345,6 +347,10 @@
 
 !       Brunt Vaisala frequency squared
         n2 = (dpdz/dnsty(k))*gti
+        if (abs(n2) < 1.0D-30) then
+          de(k) = demin
+          cycle
+        end if
 
 !       Richardson number estimate
         rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*exp(-ks*z)))**2.0D0
