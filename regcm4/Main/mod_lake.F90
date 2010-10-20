@@ -345,9 +345,10 @@
           dpdz = (dnsty(k+1)-dnsty(k))/dz
         end if
 
-!       Brunt Vaisala frequency squared
-        n2 = (dpdz/dnsty(k))*gti
-        if (abs(n2) < 1.0D-30) then
+!       Brunt Vaisala frequency squared : we do not mind stability,
+!       we just look for energy here.
+        n2 = abs((dpdz/dnsty(k))*gti)
+        if (n2 < 1.0D-30) then
           de(k) = demin
           cycle
         end if
