@@ -806,7 +806,6 @@
                & sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet , x
       real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  & aldifs_s , aldirl_s , aldirs_s
-      real(8) :: fseas
       integer :: kolour , n , i, jj
 !
 !     Albedo calculates fragmented albedos (direct and diffuse) in
@@ -835,7 +834,6 @@
 !     =================================================================
 !     1. set initial parameters
 !     =================================================================
-      fseas(x) = dmax1(0.D0,1.D0-0.0016D0*dmax1(298.D0-x,0.D0)**2)
 !
 !     1.1 constants
 !
@@ -1060,8 +1058,6 @@
         aldirl(i) = aldirl_s(1)
         aldifs(i) = aldifs_s(1)
         aldifl(i) = aldifl_s(1)
-        aldirs1d(1,i) = aldirs_s(1)
-        aldifs1d(1,i) = aldifs_s(1)
         if ( iemiss.eq.1 ) emiss1d(i) = emiss2d(1,i,j)
         do n = 2 , nnsg
           albvs(i) = albvs(i) + albvs_s(n)
@@ -1071,8 +1067,6 @@
           aldifs(i) = aldifs(i) + aldifs_s(n)
           aldifl(i) = aldifl(i) + aldifl_s(n)
           if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
-          aldirs1d(n,i) = aldirs_s(n)
-          aldifs1d(n,i) = aldifs_s(n)
         end do
         albvs(i) = albvs(i)/dble(nnsg)
         albvl(i) = albvl(i)/dble(nnsg)
@@ -1106,12 +1100,23 @@
                        albvs(i) *(1-landfrac(jj,i))
            albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) +                   &
                        albvl(i) *(1-landfrac(jj,i)) 
-!          NOTE: CLM does not work with subgrid, so this should suffice
-           aldirs1d(1,i) = aldirs(i)
-           aldifs1d(1,i) = aldifs(i)
         end if
 
+        do n = 1 , nnsg
+          aldirs1d(n,i) = aldirs(i)
+          aldifs1d(n,i) = aldifs(i)
+        end do
+
       end do   ! end of i loop
+
+      contains
+
+        function fseas(x)
+          implicit none
+          real(8) :: fseas
+          real(8) , intent(in) :: x
+          fseas = max(0.D0,(1.D0-0.0016D0*max(298.D0-x,0.D0)**2.0D0))
+        end function fseas
   
       end subroutine albedoclm
 !
