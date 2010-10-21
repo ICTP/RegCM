@@ -359,7 +359,7 @@ program ncplot
     write (11, '(a)') 'zdef 1 levels 1000.0'
   end if
 
-  if (nt /= 0) then
+  if (nt > 1) then
     allocate(times(nt), stat=istatus)
     if (istatus /= 0) then
       write (6,*) 'Memory error allocating times'
@@ -408,6 +408,25 @@ program ncplot
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
              year , delta, 'hr'
     end if
+  else if (nt == 1) then
+    istatus = nf90_inq_varid(ncid, "time", ivarid)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error : time variable undefined'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
+    istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
+    read (timeunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour
+    delta = 6
+    write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
+           'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
+           year , delta, 'hr'
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
   end if
