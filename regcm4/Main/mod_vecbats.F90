@@ -591,6 +591,8 @@
           v10m_o(j,i-1) = 0.0
           tg_o(j,i-1) = 0.0
           t2m_o(j,i-1) = 0.0
+          aldirs_o(j,i-1) = 0.0
+          aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
             if ( ocld2d(n,i,j).ge.0.5 ) then
               fracv = sigf(n,i)
@@ -624,11 +626,15 @@
             v10m_o(j,i-1) = v10m_o(j,i-1) + v10m1d(n,i)
             t2m_o(j,i-1) = t2m_o(j,i-1) + t2m_1d(n,i)
             tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
+            aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
+            aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
           end do
           u10m_o(j,i-1) = u10m_o(j,i-1)/float(ng)
           v10m_o(j,i-1) = v10m_o(j,i-1)/float(ng)
           t2m_o(j,i-1) = t2m_o(j,i-1)/float(ng)
           tg_o(j,i-1) = tg_o(j,i-1)/float(ng)
+          aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(ng)
+          aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(ng)
  
           tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
           tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
@@ -638,12 +644,15 @@
                         & v10m_o(j,i-1)**2))
           real_4 = (sps2%ps(i,j)+r8pt)*10.
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
+
 #else
 #ifdef BAND
           u10m_o(j,i-1) = 0.0
           v10m_o(j,i-1) = 0.0
           tg_o(j,i-1) = 0.0
           t2m_o(j,i-1) = 0.0
+          aldirs_o(j,i-1) = 0.0
+          aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
             if ( ocld2d(n,i,j).ge.0.5 ) then
               fracv = sigf(n,i)
@@ -677,11 +686,15 @@
             v10m_o(j,i-1) = v10m_o(j,i-1) + v10m1d(n,i)
             t2m_o(j,i-1) = t2m_o(j,i-1) + t2m_1d(n,i)
             tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
+            aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
+            aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
           end do
           u10m_o(j,i-1) = u10m_o(j,i-1)/float(ng)
           v10m_o(j,i-1) = v10m_o(j,i-1)/float(ng)
           t2m_o(j,i-1) = t2m_o(j,i-1)/float(ng)
           tg_o(j,i-1) = tg_o(j,i-1)/float(ng)
+          aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(ng)
+          aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(ng)
           tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
           tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
           t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
@@ -695,6 +708,8 @@
           v10m_o(j-1,i-1) = 0.0
           tg_o(j-1,i-1) = 0.0
           t2m_o(j-1,i-1) = 0.0
+          aldirs_o(j-1,i-1) = 0.0
+          aldifs_o(j-1,i-1) = 0.0
           do n = 1 , ng
             if ( ocld2d(n,i,j).ge.0.5 ) then
               fracv = sigf(n,i)
@@ -728,11 +743,15 @@
             v10m_o(j-1,i-1) = v10m_o(j-1,i-1) + v10m1d(n,i)
             t2m_o(j-1,i-1) = t2m_o(j-1,i-1) + t2m_1d(n,i)
             tg_o(j-1,i-1) = tg_o(j-1,i-1) + tg1d(n,i)
+            aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1) + aldirs1d(n,i)
+            aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1) + aldifs1d(n,i)
           end do
           u10m_o(j-1,i-1) = u10m_o(j-1,i-1)/float(ng)
           v10m_o(j-1,i-1) = v10m_o(j-1,i-1)/float(ng)
           t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/float(ng)
           tg_o(j-1,i-1) = tg_o(j-1,i-1)/float(ng)
+          aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1)/float(ng)
+          aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1)/float(ng)
           tgmx_o(j-1,i-1) = amax1(tgmx_o(j-1,i-1),tg_o(j-1,i-1))
           tgmn_o(j-1,i-1) = amin1(tgmn_o(j-1,i-1),tg_o(j-1,i-1))
           t2mx_o(j-1,i-1) = amax1(t2mx_o(j-1,i-1),t2m_o(j-1,i-1))
@@ -1073,8 +1092,6 @@
       character (len=50) :: subroutine_name='albedov'
       integer :: idindx=0
 !
- 
-!
 !     Albedo calculates fragmented albedos (direct and diffuse) in
 !     wavelength regions split at 0.7um.
 !
@@ -1344,6 +1361,8 @@
         aldifs(i) = aldifs_s(1)
         aldifl(i) = aldifl_s(1)
         if ( iemiss.eq.1 ) emiss1d(i) = emiss2d(1,i,j)
+        aldirs1d(1,i) = aldirs_s(1)
+        aldifs1d(1,i) = aldifs_s(1)
         do n = 2 , nnsg
           albvs(i) = albvs(i) + albvs_s(n)
           albvl(i) = albvl(i) + albvl_s(n)
@@ -1352,6 +1371,8 @@
           aldifs(i) = aldifs(i) + aldifs_s(n)
           aldifl(i) = aldifl(i) + aldifl_s(n)
           if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
+          aldirs1d(n,i) = aldirs_s(n)
+          aldifs1d(n,i) = aldifs_s(n)
         end do
         albvs(i) = albvs(i)/dble(nnsg)
         albvl(i) = albvl(i)/dble(nnsg)

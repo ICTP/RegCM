@@ -39,7 +39,7 @@
                   writerec_rad , writerec_che
 !
         integer , parameter :: n_atmvar = 12
-        integer , parameter :: n_srfvar = 28
+        integer , parameter :: n_srfvar = 30
         integer , parameter :: n_subvar = 16
         integer , parameter :: n_radvar = 15
         integer , parameter :: n_chevar = 17
@@ -130,7 +130,7 @@
                          'tpr', 'evp', 'runoff', 'scv', 'sena', 'flw', &
                          'fsw', 'flwd', 'sina', 'prcv', 'zpbl',        &
                          'tgmax', 'tgmin', 't2max', 't2min', 'w10max', &
-                         'ps_min' /
+                         'ps_min' , 'aldirs' , 'aldifs' /
         data sub_names / 'time', 'ps', 'u10m', 'v10m', 'uvdrag', 'tg', &
                          'tlef', 't2m' , 'q2m' , 'smw', 'tpr' , 'evp', &
                          'runoff', 'scv', 'sena', 'prcv' /
@@ -1831,6 +1831,14 @@
             istatus = nf90_put_att(ncid, isrfvar(28), 'cell_methods', &
                             &  cmethodmin)
             call check_ok('Error adding ps_min cell_methods', fterr)
+            call addvara(ncid,ctype,'aldirs', &
+                'surface_albedo_short_wave_direct', &
+                'Surface albedo to direct short wave radiation', &
+                '1',tyx,.false.,isrfvar(29))
+            call addvara(ncid,ctype,'aldifs', &
+                'surface_albedo_short_wave_diffuse', &
+                'Surface albedo to diffuse short wave radiation', &
+                '1',tyx,.false.,isrfvar(30))
           else if (ctype == 'SUB') then
             isubvar = -1
             isubvar(1) = itvar
