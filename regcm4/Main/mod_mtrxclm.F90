@@ -1060,6 +1060,8 @@
         aldirl(i) = aldirl_s(1)
         aldifs(i) = aldifs_s(1)
         aldifl(i) = aldifl_s(1)
+        aldirs1d(1,i) = aldirs_s(1)
+        aldifs1d(1,i) = aldifs_s(1)
         if ( iemiss.eq.1 ) emiss1d(i) = emiss2d(1,i,j)
         do n = 2 , nnsg
           albvs(i) = albvs(i) + albvs_s(n)
@@ -1069,6 +1071,8 @@
           aldifs(i) = aldifs(i) + aldifs_s(n)
           aldifl(i) = aldifl(i) + aldifl_s(n)
           if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
+          aldirs1d(n,i) = aldirs_s(n)
+          aldifs1d(n,i) = aldifs_s(n)
         end do
         albvs(i) = albvs(i)/dble(nnsg)
         albvl(i) = albvl(i)/dble(nnsg)
@@ -1102,6 +1106,9 @@
                        albvs(i) *(1-landfrac(jj,i))
            albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) +                   &
                        albvl(i) *(1-landfrac(jj,i)) 
+!          NOTE: CLM does not work with subgrid, so this should suffice
+           aldirs1d(1,i) = aldirs(i)
+           aldifs1d(1,i) = aldifs(i)
         end if
 
       end do   ! end of i loop
@@ -1688,6 +1695,8 @@
             v10m_o(j,i-1) = 0.0
             tg_o(j,i-1) = 0.0
             t2m_o(j,i-1) = 0.0
+            aldirs_o(j,i-1) = 0.0
+            aldifs_o(j,i-1) = 0.0
  
             do n = 1 , nnsg
               if ( ocld2d(n,i,j)>0.5 ) then
@@ -1713,12 +1722,16 @@
                 tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
               else
               end if
+              aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
+              aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
             end do
  
             u10m_o(j,i-1) = u10m_o(j,i-1)/float(nnsg)
             v10m_o(j,i-1) = v10m_o(j,i-1)/float(nnsg)
             t2m_o(j,i-1) = t2m_o(j,i-1)/float(nnsg)
             tg_o(j,i-1) = tg_o(j,i-1)/float(nnsg)
+            aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(nnsg)
+            aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(nnsg)
  
             tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
             tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
