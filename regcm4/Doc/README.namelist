@@ -186,6 +186,7 @@
                         !   2 => Grell
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
+                        !  99 => Use Grell over land and Emanuel over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)
@@ -225,15 +226,19 @@
  clfrcvmax =       0.25, ! Max cloud fractional cover for convective precip.
  /
 !
-! Grell Cumulus scheme control (please look param.F90)
+! Grell Cumulus scheme control (please look mod_param.F90)
 !
  &grellparam
  /
 !
-! Emanuel Cumuls scheme control (please look param.F90)
+! Emanuel Cumuls scheme control (please look mod_param.F90)
 !
  &emanparam
- /
+ elcrit  = 0.0011D0  ! Autoconversion threshold water content (gm/gm)
+ coeffr  = 1.0D0     ! Coefficient governing the rate of rain evaporation
+!elcrit = 0.01D0    ! to make the scheme drier
+!coeffr = 1.5D0     ! to make the scheme drier
+  / 
 !
 ! Chemical control parameter
 !

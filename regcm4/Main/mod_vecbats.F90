@@ -1133,22 +1133,22 @@
       sical0 = 0.6D0
       sical1 = 0.4D0
 !
-!     Desert seasonal albedo (are we sure this algo is correct?)
+!     Desert seasonal albedo
 !     Works for Sahara desert and generally northern emisphere
-!     (China and US).
+!     In souther emisphere only some points have this class
 !
       if (idesseas == 1) then
         if (lmonth==1.or.lmonth==2.or.lmonth==12) then
           solour(1)=0.12
         endif        
         if (lmonth==3.or.lmonth==4.or.lmonth==5) then
-          solour(1)=0.14
+          solour(1)=0.15
         endif        
         if (lmonth==6.or.lmonth==7.or.lmonth==8) then
-          solour(1)=0.16
+          solour(1)=0.18
         endif        
         if (lmonth==9.or.lmonth==10.or.lmonth==11) then
-          solour(1)=0.14
+          solour(1)=0.15
         endif
       end if
 !

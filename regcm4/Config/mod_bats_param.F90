@@ -37,7 +37,7 @@
      data solour / 0.12D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
                    0.07D0 , 0.06D0 , 0.05D0 /
 #else
-     data solour / 0.16D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
+     data solour / 0.16D0 , 0.15D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
                    0.07D0 , 0.06D0 , 0.05D0 /
 #endif
 
@@ -74,7 +74,7 @@
 !Sara
 !     data rsmin/45.,60.,2*80.,120.,2*60.,200.,80.,45.,150.,200.,45.
 !     &          ,2*200.,80.,120.,100.,2*120./
-      data rsmin/20*200.0D0/
+      data rsmin /5*200.0D0,50.0D0,14*200.0D0/
 !Sara_
 !     ******      max leaf area index (ratio unit cover per unit ground)
 !     ORIGINAL
