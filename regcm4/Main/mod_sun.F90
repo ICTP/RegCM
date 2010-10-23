@@ -97,9 +97,9 @@
 !
 !     Solar declination in radians:
 !
-      delta = .006918 - .399912*dcos(theta) + .070257*dsin(theta)       &
-            & - .006758*dcos(2.*theta) + .000907*dsin(2.*theta)         &
-            & - .002697*dcos(3.*theta) + .001480*dsin(3.*theta)
+      delta = .006918 - .399912*cos(theta) + .070257*sin(theta)       &
+            & - .006758*cos(2.*theta) + .000907*sin(2.*theta)         &
+            & - .002697*cos(3.*theta) + .001480*sin(3.*theta)
 !
       declin = delta
       decdeg = declin/degrad
@@ -132,12 +132,12 @@
 !
       integer :: ill
 #ifdef CLM
-      integer :: jj
-      real(8) :: cldy , declinp1
+      real(8) :: cldy , declinp1 , xxlon
 #else
-      real(8) :: omega , tlocap , xt24 , xxlat
+      real(8) :: omega , tlocap , xt24
 #endif
       character (len=50) :: subroutine_name='zenitm'
+      real(8) :: xxlat
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -146,26 +146,26 @@
 !
 #ifdef CLM
       cldy = get_curr_calday()
-!      cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+!     cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
       call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
            &            r2cobliqr,declinp1,r2ceccf)
-      jj = (jxp*myid) + jslc
       do ill = 1 , ivmx
-        coszrs(ill) = shr_orb_cosz(cldy,r2cxlat_all(jj,ill),            &
-            &                      r2cxlon_all(jj,ill),declinp1)
-        coszrs(ill) = dmax1(0.d0,coszrs(ill))
+        xxlat = mddom%xlat(ill,jslc)*degrad
+        xxlon = mddom%xlong(ill,jslc)*degrad
+        coszrs(ill) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
+        coszrs(ill) = max(0.d0,coszrs(ill))
       end do
 #else
-      xt24 = dmod(lhour*60.+xtime,1440.D0)
+      xt24 = mod(lhour*60.+xtime,1440.D0)
       do ill = 1 , ivmx
         tlocap = xt24/60. + mddom%xlong(ill,jslc)/15.
-        tlocap = dmod(tlocap+24.,24.D0)
+        tlocap = mod(tlocap+24.,24.D0)
         omega = 15.*(tlocap-12.)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad
 !       coszrs = cosine of solar zenith angle
-        coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)           &
-                    & *dcos(xxlat)*dcos(omega)
-        coszrs(ill) = dmax1(0.D0,coszrs(ill))
+        coszrs(ill) = sin(declin)*sin(xxlat) + cos(declin)           &
+                    & *cos(xxlat)*cos(omega)
+        coszrs(ill) = max(0.D0,coszrs(ill))
       end do
 #endif
 !

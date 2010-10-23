@@ -1550,21 +1550,25 @@
  
 !       ****** calculate albedo
 #ifdef CLM
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
-           & .eq.0 ) then
-            do i = 1 , iym1
-               aldirs(i) = aldirs2d(i,j)
-               aldirl(i) = aldirl2d(i,j)
-               aldifs(i) = aldifs2d(i,j)
-               aldifl(i) = aldifl2d(i,j)
-               albvs(i)  = aldirs2d(i,j)
-               albvl(i)  = aldirl2d(i,j)
-            end do
-            call albedoclm(j,iemiss)
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+             mod(ktau+1,ntrad).eq.0 ) then
+          do i = 1 , iym1
+            aldirs(i) = aldirs2d(i,j)
+            aldirl(i) = aldirl2d(i,j)
+            aldifs(i) = aldifs2d(i,j)
+            aldifl(i) = aldifl2d(i,j)
+            albvs(i)  = aldirs2d(i,j)
+            albvl(i)  = aldirl2d(i,j)
+            aldirs1d(:,i) = aldirs2d(i,j)
+            aldifs1d(:,i) = aldifs2d(i,j)
+          end do
+          call albedoclm(j,iemiss)
         end if
 #else
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
-           & .eq.0 ) call albedov(j,iemiss)
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+             mod(ktau+1,ntrad).eq.0 ) then
+          call albedov(j,iemiss)
+        end if
 #endif
  
 !       ****** call ccm3 radiative transfer package
