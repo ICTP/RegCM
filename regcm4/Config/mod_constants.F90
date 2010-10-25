@@ -93,6 +93,8 @@
       real(8) , parameter :: sigm = 5.670400D-08
       ! Boltzman Constant k CODATA 2007
       real(8) , parameter :: boltzk = 1.3806504D-23
+      ! Avogadro Constant
+      real(8) , parameter :: navgdr = 6.02214084D23
 
       ! Fixed emissivity of water
       real(8) , parameter :: emsw = 0.97D+00
@@ -142,11 +144,7 @@
       ! Ocean roughness length
       real(8) , parameter :: zoce = 0.00040D+00
       ! Snow roughness length
-#ifdef CLM
-      real(8) , parameter :: zsno = 0.00240D+00
-#else
       real(8) , parameter :: zsno = 0.00040D+00
-#endif
       ! Von Karman constant
       real(8) , parameter :: vonkar = 0.4D+00
       ! Drag coefficient for soil under canopy

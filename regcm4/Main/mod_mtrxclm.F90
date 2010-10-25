@@ -129,7 +129,6 @@
       use clm_varsur,    only : clm_fracveg
       use clm_varsur,    only : slmo
       use atmdrvMod
-      use spmdMod,       only : masterproc, iam, spmd_init
       use program_offMod
       use clm_comp 
       use clmtype
@@ -145,7 +144,7 @@
 !
 ! Local variables
 !
-      integer :: ci , cj , i , ii , j , je , jj , js , n , ierr
+      integer :: ci , cj , i , ii , j , jj , n , ierr
       real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,         &
                 & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
                 & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &
@@ -243,8 +242,8 @@
 !       Albedo
 !       Set initial albedos to clm dry soil values for mid-colored soils
         aldirs2d(:,:) = 0.16
-        aldirl2d(:,:) = 0.32
         aldifs2d(:,:) = 0.16
+        aldirl2d(:,:) = 0.32
         aldifl2d(:,:) = 0.32
       end if
  
@@ -680,21 +679,13 @@
 ! atmospheric data files are provided, model uses dummy atmospheric
 ! forcing and sets atmospheric grid to land grid.
  
-      if ( masterproc ) write (6,*)                                     &
+      if ( myid == 0 ) write (6,*)                                     &
                                   &'Attempting to make atmospheric grid'
       call rcmdrv_init()
-      if ( masterproc ) write (6,*) 'Successfully make atmospheric grid'
- 
-!jlb  12/05: orbital params calc'd in solar1_clm called from init.f and
-!     tend.f Initializes grid and surface variables (e.g.veg type, soil
-!     text....)
-      call mpi_bcast(landmask,size(landmask),mpi_integer,0,             &
-                   & mpi_comm_world,ierr)
- 
-      call mpi_bcast(landfrac,size(landfrac),mpi_real,0,mpi_comm_world, &
-                   & ierr)
+      if ( myid == 0 ) write (6,*) 'Successfully make atmospheric grid'
  
 !     Initialize radiation and atmosphere variables
+
       if ( .not.ifrest ) then
         instep = ktau
         call rcmdrv()
@@ -703,80 +694,73 @@
 !     Initialize ocld2d now that clm has determined the land sea mask
 !     Initialize accumulation variables at zero
  
-      js = (jxp*myid) + 1
-      je = jxp*(myid+1)
-      jj = 0
-      do j = js , je
-        jj = jj + 1
-        do i = 1 , iy - 1
+      do j = 1 , jxp
+        jj = myid*jxp + j
+        do i = 1 , iym1
  
           if ( .not.ifrest ) then
             do n = 1 , nnsg
-              ocld2d(n,i,jj) = dble(landmask(j,i))
-              tgb2d(n,i,jj) = sts2%tg(i,jj)
-              taf2d(n,i,jj) = sts2%tg(i,jj)
-              tlef2d(n,i,jj) = sts2%tg(i,jj)
-              dew2d(n,i,jj) = 0.
-              sag2d(n,i,jj) = 0.
-              scv2d(n,i,jj) = max(snowc(n,i,jj),0.D0)
-              sice2d(n,i,jj) = 0.
-              fsw2d(i,jj) = 0.
-              flw2d(i,jj) = 0.
-              sabv2d(i,jj) = 0.
-              sol2d(i,jj) = 0.
-              gwet2d(n,i,jj) = 0.5
-              fswa2d(i,jj) = 0.
-              flwa2d(i,jj) = 0.
-              sena2d(n,i,jj) = 0.
-              evpa2d(n,i,jj) = 0.
-              prca2d(i,jj) = 0.
-              prnca2d(i,jj) = 0.
-              rnos2d(n,i,jj) = 0.
-              rno2d(n,i,jj) = 0.
-              svga2d(i,jj) = 0.
-              sina2d(i,jj) = 0.
-              ircp2d(n,i,jj) = 0.
+              ocld2d(n,i,j) = dble(landmask(jj,i))
+              tgb2d(n,i,j) = sts2%tg(i,j)
+              taf2d(n,i,j) = sts2%tg(i,j)
+              tlef2d(n,i,j) = sts2%tg(i,j)
+              dew2d(n,i,j) = 0.
+              sag2d(n,i,j) = 0.
+              scv2d(n,i,j) = max(snowc(n,i,j),0.D0)
+              sice2d(n,i,j) = 0.
+              fsw2d(i,j) = 0.
+              flw2d(i,j) = 0.
+              sabv2d(i,j) = 0.
+              sol2d(i,j) = 0.
+              gwet2d(n,i,j) = 0.5
+              fswa2d(i,j) = 0.
+              flwa2d(i,j) = 0.
+              sena2d(n,i,j) = 0.
+              evpa2d(n,i,j) = 0.
+              prca2d(i,j) = 0.
+              prnca2d(i,j) = 0.
+              rnos2d(n,i,j) = 0.
+              rno2d(n,i,j) = 0.
+              svga2d(i,j) = 0.
+              sina2d(i,j) = 0.
+              ircp2d(n,i,j) = 0.
             end do
           end if !end ifrest test
  
-          if ( landfrac(j,i)/=1. .and. landfrac(j,i)/=0. )              &
-             &    landmask(j,i) = 3.
+          if ( abs(landfrac(jj,i)-1.0) .ge. 0.1 .and. &
+               abs(landfrac(jj,i)).ge.0.1 ) landmask(jj,i) = 3
 
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent  
 
-          mddom%satbrt(i,jj) = clm2bats_veg(j,i)
-          if ( clm2bats_veg(j,i).eq.0 ) mddom%satbrt(i,jj) = 15
-          do n = 1 , nnsg
-            satbrt1(n,i,jj) = clm2bats_veg(j,i)
-            if ( clm2bats_veg(j,i).eq.0 ) satbrt1(n,i,jj) = 15
-          end do
-          if ( mddom%satbrt(i,jj).gt.13.9 .and. &
-               mddom%satbrt(i,jj).lt.15.1 ) then
-            veg2d(i,jj)  = 0
-            do n = 1 , nnsg
-              veg2d1(n,i,jj)  = 0
-            end do
-          else
-            veg2d(i,jj) = mddom%satbrt(i,jj)
-            do n = 1 , nnsg
-              veg2d1(n,i,jj)  = mddom%satbrt(i,jj)
-            end do
-          end if
-!          svegfrac2d(i,jj) = clm_fracveg(i,j) 
-          do n = 1 , nnsg
-            if ( veg2d(i,jj).eq.0 .and. ocld2d(n,i,jj).eq.1 ) then
-              veg2d(i,jj)     =  2
-              veg2d1(n,i,jj)  =  2
-              satbrt1(n,i,jj) =  2
-              mddom%satbrt(i,jj)    =  2
-            end if
-          end do
-          if ( landfrac(j,i).ne.1 .and. landfrac(j,i).ne.0 ) then
-            landmask(j,i) = 3
-          end if
-        end do
-      end do
+           mddom%satbrt(i,j) = clm2bats_veg(jj,i)
+           if ( clm2bats_veg(jj,i).eq.0 ) mddom%satbrt(i,j) = 15
+           do n = 1 , nnsg
+             satbrt1(n,i,j) = clm2bats_veg(jj,i)
+             if ( clm2bats_veg(jj,i).eq.0 ) satbrt1(n,i,j) = 15
+           end do
+           if ( mddom%satbrt(i,j).gt.13.9 .and. &
+                mddom%satbrt(i,j).lt.15.1 ) then
+             veg2d(i,j)  = 0
+             do n = 1 , nnsg
+               veg2d1(n,i,j)  = 0
+             end do
+           else
+             veg2d(i,j) = mddom%satbrt(i,j)
+             do n = 1 , nnsg
+               veg2d1(n,i,j)  = satbrt1(n,i,j)
+             end do
+           end if
+           do n = 1 , nnsg
+             if ( veg2d(i,j).eq.0 .and. ocld2d(n,i,j).eq.1 ) then
+               veg2d(i,j)     =  2
+               veg2d1(n,i,j)  =  2
+               satbrt1(n,i,j) =  2
+               mddom%satbrt(i,j)    =  2
+             end if
+           end do
+         end do
+       end do
  
 !     deallocate some variables used in CLM initialization only
       if ( allocated(ht_rcm) ) deallocate(ht_rcm)
@@ -794,7 +778,7 @@
 !
       integer , intent(in) :: iemiss , j
 !
-      integer :: i , jj , n
+      integer :: i , jj
 !
       ldoc1d(:,:) = ocld2d(:,:,j)
 !
@@ -821,15 +805,11 @@
                        albvs(i) *(1-landfrac(jj,i))
            albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) + &
                        albvl(i) *(1-landfrac(jj,i)) 
-
-           do n = 1 , nnsg
-             aldirs1d(1,i) = aldirs(i)
-             aldifs1d(1,i) = aldifs(i)
-           end do
-
         end if
+        aldirs_o(j,i-1) = aldirs(i)
+        aldifs_o(j,i-1) = aldifs(i)
       end do
-!
+ 
       end subroutine albedoclm
 !
       subroutine interfclm(ivers)
@@ -848,8 +828,7 @@
 !
 ! Dummy arguments
 !
-      integer :: ivers
-      intent (in) ivers
+      integer , intent(in) :: ivers
 !
 ! Local variables
 !
@@ -1077,7 +1056,6 @@
         end if
  
  
-        jj = 0
         do j = jbegin , jendx
           jj = (jxp*myid) + j
  
@@ -1413,8 +1391,6 @@
             v10m_o(j,i-1) = 0.0
             tg_o(j,i-1) = 0.0
             t2m_o(j,i-1) = 0.0
-            aldirs_o(j,i-1) = 0.0
-            aldifs_o(j,i-1) = 0.0
  
             do n = 1 , nnsg
               if ( ocld2d(n,i,j)>0.5 ) then
@@ -1422,8 +1398,6 @@
                 v10m_s(n,j,i-1) = vbx3d(i,kz,j)
                 tg_s(n,j,i-1) = tg2d(n,i,j)
                 t2m_s(n,j,i-1) = taf2d(n,i,j)
-!               abt            u10m_o(j,i-1)= u10m_o(j,i-1)+ u10m1d(n,i)
-!               abt            v10m_o(j,i-1)= v10m_o(j,i-1)+ v10m1d(n,i)
                 u10m_o(j,i-1) = u10m_o(j,i-1) + ubx3d(i,kz,j)
                 v10m_o(j,i-1) = v10m_o(j,i-1) + vbx3d(i,kz,j)
                 t2m_o(j,i-1) = t2m_o(j,i-1) + taf2d(n,i,j)
@@ -1439,25 +1413,21 @@
                 t2m_o(j,i-1) = t2m_o(j,i-1) + t2m_1d(n,i)
                 tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
               end if
-              aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
-              aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
             end do
  
             u10m_o(j,i-1) = u10m_o(j,i-1)/float(nnsg)
             v10m_o(j,i-1) = v10m_o(j,i-1)/float(nnsg)
             t2m_o(j,i-1) = t2m_o(j,i-1)/float(nnsg)
             tg_o(j,i-1) = tg_o(j,i-1)/float(nnsg)
-            aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(nnsg)
-            aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(nnsg)
- 
+
             tgmx_o(j,i-1) = max(tgmx_o(j,i-1),tg_o(j,i-1))
-            tgmn_o(j,i-1) = max(tgmn_o(j,i-1),tg_o(j,i-1))
+            tgmn_o(j,i-1) = min(tgmn_o(j,i-1),tg_o(j,i-1))
             t2mx_o(j,i-1) = max(t2mx_o(j,i-1),t2m_o(j,i-1))
-            t2mn_o(j,i-1) = max(t2mn_o(j,i-1),t2m_o(j,i-1))
+            t2mn_o(j,i-1) = min(t2mn_o(j,i-1),t2m_o(j,i-1))
             w10x_o(j,i-1) = max(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+  &
                           & v10m_o(j,i-1)**2))
             real_4 = (sps2%ps(i,j)+ptop)*10.
-            psmn_o(j,i-1) = max(psmn_o(j,i-1),real_4)
+            psmn_o(j,i-1) = min(psmn_o(j,i-1),real_4)
  
           end do !i loop
  

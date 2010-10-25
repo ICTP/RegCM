@@ -546,21 +546,21 @@
 +            landfrac(nni,nnj) = rcmfrac(nns)
 +            if(rcmfrac(nns) < 0.1) then    
 +              domain%mask(nns)  = 0.
-+              landmask(nni,nnj) = 0.
++              landmask(nni,nnj) = 0
 +              landfrac(nni,nnj) = 0.
 +            else
 +              domain%mask(nns)  = 1.
-+              landmask(nni,nnj) = 1.
++              landmask(nni,nnj) = 1
 +            endif
 +
 +          elseif(r2cimask == 1) then           !using DOMAIN.INFO landmask
 +            if(satbrt_clm(nnj,nni) > 13.9 .and. satbrt_clm(nnj,nni) < 15.1) then 
 +              domain%mask(nns)  = 0.
-+              landmask(nni,nnj) = 0.
++              landmask(nni,nnj) = 0
 +              landfrac(nni,nnj) = 0.
 +            else
 +              domain%mask(nns)  = 1.
-+              landmask(nni,nnj) = 1.
++              landmask(nni,nnj) = 1
 +              landfrac(nni,nnj) = 1.
 +            endif
 +

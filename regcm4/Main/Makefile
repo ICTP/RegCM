@@ -87,7 +87,7 @@ mod_constants.o: ../Config/mod_constants.F90
 mod_dynparam.o: ../Config/mod_dynparam.F90 mod_constants.o
 	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
-mod_bats_param.o: ../Config/mod_bats_param.F90
+mod_bats_param.o: ../Config/mod_bats_param.f90
 	$(F90) $(CPPFLAGS) $(F90FLAGS)  -c -o $@ $<
 
 %.o: %.F90

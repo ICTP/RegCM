@@ -461,16 +461,16 @@
 -  end if
 +!!!!!! abt rcm below for grid-average for additional variables to be passed to atmo!!!!
 +
-+allocate(temp_sm10cm(begg:endg))
-+allocate(temp_smtot(begg:endg))
-+allocate(temp_sm1m(begg:endg))
-+allocate(temp_root(begg:endg,1:nlevsoi))
-+temp_sm1m(:)   = 0._r8
-+temp_sm10cm(:) = 0._r8
-+temp_smtot(:)  = 0._r8
-+temp_root(:,:) = 0._r8
++     allocate(temp_sm10cm(begg:endg))
++     allocate(temp_smtot(begg:endg))
++     allocate(temp_sm1m(begg:endg))
++     allocate(temp_root(begg:endg,1:nlevsoi))
++     temp_sm1m(:)   = 0._r8
++     temp_sm10cm(:) = 0._r8
++     temp_smtot(:)  = 0._r8
++     temp_root(:,:) = 0._r8
 +
-+      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
++     call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
 +           nlevsoi,rootfr, temp_root, &
 +           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 +

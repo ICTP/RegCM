@@ -33,13 +33,8 @@
 !
 
 !*    soil albedo for different coloured
-#ifdef CLM
-     data solour / 0.12D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
-                   0.07D0 , 0.06D0 , 0.05D0 /
-#else
      data solour / 0.16D0 , 0.15D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
                    0.07D0 , 0.06D0 , 0.05D0 /
-#endif
 
 !*    vegc is maximum fractional cover of vegetation
       data vegc /0.85D0 , 0.8D0 , 0.8D0 , 0.8D0 , 0.8D0  , 0.9D0 ,      &
@@ -52,16 +47,9 @@
               &   2*0.4D0 /
 !*    rough is an aerodynamic roughness length (m) =approx 0.1*veg
 !*    height also used snow masking depth in subrout albedo
-#ifdef CLM
-      data rough /0.06D0 , 0.06D0 , 0.935D0 , 0.77D0 , 1.045D0 ,        &
-              &   2.625D0 , 0.06D0 , 0.01D0 , 0.06D0 , 0.06D0 , 0.01D0 ,&
-              &   0.0024D0 , 0.03D0 , 0.0004D0 , 0.0004D0 , 0.06D0 ,    &
-              &   0.06D0 , 0.8D0 , 0.3D0 , 0.3D0 /
-#else
       data rough /0.08D0 , 0.05D0 , 2*1.0D0 , 0.8D0 , 2.0D0  , 0.1D0  , &
               &   0.05D0 , 0.04D0 , 0.06D0 ,  0.1D0 , 0.01D0 , 0.03D0 , &
               &   2*0.0004D0 , 2*0.1D0 , 0.8D0 , 2*0.3D0 /
-#endif
 !     ******      displacement height (meter)
 !     ******      if great parts of veg. are covered by snow, use
 !     displa=0 ******      because mod_then the new displa-theory is not
