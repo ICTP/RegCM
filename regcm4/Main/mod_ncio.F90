@@ -88,9 +88,11 @@
         real(4) , dimension(:,:) , allocatable :: ioxlat
         real(4) , dimension(:,:) , allocatable :: ioxlon
         real(4) , dimension(:,:) , allocatable :: iotopo
+        real(4) , dimension(:,:) , allocatable :: iomask
         real(4) , dimension(:,:) , allocatable :: ioxlat_s
         real(4) , dimension(:,:) , allocatable :: ioxlon_s
         real(4) , dimension(:,:) , allocatable :: iotopo_s
+        real(4) , dimension(:,:) , allocatable :: iomask_s
         real(4) , dimension(:,:) , allocatable :: subio
         real(4) , dimension(:,:,:) , allocatable :: dumio
         real(4) , dimension(:,:,:) , allocatable :: atmsrfmask
@@ -409,6 +411,7 @@
           allocate(ioxlat(o_nj,o_ni))
           allocate(ioxlon(o_nj,o_ni))
           allocate(iotopo(o_nj,o_ni))
+          allocate(iomask(o_nj,o_ni))
           allocate(dumio(o_nj,o_ni,o_nz))
           allocate(atmsrfmask(nnsg,o_nj,o_ni))
           allocate(atmsrfsum(o_nj,o_ni))
@@ -416,6 +419,7 @@
             allocate(ioxlat_s(o_njg,o_nig))
             allocate(ioxlon_s(o_njg,o_nig))
             allocate(iotopo_s(o_njg,o_nig))
+            allocate(iomask_s(o_njg,o_nig))
             allocate(subio(o_njg,o_nig))
           end if
         end subroutine init_mod_ncio
@@ -618,6 +622,12 @@
           do n = 1 , nnsg
             snw(n,:,:) = transpose(sp2d)
           end do
+          istatus = nf90_inq_varid(idmin, 'mask', ivarid)
+          call check_ok('Variable mask missing', 'DOMAIN FILE ERROR')
+          istatus = nf90_get_var(idmin, ivarid, sp2d)
+          call check_ok('Variable mask read error', &
+                        'DOMAIN FILE ERROR')
+          iomask = sp2d(o_js:o_je,o_is:o_ie)
         end subroutine read_domain
 
         subroutine read_domain_lake(dhlake)
@@ -733,6 +743,13 @@
             end do
           end do
           ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
+          istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
+          call check_ok('Variable mask missing', &
+                        'SUBDOMAIN FILE ERROR')
+          istatus = nf90_get_var(isdmin, ivarid, sp2d1)
+          call check_ok('Variable mask read error', &
+                        'SUBDOMAIN FILE ERROR')
+          iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
         end subroutine read_subdomain
 
         subroutine read_subdomain_lake(dhlake1)
@@ -1219,7 +1236,7 @@
           integer , dimension(2) :: izvar
           integer , dimension(2) :: ivvar
           integer , dimension(4) :: isrvvar
-          integer , dimension(4) :: illtpvar
+          integer , dimension(5) :: illtpvar
           integer :: itvar , iyy , im , id , ih , i , j , ibnd
           integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
           integer , dimension(2) :: inmlen
@@ -1651,6 +1668,20 @@
           istatus = nf90_put_att(ncid, illtpvar(3), 'coordinates', &
                             &  'xlat xlon')
           call check_ok('Error adding topo coordinates', fterr)
+          istatus = nf90_def_var(ncid, 'mask', nf90_float, &
+                             &   idims(1:2), illtpvar(4))
+          call check_ok('Error adding variable mask', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(4), 'standard_name', &
+                            &  'landmask')
+          call check_ok('Error adding mask standard_name', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(4), 'long_name',     &
+                            &  'Domain land/ocean mask')
+          call check_ok('Error adding mask long_name', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(4), 'units', '1')
+          call check_ok('Error adding mask units', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(4), 'coordinates', &
+                            &  'xlat xlon')
+          call check_ok('Error adding mask coordinates', fterr)
           istatus = nf90_def_var(ncid, 'time', nf90_double, &
                                & idims(3:3), itvar)
           call check_ok('Error adding variable time', fterr)
@@ -1668,17 +1699,17 @@
             call check_ok('Error adding time bounds', fterr)
           end if
           istatus = nf90_def_var(ncid, 'ps', nf90_float, &
-                             &   idims(1:3), illtpvar(4))
+                             &   idims(1:3), illtpvar(5))
           call check_ok('Error adding variable ps', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(4), 'standard_name', &
+          istatus = nf90_put_att(ncid, illtpvar(5), 'standard_name', &
                             &  'surface_air_pressure')
           call check_ok('Error adding ps standard_name', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(4), 'long_name',     &
+          istatus = nf90_put_att(ncid, illtpvar(5), 'long_name',     &
                             &  'Surface pressure')
           call check_ok('Error adding ps long_name', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(4), 'units', 'hPa')
+          istatus = nf90_put_att(ncid, illtpvar(5), 'units', 'hPa')
           call check_ok('Error adding ps units', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(4), 'coordinates', &
+          istatus = nf90_put_att(ncid, illtpvar(5), 'coordinates', &
                             &  'xlat xlon')
           call check_ok('Error adding ps coordinates', fterr)
 
@@ -1694,7 +1725,7 @@
           if (ctype == 'ATM') then
             iatmvar = -1
             iatmvar(1) = itvar
-            iatmvar(2) = illtpvar(4)
+            iatmvar(2) = illtpvar(5)
             call addvara(ncid,ctype,'u','eastward_wind', &
                 'U component (westerly) of wind','m s-1', &
                 tzyx,.false.,iatmvar(3))
@@ -1737,7 +1768,7 @@
             istatus = nf90_put_att(ncid, isrfvar(2), 'units', &
                              &   'hours since '//csdate)
             call check_ok('Error adding tbnds units', fterr)
-            isrfvar(3) = illtpvar(4)
+            isrfvar(3) = illtpvar(5)
             call addvara(ncid,ctype,'u10m','eastward_wind', &
                 '10 meters U component (westerly) of wind','m s-1', &
                 t10yx,.false.,isrfvar(4))
@@ -1842,7 +1873,7 @@
           else if (ctype == 'SUB') then
             isubvar = -1
             isubvar(1) = itvar
-            isubvar(2) = illtpvar(4)
+            isubvar(2) = illtpvar(5)
             call addvara(ncid,ctype,'u10m','eastward_wind', &
                 '10 meters U component (westerly) of wind','m s-1', &
                 t10yx,.false.,isubvar(3))
@@ -1881,7 +1912,7 @@
           else if (ctype == 'RAD') then
             iradvar = -1
             iradvar(1) = itvar
-            iradvar(2) = illtpvar(4)
+            iradvar(2) = illtpvar(5)
             call addvara(ncid,ctype,'cld', &
                 'cloud_area_fraction_in_atmosphere_layer', &
                 'Cloud fractional cover','1',tzyx,.false.,iradvar(3))
@@ -1945,7 +1976,7 @@
             call check_ok('Error adding variable dustbinsiz', fterr)
             ichevar = -1
             ichevar(1) = itvar
-            ichevar(2) = illtpvar(4)
+            ichevar(2) = illtpvar(5)
             call addvara(ncid,ctype,'trac', &
                 'atmosphere_mixing_ratio_of_tracer', &
                 'Tracers mixing ratios','kg kg-1', &
@@ -2033,6 +2064,8 @@
             call check_ok('Error variable xlon write', fterr)
             istatus = nf90_put_var(ncid, illtpvar(3), iotopo_s)
             call check_ok('Error variable topo write', fterr)
+            istatus = nf90_put_var(ncid, illtpvar(4), iomask_s)
+            call check_ok('Error variable mask write', fterr)
           else
             yiy(1) = -(dble(o_ni-1)/2.0) * ds
             xjx(1) = -(dble(o_nj-1)/2.0) * ds
@@ -2052,6 +2085,8 @@
             call check_ok('Error variable xlon write', fterr)
             istatus = nf90_put_var(ncid, illtpvar(3), iotopo)
             call check_ok('Error variable topo write', fterr)
+            istatus = nf90_put_var(ncid, illtpvar(4), iomask)
+            call check_ok('Error variable mask write', fterr)
           end if
           if (ctype == 'SRF' .or. ctype == 'SUB') then
             rdum1 = 10
@@ -2915,10 +2950,11 @@
           if (allocated(ioxlat)) deallocate(ioxlat)
           if (allocated(ioxlon)) deallocate(ioxlon)
           if (allocated(iotopo)) deallocate(iotopo)
+          if (allocated(iomask)) deallocate(iomask)
           if (allocated(hsigma)) deallocate(hsigma)
           if (allocated(ioxlat_s)) deallocate(ioxlat_s)
           if (allocated(ioxlon_s)) deallocate(ioxlon_s)
-          if (allocated(iotopo_s)) deallocate(iotopo_s)
+          if (allocated(iomask_s)) deallocate(iomask_s)
           if (allocated(atmsrfmask)) deallocate(atmsrfmask)
           if (allocated(atmsrfsum)) deallocate(atmsrfsum)
           if (allocated(dumio)) deallocate(dumio)
