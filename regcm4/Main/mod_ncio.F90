@@ -2954,6 +2954,7 @@
           if (allocated(hsigma)) deallocate(hsigma)
           if (allocated(ioxlat_s)) deallocate(ioxlat_s)
           if (allocated(ioxlon_s)) deallocate(ioxlon_s)
+          if (allocated(iotopo_s)) deallocate(iotopo_s)
           if (allocated(iomask_s)) deallocate(iomask_s)
           if (allocated(atmsrfmask)) deallocate(atmsrfmask)
           if (allocated(atmsrfsum)) deallocate(atmsrfsum)
