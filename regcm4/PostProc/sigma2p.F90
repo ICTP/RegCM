@@ -26,7 +26,6 @@ program sigma2p
   integer , parameter :: np = 11
   real(4) , dimension(np) :: plevs
 
-  integer , parameter :: maxdims = 8
   character(256) :: prgname , ncsfile , ncpfile
   character(128) :: attname , dimname , varname
   integer :: numarg , istatus , ncid , ncout
@@ -44,7 +43,7 @@ program sigma2p
   integer , allocatable , dimension(:) :: intscheme
   integer , allocatable , dimension(:) :: nvdims
   integer , allocatable , dimension(:,:) :: dimsize
-  integer , dimension(maxdims) :: istart , icount
+  integer , allocatable , dimension(:) :: istart , icount
   integer :: ndims , nvars , natts , udimid , nvatts
   integer :: ivarid , idimid , xtype
   integer :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
@@ -96,10 +95,7 @@ program sigma2p
   end do
 
   allocate(dimlen(ndims), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating dimlen'
-    stop
-  end if
+  call check_alloc('Memory error allocating dimlen')
  
   kz = 0
   nt = 0
@@ -139,65 +135,33 @@ program sigma2p
   end if
 
   allocate(dimids(ndims), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating dimids'
-    stop
-  end if
+  call check_alloc('Memory error allocating dimids')
   allocate(lkvarflag(nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating lkvarflag'
-    stop
-  end if
+  call check_alloc('Memory error allocating lkvarflag')
   allocate(ltvarflag(nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating ltvarflag'
-    stop
-  end if
+  call check_alloc('Memory error allocating ltvarflag')
   allocate(varsize(nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating varsize'
-    stop
-  end if
+  call check_alloc('Memory error allocating varsize')
   allocate(intscheme(nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating intscheme'
-    stop
-  end if
+  call check_alloc('Memory error allocating intscheme')
   allocate(nvdims(nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating nvdims'
-    stop
-  end if
-  allocate(dimsize(maxdims,nvars), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating dimsize'
-    stop
-  end if
+  call check_alloc('Memory error allocating nvdims')
+  allocate(dimsize(ndims,nvars), stat=istatus)
+  call check_alloc('Memory error allocating dimsize')
+  allocate(istart(ndims), stat=istatus)
+  call check_alloc('Memory error allocating istart')
+  allocate(icount(ndims), stat=istatus)
+  call check_alloc('Memory error allocating icount')
   allocate(ps(jx,iy), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating ps'
-    stop
-  end if
+  call check_alloc('Memory error allocating ps')
   allocate(xvar(jx,iy,kz), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating xvar'
-    stop
-  end if
+  call check_alloc('Memory error allocating xvar')
   allocate(pvar(jx,iy,np), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating pvar'
-    stop
-  end if
+  call check_alloc('Memory error allocating pvar')
   allocate(sigma(kz), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating sigma'
-    stop
-  end if
+  call check_alloc('Memory error allocating sigma')
   allocate(times(nt), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating times'
-    stop
-  end if
+  call check_alloc('Memory error allocating times')
 
   itvarid = 0
   do i = 1 , nvars
@@ -289,7 +253,8 @@ program sigma2p
       cycle
     end if
     if (.not. ltvarflag(i)) then
-      allocate(avar(varsize(i)))
+      allocate(avar(varsize(i)), stat=istatus)
+      call check_alloc('Memory error allocating avar')
       iv = nvdims(i)
       istart(:) = 1
       icount(1:iv) = dimsize(1:iv,i)
@@ -333,14 +298,16 @@ program sigma2p
         icount(iv) = 1
         istart(1:iv-1) = 1
         icount(1:iv-1) = dimsize(1:iv-1,i)
-        allocate(avar(varsize(i)))
+        allocate(avar(varsize(i)),stat=istatus)
+        call check_alloc('Memory error allocating avar')
         istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
         call check_ok('Error reading variable to interpolate.')
 
         n3d = varsize(i) / i3d
         ip3d = p3d*n3d
 
-        allocate(apvar(ip3d))
+        allocate(apvar(ip3d),stat=istatus)
+        call check_alloc('Memory error allocating apvar')
         do ii = 1 , n3d
           xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
           if (intscheme(i) == 1) then
@@ -367,7 +334,8 @@ program sigma2p
         icount(iv) = 1
         istart(1:iv-1) = 1
         icount(1:iv-1) = dimsize(1:iv-1,i)
-        allocate(avar(varsize(i)))
+        allocate(avar(varsize(i)),stat=istatus)
+        call check_alloc('Memory error allocating avar')
         istatus = nf90_get_var(ncid, i, avar, istart(1:iv), &
                                icount(1:iv))
         call check_ok('Error reading variable to passthrough')
@@ -502,5 +470,15 @@ contains
       stop
     end if
   end subroutine check_ok
+
+  subroutine check_alloc(message)
+    use netcdf
+    implicit none
+    character(*) :: message
+    if (istatus /= 0) then
+      write (6,*) message
+      stop
+    end if
+  end subroutine check_alloc
 
 end program sigma2p
