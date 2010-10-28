@@ -39,7 +39,7 @@ program ncplot
   real(4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
   real(4) , dimension(2) :: trlat
   real(4) , allocatable , dimension(:,:) :: xlat , xlon
-  real(4) , allocatable , dimension(:) :: sigma
+  real(4) , allocatable , dimension(:) :: level
   real(8) , allocatable , dimension(:) :: times
   real(4) , allocatable , dimension(:,:) :: rin , rjn , ruv
   logical , allocatable , dimension(:) :: lvarflag
@@ -50,13 +50,14 @@ program ncplot
   integer :: jx , iy , kz, nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
   integer :: i , j
-  logical :: lvarsplit
+  logical :: lvarsplit , lsigma
 #ifdef IBM
   integer , external :: iargc
 #endif
 
-  data cmon/'jan','feb','mar','apr','may','jun', &
-            'jul','aug','sep','oct','nov','dec'/
+  data cmon /'jan','feb','mar','apr','may','jun', &
+             'jul','aug','sep','oct','nov','dec'/
+  data lsigma /.true./
 
   call getarg(0, prgname)
   numarg = iargc( )
@@ -135,6 +136,10 @@ program ncplot
     stop
   end if
   istatus = nf90_inq_dimid(ncid, "kz", kzdimid)
+  if (istatus /= nf90_noerr) then
+    lsigma = .false.
+    istatus = nf90_inq_dimid(ncid, "plev", kzdimid)
+  end if
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, kzdimid, len=kz)
     if (istatus /= nf90_noerr) then
@@ -149,13 +154,17 @@ program ncplot
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error dimension kz'
+      write (6,*) 'Error dimension time'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
   else
     nt = 0
   end if
+
+#ifdef NETCDF4_HDF5
+  write(11, '(a,i10)') 'cachesize ', iy*jx*kz*4
+#endif
 
   allocate(xlat(jx,iy), stat=istatus)
   if (istatus /= 0) then
@@ -332,29 +341,33 @@ program ncplot
   close(12)
 
   if (kz /= 0) then
-    allocate(sigma(kz), stat=istatus)
+    allocate(level(kz), stat=istatus)
     if (istatus /= 0) then
-      write (6,*) 'Memory error allocating sigma'
+      write (6,*) 'Memory error allocating level'
       stop
     end if
-    istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+    if (lsigma) then
+      istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+    else
+      istatus = nf90_inq_varid(ncid, "plev", ivarid)
+    end if
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : sigma variable undefined'
+      write (6,*) 'Error : level variable undefined'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    istatus = nf90_get_var(ncid, ivarid, sigma)
+    istatus = nf90_get_var(ncid, ivarid, level)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading sigma variable'
+      write (6,*) 'Error reading level variable'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
 
-    sigma = sigma * 1000.0
+    if (lsigma) level = level * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f7.1)'
-    write (levels, lvformat) 'zdef ', kz , ' levels ', sigma
+    write (levels, lvformat) 'zdef ', kz , ' levels ', level
     write (11, '(a)') trim(levels)
-    deallocate(sigma)
+    deallocate(level)
   else
     write (11, '(a)') 'zdef 1 levels 1000.0'
   end if

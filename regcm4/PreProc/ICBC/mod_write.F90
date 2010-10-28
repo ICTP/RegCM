@@ -77,7 +77,7 @@
 
       subroutine newfile(idate1)
         use mod_date
-        use mod_grid , only : xlat , xlon , sigma2
+        use mod_grid , only : xlat , xlon , topogm , sigma2
         use netcdf
         implicit none
         integer , intent(in) :: idate1
@@ -86,7 +86,7 @@
         integer , dimension(8) :: tvals
         integer , dimension(2) :: izvar
         integer , dimension(2) :: ivvar
-        integer , dimension(2) :: illvar
+        integer , dimension(3) :: illvar
         integer , dimension(4) :: x3ddim
         real(4) , allocatable , dimension(:) :: yiy
         real(4) , allocatable , dimension(:) :: xjx
@@ -269,6 +269,21 @@
         istatus = nf90_put_att(ncid, illvar(2), 'units',         &
                             &  'degrees_east')
         call check_ok(istatus,'Error adding xlon units')
+        istatus = nf90_def_var(ncid, 'topo', nf90_float, idims(1:2),  &
+                            &  illvar(3))
+        call check_ok(istatus,'Error adding variable topo')
+        istatus = nf90_put_att(ncid, illvar(3), 'standard_name', &
+                            &  'surface_altitude')
+        call check_ok(istatus,'Error adding topo standard_name')
+        istatus = nf90_put_att(ncid, illvar(3), 'long_name',     &
+                            &  'Domain surface elevation')
+        call check_ok(istatus,'Error adding topo long_name')
+        istatus = nf90_put_att(ncid, illvar(3), 'units',         &
+                            &  'm')
+        call check_ok(istatus,'Error adding topo units')
+        istatus = nf90_put_att(ncid, illvar(3), 'coordinates',          &
+                            &  'xlon xlat')
+        call check_ok(istatus,'Error adding topo coordinates')
         istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3),  &
                             &  ivar(1))
         call check_ok(istatus,'Error adding variable time')
@@ -431,6 +446,8 @@
         istatus = nf90_put_var(ncid, illvar(1), xlat)
         call check_ok(istatus,'Error variable xlat write')
         istatus = nf90_put_var(ncid, illvar(2), xlon)
+        call check_ok(istatus,'Error variable xlon write')
+        istatus = nf90_put_var(ncid, illvar(3), topogm)
         call check_ok(istatus,'Error variable xlon write')
 
 99001 format (a,a,a,a,i10,a)
