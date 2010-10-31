@@ -678,8 +678,8 @@
           end do
         end if
 
-        call mpi_scatter(inisrf_0,iy*(nnsg*5+8)*jxp,mpi_real8,   &
-                       & inisrf0, iy*(nnsg*5+8)*jxp,mpi_real8,   &
+        call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
+                       & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
                        & 0,mpi_comm_world,ierr)
 
         do j = 1 , jxp
