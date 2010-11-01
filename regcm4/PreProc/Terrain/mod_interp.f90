@@ -23,7 +23,7 @@
 !
       private
 !
-      public :: interp
+      public :: interp , filter1plakes
 !
       real(8) , dimension(4,4) :: c
       real(8) , dimension(16,16) :: wt
@@ -128,15 +128,16 @@
       real(8) , dimension(nbox*nbox) :: binval , bindist
       real(8) :: dist , rx , ry , wtp
       integer :: ii0 , jj0 , ii , jj
-      integer :: totpoints , i , j , lastc
+      integer :: totpoints , i , j , lastc , hbox
 
+      hbox = nbox / 2
       totpoints = nbox*nbox
-      ii0 = ifloor(x,m,lwrap)
-      jj0 = jfloor(y,n)
+      ii0 = ifloor(x,m,lwrap)-hbox
+      jj0 = jfloor(y,n)-hbox
       do i = 1 , nbox
         do j = 1 , nbox
-          rx = ii0 + i - nbox/2
-          ry = jj0 + j - nbox/2
+          rx = ii0 + i - 1
+          ry = jj0 + j - 1
           ii = ifloor(rx,m,lwrap)
           jj = jfloor(ry,n)
           binval((i-1)*nbox+j) = grid(ii,jj)
@@ -391,7 +392,7 @@
       integer :: nbox , ii , jj , jwrapp , jwrapm
       real(8) :: xx , yy , rinc
 !
-      rinc = 1.0D0/(dble(ntypec)/60.0D0)
+      rinc = 60.0D0/dble(ntypec)
 !
       if (itype < 1 .or. itype > 5) then
         print *, 'Unknown interpolation type'
@@ -423,66 +424,100 @@
           else if (itype == 4) then
             if (lwrap) then
               if (ii == 1 .or. ii == iy ) then 
-                nbox = 4
+                nbox = 2
               else
                 jwrapp = jj+1
                 jwrapm = jj-1
                 if (jwrapp > jx) jwrapp = 1
-                if (jwrapm < 1) jwrapm = jx
-                nbox = nint(max((xlon(ii,jwrapm)-xlon(ii,jwrapp))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
-                            dble(nbox)))
+                if (jwrapm < 1)  jwrapm = jx
+                nbox = nint(max(abs(xlon(ii,jwrapm)-xlon(ii,jwrapp))* &
+                            rinc/2.0D0, 2.0D0))
+                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                            rinc/2.0D0, dble(nbox)))
               end if
             else
               if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-                nbox = 4
+                nbox = 2
               else
-                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
-                            dble(nbox)))
+                nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
+                            rinc/2.0D0, 2.0D0))
+                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                            rinc/2.0D0, dble(nbox)))
               end if
             end if
-            nbox = nbox/2
-            if (mod(nbox,2) > 0) nbox = nbox + 1
+            nbox = (nbox / 2) * 2
             omt(ii,jj) = mostaround(xx,yy,injx,iniy,imt,nbox, &
                                     ibnty,h2opct,lwrap)
           else if (itype == 5) then
             if (lwrap) then
               if (ii == 1 .or. ii == iy ) then 
-                nbox = 4
+                nbox = 2
               else
                 jwrapp = jj+1
                 jwrapm = jj-1
                 if (jwrapp > jx) jwrapp = 1
-                if (jwrapm < 1) jwrapm = jx
-                nbox = nint(max((xlon(ii,jwrapm)-xlon(ii,jwrapp))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
-                            dble(nbox)))
+                if (jwrapm < 1)  jwrapm = jx
+                nbox = nint(max(abs(xlon(ii,jwrapm)-xlon(ii,jwrapp))* &
+                            rinc/2.0D0, 2.0D0))
+                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                            rinc/2.0D0, dble(nbox)))
               end if
             else
               if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-                nbox = 4
+                nbox = 2
               else
-                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlon(ii,jj-1)-xlon(ii,jj+1))/rinc, &
-                            4.0D0))
-                nbox = nint(max((xlat(ii-1,jj)-xlon(ii+1,jj))/rinc, &
-                            dble(nbox)))
+                nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
+                            rinc/2.0D0, 2.0D0))
+                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                            rinc/2.0D0, dble(nbox)))
               end if
             end if
-            nbox = nbox/2
-            if (mod(nbox,2) > 0) nbox = nbox + 1
+            nbox = (nbox / 2) * 2
             omt(ii,jj) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
           end if
         end do
       end do
 
       end subroutine interp
+
+      subroutine filter1plakes(iy,jx,omt)
+        implicit none
+        integer , intent(in) :: iy , jx
+        real(4) , intent(out) , dimension(iy, jx) :: omt
+        integer , dimension(maxbins) :: cnt
+        integer , dimension(9) :: around
+        integer , parameter :: ilake = 14
+        integer , parameter :: iocn = 15
+        integer , parameter :: minlak = 2*ilake
+        integer :: i , j , ii , jj , ip , jp , k , mpindex
+
+        do i = 1 , iy
+          do j = 1 , jx
+            if (int(omt(i,j)) == ilake) then
+              k = 1
+              do ii = -1 , 1 , 1
+                do jj = -1 , 1 , 1
+                  ip = max(min(i+ii,iy),1)
+                  jp = max(min(j+jj,jx),1)
+                  around(k) = int(omt(ip,jp))
+                  k = k + 1
+                end do
+              end do
+              if (sum(around, around==ilake) .lt. minlak) then
+                do k = 1 , maxbins
+                  cnt(k) = sum(around/k,around==k)
+                end do
+                mpindex = 0
+                do k = 1 , maxbins
+                  if (k == ilake) cycle
+                  if (k == iocn) cycle
+                  if (cnt(k) > mpindex) mpindex = k
+                end do
+                omt(i,j) = mpindex
+              end if
+            end if
+          end do
+        end do
+      end subroutine filter1plakes
 !
       end module mod_interp

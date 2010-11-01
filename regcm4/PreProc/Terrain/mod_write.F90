@@ -71,10 +71,11 @@
         character(256) :: fname , history
         character(3) :: cnsg
         real(4) , dimension(2) :: trlat
-        real(4) :: hptop
+        real(4) :: hptop , fillv
         real(4) , allocatable , dimension(:) :: yiy
         real(4) , allocatable , dimension(:) :: xjx
 
+        fillv = 0.0
         trlat(1) = truelatl
         trlat(2) = truelath
 
@@ -548,6 +549,8 @@
           istatus = nf90_put_att(ncid, ivar(12), 'coordinates',         &
                               &  'xlon xlat')
           call check_ok(istatus,'Error adding dhlake coordinates')
+          istatus = nf90_put_att(ncid, ivar(12), '_FillValue', fillv)
+          call check_ok(istatus,'Error adding dhlake _FillValue')
         end if
 
         if ( aertyp(7:7)=='1' ) then
