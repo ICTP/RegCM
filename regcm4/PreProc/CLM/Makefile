@@ -32,13 +32,16 @@ mod_date.o: ../ICBC/mod_date.f90
 %.o: %.f90
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
 
+%.o: %.F90
+	$(F90) $(CPPFLAGS) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c $<
+
 clean:
 	rm -f *.mod *.o clm2rcm
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-clm2rcm.o: clm2rcm.f90 mod_dynparam.o mod_read_domain.o mod_date.o \
+clm2rcm.o: clm2rcm.F90 mod_dynparam.o mod_read_domain.o mod_date.o \
            mod_clm3grid.o
 mod_clm3grid.o: mod_clm3grid.f90
 mod_param_clm.o: mod_param_clm.f90
