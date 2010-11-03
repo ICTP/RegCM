@@ -642,6 +642,11 @@
 #ifdef MPP1
         if ( myid.eq.0 ) then
           call read_savefile_part1(ndate0)
+          call fill_domain(mddom_io%xlat,mddom_io%xlong,mddom_io%ht, &
+                           mddom_io%satbrt)
+          if (nsg > 1) then
+            call fill_subdomain(xlat1_io,xlon1_io,ht1_io,satbrt1_io)
+          end if
 !
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
@@ -1373,6 +1378,11 @@
 
 #else
         call read_savefile_part1(ndate0)
+        call fill_domain(mddom%xlat,mddom%xlong,mddom%ht, &
+                           mddom%satbrt)
+        if (nsg > 1) then
+          call fill_subdomain(xlat1,xlon1,ht1,satbrt1)
+        end if
 !
         print * , 'ozone profiles restart'
         do k = 1 , kzp1

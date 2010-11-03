@@ -34,6 +34,7 @@
                   read_texture , close_domain
         public :: open_icbc , read_icbc , icbc_search
         public :: read_aerosol
+        public :: fill_domain , fill_subdomain
         public :: prepare_common_out
         public :: writerec_atm , writerec_srf , writerec_sub , &
                   writerec_rad , writerec_che
@@ -423,6 +424,50 @@
             allocate(subio(o_njg,o_nig))
           end if
         end subroutine init_mod_ncio
+
+        subroutine fill_domain(xlat,xlon,topo,mask)
+          implicit none
+          real(8), dimension(iy,jx), intent(in) :: xlat
+          real(8), dimension(iy,jx), intent(in) :: xlon
+          real(8), dimension(iy,jx), intent(in) :: topo
+          real(8), dimension(iy,jx), intent(in) :: mask
+          real(4), dimension(jx,iy) :: spd
+          spd = transpose(xlat)
+          ioxlat = spd(o_js:o_je,o_is:o_ie)
+          spd = transpose(xlon)
+          ioxlon = spd(o_js:o_je,o_is:o_ie)
+          spd = transpose(topo)
+          iotopo = spd(o_js:o_je,o_is:o_ie)
+          spd = transpose(mask)
+          iomask = spd(o_js:o_je,o_is:o_ie)
+          where (iomask > 13.5 .and. iomask < 15.5)
+            iomask = 0
+          elsewhere
+            iomask = 2
+          end where
+        end subroutine fill_domain
+
+        subroutine fill_subdomain(xlat,xlon,topo,mask)
+          implicit none
+          real(8), dimension(iysg,jxsg), intent(in) :: xlat
+          real(8), dimension(iysg,jxsg), intent(in) :: xlon
+          real(8), dimension(iysg,jxsg), intent(in) :: topo
+          real(8), dimension(iysg,jxsg), intent(in) :: mask
+          real(4), dimension(jxsg,iysg) :: spd
+          spd = transpose(xlat)
+          ioxlat_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
+          spd = transpose(xlon)
+          ioxlon_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
+          spd = transpose(topo)
+          iotopo_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
+          spd = transpose(mask)
+          iomask_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
+          where (iomask_s > 13.5 .and. iomask_s < 15.5)
+            iomask_s = 0
+          elsewhere
+            iomask_s = 2
+          end where
+        end subroutine fill_subdomain
 
         subroutine open_domain(r8pt , dx , sigma)
           use netcdf
