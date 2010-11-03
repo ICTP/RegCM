@@ -133,7 +133,13 @@
                 & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
 
         sstname = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
+#ifdef NETCDF4_HDF5
+        istatus = nf90_create(sstname, &
+                  ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
+                  ncid)
+#else
         istatus = nf90_create(sstname, nf90_clobber, ncid)
+#endif
         call check_ok(istatus, &
                       ('Error creating NetCDF output '//trim(sstname)))
         istatus = nf90_put_att(ncid, nf90_global, 'title',  &

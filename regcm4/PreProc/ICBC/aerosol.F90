@@ -98,7 +98,13 @@
           & status='old',err=100)
 
       aerofile = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+#ifdef NETCDF4_HDF5
+      istatus = nf90_create(aerofile, &
+                ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
+                ncid)
+#else
       istatus = nf90_create(aerofile, nf90_clobber, ncid)
+#endif
       call check_ok(istatus, &
                 &   ('Error creating NetCDF output '//trim(aerofile)))
 

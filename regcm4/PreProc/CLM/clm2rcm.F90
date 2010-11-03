@@ -127,7 +127,12 @@
 !     ** Open Output checkfile in NetCDF format
 
       checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
+#ifdef NETCDF4_HDF5
+      istatus = nf90_create(checkfile, &
+       ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), ncid)
+#else
       istatus = nf90_create(checkfile, nf90_clobber, ncid)
+#endif
       call check_ok(istatus, &
           & ('Error creating NetCDF output '//trim(checkfile)))
 
