@@ -114,7 +114,8 @@ mod_oxidant.o : mod_oxidant.f90 mod_dynparam.o mod_date.o mod_wrtoxd.o \
 	              mod_grid.o mod_interp.o
 oxidant.o : oxidant.f90 mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o \
             mod_header.o mod_oxidant.o
-aerosol.o: aerosol.f90 mod_dynparam.o mod_date.o
+aerosol.o: aerosol.F90 mod_dynparam.o mod_date.o
+mod_sst_grid.o: mod_sst_grid.F90 mod_dynparam.o
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o
 mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o
 mod_sst_eh5om.o: mod_sst_eh5om.f90 mod_dynparam.o mod_date.o mod_interp.o \
