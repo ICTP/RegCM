@@ -99,6 +99,8 @@
               lndout(i,j) = 19.
             else if ( ch(i,j)=='K' ) then
               lndout(i,j) = 20.
+            else if ( ch(i,j)=='L' ) then
+              lndout(i,j) = 21.
             else if ( nint(lndout(i,j))==0 ) then
 !               ch(i,j) = 'X'
               ch(i,j) = ' '
@@ -154,6 +156,8 @@
               ch(i,j) = 'J'
             else if ( nint(lndout(i,j))==20 ) then
               ch(i,j) = 'K'
+            else if ( nint(lndout(i,j))==21 ) then
+              ch(i,j) = 'L'
             else
               write (*,*) 'LANDUSE MASK' , nint(lndout(i,j)) ,        &
                          &'exceed the limit'

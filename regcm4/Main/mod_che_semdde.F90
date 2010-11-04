@@ -23,6 +23,7 @@
 !
       use mod_constants
       use mod_dynparam
+      use mod_bats_param
       use mod_mainchem
       use mod_trachem
       use mod_dust
@@ -40,7 +41,7 @@
 !
       private
 !
-      public :: allocate_mod_che_semdde , chsrfem , chdrydep
+      public :: chsrfem , chdrydep
 !
 !     Dynamic Viscosity Parameters
 !
@@ -61,42 +62,9 @@
       real(8) , parameter :: aa2 = 0.4
       real(8) , parameter :: aa3 = 1.1
 !
-!     Stokes parameter
-!
-      real(8) , dimension(20) :: aest_bats
-      real(8) , dimension(20) :: arye_bats
-      real(8) , allocatable , dimension(:) :: aest
-      real(8) , allocatable , dimension(:) :: arye
-!
-      data aest_bats/0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
-         & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
-         & 1.2 , 1.2 , 1.2/
-!
-      data arye_bats/0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
-         & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
-         & 0.56 , 0.56 , 0.56 , 0.56/
-!
       contains
 !
-      subroutine allocate_mod_che_semdde
-        implicit none
-        allocate(aest(nveg))
-        allocate(arye(nveg))
-        aest = 0.0D0
-        arye = 0.0D0
-
-        if ( nveg==20 ) then
-          aest = aest_bats
-          arye = arye_bats
-        else
-          print *, 'Undefined stokes parameters for non bats'
-          print *, 'Please define them in mod_che_semdde'
-          call fatal(__FILE__,__LINE__,                                 &
-                 &  'STOKES UNDEF IN MOD_CHE_SEMDDE')
-        end if
-      end subroutine allocate_mod_che_semdde
-!
-! SURFACE EMIOSSION
+! SURFACE EMISSION
 !
       subroutine chsrfem
 

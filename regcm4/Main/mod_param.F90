@@ -37,7 +37,6 @@
       use mod_pbldim
       use mod_outrad
       use mod_holtbl
-      use mod_che_semdde
       use mod_aerosol
       use mod_radiation
       use mod_dust
@@ -541,7 +540,6 @@
 #ifdef CHEMTEST
       if ( ichem.eq.1 ) call allocate_mod_chem(lmpi)
 #endif
-      call allocate_mod_che_semdde
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
       call allocate_mod_bdycon

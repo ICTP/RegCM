@@ -124,12 +124,12 @@ mod_chem.o: mod_chem.F90 mod_dynparam.o mod_date.o mod_message.o mod_mppio.o
 ifeq ($(USECLM),1)
 mod_che_semdde.o: mod_che_semdde.F90 mod_aerosol.o mod_dust.o mod_mainchem.o \
                   mod_message.o mod_dynparam.o mod_trachem.o mod_constants.o \
-                  mod_ncio.o mod_mppio.o $(CLMLIB)
+                  mod_ncio.o mod_mppio.o mod_bats_param.o $(CLMLIB)
 	$(F90) $(CPPFLAGS) $(NETCDFINC) -I$(CLMPTH) $(F90FLAGS)   -c $<
 else
 mod_che_semdde.o: mod_che_semdde.F90 mod_aerosol.o mod_dust.o mod_mainchem.o \
                   mod_message.o mod_dynparam.o mod_trachem.o mod_constants.o \
-                  mod_ncio.o mod_mppio.o
+                  mod_ncio.o mod_mppio.o mod_bats_param.o
 endif
 mod_che_tend.o: mod_che_tend.F90 mod_constants.o mod_bats.o mod_cvaria.o \
                 mod_date.o mod_dust.o mod_main.o mod_mainchem.o mod_message.o \

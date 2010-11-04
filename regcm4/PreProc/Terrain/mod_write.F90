@@ -403,26 +403,27 @@
         call check_ok(istatus,'Error setting deflate on landuse')
 #endif
         istatus = nf90_put_att(ncid, ivar(6), 'legend',               &
-                & '1  => Crop/mixed farming'//char(10)//                &
-                & '2  => Short grass'//char(10)//                       &
-                & '3  => Evergreen needleleaf tree'//char(10)//         &
-                & '4  => Deciduous needleleaf tree'//char(10)//         &
-                & '5  => Deciduous broadleaf tree'//char(10)//          &
-                & '6  => Evergreen broadleaf tree'//char(10)//          &
-                & '7  => Tall grass'//char(10)//                        &
-                & '8  => Desert'//char(10)//                            &
-                & '9  => Tundra'//char(10)//                            &
-                & '10 => Irrigated Crop'//char(10)//                    &
-                & '11 => Semi-desert'//char(10)//                       &
-                & '12 => Ice cap/glacier'//char(10)//                   &
-                & '13 => Bog or marsh'//char(10)//                      &
-                & '14 => Inland water'//char(10)//                      &
-                & '15 => Ocean'//char(10)//                             &
-                & '16 => Evergreen shrub'//char(10)//                   &
-                & '17 => Deciduous shrub'//char(10)//                   &
-                & '18 => Mixed Woodland'//char(10)//                    &
-                & '19 => Forest/Field mosaic'//char(10)//               &
-                & '20 => Water and Land mixture')
+                & '1  => Crop/mixed farming'//char(10)//              &
+                & '2  => Short grass'//char(10)//                     &
+                & '3  => Evergreen needleleaf tree'//char(10)//       &
+                & '4  => Deciduous needleleaf tree'//char(10)//       &
+                & '5  => Deciduous broadleaf tree'//char(10)//        &
+                & '6  => Evergreen broadleaf tree'//char(10)//        &
+                & '7  => Tall grass'//char(10)//                      &
+                & '8  => Desert'//char(10)//                          &
+                & '9  => Tundra'//char(10)//                          &
+                & '10 => Irrigated Crop'//char(10)//                  &
+                & '11 => Semi-desert'//char(10)//                     &
+                & '12 => Ice cap/glacier'//char(10)//                 &
+                & '13 => Bog or marsh'//char(10)//                    &
+                & '14 => Inland water'//char(10)//                    &
+                & '15 => Ocean'//char(10)//                           &
+                & '16 => Evergreen shrub'//char(10)//                 &
+                & '17 => Deciduous shrub'//char(10)//                 &
+                & '18 => Mixed Woodland'//char(10)//                  &
+                & '19 => Forest/Field mosaic'//char(10)//             &
+                & '20 => Water and Land mixture'//char(10)//          &
+                & '21 => Urban')
         call check_ok(istatus,'Error adding landuse legend')
         istatus = nf90_put_att(ncid, ivar(6), 'standard_name',        &
                             &  'land_type')

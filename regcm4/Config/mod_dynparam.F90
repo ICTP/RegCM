@@ -333,7 +333,7 @@
         iym2sg = (iy-2) * nsg
         jxm2sg = (jx-2) * nsg
         nnsg = nsg*nsg
-        nveg = 20
+        nveg = 21
 
         i_band = 0
 
