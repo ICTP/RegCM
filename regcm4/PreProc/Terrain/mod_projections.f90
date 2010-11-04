@@ -307,13 +307,8 @@
         yoff = clat - plat
         polei = ci
         polej = cj
-        if (polelat > 0.0) then
-          pphi = 90. - plat
-          plam = plon + 180.
-        else
-          pphi = 90. + plat
-          plam = plon
-        end if
+        pphi = 90. - plat
+        plam = plon + 180.
         if ( plam>180. ) plam = plam - 360.
         zlampol = degrad*plam
         zphipol = degrad*pphi
