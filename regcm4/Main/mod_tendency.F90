@@ -1552,6 +1552,14 @@
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
              mod(ktau+1,ntrad).eq.0 ) then
 #ifdef CLM
+          do i = 1 , iym1
+            aldirs(i) = aldirs2d(i,j)
+            aldirl(i) = aldirl2d(i,j)
+            aldifs(i) = aldifs2d(i,j)
+            aldifl(i) = aldifl2d(i,j)
+            albvs(i)  = aldirs2d(i,j)
+            albvl(i)  = aldirl2d(i,j)
+          end do
           call albedoclm(j,iemiss)
 #else
           call albedov(j,iemiss)
