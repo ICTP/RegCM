@@ -34,8 +34,8 @@
 !
       private
 !
-      public :: allocate_lake , lakesav_i, lakesav_o , lakesav0_i
-      public :: initlake , outlake , lakedrv
+      public :: allocate_lake , lakesav_i, lakesav_o
+      public :: initlake , lakescatter , lakegather , lakedrv
       public :: dhlake1
 !
       real(8) , allocatable , dimension(:,:,:) :: dhlake1
@@ -614,129 +614,77 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine outlake
+      subroutine lakegather
 
 #ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
-#endif
       implicit none
-#ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
 #endif
-#endif
 !
-! Local variables
-!
-      real(8) :: dayl
-      integer :: i, j, k, n
-#ifdef MPP1
       integer :: ierr
-#endif
 !
-      dayl = (nnnnnn-nstrt0)/4. + (xtime+dtmin)/1440.
-
-#ifdef MPP1
-      call mpi_gather(eta2d,nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(eta2d,   nnsg*iym1*jxp,mpi_real8, &
                     & eta2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(hi2d,nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(hi2d,   nnsg*iym1*jxp,mpi_real8, &
                     & hi2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(aveice2d,nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(aveice2d,   nnsg*iym1*jxp,mpi_real8, &
                     & aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(hsnow2d,nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
                     & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(evl2d,nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(evl2d,   nnsg*iym1*jxp,mpi_real8, &
                     & evl2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      call mpi_gather(tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+      call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-          do i = 2 , iym1
-            do n = 1 , nnsg
-              if ( idep2d_io(n,i,j).gt.1 ) then
-                write(58) dayl, i, j, idep2d_io(n,i,j),  &
-                        evl2d_io(n,i,j),hi2d_io(n,i,j), &
-                        aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                        (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
-              end if
-            end do
-          end do
-        end do
-      end if
-
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1 
-#endif
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( idep2d(n,i,j).gt.1 ) then
-              write(58) dayl, i, j, idep2d(n,i,j), evl2d(n,i,j), &
-                   & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
-                   & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
-            end if
-          end do
-        end do
-      end do
 #endif
 
-      end subroutine outlake
+      end subroutine lakegather
 !
 !-----------------------------------------------------------------------
 !
-      subroutine lakesav0_o
+      subroutine lakescatter
 
 #ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
-#endif
       implicit none
-#ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
 #endif
-#endif
 !
-! Local variables
-!
-#ifdef MPP1
       integer :: ierr
-#endif
 !
-#ifdef MPP1
-      call mpi_gather(eta2d,nnsg*iym1*jxp,mpi_real8, &
-                    & eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
-      call mpi_gather(hi2d,nnsg*iym1*jxp,mpi_real8, &
-                    & hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
-      call mpi_gather(aveice2d,nnsg*iym1*jxp,mpi_real8, &
-                    & aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
-      call mpi_gather(hsnow2d,nnsg*iym1*jxp,mpi_real8, &
-                    & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
-      call mpi_gather(tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                    & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
+      call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
+                     & idep2d,nnsg*iym1*jxp,mpi_integer, &
+                     & 0, mpi_comm_world,ierr)
+      call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
+                     & eta2d,nnsg*iym1*jxp,mpi_real8, &
+                     & 0, mpi_comm_world,ierr)
+      call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
+                     & hi2d,nnsg*iym1*jxp,mpi_real8, &
+                     & 0, mpi_comm_world,ierr)
+      call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
+                     & aveice2d,nnsg*iym1*jxp,mpi_real8, &
+                     & 0, mpi_comm_world,ierr)
+      call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
+                     & hsnow2d,nnsg*iym1*jxp,mpi_real8, &
+                     & 0, mpi_comm_world,ierr)
+      call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                     & tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                     & 0, mpi_comm_world,ierr)
 #endif
 
-      end subroutine lakesav0_o
+      end subroutine lakescatter
 !
 !-----------------------------------------------------------------------
 !
@@ -884,51 +832,5 @@
 #endif
 
       end subroutine lakesav_i
-!
-!-----------------------------------------------------------------------
-!
-      subroutine lakesav0_i
-
-#ifdef MPP1
-#ifndef IBM
-      use mpi
-#endif
-#endif
-      implicit none
-#ifdef MPP1
-#ifdef IBM
-      include 'mpif.h'
-#endif
-#endif
-!
-! Local variables
-!
-#ifdef MPP1
-      integer :: ierr
-#endif
-!
-
-#ifdef MPP1
-      call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                     & idep2d,nnsg*iym1*jxp,mpi_integer, &
-                     & 0, mpi_comm_world,ierr)
-      call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & eta2d,nnsg*iym1*jxp,mpi_real8, &
-                     & 0, mpi_comm_world,ierr)
-      call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hi2d,nnsg*iym1*jxp,mpi_real8, &
-                     & 0, mpi_comm_world,ierr)
-      call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & aveice2d,nnsg*iym1*jxp,mpi_real8, &
-                     & 0, mpi_comm_world,ierr)
-      call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hsnow2d,nnsg*iym1*jxp,mpi_real8, &
-                     & 0, mpi_comm_world,ierr)
-      call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                     & tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                     & 0, mpi_comm_world,ierr)
-#endif
-
-      end subroutine lakesav0_i
 !
       end module mod_lake

@@ -26,7 +26,7 @@
       use mod_o3blk
       use mod_runparams
       use mod_bats
-      use mod_lake, only : lakesav0_i
+      use mod_lake
       use mod_vecbats
       use mod_pmoist
       use mod_main
@@ -656,7 +656,7 @@
 !
         end if
         if ( lakemod.eq.1 ) then
-          call lakesav0_i
+          call lakescatter
         endif
 !
 !       Start sending data to all processors : surface data

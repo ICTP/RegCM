@@ -29,7 +29,7 @@
       use mod_precip
       use mod_rad
       use mod_bats
-      use mod_lake, only : lakedrv, outlake
+      use mod_lake
       use mod_vecbats
       use mod_holtbl
       use mod_trachem
@@ -1582,12 +1582,6 @@
 #endif
  
       end do
-#ifndef CLM
-      if ( lakemod.eq.1 ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           &  mod(ktau+1,nbatst).eq.0 ) call outlake
-      endif
-#endif
 
 #ifdef CLM
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &

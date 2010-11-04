@@ -44,7 +44,7 @@
         integer , parameter :: n_subvar = 16
         integer , parameter :: n_radvar = 15
         integer , parameter :: n_chevar = 17
-        integer , parameter :: n_lakvar = 12
+        integer , parameter :: n_lakvar = 16
 
         integer :: idmin , isdmin , ibcin , ncatm , ncsrf , &
                    ncsub , ncrad , ncche , nclak
@@ -68,8 +68,8 @@
 
         ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
         ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv
-        ! DIM9 is tracer
-        integer , dimension(9) :: idims
+        ! DIM9 is ntr ,  DIM10 is depth for lake
+        integer , dimension(10) :: idims
 
         integer :: o_is
         integer :: o_ie
@@ -90,12 +90,15 @@
         real(4) , dimension(:,:) , allocatable :: ioxlon
         real(4) , dimension(:,:) , allocatable :: iotopo
         real(4) , dimension(:,:) , allocatable :: iomask
+        real(4) , dimension(:,:) , allocatable :: iolnds
         real(4) , dimension(:,:) , allocatable :: ioxlat_s
         real(4) , dimension(:,:) , allocatable :: ioxlon_s
         real(4) , dimension(:,:) , allocatable :: iotopo_s
         real(4) , dimension(:,:) , allocatable :: iomask_s
         real(4) , dimension(:,:) , allocatable :: subio
         real(4) , dimension(:,:,:) , allocatable :: dumio
+        real(4) , dimension(:,:) , allocatable :: sp2d
+        real(4) , dimension(:,:) , allocatable :: sp2d1
         real(4) , dimension(:,:,:) , allocatable :: atmsrfmask
         real(4) , dimension(:,:) , allocatable :: atmsrfsum
         real(4) , dimension(2) :: latrange
@@ -151,7 +154,8 @@
                          'acstsrrf', 'acstalrf', 'acssrlrf' /
         data lak_names / 'time', 'ps', 'tg' , 'tpr' , 'scv', 'sena' ,  &
                          'flw', 'fsw', 'fld' , 'sina' , 'aldirs' ,     &
-                         'aldifs' /
+                         'aldifs' , 'evl' , 'aveice' , 'hsnow',        &
+                         'tlake' /
 
         data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, &
                          1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 /
@@ -432,7 +436,9 @@
           allocate(ioxlon(o_nj,o_ni))
           allocate(iotopo(o_nj,o_ni))
           allocate(iomask(o_nj,o_ni))
+          allocate(iolnds(o_nj,o_ni))
           allocate(dumio(o_nj,o_ni,o_nz))
+          allocate(sp2d(jx,iy))
           allocate(atmsrfmask(nnsg,o_nj,o_ni))
           allocate(atmsrfsum(o_nj,o_ni))
           if (nsg > 1) then
@@ -441,24 +447,25 @@
             allocate(iotopo_s(o_njg,o_nig))
             allocate(iomask_s(o_njg,o_nig))
             allocate(subio(o_njg,o_nig))
+            allocate(sp2d1(jxsg,iysg))
           end if
         end subroutine init_mod_ncio
 
-        subroutine fill_domain(xlat,xlon,topo,mask)
+        subroutine fill_domain(xlat,xlon,topo,lnd)
           implicit none
           real(8), dimension(iy,jx), intent(in) :: xlat
           real(8), dimension(iy,jx), intent(in) :: xlon
           real(8), dimension(iy,jx), intent(in) :: topo
-          real(8), dimension(iy,jx), intent(in) :: mask
-          real(4), dimension(jx,iy) :: spd
-          spd = transpose(xlat)
-          ioxlat = spd(o_js:o_je,o_is:o_ie)
-          spd = transpose(xlon)
-          ioxlon = spd(o_js:o_je,o_is:o_ie)
-          spd = transpose(topo)
-          iotopo = spd(o_js:o_je,o_is:o_ie)
-          spd = transpose(mask)
-          iomask = spd(o_js:o_je,o_is:o_ie)
+          real(8), dimension(iy,jx), intent(in) :: lnd
+          sp2d = transpose(xlat)
+          ioxlat = sp2d(o_js:o_je,o_is:o_ie)
+          sp2d = transpose(xlon)
+          ioxlon = sp2d(o_js:o_je,o_is:o_ie)
+          sp2d = transpose(topo)
+          iotopo = sp2d(o_js:o_je,o_is:o_ie)
+          sp2d = transpose(lnd)
+          iolnds = sp2d(o_js:o_je,o_is:o_ie)
+          iomask = sp2d(o_js:o_je,o_is:o_ie)
           where (iomask > 13.5 .and. iomask < 15.5)
             iomask = 0
           elsewhere
@@ -466,21 +473,20 @@
           end where
         end subroutine fill_domain
 
-        subroutine fill_subdomain(xlat,xlon,topo,mask)
+        subroutine fill_subdomain(xlat,xlon,topo,lnd)
           implicit none
           real(8), dimension(iysg,jxsg), intent(in) :: xlat
           real(8), dimension(iysg,jxsg), intent(in) :: xlon
           real(8), dimension(iysg,jxsg), intent(in) :: topo
-          real(8), dimension(iysg,jxsg), intent(in) :: mask
-          real(4), dimension(jxsg,iysg) :: spd
-          spd = transpose(xlat)
-          ioxlat_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
-          spd = transpose(xlon)
-          ioxlon_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
-          spd = transpose(topo)
-          iotopo_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
-          spd = transpose(mask)
-          iomask_s = spd(o_jsg:o_jeg,o_isg:o_ieg)
+          real(8), dimension(iysg,jxsg), intent(in) :: lnd
+          sp2d1 = transpose(xlat)
+          ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
+          sp2d1 = transpose(xlon)
+          ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
+          sp2d1 = transpose(topo)
+          iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
+          sp2d1 = transpose(lnd)
+          iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
           where (iomask_s > 13.5 .and. iomask_s < 15.5)
             iomask_s = 0
           elsewhere
@@ -625,7 +631,6 @@
           real(8) , dimension(nnsg,iy,jx) , intent(out) :: snw
 
           integer :: ivarid , n
-          real(4) , dimension(jx,iy) :: sp2d
 
           if (idmin < 0) then
             write (6,*) 'Error : Domain file not in open state'
@@ -644,6 +649,7 @@
           call check_ok('Variable landuse read error', &
                         'DOMAIN FILE ERROR')
           lnd = transpose(sp2d)
+          iolnds = sp2d(o_js:o_je,o_is:o_ie)
           istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
           call check_ok('Variable xlat missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -694,11 +700,11 @@
           iomask = sp2d(o_js:o_je,o_is:o_ie)
         end subroutine read_domain
 
-        subroutine read_domain_lake(dhlake)
+        subroutine read_domain_lake(hlake)
           use netcdf
           implicit none
 
-          real(8) , dimension(iy,jx) , intent(out) :: dhlake
+          real(8) , dimension(iy,jx) , intent(out) :: hlake
 
           integer :: ivarid
           real(4) , dimension(jx,iy) :: sp2d
@@ -713,7 +719,7 @@
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable dhlake read error', &
                         'DOMAIN FILE ERROR')
-          dhlake = transpose(sp2d)
+          hlake = transpose(sp2d)
 
         end subroutine read_domain_lake
 
@@ -728,7 +734,6 @@
 
           integer :: ivarid
           integer :: i , j , n , ii , jj
-          real(4) , dimension(jxsg,iysg) :: sp2d1
           
           if (isdmin < 0) then
             write (6,*) 'Error : Subdom file not in open state'
@@ -816,11 +821,11 @@
           iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
         end subroutine read_subdomain
 
-        subroutine read_subdomain_lake(dhlake1)
+        subroutine read_subdomain_lake(hlake1)
           use netcdf
           implicit none
 
-          real(8) , dimension(nnsg,iy,jx) , intent(out) :: dhlake1
+          real(8) , dimension(nnsg,iy,jx) , intent(out) :: hlake1
 
           integer :: ivarid
           integer :: i , j , n , ii , jj
@@ -846,7 +851,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              dhlake1(n,ii,jj) = sp2d1(j,i)
+              hlake1(n,ii,jj) = sp2d1(j,i)
             end do
           end do
         end subroutine read_subdomain_lake
@@ -1282,8 +1287,6 @@
         subroutine prepare_common_out(idate,ctype)
           use netcdf
           implicit none
-          integer , parameter :: iutlak = 58
-          character(14) :: fillake
           integer , intent(in) :: idate
           character(3) , intent(in) :: ctype
           character(64) :: title
@@ -1307,13 +1310,14 @@
           integer , dimension(2) :: idpv
           integer , dimension(2) :: ibinsiz
 
-          integer , dimension(9) :: tyx
-          integer , dimension(9) :: tzyx
-          integer , dimension(9) :: t10yx
-          integer , dimension(9) :: t2yx
-          integer , dimension(9) :: tlyx
-          integer , dimension(9) :: tcyx
-          integer , dimension(9) :: tczyx
+          integer , dimension(5) :: tyx
+          integer , dimension(5) :: tzyx
+          integer , dimension(5) :: t10yx
+          integer , dimension(5) :: t2yx
+          integer , dimension(5) :: tlyx
+          integer , dimension(5) :: tcyx
+          integer , dimension(5) :: tczyx
+          integer , dimension(5) :: tdyx
 
           if (ctype == 'ATM') then
             ncid = ncatm
@@ -1323,15 +1327,6 @@
             ncid = ncsrf
             title = 'ICTP Regional Climatic model V4 SRF output'
             isrfrec = 1
-
-            if ( lakemod.eq.1 ) then
-              close (iutlak)
-              write (fillake,'(a4,i10)') 'LAK.' , idatex
-              open (iutlak,file=trim(dirout)//pthsep//fillake,           &
-                   & status='replace',form='unformatted')
-              print * , 'OPENING NEW LAK FILE: ',trim(dirout),'/',fillake
-            endif
-
           else if (ctype == 'SUB') then
             ncid = ncsub
             title = 'ICTP Regional Climatic model V4 SUB output'
@@ -1636,6 +1631,10 @@
             ibinsiz(1) = ibin
             ibinsiz(2) = ibnd
           end if
+          if (ctype == 'LAK') then
+            istatus = nf90_def_dim(ncid, 'depth', ndpmax, idims(10))
+            call check_ok('Error creating dimension depth', fterr)
+          end if
           istatus = nf90_def_var(ncid, 'rcm_map', nf90_int, &
                                  varid=imapvar)
           call check_ok('Error adding variable rcm_map', fterr)
@@ -1840,14 +1839,14 @@
                             &  'rcm_map')
           call check_ok('Error adding ps grid_mapping', fterr)
 
-          tyx = (/idims(1),idims(2),idims(3),-1,-1,-1,-1,-1,-1/)
-          tzyx = (/idims(1),idims(2),idims(4),idims(3),-1,-1,-1,-1,-1/)
-          t10yx = (/idims(1),idims(2),idims(5),idims(3),-1,-1,-1,-1,-1/)
-          t2yx = (/idims(1),idims(2),idims(6),idims(3),-1,-1,-1,-1,-1/)
-          tlyx = (/idims(1),idims(2),idims(7),idims(3),-1,-1,-1,-1,-1/)
-          tcyx = (/idims(1),idims(2),idims(9),idims(3),-1,-1,-1,-1,-1/)
-          tczyx = (/idims(1),idims(2),idims(4), &
-                    idims(9),idims(3),-1,-1,-1,-1/)
+          tyx = (/idims(1),idims(2),idims(3),-1,-1/)
+          tzyx = (/idims(1),idims(2),idims(4),idims(3),-1/)
+          t10yx = (/idims(1),idims(2),idims(5),idims(3),-1/)
+          t2yx = (/idims(1),idims(2),idims(6),idims(3),-1/)
+          tlyx = (/idims(1),idims(2),idims(7),idims(3),-1/)
+          tcyx = (/idims(1),idims(2),idims(9),idims(3),-1/)
+          tczyx = (/idims(1),idims(2),idims(4),idims(9),idims(3)/)
+          tdyx = (/idims(1),idims(2),idims(10),idims(3),-1/)
 
           if (ctype == 'ATM') then
             iatmvar = -1
@@ -2198,6 +2197,16 @@
                 'surface_albedo_short_wave_diffuse', &
                 'Surface albedo to diffuse short wave radiation', &
                 '1',tyx,.false.,ilakvar(12))
+            call addvara(ncid,ctype,'evl', &
+                'water_evaporation_flux_where_sea_ice', &
+                'Water evaporation','mm sec-1',tyx,.false.,ilakvar(13))
+            call addvara(ncid,ctype,'aveice', 'floating_ice_thickness', &
+                'Floating ice thickness','mm',tyx,.false.,ilakvar(14))
+            call addvara(ncid,ctype,'hsnow', &
+                'surface_snow_thickness_where_sea_ice', &
+                'Floating snow thickness','mm',tyx,.false.,ilakvar(15))
+            call addvara(ncid,ctype,'tlake','temperature', &
+                'Lake water temperature','K',tdyx,.true.,ilakvar(16))
           end if
 
           istatus = nf90_enddef(ncid)
@@ -2300,7 +2309,7 @@
           character(3) , intent(in) :: ctype
           character(len=*) , intent(in) :: vname
           character(len=*) , intent(in) :: vst , vln , vuni
-          integer , dimension(9) , intent(in) :: idims
+          integer , dimension(5) , intent(in) :: idims
           logical , intent(in) :: lmiss
           integer , intent(out) :: ivar
 
@@ -2308,7 +2317,7 @@
           integer :: i , ndims
 
           ndims = 0
-          do i = 1 , 9
+          do i = 1 , 5
             if (idims(i) > 0) ndims = ndims+1
           end do
 
@@ -3095,11 +3104,16 @@
           icherec = icherec + 1
         end subroutine writerec_che
 
-        subroutine writerec_lak(nx, ny, numbat, fbat, idate)
+        subroutine writerec_lak(nx, ny, numbat, fbat, evl, aveice, &
+                                hsnow, tlake, idate)
           use netcdf
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
+          real(8) , dimension(nnsg,iym1,jx) , intent(in) :: evl
+          real(8) , dimension(nnsg,iym1,jx) , intent(in) :: aveice
+          real(8) , dimension(nnsg,iym1,jx) , intent(in) :: hsnow
+          real(8) , dimension(ndpmax,nnsg,iym1,jx) , intent(in) :: tlake
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -3138,6 +3152,51 @@
                           ' at '//ctime, 'LAK FILE ERROR')
             ivar = ivar + 1
           end do
+
+          ! Add lake model output
+          dumio(:,:,1) =  &
+               transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))/nnsg
+          istatus = nf90_put_var(nclak, ilakvar(ivar), & 
+                   dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok('Error writing '//lak_names(ivar)// &
+                        ' at '//ctime, 'LAK FILE ERROR')
+          ivar = ivar + 1
+          dumio(:,:,1) =  &
+               transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))/nnsg
+          istatus = nf90_put_var(nclak, ilakvar(ivar), & 
+                   dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok('Error writing '//lak_names(ivar)// &
+                        ' at '//ctime, 'LAK FILE ERROR')
+          ivar = ivar + 1
+          dumio(:,:,1) =  &
+               transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))/nnsg
+          istatus = nf90_put_var(nclak, ilakvar(ivar), & 
+                   dumio(:,:,1), istart(1:3), icount(1:3))
+          call check_ok('Error writing '//lak_names(ivar)// &
+                        ' at '//ctime, 'LAK FILE ERROR')
+          ivar = ivar + 1
+          do n = 1 , ndpmax
+            istart(4) = ilakrec
+            istart(3) = n
+            istart(2) = 1
+            istart(1) = 1
+            icount(4) = 1
+            icount(3) = 1
+            icount(2) = o_ni
+            icount(1) = o_nj
+            dumio(:,:,1) =  &
+               transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))/nnsg
+            where (iolnds == 14)
+              dumio(:,:,1) = dumio(:,:,1) + tzero
+            elsewhere
+              dumio(:,:,1) = -1E+34
+            end where
+            istatus = nf90_put_var(nclak, ilakvar(ivar), & 
+                   dumio(:,:,1), istart, icount)
+            call check_ok('Error writing '//lak_names(ivar)// &
+                        ' at '//ctime, 'LAK FILE ERROR')
+          end do
+
           istatus = nf90_sync(nclak)
           call check_ok('Error sync at '//ctime, 'LAK FILE ERROR')
           ilakrec = ilakrec + 1
@@ -3168,6 +3227,7 @@
           if (allocated(ioxlon)) deallocate(ioxlon)
           if (allocated(iotopo)) deallocate(iotopo)
           if (allocated(iomask)) deallocate(iomask)
+          if (allocated(iolnds)) deallocate(iolnds)
           if (allocated(hsigma)) deallocate(hsigma)
           if (allocated(ioxlat_s)) deallocate(ioxlat_s)
           if (allocated(ioxlon_s)) deallocate(ioxlon_s)
@@ -3176,7 +3236,9 @@
           if (allocated(atmsrfmask)) deallocate(atmsrfmask)
           if (allocated(atmsrfsum)) deallocate(atmsrfsum)
           if (allocated(dumio)) deallocate(dumio)
+          if (allocated(sp2d)) deallocate(sp2d)
           if (allocated(subio)) deallocate(subio)
+          if (allocated(sp2d1)) deallocate(sp2d1)
 
         end subroutine release_mod_ncio
 

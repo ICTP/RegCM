@@ -189,6 +189,10 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 
+          if ( lakemod .eq. 1 ) then
+            call lakegather
+          end if
+
           do j = 1 , jendx
             do l = 1 , numbat
               do i = 1 , iym2
@@ -2099,9 +2103,10 @@
 #endif
 
 #ifdef MPP1
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,omega_io,    &
-                        atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,rainc_io,rainnc_io, &
-                        tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
+      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
+              omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,      &
+              rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io,        &
+              ocld2d_io,idatex)
 #else
       call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1%u,atm1%v,omega, &
                         atm1%t,atm1%qv,atm1%qc,sps1%ps,sfsta%rainc,&
@@ -2137,9 +2142,11 @@
  
       if (lakemod .eq. 1) then
 #ifdef MPP1
-        call writerec_lak(j,i,numbat,fbat_io,idatex)
+        call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
+                          hsnow2d_io,tlak3d_io,idatex)
 #else
-        call writerec_lak(j,i,numbat,fbat,idatex)
+        call writerec_lak(j,i,numbat,fbat,evl2d,aveice,hsnow2d, &
+                          tlak3d,idatex)
 #endif
         write (*,*) 'LAK variables written at ' , idatex , xtime
       end if
