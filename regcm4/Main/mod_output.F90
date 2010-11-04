@@ -48,6 +48,8 @@
       use clm_varctl , only : filer_rest
       use clm_time_manager, only : get_step_size
 #endif
+#else
+      use mod_lake
 #endif
 
       private
@@ -2145,7 +2147,7 @@
         call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                           hsnow2d_io,tlak3d_io,idatex)
 #else
-        call writerec_lak(j,i,numbat,fbat,evl2d,aveice,hsnow2d, &
+        call writerec_lak(j,i,numbat,fbat,evl2d,aveice2d,hsnow2d, &
                           tlak3d,idatex)
 #endif
         write (*,*) 'LAK variables written at ' , idatex , xtime

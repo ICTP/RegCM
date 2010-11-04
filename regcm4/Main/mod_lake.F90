@@ -37,6 +37,9 @@
       public :: allocate_lake , lakesav_i, lakesav_o
       public :: initlake , lakescatter , lakegather , lakedrv
       public :: dhlake1
+#ifndef MPP1
+      public :: evl2d , aveice2d , hsnow2d , tlak3d
+#endif
 !
       real(8) , allocatable , dimension(:,:,:) :: dhlake1
       integer , allocatable , dimension(:,:,:) :: idep2d
