@@ -61,9 +61,7 @@
         real(4) , dimension(:) , allocatable :: hsigma
         integer , dimension(7) :: icbc_ivar
         logical :: lso4p
-        integer :: iatmrefdate , isrfrefdate , isubrefdate , &
-                   iradrefdate , icherefdate
-        real(8) :: rpt, tpd, cfd, lxtime
+        real(8) :: rpt, tpd, cfd
         real(8) :: xns2r
 
         ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
@@ -1282,7 +1280,7 @@
           integer , dimension(2) :: ivvar
           integer , dimension(4) :: isrvvar
           integer , dimension(5) :: illtpvar
-          integer :: itvar , iyy , im , id , ih , i , j , ibnd
+          integer :: itvar , imapvar , iyy , im , id , ih , i , j , ibnd
           integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
           integer , dimension(2) :: inmlen
           integer , dimension(2) :: idpv
@@ -1299,14 +1297,11 @@
           if (ctype == 'ATM') then
             ncid = ncatm
             title = 'ICTP Regional Climatic model V4 ATM output'
-            iatmrefdate = idate
             iatmrec = 1
           else if (ctype == 'SRF') then
             ncid = ncsrf
             title = 'ICTP Regional Climatic model V4 SRF output'
-            isrfrefdate = idate
             isrfrec = 1
-            lxtime = 0
 
             if ( lakemod.eq.1 ) then
               close (iutlak)
@@ -1319,17 +1314,14 @@
           else if (ctype == 'SUB') then
             ncid = ncsub
             title = 'ICTP Regional Climatic model V4 SUB output'
-            isubrefdate = idate
             isubrec = 1
           else if (ctype == 'RAD') then
             ncid = ncrad
             title = 'ICTP Regional Climatic model V4 RAD output'
-            iradrefdate = idate
             iradrec = 1
           else if (ctype == 'CHE') then
             ncid = ncche
             title = 'ICTP Regional Climatic model V4 CHE output'
-            icherefdate = idate
             icherec = 1
           else
             write (aline,*) 'UNKNOWN IO TYPE : ', ctype
@@ -1345,7 +1337,7 @@
           write (fbname,'(a,a,i10)') trim(ctype), '.', idate
           ofname = trim(dirout)//pthsep//trim(domname)// &
                 &  '_'//trim(fbname)//'.nc'
-          call split_idate(idate,iyy,im,id,ih)
+          call split_idate(idate0,iyy,im,id,ih)
           write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
                & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
 
@@ -1619,6 +1611,61 @@
             ibinsiz(1) = ibin
             ibinsiz(2) = ibnd
           end if
+          istatus = nf90_def_var(ncid, 'rcm_map', nf90_int, &
+                                 varid=imapvar)
+          call check_ok('Error adding variable rcm_map', fterr)
+          if (iproj == 'LAMCON') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                         'grid_mapping_name', 'lambert_conformal_conic')
+            call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+          else if (iproj == 'POLSTR') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                         'grid_mapping_name', 'stereographic')
+            call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+          else if (iproj == 'NORMER') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                         'grid_mapping_name', 'mercator')
+            call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+          else if (iproj == 'ROTMER') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                  'grid_mapping_name', 'rotated_latitude_longitude')
+            call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+          end if
+          istatus = nf90_put_att(ncid, imapvar,   &
+                   &   'grid_size_in_meters', ds*1000.0)
+          call check_ok('Error adding rcm_map gridsize', fterr)
+          istatus = nf90_put_att(ncid, imapvar,   &
+                   &   'latitude_of_projection_origin', clat)
+          call check_ok('Error adding rcm_map clat', fterr)
+          istatus = nf90_put_att(ncid, imapvar,   &
+                   &   'longitude_of_projection_origin', clon)
+          call check_ok('Error adding rcm_map clon', fterr)
+          istatus = nf90_put_att(ncid, imapvar,   &
+                   &   'longitude_of_central_meridian', clon)
+          call check_ok('Error adding rcm_map gmtllon', fterr)
+          if (iproj == 'ROTMER') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                     &   'grid_north_pole_latitude', plat)
+            call check_ok('Error adding rcm_map plat', fterr)
+            istatus = nf90_put_att(ncid, imapvar, &
+                     &   'grid_north_pole_longitude', plon)
+            call check_ok('Error adding rcm_map plon', fterr)
+          else if (iproj == 'LAMCON') then
+            trlat(1) = truelatl
+            trlat(2) = truelath
+            istatus = nf90_put_att(ncid, imapvar, &
+                     &   'standard_parallel', trlat)
+            call check_ok('Error adding rcm_map truelat', fterr)
+          else if (iproj == 'NORMER') then
+            istatus = nf90_put_att(ncid, imapvar, &
+                     &   'standard_parallel', clat)
+            call check_ok('Error adding rcm_map truelat', fterr)
+          else if (iproj == 'POLSTR') then
+            trlat(1) = 1.0
+            istatus = nf90_put_att(ncid, imapvar, &
+                   &   'scale_factor_at_projection_origin', trlat(1:1))
+            call check_ok('Error adding rcm_map scfac', fterr)
+          end if
           istatus = nf90_def_var(ncid, 'sigma', nf90_float, &
                               &  idims(4), izvar(1))
           call check_ok('Error adding variable sigma', fterr)
@@ -1714,6 +1761,9 @@
           istatus = nf90_put_att(ncid, illtpvar(3), 'coordinates', &
                             &  'xlat xlon')
           call check_ok('Error adding topo coordinates', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(3), 'grid_mapping', &
+                            &  'rcm_map')
+          call check_ok('Error adding topo grid_mapping', fterr)
           istatus = nf90_def_var(ncid, 'mask', nf90_float, &
                              &   idims(1:2), illtpvar(4))
           call check_ok('Error adding variable mask', fterr)
@@ -1728,6 +1778,9 @@
           istatus = nf90_put_att(ncid, illtpvar(4), 'coordinates', &
                             &  'xlat xlon')
           call check_ok('Error adding mask coordinates', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(4), 'grid_mapping', &
+                            &  'rcm_map')
+          call check_ok('Error adding mask grid_mapping', fterr)
           istatus = nf90_def_var(ncid, 'time', nf90_double, &
                                & idims(3:3), itvar)
           call check_ok('Error adding variable time', fterr)
@@ -1758,6 +1811,9 @@
           istatus = nf90_put_att(ncid, illtpvar(5), 'coordinates', &
                             &  'xlat xlon')
           call check_ok('Error adding ps coordinates', fterr)
+          istatus = nf90_put_att(ncid, illtpvar(5), 'grid_mapping', &
+                            &  'rcm_map')
+          call check_ok('Error adding ps grid_mapping', fterr)
 
           tyx = (/idims(1),idims(2),idims(3),-1,-1,-1,-1,-1,-1/)
           tzyx = (/idims(1),idims(2),idims(4),idims(3),-1,-1,-1,-1,-1/)
@@ -2219,6 +2275,10 @@
                             &  'xlat xlon')
           call check_ok('Error adding '//vname//' coordinates', &
                         ctype//' FILE ERROR')
+          istatus = nf90_put_att(ncid, ivar, 'grid_mapping', &
+                            &  'rcm_map')
+          call check_ok('Error adding '//vname//' grid_mapping', &
+                        ctype//' FILE ERROR')
           if (lmiss) then
             istatus = nf90_put_att(ncid, ivar, '_FillValue', &
                               &  fillv)
@@ -2252,9 +2312,8 @@
           istart(1) = 1
           icount(2) = 1
           icount(1) = 2
-          xtime(1) = lxtime
-          xtime(2) = dble(idatediff(idate,isrfrefdate))
-          lxtime = xtime(2)
+          xtime(2) = dble(idatediff(idate,idate0))
+          xtime(1) = xtime(2) - batfrq
           istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
                                  istart(2:2), icount(2:2))
           call check_ok('Error writing itime '//ctime, &
@@ -2355,7 +2414,7 @@
 
           istart(1) = isubrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,isubrefdate))
+          xtime(1) = dble(idatediff(idate,idate0))
           istatus = nf90_put_var(ncsub, isubvar(1), xtime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
@@ -2471,7 +2530,7 @@
 
           istart(1) = iradrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,iradrefdate))
+          xtime(1) = dble(idatediff(idate,idate0))
           istatus = nf90_put_var(ncrad, iradvar(1), xtime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'RAD FILE ERROR')
@@ -2571,7 +2630,7 @@
 
           istart(1) = iatmrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,iatmrefdate))
+          xtime(1) = dble(idatediff(idate,idate0))
           istatus = nf90_put_var(ncatm, iatmvar(1), xtime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
@@ -2830,7 +2889,7 @@
 
           istart(1) = icherec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,icherefdate))
+          xtime(1) = dble(idatediff(idate,idate0))
           istatus = nf90_put_var(ncche, ichevar(1), xtime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')

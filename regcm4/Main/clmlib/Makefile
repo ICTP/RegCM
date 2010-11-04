@@ -137,8 +137,9 @@ OBJS = $(addsuffix .o, $(basename $(PATCHSRC))) \
 
 libclm.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ *.o
+
 clean:
-	rm -f *.mod *.o libclm.a $(PATCHSRC)
+	rm -f *.mod *.o libclm.a $(PATCHSRC) *_genmod.f90
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
