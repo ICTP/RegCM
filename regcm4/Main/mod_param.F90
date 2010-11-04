@@ -1205,11 +1205,20 @@
         write (aline,*) 'Variable cumulus scheme: will use grell '// &
              'over land and Emanuel over ocean.'
         call say
+#ifdef MPP1
+        where (mddom_io%satbrt .gt. 14.5 .and. &
+               mddom_io%satbrt .lt. 15.5)
+          cumcon%cuscheme = 4
+        elsewhere
+          cumcon%cuscheme = 2
+        end where
+#else
         where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
           cumcon%cuscheme = 4
         elsewhere
           cumcon%cuscheme = 2
         end where
+#endif
       end if
 
       if ( icup.eq.1 ) then
