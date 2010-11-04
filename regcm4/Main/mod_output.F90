@@ -2058,6 +2058,9 @@
  
       if ( ifbat ) then
         call prepare_common_out(idatex,'SRF')
+        if (lakemod .eq. 1) then
+          call prepare_common_out(idatex,'LAK')
+        end if
       end if
  
       if ( nsg.gt.1 .and. ifsub ) then
@@ -2132,6 +2135,15 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
+      if (lakemod .eq. 1) then
+#ifdef MPP1
+        call writerec_lak(j,i,numbat,fbat_io,idatex)
+#else
+        call writerec_lak(j,i,numbat,fbat,idatex)
+#endif
+        write (*,*) 'LAK variables written at ' , idatex , xtime
+      end if
+
       end subroutine outsrf
 !
       subroutine outsub

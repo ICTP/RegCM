@@ -37,25 +37,27 @@
         public :: fill_domain , fill_subdomain
         public :: prepare_common_out
         public :: writerec_atm , writerec_srf , writerec_sub , &
-                  writerec_rad , writerec_che
+                  writerec_rad , writerec_che , writerec_lak
 !
         integer , parameter :: n_atmvar = 12
         integer , parameter :: n_srfvar = 30
         integer , parameter :: n_subvar = 16
         integer , parameter :: n_radvar = 15
         integer , parameter :: n_chevar = 17
+        integer , parameter :: n_lakvar = 12
 
         integer :: idmin , isdmin , ibcin , ncatm , ncsrf , &
-                             ncsub , ncrad , ncche
+                   ncsub , ncrad , ncche , nclak
         integer :: istatus
         integer :: ibcrec , ibcnrec
         integer :: iatmrec , isrfrec , isubrec , iradrec , &
-                             icherec
+                   icherec , ilakrec
         integer , dimension(n_atmvar) :: iatmvar
         integer , dimension(n_srfvar) :: isrfvar
         integer , dimension(n_subvar) :: isubvar
         integer , dimension(n_radvar) :: iradvar
         integer , dimension(n_chevar) :: ichevar
+        integer , dimension(n_lakvar) :: ilakvar
         character(256) :: dname , sdname , aername , icbcname
         integer , dimension(:) , allocatable :: icbc_idate
         real(4) , dimension(:) , allocatable :: hsigma
@@ -104,6 +106,9 @@
         character(len=8) , dimension(n_subvar) :: sub_names
         character(len=8) , dimension(n_radvar) :: rad_names
         character(len=8) , dimension(n_chevar) :: che_names
+        character(len=8) , dimension(n_lakvar) :: lak_names
+
+        integer , dimension(numbat) :: lak_fbats
 
         character(64) :: cdum
 
@@ -124,6 +129,8 @@
         data iradrec / 1/
         data ncche   /-1/
         data icherec / 1/
+        data nclak   /-1/
+        data ilakrec / 1/
         data atm_names / 'time', 'ps', 'u', 'v', 'omega', 't',         &
                          'qv', 'qc', 'tpr', 'tgb', 'swt', 'rno' /
         data srf_names / 'time', 'tbnds', 'ps', 'u10m', 'v10m',        &
@@ -142,6 +149,13 @@
                          'agfu8', 'colb', 'wdlsc', 'wdcvc', 'sdrdp',   &
                          'xgasc', 'xaquc', 'emiss', 'acstoarf',        &
                          'acstsrrf', 'acstalrf', 'acssrlrf' /
+        data lak_names / 'time', 'ps', 'tg' , 'tpr' , 'scv', 'sena' ,  &
+                         'flw', 'fsw', 'fld' , 'sina' , 'aldirs' ,     &
+                         'aldifs' /
+
+        data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, &
+                         1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 /
+
       contains
 
         subroutine cdumlbcs
@@ -355,6 +369,13 @@
           else if (ctype == 'CHE') then
             do i = 1 , n_chevar
               if (sname == che_names(i)) then
+                ivarname_lookup = i
+                exit
+              end if
+            end do
+          else if (ctype == 'LAK') then
+            do i = 1 , n_lakvar
+              if (sname == lak_names(i)) then
                 ivarname_lookup = i
                 exit
               end if
@@ -1323,6 +1344,10 @@
             ncid = ncche
             title = 'ICTP Regional Climatic model V4 CHE output'
             icherec = 1
+          else if (ctype == 'LAK') then
+            ncid = nclak
+            title = 'ICTP Regional Climatic model V4 LAK output'
+            ilakrec = 1
           else
             write (aline,*) 'UNKNOWN IO TYPE : ', ctype
             call say
@@ -2137,6 +2162,42 @@
                 'surface_longwave_radiative_forcing', &
                 'SRFrad LW forcing av.','W m-2', &
                 tyx,.false.,ichevar(17))
+          else if (ctype == 'LAK') then
+            ilakvar = -1
+            ilakvar(1) = itvar
+            ilakvar(2) = illtpvar(5)
+            call addvara(ncid,ctype,'tg','surface_temperature', &
+                'Ground temperature','K',tyx,.false.,ilakvar(3))
+            call addvara(ncid,ctype,'tpr','precipitation_amount', &
+                'Total precipitation','kg m-2',tyx,.false.,ilakvar(4))
+            call addvara(ncid,ctype,'scv','snowfall_amount', &
+                'Snow precipitation','kg m-2',tyx,.true.,ilakvar(5))
+            call addvara(ncid,ctype,'sena', &
+                'surface_downward_sensible_heat_flux', &
+                'Sensible heat flux','W m-2',tyx,.false.,ilakvar(6))
+            call addvara(ncid,ctype,'flw', &
+                'net_upward_longwave_flux_in_air', &
+                'Net infrared energy flux','W m-2', &
+                tyx,.false.,ilakvar(7))
+            call addvara(ncid,ctype,'fsw', &
+                'surface_downwelling_shortwave_flux_in_air', &
+                'Solar absorbed energy flux','W m-2', &
+                tyx,.false.,ilakvar(8))
+            call addvara(ncid,ctype,'fld', &
+                'surface_downwelling_longwave_flux_in_air', &
+                'Downward LW flux','W m-2',tyx,.false.,ilakvar(9))
+            call addvara(ncid,ctype,'sina', &
+              'net_downward_radiative_flux_at_top_of_atmosphere_model', &
+              'Incident solar energy flux','W m-2', &
+                tyx,.false.,ilakvar(10))
+            call addvara(ncid,ctype,'aldirs', &
+                'surface_albedo_short_wave_direct', &
+                'Surface albedo to direct short wave radiation', &
+                '1',tyx,.false.,ilakvar(11))
+            call addvara(ncid,ctype,'aldifs', &
+                'surface_albedo_short_wave_diffuse', &
+                'Surface albedo to diffuse short wave radiation', &
+                '1',tyx,.false.,ilakvar(12))
           end if
 
           istatus = nf90_enddef(ncid)
@@ -2226,6 +2287,8 @@
             ncrad = ncid
           else if (ctype == 'CHE') then
             ncche = ncid
+          else if (ctype == 'LAK') then
+            nclak = ncid
           end if
         end subroutine prepare_common_out
 
@@ -3032,6 +3095,54 @@
           icherec = icherec + 1
         end subroutine writerec_che
 
+        subroutine writerec_lak(nx, ny, numbat, fbat, idate)
+          use netcdf
+          implicit none
+          integer , intent(in) :: nx , ny , numbat , idate
+          real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
+          integer :: ivar
+          integer :: n
+          integer , dimension(4) :: istart , icount
+          real(8) , dimension(1) :: xtime
+          character(len=10) :: ctime
+
+          if (nx /= o_nj .or. ny /= o_ni) then
+            write (6,*) 'Error writing record on LAK file'
+            write (6,*) 'Expecting layers ', o_nj, 'x', o_ni
+            write (6,*) 'Got layers       ', nx, 'x', ny
+            call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
+          end if
+
+          write (ctime, '(i10)') idate
+
+          istart(1) = ilakrec
+          icount(1) = 1
+          xtime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(nclak, ilakvar(1), xtime, &
+                                 istart(1:1), icount(1:1))
+          call check_ok('Error writing itime '//ctime, &
+                      'LAK FILE ERROR')
+
+          ivar = 2
+          do n = 1 , numbat
+            if (lak_fbats(n) == 0) cycle
+            istart(3) = ilakrec
+            istart(2) = 1
+            istart(1) = 1
+            icount(3) = 1
+            icount(2) = o_ni
+            icount(1) = o_nj
+            istatus = nf90_put_var(nclak, ilakvar(ivar), & 
+                     fbat(:,:,n), istart(1:3), icount(1:3))
+            call check_ok('Error writing '//lak_names(ivar)// &
+                          ' at '//ctime, 'LAK FILE ERROR')
+            ivar = ivar + 1
+          end do
+          istatus = nf90_sync(nclak)
+          call check_ok('Error sync at '//ctime, 'LAK FILE ERROR')
+          ilakrec = ilakrec + 1
+        end subroutine writerec_lak
+
         subroutine check_ok(m1,mf)
           use netcdf
           implicit none
@@ -3052,6 +3163,7 @@
           call close_common(ncsub,'SUB')
           call close_common(ncrad,'RAD')
           call close_common(ncche,'CHE')
+          call close_common(nclak,'LAK')
           if (allocated(ioxlat)) deallocate(ioxlat)
           if (allocated(ioxlon)) deallocate(ioxlon)
           if (allocated(iotopo)) deallocate(iotopo)

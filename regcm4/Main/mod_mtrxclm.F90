@@ -792,7 +792,7 @@
       do i = 2 , iym1
         jj = j+(jxp*myid)
         if (ocld2d(1,i,j) >= 1 .and. &
-            abs(aldirs2d(i,j)-1.0) < 1.0D-10) then
+            (1.0D0-aldirs2d(i,j)) > 1.0D-10) then
            aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + &
                        aldirs(i)*(1-landfrac(jj,i))
            aldirl(i) = aldirl2d(i,j)*landfrac(jj,i) + &
