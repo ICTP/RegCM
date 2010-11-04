@@ -3,6 +3,7 @@
 # 
 # Please load this module on SP6 machine in order to compile correctly the code:
 # 
+# module load zlib
 # module load szlib
 # module load hdf5
 # module load netcdf
@@ -33,7 +34,7 @@ BINDIR = !BIN_DIR
 # This Makefile.inc is for Cineca SP6 only, NETCDF variables are "hardcoded"
 
 NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl \
-            -L$(SZLIB_LIB) -lsz
+            -L$(SZLIB_LIB) -lsz -L$(ZLIB_LIB) -lz
 NETCDFINC = -I$(NETCDF_INC)
 
 # PREPROCESSOR AND COMPILER OPTIONS
