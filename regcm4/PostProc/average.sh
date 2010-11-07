@@ -15,6 +15,9 @@ then
   echo "Cannot find a cdo executable in Your path."
   echo
   echo 'Please install cdo (https://code.zmaw.de/projects/cdo)'
+  echo 'If on CINECA SP6, You may want to:'
+  echo 
+  echo '            module load autoload cdo'
   echo
   exit 1
 fi
@@ -24,6 +27,9 @@ then
   echo "Cannot find a ncrcat executable in Your path."
   echo
   echo 'Please install nco (http://nco.sourceforge.net)'
+  echo 'If on CINECA SP6, You may want to:'
+  echo 
+  echo '            module load autoload nco'
   echo
   exit 1
 fi

@@ -13,6 +13,9 @@ then
   echo "Cannot find a cdo executable in Your path."
   echo
   echo 'Please install cdo (https://code.zmaw.de/projects/cdo)'
+  echo 'If on CINECA SP6, You may want to:'
+  echo 
+  echo '            module load autoload cdo'
   echo
   exit 1
 fi
