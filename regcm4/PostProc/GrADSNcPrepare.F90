@@ -46,11 +46,11 @@ program ncprepare
   integer , allocatable , dimension(:) :: dimids
   integer :: ndims , nvars , natts , udimid , totvars
   integer :: ivarid , idimid , xtype
-  integer :: jxdimid , iydimid , kzdimid , itdimid
-  integer :: jx , iy , kz, nt , nlat , nlon , ilat , ilon , isplit
+  integer :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
+  integer :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
   integer :: i , j , iid
-  logical :: lvarsplit , existing , lsigma
+  logical :: lvarsplit , existing , lsigma , ldepth
 #ifdef IBM
   integer , external :: iargc
 #endif
@@ -58,6 +58,10 @@ program ncprepare
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
   data lsigma /.true./
+  data ldepth /.false./
+  data kzdimid  /-1/
+  data itdimid  /-1/
+  data dptdimid /-1/
 
   call getarg(0, prgname)
   numarg = iargc( )
@@ -149,6 +153,16 @@ program ncprepare
   else
     kz = 0
   end if
+  istatus = nf90_inq_dimid(ncid, "depth", dptdimid)
+  if (istatus == nf90_noerr) then
+    ldepth = .true.
+    istatus = nf90_inquire_dimension(ncid, dptdimid, len=nd)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error dimension depth'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
+  end if
   istatus = nf90_inq_dimid(ncid, "time", itdimid)
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
@@ -162,7 +176,15 @@ program ncprepare
   end if
 
 #ifdef NETCDF4_HDF5
-  write(11, '(a,i10)') 'cachesize ', iy*jx*kz*4
+  if (ldepth) then
+    if (iy*jx*64*4 > 524288) then
+      write(11, '(a)') 'cachesize ', 524288 ! 1MB
+    else
+      write(11, '(a,i10)') 'cachesize ', iy*jx*nd*4
+    end if
+  else
+    write(11, '(a,i10)') 'cachesize ', iy*jx*kz*4
+  end if
 #endif
 
   allocate(xlat(jx,iy), stat=istatus)
@@ -353,7 +375,7 @@ program ncprepare
   write(11, '(a,i5,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc 
 
-  if (kz /= 0) then
+  if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)
     if (istatus /= 0) then
       write (6,*) 'Memory error allocating level'
@@ -381,6 +403,8 @@ program ncprepare
     write (levels, lvformat) 'zdef ', kz , ' levels ', level
     write (11, '(a)') trim(levels)
     deallocate(level)
+  else if (ldepth) then
+    write (11, '(a,i5,a,i5,i5)') 'zdef ', nd, ' linear ', 1, nd
   else
     write (11, '(a)') 'zdef 1 levels 1000.0'
   end if
@@ -476,7 +500,8 @@ program ncprepare
           lvarflag(i) = .false.
         end if
       else if (idimid == 3) then
-        if (dimids(3) == kzdimid .and. dimids(2) == iydimid) then
+        if ((dimids(3) == kzdimid .or. dimids(3) == dptdimid) .and. &
+             dimids(2) == iydimid) then
           totvars = totvars + 1
         else if (dimids(3) == itdimid .and. dimids(2) == iydimid) then
           totvars = totvars + 1
@@ -492,7 +517,8 @@ program ncprepare
           lvarflag(i) = .false.
         end if
       else if (idimid == 4) then
-        if (dimids(4) == itdimid .and. dimids(3) == kzdimid) then
+        if (dimids(4) == itdimid .and. &
+            (dimids(3) == kzdimid .or. dimids(3) == dptdimid)) then
           totvars = totvars + 1
         else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
           istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
@@ -531,8 +557,13 @@ program ncprepare
         cycle
       end if
     else if (idimid == 3) then
-      if (dimids(3) == kzdimid .and. dimids(2) == iydimid) then
-        write (dimdesc, '(a,i4,a)') ' ', kz, ' z,y,x'
+      if ((dimids(3) == kzdimid .or. dimids(3) == dptdimid) .and. &
+           dimids(2) == iydimid) then
+        if (ldepth) then
+          write (dimdesc, '(a,i4,a)') ' ', nd, ' z,y,x'
+        else
+          write (dimdesc, '(a,i4,a)') ' ', kz, ' z,y,x'
+        end if
       else if (dimids(3) == itdimid .and. dimids(2) == iydimid) then
         dimdesc = ' 0 t,y,x'
       else if (dimids(2) == iydimid) then
@@ -541,8 +572,13 @@ program ncprepare
         cycle
       end if
     else if (idimid == 4) then
-      if (dimids(4) == itdimid .and. dimids(3) == kzdimid) then
-        write (dimdesc, '(a,i4,a)') ' ', kz, ' t,z,y,x'
+      if (dimids(4) == itdimid .and. &
+          (dimids(3) == kzdimid .or. dimids(3) == dptdimid)) then
+        if (ldepth) then
+          write (dimdesc, '(a,i4,a)') ' ', nd, ' t,z,y,x'
+        else
+          write (dimdesc, '(a,i4,a)') ' ', kz, ' t,z,y,x'
+        end if
       else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
         lvarsplit = .true.
       else
