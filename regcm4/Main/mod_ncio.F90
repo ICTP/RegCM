@@ -720,7 +720,6 @@
           call check_ok('Variable dhlake read error', &
                         'DOMAIN FILE ERROR')
           hlake = transpose(sp2d)
-
         end subroutine read_domain_lake
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
@@ -1299,8 +1298,9 @@
           real(4) , dimension(2) :: trlat , rdum2
           real(4) , dimension(iysg) :: yiy
           real(4) , dimension(jxsg) :: xjx
+          real(4) , dimension(ndpmax) :: depth
           integer :: ncid
-          integer , dimension(2) :: izvar
+          integer , dimension(3) :: izvar
           integer , dimension(2) :: ivvar
           integer , dimension(4) :: isrvvar
           integer , dimension(5) :: illtpvar
@@ -1708,6 +1708,23 @@
           istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
                      &         'sigma: sigma ps: ps ptop: ptop')
           call check_ok('Error adding sigma formula_terms', fterr)
+          if (ctype == 'LAK') then
+            istatus = nf90_def_var(ncid, 'depth', nf90_float, &
+                                &  idims(10), izvar(3))
+            call check_ok('Error adding variable depth', fterr)
+            istatus = nf90_put_att(ncid, izvar(3), 'standard_name', &
+                              &  'depth')
+            call check_ok('Error adding depth standard_name', fterr)
+            istatus = nf90_put_att(ncid, izvar(3), 'long_name', &
+                              &  'Depth below surface')
+            call check_ok('Error adding depth long_name', fterr)
+            istatus = nf90_put_att(ncid, izvar(3), 'units', 'm')
+            call check_ok('Error adding depth units', fterr)
+            istatus = nf90_put_att(ncid, izvar(3), 'axis', 'Z')
+            call check_ok('Error adding depth axis', fterr)
+            istatus = nf90_put_att(ncid, izvar(3), 'positive', 'down')
+            call check_ok('Error adding depth positive', fterr)
+          end if
           istatus = nf90_def_var(ncid, 'ptop', nf90_float, &
                            &   varid=izvar(2))
           call check_ok('Error adding variable ptop', fterr)
@@ -2199,12 +2216,12 @@
                 '1',tyx,.false.,ilakvar(12))
             call addvara(ncid,ctype,'evl', &
                 'water_evaporation_flux_where_sea_ice', &
-                'Water evaporation','mm sec-1',tyx,.false.,ilakvar(13))
+                'Water evaporation','mm sec-1',tyx,.true.,ilakvar(13))
             call addvara(ncid,ctype,'aveice', 'floating_ice_thickness', &
-                'Floating ice thickness','mm',tyx,.false.,ilakvar(14))
+                'Floating ice thickness','mm',tyx,.true.,ilakvar(14))
             call addvara(ncid,ctype,'hsnow', &
                 'surface_snow_thickness_where_sea_ice', &
-                'Floating snow thickness','mm',tyx,.false.,ilakvar(15))
+                'Floating snow thickness','mm',tyx,.true.,ilakvar(15))
             call addvara(ncid,ctype,'tlake','temperature', &
                 'Lake water temperature','K',tdyx,.true.,ilakvar(16))
           end if
@@ -2217,6 +2234,13 @@
           hptop = ptop*10.0
           istatus = nf90_put_var(ncid, izvar(2), hptop)
           call check_ok('Error variable ptop write', fterr)
+          if (ctype == 'LAK') then
+            do i = 1 , ndpmax
+              depth(i) = i
+            end do
+            istatus = nf90_put_var(ncid, izvar(3), depth)
+            call check_ok('Error variable depth write', fterr)
+          end if
           if (ctype == 'SUB') then
             yiy(1) = -(dble((o_nig-1)-1)/2.0) * ds
             xjx(1) = -(dble((o_njg-1)-1)/2.0) * ds
@@ -3188,8 +3212,6 @@
                transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))/nnsg
             where (iolnds == 14)
               dumio(:,:,1) = dumio(:,:,1) + tzero
-            elsewhere
-              dumio(:,:,1) = -1E+34
             end where
             istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart, icount)
