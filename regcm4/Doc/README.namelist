@@ -162,6 +162,7 @@
  radisp  =     6.,     ! Frequency in hours to write to RAD
  ifbat   = .true. ,    ! Output SRF ?
  ifsub   = .true. ,    ! Output SUB ?
+ iflak   = .true.,     ! Output LAK ?
  batfrq  =     3.,     ! Frequency in hours to write to SRF (and CLM)
  ifchem  = .true.,     ! Output CHE ?
  chemfrq =     6.,     ! Frequency in hours to write to CHE

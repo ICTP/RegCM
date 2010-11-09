@@ -87,6 +87,7 @@
    radisp  =     6.,
  ifbat   = .true. ,
  ifsub   = .true. ,
+ iflak   = .true.,
    batfrq  =     3.,
  ifchem  = .false.,
    chemfrq =     6.,

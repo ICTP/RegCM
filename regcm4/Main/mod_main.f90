@@ -210,10 +210,15 @@
           gwnd%vsk = 0.0D0
         end subroutine allocate_grellwinds
 
-        subroutine allocate_cumcontrol(cc)
+        subroutine allocate_cumcontrol(cc,lmpi)
           implicit none
           type(cumcontrol) , intent(out) :: cc
-          allocate(cc%cuscheme(iy,jx))
+          logical , intent(in) :: lmpi
+          if (lmpi) then
+            allocate(cc%cuscheme(iy,jxp))
+          else
+            allocate(cc%cuscheme(iy,jx))
+          end if
           cc%cuscheme(:,:) = -1
         end subroutine allocate_cumcontrol
 
@@ -265,7 +270,7 @@
           call allocate_grellwinds
         end if
         if (icup == 99) then
-          call allocate_cumcontrol(cumcon)
+          call allocate_cumcontrol(cumcon,lmpi)
         end if
 
         if (lmpi) then

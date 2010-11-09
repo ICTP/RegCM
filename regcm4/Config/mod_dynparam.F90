@@ -278,6 +278,7 @@
 
       logical :: ifbat
       logical :: ifsub
+      logical :: iflak
       real(8) :: batfrq
 
       logical :: ifchem
@@ -333,7 +334,7 @@
         iym2sg = (iy-2) * nsg
         jxm2sg = (jx-2) * nsg
         nnsg = nsg*nsg
-        nveg = 21
+        nveg = 22
 
         i_band = 0
 
@@ -437,7 +438,7 @@
         integer :: ierr
 
         namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
-              &     ifrad , radisp , ifbat , ifsub ,  batfrq ,          &
+        &     ifrad , radisp , ifbat , ifsub ,  iflak , batfrq ,        &
               &     ifchem , chemfrq
 
         read(ipunit, outparam, err=100)

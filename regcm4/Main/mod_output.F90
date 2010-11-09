@@ -191,7 +191,7 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 
-          if ( lakemod .eq. 1 ) then
+           if ( lakemod .eq. 1 .and. iflak) then
             call lakegather
           end if
 
@@ -231,7 +231,6 @@
               psmn_o(j,i) = 1.E30
             end do
           end do
-
 
           if ( ifsub .and. nsg.gt.1 ) then
 
@@ -2064,7 +2063,7 @@
  
       if ( ifbat ) then
         call prepare_common_out(idatex,'SRF')
-        if (lakemod .eq. 1) then
+        if (lakemod .eq. 1 .and. iflak) then
           call prepare_common_out(idatex,'LAK')
         end if
       end if
@@ -2142,7 +2141,7 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
-      if (lakemod .eq. 1) then
+      if (lakemod .eq. 1 .and. iflak) then
 #ifdef MPP1
         call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                           hsnow2d_io,tlak3d_io,idatex)

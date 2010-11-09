@@ -121,7 +121,8 @@
  
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
-      & radisp , ifbat , ifsub , batfrq , ifchem , chemfrq , dirout
+      & radisp , ifbat , ifsub , iflak , batfrq , ifchem , chemfrq ,    &
+      & dirout
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
@@ -269,15 +270,15 @@
       ifrad = .true.
       radisp = 6.0       ! time interval for disposing rad output (hrs)
       ifbat = .true.
-      batfrq = 1.0      ! time interval for disposing bats output (hrs)
       ifsub = .true.
+      iflak = .true.
+      batfrq = 1.0      ! time interval for disposing bats output (hrs)
       dirout = './output' 
 !chem2
       ifchem = .false.
       chemfrq = 6.0   ! time interval for disposeing chem output (hrs)
 !chem2_
       clmfrq = 12.0
- 
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -447,6 +448,7 @@
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(iflak,1,mpi_logical,0,mpi_comm_world,ierr)
  
       call mpi_bcast(iboudy,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ibltyp,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1203,20 +1205,11 @@
         write (aline,*) 'Variable cumulus scheme: will use grell '// &
              'over land and Emanuel over ocean.'
         call say
-#ifdef MPP1
-        where (mddom_io%satbrt .gt. 14.5 .and. &
-               mddom_io%satbrt .lt. 15.5)
-          cumcon%cuscheme = 4
-        elsewhere
-          cumcon%cuscheme = 2
-        end where
-#else
         where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
           cumcon%cuscheme = 4
         elsewhere
           cumcon%cuscheme = 2
         end where
-#endif
       end if
 
       if ( icup.eq.1 ) then

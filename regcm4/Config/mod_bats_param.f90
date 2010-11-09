@@ -21,14 +21,14 @@
       implicit none
 !
       real(8) , dimension(8) :: solour
-      real(8) , dimension(21) :: albvgl , albvgs , crough , deprv ,     &
+      real(8) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &
                                & deptv , depuv , displa , fc , freza ,  &
                                & frezu , rough , rsmin , sai , seasf ,  &
                                & sqrtdi , vegc , xla , xlai0 , rootf ,  &
                                & aest , arye
       real(8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                                & xmosuc , xmowil
-      integer , dimension(21) :: iexsol , kolsol
+      integer , dimension(22) :: iexsol , kolsol
 !
 !------------------ DATA SECTION ----------------------------------------
 !
@@ -40,30 +40,30 @@
 !*    vegc is maximum fractional cover of vegetation
       data vegc /0.85D0 , 0.8D0 , 0.8D0 , 0.8D0 , 0.8D0  , 0.9D0 ,      &
               &  0.8D0  , 0.0D0 , 0.6D0 , 0.8D0 , 0.35D0 , 0.0D0 ,      &
-              &  0.8D0  , 2*0.0D0 , 5*0.8D0, 0.05D0 /
+              &  0.8D0  , 2*0.0D0 , 5*0.8D0, 0.05D0, 0.40D0 /
 !*    seasf is the difference between vegc and fractional cover at 269k
       data seasf /0.6D0 , 0.1D0 , 0.1D0 , 0.3D0 , 0.3D0 , 0.5D0 ,       &
               &   0.3D0 , 0.0D0 , 0.2D0 , 0.6D0 , 0.1D0 , 0.0D0 ,       &
               &   0.4D0 , 0.0D0 , 0.0D0 , 0.2D0 , 0.3D0 , 0.2D0 ,       &
-              &   2*0.4D0, 0.05D0 /
+              &   2*0.4D0, 0.05D0, 0.15D0 /
 !*    rough is an aerodynamic roughness length (m) =approx 0.1*veg
 !*    height also used snow masking depth in subrout albedo
       data rough /0.08D0 , 0.05D0 , 2*1.0D0 , 0.8D0 , 2.0D0  , 0.1D0  , &
               &   0.05D0 , 0.04D0 , 0.06D0 ,  0.1D0 , 0.01D0 , 0.03D0 , &
-              &   2*0.0004D0 , 2*0.1D0 , 0.8D0 , 2*0.3D0, 1.5D0 /
+              &   2*0.0004D0 , 2*0.1D0 , 0.8D0 , 2*0.3D0, 1.5D0, 0.40D0 /
 !     ******      displacement height (meter)
 !     ******      if great parts of veg. are covered by snow, use
 !     displa=0 ******      because mod_then the new displa-theory is not
 !     valid
       data displa/0.0D0 , 0.0D0 , 9.0D0 , 9.0D0 , 0.0D0 , 18.0D0 ,      &
-              &   14*0.0D0, 6.0D0/
+              &   14*0.0D0, 6.0D0, 2.5D0/
 !     ******      min stomatl resistance (s/m)
 !cc   data rsmin/153.0,4*200.0,150.0,14*200.0/   ! shuttleworth
 !     data rsmin/120.0,4*200.0,150.0,14*200.0/   ! bats1e numbers
 !Sara
 !     data rsmin/45.,60.,2*80.,120.,2*60.,200.,80.,45.,150.,200.,45.
 !     &          ,2*200.,80.,120.,100.,2*120./
-      data rsmin /5*200.0D0,50.0D0,14*200.0D0, 120.0D0/
+      data rsmin /5*200.0D0,50.0D0,14*200.0D0, 120.0D0, 60.0D0/
 !Sara_
 !     ******      max leaf area index (ratio unit cover per unit ground)
 !     ORIGINAL
@@ -71,7 +71,7 @@
 !     Laura 21/04/08
       data xla/4.0D0 , 2.0D0 , 4*6.0D0 , 3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 ,&
             &  1.0D0 , 0.0D0 , 4.0D0 , 2*0.0D0 , 4.0D0 , 4.0D0 , 5.0D0 ,&
-            &  4.0D0 , 1.0D0, 1.0D0 /
+            &  4.0D0 , 1.0D0, 1.0D0, 2.0D0 /
 !     ******      min leaf area index **lai depends on temp as veg cover
 !     ORIGINAL
 !     data xlai0/0.5,0.5,5.,2*1.,5.,0.5,0.,3*0.5,0.,0.5,2*0.,5.,1.,3.,
@@ -79,36 +79,36 @@
 !     Laura 21/04/08
       data xlai0/2*0.5D0 , 5.0D0 , 2*1.0D0 , 5.0D0 , 1.0D0 , 0.0D0 ,    &
             &    0.5D0 , 2.0D0 , 0.5D0 , 0.0D0 , 2.0D0 , 2*0.0D0 ,      &
-            &    3.0D0 , 1.0D0 , 3.0D0 , 0.5D0 , 1.0D0, 0.5D0/
+            &    3.0D0 , 1.0D0 , 3.0D0 , 0.5D0 , 1.0D0, 0.5D0, 1.0D0/
 
 !     ******      stem area index (projected area of non-transpiring
 !     sfcs)
-      data sai/0.5D0 , 4.0D0 , 5*2.0D0 , 2*0.5D0 , 11*2.0D0, 0.5D0/
+      data sai/0.5D0 , 4.0D0 , 5*2.0D0 , 2*0.5D0 , 11*2.0D0, 2*0.5D0/
 !     ******      inverse square root of leaf dimension - used for
 !     ******      calculating fluxes from foliage
-      data sqrtdi/10.0D0 , 19*5.0D0, 5.0D0/
+      data sqrtdi/10.0D0 , 19*5.0D0, 2*5.0D0/
 !     ******      fc = light dependence of stomatal resistance
       data fc/0.02D0 , 0.02D0 , 4*0.06D0 , 11*0.02D0 , 0.06D0 ,         &
-          &   2*0.02D0, 0.02D0/
+          &   2*0.02D0, 2*0.02D0/
 
 !     ******      depuv is depth of upper soil layer (mm)
 !     ******      deprv is depth of root zone (mm)
 !     ******      deptv is depth of total soil (mm)
-      data depuv/20*100.0D0, 20.0D0/
+      data depuv/22*100.0D0/
       data deprv/2*1000.0D0 , 2*1500.0D0 , 2000.0D0 , 1500.0D0 ,        &
-           &     11*1000.D0 , 2000.D0 , 2*2000.D0, 1000.0D0/
-      data deptv/20*3000.D0, 3000.0D0/
+           &     11*1000.D0 , 2000.D0 , 2*2000.D0, 2*1000.0D0/
+      data deptv/20*3000.D0, 2*3000.0D0/
 !     ******      iexsol is soil texture type (see subr soilbc)
 !     ORIGINAL
 !     data iexsol/6,6,6,6,7,8,6,3,6,6,5,12,6,6,6,6,5,6,6,6/
 !     Laura  04/04/08 changed soil texture for desert: 3->1
       data iexsol/6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
-              &   6 , 6 , 6 , 5 , 6 , 6 , 6, 12/
+              &   6 , 6 , 6 , 5 , 6 , 6 , 6, 12, 8/
 !     ******      kolsol is soil color type (see subr. albedo)
 !     Dec. 15, 2008
 !     data kolsol/5,3,4,4,4,4,4,1,3,3,2,1,5,5,5,4,3,4,4,4/
       data kolsol/6 , 4 , 5 , 5 , 5 , 5 , 5 , 1 , 4 , 4 , 2 , 1 , 6 ,   &
-             &    6 , 6 , 5 , 4 , 5 , 5 , 5, 4/
+             &    6 , 6 , 5 , 4 , 5 , 5 , 5, 4, 4/
 !     Dec. 15, 2008_
 !     ******      xmopor is fraction of soil that is voids
       data xmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
@@ -142,27 +142,27 @@
 !     &.05,.08,.06,2*0.06/
       data albvgs/.1D0 , .1D0 , .04D0 , .04D0 , .06D0 , .04D0 , .08D0 , &
           &       .2D0 , .1D0 , .08D0 , .17D0 , .8D0 , .06D0 , 2*.07D0 ,&
-          &       .05D0 , .08D0 , .05D0 , 2*0.06D0, 0.02D0/
+          &       .05D0 , .08D0 , .05D0 , 2*0.06D0, 0.02D0, 0.06D0/
 !     ******      albvgl is vegetation albedo for wavelengths > 0.7
 !     microns data
 !     albvgl/.3,.3,.23,.23,.28,.20,.30,.4,.3,.28,.34,.6,.18,2*.2,
 !     &.23,.28,.24,2*.18/
       data albvgl/.3D0 , .3D0 , .20D0 , .20D0 , .26D0 , .20D0 , .30D0 , &
          &        .4D0 , .3D0 , .28D0 , .34D0 , .6D0 , .18D0 , 2*.2D0 , &
-         &        .23D0 , .28D0 , .23D0 , 2*.18D0, 0.15D0/
+         &        .23D0 , .28D0 , .23D0 , 2*.18D0, 0.15D0, 0.18D0/
 !     Dec. 15, 2008_
 
       data rootf/.30 , .80 , .67 , .67 , .50 , .80 , .80 , .90 , .90 ,  &
-         & .30 , .80 , 9*.50, 0.90/
+         & .30 , .80 , 9*.50, 0.90, 0.50/
 !
 ! Stokes parameters
 !
       data aest     /0.80 , 0.80 , 0.8 , 0.8 , 1.2 , 1.20 , 2.00 , 1.5 ,&
          & 1.5 , 2.0 , 15.0 , 15.0 , 1.5 , 1.5 , 1.5 , 15.0 , 1.20 ,    &
-         & 1.2 , 1.2 , 1.2 , 1.2 /
+         & 1.2 , 1.2 , 1.2 , 1.2, 1.2 /
 !
       data arye     /0.5 , 5.0 , 0.5 , 5.0 , 1.0 , 1.0 , 0.0001 , 5.0 , &
          & 10.0 , 10.0 , 0.0001 , 0.0001 , 0.56 , 0.56 , 0.56 , 0.56 ,  &
-         & 0.56 , 0.56 , 0.56 , 0.56, 1.0/
+         & 0.56 , 0.56 , 0.56 , 0.56, 1.0, 1.0/
 !
       end module mod_bats_param

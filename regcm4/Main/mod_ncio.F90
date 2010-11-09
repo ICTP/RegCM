@@ -1896,8 +1896,8 @@
             call addvara(ncid,ctype,'swt', &
                 'moisture_content_of_soil_layer', &
                 'Total soil water','kg m-2',tyx,.true.,iatmvar(11))
-            call addvara(ncid,ctype,'rno','runoff_amount', &
-                'Runoff accumulated infiltration','kg m-2', &
+            call addvara(ncid,ctype,'rno','runoff_flux', &
+                'Runoff accumulated infiltration','kg m-2 day-1', &
                 tyx,.true.,iatmvar(12))
           else if (ctype == 'SRF') then
             isrfvar = -1
@@ -1932,15 +1932,16 @@
                 t2yx,.false.,isrfvar(10))
             call addvara(ncid,ctype,'smw','soil_moisture_content', &
                 'Moisture content','kg kg-1',tlyx,.true.,isrfvar(11))
-            call addvara(ncid,ctype,'tpr','precipitation_amount', &
-                'Total precipitation','kg m-2',tyx,.false.,isrfvar(12))
-            call addvara(ncid,ctype,'evp','water_evaporation_amount', &
-                'Total evapotranspiration','kg m-2', &
+            call addvara(ncid,ctype,'tpr','precipitation_flux', &
+                'Total precipitation','kg m-2 day -1',tyx,&
+                .false.,isrfvar(12))
+            call addvara(ncid,ctype,'evp','water_evaporation_flux', &
+                'Total evapotranspiration','kg m-2 day-1', &
                 tyx,.false.,isrfvar(13))
             call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
                 'Surface runoff','kg m-2 day-1',tyx,.true.,isrfvar(14))
-            call addvara(ncid,ctype,'scv','snowfall_amount', &
-                'Snow precipitation','kg m-2',tyx,.true.,isrfvar(15))
+            call addvara(ncid,ctype,'scv','snowfall_flux', &
+                'Snow precipitation','kg m-2 day-1',tyx,.true.,isrfvar(15))
             call addvara(ncid,ctype,'sena', &
                 'surface_downward_sensible_heat_flux', &
                 'Sensible heat flux','W m-2',tyx,.false.,isrfvar(16))
@@ -2037,15 +2038,16 @@
                 t2yx,.false.,isubvar(9))
             call addvara(ncid,ctype,'smw','soil_moisture_content', &
                 'Moisture content','kg kg-1', tlyx, .true.,isubvar(10))
-            call addvara(ncid,ctype,'tpr','precipitation_amount', &
-                'Total precipitation','kg m-2',tyx,.false.,isubvar(11))
-            call addvara(ncid,ctype,'evp','water_evaporation_amount', &
-                'Total evapotranspiration','kg m-2', &
+            call addvara(ncid,ctype,'tpr','precipitation_flux', &
+                'Total precipitation','kg m-2 day-1',tyx, &
+                .false.,isubvar(11))
+            call addvara(ncid,ctype,'evp','water_evaporation_flux', &
+                'Total evapotranspiration','kg m-2 day-1', &
                 tyx,.false.,isubvar(12))
             call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
                 'Surface runoff','kg m-2 day-1',tyx,.true.,isubvar(13))
-            call addvara(ncid,ctype,'scv','snowfall_amount', &
-                'Snow precipitation','kg m-2',tyx,.true.,isubvar(14))
+            call addvara(ncid,ctype,'scv','snowfall_flux', &
+                'Snow precipitation','kg m-2 day-1',tyx,.true.,isubvar(14))
             call addvara(ncid,ctype,'sena', &
                 'surface_downward_sensible_heat_flux', &
                 'Sensible heat flux','W m-2',tyx,.false.,isubvar(15))
@@ -2184,10 +2186,12 @@
             ilakvar(2) = illtpvar(5)
             call addvara(ncid,ctype,'tg','surface_temperature', &
                 'Ground temperature','K',tyx,.false.,ilakvar(3))
-            call addvara(ncid,ctype,'tpr','precipitation_amount', &
-                'Total precipitation','kg m-2',tyx,.false.,ilakvar(4))
-            call addvara(ncid,ctype,'scv','snowfall_amount', &
-                'Snow precipitation','kg m-2',tyx,.true.,ilakvar(5))
+            call addvara(ncid,ctype,'tpr','precipitation_flux', &
+                'Total precipitation','kg m-2 day-1',tyx,.false., &
+                ilakvar(4))
+            call addvara(ncid,ctype,'scv','snowfall_flux', &
+                'Snow precipitation','kg m-2 day-1',tyx,.true., &
+                ilakvar(5))
             call addvara(ncid,ctype,'sena', &
                 'surface_downward_sensible_heat_flux', &
                 'Sensible heat flux','W m-2',tyx,.false.,ilakvar(6))

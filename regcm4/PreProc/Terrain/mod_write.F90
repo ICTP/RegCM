@@ -423,7 +423,8 @@
                 & '18 => Mixed Woodland'//char(10)//                  &
                 & '19 => Forest/Field mosaic'//char(10)//             &
                 & '20 => Water and Land mixture'//char(10)//          &
-                & '21 => Urban')
+                & '21 => Urban'//char(10)//                           &
+                & '22 => Sub-Urban')
         call check_ok(istatus,'Error adding landuse legend')
         istatus = nf90_put_att(ncid, ivar(6), 'standard_name',        &
                             &  'land_type')
