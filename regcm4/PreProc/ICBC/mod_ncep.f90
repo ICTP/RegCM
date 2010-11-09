@@ -147,11 +147,11 @@
       character(21) :: inname
       character(256) :: pathaddname
       logical :: there
-!     character(5) , dimension(7) :: varname
+      character(5) , dimension(7) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) , save :: icount , istart
-      integer , dimension(7) , save :: inet7
+      integer , dimension(7) , save :: inet7 , ivar7
       real(8) , dimension(7) , save :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -161,10 +161,8 @@
 !     The data are packed into short integers (INTEGER*2).  The array
 !     work will be used to hold the packed integers.
 !
-!     DATA ARRAY AND WORK ARRAY
-!
-!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
-!         &'pres'/
+      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
+          &'pres'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the
@@ -224,10 +222,12 @@
             stop
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-          istatus = nf90_get_att(inet7(kkrec),5,'scale_factor',         &
-                 & xscl(kkrec))
-          istatus = nf90_get_att(inet7(kkrec),5,'add_offset',           &
-                 & xoff(kkrec))
+          istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec), &
+                                   ivar7(kkrec))
+          istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
+                                'scale_factor',xscl(kkrec))
+          istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
+                                 'add_offset',xoff(kkrec))
           write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
                     & xoff(kkrec)
         end if
