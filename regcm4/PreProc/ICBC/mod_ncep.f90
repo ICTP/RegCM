@@ -218,16 +218,39 @@
           end if
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , pathaddname , ' is not available'
+            print * , trim(pathaddname) , ' is not available'
             stop
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Error opening ',trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
           istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec), &
                                    ivar7(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' error in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                 'scale_factor',xscl(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' scale in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                  'add_offset',xoff(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' offset in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
           write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
                     & xoff(kkrec)
         end if
@@ -266,7 +289,12 @@
         inet = inet7(kkrec)
         if ( nlev>0 ) then
           icount(3) = nlev
-          istatus = nf90_get_var(inet,5,work,istart,icount)
+          istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
+          if (istatus /= nf90_noerr) then
+            print *, 'Reading variable ',varname(kkrec), &
+                     ' error in file ',trim(pathaddname)
+            stop
+          end if
           xscale = xscl(kkrec)
           xadd = xoff(kkrec)
           do ilev = 1 , nlev
@@ -317,7 +345,12 @@
           end do
         else if ( nlev==0 ) then
           icount(3) = 1
-          istatus = nf90_get_var(inet,5,work,istart,icount)
+          istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
+          if (istatus /= nf90_noerr) then
+            print *, 'Reading variable ',varname(kkrec), &
+                     ' error in file ',trim(pathaddname)
+            stop
+          end if
           if ( kkrec==7 ) then
             do j = 1 , jlat
               do i = 1 , ilon
@@ -451,11 +484,11 @@
       character(24) :: inname
       character(256) :: pathaddname
       logical :: there
-!     character(5) , dimension(7) :: varname
+      character(5) , dimension(7) :: varname
       integer(2) , dimension(iii,jjj,klev+1) :: work
       real(8) :: xadd , xscale
       integer , dimension(10) :: icount , istart
-      integer , dimension(7) :: inet7
+      integer , dimension(7) :: inet7 , ivar7
       real(8) , dimension(7) :: xoff , xscl
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -467,8 +500,8 @@
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
-!         &'pres'/
+      data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
+          &        'pres'/
 !
       xadd = 0.0
       xscale = 1.0
@@ -520,10 +553,35 @@
             stop
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-          istatus = nf90_get_att(inet7(kkrec),5,'scale_factor',         &
-                 &               xscl(kkrec))
-          istatus = nf90_get_att(inet7(kkrec),5,'add_offset',           &
-                 &               xoff(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Error opening ',trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec), &
+                                   ivar7(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' error in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
+                                 'scale_factor',xscl(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' scale in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
+          istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
+                                 'add_offset',xoff(kkrec))
+          if (istatus /= nf90_noerr) then
+            print *, 'Variable ',varname(kkrec),' offset in file', &
+                     trim(pathaddname)
+            print *, nf90_strerror(istatus)
+            stop
+          end if
           write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
                     & xoff(kkrec)
         end if
@@ -562,7 +620,12 @@
         inet = inet7(kkrec)
         if ( nlev>0 ) then
           icount(3) = nlev + 1
-          istatus = nf90_get_var(inet,5,work,istart,icount)
+          istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
+          if (istatus /= nf90_noerr) then
+            print *, 'Reading variable ',varname(kkrec), &
+                     ' error in file ',trim(pathaddname)
+            stop
+          end if
           xscale = xscl(kkrec)
           xadd = xoff(kkrec)
           do ilev = 1 , nlev
@@ -689,7 +752,12 @@
           end do
         else if ( nlev==0 ) then
           icount(3) = nlev
-          istatus = nf90_get_var(inet,5,work,istart,icount)
+          istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
+          if (istatus /= nf90_noerr) then
+            print *, 'Reading variable ',varname(kkrec), &
+                     ' error in file ',trim(pathaddname)
+            stop
+          end if
           if ( kkrec==7 ) then
             do j = 1 , jjj
               jj = j0 + j
