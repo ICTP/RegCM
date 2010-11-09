@@ -229,6 +229,8 @@
       logical :: fudge_lnd_s
       logical :: fudge_tex
       logical :: fudge_tex_s
+      logical :: fudge_lak
+      logical :: fudge_lak_s
 
 ! Terrain output files
 
@@ -298,7 +300,8 @@
                      & plon , truelatl, truelath , i_band
         namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
                     & smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
-                    & fudge_tex , fudge_tex_s , h2opct , dirter , inpter
+                    & fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
+                    & h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ ibyte
         namelist /debugparam/ debug_level , dbgfrq

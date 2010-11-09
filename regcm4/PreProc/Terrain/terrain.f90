@@ -59,7 +59,7 @@
       use mod_smooth , only : smth121 , smthtr
       use mod_maputils , only : lambrt , mappol , normer , rotmer
       use mod_interp
-      use mod_fudge , only : lndfudge , texfudge
+      use mod_fudge
       use mod_rdldtr , only : read_ncglob
       use mod_write , only : setup , write_domain , dsinm
       use mod_header , only : header
@@ -67,7 +67,7 @@
 !
 ! Local variables
 !
-      character(256) :: char_lnd , char_tex
+      character(256) :: char_lnd , char_tex , char_lak
       character(256) :: namelistfile , prgname
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
@@ -311,15 +311,17 @@
             snowam_s(i,j) = 0.0
           end do
         end do
-!       land/sea mask fudging
+
         write (char_lnd,99001) trim(dirter), pthsep, trim(domname), &
            &   '_LANDUSE' , nsg
-        write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
-           &   '_TEXTURE' , nsg
         call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,iysg,jxsg, &
                     & trim(char_lnd))
-        if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex_s,texout_s, &
-           & htgrid_s,iysg,jxsg,trim(char_tex))
+        if ( aertyp(7:7)=='1' ) then
+          write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
+             &   '_TEXTURE' , nsg
+          call texfudge(fudge_tex_s,texout_s,htgrid_s,iysg,jxsg, &
+                        trim(char_tex))
+        end if
         print * , 'Fudging data (if requested) succeeded'
 
       end if
@@ -458,15 +460,16 @@
           snowam(i,j) = 0.0
         end do
       end do
-!     land/sea mask fudging
+
       write (char_lnd,99002) trim(dirter), pthsep, trim(domname), &
            &   '_LANDUSE'
-      write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
-           &   '_TEXTURE'
       call lndfudge(fudge_lnd,lndout,htgrid,iy,jx,trim(char_lnd))
-      if ( aertyp(7:7)=='1' ) call texfudge(fudge_tex,texout,htgrid, &
-         & iy,jx,trim(char_tex))
-      print * , 'Fudging data (if requested) succeeded'
+
+      if ( aertyp(7:7)=='1' ) then
+        write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
+             &   '_TEXTURE'
+        call texfudge(fudge_tex,texout,htgrid,iy,jx,trim(char_tex))
+      end if
 
       where ( lndout > 14.5 .and. lndout < 15.5 )
         htgrid = 0.0
@@ -485,6 +488,13 @@
           dpth = 2.0
         end where
       end if
+
+      if ( lakedpth ) then
+        write (char_lak,99002) trim(dirter), pthsep, trim(domname), &
+             &   '_LAK'
+        call lakfudge(fudge_lak,dpth,lndout,iy,jx,trim(char_lak))
+      end if
+      print * , 'Fudging data (if requested) succeeded'
 
       if ( nsg>1 ) then
         do i = 1 , iy
@@ -528,6 +538,12 @@
             dpth_s = 2.0
           end where
         end if
+        if ( lakedpth ) then
+          write (char_lak,99001) trim(dirter), pthsep, trim(domname), &
+               &   '_LAK', nsg
+          call lakfudge(fudge_lak_s,dpth_s,lndout_s,iysg,jxsg, &
+                        trim(char_lak))
+        end if
 
         call write_domain(.true.)
         print * , 'Subgrid data written to output file'
@@ -540,6 +556,6 @@
 
       print *, 'Successfully completed terrain fields generation'
 !
-99001 format (a,a,a,a8,i0.3)
-99002 format (a,a,a,a8)
+99001 format (a,a,a,a,i0.3)
+99002 format (a,a,a,a)
       end program terrain

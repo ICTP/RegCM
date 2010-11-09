@@ -55,6 +55,8 @@
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid
  fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
+ fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
+ fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
  dirter = '../../Input', ! Output directory for terrain files
  inpter = '../DATA',     ! Input directory for SURFACE dataset

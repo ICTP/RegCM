@@ -19,7 +19,9 @@
 
       module mod_fudge
 
-      implicit none
+      private
+
+      public :: lndfudge , texfudge , lakfudge
 
       contains
 
@@ -311,5 +313,69 @@
 
 99001 format (132A1)
       end subroutine texfudge
+
+      subroutine lakfudge(fudge,dpth,lnd,iy,jx,char_lak)
+
+      implicit none
+!
+! Dummy arguments
+!
+      character(*) :: char_lak
+      logical :: fudge , there
+      integer :: iy , jx
+      real(4) , dimension(iy,jx) :: dpth , lnd
+      intent (in) char_lak , fudge , iy , jx , lnd
+      intent (inout) dpth
+!
+! Local variables
+!
+      integer :: i , j
+      character(1) , dimension(iy,jx) :: ch
+!
+      if ( fudge ) then
+        inquire (file=char_lak,exist=there)
+        if ( .not.there ) then
+          print *, 'Fudging requested for lake but missing input'// &
+                   ' ascii file ',trim(char_lak)
+          print * , 'ERROR OPENING ' , char_lak ,  &
+             &' FILE:  FILE DOES NOT EXIST'
+           stop ' IN SUBROUTINE lakfudge'
+        endif 
+        open (13,file=char_lak,form='formatted')
+        do i = iy , 1 , -1
+          read (13,99001) (ch(i,j),j=1,jx)
+        end do
+        close (13)
+        do j = 1 , jx
+          do i = 1 , iy
+            if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
+              if ( ch(i,j)/='L' ) then
+                dpth(i,j) = 0.0
+               end if
+             end if
+          end do
+        end do
+      else
+        do j = 1 , jx
+          do i = 1 , iy
+            if ( dpth(i,j) > 0.0 ) then
+              if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
+                ch(i,j) = 'L'
+              else
+                ch(i,j) = '*'
+              end if
+            else
+              ch(i,j) = '-'
+            end if
+          end do
+        end do
+        open (13,file=char_lak,form='formatted')
+        do i = iy , 1 , -1
+          write (13,99001) (ch(i,j),j=1,jx)
+        end do
+        close (13)
+      end if
+99001 format (132A1)
+      end subroutine lakfudge
 
       end module mod_fudge

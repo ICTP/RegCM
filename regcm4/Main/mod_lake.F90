@@ -132,8 +132,9 @@
           do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
-            if ( (satbrt1(n,i,j).gt.13.9.and.satbrt1(n,i,j)  &
-               & .lt.14.1) .and. dhlake1(n,i,j).gt.1.0) then
+            if ( (satbrt1(n,i,j).gt.13.9 .and.   &
+                  satbrt1(n,i,j).lt.14.1) .and.  &
+                dhlake1(n,i,j).gt.1.0) then
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
                                    dble(ndpmax)))/dz)
               if (idep2d(n,i,j).lt.50) then
@@ -145,7 +146,6 @@
               end if
             else
               idep2d(n,i,j) = 0
-              eta2d(n,i,j) = 0.5
             end if
             if (idep2d(n,i,j) == 0) then
               hi2d(n,i,j) = -1D+34
@@ -159,6 +159,7 @@
           end do
         end do
       end do
+
 #ifdef MPP1
       call mpi_gather(idep2d,   nnsg*iym1*jxp,mpi_integer, &
                     & idep2d_io,nnsg*iym1*jxp,mpi_integer, &
