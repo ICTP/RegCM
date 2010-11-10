@@ -1,5 +1,6 @@
 
 
+#include <string.h>
 #include "mpiP.h"
 
 
