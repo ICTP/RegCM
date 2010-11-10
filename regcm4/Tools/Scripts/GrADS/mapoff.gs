@@ -1,8 +1,0 @@
-'set mproj off'
-'set xlab off'
-'set ylab off'
-'set grads off'
-'set ccolor rainbow'
-'set clab on'
-'set cthick 2'
-'set cstyle 1'
