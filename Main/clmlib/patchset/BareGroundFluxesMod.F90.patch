@@ -1,0 +1,33 @@
+--- orig/BareGroundFluxesMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/BareGroundFluxesMod.F90	2010-03-10 16:20:01.730267643 +0100
+@@ -132,6 +132,9 @@
+     real(r8), pointer :: fpsn(:)          ! photosynthesis (umol CO2 /m**2 /s)
+     real(r8), pointer :: rootr(:,:)       ! effective fraction of roots in each soil layer
+     real(r8), pointer :: rresis(:,:)      ! root resistance by layer (0-1)  (nlevsoi)	
++!abt rcm 
++    real(r8), pointer :: uvdrag(:)        ! surface wind drag
++!above rcm
+ !
+ !EOP
+ !
+@@ -233,6 +236,9 @@
+     psnsun => clm3%g%l%c%p%pcf%psnsun
+     psnsha => clm3%g%l%c%p%pcf%psnsha
+     fpsn => clm3%g%l%c%p%pcf%fpsn
++!abt rcm below
++    uvdrag => clm3%g%l%c%p%pef%uvdrag
++!rcm above
+ 
+     ! Filter pfts where frac_veg_nosno is zero
+ 
+@@ -371,6 +377,10 @@
+        eflx_sh_tot(p)   = eflx_sh_grnd(p)
+        qflx_evap_soi(p) = -raiw*dqh(p)
+        qflx_evap_tot(p) = qflx_evap_soi(p)
++!abt rcm belwo
++       uvdrag(p)        = (1-frac_veg_nosno(p))*forc_rho(g)/ram
++!rcm above
++
+ 
+        ! 2 m height air temperature
+ 

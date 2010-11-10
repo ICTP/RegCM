@@ -1,0 +1,33 @@
+--- orig/BiogeophysicsLakeMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/BiogeophysicsLakeMod.F90	2010-03-10 16:19:07.000000000 +0100
+@@ -158,6 +158,9 @@
+     real(r8), pointer :: ram1(:)            ! aerodynamical resistance (s/m)
+     real(r8), pointer :: errsoi(:)          ! soil/lake energy conservation error (W/m**2)
+     real(r8), pointer :: t_lake(:,:)        ! lake temperature (Kelvin)
++!abt
++    real(r8), pointer :: uvdrag(:)          ! surface wind drag (m2/s2)
++!abt_
+ !
+ !EOP
+ !
+@@ -312,6 +315,9 @@
+     qflx_prec_grnd => clm3%g%l%c%p%pwf%qflx_prec_grnd
+     qflx_evap_soi  => clm3%g%l%c%p%pwf%qflx_evap_soi
+     qflx_evap_tot  => clm3%g%l%c%p%pwf%qflx_evap_tot
++!abt
++    uvdrag         => clm3%g%l%c%p%pef%uvdrag
++!abt_
+ 
+     ! Determine step size
+ 
+@@ -536,6 +542,10 @@
+        eflx_lh_tot(p)   = htvp(c)*qflx_evap_soi(p)
+        eflx_lh_grnd(p)  = htvp(c)*qflx_evap_soi(p)
+ 
++!abt *** Added uvdrag calculation so it can be passed to regcm
++       uvdrag(p) = forc_rho(g)/ram1(p)
++!abt_
++
+        ! 2 m height air temperature
+        t_ref2m(p) = thm(c) + temp1(p)*dth(p)*(1._r8/temp12m(p) - 1._r8/temp1(p))
+ 

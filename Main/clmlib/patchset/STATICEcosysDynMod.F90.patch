@@ -1,0 +1,90 @@
+--- orig/STATICEcosysDynMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/STATICEcosysDynMod.F90	2010-03-10 16:19:07.000000000 +0100
+@@ -245,7 +245,7 @@
+ ! Determine if 2 new months of data are to be read.
+ !
+ ! !USES:
+-    use clm_varctl  , only : fsurdat
++    use clm_varctl  , only : fsurdat,mksrf_flai
+     use clm_time_manager, only : get_curr_date, get_step_size, get_perp_date, is_perpetual
+ !
+ ! !ARGUMENTS:
+@@ -288,7 +288,8 @@
+     timwt(2) = 1._r8-timwt(1)
+ 
+     if (InterpMonths1 /= months(1)) then
+-       call readMonthlyVegetation (fsurdat, kmo, kda, months)
++!   abt    call readMonthlyVegetation (fsurdat, kmo, kda, months)
++       call readMonthlyVegetation (mksrf_flai, kmo, kda, months)
+        InterpMonths1 = months(1)
+     end if
+ 
+@@ -314,6 +315,9 @@
+     use spmdMod     , only : masterproc, mpicom, MPI_REAL8
+     use clm_time_manager, only : get_nstep
+     use ncdio       , only : check_ret
++!abt added below
++!    use clm_varsur  , only : monlai
++!abt added above
+ !
+ ! !ARGUMENTS:
+     implicit none
+@@ -363,7 +367,9 @@
+              msai(begg:endg,0:numpft), &
+              mhgtt(begg:endg,0:numpft), &
+              mhgtb(begg:endg,0:numpft), stat=ier)
+-
++!abt added below
++!    allocate(monlai(begp:endp,2))
++!abt above
+     if (ier /= 0) then
+        write(6,*)subname, 'allocation big error '; call endrun()
+     end if
+@@ -383,7 +389,8 @@
+           call getfil(fveg, locfn, 0)
+           call check_ret(nf_open(locfn, 0, ncid), subname)
+ 
+-          call check_ret(nf_inq_dimid (ncid, 'lsmlon', dimid), subname)
++!   abt       call check_ret(nf_inq_dimid (ncid, 'lsmlon', dimid), subname)
++          call check_ret(nf_inq_dimid (ncid, 'lon', dimid), subname)
+           call check_ret(nf_inq_dimlen(ncid, dimid, nlon_i), subname)
+           if (.not.single_column) then
+              if (nlon_i /= lsmlon) then
+@@ -391,7 +398,8 @@
+                 call endrun()
+              end if
+           endif
+-          call check_ret(nf_inq_dimid(ncid, 'lsmlat', dimid), subname)
++!   abt       call check_ret(nf_inq_dimid(ncid, 'lsmlat', dimid), subname)
++          call check_ret(nf_inq_dimid(ncid, 'lat', dimid), subname)
+           call check_ret(nf_inq_dimlen(ncid, dimid, nlat_i), subname)
+ 
+           if (.not.single_column ) then
+@@ -400,7 +408,8 @@
+                 call endrun()
+              end if
+           endif
+-          call check_ret(nf_inq_dimid(ncid, 'lsmpft', dimid), subname)
++!    abt    call check_ret(nf_inq_dimid(ncid, 'lsmpft', dimid), subname)
++          call check_ret(nf_inq_dimid(ncid, 'level', dimid), subname)
+           call check_ret(nf_inq_dimlen(ncid, dimid, npft_i), subname)
+ 
+           if (.not. single_column ) then
+@@ -521,10 +530,17 @@
+              mhvb2t(p,k) = 0._r8
+           end if
+ 
++
++!abt added new variable for use in VOCemissionMod
++#if (defined VOC)
++          clm3%g%l%c%p%pva%monlai(p,k) = mlai2t(p,k)
++#endif
++
+        end do   ! end of loop over pfts
+ 
+     end do   ! end of loop over months
+ 
++
+     deallocate(mlai, msai, mhgtt, mhgtb)
+   end subroutine readMonthlyVegetation
+ 

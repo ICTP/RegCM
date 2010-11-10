@@ -1,0 +1,21 @@
+#$$$ update dependencies!  
+
+ESMF_AlarmMod.o : ESMF_BaseTimeMod.o ESMF_TimeMod.o ESMF_TimeIntervalMod.o
+ESMF_BaseTimeMod.o : ESMF_BaseMod.o
+ESMF_ClockMod.o : ESMF_BaseTimeMod.o ESMF_TimeMod.o ESMF_TimeIntervalMod.o
+ESMF_AlarmClockMod.o : ESMF_AlarmMod.o ESMF_ClockMod.o
+ESMF_TimeMod.o : ESMF_BaseTimeMod.o ESMF_TimeIntervalMod.o
+ESMF_BaseMod.o :
+ESMF_CalendarMod.o : ESMF_BaseTimeMod.o ESMF.inc
+ESMF_FractionMod.o : ESMF_BaseTimeMod.o
+ESMF_TimeIntervalMod.o : ESMF_BaseTimeMod.o ESMF_CalendarMod.o ESMF_FractionMod.o
+ESMF_Mod.o : ESMF_AlarmMod.o ESMF_BaseTimeMod.o ESMF_ClockMod.o ESMF_TimeMod.o \
+        ESMF_BaseMod.o ESMF_CalendarMod.o ESMF_FractionMod.o    \
+        ESMF_TimeIntervalMod.o Meat.o ESMF_Stubs.o ESMF_AlarmClockMod.o
+Meat.o : ESMF_AlarmMod.o ESMF_BaseTimeMod.o ESMF_ClockMod.o ESMF_TimeMod.o \
+        ESMF_BaseMod.o ESMF_CalendarMod.o ESMF_FractionMod.o    \
+        ESMF_TimeIntervalMod.o ESMF.inc
+ESMF_Stubs.o : ESMF_BaseMod.o ESMF_CalendarMod.o \
+        ESMF_AlarmMod.o ESMF_ClockMod.o ESMF_TimeIntervalMod.o ESMF_TimeMod.o ESMF.inc
+module_utility.o :  ESMF_Mod.o module_symbols_util.o
+module_symbols_util.o :  ESMF_Mod.o

@@ -1,0 +1,425 @@
+#!/usr/bin/python
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script for running RegCM regression tests by M. Scarcia
+#
+
+import os,sys,shutil,fileinput,subprocess,calendar
+
+
+# define various subs here
+
+def edit_namelist(namelist,datadir,simdir): # needs module fileinput
+
+    for line in fileinput.FileInput(namelist,inplace=1):
+
+        line = line.replace("/set/this/to/where/your/surface/dataset/is",datadir+"/")
+        line = line.replace("/set/this/to/where/your/input/global/data/is",datadir+"/")
+
+        line = line.replace("/set/this/to/where/your/domain/file/is",simdir+"/input")
+        line = line.replace("/set/this/to/where/your/icbc/for/model/is",simdir+"/input")
+
+        line = line.replace("/set/this/to/where/your/output/files/will/be/written",simdir+"/output")
+
+        line = line.replace("/set/this/to/where/your/input/clm/data/are",simdir+"/input")
+
+        print line.rstrip()
+        
+    fileinput.close()
+ 
+def parse_config(filename): # needs module sys
+
+    COMMENT_CHAR = '#'
+    OPTION_CHAR =  '='
+    
+    options = {}
+    try:
+        f = open(filename)
+    except :
+        print "File "+filename+" does not exist or is not accessible!"
+        sys.exit(1)
+        
+    for line in f:
+        # First, remove comments:
+        if COMMENT_CHAR in line:
+            # split on comment char, keep only the part before
+            line, comment = line.split(COMMENT_CHAR, 1)
+        # Second, find lines with an option=value:
+        if OPTION_CHAR in line:
+            # split on option char:
+            option, value = line.split(OPTION_CHAR, 1)
+            # strip spaces:
+            option = option.strip()
+            value = value.strip()
+            # store in dictionary:
+            options[option] = value
+    f.close()
+    return options
+
+def compare_nc_file(filename,refname,varname): # needs module subprocess
+
+    #print filename
+    #print refname
+    
+    try :
+        p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+    except OSError :
+        print "Could not run ncdiff!"
+        output,error = p_1.communicate()
+        return output
+
+    if p_1.wait() == 0 :
+        try :
+            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+        except OSError :
+           print "Could not run ncwa!"
+           output,error = p_2.communicate()
+           return output  
+    else :
+        print "Step 1 failed!"
+        output,error = p_1.communicate()
+        return output
+
+    if p_2.wait() == 0 :
+        os.remove("temp.nc")
+        try :
+            p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        except OSError :
+            print "Could not run ncks!"
+            output,error = p_3.communicate()
+            return output
+    else :
+        print "Step 2 failed!"
+        output,error = p_2.communicate()
+        return output    
+    
+    if p_3.wait() != 0:
+        print "Step 3 failed!"
+        output,error = p_3.communicate()
+        return output+error
+    else:
+        os.remove("rms.nc")
+        output,error = p_3.communicate()
+        
+    return output
+
+def parse_dates(namelist,simdays): # needs modules fileinput and calendar
+
+    infile = open(namelist,"r")
+    file_content = infile.readlines()
+    infile.close()
+        
+    for line in file_content:
+            #if line.find("globidate1") > -1 :
+            #    linea=line.rsplit("=")
+            #    globidate1=linea[1]
+            #    globidate1=filter(lambda x:x.isdigit(),globidate1)
+            if line.find(" idate0 ") > -1 :
+                linea=line.rsplit("=")
+                idate0=linea[1]
+                idate0=filter(lambda x:x.isdigit(),idate0)
+            #if line.find(" idate1 ") > -1 :
+            #   linea=line.rsplit("=")
+            #   idate1=linea[1]
+            #   idate1=filter(lambda x:x.isdigit(),idate1)
+            if line.find(" idate2 ") > -1 :
+                linea=line.rsplit("=")
+                idate2=linea[1]
+                idate2=filter(lambda x:x.isdigit(),idate2)
+                
+    year = int(idate0[:4])
+    month = int(idate0[4:6])
+    day_start = int(idate0[6:8])
+    day_end = int(idate2[6:8])
+
+    maxdate = calendar.monthrange(year,month)[1]
+
+    if (day_start + simdays) <= maxdate :
+    	day_end = day_start + simdays
+    else :
+	day_end = maxdate
+
+    #print idate2
+    #print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
+        
+    for line in fileinput.FileInput(namelist,inplace=1):
+        line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
+        print line.rstrip()
+
+    fileinput.close()
+
+    return idate0 # if others needed will put a list as output
+
+def main(argv):
+
+    if (len(sys.argv) < 2):
+        print "Please specify a configuration file!"
+        sys.exit(1)
+        
+    cfg=sys.argv[1]
+
+    # get all the options from cfg file
+    options = parse_config(cfg)
+
+    datadir = options["DATADIR"]
+    bindir = options["BINDIR"]
+    testdir = options["TESTDIR"]
+    namelistdir = options["NLDIR"]
+    referencedir = options["REFDIR"]
+    teststodo = options["TESTSTODO"]
+    mpistring=options["MPISTRING"]
+    run_serial=int(options["SERIAL"])
+    run_preproc=int(options["PREPROC"])
+    run_clm=int(options["USECLM"])
+    run_band=int(options["USEBAND"])
+    run_diff=int(options["DIFF"])
+    simdays=int(options["SIMDAYS"])
+
+    datadir = os.path.abspath(datadir)
+    testdir = os.path.abspath(testdir)
+    bindir = os.path.abspath(bindir)
+    referencedir = os.path.abspath(referencedir)
+
+    # check running options compatibility + choose binary
+
+    main_bin = "regcmMPI"
+
+    if (run_clm + run_band) > 1:
+        print "Running with BAND and CLM enabled is currently not supported!"
+        os.sys.exit(1)
+
+    if run_serial == 1 :
+        main_bin = "regcmSerial"
+    elif run_clm == 1 :
+        main_bin = "regcm_clM"
+    elif run_band == 1 :
+        main_bin = "regcm_band"
+
+    # now check if bins exist
+    
+    #print "bin = ",main_bin
+    
+    # will put the diff variables here?
+    
+    # check what tests to do
+    if teststodo.rfind(",") > -1 :
+        tests=teststodo.split(",")
+        listtype=0
+    elif teststodo.rfind("-") > -1:
+        tests=teststodo.split("-")
+        imin=int(tests[0])
+        imax=int(tests[1])
+        listtype=1
+    else :
+        tests=int(teststodo)
+        listtype=2
+    
+    TOT_TESTS = 12 # number of total tests present
+
+    if not os.path.isdir(testdir):
+        os.mkdir(testdir)
+
+    if listtype == 2 :
+        if tests == 0 :
+            imin = 1
+            imax = TOT_TESTS
+        else :
+            imin = int(tests)
+            imax = int(tests)
+    elif listtype == 1 :
+        imin = int(tests[0])
+        imax = int(tests[1])
+    else :
+        imin = 0
+        imax = len(tests)-1
+
+    #print "imin =",imin
+    #print "imax =",imax
+
+    # main loop over tests        
+    for i in range(imin,imax+1):
+
+        if listtype == 0 :
+            testname="test_"+str(tests[i]).zfill(3)
+        else :
+            testname="test_"+str(i).zfill(3)
+
+        # create simulation directory tree
+        simdir=testdir+"/"+testname
+        testrefdir=referencedir+"/"+testname
+
+        if not os.path.isdir(simdir):
+            os.mkdir(simdir)
+
+        if not os.path.isdir(simdir+"/input"):
+            os.mkdir(simdir+"/input")
+        if not os.path.isdir(simdir+"/output"):
+            os.mkdir(simdir+"/output")
+
+        namelist = simdir+"/regcm.in"
+        shutil.copy(namelistdir+"/"+testname+".in",namelist)
+
+        if (run_clm == 1) :
+	    try :
+            	shutil.copy(datadir+"/CLM/pft-physiology.c070207",simdir+"/input") # hardcoded for now
+	    except IOError :
+		print "File",datadir+"/CLM/pft-physiology.c070207","not found. Stopping execution."
+		os.sys.exit(1)
+            
+        # find idate0 and edit namelist for desired sim length
+        idate0 = parse_dates(namelist,simdays)
+        
+        #edit the namelist here
+        edit_namelist(namelist,datadir,simdir)
+
+        # open log file
+        writelog=True
+        try:
+            log = open(testname+".log","w")
+        except :
+            print "Unable to write log!"
+            writelog=False
+
+        exit_status = 0 # won't run Main if PreProc crashes...
+        
+        # run preproc
+        if (run_preproc == 1):
+
+            # check if binaries actually exist
+            if not (os.path.isfile(bindir+"/terrain")) :
+                print "Terrain binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
+        
+            p_terrain = subprocess.Popen(bindir+"/terrain "+namelist,stdout=log,stderr=log,shell=True)
+            if p_terrain.wait() != 0:
+                print "\nError: Terrain in",testname,"crashed!!\n"
+                exit_status = 1
+            else:
+                print "Terrain in",testname,"passed."
+
+            if not (os.path.isfile(bindir+"/sst")) :
+                print "SST binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
+    
+            p_sst=subprocess.Popen(bindir+"/sst "+namelist,stdout=log,stderr=log,shell=True)
+            if p_sst.wait() != 0:
+                print "\nError: SST in",testname,"crashed!!\n"
+                exit_status = 1
+            else :
+                print "SST in",testname,"passed."
+
+            if not (os.path.isfile(bindir+"/icbc")) :
+                print "ICBC binary not found! Skipping further steps."
+                os.sys.exit(exit_status)
+            
+            p_icbc=subprocess.Popen(bindir+"/icbc "+namelist,stdout=log,stderr=log,shell=True)
+            if p_icbc.wait() != 0:
+                print "\nError: ICBC in",testname,"crashed!!\n"
+                exit_status = 1
+            else :
+                print "ICBC in",testname,"passed."
+            
+            if run_clm == 1:
+                if not (os.path.isfile(bindir+"/clm2rcm")) :
+                    print "clm2rcm binary not found! Skipping further steps."
+                    os.sys.exit(exit_status)
+                    
+                p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist,stdout=log,stderr=log,shell=True)
+                if p_clmpre.wait() != 0:
+                    print "\nError: clm2rcm in",testname,"crashed!!\n"
+                    exit_status = 1
+                else :
+                    print "clm2rcm in",testname,"passed."
+
+            # compare preproc output only if everything went ok
+            # and diff selected
+            if (exit_status == 0) and (run_diff == 1) :
+
+                dom_diff={}
+                icbc_diff={}
+
+                domain_file = "/input/"+testname+"_DOMAIN000.nc"
+                icbc_file = "/input/"+testname+"_ICBC."+idate0+".nc"
+
+                domain_vars = ["topo","landuse"]
+                icbc_vars = ["u","v","t","ts"]
+
+                # domain
+                for var in domain_vars :    
+                    dom_diff[var] = compare_nc_file(simdir+domain_file,testrefdir+domain_file,var).rstrip("\n")
+                    print var+" =",dom_diff[var]
+
+                # icbc
+                for var in icbc_vars :
+                    icbc_diff[var] = compare_nc_file(simdir+icbc_file,testrefdir+icbc_file,var).rstrip("\n")
+                    print var+" =",icbc_diff[var]
+                    
+            sys.stdout.flush()
+
+        # if preproc is ok, run main
+        if exit_status == 0 :
+
+            if not os.path.isfile(bindir+"/"+main_bin) :
+                print "Main RegCM binary not found! Skipping further steps."
+                log.close()
+                os.sys.exit(exit_status)
+            
+            p_regcm=subprocess.Popen(mpistring+" "+bindir+"/"+main_bin+" "+namelist,stdout=log,stderr=log,shell=True) 
+            if p_regcm.wait() != 0:
+                print "\nError: RegCM",testname,"crashed!!\n"
+                exit_status = 1
+            else :
+                print "RegCM",testname,"passed."
+        else :
+            print "Preprocessing did not complete correctly, RegCM main skipped."
+
+        log.close()
+
+        if exit_status == 1:
+            outlog = open(testname+".log","r")
+            stdouterr = outlog.read()
+            print stdouterr
+
+        # if everything ok and diff enabled compare output      
+        if (exit_status == 0) and (run_diff == 1):
+
+            srf_diff={}
+            srf_file="/output/"+testname+"_SRF."+idate0+".nc"
+
+            srf_vars = ["t2m"]
+
+            for var in srf_vars :
+                srf_diff[var] = compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
+                print var+" =",srf_diff[var]
+
+	sys.stdout.flush()
+
+    # end of the big loop
+    if exit_status == 1:
+        print "Warning! Some tests failed!"
+
+    print "\n****  Test script terminated.  ****"
+
+    sys.exit(exit_status)
+    
+if __name__ == "__main__":
+    main(sys.argv[1:])
+

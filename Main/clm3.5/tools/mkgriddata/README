@@ -1,0 +1,37 @@
+clm/tools/mkgriddata/README		May/12/2007
+
+The files in this directory enable a user to create
+a regular regional or global grid and associated 
+land fraction and land mask given a high resolution
+input topographic dataset. 
+
+0) Untar your input data in some directory
+
+1) cd to this directory 
+
+2) run gmake
+
+3) create namelist file (default mkgriddata.namelist).
+   must specify settings for either
+
+      mksrf_fnavyoro    - high resolution topo dataset        
+      mksrf_lsmlon      - number of longitudes
+      mksrf_lsmlat      - number of latitudes
+      mksrf_edgen       - northern edge of grid (degrees)
+      mksrf_edgee       - eastern edge of grid (degrees)
+      mksrf_edges       - southern edge of grid (degrees)
+      mksrf_edgew       - western edge of grid (degrees)
+   or
+      mksrf_fcamfile    - cam topo file
+   or 
+      mksrf_fccsmdom    - ccsm domain file
+   or
+      mksrf_fclmgrid    - clm grid or surface dataset file
+
+   make sure datasets in namelist files point to where you
+   have untarred your input data.
+
+4) run code (e.g.):
+   mkgriddata < mkgrdidata.namelist >&! mkgriddata.out
+
+

@@ -1,0 +1,161 @@
+--- orig/clm_comp.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/clm_comp.F90	2010-03-10 16:21:26.738638750 +0100
+@@ -28,7 +28,7 @@
+ ! !IROUTINE: clm_init0
+ !
+ ! !INTERFACE:
+-  subroutine clm_init0( CCSMInit )
++  subroutine clm_init0(CCSMInit)
+ !
+ ! !DESCRIPTION:
+ ! Initialize land surface model and obtain relevant atmospheric model arrays
+@@ -51,7 +51,7 @@
+ 
+     call t_startf('clm_init0')
+     if ( present(CCSMInit) )then
+-       call initialize1( CCSMInit )
++       call initialize1(CCSMInit)
+     else
+        call initialize1( )
+     end if
+@@ -145,6 +145,7 @@
+           call shr_orb_decl( calday, eccen, mvelpp, lambm0, obliqr, declin, eccf )
+           
+           dtime = get_step_size()
++
+           caldaym1 = get_curr_calday(offset=-int(dtime))
+           call shr_orb_decl( caldaym1, eccen, mvelpp, lambm0, obliqr, declinm1, eccf )
+           
+@@ -166,7 +167,8 @@
+ ! !IROUTINE: clm_run1
+ !
+ ! !INTERFACE:
+-  subroutine clm_run1( nextsw_cday, dosend )
++!  subroutine clm_run1( nextsw_cday, dosend )
++  subroutine clm_run1( doalb, eccen, obliqr, lambm0, mvelpp)
+ !
+ ! !DESCRIPTION:
+ ! land model run1 phase
+@@ -175,18 +177,30 @@
+     use shr_orb_mod     , only : shr_orb_decl
+     use clm_varctl      , only : irad 
+     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
+-    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
++!    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
+     use driver          , only : driver1
+     use clm_atmlnd      , only : clm_map2gcell
++    use mod_clm
++    use mod_dynparam
+ !
+ ! !ARGUMENTS:
+-    real(r8), intent(in) , optional :: nextsw_cday
+-    logical , intent(out), optional :: dosend
++!    real(r8), intent(in) , optional :: nextsw_cday
++!    logical , intent(out), optional :: dosend
++!c abt rcm below
++    logical , intent(in) :: doalb  !true if time for surface albedo
++                                   !calculation
++    real(r8), intent(in) :: eccen  !Earth's orbital eccentricity
++    real(r8), intent(in) :: obliqr !Earth's obliquity in radians
++    real(r8), intent(in) :: lambm0 !Mean longitude of perihelion at the
++                                   !vernal equinox (radians)
++    real(r8), intent(in) :: mvelpp !Earth's moving vernal equinox longitude
++                                   !of perihelion + pi (radians)
++!c abt rcm above
+ !
+ ! !LOCAL VARIABLES:
+     integer  :: nstep                 ! model time step
+     integer  :: dtime                 ! time step increment (sec)
+-    logical  :: doalb                 ! true if surface albedo calculation time step from atm
++!    logical  :: doalb                 ! true if surface albedo calculation time step from atm
+     real(r8) :: caldayp1_clm          ! calendar day for nstep+1 for clm (debug need only)
+     real(r8) :: caldayp1              ! calendar day for nstep+1
+     real(r8) :: declinp1              ! solar declination angle in radians for nstep+1
+@@ -194,7 +208,7 @@
+ !
+ ! !REVISION HISTORY:
+ ! Author: Mariana Vertenstein
+-!
++! 2008.5.8    A Tawfik Revised to work with RegCM
+ !EOP
+ !---------------------------------------------------------------------------
+ 
+@@ -202,23 +216,26 @@
+ 
+     ! Determine doalb (true when the next time step is a radiation time step) 
+ 
+-    nstep = get_nstep()
+-    doalb = ((irad==1) .or. (mod(nstep,irad)==0 .and. nstep/=0))
++!   nstep = get_nstep()
++!abt    nstep = r2cnstep
++
++!abt    doalb = ((irad==1) .or. (mod(nstep,irad)==0 .and. nstep/=0))
+     dtime = get_step_size()
++!abt    dtime = r2cdtime
+ 
+-    if (present(nextsw_cday) .and. present(dosend)) then
+-       caldayp1 = nextsw_cday
+-       if (doalb) then
+-          caldayp1_clm = get_curr_calday( offset=dtime )
+-          if (caldayp1_clm /= caldayp1) then
+-             write(6,*)'caldayp1_atm= ',nextsw_cday,' caldayp1_atm= ',caldayp1_clm
+-             call shr_sys_abort('caldayp1 from atm and clm do not match')
+-          end if
+-       end if
+-       dosend = doalb
+-    else
++!    if (present(nextsw_cday) .and. present(dosend)) then
++!       caldayp1 = nextsw_cday
++!       if (doalb) then
++!          caldayp1_clm = get_curr_calday( offset=dtime )
++!          if (caldayp1_clm /= caldayp1) then
++!             write(6,*)'caldayp1_atm= ',nextsw_cday,' caldayp1_atm= ',caldayp1_clm
++!             call shr_sys_abort('caldayp1 from atm and clm do not match')
++!          end if
++!       end if
++!       dosend = doalb
++!    else
+        caldayp1 = get_curr_calday( offset=int(dtime) )
+-    endif
++!    endif
+ 
+     ! Determine declination angle for next time step
+     
+@@ -246,7 +263,8 @@
+ ! !IROUTINE: clm_run2
+ !
+ ! !INTERFACE:
+-  subroutine clm_run2(rstwr)
++!  subroutine clm_run2(rstwr)
++   subroutine clm_run2(eccen, obliqr, lambm0, mvelpp, rstwr)
+ !
+ ! !DESCRIPTION:
+ ! land model run2 phase
+@@ -254,14 +272,26 @@
+ ! !USES:
+     use shr_orb_mod     , only : shr_orb_decl
+     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
+-    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
++ !   use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
+     use driver          , only : driver2
++    use mod_clm
++    use mod_dynparam
+ !
+ ! !ARGUMENTS:
+     logical,optional,intent(in) :: rstwr    ! true => write restart file this step
++!c abt rcm below
++  real(r8), intent(in) :: eccen  !Earth's orbital eccentricity
++  real(r8), intent(in) :: obliqr !Earth's obliquity in radians
++  real(r8), intent(in) :: lambm0 !Mean longitude of perihelion at the
++                                 !vernal equinox (radians)
++  real(r8), intent(in) :: mvelpp !Earth's moving vernal equinox longitude
++                                 !of perihelion + pi (radians)
++!c abt rcm above
+ !
+ ! !REVISION HISTORY:
+ ! Author: Mariana Vertenstein
++! 2008.5.8    A Tawfik Revised to work with RegCM
++!
+ !
+ !EOP
+ !

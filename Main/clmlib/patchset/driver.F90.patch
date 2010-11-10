@@ -1,0 +1,201 @@
+--- orig/driver.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/driver.F90	2010-03-10 16:29:27.219685091 +0100
+@@ -97,7 +97,8 @@
+   use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal 
+   use clm_varcon          , only : zlnd
+   use clm_time_manager        , only : get_step_size, get_curr_calday, &
+-                                   get_curr_date, get_ref_date, get_nstep, is_perpetual
++                                   get_curr_date, get_ref_date, get_nstep, is_perpetual, &
++                                   advance_timestep
+   use histFileMod         , only : update_hbuf, htapes_wrapup
+   use restFileMod         , only : restFile_write, restFile_write_binary, restFile_filename
+   use inicFileMod         , only : inicfile_perp  
+@@ -142,7 +143,6 @@
+ #endif
+   use abortutils          , only : endrun
+   use perf_mod
+-
+ !
+ ! !PUBLIC TYPES:
+   implicit none
+@@ -307,6 +307,7 @@
+ 
+      call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
+ 
++
+      ! ============================================================================
+      ! Initialize variables from previous time step and
+      ! Determine canopy interception and precipitation onto ground surface.
+@@ -330,6 +331,7 @@
+                      filter(nc)%num_nolakep, filter(nc)%nolakep)
+      call t_stopf('hydro1')
+ 
++
+      ! ============================================================================
+      ! Surface Radiation
+      ! ============================================================================
+@@ -338,6 +340,7 @@
+      call SurfaceRadiation(begp, endp)
+      call t_stopf('surfrad')
+ 
++
+      ! ============================================================================
+      ! Determine leaf temperature and surface fluxes based on ground
+      ! temperature from previous time step.
+@@ -349,6 +352,8 @@
+                          filter(nc)%num_nolakep, filter(nc)%nolakep)
+      call t_stopf('bgp1')
+ 
++
++
+      ! ============================================================================
+      ! Determine bare soil or snow-covered vegetation surface temperature and fluxes
+      ! Calculate Ground fluxes (frac_veg_nosno is either 1 or 0)
+@@ -359,6 +364,8 @@
+                            filter(nc)%num_nolakep, filter(nc)%nolakep)
+      call t_stopf('bgflux')
+ 
++
++
+      ! ============================================================================
+      ! Determine non snow-covered vegetation surface temperature and fluxes
+      ! Calculate canopy temperature, latent and sensible fluxes from the canopy,
+@@ -370,6 +377,7 @@
+                        filter(nc)%num_nolakep, filter(nc)%nolakep)
+      call t_stopf('canflux')
+ 
++
+      ! ============================================================================
+      ! Determine lake temperature and surface fluxes
+      ! ============================================================================
+@@ -380,6 +388,7 @@
+                             filter(nc)%num_lakep, filter(nc)%lakep)
+      call t_stopf('bgplake')
+ 
++
+      ! ============================================================================
+      ! Determine VOC, DUST and DGVM Respiration if appropriate
+      ! ============================================================================
+@@ -401,13 +410,13 @@
+                       filter(nc)%num_nolakep, filter(nc)%nolakep)
+ #endif
+ 
++
+      call t_stopf('bgc')
+ 
+      ! ============================================================================
+      ! Determine soil/snow temperatures including ground temperature and
+      ! update surface fluxes for new ground temperature.
+      ! ============================================================================
+-
+      call t_startf('bgp2')
+      call Biogeophysics2(begc, endc, begp, endp, &
+                          filter(nc)%num_nolakec, filter(nc)%nolakec, &
+@@ -525,9 +534,9 @@
+      ! ============================================================================
+      ! Determine albedos for next time step
+      ! ============================================================================
+-
+      if (doalb) then
+         call t_startf('surfalb')
++
+         call SurfaceAlbedo(begg, endg, begc, endc, begp, endp, &
+                            caldayp1, declinp1)
+         call t_stopf('surfalb')
+@@ -547,6 +556,8 @@
+ !
+ ! !INTERFACE:
+ subroutine driver2(caldayp1, declinp1, rstwr)
++  use mod_clm
++  use mod_dynparam
+ !
+ ! !ARGUMENTS:
+   implicit none
+@@ -647,6 +658,8 @@
+ #if (defined DGVM)
+   call t_startf('d2dgvm')
+   dtime = get_step_size()
++!  dtime = r2cdtime
++
+   call get_curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtime))
+   if (monp1==1 .and. dayp1==1 .and. secp1==dtime .and. nstep>0)  then
+ 
+@@ -685,7 +698,9 @@
+   ! ============================================================================
+   ! Create history and write history tapes if appropriate
+   ! ============================================================================
++
+   call t_startf('clm_driver_io')
++!abt  if(nstep > 0) call htapes_wrapup()
+   call htapes_wrapup()
+ 
+   ! ============================================================================
+@@ -709,18 +724,23 @@
+      write_restart = do_restwrite()
+   end if
+      
+-  if (write_restart) then
+-     filer = restFile_filename(type='netcdf')
+-     call restFile_write( filer )
+-     filer = restFile_filename(type='binary')
+-     call restFile_write_binary( filer )
+-  else if (do_inicwrite()) then
+-     dtime = get_step_size()
+-     filer = restFile_filename(type='netcdf', offset=int(dtime))
+-     call restFile_write( filer )
+-  end if
++!abt commented below
++!  if (write_restart) then
++!     filer = restFile_filename(type='netcdf')
++!     call restFile_write( filer )
++!     filer = restFile_filename(type='binary')
++!     call restFile_write_binary( filer )
++!  else if (do_inicwrite()) then
++!     dtime = get_step_size()
++!     filer = restFile_filename(type='netcdf', offset=int(dtime))
++!     call restFile_write( filer )
++!  end if
+   call t_stopf('clm_driver_io')
+ 
++!abt rcm below
++  call advance_timestep()
++!rcm above
++
+ 
+ end subroutine driver2
+ 
+@@ -800,7 +820,7 @@
+      end if
+      if (masterproc) then
+         tsxyav = tsum / numg
+-        write (6,1000) nstep, tsxyav
++! abt       write (6,1000) nstep, tsxyav
+ #ifndef UNICOSMP
+         call shr_sys_flush(6)
+ #endif
+@@ -809,7 +829,7 @@
+   else
+ 
+      if (masterproc) then
+-        write(6,*)'clm2: completed timestep ',nstep
++!abt        write(6,*)'clm2: completed timestep ',nstep
+ #ifndef UNICOSMP
+         call shr_sys_flush(6)
+ #endif
+@@ -887,6 +907,8 @@
+ ! !USES:
+     use clm_time_manager, only : get_curr_date, get_prev_date, get_step_size
+     use clm_varctl  , only : hist_crtinic
++    use mod_clm
++    use mod_dynparam
+ !
+ ! !ARGUMENTS:
+     implicit none
+@@ -918,6 +940,7 @@
+     ! Set calendar for current, previous, and next time steps
+ 
+     dtime = get_step_size()
++
+     call get_curr_date (yr  , mon  , day  , mcsec  )
+     call get_prev_date (yrm1, monm1, daym1, mcsecm1)
+     call get_curr_date (yrp1, monp1, dayp1, mcsecp1, offset=dtime)

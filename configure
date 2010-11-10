@@ -1,0 +1,405 @@
+#!/usr/bin/python
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Configuration script for the RegCM distribution by M. Scarcia
+
+import os,sys,shutil,fileinput
+
+def main():
+    os.system("clear")
+    print "\t\t#######################################"
+    print "\t\t# Welcome to the RegCM configuration! #"
+    print "\t\t#######################################\n"
+    print "\tThis script will help you to setup the RegCM distribution\n\twith some simple questions. Default options [between square brackets] \n\twill be assumed if you don't select valid options.\n"
+
+    print "  ****  Please enter the path to your RegCM distribution: \n\t[",os.getcwd(),"]"
+    regcm_root=raw_input("\tregcm_root = ")
+
+    if regcm_root == "" :
+        print "\tAssuming default path as RegCM root..."
+        regcm_root = os.getcwd()
+    elif not os.path.isdir(regcm_root):
+        print "\tDirectory",regcm_root,"not found! Assuming default path."
+        regcm_root = os.getcwd()
+
+    print "\n  ****  Please enter the path where the RegCM binaries will be stored: \n\t[",regcm_root+"/Bin","]"
+    bin_dir=raw_input("\tbin_dir = ")
+    if bin_dir == "" :
+        print "\tAssuming default path for RegCM binaries..."
+        bin_dir=regcm_root+"/Bin"
+    elif not os.path.isdir(bin_dir):
+        try :
+            os.mkdir(bin_dir)
+        except OSError :
+            print "\tCannot create",bin_dir,"! Binaries will be stored in the default path."
+            bin_dir=regcm_root+"/Bin"
+
+    nclib = ""
+    ncinc = ""
+    hdf5lib = ""
+    
+    nclib,ncinc = netcdf_search(nclib,ncinc)
+
+    print "\n  ****  Would you like to enable NetCDF v4 features? (0/1) \n\t[1]"
+    
+    hdf5 = raw_input("\thdf5 = ")
+    
+    if len(hdf5) == 0 :
+        hdf5 = int(1)
+    else:
+        try :
+            hdf5 = int(hdf5)
+            if not 0<=hdf5<=1:
+                hdf5 = int(1)
+        except :
+            hdf5 = int(1)
+
+    if hdf5 == 1 :
+        print "\n  ****  Please note that this requires NetCDF to be compiled with HDF5.\n  ****  This configuration guide will just check if the HDF5 library is present... "
+        hdf5lib = hdf5_search(hdf5lib)
+
+    print "\n  !!!!  The following options are all documented in detail \n\ton the eForge wiki page and in the RegCM Users' Guide,\n\tso please check there for more information."
+
+    print "\n  ****  Do you want a debug - 0 or a production - 1  binary? \n\t[1]"
+    dbg=raw_input("\tdbg = ")
+    if len(dbg) == 0 :
+        dbg = int(1)
+    else:
+        try :
+            dbg = int(dbg)
+            if not 0<=dbg<=1:
+                dbg = int(1)
+        except :
+            dbg = int(1)
+
+    print "\n  ****  Do you want a serial - 0 or MPI-parallel - 1 binary? \n\t[1]"
+    mpi=raw_input("\tmpi = ")
+    if len(mpi) == 0 :
+        mpi = int(1)
+    else:
+        try :
+            mpi = int(mpi)
+            if not 0<=mpi<=1:
+                mpi = int(1)
+        except :
+            mpi = int(1)
+
+    # Let's assume that the compiler is always mpif90
+    # We can change that later
+    if mpi == 1 :
+        mpi_compiler="mpif90"
+
+    print "\n  ****  Do you want to run the tropical band version, BAND  - 1 or not - 0? \n\t[0]"
+    band=raw_input("\tBAND = ")
+    if len(band) == 0 :
+        band = int(0)
+    else:
+        try :
+            band = int(band)
+            if not 0<=band<=1:
+                band = int(0)
+        except :
+            band = int(0)
+
+    print "\n  ****  Do you want to enable CLM  - 1 or not - 0? \n\t[0]"
+    clm=raw_input("\tCLM = ")
+    if len(clm) == 0 :
+        clm = int(0)
+    else:
+        try :
+            clm = int(clm)
+            if not 0<=clm<=1:
+                clm = int(0)
+        except :
+            clm = int(0)
+    
+    isnotint = True
+
+    choices = 8
+
+    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (generic AIX)\n\t\t5. IBM Xlf Compiler (Cineca SP6)\n\t\t6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t7. GNU+g95 Fortran compiler (Linux x86-64)\n\t\t8. Other"
+    while isnotint :
+        try :
+            compiler=int(raw_input("\n\tcompiler = "))
+            if (1 <= compiler <= choices):
+                if clm == 1 and compiler == 1:
+                    print "\t\nSorry, GNU compilers are not supported by the CLM library!"
+                elif clm == 1 and compiler == 6:
+                    print "\t\nSorry, Sun compilers are not supported by the CLM library due to a bug in the version 8.3 2008/01/28 compilers!"
+                elif clm == 1 and compiler == 7:
+                    print "\t\nSorry, g95 compiler is not currently supported by the CLM library"
+                else :
+                    isnotint=False
+            else :
+                print "\tPlease choose one of the available!"
+        except:
+            print "\tPlease choose one of the available!" 
+
+    # Add a non-blocking check to see if the compiler binaries actually exist
+
+    #print "\nChosen configuration :"
+    #print regcm_root
+    #print bin_dir
+    #print ncpath
+    #print dbg
+    #print mpi
+    #print band
+    #print clm
+    #print compiler
+    #print mpi_compiler
+
+    # Start real stuff
+
+    choose_template(regcm_root,compiler,dbg)
+
+    if compiler == 4 or compiler == 5 :
+        mpi_compiler = "mpxlf90"
+
+#TAO: compiler was added as an argument to makefile_edit() so that a -M line
+#could be added to the NetCDF include line for the Sun compilers
+    if mpi == 1 :
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5)
+    else :
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,hdf5lib,hdf5)
+
+    #If the user has chosen the Sun compilers:
+    #Write a note to the user indicating that the -M line will need to be
+    #commented out before postnc will compile.  This is because the fortran
+    #portions of the program require the command line option '-M' to specify
+    #the location of the NetCDF modules, whereas the C++ portion (postnc) does
+    #not recognize this option.  The Sun compilers do not currently have an
+    #option to ignore unrecognized command-line options, and the current 
+    #Makefile.inc scheme requires that C++ and Fortran portions of the code
+    #both use the same NetCDF Include flags.
+    if compiler == 6 :
+        print "\n\t###################################################################"
+        print "\n\tNOTE: the '-M' portion of the NETCDFINC line in Makefile.inc will "
+        print "\tneed to be commented out after all programs are compiled but before"
+        print "\t'postnc' can be compiled.  Insert a '#' right before -M on that"
+        print "\tline to do this."
+        print "\n\t###################################################################"
+
+    print "\n\t###################################################################"
+    print "\t# Configuration complete! You should now be able to compile RegCM #"
+    print "\t###################################################################\n"
+
+def netcdf_search(nclib,ncinc):
+
+    ncok=True
+
+    # check for path in env variables
+    try :
+        path_a=os.environ['NETCDF']
+        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib"
+            ncinc = path_a+"/include"
+        else :
+            ncok=False
+    except KeyError :
+        ncok=False
+
+    if not ncok:
+        try :
+            path_lib=os.environ['NETCDF_LIB']
+            path_inc=os.environ['NETCDF_INC']
+            if (os.path.isfile(path_lib+"/libnetcdf.a") or os.path.isfile(path_lib+"/libnetcdf.so")) and (os.path.isfile(path_inc+"/netcdf.mod")):
+                nclib = path_lib
+                ncinc = path_inc
+                ncok=True
+            else :
+                ncok=False
+        except KeyError :
+            ncok=False
+
+    if not ncok:
+        path_a="/usr"
+        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib"
+            ncinc = path_a+"/include"
+            ncok=True
+        elif (os.path.isfile(path_a+"/lib64/libnetcdf.a") or os.path.isfile(path_a+"/lib64/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib64"
+            ncinc = path_a+"/include"
+            ncok=True
+        else :
+            ncok=False
+
+    if ncok:
+        print "\tNetCDF library found..."
+        return nclib,ncinc
+    else:
+        print "\tUnable to find a working NetCDF. Please input a valid path..."
+        nclib=raw_input("\tFor NetCDF library = ")
+        ncinc=raw_input("\tFor NetCDF include files = ")
+        if (os.path.isfile(nclib+"/libnetcdf.a") or os.path.isfile(nclib+"/libnetcdf.so")) and (os.path.isfile(ncinc+"/netcdf.mod")):
+            print "\tNetCDF library found..."
+            return nclib,ncinc
+        else :
+            print "\tNetCDF not found! Cannot continue. Please provide a working NetCDF library."
+            os.sys.exit(1)
+
+def hdf5_search(hdf5lib):
+
+    libok = True
+    
+    try :
+        path_a=os.environ['HDF5']
+        print path_a
+        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
+            hdf5lib = path_a+"/lib"
+        else :
+            libok=False
+    except KeyError :
+        libok=False
+
+    if not libok:
+        try :
+            path_a=os.environ['HDF5_LIB']
+            if (os.path.isfile(path_a+"/libhdf5.a") or os.path.isfile(path_a+"/libhdf5.so")):
+                hdf5lib = path_a
+                libok = True
+            else :
+                libok=False
+        except KeyError :
+            libok=False
+
+    if not libok:
+        path_a="/usr"
+        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
+            hdf5lib = path_a+"/lib"
+            libok=True
+        elif (os.path.isfile(path_a+"/lib64/libhdf5.a") or os.path.isfile(path_a+"/lib64/libhdf5.so")):
+            hdf5lib = path_a+"/lib64"
+            libok=True
+        else :
+            libok=False
+
+    if libok:
+        print "\tHDF5 library found..."
+        return hdf5lib
+    else:
+        print "\tUnable to find a working HDF5. Please input a valid path..."
+        hdf5lib=raw_input("\tFor HDF5 library = ")
+        if (os.path.isfile(hdf5lib+"/libhdf5.a") or os.path.isfile(hdf5lib+"/libhdf5.so")):
+            print "\tHDF5 library found..."
+            return hdf5lib
+        else :
+            print "\tHDF5 not found! RegCM will not use NetCDF v4 features..."
+            return ""
+    
+    
+def choose_template(regcm_root,compiler,dbg):
+
+    choices = 8
+    
+    #print "chose template gets: ",compiler,dbg
+    if dbg == 1 and compiler < choices :
+        if compiler == 1 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4",regcm_root+"/Makefile.inc")
+        elif compiler == 2 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_intel10+",regcm_root+"/Makefile.inc")
+        elif compiler == 3 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9",regcm_root+"/Makefile.inc")
+        elif compiler == 4 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf",regcm_root+"/Makefile.inc")
+        elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6",regcm_root+"/Makefile.inc")
+        elif compiler == 6 :   
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3",regcm_root+"/Makefile.inc")
+        elif compiler == 7 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_g95",regcm_root+"/Makefile.inc")
+    elif dbg == 0 and compiler < choices :
+        if compiler == 1 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_gnu4.4_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 2 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_intel10+_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 3 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_pgi9_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 4 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_xlf_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 5 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sp6_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 6 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_sun8.3_debug",regcm_root+"/Makefile.inc")
+        elif compiler == 7 :
+            shutil.copyfile(regcm_root+"/Arch/Makefile.inc_g95_debug",regcm_root+"/Makefile.inc")
+    else :
+        shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
+    return
+
+#TAO: compiler was added as an argument to makefile_edit() so that a -M line
+#could be added to the NetCDF include line for the Sun compilers
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5) :
+
+    for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
+
+        line=line.replace("!BAND",str(band))
+        line=line.replace("!CLM",str(clm))
+        
+        line=line.replace("!REGCM_ROOT",regcm_root)
+        line=line.replace("!BIN_DIR",bin_dir)
+
+        #If the sun compilers are being used, also indicate the path
+        #of the file netcdf.mod
+
+        if hdf5lib == "":
+        
+            if not compiler == 5 :
+                if compiler == 6 :
+                    line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
+                else :
+                    line=line.replace("!NETCDFINC","-I"+ncinc)
+
+                if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
+                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
+                else :
+                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+                
+                line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
+        else :
+
+            if not compiler == 5 :
+                if compiler == 6 :
+                    line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
+                else :
+                    line=line.replace("!NETCDFINC","-I"+ncinc)
+
+                if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
+                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
+                else :
+                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
+                
+                line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
+
+                line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
+
+        if mpi == 1 :
+            line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
+
+            
+        line=line.replace("!MPIF90",mpi_compiler)
+    
+        print line.rstrip()
+
+    fileinput.close()
+
+if __name__ == "__main__":
+    main()

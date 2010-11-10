@@ -1,0 +1,49 @@
+--- orig/SurfaceAlbedoMod.F90	2010-03-10 16:34:21.000000000 +0100
++++ patchd/SurfaceAlbedoMod.F90	2010-03-10 16:30:48.038638375 +0100
+@@ -61,6 +61,12 @@
+     use clm_varpar      , only : numrad
+     use shr_orb_mod
+     use clm_time_manager, only : get_nstep
++    use decompMod       , only : ldecomp
++!abt added below
++!    use clm_varsur      , only : c2rcosz1d
++!abt added above
++    use mod_clm
++    use mod_dynparam
+ !
+ ! !ARGUMENTS:
+     implicit none
+@@ -145,6 +151,11 @@
+     integer  :: num_novegsol               ! number of vegetated pfts where coszen>0
+     integer  :: filter_novegsol(ubp-lbp+1) ! pft filter where vegetated and coszen>0
+     integer  :: num_solar                  ! number of gridcells where coszen>0
++!rcm abt below
++    integer  :: i,j,ns,jy    
++    real(r8),allocatable :: r2cxlat1d(:)
++    real(r8),allocatable :: r2cxlon1d(:)
++!rcm above
+   !-----------------------------------------------------------------------
+ 
+     ! Assign local pointers to derived subtypes components (gridcell-level)
+@@ -194,10 +205,20 @@
+ 
+ !dir$ concurrent
+ !cdir nodep
++!!!!!!!!!! rcm abt below
++
+     do g = lbg, ubg
+-       coszen_gcell(g) = shr_orb_cosz (caldayp1, lat(g), lon(g), declinp1)
++       i = ldecomp%gdc2i(g)
++       j = ldecomp%gdc2j(g)
++!       coszen_gcell(g) = shr_orb_cosz (caldayp1, lat(g), lon(g), declinp1)
++       coszen_gcell(g) = shr_orb_cosz (caldayp1, r2cxlat_all(i,j), r2cxlon_all(i,j), &
++                                       declinp1)
++!       c2rcosz1d(g) = max(0.d0,coszen_gcell(g))
++       c2rcosz(i,j) = max(0.d0,coszen_gcell(g))
+     end do
+ 
++!!!!!!!!!!!!!!!!! rcm above
++
+     ! Save coszen and declination values to  clm3 data structures for
+     ! use in other places in the CN code
+ 

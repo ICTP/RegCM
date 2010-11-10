@@ -1,0 +1,11 @@
+# no orbit
+&timemgr_inparm
+  stop_option     = 'nmonths'
+  stop_n          = 2
+  atm_cpl_dt      = 1200
+  start_ymd       = 20061231
+/
+&ccsm_inparm
+ case_desc        = "this is a no orbit case"
+ archive_dir      = "./"
+/

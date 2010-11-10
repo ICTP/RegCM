@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<!--
+
+       DefaultCLM_INPARM_Namelist.xml                        Jan/2002
+
+       Values to use by default for creation of CLM model namelists.
+       The element names are the same as the corresponding namelist
+       variables.  Values that depend on the model configuration use
+       attributes to express the dependency.  The recognized attributes
+       are: ic_ymd, ic_tod, and RESOLUTION.
+
+       $Id$
+-->
+<clm_inparm>
+
+<!-- Root directory of initial and boundary datasets from CCSM distribution -->
+<csmdata>/fs/cgd/csm/inputdata</csmdata>
+
+<!-- The default filenames are given relative to the root directory
+     for the CLM2 data in the CCSM distribution, i.e.,
+     {csmdata} where {csmdata} is the content of the
+     csmdata element.
+-->
+
+<!-- Plant function types (relative to {csmdata}) -->
+<fpftcon>lnd/clm2/pftdata/pft-physiology.c070207</fpftcon>
+
+<!-- Initial condition datasets (relative to {csmdata}) -->
+<finidat RESOLUTION="64x128" ic_ymd=101 ic_tod=0>lnd/clm2/inidata_3.1/offline/clmi_0000-01-01_064x128_c070403.nc</finidat>
+
+<!-- Surface datasets (relative to {csmdata}) -->
+<fsurdat RESOLUTION="64x128"    >lnd/clm2/surfdata/surfdata_64x128_c070501.nc</fsurdat>
+
+<!-- Grid datasets (relative to {csmdata}) -->
+<fatmgrid RESOLUTION="64x128"    >lnd/clm2/griddata/griddata_64x128_060829.nc</fatmgrid>
+
+<!-- Fraction datasets (relative to {csmdata}) -->
+
+<fatmlndfrc RESOLUTION="64x128"     >lnd/clm2/griddata/fracdata_64x128_USGS_070110.nc</fatmlndfrc>
+
+</clm_inparm>

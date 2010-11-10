@@ -1,0 +1,14 @@
+# try to change perpetual_run to false when aqua_planet is set
+&timemgr_inparm
+  stop_option     = 'yearly'
+  stop_n          = 2
+  atm_cpl_dt      = 1200
+  orb_iyear_ad    = 1492
+  start_ymd       = 14920101
+  perpetual_run   = .false.
+/
+&ccsm_inparm
+ case_desc        = "this is a case trying to change perpetual_run when aqua_planet"
+ aqua_planet      = .true.
+ archive_dir      = "./"
+/

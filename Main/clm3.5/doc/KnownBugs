@@ -1,0 +1,366 @@
+Known Bugs in CLM3.5						May/1/2007
+
+====================================================================================
+Bug Number: 469
+Problem with restarts in CN mode on Linux/Lahey 
+
+For this namelist and with CN turned on...
+
+&clm_inparm
+ caseid         = 'clmrun'
+ ctitle         = 'clmrun'
+ finidat        = ' '
+ fsurdat        = "$CSMDATA/lnd/clm2/surfdata/surfdata_48x96_c070501.nc"
+ fatmgrid       = "$CSMDATA/lnd/clm2/griddata/griddata_48x96_060829.nc"
+ fatmlndfrc     = "$CSMDATA/lnd/clm2/griddata/fracdata_48x96_gx3v5_060829.nc"
+ fpftcon        = "$CSMDATA/lnd/clm2/pftdata/pft-physiology.c070207"
+ fndepdat       = "$CSMDATA/lnd/clm2/ndepdata/ndep_clm_1890_48x96_c060414.nc"
+ frivinp_rtm    = "$CSMDATA/lnd/clm2/rtmdata/rdirc.05.061026"
+ offline_atmdir = "$CSMDATA/lnd/clm2/NCEPDATA.Qian.T62.c051024"
+ nrevsn         = "$nrevsn"
+ nsrest         =  $restart_type
+ nelapse        =  $run_length
+ dtime          =  1800
+ rtm_nsteps     =  2
+ start_ymd      =  19980101
+ start_tod      =  0
+ irad           = -1
+ wrtdia         = .true.
+ mss_irt        =  0
+ hist_dov2xy    = .true.
+ hist_nhtfrq    =  3
+ hist_mfilt     =  1
+ hist_ndens     =  1
+ hist_crtinic   = 'MONTHLY'
+ brnch_retain_casename = .true.
+ /
+ &prof_inparm
+ /
+
+The above test shows different answers on restart on Linux with Lahey compiler.
+
+====================================================================================
+Bug Number: 452
+Problem with support of number of soil-colors NOT equal to 8 or 20
+
+ t42half test using PGI fails with the following
+
+
+ Successfully set up atmospheric grid
+ (GETFIL): attempting to find local file 1997-12.nc
+ (GETFIL): using
+ /fs/cgd/csm/inputdata/lnd/clm2/NCEPDATA.Qian.T62.c051024/1997-12.nc
+
+------------------------------------------------------------
+ nstep=             1  date=      19971231  sec=          1200
+ ATMDRV: attempting to read data from
+ /fs/cgd/csm/inputdata/lnd/clm2/NCEPDATA.Qian.T62.c051024/1997-12.nc
+------------------------------------------------------------
+
+ clm_mapa2l subroutine
+ clm_mapa2l mapping complete
+ clm_mapa2l downscaling ON
+ nstep =          1   TS = 0.268762129015005E+03
+ nstep =          2   TS = 0.268874818048030E+03
+ rtm delt update from/to    0.000000000000000         1200.000000000000
+            0            2
+ nstep =          3   TS = 0.268531388645297E+03
+Killed
+p3_17921:  p4_error: net_recv read:  probable EOF on socket: 1
+p2_17905:  p4_error: net_recv read:  probable EOF on socket: 1
+rm_l_3_17922: (177.468647) net_send: could not write to fd=5, errno = 32
+rm_l_2_17906: (177.606602) net_send: could not write to fd=5, errno = 32
+rm_l_1_18809: (177.747336) net_send: could not write to fd=6, errno = 9
+rm_l_1_18809:  p4_error: net_send write: -1
+    p4_error: latest msg from perror: Bad file descriptor
+ HTAPES_WRAPUP: Creating history file ./clmrun.clm2.h0.1997-12-31-03600.nc
+  at nstep =             3
+ Opening netcdf htape ./clmrun.clm2.h0.1997-12-31-03600.nc
+ HTAPE_CREATE: Successfully defined netcdf history file             1
+p2_17905: (179.610358) net_send: could not write to fd=5, errno = 32
+p3_17921: (179.475951) net_send: could not write to fd=5, errno = 32
+
+
+Here's the namelist:
+
+ &clm_inparm
+ caseid         = 'clmrun'
+ ctitle         = 'clmrun'
+ finidat        = ' '
+ fsurdat        =
+'/fs/cgd/csm/inputdata/lnd/clm2/surfdata/surfdata_360x720_070122.nc'
+ flndtopo       =
+'/fs/cgd/csm/inputdata/lnd/clm2/griddata/topodata_360x720_c060528.nc'
+ fatmgrid       =
+'/fs/cgd/csm/inputdata/lnd/clm2/griddata/griddata_64x128_060829.nc'
+ fatmlndfrc     =
+'/fs/cgd/csm/inputdata/lnd/clm2/griddata/fracdata_64x128_USGS_070110.nc'
+ fatmtopo       =
+'/fs/cgd/csm/inputdata/lnd/clm2/griddata/topodata_64x128_060829.nc'
+ fpftcon        =
+'/fs/cgd/csm/inputdata/lnd/clm2/pftdata/pft-physiology.c070207'
+ frivinp_rtm    = "/fs/cgd/csm/inputdata/lnd/clm2/rtmdata/rdirc.05.061026"
+ offline_atmdir = "/fs/cgd/csm/inputdata/lnd/clm2/NCEPDATA.Qian.T62.c051024"
+ nrevsn         = ""
+ nsrest         =  0
+ nelapse        =  48
+ dtime          =  1200
+ rtm_nsteps     =  2
+ start_ymd      =  19971231
+ start_tod      =  0
+ irad           = -1
+ wrtdia         = .true.
+ mss_irt        =  0
+ hist_dov2xy    = .true.
+ hist_nhtfrq    =  3
+ hist_mfilt     =  1
+ hist_ndens     =  1
+ hist_crtinic   = 'MONTHLY'
+ brnch_retain_casename = .true.
+ /
+ &prof_inparm
+ /
+
+
+And config line:
+
+/fs/cgd/data0/erik/clm_trunk/test/system/../../bld/configure -spmd -debug
+-maxpft 4 -rtm on -dust on -voc on -s
+
+====================================================================================
+Bug Number: 452
+Problem with support of number of soil-colors NOT equal to 8 or 20
+
+The mksurfdata tools file mksoicol.F90 sets nsoicol to the max value found in
+the input soilcolor file:
+  nsoicol = maxval(soil_color_i)  
+
+However, the code will fail if  nsoicol does not equal 20 or 8 (which it might
+in paleo cases).  perhaps the code should be extended to handle a case where
+nsoicol is not 20 or 8.
+
+====================================================================================
+Bug Number: 361
+Problem with exact restarts on SGI
+
+Restarts do NOT work correctly and do NOT give exact answers as a simulation that runs continusly.
+
+These are the list of tests from test/system/test_driver.sh that fail, because of
+this. TER tests are exact restart tests and TBR tests are branch tests -- testing
+that answers are exact when namelist items remain unchanged.
+
+002 er111 TER.sh 4p_vodsr_dh t31 10+38 ............................FAIL! rc= 11
+003 br111 TBR.sh 4p_vodsr_dh t31 24+24 ............................FAIL! rc= 11
+005 sm116 TSM.sh 4p_vodsr_o t31 48 ................................FAIL! rc= 4
+007 er121 TER.sh 17p_vodsr_dh t31 10+38 ...........................FAIL! rc= 11
+008 br121 TBR.sh 17p_vodsr_dh t31 24+24 ...........................FAIL! rc= 11
+012 er211 TER.sh 17p_cnn_dh t31_cnall 10+38 .......................FAIL! rc= 11
+013 br211 TBR.sh 17p_cnn_dh t31_cnall 24+24 .......................FAIL! rc= 11
+016 er311 TER.sh 4p_casa_dh t31_casa 10+38 ........................FAIL! rc= 11
+017 br311 TBR.sh 4p_casa_dh t31_casa 24+24 ........................FAIL! rc= 11
+020 er411 TER.sh 10p_dgvm_dh t31_dgvm 10+38 .......................FAIL! rc= 11
+021 br411 TBR.sh 10p_dgvm_dh t31_dgvm 24+24 .......................FAIL! rc= 11
+
+====================================================================================
+Bug Number: 449
+Problem with create_crop_landunit
+
+As reported to me by Bill Sacks at UW-Madison:
+The crop(:) array in pftvarcon needs to be initialized before surfrd is called
+for create_crop_landunit to work properly, but crop(:) is set in pftconrd,
+which is called after surfrd. Thus, surfrd sees a crop(:) array that is set to
+0 for all PFTs, and so it doesn't put anything on the crop landunit. I have
+done a simple work-around to solve this problem, making crop(:) a parameter,
+and thus initializing it at compile-time.
+
+====================================================================================
+Bug Number: 448
+Problem compiling on Darwin with XLF compilers:
+
+There's a problem running the Dependency generator on Darwin OS X 10.4.9 using
+XLF compilers.
+This is with cam and clm for clm3_expa_98 and as of cam3.4.10.
+
+The file assert.H is mistakenly matched from mct/mpeu so that there is an
+explcit dependence on assert.h for gptl.c.
+
+You can get around this problem by editing Depends by hand and removing that
+dependence. Or you can modify mkDepends to explicitly remove this file when
+creating Depends.
+
+====================================================================================
+Bug Number: 402
+Leap-year calendar does NOT work:
+
+If you try to turn on a GREGORIAN calander in your namelist -- it will NOT
+work. You can get around this by modifying code to turn off the NO_LEAP_CALENDAR
+or by linking with the full version of ESMF rather than the wrf time-manager
+implimentation.
+
+====================================================================================
+Bug number: 421
+newcprnc can NOT be used to compare restart or initial-condition (IC) files:
+
+Because restart and IC files do NOT contain a time-dimension the utility
+newcprnc can NOT be used to compare them.
+
+====================================================================================
+Bug number: 447
+Problem running on Cray-X1
+
+Offline CLM will NOT run on Cray-X1 because of calls to shr_sys_flush(6) without
+unit 6 being explicitly opened. 
+
+
+====================================================================================
+Bug number: 444
+Problem running with Pathscale:
+
+Doesn't run on lightning with pathscale for a particular configuration.
+
+Here's the config line:
+
+/fis/cgd/home/erik/clm_trunk/test/system/../../bld/configure -fc pathf90
+-linker mpif90 -spmd -smp -debug -s
+
+Here's the namelist:
+ &clm_inparm
+ caseid         = 'clmrun'
+ ctitle         = 'clmrun'
+ finidat        = ' '
+ fsurdat        =
+"/fs/cgd/csm/inputdata/lnd/clm2/surfdata/surfdata_10x15_USGS_070307.nc"
+ fatmgrid       =
+"/fs/cgd/csm/inputdata/lnd/clm2/griddata/griddata_10x15_USGS_070110.nc"
+ fatmlndfrc     =
+"/fs/cgd/csm/inputdata/lnd/clm2/griddata/fracdata_10x15_USGS_070110.nc"
+ fpftcon        =
+"/fs/cgd/csm/inputdata/lnd/clm2/pftdata/pft-physiology.c070207"
+ offline_atmdir =
+"/fs/cgd/csm/inputdata/lnd/clm2/NCEPDATA.Qian-etal-JHM06.c051024"
+ nrevsn         = ""
+ nsrest         =  0
+ nelapse        =  48
+ dtime          =  3600
+ start_ymd      =  19990115
+ start_tod      =  0
+ irad           = -1
+ wrtdia         = .true.
+ mss_irt        =  0
+ hist_dov2xy    = .true.
+ hist_nhtfrq    =  3
+ hist_mfilt     =  1
+ hist_ndens     =  1
+ hist_crtinic   = 'NONE'
+ brnch_retain_casename = .true.
+ /
+ &prof_inparm
+ /
+
+Here's the logfile:
+
+tep =  3  for history tim
+ e interval beginning at  0.E+0  and ending at  0.125
+
+
+ HTAPES_WRAPUP: Closing local history file ./clmrun.clm2.h0.1999-01-15-10800.nc
+at nstep =  3
+
+ writing restart file ./clmrun.clm2.r.1999-01-15-10800.nc for model date =
+1999-01-15-10800
+
+
+
+ restFile_open: writing restart dataset at
+./clmrun.clm2.r.1999-01-15-10800.ncat nstep =  3
+
+ Successfully wrote local restart file ./clmrun.clm2.r.1999-01-15-10800.nc
+------------------------------------------------------------
+
+ (OPNFIL): Successfully opened file /home/lightning/erik/lnd.clmrun.rpointer on
+unit=  1
+ Successfully wrote local restart pointer file
+ Successfully wrote out restart data at nstep =  3
+------------------------------------------------------------
+ (OPNFIL): Successfully opened file ./clmrun.clm2.r.1999-01-15-10800 on unit= 
+1
+ Successfully wrote local restart file ./clmrun.clm2.r.1999-01-15-10800
+------------------------------------------------------------
+
+
+------------------------------------------------------------
+ nstep=  4  date=  19990115  sec=  14400
+------------------------------------------------------------
+
+ Error: Forcing height is below canopy height for pft index  905
+ ENDRUN: called without a message string
+ Error: Forcing height is below canopy height for pft index  851
+ ENDRUN: called without a message string
+[7] MPI Abort by user Aborting program !
+[7] Aborting program!
+[7] MPI Abort by user Aborting program !
+[7] Aborting program!
+[7] Aborting program!
+[7] Aborting program!
+ Error: Forcing height is below canopy height for pft index  632
+ ENDRUN: called without a message string
+ Error: Forcing height is below canopy height for pft index  688
+ ENDRUN: called without a message string
+[5] MPI Abort by user Aborting program !
+[5] Aborting program!
+[5] MPI Abort by user Aborting program !
+[5] Aborting program!
+[5] Aborting program!
+[5] Aborting program!
+ Error: Forcing height is below canopy height for pft index  337
+ ENDRUN: called without a message string
+ Error: Forcing height is below canopy height for pft index  277
+ ENDRUN: called without a message string
+[2] MPI Abort by user Aborting program !
+[2] Aborting program!
+[2] MPI Abort by user Aborting program !
+[2] Aborting program!
+[2] Aborting program!
+[2] Aborting program!
+
+====================================================================================
+Bug number: 366
+RTM log error checks:
+
+Some of the clm-rtm mapping checks are obsolete, so new checks need to be
+implemented (per T. Craig). One example is:
+
+Attempting to initialize RTM
+Columns in RTM = 720
+Rows in RTM = 360
+read river direction data
+MAP_SETMAPSAR warning: masks/areas not conserved
+global sum output area = 0.5100996991E+09
+global sum input area =  0.2071386276E+09
+
+====================================================================================
+Bug number: 251
+Potential floating point errors in src/biogeophys/SurfaceAlbedoMod.F90:
+
+There is the potential for a floating point error to occur in TwoStream.F90 due
+to taking the exponential of a large number. 
+          s1 = exp(-h*vai(p))
+          s2 = exp(-twostext(p)*vai(p))
+A fix has been implemented by P. Thornton but the fix is encased in a CN cpp. 
+This fix should probably be implemented universally in the code but tested to
+determine if there are any non-bfb changes in non-CN mode.
+
+This is in SurfaceAlbedoMod.F90 in biogeophys
+
+#if (defined CN)          
+          ! PET, 3/1/04: added this test to avoid floating point errors in
+exp()
+          t1 = min(h*vai(p), 40._r8)
+          s1 = exp(-t1)
+          t1 = min(twostext(p)*vai(p), 40._r8)
+          s2 = exp(-t1)
+#else
+          s1 = exp(-h*vai(p))
+          s2 = exp(-twostext(p)*vai(p))
+#endif
+====================================================================================

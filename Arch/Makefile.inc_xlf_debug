@@ -1,0 +1,77 @@
+# Model flags
+
+# Set to 1 to enable the tropical band (belt) version
+USEBAND = !BAND
+# Set to 1 to enable CLM coupling
+USECLM = !CLM
+
+# GENERAL FLAGS: these should be always defined!  
+
+# Base directory:
+
+REGCM_BASE_DIR = !REGCM_ROOT
+
+BINDIR = !BIN_DIR
+
+# NetCDF library:
+# The NetCDF library is needed to run RegCM, 
+# RegCM V4 was successfuly tested with NetCDF 4.0.1
+# In NETCDFINC you should define the path to NetCDF include files
+# In NETCDFLIB you should define the path and the name of the NetCDF library
+
+NETCDFINC = !NETCDFINC
+NETCDFLIB = !NETCDFLIB 
+
+# PREPROCESSOR AND COMPILER OPTIONS
+
+# Use this variable to enable the parallel version of the code
+# Serial version   : leave commented
+# parallel version : uncomment the line
+
+# PARALLEL = MPP1
+
+# Add further preprocessor flags, if necessary. Those available are:
+# -WF,-DIBM : to compile using IBM xlf compiler
+# -WF,-DNETCDF4_HDF5 : to use new NetCDF 4.x HDF5 format with compression
+# Note, the latter needs to be enabled in NetCDF installation
+
+CPPFLAGS = -WF,-DIBM
+
+# Automatically added flags
+
+ifneq ($(origin PARALLEL), undefined)
+CPPFLAGS += -WF,-D$(PARALLEL)
+endif
+
+ifeq ($(USEBAND),1)
+  CPPFLAGS += -WF,-DBAND
+endif
+
+ifeq ($(USECLM),1)
+  CPPFLAGS += -WF,-DCLM
+endif
+
+# Specific compiler flags (eg.: optimization / debugging) 
+# IMPORTANT : Check that your compiler complies with this RegCM features:
+# - RegCM expects the output to be written in big endian format
+# - RegCM expects Fortran records to be measured in bytes
+
+F90FLAGS = -O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
+           -qmaxmem=-1 -qzerosize
+
+MAKE = gmake
+
+# Set the Fortran 90 compiler here
+F90 = xlf90
+
+# Set the MPI Fortran 90 compiler here
+MPIF90 = !MPIF90
+
+# Set the linker here
+# Modify this variable only if you really know what you are doing !!!
+LD =$(F90)
+LDFLAGS =
+
+# You should not change the lines below unless you are a developer
+
+SVNDEF := -WF,-D'SVN_REV="$(shell svnversion -n .)"'
