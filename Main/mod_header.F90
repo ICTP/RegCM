@@ -41,7 +41,7 @@
       if ( myid.eq.0 )  then 
 
         write (nrite,"(/,2x,'This is RegCM version 4.1 ')")
-        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+        write (nrite,99001)  "SVN_REV", __DATE__ , __TIME__   
 
 #ifdef IBM
         hostname='ibm platform '

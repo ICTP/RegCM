@@ -37,6 +37,11 @@ NETCDFLIB = -L$(NETCDF_LIB) -lnetcdf -L$(HDF5_LIB) -lhdf5 -lhdf5_hl \
             -L$(SZLIB_LIB) -lsz -L$(ZLIB_LIB) -lz
 NETCDFINC = -I$(NETCDF_INC)
 
+# MCT Model Coupling Toolkit
+
+MCTINC = !MCTINC
+MCTLIB = !MCTLIB
+
 # PREPROCESSOR AND COMPILER OPTIONS
 
 # Use this variable to enable the parallel version of the code

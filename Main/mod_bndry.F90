@@ -382,12 +382,10 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( lveg(n,i).eq.14 ) exit   ! lake model handles this case
+          ! lake model handles this case
+          if ( lakemod.eq.1 .and. lveg(n,i).eq.14 ) exit
  
           if ( ldoc1d(n,i).gt.1.5 ) then
-            if ( iseaice == 1 .and. sice1d(n,i).lt.1000. ) then
-              sice1d(n,i) = 1000.0
-            end if
 ! ******                rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**3
             imelt(n,i) = 0

@@ -22,6 +22,11 @@ BINDIR = !BIN_DIR
 NETCDFINC = !NETCDFINC
 NETCDFLIB = !NETCDFLIB 
 
+# MCT Model Coupling Toolkit
+
+MCTINC = !MCTINC
+MCTLIB = !MCTLIB
+
 # PREPROCESSOR AND COMPILER OPTIONS
 
 # Use this variable to enable the parallel version of the code

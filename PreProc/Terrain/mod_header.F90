@@ -41,7 +41,7 @@
 !
       if (myid.eq.1)  then 
         write (nrite,"(/,2x,'This is Terrain part of RegCM package version 4 ')")
-        write (nrite,100)  SVN_REV, __DATE__ , __TIME__   
+        write (nrite,100)  "SVN_REV", __DATE__ , __TIME__   
 100     format(2x,' SVN Revision: ',a,' compiled at: data : ',          &
            &   a,'  time: ',a,/)
 

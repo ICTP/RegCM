@@ -17,12 +17,17 @@ BINDIR = !BIN_DIR
 
 # NetCDF library:
 # The NetCDF library is needed to run RegCM, 
-# RegCM V4 was successfuly tested with NetCDF 4.0.1
+# RegCM V4 was successfuly tested with NetCDF 4.0.1 and 4.1.1
 # In NETCDFINC you should define the path to NetCDF include files
 # In NETCDFLIB you should define the path and the name of the NetCDF library
 
 NETCDFINC = !NETCDFINC
 NETCDFLIB = !NETCDFLIB
+
+# MCT Model Coupling Toolkit
+
+MCTINC = !MCTINC
+MCTLIB = !MCTLIB
 
 # PREPROCESSOR AND COMPILER OPTIONS
 
