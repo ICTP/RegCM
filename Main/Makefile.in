@@ -36,7 +36,7 @@ build_triplet = @build@
 host_triplet = @host@
 @COMPILER_SUN_TRUE@am__append_1 = -M$(CLMLIBPTH) -M$(NETLIBPTH)
 bin_PROGRAMS = regcm$(EXEEXT)
-@DO_COMPILE_LIBCLM_TRUE@am__append_2 = mod_clm.o mod_mtrxclm.o
+@DO_COMPILE_LIBCLM_TRUE@am__append_2 = mod_clm.F90 mod_mtrxclm.F90
 subdir = Main
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -54,9 +54,9 @@ am__regcm_SOURCES_DIST = mod_constants.F90 mod_dynparam.F90 \
 	mod_bats_param.f90 mod_service.F90 mod_header.F90 \
 	mod_advection.F90 mod_aerosol.F90 mod_bats.F90 mod_bdycod.F90 \
 	mod_bndry.F90 mod_chem.F90 mod_che_semdde.F90 mod_che_tend.F90 \
-	mod_cldfrac.f90 mod_clm.F90 mod_colmod3.F90 mod_condtq.f90 \
-	mod_cu_bm.F90 mod_cu_em.f90 mod_cu_grell.f90 mod_cu_kuo.F90 \
-	mod_cumtran.F90 mod_cvaria.f90 mod_date.F90 mod_diagnosis.F90 \
+	mod_cldfrac.f90 mod_colmod3.F90 mod_condtq.f90 mod_cu_bm.F90 \
+	mod_cu_em.f90 mod_cu_grell.f90 mod_cu_kuo.F90 mod_cumtran.F90 \
+	mod_cvaria.f90 mod_date.F90 mod_diagnosis.F90 \
 	mod_diffusion.F90 mod_drag.F90 mod_dust.F90 mod_holtbl.F90 \
 	mod_init.F90 mod_lake.F90 mod_leaftemp.f90 mod_mainchem.f90 \
 	mod_main.f90 mod_message.F90 mod_mppio.F90 mod_ncio.F90 \
@@ -66,15 +66,16 @@ am__regcm_SOURCES_DIST = mod_constants.F90 mod_dynparam.F90 \
 	mod_savefile.F90 mod_scenarios.F90 mod_slice.F90 mod_split.F90 \
 	mod_sun.F90 mod_tendency.F90 mod_tracer.f90 mod_trachem.F90 \
 	mod_tstep.f90 mod_vecbats.F90 mod_vmodes.F90 mod_zengocn.F90 \
-	regcm.F90 mod_clm.o mod_mtrxclm.o
-am__objects_1 =
+	regcm.F90 mod_clm.F90 mod_mtrxclm.F90
+@DO_COMPILE_LIBCLM_TRUE@am__objects_1 = mod_clm.$(OBJEXT) \
+@DO_COMPILE_LIBCLM_TRUE@	mod_mtrxclm.$(OBJEXT)
 am_regcm_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
 	mod_bats_param.$(OBJEXT) mod_service.$(OBJEXT) \
 	mod_header.$(OBJEXT) mod_advection.$(OBJEXT) \
 	mod_aerosol.$(OBJEXT) mod_bats.$(OBJEXT) mod_bdycod.$(OBJEXT) \
 	mod_bndry.$(OBJEXT) mod_chem.$(OBJEXT) \
 	mod_che_semdde.$(OBJEXT) mod_che_tend.$(OBJEXT) \
-	mod_cldfrac.$(OBJEXT) mod_clm.$(OBJEXT) mod_colmod3.$(OBJEXT) \
+	mod_cldfrac.$(OBJEXT) mod_colmod3.$(OBJEXT) \
 	mod_condtq.$(OBJEXT) mod_cu_bm.$(OBJEXT) mod_cu_em.$(OBJEXT) \
 	mod_cu_grell.$(OBJEXT) mod_cu_kuo.$(OBJEXT) \
 	mod_cumtran.$(OBJEXT) mod_cvaria.$(OBJEXT) mod_date.$(OBJEXT) \
@@ -228,7 +229,7 @@ mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
 prefix = @prefix@
-program_transform_name = s&$$&$(rcsuffix)&
+program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
@@ -242,19 +243,19 @@ CLMLIBPTH = ./clmlib
 NETLIBPTH = ./netlib
 CLMLIB = $(CLMLIBPTH)/libclm.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
-@DO_COMPILE_BAND_TRUE@rcsuffix = $(rcsuffix)_band
-@DO_COMPILE_LIBCLM_TRUE@rcsuffix = $(rcsuffix)_clm
 @REGCM_PARALLEL_FALSE@rcsuffix = Serial
 @REGCM_PARALLEL_TRUE@rcsuffix = MPI
+@DO_COMPILE_BAND_TRUE@rcaddsuffix = _band
+@DO_COMPILE_LIBCLM_TRUE@rcaddsuffix = _clm
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 regcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_bats_param.f90 \
 	mod_service.F90 mod_header.F90 mod_advection.F90 \
 	mod_aerosol.F90 mod_bats.F90 mod_bdycod.F90 mod_bndry.F90 \
 	mod_chem.F90 mod_che_semdde.F90 mod_che_tend.F90 \
-	mod_cldfrac.f90 mod_clm.F90 mod_colmod3.F90 mod_condtq.f90 \
-	mod_cu_bm.F90 mod_cu_em.f90 mod_cu_grell.f90 mod_cu_kuo.F90 \
-	mod_cumtran.F90 mod_cvaria.f90 mod_date.F90 mod_diagnosis.F90 \
+	mod_cldfrac.f90 mod_colmod3.F90 mod_condtq.f90 mod_cu_bm.F90 \
+	mod_cu_em.f90 mod_cu_grell.f90 mod_cu_kuo.F90 mod_cumtran.F90 \
+	mod_cvaria.f90 mod_date.F90 mod_diagnosis.F90 \
 	mod_diffusion.F90 mod_drag.F90 mod_dust.F90 mod_holtbl.F90 \
 	mod_init.F90 mod_lake.F90 mod_leaftemp.f90 mod_mainchem.f90 \
 	mod_main.f90 mod_message.F90 mod_mppio.F90 mod_ncio.F90 \

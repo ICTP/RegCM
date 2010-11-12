@@ -15,14 +15,14 @@ rcsuffix = Serial
 endif  
 
 if DO_COMPILE_LIBCLM
-rcsuffix = $(rcsuffix)_clm
+rcaddsuffix = _clm
 endif
 
 if DO_COMPILE_BAND
-rcsuffix = $(rcsuffix)_band
+rcaddsuffix = _band
 endif
 
-program_transform_name = s&$$&$(rcsuffix)&
+program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
@@ -36,16 +36,17 @@ endif
 LDFLAGS += $(LCLMLIB) $(LNETLIB)
 
 bin_PROGRAMS = regcm
+
 regcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_bats_param.f90 \
 								mod_service.F90 mod_header.F90 mod_advection.F90      \
                 mod_aerosol.F90 mod_bats.F90 mod_bdycod.F90           \
                 mod_bndry.F90 mod_chem.F90 mod_che_semdde.F90         \
-                mod_che_tend.F90 mod_cldfrac.f90 mod_clm.F90          \
-                mod_colmod3.F90 mod_condtq.f90 mod_cu_bm.F90          \
-                mod_cu_em.f90 mod_cu_grell.f90 mod_cu_kuo.F90         \
-                mod_cumtran.F90 mod_cvaria.f90 mod_date.F90           \
-                mod_diagnosis.F90 mod_diffusion.F90 mod_drag.F90      \
-                mod_dust.F90 mod_holtbl.F90 mod_init.F90 mod_lake.F90 \
+                mod_che_tend.F90 mod_cldfrac.f90 mod_colmod3.F90      \
+								mod_condtq.f90 mod_cu_bm.F90 mod_cu_em.f90            \
+								mod_cu_grell.f90 mod_cu_kuo.F90 mod_cumtran.F90       \
+								mod_cvaria.f90 mod_date.F90 mod_diagnosis.F90         \
+								mod_diffusion.F90 mod_drag.F90 mod_dust.F90           \
+								mod_holtbl.F90 mod_init.F90 mod_lake.F90              \
                 mod_leaftemp.f90 mod_mainchem.f90 mod_main.f90        \
                 mod_message.F90 mod_mppio.F90 mod_ncio.F90            \
                 mod_nudge.F90 mod_o3blk.F90 mod_output.F90            \
@@ -58,7 +59,7 @@ regcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_bats_param.f90 \
                 mod_vmodes.F90 mod_zengocn.F90 regcm.F90
 
 if DO_COMPILE_LIBCLM
-regcm_SOURCES += mod_clm.o mod_mtrxclm.o
+regcm_SOURCES += mod_clm.F90 mod_mtrxclm.F90
 endif
 
 EXTRAOBJS = mod_co2.o
