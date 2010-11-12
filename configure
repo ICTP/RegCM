@@ -763,7 +763,7 @@ enable_selectedrealkind
 enable_sequence
 enable_band
 enable_clm
-enable_netcdf4
+enable_nc4_gzip
 '
       ac_precious_vars='build_alias
 host_alias
@@ -15041,9 +15041,9 @@ $as_echo "$as_me: WARNING: Compiling CLM enabled code" >&2;}
 
 fi
 
-# Check whether --enable-netcdf4 was given.
-if test "${enable_netcdf4+set}" = set; then :
-  enableval=$enable_netcdf4; NETCDF4_HDF5="1"
+# Check whether --enable-nc4-gzip was given.
+if test "${enable_nc4_gzip+set}" = set; then :
+  enableval=$enable_nc4_gzip; NETCDF4_HDF5="1"
 else
   NETCDF4_HDF5="0"
 

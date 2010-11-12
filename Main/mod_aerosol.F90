@@ -465,15 +465,8 @@
             do itr = 1 , ntrac
               aermmr(i,k,itr) = chia(i,k,j,itr)/sps1%ps(i,j)
             end do
-          else if ( ehso4 ) then
-            do itr = 1 , ntrac
-              aermmr(i,k,itr) = 0.0D0
-            end do
-          else
-            do itr = 1 , ntrac
-              aermmr(i,k,itr) = aermmb(i,k)
-            end do
           end if
+
         end do
       end do
 !

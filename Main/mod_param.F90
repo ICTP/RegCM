@@ -413,6 +413,14 @@
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
         print * , 'param: CHEMPARAM namelist READ IN'
+        if (ntr == 0) then
+          call fatal(__FILE__,__LINE__,                                 &
+                  &'CHEMICAL SCHEME WITH 0 TRACERS?')
+        end if
+        if (ntr < nbin) then
+          call fatal(__FILE__,__LINE__,                                 &
+                  &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
+        end if
       else
         ntr = 0
       end if
