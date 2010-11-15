@@ -27,21 +27,28 @@
 
       contains
 
-      subroutine mxmnll(iy,jx,xlon,xlat)
+      subroutine mxmnll(iy,jx,xlon,xlat,iband)
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: iy , jx
+      integer :: iy , jx , iband
       real(4) , dimension(iy,jx) :: xlat , xlon
-      intent (in) iy , jx , xlat , xlon
+      intent (in) iy , jx , xlat , xlon , iband
       real(4) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
       xminlat = floor(minval(xlat))
       xmaxlat = ceiling(maxval(xlat))
-      if (abs(xminlat+90.0)<0.0001 .or. abs(xmaxlat-90.0)<0.001) then
+
+      if ( iband.eq.1 ) then
+        xminlon = -180.0
+        xmaxlon =  180.0
+        xtstlon1 = xminlon
+        xtstlon2 = xmaxlon
+      else if (abs(xminlat+90.0)<0.0001 .or. &
+               abs(xmaxlat-90.0)<0.001) then
         xminlon = -180.0
         xmaxlon =  180.0
         xtstlon1 = xminlon
