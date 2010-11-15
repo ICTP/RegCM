@@ -215,7 +215,7 @@
         print * , 'Subgrid Geo mapping done'
 !
 !       reduce the search area for the domain
-        call mxmnll(iysg,jxsg,xlon_s,xlat_s)
+        call mxmnll(iysg,jxsg,xlon_s,xlat_s,i_band)
         print * , 'Determined Subgrid coordinate range'
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -360,7 +360,7 @@
       print * , 'Geo mapping done'
 !
 !     reduce the search area for the domain
-      call mxmnll(iy,jx,xlon,xlat)
+      call mxmnll(iy,jx,xlon,xlat,i_band)
       print *, 'Determined Grid coordinate range'
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
