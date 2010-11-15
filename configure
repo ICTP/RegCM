@@ -15728,6 +15728,11 @@ else
 fi
 
 
+if eval "test x"$FC" = xgfortran"; then
+  FCFLAGS="-fconvert=big-endian $FCFLAGS"
+
+fi
+
 if eval "test x$PARALLEL = x1"; then
 
 

@@ -150,6 +150,11 @@ AM_CONDITIONAL(COMPILER_GFORTRAN, [test x"$FC" = xgfortran])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
 AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
+if eval "test x"$FC" = xgfortran"; then
+  FCFLAGS="-fconvert=big-endian $FCFLAGS"
+  AC_SUBST(FCFLAGS)
+fi
+
 if eval "test x$PARALLEL = x1"; then
   ACX_MPI
   FC=$MPIFC
