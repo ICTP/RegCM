@@ -80,11 +80,11 @@ xx2=`echo "($x2+0.5)/1" | $BC`
 
 if [ $xx2 -lt 0 -a $xx1 -gt 0 ]
 then
-  xsize=`calc "((180.0-$x1+$x2)/$x3)+1"`
+  xsize=`calc "((180.0-($x1)+($x2))/($x3))+1"`
 else
-  xsize=`calc "(($x2-$x1)/$x3)+1"`
+  xsize=`calc "((($x2)-($x1))/($x3))+1"`
 fi
-ysize=`calc "(($y2-$y1)/$y3)+1"`
+ysize=`calc "((($y2)-($y1))/($y3))+1"`
 
 echo "gridtype = lonlat" > griddes
 echo "xsize = $xsize" >> griddes
