@@ -266,8 +266,20 @@ program ncprepare
     minlon = -180.0
     maxlon = 180.0
   else
-    minlon = rounder(minval(xlon(1,:)),.false.)
-    maxlon = rounder(maxval(xlon(jx,:)),.true.)
+    if (xlon(1,1) < 0 .and. xlon(1,iy) > 0.0) then
+      minlon = rounder(xlon(1,iy),.false.)
+    else if (xlon(1,1) > 0 .and. xlon(1,iy) < 0.0) then
+      minlon = rounder(xlon(1,1),.false.)
+    else
+      minlon = rounder(minval(xlon(1,:)),.false.)
+    end if
+    if (xlon(jx,1) > 0 .and. xlon(jx,iy) < 0.0) then
+      maxlon = rounder(xlon(jx,iy),.true.)
+    else if (xlon(jx,1) < 0 .and. xlon(jx,iy) > 0.0) then
+      maxlon = rounder(xlon(jx,1),.true.)
+    else
+      maxlon = rounder(maxval(xlon(jx,:)),.true.)
+    end if
   end if
   rlatinc = rounder(ds/111000.0/2.0,.false.)
   rloninc = rounder(ds/111000.0/2.0,.false.)
@@ -369,7 +381,7 @@ program ncprepare
   end if
 
   write(11, '(a,i4,i4,a,a)') 'pdef ', jx , iy ,                         &
-         ' bilin sequential binary-big ', trim(experiment)//'.coord'
+         ' bilin sequential binary-big ^', trim(experiment)//'.coord'
   write(11, '(a,i5,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc 
   write(11, '(a,i5,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
