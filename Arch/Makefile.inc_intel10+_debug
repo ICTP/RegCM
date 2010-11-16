@@ -59,7 +59,7 @@ endif
 # - RegCM expects Fortran records to be measured in bytes
 F90FLAGS = -O0 -g -convert big_endian -assume byterecl \
            -check arg_temp_created,bounds,format,output_conversion,uninit \
-           -traceback -warn all -fp-model strict
+           -traceback -warn all -fp-model strict -heap-arrays
 
 # Set the Fortran 90 compiler here
 F90 = ifort
