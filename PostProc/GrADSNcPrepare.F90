@@ -369,7 +369,7 @@ program ncprepare
   end if
 
   write(11, '(a,i4,i4,a,a)') 'pdef ', jx , iy ,                         &
-         ' bilin sequential binary-big ', trim(experiment)//'.coord'
+         ' bilin sequential binary-big ^', trim(experiment)//'.coord'
   write(11, '(a,i5,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc 
   write(11, '(a,i5,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
