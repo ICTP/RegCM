@@ -137,6 +137,8 @@
                         & atm_0,iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
                         & 0,mpi_comm_world,ierr)
           if ( myid.eq.0 ) then
+            rainc_io  = 0.0E0
+            rainnc_io = 0.0E0
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
