@@ -22,151 +22,11 @@
 # Script for running RegCM regression tests by M. Scarcia
 #
 
-import os,sys,shutil,fileinput,subprocess,calendar
+# import system modules
+import os,sys,shutil,subprocess
 
-
-# define various subs here
-
-def edit_namelist(namelist,datadir,simdir): # needs module fileinput
-
-    for line in fileinput.FileInput(namelist,inplace=1):
-
-        line = line.replace("/set/this/to/where/your/surface/dataset/is",datadir+"/")
-        line = line.replace("/set/this/to/where/your/input/global/data/is",datadir+"/")
-
-        line = line.replace("/set/this/to/where/your/domain/file/is",simdir+"/input")
-        line = line.replace("/set/this/to/where/your/icbc/for/model/is",simdir+"/input")
-
-        line = line.replace("/set/this/to/where/your/output/files/will/be/written",simdir+"/output")
-
-        line = line.replace("/set/this/to/where/your/input/clm/data/are",simdir+"/input")
-
-        print line.rstrip()
-        
-    fileinput.close()
- 
-def parse_config(filename): # needs module sys
-
-    COMMENT_CHAR = '#'
-    OPTION_CHAR =  '='
-    
-    options = {}
-    try:
-        f = open(filename)
-    except :
-        print "File "+filename+" does not exist or is not accessible!"
-        sys.exit(1)
-        
-    for line in f:
-        # First, remove comments:
-        if COMMENT_CHAR in line:
-            # split on comment char, keep only the part before
-            line, comment = line.split(COMMENT_CHAR, 1)
-        # Second, find lines with an option=value:
-        if OPTION_CHAR in line:
-            # split on option char:
-            option, value = line.split(OPTION_CHAR, 1)
-            # strip spaces:
-            option = option.strip()
-            value = value.strip()
-            # store in dictionary:
-            options[option] = value
-    f.close()
-    return options
-
-def compare_nc_file(filename,refname,varname): # needs module subprocess
-
-    #print filename
-    #print refname
-    
-    try :
-        p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-    except OSError :
-        print "Could not run ncdiff!"
-        output,error = p_1.communicate()
-        return output
-
-    if p_1.wait() == 0 :
-        try :
-            p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-        except OSError :
-           print "Could not run ncwa!"
-           output,error = p_2.communicate()
-           return output  
-    else :
-        print "Step 1 failed!"
-        output,error = p_1.communicate()
-        return output
-
-    if p_2.wait() == 0 :
-        os.remove("temp.nc")
-        try :
-            p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-        except OSError :
-            print "Could not run ncks!"
-            output,error = p_3.communicate()
-            return output
-    else :
-        print "Step 2 failed!"
-        output,error = p_2.communicate()
-        return output    
-    
-    if p_3.wait() != 0:
-        print "Step 3 failed!"
-        output,error = p_3.communicate()
-        return output+error
-    else:
-        os.remove("rms.nc")
-        output,error = p_3.communicate()
-        
-    return output
-
-def parse_dates(namelist,simdays): # needs modules fileinput and calendar
-
-    infile = open(namelist,"r")
-    file_content = infile.readlines()
-    infile.close()
-        
-    for line in file_content:
-            #if line.find("globidate1") > -1 :
-            #    linea=line.rsplit("=")
-            #    globidate1=linea[1]
-            #    globidate1=filter(lambda x:x.isdigit(),globidate1)
-            if line.find(" idate0 ") > -1 :
-                linea=line.rsplit("=")
-                idate0=linea[1]
-                idate0=filter(lambda x:x.isdigit(),idate0)
-            #if line.find(" idate1 ") > -1 :
-            #   linea=line.rsplit("=")
-            #   idate1=linea[1]
-            #   idate1=filter(lambda x:x.isdigit(),idate1)
-            if line.find(" idate2 ") > -1 :
-                linea=line.rsplit("=")
-                idate2=linea[1]
-                idate2=filter(lambda x:x.isdigit(),idate2)
-                
-    year = int(idate0[:4])
-    month = int(idate0[4:6])
-    day_start = int(idate0[6:8])
-    day_end = int(idate2[6:8])
-
-    maxdate = calendar.monthrange(year,month)[1]
-
-    if (day_start + simdays) <= maxdate :
-    	day_end = day_start + simdays
-    else :
-	day_end = maxdate
-
-    #print idate2
-    #print str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00"
-        
-    for line in fileinput.FileInput(namelist,inplace=1):
-        line = line.replace(idate2,str(year)+str(month).zfill(2)+str(day_end).zfill(2)+"00")
-        print line.rstrip()
-
-    fileinput.close()
-
-    return idate0 # if others needed will put a list as output
+# import own modules
+import parsing_editing,nc_stuff
 
 def main(argv):
 
@@ -177,7 +37,7 @@ def main(argv):
     cfg=sys.argv[1]
 
     # get all the options from cfg file
-    options = parse_config(cfg)
+    options = parsing_editing.parse_config(cfg)
 
     datadir = options["DATADIR"]
     bindir = options["BINDIR"]
@@ -285,10 +145,10 @@ def main(argv):
 		os.sys.exit(1)
             
         # find idate0 and edit namelist for desired sim length
-        idate0 = parse_dates(namelist,simdays)
+        idate0 = parsing_editing.parse_dates(namelist,simdays)
         
         #edit the namelist here
-        edit_namelist(namelist,datadir,simdir)
+        parsing_editing.edit_namelist(namelist,datadir,simdir)
 
         # open log file
         writelog=True
@@ -364,12 +224,12 @@ def main(argv):
 
                 # domain
                 for var in domain_vars :    
-                    dom_diff[var] = compare_nc_file(simdir+domain_file,testrefdir+domain_file,var).rstrip("\n")
+                    dom_diff[var] = nc_stuff.compare_nc_file(simdir+domain_file,testrefdir+domain_file,var).rstrip("\n")
                     print var+" =",dom_diff[var]
 
                 # icbc
                 for var in icbc_vars :
-                    icbc_diff[var] = compare_nc_file(simdir+icbc_file,testrefdir+icbc_file,var).rstrip("\n")
+                    icbc_diff[var] = nc_stuff.compare_nc_file(simdir+icbc_file,testrefdir+icbc_file,var).rstrip("\n")
                     print var+" =",icbc_diff[var]
                     
             sys.stdout.flush()
@@ -407,7 +267,7 @@ def main(argv):
             srf_vars = ["t2m"]
 
             for var in srf_vars :
-                srf_diff[var] = compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
+                srf_diff[var] = nc_stuff.compare_nc_file(simdir+srf_file,testrefdir+srf_file,var).rstrip("\n")
                 print var+" =",srf_diff[var]
 
 	sys.stdout.flush()
