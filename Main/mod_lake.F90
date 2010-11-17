@@ -185,7 +185,7 @@
             ql = qs1d(n,i)
             fsw = fsw1d(i)
             flw = -1.*flw1d(i)
-            prec = prcp1d(n,i)
+            prec = prcp1d(n,i)*dtbat
             hsen = -1.0D0*sent1d(n,i)
             hlat = -1.0D0*evpr1d(n,i)
             if (nnsg == 1) then
