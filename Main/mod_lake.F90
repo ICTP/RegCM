@@ -185,7 +185,7 @@
             ql = qs1d(n,i)
             fsw = fsw1d(i)
             flw = -1.*flw1d(i)
-            prec = prca2d(i,jslc)      !  units of prec = mm
+            prec = prcp1d(n,i)
             hsen = -1.0D0*sent1d(n,i)
             hlat = -1.0D0*evpr1d(n,i)
             if (nnsg == 1) then
