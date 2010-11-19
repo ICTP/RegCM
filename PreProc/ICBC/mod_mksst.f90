@@ -162,9 +162,6 @@
         if (idate == itime(irec)) then
           do i = 1 , jx
             do j = 1 , iy
-!             if ( (topogm(i,j)<=1.) .and.                              &
-!            &     (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
-!            &     (work1(i,j)>-900.0) ) tsccm(i,j) = work1(i,j)
               if ( (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
              &     (work1(i,j)>-900.0) ) then
                 tsccm(i,j) = work1(i,j)
@@ -173,6 +170,7 @@
                     if ( work3(i,j)>35. ) tsccm(i,j) = 273.15 - 2.15
                   end if
                 end if
+              end if
             end do
           end do
         else
@@ -201,9 +199,6 @@
           wt = float(ks1)/float(ks2)
           do i = 1 , jx
             do j = 1 , iy
-!             if ( (topogm(i,j)<=1.) .and.                              &
-!                & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
-!                & (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) ) then
               if ( (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
                  & (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) ) then
                 tsccm(i,j) = (1.-wt)*work1(i,j) + wt*work2(i,j)

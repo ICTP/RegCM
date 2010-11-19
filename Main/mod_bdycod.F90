@@ -744,7 +744,6 @@
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-!                   sice2d(n,i,j) = 0.
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
@@ -1037,7 +1036,6 @@
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-!                   sice2d(n,i,j) = 0.
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
