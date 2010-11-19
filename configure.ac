@@ -133,6 +133,7 @@ case $ac_cv_fc_mangling in
 esac
 
 RR_SVN_DEF
+
 RR_PATH_NETCDF
 RR_PATH_NETCDF_F90
 

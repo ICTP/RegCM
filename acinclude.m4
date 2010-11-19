@@ -43,6 +43,16 @@ AC_DEFUN([RR_PATH_NETCDF],[
   AC_CHECK_LIB([netcdf], [nc_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
+    AC_CHECKING([if we need to link hdf5 library])
+    LIBS="$LIBS -hdf5 -hdf5_hl"
+    AC_CHECK_LIB([netcdf], [nc_close],
+                 [netcdf=yes], [netcdf=no])
+    if test "x$netcdf" = xno; then
+      AC_CHECKING([if we need to link szlib library])
+      LIBS="$LIBS -lsz"
+      AC_CHECK_LIB([netcdf], [nc_close],
+                   [netcdf=yes], [netcdf=no])
+    fi
     AC_MSG_ERROR([NetCDF library not found])
   fi
 
