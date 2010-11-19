@@ -281,7 +281,7 @@
         tk  = tzero + tprof(1)
         lu  = -emsw*sigm*tk**4.0D0
         ld  = flw - lu
-        ev  = evl*3600.0D0        ! Convert to mm/sec
+        ev  = evl*3600.0D0        ! Convert to mm/hr
         ai  = aveice / 1000.0D0   ! convert to m
         hs  = hsnow / 100.0D0     ! convert to m
 
