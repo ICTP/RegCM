@@ -620,16 +620,23 @@ MPILIBS
 MPIFC
 REGCM_PARALLEL_FALSE
 REGCM_PARALLEL_TRUE
+COMPILER_PGI_FALSE
+COMPILER_PGI_TRUE
 COMPILER_SUN_FALSE
 COMPILER_SUN_TRUE
-COMPILER_GFORTRAN_FALSE
-COMPILER_GFORTRAN_TRUE
+COMPILER_G95_FALSE
+COMPILER_G95_TRUE
+COMPILER_GNU_FALSE
+COMPILER_GNU_TRUE
+COMPILER_IBM_FALSE
+COMPILER_IBM_TRUE
+OSNAME_LINUX_FALSE
+OSNAME_LINUX_TRUE
 OSNAME_AIX_FALSE
 OSNAME_AIX_TRUE
+OSNAME
 AM_LDFLAGS
 MDEPFLAGS
-SVNDEF
-SVNREV
 NC_PREFIX
 DO_COMPILE_LIBCLM_FALSE
 DO_COMPILE_LIBCLM_TRUE
@@ -758,12 +765,15 @@ with_sysroot
 enable_libtool_lock
 enable_dependency_tracking
 with_netcdf
+with_hdf5
+with_szip
 enable_mpiserial
 enable_selectedrealkind
 enable_sequence
 enable_band
 enable_clm
 enable_nc4_gzip
+enable_debug
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1416,6 +1426,7 @@ Optional Features:
   --enable-clm            Supply this option if you plan on using CLM option.
   --enable-nc4-gzip       Supply this option if you plan on using NetCDF4/HDF5
                           output compression option.
+  --enable-debug          Enable debugging flags and per processor log file
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1425,7 +1436,12 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-Path to NetCDF installation (default: NETCDF environment)
+  --with-netcdf           Path to NetCDF installation (default: NETCDF
+                          environment)
+  --with-hdf5             Path to HDF5 installation (default: HDF5
+                          environment)
+  --with-szip             Path to SZIP installation (default: SZIP
+                          environment)
 
 Some influential environment variables:
   CC          C compiler command
@@ -14973,6 +14989,26 @@ else
 fi
 
 
+
+# Check whether --with-hdf5 was given.
+if test "${with_hdf5+set}" = set; then :
+  withval=$with_hdf5; HDF5_PREFIX="$withval"
+else
+  HDF5_PREFIX="${HDF5}"
+
+fi
+
+
+
+# Check whether --with-szip was given.
+if test "${with_szip+set}" = set; then :
+  withval=$with_szip; SZIP_PREFIX="$withval"
+else
+  SZIP_PREFIX="${SZIP}"
+
+fi
+
+
 PARALLEL="1"
 # Check whether --enable-mpiserial was given.
 if test "${enable_mpiserial+set}" = set; then :
@@ -15051,6 +15087,18 @@ fi
 
 if eval "test x$NETCDF4_HDF5 = x1"; then
   AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
+
+fi
+
+DEBUG="0"
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; DEBUG="1"
+
+fi
+
+if eval "test x$DEBUG = x1"; then
+  AM_CPPFLAGS="-DDEBUG $AM_CPPFLAGS"
 
 fi
 
@@ -15464,15 +15512,6 @@ $as_echo "$as_me: WARNING: UNKNOWN FORTRAN NAME-MANGLING SCHEME" >&2;};;
 esac
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking SVN REVISION..." >&5
-$as_echo "$as_me: checking SVN REVISION..." >&6;}
-  SVNREV=`svnversion $srcdir | sed 's/:.*//'`
-
-  SVNDEF=-D'SVN_REV="$(SVNREV)"'
-
-
-
-
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for NetCDF..." >&5
 $as_echo "$as_me: checking for NetCDF..." >&6;}
@@ -15557,10 +15596,12 @@ fi
   if test "x$netcdf" = xno; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link hdf5 library..." >&5
 $as_echo "$as_me: checking if we need to link hdf5 library..." >&6;}
-    LIBS="$LIBS -hdf5 -hdf5_hl"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_close in -lnetcdf" >&5
-$as_echo_n "checking for nc_close in -lnetcdf... " >&6; }
-if ${ac_cv_lib_netcdf_nc_close+:} false; then :
+    NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+    LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+    LIBS="$LIBS -lhdf5 -lhdf5_hl"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_sync in -lnetcdf" >&5
+$as_echo_n "checking for nc_sync in -lnetcdf... " >&6; }
+if ${ac_cv_lib_netcdf_nc_sync+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -15574,27 +15615,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char nc_close ();
+char nc_sync ();
 int
 main ()
 {
-return nc_close ();
+return nc_sync ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_netcdf_nc_close=yes
+  ac_cv_lib_netcdf_nc_sync=yes
 else
-  ac_cv_lib_netcdf_nc_close=no
+  ac_cv_lib_netcdf_nc_sync=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_netcdf_nc_close" >&5
-$as_echo "$ac_cv_lib_netcdf_nc_close" >&6; }
-if test "x$ac_cv_lib_netcdf_nc_close" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_netcdf_nc_sync" >&5
+$as_echo "$ac_cv_lib_netcdf_nc_sync" >&6; }
+if test "x$ac_cv_lib_netcdf_nc_sync" = xyes; then :
   netcdf=yes
 else
   netcdf=no
@@ -15603,10 +15644,12 @@ fi
     if test "x$netcdf" = xno; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link szlib library..." >&5
 $as_echo "$as_me: checking if we need to link szlib library..." >&6;}
+      NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+      LDFLAGS="$LDFLAGS $NC_LDFLAGS"
       LIBS="$LIBS -lsz"
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_close in -lnetcdf" >&5
-$as_echo_n "checking for nc_close in -lnetcdf... " >&6; }
-if ${ac_cv_lib_netcdf_nc_close+:} false; then :
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_inq_libvers in -lnetcdf" >&5
+$as_echo_n "checking for nc_inq_libvers in -lnetcdf... " >&6; }
+if ${ac_cv_lib_netcdf_nc_inq_libvers+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -15620,34 +15663,36 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char nc_close ();
+char nc_inq_libvers ();
 int
 main ()
 {
-return nc_close ();
+return nc_inq_libvers ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_netcdf_nc_close=yes
+  ac_cv_lib_netcdf_nc_inq_libvers=yes
 else
-  ac_cv_lib_netcdf_nc_close=no
+  ac_cv_lib_netcdf_nc_inq_libvers=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_netcdf_nc_close" >&5
-$as_echo "$ac_cv_lib_netcdf_nc_close" >&6; }
-if test "x$ac_cv_lib_netcdf_nc_close" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_netcdf_nc_inq_libvers" >&5
+$as_echo "$ac_cv_lib_netcdf_nc_inq_libvers" >&6; }
+if test "x$ac_cv_lib_netcdf_nc_inq_libvers" = xyes; then :
   netcdf=yes
 else
   netcdf=no
 fi
 
     fi
-    as_fn_error $? "NetCDF library not found" "$LINENO" 5
+    if test "x$netcdf" = xno; then
+      as_fn_error $? "NetCDF library not found" "$LINENO" 5
+    fi
   fi
 
 # Put them back to how they used to be and set the AM versions
@@ -15667,8 +15712,9 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 # Netcdf Fortran interface can be placed in a separate libnetcdff
 #
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnetcdf.a..." >&5
-$as_echo "$as_me: checking for libnetcdf.a..." >&6;}
+  LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnetcdff.a..." >&5
+$as_echo "$as_me: checking for libnetcdff.a..." >&6;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nf_close in -lnetcdf" >&5
 $as_echo_n "checking for nf_close in -lnetcdf... " >&6; }
 if ${ac_cv_lib_netcdf_nf_close+:} false; then :
@@ -15699,6 +15745,7 @@ else
 fi
 
   if test "x$netcdf" = xno; then
+    LIBS="$LIBS -lnetcdff"
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnetcdff.a..." >&5
 $as_echo "$as_me: checking for libnetcdff.a..." >&6;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nf_close in -lnetcdff" >&5
@@ -15730,18 +15777,11 @@ else
   netcdf=no
 fi
 
-
     if test "x$netcdf" = xno; then
       as_fn_error $? "NetCDF library not found" "$LINENO" 5
     fi
   fi
-
-# Put them back to how they used to be and set the AM versions
-# The AM versions must be substituted explicitly
-
   LDFLAGS="$save_LDFLAGS"
-  AM_LDFLAGS="$AM_LDFLAGS -lnetcdff"
-
 
 
 
@@ -15785,6 +15825,9 @@ ac_config_files="$ac_config_files Makefile PreProc/Terrain/Makefile PreProc/ICBC
 
 
 test "$osname"=NONE && osname=`uname -s`
+OSNAME=$osname
+
+
 test "$machinename"=NONE && machinename=`uname -m`
 fullhostname=`hostname -f`
 
@@ -15796,12 +15839,37 @@ else
   OSNAME_AIX_FALSE=
 fi
 
- if test x"$FC" = xgfortran; then
-  COMPILER_GFORTRAN_TRUE=
-  COMPILER_GFORTRAN_FALSE='#'
+ if test x"$osname" = xLinux; then
+  OSNAME_LINUX_TRUE=
+  OSNAME_LINUX_FALSE='#'
 else
-  COMPILER_GFORTRAN_TRUE='#'
-  COMPILER_GFORTRAN_FALSE=
+  OSNAME_LINUX_TRUE='#'
+  OSNAME_LINUX_FALSE=
+fi
+
+
+ if test x"$FC" = xxlf90; then
+  COMPILER_IBM_TRUE=
+  COMPILER_IBM_FALSE='#'
+else
+  COMPILER_IBM_TRUE='#'
+  COMPILER_IBM_FALSE=
+fi
+
+ if test x"$FC" = xgfortran; then
+  COMPILER_GNU_TRUE=
+  COMPILER_GNU_FALSE='#'
+else
+  COMPILER_GNU_TRUE='#'
+  COMPILER_GNU_FALSE=
+fi
+
+ if test x"$FC" = xg95; then
+  COMPILER_G95_TRUE=
+  COMPILER_G95_FALSE='#'
+else
+  COMPILER_G95_TRUE='#'
+  COMPILER_G95_FALSE=
 fi
 
  if test x"$FC" = xsunf95; then
@@ -15812,6 +15880,15 @@ else
   COMPILER_SUN_FALSE=
 fi
 
+ if test x"$FC" = xpgf90; then
+  COMPILER_PGI_TRUE=
+  COMPILER_PGI_FALSE='#'
+else
+  COMPILER_PGI_TRUE='#'
+  COMPILER_PGI_FALSE=
+fi
+
+
  if test x$PARALLEL = x1; then
   REGCM_PARALLEL_TRUE=
   REGCM_PARALLEL_FALSE='#'
@@ -15821,9 +15898,87 @@ else
 fi
 
 
+# Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
   FCFLAGS="-fconvert=big-endian $FCFLAGS"
 
+fi
+if eval "test x"$FC" = xifort"; then
+  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+
+fi
+if eval "test x"$FC" = xg95"; then
+  FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+
+fi
+if eval "test x"$FC" = xpgf90"; then
+  FCFLAGS="-byteswapio $FCFLAGS"
+
+fi
+if eval "test x"$FC" = xxlf90"; then
+  CPPFLAGS="-DIBM $CPPFLAGS"
+
+fi
+
+# Set debug/production flags
+if eval "test x$DEBUG = x1"; then
+  if eval "test x"$FC" = xg95"; then
+    FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xgfortran"; then
+    FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+            -fdump-core -Wall -pedantic $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xifort"; then
+    FCFLAGS="-O0 -g \
+             -check arg_temp_created,bounds,format,output_conversion,uninit \
+             -traceback -warn all -fp-model strict $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xxlf90"; then
+    FCFLAGS="-O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
+             -qmaxmem=-1 -qzerosize $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xsunf95"; then
+    FCFLAGS="-g -O0 -C -w3 -ansi -xfilebyteorder=big16:%all \
+             -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xpgf90"; then
+    FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
+             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g $FCFLAGS"
+
+  fi
+else
+  if eval "test x"$FC" = xg95"; then
+    FCFLAGS="-O3 $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xgfortran"; then
+    FCFLAGS="-O3 $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xifort"; then
+    FCFLAGS="-O3 -fp-model precise $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xxlf90"; then
+    FCFLAGS="-qsuppress=1501-245 -bnoquiet -O3 -qstrict \
+             -qmaxmem=-1 -qzerosize $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xsunf95"; then
+    FCFLAGS="-O3 -xfilebyteorder=big16:%all \
+             -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
+
+  fi
+  if eval "test x"$FC" = xpgf90"; then
+    FCFLAGS="-fastsse $FCFLAGS"
+
+  fi
 fi
 
 if eval "test x$PARALLEL = x1"; then
@@ -16198,12 +16353,28 @@ if test -z "${OSNAME_AIX_TRUE}" && test -z "${OSNAME_AIX_FALSE}"; then
   as_fn_error $? "conditional \"OSNAME_AIX\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${COMPILER_GFORTRAN_TRUE}" && test -z "${COMPILER_GFORTRAN_FALSE}"; then
-  as_fn_error $? "conditional \"COMPILER_GFORTRAN\" was never defined.
+if test -z "${OSNAME_LINUX_TRUE}" && test -z "${OSNAME_LINUX_FALSE}"; then
+  as_fn_error $? "conditional \"OSNAME_LINUX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COMPILER_IBM_TRUE}" && test -z "${COMPILER_IBM_FALSE}"; then
+  as_fn_error $? "conditional \"COMPILER_IBM\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COMPILER_GNU_TRUE}" && test -z "${COMPILER_GNU_FALSE}"; then
+  as_fn_error $? "conditional \"COMPILER_GNU\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COMPILER_G95_TRUE}" && test -z "${COMPILER_G95_FALSE}"; then
+  as_fn_error $? "conditional \"COMPILER_G95\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COMPILER_SUN_TRUE}" && test -z "${COMPILER_SUN_FALSE}"; then
   as_fn_error $? "conditional \"COMPILER_SUN\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COMPILER_PGI_TRUE}" && test -z "${COMPILER_PGI_FALSE}"; then
+  as_fn_error $? "conditional \"COMPILER_PGI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${REGCM_PARALLEL_TRUE}" && test -z "${REGCM_PARALLEL_FALSE}"; then
