@@ -1,16 +1,4 @@
 dnl
-dnl autoconf macro for setting svn revision
-dnl
-
-AC_DEFUN([RR_SVN_DEF],[
-  AC_CHECKING([SVN REVISION])
-  SVNREV=`svnversion $srcdir | sed 's/:.*//'`
-  AC_SUBST(SVNREV)
-  SVNDEF=-D'SVN_REV="$(SVNREV)"'
-  AC_SUBST(SVNDEF)
-])
-
-dnl
 dnl autoconf macro for detecting NetCDF
 dnl
 
@@ -44,16 +32,22 @@ AC_DEFUN([RR_PATH_NETCDF],[
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
     AC_CHECKING([if we need to link hdf5 library])
-    LIBS="$LIBS -hdf5 -hdf5_hl"
-    AC_CHECK_LIB([netcdf], [nc_close],
+    NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+    LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+    LIBS="$LIBS -lhdf5 -lhdf5_hl"
+    AC_CHECK_LIB([netcdf], [nc_sync],
                  [netcdf=yes], [netcdf=no])
     if test "x$netcdf" = xno; then
       AC_CHECKING([if we need to link szlib library])
+      NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+      LDFLAGS="$LDFLAGS $NC_LDFLAGS"
       LIBS="$LIBS -lsz"
-      AC_CHECK_LIB([netcdf], [nc_close],
+      AC_CHECK_LIB([netcdf], [nc_inq_libvers],
                    [netcdf=yes], [netcdf=no])
     fi
-    AC_MSG_ERROR([NetCDF library not found])
+    if test "x$netcdf" = xno; then
+      AC_MSG_ERROR([NetCDF library not found])
+    fi
   fi
 
 # Put them back to how they used to be and set the AM versions
@@ -69,25 +63,20 @@ AC_DEFUN([RR_PATH_NETCDF],[
 
 # Netcdf Fortran interface can be placed in a separate libnetcdff
 #
-  AC_CHECKING([for libnetcdf.a])
+  LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+  AC_CHECKING([for libnetcdff.a])
   AC_CHECK_LIB([netcdf], [nf_close],
-                      [netcdf=yes], [netcdf=no])
+               [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
+    LIBS="$LIBS -lnetcdff"
     AC_CHECKING([for libnetcdff.a])
     AC_CHECK_LIB([netcdff], [nf_close],
-                      [netcdf=yes], [netcdf=no])
-
+                 [netcdf=yes], [netcdf=no])
     if test "x$netcdf" = xno; then
       AC_MSG_ERROR([NetCDF library not found])
     fi
   fi
-
-# Put them back to how they used to be and set the AM versions
-# The AM versions must be substituted explicitly
-
   LDFLAGS="$save_LDFLAGS"
-  AM_LDFLAGS="$AM_LDFLAGS -lnetcdff"
-  AC_SUBST([AM_LDFLAGS])
 
 ])
 

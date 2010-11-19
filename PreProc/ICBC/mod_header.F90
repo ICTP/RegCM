@@ -35,7 +35,7 @@
   
 
       write (nrite,99002)  myname 
-      write (nrite,99001)  "SVN_REV", __DATE__ , __TIME__   
+      write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
         hostname='ibm platform '

@@ -733,14 +733,17 @@
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
-              else if (iseaice == 1) then
+              else
+                sts1%tg(i,j) = tdum(i,j)
+                sts2%tg(i,j) = tdum(i,j)
+              end if
+              if (iseaice == 1) then
                 if ( tdum(i,j).le.271.38 ) then
                    sts1%tg(i,j) = 271.38
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-                    sice2d(n,i,j) = 0.
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
@@ -750,9 +753,6 @@
                     sice2d(n,i,j) = 0.
                   end do
                 end if
-              else
-                sts1%tg(i,j) = tdum(i,j)
-                sts2%tg(i,j) = tdum(i,j)
               end if
             end if
           end do
@@ -1025,14 +1025,17 @@
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
-              else if (iseaice == 1) then
+              else
+                sts1%tg(i,j) = tdum(i,j)
+                sts2%tg(i,j) = tdum(i,j)
+              end if
+              if (iseaice == 1) then
                 if ( tdum(i,j).le.271.38 ) then
                    sts1%tg(i,j) = 271.38
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-                    sice2d(n,i,j) = 0.
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
@@ -1042,9 +1045,6 @@
                     sice2d(n,i,j) = 0.
                   end do
                 end if
-              else
-                sts1%tg(i,j) = tdum(i,j)
-                sts2%tg(i,j) = tdum(i,j)
               end if
             end if
           end do

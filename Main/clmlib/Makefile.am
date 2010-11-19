@@ -132,7 +132,7 @@ else
   DEFFLAGS = $(CPPFLAGS)
 endif
 
-if COMPILER_GFORTRAN
+if COMPILER_GNU
 FCFLAGS += -fno-range-check
 CPPFLAGS += -DG95
 endif

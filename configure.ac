@@ -31,8 +31,21 @@ AC_PROG_FC
 AC_LANG([Fortran])
 
 AC_ARG_WITH([netcdf],
-            [Path to NetCDF installation (default: NETCDF environment)],
+  AC_HELP_STRING([--with-netcdf],
+            [Path to NetCDF installation (default: NETCDF environment)]),
   [NC_PREFIX="$withval"], [NC_PREFIX="${NETCDF}"]
+)
+
+AC_ARG_WITH([hdf5],
+  AC_HELP_STRING([--with-hdf5],
+            [Path to HDF5 installation (default: HDF5 environment)]),
+  [HDF5_PREFIX="$withval"], [HDF5_PREFIX="${HDF5}"]
+)
+
+AC_ARG_WITH([szip],
+  AC_HELP_STRING([--with-szip],
+            [Path to SZIP installation (default: SZIP environment)]),
+  [SZIP_PREFIX="$withval"], [SZIP_PREFIX="${SZIP}"]
 )
 
 PARALLEL="1"
@@ -96,6 +109,17 @@ if eval "test x$NETCDF4_HDF5 = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+DEBUG="0"
+AC_ARG_ENABLE(debug,
+  AC_HELP_STRING([--enable-debug],
+                 [Enable debugging flags and per processor log file]),
+  [DEBUG="1"]
+)
+if eval "test x$DEBUG = x1"; then
+  AM_CPPFLAGS="-DDEBUG $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 if eval "test -d $NC_PREFIX/include"; then
   NC_INCLUDES="-I$NC_PREFIX/include"
 else
@@ -132,8 +156,6 @@ case $ac_cv_fc_mangling in
     AC_MSG_WARN([UNKNOWN FORTRAN NAME-MANGLING SCHEME]);;
 esac
 
-RR_SVN_DEF
-
 RR_PATH_NETCDF
 RR_PATH_NETCDF_F90
 
@@ -143,17 +165,104 @@ AC_CONFIG_FILES([Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  Main/clmlib/Makefile Main/Makefile])
 
 test "$osname"=NONE && osname=`uname -s`
+OSNAME=$osname
+AC_SUBST(OSNAME)
+
 test "$machinename"=NONE && machinename=`uname -m`
 fullhostname=`hostname -f`
 
 AM_CONDITIONAL(OSNAME_AIX, [test x"$osname" = xAIX])
-AM_CONDITIONAL(COMPILER_GFORTRAN, [test x"$FC" = xgfortran])
+AM_CONDITIONAL(OSNAME_LINUX, [test x"$osname" = xLinux])
+
+AM_CONDITIONAL(COMPILER_IBM, [test x"$FC" = xxlf90])
+AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
+AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
+AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90])
+
 AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
+# Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
   FCFLAGS="-fconvert=big-endian $FCFLAGS"
   AC_SUBST(FCFLAGS)
+fi
+if eval "test x"$FC" = xifort"; then
+  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+  AC_SUBST(FCFLAGS)
+fi
+if eval "test x"$FC" = xg95"; then
+  FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+  AC_SUBST(FCFLAGS)
+fi
+if eval "test x"$FC" = xpgf90"; then
+  FCFLAGS="-byteswapio $FCFLAGS"
+  AC_SUBST(FCFLAGS)
+fi
+if eval "test x"$FC" = xxlf90"; then
+  CPPFLAGS="-DIBM $CPPFLAGS"
+  AC_SUBST(CPPFLAGS)
+fi
+
+# Set debug/production flags
+if eval "test x$DEBUG = x1"; then
+  if eval "test x"$FC" = xg95"; then
+    FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xgfortran"; then
+    FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+            -fdump-core -Wall -pedantic $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xifort"; then
+    FCFLAGS="-O0 -g \
+             -check arg_temp_created,bounds,format,output_conversion,uninit \
+             -traceback -warn all -fp-model strict $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xxlf90"; then
+    FCFLAGS="-O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
+             -qmaxmem=-1 -qzerosize $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xsunf95"; then
+    FCFLAGS="-g -O0 -C -w3 -ansi -xfilebyteorder=big16:%all \
+             -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xpgf90"; then
+    FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
+             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+else
+  if eval "test x"$FC" = xg95"; then
+    FCFLAGS="-O3 $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xgfortran"; then
+    FCFLAGS="-O3 $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xifort"; then
+    FCFLAGS="-O3 -fp-model precise $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xxlf90"; then
+    FCFLAGS="-qsuppress=1501-245 -bnoquiet -O3 -qstrict \
+             -qmaxmem=-1 -qzerosize $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xsunf95"; then
+    FCFLAGS="-O3 -xfilebyteorder=big16:%all \
+             -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$FC" = xpgf90"; then
+    FCFLAGS="-fastsse $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 
 if eval "test x$PARALLEL = x1"; then

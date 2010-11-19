@@ -1,5 +1,3 @@
 #!/bin/bash
 
-aclocal
-automake
-autoconf
+autoreconf -f -i

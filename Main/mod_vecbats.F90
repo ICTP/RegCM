@@ -264,16 +264,14 @@
 #endif
         do ill = 1 , iym1
           do k = 1 , nnsg
-            if ( iseaice .ne. 1 ) then
-              if ( veg2d1(k,ill,jll).lt.0.5 ) then
-                ocld2d(k,ill,jll) = 0.
-              else
-                ocld2d(k,ill,jll) = 1.
-              end if
-            end if
-            nlveg = nint(veg2d1(k,ill,jll))
-            if (iseaice == 1) then
-              if ( ocld2d(k,ill,jll) > 1.5 ) nlveg = 12
+            if (iseaice == 1 .and. ocld2d(k,ill,jll) > 1.5 ) then
+               nlveg = 12
+            else if ( veg2d1(k,ill,jll).lt.0.5 ) then
+               ocld2d(k,ill,jll) = 0.
+               nlveg = nint(veg2d1(k,ill,jll))
+            else
+               ocld2d(k,ill,jll) = 1.
+               nlveg = nint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
               nlveg = 15
@@ -1187,8 +1185,7 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-          if (iseaice == 1) then
-            if ( ldoc1d(n,i).gt.1.5 ) then
+          if (iseaice == 1 .and. ldoc1d(n,i).gt.1.5 ) then
               tdiffs = ts1d(n,i) - tzero
               tdiff = max(tdiffs,0.D0)
               tdiffs = min(tdiff,20.D0)
@@ -1197,7 +1194,6 @@
               albg = fsol1*albgs + fsol2*albgl
               albgsd = albgs
               albgld = albgl
-            end if
           else if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils

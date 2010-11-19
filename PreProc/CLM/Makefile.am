@@ -1,4 +1,6 @@
 
+include $(REGCM_ROOT)/makeinc
+
 vpath %.F90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
 vpath %.f90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
 
