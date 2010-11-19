@@ -224,10 +224,10 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
-          if (iseaice == 1) then
-            if ( ocld2d(n,i,jslc).gt.1.5) then
-              ii2 = ii2 + 1
-            end if
+          if (iseaice == 1.and.ocld2d(n,i,jslc).gt.1.5) then
+            if ( sice1d(n,i).ge.0.0001 ) then
+               ii2 = ii2 + 1
+            endif
           else if ( ocld2d(n,i,jslc).gt.0.1 .and. &
                     sice1d(n,i).lt.0.0001 ) then
             ii1 = ii1 + 1
