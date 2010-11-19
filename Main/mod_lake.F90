@@ -241,7 +241,7 @@
 !
 ! Local variables
 !
-      real(8) :: ea , hs , ld , lu , qe , qh , tac , tk , u2
+      real(8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
 !***  zo:      surface roughness length
@@ -256,18 +256,13 @@
       u2 = vl*log(z2/zo)/log(zl/zo)
       if ( u2.lt.0.5D0 ) u2 = 0.5D0
  
-!******    depth: 1-m slices of lake depth
+!     ****** Check if conditions not exist for lake ice
+      if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
+ 
+        aveice = 0.0D0
+        qe = hlat*wlhv
+        qh = hsen
 
-      tac = tl - tzero
-      tk = tzero + tprof(1)
-      lu = -0.97D0*sigm*tk**4.0D0
-      ld = flw - lu
-      qe = hlat*wlhv
-      qh = hsen
- 
-!     ******    Check if conditions exist for lake ice
-      if ( (aveice.eq.0.0D0) .and. (tprof(1).gt.tcutoff) ) then
- 
 !       ******    Calculate eddy diffusivities
         call eddy(ndpt,dtlake,u2,xl,tprof)
  
@@ -276,21 +271,30 @@
  
 !       ******    Convective mixer
         call mixer(kmin,ndpt,tprof)
- 
+
+!     ****** Lake ice
       else
  
 !       convert mixing ratio to air vapor pressure
-        ea = ql*88.0D0/(ep2+0.378D0*ql)
- 
-        call ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
+        ea  = ql*88.0D0/(ep2+0.378D0*ql)
+        tac = tl - tzero
+        tk  = tzero + tprof(1)
+        lu  = -emsw*sigm*tk**4.0D0
+        ld  = flw - lu
+        ev  = evl*3600.0D0        ! Convert to mm/sec
+        ai  = aveice / 1000.0D0   ! convert to m
+        hs  = hsnow / 100.0D0     ! convert to m
+
+        call ice(fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
         if ( lfreeze ) tprof(1) = tt(1)
+
+        evl    = ev/3600.0D0      !  convert evl from mm/hr to mm/sec
+        aveice = ai*1000.0D0      !  convert ice  from m to mm
+        hsnow  = hs*100.0D0       !  convert snow from m depth to mm h20
  
       end if
  
       tgl = tprof(1) + tzero
-      evl = evl/3600.0D0          !  convert evl from mm/hr to mm/sec
-      aveice = aveice*1000.0D0    !  convert ice  from m to mm
-      hsnow = hsnow*100.0D0       !  convert snow from m depth to mm h20
  
       end subroutine lake
 !
