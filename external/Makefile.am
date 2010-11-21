@@ -61,7 +61,7 @@ clean:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mpi.c: mpif.h
+mpi.o: mpif.h
 m_IndexBin_char.o: m_die.o m_stdio.o
 m_IndexBin_integer.o: m_die.o m_stdio.o
 m_IndexBin_logical.o: m_die.o m_stdio.o

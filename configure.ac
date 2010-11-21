@@ -314,15 +314,16 @@ if eval "test x$PARALLEL = x1"; then
   ACX_MPI
   FC=$MPIFC
 else
-  MPIF90=$FC
-  MPIFC=$FC
-  FORT_SIZE="real4double8"
   MPIPATH="${PWD}/external"
+  FORT_SIZE="real4double8"
+  MPIFC=$FC
   CPPFLAGS="-I$MPIPATH $CPPFLAGS"
   LDFLAGS="-L$MPIPATH $LDFLAGS"
   LIBS="$LIBS -lmpiser"
   AC_SUBST(CPPFLAGS)
   AC_SUBST(LDFLAGS)
+  AC_SUBST(FORT_SIZE)
+  AC_SUBST(MPIFC)
 fi
 
 MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
