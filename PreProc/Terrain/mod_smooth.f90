@@ -19,6 +19,8 @@
 
       module mod_smooth
 
+      use m_realkinds
+
       contains
 
       subroutine smth121(htgrid,iy,jx)
@@ -27,14 +29,14 @@
 ! Dummy arguments
 !
       integer :: iy , jx
-      real(4) , dimension(iy,jx) :: htgrid
+      real(SP) , dimension(iy,jx) :: htgrid
       intent (in) iy , jx
       intent (inout) htgrid
 !
 ! Local variables
 !
       integer :: i , j
-      real(4) , dimension(iy,jx) :: hscr1
+      real(SP) , dimension(iy,jx) :: hscr1
 !
 !     PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
 !     2DX WAVES FROM THE FIELDS htgrid
@@ -66,15 +68,15 @@
 !
       integer :: iflg , is1 , is2 , npass
       character(5) :: point
-      real(4) , dimension(is1,is2) :: slab
+      real(SP) , dimension(is1,is2) :: slab
       intent (in) iflg , is1 , is2 , npass , point
       intent (inout) slab
 !
 ! Local variables
 !
-      real(4) :: aplus , asv , cell
+      real(SP) :: aplus , asv , cell
       integer :: i , icross , ie , iem , j , je , jem , k , kp
-      real(4) , dimension(2) :: xnu
+      real(SP) , dimension(2) :: xnu
 !
 !     purpose: spatially smooth data in slab to dampen short
 !     wavelength components
@@ -132,6 +134,8 @@
 
       subroutine smthtr(slab1,is1,is2)
 
+      use m_stdio
+
       implicit none
 !
 ! PARAMETER definitions
@@ -141,7 +145,7 @@
 ! Dummy arguments
 !
       integer :: is1 , is2
-      real(4) , dimension(is1,is2) :: slab1
+      real(SP) , dimension(is1,is2) :: slab1
       intent (inout) slab1
 !
 ! Local variables
@@ -164,8 +168,8 @@
         end do
       end do
       n1 = n - 1
-      print 99001 , n1
-      if ( n>nocean ) print 99002
+      write(stdout,99001) n1
+      if ( n>nocean ) write(stdout,99002)
       point = 'cross'
       npass = 10
       iflg = 0          ! 0 = smoothing only at boundary

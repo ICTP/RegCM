@@ -18,10 +18,13 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_block
-      implicit none
-      real(4) , allocatable , dimension(:,:) :: ht , lnd , text , dpt
-      real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
-      real(8) :: xmaxlat , xmaxlon , xminlat , xminlon
+      
+      use m_stdio
+      use m_realkinds
+
+      real(SP) , allocatable , dimension(:,:) :: ht , lnd , text , dpt
+      real(DP) :: grdlnmn , grdltmn , grdlnma , grdltma
+      real(DP) :: xmaxlat , xmaxlon , xminlat , xminlon
       integer :: nlatin , nlonin
       logical :: lonwrap , lcrosstime
 
@@ -33,9 +36,9 @@
 ! Dummy arguments
 !
       integer :: iy , jx , iband
-      real(4) , dimension(iy,jx) :: xlat , xlon
+      real(SP) , dimension(iy,jx) :: xlat , xlon
       intent (in) iy , jx , xlat , xlon , iband
-      real(4) :: xtstlon1 , xtstlon2
+      real(SP) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
@@ -71,7 +74,7 @@
       lcrosstime = .false.
       if ((xmaxlon-xminlon) > 359.99) then
         lonwrap = .true.
-        print *, 'Special case for longitude wrapping'
+        write(stdout,*) 'Special case for longitude wrapping'
       end if
       if (abs(xminlon - xtstlon1) > 180.0 .or.   &
           abs(xmaxlon - xtstlon2) > 180.0 .or.   &
@@ -79,14 +82,14 @@
         lcrosstime = .true.
         if (xminlon < 0.0 .and. xtstlon1 > 0.0) xminlon = xtstlon1
         if (xmaxlon > 0.0 .and. xtstlon2 < 0.0) xmaxlon = xtstlon2
-        print *, 'Special case for timeline crossing'
+        write(stdout,*) 'Special case for timeline crossing'
       end if
 
-      print *, 'Calculated large extrema:'
-      print *, '         MINLAT = ', xminlat
-      print *, '         MAXLAT = ', xmaxlat
-      print *, '         MINLON = ', xminlon
-      print *, '         MAXLON = ', xmaxlon
+      write(stdout,*) 'Calculated large extrema:'
+      write(stdout,*) '         MINLAT = ', xminlat
+      write(stdout,*) '         MAXLAT = ', xmaxlat
+      write(stdout,*) '         MINLON = ', xminlon
+      write(stdout,*) '         MAXLON = ', xmaxlon
 
       end subroutine mxmnll
 

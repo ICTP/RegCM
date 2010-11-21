@@ -9,7 +9,7 @@ vpath %.c $(REGCM_ROOT)/external/MCT/mpeu:$(REGCM_ROOT)/external/MCT/mct:\
 	        $(REGCM_ROOT)/external/MCT/mpi-serial
 vpath %.h $(REGCM_ROOT)/external/MCT/mpi-serial
 
-if MPISERIAL
+if REGCM_PARALLEL
 noinst_LIBRARIES = libmpeu.a libmct.a
 else
 noinst_LIBRARIES = libmpiser.a libmpeu.a libmct.a

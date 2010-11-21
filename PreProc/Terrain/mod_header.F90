@@ -19,6 +19,8 @@
 
       module mod_header
 
+      use m_stdio
+
       contains
 
       subroutine header(myid)
@@ -30,7 +32,6 @@
 !
 ! Local variables:
 !
-      integer , parameter :: nrite = 6
       integer :: hostnm
       integer :: ihost, idir
       integer :: getcwd
@@ -40,9 +41,9 @@
       character (len=128) :: directory='?'
 !
       if (myid.eq.1)  then 
-        write (nrite,"(/,2x, &
+        write (stdout,"(/,2x, &
           'This is Terrain part of RegCM package version 4 ')")
-        write (nrite,100)  SVN_REV, __DATE__ , __TIME__   
+        write (stdout,100)  SVN_REV, __DATE__ , __TIME__   
 100     format(2x,' SVN Revision: ',a,' compiled at: data : ',          &
            &   a,'  time: ',a,/)
 
@@ -58,11 +59,11 @@
 
         Idir=getcwd(directory)
 
-        write(nrite,*) ": this run start at  : ",trim(cdata)
-        write(nrite,*) ": it is submitted by : ",trim(user)
-        write(nrite,*) ": it is running on   : ",trim(hostname)
-        write(nrite,*) ": in directory       : ",trim(directory)
-        write(nrite,*) "                     " 
+        write(stdout,*) ": this run start at  : ",trim(cdata)
+        write(stdout,*) ": it is submitted by : ",trim(user)
+        write(stdout,*) ": it is running on   : ",trim(hostname)
+        write(stdout,*) ": in directory       : ",trim(directory)
+        write(stdout,*) "                     " 
       end if 
       end subroutine header
 

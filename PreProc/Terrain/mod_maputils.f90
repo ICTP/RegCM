@@ -32,16 +32,16 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , ds , truelath , truelatl , xn
+      real(SP) :: clat , clon , ds , truelath , truelatl , xn
       integer :: idot , iy , jx
-      real(4) , dimension(iy,jx) :: coriol , smap , xlat , xlon
+      real(SP) , dimension(iy,jx) :: coriol , smap , xlat , xlon
       intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
                 & truelatl
       intent (out) coriol , smap , xlat , xlon , xn
 !
 ! Local variables
 !
-      real(4) :: cntri , cntrj
+      real(SP) :: cntri , cntrj
       integer :: i , j
 !
       cntrj = (jx+idot)/2.
@@ -71,15 +71,15 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , delx
+      real(SP) :: clat , clon , delx
       integer :: idot , iy , jx
-      real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+      real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
       intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !
-      real(4) :: cntrj , cntri
+      real(SP) :: cntrj , cntri
       integer :: i , j
 !
       cntrj = float(jx+idot)/2.
@@ -109,15 +109,15 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , delx
+      real(SP) :: clat , clon , delx
       integer :: idot , iy , jx
-      real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+      real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
       intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !
-      real(4) :: cntri , cntrj
+      real(SP) :: cntri , cntrj
       integer :: i , j
 !
       cntrj = (jx+idot)/2.
@@ -149,15 +149,15 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , ds , pollat , pollon
+      real(SP) :: clat , clon , ds , pollat , pollon
       integer :: idot , iy , jx
-      real(4) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+      real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , ds , idot , iy , jx
       intent (out) coriol , xlat , xlon , xmap
 !
 ! Local variables
 !
-      real(4) :: cntri , cntrj
+      real(SP) :: cntri , cntrj
       integer :: i , j
 !
       cntrj = (jx+idot)/2.

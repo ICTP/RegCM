@@ -18,16 +18,19 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
       module mod_bats_param
+
+      use m_realkinds
+
       implicit none
 !
-      real(8) , dimension(8) :: solour
-      real(8) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &
+      real(DP) , dimension(8) :: solour
+      real(DP) , dimension(22) :: albvgl , albvgs , crough , deprv ,    &
                                & deptv , depuv , displa , fc , freza ,  &
                                & frezu , rough , rsmin , sai , seasf ,  &
                                & sqrtdi , vegc , xla , xlai0 , rootf ,  &
                                & aest , arye
-      real(8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
-                               & xmosuc , xmowil
+      real(DP) , dimension(12) :: bee , skrat , xmofc , xmohyd , &
+                               & xmopor , xmosuc , xmowil
       integer , dimension(22) :: iexsol , kolsol
 !
 !------------------ DATA SECTION ----------------------------------------

@@ -20,6 +20,7 @@
       module mod_rdldtr
 
       use mod_block
+      use m_stdio
 
       contains
 !
@@ -46,24 +47,24 @@
         character(len=*) , intent(in) :: cfile , cvar
         integer , intent(in) :: iires , iores , imeth
         logical , intent(in) :: lreg
-        real(4) , dimension(:,:) , allocatable , intent(out) :: values
+        real(SP) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , itl
         integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
         integer , dimension(2) :: istart, icount
-        real(4) , dimension(:,:) , allocatable :: readbuf
-        real(4) , dimension(:) , allocatable :: copybuf
+        real(SP) , dimension(:,:) , allocatable :: readbuf
+        real(SP) , dimension(:) , allocatable :: copybuf
         integer :: nlogb , nlagb , hnlogb , hnlagb , nfrac
         integer , parameter :: secpd = 3600
         integer , parameter :: secpm = 60
-        real(4) :: delta
+        real(SP) :: delta
 
         iosec = iores*secpm
         inpsec = secpd/iires
         nlogb = 360*inpsec
         nlagb = 180*inpsec
         if (mod(nlogb,iosec) /= 0) then
-          print *, 'Sorry, subroutine read_ncglob does not support'// &
+          write(stderr,*) 'Subroutine read_ncglob do not support'// &
                    ' iores = ',iores
           stop
         end if
@@ -107,18 +108,19 @@
 
         allocate(values(nlonin,nlatin),stat=istatus)
         if (istatus /= 0) then
-          print *, 'Memory error on allocating ', &
+          write(stderr,*) 'Memory error on allocating ', &
                     nlatin*nlonin*4,' bytes.'
           stop
         end if
 
         allocate(readbuf(nlon,nlat), stat=istatus)
         if (istatus /= 0) then
-          print *, 'Memory error on allocating ',nlat*nlon*4,' bytes.'
+          write(stderr,*) 'Memory error on allocating ', &
+                          nlat*nlon*4,' bytes.'
           stop
         end if
 
-        print *, 'Opening '//trim(cfile)
+        write(stdout,*) 'Opening '//trim(cfile)
         istatus = nf90_open(cfile, nf90_nowrite, ncid)
         call checkerr(istatus)
         istatus = nf90_inq_varid(ncid, cvar, ivar)
@@ -154,17 +156,17 @@
         istatus = nf90_close(ncid)
         call checkerr(istatus)
 
-        print '(a$)', ' Resampling'
+        write(stdout,'(a$)') ' Resampling'
         nfrac = ifrac*ifrac
         allocate(copybuf(nfrac), stat=istatus)
         if (istatus /= 0) then
-          print *, 'Memory error on allocating ',nfrac*4,' bytes'
+          write(stderr,*) 'Memory error on allocating ',nfrac*4,' bytes'
           stop
         end if
         select case (imeth)
           case (1)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write(stdout,'(a$)') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
@@ -173,7 +175,7 @@
             end do
           case (2)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write(stdout,'(a$)') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
@@ -183,7 +185,7 @@
             end do
           case (3)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write(stdout,'(a$)') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
@@ -192,13 +194,13 @@
             end do
           case default
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write(stdout,'(a$)') '.'
               do j = 1 , nlonin
                 values(j,i) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
               end do
             end do
         end select
-        print *, 'Done.'
+        write(stdout,*) 'Done.'
         deallocate(readbuf)
         deallocate(copybuf)
 
@@ -209,8 +211,8 @@
         implicit none
         integer , intent(in) :: ierr
         if ( ierr /= nf90_noerr ) then
-          write (6, *) 'NetCDF library error.'
-          write (6, *) nf90_strerror(ierr)
+          write (stderr, *) 'NetCDF library error.'
+          write (stderr, *) nf90_strerror(ierr)
           stop
         end if
       end subroutine checkerr
@@ -218,8 +220,8 @@
       subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
         implicit none
         integer , intent(in) :: ni , nj , isize 
-        real(4) , dimension(isize*isize) , intent(out) :: copybuf
-        real(4) , dimension(ni,nj) , intent(in) :: readbuf
+        real(SP) , dimension(isize*isize) , intent(out) :: copybuf
+        real(SP) , dimension(ni,nj) , intent(in) :: readbuf
         integer , intent(in) :: i , j
         logical , intent(in) :: lwrap
         integer :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
@@ -253,7 +255,7 @@
 !
       function mpindex(x)
         implicit none
-        real(4) , dimension(:) , intent(in) :: x
+        real(SP) , dimension(:) , intent(in) :: x
         integer :: mpindex
         integer , dimension(32) :: cnt
         integer :: i
@@ -269,7 +271,7 @@
 !
       recursive subroutine qsort(a)
         implicit none 
-        real(4) , dimension(:) , intent(in out) :: a
+        real(SP) , dimension(:) , intent(in out) :: a
         integer :: np , isplit
  
         np = size(a)
@@ -282,10 +284,10 @@
  
       subroutine partition(a, marker)
         implicit none 
-        real(4) , dimension(:) , intent(inout) :: a
+        real(SP) , dimension(:) , intent(inout) :: a
         integer , intent(out) :: marker
         integer :: np , left , right
-        real(4) :: temp , pivot
+        real(SP) :: temp , pivot
  
         np = size(a)
         pivot = (a(1) + a(np))/2.0E0

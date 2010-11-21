@@ -243,8 +243,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@MPISERIAL_FALSE@noinst_LIBRARIES = libmpiser.a libmpeu.a libmct.a
-@MPISERIAL_TRUE@noinst_LIBRARIES = libmpeu.a libmct.a
+@REGCM_PARALLEL_FALSE@noinst_LIBRARIES = libmpiser.a libmpeu.a libmct.a
+@REGCM_PARALLEL_TRUE@noinst_LIBRARIES = libmpeu.a libmct.a
 libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
 	                    handles.c comm.c group.c time.c pack.c fort.F90
 

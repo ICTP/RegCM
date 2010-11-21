@@ -19,7 +19,9 @@
 !
       module mod_dynparam
 
-      implicit none
+      use m_realkinds
+      use m_stdio
+
 !
 ! PARAMETER definitions
 !
@@ -63,35 +65,35 @@
 
 ! Grid point horizontal resolution in km
 
-      real(4) :: ds
+      real(SP) :: ds
 
 ! Pressure of model top in cbar
 
-      real(4) :: ptop
+      real(SP) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-      real(4) :: clat
+      real(SP) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-      real(4) :: clon
+      real(SP) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-      real(4) :: plat
+      real(SP) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-      real(4) :: plon
+      real(SP) :: plon
 
 ! Lambert true latitude (low latitude side)
 
-      real(4) :: truelatl
+      real(SP) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-      real(4) :: truelath
+      real(SP) :: truelath
 
 !###################### I/O control flag ###############################
 
@@ -200,7 +202,7 @@
 
 ! Surface minimum H2O percent to be considered water
 
-      real(4) :: h2opct
+      real(SP) :: h2opct
 
 ! Resolution of the global terrain and landuse data be used
 !
@@ -270,21 +272,21 @@
 ! Model output control parameters
 
       logical :: ifsave
-      real(8) :: savfrq
+      real(DP) :: savfrq
 
       logical :: iftape
-      real(8) :: tapfrq
+      real(DP) :: tapfrq
 
       logical :: ifrad
-      real(8) :: radisp
+      real(DP) :: radisp
 
       logical :: ifbat
       logical :: ifsub
       logical :: iflak
-      real(8) :: batfrq
+      real(DP) :: batfrq
 
       logical :: ifchem
-      real(8) :: chemfrq
+      real(DP) :: chemfrq
 
       integer :: ibdyfrq
 
@@ -378,42 +380,42 @@
         ierr = 0
         return
 
-  100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
+  100   write (stderr,*) 'Cannot read namelist file ', trim(filename)
         ierr = 1 
         return 
-  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ',  &
+  101   write (stderr,*) 'Cannot read namelist stanza: dimparam       ',&
             & trim(filename)
         ierr = 1
         return
-  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ',  &
+  102   write (stderr,*) 'Cannot read namelist stanza: geoparam       ',&
             & trim(filename)
         ierr = 1
         return
-  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ',  &
+  103   write (stderr,*) 'Cannot read namelist stanza: terrainparam   ',&
             & trim(filename)
         ierr = 1
         return
-  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ',  &
+  104   write (stderr,*) 'Cannot read namelist stanza: ioparam        ',&
             & trim(filename)
         ierr = 1
         return
-  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ',  &
+  105   write (stderr,*) 'Cannot read namelist stanza: debugparam     ',&
             & trim(filename)
         ierr = 1
         return
-  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
+  106   write (stderr,*) 'Cannot read namelist stanza: boundaryparam  ',&
             & trim(filename)
         ierr = 1
         return
-  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ',  &
+  107   write (stderr,*) 'Cannot read namelist stanza: modesparam     ',&
             & trim(filename)
         ierr = 1
         return
-  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
+  109   write (stderr,*) 'Cannot read namelist stanza: globdatparam   ',&
             & trim(filename)
         ierr = 1
         return
-  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ',  &
+  111   write (stderr,*) 'Cannot read namelist stanza: aereosolparam  ',&
             & trim(filename)
         ierr = 1
 
@@ -421,7 +423,7 @@
 
       subroutine init_globwindow(lat0,lon0,lat1,lon1)
         implicit none
-        real(4) , intent(out) :: lat0 , lat1 , lon0 , lon1
+        real(SP) , intent(out) :: lat0 , lat1 , lon0 , lon1
         namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
         lat0 = 0.0
@@ -431,7 +433,7 @@
 
         read(ipunit, globwindow,err=101)
         return
-  101   print *, 'Globwindow not present: Assuming Global data input'
+  101   write(stdout,*) 'Globwindow not present: Assuming Global input'
         return
       end subroutine init_globwindow
 
@@ -447,7 +449,7 @@
         read(ipunit, outparam, err=100)
         return
 
-  100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
+  100   write (stderr,*) 'Cannot read namelist stanza: outparam'
         ierr = 1
 
       end subroutine init_outparam

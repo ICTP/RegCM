@@ -19,27 +19,29 @@
 
       module mod_projections
 
+      use m_realkinds
+
       use mod_constants , only : earthrad
       use mod_constants , only : degrad , raddeg
 
-      real(8) :: conefac
-      real(8) , private :: stdlon
-      real(8) , private :: truelat1 , truelat2 , tl1r , tl2r , ctl1r
-      real(8) , private :: colat1 , colat2 , nfac
-      real(8) , private :: rsw , rebydx , hemi
-      real(8) , private :: reflon , dlon , scale_top
-      real(8) , private :: polei , polej
-      real(8) , private :: polelon , polelat , xoff , yoff
-      real(8) , private :: zsinpol , zcospol , zlampol , zphipol
+      real(DP) :: conefac
+      real(DP) , private :: stdlon
+      real(DP) , private :: truelat1 , truelat2 , tl1r , tl2r , ctl1r
+      real(DP) , private :: colat1 , colat2 , nfac
+      real(DP) , private :: rsw , rebydx , hemi
+      real(DP) , private :: reflon , dlon , scale_top
+      real(DP) , private :: polei , polej
+      real(DP) , private :: polelon , polelat , xoff , yoff
+      real(DP) , private :: zsinpol , zcospol , zlampol , zphipol
       logical , private :: lamtan
 
       contains
 
       subroutine setup_lcc(clat,clon,ci,cj,ds,slon,trlat1,trlat2)
         implicit none
-        real(4) , intent(in) :: ci , cj , slon , clat , clon , ds , &
+        real(SP) , intent(in) :: ci , cj , slon , clat , clon , ds , &
                              &  trlat1 , trlat2
-        real(8) :: arg , deltalon1
+        real(DP) :: arg , deltalon1
 !
         stdlon = slon
         truelat1 = trlat1
@@ -84,10 +86,10 @@
       end subroutine setup_lcc
 
       subroutine ijll_lc(i,j,lat,lon)
-        real(4) , intent(in) :: i , j
-        real(4) , intent(out) :: lat , lon
-        real(8) :: chi1 , chi2 , chi
-        real(8) :: inew , jnew , xx , yy , r2 , r
+        real(SP) , intent(in) :: i , j
+        real(SP) , intent(out) :: lat , lon
+        real(DP) :: chi1 , chi2 , chi
+        real(DP) :: inew , jnew , xx , yy , r2 , r
 
         chi1 = (90. - hemi*truelat1)*degrad
         chi2 = (90. - hemi*truelat2)*degrad
@@ -117,9 +119,9 @@
 
       subroutine llij_lc(lat,lon,i,j)
         implicit none
-        real(4) , intent(in) :: lat , lon
-        real(4) , intent(out) :: i , j
-        real(8) :: arg , deltalon , rm
+        real(SP) , intent(in) :: lat , lon
+        real(SP) , intent(out) :: i , j
+        real(DP) :: arg , deltalon , rm
 
         deltalon = lon - stdlon
         if (deltalon > +180.) deltalon = deltalon - 360.0
@@ -136,9 +138,9 @@
 
       subroutine uvrot_lc(lon, alpha)
         implicit none
-        real(4) , intent(in) :: lon
-        real(4) , intent(out) :: alpha
-        real(4) :: deltalon
+        real(SP) , intent(in) :: lon
+        real(SP) , intent(out) :: alpha
+        real(SP) :: deltalon
 
         deltalon = stdlon - lon
         if (deltalon > +180.) deltalon = deltalon - 360.0
@@ -149,9 +151,9 @@
 
       subroutine mapfac_lc(lat, xmap)
         implicit none
-        real(4) , intent(in) :: lat
-        real(4) , intent(out) :: xmap
-        real(8) :: colat
+        real(SP) , intent(in) :: lat
+        real(SP) , intent(out) :: xmap
+        real(DP) :: colat
 
         colat = degrad*(90.0-lat)
         if (.not. lamtan) then
@@ -165,8 +167,8 @@
 
       subroutine setup_plr(clat,clon,ci,cj,ds,slon)
         implicit none
-        real(4) , intent(in) :: clat , clon , cj , ci , ds , slon
-        real(8) :: ala1 , alo1
+        real(SP) , intent(in) :: clat , clon , cj , ci , ds , slon
+        real(DP) :: ala1 , alo1
 
         stdlon = slon
         if (clat > 0.0) then
@@ -186,9 +188,9 @@
 
       subroutine llij_ps(lat,lon,i,j)
         implicit none
-        real(4) , intent(in) :: lat , lon
-        real(4) , intent(out) :: i , j
-        real(8) :: ala , alo , rm , deltalon
+        real(SP) , intent(in) :: lat , lon
+        real(SP) , intent(out) :: i , j
+        real(DP) :: ala , alo , rm , deltalon
 
         deltalon = lon - reflon
         if (deltalon > +180.) deltalon = deltalon - 360.0
@@ -204,9 +206,9 @@
 
       subroutine ijll_ps(i,j,lat,lon)
         implicit none
-        real(4) , intent(in) :: i , j
-        real(4) , intent(out) :: lat , lon
-        real(8) :: xx , yy , r2 , gi2 , arcc
+        real(SP) , intent(in) :: i , j
+        real(SP) , intent(out) :: lat , lon
+        real(DP) :: xx , yy , r2 , gi2 , arcc
 
         xx = i - polei
         yy = (j - polej) * hemi
@@ -230,16 +232,16 @@
  
       subroutine mapfac_ps(lat, xmap)
         implicit none
-        real(4) , intent(in) :: lat
-        real(4) , intent(out) :: xmap
+        real(SP) , intent(in) :: lat
+        real(SP) , intent(out) :: xmap
         xmap = scale_top/(1. + hemi * sin(lat*degrad))
       end subroutine mapfac_ps
 
       subroutine uvrot_ps(lon, alpha)
         implicit none
-        real(4) , intent(in) :: lon
-        real(4) , intent(out) :: alpha
-        real(4) :: deltalon
+        real(SP) , intent(in) :: lon
+        real(SP) , intent(out) :: alpha
+        real(SP) :: deltalon
 
         deltalon = stdlon - lon
         if (deltalon > +180.) deltalon = deltalon - 360.0
@@ -250,8 +252,8 @@
 
       subroutine setup_mrc(clat,clon,ci,cj,ds)
         implicit none
-        real(4) , intent(in) :: clat , clon , cj , ci , ds
-        real(8) :: clain
+        real(SP) , intent(in) :: clat , clon , cj , ci , ds
+        real(DP) :: clain
 
         stdlon = clon
         clain = cos(clat*degrad)
@@ -266,9 +268,9 @@
 
       subroutine llij_mc(lat,lon,i,j)
         implicit none
-        real(4) , intent(in) :: lat , lon
-        real(4) , intent(out) :: i , j
-        real(8) :: deltalon
+        real(SP) , intent(in) :: lat , lon
+        real(SP) , intent(out) :: i , j
+        real(DP) :: deltalon
 
         deltalon = lon - stdlon
         if (deltalon > +180.) deltalon = deltalon - 360.0
@@ -279,8 +281,8 @@
 
       subroutine ijll_mc(i,j,lat,lon)
         implicit none
-        real(4) , intent(in) :: i , j
-        real(4) , intent(out) :: lat , lon
+        real(SP) , intent(in) :: i , j
+        real(SP) , intent(out) :: lat , lon
 
         lat = 2.0*atan(exp(dlon*(rsw + j-polej)))*raddeg - 90.
         lon = (i-polei)*dlon*raddeg + stdlon
@@ -290,15 +292,15 @@
  
       subroutine mapfac_mc(lat, xmap)
         implicit none
-        real(4) , intent(in) :: lat
-        real(4) , intent(out) :: xmap
+        real(SP) , intent(in) :: lat
+        real(SP) , intent(out) :: xmap
         xmap = 1.0/cos(lat*degrad)
       end subroutine mapfac_mc
 
       subroutine setup_rmc(clat,clon,ci,cj,ds,plon,plat)
         implicit none
-        real(4) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
-        real(8) :: plam , pphi
+        real(SP) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
+        real(DP) :: plam , pphi
 
         polelon = plon
         polelat = plat
@@ -318,10 +320,10 @@
 
       subroutine llij_rc(lat,lon,i,j)
         implicit none
-        real(4) , intent(in) :: lat , lon
-        real(4) , intent(out) :: i , j
-        real(8) :: zarg , zarg1 , zarg2 , zlam , zphi
-        real(8) :: lams , phis
+        real(SP) , intent(in) :: lat , lon
+        real(SP) , intent(out) :: i , j
+        real(DP) :: zarg , zarg1 , zarg2 , zlam , zphi
+        real(DP) :: lams , phis
  
         zphi = degrad*lat
         zlam = lon
@@ -348,9 +350,9 @@
 
       subroutine ijll_rc(i,j,lat,lon)
         implicit none
-        real(4) , intent(in) :: i , j
-        real(4) , intent(out) :: lat , lon
-        real(8) :: xr , yr , arg , zarg1 , zarg2
+        real(SP) , intent(in) :: i , j
+        real(SP) , intent(out) :: lat , lon
+        real(DP) :: xr , yr , arg , zarg1 , zarg2
 
         xr = xoff + (i-polei)*dlon
         if ( xr>180.0 ) xr = xr - 360.0
@@ -379,9 +381,9 @@
  
       subroutine uvrot_rc(lat, lon, alpha)
         implicit none
-        real(4) , intent(in) :: lon , lat
-        real(4) , intent(out) :: alpha
-        real(8) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
+        real(SP) , intent(in) :: lon , lat
+        real(SP) , intent(out) :: alpha
+        real(DP) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
         zphi = lat*degrad
         zrla = lon*degrad
         if (lat > 89.999999) zrla = 0.0
@@ -394,18 +396,18 @@
 
       subroutine mapfac_rc(ir, xmap)
         implicit none
-        real(4) , intent(in) :: ir
-        real(4) , intent(out) :: xmap
-        real(8) :: yr
+        real(SP) , intent(in) :: ir
+        real(SP) , intent(out) :: xmap
+        real(DP) :: yr
         yr = yoff + (ir-polej)*dlon
         xmap = 1.0/cos(yr*degrad)
       end subroutine mapfac_rc
 
       function rounder(value,ltop)
         implicit none
-        real(4) , intent(in) :: value
+        real(SP) , intent(in) :: value
         logical, intent(in) :: ltop
-        real(4) :: rounder
+        real(SP) :: rounder
         integer :: tmpval
         if (ltop) then
           tmpval = ceiling(value*100.0)

@@ -19,17 +19,17 @@
 
       module mod_interp
 !
-      implicit none
+      use m_realkinds
 !
       private
 !
       public :: interp , filter1plakes
 !
-      real(8) , dimension(4,4) :: c
-      real(8) , dimension(16,16) :: wt
+      real(DP) , dimension(4,4) :: c
+      real(DP) , dimension(16,16) :: wt
       integer , parameter :: maxbins = 20
       integer , dimension(maxbins) :: bincnt
-      real(8) , dimension(maxbins) :: bmindist
+      real(DP) , dimension(maxbins) :: bmindist
       logical , dimension(2,maxbins) :: lndwt
       integer , dimension(2,maxbins) :: indwt
 !
@@ -54,7 +54,7 @@
       function inear(x,m,lwrap)
       implicit none
       integer :: inear
-      real(8) , intent(in) :: x
+      real(DP) , intent(in) :: x
       integer , intent(in) :: m
       logical , intent(in) :: lwrap
       if (.not. lwrap) then
@@ -73,7 +73,7 @@
       function jnear(y,n)
       implicit none
       integer :: jnear
-      real(8) , intent(in) :: y
+      real(DP) , intent(in) :: y
       integer , intent(in) :: n
       jnear = min(max(nint(y),1),n)
       end function jnear
@@ -81,7 +81,7 @@
       function ifloor(x,m,lwrap)
       implicit none
       integer :: ifloor
-      real(8) , intent(in) :: x
+      real(DP) , intent(in) :: x
       integer , intent(in) :: m
       logical , intent(in) :: lwrap
       if (.not. lwrap) then
@@ -100,33 +100,33 @@
       function jfloor(y,n)
       implicit none
       integer :: jfloor
-      real(8) , intent(in) :: y
+      real(DP) , intent(in) :: y
       integer , intent(in) :: n
       jfloor = min(max(floor(y),1),n)
       end function jfloor
 !
       function nearpoint(x,y,m,n,grid,lwrap)
       implicit none
-      real(8) :: nearpoint
+      real(DP) :: nearpoint
       integer :: m , n
-      real(8) :: x , y
+      real(DP) :: x , y
       logical :: lwrap
-      real(4) , dimension(m,n) :: grid
+      real(SP) , dimension(m,n) :: grid
       intent (in) lwrap , m , n , grid , x , y
       nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
       end function nearpoint
 !
       function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
       implicit none
-      real(8) :: mostaround
+      real(DP) :: mostaround
       integer , intent(in) :: m , n , nbox , ibnty
-      real(8) , intent(in) :: x , y
+      real(DP) , intent(in) :: x , y
       logical , intent(in) :: lwrap
-      real(4) , intent(in) , dimension(m,n) :: grid
-      real(4) , intent(in) :: h2opct
+      real(SP) , intent(in) , dimension(m,n) :: grid
+      real(SP) , intent(in) :: h2opct
 !
-      real(8) , dimension(nbox*nbox) :: binval , bindist
-      real(8) :: dist , rx , ry , wtp
+      real(DP) , dimension(nbox*nbox) :: binval , bindist
+      real(DP) :: dist , rx , ry , wtp
       integer :: ii0 , jj0 , ii , jj
       integer :: totpoints , i , j , lastc , hbox
 
@@ -177,16 +177,16 @@
 !
       function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
       implicit none
-      real(8) :: pctaround
+      real(DP) :: pctaround
       integer :: m , n , ival , nbox
-      real(8) :: x , y , rx , ry
+      real(DP) :: x , y , rx , ry
       logical :: lwrap
-      real(4) , dimension(m,n) :: grid
+      real(SP) , dimension(m,n) :: grid
       intent (in) lwrap , m , n , grid , x , y , ival
 !
       integer :: ii0 , jj0 , ii , jj
       integer :: i , j
-      real(8) :: pc
+      real(DP) :: pc
 
       pctaround = 0.0D0
       pc = nbox*nbox
@@ -210,15 +210,15 @@
 
       implicit none
 !
-      real(8) :: bilinear
+      real(DP) :: bilinear
       integer :: m , n
-      real(8) :: x , y
+      real(DP) :: x , y
       logical :: lwrap
-      real(4) , dimension(m,n) :: grid
+      real(SP) , dimension(m,n) :: grid
       intent (in) lwrap , m , n , grid , x , y
 !
-      real(8) :: dx, dy, p12, p03
-      real(8) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
+      real(DP) :: dx, dy, p12, p03
+      real(DP) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
       integer :: i0, j0, i1, j1, i2, j2, i3, j3
 !
 !-----bilinear interpolation among four grid values
@@ -265,15 +265,15 @@
  
       implicit none
 !
-      real(8) :: bicubic
+      real(DP) :: bicubic
       integer :: m , n
-      real(8) :: x , y
+      real(DP) :: x , y
       logical :: lwrap
-      real(4) , dimension(m,n) :: grid
+      real(SP) , dimension(m,n) :: grid
       intent (in) grid , m , n , x , y , lwrap
 !
-      real(8) , dimension(4) :: f , f1 , f12 , f2
-      real(8) :: xl , xu , yl , yu
+      real(DP) , dimension(4) :: f , f1 , f12 , f2
+      real(DP) :: xl , xu , yl , yu
       integer :: i , ii , j , mm , nn , im , imp1 , imn1
 
       mm = int(x)
@@ -321,13 +321,13 @@
       subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
       implicit none
 !
-      real(8) :: a , x1 , x1l , x1u , x2 , x2l , x2u
-      real(8) , dimension(4) :: y , y1 , y12 , y2
+      real(DP) :: a , x1 , x1l , x1u , x2 , x2l , x2u
+      real(DP) , dimension(4) :: y , y1 , y12 , y2
       intent (in) x1 , x1l , x1u , x2 , x2l , x2u , y , y1 , y12 , y2
       intent (out) a
 !
       integer :: i
-      real(8) :: t , u
+      real(DP) :: t , u
 !
       call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
       t = (x1-x1l)/(x1u-x1l)
@@ -341,12 +341,12 @@
       subroutine bcucof(y,y1,y2,y12,d1,d2)
       implicit none
 !
-      real(8) :: d1 , d2
-      real(8) , dimension(4) :: y , y1 , y12 , y2
+      real(DP) :: d1 , d2
+      real(DP) , dimension(4) :: y , y1 , y12 , y2
       intent (in) d1 , d2 , y , y1 , y12 , y2
 !
-      real(8) , dimension(16) :: cl , x
-      real(8) :: d1d2 , xx
+      real(DP) , dimension(16) :: cl , x
+      real(DP) :: d1d2 , xx
       integer :: i , j , k , l
 
       d1d2 = d1*d2
@@ -377,25 +377,26 @@
       subroutine interp(iy,jx,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
                         ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
  
+      use m_stdio
       implicit none
 !
       integer , intent(in) :: iy , jx , iniy , injx , ntypec , itype
-      real(4) , intent(in) , dimension(iy, jx) :: xlat , xlon
-      real(4) , intent(in) , dimension(injx, iniy) :: imt
-      real(8) , intent(in) :: milat , milon
+      real(SP) , intent(in) , dimension(iy, jx) :: xlat , xlon
+      real(SP) , intent(in) , dimension(injx, iniy) :: imt
+      real(DP) , intent(in) :: milat , milon
       logical , intent(in) :: lwrap , lcross
       integer , intent(in) , optional :: ival
       integer , intent(in) , optional :: ibnty
-      real(4) , intent(in) , optional :: h2opct
-      real(4) , intent(out) , dimension(iy, jx) :: omt
+      real(SP) , intent(in) , optional :: h2opct
+      real(SP) , intent(out) , dimension(iy, jx) :: omt
 !
       integer :: nbox , ii , jj , jwrapp , jwrapm
-      real(8) :: xx , yy , rinc
+      real(DP) :: xx , yy , rinc
 !
       rinc = 60.0D0/dble(ntypec)
 !
       if (itype < 1 .or. itype > 5) then
-        print *, 'Unknown interpolation type'
+        write(stderr,*) 'Unknown interpolation type'
         stop
       end if
 !
@@ -483,7 +484,7 @@
       subroutine filter1plakes(iy,jx,omt)
         implicit none
         integer , intent(in) :: iy , jx
-        real(4) , intent(out) , dimension(iy, jx) :: omt
+        real(SP) , intent(out) , dimension(iy, jx) :: omt
         integer , dimension(maxbins) :: cnt
         integer , dimension(9) :: around
         integer , parameter :: ilake = 14

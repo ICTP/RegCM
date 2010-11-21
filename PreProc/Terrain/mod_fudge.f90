@@ -19,6 +19,9 @@
 
       module mod_fudge
 
+      use m_stdio
+      use m_realkinds
+
       private
 
       public :: lndfudge , texfudge , lakfudge
@@ -34,7 +37,7 @@
       character(*) :: char_lnd
       logical :: fudge,there
       integer :: iy , jx
-      real(4) , dimension(iy,jx) :: htgrid , lndout
+      real(SP) , dimension(iy,jx) :: htgrid , lndout
       intent (in) char_lnd , fudge , iy , jx
       intent (inout) htgrid , lndout
 !
@@ -46,9 +49,9 @@
       if ( fudge ) then
         inquire (file=char_lnd,exist=there)
         if ( .not.there ) then
-          print *, 'Fudging requested for landuse but missing input'// &
-                   ' ascii file ',trim(char_lnd)
-          print * , 'ERROR OPENING ' , char_lnd ,  &
+          write(stdout,*) 'Fudging requested for landuse but '// &
+                   ' missing input ascii file ',trim(char_lnd)
+          write(stdout,*)  'ERROR OPENING ' , char_lnd ,  &
              &' FILE:  FILE DOES NOT EXIST'
            stop ' IN SUBROUTINE lndfudge'
         endif 
@@ -188,7 +191,7 @@
       character(*) :: char_tex
       logical :: fudge, there
       integer :: iy , jx
-      real(4) , dimension(iy,jx) :: htgrid , texout
+      real(SP) , dimension(iy,jx) :: htgrid , texout
       intent (in) char_tex , fudge , iy , jx
       intent (out) htgrid
       intent (inout) texout
@@ -201,9 +204,9 @@
       if ( fudge ) then
         inquire (file=char_tex,exist=there)
         if ( .not.there ) then
-          print *, 'Fudging requested for texture but missing input'// &
-                   ' ascii file ',trim(char_tex)
-          print * , 'ERROR OPENING ' , char_tex ,   &
+          write(stdout,*) 'Fudging requested for texture but '// &
+                   'missing input ascii file ',trim(char_tex)
+          write(stdout,*)  'ERROR OPENING ' , char_tex ,   &
                   &' FILE:  FILE DOES NOT EXIST'
           stop ' IN SUBROUTINE texfudge'
         endif 
@@ -323,7 +326,7 @@
       character(*) :: char_lak
       logical :: fudge , there
       integer :: iy , jx
-      real(4) , dimension(iy,jx) :: dpth , lnd
+      real(SP) , dimension(iy,jx) :: dpth , lnd
       intent (in) char_lak , fudge , iy , jx , lnd
       intent (inout) dpth
 !
@@ -335,9 +338,9 @@
       if ( fudge ) then
         inquire (file=char_lak,exist=there)
         if ( .not.there ) then
-          print *, 'Fudging requested for lake but missing input'// &
-                   ' ascii file ',trim(char_lak)
-          print * , 'ERROR OPENING ' , char_lak ,  &
+          write(stdout,*) 'Fudging requested for lake but '// &
+                   'missing input ascii file ',trim(char_lak)
+          write(stdout,*)  'ERROR OPENING ' , char_lak ,  &
              &' FILE:  FILE DOES NOT EXIST'
            stop ' IN SUBROUTINE lakfudge'
         endif 

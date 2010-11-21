@@ -19,21 +19,21 @@
 
       module mod_maps
 
-      implicit none
+      use m_realkinds
 
-      real(4) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
+      real(SP) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
                      & dmap , htgrid , lndout , mask , dpth , snowam ,  &
                      & texout , xlat , xlon , xmap
-      real(4) , allocatable , dimension(:,:,:) :: frac_tex
+      real(SP) , allocatable , dimension(:,:,:) :: frac_tex
 
-      real(4) , allocatable , dimension(:,:) :: coriol_s , dlat_s ,     &
+      real(SP) , allocatable , dimension(:,:) :: coriol_s , dlat_s ,     &
                         & dlon_s , dmap_s , htgrid_s , lndout_s ,       &
                         & mask_s , dpth_s , snowam_s , texout_s ,       &
                         & xlat_s , xlon_s , xmap_s
-      real(4) , allocatable , dimension(:,:,:) :: frac_tex_s
+      real(SP) , allocatable , dimension(:,:,:) :: frac_tex_s
 
-      real(4) , allocatable , dimension(:) :: sigma
-      real(4) :: xn
+      real(SP) , allocatable , dimension(:) :: sigma
+      real(SP) :: xn
 
       contains
 

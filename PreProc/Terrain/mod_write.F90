@@ -19,36 +19,9 @@
 
       module mod_write
 
-      real(4) :: dsinm
+      use m_stdio
 
       contains
-
-      subroutine setup(iy,jx,ntypec,iproj,ds,clat,clon)
-      use mod_block
-      implicit none
-!
-! Dummy arguments
-!
-      real(4) :: clat , clon , ds
-      integer :: iy , jx , ntypec
-      character(6) :: iproj
-      intent (in) clat , clon , ds , iproj , iy , jx , ntypec
-!
-      dsinm = ds*1000.
-!
-      write (6,*) ' '
-      write (6,*) 'Doing Domain Setup with following parameters'
-      write (6,*) ' '
-      write (6,*) 'ntypec = ' , ntypec
-      write (6,*) 'iy     = ' , iy
-      write (6,*) 'jx     = ' , jx
-      write (6,*) 'ds     = ' , ds
-      write (6,*) 'clat   = ' , clat
-      write (6,*) 'clon   = ' , clon
-      write (6,*) 'iproj  = ' , iproj
-      write (6,*) ' '
-!
-      end subroutine setup
 !
       subroutine write_domain(lsub)
         use netcdf
@@ -70,10 +43,10 @@
         integer , dimension(8) :: tvals
         character(256) :: fname , history
         character(3) :: cnsg
-        real(4) , dimension(2) :: trlat
-        real(4) :: hptop , fillv
-        real(4) , allocatable , dimension(:) :: yiy
-        real(4) , allocatable , dimension(:) :: xjx
+        real(SP) , dimension(2) :: trlat
+        real(SP) :: hptop , fillv
+        real(SP) , allocatable , dimension(:) :: yiy
+        real(SP) , allocatable , dimension(:) :: xjx
 
         fillv = 0.0
         trlat(1) = truelatl
@@ -749,8 +722,8 @@
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then 
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
+          write (stderr,*) message
+          write (stderr,*) nf90_strerror(ierr)
           stop
         end if
       end subroutine check_ok

@@ -240,9 +240,9 @@ if eval "test x"$FC" = xpgf90"; then
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xxlf90"; then
-  CPPFLAGS="-DIBM $CPPFLAGS"
+  AM_CPPFLAGS="-DIBM $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
   CPRDEF="XLF"
-  AC_SUBST(CPPFLAGS)
 fi
 if eval "test x"$FC" = xsun95"; then
   CPRDEF="WORKSHOP"
@@ -310,7 +310,17 @@ else
 fi
 
 MCTPATH="${PWD}/external"
-AM_CONDITIONAL(MPISERIAL, [test x"$PARALLEL" = x1])
+if eval "test x"$FC" = xsunf95"; then
+  MCTFLAGS="-M$MCTPATH"
+  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+else
+  MCTFLAGS="-I$MCTPATH"
+  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
+AC_SUBST(AM_LDFLAGS)
 if eval "test x$PARALLEL = x1"; then
   ACX_MPI
   FC=$MPIFC
@@ -318,14 +328,10 @@ if eval "test x$PARALLEL = x1"; then
 else
   FORT_SIZE="real4double8"
   MPIFC=$FC
-  CPPFLAGS="-I$MPIPATH $CPPFLAGS"
   LIBS="$LIBS -lmpiser -lmpeu -lmct"
   AC_SUBST(MPIFC)
-  AC_SUBST(CPPFLAGS)
   AC_SUBST(FORT_SIZE)
 fi
-LDFLAGS="-L$MCTPATH $LDFLAGS"
-AC_SUBST(LDFLAGS)
 
 MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
 MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
@@ -343,6 +349,9 @@ REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 bindir=${REGCM_ROOT}/Bin
 AC_SUBST(bindir)
+
+CPPFLAGS="$AM_CPPFLAGS"
+AC_SUBST(CPPFLAGS)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile \

@@ -56,13 +56,14 @@
       use mod_dynparam
       use mod_maps
       use mod_block
-      use mod_smooth , only : smth121 , smthtr
-      use mod_maputils , only : lambrt , mappol , normer , rotmer
+      use mod_smooth
+      use mod_maputils
       use mod_interp
       use mod_fudge
-      use mod_rdldtr , only : read_ncglob
-      use mod_write , only : setup , write_domain , dsinm
-      use mod_header , only : header
+      use mod_rdldtr
+      use mod_write
+      use mod_header
+      use m_stdio
       implicit none
 !
 ! Local variables
@@ -71,7 +72,7 @@
       character(256) :: namelistfile , prgname
       integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
       logical :: ibndry
-      real(4) :: clong , hsum , have
+      real(SP) :: clong , hsum , have , dsinm
 !
       data ibndry /.true./
 !
@@ -83,11 +84,11 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
+        write (stderr,*) 'Parameter initialization not completed'
+        write (stderr,*) 'Usage : '
+        write (stderr,*) '          ', trim(prgname), ' regcm.in'
+        write (stderr,*) ' '
+        write (stderr,*) 'Check argument and namelist syntax'
         stop
       end if
 !
@@ -95,8 +96,8 @@
 !
       minsize = (kz+1)+16
       if ((iym2*jxm2) .lt. minsize) then
-        write (6, *) 'Please increase domain size.'
-        write (6, *) 'Minsize (iy-2)*(jx-2) is ', minsize
+        write (stderr,*) 'Please increase domain size.'
+        write (stderr,*) 'Minsize (iy-2)*(jx-2) is ', minsize
         call abort
       end if
 
@@ -180,8 +181,16 @@
 
       if ( nsg>1 ) then
 
-        call setup(iysg,jxsg,ntypec_s,iproj,ds/nsg,clat,clong)
-        print * , 'Subgrid setup done'
+        write (stdout,*) 'Doing Subgrid with following parameters'
+        write (stdout,*) 'ntypec = ' , ntypec_s
+        write (stdout,*) 'iy     = ' , iysg
+        write (stdout,*) 'jx     = ' , jxsg
+        write (stdout,*) 'ds     = ' , ds/nsg
+        write (stdout,*) 'clat   = ' , clat
+        write (stdout,*) 'clon   = ' , clong
+        write (stdout,*) 'iproj  = ' , iproj
+        dsinm = ds*1000.
+        write(stdout,*) 'Subgrid setup done'
 
         if ( iproj=='LAMCON' ) then
           call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
@@ -207,44 +216,44 @@
                     & clat,plon,plat,dsinm,1)
           xn = 0.
         else
-          write (6,*) 'iproj = ', iproj
-          write (6,*) 'Unrecognized or unsupported projection'
-          write (6,*) 'Set iproj to one in LAMCON,POLSTR,NORMER,ROTMER'
+          write (stderr,*) 'iproj = ', iproj
+          write (stderr,*) 'Unrecognized or unsupported projection'
+          write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
           stop
         end if
-        print * , 'Subgrid Geo mapping done'
+        write(stdout,*) 'Subgrid Geo mapping done'
 !
 !       reduce the search area for the domain
         call mxmnll(iysg,jxsg,xlon_s,xlat_s,i_band)
-        print * , 'Determined Subgrid coordinate range'
+        write(stdout,*) 'Determined Subgrid coordinate range'
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GTOPO_DEM_30s.nc','z',   &
                          30,ntypec_s,.true.,0,ht)
-        print *, 'Static DEM data successfully read in'
+        write(stdout,*)'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
                     nlatin,nlonin,grdltmn,grdlnmn,ht, &
                     ntypec_s,2,lonwrap,lcrosstime)
-        print *, 'Interpolated DEM on SUBGRID'
+        write(stdout,*)'Interpolated DEM on SUBGRID'
         deallocate(ht)
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLCC_BATS_30s.nc',       &
                          'landcover',30,ntypec_s,.true.,0,lnd)
-        print *, 'Static landcover BATS data successfully read in'
+        write(stdout,*)'Static landcover BATS data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
                     nlatin,nlonin,grdltmn,grdlnmn,lnd, &
                     ntypec_s,4,lonwrap,lcrosstime,     &
                     ibnty=1,h2opct=h2opct)
         call filter1plakes(iysg,jxsg,lndout_s)
-        print *, 'Interpolated landcover on SUBGRID'
+        write(stdout,*)'Interpolated landcover on SUBGRID'
         deallocate(lnd)
 !
         if ( aertyp(7:7)=='1' ) then
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'GLZB_SOIL_30s.nc',       &
                            'soiltype',30,ntypec_s,.true.,0,text)
-          print *, 'Static texture data successfully read in'
+          write(stdout,*)'Static texture data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
                       nlatin,nlonin,grdltmn,grdlnmn,text, &
                       ntypec_s,4,lonwrap,lcrosstime,      &
@@ -254,7 +263,7 @@
                         nlatin,nlonin,grdltmn,grdlnmn,text,         &
                         ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
-          print *, 'Interpolated texture on SUBGRID'
+          write(stdout,*)'Interpolated texture on SUBGRID'
           deallocate(text)
         end if
 
@@ -262,11 +271,11 @@
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'ETOPO_BTM_30s.nc',       &
                            'z',30,ntypec_s,.true.,0,dpt)
-          print *, 'Static bathymetry data successfully read in'
+          write(stdout,*)'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
                       nlatin,nlonin,grdltmn,grdlnmn,dpt, &
                       ntypec_s,2,lonwrap,lcrosstime)
-          print *, 'Interpolated bathymetry on SUBGRID'
+          write(stdout,*)'Interpolated bathymetry on SUBGRID'
           deallocate(dpt)
         end if
 
@@ -322,14 +331,22 @@
           call texfudge(fudge_tex_s,texout_s,htgrid_s,iysg,jxsg, &
                         trim(char_tex))
         end if
-        print * , 'Fudging data (if requested) succeeded'
+        write(stdout,*) 'Fudging data (if requested) succeeded'
 
       end if
 !
 !     set up the parameters and constants
 !
-      call setup(iy,jx,ntypec,iproj,ds,clat,clong)
-      print * , 'Grid setup done'
+      write (stdout,*) 'Doing Grid with following parameters'
+      write (stdout,*) 'ntypec = ' , ntypec_s
+      write (stdout,*) 'iy     = ' , iysg
+      write (stdout,*) 'jx     = ' , jxsg
+      write (stdout,*) 'ds     = ' , ds/nsg
+      write (stdout,*) 'clat   = ' , clat
+      write (stdout,*) 'clon   = ' , clong
+      write (stdout,*) 'iproj  = ' , iproj
+      dsinm = ds*1000.
+      write(stdout,*) 'Grid setup done'
 !
 !-----calling the map projection subroutine
       if ( iproj=='LAMCON' ) then
@@ -352,44 +369,44 @@
                   & dsinm,1)
         xn = 0.
       else
-        write (6,*) 'iproj = ', iproj
-        write (6,*) 'Unrecognized or unsupported projection'
-        write (6,*) 'Set iproj to one in LAMCON, POLSTR, NORMER, ROTMER'
+        write (stderr,*) 'iproj = ', iproj
+        write (stderr,*) 'Unrecognized or unsupported projection'
+        write (stderr,*) 'Set iproj in LAMCON, POLSTR, NORMER, ROTMER'
         stop
       end if
-      print * , 'Geo mapping done'
+      write(stdout,*) 'Geo mapping done'
 !
 !     reduce the search area for the domain
       call mxmnll(iy,jx,xlon,xlat,i_band)
-      print *, 'Determined Grid coordinate range'
+      write(stdout,*)'Determined Grid coordinate range'
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GTOPO_DEM_30s.nc','z',   &
                        30,ntypec,.true.,0,ht)
-      print *, 'Static DEM data successfully read in'
+      write(stdout,*)'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
                   nlatin,nlonin,grdltmn,grdlnmn,ht, &
                   ntypec,2,lonwrap,lcrosstime)
-      print *, 'Interpolated DEM on model GRID'
+      write(stdout,*)'Interpolated DEM on model GRID'
       deallocate(ht)
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLCC_BATS_30s.nc',       &
                        'landcover',30,ntypec,.true.,0,lnd)
-      print *, 'Static landcover BATS data successfully read in'
+      write(stdout,*)'Static landcover BATS data successfully read in'
       call interp(iy,jx,xlat,xlon,lndout,            &
                   nlatin,nlonin,grdltmn,grdlnmn,lnd, &
                   ntypec,4,lonwrap,lcrosstime,       &
                   ibnty=1,h2opct=h2opct)
       call filter1plakes(iy,jx,lndout)
-      print *, 'Interpolated landcover on model GRID'
+      write(stdout,*)'Interpolated landcover on model GRID'
       deallocate(lnd)
 !
       if ( aertyp(7:7)=='1' ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLZB_SOIL_30s.nc',       &
                          'soiltype',30,ntypec,.true.,0,text)
-        print *, 'Static texture data successfully read in'
+        write(stdout,*)'Static texture data successfully read in'
         call interp(iy,jx,xlat,xlon,texout,             &
                     nlatin,nlonin,grdltmn,grdlnmn,text, &
                     ntypec,4,lonwrap,lcrosstime,        &
@@ -399,7 +416,7 @@
                       nlatin,nlonin,grdltmn,grdlnmn,text, &
                       ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
-        print *, 'Interpolated texture on model GRID'
+        write(stdout,*)'Interpolated texture on model GRID'
         deallocate(text)
       end if
 
@@ -407,11 +424,11 @@
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'ETOPO_BTM_30s.nc',       &
                          'z',30,ntypec,.true.,0,dpt)
-        print *, 'Static bathymetry data successfully read in'
+        write(stdout,*)'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
                     nlatin,nlonin,grdltmn,grdlnmn,dpt, &
                     ntypec,2,lonwrap,lcrosstime)
-        print *, 'Interpolated bathymetry on model GRID'
+        write(stdout,*)'Interpolated bathymetry on model GRID'
         deallocate(dpt)
       end if
 
@@ -494,7 +511,7 @@
              &   '_LAK'
         call lakfudge(fudge_lak,dpth,lndout,iy,jx,trim(char_lak))
       end if
-      print * , 'Fudging data (if requested) succeeded'
+      write(stdout,*) 'Fudging data (if requested) succeeded'
 
       if ( nsg>1 ) then
         do i = 1 , iy
@@ -546,15 +563,15 @@
         end if
 
         call write_domain(.true.)
-        print * , 'Subgrid data written to output file'
+        write(stdout,*) 'Subgrid data written to output file'
         call free_subgrid
       end if
 
       call write_domain(.false.)
-      print * , 'Grid data written to output file'
+      write(stdout,*) 'Grid data written to output file'
       call free_grid
 
-      print *, 'Successfully completed terrain fields generation'
+      write(stdout,*)'Successfully completed terrain fields generation'
 !
 99001 format (a,a,a,a,i0.3)
 99002 format (a,a,a,a)

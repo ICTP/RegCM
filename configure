@@ -622,8 +622,6 @@ MPEUCFLAGS
 FORT_SIZE
 MPILIBS
 MPIFC
-MPISERIAL_FALSE
-MPISERIAL_TRUE
 REGCM_PARALLEL_FALSE
 REGCM_PARALLEL_TRUE
 COMPILER_INTEL_FALSE
@@ -15823,8 +15821,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   FCFLAGS="$save_FCFLAGS"
   AM_CPPFLAGS="$NC_FCFLAGS$NC_PREFIX/include $AM_CPPFLAGS"
 
-  CPPFLAGS="$AM_CPPFLAGS $CPPFLAGS"
-
 
 
 test "$osname"=NONE && osname=`uname -s`
@@ -15972,9 +15968,9 @@ if eval "test x"$FC" = xpgf90"; then
 
 fi
 if eval "test x"$FC" = xxlf90"; then
-  CPPFLAGS="-DIBM $CPPFLAGS"
-  CPRDEF="XLF"
+  AM_CPPFLAGS="-DIBM $AM_CPPFLAGS"
 
+  CPRDEF="XLF"
 fi
 if eval "test x"$FC" = xsun95"; then
   CPRDEF="WORKSHOP"
@@ -16042,13 +16038,16 @@ else
 fi
 
 MCTPATH="${PWD}/external"
- if test x"$PARALLEL" = x1; then
-  MPISERIAL_TRUE=
-  MPISERIAL_FALSE='#'
+if eval "test x"$FC" = xsunf95"; then
+  MCTFLAGS="-M$MCTPATH"
+  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
+
 else
-  MPISERIAL_TRUE='#'
-  MPISERIAL_FALSE=
+  MCTFLAGS="-I$MCTPATH"
+  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
+
 fi
+AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 
 if eval "test x$PARALLEL = x1"; then
 
@@ -16281,14 +16280,10 @@ fi
 else
   FORT_SIZE="real4double8"
   MPIFC=$FC
-  CPPFLAGS="-I$MPIPATH $CPPFLAGS"
   LIBS="$LIBS -lmpiser -lmpeu -lmct"
 
 
-
 fi
-LDFLAGS="-L$MCTPATH $LDFLAGS"
-
 
 MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
 MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
@@ -16305,6 +16300,9 @@ F90FLAGS="$FCFLAGS"
 REGCM_ROOT=${PWD}
 
 bindir=${REGCM_ROOT}/Bin
+
+
+CPPFLAGS="$AM_CPPFLAGS"
 
 
 ac_config_headers="$ac_config_headers config.h"
@@ -16480,10 +16478,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${REGCM_PARALLEL_TRUE}" && test -z "${REGCM_PARALLEL_FALSE}"; then
   as_fn_error $? "conditional \"REGCM_PARALLEL\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${MPISERIAL_TRUE}" && test -z "${MPISERIAL_FALSE}"; then
-  as_fn_error $? "conditional \"MPISERIAL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
