@@ -141,13 +141,13 @@ FCFLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
            -I$(REGCMSRC) $(NETCDFINC)
 
 %.o: %.f90
-	$(FC) -c $(FPPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(FPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) -c $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 %.o: %.c
-	$(CC) -c -o $@ $(CFLAGS) $(DEFFLAGS) -c $<
+	$(CC) -o $@ $(CFLAGS) $(DEFFLAGS) -c $<
 
 clean:
 		@echo -n Removing objects, mods and $(noinst_LIBRARIES) ... 

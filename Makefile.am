@@ -17,5 +17,5 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = PreProc/Terrain PreProc/ICBC PreProc/CLM PostProc Main/netlib \
-					Main/clmlib Main
+SUBDIRS = external PreProc/Terrain PreProc/ICBC PreProc/CLM \
+          Main/netlib Main/clmlib Main PostProc

@@ -616,10 +616,17 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 REGCM_ROOT
+F90FLAGS
+MPEUFCFLAGS
+MPEUCFLAGS
 MPILIBS
 MPIFC
+MPISERIAL_FALSE
+MPISERIAL_TRUE
 REGCM_PARALLEL_FALSE
 REGCM_PARALLEL_TRUE
+COMPILER_INTEL_FALSE
+COMPILER_INTEL_TRUE
 COMPILER_PGI_FALSE
 COMPILER_PGI_TRUE
 COMPILER_SUN_FALSE
@@ -15819,17 +15826,53 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 
-ac_config_headers="$ac_config_headers config.h"
-
-ac_config_files="$ac_config_files Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile Main/clmlib/Makefile Main/Makefile"
-
-
 test "$osname"=NONE && osname=`uname -s`
 OSNAME=$osname
 
 
 test "$machinename"=NONE && machinename=`uname -m`
 fullhostname=`hostname -f`
+
+# DEFINE VARIABLES ACCORDING TO OS AND COMPILER
+
+if echo $osname | grep -i aix >/dev/null 2>&1; then
+   SYSDEF="AIX"
+fi
+if echo $osname | grep -i darwin >/dev/null 2>&1; then
+   SYSDEF="DARWIN"
+fi
+if echo $osname | grep -i unix_system_v >/dev/null 2>&1; then
+   SYSDEF="UNIXSYSTEMV"
+fi
+if echo $osname | grep -i irix >/dev/null 2>&1; then
+   SYSDEF="IRIX"
+fi
+if echo $osname | grep -i irix64 >/dev/null 2>&1; then
+   SYSDEF="IRIX64"
+fi
+if echo $osname | grep -i linux >/dev/null 2>&1; then
+   SYSDEF="LINUX"
+fi
+if echo $osname | grep -i osf1 >/dev/null 2>&1; then
+   SYSDEF="OSF1"
+fi
+if echo $osname | grep -i super >/dev/null 2>&1; then
+   SYSDEF="SUPERUX"
+fi
+if echo $osname | grep -i sun >/dev/null 2>&1; then
+   SYSDEF="SUNOS"
+fi
+if echo $osname | grep -i t3e >/dev/null 2>&1; then
+   SYSDEF="T3E"
+fi
+if echo $osname | grep -i unicos >/dev/null 2>&1; then
+   SYSDEF="UNICOS"
+fi
+if test -z "$SYSDEF"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: OPERATING SYSTEM UNKNOWN" >&5
+$as_echo "$as_me: WARNING: OPERATING SYSTEM UNKNOWN" >&2;}
+   SYSDEF="UNKNOWNOS"
+fi
 
  if test x"$osname" = xAIX; then
   OSNAME_AIX_TRUE=
@@ -15888,6 +15931,14 @@ else
   COMPILER_PGI_FALSE=
 fi
 
+ if test x"$FC" = xifort; then
+  COMPILER_INTEL_TRUE=
+  COMPILER_INTEL_FALSE='#'
+else
+  COMPILER_INTEL_TRUE='#'
+  COMPILER_INTEL_FALSE=
+fi
+
 
  if test x$PARALLEL = x1; then
   REGCM_PARALLEL_TRUE=
@@ -15901,23 +15952,31 @@ fi
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
   FCFLAGS="-fconvert=big-endian $FCFLAGS"
+  CPRDEF="GNU"
 
 fi
 if eval "test x"$FC" = xifort"; then
   FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+  CPRDEF="INTEL"
 
 fi
 if eval "test x"$FC" = xg95"; then
   FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+  CPRDEF="GNU"
 
 fi
 if eval "test x"$FC" = xpgf90"; then
   FCFLAGS="-byteswapio $FCFLAGS"
+  CPRDEF="PGI"
 
 fi
 if eval "test x"$FC" = xxlf90"; then
   CPPFLAGS="-DIBM $CPPFLAGS"
+  CPRDEF="XLF"
 
+fi
+if eval "test x"$FC" = xsun95"; then
+  CPRDEF="WORKSHOP"
 fi
 
 # Set debug/production flags
@@ -15979,6 +16038,14 @@ else
     FCFLAGS="-fastsse $FCFLAGS"
 
   fi
+fi
+
+ if test x"$PARALLEL" = x1; then
+  MPISERIAL_TRUE=
+  MPISERIAL_FALSE='#'
+else
+  MPISERIAL_TRUE='#'
+  MPISERIAL_FALSE=
 fi
 
 if eval "test x$PARALLEL = x1"; then
@@ -16208,11 +16275,38 @@ $as_echo "#define HAVE_MPI 1" >>confdefs.h
 fi
 
   FC=$MPIFC
+else
+  MPIF90=$FC
+  MPIFC=$FC
+  FORT_SIZE="real4double8"
+  MPIPATH="${PWD}/external"
+  CPPFLAGS="-I$MPIPATH $CPPFLAGS"
+  LDFLAGS="-L$MPIPATH $LDFLAGS"
+  LIBS="$LIBS -lmpiser"
+
+
 fi
+
+MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
+MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
+if test -n "$SRKDEF"; then
+  MPEUCFLAGS="$MPEUCFLAGS -D$SRKDEF"
+  MPEUFCFLAGS="$MPEUFCFLAGS -D$SRKDEF"
+fi
+
+
+
+F90FLAGS="$FCFLAGS"
+
 
 REGCM_ROOT=${PWD}
 
 bindir=${REGCM_ROOT}/Bin
+
+
+ac_config_headers="$ac_config_headers config.h"
+
+ac_config_files="$ac_config_files Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile Main/clmlib/Makefile Main/Makefile external/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -16377,8 +16471,16 @@ if test -z "${COMPILER_PGI_TRUE}" && test -z "${COMPILER_PGI_FALSE}"; then
   as_fn_error $? "conditional \"COMPILER_PGI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${COMPILER_INTEL_TRUE}" && test -z "${COMPILER_INTEL_FALSE}"; then
+  as_fn_error $? "conditional \"COMPILER_INTEL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${REGCM_PARALLEL_TRUE}" && test -z "${REGCM_PARALLEL_FALSE}"; then
   as_fn_error $? "conditional \"REGCM_PARALLEL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MPISERIAL_TRUE}" && test -z "${MPISERIAL_FALSE}"; then
+  as_fn_error $? "conditional \"MPISERIAL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -17373,6 +17475,7 @@ do
     "Main/netlib/Makefile") CONFIG_FILES="$CONFIG_FILES Main/netlib/Makefile" ;;
     "Main/clmlib/Makefile") CONFIG_FILES="$CONFIG_FILES Main/clmlib/Makefile" ;;
     "Main/Makefile") CONFIG_FILES="$CONFIG_FILES Main/Makefile" ;;
+    "external/Makefile") CONFIG_FILES="$CONFIG_FILES external/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

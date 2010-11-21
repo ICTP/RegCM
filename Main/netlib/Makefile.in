@@ -89,6 +89,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+F90FLAGS = @F90FLAGS@
 FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
@@ -110,6 +111,8 @@ MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MDEPFLAGS = @MDEPFLAGS@
 MKDIR_P = @MKDIR_P@
+MPEUCFLAGS = @MPEUCFLAGS@
+MPEUFCFLAGS = @MPEUFCFLAGS@
 MPIFC = @MPIFC@
 MPILIBS = @MPILIBS@
 NC_PREFIX = @NC_PREFIX@
@@ -448,10 +451,10 @@ uninstall-am:
 
 
 %.o: %.f90
-	$(FC) -c $(CPPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean:
 		@echo -n Removing objects, mods and $(noinst_LIBRARIES) ... 

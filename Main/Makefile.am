@@ -67,10 +67,10 @@ endif
 EXTRAOBJS = mod_co2.o
 
 %.o: %.f90
-	$(FC) -c $(CPPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean:
 		@echo -n Removing objects, mods and $(bin_PROGRAMS) ... 

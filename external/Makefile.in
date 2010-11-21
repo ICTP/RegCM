@@ -34,9 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = aerosol$(EXEEXT) sst$(EXEEXT) icbc$(EXEEXT) \
-	oxidant$(EXEEXT)
-subdir = PreProc/ICBC
+subdir = external
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -47,38 +45,51 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
-am_aerosol_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
-	mod_date.$(OBJEXT) mod_header.$(OBJEXT) aerosol.$(OBJEXT)
-aerosol_OBJECTS = $(am_aerosol_OBJECTS)
-aerosol_LDADD = $(LDADD)
-am_icbc_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
-	mod_date.$(OBJEXT) mod_ccsm.$(OBJEXT) mod_vectutil.$(OBJEXT) \
-	mod_ecwcp.$(OBJEXT) mod_eh5om.$(OBJEXT) mod_ein15.$(OBJEXT) \
-	mod_ein25.$(OBJEXT) mod_ein75.$(OBJEXT) mod_era40.$(OBJEXT) \
-	mod_erahi.$(OBJEXT) mod_fvgcm.$(OBJEXT) mod_gfs11.$(OBJEXT) \
-	mod_grid.$(OBJEXT) mod_ncep.$(OBJEXT) mod_nest.$(OBJEXT) \
-	mod_write.$(OBJEXT) mod_interp.$(OBJEXT) mod_vertint.$(OBJEXT) \
-	mod_header.$(OBJEXT) mod_hgt.$(OBJEXT) mod_humid.$(OBJEXT) \
-	mod_mksst.$(OBJEXT) mod_uvrot.$(OBJEXT) icbc.$(OBJEXT)
-icbc_OBJECTS = $(am_icbc_OBJECTS)
-icbc_LDADD = $(LDADD)
-am_oxidant_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
-	mod_date.$(OBJEXT) mod_oxidant.$(OBJEXT) mod_wrtoxd.$(OBJEXT) \
-	mod_grid.$(OBJEXT) mod_header.$(OBJEXT) mod_interp.$(OBJEXT) \
-	oxidant.$(OBJEXT)
-oxidant_OBJECTS = $(am_oxidant_OBJECTS)
-oxidant_LDADD = $(LDADD)
-am_sst_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
-	mod_date.$(OBJEXT) mod_sst_eh5om.$(OBJEXT) \
-	mod_sst_ersst.$(OBJEXT) mod_sst_fvgcm.$(OBJEXT) \
-	mod_sst_1deg.$(OBJEXT) mod_sst_ccsm.$(OBJEXT) \
-	mod_interp.$(OBJEXT) mod_sst_grid.$(OBJEXT) \
-	mod_header.$(OBJEXT) sst.$(OBJEXT)
-sst_OBJECTS = $(am_sst_OBJECTS)
-sst_LDADD = $(LDADD)
+LIBRARIES = $(noinst_LIBRARIES)
+ARFLAGS = cru
+libmct_a_AR = $(AR) $(ARFLAGS)
+libmct_a_LIBADD =
+am_libmct_a_OBJECTS = m_AccumulatorComms.$(OBJEXT) \
+	m_Accumulator.$(OBJEXT) m_AttrVectComms.$(OBJEXT) \
+	m_AttrVect.$(OBJEXT) m_AttrVectReduce.$(OBJEXT) \
+	m_ConvertMaps.$(OBJEXT) m_ExchangeMaps.$(OBJEXT) \
+	m_GeneralGridComms.$(OBJEXT) m_GeneralGrid.$(OBJEXT) \
+	m_GlobalMap.$(OBJEXT) m_GlobalSegMapComms.$(OBJEXT) \
+	m_GlobalSegMap.$(OBJEXT) m_GlobalToLocal.$(OBJEXT) \
+	m_MatAttrVectMul.$(OBJEXT) m_MCTWorld.$(OBJEXT) \
+	m_Merge.$(OBJEXT) m_Navigator.$(OBJEXT) m_Rearranger.$(OBJEXT) \
+	m_Router.$(OBJEXT) m_SparseMatrixComms.$(OBJEXT) \
+	m_SparseMatrixDecomp.$(OBJEXT) m_SparseMatrix.$(OBJEXT) \
+	m_SparseMatrixPlus.$(OBJEXT) m_SparseMatrixToMaps.$(OBJEXT) \
+	m_SpatialIntegral.$(OBJEXT) m_SpatialIntegralV.$(OBJEXT) \
+	m_Transfer.$(OBJEXT)
+libmct_a_OBJECTS = $(am_libmct_a_OBJECTS)
+libmpeu_a_AR = $(AR) $(ARFLAGS)
+libmpeu_a_LIBADD =
+am_libmpeu_a_OBJECTS = get_zeits.$(OBJEXT) m_chars.$(OBJEXT) \
+	m_die.$(OBJEXT) m_dropdead.$(OBJEXT) m_FcComms.$(OBJEXT) \
+	m_Filename.$(OBJEXT) m_FileResolv.$(OBJEXT) m_flow.$(OBJEXT) \
+	m_IndexBin_char.$(OBJEXT) m_IndexBin_integer.$(OBJEXT) \
+	m_IndexBin_logical.$(OBJEXT) m_inpak90.$(OBJEXT) \
+	m_ioutil.$(OBJEXT) m_List.$(OBJEXT) m_mall.$(OBJEXT) \
+	m_MergeSorts.$(OBJEXT) m_mpif90.$(OBJEXT) m_mpif.$(OBJEXT) \
+	m_mpout.$(OBJEXT) m_Permuter.$(OBJEXT) m_rankMerge.$(OBJEXT) \
+	m_realkinds.$(OBJEXT) m_SortingTools.$(OBJEXT) \
+	m_stdio.$(OBJEXT) m_String.$(OBJEXT) \
+	m_StringLinkedList.$(OBJEXT) m_StrTemplate.$(OBJEXT) \
+	m_TraceBack.$(OBJEXT) m_zeit.$(OBJEXT)
+libmpeu_a_OBJECTS = $(am_libmpeu_a_OBJECTS)
+libmpiser_a_AR = $(AR) $(ARFLAGS)
+libmpiser_a_LIBADD =
+am_libmpiser_a_OBJECTS = mpi.$(OBJEXT) send.$(OBJEXT) recv.$(OBJEXT) \
+	collective.$(OBJEXT) req.$(OBJEXT) list.$(OBJEXT) \
+	handles.$(OBJEXT) comm.$(OBJEXT) group.$(OBJEXT) \
+	time.$(OBJEXT) pack.$(OBJEXT) fort.$(OBJEXT)
+libmpiser_a_OBJECTS = $(am_libmpiser_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+am__mv = mv -f
 PPFCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS)
 LTPPFCCOMPILE = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -88,13 +99,19 @@ FCLD = $(FC)
 FCLINK = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-FCCOMPILE = $(FC) $(AM_FCFLAGS) $(FCFLAGS)
-LTFCCOMPILE = $(LIBTOOL) --tag=FC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(FC) $(AM_FCFLAGS) $(FCFLAGS)
-SOURCES = $(aerosol_SOURCES) $(icbc_SOURCES) $(oxidant_SOURCES) \
-	$(sst_SOURCES)
-DIST_SOURCES = $(aerosol_SOURCES) $(icbc_SOURCES) $(oxidant_SOURCES) \
-	$(sst_SOURCES)
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+SOURCES = $(libmct_a_SOURCES) $(libmpeu_a_SOURCES) \
+	$(libmpiser_a_SOURCES)
+DIST_SOURCES = $(libmct_a_SOURCES) $(libmpeu_a_SOURCES) \
+	$(libmpiser_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -225,32 +242,40 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-aerosol_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90      \
-									mod_header.F90 aerosol.F90
+@MPISERIAL_FALSE@noinst_LIBRARIES = libmpiser.a libmpeu.a libmct.a
+@MPISERIAL_TRUE@noinst_LIBRARIES = libmpeu.a libmct.a
+libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
+	                    handles.c comm.c group.c time.c pack.c fort.F90
 
-sst_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90       \
-              mod_sst_eh5om.f90 mod_sst_ersst.f90 mod_sst_fvgcm.f90 \
-							mod_sst_1deg.f90 mod_sst_ccsm.f90 mod_interp.f90      \
-							mod_sst_grid.F90 mod_header.F90 sst.f90
+libmpeu_a_SOURCES = get_zeits.c m_chars.F90 m_die.F90 m_dropdead.F90      \
+										m_FcComms.F90 m_Filename.F90 m_FileResolv.F90         \
+										m_flow.F90 m_IndexBin_char.F90 m_IndexBin_integer.F90 \
+                    m_IndexBin_logical.F90 m_inpak90.F90 m_ioutil.F90     \
+										m_List.F90 m_mall.F90 m_MergeSorts.F90 m_mpif90.F90   \
+										m_mpif.F90 m_mpout.F90 m_Permuter.F90 m_rankMerge.F90 \
+										m_realkinds.F90 m_SortingTools.F90 m_stdio.F90        \
+										m_String.F90 m_StringLinkedList.F90 m_StrTemplate.F90 \
+										m_TraceBack.F90 m_zeit.F90
 
-icbc_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90  \
-               mod_ccsm.f90 mod_vectutil.f90 mod_ecwcp.f90      \
-							 mod_eh5om.f90 mod_ein15.f90 mod_ein25.f90        \
-							 mod_ein75.f90 mod_era40.f90 mod_erahi.f90        \
-               mod_fvgcm.f90 mod_gfs11.f90 mod_grid.f90         \
-							 mod_ncep.f90 mod_nest.f90 mod_write.F90          \
-							 mod_interp.f90 mod_vertint.f90 mod_header.F90    \
-							 mod_hgt.f90 mod_humid.f90 mod_mksst.f90          \
-							 mod_uvrot.f90 icbc.f90
+libmct_a_SOURCES = m_AccumulatorComms.F90 m_Accumulator.F90              \
+									 m_AttrVectComms.F90 m_AttrVect.F90                    \
+									 m_AttrVectReduce.F90 m_ConvertMaps.F90                \
+									 m_ExchangeMaps.F90 m_GeneralGridComms.F90             \
+                   m_GeneralGrid.F90 m_GlobalMap.F90                     \
+									 m_GlobalSegMapComms.F90 m_GlobalSegMap.F90            \
+                   m_GlobalToLocal.F90 m_MatAttrVectMul.F90              \
+                   m_MCTWorld.F90 m_Merge.F90 m_Navigator.F90            \
+									 m_Rearranger.F90 m_Router.F90 m_SparseMatrixComms.F90 \
+                   m_SparseMatrixDecomp.F90 m_SparseMatrix.F90           \
+                   m_SparseMatrixPlus.F90 m_SparseMatrixToMaps.F90       \
+									 m_SpatialIntegral.F90 m_SpatialIntegralV.F90          \
+									 m_Transfer.F90
 
-oxidant_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90  \
-			   				  mod_oxidant.f90 mod_wrtoxd.F90 mod_grid.f90      \
-									mod_header.F90 mod_interp.f90 oxidant.f90
-
+MPIFH = mpif.$(FORT_SIZE).h
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .F90 .f90 .lo .o .obj
+.SUFFIXES: .F90 .c .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -260,9 +285,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign PreProc/ICBC/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign external/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign PreProc/ICBC/Makefile
+	  $(AUTOMAKE) --foreign external/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -281,67 +306,40 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	for p in $$list; do echo "$$p $$p"; done | \
-	sed 's/$(EXEEXT)$$//' | \
-	while read p p1; do if test -f $$p || test -f $$p1; \
-	  then echo "$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
-	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
-	sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
-	    else { print "f", $$3 "/" $$4, $$1; } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	    test -z "$$files" || { \
-	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	    } \
-	; done
 
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
-	      -e 's/$$/$(EXEEXT)/' `; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(bindir)" && rm -f $$files
-
-clean-binPROGRAMS:
-	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
-	echo " rm -f" $$list; \
-	rm -f $$list || exit $$?; \
-	test -n "$(EXEEXT)" || exit 0; \
-	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
-	echo " rm -f" $$list; \
-	rm -f $$list
-aerosol$(EXEEXT): $(aerosol_OBJECTS) $(aerosol_DEPENDENCIES) 
-	@rm -f aerosol$(EXEEXT)
-	$(FCLINK) $(aerosol_OBJECTS) $(aerosol_LDADD) $(LIBS)
-icbc$(EXEEXT): $(icbc_OBJECTS) $(icbc_DEPENDENCIES) 
-	@rm -f icbc$(EXEEXT)
-	$(FCLINK) $(icbc_OBJECTS) $(icbc_LDADD) $(LIBS)
-oxidant$(EXEEXT): $(oxidant_OBJECTS) $(oxidant_DEPENDENCIES) 
-	@rm -f oxidant$(EXEEXT)
-	$(FCLINK) $(oxidant_OBJECTS) $(oxidant_LDADD) $(LIBS)
-sst$(EXEEXT): $(sst_OBJECTS) $(sst_DEPENDENCIES) 
-	@rm -f sst$(EXEEXT)
-	$(FCLINK) $(sst_OBJECTS) $(sst_LDADD) $(LIBS)
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+libmct.a: $(libmct_a_OBJECTS) $(libmct_a_DEPENDENCIES) 
+	-rm -f libmct.a
+	$(libmct_a_AR) libmct.a $(libmct_a_OBJECTS) $(libmct_a_LIBADD)
+	$(RANLIB) libmct.a
+libmpeu.a: $(libmpeu_a_OBJECTS) $(libmpeu_a_DEPENDENCIES) 
+	-rm -f libmpeu.a
+	$(libmpeu_a_AR) libmpeu.a $(libmpeu_a_OBJECTS) $(libmpeu_a_LIBADD)
+	$(RANLIB) libmpeu.a
+libmpiser.a: $(libmpiser_a_OBJECTS) $(libmpiser_a_DEPENDENCIES) 
+	-rm -f libmpiser.a
+	$(libmpiser_a_AR) libmpiser.a $(libmpiser_a_OBJECTS) $(libmpiser_a_LIBADD)
+	$(RANLIB) libmpiser.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/collective.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/get_zeits.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/group.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/handles.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pack.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/req.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/send.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/time.Po@am__quote@
 
 .F90.o:
 	$(PPFCCOMPILE) -c -o $@ $<
@@ -352,14 +350,26 @@ distclean-compile:
 .F90.lo:
 	$(LTPPFCCOMPILE) -c -o $@ $<
 
-.f90.o:
-	$(FCCOMPILE) -c -o $@ $<
+.c.o:
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
-.f90.obj:
-	$(FCCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+.c.obj:
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-.f90.lo:
-	$(LTFCCOMPILE) -c -o $@ $<
+.c.lo:
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -451,11 +461,8 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(LIBRARIES)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -481,9 +488,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -506,7 +515,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
 install-html: install-html-am
 
@@ -529,6 +538,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -545,109 +555,109 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am:
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libtool ctags distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-dvi \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-noinstLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	pdf pdf-am ps ps-am tags uninstall uninstall-am
 
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.F90 $(REGCM_ROOT)/Config:.
-vpath %.f90 $(REGCM_ROOT)/Config:.
+vpath %.F90 $(REGCM_ROOT)/external/MCT/mpeu:$(REGCM_ROOT)/external/MCT/mct:\
+	          $(REGCM_ROOT)/external/MCT/mpi-serial
+vpath %.f90 $(REGCM_ROOT)/external/MCT/mpeu:$(REGCM_ROOT)/external/MCT/mct:\
+	          $(REGCM_ROOT)/external/MCT/mpi-serial
+vpath %.c $(REGCM_ROOT)/external/MCT/mpeu:$(REGCM_ROOT)/external/MCT/mct:\
+	        $(REGCM_ROOT)/external/MCT/mpi-serial
+vpath %.h $(REGCM_ROOT)/external/MCT/mpi-serial
+
+mpif.h:
+	cp -f $(REGCM_ROOT)/external/MCT/mpi-serial/$(MPIFH) mpif.h
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(MPEUCFLAGS) -c $<
 
 %.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
+	  $(FC) $(CPPFLAGS) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	  $(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 clean:
-		@echo -n Removing objects, mods and $(bin_PROGRAMS) ... 
-		@rm -f *.o *.mod $(bin_PROGRAMS)
-		@echo Done
+	    @echo -n Removing objects, mods and $(noinst_LIBRARIES) ... 
+			@rm -f *.o *.mod $(noinst_LIBRARIES) mpif.h
+			@echo Done
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_constants.o: mod_constants.F90
-mod_dynparam.o: mod_dynparam.F90 mod_constants.o
-mod_date.o: mod_date.f90
-mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_eh5om.o: mod_eh5om.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ein15.o: mod_ein15.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ein25.o: mod_ein25.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ein75.o: mod_ein75.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_era40.o: mod_era40.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_erahi.o: mod_erahi.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_fvgcm.o: mod_fvgcm.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_gfs11.o: mod_gfs11.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ncep.o:  mod_ncep.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_grid.o: mod_grid.f90 mod_dynparam.o
-mod_hgt.o: mod_hgt.f90 mod_constants.o
-mod_humid.o: mod_humid.f90 mod_constants.o
-mod_interp.o: mod_interp.f90 mod_constants.o
-mod_mksst.o: mod_mksst.f90 mod_date.o
-mod_nest.o: mod_nest.f90 mod_dynparam.o mod_grid.o mod_write.o \
-            mod_constants.o mod_date.o mod_interp.o
-mod_uvrot.o: mod_uvrot.f90 mod_constants.o
-mod_vectutil.o: mod_vectutil.f90
-mod_vertint.o: mod_vertint.f90 mod_constants.o
-mod_write.o: mod_write.F90 mod_dynparam.o mod_date.o
-mod_wrtoxd.o : mod_wrtoxd.F90 mod_grid.o mod_date.o mod_dynparam.o
-mod_oxidant.o : mod_oxidant.f90 mod_dynparam.o mod_date.o mod_wrtoxd.o \
-	              mod_grid.o mod_interp.o
-oxidant.o : oxidant.f90 mod_dynparam.o mod_date.o mod_grid.o mod_wrtoxd.o \
-            mod_header.o mod_oxidant.o
-aerosol.o: aerosol.F90 mod_dynparam.o mod_date.o
-mod_sst_grid.o: mod_sst_grid.F90 mod_dynparam.o
-mod_sst_1deg.o: mod_sst_1deg.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o
-mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_dynparam.o mod_interp.o mod_sst_grid.o
-mod_sst_eh5om.o: mod_sst_eh5om.f90 mod_dynparam.o mod_date.o mod_interp.o \
-	               mod_sst_grid.o
-mod_sst_ersst.o: mod_sst_ersst.f90 mod_dynparam.o mod_date.o mod_interp.o \
-	               mod_sst_grid.o
-mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o
-sst.o: sst.f90 mod_dynparam.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
-       mod_sst_fvgcm.o mod_sst_ccsm.o mod_sst_grid.o mod_header.o
-icbc.o: icbc.f90 mod_dynparam.o mod_date.o mod_grid.o mod_write.o \
-        mod_ein15.o mod_interp.o mod_header.o mod_mksst.o
+mpi.c: mpif.h
+m_IndexBin_char.o: m_die.o m_stdio.o
+m_IndexBin_integer.o: m_die.o m_stdio.o
+m_IndexBin_logical.o: m_die.o m_stdio.o
+m_List.o: m_String.o m_die.o m_mall.o
+m_MergeSorts.o: m_die.o m_realkinds.o m_stdio.o
+m_Filename.o:
+m_Permuter.o: m_die.o m_realkinds.o
+m_SortingTools.o: m_IndexBin_char.o m_IndexBin_integer.o m_IndexBin_logical.o m_MergeSorts.o m_Permuter.o m_rankMerge.o
+m_String.o: m_die.o m_mall.o m_mpif90.o
+m_StrTemplate.o: m_chars.o m_die.o m_stdio.o
+m_chars.o:
+m_die.o: m_dropdead.o m_flow.o m_mpif90.o m_mpout.o m_stdio.o
+m_dropdead.o: m_mpif90.o m_stdio.o
+m_flow.o: m_chars.o
+m_inpak90.o: m_die.o m_ioutil.o m_mall.o m_mpif90.o m_realkinds.o m_stdio.o
+m_ioutil.o: m_stdio.o
+m_mall.o: m_chars.o m_die.o m_ioutil.o m_realkinds.o m_stdio.o
+m_mpif.o:
+m_mpif90.o: m_mpif.o m_realkinds.o m_stdio.o
+m_mpout.o: m_dropdead.o m_ioutil.o m_mpif90.o m_stdio.o
+m_rankMerge.o:
+m_realkinds.o:
+m_stdio.o:
+m_zeit.o: m_SortingTools.o m_die.o m_ioutil.o m_mpif90.o m_stdio.o get_zeits.o
+get_zeits.o:
+m_FileResolv.o: m_die.o m_StrTemplate.o
+m_TraceBack.o:	m_die.o m_stdio.o m_String.o
+m_AttrVect.o: 
+m_Accumulator.o: m_AttrVect.o
+m_GlobalMap.o:
+m_GlobalSegMap.o: m_MCTWorld.o
+m_GlobalSegMapComms.o: m_GlobalSegMap.o
+m_Navigator.o:
+m_AttrVectComms.o: m_AttrVect.o m_GlobalMap.o m_GlobalSegMap.o
+m_AttrVectReduce.o: m_AttrVect.o
+m_AccumulatorComms.o: m_AttrVect.o m_GlobalMap.o m_AttrVectComms.o m_Accumulator.o
+m_SparseMatrix.o: m_AttrVect.o m_GlobalMap.o m_AttrVectComms.o
+m_GeneralGrid.o: m_AttrVect.o
+m_GeneralGridComms.o: m_AttrVect.o m_GeneralGrid.o m_AttrVectComms.o m_GlobalMap.o m_GlobalSegMap.o
+m_MatAttrVectMul.o: m_AttrVect.o m_SparseMatrix.o m_GlobalMap.o m_GlobalSegMap.o m_SparseMatrixPlus.o m_Rearranger.o
+m_Merge.o: m_AttrVect.o m_GeneralGrid.o
+m_Router.o: m_GlobalToLocal.o m_MCTWorld.o m_GlobalSegMap.o m_ExchangeMaps.o
+m_Rearranger.o: m_Router.o m_MCTWorld.o m_GlobalSegMap.o m_AttrVect.o
+m_GlobalToLocal.o: m_GlobalSegMap.o m_Navigator.o m_SparseMatrix.o
+m_ExchangeMaps.o: m_GlobalMap.o m_GlobalSegMap.o m_MCTWorld.o m_ConvertMaps.o
+m_ConvertMaps.o: m_GlobalMap.o m_GlobalSegMap.o m_MCTWorld.o
+m_SparseMatrixDecomp.o: m_SparseMatrix.o m_GlobalSegMap.o
+m_SparseMatrixToMaps.o: m_SparseMatrix.o m_GlobalSegMap.o
+m_SparseMatrixComms.o:	m_SparseMatrix.o m_SparseMatrixDecomp.o m_GlobalSegMap.o m_AttrVectComms.o
+accumulate.o: m_AttrVect.o m_Accumulator.o
+m_SpatialIntegral.o: m_SpatialIntegralV.o m_GeneralGrid.o m_AttrVect.o m_AttrVectReduce.o
+m_SpatialIntegralV.o: m_AttrVect.o m_AttrVectReduce.o
+m_Transfer.o: m_AttrVect.o m_Router.o m_MCTWorld.o
+m_SparseMatrixPlus.o: m_GlobalSegMap.o m_Rearranger.o m_SparseMatrix.o m_SparseMatrixComms.o m_SparseMatrixToMaps.o m_GlobalToLocal.o
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

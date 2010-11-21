@@ -159,17 +159,52 @@ esac
 RR_PATH_NETCDF
 RR_PATH_NETCDF_F90
 
-AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
-                 PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
-                 Main/clmlib/Makefile Main/Makefile])
-
 test "$osname"=NONE && osname=`uname -s`
 OSNAME=$osname
 AC_SUBST(OSNAME)
 
 test "$machinename"=NONE && machinename=`uname -m`
 fullhostname=`hostname -f`
+
+# DEFINE VARIABLES ACCORDING TO OS AND COMPILER
+
+if echo $osname | grep -i aix >/dev/null 2>&1; then
+   SYSDEF="AIX"
+fi
+if echo $osname | grep -i darwin >/dev/null 2>&1; then
+   SYSDEF="DARWIN"
+fi
+if echo $osname | grep -i unix_system_v >/dev/null 2>&1; then
+   SYSDEF="UNIXSYSTEMV"
+fi
+if echo $osname | grep -i irix >/dev/null 2>&1; then
+   SYSDEF="IRIX"
+fi
+if echo $osname | grep -i irix64 >/dev/null 2>&1; then
+   SYSDEF="IRIX64"
+fi
+if echo $osname | grep -i linux >/dev/null 2>&1; then
+   SYSDEF="LINUX"
+fi
+if echo $osname | grep -i osf1 >/dev/null 2>&1; then
+   SYSDEF="OSF1"
+fi
+if echo $osname | grep -i super >/dev/null 2>&1; then
+   SYSDEF="SUPERUX"
+fi
+if echo $osname | grep -i sun >/dev/null 2>&1; then
+   SYSDEF="SUNOS"
+fi
+if echo $osname | grep -i t3e >/dev/null 2>&1; then
+   SYSDEF="T3E"
+fi
+if echo $osname | grep -i unicos >/dev/null 2>&1; then
+   SYSDEF="UNICOS"
+fi
+if test -z "$SYSDEF"; then
+   AC_MSG_WARN([OPERATING SYSTEM UNKNOWN])
+   SYSDEF="UNKNOWNOS"
+fi
 
 AM_CONDITIONAL(OSNAME_AIX, [test x"$osname" = xAIX])
 AM_CONDITIONAL(OSNAME_LINUX, [test x"$osname" = xLinux])
@@ -179,29 +214,38 @@ AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
 AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
 AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90])
+AM_CONDITIONAL(COMPILER_INTEL, [test x"$FC" = xifort])
 
 AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
   FCFLAGS="-fconvert=big-endian $FCFLAGS"
+  CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xifort"; then
   FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+  CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xg95"; then
   FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+  CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xpgf90"; then
   FCFLAGS="-byteswapio $FCFLAGS"
+  CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xxlf90"; then
   CPPFLAGS="-DIBM $CPPFLAGS"
+  CPRDEF="XLF"
   AC_SUBST(CPPFLAGS)
+fi
+if eval "test x"$FC" = xsun95"; then
+  CPRDEF="WORKSHOP"
 fi
 
 # Set debug/production flags
@@ -265,14 +309,42 @@ else
   fi
 fi
 
+AM_CONDITIONAL(MPISERIAL, [test x"$PARALLEL" = x1])
 if eval "test x$PARALLEL = x1"; then
   ACX_MPI
   FC=$MPIFC
+else
+  MPIF90=$FC
+  MPIFC=$FC
+  FORT_SIZE="real4double8"
+  MPIPATH="${PWD}/external"
+  CPPFLAGS="-I$MPIPATH $CPPFLAGS"
+  LDFLAGS="-L$MPIPATH $LDFLAGS"
+  LIBS="$LIBS -lmpiser"
+  AC_SUBST(CPPFLAGS)
+  AC_SUBST(LDFLAGS)
 fi
+
+MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
+MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
+if test -n "$SRKDEF"; then
+  MPEUCFLAGS="$MPEUCFLAGS -D$SRKDEF"
+  MPEUFCFLAGS="$MPEUFCFLAGS -D$SRKDEF"
+fi
+AC_SUBST(MPEUCFLAGS)
+AC_SUBST(MPEUFCFLAGS)
+
+F90FLAGS="$FCFLAGS"
+AC_SUBST(F90FLAGS)
 
 REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 bindir=${REGCM_ROOT}/Bin
 AC_SUBST(bindir)
+
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
+                 PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
+                 Main/clmlib/Makefile Main/Makefile external/Makefile])
 
 AC_OUTPUT

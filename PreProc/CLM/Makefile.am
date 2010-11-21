@@ -10,10 +10,10 @@ clm2rcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_param_clm.F90 \
                   mod_clm3grid.f90 clm2rcm.F90
 
 %.o: %.f90
-	$(FC) -c $(CPPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) -c $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean:
 		@echo -n Removing objects, mods and $(bin_PROGRAMS) ... 

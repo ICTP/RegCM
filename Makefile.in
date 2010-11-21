@@ -146,6 +146,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+F90FLAGS = @F90FLAGS@
 FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
@@ -167,6 +168,8 @@ MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MDEPFLAGS = @MDEPFLAGS@
 MKDIR_P = @MKDIR_P@
+MPEUCFLAGS = @MPEUCFLAGS@
+MPEUFCFLAGS = @MPEUFCFLAGS@
 MPIFC = @MPIFC@
 MPILIBS = @MPILIBS@
 NC_PREFIX = @NC_PREFIX@
@@ -245,8 +248,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = PreProc/Terrain PreProc/ICBC PreProc/CLM PostProc Main/netlib \
-					Main/clmlib Main
+SUBDIRS = external PreProc/Terrain PreProc/ICBC PreProc/CLM \
+          Main/netlib Main/clmlib Main PostProc
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
