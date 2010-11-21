@@ -16041,6 +16041,7 @@ else
   fi
 fi
 
+MCTPATH="${PWD}/external"
  if test x"$PARALLEL" = x1; then
   MPISERIAL_TRUE=
   MPISERIAL_FALSE='#'
@@ -16276,18 +16277,18 @@ $as_echo "#define HAVE_MPI 1" >>confdefs.h
 fi
 
   FC=$MPIFC
+  LIBS="$LIBS -lmpeu -lmct"
 else
-  MPIPATH="${PWD}/external"
   FORT_SIZE="real4double8"
   MPIFC=$FC
   CPPFLAGS="-I$MPIPATH $CPPFLAGS"
-  LDFLAGS="-L$MPIPATH $LDFLAGS"
-  LIBS="$LIBS -lmpiser"
-
+  LIBS="$LIBS -lmpiser -lmpeu -lmct"
 
 
 
 fi
+LDFLAGS="-L$MCTPATH $LDFLAGS"
+
 
 MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
 MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"

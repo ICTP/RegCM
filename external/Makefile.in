@@ -611,6 +611,8 @@ m_IndexBin_logical.o: m_die.o m_stdio.o
 m_List.o: m_String.o m_die.o m_mall.o
 m_MergeSorts.o: m_die.o m_realkinds.o m_stdio.o
 m_Filename.o:
+m_FcComms.o: m_die.o
+m_StringLinkedList.o: m_String.o
 m_Permuter.o: m_die.o m_realkinds.o
 m_SortingTools.o: m_IndexBin_char.o m_IndexBin_integer.o m_IndexBin_logical.o m_MergeSorts.o m_Permuter.o m_rankMerge.o
 m_String.o: m_die.o m_mall.o m_mpif90.o
@@ -632,12 +634,13 @@ m_zeit.o: m_SortingTools.o m_die.o m_ioutil.o m_mpif90.o m_stdio.o get_zeits.o
 get_zeits.o:
 m_FileResolv.o: m_die.o m_StrTemplate.o
 m_TraceBack.o:	m_die.o m_stdio.o m_String.o
-m_AttrVect.o: 
+m_AttrVect.o: m_List.o
 m_Accumulator.o: m_AttrVect.o
-m_GlobalMap.o:
+m_GlobalMap.o: m_mpif90.o m_die.o
 m_GlobalSegMap.o: m_MCTWorld.o
 m_GlobalSegMapComms.o: m_GlobalSegMap.o
-m_Navigator.o:
+m_MCTWorld.o: m_List.o
+m_Navigator.o: m_mall.o
 m_AttrVectComms.o: m_AttrVect.o m_GlobalMap.o m_GlobalSegMap.o
 m_AttrVectReduce.o: m_AttrVect.o
 m_AccumulatorComms.o: m_AttrVect.o m_GlobalMap.o m_AttrVectComms.o m_Accumulator.o

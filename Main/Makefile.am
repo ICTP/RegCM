@@ -235,6 +235,7 @@ mod_savefile.o: mod_savefile.F90 mod_dynparam.o mod_message.o mod_runparams.o \
                 mod_diagnosis.o mod_mppio.o mod_lake.o mod_cu_bm.o
 endif
 mod_scenarios.o: mod_scenarios.F90 mod_message.o
+mod_service.o: mod_service.F90 mod_dynparam.o
 mod_slice.o: mod_slice.F90 mod_dynparam.o mod_constants.o mod_main.o \
              mod_runparams.o mod_mainchem.o mod_pbldim.o mod_pmoist.o
 mod_split.o: mod_split.F90 mod_dynparam.o mod_main.o mod_runparams.o \
