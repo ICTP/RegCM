@@ -263,6 +263,9 @@
       if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
  
         aveice = 0.0D0
+        hsnow  = 0.0D0
+        evl    = 0.0D0
+
         qe = hlat*wlhv
         qh = hsen
 
