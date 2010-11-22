@@ -22,6 +22,7 @@
       use m_stdio
       use m_realkinds
       use m_die
+      use m_ioutil
 
       private
 
@@ -36,7 +37,7 @@
 ! Dummy arguments
 !
       character(*) :: char_lnd
-      logical :: fudge,there
+      logical :: fudge , there
       integer :: iy , jx
       real(SP) , dimension(iy,jx) :: htgrid , lndout
       intent (in) char_lnd , fudge , iy , jx
@@ -44,9 +45,10 @@
 !
 ! Local variables
 !
-      integer :: i , j
+      integer :: i , j , iunit
       character(1) , dimension(iy,jx) :: ch
 !
+      iunit = luavail( )
       if ( fudge ) then
         inquire (file=char_lnd,exist=there)
         if ( .not.there ) then
@@ -56,11 +58,11 @@
              &' FILE:  FILE DOES NOT EXIST'
           call die('lndfudge')
         endif 
-        open (13,file=char_lnd,form='formatted')
+        open (iunit,file=char_lnd,form='formatted')
         do i = iy , 1 , -1
-          read (13,99001) (ch(i,j),j=1,jx)
+          read (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
         do j = 1 , jx
           do i = 1 , iy
             if ( ch(i,j)==' ' ) then
@@ -110,13 +112,11 @@
             else if ( ch(i,j)=='M' ) then
               lndout(i,j) = 22.
             else if ( nint(lndout(i,j))==0 ) then
-!               ch(i,j) = 'X'
               ch(i,j) = ' '
             else
               write (*,*) 'LANDUSE MASK exceed the limit'
               call die('lndfudge')
             end if
-!_fix         if(nint(lndout(i,j)).eq.15) htgrid(i,j) = 0.0
             if ( htgrid(i,j)<0.1 .and. nint(lndout(i,j))==15 )        &
                & htgrid(i,j) = 0.0
           end do
@@ -175,11 +175,11 @@
             end if
           end do
         end do
-        open (13,file=char_lnd,form='formatted')
+        open (iunit,file=char_lnd,form='formatted')
         do i = iy , 1 , -1
-          write (13,99001) (ch(i,j),j=1,jx)
+          write (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
       end if
 99001 format (132A1)
       end subroutine lndfudge
@@ -199,9 +199,10 @@
 !
 ! Local variables
 !
+      integer :: i , j , iunit
       character(1) , dimension(iy,jx) :: ch
-      integer :: i , j
 !
+      iunit = luavail( )
       if ( fudge ) then
         inquire (file=char_tex,exist=there)
         if ( .not.there ) then
@@ -211,11 +212,11 @@
                   &' FILE:  FILE DOES NOT EXIST'
           call die('texfudge')
         endif 
-        open (13,file=char_tex,form='formatted')
+        open (iunit,file=char_tex,form='formatted')
         do i = iy , 1 , -1
-          read (13,99001) (ch(i,j),j=1,jx)
+          read (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
         do j = 1 , jx
           do i = 1 , iy
             if ( ch(i,j)==' ' ) then
@@ -255,7 +256,6 @@
             else if ( ch(i,j)=='H' ) then
               texout(i,j) = 17.
             else if ( nint(texout(i,j))==0 ) then
-!             ch(i,j) = 'X'
               ch(i,j) = ' '
             else
               write (*,*) 'TEXTURE TYPE exceed the limit'
@@ -308,11 +308,11 @@
             end if
           end do
         end do
-        open (13,file=char_tex,form='formatted')
+        open (iunit,file=char_tex,form='formatted')
         do i = iy , 1 , -1
-          write (13,99001) (ch(i,j),j=1,jx)
+          write (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
       end if
 
 99001 format (132A1)
@@ -333,9 +333,10 @@
 !
 ! Local variables
 !
-      integer :: i , j
+      integer :: i , j , iunit
       character(1) , dimension(iy,jx) :: ch
 !
+      iunit = luavail( )
       if ( fudge ) then
         inquire (file=char_lak,exist=there)
         if ( .not.there ) then
@@ -345,11 +346,11 @@
              &' FILE:  FILE DOES NOT EXIST'
           call die('lakfudge')
         endif 
-        open (13,file=char_lak,form='formatted')
+        open (iunit,file=char_lak,form='formatted')
         do i = iy , 1 , -1
-          read (13,99001) (ch(i,j),j=1,jx)
+          read (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
         do j = 1 , jx
           do i = 1 , iy
             if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
@@ -373,11 +374,11 @@
             end if
           end do
         end do
-        open (13,file=char_lak,form='formatted')
+        open (iunit,file=char_lak,form='formatted')
         do i = iy , 1 , -1
-          write (13,99001) (ch(i,j),j=1,jx)
+          write (iunit,99001) (ch(i,j),j=1,jx)
         end do
-        close (13)
+        close (iunit)
       end if
 99001 format (132A1)
       end subroutine lakfudge
