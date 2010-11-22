@@ -227,8 +227,8 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,i).lt.0.5 .or. lveg(n,i).eq.14 .or. lveg(n,i)   &
-             & .eq.15 ) gwet1d(n,i) = 1.
+          if ( ldoc1d(n,i).lt.0.5 .or. &
+               lveg(n,i).eq.14 .or. lveg(n,i).eq.15 ) gwet1d(n,i) = 1.
  
 !l        6.1  rate of momentum transfer per velocity
           drag1d(n,i) = -cdrx(n,i)*vspda(n,i)*rhs1d(n,i)

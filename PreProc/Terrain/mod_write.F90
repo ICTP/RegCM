@@ -20,6 +20,7 @@
       module mod_write
 
       use m_stdio
+      use m_mall
 
       contains
 !
@@ -53,8 +54,12 @@
         trlat(2) = truelath
 
         if (lsub) then
-          allocate(yiy(iysg))
-          allocate(xjx(jxsg))
+          allocate(yiy(iysg), stat=istatus)
+          if (istatus/=0) call die('write_domain', &
+                                   'allocate yiy',istatus)
+          allocate(xjx(jxsg), stat=istatus)
+          if (istatus/=0) call die('write_domain', &
+                                   'allocate xjx',istatus)
           yiy(1) = -(dble(iysg-1)/2.0) * ds
           xjx(1) = -(dble(jxsg-1)/2.0) * ds
           do i = 2 , iysg
@@ -64,8 +69,12 @@
             xjx(j) = xjx(j-1)+ds
           end do
         else
-          allocate(yiy(iy))
-          allocate(xjx(jx))
+          allocate(yiy(iy), stat=istatus)
+          if (istatus/=0) call die('write_domain', &
+                                   'allocate yiy',istatus)
+          allocate(xjx(jx), stat=istatus)
+          if (istatus/=0) call die('write_domain', &
+                                   'allocate xjx',istatus)
           yiy(1) = -(dble(iy-1)/2.0) * ds
           xjx(1) = -(dble(jx-1)/2.0) * ds
           do i = 2 , iy
@@ -75,6 +84,8 @@
             xjx(j) = xjx(j-1)+ds
           end do
         end if
+        call mall_mci(yiy,'write_domain')
+        call mall_mci(xjx,'write_domain')
 
         if (lsub) then
           write (cnsg, '(i0.3)') nsg
@@ -711,6 +722,8 @@
         call check_ok(istatus, &
                  & ('Error closing NetCDF output '//trim(fname)))
 
+        call mall_mco(yiy,'write_domain')
+        call mall_mco(xjx,'write_domain')
         deallocate(yiy)
         deallocate(xjx)
 
@@ -718,13 +731,12 @@
 
       subroutine check_ok(ierr,message)
         use netcdf
+        use m_die
         implicit none
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then 
-          write (stderr,*) message
-          write (stderr,*) nf90_strerror(ierr)
-          stop
+          call die('write_domain',message,ierr,nf90_strerror(ierr),0)
         end if
       end subroutine check_ok
 

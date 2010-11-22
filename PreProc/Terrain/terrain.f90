@@ -64,13 +64,15 @@
       use mod_write
       use mod_header
       use m_stdio
+      use m_die
+      use m_zeit
       implicit none
 !
 ! Local variables
 !
       character(256) :: char_lnd , char_tex , char_lak
       character(256) :: namelistfile , prgname
-      integer :: i , j , k , minsize , ierr , i0 , j0 , m , n
+      integer :: i , j , k , ierr , i0 , j0 , m , n
       logical :: ibndry
       real(SP) :: clong , hsum , have , dsinm
 !
@@ -89,20 +91,21 @@
         write (stderr,*) '          ', trim(prgname), ' regcm.in'
         write (stderr,*) ' '
         write (stderr,*) 'Check argument and namelist syntax'
-        stop
+        call die('terrain')
       end if
 !
 !     Preliminary consistency check to avoid I/O format errors
 !
-      minsize = (kz+1)+16
-      if ((iym2*jxm2) .lt. minsize) then
-        write (stderr,*) 'Please increase domain size.'
-        write (stderr,*) 'Minsize (iy-2)*(jx-2) is ', minsize
-        call abort
+      if (debug_level > 2) then
+        call mall_set()
+        call zeit_ci('terrain')
       end if
 
       call allocate_grid(iy,jx,kz,ntex)
-      if ( nsg>1 ) call allocate_subgrid(iysg,jxsg,ntex)
+
+      if ( nsg>1 ) then
+        call allocate_subgrid(iysg,jxsg,ntex)
+      end if
 !
 !     Setup hardcoded sigma levels
 
@@ -170,7 +173,7 @@
       else
         write (*,*) 'You vertical level number is not 14, 18, or 23'
         write (*,*) 'Please set your sigma parameters in OUTPUT'
-        stop
+        call die('terrain')
       end if
 
 !---------------------------------------------------------------------
@@ -180,6 +183,8 @@
       if ( clong<=-180. ) clong = clong + 360.
 
       if ( nsg>1 ) then
+
+        if (debug_level > 2) call zeit_ci('subgrid prepare')
 
         write (stdout,*) 'Doing Subgrid with following parameters'
         write (stdout,*) 'ntypec = ' , ntypec_s
@@ -219,7 +224,7 @@
           write (stderr,*) 'iproj = ', iproj
           write (stderr,*) 'Unrecognized or unsupported projection'
           write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
-          stop
+          call die('terrain')
         end if
         write(stdout,*) 'Subgrid Geo mapping done'
 !
@@ -227,6 +232,7 @@
         call mxmnll(iysg,jxsg,xlon_s,xlat_s,i_band)
         write(stdout,*) 'Determined Subgrid coordinate range'
 !
+        if (debug_level > 2) call zeit_ci('TOPO read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GTOPO_DEM_30s.nc','z',   &
                          30,ntypec_s,.true.,0,ht)
@@ -235,8 +241,11 @@
                     nlatin,nlonin,grdltmn,grdlnmn,ht, &
                     ntypec_s,2,lonwrap,lcrosstime)
         write(stdout,*)'Interpolated DEM on SUBGRID'
+        call mall_mco(ht,'read_ncglob')
         deallocate(ht)
+        if (debug_level > 2) call zeit_co('TOPO read')
 !
+        if (debug_level > 2) call zeit_ci('LANDUSE read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLCC_BATS_30s.nc',       &
                          'landcover',30,ntypec_s,.true.,0,lnd)
@@ -247,9 +256,12 @@
                     ibnty=1,h2opct=h2opct)
         call filter1plakes(iysg,jxsg,lndout_s)
         write(stdout,*)'Interpolated landcover on SUBGRID'
+        call mall_mco(lnd,'read_ncglob')
         deallocate(lnd)
+        if (debug_level > 2) call zeit_co('LANDUSE read')
 !
         if ( aertyp(7:7)=='1' ) then
+          if (debug_level > 2) call zeit_ci('SOIL read')
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'GLZB_SOIL_30s.nc',       &
                            'soiltype',30,ntypec_s,.true.,0,text)
@@ -264,10 +276,13 @@
                         ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
           write(stdout,*)'Interpolated texture on SUBGRID'
+          call mall_mco(text,'read_ncglob')
           deallocate(text)
+          if (debug_level > 2) call zeit_co('SOIL read')
         end if
 
         if ( lakedpth ) then
+          if (debug_level > 2) call zeit_ci('BATHYMETRY read')
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'ETOPO_BTM_30s.nc',       &
                            'z',30,ntypec_s,.true.,0,dpt)
@@ -276,7 +291,9 @@
                       nlatin,nlonin,grdltmn,grdlnmn,dpt, &
                       ntypec_s,2,lonwrap,lcrosstime)
           write(stdout,*)'Interpolated bathymetry on SUBGRID'
+          call mall_mco(dpt,'read_ncglob')
           deallocate(dpt)
+          if (debug_level > 2) call zeit_co('BATHYMETRY read')
         end if
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
@@ -332,11 +349,13 @@
                         trim(char_tex))
         end if
         write(stdout,*) 'Fudging data (if requested) succeeded'
+        if (debug_level > 2) call zeit_co('subgrid prepare')
 
       end if
 !
 !     set up the parameters and constants
 !
+      if (debug_level > 2) call zeit_ci('grid prepare')
       write (stdout,*) 'Doing Grid with following parameters'
       write (stdout,*) 'ntypec = ' , ntypec_s
       write (stdout,*) 'iy     = ' , iysg
@@ -372,7 +391,7 @@
         write (stderr,*) 'iproj = ', iproj
         write (stderr,*) 'Unrecognized or unsupported projection'
         write (stderr,*) 'Set iproj in LAMCON, POLSTR, NORMER, ROTMER'
-        stop
+        call die('terrain')
       end if
       write(stdout,*) 'Geo mapping done'
 !
@@ -380,6 +399,7 @@
       call mxmnll(iy,jx,xlon,xlat,i_band)
       write(stdout,*)'Determined Grid coordinate range'
 !
+      if (debug_level > 2) call zeit_ci('TOPO read')
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GTOPO_DEM_30s.nc','z',   &
                        30,ntypec,.true.,0,ht)
@@ -388,8 +408,11 @@
                   nlatin,nlonin,grdltmn,grdlnmn,ht, &
                   ntypec,2,lonwrap,lcrosstime)
       write(stdout,*)'Interpolated DEM on model GRID'
+      call mall_mco(ht,'read_ncglob')
       deallocate(ht)
+      if (debug_level > 2) call zeit_co('TOPO read')
 !
+      if (debug_level > 2) call zeit_ci('LANDUSE read')
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLCC_BATS_30s.nc',       &
                        'landcover',30,ntypec,.true.,0,lnd)
@@ -400,9 +423,12 @@
                   ibnty=1,h2opct=h2opct)
       call filter1plakes(iy,jx,lndout)
       write(stdout,*)'Interpolated landcover on model GRID'
+      call mall_mco(lnd,'read_ncglob')
       deallocate(lnd)
+      if (debug_level > 2) call zeit_co('LANDUSE read')
 !
       if ( aertyp(7:7)=='1' ) then
+        if (debug_level > 2) call zeit_ci('SOIL read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLZB_SOIL_30s.nc',       &
                          'soiltype',30,ntypec,.true.,0,text)
@@ -417,10 +443,13 @@
                       ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
         write(stdout,*)'Interpolated texture on model GRID'
+        call mall_mco(text,'read_ncglob')
         deallocate(text)
+        if (debug_level > 2) call zeit_co('SOIL read')
       end if
 
       if ( lakedpth ) then
+        if (debug_level > 2) call zeit_ci('BATHYMETRY read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'ETOPO_BTM_30s.nc',       &
                          'z',30,ntypec,.true.,0,dpt)
@@ -429,7 +458,9 @@
                     nlatin,nlonin,grdltmn,grdlnmn,dpt, &
                     ntypec,2,lonwrap,lcrosstime)
         write(stdout,*)'Interpolated bathymetry on model GRID'
+        call mall_mco(dpt,'read_ncglob')
         deallocate(dpt)
+        if (debug_level > 2) call zeit_co('BATHYMETRY read')
       end if
 
 !     ******           preliminary heavy smoothing of boundaries
@@ -512,6 +543,7 @@
         call lakfudge(fudge_lak,dpth,lndout,iy,jx,trim(char_lak))
       end if
       write(stdout,*) 'Fudging data (if requested) succeeded'
+      if (debug_level > 2) call zeit_co('grid prepare')
 
       if ( nsg>1 ) then
         do i = 1 , iy
@@ -570,6 +602,13 @@
       call write_domain(.false.)
       write(stdout,*) 'Grid data written to output file'
       call free_grid
+
+      if (debug_level > 2) then
+        call mall_flush(stdout)
+        call mall_set(.false.)
+        call zeit_co('terrain')
+        call zeit_flush(stdout)
+      end if
 
       write(stdout,*)'Successfully completed terrain fields generation'
 !

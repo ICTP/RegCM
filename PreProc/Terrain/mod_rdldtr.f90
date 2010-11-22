@@ -21,6 +21,8 @@
 
       use mod_block
       use m_stdio
+      use m_die
+      use m_mall
 
       contains
 !
@@ -42,7 +44,6 @@
 !
       subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth,values)
         use netcdf
-        use mod_block
         implicit none
         character(len=*) , intent(in) :: cfile , cvar
         integer , intent(in) :: iires , iores , imeth
@@ -66,7 +67,7 @@
         if (mod(nlogb,iosec) /= 0) then
           write(stderr,*) 'Subroutine read_ncglob do not support'// &
                    ' iores = ',iores
-          stop
+          call die('read_ncglob')
         end if
         hnlogb = nlogb/2
         hnlagb = nlagb/2
@@ -110,15 +111,17 @@
         if (istatus /= 0) then
           write(stderr,*) 'Memory error on allocating ', &
                     nlatin*nlonin*4,' bytes.'
-          stop
+          call die('read_ncglob')
         end if
+        call mall_mci(values,'read_ncglob')
 
         allocate(readbuf(nlon,nlat), stat=istatus)
         if (istatus /= 0) then
           write(stderr,*) 'Memory error on allocating ', &
                           nlat*nlon*4,' bytes.'
-          stop
+          call die('read_ncglob')
         end if
+        call mall_mci(readbuf,'read_ncglob')
 
         write(stdout,*) 'Opening '//trim(cfile)
         istatus = nf90_open(cfile, nf90_nowrite, ncid)
@@ -161,8 +164,9 @@
         allocate(copybuf(nfrac), stat=istatus)
         if (istatus /= 0) then
           write(stderr,*) 'Memory error on allocating ',nfrac*4,' bytes'
-          stop
+          call die('read_ncglob')
         end if
+        call mall_mci(copybuf,'read_ncglob')
         select case (imeth)
           case (1)
             do i = 1 , nlatin
@@ -202,18 +206,20 @@
         end select
         write(stdout,*) 'Done.'
         deallocate(readbuf)
+        call mall_mco(readbuf,'read_ncglob')
         deallocate(copybuf)
+        call mall_mco(copybuf,'read_ncglob')
 
       end subroutine read_ncglob
 !
       subroutine checkerr(ierr)
         use netcdf
+        use m_die
         implicit none
         integer , intent(in) :: ierr
         if ( ierr /= nf90_noerr ) then
-          write (stderr, *) 'NetCDF library error.'
-          write (stderr, *) nf90_strerror(ierr)
-          stop
+          call die('read_ncglob','NetCDF library error.', &
+                   ierr,nf90_strerror(ierr),0)
         end if
       end subroutine checkerr
 !

@@ -378,6 +378,8 @@
                         ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
  
       use m_stdio
+      use m_die
+
       implicit none
 !
       integer , intent(in) :: iy , jx , iniy , injx , ntypec , itype
@@ -397,7 +399,7 @@
 !
       if (itype < 1 .or. itype > 5) then
         write(stderr,*) 'Unknown interpolation type'
-        stop
+        call die('interp')
       end if
 !
       do ii = 1 , iy

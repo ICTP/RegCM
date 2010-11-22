@@ -21,6 +21,7 @@
 
       use m_stdio
       use m_realkinds
+      use m_die
 
       private
 
@@ -49,11 +50,11 @@
       if ( fudge ) then
         inquire (file=char_lnd,exist=there)
         if ( .not.there ) then
-          write(stdout,*) 'Fudging requested for landuse but '// &
+          write(stderr,*) 'Fudging requested for landuse but '// &
                    ' missing input ascii file ',trim(char_lnd)
-          write(stdout,*)  'ERROR OPENING ' , char_lnd ,  &
+          write(stderr,*)  'ERROR OPENING ' , char_lnd ,  &
              &' FILE:  FILE DOES NOT EXIST'
-           stop ' IN SUBROUTINE lndfudge'
+          call die('lndfudge')
         endif 
         open (13,file=char_lnd,form='formatted')
         do i = iy , 1 , -1
@@ -113,7 +114,7 @@
               ch(i,j) = ' '
             else
               write (*,*) 'LANDUSE MASK exceed the limit'
-              stop
+              call die('lndfudge')
             end if
 !_fix         if(nint(lndout(i,j)).eq.15) htgrid(i,j) = 0.0
             if ( htgrid(i,j)<0.1 .and. nint(lndout(i,j))==15 )        &
@@ -170,7 +171,7 @@
             else
               write (*,*) 'LANDUSE MASK' , nint(lndout(i,j)) ,        &
                          &'exceed the limit'
-              stop
+              call die('lndfudge')
             end if
           end do
         end do
@@ -204,11 +205,11 @@
       if ( fudge ) then
         inquire (file=char_tex,exist=there)
         if ( .not.there ) then
-          write(stdout,*) 'Fudging requested for texture but '// &
+          write(stderr,*) 'Fudging requested for texture but '// &
                    'missing input ascii file ',trim(char_tex)
-          write(stdout,*)  'ERROR OPENING ' , char_tex ,   &
+          write(stderr,*)  'ERROR OPENING ' , char_tex ,   &
                   &' FILE:  FILE DOES NOT EXIST'
-          stop ' IN SUBROUTINE texfudge'
+          call die('texfudge')
         endif 
         open (13,file=char_tex,form='formatted')
         do i = iy , 1 , -1
@@ -258,7 +259,7 @@
               ch(i,j) = ' '
             else
               write (*,*) 'TEXTURE TYPE exceed the limit'
-              stop
+              call die('texfudge')
             end if
             if ( nint(texout(i,j))==14 ) htgrid(i,j) = 0.0
           end do
@@ -303,7 +304,7 @@
             else
               write (*,*) 'TEXTURE TYPE' , nint(texout(i,j)) ,          &
                          &'exceed the limit'
-              stop
+              call die('texfudge')
             end if
           end do
         end do
@@ -338,11 +339,11 @@
       if ( fudge ) then
         inquire (file=char_lak,exist=there)
         if ( .not.there ) then
-          write(stdout,*) 'Fudging requested for lake but '// &
+          write(stderr,*) 'Fudging requested for lake but '// &
                    'missing input ascii file ',trim(char_lak)
-          write(stdout,*)  'ERROR OPENING ' , char_lak ,  &
+          write(stderr,*)  'ERROR OPENING ' , char_lak ,  &
              &' FILE:  FILE DOES NOT EXIST'
-           stop ' IN SUBROUTINE lakfudge'
+          call die('lakfudge')
         endif 
         open (13,file=char_lak,form='formatted')
         do i = iy , 1 , -1
