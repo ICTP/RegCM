@@ -184,7 +184,7 @@
 
       if ( nsg>1 ) then
 
-        if (debug_level > 2) call zeit_ci('subgrid prepare')
+        if (debug_level > 2) call zeit_ci('subgrid')
 
         write (stdout,*) 'Doing Subgrid with following parameters'
         write (stdout,*) 'ntypec = ' , ntypec_s
@@ -194,7 +194,7 @@
         write (stdout,*) 'clat   = ' , clat
         write (stdout,*) 'clon   = ' , clong
         write (stdout,*) 'iproj  = ' , iproj
-        dsinm = ds*1000.
+        dsinm = (ds/nsg)*1000.0
         write(stdout,*) 'Subgrid setup done'
 
         if ( iproj=='LAMCON' ) then
@@ -245,7 +245,7 @@
         deallocate(ht)
         if (debug_level > 2) call zeit_co('TOPO read')
 !
-        if (debug_level > 2) call zeit_ci('LANDUSE read')
+        if (debug_level > 2) call zeit_ci('LAND read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLCC_BATS_30s.nc',       &
                          'landcover',30,ntypec_s,.true.,0,lnd)
@@ -258,7 +258,7 @@
         write(stdout,*)'Interpolated landcover on SUBGRID'
         call mall_mco(lnd,'read_ncglob')
         deallocate(lnd)
-        if (debug_level > 2) call zeit_co('LANDUSE read')
+        if (debug_level > 2) call zeit_co('LAND read')
 !
         if ( aertyp(7:7)=='1' ) then
           if (debug_level > 2) call zeit_ci('SOIL read')
@@ -282,7 +282,7 @@
         end if
 
         if ( lakedpth ) then
-          if (debug_level > 2) call zeit_ci('BATHYMETRY read')
+          if (debug_level > 2) call zeit_ci('BATH read')
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'ETOPO_BTM_30s.nc',       &
                            'z',30,ntypec_s,.true.,0,dpt)
@@ -293,7 +293,7 @@
           write(stdout,*)'Interpolated bathymetry on SUBGRID'
           call mall_mco(dpt,'read_ncglob')
           deallocate(dpt)
-          if (debug_level > 2) call zeit_co('BATHYMETRY read')
+          if (debug_level > 2) call zeit_co('BATH read')
         end if
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
@@ -349,13 +349,13 @@
                         trim(char_tex))
         end if
         write(stdout,*) 'Fudging data (if requested) succeeded'
-        if (debug_level > 2) call zeit_co('subgrid prepare')
+        if (debug_level > 2) call zeit_co('subgrid')
 
       end if
 !
 !     set up the parameters and constants
 !
-      if (debug_level > 2) call zeit_ci('grid prepare')
+      if (debug_level > 2) call zeit_ci('grid')
       write (stdout,*) 'Doing Grid with following parameters'
       write (stdout,*) 'ntypec = ' , ntypec_s
       write (stdout,*) 'iy     = ' , iysg
@@ -412,7 +412,7 @@
       deallocate(ht)
       if (debug_level > 2) call zeit_co('TOPO read')
 !
-      if (debug_level > 2) call zeit_ci('LANDUSE read')
+      if (debug_level > 2) call zeit_ci('LAND read')
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLCC_BATS_30s.nc',       &
                        'landcover',30,ntypec,.true.,0,lnd)
@@ -425,7 +425,7 @@
       write(stdout,*)'Interpolated landcover on model GRID'
       call mall_mco(lnd,'read_ncglob')
       deallocate(lnd)
-      if (debug_level > 2) call zeit_co('LANDUSE read')
+      if (debug_level > 2) call zeit_co('LAND read')
 !
       if ( aertyp(7:7)=='1' ) then
         if (debug_level > 2) call zeit_ci('SOIL read')
@@ -449,7 +449,7 @@
       end if
 
       if ( lakedpth ) then
-        if (debug_level > 2) call zeit_ci('BATHYMETRY read')
+        if (debug_level > 2) call zeit_ci('BATH read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'ETOPO_BTM_30s.nc',       &
                          'z',30,ntypec,.true.,0,dpt)
@@ -460,7 +460,7 @@
         write(stdout,*)'Interpolated bathymetry on model GRID'
         call mall_mco(dpt,'read_ncglob')
         deallocate(dpt)
-        if (debug_level > 2) call zeit_co('BATHYMETRY read')
+        if (debug_level > 2) call zeit_co('BATH read')
       end if
 
 !     ******           preliminary heavy smoothing of boundaries
@@ -543,7 +543,7 @@
         call lakfudge(fudge_lak,dpth,lndout,iy,jx,trim(char_lak))
       end if
       write(stdout,*) 'Fudging data (if requested) succeeded'
-      if (debug_level > 2) call zeit_co('grid prepare')
+      if (debug_level > 2) call zeit_co('grid')
 
       if ( nsg>1 ) then
         do i = 1 , iy
