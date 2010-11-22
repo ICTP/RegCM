@@ -206,15 +206,18 @@
 
             if ( aveice2d(n,i,jslc).le.10.0D0 ) then
               ocld2d(n,i,jslc) = 0.0D0 
+              lveg(n,i) = 14
               ldoc1d(n,i) = 0.0D0
               sice1d(n,i) = 0.0D0
               scv1d(n,i) = 0.0D0
               sag1d(n,i) = 0.0D0
             else
               ocld2d(n,i,jslc) = 2.0D0 
+              lveg(n,i) = 12
               ldoc1d(n,i) = 2.0D0
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i) = hsnow2d(n,i,jslc)    !  units of snow = mm h2o
+              evpr1d(n,i) = evl2d(n,i,jslc)
             end if
           end if
         end do
