@@ -286,7 +286,6 @@
               end do
             end do
           end if
-        else
         end if
       end do
 #endif
@@ -1214,7 +1213,6 @@
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )     &
                & xtm1 = -dtmin
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),j,iboudy)
-          else
           end if
 #ifndef BAND
         end if     !end if(j.ne.jxm1) test
@@ -1241,7 +1239,6 @@
           do i = 1 , iym1
             psd(i,j) = sps1%ps(i,j)
           end do
-        else
         end if
       end do
 #endif
@@ -1760,7 +1757,6 @@
                 td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               end do
             end do
-          else
           end if
 !
 #ifdef MPP1
@@ -1786,13 +1782,11 @@
                 td(i,k,j) = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               end do
             end do
-          else
           end if
 !
 !
 !..t..compute weighted p*t (td) for use in ssi:
 !
-        else
         end if
       end do
 #endif

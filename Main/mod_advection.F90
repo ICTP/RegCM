@@ -515,7 +515,6 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
  
-      else
       end if
 !
 #else
@@ -695,7 +694,6 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
  
-      else
       end if
 !
 #endif

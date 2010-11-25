@@ -368,7 +368,6 @@
             else if ( oblen.le.10. ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *6*dlog(za(i,kz,j)/10.)
-            else
             end if
             th10(i,j) = dmax1(th10(i,j),sts2%tg(i,j))
           end if

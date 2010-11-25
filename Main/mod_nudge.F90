@@ -213,7 +213,6 @@
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
          end do
 #endif
-      else
       end if
 #else
 !----------------------------------------------------------------------
@@ -341,9 +340,7 @@
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
-          else
           end if
-        else
         end if
 !
       else if ( ibdy.eq.5 ) then
@@ -446,12 +443,9 @@
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
             end do
-          else
           end if
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -612,7 +606,6 @@
             end do
          end do
 #endif
-      else
       end if
 #else
 !----------------------------------------------------------------------
@@ -764,9 +757,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
       else if ( ibdy.eq.5 ) then
@@ -893,12 +884,9 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -1060,7 +1048,6 @@
             end do
          end do
 #endif
-      else
       end if
 #else
 !----------------------------------------------------------------------
@@ -1216,9 +1203,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
       else if ( ibdy.eq.5 ) then
@@ -1349,12 +1334,9 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -1514,7 +1496,6 @@
             end do
          end do
 #endif
-      else
       end if
 #else
 !----------------------------------------------------------------------
@@ -1659,9 +1640,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
       else if ( ibdy.eq.5 ) then
@@ -1788,12 +1767,9 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -1953,7 +1929,6 @@
             end do
          end do
 #endif
-      else
       end if
 #else
 !----------------------------------------------------------------------
@@ -2098,9 +2073,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
       else if ( ibdy.eq.5 ) then
@@ -2227,12 +2200,9 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
               end do
             end do
-          else
           end if
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -2363,10 +2333,8 @@
             ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pebt(i,jsls)
 #endif
           end do
-        else
         end if
 !
-      else
       end if
 
 #endif
@@ -2491,10 +2459,8 @@
 #endif
             end do
           end do
-        else
         end if
 !
-      else
       end if
 #endif
 
@@ -2618,10 +2584,8 @@
 #endif
             end do
           end do
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -2737,10 +2701,8 @@
 #endif
             end do
           end do
-        else
         end if
 !
-      else
       end if
 #endif
       call time_end(subroutine_name,idindx)
@@ -2856,10 +2818,8 @@
 #endif
             end do
           end do
-        else
         end if
 !
-      else
       end if
 #endif
 

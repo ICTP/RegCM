@@ -880,7 +880,6 @@ contains
              f = (aa1(i)-aa0(i))/dtime  ! Arakawa-Schubert closure
           else if ( igcc.eq.2 ) then
              f = aa0(i)/dtauc2d(i,jslc)   ! Fritsch-Chappell closure
-          else
           end if
           xk = (xaa0(i)-aa0(i))/mbdt
           xmb(i) = -f/xk

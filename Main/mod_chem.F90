@@ -162,7 +162,6 @@
 !!              call say
 !!              call fatal(__FILE__,__LINE__,                             &
 !!                        &'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
-!!            else
 !!            end if
           end if
           exit ! Found proper date
@@ -314,7 +313,6 @@
 !              print * , 'DATE IN OX BC FILE EXCEEDED DATE IN RegCM'
 !              print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
 !              call fatal(__FILE__,__LINE__,'ICBC date')
-!            else
 !            end if
             exit
           end do

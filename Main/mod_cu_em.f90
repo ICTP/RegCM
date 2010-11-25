@@ -960,7 +960,6 @@
               do j = 1 , ntra
                 trap(i,j) = trap(i+1,j)
               end do
-            else
             end if
             qp(i) = min(qp(i),qstm)
             qp(i) = max(qp(i),0.0D0)
