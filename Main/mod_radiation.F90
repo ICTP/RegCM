@@ -1112,7 +1112,6 @@
           indxsl = 3
         else if ( wavmin(ns).eq.0.702 .or. wavmin(ns).gt.2.38 ) then
           indxsl = 4
-        else
         end if
 !
 !       Set cloud extinction optical depth, single scatter albedo,

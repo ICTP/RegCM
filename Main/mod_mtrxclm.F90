@@ -1377,8 +1377,6 @@
               pptnc(i,j) = 0.
               pptc(i,j) = 0.
  
-            else
-               !landmask
             end if
           end do !i loop
  
@@ -1479,7 +1477,6 @@
                   drag_o(j,i-1) = drag_o(j,i-1) + drag1d(n,i)
                   evpa_o(j,i-1) = evpa_o(j,i-1) + evpa2d(n,i,j)
                   sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,i,j)
-                else
                 end if
               end do
               tpr_o(j,i-1) = (prnca2d(ci,j)+prca2d(ci,j))*mmpd

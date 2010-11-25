@@ -600,7 +600,6 @@
         ndeb = 0
       else if ( jx-(myid*jxp+jxp-ndeb).lt.nspgd ) then
         ndeb = jxp
-      else
       end if
       do nn = 1 , ndwb
         do k = 1 , kz
