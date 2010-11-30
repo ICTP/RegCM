@@ -20,6 +20,8 @@
       module mod_sst_ersst
 
       use m_realkinds
+      use m_die
+      use m_stdio
 
       contains
 
@@ -67,15 +69,15 @@
           inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',    &
             &      exist=there)
           if ( .not.there ) then
-            print * , 'sstERAIN.1989-2009.nc is not available' ,        &
+            write(stderr,*) 'sstERAIN.1989-2009.nc is not available' ,  &
                  &' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_ersst')
           end if
         end if
         if ( .not.there ) then
-          print * , 'ERSST Sea Surface Temperature is just available' , &
+          write(stderr,*) 'ERSST Sea Surface Temp is just available' , &
                &' from 1989010100 to 2009053118'
-          stop
+          call die('sst_ersst')
         end if
       else if ( ssttyp=='ERSKT' ) then
         there = .false.
@@ -84,27 +86,27 @@
           inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',  &
                  & exist=there)
           if ( .not.there ) then
-            print * , 'tskinERAIN.1989-2009.nc is not available' ,      &
+            write(stderr,*) 'tskinERAIN.1989-2009.nc is not available' ,&
                  &' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_ersst')
           end if
         end if
         if ( .not.there ) then
-          print * , 'ERSKT Skin Temperature is just available' ,        &
+          write(stderr,*) 'ERSKT Skin Temperature is just available' ,  &
                &' from 1989010100 to 2009053118'
-          stop
+          call die('sst_ersst')
         end if
       else
-        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
-        write (*,*) 'Supported types are ERSST ERSKT'
-        stop
+        write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (stderr,*) 'Supported types are ERSST ERSKT'
+        call die('sst_ersst')
       end if
 
       nsteps = idatediff(globidate2,globidate1)/idtbc + 1
 
-      write (*,*) 'GLOBIDATE1 : ' , globidate1
-      write (*,*) 'GLOBIDATE2 : ' , globidate2
-      write (*,*) 'NSTEPS     : ' , nsteps
+      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+      write (stdout,*) 'NSTEPS     : ' , nsteps
 
       call open_sstfile(globidate1)
  
@@ -134,11 +136,12 @@
         call split_idate(idate, nyear, nmo, nday, nhour)
  
         call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-        print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+        write(stdout,*) &
+            'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         call writerec(idate,.false.)
-        print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
+        write(stdout,*) 'WRITING OUT MM4 SST DATA:' , nmo , nyear
 
         call addhours(idate, idtbc)
 
@@ -187,19 +190,17 @@
       if ( it==1 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('skt_erain',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('skt_erain','Cannot open input file '// &
+                   trim(pathaddname),1)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('skt_erain','Cannot open input file '// &
+                   trim(pathaddname),1)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
@@ -218,9 +219,8 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        call die('skt_erain','Cannot get '//varname//' from file', &
+                 istatus,nf90_strerror(istatus),0)
       end if
 !
       do j = 1 , jlat
@@ -276,19 +276,19 @@
       if ( it==1 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('sst_erain',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('sst_erain','Cannot open input file '// &
+                   trim(pathaddname)//' : '//nf90_strerror(istatus), &
+                   istatus)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('sst_erain','Cannot find variable '//trim(varname)// &
+                   ' in file '//trim(pathaddname)//' : '//              &
+                   nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
@@ -307,9 +307,9 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        call die('sst_erain','Cannot read '//trim(varname)// &
+                 ' from file '//trim(pathaddname)//' : '//              &
+                 nf90_strerror(istatus),istatus)
       end if
 !
       do j = 1 , jlat

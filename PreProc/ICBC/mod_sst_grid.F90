@@ -18,9 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_sst_grid
+      use m_realkinds
+      use m_die
       use netcdf
       use mod_dynparam
-      implicit none
 
       integer , private :: ncid
       integer , dimension(4) , private :: idims
@@ -28,9 +29,9 @@
       integer , private :: irefdate
       integer , private :: itime
 
-      real(4) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,    &
+      real(sp) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,   &
                                   &             xlat , xlon , finmat
-      real(4) , allocatable , dimension(:) :: sigma
+      real(sp) , allocatable , dimension(:) :: sigma
 
       contains
 
@@ -77,10 +78,10 @@
         istatus = nf90_inquire_dimension(incin, idimid, len=jxx)
         call check_ok(istatus,'Dimension jx read error')
         if ( iyy/=iy .or. jxx/=jx ) then
-          print * , 'IMPROPER DIMENSION SPECIFICATION'
-          print * , '  namelist   : ' , iy , jx
-          print * , '  DOMAIN     : ' , iyy , jxx
-          stop 'Dimensions mismatch'
+          write (stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
+          write (stderr,*) '  namelist   : ' , iy , jx
+          write (stderr,*) '  DOMAIN     : ' , iyy , jxx
+          call die('read_domain','Dimensions mismatch',1)
         end if
 
         istatus = nf90_inq_varid(incin, "sigma", ivarid)
@@ -115,10 +116,10 @@
         integer :: istatus
         character(256) :: sstname , history
         character(64) :: csdate
-        real(4) , dimension(2) :: trlat
-        real(4) :: hptop
-        real(4) , allocatable , dimension(:) :: yiy
-        real(4) , allocatable , dimension(:) :: xjx
+        real(sp) , dimension(2) :: trlat
+        real(sp) :: hptop
+        real(sp) , allocatable , dimension(:) :: yiy
+        real(sp) , allocatable , dimension(:) :: xjx
         integer , dimension(2) :: ivvar
         integer , dimension(2) :: illvar
         integer , dimension(2) :: izvar
@@ -406,7 +407,7 @@
         integer :: istatus
         integer , dimension(1) :: istart1 , icount1
         integer , dimension(3) :: istart , icount
-        real(8) , dimension(1) :: xdate
+        real(dp) , dimension(1) :: xdate
         istart(3) = itime
         istart(2) = 1
         istart(1) = 1
@@ -438,9 +439,7 @@
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then 
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
+          call die('sst_grid',message,ierr,nf90_strerror(ierr),0)
         end if
       end subroutine check_ok
 

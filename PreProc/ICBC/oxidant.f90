@@ -25,6 +25,8 @@
       use mod_wrtoxd
       use mod_header
       use mod_oxidant
+      use m_stdio
+      use m_die
 !
       implicit none
 !
@@ -41,12 +43,11 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
+        write (stderr,*) 'Parameter initialization not completed'
+        write (stderr,*) 'Usage : '
+        write (stderr,*) '          ', trim(prgname), ' regcm.in'
+        write (stderr,*) ' '
+        call die('oxidant','Check argument and namelist syntax.',1)
       end if
 !      
       call init_grid(iy,jx,kz)
@@ -54,9 +55,9 @@
 !
       nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 !
-      write (*,*) 'GLOBIDATE1 : ' , globidate1
-      write (*,*) 'GLOBIDATE2 : ' , globidate2
-      write (*,*) 'NSTEPS     : ' , nsteps
+      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+      write (stdout,*) 'NSTEPS     : ' , nsteps
 
       idate = globidate1
       iodate = idate
@@ -77,5 +78,7 @@
       call free_grid
       call free_outoxd
       call freemozart
+
+      write (stdout,*) 'Oxidant file successfully created'
 
       end program oxidant

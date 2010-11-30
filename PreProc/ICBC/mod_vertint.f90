@@ -21,6 +21,8 @@
 
       use mod_constants
       use m_realkinds
+!     use m_die
+!     use m_stdio
 
       contains
 
@@ -528,14 +530,14 @@
           !Otherwise, interpolate the surface temperature between
           !the two adjacent GCM levels
           else if ( k1==0 ) then
-!           write ( 6,* ) 'Error: the RCM surface is above the GCM'
-!           write ( 6,* ) 'model top at i,j=',i,j
-!           write ( 6,* ) 'This might reasonably happen if you have a'
-!           write ( 6,* ) 'very tall mountain in your domain. Setting '
-!           write ( 6,* ) 'ptop to a smaller value could help.'
-!           write ( 6,* ) 'Otherwise, this indicates a bug somewhere...'
-!           write ( 6,* ) sc , ' => ', psrccm(i,j) , ', ', ptop
-!           stop
+!           write (stderr,*) 'Error: the RCM surface is above the GCM'
+!           write (stderr,*) 'model top at i,j=',i,j
+!           write (stderr,*) 'This might reasonably happen if you have a'
+!           write (stderr,*) 'very tall mountain in your domain. Setting '
+!           write (stderr,*) 'ptop to a smaller value could help.'
+!           write (stderr,*) 'Otherwise, this indicates a bug somewhere...'
+!           write (stderr,*) sc , ' => ', psrccm(i,j) , ', ', ptop
+!           call die('intv3')
 !           endif
             fsccm(i,j) = fccm(i,j,1)
           else

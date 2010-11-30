@@ -20,6 +20,7 @@
       module mod_write
 
       use mod_dynparam
+      use m_die
 
       implicit none
 
@@ -30,10 +31,10 @@
       integer , dimension(5) , private :: idims
       integer , dimension(8) , private :: ivar
 
-      real(4) , allocatable , dimension(:,:) :: ps4 , ts4
-      real(4) , allocatable , dimension(:,:,:) :: c4 , h4 , q4
-      real(4) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
-      real(4) , allocatable , dimension(:,:,:) :: sulfate4
+      real(sp) , allocatable , dimension(:,:) :: ps4 , ts4
+      real(sp) , allocatable , dimension(:,:,:) :: c4 , h4 , q4
+      real(sp) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
+      real(sp) , allocatable , dimension(:,:,:) :: sulfate4
 
       data ncid /-1/
 
@@ -88,12 +89,12 @@
         integer , dimension(2) :: ivvar
         integer , dimension(3) :: illvar
         integer , dimension(4) :: x3ddim
-        real(4) , allocatable , dimension(:) :: yiy
-        real(4) , allocatable , dimension(:) :: xjx
+        real(sp) , allocatable , dimension(:) :: yiy
+        real(sp) , allocatable , dimension(:) :: xjx
         character(64) :: csdate , cdum
         character(256) :: history
-        real(4) , dimension(2) :: trlat
-        real(4) :: hptop
+        real(sp) , dimension(2) :: trlat
+        real(sp) :: hptop
 
         if (ncid > 0) then
           istatus = nf90_close(ncid)
@@ -463,7 +464,7 @@
         integer :: istatus
         integer , dimension(1) :: istart1 , icount1
         integer , dimension(4) :: istart , icount
-        real(8) , dimension(1) :: xdate
+        real(dp) , dimension(1) :: xdate
 !
         istart1(1) = itime
         icount1(1) = 1
@@ -514,9 +515,7 @@
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
+          call die('writef',message,1,nf90_strerror(ierr),ierr)
         end if
       end subroutine check_ok
 !

@@ -35,6 +35,7 @@
       use mod_dynparam
       use mod_date
       use netcdf
+      use m_realkinds
 
       implicit none
 !
@@ -48,28 +49,28 @@
       integer :: i , j , nrec , ierr
       integer :: iyy , jxx , kzz
       integer :: istatus , incin , ncid , idimid , ivarid
-      real(4) , dimension(jlat) :: lati
-      real(4) , dimension(ilon) :: loni
-      real(4) , dimension(ilon,jlat) :: aer2
-      real(4) , allocatable , dimension(:,:) :: aermm , xlat , xlon
-      real(4) , allocatable , dimension(:,:) :: finmat
-      real(4) , allocatable , dimension(:) :: sigma
+      real(sp) , dimension(jlat) :: lati
+      real(sp) , dimension(ilon) :: loni
+      real(sp) , dimension(ilon,jlat) :: aer2
+      real(sp) , allocatable , dimension(:,:) :: aermm , xlat , xlon
+      real(sp) , allocatable , dimension(:,:) :: finmat
+      real(sp) , allocatable , dimension(:) :: sigma
       character(256) :: namelistfile, prgname , terfile , aerofile
       character(64) :: history , csdate , aerdesc
       integer , dimension(4) :: idims
       integer , dimension(7) :: ivar
       integer :: irefdate , imondate , year , month , day , hour , imon
-      real(4) , dimension(2) :: trlat
-      real(4) :: hptop
-      real(4) , allocatable , dimension(:) :: yiy
-      real(4) , allocatable , dimension(:) :: xjx
+      real(sp) , dimension(2) :: trlat
+      real(sp) :: hptop
+      real(sp) , allocatable , dimension(:) :: yiy
+      real(sp) , allocatable , dimension(:) :: xjx
       integer , dimension(2) :: ivvar
       integer , dimension(2) :: illvar
       integer , dimension(2) :: izvar
       integer , dimension(8) :: tvals
       integer , dimension(1) :: istart1 , icount1
       integer , dimension(3) :: istart , icount
-      real(8) , dimension(1) :: xdate
+      real(dp) , dimension(1) :: xdate
 !
 !     Read input global namelist
 !
@@ -501,18 +502,18 @@
 ! Dummy arguments
 !
       integer :: iy , jx , nflds , nlati , nloni
-      real(4) , dimension(nloni,nlati,nflds) :: fin
-      real(4) , dimension(nlati) :: lati
-      real(4) , dimension(iy,jx) :: lato , lono
-      real(4) , dimension(nloni) :: loni
-      real(4) , dimension(iy,jx,nflds) :: fout
+      real(sp) , dimension(nloni,nlati,nflds) :: fin
+      real(sp) , dimension(nlati) :: lati
+      real(sp) , dimension(iy,jx) :: lato , lono
+      real(sp) , dimension(nloni) :: loni
+      real(sp) , dimension(iy,jx,nflds) :: fout
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
 !
 ! Local variables
 !
-      real(4) :: bas , lon180 , p , q , xsum , xind , yind
+      real(sp) :: bas , lon180 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
 !
 !

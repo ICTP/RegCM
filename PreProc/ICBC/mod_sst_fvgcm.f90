@@ -20,6 +20,8 @@
       module mod_sst_fvgcm
 
       use m_realkinds
+      use m_die
+      use m_stdio
 
       contains
 
@@ -58,31 +60,40 @@
       if ( ssttyp=='FV_RF' ) then
         inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
             &    exist=there)
-        if ( .not.there ) print * ,                                     &
+        if ( .not.there ) then
+          write (stderr,*)                                              &
             & 'Sst_1959_1991ref.dat is not available under ',           &
             & trim(inpglob),'/SST/'
+          call die('sst_fvgcm')
+        end if
         open (11,file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else if ( ssttyp=='FV_A2' ) then
         inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
              &   exist=there)
-        if ( .not.there ) print * ,                                     &
+        if ( .not.there ) then
+          write (stderr,*)                                              &
             & 'Sst_2069_2101_A2.dat is not available under ',           &
             & trim(inpglob),'/SST/'
+          call die('sst_fvgcm')
+        end if
         open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else if ( ssttyp=='FV_B2' ) then
         inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
               &  exist=there)
-        if ( .not.there ) print * ,                                     &
+        if ( .not.there ) then
+          write (stderr,*)                                              &
              & 'Sst_2069_2101_B2.dat is not available under ',          &
              & trim(inpglob),'/SST/'
+          call die('sst_fvgcm')
+        end if
         open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
              &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
       else
-        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
-        write (*,*) 'Supported types are FV_RF FV_A2 FV_B2'
-        stop
+        write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (stderr,*) 'Supported types are FV_RF FV_A2 FV_B2'
+        call die('sst fvgcm')
       end if
 
       idateo = imonfirst(globidate1)
@@ -129,7 +140,8 @@
         end do
  
         call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-        print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+        write (stdout,*)  &
+              'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
         do j = 1 , jx
           do i = 1 , iy
@@ -157,7 +169,7 @@
                 end if
               end do
               lu(i,j) = float(ludom)
-              print * , ludom , sstmm(i,j)
+              write (stdout,*) ludom , sstmm(i,j)
             end if
             if ( sstmm(i,j)>-100. ) then
               sstmm(i,j) = sstmm(i,j)
@@ -169,7 +181,7 @@
  
         call writerec(idate,.false.)
 
-        print * , 'WRITTEN OUT SST DATA : ' , idate
+        write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
         idate = inextmon(idate)
 
       end do

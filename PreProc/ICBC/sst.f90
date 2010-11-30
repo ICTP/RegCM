@@ -26,6 +26,8 @@
       use mod_sst_eh5om
       use mod_sst_ersst
       use mod_sst_fvgcm
+      use m_die
+      use m_stdio
 
       implicit none
 
@@ -35,7 +37,6 @@
 
 !     call and print header
       call header('sst')
-
 !
 !     Read input global namelist
 !
@@ -43,12 +44,11 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
+        write (stderr,*) 'Parameter initialization not completed'
+        write (stderr,*) 'Usage : '
+        write (stderr,*) '          ', trim(prgname), ' regcm.in'
+        write (stderr,*) ' '
+        call die('sst','Check argument and namelist syntax.',1)
       end if
 
       call init_grid
@@ -68,14 +68,13 @@
        &        ssttyp=='FV_B2' ) then
         call sst_fvgcm
       else
-        print *, 'Unknown SSTTYP ', ssttyp , ' specified in ',          &
-              & trim(namelistfile)
-        stop
+        call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
+                  trim(namelistfile)//'.',1)
       end if
 
       call free_grid
       call close_sstfile
 
-      print *, 'Successfully generated SST'
+      write (stdout,*) 'Successfully generated SST'
 
       end program sst
