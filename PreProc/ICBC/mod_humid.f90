@@ -19,28 +19,24 @@
 
       module mod_humid
 
+      use mod_constants
+      use m_realkinds
+!
+      real(sp) , parameter :: tr = 1./tzero
+!
       contains
 
       subroutine humid1(t,q,ps,pt,sigma,ni,nj,nk)
-      use mod_constants , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: tr = 1./tzero
-!
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(4) :: ps , pt
-      real(4) , dimension(ni,nj,nk) :: q , t
-      real(4) , dimension(nk) :: sigma
+      real(sp) :: ps , pt
+      real(sp) , dimension(ni,nj,nk) :: q , t
+      real(sp) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
       intent (inout) q
 !
-! Local variables
-!
-      real(4) :: lh , p , qs , satvp
+      real(sp) :: lh , p , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
@@ -61,26 +57,17 @@
 !-----------------------------------------------------------------------
 !
       subroutine humid1_o(t,q,ps,sigma,ptop,im,jm,km)
-      use mod_constants , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: tr = 1./tzero
-!
-! Dummy arguments
-!
       integer :: im , jm , km
-      real(4) :: ptop
-      real(4) , dimension(im,jm) :: ps
-      real(4) , dimension(im,jm,km) :: q , t
-      real(4) , dimension(km) :: sigma
+      real(sp) :: ptop
+      real(sp) , dimension(im,jm) :: ps
+      real(sp) , dimension(im,jm,km) :: q , t
+      real(sp) , dimension(km) :: sigma
       intent (in) im , jm , km , ps , ptop , sigma , t
       intent (inout) q
 !
-! Local variables
-!
-      real(4) :: hl , p , qs , satvp
+      real(sp) :: hl , p , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
@@ -103,23 +90,14 @@
 !-----------------------------------------------------------------------
 !
       subroutine humid1fv(t,q,p3d,ni,nj,nk)
-      use mod_constants , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: tr = 1./tzero
-!
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(4) , dimension(ni,nj,nk) :: p3d , q , t
+      real(sp) , dimension(ni,nj,nk) :: p3d , q , t
       intent (in) ni , nj , nk , p3d , t
       intent (inout) q
 !
-! Local variables
-!
-      real(4) :: hl , qs , satvp
+      real(sp) :: hl , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
@@ -144,26 +122,17 @@
 !-----------------------------------------------------------------------
 !
       subroutine humid2(t,q,ps,pt,sigma,ni,nj,nk)
-      use mod_constants , only : tzero , ep2 , lh0 , lh1 , lsvp1 , lsvp2
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: tr = 1./tzero
-!
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(4) :: pt
-      real(4) , dimension(ni,nj) :: ps
-      real(4) , dimension(ni,nj,nk) :: q , t
-      real(4) , dimension(nk) :: sigma
+      real(sp) :: pt
+      real(sp) , dimension(ni,nj) :: ps
+      real(sp) , dimension(ni,nj,nk) :: q , t
+      real(sp) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
       intent (inout) q
 !
-! Local variables
-!
-      real(4) :: hl , p , qs , satvp
+      real(sp) :: hl , p , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY
@@ -185,26 +154,17 @@
 !-----------------------------------------------------------------------
 !
       subroutine humid2fv(t,q,ps,pt,sigma,ni,nj,nk)
-      use mod_constants , only : tzero , lh0 , lh1 , lsvp1 , lsvp2 , ep2
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: tr = 1./tzero
-!
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(4) :: pt
-      real(4) , dimension(ni,nj) :: ps
-      real(4) , dimension(ni,nj,nk) :: q , t
-      real(4) , dimension(nk) :: sigma
+      real(sp) :: pt
+      real(sp) , dimension(ni,nj) :: ps
+      real(sp) , dimension(ni,nj,nk) :: q , t
+      real(sp) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
       intent (inout) q
 !
-! Local variables
-!
-      real(4) :: hl , p , qs , satvp
+      real(sp) :: hl , p , qs , satvp
       integer :: i , j , k
 !
 !     THIS ROUTINE REPLACES RELATIVE HUMIDITY BY SPECIFIC HUMIDITY

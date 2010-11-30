@@ -19,26 +19,25 @@
 
       module mod_vertint
 
+      use mod_constants
+      use m_realkinds
+
       contains
 
       subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) , dimension(im,jm,km) :: f , p3d
-      real(4) , dimension(im,jm,kp) :: fp
-      real(4) , dimension(kp) :: p
-      real(4) , dimension(im,jm) :: ps
+      real(sp) , dimension(im,jm,km) :: f , p3d
+      real(sp) , dimension(im,jm,kp) :: fp
+      real(sp) , dimension(kp) :: p
+      real(sp) , dimension(im,jm) :: ps
       intent (in) f , im , jm , km , kp , p , p3d , ps
       intent (out) fp
 !
-! Local variables
-!
       integer :: i , j , k , k1 , k1p , n
-      real(4) , dimension(61) :: sig
-      real(4) :: sigp , w1 , wp
+      real(sp) , dimension(61) :: sig
+      real(sp) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -82,22 +81,18 @@
       subroutine intlin_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) :: ptop
-      real(4) , dimension(im,jm,km) :: f
-      real(4) , dimension(im,jm,kp) :: fp
-      real(4) , dimension(kp) :: p
-      real(4) , dimension(im,jm) :: pstar
-      real(4) , dimension(km) :: sig
+      real(sp) :: ptop
+      real(sp) , dimension(im,jm,km) :: f
+      real(sp) , dimension(im,jm,kp) :: fp
+      real(sp) , dimension(kp) :: p
+      real(sp) , dimension(im,jm) :: pstar
+      real(sp) , dimension(km) :: sig
       intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
       intent (out) fp
 !
-! Local variables
-!
       integer :: i , j , k , k1 , k1p , n
-      real(4) :: sigp , w1 , wp
+      real(sp) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -132,17 +127,13 @@
       subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj , nlev1
-      real(4) , dimension(ni,nj) :: pa , tlayer , za , zrcm
-      real(4) , dimension(nlev1) :: sccm
-      real(4) , dimension(ni,nj,nlev1) :: tp , zp
+      real(sp) , dimension(ni,nj) :: pa , tlayer , za , zrcm
+      real(sp) , dimension(nlev1) :: sccm
+      real(sp) , dimension(ni,nj,nlev1) :: tp , zp
       intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
       intent (out) pa , za
       intent (inout) tlayer
-!
-! Local variables
 !
       integer :: i , j , k , kb , kt
 !
@@ -198,22 +189,17 @@
       use mod_constants , only : rgas , rgti , lrate
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) , dimension(im,jm,km) :: f , p3d
-      real(4) , dimension(im,jm,kp) :: fp
-      real(4) , dimension(kp) :: p
-      real(4) , dimension(im,jm) :: ps
+      real(sp) , dimension(im,jm,km) :: f , p3d
+      real(sp) , dimension(im,jm,kp) :: fp
+      real(sp) , dimension(kp) :: p
+      real(sp) , dimension(im,jm) :: ps
       intent (in) f , im , jm , km , kp , p , p3d , ps
       intent (out) fp
 !
-! Local variables
-!
-      real(4) :: sigp , w1 , wp
+      real(sp) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
-      real(4) , dimension(61) :: sig
-      real(4) , parameter :: bltop = 0.96
+      real(sp) , dimension(61) :: sig
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -268,26 +254,20 @@
 !-----------------------------------------------------------------------
 !
       subroutine intlog_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
-      use mod_constants , only : rgas , rgti , lrate 
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) :: ptop
-      real(4) , dimension(im,jm,km) :: f
-      real(4) , dimension(im,jm,kp) :: fp
-      real(4) , dimension(kp) :: p
-      real(4) , dimension(im,jm) :: pstar
-      real(4) , dimension(km) :: sig
+      real(sp) :: ptop
+      real(sp) , dimension(im,jm,km) :: f
+      real(sp) , dimension(im,jm,kp) :: fp
+      real(sp) , dimension(kp) :: p
+      real(sp) , dimension(im,jm) :: pstar
+      real(sp) , dimension(km) :: sig
       intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
       intent (out) fp
 !
-! Local variables
-!
-      real(4) :: sigp , w1 , wp
+      real(sp) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
-      real(4) , parameter :: bltop = .96
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -335,20 +315,15 @@
 !-----------------------------------------------------------------------
 !
       subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
-      use mod_constants , only : govr
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj
-      real(4) :: pt
-      real(4) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
+      real(sp) :: pt
+      real(sp) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
       intent (in) ni , nj , pa , pt , tlayer , za , zrcm
       intent (out) psrcm
 !
-! Local variables
-!
-      real(4) :: tb
+      real(sp) :: tb
       integer :: i , j
 !
 !     EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
@@ -372,26 +347,20 @@
       subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: psccm = 100.
-!
-! Dummy arguments
+      real(sp) , parameter :: psccm = 100.
 !
       integer :: kccm , krcm , ni , nj
-      real(4) :: pt
-      real(4) , dimension(ni,nj,kccm) :: fccm
-      real(4) , dimension(ni,nj,krcm) :: frcm
-      real(4) , dimension(ni,nj) :: psrcm
-      real(4) , dimension(kccm) :: sccm
-      real(4) , dimension(krcm) :: srcm
+      real(sp) :: pt
+      real(sp) , dimension(ni,nj,kccm) :: fccm
+      real(sp) , dimension(ni,nj,krcm) :: frcm
+      real(sp) , dimension(ni,nj) :: psrcm
+      real(sp) , dimension(kccm) :: sccm
+      real(sp) , dimension(krcm) :: srcm
       intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm ,    &
                 & srcm
       intent (out) frcm
 !
-! Local variables
-!
-      real(4) :: dp1 , pt1 , rc , rc1 , sc
+      real(sp) :: dp1 , pt1 , rc , rc1 , sc
       integer :: i , j , k , k1 , k1p , n
 !
 !     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -445,31 +414,24 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-      use mod_constants , only : rgas , gti , lrate
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -gti/lrate
-      real(4) , parameter :: psccm = 100.
-!
-! Dummy arguments
+      real(sp) , parameter :: rgas2 = rgas/2.
+      real(sp) , parameter :: b1 = -gti/lrate
+      real(sp) , parameter :: psccm = 100.
 !
       integer :: kccm , krcm , ni , nj
-      real(4) :: pt
-      real(4) , dimension(ni,nj,kccm) :: fccm
-      real(4) , dimension(ni,nj,krcm) :: frcm
-      real(4) , dimension(ni,nj) :: psrcm
-      real(4) , dimension(kccm) :: sccm
-      real(4) , dimension(krcm) :: srcm
+      real(sp) :: pt
+      real(sp) , dimension(ni,nj,kccm) :: fccm
+      real(sp) , dimension(ni,nj,krcm) :: frcm
+      real(sp) , dimension(ni,nj) :: psrcm
+      real(sp) , dimension(kccm) :: sccm
+      real(sp) , dimension(krcm) :: srcm
       intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm ,    &
                 & srcm
       intent (out) frcm
 !
-! Local variables
-!
-      real(4) :: a1 , dp1 , pt1 , rc , rc1 , sc
+      real(sp) :: a1 , dp1 , pt1 , rc , rc1 , sc
       integer :: i , j , k , k1 , k1p , n
 !
 !     INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -524,27 +486,20 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
-      use mod_constants , only : rgas , gti , lrate
       implicit none
 !
-! PARAMETER definitions
-!
-      real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -gti/lrate
-!
-! Dummy arguments
+      real(sp) , parameter :: rgas2 = rgas/2.
+      real(sp) , parameter :: b1 = -gti/lrate
 !
       integer :: kccm , ni , nj
-      real(4) :: ptop
-      real(4) , dimension(ni,nj,kccm) :: fccm
-      real(4) , dimension(ni,nj) :: fsccm , psrccm
-      real(4) , dimension(kccm) :: sccm
+      real(sp) :: ptop
+      real(sp) , dimension(ni,nj,kccm) :: fccm
+      real(sp) , dimension(ni,nj) :: fsccm , psrccm
+      real(sp) , dimension(kccm) :: sccm
       intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
       intent (out) fsccm
 !
-! Local variables
-!
-      real(4) :: a1 , rc , rc1 , sc
+      real(sp) :: a1 , rc , rc1 , sc
       integer :: i , j , k , k1 , kp1
 !
 !**   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION

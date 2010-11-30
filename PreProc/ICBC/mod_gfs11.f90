@@ -19,26 +19,25 @@
 
       module mod_gfs11
       use mod_dynparam
-
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: klev = 26 , jlat = 181 , ilon = 360
 
-      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
-      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
 
-      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
-      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      real(4) , dimension(jlat) :: glat
-      real(4) , dimension(ilon) :: glon
-      real(4) , dimension(klev) :: sigma1 , sigmar
+      real(sp) , dimension(jlat) :: glat
+      real(sp) , dimension(ilon) :: glon
+      real(sp) , dimension(klev) :: sigma1 , sigmar
 
       public :: getgfs11 , headergfs
 
@@ -67,7 +66,7 @@
       integer :: i , i2 , ii , j , j2 , k , month , nday , nhour ,      &
                & nrec , numx , numy , nyear
       integer(2) , dimension(360,181) :: itmp
-      real(8) :: offset , xscale
+      real(dp) :: offset , xscale
       logical :: there
       character(4) , dimension(9) :: yrgfs
 !

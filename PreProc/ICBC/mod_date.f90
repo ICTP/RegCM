@@ -19,12 +19,14 @@
 
       module mod_date
 
-      implicit none
+      use m_realkinds
 
-      integer , dimension(12) :: mlen
-      integer , dimension(12) :: mmid
+      integer , private , dimension(12) :: mlen
+      integer , private , dimension(12) :: mmid
+
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
       data mmid /16, 14, 16, 15, 16, 15, 16, 16, 15, 16, 15, 16/
+
       contains
 
       subroutine normidate(idate)
@@ -213,7 +215,7 @@
 
       function julianday(iy, im, id)
         implicit none
-        real(8) :: julianday
+        real(dp) :: julianday
         integer , intent(in) :: iy , im , id
         integer :: ia , ib , iiy , iim
         iiy = iy
@@ -285,7 +287,7 @@
       function lfhomonth(idate)
         implicit none
         logical :: lfhomonth
-        real(4) :: rmomonth
+        real(sp) :: rmomonth
         integer , intent(in) :: idate
         integer :: iy , im , id , ih
         call split_idate(idate, iy, im, id, ih)
@@ -300,7 +302,7 @@
         integer :: idayofweek
         integer , intent(in) :: idate
         integer :: iy , im , id , ih
-        real(8) :: jd
+        real(dp) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
         idayofweek = int(mod(jd+1.5D+00, 7.0D+00))+1
@@ -415,7 +417,7 @@
         implicit none
         integer imonmiddle
         integer , intent(in) :: idate
-        real(4) :: rmom
+        real(sp) :: rmom
         integer :: iy , im , id , ih , imom
         call split_idate(idate, iy, im, id, ih)
         rmom = real(mdays(iy, im))/2.0
@@ -468,7 +470,7 @@
       function timeval2idate(xval,cunit)
         implicit none
         integer :: timeval2idate
-        real(8) , intent(in) :: xval
+        real(dp) , intent(in) :: xval
         character(*) , intent(in) :: cunit
         character(25) , save :: csave
         integer :: year , month , day , hour

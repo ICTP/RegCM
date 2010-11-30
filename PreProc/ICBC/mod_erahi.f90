@@ -19,34 +19,33 @@
 
       module mod_erahi
       use mod_dynparam
-
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: nlevs = 60 , nlats = 160 , nlons = 320 ,   &
                            & nlev2 = 18
 
-      real(4) , dimension(nlevs+1) :: ak , bk
-      real(4) , dimension(nlev2) :: pplev , sigma1 , sigmar
-      real(4) , dimension(nlats) :: slat
-      real(4) , dimension(nlons) :: slon
+      real(sp) , dimension(nlevs+1) :: ak , bk
+      real(sp) , dimension(nlev2) :: pplev , sigma1 , sigmar
+      real(sp) , dimension(nlats) :: slat
+      real(sp) , dimension(nlons) :: slon
 
-      real(4) , dimension(nlons,nlats) :: lsm , ps2 , zs2
-      real(4) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
-      real(4) , dimension(nlons,nlats,nlevs) :: pp3d , z1
+      real(sp) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+      real(sp) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
+      real(sp) , dimension(nlons,nlats,nlevs) :: pp3d , z1
 
-      real(4) , target , dimension(nlons,nlats,nlev2*3) :: b2
-      real(4) , target , dimension(nlons,nlats,nlev2*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , target , dimension(:,:,:) :: w3
-      real(4) , allocatable , dimension(:,:) :: b3pd
+      real(sp) , target , dimension(nlons,nlats,nlev2*3) :: b2
+      real(sp) , target , dimension(nlons,nlats,nlev2*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , allocatable , target , dimension(:,:,:) :: w3
+      real(sp) , allocatable , dimension(:,:) :: b3pd
 
-      real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
-      real(4) , pointer , dimension(:,:,:) :: up , vp
-      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real(4) , pointer , dimension(:,:,:) :: u3 , v3
+      real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
+      real(sp) , pointer , dimension(:,:,:) :: up , vp
+      real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: geterahi , headerehi
 
@@ -72,7 +71,7 @@
 !
       character(14) :: finame
       integer :: i , j , k , nrec
-      real(4) :: slonmax , slonmin , xlonmax , xlonmin
+      real(sp) :: slonmax , slonmin , xlonmax , xlonmin
 !
       if ( idate==globidate1 ) then
                   !,lrec

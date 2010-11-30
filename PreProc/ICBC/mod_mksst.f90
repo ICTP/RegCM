@@ -19,15 +19,21 @@
 
       module mod_mksst
 
+      use m_realkinds
+
+      private
+
       logical , private :: lopen , lhasice
       integer , private :: ncid , ntime
       integer , dimension(3) , private :: ivar
       integer , dimension(:) , allocatable , private :: itime
-      real(4) , dimension(:,:) , allocatable , private :: xlandu
-      real(4) , dimension(:,:) , allocatable , private :: work1 , work2
-      real(4) , dimension(:,:) , allocatable , private :: work3 , work4
+      real(sp) , dimension(:,:) , allocatable , private :: xlandu
+      real(sp) , dimension(:,:) , allocatable , private :: work1 , work2
+      real(sp) , dimension(:,:) , allocatable , private :: work3 , work4
 
       data lopen/.false./
+
+      public :: readsst , closesst
 
       contains
 !
@@ -38,16 +44,16 @@
         use mod_dynparam        
         use mod_date
         implicit none
-        real(4) , dimension(jx,iy) , intent(in) :: topogm
-        real(4) , dimension(jx,iy) , intent(inout) :: tsccm
+        real(sp) , dimension(jx,iy) , intent(in) :: topogm
+        real(sp) , dimension(jx,iy) , intent(inout) :: tsccm
         integer , intent(in) :: idate
-        real(8) , dimension(:) , allocatable :: xtime
+        real(dp) , dimension(:) , allocatable :: xtime
         integer :: istatus , idimid , itvar
         integer , dimension(3) :: istart , icount
         character(256) :: sstfile
         character(64) :: timeunits
         integer :: i , j , irec , ks1 , ks2
-        real(4) :: wt
+        real(sp) :: wt
         if (.not. lopen) then
           sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
           istatus = nf90_open(sstfile, nf90_nowrite, ncid)

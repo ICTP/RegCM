@@ -19,6 +19,8 @@
 
       module mod_sst_eh5om
 
+      use m_realkinds
+
       contains
 
       subroutine sst_eh5om
@@ -52,12 +54,12 @@
 !
       integer :: it_base
       integer(2) , dimension(ilon,jlat) :: ivar
-      real(8) :: offset , xscale
-      real(4) , dimension(ilon,jlat) :: sst
+      real(dp) :: offset , xscale
+      real(sp) , dimension(ilon,jlat) :: sst
       integer :: idate , ieh5ostart , ieh5orec, nsteps
       integer :: i , it , j , nday , nhour , nmo , nyear
-      real(4) , dimension(jlat) :: lati
-      real(4) , dimension(ilon) :: loni
+      real(sp) , dimension(jlat) :: lati
+      real(sp) , dimension(ilon) :: loni
       logical :: there
 !
       it_base = 0

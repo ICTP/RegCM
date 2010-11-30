@@ -21,27 +21,27 @@
 
       use mod_dynparam
 
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: nlev1 = 15 , jlat = 64 , ilon = 128
 
-      real(4) , dimension(jlat) :: hlat
-      real(4) , dimension(ilon) :: hlon
-      real(4) , dimension(nlev1) :: sigma1 , sigmar
+      real(sp) , dimension(jlat) :: hlat
+      real(sp) , dimension(ilon) :: hlon
+      real(sp) , dimension(nlev1) :: sigma1 , sigmar
 
-      real(4) , dimension(ilon,jlat,nlev1) :: w1
+      real(sp) , dimension(ilon,jlat,nlev1) :: w1
 
-      real(4) , target , dimension(ilon,jlat,nlev1*3) :: b2
-      real(4) , target , dimension(ilon,jlat,nlev1*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , target , dimension(ilon,jlat,nlev1*3) :: b2
+      real(sp) , target , dimension(ilon,jlat,nlev1*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
 
-      real(4) , pointer , dimension(:,:,:) :: t1 , q1 , h1
-      real(4) , pointer , dimension(:,:,:) :: u1 , v1
-      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real(4) , pointer , dimension(:,:,:) :: u3 , v3
+      real(sp) , pointer , dimension(:,:,:) :: t1 , q1 , h1
+      real(sp) , pointer , dimension(:,:,:) :: u1 , v1
+      real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: getecwcp , headerec
 

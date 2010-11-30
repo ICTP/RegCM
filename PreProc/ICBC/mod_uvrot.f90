@@ -19,6 +19,8 @@
 
       module mod_uvrot
 
+      use m_realkinds
+
       contains
 
       subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
@@ -28,20 +30,16 @@
 
       implicit none
 !
-! Dummy arguments
-!
-      real(4) :: clat , clon , gridfc , pollat , pollon
+      real(sp) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
-      real(4) , dimension(jx,iy) :: dlat , dlon
-      real(4) , dimension(jx,iy,ll) :: u , v
+      real(sp) , dimension(jx,iy) :: dlat , dlon
+      real(sp) , dimension(jx,iy,ll) :: u , v
       intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
-! Local variables
-!
-      real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+      real(sp) :: cosdel , d , polcphi , pollam , polphi , polsphi ,    &
             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
             & zphi , zrla , zrlap
       integer :: i , j , l
@@ -134,20 +132,16 @@
       use mod_constants , only : degrad
       implicit none
 !
-! Dummy arguments
-!
-      real(4) :: clat , clon , gridfc , pollat , pollon
+      real(sp) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
-      real(4) , dimension(jx,iy) :: dlat , dlon
-      real(4) , dimension(jx,iy,ll) :: u , v
+      real(sp) , dimension(jx,iy) :: dlat , dlon
+      real(sp) , dimension(jx,iy,ll) :: u , v
       intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
-! Local variables
-!
-      real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+      real(sp) :: cosdel , d , polcphi , pollam , polphi , polsphi ,    &
             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
             & zphi , zrla , zrlap
       integer :: i , j , l

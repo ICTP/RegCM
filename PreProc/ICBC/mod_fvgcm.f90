@@ -19,35 +19,34 @@
 
       module mod_fvgcm
       use mod_dynparam
-
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: nlev2 = 18 , nlat2 = 181 , nlon2 = 288
 
-      real(4) , dimension(nlev2+1) :: ak , bk
-      real(4) , dimension(nlev2) :: pplev , sigma1 , sigmar
-      real(4) , dimension(nlat2) :: vlat
-      real(4) , dimension(nlon2) :: vlon
+      real(sp) , dimension(nlev2+1) :: ak , bk
+      real(sp) , dimension(nlev2) :: pplev , sigma1 , sigmar
+      real(sp) , dimension(nlat2) :: vlat
+      real(sp) , dimension(nlon2) :: vlon
 
-      real(4) , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
-      real(4) , target , dimension(nlon2,nlat2,nlev2*3) :: b2
-      real(4) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , dimension(:,:,:) :: w3
-      real(4) , allocatable , dimension(:,:) :: b3pd
+      real(sp) , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
+      real(sp) , target , dimension(nlon2,nlat2,nlev2*3) :: b2
+      real(sp) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , allocatable , dimension(:,:,:) :: w3
+      real(sp) , allocatable , dimension(:,:) :: b3pd
 
-      real(4) , dimension(nlon2,nlat2) :: zs2
-      real(4) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
+      real(sp) , dimension(nlon2,nlat2) :: zs2
+      real(sp) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
 
-      real(4) , pointer , dimension(:,:) :: ps2
-      real(4) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-      real(4) , pointer , dimension(:,:,:) :: tp , qp , hp
-      real(4) , pointer , dimension(:,:,:) :: up , vp
-      real(4) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-      real(4) , pointer , dimension(:,:,:) :: u3 , v3
+      real(sp) , pointer , dimension(:,:) :: ps2
+      real(sp) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+      real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
+      real(sp) , pointer , dimension(:,:,:) :: up , vp
+      real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+      real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
       public :: getfvgcm , headerfv
 
@@ -77,8 +76,8 @@
       integer :: i , i2 , ii , j , j2 , k , month , mrec , nday ,       &
                & nhour , nrec , numx , numy , nyear
       integer(2) , dimension(288,181) :: itmp
-      real(8) :: offset , xscale
-      real(4) , dimension(288,181) :: temp
+      real(dp) :: offset , xscale
+      real(sp) , dimension(288,181) :: temp
       logical :: there
       character(4) , dimension(30) :: yr_a2 , yr_rf
 !

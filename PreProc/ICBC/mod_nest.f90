@@ -19,8 +19,7 @@
 
       module mod_nest
       use mod_dynparam
-
-      implicit none
+      use m_realkinds
 
       private
 
@@ -28,35 +27,35 @@
 
       integer :: nrec
 
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , dimension(:,:) :: b3pd
-      real(4) , allocatable , dimension(:,:,:) :: z1
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , allocatable , dimension(:,:) :: b3pd
+      real(sp) , allocatable , dimension(:,:,:) :: z1
 
-      real(4) , allocatable , target , dimension(:,:,:) :: b2
-      real(4) , allocatable , target , dimension(:,:,:) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b2
+      real(sp) , allocatable , target , dimension(:,:,:) :: d2
 
-      real(4) , allocatable , dimension(:,:,:) :: c , q , t
-      real(4) , allocatable , dimension(:,:,:) :: u , v
-      real(4) , allocatable , dimension(:,:) :: ps
-      real(4) , allocatable , dimension(:,:) :: ht_in
-      real(4) , allocatable , dimension(:,:) :: xlat_in , xlon_in
+      real(sp) , allocatable , dimension(:,:,:) :: c , q , t
+      real(sp) , allocatable , dimension(:,:,:) :: u , v
+      real(sp) , allocatable , dimension(:,:) :: ps
+      real(sp) , allocatable , dimension(:,:) :: ht_in
+      real(sp) , allocatable , dimension(:,:) :: xlat_in , xlon_in
 
-      real(4) , pointer , dimension(:,:,:) :: c3 , h3 , q3 , t3
-      real(4) , pointer , dimension(:,:,:) :: u3 , v3
+      real(sp) , pointer , dimension(:,:,:) :: c3 , h3 , q3 , t3
+      real(sp) , pointer , dimension(:,:,:) :: u3 , v3
  
-      real(4) , pointer , dimension(:,:,:) :: cp , hp , qp , tp
-      real(4) , pointer , dimension(:,:,:) :: up , vp
+      real(sp) , pointer , dimension(:,:,:) :: cp , hp , qp , tp
+      real(sp) , pointer , dimension(:,:,:) :: up , vp
 
-      real(4) , dimension(np) :: plev , sigmar
-      real(4) , allocatable , dimension(:) :: sigf
-      real(4) , allocatable , dimension(:) :: sig
+      real(sp) , dimension(np) :: plev , sigmar
+      real(sp) , allocatable , dimension(:) :: sigf
+      real(sp) , allocatable , dimension(:) :: sig
 
       character(6) :: iproj_in
 
       integer :: iy_in , jx_in , kl , iotyp_in , idate0
 
-      real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in
+      real(sp) :: clat_in , clon_in , plat_in , plon_in , ptop_in
 
       public :: get_nest , headnest
 
@@ -74,12 +73,8 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , ncr
       intent (in) ncr
-!
-! Local variables
 !
       character(14) :: fillin
       character(256) :: inpfile
@@ -404,16 +399,13 @@
       end subroutine get_nest
 !
 !
-!
       subroutine headnest
       use mod_grid
       use mod_interp, only : imxmn , lcross , ldot
       use mod_constants , only : degrad
       implicit none
 !
-! Local variables
-!
-      real(4) :: dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,          & 
+      real(sp) :: dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,         &
             & truelat1 , truelat2
       integer :: ibltyp , iboudy , icup , ipptls , k
       integer :: ias

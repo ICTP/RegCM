@@ -18,39 +18,39 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_eh5om
-      use mod_dynparam
 
-      implicit none
+      use mod_dynparam
+      use m_realkinds
 
       private
 
       integer , parameter :: klev = 17 , jlat = 96 , ilon = 192
       integer , parameter :: mlev = 31
 
-      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
-      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , dimension(:,:,:) :: sulfate3
-      real(4) , allocatable , dimension(:,:) :: pso4_3
+      real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , allocatable , dimension(:,:,:) :: sulfate3
+      real(sp) , allocatable , dimension(:,:) :: pso4_3
 
-      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
-      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      real(4) , dimension(jlat) :: glat
-      real(4) , dimension(ilon) :: glon
-      real(4) , dimension(klev) :: sigma1 , sigmar
+      real(sp) , dimension(jlat) :: glat
+      real(sp) , dimension(ilon) :: glon
+      real(sp) , dimension(klev) :: sigma1 , sigmar
 
-      real(4) , dimension(mlev+1) :: hyai , hybi
-      real(4) , dimension(mlev) :: hyam , hybm
-      real(4) , dimension(ilon,jlat) :: pso4_0
-      real(4) , dimension(ilon,jlat,mlev,12) :: sulfate
+      real(sp) , dimension(mlev+1) :: hyai , hybi
+      real(sp) , dimension(mlev) :: hyam , hybm
+      real(sp) , dimension(ilon,jlat) :: pso4_0
+      real(sp) , dimension(ilon,jlat,mlev,12) :: sulfate
 
-      real(4) , dimension(ilon,jlat) :: pso4_2
-      real(4) , dimension(ilon,jlat,mlev,2) :: sulfate1
-      real(4) , dimension(ilon,jlat,mlev) :: sulfate2
+      real(sp) , dimension(ilon,jlat) :: pso4_2
+      real(sp) , dimension(ilon,jlat,mlev,2) :: sulfate1
+      real(sp) , dimension(ilon,jlat,mlev) :: sulfate2
 
       integer(4) , dimension(10) :: icount , istart
 
@@ -85,8 +85,8 @@
       integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,     &
                & nday , nhour , nrec , numx , numy , nyear
       integer(2) , dimension(ilon,jlat) :: itmp
-      real(8) :: offset , xscale
-      real(4) :: pmpi , pmpj , prcm
+      real(dp) :: offset , xscale
+      real(sp) :: pmpi , pmpj , prcm
       logical :: there
       character(4) , dimension(100) :: yr_a2
       character(4) , dimension(61) :: yr_rf

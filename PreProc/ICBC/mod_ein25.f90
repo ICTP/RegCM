@@ -19,26 +19,26 @@
 
       module mod_ein25
       use mod_dynparam
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
-      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
-      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
 
-      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
-      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
       integer(2) , dimension(ilon,jlat,37) :: work
-      real(4) , dimension(jlat) :: glat
-      real(4) , dimension(ilon) :: glon
-      real(4) , dimension(klev) :: sigma1 , sigmar
+      real(sp) , dimension(jlat) :: glat
+      real(sp) , dimension(ilon) :: glon
+      real(sp) , dimension(klev) :: sigma1 , sigmar
 
       public :: getein25 , headerein25
 
@@ -141,10 +141,10 @@
       character(256) :: pathaddname
       logical :: there
 !     character(1) , dimension(5) :: varname
-      real(8) :: xadd , xscale
+      real(dp) :: xadd , xscale
 !
       integer , dimension(5,4) , save :: inet6
-      real(8) , dimension(5,4) , save :: xoff , xscl
+      real(dp) , dimension(5,4) , save :: xoff , xscl
       integer , dimension(10) , save :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.

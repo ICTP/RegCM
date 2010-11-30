@@ -19,17 +19,20 @@
 
       module mod_interp
  
-      real(4) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx ,  &
-            &    glonmn , glonmx
-      real(4) :: dlatmax , dlonmax
+      use m_realkinds
+      use mod_constants , only : degrad
+
+      real(sp) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
+             &    glonmn , glonmx
+      real(sp) :: dlatmax , dlonmax
       integer :: imxmn , lcross , ldot
 
-      real(4) , allocatable , dimension(:,:) :: dc1xa , dc1xb , dc1xc , &
+      real(sp) , allocatable , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
                                        &        dc1xd , dc1xt
       integer , allocatable, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
                               &   ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
-      real(4) , allocatable , dimension(:,:) :: dd1xa , dd1xb , dd1xc , &
-                                       &        dd1xd , dd1xt
+      real(sp) , allocatable , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
+                                        &        dd1xd , dd1xt
       integer , allocatable, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
                               &   id1ur , jd1dl , jd1dr , jd1ul , jd1ur
 
@@ -44,21 +47,17 @@
                       & nflds)
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nflds , nlati , nloni
-      real(4) , dimension(nloni,nlati,nflds) :: fin
-      real(4) , dimension(nlati) :: lati
-      real(4) , dimension(iy,jx) :: lato , lono
-      real(4) , dimension(nloni) :: loni
-      real(4) , dimension(iy,jx,nflds) :: fout
+      real(sp) , dimension(nloni,nlati,nflds) :: fin
+      real(sp) , dimension(nlati) :: lati
+      real(sp) , dimension(iy,jx) :: lato , lono
+      real(sp) , dimension(nloni) :: loni
+      real(sp) , dimension(iy,jx,nflds) :: fout
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
 !
-! Local variables
-!
-      real(4) :: bas , lon360 , p , q , xsum , xind , yind
+      real(sp) :: bas , lon360 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
       logical :: lg
 !
@@ -156,21 +155,17 @@
       subroutine bilinx2(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , llev , nlat , nlon
-      real(4) , dimension(jx,iy) :: alat , alon
-      real(4) , dimension(nlon,nlat,llev) :: b2
-      real(4) , dimension(jx,iy,llev) :: b3
-      real(4) , dimension(nlat) :: hlat
-      real(4) , dimension(nlon) :: hlon
+      real(sp) , dimension(jx,iy) :: alat , alon
+      real(sp) , dimension(nlon,nlat,llev) :: b2
+      real(sp) , dimension(jx,iy,llev) :: b3
+      real(sp) , dimension(nlat) :: hlat
+      real(sp) , dimension(nlon) :: hlon
       intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev ,     &
                 & nlat , nlon
       intent (out) b3
 !
-! Local variables
-!
-      real(4) :: ave , p1 , p2 , q1 , q2
+      real(sp) :: ave , p1 , p2 , q1 , q2
       integer :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
 !
 !     PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -311,23 +306,18 @@
 !
       subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
                         & nlev,nf)
-      use mod_constants , only : degrad
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nlat , nlev , nlon , nf
-      real(4) , dimension(jx,iy) :: alat , alon
-      real(4) , dimension(jx,iy,nlev*nf) :: b3
-      real(4) , dimension(nlon,nlat) :: glat , glon
-      real(4) , dimension(nlon,nlat,nlev*nf) :: b2
+      real(sp) , dimension(jx,iy) :: alat , alon
+      real(sp) , dimension(jx,iy,nlev*nf) :: b3
+      real(sp) , dimension(nlon,nlat) :: glat , glon
+      real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon , nf
       intent (out) b3
 !
-! Local variables
-!
-      real(4) :: aaa , dist , dista , distb , distc , distd
+      real(sp) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
                & ndr , nul , nur , kin
 !
@@ -551,23 +541,18 @@
 !
       subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,    &
                         & nlev,nf)
-      use mod_constants , only : degrad
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nlat , nlev , nlon , nf
-      real(4) , dimension(jx,iy) :: alat , alon
-      real(4) , dimension(jx,iy,nlev*nf) :: b3
-      real(4) , dimension(nlon,nlat) :: glat , glon
-      real(4) , dimension(nlon,nlat,nlev*nf) :: b2
+      real(sp) , dimension(jx,iy) :: alat , alon
+      real(sp) , dimension(jx,iy,nlev*nf) :: b3
+      real(sp) , dimension(nlon,nlat) :: glat , glon
+      real(sp) , dimension(nlon,nlat,nlev*nf) :: b2
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon , nf
       intent (out) b3
 !
-! Local variables
-!
-      real(4) :: aaa , dist , dista , distb , distc , distd
+      real(sp) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
                & ndr , nul , nur , kin
 !

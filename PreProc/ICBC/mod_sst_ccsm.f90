@@ -19,6 +19,8 @@
 
       module mod_sst_ccsm
 
+      use m_realkinds
+
       contains
 
       subroutine sst_ccsm
@@ -57,9 +59,9 @@
 !
 ! Local variables
 !
-      real(4) , dimension(jlat) :: glat
-      real(4) , dimension(ilon) :: glon
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(jlat) :: glat
+      real(sp) , dimension(ilon) :: glon
+      real(sp) , dimension(ilon,jlat) :: sst
       integer :: idate
       integer :: i , idatef , idateo , j , k , ludom , lumax , &
                & nday , nmo , nyear , nho , iv , nsteps
@@ -158,13 +160,13 @@
       integer , intent (in) :: idate , idate0
       integer , intent (in) :: ilon , jlat
       character(len=256) ,intent(in) :: pathaddname
-      real(4) , dimension(ilon, jlat) , intent(out) :: sst
+      real(sp) , dimension(ilon, jlat) , intent(out) :: sst
 
       integer, dimension(12) :: ndays
       character(len=4), dimension(2) :: varname
       integer, allocatable ::  work1(:)
-      real(4) , dimension (ilon , jlat) :: work2
-      real(4) :: imisng
+      real(sp) , dimension (ilon , jlat) :: work2
+      real(sp) :: imisng
 
       integer :: nyear , month
       integer :: inet1

@@ -19,6 +19,8 @@
 
       module mod_sst_ersst
 
+      use m_realkinds
+
       contains
 
       subroutine sst_ersst
@@ -51,11 +53,11 @@
 ! Local variables
 !
       integer :: i , it , j , nday , nhour , nmo , nyear
-      real(4) , dimension(jlat) :: lati
-      real(4) , dimension(ilon) :: loni
+      real(sp) , dimension(jlat) :: lati
+      real(sp) , dimension(ilon) :: loni
       integer :: idate , ierastart , ierrec , nsteps
       logical :: there
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: sst
       character(256) :: inpfile
 !
       if ( ssttyp=='ERSST' ) then
@@ -155,7 +157,7 @@
       integer :: it , ilon , jlat
       character(256) :: pathaddname
       intent (in) it , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
@@ -168,7 +170,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale , xmiss
+      real(dp) , save :: xadd , xscale , xmiss
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -244,7 +246,7 @@
       integer :: it , ilon , jlat
       character(256) :: pathaddname
       intent (in) it , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
@@ -256,7 +258,7 @@
       integer :: istatus
 !
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale , xmiss
+      real(dp) , save :: xadd , xscale , xmiss
       integer , dimension(10) , save :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.

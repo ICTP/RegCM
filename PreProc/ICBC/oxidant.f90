@@ -28,8 +28,6 @@
 !
       implicit none
 !
-!  Local Variables
-!
       integer :: idate , iodate
       integer :: nnn , nsteps
       integer :: ierr

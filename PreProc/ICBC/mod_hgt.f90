@@ -19,27 +19,25 @@
 
       module mod_hgt
 
+      use mod_constants
+      use m_realkinds
+
       contains
 
       subroutine hydrost(h,t,phis,ps,pt,sigmaf,sigmah,dsigma,ni,nj,nk)
-      use mod_constants , only : rovg
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(4) :: pt
-      real(4) , dimension(nk) :: dsigma , sigmah
-      real(4) , dimension(ni,nj,nk) :: h , t
-      real(4) , dimension(ni,nj) :: phis , ps
-      real(4) , dimension(nk+1) :: sigmaf
+      real(sp) :: pt
+      real(sp) , dimension(nk) :: dsigma , sigmah
+      real(sp) , dimension(ni,nj,nk) :: h , t
+      real(sp) , dimension(ni,nj) :: phis , ps
+      real(sp) , dimension(nk+1) :: sigmaf
       intent (in) ni , nj , nk , phis , ps , pt , sigmaf , sigmah , t
       intent (inout) dsigma , h
 !
-! Local variables
-!
       integer :: i , j , k , k1 , k2
-      real(4) :: pf , tbar
+      real(sp) :: pf , tbar
 !
 !     ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
 !     THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
@@ -92,26 +90,20 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate , bltop
-
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) , dimension(im,jm,km) :: h , p3d , t
-      real(4) , dimension(im,jm,kp) :: hp
-      real(4) , dimension(im,jm) :: ht , ps
-      real(4) , dimension(kp) :: p
+      real(sp) , dimension(im,jm,km) :: h , p3d , t
+      real(sp) , dimension(im,jm,kp) :: hp
+      real(sp) , dimension(im,jm) :: ht , ps
+      real(sp) , dimension(kp) :: p
       intent (in) h , ht , im , jm , km , kp , p , p3d , ps , t
       intent (out) hp
 !
-! Local variables
-!
-      real(4) :: psfc , temp , wb , wt
+      real(sp) :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
-      real(4) , dimension(61) :: psig
-      real(4) , dimension(60) :: sig
+      real(sp) , dimension(61) :: psig
+      real(sp) , dimension(60) :: sig
 !
       do j = 1 , jm
         do i = 1 , im
@@ -181,27 +173,22 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate , bltop
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
-      real(4) :: ptop
-      real(4) , dimension(im,jm,km) :: h , t
-      real(4) , dimension(im,jm,kp) :: hp
-      real(4) , dimension(im,jm) :: ht , pstar
-      real(4) , dimension(kp) :: p
-      real(4) , dimension(km) :: sig
+      real(sp) :: ptop
+      real(sp) , dimension(im,jm,km) :: h , t
+      real(sp) , dimension(im,jm,kp) :: hp
+      real(sp) , dimension(im,jm) :: ht , pstar
+      real(sp) , dimension(kp) :: p
+      real(sp) , dimension(km) :: sig
       intent (in) h , ht , im , jm , km , kp , p , pstar , ptop , sig , &
                 & t
       intent (out) hp
 !
-! Local variables
-!
-      real(4) :: psfc , temp , wb , wt
+      real(sp) :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
-      real(4) , dimension(100) :: psig
+      real(sp) , dimension(100) :: psig
 !
       kbc = 1
       do k = 1 , km
@@ -248,20 +235,15 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
-      use mod_constants , only : rgti, rgas
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km
-      real(4) , dimension(im,jm,km) :: h , p3d , t
-      real(4) , dimension(im,jm) :: ht , ps
+      real(sp) , dimension(im,jm,km) :: h , p3d , t
+      real(sp) , dimension(im,jm) :: ht , ps
       intent (in) ht , im , jm , km , p3d , ps , t
       intent (inout) h
 !
-! Local variables
-!
-      real(4) :: tbar
+      real(sp) :: tbar
       integer :: i , j , k
 !
       do j = 1 , jm
@@ -292,22 +274,17 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig_o(t,h,pstar,ht,sig,ptop,im,jm,km)
-      use mod_constants, only : rgas , rgti
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km
-      real(4) :: ptop
-      real(4) , dimension(im,jm,km) :: h , t
-      real(4) , dimension(im,jm) :: ht , pstar
-      real(4) , dimension(km) :: sig
+      real(sp) :: ptop
+      real(sp) , dimension(im,jm,km) :: h , t
+      real(sp) , dimension(im,jm) :: ht , pstar
+      real(sp) , dimension(km) :: sig
       intent (in) ht , im , jm , km , pstar , ptop , sig , t
       intent (inout) h
 !
-! Local variables
-!
-      real(4) :: tbar
+      real(sp) :: tbar
       integer :: i , j , k
 !
       do j = 1 , jm

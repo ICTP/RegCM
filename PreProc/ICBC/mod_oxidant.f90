@@ -24,6 +24,7 @@
       use mod_wrtoxd
       use mod_interp
       use mod_date
+      use m_realkinds
 
       private
 !
@@ -33,20 +34,19 @@
       integer :: k , l
       integer :: k0
    
-      real, dimension(ilon)                 ::  t42lon
-      real, dimension(jlat)                 ::  t42lat
-      real, dimension(ilev)                 ::  t42hyam , t42hybm
-      real, dimension(ilon,jlat,itime)      ::  t42ps
-      real, dimension(ilon,ilev,jlat,itime) ::  t42oh , t42ho2 , &
-                                    t42o3 , t42no3 , t42h2o2
-      real, dimension(ilon,jlat)            :: poxid_2
-      real, dimension(ilon,jlat,ilev)       :: oh2 , ho22 , o32 , no32 ,&
-                                               h2o22
-
-      real, allocatable, dimension(:,:)   :: poxid_3
-      real, allocatable, dimension(:,:,:) :: oh3 , ho23 , o33 , no33 , &
-                                             h2o23
-      real    :: prcm , pmpi , pmpj
+      real(sp), dimension(ilon) ::  t42lon
+      real(sp), dimension(jlat) ::  t42lat
+      real(sp), dimension(ilev) ::  t42hyam , t42hybm
+      real(sp), dimension(ilon,jlat,itime) ::  t42ps
+      real(sp), dimension(ilon,ilev,jlat,itime) ::  t42oh , t42ho2 , &
+                                            t42o3 , t42no3 , t42h2o2
+      real(sp), dimension(ilon,jlat) :: poxid_2
+      real(sp), dimension(ilon,jlat,ilev) :: oh2 , ho22 , o32 , no32 ,&
+                                              h2o22
+      real(sp), allocatable, dimension(:,:)   :: poxid_3
+      real(sp), allocatable, dimension(:,:,:) :: oh3 , ho23 , o33 , &
+                                                 no33 , h2o23
+      real(sp) :: prcm , pmpi , pmpj
       integer :: ncid , istatus
 
       public  :: headermozart , getmozart , freemozart

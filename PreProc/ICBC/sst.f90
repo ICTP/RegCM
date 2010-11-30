@@ -28,6 +28,7 @@
       use mod_sst_fvgcm
 
       implicit none
+
       integer :: ierr
       character(256) :: namelistfile , prgname
       character(256) :: terfile

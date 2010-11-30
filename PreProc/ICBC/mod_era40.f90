@@ -19,34 +19,33 @@
 
       module mod_era40
       use mod_dynparam
-
-      implicit none
+      use m_realkinds
 
       private
 
       integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
-      real(4) , target , dimension(ilon,jlat,klev*3) :: b2
-      real(4) , target , dimension(ilon,jlat,klev*2) :: d2
-      real(4) , target , dimension(ilon,jlat,4*3+1) :: s2
-      real(4) , allocatable , target , dimension(:,:,:) :: b3
-      real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , target , dimension(:,:,:) :: s3
+      real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
+      real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
+      real(sp) , target , dimension(ilon,jlat,4*3+1) :: s2
+      real(sp) , allocatable , target , dimension(:,:,:) :: b3
+      real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      real(sp) , allocatable , target , dimension(:,:,:) :: s3
 
-      real(4) , dimension(ilon,jlat,klev) :: wvar
+      real(sp) , dimension(ilon,jlat,klev) :: wvar
 
-      real(4) , pointer :: u3(:,:,:) , v3(:,:,:)
-      real(4) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-      real(4) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-      real(4) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-      real(4) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
-      real(4) , pointer , dimension(:,:) :: snw
-      real(4) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
-      real(4) , pointer , dimension(:,:) :: snow
+      real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
+      real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+      real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+      real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+      real(sp) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
+      real(sp) , pointer , dimension(:,:) :: snw
+      real(sp) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
+      real(sp) , pointer , dimension(:,:) :: snow
 
-      real(4) , dimension(jlat) :: glat
-      real(4) , dimension(ilon) :: glon
-      real(4) , dimension(klev) :: sigma1 , sigmar
+      real(sp) , dimension(jlat) :: glat
+      real(sp) , dimension(ilon) :: glon
+      real(sp) , dimension(klev) :: sigma1 , sigmar
 
       public :: getera40 , headerera
 
@@ -154,10 +153,10 @@
       logical :: there
 !     character(5) , dimension(6) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
-      real(8) :: xadd , xscale
+      real(dp) :: xadd , xscale
 
       integer , dimension(10) , save :: icount , istart
-      real(8) , dimension(5,4) , save :: xoff , xscl
+      real(dp) , dimension(5,4) , save :: xoff , xscl
       integer , dimension(5,4) , save :: inet6
 !
 !     This is the latitude, longitude dimension of the grid to be read.

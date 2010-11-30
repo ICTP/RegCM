@@ -19,6 +19,8 @@
 
       module mod_sst_1deg
 
+      use m_realkinds
+
       contains
 
       subroutine sst_1deg
@@ -59,12 +61,12 @@
 !
 ! Local variables
 !
-      real(4) , dimension(ilon,jlat) :: sst , ice
+      real(sp) , dimension(ilon,jlat) :: sst , ice
       integer :: i , j , k , iwk , iv , ludom , lumax , nrec
       integer :: idate , idateo , idatef , idatem , nsteps
       integer :: nyear , nmo , nday , nho
-      real(4) , dimension(jlat) :: lati
-      real(4) , dimension(ilon) :: loni
+      real(sp) , dimension(jlat) :: lati
+      real(sp) , dimension(ilon) :: loni
       integer , dimension(25) :: lund
       character(256) :: inpfile
       logical :: there
@@ -338,7 +340,7 @@
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
@@ -351,7 +353,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(dp) , save :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -433,7 +435,7 @@
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: ice
+      real(sp) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
 !
 ! Local variables
@@ -446,7 +448,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(dp) , save :: xadd , xscale
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -527,7 +529,7 @@
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
 ! Local variables
@@ -540,7 +542,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(dp) , save :: xadd , xscale
       character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.
@@ -649,7 +651,7 @@
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
-      real(4) , dimension(ilon,jlat) :: ice
+      real(sp) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
 !
 ! Local variables
@@ -662,7 +664,7 @@
 !
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
-      real(8) , save :: xadd , xscale
+      real(dp) , save :: xadd , xscale
       character(256) , save :: usename
 !
 !     This is the latitude, longitude dimension of the grid to be read.

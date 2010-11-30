@@ -19,18 +19,18 @@
 
       module mod_grid
 
-      implicit none
+      use m_realkinds
 
-      real(4) , allocatable , dimension(:,:) :: coriol , dlat , dlon ,  &
+      real(sp) , allocatable , dimension(:,:) :: coriol , dlat , dlon , &
            & msfx , snowcv , topogm , xlandu , xlat , xlon
-      real(4) , allocatable , dimension(:,:) :: pa , sst1 , sst2 ,      &
+      real(sp) , allocatable , dimension(:,:) :: pa , sst1 , sst2 ,     &
            & tlayer , za , ice1 , ice2
-      real(4) , allocatable , dimension(:,:) :: b3pd
-      real(4) , allocatable , dimension(:) :: dsigma , sigma2
-      real(4) , allocatable , dimension(:) :: sigmaf
-      real(4) :: delx , grdfac
+      real(sp) , allocatable , dimension(:,:) :: b3pd
+      real(sp) , allocatable , dimension(:) :: dsigma , sigma2
+      real(sp) , allocatable , dimension(:) :: sigmaf
+      real(sp) :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
-      real(4) :: lat0 , lat1 , lon0 , lon1
+      real(sp) :: lat0 , lat1 , lon0 , lon1
 
       contains
 

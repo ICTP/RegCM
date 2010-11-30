@@ -19,6 +19,8 @@
 
       module mod_sst_fvgcm
 
+      use m_realkinds
+
       contains
 
       subroutine sst_fvgcm
@@ -41,19 +43,15 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 192 , jlat = 145
-!
-! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
              &   nday , nmo , nho , nyear , nsteps , iv
-      real(4) , dimension(jlat) :: lati
-      real(4) , dimension(ilon) :: loni
+      real(sp) , dimension(jlat) :: lati
+      real(sp) , dimension(ilon) :: loni
       integer , dimension(20) :: lund
-      real(4) , dimension(ilon,jlat) :: temp
-      real(4) , dimension(ilon,jlat) :: sst
+      real(sp) , dimension(ilon,jlat) :: temp
+      real(sp) , dimension(ilon,jlat) :: sst
       integer :: idate
       logical :: there
 !
