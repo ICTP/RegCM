@@ -53,7 +53,7 @@ mod_smooth.o: mod_smooth.f90
 mod_projections.o: mod_projections.f90 mod_constants.o
 mod_maputils.o: mod_maputils.f90 mod_constants.o mod_block.o mod_maps.o \
                 mod_projections.o
-mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o
+mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o mod_constants.o
 mod_rdldtr.o: mod_rdldtr.f90 mod_block.o
 terrain.o: terrain.f90 mod_dynparam.o mod_projections.o \
            mod_block.o mod_maps.o mod_interp.o mod_rdldtr.o \
