@@ -28,8 +28,8 @@
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
  h2opct = 75.,
- dirter = './',
- inpter = './scratch/DATA',
+ dirter = '/set/this/to/where/your/domain/file/is',
+ inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &ioparam
  ibyte = 4,
