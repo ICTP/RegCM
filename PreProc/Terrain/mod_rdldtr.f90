@@ -92,7 +92,7 @@
 
         nlat = (grdltma-grdltmn)*inpsec
         if (lonwrap) then
-          nlon = nlogb-ireg
+          nlon = nlogb + 1 - ireg
         else if (lcrosstime) then
           nlon = ((180.0-delta-grdlnmn)+(180.0-delta+grdlnma))*inpsec
         else
@@ -159,6 +159,11 @@
         istatus = nf90_close(ncid)
         call checkerr(istatus)
 
+        ! Fix South pole missing in dataset
+        if (istart(2) == 1) then
+          readbuf(:,1) = readbuf(:,2)
+        end if
+
         write(stdout,'(a$)') ' Resampling'
         nfrac = ifrac*ifrac
         allocate(copybuf(nfrac), stat=istatus)
@@ -184,7 +189,7 @@
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
                 call qsort(copybuf)
-                values(j,i) = copybuf(nfrac/2)
+                values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
               end do
             end do
           case (3)

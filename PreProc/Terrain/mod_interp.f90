@@ -20,6 +20,7 @@
       module mod_interp
 !
       use m_realkinds
+      use mod_constants
 !
       private
 !
@@ -392,7 +393,7 @@
       real(SP) , intent(in) , optional :: h2opct
       real(SP) , intent(out) , dimension(iy, jx) :: omt
 !
-      integer :: nbox , ii , jj , jwrapp , jwrapm
+      integer :: nbox , ii , jj
       real(DP) :: xx , yy , rinc
 !
       rinc = 60.0D0/dble(ntypec)
@@ -417,67 +418,62 @@
 !         and lon_s for which terrain observations are available.  it
 !         is assumed that the earth grid has equal spacing in both
 !         latitude and longitude.
- 
-          if (itype == 1) then
-            omt(ii,jj) = bilinear(xx,yy,injx,iniy,imt,lwrap)
-          else if (itype == 2) then
-            omt(ii,jj) = bicubic(xx,yy,injx,iniy,imt,lwrap)
-          else if (itype == 3) then
-            omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
-          else if (itype == 4) then
-            if (lwrap) then
-              if (ii == 1 .or. ii == iy ) then 
-                nbox = 2
+
+          select case (itype)
+            case(1)
+              omt(ii,jj) = bilinear(xx,yy,injx,iniy,imt,lwrap)
+            case(2)
+              omt(ii,jj) = bicubic(xx,yy,injx,iniy,imt,lwrap)
+            case(3)
+              omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+            case(4,5)
+              if (lwrap) then
+                if (ii == 1 .or. ii == iy ) then 
+                  omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                  cycle
+                else
+                  if (jj == jx) then
+                    nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+360))*&
+                                rinc/2.0D0, 2.0D0))
+                    nbox = min(nbox,8)
+                  else if (jj == 1) then
+                    nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)-360))*&
+                                rinc/2.0D0, 2.0D0))
+                    nbox = min(nbox,8)
+                  else
+                    nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
+                                rinc/2.0D0, 2.0D0))
+                    nbox = min(nbox,8)
+                  end if
+                  nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                              rinc/2.0D0, dble(nbox)))
+                end if
               else
-                jwrapp = jj+1
-                jwrapm = jj-1
-                if (jwrapp > jx) jwrapp = 1
-                if (jwrapm < 1)  jwrapm = jx
-                nbox = nint(max(abs(xlon(ii,jwrapm)-xlon(ii,jwrapp))* &
-                            rinc/2.0D0, 2.0D0))
-                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                            rinc/2.0D0, dble(nbox)))
+                if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
+                  omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                  cycle
+                else
+                  nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
+                              rinc/2.0D0, 2.0D0))
+                  nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
+                              rinc/2.0D0, dble(nbox)))
+                end if
               end if
-            else
-              if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-                nbox = 2
+              nbox = nbox * abs(cos(xlat(ii,jj)*degrad)) + 1
+              if (nbox < 2.0) then
+                omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               else
-                nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                            rinc/2.0D0, 2.0D0))
-                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                            rinc/2.0D0, dble(nbox)))
+                nbox = (nbox / 2) * 2
+                if (itype == 4) then
+                  omt(ii,jj) = mostaround(xx,yy,injx,iniy,imt,nbox, &
+                                          ibnty,h2opct,lwrap)
+                else
+                  omt(ii,jj) = pctaround(xx,yy,injx,iniy,imt, &
+                                         nbox,ival,lwrap)
+                end if
               end if
-            end if
-            nbox = (nbox / 2) * 2
-            omt(ii,jj) = mostaround(xx,yy,injx,iniy,imt,nbox, &
-                                    ibnty,h2opct,lwrap)
-          else if (itype == 5) then
-            if (lwrap) then
-              if (ii == 1 .or. ii == iy ) then 
-                nbox = 2
-              else
-                jwrapp = jj+1
-                jwrapm = jj-1
-                if (jwrapp > jx) jwrapp = 1
-                if (jwrapm < 1)  jwrapm = jx
-                nbox = nint(max(abs(xlon(ii,jwrapm)-xlon(ii,jwrapp))* &
-                            rinc/2.0D0, 2.0D0))
-                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                            rinc/2.0D0, dble(nbox)))
-              end if
-            else
-              if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-                nbox = 2
-              else
-                nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                            rinc/2.0D0, 2.0D0))
-                nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                            rinc/2.0D0, dble(nbox)))
-              end if
-            end if
-            nbox = (nbox / 2) * 2
-            omt(ii,jj) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
-          end if
+          end select
+
         end do
       end do
 
