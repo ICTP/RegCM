@@ -22,8 +22,6 @@
       use mod_constants
       use m_realkinds
 !
-      real(sp) , parameter :: tr = 1./tzero
-!
       contains
 
       subroutine humid1(t,q,ps,pt,sigma,ni,nj,nk)
@@ -78,7 +76,7 @@
           do i = 1 , im
             p = sigma(k)*(ps(i,j)-ptop) + ptop
             hl = lh0 - lh1*(t(i,j,k)-tzero)       ! LATENT HEAT OF EVAP.
-            satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+            satvp = lsvp1*exp(lsvp2*hl*(rtzero-1./t(i,j,k)))
                                                       ! SATURATION VAP PRESS.
             qs = ep2*satvp/(p-satvp)                 ! SAT. MIXING RATIO
             q(i,j,k) = amax1(q(i,j,k)/qs,0.0)
@@ -107,7 +105,7 @@
           do k = 1 , nk
             if ( p3d(i,j,k)>-9990. ) then
               hl = lh0 - lh1*(t(i,j,k)-tzero)  ! LATENT HEAT OF EVAP.
-              satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+              satvp = lsvp1*exp(lsvp2*hl*(rtzero-1./t(i,j,k)))
                                                    ! SATURATION VAP PRESS.
               qs = ep2*satvp/(p3d(i,j,k)-satvp)   ! SAT. MIXING RATIO
               q(i,j,k) = amax1(q(i,j,k)/qs,0.0)    !ALREADY MIXING RATIO
@@ -142,7 +140,7 @@
           do k = 1 , nk
             p = (pt+sigma(k)*ps(i,j))*10.
             hl = lh0 - lh1*(t(i,j,k)-tzero)
-            satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+            satvp = lsvp1*exp(lsvp2*hl*(rtzero-1./t(i,j,k)))
             qs = ep2*satvp/(p-satvp)
             q(i,j,k) = amax1(q(i,j,k)*qs,0.0)
           end do
@@ -174,7 +172,7 @@
           do k = 1 , nk
             p = (pt+sigma(k)*ps(i,j))*10.
             hl = lh0 - lh1*(t(i,j,k)-tzero)
-            satvp = lsvp1*exp(lsvp2*hl*(tr-1./t(i,j,k)))
+            satvp = lsvp1*exp(lsvp2*hl*(rtzero-1./t(i,j,k)))
             qs = ep2*satvp/(p-satvp)
             q(i,j,k) = amax1(q(i,j,k)*qs,0.0)
           end do
