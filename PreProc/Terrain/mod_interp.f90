@@ -391,7 +391,7 @@
       real(4) , intent(in) , optional :: h2opct
       real(4) , intent(out) , dimension(iy, jx) :: omt
 !
-      integer :: nbox , ii , jj , jwrapp , jwrapm
+      integer :: nbox , ii , jj
       real(8) :: xx , yy , rinc
 !
       rinc = 60.0D0/dble(ntypec)
