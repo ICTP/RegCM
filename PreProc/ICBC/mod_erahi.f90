@@ -40,7 +40,6 @@
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
       real(sp) , allocatable , target , dimension(:,:,:) :: w3
-      real(sp) , allocatable , dimension(:,:) :: b3pd
 
       real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
       real(sp) , pointer , dimension(:,:,:) :: up , vp
@@ -200,7 +199,7 @@
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
  
       call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
@@ -541,7 +540,6 @@
  
       allocate(b3(jx,iy,nlev2*3))
       allocate(d3(jx,iy,nlev2*2))
-      allocate(b3pd(jx,iy))
       allocate(w3(jx,iy,nlev2))
 
 !     Set up pointers

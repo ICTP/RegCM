@@ -624,9 +624,9 @@ mod_grid.o: mod_grid.f90 mod_dynparam.o
 mod_hgt.o: mod_hgt.f90 mod_constants.o
 mod_humid.o: mod_humid.f90 mod_constants.o
 mod_interp.o: mod_interp.f90 mod_constants.o
-mod_mksst.o: mod_mksst.f90 mod_date.o
+mod_mksst.o: mod_mksst.f90 mod_date.o mod_constants.o
 mod_nest.o: mod_nest.f90 mod_dynparam.o mod_grid.o mod_write.o \
-            mod_constants.o mod_date.o mod_interp.o
+            mod_constants.o mod_date.o mod_interp.o mod_date.o
 mod_uvrot.o: mod_uvrot.f90 mod_constants.o
 mod_vectutil.o: mod_vectutil.f90
 mod_vertint.o: mod_vertint.f90 mod_constants.o

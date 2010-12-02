@@ -523,6 +523,7 @@
         istatus = nf90_redef(ncid)
         call check_ok(istatus,('Error Redef in file '//trim(checkfile)))
 
+        ldim = 0
         if (nlev(ifld) > 1) then
           ldim = -1
           do iz = 1 , 8

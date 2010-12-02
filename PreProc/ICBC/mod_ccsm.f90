@@ -317,7 +317,7 @@
         call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
  
         call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
-        call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+        call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
  
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
                &     dsigma,jx,iy,kz)
@@ -935,7 +935,7 @@
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
  
       call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
  
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
