@@ -211,7 +211,7 @@
           else if ( dattyp=='FVGCM' ) then
             call getfvgcm(idate)
           else if ( dattyp=='FNEST' ) then
-            call get_nest(idate,0)
+            call get_nest(idate)
           end if
           call newfile(idate)
         end if
@@ -238,7 +238,7 @@
         else if ( dattyp=='FVGCM' ) then
           call getfvgcm(idate)
         else if ( dattyp=='FNEST' ) then
-          call get_nest(idate,1)
+          call get_nest(idate)
         else
         end if
 

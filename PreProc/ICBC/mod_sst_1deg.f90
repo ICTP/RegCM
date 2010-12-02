@@ -20,6 +20,8 @@
       module mod_sst_1deg
 
       use m_realkinds
+      use m_die
+      use m_stdio
 
       contains
 
@@ -55,11 +57,7 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 360 , jlat = 180
-!
-! Local variables
 !
       real(sp) , dimension(ilon,jlat) :: sst , ice
       integer :: i , j , k , iwk , iv , ludom , lumax , nrec
@@ -73,82 +71,76 @@
 !
       if ( ssttyp=='GISST' ) then
         if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
-          print * , 'GISST data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
-          stop
+          write (stderr,*) 'GISST data required are not available'
+          write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+          call die('sst_1deg')
         end if
         inquire (file=trim(inpglob)//'/SST/GISST_194712_200209',        &
               &    exist=there)
         if ( .not. there ) then
-          print *, 'GISST_194712_200209 is not available' ,  &
-                   &' under ',trim(inpglob),'/SST/'
-          stop
+          call die('sst_1deg','GISST_194712_200209 is not available'// &
+                   ' under '//trim(inpglob)//'/SST/',1)
         end if
         open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
-             &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
+            & form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
             & status='old')
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
             &   ssttyp=='OI2ST' ) then
         if ( globidate1<1981121512 .or. globidate2<1981121512 ) then
-          print * , 'OISST data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
-          stop
+          write (stderr,*) 'OISST data required are not available'
+          write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+          call die('sst_1deg')
         end if
         inquire (file=trim(inpglob)//'/SST/sst.mnmean.nc',exist=there)
         if ( .not.there ) then
-          print * , 'sst.mnmean.nc is not available' ,  &
-                  &' under ',trim(inpglob),'/SST/'
-          stop
+          call die('sst_1deg','sst.mnmean.nc is not available'// &
+                   ' under '//trim(inpglob)//'/SST/',1)
         end if
         if ( ssttyp=='OI2ST' ) then
           inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',           &
               &    exist=there)
           if ( .not. there ) then
-            print *, 'icec.mnmean.nc is not available' ,                &
-                   &' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_1deg','icec.mnmean.nc is not available'// &
+                     ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
       else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
         if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
-          print * , 'OI_WK (or OI2WK) data required are not available'
-          print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
-          stop
+          write (stderr,*) 'OI_WK (or OI2WK) data are not available'
+          write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
+          call die('sst_1deg')
         end if
         inquire (file=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc',    &
              &   exist=there)
         if ( .not.there ) then
-          print * , 'sst.wkmean.1981-1989.nc is not available'&
-                  & , ' under ',trim(inpglob),'/SST/'
-          stop
+          call die('sst_1deg','sst.wkmean.1981-1989.nc is not '// &
+                   'available under '//trim(inpglob)//'/SST/',1)
         end if
         inquire (file=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc', &
                & exist=there)
         if ( .not.there ) then
-          print * , 'sst.wkmean.1990-present.nc is not available'&
-                    & , ' under ',trim(inpglob),'/SST/'
-          stop
+          call die('sst_1deg','sst.wkmean.1990-present.nc is not '// &
+                   'available under '//trim(inpglob)//'/SST/',1)
         end if
         if ( ssttyp=='OI2WK' ) then
           inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
                 & exist=there)
           if ( .not.there ) then
-            print *, 'icec.wkmean.1981-1989.nc is not available',       &
-                &    ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_1deg','icec.wkmean.1981-1989.nc is not '// &
+                     'available under '//trim(inpglob)//'/SST/',1)
           end if
           inquire (file=trim(inpglob)//                                 &
                  '/SST/icec.wkmean.1990-present.nc',exist=there)
           if ( .not.there ) then
-            print *, 'icec.wkmean.1990-present.nc is not available',    &
-                &    ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_1deg','icec.wkmean.1990-present.nc is not '// &
+                     'available under '//trim(inpglob)//'/SST/',1)
           end if
         end if
       else
-        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
-        write (*,*) 'Supported are GISST OISST OI_NC OI2ST OI_WK OI2WK'
-        stop
+        write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (stderr,*) &
+             'Supported are GISST OISST OI_NC OI2ST OI_WK OI2WK'
+        call die('sst_1deg')
       end if
 
       ! Montly dataset
@@ -217,8 +209,8 @@
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if
 
-          print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
-              & sstmm(1,1)
+          write (stdout,*) &
+             'XLON,XLAT,SST=', xlon(1,1), xlat(1,1), sstmm(1,1)
  
           do j = 1 , jx
             do i = 1 , iy
@@ -246,7 +238,7 @@
                   end if
                 end do
                 lu(i,j) = float(ludom)
-                print * , ludom , sstmm(i,j)
+                write (stdout,*) ludom , sstmm(i,j)
               end if
               if ( sstmm(i,j)>-100. ) then
                 sstmm(i,j) = sstmm(i,j) + 273.15
@@ -263,7 +255,7 @@
             call writerec(idatem,.true.)
           end if
 
-          print * , 'WRITTEN OUT SST DATA : ' , idate
+          write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
 
           idate = inextmon(idate)
           idatem = imonmiddle(idate)
@@ -299,8 +291,8 @@
             call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
           end if 
 
-          print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) ,          &
-              & sstmm(1,1)
+          write (stdout,*) &
+              'XLON,XLAT,SST=', xlon(1,1), xlat(1,1), sstmm(1,1)
 
           do j = 1 , jx
             do i = 1 , iy
@@ -319,7 +311,7 @@
             call writerec(idate,.true.)
           endif
 
-          print * , 'WRITTEN OUT SST DATA : ' , idate
+          write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
 
           idate = inextwk(idate)
 
@@ -335,15 +327,11 @@
       use mod_date , only : split_idate
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
       logical :: there
@@ -370,22 +358,28 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('sst_mn',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('sst_mn',trim(pathaddname)//' open error',1, &
+                  nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ' error',1,nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        if ( istatus/=nf90_noerr ) then
+          call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ':scale_factor',1,nf90_strerror(istatus),istatus)
+        end if
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        if ( istatus/=nf90_noerr ) then
+          call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ':add_offset',1,nf90_strerror(istatus),istatus)
+        end if
         istart(1) = 1
         istart(2) = 1
         icount(1) = ilon
@@ -404,11 +398,10 @@
 
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) istart
-        write ( 6,* ) icount
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        write (stderr,*) istart
+        write (stderr,*) icount
+        call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
+                 ':read',1,nf90_strerror(istatus),istatus)
       end if
 !
       do j = 1 , jlat
@@ -430,15 +423,11 @@
       use mod_date , only : split_idate
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(sp) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
-!
-! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
       logical :: there
@@ -465,22 +454,28 @@
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('ice_mn',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('ice_mn',trim(pathaddname)//' open error',1, &
+                  nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ' error',1,nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        if ( istatus/=nf90_noerr ) then
+          call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ':scale_factor',1,nf90_strerror(istatus),istatus)
+        end if
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        if ( istatus/=nf90_noerr ) then
+          call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
+                   ':add_offset',1,nf90_strerror(istatus),istatus)
+        end if
         istart(1) = 1
         istart(2) = 1
         icount(1) = ilon
@@ -498,13 +493,11 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) istart
-        write ( 6,* ) icount
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        write (stderr,*) istart
+        write (stderr,*) icount
+        call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
+                 ':read',1,nf90_strerror(istatus),istatus)
       end if
-!bxq_
 !
       do j = 1 , jlat
         do i = 1 , ilon
@@ -524,15 +517,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
       real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there
@@ -565,22 +554,28 @@
         end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('sst_wk',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('sst_wk',trim(pathaddname)//' open error',1, &
+                  nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ' error',1,nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        if ( istatus/=nf90_noerr ) then
+          call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':scale_factor',1,nf90_strerror(istatus),istatus)
+        end if
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        if ( istatus/=nf90_noerr ) then
+          call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':add_offset',1,nf90_strerror(istatus),istatus)
+        end if
         istart(1) = 1
         istart(2) = 1
         icount(1) = ilon
@@ -596,22 +591,20 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) istart
-        write ( 6,* ) icount
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        write (stderr,*) istart
+        write (stderr,*) icount
+        call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
+                 ':read',1,nf90_strerror(istatus),istatus)
       end if
       if (idate < 1989123100) then
         istart(3) = kkk-1
         icount(3) = 1
         istatus = nf90_get_var(inet,ivar,work1,istart,icount)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot get ', varname, ' from file'
-          write ( 6,* ) istart
-          write ( 6,* ) icount
-          write ( 6,* ) nf90_strerror(istatus)
-          stop 'ERROR READ SST'
+          write (stderr,*) istart
+          write (stderr,*) icount
+          call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':read',1,nf90_strerror(istatus),istatus)
         end if
       end if
 
@@ -646,15 +639,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
       real(sp) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there
@@ -687,22 +676,28 @@
         end if
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
+          call die('ice_wk',trim(pathaddname)//' is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-          stop 'INPUT FILE OPEN ERROR'
+          call die('ice_wk',trim(pathaddname)//' open error',1, &
+                  nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_inq_varid(inet,varname,ivar)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot find variable ', varname,               &
-               &        ' in input file ', trim(pathaddname)
-          stop 'INPUT FILE ERROR'
+          call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ' error',1,nf90_strerror(istatus),istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+        if ( istatus/=nf90_noerr ) then
+          call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':scale_factor',1,nf90_strerror(istatus),istatus)
+        end if
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+        if ( istatus/=nf90_noerr ) then
+          call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':add_offset',1,nf90_strerror(istatus),istatus)
+        end if
         istart(1) = 1
         istart(2) = 1
         icount(1) = ilon
@@ -718,22 +713,20 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        write ( 6,* ) 'Cannot get ', varname, ' from file'
-        write ( 6,* ) istart
-        write ( 6,* ) icount
-        write ( 6,* ) nf90_strerror(istatus)
-        stop 'ERROR READ SST'
+        write (stderr,*) istart
+        write (stderr,*) icount
+        call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
+                 ':read',1,nf90_strerror(istatus),istatus)
       end if
       if (idate < 1989123100) then
         istart(3) = kkk-1
         icount(3) = 1
         istatus = nf90_get_var(inet,ivar,work1,istart,icount)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Cannot get ', varname, ' from file'
-          write ( 6,* ) istart
-          write ( 6,* ) icount
-          write ( 6,* ) nf90_strerror(istatus)
-          stop 'ERROR READ SST'
+          write (stderr,*) istart
+          write (stderr,*) icount
+          call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
+                   ':read',1,nf90_strerror(istatus),istatus)
         end if
       end if
 

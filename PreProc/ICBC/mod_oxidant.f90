@@ -25,6 +25,7 @@
       use mod_interp
       use mod_date
       use m_realkinds
+      use m_die
 
       private
 !
@@ -69,9 +70,9 @@
                           'oxid_3d_64x128_L26_c030722.nc', &
                           nf90_nowrite,ncid)
         if ( istatus/=nf90_noerr ) then
-          write (6,*) 'Cannot open input file'
-          write (6,*) nf90_strerror(istatus)
-          stop
+          call die('headermozart','Cannot open input file '// &
+                   'oxid_3d_64x128_L26_c030722.nc',1,         &
+                   nf90_strerror(istatus),istatus)
         end if
 
         do i = 1 , ilon
@@ -583,9 +584,8 @@
         implicit none
         istatus=nf90_close(ncid)
         if ( istatus/=nf90_noerr ) then
-          write (6,*) 'Cannot close input file'
-          write (6,*) nf90_strerror(istatus)
-          stop
+          call die('freemozart','Cannot close input file',1, &
+                   nf90_strerror(istatus),istatus)
         end if
         deallocate(poxid_3)
         deallocate(oh3)

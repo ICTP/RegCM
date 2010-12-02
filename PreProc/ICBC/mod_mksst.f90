@@ -39,12 +39,11 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine readsst(tsccm, topogm, idate)
+      subroutine readsst(tsccm, idate)
         use netcdf
         use mod_dynparam        
         use mod_date
         implicit none
-        real(sp) , dimension(jx,iy) , intent(in) :: topogm
         real(sp) , dimension(jx,iy) , intent(inout) :: tsccm
         integer , intent(in) :: idate
         real(dp) , dimension(:) , allocatable :: xtime
@@ -205,9 +204,6 @@
           wt = float(ks1)/float(ks2)
           do i = 1 , jx
             do j = 1 , iy
-!             if ( (topogm(i,j)<=1.) .and.                              &
-!                & (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
-!                & (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) ) then
               if ( (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.      &
                  & (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) ) then
                 tsccm(i,j) = (1.-wt)*work1(i,j) + wt*work2(i,j)

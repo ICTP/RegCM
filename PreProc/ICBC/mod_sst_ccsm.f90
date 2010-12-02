@@ -20,6 +20,8 @@
       module mod_sst_ccsm
 
       use m_realkinds
+      use m_die
+      use m_stdio
 
       contains
 
@@ -97,8 +99,8 @@
         call ccsm_sst(idate,idateo,ilon,jlat,sst,inpfile)
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
-        print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1) &
-            & + 273.
+        write (stdout,*) &
+          'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)+273.
  
         do j = 1 , jx
           do i = 1 , iy
@@ -126,7 +128,7 @@
                 end if
               end do
               lu(i,j) = float(ludom)
-              print * , ludom , sstmm(i,j)
+              write (stdout,*) ludom , sstmm(i,j)
             end if
             if ( sstmm(i,j)>-100. ) then
               sstmm(i,j) = sstmm(i,j) + 273.15
@@ -137,7 +139,7 @@
         end do
 
         call writerec(idate,.false.)
-        print * , 'WRITEN OUT SST DATA : ' , idate
+        write (stdout,*) 'WRITEN OUT SST DATA : ' , idate
 
         idate = inextmon(idate)
 
@@ -187,64 +189,105 @@
       if (idate == idate0) then
          inquire(file=pathaddname,exist=there)
          if (.not.there) then
-            print *, trim(pathaddname),' is not available'
-            stop
+           call die('ccsm_sst',trim(pathaddname)//' is not available',1)
          endif
          istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
          if ( istatus/=nf90_noerr ) then
-           write ( 6,*) 'Error opening ', trim(pathaddname)
-           stop 'ERROR OPEN FILE'
+           call die('ccsm_sst','Error opening '//trim(pathaddname),1, &
+                    nf90_strerror(istatus),istatus)
          end if
          
-         write(*,*) inet1 , trim(pathaddname) , icode
+         write(stdout,*) inet1 , trim(pathaddname) , icode
       endif  
 !     GET DIMENSION IDs
       istatus = nf90_inq_dimid(inet1,'lat',latid)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
+                 nf90_strerror(istatus),istatus)
+      end if
       istatus = nf90_inq_dimid(inet1,'lon',lonid)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
+                 nf90_strerror(istatus),istatus)
+      end if
       istatus = nf90_inq_dimid(inet1,'time',timid)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
+                 nf90_strerror(istatus),istatus)
+      end if
 
 !     GET DIMENSION LENGTHS
       istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
+                 nf90_strerror(istatus),istatus)
+      end if
       istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
+                 nf90_strerror(istatus),istatus)
+      end if
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
+                 nf90_strerror(istatus),istatus)
+      end if
       allocate(work1(timlen))
       
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
       if(latlen /= jlat .or. lonlen /= ilon) then
-         print*,'DIMENSIONS DO NOT MATCH'
-         print*,'No. of LON in SST file =',lonlen
-         print*,'No. of LON in 1x1 degree gloabl grid =',ilon
-         print*,'No. of LAT in SST file =',latlen
-         print*,'No. of LON in 1x1 degree gloabl grid =',jlat
-         STOP   'Check SST data file' 
+        write (stderr,*) 'DIMENSIONS DO NOT MATCH'
+        write (stderr,*) 'No. of LON in SST file =',lonlen
+        write (stderr,*) 'No. of LON in 1x1 degree gloabl grid =',ilon
+        write (stderr,*) 'No. of LAT in SST file =',latlen
+        write (stderr,*) 'No. of LON in 1x1 degree gloabl grid =',jlat
+        call die('ccsm_sst')
       endif
 !     GET VARIABLE IDs
       istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+                 varname(1),1,nf90_strerror(istatus),istatus)
+      end if
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+                 varname(2),1,nf90_strerror(istatus),istatus)
+      end if
 !     GET MISSING DATA VALUE
       istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',imisng)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+           varname(2)//':_FillValue',1,nf90_strerror(istatus),istatus)
+      end if
 !     GET TIME VALUES
       istartt(1) = 1
       icountt(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istartt,icountt)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+            varname(1)//' read',1,nf90_strerror(istatus),istatus)
+      end if
       
 !     CHECK FOR THE REQUIRED RECORD IN DATA FILE  
       npos = (nyear - 1000) * 365 + ndays(month)
-      i = 0
-      print *,  npos
- 10   continue
-      i = i + 1
-      if (npos < work1(i) .or. npos > work1(timlen)) then
-         print *, 'Error in finding SST data for',(idate-100)/10000
-         print *, 'Required NREC=',npos
-         stop    'Check SST data file' 
-      else if (work1(i) == npos) then
-         nrec=i
-         go to 20
+      if (npos < work1(1) .or. npos > work1(timlen)) then
+        write (stderr,*) 'Error in finding SST data for', &
+                         (idate-100)/10000
+        write (stderr,*) 'Required NREC = ', npos
+        call die('ccsm_sst')
       end if
-      go to 10
+
+      i = 1
+      do
+        if (work1(i) == npos) then
+          nrec=i
+          exit
+        end if
+        i = i + 1
+      end do
  
- 20   it = nrec
+      it = nrec
       icount(1) = ilon
       icount(2) = jlat
       icount(3) = 1
@@ -253,6 +296,10 @@
       istart(3) = 1
       istart(3) = it
       istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+      if ( istatus/=nf90_noerr ) then
+        call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+            varname(2)//' read',1,nf90_strerror(istatus),istatus)
+      end if
       do j = 1 , jlat
          do i = 1 , ilon
             if (work2(i,j) > (imisng+10) .and. work2(i,j) < 10000.0) then

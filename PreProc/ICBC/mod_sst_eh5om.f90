@@ -42,6 +42,8 @@
       use mod_date
       use mod_interp , only : bilinx
       use netcdf
+      use m_die
+      use m_stdio
 
       implicit none
 !
@@ -71,9 +73,9 @@
           inquire (file=trim(inpglob)//                                 &
                    '/SST/SST_20C_3_1941010106_1961123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_20C_3_1941010106_1961123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_20C_3_1941010106_1961123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=1962010100 .and. globidate1<=1993123118) .or. &
@@ -81,9 +83,9 @@
           inquire (file=trim(inpglob)//                                 &
                &   '/SST/SST_20C_3_1962010100_1993123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_20C_3_1962010100_1993123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_20C_3_1962010100_1993123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=1994010100 .and. globidate1<=2001010100) .or. &
@@ -91,15 +93,15 @@
           inquire (file=trim(inpglob)//                                 &
                &   '/SST/SST_20C_3_1994010100_2001010100',exist=there)
           if ( .not.there ) then
-            print * , 'SST_20C_3_1994010100_2001010100 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_20C_3_1994010100_2001010100 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( .not.there ) then
-          print * , 'EH5RF SST is just available from 1941010106 to' ,  &
-               &' 2001010100'
-          stop
+          call die('sst_eh5om', &
+                 & 'EH5RF SST is just available from 1941010106 to'//&
+                 & ' 2001010100',1)
         end if
       else if ( ssttyp=='EH5A2' ) then
         there = .false.
@@ -108,9 +110,9 @@
           inquire (file=trim(inpglob)//                                 &
                  & '/SST/SST_A2_1_2001010100_2029123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A2_1_2001010100_2029123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A2_1_2001010100_2029123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
@@ -118,9 +120,9 @@
           inquire (file=trim(inpglob)//                                 &
                  & '/SST/SST_A2_1_2030010100_2061123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A2_1_2030010100_2061123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A2_1_2030010100_2061123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
@@ -128,9 +130,9 @@
           inquire (file=trim(inpglob)//                                 &
            &  '/SST/SST_A2_1_2062010100_2093123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A2_1_2062010100_2093123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A2_1_2062010100_2093123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
@@ -138,15 +140,15 @@
           inquire (file=trim(inpglob)//                                 &
            &       '/SST/SST_A2_1_2094010100_2100123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A2_1_2094010100_2100123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A2_1_2094010100_2100123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( .not.there ) then
-          print * , 'EH5A2 SST is just available from 2001010100 to' ,  &
-               &' 2100123118'
-          stop
+          call die('sst_eh5om', &
+                 & 'EH5A2 SST is just available from 2001010100 to'//&
+                 & ' 2100123118',1)
         end if
       else if ( ssttyp=='EH5B1' ) then
         there = .false.
@@ -155,9 +157,9 @@
           inquire (file=trim(inpglob)//                                 &
                 &  '/SST/SST_B1_1_2001010100_2029123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_B1_1_2001010100_2029123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_B1_1_2001010100_2029123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
@@ -165,9 +167,9 @@
           inquire (file=trim(inpglob)//                                 &
              &     '/SST/SST_B1_1_2030010100_2061123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_B1_1_2030010100_2061123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_B1_1_2030010100_2061123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
@@ -175,9 +177,9 @@
           inquire (file=trim(inpglob)//                                 &
               &    '/SST/SST_B1_1_2062010100_2093123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_B1_1_2062010100_2093123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_B1_1_2062010100_2093123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
@@ -185,15 +187,15 @@
           inquire (file=trim(inpglob)//                                 &
              &     '/SST/SST_B1_1_2094010100_2100123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_B1_1_2094010100_2100123118 is not available' &
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_B1_1_2094010100_2100123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( .not.there ) then
-          print * , 'EH5B1 SST is just available from 2001010100 to' ,  &
-               &' 2100123118'
-          stop
+          call die('sst_eh5om', &
+                 & 'EH5B1 SST is just available from 2001010100 to'//&
+                 & ' 2100123118',1)
         end if
       else if ( ssttyp=='EHA1B' ) then
         there = .false.
@@ -202,9 +204,9 @@
           inquire (file=trim(inpglob)//                                 &
              &     '/SST/SST_A1B_3_2001010100_2029123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A1B_3_2001010100_2029123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A1B_3_2001010100_2029123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2030010100 .and. globidate1<=2061123118) .or. &
@@ -212,9 +214,9 @@
           inquire (file=trim(inpglob)//                                 &
                 &  '/SST/SST_A1B_3_2030010100_2061123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A1B_3_2030010100_2061123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A1B_3_2030010100_2061123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2062010100 .and. globidate1<=2093123118) .or. &
@@ -222,9 +224,9 @@
           inquire (file=trim(inpglob)//                                 &
               &    '/SST/SST_A1B_3_2062010100_2093123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A1B_3_2062010100_2093123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A1B_3_2062010100_2093123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( (globidate1>=2094010100 .and. globidate1<=2100123118) .or. &
@@ -232,26 +234,26 @@
           inquire (file=trim(inpglob)//                                 &
                  & '/SST/SST_A1B_3_2094010100_2100123118',exist=there)
           if ( .not.there ) then
-            print * , 'SST_A1B_3_2094010100_2100123118 is not available'&
-                & , ' under ',trim(inpglob),'/SST/'
-            stop
+            call die('sst_eh5om', &
+                 & 'SST_A1B_3_2094010100_2100123118 is not available'//&
+                 & ' under '//trim(inpglob)//'/SST/',1)
           end if
         end if
         if ( .not.there ) then
-          print * , 'EHA1B SST is just available from 2001010100 to' ,  &
-               &' 2100123118'
-          stop
+          call die('sst_eh5om', &
+                 & 'EHA1B SST is just available from 2001010100 to'//&
+                 & ' 2100123118',1)
         end if
       else
-        write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
-        write (*,*) 'Supported types are EH5RF EH5A2 EH5B1 EHA1B'
-        stop
+        write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
+        write (stderr,*) 'Supported types are EH5RF EH5A2 EH5B1 EHA1B'
+        call die('sst_eh5om')
       end if
 
       nsteps = idatediff(globidate2,globidate1)/idtbc + 1
-      write (*,*) 'GLOBIDATE1 : ' , globidate1
-      write (*,*) 'GLOBIDATE2 : ' , globidate2
-      write (*,*) 'NSTEPS     : ' , nsteps
+      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+      write (stdout,*) 'NSTEPS     : ' , nsteps
 
       call open_sstfile(globidate1)
  
@@ -389,11 +391,12 @@
         end do
  
         call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-        print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+        write (stdout,*) &
+             'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         call writerec(idate,.false.)
-        print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
+        write (stdout,*) 'WRITING OUT SST DATA:' , nmo , nyear
 
         call addhours(idate, idtbc)
 

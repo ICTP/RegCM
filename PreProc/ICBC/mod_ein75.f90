@@ -105,7 +105,7 @@
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
  
-      call readsst(ts4,topogm,idate)
+      call readsst(ts4,idate)
 !
 !     F3  INTERPOLATE U, V, T, AND Q.
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
