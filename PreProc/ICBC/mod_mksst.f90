@@ -19,13 +19,19 @@
 
       module mod_mksst
 
+      use mod_constants
+
+      private
+
       logical , private :: lopen , lhasice
-      integer , private :: ncid , ntime
+      integer , private :: ncst , ntime
       integer , dimension(3) , private :: ivar
       integer , dimension(:) , allocatable , private :: itime
       real(4) , dimension(:,:) , allocatable , private :: xlandu
       real(4) , dimension(:,:) , allocatable , private :: work1 , work2
       real(4) , dimension(:,:) , allocatable , private :: work3 , work4
+
+      public :: readsst , closesst
 
       data lopen/.false./
 
@@ -49,48 +55,48 @@
         real(4) :: wt
         if (.not. lopen) then
           sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
-          istatus = nf90_open(sstfile, nf90_nowrite, ncid)
+          istatus = nf90_open(sstfile, nf90_nowrite, ncst)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error Opening SST file ', trim(sstfile)
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_inq_dimid(ncid, 'time', idimid)
+          istatus = nf90_inq_dimid(ncst, 'time', idimid)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error time dimension not present'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_inquire_dimension(ncid, idimid, len=ntime)
+          istatus = nf90_inquire_dimension(ncst, idimid, len=ntime)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error time dimension not present'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_inq_varid(ncid, "time", itvar)
+          istatus = nf90_inq_varid(ncst, "time", itvar)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error variable time'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_inq_varid(ncid, "landuse", ivar(1))
+          istatus = nf90_inq_varid(ncst, "landuse", ivar(1))
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error variable landuse'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_inq_varid(ncid, "sst", ivar(2))
+          istatus = nf90_inq_varid(ncst, "sst", ivar(2))
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error variable landuse'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
           lhasice = .true.
-          istatus = nf90_inq_varid(ncid, "ice", ivar(3))
+          istatus = nf90_inq_varid(ncst, "ice", ivar(3))
           if ( istatus /= nf90_noerr) then
             lhasice = .false.
           end if
-          istatus = nf90_get_att(ncid, itvar, "units", timeunits)
+          istatus = nf90_get_att(ncst, itvar, "units", timeunits)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error variable time attribute units'
             write (6,*) nf90_strerror(istatus)
@@ -105,7 +111,7 @@
           end if
           allocate(xtime(ntime))
           allocate(itime(ntime))
-          istatus = nf90_get_var(ncid, itvar, xtime)
+          istatus = nf90_get_var(ncst, itvar, xtime)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error reading time variable'
             write (6,*) nf90_strerror(istatus)
@@ -138,20 +144,20 @@
         icount(3) = 1
         icount(2) = iy
         icount(1) = jx
-        istatus = nf90_get_var(ncid, ivar(1), xlandu, istart, icount)
+        istatus = nf90_get_var(ncst, ivar(1), xlandu, istart, icount)
         if ( istatus /= nf90_noerr) then
           write (6,*) 'Error reading landuse variable'
           write (6,*) nf90_strerror(istatus)
           stop
         end if
-        istatus = nf90_get_var(ncid, ivar(2), work1, istart, icount)
+        istatus = nf90_get_var(ncst, ivar(2), work1, istart, icount)
         if ( istatus /= nf90_noerr) then
           write (6,*) 'Error reading sst variable'
           write (6,*) nf90_strerror(istatus)
           stop
         end if
         if (lhasice) then
-          istatus = nf90_get_var(ncid, ivar(3), work3, istart, icount)
+          istatus = nf90_get_var(ncst, ivar(3), work3, istart, icount)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error reading ice variable'
             write (6,*) nf90_strerror(istatus)
@@ -166,7 +172,7 @@
                 tsccm(i,j) = work1(i,j)
                 if (lhasice) then
                   if ( work3(i,j)>-900.0) then
-                    if ( work3(i,j)>35. ) tsccm(i,j) = 273.15 - 2.15
+                    if ( work3(i,j)>35. ) tsccm(i,j) = tzero - 2.15
                   end if
                 end if
               end if
@@ -179,14 +185,14 @@
           icount(3) = 1
           icount(2) = iy
           icount(1) = jx
-          istatus = nf90_get_var(ncid, ivar(2), work2, istart, icount)
+          istatus = nf90_get_var(ncst, ivar(2), work2, istart, icount)
           if ( istatus /= nf90_noerr) then
             write (6,*) 'Error reading sst variable'
             write (6,*) nf90_strerror(istatus)
             stop
           end if
           if (lhasice) then
-            istatus = nf90_get_var(ncid, ivar(3), work4, istart, icount)
+            istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
             if ( istatus /= nf90_noerr) then
               write (6,*) 'Error reading ice variable'
               write (6,*) nf90_strerror(istatus)
@@ -204,7 +210,7 @@
                 if (lhasice) then
                   if ( work3(i,j)>-900.0 .and. work4(i,j)>-900.0 ) then
                     if ( (1.-wt)*work3(i,j)+wt*work4(i,j)>35. ) then
-                      tsccm(i,j) = 273.15 - 2.15
+                      tsccm(i,j) = tzero - 2.15
                     endif
                   end if
                 end if
@@ -218,7 +224,7 @@
         use netcdf
         implicit none
         integer :: istatus
-        istatus = nf90_close(ncid)
+        istatus = nf90_close(ncst)
         if (allocated(itime)) deallocate(itime)
         if (allocated(work1)) deallocate(work1)
         if (allocated(work2)) deallocate(work2)

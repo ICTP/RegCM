@@ -151,6 +151,10 @@
       write (*,*) 'GLOBIDATE2 : ' , globidate2
       write (*,*) 'NSTEPS     : ' , nsteps
  
+      idate = globidate1
+      iodate = idate
+      call newfile(idate)
+
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
         call headernc
@@ -179,10 +183,6 @@
         stop
       end if
  
-      idate = globidate1
-      iodate = idate
-      call newfile(idate)
-
       do nnn = 1 , nsteps
 
         call split_idate(idate, iyr, imon, iday, ihr)

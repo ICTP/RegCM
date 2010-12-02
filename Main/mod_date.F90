@@ -176,7 +176,7 @@
         baseh = baseh + ilast
         if (baseh > 23) then
           based = based + 1
-          baseh = 0
+          baseh = baseh - 24
           nmd = mdays(basey, basem)
           if (based > nmd) then
             based = based - nmd
@@ -488,7 +488,7 @@
         integer :: timeval2idate
         real(8) , intent(in) :: xval
         character(*) , intent(in) :: cunit
-        character(25) , save :: csave
+        character(35) , save :: csave
         integer :: year , month , day , hour
         integer , save :: iref
         character(12) :: cdum
@@ -499,7 +499,7 @@
           timeval2idate = iref
           call addhours(timeval2idate,nint(xval))
         else
-          if (len_trim(cunit) < 25) then
+          if (len_trim(cunit) < 35) then
             timeval2idate = 0
           else
             read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &

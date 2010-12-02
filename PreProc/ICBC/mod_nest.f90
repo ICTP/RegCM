@@ -40,22 +40,21 @@
 
       real(4) , allocatable , target , dimension(:,:,:) :: b3
       real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , dimension(:,:) :: xb3pd
       real(4) , allocatable , dimension(:,:,:) :: z1
 
       real(4) , allocatable , target , dimension(:,:,:) :: b2
       real(4) , allocatable , target , dimension(:,:,:) :: d2
 
-      real(4) , allocatable , dimension(:,:,:) :: c , q , t
+      real(4) , allocatable , dimension(:,:,:) :: q , t
       real(4) , allocatable , dimension(:,:,:) :: u , v
       real(4) , allocatable , dimension(:,:) :: ps
       real(4) , allocatable , dimension(:,:) :: ht_in
       real(4) , allocatable , dimension(:,:) :: xlat_in , xlon_in
 
-      real(4) , pointer , dimension(:,:,:) :: c3 , h3 , q3 , t3
+      real(4) , pointer , dimension(:,:,:) :: h3 , q3 , t3
       real(4) , pointer , dimension(:,:,:) :: u3 , v3
  
-      real(4) , pointer , dimension(:,:,:) :: cp , hp , qp , tp
+      real(4) , pointer , dimension(:,:,:) :: hp , qp , tp
       real(4) , pointer , dimension(:,:,:) :: up , vp
 
       real(4) , dimension(np) :: plev , sigmar
@@ -65,14 +64,15 @@
 
       integer :: iy_in , jx_in , kz_in , iotyp_in , idate0
 
-      real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in
+      real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in , &
+                 grdfac_in
 
       public :: get_nest , headnest
 
       character(14) :: fillin
       character(256) :: inpfile
 !
-      integer :: ncid
+      integer :: ncinp
       integer , dimension(:) , allocatable :: itimes
       character(64) :: timeunits
 !
@@ -94,22 +94,22 @@
       end if
 !
       if ( idate > itimes(nrec) ) then
-        istatus = nf90_close(ncid)
+        istatus = nf90_close(ncinp)
         call check_ok(istatus, 'Error close')
         write (fillin,'(a,i10)') 'ATM.', idate
         inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
-        istatus = nf90_open(inpfile, nf90_nowrite, ncid)
+        istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
         call check_ok(istatus, 'Error opening '//trim(inpfile))
-        istatus = nf90_inq_dimid(ncid, 'time', idimid)
+        istatus = nf90_inq_dimid(ncinp, 'time', idimid)
         call check_ok(istatus,'Dimension time missing')
-        istatus = nf90_inquire_dimension(ncid, idimid, len=nrec)
+        istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
         call check_ok(istatus,'Dimension time read error')
-        istatus = nf90_inq_varid(ncid, 'time', ivarid)
+        istatus = nf90_inq_varid(ncinp, 'time', ivarid)
         call check_ok(istatus,'variable time missing')
         deallocate(itimes)
         allocate(itimes(nrec))
         allocate(xtimes(nrec))
-        istatus = nf90_get_var(ncid, ivarid, xtimes)
+        istatus = nf90_get_var(ncinp, ivarid, xtimes)
         call check_ok(istatus,'variable time read error')
         do i = 1 , nrec
           itimes(i) = timeval2idate(xtimes(i), timeunits)
@@ -118,8 +118,11 @@
       end if
 
       irec = -1
-      do irec = 1 , nrec
-        if (idate == itimes(irec)) exit
+      do i = 1 , nrec
+        if (idate == itimes(i)) then
+          irec = i
+          exit
+        end if
       end do
       if (irec < 0) then
         write (6,*) 'Error : time ', idate, ' not in file'
@@ -134,35 +137,31 @@
       icount(3) = kz_in
       icount(2) = iy_in
       icount(1) = jx_in
-      istatus = nf90_inq_varid(ncid, 'u', ivarid)
+      istatus = nf90_inq_varid(ncinp, 'u', ivarid)
       call check_ok(istatus,'variable u missing')
-      istatus = nf90_get_var(ncid, ivarid, u, istart, icount)
+      istatus = nf90_get_var(ncinp, ivarid, u, istart, icount)
       call check_ok(istatus,'variable u read error')
-      istatus = nf90_inq_varid(ncid, 'v', ivarid)
+      istatus = nf90_inq_varid(ncinp, 'v', ivarid)
       call check_ok(istatus,'variable v missing')
-      istatus = nf90_get_var(ncid, ivarid, v, istart, icount)
+      istatus = nf90_get_var(ncinp, ivarid, v, istart, icount)
       call check_ok(istatus,'variable v read error')
-      istatus = nf90_inq_varid(ncid, 't', ivarid)
+      istatus = nf90_inq_varid(ncinp, 't', ivarid)
       call check_ok(istatus,'variable t missing')
-      istatus = nf90_get_var(ncid, ivarid, t, istart, icount)
+      istatus = nf90_get_var(ncinp, ivarid, t, istart, icount)
       call check_ok(istatus,'variable t read error')
-      istatus = nf90_inq_varid(ncid, 'qv', ivarid)
+      istatus = nf90_inq_varid(ncinp, 'qv', ivarid)
       call check_ok(istatus,'variable qv missing')
-      istatus = nf90_get_var(ncid, ivarid, q, istart, icount)
+      istatus = nf90_get_var(ncinp, ivarid, q, istart, icount)
       call check_ok(istatus,'variable qv read error')
-      istatus = nf90_inq_varid(ncid, 'qc', ivarid)
-      call check_ok(istatus,'variable qc missing')
-      istatus = nf90_get_var(ncid, ivarid, c, istart, icount)
-      call check_ok(istatus,'variable qc read error')
       istart(3) = irec
       istart(2) = 1
       istart(1) = 1
       icount(3) = 1
       icount(2) = iy_in
       icount(1) = jx_in
-      istatus = nf90_inq_varid(ncid, 'ps', ivarid)
+      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
       call check_ok(istatus,'variable ps missing')
-      istatus = nf90_get_var(ncid, ivarid, ps, istart(1:3), icount(1:3))
+      istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
       call check_ok(istatus,'variable ps read error')
 
       write (*,*) 'READ IN fields at DATE:' , idate , ' from ' , fillin
@@ -182,21 +181,20 @@
 !     4. For Moisture qva & qca
       call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kz_in)
       call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      call intlog_o(cp,c,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac,       &
+      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac_in,    &
              &      jx_in,iy_in,np,plon_in,plat_in,iproj_in)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
       call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,              &
-                  & jx_in,iy_in,np,4)
+                  & jx_in,iy_in,np,3)
       call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,              &
                   & jx_in,iy_in,np,2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,np,plon,plat,  &
-                & iproj)
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac_in,jx,iy,np, &
+                  plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -207,20 +205,19 @@
 !HH:  CHANGE THE VERTICAL ORDER.
       call top2btm(t3,jx,iy,np)
       call top2btm(q3,jx,iy,np)
-      call top2btm(c3,jx,iy,np)
       call top2btm(h3,jx,iy,np)
       call top2btm(u3,jx,iy,np)
       call top2btm(v3,jx,iy,np)
 !HH:OVER
 !
-!     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
+!     NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,np)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       if(i_band.eq.1) then
-         call p1p2_band(xb3pd,ps4,jx,iy)
+         call p1p2_band(b3pd,ps4,jx,iy)
       else
-         call p1p2(xb3pd,ps4,jx,iy)
+         call p1p2(b3pd,ps4,jx,iy)
       endif
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
@@ -232,14 +229,13 @@
 !     F2     DETERMINE P* AND HEIGHT.
 !
 !     F3     INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,xb3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
-      call intv1(v4,v3,xb3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
 !
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
  
       call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
-      call humid2fv(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
-      call intv1(c4,c3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
@@ -249,13 +245,9 @@
 !
       end subroutine get_nest
 !
-!
-!
       subroutine headnest
       use netcdf
       implicit none
-!
-! Local variables
 !
       real(4) :: xsign
       integer :: i , k , istatus , idimid , ivarid
@@ -297,32 +289,32 @@
         write (*,*) 'please copy (or link)' , trim(inpfile)
         stop
       end if
-      istatus = nf90_open(inpfile, nf90_nowrite, ncid)
+      istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
       call check_ok(istatus, 'Error opening '//trim(inpfile))
 
-      istatus = nf90_inq_dimid(ncid, 'iy', idimid)
+      istatus = nf90_inq_dimid(ncinp, 'iy', idimid)
       call check_ok(istatus,'Dimension iy missing')
-      istatus = nf90_inquire_dimension(ncid, idimid, len=iy_in)
+      istatus = nf90_inquire_dimension(ncinp, idimid, len=iy_in)
       call check_ok(istatus,'Dimension iy read error')
-      istatus = nf90_inq_dimid(ncid, 'jx', idimid)
+      istatus = nf90_inq_dimid(ncinp, 'jx', idimid)
       call check_ok(istatus,'Dimension jx missing')
-      istatus = nf90_inquire_dimension(ncid, idimid, len=jx_in)
+      istatus = nf90_inquire_dimension(ncinp, idimid, len=jx_in)
       call check_ok(istatus,'Dimension jx read error')
-      istatus = nf90_inq_dimid(ncid, 'kz', idimid)
+      istatus = nf90_inq_dimid(ncinp, 'kz', idimid)
       call check_ok(istatus,'Dimension kz missing')
-      istatus = nf90_inquire_dimension(ncid, idimid, len=kz_in)
+      istatus = nf90_inquire_dimension(ncinp, idimid, len=kz_in)
       call check_ok(istatus,'Dimension kz read error')
-      istatus = nf90_inq_dimid(ncid, 'time', idimid)
+      istatus = nf90_inq_dimid(ncinp, 'time', idimid)
       call check_ok(istatus,'Dimension time missing')
-      istatus = nf90_inquire_dimension(ncid, idimid, len=nrec)
+      istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
       call check_ok(istatus,'Dimension time read error')
-      istatus = nf90_inq_varid(ncid, 'time', ivarid)
+      istatus = nf90_inq_varid(ncinp, 'time', ivarid)
       call check_ok(istatus,'variable time missing')
-      istatus = nf90_get_att(ncid, ivarid, 'units', timeunits)
+      istatus = nf90_get_att(ncinp, ivarid, 'units', timeunits)
       call check_ok(istatus,'variable time units missing')
       allocate(itimes(nrec))
       allocate(xtimes(nrec))
-      istatus = nf90_get_var(ncid, ivarid, xtimes)
+      istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call check_ok(istatus,'variable time read error')
       do i = 1 , nrec
         itimes(i) = timeval2idate(xtimes(i), timeunits)
@@ -333,12 +325,10 @@
 
       allocate(sig(kz_in), stat=istatus)
       if (istatus /= 0) stop 'Allocation Error in headnest: sig'
-      allocate(b2(jx_in,iy_in,np*4), stat=istatus)
+      allocate(b2(jx_in,iy_in,np*3), stat=istatus)
       if (istatus /= 0) stop 'Allocation Error in headnest: b2'
       allocate(d2(jx_in,iy_in,np*2), stat=istatus)
       if (istatus /= 0) stop 'Allocation Error in headnest: d2'
-      allocate(c(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: c'
       allocate(q(jx_in,iy_in,kz_in), stat=istatus)
       if (istatus /= 0) stop 'Allocation Error in headnest: q'
       allocate(t(jx_in,iy_in,kz_in), stat=istatus)
@@ -355,40 +345,46 @@
       if (istatus /= 0) stop 'Allocation Error in headnest: xlon_in'
       allocate(ht_in(jx_in,iy_in), stat=istatus)
       if (istatus /= 0) stop 'Allocation Error in headnest: ht_in'
+      allocate(b3(iy,jx,np*3),stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: b3'
+      allocate(d3(iy,jx,np*2),stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: d3'
+      allocate(z1(iy_in,jx_in,kz_in),stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: z1'
 
-      istatus = nf90_inq_varid(ncid, 'sigma', ivarid) 
+      istatus = nf90_inq_varid(ncinp, 'sigma', ivarid) 
       call check_ok(istatus,'variable sigma error')
-      istatus = nf90_get_var(ncid, ivarid, sig)
+      istatus = nf90_get_var(ncinp, ivarid, sig)
       call check_ok(istatus,'variable sigma read error')
-      istatus = nf90_inq_varid(ncid, 'xlat', ivarid) 
+      istatus = nf90_inq_varid(ncinp, 'xlat', ivarid) 
       call check_ok(istatus,'variable xlat error')
-      istatus = nf90_get_var(ncid, ivarid, xlat_in)
+      istatus = nf90_get_var(ncinp, ivarid, xlat_in)
       call check_ok(istatus,'variable xlat read error')
-      istatus = nf90_inq_varid(ncid, 'xlon', ivarid) 
+      istatus = nf90_inq_varid(ncinp, 'xlon', ivarid) 
       call check_ok(istatus,'variable xlon error')
-      istatus = nf90_get_var(ncid, ivarid, xlon_in)
+      istatus = nf90_get_var(ncinp, ivarid, xlon_in)
       call check_ok(istatus,'variable xlon read error')
-      istatus = nf90_inq_varid(ncid, 'topo', ivarid) 
+      istatus = nf90_inq_varid(ncinp, 'topo', ivarid) 
       call check_ok(istatus,'variable topo error')
-      istatus = nf90_get_var(ncid, ivarid, ht_in)
+      istatus = nf90_get_var(ncinp, ivarid, ht_in)
       call check_ok(istatus,'variable topo read error')
-      istatus = nf90_inq_varid(ncid, 'ptop', ivarid) 
+      istatus = nf90_inq_varid(ncinp, 'ptop', ivarid) 
       call check_ok(istatus,'variable ptop error')
-      istatus = nf90_get_var(ncid, ivarid, ptop_in)
+      istatus = nf90_get_var(ncinp, ivarid, ptop_in)
       call check_ok(istatus,'variable ptop read error')
 
-      istatus = nf90_get_att(ncid, nf90_global, &
+      istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'projection', iproj_in)
       call check_ok(istatus,'attribure iproj read error')
-      istatus = nf90_get_att(ncid, nf90_global, &
+      istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'latitude_of_projection_origin', clat_in)
       call check_ok(istatus,'attribure clat read error')
-      istatus = nf90_get_att(ncid, nf90_global, &
+      istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'longitude_of_projection_origin', clon_in)
       call check_ok(istatus,'attribure clat read error')
 
       if ( iproj_in=='LAMCON' ) then
-        istatus = nf90_get_att(ncid, nf90_global, &
+        istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'standard_parallel', trlat)
         call check_ok(istatus,'attribure truelat read error')
         if ( clat_in<0. ) then
@@ -397,51 +393,52 @@
           xsign = 1.        ! NORTH HEMESPHERE
         end if
         if ( abs(trlat(1)-trlat(2))>1.E-1 ) then
-          grdfac = (log10(cos(trlat(1)*degrad))                         &
+          grdfac_in = (log10(cos(trlat(1)*degrad))                      &
                    & -log10(cos(trlat(2)*degrad)))                      &
                    & /(log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))     &
                    & -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
         else
-          grdfac = xsign*sin(trlat(1)*degrad)
+          grdfac_in = xsign*sin(trlat(1)*degrad)
         end if
       else if ( iproj_in=='POLSTR' ) then
-        grdfac = 1.0
+        grdfac_in = 1.0
       else if ( iproj_in=='NORMER' ) then
-        grdfac = 0.0
+        grdfac_in = 0.0
       else
-        istatus = nf90_get_att(ncid, nf90_global, &
+        istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'grid_north_pole_latitude', plat_in)
         call check_ok(istatus,'attribure plat read error')
-        istatus = nf90_get_att(ncid, nf90_global, &
+        istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'grid_north_pole_longitude', plon_in)
         call check_ok(istatus,'attribure plon read error')
-        grdfac = 0.0
+        grdfac_in = 0.0
       end if
  
-      if (allocated(b3)) deallocate(b3)
-      if (allocated(d3)) deallocate(d3)
-      if (allocated(xb3pd)) deallocate(xb3pd)
-      if (allocated(z1)) deallocate(z1)
-      allocate(b3(iy_in,jx_in,np*4))
-      allocate(d3(iy_in,jx_in,np*2))
-      allocate(xb3pd(iy_in,jx_in))
-      allocate(z1(iy_in,jx_in,kz_in))
-
 !     Set up pointers
  
       tp => b2(:,:,1:np)
       qp => b2(:,:,np+1:2*np)
-      cp => b2(:,:,2*np+1:3*np)
-      hp => b2(:,:,3*np+1:4*np)
+      hp => b2(:,:,2*np+1:3*np)
       up => d2(:,:,1:np)
       vp => d2(:,:,np+1:2*np)
       t3 => b3(:,:,1:np)
       q3 => b3(:,:,np+1:2*np)
-      c3 => b3(:,:,2*np+1:3*np)
-      h3 => b3(:,:,3*np+1:4*np)
+      h3 => b3(:,:,2*np+1:3*np)
       u3 => d3(:,:,1:np)
       v3 => d3(:,:,np+1:2*np)
 
       end subroutine headnest
-
+!
+      subroutine check_ok(ierr,message)
+        use netcdf
+        implicit none
+        integer , intent(in) :: ierr
+        character(*) :: message
+        if (ierr /= nf90_noerr) then
+          write (6,*) message
+          write (6,*) nf90_strerror(ierr)
+          stop
+        end if
+      end subroutine check_ok
+!
       end module mod_nest
