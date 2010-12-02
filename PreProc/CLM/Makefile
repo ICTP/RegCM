@@ -3,8 +3,6 @@
   
 include ../../Makefile.inc
 
-SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
-
 all: clm2rcm
 
 MODOBJ = mod_param_clm.o mod_read_domain.o mod_nclib.o mod_clm3grid.o
