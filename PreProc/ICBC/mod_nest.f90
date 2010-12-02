@@ -18,9 +18,19 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_nest
-      use mod_dynparam
 
-      implicit none
+      use mod_dynparam
+      use mod_constants
+      use mod_date
+      use mod_grid
+      use mod_write
+      use mod_interp
+      use mod_vertint
+      use mod_hgt
+      use mod_humid
+      use mod_mksst
+      use mod_uvrot
+      use mod_vectutil
 
       private
 
@@ -30,7 +40,7 @@
 
       real(4) , allocatable , target , dimension(:,:,:) :: b3
       real(4) , allocatable , target , dimension(:,:,:) :: d3
-      real(4) , allocatable , dimension(:,:) :: b3pd
+      real(4) , allocatable , dimension(:,:) :: xb3pd
       real(4) , allocatable , dimension(:,:,:) :: z1
 
       real(4) , allocatable , target , dimension(:,:,:) :: b2
@@ -49,292 +59,130 @@
       real(4) , pointer , dimension(:,:,:) :: up , vp
 
       real(4) , dimension(np) :: plev , sigmar
-      real(4) , allocatable , dimension(:) :: sigf
       real(4) , allocatable , dimension(:) :: sig
 
       character(6) :: iproj_in
 
-      integer :: iy_in , jx_in , kl , iotyp_in , idate0
+      integer :: iy_in , jx_in , kz_in , iotyp_in , idate0
 
       real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in
 
       public :: get_nest , headnest
 
-      contains
-
-      subroutine get_nest(idate,ncr)
-      use mod_grid
-      use mod_write
-      use mod_interp , only : cressmcr , cressmdt
-      use mod_vertint
-      use mod_hgt
-      use mod_humid
-      use mod_mksst
-      use mod_uvrot
-      use mod_vectutil
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: idate , ncr
-      intent (in) ncr
-!
-! Local variables
-!
       character(14) :: fillin
       character(256) :: inpfile
-      integer :: i , idatek , j , k , mn0 , mn1 , nd0 , nd1 , nh0 ,     &
-               & nh1 , ny0 , ny1
-      logical :: there
+!
+      integer :: ncid
+      integer , dimension(:) , allocatable :: itimes
+      character(64) :: timeunits
+!
+      contains
+
+      subroutine get_nest(idate)
+      use netcdf
+      implicit none
+!
+      integer , intent(in) :: idate
+!
+      real(8) , dimension(:) , allocatable :: xtimes
+      integer :: i , istatus , ivarid , idimid , irec
+      integer , dimension(4) :: istart , icount
 !
       if (.not. allocated(b2)) then
         write (*,*) 'Called get_nest before headnest !'
         stop
       end if
 !
-      if ( idate==idate0 ) then
-        write (fillin,99001) idate
-        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-        inquire (file=inpfile,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(inpfile), ' is not available'
-          write (*,*) 'please copy (or link)' , trim(inpfile)
-          stop
-        end if
-        if ( iotyp_in==1 ) then
-          open (55,file=trim(inpfile),form='unformatted',               &
-              & recl=iy_in*jx_in*ibyte,access='direct')
-          nrec = 0
-        else if ( iotyp_in==2 ) then
-          open (55,file=trim(inpfile),form='unformatted')
-          rewind (55)
-        else
-        end if
-      else if ( idate==globidate1 ) then
-        ny0 = idate0/1000000
-        mn0 = mod(idate0/10000,100)
-        nd0 = mod(idate0/100,100)
-        nh0 = mod(idate0,100)
- 
-        ny1 = globidate1/1000000
-        mn1 = mod(globidate1/10000,100)
-        nd1 = mod(globidate1/100,100)
-        nh1 = mod(globidate1,100)
- 
-        if ( ny0==ny1 .and. mn0==mn1 ) then
-          write (fillin,99001) idate0
-          inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-          inquire (file=trim(inpfile),exist=there)
-          if ( .not.there ) then
-            write (*,*) trim(inpfile), ' is not available'
-            write (*,*) 'please copy (or link)' , trim(inpfile)
-            stop
-          end if
-          if ( iotyp_in==1 ) then
-            open (55,file=trim(inpfile),form='unformatted',             &
-                & recl=iy_in*jx_in*ibyte,access='direct')
-            nrec = ((nd1-nd0)*4+(nh1-nh0)/6)*(kl*6+5)
-          else if ( iotyp_in==2 ) then
-            open (55,file=trim(inpfile),form='unformatted')
-            rewind (55)
-          else
-          end if
-        else if ( nd1==1 .and. nh1==0 ) then
-          if ( (ny1-ny0)*12+(mn1-mn0)==1 ) then
-            write (fillin,99001) idate0
-            inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-            inquire (file=trim(inpfile),exist=there)
-            if ( .not.there ) then
-              write (*,*) trim(inpfile), ' is not available'
-              write (*,*) 'please copy (or link)' , trim(inpfile)
-              stop
-            end if
-            if ( iotyp_in==1 ) then
-              open (55,file=trim(inpfile),form='unformatted',           &
-                 &  recl=iy_in*jx_in*ibyte,access='direct')
-              if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
-                 & mn0==8 .or. mn0==10 .or. mn0==12 ) then
-                nrec = (124-(nd0-1)*4+nh0/6)*(kl*6+5)
-              else if ( mn0==4 .or. mn0==6 .or. mn0==9 .or. mn0==11 )   &
-                      & then
-                nrec = (120-(nd0-1)*4+nh0/6)*(kl*6+5)
-              else
-                nrec = 112 - (nd0-1)*4 + nh0/6
-                if ( mod(ny0,4)==0 ) nrec = nrec + 4
-                if ( mod(ny0,100)==0 ) nrec = nrec - 4
-                if ( mod(ny0,400)==0 ) nrec = nrec + 4
-                nrec = nrec*(kl*6+5)
-              end if
-            else if ( iotyp_in==2 ) then
-              open (55,file=trim(inpfile),form='unformatted')
-              rewind (55)
-            else
-            end if
-          else
-            if ( mn1>1 ) then
-              write (fillin,99001) ny1*1000000 + (mn1-1)*10000 + 100
-            else
-              write (fillin,99001) (ny1-1)*1000000 + 120100
-            end if
-            inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-            inquire (file=trim(inpfile),exist=there)
-            if ( .not.there ) then
-              write (*,*) trim(inpfile), ' is not available'
-              write (*,*) 'please copy (or link)' , trim(inpfile)
-              stop
-            end if
-            if ( iotyp_in==1 ) then
-              open (55,file=trim(inpfile),form='unformatted',           &
-                  & recl=iy_in*jx_in*ibyte,access='direct')
-              if ( mn0==1 .or. mn0==3 .or. mn0==5 .or. mn0==7 .or.      &
-                 & mn0==8 .or. mn0==10 .or. mn0==12 ) then
-                nrec = 123*(kl*6+5)
-              else if ( mn0==4 .or. mn0==6 .or. mn0==9 .or. mn0==11 )   &
-                      & then
-                nrec = 119*(kl*6+5)
-              else
-                nrec = 111
-                if ( mod(ny0,4)==0 ) nrec = nrec + 4
-                if ( mod(ny0,100)==0 ) nrec = nrec - 4
-                if ( mod(ny0,400)==0 ) nrec = nrec + 4
-                nrec = nrec*(kl*6+5)
-              end if
-            else if ( iotyp_in==2 ) then
-              open (55,file=trim(inpfile),form='unformatted')
-              rewind (55)
-            else
-            end if
-          end if
-        else
-          write (fillin,99001) ny1*1000000 + mn1*10000 + 100
-          inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-          inquire (file=trim(inpfile),exist=there)
-          if ( .not.there ) then
-            write (*,*) trim(inpfile), ' is not available'
-            write (*,*) 'please copy (or link)' , trim(inpfile)
-            stop
-          end if
-          if ( iotyp_in==1 ) then
-            open (55,file=trim(inpfile),form='unformatted',             &
-                & recl=iy_in*jx_in*ibyte,access='direct')
-            nrec = ((nd1-1)*4+nh1/6-1)*(kl*6+5)
-          else if ( iotyp_in==2 ) then
-            open (55,file=trim(inpfile),form='unformatted')
-            rewind (55)
-          else
-          end if
-        end if
-      else
+      if ( idate > itimes(nrec) ) then
+        istatus = nf90_close(ncid)
+        call check_ok(istatus, 'Error close')
+        write (fillin,'(a,i10)') 'ATM.', idate
+        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+        istatus = nf90_open(inpfile, nf90_nowrite, ncid)
+        call check_ok(istatus, 'Error opening '//trim(inpfile))
+        istatus = nf90_inq_dimid(ncid, 'time', idimid)
+        call check_ok(istatus,'Dimension time missing')
+        istatus = nf90_inquire_dimension(ncid, idimid, len=nrec)
+        call check_ok(istatus,'Dimension time read error')
+        istatus = nf90_inq_varid(ncid, 'time', ivarid)
+        call check_ok(istatus,'variable time missing')
+        deallocate(itimes)
+        allocate(itimes(nrec))
+        allocate(xtimes(nrec))
+        istatus = nf90_get_var(ncid, ivarid, xtimes)
+        call check_ok(istatus,'variable time read error')
+        do i = 1 , nrec
+          itimes(i) = timeval2idate(xtimes(i), timeunits)
+        end do
+        deallocate(xtimes)
       end if
 
-      ! write (6,*) 'Open ATM file: ', trim(inpfile)
- 
-      if ( iotyp_in==1 ) then
-        if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
-           & ncr==1 ) nrec = nrec - (kl*6+5)
-        idatek = idate
-        do k = kl , 1 , -1
-          nrec = nrec + 1
-          read (55,rec=nrec) ((u(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          nrec = nrec + 1
-          read (55,rec=nrec) ((v(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        nrec = nrec + kl         ! skip omega
-        do k = kl , 1 , -1
-          nrec = nrec + 1
-          read (55,rec=nrec) ((t(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          nrec = nrec + 1
-          read (55,rec=nrec) ((q(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          nrec = nrec + 1
-          read (55,rec=nrec) ((c(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        nrec = nrec + 1
-        read (55,rec=nrec) ((ps(i,j),i=1,jx_in),j=1,iy_in)
-        nrec = nrec + 4
-      else if ( iotyp_in==2 ) then
-        if ( idate/=globidate1 .and. mod(idate,10000)==100 .and.        &
-           & ncr==1 ) rewind (55)
- 50     continue
-        read (55) idatek
-        if ( idatek/=idate ) then
-          do k = 1 , kl*6 + 5
-            read (55)
-          end do
-!         WRITE(*,*) 'READ IN fields at DATE:',idateK
-          go to 50
-        end if
-!       idate=idateK
- 
-!       print*,' IDATE = ',idate
-        do k = kl , 1 , -1
-          read (55) ((u(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          read (55) ((v(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          read (55)
-        end do
-        do k = kl , 1 , -1
-          read (55) ((t(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = kl , 1 , -1
-          read (55) ((q(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        do k = 1 , kl
-          read (55) ((c(i,j,k),i=1,jx_in),j=1,iy_in)
-        end do
-        read (55) ((ps(i,j),i=1,jx_in),j=1,iy_in)
-        do k = 1 , 4
-          read (55)
-        end do
-      else
+      irec = -1
+      do irec = 1 , nrec
+        if (idate == itimes(irec)) exit
+      end do
+      if (irec < 0) then
+        write (6,*) 'Error : time ', idate, ' not in file'
+        stop
       end if
-      write (*,*) 'READ IN fields at DATE:' , idatek , ' from ' , fillin
 
-      if ( idate/=globidate1 .and. mod(idate,10000)==100 .and. ncr==1 ) then
-        write (fillin,99001) idate
-        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin
-        inquire (file=trim(inpfile),exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(inpfile), ' is not available'
-          write (*,*) 'please copy (or link)' , trim(inpfile)
-          stop
-        end if
-        if ( iotyp_in==1 ) then
-          open (55,file=trim(inpfile),form='unformatted',               &
-              & recl=iy_in*jx_in*ibyte,access='direct')
-          nrec = 0
-        else if ( iotyp_in==2 ) then
-          open (55,file=trim(inpfile),form='unformatted')
-          rewind (55)
-        else
-        end if
-!       WRITE(*,*) 'Open ATM file:', trim(inpfile)
-      end if
-!
+      istart(4) = irec
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = kz_in
+      icount(2) = iy_in
+      icount(1) = jx_in
+      istatus = nf90_inq_varid(ncid, 'u', ivarid)
+      call check_ok(istatus,'variable u missing')
+      istatus = nf90_get_var(ncid, ivarid, u, istart, icount)
+      call check_ok(istatus,'variable u read error')
+      istatus = nf90_inq_varid(ncid, 'v', ivarid)
+      call check_ok(istatus,'variable v missing')
+      istatus = nf90_get_var(ncid, ivarid, v, istart, icount)
+      call check_ok(istatus,'variable v read error')
+      istatus = nf90_inq_varid(ncid, 't', ivarid)
+      call check_ok(istatus,'variable t missing')
+      istatus = nf90_get_var(ncid, ivarid, t, istart, icount)
+      call check_ok(istatus,'variable t read error')
+      istatus = nf90_inq_varid(ncid, 'qv', ivarid)
+      call check_ok(istatus,'variable qv missing')
+      istatus = nf90_get_var(ncid, ivarid, q, istart, icount)
+      call check_ok(istatus,'variable qv read error')
+      istatus = nf90_inq_varid(ncid, 'qc', ivarid)
+      call check_ok(istatus,'variable qc missing')
+      istatus = nf90_get_var(ncid, ivarid, c, istart, icount)
+      call check_ok(istatus,'variable qc read error')
+      istart(3) = irec
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = iy_in
+      icount(1) = jx_in
+      istatus = nf90_inq_varid(ncid, 'ps', ivarid)
+      call check_ok(istatus,'variable ps missing')
+      istatus = nf90_get_var(ncid, ivarid, ps, istart(1:3), icount(1:3))
+      call check_ok(istatus,'variable ps read error')
+
+      write (*,*) 'READ IN fields at DATE:' , idate , ' from ' , fillin
+
 !     to calculate Heights on sigma surfaces.
-      call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kl)
+      call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in)
 !
 !     to interpolate H,U,V,T,Q and QC
 !     1. For Heights
-      call height_o(hp,z1,t,ps,ht_in,sig,ptop_in,jx_in,iy_in,kl,    &
+      call height_o(hp,z1,t,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in,    &
                   & plev,np)
 !     2. For Zonal and Meridional Winds
-      call intlin_o(up,u,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
-      call intlin_o(vp,v,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call intlin_o(up,u,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin_o(vp,v,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !     3. For Temperatures
-      call intlog_o(tp,t,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call intlog_o(tp,t,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !     4. For Moisture qva & qca
-      call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kl)
-      call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
-      call intlog_o(cp,c,ps,sig,ptop_in,jx_in,iy_in,kl,plev,np)
+      call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kz_in)
+      call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlog_o(cp,c,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
       call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in,grdfac,       &
              &      jx_in,iy_in,np,plon_in,plat_in,iproj_in)
 !
@@ -370,22 +218,22 @@
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       if(i_band.eq.1) then
-         call p1p2_band(b3pd,ps4,jx,iy)
+         call p1p2_band(xb3pd,ps4,jx,iy)
       else
-         call p1p2(b3pd,ps4,jx,iy)
+         call p1p2(xb3pd,ps4,jx,iy)
       endif
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
  
-      call readsst(ts4,topogm,idate)
+      call readsst(ts4,idate)
 
 !     F2     DETERMINE P* AND HEIGHT.
 !
 !     F3     INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call intv1(u4,u3,xb3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
+      call intv1(v4,v3,xb3pd,sigma2,sigmar,ptop,jx,iy,kz,np)
 !
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,np)
  
@@ -399,25 +247,27 @@
 !     G      WRITE AN INITIAL FILE FOR THE RegCM
       call writef(idate)
 !
-99001 format ('ATM.',i10)
-!
       end subroutine get_nest
 !
 !
 !
       subroutine headnest
-      use mod_grid
-      use mod_interp, only : imxmn , lcross , ldot
-      use mod_constants , only : degrad
+      use netcdf
       implicit none
 !
 ! Local variables
 !
-      real(4) :: dtb , dtc , dto , dtr , dxsp , ptsp , xsign ,          & 
-            & truelat1 , truelat2
-      integer :: ibltyp , iboudy , icup , ipptls , k
-      integer :: ias
+      real(4) :: xsign
+      integer :: i , k , istatus , idimid , ivarid
       logical :: there
+      real(8) , dimension(:) , allocatable :: xtimes
+      real(4) , dimension(2) :: trlat
+!
+! Setup interp
+!
+      imxmn = 0
+      lcross = 0
+      ldot = 0
 !
       plev(1) = 50.
       plev(2) = 70.
@@ -439,103 +289,143 @@
         sigmar(k) = plev(k)*0.001
       end do
  
-      inquire (file=trim(inpglob)//'/RegCM/OUT_HEAD',exist=there)
+      write (fillin,'(a,i10)') 'ATM.', imonfirst(globidate1)
+      inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+      inquire (file=inpfile,exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpglob)//'/RegCM/OUT_HEAD is not available'
-        write (*,*) 'please copy (or link) the previous output OUT_HEAD'
+        write (*,*) trim(inpfile), ' is not available'
+        write (*,*) 'please copy (or link)' , trim(inpfile)
         stop
       end if
+      istatus = nf90_open(inpfile, nf90_nowrite, ncid)
+      call check_ok(istatus, 'Error opening '//trim(inpfile))
 
-      open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',                   &
-          & form='unformatted',access='direct',recl=24**ibyte)
-      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , iy_in ,&
-                    & jx_in , kl
-      close (49)
-
-      iy_in = iy_in - 2
-      jx_in = jx_in - 2
+      istatus = nf90_inq_dimid(ncid, 'iy', idimid)
+      call check_ok(istatus,'Dimension iy missing')
+      istatus = nf90_inquire_dimension(ncid, idimid, len=iy_in)
+      call check_ok(istatus,'Dimension iy read error')
+      istatus = nf90_inq_dimid(ncid, 'jx', idimid)
+      call check_ok(istatus,'Dimension jx missing')
+      istatus = nf90_inquire_dimension(ncid, idimid, len=jx_in)
+      call check_ok(istatus,'Dimension jx read error')
+      istatus = nf90_inq_dimid(ncid, 'kz', idimid)
+      call check_ok(istatus,'Dimension kz missing')
+      istatus = nf90_inquire_dimension(ncid, idimid, len=kz_in)
+      call check_ok(istatus,'Dimension kz read error')
+      istatus = nf90_inq_dimid(ncid, 'time', idimid)
+      call check_ok(istatus,'Dimension time missing')
+      istatus = nf90_inquire_dimension(ncid, idimid, len=nrec)
+      call check_ok(istatus,'Dimension time read error')
+      istatus = nf90_inq_varid(ncid, 'time', ivarid)
+      call check_ok(istatus,'variable time missing')
+      istatus = nf90_get_att(ncid, ivarid, 'units', timeunits)
+      call check_ok(istatus,'variable time units missing')
+      allocate(itimes(nrec))
+      allocate(xtimes(nrec))
+      istatus = nf90_get_var(ncid, ivarid, xtimes)
+      call check_ok(istatus,'variable time read error')
+      do i = 1 , nrec
+        itimes(i) = timeval2idate(xtimes(i), timeunits)
+      end do
+      deallocate(xtimes)
 
 !     Reserve space for I/O
 
-      allocate(sigf(kl+1), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: sigf'
-      allocate(sig(kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: sig'
-      allocate(b2(jx_in,iy_in,np*4), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: b2'
-      allocate(d2(jx_in,iy_in,np*2), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: d2'
-      allocate(c(jx_in,iy_in,kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: c'
-      allocate(q(jx_in,iy_in,kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: q'
-      allocate(t(jx_in,iy_in,kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: t'
-      allocate(u(jx_in,iy_in,kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: u'
-      allocate(v(jx_in,iy_in,kl), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: v'
-      allocate(ps(jx_in,iy_in), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: ps'
-      allocate(xlat_in(jx_in,iy_in), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: xlat_in'
-      allocate(xlon_in(jx_in,iy_in), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: xlon_in'
-      allocate(ht_in(jx_in,iy_in), stat=ias)
-      if (ias /= 0) stop 'Allocation Error in headnest: ht_in'
+      allocate(sig(kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: sig'
+      allocate(b2(jx_in,iy_in,np*4), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: b2'
+      allocate(d2(jx_in,iy_in,np*2), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: d2'
+      allocate(c(jx_in,iy_in,kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: c'
+      allocate(q(jx_in,iy_in,kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: q'
+      allocate(t(jx_in,iy_in,kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: t'
+      allocate(u(jx_in,iy_in,kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: u'
+      allocate(v(jx_in,iy_in,kz_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: v'
+      allocate(ps(jx_in,iy_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: ps'
+      allocate(xlat_in(jx_in,iy_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: xlat_in'
+      allocate(xlon_in(jx_in,iy_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: xlon_in'
+      allocate(ht_in(jx_in,iy_in), stat=istatus)
+      if (istatus /= 0) stop 'Allocation Error in headnest: ht_in'
 
-      open (49,file=trim(inpglob)//'/RegCM/OUT_HEAD',form='unformatted',&
-          & access='direct',recl=iy_in*jx_in*ibyte)
-      read (49,rec=1) idate0 , ibltyp , icup , ipptls , iboudy , iy_in ,&
-                    & jx_in , kl , (sigf(k),k=kl+1,1,-1) , dxsp ,       &
-                    & ptsp , clat_in , clon_in , plat_in , plon_in ,    &
-                    & iproj_in , dto , dtb , dtr , dtc ,   &
-                    & iotyp_in , truelat1 , truelat2
-      ptop_in = ptsp*10.
-      iy_in = iy_in - 2
-      jx_in = jx_in - 2
+      istatus = nf90_inq_varid(ncid, 'sigma', ivarid) 
+      call check_ok(istatus,'variable sigma error')
+      istatus = nf90_get_var(ncid, ivarid, sig)
+      call check_ok(istatus,'variable sigma read error')
+      istatus = nf90_inq_varid(ncid, 'xlat', ivarid) 
+      call check_ok(istatus,'variable xlat error')
+      istatus = nf90_get_var(ncid, ivarid, xlat_in)
+      call check_ok(istatus,'variable xlat read error')
+      istatus = nf90_inq_varid(ncid, 'xlon', ivarid) 
+      call check_ok(istatus,'variable xlon error')
+      istatus = nf90_get_var(ncid, ivarid, xlon_in)
+      call check_ok(istatus,'variable xlon read error')
+      istatus = nf90_inq_varid(ncid, 'topo', ivarid) 
+      call check_ok(istatus,'variable topo error')
+      istatus = nf90_get_var(ncid, ivarid, ht_in)
+      call check_ok(istatus,'variable topo read error')
+      istatus = nf90_inq_varid(ncid, 'ptop', ivarid) 
+      call check_ok(istatus,'variable ptop error')
+      istatus = nf90_get_var(ncid, ivarid, ptop_in)
+      call check_ok(istatus,'variable ptop read error')
+
+      istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'projection', iproj_in)
+      call check_ok(istatus,'attribure iproj read error')
+      istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'latitude_of_projection_origin', clat_in)
+      call check_ok(istatus,'attribure clat read error')
+      istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'longitude_of_projection_origin', clon_in)
+      call check_ok(istatus,'attribure clat read error')
+
       if ( iproj_in=='LAMCON' ) then
+        istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'standard_parallel', trlat)
+        call check_ok(istatus,'attribure truelat read error')
         if ( clat_in<0. ) then
           xsign = -1.       ! SOUTH HEMESPHERE
         else
           xsign = 1.        ! NORTH HEMESPHERE
         end if
-        if ( abs(truelat1-truelat2)>1.E-1 ) then
-          grdfac = (log10(cos(truelat1*degrad))                         &
-                   & -log10(cos(truelat2*degrad)))                      &
-                   & /(log10(tan((45.0-xsign*truelat1/2.0)*degrad))     &
-                   & -log10(tan((45.0-xsign*truelat2/2.0)*degrad)))
+        if ( abs(trlat(1)-trlat(2))>1.E-1 ) then
+          grdfac = (log10(cos(trlat(1)*degrad))                         &
+                   & -log10(cos(trlat(2)*degrad)))                      &
+                   & /(log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))     &
+                   & -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
         else
-          grdfac = xsign*sin(truelat1*degrad)
+          grdfac = xsign*sin(trlat(1)*degrad)
         end if
       else if ( iproj_in=='POLSTR' ) then
         grdfac = 1.0
       else if ( iproj_in=='NORMER' ) then
         grdfac = 0.0
       else
+        istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'grid_north_pole_latitude', plat_in)
+        call check_ok(istatus,'attribure plat read error')
+        istatus = nf90_get_att(ncid, nf90_global, &
+                   &    'grid_north_pole_longitude', plon_in)
+        call check_ok(istatus,'attribure plon read error')
         grdfac = 0.0
       end if
-      read (49,rec=2) ht_in
-      read (49,rec=6) xlat_in
-      read (49,rec=7) xlon_in
-      close (49)
  
-      do k = 1 , kl
-        sig(k) = 0.5*(sigf(k)+sigf(k+1))
-      end do
- 
-      imxmn = 0
-      lcross = 0
-      ldot = 0
-
       if (allocated(b3)) deallocate(b3)
       if (allocated(d3)) deallocate(d3)
-      if (allocated(b3pd)) deallocate(b3pd)
+      if (allocated(xb3pd)) deallocate(xb3pd)
       if (allocated(z1)) deallocate(z1)
       allocate(b3(iy_in,jx_in,np*4))
       allocate(d3(iy_in,jx_in,np*2))
-      allocate(b3pd(iy_in,jx_in))
-      allocate(z1(iy_in,jx_in,kl))
+      allocate(xb3pd(iy_in,jx_in))
+      allocate(z1(iy_in,jx_in,kz_in))
 
 !     Set up pointers
  

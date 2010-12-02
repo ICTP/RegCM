@@ -310,7 +310,7 @@
         endif
  
         call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
-        call readsst(ts4,topogm,idate)
+        call readsst(ts4,idate)
 
         call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
         call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
@@ -929,7 +929,7 @@
       endif
  
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
-      call readsst(ts4,topogm,idate)
+      call readsst(ts4,idate)
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
       call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)

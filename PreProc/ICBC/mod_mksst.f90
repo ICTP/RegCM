@@ -33,12 +33,11 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine readsst(tsccm, topogm, idate)
+      subroutine readsst(tsccm, idate)
         use netcdf
         use mod_dynparam        
         use mod_date
         implicit none
-        real(4) , dimension(jx,iy) , intent(in) :: topogm
         real(4) , dimension(jx,iy) , intent(inout) :: tsccm
         integer , intent(in) :: idate
         real(8) , dimension(:) , allocatable :: xtime
