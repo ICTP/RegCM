@@ -631,7 +631,7 @@
         sfsta%rainc  = 0.0
         sfsta%rainnc = 0.0
  
-        if ( icup.eq.4 .or. icup.eq.99 ) then
+        if ( icup==4 .or. icup==99 .or. icup==98) then
           cbmf2d = 0.0
         end if
 !
@@ -978,7 +978,7 @@
             end do
           end do
         end if
-        if ( icup.eq.4 .or. icup.eq.99 ) then
+        if ( icup==4 .or. icup==99 .or. icup==98 ) then
           call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,             &
                          & cbmf2d,   iy*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)

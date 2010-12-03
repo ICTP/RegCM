@@ -796,7 +796,7 @@
               end do
             end if
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup==4 .or. icup==99 .or. icup==98 ) then
             call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
                           & cbmf2d_io,iy*jxp,mpi_real8,            &
                           & 0,mpi_comm_world,ierr)
@@ -1501,7 +1501,7 @@
               end do
             end if
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup==4 .or. icup==99 .or. icup==98 ) then
             call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
                           & cbmf2d_io,iy*jxp,mpi_real8,            &
                           & 0,mpi_comm_world,ierr)

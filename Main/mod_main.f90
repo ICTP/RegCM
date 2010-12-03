@@ -266,10 +266,10 @@
         call allocate_surfpstate(sps2,lmpi)
         call allocate_surftstate(sts2,lmpi)
         call allocate_surfstate(sfsta,lmpi)
-        if (icup == 2 .or. icup == 99) then
+        if (icup == 2 .or. icup == 99 .or. icup == 98) then
           call allocate_grellwinds
         end if
-        if (icup == 99) then
+        if (icup == 99 .or. icup == 98) then
           call allocate_cumcontrol(cumcon,lmpi)
         end if
 

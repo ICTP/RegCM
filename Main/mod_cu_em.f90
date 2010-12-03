@@ -74,7 +74,7 @@
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
       iconj = 0
       do i = 2 , iym2
-        if ( icup==99 ) then
+        if ( icup==99 .or. icup==98 ) then
           if (cumcon%cuscheme(i,j)/=4 ) cycle
         end if
         do k = 1 , kz

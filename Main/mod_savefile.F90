@@ -114,7 +114,7 @@
           if ( icup.eq.3 ) then
             read (iutrst) tbase_io , cldefi_io
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
             read (iutrst) cbmf2d_io
           end if
           read (iutrst) hfx_io , qfx_io , snowc_io , uvdrag_io
@@ -202,7 +202,7 @@
           if ( icup.eq.3 ) then
             read (iutrst) tbase , cldefi
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
             read (iutrst) cbmf2d
           end if
           read (iutrst) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
@@ -337,7 +337,7 @@
           if ( icup.eq.3 ) then
             write (iutsav) tbase_io , cldefi_io
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
             write (iutsav) cbmf2d_io
           end if
           write (iutsav) hfx_io , qfx_io , snowc_io , uvdrag_io
@@ -425,7 +425,7 @@
           if ( icup.eq.3 ) then
             write (iutsav) tbase , cldefi
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
             write (iutsav) cbmf2d
           end if
           write (iutsav) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag

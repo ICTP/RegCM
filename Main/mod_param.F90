@@ -202,6 +202,7 @@
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
 !     = 99; variable: grell over land and emanuel over ocean
+!     = 98; variable: emanuel over land and grell over ocean
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
 !     = 1 ; Arakawa & Schubert (1974)
@@ -402,11 +403,11 @@
         read (ipunit, subexparam)
         print * , 'param: SUBEXPARAM namelist READ IN'
       end if
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         read (ipunit, grellparam)
         print * , 'param: GRELLPARAM namelist READ IN'
       end if
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
       end if
@@ -496,7 +497,7 @@
         call mpi_bcast(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         call mpi_bcast(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -513,7 +514,7 @@
         call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -1219,6 +1220,16 @@
           cumcon%cuscheme = 2
         end where
       end if
+      if (icup .eq. 98) then
+        write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
+             'over land and Grell over ocean.'
+        call say
+        where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
+          cumcon%cuscheme = 2
+        elsewhere
+          cumcon%cuscheme = 4
+        end where
+      end if
 
       if ( icup.eq.1 ) then
         write (aline, *) '*********************************'
@@ -1228,7 +1239,7 @@
         write (aline, *) '*********************************'
         call say
       end if
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         kbmax = kz
         do k = 1 , kz - 1
           if ( a(k).le.skbmax ) kbmax = kz - k
@@ -1313,7 +1324,7 @@
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
         call allocate_mod_cu_bm(lmpi)
       end if
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
         minorig = kz
