@@ -493,7 +493,7 @@
           if (ltmp) then
             if (isavlast > 0) then
               write (fbname, '(a,i10)') 'TMPSAV.', isavlast
-              ffout = trim(dirglob)//pthsep//trim(domname)// &
+              ffout = trim(dirout)//pthsep//trim(domname)// &
                       '_'//trim(fbname)
               call unlink(ffout)
             end if
