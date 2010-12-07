@@ -54,7 +54,11 @@
 
       private
 
+      integer :: iolak
+
       public :: output
+
+      data iolak/0/
 
       contains
 
@@ -193,8 +197,8 @@
            & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 
-           if ( lakemod .eq. 1 .and. iflak) then
-            call lakegather
+          if ( lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
+           call lakegather
           end if
 
           do j = 1 , jendx
@@ -222,6 +226,7 @@
             end do
             call outsrf
           end if
+          iolak = iolak + 1
 
           do i = 1 , iym2
             do j = 1 , jxp
@@ -2143,7 +2148,7 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
-      if (lakemod .eq. 1 .and. iflak) then
+      if (lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
 #ifdef MPP1
         call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                           hsnow2d_io,tlak3d_io,idatex)

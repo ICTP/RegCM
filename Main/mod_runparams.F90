@@ -37,7 +37,7 @@
       integer :: ibltyp , iboudy , ichem , icnt , icup , idirect ,      &
                & iemiss , igcc , iocnflx , ipgf , ipptls , kbats ,      &
                & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
-               & idcsst , iseaice , idesseas
+               & idcsst , iseaice , idesseas , klak
 
       logical :: ifrest , rfstrt
  

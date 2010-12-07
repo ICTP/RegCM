@@ -121,8 +121,8 @@
  
 !chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
-      & radisp , ifbat , ifsub , iflak , batfrq , ifchem , chemfrq ,    &
-      & dirout
+      & radisp , ifbat , ifsub , iflak , batfrq , lakfrq , ifchem ,     &
+      & chemfrq , dirout
 !chem2
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
@@ -274,6 +274,7 @@
       ifsub = .true.
       iflak = .true.
       batfrq = 1.0      ! time interval for disposing bats output (hrs)
+      lakfrq = -1.0     ! time interval for disposing lake output (hrs)
       dirout = './output' 
 !chem2
       ifchem = .false.
@@ -397,6 +398,7 @@
       print * , 'param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
+      if ( lakfrq < 0.0 ) lakfrq = batfrq
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM namelist READ IN'
       if ( ipptls.eq.1 ) then
@@ -455,6 +457,7 @@
       call mpi_bcast(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(lakfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(iflak,1,mpi_logical,0,mpi_comm_world,ierr)
@@ -606,6 +609,20 @@
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
       end if
+      if ( lakemod.eq.1 ) then
+        if ( lakfrq .lt. batfrq .or. &
+             mod(anint(lakfrq),anint(batfrq)).ne.0 ) then
+          write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
+          call say
+          write (aline,*) 'Lake frequency needs to be an integer ',&
+                          ' multiple of batfrq.'
+          call say
+          if (myid == 0) then
+            call fatal(__FILE__,__LINE__,                               &
+                    &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+          end if
+        end if
+      end if
       if ( mod(anint(abemh*3600.),anint(dt)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
@@ -649,6 +666,7 @@
       ifrabe = nint(3600.*abemh/dt)
                                    !abemh is time interval abs./emis. calc.
       kbats = nint(3600.*batfrq)
+      klak = lakfrq/batfrq
       nbatst = nint(abatm/dt)
       dt2 = 2.*dt
 !chem2
@@ -781,6 +799,11 @@
       write (aline,*) 'Frequency in hours to write  SRF: batfrq = ' , &
                       batfrq  
       call say
+      if ( lakemod.eq.1 ) then
+        write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
+                      lakfrq  
+        call say
+      end if
       write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
                       ifchem 
       call say 
@@ -1545,8 +1568,8 @@
 99009 format (/'   sponge boundary conditions are used.')
 99010 format ('0 k',4x,'sigma(k)',3x,'  a(k)',5x,'dsigma(k)',4x,        &
              &'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
-99011 format (1x,i2,5x,f6.4,5x,f6.4,5x,f6.4,5x,f8.4,5x,f8.4,5x,f8.4)
-99012 format (1x,i2,5x,f6.4)
+99011 format (1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)
+99012 format (1x,i2,5x,f7.4)
 99014 format (' time step = ',f7.2,' seconds')
 99015 format (' dx = ',f7.0,' meters')
 99016 format (' grid points (x,y) = (',i4,',',i4,')')

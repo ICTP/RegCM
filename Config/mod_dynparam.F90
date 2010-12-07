@@ -281,6 +281,7 @@
       logical :: ifbat
       logical :: ifsub
       logical :: iflak
+      real(8) :: lakfrq
       real(8) :: batfrq
 
       logical :: ifchem
@@ -442,7 +443,7 @@
 
         namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
         &     ifrad , radisp , ifbat , ifsub ,  iflak , batfrq ,        &
-              &     ifchem , chemfrq
+        &     lakfrq , ifchem , chemfrq
 
         read(ipunit, outparam, err=100)
         return
