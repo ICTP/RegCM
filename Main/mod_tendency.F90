@@ -1450,6 +1450,7 @@
 !....icup = 3 : betts-miller (1986)
 !....icup = 4 : emanuel (1991)
 !....icup = 99: grell over land, emanuel over ocean
+!....icup = 98: emanuel over land, grell over ocean
 !
           if ( icup.ne.1 ) then
             call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
@@ -1459,7 +1460,7 @@
           if ( icup.eq.1 ) then
             call cupara(j)
           end if
-          if ( icup.eq.2 .or. icup.eq.99 ) then
+          if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
 
 !! the following part moved from subroutine cuparan
             do k = 1 , kz
@@ -1489,7 +1490,7 @@
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
             call bmpara(aten%t(1,1,j),aten%qv(1,1,j),j)
           end if
-          if ( icup.eq.4 .or. icup.eq.99 ) then
+          if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
             call cupemandrv(j)
           end if
 

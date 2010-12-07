@@ -21,6 +21,8 @@
 
       use mod_dynparam
       use m_realkinds
+      use m_die
+      use m_stdio
 
       private
 
@@ -66,7 +68,7 @@
 !
       call cdc6hour(idate,globidate1)
 
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -211,40 +213,24 @@
           end if
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , trim(pathaddname) , ' is not available'
-            stop
+            call die ('cdc6hour', &
+                      trim(pathaddname)//' is not available',1)
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Error opening ',trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error opening '//trim(pathaddname))
           istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec), &
                                    ivar7(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' error in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        ' error in file'//trim(pathaddname))
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                 'scale_factor',xscl(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' scale in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        ':scale_factor in file'//trim(pathaddname))
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                  'add_offset',xoff(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' offset in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
-          write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        ':add_offset in file'//trim(pathaddname))
+          write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , &
                     & xoff(kkrec)
         end if
  
@@ -283,11 +269,8 @@
         if ( nlev>0 ) then
           icount(3) = nlev
           istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-          if (istatus /= nf90_noerr) then
-            print *, 'Reading variable ',varname(kkrec), &
-                     ' error in file ',trim(pathaddname)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        'read error in file'//trim(pathaddname))
           xscale = xscl(kkrec)
           xadd = xoff(kkrec)
           do ilev = 1 , nlev
@@ -339,11 +322,8 @@
         else if ( nlev==0 ) then
           icount(3) = 1
           istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-          if (istatus /= nf90_noerr) then
-            print *, 'Reading variable ',varname(kkrec), &
-                     ' error in file ',trim(pathaddname)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        'read error in file'//trim(pathaddname))
           if ( kkrec==7 ) then
             do j = 1 , jlat
               do i = 1 , ilon
@@ -396,7 +376,7 @@
 !
       call cdc6hour2(idate,globidate1)
 
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -536,40 +516,24 @@
           pathaddname = trim(inpglob)//'/NNRP2/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , pathaddname , ' is not available'
-            stop
+            call die('cdc6hour2',trim(pathaddname)// &
+                     ' is not available',1)
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Error opening ',trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error opening '//trim(pathaddname))
           istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec), &
                                    ivar7(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' error in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        'error in file'//trim(pathaddname))
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                  'scale_factor',xscl(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' scale in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        ':scale_factor in file'//trim(pathaddname))
           istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                                  'add_offset',xoff(kkrec))
-          if (istatus /= nf90_noerr) then
-            print *, 'Variable ',varname(kkrec),' offset in file', &
-                     trim(pathaddname)
-            print *, nf90_strerror(istatus)
-            stop
-          end if
-          write (*,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,        &
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        ':add_offset in file'//trim(pathaddname))
+          write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) ,  &
                     & xoff(kkrec)
         end if
  
@@ -608,11 +572,8 @@
         if ( nlev>0 ) then
           icount(3) = nlev + 1
           istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-          if (istatus /= nf90_noerr) then
-            print *, 'Reading variable ',varname(kkrec), &
-                     ' error in file ',trim(pathaddname)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        'read error in file'//trim(pathaddname))
           xscale = xscl(kkrec)
           xadd = xoff(kkrec)
           do ilev = 1 , nlev
@@ -740,11 +701,8 @@
         else if ( nlev==0 ) then
           icount(3) = nlev
           istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-          if (istatus /= nf90_noerr) then
-            print *, 'Reading variable ',varname(kkrec), &
-                     ' error in file ',trim(pathaddname)
-            stop
-          end if
+          call check_ok(istatus,'Variable '//varname(kkrec)// &
+                        'read error in file'//trim(pathaddname))
           if ( kkrec==7 ) then
             do j = 1 , jjj
               jj = j0 + j
@@ -835,5 +793,15 @@
       rhvar => b2(:,:,2*klev+1:3*klev)
 
       end subroutine headernc
-
+!
+      subroutine check_ok(ierr,message)
+        use netcdf
+        implicit none
+        integer , intent(in) :: ierr
+        character(*) :: message
+        if (ierr /= nf90_noerr) then
+          call die('mod_ncep',message,1,nf90_strerror(ierr),ierr)
+        end if
+      end subroutine check_ok
+!
       end module mod_ncep

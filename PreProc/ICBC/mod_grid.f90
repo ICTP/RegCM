@@ -20,6 +20,8 @@
       module mod_grid
 
       use m_realkinds
+      use m_die
+      use m_stdio
 
       real(sp) , allocatable , dimension(:,:) :: coriol , dlat , dlon , &
            & msfx , snowcv , topogm , xlandu , xlat , xlon
@@ -100,173 +102,85 @@
         fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
 
         istatus = nf90_open(fname, nf90_nowrite, incin)
-        if ( istatus /= nf90_noerr) then
-          write (6,*) 'Error Opening Domain file ', trim(fname)
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error open domain file '//trim(fname))
 
         istatus = nf90_inq_dimid(incin, "iy", idimid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Dimension iy missing'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching iy dimension')
         istatus = nf90_inquire_dimension(incin, idimid, len=iy_in)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error dimension iy'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading iy dimension')
         istatus = nf90_inq_dimid(incin, "jx", idimid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Dimension jx missing'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching jx dimension')
         istatus = nf90_inquire_dimension(incin, idimid, len=jx_in)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error dimension jx'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading jx dimension')
         istatus = nf90_inq_dimid(incin, "kz", idimid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Dimension kz missing'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching kz dimension')
         istatus = nf90_inquire_dimension(incin, idimid, len=kz_in)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error dimension kz'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading kz dimension')
 
         if ( iy_in/=iy .or. jx_in/=jx .or. kz_in/=kz+1 ) then
-          print * , 'IMPROPER DIMENSION SPECIFICATION'
-          print * , '  namelist  : ' , iy , jx , kz
-          print * , '  DOMAIN    : ' , iy_in , jx_in , kz_in
-          stop 'Dimension mismatch'
+          write(stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
+          write(stderr,*) '  namelist  : ' , iy , jx , kz
+          write(stderr,*) '  DOMAIN    : ' , iy_in , jx_in , kz_in
+          call die('read_domain','Dimension mismatch',1)
         end if
 
         istatus = nf90_get_att(incin, NF90_GLOBAL,"grid_factor", &
                        &       grdfac)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading grid_factor'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading grid_factor attribute')
 
         istatus = nf90_inq_varid(incin, "topo", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error topo variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching topo variable')
         istatus = nf90_get_var(incin, ivarid, topogm)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading topo variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading topo variable')
         istatus = nf90_inq_varid(incin, "landuse", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error landuse variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching landuse variable')
         istatus = nf90_get_var(incin, ivarid, xlandu)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading landuse variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading landuse variable')
         istatus = nf90_inq_varid(incin, "xlat", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error xlat variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching xlat variable')
         istatus = nf90_get_var(incin, ivarid, xlat)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading xlat variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading xlat variable')
         istatus = nf90_inq_varid(incin, "xlon", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error xlon variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching xlon variable')
         istatus = nf90_get_var(incin, ivarid, xlon)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading xlon variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading xlon variable')
         istatus = nf90_inq_varid(incin, "dlat", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error dlat variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searchin dlat variable')
         istatus = nf90_get_var(incin, ivarid, dlat)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading dlat variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading dlat variable')
         istatus = nf90_inq_varid(incin, "dlon", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error dlon variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching dlon variable')
         istatus = nf90_get_var(incin, ivarid, dlon)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading dlon variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading dlon variable')
         istatus = nf90_inq_varid(incin, "xmap", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error xmap variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching xmap variable')
         istatus = nf90_get_var(incin, ivarid, msfx)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading xmap variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading xmap variable')
         istatus = nf90_inq_varid(incin, "sigma", ivarid)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error sigma variable undefined'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error searching sigma variable')
         istatus = nf90_get_var(incin, ivarid, sigmaf)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error reading sigma variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok('Error reading sigma variable')
 
         istatus = nf90_close(incin)
-        if (istatus /= nf90_noerr) then
-          write (6,*) 'Error closing Domain file ', trim(fname)
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
-
+        call check_ok('Error closing Domain file '//trim(fname))
+!
         do k = 1 , kz
           sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
           dsigma(k) = sigmaf(k+1) - sigmaf(k)
         end do
 
+      contains
+!
+        subroutine check_ok(message)
+          use netcdf
+          implicit none
+          character(*) :: message
+          if (istatus /= nf90_noerr) then
+            call die('read_domain',message,1, &
+                     nf90_strerror(istatus),istatus)
+          end if
+        end subroutine check_ok
+!
       end subroutine read_domain
-
+!
       end module mod_grid

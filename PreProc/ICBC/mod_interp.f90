@@ -20,6 +20,9 @@
       module mod_interp
  
       use m_realkinds
+      use m_die
+      use m_stdio
+
       use mod_constants , only : degrad
 
       real(sp) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
@@ -249,7 +252,8 @@
             i1 = nlon
             i2 = 1
           end if
-          if ( i1==1000 ) stop 'Could not find the right longitude'
+          if ( i1==1000 ) call die('cressmdt', &
+                   'Could not find the right longitude',1)
           j1 = 1000
           do jj = 1 , nlat - 1
             if ( alat(i,j)>=hlat(jj) .and. alat(i,j)<hlat(jj+1) ) then
@@ -271,7 +275,8 @@
               j2 = nlat
             end if
           end do
-          if ( j1==1000 ) stop 'Could not find the right latitude'
+          if ( j1==1000 ) call die('cressmdt', &
+                   'Could not find the right latitude',1)
           if ( j1>0 .and. j1<nlat ) then
             do l = 1 , llev
               b3(i,j,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+(b2(i1,j2,&
@@ -347,10 +352,10 @@
         alatmn = minval(alat)
         dlatmax = (glatmx-glatmn)/nlat * 2.
         dlonmax = (glonmx-glonmn)/nlon * 2.
-        write (*,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
-        write (*,*) glonmn , alonmn , alonmx , glonmx
-        write (*,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
-        write (*,*) glatmn , alatmn , alatmx , glatmx
+        write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
+        write (stdout,*) glonmn , alonmn , alonmx , glonmx
+        write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
+        write (stdout,*) glatmn , alatmn , alatmx , glatmx
         imxmn = 1
       end if
 
@@ -368,8 +373,8 @@
         if (.not. allocated(dc1xc)) allocate (dc1xc(jx,iy))
         if (.not. allocated(dc1xd)) allocate (dc1xd(jx,iy))
         if (.not. allocated(dc1xt)) allocate (dc1xt(jx,iy))
-        write ( 6,* ) 'FIRST TIME in CRESSMCR'
-        write ( 6,* ) 'Calculating weights.... (will take long time)'
+        write (stdout,*) 'FIRST TIME in CRESSMCR'
+        write (stdout,*) 'Calculating weights.... (will take long time)'
         do j = 1 , iy
           do i = 1 , jx
  
@@ -446,13 +451,13 @@
             if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
                  mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
             then
-              write ( 6, * ) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write ( 6, * ) mur , nur , mdr , ndr
-              write ( 6, * ) mul , nul , mdl , ndl
-              write ( 6, * ) i , j
-              write ( 6, * ) alon(i,j)
-              write ( 6, * ) alat(i,j)
-              stop
+              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+              write (stderr,*) mur , nur , mdr , ndr
+              write (stderr,*) mul , nul , mdl , ndl
+              write (stderr,*) i , j
+              write (stderr,*) alon(i,j)
+              write (stderr,*) alat(i,j)
+              call die('cressmcr')
             end if
 
             dist = amin1(dista,distb,distc,distd)
@@ -493,7 +498,7 @@
             end do
           end do
         end do
-        write ( 6,* ) 'Done.'
+        write (stdout,*) 'Done.'
         lcross = 1
       else
         do j = 1 , iy
@@ -581,10 +586,10 @@
         alatmn = minval(alat)
         dlatmax = (glatmx-glatmn)/nlat * 2.
         dlonmax = (glonmx-glonmn)/nlon * 2.
-        write (*,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
-        write (*,*) glonmn , alonmn , alonmx , glonmx
-        write (*,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
-        write (*,*) glatmn , alatmn , alatmx , glatmx
+        write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
+        write (stdout,*) glonmn , alonmn , alonmx , glonmx
+        write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
+        write (stdout,*) glatmn , alatmn , alatmx , glatmx
         imxmn = 1
       end if
 
@@ -602,8 +607,8 @@
         if (.not. allocated(dd1xc)) allocate (dd1xc(jx,iy))
         if (.not. allocated(dd1xd)) allocate (dd1xd(jx,iy))
         if (.not. allocated(dd1xt)) allocate (dd1xt(jx,iy))
-        write ( 6,* ) 'FIRST TIME in CRESSMDT'
-        write ( 6,* ) 'Calculating weights.... (will take long time)'
+        write (stdout,*) 'FIRST TIME in CRESSMDT'
+        write (stdout,*) 'Calculating weights.... (will take long time)'
         do j = 1 , iy
           do i = 1 , jx
  
@@ -680,13 +685,13 @@
             if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
                  mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 )    &
             then
-              write ( 6, * ) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write ( 6, * ) mur , nur , mdr , ndr
-              write ( 6, * ) mul , nul , mdl , ndl
-              write ( 6, * ) i , j
-              write ( 6, * ) alon(i,j)
-              write ( 6, * ) alat(i,j)
-              stop
+              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+              write (stderr,*) mur , nur , mdr , ndr
+              write (stderr,*) mul , nul , mdl , ndl
+              write (stderr,*) i , j
+              write (stderr,*) alon(i,j)
+              write (stderr,*) alat(i,j)
+              call die('cressmdt')
             end if
 
             dist = amin1(dista,distb,distc,distd)
@@ -727,7 +732,7 @@
           end do
         end do
         ldot = 1
-        write ( 6,* ) 'Done.'
+        write (stdout,*) 'Done.'
       else
         do j = 1 , iy
           do i = 1 , jx

@@ -21,6 +21,8 @@
 
       use mod_constants
       use m_realkinds
+      use m_die
+      use m_stdio
 
       private
 
@@ -57,52 +59,31 @@
         if (.not. lopen) then
           sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
           istatus = nf90_open(sstfile, nf90_nowrite, ncst)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error Opening SST file ', trim(sstfile)
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error Opening SST file'// &
+                        trim(sstfile))
           istatus = nf90_inq_dimid(ncst, 'time', idimid)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error time dimension not present'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error time dimension SST file'// &
+                        trim(sstfile))
           istatus = nf90_inquire_dimension(ncst, idimid, len=ntime)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error time dimension not present'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error time dimension SST file'// &
+                        trim(sstfile))
           istatus = nf90_inq_varid(ncst, "time", itvar)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable time'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error time variable SST file'// &
+                        trim(sstfile))
           istatus = nf90_inq_varid(ncst, "landuse", ivar(1))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable landuse'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error landuse variable SST file'// &
+                        trim(sstfile))
           istatus = nf90_inq_varid(ncst, "sst", ivar(2))
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable landuse'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error sst variable SST file'// &
+                        trim(sstfile))
           lhasice = .true.
           istatus = nf90_inq_varid(ncst, "ice", ivar(3))
           if ( istatus /= nf90_noerr) then
             lhasice = .false.
           end if
           istatus = nf90_get_att(ncst, itvar, "units", timeunits)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error variable time attribute units'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error time var units SST file'// &
+                        trim(sstfile))
           allocate(xlandu(jx,iy))
           allocate(work1(jx,iy))
           allocate(work2(jx,iy))
@@ -113,11 +94,8 @@
           allocate(xtime(ntime))
           allocate(itime(ntime))
           istatus = nf90_get_var(ncst, itvar, xtime)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading time variable'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error time var read SST file'// &
+                        trim(sstfile))
           do i = 1 , ntime
             itime(i) = timeval2idate(xtime(i), timeunits)
           end do
@@ -126,9 +104,9 @@
         end if
 
         if (idate > itime(ntime) .or. idate < itime(1)) then
-          print *, 'Cannot find ', idate, ' in SST file'
-          print *, 'Range is : ', itime(1) , '-', itime(ntime)
-          stop
+          write (stderr,*) 'Cannot find ', idate, ' in SST file'
+          write (stderr,*) 'Range is : ', itime(1) , '-', itime(ntime)
+          call die('readsst')
         end if
 
         irec = 0
@@ -146,24 +124,15 @@
         icount(2) = iy
         icount(1) = jx
         istatus = nf90_get_var(ncst, ivar(1), xlandu, istart, icount)
-        if ( istatus /= nf90_noerr) then
-          write (6,*) 'Error reading landuse variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok(istatus,'Error landuse var read SST file'// &
+                      trim(sstfile))
         istatus = nf90_get_var(ncst, ivar(2), work1, istart, icount)
-        if ( istatus /= nf90_noerr) then
-          write (6,*) 'Error reading sst variable'
-          write (6,*) nf90_strerror(istatus)
-          stop
-        end if
+        call check_ok(istatus,'Error sst var read SST file'// &
+                      trim(sstfile))
         if (lhasice) then
           istatus = nf90_get_var(ncst, ivar(3), work3, istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading ice variable'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error ice var read SST file'// &
+                        trim(sstfile))
         end if
         if (idate == itime(irec)) then
           do i = 1 , jx
@@ -187,18 +156,12 @@
           icount(2) = iy
           icount(1) = jx
           istatus = nf90_get_var(ncst, ivar(2), work2, istart, icount)
-          if ( istatus /= nf90_noerr) then
-            write (6,*) 'Error reading sst variable'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call check_ok(istatus,'Error sst var read SST file'// &
+                        trim(sstfile))
           if (lhasice) then
             istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
-            if ( istatus /= nf90_noerr) then
-              write (6,*) 'Error reading ice variable'
-              write (6,*) nf90_strerror(istatus)
-              stop
-            end if
+            call check_ok(istatus,'Error ice var read SST file'// &
+                          trim(sstfile))
           end if
           ks1 = idatediff(itime(irec),idate)
           ks2 = idatediff(itime(irec),itime(irec-1))
@@ -233,5 +196,15 @@
         if (allocated(work4)) deallocate(work4)
         if (allocated(xlandu)) deallocate(xlandu)
       end subroutine closesst
-
+!
+      subroutine check_ok(ierr,message)
+        use netcdf
+        implicit none
+        integer , intent(in) :: ierr
+        character(*) :: message
+        if (ierr /= nf90_noerr) then
+          call die('mod_mksst',message,1,nf90_strerror(ierr),ierr)
+        end if
+      end subroutine check_ok
+!
       end module mod_mksst

@@ -164,8 +164,10 @@
  radisp  =     6.,     ! Frequency in hours to write to RAD
  ifbat   = .true. ,    ! Output SRF ?
  ifsub   = .true. ,    ! Output SUB ?
+ batfrq  =     3.,     ! Frequency in hours to write to SRF and SUB (and CLM)
  iflak   = .true.,     ! Output LAK ?
- batfrq  =     3.,     ! Frequency in hours to write to SRF (and CLM)
+ lakfrq  =     6.,     ! Frequency in hours to write to LAK if lakemod is 1
+                       ! It must be an integer multiple of batfrq
  ifchem  = .true.,     ! Output CHE ?
  chemfrq =     6.,     ! Frequency in hours to write to CHE
  dirout  = './output', ! Path where all output will be placed
@@ -190,6 +192,7 @@
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !  99 => Use Grell over land and Emanuel over ocean
+                        !  98 => Use Emanuel over land and Grell over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)

@@ -20,6 +20,8 @@
       module mod_gfs11
       use mod_dynparam
       use m_realkinds
+      use m_die
+      use m_stdio
 
       private
 
@@ -85,13 +87,9 @@
       nday = idate/100 - (idate/10000)*100
       nhour = mod(idate,100)
       if ( idate<2000010106 ) then
-        write (*,*) 'GFS 1x1 datasets is just avaiable from 2000010106'
-        stop
+        write (stderr,*) 'GFS 1x1 datasets is avaiable from 2000010106'
+        call die('getgfs11')
       end if
-!     IF(IDATE.GT.2008060100) THEN
-!     WRITE(*,*) 'GFS 1x1 datasets is just avaiable to 2008060100'
-!     STOP
-!     ENDIF
       numx = nint((lon1-lon0)/1.0) + 1
       numy = nint((lat1-lat0)/1.0) + 1
       if ( numx/=360 .or. numy/=181 ) then
@@ -131,10 +129,11 @@
       end do
       inquire (file=trim(inpglob)//'/GFS11/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpglob)//'/GFS11/'//finm , ' is not available'
-        write (*,*) 'please copy GFS11 datasets under ',                &
-              &     trim(inpglob)//'/GFS11/'
-        stop
+        write (stderr,*) trim(inpglob)//'/GFS11/'//finm , &
+                        ' is not available'
+        write (stderr,*) 'please copy GFS11 datasets under ',  &
+                        trim(inpglob)//'/GFS11/'
+        call die('getgfs11')
       end if
       open (63,file=trim(inpglob)//'/GFS11/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
@@ -262,7 +261,7 @@
       end do
       close (63)
  
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !

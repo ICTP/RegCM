@@ -21,6 +21,7 @@
 
       use m_realkinds
       use m_die
+      use m_stdio
       use mod_dynparam
       use mod_constants
       use mod_date
@@ -89,8 +90,7 @@
       integer , dimension(4) :: istart , icount
 !
       if (.not. allocated(b2)) then
-        write (*,*) 'Called get_nest before headnest !'
-        stop
+        call die('get_nest','Called get_nest before headnest !',1)
       end if
 !
       if ( idate > itimes(nrec) ) then
@@ -125,8 +125,8 @@
         end if
       end do
       if (irec < 0) then
-        write (6,*) 'Error : time ', idate, ' not in file'
-        stop
+        write (stderr,*) 'Error : time ', idate, ' not in file'
+        call die('get_nest')
       end if
 
       istart(4) = irec
@@ -164,7 +164,7 @@
       istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
       call check_ok(istatus,'variable ps read error')
 
-      write (*,*) 'READ IN fields at DATE:' , idate , ' from ' , fillin
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 
 !     to calculate Heights on sigma surfaces.
       call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in)
@@ -285,9 +285,9 @@
       inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
       inquire (file=inpfile,exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpfile), ' is not available'
-        write (*,*) 'please copy (or link)' , trim(inpfile)
-        stop
+        write (stderr,*) trim(inpfile), ' is not available'
+        write (stderr,*) 'Please copy (or link)' , trim(inpfile)
+        call die('headnest')
       end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
       call check_ok(istatus, 'Error opening '//trim(inpfile))
@@ -324,33 +324,33 @@
 !     Reserve space for I/O
 
       allocate(sig(kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: sig'
+      if (istatus/=0) call die('Allocation Error in headnest: sig')
       allocate(b2(jx_in,iy_in,np*3), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: b2'
+      if (istatus/=0) call die('Allocation Error in headnest: b2')
       allocate(d2(jx_in,iy_in,np*2), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: d2'
+      if (istatus/=0) call die('Allocation Error in headnest: d2')
       allocate(q(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: q'
+      if (istatus/=0) call die('Allocation Error in headnest: q')
       allocate(t(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: t'
+      if (istatus/=0) call die('Allocation Error in headnest: t')
       allocate(u(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: u'
+      if (istatus/=0) call die('Allocation Error in headnest: u')
       allocate(v(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: v'
+      if (istatus/=0) call die('Allocation Error in headnest: v')
       allocate(ps(jx_in,iy_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: ps'
+      if (istatus/=0) call die('Allocation Error in headnest: ps')
       allocate(xlat_in(jx_in,iy_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: xlat_in'
+      if (istatus/=0) call die('Allocation Error in headnest: xlat_in')
       allocate(xlon_in(jx_in,iy_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: xlon_in'
+      if (istatus/=0) call die('Allocation Error in headnest: xlon_in')
       allocate(ht_in(jx_in,iy_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: ht_in'
+      if (istatus/=0) call die('Allocation Error in headnest: ht_in')
       allocate(z1(iy_in,jx_in,kz_in), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: z1'
+      if (istatus/=0) call die('Allocation Error in headnest: z1')
       allocate(b3(iy,jx,np*3), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: b3'
+      if (istatus/=0) call die('Allocation Error in headnest: b3')
       allocate(d3(iy,jx,np*2), stat=istatus)
-      if (istatus /= 0) stop 'Allocation Error in headnest: d3'
+      if (istatus/=0) call die('Allocation Error in headnest: d3')
 
 
       istatus = nf90_inq_varid(ncinp, 'sigma', ivarid) 

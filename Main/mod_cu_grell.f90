@@ -246,7 +246,7 @@ contains
        !       xqkb(i)=0.
        aa1(i) = 0.
        aa0(i) = 0.
-       if ( icup==99) then
+       if ( icup==99 .or. icup==98 ) then
          if (cumcon%cuscheme(i,jslc)/=2 ) then
            aa0(i) = -1
          end if

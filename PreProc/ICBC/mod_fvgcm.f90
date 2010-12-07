@@ -63,11 +63,7 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
-!
-! Local variables
 !
       character(3) , dimension(12) :: chmon
       character(20) :: finm , fips
@@ -95,14 +91,13 @@
       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
-!
       if ( idate==globidate1 ) then
         numx = nint((lon1-lon0)/1.25) + 1
         numy = nint(lat1-lat0) + 1
         inquire (file=trim(inpglob)//'/FVGCM/HT_SRF',exist=there)
         if ( .not.there ) then
-          write (*,*) trim(inpglob)//'/FVGCM/HT_SRF is not available'
-          stop
+          write (stderr,*) trim(inpglob)//'/FVGCM/HT_SRF is not present'
+          call die('getfvgcm')
         end if
         open (61,file=trim(inpglob)//'/FVGCM/HT_SRF',form='unformatted',&
             & recl=numx*numy*ibyte,access='direct')
@@ -137,8 +132,8 @@
           fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070)&
                & //chmon(month)
         else
-          write (*,*) 'ERROR IN SSTTYP'
-          stop
+          write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
+          call die('getfvgcm')
         end if
       else if ( month/=1 ) then
         if ( ssttyp=='FV_RF' ) then
@@ -152,14 +147,14 @@
           fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070)&
                & //chmon(month-1)
         else
-          write (*,*) 'ERROR IN SSTTYP'
-          stop
+          write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
+          call die('getfvgcm')
         end if
       else if ( ssttyp=='FV_RF' ) then
         if ( nyear==1961 ) then
-          write (*,*) 'Fields on 00z01jan1961 is not saved'
-          write (*,*) 'Please run from 00z02jan1961'
-          stop
+          write (stderr,*) 'Fields on 00z01jan1961 is not saved'
+          write (stderr,*) 'Please run from 00z02jan1961'
+          call die('getfvgcm')
         end if
         finm = 'RF/'//yr_rf(nyear-1961)//'/'//fn_rf//yr_rf(nyear-1961)  &
              & //chmon(12)
@@ -167,17 +162,17 @@
              & //chmon(12)
       else if ( ssttyp=='FV_A2' ) then
         if ( nyear==2071 ) then
-          write (*,*) 'Fields on 00z01jan2071 is not saved'
-          write (*,*) 'Please run from 00z02jan2071'
-          stop
+          write (stderr,*) 'Fields on 00z01jan2071 is not saved'
+          write (stderr,*) 'Please run from 00z02jan2071'
+          call die('getfvgcm')
         end if
         finm = 'A2/'//yr_a2(nyear-2071)//'/'//fn_a2//yr_a2(nyear-2071)  &
              & //chmon(12)
         fips = 'A2/'//yr_a2(nyear-2071)//'/'//pn_a2//yr_a2(nyear-2071)  &
              & //chmon(12)
       else
-        write (*,*) 'ERROR IN SSTTYP'
-        stop
+        write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
+        call die('getfvgcm')
       end if
       numx = nint((lon1-lon0)/1.25) + 1
       numy = nint(lat1-lat0) + 1
@@ -190,10 +185,11 @@
       end do
       inquire (file=trim(inpglob)//'/FVGCM/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpglob)//'/FVGCM/'//finm , ' is not available'
-        write (*,*) 'please copy FVGCM output under ',                  &
+        write (stderr,*) trim(inpglob)//'/FVGCM/'//finm// &
+                         ' is not available'
+        write (stderr,*) 'please copy FVGCM output under ', &
             &       trim(inpglob)//'/FVGCM/'
-        stop
+        call die('getfvgcm')
       end if
       open (63,file=trim(inpglob)//'/FVGCM/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
@@ -291,7 +287,7 @@
       end do
       close (63)
       close (62)
-      write (*,*) 'READ IN fields at DATE:' , idate , ' from ' , finm
+      write (stdout,*) 'READ IN fields at DATE:' , idate
       do k = 1 , nlev2
         do j = 1 , nlat2
           do i = 1 , nlon2
