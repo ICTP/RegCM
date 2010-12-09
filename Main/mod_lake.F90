@@ -206,14 +206,12 @@
 
             if ( aveice2d(n,i,jslc).le.10.0D0 ) then
               ocld2d(n,i,jslc) = 0.0D0 
-              lveg(n,i) = 14
               ldoc1d(n,i) = 0.0D0
               sice1d(n,i) = 0.0D0
               scv1d(n,i) = 0.0D0
               sag1d(n,i) = 0.0D0
             else
               ocld2d(n,i,jslc) = 2.0D0 
-              lveg(n,i) = 12
               ldoc1d(n,i) = 2.0D0
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i) = hsnow2d(n,i,jslc)    !  units of snow = mm h2o
@@ -287,16 +285,16 @@
         tk  = tzero + tprof(1)
         lu  = -emsw*sigm*tk**4.0D0
         ld  = flw - lu
-        ev  = evl*3600.0D0        ! Convert to mm/hr
+        ev  = evl*3600.0D0        ! convert to mm/hr
         ai  = aveice / 1000.0D0   ! convert to m
         hs  = hsnow / 100.0D0     ! convert to m
 
         call ice(fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
         if ( lfreeze ) tprof(1) = tt(1)
 
-        evl    = ev/3600.0D0      !  convert evl from mm/hr to mm/sec
-        aveice = ai*1000.0D0      !  convert ice  from m to mm
-        hsnow  = hs*100.0D0       !  convert snow from m depth to mm h20
+        evl    = ev/3600.0D0      ! convert evl  from mm/hr to mm/sec
+        aveice = ai*1000.0D0      ! convert ice  from m to mm
+        hsnow  = hs*100.0D0       ! convert snow from m depth to mm h20
  
       end if
  
@@ -626,9 +624,6 @@
         implicit none
         real(8) :: f
         real(8) , intent(in) :: x
-!     ****** g. bates changed air to tac, qpen1 to qpen (4/92)
-!       f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta
-!              *(x-air)-fsw)-1.0D0/khat*(qpen1+tf-x)
         f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
             - 1.0D0/khat*(qpen+tf-x)
       end function f
