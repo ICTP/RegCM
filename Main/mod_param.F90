@@ -119,33 +119,32 @@
  
       namelist /timeparam/ radfrq , abatm , abemh , dt
  
-!chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
       & radisp , ifbat , ifsub , iflak , batfrq , lakfrq , ifchem ,     &
       & chemfrq , dirout
-!chem2
+
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
       & medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
       & idesseas
-!chem2_
+
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
       & tc0 , cllwcv , clfrcvmax
- 
+
       namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
       & edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
-      & htmin , htmax , skbmax , dtauc
+      & htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
+      & edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
+      & edtminx_ocn , edtmaxx_ocn 
  
       namelist /emanparam/ minsig , elcrit , tlcrit , entp , sigd ,     &
       & sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
       & dtmax , alphae , damp
  
-!chem2
       namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
       & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
       & inpchtrdpv , inpdustbsiz
-!chem2_
 
 #ifdef CLM
       namelist /clmparam/ dirclm , imask , clmfrq
@@ -201,8 +200,8 @@
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
-!     = 99; variable: grell over land and emanuel over ocean
 !     = 98; variable: emanuel over land and grell over ocean
+!     = 99; variable: grell over land and emanuel over ocean
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
 !     = 1 ; Arakawa & Schubert (1974)
@@ -327,20 +326,29 @@
       clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
  
 !------namelist grellparam:
-      shrmin = 0.25D0   ! Minimum Shear effect on precip eff.
-      shrmax = 0.50D0   ! Maximum Shear effect on precip eff.
-      edtmin = 0.25D0   ! Minimum Precipitation Efficiency
-      edtmax = 1.00D0   ! Maximum Precipitation Efficiency
-      edtmino = 0.0D0   ! Minimum Precipitation Efficiency (o var)
-      edtmaxo = 1.00D0  ! Maximum Precipitation Efficiency (o var)
-      edtminx = 0.25D0  ! Minimum Precipitation Efficiency (x var)
-      edtmaxx = 1.00D0  ! Maximum Precipitation Efficiency (x var)
-      pbcmax = 150.D0   ! Max depth (mb) of stable layer b/twn LCL & LFC
-      mincld = 150.D0   ! Min cloud depth (mb).
-      htmin = -250.D0   ! Min convective heating
-      htmax = 500.D0    ! Max convective heating
-      skbmax = 0.4D0    ! Max cloud base height in sigma
-      dtauc = 30.D0     ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+      shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
+      shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
+      edtmin = 0.25D0       ! Minimum Precipitation Efficiency
+      edtmax = 1.00D0       ! Maximum Precipitation Efficiency
+      edtmino = 0.0D0       ! Minimum Precipitation Efficiency (o var)
+      edtmaxo = 1.00D0      ! Maximum Precipitation Efficiency (o var)
+      edtminx = 0.25D0      ! Minimum Precipitation Efficiency (x var)
+      edtmaxx = 1.00D0      ! Maximum Precipitation Efficiency (x var)
+      shrmin_ocn = 0.25D0   ! Minimum Shear effect on precip eff.
+      shrmax_ocn = 0.50D0   ! Maximum Shear effect on precip eff.
+      edtmin_ocn = 0.25D0   ! Minimum Precipitation Efficiency
+      edtmax_ocn = 1.00D0   ! Maximum Precipitation Efficiency
+      edtmino_ocn = 0.0D0   ! Minimum Precipitation Efficiency (o var)
+      edtmaxo_ocn = 1.00D0  ! Maximum Precipitation Efficiency (o var)
+      edtminx_ocn = 0.25D0  ! Minimum Precipitation Efficiency (x var)
+      edtmaxx_ocn = 1.00D0  ! Maximum Precipitation Efficiency (x var)
+      pbcmax = 150.D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
+      mincld = 150.D0       ! Min cloud depth (mb).
+      htmin = -250.D0       ! Min convective heating
+      htmax = 500.D0        ! Max convective heating
+      skbmax = 0.4D0        ! Max cloud base height in sigma
+      dtauc = 30.D0         ! Fritsch & Chappell (1980) 
+                            ! ABE Removal Timescale (min)
  
 !------namelist emanparam:
       minsig = 0.95D0   ! Lowest sigma level from which convection can originate
@@ -509,6 +517,14 @@
         call mpi_bcast(edtmaxo,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtminx,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmaxx,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(shrmin_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(shrmax_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmin_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmax_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmino_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmaxo_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtminx_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(edtmaxx_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(pbcmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(mincld,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(htmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -618,8 +634,8 @@
                           ' multiple of batfrq.'
           call say
           if (myid == 0) then
-            call fatal(__FILE__,__LINE__,                               &
-                    &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+            call fatal(__FILE__,__LINE__, &
+                     &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
           end if
         end if
       end if
@@ -801,8 +817,7 @@
       call say
       if ( lakemod.eq.1 ) then
         write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
-                      lakfrq  
-        call say
+                        lakfrq
       end if
       write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
                       ifchem 
@@ -1234,7 +1249,7 @@
       call say
  
       if (icup .eq. 99) then
-        write (aline,*) 'Variable cumulus scheme: will use grell '// &
+        write (aline,*) 'Variable cumulus scheme: will use Grell '// &
              'over land and Emanuel over ocean.'
         call say
         where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
@@ -1323,14 +1338,25 @@
 #endif
 #endif
           do i = 1 , iym1
-            shrmax2d(i,j) = shrmax
-            shrmin2d(i,j) = shrmin
-            edtmax2d(i,j) = edtmax
-            edtmin2d(i,j) = edtmin
-            edtmaxo2d(i,j) = edtmaxo
-            edtmino2d(i,j) = edtmino
-            edtmaxx2d(i,j) = edtmaxx
-            edtminx2d(i,j) = edtminx
+            if (mddom%satbrt(i,j)>14.5.and.mddom%satbrt(i,j)<15.5) then
+              shrmax2d(i,j) = shrmax_ocn
+              shrmin2d(i,j) = shrmin_ocn
+              edtmax2d(i,j) = edtmax_ocn
+              edtmin2d(i,j) = edtmin_ocn
+              edtmaxo2d(i,j) = edtmaxo_ocn
+              edtmino2d(i,j) = edtmino_ocn
+              edtmaxx2d(i,j) = edtmaxx_ocn
+              edtminx2d(i,j) = edtminx_ocn
+            else
+              shrmax2d(i,j) = shrmax
+              shrmin2d(i,j) = shrmin
+              edtmax2d(i,j) = edtmax
+              edtmin2d(i,j) = edtmin
+              edtmaxo2d(i,j) = edtmaxo
+              edtmino2d(i,j) = edtmino
+              edtmaxx2d(i,j) = edtmaxx
+              edtminx2d(i,j) = edtminx
+            end if
             pbcmax2d(i,j) = pbcmax
             mincld2d(i,j) = mincld
             kbmax2d(i,j) = kbmax

@@ -31,7 +31,9 @@
                & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
                & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
                & rh0land , rh0oce , rhmax , shrmax , tc0 , shrmin ,     &
-               & skbmax
+               & skbmax, shrmax_ocn, shrmin_ocn, edtmax_ocn, edtmin_ocn,&
+               & edtmaxo_ocn, edtmino_ocn, edtmaxx_ocn, edtminx_ocn
+
       real(8) , allocatable , dimension(:,:) :: cbmf2d , cgul ,         &
                & dtauc2d , edtmax2d , edtmaxo2d , edtmaxx2d ,           &
                                    & edtmin2d , edtmino2d , edtminx2d , &
