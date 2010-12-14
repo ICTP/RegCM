@@ -119,23 +119,21 @@
  
       namelist /timeparam/ radfrq , abatm , abemh , dt
  
-!chem2
       namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
-      & radisp , ifbat , ifsub , iflak , batfrq , ifchem , chemfrq ,    &
-      & dirout
-!chem2
+      & radisp , ifbat , ifsub , iflak , batfrq , lakfrq , ifchem ,     &
+      & chemfrq , dirout
+
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
       & medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
       & idesseas
-!chem2_
+
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
       & tc0 , cllwcv , clfrcvmax
- 
+
       namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
       & edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
-!Laura Grell's vars for ocean
       & htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
       & edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
       & edtminx_ocn , edtmaxx_ocn 
@@ -144,11 +142,9 @@
       & sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
       & dtmax , alphae , damp
  
-!chem2
       namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
       & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
       & inpchtrdpv , inpdustbsiz
-!chem2_
 
 #ifdef CLM
       namelist /clmparam/ dirclm , imask , clmfrq
@@ -204,6 +200,7 @@
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
+!     = 98; variable: emanuel over land and grell over ocean
 !     = 99; variable: grell over land and emanuel over ocean
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
@@ -276,6 +273,7 @@
       ifsub = .true.
       iflak = .true.
       batfrq = 1.0      ! time interval for disposing bats output (hrs)
+      lakfrq = -1.0     ! time interval for disposing lake output (hrs)
       dirout = './output' 
 !chem2
       ifchem = .false.
@@ -328,15 +326,14 @@
       clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
  
 !------namelist grellparam:
-      shrmin = 0.25D0   ! Minimum Shear effect on precip eff.
-      shrmax = 0.50D0   ! Maximum Shear effect on precip eff.
-      edtmin = 0.25D0   ! Minimum Precipitation Efficiency
-      edtmax = 1.00D0   ! Maximum Precipitation Efficiency
-      edtmino = 0.0D0   ! Minimum Precipitation Efficiency (o var)
-      edtmaxo = 1.00D0  ! Maximum Precipitation Efficiency (o var)
-      edtminx = 0.25D0  ! Minimum Precipitation Efficiency (x var)
-      edtmaxx = 1.00D0  ! Maximum Precipitation Efficiency (x var)
-!Laura Grell's vars for ocean
+      shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
+      shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
+      edtmin = 0.25D0       ! Minimum Precipitation Efficiency
+      edtmax = 1.00D0       ! Maximum Precipitation Efficiency
+      edtmino = 0.0D0       ! Minimum Precipitation Efficiency (o var)
+      edtmaxo = 1.00D0      ! Maximum Precipitation Efficiency (o var)
+      edtminx = 0.25D0      ! Minimum Precipitation Efficiency (x var)
+      edtmaxx = 1.00D0      ! Maximum Precipitation Efficiency (x var)
       shrmin_ocn = 0.25D0   ! Minimum Shear effect on precip eff.
       shrmax_ocn = 0.50D0   ! Maximum Shear effect on precip eff.
       edtmin_ocn = 0.25D0   ! Minimum Precipitation Efficiency
@@ -345,13 +342,13 @@
       edtmaxo_ocn = 1.00D0  ! Maximum Precipitation Efficiency (o var)
       edtminx_ocn = 0.25D0  ! Minimum Precipitation Efficiency (x var)
       edtmaxx_ocn = 1.00D0  ! Maximum Precipitation Efficiency (x var)
-!Laura
-      pbcmax = 150.D0   ! Max depth (mb) of stable layer b/twn LCL & LFC
-      mincld = 150.D0   ! Min cloud depth (mb).
-      htmin = -250.D0   ! Min convective heating
-      htmax = 500.D0    ! Max convective heating
-      skbmax = 0.4D0    ! Max cloud base height in sigma
-      dtauc = 30.D0     ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+      pbcmax = 150.D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
+      mincld = 150.D0       ! Min cloud depth (mb).
+      htmin = -250.D0       ! Min convective heating
+      htmax = 500.D0        ! Max convective heating
+      skbmax = 0.4D0        ! Max cloud base height in sigma
+      dtauc = 30.D0         ! Fritsch & Chappell (1980) 
+                            ! ABE Removal Timescale (min)
  
 !------namelist emanparam:
       minsig = 0.95D0   ! Lowest sigma level from which convection can originate
@@ -409,17 +406,18 @@
       print * , 'param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
+      if ( lakfrq < 0.0 ) lakfrq = batfrq
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM namelist READ IN'
       if ( ipptls.eq.1 ) then
         read (ipunit, subexparam)
         print * , 'param: SUBEXPARAM namelist READ IN'
       end if
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         read (ipunit, grellparam)
         print * , 'param: GRELLPARAM namelist READ IN'
       end if
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
       end if
@@ -467,6 +465,7 @@
       call mpi_bcast(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(lakfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
       call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(iflak,1,mpi_logical,0,mpi_comm_world,ierr)
@@ -509,7 +508,7 @@
         call mpi_bcast(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         call mpi_bcast(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -518,7 +517,6 @@
         call mpi_bcast(edtmaxo,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtminx,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmaxx,1,mpi_real8,0,mpi_comm_world,ierr)
-!Laura Grell's vars for ocean
         call mpi_bcast(shrmin_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(shrmax_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmin_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -527,7 +525,6 @@
         call mpi_bcast(edtmaxo_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtminx_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmaxx_ocn,1,mpi_real8,0,mpi_comm_world,ierr)
-!Laura
         call mpi_bcast(pbcmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(mincld,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(htmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -536,7 +533,7 @@
         call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -628,6 +625,20 @@
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
       end if
+      if ( lakemod.eq.1 ) then
+        if ( lakfrq .lt. batfrq .or. &
+             mod(anint(lakfrq),anint(batfrq)).ne.0 ) then
+          write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
+          call say
+          write (aline,*) 'Lake frequency needs to be an integer ',&
+                          ' multiple of batfrq.'
+          call say
+          if (myid == 0) then
+            call fatal(__FILE__,__LINE__, &
+                     &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+          end if
+        end if
+      end if
       if ( mod(anint(abemh*3600.),anint(dt)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
@@ -671,6 +682,7 @@
       ifrabe = nint(3600.*abemh/dt)
                                    !abemh is time interval abs./emis. calc.
       kbats = nint(3600.*batfrq)
+      klak = lakfrq/batfrq
       nbatst = nint(abatm/dt)
       dt2 = 2.*dt
 !chem2
@@ -803,6 +815,10 @@
       write (aline,*) 'Frequency in hours to write  SRF: batfrq = ' , &
                       batfrq  
       call say
+      if ( lakemod.eq.1 ) then
+        write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
+                        lakfrq
+      end if
       write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
                       ifchem 
       call say 
@@ -1233,13 +1249,23 @@
       call say
  
       if (icup .eq. 99) then
-        write (aline,*) 'Variable cumulus scheme: will use grell '// &
+        write (aline,*) 'Variable cumulus scheme: will use Grell '// &
              'over land and Emanuel over ocean.'
         call say
         where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
           cumcon%cuscheme = 4
         elsewhere
           cumcon%cuscheme = 2
+        end where
+      end if
+      if (icup .eq. 98) then
+        write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
+             'over land and Grell over ocean.'
+        call say
+        where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
+          cumcon%cuscheme = 2
+        elsewhere
+          cumcon%cuscheme = 4
         end where
       end if
 
@@ -1251,7 +1277,7 @@
         write (aline, *) '*********************************'
         call say
       end if
-      if ( icup.eq.2 .or. icup.eq.99 ) then
+      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
         kbmax = kz
         do k = 1 , kz - 1
           if ( a(k).le.skbmax ) kbmax = kz - k
@@ -1312,7 +1338,6 @@
 #endif
 #endif
           do i = 1 , iym1
-!Laura Grell's vars for ocean
             if (mddom%satbrt(i,j)>14.5.and.mddom%satbrt(i,j)<15.5) then
               shrmax2d(i,j) = shrmax_ocn
               shrmin2d(i,j) = shrmin_ocn
@@ -1332,7 +1357,6 @@
               edtmaxx2d(i,j) = edtmaxx
               edtminx2d(i,j) = edtminx
             end if
-!Laura 
             pbcmax2d(i,j) = pbcmax
             mincld2d(i,j) = mincld
             kbmax2d(i,j) = kbmax
@@ -1349,7 +1373,7 @@
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
         call allocate_mod_cu_bm(lmpi)
       end if
-      if ( icup.eq.4 .or. icup.eq.99 ) then
+      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
         cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
         minorig = kz
@@ -1570,8 +1594,8 @@
 99009 format (/'   sponge boundary conditions are used.')
 99010 format ('0 k',4x,'sigma(k)',3x,'  a(k)',5x,'dsigma(k)',4x,        &
              &'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
-99011 format (1x,i2,5x,f6.4,5x,f6.4,5x,f6.4,5x,f8.4,5x,f8.4,5x,f8.4)
-99012 format (1x,i2,5x,f6.4)
+99011 format (1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)
+99012 format (1x,i2,5x,f7.4)
 99014 format (' time step = ',f7.2,' seconds')
 99015 format (' dx = ',f7.0,' meters')
 99016 format (' grid points (x,y) = (',i4,',',i4,')')

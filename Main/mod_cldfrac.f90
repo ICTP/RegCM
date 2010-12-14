@@ -21,6 +21,7 @@
 !
 !     Fractional cloud coverage and liquid water content
 !
+      use mod_constants
       use mod_dynparam
       use mod_pmoist
       use mod_rad
@@ -63,9 +64,6 @@
 !
       subroutine cldfrac(j)
 !
-!Fabien 
-      use mod_constants
-!Fabien 
       implicit none
 !
       integer :: j
@@ -102,13 +100,13 @@
 ! An Improved Parameterization for Simulating Arctic Cloud Amount
 !    in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
-         if ( pb3d(i,k,j) >= 75.0 ) then
-           ! Clouds below 750hPa
-           if ( qvb3d(i,k,j).le.0.003D0 ) then
-            fcc(i,k,j) = fcc(i,k,j) * &
+          if ( pb3d(i,k,j) >= 75.0 ) then
+            ! Clouds below 750hPa
+            if ( qvb3d(i,k,j).le.0.003D0 ) then
+              fcc(i,k,j) = fcc(i,k,j) * &
                         max(0.15D0,min(1.0D0,qvb3d(i,k,j)/0.003D0))
-           end if
-         end if
+            end if
+          end if
         end do
       end do
 
@@ -121,28 +119,21 @@
 !--------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
+          ! Cloud Water Volume
+          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           exlwc = qcb3d(i,k,j)*rhob3d(i,k,j)*1.E03
-                                                  ! Cloud Water Volume
-!         units:  = kg gq / kg dry air * kg dry air / m3 * 1000 = g qc
-!         / m3
 
-!INIMODIF Fabien
-! temperature dependance for convective cloud water content
-! in g/m3 (Lemus et al., 1997)
+          ! temperature dependance for convective cloud water content
+          ! in g/m3 (Lemus et al., 1997)
           cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(tb3d(i,k,j)-tzero)    &
-	&  + 1.29D-04* (tb3d(i,k,j)-tzero)**2    &
-	&  + 8.36D-07*(tb3d(i,k,j)-tzero)**3
+                       &  + 1.29D-04* (tb3d(i,k,j)-tzero)**2    &
+                       &  + 8.36D-07*(tb3d(i,k,j)-tzero)**3
 
-         if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
-         if ( (tb3d(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00
-	 exlwc = cldlwc(i,k)
-         cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) &
-	& /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
-!modif: remove 1E3 since cldwc is already in g/m3
-!          cldlwc(i,k) =(cldfra(i,k)*cldlwc(i,k)*1.E3+fcc(i,k,j)*exlwc) &
-!                      & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
-!END MODIF Fabien
-
+          if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
+          if ( (tb3d(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00
+          exlwc = cldlwc(i,k)
+          cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) &
+                      & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
           cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)
         end do
       end do
