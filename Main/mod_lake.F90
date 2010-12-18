@@ -105,8 +105,6 @@
 #endif
 #endif
 ! 
-! Local variables
-!
       integer :: i, j, n
 #ifdef MPP1
       integer :: ierr
@@ -138,11 +136,11 @@
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
                                    dble(ndpmax)))/dz)
               if (idep2d(n,i,j).lt.50) then
-                eta2d(n,i,j) = .7
+                eta2d(n,i,j) = 0.7D0
               else if (idep2d(n,i,j).gt.100) then
-                eta2d(n,i,j) = .3
+                eta2d(n,i,j) = 0.3D0
               else
-                eta2d(n,i,j) = .5
+                eta2d(n,i,j) = 0.5D0
               end if
             else
               idep2d(n,i,j) = 0
@@ -240,8 +238,6 @@
       intent (inout) evl , aveice , hsnow
       intent (inout) tprof
 !
-! Local variables
-!
       real(8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
@@ -260,10 +256,6 @@
 !     ****** Check if conditions not exist for lake ice
       if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
  
-        aveice = 0.0D0
-        hsnow  = 0.0D0
-        evl    = 0.0D0
-
         qe = hlat*wlhv
         qh = hsen
 
@@ -275,6 +267,11 @@
  
 !       ******    Convective mixer
         call mixer(kmin,ndpt,tprof)
+
+        hi     = 0.01
+        evl    = 0.0D0
+        aveice = 0.0D0
+        hsnow  = 0.0D0
 
 !     ****** Lake ice
       else
@@ -522,6 +519,7 @@
  
       if ( (tac.le.0.0D0) .and. (aveice.gt.0.0D0) ) &
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
+      if ( hs .lt. 0.0D0) hs = 0.0D0
  
       t0 = tprof(1)
       tf = 0.0D0
@@ -712,8 +710,6 @@
       integer :: iutl
       intent (in) iutl
 !
-! Local variables
-!
       integer :: i, j, k, n, numpts
 !
 #ifdef MPP1
@@ -804,8 +800,6 @@
       implicit none
       integer :: iutl
       intent (in) iutl
-!
-! Local variables
 !
       integer :: i, j, k, l, n, numpts
 !

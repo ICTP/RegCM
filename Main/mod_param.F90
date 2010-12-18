@@ -87,6 +87,10 @@
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
                & wkp1 , xbot , xtop , xx , yy
+      real(8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
+               & edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
+      real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
+                 edtmino , edtmaxx , edtminx
       real(8) , dimension(nsplit) :: dtsplit
       integer :: i , j , k , kbase , ktop , ns
       character(5) , dimension(maxntr) :: inpchtrname
