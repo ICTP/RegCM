@@ -105,19 +105,17 @@
 #endif
 #endif
 ! 
-! Local variables
-!
       integer :: i, j, n
 #ifdef MPP1
       integer :: ierr
 #endif
 
-      hi2d = 0.01D0
+      hi2d     = 0.01D0
       aveice2d = 0.0D0
-      hsnow2d = 0.0D0
-      eta2d = 0.5D0
-      tlak3d  = 6.0D0
-      idep2d = 0
+      hsnow2d  = 0.0D0
+      eta2d    = 0.5D0
+      tlak3d   = 6.0D0
+      idep2d   = 0
 
 #ifdef MPP1
       do j = jbegin , jendx
@@ -134,24 +132,24 @@
 !     ******  initialize hostetler lake model
             if ( (satbrt1(n,i,j).gt.13.9 .and.   &
                   satbrt1(n,i,j).lt.14.1) .and.  &
-                dhlake1(n,i,j).gt.1.0) then
+                 dhlake1(n,i,j).gt.1.0) then
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
-                                   dble(ndpmax)))/dz)
+                                  dble(ndpmax)))/dz)
               if (idep2d(n,i,j).lt.50) then
-                eta2d(n,i,j) = .7
+                eta2d(n,i,j) = 0.7D0
               else if (idep2d(n,i,j).gt.100) then
-                eta2d(n,i,j) = .3
+                eta2d(n,i,j) = 0.3D0
               else
-                eta2d(n,i,j) = .5
+                eta2d(n,i,j) = 0.5D0
               end if
             else
               idep2d(n,i,j) = 0
             end if
             if (idep2d(n,i,j) == 0) then
-              hi2d(n,i,j) = -1D+34
+              hi2d(n,i,j)     = -1D+34
               aveice2d(n,i,j) = -1D+34
-              hsnow2d(n,i,j) = -1D+34
-              eta2d(n,i,j) = -1D+34
+              hsnow2d(n,i,j)  = -1D+34
+              eta2d(n,i,j)    = -1D+34
               tlak3d(:,n,i,j) = -1D+34
             else if (idep2d(n,i,j) < ndpmax) then
               tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
@@ -240,8 +238,6 @@
       intent (inout) evl , aveice , hsnow
       intent (inout) tprof
 !
-! Local variables
-!
       real(8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
@@ -260,10 +256,6 @@
 !     ****** Check if conditions not exist for lake ice
       if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
  
-        aveice = 0.0D0
-        hsnow  = 0.0D0
-        evl    = 0.0D0
-
         qe = hlat*wlhv
         qh = hsen
 
@@ -275,6 +267,11 @@
  
 !       ******    Convective mixer
         call mixer(kmin,ndpt,tprof)
+
+        hi     = 0.01
+        evl    = 0.0D0
+        aveice = 0.0D0
+        hsnow  = 0.0D0
 
 !     ****** Lake ice
       else
@@ -522,6 +519,7 @@
  
       if ( (tac.le.0.0D0) .and. (aveice.gt.0.0D0) ) &
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
+      if ( hs < 0.0D0 ) hs = 0.0D0
  
       t0 = tprof(1)
       tf = 0.0D0
@@ -683,22 +681,22 @@
       integer :: ierr
 !
       call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                     & idep2d,nnsg*iym1*jxp,mpi_integer, &
+                     & idep2d,   nnsg*iym1*jxp,mpi_integer, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & eta2d,nnsg*iym1*jxp,mpi_real8, &
+                     & eta2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hi2d,nnsg*iym1*jxp,mpi_real8, &
+                     & hi2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & aveice2d,nnsg*iym1*jxp,mpi_real8, &
+                     & aveice2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hsnow2d,nnsg*iym1*jxp,mpi_real8, &
+                     & hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                     & tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                     & tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
 #endif
 
@@ -711,8 +709,6 @@
       implicit none
       integer :: iutl
       intent (in) iutl
-!
-! Local variables
 !
       integer :: i, j, k, n, numpts
 !
@@ -804,8 +800,6 @@
       implicit none
       integer :: iutl
       intent (in) iutl
-!
-! Local variables
 !
       integer :: i, j, k, l, n, numpts
 !

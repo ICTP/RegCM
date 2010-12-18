@@ -27,12 +27,9 @@
       implicit none
 !
       real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
-               & dtauc , edtmax , edtmaxo , edtmaxx , edtmin , edtmino ,&
-               & edtminx , fcmax , gulland , guloce , htmax , htmin ,   &
+               & dtauc , fcmax , gulland , guloce , htmax , htmin ,     &
                & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
-               & rh0land , rh0oce , rhmax , shrmax , tc0 , shrmin ,     &
-               & skbmax, shrmax_ocn, shrmin_ocn, edtmax_ocn, edtmin_ocn,&
-               & edtmaxo_ocn, edtmino_ocn, edtmaxx_ocn, edtminx_ocn
+               & rh0land , rh0oce , rhmax , tc0 , skbmax
 
       real(8) , allocatable , dimension(:,:) :: cbmf2d , cgul ,         &
                & dtauc2d , edtmax2d , edtmaxo2d , edtmaxx2d ,           &

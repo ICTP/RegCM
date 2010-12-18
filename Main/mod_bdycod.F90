@@ -745,8 +745,6 @@
                     ocld2d(n,i,j) = 2.
                   end do
                 else
-                  sts1%tg(i,j) = tdum(i,j)
-                  sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0.
                     sice2d(n,i,j) = 0.
@@ -1037,8 +1035,6 @@
                     ocld2d(n,i,j) = 2.
                   end do
                 else
-                  sts1%tg(i,j) = tdum(i,j)
-                  sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0.
                     sice2d(n,i,j) = 0.
