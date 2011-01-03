@@ -266,11 +266,17 @@
           do k = 1 , nnsg
             if (iseaice == 1 .and. ocld2d(k,ill,jll) > 1.5 ) then
                nlveg = 12
+               sice2d(k,ill,jll) = 1000.0D0
+               scv2d(k,ill,jll) = 0.0D0
             else if ( veg2d1(k,ill,jll).lt.0.5 ) then
-               ocld2d(k,ill,jll) = 0.
+               ocld2d(k,ill,jll) = 0.0D0
+               sice2d(k,ill,jll) = 0.0D0
+               scv2d(k,ill,jll) = 0.0D0
                nlveg = nint(veg2d1(k,ill,jll))
             else
-               ocld2d(k,ill,jll) = 1.
+               ocld2d(k,ill,jll) = 1.0D0
+               sice2d(k,ill,jll) = -1.0D+34
+               scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
                nlveg = nint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
@@ -293,16 +299,11 @@
 
             dew2d(k,ill,jll) = 0.
             sag2d(k,ill,jll) = 0.
-            scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
-            sice2d(k,ill,jll) = 0.
             gwet2d(k,ill,jll) = 0.5
             sena2d(k,ill,jll) = 0.
             evpa2d(k,ill,jll) = 0.
             rnos2d(k,ill,jll) = 0.
             rno2d(k,ill,jll) = 0.
-            if ( sice2d(k,ill,jll).gt.0. ) then
-              ocld2d(k,ill,jll) = 2.
-            end if
             ircp2d(k,ill,jll) = 0.
           end do
         end do

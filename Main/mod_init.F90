@@ -353,12 +353,10 @@
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-                    sice2d(n,i,j) = 1000.
                   end do
                 else
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0.
-                    sice2d(n,i,j) = 0.
                   end do
                 end if
               end if
@@ -519,12 +517,10 @@
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.
-                    sice2d(n,i,j) = 1000.
                   end do
                 else
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0.
-                    sice2d(n,i,j) = 0.
                   end do
                 end if
               end if
