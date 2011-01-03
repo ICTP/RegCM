@@ -725,7 +725,7 @@
           do i = 1 , iym1
 #ifdef CLM
 ! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
-            if ( ocld2d(1,i,j).le.0.00001 ) then
+            if ( ocld2d(1,i,j).le.0.5 .or. ocld2d(1,i,j).gt.1.5 ) then
 #else
             if ( veg2d(i,j).le.0.00001 ) then
 #endif
