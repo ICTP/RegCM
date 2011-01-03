@@ -40,7 +40,7 @@
                   writerec_rad , writerec_che , writerec_lak
 !
         integer , parameter :: n_atmvar = 12
-        integer , parameter :: n_srfvar = 30
+        integer , parameter :: n_srfvar = 31
         integer , parameter :: n_subvar = 16
         integer , parameter :: n_radvar = 15
         integer , parameter :: n_chevar = 17
@@ -141,7 +141,7 @@
                          'tpr', 'evp', 'runoff', 'scv', 'sena', 'flw', &
                          'fsw', 'flwd', 'sina', 'prcv', 'zpbl',        &
                          'tgmax', 'tgmin', 't2max', 't2min', 'w10max', &
-                         'ps_min' , 'aldirs' , 'aldifs' /
+                         'ps_min' , 'aldirs' , 'aldifs' , 'seaice' /
         data sub_names / 'time', 'ps', 'u10m', 'v10m', 'uvdrag', 'tg', &
                          'tlef', 't2m' , 'q2m' , 'smw', 'tpr' , 'evp', &
                          'runoff', 'scv', 'sena', 'prcv' /
@@ -2017,6 +2017,12 @@
                 'surface_albedo_short_wave_diffuse', &
                 'Surface albedo to diffuse short wave radiation', &
                 '1',tyx,.false.,isrfvar(30))
+            if (iseaice == 1) then
+              call addvara(ncid,ctype,'seaice', &
+                  'seaice_binary_mask', &
+                  'Sea ice mask', &
+                  '1',tyx,.false.,isrfvar(31))
+            end if
           else if (ctype == 'SUB') then
             isubvar = -1
             isubvar(1) = itvar
@@ -2390,11 +2396,12 @@
           end if
         end subroutine addvara
 
-        subroutine writerec_srf(nx, ny, numbat, fbat, idate)
+        subroutine writerec_srf(nx, ny, numbat, fbat, mask , idate)
           use netcdf
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
+          real(8) , dimension(nnsg,iym1,jxm1) , intent(in) :: mask
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -2485,6 +2492,26 @@
             end if
             ivar = ivar + 1
           end do
+
+          if (iseaice == 1) then
+            dumio(:,:,1) = 0.0
+            do n = 1 , nnsg
+              dumio(:,:,1) = dumio(:,:,1) + &
+                             transpose(mask(n,o_is:o_ie,o_js:o_je))
+            end do
+            dumio(:,:,1) = dumio(:,:,1) / nnsg
+            istart(3) = isrfrec
+            istart(2) = 1
+            istart(1) = 1
+            icount(3) = 1
+            icount(2) = o_ni
+            icount(1) = o_nj
+            istatus = nf90_put_var(ncsrf, isrfvar(31), & 
+                     dumio(:,:,1), istart(1:3), icount(1:3))
+            call check_ok('Error writing '//srf_names(31)// &
+                          ' at '//ctime, 'SRF FILE ERROR')
+          end if
+
           istatus = nf90_sync(ncsrf)
           call check_ok('Error sync at '//ctime, 'SRF FILE ERROR')
           isrfrec = isrfrec + 1

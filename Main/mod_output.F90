@@ -200,7 +200,31 @@
           if ( lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
            call lakegather
           end if
-
+          if ( iseaice == 1 ) then
+            do j = 1 , jendx
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  var2d0(i,n,j) = ocld2d(n,i,j)
+                end do
+              end do
+            end do
+            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_real8, &
+                          & var2d_0,iy*nnsg*jxp,mpi_real8, &
+                          & 0,mpi_comm_world,ierr)
+            if (myid == 0) then
+#ifdef BAND
+              do j = 1 , jx
+#else
+              do j = 1 , jxm1
+#endif
+                do n = 1 , nnsg
+                  do i = 1 , iym1
+                    ocld2d_io(n,i,j) = var2d_0(i,n,j)
+                  end do
+                end do
+              end do
+            end if
+          end if
           do j = 1 , jendx
             do l = 1 , numbat
               do i = 1 , iym2
@@ -2142,9 +2166,9 @@
 #endif
 
 #ifdef MPP1
-      call writerec_srf(j,i,numbat,fbat_io,idatex)
+      call writerec_srf(j,i,numbat,fbat_io,ocld2d_io,idatex)
 #else
-      call writerec_srf(j,i,numbat,fbat,idatex)
+      call writerec_srf(j,i,numbat,fbat,ocld2d,idatex)
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  

@@ -345,19 +345,18 @@
         if (iseaice == 1) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( veg2d(i,j).le.0.00001 ) then
+              if ( mddom%satbrt(i,j).gt.13.5 .and. &
+                   mddom%satbrt(i,j).lt.15.5 ) then
                 if ( ts0(i,j).le.271.38 ) then
                   sts1%tg(i,j) = 271.38
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j)=2.
-                    sice2d(n,i,j)=1000.
+                    ocld2d(n,i,j) = 2.
                   end do
                 else
                   do n = 1, nnsg
-                    ocld2d(n,i,j)=0.
-                    sice2d(n,i,j)=0.
+                    ocld2d(n,i,j) = 0.
                   end do
                 end if
               end if
@@ -510,19 +509,18 @@
           do j = 1 , jxm1
 #endif
             do i = 1 , iym1
-              if ( veg2d(i,j).le.0.00001 ) then
+              if ( mddom%satbrt(i,j).gt.13.5 .and. &
+                   mddom%satbrt(i,j).lt.15.5 ) then
                 if ( ts0(i,j).le.271.38 ) then
                   sts1%tg(i,j) = 271.38
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j)=2.
-                    sice2d(n,i,j)=1000.
+                    ocld2d(n,i,j) = 2.
                   end do
                 else
                   do n = 1, nnsg
-                    ocld2d(n,i,j)=0.
-                    sice2d(n,i,j)=0.
+                    ocld2d(n,i,j) = 0.
                   end do
                 end if
               end if

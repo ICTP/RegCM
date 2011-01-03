@@ -134,6 +134,8 @@
       real(8) , allocatable , dimension(:,:,:) :: inisrf_0
 
       real(8) , allocatable , dimension(:,:) :: var1snd , var1rcv
+      real(8) , allocatable , dimension(:,:,:) :: var2d0
+      real(8) , allocatable , dimension(:,:,:) :: var2d_0
  
       real(8) , allocatable , dimension(:,:,:) :: atm0
       real(8) , allocatable , dimension(:,:,:) :: atm_0
@@ -206,6 +208,11 @@
         allocate(var1rcv(kz,8),stat=ierr)
         call check_alloc(ierr,myname,'var1rcv',size(var1rcv))
         var1rcv = 0.0D0
+        if ( iseaice == 1 ) then
+          allocate(var2d0(iy,nnsg,jxp),stat=ierr)
+          call check_alloc(ierr,myname,'var2d0',size(var2d0))
+          var2d0 = 0.0D0
+        end if
         allocate(inisrf0(iy,nnsg*5+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = 0.0D0
@@ -245,6 +252,11 @@
           allocate(inisrf_0(iy,nnsg*5+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = 0.0D0
+          if ( iseaice == 1 ) then
+            allocate(var2d_0(iy,nnsg,jx),stat=ierr)
+            call check_alloc(ierr,myname,'var2d_0',size(var2d_0))
+            var2d_0 = 0.0D0
+          end if
           allocate(atm_0(iy,kz*6+3+nnsg*4,jx),stat=ierr)
           call check_alloc(ierr,myname,'atm_0',size(atm_0))
           atm_0 = 0.0D0

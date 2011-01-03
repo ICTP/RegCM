@@ -725,7 +725,7 @@
           do i = 1 , iym1
 #ifdef CLM
 ! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
-            if ( ocld2d(1,i,j).le.0.00001 ) then
+            if ( ocld2d(1,i,j).le.0.5 .or. ocld2d(1,i,j).gt.1.5 ) then
 #else
             if ( veg2d(i,j).le.0.00001 ) then
 #endif
@@ -742,12 +742,17 @@
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.
+                    ocld2d(n,i,j) = 2.0
+                    sice2d(n,i,j) = 1000.0
+                    scv2d(n,i,j) = 0.0
                   end do
                 else
+                  sts1%tg(i,j) = tdum(i,j)
+                  sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.
-                    sice2d(n,i,j) = 0.
+                    ocld2d(n,i,j) = 0.0
+                    sice2d(n,i,j) = 0.0
+                    scv2d(n,i,j) = 0.0
                   end do
                 end if
               end if
@@ -1032,12 +1037,17 @@
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.
+                    ocld2d(n,i,j) = 2.0
+                    sice2d(n,i,j) = 1000.0
+                    scv2d(n,i,j) = 0.0
                   end do
                 else
+                  sts1%tg(i,j) = tdum(i,j)
+                  sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.
-                    sice2d(n,i,j) = 0.
+                    ocld2d(n,i,j) = 0.0
+                    sice2d(n,i,j) = 0.0
+                    scv2d(n,i,j) = 0.0
                   end do
                 end if
               end if
