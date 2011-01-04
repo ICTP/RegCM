@@ -55,7 +55,7 @@
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
            & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
 !
-      integer , allocatable , dimension(:,:) :: imelt , lveg
+      integer , allocatable , dimension(:,:) :: imelt , lveg , oveg
 !
       real(8) :: difrat
 !
@@ -346,6 +346,8 @@
         imelt = 0
         allocate(lveg(nnsg,iym1))
         lveg = 0
+        allocate(oveg(nnsg,iym1))
+        oveg = 0
         allocate(coszrs(iy))
         coszrs = 0.0D0
         allocate(spaceb1d(iym1,24))

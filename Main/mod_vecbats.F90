@@ -264,27 +264,26 @@
 #endif
         do ill = 1 , iym1
           do k = 1 , nnsg
-            if (iseaice == 1 .and. ocld2d(k,ill,jll) > 1.5 ) then
-               nlveg = 12
-               sice2d(k,ill,jll) = 1000.0D0
-               scv2d(k,ill,jll) = 0.0D0
+            if ( ocld2d(k,ill,jll) > 1.5 ) then
+              nlveg = 12
+              if ( iseaice == 1 ) then
+                sice2d(k,ill,jll) = 1000.0D0
+                scv2d(k,ill,jll) = 0.0D0
+              end if
             else if ( veg2d1(k,ill,jll).lt.0.5 ) then
-               ocld2d(k,ill,jll) = 0.0D0
-               sice2d(k,ill,jll) = 0.0D0
-               scv2d(k,ill,jll) = 0.0D0
-               nlveg = nint(veg2d1(k,ill,jll))
+              ocld2d(k,ill,jll) = 0.0D0
+              sice2d(k,ill,jll) = 0.0D0
+              scv2d(k,ill,jll) = 0.0D0
+              nlveg = nint(veg2d1(k,ill,jll))
             else
-               ocld2d(k,ill,jll) = 1.0D0
-               sice2d(k,ill,jll) = -1.0D+34
-               scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
-               nlveg = nint(veg2d1(k,ill,jll))
+              ocld2d(k,ill,jll) = 1.0D0
+              sice2d(k,ill,jll) = -1.0D+34
+              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
+              nlveg = nint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
               nlveg = 15
-            else
-              nlveg = nlveg
             end if
-!sol        itex=int(text2d(k,ill,jll))
             itex = iexsol(nlveg)
             tg2d(k,ill,jll) = sts2%tg(ill,jll)
             tgb2d(k,ill,jll) = sts2%tg(ill,jll)
@@ -432,9 +431,8 @@
             ldoc1d(n,i) = ocld2d(n,i,j)
             ircp1d(n,i) = ircp2d(n,i,j)
             lveg(n,i) = nint(veg2d1(n,i,j))
-            if (iseaice == 1) then
-              if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
-            end if
+            oveg(n,i) = lveg(n,i)
+            if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
             amxtem = max(298.-tgb1d(n,i),0.D0)
             sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
             if ( lveg(n,i).eq.0 ) then
@@ -1180,7 +1178,7 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-          if (iseaice == 1 .and. ldoc1d(n,i).gt.1.5 ) then
+          if ( ldoc1d(n,i).gt.1.5 ) then
               tdiffs = ts1d(n,i) - tzero
               tdiff = max(tdiffs,0.D0)
               tdiffs = min(tdiff,20.D0)
@@ -1558,9 +1556,8 @@
           tgb1d(n,i) = tgb2d(n,i,j)
           ssw1d(n,i) = ssw2d(n,i,j)
           lveg(n,i) = nint(veg2d1(n,i,j))
-          if (iseaice == 1) then
-            if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
-          end if
+          oveg(n,i) = lveg(n,i)
+          if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
           amxtem = max(298.-tgb1d(n,i),0.D0)
           sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
           if ( lveg(n,i).eq.0 ) then
@@ -1569,7 +1566,7 @@
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           end if
           ts1d(n,i) = thx3d(i,kz,j)-6.5D-3*rgti*(ht1(n,i,j)- &
-                                                 mddom%ht(i,j))
+                      mddom%ht(i,j))
           scv1d(n,i) = scv2d(n,i,j)
           sag1d(n,i) = sag2d(n,i,j)
         end do
