@@ -20,6 +20,8 @@
       module mod_era40
       use mod_dynparam
       use m_realkinds
+      use m_die
+      use m_stdio
 
       private
 
@@ -70,7 +72,7 @@
 !     D      BEGIN LOOP OVER NTIMES
 !
       call era6hour(dattyp,idate,globidate1)
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -182,9 +184,8 @@
 !
 !bxq
       if ( idate<1957090100 .or. idate>2002083118 ) then
-        write (*,*) 'ERA40 datasets is just available from' ,           &
-                   &' 1957090100 to 2002083118'
-        stop
+        call die('getera40', 'ERA40 datasets is just available from'// &
+                 ' 1957090100 to 2002083118', 1)
       end if
  
       nyear = idate/1000000
@@ -268,28 +269,28 @@
             pathaddname = trim(inpglob)//dattyp//'/'//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
-              print * , trim(pathaddname) , ' is not available'
-              stop
+              call die('getera40', trim(pathaddname)// &
+                       ' is not available', 1)
             end if
-            istatus = nf90_open(pathaddname,nf90_nowrite,               &
+            istatus = nf90_open(pathaddname,nf90_nowrite, &
                    & inet6(kkrec,k4))
             if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
-              stop 'INPUT FILE OPEN ERROR'
+              call die('getera40', trim(pathaddname), 1, &
+                       nf90_strerror(istatus), istatus)
             end if
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
+            istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor', &
                    & xscl(kkrec,k4))
             if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Variable has not scale_factor'
-              stop 'ATTRIBUTE ERROR'
+              call die('getera40', trim(pathaddname)//': scale_factor', &
+                       1, nf90_strerror(istatus), istatus)
             end if
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
+            istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',  &
                    & xoff(kkrec,k4))
             if ( istatus/=nf90_noerr ) then
-              write ( 6,* ) 'Variable has not add_offset'
-              stop 'ATTRIBUTE ERROR'
+              call die('getera40', trim(pathaddname)//': add_offset', &
+                       1, nf90_strerror(istatus), istatus)
             end if
-            write (*,*) inet6(kkrec,k4) , trim(pathaddname) ,           &
+            write (stdout,*) inet6(kkrec,k4) , trim(pathaddname) ,  &
                       & xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
@@ -336,8 +337,8 @@
         inet = inet6(kkrec,k4)
         istatus = nf90_get_var(inet,5,work,istart,icount)
         if ( istatus/=nf90_noerr ) then
-          write ( 6,* ) 'Read Variable error at ', istart 
-          stop 'NetCDF READ ERROR'
+          call die('getera40', trim(pathaddname)//': getvar', &
+                   1, nf90_strerror(istatus), istatus)
         end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
