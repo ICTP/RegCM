@@ -122,8 +122,9 @@
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
       use mod_dynparam
-
       use m_realkinds
+      use m_stdio
+      use m_die
 
       private
 
@@ -204,14 +205,14 @@
           pathaddname = trim(inpglob)//'/CAM42/ccsm_ht.nc'
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , pathaddname , 'is not available'
-            stop
+            call die('get_cam42',trim(pathaddname)// &
+                     'is not available',1)
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
           if ( istatus/=nf90_noerr ) call handle_err(istatus)
           istatus = nf90_inq_varid(inet1,varname,ivar1)
           if ( istatus/=nf90_noerr ) call handle_err(istatus)
-          write (*,*) inet1 , pathaddname , ivar1 , varname
+          write (stdout,*) inet1 , trim(pathaddname) , ivar1 , varname
           istatus = nf90_inq_dimid(inet1,'lon',lonid)
           if ( istatus/=nf90_noerr ) call handle_err(istatus)
           istatus = nf90_inq_dimid(inet1,'lat',latid)
@@ -225,14 +226,14 @@
           if ( i0>i1 ) imax = i1 + ilonh
           checklon = (imax-imin) + 1
           checklat = (j1-j0) + 1
-          print * , 'i0,i1' , i0 , i1
+          write (stdout, *) 'i0,i1' , i0 , i1
           if ( checklon/=lonlen .or. checklat/=latlen ) then
-            print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-            print * , 'LAT for 3D Variables = ' , checklat
-            print * , 'LAT for' , varname , '= ' , latlen
-            print * , 'LON for 3D Variables = ' , checklon
-            print * , 'LON for' , varname , '= ' , lonlen
-            stop 'Check Dimensions in CCSM Data Files'
+            write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+            write(stderr,*) 'LAT for 3D Variables = ' , checklat
+            write(stderr,*) 'LAT for' , varname , '= ' , latlen
+            write(stderr,*) 'LON for 3D Variables = ' , checklon
+            write(stderr,*) 'LON for' , varname , '= ' , lonlen
+            call die('get_cam42','Check Dims in CCSM Data Files',1)
           end if
           allocate (work(lonlen,latlen))
           icount(1) = lonlen
@@ -263,7 +264,7 @@
             end if
           end do
         end if
-        write (*,*) 'Read in fields at Date: ' , idate
+        write (stdout,*) 'Read in fields at Date: ' , idate
  
         do k = 1 , klev
           do j = 1 , jlath
@@ -525,8 +526,7 @@
           pathaddname = trim(inpglob)//'/CAM42/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , pathaddname , ' is not available'
-            stop
+            call die('cam42',trim(pathaddname)//' is not available',1)
           end if
  
           istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
@@ -534,8 +534,8 @@
           istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),         &
                   &                ivar6(kkrec))
           if ( istatus/=nf90_noerr ) call handle_err(istatus)
-          write (*,*) inet6(kkrec) , pathaddname , ivar6(kkrec) ,       &
-                    & varname(kkrec)
+          write (stdout,*) inet6(kkrec) , trim(pathaddname) , &
+                           ivar6(kkrec) , varname(kkrec)
         end if
  
         istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
@@ -559,18 +559,20 @@
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
              & /=checktim(kkrec-1) ) then
-            print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-            print * , 'LAT for' , varname(kkrec+1) , '=' ,              &
+            write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+            write(stderr,*) 'LAT for' , varname(kkrec+1) , '=' , &
                 & checklat(kkrec)
-            print * , 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
-            print * , 'LON for' , varname(kkrec+1) , '=' ,              &
+            write(stderr,*) 'LAT for' , varname(kkrec) , '=' ,  &
+                & checklat(kkrec)
+            write(stderr,*) 'LON for' , varname(kkrec+1) , '=' , &
                 & checklon(kkrec)
-            print * , 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
-            print * , 'TIME for' , varname(kkrec+1) , '=' ,             &
+            write(stderr,*) 'LON for' , varname(kkrec) , '=' , &
+                & checklon(kkrec)
+            write(stderr,*) 'TIME for' , varname(kkrec+1) , '=' , &
                 & checktim(kkrec)
-            print * , 'TIME for' , varname(kkrec) , '=' ,               &
+            write(stderr,*) 'TIME for' , varname(kkrec) , '=' ,   &
                 & checktim(kkrec)
-            stop 'Check CCSM Data Files'
+            call die('cam42','Check CCSM Data Files',1)
           end if
         end if
         if ( kkrec==1 ) then
@@ -602,14 +604,14 @@
  
         if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
            & .or. nlat1>work2(latlen) ) then
-          print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-          print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
+          write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+          write(stderr,*) 'CCSM Window LON min=',work1(1),'max=',  &
               & work1(lonlen)
-          print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
-          print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
+          write(stderr,*) 'RCM  Domain LON min=',nlon0,'max=',nlon1
+          write(stderr,*) 'CCSM Window LAT min=',work2(1),'max=',  &
               & work2(latlen)
-          print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in mod_preproc_param.f90'
+          write(stderr,*) 'RCM  Domain LAT min=',nlat0,'max=',nlat1
+          call die('cam42','Correct Domain Parameters in regcm.in',1)
         end if
  
         if ( idate==idate0 ) then
@@ -824,14 +826,14 @@
         pathaddname = trim(inpglob)//'/CAM85/ccsm_ht.nc'
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
-          print * , pathaddname , 'is not available'
-          stop
+          call die('get_cam85',trim(pathaddname)//'is not available',1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
         istatus = nf90_inq_varid(inet1,varname,ivar1)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
-        write (*,*) inet1 , ivar1 , pathaddname , ivar1 , varname
+        write (stdout,*) inet1 , ivar1 , trim(pathaddname) , &
+                         ivar1 , varname
         istatus = nf90_inq_dimid(inet1,'lon',lonid)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
         istatus = nf90_inq_dimid(inet1,'lat',latid)
@@ -846,12 +848,12 @@
         checklon = (imax-imin) + 1
         checklat = (j1-j0) + 1
         if ( checklon/=lonlen .or. checklat/=latlen ) then
-          print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-          print * , 'LAT for 3D Variables = ' , checklat
-          print * , 'LAT for' , varname , '= ' , latlen
-          print * , 'LON for 3D Variables = ' , checklon
-          print * , 'LON for' , varname , '= ' , lonlen
-          stop 'Check Dimensions in CCSM Data Files'
+          write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+          write(stderr,*) 'LAT for 3D Variables = ' , checklat
+          write(stderr,*) 'LAT for' , varname , '= ' , latlen
+          write(stderr,*) 'LON for 3D Variables = ' , checklon
+          write(stderr,*) 'LON for' , varname , '= ' , lonlen
+          call die('get_cam85','Check Dimensions in CCSM Data Files',1)
         end if
         allocate (work(lonlen,latlen))
         icount(1) = lonlen
@@ -882,7 +884,7 @@
           end if
         end do
       end if
-      write (*,*) 'Read in fields at Date: ' , idate
+      write (stdout,*) 'Read in fields at Date: ' , idate
  
       do k = 1 , klev
         do j = 1 , jlat
@@ -1154,8 +1156,7 @@
           pathaddname = trim(inpglob)//'/CAM85/'//inname
           inquire (file=pathaddname,exist=there)
           if ( .not.there ) then
-            print * , pathaddname , ' is not available'
-            stop
+            call die('cam85',trim(pathaddname)//' is not available',1)
           end if
  
           istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
@@ -1163,8 +1164,8 @@
           istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),         &
                  &                 ivar6(kkrec))
           if ( istatus/=nf90_noerr ) call handle_err(istatus)
-          write (*,*) inet6(kkrec) , pathaddname , ivar6(kkrec) ,       &
-                    & varname(kkrec)
+          write (stdout,*) inet6(kkrec) , trim(pathaddname) , &
+                           ivar6(kkrec) , varname(kkrec)
         end if
  
         istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
@@ -1187,18 +1188,20 @@
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
              & /=checktim(kkrec-1) ) then
-            print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-            print * , 'LAT for' , varname(kkrec+1) , '=' ,              &
+            write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+            write(stderr,*) 'LAT for' , varname(kkrec+1) , '=' , &
                 & checklat(kkrec)
-            print * , 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
-            print * , 'LON for' , varname(kkrec+1) , '=' ,              &
+            write(stderr,*) 'LAT for' , varname(kkrec) , '=' ,  &
+                & checklat(kkrec)
+            write(stderr,*) 'LON for' , varname(kkrec+1) , '=' , &
                 & checklon(kkrec)
-            print * , 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
-            print * , 'TIME for' , varname(kkrec+1) , '=' ,             &
+            write(stderr,*) 'LON for' , varname(kkrec) , '=' ,  &
+                & checklon(kkrec)
+            write(stderr,*) 'TIME for' , varname(kkrec+1) , '=' , &
                 & checktim(kkrec)
-            print * , 'TIME for' , varname(kkrec) , '=' ,               &
+            write(stderr,*) 'TIME for' , varname(kkrec) , '=' , &
                 & checktim(kkrec)
-            stop 'Check CCSM Data Files'
+            call die('cam85','Check CCSM Data Files',1)
           end if
         end if
         if ( kkrec==1 ) then
@@ -1230,14 +1233,14 @@
  
         if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
            & .or. nlat1>work2(latlen) ) then
-          print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
-          print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
+          write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+          write(stderr,*) 'CCSM Window LON min=', work1(1), 'max=', &
               & work1(lonlen)
-          print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
-          print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
+          write(stderr,*) 'RCM  Domain LON min=', nlon0, 'max=', nlon1
+          write(stderr,*) 'CCSM Window LAT min=', work2(1) , 'max=', &
               & work2(latlen)
-          print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in mod_preproc_param.f90'
+          write(stderr,*) 'RCM  Domain LAT min=', nlat0, 'max=', nlat1
+          call die('cam85','Correct Domain Parameters in regcm.in',1)
         end if
  
         if ( idate==idate0 ) then
@@ -1427,8 +1430,8 @@
         integer :: istatus
         intent (in) :: istatus
 !
-        print * , nf90_strerror(istatus)
-        stop 'Netcdf Error'
+        write(stderr,*) nf90_strerror(istatus)
+        call die('handle_err','Netcdf Error',1)
 
       end subroutine handle_err
 !
