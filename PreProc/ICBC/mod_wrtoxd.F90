@@ -24,6 +24,7 @@
       use mod_grid
       use m_realkinds
       use m_die
+      use m_mall
 
       private
 
@@ -47,20 +48,36 @@
 
       subroutine init_outoxd
         implicit none
-        allocate(oh4(jx,iy,kz))
-        allocate(ho24(jx,iy,kz))
-        allocate(o34(jx,iy,kz))
-        allocate(no34(jx,iy,kz))
-        allocate(h2o24(jx,iy,kz))
+        integer :: ierr
+        allocate(oh4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_outoxd','allocate oh4',ierr)
+        call mall_mci(oh4,'mod_wrtoxd')
+        allocate(ho24(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_outoxd','allocate ho24',ierr)
+        call mall_mci(ho24,'mod_wrtoxd')
+        allocate(o34(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_outoxd','allocate o34',ierr)
+        call mall_mci(o34,'mod_wrtoxd')
+        allocate(no34(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_outoxd','allocate no34',ierr)
+        call mall_mci(no34,'mod_wrtoxd')
+        allocate(h2o24(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_outoxd','allocate h2o24',ierr)
+        call mall_mci(h2o24,'mod_wrtoxd')
       end subroutine init_outoxd
 
       subroutine free_outoxd
         use netcdf
         implicit none
+        call mall_mco(oh4,'mod_wrtoxd')
         deallocate(oh4)
+        call mall_mco(ho24,'mod_wrtoxd')
         deallocate(ho24)
+        call mall_mco(o34,'mod_wrtoxd')
         deallocate(o34)
+        call mall_mco(no34,'mod_wrtoxd')
         deallocate(no34)
+        call mall_mco(h2o24,'mod_wrtoxd')
         deallocate(h2o24)
         if (ncid > 0) then
           istatus = nf90_close(ncid)
@@ -356,8 +373,12 @@
         hptop = ptop*10.0
         istatus = nf90_put_var(ncid, izvar(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy))
-        allocate(xjx(jx))
+        allocate(yiy(iy), stat=istatus)
+        if ( istatus /= 0) call die('newfile','allocate yiy',istatus)
+        call mall_mci(yiy,'mod_wrtoxd')
+        allocate(xjx(jx), stat=istatus)
+        if ( istatus /= 0) call die('newfile','allocate xjx',istatus)
+        call mall_mci(xjx,'mod_wrtoxd')
         yiy(1) = -(dble(iy-1)/2.0) * ds
         xjx(1) = -(dble(jx-1)/2.0) * ds
         do i = 2 , iy
@@ -371,7 +392,9 @@
         istatus = nf90_put_var(ncid, ivvar(2), xjx)
         call check_ok(istatus,'Error variable jx write')
         deallocate(yiy)
+        call mall_mco(yiy,'mod_wrtoxd')
         deallocate(xjx)
+        call mall_mco(xjx,'mod_wrtoxd')
         istatus = nf90_put_var(ncid, illvar(1), xlat)
         call check_ok(istatus,'Error variable xlat write')
         istatus = nf90_put_var(ncid, illvar(2), xlon)

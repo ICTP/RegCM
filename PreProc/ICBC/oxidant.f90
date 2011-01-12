@@ -27,6 +27,8 @@
       use mod_oxidant
       use m_stdio
       use m_die
+      use m_mall
+      use m_zeit
 !
       implicit none
 !
@@ -49,7 +51,12 @@
         write (stderr,*) ' '
         call die('oxidant','Check argument and namelist syntax.',1)
       end if
-!      
+!
+      if (debug_level > 2) then
+        call mall_set()
+        call zeit_ci('oxidant')
+      end if
+!
       call init_grid(iy,jx,kz)
       call init_outoxd
 !
@@ -79,6 +86,12 @@
       call free_outoxd
       call freemozart
 
+      if (debug_level > 2) then
+        call mall_flush(stdout)
+        call mall_set(.false.)
+        call zeit_co('oxidant')
+        call zeit_flush(stdout)
+      end if
       write (stdout,*) 'Oxidant file successfully created'
 
       end program oxidant
