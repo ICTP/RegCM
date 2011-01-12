@@ -127,15 +127,13 @@
       end subroutine getein25
 
       subroutine ein256hour(dattyp,idate,idate0)
-      use netcdf
 !
-! Dummy arguments
+      use netcdf
+      implicit none
 !
       character(5) :: dattyp
       integer :: idate , idate0
       intent (in) dattyp , idate , idate0
-!
-! Local variables
 !
       integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
                & nhour , nyear , istatus
@@ -247,19 +245,19 @@
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
                    & inet6(kkrec,k4))
-            if ( istatus /= nf90_noerror) then
+            if ( istatus /= nf90_noerr) then
               call die('ein256hour',trim(pathaddname)// &
                        ':open', 1, nf90_strerror(istatus), istatus)
             end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
                    & xscl(kkrec,k4))
-            if ( istatus /= nf90_noerror) then
+            if ( istatus /= nf90_noerr) then
               call die('ein256hour',trim(pathaddname)//':scale_factor', &
                        1, nf90_strerror(istatus), istatus)
             end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
                    & xoff(kkrec,k4))
-            if ( istatus /= nf90_noerror) then
+            if ( istatus /= nf90_noerr) then
               call die('ein256hour',trim(pathaddname)//':add_offset', &
                        1, nf90_strerror(istatus), istatus)
             end if
@@ -306,7 +304,7 @@
       do kkrec = 1 , 5
         inet = inet6(kkrec,k4)
         istatus = nf90_get_var(inet,5,work,istart,icount)
-        if ( istatus /= nf90_noerror) then
+        if ( istatus /= nf90_noerr) then
           call die('ein256hour',trim(pathaddname)//':readvar', &
                    1, nf90_strerror(istatus), istatus)
         end if

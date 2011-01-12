@@ -21,6 +21,8 @@
 
       use mod_dynparam
       use m_realkinds
+      use m_stdio
+      use m_die
 
       private
 
@@ -79,9 +81,7 @@
 !
       character(3) , dimension(12) :: chmon
       character(21) :: finm , psnm
-      character(256) :: fnso4_a1b
-      character(256) :: fnso4_a2 , fnso4_b1
-      character(256) :: fnso4_rf
+      character(256) :: fnso4
       integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,     &
                & nday , nhour , nrec , numx , numy , nyear
       integer(2) , dimension(ilon,jlat) :: itmp
@@ -133,53 +133,52 @@
  
       if ( ssttyp=='EH5RF' ) then
         if ( idate<1941010106 ) then
-          write (*,*) 'EH5RF dataset is just available from 1941010106'
-          stop
+          call die('geteh5om','EH5RF dataset is only available' // &
+                   ' from 1941010106',1)
         end if
         if ( ehso4 ) then
           if ( idate<1950010100 ) then
-            write (*,*) 'the monthly EH5RF sulfate data are just' ,     &
-                       &' available from 1950010100'
-            stop
+            call die('geteh5om','EH5RF sulfate is only available' // &
+                     ' from 1950010100',1)
           end if
         end if
         if ( idate>2001010100 ) then
-          write (*,*) 'EH5RF dataset is just available  to  2001010100'
-          stop
+          call die('geteh5om','EH5RF dataset is only available' // &
+                   ' up to 2001010100',1)
         end if
       end if
       if ( ssttyp=='EH5A2' ) then
         if ( idate<2001010100 ) then
-          write (*,*) 'EH5A2 dataset is just avaiable from 2001010100'
-          stop
+          call die('geteh5om','EH5A2 dataset is only available' // &
+                   ' from 2001010100',1)
         end if
         if ( idate>=2101010100 ) then
-          write (*,*) 'EH5A2 dataset is just avaiable  to  2100123118'
-          stop
+          call die('geteh5om','EH5A2 dataset is only available' // &
+                   ' up to 2100123118',1)
         end if
       end if
       if ( ssttyp=='EH5B1' ) then
         if ( idate<2001010100 ) then
-          write (*,*) 'EH5B1 dataset is just avaiable from 2001010100'
-          stop
+          call die('geteh5om','EH5B1 dataset is only available' // &
+                   ' from 2001010100',1)
         end if
         if ( idate>=2101010100 ) then
-          write (*,*) 'EH5B1 dataset is just avaiable  to  2100123118'
-          stop
+          call die('geteh5om','EH5B1 dataset is only available' // &
+                   ' up to 2100123118',1)
         end if
       end if
       if ( ssttyp=='EHA1B' ) then
         if ( idate<2001010100 ) then
-          write (*,*) 'EHA1B dataset is just avaiable from 2001010100'
-          stop
+          call die('geteh5om','EHA1B dataset is only available' // &
+                   ' from 2001010100',1)
         end if
         if ( idate>=2101010100 ) then
-          write (*,*) 'EHA1B dataset is just avaiable  to  2100123118'
-          stop
+          call die('geteh5om','EHA1B dataset is only available' // &
+                   ' up to 2100123118',1)
         end if
       end if
       if (abs(lon1-lon0)<1E-30 .and. abs(lat1-lat0)<1E-30) then
-        print *, 'Assuming You have global dataset EH5OM'
+        write (stdout, *) 'Assuming You have global dataset EH5OM'
         lon0 = 0
         lon1 = 358.125
         lat0 = -89.0625
@@ -211,8 +210,7 @@
                               & //'/'//'EH_PS'//yr_a2(nyear-2000)       &
                               & //chmon(month)
           else
-            write (*,*) 'ERROR IN SSTTYP'
-            stop
+            call die('geteh5om','ERROR IN geteh5om',1)
           end if
         else if ( month/=1 ) then
           if ( ssttyp=='EH5RF' ) then
@@ -237,8 +235,7 @@
                               & //'/'//'EH_PS'//yr_a2(nyear-2000)       &
                               & //chmon(month-1)
           else
-            write (*,*) 'ERROR IN SSTTYP'
-            stop
+            call die('geteh5om','ERROR IN geteh5om',1)
           end if
         else if ( ssttyp=='EH5RF' ) then
           finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//               &
@@ -283,8 +280,7 @@
                               & //chmon(12)
           end if
         else
-          write (*,*) 'ERROR IN SSTTYP'
-          stop
+          call die('geteh5om','ERROR IN geteh5om',1)
         end if
       else if ( nday/=1 .or. nhour/=0 ) then
         if ( ssttyp=='EH5RF' ) then
@@ -308,8 +304,7 @@
           if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'// &
                             & yr_a2(nyear-2000)//chmon(month)
         else
-          write (*,*) 'ERROR IN SSTTYP'
-          stop
+          call die('geteh5om','ERROR IN geteh5om',1)
         end if
       else if ( month/=1 ) then
         if ( ssttyp=='EH5RF' ) then
@@ -333,8 +328,7 @@
           if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'// &
                             & yr_a2(nyear-2000)//chmon(month-1)
         else
-          write (*,*) 'ERROR IN SSTTYP'
-          stop
+          call die('geteh5om','ERROR IN geteh5om',1)
         end if
       else if ( ssttyp=='EH5RF' ) then
         finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//yr_rf(nyear-1941)&
@@ -378,8 +372,7 @@
                             & yr_a2(nyear-2001)//chmon(12)
         end if
       else
-        write (*,*) 'ERROR IN SSTTYP'
-        stop
+        call die('geteh5om','ERROR IN geteh5om',1)
       end if
       do k = 1 , klev*3
         do j = 1 , jlat
@@ -412,21 +405,16 @@
  
       inquire (file=trim(inpglob)//'/EH5OM/'//finm,exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpglob)//'/EH5OM/'//finm , ' is not available'
-        write (*,*) 'please copy EH5OM output under ',trim(inpglob),    &
-             &      '/EH5OM/'
-        stop
+        call die('geteh5om',trim(inpglob)//'/EH5OM/'//finm// &
+                 ' is not available',1)
       end if
       open (63,file=trim(inpglob)//'/EH5OM/'//finm,form='unformatted',  &
           & recl=(numx*numy*2+16)/4*ibyte,access='direct')
       if ( ehso4 ) then
         inquire (file=trim(inpglob)//'/EH5OM/'//psnm,exist=there)
         if ( .not.there ) then
-          write (*,*) trim(inpglob)//'/EH5OM/'//psnm ,                  &
-            &          ' is not available'
-          write (*,*) 'please copy EH5OM output under ',trim(inpglob),  &
-            &         '/EH5OM/'
-          stop
+          call die('geteh5om',trim(inpglob)//'/EH5OM/'//psnm// &
+                   ' is not available',1)
         end if
         open (62,file=trim(inpglob)//'/EH5OM/'//psnm,form='unformatted',&
             & recl=(numx*numy*2+16)/4*ibyte,access='direct')
@@ -569,7 +557,7 @@
         end do
       end do
       close (63)
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -625,16 +613,27 @@
 !
       if ( ehso4 ) then
         if ( ssttyp=='EH5RF' ) then
-          fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
+          fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                    & yr_rf(nyear-1940)//'.nc'
-          inquire (file=fnso4_rf,exist=there)
+          inquire (file=fnso4,exist=there)
           if ( .not.there ) then
-            write (*,*) fnso4_rf , ' is not available'
-            stop
+            call die('geteh5om', fnso4//' is not available',1)
           end if
-          istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+          istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':open',1, &
+                     nf90_strerror(istatus),istatus)
+          end if
           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':getvar',1, &
+                     nf90_strerror(istatus),istatus)
+          end if
           istatus = nf90_close(ncid)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':close',1, &
+                     nf90_strerror(istatus),istatus)
+          end if
           if ( nyear==1950 .and. month==1 .and. nday<16 ) then
             do k = 1 , mlev
               do j = 1 , jlat
@@ -721,16 +720,27 @@
                 end do
               end do
             end do
-            fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
+            fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1939)//'.nc'
-            inquire (file=fnso4_rf,exist=there)
+            inquire (file=fnso4,exist=there)
             if ( .not.there ) then
-              write (*,*) fnso4_rf , ' is not available'
-              stop
+              call die('geteh5om',fnso4//' is not available',1)
             end if
-            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+            istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':open',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':getvar',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_close(ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':close',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             do k = 1 , mlev
               do j = 1 , jlat
                 do i = 1 , ilon
@@ -818,16 +828,27 @@
                 end do
               end do
             end do
-            fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
+            fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1941)//'.nc'
-            inquire (file=fnso4_rf,exist=there)
+            inquire (file=fnso4,exist=there)
             if ( .not.there ) then
-              write (*,*) fnso4_rf , ' is not available'
-              stop
+              call die('geteh5om',fnso4//' is not available',1)
             end if
-            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+            istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':open',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':getvar',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_close(ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':close',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             do k = 1 , mlev
               do j = 1 , jlat
                 do i = 1 , ilon
@@ -849,37 +870,35 @@
           end if
         else
           if ( ssttyp=='EH5A2' ) then
-            fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//  &
+            fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//  &
                      & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_a2,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_a2 , ' is not available'
-              stop
-            end if
-            istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
           else if ( ssttyp=='EHA1B' ) then
-            fnso4_a1b = trim(inpglob)//                                 &
+            fnso4 = trim(inpglob)//                                 &
                  & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//                   &
                  & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_a1b,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_a1b , ' is not available'
-              stop
-            end if
-            istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
           else if ( ssttyp=='EH5B1' ) then
-            fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//  &
+            fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//  &
                      & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_b1,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_b1 , ' is not available'
-              stop
-            end if
-            istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-          else
+          end if
+          inquire (file=fnso4,exist=there)
+          if ( .not.there ) then
+            call die('geteh5om',fnso4//' is not available',1)
+          end if
+          istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':open',1, &
+                     nf90_strerror(istatus),istatus)
           end if
           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':getvar',1, &
+                     nf90_strerror(istatus),istatus)
+          end if
           istatus = nf90_close(ncid)
+          if (istatus /= nf90_noerr) then
+            call die('geteh5om', fnso4//':close',1, &
+                     nf90_strerror(istatus),istatus)
+          end if
           if ( nyear==2001 .and. month==1 .and. nday<16 ) then
             do k = 1 , mlev
               do j = 1 , jlat
@@ -967,37 +986,35 @@
               end do
             end do
             if ( ssttyp=='EH5A2' ) then
-              fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
+              fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_a2,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a2 , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
-              fnso4_a1b = trim(inpglob)//                               &
+              fnso4 = trim(inpglob)//                               &
                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_a1b,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a1b , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
-              fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
+              fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_b1,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_b1 , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-            else
+            end if
+            inquire (file=fnso4,exist=there)
+            if ( .not.there ) then
+              call die('geteh5om',fnso4//' is not available',1)
+            end if
+            istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':open',1, &
+                       nf90_strerror(istatus),istatus)
             end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':getvar',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_close(ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':close',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             do k = 1 , mlev
               do j = 1 , jlat
                 do i = 1 , ilon
@@ -1086,37 +1103,35 @@
               end do
             end do
             if ( ssttyp=='EH5A2' ) then
-              fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
+              fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_a2,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a2 , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
-              fnso4_a1b = trim(inpglob)//                               &
+              fnso4 = trim(inpglob)//                               &
                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_a1b,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a1b , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
-              fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
+              fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_b1,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_b1 , ' is not available'
-                stop
-              end if
-              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-            else
+            end if
+            inquire (file=fnso4,exist=there)
+            if ( .not.there ) then
+              call die('geteh5om',fnso4//' is not available',1)
+            end if
+            istatus = nf90_open(fnso4,nf90_nowrite,ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':open',1, &
+                       nf90_strerror(istatus),istatus)
             end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':getvar',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             istatus = nf90_close(ncid)
+            if (istatus /= nf90_noerr) then
+              call die('geteh5om', fnso4//':close',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
             do k = 1 , mlev
               do j = 1 , jlat
                 do i = 1 , ilon
@@ -1471,8 +1486,8 @@
  
         inquire (file=trim(inpglob)//'/EH5OM/EHgPS.dat',exist=there)
         if ( .not.there ) then
-          write (*,*) trim(inpglob)//'/EH5OM/EHgPS.dat is not available'
-          stop
+          call die('headermpi',trim(inpglob)//'/EH5OM/EHgPS.dat '// &
+                   'is not available',1)
         end if
         open (30,file=trim(inpglob)//'/EH5OM/EHgPS.dat',                &
             & form='unformatted',recl=ilon*jlat*4,access='direct')
