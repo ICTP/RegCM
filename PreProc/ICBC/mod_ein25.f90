@@ -20,6 +20,8 @@
       module mod_ein25
       use mod_dynparam
       use m_realkinds
+      use m_stdio
+      use m_die
 
       private
 
@@ -63,7 +65,7 @@
 !     D      BEGIN LOOP OVER NTIMES
 !
       call ein256hour(dattyp,idate,globidate1)
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -166,9 +168,8 @@
 !
 !bxq
       if ( idate<1989010100 .or. idate>1998123118 ) then
-        write (*,*) 'EIN25 datasets is just available from' ,           &
-                   &' 1989010100 to 1998123118'
-        stop
+        call die('ein256hour','EIN25 datasets is just available from'// &
+               & ' 1989010100 to 1998123118',1)
       end if
  
       nyear = idate/1000000
@@ -241,17 +242,29 @@
             pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
-              print * , trim(pathaddname) , ' is not available'
-              stop
+              call die('ein256hour',trim(pathaddname)// &
+                       ' is not available', 1)
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
                    & inet6(kkrec,k4))
+            if ( istatus /= nf90_noerror) then
+              call die('ein256hour',trim(pathaddname)// &
+                       ':open', 1, nf90_strerror(istatus), istatus)
+            end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
                    & xscl(kkrec,k4))
+            if ( istatus /= nf90_noerror) then
+              call die('ein256hour',trim(pathaddname)//':scale_factor', &
+                       1, nf90_strerror(istatus), istatus)
+            end if
             istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
                    & xoff(kkrec,k4))
-            write (*,*) inet6(kkrec,k4) , pathaddname , xscl(kkrec,k4) ,&
-                      & xoff(kkrec,k4)
+            if ( istatus /= nf90_noerror) then
+              call die('ein256hour',trim(pathaddname)//':add_offset', &
+                       1, nf90_strerror(istatus), istatus)
+            end if
+            write (stdout,*) inet6(kkrec,k4) , pathaddname , &
+                             xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
  
@@ -293,6 +306,10 @@
       do kkrec = 1 , 5
         inet = inet6(kkrec,k4)
         istatus = nf90_get_var(inet,5,work,istart,icount)
+        if ( istatus /= nf90_noerror) then
+          call die('ein256hour',trim(pathaddname)//':readvar', &
+                   1, nf90_strerror(istatus), istatus)
+        end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
         if ( kkrec==1 ) then
