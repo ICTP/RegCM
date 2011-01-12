@@ -18,6 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_param_clm
+
+      use m_stdio
+      use m_die
+
       implicit none
 !
 ! PARAMETER definitions
@@ -292,15 +296,15 @@
  
       if ( bvoc ) then
  50     continue
-        print * , ' '
-        print * , ' '
-        print * , '********************************************'
-        print * , 'Creating biogenic emissions files'
-        print * , 'ENTER NUMBER OF SPECIES'
+        write(stdout,*) ' '
+        write(stdout,*) ' '
+        write(stdout,*) '********************************************'
+        write(stdout,*) 'Creating biogenic emissions files'
+        write(stdout,*) 'ENTER NUMBER OF SPECIES'
         read (*,*) numcompounds
         fields = 14 + numcompounds
         if ( fields>50 ) then
-          stop 999
+          call die('comp','Field maximum number is 50',1)
         else if ( fields<14 ) then
           go to 50
         else
@@ -309,7 +313,7 @@
         fields = 14
       end if
  
-      print * , 'producing ' , fields , ' files'
+      write(stdout,*) 'producing ' , fields , ' files'
       end subroutine comp
 
       end module mod_param_clm

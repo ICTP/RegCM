@@ -19,6 +19,9 @@
 
       module mod_nclib
 
+      use m_stdio
+      use m_die
+
       contains
 
 !-----------------------------------------------------------------------
@@ -82,9 +85,9 @@
       return
 
 !     ierr exit
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
             &      'create the data file in subroutine crecdf.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -286,9 +289,9 @@
       return
 
 !     ierr exit
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ',  &
             &      'write variable dimension values in putcoords.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -450,10 +453,10 @@
       return
 
 !     ierr exit
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
             &      'write variable ', varnam, ' values ',               &
             &      'at time ', time, ' in putdatcdfi2.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -664,15 +667,15 @@
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling putdefcdf, the number of ',   &
+ 900  write(stderr,*) '*ERROR*: When calling putdefcdf, the number of ',&
                &   'variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
- 920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
+ 920  write(stderr,*) '*ERROR*: An error occurred while attempting to ',&
                &   'write the data file in subroutine putdefcdf.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
       return
@@ -831,10 +834,10 @@
 
       return
 
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ',  &
             &      'write variable ', varnam, ' values ',               &
             &      'at time ', time, ' in putdatcdfr4.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -931,21 +934,21 @@
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling getdefi2, the number of ',    &
+ 900  write(stderr,*) '*ERROR*: When calling getdefi2, the number of ', &
                  & 'variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
- 910  write (6, *) '*ERROR*: The selected variable could not be found ',&
+ 910  write(stderr,*) '*ERROR*: The selected var could not be found ',&
                  & 'or is of wrong type in the file by getdefi2.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
- 920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
+ 920  write(stderr,*) '*ERROR*: An error occurred while attempting to ',&
                  & 'read the data file in subroutine getdefi2.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -1003,7 +1006,7 @@
 !     inquire for number of dimensions
       ierr = nf90_inquire(cdfid,ndims,nvars,ngatts,recdim)
       if ( ierr/=nf90_noerr ) then
-        print *, 'Error in nf90_inquire'
+        write(stderr,*) 'Error in nf90_inquire'
         go to 920
       end if
 
@@ -1011,7 +1014,7 @@
       do  i = 1 , ndims 
         ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
         if ( ierr/=nf90_noerr ) then
-          print *, 'Error nf90_inquire_dimension ', dimnam(i)
+          write(stderr,*) 'Error nf90_inquire_dimension ', dimnam(i)
           go to 920
         end if
       end do
@@ -1019,7 +1022,7 @@
 !     get id of the variable
       ierr = nf90_inq_varid(cdfid,varnam,id)
       if ( ierr/=nf90_noerr ) then
-        print *, 'Error nf90_inq_varid ', varnam
+        write(stderr,*) 'Error nf90_inq_varid ', varnam
         go to 920
       end if
 
@@ -1027,7 +1030,7 @@
       ierr = nf90_inquire_variable(cdfid,id,vnam,vartyp,ndim,           &
                    &                vardim,nvatts)
       if ( ierr/=nf90_noerr ) then
-        print *, 'Error nf90_inquire_variable ', varnam
+        write(stderr,*) 'Error nf90_inquire_variable ', varnam
         go to 920
       end if
       if ( vartyp/=nf90_float ) then
@@ -1049,7 +1052,7 @@
 !     get missing data value
       ierr = nf90_get_att(cdfid,id,'missing_value',misdat)
       if ( ierr/=nf90_noerr ) then
-        print *, 'Error in nf90_get_att missing_value'
+        write(stderr,*) 'Error in nf90_get_att missing_value'
         go to 920
       end if
 
@@ -1057,21 +1060,21 @@
       return
 
 !     Error exits.
- 900  write (6, *) '*ERROR*: When calling getdefcdfr4, the number of ', &
-                 & 'variable dimensions must be less or equal 4.'
+ 900  write(stderr,*) '*ERROR*: When calling getdefcdfr4, the number ', &
+                      'of variable dimensions must be less or equal 4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
- 910  write (6, *) '*ERROR*: The selected variable could not be found ',&
-                 & 'or is of wrong type in the file by getdefcdfr4.'
+ 910  write(stderr,*) '*ERROR*: The selected variable could not be ', &
+                 'found or is of wrong type in the file by getdefcdfr4.'
       ierr = nf90_close(cdfid)
       ierr = 1
       return
 
- 920  write (6, *) '*ERROR*: An error occurred while attempting to ',   &
+ 920  write(stderr,*) '*ERROR*: An error occurred while attempting to ',&
                  & 'read the data file in subroutine getdefcdfr4.'
-      write (6, *) nf90_strerror(ierr)
+      write(stderr,*) nf90_strerror(ierr)
       ierr = nf90_close(cdfid)
       ierr = 1
 
@@ -1120,11 +1123,11 @@
  
       return
 
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
             &      'read variable ', vnam , ' at time ', ntim1
-      write (6, *) nf90_strerror(iflag)
+      write(stderr,*) nf90_strerror(iflag)
 
-      stop 'READ ERROR'
+      call die('readcdfr4','READ ERROR',1)
 
       end subroutine readcdfr4
 
@@ -1221,11 +1224,11 @@
  
       return
 
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
             &      'read variable ', vnam , ' at time ', ntim1
-      write (6, *) nf90_strerror(iflag)
+      write(stderr,*) nf90_strerror(iflag)
 
-      stop 'READ ERROR'
+      call die('readcdfr4_360','READ ERROR',1)
 
       end subroutine readcdfr4_360
 
@@ -1281,11 +1284,11 @@
  
       return
 
- 920  write (6, *) 'ERROR: An error occurred while attempting to ',     &
+ 920  write(stderr,*) 'ERROR: An error occurred while attempting to ',  &
             &      'read variable ', vnam , ' at time ', ntim1
-      write (6, *) nf90_strerror(iflag)
+      write(stderr,*) nf90_strerror(iflag)
 
-      stop 'READ ERROR'
+      call die('readcdfr4_iso','READ ERROR',1)
 
       end subroutine readcdfr4_iso
 

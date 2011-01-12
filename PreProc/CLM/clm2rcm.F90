@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program clmproc
+      program clm2rcm
  
       use netcdf
       use mod_nclib
@@ -26,6 +26,8 @@
       use mod_param_clm
       use mod_date
       use mod_clm3grid
+      use m_stdio
+      use m_die
 
       implicit none
 !
@@ -58,7 +60,7 @@
       real(4) , dimension(3) :: varmax , varmin
       real(8) :: xhr
       real(4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-      real(4) :: perr , pmax
+      real(4) :: pxerr , pmax
       real(4) , allocatable , dimension(:) :: glat , glon , zlat ,      &
                &                           zlev , zlon
       real(4) , allocatable , dimension(:,:) :: mpu
@@ -85,18 +87,17 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
+        write(stderr,*) 'Parameter initialization not completed'
+        write(stderr,*) 'Usage : '
+        write(stderr,*) '          ', trim(prgname), ' regcm.in'
+        write(stderr,*) ' '
+        call die('clm2rcm','Check argument and namelist syntax',1)
       end if
 !
       if ( nsg/=1 ) then
-        write ( 6,* ) 'CLM does not work with subgridding enable.'
-        write ( 6,* ) 'Please set nsg=1 in regcm.in'
-        stop
+        write (stderr,*) 'CLM does not work with subgridding enable.'
+        write (stderr,*) 'Please set nsg=1 in regcm.in'
+        call die('clm2rcm','Check argument and namelist syntax',1)
       end if
 
       call allocate_domain
@@ -107,16 +108,18 @@
       call read_domain(terfile)
 
       if ( clatx/=clat .or. clonx/=clon) then
-        print * , 'DOMAIN file is inconsistent with regcm.in'
-        print * , '  namelist       :  clat=' , clat , ' clon=' , clon
-        print * , '  DOMAIN file    :  clat=' , clatx , ' clon=' , clonx
-        stop 782
+        write(stderr,*) 'DOMAIN file is inconsistent with regcm.in'
+        write(stderr,*) '  namelist       :  clat=' , clat , &
+                        ' clon=' , clon
+        write(stderr,*) '  DOMAIN file    :  clat=' , clatx , &
+                        ' clon=' , clonx
+        call die('clm2rcm')
       end if
       if ( iprojx/=iproj ) then
-        print * , 'DOMAIN file is inconsistent with regcm.in'
-        print * , '  namelist       : iproj=' , iproj
-        print * , '  DOMAIN file    : iproj=' , iprojx
-        stop 783
+        write(stderr,*) 'DOMAIN file is inconsistent with regcm.in'
+        write(stderr,*) '  namelist       : iproj=' , iproj
+        write(stderr,*) '  DOMAIN file    : iproj=' , iprojx
+        call die('clm2rcm')
       end if
  
 !     ** Set output variables
@@ -333,8 +336,8 @@
         inpfile = trim(inpglob)//infil(ifld)
         inquire (file=inpfile,exist=there)
         if ( .not.there ) then
-          print * , 'CLM Input file does not exist: ', trim(inpfile)
-          stop 'NON-EXISTENT FILE'
+          call die('clm2rcm','CLM Input file does not exist: '// &
+                    trim(inpfile),1)
         end if
         if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.            &
            & ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.            &
@@ -343,7 +346,7 @@
            & ifld==iapin ) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
-          print * , 'OPENING Input NetCDF FILE: ' , trim(inpfile)
+          write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
           ierr = nf90_open(inpfile,nf90_nowrite,idin)
           call check_ok(ierr,('Cannot open input file '//trim(inpfile)))
           ipathdiv = scan(inpfile, pthsep, .true.)
@@ -355,7 +358,7 @@
                    & '_RCM'//inpfile(7:)
           endif
 !         CALL FEXIST(outfil_nc)
-          print * , 'OPENING Output NetCDF FILE: ' , trim(outfil_nc)
+          write(stdout,*) 'OPENING Output NetCDF FILE: ',trim(outfil_nc)
           call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
         end if
  
@@ -387,7 +390,7 @@
         call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,          &
                      & icount,zlon,zlat,zlev)
 !
-        print *, 'Reading variables from input file'
+        write(stdout,*) 'Reading variables from input file'
 !
 !       ** Read in the variables.
 !       In some cases, special reads need to be performed:
@@ -400,7 +403,7 @@
           allocate(mpu(icount(1),icount(2)))
           call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                        & ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
-          print *, 'Read ', trim(lnam(ifld))
+          write(stdout,*) 'Read ', trim(lnam(ifld))
           call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
                        & icount(1),istart(2),icount(2),1,1,1,1,landmask)
           call readcdfr4(idin,vnam_st,cdum,cdum,istart(1),              &
@@ -430,23 +433,23 @@
                            & istart(1),icount(1),istart(2),icount(2),   &
                            & istart(3),icount(3),istart(4),icount(4),   &
                            & zoom)
-          print *, 'Read ', trim(lnam(ifld))
+          write(stdout,*) 'Read ', trim(lnam(ifld))
         else
           if ( ifld/=icol ) then
             call readcdfr4(idin,vnam_lm,lnam(ifld),units(ifld),         &
                  & istart(1),icount(1),istart(2),icount(2),1,1,1,1,     &
                  & landmask)
-            print *, 'Read ', trim(lnam(ifld))
+            write(stdout,*) 'Read ', trim(lnam(ifld))
           end if
           call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),        &
                        & istart(1),icount(1),istart(2),icount(2),       &
                        & istart(3),icount(3),istart(4),icount(4),zoom)
-          print *, 'Read ', trim(lnam(ifld))
+          write(stdout,*) 'Read ', trim(lnam(ifld))
         end if
  
         if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
            & ifld==imbo .or. ifld==iapin ) then
-          print *, 'Adjusting landmask'
+          write(stdout,*) 'Adjusting landmask'
           do j = 1 , icount(2)
             do i = 1 , icount(1)
               if ( zoom(i,j,1,1)>vmin(ifld) ) then
@@ -458,7 +461,7 @@
           end do
         end if
 
-        print * , 'READ/WRITE: ' , vnam(ifld) , lnam(ifld) , units(ifld)
+        write(stdout,*) 'READ/WRITE: ',vnam(ifld),lnam(ifld),units(ifld)
  
 !       ** Set the non-land values to missing for interpolation purposes
 
@@ -485,18 +488,18 @@
                   do k = 1 , nlev(ifld)
                     regyxzt(j,i,k,l) = nint(regyxzt(j,i,k,l))
                   end do
-                  perr = 100.
+                  pxerr = 100.
                   kmax = -1
                   pmax = -99.
                   do k = 1 , nlev(ifld)
-                    perr = perr - regyxzt(j,i,k,l)
+                    pxerr = pxerr - regyxzt(j,i,k,l)
                     if ( regyxzt(j,i,k,l)>pmax ) then
                       pmax = regyxzt(j,i,k,l)
                       kmax = k
                     end if
                   end do
-                  regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + perr
-!                 print*,i,j,perr,pmax,regyxzt(j,i,kmax,l)
+                  regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
+!                 write(stdout,*) j,pxerr,pmax,regyxzt(j,i,kmax,l)
                 end if
               end do
             end do
@@ -636,7 +639,7 @@
       call check_ok(istatus, &
               &     ('Error Closing output file '//trim(checkfile)))
 
-      print *, 'Successfully completed CLM preprocessing.'
+      write(stdout,*) 'Successfully completed CLM preprocessing.'
  
       contains
 
@@ -704,10 +707,10 @@
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then 
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
+          write (stderr,*) message
+          write (stderr,*) nf90_strerror(ierr)
+          call die('clm2rcm')
         end if
       end subroutine check_ok
 
-      end program clmproc
+      end program clm2rcm

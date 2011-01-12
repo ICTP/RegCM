@@ -21,6 +21,8 @@
 
     use netcdf
     use mod_dynparam
+    use m_stdio
+    use m_die
 
     implicit none
 
@@ -67,30 +69,30 @@
 
         !Open the netcdf file
         call handle_nc_err( nf90_open(terfile, nf90_nowrite, incin),   &
-          "Opening", trim(terfile))
+          'Opening', trim(terfile))
 
         !Read the dimensions from the netcdf file
-        call handle_nc_err( nf90_inq_dimid(incin, "iy", idimid),   &
-          "Finding","iy")
+        call handle_nc_err( nf90_inq_dimid(incin, 'iy', idimid),   &
+          'Finding','iy')
         call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=iyy),    &
-          "Reading","iy")
+          'Reading','iy')
 
-        call handle_nc_err( nf90_inq_dimid(incin, "jx", idimid),   &
-          "Finding","jx")
+        call handle_nc_err( nf90_inq_dimid(incin, 'jx', idimid),   &
+          'Finding','jx')
         call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=jxx),    &
-          "Reading","jx")
+          'Reading','jx')
 
-        call handle_nc_err( nf90_inq_dimid(incin, "kz", idimid),   &
-          "Finding","kz")
+        call handle_nc_err( nf90_inq_dimid(incin, 'kz', idimid),   &
+          'Finding','kz')
         call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=kzz),    &
-          "Reading","kz")
+          'Reading','kz')
 
         !Check for consistency with regcm.in
         if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1 ) then
-          print * , "DOMAIN.INFO is inconsistent with regcm.in"
-          print * , "  namelist  : " , iy , jx , kz
-          print * , "  DOMAIN    : " , iyy , jxx , kzz
-          stop "Dimension mismatch"
+          write(stderr,*) 'DOMAIN.INFO is inconsistent with regcm.in'
+          write(stderr,*) '  namelist  : ' , iy , jx , kz
+          write(stderr,*) '  DOMAIN    : ' , iyy , jxx , kzz
+          call die('read_domain','Dimension mismatch',1)
         end if
 
         allocate(xlat_dum(jx,iy))
@@ -98,40 +100,40 @@
 
         !Read ds
         call handle_nc_err(  &
-           nf90_get_att(incin, NF90_GLOBAL,"grid_size_in_meters", dsx),   &
-          "Reading","ds")
+           nf90_get_att(incin, NF90_GLOBAL,'grid_size_in_meters', dsx),   &
+          'Reading','ds')
         !Convert from m to km
         dsx = dsx/1000
 
         !Read clatx
         call handle_nc_err(  &
-          nf90_get_att(incin, NF90_GLOBAL,"latitude_of_projection_origin" &
+          nf90_get_att(incin, NF90_GLOBAL,'latitude_of_projection_origin' &
                        ,clatx),&
-          "Reading","latitude_of_projection_origin")
+          'Reading','latitude_of_projection_origin')
 
         !Read clonx
         call handle_nc_err(  &
-          nf90_get_att(incin, NF90_GLOBAL,"longitude_of_projection_origin", &
+          nf90_get_att(incin, NF90_GLOBAL,'longitude_of_projection_origin', &
                        clonx),&
-          "Reading","longitude_of_projection_origin")
+          'Reading','longitude_of_projection_origin')
 
         !Read iproj
         call handle_nc_err(  &
-           nf90_get_att(incin, NF90_GLOBAL,"projection", iprojx), &
-          "Reading","projection")
+           nf90_get_att(incin, NF90_GLOBAL,'projection', iprojx), &
+          'Reading','projection')
 
         !Only if using the Rotated Mercator projection, read the poles
-        if(iprojx.eq."ROTMER")then
+        if(iprojx.eq.'ROTMER')then
           !Read plat
           call handle_nc_err(  &
-             nf90_get_att(incin, NF90_GLOBAL,"grid_north_pole_latitude", &
+             nf90_get_att(incin, NF90_GLOBAL,'grid_north_pole_latitude', &
                           platx), &
-            "Reading","grid_north_pole_latitude")
+            'Reading','grid_north_pole_latitude')
           !Read plon
           call handle_nc_err(  &
-             nf90_get_att(incin, NF90_GLOBAL,"grid_north_pole_longitude", &
+             nf90_get_att(incin, NF90_GLOBAL,'grid_north_pole_longitude', &
                           plonx), &
-            "Reading","grid_north_pole_longitude")
+            'Reading','grid_north_pole_longitude')
         else
           platx = clatx
           plonx = clonx
@@ -139,48 +141,48 @@
 
         !Read grdfacx
         call handle_nc_err(  &
-           nf90_get_att(incin, NF90_GLOBAL,"grid_factor",grdfacx), &
-          "Reading","projection")
+           nf90_get_att(incin, NF90_GLOBAL,'grid_factor',grdfacx), &
+          'Reading','projection')
 
         !Read sigx
         call handle_nc_err(  &
-          nf90_inq_varid(incin,"sigma",ivarid), &
-          "Finding","sigma")
+          nf90_inq_varid(incin,'sigma',ivarid), &
+          'Finding','sigma')
         call handle_nc_err(  &
           nf90_get_var(incin,ivarid,sigx), &
-          "Reading","sigma")
+          'Reading','sigma')
 
         !Read ptopx
         call handle_nc_err(  &
-          nf90_inq_varid(incin,"ptop",ivarid), &
-          "Finding","ptop")
+          nf90_inq_varid(incin,'ptop',ivarid), &
+          'Finding','ptop')
         call handle_nc_err(  &
           nf90_get_var(incin,ivarid,ptopx), &
-          "Reading","ptop")
+          'Reading','ptop')
 
         !Read ptopx
         call handle_nc_err(  &
-          nf90_inq_varid(incin,"ptop",ivarid), &
-          "Finding","ptop")
+          nf90_inq_varid(incin,'ptop',ivarid), &
+          'Finding','ptop')
         call handle_nc_err(  &
           nf90_get_var(incin,ivarid,ptopx), &
-          "Reading","ptop")
+          'Reading','ptop')
 
         !Read xlat
         call handle_nc_err(  &
-          nf90_inq_varid(incin,"xlat",ivarid), &
-          "Finding","xlat")
+          nf90_inq_varid(incin,'xlat',ivarid), &
+          'Finding','xlat')
         call handle_nc_err(  &
           nf90_get_var(incin,ivarid,xlat_dum), &
-          "Reading","xlat")
+          'Reading','xlat')
           
         !Read xlon
         call handle_nc_err(  &
-          nf90_inq_varid(incin,"xlon",ivarid), &
-          "Finding","xlon")
+          nf90_inq_varid(incin,'xlon',ivarid), &
+          'Finding','xlon')
         call handle_nc_err(  &
           nf90_get_var(incin,ivarid,xlon_dum), &
-          "Reading","xlon")
+          'Reading','xlon')
 
         !Set xlat and xlon, swapping the i/j indicies of what was read in
         xlat = transpose(xlat_dum)
@@ -192,9 +194,9 @@
         !Close the netcdf flie
         istatus = nf90_close(incin)
         if (istatus /= nf90_noerr) then
-          write (6,*) "Error closing Domain file ", trim(terfile)
-          write (6,*) nf90_strerror(istatus)
-          stop
+          write(stderr,*) 'Error closing Domain file ', trim(terfile)
+          write(stderr,*) nf90_strerror(istatus)
+          call die('read_domain')
         end if
 
       end subroutine read_domain
@@ -206,9 +208,10 @@
         character*(*),intent(in) :: sAction,sVarname
 
          if (incerr /= nf90_noerr) then
-          write (6,*) "Error associated with ", trim(sAction)," ",trim(sVarname)
-          write (6,*) nf90_strerror(incerr)
-          stop
+          write(stderr,*) 'Error associated with ', trim(sAction), &
+                          ' ',trim(sVarname)
+          write(stderr,*) nf90_strerror(incerr)
+          call die('read_domain')
         end if
 
       end subroutine handle_nc_err
