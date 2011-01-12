@@ -21,6 +21,7 @@
 
       use mod_dynparam
       use m_die
+      use m_mall
 
       private
 
@@ -45,15 +46,32 @@
 
       subroutine init_output
       implicit none
-        allocate(ps4(jx,iy))
-        allocate(ts4(jx,iy))
-        allocate(h4(jx,iy,kz))
-        allocate(q4(jx,iy,kz))
-        allocate(t4(jx,iy,kz))
-        allocate(u4(jx,iy,kz))
-        allocate(v4(jx,iy,kz))
+        integer :: ierr
+        allocate(ps4(jx,iy), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate ps4',ierr)
+        call mall_mci(ps4,'mod_write')
+        allocate(ts4(jx,iy), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate ts4',ierr)
+        call mall_mci(ts4,'mod_write')
+        allocate(h4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate h4',ierr)
+        call mall_mci(h4,'mod_write')
+        allocate(q4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate q4',ierr)
+        call mall_mci(q4,'mod_write')
+        allocate(t4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate t4',ierr)
+        call mall_mci(t4,'mod_write')
+        allocate(u4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate u4',ierr)
+        call mall_mci(u4,'mod_write')
+        allocate(v4(jx,iy,kz), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate v4',ierr)
+        call mall_mci(v4,'mod_write')
         if ( dattyp=='EH5OM' .and. ehso4) then
-          allocate(sulfate4(jx,iy,kz))
+          allocate(sulfate4(jx,iy,kz), stat=ierr)
+          if (ierr /= 0) call die('init_output','allocate sulfate',ierr)
+          call mall_mci(sulfate4,'mod_write')
         end if
       end subroutine init_output
 
@@ -61,14 +79,22 @@
         use netcdf
         implicit none
         integer :: istatus
+        call mall_mco(ps4,'mod_write')
         deallocate(ps4)
+        call mall_mco(ts4,'mod_write')
         deallocate(ts4)
+        call mall_mco(h4,'mod_write')
         deallocate(h4)
+        call mall_mco(q4,'mod_write')
         deallocate(q4)
+        call mall_mco(t4,'mod_write')
         deallocate(t4)
+        call mall_mco(u4,'mod_write')
         deallocate(u4)
+        call mall_mco(v4,'mod_write')
         deallocate(v4)
         if ( dattyp=='EH5OM' .and. ehso4) then
+          call mall_mco(sulfate4,'mod_write')
           deallocate(sulfate4)
         end if
         if (ncout > 0) then
@@ -430,8 +456,12 @@
         hptop = ptop*10.0
         istatus = nf90_put_var(ncout, izvar(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy))
-        allocate(xjx(jx))
+        allocate(yiy(iy), stat=istatus)
+        if (istatus /= 0) call die('init_output','allocate yiy',istatus)
+        call mall_mci(yiy,'mod_write')
+        allocate(xjx(jx), stat=istatus)
+        if (istatus /= 0) call die('init_output','allocate xjx',istatus)
+        call mall_mci(xjx,'mod_write')
         yiy(1) = -(dble(iy-1)/2.0) * ds
         xjx(1) = -(dble(jx-1)/2.0) * ds
         do i = 2 , iy
@@ -445,7 +475,9 @@
         istatus = nf90_put_var(ncout, ivvar(2), xjx)
         call check_ok(istatus,'Error variable jx write')
         deallocate(yiy)
+        call mall_mco(yiy,'mod_write')
         deallocate(xjx)
+        call mall_mco(xjx,'mod_write')
         istatus = nf90_put_var(ncout, illvar(1), xlat)
         call check_ok(istatus,'Error variable xlat write')
         istatus = nf90_put_var(ncout, illvar(2), xlon)

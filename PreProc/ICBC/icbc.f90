@@ -113,6 +113,9 @@
       use mod_header
       use m_stdio
       use m_die
+      use m_mall
+      use m_zeit
+
       implicit none
 !
 ! Local variables
@@ -144,6 +147,11 @@
         call die('icbc','Check argument and namelist syntax',1)
       end if
 !
+      if (debug_level > 2) then
+        call mall_set()
+        call zeit_ci('icbc')
+      end if
+
       call init_grid(iy,jx,kz)
       call init_output
 
@@ -252,6 +260,13 @@
       call free_grid
       call closesst
  
+      if (debug_level > 2) then
+        call mall_flush(stdout)
+        call mall_set(.false.)
+        call zeit_co('icbc')
+        call zeit_flush(stdout)
+      end if
+
       call finaltime(0)
       write(stdout,*) 'Successfully completed ICBC'
 
