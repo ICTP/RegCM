@@ -57,6 +57,8 @@
       use mod_mksst
       use mod_uvrot
       use mod_vectutil
+      use m_stdio
+      use m_die
       implicit none
 !
 ! Dummy arguments
@@ -98,9 +100,8 @@
       inquire (file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
              & exist=there)
       if ( .not.there ) then
-        write (*,*) trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992) , &
-                   &' is not available'
-        stop
+        call die('getecwcp',trim(inpglob)//'/ECWCRP/'// &
+                 finm(month,nyear-1992)//' is not available',1)
       end if
       open (63,file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
            &form='unformatted',recl=ilon*jlat*ibyte,access='direct')
@@ -130,7 +131,7 @@
         nrec = nrec + 1
         read (63,rec=nrec) ((q1(i,j,k),i=1,ilon),j=1,jlat)
       end do
-      write (*,*) 'READ IN fields at DATE:' , idate , ' from ' ,        &
+      write (stdout,*) 'READ IN fields at DATE:' , idate , ' from ' , &
                 & finm(month,nyear-1992)
       close (21)
 !

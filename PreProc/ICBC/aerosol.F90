@@ -36,6 +36,8 @@
       use mod_date
       use netcdf
       use m_realkinds
+      use m_stdio
+      use m_die
 
       implicit none
 !
@@ -78,12 +80,11 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
+        write ( stderr, * ) 'Parameter initialization not completed'
+        write ( stderr, * ) 'Usage : '
+        write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
+        write ( stderr, * ) ' '
+        call die('aerosol','Check argument and namelist syntax',1)
       end if
 !
       allocate(aermm(iy,jx))
@@ -92,8 +93,10 @@
       allocate(finmat(jx,iy))
 
       inquire (file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',exist=there)
-      if ( .not.there ) print * , 'AEROSOL.dat is not available' ,      &
-                             &' under ',trim(inpglob),'/AERGLOB/'
+      if ( .not.there ) then
+        call die('aerosol','AEROSOL.dat is not available'// &
+                 ' under '//trim(inpglob)//'/AERGLOB/',1)
+      end if
       open (11,file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',              &
           & form='unformatted',recl=ilon*jlat*ibyte,access='direct',    &
           & status='old',err=100)
@@ -127,10 +130,10 @@
       istatus = nf90_inquire_dimension(incin, idimid, len=kzz)
       call check_ok(istatus, 'Dimension kz read error')
       if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1) then
-        print * , 'IMPROPER DIMENSION SPECIFICATION'
-        print * , '  namelist   : ' , iy , jx , kz
-        print * , '  DOMAIN     : ' , iyy , jxx , kzz-1
-        stop 'Dimensions mismatch'
+        write(stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
+        write(stderr,*) '  namelist   : ' , iy , jx , kz
+        write(stderr,*) '  DOMAIN     : ' , iyy , jxx , kzz-1
+        call die('aerosol','Dimensions mismatch',1)
       end if
       allocate(sigma(kzp1))
       istatus = nf90_inq_varid(incin, "sigma", ivarid)
@@ -486,12 +489,10 @@
       istatus = nf90_close(ncid)
       call check_ok(istatus, 'Error Closing output sst file')
 
-      print *, 'Successfully built aerosol data for domain'
-      stop
+      write(stdout,*) 'Successfully built aerosol data for domain'
 
  100  continue
-      print * , 'ERROR OPENING AEROSOL FILE'
-      stop
+      call die('aerosol','ERROR OPENING AEROSOL FILE',1)
 
       contains
 !
@@ -598,9 +599,9 @@
         integer , intent(in) :: ierr
         character(*) :: message
         if (ierr /= nf90_noerr) then 
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
+          write (stderr,*) message
+          write (stderr,*) nf90_strerror(ierr)
+          call die('check_ok')
         end if
       end subroutine check_ok
 

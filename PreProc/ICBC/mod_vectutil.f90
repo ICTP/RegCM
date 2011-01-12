@@ -20,6 +20,7 @@
       module mod_vectutil
 
       use m_realkinds
+      use m_stdio
 
       contains
 
@@ -43,7 +44,7 @@
             if ( smin>var(i,j,k) ) smin = var(i,j,k)
           end do
         end do
-        write (*,*) cvar , k , smax , smin
+        write (stdout,*) cvar , k , smax , smin
       end do
       end subroutine mxmn3d
 !

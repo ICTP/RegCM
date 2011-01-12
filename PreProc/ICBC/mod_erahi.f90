@@ -20,6 +20,7 @@
       module mod_erahi
       use mod_dynparam
       use m_realkinds
+      use m_stdio
 
       private
 
@@ -82,14 +83,14 @@
             if ( xlon(i,j)>xlonmax ) xlonmax = xlon(i,j)
           end do
         end do
-        write (*,*) 'XLONMIN,XLONMAX= ' , xlonmin , xlonmax
+        write (stdout,*) 'XLONMIN,XLONMAX= ' , xlonmin , xlonmax
         slonmin = 400.
         slonmax = -400.
         do i = 1 , nlons
           if ( slon(i)<slonmin ) slonmin = slon(i)
           if ( slon(i)>slonmax ) slonmax = slon(i)
         end do
-        write (*,*) 'SLONMIN,SLONMAX= ' , slonmin , slonmax
+        write (stdout,*) 'SLONMIN,SLONMAX= ' , slonmin , slonmax
       end if
       write (finame,99001) idate
       open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte,   &
@@ -123,7 +124,7 @@
         read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
       end do
  
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
       do k = 1 , nlevs
         do j = 1 , nlats
           do i = 1 , nlons

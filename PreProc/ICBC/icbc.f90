@@ -111,6 +111,8 @@
       use mod_nest
       use mod_write
       use mod_header
+      use m_stdio
+      use m_die
       implicit none
 !
 ! Local variables
@@ -134,12 +136,12 @@
       end if
 
       if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
+        write ( stderr, * ) 'Parameter initialization not completed'
+        write ( stderr, * ) 'Usage : '
+        write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
+        write ( stderr, * ) ' '
+        write ( stderr, * ) 'Check argument and namelist syntax'
+        call die('icbc','Check argument and namelist syntax',1)
       end if
 !
       call init_grid(iy,jx,kz)
@@ -147,9 +149,9 @@
 
       nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 
-      write (*,*) 'GLOBIDATE1 : ' , globidate1
-      write (*,*) 'GLOBIDATE2 : ' , globidate2
-      write (*,*) 'NSTEPS     : ' , nsteps
+      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+      write (stdout,*) 'NSTEPS     : ' , nsteps
  
       idate = globidate1
       iodate = idate
@@ -179,8 +181,7 @@
       else if ( dattyp=='FNEST' ) then
         call headnest
       else
-        write ( 6,* ) 'Unknown dattyp'
-        stop
+        call die('icbc','Unknown dattyp',1)
       end if
  
       do nnn = 1 , nsteps
@@ -252,8 +253,6 @@
       call closesst
  
       call finaltime(0)
-      print *, 'Successfully completed ICBC'
-
-      stop
+      write(stdout,*) 'Successfully completed ICBC'
 
       end program icbc

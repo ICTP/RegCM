@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_header
+      use m_stdio
 
       contains
 
@@ -31,7 +32,7 @@
       character (len=32) :: hostname='?' 
       character (len=32) :: user='?' 
       character (len=256) :: directory='?'
-      integer , parameter :: nrite=6
+      integer , parameter :: nrite=stdout
   
 
       write (nrite,99002)  myname 
@@ -71,7 +72,7 @@
 #else
           call fdate(cdata)
 #endif 
-          write ( 6,* ) 'Input ready at : ', cdata
+          write ( stdout,* ) 'Input ready at : ', cdata
         end if
 
         return

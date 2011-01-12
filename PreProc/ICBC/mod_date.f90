@@ -20,6 +20,8 @@
       module mod_date
 
       use m_realkinds
+      use m_stdio
+      use m_die
 
       integer , private , dimension(12) :: mlen
       integer , private , dimension(12) :: mmid
@@ -200,11 +202,11 @@
           end if
         end if
         if (icaltype == 0) then
-          write (6, *) 'year  = ', iy
-          write (6, *) 'month = ', im
-          write (6, *) 'day   = ', id
-          write (6, *) 'Day non existent, inside Julian/Gregorian jump'
-          stop
+          write (stderr, *) 'year  = ', iy
+          write (stderr, *) 'month = ', im
+          write (stderr, *) 'day   = ', id
+          call die('lcaltype', &
+                   'Day non existent, inside Julian/Gregorian jump',1)
         end if
         if (icaltype == 1) then
           lcaltype = .false.
