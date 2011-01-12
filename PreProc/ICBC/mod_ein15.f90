@@ -21,6 +21,8 @@
 
       use mod_dynparam
       use m_realkinds
+      use m_stdio
+      use m_die
 
       private
 
@@ -68,7 +70,7 @@
 !
       call ein156hour(dattyp,idate,globidate1)
 
-      write (*,*) 'READ IN fields at DATE:' , idate
+      write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -171,9 +173,8 @@
 !
 !bxq
       if ( idate<1989010100 .or. idate>2010033118 ) then
-        write (*,*) 'EIN15 datasets is just available from' ,           &
-                   &' 1989010100 to 2010033118'
-        stop
+        call die('ein156hour','EIN15 datasets is just available from'// &
+                 ' 1989010100 to 2010033118',1)
       end if
  
       nyear = idate/1000000
@@ -246,36 +247,36 @@
             pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
-              print * , trim(pathaddname) , ' is not available'
-              stop
+              call die('ein156hour',trim(pathaddname)// &
+                       ' is not available',1)
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
                    & inet5(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              write (*,*) 'Error opening ' , trim(pathaddname)
-              stop
+              call die('ein156hour',trim(pathaddname)// &
+                       ':open',1,nf90_strerror(istatus),istatus)
             end if
             istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),    &
                    & ivar5(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              write (*,*) 'Error searching var ' , varname(kkrec)
-              stop
+              call die('ein156hour',trim(pathaddname)//':'// &
+                       varname(kkrec),1,nf90_strerror(istatus),istatus)
             end if
             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
                    & 'scale_factor',xscl(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              write (*,*) 'Error attribure scale_factor for var ' ,     &
-                     &     varname(kkrec)
-              stop
+              call die('ein156hour',trim(pathaddname)//':'// &
+                       varname(kkrec)//':scale_factor',1, &
+                       nf90_strerror(istatus),istatus)
             end if
             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
                    & 'add_offset',xoff(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              write (*,*) 'Error attribure add_offset for var ' ,       &
-                     &     varname(kkrec)
-              stop
+              call die('ein156hour',trim(pathaddname)//':'// &
+                       varname(kkrec)//':add_offset',1, &
+                       nf90_strerror(istatus),istatus)
             end if
-            write (*,*) inet5(kkrec,k4) , trim(pathaddname) ,           &
+            write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,      &
                        &  xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
@@ -320,9 +321,9 @@
         ivar = ivar5(kkrec,k4)
         istatus = nf90_get_var(inet,ivar,work,istart,icount)
         if (istatus /= nf90_noerr) then
-          write (*,*) 'Error reading variable ' , varname(kkrec) ,      &
-              & ' at ' , istart , ' for ' , icount
-          stop
+          call die('ein156hour',trim(pathaddname)//':'// &
+                   varname(kkrec)//':readvar',1, &
+                   nf90_strerror(istatus),istatus)
         end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
