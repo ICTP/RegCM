@@ -14,8 +14,7 @@ sst_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90       \
 							mod_sst_grid.F90 mod_header.F90 sst.f90
 icbc_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90  \
                mod_ccsm.f90 mod_vectutil.f90 mod_ecwcp.f90      \
-							 mod_eh5om.f90 mod_ein15.f90 mod_ein25.f90        \
-							 mod_ein75.f90 mod_era40.f90 mod_erahi.f90        \
+							 mod_eh5om.f90 mod_ein.f90 mod_era40.f90 mod_erahi.f90 \
                mod_fvgcm.f90 mod_gfs11.f90 mod_grid.f90         \
 							 mod_ncep.f90 mod_nest.f90 mod_write.F90          \
 							 mod_interp.f90 mod_vertint.f90 mod_header.F90    \
@@ -51,15 +50,9 @@ mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
 mod_eh5om.o: mod_eh5om.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o
-mod_ein15.o: mod_ein15.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ein25.o: mod_ein25.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
-mod_ein75.o: mod_ein75.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
+mod_ein.o: mod_ein.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+           mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+           mod_vectutil.o
 mod_era40.o: mod_era40.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o
@@ -103,4 +96,4 @@ mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o
 sst.o: sst.f90 mod_dynparam.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
        mod_sst_fvgcm.o mod_sst_ccsm.o mod_sst_grid.o mod_header.o
 icbc.o: icbc.f90 mod_dynparam.o mod_date.o mod_grid.o mod_write.o \
-        mod_ein15.o mod_ncep.o mod_interp.o mod_header.o mod_mksst.o
+        mod_ein.o mod_ncep.o mod_interp.o mod_header.o mod_mksst.o

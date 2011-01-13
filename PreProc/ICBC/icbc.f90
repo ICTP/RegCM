@@ -100,9 +100,7 @@
       use mod_date
       use mod_ecwcp
       use mod_eh5om
-      use mod_ein15
-      use mod_ein25
-      use mod_ein75
+      use mod_ein
       use mod_era40
       use mod_erahi
       use mod_fvgcm
@@ -173,11 +171,11 @@
       else if ( dattyp=='ERA40' ) then
         call headerera
       else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
-        call headerein15
+        call headerein(15)
       else if ( dattyp=='EIN75' ) then
-        call headerein75
+        call headerein(75)
       else if ( dattyp=='EIN25' ) then
-        call headerein25
+        call headerein(25)
       else if ( dattyp=='GFS11' ) then
         call headergfs
       else if ( dattyp=='ERAHI' ) then
@@ -205,12 +203,9 @@
             call getecwcp(idate)
           else if ( dattyp=='ERA40' ) then
             call getera40(idate)
-          else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
-            call getein15(idate)
-          else if ( dattyp=='EIN75' ) then
-            call getein75(idate)
-          else if ( dattyp=='EIN25' ) then
-            call getein25(idate)
+          else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
+                    dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+            call getein(idate)
           else if ( dattyp=='GFS11' ) then
             call getgfs11(idate)
           else if ( dattyp=='ERAHI' ) then
@@ -232,12 +227,9 @@
           call getecwcp(idate)
         else if ( dattyp=='ERA40' ) then
           call getera40(idate)
-        else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
-          call getein15(idate)
-        else if ( dattyp=='EIN75' ) then
-          call getein75(idate)
-        else if ( dattyp=='EIN25' ) then
-          call getein25(idate)
+        else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
+                  dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+          call getein(idate)
         else if ( dattyp=='GFS11' ) then
           call getgfs11(idate)
         else if ( dattyp=='ERAHI' ) then

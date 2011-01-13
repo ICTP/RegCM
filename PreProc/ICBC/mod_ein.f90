@@ -17,7 +17,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_ein25
+      module mod_ein
+
       use mod_dynparam
       use m_realkinds
       use m_stdio
@@ -25,10 +26,8 @@
 
       private
 
-      integer , parameter :: klev = 23 , jlat = 73 , ilon = 144
+      integer :: inlev , klev , jlat , ilon , imindat , imaxdat
 
-      real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
-      real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
 
@@ -37,16 +36,23 @@
       real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      integer(2) , dimension(ilon,jlat,37) :: work
-      real(sp) , dimension(jlat) :: glat
-      real(sp) , dimension(ilon) :: glon
-      real(sp) , dimension(klev) :: sigma1 , sigmar
+      real(sp) :: xres
+      real(sp) , allocatable , target , dimension(:,:,:) :: b2
+      real(sp) , allocatable , target , dimension(:,:,:) :: d2
+      real(sp) , allocatable , dimension(:) :: glat
+      real(sp) , allocatable , dimension(:) :: glon
+      real(sp) , allocatable , dimension(:) :: sigma1 , sigmar
+      integer(2) , allocatable , dimension(:,:,:) :: work
 
-      public :: getein25 , headerein25
+      integer , dimension(5,4) :: inet5
+      integer , dimension(5,4) :: ivar5
+      real(dp) , dimension(5,4) :: xoff , xscl
+
+      public :: getein , headerein
 
       contains
 
-      subroutine getein25(idate)
+      subroutine getein(idate)
       use mod_grid
       use mod_write
       use mod_interp , only : bilinx2
@@ -58,13 +64,12 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
 !
-!     D      BEGIN LOOP OVER NTIMES
+!     READ DATA AT IDATE
 !
-      call ein256hour(dattyp,idate,globidate1)
+      call ein6hour(dattyp,idate,globidate1)
+
       write (stdout,*) 'READ IN fields at DATE:' , idate
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
@@ -92,6 +97,7 @@
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+!
       call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
  
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
@@ -101,33 +107,31 @@
          call p1p2(b3pd,ps4,jx,iy)
       endif
  
-!     CALL HUMID1(T3,Q3,100.,0.0,SIGMA1,JX,IY,klev)
-!
-!     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
-!     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+!     INTERPOLATION FROM PRESSURE LEVELS
       call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
-      call readsst(ts4,idate)
 
+      call readsst(ts4,idate)
+ 
 !     F3  INTERPOLATE U, V, T, AND Q.
+
       call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
       call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-!
       call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
- 
       call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+! 
       call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G   WRITE AN INITIAL FILE FOR THE RCM
+!     G   WRITE AN INITIAL FILE FOR THE RegCM
       call writef(idate)
 !
-      end subroutine getein25
-
-      subroutine ein256hour(dattyp,idate,idate0)
+      end subroutine getein
 !
+!-----------------------------------------------------------------------
+!
+      subroutine ein6hour(dattyp,idate,idate0)
       use netcdf
       implicit none
 !
@@ -136,38 +140,28 @@
       intent (in) dattyp , idate , idate0
 !
       integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
-               & nhour , nyear , istatus
+               & nhour , nyear , istatus , ivar
       character(24) :: inname
       character(256) :: pathaddname
       logical :: there
-!     character(1) , dimension(5) :: varname
+      character(1) , dimension(5) :: varname
       real(dp) :: xadd , xscale
-!
-      integer , dimension(5,4) , save :: inet6
-      real(dp) , dimension(5,4) , save :: xoff , xscl
-      integer , dimension(10) , save :: icount , istart
+      integer , dimension(10) :: icount , istart
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
 !     netCDF file.
-!
 !     The data are packed into short integers (INTEGER*2).  The array
 !     work will be used to hold the packed integers.  The array 'x'
 !     will contain the unpacked data.
 !
-!     DATA ARRAY AND WORK ARRAY
+      data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
-!     data varname/'t' , 'z' , 'r' , 'u' , 'v'/
-!
-!     Below in the ncopen call is the file name of the netCDF file.
-!     You may want to add code to read in the file name and the
-!     variable name.
-!     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
-!
-!bxq
-      if ( idate<1989010100 .or. idate>1998123118 ) then
-        call die('ein256hour','EIN25 datasets is just available from'// &
-               & ' 1989010100 to 1998123118',1)
+      if ( idate<imindat .or. idate>imaxdat ) then
+        write (stderr, *) 'EIN data for resolution ',xres,' degrees ', &
+                      'are available only from ',imindat,' up to ', &
+                      imaxdat
+        call die('ein6hour','EIN dataset unavailable',1)
       end if
  
       nyear = idate/1000000
@@ -240,29 +234,37 @@
             pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
             inquire (file=pathaddname,exist=there)
             if ( .not.there ) then
-              call die('ein256hour',trim(pathaddname)// &
-                       ' is not available', 1)
+              call die('ein6hour',trim(pathaddname)// &
+                       ' is not available',1)
             end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
-                   & inet6(kkrec,k4))
+                   & inet5(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              call die('ein256hour',trim(pathaddname)// &
-                       ':open', 1, nf90_strerror(istatus), istatus)
+              call die('ein6hour',trim(pathaddname)// &
+                       ':open',1,nf90_strerror(istatus),istatus)
             end if
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',    &
-                   & xscl(kkrec,k4))
+            istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),    &
+                   & ivar5(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              call die('ein256hour',trim(pathaddname)//':scale_factor', &
-                       1, nf90_strerror(istatus), istatus)
+              call die('ein6hour',trim(pathaddname)//':'// &
+                       varname(kkrec),1,nf90_strerror(istatus),istatus)
             end if
-            istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',      &
-                   & xoff(kkrec,k4))
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+                   & 'scale_factor',xscl(kkrec,k4))
             if ( istatus /= nf90_noerr) then
-              call die('ein256hour',trim(pathaddname)//':add_offset', &
-                       1, nf90_strerror(istatus), istatus)
+              call die('ein6hour',trim(pathaddname)//':'// &
+                       varname(kkrec)//':scale_factor',1, &
+                       nf90_strerror(istatus),istatus)
             end if
-            write (stdout,*) inet6(kkrec,k4) , pathaddname , &
-                             xscl(kkrec,k4) , xoff(kkrec,k4)
+            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),     &
+                   & 'add_offset',xoff(kkrec,k4))
+            if ( istatus /= nf90_noerr) then
+              call die('ein6hour',trim(pathaddname)//':'// &
+                       varname(kkrec)//':add_offset',1, &
+                       nf90_strerror(istatus),istatus)
+            end if
+            write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,      &
+                       &  xscl(kkrec,k4) , xoff(kkrec,k4)
           end do
         end do
  
@@ -293,7 +295,7 @@
       end do
       icount(1) = ilon
       icount(2) = jlat
-      icount(3) = 37
+      icount(3) = inlev
       icount(4) = 365
       if ( mod(nyear,4)==0 ) icount(4) = 366
       if ( mod(nyear,100)==0 ) icount(4) = 365
@@ -302,11 +304,13 @@
       icount(4) = 1
 !bxq_
       do kkrec = 1 , 5
-        inet = inet6(kkrec,k4)
-        istatus = nf90_get_var(inet,5,work,istart,icount)
-        if ( istatus /= nf90_noerr) then
-          call die('ein256hour',trim(pathaddname)//':readvar', &
-                   1, nf90_strerror(istatus), istatus)
+        inet = inet5(kkrec,k4)
+        ivar = ivar5(kkrec,k4)
+        istatus = nf90_get_var(inet,ivar,work,istart,icount)
+        if (istatus /= nf90_noerr) then
+          call die('ein6hour',trim(pathaddname)//':'// &
+                   varname(kkrec)//':readvar',1, &
+                   nf90_strerror(istatus),istatus)
         end if
         xscale = xscl(kkrec,k4)
         xadd = xoff(kkrec,k4)
@@ -481,15 +485,49 @@
 99007 format (i4,'/',a5,i4,'.12.nc')
 99008 format (i4,'/',a5,i4,'.18.nc')
 !
-      end subroutine ein256hour
-
-      subroutine headerein25
+      end subroutine ein6hour
+!
+!-----------------------------------------------------------------------
+!
+      subroutine headerein(ires)
       implicit none
 !
-! Local variables
-!
+      integer , intent(in) :: ires
       integer :: i , j , k , kr
+
+      klev = 23
+      inlev = 37
+      select case (ires)
+        case (15)
+          jlat = 121
+          ilon = 240
+          xres = 1.50
+          imindat = 1989010100
+          imaxdat = 2010033118
+        case (25)
+          jlat = 73
+          ilon = 144
+          xres = 2.50
+          imindat = 1989010100
+          imaxdat = 1998123118
+        case (75)
+          jlat = 241
+          ilon = 480
+          xres = 0.750
+          imindat = 1989010100
+          imaxdat = 2007123118
+        case default
+          call die('headerein','Unsupported resolution',1)
+      end select
 !
+      allocate(b2(ilon,jlat,klev*3))
+      allocate(d2(ilon,jlat,klev*2))
+      allocate(glat(jlat))
+      allocate(glon(ilon))
+      allocate(sigma1(klev))
+      allocate(sigmar(klev))
+      allocate(work(ilon,jlat,inlev))
+
       sigmar(1) = .001
       sigmar(2) = .002
       sigmar(3) = .003
@@ -517,12 +555,12 @@
 !     INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
 !
       do i = 1 , ilon
-        glon(i) = float(i-1)*2.5
+        glon(i) = float(i-1)*xres
       end do
       do j = 1 , jlat
-        glat(j) = -90.0 + float(j-1)*2.5
+        glat(j) = -90.0 + float(j-1)*xres
       end do
-!HH:OVER
+!
 !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
 !
       do k = 1 , klev
@@ -545,7 +583,7 @@
       tvar => b2(:,:,1:klev)
       hvar => b2(:,:,klev+1:2*klev)
       rhvar => b2(:,:,2*klev+1:3*klev)
-!
-      end subroutine headerein25
 
-      end module mod_ein25
+      end subroutine headerein
+
+      end module mod_ein
