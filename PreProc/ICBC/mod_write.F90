@@ -37,6 +37,8 @@
       real(sp) , allocatable , dimension(:,:,:) :: h4 , q4
       real(sp) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
       real(sp) , allocatable , dimension(:,:,:) :: sulfate4
+      real(sp) , allocatable , dimension(:) :: yiy
+      real(sp) , allocatable , dimension(:) :: xjx
 
       public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , sulfate4
       public :: init_output , free_output , newfile , writef
@@ -74,6 +76,12 @@
           if (ierr /= 0) call die('init_output','allocate sulfate',ierr)
           call mall_mci(sulfate4,'mod_write')
         end if
+        allocate(yiy(iy), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate yiy',ierr)
+        call mall_mci(yiy,'mod_write')
+        allocate(xjx(jx), stat=ierr)
+        if (ierr /= 0) call die('init_output','allocate xjx',ierr)
+        call mall_mci(xjx,'mod_write')
       end subroutine init_output
 
       subroutine free_output
@@ -98,6 +106,10 @@
           call mall_mco(sulfate4,'mod_write')
           deallocate(sulfate4)
         end if
+        deallocate(yiy)
+        call mall_mco(yiy,'mod_write')
+        deallocate(xjx)
+        call mall_mco(xjx,'mod_write')
         if (ncout > 0) then
           istatus = nf90_close(ncout)
           call check_ok(istatus,('Error closing file '//trim(ofname)))
@@ -117,8 +129,6 @@
         integer , dimension(2) :: ivvar
         integer , dimension(3) :: illvar
         integer , dimension(4) :: x3ddim
-        real(sp) , allocatable , dimension(:) :: yiy
-        real(sp) , allocatable , dimension(:) :: xjx
         character(64) :: csdate , cdum
         character(256) :: history
         real(sp) , dimension(2) :: trlat
@@ -459,12 +469,6 @@
         hptop = ptop*10.0
         istatus = nf90_put_var(ncout, izvar(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy), stat=istatus)
-        if (istatus /= 0) call die('init_output','allocate yiy',istatus)
-        call mall_mci(yiy,'mod_write')
-        allocate(xjx(jx), stat=istatus)
-        if (istatus /= 0) call die('init_output','allocate xjx',istatus)
-        call mall_mci(xjx,'mod_write')
         yiy(1) = -(dble(iy-1)/2.0) * ds
         xjx(1) = -(dble(jx-1)/2.0) * ds
         do i = 2 , iy
@@ -477,10 +481,6 @@
         call check_ok(istatus,'Error variable iy write')
         istatus = nf90_put_var(ncout, ivvar(2), xjx)
         call check_ok(istatus,'Error variable jx write')
-        deallocate(yiy)
-        call mall_mco(yiy,'mod_write')
-        deallocate(xjx)
-        call mall_mco(xjx,'mod_write')
         istatus = nf90_put_var(ncout, illvar(1), xlat)
         call check_ok(istatus,'Error variable xlat write')
         istatus = nf90_put_var(ncout, illvar(2), xlon)
