@@ -23,6 +23,8 @@
       use m_realkinds
       use m_stdio
       use m_die
+      use m_zeit
+      use m_mall
 
       private
 
@@ -48,7 +50,7 @@
       integer , dimension(5,4) :: ivar5
       real(dp) , dimension(5,4) :: xoff , xscl
 
-      public :: getein , headerein
+      public :: getein , headerein , footerein
 
       contains
 
@@ -68,6 +70,8 @@
 !
 !     READ DATA AT IDATE
 !
+      call zeit_ci('get')
+
       call ein6hour(dattyp,idate,globidate1)
 
       write (stdout,*) 'READ IN fields at DATE:' , idate
@@ -124,8 +128,7 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G   WRITE AN INITIAL FILE FOR THE RegCM
-      call writef(idate)
+      call zeit_co('get')
 !
       end subroutine getein
 !
@@ -493,7 +496,7 @@
       implicit none
 !
       integer , intent(in) :: ires
-      integer :: i , j , k , kr
+      integer :: i , j , k , kr , ierr
 
       klev = 23
       inlev = 37
@@ -520,13 +523,35 @@
           call die('headerein','Unsupported resolution',1)
       end select
 !
-      allocate(b2(ilon,jlat,klev*3))
-      allocate(d2(ilon,jlat,klev*2))
-      allocate(glat(jlat))
-      allocate(glon(ilon))
-      allocate(sigma1(klev))
-      allocate(sigmar(klev))
-      allocate(work(ilon,jlat,inlev))
+!     Allocate working space
+!
+      allocate(b2(ilon,jlat,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate b2',ierr)
+      call mall_mci(b2,'mod_ein')
+      allocate(d2(ilon,jlat,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate d2',ierr)
+      call mall_mci(d2,'mod_ein')
+      allocate(glat(jlat), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate glat',ierr)
+      call mall_mci(glat,'mod_ein')
+      allocate(glon(ilon), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate glon',ierr)
+      call mall_mci(glon,'mod_ein')
+      allocate(sigma1(klev), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate sigma1',ierr)
+      call mall_mci(sigma1,'mod_ein')
+      allocate(sigmar(klev), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate sigmar',ierr)
+      call mall_mci(sigmar,'mod_ein')
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate b3',ierr)
+      call mall_mci(b3,'mod_ein')
+      allocate(d3(jx,iy,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate d3',ierr)
+      call mall_mci(d3,'mod_ein')
+
+      allocate(work(ilon,jlat,inlev), stat=ierr)
+      if (ierr /= 0) call die('headerein','allocate work',ierr)
 
       sigmar(1) = .001
       sigmar(2) = .002
@@ -568,9 +593,6 @@
         sigma1(k) = sigmar(kr)
       end do
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,klev*2))
-
 !     Set up pointers
 
       u3 => d3(:,:,1:klev)
@@ -585,5 +607,26 @@
       rhvar => b2(:,:,2*klev+1:3*klev)
 
       end subroutine headerein
+
+      subroutine footerein
+        call mall_mco(b2,'mod_ein')
+        deallocate(b2)
+        call mall_mco(d2,'mod_ein')
+        deallocate(d2)
+        call mall_mco(glat,'mod_ein')
+        deallocate(glat)
+        call mall_mco(glon,'mod_ein')
+        deallocate(glon)
+        call mall_mco(sigma1,'mod_ein')
+        deallocate(sigma1)
+        call mall_mco(sigmar,'mod_ein')
+        deallocate(sigmar)
+        call mall_mco(b3,'mod_ein')
+        deallocate(b3)
+        call mall_mco(d3,'mod_ein')
+        deallocate(d3)
+
+        deallocate(work)
+      end subroutine footerein
 
       end module mod_ein

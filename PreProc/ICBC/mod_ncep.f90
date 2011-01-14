@@ -125,9 +125,6 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(idate)
-!
       end subroutine getncep
 
       subroutine cdc6hour(idate,idate0)
@@ -432,9 +429,6 @@
 !
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
-!
-!     G   WRITE AN INITIAL FILE FOR THE RCM
-      call writef(idate)
 !
       end subroutine getncepw
 

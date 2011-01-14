@@ -217,8 +217,10 @@
           else if ( dattyp=='FNEST' ) then
             call get_nest(idate)
           end if
+          call writef(idate)
           call newfile(idate)
         end if
+
         if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
           call getncep(idate)
         else if ( dattyp=='NRP2W' ) then
@@ -240,14 +242,38 @@
           call getfvgcm(idate)
         else if ( dattyp=='FNEST' ) then
           call get_nest(idate)
-        else
         end if
+        call writef(idate)
 
         iodate = idate
         call addhours(idate, ibdyfrq)
 
       end do
 
+      if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
+         & then
+!        call footernc
+      else if ( dattyp=='ECMWF' ) then
+!        call footerec
+      else if ( dattyp=='ERA40' ) then
+!        call footerera
+      else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
+                dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+        call footerein
+      else if ( dattyp=='GFS11' ) then
+!        call footergfs
+      else if ( dattyp=='ERAHI' ) then
+!        call footerehi
+      else if ( dattyp=='EH5OM' ) then
+!        call footermpi
+      else if ( dattyp=='FVGCM' ) then
+!        call footerfv
+      else if ( dattyp=='FNEST' ) then
+!        call footernest
+      else
+        call die('icbc','Unknown dattyp',1)
+      end if
+ 
       call free_output
       call free_grid
       call closesst

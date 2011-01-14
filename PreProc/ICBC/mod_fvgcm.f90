@@ -370,9 +370,6 @@
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-!     G      WRITE AN INITIAL FILE FOR THE RegCM
-      call writef(idate)
-!
       end subroutine getfvgcm
 
       subroutine headerfv

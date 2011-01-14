@@ -1187,8 +1187,6 @@
 !
       end if
 
-      call writef(idate)
-
       end subroutine geteh5om
 
       subroutine headermpi(ehso4)
