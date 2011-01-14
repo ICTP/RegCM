@@ -23,6 +23,8 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_zeit
+      use m_mall
 
       private
 
@@ -56,6 +58,8 @@
         character(64) :: timeunits
         integer :: i , j , irec , ks1 , ks2
         real(sp) :: wt
+
+        call zeit_ci('readsst')
         if (.not. lopen) then
           sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
           istatus = nf90_open(sstfile, nf90_nowrite, ncst)
@@ -84,15 +88,31 @@
           istatus = nf90_get_att(ncst, itvar, "units", timeunits)
           call check_ok(istatus,'Error time var units SST file'// &
                         trim(sstfile))
-          allocate(xlandu(jx,iy))
-          allocate(work1(jx,iy))
-          allocate(work2(jx,iy))
+
+          allocate(xlandu(jx,iy), stat=istatus)
+          if (istatus /= 0) call die('readsst','allocate xlandu',istatus)
+          call mall_mci(xlandu,'readsst')
+          allocate(work1(jx,iy), stat=istatus)
+          if (istatus /= 0) call die('readsst','allocate work1',istatus)
+          call mall_mci(work1,'readsst')
+          allocate(work2(jx,iy), stat=istatus)
+          if (istatus /= 0) call die('readsst','allocate work2',istatus)
+          call mall_mci(work2,'readsst')
           if (lhasice) then
-            allocate(work3(jx,iy))
-            allocate(work4(jx,iy))
+            allocate(work3(jx,iy), stat=istatus)
+            if (istatus /= 0) call die('readsst','allocate work3',istatus)
+            call mall_mci(work3,'readsst')
+            allocate(work4(jx,iy), stat=istatus)
+            if (istatus /= 0) call die('readsst','allocate work4',istatus)
+            call mall_mci(work4,'readsst')
           end if
-          allocate(xtime(ntime))
-          allocate(itime(ntime))
+          allocate(xtime(ntime), stat=istatus)
+          if (istatus /= 0) call die('readsst','allocate xtime',istatus)
+          call mall_mci(xtime,'readsst')
+          allocate(itime(ntime), stat=istatus)
+          if (istatus /= 0) call die('readsst','allocate itime',istatus)
+          call mall_mci(itime,'readsst')
+
           istatus = nf90_get_var(ncst, itvar, xtime)
           call check_ok(istatus,'Error time var read SST file'// &
                         trim(sstfile))
@@ -100,6 +120,7 @@
             itime(i) = timeval2idate(xtime(i), timeunits)
           end do
           deallocate(xtime)
+          call mall_mco(xtime,'readsst')
           lopen = .true.
         end if
 
@@ -182,6 +203,7 @@
             end do
           end do
         end if
+        call zeit_co('readsst')
       end subroutine readsst
 
       subroutine closesst
@@ -189,12 +211,30 @@
         implicit none
         integer :: istatus
         istatus = nf90_close(ncst)
-        if (allocated(itime)) deallocate(itime)
-        if (allocated(work1)) deallocate(work1)
-        if (allocated(work2)) deallocate(work2)
-        if (allocated(work3)) deallocate(work3)
-        if (allocated(work4)) deallocate(work4)
-        if (allocated(xlandu)) deallocate(xlandu)
+        if (allocated(itime)) then
+          call mall_mco(itime,'readsst')
+          deallocate(itime)
+        end if
+        if (allocated(work1)) then
+          call mall_mco(work1,'readsst')
+          deallocate(work1)
+        end if
+        if (allocated(work2)) then
+          call mall_mco(work2,'readsst')
+          deallocate(work2)
+        end if
+        if (allocated(work3)) then
+          call mall_mco(work3,'readsst')
+          deallocate(work3)
+        end if
+        if (allocated(work4))then
+          call mall_mco(work4,'readsst')
+          deallocate(work4)
+        end if
+        if (allocated(xlandu))then
+          call mall_mco(xlandu,'readsst')
+          deallocate(xlandu)
+        end if
       end subroutine closesst
 !
       subroutine check_ok(ierr,message)

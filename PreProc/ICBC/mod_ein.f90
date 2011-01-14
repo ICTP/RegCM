@@ -160,6 +160,8 @@
 !
       data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
+      call zeit_ci('readein')
+!
       if ( idate<imindat .or. idate>imaxdat ) then
         write (stderr, *) 'EIN data for resolution ',xres,' degrees ', &
                       'are available only from ',imindat,' up to ', &
@@ -479,6 +481,9 @@
         else
         end if
       end do
+
+      call zeit_co('readein')
+
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')
 99003 format (i4,'/',a4,i4,'.12.nc')
