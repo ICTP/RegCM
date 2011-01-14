@@ -28,6 +28,8 @@
       use mod_sst_fvgcm
       use m_die
       use m_stdio
+      use m_mall
+      use m_zeit
 
       implicit none
 
@@ -49,6 +51,11 @@
         write (stderr,*) '          ', trim(prgname), ' regcm.in'
         write (stderr,*) ' '
         call die('sst','Check argument and namelist syntax.',1)
+      end if
+
+      if (debug_level > 2) then
+        call mall_set()
+        call zeit_ci('sst')
       end if
 
       call init_grid
@@ -75,6 +82,14 @@
       call free_grid
       call close_sstfile
 
+      if (debug_level > 2) then
+        call mall_flush(stdout)
+        call mall_set(.false.)
+        call zeit_co('sst')
+        call zeit_flush(stdout)
+      end if
+
+      call finaltime(0)
       write (stdout,*) 'Successfully generated SST'
 
       end program sst

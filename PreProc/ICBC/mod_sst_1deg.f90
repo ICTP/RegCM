@@ -22,6 +22,7 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_zeit
 
       contains
 
@@ -69,6 +70,7 @@
       character(256) :: inpfile
       logical :: there
 !
+      call zeit_ci('sst_1deg')
       if ( ssttyp=='GISST' ) then
         if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
           write (stderr,*) 'GISST data required are not available'
@@ -317,6 +319,7 @@
 
         end do
       end if
+      call zeit_co('sst_1deg')
 
       end subroutine sst_1deg
 !
@@ -355,6 +358,7 @@
 !
       data varname/'sst'/
 !
+      call zeit_ci('sst_mn')
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
@@ -413,6 +417,7 @@
           end if
         end do
       end do
+      call zeit_co('sst_mn')
 !
       end subroutine sst_mn
 !
@@ -451,6 +456,7 @@
 !
       data varname/'icec'/
 !
+      call zeit_ci('ice_mn')
       if ( idate==idate0 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
@@ -508,6 +514,7 @@
           end if
         end do
       end do
+      call zeit_co('ice_mn')
 !
       end subroutine ice_mn
 !
@@ -548,6 +555,7 @@
       data usename/'none'/
       data inet/-1/
 !
+      call zeit_ci('sst_wk')
       if ( pathaddname /= usename ) then
         if (inet >= 0) then
           istatus = nf90_close(inet)
@@ -630,6 +638,7 @@
           end do
         end do
       end if
+      call zeit_co('sst_wk')
 
       end subroutine sst_wk
 !
@@ -670,6 +679,7 @@
       data usename/'none'/
       data inet/-1/
 !
+      call zeit_ci('ice_wk')
       if ( pathaddname /= usename ) then
         if (inet >= 0) then
           istatus = nf90_close(inet)
@@ -752,6 +762,7 @@
           end do
         end do
       end if
+      call zeit_co('ice_wk')
 
       end subroutine ice_wk
 !

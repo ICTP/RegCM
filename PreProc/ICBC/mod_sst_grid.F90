@@ -20,6 +20,8 @@
       module mod_sst_grid
       use m_realkinds
       use m_die
+      use m_zeit
+      use m_mall
       use netcdf
       use mod_dynparam
 
@@ -32,29 +34,63 @@
       real(sp) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,   &
                                   &             xlat , xlon , finmat
       real(sp) , allocatable , dimension(:) :: sigma
+      real(sp) , allocatable , dimension(:) :: yiy
+      real(sp) , allocatable , dimension(:) :: xjx
 
       contains
 
       subroutine init_grid
         implicit none
-        allocate(lu(iy,jx))
-        allocate(sstmm(iy,jx))
-        allocate(icemm(iy,jx))
-        allocate(xlat(iy,jx))
-        allocate(xlon(iy,jx))
-        allocate(finmat(jx,iy))
-        allocate(sigma(kzp1))
+        integer :: ierr
+        allocate(lu(iy,jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate lu',ierr)
+        call mall_mci(lu,'mod_sst_grid')
+        allocate(sstmm(iy,jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate sstmm',ierr)
+        call mall_mci(sstmm,'mod_sst_grid')
+        allocate(icemm(iy,jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate icemm',ierr)
+        call mall_mci(icemm,'mod_sst_grid')
+        allocate(xlat(iy,jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate xlat',ierr)
+        call mall_mci(xlat,'mod_sst_grid')
+        allocate(xlon(iy,jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate xlon',ierr)
+        call mall_mci(xlon,'mod_sst_grid')
+        allocate(finmat(jx,iy), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate finmat',ierr)
+        call mall_mci(finmat,'mod_sst_grid')
+        allocate(sigma(kzp1), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate sigma',ierr)
+        call mall_mci(sigma,'mod_sst_grid')
+        allocate(yiy(iy), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate yiy',ierr)
+        call mall_mci(yiy,'mod_sst_grid')
+        allocate(xjx(jx), stat=ierr)
+        if (ierr /= 0) call die('init_grid','allocate xjx',ierr)
+        call mall_mci(xjx,'mod_sst_grid')
       end subroutine init_grid
 
       subroutine free_grid
         implicit none
+        call mall_mco(lu,'mod_sst_grid')
         deallocate(lu)
+        call mall_mco(sstmm,'mod_sst_grid')
         deallocate(sstmm)
+        call mall_mco(icemm,'mod_sst_grid')
         deallocate(icemm)
+        call mall_mco(xlat,'mod_sst_grid')
         deallocate(xlat)
+        call mall_mco(xlon,'mod_sst_grid')
         deallocate(xlon)
+        call mall_mco(finmat,'mod_sst_grid')
         deallocate(finmat)
+        call mall_mco(sigma,'mod_sst_grid')
         deallocate(sigma)
+        call mall_mco(yiy,'mod_sst_grid')
+        deallocate(yiy)
+        call mall_mco(xjx,'mod_sst_grid')
+        deallocate(xjx)
       end subroutine free_grid
 
       subroutine read_domain(terfile)
@@ -65,6 +101,7 @@
         integer :: iyy , jxx
         integer :: istatus , incin , idimid , ivarid
 
+        call zeit_ci('read_domain')
         istatus = nf90_open(terfile, nf90_nowrite, incin)
         call check_ok(istatus, &
              &        'Error Opening Domain file '//trim(terfile))
@@ -106,6 +143,7 @@
         istatus = nf90_close(incin)
         call check_ok(istatus, &
              &        ('Error closing Domain file '//trim(terfile)))
+        call zeit_co('read_domain')
 
       end subroutine read_domain
 
@@ -118,14 +156,13 @@
         character(64) :: csdate
         real(sp) , dimension(2) :: trlat
         real(sp) :: hptop
-        real(sp) , allocatable , dimension(:) :: yiy
-        real(sp) , allocatable , dimension(:) :: xjx
         integer , dimension(2) :: ivvar
         integer , dimension(2) :: illvar
         integer , dimension(2) :: izvar
         integer , dimension(8) :: tvals
         integer :: iyy , im , id , ih , i , j
 
+        call zeit_ci('newfile')
         irefdate = idate1
         itime = 1
 
@@ -369,8 +406,6 @@
         hptop = ptop*10.0
         istatus = nf90_put_var(ncid, izvar(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy))
-        allocate(xjx(jx))
         yiy(1) = -(dble(iy-1)/2.0) * ds
         xjx(1) = -(dble(jx-1)/2.0) * ds
         do i = 2 , iy
@@ -383,12 +418,11 @@
         call check_ok(istatus,'Error variable iy write')
         istatus = nf90_put_var(ncid, ivvar(2), xjx)
         call check_ok(istatus,'Error variable jx write')
-        deallocate(yiy)
-        deallocate(xjx)
         istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
         call check_ok(istatus,'Error variable xlat write')
         istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
         call check_ok(istatus,'Error variable xlon write')
+        call zeit_co('newfile')
 
       end subroutine open_sstfile
 
@@ -408,6 +442,8 @@
         integer , dimension(1) :: istart1 , icount1
         integer , dimension(3) :: istart , icount
         real(dp) , dimension(1) :: xdate
+
+        call zeit_ci('writerec')
         istart(3) = itime
         istart(2) = 1
         istart(1) = 1
@@ -431,6 +467,7 @@
                                istart, icount)
         call check_ok(istatus,'Error variable landuse write')
         itime = itime + 1
+        call zeit_co('writerec')
       end subroutine writerec
 
       subroutine check_ok(ierr,message)
