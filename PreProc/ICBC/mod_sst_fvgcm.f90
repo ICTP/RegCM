@@ -22,6 +22,7 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_zeit
 
       contains
 
@@ -57,6 +58,7 @@
       integer :: idate
       logical :: there
 !
+      call zeit_ci('sst_fvgcm')
       if ( ssttyp=='FV_RF' ) then
         inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
             &    exist=there)
@@ -186,6 +188,8 @@
 
       end do
  
+      call zeit_co('sst_fvgcm')
+
       end subroutine sst_fvgcm
 !
       end module mod_sst_fvgcm

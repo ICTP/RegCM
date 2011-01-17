@@ -22,6 +22,8 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_mall
+      use m_zeit
 
       contains
 
@@ -52,6 +54,9 @@
       use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
+      use m_die
+      use m_mall
+      use m_zeit
 
       implicit none
 !
@@ -70,6 +75,7 @@
       integer , dimension(20) :: lund
       character(256) :: inpfile
 !
+      call zeit_ci('sst_ccsm')
       do i = 1 , ilon
         glon(i) = 0.5 + float(i-1)
       end do
@@ -145,7 +151,7 @@
 
       end do
  
-      return
+      call zeit_co('sst_ccsm')
 
       end subroutine sst_ccsm
 !
@@ -183,6 +189,7 @@
       data ndays/31,59,90,120,151,181,212,243,273,304,334,365/
       data varname/'time','TEMP'/
       
+      call zeit_ci('read_ccsm')
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       
@@ -233,6 +240,8 @@
                  nf90_strerror(istatus),istatus)
       end if
       allocate(work1(timlen))
+      if (istatus /= 0) call die('ccsm_sst','allocate work1',istatus)
+      call mall_mci(work1,'mod_sst_ccsm')
       
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
       if(latlen /= jlat .or. lonlen /= ilon) then
@@ -309,6 +318,11 @@
             end if
          end do
       end do
+
+      deallocate(work1)
+      call mall_mco(work1,'mod_sst_ccsm')
+
+      call zeit_co('read_ccsm')
 
       end subroutine ccsm_sst
 !

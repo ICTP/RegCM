@@ -20,6 +20,9 @@
       module mod_sst_eh5om
 
       use m_realkinds
+      use m_die
+      use m_stdio
+      use m_zeit
 
       contains
 
@@ -38,12 +41,10 @@
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+      use netcdf
       use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
-      use netcdf
-      use m_die
-      use m_stdio
 
       implicit none
 !
@@ -63,6 +64,8 @@
       real(sp) , dimension(jlat) :: lati
       real(sp) , dimension(ilon) :: loni
       logical :: there
+!
+      call zeit_ci('sst_eh5om')
 !
       it_base = 0
 
@@ -401,6 +404,8 @@
         call addhours(idate, idtbc)
 
       end do
+
+      call zeit_co('sst_eh5om')
  
       end subroutine sst_eh5om
 !

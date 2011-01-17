@@ -22,6 +22,7 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_zeit
 
       contains
 
@@ -61,6 +62,8 @@
       logical :: there
       real(sp) , dimension(ilon,jlat) :: sst
       character(256) :: inpfile
+!
+      call zeit_ci('sst_ersst')
 !
       if ( ssttyp=='ERSST' ) then
         there = .false.
@@ -126,10 +129,10 @@
 
         if ( ssttyp=='ERSST' ) then
           inpfile = trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
-          call sst_erain(ierrec,ilon,jlat,sst,inpfile)
+          call sst_erain(ierrec,ilon,jlat,sst,inpfile,1)
         else if ( ssttyp=='ERSKT' ) then
           inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
-          call skt_erain(ierrec,ilon,jlat,sst,inpfile)
+          call sst_erain(ierrec,ilon,jlat,sst,inpfile,2)
         else
         end if
 
@@ -146,20 +149,22 @@
         call addhours(idate, idtbc)
 
       end do
+
+      call zeit_co('sst_ersst')
  
       end subroutine sst_ersst
 !
 !-----------------------------------------------------------------------
 !
-      subroutine skt_erain(it,ilon,jlat,sst,pathaddname)
+      subroutine sst_erain(it,ilon,jlat,sst,pathaddname,itype)
       use netcdf
       implicit none
 !
 ! Dummy arguments
 !
-      integer :: it , ilon , jlat
+      integer :: it , ilon , jlat , itype
       character(256) :: pathaddname
-      intent (in) it , ilon , jlat , pathaddname
+      intent (in) it , ilon , jlat , pathaddname , itype
       real(sp) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
 !
@@ -167,93 +172,7 @@
 !
       integer :: i , j , n
       logical :: there
-      character(5) :: varname
-      integer(2) , dimension(ilon,jlat) :: work
-      integer :: istatus
-!
-      integer , dimension(10) , save :: icount , istart
-      integer , save :: inet , ivar
-      real(dp) , save :: xadd , xscale , xmiss
-!
-!     This is the latitude, longitude dimension of the grid to be read.
-!     This corresponds to the lat and lon dimension variables in the
-!     netCDF file.
-!
-!     The data are packed into short integers (INTEGER*2).  The array
-!     work will be used to hold the packed integers. The array 'sst'
-!     will contain the unpacked data.
-!
-!     DATA ARRAY AND WORK ARRAY
-!
-      data varname/'skt'/
-!
-      if ( it==1 ) then
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          call die('skt_erain',trim(pathaddname)//' is not available',1)
-        end if
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-        if ( istatus/=nf90_noerr ) then
-          call die('skt_erain','Cannot open input file '// &
-                   trim(pathaddname),1)
-        end if
-        istatus = nf90_inq_varid(inet,varname,ivar)
-        if ( istatus/=nf90_noerr ) then
-          call die('skt_erain','Cannot open input file '// &
-                   trim(pathaddname),1)
-        end if
-        istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-        istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-        istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
-        istart(1) = 1
-        istart(2) = 1
-        icount(1) = 240
-        icount(2) = 121
-        do n = 4 , 10
-          istart(n) = 0
-          icount(n) = 0
-        end do
-      end if
-! 
-      istart(3) = it
-      icount(3) = 1
-      istatus = nf90_get_var(inet,ivar,work,istart,icount)
-      if ( istatus/=nf90_noerr ) then
-        call die('skt_erain','Cannot get '//varname//' from file', &
-                 istatus,nf90_strerror(istatus),0)
-      end if
-!
-      do j = 1 , jlat
-        do i = 1 , ilon
-          if (work(i,j)/=xmiss) then
-            sst(i,jlat+1-j) = work(i,j)*xscale + xadd
-          else
-            sst(i,jlat+1-j)=-9999
-          end if
-        end do
-      end do
-!
-      end subroutine skt_erain
-!
-!-----------------------------------------------------------------------
-!
-      subroutine sst_erain(it,ilon,jlat,sst,pathaddname)
-      use netcdf
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: it , ilon , jlat
-      character(256) :: pathaddname
-      intent (in) it , ilon , jlat , pathaddname
-      real(sp) , dimension(ilon,jlat) :: sst
-      intent (out) :: sst
-!
-! Local variables
-!
-      integer :: i , j , n
-      logical :: there
-      character(5) :: varname
+      character(4) , dimension(2) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer :: istatus
 !
@@ -271,8 +190,9 @@
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-      data varname/'sst'/
+      data varname/'sst','skt'/
 !
+      call zeit_ci('read_sst_era')
       if ( it==1 ) then
         inquire (file=pathaddname,exist=there)
         if ( .not.there ) then
@@ -284,11 +204,12 @@
                    trim(pathaddname)//' : '//nf90_strerror(istatus), &
                    istatus)
         end if
-        istatus = nf90_inq_varid(inet,varname,ivar)
+        istatus = nf90_inq_varid(inet,varname(itype),ivar)
         if ( istatus/=nf90_noerr ) then
-          call die('sst_erain','Cannot find variable '//trim(varname)// &
-                   ' in file '//trim(pathaddname)//' : '//              &
-                   nf90_strerror(istatus),istatus)
+          call die('sst_erain','Cannot find variable '// &
+                   trim(varname(itype))//' in file '//   &
+                   trim(pathaddname)//' : '//nf90_strerror(istatus), &
+                   istatus)
         end if
         istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
         istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
@@ -307,7 +228,7 @@
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       if ( istatus/=nf90_noerr ) then
-        call die('sst_erain','Cannot read '//trim(varname)// &
+        call die('sst_erain','Cannot read '//trim(varname(itype))// &
                  ' from file '//trim(pathaddname)//' : '//              &
                  nf90_strerror(istatus),istatus)
       end if
@@ -321,6 +242,8 @@
           end if
         end do
       end do
+!
+      call zeit_co('read_sst_era')
 !
       end subroutine sst_erain
 !
