@@ -23,10 +23,11 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_mall
+      use m_zeit
 
       private
 
-      integer , parameter :: iii = 1 , jjj = 1
       integer , parameter :: klev = 13 , jlat = 73 , ilon = 144
 
       real(sp) , dimension(ilon,jlat) :: psvar
@@ -40,17 +41,18 @@
       real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
+      integer(2) , allocatable , dimension(:,:,:) :: work
       
       real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
       real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
       real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
       real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-      public :: getncep , getncepw , headernc
+      public :: getncep , headernc , footernc
 
       contains
 
-      subroutine getncep(idate)
+      subroutine getncep(idate,itype)
       use mod_grid
       use mod_write
       use mod_interp , only : bilinx2
@@ -62,11 +64,17 @@
       use mod_vectutil
       implicit none
 !
-      integer :: idate
+      integer , intent(in) :: idate , itype
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-      call cdc6hour(idate,globidate1)
+      call zeit_ci('getncep')
+!
+      if ( itype == 1 ) then
+        call cdc6hour(idate,globidate1)
+      else if ( itype == 2 ) then
+        call cdc6hour2(idate,globidate1)
+      end if
 
       write (stdout,*) 'READ IN fields at DATE:' , idate
 !
@@ -125,6 +133,7 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('getncep')
       end subroutine getncep
 
       subroutine cdc6hour(idate,idate0)
@@ -140,7 +149,6 @@
       character(256) :: pathaddname
       logical :: there
       character(5) , dimension(7) :: varname
-      integer(2) , dimension(ilon,jlat,klev) :: work
       real(dp) :: xadd , xscale
       integer , dimension(10) , save :: icount , istart
       integer , dimension(7) , save :: inet7 , ivar7
@@ -161,7 +169,7 @@
 !     variable name.
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
-!bxq
+      call zeit_ci('read_cdc')
       xadd = 0.0
       xscale = 1.0
       nyear = idate/1000000
@@ -348,89 +356,15 @@
           end do
         end if
       end do
+
+      call zeit_co('read_cdc')
+
 99001 format (i4,'/',a4,i4,'.nc')
 99002 format (i4,'/',a5,i4,'.nc')
 99003 format (i4,'/',a6,i4,'.nc')
 99004 format (i4,'/',a9,i4,'.nc')
 !
       end subroutine cdc6hour
-
-      subroutine getncepw(idate)
-      use mod_grid
-      use mod_write
-      use mod_interp , only : bilinx2
-      use mod_vertint
-      use mod_hgt
-      use mod_humid
-      use mod_mksst
-      use mod_uvrot
-      use mod_vectutil
-      implicit none
-!
-      integer :: idate
-!
-!     D      BEGIN LOOP OVER NTIMES
-!
-      call cdc6hour2(idate,globidate1)
-
-      write (stdout,*) 'READ IN fields at DATE:' , idate
-!
-!     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
-!
-      call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
-!
-!     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
-!
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,klev,plon,plat,&
-                & iproj)
-!
-!     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-!     X X
-!     V E R T I C A L   I N T E R P O L A T I O N
-!
-!     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-!     X X
-!HH:  CHANGE THE VERTICAL ORDER.
-      call top2btm(t3,jx,iy,klev)
-      call top2btm(q3,jx,iy,klev)
-      call top2btm(h3,jx,iy,klev)
-      call top2btm(u3,jx,iy,klev)
-      call top2btm(v3,jx,iy,klev)
-!HH:OVER
-!
-!     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
-      call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
- 
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-      if(i_band.eq.1) then
-         call p1p2_band(b3pd,ps4,jx,iy)
-      else
-         call p1p2(b3pd,ps4,jx,iy)
-      endif
- 
-!
-!     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
-!     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-      call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
-      call readsst(ts4,idate)
-
-!     F2  DETERMINE P* AND HEIGHT.
-!
-!     F3  INTERPOLATE U, V, T, AND Q.
-      call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-      call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-!
-      call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
- 
-      call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
-      call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
-!
-!     F4  DETERMINE H
-      call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
-!
-      end subroutine getncepw
 
       subroutine cdc6hour2(idate,idate0)
       use netcdf
@@ -446,7 +380,7 @@
       character(256) :: pathaddname
       logical :: there
       character(5) , dimension(7) :: varname
-      integer(2) , dimension(iii,jjj,klev+1) :: work
+      integer :: iii , jjj
       real(dp) :: xadd , xscale
       integer , dimension(10) :: icount , istart
       integer , dimension(7) :: inet7 , ivar7
@@ -464,8 +398,10 @@
       data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
           &        'pres'/
 !
+      call zeit_ci('read_cdc_window')
       xadd = 0.0
       xscale = 1.0
+
       if ( idate==idate0 ) then
         i0 = lon0/2.5 + 1
         if ( i0<=0 ) i0 = i0 + ilon
@@ -474,15 +410,18 @@
         if ( i1<=0 ) i1 = i1 + ilon
         if ( i1>ilon ) i1 = i1 - ilon
         j0 = lat0/2.5 + 36
+        j1 = lat1/2.5 + 1
+
+        iii = i1 - i0
+        jjj = j1 - j0
       end if
+
 !
-!bxq
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
       nhour = idate - nyear*1000000 - month*10000 - nday*100
 !
-!fix  do kkrec=1,7
       nlev = 0
       do kkrec = 1 , 5
         if ( kkrec<=6 ) nlev = klev
@@ -720,6 +659,9 @@
         else
         end if
       end do
+
+      call zeit_co('read_cdc_window')
+
 99001 format (i4,'/',a8,i4,'.nc')
 99002 format (i4,'/',a9,i4,'.nc')
 99003 format (i4,'/',a10,i4,'.nc')
@@ -730,7 +672,7 @@
       subroutine headernc
       implicit none
 !
-      integer :: i , j , k , kr
+      integer :: i , j , k , kr , ierr
 !
 !     X X X X X   SET 1 :PARAMETERS FOR NCEP/NCAR REALALYSIS DATASET X
 !     X X A1
@@ -770,8 +712,14 @@
         sigma1(k) = sigmar(kr)
       end do
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,klev*2))
+      allocate(work(ilon,jlat,klev), stat=ierr)
+      if (ierr /= 0) call die('headernc','allocate work',ierr)
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headernc','allocate b3',ierr)
+      call mall_mci(b3,'mod_ncep')
+      allocate(d3(jx,iy,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headernc','allocate d3',ierr)
+      call mall_mci(d3,'mod_ncep')
 
 !     Set up pointers
 
@@ -797,5 +745,13 @@
           call die('mod_ncep',message,1,nf90_strerror(ierr),ierr)
         end if
       end subroutine check_ok
+!
+      subroutine footernc
+        call mall_mco(b3,'mod_ncep')
+        deallocate(b3)
+        call mall_mco(d3,'mod_ncep')
+        deallocate(d3)
+        deallocate(work)
+      end subroutine footernc
 !
       end module mod_ncep

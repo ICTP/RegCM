@@ -196,9 +196,9 @@
 
         if (.not. lsame_month(idate, iodate) ) then
           if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
-            call getncep(idate)
+            call getncep(idate,1)
           else if ( dattyp=='NRP2W' ) then
-            call getncepw(idate)
+            call getncep(idate,2)
           else if ( dattyp=='ECMWF' ) then
             call getecwcp(idate)
           else if ( dattyp=='ERA40' ) then
@@ -222,9 +222,9 @@
         end if
 
         if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
-          call getncep(idate)
+          call getncep(idate,1)
         else if ( dattyp=='NRP2W' ) then
-          call getncepw(idate)
+          call getncep(idate,2)
         else if ( dattyp=='ECMWF' ) then
           call getecwcp(idate)
         else if ( dattyp=='ERA40' ) then
@@ -252,7 +252,7 @@
 
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
-!        call footernc
+        call footernc
       else if ( dattyp=='ECMWF' ) then
 !        call footerec
       else if ( dattyp=='ERA40' ) then
