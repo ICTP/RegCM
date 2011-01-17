@@ -26,6 +26,8 @@
       use mod_date
       use m_realkinds
       use m_die
+      use m_mall
+      use m_zeit
 
       private
 !
@@ -57,14 +59,26 @@
       subroutine headermozart
         use netcdf
         implicit none
-        integer :: i
+        integer :: i , ierr
 
-        allocate(poxid_3(jx,iy))
-        allocate(oh3(jx,iy,ilev))
-        allocate(ho23(jx,iy,ilev))
-        allocate(o33(jx,iy,ilev))
-        allocate(no33(jx,iy,ilev))
-        allocate(h2o23(jx,iy,ilev))
+        allocate(poxid_3(jx,iy), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate poxid_3',ierr)
+        call mall_mci(poxid_3,'mod_oxidant')
+        allocate(oh3(jx,iy,ilev), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate oh3',ierr)
+        call mall_mci(oh3,'mod_oxidant')
+        allocate(ho23(jx,iy,ilev), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate ho23',ierr)
+        call mall_mci(ho23,'mod_oxidant')
+        allocate(o33(jx,iy,ilev), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate o33',ierr)
+        call mall_mci(o33,'mod_oxidant')
+        allocate(no33(jx,iy,ilev), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate no33',ierr)
+        call mall_mci(no33,'mod_oxidant')
+        allocate(h2o23(jx,iy,ilev), stat=ierr)
+        if (ierr /= 0) call die('headermozart','allocate h2o23',ierr)
+        call mall_mci(h2o23,'mod_oxidant')
 
         istatus=nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                           'oxid_3d_64x128_L26_c030722.nc', &
@@ -206,6 +220,8 @@
         integer :: i , j , k , k0
         integer :: idate
         integer, dimension(10) ::  istart , icount
+
+        call zeit_ci('getmozart')
 
         do i = 4 , 10
           istart(i) = 0
@@ -577,6 +593,7 @@
           end do
         end do
         call writeox(idate)
+        call zeit_co('getmozart')
       end subroutine getmozart
 
       subroutine freemozart
@@ -587,11 +604,17 @@
           call die('freemozart','Cannot close input file',1, &
                    nf90_strerror(istatus),istatus)
         end if
+        call mall_mco(poxid_3,'mod_oxidant')
         deallocate(poxid_3)
+        call mall_mco(oh3,'mod_oxidant')
         deallocate(oh3)
+        call mall_mco(ho23,'mod_oxidant')
         deallocate(ho23)
+        call mall_mco(o33,'mod_oxidant')
         deallocate(o33)
+        call mall_mco(no33,'mod_oxidant')
         deallocate(no33)
+        call mall_mco(h2o23,'mod_oxidant')
         deallocate(h2o23)
       end subroutine freemozart
 

@@ -41,19 +41,16 @@
 !          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      use netcdf
       use mod_sst_grid
       use mod_date
       use mod_interp , only : bilinx
-      use netcdf
 
       implicit none
 !
-! PARAMETERS
-!
       integer , parameter :: ilon = 240 , jlat = 121
       integer , parameter :: idtbc = 6
-!
-! Local variables
 !
       integer :: i , it , j , nday , nhour , nmo , nyear
       real(sp) , dimension(jlat) :: lati
@@ -133,7 +130,6 @@
         else if ( ssttyp=='ERSKT' ) then
           inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
           call sst_erain(ierrec,ilon,jlat,sst,inpfile,2)
-        else
         end if
 
         call split_idate(idate, nyear, nmo, nday, nhour)

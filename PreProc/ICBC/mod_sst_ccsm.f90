@@ -239,7 +239,7 @@
         call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
                  nf90_strerror(istatus),istatus)
       end if
-      allocate(work1(timlen))
+      allocate(work1(timlen), stat=istatus)
       if (istatus /= 0) call die('ccsm_sst','allocate work1',istatus)
       call mall_mci(work1,'mod_sst_ccsm')
       

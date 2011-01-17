@@ -37,7 +37,7 @@
 
       private
 
-      public :: get_nest , headnest
+      public :: get_nest , headernest , footernest
 
       integer , parameter :: np = 15
 
@@ -90,7 +90,7 @@
       integer , dimension(4) :: istart , icount
 !
       if (.not. allocated(b2)) then
-        call die('get_nest','Called get_nest before headnest !',1)
+        call die('get_nest','Called get_nest before headernest !',1)
       end if
 !
       if ( idate > itimes(nrec) ) then
@@ -106,14 +106,22 @@
         call check_ok(istatus,'Dimension time read error')
         istatus = nf90_inq_varid(ncinp, 'time', ivarid)
         call check_ok(istatus,'variable time missing')
+        call mall_mco(itimes,'mod_oxidant')
         deallocate(itimes)
-        allocate(itimes(nrec))
-        allocate(xtimes(nrec))
+        allocate(itimes(nrec), stat=istatus)
+        if (istatus /= 0) &
+          call die('headermozart','allocate itimes',istatus)
+        call mall_mci(itimes,'mod_oxidant')
+        allocate(xtimes(nrec), stat=istatus)
+        if (istatus /= 0) &
+          call die('headermozart','allocate xtimes',istatus)
+        call mall_mci(xtimes,'mod_oxidant')
         istatus = nf90_get_var(ncinp, ivarid, xtimes)
         call check_ok(istatus,'variable time read error')
         do i = 1 , nrec
           itimes(i) = timeval2idate(xtimes(i), timeunits)
         end do
+        call mall_mco(xtimes,'mod_oxidant')
         deallocate(xtimes)
       end if
 
@@ -242,7 +250,7 @@
 !
       end subroutine get_nest
 !
-      subroutine headnest
+      subroutine headernest
       use netcdf
       implicit none
 !
@@ -284,7 +292,7 @@
       if ( .not.there ) then
         write (stderr,*) trim(inpfile), ' is not available'
         write (stderr,*) 'Please copy (or link)' , trim(inpfile)
-        call die('headnest')
+        call die('headernest')
       end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
       call check_ok(istatus, 'Error opening '//trim(inpfile))
@@ -309,45 +317,66 @@
       call check_ok(istatus,'variable time missing')
       istatus = nf90_get_att(ncinp, ivarid, 'units', timeunits)
       call check_ok(istatus,'variable time units missing')
-      allocate(itimes(nrec))
-      allocate(xtimes(nrec))
+      allocate(itimes(nrec), stat=istatus)
+      if (istatus /= 0) &
+        call die('headermozart','allocate itimes',istatus)
+      call mall_mci(itimes,'mod_oxidant')
+      allocate(xtimes(nrec), stat=istatus)
+      if (istatus /= 0) &
+        call die('headermozart','allocate xtimes',istatus)
+      call mall_mci(xtimes,'mod_oxidant')
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
       call check_ok(istatus,'variable time read error')
       do i = 1 , nrec
         itimes(i) = timeval2idate(xtimes(i), timeunits)
       end do
+      call mall_mco(xtimes,'mod_oxidant')
       deallocate(xtimes)
 
 !     Reserve space for I/O
 
       allocate(sig(kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: sig')
+      if (istatus/=0) call die('Allocation Error in headernest: sig')
+      call mall_mci(sig,'mod_oxidant')
       allocate(b2(jx_in,iy_in,np*3), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: b2')
+      if (istatus/=0) call die('Allocation Error in headernest: b2')
+      call mall_mci(b2,'mod_oxidant')
       allocate(d2(jx_in,iy_in,np*2), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: d2')
+      if (istatus/=0) call die('Allocation Error in headernest: d2')
+      call mall_mci(d2,'mod_oxidant')
       allocate(q(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: q')
+      if (istatus/=0) call die('Allocation Error in headernest: q')
+      call mall_mci(q,'mod_oxidant')
       allocate(t(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: t')
+      if (istatus/=0) call die('Allocation Error in headernest: t')
+      call mall_mci(t,'mod_oxidant')
       allocate(u(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: u')
+      if (istatus/=0) call die('Allocation Error in headernest: u')
+      call mall_mci(u,'mod_oxidant')
       allocate(v(jx_in,iy_in,kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: v')
+      if (istatus/=0) call die('Allocation Error in headernest: v')
+      call mall_mci(v,'mod_oxidant')
       allocate(ps(jx_in,iy_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: ps')
+      if (istatus/=0) call die('Allocation Error in headernest: ps')
+      call mall_mci(ps,'mod_oxidant')
       allocate(xlat_in(jx_in,iy_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: xlat_in')
+      if (istatus/=0) call die('Allocation Error in headernest: xlat_in')
+      call mall_mci(xlat,'mod_oxidant')
       allocate(xlon_in(jx_in,iy_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: xlon_in')
+      if (istatus/=0) call die('Allocation Error in headernest: xlon_in')
+      call mall_mci(xlon,'mod_oxidant')
       allocate(ht_in(jx_in,iy_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: ht_in')
+      if (istatus/=0) call die('Allocation Error in headernest: ht_in')
+      call mall_mci(ht_in,'mod_oxidant')
       allocate(z1(iy_in,jx_in,kz_in), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: z1')
+      if (istatus/=0) call die('Allocation Error in headernest: z1')
+      call mall_mci(z1,'mod_oxidant')
       allocate(b3(iy,jx,np*3), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: b3')
+      if (istatus/=0) call die('Allocation Error in headernest: b3')
+      call mall_mci(b3,'mod_oxidant')
       allocate(d3(iy,jx,np*2), stat=istatus)
-      if (istatus/=0) call die('Allocation Error in headnest: d3')
+      if (istatus/=0) call die('Allocation Error in headernest: d3')
+      call mall_mci(d3,'mod_oxidant')
 
 
       istatus = nf90_inq_varid(ncinp, 'sigma', ivarid) 
@@ -425,7 +454,7 @@
       u3 => d3(:,:,1:np)
       v3 => d3(:,:,np+1:2*np)
 
-      end subroutine headnest
+      end subroutine headernest
 !
       subroutine check_ok(ierr,message)
         use netcdf
@@ -437,4 +466,37 @@
         end if
       end subroutine check_ok
 !
+      subroutine footernest
+        call mall_mco(itimes,'mod_oxidant')
+        deallocate(itimes)
+        call mall_mco(sig,'mod_oxidant')
+        deallocate(sig)
+        call mall_mco(b2,'mod_oxidant')
+        deallocate(b2)
+        call mall_mco(d2,'mod_oxidant')
+        deallocate(d2)
+        call mall_mco(q,'mod_oxidant')
+        deallocate(q)
+        call mall_mco(t,'mod_oxidant')
+        deallocate(t)
+        call mall_mco(u,'mod_oxidant')
+        deallocate(u)
+        call mall_mco(v,'mod_oxidant')
+        deallocate(v)
+        call mall_mco(ps,'mod_oxidant')
+        deallocate(ps)
+        call mall_mco(xlat,'mod_oxidant')
+        deallocate(xlat)
+        call mall_mco(xlon,'mod_oxidant')
+        deallocate(xlon)
+        call mall_mco(ht_in,'mod_oxidant')
+        deallocate(ht_in)
+        call mall_mco(z1,'mod_oxidant')
+        deallocate(z1)
+        call mall_mco(b3,'mod_oxidant')
+        deallocate(b3)
+        call mall_mco(d3,'mod_oxidant')
+        deallocate(d3)
+      end subroutine footernest
+
       end module mod_nest

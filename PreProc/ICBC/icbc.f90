@@ -185,7 +185,7 @@
       else if ( dattyp=='FVGCM' ) then
         call headerfv
       else if ( dattyp=='FNEST' ) then
-        call headnest
+        call headernest
       else
         call die('icbc','Unknown dattyp',1)
       end if
@@ -269,7 +269,7 @@
       else if ( dattyp=='FVGCM' ) then
 !        call footerfv
       else if ( dattyp=='FNEST' ) then
-!        call footernest
+        call footernest
       else
         call die('icbc','Unknown dattyp',1)
       end if
