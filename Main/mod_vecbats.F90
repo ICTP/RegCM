@@ -265,20 +265,18 @@
         do ill = 1 , iym1
           do k = 1 , nnsg
             if ( ocld2d(k,ill,jll) > 1.5 ) then
-              nlveg = 12
               if ( iseaice == 1 ) then
                 sice2d(k,ill,jll) = 1000.0D0
                 scv2d(k,ill,jll) = 0.0D0
               end if
-            else if ( veg2d1(k,ill,jll).lt.0.5 ) then
-              ocld2d(k,ill,jll) = 0.0D0
+              nlveg = 12
+            else if ( ocld2d(k,ill,jll) > 0.5 ) then
               sice2d(k,ill,jll) = 0.0D0
-              scv2d(k,ill,jll) = 0.0D0
+              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
               nlveg = nint(veg2d1(k,ill,jll))
             else
-              ocld2d(k,ill,jll) = 1.0D0
-              sice2d(k,ill,jll) = -1.0D+34
-              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
+              sice2d(k,ill,jll) = 0.0D0
+              scv2d(k,ill,jll) = 0.0D0
               nlveg = nint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
