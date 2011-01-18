@@ -171,8 +171,8 @@
         sigma(23) = 0.99
         sigma(24) = 1.0
       else
-        write (*,*) 'You vertical level number is not 14, 18, or 23'
-        write (*,*) 'Please set your sigma parameters in OUTPUT'
+        write(stderr,*) 'You vertical level number is not 14, 18, or 23'
+        write(stderr,*) 'Please set your sigma parameters in OUTPUT'
         call die('terrain')
       end if
 

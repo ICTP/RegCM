@@ -723,12 +723,8 @@
  
         do j = 1 , jendx
           do i = 1 , iym1
-#ifdef CLM
-! manuaully setting ocld2d subgrid to 1 (regcm_clm does not support subgridding)
-            if ( ocld2d(1,i,j).le.0.5 .or. ocld2d(1,i,j).gt.1.5 ) then
-#else
-            if ( veg2d(i,j).le.0.00001 ) then
-#endif
+            if( mddom%satbrt(i,j).gt.13.5 .and.  &
+                mddom%satbrt(i,j).lt.15.5 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -737,22 +733,24 @@
                 sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
+                if ( lakemod.eq.1 .and. &
+                     mddom%satbrt(i,j).lt.14.5 ) cycle
                 if ( tdum(i,j).le.271.38 ) then
                    sts1%tg(i,j) = 271.38
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.0
-                    sice2d(n,i,j) = 1000.0
-                    scv2d(n,i,j) = 0.0
+                    ocld2d(n,i,j) = 2.0D0
+                    sice2d(n,i,j) = 1000.0D0
+                    scv2d(n,i,j) = 0.0D0
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.0
-                    sice2d(n,i,j) = 0.0
-                    scv2d(n,i,j) = 0.0
+                    ocld2d(n,i,j) = 0.0D0
+                    sice2d(n,i,j) = 0.0D0
+                    scv2d(n,i,j) = 0.0D0
                   end do
                 end if
               end if
@@ -1023,7 +1021,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if ( veg2d(i,j).le.0.00001 ) then
+            if( mddom%satbrt(i,j).gt.13.5 .and.  &
+                mddom%satbrt(i,j).lt.15.5 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -1032,22 +1031,24 @@
                 sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
+                if ( lakemod.eq.1 .and. &
+                     mddom%satbrt(i,j).lt.14.5 ) cycle
                 if ( tdum(i,j).le.271.38 ) then
                    sts1%tg(i,j) = 271.38
                    sts2%tg(i,j) = 271.38
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.0
-                    sice2d(n,i,j) = 1000.0
-                    scv2d(n,i,j) = 0.0
+                    ocld2d(n,i,j) = 2.0D0
+                    sice2d(n,i,j) = 1000.0D0
+                    scv2d(n,i,j) = 0.0D0
                   end do
                 else
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.0
-                    sice2d(n,i,j) = 0.0
-                    scv2d(n,i,j) = 0.0
+                    ocld2d(n,i,j) = 0.0D0
+                    sice2d(n,i,j) = 0.0D0
+                    scv2d(n,i,j) = 0.0D0
                   end do
                 end if
               end if

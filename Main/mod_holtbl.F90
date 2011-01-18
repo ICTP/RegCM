@@ -1229,6 +1229,12 @@
                   if ( ichem.eq.1 )                                     &
                      & pblk2 = fak1*zh*zzhnew2/(1.+betas*zl)
 !chem_
+!**             compute eddy diffusivities
+! elguindi - set all k coeff to 0 under very stable conditions
+                kvm(i,k,j) = 0.0 !dmax1(pblk,0.0D0)
+                kvh(i,k,j) = kvm(i,k,j)*0.0
+                kvq(i,k,j) = 0.0 !dmax1(pblk1,0.0D0)
+! elguindi
                 else
                   pblk = fak1*zh*zzh/(betas+zl)
 !xexp5            pblk1 = vonkar * ustr(i,j) / (betas+zl) * zzhnew
@@ -1236,11 +1242,15 @@
 !chem
                   if ( ichem.eq.1 ) pblk2 = fak1*zh*zzhnew2/(betas+zl)
 !chem_
-                end if
 !**             compute eddy diffusivities
                 kvm(i,k,j) = dmax1(pblk,kzo)
                 kvh(i,k,j) = kvm(i,k,j)
                 kvq(i,k,j) = dmax1(pblk1,kzo)
+                end if
+!**             compute eddy diffusivities
+!                kvm(i,k,j) = dmax1(pblk,kzo)
+!                kvh(i,k,j) = kvm(i,k,j)
+!                kvq(i,k,j) = dmax1(pblk1,kzo)
 !chem
                 if ( ichem.eq.1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
 !chem_

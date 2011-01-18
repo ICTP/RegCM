@@ -383,7 +383,7 @@
         do n = 1 , nnsg
  
           ! lake model handles this case
-          if ( lakemod.eq.1 .and. lveg(n,i).eq.14 ) exit
+          if ( lakemod.eq.1 .and. oveg(n,i).eq.14 ) exit
  
           if ( ldoc1d(n,i).gt.1.5 ) then
 ! ******    rhosw = density of snow relative to water

@@ -352,14 +352,41 @@
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.
+                    ocld2d(n,i,j) = 2.0D0
                   end do
                 else
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.
+                    if ( satbrt1(n,i,j).gt.13.5 .and. &
+                         satbrt1(n,i,j).lt.15.5 ) then
+                      ocld2d(n,i,j) = 0.0D0
+                    else
+                      ocld2d(n,i,j) = 1.0D0
+                    end if
                   end do
                 end if
+              else
+                do n = 1, nnsg
+                  if ( satbrt1(n,i,j).gt.13.5 .and. &
+                       satbrt1(n,i,j).lt.15.5 ) then
+                    ocld2d(n,i,j) = 0.0D0
+                  else
+                    ocld2d(n,i,j) = 1.0D0
+                  end if
+                end do
               end if
+            end do
+          end do
+        else
+          do j = 1 , jendx
+            do i = 1 , iym1
+              do n = 1, nnsg
+                if ( satbrt1(n,i,j).gt.13.5 .and. &
+                     satbrt1(n,i,j).lt.15.5 ) then
+                  ocld2d(n,i,j) = 0.0D0
+                else
+                  ocld2d(n,i,j) = 1.0D0
+                end if
+              end do
             end do
           end do
         end if
@@ -367,7 +394,8 @@
           do k = 1 , kz
             do j = 1 , jendl
               do i = 1 , iy
-                tbase(i,k,j) = ts00 + tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
+                tbase(i,k,j) = ts00 + &
+                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
               end do
             end do
           end do
@@ -516,14 +544,45 @@
                   sts2%tg(i,j) = 271.38
                   ts0(i,j) = 271.38
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.
+                    ocld2d(n,i,j) = 2.0D0
                   end do
                 else
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 0.
+                    if ( satbrt1(n,i,j).gt.13.5 .and. &
+                         satbrt1(n,i,j).lt.15.5 ) then
+                      ocld2d(n,i,j) = 0.0D0
+                    else
+                      ocld2d(n,i,j) = 1.0D0
+                    end if
                   end do
                 end if
+              else
+                do n = 1, nnsg
+                  if ( satbrt1(n,i,j).gt.13.5 .and. &
+                       satbrt1(n,i,j).lt.15.5 ) then
+                    ocld2d(n,i,j) = 0.0D0
+                  else
+                    ocld2d(n,i,j) = 1.0D0
+                  end if
+                end do
               end if
+            end do
+          end do
+        else
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do i = 1 , iym1
+              do n = 1, nnsg
+                if ( satbrt1(n,i,j).gt.13.5 .and. &
+                     satbrt1(n,i,j).lt.15.5 ) then
+                  ocld2d(n,i,j) = 0.0D0
+                else
+                  ocld2d(n,i,j) = 1.0D0
+                end if
+              end do
             end do
           end do
         end if

@@ -135,6 +135,13 @@
                  dhlake1(n,i,j).gt.1.0) then
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
                                   dble(ndpmax)))/dz)
+              if ( ocld2d(n,i,j).gt.1.5 ) then
+                tlak3d(1,n,i,j) = 1.78D0
+                tlak3d(2,n,i,j) = 1.78D0
+                aveice2d(n,i,j) = 1000.0D0
+                hi2d(n,i,j) = 1.0D0
+                hsnow2d(n,i,j) = 0.0D0
+              end if
               if (idep2d(n,i,j).lt.50) then
                 eta2d(n,i,j) = 0.7D0
               else if (idep2d(n,i,j).gt.100) then
@@ -287,7 +294,7 @@
         hs  = hsnow / 100.0D0     ! convert to m
 
         call ice(fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
-        if ( lfreeze ) tprof(1) = tt(1)
+        if ( lfreeze ) tprof(1) = 0.0D0
 
         evl    = ev/3600.0D0      ! convert evl  from mm/hr to mm/sec
         aveice = ai*1000.0D0      ! convert ice  from m to mm
@@ -295,7 +302,12 @@
  
       end if
  
-      tgl = tprof(1) + tzero
+      ! Consider ice insulation
+      if (aveice < 500.0) then
+        tgl = tprof(1) + tzero
+      else
+        tgl = tl
+      end if
  
       end subroutine lake
 !
