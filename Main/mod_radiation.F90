@@ -400,7 +400,7 @@
                                   & flwds , fsds , fsnirt , fsnirtsq ,  &
                                   & fsnrtc , fsns , fsnsc , fsnt ,      &
                                   & fsntc , solin , soll , solld ,      &
-                                  & sols , solsd , ts
+                                  & sols , solsd , ts , fslwdcs
       real(8) , dimension(iym1,kzp1) :: cld , effcld , piln , pint
       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , pmid ,  &
            & pmln , qrl , qrs , rei , rel , t
@@ -444,11 +444,12 @@
       real(8) , dimension(iym1) :: aeradfo , aeradfos
       real(8),  dimension(iym1)::  aerlwfo , aerlwfos
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o
-      integer :: i
+      integer :: i , k
       real(8) , dimension(iym1,kz) :: o3mmr , pbr , rh
       real(8) , dimension(iym1,kzp1) :: plco2 , plh2o , pnm , tclrsf
       character (len=50) :: subroutine_name='radctl'
       integer :: indx = 0
+      real(8) , dimension(iym1) :: totcf
 !
       call time_begin(subroutine_name,indx)
 !
@@ -486,11 +487,31 @@
           fsns(i) = fsns(i)*1.E-3
           fsntc(i) = fsntc(i)*1.E-3
           fsnsc(i) = fsnsc(i)*1.E-3
- 
-          fsds(i) = fsds(i)*1.E-3
-          fsnirt(i) = fsnirt(i)*1.E-3
-          fsnrtc(i) = fsnrtc(i)*1.E-3
-          fsnirtsq(i) = fsnirtsq(i)*1.E-3
+!FAB 
+!         clear sky column partitioning for surface flux  
+!         note : should be generalised to the whole column to be
+!                really in energy balance !
+          totcf(i) = 1.D0
+          do k = 1 , kzp1
+            totcf(i) = totcf(i) * (1 - cld(i,k)) 
+          end do
+          totcf(i) = 1.D0 - totcf(i)
+
+!         maximum cld cover considered        
+!         fsns(i) = fsns(i) * maxval(cld(i,:)) + &
+!                   fsnsc(i) * (1-maxval(cld(i,:)))
+!         random overlapp assumption is tocf(i)
+!         Now average btw rand ov and maximum cloud cover as fil suggest
+          totcf(i) =  0.5 * ( totcf(i) + maxval(cld(i,:)) )
+
+!         Fil suggestion of putting a max on column cloud fraction
+          if ( totcf(i) > 0.8D0 ) totcf(i) = 0.8D0
+
+          fsns(i) = fsns(i) * totcf(i) + fsnsc(i) * (1.0D0-totcf(i))
+          fsds(i) = fsds(i)*1.D-3
+          fsnirt(i) = fsnirt(i)*1.D-3
+          fsnrtc(i) = fsnrtc(i)*1.D-3
+          fsnirtsq(i) = fsnirtsq(i)*1.D-3
         end do
 !
 !       Calculate/outfld albedo and clear sky albedo
@@ -522,7 +543,7 @@
 !
         call radclw(jslc,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
                   & plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  & flnt,flnsc,flntc,flwds,emiss1d,aerlwfo,aerlwfos)
+                  & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo,aerlwfos)
 !
 !       Convert units of longwave fields needed by rest of model from
 !       CGS to MKS
@@ -532,10 +553,25 @@
           flntc(i) = flntc(i)*1.E-3
           flnsc(i) = flnsc(i)*1.E-3
           flwds(i) = flwds(i)*1.E-3
+!FAB
+          fslwdcs(i) = fslwdcs(i)*1.E-3
+!         essai clear sky column
+!
+!         flwds(i) = flwds(i) * maxval(cld((i,:))) + &
+!                    flwds(i) * (1-maxval(cld((i,:))))
+!         flwds(i) = flwds(i) * maxval(cld(i,:)) + &
+!                    fslwdcs(i)*(1- maxval(cld(i,:)))
+!         flns(i) = flns(i) * maxval(cld(i,:)) + &
+!                   flnsc(i)*(1- maxval(cld(i,:))) 
+!
+!         totcf(i) has been calculated for the SW, dolw is always true 
+          flwds(i) = flwds(i) * totcf(i) + &
+                     fslwdcs(i) * (1.0D0 - totcf(i))
+          flns(i) = flns(i) * totcf(i) + &
+                    flnsc(i) * (1.0D0 - totcf(i))
         end do
       end if
 
-!     aersols diagnostics
       if ( ichem==1 ) then
         call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
       end if   
@@ -1112,6 +1148,7 @@
           indxsl = 3
         else if ( wavmin(ns).eq.0.702 .or. wavmin(ns).gt.2.38 ) then
           indxsl = 4
+        else
         end if
 !
 !       Set cloud extinction optical depth, single scatter albedo,
@@ -1588,7 +1625,8 @@
 !
       subroutine radclw(jslc,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
                       & plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
-                      & flnt,flnsc,flntc,flwds,emiss1d,aerlwfo,aerlwfos)
+                      & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo, &
+                      & aerlwfos)
 
 !-----------------------------------------------------------------------
 !
@@ -1659,13 +1697,13 @@
       real(8) , dimension(iym1,kzp1) :: cld , piln , pint , plco2 ,   &
            & plh2o , tclrsf
       real(8) , dimension(iym1) :: emiss1d , flns , flnsc , flnt ,     &
-                                  & flntc , flwds , ts
+                                  & flntc , flwds , fslwdcs , ts
       real(8), dimension(iym1) :: aerlwfo , aerlwfos
 
 
       intent (in) cld , emiss1d
-      intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo, &
-                 & aerlwfos
+      intent (out) flns , flnsc , flnt , flntc , flwds , qrl , &
+                   aerlwfo , aerlwfos
 
       intent (inout) tclrsf
 !
@@ -2030,6 +2068,9 @@
         end if 
 
       end if ! end aersol rad diagnostic
+
+!FAB MODIF  : save downward clear sky long wave flux in surface  
+      fslwdcs(:) = fsdl(:,kzp1)
 
 !
 !     Modifications for clouds
