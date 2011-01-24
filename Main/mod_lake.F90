@@ -294,7 +294,7 @@
         hs  = hsnow / 100.0D0     ! convert to m
 
         call ice(fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
-        if ( lfreeze ) tprof(1) = 0.0D0
+        if ( .not. lfreeze ) tprof(1) = tk - tzero
 
         evl    = ev/3600.0D0      ! convert evl  from mm/hr to mm/sec
         aveice = ai*1000.0D0      ! convert ice  from m to mm
@@ -302,12 +302,7 @@
  
       end if
  
-      ! Consider ice insulation
-      if (aveice < 500.0) then
-        tgl = tprof(1) + tzero
-      else
-        tgl = tl
-      end if
+      tgl = tprof(1) + tzero
  
       end subroutine lake
 !
