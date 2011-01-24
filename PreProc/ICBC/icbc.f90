@@ -161,7 +161,6 @@
  
       idate = globidate1
       iodate = idate
-      call newfile(idate)
 
       if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
          & then
@@ -190,34 +189,13 @@
         call die('icbc','Unknown dattyp',1)
       end if
  
+      call newfile(idate)
+
       do nnn = 1 , nsteps
 
         call split_idate(idate, iyr, imon, iday, ihr)
 
         if (.not. lsame_month(idate, iodate) ) then
-          if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
-            call getncep(idate,1)
-          else if ( dattyp=='NRP2W' ) then
-            call getncep(idate,2)
-          else if ( dattyp=='ECMWF' ) then
-            call getecwcp(idate)
-          else if ( dattyp=='ERA40' ) then
-            call getera40(idate)
-          else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
-                    dattyp=='EIN75' .or. dattyp=='EIN25' ) then
-            call getein(idate)
-          else if ( dattyp=='GFS11' ) then
-            call getgfs11(idate)
-          else if ( dattyp=='ERAHI' ) then
-            call geterahi(idate)
-          else if ( dattyp=='EH5OM' ) then
-            call geteh5om(idate)
-          else if ( dattyp=='FVGCM' ) then
-            call getfvgcm(idate)
-          else if ( dattyp=='FNEST' ) then
-            call get_nest(idate)
-          end if
-          call writef(idate)
           call newfile(idate)
         end if
 
