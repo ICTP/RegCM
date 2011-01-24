@@ -1111,6 +1111,10 @@
           call check_ok('Dimension time missing', 'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=ibcnrec)
           call check_ok('Dimension time read error', 'ICBC FILE ERROR')
+          if ( ibcnrec < 1 ) then
+            write (6,*) 'Time variable in ICBC has zero dim.'
+            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          end if
           istatus = nf90_inq_varid(ibcin, 'time', itvar)
           call check_ok('variable time missing', 'ICBC FILE ERROR')
           istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
@@ -1122,14 +1126,16 @@
           do i = 1 , ibcnrec
             icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
           end do
-          chkdiff = icbc_xtime(2) - icbc_xtime(1)
-          deallocate(icbc_xtime)
-          if (chkdiff .ne. ibdyfrq) then
-            write (6,*) 'Time variable in ICBC inconsistency.'
-            write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
-            write (6,*) 'Found     ibdyfrq = ', chkdiff
-            call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+          if ( ibcnrec > 1 ) then
+            chkdiff = icbc_xtime(2) - icbc_xtime(1)
+            if (chkdiff .ne. ibdyfrq) then
+              write (6,*) 'Time variable in ICBC inconsistency.'
+              write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
+              write (6,*) 'Found     ibdyfrq = ', chkdiff
+              call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+            end if
           end if
+          deallocate(icbc_xtime)
           istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
           call check_ok('variable ps missing', 'ICBC FILE ERROR')
           istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
