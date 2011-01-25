@@ -105,7 +105,7 @@
  scenario = 'A1B',
  idcsst = 0,
  iseaice = 0,
- idesseas = 0,
+ idesseas = 1,
  /
  &subexparam
  qck1land=   .250E-03,

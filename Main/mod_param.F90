@@ -396,10 +396,17 @@
 
 !---------------------------------------------------------------------
 !
+      if ( (lband .and. i_band /= 1) .or. &
+           (.not. lband .and. i_band /= 0) ) then
+        write (6,*) 'Model is compiled for BAND, ' , &
+                    'but input is NOT for BAND or viceversa.'
+        call fatal(__FILE__,__LINE__,                                 &
+                  &'BAND Compile / i_band namelist mismatch')
+      end if
+!
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif 
-  
 !  
 !-----read in namelist variables:
       read (ipunit, restartparam)
