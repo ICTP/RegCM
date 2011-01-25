@@ -23,6 +23,8 @@
       use m_realkinds
       use m_stdio
       use m_die
+      use m_zeit
+      use m_mall
 
       private
 
@@ -56,7 +58,7 @@
 
       integer(4) , dimension(10) :: icount , istart
 
-      public :: geteh5om , headermpi
+      public :: geteh5om , headermpi , footermpi
 
       contains
 
@@ -125,6 +127,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
+      call zeit_ci('get_eh5om')
       nyear = idate/1000000
                          !, SST2(JX,IY)
       month = idate/10000 - nyear*100
@@ -1187,19 +1190,16 @@
 !
       end if
 
+      call zeit_co('get_eh5om')
       end subroutine geteh5om
 
       subroutine headermpi(ehso4)
       implicit none
 !
-! Dummy arguments
-!
       logical :: ehso4
       intent (in) ehso4
 !
-! Local variables
-!
-      integer :: i , k , kr
+      integer :: i , k , kr , ierr
       logical :: there
 !
       glat(1) = -88.5719985961914
@@ -1493,10 +1493,20 @@
         close (30)
       end if
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,klev*2))
-      allocate(sulfate3(jx,iy,mlev))
-      allocate(pso4_3(jx,iy))
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headermpi','allocate b3',ierr)
+      call mall_mci(b3,'mod_eh5om')
+      allocate(d3(jx,iy,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headermpi','allocate d3',ierr)
+      call mall_mci(d3,'mod_eh5om')
+      if ( ehso4 ) then
+        allocate(sulfate3(jx,iy,mlev), stat=ierr)
+        if (ierr /= 0) call die('headermpi','allocate sulfate3',ierr)
+        call mall_mci(sulfate3,'mod_eh5om')
+        allocate(pso4_3(jx,iy), stat=ierr)
+        if (ierr /= 0) call die('headermpi','allocate pso4_3',ierr)
+        call mall_mci(pso4_3,'mod_eh5om')
+      end if
 
 !     Set up pointers
 
@@ -1512,5 +1522,20 @@
       rhvar => b2(:,:,2*klev+1:3*klev)
 
       end subroutine headermpi
+
+      subroutine footermpi(ehso4)
+        implicit none
+        logical , intent(in) :: ehso4
+        call mall_mco(d3,'mod_eh5om')
+        deallocate(d3)
+        call mall_mco(b3,'mod_eh5om')
+        deallocate(b3)
+        if ( ehso4 ) then
+          call mall_mco(sulfate3,'mod_eh5om')
+          deallocate(sulfate3)
+          call mall_mco(pso4_3,'mod_eh5om')
+          deallocate(pso4_3)
+        end if
+      end subroutine footermpi
 
       end module mod_eh5om

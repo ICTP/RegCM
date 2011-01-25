@@ -232,20 +232,20 @@
          & then
         call footernc
       else if ( dattyp=='ECMWF' ) then
-!        call footerec
+        call footerec
       else if ( dattyp=='ERA40' ) then
-!        call footerera
+        call footerera
       else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
                 dattyp=='EIN75' .or. dattyp=='EIN25' ) then
         call footerein
       else if ( dattyp=='GFS11' ) then
-!        call footergfs
+        call footergfs
       else if ( dattyp=='ERAHI' ) then
-!        call footerehi
+        call footerehi
       else if ( dattyp=='EH5OM' ) then
-!        call footermpi
+        call footermpi(ehso4)
       else if ( dattyp=='FVGCM' ) then
-!        call footerfv
+        call footerfv
       else if ( dattyp=='FNEST' ) then
         call footernest
       else

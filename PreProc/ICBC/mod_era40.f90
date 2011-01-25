@@ -22,6 +22,8 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_zeit
+      use m_mall
 
       private
 
@@ -49,7 +51,7 @@
       real(sp) , dimension(ilon) :: glon
       real(sp) , dimension(klev) :: sigma1 , sigmar
 
-      public :: getera40 , headerera
+      public :: getera40 , headerera , footerera
 
       contains
 
@@ -71,6 +73,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
+      call zeit_ci('getera40')
       call era6hour(dattyp,idate,globidate1)
       write (stdout,*) 'READ IN fields at DATE:' , idate
 !
@@ -129,6 +132,7 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('getera40')
       end subroutine getera40
 
       subroutine era6hour(dattyp,idate,idate0)
@@ -412,9 +416,7 @@
       subroutine headerera
       implicit none
 !
-! Local variables
-!
-      integer :: i , j , k , kr
+      integer :: i , j , k , kr , ierr
 !
       sigmar(1) = .001
       sigmar(2) = .002
@@ -456,9 +458,15 @@
         sigma1(k) = sigmar(kr)
       end do
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,klev*2))
-      allocate(s3(jx,iy,4*3+1))
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headerera','allocate b3',ierr)
+      call mall_mci(b3,'mod_era40')
+      allocate(d3(jx,iy,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headerera','allocate d3',ierr)
+      call mall_mci(d3,'mod_era40')
+      allocate(s3(jx,iy,4*3+1), stat=ierr)
+      if (ierr /= 0) call die('headerera','allocate s3',ierr)
+      call mall_mci(s3,'mod_era40')
 
 !     Set up pointers
 
@@ -482,5 +490,15 @@
       snw => s2(:,:,13)
 
       end subroutine headerera
+
+      subroutine footerera
+        implicit none
+        call mall_mco(d3,'mod_era40')
+        deallocate(d3)
+        call mall_mco(b3,'mod_era40')
+        deallocate(b3)
+        call mall_mco(s3,'mod_era40')
+        deallocate(s3)
+      end subroutine footerera
 
       end module mod_era40

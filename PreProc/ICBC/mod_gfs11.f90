@@ -22,6 +22,8 @@
       use m_realkinds
       use m_die
       use m_stdio
+      use m_mall
+      use m_zeit
 
       private
 
@@ -41,7 +43,7 @@
       real(sp) , dimension(ilon) :: glon
       real(sp) , dimension(klev) :: sigma1 , sigmar
 
-      public :: getgfs11 , headergfs
+      public :: getgfs11 , headergfs , footergfs
 
       contains
 
@@ -82,6 +84,7 @@
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
+      call zeit_ci('getgfs11')
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - (idate/10000)*100
@@ -296,7 +299,6 @@
       else
          call p1p2(b3pd,ps4,jx,iy)
       endif
- 
 !
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
@@ -318,6 +320,7 @@
 !     F4  DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('getgfs11')
       end subroutine getgfs11
 !
       subroutine headergfs
@@ -325,7 +328,7 @@
 !
 ! Local variables
 !
-      integer :: i , j , k , kr
+      integer :: i , j , k , kr , ierr
 !
       sigmar(1) = .01
       sigmar(2) = .02
@@ -370,8 +373,12 @@
         sigma1(k) = sigmar(kr)
       end do
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,klev*2))
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('headergfs','allocate b3',ierr)
+      call mall_mci(b3,'mod_gfs11')
+      allocate(d3(jx,iy,klev*2), stat=ierr)
+      if (ierr /= 0) call die('headergfs','allocate d3',ierr)
+      call mall_mci(d3,'mod_gfs11')
 
 !     Set up pointers
 
@@ -387,5 +394,13 @@
       rhvar => b2(:,:,2*klev+1:3*klev)
 !
       end subroutine headergfs
+
+      subroutine footergfs
+        implicit none
+        call mall_mco(d3,'mod_gfs11')
+        deallocate(d3)
+        call mall_mco(b3,'mod_gfs11')
+        deallocate(b3)
+      end subroutine footergfs
 
       end module mod_gfs11

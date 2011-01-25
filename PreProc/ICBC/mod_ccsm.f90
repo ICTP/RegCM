@@ -125,6 +125,8 @@
       use m_realkinds
       use m_stdio
       use m_die
+      use m_mall
+      use m_zeit
 
       private
 
@@ -140,8 +142,6 @@
       real(sp) , target , dimension(ilon,jlat,npl*2) :: d2
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
-      real(sp) , allocatable , dimension(:,:,:) :: dum1
-      real(sp) , allocatable , dimension(:,:,:,:) :: dum2
 
       ! Shared by netcdf I/O routines
       integer , dimension(10) :: icount , istart
@@ -162,7 +162,7 @@
       real(sp) , dimension(ilon) :: glon
       real(sp) , dimension(npl) :: pplev , sigma1 , sigmar
 
-      public :: get_cam42 , head_cam42
+      public :: get_cam42 , head_cam42 , footercam
       public :: get_cam85 , head_cam85
 
       integer , parameter :: iccsmstart = 1948010100
@@ -184,11 +184,7 @@
 
         implicit none
 !
-! Dummy arguments
-!
         integer :: idate
-!
-! Local variables
 !
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , istatus
@@ -199,6 +195,8 @@
 
         data varname/'PHIS'/
  
+        call zeit_ci('get_cam42')
+
         call cam42(idate,globidate1,glat)
 
         if ( idate==globidate1 ) then
@@ -235,7 +233,9 @@
             write(stderr,*) 'LON for' , varname , '= ' , lonlen
             call die('get_cam42','Check Dims in CCSM Data Files',1)
           end if
-          allocate (work(lonlen,latlen))
+          allocate (work(lonlen,latlen), stat=istatus)
+          if (istatus /= 0) call die('getcam42','allocate work',istatus)
+          call mall_mci(work,'mod_ccsm')
           icount(1) = lonlen
           icount(2) = latlen
           icount(3) = 1
@@ -323,7 +323,9 @@
         call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,               &
                &     dsigma,jx,iy,kz)
  
+        call mall_mco(work,'mod_ccsm')
         deallocate(work)
+        call zeit_co('get_cam42')
       end subroutine get_cam42
 !
 !-----------------------------------------------------------------------
@@ -331,9 +333,7 @@
       subroutine head_cam42
         implicit none
 !
-! Local variables
-!
-        integer :: i , k , kr
+        integer :: i , k , kr , ierr
         real(sp) , dimension(jlath) :: fixlat
 !
         data fixlat/ - 87.8638 , -85.0965 , -82.3129 , -79.5256 ,       &
@@ -444,10 +444,12 @@
         bk(26) = 0.9851122
         bk(27) = 1.
  
-        allocate(b3(jx,iy,klev*3))
-        allocate(d3(jx,iy,npl*2))
-        allocate(dum1(jx,iy,npl))
-        allocate(dum2(jx,iy,npl,2))
+        allocate(b3(jx,iy,klev*3), stat=ierr)
+        if (ierr /= 0) call die('head_cam42','allocate b3',ierr)
+        call mall_mci(b3,'mod_ccsm')
+        allocate(d3(jx,iy,npl*2), stat=ierr)
+        if (ierr /= 0) call die('head_cam42','allocate d3',ierr)
+        call mall_mci(d3,'mod_ccsm')
 
 !       Set up pointers
  
@@ -472,13 +474,9 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       real(sp) , dimension(jlath) :: glat
       intent (in) glat , idate , idate0
-!
-! Local variables
 !
       integer :: i , ii , ilev , inet , it , ivar , j , jj ,            &
                & jmax , jmin , kkrec , latid , latlen , lonid ,         &
@@ -495,6 +493,7 @@
 !
       data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
 !
+      call zeit_ci('cam42')
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
@@ -549,7 +548,6 @@
         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
- 
         checklon(kkrec) = lonlen
         checklat(kkrec) = latlen
         checktim(kkrec) = timlen
@@ -574,9 +572,15 @@
           end if
         end if
         if ( kkrec==1 ) then
-            allocate (work(lonlen,latlen,klev))
-            allocate (work1(lonlen))
-            allocate (work2(latlen))
+          allocate (work(lonlen,latlen,klev), stat=istatus)
+          if (istatus /= 0) call die('cam42','allocate work',istatus)
+          call mall_mci(work,'mod_ccsm')
+          allocate (work1(lonlen), stat=istatus)
+          if (istatus /= 0) call die('cam42','allocate work1',istatus)
+          call mall_mci(work1,'mod_ccsm')
+          allocate (work2(latlen), stat=istatus)
+          if (istatus /= 0) call die('cam42','allocate work2',istatus)
+          call mall_mci(work2,'mod_ccsm')
         end if
         if ( xlon(1,1)<0.0 ) then
           nlon0 = xlon(1,1) + 360.
@@ -779,9 +783,14 @@
       do kkrec = 1 , 6
         istatus = nf90_close(inet6(kkrec))
       end do
+      call mall_mco(work,'mod_ccsm')
       deallocate(work)
+      call mall_mco(work1,'mod_ccsm')
       deallocate(work1)
+      call mall_mco(work2,'mod_ccsm')
       deallocate(work2)
+      call zeit_co('cam42')
+
 99001 format (i4,'/','ccsm.',a4,i4,'.nc')
 99002 format (i4,'/','ccsm.',a5,i4,'.nc')
       end subroutine cam42
@@ -803,11 +812,7 @@
 
         implicit none
 !
-! Dummy arguments
-!
         integer :: idate
-!
-! Local variables
 !
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , istatus
@@ -818,6 +823,7 @@
 !
       data varname/'PHIS'/
  
+      call zeit_ci('get_cam85')
       call cam85(idate,globidate1,glat)
 
       if ( idate==globidate1 ) then
@@ -853,7 +859,9 @@
           write(stderr,*) 'LON for' , varname , '= ' , lonlen
           call die('get_cam85','Check Dimensions in CCSM Data Files',1)
         end if
-        allocate (work(lonlen,latlen))
+        allocate (work(lonlen,latlen), stat=istatus)
+        if (istatus /= 0) call die('getcam85','allocate work',istatus)
+        call mall_mci(work,'mod_ccsm')
         icount(1) = lonlen
         icount(2) = latlen
         icount(3) = 1
@@ -939,7 +947,9 @@
  
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
+      call mall_mco(work,'mod_ccsm')
       deallocate(work)
+      call zeit_co('get_cam85')
       end subroutine get_cam85
 !
 !-----------------------------------------------------------------------
@@ -947,9 +957,7 @@
       subroutine head_cam85
       implicit none
 !
-! Local variables
-!
-      integer :: i , k , kr
+      integer :: i , k , kr , ierr
       real(sp) , dimension(jlat) :: fixlat
 !
       data fixlat/ - 88.928 , -87.539 , -86.141 , -84.742 , -83.343 ,   &
@@ -1068,10 +1076,12 @@
       bk(26) = 0.9851122
       bk(27) = 1.
  
-      allocate(b3(jx,iy,klev*3))
-      allocate(d3(jx,iy,npl*2))
-      allocate(dum1(jx,iy,npl))
-      allocate(dum2(jx,iy,npl,2))
+      allocate(b3(jx,iy,klev*3), stat=ierr)
+      if (ierr /= 0) call die('head_cam85','allocate b3',ierr)
+      call mall_mci(b3,'mod_ccsm')
+      allocate(d3(jx,iy,npl*2), stat=ierr)
+      if (ierr /= 0) call die('head_cam85','allocate d3',ierr)
+      call mall_mci(d3,'mod_ccsm')
 
 !     Set up pointers
 
@@ -1096,13 +1106,9 @@
       use mod_write
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       real(sp) , dimension(jlat) :: glat
       intent (in) glat , idate , idate0
-!
-! Local variables
 !
       integer :: i , ii , ilev , inet , it , ivar , j , jj , jmax ,     &
                & jmin , kkrec , latid , latlen , lonid , lonlen ,       &
@@ -1123,6 +1129,7 @@
  
       data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
  
+      call zeit_ci('cam85')
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
@@ -1201,9 +1208,15 @@
           end if
         end if
         if ( kkrec==1 ) then
-            allocate (work(lonlen,latlen,klev))
-            allocate (work1(lonlen))
-            allocate (work2(latlen))
+          allocate (work(lonlen,latlen,klev), stat=istatus)
+          if (istatus /= 0) call die('cam85','allocate work',istatus)
+          call mall_mci(work,'mod_ccsm')
+          allocate (work1(lonlen), stat=istatus)
+          if (istatus /= 0) call die('cam85','allocate work1',istatus)
+          call mall_mci(work1,'mod_ccsm')
+          allocate (work2(latlen), stat=istatus)
+          if (istatus /= 0) call die('cam85','allocate work2',istatus)
+          call mall_mci(work2,'mod_ccsm')
         end if
         if ( xlon(1,1)<0.0 ) then
           nlon0 = xlon(1,1) + 360.
@@ -1406,9 +1419,14 @@
       do kkrec = 1 , 6
         istatus = nf90_close(inet6(kkrec))
       end do
+      call mall_mco(work,'mod_ccsm')
       deallocate (work)
+      call mall_mco(work1,'mod_ccsm')
       deallocate (work1)
+      call mall_mco(work2,'mod_ccsm')
       deallocate (work2)
+      call zeit_co('cam85')
+
 99001 format (i4,'/','ccsm.',a3,a3,'.',i4,'.nc')
 99002 format (i4,'/','ccsm.',a4,a3,'.',i4,'.nc')
       end subroutine cam85
@@ -1421,8 +1439,6 @@
         use netcdf
         implicit none
 !
-! Dummy arguments
-!
         integer :: istatus
         intent (in) :: istatus
 !
@@ -1431,4 +1447,12 @@
 
       end subroutine handle_err
 !
+      subroutine footercam
+        implicit none
+        call mall_mco(b3,'mod_ccsm')
+        deallocate (b3)
+        call mall_mco(d3,'mod_ccsm')
+        deallocate (d3)
+      end subroutine footercam
+
       end module mod_ccsm

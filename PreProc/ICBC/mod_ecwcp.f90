@@ -20,8 +20,11 @@
       module mod_ecwcp
 
       use mod_dynparam
-
+      use m_stdio
       use m_realkinds
+      use m_mall
+      use m_die
+      use m_zeit
 
       private
 
@@ -43,7 +46,7 @@
       real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-      public :: getecwcp , headerec
+      public :: getecwcp , headerec , footerec
 
       contains
 
@@ -57,15 +60,9 @@
       use mod_mksst
       use mod_uvrot
       use mod_vectutil
-      use m_stdio
-      use m_die
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
-!
-! Local variables
 !
       character(12) , dimension(12,5) :: finm
       integer :: i , j , k , month , nday , nhour , nrec , nyear
@@ -92,6 +89,7 @@
           &'ECT421997JUL' , 'ECT421997AUG' , 'ECT421997SEP' ,           &
           &'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
 !
+      call zeit_ci('getecwcp')
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - (idate/10000)*100
@@ -181,14 +179,13 @@
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('getecwcp')
       end subroutine getecwcp
 !
       subroutine headerec
       implicit none
 !
-! Local variables
-!
-      integer :: i , k , kr
+      integer :: i , k , kr , ierr
 !
       hlat(1) = -87.8638
       hlat(2) = -85.0965
@@ -274,20 +271,21 @@
       sigmar(14) = .925
       sigmar(15) = 1.0
 !
-!HH:OVER
 !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
 !
-!HH:ECMWF-T42
-!:
       do k = 1 , nlev1
         kr = nlev1 - k + 1
         sigma1(k) = sigmar(kr)
       end do
 
-      allocate(b3(jx,iy,nlev1*3))
-      allocate(d3(jx,iy,nlev1*2))
+      allocate(b3(jx,iy,nlev1*3), stat=ierr)
+      if (ierr /= 0) call die('headerec','allocate b3',ierr)
+      call mall_mci(b3,'mod_ecwcp')
+      allocate(d3(jx,iy,nlev1*2), stat=ierr)
+      if (ierr /= 0) call die('headerec','allocate d3',ierr)
+      call mall_mci(d3,'mod_ecwcp')
       
-!       Set up pointers
+!     Set up pointers
 
       u3 => d3(:,:,1:nlev1)
       v3 => d3(:,:,nlev1+1:2*nlev1)
@@ -301,5 +299,13 @@
       q1 => b2(:,:,2*nlev1+1:3*nlev1)
 
       end subroutine headerec
+
+      subroutine footerec
+        implicit none
+        call mall_mco(d3,'mod_ecwcp')
+        deallocate(d3)
+        call mall_mco(b3,'mod_ecwcp')
+        deallocate(b3)
+      end subroutine footerec
 
       end module mod_ecwcp

@@ -20,6 +20,9 @@
       module mod_fvgcm
       use mod_dynparam
       use m_realkinds
+      use m_die
+      use m_mall
+      use m_zeit
 
       private
 
@@ -35,7 +38,6 @@
       real(sp) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
-      real(sp) , allocatable , dimension(:,:,:) :: w3
 
       real(sp) , dimension(nlon2,nlat2) :: zs2
       real(sp) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
@@ -47,7 +49,7 @@
       real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-      public :: getfvgcm , headerfv
+      public :: getfvgcm , headerfv , footerfv
 
       contains
 
@@ -91,6 +93,7 @@
       data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' ,&
           &'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
+      call zeit_ci('getfvgcm')
       if ( idate==globidate1 ) then
         numx = nint((lon1-lon0)/1.25) + 1
         numy = nint(lat1-lat0) + 1
@@ -370,14 +373,15 @@
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('getfvgcm')
       end subroutine getfvgcm
-
+!
+!
       subroutine headerfv
+
       implicit none
 !
-! Local variables
-!
-      integer :: i , j , k , kr
+      integer :: i , j , k , kr , ierr
 !
       do j = 1 , nlat2
         vlat(j) = float(j-1) - 90.0
@@ -457,9 +461,12 @@
       bk(18) = 0.9851222
       bk(19) = 1.0
  
-      allocate(b3(jx,iy,nlev2*3))
-      allocate(d3(jx,iy,nlev2*2))
-      allocate(w3(jx,iy,nlev2))
+      allocate(b3(jx,iy,nlev2*3), stat=ierr)
+      if (ierr /= 0) call die('headerfv','allocate b3',ierr)
+      call mall_mci(b3,'mod_fvgcm')
+      allocate(d3(jx,iy,nlev2*2), stat=ierr)
+      if (ierr /= 0) call die('headerfv','allocate d3',ierr)
+      call mall_mci(d3,'mod_fvgcm')
 
 !     Set up pointers
 
@@ -480,5 +487,13 @@
       v3 => d3(:,:,nlev2+1:2*nlev2)
 
       end subroutine headerfv
+
+      subroutine footerfv
+        implicit none
+        call mall_mco(d3,'mod_fvgcm')
+        deallocate(d3)
+        call mall_mco(b3,'mod_fvgcm')
+        deallocate(b3)
+      end subroutine footerfv
 
       end module mod_fvgcm

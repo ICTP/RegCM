@@ -21,6 +21,9 @@
       use mod_dynparam
       use m_realkinds
       use m_stdio
+      use m_die
+      use m_mall
+      use m_zeit
 
       private
 
@@ -40,14 +43,13 @@
       real(sp) , target , dimension(nlons,nlats,nlev2*2) :: d2
       real(sp) , allocatable , target , dimension(:,:,:) :: b3
       real(sp) , allocatable , target , dimension(:,:,:) :: d3
-      real(sp) , allocatable , target , dimension(:,:,:) :: w3
 
       real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
       real(sp) , pointer , dimension(:,:,:) :: up , vp
       real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
       real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-      public :: geterahi , headerehi
+      public :: geterahi , headerehi , footerehi
 
       contains
 
@@ -73,6 +75,7 @@
       integer :: i , j , k , nrec
       real(sp) :: slonmax , slonmin , xlonmax , xlonmin
 !
+      call zeit_ci('geterahi')
       if ( idate==globidate1 ) then
                   !,lrec
         xlonmin = 400.
@@ -205,6 +208,8 @@
 !     F4     DETERMINE H
       call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
+      call zeit_co('geterahi')
+!
 99001 format ('EHI_',i10)
 !
       end subroutine geterahi
@@ -213,9 +218,7 @@
       subroutine headerehi
       implicit none
 !
-! Local variables
-!
-      integer :: i , k , kr
+      integer :: i , k , kr , ierr
 !
       slat(1) = -89.142
       slat(2) = -88.029
@@ -536,9 +539,12 @@
       bk(60) = 0.99763012
       bk(61) = 1.00000000
  
-      allocate(b3(jx,iy,nlev2*3))
-      allocate(d3(jx,iy,nlev2*2))
-      allocate(w3(jx,iy,nlev2))
+      allocate(b3(jx,iy,nlev2*3), stat=ierr)
+      if (ierr /= 0) call die('headerehi','allocate b3',ierr)
+      call mall_mci(b3,'mod_erahi')
+      allocate(d3(jx,iy,nlev2*2), stat=ierr)
+      if (ierr /= 0) call die('headerehi','allocate d3',ierr)
+      call mall_mci(d3,'mod_erahi')
 
 !     Set up pointers
 
@@ -554,5 +560,13 @@
       v3 => d3(:,:,nlev2+1:2*nlev2)
 
       end subroutine headerehi
+
+      subroutine footerehi
+        implicit none
+        call mall_mco(d3,'mod_erahi')
+        deallocate(d3)
+        call mall_mco(b3,'mod_erahi')
+        deallocate(b3)
+      end subroutine footerehi
 
       end module mod_erahi
