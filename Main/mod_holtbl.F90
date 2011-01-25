@@ -1241,6 +1241,14 @@
                 kvm(i,k,j) = dmax1(pblk,kzo)
                 kvh(i,k,j) = kvm(i,k,j)
                 kvq(i,k,j) = dmax1(pblk1,kzo)
+! Erika put k=0 in very stable conditions
+                if ( zl.le.0.1 ) then
+                  kvm(i,k,j) = 0.0
+                  kvh(i,k,j) = kvm(i,k,j)*0.0
+                  kvq(i,k,j) = 0.0
+                end if
+! Erika put k=0 in very stable conditions
+
 !chem
                 if ( ichem.eq.1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
 !chem_
