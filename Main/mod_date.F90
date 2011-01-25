@@ -113,7 +113,7 @@
         implicit none
         integer :: inextwk
         integer , intent(in) :: idate
-         integer :: nmd , basey , basem , based , baseh
+        integer :: nmd , basey , basem , based , baseh
         call split_idate(idate, basey, basem, based, baseh)
         based = based + 7
         nmd = mdays(basey, basem)
