@@ -117,8 +117,9 @@
       call mpi_init(ierr)
       call mpi_comm_rank(mpi_comm_world,myid,ierr)
       call mpi_comm_size(mpi_comm_world,ncpu,ierr)
-
 #endif
+!
+      call whoami(myid)
 !
 #ifdef DEBUG 
       call activate_debug()
@@ -132,7 +133,6 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif
-
       call getarg(0, prgname)
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)

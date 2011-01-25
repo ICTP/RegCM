@@ -21,16 +21,29 @@
 
       private
 
-      public :: header , finaltime
+      public :: whoami , header , finaltime
 
       integer , parameter :: nrite=6
       character (len=24) :: cdata='?'
 
       contains
 
+      subroutine whoami(myid)
+      implicit none 
+      integer , intent(in) :: myid
+
+      if ( myid.eq.0 )  then 
+        write (nrite,"(/,2x,'This is RegCM version 4.1 ')")
+        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+      end if
+
+99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
+        &    '  time: ',A,/)
+      end subroutine whoami
+
       subroutine header(myid,nproc)
       implicit none 
-      integer , intent(in) :: myid,nproc
+      integer , intent(in) :: myid , nproc
       integer :: ihost , idir
       integer :: hostnm
       integer :: getcwd
@@ -39,10 +52,6 @@
       character (len=256) :: directory='?'
   
       if ( myid.eq.0 )  then 
-
-        write (nrite,"(/,2x,'This is RegCM version 4.1 ')")
-        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
-
 #ifdef IBM
         hostname='ibm platform '
         user= 'Unknown'
@@ -52,9 +61,7 @@
         call getlog(user)
         call fdate(cdata)
 #endif 
-
         idir = getcwd(directory)
-
         write (nrite,*) ": this run start at  : ",cdata
         write (nrite,*) ": it is submitted by : ",trim(user)
         write (nrite,*) ": it is running on   : ",trim(hostname)
@@ -62,9 +69,6 @@
         write (nrite,*) ": in directory       : ",trim(directory)
         write (nrite,*) "                      " 
       end if 
-      return 
-99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
-        &    '  time: ',A,/)
       end subroutine header
 
       subroutine finaltime(myid)
