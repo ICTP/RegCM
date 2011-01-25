@@ -3,11 +3,12 @@
 ;********************************************************************
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"    
+
 begin
 ;*************************
-; read in precip data (units cm)
+; read in data
 ;*************************
-  a = addfile("EUROPE_DOMAIN000.nc","r")
+  a = addfile("SAM_DOMAIN000.nc","r")
   topo = a->topo
 
   xlat = a->xlat
@@ -37,27 +38,44 @@ begin
 ; model itself.
   
   prj = a@projection
-  trlats = a@standard_parallel
   clon = a@longitude_of_projection_origin
 
   if (prj .eq. "LAMCON") then
+    trlats = a@standard_parallel
     res@mpProjection        = "LambertConformal"
     res@mpLambertParallel1F = trlats(0)
     res@mpLambertParallel2F = trlats(1)
     res@mpLambertMeridianF  = clon
+  end if
+  if (prj .eq. "NORMER") then
+    res@mpProjection        = "Mercator"
+  end if
+  if (prj .eq. "POLSTR") then
+    clat = a@latitude_of_projection_origin
+    res@mpProjection        = "Stereographic"
+    res@mpRelativeCenterLon = True
+    res@mpCenterLonF = clon
+    res@mpRelativeCenterLat = True
+    res@mpCenterLatF = clat
+  end if
+  if (prj .eq. "ROTMER") then
+    clat = a@latitude_of_projection_origin
+    res@mpProjection        = "Mercator"
+    res@mpCenterLonF = clon
+    res@mpCenterLatF = clat
   end if
   
 ; usually, when data is placed onto a map, it is TRANSFORMED to the specified
 ; projection. Since this model is already on a native lambert conformal grid,
 ; we want to turn OFF the tranformation.
   
-  res@tfDoNDCOverlay         = True        ; do not transform
-  res@cnFillOn               = True        ; color plot desired
+  res@tfDoNDCOverlay         = True      ; do not transform
+  res@cnFillOn               = True      ; color plot desired
   res@cnLinesOn              = False	   ; no contour lines
   
-  res@mpGeophysicalLineColor = "red"       ; color of continental outlines
-  res@mpPerimOn              = True        ; draw box around map
-  res@mpGridLineDashPattern  = 2           ; lat/lon lines as dashed
+  res@mpGeophysicalLineColor = "red"     ; color of continental outlines
+  res@mpPerimOn              = True      ; draw box around map
+  res@mpGridLineDashPattern  = 2         ; lat/lon lines as dashed
   res@cnLevelSelectionMode        = "ManualLevels"       ; manual levels
   res@cnMinLevelValF              = 0.
   res@cnMaxLevelValF              = 3000.
