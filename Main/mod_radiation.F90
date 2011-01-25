@@ -505,7 +505,8 @@
           totcf(i) =  0.5 * ( totcf(i) + maxval(cld(i,:)) )
 
 !         Fil suggestion of putting a max on column cloud fraction
-          if ( totcf(i) > 0.8D0 ) totcf(i) = 0.8D0
+!         Erika decreases the max to 0.75
+          if ( totcf(i) > 0.75D0 ) totcf(i) = 0.75D0
 
           fsns(i) = fsns(i) * totcf(i) + fsnsc(i) * (1.0D0-totcf(i))
           fsds(i) = fsds(i)*1.D-3
