@@ -30,18 +30,6 @@
 
       contains
 
-      function active(level)
-      implicit none
-!
-! Dummy arguments
-!
-      integer :: level
-      logical :: active
-      intent (in) level
-!
-      active = (level.le.debug_level)
-      end function active
- 
       subroutine say
       implicit none
 #ifdef MPP1

@@ -768,12 +768,10 @@
       do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i).gt.0.5 ) then
- 
             evapw(n,i) = fevpg(n,i)
             evaps(n,i) = scvk(n,i)*evapw(n,i)
             if ( ldoc1d(n,i).gt.1.5 ) evaps(n,i) = fevpg(n,i)
             evapw(n,i) = (1.-scvk(n,i))*evapw(n,i)
-!
 !           ******                tm  is temperature of precipitation
             if ( tm(n,i).ge.tzero ) then
               pw(n,i) = prcp1d(n,i)*(1.-sigf(n,i))

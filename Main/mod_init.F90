@@ -693,8 +693,9 @@
         end if
 !
       else ! ifrest=.true.
+!
 !-----when ifrest=.true., read in the data saved from previous run
-!       for large domain from unit 14.
+!       for large domain
 !
 #ifdef MPP1
         if ( myid.eq.0 ) then
@@ -712,6 +713,7 @@
           print 99005 , xtime , ktau , jyear
 !
         end if
+!
         if ( lakemod.eq.1 ) then
           call lakescatter
         endif
@@ -733,8 +735,9 @@
               do i = 1 , iy
                 inisrf_0(i,7+n,j) = ht1_io(n,i,j)
                 inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
-                inisrf_0(i,7+2*nnsg+n,j) = xlat1_io(n,i,j)
-                inisrf_0(i,7+3*nnsg+n,j) = xlon1_io(n,i,j)
+                inisrf_0(i,7+2*nnsg+n,j) = snowc_io(n,i,j)
+                inisrf_0(i,7+3*nnsg+n,j) = xlat1_io(n,i,j)
+                inisrf_0(i,7+4*nnsg+n,j) = xlon1_io(n,i,j)
               end do
             end do
           end do
@@ -758,8 +761,9 @@
             do i = 1 , iy
               ht1(n,i,j) = inisrf0(i,7+n,j)
               satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
-              xlat1(n,i,j) = inisrf0(i,7+2*nnsg+n,j)
-              xlon1(n,i,j) = inisrf0(i,7+3*nnsg+n,j)
+              snowc(n,i,j) = inisrf0(i,7+2+nnsg+n,j)
+              xlat1(n,i,j) = inisrf0(i,7+3*nnsg+n,j)
+              xlon1(n,i,j) = inisrf0(i,7+4*nnsg+n,j)
             end do
           end do
         end do
@@ -1247,8 +1251,8 @@
 #endif
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav_2a(i,n,j) = ircp2d_io(n,i,j)
-                sav_2a(i,nnsg+n,j) = text2d_io(n,i,j)
+                sav_2a(i,n,j)        = ircp2d_io(n,i,j)
+                sav_2a(i,nnsg+n,j)   = text2d_io(n,i,j)
                 sav_2a(i,nnsg*2+n,j) = col2d_io(n,i,j)
                 sav_2a(i,nnsg*3+n,j) = ocld2d_io(n,i,j)
                 sav_2a(i,nnsg*4+n,j) = tg2d_io(n,i,j)
@@ -1268,9 +1272,9 @@
             do i = 1 , iym1
               ircp2d(n,i,j) = sav2a(i,n,j)
               text2d(n,i,j) = sav2a(i,nnsg+n,j)
-              col2d(n,i,j) = sav2a(i,nnsg*2+n,j)
+              col2d(n,i,j)  = sav2a(i,nnsg*2+n,j)
               ocld2d(n,i,j) = sav2a(i,nnsg*3+n,j)
-              tg2d(n,i,j) = sav2a(i,nnsg*4+n,j)
+              tg2d(n,i,j)   = sav2a(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
@@ -1394,6 +1398,7 @@
           end do
 #endif
         end if
+
         call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1407,10 +1412,6 @@
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktaur,1,mpi_integer,0,mpi_comm_world,ierr)
-
-#ifndef BAND
-        if (debug_level > 2) call mpidiag
-#endif
 
         call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
                         & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
@@ -1430,6 +1431,10 @@
         call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
                         & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
                         & 2,mpi_comm_world,mpi_status_ignore,ierr)
+
+#ifndef BAND
+        if (debug_level > 2) call mpidiag
+#endif
 
         dt = dt2 ! First timestep successfully read in
 
@@ -1624,7 +1629,6 @@
 !
 !-----set up output time:
 !
-      icnt = 11        ! set counter for safety-file moves on cycad
       dectim = anint(xtime+dectim)
       write (aline, *) 'dectim = ' , dectim
       call say

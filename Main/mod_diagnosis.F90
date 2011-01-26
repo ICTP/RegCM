@@ -54,26 +54,28 @@
 
       subroutine allocate_mod_diagnosis
       implicit none
-        allocate(tchiad(ntr))
-        allocate(tchie(ntr))
-        allocate(tchitb(ntr))
-        allocate(tremcvc(ntr,2))
-        allocate(tremdrd(ntr,2))
-        allocate(tremlsc(ntr,2))
-        allocate(trxsaq1(ntr,2))
-        allocate(trxsaq2(ntr,2))
-        allocate(trxsg(ntr,2))
-        allocate(ttrace(ntr,2))
-        tchiad = 0.0D0
-        tchie = 0.0D0
-        tchitb = 0.0D0
-        tremcvc = 0.0D0
-        tremdrd = 0.0D0
-        tremlsc = 0.0D0
-        trxsaq1 = 0.0D0
-        trxsaq2 = 0.0D0
-        trxsg = 0.0D0
-        ttrace = 0.0D0
+        if ( ichem == 1 ) then
+          allocate(tchie(ntr))
+          allocate(tchiad(ntr))
+          allocate(tchitb(ntr))
+          allocate(tremcvc(ntr,2))
+          allocate(tremdrd(ntr,2))
+          allocate(tremlsc(ntr,2))
+          allocate(trxsaq1(ntr,2))
+          allocate(trxsaq2(ntr,2))
+          allocate(trxsg(ntr,2))
+          allocate(ttrace(ntr,2))
+          tchiad = 0.0D0
+          tchie = 0.0D0
+          tchitb = 0.0D0
+          tremcvc = 0.0D0
+          tremdrd = 0.0D0
+          tremlsc = 0.0D0
+          trxsaq1 = 0.0D0
+          trxsaq2 = 0.0D0
+          trxsg = 0.0D0
+          ttrace = 0.0D0
+        end if
       end subroutine allocate_mod_diagnosis
 !
       subroutine initdiag
@@ -100,18 +102,20 @@
         tqadv = 0.0
         tqeva = 0.0
         tqrai = 0.0
-        ttrace = 0.0
-        tchie = 0.0
-        tchiad = 0.0
-        tchitb = 0.0
+        if ( ichem == 1 ) then
+          ttrace(:,:) = 0.0
+          tchie(:) = 0.0
+          tchiad(:) = 0.0
+          tchitb(:) = 0.0
+        end if
 
 #ifdef MPP1
 !=======================================================================
 !
 !-----dry air (unit = kg):
 !
-        call mpi_gather(sps1%ps,   iy*jxp,mpi_real8, &
-                      & psa_io,iy*jxp,mpi_real8, &
+        call mpi_gather(sps1%ps, iy*jxp,mpi_real8, &
+                      & psa_io,  iy*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
         if ( myid.eq.0 ) then
           do k = 1 , kz
@@ -125,6 +129,7 @@
           end do
           tdini = tdini*dx*dx*1000.*rgti
         end if
+
         call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
 !
 !-----water substance (unit = kg):
@@ -144,6 +149,7 @@
           end do
           tvmass = tvmass*dx*dx*1000.*rgti
         end if
+
         call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
 !
         call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
@@ -161,10 +167,14 @@
           end do
           tcmass = tcmass*dx*dx*1000.*rgti
         end if
+
         call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
+
         tqini = tvmass + tcmass
+!
 !=======================================================================
-        if ( myid.eq.0 ) print 99003 , tdini , tqini
+!
+        if ( myid.eq.0 ) write(6,99003) tdini , tqini
 #else
 !=======================================================================
 !
@@ -206,11 +216,13 @@
         tcmass = tcmass*dx*dx*1000.*rgti
         tqini = tvmass + tcmass
 !=======================================================================
-        print 99003 , tdini , tqini
+        write(6,99003) tdini , tqini
 #endif
 99003 format (' *** initial total air = ',e12.5,' kg, total water = ',  &
             & e12.5,' kg in large domain.')
+!
       end subroutine initdiag
+!
 !
 #ifdef MPP1
       subroutine mpidiag
@@ -235,50 +247,20 @@
       end subroutine mpidiag
 #endif
 !
+!
       subroutine restdiag(iunit)
-#ifdef MPP1
-#ifndef IBM
-        use mpi
-#else 
-        include 'mpif.h'
-#endif 
-#endif
         implicit none
         integer , intent(in) :: iunit
-#ifdef MPP1
-        integer :: ierr
-#endif
         read (iunit) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-#ifdef MPP1
-        call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
-#endif
       end subroutine restdiag
 !
       subroutine restchemdiag(iunit)
-#ifdef MPP1
-#ifndef IBM
-        use mpi
-#else 
-        include 'mpif.h'
-#endif 
-#endif
         implicit none
         integer , intent(in) :: iunit
-#ifdef MPP1
-        integer :: ierr
-#endif
-        read (iunit) tchiad
-        read (iunit) tchitb
-#ifdef MPP1
-        call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
-#endif
+        if ( ichem == 1 ) then
+          read (iunit) tchiad
+          read (iunit) tchitb
+        end if
       end subroutine restchemdiag
 !
       subroutine savediag(iunit)
@@ -290,9 +272,11 @@
       subroutine savechemdiag(iunit)
         implicit none
         integer , intent(in) :: iunit
-        write (iunit) tchiad
-        write (iunit) tchitb
-        write (iunit) tchie
+        if ( ichem == 1 ) then
+          write (iunit) tchiad
+          write (iunit) tchitb
+          write (iunit) tchie
+        end if
       end subroutine savechemdiag
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -783,33 +767,21 @@
 !
 #ifdef MPP1
       if ( myid.eq.0 ) then
+#endif
         if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
           xh = xtime/1440.
-          print * , '***** day = ' , ldatez + xh , ' *****'
-          print 99001 , tdrym , error1
-          print 99002 , tdadv
-          print 99003 , tqmass , error2
-          print 99004 , tvmass
-          print 99005 , tcmass
-          print 99006 , tqadv
-          print 99007 , tcrai
-          print 99008 , tncrai
-          print 99009 , tqeva
+          write(6,*)  '***** day = ' , ldatez + xh , ' *****'
+          write(6,99001) tdrym , error1
+          write(6,99002) tdadv
+          write(6,99003) tqmass , error2
+          write(6,99004) tvmass
+          write(6,99005) tcmass
+          write(6,99006) tqadv
+          write(6,99007) tcrai
+          write(6,99008) tncrai
+          write(6,99009) tqeva
         end if
-      end if
-#else
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
-        xh = xtime/1440.
-        print * , '***** day = ' , ldatez + xh , ' *****'
-        print 99001 , tdrym , error1
-        print 99002 , tdadv
-        print 99003 , tqmass , error2
-        print 99004 , tvmass
-        print 99005 , tcmass
-        print 99006 , tqadv
-        print 99007 , tcrai
-        print 99008 , tncrai
-        print 99009 , tqeva
+#ifdef MPP1
       end if
 #endif
 
@@ -1326,6 +1298,7 @@
           tchie(itr) = tchie(itr) + tttmp
         end do
       end if
+
       call mpi_bcast(ttrace(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(tremlsc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(tremcvc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
@@ -1425,15 +1398,16 @@
 !-----print out the information:
 #ifdef MPP1
       if ( myid.eq.0 ) then
+#endif
  
         if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
  
 !----     tracers
  
-          print * , '************************************************'
-          print * , ' Budgets for tracers (intergrated quantitites)'
-          print * , ' day = ' , ldatez , ' *****'
-          print * , '************************************************'
+          write(6,*)  '************************************************'
+          write(6,*)  ' Budgets for tracers (intergrated quantitites)'
+          write(6,*)  ' day = ' , ldatez , ' *****'
+          write(6,*)  '************************************************'
  
           do itr = 1 , ntr
  
@@ -1441,59 +1415,31 @@
 !           &     (tchie(itr) - (tchiad(itr)-tchitb(itr)+
 !           &     tremdrd(itr,1)+ tremlsc(itr,1)+tremcvc(itr,1)))
  
-            print * , '****************************'
-            print 99001 , itr , tchie(itr)
-            print 99002 , itr , tchiad(itr)
-            print 99003 , itr , tchitb(itr)
-            print 99004 , itr , tremdrd(itr,1)
-            print 99005 , itr , tremlsc(itr,1)
-            print 99006 , itr , tremcvc(itr,1)
-            print 99007 , itr , ttrace(itr,1)
-!           print 99008 , itr , errort
+            write(6,*)  '****************************'
+            write(6,99001) itr , tchie(itr)
+            write(6,99002) itr , tchiad(itr)
+            write(6,99003) itr , tchitb(itr)
+            write(6,99004) itr , tremdrd(itr,1)
+            write(6,99005) itr , tremlsc(itr,1)
+            write(6,99006) itr , tremcvc(itr,1)
+            write(6,99007) itr , ttrace(itr,1)
+!           write(6,99008) itr , errort
  
           end do
  
         end if
-      end if
-#else
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
-
-!----   tracers
-
-        print * , '************************************************'
-        print * , ' Budgets for tracers (intergrated quantitites)'
-        print * , ' day = ' , ldatez , ' *****'
-        print * , '************************************************'
-
-        do itr = 1 , ntr
-
-!         errort= ttrace(itr,1)-
-!         &     (tchie(itr) - (tchiad(itr)-tchitb(itr)+
-!         &     tremdrd(itr,1)+ tremlsc(itr,1)+tremcvc(itr,1)))
-
-          print * , '****************************'
-          print 99001 , itr , tchie(itr)
-          print 99002 , itr , tchiad(itr)
-          print 99003 , itr , tchitb(itr)
-          print 99004 , itr , tremdrd(itr,1)
-          print 99005 , itr , tremlsc(itr,1)
-          print 99006 , itr , tremcvc(itr,1)
-          print 99007 , itr , ttrace(itr,1)
-!         print 99008 , itr , errort
-        end do
+#ifdef MPP1
       end if
 #endif
 ! 
-99001       format ('total emission tracer',i1,':',e12.5,' kg')
-99002       format ('total advected tracer',i1,':',e12.5,' kg')
-99003       format ('total diffused tracer',i1,':',e12.5,' kg')
-99004       format ('total dry deposition tracer',i1,':',e12.5,' kg')
-99005       format ('total large scale wet dep.tracer',i1,':',e12.5,    &
-                   &' kg')
-99006       format ('total convective wet dep.tracer',i1,':',e12.5,     &
-                  & ' kg')
-99007       format ('total mass (at ktau), tracer',i1,':',e12.5,' kg')
-!99008       format('error trac',I1,':',e12.5,' % ')
+99001 format ('total emission tracer',i1,':',e12.5,' kg')
+99002 format ('total advected tracer',i1,':',e12.5,' kg')
+99003 format ('total diffused tracer',i1,':',e12.5,' kg')
+99004 format ('total dry deposition tracer',i1,':',e12.5,' kg')
+99005 format ('total large scale wet dep.tracer',i1,':',e12.5,' kg')
+99006 format ('total convective wet dep.tracer',i1,':',e12.5,' kg')
+99007 format ('total mass (at ktau), tracer',i1,':',e12.5,' kg')
+!99008 format('error trac',I1,':',e12.5,' % ')
       end subroutine contrac
 !
 ! diagnostic on total evaporation
@@ -1512,8 +1458,8 @@
 #endif
       integer :: i , j
 #ifdef MPP1
-      call mpi_gather(sfsta%qfx,   iy*jxp,mpi_real8,  &
-                    & qfx_io,iy*jxp,mpi_real8,  &
+      call mpi_gather(sfsta%qfx,iy*jxp,mpi_real8,  &
+                    & qfx_io,   iy*jxp,mpi_real8,  &
                     & 0,mpi_comm_world,ierr)
       if ( myid.eq.0 ) then
         do j = 2 , jxm2

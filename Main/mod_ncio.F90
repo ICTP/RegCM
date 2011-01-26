@@ -465,7 +465,7 @@
           sp2d = transpose(xlon)
           ioxlon = sp2d(o_js:o_je,o_is:o_ie)
           sp2d = transpose(topo)
-          iotopo = sp2d(o_js:o_je,o_is:o_ie)
+          iotopo = sp2d(o_js:o_je,o_is:o_ie) / 10.0D0
           sp2d = transpose(lnd)
           iolnds = sp2d(o_js:o_je,o_is:o_ie)
           iomask = sp2d(o_js:o_je,o_is:o_ie)
@@ -487,7 +487,7 @@
           sp2d1 = transpose(xlon)
           ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
           sp2d1 = transpose(topo)
-          iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
+          iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg) / 10.0
           sp2d1 = transpose(lnd)
           iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
           where (iomask_s > 13.5 .and. iomask_s < 15.5)
@@ -1126,7 +1126,7 @@
           do i = 1 , ibcnrec
             icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
           end do
-          if (  ibcnrec > 1  ) then
+          if ( ibcnrec > 1 ) then
             chkdiff = icbc_xtime(2) - icbc_xtime(1)
             if (chkdiff .ne. ibdyfrq) then
               write (6,*) 'Time variable in ICBC inconsistency.'

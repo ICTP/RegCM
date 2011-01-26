@@ -272,17 +272,16 @@
               nlveg = 12
             else if ( ocld2d(k,ill,jll) > 0.5 ) then
               sice2d(k,ill,jll) = 0.0D0
-              scv2d(k,ill,jll) = 0.0D0
+              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
               nlveg = nint(veg2d1(k,ill,jll))
             else
-              sice2d(k,ill,jll) = -1.0D34
-              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
+              sice2d(k,ill,jll) = 0.0D0
+              scv2d(k,ill,jll) = 0.0D0
               nlveg = nint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
               nlveg = 15
             end if
-!sol        itex=int(text2d(k,ill,jll))
             itex = iexsol(nlveg)
             tg2d(k,ill,jll) = sts2%tg(ill,jll)
             tgb2d(k,ill,jll) = sts2%tg(ill,jll)

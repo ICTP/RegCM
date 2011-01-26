@@ -347,7 +347,7 @@
         allocate(lveg(nnsg,iym1))
         lveg = 0
         allocate(oveg(nnsg,iym1))
-        lveg = 0
+        oveg = 0
         allocate(coszrs(iy))
         coszrs = 0.0D0
         allocate(spaceb1d(iym1,24))
