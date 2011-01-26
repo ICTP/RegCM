@@ -400,7 +400,7 @@
            (.not. lband .and. i_band /= 0) ) then
         write (6,*) 'Model is compiled for BAND, ' , &
                     'but input is NOT for BAND or viceversa.'
-        call fatal(__FILE__,__LINE__,                                 &
+        call fatal(__FILE__,__LINE__,  &
                   &'BAND Compile / i_band namelist mismatch')
       end if
 !
@@ -435,7 +435,7 @@
       if ( ichem.eq.1 ) then
         read (ipunit, chemparam)
         print * , 'param: CHEMPARAM namelist READ IN'
-        if (ntr == 0) then
+        if (ntr <= 0) then
           call fatal(__FILE__,__LINE__,                                 &
                   &'CHEMICAL SCHEME WITH 0 TRACERS?')
         end if
@@ -607,7 +607,9 @@
 #endif
 #endif
 #ifndef BAND
-      if (debug_level .gt. 2) call allocate_mod_diagnosis
+      if ( ichem.eq.1 ) then
+        if (debug_level .gt. 2) call allocate_mod_diagnosis
+      end if
 #endif
 !
 !-----------------------------------------------------------------------

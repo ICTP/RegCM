@@ -1177,14 +1177,14 @@
 !         instead tgb1d(i) used instead of tbelow
 !
           if ( ldoc1d(n,i).gt.1.5 ) then
-              tdiffs = ts1d(n,i) - tzero
-              tdiff = max(tdiffs,0.D0)
-              tdiffs = min(tdiff,20.D0)
-              albgl = sical1 - 1.1D-2*tdiffs
-              albgs = sical0 - 2.45D-2*tdiffs
-              albg = fsol1*albgs + fsol2*albgl
-              albgsd = albgs
-              albgld = albgl
+            tdiffs = ts1d(n,i) - tzero
+            tdiff = max(tdiffs,0.D0)
+            tdiffs = min(tdiff,20.D0)
+            albgl = sical1 - 1.1D-2*tdiffs
+            albgs = sical0 - 2.45D-2*tdiffs
+            albg = fsol1*albgs + fsol2*albgl
+            albgsd = albgs
+            albgld = albgl
           else if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils
@@ -1209,8 +1209,7 @@
 !             DESERTO
               albgs = albg
               albgl = 2.D0*albg
-!             **********            higher nir albedos
-!             **********              set diffuse albedo
+!             higher nir albedos set diffuse albedo
               albgld = albgl
               albgsd = albgs
               albsd = albs
@@ -1221,15 +1220,13 @@
               albzn = 1.0D0
 !             Dec. 15, 2008
  
-!             **********            leafless hardwood canopy: no or
-!             inverse zen dep
+!             leafless hardwood canopy: no or inverse zen dep
               if ( lveg(n,i).eq.5 .and. sfac.lt.0.1 ) albzn = 1.
-!             **********            multiply by zenith angle correction
+!             multiply by zenith angle correction
               albs = albs*albzn
               albl = albl*albzn
  
-!             **********            albedo over vegetation after zenith
-!             angle corr
+!             albedo over vegetation after zenith angle corr
               albvs_s(n) = albs
               albvl_s(n) = albl
  

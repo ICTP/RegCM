@@ -1039,7 +1039,7 @@
                    tdum(i,j) = 271.38
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.0D0
-                    sice2d(n,i,j) = 1000.0
+                    sice2d(n,i,j) = 1000.0D0
                     scv2d(n,i,j) = 0.0D0
                   end do
                 else

@@ -18,17 +18,17 @@
 !!        use mod_service 
 !!    and having declared the two following local variables: 
 !!        character (len=50) :: sub='name_of_your_subroutine' 
-!!        integer :: index=0
+!!        integer :: indx=0
 !!    and as a first instruction
-!!        call time_begin(subroutine_name,index)
+!!        call time_begin(subroutine_name,indx)
 !!
 !! 3) If the subroutine is not a communication subroutine
 !!    as last line insert the following call:
-!!        call time_end(subroutine_name,index) 
+!!        call time_end(subroutine_name,indx) 
 !! 4) If the subroutine is a communication subroutine:
 !!    compute the length of the messages exchanged and as
 !!    the last instruction insert the following call:
-!!        call time_end(subroutine_name,index,length)
+!!        call time_end(subroutine_name,indx,length)
 !!
 !! 5) To print out times during the run:
 !!    - insert "call time_print" to print out at desired location: 
@@ -56,6 +56,8 @@
 MODULE mod_service
 
   use mod_dynparam , only : debug_level
+
+#ifdef DEBUG
 
 !!! definition of single and double precision 
 
@@ -211,7 +213,6 @@ CONTAINS
     CHARACTER(len=50) :: substr='not specified'
     CHARACTER(len=8)  :: sline =' no spec'
 
-#ifdef DEBUG
     string=' '
     substr='not specified'
     sline =' no spec'
@@ -232,7 +233,6 @@ CONTAINS
        IF (PRESENT(level)) debug_level=level
     END IF
 
-#endif
   END SUBROUTINE START_DEBUG
 
 
@@ -252,7 +252,6 @@ CONTAINS
     CHARACTER(len=50) :: substr=' not specified'
     CHARACTER(len=8)  :: sline =' no spec'
 
-#ifdef DEBUG
     string=' '
     substr=' not specified'
     sline =' no spec'
@@ -268,7 +267,6 @@ CONTAINS
     debug_level=0
     WRITE(ndebug+NODE,'(A80)') string
     CALL flusha(ndebug+node)
-#endif
   END SUBROUTINE STOP_DEBUG
 
 
@@ -276,20 +274,19 @@ CONTAINS
   !!   ROUTINE : TIME_BEGIN
   !!   ACTION : start recording time for the calling subroutine
   !!<
-  SUBROUTINE time_begin(name,index)
+  SUBROUTINE time_begin(name,indx)
     IMPLICIT NONE
     INTEGER :: i
-    INTEGER, INTENT(INOUT) :: index
+    INTEGER, INTENT(INOUT) :: indx
     CHARACTER (len=50) :: name
     CHARACTER (len=50) :: stringa='                                      '
 
-#ifdef DEBUG
-    IF (index==0) THEN 
+    IF (indx==0) THEN 
        n_of_ENTRY=n_of_ENTRY+1
-       index=n_of_ENTRY
+       indx=n_of_ENTRY
     END IF
 
-    time_bt(index)=timer()
+    time_bt(indx)=timer()
 
     ! debugging stuff: if debug_level is greater than 3 print out name of the  
     ! routine ( just 4 levels depth..)
@@ -301,7 +298,6 @@ CONTAINS
           CALL flusha(ndebug+node)
        ENDIF
     END IF
-#endif 
   END SUBROUTINE time_begin
 
   !!> 
@@ -309,21 +305,20 @@ CONTAINS
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : end recording time for the calling subroutine
   !!<
-  SUBROUTINE time_end(name_of_section,index,isize)
+  SUBROUTINE time_end(name_of_section,indx,isize)
     IMPLICIT NONE
     CHARACTER (len=50) ::  name_of_section
-    INTEGER, INTENT(IN) :: index
+    INTEGER, INTENT(IN) :: indx
     INTEGER, OPTIONAL :: isize
     REAL (Kind=8)  :: time_CALL
     CHARACTER (len=50) :: name
     CHARACTER (len=50)  :: stringa=' '
 
-#ifdef DEBUG    
 
-    ! check for index: should not be less than zero
-    IF (index<0) THEN 
+    ! check for indx: should not be less than zero
+    IF (indx<0) THEN 
        CALL error_prot(sub='time_end',err_code=3502,  &
-            message='index less then 0: bad thing !! ')
+            message='indx less then 0: bad thing !! ')
     END IF
 
     ! debugging stuff 
@@ -337,20 +332,19 @@ CONTAINS
     END IF
 
     !
-    time_et(index)=timer()
-    time_CALL=time_et(index)-time_bt(index)
+    time_et(indx)=timer()
+    time_CALL=time_et(indx)-time_bt(indx)
 
     IF (PRESENT(isize)) THEN 
-       info_comm(index)%total_size=info_comm(index)%total_size+isize
-       info_comm(index)%name_of_section=name_of_section
-       info_comm(index)%n_of_time=info_comm(index)%n_of_time+1
-       info_comm(index)%total_time=info_comm(index)%total_time+time_CALL
+       info_comm(indx)%total_size=info_comm(indx)%total_size+isize
+       info_comm(indx)%name_of_section=name_of_section
+       info_comm(indx)%n_of_time=info_comm(indx)%n_of_time+1
+       info_comm(indx)%total_time=info_comm(indx)%total_time+time_CALL
     ELSE
-       info_serial(index)%name_of_section=name_of_section
-       info_serial(index)%n_of_time=info_serial(index)%n_of_time+1
-       info_serial(index)%total_time=info_serial(index)%total_time+time_CALL
+       info_serial(indx)%name_of_section=name_of_section
+       info_serial(indx)%n_of_time=info_serial(indx)%n_of_time+1
+       info_serial(indx)%total_time=info_serial(indx)%total_time+time_CALL
     END IF
-#endif 
 
   END SUBROUTINE time_end
 
@@ -388,8 +382,6 @@ CONTAINS
     REAL    :: avg_value
     CHARACTER (len=50) :: name
     CHARACTER (len=50) :: sub='time_print'
-
-#ifdef DEBUG
 
 #ifdef MPP1
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
@@ -533,7 +525,6 @@ CONTAINS
     DEALLOCATE(array_tmp) 
     DEALLOCATE(array_entries) 
 
-#endif
   END SUBROUTINE time_print
 
 
@@ -545,8 +536,6 @@ CONTAINS
     IMPLICIT NONE 
     INTEGER :: ENTRY
 
-#ifdef DEBUG
-
     DO ENTRY=1,100
        info_serial(ENTRY)%n_of_time=0
        info_serial(ENTRY)%total_time=0.0
@@ -556,7 +545,6 @@ CONTAINS
        info_comm(ENTRY)%total_size=0
 
     END DO
-#endif
   END SUBROUTINE time_reset
 
 
@@ -578,7 +566,6 @@ CONTAINS
     REAL (kind=8), DIMENSION(:)  :: f_collect 
     REAL (kind=8) :: f_sub
 
-#ifdef DEBUG
 #ifndef MPP1 
     f_collect(1)=f_sub
 #else
@@ -594,9 +581,7 @@ CONTAINS
 
     END IF
 #endif 
-#endif 
   END SUBROUTINE gather
-
 
 
 #ifdef MPP1 
@@ -620,7 +605,6 @@ CONTAINS
     LOGICAL :: called
     INTEGER :: nwords,ierr,nword_send,nword_receive
 
-#ifdef DEBUG
     Nword_send=1
     Nword_receive=Nword_send
     CALL MPI_Allgather(f_sub,Nword_send,MPI_INTEGER,f_collect, &
@@ -629,7 +613,6 @@ CONTAINS
        CALL error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
             message=' error in MPI_allgather!! ')
     END IF
-#endif
   END SUBROUTINE gather_i
 #endif
 
@@ -638,34 +621,31 @@ CONTAINS
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : compute average, maximum and minimum of array and indices
   !!<
-  SUBROUTINE av_max_MIN(array,avg,xmax,index_max,xmin,index_min) 
-    INTEGER :: index_min,index_max,n_elements
+  SUBROUTINE av_max_MIN(array,avg,xmax,indx_max,xmin,indx_min) 
+    INTEGER :: indx_min,indx_max,n_elements
     REAL (kind=8)    :: xmax,xmin,avg
     REAL (kind=8), DIMENSION(:) :: array
     INTEGER :: i
 
-#ifdef DEBUG
     xmax=0.0
     xmin=1.e6
     avg=0.0
-    index_max=0
-    index_min=0
+    indx_max=0
+    indx_min=0
     n_elements=SIZE(array)
     DO i=1,n_elements 
        avg=avg+array(i)
        IF (array(i).GT.xmax) THEN 
           xmax=array(i)
-          index_max=i
+          indx_max=i
        END IF
        IF (array(i).LT.xmin) THEN 
           xmin=array(i)
-          index_min=i
+          indx_min=i
        END IF
     END DO
 
     avg=avg/float(n_elements)
-
-#endif
 
   END SUBROUTINE av_max_min
 
@@ -757,7 +737,6 @@ CONTAINS
     INTEGER, INTENT (in) :: value
     INTEGER, OPTIONAL, INTENT(in) :: line
 
-#ifdef DEBUG
     IF (PRESENT(line)) THEN 
        WRITE(ndebug+node,'(A20,'':at line'',I6,A,i10)') &
             sub(1:20),line,variable,value
@@ -766,7 +745,6 @@ CONTAINS
     END IF
     CALL flusha(ndebug+node)
 
-#endif
   END SUBROUTINE printa_i
 
   !!>
@@ -776,14 +754,12 @@ CONTAINS
 
   SUBROUTINE printa_r(sub,variable,value,line)
 
-
     IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
     CHARACTER*(*), INTENT(in) :: variable
     REAL(kind=8), INTENT (in) :: value
     INTEGER, OPTIONAL, INTENT(in) :: line
 
-#ifdef DEBUG
     IF (PRESENT(line)) THEN 
        WRITE(ndebug+node,'(A20,'':at line'',I6,A,F20.10)') &
             sub(1:20),line,variable,value
@@ -792,7 +768,6 @@ CONTAINS
     END IF
     CALL flusha(ndebug+node)
 
-#endif
   END SUBROUTINE printa_r
 
   !!>
@@ -937,5 +912,33 @@ CONTAINS
 #endif        
  end subroutine flusha
 
+#else
+
+CONTAINS
+
+  SUBROUTINE time_begin(sname,indx)
+    IMPLICIT NONE
+    CHARACTER (len=50), INTENT(IN) :: sname
+    INTEGER, INTENT(IN) :: indx
+  END SUBROUTINE time_begin
+
+  SUBROUTINE time_end(sname,indx,isize)
+    IMPLICIT NONE
+    CHARACTER (len=50), INTENT(IN) :: sname
+    INTEGER, INTENT(IN) :: indx
+    INTEGER, INTENT(IN),  OPTIONAL :: isize
+  END SUBROUTINE time_end
+
+  SUBROUTINE time_print(iunit,sname)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: iunit
+    CHARACTER (len=*), INTENT(IN) :: sname
+  END SUBROUTINE time_print
+
+  SUBROUTINE time_reset
+    IMPLICIT NONE 
+  END SUBROUTINE time_reset
+
+#endif
 
 END MODULE  mod_service

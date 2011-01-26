@@ -96,7 +96,7 @@
 !
 !     clmin = non-precipitating cloud conversion threshold,
 !     clmin=0.01g/m3
-      clmin = 0.01_dp 
+      clmin = 0.01D0
 !     remcum= removal rate for cumulus cloud scavenging (s-1)
       remcum = 1.E-3
 !

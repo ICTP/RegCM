@@ -126,7 +126,7 @@
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
           cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(tb3d(i,k,j)-tzero)    &
-                       &  + 1.29D-04* (tb3d(i,k,j)-tzero)**2    &
+                       &  + 1.29D-04* (tb3d(i,k,j)-tzero)**2         &
                        &  + 8.36D-07*(tb3d(i,k,j)-tzero)**3
 
           if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00

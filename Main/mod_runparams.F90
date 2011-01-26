@@ -34,7 +34,7 @@
       real(8) :: fnudge , gnudge
       real(8) :: xkhmax , xkhz
 
-      integer :: ibltyp , iboudy , ichem , icnt , icup , idirect ,      &
+      integer :: ibltyp , iboudy , ichem , icup , idirect ,      &
                & iemiss , igcc , iocnflx , ipgf , ipptls , kbats ,      &
                & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
                & idcsst , iseaice , idesseas , klak

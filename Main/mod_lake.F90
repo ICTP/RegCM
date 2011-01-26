@@ -110,12 +110,12 @@
       integer :: ierr
 #endif
 
-      hi2d = 0.01D0
+      hi2d     = 0.01D0
       aveice2d = 0.0D0
-      hsnow2d = 0.0D0
-      eta2d = 0.5D0
-      tlak3d  = 6.0D0
-      idep2d = 0
+      hsnow2d  = 0.0D0
+      eta2d    = 0.5D0
+      tlak3d   = 6.0D0
+      idep2d   = 0
 
 #ifdef MPP1
       do j = jbegin , jendx
@@ -132,9 +132,9 @@
 !     ******  initialize hostetler lake model
             if ( (satbrt1(n,i,j).gt.13.9 .and.   &
                   satbrt1(n,i,j).lt.14.1) .and.  &
-                dhlake1(n,i,j).gt.1.0) then
+                 dhlake1(n,i,j).gt.1.0) then
               idep2d(n,i,j) = int(max(2.D0,min(dhlake1(n,i,j), &
-                                   dble(ndpmax)))/dz)
+                                  dble(ndpmax)))/dz)
               if ( ocld2d(n,i,j).gt.1.5 ) then
                 tlak3d(1,n,i,j) = 1.78D0
                 tlak3d(2,n,i,j) = 1.78D0
@@ -153,10 +153,10 @@
               idep2d(n,i,j) = 0
             end if
             if (idep2d(n,i,j) == 0) then
-              hi2d(n,i,j) = -1D+34
+              hi2d(n,i,j)     = -1D+34
               aveice2d(n,i,j) = -1D+34
-              hsnow2d(n,i,j) = -1D+34
-              eta2d(n,i,j) = -1D+34
+              hsnow2d(n,i,j)  = -1D+34
+              eta2d(n,i,j)    = -1D+34
               tlak3d(:,n,i,j) = -1D+34
             else if (idep2d(n,i,j) < ndpmax) then
               tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
@@ -301,8 +301,7 @@
         hsnow  = hs*100.0D0       ! convert snow from m depth to mm h20
  
       end if
-
-      ! Set back to Kelvin
+ 
       tgl = tprof(1) + tzero
  
       end subroutine lake
@@ -527,7 +526,7 @@
  
       if ( (tac.le.0.0D0) .and. (aveice.gt.0.0D0) ) &
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
-      if ( hs .lt. 0.0D0) hs = 0.0D0
+      if ( hs < 0.0D0 ) hs = 0.0D0
  
       t0 = tprof(1)
       tf = 0.0D0
@@ -689,22 +688,22 @@
       integer :: ierr
 !
       call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                     & idep2d,nnsg*iym1*jxp,mpi_integer, &
+                     & idep2d,   nnsg*iym1*jxp,mpi_integer, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & eta2d,nnsg*iym1*jxp,mpi_real8, &
+                     & eta2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hi2d,nnsg*iym1*jxp,mpi_real8, &
+                     & hi2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & aveice2d,nnsg*iym1*jxp,mpi_real8, &
+                     & aveice2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                     & hsnow2d,nnsg*iym1*jxp,mpi_real8, &
+                     & hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
       call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                     & tlak3d,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                     & tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
 #endif
 

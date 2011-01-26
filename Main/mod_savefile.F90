@@ -171,7 +171,9 @@
             read (iutrst) svegfrac2d_io
 !           cumul ad, dif, emis terms ( scalar)
 #ifndef BAND
-            if (debug_level > 2) call restchemdiag(iutrst)
+            if ( ichem.eq.1 ) then
+              if (debug_level > 2) call restchemdiag(iutrst)
+            end if
 #endif
           end if
 #else
@@ -235,7 +237,9 @@
             read (iutrst) svegfrac2d
 !           cumul ad, dif, emis terms ( scalar)
 #ifndef BAND
-            if (debug_level > 2) call restchemdiag(iutrst)
+            if ( ichem.eq.1 ) then
+              if (debug_level > 2) call restchemdiag(iutrst)
+            end if
 #endif
           end if
 #endif
@@ -394,7 +398,9 @@
             write (iutsav) svegfrac2d_io
 !           cumul ad, dif, emis terms ( scalar)
 #ifndef BAND
-            if (debug_level > 2) call savechemdiag(iutsav)
+            if ( ichem.eq.1 ) then
+              if (debug_level > 2) call savechemdiag(iutsav)
+            end if
 #endif
           end if
 #else
@@ -458,7 +464,9 @@
             write (iutsav) svegfrac2d
 !           cumul ad, dif, emis terms ( scalar)
 #ifndef BAND
-            if (debug_level > 2) call savechemdiag(iutsav)
+            if ( ichem.eq.1 ) then
+              if (debug_level > 2) call savechemdiag(iutsav)
+            end if
 #endif
           end if
 #endif
