@@ -34,11 +34,11 @@
 
       integer :: mdate , mdate0
 
-      integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0 , nnbase
+      integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0
 
       real(8) :: declin , dectim , deltmx , gmt
       real(8) :: xtime
-      integer :: ktau , ktaur
+      integer :: ktau
 
       real(8) :: calday , dtime , twodt
       logical :: doabsems , dolw , dosw

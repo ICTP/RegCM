@@ -169,10 +169,6 @@
 !     = .true. ; yes
 !     = .false. ; no
 !
-!     ktaur  : if ifrest=.false., ktaur=0.
-!     if ifrest=.true., set ktaur=ktau, which is the time-step
-!     the model output is saved.
-!
 !     ifsave : specify whether a saved tape (unit 24) will be written
 !     for restarting.
 !     = .true. ; yes
@@ -679,7 +675,6 @@
       ntapfrq = nint(3600.*tapfrq)
       ndbgfrq = nint(3600.*dbgfrq)
       ktau = 0
-      ktaur = 0
       xtime = 0.
       ntime = 0
       dtsplit(2) = dt/2.
@@ -731,7 +726,6 @@
       nnnend = idatediff(idate2,idate0)/ibdyfrq
       nnnchk = nstart
 ! 
-!     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1
       call say

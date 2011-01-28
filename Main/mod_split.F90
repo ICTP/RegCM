@@ -149,8 +149,8 @@
 !**   compute m.
       do ns = 1 , nsplit
         m(ns) = nint(dt/dtau(ns))
-        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) m(ns)                     &
-           & = nint(.5*dt/dtau(ns))
+        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) &
+          m(ns) = nint(.5*dt/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid.eq.0 ) print * , 'dt, dtau = ' , dt , dtau
@@ -238,8 +238,8 @@
 !**   multiply am, an and zmatx by factor.
       do l = 1 , nsplit
         fac = 2.*dt/(2.*dble(m(l))+1.)
-        if ( jyear.ne.jyear0 .or. ktau.ne.0 )                           &
-           & fac = dt/(2.*dble(m(l))+1.)
+        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) &
+          fac = dt/(2.*dble(m(l))+1.)
 #ifdef MPP1
         if ( myid.eq.0 ) print * , 'm, fac = ' , m(l) , fac
 #else
@@ -290,8 +290,8 @@
             end do
           end do
         end do
-        call mpi_scatter(sav_6,kz*8*jxp,mpi_real8,               &
-                       & sav6,kz*8*jxp,mpi_real8,0,              &
+        call mpi_scatter(sav_6,kz*8*jxp,mpi_real8,   &
+                       & sav6, kz*8*jxp,mpi_real8,0, &
                        & mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
@@ -504,6 +504,7 @@
       end if
 !
       call time_end(subroutine_name,idindx)
+!
       end subroutine spinit
 !
 ! Compute deld, delh, integrate in time and add correction terms appropriately

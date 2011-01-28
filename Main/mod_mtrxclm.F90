@@ -1430,7 +1430,7 @@
           end do !i loop
  
           if ( mod(ntime+nint(dtmin*60.),kbats)==0 .or.                 &
-             & (jyear==jyearr .and. ktau==ktaur) ) then
+          & (ifrest .and. .not. done_restart ) ) then
             if ( jyear==jyear0 .and. ktau<=1 ) then
               mmpd = 86400./dtbat
               wpm2 = 1./dtbat

@@ -200,6 +200,7 @@
         if ( myid.eq.0 ) then
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                    &     tb0_io,qb0_io,so0_io)
+          write (6,*) 'READY IC DATA for ', ndate0
           ps0_io = ps0_io/10.0
           do j = 1 , jx
             do k = 1 , kz
@@ -436,6 +437,7 @@
         end if
 #else
         call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
+        write (6,*) 'READY IC DATA for ', ndate0
 !
 !       Convert surface pressure to pstar
 !
@@ -1411,7 +1413,6 @@
         call mpi_bcast(lhour,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(ktaur,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
                         & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
@@ -1435,9 +1436,7 @@
 #ifndef BAND
         if (debug_level > 2) call mpidiag
 #endif
-
         dt = dt2 ! First timestep successfully read in
-
 #else
         call read_savefile_part1(ndate0)
         call fill_domain(mddom%xlat,mddom%xlong,mddom%ht, &
@@ -1565,8 +1564,7 @@
 !
       call solar1(xtime)
 #ifdef CLM
-      if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
-         & ( ktau.eq.ktaur ) ) then
+      if ( ifrest ) then
         init_grid = .true.
       else
         init_grid = .false.

@@ -56,7 +56,7 @@
 
       integer :: iolak
 
-      public :: output
+      public :: output , mkfile
 
       data iolak/0/
 
@@ -97,17 +97,22 @@
  
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
+#endif        
+        if ( (lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0) .or. &
+             (jyear.eq.jyearr .and. ktau.eq.0) .or. &
+             (ifrest .and. .not. done_restart) ) then
           call mkfile
         end if
+#ifdef MPP1
       end if
+#endif        
 !
 !-----output for dataflow analyses:
 !
+#ifdef MPP1
       if ( iftape ) then
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           & (mod(ntime,ntapfrq).eq.0 .and.                             &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+           & (mod(ntime,ntapfrq).eq.0) ) then
 !=======================================================================
 !         gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
           do j = 1 , jendl
@@ -194,7 +199,7 @@
  
       if ( ifbat ) then
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+           & ktau.eq.0))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 
           if ( lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
@@ -305,7 +310,7 @@
 !     Call radiation output
       if ( ifrad ) then
         if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+           & ktau.eq.0))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
 !=======================================================================
 !         frad2d, frad3d , psa
@@ -370,8 +375,7 @@
 !     Call chem output
       if ( ifchem ) then
         if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
-           & (mod(ntime,kchem).eq.0 .and.                               &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+           & (mod(ntime,kchem).eq.0 ) ) then
           do j = 1 , jendl
             do n = 1 , ntr
               do k = 1 , kz
@@ -1249,8 +1253,7 @@
           if ( myid.eq.0 ) then
             call write_savefile(idatex, .false.)
           end if
-        else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
-                & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
+        else if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
@@ -1957,11 +1960,6 @@
         end if
       end if
 !
-      if ( myid.eq.0 ) then
-        if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.    &
-           & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.         &
-           & nnnnnn.ne.nnnend ) call mkfile
-      end if
 
 #ifdef CLM
       if ( ifsave ) then
@@ -1984,23 +1982,21 @@
 
 #else
 
-      if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
-        call mkfile
-      end if
 !
 !-----output for dataflow analyses:
 !
       if ( iftape ) then
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           & (mod(ntime,ntapfrq).eq.0 .and.                             &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) call outatm
+           & (mod(ntime,ntapfrq).eq.0) ) then
+          call outatm
+        end if
       end if
  
  
 !     Call surface output
       if ( ifbat ) then
         if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+           & ktau.eq.0))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & then
           call outsrf
           do i = 1 , iym2
@@ -2026,7 +2022,7 @@
 !     Call radiation output
       if ( ifrad ) then
         if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
+           & ktau.eq.0))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
            & call outrad
       end if
  
@@ -2034,8 +2030,7 @@
 !     Call chem output
       if ( ifchem ) then
         if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
-           & (mod(ntime,kchem).eq.0 .and.                               &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+           & (mod(ntime,kchem).eq.0 ) ) then
           call outche
           remlsc  = 0.0
           remcvc  = 0.0
@@ -2064,17 +2059,11 @@
         if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
            & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
           call write_savefile(idatex,.false.)
-        else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
-                & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
+        else if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
           call write_savefile(idatex,.true.)
         end if
       end if
 !
-!-----printer output:
-!
-      if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.      &
-         & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.           &
-         & nnnnnn.ne.nnnend ) call mkfile
 #endif
       call time_end(subroutine_name,idindx) 
 
@@ -2084,6 +2073,8 @@
  
       implicit none
 !
+      if (myid /= 0) return
+
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex
       print * , ' '

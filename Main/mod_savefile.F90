@@ -83,7 +83,6 @@
                      & lhour , ntime
           jyear = lyear
           jyearr = jyear
-          ktaur = ktau
 #ifdef MPP1
           if ( ehso4 ) then
             read (iutrst) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
@@ -497,6 +496,8 @@
           write (iutsav) vi1 , vi2 , vilx , vil
 #endif
           close(iutsav)
+
+          write (6,*) 'SAV variables written at ', idate, xtime
 
           if (ltmp) then
             if (isavlast > 0) then

@@ -39,7 +39,7 @@
                & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
                & idcsst , iseaice , idesseas , klak
 
-      logical :: ifrest , rfstrt
+               logical :: ifrest , rfstrt , done_restart
  
       real(8) :: bdytim , prttim , radfrq , savtim , taptim , tbdybe
       integer :: ndbgfrq , nsavfrq , ntapfrq
@@ -62,6 +62,7 @@
       integer, private  :: ierr 
       real(8) , private :: total_allocation_size
       data total_allocation_size /0.0/
+      data done_restart /.false./
 
       contains
 

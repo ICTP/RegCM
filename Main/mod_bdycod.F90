@@ -373,6 +373,7 @@
           end do
         end if
         call addhours(ndate1, ibdyfrq)
+        write (6,'(a,i10)') 'SEARCH BC data for ',ndate1
         mmrec = icbc_search(ndate1)
         if (mmrec < 0) then
           call open_icbc(imonfirst(ndate1))
@@ -679,8 +680,10 @@
           end do
         end do
       end do
-      if ( myid.eq.0 ) print * , 'BCs are ready from ' , ndate0 ,     &
-                            &'  to ' , ndate1
+      if ( myid.eq.0 ) then
+        write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
+                            & ' to ' , ndate1
+      end if
       idatex = ndate0
       ndate0 = ndate1
       do j = 1 , jendx
@@ -713,9 +716,7 @@
           end do
         end do
       end if
-!bxqOCT2001_
  
-      nnbase = nnnnnn
       call split_idate(mdate, nyear, nmonth, nday, nhour)
 
 !-----------------------------------------------------------------------
@@ -770,6 +771,7 @@
         end do
       end if
       call addhours(ndate1, ibdyfrq)
+      write (6,'(a,i10)') 'SEARCH BC data for ',ndate1
       mmrec = icbc_search(ndate1)
       if (mmrec < 0) then
         call open_icbc(imonfirst(ndate1))
@@ -850,7 +852,6 @@
       mdate = ndate0
       nnnchk = nnnchk + 1
  
-!     print*,'read in datasets at :',ndate1
 !
 !-----compute boundary conditions for p*:
 !
@@ -970,7 +971,10 @@
           end do
         end do
       end do
-      print * , 'BCs are ready from ' , ndate0 , '  to ' , ndate1
+      if ( myid.eq.0 ) then
+        write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
+                            & ' to ' , ndate1
+      end if
       idatex = ndate0
       ndate0 = ndate1
 #ifdef BAND
@@ -1007,9 +1011,7 @@
           end do
         end do
       end if
-!bxqOCT2001_
  
-      nnbase = nnnnnn
       call split_idate(mdate, nyear, nmonth, nday, nhour)
  
 !-----------------------------------------------------------------------
