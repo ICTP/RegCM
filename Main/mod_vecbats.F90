@@ -1053,7 +1053,6 @@
           end do
         end if
 !
-      else ! end ivers test
       end if
 !
       call time_end(subroutine_name,idindx)

@@ -42,6 +42,7 @@
       use mod_savefile
       use mod_diagnosis
       use mod_cu_bm
+      use mod_cvaria
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
@@ -961,9 +962,14 @@
                 sav_0a(i,nnsg+4+k,j) = o3prof_io(i,k,j)
               end do
             end do
+            do k = 1 , kz
+              do i = 1 , iym1
+                sav_0a(i,nnsg+4+kzp1+k,j) = omega_io(i,k,j)
+              end do
+            end do
           end do
         end if
-        allrec = kz + 5 + nnsg
+        allrec = kz + kzp1 + 5 + nnsg
         call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
                        & sav0a, iy*allrec*jxp,mpi_real8,         &
                        & 0,mpi_comm_world,ierr)
@@ -984,6 +990,11 @@
           do k = 1 , kzp1
             do i = 1 , iym1
               o3prof(i,k,j) = sav0a(i,nnsg+4+k,j)
+            end do
+          end do
+          do k = 1 , kz
+            do i = 1 , iym1
+              omega(i,k,j) = sav0a(i,nnsg+4+kzp1+k,j)
             end do
           end do
         end do
@@ -1131,17 +1142,18 @@
                 sav_2(i,nnsg+n,j) = tlef2d_io(n,i,j)
                 sav_2(i,nnsg*2+n,j) = ssw2d_io(n,i,j)
                 sav_2(i,nnsg*3+n,j) = srw2d_io(n,i,j)
+                sav_2(i,nnsg*4+n,j) = rno2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav_2(i,nnsg*4+1,j) = sol2d_io(i,j)
-              sav_2(i,nnsg*4+2,j) = solvd2d_io(i,j)
-              sav_2(i,nnsg*4+3,j) = solvs2d_io(i,j)
-              sav_2(i,nnsg*4+4,j) = flw2d_io(i,j)
+              sav_2(i,nnsg*5+1,j) = sol2d_io(i,j)
+              sav_2(i,nnsg*5+2,j) = solvd2d_io(i,j)
+              sav_2(i,nnsg*5+3,j) = solvs2d_io(i,j)
+              sav_2(i,nnsg*5+4,j) = flw2d_io(i,j)
             end do
           end do
         end if
-        allrec = nnsg*4 + 4
+        allrec = nnsg*5 + 4
         call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
                        & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -1152,13 +1164,14 @@
               tlef2d(n,i,j) = sav2(i,nnsg+n,j)
               ssw2d(n,i,j) = sav2(i,nnsg*2+n,j)
               srw2d(n,i,j) = sav2(i,nnsg*3+n,j)
+              rno2d(n,i,j) = sav2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            sol2d(i,j) = sav2(i,nnsg*4+1,j)
-            solvd2d(i,j) = sav2(i,nnsg*4+2,j)
-            solvs2d(i,j) = sav2(i,nnsg*4+3,j)
-            flw2d(i,j) = sav2(i,nnsg*4+4,j)
+            sol2d(i,j) = sav2(i,nnsg*5+1,j)
+            solvd2d(i,j) = sav2(i,nnsg*5+2,j)
+            solvs2d(i,j) = sav2(i,nnsg*5+3,j)
+            flw2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -1173,17 +1186,18 @@
                 sav_2(i,nnsg+n,j) = swt2d_io(n,i,j)
                 sav_2(i,nnsg*2+n,j) = scv2d_io(n,i,j)
                 sav_2(i,nnsg*3+n,j) = gwet2d_io(n,i,j)
+                sav_2(i,nnsg*4+n,j) = tg2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav_2(i,nnsg*4+1,j) = flwd2d_io(i,j)
-              sav_2(i,nnsg*4+2,j) = fsw2d_io(i,j)
-              sav_2(i,nnsg*4+3,j) = sabv2d_io(i,j)
-              sav_2(i,nnsg*4+4,j) = sinc2d_io(i,j)
+              sav_2(i,nnsg*5+1,j) = flwd2d_io(i,j)
+              sav_2(i,nnsg*5+2,j) = fsw2d_io(i,j)
+              sav_2(i,nnsg*5+3,j) = sabv2d_io(i,j)
+              sav_2(i,nnsg*5+4,j) = sinc2d_io(i,j)
             end do
           end do
         end if
-        allrec = nnsg*4 + 4
+        allrec = nnsg*5 + 4
         call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
                        & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -1194,13 +1208,14 @@
               swt2d(n,i,j) = sav2(i,nnsg+n,j)
               scv2d(n,i,j) = sav2(i,nnsg*2+n,j)
               gwet2d(n,i,j) = sav2(i,nnsg*3+n,j)
+              tg2d(n,i,j) = sav2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            flwd2d(i,j) = sav2(i,nnsg*4+1,j)
-            fsw2d(i,j) = sav2(i,nnsg*4+2,j)
-            sabv2d(i,j) = sav2(i,nnsg*4+3,j)
-            sinc2d(i,j) = sav2(i,nnsg*4+4,j)
+            flwd2d(i,j) = sav2(i,nnsg*5+1,j)
+            fsw2d(i,j) = sav2(i,nnsg*5+2,j)
+            sabv2d(i,j) = sav2(i,nnsg*5+3,j)
+            sinc2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -1215,17 +1230,18 @@
                 sav_2(i,nnsg+n,j) = sag2d_io(n,i,j)
                 sav_2(i,nnsg*2+n,j) = sice2d_io(n,i,j)
                 sav_2(i,nnsg*3+n,j) = dew2d_io(n,i,j)
+                sav_2(i,nnsg*4+n,j) = ocld2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav_2(i,nnsg*4+1,j) = pptnc_io(i,j)
-              sav_2(i,nnsg*4+2,j) = pptc_io(i,j)
-              sav_2(i,nnsg*4+3,j) = prca2d_io(i,j)
-              sav_2(i,nnsg*4+4,j) = prnca2d_io(i,j)
+              sav_2(i,nnsg*5+1,j) = pptnc_io(i,j)
+              sav_2(i,nnsg*5+2,j) = pptc_io(i,j)
+              sav_2(i,nnsg*5+3,j) = prca2d_io(i,j)
+              sav_2(i,nnsg*5+4,j) = prnca2d_io(i,j)
             end do
           end do
         end if
-        allrec = nnsg*4 + 4
+        allrec = nnsg*5 + 4
         call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
                        & sav2, iym1*allrec*jxp,mpi_real8,        &
                        & 0,mpi_comm_world,ierr)
@@ -1236,13 +1252,14 @@
               sag2d(n,i,j) = sav2(i,nnsg+n,j)
               sice2d(n,i,j) = sav2(i,nnsg*2+n,j)
               dew2d(n,i,j) = sav2(i,nnsg*3+n,j)
+              ocld2d(n,i,j) = sav2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            pptnc(i,j) = sav2(i,nnsg*4+1,j)
-            pptc(i,j) = sav2(i,nnsg*4+2,j)
-            prca2d(i,j) = sav2(i,nnsg*4+3,j)
-            prnca2d(i,j) = sav2(i,nnsg*4+4,j)
+            pptnc(i,j) = sav2(i,nnsg*5+1,j)
+            pptc(i,j) = sav2(i,nnsg*5+2,j)
+            prca2d(i,j) = sav2(i,nnsg*5+3,j)
+            prnca2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
         if ( myid.eq.0 ) then
@@ -1256,16 +1273,14 @@
                 sav_2a(i,n,j)        = ircp2d_io(n,i,j)
                 sav_2a(i,nnsg+n,j)   = text2d_io(n,i,j)
                 sav_2a(i,nnsg*2+n,j) = col2d_io(n,i,j)
-                sav_2a(i,nnsg*3+n,j) = ocld2d_io(n,i,j)
-                sav_2a(i,nnsg*4+n,j) = tg2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav_2a(i,nnsg*5+1,j) = veg2d_io(i,j)
+              sav_2a(i,nnsg*3+1,j) = veg2d_io(i,j)
             end do
           end do
         end if
-        allrec = nnsg*5 + 1
+        allrec = nnsg*3 + 1
         call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,       &
                        & sav2a, iym1*allrec*jxp,mpi_real8,       &
                        & 0,mpi_comm_world,ierr)
@@ -1275,12 +1290,10 @@
               ircp2d(n,i,j) = sav2a(i,n,j)
               text2d(n,i,j) = sav2a(i,nnsg+n,j)
               col2d(n,i,j)  = sav2a(i,nnsg*2+n,j)
-              ocld2d(n,i,j) = sav2a(i,nnsg*3+n,j)
-              tg2d(n,i,j)   = sav2a(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
-            veg2d(i,j) = sav2a(i,nnsg*5+1,j)
+            veg2d(i,j) = sav2a(i,nnsg*3+1,j)
           end do
         end do
         if ( ichem.eq.1 ) then
