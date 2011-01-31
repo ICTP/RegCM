@@ -499,14 +499,16 @@
 
           write (6,*) 'SAV variables written at ', idate, xtime
 
+          if (isavlast > 0) then
+            write (fbname, '(a,i10)') 'TMPSAV.', isavlast
+            ffout = trim(dirout)//pthsep//trim(domname)// &
+                    '_'//trim(fbname)
+            call unlink(ffout)
+          end if
           if (ltmp) then
-            if (isavlast > 0) then
-              write (fbname, '(a,i10)') 'TMPSAV.', isavlast
-              ffout = trim(dirout)//pthsep//trim(domname)// &
-                      '_'//trim(fbname)
-              call unlink(ffout)
-            end if
             isavlast = idate
+          else
+            isavlast = 0
           end if
 
         end subroutine write_savefile
