@@ -42,13 +42,12 @@
 !  values = allocated space by the sub containing data: the caller is
 !           in charge of the deallocate
 !
-      subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth,values)
+      subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth)
         use netcdf
         implicit none
         character(len=*) , intent(in) :: cfile , cvar
         integer , intent(in) :: iires , iores , imeth
         logical , intent(in) :: lreg
-        real(SP) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , itl
         integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
@@ -107,13 +106,7 @@
           nlonin = nlonin + 1
         end if
 
-        allocate(values(nlonin,nlatin),stat=istatus)
-        if (istatus /= 0) then
-          write(stderr,*) 'Memory error on allocating ', &
-                    nlatin*nlonin*4,' bytes.'
-          call die('read_ncglob')
-        end if
-        call mall_mci(values,'read_ncglob')
+        call getspace
 
         allocate(readbuf(nlon,nlat), stat=istatus)
         if (istatus /= 0) then

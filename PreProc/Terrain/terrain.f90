@@ -235,49 +235,43 @@
         if (debug_level > 2) call zeit_ci('TOPO read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GTOPO_DEM_30s.nc','z',   &
-                         30,ntypec_s,.true.,0,ht)
+                         30,ntypec_s,.true.,0)
         write(stdout,*)'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
-                    nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec_s,2,lonwrap,lcrosstime)
         write(stdout,*)'Interpolated DEM on SUBGRID'
-        call mall_mco(ht,'read_ncglob')
-        deallocate(ht)
         if (debug_level > 2) call zeit_co('TOPO read')
 !
         if (debug_level > 2) call zeit_ci('LAND read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLCC_BATS_30s.nc',       &
-                         'landcover',30,ntypec_s,.true.,0,lnd)
+                         'landcover',30,ntypec_s,.true.,0)
         write(stdout,*)'Static landcover BATS data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
-                    nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec_s,4,lonwrap,lcrosstime,     &
                     ibnty=1,h2opct=h2opct)
         call filter1plakes(iysg,jxsg,lndout_s)
         write(stdout,*)'Interpolated landcover on SUBGRID'
-        call mall_mco(lnd,'read_ncglob')
-        deallocate(lnd)
         if (debug_level > 2) call zeit_co('LAND read')
 !
         if ( aertyp(7:7)=='1' ) then
           if (debug_level > 2) call zeit_ci('SOIL read')
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'GLZB_SOIL_30s.nc',       &
-                           'soiltype',30,ntypec_s,.true.,0,text)
+                           'soiltype',30,ntypec_s,.true.,0)
           write(stdout,*)'Static texture data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
-                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec_s,4,lonwrap,lcrosstime,      &
                       ibnty=2,h2opct=h2opct)
           do i = 1 , ntex
             call interp(iysg,jxsg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
-                        nlatin,nlonin,grdltmn,grdlnmn,text,         &
+                        nlatin,nlonin,grdltmn,grdlnmn,values,      &
                         ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
           write(stdout,*)'Interpolated texture on SUBGRID'
-          call mall_mco(text,'read_ncglob')
-          deallocate(text)
           if (debug_level > 2) call zeit_co('SOIL read')
         end if
 
@@ -285,14 +279,12 @@
           if (debug_level > 2) call zeit_ci('BATH read')
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'ETOPO_BTM_30s.nc',       &
-                           'z',30,ntypec_s,.true.,0,dpt)
+                           'z',30,ntypec_s,.true.,0)
           write(stdout,*)'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
-                      nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec_s,2,lonwrap,lcrosstime)
           write(stdout,*)'Interpolated bathymetry on SUBGRID'
-          call mall_mco(dpt,'read_ncglob')
-          deallocate(dpt)
           if (debug_level > 2) call zeit_co('BATH read')
         end if
 
@@ -402,49 +394,43 @@
       if (debug_level > 2) call zeit_ci('TOPO read')
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GTOPO_DEM_30s.nc','z',   &
-                       30,ntypec,.true.,0,ht)
+                       30,ntypec,.true.,0)
       write(stdout,*)'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
-                  nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                  nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,2,lonwrap,lcrosstime)
       write(stdout,*)'Interpolated DEM on model GRID'
-      call mall_mco(ht,'read_ncglob')
-      deallocate(ht)
       if (debug_level > 2) call zeit_co('TOPO read')
 !
       if (debug_level > 2) call zeit_ci('LAND read')
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLCC_BATS_30s.nc',       &
-                       'landcover',30,ntypec,.true.,0,lnd)
+                       'landcover',30,ntypec,.true.,0)
       write(stdout,*)'Static landcover BATS data successfully read in'
       call interp(iy,jx,xlat,xlon,lndout,            &
-                  nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                  nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,4,lonwrap,lcrosstime,       &
                   ibnty=1,h2opct=h2opct)
       call filter1plakes(iy,jx,lndout)
       write(stdout,*)'Interpolated landcover on model GRID'
-      call mall_mco(lnd,'read_ncglob')
-      deallocate(lnd)
       if (debug_level > 2) call zeit_co('LAND read')
 !
       if ( aertyp(7:7)=='1' ) then
         if (debug_level > 2) call zeit_ci('SOIL read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLZB_SOIL_30s.nc',       &
-                         'soiltype',30,ntypec,.true.,0,text)
+                         'soiltype',30,ntypec,.true.,0)
         write(stdout,*)'Static texture data successfully read in'
         call interp(iy,jx,xlat,xlon,texout,             &
-                    nlatin,nlonin,grdltmn,grdlnmn,text, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec,4,lonwrap,lcrosstime,        &
                     ibnty=2,h2opct=h2opct)
         do i = 1 , ntex
           call interp(iy,jx,xlat,xlon,frac_tex(:,:,i),   &
-                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
         write(stdout,*)'Interpolated texture on model GRID'
-        call mall_mco(text,'read_ncglob')
-        deallocate(text)
         if (debug_level > 2) call zeit_co('SOIL read')
       end if
 
@@ -452,14 +438,12 @@
         if (debug_level > 2) call zeit_ci('BATH read')
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'ETOPO_BTM_30s.nc',       &
-                         'z',30,ntypec,.true.,0,dpt)
+                         'z',30,ntypec,.true.,0)
         write(stdout,*)'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
-                    nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec,2,lonwrap,lcrosstime)
         write(stdout,*)'Interpolated bathymetry on model GRID'
-        call mall_mco(dpt,'read_ncglob')
-        deallocate(dpt)
         if (debug_level > 2) call zeit_co('BATH read')
       end if
 
@@ -602,6 +586,7 @@
       call write_domain(.false.)
       write(stdout,*) 'Grid data written to output file'
       call free_grid
+      call freespace
 
       if (debug_level > 2) then
         call mall_flush(stdout)
