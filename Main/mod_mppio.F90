@@ -628,7 +628,7 @@
           allocate(sav_0(iy,kz*4+2,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_0',size(sav_0))
           sav_0 = 0.0D0
-          allocate(sav_0a(iy,kz+kzp1+nnsg+5,jx) ,stat=ierr)
+          allocate(sav_0a(iy,kzp1+nnsg+5,jx) ,stat=ierr)
           call check_alloc(ierr,myname,'sav_0a',size(sav_0a))
           sav_0a = 0.0D0
           allocate(sav_0b(iy,kzp1,jx),stat=ierr)
@@ -649,7 +649,7 @@
           allocate(sav_2(iym1,nnsg*5+4,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_2',size(sav_2))
           sav_2 = 0.0D0
-          allocate(sav_2a(iym1,nnsg*3+1,jx),stat=ierr)
+          allocate(sav_2a(iym1,nnsg*2+1,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_2a',size(sav_2a))
           sav_2a = 0.0D0
           allocate(sav_4(iy,ntr*(kz*4+1),jx),stat=ierr)
@@ -670,7 +670,7 @@
         allocate(sav0(iy,kz*4+2,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav0',size(sav0))
         sav0 = 0.0D0
-        allocate(sav0a(iy,kz+kzp1+nnsg+5,jxp) ,stat=ierr)
+        allocate(sav0a(iy,kzp1+nnsg+5,jxp) ,stat=ierr)
         call check_alloc(ierr,myname,'sav0a',size(sav0a))
         sav0a = 0.0D0
         allocate(sav0b(iy,kzp1,jxp),stat=ierr)
@@ -691,7 +691,7 @@
         allocate(sav2(iym1,nnsg*5+4,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav2',size(sav2))
         sav2 = 0.0D0
-        allocate(sav2a(iym1,nnsg*3+1,jxp),stat=ierr)
+        allocate(sav2a(iym1,nnsg*2+1,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav2a',size(sav2a))
         sav2a = 0.0D0
         allocate(sav4(iy,ntr*(kz*4+1),jxp),stat=ierr)

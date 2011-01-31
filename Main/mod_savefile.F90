@@ -101,7 +101,6 @@
           read (iutrst) atm2_io%t
           read (iutrst) atm2_io%qv
           read (iutrst) atm2_io%qc
-          read (iutrst) omega_io
           read (iutrst) psa_io , psb_io
           read (iutrst) mddom_io%ht , mddom_io%xlat ,      &
                         mddom_io%xlong , mddom_io%satbrt , &
@@ -151,7 +150,7 @@
                      & scv2d_io , gwet2d_io , veg2d_io , veg2d1_io ,  &
                      & sag2d_io , sice2d_io , dew2d_io , ircp2d_io ,  &
                      & text2d_io , col2d_io , ocld2d_io , heatrt_io , &
-                     & o3prof_io , rno2d_io
+                     & o3prof_io
 #endif
           read (iutrst) pptnc_io , pptc_io , prca2d_io , prnca2d_io
           if ( iocnflx.eq.2 ) read (iutrst) zpbl_io
@@ -192,7 +191,6 @@
           read (iutrst) atm2%t
           read (iutrst) atm2%qv
           read (iutrst) atm2%qc
-          read (iutrst) omega
           read (iutrst) sps1%ps , sps2%ps
           read (iutrst) mddom%ht , mddom%xlat ,        &
                         mddom%xlong , mddom%satbrt ,   &
@@ -219,8 +217,7 @@
           read (iutrst) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,   &
                      & tg2d ,  tgb2d , swt2d , scv2d , gwet2d , veg2d , &
                      & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
-                     & text2d , col2d , ocld2d , heatrt , o3prof ,      &
-                     & rno2d
+                     & text2d , col2d , ocld2d , heatrt , o3prof
           read (iutrst) pptnc , pptc , prca2d , prnca2d
           if ( iocnflx.eq.2 ) read (iutrst) sfsta%zpbl
           if ( ichem.eq.1 ) then
@@ -331,7 +328,6 @@
           write (iutsav) atm2_io%t
           write (iutsav) atm2_io%qv
           write (iutsav) atm2_io%qc
-          write (iutsav) omega_io
           write (iutsav) psa_io , psb_io
           write (iutsav) mddom_io%ht , mddom_io%xlat ,      &
                          mddom_io%xlong , mddom_io%satbrt , &
@@ -381,7 +377,7 @@
                      & scv2d_io , gwet2d_io , veg2d_io , veg2d1_io ,  &
                      & sag2d_io , sice2d_io , dew2d_io , ircp2d_io ,  &
                      & text2d_io , col2d_io , ocld2d_io , heatrt_io , &
-                     & o3prof_io , rno2d_io
+                     & o3prof_io
 #endif
           write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
           if ( iocnflx.eq.2 ) write (iutsav) zpbl_io
@@ -422,7 +418,6 @@
           write (iutsav) atm2%t
           write (iutsav) atm2%qv
           write (iutsav) atm2%qc
-          write (iutsav) omega
           write (iutsav) sps1%ps , sps2%ps
           write (iutsav) mddom%ht , mddom%xlat ,      &
                          mddom%xlong , mddom%satbrt , &
@@ -449,8 +444,7 @@
           write (iutsav) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,  &
                      & tg2d , tgb2d , swt2d , scv2d , gwet2d , veg2d ,  &
                      & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
-                     & text2d , col2d , ocld2d , heatrt , o3prof ,      &
-                     & rno2d
+                     & text2d , col2d , ocld2d , heatrt
           write (iutsav) pptnc , pptc , prca2d , prnca2d
           if ( iocnflx.eq.2 ) write (iutsav) sfsta%zpbl
           if ( ichem.eq.1 ) then

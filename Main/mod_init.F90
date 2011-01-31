@@ -962,14 +962,9 @@
                 sav_0a(i,nnsg+4+k,j) = o3prof_io(i,k,j)
               end do
             end do
-            do k = 1 , kz
-              do i = 1 , iym1
-                sav_0a(i,nnsg+4+kzp1+k,j) = omega_io(i,k,j)
-              end do
-            end do
           end do
         end if
-        allrec = kz + kzp1 + 5 + nnsg
+        allrec = kzp1 + 5 + nnsg
         call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
                        & sav0a, iy*allrec*jxp,mpi_real8,         &
                        & 0,mpi_comm_world,ierr)
@@ -990,11 +985,6 @@
           do k = 1 , kzp1
             do i = 1 , iym1
               o3prof(i,k,j) = sav0a(i,nnsg+4+k,j)
-            end do
-          end do
-          do k = 1 , kz
-            do i = 1 , iym1
-              omega(i,k,j) = sav0a(i,nnsg+4+kzp1+k,j)
             end do
           end do
         end do
@@ -1142,7 +1132,7 @@
                 sav_2(i,nnsg+n,j) = tlef2d_io(n,i,j)
                 sav_2(i,nnsg*2+n,j) = ssw2d_io(n,i,j)
                 sav_2(i,nnsg*3+n,j) = srw2d_io(n,i,j)
-                sav_2(i,nnsg*4+n,j) = rno2d_io(n,i,j)
+                sav_2(i,nnsg*4+n,j) = col2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1164,7 +1154,7 @@
               tlef2d(n,i,j) = sav2(i,nnsg+n,j)
               ssw2d(n,i,j) = sav2(i,nnsg*2+n,j)
               srw2d(n,i,j) = sav2(i,nnsg*3+n,j)
-              rno2d(n,i,j) = sav2(i,nnsg*4+n,j)
+              col2d(n,i,j) = sav2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
@@ -1272,15 +1262,14 @@
               do i = 1 , iym1
                 sav_2a(i,n,j)        = ircp2d_io(n,i,j)
                 sav_2a(i,nnsg+n,j)   = text2d_io(n,i,j)
-                sav_2a(i,nnsg*2+n,j) = col2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav_2a(i,nnsg*3+1,j) = veg2d_io(i,j)
+              sav_2a(i,nnsg*2+1,j) = veg2d_io(i,j)
             end do
           end do
         end if
-        allrec = nnsg*3 + 1
+        allrec = nnsg*2 + 1
         call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,       &
                        & sav2a, iym1*allrec*jxp,mpi_real8,       &
                        & 0,mpi_comm_world,ierr)
@@ -1289,11 +1278,10 @@
             do i = 1 , iym1
               ircp2d(n,i,j) = sav2a(i,n,j)
               text2d(n,i,j) = sav2a(i,nnsg+n,j)
-              col2d(n,i,j)  = sav2a(i,nnsg*2+n,j)
             end do
           end do
           do i = 1 , iym1
-            veg2d(i,j) = sav2a(i,nnsg*3+1,j)
+            veg2d(i,j) = sav2a(i,nnsg*2+1,j)
           end do
         end do
         if ( ichem.eq.1 ) then

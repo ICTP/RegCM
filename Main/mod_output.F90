@@ -119,12 +119,13 @@
       ldosav = .false.
       ldotmp = .false.
 
+      if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
+        ldotmp = .true.
+      end if
       if ( ((lday==1 .and. lhour==0 .and. abs(xtime)<0.00001) .and. &
             ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
         ldosav = .true.
-      end if
-      if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
-        ldotmp = .true.
+        ldotmp = .false.
       end if
       if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
            mod(ntime,ntapfrq).eq.0) then
@@ -370,13 +371,8 @@
                 sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
               end do
             end do
-            do k = 1 , kz
-              do i = 1 , iym1
-                sav0a(i,nnsg+4+kzp1+k,j) = omega(i,k,j)
-              end do
-            end do
           end do
-          allrec = 5 + nnsg + kz + kzp1
+          allrec = 5 + nnsg + kzp1
           call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                         & sav_0a,iy*allrec*jxp,mpi_real8,        &
                         & 0,mpi_comm_world,ierr)
@@ -402,11 +398,6 @@
               do k = 1 , kzp1
                 do i = 1 , iym1
                   o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
-                end do
-              end do
-              do k = 1 , kz
-                do i = 1 , iym1
-                  omega_io(i,k,j) = sav_0a(i,4+nnsg+kzp1+k,j)
                 end do
               end do
             end do
@@ -552,7 +543,7 @@
                 sav2(i,nnsg+n,j) = tlef2d(n,i,j)
                 sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
                 sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
-                sav2(i,nnsg*4+n,j) = rno2d(n,i,j)
+                sav2(i,nnsg*4+n,j) = col2d(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -578,7 +569,7 @@
                   tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
                   ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
                   srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                  rno2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+                  col2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
                 end do
               end do
               do i = 1 , iym1
@@ -719,14 +710,13 @@
               do i = 1 , iym1
                 sav2a(i,n,j) = ircp2d(n,i,j)
                 sav2a(i,nnsg+n,j) = text2d(n,i,j)
-                sav2a(i,nnsg*2+n,j) = col2d(n,i,j)
               end do
             end do
             do i = 1 , iym1
-              sav2a(i,nnsg*3+1,j) = veg2d(i,j)
+              sav2a(i,nnsg*2+1,j) = veg2d(i,j)
             end do
           end do
-          allrec = nnsg*3 + 1
+          allrec = nnsg*2 + 1
           call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
                         & sav_2a,iym1*allrec*jxp,mpi_real8,      &
                         & 0,mpi_comm_world,ierr)
@@ -740,11 +730,10 @@
                 do i = 1 , iym1
                   ircp2d_io(n,i,j) = sav_2a(i,n,j)
                   text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
-                  col2d_io(n,i,j) = sav_2a(i,nnsg*2+n,j)
                 end do
               end do
               do i = 1 , iym1
-                veg2d_io(i,j) = sav_2a(i,nnsg*3+1,j)
+                veg2d_io(i,j) = sav_2a(i,nnsg*2+1,j)
               end do
             end do
           end if
@@ -1349,7 +1338,7 @@
       if ( ifsave ) then
         if (ldosav)
           call write_savefile(idatex,.false.)
-        else if (ldotmp)
+        else
           call write_savefile(idatex,.true.)
         end if
       end if
