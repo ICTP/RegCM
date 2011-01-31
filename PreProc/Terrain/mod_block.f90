@@ -24,6 +24,7 @@
       real(8) :: xmaxlat , xmaxlon , xminlat , xminlon
       integer :: nlatin , nlonin
       logical :: lonwrap , lcrosstime
+      real(4) , allocatable , dimension(:,:) :: values
 
       contains
 
@@ -89,5 +90,31 @@
       print *, '         MAXLON = ', xmaxlon
 
       end subroutine mxmnll
+
+      subroutine getspace
+        implicit none
+        integer :: istatus
+        integer , dimension(2) :: idims
+        if (.not. allocated(values)) then
+          allocate(values(nlonin,nlatin), stat=istatus)
+        else
+          idims = shape(values)
+          if ( idims(1) /= nlonin .or. idims(2) /= nlatin ) then
+            deallocate(values)
+            allocate(values(nlonin,nlatin), stat=istatus)
+          else
+            return
+          end if
+        end if
+        if (istatus /= 0) then
+          write(6,*) 'Memory error on allocating ', &
+                     nlatin*nlonin*4,' bytes.'
+          stop
+        end if
+      end subroutine getspace
+
+      subroutine freespace
+        deallocate(values)
+      end subroutine freespace
 
       end module mod_block

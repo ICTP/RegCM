@@ -36,17 +36,14 @@
 !          1  = mean
 !          2  = median
 !          3  = most present
-!  values = allocated space by the sub containing data: the caller is
-!           in charge of the deallocate
 !
-      subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth,values)
+      subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth)
         use netcdf
         use mod_block
         implicit none
         character(len=*) , intent(in) :: cfile , cvar
         integer , intent(in) :: iires , iores , imeth
         logical , intent(in) :: lreg
-        real(4) , dimension(:,:) , allocatable , intent(out) :: values
         integer :: ncid , ivar , istatus
         integer :: nlat , nlon , itl
         integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
@@ -105,12 +102,7 @@
           nlonin = nlonin + 1
         end if
 
-        allocate(values(nlonin,nlatin),stat=istatus)
-        if (istatus /= 0) then
-          print *, 'Memory error on allocating ', &
-                    nlatin*nlonin*4,' bytes.'
-          stop
-        end if
+        call getspace
 
         allocate(readbuf(nlon,nlat), stat=istatus)
         if (istatus /= 0) then

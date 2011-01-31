@@ -220,33 +220,31 @@
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GTOPO_DEM_30s.nc','z',   &
-                         30,ntypec_s,.true.,0,ht)
+                         30,ntypec_s,.true.,0)
         print *, 'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
-                    nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec_s,2,lonwrap,lcrosstime)
         print *, 'Interpolated DEM on SUBGRID'
-        deallocate(ht)
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLCC_BATS_30s.nc',       &
-                         'landcover',30,ntypec_s,.true.,0,lnd)
+                         'landcover',30,ntypec_s,.true.,0)
         print *, 'Static landcover BATS data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,lndout_s,  &
-                    nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec_s,4,lonwrap,lcrosstime,     &
                     ibnty=1,h2opct=h2opct)
         call filter1plakes(iysg,jxsg,lndout_s)
         print *, 'Interpolated landcover on SUBGRID'
-        deallocate(lnd)
 !
         if ( aertyp(7:7)=='1' ) then
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'GLZB_SOIL_30s.nc',       &
-                           'soiltype',30,ntypec_s,.true.,0,text)
+                           'soiltype',30,ntypec_s,.true.,0)
           print *, 'Static texture data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,texout_s,   &
-                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec_s,4,lonwrap,lcrosstime,      &
                       ibnty=2,h2opct=h2opct)
           do i = 1 , ntex
@@ -255,19 +253,17 @@
                         ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
           print *, 'Interpolated texture on SUBGRID'
-          deallocate(text)
         end if
 
         if ( lakedpth ) then
           call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                            pthsep//'ETOPO_BTM_30s.nc',       &
-                           'z',30,ntypec_s,.true.,0,dpt)
+                           'z',30,ntypec_s,.true.,0)
           print *, 'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
-                      nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec_s,2,lonwrap,lcrosstime)
           print *, 'Interpolated bathymetry on SUBGRID'
-          deallocate(dpt)
         end if
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
@@ -365,33 +361,31 @@
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GTOPO_DEM_30s.nc','z',   &
-                       30,ntypec,.true.,0,ht)
+                       30,ntypec,.true.,0)
       print *, 'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
-                  nlatin,nlonin,grdltmn,grdlnmn,ht, &
+                  nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,2,lonwrap,lcrosstime)
       print *, 'Interpolated DEM on model GRID'
-      deallocate(ht)
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLCC_BATS_30s.nc',       &
-                       'landcover',30,ntypec,.true.,0,lnd)
+                       'landcover',30,ntypec,.true.,0)
       print *, 'Static landcover BATS data successfully read in'
       call interp(iy,jx,xlat,xlon,lndout,            &
-                  nlatin,nlonin,grdltmn,grdlnmn,lnd, &
+                  nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,4,lonwrap,lcrosstime,       &
                   ibnty=1,h2opct=h2opct)
       call filter1plakes(iy,jx,lndout)
       print *, 'Interpolated landcover on model GRID'
-      deallocate(lnd)
 !
       if ( aertyp(7:7)=='1' ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'GLZB_SOIL_30s.nc',       &
-                         'soiltype',30,ntypec,.true.,0,text)
+                         'soiltype',30,ntypec,.true.,0)
         print *, 'Static texture data successfully read in'
         call interp(iy,jx,xlat,xlon,texout,             &
-                    nlatin,nlonin,grdltmn,grdlnmn,text, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec,4,lonwrap,lcrosstime,        &
                     ibnty=2,h2opct=h2opct)
         do i = 1 , ntex
@@ -400,19 +394,17 @@
                       ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
         print *, 'Interpolated texture on model GRID'
-        deallocate(text)
       end if
 
       if ( lakedpth ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//'ETOPO_BTM_30s.nc',       &
-                         'z',30,ntypec,.true.,0,dpt)
+                         'z',30,ntypec,.true.,0)
         print *, 'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
-                    nlatin,nlonin,grdltmn,grdlnmn,dpt, &
+                    nlatin,nlonin,grdltmn,grdlnmn,values, &
                     ntypec,2,lonwrap,lcrosstime)
         print *, 'Interpolated bathymetry on model GRID'
-        deallocate(dpt)
       end if
 
 !     ******           preliminary heavy smoothing of boundaries
@@ -553,6 +545,7 @@
       call write_domain(.false.)
       print * , 'Grid data written to output file'
       call free_grid
+      call freespace
 
       print *, 'Successfully completed terrain fields generation'
 !
