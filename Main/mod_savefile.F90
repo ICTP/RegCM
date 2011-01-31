@@ -444,7 +444,7 @@
           write (iutsav) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,  &
                      & tg2d , tgb2d , swt2d , scv2d , gwet2d , veg2d ,  &
                      & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
-                     & text2d , col2d , ocld2d , heatrt
+                     & text2d , col2d , ocld2d , heatrt , o3prof
           write (iutsav) pptnc , pptc , prca2d , prnca2d
           if ( iocnflx.eq.2 ) write (iutsav) sfsta%zpbl
           if ( ichem.eq.1 ) then
