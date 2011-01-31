@@ -1591,7 +1591,7 @@
       if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
          & mod(ktau+1,nbatst).eq.0 ) then
         ! Timestep used is the same as for bats
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
+        if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
           r2cnstep = 0
         else
           r2cnstep = (ktau+1)/nbatst
