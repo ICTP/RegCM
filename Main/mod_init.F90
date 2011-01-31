@@ -703,11 +703,6 @@
 #ifdef MPP1
         if ( myid.eq.0 ) then
           call read_savefile_part1(ndate0)
-          call fill_domain(mddom_io%xlat,mddom_io%xlong,mddom_io%ht, &
-                           mddom_io%satbrt)
-          if (nsg > 1) then
-            call fill_subdomain(xlat1_io,xlon1_io,ht1_io,satbrt1_io)
-          end if
 !
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
@@ -720,56 +715,6 @@
         if ( lakemod.eq.1 ) then
           call lakescatter
         endif
-!
-!       Start sending data to all processors : surface data
-!
-        if ( myid.eq.0 ) then
-          do j = 1 , jx
-            do i = 1 , iy
-              inisrf_0(i,1,j) = mddom_io%ht(i,j)
-              inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
-              inisrf_0(i,3,j) = mddom_io%xlat(i,j)
-              inisrf_0(i,4,j) = mddom_io%xlong(i,j)
-              inisrf_0(i,5,j) = mddom_io%msfx(i,j)
-              inisrf_0(i,6,j) = mddom_io%msfd(i,j)
-              inisrf_0(i,7,j) = mddom_io%f(i,j)
-            end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                inisrf_0(i,7+n,j) = ht1_io(n,i,j)
-                inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
-                inisrf_0(i,7+2*nnsg+n,j) = snowc_io(n,i,j)
-                inisrf_0(i,7+3*nnsg+n,j) = xlat1_io(n,i,j)
-                inisrf_0(i,7+4*nnsg+n,j) = xlon1_io(n,i,j)
-              end do
-            end do
-          end do
-        end if
-
-        call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
-                       & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
-                       & 0,mpi_comm_world,ierr)
-
-        do j = 1 , jxp
-          do i = 1 , iy
-            mddom%ht(i,j) = inisrf0(i,1,j)
-            mddom%satbrt(i,j) = inisrf0(i,2,j)
-            mddom%xlat(i,j) = inisrf0(i,3,j)
-            mddom%xlong(i,j) = inisrf0(i,4,j)
-            mddom%msfx(i,j) = inisrf0(i,5,j)
-            mddom%msfd(i,j) = inisrf0(i,6,j)
-            mddom%f(i,j) = inisrf0(i,7,j)
-          end do
-          do n = 1 , nnsg
-            do i = 1 , iy
-              ht1(n,i,j) = inisrf0(i,7+n,j)
-              satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
-              snowc(n,i,j) = inisrf0(i,7+2+nnsg+n,j)
-              xlat1(n,i,j) = inisrf0(i,7+3*nnsg+n,j)
-              xlon1(n,i,j) = inisrf0(i,7+4*nnsg+n,j)
-            end do
-          end do
-        end do
 
         if ( myid.eq.0 ) then
           do j = 1 , jx
@@ -1332,76 +1277,75 @@
               end do
             end do
           end do
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do i = 1 , iym1
-                sav_4a(i,1,j) = ssw2da_io(i,j)
-                sav_4a(i,2,j) = sdeltk2d_io(i,j)
-                sav_4a(i,3,j) = sdelqk2d_io(i,j)
-                sav_4a(i,4,j) = sfracv2d_io(i,j)
-                sav_4a(i,5,j) = sfracb2d_io(i,j)
-                sav_4a(i,6,j) = sfracs2d_io(i,j)
-                sav_4a(i,7,j) = svegfrac2d_io(i,j)
-              end do
-            end do
-          end if
-          call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,                 &
-                         & sav4a, iym1*7*jxp,mpi_real8,                 &
-                         & 0,mpi_comm_world,ierr)
-          do j = 1 , jendx
-            do i = 1 , iym1
-              ssw2da(i,j) = sav4a(i,1,j)
-              sdeltk2d(i,j) = sav4a(i,2,j)
-              sdelqk2d(i,j) = sav4a(i,3,j)
-              sfracv2d(i,j) = sav4a(i,4,j)
-              sfracb2d(i,j) = sav4a(i,5,j)
-              sfracs2d(i,j) = sav4a(i,6,j)
-              svegfrac2d(i,j) = sav4a(i,7,j)
-            end do
-          end do
-#ifdef CLM
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do i = 1 , iym1
-                sav_clmout(i,1,j)  = sols2d_io(i,j)
-                sav_clmout(i,2,j)  = soll2d_io(i,j)
-                sav_clmout(i,3,j)  = solsd2d_io(i,j)
-                sav_clmout(i,4,j)  = solld2d_io(i,j)
-                sav_clmout(i,5,j)  = aldirs2d_io(i,j)
-                sav_clmout(i,6,j)  = aldirl2d_io(i,j)
-                sav_clmout(i,7,j)  = aldifs2d_io(i,j)
-                sav_clmout(i,8,j)  = aldifl2d_io(i,j)
-                sav_clmout(i,9,j)  = coszrs2d_io(i,j)
-              end do
-            end do
-          end if
-          call mpi_scatter(sav_clmout,iym1*9*jxp,mpi_real8,             &
-                         & sav_clmin, iym1*9*jxp,mpi_real8,             &
-                         & 0,mpi_comm_world,ierr)
-          do j = 1 , jendx
-            do i = 1 , iym1
-              sols2d(i,j)   = sav_clmin(i,1,j)
-              soll2d(i,j)   = sav_clmin(i,2,j)
-              solsd2d(i,j)  = sav_clmin(i,3,j)
-              solld2d(i,j)  = sav_clmin(i,4,j)
-              aldirs2d(i,j) = sav_clmin(i,5,j)
-              aldirl2d(i,j) = sav_clmin(i,6,j)
-              aldifs2d(i,j) = sav_clmin(i,7,j)
-              aldifl2d(i,j) = sav_clmin(i,8,j)
-              coszrs2d(i,j) = sav_clmin(i,9,j)
-            end do
-          end do
-#endif
         end if
-
+        if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do i = 1 , iym1
+              sav_4a(i,1,j) = ssw2da_io(i,j)
+              sav_4a(i,2,j) = sdeltk2d_io(i,j)
+              sav_4a(i,3,j) = sdelqk2d_io(i,j)
+              sav_4a(i,4,j) = sfracv2d_io(i,j)
+              sav_4a(i,5,j) = sfracb2d_io(i,j)
+              sav_4a(i,6,j) = sfracs2d_io(i,j)
+              sav_4a(i,7,j) = svegfrac2d_io(i,j)
+            end do
+          end do
+        end if
+        call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,                 &
+                       & sav4a, iym1*7*jxp,mpi_real8,                 &
+                       & 0,mpi_comm_world,ierr)
+        do j = 1 , jendx
+          do i = 1 , iym1
+            ssw2da(i,j) = sav4a(i,1,j)
+            sdeltk2d(i,j) = sav4a(i,2,j)
+            sdelqk2d(i,j) = sav4a(i,3,j)
+            sfracv2d(i,j) = sav4a(i,4,j)
+            sfracb2d(i,j) = sav4a(i,5,j)
+            sfracs2d(i,j) = sav4a(i,6,j)
+            svegfrac2d(i,j) = sav4a(i,7,j)
+          end do
+        end do
+#ifdef CLM
+        if ( myid.eq.0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do i = 1 , iym1
+              sav_clmout(i,1,j)  = sols2d_io(i,j)
+              sav_clmout(i,2,j)  = soll2d_io(i,j)
+              sav_clmout(i,3,j)  = solsd2d_io(i,j)
+              sav_clmout(i,4,j)  = solld2d_io(i,j)
+              sav_clmout(i,5,j)  = aldirs2d_io(i,j)
+              sav_clmout(i,6,j)  = aldirl2d_io(i,j)
+              sav_clmout(i,7,j)  = aldifs2d_io(i,j)
+              sav_clmout(i,8,j)  = aldifl2d_io(i,j)
+              sav_clmout(i,9,j)  = coszrs2d_io(i,j)
+            end do
+          end do
+        end if
+        call mpi_scatter(sav_clmout,iym1*9*jxp,mpi_real8,             &
+                       & sav_clmin, iym1*9*jxp,mpi_real8,             &
+                       & 0,mpi_comm_world,ierr)
+        do j = 1 , jendx
+          do i = 1 , iym1
+            sols2d(i,j)   = sav_clmin(i,1,j)
+            soll2d(i,j)   = sav_clmin(i,2,j)
+            solsd2d(i,j)  = sav_clmin(i,3,j)
+            solld2d(i,j)  = sav_clmin(i,4,j)
+            aldirs2d(i,j) = sav_clmin(i,5,j)
+            aldirl2d(i,j) = sav_clmin(i,6,j)
+            aldifs2d(i,j) = sav_clmin(i,7,j)
+            aldifl2d(i,j) = sav_clmin(i,8,j)
+            coszrs2d(i,j) = sav_clmin(i,9,j)
+          end do
+        end do
+#endif
         call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1415,36 +1359,12 @@
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
-                        & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
-                        & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                        & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
-                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
-                        & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                        & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
-                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
-                        & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
-
 #ifndef BAND
         if (debug_level > 2) call mpidiag
 #endif
         dt = dt2 ! First timestep successfully read in
 #else
         call read_savefile_part1(ndate0)
-        call fill_domain(mddom%xlat,mddom%xlong,mddom%ht, &
-                           mddom%satbrt)
-        if (nsg > 1) then
-          call fill_subdomain(xlat1,xlon1,ht1,satbrt1)
-        end if
 !
         print * , 'ozone profiles restart'
         do k = 1 , kzp1
