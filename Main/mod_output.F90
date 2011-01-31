@@ -1336,7 +1336,7 @@
 !-----output for restart:
 !
       if ( ifsave ) then
-        if (ldosav)
+        if (ldosav) then
           call write_savefile(idatex,.false.)
         else
           call write_savefile(idatex,.true.)
