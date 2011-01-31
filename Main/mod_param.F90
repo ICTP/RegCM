@@ -169,10 +169,6 @@
 !     = .true. ; yes
 !     = .false. ; no
 !
-!     ktaur  : if ifrest=.false., ktaur=0.
-!     if ifrest=.true., set ktaur=ktau, which is the time-step
-!     the model output is saved.
-!
 !     ifsave : specify whether a saved tape (unit 24) will be written
 !     for restarting.
 !     = .true. ; yes
@@ -679,7 +675,6 @@
       ntapfrq = nint(3600.*tapfrq)
       ndbgfrq = nint(3600.*dbgfrq)
       ktau = 0
-      ktaur = 0
       xtime = 0.
       ntime = 0
       dtsplit(2) = dt/2.
@@ -731,7 +726,6 @@
       nnnend = idatediff(idate2,idate0)/ibdyfrq
       nnnchk = nstart
 ! 
-!     ktaur = nint((NSTART-NSTRT0)*ibdyfrq*60/dtmin)
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1
       call say
@@ -932,199 +926,192 @@
       end if
 
 #ifdef MPP1
-      if ( .not.ifrest ) then
+      write (aline, *) 'param: Reading in DOMAIN data'
+      call say
 
-        write (aline, *) 'param: Reading in DOMAIN data'
-        call say
-
-        if ( myid.eq.0 ) then
-          call read_domain(mddom_io%ht,mddom_io%satbrt, &
-                           mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
-                           mddom_io%msfd,mddom_io%f,snowc_io)
-          if ( nsg.gt.1 ) then
-            call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
-            if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1_io)
-          else
-            if ( lakemod.eq.1 ) call read_domain_lake(dhlake1_io)
-            do j = 1 , jx
-              do i = 1 , iy
-                ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
-                satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
-                xlat1_io(1,i,j) = mddom_io%xlat(i,j)
-                xlon1_io(1,i,j) = mddom_io%xlong(i,j)
-              end do
-            end do
-          end if
-          call close_domain
-
-          do j = 1 , jx
-            do i = 1 , iy
-              inisrf_0(i,1,j) = mddom_io%ht(i,j)
-              inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
-              inisrf_0(i,3,j) = mddom_io%xlat(i,j)
-              inisrf_0(i,4,j) = mddom_io%xlong(i,j)
-              inisrf_0(i,5,j) = mddom_io%msfx(i,j)
-              inisrf_0(i,6,j) = mddom_io%msfd(i,j)
-              inisrf_0(i,7,j) = mddom_io%f(i,j)
-            end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                inisrf_0(i,7+n,j) = ht1_io(n,i,j)
-                inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
-                inisrf_0(i,7+nnsg*2+n,j) = snowc_io(n,i,j)
-                inisrf_0(i,7+nnsg*3+n,j) = xlat1_io(n,i,j)
-                inisrf_0(i,7+nnsg*4+n,j) = xlon1_io(n,i,j)
-              end do
-            end do
-          end do
-          do j = 1 , jx
-            do i = 1 , iy
-              mddom_io%ht(i,j) = mddom_io%ht(i,j)*gti
-            end do
-          end do
-        end if  ! end if (myid.eq.0)
-
-        if(lakemod.eq.1) then
-          call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
-                       &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
-                       &   0,mpi_comm_world,ierr)
-        endif
- 
-        call mpi_barrier(mpi_comm_world,ierr)
-        call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
-                       & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
-                       & 0,mpi_comm_world,ierr)
-        call mpi_barrier(mpi_comm_world,ierr)
-        do j = 1 , jxp
-          do i = 1 , iy
-            mddom%ht(i,j) = inisrf0(i,1,j)
-            mddom%satbrt(i,j) = inisrf0(i,2,j)
-            mddom%xlat(i,j) = inisrf0(i,3,j)
-            mddom%xlong(i,j) = inisrf0(i,4,j)
-            mddom%msfx(i,j) = inisrf0(i,5,j)
-            mddom%msfd(i,j) = inisrf0(i,6,j)
-            mddom%f(i,j) = inisrf0(i,7,j)
-          end do
-          do n = 1 , nnsg
-            do i = 1 , iy
-              ht1(n,i,j) = inisrf0(i,7+n,j)
-              satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
-              snowc(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
-              xlat1(n,i,j) = inisrf0(i,7+nnsg*3+n,j)
-              xlon1(n,i,j) = inisrf0(i,7+nnsg*4+n,j)
-            end do
-          end do
-        end do
-!
-!------invert mapscale factors:
-!
-        do j = 1 , jendl
-          do i = 1 , iy
-            mddom%msfd(i,j) = 1./mddom%msfd(i,j)
-          end do
-        end do
-        do j = 1 , jendl
-          do i = 1 , iy
-            mddom%msfx(i,j) = 1./mddom%msfx(i,j)
-            mddom%ht(i,j) = mddom%ht(i,j)*gti
-          end do
-        end do
-        if ( myid.eq.0 ) then
-          print * , ' '
-          print * ,                                                     &
-               &'***************************************************'
-          print * ,                                                     &
-               &'***************************************************'
-          print * ,                                                     &
-               &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
-          print * , '****     Map Projection: ' , iproj ,               &
-               &'                ****'
-          print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
-               &'             ****'
-          print * , '****     PTOP=' , r8pt , ' DX=' , ds ,             &
-               &'       ****'
-          print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
-               &'    ****'
-          if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat , &
-                                       &' PLON=' , plon , '    ****'
-          print * ,                                                     &
-               &'***************************************************'
-          print * , ' '
- 
-        end if
-        call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
-                        & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
-                        & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                        & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
-                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
-                        & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                        & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
-                        & 1,mpi_comm_world,mpi_status_ignore,ierr)
-        call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
-                        & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                        & 2,mpi_comm_world,mpi_status_ignore,ierr)
-      end if
-#else
-      if ( .not.ifrest ) then
-        write (aline, *) 'Reading in DOMAIN data'
-        call say
-        call read_domain(mddom%ht,mddom%satbrt, &
-                         mddom%xlat,mddom%xlong,mddom%msfx,&
-                         mddom%msfd,mddom%f,snowc)
+      if ( myid.eq.0 ) then
+        call read_domain(mddom_io%ht,mddom_io%satbrt, &
+                         mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
+                         mddom_io%msfd,mddom_io%f,snowc_io)
         if ( nsg.gt.1 ) then
-          call read_subdomain(ht1,satbrt1,xlat1,xlon1)
-          if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1)
+          call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
+          if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1_io)
         else
-          if ( lakemod.eq.1 ) call read_domain_lake(dhlake1)
+          if ( lakemod.eq.1 ) call read_domain_lake(dhlake1_io)
           do j = 1 , jx
             do i = 1 , iy
-              ht1(1,i,j) = mddom%ht(i,j)*gti
-              satbrt1(1,i,j) = mddom%satbrt(i,j)
-              xlat1(1,i,j) = mddom%xlat(i,j)
-              xlon1(1,i,j) = mddom%xlong(i,j)
+              ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
+              satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
+              xlat1_io(1,i,j) = mddom_io%xlat(i,j)
+              xlon1_io(1,i,j) = mddom_io%xlong(i,j)
             end do
           end do
         end if
         call close_domain
 
-!------invert mapscale factors:
+        do j = 1 , jx
+          do i = 1 , iy
+            inisrf_0(i,1,j) = mddom_io%ht(i,j)
+            inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
+            inisrf_0(i,3,j) = mddom_io%xlat(i,j)
+            inisrf_0(i,4,j) = mddom_io%xlong(i,j)
+            inisrf_0(i,5,j) = mddom_io%msfx(i,j)
+            inisrf_0(i,6,j) = mddom_io%msfd(i,j)
+            inisrf_0(i,7,j) = mddom_io%f(i,j)
+          end do
+          do n = 1 , nnsg
+            do i = 1 , iy
+              inisrf_0(i,7+n,j) = ht1_io(n,i,j)
+              inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
+              inisrf_0(i,7+nnsg*2+n,j) = snowc_io(n,i,j)
+              inisrf_0(i,7+nnsg*3+n,j) = xlat1_io(n,i,j)
+              inisrf_0(i,7+nnsg*4+n,j) = xlon1_io(n,i,j)
+            end do
+          end do
+        end do
+        do j = 1 , jx
+          do i = 1 , iy
+            mddom_io%ht(i,j) = mddom_io%ht(i,j)*gti
+          end do
+        end do
+      end if  ! end if (myid.eq.0)
 
-        do j = 1 , jx
+      if(lakemod.eq.1) then
+        call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
+                     &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
+                     &   0,mpi_comm_world,ierr)
+      endif
+ 
+      call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
+                     & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
+                     & 0,mpi_comm_world,ierr)
+      do j = 1 , jxp
+        do i = 1 , iy
+          mddom%ht(i,j) = inisrf0(i,1,j)
+          mddom%satbrt(i,j) = inisrf0(i,2,j)
+          mddom%xlat(i,j) = inisrf0(i,3,j)
+          mddom%xlong(i,j) = inisrf0(i,4,j)
+          mddom%msfx(i,j) = inisrf0(i,5,j)
+          mddom%msfd(i,j) = inisrf0(i,6,j)
+          mddom%f(i,j) = inisrf0(i,7,j)
+        end do
+        do n = 1 , nnsg
           do i = 1 , iy
-            mddom%msfd(i,j) = 1./mddom%msfd(i,j)
+            ht1(n,i,j) = inisrf0(i,7+n,j)
+            satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
+            snowc(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
+            xlat1(n,i,j) = inisrf0(i,7+nnsg*3+n,j)
+            xlon1(n,i,j) = inisrf0(i,7+nnsg*4+n,j)
           end do
         end do
-        do j = 1 , jx
-          do i = 1 , iy
-            mddom%msfx(i,j) = 1./mddom%msfx(i,j)
-            mddom%ht(i,j) = mddom%ht(i,j)*gti
-          end do
+      end do
+!
+!------invert mapscale factors:
+!
+      do j = 1 , jendl
+        do i = 1 , iy
+          mddom%msfd(i,j) = 1./mddom%msfd(i,j)
         end do
+      end do
+      do j = 1 , jendl
+        do i = 1 , iy
+          mddom%msfx(i,j) = 1./mddom%msfx(i,j)
+          mddom%ht(i,j) = mddom%ht(i,j)*gti
+        end do
+      end do
+      if ( myid.eq.0 ) then
         print * , ' '
-        print * , '***************************************************'
-        print * , '***************************************************'
-        print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
-        print * , '****     Map Projection: ' , iproj ,                 &
+        print * ,                                                     &
+             &'***************************************************'
+        print * ,                                                     &
+             &'***************************************************'
+        print * ,                                                     &
+             &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
+        print * , '****     Map Projection: ' , iproj ,               &
              &'                ****'
-        print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
+        print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
              &'             ****'
-        print * , '****     PTOP=' , r8pt , ' DX=' , ds ,               &
+        print * , '****     PTOP=' , r8pt , ' DX=' , ds ,             &
              &'       ****'
-        print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
+        print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
              &'    ****'
-        if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat ,   &
+        if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat , &
                                      &' PLON=' , plon , '    ****'
-        print * , '***************************************************'
+        print * ,                                                     &
+             &'***************************************************'
         print * , ' '
 
       end if
+      call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
+                      & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
+                      & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                      & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
+                      & 1,mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
+                      & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
+                      & 2,mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
+                      & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
+                      & 1,mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
+                      & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
+                      & 2,mpi_comm_world,mpi_status_ignore,ierr)
+#else
+      write (aline, *) 'Reading in DOMAIN data'
+      call say
+      call read_domain(mddom%ht,mddom%satbrt, &
+                       mddom%xlat,mddom%xlong,mddom%msfx,&
+                       mddom%msfd,mddom%f,snowc)
+      if ( nsg.gt.1 ) then
+        call read_subdomain(ht1,satbrt1,xlat1,xlon1)
+        if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1)
+      else
+        if ( lakemod.eq.1 ) call read_domain_lake(dhlake1)
+        do j = 1 , jx
+          do i = 1 , iy
+            ht1(1,i,j) = mddom%ht(i,j)*gti
+            satbrt1(1,i,j) = mddom%satbrt(i,j)
+            xlat1(1,i,j) = mddom%xlat(i,j)
+            xlon1(1,i,j) = mddom%xlong(i,j)
+          end do
+        end do
+      end if
+      call close_domain
+
+!------invert mapscale factors:
+
+      do j = 1 , jx
+        do i = 1 , iy
+          mddom%msfd(i,j) = 1./mddom%msfd(i,j)
+        end do
+      end do
+      do j = 1 , jx
+        do i = 1 , iy
+          mddom%msfx(i,j) = 1./mddom%msfx(i,j)
+          mddom%ht(i,j) = mddom%ht(i,j)*gti
+        end do
+      end do
+      print * , ' '
+      print * , '***************************************************'
+      print * , '***************************************************'
+      print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
+      print * , '****     Map Projection: ' , iproj ,                 &
+           &'                ****'
+      print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
+           &'             ****'
+      print * , '****     PTOP=' , r8pt , ' DX=' , ds ,               &
+           &'       ****'
+      print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
+           &'    ****'
+      if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat ,   &
+                                   &' PLON=' , plon , '    ****'
+      print * , '***************************************************'
+      print * , ' '
+
 #endif
 
 !

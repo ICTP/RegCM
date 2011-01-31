@@ -198,7 +198,7 @@
 !
           if ( ifrad ) then
             if ( mod(ntime+nint(dtmin*60.),nradisp).eq.0 .or.  &
-               & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then
+                ( ifrest .and. .not. done_restart) ) then
               do k = 1 , kz
                 do i = 2 , iym1
 #ifdef MPP1

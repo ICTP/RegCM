@@ -34,13 +34,12 @@
                   read_texture , close_domain
         public :: open_icbc , read_icbc , icbc_search
         public :: read_aerosol
-        public :: fill_domain , fill_subdomain
         public :: prepare_common_out
         public :: writerec_atm , writerec_srf , writerec_sub , &
                   writerec_rad , writerec_che , writerec_lak
 !
         integer , parameter :: n_atmvar = 12
-        integer , parameter :: n_srfvar = 30
+        integer , parameter :: n_srfvar = 31
         integer , parameter :: n_subvar = 16
         integer , parameter :: n_radvar = 15
         integer , parameter :: n_chevar = 17
@@ -141,7 +140,7 @@
                          'tpr', 'evp', 'runoff', 'scv', 'sena', 'flw', &
                          'fsw', 'flwd', 'sina', 'prcv', 'zpbl',        &
                          'tgmax', 'tgmin', 't2max', 't2min', 'w10max', &
-                         'ps_min' , 'aldirs' , 'aldifs' /
+                         'ps_min' , 'aldirs' , 'aldifs' , 'seaice' /
         data sub_names / 'time', 'ps', 'u10m', 'v10m', 'uvdrag', 'tg', &
                          'tlef', 't2m' , 'q2m' , 'smw', 'tpr' , 'evp', &
                          'runoff', 'scv', 'sena', 'prcv' /
@@ -453,49 +452,6 @@
             allocate(sp2d1(jxsg,iysg))
           end if
         end subroutine init_mod_ncio
-
-        subroutine fill_domain(xlat,xlon,topo,lnd)
-          implicit none
-          real(8), dimension(iy,jx), intent(in) :: xlat
-          real(8), dimension(iy,jx), intent(in) :: xlon
-          real(8), dimension(iy,jx), intent(in) :: topo
-          real(8), dimension(iy,jx), intent(in) :: lnd
-          sp2d = transpose(xlat)
-          ioxlat = sp2d(o_js:o_je,o_is:o_ie)
-          sp2d = transpose(xlon)
-          ioxlon = sp2d(o_js:o_je,o_is:o_ie)
-          sp2d = transpose(topo)
-          iotopo = sp2d(o_js:o_je,o_is:o_ie) * rgti
-          sp2d = transpose(lnd)
-          iolnds = sp2d(o_js:o_je,o_is:o_ie)
-          iomask = sp2d(o_js:o_je,o_is:o_ie)
-          where (iomask > 13.5 .and. iomask < 15.5)
-            iomask = 0
-          elsewhere
-            iomask = 2
-          end where
-        end subroutine fill_domain
-
-        subroutine fill_subdomain(xlat,xlon,topo,lnd)
-          implicit none
-          real(8), dimension(iysg,jxsg), intent(in) :: xlat
-          real(8), dimension(iysg,jxsg), intent(in) :: xlon
-          real(8), dimension(iysg,jxsg), intent(in) :: topo
-          real(8), dimension(iysg,jxsg), intent(in) :: lnd
-          sp2d1 = transpose(xlat)
-          ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
-          sp2d1 = transpose(xlon)
-          ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
-          sp2d1 = transpose(topo)
-          iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg) * rgti
-          sp2d1 = transpose(lnd)
-          iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
-          where (iomask_s > 13.5 .and. iomask_s < 15.5)
-            iomask_s = 0
-          elsewhere
-            iomask_s = 2
-          end where
-        end subroutine fill_subdomain
 
         subroutine open_domain(r8pt , dx , sigma)
           use netcdf
@@ -1315,6 +1271,7 @@
           integer , dimension(5) :: illtpvar
           integer :: itvar , imapvar , iyy , im , id , ih , i , j , ibnd
           integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
+          integer :: iresnext
           integer , dimension(2) :: inmlen
           integer , dimension(2) :: idpv
           integer , dimension(2) :: ibinsiz
@@ -1332,26 +1289,32 @@
             ncid = ncatm
             title = 'ICTP Regional Climatic model V4 ATM output'
             iatmrec = 1
+            iresnext = tapfrq
           else if (ctype == 'SRF') then
             ncid = ncsrf
             title = 'ICTP Regional Climatic model V4 SRF output'
             isrfrec = 1
+            iresnext = batfrq
           else if (ctype == 'SUB') then
             ncid = ncsub
             title = 'ICTP Regional Climatic model V4 SUB output'
             isubrec = 1
+            iresnext = batfrq
           else if (ctype == 'RAD') then
             ncid = ncrad
             title = 'ICTP Regional Climatic model V4 RAD output'
             iradrec = 1
+            iresnext = radisp
           else if (ctype == 'CHE') then
             ncid = ncche
             title = 'ICTP Regional Climatic model V4 CHE output'
             icherec = 1
+            iresnext = chemfrq
           else if (ctype == 'LAK') then
             ncid = nclak
             title = 'ICTP Regional Climatic model V4 LAK output'
             ilakrec = 1
+            iresnext = lakfrq
           else
             write (aline,*) 'UNKNOWN IO TYPE : ', ctype
             call say
@@ -1363,7 +1326,11 @@
           call close_common(ncid, ctype)
 
           write (fterr, '(a3,a)') ctype, ' FILE ERROR'
-          write (fbname,'(a,a,i10)') trim(ctype), '.', idate
+          if (ifrest .and. .not. done_restart) then
+            write (fbname,'(a,a,i10)') trim(ctype), '.', idate+iresnext
+          else
+            write (fbname,'(a,a,i10)') trim(ctype), '.', idate
+          end if
           ofname = trim(dirout)//pthsep//trim(domname)// &
                 &  '_'//trim(fbname)//'.nc'
           call split_idate(idate0,iyy,im,id,ih)
@@ -1388,7 +1355,7 @@
                    & 'ICTP')
           call check_ok('Error adding global institution', fterr)
           istatus = nf90_put_att(ncid, nf90_global, 'source', &
-                   & 'RegCM Model '//SVN_REV//' simulation output')
+                   & 'RegCM Model '//'SVN_REV'//' simulation output')
           call check_ok('Error adding global source', fterr)
           istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
                    & 'CF-1.4')
@@ -2023,6 +1990,12 @@
                 'surface_albedo_short_wave_diffuse', &
                 'Surface albedo to diffuse short wave radiation', &
                 '1',tyx,.false.,isrfvar(30))
+            if (iseaice == 1) then
+              call addvara(ncid,ctype,'seaice', &
+                  'seaice_binary_mask', &
+                  'Sea ice mask', &
+                  '1',tyx,.false.,isrfvar(31))
+            end if
           else if (ctype == 'SUB') then
             isubvar = -1
             isubvar(1) = itvar
@@ -2396,11 +2369,12 @@
           end if
         end subroutine addvara
 
-        subroutine writerec_srf(nx, ny, numbat, fbat, idate)
+        subroutine writerec_srf(nx, ny, numbat, fbat, mask , idate)
           use netcdf
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
+          real(8) , dimension(nnsg,iym1,jxm1) , intent(in) :: mask
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -2491,6 +2465,26 @@
             end if
             ivar = ivar + 1
           end do
+
+          if (iseaice == 1) then
+            dumio(:,:,1) = 0.0
+            do n = 1 , nnsg
+              dumio(:,:,1) = dumio(:,:,1) + &
+                             transpose(mask(n,o_is:o_ie,o_js:o_je))
+            end do
+            dumio(:,:,1) = dumio(:,:,1) / nnsg
+            istart(3) = isrfrec
+            istart(2) = 1
+            istart(1) = 1
+            icount(3) = 1
+            icount(2) = o_ni
+            icount(1) = o_nj
+            istatus = nf90_put_var(ncsrf, isrfvar(31), & 
+                     dumio(:,:,1), istart(1:3), icount(1:3))
+            call check_ok('Error writing '//srf_names(31)// &
+                          ' at '//ctime, 'SRF FILE ERROR')
+          end if
+
           istatus = nf90_sync(ncsrf)
           call check_ok('Error sync at '//ctime, 'SRF FILE ERROR')
           isrfrec = isrfrec + 1

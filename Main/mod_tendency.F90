@@ -1540,8 +1540,8 @@
  
  
 !       ****** calculate solar zenith angle
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,nbatst)  &
-           & .eq.0 .or. mod(ktau+1,ntrad).eq.0 ) then
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+             mod(ktau+1,nbatst).eq.0 .or. mod(ktau+1,ntrad).eq.0 ) then
           call zenitm(coszrs,iy,j)
           call slice1D(j)
         end if
@@ -1557,15 +1557,15 @@
         end if
  
 !       ****** call ccm3 radiative transfer package
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. mod(ktau+1,ntrad)   &
-           & .eq.0 ) call colmod3(j)
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+            mod(ktau+1,ntrad).eq.0 ) call colmod3(j)
  
 #ifndef CLM
 !       ****** call vector bats for surface physics calculations
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
-          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
+          if ( (jyear.eq.jyear0 .and. ktau.eq.0) ) dtbat = dt
           call vecbats(j, kz , 2 , iym1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
@@ -1582,16 +1582,16 @@
       end do
 
 #ifdef CLM
-      if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                     &
+      if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
          & mod(ktau+1,ntrad).eq.0 ) then
           r2cdoalb = .true.
       else
           r2cdoalb = .false.
       end if
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or.                      &
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
          & mod(ktau+1,nbatst).eq.0 ) then
         ! Timestep used is the same as for bats
-        if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
           r2cnstep = 0
         else
           r2cnstep = (ktau+1)/nbatst

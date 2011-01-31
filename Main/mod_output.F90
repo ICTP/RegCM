@@ -55,10 +55,14 @@
       private
 
       integer :: iolak
+      logical :: lskipsrf , lskiprad , lskipche
 
-      public :: output
+      public :: output , mkfile
 
-      data iolak/0/
+      data iolak /0/
+      data lskipsrf /.false./
+      data lskiprad /.false./
+      data lskipche /.false./
 
       contains
 
@@ -82,6 +86,7 @@
       logical :: there
 #endif
 #endif
+      logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
       character (len=50) :: subroutine_name='output'
       integer :: idindx=0
 !
@@ -97,17 +102,809 @@
  
 #ifdef MPP1
       if ( myid.eq.0 ) then
-        if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
+#endif        
+        if ( (lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0) .or. &
+             (jyear.eq.jyearr .and. ktau.eq.0) .or. &
+             (ifrest .and. .not. done_restart) ) then
           call mkfile
+        end if
+#ifdef MPP1
+      end if
+#endif        
+!
+      ldoatm = .false.
+      ldosrf = .false.
+      ldorad = .false.
+      ldoche = .false.
+      ldosav = .false.
+      ldotmp = .false.
+
+      if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
+        ldotmp = .true.
+      end if
+      if ( ((lday==1 .and. lhour==0 .and. abs(xtime)<0.00001) .and. &
+            ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
+        ldosav = .true.
+        ldotmp = .false.
+      end if
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+           mod(ntime,ntapfrq).eq.0) then
+        ldoatm = .true.
+      end if
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. & 
+           mod(ntime,kbats).eq.0) then
+        ldosrf = .true.
+      end if
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+           mod(ntime,nradisp).eq.0) then
+        ldorad = .true.
+      end if
+      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+           mod(ntime,kchem).eq.0) then
+        ldoche = .true.
+      end if
+
+      if ( ifrest .and. .not. done_restart ) then
+        ldoatm = .false.
+        ldosrf = .false.
+        ldorad = .false.
+        ldoche = .false.
+      end if
+
+      if ( lskipsrf ) then
+        lskipsrf = .false.
+        ldosrf = .true.
+      end if
+      if ( lskiprad ) then
+        lskiprad = .false.
+        ldorad = .true.
+      end if
+      if ( lskipche ) then
+        lskipche = .false.
+        ldoche = .true.
+      end if
+!
+      if ( jyear.eq.jyearr.and.ktau.eq.0 ) then
+        ldosrf = .false.
+        ldorad = .false.
+        ldoche = .false.
+        lskipsrf = .true.
+        lskiprad = .true.
+        lskipche = .true.
+      end if
+!
+#ifdef MPP1
+!
+!-----output for restart:
+!
+      if ( ifsave ) then
+        if ( ldosav .or. ldotmp ) then
+          do j = 1 , jendl
+            do k = 1 , kz
+              do i = 1 , iy
+                sav0(i,k,j) = ub0(i,k,j)
+                sav0(i,kz+k,j) = vb0(i,k,j)
+                sav0(i,kz*2+k,j) = qb0(i,k,j)
+                sav0(i,kz*3+k,j) = tb0(i,k,j)
+              end do
+            end do
+            do i = 1 , iy
+              sav0(i,kz*4+1,j) = ps0(i,j)
+              sav0(i,kz*4+2,j) = ts0(i,j)
+            end do
+          end do
+          allrec = kz*4 + 2
+          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
+                        & sav_0,iy*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do k = 1 , kz
+                do i = 1 , iy
+                  ub0_io(i,k,j) = sav_0(i,k,j)
+                  vb0_io(i,k,j) = sav_0(i,kz+k,j)
+                  qb0_io(i,k,j) = sav_0(i,kz*2+k,j)
+                  tb0_io(i,k,j) = sav_0(i,kz*3+k,j)
+                end do
+              end do
+              do i = 1 , iy
+                ps0_io(i,j) = sav_0(i,kz*4+1,j)
+                ts0_io(i,j) = sav_0(i,kz*4+2,j)
+              end do
+            end do
+          end if
+          if ( ehso4 ) then
+            do j = 1 , jendl
+              do k = 1 , kz
+                do i = 1 , iy
+                  sav0s(i,k,j) = so0(i,k,j)
+                end do
+              end do
+            end do
+            call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
+                          & sav_0s,iy*kz*jxp,mpi_real8,          &
+                          & 0,mpi_comm_world,ierr)
+            if ( myid.eq.0 ) then
+              do j = 1 , jx
+                do k = 1 , kz
+                  do i = 1 , iy
+                    so0_io(i,k,j) = sav_0s(i,k,j)
+                  end do
+                end do
+              end do
+            end if
+          end if
+          do j = 1 , jendl
+            do k = 1 , kz
+              do i = 1 , iy
+                sav0(i,k,j) = atm1%u(i,k,j)
+                sav0(i,kz+k,j) = atm2%u(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
+              end do
+            end do
+            do i = 1 , iy
+              sav0(i,kz*4+1,j) = sps1%ps(i,j)
+              sav0(i,kz*4+2,j) = sps2%ps(i,j)
+            end do
+          end do
+          allrec = kz*4 + 2
+          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
+                        & sav_0,iy*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do k = 1 , kz
+                do i = 1 , iy
+                  atm1_io%u(i,k,j) = sav_0(i,k,j)
+                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
+                end do
+              end do
+              do i = 1 , iy
+                psa_io(i,j) = sav_0(i,kz*4+1,j)
+                psb_io(i,j) = sav_0(i,kz*4+2,j)
+              end do
+            end do
+          end if
+          do j = 1 , jendl
+            do k = 1 , kz
+              do i = 1 , iy
+                sav0(i,k,j) = atm1%t(i,k,j)
+                sav0(i,kz+k,j) = atm2%t(i,k,j)
+                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
+                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
+              end do
+            end do
+            do i = 1 , iy
+              sav0(i,kz*4+1,j) = sts1%tg(i,j)
+              sav0(i,kz*4+2,j) = sts2%tg(i,j)
+            end do
+          end do
+          allrec = kz*4 + 2
+          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
+                        & sav_0,iy*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do k = 1 , kz
+                do i = 1 , iy
+                  atm1_io%t(i,k,j) = sav_0(i,k,j)
+                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
+                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
+                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
+                end do
+              end do
+              do i = 1 , iy
+                tga_io(i,j) = sav_0(i,kz*4+1,j)
+                tgb_io(i,j) = sav_0(i,kz*4+2,j)
+              end do
+            end do
+          end if
+          do j = 1 , jendl
+            do k = 1 , kz
+              do i = 1 , iy
+                sav0(i,k,j) = atm1%qc(i,k,j)
+                sav0(i,kz+k,j) = atm2%qc(i,k,j)
+                sav0(i,kz*2+k,j) = fcc(i,k,j)
+              end do
+            end do
+            do i = 1 , iy
+              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
+              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
+            end do
+          end do
+          do j = 1 , jendx
+            do k = 1 , kz
+              do i = 1 , iym1
+                sav0(i,kz*3+k,j) = heatrt(i,k,j)
+              end do
+            end do
+          end do
+          allrec = kz*4 + 2
+          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
+                        & sav_0,iy*allrec*jxp,mpi_real8,         &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do k = 1 , kz
+                do i = 1 , iy
+                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
+                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
+                  fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
+                end do
+              end do
+              do i = 1 , iy
+                rainc_io(i,j) = sav_0(i,kz*4+1,j)
+                rainnc_io(i,j) = sav_0(i,kz*4+2,j)
+              end do
+            end do
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do k = 1 , kz
+                do i = 1 , iym1
+                  heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
+                end do
+              end do
+            end do
+          end if
+          do j = 1 , jendl
+            do i = 1 , iy
+              sav0a(i,1,j) = sfsta%hfx(i,j)
+              sav0a(i,2,j) = sfsta%qfx(i,j)
+              sav0a(i,3,j) = sfsta%uvdrag(i,j)
+              sav0a(i,4,j) = sfsta%tgbb(i,j)
+            end do
+            do n = 1 , nnsg
+              do i = 1 , iy
+                sav0a(i,4+n,j) = snowc(n,i,j)
+              end do
+            end do
+          end do
+          do j = 1 , jendx
+            do k = 1 , kzp1
+              do i = 1 , iym1
+                sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
+              end do
+            end do
+          end do
+          allrec = 5 + nnsg + kzp1
+          call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
+                        & sav_0a,iy*allrec*jxp,mpi_real8,        &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do i = 1 , iy
+                hfx_io(i,j) = sav_0a(i,1,j)
+                qfx_io(i,j) = sav_0a(i,2,j)
+                uvdrag_io(i,j) = sav_0a(i,3,j)
+                tgbb_io(i,j) = sav_0a(i,4,j)
+              end do
+              do n = 1 , nnsg
+                do i = 1 , iy
+                  snowc_io(n,i,j) = sav_0a(i,4+n,j)
+                end do
+              end do
+            end do
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do k = 1 , kzp1
+                do i = 1 , iym1
+                  o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
+                end do
+              end do
+            end do
+          end if
+          if ( iocnflx.eq.2 )                                      &
+             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
+             &                 zpbl_io,iy*jxp,mpi_real8,           &
+             &                 0,mpi_comm_world,ierr)
+          if ( icup.eq.1 ) then
+            do j = 1 , jendl
+              do k = 1 , kz
+                do i = 1 , iy
+                  sav0c(i,k,j) = rsheat(i,k,j)
+                  sav0c(i,kz+k,j) = rswat(i,k,j)
+                end do
+              end do
+            end do
+            allrec = kz*2
+            call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
+                          & sav_0c,iy*allrec*jxp,mpi_real8,      &
+                          & 0,mpi_comm_world,ierr)
+            if ( myid.eq.0 ) then
+              do j = 1 , jx
+                do k = 1 , kz
+                  do i = 1 , iy
+                    rsheat_io(i,k,j) = sav_0c(i,k,j)
+                    rswat_io(i,k,j) = sav_0c(i,kz+k,j)
+                  end do
+                end do
+              end do
+            end if
+          end if
+          if ( icup.eq.3 ) then
+            do j = 1 , jendl
+              do k = 1 , kz
+                do i = 1 , iy
+                  sav0b(i,k,j) = tbase(i,k,j)
+                end do
+              end do
+              do i = 1 , iy
+                sav0b(i,kzp1,j) = cldefi(i,j)
+              end do
+            end do
+            allrec = kzp1
+            call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
+                          & sav_0b,iy*allrec*jxp,mpi_real8,      &
+                          & 0,mpi_comm_world,ierr)
+            if ( myid.eq.0 ) then
+              do j = 1 , jx
+                do k = 1 , kz
+                  do i = 1 , iy
+                    tbase_io(i,k,j) = sav_0b(i,k,j)
+                  end do
+                end do
+                do i = 1 , iy
+                  cldefi_io(i,j) = sav_0b(i,kzp1,j)
+                end do
+              end do
+            end if
+          end if
+          if ( icup==4 .or. icup==99 .or. icup==98 ) then
+            call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
+                          & cbmf2d_io,iy*jxp,mpi_real8,            &
+                          & 0,mpi_comm_world,ierr)
+          end if
+          do j = 1 , jendx
+            do l = 1 , 4
+              do k = 1 , kz
+                do i = 1 , iym1
+                  sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
+                end do
+              end do
+            end do
+          end do
+          allrec = kz*4
+          do j = 1 , jendx
+            do l = 1 , kzp1
+              do k = 1 , kzp1
+                do i = 1 , iym1
+                  sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
+                end do
+              end do
+            end do
+          end do
+          allrec = allrec + (kzp1)*(kz+1)
+          do j = 1 , jendx
+            do k = 1 , kzp1
+              do i = 1 , iym1
+                sav1(i,allrec+k,j) = emstot(i,k,j)
+              end do
+            end do
+          end do
+          allrec = kz*4+(kzp1*kzp2)
+          call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
+                        & sav_1,iym1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do l = 1 , 4
+                do k = 1 , kz
+                  do i = 1 , iym1
+                    absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
+                  end do
+                end do
+              end do
+            end do
+            allrec = kz*4
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do l = 1 , kzp1
+                do k = 1 , kzp1
+                  do i = 1 , iym1
+                    abstot_io(i,k,l,j)                                  &
+                    & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
+                  end do
+                end do
+              end do
+            end do
+            allrec = allrec + (kzp1)*(kz+1)
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do k = 1 , kzp1
+                do i = 1 , iym1
+                  emstot_io(i,k,j) = sav_1(i,allrec+k,j)
+                end do
+              end do
+            end do
+          end if
+          do j = 1 , jendx
+            do n = 1 , nnsg
+              do i = 1 , iym1
+                sav2(i,n,j) = taf2d(n,i,j)
+                sav2(i,nnsg+n,j) = tlef2d(n,i,j)
+                sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
+                sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
+                sav2(i,nnsg*4+n,j) = col2d(n,i,j)
+              end do
+            end do
+            do i = 1 , iym1
+              sav2(i,nnsg*5+1,j) = sol2d(i,j)
+              sav2(i,nnsg*5+2,j) = solvd2d(i,j)
+              sav2(i,nnsg*5+3,j) = solvs2d(i,j)
+              sav2(i,nnsg*5+4,j) = flw2d(i,j)
+            end do
+          end do
+          allrec = nnsg*5 + 4
+          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
+                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  taf2d_io(n,i,j) = sav_2(i,n,j)
+                  tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+                  ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+                  srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+                  col2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+                end do
+              end do
+              do i = 1 , iym1
+                sol2d_io(i,j) = sav_2(i,nnsg*5+1,j)
+                solvd2d_io(i,j) = sav_2(i,nnsg*5+2,j)
+                solvs2d_io(i,j) = sav_2(i,nnsg*5+3,j)
+                flw2d_io(i,j) = sav_2(i,nnsg*5+4,j)
+              end do
+            end do
+          end if
+#ifdef CLM
+          do j = 1 , jendx
+            do i = 1 , iym1
+              sav_clmin(i,1,j)  = sols2d(i,j)
+              sav_clmin(i,2,j)  = soll2d(i,j)
+              sav_clmin(i,3,j)  = solsd2d(i,j)
+              sav_clmin(i,4,j)  = solld2d(i,j)
+              sav_clmin(i,5,j)  = aldirs2d(i,j)
+              sav_clmin(i,6,j)  = aldirl2d(i,j)
+              sav_clmin(i,7,j)  = aldifs2d(i,j)
+              sav_clmin(i,8,j)  = aldifl2d(i,j)
+              sav_clmin(i,9,j)  = coszrs2d(i,j)
+            end do
+          end do
+          call mpi_gather(sav_clmin, iym1*9*jxp,mpi_real8,       &
+                        & sav_clmout,iym1*9*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do i = 1 , iym1
+                sols2d_io(i,j)   = sav_clmout(i,1,j)
+                soll2d_io(i,j)   = sav_clmout(i,2,j)
+                solsd2d_io(i,j)  = sav_clmout(i,3,j)
+                solld2d_io(i,j)  = sav_clmout(i,4,j)
+                aldirs2d_io(i,j) = sav_clmout(i,5,j)
+                aldirl2d_io(i,j) = sav_clmout(i,6,j)
+                aldifs2d_io(i,j) = sav_clmout(i,7,j)
+                aldifl2d_io(i,j) = sav_clmout(i,8,j)
+                coszrs2d_io(i,j) = sav_clmout(i,9,j)
+              end do
+            end do
+          end if
+#endif
+          do j = 1 , jendx
+            do n = 1 , nnsg
+              do i = 1 , iym1
+                sav2(i,n,j) = tgb2d(n,i,j)
+                sav2(i,nnsg+n,j) = swt2d(n,i,j)
+                sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
+                sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
+                sav2(i,nnsg*4+n,j) = tg2d(n,i,j)
+              end do
+            end do
+            do i = 1 , iym1
+              sav2(i,nnsg*5+1,j) = flwd2d(i,j)
+              sav2(i,nnsg*5+2,j) = fsw2d(i,j)
+              sav2(i,nnsg*5+3,j) = sabv2d(i,j)
+              sav2(i,nnsg*5+4,j) = sinc2d(i,j)
+            end do
+          end do
+          allrec = nnsg*5 + 4
+          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
+                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  tgb2d_io(n,i,j) = sav_2(i,n,j)
+                  swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+                  scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+                  gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+                  tg2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+                end do
+              end do
+              do i = 1 , iym1
+                flwd2d_io(i,j) = sav_2(i,nnsg*5+1,j)
+                fsw2d_io(i,j) = sav_2(i,nnsg*5+2,j)
+                sabv2d_io(i,j) = sav_2(i,nnsg*5+3,j)
+                sinc2d_io(i,j) = sav_2(i,nnsg*5+4,j)
+              end do
+            end do
+          end if
+          do j = 1 , jendx
+            do n = 1 , nnsg
+              do i = 1 , iym1
+                sav2(i,n,j) = veg2d1(n,i,j)
+                sav2(i,nnsg+n,j) = sag2d(n,i,j)
+                sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
+                sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
+                sav2(i,nnsg*4+n,j) = ocld2d(n,i,j)
+              end do
+            end do
+            do i = 1 , iym1
+              sav2(i,nnsg*5+1,j) = pptnc(i,j)
+              sav2(i,nnsg*5+2,j) = pptc(i,j)
+              sav2(i,nnsg*5+3,j) = prca2d(i,j)
+              sav2(i,nnsg*5+4,j) = prnca2d(i,j)
+            end do
+          end do
+          allrec = nnsg*5 + 4
+          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
+                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  veg2d1_io(n,i,j) = sav_2(i,n,j)
+                  sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
+                  sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
+                  dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
+                  ocld2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+                end do
+              end do
+              do i = 1 , iym1
+                pptnc_io(i,j) = sav_2(i,nnsg*5+1,j)
+                pptc_io(i,j) = sav_2(i,nnsg*5+2,j)
+                prca2d_io(i,j) = sav_2(i,nnsg*5+3,j)
+                prnca2d_io(i,j) = sav_2(i,nnsg*5+4,j)
+              end do
+            end do
+          end if
+          do j = 1 , jendx
+            do n = 1 , nnsg
+              do i = 1 , iym1
+                sav2a(i,n,j) = ircp2d(n,i,j)
+                sav2a(i,nnsg+n,j) = text2d(n,i,j)
+              end do
+            end do
+            do i = 1 , iym1
+              sav2a(i,nnsg*2+1,j) = veg2d(i,j)
+            end do
+          end do
+          allrec = nnsg*2 + 1
+          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
+                        & sav_2a,iym1*allrec*jxp,mpi_real8,      &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  ircp2d_io(n,i,j) = sav_2a(i,n,j)
+                  text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
+                end do
+              end do
+              do i = 1 , iym1
+                veg2d_io(i,j) = sav_2a(i,nnsg*2+1,j)
+              end do
+            end do
+          end if
+ 
+          if ( ichem.eq.1 ) then
+            do j = 1 , jendl
+              do n = 1 , ntr
+                do k = 1 , kz
+                  do i = 1 , iy
+                    sav4(i,(n-1)*kz+k,j) = chia(i,k,j,n)
+                    sav4(i,ntr*kz+(n-1)*kz+k,j) = chib(i,k,j,n)
+                    sav4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc(i,k,j,n)
+                    sav4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc(i,k,j,n)
+                  end do
+                end do
+              end do
+            end do
+            allrec = 4*ntr*kz
+            do j = 1 , jendl
+              do n = 1 , ntr
+                do i = 1 , iy
+                  sav4(i,allrec+n,j) = remdrd(i,j,n)
+                end do
+              end do
+            end do
+            allrec = ntr*(kz*4+1)
+            call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
+                          & sav_4,iy*allrec*jxp,mpi_real8,       &
+                          & 0,mpi_comm_world,ierr)
+            if ( myid.eq.0 ) then
+              do j = 1 , jx
+                do n = 1 , ntr
+                  do k = 1 , kz
+                    do i = 1 , iy
+                      chia_io(i,k,j,n) = sav_4(i,(n-1)*kz+k,j)
+                      chib_io(i,k,j,n) = sav_4(i,ntr*kz+(n-1)*kz+k,j)
+                      remlsc_io(i,k,j,n)                                &
+                      & = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
+                      remcvc_io(i,k,j,n)                                &
+                      & = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
+                    end do
+                  end do
+                end do
+              end do
+              allrec = 4*ntr*kz
+              do j = 1 , jx
+                do n = 1 , ntr
+                  do i = 1 , iy
+                    remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
+                  end do
+                end do
+              end do
+            end if
+          end if
+          do j = 1 , jendx
+            do i = 1 , iym1
+              sav4a(i,1,j) = ssw2da(i,j)
+              sav4a(i,2,j) = sdeltk2d(i,j)
+              sav4a(i,3,j) = sdelqk2d(i,j)
+              sav4a(i,4,j) = sfracv2d(i,j)
+              sav4a(i,5,j) = sfracb2d(i,j)
+              sav4a(i,6,j) = sfracs2d(i,j)
+              sav4a(i,7,j) = svegfrac2d(i,j)
+            end do
+          end do
+          call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
+                        & sav_4a,iym1*7*jxp,mpi_real8,                &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do i = 1 , iym1
+                ssw2da_io(i,j) = sav_4a(i,1,j)
+                sdeltk2d_io(i,j) = sav_4a(i,2,j)
+                sdelqk2d_io(i,j) = sav_4a(i,3,j)
+                sfracv2d_io(i,j) = sav_4a(i,4,j)
+                sfracb2d_io(i,j) = sav_4a(i,5,j)
+                sfracs2d_io(i,j) = sav_4a(i,6,j)
+                svegfrac2d_io(i,j) = sav_4a(i,7,j)
+              end do
+            end do
+          end if
+          do j = 1 , jendl
+            do n = 1 , nsplit
+              do i = 1 , iy
+                sav0d(i,n,j) = spsav%dstor(i,j,n)
+                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
+              end do
+            end do
+          end do
+          call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
+                        & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do n = 1 , nsplit
+                do i = 1 , iy
+                  dstor_io(i,j,n) = sav_0d(i,n,j)
+                  hstor_io(i,j,n) = sav_0d(i,n+nsplit,j)
+                end do
+              end do
+            end do
+          end if
+          do j = 1 , jendl
+            do k = 1 , kz
+              sav6(k,1,j) = ui1(k,j)
+              sav6(k,2,j) = ui2(k,j)
+              sav6(k,3,j) = uilx(k,j)
+              sav6(k,4,j) = uil(k,j)
+              sav6(k,5,j) = vi1(k,j)
+              sav6(k,6,j) = vi2(k,j)
+              sav6(k,7,j) = vilx(k,j)
+              sav6(k,8,j) = vil(k,j)
+            end do
+          end do
+          call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
+                        & sav_6,kz*8*jxp,mpi_real8,              &
+                        & 0,mpi_comm_world,ierr)
+          if ( myid.eq.0 ) then
+            do j = 1 , jx
+              do k = 1 , kz
+                ui1_io(k,j) = sav_6(k,1,j)
+                ui2_io(k,j) = sav_6(k,2,j)
+                uilx_io(k,j) = sav_6(k,3,j)
+                uil_io(k,j) = sav_6(k,4,j)
+                vi1_io(k,j) = sav_6(k,5,j)
+                vi2_io(k,j) = sav_6(k,6,j)
+                vilx_io(k,j) = sav_6(k,7,j)
+                vil_io(k,j) = sav_6(k,8,j)
+              end do
+            end do
+          end if
+#ifndef BAND
+          call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
+                       & mpi_comm_world,ierr)
+          call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
+                       & mpi_comm_world,ierr)
+          call mpi_bcast(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
+                       & mpi_comm_world,ierr)
+          call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
+                       & mpi_comm_world,ierr)
+#endif
+          if ( myid.eq.0 ) then
+            if ( ldosav ) then
+              call write_savefile(idatex, .false.)
+            else
+              call write_savefile(idatex, .true.)
+            end if
+          end if
+#ifdef CLM
+          cdtime = get_step_size()
+          filer_rest = restFile_filename(type='netcdf',                 &
+                     &                   offset=-int(cdtime))
+          inquire(file=filer_rest,exist=there)
+          if (.not. there) then
+            call restFile_write( filer_rest )
+            filer_rest = restFile_filename(type='binary',               &
+                     &                     offset=-int(cdtime))
+            call restFile_write_binary( filer_rest )
+          end if
+#endif
         end if
       end if
 !
 !-----output for dataflow analyses:
 !
       if ( iftape ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           & (mod(ntime,ntapfrq).eq.0 .and.                             &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+        if ( ldoatm ) then
 !=======================================================================
 !         gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
           do j = 1 , jendl
@@ -193,14 +990,35 @@
 !     Call surface output
  
       if ( ifbat ) then
-        if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
-           & then
-
+        if ( ldosrf ) then
           if ( lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
            call lakegather
           end if
-
+          if ( iseaice == 1 ) then
+            do j = 1 , jendx
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  var2d0(i,n,j) = ocld2d(n,i,j)
+                end do
+              end do
+            end do
+            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_real8, &
+                          & var2d_0,iy*nnsg*jxp,mpi_real8, &
+                          & 0,mpi_comm_world,ierr)
+            if (myid == 0) then
+#ifdef BAND
+              do j = 1 , jx
+#else
+              do j = 1 , jxm1
+#endif
+                do n = 1 , nnsg
+                  do i = 1 , iym1
+                    ocld2d_io(n,i,j) = var2d_0(i,n,j)
+                  end do
+                end do
+              end do
+            end if
+          end if
           do j = 1 , jendx
             do l = 1 , numbat
               do i = 1 , iym2
@@ -280,9 +1098,7 @@
  
 !     Call radiation output
       if ( ifrad ) then
-        if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
-           & then
+        if ( ldorad ) then
 !=======================================================================
 !         frad2d, frad3d , psa
           do n = 1 , nrad2d
@@ -345,9 +1161,7 @@
 !chem2
 !     Call chem output
       if ( ifchem ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
-           & (mod(ntime,kchem).eq.0 .and.                               &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+        if ( ldoche ) then
           do j = 1 , jendl
             do n = 1 , ntr
               do k = 1 , kz
@@ -516,1468 +1330,32 @@
         end if
       end if
 !chem2
+
+#else
 !
 !-----output for restart:
 !
       if ( ifsave ) then
-        if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
-           & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = ub0(i,k,j)
-                sav0(i,kz+k,j) = vb0(i,k,j)
-                sav0(i,kz*2+k,j) = qb0(i,k,j)
-                sav0(i,kz*3+k,j) = tb0(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = ps0(i,j)
-              sav0(i,kz*4+2,j) = ts0(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  ub0_io(i,k,j) = sav_0(i,k,j)
-                  vb0_io(i,k,j) = sav_0(i,kz+k,j)
-                  qb0_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  tb0_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                ps0_io(i,j) = sav_0(i,kz*4+1,j)
-                ts0_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          if ( ehso4 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0s(i,k,j) = so0(i,k,j)
-                end do
-              end do
-            end do
-            call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
-                          & sav_0s,iy*kz*jxp,mpi_real8,          &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    so0_io(i,k,j) = sav_0s(i,k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%u(i,k,j)
-                sav0(i,kz+k,j) = atm2%u(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sps1%ps(i,j)
-              sav0(i,kz*4+2,j) = sps2%ps(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%u(i,k,j) = sav_0(i,k,j)
-                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                psa_io(i,j) = sav_0(i,kz*4+1,j)
-                psb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%t(i,k,j)
-                sav0(i,kz+k,j) = atm2%t(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sts1%tg(i,j)
-              sav0(i,kz*4+2,j) = sts2%tg(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%t(i,k,j) = sav_0(i,k,j)
-                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                tga_io(i,j) = sav_0(i,kz*4+1,j)
-                tgb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%qc(i,k,j)
-                sav0(i,kz+k,j) = atm2%qc(i,k,j)
-                sav0(i,kz*2+k,j) = fcc(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
-              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kz
-              do i = 1 , iym1
-                sav0(i,kz*3+k,j) = heatrt(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
-                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
-                  fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                rainc_io(i,j) = sav_0(i,kz*4+1,j)
-                rainnc_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kz
-                do i = 1 , iym1
-                  heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do i = 1 , iy
-              sav0a(i,1,j) = sfsta%hfx(i,j)
-              sav0a(i,2,j) = sfsta%qfx(i,j)
-              sav0a(i,3,j) = sfsta%uvdrag(i,j)
-              sav0a(i,4,j) = sfsta%tgbb(i,j)
-            end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                sav0a(i,4+n,j) = snowc(n,i,j)
-              end do
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
-              end do
-            end do
-          end do
-          allrec = 5 + nnsg + kz
-          call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
-                        & sav_0a,iy*allrec*jxp,mpi_real8,        &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do i = 1 , iy
-                hfx_io(i,j) = sav_0a(i,1,j)
-                qfx_io(i,j) = sav_0a(i,2,j)
-                uvdrag_io(i,j) = sav_0a(i,3,j)
-                tgbb_io(i,j) = sav_0a(i,4,j)
-              end do
-              do n = 1 , nnsg
-                do i = 1 , iy
-                  snowc_io(n,i,j) = sav_0a(i,4+n,j)
-                end do
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
-                end do
-              end do
-            end do
-          end if
-          if ( iocnflx.eq.2 )                                      &
-             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
-             &                 zpbl_io,iy*jxp,mpi_real8,           &
-             &                 0,mpi_comm_world,ierr)
-          if ( icup.eq.1 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0c(i,k,j) = rsheat(i,k,j)
-                  sav0c(i,kz+k,j) = rswat(i,k,j)
-                end do
-              end do
-            end do
-            allrec = kz*2
-            call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0c,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    rsheat_io(i,k,j) = sav_0c(i,k,j)
-                    rswat_io(i,k,j) = sav_0c(i,kz+k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          if ( icup.eq.3 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0b(i,k,j) = tbase(i,k,j)
-                end do
-              end do
-              do i = 1 , iy
-                sav0b(i,kzp1,j) = cldefi(i,j)
-              end do
-            end do
-            allrec = kzp1
-            call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0b,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    tbase_io(i,k,j) = sav_0b(i,k,j)
-                  end do
-                end do
-                do i = 1 , iy
-                  cldefi_io(i,j) = sav_0b(i,kzp1,j)
-                end do
-              end do
-            end if
-          end if
-          if ( icup==4 .or. icup==99 .or. icup==98 ) then
-            call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
-                          & cbmf2d_io,iy*jxp,mpi_real8,            &
-                          & 0,mpi_comm_world,ierr)
-          end if
-          do j = 1 , jendx
-            do l = 1 , 4
-              do k = 1 , kz
-                do i = 1 , iym1
-                  sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = kz*4
-          do j = 1 , jendx
-            do l = 1 , kzp1
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = allrec + (kzp1)*(kz+1)
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav1(i,allrec+k,j) = emstot(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4+(kzp1*kzp2)
-          call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_1,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , 4
-                do k = 1 , kz
-                  do i = 1 , iym1
-                    absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = kz*4
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , kzp1
-                do k = 1 , kzp1
-                  do i = 1 , iym1
-                    abstot_io(i,k,l,j)                                  &
-                    & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = allrec + (kzp1)*(kz+1)
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  emstot_io(i,k,j) = sav_1(i,allrec+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = taf2d(n,i,j)
-                sav2(i,nnsg+n,j) = tlef2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = sol2d(i,j)
-              sav2(i,nnsg*4+2,j) = solvd2d(i,j)
-              sav2(i,nnsg*4+3,j) = solvs2d(i,j)
-              sav2(i,nnsg*4+4,j) = flw2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  taf2d_io(n,i,j) = sav_2(i,n,j)
-                  tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                sol2d_io(i,j) = sav_2(i,nnsg*4+1,j)
-                solvd2d_io(i,j) = sav_2(i,nnsg*4+2,j)
-                solvs2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                flw2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-#ifdef CLM
-          do j = 1 , jendx
-            do i = 1 , iym1
-              sav_clmin(i,1,j)  = sols2d(i,j)
-              sav_clmin(i,2,j)  = soll2d(i,j)
-              sav_clmin(i,3,j)  = solsd2d(i,j)
-              sav_clmin(i,4,j)  = solld2d(i,j)
-              sav_clmin(i,5,j)  = aldirs2d(i,j)
-              sav_clmin(i,6,j)  = aldirl2d(i,j)
-              sav_clmin(i,7,j)  = aldifs2d(i,j)
-              sav_clmin(i,8,j)  = aldifl2d(i,j)
-              sav_clmin(i,9,j)  = coszrs2d(i,j)
-            end do
-          end do
-          call mpi_gather(sav_clmin, iym1*9*jxp,mpi_real8,       &
-                        & sav_clmout,iym1*9*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do i = 1 , iym1
-                sols2d_io(i,j)   = sav_clmout(i,1,j)
-                soll2d_io(i,j)   = sav_clmout(i,2,j)
-                solsd2d_io(i,j)  = sav_clmout(i,3,j)
-                solld2d_io(i,j)  = sav_clmout(i,4,j)
-                aldirs2d_io(i,j) = sav_clmout(i,5,j)
-                aldirl2d_io(i,j) = sav_clmout(i,6,j)
-                aldifs2d_io(i,j) = sav_clmout(i,7,j)
-                aldifl2d_io(i,j) = sav_clmout(i,8,j)
-                coszrs2d_io(i,j) = sav_clmout(i,9,j)
-              end do
-            end do
-          end if
-#endif
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = tgb2d(n,i,j)
-                sav2(i,nnsg+n,j) = swt2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = flwd2d(i,j)
-              sav2(i,nnsg*4+2,j) = fsw2d(i,j)
-              sav2(i,nnsg*4+3,j) = sabv2d(i,j)
-              sav2(i,nnsg*4+4,j) = sinc2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  tgb2d_io(n,i,j) = sav_2(i,n,j)
-                  swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                flwd2d_io(i,j) = sav_2(i,nnsg*4+1,j)
-                fsw2d_io(i,j) = sav_2(i,nnsg*4+2,j)
-                sabv2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                sinc2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = veg2d1(n,i,j)
-                sav2(i,nnsg+n,j) = sag2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = pptnc(i,j)
-              sav2(i,nnsg*4+2,j) = pptc(i,j)
-              sav2(i,nnsg*4+3,j) = prca2d(i,j)
-              sav2(i,nnsg*4+4,j) = prnca2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  veg2d1_io(n,i,j) = sav_2(i,n,j)
-                  sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                pptnc_io(i,j) = sav_2(i,nnsg*4+1,j)
-                pptc_io(i,j) = sav_2(i,nnsg*4+2,j)
-                prca2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                prnca2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2a(i,n,j) = ircp2d(n,i,j)
-                sav2a(i,nnsg+n,j) = text2d(n,i,j)
-                sav2a(i,nnsg*2+n,j) = col2d(n,i,j)
-                sav2a(i,nnsg*3+n,j) = ocld2d(n,i,j)
-                sav2a(i,nnsg*4+n,j) = tg2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2a(i,nnsg*5+1,j) = veg2d(i,j)
-            end do
-          end do
-          allrec = nnsg*5 + 1
-          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
-                        & sav_2a,iym1*allrec*jxp,mpi_real8,      &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  ircp2d_io(n,i,j) = sav_2a(i,n,j)
-                  text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
-                  col2d_io(n,i,j) = sav_2a(i,nnsg*2+n,j)
-                  ocld2d_io(n,i,j) = sav_2a(i,nnsg*3+n,j)
-                  tg2d_io(n,i,j) = sav_2a(i,nnsg*4+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                veg2d_io(i,j) = sav_2a(i,nnsg*5+1,j)
-              end do
-            end do
-          end if
- 
-          if ( ichem.eq.1 ) then
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do k = 1 , kz
-                  do i = 1 , iy
-                    sav4(i,(n-1)*kz+k,j) = chia(i,k,j,n)
-                    sav4(i,ntr*kz+(n-1)*kz+k,j) = chib(i,k,j,n)
-                    sav4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc(i,k,j,n)
-                    sav4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc(i,k,j,n)
-                  end do
-                end do
-              end do
-            end do
-            allrec = 4*ntr*kz
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do i = 1 , iy
-                  sav4(i,allrec+n,j) = remdrd(i,j,n)
-                end do
-              end do
-            end do
-            allrec = ntr*(kz*4+1)
-            call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
-                          & sav_4,iy*allrec*jxp,mpi_real8,       &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do k = 1 , kz
-                    do i = 1 , iy
-                      chia_io(i,k,j,n) = sav_4(i,(n-1)*kz+k,j)
-                      chib_io(i,k,j,n) = sav_4(i,ntr*kz+(n-1)*kz+k,j)
-                      remlsc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
-                      remcvc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
-                    end do
-                  end do
-                end do
-              end do
-              allrec = 4*ntr*kz
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do i = 1 , iy
-                    remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
-                  end do
-                end do
-              end do
-            end if
-            do j = 1 , jendx
-              do i = 1 , iym1
-                sav4a(i,1,j) = ssw2da(i,j)
-                sav4a(i,2,j) = sdeltk2d(i,j)
-                sav4a(i,3,j) = sdelqk2d(i,j)
-                sav4a(i,4,j) = sfracv2d(i,j)
-                sav4a(i,5,j) = sfracb2d(i,j)
-                sav4a(i,6,j) = sfracs2d(i,j)
-                sav4a(i,7,j) = svegfrac2d(i,j)
-              end do
-            end do
-            call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
-                          & sav_4a,iym1*7*jxp,mpi_real8,                &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 1 , jxm1
-#endif
-                do i = 1 , iym1
-                  ssw2da_io(i,j) = sav_4a(i,1,j)
-                  sdeltk2d_io(i,j) = sav_4a(i,2,j)
-                  sdelqk2d_io(i,j) = sav_4a(i,3,j)
-                  sfracv2d_io(i,j) = sav_4a(i,4,j)
-                  sfracb2d_io(i,j) = sav_4a(i,5,j)
-                  sfracs2d_io(i,j) = sav_4a(i,6,j)
-                  svegfrac2d_io(i,j) = sav_4a(i,7,j)
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do n = 1 , nsplit
-              do i = 1 , iy
-                sav0d(i,n,j) = spsav%dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
-              end do
-            end do
-          end do
-          call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
-                        & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do n = 1 , nsplit
-                do i = 1 , iy
-                  dstor_io(i,j,n) = sav_0d(i,n,j)
-                  hstor_io(i,j,n) = sav_0d(i,n+nsplit,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              sav6(k,1,j) = ui1(k,j)
-              sav6(k,2,j) = ui2(k,j)
-              sav6(k,3,j) = uilx(k,j)
-              sav6(k,4,j) = uil(k,j)
-              sav6(k,5,j) = vi1(k,j)
-              sav6(k,6,j) = vi2(k,j)
-              sav6(k,7,j) = vilx(k,j)
-              sav6(k,8,j) = vil(k,j)
-            end do
-          end do
-          call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
-                        & sav_6,kz*8*jxp,mpi_real8,              &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                ui1_io(k,j) = sav_6(k,1,j)
-                ui2_io(k,j) = sav_6(k,2,j)
-                uilx_io(k,j) = sav_6(k,3,j)
-                uil_io(k,j) = sav_6(k,4,j)
-                vi1_io(k,j) = sav_6(k,5,j)
-                vi2_io(k,j) = sav_6(k,6,j)
-                vilx_io(k,j) = sav_6(k,7,j)
-                vil_io(k,j) = sav_6(k,8,j)
-              end do
-            end do
-          end if
-#ifndef BAND
-          call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-#endif
-          if ( myid.eq.0 ) then
-            call write_savefile(idatex, .false.)
-          end if
-        else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
-                & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = ub0(i,k,j)
-                sav0(i,kz+k,j) = vb0(i,k,j)
-                sav0(i,kz*2+k,j) = qb0(i,k,j)
-                sav0(i,kz*3+k,j) = tb0(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = ps0(i,j)
-              sav0(i,kz*4+2,j) = ts0(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  ub0_io(i,k,j) = sav_0(i,k,j)
-                  vb0_io(i,k,j) = sav_0(i,kz+k,j)
-                  qb0_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  tb0_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                ps0_io(i,j) = sav_0(i,kz*4+1,j)
-                ts0_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          if ( ehso4 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0s(i,k,j) = so0(i,k,j)
-                end do
-              end do
-            end do
-            call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
-                          & sav_0s,iy*kz*jxp,mpi_real8,          &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    so0_io(i,k,j) = sav_0s(i,k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%u(i,k,j)
-                sav0(i,kz+k,j) = atm2%u(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sps1%ps(i,j)
-              sav0(i,kz*4+2,j) = sps2%ps(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%u(i,k,j) = sav_0(i,k,j)
-                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                psa_io(i,j) = sav_0(i,kz*4+1,j)
-                psb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%t(i,k,j)
-                sav0(i,kz+k,j) = atm2%t(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sts1%tg(i,j)
-              sav0(i,kz*4+2,j) = sts2%tg(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%t(i,k,j) = sav_0(i,k,j)
-                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                tga_io(i,j) = sav_0(i,kz*4+1,j)
-                tgb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%qc(i,k,j)
-                sav0(i,kz+k,j) = atm2%qc(i,k,j)
-                sav0(i,kz*2+k,j) = fcc(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
-              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kz
-              do i = 1 , iym1
-                sav0(i,kz*3+k,j) = heatrt(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
-                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
-                  fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                rainc_io(i,j) = sav_0(i,kz*4+1,j)
-                rainnc_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kz
-                do i = 1 , iym1
-                  heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do i = 1 , iy
-              sav0a(i,1,j) = sfsta%hfx(i,j)
-              sav0a(i,2,j) = sfsta%qfx(i,j)
-              sav0a(i,3,j) = sfsta%uvdrag(i,j)
-              sav0a(i,4,j) = sfsta%tgbb(i,j)
-            end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                sav0a(i,4+n,j) = snowc(n,i,j)
-              end do
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
-              end do
-            end do
-          end do
-          allrec = 5 + nnsg + kz
-          call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
-                        & sav_0a,iy*allrec*jxp,mpi_real8,        &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do i = 1 , iy
-                hfx_io(i,j) = sav_0a(i,1,j)
-                qfx_io(i,j) = sav_0a(i,2,j)
-                uvdrag_io(i,j) = sav_0a(i,3,j)
-                tgbb_io(i,j) = sav_0a(i,4,j)
-              end do
-              do n = 1 , nnsg
-                do i = 1 , iy
-                  snowc_io(n,i,j) = sav_0a(i,4+n,j)
-                end do
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
-                end do
-              end do
-            end do
-          end if
-          if ( iocnflx.eq.2 )                                      &
-             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
-             &                 zpbl_io,iy*jxp,mpi_real8,           &
-             &                 0,mpi_comm_world,ierr)
-          if ( icup.eq.1 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0c(i,k,j) = rsheat(i,k,j)
-                  sav0c(i,kz+k,j) = rswat(i,k,j)
-                end do
-              end do
-            end do
-            allrec = kz*2
-            call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0c,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    rsheat_io(i,k,j) = sav_0c(i,k,j)
-                    rswat_io(i,k,j) = sav_0c(i,kz+k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          if ( icup.eq.3 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0b(i,k,j) = tbase(i,k,j)
-                end do
-              end do
-              do i = 1 , iy
-                sav0b(i,kzp1,j) = cldefi(i,j)
-              end do
-            end do
-            allrec = kzp1
-            call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0b,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    tbase_io(i,k,j) = sav_0b(i,k,j)
-                  end do
-                end do
-                do i = 1 , iy
-                  cldefi_io(i,j) = sav_0b(i,kzp1,j)
-                end do
-              end do
-            end if
-          end if
-          if ( icup==4 .or. icup==99 .or. icup==98 ) then
-            call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
-                          & cbmf2d_io,iy*jxp,mpi_real8,            &
-                          & 0,mpi_comm_world,ierr)
-          end if
-          do j = 1 , jendx
-            do l = 1 , 4
-              do k = 1 , kz
-                do i = 1 , iym1
-                  sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = kz*4
-          do j = 1 , jendx
-            do l = 1 , kzp1
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = allrec + (kzp1)*(kz+1)
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav1(i,allrec+k,j) = emstot(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4+(kzp1*kzp2)
-          call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_1,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , 4
-                do k = 1 , kz
-                  do i = 1 , iym1
-                    absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = kz*4
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , kzp1
-                do k = 1 , kzp1
-                  do i = 1 , iym1
-                    abstot_io(i,k,l,j)                                  &
-                    & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = allrec + (kzp1)*(kz+1)
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  emstot_io(i,k,j) = sav_1(i,allrec+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = taf2d(n,i,j)
-                sav2(i,nnsg+n,j) = tlef2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = sol2d(i,j)
-              sav2(i,nnsg*4+2,j) = solvd2d(i,j)
-              sav2(i,nnsg*4+3,j) = solvs2d(i,j)
-              sav2(i,nnsg*4+4,j) = flw2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  taf2d_io(n,i,j) = sav_2(i,n,j)
-                  tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                sol2d_io(i,j) = sav_2(i,nnsg*4+1,j)
-                solvd2d_io(i,j) = sav_2(i,nnsg*4+2,j)
-                solvs2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                flw2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-#ifdef CLM
-          do j = 1 , jendx
-            do i = 1 , iym1
-              sav_clmin(i,1,j)  = sols2d(i,j)
-              sav_clmin(i,2,j)  = soll2d(i,j)
-              sav_clmin(i,3,j)  = solsd2d(i,j)
-              sav_clmin(i,4,j)  = solld2d(i,j)
-              sav_clmin(i,5,j)  = aldirs2d(i,j)
-              sav_clmin(i,6,j)  = aldirl2d(i,j)
-              sav_clmin(i,7,j)  = aldifs2d(i,j)
-              sav_clmin(i,8,j)  = aldifl2d(i,j)
-              sav_clmin(i,9,j)  = coszrs2d(i,j)
-            end do
-          end do
-          call mpi_gather(sav_clmin, iym1*9*jxp,mpi_real8,       &
-                        & sav_clmout,iym1*9*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do i = 1 , iym1
-                sols2d_io(i,j)   = sav_clmout(i,1,j)
-                soll2d_io(i,j)   = sav_clmout(i,2,j)
-                solsd2d_io(i,j)  = sav_clmout(i,3,j)
-                solld2d_io(i,j)  = sav_clmout(i,4,j)
-                aldirs2d_io(i,j) = sav_clmout(i,5,j)
-                aldirl2d_io(i,j) = sav_clmout(i,6,j)
-                aldifs2d_io(i,j) = sav_clmout(i,7,j)
-                aldifl2d_io(i,j) = sav_clmout(i,8,j)
-                coszrs2d_io(i,j) = sav_clmout(i,9,j)
-              end do
-            end do
-          end if
-#endif
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = tgb2d(n,i,j)
-                sav2(i,nnsg+n,j) = swt2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = flwd2d(i,j)
-              sav2(i,nnsg*4+2,j) = fsw2d(i,j)
-              sav2(i,nnsg*4+3,j) = sabv2d(i,j)
-              sav2(i,nnsg*4+4,j) = sinc2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  tgb2d_io(n,i,j) = sav_2(i,n,j)
-                  swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                flwd2d_io(i,j) = sav_2(i,nnsg*4+1,j)
-                fsw2d_io(i,j) = sav_2(i,nnsg*4+2,j)
-                sabv2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                sinc2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = veg2d1(n,i,j)
-                sav2(i,nnsg+n,j) = sag2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*4+1,j) = pptnc(i,j)
-              sav2(i,nnsg*4+2,j) = pptc(i,j)
-              sav2(i,nnsg*4+3,j) = prca2d(i,j)
-              sav2(i,nnsg*4+4,j) = prnca2d(i,j)
-            end do
-          end do
-          allrec = nnsg*4 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  veg2d1_io(n,i,j) = sav_2(i,n,j)
-                  sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                pptnc_io(i,j) = sav_2(i,nnsg*4+1,j)
-                pptc_io(i,j) = sav_2(i,nnsg*4+2,j)
-                prca2d_io(i,j) = sav_2(i,nnsg*4+3,j)
-                prnca2d_io(i,j) = sav_2(i,nnsg*4+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2a(i,n,j) = ircp2d(n,i,j)
-                sav2a(i,nnsg+n,j) = text2d(n,i,j)
-                sav2a(i,nnsg*2+n,j) = col2d(n,i,j)
-                sav2a(i,nnsg*3+n,j) = ocld2d(n,i,j)
-                sav2a(i,nnsg*4+n,j) = tg2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2a(i,nnsg*5+1,j) = veg2d(i,j)
-            end do
-          end do
-          allrec = nnsg*5 + 1
-          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
-                        & sav_2a,iym1*allrec*jxp,mpi_real8,      &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  ircp2d_io(n,i,j) = sav_2a(i,n,j)
-                  text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
-                  col2d_io(n,i,j) = sav_2a(i,nnsg*2+n,j)
-                  ocld2d_io(n,i,j) = sav_2a(i,nnsg*3+n,j)
-                  tg2d_io(n,i,j) = sav_2a(i,nnsg*4+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                veg2d_io(i,j) = sav_2a(i,nnsg*5+1,j)
-              end do
-            end do
-          end if
- 
-          if ( ichem.eq.1 ) then
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do k = 1 , kz
-                  do i = 1 , iy
-                    sav4(i,(n-1)*kz+k,j) = chia(i,k,j,n)
-                    sav4(i,ntr*kz+(n-1)*kz+k,j) = chib(i,k,j,n)
-                    sav4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc(i,k,j,n)
-                    sav4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc(i,k,j,n)
-                  end do
-                end do
-              end do
-            end do
-            allrec = 4*ntr*kz
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do i = 1 , iy
-                  sav4(i,allrec+n,j) = remdrd(i,j,n)
-                end do
-              end do
-            end do
-            allrec = ntr*(kz*4+1)
-            call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
-                          & sav_4,iy*allrec*jxp,mpi_real8,       &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do k = 1 , kz
-                    do i = 1 , iy
-                      chia_io(i,k,j,n) = sav_4(i,(n-1)*kz+k,j)
-                      chib_io(i,k,j,n) = sav_4(i,ntr*kz+(n-1)*kz+k,j)
-                      remlsc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
-                      remcvc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
-                    end do
-                  end do
-                end do
-              end do
-              allrec = 4*ntr*kz
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do i = 1 , iy
-                    remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
-                  end do
-                end do
-              end do
-            end if
-            do j = 1 , jendx
-              do i = 1 , iym1
-                sav4a(i,1,j) = ssw2da(i,j)
-                sav4a(i,2,j) = sdeltk2d(i,j)
-                sav4a(i,3,j) = sdelqk2d(i,j)
-                sav4a(i,4,j) = sfracv2d(i,j)
-                sav4a(i,5,j) = sfracb2d(i,j)
-                sav4a(i,6,j) = sfracs2d(i,j)
-                sav4a(i,7,j) = svegfrac2d(i,j)
-              end do
-            end do
-            call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
-                          & sav_4a,iym1*7*jxp,mpi_real8,                &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 1 , jxm1
-#endif
-                do i = 1 , iym1
-                  ssw2da_io(i,j) = sav_4a(i,1,j)
-                  sdeltk2d_io(i,j) = sav_4a(i,2,j)
-                  sdelqk2d_io(i,j) = sav_4a(i,3,j)
-                  sfracv2d_io(i,j) = sav_4a(i,4,j)
-                  sfracb2d_io(i,j) = sav_4a(i,5,j)
-                  sfracs2d_io(i,j) = sav_4a(i,6,j)
-                  svegfrac2d_io(i,j) = sav_4a(i,7,j)
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do n = 1 , nsplit
-              do i = 1 , iy
-                sav0d(i,n,j) = spsav%dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
-              end do
-            end do
-          end do
-          call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
-                        & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do n = 1 , nsplit
-                do i = 1 , iy
-                  dstor_io(i,j,n) = sav_0d(i,n,j)
-                  hstor_io(i,j,n) = sav_0d(i,n+nsplit,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              sav6(k,1,j) = ui1(k,j)
-              sav6(k,2,j) = ui2(k,j)
-              sav6(k,3,j) = uilx(k,j)
-              sav6(k,4,j) = uil(k,j)
-              sav6(k,5,j) = vi1(k,j)
-              sav6(k,6,j) = vi2(k,j)
-              sav6(k,7,j) = vilx(k,j)
-              sav6(k,8,j) = vil(k,j)
-            end do
-          end do
-          call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
-                        & sav_6,kz*8*jxp,mpi_real8,              &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                ui1_io(k,j) = sav_6(k,1,j)
-                ui2_io(k,j) = sav_6(k,2,j)
-                uilx_io(k,j) = sav_6(k,3,j)
-                uil_io(k,j) = sav_6(k,4,j)
-                vi1_io(k,j) = sav_6(k,5,j)
-                vi2_io(k,j) = sav_6(k,6,j)
-                vilx_io(k,j) = sav_6(k,7,j)
-                vil_io(k,j) = sav_6(k,8,j)
-              end do
-            end do
-          end if
-#ifndef BAND
-          call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-#endif
-          if ( myid.eq.0 ) then
-            call write_savefile(idatex, .true.)
-          end if
+        if (ldosav)
+          call write_savefile(idatex,.false.)
+        else
+          call write_savefile(idatex,.true.)
         end if
       end if
 !
-      if ( myid.eq.0 ) then
-        if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.    &
-           & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.         &
-           & nnnnnn.ne.nnnend ) call mkfile
-      end if
-
-#ifdef CLM
-      if ( ifsave ) then
-        if ( ( ( lday.eq.1 .and. lhour.eq.0 .and.                       &
-           &     dabs(xtime).lt.0.00001 )   .and.                       &
-           &     ldatez.ne.idate1 ) .or. nnnnnn.eq.nnnend ) then
-          cdtime = get_step_size()
-          filer_rest = restFile_filename(type='netcdf',                 &
-                     &                   offset=-int(cdtime))
-          inquire(file=filer_rest,exist=there)
-          if (.not. there) then
-            call restFile_write( filer_rest )
-            filer_rest = restFile_filename(type='binary',               &
-                     &                     offset=-int(cdtime))
-            call restFile_write_binary( filer_rest )
-          end if
-        end if
-      end if
-#endif
-
-#else
-
-      if ( jyear.eq.jyearr .and. ktau.eq.ktaur ) then
-        call mkfile
-      end if
 !
 !-----output for dataflow analyses:
 !
       if ( iftape ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                     &
-           & (mod(ntime,ntapfrq).eq.0 .and.                             &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) call outatm
+        if ( ldoatm ) then
+          call outatm
+        end if
       end if
- 
- 
+!
+!
 !     Call surface output
       if ( ifbat ) then
-        if ( (mod(ntime,kbats).eq.0 .and. (.not.(jyear.eq.jyearr.and.   &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
-           & then
+        if ( ldosrf ) then
           call outsrf
           do i = 1 , iym2
 #ifdef BAND
@@ -1998,20 +1376,19 @@
           end if
         end if
       end if
- 
+! 
+! 
 !     Call radiation output
       if ( ifrad ) then
-        if ( (mod(ntime,nradisp).eq.0 .and. (.not.(jyear.eq.jyearr.and. &
-           & ktau.eq.ktaur))) .or. (jyear.eq.jyear0 .and. ktau.eq.1) )  &
-           & call outrad
+        if ( ldorad ) then
+          call outrad
+        end if
       end if
- 
-!chem2
+!
+!
 !     Call chem output
       if ( ifchem ) then
-        if ( (jyear.eq.jyear0 .and. ktau.eq.1) .or.                     &
-           & (mod(ntime,kchem).eq.0 .and.                               &
-           & (.not.(jyear.eq.jyearr.and.ktau.eq.ktaur))) ) then
+        if ( ldoche ) then
           call outche
           remlsc  = 0.0
           remcvc  = 0.0
@@ -2032,26 +1409,8 @@
           aertalwrf=0.0
         end if
       end if
-!chem2
-!
-!-----output for restart:
-!
-      if ( ifsave ) then
-        if ( ((lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime).lt.0.00001) &
-           & .and. ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
-          call write_savefile(idatex,.false.)
-        else if ( mod(ntime,nsavfrq).eq.0 .and.                         &
-                & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) ) then
-          call write_savefile(idatex,.true.)
-        end if
-      end if
-!
-!-----printer output:
-!
-      if ( lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0 .and.      &
-         & (.not.(jyear.eq.jyearr .and. ktau.eq.ktaur)) .and.           &
-         & nnnnnn.ne.nnnend ) call mkfile
 #endif
+
       call time_end(subroutine_name,idindx) 
 
       end subroutine output
@@ -2060,6 +1419,8 @@
  
       implicit none
 !
+      if (myid /= 0) return
+
       print * , ' '
       print * , '******* OPENING NEW OUTPUT FILES:' , idatex
       print * , ' '
@@ -2142,9 +1503,9 @@
 #endif
 
 #ifdef MPP1
-      call writerec_srf(j,i,numbat,fbat_io,idatex)
+      call writerec_srf(j,i,numbat,fbat_io,ocld2d_io,idatex)
 #else
-      call writerec_srf(j,i,numbat,fbat,idatex)
+      call writerec_srf(j,i,numbat,fbat,ocld2d,idatex)
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  

@@ -757,7 +757,7 @@
         end do
 
         if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.                 &
-           & (jyear.eq.jyearr .and. ktau.eq.ktaur) ) then
+             (ifrest .and. .not. done_restart ) ) then
           if ( jyear.eq.jyear0 .and. ktau.le.1 ) then
             mmpd = 86400./dtbat
             wpm2 = 1./dtbat
@@ -1053,7 +1053,6 @@
           end do
         end if
 !
-      else ! end ivers test
       end if
 !
       call time_end(subroutine_name,idindx)

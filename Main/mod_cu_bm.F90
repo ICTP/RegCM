@@ -1167,7 +1167,7 @@
       intent (in) d273 , pi , press , rl , tgs , thetae
       intent (inout) qs
 !
-      real(8) :: dt , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
+      real(8) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
 !
 !...iteratively extract temperature from equivalent potential
 !...temperature.
@@ -1187,10 +1187,10 @@
 !
         tpfc = t1
       else
-        dt = f1*(t1-tguess)/(f1-fo)
+        dtx = f1*(t1-tguess)/(f1-fo)
         tguess = t1
         fo = f1
-        t1 = t1 - dt
+        t1 = t1 - dtx
         go to 100
       end if
       end function tpfc

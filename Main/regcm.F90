@@ -97,8 +97,8 @@
       implicit none
 !
       real(8) :: dtinc , extime
-      integer :: iexec , iexecn
-      integer :: nhours
+      integer :: iexec
+      integer :: nhours , ibcdate
       integer :: ierr
 #ifdef MPP1
       integer :: ncpu
@@ -242,14 +242,15 @@
 !**********************************************************************
 !
       extime = 0.
-      dtinc  = 0.
       iexec  = 1
-      iexecn = 1
       call param
+!
+      dtinc  = dt
+      ibcdate = idatex
 !
 !**********************************************************************
 !
-!     Read initial data and setup boundary condition
+!     Read initial data
 !
 !**********************************************************************
 !
@@ -257,24 +258,32 @@
 #ifdef DEBUG 
       call start_debug()
 #endif 
+!
       call init
-! 
 #ifdef CHEMTEST
       if ( ichem.eq.1 ) then
         call init_chem
+      end if
+#endif
+!
+!**********************************************************************
+!
+!     Read Boundary conditions
+!
+!**********************************************************************
+!
+      call bdyin
+#ifdef CHEMTEST
+      if ( ichem.eq.1 ) then
         call bdyin_chem
       end if
 #endif
-      call bdyin
-! 
+      call addhours(ibcdate,ibdyfrq)
+!
       call spinit(sigma,kzp1)
 ! 
       if ( ichem.eq.1 ) call chsrfem
 !
-#ifdef MPP1
-      call free_mpp_initspace
-#endif
-! 
 !**********************************************************************
 !
 !     Write initial state to output
@@ -282,6 +291,16 @@
 !**********************************************************************
 !
       call output
+!
+!**********************************************************************
+!
+!     Clean up and logging
+!
+!**********************************************************************
+!
+#ifdef MPP1
+      call free_mpp_initspace
+#endif
       call time_print(6,'inizialization phase')
       call time_reset()
 !
@@ -291,15 +310,16 @@
 !
 !**********************************************************************
 !
-      do while ( nnnnnn.lt.nnnend )
+      do while ( idatex.lt.idate2 )
 !
 !       Read in boundary conditions if needed
 !
-        if ( nnnnnn.gt.nnbase ) then
+        if ( idatex == ibcdate .and. idatex .lt. idate2 ) then
           call bdyin
 #ifdef CHEMTEST
           if ( ichem.eq.1 ) call bdyin_chem
 #endif
+          call addhours(ibcdate,ibdyfrq)
         end if
 !
 !       Refined start
@@ -324,15 +344,22 @@
 !
         call splitf
 !
-!       Write output for this timestep
+!       Write output for this timestep if requested
 !
+        if (ifrest) done_restart = .true.
         call output
 !
 !       Increment time
 !
         extime = extime + dtinc
+        if (debug_level > 3) then
+          if (myid == 0) write(6,'(a,i10,a,i10,a)') &
+             'Simulation time: ', idatex , '+', &
+             int(mod(extime,3600.0D0)), ' s'
+        end if
 
       end do
+
 !this below close down debug 
 #ifdef DEBUG
       call stop_debug()

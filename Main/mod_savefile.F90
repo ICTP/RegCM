@@ -83,7 +83,6 @@
                      & lhour , ntime
           jyear = lyear
           jyearr = jyear
-          ktaur = ktau
 #ifdef MPP1
           if ( ehso4 ) then
             read (iutrst) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &
@@ -103,10 +102,6 @@
           read (iutrst) atm2_io%qv
           read (iutrst) atm2_io%qc
           read (iutrst) psa_io , psb_io
-          read (iutrst) mddom_io%ht , mddom_io%xlat ,      &
-                        mddom_io%xlong , mddom_io%satbrt , &
-                        mddom_io%msfx , mddom_io%msfd , mddom_io%f
-          read (iutrst) ht1_io , satbrt1_io , xlat1_io , xlon1_io
           read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             read (iutrst) rsheat_io , rswat_io
@@ -162,20 +157,20 @@
             read (iutrst) remlsc_io
             read (iutrst) remcvc_io
             read (iutrst) remdrd_io
-            read (iutrst) ssw2da_io
-            read (iutrst) sdeltk2d_io
-            read (iutrst) sdelqk2d_io
-            read (iutrst) sfracv2d_io
-            read (iutrst) sfracb2d_io
-            read (iutrst) sfracs2d_io
-            read (iutrst) svegfrac2d_io
-!           cumul ad, dif, emis terms ( scalar)
-#ifndef BAND
-            if ( ichem.eq.1 ) then
-              if (debug_level > 2) call restchemdiag(iutrst)
-            end if
-#endif
           end if
+          read (iutrst) ssw2da_io
+          read (iutrst) sdeltk2d_io
+          read (iutrst) sdelqk2d_io
+          read (iutrst) sfracv2d_io
+          read (iutrst) sfracb2d_io
+          read (iutrst) sfracs2d_io
+          read (iutrst) svegfrac2d_io
+!         cumul ad, dif, emis terms ( scalar)
+#ifndef BAND
+          if ( ichem.eq.1 ) then
+            if (debug_level > 2) call restchemdiag(iutrst)
+          end if
+#endif
 #else
           if ( ehso4 ) then
             read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
@@ -193,10 +188,6 @@
           read (iutrst) atm2%qv
           read (iutrst) atm2%qc
           read (iutrst) sps1%ps , sps2%ps
-          read (iutrst) mddom%ht , mddom%xlat ,        &
-                        mddom%xlong , mddom%satbrt ,   &
-                        mddom%msfx , mddom%msfd , mddom%f
-          read (iutrst) ht1 , satbrt1 , xlat1 , xlon1
           read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             read (iutrst) rsheat , rswat
@@ -228,20 +219,20 @@
             read (iutrst) remlsc
             read (iutrst) remcvc
             read (iutrst) remdrd
-            read (iutrst) ssw2da
-            read (iutrst) sdeltk2d
-            read (iutrst) sdelqk2d
-            read (iutrst) sfracv2d
-            read (iutrst) sfracb2d
-            read (iutrst) sfracs2d
-            read (iutrst) svegfrac2d
-!           cumul ad, dif, emis terms ( scalar)
-#ifndef BAND
-            if ( ichem.eq.1 ) then
-              if (debug_level > 2) call restchemdiag(iutrst)
-            end if
-#endif
           end if
+          read (iutrst) ssw2da
+          read (iutrst) sdeltk2d
+          read (iutrst) sdelqk2d
+          read (iutrst) sfracv2d
+          read (iutrst) sfracb2d
+          read (iutrst) sfracs2d
+          read (iutrst) svegfrac2d
+!         cumul ad, dif, emis terms ( scalar)
+#ifndef BAND
+          if ( ichem.eq.1 ) then
+            if (debug_level > 2) call restchemdiag(iutrst)
+          end if
+#endif
 #endif
 !------lake model
           if ( lakemod.eq.1 ) then
@@ -330,10 +321,6 @@
           write (iutsav) atm2_io%qv
           write (iutsav) atm2_io%qc
           write (iutsav) psa_io , psb_io
-          write (iutsav) mddom_io%ht , mddom_io%xlat ,      &
-                         mddom_io%xlong , mddom_io%satbrt , &
-                         mddom_io%msfx , mddom_io%msfd , mddom_io%f
-          write (iutsav) ht1_io , satbrt1_io , xlat1_io , xlon1_io
           write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
           if ( icup.eq.1 ) then
             write (iutsav) rsheat_io , rswat_io
@@ -389,20 +376,20 @@
             write (iutsav) remlsc_io
             write (iutsav) remcvc_io
             write (iutsav) remdrd_io
-            write (iutsav) ssw2da_io
-            write (iutsav) sdeltk2d_io
-            write (iutsav) sdelqk2d_io
-            write (iutsav) sfracv2d_io
-            write (iutsav) sfracb2d_io
-            write (iutsav) sfracs2d_io
-            write (iutsav) svegfrac2d_io
-!           cumul ad, dif, emis terms ( scalar)
-#ifndef BAND
-            if ( ichem.eq.1 ) then
-              if (debug_level > 2) call savechemdiag(iutsav)
-            end if
-#endif
           end if
+          write (iutsav) ssw2da_io
+          write (iutsav) sdeltk2d_io
+          write (iutsav) sdelqk2d_io
+          write (iutsav) sfracv2d_io
+          write (iutsav) sfracb2d_io
+          write (iutsav) sfracs2d_io
+          write (iutsav) svegfrac2d_io
+!         cumul ad, dif, emis terms ( scalar)
+#ifndef BAND
+          if ( ichem.eq.1 ) then
+            if (debug_level > 2) call savechemdiag(iutsav)
+          end if
+#endif
 #else
           if ( ehso4 ) then
             write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
@@ -420,10 +407,6 @@
           write (iutsav) atm2%qv
           write (iutsav) atm2%qc
           write (iutsav) sps1%ps , sps2%ps
-          write (iutsav) mddom%ht , mddom%xlat ,      &
-                         mddom%xlong , mddom%satbrt , &
-                         mddom%msfx , mddom%msfd , mddom%f
-          write (iutsav) ht1 , satbrt1 , xlat1 , xlon1
           write (iutsav) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
           if ( icup.eq.1 ) then
             write (iutsav) rsheat , rswat
@@ -455,20 +438,20 @@
             write (iutsav) remlsc
             write (iutsav) remcvc
             write (iutsav) remdrd
-            write (iutsav) ssw2da
-            write (iutsav) sdeltk2d
-            write (iutsav) sdelqk2d
-            write (iutsav) sfracv2d
-            write (iutsav) sfracb2d
-            write (iutsav) sfracs2d
-            write (iutsav) svegfrac2d
-!           cumul ad, dif, emis terms ( scalar)
-#ifndef BAND
-            if ( ichem.eq.1 ) then
-              if (debug_level > 2) call savechemdiag(iutsav)
-            end if
-#endif
           end if
+          write (iutsav) ssw2da
+          write (iutsav) sdeltk2d
+          write (iutsav) sdelqk2d
+          write (iutsav) sfracv2d
+          write (iutsav) sfracb2d
+          write (iutsav) sfracs2d
+          write (iutsav) svegfrac2d
+!         cumul ad, dif, emis terms ( scalar)
+#ifndef BAND
+          if ( ichem.eq.1 ) then
+            if (debug_level > 2) call savechemdiag(iutsav)
+          end if
+#endif
 #endif
           if ( lakemod.eq.1 ) then
             call lakesav_o(iutsav)
@@ -498,14 +481,18 @@
 #endif
           close(iutsav)
 
+          write (6,*) 'SAV variables written at ', idate, xtime
+
+          if (isavlast > 0) then
+            write (fbname, '(a,i10)') 'TMPSAV.', isavlast
+            ffout = trim(dirout)//pthsep//trim(domname)// &
+                    '_'//trim(fbname)
+            call unlink(ffout)
+          end if
           if (ltmp) then
-            if (isavlast > 0) then
-              write (fbname, '(a,i10)') 'TMPSAV.', isavlast
-              ffout = trim(dirout)//pthsep//trim(domname)// &
-                      '_'//trim(fbname)
-              call unlink(ffout)
-            end if
             isavlast = idate
+          else
+            isavlast = 0
           end if
 
         end subroutine write_savefile
