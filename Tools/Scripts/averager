@@ -24,17 +24,19 @@
 #--Modified 01/2011 for v4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
 #
 
-#The program that averages the raw netcdf files.
-#This program expects that the averager takes two arguments
 NCOBASE="" #Assume that the NCO binary directory is in the user's path
 NCRCAT="${NCOBASE}ncrcat"
 
+NCLBASE="" #Assume that the NCL binary directory is in the user's path
+NCL="${NCLBASE}ncl"
 
 #Print the proper usage of the program if improper arguments are given
 printusage ()
 {
-  echo "usage: $0 postproc_directory [-a -s -r -c -o]"
+  echo "usage: $0 postproc_directory ISTARTDATE [-a -s -r -c -o]"
   echo "  postproc_directory is a directory full of -only- monthly average NetCDF files for your run."
+  echo " ISTARTDATE is the start date of the data in the postproc directory. It"
+  echo "    must have the format YYYYMM"
   echo " The flags -a, -s, -r, -c, -o specify which types of file to analyze:"
   echo "    -a    ATM"
   echo "    -s    SRF"
@@ -95,6 +97,13 @@ fi
 PPDIR=$1
 shift
 
+if [ -z "$1" ]; then
+  printusage
+fi
+
+#Script parameters
+STARTDATE=$1
+shift
 
 #Use the default TYPES if no argument is given
 if [ "$#" -eq "0" ]; then
@@ -111,6 +120,12 @@ fi
 
 #################### End Parsing Command Line ####################
 
+#Parse the start and end date strings
+IDATE0="${STARTDATE}0100"
+STARTYEAR=`echo $IDATE0 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+STARTMONTH=`echo $IDATE0 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+
+
 #Go through each file type, concatenate all the monthly files, and the perform
 #various types of averaging (annual, seasonal, monthly)
 for filetype in $TYPES
@@ -118,10 +133,24 @@ do
 
   #Concatenate files
   echo "Concatenating $filetype files..."
-  $NCRCAT -O $PPDIR/*$filetype*.nc $filetype.all.nc
+  FILEINNAME="${filetype}.all.nc"
+  $NCRCAT -O $PPDIR/*$filetype*.nc $FILEINNAME
 
   #Average Files
   $REGCMSRCDIR/Tools/Scripts/write_averages $filetype
+
+  echo "Yearly averaging $filetype files..."
+
+  FILEINNAMESTRING="\"${FILEINNAME}\""
+  FILEOUTNAMESTRING="\"${filetype}.yearly.avg.nc\""
+  STARTYEARSTRING="\"${STARTYEAR}\""
+  STARTMONTHSTRING="\"${STARTMONTH}\""
+  $NCL $REGCMSRCDIR/Tools/Scripts/NCL/yearly_average.ncl \
+            "startyear=$STARTYEARSTRING"  \
+            "startmonth=$STARTMONTHSTRING"  \
+            "fileinname=$FILEINNAMESTRING"  \
+            "fileoutname=$FILEOUTNAMESTRING"  \
+
 done
 
 echo "Done."
