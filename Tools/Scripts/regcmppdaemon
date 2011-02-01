@@ -1,0 +1,272 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that averages output files in the background as they are created, and optionally removes the original files to save space.  
+#--Created 08/2010 for v4.0 by Travis A. O'Brien <tobrien@ucsc.edu>
+#--Modified 01/2011 for v4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+
+#Print the proper usage of the program if improper arguments are given
+printusage ()
+{
+  echo "usage: $0 regcm.in"
+  echo "  where regcm.in is the namelist file for the run that you want to postprocess."
+  exit
+}
+
+
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+
+#The only argument from the command line: the regcm.in file
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ ! -e "$1" ]; then
+  echo "Error: '$1' does not exist"
+  printusage
+fi
+
+#Script parameters
+REGCMIN=$1
+
+##########Control variables################
+#The types to tell rcm2netcdf to process. CHE (-c) is added
+#if chemistry is on and the CHE files are being written
+TYPES="ATM SRF RAD"
+TYPEFLAG="-a -s -r"
+ANALCHEM=0
+#Time (s) between checks for whether the latest file is ready
+SLEEPTIME=300
+#Make this line blank if big endian
+ENDIANFLAG=""
+#The program that averages the raw netcdf files.
+#This program expects that the averager takes two arguments
+NCOBASE="" #Assume that the NCO binary directory is in the user's path
+NCWA="${NCOBASE}ncwa"
+AVERAGER="${NCWA} -O -b -a time " #filenamein.nc filenameout.nc
+#Flag whether to remove the binary output files once
+#the postprocessor has completed
+AUTOREMOVEBIN=0
+#The shell script handler for the deriveoptional program
+DERIVEOPT="$REGCMSRCDIR/Tools/Scripts/deriveoptional"
+
+#A couple of variables to make writing filenames in this script possible
+endstr="0100"
+us="_"
+
+
+echo "Parsing $REGCMIN:"
+##################### Reading regcm.in ########################
+#Use grep and sed to pull the experiment name from the regcm.in file
+EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
+EXPNAME=`echo $EXPNAME`
+
+#Use grep and sed to pull the output directory and the start/end dates
+#from the regcm.in file
+#Start date of run
+IDATE0=`grep -i idate0 $REGCMIN | sed "s/[Ii][Dd][Aa][Tt][Ee]0\s*=\s*\(.*\),/\1/"`
+IDATE0=`echo $IDATE0`
+#End date of run; inverse search for glob to avoid globidate2
+IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+IDATE2=`echo $IDATE2`
+#Output directory (allow for no comma at the end, since it is the last item in 
+#the namelist
+OUTDIR=`grep -i dirout $REGCMIN | sed "s/[Dd][Ii][Rr][Oo][Uu][Tt]\s*=\s*'\(.*\)',*/\1/"`
+OUTDIR=`echo $OUTDIR`
+#Assume that the linked Bin directory is one up from the output directory
+PPROC="$OUTDIR/../Bin/rcm2netcdf"
+#Chemistry Output?
+IOCHEM=`grep -i ifchem $REGCMIN | sed "s/[Ii][Ff][Cc][Hh][Ee][Mm]\s*=\s*\(.*\),/\1/"`
+IOCHEM=`echo $IOCHEM`
+#Chemsitry Model?
+ICHEM=`grep -i ichem $REGCMIN | sed "s/[Ii][Cc][Hh][Ee][Mm]\s*=\s*\(.*\),/\1/"`
+ICHEM=`echo $ICHEM`
+
+
+#Determine whether we should be going for chemistry files too
+if [ $ICHEM -eq "1" -a $IOCHEM = ".true." ]; then
+  TYPES="$TYPES CHE"
+  TYPEFLAG="$TYPEFLAG -c"
+fi
+
+#Make a list of the file types with the OPT type added
+TYPESOPT="${TYPES} OPT"
+
+#Parse the start and end date strings
+STARTYEAR=`echo $IDATE0 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+STARTMONTH=`echo $IDATE0 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+ENDYEAR=`echo $IDATE2 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+
+#TODO: Check that all of the variables were properly parsed
+#and give the user feedback if not
+
+echo "Done: Will now start parsing run $EXPNAME from ${STARTMONTH}/${STARTYEAR} to ${ENDMONTH}/${ENDYEAR}..."
+
+##################### End Reading regcm.in ####################
+
+
+
+##################### Main loop ###############################
+#Loop through all possible monthly files
+#postproc files as necessary, and wait for files to be completed
+#until attempting to move forward
+for year in `seq $STARTYEAR $ENDYEAR`
+do
+  #Set the appropriate start and end months for the current year
+  if [ "$year" -eq "$STARTYEAR" ]; then
+    imonth=$STARTMONTH
+  else
+    imonth="1"
+  fi
+  if [ "$year" -eq "$ENDYEAR" ]; then
+    emonth=$ENDMONTH
+  else
+    emonth="12"
+  fi
+  ########################### Month loop ####################
+  for month in `seq $imonth $emonth`
+  do
+
+    #Add a zero to the month if necessary
+    if [ "$month" -lt "10" ]; then
+      month="0$month"
+    fi
+
+    #Determine the start and end months of the averaging period
+    nextmonth=`expr $month + 1`
+    #Add a zero to the month if necessary
+    if [ "$nextmonth" -lt "10" ]; then
+      nextmonth="0$nextmonth"
+    fi
+    nextyear=$year
+    #increment the year if necessary
+    if [ "$nextmonth" -eq "13" ]; then
+      nextmonth="01"
+      nextyear=`expr $year + 1`
+    fi
+
+    ################ Does this month need to be processed? #######
+    #if all types of the raw netcdf files exist for the current
+    #month, then this month will be skipped
+    PPROCDONE=1
+    for type in $TYPES
+    do
+      filenamein="${EXPNAME}_${TYPE}.${year}${month}.nc"
+      if [ -s $filenamein ]; then
+        THISDONE=1
+      else
+        THISDONE=0
+      fi
+      #If THISDONE is 0 for any of the file types, then
+      #PPROCDONE will be 0, and processing will be run
+      PPROCDONE=`expr $PPROCDONE \* $THISDONE`
+    done
+    ############ End Does this month need to be processed? #######
+
+    #Run postproc only if necessary
+    if [ "$PPROCDONE" -eq "0" ]; then
+      ##################### Waiting loop ############################
+      #Enter a while loop that waits for the next file to be completed
+      #Postprocess that file once completed
+      NEXTREADY=0
+      while [ "$NEXTREADY" -ne "1" ]
+      do
+        #Cycle through each file type to check that the next month's
+        #data are ready, meaning that it is safe to process the current month
+        NEXTREADY=1
+        for type in $TYPES
+        do
+          #The RegCM output file for the next month
+          nextfile="${OUTDIR}/${EXPNAME}_${type}.${nextyear}${nextmonth}${endstr}.nc"
+          if [ -s $nextfile ]; then
+            READY=1
+          else
+            READY=0
+          fi
+          NEXTREADY=`expr $READY \* $NEXTREADY`
+        done
+        #Wait SLEEPTIME seconds before trying again
+        if [ $NEXTREADY -ne "1" ];then
+          echo "Waiting for $nextmonth/$nextyear to be ready..."
+          sleep $SLEEPTIME
+        fi
+      done
+      ################# End Waiting loop ############################
+
+      ################# rcm2netcdf and averaging ####################
+      #Run postproc for the specific month
+      echo "Processing $year/$month..."
+
+      #Derive optional variables from the output data
+      $DERIVEOPT $REGCMIN $year$month$endstr
+
+      for type in $TYPESOPT
+      do
+        echo "  Averaging $type for $year/$month..."
+        #Average the files
+        if [ "$type" == "OPT" ]; then
+          filenamein="${EXPNAME}_${type}.${year}${month}${endstr}.nc"
+        else
+          filenamein="${OUTDIR}/${EXPNAME}_${type}.${year}${month}${endstr}.nc"
+        fi
+        filenameout="${EXPNAME}_${type}.${year}${month}.nc"
+        $AVERAGER $filenamein $filenameout
+      done
+
+
+      ############## Autoremove binary files #######################
+      if [ "$AUTOREMOVEBIN" -eq "1" ]; then
+        for type in $TYPESOPT
+        do
+          #Don't look in the output directory if it is an OPT file
+          if [ "$type" == "OPT" ]; then
+            curfile="${EXPNAME}_${type}.${year}${month}${endstr}.nc"
+          else
+            curfile="${OUTDIR}/${EXPNAME}_${type}.${year}${month}${endstr}.nc"
+          fi
+          filenamein="${EXPNAME}_${type}.${year}${month}.nc"
+          #If the pproc'd file exists (and has size greater than 0) then
+          #remove the corresponding binary file.
+          if [ -s $filenamein ]; then
+            rm $curfile
+            echo "     Removed $curfile"
+          #Otherwise, issue a warning
+          else
+            echo "Warning: creation of $filenamein appears to have failed.  Not removing $curfile."
+          fi
+        done
+      fi
+      ############## End autoremove binary files ###################
+
+      ############# End rcm2netcdf and averaging ####################
+    else
+      echo "   $month/$year appears to already be post-processed.  Skipping."
+    fi #End: run postproc only if necessary
+  done
+  ####################### End Month loop ####################
+done
+################# End Main loop ###############################

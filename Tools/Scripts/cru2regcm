@@ -1,0 +1,161 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that runs the NCL script conver_CRU_regcm_grid, which interpolates CRU
+# data to a given RCM grid and extracts the appropriate time steps.
+# RegCM4.1 output data
+#--Created 01/2011 for v4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+
+#A subroutine for printing the proper usage to the screen
+printusage ()
+{
+  echo "usage: $0 regcm.in [ENDDATE] [STARTDATE]"
+  echo "  where regcm.in is the namelist file for the run that you want to postprocess"
+  echo ""
+  echo "  ENDDATE is the ending date that you would like extracted from the CRU data."
+  echo "    ENDDATE has the format YYYYMM"
+  echo ""
+  echo "  STARTDATE is the starting date that you would like extracted from the"
+  echo "    CRU data. STARTDATE has the format YYYYMM"
+  echo ""
+  echo "  The default behavior is for the program to parse ENDDATE and STARTDATE from the regcm.in file."
+  exit
+}
+
+#The start and end years of the CRU data
+CRUMINYEAR=1901
+CRUMAXYEAR=2000
+
+#Check if the Environment variable REGCMSRCDIR has been set
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+if [ -z "$CRUTEMPFILE" ]; then
+  echo "Error: the environment variable CRUTEMPFILE is not set.  Please set it to the absolute location of the CRU temperature NetCDF file."
+  exit
+fi
+if [ -z "$CRUPREFILE" ]; then
+  echo "Error: the environment variable CRUPREFILE is not set.  Please set it to the absolute location of the CRU precipitation NetCDF file."
+  exit
+fi
+
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ ! -e "$1" ]; then
+  echo "Error: '$1' does not exist"
+  printusage
+fi
+
+
+
+#Set the regcm.in file
+REGCMIN=$1
+
+echo "Parsing $REGCMIN..."
+
+#Parse the regcm.in file
+##################### Reading regcm.in ########################
+#Use grep and sed to pull the experiment name from the regcm.in file
+EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
+EXPNAME=`echo $EXPNAME`
+
+#Use grep and sed to pull the output directory and the start/end dates
+#from the regcm.in file
+#Get the optional start and end date arguments
+if [ -z "$3" ]; then
+  #Start date of run; parse if an argument was not given
+  IDATE0=`grep -i idate0 $REGCMIN | sed "s/[Ii][Dd][Aa][Tt][Ee]0\s*=\s*\(.*\),/\1/"`
+  IDATE0=`echo $IDATE0`
+else
+  IDATE0="${3}0100"
+fi
+
+if [ -z "$2" ]; then
+  #End date of run; inverse search for glob to avoid globidate2
+  #Start date of run; parse if an argument was not given
+  IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+  IDATE2=`echo $IDATE2`
+else
+  IDATE2="${2}0100"
+fi
+
+#Output directory (allow for no comma at the end, since it is the last item in 
+#the namelist
+TERDIR=`grep -i dirter $REGCMIN | sed "s/[Dd][Ii][Rr][Tt][Ee][Rr]\s*=\s*'\(.*\)',*/\1/"`
+TERDIR=`echo $TERDIR`
+
+#Parse the start and end date strings
+STARTYEAR=`echo $IDATE0 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+STARTMONTH=`echo $IDATE0 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+ENDYEAR=`echo $IDATE2 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+
+
+if [ "$ENDYEAR" -gt "$CRUMAXYEAR" ]; then
+  echo "Warning: ${ENDMONTH}/${ENDYEAR} is past the end of the CRU data.  The end date is being set to 12/$CRUMAXYEAR"
+  ENDYEAR=$CRUMAXYEAR
+  ENDMONTH="12"
+fi
+if [ "$STARTYEAR" -lt "$CRUMINYEAR" ]; then
+  echo "Warning: ${ENDMONTH}/${ENDYEAR} is before the beginning of the CRU data.  The end date is being set to 01/$CRUMAXYEAR"
+  STARTYEAR=$CRUMINYEAR
+  STARTMONTH="01"
+fi
+
+echo "Interpolating CRU data to the $EXPNAME grid from dates ${STARTMONTH}/${STARTYEAR} to ${ENDMONTH}/${ENDYEAR}..."
+
+NCLBASE="" #Assume that the NCL binary directory is in the user's path
+NCL="${NCLBASE}ncl"
+
+CRUTORCMNCL="$REGCMSRCDIR/Tools/Scripts/NCL/convert_CRU_regcm_grid.ncl"
+
+#Generate the file paths
+DOMNAME="${TERDIR}/${EXPNAME}_DOMAIN000.nc"
+
+if [ ! -e "$DOMNAME" ]; then
+  "Error: the file '$DOMNAME' does not exist.  Perhaps this is a problem with your regcm.in file, or perhaps you have not run terrain yet?"
+  exit
+fi
+
+
+#Generate file names with quotes around them so that they can be passed to
+#ncl
+DOMFILENAME="\"$DOMNAME\""
+STARTDATE="\"${STARTYEAR}${STARTMONTH}\""
+ENDDATE="\"${ENDYEAR}${ENDMONTH}\""
+CRUTEMPFILENAME="\"$CRUTEMPFILE\""
+CRUPREFILENAME="\"$CRUPREFILE\""
+
+#Run NCL, giving it the file paths from above
+$NCL $CRUTORCMNCL \
+      "crutempfilename=$CRUTEMPFILENAME" \
+      "cruprefilename=$CRUPREFILENAME" \
+      "domfilename=$DOMFILENAME" \
+      "istartdate=$STARTDATE" \
+      "ienddate=$ENDDATE"
+
+
+
+

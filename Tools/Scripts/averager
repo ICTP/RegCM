@@ -1,0 +1,127 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that averages output files in the background as they are created, and optionally removes the original files to save space.  
+#--Created 08/2010 for v4.0 by Travis A. O'Brien <tobrien@ucsc.edu>
+#--Modified 01/2011 for v4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+
+#The program that averages the raw netcdf files.
+#This program expects that the averager takes two arguments
+NCOBASE="" #Assume that the NCO binary directory is in the user's path
+NCRCAT="${NCOBASE}ncrcat"
+
+
+#Print the proper usage of the program if improper arguments are given
+printusage ()
+{
+  echo "usage: $0 postproc_directory [-a -s -r -c -o]"
+  echo "  postproc_directory is a directory full of -only- monthly average NetCDF files for your run."
+  echo " The flags -a, -s, -r, -c, -o specify which types of file to analyze:"
+  echo "    -a    ATM"
+  echo "    -s    SRF"
+  echo "    -r    RAD"
+  echo "    -c    CHE"
+  echo "    -o    OPT"
+  echo "  Default: -a -s -r -o (CHE is ignored by default)"
+  exit
+}
+
+parseopt ()
+{
+  FOUND=0
+  if [ "$1" == "-a" ]; then
+    TYPES="${TYPES} ATM"
+    FOUND=1
+  fi
+  if [ "$1" == "-s" ]; then
+    TYPES="${TYPES} SRF"
+    FOUND=1
+  fi
+  if [ "$1" == "-r" ]; then
+    TYPES="${TYPES} RAD"
+    FOUND=1
+  fi
+  if [ "$1" == "-c" ]; then
+    TYPES="${TYPES} CHE"
+    FOUND=1
+  fi
+  if [ "$1" == "-o" ]; then
+    TYPES="${TYPES} OPT"
+    FOUND=1
+  fi
+
+  if [ "$FOUND" -eq "0" ]; then
+    echo "Warning: Unrecognized option $1"
+  fi
+}
+
+
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+
+#The only argument from the command line: the regcm.in file
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ ! -d "$1" ]; then
+  echo "Error: '$1' does not exist as a directory"
+  printusage
+fi
+
+#Script parameters
+PPDIR=$1
+shift
+
+
+#Use the default TYPES if no argument is given
+if [ "$#" -eq "0" ]; then
+  TYPES="ATM SRF RAD OPT"
+else
+#Otherwise parse the argument list
+  TYPES=""
+  for i in `seq 1 $#`
+  do
+    parseopt $1
+    shift
+  done
+fi
+
+#################### End Parsing Command Line ####################
+
+#Go through each file type, concatenate all the monthly files, and the perform
+#various types of averaging (annual, seasonal, monthly)
+for filetype in $TYPES
+do
+
+  #Concatenate files
+  echo "Concatenating $filetype files..."
+  $NCRCAT -O $PPDIR/*$filetype*.nc $filetype.all.nc
+
+  #Average Files
+  $REGCMSRCDIR/Tools/Scripts/write_averages $filetype
+done
+
+echo "Done."
