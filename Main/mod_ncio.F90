@@ -1712,28 +1712,28 @@
           call check_ok('Error adding ptop long_name', fterr)
           istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
           call check_ok('Error adding ptop units', fterr)
-          istatus = nf90_def_var(ncid, 'y_range', nf90_float, idims(2), &
+          istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
                             &  ivvar(1))
-          call check_ok('Error adding variable y_range', fterr)
+          call check_ok('Error adding variable iy', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
                             &  'projection_y_coordinate')
-          call check_ok('Error adding y_range standard_name', fterr)
+          call check_ok('Error adding iy standard_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'long_name', &
                             &  'y-coordinate in Cartesian system')
-          call check_ok('Error adding y_range long_name', fterr)
+          call check_ok('Error adding iy long_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-          call check_ok('Error adding y_range units', fterr)
-          istatus = nf90_def_var(ncid, 'x_range', nf90_float, idims(1), &
+          call check_ok('Error adding iy units', fterr)
+          istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
                             &  ivvar(2))
-          call check_ok('Error adding variable x_range', fterr)
+          call check_ok('Error adding variable jx', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                             &  'projection_x_coordinate')
-          call check_ok('Error adding x_range standard_name', fterr)
+          call check_ok('Error adding jx standard_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'long_name', &
                             &  'x-coordinate in Cartesian system')
-          call check_ok('Error adding x_range long_name', fterr)
+          call check_ok('Error adding jx long_name', fterr)
           istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-          call check_ok('Error adding x_range units', fterr)
+          call check_ok('Error adding jx units', fterr)
           istatus = nf90_def_var(ncid, 'xlat', nf90_float, &
                              &   idims(1:2), illtpvar(1))
           call check_ok('Error adding variable xlat', fterr)
