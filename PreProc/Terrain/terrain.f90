@@ -249,7 +249,7 @@
                       ibnty=2,h2opct=h2opct)
           do i = 1 , ntex
             call interp(iysg,jxsg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
-                        nlatin,nlonin,grdltmn,grdlnmn,text,         &
+                        nlatin,nlonin,grdltmn,grdlnmn,values,      &
                         ntypec_s,5,lonwrap,lcrosstime,ival=i)
           end do
           print *, 'Interpolated texture on SUBGRID'
@@ -390,7 +390,7 @@
                     ibnty=2,h2opct=h2opct)
         do i = 1 , ntex
           call interp(iy,jx,xlat,xlon,frac_tex(:,:,i),   &
-                      nlatin,nlonin,grdltmn,grdlnmn,text, &
+                      nlatin,nlonin,grdltmn,grdlnmn,values, &
                       ntypec,5,lonwrap,lcrosstime,ival=i)
         end do
         print *, 'Interpolated texture on model GRID'

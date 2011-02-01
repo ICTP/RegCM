@@ -19,7 +19,6 @@
 
       module mod_block
       implicit none
-      real(4) , allocatable , dimension(:,:) :: ht , lnd , text , dpt
       real(8) :: grdlnmn , grdltmn , grdlnma , grdltma
       real(8) :: xmaxlat , xmaxlon , xminlat , xminlon
       integer :: nlatin , nlonin
