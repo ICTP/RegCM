@@ -1,3 +1,22 @@
+;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;
+;    This file is part of ICTP RegCM.
+;
+;    ICTP RegCM is free software: you can redistribute it and/or modify
+;    it under the terms of the GNU General Public License as published by
+;    the Free Software Foundation, either version 3 of the License, or
+;    (at your option) any later version.
+;
+;    ICTP RegCM is distributed in the hope that it will be useful,
+;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;    GNU General Public License for more details.
+;
+;    You should have received a copy of the GNU General Public License
+;    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+;
+;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 ;**************************************************
 ;************ Load necessary ncl code *************
 ;**************************************************
@@ -87,31 +106,27 @@ begin
 	fout->t2m = ta
 
 	;Read in the CRU precip data
-        print("Reading TMP from " + time_cru(istart) + " to " + time_cru(iend))
+        print("Reading tpr (TPR) from " + time_cru(istart) + " to " + time_cru(iend))
 	v2_PRE		=	short2flt(f2->PRE(istart:iend,:,:))
 
 	;Regrid the CRU precip data to the RCM grid
         print("Re-gridding tpr")
 	tpr_regrid	= rgrid2rcm(lat_cru,lon_cru,v2_PRE,lat2d,lon2d,1)
-        tpr = new((/ntime,1,nlat,nlon/),float)
-        tpr(:,0,:,:) = tpr_regrid 
+  tpr = new((/ntime,nlat,nlon/),float)
+  tpr(:,:,:) = tpr_regrid
 	;Give it the RCM coordinates
 	tpr!0 = "time"
-	tpr!1 = "m2"
-	tpr!2 = "iy"
-	tpr!3 = "jx"
+	tpr!1 = "iy"
+	tpr!2 = "jx"
         tpr&time = v2_PRE&time
-        tpr&m2 = 2
         tpr&iy = lat2d&iy
         tpr&jx = lat2d&jx
         tpr@_FillValue = v2_PRE@_FillValue
         tpr@_FillValue = 1e-30
         tpr@missing_value = tpr@_FillValue
 
-
 	;Output the precip data
         print("Writing tpr")
-	fout->tpr = tpr 
-	
+	fout->tpr = tpr(:,:,:)
 
 end
