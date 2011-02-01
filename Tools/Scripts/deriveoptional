@@ -1,0 +1,163 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that runs the NCL script deriveoptional, which derives variables from
+# RegCM4.1 output data
+#--Created 01/2011 for v4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+
+#A subroutine for printing the proper usage to the screen
+printusage ()
+{
+  echo "usage: $0 regcm.in YYYYMMDDHH"
+  echo "  where regcm.in is the namelist file for the run that you want to postprocess"
+  echo "  and YYYYMMDDHH is the date code for the file you wish to process"
+  exit
+}
+
+
+#Check if the Environment variable REGCMSRCDIR has been set
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+#A list of the variables to extract from the ATM file and put in to the OPT file
+EXTRACTVARLIST="sigma,y_range,x_range,xlat,xlon,topo,mask,rcm_map,ptop,t"
+
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ -z "$2" ]; then
+  printusage
+fi
+if [ ! -e "$1" ]; then
+  echo "Error: '$1' does not exist"
+  printusage
+fi
+
+#Set the regcm.in file
+REGCMIN=$1
+
+echo "Parsing $REGCMIN..."
+
+#Parse the regcm.in file
+##################### Reading regcm.in ########################
+#Use grep and sed to pull the experiment name from the regcm.in file
+EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
+EXPNAME=`echo $EXPNAME`
+
+#Use grep and sed to pull the output directory and the start/end dates
+#from the regcm.in file
+#Start date of run
+IDATE0=`grep -i idate0 $REGCMIN | sed "s/[Ii][Dd][Aa][Tt][Ee]0\s*=\s*\(.*\),/\1/"`
+IDATE0=`echo $IDATE0`
+#End date of run; inverse search for glob to avoid globidate2
+IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+IDATE2=`echo $IDATE2`
+#Output directory (allow for no comma at the end, since it is the last item in 
+#the namelist
+OUTDIR=`grep -i dirout $REGCMIN | sed "s/[Dd][Ii][Rr][Oo][Uu][Tt]\s*=\s*'\(.*\)',*/\1/"`
+OUTDIR=`echo $OUTDIR`
+#Assume that the linked Bin directory is one up from the output directory
+PPROC="$OUTDIR/../Bin/rcm2netcdf"
+#Chemistry Output?
+IOCHEM=`grep -i ifchem $REGCMIN | sed "s/[Ii][Ff][Cc][Hh][Ee][Mm]\s*=\s*\(.*\),/\1/"`
+IOCHEM=`echo $IOCHEM`
+#Chemsitry Model?
+ICHEM=`grep -i ichem $REGCMIN | sed "s/[Ii][Cc][Hh][Ee][Mm]\s*=\s*\(.*\),/\1/"`
+ICHEM=`echo $ICHEM`
+
+
+#TODO: Have these paths be either parsed from regcm.in or passed in as command line arguments
+PPDIR="./"
+
+#TODO Have the date string come from a command line argument
+#Have the file base be parseable from a regcm.in file, or have it passed as a
+#command line argument.
+FILEBASE="$EXPNAME"
+DATESTRING=$2
+
+echo "Postprocesssing experiment $EXPNAME at idate $DATESTRING..."
+
+#Helper variables for generating file names
+us="_"
+dotnc=".nc"
+atm="ATM"
+srf="SRF"
+rad="RAD"
+opt="OPT"
+
+#External program names
+NCOBASE="" #Assume that the NCO binary directory is in the user's path
+NCKS="${NCOBASE}ncks"
+NCRENAME="${NCOBASE}ncrename"
+
+NCLBASE="" #Assume that the NCL binary directory is in the user's path
+NCL="${NCLBASE}ncl"
+
+DERIVEOPTIONALNCL="$REGCMSRCDIR/Tools/Scripts/NCL/deriveoptional/deriveoptional.ncl"
+
+#Generate the file paths
+ATMNAME="$OUTDIR/$FILEBASE$us$atm.$DATESTRING$dotnc"
+SRFNAME="$OUTDIR/$FILEBASE$us$srf.$DATESTRING$dotnc"
+RADNAME="$OUTDIR/$FILEBASE$us$rad.$DATESTRING$dotnc"
+OPTNAME="$PPDIR/$FILEBASE$us$opt.$DATESTRING$dotnc"
+#TODO: Add a chemistry file option
+#TODO: Check the existence of the ATM, SRF, and RAD files
+
+if [ ! -e "$ATMNAME" ]; then
+  "Error: the file '$ATMNAME' does not exist.  Perhaps this is a problem with your regcm.in file, or perhaps you input an invalid date?"
+fi
+if [ ! -e "$SRFNAME" ]; then
+  "Error: the file '$SRFNAME' does not exist.  Perhaps this is a problem with your regcm.in file, or perhaps you input an invalid date?"
+fi
+if [ ! -e "$RADNAME" ]; then
+  "Error: the file '$RADNAME' does not exist.  Perhaps this is a problem with your regcm.in file, or perhaps you input an invalid date?"
+fi
+
+
+
+#USE ncks to extract the tertiary variables and temperature.  Then use ncrename
+#to rename the temperature variable to pressure; the deriveoptional ncl script
+#will do the conversion itself.  This is so that ncl doesn't have to worry about
+#defining dimensions or anything.
+$NCKS -Ov $EXTRACTVARLIST  $ATMNAME $OPTNAME
+$NCRENAME -v t,pres $OPTNAME
+
+#Generate file names with quotes around them so that they can be passed to
+#ncl
+ATMFILENAME="\"$ATMNAME\""
+SRFFILENAME="\"$SRFNAME\""
+RADFILENAME="\"$RADNAME\""
+OPTFILENAME="\"$OPTNAME\""
+
+#Run NCL, giving it the file paths from above
+$NCL $DERIVEOPTIONALNCL \
+      "atmfilename=$ATMFILENAME" \
+      "srffilename=$SRFFILENAME" \
+      "radfilename=$RADFILENAME" \
+      "optfilename=$OPTFILENAME"
+
+
+
+

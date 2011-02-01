@@ -1,0 +1,67 @@
+#!/bin/sh
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that averages output files in the background as they are created, and optionally removes the original files to save space.  
+#--Created 01/2010 for v4.0 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+filetype=$1
+
+#The program that averages the raw netcdf files.
+#This program expects that the averager takes two arguments
+NCOBASE="" #Assume that the NCO binary directory is in the user's path
+NCECAT="${NCOBASE}ncecat"
+NCWA="${NCOBASE}ncwa"
+
+echo "Full averaging $filetype files..."
+$NCWA -O -a time $filetype.all.nc $filetype.avg.nc
+
+echo "Winter averaging $filetype files..."
+$NCWA -O -a time -d time,0,,12 -d time,1,,12 -d time,11,,12 $filetype.all.nc $filetype.djf.avg.nc
+
+echo "Spring averaging $filetype files..."
+$NCWA -O -a time -d time,2,,12 -d time,3,,12 -d time,4,,12 $filetype.all.nc $filetype.mam.avg.nc
+
+echo "Summer averaging $filetype files..."
+$NCWA -O -a time -d time,5,,12 -d time,6,,12 -d time,7,,12 $filetype.all.nc $filetype.jja.avg.nc
+
+echo "Fall averaging $filetype files..."
+$NCWA -O -a time -d time,8,,12 -d time,9,,12 -d time,10,,12 $filetype.all.nc $filetype.son.avg.nc
+
+echo "Monthly averaging $filetype files..."
+for month in 0 1 2 3 4 5 6 7 8 9 10 11
+do
+  $NCWA -O -a time -d time,$month,,12 $filetype.all.nc $filetype.month_$month.nc
+done 
+$NCECAT -u month -O \
+                    $filetype.month_0.nc \
+                    $filetype.month_1.nc \
+                    $filetype.month_2.nc \
+                    $filetype.month_3.nc \
+                    $filetype.month_4.nc \
+                    $filetype.month_5.nc \
+                    $filetype.month_6.nc \
+                    $filetype.month_7.nc \
+                    $filetype.month_8.nc \
+                    $filetype.month_9.nc \
+                    $filetype.month_10.nc \
+                    $filetype.month_11.nc \
+                    $filetype.monthly.avg.nc
+rm $filetype.month_*.nc
+
