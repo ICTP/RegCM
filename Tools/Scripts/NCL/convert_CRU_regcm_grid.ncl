@@ -87,7 +87,7 @@ begin
 	fout->t2m = ta
 
 	;Read in the CRU precip data
-        print("Reading TMP from " + time_cru(istart) + " to " + time_cru(iend))
+        print("Reading tpr (TPR) from " + time_cru(istart) + " to " + time_cru(iend))
 	v2_PRE		=	short2flt(f2->PRE(istart:iend,:,:))
 
 	;Regrid the CRU precip data to the RCM grid
