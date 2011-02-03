@@ -423,7 +423,7 @@
         end do
         if ( ichem.eq.1 ) then
           do n = 1 , ntr
-            do k = 1 , kz   
+            do k = 1 , kz
               do i = 1 , iy
                 tvar1snd(i,kz*11+1+(n-1)*2*kz+k) = chi(i,k,jxp,n)
                 tvar1snd(i,kz*11+1+(n-1)*2*kz+kz+k) = chib(i,k,jxp,n)

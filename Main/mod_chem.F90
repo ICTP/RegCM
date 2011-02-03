@@ -66,22 +66,25 @@
         end if
       end subroutine allocate_mod_chem
 !
-      subroutine init_chem
-      implicit none 
-!
 ! this routine reads the oxidant data written by 
 ! the oxidant program 
 !
-
-#ifdef IBM
+      subroutine init_chem
+#ifdef MPP1
+#ifndef IBM
       use mpi
-#else 
+#endif
+#endif
+      implicit none 
+#ifdef MPP1
+#ifdef IBM
       include 'mpif.h'
 #endif
-      logical        :: existing
+#endif
+      logical :: existing
       character(256) :: finm
-      integer        :: i,j,k,ierr
-      integer        :: nxxx , nyyy, kzzz 
+      integer :: i , j , k , ierr
+      integer :: nxxx , nyyy, kzzz 
       real(4) , dimension(iy,jx) :: io2d
 !
       existing = .false.
@@ -253,24 +256,26 @@
 
 99001 format (a,a,a,a,i0.10)
       end subroutine init_chem
-
+!
       subroutine bdyin_chem
-#ifdef IBM
-      use mpi
-#else 
-      include 'mpif.h'
+#ifdef MPP1
+#ifndef IBM
+        use mpi
 #endif
-      logical :: existing
-      character(256) :: finm
-      integer        :: i,j,k,ierr,ierr1
-      integer        :: nxxx , nyyy, kzzz 
-      real(4) , dimension(iy,jx) :: io2d
-      real(8) :: dtbdys
-      integer :: ndateox
-
+#endif
+        implicit none 
+#ifdef MPP1
+#ifdef IBM
+        include 'mpif.h'
+#endif
+#endif
+        logical :: existing
+        character(256) :: finm
+        integer :: i , j , k , ierr , ierr1
+        real(4) , dimension(iy,jx) :: io2d
+        real(8) :: dtbdys
 
         existing = .false.
-
 !
         dtbdys = ibdyfrq*60.*60.
         if ( myid.eq.0 ) then

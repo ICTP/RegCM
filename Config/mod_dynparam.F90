@@ -486,6 +486,7 @@
         call mpi_bcast(plon,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(truelatl,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(i_band,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
 
