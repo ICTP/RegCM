@@ -458,7 +458,8 @@
           end do
         end if
 
-        print * , 'READ/WRITE: ' , vnam(ifld) , lnam(ifld) , units(ifld)
+        print *, 'READ/WRITE: ', trim(vnam(ifld)), ', ', &
+                 trim(lnam(ifld)), ', ', trim(units(ifld))
  
 !       ** Set the non-land values to missing for interpolation purposes
 
