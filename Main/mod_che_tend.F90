@@ -152,7 +152,8 @@
  
 !----horizontal diffusion: initialize scratch vars to 0.
 !       need to compute tracer tendencies due to diffusion
-        call diffu_x(chiten(:,:,j,itr),chib3d,sps2%ps,xkc(:,:,j),j)
+        call diffu_x(chiten(:,:,j,itr),chib3d(:,:,:,itr), &
+                     sps2%ps,xkc(:,:,j),j)
  
       end do ! end tracer loop
  

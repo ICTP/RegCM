@@ -131,7 +131,7 @@
       real(8) , dimension(iy,4,jxp) :: ps4
       real(8) , dimension(iy,4,jx) :: ps_4 
       real(8) , dimension(iy,kz*(ntr+5)*2) :: var2rcv , var2snd
-      real(8) , dimension(iy,kz*(ntr+11)+1) :: tvar1rcv , tvar1snd
+      real(8) , dimension(iy,kz*11+1+ntr*kz*2) :: tvar1rcv , tvar1snd
 #else
       real(8) , dimension(iy,kz,jx) :: ttld
       real(8) , dimension(iy,kz,jx) :: xkc
@@ -397,7 +397,6 @@
           end do
         end do
       end if
-!chem2_
 !
 !=======================================================================
 #ifdef MPP1
@@ -426,7 +425,8 @@
           do n = 1 , ntr
             do k = 1 , kz
               do i = 1 , iy
-                tvar1snd(i,kz*11+1+(n-1)*kz+k) = chi(i,k,jxp,n)
+                tvar1snd(i,kz*11+1+(n-1)*2*kz+k) = chi(i,k,jxp,n)
+                tvar1snd(i,kz*11+1+(n-1)*2*kz+kz+k) = chib(i,k,jxp,n)
               end do
             end do
           end do
@@ -435,7 +435,7 @@
       end if
 #endif
       numrec = kz*11 + 1
-      if ( ichem.eq.1 ) numrec = kz*(ntr+11) + 1
+      if ( ichem.eq.1 ) numrec = kz*11 + 1 + ntr*2 *kz
       call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
                       & ieast,1,tvar1rcv(1,1),iy*numrec,                &
                       & mpi_real8,iwest,1,mpi_comm_world,               &
@@ -465,7 +465,8 @@
           do n = 1 , ntr
             do k = 1 , kz
               do i = 1 , iy
-                chi(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*kz+k)
+                chi(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*2*kz+k)
+                chib(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*2*kz+kz+k)
               end do
             end do
           end do
@@ -497,7 +498,8 @@
           do n = 1 , ntr
             do k = 1 , kz
               do i = 1 , iy
-                tvar1snd(i,kz*11+1+(n-1)*kz+k) = chi(i,k,1,n)
+                tvar1snd(i,kz*11+1+(n-1)*kz*2+k) = chi(i,k,1,n)
+                tvar1snd(i,kz*11+1+(n-1)*kz*2+kz+k) = chib(i,k,1,n)
               end do
             end do
           end do
@@ -506,7 +508,7 @@
       end if
 #endif
       numrec = kz*11 + 1
-      if ( ichem.eq.1 ) numrec = kz*(ntr+11) + 1
+      if ( ichem.eq.1 ) numrec = kz*11 + 1 + ntr*kz*2
       call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
                       & iwest,2,tvar1rcv(1,1),iy*numrec,                &
                       & mpi_real8,ieast,2,mpi_comm_world,               &
@@ -536,7 +538,8 @@
           do n = 1 , ntr
             do k = 1 , kz
               do i = 1 , iy
-                chi(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz+k)
+                chi(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz*2+k)
+                chib(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz*2+kz+k)
               end do
             end do
           end do
@@ -545,6 +548,8 @@
       end if
 #endif
 #endif
+!=======================================================================
+!
 !=======================================================================
 !
 !-----interior points:
@@ -564,7 +569,7 @@
 #endif
         do i = 2 , iym1
           sps2%pdot(i,j)=0.25*(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
-                                 sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
+                               sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
         end do
       end do
 !
@@ -577,7 +582,7 @@
            sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
         if ( myid.eq.nproc-1 ) &
            sps2%pdot(i,jendl) = 0.5*(sps2%ps(i,jendx)+ &
-                                       sps2%ps(i-1,jendx))
+                                     sps2%ps(i-1,jendx))
 #else
         sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
         sps2%pdot(i,jx) = 0.5*(sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))
@@ -1565,7 +1570,7 @@
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
-          if ( (jyear.eq.jyear0 .and. ktau.eq.0) ) dtbat = dt
+          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
           call vecbats(j, kz , 2 , iym1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
