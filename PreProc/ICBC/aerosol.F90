@@ -521,6 +521,7 @@
       end if
 
       write(stdout,*) 'Successfully built aerosol data for domain'
+      stop
 
  100  continue
       call die('aerosol','ERROR OPENING AEROSOL FILE',1)
