@@ -948,6 +948,16 @@
           end do
         end if
         call close_domain
+!
+!------invert mapscale factors and convert hgt to geopotential
+!
+        do j = 1 , jx
+          do i = 1 , iy
+            mddom_io%ht(i,j)   = mddom_io%ht(i,j)*gti
+            mddom_io%msfd(i,j) = 1.0D0/mddom_io%msfd(i,j)
+            mddom_io%msfx(i,j) = 1.0D0/mddom_io%msfx(i,j)
+          end do
+        end do
 
         do j = 1 , jx
           do i = 1 , iy
@@ -969,11 +979,6 @@
             end do
           end do
         end do
-        do j = 1 , jx
-          do i = 1 , iy
-            mddom_io%ht(i,j) = mddom_io%ht(i,j)*gti
-          end do
-        end do
       end if  ! end if (myid.eq.0)
 
       if(lakemod.eq.1) then
@@ -985,6 +990,7 @@
       call mpi_scatter(inisrf_0,iy*(nnsg*5+7)*jxp,mpi_real8,   &
                      & inisrf0, iy*(nnsg*5+7)*jxp,mpi_real8,   &
                      & 0,mpi_comm_world,ierr)
+
       do j = 1 , jxp
         do i = 1 , iy
           mddom%ht(i,j) = inisrf0(i,1,j)
@@ -1005,20 +1011,7 @@
           end do
         end do
       end do
-!
-!------invert mapscale factors:
-!
-      do j = 1 , jendl
-        do i = 1 , iy
-          mddom%msfd(i,j) = 1./mddom%msfd(i,j)
-        end do
-      end do
-      do j = 1 , jendl
-        do i = 1 , iy
-          mddom%msfx(i,j) = 1./mddom%msfx(i,j)
-          mddom%ht(i,j) = mddom%ht(i,j)*gti
-        end do
-      end do
+
       if ( myid.eq.0 ) then
         print * , ' '
         print * ,                                                     &
@@ -1042,25 +1035,28 @@
         print * , ' '
 
       end if
+
       call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
-                      & mddom%ht(1,0),iy,mpi_real8,iwest,1,          &
+                      & mddom%ht(1,0),  iy,mpi_real8,iwest,1,        &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(mddom%ht(1,1),iy,mpi_real8,iwest,2,          &
+      call mpi_sendrecv(mddom%ht(1,1),    iy,mpi_real8,iwest,2,      &
                       & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                      & 1,mddom%msfx(1,-1),iy*2,mpi_real8,iwest,     &
-                      & 1,mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(mddom%msfx(1,1),iy*2,mpi_real8,iwest,2,      &
-                      & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                      & 2,mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,    &
-                      & 1,mddom%msfd(1,-1),iy*2,mpi_real8,iwest,     &
-                      & 1,mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(mddom%msfd(1,1),iy*2,mpi_real8,iwest,2,      &
-                      & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,    &
-                      & 2,mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
+                      & mddom%msfx(1,-1),   iy*2,mpi_real8,iwest,1,  &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfx(1,1),    iy*2,mpi_real8,iwest,2,  &
+                      & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
+                      & mddom%msfd(1,-1), iy*2,mpi_real8,iwest,1,    &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(mddom%msfd(1,1),    iy*2,mpi_real8,iwest,2,  &
+                      & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
+
 #else
+
       write (aline, *) 'Reading in DOMAIN data'
       call say
       call read_domain(mddom%ht,mddom%satbrt, &
@@ -1081,20 +1077,17 @@
         end do
       end if
       call close_domain
-
-!------invert mapscale factors:
-
+!
+!------invert mapscale factors and convert hgt to geopotential
+!
       do j = 1 , jx
         do i = 1 , iy
-          mddom%msfd(i,j) = 1./mddom%msfd(i,j)
+          mddom%ht(i,j)   = mddom%ht(i,j)*gti
+          mddom%msfd(i,j) = 1.0D0/mddom%msfd(i,j)
+          mddom%msfx(i,j) = 1.0D0/mddom%msfx(i,j)
         end do
       end do
-      do j = 1 , jx
-        do i = 1 , iy
-          mddom%msfx(i,j) = 1./mddom%msfx(i,j)
-          mddom%ht(i,j) = mddom%ht(i,j)*gti
-        end do
-      end do
+
       print * , ' '
       print * , '***************************************************'
       print * , '***************************************************'
