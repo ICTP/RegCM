@@ -372,7 +372,7 @@
               end do
             end do
           end do
-          allrec = 5 + nnsg + kzp1
+          allrec = 4 + nnsg + kzp1
           call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                         & sav_0a,iy*allrec*jxp,mpi_real8,        &
                         & 0,mpi_comm_world,ierr)
@@ -787,37 +787,37 @@
                 end do
               end do
             end if
-          end if
-          do j = 1 , jendx
-            do i = 1 , iym1
-              sav4a(i,1,j) = ssw2da(i,j)
-              sav4a(i,2,j) = sdeltk2d(i,j)
-              sav4a(i,3,j) = sdelqk2d(i,j)
-              sav4a(i,4,j) = sfracv2d(i,j)
-              sav4a(i,5,j) = sfracb2d(i,j)
-              sav4a(i,6,j) = sfracs2d(i,j)
-              sav4a(i,7,j) = svegfrac2d(i,j)
-            end do
-          end do
-          call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
-                        & sav_4a,iym1*7*jxp,mpi_real8,                &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
+            do j = 1 , jendx
               do i = 1 , iym1
-                ssw2da_io(i,j) = sav_4a(i,1,j)
-                sdeltk2d_io(i,j) = sav_4a(i,2,j)
-                sdelqk2d_io(i,j) = sav_4a(i,3,j)
-                sfracv2d_io(i,j) = sav_4a(i,4,j)
-                sfracb2d_io(i,j) = sav_4a(i,5,j)
-                sfracs2d_io(i,j) = sav_4a(i,6,j)
-                svegfrac2d_io(i,j) = sav_4a(i,7,j)
+                sav4a(i,1,j) = ssw2da(i,j)
+                sav4a(i,2,j) = sdeltk2d(i,j)
+                sav4a(i,3,j) = sdelqk2d(i,j)
+                sav4a(i,4,j) = sfracv2d(i,j)
+                sav4a(i,5,j) = sfracb2d(i,j)
+                sav4a(i,6,j) = sfracs2d(i,j)
+                sav4a(i,7,j) = svegfrac2d(i,j)
               end do
             end do
+            call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
+                          & sav_4a,iym1*7*jxp,mpi_real8,                &
+                          & 0,mpi_comm_world,ierr)
+            if ( myid.eq.0 ) then
+#ifdef BAND
+              do j = 1 , jx
+#else
+              do j = 1 , jxm1
+#endif
+                do i = 1 , iym1
+                  ssw2da_io(i,j) = sav_4a(i,1,j)
+                  sdeltk2d_io(i,j) = sav_4a(i,2,j)
+                  sdelqk2d_io(i,j) = sav_4a(i,3,j)
+                  sfracv2d_io(i,j) = sav_4a(i,4,j)
+                  sfracb2d_io(i,j) = sav_4a(i,5,j)
+                  sfracs2d_io(i,j) = sav_4a(i,6,j)
+                  svegfrac2d_io(i,j) = sav_4a(i,7,j)
+                end do
+              end do
+            end if
           end if
           do j = 1 , jendl
             do n = 1 , nsplit
