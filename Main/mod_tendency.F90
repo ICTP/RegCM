@@ -1570,7 +1570,7 @@
         if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
-          if ( (jyear.eq.jyear0 .and. ktau.eq.0) ) dtbat = dt
+          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
           call vecbats(j, kz , 2 , iym1 , nnsg)
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)

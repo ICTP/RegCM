@@ -42,7 +42,6 @@
       use mod_savefile
       use mod_diagnosis
       use mod_cu_bm
-      use mod_cvaria
 #ifdef MPP1
       use mod_mppio
 #ifdef CLM
