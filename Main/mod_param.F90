@@ -724,7 +724,6 @@
       end if
 #endif
       nnnend = idatediff(idate2,idate0)/ibdyfrq
-      nnnchk = nstart
 ! 
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1
@@ -1036,8 +1035,8 @@
 
       end if
 
-      call mpi_sendrecv(mddom%ht(1,jxp),iy,mpi_real8,ieast,1,        &
-                      & mddom%ht(1,0),  iy,mpi_real8,iwest,1,        &
+      call mpi_sendrecv(mddom%ht(1,jxp),  iy,mpi_real8,ieast,1,      &
+                      & mddom%ht(1,0),    iy,mpi_real8,iwest,1,      &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(mddom%ht(1,1),    iy,mpi_real8,iwest,2,      &
                       & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
@@ -1049,7 +1048,7 @@
                       & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
-                      & mddom%msfd(1,-1), iy*2,mpi_real8,iwest,1,    &
+                      & mddom%msfd(1,-1),   iy*2,mpi_real8,iwest,1,  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(mddom%msfd(1,1),    iy*2,mpi_real8,iwest,2,  &
                       & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &

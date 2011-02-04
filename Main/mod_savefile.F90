@@ -157,20 +157,18 @@
             read (iutrst) remlsc_io
             read (iutrst) remcvc_io
             read (iutrst) remdrd_io
-          end if
-          read (iutrst) ssw2da_io
-          read (iutrst) sdeltk2d_io
-          read (iutrst) sdelqk2d_io
-          read (iutrst) sfracv2d_io
-          read (iutrst) sfracb2d_io
-          read (iutrst) sfracs2d_io
-          read (iutrst) svegfrac2d_io
-!         cumul ad, dif, emis terms ( scalar)
+!           cumul ad, dif, emis terms ( scalar)
+            read (iutrst) ssw2da_io
+            read (iutrst) sdeltk2d_io
+            read (iutrst) sdelqk2d_io
+            read (iutrst) sfracv2d_io
+            read (iutrst) sfracb2d_io
+            read (iutrst) sfracs2d_io
+            read (iutrst) svegfrac2d_io
 #ifndef BAND
-          if ( ichem.eq.1 ) then
             if (debug_level > 2) call restchemdiag(iutrst)
-          end if
 #endif
+          end if
 #else
           if ( ehso4 ) then
             read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
@@ -219,20 +217,18 @@
             read (iutrst) remlsc
             read (iutrst) remcvc
             read (iutrst) remdrd
-          end if
-          read (iutrst) ssw2da
-          read (iutrst) sdeltk2d
-          read (iutrst) sdelqk2d
-          read (iutrst) sfracv2d
-          read (iutrst) sfracb2d
-          read (iutrst) sfracs2d
-          read (iutrst) svegfrac2d
-!         cumul ad, dif, emis terms ( scalar)
+!           cumul ad, dif, emis terms ( scalar)
+            read (iutrst) ssw2da
+            read (iutrst) sdeltk2d
+            read (iutrst) sdelqk2d
+            read (iutrst) sfracv2d
+            read (iutrst) sfracb2d
+            read (iutrst) sfracs2d
+            read (iutrst) svegfrac2d
 #ifndef BAND
-          if ( ichem.eq.1 ) then
             if (debug_level > 2) call restchemdiag(iutrst)
-          end if
 #endif
+          end if
 #endif
 !------lake model
           if ( lakemod.eq.1 ) then
@@ -376,20 +372,18 @@
             write (iutsav) remlsc_io
             write (iutsav) remcvc_io
             write (iutsav) remdrd_io
-          end if
-          write (iutsav) ssw2da_io
-          write (iutsav) sdeltk2d_io
-          write (iutsav) sdelqk2d_io
-          write (iutsav) sfracv2d_io
-          write (iutsav) sfracb2d_io
-          write (iutsav) sfracs2d_io
-          write (iutsav) svegfrac2d_io
-!         cumul ad, dif, emis terms ( scalar)
+!           cumul ad, dif, emis terms ( scalar)
+            write (iutsav) ssw2da_io
+            write (iutsav) sdeltk2d_io
+            write (iutsav) sdelqk2d_io
+            write (iutsav) sfracv2d_io
+            write (iutsav) sfracb2d_io
+            write (iutsav) sfracs2d_io
+            write (iutsav) svegfrac2d_io
 #ifndef BAND
-          if ( ichem.eq.1 ) then
             if (debug_level > 2) call savechemdiag(iutsav)
-          end if
 #endif
+          end if
 #else
           if ( ehso4 ) then
             write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
@@ -438,20 +432,18 @@
             write (iutsav) remlsc
             write (iutsav) remcvc
             write (iutsav) remdrd
-          end if
-          write (iutsav) ssw2da
-          write (iutsav) sdeltk2d
-          write (iutsav) sdelqk2d
-          write (iutsav) sfracv2d
-          write (iutsav) sfracb2d
-          write (iutsav) sfracs2d
-          write (iutsav) svegfrac2d
-!         cumul ad, dif, emis terms ( scalar)
+!           cumul ad, dif, emis terms ( scalar)
+            write (iutsav) ssw2da
+            write (iutsav) sdeltk2d
+            write (iutsav) sdelqk2d
+            write (iutsav) sfracv2d
+            write (iutsav) sfracb2d
+            write (iutsav) sfracs2d
+            write (iutsav) svegfrac2d
 #ifndef BAND
-          if ( ichem.eq.1 ) then
             if (debug_level > 2) call savechemdiag(iutsav)
-          end if
 #endif
+          end if
 #endif
           if ( lakemod.eq.1 ) then
             call lakesav_o(iutsav)

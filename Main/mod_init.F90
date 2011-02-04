@@ -908,7 +908,7 @@
             end do
           end do
         end if
-        allrec = kzp1 + 4 + nnsg
+        allrec = 4 + nnsg + kzp1
         call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
                        & sav0a, iy*allrec*jxp,mpi_real8,         &
                        & 0,mpi_comm_world,ierr)
@@ -1276,38 +1276,38 @@
               end do
             end do
           end do
-        end if
-        if ( myid.eq.0 ) then
+          if ( myid.eq.0 ) then
 #ifdef BAND
-          do j = 1 , jx
+            do j = 1 , jx
 #else
-          do j = 1 , jxm1
+            do j = 1 , jxm1
 #endif
+              do i = 1 , iym1
+                sav_4a(i,1,j) = ssw2da_io(i,j)
+                sav_4a(i,2,j) = sdeltk2d_io(i,j)
+                sav_4a(i,3,j) = sdelqk2d_io(i,j)
+                sav_4a(i,4,j) = sfracv2d_io(i,j)
+                sav_4a(i,5,j) = sfracb2d_io(i,j)
+                sav_4a(i,6,j) = sfracs2d_io(i,j)
+                sav_4a(i,7,j) = svegfrac2d_io(i,j)
+              end do
+            end do
+          end if
+          call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,                 &
+                         & sav4a, iym1*7*jxp,mpi_real8,                 &
+                         & 0,mpi_comm_world,ierr)
+          do j = 1 , jendx
             do i = 1 , iym1
-              sav_4a(i,1,j) = ssw2da_io(i,j)
-              sav_4a(i,2,j) = sdeltk2d_io(i,j)
-              sav_4a(i,3,j) = sdelqk2d_io(i,j)
-              sav_4a(i,4,j) = sfracv2d_io(i,j)
-              sav_4a(i,5,j) = sfracb2d_io(i,j)
-              sav_4a(i,6,j) = sfracs2d_io(i,j)
-              sav_4a(i,7,j) = svegfrac2d_io(i,j)
+              ssw2da(i,j) = sav4a(i,1,j)
+              sdeltk2d(i,j) = sav4a(i,2,j)
+              sdelqk2d(i,j) = sav4a(i,3,j)
+              sfracv2d(i,j) = sav4a(i,4,j)
+              sfracb2d(i,j) = sav4a(i,5,j)
+              sfracs2d(i,j) = sav4a(i,6,j)
+              svegfrac2d(i,j) = sav4a(i,7,j)
             end do
           end do
         end if
-        call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,                 &
-                       & sav4a, iym1*7*jxp,mpi_real8,                 &
-                       & 0,mpi_comm_world,ierr)
-        do j = 1 , jendx
-          do i = 1 , iym1
-            ssw2da(i,j) = sav4a(i,1,j)
-            sdeltk2d(i,j) = sav4a(i,2,j)
-            sdelqk2d(i,j) = sav4a(i,3,j)
-            sfracv2d(i,j) = sav4a(i,4,j)
-            sfracb2d(i,j) = sav4a(i,5,j)
-            sfracs2d(i,j) = sav4a(i,6,j)
-            svegfrac2d(i,j) = sav4a(i,7,j)
-          end do
-        end do
 #ifdef CLM
         if ( myid.eq.0 ) then
 #ifdef BAND

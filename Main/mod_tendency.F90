@@ -1269,13 +1269,13 @@
 !..p..forecast pressure:
 !
          do i = 2 , iym2
-            psc(i,j) = sps2%ps(i,j) + pten(i,j)*dt
+           psc(i,j) = sps2%ps(i,j) + pten(i,j)*dt
          end do
 !
 !..p..weighted p* (psd)
 !
          do i = 2 , iym2
-            psd(i,j) = sps1%ps(i,j)
+           psd(i,j) = sps1%ps(i,j)
          end do
 !
          psc(1,j) = sps2%ps(1,j) + dt*psbt(1,j)
@@ -1303,7 +1303,8 @@
           ps4(i,4,j) = sps1%ps(i,j)
         end do
       end do
-      call mpi_gather(ps4,iy*4*jxp,mpi_real8,ps_4,iy*4*jxp,mpi_real8, &
+      call mpi_gather(ps4, iy*4*jxp,mpi_real8, &
+                      ps_4,iy*4*jxp,mpi_real8, &
                       0,mpi_comm_world,ierr)
 #endif
       iptn = 0
