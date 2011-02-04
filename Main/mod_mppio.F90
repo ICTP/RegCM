@@ -231,10 +231,10 @@
         allocate(sub0(iym2,nnsg,numsub,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sub0',size(sub0))
         sub0 = 0.0D0
-        allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp),stat=ierr)
-        call check_alloc(ierr,myname,'chem0',size(chem0))
-        chem0 = 0.0D0
         if (ichem == 1) then
+          allocate(chem0(iy,ntr*kz+kz*3+ntr*7+5,jxp),stat=ierr)
+          call check_alloc(ierr,myname,'chem0',size(chem0))
+          chem0 = 0.0D0
           allocate(src0(iy,mpy,ntr,jxp),stat=ierr)
           call check_alloc(ierr,myname,'src0',size(src0))
           src0 = 0.0D0
@@ -272,10 +272,10 @@
           allocate(sub_0(iym2,nnsg,numsub,jx),stat=ierr)
           call check_alloc(ierr,myname,'sub_0',size(sub_0))
           sub_0 = 0.0D0
-          allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx),stat=ierr)
-          call check_alloc(ierr,myname,'chem_0',size(chem_0))
-          chem_0 = 0.0D0
           if (ichem == 1) then
+            allocate(chem_0(iy,ntr*kz+kz*3+ntr*7+5,jx),stat=ierr)
+            call check_alloc(ierr,myname,'chem_0',size(chem_0))
+            chem_0 = 0.0D0
             allocate(src_0(iy,mpy,ntr,jx),stat=ierr)
             call check_alloc(ierr,myname,'src_0',size(src_0))
             src_0 = 0.0D0
@@ -470,36 +470,38 @@
           aertarf_io = 0.0D0
           aertalwrf_io = 0.0D0
           aersrlwrf_io = 0.0D0
-          allocate(cemtrac_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'cemtrac_io',size(cemtrac_io))
-          cemtrac_io = 0.0D0
-          allocate(cemtr_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'cemtr_io',size(cemtr_io))
-          cemtr_io = 0.0D0
-          allocate(wxaq_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'wxaq_io',size(wxaq_io))
-          wxaq_io = 0.0D0
-          allocate(wxsg_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'wxsg_io',size(wxsg_io))
-          wxsg_io = 0.0D0
-          allocate(rxsaq1_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'rxsaq1_io',size(rxsaq1_io))
-          rxsaq1_io = 0.0D0
-          allocate(rxsaq2_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'rxsaq2_io',size(rxsaq2_io))
-          rxsaq2_io = 0.0D0
-          allocate(rxsg_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'rxsg_io',size(rxsg_io))
-          rxsg_io = 0.0D0
-          allocate(remcvc_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'remcvc_io',size(remcvc_io))
-          remcvc_io = 0.0D0
-          allocate(remlsc_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'remlsc_io',size(remlsc_io))
-          remlsc_io = 0.0D0
-          allocate(remdrd_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'remdrd_io',size(remdrd_io))
-          remdrd_io = 0.0D0
+          if ( ichem == 1 ) then
+            allocate(cemtrac_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'cemtrac_io',size(cemtrac_io))
+            cemtrac_io = 0.0D0
+            allocate(cemtr_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'cemtr_io',size(cemtr_io))
+            cemtr_io = 0.0D0
+            allocate(wxaq_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'wxaq_io',size(wxaq_io))
+            wxaq_io = 0.0D0
+            allocate(wxsg_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'wxsg_io',size(wxsg_io))
+            wxsg_io = 0.0D0
+            allocate(rxsaq1_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'rxsaq1_io',size(rxsaq1_io))
+            rxsaq1_io = 0.0D0
+            allocate(rxsaq2_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'rxsaq2_io',size(rxsaq2_io))
+            rxsaq2_io = 0.0D0
+            allocate(rxsg_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'rxsg_io',size(rxsg_io))
+            rxsg_io = 0.0D0
+            allocate(remcvc_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'remcvc_io',size(remcvc_io))
+            remcvc_io = 0.0D0
+            allocate(remlsc_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'remlsc_io',size(remlsc_io))
+            remlsc_io = 0.0D0
+            allocate(remdrd_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'remdrd_io',size(remdrd_io))
+            remdrd_io = 0.0D0
+          end if
           allocate(space2d(iy,jx,4),stat=ierr)
           call check_alloc(ierr,myname,'space2d',size(space2d))
           space2d = 0.0D0
@@ -531,21 +533,23 @@
           vi2_io  => spacev(:,:,6)
           vilx_io => spacev(:,:,7)
           vil_io  => spacev(:,:,8)
-          allocate(chemsrc_io(iy,jx,mpy,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'chemsrc_io',size(chemsrc_io))
-          chemsrc_io = 0.0D0
-          allocate(ddsfc_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'ddsfc_io',size(ddsfc_io))
-          ddsfc_io = 0.0D0
-          allocate(dtrace_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'dtrace_io',size(dtrace_io))
-          dtrace_io = 0.0D0
-          allocate(wdcvc_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'wdcvc_io',size(wdcvc_io))
-          wdcvc_io = 0.0D0
-          allocate(wdlsc_io(iy,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'wdlsc_io',size(wdlsc_io))
-          wdlsc_io = 0.0D0
+          if ( ichem == 1 ) then
+            allocate(chemsrc_io(iy,jx,mpy,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'chemsrc_io',size(chemsrc_io))
+            chemsrc_io = 0.0D0
+            allocate(ddsfc_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'ddsfc_io',size(ddsfc_io))
+            ddsfc_io = 0.0D0
+            allocate(dtrace_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'dtrace_io',size(dtrace_io))
+            dtrace_io = 0.0D0
+            allocate(wdcvc_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'wdcvc_io',size(wdcvc_io))
+            wdcvc_io = 0.0D0
+            allocate(wdlsc_io(iy,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'wdlsc_io',size(wdlsc_io))
+            wdlsc_io = 0.0D0
+          end if
           allocate(dustsotex_io(iy,jx,nats),stat=ierr)
           call check_alloc(ierr,myname,'dustsotex_io',size(dustsotex_io))
           dustsotex_io = 0.0D0
@@ -572,13 +576,15 @@
           pptnc_io = 0.0D0
           prca2d_io = 0.0D0
           prnca2d_io = 0.0D0
-          allocate(chia_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'chia_io',size(chia_io))
-          chia_io = 0.0D0
-          allocate(chib_io(iy,kz,jx,ntr),stat=ierr)
-          call check_alloc(ierr,myname,'chib_io',size(chib_io))
-          chib_io = 0.0D0
-          if (icup == 3) then
+          if ( ichem == 1 ) then
+            allocate(chia_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'chia_io',size(chia_io))
+            chia_io = 0.0D0
+            allocate(chib_io(iy,kz,jx,ntr),stat=ierr)
+            call check_alloc(ierr,myname,'chib_io',size(chib_io))
+            chib_io = 0.0D0
+          end if
+         if (icup == 3) then
             allocate(spacesurf(iy,jx,11),stat=ierr)
           else
             allocate(spacesurf(iy,jx,12),stat=ierr)
@@ -652,12 +658,14 @@
           allocate(sav_2a(iym1,nnsg*2+1,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_2a',size(sav_2a))
           sav_2a = 0.0D0
-          allocate(sav_4(iy,ntr*(kz*4+1),jx),stat=ierr)
-          call check_alloc(ierr,myname,'sav_4',size(sav_4))
-          sav_4 = 0.0D0
-          allocate(sav_4a(iym1,7,jx),stat=ierr)
-          call check_alloc(ierr,myname,'sav_4a',size(sav_4a))
-          sav_4a = 0.0D0
+          if ( ichem == 1 ) then
+            allocate(sav_4(iy,ntr*(kz*4+1),jx),stat=ierr)
+            call check_alloc(ierr,myname,'sav_4',size(sav_4))
+            sav_4 = 0.0D0
+            allocate(sav_4a(iym1,7,jx),stat=ierr)
+            call check_alloc(ierr,myname,'sav_4a',size(sav_4a))
+            sav_4a = 0.0D0
+          end if
           allocate(sav_6(kz,8,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_6',size(sav_6))
           sav_6 = 0.0D0
@@ -694,12 +702,14 @@
         allocate(sav2a(iym1,nnsg*2+1,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav2a',size(sav2a))
         sav2a = 0.0D0
-        allocate(sav4(iy,ntr*(kz*4+1),jxp),stat=ierr)
-        call check_alloc(ierr,myname,'sav4',size(sav4))
-        sav4 = 0.0D0
-        allocate(sav4a(iym1,7,jxp),stat=ierr)
-        call check_alloc(ierr,myname,'sav4a',size(sav4a))
-        sav4a = 0.0D0
+        if ( ichem == 1 ) then
+          allocate(sav4(iy,ntr*(kz*4+1),jxp),stat=ierr)
+          call check_alloc(ierr,myname,'sav4',size(sav4))
+          sav4 = 0.0D0
+          allocate(sav4a(iym1,7,jxp),stat=ierr)
+          call check_alloc(ierr,myname,'sav4a',size(sav4a))
+          sav4a = 0.0D0
+        end if
         allocate(sav6(kz,8,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav6',size(sav6))
         sav6 = 0.0D0

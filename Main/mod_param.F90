@@ -440,7 +440,7 @@
                   &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
         end if
       else
-        ntr = 0
+        ntr = 1
       end if
 #ifdef CLM
       read (ipunit , clmparam)

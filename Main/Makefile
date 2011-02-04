@@ -155,7 +155,7 @@ mod_cu_grell.o: mod_cu_grell.f90 mod_pmoist.o mod_rad.o mod_dynparam.o \
 mod_cu_kuo.o: mod_cu_kuo.F90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_runparams.o mod_pmoist.o mod_rad.o \
               mod_dynparam.o mod_trachem.o mod_advection.o
-mod_cvaria.o: mod_cvaria.f90 mod_dynparam.o mod_main.o
+mod_cvaria.o: mod_cvaria.f90 mod_dynparam.o mod_main.o mod_runparams.o
 mod_date.o: mod_date.F90 mod_message.o mod_runparams.o mod_dynparam.o
 mod_diagnosis.o: mod_diagnosis.F90 mod_dynparam.o mod_constants.o \
                  mod_runparams.o mod_main.o mod_mppio.o mod_date.o \
@@ -189,7 +189,7 @@ mod_lake.o: mod_lake.F90 mod_bats.o mod_runparams.o mod_dynparam.o mod_mppio.o
 mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
                 mod_runparams.o mod_dynparam.o
 mod_main.o: mod_main.f90 mod_dynparam.o mod_runparams.o
-mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o
+mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o mod_runparams.o
 mod_message.o: mod_message.F90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o mod_main.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
@@ -299,7 +299,7 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o
 endif
 mod_tracer.o: mod_tracer.f90 mod_constants.o mod_dynparam.o
-mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o
+mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o mod_runparams.o
 mod_tstep.o: mod_tstep.f90 mod_date.o mod_runparams.o mod_dynparam.o
 mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
                mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \

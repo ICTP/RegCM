@@ -20,6 +20,7 @@
       module mod_trachem
 
       use mod_dynparam
+      use mod_runparams
 
       implicit none
 !
@@ -82,14 +83,16 @@
         allocate(aersrlwrf(iym1,jxp))
 
         allocate(aertarf(iym1,jxp))
-        allocate(cemtr(iy,jxp,ntr))
-        allocate(cemtrac(iy,jxp,ntr))
-        allocate(remdrd(iy,jxp,ntr))
-        allocate(remcvc(iy,kz,jxp,ntr))
-        allocate(remlsc(iy,kz,jxp,ntr))
-        allocate(rxsaq1(iy,kz,jxp,ntr))
-        allocate(rxsaq2(iy,kz,jxp,ntr))
-        allocate(rxsg(iy,kz,jxp,ntr))
+        if ( ichem == 1 ) then
+          allocate(cemtr(iy,jxp,ntr))
+          allocate(cemtrac(iy,jxp,ntr))
+          allocate(remdrd(iy,jxp,ntr))
+          allocate(remcvc(iy,kz,jxp,ntr))
+          allocate(remlsc(iy,kz,jxp,ntr))
+          allocate(rxsaq1(iy,kz,jxp,ntr))
+          allocate(rxsaq2(iy,kz,jxp,ntr))
+          allocate(rxsg(iy,kz,jxp,ntr))
+        end if
 #else
         allocate(icumbot(iy,jx))
         allocate(icumdwd(iy,jx))
@@ -112,14 +115,16 @@
         allocate(aersrlwrf(iym1,jxm1))
 #endif
 
-        allocate(cemtr(iy,jx,ntr))
-        allocate(cemtrac(iy,jx,ntr))
-        allocate(remdrd(iy,jx,ntr))
-        allocate(remcvc(iy,kz,jx,ntr))
-        allocate(remlsc(iy,kz,jx,ntr))
-        allocate(rxsaq1(iy,kz,jx,ntr))
-        allocate(rxsaq2(iy,kz,jx,ntr))
-        allocate(rxsg(iy,kz,jx,ntr))
+        if ( ichem == 1 ) then
+          allocate(cemtr(iy,jx,ntr))
+          allocate(cemtrac(iy,jx,ntr))
+          allocate(remdrd(iy,jx,ntr))
+          allocate(remcvc(iy,kz,jx,ntr))
+          allocate(remlsc(iy,kz,jx,ntr))
+          allocate(rxsaq1(iy,kz,jx,ntr))
+          allocate(rxsaq2(iy,kz,jx,ntr))
+          allocate(rxsg(iy,kz,jx,ntr))
+        end if
 #endif 
         icumbot = 0
         icumdwd = 0
@@ -132,33 +137,37 @@
         aersrlwrf = 0.0D0
 
         aertarf = 0.0D0
-        cemtr = 0.0D0
-        cemtrac = 0.0D0
-        remdrd = 0.0D0
-        remcvc = 0.0D0
-        remlsc = 0.0D0
-        rxsaq1 = 0.0D0
-        rxsaq2 = 0.0D0
-        rxsg = 0.0D0
+        if ( ichem == 1 ) then
+          cemtr = 0.0D0
+          cemtrac = 0.0D0
+          remdrd = 0.0D0
+          remcvc = 0.0D0
+          remlsc = 0.0D0
+          rxsaq1 = 0.0D0
+          rxsaq2 = 0.0D0
+          rxsg = 0.0D0
+        end if
 
-        allocate(chtrname(ntr))
-        chtrname = ' '
-        allocate(chtrdpv(ntr,2))
-        allocate(chtrsize(nbin,2))
-        allocate(chtrsol(ntr))
-        allocate(dustbsiz(nbin,2))
+        if ( ichem == 1 ) then
+          allocate(chtrname(ntr))
+          chtrname = ' '
+          allocate(chtrdpv(ntr,2))
+          allocate(chtrsize(nbin,2))
+          allocate(chtrsol(ntr))
+          allocate(dustbsiz(nbin,2))
+          chtrdpv = 0.0D0
+          chtrsize = 0.0D0
+          chtrsol = 0.0D0
+          dustbsiz = 0.0D0
+          allocate(idust(nbin))
+          idust = 0
+        end if
         allocate(mflx(iy,2))
         allocate(rembc(iy,kz))
         allocate(remrat(iy,kz))
-        chtrdpv = 0.0D0
-        chtrsize = 0.0D0
-        chtrsol = 0.0D0
-        dustbsiz = 0.0D0
         mflx = 0.0D0
         rembc = 0.0D0
         remrat = 0.0D0
-        allocate(idust(nbin))
-        idust = 0
         end subroutine allocate_mod_trachem
 
       end module mod_trachem

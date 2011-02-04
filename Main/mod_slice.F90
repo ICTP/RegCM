@@ -47,7 +47,9 @@
       subroutine allocate_mod_slice
         implicit none   
 #ifdef MPP1
-        allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
+        if (ichem == 1 ) then
+          allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
+        end if
         allocate(pb3d(iy,kz,jxp))
         allocate(qsb3d(iy,kz,jxp))
         allocate(rhb3d(iy,kz,jxp))
@@ -60,7 +62,9 @@
         allocate(ubd3d(iy,kz,-1:jxp+2))
         allocate(vbd3d(iy,kz,-1:jxp+2))
 #else
-        allocate(chib3d(iy,kz,jx,ntr))      
+        if ( ichem == 1 ) then
+          allocate(chib3d(iy,kz,jx,ntr))      
+        end if
         allocate(pb3d(iy,kz,jx))
         allocate(qsb3d(iy,kz,jx))
         allocate(rhb3d(iy,kz,jx))
@@ -73,7 +77,9 @@
         allocate(ubd3d(iy,kz,jx))
         allocate(vbd3d(iy,kz,jx))
 #endif
-        chib3d = 0.0D0
+        if ( ichem == 1 ) then
+          chib3d = 0.0D0
+        end if
         pb3d = 0.0D0
         qsb3d = 0.0D0
         rhb3d = 0.0D0

@@ -20,6 +20,7 @@
       module mod_mainchem
 
       use mod_dynparam
+      use mod_runparams
 
       implicit none
 !
@@ -36,39 +37,41 @@
         implicit none
         logical , intent(in) :: lmpi
 
-        if (lmpi) then
-          allocate(chemsrc(iy,jxp,mpy,ntr))
-          allocate(chia(iy,kz,-1:jxp+2,ntr))
-          allocate(chib(iy,kz,-1:jxp+2,ntr))
-          allocate(srclp2(iy,jxp,ntr))
-          allocate(ddsfc(iy,jxp,ntr)) 
-          allocate(dtrace(iy,jxp,ntr))
-          allocate(wdcvc(iy,jxp,ntr))
-          allocate(wdlsc(iy,jxp,ntr))
-          allocate(wxaq(iy,jxp,ntr))
-          allocate(wxsg(iy,jxp,ntr))
-        else
-          allocate(chemsrc(iy,jx,mpy,ntr))
-          allocate(chia(iy,kz,jx,ntr))
-          allocate(chib(iy,kz,jx,ntr))
-          allocate(srclp2(iy,jx,ntr))
-          allocate(ddsfc(iy,jx,ntr))
-          allocate(dtrace(iy,jx,ntr))
-          allocate(wdcvc(iy,jx,ntr))
-          allocate(wdlsc(iy,jx,ntr))
-          allocate(wxaq(iy,jx,ntr))
-          allocate(wxsg(iy,jx,ntr))
+        if ( ichem == 1 ) then
+          if (lmpi) then
+            allocate(chemsrc(iy,jxp,mpy,ntr))
+            allocate(chia(iy,kz,-1:jxp+2,ntr))
+            allocate(chib(iy,kz,-1:jxp+2,ntr))
+            allocate(srclp2(iy,jxp,ntr))
+            allocate(ddsfc(iy,jxp,ntr)) 
+            allocate(dtrace(iy,jxp,ntr))
+            allocate(wdcvc(iy,jxp,ntr))
+            allocate(wdlsc(iy,jxp,ntr))
+            allocate(wxaq(iy,jxp,ntr))
+            allocate(wxsg(iy,jxp,ntr))
+          else
+            allocate(chemsrc(iy,jx,mpy,ntr))
+            allocate(chia(iy,kz,jx,ntr))
+            allocate(chib(iy,kz,jx,ntr))
+            allocate(srclp2(iy,jx,ntr))
+            allocate(ddsfc(iy,jx,ntr))
+            allocate(dtrace(iy,jx,ntr))
+            allocate(wdcvc(iy,jx,ntr))
+            allocate(wdlsc(iy,jx,ntr))
+            allocate(wxaq(iy,jx,ntr))
+            allocate(wxsg(iy,jx,ntr))
+          end if
+          chemsrc = 0.0D0
+          chia = 0.0D0
+          chib = 0.0D0
+          srclp2 = 0.0D0
+          ddsfc = 0.0D0
+          dtrace = 0.0D0
+          wdcvc = 0.0D0
+          wdlsc = 0.0D0
+          wxaq = 0.0D0
+          wxsg = 0.0D0
         end if
-        chemsrc = 0.0D0
-        chia = 0.0D0
-        chib = 0.0D0
-        srclp2 = 0.0D0
-        ddsfc = 0.0D0
-        dtrace = 0.0D0
-        wdcvc = 0.0D0
-        wdlsc = 0.0D0
-        wxaq = 0.0D0
-        wxsg = 0.0D0
        end subroutine allocate_mod_mainchem
 !
       end module mod_mainchem
