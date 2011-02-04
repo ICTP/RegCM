@@ -379,7 +379,7 @@
           call open_icbc(imonfirst(ndate1))
         end if
         call read_icbc(ndate1,ps1_io,ts1_io,ub1_io,vb1_io, &
-                   &     tb1_io,qb1_io,so1_io)
+                   &   tb1_io,qb1_io,so1_io)
         ps1_io = ps1_io/10.0
         do j = 1 , jx
           do k = 1 , kz
@@ -467,8 +467,8 @@
 !
       do i = 2 , iym1
         if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
-        if ( myid.eq.nproc-1 )                                        &
-           & psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
+        if ( myid.eq.nproc-1 ) &
+          psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
       end do
 !
       do j = jbegin , jendx
@@ -500,9 +500,6 @@
       end do
  
       mdate = ndate0
-      nnnchk = nnnchk + 1
- 
-!     print*,'read in datasets at :',ndate1
 !
 !-----compute boundary conditions for p*:
 !
@@ -850,8 +847,6 @@
       end do
  
       mdate = ndate0
-      nnnchk = nnnchk + 1
- 
 !
 !-----compute boundary conditions for p*:
 !

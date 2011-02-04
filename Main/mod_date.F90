@@ -34,7 +34,7 @@
 
       integer :: mdate , mdate0
 
-      integer :: nnnnnn , nnnchk , nnnend , nstart , nstrt0
+      integer :: nnnnnn , nnnend , nstart , nstrt0
 
       real(8) :: declin , dectim , deltmx , gmt
       real(8) :: xtime
