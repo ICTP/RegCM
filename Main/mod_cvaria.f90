@@ -24,6 +24,7 @@
 !     working spaces needed in the model.
 !
       use mod_dynparam
+      use mod_runparams
       use mod_main , only : atmstate , allocate_atmstate
 
       implicit none
@@ -59,9 +60,11 @@
             allocate(phi(iy,kz,0:jxp))
             allocate(psd(iy,0:jxp+1))
             allocate(qdot(iy,kzp1,0:jxp+1))
-            allocate(chi(iy,kz,0:jxp+1,ntr))
-            allocate(chic(iy,kz,jxp,ntr))
-            allocate(chiten(iy,kz,jxp,ntr))
+            if ( ichem == 1 ) then
+              allocate(chi(iy,kz,0:jxp+1,ntr))
+              allocate(chic(iy,kz,jxp,ntr))
+              allocate(chiten(iy,kz,jxp,ntr))
+            end if
           else
             allocate(diffq(iy,kz,jx))
             allocate(difft(iy,kz,jx))
@@ -72,10 +75,12 @@
             allocate(pten(iy,jx))
             allocate(phi(iy,kz,jx))
             allocate(psd(iy,jx))
-            allocate(chi(iy,kz,jx,ntr))
-            allocate(chic(iy,kz,jx,ntr))
-            allocate(chiten(iy,kz,jx,ntr))
             allocate(qdot(iy,kzp1,jx))
+            if ( ichem == 1 ) then
+              allocate(chi(iy,kz,jx,ntr))
+              allocate(chic(iy,kz,jx,ntr))
+              allocate(chiten(iy,kz,jx,ntr))
+            end if
           end if
 !
           diffq = 0.0D0
@@ -87,10 +92,14 @@
           pten = 0.0D0
           phi = 0.0D0
           psd = 0.0D0
-          chi = 0.0D0
-          chic = 0.0D0
-          chiten = 0.0D0
-          qdot = 0.0D0
+          if ( ichem == 1 ) then
+            chi = 0.0D0
+            chic = 0.0D0
+            chiten = 0.0D0
+          end if
+          if (.not. lmpi) then
+            qdot = 0.0D0
+          end if
         end  subroutine allocate_mod_cvaria
 !
       end module mod_cvaria

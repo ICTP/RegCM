@@ -321,7 +321,6 @@
 #endif 
 #endif 
       allocate(aermmb(iym1,kz))
-      allocate(aermmr(iym1,kz,ntr))
       allocate(ftota_mix(iym1,0:kz,nspi))
       allocate(gtota_mix(iym1,0:kz,nspi))
       allocate(tauasc_mix(iym1,0:kz,nspi))
@@ -332,20 +331,22 @@
       allocate(tauxar_mix_cs(iym1,nspi))
       allocate(aermtot(iym1,kz))
       allocate(aervtot(iym1,kz))
-      allocate(fa(iym1,0:kz,ntr))
-      allocate(ga(iym1,0:kz,ntr))
-      allocate(tauxar(iym1,0:kz,ntr))
-      allocate(uaer(iym1,0:kz,ntr))
-      allocate(wa(iym1,0:kz,ntr))
-      allocate(faer(iym1,ntr))
-      allocate(gaer(iym1,ntr))
-      allocate(tauaer(iym1,ntr))
-      allocate(utaer(iym1,ntr))
-      allocate(waer(iym1,ntr))
       allocate(aerlwtr(iym1,kzp1,kzp1))
+      if ( ichem == 1 ) then
+        allocate(aermmr(iym1,kz,ntr))
+        allocate(fa(iym1,0:kz,ntr))
+        allocate(ga(iym1,0:kz,ntr))
+        allocate(tauxar(iym1,0:kz,ntr))
+        allocate(uaer(iym1,0:kz,ntr))
+        allocate(wa(iym1,0:kz,ntr))
+        allocate(faer(iym1,ntr))
+        allocate(gaer(iym1,ntr))
+        allocate(tauaer(iym1,ntr))
+        allocate(utaer(iym1,ntr))
+        allocate(waer(iym1,ntr))
+      end if
       aermm = 0.0D0
       aermmb = 0.0D0
-      aermmr = 0.0D0
       ftota_mix = 0.0D0
       gtota_mix = 0.0D0
       tauasc_mix = 0.0D0
@@ -357,16 +358,19 @@
       aermtot = 0.0D0
       aervtot = 0.0D0
       aerlwtr = 0.0D0
-      fa = 0.0D0
-      ga = 0.0D0
-      tauxar = 0.0D0
-      uaer = 0.0D0
-      wa = 0.0D0
-      faer = 0.0D0
-      gaer = 0.0D0
-      tauaer = 0.0D0
-      utaer = 0.0D0
-      waer = 0.0D0
+      if ( ichem == 1 ) then
+        aermmr = 0.0D0
+        fa = 0.0D0
+        ga = 0.0D0
+        tauxar = 0.0D0
+        uaer = 0.0D0
+        wa = 0.0D0
+        faer = 0.0D0
+        gaer = 0.0D0
+        tauaer = 0.0D0
+        utaer = 0.0D0
+        waer = 0.0D0
+      end if
       end subroutine allocate_mod_aerosol
 !
 !-----------------------------------------------------------------------
