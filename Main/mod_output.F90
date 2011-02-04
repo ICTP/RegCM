@@ -372,7 +372,7 @@
               end do
             end do
           end do
-          allrec = 5 + nnsg + kzp1
+          allrec = 4 + nnsg + kzp1
           call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                         & sav_0a,iy*allrec*jxp,mpi_real8,        &
                         & 0,mpi_comm_world,ierr)

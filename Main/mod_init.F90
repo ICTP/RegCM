@@ -908,7 +908,7 @@
             end do
           end do
         end if
-        allrec = kzp1 + 5 + nnsg
+        allrec = kzp1 + 4 + nnsg
         call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
                        & sav0a, iy*allrec*jxp,mpi_real8,         &
                        & 0,mpi_comm_world,ierr)
