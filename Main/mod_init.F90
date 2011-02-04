@@ -1485,7 +1485,7 @@
 !
       call solar1(xtime)
 #ifdef CLM
-      if ( ifrest ) then
+      if ( .not. ifrest ) then
         init_grid = .true.
       else
         init_grid = .false.
