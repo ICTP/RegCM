@@ -1548,7 +1548,7 @@
               sina2d(ci,j) = 0.
  
             end do  ! end of i loop
-          end if    ! end if jyear eq jyearr
+          end if
         end do      ! end of j loop
       end if        ! end if ivers = 2
  

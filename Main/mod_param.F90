@@ -684,7 +684,6 @@
       end do
       write (aline, *) 'param: dtau = ' , dtau
       call say
-      dt0 = dt      !store original dt
       nradisp = nint(radisp*3600)
                                 !convert radisp to time steps
       ifrabe = nint(3600.*abemh/dt)
@@ -746,7 +745,6 @@
       lhour = mod(ldatez,100)
       idatex = ldatez
       jyear = lyear
-      jyearr = jyear
 !
 !-----specify the julian date and gmt of the initial data.
 !     dectim : is the time in minutes after which the solar declination
@@ -1542,6 +1540,7 @@
         print 99018 , xkhz
         print 99019 , xkhmax
       end if
+      call mpi_barrier(mpi_comm_world,ierr) 
 #else
       if ( ibltyp.eq.0 ) print 99002
       print 99003 , julday , gmt , ntrad

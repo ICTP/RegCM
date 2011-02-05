@@ -1356,7 +1356,6 @@
         call mpi_bcast(lday,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(lhour,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(jyearr,1,mpi_integer,0,mpi_comm_world,ierr)
 
 #ifndef BAND
         if (debug_level > 2) call mpidiag

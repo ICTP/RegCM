@@ -630,7 +630,7 @@
           coszrs2d_io => spaceclm(:,:,9)
 #endif
         endif
-        if (myid ==0) then
+        if (myid == 0) then
           allocate(sav_0(iy,kz*4+2,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_0',size(sav_0))
           sav_0 = 0.0D0

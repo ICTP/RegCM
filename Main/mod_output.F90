@@ -104,7 +104,7 @@
       if ( myid.eq.0 ) then
 #endif        
         if ( (lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0) .or. &
-             (jyear.eq.jyearr .and. ktau.eq.0) .or. &
+             (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
              (ifrest .and. .not. done_restart) ) then
           call mkfile
         end if
@@ -164,7 +164,7 @@
         ldoche = .true.
       end if
 !
-      if ( jyear.eq.jyearr.and.ktau.eq.0 ) then
+      if ( jyear.eq.jyear0.and.ktau.eq.0 ) then
         ldosrf = .false.
         ldorad = .false.
         ldoche = .false.
