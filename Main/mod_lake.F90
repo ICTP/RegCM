@@ -837,6 +837,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
+#ifdef MPP1
             if (idep2d_io(n,i,j) == 0) then
               hi2d_io(n,i,j)     = -1D+34
               aveice2d_io(n,i,j) = -1D+34
@@ -846,6 +847,17 @@
             else if (idep2d_io(n,i,j) < ndpmax) then
               tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = -1D+34
             end if
+#else
+            if (idep2d(n,i,j) == 0) then
+              hi2d(n,i,j)     = -1D+34
+              aveice2d(n,i,j) = -1D+34
+              hsnow2d(n,i,j)  = -1D+34
+              eta2d(n,i,j)    = -1D+34
+              tlak3d(:,n,i,j) = -1D+34
+            else if (idep2d(n,i,j) < ndpmax) then
+              tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
+            end if
+#endif
           end do
         end do
       end do
