@@ -179,6 +179,7 @@
 !
       if ( ifsave ) then
         if ( ldosav .or. ldotmp ) then
+          if ( lakemod.eq.1 ) call lakegather
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
