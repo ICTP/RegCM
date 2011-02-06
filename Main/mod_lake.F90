@@ -717,7 +717,7 @@
       integer :: iutl
       intent (in) iutl
 !
-      integer :: i, j, k, n, numpts
+      integer :: i , j , k , n
 !
 #ifdef MPP1
 #ifdef BAND
@@ -725,7 +725,6 @@
 #else
       write (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
 #endif
-      numpts = 0
 #ifdef BAND
       do j = 1 , jx
 #else
@@ -734,24 +733,9 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d_io(n,i,j).gt.1 ) then
-              numpts = numpts+1
-            end if
-          end do
-        end do
-      end do
-      write (iutl) numpts
-      print * , 'writing lake model restart file. numpts = ' , numpts
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( idep2d_io(n,i,j).gt.1 ) then
-              write(iutl) n, i, j, idep2d_io(n,i,j), eta2d_io(n,i,j), &
-                   & hi2d_io(n,i,j), &
-                   & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
+              write(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
+                   & hi2d_io(n,i,j), aveice2d_io(n,i,j), &
+                   & hsnow2d_io(n,i,j), &
                    & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
             end if
           end do
@@ -764,22 +748,6 @@
 #else
       write (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
 #endif
-      numpts = 0
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( idep2d(n,i,j).gt.1 ) then
-              numpts = numpts+1
-            end if
-          end do
-        end do
-      end do
-      write (iutl) numpts
-      print * , 'writing lake model restart file. numpts = ' , numpts
 #ifdef BAND
       do j = 1 , jx
 #else
@@ -788,9 +756,9 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d(n,i,j).gt.1 ) then
-              write(iutl) n, i, j, idep2d(n,i,j), eta2d(n,i,j), &
-                   & hi2d(n,i,j), &
-                   & aveice2d(n,i,j), hsnow2d(n,i,j), &
+              write(iutl) idep2d(n,i,j), eta2d(n,i,j), &
+                   & hi2d(n,i,j), aveice2d(n,i,j), &
+                   & hsnow2d(n,i,j), &
                    & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
             end if
           end do
@@ -808,47 +776,79 @@
       integer :: iutl
       intent (in) iutl
 !
-      integer :: i, j, k, l, n, numpts
+      integer :: i , j , k , l , n
 !
-
+      idep2d_io   = 0
+      hi2d_io     = 0.01D0
+      aveice2d_io = 0.0D0
+      hsnow2d_io  = 0.0D0
+      eta2d_io    = 0.5D0
+      tlak3d_io   = 6.0D0
+!
 #ifdef MPP1
-      if ( myid.eq.0 ) then
 #ifdef BAND
-        read (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
+      read (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
 #else
-        read (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
+      read (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
 #endif
-
-        hi2d_io = 0.01
-        aveice2d_io = 0.0
-        hsnow2d_io = 0.0
-        eta2d_io = 0.5
-        tlak3d_io  = 6.
-
-        read (iutl) numpts
-        print * , 'reading lake model restart file. numpts = ' , numpts
-        do l = 1, numpts
-          read(iutl) n, i, j, idep2d_io(n,i,j), eta2d_io(n,i,j), &
-                   & hi2d_io(n,i,j), &
-                   & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                   & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
+#ifdef BAND
+      do j = 1 , jx
+#else
+      do j = 2 , jxm1
+#endif
+        do i = 2 , iym1
+          do n = 1 , nnsg
+            if ( idep2d_io(n,i,j).gt.1 ) then
+              read(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
+                 & hi2d_io(n,i,j), &
+                 & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
+                 & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
+            end if
+          end do
         end do
-      end if
+      end do
 #else
 #ifdef BAND
       read (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
 #else
       read (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
 #endif
-      read (iutl) numpts
-      print * , 'reading lake model restart file. numpts = ' , numpts
-      do l = 1, numpts
-        read(iutl) n, i, j, idep2d(n,i,j), eta2d(n,i,j), &
-                 & hi2d(n,i,j), &
-                 & aveice2d(n,i,j), hsnow2d(n,i,j), &
+#ifdef BAND
+      do j = 1 , jx
+#else
+      do j = 2 , jxm1
+#endif
+        do i = 2 , iym1
+          do n = 1 , nnsg
+            if ( idep2d_io(n,i,j).gt.1 ) then
+              read(iutl) idep2d(n,i,j), eta2d(n,i,j), &
+                 & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
                  & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
+            end if
+          end do
+        end do
       end do
 #endif
+
+#ifdef BAND
+      do j = 1 , jx
+#else
+      do j = 2 , jxm1 
+#endif
+        do i = 2 , iym1
+          do n = 1 , nnsg
+            if (idep2d_io(n,i,j) == 0) then
+              hi2d_io(n,i,j)     = -1D+34
+              aveice2d_io(n,i,j) = -1D+34
+              hsnow2d_io(n,i,j)  = -1D+34
+              eta2d_io(n,i,j)    = -1D+34
+              tlak3d_io(:,n,i,j) = -1D+34
+            else if (idep2d_io(n,i,j) < ndpmax) then
+              tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = -1D+34
+            end if
+          end do
+        end do
+      end do
 
       end subroutine lakesav_i
 !
