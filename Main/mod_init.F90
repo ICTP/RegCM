@@ -699,16 +699,15 @@
 !-----when ifrest=.true., read in the data saved from previous run
 !       for large domain
 !
+        call read_savefile_part1(ndate0)
+!
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          call read_savefile_part1(ndate0)
-!
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
             write (6,99004) o3prof_io(3,3,k)
           end do
           print 99005 , xtime , ktau , jyear
-!
         end if
 !
         if ( lakemod.eq.1 ) then
@@ -1362,15 +1361,14 @@
 #endif
         dt = dt2 ! First timestep successfully read in
 #else
-        call read_savefile_part1(ndate0)
 !
         print * , 'ozone profiles restart'
         do k = 1 , kzp1
           write (6,99004) o3prof(3,3,k)
         end do
         print 99005 , xtime , ktau , jyear
-!
         dt = dt2 ! First timestep successfully read in
+!
 #endif
 !
 !-----end of initial/restart if test
@@ -1483,11 +1481,7 @@
 !
       call solar1(xtime)
 #ifdef CLM
-      if ( .not. ifrest ) then
-        init_grid = .true.
-      else
-        init_grid = .false.
-      end if
+      init_grid = .true.
 #endif
       call inirad
 !
