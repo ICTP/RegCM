@@ -778,12 +778,21 @@
 !
       integer :: i , j , k , l , n
 !
+#ifdef MPP1
       idep2d_io   = 0
       hi2d_io     = 0.01D0
       aveice2d_io = 0.0D0
       hsnow2d_io  = 0.0D0
       eta2d_io    = 0.5D0
       tlak3d_io   = 6.0D0
+#else
+      idep2d   = 0
+      hi2d     = 0.01D0
+      aveice2d = 0.0D0
+      hsnow2d  = 0.0D0
+      eta2d    = 0.5D0
+      tlak3d   = 6.0D0
+#endif
 !
 #ifdef MPP1
 #ifdef BAND
