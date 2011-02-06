@@ -27,7 +27,7 @@
       integer :: lyear , lmonth , lday , lhour
       integer :: nyear , nmonth , nday , nhour
       integer :: myear , mmonth , mday , mhour
-      integer :: jyear0 , jyear , jyearr
+      integer :: jyear0 , jyear
       integer :: julday , julian
       integer :: ldatez
       integer :: ntime

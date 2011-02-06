@@ -213,7 +213,7 @@
           call check_alloc(ierr,myname,'var2d0',size(var2d0))
           var2d0 = 0.0D0
         end if
-        allocate(inisrf0(iy,nnsg*5+7,jxp),stat=ierr)
+        allocate(inisrf0(iy,nnsg*4+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = 0.0D0
         allocate(atm0(iy,kz*6+3+nnsg*4,jxp),stat=ierr)
@@ -249,7 +249,7 @@
           call allocate_atmstate(atm1_io,.false.,0,0)
           call allocate_atmstate(atm2_io,.false.,0,0)
 
-          allocate(inisrf_0(iy,nnsg*5+7,jx),stat=ierr)
+          allocate(inisrf_0(iy,nnsg*4+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = 0.0D0
           if ( iseaice == 1 ) then
@@ -630,7 +630,7 @@
           coszrs2d_io => spaceclm(:,:,9)
 #endif
         endif
-        if (myid ==0) then
+        if (myid == 0) then
           allocate(sav_0(iy,kz*4+2,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_0',size(sav_0))
           sav_0 = 0.0D0

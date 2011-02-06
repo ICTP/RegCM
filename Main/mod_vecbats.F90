@@ -756,8 +756,9 @@
 #endif
         end do
 
-        if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.                 &
-             (ifrest .and. .not. done_restart ) ) then
+        if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.    &
+            ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.       & 
+            ( ifrest .and. .not. done_restart ) ) then
           if ( jyear.eq.jyear0 .and. ktau.le.1 ) then
             mmpd = 86400./dtbat
             wpm2 = 1./dtbat

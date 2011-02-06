@@ -82,7 +82,6 @@
           read (iutrst) ktau , xtime , ldatez , lyear , lmonth , lday ,&
                      & lhour , ntime
           jyear = lyear
-          jyearr = jyear
 #ifdef MPP1
           if ( ehso4 ) then
             read (iutrst) ub0_io , vb0_io , qb0_io , tb0_io , ps0_io , &

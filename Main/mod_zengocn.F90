@@ -198,7 +198,8 @@
             t2m_1d(n,i) = t995 + tzero - dth*facttq
 !
             if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or. &
-                 (ifrest .and. .not. done_restart ) ) then
+                ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
+                ( ifrest .and. .not. done_restart ) ) then
               facttq = dlog(z995/2.)/dlog(z995/zo)
               q2m_1d(n,i) = q995 - dqh*facttq
               tgb2d(n,i,j) = sts2%tg(i,j)
