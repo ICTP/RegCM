@@ -187,7 +187,7 @@
             sinc2d(n,jslc) = soll(n) + sols(n) + solsd(n) + solld(n)
             solvs2d(n,jslc) = solvs(n)
             solvd2d(n,jslc) = solvd(n)
-!       sinc2d(n,jslc)=solin(n)
+!           sinc2d(n,jslc)=solin(n)
 #ifdef CLM
             sols2d(n,jslc) = sols(n)
             soll2d(n,jslc) = soll(n)

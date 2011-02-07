@@ -253,10 +253,10 @@
       end do
 !
       if ( ifrest ) then
+        call read_savefile_part2
+!
 #ifdef MPP1
         if ( myid.eq.0 ) then
-          write (6,*) 'Read time split info from savefile'
-          call read_savefile_part2
           do j = 1 , jx
             do n = 1 , nsplit
               do i = 1 , iy
@@ -380,8 +380,6 @@
 #ifndef BAND
         end if
 #endif
-#else
-        call read_savefile_part2
 #endif
       else
 !

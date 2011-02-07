@@ -461,7 +461,8 @@
           end do
         end if
 
-        write(stdout,*) 'READ/WRITE: ',vnam(ifld),lnam(ifld),units(ifld)
+        write(stdout,*) 'READ/WRITE: ', trim(vnam(ifld)), ', ', &
+                   trim(lnam(ifld)), ', ', trim(units(ifld))
  
 !       ** Set the non-land values to missing for interpolation purposes
 

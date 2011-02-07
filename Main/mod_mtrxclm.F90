@@ -82,7 +82,7 @@
       call interfclm(2)
       end subroutine mtrxclm
 !
-      subroutine initclm(instep)
+      subroutine initclm
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -136,13 +136,6 @@
       use mpi
 ! 
       implicit none
-!
-! Dummy arguments
-!
-      integer :: instep
-      intent (out) instep
-!
-! Local variables
 !
       integer :: ci , cj , i , ii , j , jj , n , ierr
       real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,         &
@@ -657,7 +650,6 @@
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !     Get orbital parameters for use in initialize_
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      r2cnstep = ktau
  
       lsmlon = jx   !abt changed clm_varpar_init also
       lsmlat = iy
@@ -687,7 +679,6 @@
 !     Initialize radiation and atmosphere variables
 
       if ( .not.ifrest ) then
-        instep = ktau
         call rcmdrv()
       end if !end ifrest test
  
@@ -1046,8 +1037,8 @@
         if ( jyear==jyear0 .and. ktau<=1 ) then
           mmpd = 86400./dtbat
           wpm2 = 1./dtbat
-        else if ( jyear==jyear0 .and. dble(ktau*dtmin)<=batfrq*60.+     &
-                & 0.01 ) then
+        else if ( (jyear==jyear0 .and. &
+                   dble(ktau*dtmin)<=batfrq*60.+0.01) ) then
           mmpd = 24./(batfrq-dtmin/60.)
           wpm2 = 1./((batfrq-dtmin/60.)*3600.)
         else
@@ -1430,12 +1421,12 @@
           end do !i loop
  
           if ( mod(ntime+nint(dtmin*60.),kbats)==0 .or.                 &
-          & (ifrest .and. .not. done_restart ) ) then
+                (ifrest .and. .not. done_restart ) ) then
             if ( jyear==jyear0 .and. ktau<=1 ) then
               mmpd = 86400./dtbat
               wpm2 = 1./dtbat
-            else if ( jyear==jyear0 .and. dble(ktau*dtmin)<=batfrq*60.+ &
-                    & 0.01 ) then
+            else if ( (jyear==jyear0 .and. &
+                       dble(ktau*dtmin)<=batfrq*60.+0.01) ) then
               mmpd = 24./(batfrq-dtmin/60.)
               wpm2 = 1./((batfrq-dtmin/60.)*3600.)
             else

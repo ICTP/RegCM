@@ -776,14 +776,23 @@
       integer :: iutl
       intent (in) iutl
 !
-      integer :: i , j , k , l , n
+      integer :: i , j , k , n
 !
+#ifdef MPP1
       idep2d_io   = 0
       hi2d_io     = 0.01D0
       aveice2d_io = 0.0D0
       hsnow2d_io  = 0.0D0
       eta2d_io    = 0.5D0
       tlak3d_io   = 6.0D0
+#else
+      idep2d   = 0
+      hi2d     = 0.01D0
+      aveice2d = 0.0D0
+      hsnow2d  = 0.0D0
+      eta2d    = 0.5D0
+      tlak3d   = 6.0D0
+#endif
 !
 #ifdef MPP1
 #ifdef BAND
@@ -820,7 +829,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d_io(n,i,j).gt.1 ) then
+            if ( idep2d(n,i,j).gt.1 ) then
               read(iutl) idep2d(n,i,j), eta2d(n,i,j), &
                  & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
                  & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
@@ -837,6 +846,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
+#ifdef MPP1
             if (idep2d_io(n,i,j) == 0) then
               hi2d_io(n,i,j)     = -1D+34
               aveice2d_io(n,i,j) = -1D+34
@@ -846,6 +856,17 @@
             else if (idep2d_io(n,i,j) < ndpmax) then
               tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = -1D+34
             end if
+#else
+            if (idep2d(n,i,j) == 0) then
+              hi2d(n,i,j)     = -1D+34
+              aveice2d(n,i,j) = -1D+34
+              hsnow2d(n,i,j)  = -1D+34
+              eta2d(n,i,j)    = -1D+34
+              tlak3d(:,n,i,j) = -1D+34
+            else if (idep2d(n,i,j) < ndpmax) then
+              tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
+            end if
+#endif
           end do
         end do
       end do

@@ -2044,8 +2044,9 @@
                 'cloud_area_fraction_in_atmosphere_layer', &
                 'Cloud fractional cover','1',tzyx,.false.,iradvar(3))
             call addvara(ncid,ctype,'clwp', &
-                'atmosphere_optical_thickness_due_to_cloud', &
-                'Cloud liquid water path','1',tzyx,.false.,iradvar(4))
+                'atmosphere_cloud_liquid_water_content', &
+                'Cloud liquid water content','g m-2', &
+                 tzyx,.false.,iradvar(4))
             call addvara(ncid,ctype,'qrs', &
                 'tendency_of_air_temperature_due_to_shortwave_heating', &
                 'Solar heating rate','K s-1',tzyx,.false.,iradvar(5))

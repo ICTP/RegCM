@@ -43,10 +43,6 @@
       use mod_mppio
 #ifdef CLM
       use mod_clm
-      use restFileMod, only : restFile_write, restFile_write_binary
-      use restFileMod, only : restFile_filename
-      use clm_varctl , only : filer_rest
-      use clm_time_manager, only : get_step_size
 #endif
 #else
       use mod_lake
@@ -81,10 +77,6 @@
       integer :: i , j
 #ifdef MPP1
       integer :: allrec , ierr , l , k , n
-#ifdef CLM
-      real(8) :: cdtime
-      logical :: there
-#endif
 #endif
       logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
       character (len=50) :: subroutine_name='output'
@@ -880,25 +872,11 @@
           call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
                        & mpi_comm_world,ierr)
 #endif
-          if ( myid.eq.0 ) then
-            if ( ldosav ) then
-              call write_savefile(idatex, .false.)
-            else
-              call write_savefile(idatex, .true.)
-            end if
+          if ( ldosav ) then
+            call write_savefile(idatex, .false.)
+          else
+            call write_savefile(idatex, .true.)
           end if
-#ifdef CLM
-          cdtime = get_step_size()
-          filer_rest = restFile_filename(type='netcdf',                 &
-                     &                   offset=-int(cdtime))
-          inquire(file=filer_rest,exist=there)
-          if (.not. there) then
-            call restFile_write( filer_rest )
-            filer_rest = restFile_filename(type='binary',               &
-                     &                     offset=-int(cdtime))
-            call restFile_write_binary( filer_rest )
-          end if
-#endif
         end if
       end if
 !
