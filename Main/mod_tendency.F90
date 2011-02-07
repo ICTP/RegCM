@@ -635,7 +635,8 @@
 
 #ifdef CLM
       if ( init_grid ) then
-        call initclm(ktau)
+        r2cnstep = ktau/nbatst
+        call initclm
         init_grid = .false.
       end if
 #endif
@@ -1590,9 +1591,9 @@
 #ifdef CLM
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
          & mod(ktau+1,ntrad).eq.0 ) then
-          r2cdoalb = .true.
+        r2cdoalb = .true.
       else
-          r2cdoalb = .false.
+        r2cdoalb = .false.
       end if
       if ( (jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
          & mod(ktau+1,nbatst).eq.0 ) then

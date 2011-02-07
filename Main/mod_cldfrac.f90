@@ -131,6 +131,10 @@
 
           if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
           if ( (tb3d(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00
+          ! Apply the parameterisation based on temperature to the
+          ! convective fraction AND the large scale clouds :
+          ! the large scale cloud water content is not really used by
+          ! current radiation code, needs further evaluation.
           exlwc = cldlwc(i,k)
           cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) &
                       & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
