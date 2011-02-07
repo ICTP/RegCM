@@ -6,7 +6,7 @@ diff -Naurb orig/clm_time_manager.F90 patch/clm_time_manager.F90
    ! Data from the restart file corresponds to the last timestep of the previous run.
  
 -  call advance_timestep()
-+!  call advance_timestep()
++  call advance_timestep()
  
    ! Set flag that this is the first timestep of the restart run.
  

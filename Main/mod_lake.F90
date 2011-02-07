@@ -776,7 +776,7 @@
       integer :: iutl
       intent (in) iutl
 !
-      integer :: i , j , k , l , n
+      integer :: i , j , k , n
 !
 #ifdef MPP1
       idep2d_io   = 0
@@ -829,7 +829,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d_io(n,i,j).gt.1 ) then
+            if ( idep2d(n,i,j).gt.1 ) then
               read(iutl) idep2d(n,i,j), eta2d(n,i,j), &
                  & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
                  & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  

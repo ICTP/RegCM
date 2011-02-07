@@ -1046,8 +1046,8 @@
         if ( jyear==jyear0 .and. ktau<=1 ) then
           mmpd = 86400./dtbat
           wpm2 = 1./dtbat
-        else if ( jyear==jyear0 .and. dble(ktau*dtmin)<=batfrq*60.+     &
-                & 0.01 ) then
+        else if ( (jyear==jyear0 .and. &
+                   dble(ktau*dtmin)<=batfrq*60.+0.01) ) then
           mmpd = 24./(batfrq-dtmin/60.)
           wpm2 = 1./((batfrq-dtmin/60.)*3600.)
         else
@@ -1430,12 +1430,12 @@
           end do !i loop
  
           if ( mod(ntime+nint(dtmin*60.),kbats)==0 .or.                 &
-          & (ifrest .and. .not. done_restart ) ) then
+                (ifrest .and. .not. done_restart ) ) then
             if ( jyear==jyear0 .and. ktau<=1 ) then
               mmpd = 86400./dtbat
               wpm2 = 1./dtbat
-            else if ( jyear==jyear0 .and. dble(ktau*dtmin)<=batfrq*60.+ &
-                    & 0.01 ) then
+            else if ( (jyear==jyear0 .and. &
+                       dble(ktau*dtmin)<=batfrq*60.+0.01) ) then
               mmpd = 24./(batfrq-dtmin/60.)
               wpm2 = 1./((batfrq-dtmin/60.)*3600.)
             else
