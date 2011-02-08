@@ -400,7 +400,7 @@
                                   & flwds , fsds , fsnirt , fsnirtsq ,  &
                                   & fsnrtc , fsns , fsnsc , fsnt ,      &
                                   & fsntc , solin , soll , solld ,      &
-                                  & sols , solsd , ts , fslwdcs
+                                  & sols , solsd , ts
       real(8) , dimension(iym1,kzp1) :: cld , effcld , piln , pint
       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , pmid ,  &
            & pmln , qrl , qrs , rei , rel , t
@@ -441,6 +441,7 @@
 !
 ! Local variables
 !
+      real(8) , dimension(iym1) :: fslwdcs
       real(8) , dimension(iym1) :: aeradfo , aeradfos
       real(8),  dimension(iym1)::  aerlwfo , aerlwfos
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o
