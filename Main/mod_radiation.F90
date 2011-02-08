@@ -481,17 +481,19 @@
 !
 !       Convert units of shortwave fields needed by rest of model from
 !       CGS to MKS
+!
         do i = 1 , iym1
-          solin(i) = solin(i)*1.E-3
-          fsnt(i) = fsnt(i)*1.E-3
-          fsns(i) = fsns(i)*1.E-3
-          fsntc(i) = fsntc(i)*1.E-3
-          fsnsc(i) = fsnsc(i)*1.E-3
-!FAB 
+          solin(i) = solin(i)*1.D-3
+          fsnt(i) = fsnt(i)*1.D-3
+          fsns(i) = fsns(i)*1.D-3
+          fsntc(i) = fsntc(i)*1.D-3
+          fsnsc(i) = fsnsc(i)*1.D-3
+!
 !         clear sky column partitioning for surface flux  
 !         note : should be generalised to the whole column to be
 !                really in energy balance !
-          totcf(i) = 1.D0
+!
+          totcf(i) = 1.0D0
           do k = 1 , kzp1
             totcf(i) = totcf(i) * (1 - cld(i,k)) 
           end do
@@ -507,6 +509,7 @@
 !         Fil suggestion of putting a max on column cloud fraction
 !         Erika decreases the max to 0.75
           if ( totcf(i) > 0.75D0 ) totcf(i) = 0.75D0
+          if ( totcf(i) < 0.0D0 ) totcf(i) = 0.0D0
 
           fsns(i) = fsns(i) * totcf(i) + fsnsc(i) * (1.0D0-totcf(i))
           fsds(i) = fsds(i)*1.D-3
@@ -544,18 +547,19 @@
 !
         call radclw(jslc,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
                   & plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo,aerlwfos)
+                  & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo,     &
+                  & aerlwfos)
 !
 !       Convert units of longwave fields needed by rest of model from
 !       CGS to MKS
         do i = 1 , iym1
-          flnt(i) = flnt(i)*1.E-3
-          flns(i) = flns(i)*1.E-3
-          flntc(i) = flntc(i)*1.E-3
-          flnsc(i) = flnsc(i)*1.E-3
-          flwds(i) = flwds(i)*1.E-3
+          flnt(i) = flnt(i)*1.D-3
+          flns(i) = flns(i)*1.D-3
+          flntc(i) = flntc(i)*1.D-3
+          flnsc(i) = flnsc(i)*1.D-3
+          flwds(i) = flwds(i)*1.D-3
 !FAB
-          fslwdcs(i) = fslwdcs(i)*1.E-3
+          fslwdcs(i) = fslwdcs(i)*1.D-3
 !         essai clear sky column
 !
 !         flwds(i) = flwds(i) * maxval(cld((i,:))) + &
@@ -646,8 +650,8 @@
 !
       real(8) , parameter :: v_raytau_35 = 0.155208 ,                   &
                            & v_raytau_64 = 0.0392 ,                     &
-                           & v_abo3_35 = 2.4058030E+01 ,                &
-                           & v_abo3_64 = 2.210E+01
+                           & v_abo3_35 = 2.4058030D+01 ,                &
+                           & v_abo3_64 = 2.210D+01
 !
 !     Input arguments
 !
@@ -878,20 +882,20 @@
       real(8) , dimension(iym1,0:kz,4) :: wkaer
       real(8) , dimension(iym1,4) :: zero
 !
-      data abarl/2.817E-02 , 2.682E-02 , 2.264E-02 , 1.281E-02/
+      data abarl/2.817D-02 , 2.682D-02 , 2.264D-02 , 1.281D-02/
       data bbarl/1.305 , 1.346 , 1.454 , 1.641/
-      data cbarl/ - 5.62E-08 , -6.94E-06 , 4.64E-04 , 0.201/
-      data dbarl/1.63E-07 , 2.35E-05 , 1.24E-03 , 7.56E-03/
+      data cbarl/ - 5.62D-08 , -6.94D-06 , 4.64D-04 , 0.201/
+      data dbarl/1.63D-07 , 2.35D-05 , 1.24D-03 , 7.56D-03/
       data ebarl/0.829 , 0.794 , 0.754 , 0.826/
-      data fbarl/2.482E-03 , 4.226E-03 , 6.560E-03 , 4.353E-03/
+      data fbarl/2.482D-03 , 4.226D-03 , 6.560D-03 , 4.353D-03/
  
-      data abari/3.448E-03 , 3.448E-03 , 3.448E-03 , 3.448E-03/
+      data abari/3.448D-03 , 3.448D-03 , 3.448D-03 , 3.448D-03/
       data bbari/2.431 , 2.431 , 2.431 , 2.431/
-      data cbari/1.00E-05 , 1.10E-04 , 1.861E-02 , .46658/
-      data dbari/0.0 , 1.405E-05 , 8.328E-04 , 2.05E-05/
+      data cbari/1.00D-05 , 1.10D-04 , 1.861D-02 , .46658/
+      data dbari/0.0 , 1.405D-05 , 8.328D-04 , 2.05D-05/
       data ebari/0.7661 , 0.7730 , 0.794 , 0.9595/
-      data fbari/5.851E-04 , 5.665E-04 , 7.267E-04 , 1.076E-04/
-      data delta/1.70E-3/
+      data fbari/5.851D-04 , 5.665D-04 , 7.267D-04 , 1.076D-04/
+      data delta/1.70D-3/
       data o2mmr/.23143/
  
       data frcsol/.001488 , .001389 , .001290 , .001686 , .002877 ,     &
@@ -923,8 +927,8 @@
          & .000 , .002 , .035 , .377 , 1.950 , 9.400 , 44.600 ,         &
          & 190.000 , .000 , .000 , .000/
  
-      data abo3/5.370E+04 , 13.080E+04 , 9.292E+04 , 4.530E+04 ,        &
-         & 1.616E+04 , 4.441E+03 , 1.775E+02 , v_abo3_35 , v_abo3_64 ,  &
+      data abo3/5.370D+04 , 13.080D+04 , 9.292D+04 , 4.530D+04 ,        &
+         & 1.616D+04 , 4.441D+03 , 1.775D+02 , v_abo3_35 , v_abo3_64 ,  &
          & .000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 ,      &
          & .000 , .000/
  
@@ -933,7 +937,7 @@
          & .094 , .196 , 1.963/
  
       data abo2/.000 , .000 , .000 , .000 , .000 , .000 , .000 , .000 , &
-         & 1.11E-05 , 6.69E-05 , .000 , .000 , .000 , .000 , .000 ,     &
+         & 1.11D-05 , 6.69D-05 , .000 , .000 , .000 , .000 , .000 ,     &
          & .000 , .000 , .000 , .000/
 !
 !     Spectral interval weights
@@ -2590,7 +2594,7 @@
 ! gray   - Rayleigh asymetry parameter
 ! fray   - Rayleigh forward scattered fraction
 !
-      real(8) , parameter :: trmin = 1.E-3 , wray = 0.999999 ,          &
+      real(8) , parameter :: trmin = 1.D-3 , wray = 0.999999 ,          &
                            & gray = 0.0 , fray = 0.1
 !
 !------------------------------Arguments--------------------------------
@@ -3302,8 +3306,8 @@
               sqrtu(i) = dsqrt(u(i))
               ds2c = dabs(s2c(i,k1)-s2c(i,k2))
               dw(i) = dabs(w(i,k1)-w(i,k2))
-              uc1(i) = (ds2c+1.7E-3*u(i))*(1.+2.*ds2c)/(1.+15.*ds2c)
-              uc(i) = ds2c + 2.E-3*u(i)
+              uc1(i) = (ds2c+1.7D-3*u(i))*(1.+2.*ds2c)/(1.+15.*ds2c)
+              uc(i) = ds2c + 2.D-3*u(i)
             end do
             do i = 1 , iym1
               pnew(i) = u(i)/dw(i)
@@ -3335,10 +3339,10 @@
 !           abso(i,1)     0 -  800 cm-1   h2o rotation band
 !
             do i = 1 , iym1
-              a11 = 0.44 + 3.380E-4*dtz(i) - 1.520E-6*dtz(i)*dtz(i)
-              a31 = 1.05 - 6.000E-3*dtp(i) + 3.000E-6*dtp(i)*dtp(i)
-              a21 = 1.00 + 1.717E-3*dtz(i) - 1.133E-5*dtz(i)*dtz(i)
-              a22 = 1.00 + 4.443E-3*dtp(i) + 2.750E-5*dtp(i)*dtp(i)
+              a11 = 0.44 + 3.380D-4*dtz(i) - 1.520D-6*dtz(i)*dtz(i)
+              a31 = 1.05 - 6.000D-3*dtp(i) + 3.000D-6*dtp(i)*dtp(i)
+              a21 = 1.00 + 1.717D-3*dtz(i) - 1.133D-5*dtz(i)*dtz(i)
+              a22 = 1.00 + 4.443D-3*dtp(i) + 2.750D-5*dtp(i)*dtp(i)
               a23 = 1.00 + 3.600*sqrtu(i)
               corfac = a31*(a11+((2.*a21*a22)/a23))
               t1t4 = term1(i,2)*term4(i,2)
@@ -3354,9 +3358,9 @@
 !           abso(i,2)  1200 - 2200 cm-1   h2o vibration-rotation band
 !
             do i = 1 , iym1
-              a41 = 1.75 - 3.960E-03*dtz(i)
+              a41 = 1.75 - 3.960D-03*dtz(i)
               a51 = 1.00 + 1.3*sqrtu(i)
-              a61 = 1.00 + 1.250E-03*dtp(i) + 6.250E-05*dtp(i)*dtp(i)
+              a61 = 1.00 + 1.250D-03*dtp(i) + 6.250D-05*dtp(i)*dtp(i)
               corfac = .29*(1.+a41/a51)*a61
               t1t4 = term1(i,4)*term4(i,4)
               t2t5 = term2(i,4)*term5(i,4)
@@ -3465,10 +3469,10 @@
               alphat = oneme**3*rsqti
               pi = dabs(dpnm(i))
               wco2 = 2.5221*co2vmr*pi*rga
-              u7(i) = 4.9411E4*alphat*et2*wco2
-              u8 = 3.9744E4*alphat*et4*wco2
-              u9 = 1.0447E5*alphat*et4*et2*wco2
-              u13 = 2.8388E3*alphat*et4*wco2
+              u7(i) = 4.9411D4*alphat*et2*wco2
+              u8 = 3.9744D4*alphat*et4*wco2
+              u9 = 1.0447D5*alphat*et4*et2*wco2
+              u13 = 2.8388D3*alphat*et4*wco2
               tpath = to3co2(i)
               tlocal = tint(i,k2)
               tcrfac = dsqrt(tlocal*r250*tpath*r300)
@@ -3598,8 +3602,8 @@
             pnew(i) = u(i)/(winpl(i,kn)*dw(i))
             ds2c = dabs(s2c(i,k2)-s2c(i,k2+1))
             uc1(i) = uinpl(i,kn)*ds2c
-            uc1(i) = (uc1(i)+1.7E-3*u(i))*(1.+2.*uc1(i))/(1.+15.*uc1(i))
-            uc(i) = uinpl(i,kn)*ds2c + 2.E-3*u(i)
+            uc1(i) = (uc1(i)+1.7D-3*u(i))*(1.+2.*uc1(i))/(1.+15.*uc1(i))
+            uc(i) = uinpl(i,kn)*ds2c + 2.D-3*u(i)
           end do
           do i = 1 , iym1
             dtx(i) = temh2o(i,kn) - 250.
@@ -3629,10 +3633,10 @@
 !         abso(i,1)     0 -  800 cm-1   h2o rotation band
 !
           do i = 1 , iym1
-            a11 = 0.44 + 3.380E-4*dtz(i) - 1.520E-6*dtz(i)*dtz(i)
-            a31 = 1.05 - 6.000E-3*dtp(i) + 3.000E-6*dtp(i)*dtp(i)
-            a21 = 1.00 + 1.717E-3*dtz(i) - 1.133E-5*dtz(i)*dtz(i)
-            a22 = 1.00 + 4.443E-3*dtp(i) + 2.750E-5*dtp(i)*dtp(i)
+            a11 = 0.44 + 3.380D-4*dtz(i) - 1.520D-6*dtz(i)*dtz(i)
+            a31 = 1.05 - 6.000D-3*dtp(i) + 3.000D-6*dtp(i)*dtp(i)
+            a21 = 1.00 + 1.717D-3*dtz(i) - 1.133D-5*dtz(i)*dtz(i)
+            a22 = 1.00 + 4.443D-3*dtp(i) + 2.750D-5*dtp(i)*dtp(i)
             a23 = 1.00 + 3.600*sqrtu(i)
             corfac = a31*(a11+((2.*a21*a22)/a23))
             t1t4 = term1(i,2)*term4(i,2)
@@ -3648,9 +3652,9 @@
 !         abso(i,2)  1200 - 2200 cm-1   h2o vibration-rotation band
 !
           do i = 1 , iym1
-            a41 = 1.75 - 3.960E-03*dtz(i)
+            a41 = 1.75 - 3.960D-03*dtz(i)
             a51 = 1.00 + 1.3*sqrtu(i)
-            a61 = 1.00 + 1.250E-03*dtp(i) + 6.250E-05*dtp(i)*dtp(i)
+            a61 = 1.00 + 1.250D-03*dtp(i) + 6.250D-05*dtp(i)*dtp(i)
             corfac = .29*(1.+a41/a51)*a61
             t1t4 = term1(i,4)*term4(i,4)
             t2t5 = term2(i,4)*term5(i,4)
@@ -3749,10 +3753,10 @@
             alphat = oneme**3*rsqti
             pi = dabs(dpnm(i))*winpl(i,kn)
             wco2 = 2.5221*co2vmr*pi*rga
-            u7(i) = 4.9411E4*alphat*et2*wco2
-            u8 = 3.9744E4*alphat*et4*wco2
-            u9 = 1.0447E5*alphat*et4*et2*wco2
-            u13 = 2.8388E3*alphat*et4*wco2
+            u7(i) = 4.9411D4*alphat*et2*wco2
+            u8 = 3.9744D4*alphat*et4*wco2
+            u9 = 1.0447D5*alphat*et4*et2*wco2
+            u13 = 2.8388D3*alphat*et4*wco2
             tpath = tbar(i,kn)
             tlocal = tbar(i,kn)
             tcrfac = dsqrt((tlocal*r250)*(tpath*r300))
@@ -4086,7 +4090,7 @@
           xsum(i) = xsum(i) + tlayr(i,k)*(pnm(i,k)-pnm(i,k-1))
           ex = dexp(960./tlayr(i,k1))
           tlayr5 = tlayr(i,k1)*tlayr4(i,k1)
-          co2eml(i,k1-1) = 1.2E11*ex/(tlayr5*(ex-1.)**2)
+          co2eml(i,k1-1) = 1.2D11*ex/(tlayr5*(ex-1.)**2)
           co2t(i,k) = xsum(i)/pnm(i,k)
         end do
       end do
@@ -4116,13 +4120,13 @@
 !       For the p type continuum
 !
         do i = 1 , iym1
-          uc(i) = s2c(i,k1) + 2.E-3*plh2o(i,k1)
+          uc(i) = s2c(i,k1) + 2.D-3*plh2o(i,k1)
           u(i) = plh2o(i,k1)
           pnew(i) = u(i)/w(i,k1)
 !
 !         Apply scaling factor for 500-800 continuum
 !
-          uc1(i) = (s2c(i,k1)+1.7E-3*plh2o(i,k1))*(1.+2.*s2c(i,k1))     &
+          uc1(i) = (s2c(i,k1)+1.7D-3*plh2o(i,k1))*(1.+2.*s2c(i,k1))     &
                  & /(1.+15.*s2c(i,k1))
           tpathe(i) = s2t(i,k1)/plh2o(i,k1)
         end do
@@ -4152,10 +4156,10 @@
 !       emis(i,1)     0 -  800 cm-1   rotation band
 !
         do i = 1 , iym1
-          a11 = .37 - 3.33E-5*dtz(i) + 3.33E-6*dtz(i)*dtz(i)
-          a31 = 1.07 - 1.00E-3*dtp(i) + 1.475E-5*dtp(i)*dtp(i)
-          a21 = 1.3870 + 3.80E-3*dtz(i) - 7.8E-6*dtz(i)*dtz(i)
-          a22 = 1.0 - 1.21E-3*dtp(i) - 5.33E-6*dtp(i)*dtp(i)
+          a11 = .37 - 3.33D-5*dtz(i) + 3.33D-6*dtz(i)*dtz(i)
+          a31 = 1.07 - 1.00D-3*dtp(i) + 1.475D-5*dtp(i)*dtp(i)
+          a21 = 1.3870 + 3.80D-3*dtz(i) - 7.8D-6*dtz(i)*dtz(i)
+          a22 = 1.0 - 1.21D-3*dtp(i) - 5.33D-6*dtp(i)*dtp(i)
           a23 = 0.9 + 2.62*dsqrt(u(i))
           corfac(i) = a31*(a11+((a21*a22)/a23))
           t1t4 = term1(i,1)*term4(i,1)
@@ -4168,9 +4172,9 @@
 !
 !         emis(i,2)  1200 - 2200 cm-1   vibration-rotation band
 !
-          a41 = 1.75 - 3.96E-3*dtz(i)
+          a41 = 1.75 - 3.96D-3*dtz(i)
           a51 = 1.00 + 1.3*dsqrt(u(i))
-          a61 = 1.00 + 1.25E-3*dtp(i) + 6.25E-5*dtp(i)*dtp(i)
+          a61 = 1.00 + 1.25D-3*dtp(i) + 6.25D-5*dtp(i)*dtp(i)
           corfac(i) = .3*(1.+(a41)/(a51))*a61
           t1t4 = term1(i,3)*term4(i,3)
           t2t5 = term2(i,3)*term5(i,3)
@@ -4259,10 +4263,10 @@
           oneme = 1. - et2
           alphat = oneme**3*rsqti
           wco2 = 2.5221*co2vmr*pnm(i,k1)*rga
-          u7 = 4.9411E4*alphat*et2*wco2
-          u8 = 3.9744E4*alphat*et4*wco2
-          u9 = 1.0447E5*alphat*et4*et2*wco2
-          u13 = 2.8388E3*alphat*et4*wco2
+          u7 = 4.9411D4*alphat*et2*wco2
+          u8 = 3.9744D4*alphat*et4*wco2
+          u9 = 1.0447D5*alphat*et4*et2*wco2
+          u13 = 2.8388D3*alphat*et4*wco2
 !
           tpath = co2t(i,k1)
           tlocal = tplnke(i)
@@ -4285,7 +4289,7 @@
           co2ems(i,k1) = troco2(i,k1)*absbnd*co2plk(i)
           ex = dexp(960./tint(i,k1))
           exm1sq = (ex-1.)**2
-          co2em(i,k1) = 1.2E11*ex/(tint(i,k1)*tint4(i,k1)*exm1sq)
+          co2em(i,k1) = 1.2D11*ex/(tint(i,k1)*tint4(i,k1)*exm1sq)
 !         trem3(i) = 1. - bndfct*absbnd
         end do
 !
