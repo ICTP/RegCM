@@ -226,13 +226,16 @@
         do n = 1 , nnsg
           if ( ocld2d(n,i,jslc).gt.1.5 ) then
             if ( sice1d(n,i).ge.0.0001 ) then
-               ii2 = ii2 + 1
+              ii2 = ii2 + 1
+            else
+              ii0 = ii0 + 1
             endif
-          else if ( ocld2d(n,i,jslc).gt.0.1 .and. &
-                    sice1d(n,i).lt.0.0001 ) then
-            ii1 = ii1 + 1
-          else if ( sice1d(n,i).ge.0.0001 ) then
-            ii2 = ii2 + 1
+          else if ( ocld2d(n,i,jslc).gt.0.1 ) then
+            if ( sice1d(n,i).lt.0.0001 ) then
+              ii1 = ii1 + 1
+            else if ( sice1d(n,i).ge.0.0001 ) then
+              ii2 = ii2 + 1
+            end if
           else
             ii0 = ii0 + 1
           end if

@@ -604,12 +604,14 @@
               u10m1d(n,i) = us1d(i)*(1.-factuv)
               v10m1d(n,i) = vs1d(i)*(1.-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            else if ( iocnflx.eq.1 ) then
-              fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-              factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
-              u10m1d(n,i) = us1d(i)*(1.-factuv)
-              v10m1d(n,i) = vs1d(i)*(1.-factuv)
-              t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+            else 
+              if ( iocnflx.eq.1 ) then
+                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
+                u10m1d(n,i) = us1d(i)*(1.-factuv)
+                v10m1d(n,i) = vs1d(i)*(1.-factuv)
+                t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+              end if
             end if
             tg_s(n,j,i-1) = tg1d(n,i)
             u10m_s(n,j,i-1) = u10m1d(n,i)
@@ -663,12 +665,14 @@
               u10m1d(n,i) = us1d(i)*(1.-factuv)
               v10m1d(n,i) = vs1d(i)*(1.-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            else if ( iocnflx.eq.1 ) then
-              fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-              factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
-              u10m1d(n,i) = us1d(i)*(1.-factuv)
-              v10m1d(n,i) = vs1d(i)*(1.-factuv)
-              t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+            else 
+              if ( iocnflx.eq.1 ) then
+                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
+                u10m1d(n,i) = us1d(i)*(1.-factuv)
+                v10m1d(n,i) = vs1d(i)*(1.-factuv)
+                t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+              end if
             end if
             tg_s(n,j,i-1) = tg1d(n,i)
             u10m_s(n,j,i-1) = u10m1d(n,i)
@@ -719,12 +723,14 @@
               u10m1d(n,i) = us1d(i)*(1.-factuv)
               v10m1d(n,i) = vs1d(i)*(1.-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            else if ( iocnflx.eq.1 ) then
-              fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-              factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
-              u10m1d(n,i) = us1d(i)*(1.-factuv)
-              v10m1d(n,i) = vs1d(i)*(1.-factuv)
-              t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+            else 
+              if ( iocnflx.eq.1 ) then
+                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                factuv = dlog(z1(n,i)/10.)/dlog(z1(n,i)/zoce)
+                u10m1d(n,i) = us1d(i)*(1.-factuv)
+                v10m1d(n,i) = vs1d(i)*(1.-factuv)
+                t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+              end if
             end if
             tg_s(n,j-1,i-1) = tg1d(n,i)
             u10m_s(n,j-1,i-1) = u10m1d(n,i)
@@ -786,9 +792,11 @@
                 facs = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zsno)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-              else if ( iocnflx.eq.1 ) then
-                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-                q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+              else
+                if ( iocnflx.eq.1 ) then
+                  fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                  q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+                end if
               end if
               q2m_s(n,j,i-1) = q2m_1d(n,i)
               drag_s(n,j,i-1) = drag1d(n,i)
@@ -876,9 +884,11 @@
                 facs = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zsno)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-              else if ( iocnflx.eq.1 ) then
-                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-                q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+              else
+                if ( iocnflx.eq.1 ) then
+                  fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                  q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+                end if
               end if
               q2m_s(n,j,i-1) = q2m_1d(n,i)
               drag_s(n,j,i-1) = drag1d(n,i)
@@ -961,9 +971,11 @@
                 facs = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zsno)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-              else if ( iocnflx.eq.1 ) then
-                fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
-                q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+              else 
+                if ( iocnflx.eq.1 ) then
+                  fact = dlog(z1(n,i)/2.)/dlog(z1(n,i)/zoce)
+                  q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+                end if
               end if
               q2m_s(n,j-1,i-1) = q2m_1d(n,i)
               drag_s(n,j-1,i-1) = drag1d(n,i)
