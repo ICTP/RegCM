@@ -1002,27 +1002,32 @@
           path = pdel*rga
         end do
       end do
-!
-!     Compute starting, ending daytime loop indices:
-!
       nloop = 0
       is = 0
       ie = 0
+!
+!     Compute starting daytime loop index
+!
       is(1) = isrchfgt(iym1,coszrs,1,0.D0)
 !
-!     If night everywhere, return:
+!     If night everywhere, return
 !
       if ( is(1).gt.iym1 ) return
-      ie(1) = isrchfle(iym1-is(1),coszrs(is(1)+1),1,0.D0) + is(1) - 1
+!
+!     Compute ending daytime loop index
+!
+      ie(1) = isrchfle(iym1-is(1),coszrs(is(1)+1),1,0.D0) + is(1)-1
       nloop = 1
 !
-!     Possibly 2 daytime loops needed:
+!     Possibly 2 daytime loops needed
 !
       if ( ie(1).ne.iym1 ) then
         is(2) = isrchfgt(iym1-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
-        if ( is(2).le.iym1 ) then
-          nloop = 2
-          ie(2) = iym1
+        if ( is(2).lt.iym1 ) then
+          ie(2) = isrchfle(iym1-is(2),coszrs(is(2)+1),1,0.D0) + is(2)-1
+          if ( ie(2).gt.is(2) ) then
+            nloop = 2
+          end if
         end if
       end if
 !
@@ -4699,38 +4704,30 @@
       function isrchfgt(n,array,inc,rtarg)
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , n
       real(8) :: rtarg
       real(8) , dimension(*) :: array
       integer :: isrchfgt
       intent (in) array , inc , n , rtarg
 !
-! Local variables
-!
-      integer :: i , ind
+      integer :: i
 !
       if ( n.le.0 ) then
         isrchfgt = 0
         return
       end if
-      ind = 1
-      do i = 1 , n
-        if ( array(ind).gt.rtarg ) then
-          isrchfgt = i
+      isrchfgt = 1
+      do i = 1 , n , inc
+        if ( array(i).gt.rtarg ) then
           return
         else
-          ind = ind + inc
+          isrchfgt = isrchfgt + inc
         end if
       end do
-      isrchfgt = ind
       end function isrchfgt
  
       function isrchfle(n,array,inc,rtarg)
       implicit none
-!
-! Dummy arguments
 !
       integer :: inc , n
       real(8) :: rtarg
@@ -4738,24 +4735,20 @@
       integer :: isrchfle
       intent (in) array , inc , n , rtarg
 !
-! Local variables
-!
-      integer :: i , ind
+      integer :: i
 !
       if ( n.le.0 ) then
         isrchfle = 0
         return
       end if
-      ind = 1
-      do i = 1 , n
-        if ( array(ind).le.rtarg ) then
-          isrchfle = i
+      isrchfle = 1
+      do i = 1 , n , inc
+        if ( array(i).le.rtarg ) then
           return
         else
-          ind = ind + inc
+          isrchfle = isrchfle + inc
         end if
       end do
-      isrchfle = ind
       end function isrchfle
 !
       subroutine wheneq(n,array,inc,itarg,indx,nval)

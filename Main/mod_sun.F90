@@ -153,7 +153,8 @@
         xxlat = mddom%xlat(ill,jslc)*degrad
         xxlon = mddom%xlong(ill,jslc)*degrad
         coszrs(ill) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-        coszrs(ill) = max(0.d0,coszrs(ill))
+        coszrs(ill) = max(0.0D0,coszrs(ill))
+        coszrs(ill) = min(1.0D0,coszrs(ill))
       end do
 #else
       xt24 = mod(lhour*60.+xtime,1440.D0)
@@ -165,7 +166,8 @@
 !       coszrs = cosine of solar zenith angle
         coszrs(ill) = sin(declin)*sin(xxlat) + cos(declin)           &
                     & *cos(xxlat)*cos(omega)
-        coszrs(ill) = max(0.D0,coszrs(ill))
+        coszrs(ill) = max(0.0D0,coszrs(ill))
+        coszrs(ill) = min(1.0D0,coszrs(ill))
       end do
 #endif
 !
