@@ -26,6 +26,7 @@
       use mod_pmoist
       use mod_rad
       use mod_slice
+      use mod_radiation, only : iconvlwp
 !
       private
 !
@@ -135,7 +136,9 @@
           ! convective fraction AND the large scale clouds :
           ! the large scale cloud water content is not really used by
           ! current radiation code, needs further evaluation.
-          exlwc = cldlwc(i,k)
+          !TAO: but only apply this parameterization to large scale LWC 
+          !if the user specifies it
+          if(iconvlwp.eq.1) exlwc = cldlwc(i,k)
           cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) &
                       & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
           cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)

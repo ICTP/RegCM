@@ -119,9 +119,9 @@
       real(8) , dimension(iym1,kz) :: clwp , emis , fice , h2ommr ,  &
            & o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
            & rel , tm1
+      integer , dimension(iym1) :: ioro
       real(8) :: eccf
       integer :: i , ii0 , ii1 , ii2 , k , n
-      integer , dimension(iym1) :: ioro
 !
 !     Fields specified by the user in getdat()
 !
@@ -200,6 +200,57 @@
 ! gravitational acceleration (m/s**2)
 ! Sefan-Boltzmann constant (W/m**2/K**4)
 !
+!     Reset all arrays
+!
+      alb(:) = 0.0D0
+      albc(:) = 0.0D0
+      aldif(:) = 0.0D0
+      aldir(:) = 0.0D0
+      asdif(:) = 0.0D0
+      asdir(:) = 0.0D0
+      alat(:) = 0.0D0
+      coslat(:) = 0.0D0
+      flns(:) = 0.0D0
+      flnsc(:) = 0.0D0
+      flnt(:) = 0.0D0
+      flntc(:) = 0.0D0
+      flwds(:) = 0.0D0
+      fsds(:) = 0.0D0
+      fsnirt(:) = 0.0D0
+      fsnirtsq(:) = 0.0D0
+      fsnrtc(:) = 0.0D0
+      fsns(:) = 0.0D0
+      fsnsc(:) = 0.0D0
+      fsnt(:) = 0.0D0
+      fsntc(:) = 0.0D0
+      loctim(:) = 0.0D0
+      solin(:) = 0.0D0
+      soll(:) = 0.0D0
+      solld(:) = 0.0D0
+      sols(:) = 0.0D0
+      solsd(:) = 0.0D0
+      srfrad(:) = 0.0D0
+      ts(:) = 0.0D0
+      cld(:,:) = 0.0D0
+      effcld(:,:) = 0.0D0
+      pilnm1(:,:) = 0.0D0
+      pintm1(:,:) = 0.0D0
+      clwp(:,:) = 0.0D0
+      emis(:,:) = 0.0D0
+      fice(:,:) = 0.0D0
+      h2ommr(:,:) = 0.0D0
+      o3mmr(:,:) = 0.0D0
+      o3vmr(:,:) = 0.0D0
+      pmidm1(:,:) = 0.0D0
+      pmlnm1(:,:) = 0.0D0
+      qm1(:,:) = 0.0D0
+      qrl(:,:) = 0.0D0
+      qrs(:,:) = 0.0D0
+      rei(:,:) = 0.0D0
+      rel(:,:) = 0.0D0
+      tm1(:,:) = 0.0D0
+      ioro(:) = 0
+!
 !     Set latitude index to jslc
 !
       ilat = jslc
@@ -226,13 +277,16 @@
         do n = 1 , nnsg
           if ( ocld2d(n,i,jslc).gt.1.5 ) then
             if ( sice1d(n,i).ge.0.0001 ) then
-               ii2 = ii2 + 1
+              ii2 = ii2 + 1
+            else
+              ii0 = ii0 + 1
             endif
-          else if ( ocld2d(n,i,jslc).gt.0.1 .and. &
-                    sice1d(n,i).lt.0.0001 ) then
-            ii1 = ii1 + 1
-          else if ( sice1d(n,i).ge.0.0001 ) then
-            ii2 = ii2 + 1
+          else if ( ocld2d(n,i,jslc).gt.0.1 ) then
+            if ( sice1d(n,i).lt.0.0001 ) then
+              ii1 = ii1 + 1
+            else if ( sice1d(n,i).ge.0.0001 ) then
+              ii2 = ii2 + 1
+            end if
           else
             ii0 = ii0 + 1
           end if

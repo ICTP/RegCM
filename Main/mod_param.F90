@@ -130,11 +130,11 @@
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
       & medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
-      & idesseas
+      & idesseas , iconvlwp
 
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
-      & tc0 , cllwcv , clfrcvmax
+      & tc0 , cllwcv , clfrcvmax , cftotmax
 
       namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
       & edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -302,6 +302,8 @@
       high_nudge = 3 
       medium_nudge=2
       low_nudge=1   
+      iconvlwp = 1
+      cftotmax = 0.75D0
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -491,6 +493,7 @@
       call mpi_bcast(idcsst,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iseaice,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(idesseas,1,mpi_integer,0,mpi_comm_world,ierr)
+      call mpi_bcast(iconvlwp,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -513,6 +516,7 @@
         call mpi_bcast(tc0,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(cevap,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(caccr,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cftotmax,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
       if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
@@ -868,6 +872,11 @@
       call say
       write  (aline,'(a,i2)') ' Use desert seasonal effect '// &
                               '(0=no,1=yes):  idesseas =' , idesseas 
+
+      call say
+      write  (aline,'(a,i2)') ' Use convective LWP parameterization '// &
+                         'for large-scale '// &
+                         'clouds (0=no,1=yes):  iconvlwp =' , iconvlwp 
       call say
       write  (aline,'(a,f9.6)') ' Nudge value high range   =', &
                                 high_nudge 
@@ -1202,34 +1211,37 @@
       call say
 !
       if ( ipptls.eq.1 ) then
-        write (aline, '(a,f11.6,a,f11.6)')                              &
-               & 'AUTO-CONVERSION RATE:  LAND=' , qck1land ,    &
-               & '                      OCEAN=' , qck1oce
+        write (aline, '(a,f11.6,a,f11.6)')                        &
+               & 'Auto-conversion rate:  Land = ' , qck1land ,    &
+               & '                      Ocean = ' , qck1oce
         call say
-        write (aline, *) 'RELATIVE HUMIDITY THRESHOLDS:  LAND=' ,       &
-               & rh0land , '                              OCEAN=' ,     &
+        write (aline, *) 'Relative humidity thresholds:  Land = ' ,   &
+               & rh0land , '                              Ocean = ' , &
                & rh0oce
         call say
-        write (aline, *) 'GULTEPE FACTORS:  LAND=' , gulland ,          &
-               &'                 OCEAN=' , guloce
+        write (aline, *) 'Gultepe factors:  Land=' , gulland ,   &
+               &'                 Ocean=' , guloce
         call say
-        write (aline, *) 'MAXIMUM CLOUD COVER FOR RADIATION: ' , fcmax
+        write (aline, *) 'Maximum cloud cover for radiation: ' , fcmax
         call say
-        write (aline, *) 'MAXIMUM RELATIVE HUMIDITY: ' , rhmax
+        write (aline, *) 'Maximum relative humidity: ' , rhmax
         call say
         write (aline, *) 'rh0 temperature threshold: ' , tc0
         call say
         if ( cevap.le.0.0 ) then
-          write (aline, *) 'RAINDROP EVAPORATION NOT INCLUDED'
+          write (aline, *) 'Raindrop evaporation not included'
           call say
         end if
         if ( caccr.le.0.0 ) then
-          write (aline, *) 'RAINDROP ACCRETION NOT INCLUDED'
+          write (aline, *) 'Raindrop accretion not included'
           call say
         end if
         write (aline, *) 'Raindrop Evaporation Rate' , cevap
         call say
         write (aline, *) 'Raindrop Accretion Rate' , caccr
+        call say
+        write (aline, *) 'Maximum total cloud cover for radiation: ' ,  &
+             cftotmax
         call say
       end if
  
