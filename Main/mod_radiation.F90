@@ -38,8 +38,16 @@
 
       private
 
+      !TAO 2/8/11:
+      !Flag for using convective liquid water path as the large-scale
+      !liquid water path (iconvlwp=1)
+      integer :: iconvlwp
+      !Maximum total cloud fraction for radiation model
+      real(8) :: cftotmax
+
       public :: allocate_mod_radiation , radini , radctl
       public :: absnxt , abstot , emstot
+      public :: iconvlwp , cftotmax
 
       ! absnxt  - Nearest layer absorptivities
       ! abstot  - Non-adjacent layer absorptivites
@@ -508,8 +516,9 @@
           totcf(i) =  0.5 * ( totcf(i) + maxval(cld(i,:)) )
 
 !         Fil suggestion of putting a max on column cloud fraction
-!         Erika decreases the max to 0.75
-          if ( totcf(i) > 0.75D0 ) totcf(i) = 0.75D0
+          !TAO: implement a user-specified CF maximum (default of
+          !0.75d0, as suggested by Erika)
+          if ( totcf(i) > cftotmax ) totcf(i) = cftotmax
           if ( totcf(i) < 0.0D0 ) totcf(i) = 0.0D0
 
           fsns(i) = fsns(i) * totcf(i) + fsnsc(i) * (1.0D0-totcf(i))
@@ -961,31 +970,31 @@
       call time_begin(subroutine_name,indx)
 !     Initialize output fields:
 !
-      fsds(:) = 0.0
-      fsnirt(:) = 0.0
-      fsnrtc(:) = 0.0
-      fsnirtsq(:) = 0.0
-      fsnt(:) = 0.0
-      fsns(:) = 0.0
-      solin(:) = 0.0
-      fsnsc(:) = 0.0
-      fsntc(:) = 0.0
-      sols(:) = 0.0
-      soll(:) = 0.0
-      solsd(:) = 0.0
-      solld(:) = 0.0
-      sabveg(:) = 0.0
-      solis(:) = 0.0
-      solvs(:) = 0.0
-      solvd(:) = 0.0
+      fsds(:) = 0.0D0
+      fsnirt(:) = 0.0D0
+      fsnrtc(:) = 0.0D0
+      fsnirtsq(:) = 0.0D0
+      fsnt(:) = 0.0D0
+      fsns(:) = 0.0D0
+      solin(:) = 0.0D0
+      fsnsc(:) = 0.0D0
+      fsntc(:) = 0.0D0
+      sols(:) = 0.0D0
+      soll(:) = 0.0D0
+      solsd(:) = 0.0D0
+      solld(:) = 0.0D0
+      sabveg(:) = 0.0D0
+      solis(:) = 0.0D0
+      solvs(:) = 0.0D0
+      solvd(:) = 0.0D0
 !
-      aeradfo(:) = 0.0
-      aeradfos(:) = 0.0
-      x0fsntc(:) = 0.0
-      x0fsnsc(:) = 0.0
-      x0fsnrtc(:) = 0.0
+      aeradfo(:) = 0.0D0
+      aeradfos(:) = 0.0D0
+      x0fsntc(:) = 0.0D0
+      x0fsnsc(:) = 0.0D0
+      x0fsnrtc(:) = 0.0D0
 !
-      qrs(:,:) = 0.0
+      qrs(:,:) = 0.0D0
 !
       do k = 1 , kz
         do i = 1 , iym1

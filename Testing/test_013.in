@@ -103,22 +103,25 @@
  dirout='/lustre/fsolmon/regcm/MEGAPOLI/output_SO2'
  /
  &physicsparam
- iboudy  =          5,
- ibltyp  =          1,
- icup    =          2,
- igcc    =          2,
- ipptls  =          1,
- iocnflx =          2,
- ipgf    =          0,
- iemiss  =          0,
- lakemod =          0,
- ichem   =          1,
+ iboudy   = 5,
+ ibltyp   = 1,
+ icup     = 2,
+ igcc     = 2,
+ ipptls   = 1,
+ iocnflx  = 2,
+ ipgf     = 0,
+ iemiss   = 0,
+ lakemod  = 0,
+ ichem    = 1,
+ idesseas = 1,
+ iconvlwp = 1,
  /
  &subexparam
  qck1land=   .250E-03,
  qck1oce =   .250E-03,
  cevap   =   .100E-02,
  caccr   =      3.000,
+ cftotmax =      0.75,
  /
  &grellparam
  /

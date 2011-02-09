@@ -107,12 +107,14 @@
  idcsst = 0,
  iseaice = 0,
  idesseas = 1,
+ iconvlwp = 1,
  /
  &subexparam
  qck1land=   .250E-03,
  qck1oce =   .250E-03,
  cevap   =   .100E-02,
  caccr   =      3.000,
+ cftotmax =      0.75,
  /
  &grellparam
  /
