@@ -107,7 +107,7 @@
 #endif
       write (aline, 99001) calday, decdeg
       call say
-99001 format (11x,'*** Day ',f12.8,' solar declination angle = ',f12.8,&
+99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
           &   ' degrees.')
 !
       call time_end(subroutine_name,idindx)
