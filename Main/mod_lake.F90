@@ -38,7 +38,7 @@
       public :: initlake , lakescatter , lakegather , lakedrv
       public :: dhlake1
 #ifndef MPP1
-      public :: evl2d , aveice2d , hsnow2d , tlak3d
+      public :: aveice2d , hsnow2d , tlak3d
 #endif
 !
       real(8) , allocatable , dimension(:,:,:) :: dhlake1
@@ -47,7 +47,6 @@
       real(8) , allocatable , dimension(:,:,:) :: hi2d
       real(8) , allocatable , dimension(:,:,:) :: aveice2d
       real(8) , allocatable , dimension(:,:,:) :: hsnow2d
-      real(8) , allocatable , dimension(:,:,:) :: evl2d
       real(8) , allocatable , dimension(:,:,:,:) :: tlak3d
 !
       real(8) , dimension(ndpmax) :: de , dnsty , tt
@@ -70,7 +69,6 @@
       allocate(hi2d(nnsg,iym1,jxp))
       allocate(aveice2d(nnsg,iym1,jxp))
       allocate(hsnow2d(nnsg,iym1,jxp))
-      allocate(evl2d(nnsg,iym1,jxp))
       allocate(tlak3d(ndpmax,nnsg,iym1,jxp))
 #else
       allocate(dhlake1(nnsg,iy,jx))
@@ -79,7 +77,6 @@
       allocate(hi2d(nnsg,iym1,jx))
       allocate(aveice2d(nnsg,iym1,jx))
       allocate(hsnow2d(nnsg,iym1,jx))
-      allocate(evl2d(nnsg,iym1,jx))
       allocate(tlak3d(ndpmax,nnsg,iym1,jx))
 #endif
       dhlake1 = 0.0D0
@@ -88,7 +85,6 @@
       hi2d = 0.0D0
       aveice2d = 0.0D0
       hsnow2d = 0.0D0
-      evl2d = 0.0D0
       tlak3d = 0.0D0
       end subroutine allocate_lake
 
@@ -177,8 +173,8 @@
 !
       integer , intent(in) :: jslc
 !
-      real(8) :: flw , fsw , hlat , hsen , prec , &
-               & ql , tgl , tl , vl , zl , xl
+      real(8) :: flw , fsw , hsen , prec , &
+               & ql , tgl , tl , vl , zl , xl , evp
       integer :: i , n
 !
       do i = 2 , iym1
@@ -192,18 +188,17 @@
             flw = -1.*flw1d(i)
             prec = prcp1d(n,i)*dtbat
             hsen = -1.0D0*sent1d(n,i)
-            hlat = -1.0D0*evpr1d(n,i)
+            evp = evpr1d(n,i)
             if (nnsg == 1) then
               xl = mddom%xlat(i,jslc)
             else
               xl = xlat1(n,i,jslc)
             end if
 
-            call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,xl,    &
+            call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,    &
                     &  tgl,prec,idep2d(n,i,jslc),eta2d(n,i,jslc),  &
                     &  hi2d(n,i,jslc),aveice2d(n,i,jslc),          &
-                    &  hsnow2d(n,i,jslc),evl2d(n,i,jslc),          &
-                    &  tlak3d(:,n,i,jslc) )
+                    &  hsnow2d(n,i,jslc),evp,tlak3d(:,n,i,jslc) )
 
 !           Feed back ground temperature
             tg1d(n,i) = tgl
@@ -219,8 +214,8 @@
               ocld2d(n,i,jslc) = 2.0D0 
               ldoc1d(n,i) = 2.0D0
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
-              scv1d(n,i) = hsnow2d(n,i,jslc)    !  units of snow = mm h2o
-              evpr1d(n,i) = evl2d(n,i,jslc)
+              scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
+              evpr1d(n,i) = evp                 !  units of evp = mm/sec
             end if
           end if
         end do
@@ -230,16 +225,16 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,hlat,xl,tgl,  &
+      subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
                     & prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
  
       implicit none
 !
-      real(8) :: dtlake , evl , aveice , hlat , hsen , hsnow , flw , &
+      real(8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
                & prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
       real(8) , dimension(ndpmax) :: tprof
       integer :: ndpt
-      intent (in) hlat , hsen , ql , tl , vl , zl
+      intent (in) hsen , ql , tl , vl , zl
       intent (in) ndpt , eta
       intent (out) tgl
       intent (inout) evl , aveice , hsnow
@@ -263,7 +258,8 @@
 !     ****** Check if conditions not exist for lake ice
       if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
  
-        qe = hlat*wlhv
+        ! Graziano: removed hlat. It is calculated from evaporation
+        qe = -1.0D0*evl*wlhv
         qh = hsen
 
 !       ******    Calculate eddy diffusivities
@@ -276,7 +272,6 @@
         call mixer(kmin,ndpt,tprof)
 
         hi     = 0.01
-        evl    = 0.0D0
         aveice = 0.0D0
         hsnow  = 0.0D0
 
@@ -293,7 +288,7 @@
         ai  = aveice / 1000.0D0   ! convert to m
         hs  = hsnow / 100.0D0     ! convert to m
 
-        call ice(fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
+        call ice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
         if ( .not. lfreeze ) tprof(1) = tk - tzero
 
         evl    = ev/3600.0D0      ! convert evl  from mm/hr to mm/sec
@@ -492,13 +487,13 @@
 !
 !-----------------------------------------------------------------------
 !
-      subroutine ice(fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
+      subroutine ice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
 
       implicit none
       real(8) :: ea , evl , hi , aveice , hs , fsw , &
-                 ld , prec , tac , u2
+                 ld , prec , tac , u2 , dtx
       real(8) , dimension(ndpmax) :: tprof
-      intent (in) ea , ld , prec , tac , u2
+      intent (in) dtx , ea , ld , prec , tac , u2
       intent (out) evl
       intent (inout) hi , aveice , hs , fsw , tprof
 !
@@ -507,17 +502,26 @@
       integer :: nits
 !
       real(8) , parameter :: isurf = 0.6D0
+      ! attenuation coeff for ice in visible band (m-1)
       real(8) , parameter :: lami1 = 1.5D0
+      ! attenuation coeff for ice in infrared band (m-1)
       real(8) , parameter :: lami2 = 20.0D0
+      ! attenuation coeff for snow in visible band (m-1)
       real(8) , parameter :: lams1 = 6.0D0
+      ! attenuation coeff for snow in infrared band (m-1)
       real(8) , parameter :: lams2 = 20.0D0
+      ! thermal conductivity of ice (W/m/C)
       real(8) , parameter :: ki = 2.3D0
+      ! thermal conductivity of snow (W/m/C)
       real(8) , parameter :: ks = 0.31D0
+      ! standard atmospheric pressure (hPa) ????
       real(8) , parameter :: atm = 950.0D0
+      ! heat flux from water to ice (w/m2) ???
       real(8) , parameter :: qw = 1.389D0
+      ! latent heat of fusion (J/kg)
       real(8) , parameter :: li = 334.0D03
+      ! drag coefficient for the turbulent momentum flux.
       real(8) , parameter :: cd = 0.001D0
-      real(8) , parameter :: sec = 3600.0D0
 !
 !
 !****************************SUBROUINE ICE*****************************
@@ -528,21 +532,29 @@
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
       if ( hs < 0.0D0 ) hs = 0.0D0
  
+      ! temperature of ice/snow surface
       t0 = tprof(1)
+      ! freezing temp of water
       tf = 0.0D0
+      ! approximate density of air (1 kg/m3)
       rho = rhoh2o/1000.0D0
  
       khat = (ki*hs+ks*hi)/(ki*ks)
       theta = cpd*rho*cd*u2
       psi = wlhv*rho*cd*u2*ep2/atm
       evl = 100.0D0*psi*(eomb(t0)-ea)/(wlhv*rho)
+      ! amount of radiation that penetrates through the ice (W/m2)
       qpen = fsw*0.7D0*((1.0D0-exp(-lams1*hs))/(ks*lams1) +            &
                         (exp(-lams1*hs))*(1.0D0-exp(-lami1*hi)) /      &
                         (ki*lami1))+fsw*0.3D0*((1.0D0-exp(-lams2)) /   &
                         (ks*lams2)+(-lams2*hs)*(1.0D0-exp(-lami2*hi))/ &
                         (ki*lami2))
+      ! radiation absorbed at the ice surface
       fsw = fsw - qpen
  
+      ! test qpen sensitivity
+      !qpen = qpen * 0.5
+
       nits = 0
       t1 = -50.0D0
       f0 = f(t0)
@@ -562,7 +574,7 @@
         if ( t0.ge.tf ) then
  
           if ( hs.gt.0.0D0 ) then
-            ds = sec*                                        &
+            ds = dtx*                                        &
                & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+ &
                &  theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhos*li)
             if ( ds.gt.0.0D0 ) ds = 0.0D0
@@ -573,7 +585,7 @@
             end if
           end if
           if ( (hs.eq.0.0D0) .and. (aveice.gt.0.0D0) ) then
-            di = sec*                                        &
+            di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
                  theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhoi*li)
             if ( di.gt.0.0D0 ) di = 0.0D0
@@ -586,7 +598,7 @@
              & + theta*(t0-tac) - fsw
           qpen = fsw*0.7D0*(1.0D0-exp(-(lams1*hs+lami1*hi))) +          &
                & fsw*0.3D0*(1.0D0-exp(-(lams2*hs+lami2*hi)))
-          di = sec*(q0-qw-qpen)/(rhoi*li)
+          di = dtx*(q0-qw-qpen)/(rhoi*li)
  
           hi = hi + di
         end if
@@ -661,9 +673,6 @@
                     & 0, mpi_comm_world,ierr)
       call mpi_gather(hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
                     & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                    & 0, mpi_comm_world,ierr)
-      call mpi_gather(evl2d,   nnsg*iym1*jxp,mpi_real8, &
-                    & evl2d_io,nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
       call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
