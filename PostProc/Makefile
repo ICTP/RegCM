@@ -8,11 +8,14 @@ all: sigma2p GrADSNcPlot GrADSNcPrepare
 	@cp average.sh $(BINDIR)/average
 	@echo "Programs all installed in $(BINDIR)"
 
-OBJS = mod_projections.o mod_constants.o
+OBJS = mod_projections.o mod_constants.o mod_date.o
 
 mod_constants.o: ../Config/mod_constants.F90
 	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
                $(USCORING) -c -o $@ $<
+
+mod_date.o: ../PreProc/ICBC/mod_date.f90
+	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
 
 mod_projections.o: ../PreProc/Terrain/mod_projections.f90 mod_constants.o
 	$(F90) -c $(NETCDFINC) $(F90FLAGS) $(USCORING) -c -o $@ $<
