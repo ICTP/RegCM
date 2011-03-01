@@ -52,7 +52,10 @@ program sigma2p
   real(4) :: ptop
   integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d
   integer :: n3d , ip3d
-#ifdef IBM
+#ifdef __PGI
+  integer , external :: iargc
+#endif
+#ifdef IBM 
   integer , external :: iargc
 #endif
 
