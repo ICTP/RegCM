@@ -151,9 +151,11 @@
           do i = 1 , iym1
             idx = max0(i,2)
             idxp1 = min0(i+1,iym1)
-            ubx3d(i,k,j) = 0.25*(atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
+            ubx3d(i,k,j) = 0.25D0* & 
+                (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
                  atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
-            vbx3d(i,k,j) = 0.25*(atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
+            vbx3d(i,k,j) = 0.25D0* &
+                (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
                  atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
           end do
         end do
@@ -202,7 +204,7 @@
 #endif
 #endif
         do i = 2 , iym1
-          zq(i,kzp1) = 0.
+          zq(i,kzp1) = 0.0D0
         end do
         do kk = 1 , kz
           k = kzp1 - kk
@@ -216,7 +218,7 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            za(i,k,j) = 0.5*(zq(i,k)+zq(i,k+1))
+            za(i,k,j) = 0.5D0*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do
@@ -224,23 +226,23 @@
 !-----Calculate the relative humidity and air density
 
         do i = 2 , iym1
-          psrf = (sps2%ps(i,j)+r8pt)*1000.
+          psrf = (sps2%ps(i,j)+r8pt)*1000.0D0
           tv = tb3d(i,kz,j)
           rhox2d(i,j) = psrf/(rgas*tv)
         end do
         do k = 1 , kz
           do i = 2 , iym2
-            pres = (a(k)*sps2%ps(i,j)+r8pt)*1000.
+            pres = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
             rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j).gt.tzero ) then
-              satvp = svp1*1.E3*dexp(svp2*(tb3d(i,k,j)-tzero)           &
+              satvp = svp1*1.D3*dexp(svp2*(tb3d(i,k,j)-tzero)           &
                     & /(tb3d(i,k,j)-svp3))
             else
-              satvp = svp4*1.E3*dexp(svp5-svp6/tb3d(i,k,j))
+              satvp = svp4*1.D3*dexp(svp5-svp6/tb3d(i,k,j))
             end if
             qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
-            rh = 0.
-            if ( qsb3d(i,k,j).gt.0. ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
+            rh = 0.0D0
+            if ( qsb3d(i,k,j).gt.0.0D0 ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
             rhb3d(i,k,j) = rh
           end do
         end do
