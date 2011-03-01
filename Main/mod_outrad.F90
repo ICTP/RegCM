@@ -57,10 +57,10 @@
         allocate(frad3d(jxm2,iym2,kz,nrad3d))
         allocate(radpsa(jxm2,iym2))
 #endif
-        radpsa = 0.0
+        radpsa = 0.0D0
 #endif
-        frad2d = 0.0
-        frad3d = 0.0
+        frad2d = 0.0D0
+        frad3d = 0.0D0
         end subroutine allocate_mod_outrad
 ! 
         subroutine radout(solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla, &
@@ -197,7 +197,7 @@
           end do
 !
           if ( ifrad ) then
-            if ( mod(ntime+idnint(dtmin*60.),nradisp).eq.0 .or.  &
+            if ( mod(ntime+idnint(dtmin*60.0D0),nradisp).eq.0 .or.  &
                 ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.         &
                 ( ifrest .and. .not. done_restart) ) then
               do k = 1 , kz
@@ -205,10 +205,10 @@
 #ifdef MPP1
                   frad3d(jslc,i-1,k,1) = h2ommr(i,k)
                   frad3d(jslc,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1E-30) then
+                  if (clwp(i,k) > 1D-30) then
                     frad3d(jslc,i-1,k,3) = clwp(i,k)
                   else
-                    frad3d(jslc,i-1,k,3) = 1E-30
+                    frad3d(jslc,i-1,k,3) = 1D-30
                   end if
                   frad3d(jslc,i-1,k,4) = qrs(i,k)
                   frad3d(jslc,i-1,k,5) = qrl(i,k)
@@ -216,20 +216,20 @@
 #ifdef BAND
                   frad3d(jslc,i-1,k,1) = h2ommr(i,k)
                   frad3d(jslc,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1E-30) then
+                  if (clwp(i,k) > 1D-30) then
                     frad3d(jslc,i-1,k,3) = clwp(i,k)
                   else
-                    frad3d(jslc,i-1,k,3) = 1E-30
+                    frad3d(jslc,i-1,k,3) = 1D-30
                   end if
                   frad3d(jslc,i-1,k,4) = qrs(i,k)
                   frad3d(jslc,i-1,k,5) = qrl(i,k)
 #else
                   frad3d(jslc-1,i-1,k,1) = h2ommr(i,k)
                   frad3d(jslc-1,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1E-30) then
+                  if (clwp(i,k) > 1D-30) then
                     frad3d(jslc-1,i-1,k,3) = clwp(i,k)
                   else
-                    frad3d(jslc-1,i-1,k,3) = 1E-30
+                    frad3d(jslc-1,i-1,k,3) = 1D-30
                   end if
                   frad3d(jslc-1,i-1,k,4) = qrs(i,k)
                   frad3d(jslc-1,i-1,k,5) = qrl(i,k)
@@ -255,23 +255,23 @@
                 frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
                 frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
                 frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,16) = 0.0
+                if ( soll(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,16) = 0.0D0
                 else
                   frad2d(jslc,i-1,16) = soll(i)     ! skip
                 end if
-                if ( sols(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,17) = 0.0
+                if ( sols(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,17) = 0.0D0
                 else
                   frad2d(jslc,i-1,17) = sols(i)     ! skip
                 end if
-                if ( solsd(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,18) = 0.0
+                if ( solsd(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,18) = 0.0D0
                 else
                   frad2d(jslc,i-1,18) = solsd(i)     ! skip
                 end if
-                if ( solld(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,19) = 0.0
+                if ( solld(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,19) = 0.0D0
                 else
                   frad2d(jslc,i-1,19) = solld(i)     ! skip
                 end if
@@ -294,23 +294,23 @@
                 frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
                 frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
                 frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,16) = 0.0
+                if ( soll(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,16) = 0.0D0
                 else
                   frad2d(jslc,i-1,16) = soll(i)     ! skip
                 end if
-                if ( sols(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,17) = 0.0
+                if ( sols(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,17) = 0.0D0
                 else
                   frad2d(jslc,i-1,17) = sols(i)     ! skip
                 end if
-                if ( solsd(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,18) = 0.0
+                if ( solsd(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,18) = 0.0D0
                 else
                   frad2d(jslc,i-1,18) = solsd(i)     ! skip
                 end if
-                if ( solld(i) .lt. 1E-30 ) then
-                  frad2d(jslc,i-1,19) = 0.0
+                if ( solld(i) .lt. 1D-30 ) then
+                  frad2d(jslc,i-1,19) = 0.0D0
                 else
                   frad2d(jslc,i-1,19) = solld(i)     ! skip
                 end if
@@ -332,23 +332,23 @@
                 frad2d(jslc-1,i-1,13) = fsnirt(i)   ! skip
                 frad2d(jslc-1,i-1,14) = fsnrtc(i)   ! skip
                 frad2d(jslc-1,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) .lt. 1E-30 ) then
-                  frad2d(jslc-1,i-1,16) = 0.0
+                if ( soll(i) .lt. 1D-30 ) then
+                  frad2d(jslc-1,i-1,16) = 0.0D0
                 else
                   frad2d(jslc-1,i-1,16) = soll(i)     ! skip
                 end if
-                if ( sols(i) .lt. 1E-30 ) then
-                  frad2d(jslc-1,i-1,17) = 0.0
+                if ( sols(i) .lt. 1D-30 ) then
+                  frad2d(jslc-1,i-1,17) = 0.0D0
                 else
                   frad2d(jslc-1,i-1,17) = sols(i)     ! skip
                 end if
-                if ( solsd(i) .lt. 1E-30 ) then
-                  frad2d(jslc-1,i-1,18) = 0.0
+                if ( solsd(i) .lt. 1D-30 ) then
+                  frad2d(jslc-1,i-1,18) = 0.0D0
                 else
                   frad2d(jslc-1,i-1,18) = solsd(i)     ! skip
                 end if
-                if ( solld(i) .lt. 1E-30 ) then
-                  frad2d(jslc-1,i-1,19) = 0.0
+                if ( solld(i) .lt. 1D-30 ) then
+                  frad2d(jslc-1,i-1,19) = 0.0D0
                 else
                   frad2d(jslc-1,i-1,19) = solld(i)     ! skip
                 end if
