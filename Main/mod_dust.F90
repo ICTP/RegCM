@@ -43,21 +43,21 @@
 ! weighting factors in fuction of bin sizes
 !
       integer, parameter :: isize = 12
-      real(8), parameter :: d1 =1.5
-      real(8), parameter :: d2 =6.7
-      real(8), parameter :: d3 =14.2
-      real(8), parameter :: sigma1=1.7 
-      real(8), parameter :: sigma2 =1.2
-      real(8), parameter :: sigma3 =1.5      
+      real(8), parameter :: d1 = 1.5D0
+      real(8), parameter :: d2 = 6.7D0
+      real(8), parameter :: d3 = 14.2D0
+      real(8), parameter :: sigma1=1.7D0 
+      real(8), parameter :: sigma2 =1.2D0
+      real(8), parameter :: sigma3 =1.5D0
 
       ! corresponding binding energies/
-      real(8),parameter  :: e1 = 3.61
-      real(8),parameter  :: e2 = 3.52
-      real(8),parameter  :: e3 = 3.46
+      real(8),parameter  :: e1 = 3.61D0
+      real(8),parameter  :: e2 = 3.52D0
+      real(8),parameter  :: e3 = 3.46D0
 !        
 !     Basic dust aerosol density (ACE-2 ) in kg/m3
 !        
-      real(8) , parameter :: rhop = 2650.0
+      real(8) , parameter :: rhop = 2650.0D0
 
       real(8), dimension (2,isize)  ::  aerosize       
       real(8) , allocatable, dimension(:) ::  frac1,frac2,frac3
@@ -75,11 +75,11 @@
 !
 ! Initialise sub bin aerosol distribution 
 !
-      data  aerosize/1.0E-08 , 2.0E-08 , 2.0E-08 , 4.0E-08 , 4.0E-08 ,   &
-         & 8.0E-08 , 8.0E-08 , 1.6E-07 , 1.6E-07 , 3.2E-07 , 3.2E-07 ,  &
-         & 6.4E-07 , 6.4E-07 , 1.28E-06 , 1.28E-06 , 2.56E-06 ,         &
-         & 2.56E-06 , 5.12E-06 , 5.12E-06 , 10.4E-06 , 10.24E-06 ,      &
-         & 20.48E-06 , 20.48E-06 , 40.6E-06/
+      data  aerosize/1.0D-08 , 2.0D-08 , 2.0D-08 , 4.0D-08 , 4.0D-08 ,   &
+         & 8.0D-08 , 8.0D-08 , 1.6D-07 , 1.6D-07 , 3.2D-07 , 3.2D-07 ,  &
+         & 6.4D-07 , 6.4D-07 , 1.28D-06 , 1.28D-06 , 2.56D-06 ,         &
+         & 2.56D-06 , 5.12D-06 , 5.12D-06 , 10.4D-06 , 10.24D-06 ,      &
+         & 20.48D-06 , 20.48D-06 , 40.6D-06/
 !
       contains 
 !
@@ -169,32 +169,38 @@
 ! change type 1 and 2 and 3 to Laurent et al., 2008, marticorena et al., 1997
 !  soil size parameter 
 !
-      data bcly/0.00 , 0.10 , 0.10 , 0.15 , 0.15 , 0.15 , 0.20 , 0.20 , &
-         & 0.30 , 0.35 , 0.40 , 0.50/
-      data bsnd/0.90 , 0.60 , 0.60 , 0.50 , 0.45 , 0.35 , 0.30 , 0.30 , &
-         & 0.20 , 0.65 , 0.60 , 0.50/
-      data bslt/0.10 , 0.30 , 0.30 , 0.35 , 0.40 , 0.50 , 0.50 , 0.50 , &
-         & 0.50 , 0.00 , 0.00 , 0.00/
+      data bcly/0.00D0 , 0.10D0 , 0.10D0 , 0.15D0 , 0.15D0 , 0.15D0 , &
+                0.20D0 , 0.20D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0/
+      data bsnd/0.90D0 , 0.60D0 , 0.60D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
+                0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
+      data bslt/0.10D0 , 0.30D0 , 0.30D0 , 0.35D0 , 0.40D0 , 0.50D0 , &
+                0.50D0 , 0.50D0 , 0.50D0 , 0.00D0 , 0.00D0 , 0.00D0/
 ! 
-      data rhop/2650.000/
-      data eps/1.0E-7/
+      data rhop/2650.0D0/
+      data eps/1.0D-7/
 !
-      data mmd/690.0 , 210.0 , 10.0 , 690.0 , 210.0 , 0.0 , 690.0 ,     &
-         & 210.0 , 0.0 , 520.0 , 100.0 , 5.0 , 520.0 , 75.0 , 2.5 ,     &
-         & 520.0 , 75.0 , 2.5 , 210.0 , 75.0 , 2.5 , 210.0 , 50.0 ,     &
-         & 2.5 , 125.0 , 50.0 , 1.0 , 100.0 , 10.0 , 1.0 , 100.0 ,      &
-         & 10.0 , 0.5 , 100.0 , 10.0 , 0.5/
+      data mmd/690.0D0 , 210.0D0 ,  10.0D0 , 690.0D0 , 210.0D0 , &
+                 0.0D0 , 690.0D0 , 210.0D0 ,   0.0D0 , 520.0D0 , &
+               100.0D0 ,   5.0D0 , 520.0D0 ,  75.0D0 ,   2.5D0 , &
+               520.0D0 ,  75.0D0 ,   2.5D0 , 210.0D0 ,  75.0D0 , &
+                 2.5D0 , 210.0D0 ,  50.0D0 ,   2.5D0 , 125.0D0 , &
+                50.0D0 ,   1.0D0 , 100.0D0 ,  10.0D0 ,   1.0D0 , &
+               100.0D0 ,  10.0D0 ,   0.5D0 , 100.0D0 ,  10.0D0 , &
+                 0.5D0/
 ! 
-      data sigma/1.6 , 1.8 , 1.8 , 1.6 , 1.8 , 1.8 , 1.6 , 1.8 , 1.8 ,  &
-         & 1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 , 1.6 , 1.7 , 1.8 , 1.7 ,  &
-         & 1.7 , 1.8 , 1.7 , 1.7 , 1.8 , 1.7 , 1.7 , 1.8 , 1.8 , 1.8 ,  &
-         & 1.8 , 1.8 , 1.8 , 1.8 , 1.8 , 1.8 , 1.8/
+      data sigma/1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , 1.8D0 , 1.8D0 , 1.6D0 , &
+                 1.8D0 , 1.8D0 , 1.6D0 , 1.7D0 , 1.8D0 , 1.6D0 , 1.7D0 , &
+                 1.8D0 , 1.6D0 , 1.7D0 , 1.8D0 , 1.7D0 , 1.7D0 , 1.8D0 , &
+                 1.7D0 , 1.7D0 , 1.8D0 , 1.7D0 , 1.7D0 , 1.8D0 , 1.8D0 , &
+                 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , 1.8D0 , &
+                 1.8D0/
 ! 
-       data pcent/1.0 , 0.00 , 0.00 , 0.90 , 0.10 , 0.00 , 0.80 , 0.20 ,&
-         & 0.00 , 0.50 , 0.35 , 0.15 , 0.45 , 0.40 , 0.15 , 0.35 ,      &
-         & 0.50 , 0.15 , 0.30 , 0.50 , 0.20 , 0.30 , 0.50 , 0.20 ,      &
-         & 0.20 , 0.50 , 0.30 , 0.65 , 0.00 , 0.35 , 0.60 , 0.00 ,      &
-         & 0.40 , 0.50 , 0.00 , 0.50/
+       data pcent/1.00D0 , 0.00D0 , 0.00D0 , 0.90D0 , 0.10D0 , 0.00D0 , &
+                  0.80D0 , 0.20D0 , 0.00D0 , 0.50D0 , 0.35D0 , 0.15D0 , &
+                  0.45D0 , 0.40D0 , 0.15D0 , 0.35D0 , 0.50D0 , 0.15D0 , &
+                  0.30D0 , 0.50D0 , 0.20D0 , 0.30D0 , 0.50D0 , 0.20D0 , &
+                  0.20D0 , 0.50D0 , 0.30D0 , 0.65D0 , 0.00D0 , 0.35D0 , &
+                  0.60D0 , 0.00D0 , 0.40D0 , 0.50D0 , 0.00D0 , 0.50D0/
 !
       rd_tex = .false.
 #ifdef MPP1
@@ -274,11 +280,11 @@
     
 ! end texture file reading
 
-      clay2row2 = 0.0
-      clayrow2  = 0.0
-      sand2row2 = 0.0
-      silt2row2 = 0.0
-      srel2d    = 0.0
+      clay2row2 = 0.0D0
+      clayrow2  = 0.0D0
+      sand2row2 = 0.0D0
+      silt2row2 = 0.0D0
+      srel2d    = 0.0D0
 
 #ifdef MPP1
       do j = jbegin , jendm
@@ -292,9 +298,9 @@
 #endif
        do i = 2 , iym2
          do nt=1,nats
-            clay2row2(i,nt,j) = bcly(nt)*100.0
-            sand2row2(i,nt,j) = bsnd(nt)*100.0
-            silt2row2(i,nt,j) = bslt(nt)*100.0
+            clay2row2(i,nt,j) = bcly(nt)*100.0D0
+            sand2row2(i,nt,j) = bsnd(nt)*100.0D0
+            silt2row2(i,nt,j) = bslt(nt)*100.0D0
 
             sandrow2(i,j) = sandrow2(i,j) + dustsotex(i,j,nt)* sand2row2(i,nt,j)
             clayrow2(i,j) = clayrow2(i,j) + dustsotex(i,j,nt)*clay2row2(i,nt,j)
@@ -305,7 +311,7 @@
       end do ! end j loop
 
 
-      dp_array(1) = 0.0001  !cm
+      dp_array(1) = 0.0001D0  !cm
       do ns = 2 , nsoil
         dp_array(ns) = dp_array(ns-1)*dexp(0.0460517018598807D0)
         deldp = dp_array(ns) - dp_array(ns-1)
@@ -320,33 +326,33 @@
       do j = 2 , jxm2
 #endif
 #endif
-        srel(:,:,:) = 0.
+        srel(:,:,:) = 0.0D0
         do i = 2 , iym2
           do nt = 1 , nats
-            ss(:) =0.0
-            stotal = 0.0
-            if ( sand2row2(i,nt,j).gt.0. ) then
+            ss(:) =0.0D0
+            stotal = 0.0D0
+            if ( sand2row2(i,nt,j).gt.0.0D0 ) then
               do ns = 1 , nsoil          !soil size segregatoin no
                 do nm = 1 , mode       !soil mode = 3
                   if ( (pcent(nm,nt).gt.eps) .and.                    &
-                       & (sigma(nm,nt).ne.0.0) ) then
+                       & (sigma(nm,nt).ne.0.0D0) ) then
                     xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
                     xl = ((dlog(dp_array(ns))- &
-                           dlog(mmd(nm,nt)*1.E-4))**2) &
-                         & /(2.0*(dlog(sigma(nm,nt)))**2)
+                           dlog(mmd(nm,nt)*1.D-4))**2.0D0) &
+                         & /(2.0D0*(dlog(sigma(nm,nt)))**2.0D0)
                     xm = xk*dexp(-xl)
                   else
-                    xm = 0.0
+                    xm = 0.0D0
                   end if
-                  xn = rhop*(2.0/3.0)*(dp_array(ns)/2.0)
-                  deldp = 0.0460517018598807
+                  xn = rhop*(2.0D0/3.0D0)*(dp_array(ns)/2.0D0)
+                  deldp = 0.0460517018598807D0
                   ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)
                 end do
                 stotal = stotal + ss(ns)
               end do
               do ns = 1 , nsoil
-                if ( stotal.gt.0.0 ) srel(i,ns,nt) = ss(ns)/stotal
+                if ( stotal.gt.0.0D0 ) srel(i,ns,nt) = ss(ns)/stotal
                                                !srel(iy,nsoil,nats)
               end do
             end if
@@ -366,13 +372,13 @@
 ! Finally calculate the emission stribution weights in function of Alfaro
 ! lognormal distribution parameters 
 !
-      totv1 = 0.0
-      totv2 = 0.0
-      totv3 = 0.0
+      totv1 = 0.0D0
+      totv2 = 0.0D0
+      totv3 = 0.0D0
 
       do n = 1 , isize
 
-        rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+        rwi = (aerosize(1,n)+aerosize(2,n))/2.0D0*1.D6
         alogdi = dlog10(rwi)
         amean1 = dlog10(d1)
         amean2 = dlog10(d2)
@@ -382,9 +388,9 @@
         asigma2 = dlog10(sigma2)
         asigma3 = dlog10(sigma3)
 
-        frac1(n) = dexp(-(alogdi-amean1)**2./(2*asigma1**2))
-        frac2(n) = dexp(-(alogdi-amean2)**2./(2*asigma2**2))
-        frac3(n) = dexp(-(alogdi-amean3)**2./(2*asigma3**2))
+        frac1(n) = dexp(-(alogdi-amean1)**2.0D0/(2.0D0*asigma1**2.0D0))
+        frac2(n) = dexp(-(alogdi-amean2)**2.0D0/(2.0D0*asigma2**2.0D0))
+        frac3(n) = dexp(-(alogdi-amean3)**2.0D0/(2.0D0*asigma3**2.0D0))
 
         totv1 = totv1 + frac1(n)
         totv2 = totv2 + frac2(n)
@@ -396,9 +402,9 @@
         frac1(n) = frac1(n)/totv1
         frac2(n) = frac2(n)/totv2
         frac3(n) = frac3(n)/totv3
-        if ( frac1(n).lt.1.E-9 ) frac1(n) = 0.0
-        if ( frac2(n).lt.1.E-9 ) frac2(n) = 0.0
-        if ( frac3(n).lt.1.E-9 ) frac3(n) = 0.0
+        if ( frac1(n).lt.1.D-9 ) frac1(n) = 0.0D0
+        if ( frac2(n).lt.1.D-9 ) frac2(n) = 0.0D0
+        if ( frac3(n).lt.1.D-9 ) frac3(n) = 0.0D0
       end do
 
       end subroutine inidust
@@ -431,10 +437,10 @@
       function ustart01(rhop,dum,rhair)
       implicit none
 !
-      real(8) , parameter :: a2 = 0.129 , c1 = 0.006 , c2 = 1.928 ,     &
-                           & c3 = 0.0858 , c4 = -0.0617 , c5 = 2.5 ,    &
-                           & y1 = 1331.647 , y2 = 1.561228 ,            &
-                           & y3 = 0.38194
+      real(8) , parameter :: a2 = 0.129D0 , c1 = 0.006D0 , c2 = 1.928D0 , &
+                           & c3 = 0.0858D0 , c4 = -0.0617D0 , c5 = 2.5D0 ,&
+                           & y1 = 1331.647D0 , y2 = 1.561228D0 ,          &
+                           & y3 = 0.38194D0
 !
       real(8) :: dum , rhair , rhop
       real(8) :: ustart01
@@ -444,11 +450,11 @@
 ! 
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
-      term1 = dsqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
-      term2 = dsqrt(rhop*gti*100.0*dm/rhair)
+      term1 = dsqrt(1.0D0+(c1/(rhop*gti*0.1D0*(dm**c5))))
+      term2 = dsqrt(rhop*gti*100.0D0*dm/rhair)
       term = term1*term2
-      ustart01 = cvmgt(a2*term*(1.0-c3*dexp(c4*(rep-10.0))),  &
-               & a2*term/dsqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
+      ustart01 = cvmgt(a2*term*(1.0D0-c3*dexp(c4*(rep-10.0D0))),  &
+               & a2*term/dsqrt(c2*(rep**0.092D0)-1.0D0),rep.gt.10.0D0)
 ! 
       end function ustart01
 !
@@ -465,7 +471,7 @@
       function ustart0(rhop,dum,rhoa)
       implicit none
 !
-      real(8) , parameter :: agamma = 3.0E-4 , f = 0.0123
+      real(8) , parameter :: agamma = 3.0D-4 , f = 0.0123D0
 !
       real(8) :: dum , rhoa , rhop
       real(8) :: ustart0
@@ -474,10 +480,10 @@
       real(8) :: dm , sigma
 ! 
       sigma = rhop/rhoa
-      dm = dum*1.0E-2
+      dm = dum*1.0D-2
       ustart0 = f*(sigma*gti*dm+agamma/(rhoa*dm))
       ustart0 = dsqrt(ustart0)
-      ustart0 = ustart0*100.0
+      ustart0 = ustart0*100.0D0
 !
       end function ustart0
 ! 
@@ -514,20 +520,20 @@
       real(8) , dimension(ilg,nats) :: xsand2row,xftex
       real(8) , dimension(ilg,nsoil,nats) :: xsrel2d
 ! 
-      rsfrow = 0.0
+      rsfrow = 0.0D0
 !     effective emitter cell ( depending on ivegcov)
-      xvegfrac = 0.
-      xftex = 0.
-      xsoilw = 0.
-      xsurfwd = 0.
-      xz0 = 0.
-      xclayrow = 0.
-      xroarow = 0.
-      xsrel2d = 0.
-      xsand2row = 0.
-      xustarnd=0.
-      xfland = 0.0
-      xrsfrow = 0.
+      xvegfrac = 0.D0
+      xftex = 0.D0
+      xsoilw = 0.D0
+      xsurfwd = 0.D0
+      xz0 = 0.D0
+      xclayrow = 0.D0
+      xroarow = 0.D0
+      xsrel2d = 0.D0
+      xsand2row = 0.D0
+      xustarnd=0.D0
+      xfland = 0.0D0
+      xrsfrow = 0.D0
  
       ieff = 0
       ieffmax = 0
@@ -599,32 +605,32 @@
       real(8) , dimension(ilg) :: ustar
       real(8) , dimension(ilg,nsoil) :: utheff
 !
-      data umin/15./
-      data xz/0.25/ , br/202.0/ , ym/0.16/ , sigr/1.45/
-      data z0s/3.E-3/ , x/10./
+      data umin/15.0D0/
+      data xz/0.25D0/ , br/202.0D0/ , ym/0.16D0/ , sigr/1.45D0/
+      data z0s/3.D-3/ , x/10.D0/
 
       do i = il1 , il2
  
-        srl(i) = z0(i)*100.0
-        rc(i) = 1.0
+        srl(i) = z0(i)*100.0D0
+        rc(i) = 1.0D0
  
         if ( jfs.eq.0 ) then
  
 !         * raupach et al. (1993)                                     
 
-          if ( vegfrac(i).lt.1.0 ) then
-            alamda(i) = xz*(dlog(1.0-vegfrac(i)))*(-1.0)
+          if ( vegfrac(i).lt.1.0D0 ) then
+            alamda(i) = xz*(dlog(1.0D0-vegfrac(i)))*(-1.0D0)
             arc1 = sigr*ym*alamda(i)
             arc2 = br*ym*alamda(i)
-            if ( arc1.le.1.0 .and. arc2.le.1.0 ) rc(i)                  &
-               & = (dsqrt(1.0-arc1)*dsqrt(1.0+arc2))
+            if ( arc1.le.1.0D0 .and. arc2.le.1.0D0 ) rc(i)                  &
+               & = (dsqrt(1.0D0-arc1)*dsqrt(1.0D0+arc2))
           end if
  
         else if ( jfs.eq.1 ) then
 !
 !         Marticorena et al., 1997: correction factor for non erodible elements
 !  
-          rc(i) = 1 - (dlog(0.5E-2/z0s)/(dlog(0.35*(x/z0s)**0.8)))
+          rc(i) = 1.0D0 - (dlog(0.5D-2/z0s)/(dlog(0.35D0*(x/z0s)**0.8D0)))
  
         end if
  
@@ -632,16 +638,16 @@
  
         if ( jsoilm.eq.0 ) then
  
-          if ( soilw(i).lt.0.0 ) then
+          if ( soilw(i).lt.0.0D0 ) then
             write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
             call say
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
-          else if ( soilw(i).lt.0.03 ) then
-            hc(i) = dexp(22.7*soilw(i))
-          else if ( soilw(i).ge.0.03 ) then
-            hc(i) = dexp(95.3*soilw(i)-2.029)
+          else if ( soilw(i).lt.0.03D0 ) then
+            hc(i) = dexp(22.7D0*soilw(i))
+          else if ( soilw(i).ge.0.03D0 ) then
+            hc(i) = dexp(95.3D0*soilw(i)-2.029D0)
           else
-            hc(i) = 1.0
+            hc(i) = 1.0D0
           end if
  
         else if ( jsoilm.eq.1 ) then
@@ -649,19 +655,19 @@
           cly1 = clayrow(i)
           cly2 = cly1*cly1
         
-          wprim(i) = 0.0014*cly2 + 0.17*cly1
-          tempd=  dmax1(0.00001d0,soilw(i)*100.0 -wprim(i))
+          wprim(i) = 0.0014D0*cly2 + 0.17D0*cly1
+          tempd=  dmax1(0.00001D0,soilw(i)*100.0D0 -wprim(i))
 !          print*,'humidity',i,cly1,soilw(i)*100,wprim(i),tempd
-          if ( soilw(i)*100.gt.wprim(i) ) then
-            hc(i) = dsqrt(1.0+1.21*tempd**0.68)
+          if ( soilw(i)*100.0D0.gt.wprim(i) ) then
+            hc(i) = dsqrt(1.0D0+1.21D0*tempd**0.68D0)
 !          print*,'hc',i,hc(i)
           else
-            hc(i) = 1.0
+            hc(i) = 1.0D0
           end if
  
 !       no soil humidity correction facor if jsoilm > 1
         else
-          hc(i)=1.0
+          hc(i)=1.0D0
         end if
  
 !       * total correction factor for both hc and rc                
@@ -674,11 +680,11 @@
 !       *****
 !       ustarns = (vonkar*100.*surfwd(i))/(dlog(1000./srl(i)))
 
-        ustarns = ustarnd(i)*100 !cm.s-1
-        utmin = (umin/(100.*vonkar*rc(i)))*dlog(1000./srl(i))
+        ustarns = ustarnd(i)*100.0D0 !cm.s-1
+        utmin = (umin/(100.0D0*vonkar*rc(i)))*dlog(1000.0D0/srl(i))
  
         if ( surfwd(i).ge.utmin ) then
-          ustar(i) = ustarns + 0.3*(surfwd(i)-utmin)*(surfwd(i)-utmin)
+          ustar(i) = ustarns + 0.3D0*(surfwd(i)-utmin)*(surfwd(i)-utmin)
         else
           ustar(i) = ustarns
         end if
@@ -739,29 +745,29 @@
       real(8), dimension(ilg,nbin,nats):: rsfrowt
 !
 !     Put const consistent with soil parameters and Laurent et al., 08
-      data const/1./, beta/16300./ 
+      data const/1.0D0/, beta/16300.0D0/ 
  
-      p1 = 0.0
-      p2 = 0.0
-      p3 = 0.0
-      fsoil(:,:) = 0.
-      fsoil1(:,:) = 0.
-      fsoil2(:,:) = 0.
-      fsoil3(:,:) = 0.
+      p1 = 0.0D0
+      p2 = 0.0D0
+      p3 = 0.0D0
+      fsoil(:,:) = 0.D0
+      fsoil1(:,:) = 0.D0
+      fsoil2(:,:) = 0.D0
+      fsoil3(:,:) = 0.D0
  
       do nt = 1 , nats
         do ns = 1 , nsoil
           do i = il1 , il2
  
-            if ( rc(i).gt.0.0 .and. ustar(i).ne.0. ) then
+            if ( rc(i).gt.0.0D0 .and. ustar(i).ne.0.0D0 ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
  
-              if ( uth.le.1.0 ) then
+              if ( uth.le.1.0D0 ) then
  
-                fdp1 = ustar(i)**3*(1.0-uth*uth)
-                fdp2 = (1.0+uth)*const*(1.E-5)*roarow(i)*rgti
+                fdp1 = ustar(i)**3.0D0*(1.0D0-uth*uth)
+                fdp2 = (1.0D0+uth)*const*(1.D-5)*roarow(i)*rgti
  
-                if ( fdp2.le.0.0 ) fdp2 = 0.
+                if ( fdp2.le.0.0D0 ) fdp2 = 0.0D0
  
 ! FAB: with subgrid soil texture, the aggregation of vertical fluxes per texture type
 ! at the grid cell level is done in fine.  
@@ -773,33 +779,33 @@
                 dec = fsoil(i,nt)*beta
 !               individual kinetic energy for an aggregate of size dp (
 !               g cm2 s-2) cf alfaro (dp) is in cm
-                ec = (mathpi/12)*rhop*1E-3*(dp_array(ns)**3.0)*                &
-                    & (20*ustar(i))**2.0
+                ec = (mathpi/12.0D0)*rhop*1D-3*(dp_array(ns)**3.0D0)*  &
+                    & (20.0D0*ustar(i))**2.0D0
  
                 if ( ec.gt.e1 ) then
                   p1 = (ec-e1)/(ec-e3)
-                  p2 = (1-p1)*(ec-e2)/(ec-e3)
-                  p3 = 1 - p1 - p2
+                  p2 = (1.0D0-p1)*(ec-e2)/(ec-e3)
+                  p3 = 1.0D0 - p1 - p2
                 else if ( ec.gt.e2 .and. ec.le.e1 ) then
-                  p1 = 0.
+                  p1 = 0.0D0
                   p2 = (ec-e2)/(ec-e3)
-                  p3 = 1 - p2
+                  p3 = 1.0D0 - p2
                 else if ( ec.gt.e3 .and. ec.le.e2 ) then
-                  p1 = 0.
-                  p2 = 0.
-                  p3 = 1.
+                  p1 = 0.0D0
+                  p2 = 0.0D0
+                  p3 = 1.0D0
                 else if ( ec.le.e3 ) then
-                  p1 = 0.
-                  p2 = 0.
-                  p3 = 0.
+                  p1 = 0.0D0
+                  p2 = 0.0D0
+                  p3 = 0.0D0
                 end if
  
-                fsoil1(i,nt) = fsoil1(i,nt) + 1.E-2*p1*(dec/e1)* &
-                               (mathpi/6.)*rhop*((d1*1.E-04)**3.)
-                fsoil2(i,nt) = fsoil2(i,nt) + 1.E-2*p2*(dec/e2)* &
-                               (mathpi/6.)*rhop*((d2*1.E-04)**3.)
-                fsoil3(i,nt) = fsoil3(i,nt) + 1.E-2*p3*(dec/e3)* &
-                               (mathpi/6.)*rhop*((d3*1.E-04)**3.)
+                fsoil1(i,nt) = fsoil1(i,nt) + 1.D-2*p1*(dec/e1)* &
+                          (mathpi/6.0D0)*rhop*((d1*1.D-04)**3.0D0)
+                fsoil2(i,nt) = fsoil2(i,nt) + 1.D-2*p2*(dec/e2)* &
+                          (mathpi/6.0D0)*rhop*((d2*1.D-04)**3.0D0)
+                fsoil3(i,nt) = fsoil3(i,nt) + 1.D-2*p3*(dec/e3)* &
+                          (mathpi/6.0D0)*rhop*((d3*1.D-04)**3.0D0)
               end if
             end if
           end do
@@ -808,7 +814,7 @@
 !
 ! calculate fluxes for each of transport bins
 !
-      rsfrowt(:,:,:) = 0.
+      rsfrowt(:,:,:) = 0.0D0
       do nt = 1 , nats
         do n = 1 , isize
           do i = il1 , il2
@@ -817,7 +823,7 @@
                                 fsoil2(i,nt)*frac2(n) + &
                                 fsoil3(i,nt)*frac3(n)
 !         and in tranport bins (nbin)
-            rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
+            rwi = (aerosize(1,n)+aerosize(2,n))/2.0D0*1.D6
 
             do k = 1 , nbin
               if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
@@ -839,12 +845,12 @@
 ! the fraction of sand ( coarse particles) is intrinsically contained in dsrel soil aggregate distribution
 ! there is no need to multipky by sand2row.
 
-       rsfrow(:,:) = 0.
+       rsfrow(:,:) = 0.0D0
        do k = 1 , nbin
          do nt = 1 , nats
            do i = il1 , il2
               rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt)  &
-                          &  * (1 - vegfrac(i)) 
+                          &  * (1.0D0 - vegfrac(i)) 
 ! * EBL(i)
 !                         &  * (1-snowfrac)     
            end do
