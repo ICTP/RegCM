@@ -59,12 +59,12 @@ contains
     call time_begin(subroutine_name,idindx)
     !     zero out radiative clouds
     !
-    cldlwc = 0.0
-    cldfra = 0.0
+    cldlwc = 0.0D0
+    cldfra = 0.0D0
 
     icut = 0
     dtime = dt
-    pkdcut = 75.
+    pkdcut = 75.0D0
     istart = 2 + icut
     iend = iym2 - icut
     !
@@ -72,8 +72,8 @@ contains
     !
     do i = istart , iend
        kdet(i) = 2
-       qcrit(i) = 0.
-       pret(i) = 0.
+       qcrit(i) = 0.0D0
+       pret(i) = 0.0D0
     end do
 
     do k = 1 , kz
@@ -85,21 +85,21 @@ contains
 
           t(i,k) = atm2%t(i,kk,j)/sps2%ps(i,j)
           q(i,k) = atm2%qv(i,kk,j)/sps2%ps(i,j)
-          if ( q(i,k).lt.1.E-08 ) q(i,k) = 1.E-08
+          if ( q(i,k).lt.1.D-08 ) q(i,k) = 1.D-08
           tn(i,k) = t(i,k) + (tten(i,kk))/sps2%ps(i,j)*dtime
           qo(i,k) = q(i,k) + (qten(i,kk))/sps2%ps(i,j)*dtime
-          p(i,k) = 10.*sps2%ps(i,j)*a(kk) + 10.*r8pt
-          vsp(i,k) = dsqrt(us**2+vs**2)
-          if ( qo(i,k).lt.1.E-08 ) qo(i,k) = 1.E-08
+          p(i,k) = 10.0D0*sps2%ps(i,j)*a(kk) + 10.0D0*r8pt
+          vsp(i,k) = dsqrt(us**2.0D0+vs**2.0D0)
+          if ( qo(i,k).lt.1.D-08 ) qo(i,k) = 1.D-08
           !
           po(i,k) = p(i,k)
-          psur(i) = 10.*sps2%ps(i,j) + 10.*r8pt
-          outt(i,k) = 0.
+          psur(i) = 10.0D0*sps2%ps(i,j) + 10.0D0*r8pt
+          outt(i,k) = 0.0D0
           pkk = psur(i) - po(i,k)
           if ( pkk.le.pkdcut ) kdet(i) = kdet(i) + 1
-          outq(i,k) = 0.
+          outq(i,k) = 0.0D0
           ter11(i) = mddom%ht(i,j)*rgti
-          if ( ter11(i).le.0. ) ter11(i) = 1.E-05
+          if ( ter11(i).le.0.0D0 ) ter11(i) = 1.D-05
           qcrit(i) = qcrit(i) + qten(i,kk)
        end do
     end do
@@ -110,7 +110,7 @@ contains
          & istart,iend,kdet,j)
     do k = 1 , kz
        do i = istart , iend
-          if ( pret(i).gt.0. ) then
+          if ( pret(i).gt.0.0D0 ) then
              kk = kz - k + 1
              tten(i,kk) = sps2%ps(i,j)*outt(i,k) + tten(i,kk)
              qten(i,kk) = sps2%ps(i,j)*outq(i,k) + qten(i,kk)
@@ -120,18 +120,18 @@ contains
     !
     !---  rain in cm.
     !
-    calc = .5
+    calc = 0.5D0
     iconj = 0
     do i = istart , iend
-       if ( pret(i).gt.0. ) then
+       if ( pret(i).gt.0.0D0 ) then
           sfsta%rainc(i,j) = sfsta%rainc(i,j) + pret(i)*calc*dt
           !         print *,'sfsta%rainc(',i,j,')=',sfsta%rainc(i,j)
           iconj = iconj + 1
           !.....................precipitation rate for bats (mm/s)
           aprdiv = dble(nbatst)
-          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+          if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
           prainx = pret(i)*calc*dt
-          pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
+          pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.0D0)/aprdiv
           !.......................................................
        end if
     end do
@@ -174,7 +174,7 @@ contains
          & dv2 , dv2q , dv3 , dv3q , dz , dz1 , dz2 , dzo , e ,   &
          & eo , f , agamma , gamma0 , gamma1 , gamma2 , gammo ,   &
          & gammo0 , mbdt , outtes , pbcdif , qrch , qrcho ,       &
-         & tcrit , tfinv , tvbar , tvbaro , xk
+         & tcrit , tvbar , tvbaro , xk
     real(8) , dimension(2) :: ae , be , ht
     real(8) , dimension(iy,kz) :: dby , dbyo , dellah , dellaq ,      &
          & dellat , dkk , he , heo , hes ,     &
@@ -190,96 +190,95 @@ contains
     integer :: idindx=0
     !
     call time_begin(subroutine_name,idindx)
-    tcrit = 50.
+    tcrit = 50.0D0
 
-    tfinv = 1./tzero
     alsixt = dlog(610.71D0)
     ht(1) = wlhvocp
-    ht(2) = 2.834E6*rcpd
-    be(1) = ep2*ht(1)*3.50
-    ae(1) = be(1)*tfinv + alsixt
-    be(2) = ep2*ht(2)*3.50
-    ae(2) = be(2)*tfinv + alsixt
-    mbdt = dtime*5.E-03
-    c0 = .002
-    f = -1.
-    xk = -1.
+    ht(2) = 2.834D6*rcpd
+    be(1) = ep2*ht(1)*3.50D0
+    ae(1) = be(1)*rtzero + alsixt
+    be(2) = ep2*ht(2)*3.50D0
+    ae(2) = be(2)*rtzero + alsixt
+    mbdt = dtime*5.D-03
+    c0 = 0.002D0
+    f = -1.0D0
+    xk = -1.0D0
     !
     !---  environmental conditions, first heights
     !
     do k = 1 , kz
        do i = istart , iend
-          dkk(i,k) = 1.
+          dkk(i,k) = 1.0D0
           iph = 1
           ipho = 1
           if ( t(i,k).le.tcrit ) iph = 2
           if ( tn(i,k).le.tcrit ) ipho = 2
           e = dexp(ae(iph)-be(iph)/t(i,k))
           eo = dexp(ae(ipho)-be(ipho)/tn(i,k))
-          qes(i,k) = ep2*e/(100.*p(i,k)-(1.-ep2)*e)
+          qes(i,k) = ep2*e/(100.0D0*p(i,k)-(1.0D0-ep2)*e)
           qeso(i,k) = ep2*eo/(100.*po(i,k)-(1.-ep2)*eo)
-          if ( qes(i,k).le.1.E-08 ) qes(i,k) = 1.E-08
+          if ( qes(i,k).le.1.D-08 ) qes(i,k) = 1.D-08
           if ( q(i,k).gt.qes(i,k) ) q(i,k) = qes(i,k)
-          if ( qeso(i,k).le.1.E-08 ) qeso(i,k) = 1.E-08
+          if ( qeso(i,k).le.1.D-08 ) qeso(i,k) = 1.D-08
           if ( qo(i,k).gt.qeso(i,k) ) qo(i,k) = qeso(i,k)
-          tv(i,k) = t(i,k) + .608*q(i,k)*t(i,k)
-          tvo(i,k) = tn(i,k) + .608*qo(i,k)*tn(i,k)
+          tv(i,k) = t(i,k) + 0.608D0*q(i,k)*t(i,k)
+          tvo(i,k) = tn(i,k) + 0.608D0*qo(i,k)*tn(i,k)
        end do
     end do
     do i = 1 , iy
-       hkb(i) = 0. ! EES
-       qkb(i) = 0.
-       hkbo(i) = 0.
-       qkbo(i) = 0.
-       xhkb(i) = 0.
-       xqkb(i) = 0.
-       edt(i) = 0.
-       edto(i) = 0.
-       edtx(i) = 0.
+       hkb(i) = 0.0D0 ! EES
+       qkb(i) = 0.0D0
+       hkbo(i) = 0.0D0
+       qkbo(i) = 0.0D0
+       xhkb(i) = 0.0D0
+       xqkb(i) = 0.0D0
+       edt(i) = 0.0D0
+       edto(i) = 0.0D0
+       edtx(i) = 0.0D0
     end do
     do i = istart , iend
-       !       hkb(i)=0.
-       !       qkb(i)=0.
-       !       hkbo(i)=0.
-       !       qkbo(i)=0.
-       !       xhkb(i)=0.
-       !       xqkb(i)=0.
-       aa1(i) = 0.
-       aa0(i) = 0.
+       !       hkb(i)=0.0D0
+       !       qkb(i)=0.0D0
+       !       hkbo(i)=0.0D0
+       !       qkbo(i)=0.0D0
+       !       xhkb(i)=0.0D0
+       !       xqkb(i)=0.0D0
+       aa1(i) = 0.0D0
+       aa0(i) = 0.0D0
        if ( icup==99 .or. icup==98 ) then
          if (cumcon%cuscheme(i,jslc)/=2 ) then
-           aa0(i) = -1
+           aa0(i) = -1.0D0
          end if
        end if
-       if ( qcrit(i).le.0. ) aa0(i) = -1.
-       xaa0(i) = 0.
-       xpwav(i) = 0.
-       xpwev(i) = 0.
-       pwav(i) = 0.
-       pwev(i) = 0.
-       pwavo(i) = 0.
-       pwevo(i) = 0.
+       if ( qcrit(i).le.0. ) aa0(i) = -1.0D0
+       xaa0(i) = 0.0D0
+       xpwav(i) = 0.0D0
+       xpwev(i) = 0.0D0
+       pwav(i) = 0.0D0
+       pwev(i) = 0.0D0
+       pwavo(i) = 0.0D0
+       pwevo(i) = 0.0D0
        k22(i) = 1
        ktop(i) = 1
        kbcon(i) = 1
        kb(i) = 1
        kds(i) = 1
        jmin(i) = 1
-       !       edt(i)=0.
-       !       edto(i)=0.
-       !       edtx(i)=0.
-       xmb(i) = 0.
-       vshear(i) = 0.
+       !       edt(i)=0.0D0
+       !       edto(i)=0.0D0
+       !       edtx(i)=0.0D0
+       xmb(i) = 0.0D0
+       vshear(i) = 0.0D0
        z(i,1) = z1(i) - (dlog(p(i,1))-dlog(psur(i)))*rgas*tv(i,1)*rgti
        zo(i,1) = z1(i) - (dlog(po(i,1))-dlog(psur(i)))*rgas*tvo(i,1)   &
             & *rgti
     end do
     do k = 2 , kz
        do i = istart , iend
-          tvbar = .5*tv(i,k) + .5*tv(i,k-1)
+          tvbar = 0.5D0*tv(i,k) + 0.5D0*tv(i,k-1)
           z(i,k) = z(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))             &
                & *rgas*tvbar*rgti
-          tvbaro = .5*tvo(i,k) + .5*tvo(i,k-1)
+          tvbaro = 0.5D0*tvo(i,k) + 0.5D0*tvo(i,k-1)
           zo(i,k) = zo(i,k-1) - (dlog(po(i,k))-dlog(po(i,k-1)))         &
                & *rgas*tvbaro*rgti
        end do
@@ -289,20 +288,20 @@ contains
     !
     do k = 1 , kz
        do i = istart , iend
-          cldlwc(i,k) = 0.
-          cldfra(i,k) = 0.
-          pw(i,k) = 0.
-          xpw(i,k) = 0.
-          pwo(i,k) = 0.
-          qc(i,k) = 0.
-          xqc(i,k) = 0.
-          qco(i,k) = 0.
-          pwd(i,k) = 0.
-          pwdo(i,k) = 0.
-          xpwd(i,k) = 0.
-          dellah(i,k) = 0.
-          dellaq(i,k) = 0.
-          dellat(i,k) = 0.
+          cldlwc(i,k) = 0.D0
+          cldfra(i,k) = 0.D0
+          pw(i,k) = 0.D0
+          xpw(i,k) = 0.D0
+          pwo(i,k) = 0.D0
+          qc(i,k) = 0.D0
+          xqc(i,k) = 0.D0
+          qco(i,k) = 0.D0
+          pwd(i,k) = 0.D0
+          pwdo(i,k) = 0.D0
+          xpwd(i,k) = 0.D0
+          dellah(i,k) = 0.D0
+          dellaq(i,k) = 0.D0
+          dellat(i,k) = 0.D0
           he(i,k) = gti*z(i,k) + cpd*t(i,k) + wlhv*q(i,k)
           hes(i,k) = gti*z(i,k) + cpd*t(i,k) + wlhv*qes(i,k)
           if ( he(i,k).ge.hes(i,k) ) he(i,k) = hes(i,k)
@@ -312,8 +311,8 @@ contains
           xt(i,k) = t(i,k)
           xq(i,k) = q(i,k)
           xhe(i,k) = he(i,k)
-          if ( k.ne.kz ) qrcd(i,k) = .5*(qes(i,k)+qes(i,k+1))
-          if ( k.ne.kz ) qrcdo(i,k) = .5*(qeso(i,k)+qeso(i,k+1))
+          if ( k.ne.kz ) qrcd(i,k) = 0.5D0*(qes(i,k)+qes(i,k+1))
+          if ( k.ne.kz ) qrcdo(i,k) = 0.5D0*(qeso(i,k)+qeso(i,k+1))
        end do
     end do
     !
@@ -321,9 +320,9 @@ contains
     !
     call maximi(he,iy,kz,1,kbmax2d(i,jslc),k22,istart,iend)
     do i = istart , iend
-       if ( aa0(i).ge.0. ) then
+       if ( aa0(i).ge.0.0D0 ) then
           if ( k22(i).ge.kbmax2d(i,jslc) ) then
-             aa0(i) = -1.
+             aa0(i) = -1.0D0
              go to 100
           end if
           hkb(i) = he(i,k22(i))
@@ -339,51 +338,51 @@ contains
     !---  decide for convective cloud base
     !
     do i = istart , iend
-       if ( aa0(i).ge.0. ) then
+       if ( aa0(i).ge.0.0D0 ) then
           do k = 1 , kdet(i)
              kk = kdet(i) - k + 1
              !           dkk(i,kk)=.75*dkk(i,kk+1)
-             dkk(i,k) = 1. - dble(kk)/dble(kdet(i))
+             dkk(i,k) = 1.0D0 - dble(kk)/dble(kdet(i))
           end do
 120       continue
           kb(i) = k22(i)
           !----------------------------------
           kbcon(i) = kb(i)
 140       continue
-          dh = .5*hes(i,kbcon(i)) + .5*hes(i,kbcon(i)+1)
+          dh = 0.5D0*hes(i,kbcon(i)) + 0.5D0*hes(i,kbcon(i)+1)
           if ( hkb(i).lt.dh ) then
              kbcon(i) = kbcon(i) + 1
              if ( kbcon(i).gt.kbmax2d(i,jslc) ) then
-                aa0(i) = -1.
+                aa0(i) = -1.0D0
                 go to 200
              end if
              go to 140
           else
              !
-             !---        after large-scale forcing is applied, possible lid should be
-             !---        removed!!!
+             !-after large-scale forcing is applied, possible lid should be
+             !-removed!!!
              !
              kbcono = kb(i)
              !ictp
 150          continue
              if ( kbcono.gt.kbmax2d(i,jslc) ) then
-                aa0(i) = -1.
+                aa0(i) = -1.0D0
                 go to 200
              end if
              !ictp_
-             dh = .5*heso(i,kbcono) + .5*heso(i,kbcono+1)
+             dh = 0.5D0*heso(i,kbcono) + 0.5D0*heso(i,kbcono+1)
              if ( hkbo(i).lt.dh ) then
                 kbcono = kbcono + 1
                 go to 150
              else
                 pbcdif = -p(i,kbcono) + p(i,kb(i))
-                !----------------------------- below was commented out
-                !as           uncommenting the following lines for experiment 2/5/95
+                !-below was commented out
+                !as uncommenting the following lines for experiment 2/5/95
                 if ( pbcdif.gt.pbcmax2d(i,jslc) ) then
                    !this is where typo was (pbdcdif)
                    k22(i) = k22(i) + 1
                    if ( k22(i).ge.kbmax2d(i,jslc) ) then
-                      aa0(i) = -1.
+                      aa0(i) = -1.0D0
                       go to 200
                    end if
                    hkb(i) = he(i,k22(i))
@@ -415,7 +414,7 @@ contains
     do i = istart , iend
        if ( aa0(i).ge.0 ) then
           if ( jmin(i).le.3 ) then
-             aa0(i) = -1.
+             aa0(i) = -1.0D0
              go to 300
           end if
           if ( kds(i).ge.kz ) kds(i) = kz - 1
@@ -428,8 +427,8 @@ contains
     do k = 1 , kz - 1
        do i = istart , iend
           if ( aa0(i).ne.-1. ) then
-             dby(i,k) = hkb(i) - .5*(hes(i,k)+hes(i,k+1))
-             dbyo(i,k) = hkbo(i) - .5*(heso(i,k)+heso(i,k+1))
+             dby(i,k) = hkb(i) - 0.5D0*(hes(i,k)+hes(i,k+1))
+             dbyo(i,k) = hkbo(i) - 0.5D0*(heso(i,k)+heso(i,k+1))
           end if
        end do
     end do
@@ -437,17 +436,17 @@ contains
        if ( aa0(i).ne.-1. ) then
           do k = 2 , kz - kbcon(i) - 1
              kk = kz - k + 1
-             if ( dby(i,kk).ge.0. ) then
+             if ( dby(i,kk).ge.0.0D0 ) then
                 ktop(i) = kk + 1
                 go to 320
              end if
           end do
-          aa0(i) = -1.
+          aa0(i) = -1.0D0
           go to 400
 320       continue
           if ( ktop(i).gt.kz ) ktop(i) = kz
-          if ( p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc) ) aa0(i)  &
-               & = -1.
+          if ( p(i,kbcon(i))-p(i,ktop(i)).lt.mincld2d(i,jslc) ) &
+            aa0(i) = -1.0D0
        end if
 400    continue
     end do
@@ -457,38 +456,40 @@ contains
     !
     do k = 2 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
+          if ( aa0(i).ne.-1.0D0 ) then
              if ( k.gt.kbcon(i) ) then
                 if ( k.lt.ktop(i) ) then
-                   dz = -.5*z(i,k-1) + .5*z(i,k+1)
+                   dz = -0.5D0*z(i,k-1) + 0.5D0*z(i,k+1)
                    dz1 = z(i,k) - z(i,k-1)
-                   agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**2)))*qes(i,k)
-                   gamma0 = (wlhvocp)*(wlhv/(rwat*(t(i,k-1)**2)))*         &
+                   agamma = (wlhvocp)* &
+                      (wlhv/(rwat*(t(i,k)**2.0D0)))*qes(i,k)
+                   gamma0 = (wlhvocp)*(wlhv/(rwat*(t(i,k-1)**2.0D0)))* &
                         & qes(i,k-1)
-                   qrch = qes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*       &
-                        & dby(i,k)
-                   qc(i,k) = (qck(i)-qrch)/(1.+c0*dz) + qrch
+                   qrch = qes(i,k) + (1.0D0/wlhv)* &
+                       (agamma/(1.0D0+agamma))*dby(i,k)
+                   qc(i,k) = (qck(i)-qrch)/(1.0D0+c0*dz) + qrch
                    pw(i,k) = c0*dz*(qc(i,k)-qrch)
                    qck(i) = qc(i,k)
                    pwav(i) = pwav(i) + pw(i,k)
                    dz1 = z(i,k) - z(i,k-1)
-                   aa0(i) = aa0(i)                                         &
-                        & + dz1*(gti/(cpd*(.5*(t(i,k)+t(i,k-1)))))       &
-                        & *dby(i,k-1)/(1.+.5*agamma+.5*gamma0)
-                   dzo = -.5*zo(i,k-1) + .5*zo(i,k+1)
+                   aa0(i) = aa0(i)                                     &
+                        & + dz1*(gti/(cpd*(0.5D0*(t(i,k)+t(i,k-1)))))  &
+                        & *dby(i,k-1)/(1.0D0+0.5D0*agamma+0.5D0*gamma0)
+                   dzo = -0.5D0*zo(i,k-1) + 0.5D0*zo(i,k+1)
                    dz2 = zo(i,k) - zo(i,k-1)
-                   gammo = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**2)))*qeso(i,k)
-                   gammo0 = (wlhvocp)*(wlhv/(rwat*(tn(i,k-1)**2)))*        &
+                   gammo = (wlhvocp)*(wlhv/ &
+                             (rwat*(tn(i,k)**2.0D0)))*qeso(i,k)
+                   gammo0 = (wlhvocp)*(wlhv/(rwat*(tn(i,k-1)**2.0D0)))*  &
                         & qeso(i,k-1)
-                   qrcho = qeso(i,k) + (1./wlhv)*(gammo/(1.+gammo))*       &
-                        & dbyo(i,k)
-                   qco(i,k) = (qcko(i)-qrcho)/(1.+c0*dzo) + qrcho
+                   qrcho = qeso(i,k) + & 
+                     (1.0D0/wlhv)*(gammo/(1.0D0+gammo))*dbyo(i,k)
+                   qco(i,k) = (qcko(i)-qrcho)/(1.0D0+c0*dzo) + qrcho
                    pwo(i,k) = c0*dzo*(qco(i,k)-qrcho)
                    qcko(i) = qco(i,k)
                    pwavo(i) = pwavo(i) + pwo(i,k)
-                   aa1(i) = aa1(i)                                         &
-                        & + dz2*(gti/(cpd*(.5*(tn(i,k)+tn(i,k-1)))))     &
-                        & *dbyo(i,k-1)/(1.+.5*gammo+.5*gammo0)
+                   aa1(i) = aa1(i)                                       &
+                        & + dz2*(gti/(cpd*(0.5D0*(tn(i,k)+tn(i,k-1)))))  &
+                        & *dbyo(i,k-1)/(1.0D0+0.5D0*gammo+0.5D0*gammo0)
                 end if
              end if
           end if
@@ -497,18 +498,19 @@ contains
     !
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
+       if ( aa0(i).ne.-1.0D0 ) then
           k = ktop(i)
-          dz = -.5*z(i,k-1) + .5*z(i,k)
-          agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**2)))*qes(i,k)
-          qrch = qes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*dby(i,k)
+          dz = -0.5D0*z(i,k-1) + 0.5D0*z(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**2.0D0)))*qes(i,k)
+          qrch = qes(i,k) + (1.0D0/wlhv)*(agamma/(1.0D0+agamma))*dby(i,k)
           qc(i,k) = qes(i,k)
           pw(i,k) = (qrch-qes(i,k))
           pwav(i) = pwav(i) + pw(i,k)
           !
-          dz = -.5*zo(i,k-1) + .5*zo(i,k)
-          agamma = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**2)))*qeso(i,k)
-          qrcho = qeso(i,k) + (1./wlhv)*(agamma/(1.+agamma))*dbyo(i,k)
+          dz = -0.5D0*zo(i,k-1) + 0.5D0*zo(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**2.0D0)))*qeso(i,k)
+          qrcho = qeso(i,k) + (1.0D0/wlhv)* &
+               (agamma/(1.0D0+agamma))*dbyo(i,k)
           qco(i,k) = qeso(i,k)
           pwo(i,k) = (qrcho-qeso(i,k))
           pwavo(i) = pwavo(i) + pwo(i,k)
@@ -522,15 +524,16 @@ contains
     !
     do kk = 1 , kz/2
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) vshear(i) = vshear(i)                    &
+          if ( aa0(i).ne.-1.0D0 ) vshear(i) = vshear(i)                    &
                & + dabs((vsp(i,kk+1)-vsp(i,kk))/(z(i,kk+1)-z(i,kk)))
        end do
     end do
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
-          vshear(i) = 1.E3*vshear(i)/dble(kz/2)
-          edt(i) = 1. - (1.591-.639*vshear(i)+.0953*(vshear(i)**2)      &
-               & -.00496*(vshear(i)**3))
+       if ( aa0(i).ne.-1.0D0 ) then
+          vshear(i) = 1.D3*vshear(i)/dble(kz/2)
+          edt(i) = 1.0D0 - (1.591D0-0.639D0*vshear(i)+  &
+                            0.0953D0*(vshear(i)**2.0D0) &
+                           -0.00496D0*(vshear(i)**3.0D0))
 
           if ( edt(i).gt.shrmax2d(i,jslc) ) edt(i) = shrmax2d(i,jslc)
           if ( edt(i).lt.shrmin2d(i,jslc) ) edt(i) = shrmin2d(i,jslc)
@@ -538,40 +541,40 @@ contains
           edto(i) = edt(i)
           edtx(i) = edt(i)
           qrcd(i,kz) = qes(i,kz)
-          hcd(i) = .5*(he(i,jmin(i))+he(i,jmin(i)+1))
-          qcd(i) = .5*(q(i,jmin(i))+q(i,jmin(i)+1))
+          hcd(i) = 0.5D0*(he(i,jmin(i))+he(i,jmin(i)+1))
+          qcd(i) = 0.5D0*(q(i,jmin(i))+q(i,jmin(i)+1))
           qrcdo(i,kz) = qeso(i,kz)
           hcdo(i) = heso(i,kz)
-          hcdo(i) = .5*(heo(i,jmin(i))+heo(i,jmin(i)+1))
-          qcdo(i) = .5*(qo(i,jmin(i))+qo(i,jmin(i)+1))
-          bu(i) = 0.
-          buo(i) = 0.
+          hcdo(i) = 0.5D0*(heo(i,jmin(i))+heo(i,jmin(i)+1))
+          qcdo(i) = 0.5D0*(qo(i,jmin(i))+qo(i,jmin(i)+1))
+          bu(i) = 0.0D0
+          buo(i) = 0.0D0
        end if
     end do
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
+          if ( aa0(i).ne.-1.0D0 ) then
              if ( k.lt.jmin(i) ) then
                 kk = jmin(i) - k
-                dz = -(z(i,kk)-z(i,kk+2))*.5
-                bu(i) = bu(i) + dz*(hcd(i)-.5*(hes(i,kk)+hes(i,kk+1)))
-                dq = (qes(i,kk)+qes(i,kk+1))*.5
-                xdt = (t(i,kk)+t(i,kk+1))*.5
-                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
-                dh = hcd(i) - .5*(hes(i,kk)+hes(i,kk+1))
-                qrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
+                dz = -(z(i,kk)-z(i,kk+2))*0.5D0
+                bu(i) = bu(i) + dz*(hcd(i)-0.5D0*(hes(i,kk)+hes(i,kk+1)))
+                dq = (qes(i,kk)+qes(i,kk+1))*0.5D0
+                xdt = (t(i,kk)+t(i,kk+1))*0.5D0
+                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2.0D0)))*dq
+                dh = hcd(i) - 0.5D0*(hes(i,kk)+hes(i,kk+1))
+                qrcd(i,kk) = (dq+(1.0D0/wlhv)*(agamma/(1.0D0+agamma))*dh)
                 pwd(i,kk) = dkk(i,kk)*(qcd(i)-qrcd(i,kk))
                 qcd(i) = qrcd(i,kk)
                 pwev(i) = pwev(i) + pwd(i,kk)
                 !
-                dz = -(zo(i,kk)-zo(i,kk+2))*.5
-                buo(i) = buo(i) + dz*(hcdo(i)-.5*(heso(i,kk)+heso(i,kk+1))&
-                     & )
-                dq = (qeso(i,kk)+qeso(i,kk+1))*.5
-                xdt = (tn(i,kk)+tn(i,kk+1))*.5
-                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
-                dh = hcdo(i) - .5*(heso(i,kk)+heso(i,kk+1))
-                qrcdo(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
+                dz = -(zo(i,kk)-zo(i,kk+2))*0.5D0
+                buo(i) = buo(i) + dz*(hcdo(i)- &
+                         0.5D0*(heso(i,kk)+heso(i,kk+1)))
+                dq = (qeso(i,kk)+qeso(i,kk+1))*0.5D0
+                xdt = (tn(i,kk)+tn(i,kk+1))*0.5D0
+                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2.0D0)))*dq
+                dh = hcdo(i) - 0.5D0*(heso(i,kk)+heso(i,kk+1))
+                qrcdo(i,kk) = (dq+(1.0D0/wlhv)*(agamma/(1.0D0+agamma))*dh)
                 pwdo(i,kk) = dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
                 qcdo(i) = qrcdo(i,kk)
                 pwevo(i) = pwevo(i) + pwdo(i,kk)
@@ -581,77 +584,77 @@ contains
     end do
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
-          if ( bu(i).ge.0 .or. buo(i).ge.0 .or. pwev(i).ge.0 .or.       &
-               & pwevo(i).ge.0. ) aa0(i) = -1.
+       if ( aa0(i).ne.-1.0D0 ) then
+          if ( bu(i).ge.0.0D0 .or. buo(i).ge.0.0D0 .or. &
+             pwev(i).ge.0.0D0 .or. pwevo(i).ge.0.0D0 ) aa0(i) = -1.0D0
           edt(i) = -edt(i)*pwav(i)/pwev(i)
           if ( edt(i).gt.edtmax2d(i,jslc) ) edt(i) = edtmax2d(i,jslc)
           if ( edt(i).lt.edtmin2d(i,jslc) ) edt(i) = edtmin2d(i,jslc)
           edto(i) = -edto(i)*pwavo(i)/pwevo(i)
-          if ( edto(i).gt.edtmaxo2d(i,jslc) ) edto(i)                   &
-               & = edtmaxo2d(i,jslc)
-          if ( edto(i).lt.edtmino2d(i,jslc) ) edto(i)                   &
-               & = edtmino2d(i,jslc)
+          if ( edto(i).gt.edtmaxo2d(i,jslc) ) &
+            edto(i) = edtmaxo2d(i,jslc)
+          if ( edto(i).lt.edtmino2d(i,jslc) ) &
+            edto(i) = edtmino2d(i,jslc)
        end if
     end do
     !
     !---  what would the change be?
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
+       if ( aa0(i).ne.-1.0D0 ) then
           k = 1
-          dz = .5*(z(i,2)-z(i,1))
-          dp_s = 50.*(psur(i)-p(i,2))
-          dellah(i,1) = edt(i)                                          &
-               & *(dkk(i,1)*hcd(i)-dkk(i,1)*.5*(he(i,1)+he(i,2)))&
-               & *gti/dp_s
-          dellaq(i,1) = edt(i)                                          &
-               & *(dkk(i,1)*qrcd(i,1)-dkk(i,1)*.5*(q(i,1)+q(i,2))&
-               & )*gti/dp_s
+          dz = 0.5D0*(z(i,2)-z(i,1))
+          dp_s = 50.0D0*(psur(i)-p(i,2))
+          dellah(i,1) = edt(i)                                      &
+               & *(dkk(i,1)*hcd(i)-dkk(i,1)* &
+                 0.5D0*(he(i,1)+he(i,2)))*gti/dp_s
+          dellaq(i,1) = edt(i)                                      &
+               & *(dkk(i,1)*qrcd(i,1)-dkk(i,1)* &
+                 0.5D0*(q(i,1)+q(i,2)))*gti/dp_s
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
           xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
           dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
           xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))+t(i,k)
-          if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
+          if ( xq(i,k).le.0.0D0 ) xq(i,k) = 1.D-08
        end if
     end do
     !
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
+          if ( aa0(i).ne.-1.0D0 ) then
              if ( k.ne.1 .and. k.lt.ktop(i) ) then
-                dv1 = .5*(he(i,k)+he(i,k+1))
+                dv1 = 0.5D0*(he(i,k)+he(i,k+1))
                 dv2 = he(i,k)
-                dv3 = .5*(he(i,k)+he(i,k-1))
-                dv1q = .5*(q(i,k)+q(i,k+1))
+                dv3 = 0.5D0*(he(i,k)+he(i,k-1))
+                dv1q = 0.5D0*(q(i,k)+q(i,k+1))
                 dv2q = q(i,k)
-                dv3q = .5*(q(i,k)+q(i,k-1))
+                dv3q = 0.5D0*(q(i,k)+q(i,k-1))
                 !
-                !---          specifiy detrainment of downdraft, has to be consistent
-                !---          with zd calculations in soundd.
+                !---   specifiy detrainment of downdraft, has to be consistent
+                !---   with zd calculations in soundd.
                 !
-                detdo = (1.-dkk(i,k))*(hcd(i)-dv2)
-                detdoq = (1.-dkk(i,k))*(qrcd(i,k)-dv2q)
-                dz = .5*(z(i,k+1)-z(i,k-1))
+                detdo = (1.0D0-dkk(i,k))*(hcd(i)-dv2)
+                detdoq = (1.0D0-dkk(i,k))*(qrcd(i,k)-dv2q)
+                dz = 0.5D0*(z(i,k+1)-z(i,k-1))
                 !
-                !---          changed due to subsidence and entrainment
+                !---    changed due to subsidence and entrainment
                 !
-                aup = 1.
-                if ( k.le.k22(i) ) aup = 0.
-                adw = 1.
-                if ( k.gt.jmin(i) ) adw = 0.
-                dp_s = +50.*(p(i,k-1)-p(i,k+1))
+                aup = 1.0D0
+                if ( k.le.k22(i) ) aup = 0.0D0
+                adw = 1.0D0
+                if ( k.gt.jmin(i) ) adw = 0.0D0
+                dp_s = +50.0D0*(p(i,k-1)-p(i,k+1))
                 dellah(i,k) = ((aup-adw*edt(i))*(dv1-dv2)+(aup-adw*edt(i))&
                      & *(dv2-dv3))*gti/dp_s + adw*edt(i)*detdo*gti/dp_s
-                dellaq(i,k) = ((aup-adw*edt(i))*(dv1q-dv2q)+(aup-adw*edt(i&
-                     & ))*(dv2q-dv3q))*gti/dp_s + adw*edt(i)         &
-                     & *detdoq*gti/dp_s
+                dellaq(i,k) = ((aup-adw*edt(i))* &
+                    (dv1q-dv2q)+(aup-adw*edt(i))* &
+                    (dv2q-dv3q))*gti/dp_s + adw*edt(i)*detdoq*gti/dp_s
                 xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
                 xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
                 dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
                 xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))    &
                      & + t(i,k)
-                if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
+                if ( xq(i,k).le.0.0D0 ) xq(i,k) = 1.D-08
              end if
           end if
        end do
@@ -660,12 +663,12 @@ contains
     !------- cloud top
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
+       if ( aa0(i).ne.-1.0D0 ) then
           lpt = ktop(i)
-          dp_s = 100.*(p(i,lpt-1)-p(i,lpt))
-          dv1 = .5*(he(i,lpt)+he(i,lpt-1))
+          dp_s = 100.0D0*(p(i,lpt-1)-p(i,lpt))
+          dv1 = 0.5D0*(he(i,lpt)+he(i,lpt-1))
           dellah(i,lpt) = (hkb(i)-dv1)*gti/dp_s
-          dv1 = .5*(q(i,lpt)+q(i,lpt-1))
+          dv1 = 0.5D0*(q(i,lpt)+q(i,lpt-1))
           dellaq(i,lpt) = (qes(i,lpt)-dv1)*gti/dp_s
           k = lpt
           xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
@@ -673,10 +676,10 @@ contains
           dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
           xt(i,k) = (mbdt*rcpd)*(dellah(i,k)-wlhv*dellaq(i,k))        &
                & + t(i,k)
-          if ( xq(i,k).le.0. ) xq(i,k) = 1.E-08
+          if ( xq(i,k).le.0.0D0 ) xq(i,k) = 1.D-08
           xhkb(i) = dellah(i,kbcon(i))*mbdt + hkb(i)
           xqkb(i) = dellaq(i,kbcon(i))*mbdt + qkb(i)
-          if ( xqkb(i).le.0. ) xqkb(i) = 1.E-08
+          if ( xqkb(i).le.0.0D0 ) xqkb(i) = 1.D-08
        end if
     end do
     !
@@ -684,33 +687,34 @@ contains
     !
     do k = 1 , kz
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
+          if ( aa0(i).ne.-1.0D0 ) then
              iph = 1
              if ( xt(i,k).le.tcrit ) iph = 2
              e = dexp(ae(iph)-be(iph)/xt(i,k))
-             xqes(i,k) = ep2*e/(100.*p(i,k)-(1.-ep2)*e)
-             if ( xqes(i,k).le.1.E-08 ) xqes(i,k) = 1.E-08
+             xqes(i,k) = ep2*e/(100.0D0*p(i,k)-(1.0D0-ep2)*e)
+             if ( xqes(i,k).le.1.D-08 ) xqes(i,k) = 1.D-08
              if ( xq(i,k).gt.xqes(i,k) ) xq(i,k) = xqes(i,k)
-             xtv(i,k) = xt(i,k) + .608*xq(i,k)*xt(i,k)
+             xtv(i,k) = xt(i,k) + 0.608D0*xq(i,k)*xt(i,k)
           end if
        end do
     end do
     !     bug fix
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ne.-1 ) xqrcd(i,k) = .5*(xqes(i,k)+xqes(i,k+1))
+          if ( aa0(i).ne.-1.0D0 ) &
+            xqrcd(i,k) = 0.5D0*(xqes(i,k)+xqes(i,k+1))
        end do
     end do
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) xz(i,1) = z1(i)                            &
+       if ( aa0(i).ne.-1.0D0 ) xz(i,1) = z1(i)                            &
             & - (dlog(p(i,1))-dlog(psur(i)))   &
             & *rgas*xtv(i,1)*rgti
     end do
     do k = 2 , kz
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
-             tvbar = .5*xtv(i,k) + .5*xtv(i,k-1)
+          if ( aa0(i).ne.-1.0D0 ) then
+             tvbar = 0.5D0*xtv(i,k) + 0.5D0*xtv(i,k-1)
              xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))         &
                   & *rgas*tvbar*rgti
           end if
@@ -721,7 +725,7 @@ contains
     !
     do k = 1 , kz
        do i = istart , iend
-          if ( aa0(i).ne.-1. ) then
+          if ( aa0(i).ne.-1.0D0 ) then
              xhes(i,k) = gti*xz(i,k) + cpd*xt(i,k) + wlhv*xqes(i,k)
              if ( xhe(i,k).ge.xhes(i,k) ) xhe(i,k) = xhes(i,k)
           end if
@@ -732,7 +736,7 @@ contains
     !**************************** static control
     !
     do i = istart , iend
-       if ( aa0(i).ne.-1. ) then
+       if ( aa0(i).ne.-1.0D0 ) then
           xqck(i) = xqkb(i)
           xdby(i,kz) = xhkb(i) - xhes(i,kz)
        end if
@@ -742,41 +746,41 @@ contains
     !
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ge.0. ) then
-             xdby(i,k) = xhkb(i) - .5*(xhes(i,k)+xhes(i,k+1))
+          if ( aa0(i).ge.0.0D0 ) then
+             xdby(i,k) = xhkb(i) - 0.5D0*(xhes(i,k)+xhes(i,k+1))
              if ( k.gt.kbcon(i) .and. k.lt.ktop(i) ) then
-                dz = -.5*xz(i,k-1) + .5*xz(i,k+1)
+                dz = -.5*xz(i,k-1) + 0.5D0*xz(i,k+1)
                 dz1 = xz(i,k) - xz(i,k-1)
-                agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2)))*xqes(i,k)
-                gamma0 = (wlhvocp)*(wlhv/(rwat*(xt(i,k-1)**2)))*          &
+                agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2.0D0)))*xqes(i,k)
+                gamma0 = (wlhvocp)*(wlhv/(rwat*(xt(i,k-1)**2.0D0)))* &
                      & xqes(i,k-1)
-                qrch = xqes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*        &
+                qrch = xqes(i,k) + (1.0D0/wlhv)*(agamma/(1.0D0+agamma))*   &
                      & xdby(i,k)
-                xqc(i,k) = (xqck(i)-qrch)/(1.+c0*dz) + qrch
+                xqc(i,k) = (xqck(i)-qrch)/(1.0D0+c0*dz) + qrch
                 xpw(i,k) = c0*dz*(xqc(i,k)-qrch)
                 xqck(i) = xqc(i,k)
                 xpwav(i) = xpwav(i) + xpw(i,k)
                 xaa0(i) = xaa0(i)                                         &
-                     & + dz1*(gti/(cpd*(.5*(xt(i,k)+xt(i,k-1)))))      &
-                     & *xdby(i,k-1)/(1.+.5*agamma+.5*gamma0)
+                     & + dz1*(gti/(cpd*(0.5D0*(xt(i,k)+xt(i,k-1)))))      &
+                     & *xdby(i,k-1)/(1.0D0+0.5D0*agamma+0.5D0*gamma0)
              end if
           end if
        end do
     end do
     do i = istart , iend
-       if ( aa0(i).ge.0. ) then
+       if ( aa0(i).ge.0.0D0 ) then
           k = ktop(i)
-          dz = -.5*xz(i,k-1) + .5*xz(i,k)
-          agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2)))*xqes(i,k)
-          qrch = xqes(i,k) + (1./wlhv)*(agamma/(1.+agamma))*xdby(i,k)
+          dz = -0.5D0*xz(i,k-1) + 0.5D0*xz(i,k)
+          agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**2.0D0)))*xqes(i,k)
+          qrch = xqes(i,k) + (1.0D0/wlhv)*(agamma/(1.0D0+agamma))*xdby(i,k)
           xqc(i,k) = xqes(i,k)
           xpw(i,k) = (qrch-xqes(i,k))
           xpwav(i) = xpwav(i) + xpw(i,k)
           xqrcd(i,kz) = xqes(i,kz)
-          xhcd(i) = .5*(xhe(i,jmin(i))+xhe(i,jmin(i)+1))
-          xqcd(i) = .5*(xq(i,jmin(i))+xq(i,jmin(i)+1))
-          xpwev(i) = 0.
-          bu(i) = 0.
+          xhcd(i) = 0.5D0*(xhe(i,jmin(i))+xhe(i,jmin(i)+1))
+          xqcd(i) = 0.5D0*(xq(i,jmin(i))+xq(i,jmin(i)+1))
+          xpwev(i) = 0.0D0
+          bu(i) = 0.0D0
        end if
     end do
     !
@@ -787,16 +791,16 @@ contains
     !
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ge.0. ) then
+          if ( aa0(i).ge.0.0D0 ) then
              if ( k.lt.jmin(i) ) then
                 kk = jmin(i) - k
-                dz = -(xz(i,kk)-xz(i,kk+2))*.5
-                bu(i) = bu(i) + dz*(xhcd(i)-.5*(xhes(i,kk)+xhes(i,kk+1)))
-                dq = (xqes(i,kk)+xqes(i,kk+1))*.5
-                xdt = (xt(i,kk)+xt(i,kk+1))*.5
-                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2)))*dq
-                dh = xhcd(i) - .5*(xhes(i,kk)+xhes(i,kk+1))
-                xqrcd(i,kk) = (dq+(1./wlhv)*(agamma/(1.+agamma))*dh)
+                dz = -(xz(i,kk)-xz(i,kk+2))*0.5D0
+                bu(i) = bu(i) + dz*(xhcd(i)-0.5D0*(xhes(i,kk)+xhes(i,kk+1)))
+                dq = (xqes(i,kk)+xqes(i,kk+1))*0.5D0
+                xdt = (xt(i,kk)+xt(i,kk+1))*0.5D0
+                agamma = (wlhvocp)*(wlhv/(rwat*(xdt**2.0D0)))*dq
+                dh = xhcd(i) - 0.5D0*(xhes(i,kk)+xhes(i,kk+1))
+                xqrcd(i,kk) = (dq+(1.0D0/wlhv)*(agamma/(1.0D0+agamma))*dh)
                 xpwd(i,kk) = dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
                 xqcd(i) = xqrcd(i,kk)
                 xpwev(i) = xpwev(i) + xpwd(i,kk)
@@ -805,12 +809,12 @@ contains
        end do
     end do
     do i = istart , iend
-       if ( aa0(i).ge.0. ) then
-          if ( bu(i).ge.0. ) then
-             aa0(i) = -1.
+       if ( aa0(i).ge.0.0D0 ) then
+          if ( bu(i).ge.0.0D0 ) then
+             aa0(i) = -1.0D0
              go to 500
           end if
-          if ( xpwev(i).ne.0. ) edtx(i) = -edtx(i)*xpwav(i)/xpwev(i)
+          if ( xpwev(i).ne.0.0D0 ) edtx(i) = -edtx(i)*xpwav(i)/xpwev(i)
           if ( edtx(i).gt.edtmaxx2d(i,jslc) ) edtx(i)                   &
                & = edtmaxx2d(i,jslc)
           if ( edtx(i).lt.edtminx2d(i,jslc) ) edtx(i)                   &
@@ -825,48 +829,48 @@ contains
     !
     do k = 1 , kz - 1
        do i = istart , iend
-          if ( aa0(i).ge.0. ) then
+          if ( aa0(i).ge.0.0D0 ) then
              if ( k.lt.jmin(i) ) then
                 kk = jmin(i) - k
                 !
                 !---          original
                 !
-                gamma1 = (wlhvocp)*(wlhv/(rwat*(t(i,kk)**2)))*qes(i,kk)
-                gamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**2)))*          &
+                gamma1 = (wlhvocp)*(wlhv/(rwat*(t(i,kk)**2.0D0)))*qes(i,kk)
+                gamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**2.0D0)))*          &
                      & qes(i,kk+1)
                 dhh = hcd(i)
-                xdt = .5*(t(i,kk)+t(i,kk+1))
-                dg = .5*(gamma1+gamma2)
-                dh = .5*(hes(i,kk)+hes(i,kk+1))
+                xdt = 0.5D0*(t(i,kk)+t(i,kk+1))
+                dg = 0.5D0*(gamma1+gamma2)
+                dh = 0.5D0*(hes(i,kk)+hes(i,kk+1))
                 dz = (z(i,kk)-z(i,kk+1))*dkk(i,kk)
                 aa0(i) = aa0(i) + edt(i)*dz*(gti/(cpd*xdt))*((dhh-dh)/    &
-                     & (1.+dg))
+                     & (1.0D0+dg))
                 !
                 !---          modified by larger scale
                 !
-                gamma1 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk)**2)))*qeso(i,kk)
-                gamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**2)))*         &
+                gamma1 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk)**2.0D0)))*qeso(i,kk)
+                gamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**2.0D0)))*         &
                      & qeso(i,kk+1)
                 dhh = hcdo(i)
-                xdt = .5*(tn(i,kk)+tn(i,kk+1))
-                dg = .5*(gamma1+gamma2)
-                dh = .5*(heso(i,kk)+heso(i,kk+1))
+                xdt = 0.5D0*(tn(i,kk)+tn(i,kk+1))
+                dg = 0.5D0*(gamma1+gamma2)
+                dh = 0.5D0*(heso(i,kk)+heso(i,kk+1))
                 dz = (zo(i,kk)-zo(i,kk+1))*dkk(i,kk)
                 aa1(i) = aa1(i) + edto(i)*dz*(gti/(cpd*xdt))              &
-                     & *((dhh-dh)/(1.+dg))
+                     & *((dhh-dh)/(1.0D0+dg))
                 !
                 !---          modified by cloud
                 !
-                gamma1 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk)**2)))*xqes(i,kk)
-                gamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**2)))*         &
+                gamma1 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk)**2.0D0)))*xqes(i,kk)
+                gamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**2.0D0)))*         &
                      & xqes(i,kk+1)
                 dhh = xhcd(i)
-                xdt = .5*(xt(i,kk)+xt(i,kk+1))
-                dg = .5*(gamma1+gamma2)
-                dh = .5*(xhes(i,kk)+xhes(i,kk+1))
+                xdt = 0.5D0*(xt(i,kk)+xt(i,kk+1))
+                dg = 0.5D0*(gamma1+gamma2)
+                dh = 0.5D0*(xhes(i,kk)+xhes(i,kk+1))
                 dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
                 xaa0(i) = xaa0(i) + edtx(i)*dz*(gti/(cpd*xdt))            &
-                     & *((dhh-dh)/(1.+dg))
+                     & *((dhh-dh)/(1.0D0+dg))
              end if
           end if
        end do
@@ -875,7 +879,7 @@ contains
     !---  large scale forcing
     !
     do i = istart , iend
-       if ( aa0(i).ge.0. ) then
+       if ( aa0(i).ge.0.0D0 ) then
           if ( igcc.eq.1 ) then
              f = (aa1(i)-aa0(i))/dtime  ! Arakawa-Schubert closure
           else if ( igcc.eq.2 ) then
@@ -883,7 +887,7 @@ contains
           end if
           xk = (xaa0(i)-aa0(i))/mbdt
           xmb(i) = -f/xk
-          if ( f.le.0 .or. xk.ge.0. ) xmb(i) = 0.
+          if ( f.le.0.0D0 .or. xk.ge.0.0D0 ) xmb(i) = 0.0D0
        end if
     end do
     !chem2
@@ -895,13 +899,13 @@ contains
     !
     do k = 1 , kz
        do i = istart , iend
-          if ( aa0(i).ge.0. ) then
+          if ( aa0(i).ge.0.0D0 ) then
              if ( k.le.ktop(i) ) then
-                outtes = dellat(i,k)*xmb(i)*86400.
-                if ( (outtes.gt.htmax2d(i,jslc)) .or.                     &
+                outtes = dellat(i,k)*xmb(i)*86400.0D0
+                if ( (outtes.gt.htmax2d(i,jslc)) .or.  &
                      & (outtes.lt.htmin2d(i,jslc)) ) then
-                   xmb(i) = 0.
-                   aa0(i) = -1.
+                   xmb(i) = 0.0D0
+                   aa0(i) = -1.0D0
                 else
                    outtem(i,k) = outtem(i,k) + dellat(i,k)*xmb(i)
                    outq(i,k) = outq(i,k) + dellaq(i,k)*xmb(i)
@@ -920,15 +924,15 @@ contains
        icumbot(i,jslc) = 0
        icumdwd(i,jslc) = 0
        !chem2_
-       if ( aa0(i).ge.0. ) then
+       if ( aa0(i).ge.0.0D0 ) then
 
           if ( ktop(i).gt.1 .and. kbcon(i).gt.1 ) then
              kclth = ktop(i) - kbcon(i) + 1
-             akclth = 1./dble(kclth)
+             akclth = 1.0D0/dble(kclth)
              do k = kbcon(i) , ktop(i)
                 kk = kz - k + 1
                 cldlwc(i,kk) = cllwcv
-                cldfra(i,kk) = 1. - (1.-clfrcv)**akclth
+                cldfra(i,kk) = 1.0D0 - (1.0D0-clfrcv)**akclth
              end do
              !chem2
              !chem2      define convection  base and top for tracers
@@ -953,15 +957,11 @@ contains
     !
     implicit none
     !
-    ! Dummy arguments
-    !
     integer :: iend , istart , iy , kend , kz
     real(8) , dimension(iy,kz) :: array
     integer , dimension(iy) :: ks , kt
     intent (in) array , iend , istart , iy , kend , ks , kz
     intent (out) kt
-    !
-    ! Local variables
     !
     integer :: i , k
     real(8) :: x
@@ -990,15 +990,11 @@ contains
 
     implicit none
     !
-    ! Dummy arguments
-    !
     integer :: iend , istart , iy , ke , ks , kz
     real(8) , dimension(iy,kz) :: array
     integer , dimension(iy) :: imax
     intent (in) array , iend , istart , iy , ke , ks , kz
     intent (out) imax
-    !
-    ! Local variables
     !
     integer :: i , k
     real(8) :: x , xar
