@@ -23,9 +23,10 @@
       use mod_runparams
       use mod_constants
 !
+#ifdef WHEN_I_WILL_COMPILE_TAKE_AWAY_THIS
+
       contains
 !
-#ifdef WHEN_I_WILL_COMPILE_TAKE_AWAY_THIS
 !
       subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
                       & pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
