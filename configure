@@ -14986,12 +14986,34 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
 
 
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if nc-config program is present" >&5
+$as_echo_n "checking if nc-config program is present... " >&6; }
+if ${ax_cv_prog_nc_config+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  if nc-config --version 2>/dev/null | egrep -q '^netCDF '; then :
+  ax_cv_prog_nc_config=yes
+else
+  ax_cv_prog_nc_config=no
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_prog_nc_config" >&5
+$as_echo "$ax_cv_prog_nc_config" >&6; }
+  if test "$ax_cv_prog_nc_config" = "yes"; then :
+  NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"
+else
+  NC_PREFIX="${NETCDF}" && NCAUTO="no"
+
+fi
+
+
 # Check whether --with-netcdf was given.
 if test "${with_netcdf+set}" = set; then :
-  withval=$with_netcdf; NC_PREFIX="$withval"
-else
-  NC_PREFIX="${NETCDF}"
-
+  withval=$with_netcdf; NC_PREFIX="$withval" && NCAUTO="no"
 fi
 
 
@@ -15108,20 +15130,18 @@ if eval "test x$DEBUG = x1"; then
 
 fi
 
-if eval "test -d $NC_PREFIX/include"; then
+if eval "test x$NCAUTO = xno"; then
   NC_INCLUDES="-I$NC_PREFIX/include"
 else
-  NC_PREFIX="/usr"
-  NC_INCLUDES="-I/usr/include"
+  NC_INCLUDES="-I`nc-config --includedir`"
 fi
 
-if eval "test -d $NC_PREFIX/lib"; then
+if eval "test x$NCAUTO = xno"; then
   NC_LDFLAGS="-L$NC_PREFIX/lib"
   NC_LIBS="-lnetcdf"
 else
-  NC_PREFIX="/usr"
-  NC_LDFLAGS="-L/usr/lib"
-  NC_LIBS="-lnetcdf"
+  NC_LDFLAGS=""
+  NC_LIBS="`nc-config --flibs`"
 fi
 
 
@@ -15600,12 +15620,59 @@ else
 fi
 
   if test "x$netcdf" = xno; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link hdf5 library..." >&5
-$as_echo "$as_me: checking if we need to link hdf5 library..." >&6;}
-    NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link jpeg library for HDF4..." >&5
+$as_echo "$as_me: checking if we need to link jpeg library for HDF4..." >&6;}
     LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-    LIBS="$LIBS -lhdf5 -lhdf5_hl"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_sync in -lnetcdf" >&5
+    LIBS="$LIBS -ljpeg"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_enddef in -lnetcdf" >&5
+$as_echo_n "checking for nc_enddef in -lnetcdf... " >&6; }
+if ${ac_cv_lib_netcdf_nc_enddef+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lnetcdf  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char nc_enddef ();
+int
+main ()
+{
+return nc_enddef ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_netcdf_nc_enddef=yes
+else
+  ac_cv_lib_netcdf_nc_enddef=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_netcdf_nc_enddef" >&5
+$as_echo "$ac_cv_lib_netcdf_nc_enddef" >&6; }
+if test "x$ac_cv_lib_netcdf_nc_enddef" = xyes; then :
+  netcdf=yes
+else
+  netcdf=no
+fi
+
+    if test "x$netcdf" = xno; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link hdf5 library..." >&5
+$as_echo "$as_me: checking if we need to link hdf5 library..." >&6;}
+      NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+      LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+      LIBS="$LIBS -lhdf5 -lhdf5_hl"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_sync in -lnetcdf" >&5
 $as_echo_n "checking for nc_sync in -lnetcdf... " >&6; }
 if ${ac_cv_lib_netcdf_nc_sync+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -15647,13 +15714,13 @@ else
   netcdf=no
 fi
 
-    if test "x$netcdf" = xno; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link szlib library..." >&5
+      if test "x$netcdf" = xno; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking if we need to link szlib library..." >&5
 $as_echo "$as_me: checking if we need to link szlib library..." >&6;}
-      NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
-      LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-      LIBS="$LIBS -lsz"
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_inq_libvers in -lnetcdf" >&5
+        NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+        LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+        LIBS="$LIBS -lsz"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nc_inq_libvers in -lnetcdf" >&5
 $as_echo_n "checking for nc_inq_libvers in -lnetcdf... " >&6; }
 if ${ac_cv_lib_netcdf_nc_inq_libvers+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -15695,6 +15762,7 @@ else
   netcdf=no
 fi
 
+      fi
     fi
     if test "x$netcdf" = xno; then
       as_fn_error $? "NetCDF library not found" "$LINENO" 5

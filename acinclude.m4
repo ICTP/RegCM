@@ -2,6 +2,19 @@ dnl
 dnl autoconf macro for detecting NetCDF
 dnl
 
+AC_DEFUN([AX_PROG_NC_CONFIG], [
+  AC_REQUIRE([AC_PROG_EGREP])
+
+  AC_CACHE_CHECK([if nc-config program is present],[ax_cv_prog_nc_config],[
+  AS_IF([nc-config --version 2>/dev/null | egrep -q '^netCDF '],
+        [ax_cv_prog_nc_config=yes], [ax_cv_prog_nc_config=no])
+      ])
+  AS_IF([test "$ax_cv_prog_nc_config" = "yes"],
+    m4_ifnblank([$1], [[$1]]),
+    m4_ifnblank([$2], [[$2]])
+  )
+])
+
 AC_DEFUN([RR_PATH_NETCDF],[
 
   AC_CHECKING([for NetCDF])
@@ -31,19 +44,26 @@ AC_DEFUN([RR_PATH_NETCDF],[
   AC_CHECK_LIB([netcdf], [nc_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
-    AC_CHECKING([if we need to link hdf5 library])
-    NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+    AC_CHECKING([if we need to link jpeg library for HDF4])
     LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-    LIBS="$LIBS -lhdf5 -lhdf5_hl"
-    AC_CHECK_LIB([netcdf], [nc_sync],
-                 [netcdf=yes], [netcdf=no])
+    LIBS="$LIBS -ljpeg"
+    AC_CHECK_LIB([netcdf], [nc_enddef],
+    [netcdf=yes], [netcdf=no])
     if test "x$netcdf" = xno; then
-      AC_CHECKING([if we need to link szlib library])
-      NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+      AC_CHECKING([if we need to link hdf5 library])
+      NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
       LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-      LIBS="$LIBS -lsz"
-      AC_CHECK_LIB([netcdf], [nc_inq_libvers],
+      LIBS="$LIBS -lhdf5 -lhdf5_hl"
+      AC_CHECK_LIB([netcdf], [nc_sync],
                    [netcdf=yes], [netcdf=no])
+      if test "x$netcdf" = xno; then
+        AC_CHECKING([if we need to link szlib library])
+        NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+        LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+        LIBS="$LIBS -lsz"
+        AC_CHECK_LIB([netcdf], [nc_inq_libvers],
+                     [netcdf=yes], [netcdf=no])
+      fi
     fi
     if test "x$netcdf" = xno; then
       AC_MSG_ERROR([NetCDF library not found])

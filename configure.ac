@@ -30,10 +30,12 @@ AC_PROG_FC
 
 AC_LANG([Fortran])
 
+AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}" && NCAUTO="no"])
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
             [Path to NetCDF installation (default: NETCDF environment)]),
-  [NC_PREFIX="$withval"], [NC_PREFIX="${NETCDF}"]
+  [NC_PREFIX="$withval" && NCAUTO="no"], []
 )
 
 AC_ARG_WITH([hdf5],
@@ -120,20 +122,18 @@ if eval "test x$DEBUG = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-if eval "test -d $NC_PREFIX/include"; then
+if eval "test x$NCAUTO = xno"; then
   NC_INCLUDES="-I$NC_PREFIX/include"
 else
-  NC_PREFIX="/usr"
-  NC_INCLUDES="-I/usr/include"
+  NC_INCLUDES="-I`nc-config --includedir`"
 fi
 
-if eval "test -d $NC_PREFIX/lib"; then
+if eval "test x$NCAUTO = xno"; then
   NC_LDFLAGS="-L$NC_PREFIX/lib"
   NC_LIBS="-lnetcdf"
 else
-  NC_PREFIX="/usr"
-  NC_LDFLAGS="-L/usr/lib"
-  NC_LIBS="-lnetcdf"
+  NC_LDFLAGS=""
+  NC_LIBS="`nc-config --flibs`"
 fi
 AC_SUBST(NC_PREFIX)
 
