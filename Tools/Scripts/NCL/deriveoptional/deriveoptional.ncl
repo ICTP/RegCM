@@ -30,6 +30,24 @@ begin
   calcvar@Density = True
   calcvar@Fog = True
   calcvar@Theta = True
+  calcvar@InCldLWP = False
+  calcvar@Subsidence = True
+  calcvar@ZDens = True
+  calcvar@rho2m = True
+  calcvar@occzda2000 = True
+  calcvar@CurlTau = True
+  calcvar@SnowFreeAlbedoSW = True
+
+;;  ;Temporary turn-off
+;  calcvar@Pressure = False
+;  calcvar@GeoHeight = False
+;  calcvar@Density = False
+;  calcvar@Fog = False
+;  calcvar@Theta = False
+;  calcvar@InCldLWP = False
+;  calcvar@ZDens = False
+;  calcvar@occzda2000 = False
+
 
   bWriteOut = True
 
@@ -46,10 +64,16 @@ begin
   wlhf = 0.3336e6
   wlhv = 2.51040e6
 
+  gammastd = 6.5e-3
+  t0std = 288.15
+  p0std = 101325
+  rho0std = p0std/(rgas*t0std);
+  
+
   p0exner = 1000.0
   rovcp = rgas/cpd
 
-
+  areathresh = 0.5 ;The threshold for aeral coverage of cloud (in km^2)
 
   fhatm = addfile(atmfilename,"r")
   fhsrf = addfile(srffilename,"r")
@@ -59,12 +83,18 @@ begin
 
   ;Run through dependencies
   ;TODO: Put this in a function
-;Functions that depend on a level 2 variable at highest
-;Functions that depend on a level 1 variable at highest
+;Level 3: Functions that depend on a level 2 variable at highest
+;Level 2: Functions that depend on a level 1 variable at highest
   if(calcvar@Fog)then
     calcvar@Geoheight = True
   end if
-;Functions that only depend on a level 0 variable
+  if(calcvar@Subsidence)then
+    calcvar@Density = True
+  end if
+  if(calcvar@occzda2000)then
+    calcvar@ZDens = True
+  end if
+;Level 1: Functions that only depend on a level 0 variable
   if(calcvar@Theta)then
     calcvar@Pressure = True
   end if
@@ -74,6 +104,15 @@ begin
   if(calcvar@GeoHeight)then
     calcvar@Pressure = True
   end if
+  if(calcvar@ZDens)then
+    calcvar@rho2m = True
+  end if
+  if(calcvar@CurlTau)then
+    calcvar@rho2m = True
+  end if
+;Level 0: Variables that depend on nothing:
+  ; Pressure
+  ; Density Altitude
 
 
   if(calcvar@Pressure)then
@@ -222,11 +261,201 @@ begin
     resfog@LWCthreshold = 5e-5
     ;fog = calculateFog(cld(time|:,iy|:,jx|:,kz|:),relgeo(time|:,iy|:,jx|:,kz|::-1),resfog) 
     fog = calculateFog(qc(time|:,iy|:,jx|:,kz|:),relgeo(time|:,iy|:,jx|:,kz|::-1),resfog) 
+
     fhopt->fog = fog
     if(bWriteOut)then
       print("...Finished Writing Fog")
     end if
   end if
 
-  
+  if(calcvar@InCldLWP)then
+    if(bWriteOut)then
+      print("Calculating In-Cloud Liquid Water Path...")
+    end if
+    ;Read in the grid-cell cloud fraction
+    cld = fhrad->cld
+    ;Read in the grid-cell average liquid water path
+    lwp = fhrad->clwp
+
+    totcld = 1 - dim_product(1 - cld(time|:,iy|:,jx|:,kz|:))
+    totlwp = dim_sum_Wrap(lwp(time|:,iy|:,jx|:,kz|:))
+
+    ds = fhrad@grid_size_in_meters/1000 ; Get the grid resolution (in meters)
+    cloudarea = totcld*ds^2 ;Calculate the approximate areal coverage of cloud
+    
+
+    incldlwp = totlwp
+    incldlwp@_FillValue = 1e-30
+    ;Get the in-cloud liquid water path for clouds whose area is greater
+    ; than the threshold (approximates having a lower limit to a satellite's 
+    ; resolution)
+    incldlwp = totlwp/where(cloudarea.lt.areathresh,incldlwp@_FillValue,totcld)
+    delete(cloudarea)
+    delete(ds)
+
+    incldlwp@long_name = "Integrated In-Cloud Liquid Water Path"
+    incldlwp@standard_name = ""
+    
+    fhopt->incldlwp = incldlwp
+    if(bWriteOut)then
+      print("...Finished Writing In-Cloud Liquid Water Path")
+    end if
+  end if
+
+  if(calcvar@Subsidence)then
+    if(bWriteOut)then
+      print("Calculating Subsidence Rate...")
+    end if
+      omega = fhatm->omega
+      
+      w = omega
+      w = -omega/(rho*gti)
+      w@long_name = "Vertical Velocity"
+      w@standard_name = "upward_air_velocity"
+      w@units = "m s-1"
+
+      fhopt->w = w
+
+    if(bWriteOut)then
+      print("...Finished writing Subsidence Rate")
+    end if
+  end if
+
+  if(calcvar@rho2m)then
+    if(bWriteOut)then
+      print("Calculating 2m Density...")
+    end if
+
+      alpha = gti/(rgas*gammastd)
+      t2m = fhsrf->t2m(:,0,:,:)
+      q2m = fhsrf->q2m(:,0,:,:)
+      ps = fhsrf->ps
+
+      tv2m = t2m*(1 + ep1*q2m)
+
+      rho2m = t2m
+      rho2m = 100.0*ps/(rgas*tv2m)
+      rho2m@long_name = "2m Air Density"
+      rho2m@standard_name = "air_density_at_2m"
+      rho2m@units = "kg m-3"
+
+      fhopt->rho2m = rho2m
+
+    if(bWriteOut)then
+      print("...Finished writing 2m Density") 
+    end if
+  end if
+
+
+  if(calcvar@ZDens)then
+    if(bWriteOut)then
+      print("Calculating Density Altitude...")
+    end if
+
+      zdens = rho2m
+      zdens = t0std/gammastd*(1 - (rho2m/rho0std)^(1/(alpha-1)));
+
+      zdens@long_name = "Density Altitude"
+      zdens@standard_name = "density_equivalent_altitude_in_standard_atmosphere"
+      zdens@units = "m"
+
+      fhopt->zdens = zdens
+
+    if(bWriteOut)then
+      print("...Finished writing Density Altitude") 
+    end if
+  end if
+
+  if(calcvar@occzda2000)then
+    if(bWriteOut)then
+      print("Calculating Density Altitude Anomaly > 2000 m...")
+    end if
+
+      topo = fhatm->topo
+      topo3d = conform_dims(dimsizes(zdens),topo,(/1,2/))
+
+      occzda2000 = zdens
+      occzda2000 = where((zdens-topo3d).ge.2000,1.0,0.0)
+      occzda2000@long_name = "Dens. Alt. Anomaly > 2000m Occurrence"
+      occzda2000@standard_name = "density_altitude_anomaly_occurrence"
+      occzda2000@units = "fraction"
+
+      fhopt->occzda2000 = occzda2000 
+
+    if(bWriteOut)then
+      print("...Finished writing Density Altitude Anomaly > 2000 m...")
+    end if
+  end if
+
+  if(calcvar@CurlTau)then
+    if(bWriteOut)then
+      print("Calculating Wind Stress Curl...")
+    end if
+
+      uvdrag = fhsrf->uvdrag
+      u10m = fhsrf->u10m(:,0,:,:)
+      v10m = fhsrf->v10m(:,0,:,:)
+      ds = fhsrf@grid_size_in_meters; Get the grid resolution (in meters)
+
+      taux = u10m
+      tauy = v10m
+      taux = rho2m*uvdrag*u10m*abs(u10m)
+      tauy = rho2m*uvdrag*v10m*abs(v10m)
+
+      ;TODO: Add in map scale factor
+      dtauxdy = center_finite_diff(taux(time|:,jx|:,iy|:),ds,False,0)
+      dtauydx = center_finite_diff(tauy(time|:,iy|:,jx|:),ds,False,0)
+
+      dtauxdy!0 = "time"
+      dtauxdy!1 = "jx"
+      dtauxdy!2 = "iy"
+      dtauydx!0 = "time"
+      dtauydx!2 = "jx"
+      dtauydx!1 = "iy"
+
+      dtauxdy&time = u10m&time
+      dtauxdy&jx = u10m&jx
+      dtauxdy&iy = u10m&iy
+      dtauydx&time = v10m&time
+      dtauydx&jx = v10m&jx
+      dtauydx&iy = v10m&iy
+
+      curltau = dtauydx
+      curltau = dtauydx - dtauxdy(time|:,iy|:,jx|:)
+      curltau@long_name = "Wind Stress Curl"
+      curltau@units = "Pa m-1"
+
+      fhopt->curltau = curltau 
+
+    if(bWriteOut)then
+      print("...Finished writing Wind Stress Curl") 
+    end if
+  end if
+
+  if(calcvar@SnowFreeAlbedoSW)then
+    if(bWriteOut)then
+      print("Calculating Snow Free Land Albedo (SW)...")
+    end if
+
+      aldirs = fhsrf->aldirs
+      scv = fhsrf->scv
+
+      aldirs@_FillValue = -1e-20
+      sfalbedosw = aldirs
+
+      sfalbedosw = where(scv.eq.0.0,aldirs,aldirs@_FillValue)
+      sfalbedosw@long_name = "Surface Albedo (Snow Free)"
+      sfalbedosw@standard_name = ""
+      sfalbedosw@units = "fraction"
+
+      fhopt->sfaldirs = sfalbedosw 
+
+    if(bWriteOut)then
+      print("...Finished writing Snow Free Land Albedo (SW)...")
+    end if
+  end if
+
+
+
+
 end

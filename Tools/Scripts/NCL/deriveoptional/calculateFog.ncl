@@ -114,9 +114,9 @@ begin
     do i = 0,rankcld-2
       dimname = cld!i
       fog!i = dimname
-      if(dimname.eq."time")then
-        fog&$dimname$ = cld&$dimname$
-      end if
+;      if(dimname.eq."time")then
+      fog&$dimname$ = cld&$dimname$
+;      end if
     end do
     fog@long_name = "Fog occurrence"
     fog@units = "unitless"

@@ -33,16 +33,16 @@ echo "Full averaging $filetype files..."
 $NCWA -O -a time $filetype.all.nc $filetype.avg.nc
 
 echo "Winter averaging $filetype files..."
-$NCWA -O -a time -d time,0,,12 -d time,1,,12 -d time,11,,12 $filetype.all.nc $filetype.djf.avg.nc
+$NCWA -O -a time -d time,0,,12 -d time,1,,12 -d time,2,,12 $filetype.all.nc $filetype.djf.avg.nc
 
 echo "Spring averaging $filetype files..."
-$NCWA -O -a time -d time,2,,12 -d time,3,,12 -d time,4,,12 $filetype.all.nc $filetype.mam.avg.nc
+$NCWA -O -a time -d time,3,,12 -d time,4,,12 -d time,5,,12 $filetype.all.nc $filetype.mam.avg.nc
 
 echo "Summer averaging $filetype files..."
-$NCWA -O -a time -d time,5,,12 -d time,6,,12 -d time,7,,12 $filetype.all.nc $filetype.jja.avg.nc
+$NCWA -O -a time -d time,6,,12 -d time,7,,12 -d time,8,,12 $filetype.all.nc $filetype.jja.avg.nc
 
 echo "Fall averaging $filetype files..."
-$NCWA -O -a time -d time,8,,12 -d time,9,,12 -d time,10,,12 $filetype.all.nc $filetype.son.avg.nc
+$NCWA -O -a time -d time,9,,12 -d time,10,,12 -d time,11,,12 $filetype.all.nc $filetype.son.avg.nc
 
 echo "Monthly averaging $filetype files..."
 for month in 0 1 2 3 4 5 6 7 8 9 10 11
