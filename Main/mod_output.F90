@@ -79,8 +79,10 @@
       integer :: allrec , ierr , l , k , n
 #endif
       logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
+      logical :: lstartup
       character (len=50) :: subroutine_name='output'
       integer :: idindx=0
+!
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -92,17 +94,18 @@
         if ( dabs(xtime).lt.0.00001 ) idatex = ldatez
       end if
  
+      lstartup = .false.
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif        
-        if ( (lday.eq.1 .and. lhour.eq.0 .and. idnint(xtime).eq.0) .or. &
-             (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
              (ifrest .and. .not. done_restart) ) then
           call mkfile
+          lstartup = .true.
         end if
 #ifdef MPP1
       end if
-#endif        
+#endif
 !
       ldoatm = .false.
       ldosrf = .false.
@@ -1394,6 +1397,18 @@
 !
 #endif
 
+#ifdef MPP1
+      if ( myid.eq.0 ) then
+#endif        
+        if ( lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime)<0.00001 ) then
+          if ( .not. lstartup .and. idatex.ne.idate2 ) then
+            call mkfile
+          end if
+        end if
+#ifdef MPP1
+      end if
+#endif
+!
       call time_end(subroutine_name,idindx) 
 
       end subroutine output
