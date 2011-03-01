@@ -358,10 +358,10 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-      if ( dabs(xtime).gt.0.0001 ) return
+      if ( dabs(xtime).gt.0.0001D0 ) return
 !
 #ifdef MPP1
-      dtbdys = ibdyfrq*60.*60.
+      dtbdys = ibdyfrq*60.0D0*60.0D0
       if ( myid.eq.0 ) then
         if ( ehso4 ) then
           do k = 1 , kz
@@ -380,7 +380,7 @@
         end if
         call read_icbc(ndate1,ps1_io,ts1_io,ub1_io,vb1_io, &
                    &   tb1_io,qb1_io,so1_io)
-        ps1_io = ps1_io/10.0
+        ps1_io = ps1_io/10.0D0
         do j = 1 , jx
           do k = 1 , kz
             do i = 1 , iy
@@ -449,31 +449,31 @@
 !     domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !     and similarly for the i's.
 !
-      call mpi_sendrecv(ps1(1,jxp),iy,mpi_real8,ieast,1,              &
-                      & ps1(1,0),iy,mpi_real8,iwest,1,                &
+      call mpi_sendrecv(ps1(1,jxp),iy,mpi_real8,ieast,1,   &
+                      & ps1(1,0),iy,mpi_real8,iwest,1,     &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       do j = jbegin , jendx
         do i = 2 , iym1
-          psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
-                     &       ps1(i,j-1)+ps1(i-1,j-1))
+          psdot(i,j) = 0.25D0*(ps1(i,j)+ps1(i-1,j) +       &
+                     &         ps1(i,j-1)+ps1(i-1,j-1))
         end do
       end do
 #ifdef BAND
       do j = jbegin , jendx
-        psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-        psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        psdot(1,j) = 0.5D0*(ps1(1,j)+ps1(1,j-1))
+        psdot(iy,j) = 0.5D0*(ps1(iym1,j)+ps1(iym1,j-1))
       end do
 #else
 !
       do i = 2 , iym1
-        if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
+        if ( myid.eq.0 ) psdot(i,1) = 0.5D0*(ps1(i,1)+ps1(i-1,1))
         if ( myid.eq.nproc-1 ) &
-          psdot(i,jendl) = 0.5*(ps1(i,jendx)+ps1(i-1,jendx))
+          psdot(i,jendl) = 0.5D0*(ps1(i,jendx)+ps1(i-1,jendx))
       end do
 !
       do j = jbegin , jendx
-        psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-        psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        psdot(1,j) = 0.5D0*(ps1(1,j)+ps1(1,j-1))
+        psdot(iy,j) = 0.5D0*(ps1(iym1,j)+ps1(iym1,j-1))
       end do
 !
       if ( myid.eq.0 ) then
@@ -721,8 +721,8 @@
  
         do j = 1 , jendx
           do i = 1 , iym1
-            if( mddom%satbrt(i,j).gt.13.5 .and.  &
-                mddom%satbrt(i,j).lt.15.5 ) then
+            if( mddom%satbrt(i,j).gt.13.5D0 .and.  &
+                mddom%satbrt(i,j).lt.15.5D0 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -732,11 +732,11 @@
               end if
               if (iseaice == 1) then
                 if ( lakemod.eq.1 .and. &
-                     mddom%satbrt(i,j).lt.14.5 ) cycle
-                if ( tdum(i,j).le.271.38 ) then
-                   sts1%tg(i,j) = 271.38
-                   sts2%tg(i,j) = 271.38
-                   tdum(i,j) = 271.38
+                     mddom%satbrt(i,j).lt.14.5D0 ) cycle
+                if ( tdum(i,j).le.271.38D0 ) then
+                   sts1%tg(i,j) = 271.38D0
+                   sts2%tg(i,j) = 271.38D0
+                   tdum(i,j) = 271.38D0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.0D0
                     sice2d(n,i,j) = 1000.0D0
@@ -757,7 +757,7 @@
         end do
       end if
 #else
-      dtbdys = ibdyfrq*60.*60.
+      dtbdys = ibdyfrq*60.0D0*60.0D0
       if ( ehso4 ) then
         do k = 1 , kz
           do j = 1 , jx
@@ -778,7 +778,7 @@
 !     Convert surface pressure to pstar
       do j = 1 , jx
         do i = 1 , iy
-          ps1(i,j) = ps1(i,j)/10.0 - r8pt
+          ps1(i,j) = ps1(i,j)/10.0D0 - r8pt
         end do
       end do
 !=====================================================================
@@ -791,40 +791,40 @@
 #ifdef BAND
       do j = 2 , jx
         do i = 2 , iym1
-          psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +               &
-                     &       ps1(i,j-1)+ps1(i-1,j-1))
+          psdot(i,j) = 0.25D0*(ps1(i,j)+ps1(i-1,j) +      &
+                     &         ps1(i,j-1)+ps1(i-1,j-1))
         end do
       end do
 !
       do i = 2 , iym1
-        psdot(i,1) = 0.25*(ps1(i,1)+ps1(i-1,1) +                 &
-                   &       ps1(i,jx)+ps1(i-1,jx))
+        psdot(i,1) = 0.25D0*(ps1(i,1)+ps1(i-1,1) +        &
+                   &         ps1(i,jx)+ps1(i-1,jx))
       end do
 !
       do j = 2 , jx
-        psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-        psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        psdot(1,j) = 0.5D0*(ps1(1,j)+ps1(1,j-1))
+        psdot(iy,j) = 0.5D0*(ps1(iym1,j)+ps1(iym1,j-1))
       end do
 !
-      psdot(1,1) = 0.5*(ps1(1,1)+ps1(1,jx))
-      psdot(iy,1) = 0.5*(ps1(iym1,1)+ps1(iym1,jx))
+      psdot(1,1) = 0.5D0*(ps1(1,1)+ps1(1,jx))
+      psdot(iy,1) = 0.5D0*(ps1(iym1,1)+ps1(iym1,jx))
 !
 #else
       do j = 2 , jxm1
         do i = 2 , iym1
-          psdot(i,j) = 0.25*(ps1(i,j)+ps1(i-1,j) +                    &
-                     &       ps1(i,j-1)+ps1(i-1,j-1))
+          psdot(i,j) = 0.25D0*(ps1(i,j)+ps1(i-1,j) +      &
+                     &         ps1(i,j-1)+ps1(i-1,j-1))
         end do
       end do
 !
       do i = 2 , iym1
-        psdot(i,1) = 0.5*(ps1(i,1)+ps1(i-1,1))
-        psdot(i,jx) = 0.5*(ps1(i,jxm1)+ps1(i-1,jxm1))
+        psdot(i,1) = 0.5D0*(ps1(i,1)+ps1(i-1,1))
+        psdot(i,jx) = 0.5D0*(ps1(i,jxm1)+ps1(i-1,jxm1))
       end do
 !
       do j = 2 , jxm1
-        psdot(1,j) = 0.5*(ps1(1,j)+ps1(1,j-1))
-        psdot(iy,j) = 0.5*(ps1(iym1,j)+ps1(iym1,j-1))
+        psdot(1,j) = 0.5D0*(ps1(1,j)+ps1(1,j-1))
+        psdot(iy,j) = 0.5D0*(ps1(iym1,j)+ps1(iym1,j-1))
       end do
 !
       psdot(1,1) = ps1(1,1)
@@ -1018,8 +1018,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if( mddom%satbrt(i,j).gt.13.5 .and.  &
-                mddom%satbrt(i,j).lt.15.5 ) then
+            if( mddom%satbrt(i,j).gt.13.5D0 .and.  &
+                mddom%satbrt(i,j).lt.15.5D0 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -1029,11 +1029,11 @@
               end if
               if (iseaice == 1) then
                 if ( lakemod.eq.1 .and. &
-                     mddom%satbrt(i,j).lt.14.5 ) cycle
-                if ( tdum(i,j).le.271.38 ) then
-                   sts1%tg(i,j) = 271.38
-                   sts2%tg(i,j) = 271.38
-                   tdum(i,j) = 271.38
+                     mddom%satbrt(i,j).lt.14.5D0 ) cycle
+                if ( tdum(i,j).le.271.38D0 ) then
+                   sts1%tg(i,j) = 271.38D0
+                   sts2%tg(i,j) = 271.38D0
+                   tdum(i,j) = 271.38D0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.0D0
                     sice2d(n,i,j) = 1000.0D0
@@ -1113,8 +1113,8 @@
 #ifdef MPP1
       do j = jbegin , jendx
         do i = 2 , iym1
-          sps1%pdot(i,j) = 0.25*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
-                                 sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
+          sps1%pdot(i,j) = 0.25D0*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
+                                   sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
         end do
       end do
 #else
@@ -1124,14 +1124,14 @@
       do j = 2 , jxm1
 #endif
         do i = 2 , iym1
-          sps1%pdot(i,j) = 0.25*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
-                                 sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
+          sps1%pdot(i,j) = 0.25D0*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
+                                   sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
         end do
       end do
 #ifdef BAND
       do i = 2 , iym1
-        sps1%pdot(i,1) = 0.25*(sps1%ps(i,1)+sps1%ps(i-1,1)+   &
-                               sps1%ps(i,jx)+sps1%ps(i-1,jx))
+        sps1%pdot(i,1) = 0.25D0*(sps1%ps(i,1)+sps1%ps(i-1,1)+   &
+                                 sps1%ps(i,jx)+sps1%ps(i-1,jx))
       enddo
 #endif
 #endif
@@ -1142,12 +1142,13 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 )  &
-          sps1%pdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
+          sps1%pdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
         if ( myid.eq.nproc-1 ) &
-          sps1%pdot(i,jendl) = 0.5*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
+          sps1%pdot(i,jendl) = 0.5D0*(sps1%ps(i,jendx)+ &
+                                      sps1%ps(i-1,jendx))
 #else
-        sps1%pdot(i,1) = 0.5*(sps1%ps(i,1)+sps1%ps(i-1,1))
-        sps1%pdot(i,jx) = 0.5*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
+        sps1%pdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        sps1%pdot(i,jx) = 0.5D0*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -1156,21 +1157,21 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
-        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5D0*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5D0*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
 #else
 #ifdef BAND
       do j = 2 , jx
-        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
-        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5D0*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5D0*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
-      sps1%pdot(1,1) = 0.5*(sps1%ps(1,1)+sps1%ps(1,jx))
-      sps1%pdot(iy,1) = 0.5*(sps1%ps(iym1,1)+sps1%ps(iym1,jx))
+      sps1%pdot(1,1) = 0.5D0*(sps1%ps(1,1)+sps1%ps(1,jx))
+      sps1%pdot(iy,1) = 0.5D0*(sps1%ps(iym1,1)+sps1%ps(iym1,jx))
 #else
       do j = 2 , jxm1
-        sps1%pdot(1,j) = 0.5*(sps1%ps(1,j)+sps1%ps(1,j-1))
-        sps1%pdot(iy,j) = 0.5*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
+        sps1%pdot(1,j) = 0.5D0*(sps1%ps(1,j)+sps1%ps(1,j-1))
+        sps1%pdot(iy,j) = 0.5D0*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
 #endif
 #endif
@@ -1641,9 +1642,9 @@
 !
 !-----compute the time interval for boundary tendency:
 !
-      dtb = xt*60.
-      if ( dabs(xt).lt.0.00001 .and. ldatez.gt.idate0 )                 &
-         & dtb = ibdyfrq*60.*60.
+      dtb = xt*60.0D0
+      if ( dabs(xt).lt.0.00001D0 .and. ldatez.gt.idate0 ) &
+        dtb = ibdyfrq*60.0D0*60.0D0
 !
 !-----set boundary values for p*:
 !-----set boundary conditions for p*u and p*v:
@@ -1801,7 +1802,7 @@
               qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
               qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-              if ( uavg.ge.0. ) then
+              if ( uavg.ge.0.0D0 ) then
                 qvx = qvx1
               else
                 qvx = qvx2
@@ -1817,7 +1818,7 @@
               qvx1 = atm1%qv(i,k,jendx)/sps1%ps(i,jendx)
               qvx2 = atm1%qv(i,k,jendm)/sps1%ps(i,jendm)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg.lt.0. ) then
+              if ( uavg.lt.0.0D0 ) then
                 qvx = qvx1
               else
                 qvx = qvx2
@@ -1833,7 +1834,7 @@
             qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-            if ( vavg.ge.0. ) then
+            if ( vavg.ge.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -1847,7 +1848,7 @@
             qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-            if ( vavg.lt.0. ) then
+            if ( vavg.lt.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -1878,8 +1879,8 @@
           do i = 1 , iym1
             qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-            if ( uavg.ge.0. ) then
-              qcx = 0.
+            if ( uavg.ge.0.0D0 ) then
+              qcx = 0.0D0
             else
               qcx = qcx2
             end if
@@ -1893,8 +1894,8 @@
           do i = 1 , iym1
             qcx2 = atm1%qc(i,k,jendm)/sps1%ps(i,jendm)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-            if ( uavg.lt.0. ) then
-              qcx = 0.
+            if ( uavg.lt.0.0D0 ) then
+              qcx = 0.0D0
             else
               qcx = qcx2
             end if
@@ -1908,8 +1909,8 @@
         do j = jbegin , jendm
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-          if ( vavg.ge.0. ) then
-            qcx = 0.
+          if ( vavg.ge.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -1921,8 +1922,8 @@
         do j = jbegin , jendm
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-          if ( vavg.lt.0. ) then
-            qcx = 0.
+          if ( vavg.lt.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -1947,7 +1948,7 @@
                 chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
                 chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
                 uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-                if ( uavg.ge.0. ) then
+                if ( uavg.ge.0.0D0 ) then
                   chix = chix1
                 else
                   chix = chix2
@@ -1963,7 +1964,7 @@
                 chix1 = chia(i,k,jendx,itr)/sps1%ps(i,jendx)
                 chix2 = chia(i,k,jendm,itr)/sps1%ps(i,jendm)
                 uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-                if ( uavg.lt.0. ) then
+                if ( uavg.lt.0.0D0 ) then
                   chix = chix1
                 else
                   chix = chix2
@@ -1979,7 +1980,7 @@
               chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-              if ( vavg.ge.0. ) then
+              if ( vavg.ge.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -1993,7 +1994,7 @@
               chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-              if ( vavg.lt.0. ) then
+              if ( vavg.lt.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2134,9 +2135,9 @@
 !
 !-----compute the time interval for boundary tendency:
 !
-      dtb = xt*60.
-      if ( dabs(xt).lt.0.00001 .and. ldatez.gt.idate0 )                 &
-         & dtb = ibdyfrq*60.*60.
+      dtb = xt*60.0D0
+      if ( dabs(xt).lt.0.00001D0 .and. ldatez.gt.idate0 ) &
+        dtb = ibdyfrq*60.0D0*60.0D0
 !
 !-----set boundary values for p*:
 !-----set boundary conditions for p*u and p*v:
@@ -2314,7 +2315,7 @@
             qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
             qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-            if ( uavg.ge.0. ) then
+            if ( uavg.ge.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2328,7 +2329,7 @@
             qvx1 = atm1%qv(i,k,jxm1)/sps1%ps(i,jxm1)
             qvx2 = atm1%qv(i,k,jxm2)/sps1%ps(i,jxm2)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-            if ( uavg.lt.0. ) then
+            if ( uavg.lt.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2352,7 +2353,7 @@
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-            if ( vavg.ge.0. ) then
+            if ( vavg.ge.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2375,7 +2376,7 @@
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-            if ( vavg.lt.0. ) then
+            if ( vavg.lt.0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2405,8 +2406,8 @@
         do i = 1 , iym1
           qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
           uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-          if ( uavg.ge.0. ) then
-            qcx = 0.
+          if ( uavg.ge.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -2418,8 +2419,8 @@
         do i = 1 , iym1
           qcx2 = atm1%qc(i,k,jxm2)/sps1%ps(i,jxm2)
           uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-          if ( uavg.lt.0. ) then
-            qcx = 0.
+          if ( uavg.lt.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -2440,8 +2441,8 @@
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-          if ( vavg.ge.0. ) then
-            qcx = 0.
+          if ( vavg.ge.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -2461,8 +2462,8 @@
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-          if ( vavg.lt.0. ) then
-            qcx = 0.
+          if ( vavg.lt.0.0D0 ) then
+            qcx = 0.0D0
           else
             qcx = qcx2
           end if
@@ -2486,10 +2487,10 @@
             do i = 1 , iym1
 !             FAB force to zero inflow conditions
 !             chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
-              chix1 = 0. 
+              chix1 = 0.0D0
               chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-              if ( uavg.ge.0. ) then
+              if ( uavg.ge.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2501,10 +2502,10 @@
 !
             do i = 1 , iym1
 !             chix1 = chia(i,k,jxm1,itr)/sps1%ps(i,jxm1)
-              chix1 = 0.
+              chix1 = 0.0D0
               chix2 = chia(i,k,jxm2,itr)/sps1%ps(i,jxm2)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg.lt.0. ) then
+              if ( uavg.lt.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2525,11 +2526,11 @@
 #else
             do j = 2 , jxm2
 !             chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
-              chix1 = 0.
+              chix1 = 0.0D0
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-              if ( vavg.ge.0. ) then
+              if ( vavg.ge.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2544,17 +2545,17 @@
               jp1 = j+1
               if(jp1.eq.jx+1) jp1=1
 !             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-              chix1 = 0.
+              chix1 = 0.0D0
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
             do j = 2 , jxm2
 !             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-              chix1 = 0.
+              chix1 = 0.0D0
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-              if ( vavg.lt.0. ) then
+              if ( vavg.lt.0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
