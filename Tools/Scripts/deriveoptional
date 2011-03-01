@@ -41,7 +41,7 @@ if [ -z "$REGCMSRCDIR" ]; then
 fi
 
 #A list of the variables to extract from the ATM file and put in to the OPT file
-EXTRACTVARLIST="sigma,y_range,x_range,xlat,xlon,topo,mask,rcm_map,ptop,t"
+EXTRACTVARLIST="sigma,xlat,xlon,topo,mask,rcm_map,ptop,t"
 
 #TODO: Check validity and occurrence of command line arguments
 if [ -z "$1" ]; then

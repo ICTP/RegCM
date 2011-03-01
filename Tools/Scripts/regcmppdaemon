@@ -175,7 +175,7 @@ do
     PPROCDONE=1
     for type in $TYPES
     do
-      filenamein="${EXPNAME}_${TYPE}.${year}${month}.nc"
+      filenamein="${EXPNAME}_${type}.${year}${month}.nc"
       if [ -s $filenamein ]; then
         THISDONE=1
       else
