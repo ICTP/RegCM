@@ -42,7 +42,7 @@
 
       contains
 
-      subroutine vecbats(j,k,istart,iend,ng)
+      subroutine vecbats
 
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
@@ -161,10 +161,6 @@
  
       implicit none
 !
-! Dummy arguments
-!
-      integer, intent(in) :: j , k , istart , iend , ng
-!!
       character (len=50) :: subroutine_name='vecbats'
       integer :: idindx=0
 !
@@ -172,7 +168,6 @@
 
 !---------------------------------------------------------------------
 
-      call interf(1 , j , k , istart , iend , ng)
 ! 
 ! ****** calculate surface fluxes and hydrology budgets
 !
@@ -228,7 +223,7 @@
         do ill = 1 , iym1
           pptnc(ill,jll) = 0.
           pptc(ill,jll) = 0.
-!MM4      ist=nint(mddom%satbrt(ill,jll))
+!MM4      ist=idint(mddom%satbrt(ill,jll))
 !MM4      if(ist.le.13)then
 !MM4      ist=ist
 !MM4      else
@@ -272,12 +267,12 @@
               nlveg = 12
             else if ( ocld2d(k,ill,jll) > 0.5 ) then
               sice2d(k,ill,jll) = 0.0D0
-              scv2d(k,ill,jll) = max(snowc(k,ill,jll),0.D0)
-              nlveg = nint(veg2d1(k,ill,jll))
+              scv2d(k,ill,jll) = dmax1(snowc(k,ill,jll),0.D0)
+              nlveg = idint(veg2d1(k,ill,jll))
             else
               sice2d(k,ill,jll) = 0.0D0
               scv2d(k,ill,jll) = 0.0D0
-              nlveg = nint(veg2d1(k,ill,jll))
+              nlveg = idint(veg2d1(k,ill,jll))
             end if
             if ( nlveg.eq.0 ) then
               nlveg = 15
@@ -289,7 +284,7 @@
             tlef2d(k,ill,jll) = sts2%tg(ill,jll)
 
 !           ******  initialize soil moisture in the 3 layers
-            is = nint(satbrt1(k,ill,jll))
+            is = idint(satbrt1(k,ill,jll))
             swt2d(k,ill,jll) = deptv(nlveg)*xmopor(itex)*slmo(is)
             srw2d(k,ill,jll) = deprv(nlveg)*xmopor(itex)*slmo(is)
             ssw2d(k,ill,jll) = depuv(nlveg)*xmopor(itex)*slmo(is)
@@ -396,7 +391,7 @@
  
             hl = lh0 - lh1*(ts1d0(n,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(1./tzero-1./ts1d0(n,i)))
-            rh0 = max(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
+            rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01-satvp)), &
                 & 0.D0)
  
             ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)- &
@@ -405,7 +400,7 @@
  
             hl = lh0 - lh1*(ts1d(n,i)-tzero)
             satvp = lsvp1*dexp(lsvp2*hl*(1./tzero-1./ts1d(n,i)))
-            qs1d(n,i) = max(rh0*ep2*satvp/(p1d(n,i)*0.01-satvp),0.D0)
+            qs1d(n,i) = dmax1(rh0*ep2*satvp/(p1d(n,i)*0.01-satvp),0.D0)
  
             tg1d(n,i) = tg2d(n,i,j)
             rhs1d(n,i) = p1d(n,i)/(rgas*ts1d(n,i))
@@ -428,11 +423,11 @@
             evpr1d(n,i) = sfsta%qfx(i,j)
             ldoc1d(n,i) = ocld2d(n,i,j)
             ircp1d(n,i) = ircp2d(n,i,j)
-            lveg(n,i) = nint(veg2d1(n,i,j))
+            lveg(n,i) = idint(veg2d1(n,i,j))
             oveg(n,i) = lveg(n,i)
             if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
-            amxtem = max(298.-tgb1d(n,i),0.D0)
-            sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
+            amxtem = dmax1(298.-tgb1d(n,i),0.D0)
+            sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
             if ( lveg(n,i).eq.0 ) then
               veg1d(n,i) = 0.
             else
@@ -447,7 +442,7 @@
           end do
           rh0 = rh0/ng
           do n = 1 , ng
-            qs1d(n,i) = max(qs1d(n,i)-rh0,0.0D0)
+            qs1d(n,i) = dmax1(qs1d(n,i)-rh0,0.0D0)
           end do
  
           us1d(i) = ubx3d(i,k,j)
@@ -462,7 +457,7 @@
           else
             fracd(i) = 0.2
           end if
-          czen(i) = max(coszrs(i),0.D0)
+          czen(i) = dmax1(coszrs(i),0.D0)
         end do
  
       else if ( ivers.eq.2 ) then ! bats --> regcm2d
@@ -474,32 +469,33 @@
           sts2%tg(i,j) = 0.0
           sts1%tg(i,j) = 0.0
           sfsta%tgbb(i,j) = 0.0
-!chem2
-          ssw2da(i,j) = 0.0
-          sdeltk2d(i,j) = 0.0
-          sdelqk2d(i,j) = 0.0
-          sfracv2d(i,j) = 0.0
-          sfracb2d(i,j) = 0.0
-          sfracs2d(i,j) = 0.0
-          svegfrac2d(i,j) = 0.0
-!chem2_
+          if ( ichem .eq. 1 ) then
+            ssw2da(i,j) = 0.0
+            sdeltk2d(i,j) = 0.0
+            sdelqk2d(i,j) = 0.0
+            sfracv2d(i,j) = 0.0
+            sfracb2d(i,j) = 0.0
+            sfracs2d(i,j) = 0.0
+            svegfrac2d(i,j) = 0.0
+          end if
+
           do n = 1 , ng
             sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
             sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
             sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
             sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
             sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
-!chem2
-            ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
-            sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
-            sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
-            sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,i)
-            sfracb2d(i,j) = sfracb2d(i,j) + (1.-veg1d(n,i))             &
-                          & *(1.-scvk(n,i))
-            sfracs2d(i,j) = sfracs2d(i,j) + veg1d(n,i)*wt(n,i)          &
-                          & + (1.-veg1d(n,i))*scvk(n,i)
-            svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
-!chem2_
+            if ( ichem .eq. 1 ) then
+              ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
+              sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
+              sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
+              sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,i)
+              sfracb2d(i,j) = sfracb2d(i,j) + (1.-veg1d(n,i))    &
+                            & *(1.-scvk(n,i))
+              sfracs2d(i,j) = sfracs2d(i,j) + veg1d(n,i)*wt(n,i) &
+                            & + (1.-veg1d(n,i))*scvk(n,i)
+              svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
+            end if
             if ( iocnflx.eq.1 .or.                                      &
                & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5 ) ) then
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                         &
@@ -517,21 +513,22 @@
               scv1d(n,i)  = -1.D34
             end if
           end do
-          sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/float(ng)
-          sfsta%hfx(i,j) = sfsta%hfx(i,j)/float(ng)
-          sfsta%qfx(i,j) = sfsta%qfx(i,j)/float(ng)
-          sts2%tg(i,j) = sts2%tg(i,j)/float(ng)
-          sts1%tg(i,j) = sts1%tg(i,j)/float(ng)
-          sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/float(ng)
-!chem2
-          ssw2da(i,j) = ssw2da(i,j)/float(ng)
-          sdeltk2d(i,j) = sdeltk2d(i,j)/float(ng)
-          sdelqk2d(i,j) = sdelqk2d(i,j)/float(ng)
-          sfracv2d(i,j) = sfracv2d(i,j)/float(ng)
-          sfracb2d(i,j) = sfracb2d(i,j)/float(ng)
-          sfracs2d(i,j) = sfracs2d(i,j)/float(ng)
-          svegfrac2d(i,j) = svegfrac2d(i,j)/float(ng)
-!chem2_
+          sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/dble(ng)
+          sfsta%hfx(i,j) = sfsta%hfx(i,j)/dble(ng)
+          sfsta%qfx(i,j) = sfsta%qfx(i,j)/dble(ng)
+          sts2%tg(i,j) = sts2%tg(i,j)/dble(ng)
+          sts1%tg(i,j) = sts1%tg(i,j)/dble(ng)
+          sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(ng)
+
+          if ( ichem .eq. 1 ) then
+            ssw2da(i,j) = ssw2da(i,j)/dble(ng)
+            sdeltk2d(i,j) = sdeltk2d(i,j)/dble(ng)
+            sdelqk2d(i,j) = sdelqk2d(i,j)/dble(ng)
+            sfracv2d(i,j) = sfracv2d(i,j)/dble(ng)
+            sfracb2d(i,j) = sfracb2d(i,j)/dble(ng)
+            sfracs2d(i,j) = sfracs2d(i,j)/dble(ng)
+            svegfrac2d(i,j) = svegfrac2d(i,j)/dble(ng)
+          end if
           do n = 1 , ng
             snowc(n,i,j) = scv1d(n,i)
             tg2d(n,i,j) = tg1d(n,i)
@@ -625,21 +622,21 @@
             aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
             aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
           end do
-          u10m_o(j,i-1) = u10m_o(j,i-1)/float(ng)
-          v10m_o(j,i-1) = v10m_o(j,i-1)/float(ng)
-          t2m_o(j,i-1) = t2m_o(j,i-1)/float(ng)
-          tg_o(j,i-1) = tg_o(j,i-1)/float(ng)
-          aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(ng)
-          aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(ng)
+          u10m_o(j,i-1) = u10m_o(j,i-1)/dble(ng)
+          v10m_o(j,i-1) = v10m_o(j,i-1)/dble(ng)
+          t2m_o(j,i-1) = t2m_o(j,i-1)/dble(ng)
+          tg_o(j,i-1) = tg_o(j,i-1)/dble(ng)
+          aldirs_o(j,i-1) = aldirs_o(j,i-1)/dble(ng)
+          aldifs_o(j,i-1) = aldifs_o(j,i-1)/dble(ng)
  
-          tgmx_o(j,i-1) = max(tgmx_o(j,i-1),tg_o(j,i-1))
-          tgmn_o(j,i-1) = min(tgmn_o(j,i-1),tg_o(j,i-1))
-          t2mx_o(j,i-1) = max(t2mx_o(j,i-1),t2m_o(j,i-1))
-          t2mn_o(j,i-1) = min(t2mn_o(j,i-1),t2m_o(j,i-1))
-          w10x_o(j,i-1) = max(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**2+    &
-                        & v10m_o(j,i-1)**2))
+          tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
+          tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
+          t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
+          t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
+          w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
+                          sqrt(u10m_o(j,i-1)**2+v10m_o(j,i-1)**2))
           real_4 = (sps2%ps(i,j)+r8pt)*10.
-          psmn_o(j,i-1) = min(psmn_o(j,i-1),real_4)
+          psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 
 #else
 #ifdef BAND
@@ -686,20 +683,20 @@
             aldirs_o(j,i-1) = aldirs_o(j,i-1) + aldirs1d(n,i)
             aldifs_o(j,i-1) = aldifs_o(j,i-1) + aldifs1d(n,i)
           end do
-          u10m_o(j,i-1) = u10m_o(j,i-1)/float(ng)
-          v10m_o(j,i-1) = v10m_o(j,i-1)/float(ng)
-          t2m_o(j,i-1) = t2m_o(j,i-1)/float(ng)
-          tg_o(j,i-1) = tg_o(j,i-1)/float(ng)
-          aldirs_o(j,i-1) = aldirs_o(j,i-1)/float(ng)
-          aldifs_o(j,i-1) = aldifs_o(j,i-1)/float(ng)
-          tgmx_o(j,i-1) = max(tgmx_o(j,i-1),tg_o(j,i-1))
-          tgmn_o(j,i-1) = min(tgmn_o(j,i-1),tg_o(j,i-1))
-          t2mx_o(j,i-1) = max(t2mx_o(j,i-1),t2m_o(j,i-1))
-          t2mn_o(j,i-1) = min(t2mn_o(j,i-1),t2m_o(j,i-1))
-          w10x_o(j,i-1) = max(w10x_o(j,i-1),sqrt(u10m_o(j,i-1)**&
-                          & 2+v10m_o(j,i-1)**2))
+          u10m_o(j,i-1) = u10m_o(j,i-1)/dble(ng)
+          v10m_o(j,i-1) = v10m_o(j,i-1)/dble(ng)
+          t2m_o(j,i-1) = t2m_o(j,i-1)/dble(ng)
+          tg_o(j,i-1) = tg_o(j,i-1)/dble(ng)
+          aldirs_o(j,i-1) = aldirs_o(j,i-1)/dble(ng)
+          aldifs_o(j,i-1) = aldifs_o(j,i-1)/dble(ng)
+          tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
+          tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
+          t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
+          t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
+          w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
+                           sqrt(u10m_o(j,i-1)**2+v10m_o(j,i-1)**2))
           real_4 = (sps2%ps(i,j)+r8pt)*10.
-          psmn_o(j,i-1) = min(psmn_o(j,i-1),real_4)
+          psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
 #else
           u10m_o(j-1,i-1) = 0.0
           v10m_o(j-1,i-1) = 0.0
@@ -744,25 +741,25 @@
             aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1) + aldirs1d(n,i)
             aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1) + aldifs1d(n,i)
           end do
-          u10m_o(j-1,i-1) = u10m_o(j-1,i-1)/float(ng)
-          v10m_o(j-1,i-1) = v10m_o(j-1,i-1)/float(ng)
-          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/float(ng)
-          tg_o(j-1,i-1) = tg_o(j-1,i-1)/float(ng)
-          aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1)/float(ng)
-          aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1)/float(ng)
-          tgmx_o(j-1,i-1) = max(tgmx_o(j-1,i-1),tg_o(j-1,i-1))
-          tgmn_o(j-1,i-1) = min(tgmn_o(j-1,i-1),tg_o(j-1,i-1))
-          t2mx_o(j-1,i-1) = max(t2mx_o(j-1,i-1),t2m_o(j-1,i-1))
-          t2mn_o(j-1,i-1) = min(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
-          w10x_o(j-1,i-1) = max(w10x_o(j-1,i-1),sqrt(u10m_o(j-1,i-1)**&
-                          & 2+v10m_o(j-1,i-1)**2))
+          u10m_o(j-1,i-1) = u10m_o(j-1,i-1)/dble(ng)
+          v10m_o(j-1,i-1) = v10m_o(j-1,i-1)/dble(ng)
+          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)/dble(ng)
+          tg_o(j-1,i-1) = tg_o(j-1,i-1)/dble(ng)
+          aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1)/dble(ng)
+          aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1)/dble(ng)
+          tgmx_o(j-1,i-1) = amax1(tgmx_o(j-1,i-1),tg_o(j-1,i-1))
+          tgmn_o(j-1,i-1) = amin1(tgmn_o(j-1,i-1),tg_o(j-1,i-1))
+          t2mx_o(j-1,i-1) = amax1(t2mx_o(j-1,i-1),t2m_o(j-1,i-1))
+          t2mn_o(j-1,i-1) = amin1(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
+          w10x_o(j-1,i-1) = amax1(w10x_o(j-1,i-1), &
+                      sqrt(u10m_o(j-1,i-1)**2+v10m_o(j-1,i-1)**2))
           real_4 = (sps2%ps(i,j)+r8pt)*10.
-          psmn_o(j-1,i-1) = min(psmn_o(j-1,i-1),real_4)
+          psmn_o(j-1,i-1) = amin1(psmn_o(j-1,i-1),real_4)
 #endif
 #endif
         end do
 
-        if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or.    &
+        if ( mod(ntime+idint(dtmin*60.),kbats).eq.0 .or.    &
             ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.       & 
             ( ifrest .and. .not. done_restart ) ) then
           if ( jyear.eq.jyear0 .and. ktau.le.1 ) then
@@ -812,10 +809,10 @@
               sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,i,j)
             end do
             tpr_o(j,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-            q2m_o(j,i-1) = q2m_o(j,i-1)/float(ng)
-            drag_o(j,i-1) = drag_o(j,i-1)/float(ng)
-            evpa_o(j,i-1) = evpa_o(j,i-1)/float(ng)*mmpd
-            sena_o(j,i-1) = sena_o(j,i-1)/float(ng)*wpm2
+            q2m_o(j,i-1) = q2m_o(j,i-1)/dble(ng)
+            drag_o(j,i-1) = drag_o(j,i-1)/dble(ng)
+            evpa_o(j,i-1) = evpa_o(j,i-1)/dble(ng)*mmpd
+            sena_o(j,i-1) = sena_o(j,i-1)/dble(ng)*wpm2
             flwa_o(j,i-1) = flwa2d(i,j)*wpm2
             fswa_o(j,i-1) = fswa2d(i,j)*wpm2
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
@@ -836,14 +833,14 @@
                 ssw_o(j,i-1) = ssw_o(j,i-1) + ssw1d(n,i)
                 rsw_o(j,i-1) = rsw_o(j,i-1) + rsw1d(n,i)
                 rnos_o(j,i-1) = rnos_o(j,i-1) + rnos2d(n,i,j)
-                if (abs(scv1d(n,i)) > 1D-30) then
+                if (dabs(scv1d(n,i)) > 1D-30) then
                   scv_o(j,i-1) = scv_o(j,i-1) + scv1d(n,i)
                 end if
                 tlef_s(n,j,i-1) = tlef1d(n,i)
                 ssw_s(n,j,i-1) = ssw1d(n,i)
                 rsw_s(n,j,i-1) = rsw1d(n,i)
                 rnos_s(n,j,i-1) = rnos2d(n,i,j)*mmpd
-                if (abs(scv1d(n,i)) > 1D-30) then
+                if (dabs(scv1d(n,i)) > 1D-30) then
                   scv_s(n,j,i-1) = scv1d(n,i)
                 end if
                 nnn = nnn + 1
@@ -856,11 +853,11 @@
               end if
             end do
             if ( nnn.ge.max0(ng/2,1) ) then
-              tlef_o(j,i-1) = tlef_o(j,i-1)/float(nnn)
-              ssw_o(j,i-1) = ssw_o(j,i-1)/float(nnn)
-              rsw_o(j,i-1) = rsw_o(j,i-1)/float(nnn)
-              rnos_o(j,i-1) = rnos_o(j,i-1)/float(nnn)*mmpd
-              scv_o(j,i-1) = scv_o(j,i-1)/float(nnn)
+              tlef_o(j,i-1) = tlef_o(j,i-1)/dble(nnn)
+              ssw_o(j,i-1) = ssw_o(j,i-1)/dble(nnn)
+              rsw_o(j,i-1) = rsw_o(j,i-1)/dble(nnn)
+              rnos_o(j,i-1) = rnos_o(j,i-1)/dble(nnn)*mmpd
+              scv_o(j,i-1) = scv_o(j,i-1)/dble(nnn)
             else
               tlef_o(j,i-1) = -1.D34
               ssw_o(j,i-1) = -1.D34
@@ -904,10 +901,10 @@
               sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,i,j)
             end do
             tpr_o(j,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-            q2m_o(j,i-1) = q2m_o(j,i-1)/float(ng)
-            drag_o(j,i-1) = drag_o(j,i-1)/float(ng)
-            evpa_o(j,i-1) = evpa_o(j,i-1)/float(ng)*mmpd
-            sena_o(j,i-1) = sena_o(j,i-1)/float(ng)*wpm2
+            q2m_o(j,i-1) = q2m_o(j,i-1)/dble(ng)
+            drag_o(j,i-1) = drag_o(j,i-1)/dble(ng)
+            evpa_o(j,i-1) = evpa_o(j,i-1)/dble(ng)*mmpd
+            sena_o(j,i-1) = sena_o(j,i-1)/dble(ng)*wpm2
             flwa_o(j,i-1) = flwa2d(i,j)*wpm2
             fswa_o(j,i-1) = fswa2d(i,j)*wpm2
             flwd_o(j,i-1) = flwda2d(i,j)*wpm2
@@ -944,11 +941,11 @@
               end if
             end do
             if ( nnn.ge.max0(ng/2,1) ) then
-              tlef_o(j,i-1) = tlef_o(j,i-1)/float(nnn)
-              ssw_o(j,i-1) = ssw_o(j,i-1)/float(nnn)
-              rsw_o(j,i-1) = rsw_o(j,i-1)/float(nnn)
-              rnos_o(j,i-1) = rnos_o(j,i-1)/float(nnn)*mmpd
-              scv_o(j,i-1) = scv_o(j,i-1)/float(nnn)
+              tlef_o(j,i-1) = tlef_o(j,i-1)/dble(nnn)
+              ssw_o(j,i-1) = ssw_o(j,i-1)/dble(nnn)
+              rsw_o(j,i-1) = rsw_o(j,i-1)/dble(nnn)
+              rnos_o(j,i-1) = rnos_o(j,i-1)/dble(nnn)*mmpd
+              scv_o(j,i-1) = scv_o(j,i-1)/dble(nnn)
             else
               tlef_o(j,i-1) = -1.D34
               ssw_o(j,i-1) = -1.D34
@@ -991,10 +988,10 @@
               sena_o(j-1,i-1) = sena_o(j-1,i-1) + sena2d(n,i,j)
             end do
             tpr_o(j-1,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)/float(ng)
-            drag_o(j-1,i-1) = drag_o(j-1,i-1)/float(ng)
-            evpa_o(j-1,i-1) = evpa_o(j-1,i-1)/float(ng)*mmpd
-            sena_o(j-1,i-1) = sena_o(j-1,i-1)/float(ng)*wpm2
+            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)/dble(ng)
+            drag_o(j-1,i-1) = drag_o(j-1,i-1)/dble(ng)
+            evpa_o(j-1,i-1) = evpa_o(j-1,i-1)/dble(ng)*mmpd
+            sena_o(j-1,i-1) = sena_o(j-1,i-1)/dble(ng)*wpm2
             flwa_o(j-1,i-1) = flwa2d(i,j)*wpm2
             fswa_o(j-1,i-1) = fswa2d(i,j)*wpm2
             flwd_o(j-1,i-1) = flwda2d(i,j)*wpm2
@@ -1015,14 +1012,14 @@
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + ssw1d(n,i)
                 rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + rsw1d(n,i)
                 rnos_o(j-1,i-1) = rnos_o(j-1,i-1) + rnos2d(n,i,j)
-                if (abs(scv1d(n,i)) > 1D-34) then
+                if (dabs(scv1d(n,i)) > 1D-34) then
                   scv_o(j-1,i-1) = scv_o(j-1,i-1) + scv1d(n,i)
                 end if
                 tlef_s(n,j-1,i-1) = tlef1d(n,i)
                 ssw_s(n,j-1,i-1) = ssw1d(n,i)
                 rsw_s(n,j-1,i-1) = rsw1d(n,i)
                 rnos_s(n,j-1,i-1) = rnos2d(n,i,j)*mmpd
-                if (abs(scv1d(n,i)) > 1D-34) then
+                if (dabs(scv1d(n,i)) > 1D-34) then
                   scv_s(n,j-1,i-1) = scv1d(n,i)
                 end if
                 nnn = nnn + 1
@@ -1035,11 +1032,11 @@
               end if
             end do
             if ( nnn.ge.max0(ng/2,1) ) then
-              tlef_o(j-1,i-1) = tlef_o(j-1,i-1)/float(nnn)
-              ssw_o(j-1,i-1) = ssw_o(j-1,i-1)/float(nnn)
-              rsw_o(j-1,i-1) = rsw_o(j-1,i-1)/float(nnn)
-              rnos_o(j-1,i-1) = rnos_o(j-1,i-1)/float(nnn)*mmpd
-              scv_o(j-1,i-1) = scv_o(j-1,i-1)/float(nnn)
+              tlef_o(j-1,i-1) = tlef_o(j-1,i-1)/dble(nnn)
+              ssw_o(j-1,i-1) = ssw_o(j-1,i-1)/dble(nnn)
+              rsw_o(j-1,i-1) = rsw_o(j-1,i-1)/dble(nnn)
+              rnos_o(j-1,i-1) = rnos_o(j-1,i-1)/dble(nnn)*mmpd
+              scv_o(j-1,i-1) = scv_o(j-1,i-1)/dble(nnn)
             else
               tlef_o(j-1,i-1) = -1.D34
               ssw_o(j-1,i-1) = -1.D34
@@ -1167,7 +1164,7 @@
 !     do loop 50 in ccm not used here )
  
       do i = 2 , iym1
-        czen(i) = max(coszrs(i),0.D0)
+        czen(i) = dmax1(coszrs(i),0.D0)
         czeta = czen(i)
         do n = 1 , nnsg
           albgs = 0.0D0
@@ -1190,8 +1187,8 @@
 !
           if ( ldoc1d(n,i).gt.1.5 ) then
             tdiffs = ts1d(n,i) - tzero
-            tdiff = max(tdiffs,0.D0)
-            tdiffs = min(tdiff,20.D0)
+            tdiff = dmax1(tdiffs,0.D0)
+            tdiffs = dmin1(tdiff,20.D0)
             albgl = sical1 - 1.1D-2*tdiffs
             albgs = sical0 - 2.45D-2*tdiffs
             albg = fsol1*albgs + fsol2*albgl
@@ -1214,8 +1211,8 @@
 !             (soil albedo depends on moisture)
               kolour = kolsol(lveg(n,i))
               wet = ssw1d(n,i)/depuv(lveg(n,i))
-              alwet = max((11.D0-40.D0*wet),0.D0)*0.01D0
-              alwet = min(alwet,solour(kolour))
+              alwet = dmax1((11.D0-40.D0*wet),0.D0)*0.01D0
+              alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
 !             if((lveg(n,i).eq.8)) albg=0.40      !Laura, cambiato il
 !             DESERTO
@@ -1267,8 +1264,8 @@
 !           the ts **********          dependence accounts for melt
 !           water puddles.
             tdiffs = ts1d(n,i) - tzero
-            tdiff = max(tdiffs,0.D0)
-            tdiffs = min(tdiff,20.D0)
+            tdiff = dmax1(tdiffs,0.D0)
+            tdiffs = dmin1(tdiff,20.D0)
             albgl = sical1 - 1.1D-2*tdiffs
             albgs = sical0 - 2.45D-2*tdiffs
             albg = fsol1*albgs + fsol2*albgl
@@ -1302,7 +1299,7 @@
 !           **********            czf corrects albedo of new snow for
 !           solar zenith
             cf1 = ((1.D0+sli)/(1.D0+sl2*czen(i))-sli)
-            cff = max(cf1,0.D0)
+            cff = dmax1(cf1,0.D0)
             czf = 0.4D0*cff*(1.D0-dfalbs)
             dralbs = dfalbs + czf
             dfalbl = snal1*(1.D0-conn*age)
@@ -1390,7 +1387,7 @@
           implicit none
           real(8) :: fseas
           real(8) , intent(in) :: x
-          fseas = max(0.D0,(1.D0-0.0016D0*max(298.D0-x,0.D0)**2.0D0))
+          fseas = dmax1(0.D0,(1.D0-0.0016D0*dmax1(298.D0-x,0.D0)**2.0D0))
         end function fseas
 
       end subroutine albedov
@@ -1532,7 +1529,7 @@
         frac(i) = 1.0
         ha = (i-1)*dlon + tpifjd
 !       if cosz is negative, the sun is below the horizon.
-        cosz = max(0.D0,ss+cc*dcos(ha))
+        cosz = dmax1(0.D0,ss+cc*dcos(ha))
         coszrs(i) = cosz
       end do
 !
@@ -1562,11 +1559,11 @@
           sice1d(n,i) = sice2d(n,i,j)
           tgb1d(n,i) = tgb2d(n,i,j)
           ssw1d(n,i) = ssw2d(n,i,j)
-          lveg(n,i) = nint(veg2d1(n,i,j))
+          lveg(n,i) = idint(veg2d1(n,i,j))
           oveg(n,i) = lveg(n,i)
           if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
-          amxtem = max(298.-tgb1d(n,i),0.D0)
-          sfac = 1. - max(0.D0,1.-0.0016*amxtem**2)
+          amxtem = dmax1(298.-tgb1d(n,i),0.D0)
+          sfac = 1. - dmax1(0.D0,1.-0.0016*amxtem**2)
           if ( lveg(n,i).eq.0 ) then
             veg1d(n,i) = 0.
           else

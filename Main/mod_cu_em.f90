@@ -399,7 +399,7 @@
             thbar = asum/dble(j+1-i)
             if ( (th(j)*(1.0D0+q(j)*epsi-q(j))).lt.thbar ) jn = j
           end do
-          if ( i.eq.1 ) jn = max(jn,2)
+          if ( i.eq.1 ) jn = max0(jn,2)
           if ( jn.ne.0 ) then
             do
               ahm = 0.0D0
@@ -512,7 +512,7 @@
           ihmin = i
         end if
       end do
-      ihmin = min(ihmin,nl-1)
+      ihmin = min0(ihmin,nl-1)
 !
 !     ***     find that model level below the level of minimum moist   
 !     *** ***  static energy that has the maximum value of moist static
@@ -553,7 +553,7 @@
 !
       icb = nl - 1
       do i = nk + 1 , nl
-        if ( p(i).lt.plcl ) icb = min(icb,i)
+        if ( p(i).lt.plcl ) icb = min0(icb,i)
       end do
       if ( icb.ge.(nl-1) ) then
         iflag = 3
@@ -603,11 +603,11 @@
         else
           elacrit = elcrit*(1.0D0-tca/tlcrit)
         end if
-        elacrit = max(elacrit,0.0D0)
+        elacrit = dmax1(elacrit,0.0D0)
         epmax = 0.999D0
-        ep(i) = epmax*(1.0D0-elacrit/max(clw(i),1.0D-8))
-        ep(i) = max(ep(i),0.0D0)
-        ep(i) = min(ep(i),epmax)
+        ep(i) = epmax*(1.0D0-elacrit/dmax1(clw(i),1.0D-8))
+        ep(i) = dmax1(ep(i),0.0D0)
+        ep(i) = dmin1(ep(i),epmax)
         sigp(i) = sigs
       end do
 !
@@ -676,13 +676,13 @@
           capem = cape
         end if
       end do
-      inb = max(inb,inb1)
+      inb = max0(inb,inb1)
       cape = capem + byp
       defrac = capem - cape
-      defrac = max(defrac,0.001D0)
+      defrac = dmax1(defrac,0.001D0)
       frac = -cape/defrac
-      frac = min(frac,1.0D0)
-      frac = max(frac,0.0D0)
+      frac = dmin1(frac,1.0D0)
+      frac = dmax1(frac,0.0D0)
 !
 !     ***   calculate liquid water static energy of lifted parcel   ***
 !
@@ -716,7 +716,7 @@
       delt0 = 300.0D0
       damps = damp*delt/delt0
       cbmf = (1.0D0-damps)*cbmf + 0.1D0*alphae*dtma
-      cbmf = max(cbmf,0.0D0)
+      cbmf = dmax1(cbmf,0.0D0)
 !
 !     *** if cloud base mass flux is zero, skip rest of calculation  ***
 !
@@ -726,8 +726,8 @@
 !
       m(icb) = 0.0D0
       do i = icb + 1 , inb
-        k = min(i,inb1)
-        dbo = abs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
+        k = min0(i,inb1)
+        dbo = dabs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
         dbosum = dbosum + dbo
         m(i) = cbmf*dbo
       end do
@@ -746,7 +746,7 @@
           anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
           dei = denom
-          if ( abs(dei).lt.0.01D0 ) dei = 0.01D0
+          if ( dabs(dei).lt.0.01D0 ) dei = 0.01D0
           sij(i,j) = anum/dei
           sij(i,i) = 1.0D0
           altem = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti - qs(j)
@@ -757,7 +757,7 @@
                 altem.gt.cwat) .and. j.gt.i ) then
             anum = anum - lv(j)*(qti-qs(j)-cwat*bf2)
             denom = denom + lv(j)*(q(i)-qti)
-            if ( abs(denom).lt.0.01D0 ) denom = 0.01D0
+            if ( dabs(denom).lt.0.01D0 ) denom = 0.01D0
             sij(i,j) = anum/denom
             altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
             altem = altem - (bf2-1.)*cwat
@@ -771,12 +771,12 @@
                               (1.0D0-sij(i,j))*tra(nk,k)
             end do
             elij(i,j) = altem
-            elij(i,j) = max(0.0D0,elij(i,j))
+            elij(i,j) = dmax1(0.0D0,elij(i,j))
             ment(i,j) = m(i)/(1.0D0-sij(i,j))
             nent(i) = nent(i) + 1
           end if
-          sij(i,j) = max(0.0D0,sij(i,j))
-          sij(i,j) = min(1.0D0,sij(i,j))
+          sij(i,j) = dmax1(0.0D0,sij(i,j))
+          sij(i,j) = dmin1(1.0D0,sij(i,j))
         end do
 !
 !       ***   if no air can entrain at level i assume that updraft
@@ -804,39 +804,39 @@
           qp1 = q(nk) - ep(i)*clw(i)
           anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
           denom = h(i) - hp(i) + lv(i)*(q(i)-qp1)
-          if ( abs(denom).lt.0.01D0 ) denom = 0.01D0
+          if ( dabs(denom).lt.0.01D0 ) denom = 0.01D0
           scrit = anum/denom
           alt = qp1 - qs(i) + scrit*(q(i)-qp1)
           if ( alt.lt.0.0D0 ) scrit = 1.0D0
-          scrit = max(scrit,0.0D0)
+          scrit = dmax1(scrit,0.0D0)
           asij = 0.0D0
           smin = 1.0D0
           do j = icb , inb
             if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
               if ( j.gt.i ) then
-                smid = min(sij(i,j),scrit)
+                smid = dmin1(sij(i,j),scrit)
                 sjmax = smid
                 sjmin = smid
                 if ( smid.lt.smin .and. sij(i,j+1).lt.smid ) then
                   smin = smid
-                  sjmax = min(sij(i,j+1),sij(i,j),scrit)
-                  sjmin = max(sij(i,j-1),sij(i,j))
-                  sjmin = min(sjmin,scrit)
+                  sjmax = dmin1(sij(i,j+1),sij(i,j),scrit)
+                  sjmin = dmax1(sij(i,j-1),sij(i,j))
+                  sjmin = dmin1(sjmin,scrit)
                 end if
               else
-                sjmax = max(sij(i,j+1),scrit)
-                smid = max(sij(i,j),scrit)
+                sjmax = dmax1(sij(i,j+1),scrit)
+                smid = dmax1(sij(i,j),scrit)
                 sjmin = 0.0D0
                 if ( j.gt.1 ) sjmin = sij(i,j-1)
-                sjmin = max(sjmin,scrit)
+                sjmin = dmax1(sjmin,scrit)
               end if
-              delp = abs(sjmax-smid)
-              delm = abs(sjmin-smid)
+              delp = dabs(sjmax-smid)
+              delm = dabs(sjmin-smid)
               asij = asij + (delp+delm)*(ph(j)-ph(j+1))
               ment(i,j) = ment(i,j)*(delp+delm)*(ph(j)-ph(j+1))
             end if
           end do
-          asij = max(1.0D-21,asij)
+          asij = dmax1(1.0D-21,asij)
           asij = 1.0D0/asij
           do j = icb , inb
             ment(i,j) = ment(i,j)*asij
@@ -880,7 +880,7 @@
           if ( i.gt.1 ) then
             do j = 1 , i - 1
               awat = elij(j,i) - (1.-ep(i))*clw(i)
-              awat = max(0.0D0,awat)
+              awat = dmax1(0.0D0,awat)
               wdtrain = wdtrain + gti*awat*ment(j,i)
             end do
           end if
@@ -902,13 +902,13 @@
           end if
           qsm = 0.50D0*(q(i)+qp(i+1))
           afac = coeff*ph(i)*(qs(i)-qsm)/(1.0D4+2.0D3*ph(i)*qs(i))
-          afac = max(afac,0.0D0)
+          afac = dmax1(afac,0.0D0)
           sigt = sigp(i)
-          sigt = max(0.0D0,sigt)
-          sigt = min(1.0D0,sigt)
+          sigt = dmax1(0.0D0,sigt)
+          sigt = dmin1(1.0D0,sigt)
           b6 = 100.0D0*(ph(i)-ph(i+1))*sigt*afac/wt(i)
           c6 = (water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
-          revap = 0.5D0*(-b6+sqrt(b6*b6+4.0D0*c6))
+          revap = 0.5D0*(-b6+dsqrt(b6*b6+4.0D0*c6))
           evap(i) = sigt*afac*revap
           water(i) = revap*revap
 !
@@ -917,9 +917,9 @@
 !
           if ( i.ne.1 ) then
             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
-            dhdp = max(dhdp,10.0D0)
+            dhdp = dmax1(dhdp,10.0D0)
             mp(i) = 100.0D0*rgti*lv(i)*sigd*evap(i)/dhdp
-            mp(i) = max(mp(i),0.0D0)
+            mp(i) = dmax1(mp(i),0.0D0)
 !
 !           ***   add small amount of inertia to downdraft             
 !           ***
@@ -930,7 +930,7 @@
 !           *** ***      between about 950 mb and the surface          
 !           ***
             if ( p(i).gt.(0.949D0*p(1)) ) then
-              jtt = max(jtt,i)
+              jtt = max0(jtt,i)
               mp(i) = mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
             end if
           end if
@@ -961,8 +961,8 @@
                 trap(i,j) = trap(i+1,j)
               end do
             end if
-            qp(i) = min(qp(i),qstm)
-            qp(i) = max(qp(i),0.0D0)
+            qp(i) = dmin1(qp(i),qstm)
+            qp(i) = dmax1(qp(i),0.0D0)
           end if
         end do
 !
@@ -977,7 +977,7 @@
 !     ***  calculate downdraft velocity scale and surface temperature
 !     and  *** ***                    water vapor fluctuations         
 !     ***
-      wd = betae*abs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
+      wd = betae*dabs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
       qprime = 0.5D0*(qp(1)-q(1))
       tprime = wlhv*qprime*rcpd
 !
@@ -1058,7 +1058,7 @@
         end do
         do k = 1 , i - 1
           awat = elij(k,i) - (1.0D0-ep(i))*clw(i)
-          awat = max(awat,0.0D0)
+          awat = dmax1(awat,0.0D0)
           fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
           fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
           fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
@@ -1213,20 +1213,20 @@
           s = 1./s
           ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
           tg = tg + s*(ah0-ahg)
-          tg = max(tg,35.0D0)
+          tg = dmax1(tg,35.0D0)
           tc = tg - tzero
           denom = 243.5D0 + tc
           if ( tc.ge.0.0D0 ) then
-            es = 6.112D0*exp(17.67D0*tc/denom)
+            es = 6.112D0*dexp(17.67D0*tc/denom)
           else
-            es = exp(23.33086D0-6111.72784D0/tg+0.15215D0*log(tg))
+            es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))
           end if
           qg = eps*es/(p(i)-es*(1.0D0-eps))
         end do
         alv = wlhv - cpvmcl*(t(i)-tzero)
         tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
         clw(i) = q(nk) - qg
-        clw(i) = max(0.0D0,clw(i))
+        clw(i) = dmax1(0.0D0,clw(i))
         rg = qg/(1.0D0-q(nk))
         tvp(i) = tpk(i)*(1.0D0+rg*epsi)
       end do

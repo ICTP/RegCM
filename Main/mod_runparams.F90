@@ -25,7 +25,7 @@
 
       implicit none
  
-      integer :: ifrabe , klake , nbatst
+      integer :: ifrabe , nbatst
 !
       real(8) :: dt , dt2 , dtbat , dtlake , dtmin
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq

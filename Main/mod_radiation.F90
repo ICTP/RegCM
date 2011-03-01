@@ -1002,27 +1002,32 @@
           path = pdel*rga
         end do
       end do
-!
-!     Compute starting, ending daytime loop indices:
-!
       nloop = 0
       is = 0
       ie = 0
+!
+!     Compute starting daytime loop index
+!
       is(1) = isrchfgt(iym1,coszrs,1,0.D0)
 !
-!     If night everywhere, return:
+!     If night everywhere, return
 !
       if ( is(1).gt.iym1 ) return
-      ie(1) = isrchfle(iym1-is(1),coszrs(is(1)+1),1,0.D0) + is(1) - 1
+!
+!     Compute ending daytime loop index
+!
+      ie(1) = isrchfle(iym1-is(1),coszrs(is(1)+1),1,0.D0) + is(1)-1
       nloop = 1
 !
-!     Possibly 2 daytime loops needed:
+!     Possibly 2 daytime loops needed
 !
       if ( ie(1).ne.iym1 ) then
         is(2) = isrchfgt(iym1-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
-        if ( is(2).le.iym1 ) then
-          nloop = 2
-          ie(2) = iym1
+        if ( is(2).lt.iym1 ) then
+          ie(2) = isrchfle(iym1-is(2),coszrs(is(2)+1),1,0.D0) + is(2)-1
+          if ( ie(2).gt.is(2) ) then
+            nloop = 2
+          end if
         end if
       end if
 !
@@ -1048,15 +1053,15 @@
       tmp1 = 0.5/(gtigts*sslp)
 !     co2mmr = co2vmr*(mmwco2/mmwair)
  
-      sqrco2 = sqrt(co2mmr)
+      sqrco2 = dsqrt(co2mmr)
       do n = 1 , nloop
         do i = is(n) , ie(n)
           xptop = pflx(i,1)
           ptho2 = o2mmr*xptop*rga
           ptho3 = o3mmr(i,1)*xptop*rga
           pthco2 = sqrco2*(xptop*rga)
-          h2ostr = sqrt(1./h2ommr(i,1))
-          zenfac(i) = sqrt(coszrs(i))
+          h2ostr = dsqrt(1./h2ommr(i,1))
+          zenfac(i) = dsqrt(coszrs(i))
           pthh2o = xptop**2*tmp1 + (xptop*rga)*(h2ostr*zenfac(i)*delta)
           uh2o(i,0) = h2ommr(i,1)*pthh2o
           uco2(i,0) = zenfac(i)*pthco2
@@ -1074,7 +1079,7 @@
             ptho2 = o2mmr*path
             ptho3 = o3mmr(i,k)*path
             pthco2 = sqrco2*path
-            h2ostr = sqrt(1.0/h2ommr(i,k))
+            h2ostr = dsqrt(1.0/h2ommr(i,k))
             pthh2o = (pflx(i,k+1)**2-pflx(i,k)**2)                      &
                    & *tmp1 + pdel*h2ostr*zenfac(i)*tmp2
             uh2o(i,k) = h2ommr(i,k)*pthh2o
@@ -1206,9 +1211,9 @@
 !scheme       1
 !ccm3.6.6
 !             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
-!             $                     *cld(i,k)*sqrt(cld(i,k))
+!             $                     *cld(i,k)*dsqrt(cld(i,k))
 !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
-!             $                     *cld(i,k)*sqrt(cld(i,k))
+!             $                     *cld(i,k)*dsqrt(cld(i,k))
 !
 !scheme       2
 !KN
@@ -4543,7 +4548,7 @@
 !       ccm3.6.6
         w(i,1) = sslp*(plh2o(i,1)*2.)/pnm(i,1)
         rtnm = 1./tnm(i,1)
-        s2c(i,1) = plh2o(i,1)*exp(1800.*(rtnm-r296))*qnm(i,1)*repsil
+        s2c(i,1) = plh2o(i,1)*dexp(1800.*(rtnm-r296))*qnm(i,1)*repsil
       end do
       do k = 1 , kz
         do i = 1 , iym1
@@ -4699,38 +4704,30 @@
       function isrchfgt(n,array,inc,rtarg)
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , n
       real(8) :: rtarg
       real(8) , dimension(*) :: array
       integer :: isrchfgt
       intent (in) array , inc , n , rtarg
 !
-! Local variables
-!
-      integer :: i , ind
+      integer :: i
 !
       if ( n.le.0 ) then
         isrchfgt = 0
         return
       end if
-      ind = 1
-      do i = 1 , n
-        if ( array(ind).gt.rtarg ) then
-          isrchfgt = i
+      isrchfgt = 1
+      do i = 1 , n , inc
+        if ( array(i).gt.rtarg ) then
           return
         else
-          ind = ind + inc
+          isrchfgt = isrchfgt + inc
         end if
       end do
-      isrchfgt = ind
       end function isrchfgt
  
       function isrchfle(n,array,inc,rtarg)
       implicit none
-!
-! Dummy arguments
 !
       integer :: inc , n
       real(8) :: rtarg
@@ -4738,24 +4735,20 @@
       integer :: isrchfle
       intent (in) array , inc , n , rtarg
 !
-! Local variables
-!
-      integer :: i , ind
+      integer :: i
 !
       if ( n.le.0 ) then
         isrchfle = 0
         return
       end if
-      ind = 1
-      do i = 1 , n
-        if ( array(ind).le.rtarg ) then
-          isrchfle = i
+      isrchfle = 1
+      do i = 1 , n , inc
+        if ( array(i).le.rtarg ) then
           return
         else
-          ind = ind + inc
+          isrchfle = isrchfle + inc
         end if
       end do
-      isrchfle = ind
       end function isrchfle
 !
       subroutine wheneq(n,array,inc,itarg,indx,nval)
@@ -4918,7 +4911,7 @@
         implicit none
         real(8) :: el
         real(8) , intent(in) :: w , g
-        el = sqrt(3.0D0*(1.0D0-w)*(1.0D0-w*g))
+        el = dsqrt(3.0D0*(1.0D0-w)*(1.0D0-w*g))
       end function el
       function taus(w,f,t)
         implicit none
@@ -4964,7 +4957,7 @@
         implicit none
         real(8) :: fo3
         real(8) , intent(in) :: ux , vx
-        fo3 = ux/sqrt(4.D0+ux*(1.D0+vx))
+        fo3 = ux/dsqrt(4.D0+ux*(1.D0+vx))
       end function fo3
 !
       end module mod_radiation

@@ -102,11 +102,9 @@
 #ifdef MPP1
       integer :: n , ierr
 #ifndef CLM
-      integer :: imask
       real(8) :: clmfrq
 #endif
 #else
-      integer :: imask
       real(8) :: clmfrq
 #endif
 !
@@ -294,7 +292,6 @@
       iocnflx = 1
       lakemod = 1
       ichem = 0
-      imask = 1
       scenario = 'A1B'
       idcsst = 0
       iseaice = 0
@@ -378,7 +375,7 @@
       mixtype = 1
 #ifdef CLM
 !c------CLM Specific
-      imask = 2
+      imask = 1
 #endif
 
 #ifdef MPP1
@@ -706,8 +703,7 @@
       ntrad = nint(radfrq/dtmin)
 !sb   lake model mods
 !.....compute the time steps for lake model call.
-      dtlake = 3600.
-      klake = nint(dtlake/dt)
+      dtlake = abatm
 !sb   end lake model mods
 !
       call set_scenario(scenario)

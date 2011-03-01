@@ -601,18 +601,18 @@
                 else if ( chtrname(itr).eq.'SO4' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)       &
-                                  & *exp(kscoef(ns,1)+kscoef(ns,2)      &
+                                  & *dexp(kscoef(ns,1)+kscoef(ns,2)     &
                                   & /(rh(i,k)+kscoef(ns,3))             &
                                   & +kscoef(ns,4)                       &
                                   & /(rh(i,k)+kscoef(ns,5)))
 !
                   wa(i,k,itr) = 1.0 - wsbase(ns)                        &
-                              & *exp(wscoef(ns,1)+wscoef(ns,2)          &
+                              & *dexp(wscoef(ns,1)+wscoef(ns,2)         &
                               & /(rh(i,k)+wscoef(ns,3))+wscoef(ns,4)    &
                               & /(rh(i,k)+wscoef(ns,5)))
 !
                   ga(i,k,itr) = gsbase(ns)                              &
-                              & *exp(gscoef(ns,1)+gscoef(ns,2)          &
+                              & *dexp(gscoef(ns,1)+gscoef(ns,2)         &
                               & /(rh(i,k)+gscoef(ns,3))+gscoef(ns,4)    &
                               & /(rh(i,k)+gscoef(ns,5)))
 !
@@ -916,11 +916,11 @@
                   if ( k1<k2 ) then
                     uaerdust =  uaerdust + 1.E5 *                       &
                             &   (sum(uaer(i,k1:k2-1,itr)))
-                    aerlwtr(i,k1,k2) = exp(-1.66 * qabslw * uaerdust)
+                    aerlwtr(i,k1,k2) = dexp(-1.66 * qabslw * uaerdust)
                   else if ( k1>k2 ) then
                     uaerdust =  uaerdust + 1.E5 *                       &
                             &   (sum(uaer(i,k2:k1-1,itr)))
-                    aerlwtr(i,k1,k2) = exp(-1.66 * qabslw * uaerdust)
+                    aerlwtr(i,k1,k2) = dexp(-1.66 * qabslw * uaerdust)
                   end if
                 end if
               end do

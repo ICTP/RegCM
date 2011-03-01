@@ -77,11 +77,12 @@
       real(8) , pointer , dimension(:,:) :: flw2d , flwa2d , flwd2d , &
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
-                                    & sabv2d , sdelqk2d , sdeltk2d ,    &
-                                    & sfracb2d , sfracs2d , sfracv2d ,  &
-                                    & sina2d , sinc2d , sol2d ,         &
-                                    & solvd2d , solvs2d , ssw2da ,      &
-                                    & svegfrac2d , svga2d , veg2d
+                                    & sabv2d , sina2d , sinc2d , sol2d ,&
+                                    & solvd2d , solvs2d , svga2d , veg2d
+!
+      real(8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
+                               sdelqk2d , sfracv2d , sfracb2d , &
+                               sfracs2d , svegfrac2d
 !
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacebs2d
       private :: spacebs2d
@@ -140,8 +141,13 @@
           end if
         end if
 
-        allocate(spaceb2d(iym1,njm1,25))
+        if ( ichem .eq. 1 ) then
+          allocate(spaceb2d(iym1,njm1,25))
+        else
+          allocate(spaceb2d(iym1,njm1,18))
+        end if
         spaceb2d = 0.0D0
+
         flw2d      => spaceb2d(:,:,1)
         flwa2d     => spaceb2d(:,:,2)
         flwd2d     => spaceb2d(:,:,3)
@@ -153,20 +159,22 @@
         prca2d     => spaceb2d(:,:,9)
         prnca2d    => spaceb2d(:,:,10)
         sabv2d     => spaceb2d(:,:,11)
-        sdelqk2d   => spaceb2d(:,:,12)
-        sdeltk2d   => spaceb2d(:,:,13)
-        sfracb2d   => spaceb2d(:,:,14)
-        sfracs2d   => spaceb2d(:,:,15)
-        sfracv2d   => spaceb2d(:,:,16)
-        sina2d     => spaceb2d(:,:,17)
-        sinc2d     => spaceb2d(:,:,18)
-        sol2d      => spaceb2d(:,:,19)
-        solvd2d    => spaceb2d(:,:,20)
-        solvs2d    => spaceb2d(:,:,21)
-        ssw2da     => spaceb2d(:,:,22)
-        svegfrac2d => spaceb2d(:,:,23)
-        svga2d     => spaceb2d(:,:,24)
-        veg2d      => spaceb2d(:,:,25)
+        sina2d     => spaceb2d(:,:,12)
+        sinc2d     => spaceb2d(:,:,13)
+        sol2d      => spaceb2d(:,:,14)
+        solvd2d    => spaceb2d(:,:,15)
+        solvs2d    => spaceb2d(:,:,16)
+        svga2d     => spaceb2d(:,:,17)
+        veg2d      => spaceb2d(:,:,18)
+        if ( ichem .eq. 1 ) then
+          ssw2da     => spaceb2d(:,:,19)
+          sdeltk2d   => spaceb2d(:,:,20)
+          sdelqk2d   => spaceb2d(:,:,21)
+          sfracv2d   => spaceb2d(:,:,22)
+          sfracb2d   => spaceb2d(:,:,23)
+          sfracs2d   => spaceb2d(:,:,23)
+          svegfrac2d => spaceb2d(:,:,24)
+        end if
 
         allocate(spacebs2d(nnsg,iym1,njm1,22))
         spacebs2d = 0.0D0

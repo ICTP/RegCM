@@ -317,11 +317,11 @@
         implicit none
         logical :: lfhomonth
         integer , intent(in) :: idate
-        real(4) :: rmomonth
+        real(8) :: rmomonth
         integer :: iy , im , id , ih
         call split_idate(idate, iy, im, id, ih)
-        rmomonth = real(mdays(iy, im)) / 2.0
-        lfhomonth = (id < rmomonth)
+        rmomonth = dble(mdays(iy, im)) / 2.0
+        lfhomonth = (dble(id) < rmomonth)
       end function lfhomonth
 
       function idayofweek(idate)
@@ -446,12 +446,12 @@
         implicit none
         integer :: imonmiddle
         integer , intent(in) :: idate
-        real(4) :: rmom
+        real(8) :: rmom
         integer :: iy , im , id , ih , imom
         call split_idate(idate, iy, im, id, ih)
-        rmom = real(mdays(iy, im))/2.0
+        rmom = dble(mdays(iy, im))/2.0
         imom = int(rmom)
-        ih = int((rmom-real(imom))*24.0)
+        ih = int((rmom-dble(imom))*24.0)
         imonmiddle = mkidate(iy, im, imom, ih)
       end function imonmiddle
 

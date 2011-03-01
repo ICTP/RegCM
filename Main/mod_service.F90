@@ -645,7 +645,7 @@ CONTAINS
        END IF
     END DO
 
-    avg=avg/float(n_elements)
+    avg=avg/dble(n_elements)
 
   END SUBROUTINE av_max_min
 

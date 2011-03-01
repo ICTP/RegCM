@@ -1074,7 +1074,7 @@
         implicit none
         real(8) :: func
         real(8) , intent(in) :: u , b
-        func = u/sqrt(4.0D0+u*(1.0D0+1.0D0/b))
+        func = u/dsqrt(4.0D0+u*(1.0D0+1.0D0/b))
       end function func
 !
       end module mod_tracer

@@ -90,8 +90,8 @@
                                                ! no cloud cover
             fcc(i,k,j) = 0.
           else                                ! partial cloud cover
-            fcc(i,k,j) = 1. - sqrt(1.-(rhb3d(i,k,j)-rh0adj)/(rhmax-     &
-                       & rh0adj))
+            fcc(i,k,j) = 1. - dsqrt(1.-(rhb3d(i,k,j)-rh0adj)/ &
+                                       (rhmax-rh0adj))
             fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
           end if                      !  rh0 threshold
 !---------------------------------------------------------------------
@@ -105,7 +105,7 @@
             ! Clouds below 750hPa
             if ( qvb3d(i,k,j).le.0.003D0 ) then
               fcc(i,k,j) = fcc(i,k,j) * &
-                        max(0.15D0,min(1.0D0,qvb3d(i,k,j)/0.003D0))
+                      dmax1(0.15D0,dmin1(1.0D0,qvb3d(i,k,j)/0.003D0))
             end if
           end if
         end do

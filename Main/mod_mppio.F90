@@ -61,14 +61,15 @@
                                          &    snowc_io
 !
       real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
-                          & fsw2d_io , sabv2d_io , sdelqk2d_io ,        &
-                                     & sdeltk2d_io , sfracb2d_io ,      &
-                                     & sfracs2d_io , sfracv2d_io ,      &
+                                     & fsw2d_io , sabv2d_io ,           &
                                      & sinc2d_io , sol2d_io ,           &
                                      & solvd2d_io , solvs2d_io ,        &
-                                     & ssw2da_io , svegfrac2d_io ,      &
                                      & veg2d_io
-      
+!
+      real(8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,  &
+                           & sdelqk2d_io , sfracv2d_io , sfracb2d_io , &
+                           & sfracs2d_io , svegfrac2d_io
+!      
       real(4) , allocatable , dimension(:,:,:) :: fbat_io
       real(4) , allocatable , dimension(:,:,:,:) :: fsub_io
       real(4) , allocatable , dimension(:,:,:) :: frad2d_io
@@ -153,8 +154,8 @@
 #ifdef CLM
       real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
                    &      solsd2d_io , solld2d_io , aldifl2d_io ,       &
-                   &      aldirs2d_io , aldirl2d_io , aldifs2d_io ,     &
-                   &      coszrs2d_io
+                   &      aldirs2d_io , aldirl2d_io , aldifs2d_io
+      real(8) , allocatable , dimension(:,:) :: satbrt2d_io
 #endif
       real(8) , allocatable , dimension(:,:,:,:) :: src0
       real(8) , allocatable , dimension(:,:,:,:) :: src_0
@@ -339,28 +340,38 @@
             call check_alloc(ierr,myname,'tlak3d_io',size(tlak3d_io))
           endif
           if (lband) then
-            allocate(spacebat(iym1,jx,16),stat=ierr)
+            if ( ichem .eq. 1 ) then
+              allocate(spacebat(iym1,jx,16),stat=ierr)
+            else
+              allocate(spacebat(iym1,jx,9),stat=ierr)
+            end if
           else
-            allocate(spacebat(iym1,jxm1,16),stat=ierr)
+            if ( ichem .eq. 1 ) then
+              allocate(spacebat(iym1,jxm1,16),stat=ierr)
+            else
+              allocate(spacebat(iym1,jxm1,9),stat=ierr)
+            end if
           end if
           call check_alloc(ierr,myname,'spacebat',size(spacebat))
-          spacebat = 0.0D0
+          spacebat(:,:,:) = 0.0D0
           flw2d_io      => spacebat(:,:,1)
           flwd2d_io     => spacebat(:,:,2)
           fsw2d_io      => spacebat(:,:,3)
           sabv2d_io     => spacebat(:,:,4)
-          sdelqk2d_io   => spacebat(:,:,5)
-          sdeltk2d_io   => spacebat(:,:,6)
-          sfracb2d_io   => spacebat(:,:,7)
-          sfracs2d_io   => spacebat(:,:,8)
-          sfracv2d_io   => spacebat(:,:,9)
-          sinc2d_io     => spacebat(:,:,10)
-          sol2d_io      => spacebat(:,:,11)
-          solvd2d_io    => spacebat(:,:,12)
-          solvs2d_io    => spacebat(:,:,13)
-          ssw2da_io     => spacebat(:,:,14)
-          svegfrac2d_io => spacebat(:,:,15)
-          veg2d_io      => spacebat(:,:,16)
+          veg2d_io      => spacebat(:,:,5)
+          sinc2d_io     => spacebat(:,:,6)
+          sol2d_io      => spacebat(:,:,7)
+          solvd2d_io    => spacebat(:,:,8)
+          solvs2d_io    => spacebat(:,:,9)
+          if ( ichem .eq. 1 ) then
+            ssw2da_io     => spacebat(:,:,10)
+            sdelqk2d_io   => spacebat(:,:,11)
+            sdeltk2d_io   => spacebat(:,:,12)
+            sfracb2d_io   => spacebat(:,:,13)
+            sfracs2d_io   => spacebat(:,:,14)
+            sfracv2d_io   => spacebat(:,:,15)
+            svegfrac2d_io => spacebat(:,:,16)
+          end if
           if (lband) then
             allocate(fbat_io(jx,iym2,numbat),stat=ierr)
             call check_alloc(ierr,myname,'fbat_io',size(fbat_io))
@@ -613,9 +624,9 @@
           end if
 #ifdef CLM
           if (lband) then
-            allocate(spaceclm(iym1,jx,9))
+            allocate(spaceclm(iym1,jx,8))
           else
-            allocate(spaceclm(iym1,jxm1,9))
+            allocate(spaceclm(iym1,jxm1,8))
           end if
           call check_alloc(ierr,myname,'spaceclm',size(spaceclm))
           spaceclm = 0.0D0
@@ -627,7 +638,9 @@
           aldirs2d_io => spaceclm(:,:,6)
           aldirl2d_io => spaceclm(:,:,7)
           aldifs2d_io => spaceclm(:,:,8)
-          coszrs2d_io => spaceclm(:,:,9)
+          allocate(satbrt2d_io(iy,jx))
+          call check_alloc(ierr,myname,'satbrt2d_io',size(satbrt2d_io))
+          satbrt2d_io = 0.0D0
 #endif
         endif
         if (myid == 0) then
@@ -670,7 +683,7 @@
           call check_alloc(ierr,myname,'sav_6',size(sav_6))
           sav_6 = 0.0D0
 #ifdef CLM
-          allocate(sav_clmout(iym1,9,jx),stat=ierr)
+          allocate(sav_clmout(iym1,8,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_clmout',size(sav_clmout))
           sav_clmout = 0.0D0
 #endif
@@ -714,7 +727,7 @@
         call check_alloc(ierr,myname,'sav6',size(sav6))
         sav6 = 0.0D0
 #ifdef CLM
-        allocate(sav_clmin(iym1,9,jxp),stat=ierr)
+        allocate(sav_clmin(iym1,8,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav_clmin',size(sav_clmin))
         sav_clmin = 0.0D0
 #endif
