@@ -489,7 +489,7 @@
           istatus = nf90_open(dname, nf90_nowrite, idmin)
           call check_ok('Error Opening Domain file '//trim(dname), &
                         'CANNOT OPEN DOMAIN FILE')
-          if ( nsg.gt.1 ) then
+          if ( nsg > 1 ) then
             write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
             call say
             istatus = nf90_open(sdname, nf90_nowrite, isdmin)
@@ -528,7 +528,7 @@
 !
 !         Consistency Check
 !
-          if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kzp1 ) then
+          if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
             write (6,*) 'Error: dims from regcm.in and DOMAIN file ', &
                         'differ.'
             write (aline,*) 'Input namelist : IY=' , iy , &
@@ -539,11 +539,11 @@
             call say
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
-          if (dabs(dble(ptsp/10.0)-dble(ptop)) > 0.001D+00) then
+          if (dabs(dble(ptsp/10.0D0)-dble(ptop)) > 0.001D+00) then
             write (6,*) 'Error: ptop from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ptop
-            write (6,*) 'DOMAIN file    = ', ptsp/10.0
+            write (6,*) 'DOMAIN file    = ', ptsp/10.0D0
             call fatal(__FILE__,__LINE__, 'DOMAIN ptop ERROR')
           end if
           if (proj /= iproj) then
@@ -553,11 +553,11 @@
             write (6,*) 'DOMAIN file    = ', proj
             call fatal(__FILE__,__LINE__, 'DOMAIN proj ERROR')
           end if
-          if (dabs(dble(dsx/1000.0)-dble(ds)) > 0.001D+00) then
+          if (dabs(dble(dsx/1000.0D0)-dble(ds)) > 0.001D+00) then
             write (6,*) 'Error: ds from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ds
-            write (6,*) 'DOMAIN file    = ', dsx/1000.0
+            write (6,*) 'DOMAIN file    = ', dsx/1000.0D0
             call fatal(__FILE__,__LINE__, 'DOMAIN ds ERROR')
           end if
           if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
@@ -577,7 +577,7 @@
 !
 !         Assign values in the top data modules
 !
-          r8pt = ptsp/10.0
+          r8pt = ptsp/10.0D0
           rpt = ptop
           tpd = 24./tapfrq
           cfd = 24./chemfrq
@@ -588,7 +588,7 @@
           call check_ok('Variable sigma read error','DOMAIN FILE ERROR')
           sigma = rsdum
           do k = 1 , kz
-            hsigma(k) = (sigma(k)+sigma(k+1))/2.0
+            hsigma(k) = (sigma(k)+sigma(k+1))/2.0D0
           end do
 
         end subroutine open_domain
@@ -718,9 +718,9 @@
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
-              if ( jj.eq.0 ) jj = nsg
+              if ( jj == 0 ) jj = nsg
               ii = mod(i,nsg)
-              if ( ii.eq.0 ) ii = nsg
+              if ( ii == 0 ) ii = nsg
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
@@ -737,9 +737,9 @@
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
-              if ( jj.eq.0 ) jj = nsg
+              if ( jj == 0 ) jj = nsg
               ii = mod(i,nsg)
-              if ( ii.eq.0 ) ii = nsg
+              if ( ii == 0 ) ii = nsg
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
@@ -754,9 +754,9 @@
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
-              if ( jj.eq.0 ) jj = nsg
+              if ( jj == 0 ) jj = nsg
               ii = mod(i,nsg)
-              if ( ii.eq.0 ) ii = nsg
+              if ( ii == 0 ) ii = nsg
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
@@ -772,9 +772,9 @@
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
-              if ( jj.eq.0 ) jj = nsg
+              if ( jj == 0 ) jj = nsg
               ii = mod(i,nsg)
-              if ( ii.eq.0 ) ii = nsg
+              if ( ii == 0 ) ii = nsg
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
@@ -815,9 +815,9 @@
           do j = 1 , jxsg
             do i = 1 , iysg
               jj = mod(j,nsg)
-              if ( jj.eq.0 ) jj = nsg
+              if ( jj == 0 ) jj = nsg
               ii = mod(i,nsg)
-              if ( ii.eq.0 ) ii = nsg
+              if ( ii == 0 ) ii = nsg
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
@@ -876,8 +876,8 @@
                      &  'DOMAIN FILE ERROR')
             do j = 1 , jx
               do i = 1 , iy
-                texture(i,j,n) = dble(toto(j,i))*0.01
-                if (texture(i,j,n)<0.) texture(i,j,n)=0.
+                texture(i,j,n) = dble(toto(j,i))*0.01D0
+                if (texture(i,j,n)<0.0D0) texture(i,j,n)=0.D0
               end do
             end do
           end do
@@ -906,9 +906,9 @@
             aerctl = chtrname(itr)
             write (aline, *) itr , aerctl
             call say
-            if ( aerctl(1:4).ne.'DUST') then
-              if ( aerctl(1:3).eq.'SO2' ) then
-                if ( aertyp(4:4).eq.'1' ) then
+            if ( aerctl(1:4) /= 'DUST') then
+              if ( aerctl(1:3) == 'SO2' ) then
+                if ( aertyp(4:4) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'so2', ivarid)
                   call check_ok('Variable so2 missing', &
                             &   'AEROSOL FILE ERROR')
@@ -923,7 +923,7 @@
                     end do
                   end do
                 end if
-                if ( aertyp(5:5).eq.'1' ) then
+                if ( aertyp(5:5) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
                   call check_ok('Variable so2_mon missing', &
                             &   'AEROSOL FILE ERROR')
@@ -946,8 +946,8 @@
                     end do
                   end do
                 end if
-              else if ( aerctl(1:2).eq.'BC' ) then
-                if ( aertyp(4:4).eq.'1' ) then
+              else if ( aerctl(1:2) == 'BC' ) then
+                if ( aertyp(4:4) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'bc', ivarid)
                   call check_ok('Variable bc missing', &
                             &   'AEROSOL FILE ERROR')
@@ -962,7 +962,7 @@
                     end do
                   end do
                 end if
-                if ( aertyp(5:5).eq.'1' ) then
+                if ( aertyp(5:5) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
                   call check_ok('Variable bc_mon missing', &
                             &   'AEROSOL FILE ERROR')
@@ -985,8 +985,8 @@
                     end do
                   end do
                 end if
-              else if ( aerctl(1:2).eq.'OC' ) then
-                if ( aertyp(4:4).eq.'1' ) then
+              else if ( aerctl(1:2) == 'OC' ) then
+                if ( aertyp(4:4) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'oc', ivarid)
                   call check_ok('Variable oc missing', &
                             &   'AEROSOL FILE ERROR')
@@ -1001,7 +1001,7 @@
                     end do
                   end do
                 end if
-                if ( aertyp(5:5).eq.'1' ) then
+                if ( aertyp(5:5) == '1' ) then
                   istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
                   call check_ok('Variable oc_mon missing', &
                             &   'AEROSOL FILE ERROR')
@@ -1064,7 +1064,7 @@
           call check_ok('Dimension kz missing', 'ICBC FILE ERROR')
           istatus = nf90_inquire_dimension(ibcin, idimid, len=kzz)
           call check_ok('Dimension kz read error', 'ICBC FILE ERROR')
-          if ( iyy.ne.iy .or. jxx.ne.jx .or. kzz.ne.kz ) then
+          if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
             write (6,*) 'Error: dims from regcm.in and ICBC file ', &
                         'differ.'
             write (aline,*) 'Input namelist : IY=' , iy , &
@@ -1096,7 +1096,7 @@
           end do
           if ( ibcnrec > 1 ) then
             chkdiff = icbc_xtime(2) - icbc_xtime(1)
-            if (chkdiff .ne. ibdyfrq) then
+            if (chkdiff /= ibdyfrq) then
               write (6,*) 'Time variable in ICBC inconsistency.'
               write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
               write (6,*) 'Found     ibdyfrq = ', chkdiff
@@ -1394,7 +1394,7 @@
             call check_ok('Error adding global grid_mapping_name',fterr)
           end if
           istatus = nf90_put_att(ncid, nf90_global,   &
-                   &   'grid_size_in_meters', ds*1000.0)
+                   &   'grid_size_in_meters', ds*1000.0D0)
           call check_ok('Error adding global gridsize', fterr)
           istatus = nf90_put_att(ncid, nf90_global,   &
                    &   'latitude_of_projection_origin', clat)
@@ -1633,7 +1633,7 @@
             call check_ok('Error adding rcm_map grid_mapping_name',fterr)
           end if
           istatus = nf90_put_att(ncid, imapvar,   &
-                   &   'grid_size_in_meters', ds*1000.0)
+                   &   'grid_size_in_meters', ds*1000.0D0)
           call check_ok('Error adding rcm_map gridsize', fterr)
           istatus = nf90_put_att(ncid, imapvar,   &
                    &   'latitude_of_projection_origin', clat)
@@ -2219,7 +2219,7 @@
 
           istatus = nf90_put_var(ncid, izvar(1), hsigma)
           call check_ok('Error variable sigma write', fterr)
-          hptop = ptop*10.0
+          hptop = ptop*10.0D0
           istatus = nf90_put_var(ncid, izvar(2), hptop)
           call check_ok('Error variable ptop write', fterr)
           if (ctype == 'LAK') then
@@ -2230,8 +2230,8 @@
             call check_ok('Error variable depth write', fterr)
           end if
           if (ctype == 'SUB') then
-            yiy(1) = -(dble((o_nig-1)-1)/2.0) * ds
-            xjx(1) = -(dble((o_njg-1)-1)/2.0) * ds
+            yiy(1) = -(dble((o_nig-1)-1)/2.0D0) * ds
+            xjx(1) = -(dble((o_njg-1)-1)/2.0D0) * ds
             do i = 2 , o_nig
               yiy(i) = yiy(i-1)+ds
             end do
@@ -2251,8 +2251,8 @@
             istatus = nf90_put_var(ncid, illtpvar(4), iomask_s)
             call check_ok('Error variable mask write', fterr)
           else
-            yiy(1) = -(dble(o_ni-1)/2.0) * ds
-            xjx(1) = -(dble(o_nj-1)/2.0) * ds
+            yiy(1) = -(dble(o_ni-1)/2.0D0) * ds
+            xjx(1) = -(dble(o_nj-1)/2.0D0) * ds
             do i = 2 , o_ni
               yiy(i) = yiy(i-1)+ds
             end do
@@ -2599,9 +2599,9 @@
           do j = 1 , nx*nz
             do i = 1 , ny*nz
               jj = mod(j,nz)
-              if ( jj.eq.0 ) jj = nz
+              if ( jj == 0 ) jj = nz
               ii = mod(i,nz)
-              if ( ii.eq.0 ) ii = nz
+              if ( ii == 0 ) ii = nz
               k = (jj-1)*nz + ii
               jj = (j+nz-1)/nz
               ii = (i+nz-1)/nz

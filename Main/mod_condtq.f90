@@ -97,7 +97,7 @@
 !         2a. Calculate the saturation mixing ratio and relative
 !         humidity
           pres = (a(k)*psc(i,j)+r8pt)*1000.0D0
-          if ( tmp3(i,k).gt.tzero ) then
+          if ( tmp3(i,k) > tzero ) then
             satvp = svp1*1.D3*dexp(svp2*(tmp3(i,k)-tzero)               &
                   & /(tmp3(i,k)-svp3))
           else
@@ -110,7 +110,7 @@
                       (rwat*cpd*tmp3(i,k)*tmp3(i,k)))
  
 !         2b. Compute the relative humidity threshold at ktau+1
-          if ( tmp3(i,k).gt.tc0 ) then
+          if ( tmp3(i,k) > tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(i,j))/ &
@@ -118,7 +118,7 @@
           end if
  
 !         2c. Compute the water vapor in excess of saturation
-          if ( rhc.ge.rhmax .or. rhc.lt.rh0adj ) then
+          if ( rhc >= rhmax .or. rhc < rh0adj ) then
                                                    ! Full or no cloud cover
             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
             tmp1(i,k) = r1*dqv
@@ -133,7 +133,7 @@
  
 !         2d. Compute the new cloud water + old cloud water
           exces = qccs(i,k) + tmp1(i,k)
-          if ( exces.ge.0.0D0 ) then
+          if ( exces >= 0.0D0 ) then
                               ! Some cloud is left
             tmp2(i,k) = tmp1(i,k)/dt
           else                ! The cloud evaporates

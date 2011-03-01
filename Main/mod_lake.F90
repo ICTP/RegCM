@@ -126,21 +126,21 @@
           do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
-            if ( (satbrt1(n,i,j).gt.13.9 .and.   &
-                  satbrt1(n,i,j).lt.14.1) .and.  &
-                 dhlake1(n,i,j).gt.1.0) then
+            if ( (satbrt1(n,i,j) > 13.9D0 .and.   &
+                  satbrt1(n,i,j) < 14.1D0) .and.  &
+                 dhlake1(n,i,j) > 1.0D0) then
               idep2d(n,i,j) = idint(dmax1(2.D0,dmin1(dhlake1(n,i,j), &
                                     dble(ndpmax)))/dz)
-              if ( ocld2d(n,i,j).gt.1.5 ) then
+              if ( ocld2d(n,i,j) > 1.5D0 ) then
                 tlak3d(1,n,i,j) = 1.78D0
                 tlak3d(2,n,i,j) = 1.78D0
                 aveice2d(n,i,j) = 1000.0D0
                 hi2d(n,i,j) = 1.0D0
                 hsnow2d(n,i,j) = 0.0D0
               end if
-              if (idep2d(n,i,j).lt.50) then
+              if (idep2d(n,i,j) < 50) then
                 eta2d(n,i,j) = 0.7D0
-              else if (idep2d(n,i,j).gt.100) then
+              else if (idep2d(n,i,j) > 100) then
                 eta2d(n,i,j) = 0.3D0
               else
                 eta2d(n,i,j) = 0.5D0
@@ -179,7 +179,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( idep2d(n,i,jslc).gt.1 ) then
+          if ( idep2d(n,i,jslc) > 1 ) then
             tl = ts1d(n,i)
             vl = dsqrt(us1d(i)**2.0D0+vs1d(i)**2.0D0)
             zl = z1d(n,i)
@@ -204,7 +204,7 @@
             tg1d(n,i) = tgl
             tgb1d(n,i) = tgl
 
-            if ( aveice2d(n,i,jslc).le.10.0D0 ) then
+            if ( aveice2d(n,i,jslc) <= 10.0D0 ) then
               ocld2d(n,i,jslc) = 0.0D0 
               ldoc1d(n,i) = 0.0D0
               sice1d(n,i) = 0.0D0
@@ -253,10 +253,10 @@
 !
 !     interpolate winds at z1 m to 2m via log wind profile
       u2 = vl*dlog(z2/zo)/dlog(zl/zo)
-      if ( u2.lt.0.5D0 ) u2 = 0.5D0
+      if ( u2 < 0.5D0 ) u2 = 0.5D0
  
 !     ****** Check if conditions not exist for lake ice
-      if ( (aveice.lt.1.0D-8) .and. (tprof(1).gt.tcutoff) ) then
+      if ( (aveice < 1.0D-8) .and. (tprof(1) > tcutoff) ) then
  
         ! Graziano: removed hlat. It is calculated from evaporation
         qe = -1.0D0*evl*wlhv
@@ -382,8 +382,8 @@
 !       Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
         de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / &
                         (1.0D0+37.0D0*ri**2.0D0)
-        if ( de(k).lt.demin ) de(k) = demin
-        if ( de(k).gt.demax ) de(k) = demax
+        if ( de(k) < demin ) de(k) = demin
+        if ( de(k) > demax ) de(k) = demax
 
       end do
       de(ndpt) = demin
@@ -458,10 +458,10 @@
         avet = 0.0D0
         avev = 0.0D0
  
-        if ( dnsty(k).gt.dnsty(k+1) ) then
+        if ( dnsty(k) > dnsty(k+1) ) then
  
           do k2 = kmin , k + 1
-            if ( k2.eq.1 ) then
+            if ( k2 == 1 ) then
               vol = surf
             else
               vol = dz
@@ -528,7 +528,7 @@
 !     SIMULATES LAKE ICE                           
 !**********************************************************************
  
-      if ( (tac.le.0.0D0) .and. (aveice.gt.0.0D0) ) &
+      if ( (tac <= 0.0D0) .and. (aveice > 0.0D0) ) &
         hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
       if ( hs < 0.0D0 ) hs = 0.0D0
  
@@ -562,7 +562,7 @@
       do
         nits = nits + 1
         t2 = t1 - (t1-t0)*f1/(f1-f0)
-        if ( dabs((t2-t1)/t1).ge.0.001D0 ) then
+        if ( dabs((t2-t1)/t1) >= 0.001D0 ) then
           t0 = t1
           t1 = t2
           f0 = f1
@@ -571,28 +571,28 @@
         end if
  
         t0 = t2
-        if ( t0.ge.tf ) then
+        if ( t0 >= tf ) then
  
-          if ( hs.gt.0.0D0 ) then
+          if ( hs > 0.0D0 ) then
             ds = dtx*                                        &
                & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+ &
                &  theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhos*li)
-            if ( ds.gt.0.0D0 ) ds = 0.0D0
+            if ( ds > 0.0D0 ) ds = 0.0D0
             hs = hs + ds
-            if ( hs.lt.0.0D0 ) then
+            if ( hs < 0.0D0 ) then
               hs = 0.0D0
               tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
             end if
           end if
-          if ( (hs.eq.0.0D0) .and. (aveice.gt.0.0D0) ) then
+          if ( (dabs(hs) < 1.0D-30) .and. (aveice > 0.0D0) ) then
             di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
                  theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhoi*li)
-            if ( di.gt.0.0D0 ) di = 0.0D0
+            if ( di > 0.0D0 ) di = 0.0D0
             hi = hi + di
           end if
  
-        else if ( t0.lt.tf ) then
+        else if ( t0 < tf ) then
  
           q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea)             &
              & + theta*(t0-tac) - fsw
@@ -603,7 +603,7 @@
           hi = hi + di
         end if
  
-        if ( hi.le.0.01D0 ) then
+        if ( hi <= 0.01D0 ) then
           hi = 0.01D0
           aveice = 0.0D0
           hs = 0.0D0
@@ -741,7 +741,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d_io(n,i,j).gt.1 ) then
+            if ( idep2d_io(n,i,j) > 1 ) then
               write(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
                    & hi2d_io(n,i,j), aveice2d_io(n,i,j), &
                    & hsnow2d_io(n,i,j), &
@@ -764,7 +764,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d(n,i,j).gt.1 ) then
+            if ( idep2d(n,i,j) > 1 ) then
               write(iutl) idep2d(n,i,j), eta2d(n,i,j), &
                    & hi2d(n,i,j), aveice2d(n,i,j), &
                    & hsnow2d(n,i,j), &
@@ -816,7 +816,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d_io(n,i,j).gt.1 ) then
+            if ( idep2d_io(n,i,j) > 1 ) then
               read(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
                  & hi2d_io(n,i,j), &
                  & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
@@ -838,7 +838,7 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( idep2d(n,i,j).gt.1 ) then
+            if ( idep2d(n,i,j) > 1 ) then
               read(iutl) idep2d(n,i,j), eta2d(n,i,j), &
                  & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
                  & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  

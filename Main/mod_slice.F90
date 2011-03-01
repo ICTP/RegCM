@@ -115,7 +115,7 @@
             tb3d(i,k,j) = atm2%t(i,k,j)/sps2%ps(i,j)
             qvb3d(i,k,j) = atm2%qv(i,k,j)/sps2%ps(i,j)
             qcb3d(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
-            if ( ichem.eq.1 ) then
+            if ( ichem == 1 ) then
               do n = 1 , ntr
                 chib3d(i,k,j,n) = chib(i,k,j,n)/sps2%ps(i,j)
               end do
@@ -132,15 +132,15 @@
       do j = 1 , jx
         jdx = j
         jdxp1 = j+1
-        if(jdxp1.eq.jx+1) jdxp1 = 1
+        if(jdxp1 == jx+1) jdxp1 = 1
 #endif
 #else
 #ifdef MPP1
       do j = jbegin , jendx
         jdx = j
-        if ( myid.eq.0 ) jdx = max0(j,2)
+        if ( myid == 0 ) jdx = max0(j,2)
         jdxp1 = j + 1
-        if ( myid.eq.nproc-1 ) jdxp1 = min0(j+1,jendx)
+        if ( myid == nproc-1 ) jdxp1 = min0(j+1,jendx)
 #else
       do j = 2 , jxm1
         jdx = max0(j,2)
@@ -234,7 +234,7 @@
           do i = 2 , iym2
             pres = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
             rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
-            if ( tb3d(i,k,j).gt.tzero ) then
+            if ( tb3d(i,k,j) > tzero ) then
               satvp = svp1*1.D3*dexp(svp2*(tb3d(i,k,j)-tzero)           &
                     & /(tb3d(i,k,j)-svp3))
             else
@@ -242,7 +242,7 @@
             end if
             qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
             rh = 0.0D0
-            if ( qsb3d(i,k,j).gt.0.0D0 ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
+            if ( qsb3d(i,k,j) > 0.0D0 ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
             rhb3d(i,k,j) = rh
           end do
         end do

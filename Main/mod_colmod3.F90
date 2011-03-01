@@ -275,25 +275,25 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
-          if ( ocld2d(n,i,jslc).gt.1.5D0 ) then
-            if ( sice1d(n,i).ge.0.0001D0 ) then
+          if ( ocld2d(n,i,jslc) > 1.5D0 ) then
+            if ( sice1d(n,i) >= 0.0001D0 ) then
               ii2 = ii2 + 1
             else
               ii0 = ii0 + 1
             endif
-          else if ( ocld2d(n,i,jslc).gt.0.1D0 ) then
-            if ( sice1d(n,i).lt.0.0001D0 ) then
+          else if ( ocld2d(n,i,jslc) > 0.1D0 ) then
+            if ( sice1d(n,i) < 0.0001D0 ) then
               ii1 = ii1 + 1
-            else if ( sice1d(n,i).ge.0.0001D0 ) then
+            else if ( sice1d(n,i) >= 0.0001D0 ) then
               ii2 = ii2 + 1
             end if
           else
             ii0 = ii0 + 1
           end if
         end do
-        if ( ii0.ge.ii1 .and. ii0.ge.ii2 ) ioro(i) = 0
-        if ( ii1.gt.ii0 .and. ii1.ge.ii2 ) ioro(i) = 1
-        if ( ii2.gt.ii0 .and. ii2.gt.ii1 ) ioro(i) = 2
+        if ( ii0 >= ii1 .and. ii0 >= ii2 ) ioro(i) = 0
+        if ( ii1 > ii0 .and. ii1 >= ii2 ) ioro(i) = 1
+        if ( ii2 > ii0 .and. ii2 > ii1 ) ioro(i) = 2
       end do
 !
 !     getdat() also sets calday (used in zenith() and radinp()).
@@ -342,8 +342,8 @@
 !     Cloud cover at surface interface always zero (for safety's sake)
 !
       do i = 1 , iym1
-        effcld(i,kzp1) = 0.
-        cld(i,kzp1) = 0.
+        effcld(i,kzp1) = 0.0D0
+        cld(i,kzp1) = 0.0D0
       end do
 !
 !     Main radiation driving routine.
@@ -421,7 +421,7 @@
 !
 !         Define liquid drop size
 !
-          if ( ioro(i).ne.1 ) then
+          if ( ioro(i) /= 1 ) then
 !
 !           Effective liquid radius over ocean and sea ice
 !
@@ -456,16 +456,16 @@
 !
 !         if warmer than -10 degrees C then water phase
 !
-          if ( t(i,k).gt.263.16D0 ) fice(i,k) = 0.0D0
+          if ( t(i,k) > 263.16D0 ) fice(i,k) = 0.0D0
 !
 !         if colder than -10 degrees C but warmer than -30 C mixed phase
 !
-          if ( t(i,k).le.263.16D0 .and. t(i,k).ge.243.16D0 ) &
+          if ( t(i,k) <= 263.16D0 .and. t(i,k) >= 243.16D0 ) &
             fice(i,k) = (263.16D0-t(i,k))/20.0D0
 !
 !         if colder than -30 degrees C then ice phase
 !
-          if ( t(i,k).lt.243.16D0 ) fice(i,k) = 1.0D0
+          if ( t(i,k) < 243.16D0 ) fice(i,k) = 1.0D0
 !
 !         Turn off ice radiative properties by setting fice = 0.0
 !
@@ -654,21 +654,21 @@
       do nll = 1 , kz
         do n = 1 , iym1
  
-          ccvtem = 0.   !cqc mod
+          ccvtem = 0.0D0   !cqc mod
 !KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
           cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999D0,ccvtem)
 !KN       cldfrc(n,nll)=dmin1(cldfrc(n,nll),0.9999999)
           cld(n,nll) = dmin1(cld(n,nll),0.9999999D0)
 !
 !         implement here the new formula then multiply by 10e6
-!qc       if (tm1(n,nll).gt.t0max) clwtem=clwmax
-!qc       if (tm1(n,nll).ge.t0st .and. tm1(n,nll).le.t0max)
+!qc       if (tm1(n,nll) > t0max) clwtem=clwmax
+!qc       if (tm1(n,nll) >= t0st .and. tm1(n,nll) <= t0max)
 !qc       1     clwtem=clw0st+((tm1(n,nll)-t0st)/(t0max-t0st))**2
 !qc       1     *(clwmax-clw0st)
-!qc       if (tm1(n,nll).ge.t0min .and. tm1(n,nll).lt.t0st)
+!qc       if (tm1(n,nll) >= t0min .and. tm1(n,nll) < t0st)
 !qc       1     clwtem=clw0st+(tm1(n,nll)-t0st)/(t0min-t0st)
 !qc       1     *(clwmin-clw0st)
-!qc       if (tm1(n,nll).lt.t0min) clwtem=clwmin
+!qc       if (tm1(n,nll) < t0min) clwtem=clwmin
 !qc       clwtem=clwtem*1.e6
 !
 !         convert liquid water content into liquid water path, i.e.
@@ -678,15 +678,18 @@
           deltaz(n,nll) = rgas*tm1(n,nll)*(pintm1(n,nll+1) - &
                           pintm1(n,nll))/(gti*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
-!KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.0D0
-          if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.0D0
+!KN       if (cldfrc(n,nll) == 0.) clwp(n,nll)=0.0D0
+          if ( dabs(cld(n,nll)) < 1.0D-30 ) then
+            cld(n,nll) = 0.0D0
+            clwp(n,nll) = 0.0D0
+          end if
         end do
       end do
  
 !     only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
 !     do 89 nll=1,kz
 !     do 89 n=1,iym1
-!     if (pintm1(n,nll+1) .lt. 40000. ) then
+!     if (pintm1(n,nll+1) < 40000. ) then
 !     cld(n,nll)=dmin1(cld(n,nll),0.25d0)
 !
 !     else
@@ -709,7 +712,7 @@
       ncldm1 = ncld - 1
       do nll = kz - ncldm1 , kz
         do n = 1 , iym1
-!KN       cldfrc(n,nll)=0.
+!KN       cldfrc(n,nll)=0.0D0
           cld(n,nll) = 0.0D0
           clwp(n,nll) = 0.0D0
         end do
@@ -743,12 +746,12 @@
       do i = 1 , iym1
 !
         do k = 1 , kz
-          if ( cld(i,k).gt.0.999D0 ) cld(i,k) = 0.999D0
+          if ( cld(i,k) > 0.999D0 ) cld(i,k) = 0.999D0
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
         calday = dble(julday) + (nnnnnn-nstrt0)/4.0D0 + &
-                    (xtime/60.0D0+gmt)/24.
+                    (xtime/60.0D0+gmt)/24.0D0
 !
         loctim(i) = (calday-dint(calday))*24.0D0
         alat(i) = rlat(i)*degrad

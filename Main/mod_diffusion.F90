@@ -82,16 +82,16 @@
 #ifdef BAND
 !---------------------------------------------------------------------
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
+      if(jm1 < 1) jm1 = jm1 + jx
+      if(jm2 < 1) jm2 = jm2 + jx
+      if(jp1 > jx) jp1 = jp1 -jx
+      if(jp2 > jx) jp2 = jp2 -jx
 #endif
 !
 !.....fourth-order scheme for interior:
       do k = 1 , kz
         do i = 3 , iym1 - 1
-          if ( ind.eq.0 ) then
+          if ( ind == 0 ) then
             ften(i,k) = ften(i,k) - xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
                       & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
@@ -116,7 +116,7 @@
 !......second-order scheme for north and south boundaries:
       do i = 2 , iym1 , iym1 - 2
         do k = 1 , kz
-          if ( ind.eq.0 ) then
+          if ( ind == 0 ) then
             ften(i,k) = ften(i,k) + xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                       & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
@@ -137,16 +137,16 @@
 !---------------------------------------------------------------------
 !
 #ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                        &
-         & (myid.eq.nproc-1 .and. j.eq.jendx) ) then
+      if ( (myid == 0 .and. j == 2) .or.                        &
+         & (myid == nproc-1 .and. j == jendx) ) then
 #else
-      if (j.eq.2 .or. j.eq.jxm1) then
+      if (j == 2 .or. j == jxm1) then
 #endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kz
           do i = 2 , iym1
-            if ( ind.eq.0 ) then
+            if ( ind == 0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                         & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
@@ -168,7 +168,7 @@
 !.....fourth-order scheme for interior:
         do k = 1 , kz
           do i = 3 , iym1 - 1
-            if ( ind.eq.0 ) then
+            if ( ind == 0 ) then
               ften(i,k) = ften(i,k) - xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
                         & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
@@ -193,7 +193,7 @@
 !......second-order scheme for north and south boundaries:
         do i = 2 , iym1 , iym1 - 2
           do k = 1 , kz
-            if ( ind.eq.0 ) then
+            if ( ind == 0 ) then
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                         & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
@@ -248,10 +248,10 @@
 #ifdef BAND
 !---------------------------------------------------------------------
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1.lt.1) jm1 = jm1 + jx
-      if(jm2.lt.1) jm2 = jm2 + jx
-      if(jp1.gt.jx) jp1 = jp1 -jx
-      if(jp2.gt.jx) jp2 = jp2 -jx
+      if(jm1 < 1) jm1 = jm1 + jx
+      if(jm2 < 1) jm2 = jm2 + jx
+      if(jp1 > jx) jp1 = jp1 -jx
+      if(jp2 > jx) jp2 = jp2 -jx
 #endif
 !
 !......fourth-order scheme for interior:
@@ -285,10 +285,10 @@
 !----------------------------------------------------------------------
 !
 #ifdef MPP1
-      if ( (myid.eq.0 .and. j.eq.2) .or.                                &
-         & (myid.eq.nproc-1 .and. j.eq.jendm) ) then
+      if ( (myid == 0 .and. j == 2) .or.                                &
+         & (myid == nproc-1 .and. j == jendm) ) then
 #else
-      if ( j.eq.2 .or. j.eq.jxm2 ) then
+      if ( j == 2 .or. j == jxm2 ) then
 #endif
 !
 !......second-order scheme for east or west boundary:

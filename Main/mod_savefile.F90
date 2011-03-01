@@ -74,7 +74,7 @@
           logical :: existing
 
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #endif
             iutrst = 14
             write (fbname, '(a,i10)') 'SAV.', idate
@@ -115,13 +115,13 @@
             read (iutrst) atm2_io%qc
             read (iutrst) psa_io , psb_io
             read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
-            if ( icup.eq.1 ) then
+            if ( icup == 1 ) then
               read (iutrst) rsheat_io , rswat_io
             end if
-            if ( icup.eq.3 ) then
+            if ( icup == 3 ) then
               read (iutrst) tbase_io , cldefi_io
             end if
-            if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               read (iutrst) cbmf2d_io
             end if
             read (iutrst) hfx_io , qfx_io , snowc_io , uvdrag_io
@@ -129,7 +129,7 @@
             if (debug_level > 2) call restdiag(iutrst)
 #endif
             read (iutrst) absnxt_io , abstot_io , emstot_io
-            if ( ipptls.eq.1 ) read (iutrst) fcc_io
+            if ( ipptls == 1 ) read (iutrst) fcc_io
 #ifdef CLM
             read (iutrst) sols2d_io
             read (iutrst) soll2d_io
@@ -171,8 +171,8 @@
             read (iutrst) taf2d_io
             read (iutrst) ocld2d_io
             read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
-            if ( iocnflx.eq.2 ) read (iutrst) zpbl_io
-            if ( ichem.eq.1 ) then
+            if ( iocnflx == 2 ) read (iutrst) zpbl_io
+            if ( ichem == 1 ) then
               read (iutrst) chia_io
               read (iutrst) chib_io
 !             cumul removal terms (3d, 2d)
@@ -209,13 +209,13 @@
             read (iutrst) atm2%qc
             read (iutrst) sps1%ps , sps2%ps
             read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
-            if ( icup.eq.1 ) then
+            if ( icup == 1 ) then
               read (iutrst) rsheat , rswat
             end if
-            if ( icup.eq.3 ) then
+            if ( icup == 3 ) then
               read (iutrst) tbase , cldefi
             end if
-            if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               read (iutrst) cbmf2d
             end if
             read (iutrst) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
@@ -223,7 +223,7 @@
             if (debug_level > 2) call restdiag(iutrst)
 #endif
             read (iutrst) absnxt , abstot , emstot
-            if ( ipptls.eq.1 ) read (iutrst) fcc
+            if ( ipptls == 1 ) read (iutrst) fcc
             read (iutrst) sol2d
             read (iutrst) solvd2d
             read (iutrst) solvs2d
@@ -254,8 +254,8 @@
             read (iutrst) taf2d
             read (iutrst) ocld2d
             read (iutrst) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx.eq.2 ) read (iutrst) sfsta%zpbl
-            if ( ichem.eq.1 ) then
+            if ( iocnflx == 2 ) read (iutrst) sfsta%zpbl
+            if ( ichem == 1 ) then
               read (iutrst) chia
               read (iutrst) chib
 !             cumul removal terms (3d, 2d)
@@ -276,7 +276,7 @@
             end if
 #endif
 !------lake model
-            if ( lakemod.eq.1 ) then
+            if ( lakemod == 1 ) then
               call lakesav_i(iutrst)
             end if
             lrp1 = .true.
@@ -289,7 +289,7 @@
           implicit none
 
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #endif
             if (.not. lrp1) then
               write (6,*) 'Reading part2 before part1'
@@ -337,7 +337,7 @@
           real(8) :: cdtime
 #endif
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #endif
             if (ltmp) then
               write (fbname, '(a,i10)') 'TMPSAV.', idate
@@ -378,13 +378,13 @@
             write (iutsav) atm2_io%qc
             write (iutsav) psa_io , psb_io
             write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
-            if ( icup.eq.1 ) then
+            if ( icup == 1 ) then
               write (iutsav) rsheat_io , rswat_io
             end if
-            if ( icup.eq.3 ) then
+            if ( icup == 3 ) then
               write (iutsav) tbase_io , cldefi_io
             end if
-            if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               write (iutsav) cbmf2d_io
             end if
             write (iutsav) hfx_io , qfx_io , snowc_io , uvdrag_io
@@ -392,7 +392,7 @@
             if (debug_level > 2) call savediag(iutsav)
 #endif
             write (iutsav) absnxt_io , abstot_io , emstot_io
-            if ( ipptls.eq.1 ) write (iutsav) fcc_io
+            if ( ipptls == 1 ) write (iutsav) fcc_io
 #ifdef CLM
             write (iutsav) sols2d_io
             write (iutsav) soll2d_io
@@ -434,8 +434,8 @@
             write (iutsav) taf2d_io
             write (iutsav) ocld2d_io
             write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
-            if ( iocnflx.eq.2 ) write (iutsav) zpbl_io
-            if ( ichem.eq.1 ) then
+            if ( iocnflx == 2 ) write (iutsav) zpbl_io
+            if ( ichem == 1 ) then
               write (iutsav) chia_io
               write (iutsav) chib_io
 !             cumul removal terms (3d, 2d)
@@ -472,13 +472,13 @@
             write (iutsav) atm2%qc
             write (iutsav) sps1%ps, sps2%ps
             write (iutsav) sts1%tg, sts2%tg, sfsta%rainc, sfsta%rainnc
-            if ( icup.eq.1 ) then
+            if ( icup == 1 ) then
               write (iutsav) rsheat, rswat
             end if
-            if ( icup.eq.3 ) then
+            if ( icup == 3 ) then
               write (iutsav) tbase, cldefi
             end if
-            if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               write (iutsav) cbmf2d
             end if
             write (iutsav) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
@@ -486,7 +486,7 @@
             if (debug_level > 2) call savediag(iutsav)
 #endif
             write (iutsav) absnxt , abstot , emstot
-            if ( ipptls.eq.1 ) write (iutsav) fcc
+            if ( ipptls == 1 ) write (iutsav) fcc
             write (iutsav) sol2d
             write (iutsav) solvd2d
             write (iutsav) solvs2d
@@ -517,8 +517,8 @@
             write (iutsav) taf2d
             write (iutsav) ocld2d
             write (iutsav) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx.eq.2 ) write (iutsav) sfsta%zpbl
-            if ( ichem.eq.1 ) then
+            if ( iocnflx == 2 ) write (iutsav) sfsta%zpbl
+            if ( ichem == 1 ) then
               write (iutsav) chia
               write (iutsav) chib
 !             cumul removal terms (3d, 2d)
@@ -538,7 +538,7 @@
 #endif
             end if
 #endif
-            if ( lakemod.eq.1 ) then
+            if ( lakemod == 1 ) then
               call lakesav_o(iutsav)
             end if
 #ifdef MPP1
@@ -580,7 +580,7 @@
           thisclmrest = filer_rest(1:256)
 #endif
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #endif
             write (6,*) 'SAV variables written at ', idate, xtime
 

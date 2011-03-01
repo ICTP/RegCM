@@ -33,7 +33,7 @@
       subroutine say
       implicit none
 #ifdef MPP1
-      if ( myid.eq.0 ) print * , trim(aline)
+      if ( myid == 0 ) print * , trim(aline)
 #else
       print * , trim(aline)
 #endif
@@ -70,7 +70,7 @@
       write (cline,'(i6)') line
       write (aline,*) '-------------- FATAL CALLED ---------------'
       call say
-      if ( line.gt.0 ) then
+      if ( line > 0 ) then
         write (aline,*) 'Fatal in file: '//filename//' at line: '//     &
                       & trim(cline)
         call say

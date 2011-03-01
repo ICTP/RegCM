@@ -64,7 +64,7 @@
 !         2.   compute stability as bulk rich. no. = rin/rid =
 !         ri(numerator)/ri(denominator)
 !=======================================================================
-          if ( lveg(n,i).ne.0 ) then
+          if ( lveg(n,i) /= 0 ) then
             zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1(n,i)    &
                    & *(1.0D0-sigf(n,i))
           else
@@ -77,7 +77,7 @@
 !         first get avg winds to use for ri number by summing the
 !         squares of horiz., vertical, and convective velocities
 !=======================================================================
-          if ( ribn(n,i).le.0.0D0 ) then
+          if ( ribn(n,i) <= 0.0D0 ) then
             dthdz = (1.0D0-sigf(n,i))*tg1d(n,i) + sigf(n,i)*taf1d(n,i) &
                   & - ts1d(n,i)
             u1 = wtur + 2.0D0*dsqrt(dthdz)
@@ -87,7 +87,7 @@
             ribd(n,i) = us1d(i)**2.0D0 + vs1d(i)**2.0D0 + u2**2.0D0
           end if
           vspda(n,i) = dsqrt(ribd(n,i))
-          if ( vspda(n,i).lt.1.0D0 ) then
+          if ( vspda(n,i) < 1.0D0 ) then
             vspda(n,i) = 1.0D0
             ribd(n,i) = 1.0D0
           end if
@@ -97,7 +97,7 @@
 !         and stability correction
 !=======================================================================
 !         ****   -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
-          if ( rib(n,i).lt.0.0D0 ) then
+          if ( rib(n,i) < 0.0D0 ) then
             cdr(n,i) = cdrn(n,i)* &
                      (1.0D0+24.5D0*dsqrt(-cdrn(n,i)*rib(n,i)))
           else
@@ -105,7 +105,7 @@
           end if
 !         3.1  apply lower limit to drag coefficient value
           cdrmin(n,i) = dmax1(0.25D0*cdrn(n,i),6.D-4)
-          if ( cdr(n,i).lt.cdrmin(n,i) ) cdr(n,i) = cdrmin(n,i)
+          if ( cdr(n,i) < cdrmin(n,i) ) cdr(n,i) = cdrmin(n,i)
           cdrx(n,i) = cdr(n,i)
  
         end do
@@ -121,10 +121,10 @@
       do i = 2 , iym1
         do n = 1 , nnsg
                                                     ! check each point
-!cc   if(lat(i).eq.    1) aarea(i) = 0.005  ! ccm specific code
-!cc   if(lat(i).eq.    2) aarea(i) = 0.01
-!cc   if(lat(i).ge.nlat2) aarea(i) = 0.04   !  4.2  antarctic
-          if ( ldoc1d(n,i).gt.1.5D0 ) aarea(n,i) = 0.02D0
+!cc   if(lat(i) ==     1) aarea(i) = 0.005  ! ccm specific code
+!cc   if(lat(i) ==     2) aarea(i) = 0.01
+!cc   if(lat(i) >= nlat2) aarea(i) = 0.04   !  4.2  antarctic
+          if ( ldoc1d(n,i) > 1.5D0 ) aarea(n,i) = 0.02D0
                                                     !  4.3  arctic
         end do
       end do
@@ -132,12 +132,12 @@
 !     4.4  neutral cd over lead water
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.1.5D0 ) then       !  check each point
+          if ( ldoc1d(n,i) > 1.5D0 ) then       !  check each point
             cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2.0D0
  
 !           4.5  drag coefficient over leads
             ribl(n,i) = (1.0D0-271.5D0/ts1d(n,i))*z1(n,i)*gti/ribd(n,i)
-            if ( ribl(n,i).ge.0.0D0 ) then
+            if ( ribl(n,i) >= 0.0D0 ) then
               clead(n,i) = cdrn(n,i)/(1.0D0+11.5D0*ribl(n,i))
             else
               clead(n,i) = cdrn(n,i)*(1.0D0+24.5D0*dsqrt(-cdrn(n,i)* &
@@ -184,7 +184,7 @@
 !     ******           sea ice classified same as desert
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( lveg(n,i).le.0 .and. sice1d(n,i).gt.0.0D0 ) lveg(n,i) = 8
+          if ( lveg(n,i) <= 0 .and. sice1d(n,i) > 0.0D0 ) lveg(n,i) = 8
         end do
       end do
  
@@ -196,10 +196,10 @@
           z1(n,i) = z1d(n,i)
           z1log(n,i) = dlog(z1(n,i))
  
-           if ( ldoc1d(n,i).gt.1.5D0 ) then
+           if ( ldoc1d(n,i) > 1.5D0 ) then
              sigf(n,i) = 0.0D0
              cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2.0D0
-           else if ( ldoc1d(n,i).gt.0.5D0 ) then
+           else if ( ldoc1d(n,i) > 0.5D0 ) then
 !           ******           drag coeff over land
             frav = sigf(n,i)
             asigf = veg1d(n,i)
@@ -248,13 +248,13 @@
 ! 
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
             age = (1.-1./(1.+sag1d(n,i)))
             rhosw(n,i) = 0.10D0*(1.0D0+3.0D0*age)
             densi(n,i) = 0.01D0/(1.0D0+3.0D0*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)
             wt(n,i) = 1.0D0
-            if ( lveg(n,i).gt.0 ) then
+            if ( lveg(n,i) > 0 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))
               wt(n,i) = wt(n,i)/(1.0D0+wt(n,i))
             end if

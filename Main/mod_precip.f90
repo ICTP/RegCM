@@ -86,7 +86,7 @@
  
         afc = fcc(i,1,j)                                      ![frac][avg]
  
-        if ( afc.gt.0.01D0 ) then ! if there is a cloud
+        if ( afc > 0.01D0 ) then ! if there is a cloud
 !         1aa. Compute temperature and humidities with the adjustments
 !         due to convection.
 !         q = qvb3d(i,1,j) + qcuten(i,1)*dt  [kg/kg][avg] 
@@ -113,7 +113,7 @@
 !         1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(i,j)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,0.0D0),pptmax)         ![kg/kg/s][avg]
-          if ( pptnew.gt.0.0D0 ) then
+          if ( pptnew > 0.0D0 ) then
                                    ! New precipitation
 !           1af. Compute the cloud removal rate (for chemistry) [1/s]
 !chem2
@@ -164,7 +164,7 @@
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,k,j)                                 ![kg/kg][avg]
           afc = fcc(i,k,j)                                   ![frac][avg]
-          if ( tcel.gt.0.0D0 ) then
+          if ( tcel > 0.0D0 ) then
             es = svp1*1000.0D0*dexp(svp2*tcel/(tk-svp3))     ![Pa][avg]
           else
             es = svp4*1000.0D0*dexp(svp5-svp6/tk)            ![Pa][avg]
@@ -182,7 +182,7 @@
 !         - It is assumed that raindrops do not evaporate in clouds
 !         and the rainfall from above is evenly distributed in
 !         gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(i).gt.0.0D0 .and. afc.lt.0.99D0 ) then
+          if ( pptsum(i) > 0.0D0 .and. afc < 0.99D0 ) then
 !           2bca. Compute the clear sky relative humidity
             rhcs = (rh-afc*rhmax)/(1.0D0-afc)                  ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),0.0D0)            ![frac][clr]
@@ -206,7 +206,7 @@
           end if
  
 !         1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc.gt.0.01D0 ) then
+          if ( afc > 0.01D0 ) then
                              ! if there is a cloud
 !           1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
@@ -221,13 +221,13 @@
             pptnew = dmin1(dmax1(pptnew,0.0D0),pptmax)       ![kg/kg/s][avg]
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
 !chem2
-            if ( pptnew.gt.0.0D0 ) remrat(i,k) = pptnew/qcw
+            if ( pptnew > 0.0D0 ) remrat(i,k) = pptnew/qcw
 !chem2_
  
 !           1bf. Compute the amount of cloud water removed by raindrop
 !           accretion [kg/kg/s].  In the layer where the precipitation
 !           is formed, only half of the precipitation can accrete.
-            if ( pptkm1.gt.0.0D0 .or. pptnew.gt.0.0D0 ) then
+            if ( pptkm1 > 0.0D0 .or. pptnew > 0.0D0 ) then
 !             1bfa. Compute the amount of water remaining in the cloud
 !             [kg/kg]
               qcleft = dmax1(qcw-pptnew*dt,0.D0)             ![kg/kg][avg]
@@ -259,13 +259,13 @@
 !     rate, s^-1)
 !     - Levin & Schwatz
 !--------------------------------------------------------------------
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         uch = 1000.0D0*rgti*3600.0D0
         do i = istart , iend
           rembc(i,1) = 0.0D0
           do k = 2 , nk
             rembc(i,k) = 0.0D0
-            if ( remrat(i,k).gt.0.0D0 ) then
+            if ( remrat(i,k) > 0.0D0 ) then
               do kk = 1 , k - 1
                 rembc(i,k) = rembc(i,k) + remrat(i,kk)*qcb3d(i,kk,j)    &
                            & *sps2%ps(i,j)*dsigma(kk)*uch
@@ -285,7 +285,7 @@
 !
       uconv = 60.0D0*dtmin
       aprdiv = 1.0D0/dble(nbatst)
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
+      if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = 1.0D0
       do i = istart , iend
         sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + pptsum(i)*uconv
         pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv

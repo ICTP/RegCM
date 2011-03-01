@@ -201,7 +201,7 @@
 #endif 
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1 = jx
+        if(jm1 == 0) jm1 = jx
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
@@ -275,7 +275,7 @@
                & *(vbx3d(i,k-1,j)-vbx3d(i,k,j)))                        &
                & /(dza(i,k-1,j)*dza(i,k-1,j)) + 1.D-9
             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
-            if ( (ri-rc(i,k)).ge.0.D0 ) then
+            if ( (ri-rc(i,k)) >= 0.D0 ) then
               kzm(i,k) = kzo
             else
               kzm(i,k) = kzo + dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
@@ -298,7 +298,7 @@
             kvh(i,k,j) = kzm(i,k)
             kvq(i,k,j) = kzm(i,k)
 !chem
-            if ( ichem.eq.1 ) kvc(i,k,j) = kzm(i,k)
+            if ( ichem == 1 ) kvc(i,k,j) = kzm(i,k)
 !chem_
 !           counter gradient terms for heat and moisture
             cgh(i,k,j) = 0.0D0
@@ -315,8 +315,8 @@
           idxm1 = max0(idxm1,2)
           jdxm1 = j - 1
 #ifdef MPP1
-          if ( myid.eq.nproc-1 ) jdx = min0(jdx,jendx)
-          if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
+          if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
+          if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #else
           jdx = min0(jdx,jxm1)
           jdxm1 = max0(jdxm1,2)
@@ -348,7 +348,7 @@
 !         1            *dlog(za(i,kz,j)/10.)
  
 !         "virtual" potential temperature
-          if ( hfxv(i,j).ge.0.0D0 ) then
+          if ( hfxv(i,j) >= 0.0D0 ) then
             th10(i,j) = thvx(i,kz,j)
           else
 !           th10(i,j) =
@@ -357,15 +357,15 @@
             oblen = -0.5D0*(thx3d(i,kz,j)+sts2%tg(i,j)) *   &
                     (1.0D0+0.61D0*sh10)*ustr(i,j)**3.0D0 /  &
                   & (gti*vonkar*(hfxv(i,j)+dsign(1.D-10,hfxv(i,j))))
-            if ( oblen.ge.za(i,kz,j) ) then
+            if ( oblen >= za(i,kz,j) ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *(dlog(za(i,kz,j)/10.0D0)                     &
                         & +5.0D0/oblen*(za(i,kz,j)-10.0D0))
-            else if ( oblen.lt.za(i,kz,j) .and. oblen.gt.10.0D0 ) then
+            else if ( oblen < za(i,kz,j) .and. oblen > 10.0D0 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                      & *(dlog(oblen/10.0D0)+5.0D0/oblen*(oblen-10.0D0)  &
                         & +6.0D0*dlog(za(i,kz,j)/oblen))
-            else if ( oblen.le.10.0D0 ) then
+            else if ( oblen <= 10.0D0 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *6.0D0*dlog(za(i,kz,j)/10.0D0)
             end if
@@ -386,11 +386,11 @@
 #ifdef MPP1
       do j = jbegin , jendx
 #ifndef BAND
-      if ( (myid.ne.nproc-1) .or. (myid.eq.nproc-1 .and. j.lt.jendx)) then
+      if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jendx)) then
 #endif
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
+            if ( k > 1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
                & /dza(i,k-1,j)
             akzz2(i,k,j) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
           end do
@@ -437,7 +437,7 @@
 #endif
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k.gt.1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
+            if ( k > 1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
                & /dza(i,k-1,j)
             akzz2(i,k,j) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
           end do
@@ -456,16 +456,16 @@
 #endif
          jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-         if(jm1.eq.0) jm1 = jx
+         if(jm1 == 0) jm1 = jx
 #endif
  
 !       calculate coefficients at dot points for u and v wind
  
 #ifndef BAND
 #ifdef MPP1
-        if ( myid.eq.0 .and. j.eq.2 ) then
+        if ( myid == 0 .and. j == 2 ) then
 #else
-        if ( j.eq.2 ) then
+        if ( j == 2 ) then
 #endif
           do k = 1 , kz
             do i = 2 , iym1
@@ -473,15 +473,15 @@
               idx = min0(idx,iym2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
-              if ( k.gt.1 )                                             &
+              if ( k > 1 )                                             &
                  & betak(i,k) = 0.5D0*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
               alphak(i,k) = 0.5D0*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
             end do
           end do
 #ifdef MPP1
-        else if ( myid.eq.nproc-1 .and. j.eq.jendx ) then
+        else if ( myid == nproc-1 .and. j == jendx ) then
 #else
-        else if ( j.eq.jxm1 ) then
+        else if ( j == jxm1 ) then
 #endif
           do k = 1 , kz
             do i = 2 , iym1
@@ -489,7 +489,7 @@
               idx = min0(idx,iym2)
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
-              if ( k.gt.1 )                                             &
+              if ( k > 1 )                                             &
                  & betak(i,k) = 0.5D0*(akzz1(idx,k,jm1)+                &
                  &                     akzz1(idxm1,k,jm1))
               alphak(i,k) = 0.5D0*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
@@ -503,7 +503,7 @@
              idx = min0(idx,iym2)
              idxm1 = i - 1
              idxm1 = max0(idxm1,2)
-             if ( k.gt.1 )                                             &
+             if ( k > 1 )                                             &
                 & betak(i,k) = 0.25D0*(akzz1(idx,k,jm1)+               &
                 &                      akzz1(idxm1,k,jm1)+             &
                 &                      akzz1(idx,k,j)+akzz1(idxm1,k,j))
@@ -577,8 +577,8 @@
           jdx = j
           jdxm1 = j - 1
 #ifdef MPP1
-          if ( myid.eq.nproc-1 ) jdx = min0(jdx,jendx)
-          if ( myid.eq.0 ) jdxm1 = max0(jdxm1,2)
+          if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
+          if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #else
           jdx = min0(jdx,jxm1)
           jdxm1 = max0(jdxm1,2)
@@ -637,7 +637,7 @@
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
+            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
           end do
@@ -714,7 +714,7 @@
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
+            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
           end do
@@ -787,7 +787,7 @@
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
+            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
             alphak(i,k) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
           end do
@@ -889,7 +889,7 @@
  
 !
 !chem2
-        if ( ichem.eq.1 .and. ichdrdepo.eq.1 ) then
+        if ( ichem == 1 .and. ichdrdepo == 1 ) then
 !
 !         coef1, coef2, coef3 and coefe are the same as for water vapor
 !         and cloud water so they do not need to be recalculated
@@ -899,7 +899,7 @@
  
           do k = 1 , kz
             do i = 2 , iym1
-              if ( k.gt.1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
+              if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
                  & /dza(i,k-1,j)
               alphak(i,k) = gti/(sps2%ps(i,j)*1000.0D0)/dsigma(k)
             end do
@@ -928,9 +928,9 @@
           do itr = 1 , ntr
             do i = 2 , iym1
 #ifdef CLM
-              if ( ocld2d(1,i,j).le.0.00001D0 ) then
+              if ( ocld2d(1,i,j) <= 0.00001D0 ) then
 #else
-              if ( veg2d(i,j).le.0.00001D0 ) then
+              if ( veg2d(i,j) <= 0.00001D0 ) then
 #endif
                 vdep(i,itr) = chtrdpv(itr,2)
               else
@@ -938,7 +938,7 @@
               end if
 !             provisoire test de la routine chdrydep pour les dust
  
-              if ( chtrname(itr).eq.'DUST' ) vdep(i,itr) = 0.0D0
+              if ( chtrname(itr) == 'DUST' ) vdep(i,itr) = 0.0D0
             end do
           end do
 !
@@ -1007,7 +1007,7 @@
             end do
             do i = 2 , iym1
  
-              if ( chtrname(itr).ne.'DUST' ) &
+              if ( chtrname(itr) /= 'DUST' ) &
                 remdrd(i,j,itr) = remdrd(i,j,itr) + chix(i,kz)* &
                     vdep(i,itr)*sps2%ps(i,j)*dt/2.0D0*rhox2d(i,j)* &
                     gti/(sps2%ps(i,j)*1000.0D0*dsigma(kz))
@@ -1108,7 +1108,7 @@
           do i = 2 , iym1
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
-            if ( (ri(i,k).lt.ricr) .and. (ri(i,k2).ge.ricr) )       &
+            if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )       &
                sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
                  & *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
           end do
@@ -1116,12 +1116,12 @@
  
         do i = 2 , iym1
 !     ******   set bl top to highest allowable model layer
-          if ( ri(i,kt).lt.ricr ) sfsta%zpbl(i,j) = za(i,kt,j)
+          if ( ri(i,kt) < ricr ) sfsta%zpbl(i,j) = za(i,kt,j)
         end do
  
 !       ******   recompute richardson no. at lowest model level
         do i = 2 , iym1
-          if ( hfxv(i,j).gt.0.0D0 ) then
+          if ( hfxv(i,j) > 0.0D0 ) then
 !           ******   estimate of convective velocity scale
             xfmt = (1.0D0-(binm*sfsta%zpbl(i,j)/obklen(i,j)))**onet
             wsc = ustr(i,j)*xfmt
@@ -1136,7 +1136,7 @@
 !       ******   recompute richardson no. at other model levels
         do k = kz - 1 , kt , -1
           do i = 2 , iym1
-            if ( hfxv(i,j).gt.0.0D0 ) then
+            if ( hfxv(i,j) > 0.0D0 ) then
               tlv = th10(i,j) + therm(i)
               tkv = thx3d(i,k,j)                                        &
                   & *(1.0D0+0.61D0*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
@@ -1152,10 +1152,10 @@
         do k = kz , kt + 1 , -1
           k2 = k - 1
           do i = 2 , iym1
-            if ( hfxv(i,j).gt.0.0D0 ) then
+            if ( hfxv(i,j) > 0.0D0 ) then
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
-              if ( (ri(i,k).lt.ricr) .and. (ri(i,k2).ge.ricr) )         &
+              if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )         &
                  & sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
                              & *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
             end if
@@ -1163,9 +1163,9 @@
         end do
  
         do i = 2 , iym1
-          if ( hfxv(i,j).gt.0.0D0 ) then
+          if ( hfxv(i,j) > 0.0D0 ) then
 !     ******   set bl top to highest allowable model layer
-            if ( ri(i,kt).lt.ricr ) sfsta%zpbl(i,j) = za(i,kt,j)
+            if ( ri(i,kt) < ricr ) sfsta%zpbl(i,j) = za(i,kt,j)
           end if
         end do
  
@@ -1186,12 +1186,12 @@
             pblk = 0.0D0
             zm = za(i,k,j)
             zp = za(i,k2,j)
-            if ( zm.lt.sfsta%zpbl(i,j) ) then
+            if ( zm < sfsta%zpbl(i,j) ) then
               zp = dmin1(zp,sfsta%zpbl(i,j))
               z = 0.5D0*(zm+zp)
               zh = z/sfsta%zpbl(i,j)
               zl = z/obklen(i,j)
-              if ( zh.le.1.0D0 ) then
+              if ( zh <= 1.0D0 ) then
                 zzh = 1.0D0 - zh
                 zzh = zzh**pink
 !xexp4          zzhnew = sfsta%zpbl(i,j)*(1.0D0-zh)*zh**1.5
@@ -1205,7 +1205,7 @@
                 zzhnew = 0.25D0*(1.0D0-zh)
 !xexp10         zzhnew =zh * (1.0D0 - zh)**2
 !chem
-                if ( ichem.eq.1 ) zzhnew2 = (1.0D0-zh)**2.0D0
+                if ( ichem == 1 ) zzhnew2 = (1.0D0-zh)**2.0D0
 !chem_
               else
                 zzh = 0.0D0
@@ -1215,18 +1215,18 @@
 !chem_
               end if
               fak1 = ustr(i,j)*sfsta%zpbl(i,j)*vonkar
-              if ( hfxv(i,j).le.0.0D0 ) then
+              if ( hfxv(i,j) <= 0.0D0 ) then
 !**             stable and neutral conditions
 !**             igroup = 1
  
 !**             prevent pblk from becoming too small in very stable
 !               conditions
-                if ( zl.le.1.0D0 ) then
+                if ( zl <= 1.0D0 ) then
                   pblk = fak1*zh*zzh/(1.0D0+betas*zl)
 !xexp5            pblk1 = vonkar * ustr(i,j) / (1.0D0+betas*zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(1.0D0+betas*zl)
 !chem
-                  if ( ichem.eq.1 )                                     &
+                  if ( ichem == 1 )                                     &
                      & pblk2 = fak1*zh*zzhnew2/(1.0D0+betas*zl)
 !chem_
                 else
@@ -1234,7 +1234,7 @@
 !xexp5            pblk1 = vonkar * ustr(i,j) / (betas+zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(betas+zl)
 !chem
-                  if ( ichem.eq.1 ) pblk2 = fak1*zh*zzhnew2/(betas+zl)
+                  if ( ichem == 1 ) pblk2 = fak1*zh*zzhnew2/(betas+zl)
 !chem_
                 end if
 !**             compute eddy diffusivities
@@ -1242,7 +1242,7 @@
                 kvh(i,k,j) = kvm(i,k,j)
                 kvq(i,k,j) = dmax1(pblk1,kzo)
 ! Erika put k=0 in very stable conditions
-                if ( zl.le.0.1D0 ) then
+                if ( zl <= 0.1D0 ) then
                   kvm(i,k,j) = 0.0D0
                   kvh(i,k,j) = kvm(i,k,j)*0.0D0
                   kvq(i,k,j) = 0.0D0
@@ -1250,7 +1250,7 @@
 ! Erika put k=0 in very stable conditions
 
 !chem
-                if ( ichem.eq.1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
+                if ( ichem == 1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
 !chem_
 !**             compute counter-gradient term
                 cgh(i,k,j) = 0.0D0
@@ -1259,7 +1259,7 @@
 !**             unstable conditions
  
 !**             compute counter gradient term
-                if ( zh.ge.sffrac ) then
+                if ( zh >= sffrac ) then
 !**               igroup = 2
                   xfmt = (1.0D0-binm*sfsta%zpbl(i,j)/obklen(i,j))**onet
                   fht = dsqrt(1.0D0-binh*sfsta%zpbl(i,j)/obklen(i,j))
@@ -1270,7 +1270,7 @@
 !xexp5            pblk1 = vonkar * wsc * zzhnew
                   pblk1 = fak2*zh*zzhnew
 !chem
-                  if ( ichem.eq.1 ) pblk2 = fak2*zh*zzhnew2
+                  if ( ichem == 1 ) pblk2 = fak2*zh*zzhnew2
 !chem_
                   therm2 = fak/(sfsta%zpbl(i,j)*wsc)
                   cgh(i,k,j) = hfxv(i,j)*therm2
@@ -1283,7 +1283,7 @@
 !                 (1.0D0-betam*zl)**onet
                   pblk1 = fak1*zh*zzhnew*(1.0D0-betam*zl)**onet
 !chem
-                  if ( ichem.eq.1 )                                     &
+                  if ( ichem == 1 )                                     &
                      & pblk2 = fak1*zh*zzhnew2*(1.0D0-betam*zl)**onet
 !chem_
                   pr = ((1.0D0-betam*zl)**onet)/dsqrt(1.0D0-betah*zl)
@@ -1297,7 +1297,7 @@
 !               kvq(i,k,j) = kvh(i,k,j)
                 kvq(i,k,j) = dmax1(pblk1,kzo)
 !chem
-                if ( ichem.eq.1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
+                if ( ichem == 1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
 !chem_
  
               end if

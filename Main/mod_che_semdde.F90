@@ -102,9 +102,9 @@
 ! read the monthly aerosol emission files
 
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         chemsrc_io = 0.0D+00
-        if (aertyp(4:5).ne.'00') then
+        if (aertyp(4:5) /= '00') then
           call read_aerosol(chtrname,chemsrc_io)
         end if
         do j = 1 , jx
@@ -132,7 +132,7 @@
       end do
 #else
       chemsrc = 0.0D+00
-      if (aertyp(4:5).ne.'00') then
+      if (aertyp(4:5) /= '00') then
         call read_aerosol(chtrname,chemsrc)
       end if
 #endif
@@ -146,19 +146,19 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            if ( iso4.gt.0 ) chemsrc(i,j,m,iso4)                        &
+            if ( iso4 > 0 ) chemsrc(i,j,m,iso4)                        &
                & = 0.02D0*chemsrc(i,j,m,iso2)
-            if ( iso2.gt.0 ) chemsrc(i,j,m,iso2)                        &
+            if ( iso2 > 0 ) chemsrc(i,j,m,iso2)                        &
                & = 0.98D0*chemsrc(i,j,m,iso2)
  
 !           partition hydrophilic hydrophonic ( cooke et al.1999)
 !           BC
-            if ( ibchb.gt.0 .and. ibchl.gt.0 ) then
+            if ( ibchb > 0 .and. ibchl > 0 ) then
               chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
               chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
             end if
 !           OC
-            if ( iochb.gt.0 .and. iochl.gt.0 ) then
+            if ( iochb > 0 .and. iochl > 0 ) then
               chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
               chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
             end if
@@ -167,9 +167,9 @@
       end do
  
 !     OPtical properties / internal mixing
-      if ( mixtype.eq.2 ) then
+      if ( mixtype == 2 ) then
 #ifdef MPP1
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           inquire (file='optdat.bin',exist=there)
           if ( .not.there ) then
             write (*,*) 'For mixtype=2, optdat.bin is required'
@@ -217,28 +217,28 @@
             do m = 1 , 11
               do n = 1 , 11
  
-                if ( k+l+m+n.eq.14 ) then
+                if ( k+l+m+n == 14 ) then
                   do i = 1 , 4
                     do j = 1 , 19
  
-                      if ( (dextmix(i,j,k,l,m,n).lt.0.0D0) .or.   &
-                         & (dextmix(i,j,k,l,m,n).gt.20.0D0) ) then
+                      if ( (dextmix(i,j,k,l,m,n) < 0.0D0) .or.   &
+                         & (dextmix(i,j,k,l,m,n) > 20.0D0) ) then
                         write (aline,*) 'problem in dextmix ' ,   &
                                       & dextmix(i,j,k,l,m,n)
                         call say
                         call fatal(__FILE__,__LINE__,'DETMIX ERROR')
                       end if
  
-                      if ( (dssamix(i,j,k,l,m,n).lt.0.0D0) .or.   &
-                         & (dssamix(i,j,k,l,m,n).gt.1.0D0) ) then
+                      if ( (dssamix(i,j,k,l,m,n) < 0.0D0) .or.   &
+                         & (dssamix(i,j,k,l,m,n) > 1.0D0) ) then
                         write (aline,*) 'problem in dssamix ' ,   &
                                       & dssamix(i,j,k,l,m,n)
                         call say
                         call fatal(__FILE__,__LINE__,'DSSAMIX ERROR')
                       end if
  
-                      if ( (dgmix(i,j,k,l,m,n).lt.0.0D0) .or.     &
-                         & (dgmix(i,j,k,l,m,n).gt.1.0D0) ) then
+                      if ( (dgmix(i,j,k,l,m,n) < 0.0D0) .or.     &
+                         & (dgmix(i,j,k,l,m,n) > 1.0D0) ) then
                         write (aline,*) 'problem in dgmix ' ,     &
                                       & dgmix(i,j,k,l,m,n)
                         call say
@@ -255,7 +255,7 @@
         end do
  
 #ifdef MPP1
-        if ( myid.eq.0 ) write (*,*) '! OPDATA CHECKED !'
+        if ( myid == 0 ) write (*,*) '! OPDATA CHECKED !'
 #else
         write (*,*) '! OPDATA CHECKED !'
 #endif
@@ -427,7 +427,7 @@
 !         *****
  
 ! ***************************************************************
-          if ( ivegcov(i).eq.0 ) then
+          if ( ivegcov(i) == 0 ) then
  
 ! **************************************************************
 !           *  vp  - vapour pressure at z2                          
@@ -470,13 +470,13 @@
             cun = 7.5D-4 + 6.7D-5*ww
             mol = 9999.0D0
  
-            if ( dabs(dthv).gt.1.0D-6 )                                  &
+            if ( dabs(dthv) > 1.0D-6 )                                  &
                & mol = vptemp*cun**1.5D0*ww**2.0D0/(5.096D-3*dthv)
-            if ( mol.gt.0.0D0 .and. mol.lt.5.0D0 ) mol =  5.0D0
-            if ( mol.gt.-5.0D0 .and. mol.lt.0.D0 ) mol = -5.0D0
+            if ( mol > 0.0D0 .and. mol < 5.0D0 ) mol =  5.0D0
+            if ( mol > -5.0D0 .and. mol < 0.D0 ) mol = -5.0D0
             zdl = z10/mol
 !
-            if ( zdl.lt.0.0D0 ) then
+            if ( zdl < 0.0D0 ) then
  
 ! **************************************************************
 !             *                        wind speed                     
@@ -521,17 +521,17 @@
 !           ***** * there is incoming solar radiatiom                  
 !           *****
 ! ***************************************************************
-            if ( srad(i).gt.0.0D0 .and. rib.gt.0.0D0 ) rib = 1.D-15
+            if ( srad(i) > 0.0D0 .and. rib > 0.0D0 ) rib = 1.D-15
 !
             dtemp = ptemp2 - sutemp(i)
-            if ( dabs(dtemp).lt.1.D-10 ) dtemp = dsign(1.D-10,dtemp)
+            if ( dabs(dtemp) < 1.D-10 ) dtemp = dsign(1.D-10,dtemp)
             tbar = 0.5D0*(ptemp2+sutemp(i))
 !
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
             asq = 0.16D0/(logratio**2.0D0)
 !
-            if ( rib.le.0.0D0 ) then
+            if ( rib <= 0.0D0 ) then
               aa = asq*9.4D0*dsqrt(ratioz)
               cm = 7.4D0*aa
               ch = 5.3D0*aa
@@ -559,7 +559,7 @@
           z = z10
           zl = z/mol
  
-          if ( zl.ge.0.0D0 ) then
+          if ( zl >= 0.0D0 ) then
             ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
           else
             ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
@@ -604,7 +604,7 @@
 !           * ****************************************************
  
           end do
-          if ( l.eq.ilev ) then
+          if ( l == ilev ) then
             do k = 1 , luc ! luc  = 1 for the moment
               do i = il1 , il2
 
@@ -612,7 +612,7 @@
 !     find the right table index for the cell cover ( ocean and lake
 !     are 0 in the ivegcov and 14-15 in the table )
 
-                if ( ivegcov(i).eq.0 ) then
+                if ( ivegcov(i) == 0 ) then
                   kcov = 14
                 else
                   kcov = ivegcov(i)
@@ -638,11 +638,11 @@
  
                 eim = dmin1(eim,0.6D0)
                 ein = 0.0D0
-!               if (arye(k) .gt. 0.0001) then
+!               if (arye(k) > 0.0001) then
 !               ein = (1000.0*2.0*avesize(n)/arye(k))**1.5
 !               end if
  
-                if ( arye(kcov).gt.0.0001D0 )  &
+                if ( arye(kcov) > 0.0001D0 )  &
                   ein = (1000.0D0*2.0D0*avesize(n)/arye(kcov))**1.5D0
  
                 ein = dmin1(ein,0.5D0)
@@ -659,9 +659,9 @@
  
 !               r1 = exp (-st**0.5)
                 r1 = dmax1(0.5D0,dexp(-st**0.5D0))
-!               if (k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
-                if ( kcov.ge.11 .and. r1.lt.0.5D0 ) r1 = 0.5D0
-                if ( r1.lt.0.4D0 ) r1 = 0.4D0
+!               if (k >= 11 .and. r1 < 0.5 ) r1=0.5
+                if ( kcov >= 11 .and. r1 < 0.5D0 ) r1 = 0.5D0
+                if ( r1 < 0.4D0 ) r1 = 0.4D0
  
 !               ***************************************************
 !               * calculation of rs: the surface resistance   *****
@@ -707,8 +707,8 @@
           end do
         end do
         do n = 1 , isize
-          if ( avesize(n)*1.D6.ge.trsize(k,1) .and. &
-               avesize(n)*1.D6.lt.trsize(k,2) ) then
+          if ( avesize(n)*1.D6 >= trsize(k,1) .and. &
+               avesize(n)*1.D6 < trsize(k,2) ) then
             do lev = 1 , ilev
               do i = 1 , ilg
                 pdepv(i,lev,k) = pdepv(i,lev,k) + pdepvsub(i,lev,n)
@@ -717,7 +717,7 @@
             tot = tot + 1
           end if
         end do
-        if ( tot.gt.0 ) then
+        if ( tot > 0 ) then
           do lev = 1 , ilev
             do i = 1 , ilg
               pdepv(i,lev,k) = pdepv(i,lev,k)/dble(tot)

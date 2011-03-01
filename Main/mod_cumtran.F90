@@ -58,7 +58,7 @@
 #endif
 #endif
           do i = 2 , iym1
-            if ( icumtop(i,j).gt.0 ) then
+            if ( icumtop(i,j) > 0 ) then
               deltas = 0.D0
               chiabar = 0.D0
               chibbar = 0.D0

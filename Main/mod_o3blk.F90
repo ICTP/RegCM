@@ -123,22 +123,22 @@
           do k = 1 , kz
             o3prof(i,k,j) = 0.0D0
             do jj = 1 , 31
-              if ( (-(prlevh(k)-ppwrkh(jj))).ge.0.0D0 ) then
+              if ( (-(prlevh(k)-ppwrkh(jj))) >= 0.0D0 ) then
                 pb1 = 0.0D0
               else
                 pb1 = prlevh(k) - ppwrkh(jj)
               end if
-              if ( (-(prlevh(k)-ppwrkh(jj+1))).ge.0.0D0 ) then
+              if ( (-(prlevh(k)-ppwrkh(jj+1))) >= 0.0D0 ) then
                 pb2 = 0.0D0
               else
                 pb2 = prlevh(k) - ppwrkh(jj+1)
               end if
-              if ( (-(prlevh(k+1)-ppwrkh(jj))).ge.0.0D0 ) then
+              if ( (-(prlevh(k+1)-ppwrkh(jj))) >= 0.0D0 ) then
                 pt1 = 0.0D0
               else
                 pt1 = prlevh(k+1) - ppwrkh(jj)
               end if
-              if ( (-(prlevh(k+1)-ppwrkh(jj+1))).ge.0.0D0 ) then
+              if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= 0.0D0 ) then
                 pt2 = 0.0D0
               else
                 pt2 = prlevh(k+1) - ppwrkh(jj+1)

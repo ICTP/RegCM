@@ -89,7 +89,7 @@
       do i = 1 , iym1
 !       set stratospheric scale height factor for gases
         dlat = dabs(57.2958D0*alat(i))
-        if ( dlat.le.45.0D0 ) then
+        if ( dlat <= 45.0D0 ) then
           xn2o = 0.3478D0 + 0.00116D0*dlat
           xch4 = 0.2353D0
           xcfc11 = 0.7273D0 + 0.00606D0*dlat
@@ -108,7 +108,7 @@
 !
       do k = 1 , kz
         do i = 1 , iym1
-          if ( pmid(i,k).ge.ptrop(i) ) then
+          if ( pmid(i,k) >= ptrop(i) ) then
             ch4(i,k) = ch40
             n2o(i,k) = n2o0
             cfc11(i,k) = cfc110

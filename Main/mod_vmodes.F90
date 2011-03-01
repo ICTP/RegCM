@@ -204,7 +204,7 @@
 !       set arrays describing vertical structure
 !
 !  set reference pressures
-      if ( lstand ) xps = 100.
+      if ( lstand ) xps = 100.0D0
                             ! standard xps in cb; otherwise xps set in tav
       pd = xps - r8pt
 !
@@ -222,10 +222,10 @@
       end if
 !
       lsigma = .false.
-      if ( sigmaf(1).ne.0. ) lsigma = .true.
-      if ( sigmaf(kzp1).ne.1. ) lsigma = .true.
+      if ( sigmaf(1) /= 0.0D0 ) lsigma = .true.
+      if ( sigmaf(kzp1) /= 1.0D0 ) lsigma = .true.
       do k = 1 , kz
-        if ( sigmaf(k+1).le.sigmaf(k) ) then
+        if ( sigmaf(k+1) <= sigmaf(k) ) then
           lsigma = .true.
           write (aline,99001) k , sigmaf(k+1) , sigmaf(k)
           call say
@@ -271,7 +271,7 @@
       tbarf(kzp1) = 0.0D0
 !
       do k = 1 , kzp1
-        if ( sigmaf(k).lt.1D-30 ) then
+        if ( sigmaf(k) < 1D-30 ) then
           thetaf(k) = tbarf(k)
         else
           thetaf(k) = tbarf(k)*((sigmaf(k)+r8pt/pd)**(-rovcp))
@@ -282,8 +282,8 @@
 !
       do l = 1 , kz
         do k = 1 , kz
-          if ( l.gt.k ) e2(k,l) = 0.0D0
-          if ( l.le.k ) e2(k,l) = 1.0D0
+          if ( l > k ) e2(k,l) = 0.0D0
+          if ( l <= k ) e2(k,l) = 1.0D0
           e1(k,l) = 1.0D0
         end do
       end do
@@ -309,10 +309,10 @@
           e3(k,l) = 0.0D0
           g1(k,l) = 0.0D0
         end do
-        e3(k,k) = 1.
-        if ( k.gt.1 ) g1(k,k) = tbarf(k)
-        if ( k.lt.kz ) g1(k,k+1) = -tbarf(k+1)
-        if ( k.lt.kz ) e3(k,k+1) = 1.0D0
+        e3(k,k) = 1.0D0
+        if ( k > 1 ) g1(k,k) = tbarf(k)
+        if ( k < kz ) g1(k,k+1) = -tbarf(k+1)
+        if ( k < kz ) e3(k,k+1) = 1.0D0
       end do
 !
 !  compute g2 (i.e., the transform from divg. to sigma dot)
@@ -410,7 +410,7 @@
 !
       lhydro = .false.
       do k = 1 , kz
-        w1(k,1) = 0.
+        w1(k,1) = 0.0D0
         do l = 1 , kz
           w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
         end do
@@ -419,7 +419,7 @@
           w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+r8pt)
         end do
         x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
-        if ( x.gt.1.D-8 ) lhydro = .true.
+        if ( x > 1.D-8 ) lhydro = .true.
       end do
 !
       if ( lhydro ) then
@@ -441,7 +441,7 @@
 !
       do l = 1 , kz
         do k = 1 , kz
-          w2(k,l) = 0.
+          w2(k,l) = 0.0D0
           do mm = 1 , kzp1
             w2(k,l) = w2(k,l) + hydroc(k,mm)*w3(mm,l)
           end do
@@ -532,7 +532,7 @@
 !       output desired arrays
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif
       call vprntv(sigmaf,kzp1,'sigmaf  ')
       call vprntv(tbarh,kz,'t mean  ')
@@ -568,7 +568,7 @@
 !
       return
 
-99001 format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' .le. sigmaf(k)=',    &
+99001 format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' <= sigmaf(k)=',    &
              & f9.6)
 99002 format ('0 problem with linearization of hydostatic equation')
 99003 format ('0 vertical mode problem completed for kx=',i3,5x,i1,     &
@@ -603,16 +603,16 @@
       numneg = 0
       emax = 0.0D0
       do n = 1 , nk
-        if ( er(n).le.0.0D0 ) numneg = numneg + 1
-        if ( er(n).gt.emax ) emax = er(n)
+        if ( er(n) <= 0.0D0 ) numneg = numneg + 1
+        if ( er(n) > emax ) emax = er(n)
       end do
 !
       nimag = 0
       do n = 1 , nk
-        if ( ei(n)/emax.gt.tol ) nimag = nimag + 1
+        if ( ei(n)/emax > tol ) nimag = nimag + 1
       end do
 !
-      if ( numneg+nimag.eq.0 ) then
+      if ( numneg+nimag == 0 ) then
         return
       end if
 !
@@ -636,7 +636,7 @@
       intent (in) aname , ier
       intent (inout) numerr
 !
-      if ( ier.ne.0 ) then
+      if ( ier /= 0 ) then
         numerr = numerr + 1
         print 99001 , aname , ier
 99001   format ('0 error in determination of ',a8,                      &
@@ -672,7 +672,7 @@
 !
         do k = 1 , nk
           a = dabs(z(k,l))
-          if ( a.gt.zmax ) then
+          if ( a > zmax ) then
             zmax = a
             kmax = k
           end if
@@ -705,7 +705,7 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-      if ( n.ne.na .or. n.ne.nv ) call fatal(__FILE__,__LINE__,         &
+      if ( n /= na .or. n /= nv ) call fatal(__FILE__,__LINE__,         &
           &'valent invmtx: equate n, na, nv')
 !
       do j = 1 , n
@@ -714,7 +714,7 @@
         end do
       end do
       call sgefa(v,n,n,ip,info)
-      if ( info.ne.0 ) then
+      if ( info /= 0 ) then
         write (aline,*) 'sgefa info = ' , info
         call say
         call fatal(__FILE__,__LINE__,'sgefa error')
@@ -758,7 +758,7 @@
       do l = 1 , nk
         hmax = -1.D100
         do k = 1 , nk
-          if ( (wh(k,2).eq.0.0D0) .and. (wh(k,1).gt.hmax) ) then
+          if ( (dabs(wh(k,2)) < 1.0D-30) .and. (wh(k,1) > hmax) ) then
             hmax = wh(k,1)
             kmax = k
           end if
@@ -845,7 +845,7 @@
         tb = (ds1*tbarh(k)+ds2*tbarh(k+1))/(ds1+ds2)
         g1 = xkappa*tb/(sigmaf(k+1)+pt/pd)
         g2 = (tbarh(k+1)-tbarh(k))/(sigmah(k+1)-sigmah(k))
-        if ( g1-g2.lt.0.0D0 ) lstab = .false.
+        if ( g1-g2 < 0.0D0 ) lstab = .false.
       end do
       if ( .not.lstab ) then
         numerr = numerr + 1
@@ -888,7 +888,7 @@
         p = sigma(k)*pd + pt
         t(k) = stdt*((p/p0)**fac)
         z = (stdt-t(k))/lrate
-        if ( z.gt.zstrat ) t(k) = tstrat
+        if ( z > zstrat ) t(k) = tstrat
       end do
 !
       end subroutine vtlaps

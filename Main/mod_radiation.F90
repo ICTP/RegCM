@@ -240,7 +240,7 @@
 !     cfc110 = 4.69548 * 0.280e-9
 !     cfc120 = 4.14307 * 0.503e-9
 !     co2mmr = 1.51913 * co2vmr
-      if ( lyear.ge.1750 .and. lyear.le.2100 ) then
+      if ( lyear >= 1750 .and. lyear <= 2100 ) then
         co2vmr = cgas(2,lyear)*1.D-6
         co2mmr = co2vmr*44.0D0/28.9644D0
         ch40 = cgas(3,lyear)*1.D-9*0.55241D0
@@ -535,7 +535,7 @@
 !       Calculate/outfld albedo and clear sky albedo
 !
         do i = 1 , iym1
-          if ( solin(i).gt.0.0D0 ) then
+          if ( solin(i) > 0.0D0 ) then
             alb(i) = (solin(i)-fsnt(i))/solin(i)
           else
             alb(i) = 0.0D0
@@ -543,7 +543,7 @@
         end do
 !
         do i = 1 , iym1
-          if ( solin(i).gt.0.0D0 ) then
+          if ( solin(i) > 0.0D0 ) then
             albc(i) = (solin(i)-fsntc(i))/solin(i)
           else
             albc(i) = 0.0D0
@@ -1031,7 +1031,7 @@
 !
 !     If night everywhere, return
 !
-      if ( is(1).gt.iym1 ) return
+      if ( is(1) > iym1 ) return
 !
 !     Compute ending daytime loop index
 !
@@ -1040,11 +1040,11 @@
 !
 !     Possibly 2 daytime loops needed
 !
-      if ( ie(1).ne.iym1 ) then
+      if ( ie(1) /= iym1 ) then
         is(2) = isrchfgt(iym1-ie(1),coszrs(ie(1)+1),1,0.D0) + ie(1)
-        if ( is(2).lt.iym1 ) then
+        if ( is(2) < iym1 ) then
           ie(2) = isrchfle(iym1-is(2),coszrs(is(2)+1),1,0.D0) + is(2)-1
-          if ( ie(2).gt.is(2) ) then
+          if ( ie(2) > is(2) ) then
             nloop = 2
           end if
         end if
@@ -1069,7 +1069,7 @@
 !     Compute optical paths:
 !     CO2, use old scheme(as constant)
 !
-      tmp1 = 0.5/(gtigts*sslp)
+      tmp1 = 0.5D0/(gtigts*sslp)
 !     co2mmr = co2vmr*(mmwco2/mmwair)
  
       sqrco2 = dsqrt(co2mmr)
@@ -1152,7 +1152,7 @@
 !
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          tauxcl(i,0) = 0.
+          tauxcl(i,0) = 0.0D0
           wcl(i,0) = 0.999999D0
           gcl(i,0) = 0.85D0
           fcl(i,0) = 0.725D0
@@ -1180,13 +1180,14 @@
 !       near-infrared cloud absorption properties
 !
         indxsl = 0
-        if ( wavmax(ns).le.0.7D0 ) then
+        if ( wavmax(ns) <= 0.7D0 ) then
           indxsl = 1
-        else if ( wavmin(ns).eq.0.700D0 ) then
+        else if ( dabs(wavmin(ns)-0.700D0) < 1.0D-30 ) then
           indxsl = 2
-        else if ( wavmin(ns).eq.0.701D0 ) then
+        else if ( dabs(wavmin(ns)-0.701D0) < 1.0D-30 ) then
           indxsl = 3
-        else if ( wavmin(ns).eq.0.702D0 .or. wavmin(ns).gt.2.38D0 ) then
+        else if ( dabs(wavmin(ns)-0.702D0) < 1.0D-30 .or. &
+                       wavmin(ns) > 2.38D0 ) then
           indxsl = 4
         end if
 !
@@ -1275,7 +1276,7 @@
 !
 !       Wavelength less  than 0.7 micro-meter
 !
-        if ( wavmid.lt.0.7D0 ) then
+        if ( wavmid < 0.7D0 ) then
           do n = 1 , nloop
             do i = is(n) , ie(n)
               albdir(i) = asdir(i)
@@ -1299,11 +1300,11 @@
 !       delta-Eddington solution reflectivities and transmissivities
 !       for each layer, starting from the top and working downwards:
  
-!       options for aerosol: no climatic feedback if idirect .eq. 1
+!       options for aerosol: no climatic feedback if idirect == 1
 !       should be consistent with aeroppt routine
 
         if (ichem==1 ) then
-          if ( idirect.eq.2 ) then
+          if ( idirect == 2 ) then
             do k = 0 , kz
               do i = 1 , iym1
                 wkaer(i,k,1) = tauxar_mix(i,k,ns)
@@ -1312,7 +1313,7 @@
                 wkaer(i,k,4) = ftota_mix(i,k,ns)
               end do
             end do
-          else if ( idirect.eq.1 ) then
+          else if ( idirect == 1 ) then
             do k = 0 , kz
               do i = 1 , iym1
                 wkaer(i,k,1) = 0.0D0
@@ -1396,9 +1397,9 @@
 !       possibility of sub-divisions within a particular interval:
 !
         psf = 1.0
-        if ( ph2o(ns).ne.0.0D0 ) psf = psf*ph2o(ns)
-        if ( pco2(ns).ne.0.0D0 ) psf = psf*pco2(ns)
-        if ( po2(ns).ne.0.0D0 ) psf = psf*po2(ns)
+        if ( ph2o(ns) /= 0.0D0 ) psf = psf*ph2o(ns)
+        if ( pco2(ns) /= 0.0D0 ) psf = psf*pco2(ns)
+        if ( po2(ns) /= 0.0D0 ) psf = psf*po2(ns)
         do n = 1 , nloop
           do i = is(n) , ie(n)
             solflx(i) = solin(i)*frcsol(ns)*psf
@@ -1413,7 +1414,7 @@
 !
 !           Down spectral fluxes need to be in mks; thus the .001
 !           conversion factors
-            if ( wavmid.lt.0.7D0 ) then
+            if ( wavmid < 0.7D0 ) then
               sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*0.001D0
               solsd(i) = solsd(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))   &
                        & *solflx(i)*0.001D0
@@ -1452,7 +1453,7 @@
         end do
  
 !       solis is incident visible solar radiation
-        if ( ns.eq.8 ) then
+        if ( ns == 8 ) then
 !         -trapuv
 !         do i=1,iym1
 !         solis(i)=solflx(i)*0.001*fluxdn(i,kzp1)
@@ -1475,7 +1476,7 @@
 !       one with actual aerosol. DIFFERENCE  in net TOA SW for the two
 !       case is saved as one more variable in the rad file. The
 !       outputed TOASW ( fsntc, clrst) is accounting for aerosol.
-        if ( ichem==1 .and. idirect.ge.1 ) then
+        if ( ichem==1 .and. idirect >= 1 ) then
  
           do i = 1 , iym1
             zero(i,1) = 0.0D0
@@ -1635,7 +1636,7 @@
       end do                    ! End of spectral interval loop
  
 !     FAB calculation of TOA aerosol radiative forcing
-      if ( ichem==1 .and. idirect.ge.1 ) then
+      if ( ichem==1 .and. idirect >= 1 ) then
         do n = 1 , nloop
           do i = is(n) , ie(n)
             aeradfo(i) = -(x0fsntc(i)-fsntc(i))
@@ -1864,8 +1865,8 @@
 !     do emissivity and absorptivity calculations
 !     only if abs/ems computation
 !
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                       &
-         & (mod(ktau+1,ifrabe).eq.0) ) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or.                       &
+         & (mod(ktau+1,ifrabe) == 0) ) then
  
 !
 !       Compute ozone path lengths at frequency of a/e calculation.
@@ -1895,7 +1896,7 @@
                   & uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
                   & abplnk2,jslc)
 
-         if (ichem .ne. 0 .and. idirect > 0) then
+         if (ichem /= 0 .and. idirect > 0) then
            abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
            emstot0(:,:,jslc) = emstot(:,:,jslc)
            absnxt0(:,:,:,jslc) = absnxt(:,:,:,jslc)   
@@ -1911,7 +1912,7 @@
       end do
       do k = 1 , kz
         do i = 1 , iym1
-          if ( .not.done(i) .and. cld(i,kzp2-k).gt.0.0D0 ) then
+          if ( .not.done(i) .and. cld(i,kzp2-k) > 0.0D0 ) then
             done(i) = .true.
             klov(i) = k
           end if
@@ -1925,7 +1926,7 @@
       do k = kz , 1 , -1
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( .not.done(i) .and. cld(i,kzp2-k).gt.0.0D0 ) then
+          if ( .not.done(i) .and. cld(i,kzp2-k) > 0.0D0 ) then
             done(i) = .true.
             khiv(i) = k
           end if
@@ -1949,7 +1950,7 @@
 ! option to calculate LW aerosol radiative forcing
 
 ! FAB LW radiative forcing ( rad=1 : avec dust)
-      if (ichem .ne. 0 .and. idirect > 0) then
+      if (ichem /= 0 .and. idirect > 0) then
         nradaer = 2
         fsul0(:,:) = 0.0D0
         fsdl0(:,:) = 0.0D0
@@ -2008,12 +2009,12 @@
             delt1(i) = tlayr4(i,km) - tint4(i,km)
           end do
           do k = kzp1 , 1 , -1
-            if ( k.eq.km ) then
+            if ( k == km ) then
               do i = 1 , iym1
                 bk2(i) = absnxt(i,km-1,4,jslc)
                 bk1(i) = absnxt(i,km-1,1,jslc)
               end do
-            else if ( k.eq.km-1 ) then
+            else if ( k == km-1 ) then
               do i = 1 , iym1
                 bk2(i) = absnxt(i,km-1,2,jslc)
                 bk1(i) = absnxt(i,km-1,3,jslc)
@@ -2034,7 +2035,7 @@
 !       Computation of clear sky fluxes always set first level of fsul
 !
         do i = 1 , iym1
-          if ( iemiss.eq.1 ) then
+          if ( iemiss == 1 ) then
             fsul(i,kzp1) = emiss1d(i)*(stebol*(ts(i)**4.0D0))
           else
             fsul(i,kzp1) = stebol*(ts(i)**4.0D0)
@@ -2145,7 +2146,7 @@
         km4 = kzp4 - km
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( km.le.khiv(i) ) then
+          if ( km <= khiv(i) ) then
             tmp1 = cld(i,km2)*tclrsf(i,kz)*rtclrsf(i,km2)
             fdl(i,kzp1) = fdl(i,kzp1) + (fclb4(i,km1)-s(i,kzp1,km4)) &
                          & *tmp1
@@ -2161,7 +2162,7 @@
         k3 = kzp3 - k
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( k.ge.klov(i) .and. k.le.khivm(i) ) ful(i,k2) = fsul(i,k2)&
+          if ( k >= klov(i) .and. k <= khivm(i) ) ful(i,k2) = fsul(i,k2)&
              & *(tclrsf(i,kzp1)*rtclrsf(i,k1))
         end do
         do km = 1 , k
@@ -2171,7 +2172,7 @@
           do ii = 1 , iym1c
             i = indx(ii)
 !
-            if ( k.le.khivm(i) .and. km.ge.klov(i) .and. km.le.khivm(i) &
+            if ( k <= khivm(i) .and. km >= klov(i) .and. km <= khivm(i) &
                & ) ful(i,k2) = ful(i,k2)                                &
                              & + (fclt4(i,km1)+s(i,k2,k3)-s(i,k2,km3))  &
                              & *cld(i,km2)*(tclrsf(i,km1)*rtclrsf(i,k1))
@@ -2187,7 +2188,7 @@
         end do
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( k.ge.khiv(i) ) then
+          if ( k >= khiv(i) ) then
             start(i) = .true.
             ful(i,k2) = fsul(i,k2)*tclrsf(i,kzp1)                      &
                       & *rtclrsf(i,kzp1-khiv(i))
@@ -2199,7 +2200,7 @@
           km3 = kzp3 - km
           do ii = 1 , iym1c
             i = indx(ii)
-            if ( start(i) .and. km.ge.klov(i) .and. km.le.khiv(i) )     &
+            if ( start(i) .and. km >= klov(i) .and. km <= khiv(i) )     &
                & ful(i,k2) = ful(i,k2) +           &
                         (cld(i,km2)*tclrsf(i,km1)* &
                          rtclrsf(i,kzp1-khiv(i)))* &
@@ -2216,7 +2217,7 @@
         k3 = kzp3 - k
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( k.le.khivm(i) ) fdl(i,k2) = 0.0D0
+          if ( k <= khivm(i) ) fdl(i,k2) = 0.0D0
         end do
         do km = k + 1 , khighest
           km1 = kzp1 - km
@@ -2225,15 +2226,15 @@
           do ii = 1 , iym1c
             i = indx(ii)
 !
-            if ( k.le.khiv(i) .and. km.ge.max0(k+1,klov(i)) .and.       &
-               & km.le.khiv(i) ) fdl(i,k2) = fdl(i,k2)                  &
+            if ( k <= khiv(i) .and. km >= max0(k+1,klov(i)) .and.       &
+               & km <= khiv(i) ) fdl(i,k2) = fdl(i,k2)                  &
                & + (cld(i,km2)*tclrsf(i,k1)*rtclrsf(i,km2))             &
                & *(fclb4(i,km1)-s(i,k2,km4)+s(i,k2,k3))
           end do
         end do             ! km=k+1,khighest
         do ii = 1 , iym1c
           i = indx(ii)
-          if ( k.le.khivm(i) ) fdl(i,k2) = fdl(i,k2) + fsdl(i,k2)       &
+          if ( k <= khivm(i) ) fdl(i,k2) = fdl(i,k2) + fsdl(i,k2)       &
              & *(tclrsf(i,k1)*rtclrsf(i,kzp1-khiv(i)))
         end do
       end do               ! k=1,khighest-1
@@ -2430,7 +2431,7 @@
 !     print*,'dans radclr', maxval(tottrn)
       do k = 0 , kzp1
         do i = 1 , iym1
-          tottrn(i,k) = 0.
+          tottrn(i,k) = 0.0D0
         end do
       end do
 !
@@ -2512,7 +2513,7 @@
 !       transmission of radiation to the interface just above the layer
 !       exceeds trmin.
         call whenfgt(iym1,tottrn(1,k),1,trmin,indx,nval)
-        if ( nval.gt.0 ) then
+        if ( nval > 0 ) then
 !CDIR$    IVDEP
           do ii = 1 , nval
             i = indx(ii)
@@ -2898,7 +2899,7 @@
 !       transmission of radiation to the interface just above the layer
 !       exceeds trmin.
         call whenfgt(iym1,tottrn(1,k),1,trmin,indx,nval)
-        if ( nval.gt.0 ) then
+        if ( nval > 0 ) then
 !CDIR$    IVDEP
           do ii = 1 , nval
             i = indx(ii)
@@ -3339,7 +3340,7 @@
 !
       do k1 = kzp1 , 1 , -1
         do k2 = kzp1 , 1 , -1
-          if ( k1.ne.k2 ) then
+          if ( k1 /= k2 ) then
             do i = 1 , iym1
               dplh2o(i) = plh2o(i,k1) - plh2o(i,k2)
               u(i) = dabs(dplh2o(i))
@@ -3460,7 +3461,7 @@
                         & 0.5D0*trab6(i)*trline(i,1))
               abso(i,4) = term9(i,k2)*0.5D0*(tr1-tr9(i)+tr2-tr10(i))
             end do
-            if ( k2.lt.k1 ) then
+            if ( k2 < k1 ) then
               do i = 1 , iym1
                 to3h2o(i) = h2otr(i,k1)/h2otr(i,k2)
               end do
@@ -3529,7 +3530,7 @@
                        & + (u9/dsqrt(4.D0+u9*(1.D0+rbeta9)))
               f3co2(i) = u13/dsqrt(4.D0+u13*(1.D0+rbeta13))
             end do
-            if ( k2.ge.k1 ) then
+            if ( k2 >= k1 ) then
               do i = 1 , iym1
                 sqti(i) = dsqrt(tlayr(i,k2))
               end do
@@ -3718,7 +3719,7 @@
               ubar = dw(i)*phi*winpl(i,kn)*1.66D0*r80257
               pbar = pnew(i)*(psi/phi)
               cf812 = cfa1 + (1.D0-cfa1)/(1.D0+ubar*pbar*10.D0)
-              g2 = 1. + ubar*4.0D0*st(k)*cf812/pbar
+              g2 = 1.0D0 + ubar*4.0D0*st(k)*cf812/pbar
               g4 = realk(k)*pbar*r2st(k)*(dsqrt(g2)-1.D0)
               trline(i,k) = dexp(-g4)
             end do
@@ -4336,7 +4337,7 @@
                     (u7/dsqrt(4.D0+u7*(1.D0+rbeta7))))
           co2ems(i,k1) = troco2(i,k1)*absbnd*co2plk(i)
           ex = dexp(960.0D0/tint(i,k1))
-          exm1sq = (ex-1.)**2.0D0
+          exm1sq = (ex-1.0D0)**2.0D0
           co2em(i,k1) = 1.2D11*ex/(tint(i,k1)*tint4(i,k1)*exm1sq)
 !         trem3(i) = 1. - bndfct*absbnd
         end do
@@ -4748,13 +4749,13 @@
 !
       integer :: i
 !
-      if ( n.le.0 ) then
+      if ( n <= 0 ) then
         isrchfgt = 0
         return
       end if
       isrchfgt = 1
       do i = 1 , n , inc
-        if ( array(i).gt.rtarg ) then
+        if ( array(i) > rtarg ) then
           return
         else
           isrchfgt = isrchfgt + inc
@@ -4773,13 +4774,13 @@
 !
       integer :: i
 !
-      if ( n.le.0 ) then
+      if ( n <= 0 ) then
         isrchfle = 0
         return
       end if
       isrchfle = 1
       do i = 1 , n , inc
-        if ( array(i).le.rtarg ) then
+        if ( array(i) <= rtarg ) then
           return
         else
           isrchfle = isrchfle + inc
@@ -4805,9 +4806,9 @@
 !
       ina = 1
       nval = 0
-      if ( inc.lt.0 ) ina = (-inc)*(n-1) + 1
+      if ( inc < 0 ) ina = (-inc)*(n-1) + 1
       do i = 1 , n
-        if ( array(ina).eq.itarg ) then
+        if ( array(ina) == itarg ) then
           nval = nval + 1
           indx(nval) = i
         end if
@@ -4834,9 +4835,9 @@
 !
       ina = 1
       nval = 0
-      if ( inc.lt.0 ) ina = (-inc)*(n-1) + 1
+      if ( inc < 0 ) ina = (-inc)*(n-1) + 1
       do i = 1 , n
-        if ( array(ina).ne.itarg ) then
+        if ( array(ina) /= itarg ) then
           nval = nval + 1
           indx(nval) = i
         end if
@@ -4864,9 +4865,9 @@
 !
       ina = 1
       nval = 0
-      if ( inc.lt.0 ) ina = (-inc)*(n-1) + 1
+      if ( inc < 0 ) ina = (-inc)*(n-1) + 1
       do i = 1 , n
-        if ( array(ina).gt.rtarg ) then
+        if ( array(ina) > rtarg ) then
           nval = nval + 1
           indx(nval) = i
         end if
@@ -4895,9 +4896,9 @@
 !
       ina = 1
       nval = 0
-      if ( inc.lt.0 ) ina = (-inc)*(n-1) + 1
+      if ( inc < 0 ) ina = (-inc)*(n-1) + 1
       do i = 1 , n
-        if ( array(ina).lt.rtarg ) then
+        if ( array(ina) < rtarg ) then
           nval = nval + 1
           indx(nval) = i
         end if
@@ -4923,7 +4924,7 @@
       mx = iy(1)
       intmax = 1
       do i = 1 + inc , inc*n , inc
-        if ( iy(i).gt.mx ) then
+        if ( iy(i) > mx ) then
           mx = iy(i)
           intmax = i
         end if

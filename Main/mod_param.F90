@@ -399,7 +399,7 @@
       end if
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif 
 !  
 !-----read in namelist variables:
@@ -410,23 +410,23 @@
       read (ipunit, outparam)
       print * , 'param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
-      if ( dirout(len_path:len_path).ne.'/' ) dirout = trim(dirout)//'/'
-      if ( lakfrq < 0.0 ) lakfrq = batfrq
+      if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
+      if ( lakfrq < 0.0D0 ) lakfrq = batfrq
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM namelist READ IN'
-      if ( ipptls.eq.1 ) then
+      if ( ipptls == 1 ) then
         read (ipunit, subexparam)
         print * , 'param: SUBEXPARAM namelist READ IN'
       end if
-      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
         read (ipunit, grellparam)
         print * , 'param: GRELLPARAM namelist READ IN'
       end if
-      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
       end if
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         read (ipunit, chemparam)
         print * , 'param: CHEMPARAM namelist READ IN'
         if (ntr <= 0) then
@@ -499,7 +499,7 @@
       call mpi_bcast(clmfrq,1,mpi_real8,0,mpi_comm_world,ierr)
 #endif
 
-      if ( ipptls.eq.1 ) then
+      if ( ipptls == 1 ) then
         call mpi_bcast(ncld,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(fcmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(qck1land,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -515,7 +515,7 @@
         call mpi_bcast(cftotmax,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
         call mpi_bcast(shrmin,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(shrmax,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(edtmin,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -540,7 +540,7 @@
         call mpi_bcast(dtauc,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         call mpi_bcast(minsig,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(elcrit,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tlcrit,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -558,7 +558,7 @@
         call mpi_bcast(damp,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         call mpi_bcast(ichremlsc,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ichremcvc,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ichdrdepo,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -573,9 +573,9 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
-      if ( lakemod.eq.1 ) call allocate_lake
+      if ( lakemod == 1 ) call allocate_lake
 #ifdef CHEMTEST
-      if ( ichem.eq.1 ) call allocate_mod_chem(lmpi)
+      if ( ichem == 1 ) call allocate_mod_chem(lmpi)
 #endif
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
@@ -603,8 +603,8 @@
 #endif
 #endif
 #ifndef BAND
-      if ( ichem.eq.1 ) then
-        if (debug_level .gt. 2) call allocate_mod_diagnosis
+      if ( ichem == 1 ) then
+        if (debug_level > 2) call allocate_mod_diagnosis
       end if
 #endif
 !
@@ -616,27 +616,27 @@
 !
       write (aline,*) 'param: starting first checks' 
       call say
-      if ( mod(idnint(radfrq*60.0D0),idnint(dt)).ne.0 ) then
+      if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(abatm),idnint(dt)).ne.0 ) then
+      if ( mod(idnint(abatm),idnint(dt)) /= 0 ) then
         write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(batfrq*3600.0D0),idnint(abatm)).ne.0 ) then
+      if ( mod(idnint(batfrq*3600.0D0),idnint(abatm)) /= 0 ) then
         write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
       end if
-      if ( lakemod.eq.1 ) then
-        if ( lakfrq .lt. batfrq .or. &
-             mod(idnint(lakfrq),idnint(batfrq)).ne.0 ) then
+      if ( lakemod == 1 ) then
+        if ( lakfrq < batfrq .or. &
+             mod(idnint(lakfrq),idnint(batfrq)) /= 0 ) then
           write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
           call say
           write (aline,*) 'Lake frequency needs to be an integer ',&
@@ -648,21 +648,21 @@
           end if
         end if
       end if
-      if ( mod(idnint(abemh*3600.0D0),idnint(dt)).ne.0 ) then
+      if ( mod(idnint(abemh*3600.0D0),idnint(dt)) /= 0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(abemh*60.0D0),idnint(radfrq)).ne.0 ) then
+      if ( mod(idnint(abemh*60.0D0),idnint(radfrq)) /= 0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                   &' TIMESTEPS SPECIFIED')
       end if
 
-      if ( ichem.eq.0 ) ifchem = .false.
-      if ( ichem.eq.1 .and. chemfrq.eq. 0.) then
+      if ( ichem == 0 ) ifchem = .false.
+      if ( ichem == 1 .and. chemfrq <=  0.0D0) then
         write (aline,*) 'CHEMFRQ=' ,chemfrq
         call say
         call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
@@ -710,9 +710,9 @@
       nstrt0 = 0
       nstart = idatediff(idate1,idate0)/ibdyfrq
 #ifdef MPP1
-      if (myid .eq. 0) then
+      if (myid == 0) then
 #endif
-      if (ifrest .and. nstart .eq. 0) then
+      if (ifrest .and. nstart == 0) then
         write (6,*) 'Error in parameter set.'
         write (6,*) 'Cannot set idate0 == idate1 on restart run'
         write (6,*) 'Correct idate0.'
@@ -750,7 +750,7 @@
 !     angle must be recalculated.
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif              
         call open_domain(r8pt,dx,sigma)
 #ifdef MPP1        
@@ -818,7 +818,7 @@
       write (aline,*) 'Frequency in hours to write  SRF: batfrq = ' , &
                       batfrq  
       call say
-      if ( lakemod.eq.1 ) then
+      if ( lakemod == 1 ) then
         write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
                         lakfrq
       end if
@@ -910,7 +910,7 @@
       write (aline, *) ' '
       call say
 
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         chtrname = inpchtrname(1:ntr)
         chtrdpv = inpchtrdpv(1:ntr,:)
         dustbsiz = inpdustbsiz(1:nbin,:)
@@ -930,15 +930,15 @@
       write (aline, *) 'param: Reading in DOMAIN data'
       call say
 
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         call read_domain(mddom_io%ht,mddom_io%satbrt, &
                          mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
                          mddom_io%msfd,mddom_io%f,snowc_io)
-        if ( nsg.gt.1 ) then
+        if ( nsg > 1 ) then
           call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
-          if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1_io)
+          if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
         else
-          if ( lakemod.eq.1 ) call read_domain_lake(dhlake1_io)
+          if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
           do j = 1 , jx
             do i = 1 , iy
               ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
@@ -979,9 +979,9 @@
             end do
           end do
         end do
-      end if  ! end if (myid.eq.0)
+      end if  ! end if (myid == 0)
 
-      if(lakemod.eq.1) then
+      if(lakemod == 1) then
         call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
                      &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
                      &   0,mpi_comm_world,ierr)
@@ -1011,7 +1011,7 @@
         end do
       end do
 
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         print * , ' '
         print * ,                                                     &
              &'***************************************************'
@@ -1027,7 +1027,7 @@
              &'       ****'
         print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
              &'    ****'
-        if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat , &
+        if ( iproj == 'ROTMER' ) print * , '****     PLAT= ' , plat , &
                                      &' PLON=' , plon , '    ****'
         print * ,                                                     &
              &'***************************************************'
@@ -1061,11 +1061,11 @@
       call read_domain(mddom%ht,mddom%satbrt, &
                        mddom%xlat,mddom%xlong,mddom%msfx,&
                        mddom%msfd,mddom%f,snowc)
-      if ( nsg.gt.1 ) then
+      if ( nsg > 1 ) then
         call read_subdomain(ht1,satbrt1,xlat1,xlon1)
-        if ( lakemod.eq.1 ) call read_subdomain_lake(dhlake1)
+        if ( lakemod == 1 ) call read_subdomain_lake(dhlake1)
       else
-        if ( lakemod.eq.1 ) call read_domain_lake(dhlake1)
+        if ( lakemod == 1 ) call read_domain_lake(dhlake1)
         do j = 1 , jx
           do i = 1 , iy
             ht1(1,i,j) = mddom%ht(i,j)*gti
@@ -1099,7 +1099,7 @@
            &'       ****'
       print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
            &'    ****'
-      if ( iproj.eq.'ROTMER' ) print * , '****     PLAT= ' , plat ,   &
+      if ( iproj == 'ROTMER' ) print * , '****     PLAT= ' , plat ,   &
                                    &' PLON=' , plon , '    ****'
       print * , '***************************************************'
       print * , ' '
@@ -1115,9 +1115,9 @@
       end do
  
       do k = 1 , kz
-        if ( a(k).lt.0.4D0 ) then
+        if ( a(k) < 0.4D0 ) then
           anudg(k) = high_nudge
-        else if ( a(k).lt.0.8D0 ) then
+        else if ( a(k) < 0.8D0 ) then
           anudg(k) = medium_nudge
         else
           anudg(k) = low_nudge
@@ -1173,7 +1173,7 @@
             qkp1 = -((yy*yy)-(bb*yy)+cc)
             vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
             ssum = ssum + vqflx(k,kbase,ktop)
-            if ( dabs(vqflx(k,kbase,ktop)).gt.vqmax )                   &
+            if ( dabs(vqflx(k,kbase,ktop)) > vqmax )                   &
                & vqmax = dabs(vqflx(k,kbase,ktop))
             wk = wkp1
             qk = qkp1
@@ -1194,7 +1194,7 @@
       kt = 1
       do k = kz , 1 , -1
         delsig = a(k) - sigtbl
-        if ( delsig.le.0.0D0 ) then
+        if ( delsig <= 0.0D0 ) then
           kt = k
           exit
         end if
@@ -1205,7 +1205,7 @@
       write (aline, *) ' '
       call say
 !
-      if ( ipptls.eq.1 ) then
+      if ( ipptls == 1 ) then
         write (aline, '(a,f11.6,a,f11.6)')                        &
                & 'Auto-conversion rate:  Land = ' , qck1land ,    &
                & '                      Ocean = ' , qck1oce
@@ -1223,11 +1223,11 @@
         call say
         write (aline, *) 'rh0 temperature threshold: ' , tc0
         call say
-        if ( cevap.le.0.0 ) then
+        if ( cevap <= 0.0D0 ) then
           write (aline, *) 'Raindrop evaporation not included'
           call say
         end if
-        if ( caccr.le.0.0 ) then
+        if ( caccr <= 0.0D0 ) then
           write (aline, *) 'Raindrop accretion not included'
           call say
         end if
@@ -1243,28 +1243,28 @@
       write (aline, *) ' '
       call say
  
-      if (icup .eq. 99) then
+      if (icup == 99) then
         write (aline,*) 'Variable cumulus scheme: will use Grell '// &
              'over land and Emanuel over ocean.'
         call say
-        where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
+        where (mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0)
           cumcon%cuscheme = 4
         elsewhere
           cumcon%cuscheme = 2
         end where
       end if
-      if (icup .eq. 98) then
+      if (icup == 98) then
         write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
              'over land and Grell over ocean.'
         call say
-        where (mddom%satbrt .gt. 14.5 .and. mddom%satbrt .lt. 15.5)
+        where (mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0)
           cumcon%cuscheme = 2
         elsewhere
           cumcon%cuscheme = 4
         end where
       end if
 
-      if ( icup.eq.1 ) then
+      if ( icup == 1 ) then
         write (aline, *) '*********************************'
         call say
         write (aline, *) '***** Anthes-Kuo Convection *****'
@@ -1272,10 +1272,10 @@
         write (aline, *) '*********************************'
         call say
       end if
-      if ( icup.eq.2 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
         kbmax = kz
         do k = 1 , kz - 1
-          if ( a(k).le.skbmax ) kbmax = kz - k
+          if ( a(k) <= skbmax ) kbmax = kz - k
         end do
         write (aline, *) '*********************************' 
         call say
@@ -1309,11 +1309,11 @@
         call say
         write (aline, *) '   Min Heating:' , htmin
         call say
-        if ( igcc.eq.1 ) then
+        if ( igcc == 1 ) then
           write (aline, *)                                              &
                &'   Arakawa-Schubert (1974) Closure Assumption'
           call say
-        else if ( igcc.eq.2 ) then
+        else if ( igcc == 2 ) then
           write (aline, *)                                              &
                &'   Fritsch-Chappell (1980) Closure Assumption'
           call say
@@ -1361,19 +1361,19 @@
           end do
         end do
       end if
-      if ( icup.eq.3 ) then
+      if ( icup == 3 ) then
         write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                        &' properly implemented'
         call say
         call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
         call allocate_mod_cu_bm(lmpi)
       end if
-      if ( icup.eq.4 .or. icup.eq.99 .or. icup.eq.98 ) then
+      if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
         clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
         minorig = kz
         do k = 1 , kz
-          if ( a(k).le.minsig ) minorig = kz - k
+          if ( a(k) <= minsig ) minorig = kz - k
         end do
         write (aline, *) ' '
         call say
@@ -1468,11 +1468,11 @@
       chibot = 450.0D0
       ptmb = 10.0D0*r8pt
       pz = a(1)*(1000.0D0-ptmb) + ptmb
-      if ( pz.gt.chibot ) call fatal(__FILE__,__LINE__,                 &
+      if ( pz > chibot ) call fatal(__FILE__,__LINE__,                 &
                                     &'VERTICAL INTERPOLATION ERROR')
       do k = 1 , kz
         pk = a(k)*(1000.0D0-ptmb) + ptmb
-        if ( pk.le.chibot ) kchi = k
+        if ( pk <= chibot ) kchi = k
       end do
  
 !
@@ -1483,7 +1483,7 @@
       sig700 = (70.0D0-r8pt)/(100.0D0-r8pt)
       do k = 1 , kz
         k700 = k
-        if ( sig700.le.sigma(k+1) .and. sig700.gt.sigma(k) ) exit
+        if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
       end do
 !
 !-----specify the coefficients for sponge boundary conditions.
@@ -1491,7 +1491,7 @@
       ispgd = nspgd - 1
       ispgx = nspgx - 1
 !.....for dot point variables:
-      if ( iboudy.eq.4 ) then
+      if ( iboudy == 4 ) then
         wgtd(1) = 0.0D0
         wgtd(2) = 0.2D0
         wgtd(3) = 0.55D0
@@ -1513,25 +1513,25 @@
 !-----specify the coefficients for nudging boundary conditions:
 !
 !.....for large domain:
-      if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
+      if ( iboudy == 1 .or. iboudy == 5 ) then
         fnudge = 0.1D0/dt2
         gnudge = (dxsq/dt)/50.0D0
       end if
-      if ( icup.eq.3 ) call lutbl(r8pt)
+      if ( icup == 3 ) call lutbl(r8pt)
 !
 !-----print out the parameters specified in the model.
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
-        if ( ibltyp.eq.0 ) print 99002
+      if ( myid == 0 ) then
+        if ( ibltyp == 0 ) print 99002
         print 99003 , julday , gmt , ntrad
 !
-        if ( iboudy.eq.0 ) print 99004
-        if ( iboudy.eq.1 ) print 99005 , fnudge , gnudge
-        if ( iboudy.eq.2 ) print 99007
-        if ( iboudy.eq.3 ) print 99008
-        if ( iboudy.eq.4 ) print 99009
-        if ( iboudy.eq.5 ) print 99006 , fnudge , gnudge
+        if ( iboudy == 0 ) print 99004
+        if ( iboudy == 1 ) print 99005 , fnudge , gnudge
+        if ( iboudy == 2 ) print 99007
+        if ( iboudy == 3 ) print 99008
+        if ( iboudy == 4 ) print 99009
+        if ( iboudy == 5 ) print 99006 , fnudge , gnudge
  
         print 99010
 !
@@ -1549,15 +1549,15 @@
       end if
       call mpi_barrier(mpi_comm_world,ierr) 
 #else
-      if ( ibltyp.eq.0 ) print 99002
+      if ( ibltyp == 0 ) print 99002
       print 99003 , julday , gmt , ntrad
 !
-      if ( iboudy.eq.0 ) print 99004
-      if ( iboudy.eq.1 ) print 99005 , fnudge , gnudge
-      if ( iboudy.eq.2 ) print 99007
-      if ( iboudy.eq.3 ) print 99008
-      if ( iboudy.eq.4 ) print 99009
-      if ( iboudy.eq.5 ) print 99006 , fnudge , gnudge
+      if ( iboudy == 0 ) print 99004
+      if ( iboudy == 1 ) print 99005 , fnudge , gnudge
+      if ( iboudy == 2 ) print 99007
+      if ( iboudy == 3 ) print 99008
+      if ( iboudy == 4 ) print 99009
+      if ( iboudy == 5 ) print 99006 , fnudge , gnudge
 
       print 99010
 !
