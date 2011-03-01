@@ -53,6 +53,9 @@ program ncprepare
   real(4) :: alat , alon , angle
   integer :: i , j , iid
   logical :: lvarsplit , existing , lsigma , ldepth
+#ifdef __PGI
+  integer , external :: iargc
+#endif
 #ifdef IBM
   integer , external :: iargc
 #endif

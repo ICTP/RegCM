@@ -52,7 +52,10 @@ program sigma2p
   real(4) :: ptop
   integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d
   integer :: n3d , ip3d
-#ifdef IBM
+#ifdef __PGI
+  integer , external :: iargc
+#endif
+#ifdef IBM 
   integer , external :: iargc
 #endif
 
@@ -76,6 +79,14 @@ program sigma2p
   istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
   call check_ok('Error Opening Input file '//trim(ncsfile))
 
+  jxdimid = -1
+  iydimid = -1
+  kzdimid = -1
+  itdimid = -1
+  itvarid = -1
+  ikvarid = -1
+  iy = -1
+  jx = -1
 #ifdef NETCDF4_HDF5
   istatus = nf90_create(ncpfile, &
             ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &

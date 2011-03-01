@@ -53,6 +53,9 @@ program ncplot
   real(4) :: alat , alon , angle
   integer :: i , j
   logical :: lvarsplit , lsigma , ldepth
+#ifdef __PGI
+  integer , external :: iargc
+#endif
 #ifdef IBM
   integer , external :: iargc
 #endif
