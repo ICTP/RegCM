@@ -220,22 +220,24 @@ AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
-  FCFLAGS="-fconvert=big-endian $FCFLAGS"
+  FCFLAGS="-fconvert=big-endian"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xifort"; then
-  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
+  LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
+  AC_SUBST(LIBS)
 fi
 if eval "test x"$FC" = xg95"; then
-  FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+  FCFLAGS="-fendian=big -fmultiple-save"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xpgf90"; then
-  FCFLAGS="-byteswapio $FCFLAGS"
+  FCFLAGS="-byteswapio"
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
 fi

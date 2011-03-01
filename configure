@@ -642,7 +642,7 @@ OSNAME_AIX_FALSE
 OSNAME_AIX_TRUE
 OSNAME
 AM_LDFLAGS
-MDEPFLAGS
+AMDEPFLAGS
 NC_PREFIX
 DO_COMPILE_LIBCLM_FALSE
 DO_COMPILE_LIBCLM_TRUE
@@ -15546,7 +15546,7 @@ $as_echo "$as_me: checking for NetCDF..." >&6;}
   save_LDFLAGS="$LDFLAGS"
 
   CPPFLAGS="$CPPFLAGS $NC_INCLUDES"
-  MDEPFLAGS="$MDEPFLAGS $NC_INCLUDES"
+  AMDEPFLAGS="$AMDEPFLAGS $NC_INCLUDES"
   LIBS="$LIBS $NC_LIBS"
   LDFLAGS="$LDFLAGS $NC_LDFLAGS"
 
@@ -16016,22 +16016,24 @@ fi
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
-  FCFLAGS="-fconvert=big-endian $FCFLAGS"
+  FCFLAGS="-fconvert=big-endian"
   CPRDEF="GNU"
 
 fi
 if eval "test x"$FC" = xifort"; then
-  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays $FCFLAGS"
+  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays"
   CPRDEF="INTEL"
+
+  LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
 
 fi
 if eval "test x"$FC" = xg95"; then
-  FCFLAGS="-fendian=big -fmultiple-save $FCFLAGS"
+  FCFLAGS="-fendian=big -fmultiple-save"
   CPRDEF="GNU"
 
 fi
 if eval "test x"$FC" = xpgf90"; then
-  FCFLAGS="-byteswapio $FCFLAGS"
+  FCFLAGS="-byteswapio"
   CPRDEF="PGI"
 
 fi
