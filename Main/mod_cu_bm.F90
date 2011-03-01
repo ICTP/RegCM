@@ -279,7 +279,7 @@
             tdpt = dmin1(tdpt,t(i,kb))
             tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*(t(i,kb)- &
                  & tzero))*(t(i,kb)-tdpt)
-            tthes(i) = tthbt(i)*exp(elocp*q(i,kb)/tlcl)
+            tthes(i) = tthbt(i)*dexp(elocp*q(i,kb)/tlcl)
 !--------------check for maximum buoyancy-------------------------------
             if ( tthes(i).gt.thesp(i) ) then
               psp(i) = h10e5*(tthbt(i)/tlcl)**cporng
@@ -323,9 +323,9 @@
 !--------------find environmental saturation equiv pot temp...
         do i = 2 , iym2
           p(i) = (a(l)*sps2%ps(i,j)+r8pt)*1000.
-          es = aliq*exp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
+          es = aliq*dexp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
           qs = ep2*es/(p(i)-es)
-          ths(i) = t(i,l)*ape(i,l)*exp(elocp*qs/t(i,l))
+          ths(i) = t(i,l)*ape(i,l)*dexp(elocp*qs/t(i,l))
         end do
 !--------------buoyancy check-------------------------------------------
         do i = 2 , iym2
@@ -476,7 +476,7 @@
             apesk(l) = (psk(l)/h10e5)**dm2859
             thsk(l) = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(c3les*(thsk(l)-tzero*apesk(l))/(thsk(l)-    &
+                     & *dexp(c3les*(thsk(l)-tzero*apesk(l))/(thsk(l)-   &
                      & c4les*apesk(l)))
           else
             qrefk(l) = q(i,l)
@@ -512,7 +512,7 @@
             trefk(l) = hcorr/dhdt + trefk(l)
             thskl = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
-                     & *exp(c3les*(thskl-tzero*apesk(l))/               &
+                     & *dexp(c3les*(thskl-tzero*apesk(l))/              &
                      & (thskl-c4les*apesk(l)))
           end do
 !-----------------------------------------------------------------------
@@ -648,9 +648,9 @@
 !...estimate shallow cloud top... see do 545...
 !
         do kk = kz , 1 , -1
-          pflag = abs(pk(kz)-pdp(kk))
+          pflag = dabs(pk(kz)-pdp(kk))
           do k = kz - 1 , 1 , -1
-            pdiffk = abs(pk(k)-pdp(kk))
+            pdiffk = dabs(pk(k)-pdp(kk))
             if ( pdiffk.lt.pflag ) then
               pflag = pdiffk
               if ( kk.eq.k ) then
@@ -660,7 +660,7 @@
               end if
             end if
           end do
-          kdp(kk) = max(1,kdp(kk))
+          kdp(kk) = max0(1,kdp(kk))
         end do
 !--------------search for shallow cloud top-----------------------------
         lbtk = lbot(i)
@@ -684,9 +684,9 @@
 !-----------------------------------------------------------------------
         do l = ltpk , lbtk
           if ( l.ge.ml(i) ) then
-            es = aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
+            es = aliq*dexp((bliq*tk(l)-cliq)/(tk(l)-dliq))
           else
-            es = aice*exp((bice*tk(l)-cice1)/(tk(l)-dice))
+            es = aice*dexp((bice*tk(l)-cice1)/(tk(l)-dice))
           end if
           qsatk(l) = ep2*es/(pk(l)-es)
         end do
@@ -719,7 +719,7 @@
              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
         ptpk = h10e5*(thtpk/tlcl)**cporng
         dpmix = ptpk - psp(i)
-        if ( abs(dpmix).lt.h3000 ) dpmix = -h3000
+        if ( dabs(dpmix).lt.h3000 ) dpmix = -h3000
 !--------------temperature propfile slope-------------------------------
         smix = (thtpk-thbt(i))/dpmix*stabs
         do l = ltp1 , lbtk
@@ -933,7 +933,7 @@
         do kp = 1 , kpm
           p = p + dp
           ape = (100000.D0/p)**(rovcp)
-          qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+          qsold(kp) = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
           pold(kp) = p
         end do
 !
@@ -982,9 +982,9 @@
         do kth = 1 , kthm
           th = th + dth
           ape = (100000.D0/p)**(rovcp)
-          qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
+          qs = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
           told(kth) = th/ape
-          theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
+          theold(kth) = th*dexp(eliwv*qs/(cpd*told(kth)))
         end do
 !
         the0k = theold(1)
@@ -1182,8 +1182,8 @@
       tguess = tgs
  100  es = 611.*dexp(rlorw*(d273-1./t1))
       qs = ep2*es/(press-es)
-      f1 = t1*exp(rlocpd*qs/t1) - rp
-      if ( abs(f1).lt..1 ) then
+      f1 = t1*dexp(rlocpd*qs/t1) - rp
+      if ( dabs(f1).lt..1 ) then
 !
         tpfc = t1
       else

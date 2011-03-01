@@ -533,7 +533,7 @@
         implicit none
         real(8) :: fseas
         real(8) , intent(in) :: x
-        fseas = max(0.0D0,1.-0.0016D0*max(298.D0-x,0.D0)**2.0D0)
+        fseas = dmax1(0.0D0,1.-0.0016D0*dmax1(298.D0-x,0.D0)**2.0D0)
       end function fseas
  
       end subroutine stomat

@@ -135,31 +135,41 @@
             read (iutrst) soll2d_io
             read (iutrst) solsd2d_io
             read (iutrst) solld2d_io
-            read (iutrst) flwd2d_io
             read (iutrst) aldirs2d_io
             read (iutrst) aldirl2d_io
             read (iutrst) aldifs2d_io
             read (iutrst) aldifl2d_io
-            read (iutrst) coszrs2d_io
-            read (iutrst) ocld2d_io
+            read (iutrst) satbrt2d_io
+#endif
+            read (iutrst) sol2d_io
+            read (iutrst) solvd2d_io
+            read (iutrst) solvs2d_io
+            read (iutrst) sabv2d_io
+            read (iutrst) tlef2d_io
+            read (iutrst) ssw2d_io
+            read (iutrst) srw2d_io
+            read (iutrst) tg2d_io
+            read (iutrst) tgb2d_io
+            read (iutrst) scv2d_io
+            read (iutrst) gwet2d_io
+            read (iutrst) sag2d_io
+            read (iutrst) sice2d_io
+            read (iutrst) dew2d_io
+            read (iutrst) ircp2d_io
+            read (iutrst) text2d_io
+            read (iutrst) col2d_io
+            read (iutrst) veg2d_io
+            read (iutrst) veg2d1_io
             read (iutrst) heatrt_io
             read (iutrst) o3prof_io
             read (iutrst) tgbb_io
             read (iutrst) flw2d_io
+            read (iutrst) flwd2d_io
+            read (iutrst) fsw2d_io
             read (iutrst) swt2d_io
             read (iutrst) sinc2d_io
-            read (iutrst) fsw2d_io
             read (iutrst) taf2d_io
-#else
-            read (iutrst) sol2d_io, solvd2d_io, solvs2d_io, flw2d_io, &
-                       & flwd2d_io, fsw2d_io, sabv2d_io, sinc2d_io
-            read (iutrst) taf2d_io, tlef2d_io, tgbb_io, ssw2d_io, &
-                     & srw2d_io, tg2d_io, tgb2d_io, swt2d_io, &
-                     & scv2d_io, gwet2d_io, veg2d_io, veg2d1_io,  &
-                     & sag2d_io, sice2d_io, dew2d_io, ircp2d_io,  &
-                     & text2d_io, col2d_io, ocld2d_io, heatrt_io, &
-                     & o3prof_io
-#endif
+            read (iutrst) ocld2d_io
             read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
             if ( iocnflx.eq.2 ) read (iutrst) zpbl_io
             if ( ichem.eq.1 ) then
@@ -214,12 +224,35 @@
 #endif
             read (iutrst) absnxt , abstot , emstot
             if ( ipptls.eq.1 ) read (iutrst) fcc
-            read (iutrst) sol2d , solvd2d , solvs2d , flw2d , flwd2d ,  &
-                       & fsw2d , sabv2d , sinc2d
-            read (iutrst) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d , &
-                     & tg2d ,  tgb2d , swt2d , scv2d , gwet2d , veg2d , &
-                     & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
-                     & text2d , col2d , ocld2d , heatrt , o3prof
+            read (iutrst) sol2d
+            read (iutrst) solvd2d
+            read (iutrst) solvs2d
+            read (iutrst) sabv2d
+            read (iutrst) tlef2d
+            read (iutrst) ssw2d
+            read (iutrst) srw2d
+            read (iutrst) tg2d
+            read (iutrst) tgb2d
+            read (iutrst) scv2d
+            read (iutrst) gwet2d
+            read (iutrst) sag2d
+            read (iutrst) sice2d
+            read (iutrst) dew2d
+            read (iutrst) ircp2d
+            read (iutrst) text2d
+            read (iutrst) col2d
+            read (iutrst) veg2d
+            read (iutrst) veg2d1
+            read (iutrst) heatrt
+            read (iutrst) o3prof
+            read (iutrst) sfsta%tgbb
+            read (iutrst) flw2d
+            read (iutrst) flwd2d
+            read (iutrst) fsw2d
+            read (iutrst) swt2d
+            read (iutrst) sinc2d
+            read (iutrst) taf2d
+            read (iutrst) ocld2d
             read (iutrst) pptnc , pptc , prca2d , prnca2d
             if ( iocnflx.eq.2 ) read (iutrst) sfsta%zpbl
             if ( ichem.eq.1 ) then
@@ -365,31 +398,41 @@
             write (iutsav) soll2d_io
             write (iutsav) solsd2d_io
             write (iutsav) solld2d_io
-            write (iutsav) flwd2d_io
             write (iutsav) aldirs2d_io
             write (iutsav) aldirl2d_io
             write (iutsav) aldifs2d_io
             write (iutsav) aldifl2d_io
-            write (iutsav) coszrs2d_io
-            write (iutsav) ocld2d_io
+            write (iutsav) satbrt2d_io
+#endif
+            write (iutsav) sol2d_io
+            write (iutsav) solvd2d_io
+            write (iutsav) solvs2d_io
+            write (iutsav) sabv2d_io
+            write (iutsav) tlef2d_io
+            write (iutsav) ssw2d_io
+            write (iutsav) srw2d_io
+            write (iutsav) tg2d_io
+            write (iutsav) tgb2d_io
+            write (iutsav) scv2d_io
+            write (iutsav) gwet2d_io
+            write (iutsav) sag2d_io
+            write (iutsav) sice2d_io
+            write (iutsav) dew2d_io
+            write (iutsav) ircp2d_io
+            write (iutsav) text2d_io
+            write (iutsav) col2d_io
+            write (iutsav) veg2d_io
+            write (iutsav) veg2d1_io
             write (iutsav) heatrt_io
             write (iutsav) o3prof_io
             write (iutsav) tgbb_io
             write (iutsav) flw2d_io
+            write (iutsav) flwd2d_io
+            write (iutsav) fsw2d_io
             write (iutsav) swt2d_io
             write (iutsav) sinc2d_io
-            write (iutsav) fsw2d_io
             write (iutsav) taf2d_io
-#else
-            write (iutsav) sol2d_io, solvd2d_io, solvs2d_io, flw2d_io, &
-                     & flwd2d_io , fsw2d_io , sabv2d_io , sinc2d_io
-            write (iutsav) taf2d_io , tlef2d_io , tgbb_io , ssw2d_io ,&
-                     & srw2d_io , tg2d_io , tgb2d_io , swt2d_io ,     &
-                     & scv2d_io , gwet2d_io , veg2d_io , veg2d1_io ,  &
-                     & sag2d_io , sice2d_io , dew2d_io , ircp2d_io ,  &
-                     & text2d_io , col2d_io , ocld2d_io , heatrt_io , &
-                     & o3prof_io
-#endif
+            write (iutsav) ocld2d_io
             write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
             if ( iocnflx.eq.2 ) write (iutsav) zpbl_io
             if ( ichem.eq.1 ) then
@@ -444,12 +487,35 @@
 #endif
             write (iutsav) absnxt , abstot , emstot
             if ( ipptls.eq.1 ) write (iutsav) fcc
-            write (iutsav) sol2d , solvd2d , solvs2d , flw2d , flwd2d , &
-                     & fsw2d , sabv2d , sinc2d
-            write (iutsav) taf2d , tlef2d , sfsta%tgbb , ssw2d , srw2d ,&
-                     & tg2d , tgb2d , swt2d , scv2d , gwet2d , veg2d ,  &
-                     & veg2d1 , sag2d , sice2d , dew2d , ircp2d ,       &
-                     & text2d , col2d , ocld2d , heatrt , o3prof
+            write (iutsav) sol2d
+            write (iutsav) solvd2d
+            write (iutsav) solvs2d
+            write (iutsav) sabv2d
+            write (iutsav) tlef2d
+            write (iutsav) ssw2d
+            write (iutsav) srw2d
+            write (iutsav) tg2d
+            write (iutsav) tgb2d
+            write (iutsav) scv2d
+            write (iutsav) gwet2d
+            write (iutsav) sag2d
+            write (iutsav) sice2d
+            write (iutsav) dew2d
+            write (iutsav) ircp2d
+            write (iutsav) text2d
+            write (iutsav) col2d
+            write (iutsav) veg2d
+            write (iutsav) veg2d1
+            write (iutsav) heatrt
+            write (iutsav) o3prof
+            write (iutsav) sfsta%tgbb
+            write (iutsav) flw2d
+            write (iutsav) flwd2d
+            write (iutsav) fsw2d
+            write (iutsav) swt2d
+            write (iutsav) sinc2d
+            write (iutsav) taf2d
+            write (iutsav) ocld2d
             write (iutsav) pptnc , pptc , prca2d , prnca2d
             if ( iocnflx.eq.2 ) write (iutsav) sfsta%zpbl
             if ( ichem.eq.1 ) then

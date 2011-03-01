@@ -146,7 +146,7 @@
 !-----fill up the boundary slices:
 !
 !     if (iexec .eq. 1) then
-      if ( .not.ifrest .and. iexec.eq.1 ) then
+      if ( .not. ifrest .and. iexec.eq.1 ) then
         call bdyval(xtime,iexec)
         iexec = 2
       else
@@ -635,7 +635,6 @@
 
 #ifdef CLM
       if ( init_grid ) then
-        r2cnstep = ktau/nbatst
         call initclm
         init_grid = .false.
       end if
@@ -1218,7 +1217,7 @@
             xtm1 = xtime - dtmin
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )     &
                & xtm1 = -dtmin
-            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(1,j),j,iboudy)
+            call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
         end if     !end if(j.ne.jxm1) test
@@ -1573,7 +1572,8 @@
            &  mod(ktau+1,nbatst).eq.0 ) then
           dtbat = dt/2.*nbatst
           if ( jyear.eq.jyear0 .and. ktau.eq.0 ) dtbat = dt
-          call vecbats(j, kz , 2 , iym1 , nnsg)
+          call interf(1 , j , kz , 2 , iym1 , nnsg)
+          call vecbats
 !         Zeng ocean flux model
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
 !         Hostetler lake model for every BATS timestep at lake points
@@ -1590,7 +1590,7 @@
 
 #ifdef CLM
       if ( ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
-         & mod(ktau+1,ntrad).eq.0 ) then
+          & mod(ktau+1,ntrad).eq.0 ) then
         r2cdoalb = .true.
       else
         r2cdoalb = .false.
@@ -1697,9 +1697,9 @@
             xtm1 = xtime - dtmin
             if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )        &
                & xtm1 = -dtmin
-            call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(1,1,j),j,   &
+            call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
-            call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(1,1,j),j,  &
+            call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
                        & iboudy)
           end if
 !
@@ -1946,12 +1946,12 @@
                     & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                     (log(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -      &
-                      log(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/  &
+                     (dlog(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
+                      dlog(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
-                     (log(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -      &
-                      log(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/  &
+                     (dlog(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
+                      dlog(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
             end do
           end do
@@ -1966,12 +1966,12 @@
               tv4 = atmx%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                      (log(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
-                       log(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
+                      (dlog(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -    &
+                       dlog(0.5D0*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
-                      (log(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
-                       log(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
+                      (dlog(0.5D0*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -    &
+                       dlog(0.5D0*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
             end do
           end do
@@ -2000,7 +2000,7 @@
                         & + rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)   &
                         & **pgfaa1
             phi(i,kz,j) = phi(i,kz,j) - rgas * &
-                     tv*log((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
+                    tv*dlog((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -2010,8 +2010,8 @@
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+       &
                     & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/       &
                     & (1.+atmx%qv(i,lev,j)))
-              phi(i,lev,j) = phi(i,lev+1,j) - rgas *   &
-                     tvavg*log((a(lev)+r8pt/psd(i,j))/ &
+              phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
+                     tvavg*dlog((a(lev)+r8pt/psd(i,j))/ &
                                (a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
@@ -2022,7 +2022,7 @@
             tv = (td(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/  &
                  (1.0D0+atmx%qv(i,kz,j)))
             phi(i,kz,j) = mddom%ht(i,j) - rgas * &
-                 tv*log((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
+                 tv*dlog((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))
           end do
  
           do k = 1 , kzm1
@@ -2033,7 +2033,7 @@
                     & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/     &
                     & (1.+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
-                     tvavg*log((a(lev)+r8pt/psd(i,j))   &
+                     tvavg*dlog((a(lev)+r8pt/psd(i,j))  &
                            & /(a(lev+1)+r8pt/psd(i,j)))
             end do
           end do
@@ -2101,9 +2101,9 @@
 !..uv.apply the nudging boundary conditions:
 !
         if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
-          call nudge_u(ispgd,fnudge,gnudge,xtm1,aten%u(1,1,j),j,     &
+          call nudge_u(ispgd,fnudge,gnudge,xtm1,aten%u(:,:,j),j,     &
                      & iboudy)
-          call nudge_v(ispgd,fnudge,gnudge,xtm1,aten%v(1,1,j),j,     &
+          call nudge_v(ispgd,fnudge,gnudge,xtm1,aten%v(:,:,j),j,     &
                      & iboudy)
         end if
 !
@@ -2173,17 +2173,17 @@
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
             qvas = atmc%qv(i,k,j)
-            atm2%qv(i,k,j) = max(qvbs,1.D-99)
-            atm1%qv(i,k,j) = max(qvas,1.D-99)
+            atm2%qv(i,k,j) = dmax1(qvbs,1.D-99)
+            atm1%qv(i,k,j) = dmax1(qvas,1.D-99)
           end do
           do i = 2 , iym2
             qcbs = omu*atm1%qc(i,k,j) + &
                    gnu*(atm2%qc(i,k,j)+atmc%qc(i,k,j))
-            atm2%qc(i,k,j) = max(qcbs,0.D0)
+            atm2%qc(i,k,j) = dmax1(qcbs,0.D0)
           end do
           do i = 2 , iym2
             qcas = atmc%qc(i,k,j)
-            atm1%qc(i,k,j) = max(qcas,0.D0)
+            atm1%qc(i,k,j) = dmax1(qcas,0.D0)
           end do
 !chem2
           if ( ichem.eq.1 ) then
@@ -2191,9 +2191,9 @@
               do i = 2 , iym2
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
-                chib(i,k,j,itr) = max(chibs,0.D0)
+                chib(i,k,j,itr) = dmax1(chibs,0.D0)
                 chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = max(chias,0.D0)
+                chia(i,k,j,itr) = dmax1(chias,0.D0)
               end do
             end do
           end if

@@ -166,7 +166,7 @@
 
           if (lmpi) then
             allocate(dom%ht(iy,0:jxp+1))
-            allocate(dom%satbrt(iy,jxp+1)) 
+            allocate(dom%satbrt(iy,jxp)) 
             allocate(dom%xlat(iy,jxp))
             allocate(dom%xlong(iy,jxp))
             allocate(dom%msfx(iy,-1:jxp+2))

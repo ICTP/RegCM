@@ -39,7 +39,7 @@
 +       coszen_gcell(g) = shr_orb_cosz (caldayp1, r2cxlat_all(i,j), r2cxlon_all(i,j), &
 +                                       declinp1)
 +!       c2rcosz1d(g) = max(0.d0,coszen_gcell(g))
-+       c2rcosz(i,j) = max(0.d0,coszen_gcell(g))
++!       c2rcosz(i,j) = max(0.d0,coszen_gcell(g))
      end do
  
 +!!!!!!!!!!!!!!!!! rcm above

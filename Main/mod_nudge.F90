@@ -2836,7 +2836,7 @@
         implicit none
         real(8) :: xfune
         integer , intent(in) :: mm , kk
-        xfune = exp(-dble(mm-2)/anudg(kk))
+        xfune = dexp(-dble(mm-2)/anudg(kk))
         end function xfune
 !
       end module mod_nudge

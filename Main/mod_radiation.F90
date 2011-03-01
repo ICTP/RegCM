@@ -1053,15 +1053,15 @@
       tmp1 = 0.5/(gtigts*sslp)
 !     co2mmr = co2vmr*(mmwco2/mmwair)
  
-      sqrco2 = sqrt(co2mmr)
+      sqrco2 = dsqrt(co2mmr)
       do n = 1 , nloop
         do i = is(n) , ie(n)
           xptop = pflx(i,1)
           ptho2 = o2mmr*xptop*rga
           ptho3 = o3mmr(i,1)*xptop*rga
           pthco2 = sqrco2*(xptop*rga)
-          h2ostr = sqrt(1./h2ommr(i,1))
-          zenfac(i) = sqrt(coszrs(i))
+          h2ostr = dsqrt(1./h2ommr(i,1))
+          zenfac(i) = dsqrt(coszrs(i))
           pthh2o = xptop**2*tmp1 + (xptop*rga)*(h2ostr*zenfac(i)*delta)
           uh2o(i,0) = h2ommr(i,1)*pthh2o
           uco2(i,0) = zenfac(i)*pthco2
@@ -1079,7 +1079,7 @@
             ptho2 = o2mmr*path
             ptho3 = o3mmr(i,k)*path
             pthco2 = sqrco2*path
-            h2ostr = sqrt(1.0/h2ommr(i,k))
+            h2ostr = dsqrt(1.0/h2ommr(i,k))
             pthh2o = (pflx(i,k+1)**2-pflx(i,k)**2)                      &
                    & *tmp1 + pdel*h2ostr*zenfac(i)*tmp2
             uh2o(i,k) = h2ommr(i,k)*pthh2o
@@ -1211,9 +1211,9 @@
 !scheme       1
 !ccm3.6.6
 !             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
-!             $                     *cld(i,k)*sqrt(cld(i,k))
+!             $                     *cld(i,k)*dsqrt(cld(i,k))
 !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
-!             $                     *cld(i,k)*sqrt(cld(i,k))
+!             $                     *cld(i,k)*dsqrt(cld(i,k))
 !
 !scheme       2
 !KN
@@ -4548,7 +4548,7 @@
 !       ccm3.6.6
         w(i,1) = sslp*(plh2o(i,1)*2.)/pnm(i,1)
         rtnm = 1./tnm(i,1)
-        s2c(i,1) = plh2o(i,1)*exp(1800.*(rtnm-r296))*qnm(i,1)*repsil
+        s2c(i,1) = plh2o(i,1)*dexp(1800.*(rtnm-r296))*qnm(i,1)*repsil
       end do
       do k = 1 , kz
         do i = 1 , iym1
@@ -4911,7 +4911,7 @@
         implicit none
         real(8) :: el
         real(8) , intent(in) :: w , g
-        el = sqrt(3.0D0*(1.0D0-w)*(1.0D0-w*g))
+        el = dsqrt(3.0D0*(1.0D0-w)*(1.0D0-w*g))
       end function el
       function taus(w,f,t)
         implicit none
@@ -4957,7 +4957,7 @@
         implicit none
         real(8) :: fo3
         real(8) , intent(in) :: ux , vx
-        fo3 = ux/sqrt(4.D0+ux*(1.D0+vx))
+        fo3 = ux/dsqrt(4.D0+ux*(1.D0+vx))
       end function fo3
 !
       end module mod_radiation

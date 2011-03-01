@@ -307,7 +307,7 @@
 
       dp_array(1) = 0.0001  !cm
       do ns = 2 , nsoil
-        dp_array(ns) = dp_array(ns-1)*exp(0.0460517018598807)
+        dp_array(ns) = dp_array(ns-1)*dexp(0.0460517018598807D0)
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
  
@@ -330,16 +330,17 @@
                 do nm = 1 , mode       !soil mode = 3
                   if ( (pcent(nm,nt).gt.eps) .and.                    &
                        & (sigma(nm,nt).ne.0.0) ) then
-                    xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
-                    xl = ((log(dp_array(ns))-log(mmd(nm,nt)*1.E-4))**2)     &
-                         & /(2.0*(log(sigma(nm,nt)))**2)
-                    xm = xk*exp(-xl)
+                    xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
+                    xl = ((dlog(dp_array(ns))- &
+                           dlog(mmd(nm,nt)*1.E-4))**2) &
+                         & /(2.0*(dlog(sigma(nm,nt)))**2)
+                    xm = xk*dexp(-xl)
                   else
                     xm = 0.0
                   end if
                   xn = rhop*(2.0/3.0)*(dp_array(ns)/2.0)
                   deldp = 0.0460517018598807
-                                              ! dp_array(2)-dp_array(1) ss(nsoil)
+                  ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)
                 end do
                 stotal = stotal + ss(ns)
@@ -372,18 +373,18 @@
       do n = 1 , isize
 
         rwi = (aerosize(1,n)+aerosize(2,n))/2.0*1.E6
-        alogdi = log10(rwi)
-        amean1 = log10(d1)
-        amean2 = log10(d2)
-        amean3 = log10(d3)
+        alogdi = dlog10(rwi)
+        amean1 = dlog10(d1)
+        amean2 = dlog10(d2)
+        amean3 = dlog10(d3)
 
-        asigma1 = log10(sigma1)
-        asigma2 = log10(sigma2)
-        asigma3 = log10(sigma3)
+        asigma1 = dlog10(sigma1)
+        asigma2 = dlog10(sigma2)
+        asigma3 = dlog10(sigma3)
 
-        frac1(n) = exp(-(alogdi-amean1)**2./(2*asigma1**2))
-        frac2(n) = exp(-(alogdi-amean2)**2./(2*asigma2**2))
-        frac3(n) = exp(-(alogdi-amean3)**2./(2*asigma3**2))
+        frac1(n) = dexp(-(alogdi-amean1)**2./(2*asigma1**2))
+        frac2(n) = dexp(-(alogdi-amean2)**2./(2*asigma2**2))
+        frac3(n) = dexp(-(alogdi-amean3)**2./(2*asigma3**2))
 
         totv1 = totv1 + frac1(n)
         totv2 = totv2 + frac2(n)
@@ -443,11 +444,11 @@
 ! 
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
-      term1 = sqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
-      term2 = sqrt(rhop*gti*100.0*dm/rhair)
+      term1 = dsqrt(1.0+(c1/(rhop*gti*0.1*(dm**c5))))
+      term2 = dsqrt(rhop*gti*100.0*dm/rhair)
       term = term1*term2
-      ustart01 = cvmgt(a2*term*(1.0-c3*exp(c4*(rep-10.0))),             &
-               & a2*term/sqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
+      ustart01 = cvmgt(a2*term*(1.0-c3*dexp(c4*(rep-10.0))),  &
+               & a2*term/dsqrt(c2*(rep**0.092)-1.0),rep.gt.10.0)
 ! 
       end function ustart01
 !
@@ -475,7 +476,7 @@
       sigma = rhop/rhoa
       dm = dum*1.0E-2
       ustart0 = f*(sigma*gti*dm+agamma/(rhoa*dm))
-      ustart0 = sqrt(ustart0)
+      ustart0 = dsqrt(ustart0)
       ustart0 = ustart0*100.0
 !
       end function ustart0
@@ -612,11 +613,11 @@
 !         * raupach et al. (1993)                                     
 
           if ( vegfrac(i).lt.1.0 ) then
-            alamda(i) = xz*(log(1.0-vegfrac(i)))*(-1.0)
+            alamda(i) = xz*(dlog(1.0-vegfrac(i)))*(-1.0)
             arc1 = sigr*ym*alamda(i)
             arc2 = br*ym*alamda(i)
             if ( arc1.le.1.0 .and. arc2.le.1.0 ) rc(i)                  &
-               & = (sqrt(1.0-arc1)*sqrt(1.0+arc2))
+               & = (dsqrt(1.0-arc1)*dsqrt(1.0+arc2))
           end if
  
         else if ( jfs.eq.1 ) then
@@ -636,9 +637,9 @@
             call say
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
           else if ( soilw(i).lt.0.03 ) then
-            hc(i) = exp(22.7*soilw(i))
+            hc(i) = dexp(22.7*soilw(i))
           else if ( soilw(i).ge.0.03 ) then
-            hc(i) = exp(95.3*soilw(i)-2.029)
+            hc(i) = dexp(95.3*soilw(i)-2.029)
           else
             hc(i) = 1.0
           end if
@@ -652,7 +653,7 @@
           tempd=  dmax1(0.00001d0,soilw(i)*100.0 -wprim(i))
 !          print*,'humidity',i,cly1,soilw(i)*100,wprim(i),tempd
           if ( soilw(i)*100.gt.wprim(i) ) then
-            hc(i) = sqrt(1.0+1.21*tempd**0.68)
+            hc(i) = dsqrt(1.0+1.21*tempd**0.68)
 !          print*,'hc',i,hc(i)
           else
             hc(i) = 1.0
@@ -671,10 +672,10 @@
 !       ***** *     due to the saltation layer (gillette etal. jgr 103,
 !       ***** *     no. d6, p6203-6209, 1998                           
 !       *****
-!       ustarns = (vonkar*100.*surfwd(i))/(log(1000./srl(i)))
+!       ustarns = (vonkar*100.*surfwd(i))/(dlog(1000./srl(i)))
 
         ustarns = ustarnd(i)*100 !cm.s-1
-        utmin = (umin/(100.*vonkar*rc(i)))*log(1000./srl(i))
+        utmin = (umin/(100.*vonkar*rc(i)))*dlog(1000./srl(i))
  
         if ( surfwd(i).ge.utmin ) then
           ustar(i) = ustarns + 0.3*(surfwd(i)-utmin)*(surfwd(i)-utmin)

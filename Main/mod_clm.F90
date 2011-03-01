@@ -107,7 +107,6 @@
       real(8) , pointer , dimension(:,:) :: c2ruvdrag
       real(8) , pointer , dimension(:,:) :: c2rlsmask
       real(8) , pointer , dimension(:,:) :: c2rtgbb
-      real(8) , pointer , dimension(:,:) :: c2rcosz
       real(8) , pointer , dimension(:,:) :: c2rsnowc
       real(8) , pointer , dimension(:,:) :: c2rtest
       real(8) , pointer , dimension(:,:) :: c2r2mt
@@ -140,7 +139,7 @@
       real(8) , pointer , dimension(:,:) :: aldirl2d
       real(8) , pointer , dimension(:,:) :: aldifs2d
       real(8) , pointer , dimension(:,:) :: aldifl2d
-      real(8) , pointer , dimension(:,:) :: coszrs2d
+      real(8) , pointer , dimension(:,:) :: satbrt2d
       real(8) , pointer , dimension(:,:) :: rs2d
       real(8) , pointer , dimension(:,:) :: ra2d
       ! 2 meter specific humidity
@@ -171,7 +170,7 @@
 !     About the dimension ordering:
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
-      allocate(clmspace(jx,iy,45))
+      allocate(clmspace(jx,iy,44))
       clmspace = 0.0D0
       r2ctb_all     => clmspace(:,:,1)
       r2cqb_all     => clmspace(:,:,2)
@@ -203,28 +202,27 @@
       c2ruvdrag     => clmspace(:,:,28)
       c2rlsmask     => clmspace(:,:,29)
       c2rtgbb       => clmspace(:,:,30)
-      c2rcosz       => clmspace(:,:,31)
-      c2rsnowc      => clmspace(:,:,32)
-      c2rtest       => clmspace(:,:,33)
-      c2r2mt        => clmspace(:,:,34)
-      c2r2mq        => clmspace(:,:,35)
-      c2rtlef       => clmspace(:,:,36)
-      c2ru10        => clmspace(:,:,37)
-      c2rsm10cm     => clmspace(:,:,38)
-      c2rsm1m       => clmspace(:,:,39)
-      c2rsmtot      => clmspace(:,:,40)
-      c2rinfl       => clmspace(:,:,41)
-      c2rro_sur     => clmspace(:,:,42)
-      c2rro_sub     => clmspace(:,:,43)
-      c2rfracsno    => clmspace(:,:,44)
-      c2rfvegnosno  => clmspace(:,:,45)
+      c2rsnowc      => clmspace(:,:,31)
+      c2rtest       => clmspace(:,:,32)
+      c2r2mt        => clmspace(:,:,33)
+      c2r2mq        => clmspace(:,:,34)
+      c2rtlef       => clmspace(:,:,35)
+      c2ru10        => clmspace(:,:,36)
+      c2rsm10cm     => clmspace(:,:,37)
+      c2rsm1m       => clmspace(:,:,38)
+      c2rsmtot      => clmspace(:,:,39)
+      c2rinfl       => clmspace(:,:,40)
+      c2rro_sur     => clmspace(:,:,41)
+      c2rro_sub     => clmspace(:,:,42)
+      c2rfracsno    => clmspace(:,:,43)
+      c2rfvegnosno  => clmspace(:,:,44)
       allocate(c2rprocmap(jx,iy))
       allocate(c2rngc(nproc))
       allocate(c2rdisps(nproc))
       c2rprocmap = 0
       c2rngc = 0
       c2rdisps = 0
-      allocate(spaceclm(iym1,njm1,12))
+      allocate(spaceclm(iym1,njm1,11))
       spaceclm = 0.0D0
       sols2d   => spaceclm(:,:,1)
       soll2d   => spaceclm(:,:,2)
@@ -234,10 +232,11 @@
       aldirl2d => spaceclm(:,:,6)
       aldifs2d => spaceclm(:,:,7)
       aldifl2d => spaceclm(:,:,8)
-      coszrs2d => spaceclm(:,:,9)
-      rs2d     => spaceclm(:,:,10)
-      ra2d     => spaceclm(:,:,11)
-      q2d      => spaceclm(:,:,12)
+      rs2d     => spaceclm(:,:,9)
+      ra2d     => spaceclm(:,:,10)
+      q2d      => spaceclm(:,:,11)
+      allocate(satbrt2d(iy,nj))
+      satbrt2d = 0.0D0
       end subroutine allocate_mod_clm
 !
       end module mod_clm

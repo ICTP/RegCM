@@ -549,7 +549,7 @@
 !           10 m wind
             u10 = (atm2%u(i,kz,j)/sps2%ps(i,j))*(1-fact)
             v10 = (atm2%v(i,kz,j)/sps2%ps(i,j))*(1-fact)
-            wid10(i) = sqrt(u10**2+v10**2)
+            wid10(i) = dsqrt(u10**2+v10**2)
 !           wid10(5) = 15
 !           10 m air temperature
  

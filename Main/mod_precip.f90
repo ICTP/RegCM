@@ -186,7 +186,7 @@
             rhcs = (rh-afc*rhmax)/(1.0-afc)                  ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),0.0D0)            ![frac][clr]
 !           2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = cevap*(rhmax-rhcs)*sqrt(pptsum(i))*(1.-afc)
+            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(i))*(1.-afc)
                                                              ![kg/kg/s][avg]
             rdevap = dmin1((qs-q)/dt,rdevap)                 ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,0.0D0),pptkm1)       ![kg/kg/s][avg]

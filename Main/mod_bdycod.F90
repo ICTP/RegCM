@@ -536,7 +536,7 @@
       if ( jxm1-(myid*jxp+jxp-nxeb).gt.nspgx ) then
         nxeb = 0
       else if ( jxm1-(myid*jxp+jxp-nxeb).lt.nspgx ) then
-        nxeb = min(jendx,jxp)
+        nxeb = min0(jendx,jxp)
       end if
       do nn = 1 , nxwb
         do i = 1 , iym1
@@ -545,7 +545,7 @@
         end do
       end do
       do nn = 1 , nxeb
-        nnb = min(jendx,jxp) - nn + 1
+        nnb = min0(jendx,jxp) - nn + 1
         do i = 1 , iym1
           peb(i,nn) = ps0(i,nnb)
           pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
@@ -610,7 +610,7 @@
         end do
       end do
       do nn = 1 , ndeb
-        nnb = min(jendl,jxp) - nn + 1
+        nnb = min0(jendl,jxp) - nn + 1
         do k = 1 , kz
           do i = 1 , iy
             ueb(i,k,nn) = ub0(i,k,nnb)
@@ -651,7 +651,7 @@
         end do
       end do
       do nn = 1 , nxeb
-        nnb = min(jendx,jxp) - nn + 1
+        nnb = min0(jendx,jxp) - nn + 1
         do k = 1 , kz
           do i = 1 , iym1
             teb(i,k,nn) = tb0(i,k,nnb)

@@ -432,7 +432,7 @@
             o_nz = kz
             lwrap = .false.
           end if
-          xns2r = 1.0/float(nnsg)
+          xns2r = 1.0D0/dble(nnsg)
           allocate(hsigma(o_nz))
           allocate(ioxlat(o_nj,o_ni))
           allocate(ioxlon(o_nj,o_ni))
@@ -443,6 +443,16 @@
           allocate(sp2d(jx,iy))
           allocate(atmsrfmask(nnsg,o_nj,o_ni))
           allocate(atmsrfsum(o_nj,o_ni))
+          hsigma(:) = 0.0D0
+          ioxlat(:,:) = 0.0D0
+          ioxlon(:,:) = 0.0D0
+          iotopo(:,:) = 0.0D0
+          iomask(:,:) = 0.0D0
+          iolnds(:,:) = 0.0D0
+          dumio(:,:,:) = 0.0D0
+          sp2d(:,:) = 0.0D0
+          atmsrfmask(:,:,:) = 0.0D0
+          atmsrfsum(:,:) = 0.0D0
           if (nsg > 1) then
             allocate(ioxlat_s(o_njg,o_nig))
             allocate(ioxlon_s(o_njg,o_nig))
@@ -450,6 +460,13 @@
             allocate(iomask_s(o_njg,o_nig))
             allocate(subio(o_njg,o_nig))
             allocate(sp2d1(jxsg,iysg))
+            ioxlat_s(:,:) = 0.0D0
+            ioxlon_s(:,:) = 0.0D0
+            iotopo_s(:,:) = 0.0D0
+            iotopo_s(:,:) = 0.0D0
+            iomask_s(:,:) = 0.0D0
+            subio(:,:) = 0.0D0
+            sp2d1(:,:) = 0.0D0
           end if
         end subroutine init_mod_ncio
 
@@ -622,11 +639,6 @@
           call check_ok('Variable xlon read error', 'DOMAIN FILE ERROR')
           xlon = transpose(sp2d)
           ioxlon = sp2d(o_js:o_je,o_is:o_ie)
-
-! tmp: commented out: makes the code crash in DEBUG mode 
-! : lonrange is defined here but never used..
-!          lonrange = (/minval(ioxlon(:,1)),maxval(ioxlon(:,-1))/)
-!
           istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok('Variable xmap missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -2923,7 +2935,7 @@
             end where
           end do
           where (atmsrfsum > 0)
-            dumio(:,:,1) = dumio(:,:,1)/max(atmsrfsum/2.0,1.0)
+            dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
           elsewhere
             dumio(:,:,1) = -1.E34
           end where
@@ -2939,7 +2951,7 @@
             end where
           end do
           where (atmsrfsum > 0)
-            dumio(:,:,1) = dumio(:,:,1)/max(atmsrfsum/2.0,1.0)
+            dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
           elsewhere
             dumio(:,:,1) = -1.E34
           end where

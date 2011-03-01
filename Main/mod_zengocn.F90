@@ -88,7 +88,7 @@
 #else
           if ( ocld2d(n,i,j).lt.0.5 ) then
 #endif
-            uv995 = sqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
+            uv995 = dsqrt(ubx3d(i,k,j)**2+vbx3d(i,k,j)**2)
             tsurf = sts2%tg(i,j) - tzero
             t995 = tb3d(i,k,j) - tzero
             q995 = qvb3d(i,k,j)/(1.+qvb3d(i,k,j))
@@ -238,7 +238,7 @@
 !     Email:xubin@gogo.atmo.arizona.edu
 !
 !     input:
-!       u   = sqrt(u_x^2 + u_y^2): wind speed in m/s at hu (m) height
+!       u   = dsqrt(u_x^2 + u_y^2): wind speed in m/s at hu (m) height
 !       ts: surface temperature in (deg C)
 !       t:  air temperature in (deg C) at ht (m) height
 !       q: air specific humidity in (kg/kg) at hq (m) height
@@ -305,9 +305,9 @@
       ustar = 0.06
       wc = 0.5
       if ( dthv.ge.0. ) then
-        um = max(u,0.1D0)
+        um = dmax1(u,0.1D0)
       else
-        um = sqrt(u*u+wc*wc)
+        um = dsqrt(u*u+wc*wc)
       end if
 !
 !     loop to obtain initial and good ustar and zo
@@ -394,12 +394,12 @@
 !
         zeta = vonkar*gti*thvstar*hu/(ustar**2*thv)
         if ( zeta.ge.0 ) then   !neutral or stable
-          um = max(u,0.1D0)
-          zeta = dmin1(2.D0,max(zeta,1.D-6))
+          um = dmax1(u,0.1D0)
+          zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
         else                   !unstable
           wc = zbeta*(-gti*ustar*thvstar*zi/thv)**0.333
-          um = sqrt(u*u+wc*wc)
-          zeta = dmax1(-100.D0,min(zeta,-1.D-6))
+          um = dsqrt(u*u+wc*wc)
+          zeta = dmax1(-100.D0,dmin1(zeta,-1.D-6))
         end if
         obu = hu/zeta
       end do
@@ -439,7 +439,7 @@
       chik = (1.-16*zeta)**0.25
       if ( k.eq.1 ) then
         psi = 2.*dlog((1.+chik)*0.5) + dlog((1.+chik*chik)*0.5)         &
-            & - 2.*atan(chik) + 2.*atan(1.)
+            & - 2.*datan(chik) + 2.*datan(1.0D0)
       else
         psi = 2.*dlog((1.+chik*chik)*0.5)
       end if
@@ -455,7 +455,7 @@
       real(kind=8) , intent (in) :: p , t
       real(kind=8) :: qsat
 !
-      qsat = (1.0007+3.46E-6*p)*6.1121*exp(17.502*t/(240.97+t))
+      qsat = (1.0007+3.46E-6*p)*6.1121*dexp(17.502*t/(240.97+t))
 !
       end function qsat
 
@@ -480,8 +480,8 @@
       re = ustar*zo/visa
       xq = 2.67*re**0.25 - 2.57
       xt = xq
-      zoq = zo/exp(xq)
-      zot = zo/exp(xt)
+      zoq = zo/dexp(xq)
+      zot = zo/dexp(xt)
       end subroutine ocnrough
 !
       end module mod_zengocn

@@ -376,7 +376,7 @@
 !           ********************************************************
  
             cfac(i,l,n) = 1. + amfp/avesize(n)                          &
-                        & *(aa1+aa2*exp(-aa3*avesize(n)/amfp))
+                        & *(aa1+aa2*dexp(-aa3*avesize(n)/amfp))
             taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)*rgti, &
                           & 0.D0)
  
@@ -435,7 +435,7 @@
 !           ***** *  vptemp- virtual potential temperature at z2 (deg.
 !           k)  *****
 ! **************************************************************
-            es = 6.108*exp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
+            es = 6.108*dexp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
             vp = rh10(i)*es
             wvpm = ep2*vp/(stdpmb-vp)
             vptemp = ptemp2*(1.0+0.61*wvpm)
@@ -451,7 +451,7 @@
  
 ! **************************************************************
             tsw = sutemp(i)
-            vp = 6.108*exp(17.27*(tsw-tzero)/(tsw-35.86))
+            vp = 6.108*dexp(17.27*(tsw-tzero)/(tsw-35.86))
             qs = ep2*vp/(stdpmb-vp)
             tsv = tsw*(1.+0.61*qs)
             z0water = 1.0E-4
@@ -469,7 +469,7 @@
             cun = 7.5E-4 + 6.7E-5*ww
             mol = 9999.0
  
-            if ( abs(dthv).gt.1.0E-6 )                                  &
+            if ( dabs(dthv).gt.1.0E-6 )                                  &
                & mol = vptemp*cun**1.5*ww**2/(5.096E-3*dthv)
             if ( mol.gt.0. .and. mol.lt.5.0 ) mol = 5.0
             if ( mol.gt.-5.0 .and. mol.lt.0 ) mol = -5.0
@@ -484,13 +484,13 @@
 ! **************************************************************
               x = (1.0-15.0*zdl)**0.25
               psiu = 2.*dlog(0.5*(1.0+x)) + dlog(0.5*(1.0+x*x))         &
-                   & - 2.0*atan(x) + 0.5*mathpi
+                   & - 2.0*datan(x) + 0.5*mathpi
  
 ! **************************************************************
 !             *                       pot temp                        
 !             *****
 ! **************************************************************
-              y = sqrt(1.-9.*zdl)
+              y = dsqrt(1.-9.*zdl)
               psit = 2.*0.74*dlog((1+y)/2.0)
             else
               psiu = -4.7*zdl
@@ -530,11 +530,11 @@
             asq = 0.16/(logratio**2)
 !
             if ( rib.le.0.0 ) then
-              aa = asq*9.4*sqrt(ratioz)
+              aa = asq*9.4*dsqrt(ratioz)
               cm = 7.4*aa
               ch = 5.3*aa
-              fm = 1. - (9.4*rib/(1.+cm*sqrt(abs(rib))))
-              fh = 1. - (9.4*rib/(1.+ch*sqrt(abs(rib))))
+              fm = 1. - (9.4*rib/(1.+cm*dsqrt(dabs(rib))))
+              fh = 1. - (9.4*rib/(1.+ch*dsqrt(dabs(rib))))
             else
               fm = 1./((1.+4.7*rib)**2)
               fh = fm
@@ -542,7 +542,7 @@
 !
             ustarsq = asq*ww**2*fm
             utstar = asq*ww*dtemp*fh/0.74
-            ustar(i,j) = sqrt(ustarsq)
+            ustar(i,j) = dsqrt(ustarsq)
             thstar = utstar/ustar(i,j)
 !
             mol = tbar*ustarsq/(vonkar*gti*thstar)
@@ -560,8 +560,8 @@
           if ( zl.ge.0. ) then
             ra(i,j) = kui*(0.74*dlog(z/zz0(i))+4.7*zl)
           else
-            ra(i,j) = kui*0.74*(dlog(z/zz0(i))-2.0*dlog((1+sqrt(1-9.*zl)&
-                    & )*0.5))
+            ra(i,j) = kui*0.74*(dlog(z/zz0(i))- &
+                           2.0*dlog((1+dsqrt(1-9.*zl))*0.5))
           end if
           ra(i,j) = dmax1(ra(i,j),0.99D0)
           ra(i,j) = dmin1(ra(i,j),999.9D0)
@@ -656,7 +656,7 @@
 !               *****************************************************
  
 !               r1 = exp (-st**0.5)
-                r1 = dmax1(0.5D0,exp(-st**0.5))
+                r1 = dmax1(0.5D0,dexp(-st**0.5))
 !               if (k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
                 if ( kcov.ge.11 .and. r1.lt.0.5 ) r1 = 0.5
                 if ( r1.lt.0.4 ) r1 = 0.4

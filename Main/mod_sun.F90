@@ -57,7 +57,7 @@
 !
       real(8) , intent(in) :: xtime
 !
-      real(8) :: calday , decdeg , delta
+      real(8) :: calday , decdeg
 #ifdef CLM
       real(8) :: mvelp , obliq
       integer :: iyear_ad
@@ -84,12 +84,12 @@
 !
       calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
 
-!     Get delta,eccf
+!     Get declin,eccf
       call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
-                      & delta,r2ceccf)
+                      & declin,r2ceccf)
 
-!     convert delta to degrees
-      declin = delta
+!     convert declin to degrees
+      declin = declin
       decdeg = declin/degrad
 #else
       calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
@@ -97,11 +97,10 @@
 !
 !     Solar declination in radians:
 !
-      delta = .006918 - .399912*cos(theta) + .070257*sin(theta)       &
-            & - .006758*cos(2.*theta) + .000907*sin(2.*theta)         &
-            & - .002697*cos(3.*theta) + .001480*sin(3.*theta)
+      declin = .006918 - .399912*dcos(theta) + .070257*dsin(theta)  &
+            & - .006758*dcos(2.*theta) + .000907*dsin(2.*theta)    &
+            & - .002697*dcos(3.*theta) + .001480*dsin(3.*theta)
 !
-      declin = delta
       decdeg = declin/degrad
 !
 #endif
@@ -153,8 +152,8 @@
         xxlat = mddom%xlat(ill,jslc)*degrad
         xxlon = mddom%xlong(ill,jslc)*degrad
         coszrs(ill) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-        coszrs(ill) = max(0.0D0,coszrs(ill))
-        coszrs(ill) = min(1.0D0,coszrs(ill))
+        coszrs(ill) = dmax1(0.0D0,coszrs(ill))
+        coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do
 #else
       xt24 = mod(lhour*60.+xtime,1440.D0)
@@ -164,10 +163,10 @@
         omega = 15.*(tlocap-12.)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad
 !       coszrs = cosine of solar zenith angle
-        coszrs(ill) = sin(declin)*sin(xxlat) + cos(declin)           &
-                    & *cos(xxlat)*cos(omega)
-        coszrs(ill) = max(0.0D0,coszrs(ill))
-        coszrs(ill) = min(1.0D0,coszrs(ill))
+        coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)           &
+                    & *dcos(xxlat)*dcos(omega)
+        coszrs(ill) = dmax1(0.0D0,coszrs(ill))
+        coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do
 #endif
 !

@@ -121,7 +121,7 @@
             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
             tmp1(i,k) = r1*dqv
           else                                     ! Partial cloud cover
-            fccc = 1. - sqrt(1.-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = 1. - dsqrt(1.-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),1.0D0)
             qvc_cld = dmax1((qsb3d(i,k,j)+dt*aten%qv(i,k,j)/psc(i,j)),  &
                     & 0.0D0)
