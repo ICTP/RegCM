@@ -94,7 +94,7 @@
       call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
 !---------------
 !chem2
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
 !
 !       icumtop = top level of cumulus clouds
 !       icumbot = bottom level of cumulus clouds
@@ -120,7 +120,7 @@
 !
 !-----determine if moist convection exists:
 !
-        if ( sca.ge.qdcrit ) then
+        if ( sca >= qdcrit ) then
 !
 !-----check for stability
 !
@@ -136,7 +136,7 @@
             psg = sps1%ps(i,j)*a(k) + r8pt
             t1 = ttp*(100.0D0/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
-            if ( eqt.gt.eqtm ) then
+            if ( eqt > eqtm ) then
               eqtm = eqt
               tmax = ttp
               qmax = q
@@ -161,10 +161,10 @@
 !         of all the levels that are above the lcl
 !
           do k = 1 , kz
-            if ( a(k).ge.siglcl ) exit
+            if ( a(k) >= siglcl ) exit
           end do
           kbase = k
-          if ( kbase.gt.kz ) kbase = kz
+          if ( kbase > kz ) kbase = kz
 !
 !.....kbase is the layer where lcl is located.
 !
@@ -183,7 +183,7 @@
           do kk = 1 , kbase
             k = kbase + 1 - kk
             deqt = seqt(k) - eqtm
-            if ( deqt.gt.dlt ) exit
+            if ( deqt > dlt ) exit
           end do
 !
 !.....cloud top has been reached
@@ -195,7 +195,7 @@
 !         the convection is killed
 !
           dsc = (siglcl-a(ktop))
-          if ( dsc.ge.cdscld ) then
+          if ( dsc >= cdscld ) then
 !
 !--6--check negative area
 !           if negative area is larger than the positive area
@@ -205,17 +205,17 @@
             do k = ktop , kbase
               ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
             end do
-            if ( ttsum.ge.0.0D0 ) then
+            if ( ttsum >= 0.0D0 ) then
 !
 !.....you     are here if stability was found.
 !
 !.....if      values dont already exist in array twght,vqflx for this
 !             kbase/ktop, then flag it, and set kbase/ktop to standard
 !
-              if ( (kbase.lt.5) .or. (ktop.gt.kbase-3) ) then
+              if ( (kbase < 5) .or. (ktop > kbase-3) ) then
                 print 99001 , ktau , jyear , i , j , kbase , ktop
-                if ( kbase.lt.5 ) kbase = 5
-                if ( ktop.gt.kbase-3 ) ktop = kbase - 3
+                if ( kbase < 5 ) kbase = 5
+                if ( ktop > kbase-3 ) ktop = kbase - 3
               end if
 !
 !.....convection exist, compute convective flux of water vapor and
@@ -247,9 +247,9 @@
               end do
               arh = arh/sumb
               c301 = 2.0D0*(1.0D0-arh)
-              if ( c301.lt.0.0D0 ) c301 = 0.0D0
-              if ( c301.gt.1.0D0 ) c301 = 1.0D0
-              if ( suma.le.0.0D0 ) then
+              if ( c301 < 0.0D0 ) c301 = 0.0D0
+              if ( c301 > 1.0D0 ) c301 = 1.0D0
+              if ( suma <= 0.0D0 ) then
                 c301 = 0.0D0
                 suma = 1.0D0
               end if
@@ -259,7 +259,7 @@
               do k = 1 , kz
                 ttconv = wlhvocp*(1.0D0-c301)*twght(k,kbase,ktop)*sca
                 rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/2.0D0
-!x              if (ttconv*2. .gt. 0.01) write(18,1234) i,j,k,ttconv*2.
+!x              if (ttconv*2. > 0.01) write(18,1234) i,j,k,ttconv*2.
 !1234           format(1x,'cupara, i=',i4,' j=',i4,' k=',i4,'
 !               qteva=',e12.4)
                 apcnt = (1.0D0-c301)*sca/4.3D-3
@@ -271,7 +271,7 @@
 !             find cloud fractional cover and liquid water content
 !
               kbaseb = min0(kbase,kzm2)
-              if ( ktop.le.kbaseb ) then
+              if ( ktop <= kbaseb ) then
                 kclth = kbaseb - ktop + 1
                 akclth = 1.0D0/dble(kclth)
                 do k = ktop , kbaseb
@@ -284,11 +284,11 @@
               sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)
-              if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = 1.0D0
               pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.0D0)/aprdiv
 !
 !chem2
-              if ( ichem.eq.1 ) then
+              if ( ichem == 1 ) then
 !               before go to 100 put
                 icumtop(i,j) = ktop
                 icumbot(i,j) = kbaseb
@@ -304,7 +304,7 @@
 !
         tmp3(i,1) = 0.0D0
         do k = 2 , kz
-          if ( atm1%qv(i,k,j).lt.1.D-15 ) then
+          if ( atm1%qv(i,k,j) < 1.D-15 ) then
             tmp3(i,k) = 0.0D0
           else
             tmp3(i,k) = atm1%qv(i,k,j)*(atm1%qv(i,k-1,j)/ &
@@ -332,7 +332,7 @@
           aten%qv(i,k,j) = aten%qv(i,k,j) + rswt
           rsheat(i,k,j) = rsheat(i,k,j)*(1.0D0-dt/(2.0D0*tauht))
           rswat(i,k,j) = rswat(i,k,j)*(1.0D0-dt/(2.0D0*tauht))
-!bxq if(rsht/psb(i,j).gt..0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
+!bxq if(rsht/psb(i,j) > .0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
 !1222     format (1x,'ktau= ',i7,' jyear= ',i5,' i= ',i5,' j= ',i5,
 !         1        ' k= ',i5,' ttconv =',e15.7)
         end do
@@ -384,12 +384,12 @@
           jm1 = j - 1
           jp1 = j + 1
 #else
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             jm1 = max0(j-1,2)
           else
             jm1 = j - 1
           end if
-          if ( myid.eq.nproc-1 ) then
+          if ( myid == nproc-1 ) then
             jp1 = min0(j+1,jxp-2)
           else
             jp1 = j + 1
@@ -415,8 +415,8 @@
         do j = 1 , jx
           jm1 = j - 1
           jp1 = j + 1
-          if(jm1.eq.0) jm1 = jx
-          if(jp1.eq.jx+1) jp1 = 1
+          if(jm1 == 0) jm1 = jx
+          if(jp1 == jx+1) jp1 = 1
 #else
         do j = 2 , jxm2
           jm1 = max0(j-1,2)
@@ -451,12 +451,12 @@
           jm1 = j - 1
           jp1 = j + 1
 #else
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             jm1 = max0(j-1,2)
           else
             jm1 = j - 1
           end if
-          if ( myid.eq.nproc-1 ) then
+          if ( myid == nproc-1 ) then
             jp1 = min0(j+1,jxp-2)
           else
             jp1 = j + 1
@@ -482,8 +482,8 @@
         do j = 1 , jx
           jm1 = j - 1
           jp1 = j + 1
-          if(jm1.eq.0) jm1 = jx
-          if(jp1.eq.jx+1) jp1 = 1
+          if(jm1 == 0) jm1 = jx
+          if(jp1 == jx+1) jp1 = 1
 #else
         do j = 2 , jxm2
           jm1 = max0(j-1,2)

@@ -481,7 +481,7 @@
 !         in the column, converting units where appropriate
 !         for the moment no more used
 !
-          if ( k.ge.nk + 1 - mxaerl ) then
+          if ( k >= nk + 1 - mxaerl ) then
             aermmb(i,k) = gtigts*tauvis/ &
                          (1.0D4*kaervs*rhfac*(1.0D0-omgvis*gvis*gvis) &
                         & *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
@@ -489,7 +489,7 @@
             aermmb(i,k) = 0.0D0
           end if
 ! 
-          if ( ichem.eq.1 ) then
+          if ( ichem == 1 ) then
             do itr = 1 , ntrac
               aermmr(i,k,itr) = chia(i,k,j,itr)/sps1%ps(i,j)
             end do
@@ -524,7 +524,7 @@
 ! gaer          - Aerosol asymmetry parameter
 ! faer          - Aerosol forward scattered fraction
 !
-      if ( ichem.ne.1 ) then
+      if ( ichem /= 1 ) then
         tauxar_mix_cs(:,:) = 0.0D0
         tauasc_mix_cs(:,:) = 0.0D0
         gtota_mix_cs(:,:) = 0.0D0
@@ -537,7 +537,7 @@
         return
       end if
 !
-      if ( idirect.ge.1 ) then
+      if ( idirect >= 1 ) then
         tauxar = 0.0D0
         wa = 0.0D0
         ga = 0.0D0
@@ -564,7 +564,7 @@
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      if ( mixtype.eq.1 ) then
+      if ( mixtype == 1 ) then
 !
 !       Spectral loop
 !
@@ -603,26 +603,26 @@
               ibin = 0
               do itr = 1 , ntr
                 uaer(i,k,itr) = 0.0D0
-                if ( rh(i,k).lt.0.0D0 .or. rh(i,k).gt.1.0D0 ) &
+                if ( rh(i,k) < 0.0D0 .or. rh(i,k) > 1.0D0 ) &
                   print * , i , k , rh(i,k) , '  RH WARNING !!!!!'
 !
-                if ( chtrname(itr).eq.'XXXXX') then
+                if ( chtrname(itr) == 'XXXXX') then
                   continue
                 end if
 !
-                if ( chtrname(itr).eq.'DUST' ) then
+                if ( chtrname(itr) == 'DUST' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 gaffe au facteur !!
 !                 gaffe au ntr/bins
                   ibin = ibin + 1
-                  if ( ibin.gt.4 ) print * , 'DUST OP PBLEME !!!!'
+                  if ( ibin > 4 ) print * , 'DUST OP PBLEME !!!!'
 !
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksdust(ns,ibin)
                   wa(i,k,itr) = wsdust(ns,ibin)
                   ga(i,k,itr) = gsdust(ns,ibin)
                   fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
 ! 
-                else if ( chtrname(itr).eq.'SO4' ) then
+                else if ( chtrname(itr) == 'SO4' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)       &
                                   & *dexp(kscoef(ns,1)+kscoef(ns,2)     &
@@ -642,7 +642,7 @@
 !
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
 ! 
-                else if ( chtrname(itr).eq.'OC_HL' ) then
+                else if ( chtrname(itr) == 'OC_HL' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Humidity effect !
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hl(ns)      &
@@ -650,7 +650,7 @@
                   wa(i,k,itr) = wsoc_hl(ns)
                   ga(i,k,itr) = gsoc_hl(ns)
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-                else if ( chtrname(itr).eq.'BC_HL' ) then
+                else if ( chtrname(itr) == 'BC_HL' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Humidity effect !
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hl(ns)      &
@@ -658,13 +658,13 @@
                   wa(i,k,itr) = wsbc_hl(ns)
                   ga(i,k,itr) = gsbc_hl(ns)
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-                else if ( chtrname(itr).eq.'OC_HB' ) then
+                else if ( chtrname(itr) == 'OC_HB' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hb(ns)
                   wa(i,k,itr) = wsoc_hb(ns)
                   ga(i,k,itr) = gsoc_hb(ns)
                   fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
-                else if ( chtrname(itr).eq.'BC_HB' ) then
+                else if ( chtrname(itr) == 'BC_HB' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Absorbing aerosols (soot type)
                   tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hb(ns)
@@ -687,7 +687,7 @@
                 gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
                 faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
               end do
-              if ( utaer(i,itr).le.1.D-10 ) utaer(i,itr) = 1.D-10
+              if ( utaer(i,itr) <= 1.D-10 ) utaer(i,itr) = 1.D-10
               waer(i,itr) = waer(i,itr)/utaer(i,itr)
               gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
               faer(i,itr) = faer(i,itr)/utaer(i,itr)
@@ -737,7 +737,7 @@
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
-      else if ( mixtype.eq.2 ) then
+      else if ( mixtype == 2 ) then
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
@@ -770,34 +770,34 @@
           do i = 1 , iym1
             do k = 1 , kz
               path = (pint(i,k+1)-pint(i,k))/gtigts
-              if ( rh(i,k).lt.0.0D0 .or. rh(i,k).gt.1.0D0 ) &
+              if ( rh(i,k) < 0.0D0 .or. rh(i,k) > 1.0D0 ) &
                 write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
 !             sum of hydrophilic aerosols
               aervtot(i,k) = 0.D0
               aermtot(i,k) = 0.D0
 !
-              if ( iso4.ne.0 ) then
+              if ( iso4 /= 0 ) then
                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iso4)/rhoso4
                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iso4)
               end if
 ! 
-              if ( ibchl.ne.0 ) then
+              if ( ibchl /= 0 ) then
                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ibchl)/rhobc
                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ibchl)
               end if
 !
-              if ( iochl.ne.0 ) then
+              if ( iochl /= 0 ) then
                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iochl)/rhooc
                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iochl)
               end if
 ! 
-              if ( idust(1).ne.0 ) then
+              if ( idust(1) /= 0 ) then
                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,idust(1))    &
                              & /rhodust
                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,idust(1))
               end if
 !             minimum quantity of total aerosol
-              if ( aermtot(i,k).gt.1.D-14 ) then
+              if ( aermtot(i,k) > 1.D-14 ) then
 !               indexes in the internal mixing table
                 prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
                 prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
@@ -808,22 +808,22 @@
                 frac(3) = fraction(prop(3))
                 frac(4) = fraction(prop(4))
 !               FIND THE GREATEST FRACTIONAL PART
-                if ( iso4.ne.0 ) then
+                if ( iso4 /= 0 ) then
                   i1 = idnint(10.0D0*prop(1)) + 1
                 else
                   i1 = 0 + 1
                 end if
-                if ( ibchl.ne.0 ) then
+                if ( ibchl /= 0 ) then
                   i2 = idnint(10.0D0*prop(2)) + 1
                 else
                   i2 = 0 + 1
                 end if
-                if ( iochl.ne.0 ) then
+                if ( iochl /= 0 ) then
                   i3 = idnint(10.0D0*prop(3)) + 1
                 else
                   i3 = 0 + 1
                 end if
-                if ( idust(1).ne.0 ) then
+                if ( idust(1) /= 0 ) then
                   i4 = idnint(10.0D0*prop(4)) + 1
                 else
                   i4 = 0 + 1
@@ -831,23 +831,23 @@
 !
 !               final optical parameters
 !
-                if ( i1+i2+i3+i4.eq.13 ) i4 = i4 + 1
-                if ( i1+i2+i3+i4.eq.15 ) then
-                  if ( i4.ne.1 ) i4 = i4 - 1
+                if ( i1+i2+i3+i4 == 13 ) i4 = i4 + 1
+                if ( i1+i2+i3+i4 == 15 ) then
+                  if ( i4 /= 1 ) i4 = i4 - 1
                 end if
 ! 
-                if ( i1+i2+i3+i4.eq.15 ) then
-                  if ( i1.ne.1 ) i1 = i1 - 1
+                if ( i1+i2+i3+i4 == 15 ) then
+                  if ( i1 /= 1 ) i1 = i1 - 1
                 end if
 ! 
-                if ( i1+i2+i3+i4.eq.15 ) then
-                  if ( i3.ne.1 ) i3 = i3 - 1
+                if ( i1+i2+i3+i4 == 15 ) then
+                  if ( i3 /= 1 ) i3 = i3 - 1
                 end if
 ! 
-                if ( i1+i2+i3+i4.eq.15 ) call fatal(__FILE__,__LINE__,&
+                if ( i1+i2+i3+i4 == 15 ) call fatal(__FILE__,__LINE__,&
                     &'WRONG COMBINATION. SHOULD NEVER HAPPEN')
 ! 
-                if ( i1+i2+i3+i4.ne.14 ) then
+                if ( i1+i2+i3+i4 /= 14 ) then
                   print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
                   print * , idust(1) , iochl , ibchl , iso4
                   print * , 'OC HL' , aermmr(i,k,iochl)/rhooc
@@ -900,7 +900,7 @@
               end if ! end minimum concentration conditions
             end do ! end k loop
 ! 
-            if ( utaer(i,1).gt.1.D-12 ) then
+            if ( utaer(i,1) > 1.D-12 ) then
               waer(i,1) = waer(i,1)/utaer(i,1)
               gaer(i,1) = gaer(i,1)/utaer(i,1)
               faer(i,1) = faer(i,1)/utaer(i,1)
@@ -923,9 +923,9 @@
 ! qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
       qabslw = 0.1
 !     initialisation à 1 = perfect transmittivity
-      aerlwtr (:,:,:) = 1.
+      aerlwtr (:,:,:) = 1.0D0
 !
-      if ( idirect.ge.1 ) then
+      if ( idirect >= 1 ) then
 !
         do k1 = 1 , kzp1
           do k2 = 1 , kzp1
@@ -935,7 +935,7 @@
               ibin = 0
               uaerdust = 0.0D0
               do itr = 1 , ntr     
-                if ( chtrname(itr).eq.'DUST' ) then
+                if ( chtrname(itr) == 'DUST' ) then
                   ibin = ibin+1
                   if ( k1<k2 ) then
                     uaerdust =  uaerdust + 1.D5 *                       &

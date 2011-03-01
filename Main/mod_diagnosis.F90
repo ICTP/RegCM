@@ -117,9 +117,9 @@
         call mpi_gather(sps1%ps, iy*jxp,mpi_real8, &
                       & psa_io,  iy*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do k = 1 , kz
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 1 , jxm1
               do i = 1 , iym1
                 tttmp = tttmp + psa_io(i,j)
@@ -137,9 +137,9 @@
         call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8, &
                       & atm1_io%qv,iy*kz*jxp,mpi_real8, &
                       & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do k = 1 , kz
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 1 , jxm1
               do i = 1 , iym1
                 tttmp = tttmp + atm1_io%qv(i,k,j)
@@ -155,9 +155,9 @@
         call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
                       & atm1_io%qc,iy*kz*jxp,mpi_real8,              &
                       & 0,mpi_comm_world,ierr)
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do k = 1 , kz
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 1 , jxm1
               do i = 1 , iym1
                 tttmp = tttmp + atm1_io%qc(i,k,j)
@@ -174,14 +174,14 @@
 !
 !=======================================================================
 !
-        if ( myid.eq.0 ) write(6,99003) tdini , tqini
+        if ( myid == 0 ) write(6,99003) tdini , tqini
 #else
 !=======================================================================
 !
 !-----dry air (unit = kg):
 !
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + sps1%ps(i,j)
@@ -194,7 +194,7 @@
 !-----water substance (unit = kg):
 !
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + atm1%qv(i,k,j)
@@ -205,7 +205,7 @@
         tvmass = tvmass*dx*dx*1000.*rgti
 !
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + atm1%qc(i,k,j)
@@ -239,7 +239,7 @@
         call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
           call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
           call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
           call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
@@ -318,7 +318,7 @@
 !.....advection through east-west boundaries:
 !
 #ifdef MPP1
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
             worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl)) /      &
@@ -326,7 +326,7 @@
           end do
         end do
       end if
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do i = 1 , iym1
             workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) / &
@@ -350,7 +350,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tdadv = tdadv - dtmin*3.E4*dsigma(k)                          &
+          tdadv = tdadv - dtmin*3.D4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
@@ -370,10 +370,10 @@
       call mpi_gather(va01,  kz*jxp,mpi_real8,                     &
                     & va01_g,kz*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tdadv = tdadv - dtmin*3.E4*dsigma(k)                   &
+            tdadv = tdadv - dtmin*3.D4*dsigma(k)                   &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))               &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) &
                   & -(va01_g(k,j+1)+va01_g(k,j))                   &
@@ -385,7 +385,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tdadv = tdadv - dtmin*3.E4*dsigma(k)                &
+          tdadv = tdadv - dtmin*3.D4*dsigma(k)                &
                   *dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j)) /    &
                   (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                   (atm1%v(1,k,j+1)+atm1%v(1,k,j)) /           &
@@ -400,7 +400,7 @@
 !.....advection through east-west boundaries:
 !
 #ifdef MPP1
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
             worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl))    &
@@ -409,7 +409,7 @@
           end do
         end do
       end if
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do i = 1 , iym1
             workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1)) * &
@@ -435,7 +435,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
+          tqadv = tqadv - dtmin*3.D4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
@@ -461,10 +461,10 @@
                     & psailx_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_gather(psa01,  jxp,mpi_real8,                         &
                       psa01_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
+            tqadv = tqadv - dtmin*3.D4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qvailx_g(k,j)/psailx_g(j))                        &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
@@ -478,7 +478,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
+          tqadv = tqadv - dtmin*3.D4*dsigma(k)*            &
                dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*      &
                (atm1%qv(iym1,k,j)/sps1%ps(iym1,j)) /       &
                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
@@ -493,7 +493,7 @@
 !.....advection through east-west boundaries:
 !
 #ifdef MPP1
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         do k = 1 , kz
           do i = 1 , iym1
             worka(i,k) = (atm1%u(i+1,k,jendl)+atm1%u(i,k,jendl))        &
@@ -502,7 +502,7 @@
           end do
         end do
       end if
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do i = 1 , iym1
             workb(i,k) = (atm1%u(i+1,k,1)+atm1%u(i,k,1))* &
@@ -528,7 +528,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)                          &
+          tqadv = tqadv - dtmin*3.D4*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*rgti
         end do
       end do
@@ -548,10 +548,10 @@
       call mpi_gather(qca01,  kz*jxp,mpi_real8,                    &
                     & qca01_g,kz*jxp,mpi_real8,                    &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tqadv = tqadv - dtmin*3.E4*dsigma(k)                        &
+            tqadv = tqadv - dtmin*3.D4*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qcailx_g(k,j)/psailx_g(j))                        &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
@@ -565,7 +565,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.E4*dsigma(k)*            &
+          tqadv = tqadv - dtmin*3.D4*dsigma(k)*            &
                 dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*     &
                 (atm1%qc(iym1,k,j)/sps1%ps(iym1,j)) /      &
                 (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))-   &
@@ -608,8 +608,8 @@
 !
 !----------------------------------------------------------------------
 !
-      error1 = 0.
-      error2 = 0.
+      error1 = 0.0D0
+      error2 = 0.0D0
 !
 !-----compute the total dry air and water substance in the model at
 !     this time:
@@ -618,14 +618,14 @@
 !
 !-----dry air (unit = kg):
 !
-      tdrym = 0.
+      tdrym = 0.0D0
 #ifdef MPP1
       call mpi_gather(sps1%ps,   iy*jxp,mpi_real8,                     &
                     & psa_io,iy*jxp,mpi_real8,                     &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + psa_io(i,j)
@@ -638,7 +638,7 @@
       call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
       do k = 1 , kz
-        tttmp = 0.
+        tttmp = 0.0D0
         do j = 1 , jxm1
           do i = 1 , iym1
             tttmp = tttmp + sps1%ps(i,j)
@@ -651,14 +651,14 @@
 !
 !-----water substance (unit = kg):
 !
-      tvmass = 0.
+      tvmass = 0.0D0
 #ifdef MPP1
       call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8,                &
                     & atm1_io%qv,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + atm1_io%qv(i,k,j)
@@ -672,7 +672,7 @@
                    & ierr)
 #else
       do k = 1 , kz
-        tttmp = 0.
+        tttmp = 0.0D0
         do j = 1 , jxm1
           do i = 1 , iym1
             tttmp = tttmp + atm1%qv(i,k,j)
@@ -683,15 +683,15 @@
       tvmass = tvmass*dx*dx*1000.*rgti
 #endif
 !
-      tcmass = 0.
+      tcmass = 0.0D0
 
 #ifdef MPP1
       call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,                &
                     & atm1_io%qc,iy*kz*jxp,mpi_real8,                &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 1 , jxm1
             do i = 1 , iym1
               tttmp = tttmp + atm1_io%qc(i,k,j)
@@ -705,7 +705,7 @@
                    & ierr)
 #else
       do k = 1 , kz
-        tttmp = 0.
+        tttmp = 0.0D0
         do j = 1 , jxm1
           do i = 1 , iym1
             tttmp = tttmp + atm1%qc(i,k,j)
@@ -723,7 +723,7 @@
 !-----conservation of dry air:
 !
       tdrym = tdrym - tdadv
-      error1 = (tdrym-tdini)/tdini*100.
+      error1 = (tdrym-tdini)/tdini*100.0D0
 !
 !-----conservation of water substance:
 !
@@ -736,9 +736,9 @@
       call mpi_gather(sfsta%rainnc,   iy*jxp,mpi_real8,                  &
                     & rainnc_io,iy*jxp,mpi_real8,                  &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
-        tcrai = 0.
-        tncrai = 0.
+      if ( myid == 0 ) then
+        tcrai = 0.0D0
+        tncrai = 0.0D0
         do j = 1 , jxm1
           do i = 1 , iym1
             tcrai = tcrai + rainc_io(i,j)*dxsq
@@ -749,8 +749,8 @@
       end if
       call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
-      tcrai = 0.
-      tncrai = 0.
+      tcrai = 0.0D0
+      tncrai = 0.0D0
       do j = 1 , jxm1
         do i = 1 , iym1
           tcrai = tcrai + sfsta%rainc(i,j)*dxsq
@@ -761,15 +761,15 @@
 #endif
 !
       tqmass = tqmass + tqrai - tqeva - tqadv
-      error2 = (tqmass-tqini)/tqini*100.
+      error2 = (tqmass-tqini)/tqini*100.0D0
 !
 !-----print out the information:
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif
-        if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
-          xh = xtime/1440.
+        if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+          xh = xtime/1440.0D0
           write(6,*)  '***** day = ' , ldatez + xh , ' *****'
           write(6,99001) tdrym , error1
           write(6,99002) tdadv
@@ -859,9 +859,9 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            if ( myid.eq.nproc-1 ) then
-              uavg2 = 0.5*(atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))
-              if ( uavg2.lt.0. ) then
+            if ( myid == nproc-1 ) then
+              uavg2 = 0.5D0*(atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))
+              if ( uavg2 < 0.0D0 ) then
                 worka(i,k,n) =  &
                     -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(i,jendx)/ &
                     (mddom%msfx(i,jendx)*mddom%msfx(i,jendx))+      &
@@ -875,9 +875,9 @@
                     (mddom%msfx(i,jendx)*mddom%msfx(i,jendx)))
               end if
             end if
-            if ( myid.eq.0 ) then
-              uavg1 = 0.5*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
-              if ( uavg1.gt.0. ) then
+            if ( myid == 0 ) then
+              uavg1 = 0.5D0*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
+              if ( uavg1 > 0.0D0 ) then
                 workb(i,k,n) = &
                     -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1)/ &
                     (mddom%msfx(i,1)*mddom%msfx(i,1)) +     &
@@ -900,8 +900,8 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(atm1%u(i+1,k,jxm1)+atm1%u(i,k,jxm1))
-            if ( uavg2.lt.0. ) then
+            uavg2 = 0.5D0*(atm1%u(i+1,k,jxm1)+atm1%u(i,k,jxm1))
+            if ( uavg2 < 0.0D0 ) then
               worka(i,k,n) =  &
                   -uavg2*(fact1*chia(i,k,jxm1,n)/sps1%ps(i,jxm1) / &
                   (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)) +      &
@@ -915,8 +915,8 @@
                   (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)))
             end if
  
-            uavg1 = 0.5*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
-            if ( uavg1.gt.0. ) then
+            uavg1 = 0.5D0*(atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))
+            if ( uavg1 > 0.0D0 ) then
               workb(i,k,n) = &
                   -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1) / &
                   (mddom%msfx(i,1)*mddom%msfx(i,1)) +      &
@@ -985,11 +985,11 @@
                     & psa01_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_gather(psa02,  jxp,mpi_real8,                         &
                     & psa02_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 2 , iym2
-              tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)     &
+              tchiad(n) = tchiad(n) + dtmin*6.D4*dsigma(k)     &
                         & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
             end do
           end do
@@ -999,8 +999,8 @@
           do k = 1 , kz
             do j = 2 , jxm2
 !hy           inflow/outflow
-              vavg2 = 0.5*(vaill_g(k,j+1)+vaill_g(k,j))
-              if ( vavg2.lt.0. ) then
+              vavg2 = 0.5D0*(vaill_g(k,j+1)+vaill_g(k,j))
+              if ( vavg2 < 0.0D0 ) then
                 fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j)        &
                     & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))    &
                     & +fact2*chiaill1_g(k,n,j)/psaill1_g(j)             &
@@ -1012,8 +1012,8 @@
                     & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)))
               end if
  
-              vavg1 = 0.5*(va02_g(k,j+1)+va02_g(k,j))
-              if ( vavg1.gt.0. ) then
+              vavg1 = 0.5D0*(va02_g(k,j+1)+va02_g(k,j))
+              if ( vavg1 > 0.0D0 ) then
                 fx1 = -vavg1*(fact1*chia01_g(k,n,j)/psa01_g(j)          &
                     & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j))+         &
                     & fact2*chia02_g(k,n,j)/psa02_g(j)                  &
@@ -1024,7 +1024,7 @@
                     & fact2*chia01_g(k,n,j)/psa01_g(j)             &
                     & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
               end if
-              tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*(fx2-fx1) &
+              tchiad(n) = tchiad(n) + dtmin*6.D4*dsigma(k)*dx*(fx2-fx1) &
                         & *rgti
             end do
           end do
@@ -1035,7 +1035,7 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)                &
+            tchiad(n) = tchiad(n) + dtmin*6.D4*dsigma(k)                &
                       & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
           end do
         end do
@@ -1047,8 +1047,8 @@
         do k = 1 , kz
           do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = 0.5*(atm1%v(iym1,k,j+1)+atm1%v(iym1,k,j))
-            if ( vavg2.lt.0. ) then
+            vavg2 = 0.5D0*(atm1%v(iym1,k,j+1)+atm1%v(iym1,k,j))
+            if ( vavg2 < 0.0D0 ) then
               fx2 = -vavg2*(fact1*chia(iym1,k,j,n)/sps1%ps(iym1,j) / &
                       (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) +    &
                        fact2*chia(iym2,k,j,n)/sps1%ps(iym2,j) /      &
@@ -1060,8 +1060,8 @@
                   & /(mddom%msfx(iym1,j)*mddom%msfx(iym1,j)))
             end if
  
-            vavg1 = 0.5*(atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))
-            if ( vavg1.gt.0. ) then
+            vavg1 = 0.5D0*(atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))
+            if ( vavg1 > 0.0D0 ) then
               fx1 = -vavg1*(fact1*chia(1,k,j,n)/sps1%ps(1,j) / &
                       (mddom%msfx(1,j)*mddom%msfx(1,j)) +    &
                        fact2*chia(1+1,k,j,n)/sps1%ps(1+1,j) /  &
@@ -1073,7 +1073,7 @@
                        (mddom%msfx(1,j)*mddom%msfx(1,j)))
             end if
  
-            tchiad(n) = tchiad(n) + dtmin*6.E4*dsigma(k)*dx*            &
+            tchiad(n) = tchiad(n) + dtmin*6.D4*dsigma(k)*dx*            &
                   & (fx2-fx1)*rgti
  
           end do
@@ -1088,11 +1088,11 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            if ( myid.eq.nproc-1 )  &
+            if ( myid == nproc-1 )  &
               worka(i,k,n) = xkc(i,k,jendm)*sps1%ps(i,jendm) * &
                   (chia(i,k,jendm,n)/sps1%ps(i,jendm)-         &
                    chia(i,k,jendx,n)/sps1%ps(i,jendx))
-            if ( myid.eq.0 ) &
+            if ( myid == 0 ) &
               workb(i,k,n) = xkc(i,k,2)*sps1%ps(i,2) *  &
                   (chia(i,k,2,n)/sps1%ps(i,2) -         &
                    chia(i,k,1,n)/sps1%ps(i,1))
@@ -1117,11 +1117,11 @@
 #endif
 
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 2 , iym2
-              tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)              &
+              tchitb(n) = tchitb(n) - dtmin*6.D4*dsigma(k)              &
                         & *(workb(i,k,n)+worka(i,k,n))*rgti
             end do
           end do
@@ -1136,7 +1136,7 @@
               chid2 = xkc02_g(k,j)*psa02_g(j)                           &
                     & *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     & /psa01_g(j))
-              tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)*(chid2+chid1)&
+              tchitb(n) = tchitb(n) - dtmin*6.D4*dsigma(k)*(chid2+chid1)&
                         & *rgti
             end do
           end do
@@ -1147,7 +1147,7 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchitb(n) = tchitb(n) - dtmin*6.E4*dsigma(k)                &
+            tchitb(n) = tchitb(n) - dtmin*6.D4*dsigma(k)                &
                       & *(workb(i,k,n)+worka(i,k,n))*rgti
           end do
         end do
@@ -1184,13 +1184,13 @@
 !     respectively
  
       do itr = 1 , ntr
-        ttrace(itr,1) = 0.
-        tremlsc(itr,1) = 0.
-        tremcvc(itr,1) = 0.
-        trxsg(itr,1) = 0.
-        trxsaq1(itr,1) = 0.
-        trxsaq2(itr,1) = 0.
-        tremdrd(itr,1) = 0.
+        ttrace(itr,1) = 0.0D0
+        tremlsc(itr,1) = 0.0D0
+        tremcvc(itr,1) = 0.0D0
+        trxsg(itr,1) = 0.0D0
+        trxsaq1(itr,1) = 0.0D0
+        trxsaq2(itr,1) = 0.0D0
+        tremdrd(itr,1) = 0.0D0
       end do
 !
 #ifdef MPP1
@@ -1222,45 +1222,45 @@
                         & 0,mpi_comm_world,ierr)
         end do
       end do
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do itr = 1 , ntr
           do k = 1 , kz
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + chia_io(i,k,j,itr)
               end do
             end do
             ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + remlsc_io(i,k,j,itr)
               end do
             end do
             tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + remcvc_io(i,k,j,itr)
               end do
             end do
             tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + rxsg_io(i,k,j,itr)
               end do
             end do
             trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + rxsaq1_io(i,k,j,itr)
               end do
             end do
             trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
-            tttmp = 0.
+            tttmp = 0.0D0
             do j = 2 , jxm2
               do i = 2 , iym2
                 tttmp = tttmp + rxsaq2_io(i,k,j,itr)
@@ -1280,7 +1280,7 @@
         end do
  
         do itr = 1 , ntr
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + remdrd_io(i,j,itr)
@@ -1289,7 +1289,7 @@
           tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
  
 !         emissions
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtmin*60.*dx*dx
@@ -1310,42 +1310,42 @@
 #else
       do itr = 1 , ntr
         do k = 1 , kz
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + chia(i,k,j,itr)
             end do
           end do
           ttrace(itr,1) = ttrace(itr,1) + tttmp*dsigma(k)
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + remlsc(i,k,j,itr)
             end do
           end do
           tremlsc(itr,1) = tremlsc(itr,1) + tttmp*dsigma(k)
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + remcvc(i,k,j,itr)
             end do
           end do
           tremcvc(itr,1) = tremcvc(itr,1) + tttmp*dsigma(k)
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + rxsg(i,k,j,itr)
             end do
           end do
           trxsg(itr,1) = trxsg(itr,1) + tttmp*dsigma(k)
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + rxsaq1(i,k,j,itr)
             end do
           end do
           trxsaq1(itr,1) = trxsaq1(itr,1) + tttmp*dsigma(k)
-          tttmp = 0.
+          tttmp = 0.0D0
           do j = 2 , jxm2
             do i = 2 , iym2
               tttmp = tttmp + rxsaq2(i,k,j,itr)
@@ -1365,7 +1365,7 @@
       end do
 
       do itr = 1 , ntr
-        tttmp = 0.
+        tttmp = 0.0D0
         do j = 2 , jxm2
           do i = 2 , iym2
             tttmp = tttmp + remdrd(i,j,itr)
@@ -1374,7 +1374,7 @@
         tremdrd(itr,1) = tremdrd(itr,1) + tttmp*dx*dx*dsigma(kz)
 
 !       emissions
-        tttmp = 0.
+        tttmp = 0.0D0
         do j = 2 , jxm2
           do i = 2 , iym2
             tttmp = tttmp + chemsrc(i,j,lmonth,itr)*dtmin*60.*dx*dx
@@ -1397,10 +1397,10 @@
  
 !-----print out the information:
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif
  
-        if ( debug_level > 3 .and. mod(ntime,ndbgfrq).eq.0 ) then
+        if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
  
 !----     tracers
  
@@ -1461,10 +1461,10 @@
       call mpi_gather(sfsta%qfx,iy*jxp,mpi_real8,  &
                     & qfx_io,   iy*jxp,mpi_real8,  &
                     & 0,mpi_comm_world,ierr)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do j = 2 , jxm2
           do i = 2 , iym2
-            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.
+            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*60.0D0
           end do
         end do
       end if
@@ -1472,7 +1472,7 @@
 #else
       do j = 2 , jxm2
         do i = 2 , iym2
-          tqeva = tqeva + sfsta%qfx(i,j)*dx*dx*dtmin*60.
+          tqeva = tqeva + sfsta%qfx(i,j)*dx*dx*dtmin*60.0D0
         end do
       end do
 #endif

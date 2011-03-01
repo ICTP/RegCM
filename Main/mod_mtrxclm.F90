@@ -684,8 +684,8 @@
 !     Correct landmask
       do j = 1 , jx
         do i = 1 , iy
-          if ( dabs(landfrac(j,i)-1.0D0) .ge. 0.1D0 .and. &
-               dabs(landfrac(j,i)).ge.0.1D0 ) then
+          if ( dabs(landfrac(j,i)-1.0D0) >= 0.1D0 .and. &
+               dabs(landfrac(j,i)) >= 0.1D0 ) then
             landmask(j,i) = 3
           end if
         end do
@@ -729,14 +729,14 @@
             ! used in RegCM.  Make sure all are consistent  
 
             mddom%satbrt(i,j) = clm2bats_veg(jj,i)
-            if ( clm2bats_veg(jj,i).lt.0.1D0 ) mddom%satbrt(i,j) = 15.0D0
+            if ( clm2bats_veg(jj,i) < 0.1D0 ) mddom%satbrt(i,j) = 15.0D0
             do n = 1 , nnsg
               satbrt1(n,i,j) = clm2bats_veg(jj,i)
-              if ( clm2bats_veg(jj,i).lt.0.1D0 ) satbrt1(n,i,j) = 15.0D0
+              if ( clm2bats_veg(jj,i) < 0.1D0 ) satbrt1(n,i,j) = 15.0D0
             end do
 
-            if ( mddom%satbrt(i,j).gt.13.9D0 .and. &
-                 mddom%satbrt(i,j).lt.15.1D0 ) then
+            if ( mddom%satbrt(i,j) > 13.9D0 .and. &
+                 mddom%satbrt(i,j) < 15.1D0 ) then
               veg2d(i,j)  = 0.0D0
               do n = 1 , nnsg
                 veg2d1(n,i,j) = 0.0D0
@@ -748,12 +748,12 @@
               end do
             end if
 
-            if ( veg2d(i,j).lt.0.1D0 .and. ocld2d(1,i,j).gt.0.9D0 ) then
+            if ( veg2d(i,j) < 0.1D0 .and. ocld2d(1,i,j) > 0.9D0 ) then
               veg2d(i,j)        =  2.0D0
               mddom%satbrt(i,j) =  2.0D0
             end if
             do n = 1 , nnsg
-              if ( veg2d(i,j).lt.0.1D0 .and. ocld2d(n,i,j).gt.0.9D0 ) then
+              if ( veg2d(i,j) < 0.1D0 .and. ocld2d(n,i,j) > 0.9D0 ) then
                 veg2d1(n,i,j)     =  2.0D0
                 satbrt1(n,i,j)    =  2.0D0
               end if
@@ -1072,7 +1072,7 @@
             sts1%tg(i,j) = 0.0D0
             sfsta%tgbb(i,j) = 0.0D0
 
-            if ( ichem .eq. 1) then
+            if ( ichem == 1) then
               ssw2da(i,j) = 0.0D0
               sdeltk2d(i,j) = 0.0D0
               sdelqk2d(i,j) = 0.0D0
@@ -1117,7 +1117,7 @@
                 rnos2d(n,i,j) = c2rro_sur(jj,ci)*dtbat
                 rno2d(n,i,j) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
-                if ( ichem .eq. 1 ) then
+                if ( ichem == 1 ) then
                   ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
                   sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
                   sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
@@ -1142,7 +1142,7 @@
               sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
               pptnc(i,j) = 0.0D0
               pptc(i,j) = 0.0D0
-              if (ichem .eq. 1 ) then
+              if (ichem == 1 ) then
                 ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
                 sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
                 sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
@@ -1159,7 +1159,7 @@
                 sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
                 sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
 
-                if ( ichem .eq. 1 ) then
+                if ( ichem == 1 ) then
                   ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
                   sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
                   sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
@@ -1193,7 +1193,7 @@
               sts1%tg(i,j) = sts1%tg(i,j)/dble(nnsg)
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(nnsg)
 
-              if ( ichem .eq. 1 ) then
+              if ( ichem == 1 ) then
                 ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
                 sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
                 sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
@@ -1255,7 +1255,7 @@
                 sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
                 sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
 
-                if ( ichem .eq. 1 ) then
+                if ( ichem == 1 ) then
                   ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
                   sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
                   sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
@@ -1313,7 +1313,7 @@
               sts1%tg(i,j) = sts1%tg(i,j)/dble(nnsg)
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(nnsg)
 
-              if ( ichem .eq. 1 ) then
+              if ( ichem == 1 ) then
                 ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
                 sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
                 sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
@@ -1375,7 +1375,7 @@
 !         Fill output arrays if needed
  
           if ( mod(ntime+idnint(dtmin*60.0D0),kbats)==0 .or. &
-               (jyear.eq.jyear0 .and. ktau.eq.0) ) then
+               (jyear == jyear0 .and. ktau == 0) ) then
  
             do i = 2 , iym1
               ci = i

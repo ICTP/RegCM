@@ -124,7 +124,7 @@
           fracloud(i,k) = dmin1(fcc(i,k,j),fcmax)
           fracum(i,k) = 0.0D0
         end do
-        if ( icumtop(i,j).ne.0 ) then
+        if ( icumtop(i,j) /= 0 ) then
           do k = icumtop(i,j) , kz
             fracum(i,k) = cldfra(i,k) - fracloud(i,k)
           end do
@@ -159,7 +159,7 @@
  
 !     subgrid vertical transport by convective mass flux : a modifier !
  
-      if ( ichcumtra.eq.2 ) then
+      if ( ichcumtra == 2 ) then
         do k = 2 , kz
           do i = 2 , iym2
             wk(i,k) = (1./sps1%ps(i,j))           &
@@ -173,7 +173,7 @@
  
         do i = 2 , iym2
  
-          if ( icumtop(i,j).ne.0 ) then
+          if ( icumtop(i,j) /= 0 ) then
  
             kt = max0(icumtop(i,j),3)
             kb = icumbot(i,j)
@@ -185,7 +185,7 @@
 !           transport linked to updraft
 !           betwwen kt et kdwd , the tendancy is averaged (mixing)
  
-            if ( kdwd.lt.kt ) then
+            if ( kdwd < kt ) then
               write (aline, *) 'Problem in tractend2 !'
               call say
             end if
@@ -230,7 +230,7 @@
 !---------------------------------------------
 !       SOX CHEMSITRY / IN-CLOUD PROCESS
 !--------------------------------------------
-        if ( gfcall .and. (chtrname(itr).eq.'SO2' .and. iso4.gt.0) )    &
+        if ( gfcall .and. (chtrname(itr) == 'SO2' .and. iso4 > 0) )    &
            & then
           gfcall = .false.
  
@@ -245,7 +245,7 @@
             do i = 2 , iym2
               cldno = 1.0D0    ! no cloud fraction
  
-!             if(coszrs(i,j).lt.0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
+!             if(coszrs(i,j) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
 !             oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
 !             molecules/cm3 test j eprends directement une valeur de oh1
 #ifdef CHEMTEST 
@@ -253,7 +253,7 @@
 #else
               oh1 = 15.0D5
 #endif
-              if ( coszrs(i).lt.0.001D0 ) oh1 = oh1*0.01D0 ! diurnal evolution
+              if ( coszrs(i) < 0.001D0 ) oh1 = oh1*0.01D0 ! diurnal evolution
  
               ak0tm = 3.D-31*(atm1%t(i,k,j)/sps1%ps(i,j)/ &
                         300.0D0)**(-3.3D0)*rho(i,k)*2.084D19 ! k0(T)*[M]
@@ -306,7 +306,7 @@
               wetrem(iso2) = 0.0D0 ! scavenging for SO2, below lsc
               wetrem(iso4) = 0.0D0
  
-              if ( wl(i,k).gt.clmin ) then
+              if ( wl(i,k) > clmin ) then
 !               conversion from so2 to so4
                 rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k)         &
                      & *(dexp(-wl(i,k)/360.0D0*dt)-1.0D0)
@@ -318,14 +318,14 @@
 !               if removal occurs, a fraction of SO4 src term is also
 !               removed and accounted for in the term  wetrem(iso4)
  
-                if ( remrat(i,k).gt.0.0D0 ) wetrem(iso4)                &
+                if ( remrat(i,k) > 0.0D0 ) wetrem(iso4)                &
                    & = (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4)    &
                    & -rxs11)*(dexp(-remrat(i,k)*dt)-1.0D0)
               end if
  
 !             Below cloud scavenging only for SO2
  
-              if ( rembc(i,k).gt.0.0D0 ) wetrem(iso2) = fracloud(i,k) * &
+              if ( rembc(i,k) > 0.0D0 ) wetrem(iso2) = fracloud(i,k) * &
                  chtrsol(iso2)*concmin(i,k)*(dexp(-rembc(i,k)*dt)-1.0D0)
  
 !             Tendancies large scale cloud
@@ -350,7 +350,7 @@
 !         fracum) assume the cloud water content = 2 g/m3  (ref.
 !         Kasibhatla )
           do i = 2 , iym2
-            if ( icumtop(i,j).ne.0 ) then
+            if ( icumtop(i,j) /= 0 ) then
               do k = icumtop(i,j) , kz
                 rxs2 = 0.0D0
                 rxs21 = 0.0D0  ! fraction of conversion, not removed, as SO4 src
@@ -372,7 +372,7 @@
                                    & + wetrem_cvc(iso4)/dt - rxs21/dt
  
 !               diagnostic of wet deposition
-!               remcvc(i,k,j,1) = remcvc(i,k,j,1) - wetrem_cvc(iso2)/2.
+!               remcvc(i,k,j,1) = remcvc(i,k,j,1)-wetrem_cvc(iso2)/2.D0
                 remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4)                 &
                                    & - wetrem_cvc(iso4)/2.0D0
 !               chemical aquesous conversion diagnostic
@@ -388,13 +388,13 @@
 !---------------------------------------
 !       Other than sulfate CARBON AEROSOL, DUST
 !----------------------------------------
-        if ( chtrname(itr).eq.'BC_HB' .or. chtrname(itr).eq.'BC_HL' .or.&
-           & chtrname(itr).eq.'OC_HB' .or. chtrname(itr).eq.'OC_HL' .or.&
-           & chtrname(itr).eq.'DUST' ) then
+        if ( chtrname(itr) == 'BC_HB' .or. chtrname(itr) == 'BC_HL' .or.&
+           & chtrname(itr) == 'OC_HB' .or. chtrname(itr) == 'OC_HL' .or.&
+           & chtrname(itr) == 'DUST' ) then
  
 !         wet deposition term
  
-          if ( ichremlsc.eq.1 ) then
+          if ( ichremlsc == 1 ) then
 !           Wet removal at resolvable scale (fcc)
 !           add non-precipitating cloud conversion (threshold
 !           clmin=0.01g/m3) the same as that in subroutine exmois
@@ -402,9 +402,9 @@
  
             do k = 1 , kz
               do i = 2 , iym2
-                if ( wl(i,k).gt.clmin ) then
+                if ( wl(i,k) > clmin ) then
                   wetrem(itr) = 0.0D0
-                  if ( remrat(i,k).gt.0.0D0 ) then
+                  if ( remrat(i,k) > 0.0D0 ) then
                     wetrem(itr) = fracloud(i,k)*chtrsol(itr)            &
                                 & *chib(i,k,j,itr)                      &
                                 & *(dexp(-remrat(i,k)*dt)-1.0D0)
@@ -418,12 +418,12 @@
             end do
           end if
  
-          if ( ichremcvc.eq.1 ) then
+          if ( ichremcvc == 1 ) then
 !           sub-scale wet removal, cumulus cloud (fracum)
 !           remcum = removal rate for cumulus cloud scavenging (s-1)
 !           remcum = 1.e-3
             do i = 2 , iym2
-              if ( icumtop(i,j).ne.0 ) then
+              if ( icumtop(i,j) /= 0 ) then
                 do k = icumtop(i,j) , kz
                   wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr)            &
                                   & *chib(i,k,j,itr)                    &
@@ -442,7 +442,7 @@
 !       Conversion from hydrophobic to hydrophilic: Carbonaceopus
 !       species time constant ( 1.15 day cooke et al.,1999)
  
-        if ( gfcall3 .and. chtrname(itr).eq.'BC_HB' .and. ibchl.gt.0 )  &
+        if ( gfcall3 .and. chtrname(itr) == 'BC_HB' .and. ibchl > 0 )  &
            & then
           gfcall3 = .false.
           agct = 1.15D0*86400D0
@@ -466,7 +466,7 @@
         end if
  
  
-        if ( gfcall4 .and. chtrname(itr).eq.'OC_HB' .and. iochl.gt.0 )  &
+        if ( gfcall4 .and. chtrname(itr) == 'OC_HB' .and. iochl > 0 )  &
            & then
  
           gfcall4 = .false.
@@ -508,7 +508,7 @@
  
 !       define the bin size
  
-        if ( chtrname(itr).eq.'DUST' .and. gfcall2 ) then
+        if ( chtrname(itr) == 'DUST' .and. gfcall2 ) then
  
           do i = 2 , iym2
             ivegcov(i) = idnint(veg2d(i,j))
@@ -522,7 +522,7 @@
 !           calculate 10 M input for wind erosion and dry deposition
 !           method based on bats diagnostic in routine interf.
  
-            if ( (ivegcov(i).ne.0) ) then
+            if ( (ivegcov(i) /= 0) ) then
               facv = dlog(za(i,kz,j)/10.0D0)       &
                    & /dlog(za(i,kz,j)/rough(ivegcov(i)))
               facb = dlog(za(i,kz,j)/10.0D0)/dlog(za(i,kz,j)/zlnd)
@@ -562,7 +562,7 @@
             shu10 = shu10/(1.0D0-shu10)
  
 !           saturation mixing ratio at 10m
-            if ( temp10(i).gt.tzero ) then
+            if ( temp10(i) > tzero ) then
               satvp = svp1*1.D3*dexp(svp2*(temp10(i)-tzero)             &
                     & /(temp10(i)-svp3))
             else
@@ -573,7 +573,7 @@
  
 !           relative humidity at 10m
             rh10(i) = 0.0D0
-            if ( qsat10.gt.0.0D0 ) rh10(i) = shu10/qsat10
+            if ( qsat10 > 0.0D0 ) rh10(i) = shu10/qsat10
 !
 !           friction velocity ( not used fo the moment)
 !
@@ -602,7 +602,7 @@
 !           temperature account for a composite temperature between
  
 !           bare ground and vegetation
-            if ( ivegcov(i).ne.0 ) then
+            if ( ivegcov(i) /= 0 ) then
               tsurf(i) = ttb(i,kz) - sdeltk2d(i,j)
             else
 !             ocean temperature in this case
@@ -627,7 +627,7 @@
         end if ! end dust flux and deposition calculated for bins
 !       just calculated for the first case of itr = DUST (save time man)
  
-        if ( chtrname(itr).eq.'DUST' ) then
+        if ( chtrname(itr) == 'DUST' ) then
 !         define the corresponding index between itr and DUST bins
 !         (can be different if we use DUST + other particles)
  
@@ -678,7 +678,7 @@
 !CCCC   Source tendenciesCCCC
  
         do i = 2 , iym2
-          if ( chtrname(itr).ne.'DUST' ) then
+          if ( chtrname(itr) /= 'DUST' ) then
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr)                     &
                                & + chemsrc(i,j,lmonth,itr)              &
                                & *gti*0.7D0/(dsigma(kz)*1.D3)

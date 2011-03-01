@@ -142,15 +142,15 @@
 
       ndate0 = idate1
       ndate1 = ndate0
-      if (ndate0.eq.globidate1 .or.                                   &
-         (((ndate0/10000)*100+1)*100 .eq.                             &
+      if (ndate0 == globidate1 .or.                                   &
+         (((ndate0/10000)*100+1)*100 ==                             &
          ((globidate1/10000)*100+1)*100 ) ) then
         icbc_date = globidate1
       else
           icbc_date = ((ndate0/10000)*100+1)*100
       end if
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         call open_icbc(icbc_date)
       end if
 #else
@@ -166,7 +166,7 @@
         atm2%qc = 0.0D0
 !
 !chem2
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
 !qhy      tchie, tchitb(replace tchidp:deposition)
 !         initialize removal terms
           remlsc = 0.0D0
@@ -180,12 +180,12 @@
 !chem2_
 !------set the variables related to blackadar pbl equal to 0 initially.
 !
-        if ( ibltyp.ne.0 ) then
+        if ( ibltyp /= 0 ) then
           sfsta%hfx = 0.0D0
           sfsta%qfx = 0.0D0
         end if
 !
-        if ( icup.eq.1 ) then
+        if ( icup == 1 ) then
           rsheat = 0.0D0
           rswat  = 0.0D0
         end if
@@ -197,7 +197,7 @@
 #ifdef CLM
         if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                    &     tb0_io,qb0_io,so0_io)
           write (6,*) 'READY IC DATA for ', ndate0
@@ -284,8 +284,8 @@
 !
 #ifndef BAND
         do i = 2 , iym1
-          if ( myid.eq.0 ) psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
-          if ( myid.eq.nproc-1 ) psdot(i,jendl)                         &
+          if ( myid == 0 ) psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
+          if ( myid == nproc-1 ) psdot(i,jendl)                         &
              & = 0.5D0*(ps0(i,jendx)+ps0(i-1,jendx))
         end do
 #endif
@@ -296,11 +296,11 @@
         end do
 !
 #ifndef BAND
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           psdot(1,1) = ps0(1,1)
           psdot(iy,1) = ps0(iym1,1)
         end if
-        if ( myid.eq.nproc-1 ) then
+        if ( myid == nproc-1 ) then
           psdot(1,jendl) = ps0(1,jendx)
           psdot(iy,jendl) = ps0(iym1,jendx)
         end if
@@ -346,9 +346,9 @@
         if (iseaice == 1) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( mddom%satbrt(i,j).gt.13.5 .and. &
-                   mddom%satbrt(i,j).lt.15.5 ) then
-                if ( ts0(i,j).le.271.38D0 ) then
+              if ( mddom%satbrt(i,j) > 13.5D0 .and. &
+                   mddom%satbrt(i,j) < 15.5D0 ) then
+                if ( ts0(i,j) <= 271.38D0 ) then
                   sts1%tg(i,j) = 271.38D0
                   sts2%tg(i,j) = 271.38D0
                   ts0(i,j) = 271.38D0
@@ -357,8 +357,8 @@
                   end do
                 else
                   do n = 1, nnsg
-                    if ( satbrt1(n,i,j).gt.13.5 .and. &
-                         satbrt1(n,i,j).lt.15.5 ) then
+                    if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                         satbrt1(n,i,j) < 15.5D0 ) then
                       ocld2d(n,i,j) = 0.0D0
                     else
                       ocld2d(n,i,j) = 1.0D0
@@ -367,8 +367,8 @@
                 end if
               else
                 do n = 1, nnsg
-                  if ( satbrt1(n,i,j).gt.13.5 .and. &
-                       satbrt1(n,i,j).lt.15.5 ) then
+                  if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                       satbrt1(n,i,j) < 15.5D0 ) then
                     ocld2d(n,i,j) = 0.0D0
                   else
                     ocld2d(n,i,j) = 1.0D0
@@ -381,8 +381,8 @@
           do j = 1 , jendx
             do i = 1 , iym1
               do n = 1, nnsg
-                if ( satbrt1(n,i,j).gt.13.5 .and. &
-                     satbrt1(n,i,j).lt.15.5 ) then
+                if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                     satbrt1(n,i,j) < 15.5D0 ) then
                   ocld2d(n,i,j) = 0.0D0
                 else
                   ocld2d(n,i,j) = 1.0D0
@@ -426,7 +426,7 @@
             end do
           end do
         end do
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
           ssw2da    = 0.0D0
           sdeltk2d  = 0.0D0
           sdelqk2d  = 0.0D0
@@ -457,7 +457,7 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1.eq.0) jm1=jx
+          if(jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
             psdot(i,j) = 0.25D0*(ps0(i,j)+ps0(i-1,j)+     &
@@ -479,7 +479,7 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1.eq.0) jm1=jx
+          if(jm1 == 0) jm1=jx
 #endif
           psdot(1,j) = 0.5D0*(ps0(1,j)+ps0(1,jm1))
           psdot(iy,j) = 0.5D0*(ps0(iym1,j)+ps0(iym1,jm1))
@@ -539,9 +539,9 @@
           do j = 1 , jxm1
 #endif
             do i = 1 , iym1
-              if ( mddom%satbrt(i,j).gt.13.5 .and. &
-                   mddom%satbrt(i,j).lt.15.5 ) then
-                if ( ts0(i,j).le.271.38D0 ) then
+              if ( mddom%satbrt(i,j) > 13.5D0 .and. &
+                   mddom%satbrt(i,j) < 15.5D0 ) then
+                if ( ts0(i,j) <= 271.38D0 ) then
                   sts1%tg(i,j) = 271.38D0
                   sts2%tg(i,j) = 271.38D0
                   ts0(i,j) = 271.38D0
@@ -550,8 +550,8 @@
                   end do
                 else
                   do n = 1, nnsg
-                    if ( satbrt1(n,i,j).gt.13.5 .and. &
-                         satbrt1(n,i,j).lt.15.5 ) then
+                    if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                         satbrt1(n,i,j) < 15.5D0 ) then
                       ocld2d(n,i,j) = 0.0D0
                     else
                       ocld2d(n,i,j) = 1.0D0
@@ -560,8 +560,8 @@
                 end if
               else
                 do n = 1, nnsg
-                  if ( satbrt1(n,i,j).gt.13.5 .and. &
-                       satbrt1(n,i,j).lt.15.5 ) then
+                  if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                       satbrt1(n,i,j) < 15.5D0 ) then
                     ocld2d(n,i,j) = 0.0D0
                   else
                     ocld2d(n,i,j) = 1.0D0
@@ -578,8 +578,8 @@
 #endif
             do i = 1 , iym1
               do n = 1, nnsg
-                if ( satbrt1(n,i,j).gt.13.5 .and. &
-                     satbrt1(n,i,j).lt.15.5 ) then
+                if ( satbrt1(n,i,j) > 13.5D0 .and. &
+                     satbrt1(n,i,j) < 15.5D0 ) then
                   ocld2d(n,i,j) = 0.0D0
                 else
                   ocld2d(n,i,j) = 1.0D0
@@ -632,7 +632,7 @@
             end do
           end do
         end do
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
           ssw2da = 0.0D0
           sdeltk2d = 0.0D0
           sdelqk2d = 0.0D0
@@ -647,7 +647,7 @@
 #endif
 !
 !chem2
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
 !-----set tracer concs to 1 (kg/kg) initially. Must convert this to p*
 !-----mixing ratio to compute tendencies:
 !US       mass test zero concs init input for advection
@@ -702,7 +702,7 @@
         call read_savefile_part1(ndate0)
 !
 #ifdef MPP1
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
             write (6,99004) o3prof_io(3,3,k)
@@ -710,11 +710,11 @@
           print 99005 , xtime , ktau , jyear
         end if
 !
-        if ( lakemod.eq.1 ) then
+        if ( lakemod == 1 ) then
           call lakescatter
         endif
 
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -766,7 +766,7 @@
           end if
         end do
 
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -799,7 +799,7 @@
             sps2%ps(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -832,7 +832,7 @@
             sts2%tg(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -881,7 +881,7 @@
             end do
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do i = 1 , iy
               sav_0a(i,1,j) = hfx_io(i,j)
@@ -931,12 +931,12 @@
             end do
           end do
         end do
-        if ( iocnflx.eq.2 )                                        &
+        if ( iocnflx == 2 )                                        &
           & call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,             &
           &                  sfsta%zpbl,   iy*jxp,mpi_real8,       &
           &                  0,mpi_comm_world,ierr)
-        if ( icup.eq.1 ) then
-          if ( myid.eq.0 ) then
+        if ( icup == 1 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -958,8 +958,8 @@
             end do
           end do
         end if
-        if ( icup.eq.3 ) then
-          if ( myid.eq.0 ) then
+        if ( icup == 3 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -990,7 +990,7 @@
                          & cbmf2d,   iy*jxp,mpi_real8,             &
                          & 0,mpi_comm_world,ierr)
         end if
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1063,7 +1063,7 @@
             end do
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1107,7 +1107,7 @@
             flw2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1151,7 +1151,7 @@
             sinc2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1195,7 +1195,7 @@
             prnca2d(i,j) = sav2(i,nnsg*5+4,j)
           end do
         end do
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1227,8 +1227,8 @@
             veg2d(i,j) = sav2a(i,nnsg*2+1,j)
           end do
         end do
-        if ( ichem.eq.1 ) then
-          if ( myid.eq.0 ) then
+        if ( ichem == 1 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do n = 1 , ntr
                 do k = 1 , kz
@@ -1275,7 +1275,7 @@
               end do
             end do
           end do
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1308,7 +1308,7 @@
           end do
         end if
 #ifdef CLM
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
@@ -1379,12 +1379,12 @@
 !     Move from param.F to fix the reatart problem found by
 !     Zhang DongFeng
 !
-      if ( ipptls.eq.1 ) then
+      if ( ipptls == 1 ) then
 #ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
-            if ( mddom%satbrt(i,j).gt.13.9 .and. &
-                 mddom%satbrt(i,j).lt.15.1 ) then
+            if ( mddom%satbrt(i,j) > 13.9D0 .and. &
+                 mddom%satbrt(i,j) < 15.1D0 ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1402,8 +1402,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if ( mddom%satbrt(i,j).gt.13.9 .and.  &
-                 mddom%satbrt(i,j).lt.15.1 ) then
+            if ( mddom%satbrt(i,j) > 13.9D0 .and.  &
+                 mddom%satbrt(i,j) < 15.1D0 ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1417,7 +1417,7 @@
 #endif
       end if
 !chem2
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         iso2 = 0
         iso4 = 0
         ibchl = 0
@@ -1426,13 +1426,13 @@
         iochb = 0
         ibin = 0
         do itr = 1 , ntr
-          if ( chtrname(itr).eq.'SO2' ) iso2 = itr
-          if ( chtrname(itr).eq.'SO4' ) iso4 = itr
-          if ( chtrname(itr).eq.'BC_HL' ) ibchl = itr
-          if ( chtrname(itr).eq.'BC_HB' ) ibchb = itr
-          if ( chtrname(itr).eq.'OC_HL' ) iochl = itr
-          if ( chtrname(itr).eq.'OC_HB' ) iochb = itr
-          if ( chtrname(itr).eq.'DUST' ) then
+          if ( chtrname(itr) == 'SO2' ) iso2 = itr
+          if ( chtrname(itr) == 'SO4' ) iso4 = itr
+          if ( chtrname(itr) == 'BC_HL' ) ibchl = itr
+          if ( chtrname(itr) == 'BC_HB' ) ibchb = itr
+          if ( chtrname(itr) == 'OC_HL' ) iochl = itr
+          if ( chtrname(itr) == 'OC_HB' ) iochb = itr
+          if ( chtrname(itr) == 'DUST' ) then
             ibin = ibin + 1
             idust(ibin) = itr
           end if
@@ -1442,9 +1442,9 @@
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
  
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) call initb
+      if ( jyear == jyear0 .and. ktau == 0 ) call initb
 
-      if ( iemiss.eq.1 ) then
+      if ( iemiss == 1 ) then
 #ifdef MPP1
         do j = 1 , jendx
 #else
@@ -1457,13 +1457,13 @@
           do i = 1 , iym1
             do n = 1 , nnsg
               ist = idnint(veg2d1(n,i,j))
-              if ( ist.eq.0 ) then
+              if ( ist == 0 ) then
                 emiss2d(n,i,j) = 0.955D0
-              else if ( ist.eq.8 ) then
+              else if ( ist == 8 ) then
                 emiss2d(n,i,j) = 0.76D0
-              else if ( ist.eq.11 ) then
+              else if ( ist == 11 ) then
                 emiss2d(n,i,j) = 0.85D0
-              else if ( ist.eq.12 ) then
+              else if ( ist == 12 ) then
                 emiss2d(n,i,j) = 0.97D0
               else
                 emiss2d(n,i,j) = 0.99D0 - (albvgs(ist)+albvgl(ist))     &
@@ -1505,18 +1505,18 @@
         jm1 = j-1
         jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1 = jx
-        if(jp1.eq.jx+1) jp1 = 1
+        if(jm1 == 0) jm1 = jx
+        if(jp1 == jx+1) jp1 = 1
 #endif
 #else
 #ifdef MPP1
       do j = jbegin , jendm
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           jm1 = max0(j-1,2)
         else
           jm1 = j - 1
         end if
-        if ( myid.eq.nproc-1 ) then
+        if ( myid == nproc-1 ) then
           jp1 = min0(j+1,jxp-2)
         else
           jp1 = j + 1
@@ -1570,7 +1570,7 @@
 !
       integer :: i , j , k
 !
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
+      if ( jyear == jyear0 .and. ktau == 0 ) then
         do k = 1 , kz
 #ifdef MPP1
           do j = 1 , jendl
@@ -1602,7 +1602,7 @@
         end do
         call o3data
 #ifdef MPP1
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #endif
           write (6,*) 'ozone profiles'
           do k = 1 , kzp1

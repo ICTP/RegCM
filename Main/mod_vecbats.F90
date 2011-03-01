@@ -225,7 +225,7 @@
           pptnc(ill,jll) = 0.0D0
           pptc(ill,jll) = 0.0D0
 !MM4      ist=idint(mddom%satbrt(ill,jll))
-!MM4      if(ist.le.13)then
+!MM4      if(ist <= 13)then
 !MM4      ist=ist
 !MM4      else
 !MM4      ist=7
@@ -233,21 +233,21 @@
 !MM4      veg2d(ill,jll)=vgtran(ist)
 !eros     note:  when using bats dataset comment line above
           veg2d(ill,jll) = mddom%satbrt(ill,jll)
-          if ( mddom%satbrt(ill,jll).gt.13.9D0 .and. &
-               mddom%satbrt(ill,jll).lt.15.1D0 )  veg2d(ill,jll) = 0.0D0
+          if ( mddom%satbrt(ill,jll) > 13.9D0 .and. &
+               mddom%satbrt(ill,jll) < 15.1D0 )  veg2d(ill,jll) = 0.0D0
         end do
         do ill = 1 , iym1
           do k = 1 , nnsg
             veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
-            if ( satbrt1(k,ill,jll).gt.13.9D0 .and. &
-                 satbrt1(k,ill,jll).lt.15.1D0 ) &
+            if ( satbrt1(k,ill,jll) > 13.9D0 .and. &
+                 satbrt1(k,ill,jll) < 15.1D0 ) &
               veg2d1(k,ill,jll) = 0.0D0
           end do
         end do
       end do
 
 !     ******  initialize hostetler lake model
-      if (lakemod.eq.1) call initlake
+      if (lakemod == 1) call initlake
  
 #ifdef MPP1
       do jll = 1 , jendx
@@ -275,7 +275,7 @@
               scv2d(k,ill,jll) = 0.0D0
               nlveg = idint(veg2d1(k,ill,jll))
             end if
-            if ( nlveg.eq.0 ) then
+            if ( nlveg == 0 ) then
               nlveg = 15
             end if
             itex = iexsol(nlveg)
@@ -380,7 +380,7 @@
 !
       call time_begin(subroutine_name,idindx)
  
-      if ( ivers.eq.1 ) then ! regcm2d --> bats
+      if ( ivers == 1 ) then ! regcm2d --> bats
 
         do i = istart, iend
           do n = 1 , ng
@@ -430,7 +430,7 @@
             if (ocld2d(n,i,j) > 1.5D0) lveg(n,i) = 12
             amxtem = dmax1(298.0D0-tgb1d(n,i),0.D0)
             sfac = 1. - dmax1(0.D0,1.-0.0016D0*amxtem**2.0D0)
-            if ( lveg(n,i).eq.0 ) then
+            if ( lveg(n,i) == 0 ) then
               veg1d(n,i) = 0.0D0
             else
               veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
@@ -454,7 +454,7 @@
           solis(i) = sol2d(i,j)
           sabveg(i) = sabv2d(i,j)
           solvt = solvd2d(i,j) + solvs2d(i,j)
-          if ( solvt.gt.0.0D0 ) then
+          if ( solvt > 0.0D0 ) then
             fracd(i) = solvd2d(i,j)/solvt
           else
             fracd(i) = 0.2D0
@@ -462,7 +462,7 @@
           czen(i) = dmax1(coszrs(i),0.D0)
         end do
  
-      else if ( ivers.eq.2 ) then ! bats --> regcm2d
+      else if ( ivers == 2 ) then ! bats --> regcm2d
  
         do i = istart, iend
           sfsta%uvdrag(i,j) = 0.0D0
@@ -471,7 +471,7 @@
           sts2%tg(i,j) = 0.0D0
           sts1%tg(i,j) = 0.0D0
           sfsta%tgbb(i,j) = 0.0D0
-          if ( ichem .eq. 1 ) then
+          if ( ichem == 1 ) then
             ssw2da(i,j) = 0.0D0
             sdeltk2d(i,j) = 0.0D0
             sdelqk2d(i,j) = 0.0D0
@@ -487,7 +487,7 @@
             sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
             sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
             sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
-            if ( ichem .eq. 1 ) then
+            if ( ichem == 1 ) then
               ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
               sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
               sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
@@ -498,15 +498,15 @@
                             & + (1.0D0-veg1d(n,i))*scvk(n,i)
               svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
             end if
-            if ( iocnflx.eq.1 .or.                                      &
-               & (iocnflx.eq.2 .and. ocld2d(n,i,j).ge.0.5D0 ) ) then
+            if ( iocnflx == 1 .or.                                      &
+               & (iocnflx == 2 .and. ocld2d(n,i,j) >= 0.5D0 ) ) then
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                  &
                          + ((1.0D0-veg1d(n,i))*tg1d(n,i)**4.0D0+ &
                                    veg1d(n,i)*tlef1d(n,i)**4.0D0)**0.25D0
             else
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
             end if
-            if ( ocld2d(n,i,j).lt.0.5 ) then
+            if ( ocld2d(n,i,j) < 0.5D0 ) then
               ssw1d(n,i)  = -1.D34
               rsw1d(n,i)  = -1.D34
               tsw1d(n,i)  = -1.D34
@@ -522,7 +522,7 @@
           sts1%tg(i,j) = sts1%tg(i,j)/dble(ng)
           sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(ng)
 
-          if ( ichem .eq. 1 ) then
+          if ( ichem == 1 ) then
             ssw2da(i,j) = ssw2da(i,j)/dble(ng)
             sdeltk2d(i,j) = sdeltk2d(i,j)/dble(ng)
             sdelqk2d(i,j) = sdelqk2d(i,j)/dble(ng)
@@ -549,14 +549,14 @@
             ircp2d(n,i,j) = ircp1d(n,i)
             evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
             sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
-            if ( rnos2d(n,i,j).gt.-1.D10 .and. rnos1d(n,i).gt.-1.D10 )  &
+            if ( rnos2d(n,i,j) > -1.D10 .and. rnos1d(n,i) > -1.D10 )  &
                & then
               rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
             else
               rnos2d(n,i,j) = -1.D34
             end if
-            if ( rno2d(n,i,j).gt.-1.D10 .and. rnos1d(n,i)               &
-               & .gt.-1.D10 .and. rno1d(n,i).gt.-1.D10 ) then
+            if ( rno2d(n,i,j) > -1.D10 .and. rnos1d(n,i)               &
+               &  > -1.D10 .and. rno1d(n,i) > -1.D10 ) then
               rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))    &
                            & /tau1*dtbat
             else
@@ -588,7 +588,7 @@
           aldirs_o(j,i-1) = 0.0
           aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
-            if ( ocld2d(n,i,j).ge.0.5D0 ) then
+            if ( ocld2d(n,i,j) >= 0.5D0 ) then
               fracv = sigf(n,i)
               fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -604,7 +604,7 @@
               v10m1d(n,i) = vs1d(i)*(1.0D0-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
-              if ( iocnflx.eq.1 ) then
+              if ( iocnflx == 1 ) then
                 fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                 factuv = dlog(z1(n,i)/10.0D0)/dlog(z1(n,i)/zoce)
                 u10m1d(n,i) = us1d(i)*(1.0D0-factuv)
@@ -649,7 +649,7 @@
           aldirs_o(j,i-1) = 0.0
           aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
-            if ( ocld2d(n,i,j).ge.0.5D0 ) then
+            if ( ocld2d(n,i,j) >= 0.5D0 ) then
               fracv = sigf(n,i)
               fracb = (1.-veg1d(n,i))*(1.0D0-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -665,7 +665,7 @@
               v10m1d(n,i) = vs1d(i)*(1.0D0-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
-              if ( iocnflx.eq.1 ) then
+              if ( iocnflx == 1 ) then
                 fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                 factuv = dlog(z1(n,i)/10.0D0)/dlog(z1(n,i)/zoce)
                 u10m1d(n,i) = us1d(i)*(1.0D0-factuv)
@@ -707,7 +707,7 @@
           aldirs_o(j-1,i-1) = 0.0
           aldifs_o(j-1,i-1) = 0.0
           do n = 1 , ng
-            if ( ocld2d(n,i,j).ge.0.5D0 ) then
+            if ( ocld2d(n,i,j) >= 0.5D0 ) then
               fracv = sigf(n,i)
               fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -723,7 +723,7 @@
               v10m1d(n,i) = vs1d(i)*(1.0D0-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
-              if ( iocnflx.eq.1 ) then
+              if ( iocnflx == 1 ) then
                 fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                 factuv = dlog(z1(n,i)/10.0D0)/dlog(z1(n,i)/zoce)
                 u10m1d(n,i) = us1d(i)*(1.0D0-factuv)
@@ -761,14 +761,14 @@
 #endif
         end do
 
-        if ( mod(ntime+idnint(dtmin*60.0D0),kbats).eq.0 .or.    &
-            ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.       & 
+        if ( mod(ntime+idnint(dtmin*60.0D0),kbats) == 0 .or.    &
+            ( jyear == jyear0 .and. ktau == 0 ) .or.       & 
             ( ifrest .and. .not. done_restart ) ) then
-          if ( jyear.eq.jyear0 .and. ktau.le.1 ) then
+          if ( jyear == jyear0 .and. ktau <= 1 ) then
             mmpd = 86400.0D0/dtbat
             wpm2 = 1.0D0/dtbat
-          else if ( jyear.eq.jyear0 .and. dble(ktau*dtmin)              &
-                  & .le.batfrq*60.0D0+0.01D0 ) then
+          else if ( jyear == jyear0 .and. dble(ktau*dtmin)              &
+                  &  <= batfrq*60.0D0+0.01D0 ) then
             mmpd = 24.0D0/(batfrq-dtmin/60.0D0)
             wpm2 = 1.0D0/((batfrq-dtmin/60.0D0)*3600.0D0)
           else
@@ -782,7 +782,7 @@
             evpa_o(j,i-1) = 0.0
             sena_o(j,i-1) = 0.0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 fracv = sigf(n,i)
                 fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -792,7 +792,7 @@
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else
-                if ( iocnflx.eq.1 ) then
+                if ( iocnflx == 1 ) then
                   fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
@@ -830,7 +830,7 @@
             scv_o(j,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 tlef_o(j,i-1) = tlef_o(j,i-1) + tlef1d(n,i)
                 ssw_o(j,i-1) = ssw_o(j,i-1) + ssw1d(n,i)
                 rsw_o(j,i-1) = rsw_o(j,i-1) + rsw1d(n,i)
@@ -854,7 +854,7 @@
                 scv_s(n,j,i-1) = -1.E34
               end if
             end do
-            if ( nnn.ge.max0(ng/2,1) ) then
+            if ( nnn >= max0(ng/2,1) ) then
               tlef_o(j,i-1) = tlef_o(j,i-1)/dble(nnn)
               ssw_o(j,i-1) = ssw_o(j,i-1)/dble(nnn)
               rsw_o(j,i-1) = rsw_o(j,i-1)/dble(nnn)
@@ -874,7 +874,7 @@
             evpa_o(j,i-1) = 0.0
             sena_o(j,i-1) = 0.0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 fracv = sigf(n,i)
                 fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -884,7 +884,7 @@
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else
-                if ( iocnflx.eq.1 ) then
+                if ( iocnflx == 1 ) then
                   fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
@@ -922,7 +922,7 @@
             scv_o(j,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 tlef_o(j,i-1) = tlef_o(j,i-1) + tlef1d(n,i)
                 ssw_o(j,i-1) = ssw_o(j,i-1) + ssw1d(n,i)
                 rsw_o(j,i-1) = rsw_o(j,i-1) + rsw1d(n,i)
@@ -942,7 +942,7 @@
                 scv_s(n,j,i-1) = -1.E34
               end if
             end do
-            if ( nnn.ge.max0(ng/2,1) ) then
+            if ( nnn >= max0(ng/2,1) ) then
               tlef_o(j,i-1) = tlef_o(j,i-1)/dble(nnn)
               ssw_o(j,i-1) = ssw_o(j,i-1)/dble(nnn)
               rsw_o(j,i-1) = rsw_o(j,i-1)/dble(nnn)
@@ -961,7 +961,7 @@
             evpa_o(j-1,i-1) = 0.0
             sena_o(j-1,i-1) = 0.0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 fracv = sigf(n,i)
                 fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
@@ -971,7 +971,7 @@
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else 
-                if ( iocnflx.eq.1 ) then
+                if ( iocnflx == 1 ) then
                   fact = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zoce)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
@@ -1009,7 +1009,7 @@
             scv_o(j-1,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ocld2d(n,i,j).ge.0.5D0 ) then
+              if ( ocld2d(n,i,j) >= 0.5D0 ) then
                 tlef_o(j-1,i-1) = tlef_o(j-1,i-1) + tlef1d(n,i)
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + ssw1d(n,i)
                 rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + rsw1d(n,i)
@@ -1033,7 +1033,7 @@
                 scv_s(n,j-1,i-1) = -1.E34
               end if
             end do
-            if ( nnn.ge.max0(ng/2,1) ) then
+            if ( nnn >= max0(ng/2,1) ) then
               tlef_o(j-1,i-1) = tlef_o(j-1,i-1)/dble(nnn)
               ssw_o(j-1,i-1) = ssw_o(j-1,i-1)/dble(nnn)
               rsw_o(j-1,i-1) = rsw_o(j-1,i-1)/dble(nnn)
@@ -1187,7 +1187,7 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-          if ( ldoc1d(n,i).gt.1.5 ) then
+          if ( ldoc1d(n,i) > 1.5D0 ) then
             tdiffs = ts1d(n,i) - tzero
             tdiff = dmax1(tdiffs,0.D0)
             tdiffs = dmin1(tdiff,20.D0)
@@ -1196,7 +1196,8 @@
             albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
             albgld = albgl
-          else if ( ldoc1d(n,i).gt.0.1D0 .and. sice1d(n,i).eq.0.D0 ) then
+          else if ( ldoc1d(n,i) > 0.1D0 .and. &
+                    dabs(sice1d(n,i)) < 1.D-30 ) then
             sfac = 1.D0 - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils
 !c          data *** reduces albedo at low temps !!!!!should respond to
@@ -1207,7 +1208,7 @@
             albl = albvgl(lveg(n,i))
  
 !----------------------------------------------------------------------
-            if ( (lveg(n,i).lt.12) .or. (lveg(n,i).gt.15) ) then
+            if ( (lveg(n,i) < 12) .or. (lveg(n,i) > 15) ) then
  
 !             2.1  bare soil albedos
 !             (soil albedo depends on moisture)
@@ -1216,7 +1217,7 @@
               alwet = dmax1((11.D0-40.D0*wet),0.D0)*0.01D0
               alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
-!             if((lveg(n,i).eq.8)) albg=0.40      !Laura, cambiato il
+!             if((lveg(n,i) == 8)) albg=0.40      !Laura, cambiato il
 !             DESERTO
               albgs = albg
               albgl = 2.D0*albg
@@ -1232,7 +1233,7 @@
 !             Dec. 15, 2008
  
 !             leafless hardwood canopy: no or inverse zen dep
-              if ( lveg(n,i).eq.5 .and. sfac.lt.0.1 ) albzn = 1.
+              if ( lveg(n,i) == 5 .and. sfac < 0.1D0 ) albzn = 1.0D0
 !             multiply by zenith angle correction
               albs = albs*albzn
               albl = albl*albzn
@@ -1241,7 +1242,7 @@
               albvs_s(n) = albs
               albvl_s(n) = albl
  
-            else if ( lveg(n,i).eq.12 ) then
+            else if ( lveg(n,i) == 12 ) then
  
 !             2.2   permanent ice sheet
               albgs = 0.8D0
@@ -1258,7 +1259,7 @@
               albgld = albg
             end if
  
-          else if ( sice1d(n,i).gt.0.D0 ) then
+          else if ( sice1d(n,i) > 0.D0 ) then
 !====================================================================
 !           3.  get albedo over sea ice
 !====================================================================
@@ -1277,7 +1278,7 @@
 ! ===================================================================
 !         4.  correct for snow cover
 ! ===================================================================
-          if ( scv1d(n,i).gt.0.0D0 ) then
+          if ( scv1d(n,i) > 0.0D0 ) then
 !           **********            snow albedo depends on  snow-age,
 !           zenith angle, **********            and thickness of snow
  
@@ -1308,7 +1309,7 @@
             czf = 0.4D0*cff*(1.D0-dfalbl)
             dralbl = dfalbl + czf
  
-            if ( veg1d(n,i).gt.0.001D0 ) then
+            if ( veg1d(n,i) > 0.001D0 ) then
 !             **********            effective albedo over vegetation
 !             with snow
               albl = (1.D0-wt(n,i))*albl + dralbl*wt(n,i)
@@ -1329,9 +1330,9 @@
 !=====================================================================
 !         5.  albedo over open ocean
 !=====================================================================
-          if ( ldoc1d(n,i).eq.0.D0 ) then
+          if ( ldoc1d(n,i) < 0.5D0 ) then
 !           *********   ocean albedo depends on zenith angle
-            if ( czeta.ge.0.0D0 ) then
+            if ( czeta >= 0.0D0 ) then
 !             **********   albedo independent of wavelength
               albg = 0.05D0/(czeta+0.15D0)
               albgs = albg
@@ -1355,7 +1356,7 @@
         aldirl(i) = aldirl_s(1)
         aldifs(i) = aldifs_s(1)
         aldifl(i) = aldifl_s(1)
-        if ( iemiss.eq.1 ) emiss1d(i) = emiss2d(1,i,j)
+        if ( iemiss == 1 ) emiss1d(i) = emiss2d(1,i,j)
         aldirs1d(1,i) = aldirs_s(1)
         aldifs1d(1,i) = aldifs_s(1)
         do n = 2 , nnsg
@@ -1365,7 +1366,7 @@
           aldirl(i) = aldirl(i) + aldirl_s(n)
           aldifs(i) = aldifs(i) + aldifs_s(n)
           aldifl(i) = aldifl(i) + aldifl_s(n)
-          if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
+          if ( iemiss == 1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
           aldirs1d(n,i) = aldirs_s(n)
           aldifs1d(n,i) = aldifs_s(n)
         end do
@@ -1375,7 +1376,7 @@
         aldirl(i) = aldirl(i)/dble(nnsg)
         aldifs(i) = aldifs(i)/dble(nnsg)
         aldifl(i) = aldifl(i)/dble(nnsg)
-        if ( iemiss.eq.1 ) emiss1d(i) = emiss1d(i)/dble(nnsg)
+        if ( iemiss == 1 ) emiss1d(i) = emiss1d(i)/dble(nnsg)
  
 !       ******   fsw1d(i),sabveg(i),solis(i) computed in colrad
  
@@ -1428,7 +1429,7 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( lveg(n,i).ne.0 ) then
+          if ( lveg(n,i) /= 0 ) then
  
 !           **********            lveg is set in subr. interf
             freza(lveg(n,i)) = 0.15D0*deprv(lveg(n,i))
@@ -1563,10 +1564,10 @@
           ssw1d(n,i) = ssw2d(n,i,j)
           lveg(n,i) = idint(veg2d1(n,i,j))
           oveg(n,i) = lveg(n,i)
-          if (ocld2d(n,i,j) > 1.5) lveg(n,i) = 12
+          if (ocld2d(n,i,j) > 1.5D0) lveg(n,i) = 12
           amxtem = dmax1(298.0D0-tgb1d(n,i),0.D0)
           sfac = 1. - dmax1(0.D0,1.0D0-0.0016D0*amxtem**2.0D0)
-          if ( lveg(n,i).eq.0 ) then
+          if ( lveg(n,i) == 0 ) then
             veg1d(n,i) = 0.0D0
           else
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac

@@ -67,13 +67,13 @@
       integer :: n , i
       real(8) :: rap , resps , rmp , rsp , rt
 ! 
-      rmp = 800.0
+      rmp = 800.0D0
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5 ) then
-            if ( sigf(n,i).gt.0.001 ) then
-              rsp = lftrs(n,i)*1.7
-              rap = lftra(n,i)*1.5
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
+              rsp = lftrs(n,i)*1.7D0
+              rap = lftra(n,i)*1.5D0
               rt = rsp + rap + rmp
               cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)                &
                          & *carbon(solis(i)*rlai(n,i),tlef1d(n,i),rt,   &
@@ -86,13 +86,13 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5 ) then
-            if ( sigf(n,i).gt.0.001 ) then
-              if ( pbp1d(n,i).lt.0 ) pbp1d(n,i) = 0.
-              resps = 0.7E-7*resp1d(n,i)*dexp(0.1*(tg1d(n,i)-300.))     &
-                    & *dmin1(1.D0,ssw1d(n,i)/(0.6*gwmx0(n,i)))
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
+              if ( pbp1d(n,i) < 0 ) pbp1d(n,i) = 0.0D0
+              resps = 0.7D-7*resp1d(n,i)*dexp(0.1D0*(tg1d(n,i)-300.0D0))&
+                    & *dmin1(1.D0,ssw1d(n,i)/(0.6D0*gwmx0(n,i)))
               resp1d(n,i) = resp1d(n,i) + (cari(n,i)-resps)*dtbat
-              if ( resp1d(n,i).lt.0.0 ) resp1d(n,i) = 0.
+              if ( resp1d(n,i) < 0.0D0 ) resp1d(n,i) = 0.0D0
             end if
           end if
         end do
@@ -132,40 +132,41 @@
 !     result of fn (carbon) is handed back in si (kg/m**2/s)
 !======================================================================
 !
-      g(t,tmx,sl) = dexp(sl*(1./tmx-1./t))                              &
-                  & /(1.+(dexp(sl*(1./tmx-1./t)*6)))*5.E-3*t
+      g(t,tmx,sl) = dexp(sl*(1.0D0/tmx-1.0D0/t))  &
+                 & /(1.0D0+(dexp(sl*(1.0D0/tmx-1.0D0/t)*6.0D0)))*5.D-3*t
 !     ***  temperature dependence of dark respiration
-      r(t) = dexp(30.-9.E3/t)
+      r(t) = dexp(30.0D0-9.D3/t)
 !     ****  light dependence of photosynthesis
-      e(xl,a,pml) = a*xl/(1.+(a*xl/pml)**2)**0.5
+      e(xl,a,pml) = a*xl/(1.0D0+(a*xl/pml)**2.0D0)**0.5D0
  
-      p = 0
+      p = 0.0D0
       rt = r(t)
 !     ****    alphtl=sai/lai     betatl=rai/lai  (rai=root area index)
       alphtl = (xlsai-xlai)/xlai
-      betatl = 0.5
-      if ( vf.lt.2. ) then
+      betatl = 0.5D0
+      if ( vf < 2.0D0 ) then
  
 !       ***   nighttime maintenance respiration only
-        carbon = -0.36E-8*((1.+alphtl)*0.877*rt+betatl*(r(tg)-0.123*rt))
+        carbon = -0.36D-8*((1.0D0+alphtl)*0.877D0*rt+ \
+                   betatl*(r(tg)-0.123D0*rt))
       else
 !       **** convert lambda less than 0.7 micron solar into photon units
 !       *****  light intensity (e/m2)
-        xl = 4.6E-3*vf
+        xl = 4.6D-3*vf
 !       *** co2 external concentration(mm/m3)
 !       ****    335ppm/v
-        cco2 = 13.5
+        cco2 = 13.5D0
 !       ***initial guess for co2 concentration inside chloroplast
         cco2i = cco2
 !       ****  co2 half max in absence of oxygen  (mm/m3)
-        xk = 0.5
+        xk = 0.5D0
 !       ****  oxygen inhibition factor
-        b = 3.56
+        b = 3.56D0
         xkb = xk*b
 !       ****  maximum temperature optimum light saturated photosynthesis
-        pml = 0.050
+        pml = 0.050D0
 !       ****    quantum yield(mm/e)
-        al = 0.05
+        al = 0.05D0
         gt = g(t,320.D0,4.D3)
 !       ****  maximum photosynthesis
         pm = e(xl,al,pml*gt)
@@ -173,23 +174,23 @@
  
         do it = 1 , 30
 !         ****  photorespiration
-          wp = pm/(1.+0.4*(1.+cco2i/xk))
+          wp = pm/(1.0D0+0.4D0*(1.0D0+cco2i/xk))
 !         ****    total respiration
 !         ****dark respiration within daytime leaves
-          wd = 3.E-4*rt + 0.14*p
+          wd = 3.D-4*rt + 0.14D0*p
           w = wp + wd
 !         *****    carbon uptake factors
           ac = cco2 + xkb + rm*(pm-w)
-          bc = 4.*rm*(cco2*(pm-w)-xkb*w)
-          ab = dsqrt(ac**2-bc)
-          p = 0.5*(ac-ab)/rm
+          bc = 4.0D0*rm*(cco2*(pm-w)-xkb*w)
+          ab = dsqrt(ac**2.0D0-bc)
+          p = 0.5D0*(ac-ab)/rm
           ccold = cco2i
           cco2i = cco2 - p*rm
-          if ( dabs(cco2i-ccold).le.0.05 .and. it.gt.9 ) exit
+          if ( dabs(cco2i-ccold) <= 0.05D0 .and. it > 9 ) exit
         end do
 !       **** respiration outside leaves
-        carbon = 1.2E-5*((1.-0.14*(alphtl+betatl))                      &
-               & *p-3.0E-4*(alphtl*rt+betatl*r(tg)))
+        carbon = 1.2D-5*((1.0D0-0.14D0*(alphtl+betatl))            &
+               & *p-3.0D-4*(alphtl*rt+betatl*r(tg)))
         return
       end if
 ! 

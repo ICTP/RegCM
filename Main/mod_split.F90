@@ -149,17 +149,17 @@
 !**   compute m.
       do ns = 1 , nsplit
         m(ns) = idnint(dt/dtau(ns))
-        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) &
+        if ( jyear /= jyear0 .or. ktau /= 0 ) &
           m(ns) = idnint(0.5D0*dt/dtau(ns))
       end do
 #ifdef MPP1
-      if ( myid.eq.0 ) print * , 'dt, dtau = ' , dt , dtau
+      if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
 #else
       print * , 'dt, dtau = ' , dt , dtau
 #endif
 !
 !**   compute xps and tbarh for use in vmodes.
-      xps = 0.
+      xps = 0.0D0
       do k = 1 , kz
         tbarh(k) = 0.0D0
       end do
@@ -198,7 +198,7 @@
 !
 !**   compute vertical modes.
       lstand = .true.
-      if ( jyear.ne.jyear0 .or. ktau.ne.0 ) lstand = .true.
+      if ( jyear /= jyear0 .or. ktau /= 0 ) lstand = .true.
       call vmodes(lstand,xsigma,kv1)
 !
 !**   subract a4 from a for use in computing am.
@@ -210,7 +210,7 @@
 !
 !**   compute am and an.
       do n = 1 , nsplit
-        an(n) = 0.
+        an(n) = 0.0D0
         do l = 1 , kz
           an(n) = an(n) + dsigma(l)*zmatx(l,n)
         end do
@@ -238,10 +238,10 @@
 !**   multiply am, an and zmatx by factor.
       do l = 1 , nsplit
         fac = 2.0D0*dt/(2.0D0*dble(m(l))+1.0D0)
-        if ( jyear.ne.jyear0 .or. ktau.ne.0 ) &
+        if ( jyear /= jyear0 .or. ktau /= 0 ) &
           fac = dt/(2.0D0*dble(m(l))+1.0D0)
 #ifdef MPP1
-        if ( myid.eq.0 ) print * , 'm, fac = ' , m(l) , fac
+        if ( myid == 0 ) print * , 'm, fac = ' , m(l) , fac
 #else
         print * , 'm, fac = ' , m(l) , fac
 #endif
@@ -256,7 +256,7 @@
         call read_savefile_part2
 !
 #ifdef MPP1
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do j = 1 , jx
             do n = 1 , nsplit
               do i = 1 , iy
@@ -313,7 +313,7 @@
         call mpi_bcast(ujl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(vjl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-        if ( myid.ne.nproc-1 ) then
+        if ( myid /= nproc-1 ) then
 #endif
           do k = 1 , kz
             var1snd(k,1) = ui1(k,jxp)
@@ -332,7 +332,7 @@
                         & 1,var1rcv(1,1),kz*8,mpi_real8,                &
                         & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
-        if ( myid.ne.0 ) then
+        if ( myid /= 0 ) then
 #endif
           do k = 1 , kz
             ui1(k,0) = var1rcv(k,1)
@@ -346,7 +346,7 @@
           end do
 #ifndef BAND
         end if
-        if ( myid.ne.0 ) then
+        if ( myid /= 0 ) then
 #endif
           do k = 1 , kz
             var1snd(k,1) = ui1(k,1)
@@ -365,7 +365,7 @@
                         & 2,var1rcv(1,1),kz*8,mpi_real8,                &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
-        if ( myid.ne.nproc-1 ) then
+        if ( myid /= nproc-1 ) then
 #endif
           do k = 1 , kz
             ui1(k,jxp+1) = var1rcv(k,1)
@@ -444,7 +444,7 @@
 #endif
               jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-              if(jp1.eq.jx+1) jp1 = 1
+              if(jp1 == jx+1) jp1 = 1
 #endif
               do i = 1 , iym1
                 fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -574,7 +574,7 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1=jx
+        if(jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
           psdot(i,j)=0.25D0*(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
@@ -585,9 +585,9 @@
 #ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
-        if ( myid.eq.0 ) & 
+        if ( myid == 0 ) & 
           psdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
-        if ( myid.eq.nproc-1 ) &
+        if ( myid == nproc-1 ) &
           psdot(i,jendl) = 0.5D0*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
 #else
         psdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
@@ -607,7 +607,7 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1=jx
+        if(jm1 == 0) jm1=jx
 #endif
         psdot(1,j) = 0.5D0*(sps1%ps(1,j)+sps1%ps(1,jm1))
         psdot(iy,j) = 0.5D0*(sps1%ps(iym1,j)+sps1%ps(iym1,jm1))
@@ -615,11 +615,11 @@
 !
 #ifndef BAND
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         psdot(1,1) = sps1%ps(1,1)
         psdot(iy,1) = sps1%ps(iym1,1)
       end if
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         psdot(1,jendl) = sps1%ps(1,jendx)
         psdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
@@ -692,7 +692,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1.eq.jx+1) jp1 = 1
+            if(jp1 == jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -763,7 +763,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1.eq.jx+1) jp1 = 1
+            if(jp1 == jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -983,7 +983,7 @@
 #endif
             jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-            if(jm1.eq.0) jm1 = jx
+            if(jm1 == 0) jm1 = jx
 #endif
             do i = 2 , iym1
               fac = psdot(i,j)/(dx2*mddom%msfd(i,j))
@@ -1107,7 +1107,7 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1.eq.0) jm1=jx
+          if(jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
             fac = dx2*mddom%msfx(i,j)
@@ -1181,7 +1181,7 @@
 #endif
           jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-          if(jp1.eq.jx+1) jp1=1
+          if(jp1 == jx+1) jp1=1
 #endif
           do i = 2 , iym2
             fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -1212,13 +1212,13 @@
         end do
  
 !**     not in madala(1987)
-        fac = (im(ns)-1.)/im(ns)
+        fac = (im(ns)-1.0D0)/im(ns)
 #ifndef BAND
         do i = 2 , iym2
 #ifdef MPP1
-          if ( myid.eq.0 ) &
+          if ( myid == 0 ) &
             delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
-          if ( myid.eq.nproc-1 ) &
+          if ( myid == nproc-1 ) &
             delh(i,jendx,ns,n1) = delh(i,jendx,ns,n0)*fac
 #else
           delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
@@ -1277,7 +1277,7 @@
 #endif
             jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-            if(jm1.eq.0) jm1=jx
+            if(jm1 == 0) jm1=jx
 #endif
             do i = 2 , iym1
               fac = dx2*mddom%msfx(i,j)
@@ -1350,7 +1350,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1.eq.jx+1) jp1=1
+            if(jp1 == jx+1) jp1=1
 #endif
             do i = 2 , iym2
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -1384,9 +1384,9 @@
 #ifndef BAND
           do i = 2 , iym2
 #ifdef MPP1
-            if ( myid.eq.0 ) &
+            if ( myid == 0 ) &
               delh(i,1,ns,n2) = 2.0D0*delh(i,1,ns,n1)-delh(i,1,ns,n0)
-            if ( myid.eq.nproc-1 ) &
+            if ( myid == nproc-1 ) &
               delh(i,jendx,ns,n2) = 2.0D0* &
                               delh(i,jendx,ns,n1)-delh(i,jendx,ns,n0)
 #else

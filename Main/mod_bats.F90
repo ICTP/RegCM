@@ -141,7 +141,7 @@
           end if
         end if
 
-        if ( ichem .eq. 1 ) then
+        if ( ichem == 1 ) then
           allocate(spaceb2d(iym1,njm1,25))
         else
           allocate(spaceb2d(iym1,njm1,18))
@@ -166,7 +166,7 @@
         solvs2d    => spaceb2d(:,:,16)
         svga2d     => spaceb2d(:,:,17)
         veg2d      => spaceb2d(:,:,18)
-        if ( ichem .eq. 1 ) then
+        if ( ichem == 1 ) then
           ssw2da     => spaceb2d(:,:,19)
           sdeltk2d   => spaceb2d(:,:,20)
           sdelqk2d   => spaceb2d(:,:,21)

@@ -204,10 +204,10 @@
 !
       rd_tex = .false.
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         do itr = 1 , ntr
           aerctl = chtrname(itr)
-          if ( aerctl(1:4).eq.'DUST' ) then
+          if ( aerctl(1:4) == 'DUST' ) then
             rd_tex = .true.
             exit
           end if
@@ -217,7 +217,7 @@
 #else
       do itr = 1 , ntr
         aerctl = chtrname(itr)
-        if ( aerctl(1:4).eq.'DUST' ) then
+        if ( aerctl(1:4) == 'DUST' ) then
           rd_tex = .true.
           exit
         end if
@@ -226,7 +226,7 @@
 
 #ifdef MPP1
 #ifdef CLM
-!      if ( myid.eq.0 ) then
+!      if ( myid == 0 ) then
 !        if ( rd_tex ) then
 !          call clm_getsoitex()
 !          do j = 1 , jx
@@ -237,19 +237,19 @@
 !        end if
 !      end if
 !      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         if ( rd_tex ) then
           call read_texture(nats,dustsotex_io)
         end if
       end if
 #else
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         if ( rd_tex ) then
           call read_texture(nats,dustsotex_io)
         end if
       end if
 #endif
-      if (myid.eq.0 ) then
+      if (myid == 0 ) then
         do j=1,jx
           do n=1,nats
             do i=1,iy
@@ -331,11 +331,11 @@
           do nt = 1 , nats
             ss(:) =0.0D0
             stotal = 0.0D0
-            if ( sand2row2(i,nt,j).gt.0.0D0 ) then
+            if ( sand2row2(i,nt,j) > 0.0D0 ) then
               do ns = 1 , nsoil          !soil size segregatoin no
                 do nm = 1 , mode       !soil mode = 3
-                  if ( (pcent(nm,nt).gt.eps) .and.                    &
-                       & (sigma(nm,nt).ne.0.0D0) ) then
+                  if ( (pcent(nm,nt) > eps) .and.                    &
+                       & (sigma(nm,nt) /= 0.0D0) ) then
                     xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
                     xl = ((dlog(dp_array(ns))- &
                            dlog(mmd(nm,nt)*1.D-4))**2.0D0) &
@@ -352,7 +352,7 @@
                 stotal = stotal + ss(ns)
               end do
               do ns = 1 , nsoil
-                if ( stotal.gt.0.0D0 ) srel(i,ns,nt) = ss(ns)/stotal
+                if ( stotal > 0.0D0 ) srel(i,ns,nt) = ss(ns)/stotal
                                                !srel(iy,nsoil,nats)
               end do
             end if
@@ -402,9 +402,9 @@
         frac1(n) = frac1(n)/totv1
         frac2(n) = frac2(n)/totv2
         frac3(n) = frac3(n)/totv3
-        if ( frac1(n).lt.1.D-9 ) frac1(n) = 0.0D0
-        if ( frac2(n).lt.1.D-9 ) frac2(n) = 0.0D0
-        if ( frac3(n).lt.1.D-9 ) frac3(n) = 0.0D0
+        if ( frac1(n) < 1.D-9 ) frac1(n) = 0.0D0
+        if ( frac2(n) < 1.D-9 ) frac2(n) = 0.0D0
+        if ( frac3(n) < 1.D-9 ) frac3(n) = 0.0D0
       end do
 
       end subroutine inidust
@@ -454,7 +454,7 @@
       term2 = dsqrt(rhop*gti*100.0D0*dm/rhair)
       term = term1*term2
       ustart01 = cvmgt(a2*term*(1.0D0-c3*dexp(c4*(rep-10.0D0))),  &
-               & a2*term/dsqrt(c2*(rep**0.092D0)-1.0D0),rep.gt.10.0D0)
+               & a2*term/dsqrt(c2*(rep**0.092D0)-1.0D0),rep > 10.0D0)
 ! 
       end function ustart01
 !
@@ -538,7 +538,7 @@
       ieff = 0
       ieffmax = 0
       do i = il1 , il2
-        if (ivegcov(i).eq.8 .or. ivegcov(i).eq.11) then   
+        if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then   
           ieff = ieff + 1
           xvegfrac(ieff) = vegfrac(i)
           xsoilw(ieff) = soilw(i)
@@ -564,7 +564,7 @@
 
 !     if ( ieffmax>0. ) print *, maxval(xustarnd)
 
-      if ( ieffmax.gt.0 ) call dust_module(1,ieffmax,ilg,trsize,xsoilw, &
+      if ( ieffmax > 0 ) call dust_module(1,ieffmax,ilg,trsize,xsoilw, &
          & xvegfrac,xsurfwd,xftex,xclayrow,xroarow,xz0,xsrel2d,         &
          & xustarnd,xrsfrow)
         
@@ -574,7 +574,7 @@
       ieff = 0
  
       do i = il1 , il2
-        if  (ivegcov(i).eq.8 .or. ivegcov(i).eq.11) then     
+        if  (ivegcov(i) == 8 .or. ivegcov(i) == 11) then     
           ieff = ieff + 1
           do n = 1 , nbin
             rsfrow(i,n) = xrsfrow(ieff,n)
@@ -614,19 +614,19 @@
         srl(i) = z0(i)*100.0D0
         rc(i) = 1.0D0
  
-        if ( jfs.eq.0 ) then
+        if ( jfs == 0 ) then
  
 !         * raupach et al. (1993)                                     
 
-          if ( vegfrac(i).lt.1.0D0 ) then
+          if ( vegfrac(i) < 1.0D0 ) then
             alamda(i) = xz*(dlog(1.0D0-vegfrac(i)))*(-1.0D0)
             arc1 = sigr*ym*alamda(i)
             arc2 = br*ym*alamda(i)
-            if ( arc1.le.1.0D0 .and. arc2.le.1.0D0 ) rc(i)                  &
+            if ( arc1 <= 1.0D0 .and. arc2 <= 1.0D0 ) rc(i)                  &
                & = (dsqrt(1.0D0-arc1)*dsqrt(1.0D0+arc2))
           end if
  
-        else if ( jfs.eq.1 ) then
+        else if ( jfs == 1 ) then
 !
 !         Marticorena et al., 1997: correction factor for non erodible elements
 !  
@@ -636,21 +636,21 @@
  
 !       threshold velocity correction for soil humidity hc
  
-        if ( jsoilm.eq.0 ) then
+        if ( jsoilm == 0 ) then
  
-          if ( soilw(i).lt.0.0D0 ) then
+          if ( soilw(i) < 0.0D0 ) then
             write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
             call say
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
-          else if ( soilw(i).lt.0.03D0 ) then
+          else if ( soilw(i) < 0.03D0 ) then
             hc(i) = dexp(22.7D0*soilw(i))
-          else if ( soilw(i).ge.0.03D0 ) then
+          else if ( soilw(i) >= 0.03D0 ) then
             hc(i) = dexp(95.3D0*soilw(i)-2.029D0)
           else
             hc(i) = 1.0D0
           end if
  
-        else if ( jsoilm.eq.1 ) then
+        else if ( jsoilm == 1 ) then
  
           cly1 = clayrow(i)
           cly2 = cly1*cly1
@@ -658,7 +658,7 @@
           wprim(i) = 0.0014D0*cly2 + 0.17D0*cly1
           tempd=  dmax1(0.00001D0,soilw(i)*100.0D0 -wprim(i))
 !          print*,'humidity',i,cly1,soilw(i)*100,wprim(i),tempd
-          if ( soilw(i)*100.0D0.gt.wprim(i) ) then
+          if ( soilw(i)*100.0D0 > wprim(i) ) then
             hc(i) = dsqrt(1.0D0+1.21D0*tempd**0.68D0)
 !          print*,'hc',i,hc(i)
           else
@@ -683,7 +683,7 @@
         ustarns = ustarnd(i)*100.0D0 !cm.s-1
         utmin = (umin/(100.0D0*vonkar*rc(i)))*dlog(1000.0D0/srl(i))
  
-        if ( surfwd(i).ge.utmin ) then
+        if ( surfwd(i) >= utmin ) then
           ustar(i) = ustarns + 0.3D0*(surfwd(i)-utmin)*(surfwd(i)-utmin)
         else
           ustar(i) = ustarns
@@ -712,8 +712,8 @@
 !
       do i = 1 , nsoil
         do j = il1 , il2
-          if ( ust.eq.0 ) utheff(j,i) = ustart0(rhop,dp_array(i),roarow(j))
-          if ( ust.eq.1 ) utheff(j,i) = ustart01(rhop,dp_array(i),roarow(j))
+          if ( ust == 0 ) utheff(j,i) = ustart0(rhop,dp_array(i),roarow(j))
+          if ( ust == 1 ) utheff(j,i) = ustart01(rhop,dp_array(i),roarow(j))
         end do
       end do
  
@@ -759,15 +759,15 @@
         do ns = 1 , nsoil
           do i = il1 , il2
  
-            if ( rc(i).gt.0.0D0 .and. ustar(i).ne.0.0D0 ) then
+            if ( rc(i) > 0.0D0 .and. ustar(i) /= 0.0D0 ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
  
-              if ( uth.le.1.0D0 ) then
+              if ( uth <= 1.0D0 ) then
  
                 fdp1 = ustar(i)**3.0D0*(1.0D0-uth*uth)
                 fdp2 = (1.0D0+uth)*const*(1.D-5)*roarow(i)*rgti
  
-                if ( fdp2.le.0.0D0 ) fdp2 = 0.0D0
+                if ( fdp2 <= 0.0D0 ) fdp2 = 0.0D0
  
 ! FAB: with subgrid soil texture, the aggregation of vertical fluxes per texture type
 ! at the grid cell level is done in fine.  
@@ -782,19 +782,19 @@
                 ec = (mathpi/12.0D0)*rhop*1D-3*(dp_array(ns)**3.0D0)*  &
                     & (20.0D0*ustar(i))**2.0D0
  
-                if ( ec.gt.e1 ) then
+                if ( ec > e1 ) then
                   p1 = (ec-e1)/(ec-e3)
                   p2 = (1.0D0-p1)*(ec-e2)/(ec-e3)
                   p3 = 1.0D0 - p1 - p2
-                else if ( ec.gt.e2 .and. ec.le.e1 ) then
+                else if ( ec > e2 .and. ec <= e1 ) then
                   p1 = 0.0D0
                   p2 = (ec-e2)/(ec-e3)
                   p3 = 1.0D0 - p2
-                else if ( ec.gt.e3 .and. ec.le.e2 ) then
+                else if ( ec > e3 .and. ec <= e2 ) then
                   p1 = 0.0D0
                   p2 = 0.0D0
                   p3 = 1.0D0
-                else if ( ec.le.e3 ) then
+                else if ( ec <= e3 ) then
                   p1 = 0.0D0
                   p2 = 0.0D0
                   p3 = 0.0D0
@@ -826,7 +826,7 @@
             rwi = (aerosize(1,n)+aerosize(2,n))/2.0D0*1.D6
 
             do k = 1 , nbin
-              if ( rwi.ge.trsize(k,1) .and. rwi.lt.trsize(k,2) )          &
+              if ( rwi >= trsize(k,1) .and. rwi < trsize(k,2) )          &
                  & rsfrowt(i,k,nt) = rsfrowt(i,k,nt) + rsfrowsub(i,n,nt)
             end do
           end do

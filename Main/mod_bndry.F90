@@ -94,8 +94,8 @@
         do n = 1 , nnsg
  
           htvp(n,i) = wlhv
-          if ( (tg1d(n,i).lt.tzero .and. ldoc1d(n,i).gt.0.5) .or.       &
-             & scv1d(n,i).gt.0. ) htvp(n,i) = wlhs
+          if ( (tg1d(n,i) < tzero .and. ldoc1d(n,i) > 0.5D0) .or.       &
+             &  scv1d(n,i) > 0.0D0 ) htvp(n,i) = wlhs
           sdrop(n,i) = 0.0D0
           etrrun(n,i) = 0.0D0
           flnet(n,i) = 0.0D0
@@ -112,7 +112,7 @@
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( lveg(n,i).ge.1 ) then
+          if ( lveg(n,i) >= 1 ) then
             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
@@ -142,8 +142,8 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
-            if ( sigf(n,i).le.0.001D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) <= 0.001D0 .and. ldoc1d(n,i) < 1.5D0 ) then
               qsatd = qg1d(n,i)*gwet1d(n,i)*lfta(n,i)*(tzero-lftb(n,i)) &
                     & *(1.0D0/(tg1d(n,i)-lftb(n,i)))**2.0D0
               rai = cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
@@ -174,8 +174,8 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
-            if ( sigf(n,i).gt.0.001D0 ) then   !  check each point
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then   !  check each point
 !=======================================================================
 !l            4.   vegetation
 !=======================================================================
@@ -213,7 +213,7 @@
 !l    set snow cover to zero in case it was previously sea ice
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).lt.0.5D0 ) then
+          if ( ldoc1d(n,i) < 0.5D0 ) then
             scv1d(n,i) = 0.0D0
             sag1d(n,i) = 0.0D0
           end if
@@ -227,8 +227,8 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,i).lt.0.5D0 .or. &
-               lveg(n,i).eq.14 .or. lveg(n,i).eq.15 ) then
+          if ( ldoc1d(n,i) < 0.5D0 .or. &
+               lveg(n,i) == 14 .or. lveg(n,i) == 15 ) then
             gwet1d(n,i) = 1.0D0
           end if
  
@@ -237,7 +237,7 @@
           drag1d(n,i) = -drag1d(n,i)        ! for coupling with mm4
  
 !l        6.3  latent and heat fluxes over ocean, plus a dummy taf
-          if ( ldoc1d(n,i).lt.0.5D0 ) then
+          if ( ldoc1d(n,i) < 0.5D0 ) then
             tlef1d(n,i) = ts1d(n,i)
             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
             delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
@@ -246,7 +246,7 @@
             evpr1d(n,i) = fact*delq1d(n,i)
             sent1d(n,i) = fact*cpd*delt1d(n,i)
           end if
-          if ( sigf(n,i).lt.0.001D0 ) taf1d(n,i) = tg1d(n,i)
+          if ( sigf(n,i) < 0.001D0 ) taf1d(n,i) = tg1d(n,i)
  
 !l        6.2  parameters for temperature difference at anemometer level
 !cc       zdelt(i) = zdelt(i)*delt1d(n,i)
@@ -283,8 +283,8 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
-            if ( sigf(n,i).gt.0.001D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
               seasb(n,i) = dmax1(0.D0,1.0D0-0.0016D0 * &
                            dmax1(298.0D0-tgb1d(n,i),0.D0)**2.0D0)
             end if
@@ -294,8 +294,8 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
-            if ( sigf(n,i).gt.0.001D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
               xlai(n,i) = xla(lveg(n,i))
               xlai(n,i) = xlai(n,i) + (xlai0(lveg(n,i))-xlai(n,i))      &
                          & *(1.0D0-seasb(n,i))
@@ -328,8 +328,8 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
-            if ( sigf(n,i).gt.0.001D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
 !             ***********         xrun = leaf drip ; sdrop = snow drop
 !             off foliage
               etrrun(n,i) = 0.0D0
@@ -337,14 +337,14 @@
               sdrop(n,i) = 0.0D0
  
 !             ***********         test on maximum value of dew
-              if ( xrun(n,i).gt.0.0D0 ) then
+              if ( xrun(n,i) > 0.0D0 ) then
                 etrrun(n,i) = xrun(n,i)
                 ldew1d(n,i) = dewmx*vegt(n,i)
               end if
  
 !             ***********         below freezing excess leaf water
 !             falls as snow
-              if ( (xrun(n,i).gt.0.0D0) .and. (tm(n,i).lt.tzero) ) then
+              if ( (xrun(n,i) > 0.0D0) .and. (tm(n,i) < tzero) ) then
                 etrrun(n,i) = 0.0D0
                 sdrop(n,i) = xrun(n,i)
               end if
@@ -387,15 +387,15 @@
         do n = 1 , nnsg
  
           ! lake model handles this case
-          if ( lakemod.eq.1 .and. oveg(n,i).eq.14 ) exit
+          if ( lakemod == 1 .and. oveg(n,i) == 14 ) exit
  
-          if ( ldoc1d(n,i).gt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 1.5D0 ) then
 ! ******    rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**3.0D0
             imelt(n,i) = 0
 ! ******    cice = specific heat of sea-ice per unit volume
             rsd1 = cice*sice1d(n,i)/1000.0D0
-            if ( scv1d(n,i).gt.0.0D0 ) then
+            if ( scv1d(n,i) > 0.0D0 ) then
               rss = csnw*scv1d(n,i)/1000.0
               ratsi = scv1d(n,i)/(1.4D0*rhosw3*sice1d(n,i))
               wtt = 1.0D0/(1.0D0+ratsi)
@@ -411,7 +411,7 @@
             sice1d(n,i) = sice1d(n,i) + fss*dtbat/wlhf*1.087D0
  
 ! ******    set sea ice parameter for melting and return
-            if ( sice1d(n,i).le.0.0D0 ) then
+            if ( sice1d(n,i) <= 0.0D0 ) then
               imelt(n,i) = 1
               exit
             end if
@@ -445,10 +445,10 @@
             bb = dtbat*(hs+fss)/rsd1
 ! ******    snow melt
             sm(n,i) = 0.0D0
-            if ( tg1d(n,i).ge.tzero ) sm(n,i) = (hs+fss)/wlhf
-            if ( sm(n,i).le.0.0D0 ) sm(n,i) = 0.0D0
+            if ( tg1d(n,i) >= tzero ) sm(n,i) = (hs+fss)/wlhf
+            if ( sm(n,i) <= 0.0D0 ) sm(n,i) = 0.0D0
             smc4 = sm(n,i)*dtbat
-            if ( scv1d(n,i).lt.smc4 ) then
+            if ( scv1d(n,i) < smc4 ) then
 ! ******    all snow removed, melt ice
               smt = (scv1d(n,i)/dtbat)
 ! ******      rho(h2o)/rho(ice) = 1.087
@@ -456,15 +456,15 @@
               sm(n,i) = smt
               tg1d(n,i) = tzero
 ! ******      set sea ice parameter for melting and return
-              if ( sice1d(n,i).le.0.0D0 ) then
+              if ( sice1d(n,i) <= 0.0D0 ) then
                 imelt(n,i) = 1
                 exit
               end if
             else
 !  ********** snow or ice with no snow melting
               tg = tg1d(n,i) + bb
-              if ( tg.ge.tzero ) tg1d(n,i) = tzero
-              if ( tg.lt.tzero ) tg1d(n,i) = tg
+              if ( tg >= tzero ) tg1d(n,i) = tzero
+              if ( tg < tzero ) tg1d(n,i) = tg
             end if
           end if
         end do
@@ -524,11 +524,11 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
 !
 !           1.1  reduce infiltration for frozen ground
 !
-            if ( tgb1d(n,i).gt.tzero ) then
+            if ( tgb1d(n,i) > tzero ) then
               xkmxr(n,i) = xkmx(n,i)
             else
               xkmxr(n,i) = 0.0D0
@@ -536,7 +536,7 @@
 !
 !           1.11 permafrost or ice sheet
 !
-            if ( lveg(n,i).eq.9 .or. lveg(n,i).eq.12 ) then
+            if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
               xkmx1(n,i) = 0.0D0
               xkmx2(n,i) = 0.0D0
             else
@@ -567,7 +567,7 @@
 !
 !           1.32 bog or water
 !
-            if ( (lveg(n,i).ge.13) .and. (lveg(n,i).le.15) ) then
+            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) <= 15) ) then
               rsubst(n,i) = 0.0D0
               rsubss(n,i) = 0.0D0
               rsubsr(n,i) = 0.0D0
@@ -585,7 +585,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
             gwatr(n,i) = pw(n,i) - evapw(n,i) + sm(n,i)                 &
                         & + etrrun(n,i)/dtbat
 !
@@ -599,7 +599,7 @@
 !
 !           2.11 increase surface runoff over frozen ground
 !
-            if ( tg1d(n,i).lt.tzero ) then
+            if ( tg1d(n,i) < tzero ) then
               rsur(n,i) = dmin1(1.D0,wata(n,i)**1.0D0)* &
                         & dmax1(0.D0,gwatr(n,i))
             else
@@ -609,13 +609,13 @@
 !
 !           2.12 irrigate cropland
 !
-            if ( lveg(n,i).eq.10 .and. watr(n,i).lt.relfc(n,i) )        &
+            if ( lveg(n,i) == 10 .and. watr(n,i) < relfc(n,i) )        &
                & rsur(n,i) = rsur(n,i) + (rsw1d(n,i)-relfc(n,i)*        &
                &             gwmx1(n,i))/dtbat
 !
 !           2.13 saturate swamp or rice paddy
 !
-            if ( (lveg(n,i).ge.13) .and. (lveg(n,i).lt.16) )            &
+            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) < 16) )            &
                & rsur(n,i) = rsur(n,i) + dmin1(0.D0,(rsw1d(n,i)-        &
                &             gwmx1(n,i))/dtbat)
 !
@@ -649,7 +649,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
 !
 !=======================================================================
 !           4.   check whether soil water exceeds maximum capacity or
@@ -658,15 +658,15 @@
 !
 !           4.1  surface water assumed to move downward into soil
 !
-            if ( ssw1d(n,i).gt.gwmx0(n,i) ) ssw1d(n,i) = gwmx0(n,i)
+            if ( ssw1d(n,i) > gwmx0(n,i) ) ssw1d(n,i) = gwmx0(n,i)
 !
 !           4.2  excess root layer water assumed to move downward
 !
-            if ( rsw1d(n,i).gt.gwmx1(n,i) ) rsw1d(n,i) = gwmx1(n,i)
+            if ( rsw1d(n,i) > gwmx1(n,i) ) rsw1d(n,i) = gwmx1(n,i)
 !
 !           4.3  excess total water assumed to go to subsurface runoff
 !
-            if ( tsw1d(n,i).gt.gwmx2(n,i) ) then
+            if ( tsw1d(n,i) > gwmx2(n,i) ) then
               delwat = tsw1d(n,i) - gwmx2(n,i)
               tsw1d(n,i) = gwmx2(n,i)
               rsubst(n,i) = rsubst(n,i) + delwat/dtbat
@@ -674,7 +674,7 @@
 !
 !           4.4  check for negative water in top layer
 !
-            if ( ssw1d(n,i).le.1.D-2 ) ssw1d(n,i) = 1.D-2
+            if ( ssw1d(n,i) <= 1.D-2 ) ssw1d(n,i) = 1.D-2
 !
 !=======================================================================
 !           5.   accumulate leaf interception
@@ -707,7 +707,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
             xxkb = dmin1(rough(lveg(n,i)),1.D0)
             vakb = (1.0D0-sigf(n,i))*vspda(n,i) + sigf(n,i) &
                  & *(xxkb*uaf(n,i)+(1.0D0-xxkb)*vspda(n,i))
@@ -771,13 +771,13 @@
 !=======================================================================
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
             evapw(n,i) = fevpg(n,i)
             evaps(n,i) = scvk(n,i)*evapw(n,i)
-            if ( ldoc1d(n,i).gt.1.5D0 ) evaps(n,i) = fevpg(n,i)
+            if ( ldoc1d(n,i) > 1.5D0 ) evaps(n,i) = fevpg(n,i)
             evapw(n,i) = (1.0D0-scvk(n,i))*evapw(n,i)
 !           ******                tm  is temperature of precipitation
-            if ( tm(n,i).ge.tzero ) then
+            if ( tm(n,i) >= tzero ) then
               pw(n,i) = prcp1d(n,i)*(1.0D0-sigf(n,i))
               ps(n,i) = 0.0D0
             else
@@ -794,7 +794,7 @@
 !=======================================================================
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 ) then
             sold(n,i) = scv1d(n,i)
             scv1d(n,i) = scv1d(n,i) + dtbat                             &
                         & *(ps(n,i)-evaps(n,i)-sm(n,i)) + sdrop(n,i)
@@ -806,7 +806,7 @@
 !           3.   increment non-dimensional "age" of snow;
 !           10 mm snow restores surface to that of new snow.
 !=======================================================================
-            if ( scv1d(n,i).gt.0.0D0 ) then
+            if ( scv1d(n,i) > 0.0D0 ) then
               arg = 5.D3*(1.0D0/tzero-1.0D0/tg1d(n,i))
               age1 = dexp(arg)
               arg2 = dmin1(0.D0,10.0D0*arg)
@@ -815,12 +815,12 @@
               dela0 = 1.0D-6*dtbat
               dela = dela0*tage
               dels = 0.1D0*dmax1(0.D0,scv1d(n,i)-sold(n,i))
-              sge = (sag1d(n,i)+dela)*(1.0-dels)
+              sge = (sag1d(n,i)+dela)*(1.0D0-dels)
               sag1d(n,i) = dmax1(0.D0,sge)
             end if
  
 !           ******           antarctica
-            if ( scv1d(n,i).gt.800.0D0 ) sag1d(n,i) = 0.
+            if ( scv1d(n,i) > 800.0D0 ) sag1d(n,i) = 0.0D0
           end if
         end do
       end do
@@ -900,7 +900,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
  
 !l          1.1  frozen ground values using 44 m2/yr for frozen ground
 !l          thermal diffusion coefficient, based on the values of
@@ -908,7 +908,7 @@
 !l          specific heat only o.49 that of water
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
-            if ( tg1d(n,i).lt.tzero ) then
+            if ( tg1d(n,i) < tzero ) then
               frozen = 0.85D0*dmin1(1.D0,0.25D0*(tzero-tg1d(n,i)))
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(1.0D0-0.51D0*frozen))
@@ -917,7 +917,7 @@
               rscsd(n,i) = fsc(swtrtd(n,i))
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
-            if ( tgb1d(n,i).lt.tzero ) then
+            if ( tgb1d(n,i) < tzero ) then
               froze2 = 0.85D0*dmin1(1.D0,0.25D0*(tzero-tgb1d(n,i)))
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(1.0D0-0.51D0*froze2))
@@ -929,7 +929,7 @@
 !l          1.2  correct for snow cover, if significant
             depdiu(n,i) = dsqrt(2.0D0*skd(n,i)/xnu)
             bcoef(n,i) = xdtime*depdiu(n,i)/(rscsd(n,i)*skd(n,i))
-            if ( scv1d(n,i).gt.1.0D0 ) then
+            if ( scv1d(n,i) > 1.0D0 ) then
               wtd = dexp(-2.0D0*scrat(n,i)/depdiu(n,i))
               rscss = csnw*rhosw(n,i)
               sks(n,i) = 7.D-7*cws*rhosw(n,i)
@@ -941,7 +941,7 @@
                             (1.0D0-wtds)*depdiu(n,i)
             end if
             depann(n,i) = dsqrt(2.0D0*ska(n,i)/xnua)
-            if ( scv1d(n,i).gt.20.0D0 ) then
+            if ( scv1d(n,i) > 20.0D0 ) then
               wtax = dexp(-2.0D0*scrat(n,i)/depann(n,i))
               wtas = (1.0D0-wtax)*scvk(n,i)
               depann(n,i) = wtas*dsqrt(2.0D0*sks(n,i)/xnua) + &
@@ -956,23 +956,23 @@
             fct2(n,i) = 0.0D0
 !
 !l          2.1  add freezing thermal inertia
-            if ( (tg1d(n,i).lt.tzero) .and.  &
-                 (tg1d(n,i).gt.(tzero-4.0D0)) .and. &
-                 (sice1d(n,i).le.1.D-22) ) then
+            if ( (tg1d(n,i) < tzero) .and.  &
+                 (tg1d(n,i) > (tzero-4.0D0)) .and. &
+                 (sice1d(n,i) <= 1.D-22) ) then
               depu = depuv(lveg(n,i))*1.D-3
               cc(n,i) = 1.0D0 + dmax1(ssw1d(n,i)-frezu(lveg(n,i)),0.D0) &
                        & *fct1(depu*rscsd(n,i))
             end if
-            if ( (tgb1d(n,i).lt.tzero) .and.                            &
-               & (tgb1d(n,i).gt.(tzero-4.)) .and.                       &
-               & (sice1d(n,i).le.1.D-22) ) then
+            if ( (tgb1d(n,i) < tzero) .and.                            &
+               & (tgb1d(n,i) > (tzero-4.0D0)) .and.                    &
+               & (sice1d(n,i) <= 1.D-22) ) then
               depr = deprv(lveg(n,i))*1.D-3
               fct2(n,i) = dmax1(rsw1d(n,i)-freza(lveg(n,i)),0.D0)       &
                          & *fct1(depr*rscsa(n,i))
             end if
  
 !l          2.2  large thermal inertial for permanent ice cap
-            if ( lveg(n,i).eq.12 ) fct2(n,i) = 1.D3*fct2(n,i)
+            if ( lveg(n,i) == 12 ) fct2(n,i) = 1.D3*fct2(n,i)
  
 !l          2.3  collect energy flux terms
             rnet(n,i) = fsw1d(i) - sigf(n,i)*(sabveg(i)-flnet(n,i))  &
@@ -984,7 +984,7 @@
 !l          2.4  add in snowmelt (melt enough snow to reach freezing
 !           temp)
             sm(n,i) = 0.0D0
-            if ( scv1d(n,i).gt.0.0D0 ) then
+            if ( scv1d(n,i) > 0.0D0 ) then
               cder = bcoef(n,i)*cgrnd(n,i)
               sm(n,i) = (bb(n,i)+(cc(n,i)-xdt2+cder)*tg1d(n,i)-tzero    &
                        & *(cc(n,i)+xdt2+cder))/(bcoef(n,i)*wlhf)
@@ -1004,7 +1004,7 @@
 !l    3.1  update surface soil temperature
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i).gt.0.5D0 .and. ldoc1d(n,i).lt.1.5D0 ) then
+          if ( ldoc1d(n,i) > 0.5D0 .and. ldoc1d(n,i) < 1.5D0 ) then
             tbef = tg1d(n,i)
             cder = bcoef(n,i)*cgrnd(n,i)
             tg = (bb(n,i)+(cc(n,i)-xdt2+cder)*tg1d(n,i))/(cc(n,i)+      &
@@ -1024,7 +1024,7 @@
 !
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
-            if ( lveg(n,i).eq.9 .or. lveg(n,i).eq.12 ) then
+            if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
               c31 = 0.5D0*dtimea*(1.0D0+deprat(n,i))
               c41 = dtimea*deprat(n,i)
               tgb1d(n,i) = ((1.0D0-c31+fct2(n,i)) * &

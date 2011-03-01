@@ -116,7 +116,7 @@
         end if
         storage=isize*kind(wgtd(1))
 #ifdef DEBUG 
-        if (debug_level.gt.3) then 
+        if (debug_level > 3) then 
            write (buffer,*)  what, &
              '  allocated succesfully: global size is'
            CALL write_info(where,buffer,isize)

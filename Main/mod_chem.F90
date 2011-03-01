@@ -90,9 +90,9 @@
       existing = .false.
 
 #ifdef MPP1
-      if ( myid.eq.0 ) then
-        if (ndate0.eq.globidate1 .or.  &
-           (((ndate0/10000)*100+1)*100 .eq. &
+      if ( myid == 0 ) then
+        if (ndate0 == globidate1 .or.  &
+           (((ndate0/10000)*100+1)*100 == &
            ((globidate1/10000)*100+1)*100 ) ) then
           write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',&
          &       globidate1
@@ -113,8 +113,8 @@
         oxrec = 0
       end if
 #else
-      if (ndate0.eq.globidate1 .or.                                     &
-         (((ndate0/10000)*100+1)*100 .eq.                               &
+      if (ndate0 == globidate1 .or.                                     &
+         (((ndate0/10000)*100+1)*100 ==                               &
          ((globidate1/10000)*100+1)*100 ) ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',  &
              & globidate1
@@ -136,11 +136,11 @@
 #endif
       do
 #ifdef MPP1
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
 #endif
         oxrec = oxrec + 1
         read (iutox,rec=oxrec) ndate0 , nxxx , nyyy , kzzz
-        if ( nyyy.ne.iy .or. nxxx.ne.jx .or. kzzz.ne.kz ) then
+        if ( nyyy /= iy .or. nxxx /= jx .or. kzzz /= kz ) then
           write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
                             & jx , ' KX=' , kz
           call say
@@ -151,8 +151,8 @@
                         &'IMPROPER DIMENSION SPECIFICATION')
             end if
             print * , 'READING INITAL CONDITIONS' , ndate0
-!!            if ( ndate0.lt.mdatez(nnnchk) ) then
-!!            if ( ndate0.lt.0 ) then
+!!            if ( ndate0 < mdatez(nnnchk) ) then
+!!            if ( ndate0 < 0 ) then
 !!              print * , ndate0 , mdatez(nnnchk) , nnnchk
 !!              print * , 'read in datasets at :' , ndate0
 !!              oxrec = oxrec + kz*5
@@ -160,7 +160,7 @@
 !!                 & mdatez(nnnchk+1)
 !!              print * , ndate0 , mdatez(nnnchk)
 !!              cycle ! Proper date not found
-!!            else if ( ndate0.gt.mdatez(nnnchk) ) then
+!!            else if ( ndate0 > mdatez(nnnchk) ) then
 !!              write (aline,*) ndate0 , mdatez(nnnchk)
 !!              call say
 !!              call fatal(__FILE__,__LINE__,                             &
@@ -170,7 +170,7 @@
           exit ! Found proper date
       end do
 !!!!!!!!!!!!!!!!!!!!!! Start read!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           print * , 'OH ROBERTA'
           do k = kz , 1 , -1
             oxrec = oxrec + 1
@@ -277,14 +277,14 @@
 
         existing = .false.
 !
-        dtbdys = ibdyfrq*60.*60.
-        if ( myid.eq.0 ) then
+        dtbdys = ibdyfrq*60.0D0*60.0D0
+        if ( myid == 0 ) then
 !        write(*,*)'SSSSSSSSSSSSSSS',ndate1,mdatez(nnnchk+1)
           do
           oxrec=oxrec+1
           read (iutox,rec=oxrec,iostat=ierr1) ndate1
 !          write(*,*)'NNNNNNOXXXXX',ndate1,mdatez(nnnchk)
-            if ( ierr1.ne.0 ) then
+            if ( ierr1 /= 0 ) then
               close (iutox)
               iutox = iutox + 1
               write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
@@ -302,19 +302,19 @@
               end if
               oxrec = 0
               print * , 'CHANGING OX BDY UNIT NUMBER:  iutbc=' , iutox
-              if ( iutox.gt.999 )                                       &
+              if ( iutox > 999 )                                       &
                  & call fatal(__FILE__,__LINE__,'BDY UNIT MAX EXCEEDED')
               cycle
             end if
-!            if ( ndate1.lt.mdatez(nnnchk) ) then
-!              if ( ndate1.lt.mdatez(nnnchk) ) then
+!            if ( ndate1 < mdatez(nnnchk) ) then
+!              if ( ndate1 < mdatez(nnnchk) ) then
 !                print * , 'Searching for proper date: ' , ndate1 ,      &
 !                    & mdatez(nnnchk+1)
 !                print * , 'read in datasets at :' , ndate0
 !                oxrec = oxrec + kz*5
 !                cycle
 !              end if
-!            else if ( ndate1.gt.mdatez(nnnchk+1) ) then
+!            else if ( ndate1 > mdatez(nnnchk+1) ) then
 !              print * , 'DATE IN OX BC FILE EXCEEDED DATE IN RegCM'
 !              print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
 !              call fatal(__FILE__,__LINE__,'ICBC date')
@@ -323,7 +323,7 @@
           end do
         end if
 !!!!!!!!!!!!!!!!!!!!!! Start read!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           print * , 'OH'
           do k = kz , 1 , -1
             oxrec = oxrec + 1

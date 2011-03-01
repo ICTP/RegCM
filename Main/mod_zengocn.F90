@@ -84,9 +84,9 @@
       do i = istart , iend
         do n = 1 , ng
 #ifdef CLM
-          if ( ocld2d(n,i,j).lt.0.5D0 .or. landmask(jj,i).eq.3 ) then
+          if ( ocld2d(n,i,j) < 0.5D0 .or. landmask(jj,i) == 3 ) then
 #else
-          if ( ocld2d(n,i,j).lt.0.5D0 ) then
+          if ( ocld2d(n,i,j) < 0.5D0 ) then
 #endif
             uv995 = dsqrt(ubx3d(i,k,j)**2.0D0+vbx3d(i,k,j)**2.0D0)
             tsurf = sts2%tg(i,j) - tzero
@@ -115,9 +115,9 @@
               td = ts1(i,j)
 !
 !             deep impact of aod on sst
-!             if ( sum(aerext(i,:,j)).le.1 ) then
+!             if ( sum(aerext(i,:,j)) <= 1 ) then
 !               td = ts1(i,j) - sum(aerext(i,:,j))*0.8
-!             else if ( sum(aerext(i,:,j)).gt.1 ) then
+!             else if ( sum(aerext(i,:,j)) > 1 ) then
 !               td = ts1(i,j)- 1.*0.8
 !             end if
 !
@@ -140,7 +140,7 @@
 !                determined from previous time step (via tdelta and td)
               dts = tdelta-td
 !             m.o lenght calculation
-              if ( dts.gt.0.0D0 ) then
+              if ( dts > 0.0D0 ) then
                 fd = (nu*gti*alphaw/(5.0D0*d))**0.5D0*    &
                     &  rhoh2o*cpw0*ustarw**2.0D0*dts**0.5D0
               else
@@ -148,7 +148,7 @@
               end if
               l = rhoh2o*cpw0*ustarw**3.0D0/(vonkar*fd)
 !             calulation of phidl (stability function)
-              if ( (d/l).ge.0.0D0 ) then
+              if ( (d/l) >= 0.0D0 ) then
                 phidl = 1.0D0+5.0D0*(d/l)
               else
                 phidl = (1.0D0-16.0D0*(d/l))**(-0.5D0)
@@ -168,7 +168,7 @@
               aa = -16.0D0*gti*alphaw*rhoh2o*cpw0*nuw**3.0D0/ &
                   &     (ustarw**4.0D0 *kw**2.0D0)
               bb =  aa *(q+rs*fs)
-              if ( bb.gt.0.0D0 ) then
+              if ( bb > 0.0D0 ) then
 !               case of cool skin layer correction
                 cc= bb**(3.0D0/4.0D0)
                 lamb=6.0D0* &
@@ -199,8 +199,8 @@
             v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
             t2m_1d(n,i) = t995 + tzero - dth*facttq
 !
-            if ( mod(ntime+idnint(dtmin*60.0D0),kbats).eq.0 .or. &
-                ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
+            if ( mod(ntime+idnint(dtmin*60.0D0),kbats) == 0 .or. &
+                ( jyear == jyear0 .and. ktau == 0 ) .or. &
                 ( ifrest .and. .not. done_restart ) ) then
               facttq = dlog(z995/2.0D0)/dlog(z995/zo)
               q2m_1d(n,i) = q995 - dqh*facttq
@@ -306,7 +306,7 @@
 !
       ustar = 0.06D0
       wc = 0.5D0
-      if ( dthv.ge.0.0D0 ) then
+      if ( dthv >= 0.0D0 ) then
         um = dmax1(u,0.1D0)
       else
         um = dsqrt(u*u+wc*wc)
@@ -320,7 +320,7 @@
       end do
 !
       rb = gti*hu*dthv/(thv*um*um)
-      if ( rb.ge.0.0D0 ) then       ! neutral or stable
+      if ( rb >= 0.0D0 ) then       ! neutral or stable
         zeta = rb*dlog(hu/zo)/(1.0D0-5.0D0*dmin1(rb,0.19D0))
         zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
       else                      !unstable
@@ -338,15 +338,15 @@
 !
         zeta = hu/obu
         zetam = 1.574D0
-        if ( zeta.lt.-zetam ) then
+        if ( zeta < -zetam ) then
                                  ! zeta < -1
           ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+ &
                 & psi(1,zo/obu)+1.14D0*((-zeta)**(1.0D0/3.0D0)- &
                                         (zetam)**(1.0D0/3.0D0)))
-        else if ( zeta.lt.0. ) then
+        else if ( zeta < 0.0D0 ) then
                                   ! -1 <= zeta < 0
           ustar = vonkar*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
-        else if ( zeta.le.1.0D0 ) then
+        else if ( zeta <= 1.0D0 ) then
                                   !  0 <= zeta <= 1
           ustar = vonkar*um/(dlog(hu/zo)+5.0D0*zeta-5.0D0*zo/obu)
         else                   !  1 < zeta, phi=5+zeta
@@ -358,16 +358,16 @@
 !
         zeta = ht/obu
         zetat = 0.465D0
-        if ( zeta.lt.-zetat ) then
+        if ( zeta < -zetat ) then
                                  ! zeta < -1
           tstar = vonkar*dth/(dlog(-zetat*obu/zot)-psi(2,-zetat)        &
                 & +psi(2,zot/obu)                                       &
                 & +0.8D0*((zetat)**(-1.0D0/3.0D0)-&
                           (-zeta)**(-1.0D0/3.0D0)))
-        else if ( zeta.lt.0.0D0 ) then
+        else if ( zeta < 0.0D0 ) then
                                   ! -1 <= zeta < 0
           tstar = vonkar*dth/(dlog(ht/zot)-psi(2,zeta)+psi(2,zot/obu))
-        else if ( zeta.le.1.0D0 ) then
+        else if ( zeta <= 1.0D0 ) then
                                   !  0 <= ztea <= 1
           tstar = vonkar*dth/(dlog(ht/zot)+5.0D0*zeta-5.0D0*zot/obu)
         else                   !  1 < zeta, phi=5+zeta
@@ -379,16 +379,16 @@
 !
         zeta = hq/obu
         zetat = 0.465D0
-        if ( zeta.lt.-zetat ) then
+        if ( zeta < -zetat ) then
                                  ! zeta < -1
           qstar = vonkar*dqh/(dlog(-zetat*obu/zoq)-psi(2,-zetat)        &
                 & +psi(2,zoq/obu)                                       &
                 & +0.8D0*((zetat)**(-1.0D0/3.0D0)- &
                 (-zeta)**(-1.0D0/3.0D0)))
-        else if ( zeta.lt.0.0D0 ) then
+        else if ( zeta < 0.0D0 ) then
                                   ! -1 <= zeta < 0
           qstar = vonkar*dqh/(dlog(hq/zoq)-psi(2,zeta)+psi(2,zoq/obu))
-        else if ( zeta.le.1.0D0 ) then
+        else if ( zeta <= 1.0D0 ) then
                                   !  0 <= ztea <= 1
           qstar = vonkar*dqh/(dlog(hq/zoq)+5.0D0*zeta-5.0D0*zoq/obu)
         else                   !  1 < zeta, phi=5+zeta
@@ -398,7 +398,7 @@
         thvstar = tstar*(1.0D0+0.61D0*q) + 0.61D0*th*qstar
 !
         zeta = vonkar*gti*thvstar*hu/(ustar**2.0D0*thv)
-        if ( zeta.ge.0.0D0 ) then   !neutral or stable
+        if ( zeta >= 0.0D0 ) then   !neutral or stable
           um = dmax1(u,0.1D0)
           zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
         else                   !unstable
@@ -421,7 +421,7 @@
 !     10-meter wind (without w_* part)
 !
       zeta = z10/obu
-      if ( zeta.lt.0.0D0 ) then
+      if ( zeta < 0.0D0 ) then
         u10 = u + (ustar/vonkar)*(dlog(z10/hu)-(psi(1,zeta)-            &
               & psi(1,hu/obu)))
       else
@@ -442,7 +442,7 @@
       real(kind=8) :: chik
 !
       chik = (1.0D0-16.0D0*zeta)**0.25D0
-      if ( k.eq.1 ) then
+      if ( k == 1 ) then
         psi = 2.0D0*dlog((1.0D0+chik)*0.5D0) +       &
                     dlog((1.0D0+chik*chik)*0.5D0) -  &
               2.0D0*datan(chik) + 2.0D0*datan(1.0D0)
@@ -481,7 +481,7 @@
 !Im
 !     zo=0.013*ustar*ustar/g+0.11*visa/ustar
 !     zo=0.013*ustar*ustar/g
-      zo = 0.0065*ustar*ustar/g
+      zo = 0.0065D0*ustar*ustar/g
 !Im_
       re = ustar*zo/visa
       xq = 2.67D0*re**0.25D0 - 2.57D0

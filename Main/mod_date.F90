@@ -63,8 +63,8 @@
         implicit none
         logical :: lleap
         integer , intent(in) :: iyear
-        if ( mod(iyear,400).eq.0 .or.                                   &
-          & ( mod(iyear,4).eq.0 .and. mod(iyear,100).ne.0 ) ) then
+        if ( mod(iyear,400) == 0 .or.                                   &
+          & ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
           lleap = .true.
         else
           lleap = .false.
@@ -451,7 +451,7 @@
         call split_idate(idate, iy, im, id, ih)
         rmom = dble(mdays(iy, im))/2.0
         imom = idint(rmom)
-        ih = idint((rmom-dble(imom))*24.0)
+        ih = idint((rmom-dble(imom))*24.0D0)
         imonmiddle = mkidate(iy, im, imom, ih)
       end function imonmiddle
 

@@ -88,17 +88,17 @@
 !
 !----------------------------------------------------------------------
 !
-      if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-        if ( mod(idnint(xtime),60).lt.mod(idnint(xtime-dtmin),60) )   &
+      if ( jyear /= jyear0 .or. ktau /= 0 ) then
+        if ( mod(idnint(xtime),60) < mod(idnint(xtime-dtmin),60) )   &
            & idatex = idatex + 1
-        if ( dabs(xtime).lt.0.00001 ) idatex = ldatez
+        if ( dabs(xtime) < 0.00001D0 ) idatex = ldatez
       end if
  
       lstartup = .false.
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif        
-        if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
+        if ( (jyear == jyear0 .and. ktau == 0) .or. &
              (ifrest .and. .not. done_restart) ) then
           call mkfile
           lstartup = .true.
@@ -114,28 +114,28 @@
       ldosav = .false.
       ldotmp = .false.
 
-      if ( mod(ntime,nsavfrq).eq.0 .and. ldatez.ne.idate1 ) then
+      if ( mod(ntime,nsavfrq) == 0 .and. ldatez /= idate1 ) then
         ldotmp = .true.
       end if
       if ( ((lday==1 .and. lhour==0 .and. dabs(xtime)<0.00001) .and. &
-            ldatez.ne.idate1) .or. nnnnnn.eq.nnnend ) then
+            ldatez /= idate1) .or. nnnnnn == nnnend ) then
         ldosav = .true.
         ldotmp = .false.
       end if
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
-           mod(ntime,ntapfrq).eq.0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. &
+           mod(ntime,ntapfrq) == 0) then
         ldoatm = .true.
       end if
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. & 
-           mod(ntime,kbats).eq.0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. & 
+           mod(ntime,kbats) == 0) then
         ldosrf = .true.
       end if
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
-           mod(ntime,nradisp).eq.0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. &
+           mod(ntime,nradisp) == 0) then
         ldorad = .true.
       end if
-      if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
-           mod(ntime,kchem).eq.0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. &
+           mod(ntime,kchem) == 0) then
         ldoche = .true.
       end if
 
@@ -159,7 +159,7 @@
         ldoche = .true.
       end if
 !
-      if ( jyear.eq.jyear0.and.ktau.eq.0 ) then
+      if ( jyear == jyear0.and.ktau == 0 ) then
         ldosrf = .false.
         ldorad = .false.
         ldoche = .false.
@@ -206,7 +206,7 @@
           call mpi_gather(atm0, iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
                         & atm_0,iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             rainc_io  = 0.0D0
             rainnc_io = 0.0D0
             do j = 1 , jx
@@ -260,7 +260,7 @@
  
       if ( ifbat ) then
         if ( ldosrf ) then
-          if ( lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
+          if ( lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
            call lakegather
           end if
           if ( iseaice == 1 ) then
@@ -298,7 +298,7 @@
           call mpi_gather(bat0, iym2*numbat*jxp,mpi_real4,       &
                         & bat_0,iym2*numbat*jxp,mpi_real4,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do l = 1 , numbat
               do i = 1 , iym2
 #ifdef BAND
@@ -326,7 +326,7 @@
             end do
           end do
 
-          if ( ifsub .and. nsg.gt.1 ) then
+          if ( ifsub .and. nsg > 1 ) then
 
             do j = 1 , jxp
               do l = 1 , numsub
@@ -341,7 +341,7 @@
                           & sub_0,iym2*nnsg*numsub*jxp,mpi_real4, &
                           & 0,mpi_comm_world,ierr)
 
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do l = 1 , numsub
 #ifdef BAND
                 do j = 1 , jx
@@ -393,7 +393,7 @@
          call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8,     &
                         & psa_io,iy*jxp,mpi_real8,               &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do n = 1 , nrad2d
 #ifdef BAND
               do j = 1 , jx
@@ -479,7 +479,7 @@
           call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*7+5)*jxp,            &
                         & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*7+5)*jxp, &
                         & mpi_real8,0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do n = 1 , ntr
                 do k = 1 , kz
@@ -603,7 +603,7 @@
 !
       if ( ifsave ) then
         if ( ldosav .or. ldotmp ) then
-          if ( lakemod.eq.1 ) call lakegather
+          if ( lakemod == 1 ) call lakegather
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
@@ -622,7 +622,7 @@
           call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -649,7 +649,7 @@
             call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
                           & sav_0s,iy*kz*jxp,mpi_real8,          &
                           & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do j = 1 , jx
                 do k = 1 , kz
                   do i = 1 , iy
@@ -677,7 +677,7 @@
           call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -711,7 +711,7 @@
           call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -751,7 +751,7 @@
           call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             rainc_io  = 0.0D0
             rainnc_io = 0.0D0
             do j = 1 , jx
@@ -805,7 +805,7 @@
           call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                         & sav_0a,iy*allrec*jxp,mpi_real8,        &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do i = 1 , iy
                 hfx_io(i,j) = sav_0a(i,1,j)
@@ -831,11 +831,11 @@
               end do
             end do
           end if
-          if ( iocnflx.eq.2 )                                      &
+          if ( iocnflx == 2 )                                      &
              & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
              &                 zpbl_io,iy*jxp,mpi_real8,           &
              &                 0,mpi_comm_world,ierr)
-          if ( icup.eq.1 ) then
+          if ( icup == 1 ) then
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
@@ -848,7 +848,7 @@
             call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
                           & sav_0c,iy*allrec*jxp,mpi_real8,      &
                           & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do j = 1 , jx
                 do k = 1 , kz
                   do i = 1 , iy
@@ -859,7 +859,7 @@
               end do
             end if
           end if
-          if ( icup.eq.3 ) then
+          if ( icup == 3 ) then
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
@@ -874,7 +874,7 @@
             call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
                           & sav_0b,iy*allrec*jxp,mpi_real8,      &
                           & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do j = 1 , jx
                 do k = 1 , kz
                   do i = 1 , iy
@@ -923,7 +923,7 @@
           call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
                         & sav_1,iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -986,7 +986,7 @@
           call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                         & sav_2,iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1025,7 +1025,7 @@
           call mpi_gather(sav_clmin, iym1*8*jxp,mpi_real8,       &
                         & sav_clmout,iym1*8*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1068,7 +1068,7 @@
           call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                         & sav_2,iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1112,7 +1112,7 @@
           call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                         & sav_2,iym1*allrec*jxp,mpi_real8,       &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1150,7 +1150,7 @@
           call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
                         & sav_2a,iym1*allrec*jxp,mpi_real8,      &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
 #ifdef BAND
             do j = 1 , jx
 #else
@@ -1168,7 +1168,7 @@
             end do
           end if
  
-          if ( ichem.eq.1 ) then
+          if ( ichem == 1 ) then
             do j = 1 , jendl
               do n = 1 , ntr
                 do k = 1 , kz
@@ -1193,7 +1193,7 @@
             call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
                           & sav_4,iy*allrec*jxp,mpi_real8,       &
                           & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do j = 1 , jx
                 do n = 1 , ntr
                   do k = 1 , kz
@@ -1231,7 +1231,7 @@
             call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
                           & sav_4a,iym1*7*jxp,mpi_real8,                &
                           & 0,mpi_comm_world,ierr)
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
 #ifdef BAND
               do j = 1 , jx
 #else
@@ -1260,7 +1260,7 @@
           call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
                         & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do n = 1 , nsplit
                 do i = 1 , iy
@@ -1285,7 +1285,7 @@
           call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
                         & sav_6,kz*8*jxp,mpi_real8,              &
                         & 0,mpi_comm_world,ierr)
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 ui1_io(k,j) = sav_6(k,1,j)
@@ -1346,7 +1346,7 @@
               psmn_o(j,i) =  1.E30
             end do
           end do
-          if ( ifsub .and. nsg.gt.1 ) then
+          if ( ifsub .and. nsg > 1 ) then
             call outsub
           end if
         end if
@@ -1398,10 +1398,10 @@
 #endif
 
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif        
-        if ( lday.eq.1 .and. lhour.eq.0 .and. dabs(xtime)<0.00001 ) then
-          if ( .not. lstartup .and. idatex.ne.idate2 ) then
+        if ( lday == 1 .and. lhour == 0 .and. dabs(xtime)<0.00001 ) then
+          if ( .not. lstartup .and. idatex /= idate2 ) then
             call mkfile
           end if
         end if
@@ -1429,12 +1429,12 @@
  
       if ( ifbat ) then
         call prepare_common_out(idatex,'SRF')
-        if (lakemod .eq. 1 .and. iflak) then
+        if (lakemod == 1 .and. iflak) then
           call prepare_common_out(idatex,'LAK')
         end if
       end if
  
-      if ( nsg.gt.1 .and. ifsub ) then
+      if ( nsg > 1 .and. ifsub ) then
         call prepare_common_out(idatex,'SUB')
       end if
  
@@ -1442,7 +1442,7 @@
         call prepare_common_out(idatex,'RAD')
       end if
  
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         if ( ifchem ) then
           call prepare_common_out(idatex,'CHE')
         end if
@@ -1507,7 +1507,7 @@
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
-      if (lakemod.eq.1 .and. iflak .and. mod(iolak,klak).eq.0) then
+      if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
 #ifdef MPP1
         call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                           hsnow2d_io,tlak3d_io,idatex)

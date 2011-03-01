@@ -131,7 +131,7 @@
 !**********************************************************************
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
 #endif
       call getarg(0, prgname)
       call getarg(1, namelistfile)
@@ -167,7 +167,7 @@
 
       call set_nproc(ncpu)
 
-      if ( ncpu.ne.nproc ) then
+      if ( ncpu /= nproc ) then
         write (aline,*) 'The number of CPU is not well set'
         call say
         write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
@@ -177,7 +177,7 @@
 !      print * , "process" , myid , "of" , nproc
       call mpi_barrier(mpi_comm_world,ierr)
 !     starttime= MPI_WTIME()
-      if ( myid.gt.0 ) then
+      if ( myid > 0 ) then
         iwest = myid - 1
       else
 #ifdef BAND
@@ -186,7 +186,7 @@
         iwest = mpi_proc_null
 #endif
       end if
-      if ( myid.lt.nproc-1 ) then
+      if ( myid < nproc-1 ) then
         ieast = myid + 1
       else
 #ifdef BAND
@@ -195,14 +195,14 @@
         ieast = mpi_proc_null
 #endif
       end if
-      if ( jxp.lt.2 ) then
+      if ( jxp < 2 ) then
         write (aline,*) 'The number of jxp must be greater than 1'
         call say
         write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
         call say
         call fatal(__FILE__,__LINE__,'Domain too small')
       end if
-      if ( jxp*nproc.ne.jx ) then
+      if ( jxp*nproc /= jx ) then
         write (aline,*) 'jx should be divided by nproc'
         call say
         write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
@@ -216,8 +216,8 @@
       jendx = jxp
       jendm = jxp
 #ifndef BAND
-      if ( myid.eq.0 ) jbegin = 2
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == 0 ) jbegin = 2
+      if ( myid == nproc-1 ) then
         jendx = jxp - 1
         jendm = jxp - 2
       end if
@@ -241,7 +241,7 @@
 !
 !**********************************************************************
 !
-      extime = 0.
+      extime = 0.0D0
       iexec  = 1
       call param
 !
@@ -261,7 +261,7 @@
 !
       call init
 #ifdef CHEMTEST
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         call init_chem
       end if
 #endif
@@ -274,7 +274,7 @@
 !
       call bdyin
 #ifdef CHEMTEST
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
         call bdyin_chem
       end if
 #endif
@@ -282,7 +282,7 @@
 !
       call spinit(sigma,kzp1)
 ! 
-      if ( ichem.eq.1 ) call chsrfem
+      if ( ichem == 1 ) call chsrfem
 !
 !**********************************************************************
 !
@@ -310,14 +310,14 @@
 !
 !**********************************************************************
 !
-      do while ( idatex.lt.idate2 )
+      do while ( idatex < idate2 )
 !
 !       Read in boundary conditions if needed
 !
-        if ( idatex == ibcdate .and. idatex .lt. idate2 ) then
+        if ( idatex == ibcdate .and. idatex < idate2 ) then
           call bdyin
 #ifdef CHEMTEST
-          if ( ichem.eq.1 ) call bdyin_chem
+          if ( ichem == 1 ) call bdyin_chem
 #endif
           call addhours(ibcdate,ibdyfrq)
         end if
@@ -326,8 +326,8 @@
 !
         if ( .not.ifrest ) then
           if ( rfstrt ) then
-            if ( (jyear.eq.jyear0 .and. ktau.eq.0) .or.                 &
-               & dtinc.ne.deltmx ) then
+            if ( (jyear == jyear0 .and. ktau == 0) .or.                 &
+               & dtinc /= deltmx ) then
               call tstep(extime,dtinc,deltmx)
               write (aline, 99001) extime , dtinc , dt , dt2 ,          &
                                    & dtmin , ktau , jyear
@@ -392,7 +392,7 @@
       call say
 !
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         call for_next
       end if
       call mpi_finalize(ierr)
@@ -406,7 +406,7 @@
 !
       call finaltime(myid)
 !
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         print *, 'RegCM V4 simulation successfully reached end'
       end if
 !
@@ -428,7 +428,7 @@
 ! 
       open(99, file='restparam.nl')
       write (99,99001) '&restartparam'
-      if ( idate1.lt.globidate2 ) then
+      if ( idate1 < globidate2 ) then
         write (99,99001) 'ifrest  = .true. '
       else
         write (99,99001) 'ifrest  = .false.'

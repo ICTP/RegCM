@@ -102,7 +102,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
@@ -132,8 +132,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -158,7 +158,7 @@
          end do
 #endif
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
@@ -188,8 +188,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -221,30 +221,30 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -268,11 +268,11 @@
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               fcx = fcoef*xfun(i)
@@ -298,7 +298,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -319,7 +319,7 @@
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -343,11 +343,11 @@
           end if
         end if
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -371,11 +371,11 @@
                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               fcx = fcoef*xfune(i,kz)
@@ -401,7 +401,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfune(jsls,kz)
             gcx = gcoef*xfune(jsls,kz)
@@ -422,7 +422,7 @@
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfune(jsls,kz)
             gcx = gcoef*xfune(jsls,kz)
@@ -488,7 +488,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
@@ -520,8 +520,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -547,7 +547,7 @@
             end do
           end do
 #endif
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
@@ -579,8 +579,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -614,30 +614,30 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -663,11 +663,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               fcx = fcoef*xfun(i)
@@ -695,7 +695,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -726,7 +726,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -760,11 +760,11 @@
           end if
         end if
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -790,11 +790,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               do k = 1 , kz
@@ -822,7 +822,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -853,7 +853,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -930,7 +930,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
@@ -962,8 +962,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -989,7 +989,7 @@
             end do
          end do
 #endif
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
@@ -1021,8 +1021,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -1056,30 +1056,30 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -1105,11 +1105,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               fcx = fcoef*xfun(i)
@@ -1141,7 +1141,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -1172,7 +1172,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -1206,11 +1206,11 @@
           end if
         end if
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iym1 - i + 1
@@ -1236,11 +1236,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1 - 1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iym1 - i + 1
               do k = 1 , kz
@@ -1272,7 +1272,7 @@
             iend = iym1 - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -1303,7 +1303,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -1379,7 +1379,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
@@ -1411,8 +1411,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1438,7 +1438,7 @@
             end do
          end do
 #endif
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
 #ifdef MPP1
@@ -1469,8 +1469,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1504,23 +1504,23 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jew = jsls
-      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
-      if ( jew.eq.0 ) jew = jxp
+      if ( jew > jxp ) jew = mod(jsls,jxp)
+      if ( jew == 0 ) jew = jxp
 #else
       jsls = j
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iy - i + 1
@@ -1546,11 +1546,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iy - i + 1
               fcx = fcoef*xfun(i)
@@ -1578,7 +1578,7 @@
             iend = iy - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -1609,7 +1609,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -1643,11 +1643,11 @@
           end if
         end if
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iy - i + 1
@@ -1673,11 +1673,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iy - i + 1
               do k = 1 , kz
@@ -1705,7 +1705,7 @@
             iend = iy - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -1736,7 +1736,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -1812,7 +1812,7 @@
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
@@ -1844,8 +1844,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1871,7 +1871,7 @@
             end do
          end do
 #endif
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
 #ifdef MPP1
@@ -1902,8 +1902,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1.eq.0) jm1 = jx
-         if(jp1.eq.jx+1) jp1 = 1
+         if(jm1 == 0) jm1 = jx
+         if(jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1937,23 +1937,23 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jew = jsls
-      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
-      if ( jew.eq.0 ) jew = jxp
+      if ( jew > jxp ) jew = mod(jsls,jxp)
+      if ( jew == 0 ) jew = jxp
 #else
       jsls = j
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
 !-----determine which relaxation method to use:linear/expon.
 !
-      if ( ibdy.eq.1 ) then
+      if ( ibdy == 1 ) then
 !
 !---------use linear method
 !
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iy - i + 1
@@ -1979,11 +1979,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iy - i + 1
               fcx = fcoef*xfun(i)
@@ -2011,7 +2011,7 @@
             iend = iy - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -2042,7 +2042,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             fcx = fcoef*xfun(jsls)
             gcx = gcoef*xfun(jsls)
@@ -2076,11 +2076,11 @@
           end if
         end if
 !
-      else if ( ibdy.eq.5 ) then
+      else if ( ibdy == 5 ) then
  
 !----------use exponential method
  
-        if ( jsls.gt.ip ) then
+        if ( jsls > ip ) then
 !------interior j slices:
           do i = 2 , ip
             ii = iy - i + 1
@@ -2106,11 +2106,11 @@
             end do
           end do
 !
-        else if ( jsls.le.ip ) then
+        else if ( jsls <= ip ) then
 !------east or west boundary slices:
           ibeg = 2
           iend = iym1
-          if ( jsls.gt.2 ) then
+          if ( jsls > 2 ) then
             do i = 2 , jsls - 1
               ii = iy - i + 1
               do k = 1 , kz
@@ -2138,7 +2138,7 @@
             iend = iy - jsls + 1
           end if
 !
-          if ( jj.gt.ip ) then
+          if ( jj > ip ) then
 !-------west-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -2169,7 +2169,7 @@
                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
-          else if ( jj.le.ip ) then
+          else if ( jj <= ip ) then
 !-------east-boundary slice:
             do k = 1 , kz
               fcx = fcoef*xfune(jsls,k)
@@ -2271,24 +2271,24 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
-      if ( jsls.gt.ip ) then
+      if ( jsls > ip ) then
 !-----interior j slices:
         do i = 2 , ip
           ii = iy - i
@@ -2298,10 +2298,10 @@
           ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
         end do
 !
-      else if ( jsls.le.ip ) then
+      else if ( jsls <= ip ) then
         ibeg = 2
         iend = iym1 - 1
-        if ( jsls.gt.2 ) then
+        if ( jsls > 2 ) then
           do i = 2 , jsls - 1
             ii = iy - i
 !........south boundary:
@@ -2313,21 +2313,21 @@
           iend = iy - jsls
         end if
 !
-        if ( jj.gt.ip ) then
+        if ( jj > ip ) then
 !------west-boundary slice:
           do i = ibeg , iend
 #ifdef MPP1
-            if ( jsls.le.ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
                                       & *pwbt(i,jwb)
 #else
             ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pwbt(i,jsls)
 #endif
           end do
-        else if ( jj.le.ip ) then
+        else if ( jj <= ip ) then
 !------east-boundary slice:
           do i = ibeg , iend
 #ifdef MPP1
-            if ( jsls.le.ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
                                       & *pebt(i,jeb)
 #else
             ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pebt(i,jsls)
@@ -2387,24 +2387,24 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
-      if ( jsls.gt.ip ) then
+      if ( jsls > ip ) then
 !-----interior j slices:
         do i = 2 , ip
           ii = iy - i
@@ -2416,10 +2416,10 @@
           end do
         end do
 !
-      else if ( jsls.le.ip ) then
+      else if ( jsls <= ip ) then
         ibeg = 2
         iend = iym1 - 1
-        if ( jsls.gt.2 ) then
+        if ( jsls > 2 ) then
           do i = 2 , jsls - 1
             ii = iy - i
             do k = 1 , kz
@@ -2433,12 +2433,12 @@
           iend = iy - jsls
         end if
 !
-        if ( jj.gt.ip ) then
+        if ( jj > ip ) then
 !------west-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*twbt(i,k,jwb)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2446,12 +2446,12 @@
 #endif
             end do
           end do
-        else if ( jj.le.ip ) then
+        else if ( jj <= ip ) then
 !------east-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*tebt(i,k,jeb)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2512,24 +2512,24 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jwb = jsls
-      if ( jwb.gt.jxp ) jwb = mod(jwb,jxp)
-      if ( jwb.eq.0 ) jwb = jxp
-      if ( myid.eq.nproc-1 ) then
+      if ( jwb > jxp ) jwb = mod(jwb,jxp)
+      if ( jwb == 0 ) jwb = jxp
+      if ( myid == nproc-1 ) then
         jeb = jsls
       else
         jeb = jsls + 1
       end if
-      if ( jeb.gt.jxp ) jeb = mod(jeb,jxp)
-      if ( jeb.eq.0 ) jeb = jxp
+      if ( jeb > jxp ) jeb = mod(jeb,jxp)
+      if ( jeb == 0 ) jeb = jxp
 #else
       jsls = j
       jj = jx - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
-      if ( jsls.gt.ip ) then
+      if ( jsls > ip ) then
 !-----interior j slices:
         do i = 2 , ip
           ii = iy - i
@@ -2541,10 +2541,10 @@
           end do
         end do
 !
-      else if ( jsls.le.ip ) then
+      else if ( jsls <= ip ) then
         ibeg = 2
         iend = iym1 - 1
-        if ( jsls.gt.2 ) then
+        if ( jsls > 2 ) then
           do i = 2 , jsls - 1
             ii = iy - i
             do k = 1 , kz
@@ -2558,12 +2558,12 @@
           iend = iy - jsls
         end if
 !
-        if ( jj.gt.ip ) then
+        if ( jj > ip ) then
 !------west-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*qwbt(i,k,jwb)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2571,12 +2571,12 @@
 #endif
             end do
           end do
-        else if ( jj.le.ip ) then
+        else if ( jj <= ip ) then
 !------east-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*qebt(i,k,jeb)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2636,17 +2636,17 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jew = jsls
-      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
-      if ( jew.eq.0 ) jew = jxp
+      if ( jew > jxp ) jew = mod(jsls,jxp)
+      if ( jew == 0 ) jew = jxp
 #else
       jsls = j
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
-      if ( jsls.gt.ip ) then
+      if ( jsls > ip ) then
 !-----interior j slices:
         do i = 2 , ip
           ii = iy - i + 1
@@ -2658,10 +2658,10 @@
           end do
         end do
 !
-      else if ( jsls.le.ip ) then
+      else if ( jsls <= ip ) then
         ibeg = 2
         iend = iym1
-        if ( jsls.gt.2 ) then
+        if ( jsls > 2 ) then
           do i = 2 , jsls - 1
             ii = iy - i + 1
             do k = 1 , kz
@@ -2675,12 +2675,12 @@
           iend = iy - jsls + 1
         end if
 !
-        if ( jj.gt.ip ) then
+        if ( jj > ip ) then
 !------west-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*uwbt(i,k,jew)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2688,12 +2688,12 @@
 #endif
             end do
           end do
-        else if ( jj.le.ip ) then
+        else if ( jj <= ip ) then
 !------east-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*uebt(i,k,jew)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2753,17 +2753,17 @@
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
       jew = jsls
-      if ( jew.gt.jxp ) jew = mod(jsls,jxp)
-      if ( jew.eq.0 ) jew = jxp
+      if ( jew > jxp ) jew = mod(jsls,jxp)
+      if ( jew == 0 ) jew = jxp
 #else
       jsls = j
       jj = jxp1 - jsls
-      if ( jj.le.ip ) jsls = jj
+      if ( jj <= ip ) jsls = jj
 #endif
 !
-      if ( jsls.gt.ip ) then
+      if ( jsls > ip ) then
 !-----interior j slices:
         do i = 2 , ip
           ii = iy - i + 1
@@ -2775,10 +2775,10 @@
           end do
         end do
 !
-      else if ( jsls.le.ip ) then
+      else if ( jsls <= ip ) then
         ibeg = 2
         iend = iym1
-        if ( jsls.gt.2 ) then
+        if ( jsls > 2 ) then
           do i = 2 , jsls - 1
             ii = iy - i + 1
             do k = 1 , kz
@@ -2792,12 +2792,12 @@
           iend = iy - jsls + 1
         end if
 !
-        if ( jj.gt.ip ) then
+        if ( jj > ip ) then
 !------west-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*vwbt(i,k,jew)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
@@ -2805,12 +2805,12 @@
 #endif
             end do
           end do
-        else if ( jj.le.ip ) then
+        else if ( jj <= ip ) then
 !------east-boundary slice:
           do k = 1 , kz
             do i = ibeg , iend
 #ifdef MPP1
-              if ( jsls.le.ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
+              if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
                  & + (1.-wg(jsls))*vebt(i,k,jew)
 #else
               ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &

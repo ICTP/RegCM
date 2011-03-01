@@ -320,7 +320,7 @@
           snowc_io   => spacesub(:,:,:,3)
           xlat1_io   => spacesub(:,:,:,4)
           xlon1_io   => spacesub(:,:,:,5)
-          if (lakemod.eq.1) then
+          if (lakemod == 1) then
             allocate(dhlake1_io(nnsg,iy,jx),stat=ierr)
             call check_alloc(ierr,myname,'dhlake1_io',size(dhlake1_io))
             allocate(idep2d_io(nnsg,iym1,jx),stat=ierr)
@@ -340,13 +340,13 @@
             call check_alloc(ierr,myname,'tlak3d_io',size(tlak3d_io))
           endif
           if (lband) then
-            if ( ichem .eq. 1 ) then
+            if ( ichem == 1 ) then
               allocate(spacebat(iym1,jx,16),stat=ierr)
             else
               allocate(spacebat(iym1,jx,9),stat=ierr)
             end if
           else
-            if ( ichem .eq. 1 ) then
+            if ( ichem == 1 ) then
               allocate(spacebat(iym1,jxm1,16),stat=ierr)
             else
               allocate(spacebat(iym1,jxm1,9),stat=ierr)
@@ -363,7 +363,7 @@
           sol2d_io      => spacebat(:,:,7)
           solvd2d_io    => spacebat(:,:,8)
           solvs2d_io    => spacebat(:,:,9)
-          if ( ichem .eq. 1 ) then
+          if ( ichem == 1 ) then
             ssw2da_io     => spacebat(:,:,10)
             sdelqk2d_io   => spacebat(:,:,11)
             sdeltk2d_io   => spacebat(:,:,12)

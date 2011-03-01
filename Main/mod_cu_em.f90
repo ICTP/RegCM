@@ -71,7 +71,7 @@
       dtime = dt
       uconv = 0.5D0*dt
       aprdiv = 1.0D0/dble(nbatst)
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
+      if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = 1.0D0
       iconj = 0
       do i = 2 , iym2
         if ( icup==99 .or. icup==98 ) then
@@ -108,10 +108,10 @@
 !       level kzm2. iflag=4: Moist convection occurs, but CFL condition
 !       on the subsidence warming is violated. (Does not terminate
 !       scheme.)
-        if ( iflag.eq.1 .or. iflag.eq.4 ) then
+        if ( iflag == 1 .or. iflag == 4 ) then
                                               ! If moist convection
  
-!         if (iflag.eq.4) then                ! If CFL violation
+!         if (iflag == 4) then                ! If CFL violation
 !         print*,'EMAN CFL VIOLATION: ',i,j,cbmf
 !         end if
  
@@ -138,7 +138,7 @@
           end do
  
 !         **** Precipitation
-          if ( fppt.gt.0.0D0 ) then
+          if ( fppt > 0.0D0 ) then
             sfsta%rainc(i,j) = sfsta%rainc(i,j) + fppt*uconv ! mm
             pptc(i,j)        = pptc(i,j) + fppt*aprdiv       ! mm/s
             iconj = iconj + 1
@@ -386,7 +386,7 @@
       qprime = 0.0D0
       iflag = 0
 !
-      if ( ipbl.ne.0 ) then
+      if ( ipbl /= 0 ) then
 !
 !       ***            perform dry adiabatic adjustment            ***
 !
@@ -397,10 +397,10 @@
           do j = i + 1 , nl
             asum = asum + th(j)*(1.0D0+q(j)*epsi-q(j))
             thbar = asum/dble(j+1-i)
-            if ( (th(j)*(1.0D0+q(j)*epsi-q(j))).lt.thbar ) jn = j
+            if ( (th(j)*(1.0D0+q(j)*epsi-q(j))) < thbar ) jn = j
           end do
-          if ( i.eq.1 ) jn = max0(jn,2)
-          if ( jn.ne.0 ) then
+          if ( i == 1 ) jn = max0(jn,2)
+          if ( jn /= 0 ) then
             do
               ahm = 0.0D0
               rm = 0.0D0
@@ -449,12 +449,12 @@
                 qs(j) = qs(j) + qs(j)*(1.0D0+qs(j)*(epsi-1.0D0)) * &
                         alv*(t(j)-told(j))/(rwat*told(j)*told(j))
               end do
-              if ( ((th(jn+1)*(1.0D0+q(jn+1)*epsi-q(jn+1))).lt. &
+              if ( ((th(jn+1)*(1.0D0+q(jn+1)*epsi-q(jn+1))) <  &
                     (th(jn)*(1.0D0+q(jn)*epsi-q(jn)))) ) then
                 jn = jn + 1
                 cycle
               end if
-              if ( i.eq.1 ) jc = jn
+              if ( i == 1 ) jc = jn
               exit
             end do
           end if
@@ -462,9 +462,9 @@
 !
 !       ***   remove any supersaturation that results from adjustment
 !       ***
-        if ( jc.gt.1 ) then
+        if ( jc > 1 ) then
           do j = 1 , jc
-            if ( qs(j).lt.q(j) ) then
+            if ( qs(j) < q(j) ) then
               alv = wlhv - cpvmcl*(t(j)-tzero)
               tnew = t(j) + alv*(q(j)-qs(j)) /             &
                       (cpd*(1.0D0-q(j))+cl*q(j)+qs(j) *    &
@@ -506,8 +506,8 @@
 !
 !       ***  find level of minimum moist static energy    ***
 !
-        if ( i.ge.minorig .and. hm(i).lt.ahmin .and. &
-             hm(i).lt.hm(i-1) ) then
+        if ( i >= minorig .and. hm(i) < ahmin .and. &
+             hm(i) < hm(i-1) ) then
           ahmin = hm(i)
           ihmin = i
         end if
@@ -520,7 +520,7 @@
       ahmax = 0.0D0
       nk = nl
       do i = minorig , ihmin
-        if ( hm(i).gt.ahmax ) then
+        if ( hm(i) > ahmax ) then
           nk = i
           ahmax = hm(i)
         end if
@@ -530,8 +530,8 @@
 !     *** ***                          are reasonable                  
 !     *** ***      skip convection if hm increases monotonically upward
 !     ***
-      if ( t(nk).lt.250.0D0 .or. q(nk).le.0.0D0 .or. &
-           ihmin.eq.(nl-1) ) then
+      if ( t(nk) < 250.0D0 .or. q(nk) <= 0.0D0 .or. &
+           ihmin == (nl-1) ) then
         iflag = 0
         cbmf = 0.0D0
         return
@@ -543,7 +543,7 @@
       rh = q(nk)/qs(nk)
       chi = t(nk)/(1669.0D0-122.0D0*rh-t(nk))
       plcl = p(nk)*(rh**chi)
-      if ( plcl.lt.200.0D0 .or. plcl.ge.2000.0D0 ) then
+      if ( plcl < 200.0D0 .or. plcl >= 2000.0D0 ) then
         iflag = 2
         cbmf = 0.0D0
         return
@@ -553,9 +553,9 @@
 !
       icb = nl - 1
       do i = nk + 1 , nl
-        if ( p(i).lt.plcl ) icb = min0(icb,i)
+        if ( p(i) < plcl ) icb = min0(icb,i)
       end do
-      if ( icb.ge.(nl-1) ) then
+      if ( icb >= (nl-1) ) then
         iflag = 3
         cbmf = 0.0D0
         return
@@ -575,14 +575,14 @@
 !     ***  if there was no convection at last time step and parcel   
 !     *** ***       is stable at icb then skip rest of calculation     
 !     ***
-      if ( cbmf.eq.0.0D0 .and. tvp(icb).le.(tv(icb)-dtmax) ) then
+      if ( dabs(cbmf) < 1.0D-30 .and. tvp(icb) <= (tv(icb)-dtmax) ) then
         iflag = 0
         return
       end if
 !
 !     ***  if this point is reached, moist convective adjustment is
 !     necessary ***
-      if ( iflag.ne.4 ) iflag = 1
+      if ( iflag /= 4 ) iflag = 1
 !
 !     ***  find the rest of the lifted parcel temperatures          ***
 !
@@ -598,7 +598,7 @@
       end do
       do i = nk + 1 , nl
         tca = tp(i) - tzero
-        if ( tca.ge.0.0D0 ) then
+        if ( tca >= 0.0D0 ) then
           elacrit = elcrit
         else
           elacrit = elcrit*(1.0D0-tca/tlcrit)
@@ -669,8 +669,8 @@
       do i = icb + 1 , nl - 1
         by = (tvp(i)-tv(i))*(ph(i)-ph(i+1))/p(i)
         cape = cape + by
-        if ( by.ge.0.0D0 ) inb1 = i + 1
-        if ( cape.gt.0.0D0 ) then
+        if ( by >= 0.0D0 ) inb1 = i + 1
+        if ( cape > 0.0D0 ) then
           inb = i + 1
           byp = (tvp(i+1)-tv(i+1))*(ph(i+1)-ph(i+2))/p(i+1)
           capem = cape
@@ -720,7 +720,7 @@
 !
 !     *** if cloud base mass flux is zero, skip rest of calculation  ***
 !
-      if ( cbmf.eq.0.0D0 .and. cbmfold.eq.0.0D0 ) return
+      if ( dabs(cbmf) < 1.0D-30 .and. dabs(cbmfold) < 1.0D-30 ) return
 !
 !     ***   calculate rates of mixing,  m(i)   ***
 !
@@ -746,23 +746,23 @@
           anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
           dei = denom
-          if ( dabs(dei).lt.0.01D0 ) dei = 0.01D0
+          if ( dabs(dei) < 0.01D0 ) dei = 0.01D0
           sij(i,j) = anum/dei
           sij(i,i) = 1.0D0
           altem = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti - qs(j)
           altem = altem/bf2
           cwat = clw(j)*(1.0D0-ep(j))
           stemp = sij(i,j)
-          if ( (stemp.lt.0.0D0 .or. stemp.gt.1.0D0 .or. &
-                altem.gt.cwat) .and. j.gt.i ) then
+          if ( (stemp < 0.0D0 .or. stemp > 1.0D0 .or. &
+                altem > cwat) .and. j > i ) then
             anum = anum - lv(j)*(qti-qs(j)-cwat*bf2)
             denom = denom + lv(j)*(q(i)-qti)
-            if ( dabs(denom).lt.0.01D0 ) denom = 0.01D0
+            if ( dabs(denom) < 0.01D0 ) denom = 0.01D0
             sij(i,j) = anum/denom
             altem = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti - qs(j)
             altem = altem - (bf2-1.0D0)*cwat
           end if
-          if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
+          if ( sij(i,j) > 0.0D0 .and. sij(i,j) < 0.9D0 ) then
             qent(i,j) = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti
             uent(i,j) = sij(i,j)*u(i) + (1.0D0-sij(i,j))*u(nk)
             vent(i,j) = sij(i,j)*v(i) + (1.0D0-sij(i,j))*v(nk)
@@ -782,7 +782,7 @@
 !       ***   if no air can entrain at level i assume that updraft
 !       detrains  *** ***   at that level and calculate detrained air
 !       flux and properties  ***
-        if ( nent(i).eq.0 ) then
+        if ( nent(i) == 0 ) then
           ment(i,i) = m(i)
           qent(i,i) = q(nk) - ep(i)*clw(i)
           uent(i,i) = u(nk)
@@ -800,24 +800,24 @@
 !     ***              probabilities of mixing                     ***
 !
       do i = icb + 1 , inb
-        if ( nent(i).ne.0 ) then
+        if ( nent(i) /= 0 ) then
           qp1 = q(nk) - ep(i)*clw(i)
           anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
           denom = h(i) - hp(i) + lv(i)*(q(i)-qp1)
-          if ( dabs(denom).lt.0.01D0 ) denom = 0.01D0
+          if ( dabs(denom) < 0.01D0 ) denom = 0.01D0
           scrit = anum/denom
           alt = qp1 - qs(i) + scrit*(q(i)-qp1)
-          if ( alt.lt.0.0D0 ) scrit = 1.0D0
+          if ( alt < 0.0D0 ) scrit = 1.0D0
           scrit = dmax1(scrit,0.0D0)
           asij = 0.0D0
           smin = 1.0D0
           do j = icb , inb
-            if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
-              if ( j.gt.i ) then
+            if ( sij(i,j) > 0.0D0 .and. sij(i,j) < 0.9D0 ) then
+              if ( j > i ) then
                 smid = dmin1(sij(i,j),scrit)
                 sjmax = smid
                 sjmin = smid
-                if ( smid.lt.smin .and. sij(i,j+1).lt.smid ) then
+                if ( smid < smin .and. sij(i,j+1) < smid ) then
                   smin = smid
                   sjmax = dmin1(sij(i,j+1),sij(i,j),scrit)
                   sjmin = dmax1(sij(i,j-1),sij(i,j))
@@ -827,7 +827,7 @@
                 sjmax = dmax1(sij(i,j+1),scrit)
                 smid = dmax1(sij(i,j),scrit)
                 sjmin = 0.0D0
-                if ( j.gt.1 ) sjmin = sij(i,j-1)
+                if ( j > 1 ) sjmin = sij(i,j-1)
                 sjmin = dmax1(sjmin,scrit)
               end if
               delp = dabs(sjmax-smid)
@@ -845,7 +845,7 @@
           do j = icb , inb
             bsum = bsum + ment(i,j)
           end do
-          if ( bsum.lt.1.0D-18 ) then
+          if ( bsum < 1.0D-18 ) then
             nent(i) = 0
             ment(i,i) = m(i)
             qent(i,i) = q(nk) - ep(i)*clw(i)
@@ -863,7 +863,7 @@
 !     ***  check whether ep(inb)=0, if so, skip precipitating    ***
 !     ***             downdraft calculation                      ***
 !
-      if ( ep(inb).ge.0.0001D0 ) then
+      if ( ep(inb) >= 0.0001D0 ) then
 !
 !       ***  integrate liquid water equation to find condensed water  
 !       *** ***                and condensed water flux                
@@ -877,7 +877,7 @@
 !         ***              calculate detrained precipitation           
 !         ***
           wdtrain = gti*ep(i)*m(i)*clw(i)
-          if ( i.gt.1 ) then
+          if ( i > 1 ) then
             do j = 1 , i - 1
               awat = elij(j,i) - (1.0D0-ep(i))*clw(i)
               awat = dmax1(0.0D0,awat)
@@ -896,7 +896,7 @@
 !
 !         ***  value of terminal velocity and coefficient of
 !         evaporation for rain   ***
-          if ( t(i).gt.tzero) then
+          if ( t(i) > tzero) then
             coeff = coeffr
             wt(i) = omtrain
           end if
@@ -915,7 +915,7 @@
 !         ***  calculate precipitating downdraft mass flux under     ***
 !         ***              hydrostatic approximation                 ***
 !
-          if ( i.ne.1 ) then
+          if ( i /= 1 ) then
             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
             dhdp = dmax1(dhdp,10.0D0)
             mp(i) = 100.0D0*rgti*lv(i)*sigd*evap(i)/dhdp
@@ -929,7 +929,7 @@
 !           ***      force mp to decrease linearly to zero             
 !           *** ***      between about 950 mb and the surface          
 !           ***
-            if ( p(i).gt.(0.949D0*p(1)) ) then
+            if ( p(i) > (0.949D0*p(1)) ) then
               jtt = max0(jtt,i)
               mp(i) = mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
             end if
@@ -937,13 +937,13 @@
 !
 !         ***       find mixing ratio of precipitating downdraft     ***
 !
-          if ( i.ne.inb ) then
-            if ( i.eq.1 ) then
+          if ( i /= inb ) then
+            if ( i == 1 ) then
               qstm = qs(1)
             else
               qstm = qs(i-1)
             end if
-            if ( mp(i).gt.mp(i+1) ) then
+            if ( mp(i) > mp(i+1) ) then
               rat = mp(i+1)/mp(i)
               qp(i) = qp(i+1)*rat + q(i)*(1.0D0-rat)                    &
                     & + 100.D0*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
@@ -952,7 +952,7 @@
               do j = 1 , ntra
                 trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(1.0D0-rat)
               end do
-            else if ( mp(i+1).gt.0.0D0 ) then
+            else if ( mp(i+1) > 0.0D0 ) then
               qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(i+1)*(cl-cpd))  &
                     & +cpd*(t(i+1)-t(i)))/(lv(i)+t(i)*(cl-cpd))
               up(i) = up(i+1)
@@ -986,12 +986,12 @@
 !     ***
       dpinv = 0.01D0/(ph(1)-ph(2))
       am = 0.0D0
-      if ( nk.eq.1 ) then
+      if ( nk == 1 ) then
         do k = 2 , inb
           am = am + m(k)
         end do
       end if
-      if ( (2.0D0*gti*dpinv*am).ge.delti ) iflag = 4
+      if ( (2.0D0*gti*dpinv*am) >= delti ) iflag = 4
       ft(1) = ft(1) + gti*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
       ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
       ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))          &
@@ -1025,7 +1025,7 @@
         cpinv = 1.0D0/cpn(i)
         amp1 = 0.0D0
         ad = 0.0D0
-        if ( i.ge.nk ) then
+        if ( i >= nk ) then
           do k = i + 1 , inb + 1
             amp1 = amp1 + m(k)
           end do
@@ -1035,7 +1035,7 @@
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (2.0D0*gti*dpinv*amp1).ge.delti ) iflag = 4
+        if ( (2.0D0*gti*dpinv*amp1) >= delti ) iflag = 4
         do k = 1 , i - 1
           do j = i , inb
             ad = ad + ment(j,k)
@@ -1183,7 +1183,7 @@
       cpp = cpd*(1.0D0-q(nk)) + q(nk)*cpv
       cpinv = 1.0D0/cpp
 !
-      if ( kk.eq.1 ) then
+      if ( kk == 1 ) then
 !
 !       ***   calculate lifted parcel quantities below cloud base   ***
 !
@@ -1200,7 +1200,7 @@
 !
       nst = icb
       nsb = icb
-      if ( kk.eq.2 ) then
+      if ( kk == 2 ) then
         nst = nl
         nsb = icb + 1
       end if
@@ -1216,7 +1216,7 @@
           tg = dmax1(tg,35.0D0)
           tc = tg - tzero
           denom = 243.5D0 + tc
-          if ( tc.ge.0.0D0 ) then
+          if ( tc >= 0.0D0 ) then
             es = 6.112D0*dexp(17.67D0*tc/denom)
           else
             es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))

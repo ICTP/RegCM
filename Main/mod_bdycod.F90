@@ -358,11 +358,11 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-      if ( dabs(xtime).gt.0.0001D0 ) return
+      if ( dabs(xtime) > 0.0001D0 ) return
 !
 #ifdef MPP1
       dtbdys = ibdyfrq*60.0D0*60.0D0
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         if ( ehso4 ) then
           do k = 1 , kz
             do j = 1 , jendl
@@ -466,8 +466,8 @@
 #else
 !
       do i = 2 , iym1
-        if ( myid.eq.0 ) psdot(i,1) = 0.5D0*(ps1(i,1)+ps1(i-1,1))
-        if ( myid.eq.nproc-1 ) &
+        if ( myid == 0 ) psdot(i,1) = 0.5D0*(ps1(i,1)+ps1(i-1,1))
+        if ( myid == nproc-1 ) &
           psdot(i,jendl) = 0.5D0*(ps1(i,jendx)+ps1(i-1,jendx))
       end do
 !
@@ -476,11 +476,11 @@
         psdot(iy,j) = 0.5D0*(ps1(iym1,j)+ps1(iym1,j-1))
       end do
 !
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         psdot(1,1) = ps1(1,1)
         psdot(iy,1) = ps1(iym1,1)
       end if
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         psdot(1,jendl) = ps1(1,jendx)
         psdot(iy,jendl) = ps1(iym1,jendx)
       end if
@@ -507,35 +507,35 @@
       nxwb=0
       nxeb=0
 #else
-      if ( nspgx.le.jxp ) then
+      if ( nspgx <= jxp ) then
         nxwb = nspgx
       else
         nkk = nspgx/jxp
-        if ( nspgx.eq.nkk*jxp ) then
+        if ( nspgx == nkk*jxp ) then
           nxwb = jxp
         else
           nxwb = nspgx - nkk*jxp
         end if
       end if
-      if ( nxwb+myid*jxp.gt.nspgx ) then
+      if ( nxwb+myid*jxp > nspgx ) then
         nxwb = 0
-      else if ( nxwb+myid*jxp.lt.nspgx ) then
+      else if ( nxwb+myid*jxp < nspgx ) then
         nxwb = jxp
       end if
 !
-      if ( nspgx.le.jxp-1 ) then
+      if ( nspgx <= jxp-1 ) then
         nxeb = nspgx
       else
         nkk = (nspgx-jxp+1)/jxp
-        if ( (nspgx-jxp+1).eq.nkk*jxp ) then
+        if ( (nspgx-jxp+1) == nkk*jxp ) then
           nxeb = jxp
         else
           nxeb = (nspgx-jxp+1) - nkk*jxp
         end if
       end if
-      if ( jxm1-(myid*jxp+jxp-nxeb).gt.nspgx ) then
+      if ( jxm1-(myid*jxp+jxp-nxeb) > nspgx ) then
         nxeb = 0
-      else if ( jxm1-(myid*jxp+jxp-nxeb).lt.nspgx ) then
+      else if ( jxm1-(myid*jxp+jxp-nxeb) < nspgx ) then
         nxeb = min0(jendx,jxp)
       end if
       do nn = 1 , nxwb
@@ -568,35 +568,35 @@
       ndwb = 0
       ndeb = 0
 #else
-      if ( nspgd.le.jxp ) then
+      if ( nspgd <= jxp ) then
         ndwb = nspgd
       else
         nkk = nspgd/jxp
-        if ( nspgd.eq.nkk*jxp ) then
+        if ( nspgd == nkk*jxp ) then
           ndwb = jxp
         else
           ndwb = nspgd - nkk*jxp
         end if
       end if
-      if ( ndwb+myid*jxp.gt.nspgd ) then
+      if ( ndwb+myid*jxp > nspgd ) then
         ndwb = 0
-      else if ( ndwb+myid*jxp.lt.nspgd ) then
+      else if ( ndwb+myid*jxp < nspgd ) then
         ndwb = jxp
       end if
 !
-      if ( nspgd.le.jendl ) then
+      if ( nspgd <= jendl ) then
         ndeb = nspgd
       else
         nkk = nspgd/jxp
-        if ( nspgd.eq.nkk*jxp ) then
+        if ( nspgd == nkk*jxp ) then
           ndeb = jxp
         else
           ndeb = nspgd - nkk*jxp
         end if
       end if
-      if ( jx-(myid*jxp+jxp-ndeb).gt.nspgd ) then
+      if ( jx-(myid*jxp+jxp-ndeb) > nspgd ) then
         ndeb = 0
-      else if ( jx-(myid*jxp+jxp-ndeb).lt.nspgd ) then
+      else if ( jx-(myid*jxp+jxp-ndeb) < nspgd ) then
         ndeb = jxp
       end if
       do nn = 1 , ndwb
@@ -677,7 +677,7 @@
           end do
         end do
       end do
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
                             & ' to ' , ndate1
       end if
@@ -717,12 +717,12 @@
       call split_idate(mdate, nyear, nmonth, nday, nhour)
 
 !-----------------------------------------------------------------------
-      if ( ldatez.lt.ndate1 ) then
+      if ( ldatez < ndate1 ) then
  
         do j = 1 , jendx
           do i = 1 , iym1
-            if( mddom%satbrt(i,j).gt.13.5D0 .and.  &
-                mddom%satbrt(i,j).lt.15.5D0 ) then
+            if( mddom%satbrt(i,j) > 13.5D0 .and.  &
+                mddom%satbrt(i,j) < 15.5D0 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -731,9 +731,9 @@
                 sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
-                if ( lakemod.eq.1 .and. &
-                     mddom%satbrt(i,j).lt.14.5D0 ) cycle
-                if ( tdum(i,j).le.271.38D0 ) then
+                if ( lakemod == 1 .and. &
+                     mddom%satbrt(i,j) < 14.5D0 ) cycle
+                if ( tdum(i,j) <= 271.38D0 ) then
                    sts1%tg(i,j) = 271.38D0
                    sts2%tg(i,j) = 271.38D0
                    tdum(i,j) = 271.38D0
@@ -966,7 +966,7 @@
           end do
         end do
       end do
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
                             & ' to ' , ndate1
       end if
@@ -1010,7 +1010,7 @@
       call split_idate(mdate, nyear, nmonth, nday, nhour)
  
 !-----------------------------------------------------------------------
-      if ( ldatez.lt.ndate1 ) then
+      if ( ldatez < ndate1 ) then
  
 #ifdef BAND
         do j = 1 , jx
@@ -1018,8 +1018,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if( mddom%satbrt(i,j).gt.13.5D0 .and.  &
-                mddom%satbrt(i,j).lt.15.5D0 ) then
+            if( mddom%satbrt(i,j) > 13.5D0 .and.  &
+                mddom%satbrt(i,j) < 15.5D0 ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -1028,9 +1028,9 @@
                 sts2%tg(i,j) = tdum(i,j)
               end if
               if (iseaice == 1) then
-                if ( lakemod.eq.1 .and. &
-                     mddom%satbrt(i,j).lt.14.5D0 ) cycle
-                if ( tdum(i,j).le.271.38D0 ) then
+                if ( lakemod == 1 .and. &
+                     mddom%satbrt(i,j) < 14.5D0 ) cycle
+                if ( tdum(i,j) <= 271.38D0 ) then
                    sts1%tg(i,j) = 271.38D0
                    sts2%tg(i,j) = 271.38D0
                    tdum(i,j) = 271.38D0
@@ -1141,9 +1141,9 @@
 #ifndef BAND
       do i = 2 , iym1
 #ifdef MPP1
-        if ( myid.eq.0 )  &
+        if ( myid == 0 )  &
           sps1%pdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
-        if ( myid.eq.nproc-1 ) &
+        if ( myid == nproc-1 ) &
           sps1%pdot(i,jendl) = 0.5D0*(sps1%ps(i,jendx)+ &
                                       sps1%ps(i-1,jendx))
 #else
@@ -1180,11 +1180,11 @@
 !
 #ifndef BAND
 #ifdef MPP1
-      if ( myid.eq.0 ) then
+      if ( myid == 0 ) then
         sps1%pdot(1,1) = sps1%ps(1,1)
         sps1%pdot(iy,1) = sps1%ps(iym1,1)
       end if
-      if ( myid.eq.nproc-1 ) then
+      if ( myid == nproc-1 ) then
         sps1%pdot(1,jendl) = sps1%ps(1,jendx)
         sps1%pdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
@@ -1206,11 +1206,11 @@
 !
         do i = 2 , iym1
 #ifdef MPP1
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(i,2)
             vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(i,2)
           end if
-          if ( myid.eq.nproc-1 ) then
+          if ( myid == nproc-1 ) then
             ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(i,jendx)
             vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(i,jendx)
           end if
@@ -1254,7 +1254,7 @@
 !----------------------------------------------------------------------
 !-----boundary silces:
 !
-      if ( ib.eq.0 ) then
+      if ( ib == 0 ) then
 !
 !-----fixed boundary conditions:
 !
@@ -1265,11 +1265,11 @@
 !
           do i = 1 , iy
 #ifdef MPP1
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               uj1(i,k) = uwb(i,k,1)/sps1%pdot(i,1)
               vj1(i,k) = vwb(i,k,1)/sps1%pdot(i,1)
             end if
-            if ( myid.eq.nproc-1 ) then
+            if ( myid == nproc-1 ) then
               ujl(i,k) = ueb(i,k,1)/sps1%pdot(i,jendl)
               vjl(i,k) = veb(i,k,1)/sps1%pdot(i,jendl)
             end if
@@ -1311,11 +1311,11 @@
 !
           do i = 1 , iy
 #ifdef MPP1
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/sps1%pdot(i,1)
               vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/sps1%pdot(i,1)
             end if
-            if ( myid.eq.nproc-1 ) then
+            if ( myid == nproc-1 ) then
               ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/sps1%pdot(i,jendl)
               vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/sps1%pdot(i,jendl)
             end if
@@ -1356,7 +1356,7 @@
 
 #ifndef BAND
       do k = 1 , kz
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           uj2(1,k) = ui1(k,2)
           uj2(iy,k) = uil(k,2)
           ui2(k,1) = uj1(2,k)
@@ -1366,7 +1366,7 @@
           vi2(k,1) = vj1(2,k)
           vilx(k,1) = vj1(iym1,k)
         end if
-        if ( myid.eq.nproc-1 ) then
+        if ( myid == nproc-1 ) then
           ujlx(1,k) = ui1(k,jendx)
           ujlx(iy,k) = uil(k,jendx)
           ui2(k,jendl) = ujl(2,k)
@@ -1379,7 +1379,7 @@
       end do
 #endif
 #ifndef BAND
-      if ( myid.ne.nproc-1 ) then
+      if ( myid /= nproc-1 ) then
 #endif
         do k = 1 , kz
           var1snd(k,1) = ui1(k,jxp)
@@ -1398,7 +1398,7 @@
                       & var1rcv(1,1),kz*8,mpi_real8,iwest,1,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
-      if ( myid.ne.0 ) then
+      if ( myid /= 0 ) then
 #endif
         do k = 1 , kz
           ui1(k,0) = var1rcv(k,1)
@@ -1415,7 +1415,7 @@
 #endif
 !
 #ifndef BAND
-      if ( myid.ne.0 ) then
+      if ( myid /= 0 ) then
 #endif
         do k = 1 , kz
           var1snd(k,1) = ui1(k,1)
@@ -1434,7 +1434,7 @@
                       & var1rcv(1,1),kz*8,mpi_real8,ieast,2,            &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
-      if ( myid.ne.nproc-1 ) then
+      if ( myid /= nproc-1 ) then
 #endif
         do k = 1 , kz
           ui1(k,jxp+1) = var1rcv(k,1)
@@ -1528,15 +1528,15 @@
 !     if this subroutine is called for the first time, this part
 !     shall be skipped.
 !
-      if ( iexec.ne.1 ) then
+      if ( iexec /= 1 ) then
 #ifdef MPP1
 !
 !-----for p*:
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) sps2%ps(i,1) = sps1%ps(i,1)
-          if ( myid.eq.nproc-1 ) sps2%ps(i,jendx) = sps1%ps(i,jendx)
+          if ( myid == 0 ) sps2%ps(i,1) = sps1%ps(i,1)
+          if ( myid == nproc-1 ) sps2%ps(i,jendx) = sps1%ps(i,jendx)
         end do
 #endif
         do j = jbegin , jendm
@@ -1549,11 +1549,11 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iy
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               atm2%u(i,k,1) = atm1%u(i,k,1)/mddom%msfd(i,1)
               atm2%v(i,k,1) = atm1%v(i,k,1)/mddom%msfd(i,1)
             end if
-            if ( myid.eq.nproc-1 ) then
+            if ( myid == nproc-1 ) then
               atm2%u(i,k,jendl) = atm1%u(i,k,jendl)/mddom%msfd(i,jendl)
               atm2%v(i,k,jendl) = atm1%v(i,k,jendl)/mddom%msfd(i,jendl)
             end if
@@ -1572,8 +1572,8 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm2%t(i,k,1) = atm1%t(i,k,1)
-            if ( myid.eq.nproc-1 ) atm2%t(i,k,jendx) = atm1%t(i,k,jendx)
+            if ( myid == 0 ) atm2%t(i,k,1) = atm1%t(i,k,1)
+            if ( myid == nproc-1 ) atm2%t(i,k,jendx) = atm1%t(i,k,jendx)
           end do
 #endif
           do j = jbegin , jendm
@@ -1587,8 +1587,8 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm2%qv(i,k,1) = atm1%qv(i,k,1)
-            if ( myid.eq.nproc-1 )  &
+            if ( myid == 0 ) atm2%qv(i,k,1) = atm1%qv(i,k,1)
+            if ( myid == nproc-1 )  &
               atm2%qv(i,k,jendx) = atm1%qv(i,k,jendx)
           end do
 #endif
@@ -1600,14 +1600,14 @@
 !
 !chem2
 !
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
 !-----for p*chi (tracers)
           do itr = 1 , ntr
             do k = 1 , kz
 #ifndef BAND
               do i = 1 , iym1
-                if ( myid.eq.0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
-                if ( myid.eq.nproc-1 ) chib(i,k,jendx,itr)              &
+                if ( myid == 0 ) chib(i,k,1,itr) = chia(i,k,1,itr)
+                if ( myid == nproc-1 ) chib(i,k,jendx,itr)              &
                    & = chia(i,k,jendx,itr)
               end do
 #endif
@@ -1625,8 +1625,8 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm2%qc(i,k,1) = atm1%qc(i,k,1)
-            if ( myid.eq.nproc-1 ) &
+            if ( myid == 0 ) atm2%qc(i,k,1) = atm1%qc(i,k,1)
+            if ( myid == nproc-1 ) &
               atm2%qc(i,k,jendx) = atm1%qc(i,k,jendx)
           end do
 #endif
@@ -1636,27 +1636,27 @@
           end do
         end do
 !
-      end if      !end if(iexec.ne.1) test
+      end if      !end if(iexec /= 1) test
 !**********************************************************************
 !*****compute the boundary values for xxa variables:
 !
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt*60.0D0
-      if ( dabs(xt).lt.0.00001D0 .and. ldatez.gt.idate0 ) &
+      if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) &
         dtb = ibdyfrq*60.0D0*60.0D0
 !
 !-----set boundary values for p*:
 !-----set boundary conditions for p*u and p*v:
 !
-      if ( .not.(iexec.eq.1 .and. ifrest) ) then
+      if ( .not.(iexec == 1 .and. ifrest) ) then
 !
-        if ( iboudy.eq.0 ) then
+        if ( iboudy == 0 ) then
 !.....fixed boundary conditions:
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) sps1%ps(i,1) = pwb(i,1)
-            if ( myid.eq.nproc-1 ) sps1%ps(i,jendx) = peb(i,1)
+            if ( myid == 0 ) sps1%ps(i,1) = pwb(i,1)
+            if ( myid == nproc-1 ) sps1%ps(i,jendx) = peb(i,1)
           end do
 #endif
           do j = jbegin , jendm
@@ -1667,11 +1667,11 @@
           do k = 1 , kz
 #ifndef BAND
             do i = 1 , iy
-              if ( myid.eq.0 ) then
+              if ( myid == 0 ) then
                 atm1%u(i,k,1) = uwb(i,k,1)
                 atm1%v(i,k,1) = vwb(i,k,1)
               end if
-              if ( myid.eq.nproc-1 ) then
+              if ( myid == nproc-1 ) then
                 atm1%u(i,k,jendl) = ueb(i,k,1)
                 atm1%v(i,k,jendl) = veb(i,k,1)
               end if
@@ -1690,8 +1690,8 @@
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) sps1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
-          if ( myid.eq.nproc-1 )  &
+          if ( myid == 0 ) sps1%ps(i,1) = pwb(i,1) + dtb*pwbt(i,1)
+          if ( myid == nproc-1 )  &
             sps1%ps(i,jendx) = peb(i,1) + dtb*pebt(i,1)
         end do
 #endif
@@ -1703,11 +1703,11 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iy
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               atm1%u(i,k,1) = uwb(i,k,1) + dtb*uwbt(i,k,1)
               atm1%v(i,k,1) = vwb(i,k,1) + dtb*vwbt(i,k,1)
             end if
-            if ( myid.eq.nproc-1 ) then
+            if ( myid == nproc-1 ) then
               atm1%u(i,k,jendl) = ueb(i,k,1) + dtb*uebt(i,k,1)
               atm1%v(i,k,jendl) = veb(i,k,1) + dtb*vebt(i,k,1)
             end if
@@ -1726,18 +1726,18 @@
 !
       call bdyuv(iboudy,dtb)
 !
-      if ( iexec.eq.1 .and. ifrest ) return
+      if ( iexec == 1 .and. ifrest ) return
 !
 !-----set boundary values for p*t:
 !-----set boundary values for p*qv:
 !
-      if ( iboudy.eq.0 ) then
+      if ( iboudy == 0 ) then
 !.....fixed boundary conditions:
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm1%t(i,k,1) = twb(i,k,1)
-            if ( myid.eq.nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1)
+            if ( myid == 0 ) atm1%t(i,k,1) = twb(i,k,1)
+            if ( myid == nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1)
           end do
 #endif
           do j = jbegin , jendm
@@ -1748,8 +1748,8 @@
         do k = 1 , kz
 #ifndef BAND
           do i = 1 , iym1
-            if ( myid.eq.0 ) atm1%qv(i,k,1) = qwb(i,k,1)
-            if ( myid.eq.nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1)
+            if ( myid == 0 ) atm1%qv(i,k,1) = qwb(i,k,1)
+            if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1)
           end do
 #endif
           do j = jbegin , jendm
@@ -1764,8 +1764,8 @@
       do k = 1 , kz
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) atm1%t(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
-          if ( myid.eq.nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1)   &
+          if ( myid == 0 ) atm1%t(i,k,1) = twb(i,k,1) + dtb*twbt(i,k,1)
+          if ( myid == nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1)   &
              & + dtb*tebt(i,k,1)
         end do
 #endif
@@ -1777,8 +1777,8 @@
       do k = 1 , kz
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid.eq.0 ) atm1%qv(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
-          if ( myid.eq.nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1)        &
+          if ( myid == 0 ) atm1%qv(i,k,1) = qwb(i,k,1) + dtb*qwbt(i,k,1)
+          if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1)        &
              & + dtb*qebt(i,k,1)
         end do
 #endif
@@ -1788,7 +1788,7 @@
         end do
       end do
 !
-      if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
+      if ( iboudy == 3 .or. iboudy == 4 ) then
 !
 !-----determine boundary values depends on inflow/outflow:
 !
@@ -1797,12 +1797,12 @@
 !
 !.....west boundary:
 !
-          if ( myid.eq.0 ) then
+          if ( myid == 0 ) then
             do i = 1 , iym1
               qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
               qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-              if ( uavg.ge.0.0D0 ) then
+              if ( uavg >= 0.0D0 ) then
                 qvx = qvx1
               else
                 qvx = qvx2
@@ -1813,12 +1813,12 @@
 !
 !.....east boundary:
 !
-          if ( myid.eq.nproc-1 ) then
+          if ( myid == nproc-1 ) then
             do i = 1 , iym1
               qvx1 = atm1%qv(i,k,jendx)/sps1%ps(i,jendx)
               qvx2 = atm1%qv(i,k,jendm)/sps1%ps(i,jendm)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg.lt.0.0D0 ) then
+              if ( uavg < 0.0D0 ) then
                 qvx = qvx1
               else
                 qvx = qvx2
@@ -1834,7 +1834,7 @@
             qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-            if ( vavg.ge.0.0D0 ) then
+            if ( vavg >= 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -1848,7 +1848,7 @@
             qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-            if ( vavg.lt.0.0D0 ) then
+            if ( vavg < 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -1857,7 +1857,7 @@
           end do
 !
         end do
-      end if      !end if(iboudy.eq.3.or.4) test
+      end if      !end if(iboudy == 3.or.4) test
 !
 !-----set boundary values for p*qc and p*qr:
 !     *** note ***
@@ -1875,11 +1875,11 @@
 !
 !.....west boundary:
 !
-        if ( myid.eq.0 ) then
+        if ( myid == 0 ) then
           do i = 1 , iym1
             qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-            if ( uavg.ge.0.0D0 ) then
+            if ( uavg >= 0.0D0 ) then
               qcx = 0.0D0
             else
               qcx = qcx2
@@ -1890,11 +1890,11 @@
 !
 !.....east boundary:
 !
-        if ( myid.eq.nproc-1 ) then
+        if ( myid == nproc-1 ) then
           do i = 1 , iym1
             qcx2 = atm1%qc(i,k,jendm)/sps1%ps(i,jendm)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-            if ( uavg.lt.0.0D0 ) then
+            if ( uavg < 0.0D0 ) then
               qcx = 0.0D0
             else
               qcx = qcx2
@@ -1909,7 +1909,7 @@
         do j = jbegin , jendm
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-          if ( vavg.ge.0.0D0 ) then
+          if ( vavg >= 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -1922,7 +1922,7 @@
         do j = jbegin , jendm
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-          if ( vavg.lt.0.0D0 ) then
+          if ( vavg < 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -1932,7 +1932,7 @@
 !
       end do
  
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
 !chem2
  
 !----add tracer bc's
@@ -1943,12 +1943,12 @@
 !
 !.....west  boundary:
 !
-            if ( myid.eq.0 ) then
+            if ( myid == 0 ) then
               do i = 1 , iym1
                 chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
                 chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
                 uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-                if ( uavg.ge.0.0D0 ) then
+                if ( uavg >= 0.0D0 ) then
                   chix = chix1
                 else
                   chix = chix2
@@ -1959,12 +1959,12 @@
 !
 !.....east  boundary:
 !
-            if ( myid.eq.nproc-1 ) then
+            if ( myid == nproc-1 ) then
               do i = 1 , iym1
                 chix1 = chia(i,k,jendx,itr)/sps1%ps(i,jendx)
                 chix2 = chia(i,k,jendm,itr)/sps1%ps(i,jendm)
                 uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-                if ( uavg.lt.0.0D0 ) then
+                if ( uavg < 0.0D0 ) then
                   chix = chix1
                 else
                   chix = chix2
@@ -1980,7 +1980,7 @@
               chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-              if ( vavg.ge.0.0D0 ) then
+              if ( vavg >= 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -1994,7 +1994,7 @@
               chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-              if ( vavg.lt.0.0D0 ) then
+              if ( vavg < 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2087,7 +2087,7 @@
 !
 !chem2
 !
-        if ( ichem.eq.1 ) then
+        if ( ichem == 1 ) then
 !-----for p*chi (tracers)
           do itr = 1 , ntr
             do k = 1 , kz
@@ -2129,22 +2129,22 @@
           end do
         end do
 !
-      end if      !end if(iexec.ne.1) test
+      end if      !end if(iexec /= 1) test
 !**********************************************************************
 !*****compute the boundary values for xxa variables:
 !
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt*60.0D0
-      if ( dabs(xt).lt.0.00001D0 .and. ldatez.gt.idate0 ) &
+      if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) &
         dtb = ibdyfrq*60.0D0*60.0D0
 !
 !-----set boundary values for p*:
 !-----set boundary conditions for p*u and p*v:
 !
-      if ( .not.(iexec.eq.1 .and. ifrest) ) then
+      if ( .not.(iexec == 1 .and. ifrest) ) then
 !
-        if ( iboudy.eq.0 ) then
+        if ( iboudy == 0 ) then
 !.....fixed boundary conditions:
 #ifndef BAND
           do i = 1 , iym1
@@ -2226,12 +2226,12 @@
 !
       call bdyuv(iboudy,dtb)
 !
-      if ( iexec.eq.1 .and. ifrest ) return
+      if ( iexec == 1 .and. ifrest ) return
 !
 !-----set boundary values for p*t:
 !-----set boundary values for p*qv:
 !
-      if ( iboudy.eq.0 ) then
+      if ( iboudy == 0 ) then
 !.....fixed boundary conditions:
         do k = 1 , kz
 #ifndef BAND
@@ -2302,7 +2302,7 @@
         end do
       end do
 !
-      if ( iboudy.eq.3 .or. iboudy.eq.4 ) then
+      if ( iboudy == 3 .or. iboudy == 4 ) then
 !
 !-----determine boundary values depends on inflow/outflow:
 !
@@ -2315,7 +2315,7 @@
             qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
             qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
             uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-            if ( uavg.ge.0.0D0 ) then
+            if ( uavg >= 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2329,7 +2329,7 @@
             qvx1 = atm1%qv(i,k,jxm1)/sps1%ps(i,jxm1)
             qvx2 = atm1%qv(i,k,jxm2)/sps1%ps(i,jxm2)
             uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-            if ( uavg.lt.0.0D0 ) then
+            if ( uavg < 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2343,7 +2343,7 @@
 #ifdef BAND
           do j = 1 , jx
             jp1 = j+1
-            if(jp1.eq.jx+1) jp1=1
+            if(jp1 == jx+1) jp1=1
             qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
@@ -2353,7 +2353,7 @@
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-            if ( vavg.ge.0.0D0 ) then
+            if ( vavg >= 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2366,7 +2366,7 @@
 #ifdef BAND
           do j = 1 , jx
             jp1 = j+1
-            if(jp1.eq.jx+1) jp1=1
+            if(jp1 == jx+1) jp1=1
             qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
@@ -2376,7 +2376,7 @@
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-            if ( vavg.lt.0.0D0 ) then
+            if ( vavg < 0.0D0 ) then
               qvx = qvx1
             else
               qvx = qvx2
@@ -2385,7 +2385,7 @@
           end do
 !
         end do
-      end if      !end if(iboudy.eq.3.or.4) test
+      end if      !end if(iboudy == 3.or.4) test
 !
 !-----set boundary values for p*qc and p*qr:
 !     *** note ***
@@ -2406,7 +2406,7 @@
         do i = 1 , iym1
           qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
           uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-          if ( uavg.ge.0.0D0 ) then
+          if ( uavg >= 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -2419,7 +2419,7 @@
         do i = 1 , iym1
           qcx2 = atm1%qc(i,k,jxm2)/sps1%ps(i,jxm2)
           uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-          if ( uavg.lt.0.0D0 ) then
+          if ( uavg < 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -2433,7 +2433,7 @@
 #ifdef BAND
         do j = 1 , jx
           jp1 = j+1
-          if(jp1.eq.jx+1) jp1=1
+          if(jp1 == jx+1) jp1=1
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
@@ -2441,7 +2441,7 @@
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-          if ( vavg.ge.0.0D0 ) then
+          if ( vavg >= 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -2454,7 +2454,7 @@
 #ifdef BAND
         do j = 1 , jx
           jp1 = j+1
-          if(jp1.eq.jx+1) jp1=1
+          if(jp1 == jx+1) jp1=1
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
@@ -2462,7 +2462,7 @@
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-          if ( vavg.lt.0.0D0 ) then
+          if ( vavg < 0.0D0 ) then
             qcx = 0.0D0
           else
             qcx = qcx2
@@ -2472,7 +2472,7 @@
 !
       end do
  
-      if ( ichem.eq.1 ) then
+      if ( ichem == 1 ) then
 !chem2
  
 !----add tracer bc's
@@ -2490,7 +2490,7 @@
               chix1 = 0.0D0
               chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
               uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-              if ( uavg.ge.0.0D0 ) then
+              if ( uavg >= 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2505,7 +2505,7 @@
               chix1 = 0.0D0
               chix2 = chia(i,k,jxm2,itr)/sps1%ps(i,jxm2)
               uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg.lt.0.0D0 ) then
+              if ( uavg < 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2519,8 +2519,8 @@
 #ifdef BAND
             do j = 1 , jx
               jp1 = j+1
-              if(jp1.eq.jx+1) jp1=1
-              chix1 = 0.
+              if(jp1 == jx+1) jp1=1
+              chix1 = 0.0D0
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
@@ -2530,7 +2530,7 @@
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
 #endif
-              if ( vavg.ge.0.0D0 ) then
+              if ( vavg >= 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2
@@ -2543,7 +2543,7 @@
 #ifdef BAND
             do j = 1 , jx
               jp1 = j+1
-              if(jp1.eq.jx+1) jp1=1
+              if(jp1 == jx+1) jp1=1
 !             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix1 = 0.0D0
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
@@ -2555,7 +2555,7 @@
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
               vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
 #endif
-              if ( vavg.lt.0.0D0 ) then
+              if ( vavg < 0.0D0 ) then
                 chix = chix1
               else
                 chix = chix2

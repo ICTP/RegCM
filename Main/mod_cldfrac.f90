@@ -78,15 +78,15 @@
 !--------------------------------------------------------------------
       do k = 1 , kz         ! Adjusted relative humidity threshold
         do i = 2 , iym2
-          if ( tb3d(i,k,j).gt.tc0 ) then
+          if ( tb3d(i,k,j) > tc0 ) then
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(i,j))                           &
                    & /(1.0D0+0.15D0*(tc0-tb3d(i,k,j)))
           end if
-          if ( rhb3d(i,k,j).ge.rhmax ) then    ! full cloud cover
+          if ( rhb3d(i,k,j) >= rhmax ) then    ! full cloud cover
             fcc(i,k,j) = 1.0D0
-          else if ( rhb3d(i,k,j).le.rh0adj ) then
+          else if ( rhb3d(i,k,j) <= rh0adj ) then
                                                ! no cloud cover
             fcc(i,k,j) = 0.0D0
           else                                ! partial cloud cover
@@ -103,7 +103,7 @@
 !---------------------------------------------------------------------
           if ( pb3d(i,k,j) >= 75.0D0 ) then
             ! Clouds below 750hPa
-            if ( qvb3d(i,k,j).le.0.003D0 ) then
+            if ( qvb3d(i,k,j) <= 0.003D0 ) then
               fcc(i,k,j) = fcc(i,k,j) * &
                       dmax1(0.15D0,dmin1(1.0D0,qvb3d(i,k,j)/0.003D0))
             end if
@@ -138,7 +138,7 @@
           ! current radiation code, needs further evaluation.
           !TAO: but only apply this parameterization to large scale LWC 
           !if the user specifies it
-          if(iconvlwp.eq.1) exlwc = cldlwc(i,k)
+          if(iconvlwp == 1) exlwc = cldlwc(i,k)
           cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) &
                       & /dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
           cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)

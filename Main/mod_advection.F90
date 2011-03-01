@@ -80,8 +80,8 @@
       jp1 = j + 1
 !
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1.eq.0) jm1 = jx
-      if(jp1.eq.jx+1) jp1 = 1
+      if(jm1 == 0) jm1 = jx
+      if(jp1 == jx+1) jp1 = 1
 #endif
 !
 !----------------------------------------------------------------------
@@ -91,7 +91,7 @@
 !
 !----------------------------------------------------------------------
 !
-      if ( ind.eq.1 ) then
+      if ( ind == 1 ) then
 !
 !-----for t and qv:
 !
@@ -110,11 +110,11 @@
           end do
         end do
 !
-      else if ( ind.eq.2 ) then
+      else if ( ind == 2 ) then
 !
 !       implement a "relaxed" upstream scheme
 !
-!hy     fact1=0.75
+!hy     fact1=0.75D0
         fact1 = 0.60D0
         fact2 = 1.0D0 - fact1
 !
@@ -125,24 +125,24 @@
           do i = 2 , iym2
             uavg2 = 0.5D0*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
             uavg1 = 0.5D0*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-            if ( uavg2.ge.0.0D0 ) then
+            if ( uavg2 >= 0.0D0 ) then
               fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
             else
               fx2 = fact1*var(i,k,jp1) + fact2*var(i,k,j)
             end if
-            if ( uavg1.ge.0.0D0 ) then
+            if ( uavg1 >= 0.0D0 ) then
               fx1 = fact1*var(i,k,jm1) + fact2*var(i,k,j)
             else
               fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
             end if
             vavg2 = 0.5D0*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
             vavg1 = 0.5D0*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-            if ( vavg2.ge.0.0D0 ) then
+            if ( vavg2 >= 0.0D0 ) then
               fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
             else
               fy2 = fact1*var(i+1,k,j) + fact2*var(i,k,j)
             end if
-            if ( vavg1.ge.0.0D0 ) then
+            if ( vavg1 >= 0.0D0 ) then
               fy1 = fact1*var(i-1,k,j) + fact2*var(i,k,j)
             else
               fy1 = fact1*var(i,k,j) + fact2*var(i-1,k,j)
@@ -196,14 +196,14 @@
 !
 !----------------------------------------------------------------------
 !
-      if ( ind.eq.3 ) then
+      if ( ind == 3 ) then
 !
 !-----for u and v:
 !
 #ifdef BAND
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1.eq.0) jm1 = jx
-        if(jp1.eq.jx+1) jp1 = 1
+        if(jm1 == 0) jm1 = jx
+        if(jp1 == jx+1) jp1 = 1
 #endif
 !
         do k = 1 , kz
@@ -239,8 +239,8 @@
         jdp1 = j + 1
         jdm1 = j - 1
 #ifdef MPP1
-        if ( myid.eq.0 ) jdm1 = max0(jdm1,2)
-        if ( myid.eq.nproc-1 ) jdp1 = min0(jdp1,jendl-1)
+        if ( myid == 0 ) jdm1 = max0(jdm1,2)
+        if ( myid == nproc-1 ) jdp1 = min0(jdp1,jendl-1)
 #else
         jdp1 = min0(jdp1,jxm1)
         jdm1 = max0(jdm1,2)
@@ -334,7 +334,7 @@
       jm1 = j-1
 #else
       jm1 = j-1
-      if(jm1.eq.0) jm1=jx
+      if(jm1 == 0) jm1=jx
 #endif
 !
 !     qdot   : is the vertical sigma-velocity
@@ -342,7 +342,7 @@
 !              values.
 !     psa    : is p* used to interpolate the temperature.
 !
-      if ( ind.eq.1 ) then
+      if ( ind == 1 ) then
 !
 !-----vertical advection terms for:
 !.....interpolate ta to full sigma levels:
@@ -377,7 +377,7 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
-      else if ( ind.eq.2 ) then
+      else if ( ind == 2 ) then
 !
 !-----vertical advection term for qv:
 !.....interpolate qv to full sigma levels:
@@ -388,7 +388,7 @@
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k).gt.1.D-15 .and. fa(i,k-1).gt.1.D-15 ) then
+            if ( fa(i,k) > 1.D-15 .and. fa(i,k-1) > 1.D-15 ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
               fg(i,k) = 0.0D0
@@ -412,13 +412,13 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
-      else if ( ind.eq.3 ) then
+      else if ( ind == 3 ) then
 !
 !-----vertical advection terms for qc and qr:
 !
 !......k = 1
         do i = 2 , iym2
-          if ( qdot(i,2,j).ge.0.0D0 ) then
+          if ( qdot(i,2,j) >= 0.0D0 ) then
             f2 = fa(i,1)
           else
             f2 = fa(i,2)
@@ -428,12 +428,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if ( qdot(i,k+1,j).ge.0.0D0 ) then
+            if ( qdot(i,k+1,j) >= 0.0D0 ) then
               f2 = fa(i,k)
             else
               f2 = fa(i,k+1)
             end if
-            if ( qdot(i,k,j).ge.0.0D0 ) then
+            if ( qdot(i,k,j) >= 0.0D0 ) then
               f1 = fa(i,k-1)
             else
               f1 = fa(i,k)
@@ -444,7 +444,7 @@
         end do
 !......k = kz
         do i = 2 , iym2
-          if ( qdot(i,kz,j).ge.0.0D0 ) then
+          if ( qdot(i,kz,j) >= 0.0D0 ) then
             f1 = fa(i,kzm1)
           else
             f1 = fa(i,kz)
@@ -452,7 +452,7 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*f1/dsigma(kz)
         end do
 !
-      else if ( ind.eq.4 ) then
+      else if ( ind == 4 ) then
 !
 !-----vertical advection terms for u and v:
 !.....interpolate ua or va to full sigma levels:
@@ -490,7 +490,7 @@
 !
  
  
-      else if ( ind.eq.5 ) then
+      else if ( ind == 5 ) then
  
         do k = 2 , kz
           do i = 2 , iym2
@@ -521,7 +521,7 @@
 !----------------------------------------------------------------------
       call time_begin(subroutine_name,idindx)
 !
-      if ( ind.eq.1 ) then
+      if ( ind == 1 ) then
 !
 !-----vertical advection terms for:
 !.....interpolate ta to full sigma levels:
@@ -556,7 +556,7 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
-      else if ( ind.eq.2 ) then
+      else if ( ind == 2 ) then
 !
 !-----vertical advection term for qv:
 !.....interpolate qv to full sigma levels:
@@ -567,7 +567,7 @@
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k).gt.1.D-15 .and. fa(i,k-1).gt.1.D-15 ) then
+            if ( fa(i,k) > 1.D-15 .and. fa(i,k-1) > 1.D-15 ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
               fg(i,k) = 0.0D0
@@ -591,13 +591,13 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
         end do
 !
-      else if ( ind.eq.3 ) then
+      else if ( ind == 3 ) then
 !
 !-----vertical advection terms for qc and qr:
 !
 !......k = 1
         do i = 2 , iym2
-          if ( qdot(i,2,j).ge.0.0D0 ) then
+          if ( qdot(i,2,j) >= 0.0D0 ) then
             f2 = fa(i,1)
           else
             f2 = fa(i,2)
@@ -607,12 +607,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if ( qdot(i,k+1,j).ge.0.0D0 ) then
+            if ( qdot(i,k+1,j) >= 0.0D0 ) then
               f2 = fa(i,k)
             else
               f2 = fa(i,k+1)
             end if
-            if ( qdot(i,k,j).ge.0.0D0 ) then
+            if ( qdot(i,k,j) >= 0.0D0 ) then
               f1 = fa(i,k-1)
             else
               f1 = fa(i,k)
@@ -623,7 +623,7 @@
         end do
 !......k = kz
         do i = 2 , iym2
-          if ( qdot(i,kz,j).ge.0.0D0 ) then
+          if ( qdot(i,kz,j) >= 0.0D0 ) then
             f1 = fa(i,kzm1)
           else
             f1 = fa(i,kz)
@@ -631,7 +631,7 @@
           ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*f1/dsigma(kz)
         end do
 !
-      else if ( ind.eq.4 ) then
+      else if ( ind == 4 ) then
 !
 !-----vertical advection terms for u and v:
 !.....interpolate ua or va to full sigma levels:
@@ -669,7 +669,7 @@
 !
  
  
-      else if ( ind.eq.5 ) then
+      else if ( ind == 5 ) then
  
         do k = 2 , kz
           do i = 2 , iym2
