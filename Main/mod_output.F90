@@ -247,10 +247,10 @@
           do j = 1 , jendx
             do i = 1 , iym1
               do n = 1 , nnsg
-                rno2d(n,i,j) = 0.
+                rno2d(n,i,j) = 0.0D0
               end do
-              sfsta%rainc(i,j) = 0.
-              sfsta%rainnc(i,j) = 0.
+              sfsta%rainc(i,j) = 0.0D0
+              sfsta%rainnc(i,j) = 0.0D0
             end do
           end do
         end if
@@ -543,33 +543,33 @@
               end do
             end do
             call outche
-            remlsc_io  = 0.0
-            remcvc_io  = 0.0
-            rxsg_io    = 0.0
-            rxsaq1_io  = 0.0
-            rxsaq2_io  = 0.0
-            cemtr_io   = 0.0
-            remdrd_io  = 0.0
-            wdlsc_io   = 0.0
-            wdcvc_io   = 0.0
-            ddsfc_io   = 0.0
-            wxsg_io    = 0.0
-            wxaq_io    = 0.0
-            cemtrac_io = 0.0
-            aertarf_io = 0.0
-            aersrrf_io = 0.0
-            aersrlwrf_io=0.0
-            aertalwrf_io=0.0
+            remlsc_io  = 0.0D0
+            remcvc_io  = 0.0D0
+            rxsg_io    = 0.0D0
+            rxsaq1_io  = 0.0D0
+            rxsaq2_io  = 0.0D0
+            cemtr_io   = 0.0D0
+            remdrd_io  = 0.0D0
+            wdlsc_io   = 0.0D0
+            wdcvc_io   = 0.0D0
+            ddsfc_io   = 0.0D0
+            wxsg_io    = 0.0D0
+            wxaq_io    = 0.0D0
+            cemtrac_io = 0.0D0
+            aertarf_io = 0.0D0
+            aersrrf_io = 0.0D0
+            aersrlwrf_io=0.0D0
+            aertalwrf_io=0.0D0
           end if
           do n = 1 , ntr
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
-                  remlsc(i,k,j,n) = 0.
-                  remcvc(i,k,j,n) = 0.
-                  rxsg(i,k,j,n) = 0.
-                  rxsaq1(i,k,j,n) = 0.
-                  rxsaq2(i,k,j,n) = 0.
+                  remlsc(i,k,j,n) = 0.0D0
+                  remcvc(i,k,j,n) = 0.0D0
+                  rxsg(i,k,j,n) = 0.0D0
+                  rxsaq1(i,k,j,n) = 0.0D0
+                  rxsaq2(i,k,j,n) = 0.0D0
                 end do
               end do
             end do
@@ -577,23 +577,23 @@
           do n = 1 , ntr
             do j = 1 , jendl
               do i = 1 , iy
-                cemtr(i,j,n) = 0.
-                remdrd(i,j,n) = 0.
-                wdlsc(i,j,n) = 0.
-                wdcvc(i,j,n) = 0.
-                ddsfc(i,j,n) = 0.
-                wxsg(i,j,n) = 0.
-                wxaq(i,j,n) = 0.
-                cemtrac(i,j,n) = 0.
+                cemtr(i,j,n) = 0.0D0
+                remdrd(i,j,n) = 0.0D0
+                wdlsc(i,j,n) = 0.0D0
+                wdcvc(i,j,n) = 0.0D0
+                ddsfc(i,j,n) = 0.0D0
+                wxsg(i,j,n) = 0.0D0
+                wxaq(i,j,n) = 0.0D0
+                cemtrac(i,j,n) = 0.0D0
               end do
             end do
           end do
           do j = 1 , jendl
             do i = 1 , iym1
-              aertarf(i,j) = 0.
-              aersrrf(i,j) = 0.
-              aertalwrf(i,j) = 0.              
-              aersrlwrf(i,j) = 0.
+              aertarf(i,j) = 0.0D0
+              aersrrf(i,j) = 0.0D0
+              aertalwrf(i,j) = 0.0D0              
+              aersrlwrf(i,j) = 0.0D0
             end do
           end do
         end if
@@ -1569,9 +1569,9 @@
       do i = 1 , imax
         do j = 1 , jmax
 #ifdef MPP1
-          radpsa_io(j,i) = (psa_io(i+istart,j+jstart)+r8pt)*10.
+          radpsa_io(j,i) = (psa_io(i+istart,j+jstart)+r8pt)*10.0D0
 #else
-          radpsa(j,i) = (sps1%ps(i+istart,j+jstart)+r8pt)*10.
+          radpsa(j,i) = (sps1%ps(i+istart,j+jstart)+r8pt)*10.0D0
 #endif
         end do
       end do
