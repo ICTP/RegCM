@@ -759,8 +759,8 @@
             denom = denom + lv(j)*(q(i)-qti)
             if ( dabs(denom).lt.0.01D0 ) denom = 0.01D0
             sij(i,j) = anum/denom
-            altem = sij(i,j)*q(i) + (1.-sij(i,j))*qti - qs(j)
-            altem = altem - (bf2-1.)*cwat
+            altem = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti - qs(j)
+            altem = altem - (bf2-1.0D0)*cwat
           end if
           if ( sij(i,j).gt.0.0D0 .and. sij(i,j).lt.0.9D0 ) then
             qent(i,j) = sij(i,j)*q(i) + (1.0D0-sij(i,j))*qti
@@ -879,7 +879,7 @@
           wdtrain = gti*ep(i)*m(i)*clw(i)
           if ( i.gt.1 ) then
             do j = 1 , i - 1
-              awat = elij(j,i) - (1.-ep(i))*clw(i)
+              awat = elij(j,i) - (1.0D0-ep(i))*clw(i)
               awat = dmax1(0.0D0,awat)
               wdtrain = wdtrain + gti*awat*ment(j,i)
             end do
@@ -947,8 +947,8 @@
               rat = mp(i+1)/mp(i)
               qp(i) = qp(i+1)*rat + q(i)*(1.0D0-rat)                    &
                     & + 100.D0*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
-              up(i) = up(i+1)*rat + u(i)*(1.-rat)
-              vp(i) = vp(i+1)*rat + v(i)*(1.-rat)
+              up(i) = up(i+1)*rat + u(i)*(1.0D0-rat)
+              vp(i) = vp(i+1)*rat + v(i)*(1.0D0-rat)
               do j = 1 , ntra
                 trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(1.0D0-rat)
               end do
@@ -1093,7 +1093,7 @@
 !     ***       actual position of the level zero cape             ***
 !
       fqold = fq(inb)
-      fq(inb) = fq(inb)*(1.-frac)
+      fq(inb) = fq(inb)*(1.0D0-frac)
       fq(inb-1) = fq(inb-1)                                             &
                 & + frac*fqold*((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))&
                 & *lv(inb)/lv(inb-1)
@@ -1210,7 +1210,7 @@
         alv = wlhv - cpvmcl*(t(i)-tzero)
         do j = 1 , 2
           s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
-          s = 1./s
+          s = 1.0D0/s
           ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
           tg = tg + s*(ah0-ahg)
           tg = dmax1(tg,35.0D0)

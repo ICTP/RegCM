@@ -129,8 +129,8 @@
             if ( (satbrt1(n,i,j).gt.13.9 .and.   &
                   satbrt1(n,i,j).lt.14.1) .and.  &
                  dhlake1(n,i,j).gt.1.0) then
-              idep2d(n,i,j) = int(max(2.D0,dmin1(dhlake1(n,i,j), &
-                                  dble(ndpmax)))/dz)
+              idep2d(n,i,j) = idint(dmax1(2.D0,dmin1(dhlake1(n,i,j), &
+                                    dble(ndpmax)))/dz)
               if ( ocld2d(n,i,j).gt.1.5 ) then
                 tlak3d(1,n,i,j) = 1.78D0
                 tlak3d(2,n,i,j) = 1.78D0
@@ -339,7 +339,7 @@
 !
  
 !     Decay constant of shear velocity - Ekman profile parameter
-      ks = 6.6D0*dsqrt(sin(xl*degrad))*u2**(-1.84D0)
+      ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
 
 !     Ekman layer depth where eddy diffusion happens
       zmax = ceiling(surf+40.0D0/(vonkar*ks))

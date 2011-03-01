@@ -253,31 +253,31 @@
  
 !------namelist timeparam:
 !
-      radfrq = 30.    ! time interval in min solar rad caluclated
-      abatm = 600.    ! time interval at which bats is called (secs)
-      abemh = 12.     ! time interval absorption-emission calculated (hours)
-      dt = 200.       ! time step in seconds
+      radfrq = 30.0D0 ! time interval in min solar rad caluclated
+      abatm = 600.0D0 ! time interval at which bats is called (secs)
+      abemh = 12.0D0  ! time interval absorption-emission calculated (hours)
+      dt = 200.0D0    ! time step in seconds
  
 !-----namelist outparam:       note: * signifies currently not in namelist
 !
       rfstrt = .false.      ! *
       ifsave = .false.
-      savfrq = 6.
+      savfrq = 6.0D0
       iftape = .true.
-      tapfrq = 6.
+      tapfrq = 6.0D0
       ifrad = .true.
-      radisp = 6.0       ! time interval for disposing rad output (hrs)
+      radisp = 6.0D0     ! time interval for disposing rad output (hrs)
       ifbat = .true.
       ifsub = .true.
       iflak = .true.
-      batfrq = 1.0      ! time interval for disposing bats output (hrs)
-      lakfrq = -1.0     ! time interval for disposing lake output (hrs)
+      batfrq = 1.0D0    ! time interval for disposing bats output (hrs)
+      lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
       dirout = './output' 
 !chem2
       ifchem = .false.
-      chemfrq = 6.0   ! time interval for disposeing chem output (hrs)
+      chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
 !chem2_
-      clmfrq = 12.0
+      clmfrq = 12.0D0
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -296,7 +296,7 @@
       idcsst = 0
       iseaice = 0
       idesseas = 1
-      high_nudge = 3 
+      high_nudge = 3
       medium_nudge=2
       low_nudge=1   
       iconvlwp = 1
@@ -304,25 +304,24 @@
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
-      ncld = 1           ! # of bottom model levels with no clouds (rad only)
-      fcmax = 0.80       ! Maximum cloud fraction cover (rad only)
-!     qck1land = 0.0005  ! Autoconversion Rate for Land
-!     qck1oce  = 0.0005  ! Autoconversion Rate for Ocean
-      qck1land = 0.00025 ! Autoconversion Rate for Land
-      qck1oce = 0.00025  ! Autoconversion Rate for Ocean
-      gulland = 0.4      ! Fract of Gultepe eqn (qcth) when precip occurs (land)
-      guloce = 0.4       ! Fract of Gultepe eqn (qcth) for ocean
-      rhmax = 1.01       ! RH at whicn FCC = 1.0
-      rh0oce = 0.90      ! Relative humidity threshold for ocean
-      rh0land = 0.80     ! Relative humidity threshold for land
-      tc0 = 238.0        ! Below this temperature, rh0 begins to approach unity
-!     cevap    = 0.2e-4  ! Raindrop evap rate coef [[(kg m-2
-!     s-1)-1/2]/s]
-      cevap = 1.0E-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-!     caccr    = 6.0     ! Raindrop accretion rate [m3/kg/s]
-      caccr = 3.0        ! Raindrop accretion rate [m3/kg/s]
-      cllwcv = 0.3E-3    ! Cloud liquid water content for convective precip.
-      clfrcvmax = 0.25   ! Max cloud fractional cover for convective precip.
+      ncld = 1             ! # of bottom model levels with no clouds (rad only)
+      fcmax = 0.80D0       ! Maximum cloud fraction cover (rad only)
+!     qck1land = 0.0005D0  ! Autoconversion Rate for Land
+!     qck1oce  = 0.0005D0  ! Autoconversion Rate for Ocean
+      qck1land = 0.00025D0 ! Autoconversion Rate for Land
+      qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
+      gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+      guloce = 0.4D0       ! Fract of Gultepe eqn (qcth) for ocean
+      rhmax = 1.01D0       ! RH at whicn FCC = 1.0
+      rh0oce = 0.90D0      ! Relative humidity threshold for ocean
+      rh0land = 0.80D0     ! Relative humidity threshold for land
+      tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
+!     cevap    = 0.2D-4    ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+      cevap = 1.0D-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+!     caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
+      caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
+      cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
+      clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
  
 !------namelist grellparam:
       shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
@@ -617,19 +616,19 @@
 !
       write (aline,*) 'param: starting first checks' 
       call say
-      if ( mod(anint(radfrq*60.),anint(dt)).ne.0 ) then
+      if ( mod(idnint(radfrq*60.),idnint(dt)).ne.0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
       end if
-      if ( mod(anint(abatm),anint(dt)).ne.0 ) then
+      if ( mod(idnint(abatm),idnint(dt)).ne.0 ) then
         write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
       end if
-      if ( mod(anint(batfrq*3600.),anint(abatm)).ne.0 ) then
+      if ( mod(idnint(batfrq*3600.),idnint(abatm)).ne.0 ) then
         write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
         call say
         call fatal(__FILE__,__LINE__,                                   &
@@ -637,7 +636,7 @@
       end if
       if ( lakemod.eq.1 ) then
         if ( lakfrq .lt. batfrq .or. &
-             mod(anint(lakfrq),anint(batfrq)).ne.0 ) then
+             mod(idnint(lakfrq),idnint(batfrq)).ne.0 ) then
           write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
           call say
           write (aline,*) 'Lake frequency needs to be an integer ',&
@@ -649,13 +648,13 @@
           end if
         end if
       end if
-      if ( mod(anint(abemh*3600.),anint(dt)).ne.0 ) then
+      if ( mod(idnint(abemh*3600.),idnint(dt)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
-      if ( mod(anint(abemh*60.),anint(radfrq)).ne.0 ) then
+      if ( mod(idnint(abemh*60.),idnint(radfrq)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
@@ -672,35 +671,35 @@
 !-----reset the options/calculate variables using namelist info:
 !
       ndate0 = idate1
-      nsavfrq = nint(3600.*savfrq)
-      ntapfrq = nint(3600.*tapfrq)
-      ndbgfrq = nint(3600.*dbgfrq)
+      nsavfrq = idnint(3600.0D0*savfrq)
+      ntapfrq = idnint(3600.0D0*tapfrq)
+      ndbgfrq = idnint(3600.0D0*dbgfrq)
       ktau = 0
-      xtime = 0.
+      xtime = 0.0D0
       ntime = 0
-      dtsplit(2) = dt/2.
-      dtsplit(1) = dt/4.
+      dtsplit(2) = dt/2.0D0
+      dtsplit(1) = dt/4.0D0
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)
       end do
       write (aline, *) 'param: dtau = ' , dtau
       call say
-      nradisp = nint(radisp*3600)
+      nradisp = idnint(radisp*3600.0D0)
                                 !convert radisp to time steps
-      ifrabe = nint(3600.*abemh/dt)
+      ifrabe = idnint(3600.0D0*abemh/dt)
                                    !abemh is time interval abs./emis. calc.
-      kbats = nint(3600.*batfrq)
+      kbats = idnint(3600.0D0*batfrq)
       klak = lakfrq/batfrq
-      nbatst = nint(abatm/dt)
-      dt2 = 2.*dt
+      nbatst = idnint(abatm/dt)
+      dt2 = 2.0D0*dt
 !chem2
-      kchem = nint(3600.*chemfrq)  ! convert chemfrq to time steps
+      kchem = idnint(3600.0D0*chemfrq)  ! convert chemfrq to time steps
 !chem2_
 !.....calculate the time step in minutes.
-      dtmin = dt/60.
+      dtmin = dt/60.0D0
       deltmx = dt
 !.....compute the time steps for radiation computation.
-      ntrad = nint(radfrq/dtmin)
+      ntrad = idnint(radfrq/dtmin)
 !sb   lake model mods
 !.....compute the time steps for lake model call.
       dtlake = abatm
@@ -775,7 +774,7 @@
 !.....find the julian day of the year and calulate dectim
 !
       julday = idayofyear(mdate0)
-      dectim = (1440.-gmt*60.)
+      dectim = (1440.0D0-gmt*60.0D0)
  
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
@@ -785,19 +784,19 @@
 !     all the other constants are used to compute the cloud
 !     microphysical parameterization (ref. orville & kopp, 1977 jas).
 !
-      dx2 = 2.*dx
-      dx4 = 4.*dx
-      dx8 = 8.*dx
-      dx16 = 16.*dx
+      dx2 = 2.0D0*dx
+      dx4 = 4.0D0*dx
+      dx8 = 8.0D0*dx
+      dx16 = 16.0D0*dx
       dxsq = dx*dx
-      c200 = vonkar*vonkar*dx/(4.*(100.-r8pt))
-      c203 = 1./dxsq
-      xkhz = 1.5E-3*dxsq/dt
-      xkhmax = dxsq/(64.*dt)
+      c200 = vonkar*vonkar*dx/(4.0D0*(100.0D0-r8pt))
+      c203 = 1.0D0/dxsq
+      xkhz = 1.5D-3*dxsq/dt
+      xkhmax = dxsq/(64.0D0*dt)
       akht1 = dxsq/tauht
       akht2 = dxsq/tauht
 !
-      conf = 1.
+      conf = 1.0D0
  
       write (aline, *) 'param: input/output parameters '
       call say
@@ -1112,13 +1111,13 @@
 !
       do k = 1 , kz
         dsigma(k) = sigma(k+1) - sigma(k)
-        a(k) = 0.5*(sigma(k+1)+sigma(k))
+        a(k) = 0.50D0*(sigma(k+1)+sigma(k))
       end do
  
       do k = 1 , kz
-        if ( a(k).lt.0.4 ) then
+        if ( a(k).lt.0.4D0 ) then
           anudg(k) = high_nudge
-        else if ( a(k).lt.0.8 ) then
+        else if ( a(k).lt.0.8D0 ) then
           anudg(k) = medium_nudge
         else
           anudg(k) = low_nudge
@@ -1135,8 +1134,8 @@
       do kbase = 5 , kz
         do ktop = 1 , kbase - 3
           do k = 1 , kz
-            twght(k,kbase,ktop) = 0.
-            vqflx(k,kbase,ktop) = 0.
+            twght(k,kbase,ktop) = 0.0D0
+            vqflx(k,kbase,ktop) = 0.0D0
           end do
 !
 !......get twght from 1/2 level sigma values
@@ -1156,19 +1155,19 @@
 !......get vqflx from  d(w*q) / dsigma on full levels
 !         do computations in p to avoid sigma=0. discontinuity
 !
-          xtop = dlog((100.-r8pt)*sigma(ktop)+r8pt)
-          xbot = dlog((100.-r8pt)*sigma(kbase+1)+r8pt)
+          xtop = dlog((100.0D0-r8pt)*sigma(ktop)+r8pt)
+          xbot = dlog((100.0D0-r8pt)*sigma(kbase+1)+r8pt)
           bb = xtop + xbot
           cc = xtop*xbot
-          vqmax = 0.
-          ssum = 0.
+          vqmax = 0.0D0
+          ssum = 0.0D0
           xx = xtop
           yy = xbot
           wk = (xx*xx) - (bb*xx) + cc
           qk = -((yy*yy)-(bb*yy)+cc)
           do k = ktop , kbase
-            xx = dlog((100.-r8pt)*sigma(k+1)+r8pt)
-            yy = dlog((100.-r8pt)                                       &
+            xx = dlog((100.0D0-r8pt)*sigma(k+1)+r8pt)
+            yy = dlog((100.0D0-r8pt)                                    &
                & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
             wkp1 = (xx*xx) - (bb*xx) + cc
             qkp1 = -((yy*yy)-(bb*yy)+cc)
@@ -1191,11 +1190,11 @@
 !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
 !-----2. find first model sigma level above sigtbl.
 !
-      sigtbl = (70.-r8pt)/(101.3-r8pt)
+      sigtbl = (70.0D0-r8pt)/(101.3D0-r8pt)
       kt = 1
       do k = kz , 1 , -1
         delsig = a(k) - sigtbl
-        if ( delsig.le.0. ) then
+        if ( delsig.le.0.0D0 ) then
           kt = k
           exit
         end if
@@ -1432,10 +1431,10 @@
       end if
  
 !     Convective Cloud Cover
-      afracl = 0.3 ! frac. cover for conv. precip. when dx=dxlarg
-      afracs = 1.0 !   "     "    "    "      "     "   dx=dxsmal
-      dlargc = 200.0
-      dsmalc = 10.0
+      afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg
+      afracs = 1.0D0 !   "     "    "    "      "     "   dx=dxsmal
+      dlargc = 200.0D0
+      dsmalc = 10.0D0
       dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
       clfrcv = afracl + (afracs-afracl)                                 &
              & *((dlargc-dxtemc)/(dlargc-dsmalc))**2
@@ -1457,22 +1456,22 @@
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !
-      twt(1,1) = 0.
-      twt(1,2) = 0.
-      qcon(1) = 0.
+      twt(1,1) = 0.0D0
+      twt(1,2) = 0.0D0
+      qcon(1) = 0.0D0
       do k = 2 , kz
         twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
         twt(k,2) = 1. - twt(k,1)
         qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
       end do
  
-      chibot = 450.
-      ptmb = 10.*r8pt
-      pz = a(1)*(1000.-ptmb) + ptmb
+      chibot = 450.0D0
+      ptmb = 10.0D0*r8pt
+      pz = a(1)*(1000.0D0-ptmb) + ptmb
       if ( pz.gt.chibot ) call fatal(__FILE__,__LINE__,                 &
                                     &'VERTICAL INTERPOLATION ERROR')
       do k = 1 , kz
-        pk = a(k)*(1000.-ptmb) + ptmb
+        pk = a(k)*(1000.0D0-ptmb) + ptmb
         if ( pk.le.chibot ) kchi = k
       end do
  
@@ -1481,7 +1480,7 @@
 !     temperature will be regarded as the origin of air parcel that
 !     produces cloud (used in the cumulus parameterization scheme).
 !
-      sig700 = (70.-r8pt)/(100.-r8pt)
+      sig700 = (70.0D0-r8pt)/(100.0D0-r8pt)
       do k = 1 , kz
         k700 = k
         if ( sig700.le.sigma(k+1) .and. sig700.gt.sigma(k) ) exit
@@ -1493,21 +1492,21 @@
       ispgx = nspgx - 1
 !.....for dot point variables:
       if ( iboudy.eq.4 ) then
-        wgtd(1) = 0.
-        wgtd(2) = 0.2
-        wgtd(3) = 0.55
-        wgtd(4) = 0.8
-        wgtd(5) = 0.95
+        wgtd(1) = 0.0D0
+        wgtd(2) = 0.2D0
+        wgtd(3) = 0.55D0
+        wgtd(4) = 0.8D0
+        wgtd(5) = 0.95D0
         do k = 4 , nspgx
-          wgtd(k) = 1.
+          wgtd(k) = 1.0D0
         end do
 !.....for cross point variables:
-        wgtx(1) = 0.
-        wgtx(2) = 0.4
-        wgtx(3) = 0.7
-        wgtx(4) = 0.9
+        wgtx(1) = 0.0D0
+        wgtx(2) = 0.4D0
+        wgtx(3) = 0.7D0
+        wgtx(4) = 0.9D0
         do k = 5 , nspgx
-          wgtx(k) = 1.
+          wgtx(k) = 1.0D0
         end do
       end if
 !
@@ -1515,8 +1514,8 @@
 !
 !.....for large domain:
       if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
-        fnudge = 0.1/dt2
-        gnudge = (dxsq/dt)/50.
+        fnudge = 0.1D0/dt2
+        gnudge = (dxsq/dt)/50.0D0
       end if
       if ( icup.eq.3 ) call lutbl(r8pt)
 !

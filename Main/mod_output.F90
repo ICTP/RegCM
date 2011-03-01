@@ -87,7 +87,7 @@
 !----------------------------------------------------------------------
 !
       if ( jyear.ne.jyear0 .or. ktau.ne.0 ) then
-        if ( mod(nint(xtime),60).lt.mod(nint(xtime-dtmin),60) )         &
+        if ( mod(idnint(xtime),60).lt.mod(idnint(xtime-dtmin),60) )   &
            & idatex = idatex + 1
         if ( dabs(xtime).lt.0.00001 ) idatex = ldatez
       end if
@@ -95,7 +95,7 @@
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #endif        
-        if ( (lday.eq.1 .and. lhour.eq.0 .and. nint(xtime).eq.0) .or. &
+        if ( (lday.eq.1 .and. lhour.eq.0 .and. idnint(xtime).eq.0) .or. &
              (jyear.eq.jyear0 .and. ktau.eq.0) .or. &
              (ifrest .and. .not. done_restart) ) then
           call mkfile

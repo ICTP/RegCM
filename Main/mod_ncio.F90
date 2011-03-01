@@ -539,7 +539,7 @@
             call say
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
-          if (abs(dble(ptsp/10.0)-dble(ptop)) > 0.001D+00) then
+          if (dabs(dble(ptsp/10.0)-dble(ptop)) > 0.001D+00) then
             write (6,*) 'Error: ptop from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ptop
@@ -553,21 +553,21 @@
             write (6,*) 'DOMAIN file    = ', proj
             call fatal(__FILE__,__LINE__, 'DOMAIN proj ERROR')
           end if
-          if (abs(dble(dsx/1000.0)-dble(ds)) > 0.001D+00) then
+          if (dabs(dble(dsx/1000.0)-dble(ds)) > 0.001D+00) then
             write (6,*) 'Error: ds from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ds
             write (6,*) 'DOMAIN file    = ', dsx/1000.0
             call fatal(__FILE__,__LINE__, 'DOMAIN ds ERROR')
           end if
-          if (abs(dble(iclat)-dble(clat)) > 0.001D+00) then
+          if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
             write (6,*) 'Error: clat from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', clat
             write (6,*) 'DOMAIN file    = ', iclat
             call fatal(__FILE__,__LINE__, 'DOMAIN clat ERROR')
           end if
-          if (abs(dble(iclon)-dble(clon)) > 0.001D+00) then
+          if (dabs(dble(iclon)-dble(clon)) > 0.001D+00) then
             write (6,*) 'Error: clon from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', clon
@@ -1955,9 +1955,9 @@
                 'atmosphere_boundary_layer_thickness', &
                 'PBL layer thickness','m',tyx,.false.,isrfvar(22))
             write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', &
-                   int(batfrq) , ' hours)'
+                   idint(batfrq) , ' hours)'
             write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', &
-                   int(batfrq) , ' hours)'
+                   idint(batfrq) , ' hours)'
             call addvara(ncid,ctype,'tgmax','surface_temperature', &
                 'Maximum surface temperature','K', &
                 tyx,.false.,isrfvar(23))

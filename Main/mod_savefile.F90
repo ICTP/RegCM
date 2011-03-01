@@ -572,10 +572,10 @@
 #ifdef CLM
           cdtime = get_step_size()
           filer_rest = restFile_filename(type='netcdf', &
-                     & offset=-int(cdtime))
+                     & offset=-idint(cdtime))
           call restFile_write(filer_rest)
           filer_rest = restFile_filename(type='binary', &
-                     & offset=-int(cdtime))
+                     & offset=-idint(cdtime))
           call restFile_write_binary(filer_rest)
           thisclmrest = filer_rest(1:256)
 #endif

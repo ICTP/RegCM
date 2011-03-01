@@ -785,22 +785,22 @@
                 frac(4) = fraction(prop(4))
 !               FIND THE GREATEST FRACTIONAL PART
                 if ( iso4.ne.0 ) then
-                  i1 = nint(10*prop(1)) + 1
+                  i1 = idnint(10.0D0*prop(1)) + 1
                 else
                   i1 = 0 + 1
                 end if
                 if ( ibchl.ne.0 ) then
-                  i2 = nint(10*prop(2)) + 1
+                  i2 = idnint(10.0D0*prop(2)) + 1
                 else
                   i2 = 0 + 1
                 end if
                 if ( iochl.ne.0 ) then
-                  i3 = nint(10*prop(3)) + 1
+                  i3 = idnint(10.0D0*prop(3)) + 1
                 else
                   i3 = 0 + 1
                 end if
                 if ( idust(1).ne.0 ) then
-                  i4 = nint(10*prop(4)) + 1
+                  i4 = idnint(10.0D0*prop(4)) + 1
                 else
                   i4 = 0 + 1
                 end if
@@ -838,12 +838,12 @@
                   print * , 'SO4 %' , 10*(aermmr(i,k,iso4)/rhoso4)    &
                       & /aervtot(i,k)
                   print * , 'SO4 %' ,                                 &
-                      & nint(10*(aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)&
-                      & )
+                      & idnint(10.0D0*(aermmr(i,k,iso4)/rhoso4)/      &
+                      & aervtot(i,k))
                   print * , 'DUST %' ,                                &
                       & 10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
                   print * , 'DUST %' ,                                &
-                      & nint(10*(aermmr(i,k,idust(1))/rhodust)        &
+                      & idnint(10.0D0*(aermmr(i,k,idust(1))/rhodust)  &
                       & /aervtot(i,k))
                   call fatal(__FILE__,__LINE__,                       &
                             &'SOMETHING WRONG ON SPECIES ABUNDANCE')

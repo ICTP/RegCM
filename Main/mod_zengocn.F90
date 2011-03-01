@@ -197,7 +197,7 @@
             v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
             t2m_1d(n,i) = t995 + tzero - dth*facttq
 !
-            if ( mod(ntime+nint(dtmin*60.),kbats).eq.0 .or. &
+            if ( mod(ntime+idnint(dtmin*60.),kbats).eq.0 .or. &
                 ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or. &
                 ( ifrest .and. .not. done_restart ) ) then
               facttq = dlog(z995/2.)/dlog(z995/zo)

@@ -20,6 +20,7 @@
 program ncplot
   use netcdf
   use mod_projections
+  use mod_date
   implicit none
 
   character(256) :: prgname , ncfile , tmpctl , tmpcoord
@@ -29,7 +30,7 @@ program ncplot
   character(16) :: varunit
   character(16) :: dimdesc
   integer :: numarg , istatus , ncid
-  integer :: year , month , day , hour , delta
+  integer :: year , month , day , hour , delta , idate
   character(3) , dimension(12) :: cmon
   character(12) :: cdum
 
@@ -41,6 +42,7 @@ program ncplot
   real(4) , allocatable , dimension(:,:) :: xlat , xlon
   real(4) , allocatable , dimension(:) :: level
   real(8) , allocatable , dimension(:) :: times
+  real(8) :: time1
   real(4) , allocatable , dimension(:,:) :: rin , rjn , ruv
   logical , allocatable , dimension(:) :: lvarflag
   integer , allocatable , dimension(:) :: dimids
@@ -435,6 +437,9 @@ program ncplot
       stop
     end if
     delta = nint(times(2)-times(1))
+    idate = year*1000000+month*10000+day*100+hour
+    call addhours(idate,idnint(times(1)))
+    call split_idate(idate,year,month,day,hour)
     deallocate(times)
     if (delta == 24) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
@@ -472,6 +477,15 @@ program ncplot
     end if
     read (timeunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
             cdum, month, cdum, day, cdum, hour
+    istatus = nf90_get_var(ncid, ivarid, time1)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
+    idate = year*1000000+month*10000+day*100+hour
+    call addhours(idate,idnint(time1))
+    call split_idate(idate,year,month,day,hour)
     delta = 6
     write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
            'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
