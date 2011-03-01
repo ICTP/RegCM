@@ -1283,7 +1283,6 @@
           integer , dimension(5) :: illtpvar
           integer :: itvar , imapvar , iyy , im , id , ih , i , j , ibnd
           integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
-          integer :: iresnext
           integer , dimension(2) :: inmlen
           integer , dimension(2) :: idpv
           integer , dimension(2) :: ibinsiz
@@ -1301,32 +1300,26 @@
             ncid = ncatm
             title = 'ICTP Regional Climatic model V4 ATM output'
             iatmrec = 1
-            iresnext = tapfrq
           else if (ctype == 'SRF') then
             ncid = ncsrf
             title = 'ICTP Regional Climatic model V4 SRF output'
             isrfrec = 1
-            iresnext = batfrq
           else if (ctype == 'SUB') then
             ncid = ncsub
             title = 'ICTP Regional Climatic model V4 SUB output'
             isubrec = 1
-            iresnext = batfrq
           else if (ctype == 'RAD') then
             ncid = ncrad
             title = 'ICTP Regional Climatic model V4 RAD output'
             iradrec = 1
-            iresnext = radisp
           else if (ctype == 'CHE') then
             ncid = ncche
             title = 'ICTP Regional Climatic model V4 CHE output'
             icherec = 1
-            iresnext = chemfrq
           else if (ctype == 'LAK') then
             ncid = nclak
             title = 'ICTP Regional Climatic model V4 LAK output'
             ilakrec = 1
-            iresnext = lakfrq
           else
             write (aline,*) 'UNKNOWN IO TYPE : ', ctype
             call say
@@ -1338,11 +1331,7 @@
           call close_common(ncid, ctype)
 
           write (fterr, '(a3,a)') ctype, ' FILE ERROR'
-          if (ifrest .and. .not. done_restart) then
-            write (fbname,'(a,a,i10)') trim(ctype), '.', idate+iresnext
-          else
-            write (fbname,'(a,a,i10)') trim(ctype), '.', idate
-          end if
+          write (fbname,'(a,a,i10)') trim(ctype), '.', idate
           ofname = trim(dirout)//pthsep//trim(domname)// &
                 &  '_'//trim(fbname)//'.nc'
           call split_idate(idate0,iyy,im,id,ih)
