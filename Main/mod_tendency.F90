@@ -568,8 +568,8 @@
          if(jm1.eq.0) jm1=jx
 #endif
         do i = 2 , iym1
-          sps2%pdot(i,j)=0.25*(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
-                               sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
+          sps2%pdot(i,j)=0.25D0*(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
+                                 sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
         end do
       end do
 !
@@ -579,13 +579,13 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid.eq.0 )  &
-           sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
+           sps2%pdot(i,1) = 0.5D0*(sps2%ps(i,1)+sps2%ps(i-1,1))
         if ( myid.eq.nproc-1 ) &
-           sps2%pdot(i,jendl) = 0.5*(sps2%ps(i,jendx)+ &
-                                     sps2%ps(i-1,jendx))
+           sps2%pdot(i,jendl) = 0.5D0*(sps2%ps(i,jendx)+ &
+                                       sps2%ps(i-1,jendx))
 #else
-        sps2%pdot(i,1) = 0.5*(sps2%ps(i,1)+sps2%ps(i-1,1))
-        sps2%pdot(i,jx) = 0.5*(sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))
+        sps2%pdot(i,1) = 0.5D0*(sps2%ps(i,1)+sps2%ps(i-1,1))
+        sps2%pdot(i,jx) = 0.5D0*(sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -605,8 +605,8 @@
 #if defined(BAND) && (!defined(MPP1))
          if(jm1.eq.0) jm1=jx
 #endif
-        sps2%pdot(1,j) = 0.5*(sps2%ps(1,j)+sps2%ps(1,jm1))
-        sps2%pdot(iy,j) = 0.5*(sps2%ps(iym1,j)+sps2%ps(iym1,jm1))
+        sps2%pdot(1,j) = 0.5D0*(sps2%ps(1,j)+sps2%ps(1,jm1))
+        sps2%pdot(iy,j) = 0.5D0*(sps2%ps(iym1,j)+sps2%ps(iym1,jm1))
       end do
 !
 !-----corner points:
@@ -791,12 +791,12 @@
           icon(j) = 0
           do k = 1 , kzp1
             do i = 1 , iym1
-              qdot(i,k,j) = 0.
+              qdot(i,k,j) = 0.0D0
             end do
           end do
           do k = 1 , kz
             do i = 1 , iym1
-              omega(i,k,j) = 0.
+              omega(i,k,j) = 0.0D0
             end do
           end do
         end if
@@ -831,7 +831,7 @@
 !**p**compute the pressure tendency:
 !
         do i = 2 , iym2
-           pten(i,j) = 0.
+           pten(i,j) = 0.0D0
         end do
         do k = 1 , kz
            do i = 2 , iym2
@@ -848,7 +848,7 @@
 !
         do k = 1 , kzp1
            do i = 1 , iym1
-              qdot(i,k,j) = 0.
+              qdot(i,k,j) = 0.0D0
            end do
         end do
         do k = 2 , kz
@@ -899,7 +899,7 @@
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = 0.5*sps1%ps(i,j)* &
+              omega(i,k,j) = 0.5D0*sps1%ps(i,j)* &
                        & (qdot(i,k+1,j)+qdot(i,k,j))+a(k)*(pten(i,j)+   &
                        & ((atmx%u(i,k,j)+atmx%u(i+1,k,j)+               &
                        &   atmx%u(i+1,k,jp1)+atmx%u(i,k,jp1))*          &
@@ -1215,8 +1215,8 @@
 !....apply  the nudging boundary conditions:
           else if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
             xtm1 = xtime - dtmin
-            if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )     &
-               & xtm1 = -dtmin
+            if ( dabs(xtime).lt.0.00001D0 .and. ldatez.gt.idate0 ) &
+              xtm1 = -dtmin
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
@@ -1308,8 +1308,8 @@
                       0,mpi_comm_world,ierr)
 #endif
       iptn = 0
-      ptntot = 0.
-      pt2tot = 0.
+      ptntot = 0.0D0
+      pt2tot = 0.0D0
 #ifdef MPP1
       if ( myid.eq.0 ) then
 #ifdef BAND
@@ -1321,9 +1321,9 @@
             do i = 2 , iym2
               iptn = iptn + 1
               ptntot = ptntot + dabs(ps_4(i,1,j))
-              pt2tot = pt2tot +                                         &
-                     & dabs((ps_4(i,2,j)+ps_4(i,3,j)-2.*ps_4(i,4,j))    &
-                     & /(0.25*dt*dt))
+              pt2tot = pt2tot +                       &
+                     & dabs((ps_4(i,2,j)+ps_4(i,3,j)- &
+                             2.0D0*ps_4(i,4,j))/(0.25D0*dt*dt))
             end do
           end if
         end do
@@ -1344,8 +1344,8 @@
             do i = 2 , iym2
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
-              pt2tot = pt2tot + dabs((psc(i,j)+ &
-                       sps2%ps(i,j)-2.*sps1%ps(i,j))/(0.25*dt*dt))
+              pt2tot = pt2tot + dabs((psc(i,j)+sps2%ps(i,j)- &
+                      2.0D0*sps1%ps(i,j))/(0.25D0*dt*dt))
             end do
           end if
 #ifndef BAND
@@ -1383,8 +1383,8 @@
             dvdy = atm2%v(i+1,k,j) + atm2%v(i+1,k,jp1) - &
                    atm2%v(i,k,j)   - atm2%v(i,k,jp1)
 !fil        cell=(xkhz*domfc%hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
-            cell = (xkhz*domfc%hgfact(i,j)                             &
-                 & +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)      &
+            cell = (xkhz*domfc%hgfact(i,j)                         &
+                 & +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy) &
                  & *(dvdx+dudy)))
             xkc(i,k,j) = dmin1(cell,xkhmax)
  
@@ -1412,9 +1412,9 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              aten%t(i,k,j) = 0.
-              aten%qv(i,k,j) = 0.
-              aten%qc(i,k,j) = 0.
+              aten%t(i,k,j) = 0.0D0
+              aten%qv(i,k,j) = 0.0D0
+              aten%qc(i,k,j) = 0.0D0
             end do
           end do
  
@@ -1431,9 +1431,9 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              rovcpm = rgas/(cpd*(1.+0.8*(atmx%qv(i,k,j))))
-              tv = atmx%t(i,k,j)*(1.+ep1*(atmx%qv(i,k,j)))
-              aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv)   &
+              rovcpm = rgas/(cpd*(1.0D0+0.8D0*(atmx%qv(i,k,j))))
+              tv = atmx%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
+              aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv) &
                           & /(r8pt/sps1%ps(i,j)+a(k))
             end do
           end do
@@ -1442,8 +1442,8 @@
 !
           do k = 1 , kz
             do i = 1 , iym1
-              difft(i,k,j) = 0.
-              diffq(i,k,j) = 0.
+              difft(i,k,j) = 0.0D0
+              diffq(i,k,j) = 0.0D0
             end do
           end do
 !
@@ -1475,13 +1475,13 @@
 #if defined(BAND) && (!defined(MPP1))
                 if ( jp1.eq.jx+1 ) jp1 = 1
 #endif
-                gwnd%usk(i,k) = 0.25*(atm1%u(i,k,j)/sps2%ps(i,j)+       &
-                          &      atm1%u(i+1,k,j)/sps2%ps(i+1,j)+        &
-                          &      atm1%u(i,k,jp1)/sps2%ps(i,jp1)+        &
+                gwnd%usk(i,k) = 0.25D0*(atm1%u(i,k,j)/sps2%ps(i,j)+  &
+                          &      atm1%u(i+1,k,j)/sps2%ps(i+1,j)+     &
+                          &      atm1%u(i,k,jp1)/sps2%ps(i,jp1)+     &
                           &      atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))
-                gwnd%vsk(i,k) = 0.25*(atm1%v(i,k,j)/sps2%ps(i,j)+       &
-                          &      atm1%v(i+1,k,j)/sps2%ps(i+1,j)+        &
-                          &      atm1%v(i,k,jp1)/sps2%ps(i,jp1)+        &
+                gwnd%vsk(i,k) = 0.25D0*(atm1%v(i,k,j)/sps2%ps(i,j)+  &
+                          &      atm1%v(i+1,k,j)/sps2%ps(i+1,j)+     &
+                          &      atm1%v(i,k,jp1)/sps2%ps(i,jp1)+     &
                           &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))
               end do
             end do
@@ -1509,7 +1509,7 @@
 !           need also to set diffq to 0 here before calling diffut
             do k = 1 , kz
               do i = 1 , iym1
-                diffq(i,k,j) = 0.
+                diffq(i,k,j) = 0.0D0
               end do
             end do
  
@@ -1539,8 +1539,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            aten%u(i,k,j) = 0.
-            aten%v(i,k,j) = 0.
+            aten%u(i,k,j) = 0.0D0
+            aten%v(i,k,j) = 0.0D0
           end do
         end do
  
@@ -1602,14 +1602,14 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
-        dtbat = dt/2.*nbatst
+        dtbat = dt/2.0D0*nbatst
         ! CLM j loop is in mtrxclm
         call mtrxclm
       end if
 #endif
 
       if ( icup.eq.1 ) then
-        dto2 = dt/2
+        dto2 = dt/2.0D0
         call htdiff(dto2,dxsq,akht1)
       end if
 !     call medium resolution pbl
@@ -1694,8 +1694,8 @@
 !
           if ( iboudy.eq.1 .or. iboudy.eq.5 ) then
             xtm1 = xtime - dtmin
-            if ( dabs(xtime).lt.0.00001 .and. ldatez.gt.idate0 )        &
-               & xtm1 = -dtmin
+            if ( dabs(xtime).lt.0.00001D0 .and. ldatez.gt.idate0 )  &
+              xtm1 = -dtmin
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
             call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
@@ -1822,7 +1822,7 @@
 !
           do k = 1 , kz
             do i = 2 , iym2
-              tvc = atmc%t(i,k,j)*(1.+ep1*(atmc%qv(i,k,j))/psc(i,j))
+              tvc = atmc%t(i,k,j)*(1.0D0+ep1*(atmc%qv(i,k,j))/psc(i,j))
               tva = atm1%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
               tvb = atm2%t(i,k,j)*(1.0D0+ep1* &
                                    (atm2%qv(i,k,j))/sps2%ps(i,j))
@@ -1896,8 +1896,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            aten%u(i,k,j) = 0.
-            aten%v(i,k,j) = 0.
+            aten%u(i,k,j) = 0.0D0
+            aten%v(i,k,j) = 0.0D0
           end do
         end do
 !
@@ -1993,8 +1993,8 @@
         if ( ipgf.eq.1 ) then
  
           do i = 1 , iym1
-            tv = (ttld(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/ &
-                 (1.+atmx%qv(i,kz,j)))
+            tv = (ttld(i,kz,j)/psd(i,j))/(1.0D0+atmx%qc(i,kz,j)/ &
+                                         (1.0D0+atmx%qv(i,kz,j)))
             phi(i,kz,j) = mddom%ht(i,j)                                &
                         & + rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)   &
                         & **pgfaa1
@@ -2007,7 +2007,7 @@
             do i = 1 , iym1
               tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)* &
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+       &
-                    & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/       &
+                    & dsigma(lev+1))))/(1.0D0+atmx%qc(i,lev,j)/    &
                     & (1.+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
                      tvavg*dlog((a(lev)+r8pt/psd(i,j))/ &
@@ -2029,8 +2029,8 @@
             do i = 1 , iym1
               tvavg = ((td(i,lev,j)*dsigma(lev)+td(i,lev+1,j)*   &
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+     &
-                    & dsigma(lev+1))))/(1.+atmx%qc(i,lev,j)/     &
-                    & (1.+atmx%qv(i,lev,j)))
+                    & dsigma(lev+1))))/(1.0D0+atmx%qc(i,lev,j)/  &
+                    & (1.0D0+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
                      tvavg*dlog((a(lev)+r8pt/psd(i,j))  &
                            & /(a(lev+1)+r8pt/psd(i,j)))
@@ -2298,9 +2298,10 @@
         call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          & mpi_comm_world,ierr)
 #endif
-        xday = ((nnnnnn-nstrt0)*ibdyfrq*60.+xtime-dtmin)/1440.
+        xday = ((nnnnnn-nstrt0)*ibdyfrq*60.0D0+xtime-dtmin)/1440.0D0
         ! Added a check for nan...
-        if ((ptnbar/=ptnbar) .or. ((ptnbar>0.0).eqv.(ptnbar<=0.0))) then
+        if ((ptnbar/=ptnbar) .or. &
+           ((ptnbar>0.0D0).eqv.(ptnbar<=0.0D0))) then
 #ifdef MPP1
           if ( myid.eq.0 ) then
 #endif
@@ -2334,7 +2335,7 @@
 !-----recalculate solar declination angle if forecast time larger than
 !     24 hours:
 !
-      if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
+      if ( dabs(xtime).lt.0.00001D0 .and. ldatez.ne.idate1 ) then
         call solar1(xtime)
         dectim = dnint(1440.0D0+dectim)
 #ifdef MPP1
