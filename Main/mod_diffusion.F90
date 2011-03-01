@@ -95,20 +95,20 @@
             ften(i,k) = ften(i,k) - xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
                       & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
-                      & -4.*(bd3d(i,k,jp1)+bd3d(i,k,jm1)      &
+                      & -4.0D0*(bd3d(i,k,jp1)+bd3d(i,k,jm1)   &
                       & +bd3d(i+1,k,j)+bd3d(i-1,k,j))         &
-                      & +12.*bd3d(i,k,j))*press(i,j)
+                      & +12.0D0*bd3d(i,k,j))*press(i,j)
           else
             ften(i,k) = ften(i,k) - xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp2)/mapf(i,jp2)      &
                       & +bd3d(i,k,jm2)/mapf(i,jm2)+           &
                       & bd3d(i+2,k,j)/mapf(i+2,j)+            &
                       & bd3d(i-2,k,j)/mapf(i-2,j)             &
-                      & -4.*(bd3d(i,k,jp1)/mapf(i,jp1)+       &
+                      & -4.0D0*(bd3d(i,k,jp1)/mapf(i,jp1)+    &
                       & bd3d(i,k,jm1)/mapf(i,jm1)+            &
                       & bd3d(i+1,k,j)/mapf(i+1,j)             &
                       & +bd3d(i-1,k,j)/mapf(i-1,j))+          &
-                      & 12.*bd3d(i,k,j)/mapf(i,j))*           &
+                      & 12.0D0*bd3d(i,k,j)/mapf(i,j))*        &
                       & press(i,j)
           end if
         end do
@@ -120,14 +120,14 @@
             ften(i,k) = ften(i,k) + xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                       & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
-                      & -4.*bd3d(i,k,j))*press(i,j)
+                      & -4.0D0*bd3d(i,k,j))*press(i,j)
           else
             ften(i,k) = ften(i,k) + xkc(i,k)                  &
                       & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
                       & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
                       &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
                       &  bd3d(i-1,k,j)/mapf(i-1,j)            &
-                      & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                      & -4.0D0*bd3d(i,k,j)/mapf(i,j))*        &
                       & press(i,j)
           end if
         end do
@@ -150,14 +150,14 @@
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                         & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
-                        & -4.*bd3d(i,k,j))*press(i,j)
+                        & -4.0D0*bd3d(i,k,j))*press(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
                         & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
                         &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
                         &  bd3d(i-1,k,j)/mapf(i-1,j)            &
-                        & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & -4.0D0*bd3d(i,k,j)/mapf(i,j))*        &
                         & press(i,j)
             end if
           end do
@@ -172,20 +172,20 @@
               ften(i,k) = ften(i,k) - xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp2)+bd3d(i,k,jm2)    &
                         & +bd3d(i+2,k,j)+bd3d(i-2,k,j)          &
-                        & -4.*(bd3d(i,k,jp1)+bd3d(i,k,jm1)      &
+                        & -4.0D0*(bd3d(i,k,jp1)+bd3d(i,k,jm1)   &
                         & +bd3d(i+1,k,j)+bd3d(i-1,k,j))         &
-                        & +12.*bd3d(i,k,j))*press(i,j)
+                        & +12.0D0*bd3d(i,k,j))*press(i,j)
             else
               ften(i,k) = ften(i,k) - xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp2)/mapf(i,jp2)      &
                         & +bd3d(i,k,jm2)/mapf(i,jm2)+           &
                         &  bd3d(i+2,k,j)/mapf(i+2,j)+           &
                         &  bd3d(i-2,k,j)/mapf(i-2,j)            &
-                        & -4.*(bd3d(i,k,jp1)/mapf(i,jp1)+       &
+                        & -4.0D0*(bd3d(i,k,jp1)/mapf(i,jp1)+    &
                         &      bd3d(i,k,jm1)/mapf(i,jm1)+       &
                         &      bd3d(i+1,k,j)/mapf(i+1,j)+       &
                         &      bd3d(i-1,k,j)/mapf(i-1,j))+      &
-                        & 12.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & 12.0D0*bd3d(i,k,j)/mapf(i,j))*        &
                         & press(i,j)
             end if
           end do
@@ -197,14 +197,14 @@
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)+bd3d(i,k,jm1)    &
                         & +bd3d(i+1,k,j)+bd3d(i-1,k,j)          &
-                        & -4.*bd3d(i,k,j))*press(i,j)
+                        & -4.0D0*bd3d(i,k,j))*press(i,j)
             else
               ften(i,k) = ften(i,k) + xkc(i,k)                  &
                         & *c203*(bd3d(i,k,jp1)/mapf(i,jp1)      &
                         & +bd3d(i,k,jm1)/mapf(i,jm1)+           &
                         &  bd3d(i+1,k,j)/mapf(i+1,j)+           &
                         &  bd3d(i-1,k,j)/mapf(i-1,j)            &
-                        & -4.*bd3d(i,k,j)/mapf(i,j))*           &
+                        & -4.0D0*bd3d(i,k,j)/mapf(i,j))*        &
                         & press(i,j)
             end if
           end do
@@ -257,12 +257,12 @@
 !......fourth-order scheme for interior:
       do k = 1 , kz
         do i = 3 , iym3
-          ften(i,k) = ften(i,k) - xkc(i,k) *              &
-                    & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+  &
-                    &       bc3d(i+2,k,j)+bc3d(i-2,k,j)   &
-                    &  -4.*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+  &
-                    &       bc3d(i+1,k,j)+bc3d(i-1,k,j))+ &
-                    &   12.*bc3d(i,k,j))*press(i,j)
+          ften(i,k) = ften(i,k) - xkc(i,k) *                &
+                    & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+    &
+                    &       bc3d(i+2,k,j)+bc3d(i-2,k,j)     &
+                    &  -4.0D0*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                    &       bc3d(i+1,k,j)+bc3d(i-1,k,j))+   &
+                    &   12.0D0*bc3d(i,k,j))*press(i,j)
         end do
       end do
 !......second-order scheme for north and south boundaries:
@@ -271,14 +271,14 @@
         ften(i,k) = ften(i,k) + xkc(i,k) *             &
                   & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
                   &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
-                  &   -4.*bc3d(i,k,j))*press(i,j)
+                  &   -4.0D0*bc3d(i,k,j))*press(i,j)
       end do
       i = iym2
       do k = 1 , kz
         ften(i,k) = ften(i,k) + xkc(i,k) *             &
                   & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
                   &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
-                  &   -4.*bc3d(i,k,j))*press(i,j)
+                  &   -4.0D0*bc3d(i,k,j))*press(i,j)
       end do
 !
 #else
@@ -297,7 +297,7 @@
             ften(i,k) = ften(i,k) + xkc(i,k) *             &
                       & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
                       &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
-                      &   -4.*bc3d(i,k,j))*press(i,j)
+                      &   -4.0D0*bc3d(i,k,j))*press(i,j)
           end do
         end do
 !
@@ -306,12 +306,12 @@
 !......fourth-order scheme for interior:
         do k = 1 , kz
           do i = 3 , iym3
-            ften(i,k) = ften(i,k) - xkc(i,k) *             &
-                      & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+ &
-                      &       bc3d(i+2,k,j)+bc3d(i-2,k,j)  &
-                      &  -4.*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
-                      &       bc3d(i+1,k,j)+bc3d(i-1,k,j)) &
-                      &  +12.*bc3d(i,k,j))*press(i,j)
+            ften(i,k) = ften(i,k) - xkc(i,k) *                &
+                      & c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2)+    &
+                      &       bc3d(i+2,k,j)+bc3d(i-2,k,j)     &
+                      &  -4.0D0*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
+                      &       bc3d(i+1,k,j)+bc3d(i-1,k,j))    &
+                      &  +12.0D0*bc3d(i,k,j))*press(i,j)
           end do
         end do
 !......second-order scheme for north and south boundaries:
@@ -320,14 +320,14 @@
           ften(i,k) = ften(i,k) + xkc(i,k) *             &
                     & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
                     &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
-                    &   -4.*bc3d(i,k,j))*press(i,j)
+                    &   -4.0D0*bc3d(i,k,j))*press(i,j)
         end do
         i = iym2
         do k = 1 , kz
           ften(i,k) = ften(i,k) + xkc(i,k) *             &
                     & c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1)+ &
                     &       bc3d(i+1,k,j)+bc3d(i-1,k,j)  &
-                    &   -4.*bc3d(i,k,j))*press(i,j)
+                    &   -4.0D0*bc3d(i,k,j))*press(i,j)
         end do
 !
       end if
