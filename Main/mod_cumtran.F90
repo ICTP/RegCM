@@ -45,7 +45,7 @@
 !     add the well-mixing fraction in dt step (5%) - only updraft
 !hy   cumfrc = 0.3
 !
-      cumfrc = 0.015
+      cumfrc = 0.015D0
 !
       do n = 1 , ntr
 #ifdef MPP1
@@ -59,9 +59,9 @@
 #endif
           do i = 2 , iym1
             if ( icumtop(i,j).gt.0 ) then
-              deltas = 0.
-              chiabar = 0.
-              chibbar = 0.
+              deltas = 0.D0
+              chiabar = 0.D0
+              chibbar = 0.D0
               kcumtop = max0(icumtop(i,j),4)
               do k = kcumtop , kz
                 deltas = deltas + dsigma(k)
@@ -71,9 +71,9 @@
 !?            do 95 k=icumtop(i,j),kz      ! yhuang, 12/98
 !qhy
               do k = kcumtop , kz
-                chia(i,k,j,n) = chia(i,k,j,n)*(1.-cumfrc)               &
+                chia(i,k,j,n) = chia(i,k,j,n)*(1.0D0-cumfrc)  &
                               & + cumfrc*chiabar/deltas
-                chib(i,k,j,n) = chib(i,k,j,n)*(1.-cumfrc)               &
+                chib(i,k,j,n) = chib(i,k,j,n)*(1.0D0-cumfrc)  &
                               & + cumfrc*chibbar/deltas
               end do
             end if
