@@ -1578,7 +1578,6 @@
           if ( iocnflx.eq.2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
 !         Hostetler lake model for every BATS timestep at lake points
           if ( lakemod.eq.1 ) then
-            dtlake = dtbat
             call lakedrv(j)
           endif
 !         ****** accumulate quantities for energy and moisture budgets
