@@ -112,7 +112,7 @@
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
 !
-      data vqrang /5.0E-4/
+      data vqrang /5.0D-4/
 !
 !----------------------------------------------------------------------
 !-----namelist:
@@ -616,7 +616,7 @@
 !
       write (aline,*) 'param: starting first checks' 
       call say
-      if ( mod(idnint(radfrq*60.),idnint(dt)).ne.0 ) then
+      if ( mod(idnint(radfrq*60.0D0),idnint(dt)).ne.0 ) then
         write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
@@ -628,7 +628,7 @@
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(batfrq*3600.),idnint(abatm)).ne.0 ) then
+      if ( mod(idnint(batfrq*3600.0D0),idnint(abatm)).ne.0 ) then
         write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
         call say
         call fatal(__FILE__,__LINE__,                                   &
@@ -648,13 +648,13 @@
           end if
         end if
       end if
-      if ( mod(idnint(abemh*3600.),idnint(dt)).ne.0 ) then
+      if ( mod(idnint(abemh*3600.0D0),idnint(dt)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(abemh*60.),idnint(radfrq)).ne.0 ) then
+      if ( mod(idnint(abemh*60.0D0),idnint(radfrq)).ne.0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
@@ -1142,7 +1142,7 @@
 !
           bb = dlog(a(ktop)) + dlog(a(kbase))
           cc = dlog(a(ktop))*dlog(a(kbase))
-          ssum = 0.
+          ssum = 0.0D0
           do k = ktop , kbase
             xx = dlog(a(k))
             twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
@@ -1357,7 +1357,7 @@
             kbmax2d(i,j) = kbmax
             htmax2d(i,j) = htmax
             htmin2d(i,j) = htmin
-            dtauc2d(i,j) = dtauc*60.
+            dtauc2d(i,j) = dtauc*60.0D0
           end do
         end do
       end if
@@ -1461,7 +1461,7 @@
       qcon(1) = 0.0D0
       do k = 2 , kz
         twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
-        twt(k,2) = 1. - twt(k,1)
+        twt(k,2) = 1.0D0 - twt(k,1)
         qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
       end do
  

@@ -77,16 +77,16 @@
 !--------------------------------------------------------------------
  
 !     1a. Perform computations for the top layer (layer 1)
-      thog = 1000.*rgti       ! precipation accumulated from above
-      i1000 = 1./1000.
+      thog = 1000.0D0*rgti       ! precipation accumulated from above
+      i1000 = 1.0D0/1000.0D0
 
-      remrat(istart:iend,1:nk) = 0.0
+      remrat(istart:iend,1:nk) = 0.0D0
 
       do i = istart , iend
  
         afc = fcc(i,1,j)                                      ![frac][avg]
  
-        if ( afc.gt.0.01 ) then ! if there is a cloud
+        if ( afc.gt.0.01D0 ) then ! if there is a cloud
 !         1aa. Compute temperature and humidities with the adjustments
 !         due to convection.
 !         q = qvb3d(i,1,j) + qcuten(i,1)*dt  [kg/kg][avg] 
@@ -94,7 +94,7 @@
           q = qvb3d(i,1,j)                                   ![kg/kg][avg]
           tk = tb3d(i,1,j)                                   ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = pb3d(i,1,j)*1000.                              ![Pa][avg]
+          p = pb3d(i,1,j)*1000.0D0                           ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,1,j)                                 ![kg/kg][avg]
 !         1ab. Calculate the in cloud mixing ratio [kg/kg]
@@ -108,11 +108,12 @@
 !         - The factor of cgul accounts for the fact that the Gultepe
 !         and Isaac equation is for mean cloud water while qcth is the
 !         theshhold for auto-conversion.
-          qcth = cgul(i,j)*(10.**(-0.489+0.0134*tcel))*i1000 ![kg/kg][cld]
+          qcth = cgul(i,j)*(10.0D0**(-0.489D0+0.0134D0*tcel))*i1000 
+                                                          ![kg/kg][cld]
 !         1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(i,j)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,0.0D0),pptmax)         ![kg/kg/s][avg]
-          if ( pptnew.gt.0.0 ) then
+          if ( pptnew.gt.0.0D0 ) then
                                    ! New precipitation
 !           1af. Compute the cloud removal rate (for chemistry) [1/s]
 !chem2
@@ -125,7 +126,7 @@
 !           cloud [kg/kg]
             qcleft = qcw - pptnew*dt                         ![kg/kg][avg]
 !           1agb. Add 1/2 of the new precipitation can accrete.
-            pptkm1 = 0.5*pptnew/afc*rho*dt                   ![kg/m3][cld]
+            pptkm1 = 0.5D0*pptnew/afc*rho*dt                 ![kg/m3][cld]
 !           1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
             pptacc = caccr*qcleft*pptkm1                     ![kg/kg/s][avg]
 !           1agd. Update the precipitation accounting for the accretion
@@ -138,10 +139,10 @@
             aten%qc(i,1,j) = aten%qc(i,1,j) - &
                              pptnew*sps2%ps(i,j)             ![kg/kg/s*cb][avg]
           else  ! Cloud but no new precipitation
-            pptsum(i) = 0.0                                  ![kg/m2/s][avg]
+            pptsum(i) = 0.0D0                                ![kg/m2/s][avg]
           end if
         else  ! No cloud
-          pptsum(i) = 0.0                                    ![kg/m2/s][avg]
+          pptsum(i) = 0.0D0                                  ![kg/m2/s][avg]
         end if
  
       end do
@@ -159,14 +160,14 @@
           q = qvb3d(i,k,j)                                   ![kg/kg][avg]
           tk = tb3d(i,k,j)                                   ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          p = pb3d(i,k,j)*1000.                              ![Pa][avg]
+          p = pb3d(i,k,j)*1000.0D0                           ![Pa][avg]
           rho = p/(rgas*tk)                                  ![kg/m3][avg]
           qcw = qcb3d(i,k,j)                                 ![kg/kg][avg]
           afc = fcc(i,k,j)                                   ![frac][avg]
-          if ( tcel.gt.0.0 ) then
-            es = svp1*1000.*dexp(svp2*tcel/(tk-svp3))        ![Pa][avg]
+          if ( tcel.gt.0.0D0 ) then
+            es = svp1*1000.0D0*dexp(svp2*tcel/(tk-svp3))     ![Pa][avg]
           else
-            es = svp4*1000.*dexp(svp5-svp6/tk)               ![Pa][avg]
+            es = svp4*1000.0D0*dexp(svp5-svp6/tk)            ![Pa][avg]
           end if
           qs = ep2*es/(p-es)                                 ![kg/kg][avg]
           rh = dmin1(dmax1(q/qs,0.0D0),rhmax)                ![frac][avg]
@@ -181,12 +182,12 @@
 !         - It is assumed that raindrops do not evaporate in clouds
 !         and the rainfall from above is evenly distributed in
 !         gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(i).gt.0.0 .and. afc.lt.0.99 ) then
+          if ( pptsum(i).gt.0.0D0 .and. afc.lt.0.99D0 ) then
 !           2bca. Compute the clear sky relative humidity
-            rhcs = (rh-afc*rhmax)/(1.0-afc)                  ![frac][clr]
+            rhcs = (rh-afc*rhmax)/(1.0D0-afc)                  ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),0.0D0)            ![frac][clr]
 !           2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(i))*(1.-afc)
+            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(i))*(1.0D0-afc)
                                                              ![kg/kg/s][avg]
             rdevap = dmin1((qs-q)/dt,rdevap)                 ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,0.0D0),pptkm1)       ![kg/kg/s][avg]
@@ -201,11 +202,11 @@
                                                              ![k/s*cb][avg]
           else
               ! no precipitation from above
-            rdevap = 0.0                                     ![kg/kg/s][avg]
+            rdevap = 0.0D0                                   ![kg/kg/s][avg]
           end if
  
 !         1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc.gt.0.01 ) then
+          if ( afc.gt.0.01D0 ) then
                              ! if there is a cloud
 !           1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
@@ -213,26 +214,26 @@
 !           (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = qcw/dt                                  ![kg/kg/s][cld]
 !           1bdc. Implement the Gultepe & Isaac formula for qcth.
-            qcth = cgul(i,j)*(10.**(-0.489+0.0134*tcel))*i1000
+            qcth = cgul(i,j)*(10.0D0**(-0.489D0+0.0134D0*tcel))*i1000
                                                              ![kg/kg][cld]
 !           1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(i,j)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
             pptnew = dmin1(dmax1(pptnew,0.0D0),pptmax)       ![kg/kg/s][avg]
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
 !chem2
-            if ( pptnew.gt.0.0 ) remrat(i,k) = pptnew/qcw
+            if ( pptnew.gt.0.0D0 ) remrat(i,k) = pptnew/qcw
 !chem2_
  
 !           1bf. Compute the amount of cloud water removed by raindrop
 !           accretion [kg/kg/s].  In the layer where the precipitation
 !           is formed, only half of the precipitation can accrete.
-            if ( pptkm1.gt.0.0 .or. pptnew.gt.0.0 ) then
+            if ( pptkm1.gt.0.0D0 .or. pptnew.gt.0.0D0 ) then
 !             1bfa. Compute the amount of water remaining in the cloud
 !             [kg/kg]
               qcleft = dmax1(qcw-pptnew*dt,0.D0)             ![kg/kg][avg]
 !             1bfb. Add 1/2 of the new precipitation to the accumulated
 !             precipitation [kg/m3]
-              pptkm1 = (pptkm1+0.5*pptnew/afc)*rho*dt        ![kg/m3][cld]
+              pptkm1 = (pptkm1+0.5D0*pptnew/afc)*rho*dt      ![kg/m3][cld]
 !             1bfc. accretion [kg/kg/s]
               pptacc = caccr*qcleft*pptkm1                   ![kg/kg/s][avg]
 !             1bfd. Update the precipitation accounting for the
@@ -245,7 +246,7 @@
             aten%qc(i,k,j) = aten%qc(i,k,j) - &
                              pptnew*sps2%ps(i,j)             ![kg/kg/s*cb][avg]
           else
-            pptnew = 0.0                                     ![kg/kg/s][avg]
+            pptnew = 0.0D0                                   ![kg/kg/s][avg]
           end if
  
         end do
@@ -259,18 +260,18 @@
 !     - Levin & Schwatz
 !--------------------------------------------------------------------
       if ( ichem.eq.1 ) then
-        uch = 1000.*rgti*3600.
+        uch = 1000.0D0*rgti*3600.0D0
         do i = istart , iend
-          rembc(i,1) = 0.
+          rembc(i,1) = 0.0D0
           do k = 2 , nk
-            rembc(i,k) = 0.
-            if ( remrat(i,k).gt.0. ) then
+            rembc(i,k) = 0.0D0
+            if ( remrat(i,k).gt.0.0D0 ) then
               do kk = 1 , k - 1
                 rembc(i,k) = rembc(i,k) + remrat(i,kk)*qcb3d(i,kk,j)    &
                            & *sps2%ps(i,j)*dsigma(kk)*uch
                                                 ! mm/hr
               end do
-              rembc(i,k) = 6.5*1.E-5*rembc(i,k)**.68   ! s^-1
+              rembc(i,k) = 6.5D0*1.D-5*rembc(i,k)**0.68D0   ! s^-1
             end if
           end do
         end do
@@ -282,9 +283,9 @@
 !     the surface physics and the output
 !--------------------------------------------------------------------
 !
-      uconv = 60.*dtmin
-      aprdiv = 1./dble(nbatst)
-      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.
+      uconv = 60.0D0*dtmin
+      aprdiv = 1.0D0/dble(nbatst)
+      if ( jyear.eq.jyear0 .and. ktau.eq.0 ) aprdiv = 1.0D0
       do i = istart , iend
         sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + pptsum(i)*uconv
         pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
