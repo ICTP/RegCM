@@ -98,7 +98,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -119,7 +119,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -127,7 +127,7 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
          end do
 #else
          jm1 = j-1
@@ -146,7 +146,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - sps2%ps(ii,jm1)
@@ -154,7 +154,7 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
          end do
 #endif
 !
@@ -175,7 +175,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -183,7 +183,7 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
          end do
 #else
          jm1 = j-1
@@ -202,7 +202,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,jm1)+dtb*pnbt(i,jm1)) - sps2%ps(ii,jm1)
@@ -210,14 +210,14 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
          end do
 #endif
       end if
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -257,7 +257,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -265,7 +265,7 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
           end do
 !
         else if ( jsls.le.ip ) then
@@ -284,7 +284,7 @@
               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
               fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -292,7 +292,7 @@
               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
-                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                       & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
             ibeg = jsls
             iend = iym1 - jsls + 1
@@ -317,7 +317,7 @@
               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           else if ( jj.le.ip ) then
 !-------east-boundary slice:
@@ -338,7 +338,7 @@
               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end if
         end if
@@ -360,7 +360,7 @@
             fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
             fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
-                    & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                    & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
             fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
             fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -368,7 +368,7 @@
             fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
             fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
             xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                     & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                     & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
           end do
 !
         else if ( jsls.le.ip ) then
@@ -387,7 +387,7 @@
               fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
               fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
               fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
               fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
@@ -395,7 +395,7 @@
               fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
               fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
               xpten(ii) = xpten(ii) + fcx*fls0 -                        &
-                       & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                       & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
             ibeg = jsls
             iend = iym1 - jsls + 1
@@ -420,7 +420,7 @@
               fls4 = (pwb(i,jsls+1)+dtb*pwbt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           else if ( jj.le.ip ) then
 !-------east-boundary slice:
@@ -441,7 +441,7 @@
               fls4 = (peb(i,jsls+1)+dtb*pebt(i,jsls+1)) - sps2%ps(i,j+1)
 #endif
               xpten(i) = xpten(i) + fcx*fls0 -                          &
-                      & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                      & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end if
         end if
@@ -484,7 +484,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -506,7 +506,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
@@ -514,7 +514,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -535,7 +535,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - atm2%t(ii,k,jm1)
@@ -543,7 +543,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 #endif
@@ -565,7 +565,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
@@ -573,7 +573,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -594,7 +594,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,jm1)+dtb*tnbt(i,k,jm1)) - atm2%t(ii,k,jm1)
@@ -602,7 +602,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -610,7 +610,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -651,7 +651,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
@@ -659,7 +659,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -680,7 +680,7 @@
                 fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j))-atm2%t(i-1,k,j)
                 fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j))-atm2%t(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
                 fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1))-atm2%t(ii,k,j-1)
@@ -688,7 +688,7 @@
                 fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j))-atm2%t(ii-1,k,j)
                 fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j))-atm2%t(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -723,7 +723,7 @@
                      & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -754,7 +754,7 @@
                      & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -778,7 +778,7 @@
               fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j)) - atm2%t(i-1,k,j)
               fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j)) - atm2%t(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
               fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1)) - atm2%t(ii,k,j-1)
@@ -786,7 +786,7 @@
               fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j)) - atm2%t(ii-1,k,j)
               fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j)) - atm2%t(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -807,7 +807,7 @@
                 fls3 = (tsb(i-1,k,j)+dtb*tsbt(i-1,k,j))-atm2%t(i-1,k,j)
                 fls4 = (tsb(i+1,k,j)+dtb*tsbt(i+1,k,j))-atm2%t(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (tnb(i,k,j)+dtb*tnbt(i,k,j)) - atm2%t(ii,k,j)
                 fls1 = (tnb(i,k,j-1)+dtb*tnbt(i,k,j-1))-atm2%t(ii,k,j-1)
@@ -815,7 +815,7 @@
                 fls3 = (tnb(i-1,k,j)+dtb*tnbt(i-1,k,j))-atm2%t(ii-1,k,j)
                 fls4 = (tnb(i+1,k,j)+dtb*tnbt(i+1,k,j))-atm2%t(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -850,7 +850,7 @@
                      & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -881,7 +881,7 @@
                      & - atm2%t(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -926,7 +926,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -948,7 +948,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
@@ -956,7 +956,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -977,7 +977,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1))-atm2%qv(ii,k,jm1)
@@ -985,7 +985,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1007,7 +1007,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
@@ -1015,7 +1015,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -1036,7 +1036,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,jm1)+dtb*qnbt(i,k,jm1))-atm2%qv(ii,k,jm1)
@@ -1044,7 +1044,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1052,7 +1052,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -1093,7 +1093,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
@@ -1101,7 +1101,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -1122,7 +1122,7 @@
                 fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j))-atm2%qv(i-1,k,j)
                 fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j))-atm2%qv(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
                 fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))- &
@@ -1134,7 +1134,7 @@
                 fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))- &
                        atm2%qv(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -1169,7 +1169,7 @@
                      & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -1200,7 +1200,7 @@
                      & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -1224,7 +1224,7 @@
               fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j)) - atm2%qv(i-1,k,j)
               fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j)) - atm2%qv(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
               fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1))-atm2%qv(ii,k,j-1)
@@ -1232,7 +1232,7 @@
               fls3 = (qnb(i-1,k,j)+dtb*qnbt(i-1,k,j))-atm2%qv(ii-1,k,j)
               fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j))-atm2%qv(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -1253,7 +1253,7 @@
                 fls3 = (qsb(i-1,k,j)+dtb*qsbt(i-1,k,j))-atm2%qv(i-1,k,j)
                 fls4 = (qsb(i+1,k,j)+dtb*qsbt(i+1,k,j))-atm2%qv(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (qnb(i,k,j)+dtb*qnbt(i,k,j)) - atm2%qv(ii,k,j)
                 fls1 = (qnb(i,k,j-1)+dtb*qnbt(i,k,j-1)) - &
@@ -1265,7 +1265,7 @@
                 fls4 = (qnb(i+1,k,j)+dtb*qnbt(i+1,k,j)) - &
                        atm2%qv(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -1300,7 +1300,7 @@
                      & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -1331,7 +1331,7 @@
                      & - atm2%qv(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -1375,7 +1375,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -1397,7 +1397,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
@@ -1405,7 +1405,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -1426,7 +1426,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - atm2%u(ii,k,jm1)
@@ -1434,7 +1434,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1455,7 +1455,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
@@ -1463,7 +1463,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -1484,7 +1484,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,jm1)+dtb*unbt(i,k,jm1)) - atm2%u(ii,k,jm1)
@@ -1492,7 +1492,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1500,7 +1500,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
@@ -1534,7 +1534,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
@@ -1542,7 +1542,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -1563,7 +1563,7 @@
                 fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j))- atm2%u(i-1,k,j)
                 fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j))- atm2%u(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
                 fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1))-atm2%u(ii,k,j-1)
@@ -1571,7 +1571,7 @@
                 fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j))-atm2%u(ii-1,k,j)
                 fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j))-atm2%u(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -1606,7 +1606,7 @@
                      & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -1637,7 +1637,7 @@
                      & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -1661,7 +1661,7 @@
               fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j)) - atm2%u(i-1,k,j)
               fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j)) - atm2%u(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
               fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1)) - atm2%u(ii,k,j-1)
@@ -1669,7 +1669,7 @@
               fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j)) - atm2%u(ii-1,k,j)
               fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j)) - atm2%u(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -1690,7 +1690,7 @@
                 fls3 = (usb(i-1,k,j)+dtb*usbt(i-1,k,j))-atm2%u(i-1,k,j)
                 fls4 = (usb(i+1,k,j)+dtb*usbt(i+1,k,j))-atm2%u(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (unb(i,k,j)+dtb*unbt(i,k,j)) - atm2%u(ii,k,j)
                 fls1 = (unb(i,k,j-1)+dtb*unbt(i,k,j-1))-atm2%u(ii,k,j-1)
@@ -1698,7 +1698,7 @@
                 fls3 = (unb(i-1,k,j)+dtb*unbt(i-1,k,j))-atm2%u(ii-1,k,j)
                 fls4 = (unb(i+1,k,j)+dtb*unbt(i+1,k,j))-atm2%u(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -1733,7 +1733,7 @@
                      & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -1764,7 +1764,7 @@
                      & - atm2%u(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -1808,7 +1808,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -1830,7 +1830,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
@@ -1838,7 +1838,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -1859,7 +1859,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - atm2%v(ii,k,jm1)
@@ -1867,7 +1867,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1888,7 +1888,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
@@ -1896,7 +1896,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #else
@@ -1917,7 +1917,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,jm1)+dtb*vnbt(i,k,jm1)) - atm2%v(ii,k,jm1)
@@ -1925,7 +1925,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
          end do
 #endif
@@ -1933,7 +1933,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*60.
+      dtb = xt*60.0D0
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
@@ -1967,7 +1967,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
@@ -1975,7 +1975,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -1996,7 +1996,7 @@
                 fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j))-atm2%v(i-1,k,j)
                 fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j))-atm2%v(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
                 fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1))-atm2%v(ii,k,j-1)
@@ -2004,7 +2004,7 @@
                 fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j))-atm2%v(ii-1,k,j)
                 fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j))-atm2%v(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -2039,7 +2039,7 @@
                      & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -2070,7 +2070,7 @@
                      & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
@@ -2094,7 +2094,7 @@
               fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j)) - atm2%v(i-1,k,j)
               fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j)) - atm2%v(i+1,k,j)
               ften(i,k) = ften(i,k) + fcx*fls0 -                        &
-                        & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                        & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !........north boundary:
               fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
               fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1)) - atm2%v(ii,k,j-1)
@@ -2102,7 +2102,7 @@
               fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j)) - atm2%v(ii-1,k,j)
               fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j)) - atm2%v(ii+1,k,j)
               ften(ii,k) = ften(ii,k) + fcx*fls0 -                      &
-                         & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                         & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
             end do
           end do
 !
@@ -2123,7 +2123,7 @@
                 fls3 = (vsb(i-1,k,j)+dtb*vsbt(i-1,k,j))-atm2%v(i-1,k,j)
                 fls4 = (vsb(i+1,k,j)+dtb*vsbt(i+1,k,j))-atm2%v(i+1,k,j)
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
 !.........north boundary:
                 fls0 = (vnb(i,k,j)+dtb*vnbt(i,k,j)) - atm2%v(ii,k,j)
                 fls1 = (vnb(i,k,j-1)+dtb*vnbt(i,k,j-1))-atm2%v(ii,k,j-1)
@@ -2131,7 +2131,7 @@
                 fls3 = (vnb(i-1,k,j)+dtb*vnbt(i-1,k,j))-atm2%v(ii-1,k,j)
                 fls4 = (vnb(i+1,k,j)+dtb*vnbt(i+1,k,j))-atm2%v(ii+1,k,j)
                 ften(ii,k) = ften(ii,k) + fcx*fls0 -                    &
-                           & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                           & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
             ibeg = jsls
@@ -2166,7 +2166,7 @@
                      & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           else if ( jj.le.ip ) then
@@ -2197,7 +2197,7 @@
                      & - atm2%v(i,k,j+1)
 #endif
                 ften(i,k) = ften(i,k) + fcx*fls0 -                      &
-                          & gcx*c203*(fls1+fls2+fls3+fls4-4.*fls0)
+                          & gcx*c203*(fls1+fls2+fls3+fls4-4.0D0*fls0)
               end do
             end do
           end if
