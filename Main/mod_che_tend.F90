@@ -513,7 +513,7 @@
         if ( chtrname(itr).eq.'DUST' .and. gfcall2 ) then
  
           do i = 2 , iym2
-            ivegcov(i) = nint(veg2d(i,j))
+            ivegcov(i) = idnint(veg2d(i,j))
             psurf(i) = sps2%ps(i,j)*1000. + r8pt
  
             do k = 1 , kz
@@ -585,12 +585,13 @@
            &                   rho(i,kz) )
  
 !           soil wetness
-!           soilw(i) = ssw2da(i,j)                                      &
-!                    & /(xmopor(iexsol(nint(mddom%satbrt(i,j))))*depuv &
-!                    & (nint(mddom%satbrt(i,j))))
+!           soilw(i) = ssw2da(i,j)                                       &
+!                    & /(xmopor(iexsol(idnint(mddom%satbrt(i,j))))*depuv &
+!                    & (idnint(mddom%satbrt(i,j))))
  
-            soilw(i) = ssw2da(i,j)/depuv(nint(mddom%satbrt(i,j))) /    &
-                  & (2650.*(1-xmopor(iexsol(nint(mddom%satbrt(i,j))))))
+            soilw(i) = ssw2da(i,j)/depuv(idnint(mddom%satbrt(i,j))) /   &
+                  & (2650.0D0* &
+                  (1.0D0-xmopor(iexsol(idnint(mddom%satbrt(i,j))))))
  
 !           soilw(i) = ssw2da(i,j) /(xmopor(iexsol(ivegcov(i)) )
 !           &                            * depuv(ivegcov(i))      )

@@ -252,9 +252,9 @@
         else
           ib = 0
         end if
-        julianday = int(365.25D+00*(iiy+4716)) +                        &
-          &         int(30.6001D+00*(iim+1))   +                        &
-          &         id + ib - 1524.5D+00
+        julianday = idint(365.25D+00*dble(iiy+4716)) + &
+          &         idint(30.6001D+00*dble(iim+1))   + &
+          &         dble(id + ib) - 1524.5D+00
       end function julianday
 
       function idatediff(idate2, idate1)
@@ -334,7 +334,7 @@
         real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = int(mod(jd+1.5D+00, 7.0D+00))+1
+        idayofweek = idint(dmod(dble(jd)+1.5D+00, 7.0D+00))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -450,8 +450,8 @@
         integer :: iy , im , id , ih , imom
         call split_idate(idate, iy, im, id, ih)
         rmom = dble(mdays(iy, im))/2.0
-        imom = int(rmom)
-        ih = int((rmom-dble(imom))*24.0)
+        imom = idint(rmom)
+        ih = idint((rmom-dble(imom))*24.0)
         imonmiddle = mkidate(iy, im, imom, ih)
       end function imonmiddle
 
@@ -497,7 +497,7 @@
 
         if (csave == cunit) then
           timeval2idate = iref
-          call addhours(timeval2idate,nint(xval))
+          call addhours(timeval2idate,idnint(xval))
         else
           if (len_trim(cunit) < 35) then
             timeval2idate = 0
@@ -507,7 +507,7 @@
             timeval2idate = mkidate(year,month,day,hour)
             iref = timeval2idate
             csave = cunit
-            call addhours(timeval2idate,nint(xval))
+            call addhours(timeval2idate,idnint(xval))
           end if
         end if
 

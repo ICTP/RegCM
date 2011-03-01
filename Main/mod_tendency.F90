@@ -2228,13 +2228,13 @@
 !
       ktau = ktau + 1
       xtime = xtime + dtmin
-      ntime = ntime + nint(dtmin*60.)
-      if ( dabs(xtime-ibdyfrq*60.).lt.0.00001 ) then
+      ntime = ntime + idnint(dtmin*60.0D0)
+      if ( dabs(xtime-ibdyfrq*60.0D0).lt.0.00001D0 ) then
         call addhours(ldatez, ibdyfrq)
         call split_idate(ldatez, lyear, lmonth, lday, lhour)
         nnnnnn = nnnnnn + 1
-        xtime = 0.0
-        if ( lfirstjanatmidnight(ldatez) .and. xtime.lt.0.0001 ) then
+        xtime = 0.0D0
+        if ( lfirstjanatmidnight(ldatez) .and. xtime.lt.0.0001D0 ) then
           jyear = lyear
           ktau = 0
           ntime = 0
@@ -2337,7 +2337,7 @@
 !
       if ( dabs(xtime).lt.0.00001 .and. ldatez.ne.idate1 ) then
         call solar1(xtime)
-        dectim = anint(1440.+dectim)
+        dectim = dnint(1440.0D0+dectim)
 #ifdef MPP1
         if ( myid.eq.0 ) write (*,*) ' dectim = ' , dectim
 #else

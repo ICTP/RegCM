@@ -383,7 +383,7 @@
 !
 !     Input arguments
 !
-! ioro   - nint(oro(i))
+! ioro   - idnint(oro(i))
 ! t      - Temperature
 ! ps     - surface pressure
 ! pmid   - midpoint pressures

@@ -91,47 +91,47 @@
       existing = .false.
 #ifdef MPP1
 #ifndef BAND
-      peb  = 0.0
-      pwb  = 0.0
-      pebt = 0.0
-      pwbt = 0.0
-      teb  = 0.0
-      twb  = 0.0
-      tebt = 0.0
-      twbt = 0.0
-      qeb  = 0.0
-      qwb  = 0.0
-      qebt = 0.0
-      qwbt = 0.0
-      ueb  = 0.0
-      uwb  = 0.0
-      uebt = 0.0
-      uwbt = 0.0
-      veb  = 0.0
-      vwb  = 0.0
-      vebt = 0.0
-      vwbt = 0.0
+      peb  = 0.0D0
+      pwb  = 0.0D0
+      pebt = 0.0D0
+      pwbt = 0.0D0
+      teb  = 0.0D0
+      twb  = 0.0D0
+      tebt = 0.0D0
+      twbt = 0.0D0
+      qeb  = 0.0D0
+      qwb  = 0.0D0
+      qebt = 0.0D0
+      qwbt = 0.0D0
+      ueb  = 0.0D0
+      uwb  = 0.0D0
+      uebt = 0.0D0
+      uwbt = 0.0D0
+      veb  = 0.0D0
+      vwb  = 0.0D0
+      vebt = 0.0D0
+      vwbt = 0.0D0
 #endif
-      pnb  = 0.0
-      pss  = 0.0
-      pnbt = 0.0
-      psbt = 0.0
-      tnb  = 0.0
-      tsb  = 0.0
-      tnbt = 0.0
-      tsbt = 0.0
-      qnb  = 0.0
-      qsb  = 0.0
-      qnbt = 0.0
-      qsbt = 0.0
-      unb  = 0.0
-      usb  = 0.0
-      unbt = 0.0
-      usbt = 0.0
-      vnb  = 0.0
-      vsb  = 0.0
-      vnbt = 0.0
-      vsbt = 0.0
+      pnb  = 0.0D0
+      pss  = 0.0D0
+      pnbt = 0.0D0
+      psbt = 0.0D0
+      tnb  = 0.0D0
+      tsb  = 0.0D0
+      tnbt = 0.0D0
+      tsbt = 0.0D0
+      qnb  = 0.0D0
+      qsb  = 0.0D0
+      qnbt = 0.0D0
+      qsbt = 0.0D0
+      unb  = 0.0D0
+      usb  = 0.0D0
+      unbt = 0.0D0
+      usbt = 0.0D0
+      vnb  = 0.0D0
+      vsb  = 0.0D0
+      vnbt = 0.0D0
+      vsbt = 0.0D0
 #endif
       tgmx_o = -1.E30
       t2mx_o = -1.E30
@@ -162,32 +162,32 @@
 !
 !------set rainwater and cloud water equal to zero initially.
 !
-        atm1%qc = 0.0
-        atm2%qc = 0.0
+        atm1%qc = 0.0D0
+        atm2%qc = 0.0D0
 !
 !chem2
         if ( ichem.eq.1 ) then
 !qhy      tchie, tchitb(replace tchidp:deposition)
 !         initialize removal terms
-          remlsc = 0.0
-          remcvc = 0.0
-          rxsg   = 0.0
-          rxsaq1 = 0.0
-          rxsaq2 = 0.0
-          remdrd = 0.0
-          wdlsc  = 0.0
+          remlsc = 0.0D0
+          remcvc = 0.0D0
+          rxsg   = 0.0D0
+          rxsaq1 = 0.0D0
+          rxsaq2 = 0.0D0
+          remdrd = 0.0D0
+          wdlsc  = 0.0D0
         end if
 !chem2_
 !------set the variables related to blackadar pbl equal to 0 initially.
 !
         if ( ibltyp.ne.0 ) then
-          sfsta%hfx = 0.0
-          sfsta%qfx = 0.0
+          sfsta%hfx = 0.0D0
+          sfsta%qfx = 0.0D0
         end if
 !
         if ( icup.eq.1 ) then
-          rsheat = 0.0
-          rswat  = 0.0
+          rsheat = 0.0D0
+          rswat  = 0.0D0
         end if
 !
 !------read in the initial conditions for large domain:
@@ -201,7 +201,7 @@
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                    &     tb0_io,qb0_io,so0_io)
           write (6,*) 'READY IC DATA for ', ndate0
-          ps0_io = ps0_io/10.0
+          ps0_io = ps0_io/10.0D0
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -277,22 +277,22 @@
                         & mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , iym1
-            psdot(i,j) = 0.25*(ps0(i,j)   + ps0(i-1,j) +                &
-                         &     ps0(i,j-1) + ps0(i-1,j-1))
+            psdot(i,j) = 0.25D0*(ps0(i,j)   + ps0(i-1,j) +   &
+                         &       ps0(i,j-1) + ps0(i-1,j-1))
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          if ( myid.eq.0 ) psdot(i,1) = 0.5*(ps0(i,1)+ps0(i-1,1))
+          if ( myid.eq.0 ) psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
           if ( myid.eq.nproc-1 ) psdot(i,jendl)                         &
-             & = 0.5*(ps0(i,jendx)+ps0(i-1,jendx))
+             & = 0.5D0*(ps0(i,jendx)+ps0(i-1,jendx))
         end do
 #endif
 !
         do j = jbegin , jendx
-          psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,j-1))
-          psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,j-1))
+          psdot(1,j) = 0.5D0*(ps0(1,j)+ps0(1,j-1))
+          psdot(iy,j) = 0.5D0*(ps0(iym1,j)+ps0(iym1,j-1))
         end do
 !
 #ifndef BAND
@@ -348,10 +348,10 @@
             do i = 1 , iym1
               if ( mddom%satbrt(i,j).gt.13.5 .and. &
                    mddom%satbrt(i,j).lt.15.5 ) then
-                if ( ts0(i,j).le.271.38 ) then
-                  sts1%tg(i,j) = 271.38
-                  sts2%tg(i,j) = 271.38
-                  ts0(i,j) = 271.38
+                if ( ts0(i,j).le.271.38D0 ) then
+                  sts1%tg(i,j) = 271.38D0
+                  sts2%tg(i,j) = 271.38D0
+                  ts0(i,j) = 271.38D0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.0D0
                   end do
@@ -396,7 +396,7 @@
             do j = 1 , jendl
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
+                          tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.0D0)
               end do
             end do
           end do
@@ -416,24 +416,24 @@
             sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
             sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
-            sfsta%zpbl(i,j) = 500.  ! For Zeng Ocean Flux Scheme
+            sfsta%zpbl(i,j) = 500.0D0  ! For Zeng Ocean Flux Scheme
           end do
         end do
         do j = 1 , jendx
           do i = 1 , iym1
             do k = 1 , nnsg
-              snowc(k,i,j) = 0.
+              snowc(k,i,j) = 0.0D0
             end do
           end do
         end do
         if ( ichem.eq.1 ) then
-          ssw2da    = 0.0
-          sdeltk2d  = 0.0
-          sdelqk2d  = 0.0
-          sfracv2d  = 0.5
-          sfracb2d  = 0.5
-          sfracs2d  = 0.0
-          svegfrac2d = 0.0
+          ssw2da    = 0.0D0
+          sdeltk2d  = 0.0D0
+          sdelqk2d  = 0.0D0
+          sfracv2d  = 0.5D0
+          sfracb2d  = 0.5D0
+          sfracs2d  = 0.0D0
+          svegfrac2d = 0.0D0
         end if
 #else
         call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
@@ -441,7 +441,7 @@
 !
 !       Convert surface pressure to pstar
 !
-        ps0 = ps0/10.0 - r8pt
+        ps0 = ps0/10.0D0 - r8pt
 
 !=======================================================================
 !
@@ -460,15 +460,15 @@
           if(jm1.eq.0) jm1=jx
 #endif
           do i = 2 , iym1
-            psdot(i,j) = 0.25*(ps0(i,j)+ps0(i-1,j)+                     &
-                       &       ps0(i,jm1)+ps0(i-1,jm1))
+            psdot(i,j) = 0.25D0*(ps0(i,j)+ps0(i-1,j)+     &
+                       &         ps0(i,jm1)+ps0(i-1,jm1))
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          psdot(i,1) = 0.5*(ps0(i,1)+ps0(i-1,1))
-          psdot(i,jx) = 0.5*(ps0(i,jxm1)+ps0(i-1,jxm1))
+          psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
+          psdot(i,jx) = 0.5D0*(ps0(i,jxm1)+ps0(i-1,jxm1))
         end do
 #endif
 !
@@ -481,8 +481,8 @@
 #if defined(BAND) && (!defined(MPP1))
           if(jm1.eq.0) jm1=jx
 #endif
-          psdot(1,j) = 0.5*(ps0(1,j)+ps0(1,jm1))
-          psdot(iy,j) = 0.5*(ps0(iym1,j)+ps0(iym1,jm1))
+          psdot(1,j) = 0.5D0*(ps0(1,j)+ps0(1,jm1))
+          psdot(iy,j) = 0.5D0*(ps0(iym1,j)+ps0(iym1,jm1))
         end do
 !
 #ifndef BAND
@@ -541,10 +541,10 @@
             do i = 1 , iym1
               if ( mddom%satbrt(i,j).gt.13.5 .and. &
                    mddom%satbrt(i,j).lt.15.5 ) then
-                if ( ts0(i,j).le.271.38 ) then
-                  sts1%tg(i,j) = 271.38
-                  sts2%tg(i,j) = 271.38
-                  ts0(i,j) = 271.38
+                if ( ts0(i,j).le.271.38D0 ) then
+                  sts1%tg(i,j) = 271.38D0
+                  sts2%tg(i,j) = 271.38D0
+                  ts0(i,j) = 271.38D0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2.0D0
                   end do
@@ -593,7 +593,7 @@
             do j = 1 , jx
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                           tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.)
+                           tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.0D0)
               end do
             end do
           end do
@@ -617,7 +617,7 @@
             sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
             sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
-            sfsta%zpbl(i,j) = 500.
+            sfsta%zpbl(i,j) = 500.0D0
                        ! For Zeng Ocean Flux Scheme
           end do
         end do
@@ -628,18 +628,18 @@
 #endif
           do i = 1 , iym1
             do k = 1 , nnsg
-              snowc(k,i,j) = 0.
+              snowc(k,i,j) = 0.0D0
             end do
           end do
         end do
         if ( ichem.eq.1 ) then
-          ssw2da = 0.0
-          sdeltk2d = 0.0
-          sdelqk2d = 0.0
-          sfracv2d = 0.5
-          sfracb2d = 0.5
-          sfracs2d = 0.0
-          svegfrac2d = 0.0
+          ssw2da = 0.0D0
+          sdeltk2d = 0.0D0
+          sdelqk2d = 0.0D0
+          sfracv2d = 0.5D0
+          sfracb2d = 0.5D0
+          sfracs2d = 0.0D0
+          svegfrac2d = 0.0D0
         end if
 #endif
 #ifndef BAND
@@ -687,11 +687,11 @@
 !
 !------set rainc and rainnc equal to 0. initially
 !
-        sfsta%rainc  = 0.0
-        sfsta%rainnc = 0.0
+        sfsta%rainc  = 0.0D0
+        sfsta%rainnc = 0.0D0
  
         if ( icup==4 .or. icup==99 .or. icup==98) then
-          cbmf2d = 0.0
+          cbmf2d = 0.0D0
         end if
 !
       else ! ifrest=.true.
@@ -1456,7 +1456,7 @@
 #endif
           do i = 1 , iym1
             do n = 1 , nnsg
-              ist = nint(veg2d1(n,i,j))
+              ist = idnint(veg2d1(n,i,j))
               if ( ist.eq.0 ) then
                 emiss2d(n,i,j) = 0.955D0
               else if ( ist.eq.8 ) then
@@ -1469,7 +1469,7 @@
                 emiss2d(n,i,j) = 0.99D0 - (albvgs(ist)+albvgl(ist))     &
                                & *0.1D0
               end if
-!             emiss2d(n,i,j) = 1.0d0
+!             emiss2d(n,i,j) = 1.0D0
             end do
           end do
         end do
@@ -1493,7 +1493,7 @@
       do j = 1 , jx
 #endif
         do i = 1 , iy
-          domfc%hgfact(i,j) = 1.
+          domfc%hgfact(i,j) = 1.0D0
         end do
       end do
 #ifdef BAND
@@ -1535,7 +1535,7 @@
           hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
           hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
           hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          domfc%hgfact(i,j) = 1./(1.+(hgmax/0.001)**2.)
+          domfc%hgfact(i,j) = 1.0D0/(1.0D0+(hgmax/0.001D0)**2.0D0)
         end do
       end do
 !
@@ -1552,7 +1552,7 @@
       end if
 #endif
 
-      dectim = anint(xtime+dectim)
+      dectim = dnint(xtime+dectim)
       write (aline, *) 'dectim = ' , dectim
       call say
 
@@ -1582,8 +1582,8 @@
 #endif
 #endif
             do i = 1 , iym1
-              heatrt(i,k,j) = 0.
-              o3prof(i,k,j) = 0.
+              heatrt(i,k,j) = 0.0D0
+              o3prof(i,k,j) = 0.0D0
             end do
           end do
         end do
@@ -1597,7 +1597,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            o3prof(i,kzp1,j) = 0.
+            o3prof(i,kzp1,j) = 0.0D0
           end do
         end do
         call o3data

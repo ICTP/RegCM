@@ -1374,7 +1374,7 @@
  
 !         Fill output arrays if needed
  
-          if ( mod(ntime+nint(dtmin*60.0D0),kbats)==0 .or. &
+          if ( mod(ntime+idnint(dtmin*60.0D0),kbats)==0 .or. &
                (jyear.eq.jyear0 .and. ktau.eq.0) ) then
  
             do i = 2 , iym1

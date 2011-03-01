@@ -759,7 +759,7 @@
 #endif
         end do
 
-        if ( mod(ntime+idint(dtmin*60.),kbats).eq.0 .or.    &
+        if ( mod(ntime+idnint(dtmin*60.0D0),kbats).eq.0 .or.    &
             ( jyear.eq.jyear0 .and. ktau.eq.0 ) .or.       & 
             ( ifrest .and. .not. done_restart ) ) then
           if ( jyear.eq.jyear0 .and. ktau.le.1 ) then

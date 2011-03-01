@@ -148,9 +148,9 @@
 !
 !**   compute m.
       do ns = 1 , nsplit
-        m(ns) = nint(dt/dtau(ns))
+        m(ns) = idnint(dt/dtau(ns))
         if ( jyear.ne.jyear0 .or. ktau.ne.0 ) &
-          m(ns) = nint(.5*dt/dtau(ns))
+          m(ns) = idnint(0.5D0*dt/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid.eq.0 ) print * , 'dt, dtau = ' , dt , dtau
