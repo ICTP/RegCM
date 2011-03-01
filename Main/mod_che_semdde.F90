@@ -45,22 +45,22 @@
 !
 !     Dynamic Viscosity Parameters
 !
-      real(8) , parameter :: a1 = 145.8
-      real(8) , parameter :: a2 = 1.5
-      real(8) , parameter :: a3 = 110.4
+      real(8) , parameter :: a1 = 145.8D0
+      real(8) , parameter :: a2 = 1.5D0
+      real(8) , parameter :: a3 = 110.4D0
 !
 !     Molecular Free Path calculation parameters
 !
-      real(8) , parameter :: c1 = 6.54E-8
-      real(8) , parameter :: c2 = 1.818E-5
-      real(8) , parameter :: c3 = 1.013E5
-      real(8) , parameter :: c4 = 293.15
+      real(8) , parameter :: c1 = 6.54D-8
+      real(8) , parameter :: c2 = 1.818D-5
+      real(8) , parameter :: c3 = 1.013D5
+      real(8) , parameter :: c4 = 293.15D0
 !
 !     Cunningham slip correction factor parameters
 !
-      real(8) , parameter :: aa1 = 1.257
-      real(8) , parameter :: aa2 = 0.4
-      real(8) , parameter :: aa3 = 1.1
+      real(8) , parameter :: aa1 = 1.257D0
+      real(8) , parameter :: aa2 = 0.4D0
+      real(8) , parameter :: aa3 = 1.1D0
 !
       contains
 !
@@ -147,20 +147,20 @@
 #endif
           do i = 1 , iy
             if ( iso4.gt.0 ) chemsrc(i,j,m,iso4)                        &
-               & = 0.02*chemsrc(i,j,m,iso2)
+               & = 0.02D0*chemsrc(i,j,m,iso2)
             if ( iso2.gt.0 ) chemsrc(i,j,m,iso2)                        &
-               & = 0.98*chemsrc(i,j,m,iso2)
+               & = 0.98D0*chemsrc(i,j,m,iso2)
  
 !           partition hydrophilic hydrophonic ( cooke et al.1999)
 !           BC
             if ( ibchb.gt.0 .and. ibchl.gt.0 ) then
-              chemsrc(i,j,m,ibchl) = 0.2*chemsrc(i,j,m,ibchb)
-              chemsrc(i,j,m,ibchb) = 0.8*chemsrc(i,j,m,ibchb)
+              chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
+              chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
             end if
 !           OC
             if ( iochb.gt.0 .and. iochl.gt.0 ) then
-              chemsrc(i,j,m,iochl) = 0.5*chemsrc(i,j,m,iochb)
-              chemsrc(i,j,m,iochb) = 0.5*chemsrc(i,j,m,iochb)
+              chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
+              chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
             end if
           end do
         end do
@@ -221,25 +221,25 @@
                   do i = 1 , 4
                     do j = 1 , 19
  
-                      if ( (dextmix(i,j,k,l,m,n).lt.0.) .or.            &
-                         & (dextmix(i,j,k,l,m,n).gt.20.) ) then
-                        write (aline,*) 'problem in dextmix ' ,         &
+                      if ( (dextmix(i,j,k,l,m,n).lt.0.0D0) .or.   &
+                         & (dextmix(i,j,k,l,m,n).gt.20.0D0) ) then
+                        write (aline,*) 'problem in dextmix ' ,   &
                                       & dextmix(i,j,k,l,m,n)
                         call say
                         call fatal(__FILE__,__LINE__,'DETMIX ERROR')
                       end if
  
-                      if ( (dssamix(i,j,k,l,m,n).lt.0.) .or.            &
-                         & (dssamix(i,j,k,l,m,n).gt.1.) ) then
-                        write (aline,*) 'problem in dssamix ' ,         &
+                      if ( (dssamix(i,j,k,l,m,n).lt.0.0D0) .or.   &
+                         & (dssamix(i,j,k,l,m,n).gt.1.0D0) ) then
+                        write (aline,*) 'problem in dssamix ' ,   &
                                       & dssamix(i,j,k,l,m,n)
                         call say
                         call fatal(__FILE__,__LINE__,'DSSAMIX ERROR')
                       end if
  
-                      if ( (dgmix(i,j,k,l,m,n).lt.0.) .or.              &
-                         & (dgmix(i,j,k,l,m,n).gt.1.) ) then
-                        write (aline,*) 'problem in dgmix ' ,           &
+                      if ( (dgmix(i,j,k,l,m,n).lt.0.0D0) .or.     &
+                         & (dgmix(i,j,k,l,m,n).gt.1.0D0) ) then
+                        write (aline,*) 'problem in dgmix ' ,     &
                                       & dgmix(i,j,k,l,m,n)
                         call say
                         call fatal(__FILE__,__LINE__,'DGMIX ERROR')
@@ -329,7 +329,7 @@
       real(8) , dimension(ilg,luc) :: ra , ustar , vegcover
       real(8) , dimension(ilg,luc,isize) :: rs
  
-      real(8) , parameter :: z10 = 10.0
+      real(8) , parameter :: z10 = 10.0D0
       real(8) , dimension(isize) :: avesize
       character (len=50) :: subroutine_name='chdrydep'
       integer :: idindx=0
@@ -338,7 +338,7 @@
 
       i = 0
       do n = 1 , isize
-        avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0
+        avesize(n) = (aerosize(1,n)+aerosize(2,n))/2.0D0
       end do
  
 !======================================================================
@@ -357,7 +357,7 @@
 !           * air's dynamic viscosity                           ****
 !           ********************************************************
  
-            amu(i,l) = a1*1.E-8*throw(i,l)**a2/(throw(i,l)+a3)
+            amu(i,l) = a1*1.D-8*throw(i,l)**a2/(throw(i,l)+a3)
  
 !           . . . . mid layer pressure in [pascal].
             pre = pressg(i)*shj(l)
@@ -366,8 +366,8 @@
 !           *     k.v. beard [1976], j atm. sci., 33            ****
 !           ********************************************************
  
-            amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(1./2.)
-            prii = 2./9.*gti/amu(i,l)
+            amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(0.5D0)
+            prii = 2.0D0/9.0D0*gti/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
  
 !           ********************************************************
@@ -375,10 +375,10 @@
 !           * relaxation time = vg/grav.                        ****
 !           ********************************************************
  
-            cfac(i,l,n) = 1. + amfp/avesize(n)                          &
+            cfac(i,l,n) = 1.0D0 + amfp/avesize(n) &
                         & *(aa1+aa2*dexp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n)*rgti, &
-                          & 0.D0)
+            taurel(i,l,n) = dmax1(priiv*avesize(n)**2.0D0* &
+                                  cfac(i,l,n)*rgti,0.D0)
  
 !           ********************************************************
 !           * stokes friction                                  *****
@@ -418,7 +418,7 @@
 !         *****
  
 ! ***************************************************************
-          ptemp2 = temp2(i) + z10*0.0098
+          ptemp2 = temp2(i) + z10*0.0098D0
  
 ! ***************************************************************
 !         * for calculations over water compute values of critical 
@@ -435,10 +435,11 @@
 !           ***** *  vptemp- virtual potential temperature at z2 (deg.
 !           k)  *****
 ! **************************************************************
-            es = 6.108*dexp(17.27*(temp2(i)-tzero)/(temp2(i)-35.86))
+            es = 6.108D0*dexp(17.27D0* &
+                             (temp2(i)-tzero)/(temp2(i)-35.86D0))
             vp = rh10(i)*es
             wvpm = ep2*vp/(stdpmb-vp)
-            vptemp = ptemp2*(1.0+0.61*wvpm)
+            vptemp = ptemp2*(1.0D0+0.61D0*wvpm)
  
 ! **************************************************************
 !           *  assume rh10 at water surface is 100%                 
@@ -451,10 +452,10 @@
  
 ! **************************************************************
             tsw = sutemp(i)
-            vp = 6.108*dexp(17.27*(tsw-tzero)/(tsw-35.86))
+            vp = 6.108D0*dexp(17.27D0*(tsw-tzero)/(tsw-35.86D0))
             qs = ep2*vp/(stdpmb-vp)
-            tsv = tsw*(1.+0.61*qs)
-            z0water = 1.0E-4
+            tsv = tsw*(1.0D0+0.61D0*qs)
+            z0water = 1.0D-4
 ! **************************************************************
 !           * scalet  :  not required if  z2 = 10m                  
 !           *****
@@ -466,41 +467,42 @@
 !           *****
  
 ! **************************************************************
-            cun = 7.5E-4 + 6.7E-5*ww
-            mol = 9999.0
+            cun = 7.5D-4 + 6.7D-5*ww
+            mol = 9999.0D0
  
-            if ( dabs(dthv).gt.1.0E-6 )                                  &
-               & mol = vptemp*cun**1.5*ww**2/(5.096E-3*dthv)
-            if ( mol.gt.0. .and. mol.lt.5.0 ) mol = 5.0
-            if ( mol.gt.-5.0 .and. mol.lt.0 ) mol = -5.0
+            if ( dabs(dthv).gt.1.0D-6 )                                  &
+               & mol = vptemp*cun**1.5D0*ww**2.0D0/(5.096D-3*dthv)
+            if ( mol.gt.0.0D0 .and. mol.lt.5.0D0 ) mol =  5.0D0
+            if ( mol.gt.-5.0D0 .and. mol.lt.0.D0 ) mol = -5.0D0
             zdl = z10/mol
 !
-            if ( zdl.lt.0.0 ) then
+            if ( zdl.lt.0.0D0 ) then
  
 ! **************************************************************
 !             *                        wind speed                     
 !             *****
  
 ! **************************************************************
-              x = (1.0-15.0*zdl)**0.25
-              psiu = 2.*dlog(0.5*(1.0+x)) + dlog(0.5*(1.0+x*x))         &
-                   & - 2.0*datan(x) + 0.5*mathpi
+              x = (1.0D0-15.0D0*zdl)**0.25D0
+              psiu = 2.0D0*dlog(0.5D0*(1.0D0+x)) + & 
+                           dlog(0.5D0*(1.0D0+x*x)) - &
+                     2.0D0*datan(x) + 0.5D0*mathpi
  
 ! **************************************************************
 !             *                       pot temp                        
 !             *****
 ! **************************************************************
-              y = dsqrt(1.-9.*zdl)
-              psit = 2.*0.74*dlog((1+y)/2.0)
+              y = dsqrt(1.0D0-9.0D0*zdl)
+              psit = 2.0D0*0.74D0*dlog((1.0D0+y)/2.0D0)
             else
-              psiu = -4.7*zdl
+              psiu = -4.7D0*zdl
               psit = psiu
             end if
-            z0water = 0.000002*ww**2.5
+            z0water = 0.000002D0*ww**2.5D0
 !
             ustar(i,j) = vonkar*ww/(dlog(z10/z0water)-psiu)
             thstar = vonkar*(ptemp2-sutemp(i))                          &
-                   & /(0.74*dlog(z10/z0water)-psit)
+                   & /(0.74D0*dlog(z10/z0water)-psit)
             zz0(i) = z0water
 !
           else
@@ -512,43 +514,43 @@
 !           ****
  
 ! **************************************************************
-            rib = gti*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
+            rib = gti*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2.0D0)
  
 ! ***************************************************************
 !           * ensure that conditions over land are never stable when 
 !           ***** * there is incoming solar radiatiom                  
 !           *****
 ! ***************************************************************
-            if ( srad(i).gt.0.0 .and. rib.gt.0.0 ) rib = 1.E-15
+            if ( srad(i).gt.0.0D0 .and. rib.gt.0.0D0 ) rib = 1.D-15
 !
             dtemp = ptemp2 - sutemp(i)
-            if ( dabs(dtemp).lt.1.E-10 ) dtemp = dsign(1.D-10,dtemp)
-            tbar = 0.5*(ptemp2+sutemp(i))
+            if ( dabs(dtemp).lt.1.D-10 ) dtemp = dsign(1.D-10,dtemp)
+            tbar = 0.5D0*(ptemp2+sutemp(i))
 !
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
-            asq = 0.16/(logratio**2)
+            asq = 0.16D0/(logratio**2.0D0)
 !
-            if ( rib.le.0.0 ) then
-              aa = asq*9.4*dsqrt(ratioz)
-              cm = 7.4*aa
-              ch = 5.3*aa
-              fm = 1. - (9.4*rib/(1.+cm*dsqrt(dabs(rib))))
-              fh = 1. - (9.4*rib/(1.+ch*dsqrt(dabs(rib))))
+            if ( rib.le.0.0D0 ) then
+              aa = asq*9.4D0*dsqrt(ratioz)
+              cm = 7.4D0*aa
+              ch = 5.3D0*aa
+              fm = 1.0D0 - (9.4D0*rib/(1.0D0+cm*dsqrt(dabs(rib))))
+              fh = 1.0D0 - (9.4D0*rib/(1.0D0+ch*dsqrt(dabs(rib))))
             else
-              fm = 1./((1.+4.7*rib)**2)
+              fm = 1.0D0/((1.0D0+4.7D0*rib)**2.0D0)
               fh = fm
             end if
 !
-            ustarsq = asq*ww**2*fm
-            utstar = asq*ww*dtemp*fh/0.74
+            ustarsq = asq*ww**2.0D0*fm
+            utstar = asq*ww*dtemp*fh/0.74D0
             ustar(i,j) = dsqrt(ustarsq)
             thstar = utstar/ustar(i,j)
 !
             mol = tbar*ustarsq/(vonkar*gti*thstar)
           end if
  
-          kui = 1.0/(vonkar*ustar(i,j))
+          kui = 1.0D0/(vonkar*ustar(i,j))
  
 !         **************************************************************
 !         * compute the values of  ra                            *******
@@ -557,11 +559,11 @@
           z = z10
           zl = z/mol
  
-          if ( zl.ge.0. ) then
-            ra(i,j) = kui*(0.74*dlog(z/zz0(i))+4.7*zl)
+          if ( zl.ge.0.0D0 ) then
+            ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
           else
-            ra(i,j) = kui*0.74*(dlog(z/zz0(i))- &
-                           2.0*dlog((1+dsqrt(1-9.*zl))*0.5))
+            ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
+                      2.0D0*dlog((1.0D0+dsqrt(1.0D0-9.0D0*zl))*0.5D0))
           end if
           ra(i,j) = dmax1(ra(i,j),0.99D0)
           ra(i,j) = dmin1(ra(i,j),999.9D0)
@@ -585,10 +587,10 @@
 !           * i.e. only dry particles                        ****
 !           *****************************************************
  
-            frx1 = 1.0
+            frx1 = 1.0D0
             rhsize(i,l,n) = avesize(n)*frx1
             anu(i) = amu(i,l)/roarow(i,l)
-            amob = 6.*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
+            amob = 6.0D0*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
             pdiff(i,l,n) = boltzk*throw(i,l)/amob
             schm(i) = anu(i)/pdiff(i,l,n)
  
@@ -629,19 +631,19 @@
  
                 st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
  
-                eb = schm(i)**(-0.666667)
+                eb = schm(i)**(-0.666667D0)
 !               eim=(st/(st+aest(k)))**2
-                eim = (st/(st+aest(kcov)))**2
+                eim = (st/(st+aest(kcov)))**2.0D0
  
  
                 eim = dmin1(eim,0.6D0)
-                ein = 0.0
+                ein = 0.0D0
 !               if (arye(k) .gt. 0.0001) then
 !               ein = (1000.0*2.0*avesize(n)/arye(k))**1.5
 !               end if
  
-                if ( arye(kcov).gt.0.0001 )                             &
-                   & ein = (1000.0*2.0*avesize(n)/arye(kcov))**1.5
+                if ( arye(kcov).gt.0.0001D0 )  &
+                  ein = (1000.0D0*2.0D0*avesize(n)/arye(kcov))**1.5D0
  
                 ein = dmin1(ein,0.5D0)
  
@@ -656,10 +658,10 @@
 !               *****************************************************
  
 !               r1 = exp (-st**0.5)
-                r1 = dmax1(0.5D0,dexp(-st**0.5))
+                r1 = dmax1(0.5D0,dexp(-st**0.5D0))
 !               if (k .ge. 11 .and. r1 .lt. 0.5 ) r1=0.5
-                if ( kcov.ge.11 .and. r1.lt.0.5 ) r1 = 0.5
-                if ( r1.lt.0.4 ) r1 = 0.4
+                if ( kcov.ge.11 .and. r1.lt.0.5D0 ) r1 = 0.5D0
+                if ( r1.lt.0.4D0 ) r1 = 0.4D0
  
 !               ***************************************************
 !               * calculation of rs: the surface resistance   *****
@@ -669,7 +671,7 @@
 !               ***************************************************
  
 !               rs= 1.0/ustar(i,k)/(eb+eim+ein)/r1
-                rs(i,k,n) = 1.0/3.0/ustar(i,k)/(eb+eim+ein)/r1
+                rs(i,k,n) = 1.0D0/3.0D0/ustar(i,k)/(eb+eim+ein)/r1
               end do
             end do
           end if
@@ -686,9 +688,9 @@
  
 !           modify the surface layer
  
-            vegcover(i,jc) = 1.
+            vegcover(i,jc) = 1.0D0
             pdepvsub(i,ilev,n) = pdepvsub(i,ilev,n) + vegcover(i,jc)    &
-                               & *1.0/(ra(i,jc)+rs(i,jc,n))
+                               & *1.0D0/(ra(i,jc)+rs(i,jc,n))
  
           end do
         end do
@@ -701,12 +703,12 @@
         tot = 0
         do lev = 1 , ilev
           do i = 1 , ilg
-            pdepv(i,lev,k) = 0.
+            pdepv(i,lev,k) = 0.0D0
           end do
         end do
         do n = 1 , isize
-          if ( avesize(n)*1.E6.ge.trsize(k,1) .and. avesize(n)          &
-             & *1.E6.lt.trsize(k,2) ) then
+          if ( avesize(n)*1.D6.ge.trsize(k,1) .and. &
+               avesize(n)*1.D6.lt.trsize(k,2) ) then
             do lev = 1 , ilev
               do i = 1 , ilg
                 pdepv(i,lev,k) = pdepv(i,lev,k) + pdepvsub(i,lev,n)
@@ -718,7 +720,7 @@
         if ( tot.gt.0 ) then
           do lev = 1 , ilev
             do i = 1 , ilg
-              pdepv(i,lev,k) = pdepv(i,lev,k)/tot
+              pdepv(i,lev,k) = pdepv(i,lev,k)/dble(tot)
             end do
           end do
         end if

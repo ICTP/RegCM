@@ -82,27 +82,27 @@
       integer :: i , k
       real(8) , dimension(iym1) :: ptrop
 !
-      xcfc11 = 0.0
-      xcfc12 = 0.0
-      xch4 = 0.0
-      xn2o = 0.0
+      xcfc11 = 0.0D0
+      xcfc12 = 0.0D0
+      xch4 = 0.0D0
+      xn2o = 0.0D0
       do i = 1 , iym1
 !       set stratospheric scale height factor for gases
-        dlat = dabs(57.2958*alat(i))
-        if ( dlat.le.45.0 ) then
-          xn2o = 0.3478 + 0.00116*dlat
-          xch4 = 0.2353
-          xcfc11 = 0.7273 + 0.00606*dlat
-          xcfc12 = 0.4000 + 0.00222*dlat
+        dlat = dabs(57.2958D0*alat(i))
+        if ( dlat.le.45.0D0 ) then
+          xn2o = 0.3478D0 + 0.00116D0*dlat
+          xch4 = 0.2353D0
+          xcfc11 = 0.7273D0 + 0.00606D0*dlat
+          xcfc12 = 0.4000D0 + 0.00222D0*dlat
         else
-          xn2o = 0.4000 + 0.013333*(dlat-45)
-          xch4 = 0.2353 + 0.0225489*(dlat-45)
-          xcfc11 = 1.00 + 0.013333*(dlat-45)
-          xcfc12 = 0.50 + 0.024444*(dlat-45)
+          xn2o = 0.4000D0 + 0.013333D0*(dlat-45.D0)
+          xch4 = 0.2353D0 + 0.0225489D0*(dlat-45.D0)
+          xcfc11 = 1.00D0 + 0.013333D0*(dlat-45.D0)
+          xcfc12 = 0.50D0 + 0.024444D0*(dlat-45.D0)
         end if
 !
 !       pressure of tropopause
-        ptrop(i) = 250.0E2 - 150.0E2*coslat(i)**2.0
+        ptrop(i) = 250.0D2 - 150.0D2*coslat(i)**2.0D0
 !
       end do
 !
@@ -199,80 +199,84 @@
       real(8) , dimension(iym1,1) :: co2fac
       real(8) :: diff
       integer :: i , k
-      data diff/1.66/           ! diffusivity factor
+      data diff/1.66D0/           ! diffusivity factor
 
 !-----------------------------------------------------------------------
 !     Calculate path lengths for the trace gases
 !-----------------------------------------------------------------------
       do i = 1 , iym1
-        ucfc11(i,1) = 1.8*cfc11(i,1)*pnm(i,1)*rga
-        ucfc12(i,1) = 1.8*cfc12(i,1)*pnm(i,1)*rga
-        un2o0(i,1) = diff*1.02346E5*n2o(i,1)*pnm(i,1)                   &
+        ucfc11(i,1) = 1.8D0*cfc11(i,1)*pnm(i,1)*rga
+        ucfc12(i,1) = 1.8D0*cfc12(i,1)*pnm(i,1)*rga
+        un2o0(i,1) = diff*1.02346D5*n2o(i,1)*pnm(i,1)         &
                    & *rga/dsqrt(tnm(i,1))
-        un2o1(i,1) = diff*2.01909*un2o0(i,1)*dexp(-847.36/tnm(i,1))
-        uch4(i,1) = diff*8.60957E4*ch4(i,1)*pnm(i,1)*rga/dsqrt(tnm(i,1))
+        un2o1(i,1) = diff*2.01909D0*un2o0(i,1)*dexp(-847.36D0/tnm(i,1))
+        uch4(i,1) = diff*8.60957D4*ch4(i,1)*pnm(i,1)*rga/dsqrt(tnm(i,1))
         co2fac(i,1) = diff*co2mmr*pnm(i,1)*rga
-        alpha1(i) = (1.0-dexp(-1540.0/tnm(i,1)))**3.0/dsqrt(tnm(i,1))
-        alpha2(i) = (1.0-dexp(-1360.0/tnm(i,1)))**3.0/dsqrt(tnm(i,1))
-        uco211(i,1) = 3.42217E3*co2fac(i,1)*alpha1(i)                   &
-                    & *dexp(-1849.7/tnm(i,1))
-        uco212(i,1) = 6.02454E3*co2fac(i,1)*alpha1(i)                   &
-                    & *dexp(-2782.1/tnm(i,1))
-        uco213(i,1) = 5.53143E3*co2fac(i,1)*alpha1(i)                   &
-                    & *dexp(-3723.2/tnm(i,1))
-        uco221(i,1) = 3.88984E3*co2fac(i,1)*alpha2(i)                   &
-                    & *dexp(-1997.6/tnm(i,1))
-        uco222(i,1) = 3.67108E3*co2fac(i,1)*alpha2(i)                   &
-                    & *dexp(-3843.8/tnm(i,1))
-        uco223(i,1) = 6.50642E3*co2fac(i,1)*alpha2(i)                   &
-                    & *dexp(-2989.7/tnm(i,1))
-        bn2o0(i,1) = diff*19.399*pnm(i,1)**2.0*n2o(i,1)                 &
-                   & *1.02346E5*rga/(sslp*tnm(i,1))
-        bn2o1(i,1) = bn2o0(i,1)*dexp(-847.36/tnm(i,1))*2.06646E5
-        bch4(i,1) = diff*2.94449*ch4(i,1)*pnm(i,1)                      &
-                  & **2.0*rga*8.60957E4/(sslp*tnm(i,1))
-        uptype(i,1) = diff*qnm(i,1)*pnm(i,1)                            &
-                    & **2.0*dexp(1800.0*(1.0/tnm(i,1)-1.0/296.0))       &
-                    & *rga/sslp
+        alpha1(i) = (1.0D0-dexp(-1540.0D0/ &
+                     tnm(i,1)))**3.0D0/dsqrt(tnm(i,1))
+        alpha2(i) = (1.0D0-dexp(-1360.0D0/ &
+                     tnm(i,1)))**3.0D0/dsqrt(tnm(i,1))
+        uco211(i,1) = 3.42217D3*co2fac(i,1)*alpha1(i)         &
+                    & *dexp(-1849.7D0/tnm(i,1))
+        uco212(i,1) = 6.02454D3*co2fac(i,1)*alpha1(i)         &
+                    & *dexp(-2782.1D0/tnm(i,1))
+        uco213(i,1) = 5.53143D3*co2fac(i,1)*alpha1(i)         &
+                    & *dexp(-3723.2D0/tnm(i,1))
+        uco221(i,1) = 3.88984D3*co2fac(i,1)*alpha2(i)         &
+                    & *dexp(-1997.6D0/tnm(i,1))
+        uco222(i,1) = 3.67108D3*co2fac(i,1)*alpha2(i)         &
+                    & *dexp(-3843.8D0/tnm(i,1))
+        uco223(i,1) = 6.50642D3*co2fac(i,1)*alpha2(i)         &
+                    & *dexp(-2989.7D0/tnm(i,1))
+        bn2o0(i,1) = diff*19.399D0*pnm(i,1)**2.0D0*n2o(i,1)   &
+                   & *1.02346D5*rga/(sslp*tnm(i,1))
+        bn2o1(i,1) = bn2o0(i,1)*dexp(-847.36D0/tnm(i,1))*2.06646D5
+        bch4(i,1) = diff*2.94449D0*ch4(i,1)*pnm(i,1)          &
+                  & **2.0D0*rga*8.60957D4/(sslp*tnm(i,1))
+        uptype(i,1) = diff*qnm(i,1)*pnm(i,1)                  &
+                      **2.0D0*dexp(1800.0D0*                  &
+                     (1.0D0/tnm(i,1)-1.0D0/296.0D0))*rga/sslp
       end do
       do k = 1 , kz
         do i = 1 , iym1
           rt(i) = 1./tnm(i,k)
           rsqrt(i) = dsqrt(rt(i))
-          pbar(i) = 0.5*(pnm(i,k+1)+pnm(i,k))/sslp
+          pbar(i) = 0.5D0*(pnm(i,k+1)+pnm(i,k))/sslp
           dpnm(i) = (pnm(i,k+1)-pnm(i,k))*rga
-          alpha1(i) = diff*rsqrt(i)*(1.0-dexp(-1540.0/tnm(i,k)))**3.0
-          alpha2(i) = diff*rsqrt(i)*(1.0-dexp(-1360.0/tnm(i,k)))**3.0
-          ucfc11(i,k+1) = ucfc11(i,k) + 1.8*cfc11(i,k)*dpnm(i)
-          ucfc12(i,k+1) = ucfc12(i,k) + 1.8*cfc12(i,k)*dpnm(i)
-          un2o0(i,k+1) = un2o0(i,k) + diff*1.02346E5*n2o(i,k)*rsqrt(i)  &
-                       & *dpnm(i)
-          un2o1(i,k+1) = un2o1(i,k) + diff*2.06646E5*n2o(i,k)*rsqrt(i)  &
-                       & *dexp(-847.36/tnm(i,k))*dpnm(i)
-          uch4(i,k+1) = uch4(i,k) + diff*8.60957E4*ch4(i,k)*rsqrt(i)    &
-                      & *dpnm(i)
-          uco211(i,k+1) = uco211(i,k) + 1.15*3.42217E3*alpha1(i)        &
-                        & *co2mmr*dexp(-1849.7/tnm(i,k))*dpnm(i)
-          uco212(i,k+1) = uco212(i,k) + 1.15*6.02454E3*alpha1(i)        &
-                        & *co2mmr*dexp(-2782.1/tnm(i,k))*dpnm(i)
-          uco213(i,k+1) = uco213(i,k) + 1.15*5.53143E3*alpha1(i)        &
-                        & *co2mmr*dexp(-3723.2/tnm(i,k))*dpnm(i)
-          uco221(i,k+1) = uco221(i,k) + 1.15*3.88984E3*alpha2(i)        &
-                        & *co2mmr*dexp(-1997.6/tnm(i,k))*dpnm(i)
-          uco222(i,k+1) = uco222(i,k) + 1.15*3.67108E3*alpha2(i)        &
-                        & *co2mmr*dexp(-3843.8/tnm(i,k))*dpnm(i)
-          uco223(i,k+1) = uco223(i,k) + 1.15*6.50642E3*alpha2(i)        &
-                        & *co2mmr*dexp(-2989.7/tnm(i,k))*dpnm(i)
-          bn2o0(i,k+1) = bn2o0(i,k) + diff*19.399*pbar(i)*rt(i)         &
-                       & *1.02346E5*n2o(i,k)*dpnm(i)
-          bn2o1(i,k+1) = bn2o1(i,k) + diff*19.399*pbar(i)*rt(i)         &
-                       & *2.06646E5*dexp(-847.36/tnm(i,k))*n2o(i,k)     &
-                       & *dpnm(i)
-          bch4(i,k+1) = bch4(i,k) + diff*2.94449*rt(i)*pbar(i)          &
-                      & *8.60957E4*ch4(i,k)*dpnm(i)
-          uptype(i,k+1) = uptype(i,k) + diff*qnm(i,k)                   &
-                        & *dexp(1800.0*(1.0/tnm(i,k)-1.0/296.0))*pbar(i)&
-                        & *dpnm(i)
+          alpha1(i) = diff*rsqrt(i)* &
+                    (1.0D0-dexp(-1540.0D0/tnm(i,k)))**3.0D0
+          alpha2(i) = diff*rsqrt(i)* &
+                    (1.0D0-dexp(-1360.0D0/tnm(i,k)))**3.0D0
+          ucfc11(i,k+1) = ucfc11(i,k) + 1.8D0*cfc11(i,k)*dpnm(i)
+          ucfc12(i,k+1) = ucfc12(i,k) + 1.8D0*cfc12(i,k)*dpnm(i)
+          un2o0(i,k+1) = un2o0(i,k) + diff*1.02346D5*n2o(i,k)*rsqrt(i) &
+                         *dpnm(i)
+          un2o1(i,k+1) = un2o1(i,k) + diff*2.06646D5*n2o(i,k)*rsqrt(i) &
+                         *dexp(-847.36D0/tnm(i,k))*dpnm(i)
+          uch4(i,k+1) = uch4(i,k) + diff*8.60957D4*ch4(i,k)*rsqrt(i)   &
+                        *dpnm(i)
+          uco211(i,k+1) = uco211(i,k) + 1.15D0*3.42217D3*alpha1(i)     &
+                          *co2mmr*dexp(-1849.7D0/tnm(i,k))*dpnm(i)
+          uco212(i,k+1) = uco212(i,k) + 1.15D0*6.02454D3*alpha1(i)     &
+                          *co2mmr*dexp(-2782.1D0/tnm(i,k))*dpnm(i)
+          uco213(i,k+1) = uco213(i,k) + 1.15D0*5.53143D3*alpha1(i)     &
+                          *co2mmr*dexp(-3723.2D0/tnm(i,k))*dpnm(i)
+          uco221(i,k+1) = uco221(i,k) + 1.15D0*3.88984D3*alpha2(i)     &
+                          *co2mmr*dexp(-1997.6D0/tnm(i,k))*dpnm(i)
+          uco222(i,k+1) = uco222(i,k) + 1.15D0*3.67108D3*alpha2(i)     &
+                          *co2mmr*dexp(-3843.8D0/tnm(i,k))*dpnm(i)
+          uco223(i,k+1) = uco223(i,k) + 1.15D0*6.50642D3*alpha2(i)     &
+                          *co2mmr*dexp(-2989.7D0/tnm(i,k))*dpnm(i)
+          bn2o0(i,k+1) = bn2o0(i,k) + diff*19.399D0*pbar(i)*rt(i)      &
+                         *1.02346D5*n2o(i,k)*dpnm(i)
+          bn2o1(i,k+1) = bn2o1(i,k) + diff*19.399D0*pbar(i)*rt(i)      &
+                         *2.06646D5*dexp(-847.36D0/tnm(i,k))*n2o(i,k)  &
+                         *dpnm(i)
+          bch4(i,k+1) = bch4(i,k) + diff*2.94449D0*rt(i)*pbar(i)       &
+                        *8.60957D4*ch4(i,k)*dpnm(i)
+          uptype(i,k+1) = uptype(i,k) + diff*qnm(i,k)                  &
+                          *dexp(1800.0D0*(1.0D0/                       &
+                          tnm(i,k)-1.0D0/296.0D0))*pbar(i)*dpnm(i)
         end do
       end do
 
@@ -416,26 +420,27 @@
       integer :: i , l
       real(8) , dimension(iym1,6) :: tw
 !
-      data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
-         & 0.0540398 , 0.0321962/
-      data g2/14.4832 , 4.30242 , 5.23523 , 3.25342 , 0.698935 ,        &
-         & 16.5599/
-      data g3/26.1898 , 18.4476 , 15.3633 , 12.1927 , 9.14992 , 8.07092/
-      data g4/0.0261782 , 0.0369516 , 0.0307266 , 0.0243854 ,           &
-         & 0.0182932 , 0.0161418/
-      data ab/3.0857E-2 , 2.3524E-2 , 1.7310E-2 , 2.6661E-2 ,           &
-         & 2.8074E-2 , 2.2915E-2/
-      data bb/ - 1.3512E-4 , -6.8320E-5 , -3.2609E-5 , -1.0228E-5 ,     &
-         & -9.5743E-5 , -1.0304E-4/
-      data abp/2.9129E-2 , 2.4101E-2 , 1.9821E-2 , 2.6904E-2 ,          &
-         & 2.9458E-2 , 1.9892E-2/
-      data bbp/ - 1.3139E-4 , -5.5688E-5 , -4.6380E-5 , -8.0362E-5 ,    &
-         & -1.0115E-4 , -8.8061E-5/
+      data g1/0.0468556D0 , 0.0397454D0 , 0.0407664D0 , 0.0304380D0 , &
+              0.0540398D0 , 0.0321962D0/
+      data g2/14.4832D0 , 4.30242D0 , 5.23523D0 , 3.25342D0 , &
+               0.698935D0 , 16.5599D0/
+      data g3/26.1898D0 , 18.4476D0 , 15.3633D0 , 12.1927D0 , &
+               9.14992D0 , 8.07092D0/
+      data g4/0.0261782D0 , 0.0369516D0 , 0.0307266D0 , 0.0243854D0 , &
+              0.0182932D0 , 0.0161418D0/
+      data ab/3.0857D-2 , 2.3524D-2 , 1.7310D-2 , 2.6661D-2 , &
+              2.8074D-2 , 2.2915D-2/
+      data bb/ -1.3512D-4 , -6.8320D-5 , -3.2609D-5 , -1.0228D-5 ,  &
+               -9.5743D-5 , -1.0304D-4/
+      data abp/2.9129D-2 , 2.4101D-2 , 1.9821D-2 , 2.6904D-2 ,  &
+               2.9458D-2 , 1.9892D-2/
+      data bbp/ -1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 , &
+                -1.0115D-4 , -8.8061D-5/
 !------------------------------------------------------------------
       do i = 1 , iym1
         sqti(i) = dsqrt(to3co2(i))
 !       h2o transmission
-        tt(i) = dabs(to3co2(i)-250.0)
+        tt(i) = dabs(to3co2(i)-250.0D0)
         ds2c(i) = dabs(s2c(i,k1)-s2c(i,k2))
         duptyp(i) = dabs(uptype(i,k1)-uptype(i,k2))
       end do
@@ -446,8 +451,8 @@
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnew(i)*(psi1/phi1)/sslp
           w1 = dw(i)*phi1
-          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0+g2(l)*(w1/p1))-1.0)-g3(l) &
-                  & *ds2c(i)-g4(l)*duptyp(i))
+          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0D0+g2(l)*(w1/p1))-&
+                    1.0D0)-g3(l)*ds2c(i)-g4(l)*duptyp(i))
         end do
       end do
 !
@@ -455,69 +460,69 @@
         du1 = dabs(ucfc11(i,k1)-ucfc11(i,k2))
         du2 = dabs(ucfc12(i,k1)-ucfc12(i,k2))
 !       cfc transmissions
-        tcfc3 = dexp(-175.005*du1)
-        tcfc4 = dexp(-1202.18*du1)
-        tcfc6 = dexp(-5786.73*du2)
-        tcfc7 = dexp(-2873.51*du2)
-        tcfc8 = dexp(-2085.59*du2)
+        tcfc3 = dexp(-175.005D0*du1)
+        tcfc4 = dexp(-1202.18D0*du1)
+        tcfc6 = dexp(-5786.73D0*du2)
+        tcfc7 = dexp(-2873.51D0*du2)
+        tcfc8 = dexp(-2085.59D0*du2)
 !       Absorptivity for CFC11 bands
-        acfc1 = 50.0*(1.0-dexp(-54.09*du1))*tw(i,1)*abplnk1(7,i,k2)
-        acfc2 = 60.0*(1.0-dexp(-5130.03*du1))*tw(i,2)*abplnk1(8,i,k2)
-        acfc3 = 60.0*(1.0-tcfc3)*tw(i,4)*tcfc6*abplnk1(9,i,k2)
-        acfc4 = 100.0*(1.0-tcfc4)*tw(i,5)*abplnk1(10,i,k2)
+        acfc1 = 50.0D0*(1.0D0-dexp(-54.09D0*du1))*tw(i,1)*abplnk1(7,i,k2)
+        acfc2 = 60.0D0*(1.0D0-dexp(-5130.03D0*du1))*tw(i,2)*abplnk1(8,i,k2)
+        acfc3 = 60.0D0*(1.0D0-tcfc3)*tw(i,4)*tcfc6*abplnk1(9,i,k2)
+        acfc4 = 100.0D0*(1.0D0-tcfc4)*tw(i,5)*abplnk1(10,i,k2)
 !       Absorptivity for CFC12 bands
-        acfc5 = 45.0*(1.0-dexp(-1272.35*du2))*tw(i,3)*abplnk1(11,i,k2)
-        acfc6 = 50.0*(1.0-tcfc6)*tw(i,4)*abplnk1(12,i,k2)
-        acfc7 = 80.0*(1.0-tcfc7)*tw(i,5)*tcfc4*abplnk1(13,i,k2)
-        acfc8 = 70.0*(1.0-tcfc8)*tw(i,6)*abplnk1(14,i,k2)
+        acfc5 = 45.0D0*(1.0D0-dexp(-1272.35D0*du2))*tw(i,3)*abplnk1(11,i,k2)
+        acfc6 = 50.0D0*(1.0D0-tcfc6)*tw(i,4)*abplnk1(12,i,k2)
+        acfc7 = 80.0D0*(1.0D0-tcfc7)*tw(i,5)*tcfc4*abplnk1(13,i,k2)
+        acfc8 = 70.0D0*(1.0D0-tcfc8)*tw(i,6)*abplnk1(14,i,k2)
 !       Emissivity for CH4 band 1306 cm-1
-        tlw = dexp(-1.0*dsqrt(dplh2o(i)))
+        tlw = dexp(-1.0D0*dsqrt(dplh2o(i)))
         duch4 = dabs(uch4(i,k1)-uch4(i,k2))
         dbetac = dabs(bch4(i,k1)-bch4(i,k2))/duch4
-        ach4 = 6.00444*sqti(i)*dlog(1.0+func(duch4,dbetac))             &
+        ach4 = 6.00444D0*sqti(i)*dlog(1.0D0+func(duch4,dbetac)) &
              & *tlw*abplnk1(3,i,k2)
-        tch4 = 1.0/(1.0+0.02*func(duch4,dbetac))
+        tch4 = 1.0D0/(1.0D0+0.02D0*func(duch4,dbetac))
 !       Absorptivity for N2O bands
         du01 = dabs(un2o0(i,k1)-un2o0(i,k2))
         du11 = dabs(un2o1(i,k1)-un2o1(i,k2))
         dbeta01 = dabs(bn2o0(i,k1)-bn2o0(i,k2))/du01
         dbeta11 = dabs(bn2o1(i,k1)-bn2o1(i,k2))/du11
 !       1285 cm-1 band
-        an2o1 = 2.35558*sqti(i)                                         &
-              & *dlog(1.0+func(du01,dbeta01)+func(du11,dbeta11))        &
+        an2o1 = 2.35558D0*sqti(i)                                  &
+              & *dlog(1.0D0+func(du01,dbeta01)+func(du11,dbeta11)) &
               & *tlw*tch4*abplnk1(4,i,k2)
-        du02 = 0.100090*du01
-        du12 = 0.0992746*du11
-        dbeta02 = 0.964282*dbeta01
+        du02 = 0.100090D0*du01
+        du12 = 0.0992746D0*du11
+        dbeta02 = 0.964282D0*dbeta01
 !       589 cm-1 band
-        an2o2 = 2.65581*sqti(i)                                         &
-              & *dlog(1.0+func(du02,dbeta02)+func(du12,dbeta02))*th2o(i)&
-              & *tco2(i)*abplnk1(5,i,k2)
-        du03 = 0.0333767*du01
-        dbeta03 = 0.982143*dbeta01
+        an2o2 = 2.65581D0*sqti(i)    &
+              & *dlog(1.0D0+func(du02,dbeta02)+ &
+              & func(du12,dbeta02))*th2o(i)*tco2(i)*abplnk1(5,i,k2)
+        du03 = 0.0333767D0*du01
+        dbeta03 = 0.982143D0*dbeta01
 !       1168 cm-1 band
-        an2o3 = 2.54034*sqti(i)*dlog(1.0+func(du03,dbeta03))*tw(i,6)    &
-              & *tcfc8*abplnk1(6,i,k2)
+        an2o3 = 2.54034D0*sqti(i)*dlog(1.0D0+func(du03,dbeta03))* &
+                tw(i,6)*tcfc8*abplnk1(6,i,k2)
 !       Emissivity for 1064 cm-1 band of CO2
         du11 = dabs(uco211(i,k1)-uco211(i,k2))
         du12 = dabs(uco212(i,k1)-uco212(i,k2))
         du13 = dabs(uco213(i,k1)-uco213(i,k2))
-        dbetc1 = 2.97558*dabs(pnm(i,k1)+pnm(i,k2))/(2.0*sslp*sqti(i))
-        dbetc2 = 2.0*dbetc1
-        aco21 = 3.7571*sqti(i)                                          &
-              & *dlog(1.0+func(du11,dbetc1)+func(du12,dbetc2)           &
-              & +func(du13,dbetc2))*to3(i)*tw(i,5)                      &
+        dbetc1 = 2.97558D0*dabs(pnm(i,k1)+pnm(i,k2))/(2.0D0*sslp*sqti(i))
+        dbetc2 = 2.0D0*dbetc1
+        aco21 = 3.7571D0*sqti(i)                                  &
+              & *dlog(1.0D0+func(du11,dbetc1)+func(du12,dbetc2)   &
+              & +func(du13,dbetc2))*to3(i)*tw(i,5)                &
               & *tcfc4*tcfc7*abplnk1(2,i,k2)
 !       Emissivity for 961 cm-1 band
         du21 = dabs(uco221(i,k1)-uco221(i,k2))
         du22 = dabs(uco222(i,k1)-uco222(i,k2))
         du23 = dabs(uco223(i,k1)-uco223(i,k2))
-        aco22 = 3.8443*sqti(i)                                          &
-              & *dlog(1.0+func(du21,dbetc1)+func(du22,dbetc1)           &
+        aco22 = 3.8443D0*sqti(i)                                   &
+              & *dlog(1.0D0+func(du21,dbetc1)+func(du22,dbetc1)    &
               & +func(du23,dbetc2))*tw(i,4)*tcfc3*tcfc6*abplnk1(1,i,k2)
 !       total trace gas absorptivity
-        abstrc(i) = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +     &
-                  & acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +      &
+        abstrc(i) = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +  &
+                  & acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
                   & aco21 + aco22
       end do
       end subroutine trcab
@@ -656,28 +661,29 @@
       real(8) , dimension(iym1) :: ds2c , duptyp , rsqti , sqti , tt
       integer :: i , l
       real(8) , dimension(iym1,6) :: tw
-      data g1/0.0468556 , 0.0397454 , 0.0407664 , 0.0304380 ,           &
-         & 0.0540398 , 0.0321962/
-      data g2/14.4832 , 4.30242 , 5.23523 , 3.25342 , 0.698935 ,        &
-         & 16.5599/
-      data g3/26.1898 , 18.4476 , 15.3633 , 12.1927 , 9.14992 , 8.07092/
-      data g4/0.0261782 , 0.0369516 , 0.0307266 , 0.0243854 ,           &
-         & 0.0182932 , 0.0161418/
-      data ab/3.0857E-2 , 2.3524E-2 , 1.7310E-2 , 2.6661E-2 ,           &
-         & 2.8074E-2 , 2.2915E-2/
-      data bb/ - 1.3512E-4 , -6.8320E-5 , -3.2609E-5 , -1.0228E-5 ,     &
-         & -9.5743E-5 , -1.0304E-4/
-      data abp/2.9129E-2 , 2.4101E-2 , 1.9821E-2 , 2.6904E-2 ,          &
-         & 2.9458E-2 , 1.9892E-2/
-      data bbp/ - 1.3139E-4 , -5.5688E-5 , -4.6380E-5 , -8.0362E-5 ,    &
-         & -1.0115E-4 , -8.8061E-5/
+      data g1/0.0468556D0 , 0.0397454D0 , 0.0407664D0 , 0.0304380D0 , &
+              0.0540398D0 , 0.0321962D0/
+      data g2/14.4832D0 , 4.30242D0 , 5.23523D0 , 3.25342D0 , &
+               0.698935D0 , 16.5599D0/
+      data g3/26.1898D0 , 18.4476D0 , 15.3633D0 , 12.1927D0 , &
+               9.14992D0 , 8.07092D0/
+      data g4/0.0261782D0 , 0.0369516D0 , 0.0307266D0 , 0.0243854D0 , &
+              0.0182932D0 , 0.0161418D0/
+      data ab/3.0857D-2 , 2.3524D-2 , 1.7310D-2 , 2.6661D-2 , &
+              2.8074D-2 , 2.2915D-2/
+      data bb/ -1.3512D-4 , -6.8320D-5 , -3.2609D-5 , -1.0228D-5 , &
+               -9.5743D-5 , -1.0304D-4/
+      data abp/2.9129D-2 , 2.4101D-2 , 1.9821D-2 , 2.6904D-2 , &
+               2.9458D-2 , 1.9892D-2/
+      data bbp/ -1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 , &
+                -1.0115D-4 , -8.8061D-5/
 !------------------------------------------------------------------
 !
       do i = 1 , iym1
         sqti(i) = dsqrt(tbar(i,kn))
         rsqti(i) = 1./sqti(i)
 !       h2o transmission
-        tt(i) = dabs(tbar(i,kn)-250.0)
+        tt(i) = dabs(tbar(i,kn)-250.0D0)
         ds2c(i) = dabs(s2c(i,k2+1)-s2c(i,k2))*uinpl(i,kn)
         duptyp(i) = dabs(uptype(i,k2+1)-uptype(i,k2))*uinpl(i,kn)
       end do
@@ -688,8 +694,9 @@
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnew(i)*(psi1/phi1)/sslp
           w1 = dw(i)*winpl(i,kn)*phi1
-          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0+g2(l)*(w1/p1))-1.0)-g3(l) &
-                  & *ds2c(i)-g4(l)*duptyp(i))
+          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0D0+g2(l)* &
+                    (w1/p1))-1.0D0)-g3(l) &
+                    *ds2c(i)-g4(l)*duptyp(i))
         end do
       end do
 !
@@ -698,69 +705,69 @@
         du1 = dabs(ucfc11(i,k2+1)-ucfc11(i,k2))*winpl(i,kn)
         du2 = dabs(ucfc12(i,k2+1)-ucfc12(i,k2))*winpl(i,kn)
 !       cfc transmissions
-        tcfc3 = dexp(-175.005*du1)
-        tcfc4 = dexp(-1202.18*du1)
-        tcfc6 = dexp(-5786.73*du2)
-        tcfc7 = dexp(-2873.51*du2)
-        tcfc8 = dexp(-2085.59*du2)
+        tcfc3 = dexp(-175.005D0*du1)
+        tcfc4 = dexp(-1202.18D0*du1)
+        tcfc6 = dexp(-5786.73D0*du2)
+        tcfc7 = dexp(-2873.51D0*du2)
+        tcfc8 = dexp(-2085.59D0*du2)
 !       Absorptivity for CFC11 bands
-        acfc1 = 50.0*(1.0-dexp(-54.09*du1))*tw(i,1)*bplnk(7,i,kn)
-        acfc2 = 60.0*(1.0-dexp(-5130.03*du1))*tw(i,2)*bplnk(8,i,kn)
-        acfc3 = 60.0*(1.0-tcfc3)*tw(i,4)*tcfc6*bplnk(9,i,kn)
-        acfc4 = 100.0*(1.0-tcfc4)*tw(i,5)*bplnk(10,i,kn)
+        acfc1 = 50.0D0*(1.0D0-dexp(-54.09D0*du1))*tw(i,1)*bplnk(7,i,kn)
+        acfc2 = 60.0D0*(1.0D0-dexp(-5130.03D0*du1))*tw(i,2)*bplnk(8,i,kn)
+        acfc3 = 60.0D0*(1.0D0-tcfc3)*tw(i,4)*tcfc6*bplnk(9,i,kn)
+        acfc4 = 100.0D0*(1.0D0-tcfc4)*tw(i,5)*bplnk(10,i,kn)
 !       Absorptivity for CFC12 bands
-        acfc5 = 45.0*(1.0-dexp(-1272.35*du2))*tw(i,3)*bplnk(11,i,kn)
-        acfc6 = 50.0*(1.0-tcfc6)*tw(i,4)*bplnk(12,i,kn)
-        acfc7 = 80.0*(1.0-tcfc7)*tw(i,5)*tcfc4*bplnk(13,i,kn)
-        acfc8 = 70.0*(1.0-tcfc8)*tw(i,6)*bplnk(14,i,kn)
+        acfc5 = 45.0D0*(1.0D0-dexp(-1272.35D0*du2))*tw(i,3)*bplnk(11,i,kn)
+        acfc6 = 50.0D0*(1.0D0-tcfc6)*tw(i,4)*bplnk(12,i,kn)
+        acfc7 = 80.0D0*(1.0D0-tcfc7)*tw(i,5)*tcfc4*bplnk(13,i,kn)
+        acfc8 = 70.0D0*(1.0D0-tcfc8)*tw(i,6)*bplnk(14,i,kn)
 !       Emissivity for CH4 band 1306 cm-1
-        tlw = dexp(-1.0*dsqrt(up2(i)))
+        tlw = dexp(-1.0D0*dsqrt(up2(i)))
         duch4 = dabs(uch4(i,k2+1)-uch4(i,k2))*winpl(i,kn)
-        dbetac = 2.94449*pinpl(i,kn)*rsqti(i)/sslp
-        ach4 = 6.00444*sqti(i)*dlog(1.0+func(duch4,dbetac))             &
+        dbetac = 2.94449D0*pinpl(i,kn)*rsqti(i)/sslp
+        ach4 = 6.00444D0*sqti(i)*dlog(1.0D0+func(duch4,dbetac))  &
              & *tlw*bplnk(3,i,kn)
-        tch4 = 1.0/(1.0+0.02*func(duch4,dbetac))
+        tch4 = 1.0D0/(1.0D0+0.02D0*func(duch4,dbetac))
 !       Absorptivity for N2O bands
         du01 = dabs(un2o0(i,k2+1)-un2o0(i,k2))*winpl(i,kn)
         du11 = dabs(un2o1(i,k2+1)-un2o1(i,k2))*winpl(i,kn)
-        dbeta01 = 19.399*pinpl(i,kn)*rsqti(i)/sslp
+        dbeta01 = 19.399D0*pinpl(i,kn)*rsqti(i)/sslp
         dbeta11 = dbeta01
 !       1285 cm-1 band
-        an2o1 = 2.35558*sqti(i)                                         &
-              & *dlog(1.0+func(du01,dbeta01)+func(du11,dbeta11))        &
+        an2o1 = 2.35558D0*sqti(i)                                  &
+              & *dlog(1.0D0+func(du01,dbeta01)+func(du11,dbeta11)) &
               & *tlw*tch4*bplnk(4,i,kn)
-        du02 = 0.100090*du01
-        du12 = 0.0992746*du11
-        dbeta02 = 0.964282*dbeta01
+        du02 = 0.100090D0*du01
+        du12 = 0.0992746D0*du11
+        dbeta02 = 0.964282D0*dbeta01
 !       589 cm-1 band
-        an2o2 = 2.65581*sqti(i)                                         &
-              & *dlog(1.0+func(du02,dbeta02)+func(du12,dbeta02))*tco2(i)&
-              & *th2o(i)*bplnk(5,i,kn)
-        du03 = 0.0333767*du01
-        dbeta03 = 0.982143*dbeta01
+        an2o2 = 2.65581D0*sqti(i)                                  &
+              & *dlog(1.0D0+func(du02,dbeta02)+func(du12,dbeta02))*&
+              & tco2(i)*th2o(i)*bplnk(5,i,kn)
+        du03 = 0.0333767D0*du01
+        dbeta03 = 0.982143D0*dbeta01
 !       1168 cm-1 band
-        an2o3 = 2.54034*sqti(i)*dlog(1.0+func(du03,dbeta03))*tw(i,6)    &
+        an2o3 = 2.54034D0*sqti(i)*dlog(1.0D0+func(du03,dbeta03))*tw(i,6)    &
               & *tcfc8*bplnk(6,i,kn)
 !       Emissivity for 1064 cm-1 band of CO2
         du11 = dabs(uco211(i,k2+1)-uco211(i,k2))*winpl(i,kn)
         du12 = dabs(uco212(i,k2+1)-uco212(i,k2))*winpl(i,kn)
         du13 = dabs(uco213(i,k2+1)-uco213(i,k2))*winpl(i,kn)
-        dbetc1 = 2.97558*pinpl(i,kn)*rsqti(i)/sslp
-        dbetc2 = 2.0*dbetc1
-        aco21 = 3.7571*sqti(i)                                          &
-              & *dlog(1.0+func(du11,dbetc1)+func(du12,dbetc2)           &
-              & +func(du13,dbetc2))*to3(i)*tw(i,5)                      &
+        dbetc1 = 2.97558D0*pinpl(i,kn)*rsqti(i)/sslp
+        dbetc2 = 2.0D0*dbetc1
+        aco21 = 3.7571D0*sqti(i)                                   &
+              & *dlog(1.0D0+func(du11,dbetc1)+func(du12,dbetc2)    &
+              & +func(du13,dbetc2))*to3(i)*tw(i,5)                 &
               & *tcfc4*tcfc7*bplnk(2,i,kn)
 !       Emissivity for 961 cm-1 band of co2
         du21 = dabs(uco221(i,k2+1)-uco221(i,k2))*winpl(i,kn)
         du22 = dabs(uco222(i,k2+1)-uco222(i,k2))*winpl(i,kn)
         du23 = dabs(uco223(i,k2+1)-uco223(i,k2))*winpl(i,kn)
-        aco22 = 3.8443*sqti(i)                                          &
-              & *dlog(1.0+func(du21,dbetc1)+func(du22,dbetc1)           &
+        aco22 = 3.8443D0*sqti(i)                                   &
+              & *dlog(1.0D0+func(du21,dbetc1)+func(du22,dbetc1)    &
               & +func(du23,dbetc2))*tw(i,4)*tcfc3*tcfc6*bplnk(1,i,kn)
 !       total trace gas absorptivity
-        abstrc(i) = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +     &
-                  & acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +      &
+        abstrc(i) = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 + &
+                  & acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
                   & aco21 + aco22
       end do
       end subroutine trcabn
@@ -806,25 +813,25 @@
       real(8) , dimension(14) :: f1 , f2 , f3
       integer :: i , k , wvl
 !
-      data f1/5.85713D8 , 7.94950D8 , 1.47009D9 , 1.40031D9 ,           &
-         & 1.34853D8 , 1.05158D9 , 3.35370D8 , 3.99601D8 , 5.35994D8 ,  &
-         & 8.42955D8 , 4.63682D8 , 5.18944D8 , 8.83202D8 , 1.03279D9/
-                                    !        "
-      data f2/2.02493D11 , 3.04286D11 , 6.90698D11 , 6.47333D11 ,       &
-         & 2.85744D10 , 4.41862D11 , 9.62780D10 , 1.21618D11 ,          &
-         & 1.79905D11 , 3.29029D11 , 1.48294D11 , 1.72315D11 ,          &
-         & 3.50140D11 , 4.31364D11/
-      data f3/1383.D0 , 1531.D0 , 1879.D0 , 1849.D0 , 848.D0 , 1681.D0 ,&
-         & 1148.D0 , 1217.D0 , 1343.D0 , 1561.D0 , 1279.D0 , 1328.D0 ,  &
-         & 1586.D0 , 1671.D0/
+      data f1/5.85713D8 , 7.94950D8 , 1.47009D9 , 1.40031D9 , &
+              1.34853D8 , 1.05158D9 , 3.35370D8 , 3.99601D8 , &
+              5.35994D8 , 8.42955D8 , 4.63682D8 , 5.18944D8 , &
+              8.83202D8 , 1.03279D9/
+      data f2/2.02493D11 , 3.04286D11 , 6.90698D11 , 6.47333D11 , &
+              2.85744D10 , 4.41862D11 , 9.62780D10 , 1.21618D11 , &
+              1.79905D11 , 3.29029D11 , 1.48294D11 , 1.72315D11 , &
+              3.50140D11 , 4.31364D11/
+      data f3/1383.D0 , 1531.D0 , 1879.D0 , 1849.D0 ,  848.D0 , &
+              1681.D0 , 1148.D0 , 1217.D0 , 1343.D0 , 1561.D0 , &
+              1279.D0 , 1328.D0 , 1586.D0 , 1671.D0/
 !
 !     Calculate emissivity Planck factor
 !
       do wvl = 1 , 14
         do i = 1 , iym1
-          emplnk(wvl,i) = f1(wvl)                                       &
-                        & /(tplnke(i)**4.0*(dexp(f3(wvl)/tplnke(i))-1.0)&
-                        & )
+          emplnk(wvl,i) = f1(wvl)                       &
+                        & /(tplnke(i)**4.0D0*           &
+                        (dexp(f3(wvl)/tplnke(i))-1.0D0))
         end do
       end do
 !
@@ -835,13 +842,12 @@
           do i = 1 , iym1
 !           non-nearlest layer function
             abplnk1(wvl,i,k) = (f2(wvl)*dexp(f3(wvl)/tint(i,k)))        &
-                             & /(tint(i,k)                              &
-                             & **5.0*(dexp(f3(wvl)/tint(i,k))-1.0)**2.0)
+                             & /(tint(i,k)**5.0D0*                      &
+                             & (dexp(f3(wvl)/tint(i,k))-1.0D0)**2.0D0)
 !           nearest layer function
             abplnk2(wvl,i,k) = (f2(wvl)*dexp(f3(wvl)/tlayr(i,k)))       &
-                             & /(tlayr(i,k)                             &
-                             & **5.0*(dexp(f3(wvl)/tlayr(i,k))-1.0)     &
-                             & **2.0)
+                             & /(tlayr(i,k)**5.0D0*                     &
+                             & (dexp(f3(wvl)/tlayr(i,k))-1.0D0)**2.0D0)
           end do
         end do
       end do
@@ -971,27 +977,27 @@
       real(8) , dimension(iym1) :: sqti , tt
       real(8) , dimension(iym1,6) :: tw
 !
-      data g1/0.0468556D0 , 0.0397454D0 , 0.0407664D0 , 0.0304380D0 ,   &
-         & 0.0540398D0 , 0.0321962D0/
-      data g2/14.4832D0 , 4.30242D0 , 5.23523D0 , 3.25342D0 ,           &
-         & 0.698935D0 , 16.5599D0/
-      data g3/26.1898D0 , 18.4476D0 , 15.3633D0 , 12.1927D0 ,           &
-         & 9.14992D0 , 8.07092D0/
-      data g4/0.0261782D0 , 0.0369516D0 , 0.0307266D0 , 0.0243854D0 ,   &
-         & 0.0182932D0 , 0.0161418D0/
-      data ab/3.0857D-2 , 2.3524D-2 , 1.7310D-2 , 2.6661D-2 ,           &
-         & 2.8074D-2 , 2.2915D-2/
-      data bb/ - 1.3512D-4 , -6.8320D-5 , -3.2609D-5 , -1.0228D-5 ,     &
-         & -9.5743D-5 , -1.0304D-4/
-      data abp/2.9129D-2 , 2.4101D-2 , 1.9821D-2 , 2.6904D-2 ,          &
-         & 2.9458D-2 , 1.9892D-2/
-      data bbp/ - 1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 ,    &
-         & -1.0115D-4 , -8.8061D-5/
+      data g1/0.0468556D0 , 0.0397454D0 , 0.0407664D0 , 0.0304380D0 , &
+              0.0540398D0 , 0.0321962D0/
+      data g2/14.4832D0 ,    4.30242D0 ,  5.23523D0 , 3.25342D0 ,     &
+               0.698935D0 , 16.5599D0/
+      data g3/26.1898D0 , 18.4476D0 , 15.3633D0 , 12.1927D0 ,         &
+               9.14992D0 , 8.07092D0/
+      data g4/0.0261782D0 , 0.0369516D0 , 0.0307266D0 , 0.0243854D0 , &
+              0.0182932D0 , 0.0161418D0/
+      data ab/3.0857D-2 , 2.3524D-2 , 1.7310D-2 , 2.6661D-2 ,         &
+              2.8074D-2 , 2.2915D-2/
+      data bb/ -1.3512D-4 , -6.8320D-5 , -3.2609D-5 , -1.0228D-5 ,    &
+               -9.5743D-5 , -1.0304D-4/
+      data abp/2.9129D-2 , 2.4101D-2 , 1.9821D-2 , 2.6904D-2 ,       &
+               2.9458D-2 , 1.9892D-2/
+      data bbp/ -1.3139D-4 , -5.5688D-5 , -4.6380D-5 , -8.0362D-5 ,    &
+                -1.0115D-4 , -8.8061D-5/
 !
       do i = 1 , iym1
         sqti(i) = dsqrt(co2t(i,k))
 !       Transmission for h2o
-        tt(i) = dabs(co2t(i,k)-250.0)
+        tt(i) = dabs(co2t(i,k)-250.0D0)
       end do
 !
       do l = 1 , 6
@@ -1000,72 +1006,73 @@
           phi1 = dexp(ab(l)*tt(i)+bb(l)*tt(i)*tt(i))
           p1 = pnm(i,k)*(psi1/phi1)/sslp
           w1 = w(i,k)*phi1
-          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0+g2(l)*(w1/p1))-1.0)-g3(l) &
-                  & *s2c(i,k)-g4(l)*uptype(i,k))
+          tw(i,l) = dexp(-g1(l)*p1*(dsqrt(1.0D0+g2(l)*(w1/p1))-&
+                        1.0D0)-g3(l)*s2c(i,k)-g4(l)*uptype(i,k))
         end do
       end do
 !
       do i = 1 , iym1
 !       transmission due to cfc bands
-        tcfc3 = dexp(-175.005*ucfc11(i,k))
-        tcfc4 = dexp(-1202.18*ucfc11(i,k))
-        tcfc6 = dexp(-5786.73*ucfc12(i,k))
-        tcfc7 = dexp(-2873.51*ucfc12(i,k))
-        tcfc8 = dexp(-2085.59*ucfc12(i,k))
+        tcfc3 = dexp(-175.005D0*ucfc11(i,k))
+        tcfc4 = dexp(-1202.18D0*ucfc11(i,k))
+        tcfc6 = dexp(-5786.73D0*ucfc12(i,k))
+        tcfc7 = dexp(-2873.51D0*ucfc12(i,k))
+        tcfc8 = dexp(-2085.59D0*ucfc12(i,k))
 !       Emissivity for CFC11 bands
-        ecfc1 = 50.0*(1.0-dexp(-54.09*ucfc11(i,k)))*tw(i,1)*emplnk(7,i)
-        ecfc2 = 60.0*(1.0-dexp(-5130.03*ucfc11(i,k)))*tw(i,2)           &
+        ecfc1 = 50.0D0*(1.0D0-dexp(-54.09D0*ucfc11(i,k)))*tw(i,1)* &
+                        emplnk(7,i)
+        ecfc2 = 60.0D0*(1.0D0-dexp(-5130.03D0*ucfc11(i,k)))*tw(i,2)  &
               & *emplnk(8,i)
-        ecfc3 = 60.0*(1.0-tcfc3)*tw(i,4)*tcfc6*emplnk(9,i)
-        ecfc4 = 100.0*(1.0-tcfc4)*tw(i,5)*emplnk(10,i)
+        ecfc3 = 60.0D0*(1.0D0-tcfc3)*tw(i,4)*tcfc6*emplnk(9,i)
+        ecfc4 = 100.0D0*(1.0D0-tcfc4)*tw(i,5)*emplnk(10,i)
 !       Emissivity for CFC12 bands
-        ecfc5 = 45.0*(1.0-dexp(-1272.35*ucfc12(i,k)))*tw(i,3)           &
+        ecfc5 = 45.0D0*(1.0D0-dexp(-1272.35D0*ucfc12(i,k)))*tw(i,3)  &
               & *emplnk(11,i)
-        ecfc6 = 50.0*(1.0-tcfc6)*tw(i,4)*emplnk(12,i)
-        ecfc7 = 80.0*(1.0-tcfc7)*tw(i,5)*tcfc4*emplnk(13,i)
-        ecfc8 = 70.0*(1.0-tcfc8)*tw(i,6)*emplnk(14,i)
+        ecfc6 = 50.0D0*(1.0D0-tcfc6)*tw(i,4)*emplnk(12,i)
+        ecfc7 = 80.0D0*(1.0D0-tcfc7)*tw(i,5)*tcfc4*emplnk(13,i)
+        ecfc8 = 70.0D0*(1.0D0-tcfc8)*tw(i,6)*emplnk(14,i)
 !       Emissivity for CH4 band 1306 cm-1
-        tlw = dexp(-1.0*dsqrt(up2(i)))
+        tlw = dexp(-1.0D0*dsqrt(up2(i)))
         betac = bch4(i,k)/uch4(i,k)
-        ech4 = 6.00444*sqti(i)*dlog(1.0+func(uch4(i,k),betac))          &
+        ech4 = 6.00444D0*sqti(i)*dlog(1.0D0+func(uch4(i,k),betac))   &
              & *tlw*emplnk(3,i)
-        tch4 = 1.0/(1.0+0.02*func(uch4(i,k),betac))
+        tch4 = 1.0D0/(1.0D0+0.02D0*func(uch4(i,k),betac))
 !       Emissivity for N2O bands
         u01 = un2o0(i,k)
         u11 = un2o1(i,k)
         beta01 = bn2o0(i,k)/un2o0(i,k)
         beta11 = bn2o1(i,k)/un2o1(i,k)
 !       1285 cm-1 band
-        en2o1 = 2.35558*sqti(i)                                         &
-              & *dlog(1.0+func(u01,beta01)+func(u11,beta11))            &
+        en2o1 = 2.35558D0*sqti(i)                                      &
+              & *dlog(1.0D0+func(u01,beta01)+func(u11,beta11))         &
               & *tlw*tch4*emplnk(4,i)
-        u02 = 0.100090*u01
-        u12 = 0.0992746*u11
-        beta02 = 0.964282*beta01
+        u02 = 0.100090D0*u01
+        u12 = 0.0992746D0*u11
+        beta02 = 0.964282D0*beta01
 !       589 cm-1 band
-        en2o2 = 2.65581*sqti(i)                                         &
-              & *dlog(1.0+func(u02,beta02)+func(u12,beta02))*tco2(i)    &
+        en2o2 = 2.65581D0*sqti(i)                                      &
+              & *dlog(1.0D0+func(u02,beta02)+func(u12,beta02))*tco2(i) &
               & *th2o(i)*emplnk(5,i)
-        u03 = 0.0333767*u01
-        beta03 = 0.982143*beta01
+        u03 = 0.0333767D0*u01
+        beta03 = 0.982143D0*beta01
 !       1168 cm-1 band
-        en2o3 = 2.54034*sqti(i)*dlog(1.0+func(u03,beta03))*tw(i,6)      &
+        en2o3 = 2.54034D0*sqti(i)*dlog(1.0D0+func(u03,beta03))*tw(i,6) &
               & *tcfc8*emplnk(6,i)
 !       Emissivity for 1064 cm-1 band of CO2
-        betac1 = 2.97558*pnm(i,k)/(sslp*sqti(i))
-        betac2 = 2.0*betac1
-        eco21 = 3.7571*sqti(i)                                          &
-              & *dlog(1.0+func(uco211(i,k),betac1)+func(uco212(i,k),    &
-              & betac2)+func(uco213(i,k),betac2))*to3(i)*tw(i,5)        &
+        betac1 = 2.97558D0*pnm(i,k)/(sslp*sqti(i))
+        betac2 = 2.0D0*betac1
+        eco21 = 3.7571D0*sqti(i)                                       &
+              & *dlog(1.0D0+func(uco211(i,k),betac1)+func(uco212(i,k), &
+              & betac2)+func(uco213(i,k),betac2))*to3(i)*tw(i,5)       &
               & *tcfc4*tcfc7*emplnk(2,i)
 !       Emissivity for 961 cm-1 band
-        eco22 = 3.8443*sqti(i)                                          &
-              & *dlog(1.0+func(uco221(i,k),betac1)+func(uco222(i,k),    &
-              & betac1)+func(uco223(i,k),betac2))*tw(i,4)               &
+        eco22 = 3.8443D0*sqti(i)                                       &
+              & *dlog(1.0D0+func(uco221(i,k),betac1)+func(uco222(i,k), &
+              & betac1)+func(uco223(i,k),betac2))*tw(i,4)              &
               & *tcfc3*tcfc6*emplnk(1,i)
 !       total trace gas emissivity
-        emstrc(i,k) = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +   &
-                    & ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +    &
+        emstrc(i,k) = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
+                    & ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
                     & eco21 + eco22
       end do
       end subroutine trcems

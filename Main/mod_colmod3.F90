@@ -275,16 +275,16 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
-          if ( ocld2d(n,i,jslc).gt.1.5 ) then
-            if ( sice1d(n,i).ge.0.0001 ) then
+          if ( ocld2d(n,i,jslc).gt.1.5D0 ) then
+            if ( sice1d(n,i).ge.0.0001D0 ) then
               ii2 = ii2 + 1
             else
               ii0 = ii0 + 1
             endif
-          else if ( ocld2d(n,i,jslc).gt.0.1 ) then
-            if ( sice1d(n,i).lt.0.0001 ) then
+          else if ( ocld2d(n,i,jslc).gt.0.1D0 ) then
+            if ( sice1d(n,i).lt.0.0001D0 ) then
               ii1 = ii1 + 1
-            else if ( sice1d(n,i).ge.0.0001 ) then
+            else if ( sice1d(n,i).ge.0.0001D0 ) then
               ii2 = ii2 + 1
             end if
           else
@@ -425,13 +425,13 @@
 !
 !           Effective liquid radius over ocean and sea ice
 !
-            rliq = 10.0
+            rliq = 10.0D0
           else
 !
 !           Effective liquid radius over land
 !
-            rliq = 5.0 + 5.0*dmin1(1.D0,dmax1(0.D0,(263.16-t(i,k))*0.05)&
-                 & )
+            rliq = 5.0D0 + 5.0D0* &
+              dmin1(1.D0,dmax1(0.D0,(263.16D0-t(i,k))*0.05D0))
           end if
 !
           rel(i,k) = rliq
@@ -443,10 +443,10 @@
 !
 !         Determine rei as function of normalized pressure
 !
-          reimax = 30.0
-          rirnge = 20.0
-          pirnge = 0.4
-          picemn = 0.4
+          reimax = 30.0D0
+          rirnge = 20.0D0
+          pirnge = 0.4D0
+          picemn = 0.4D0
 !
           pnrml = pmid(i,k)/ps(i)
           weight = dmax1(dmin1((pnrml-picemn)/pirnge,1.D0),0.D0)
@@ -456,16 +456,16 @@
 !
 !         if warmer than -10 degrees C then water phase
 !
-          if ( t(i,k).gt.263.16 ) fice(i,k) = 0.0
+          if ( t(i,k).gt.263.16D0 ) fice(i,k) = 0.0D0
 !
 !         if colder than -10 degrees C but warmer than -30 C mixed phase
 !
-          if ( t(i,k).le.263.16 .and. t(i,k).ge.243.16 ) fice(i,k)      &
-             & = (263.16-t(i,k))/20.0
+          if ( t(i,k).le.263.16D0 .and. t(i,k).ge.243.16D0 ) &
+            fice(i,k) = (263.16D0-t(i,k))/20.0D0
 !
 !         if colder than -30 degrees C then ice phase
 !
-          if ( t(i,k).lt.243.16 ) fice(i,k) = 1.0
+          if ( t(i,k).lt.243.16D0 ) fice(i,k) = 1.0D0
 !
 !         Turn off ice radiative properties by setting fice = 0.0
 !
@@ -512,7 +512,7 @@
 !
 !     longwave absorption coeff (m**2/g)
 !
-      real(8) , parameter :: kabsl = 0.090361
+      real(8) , parameter :: kabsl = 0.090361D0
 !
 ! i, k    - longitude, level indices
 ! kabs    - longwave absorption coeff (m**2/g)
@@ -523,9 +523,9 @@
 !
       do k = 1 , kz
         do i = 1 , iym1
-          kabsi = 0.005 + 1./rei(i,k)
-          kabs = kabsl*(1.-fice(i,k)) + kabsi*fice(i,k)
-          emis(i,k) = 1. - dexp(-1.66*kabs*clwp(i,k))
+          kabsi = 0.005D0 + 1.0D0/rei(i,k)
+          kabs = kabsl*(1.0D0-fice(i,k)) + kabsi*fice(i,k)
+          emis(i,k) = 1.0D0 - dexp(-1.66D0*kabs*clwp(i,k))
         end do
       end do
 !
@@ -583,17 +583,17 @@
       integer :: i , k , kj , n , ncldm1 , nll
       real(8) , dimension(iym1) :: rlat
 !
-      data amd/28.9644/
-      data amo/48.0000/
+      data amd/28.9644D0/
+      data amo/48.0000D0/
 !
 !     begin read of data:
 !-----
 !-----surface pressure and scaled pressure, from which level pressures
 !-----are computed
       do n = 1 , iym1
-        ps(n) = (sps2%ps(n,jslc)+r8pt)*10.
+        ps(n) = (sps2%ps(n,jslc)+r8pt)*10.0D0
         do nll = 1 , kz
-          pmidm1(n,nll) = (sps2%ps(n,jslc)*a(nll)+r8pt)*10.
+          pmidm1(n,nll) = (sps2%ps(n,jslc)*a(nll)+r8pt)*10.0D0
 !KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
         end do
       end do
@@ -602,17 +602,17 @@
 !.......... interface pressures:
 !
       do i = 1 , iym1
-        ps(i) = ps(i)*100.
+        ps(i) = ps(i)*100.0D0
         do k = 1 , kz
 !
-          pmidm1(i,k) = pmidm1(i,k)*100.
+          pmidm1(i,k) = pmidm1(i,k)*100.0D0
           pmlnm1(i,k) = dlog(pmidm1(i,k))
 !
         end do
       end do
       do k = 1 , kzp1
         do i = 1 , iym1
-          pintm1(i,k) = (sps2%ps(i,jslc)*sigma(k)+r8pt)*1000.
+          pintm1(i,k) = (sps2%ps(i,jslc)*sigma(k)+r8pt)*1000.0D0
           pilnm1(i,k) = dlog(pintm1(i,k))
         end do
       end do
@@ -656,7 +656,7 @@
  
           ccvtem = 0.   !cqc mod
 !KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
-          cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999,ccvtem)
+          cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999D0,ccvtem)
 !KN       cldfrc(n,nll)=dmin1(cldfrc(n,nll),0.9999999)
           cld(n,nll) = dmin1(cld(n,nll),0.9999999D0)
 !
@@ -678,8 +678,8 @@
           deltaz(n,nll) = rgas*tm1(n,nll)*(pintm1(n,nll+1) - &
                           pintm1(n,nll))/(gti*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
-!KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.
-          if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.
+!KN       if (cldfrc(n,nll).eq.0.) clwp(n,nll)=0.0D0
+          if ( cld(n,nll).eq.0. ) clwp(n,nll) = 0.0D0
         end do
       end do
  
@@ -698,10 +698,10 @@
 !
 !     set cloud fractional cover at top model level = 0
       do n = 1 , iym1
-        cld(n,1) = 0.
-        clwp(n,1) = 0.
-        cld(n,2) = 0.       !yhuang, 8/97 two-level
-        clwp(n,2) = 0.
+        cld(n,1) = 0.0D0
+        clwp(n,1) = 0.0D0
+        cld(n,2) = 0.0D0       !yhuang, 8/97 two-level
+        clwp(n,2) = 0.0D0
       end do
 !
 !     set cloud fractional cover at bottom (ncld) model levels = 0
@@ -710,8 +710,8 @@
       do nll = kz - ncldm1 , kz
         do n = 1 , iym1
 !KN       cldfrc(n,nll)=0.
-          cld(n,nll) = 0.
-          clwp(n,nll) = 0.
+          cld(n,nll) = 0.0D0
+          clwp(n,nll) = 0.0D0
         end do
       end do
 !
@@ -731,9 +731,9 @@
 !     cloud cover at surface interface always zero
 !
       do i = 1 , iym1
-!KN     effcld(i,kzp1) = 0.
-!KN     cldfrc(i,kzp1) = 0.
-        cld(i,kzp1) = 0.
+!KN     effcld(i,kzp1) = 0.0D0
+!KN     cldfrc(i,kzp1) = 0.0D0
+        cld(i,kzp1) = 0.0D0
       end do
 !
 !KN   adopted from regcm2 above
@@ -743,13 +743,14 @@
       do i = 1 , iym1
 !
         do k = 1 , kz
-          if ( cld(i,k).gt.0.999 ) cld(i,k) = .999
+          if ( cld(i,k).gt.0.999D0 ) cld(i,k) = 0.999D0
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
-        calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+        calday = dble(julday) + (nnnnnn-nstrt0)/4.0D0 + &
+                    (xtime/60.0D0+gmt)/24.
 !
-        loctim(i) = (calday-aint(calday))*24.
+        loctim(i) = (calday-dint(calday))*24.0D0
         alat(i) = rlat(i)*degrad
         coslat(i) = dcos(alat(i))
 !

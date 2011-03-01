@@ -82,7 +82,8 @@
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+      calday = dble(julday) + (nnnnnn-nstrt0)/4.0D0 + &
+                             (xtime/60.0D0+gmt)/24.0D0
 
 !     Get declin,eccf
       call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
@@ -92,14 +93,18 @@
       declin = declin
       decdeg = declin/degrad
 #else
-      calday = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
-      theta = 2.*mathpi*calday/dayspy
+      calday = dble(julday) + (nnnnnn-nstrt0)/4.0D0 + &
+                       (xtime/60.0D0+gmt)/24.0D0
+      theta = 2.0D0*mathpi*calday/dayspy
 !
 !     Solar declination in radians:
 !
-      declin = .006918 - .399912*dcos(theta) + .070257*dsin(theta)  &
-            & - .006758*dcos(2.*theta) + .000907*dsin(2.*theta)    &
-            & - .002697*dcos(3.*theta) + .001480*dsin(3.*theta)
+      declin = 0.006918D0 - 0.399912D0*dcos(theta) + &
+               0.070257D0*dsin(theta) -              &
+               0.006758D0*dcos(2.0D0*theta) +        &
+               0.000907D0*dsin(2.0D0*theta) -        &
+               0.002697D0*dcos(3.0D0*theta) +        &
+               0.001480D0*dsin(3.0D0*theta)
 !
       decdeg = declin/degrad
 !
@@ -163,8 +168,8 @@
         omega = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad
 !       coszrs = cosine of solar zenith angle
-        coszrs(ill) = dsin(declin)*dsin(xxlat) + dcos(declin)           &
-                    & *dcos(xxlat)*dcos(omega)
+        coszrs(ill) = dsin(declin)*dsin(xxlat) +           &
+                      dcos(declin)*dcos(xxlat)*dcos(omega)
         coszrs(ill) = dmax1(0.0D0,coszrs(ill))
         coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do

@@ -82,15 +82,15 @@
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(i,j))                           &
-                   & /(1.0+0.15*(tc0-tb3d(i,k,j)))
+                   & /(1.0D0+0.15D0*(tc0-tb3d(i,k,j)))
           end if
           if ( rhb3d(i,k,j).ge.rhmax ) then    ! full cloud cover
-            fcc(i,k,j) = 1.
+            fcc(i,k,j) = 1.0D0
           else if ( rhb3d(i,k,j).le.rh0adj ) then
                                                ! no cloud cover
-            fcc(i,k,j) = 0.
+            fcc(i,k,j) = 0.0D0
           else                                ! partial cloud cover
-            fcc(i,k,j) = 1. - dsqrt(1.-(rhb3d(i,k,j)-rh0adj)/ &
+            fcc(i,k,j) = 1.0D0 - dsqrt(1.0D0-(rhb3d(i,k,j)-rh0adj)/ &
                                        (rhmax-rh0adj))
             fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
           end if                      !  rh0 threshold
@@ -101,7 +101,7 @@
 ! An Improved Parameterization for Simulating Arctic Cloud Amount
 !    in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
-          if ( pb3d(i,k,j) >= 75.0 ) then
+          if ( pb3d(i,k,j) >= 75.0D0 ) then
             ! Clouds below 750hPa
             if ( qvb3d(i,k,j).le.0.003D0 ) then
               fcc(i,k,j) = fcc(i,k,j) * &
@@ -122,13 +122,13 @@
         do i = 2 , iym2
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          exlwc = qcb3d(i,k,j)*rhob3d(i,k,j)*1.E03
+          exlwc = qcb3d(i,k,j)*rhob3d(i,k,j)*1.D03
 
           ! temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
-          cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(tb3d(i,k,j)-tzero)    &
-                       &  + 1.29D-04* (tb3d(i,k,j)-tzero)**2         &
-                       &  + 8.36D-07*(tb3d(i,k,j)-tzero)**3
+          cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(tb3d(i,k,j)-tzero)  &
+                       &  + 1.29D-04* (tb3d(i,k,j)-tzero)**2.0D0   &
+                       &  + 8.36D-07*(tb3d(i,k,j)-tzero)**3.0D0
 
           if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
           if ( (tb3d(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00

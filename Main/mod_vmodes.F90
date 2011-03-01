@@ -237,10 +237,10 @@
 !
 !  compute sigmah (sigma at half levels) and delta sigma
       do k = 1 , kz
-        sigmah(k) = 0.5*(sigmaf(k)+sigmaf(k+1))
+        sigmah(k) = 0.5D0*(sigmaf(k)+sigmaf(k+1))
         sdsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
-      sigmah(kzp1) = 1.0
+      sigmah(kzp1) = 1.0D0
 !
 !  set tbarh (temperature at half (data) levels: indexed k + 1/2)
       if ( lstand ) call vtlaps(tbarh,sigmah,r8pt,pd,kz)
@@ -267,11 +267,11 @@
                  & /(sigmah(k)-sigmah(k1)) + tbarh(k)                   &
                  & *(sigmaf(k)-sigmah(k1))/(sigmah(k)-sigmah(k1))
       end do
-      tbarf(1) = 0.
-      tbarf(kzp1) = 0.
+      tbarf(1) = 0.0D0
+      tbarf(kzp1) = 0.0D0
 !
       do k = 1 , kzp1
-        if ( sigmaf(k).lt.1E-30 ) then
+        if ( sigmaf(k).lt.1D-30 ) then
           thetaf(k) = tbarf(k)
         else
           thetaf(k) = tbarf(k)*((sigmaf(k)+r8pt/pd)**(-rovcp))
@@ -282,18 +282,18 @@
 !
       do l = 1 , kz
         do k = 1 , kz
-          if ( l.gt.k ) e2(k,l) = 0.
-          if ( l.le.k ) e2(k,l) = 1.
-          e1(k,l) = 1.
+          if ( l.gt.k ) e2(k,l) = 0.0D0
+          if ( l.le.k ) e2(k,l) = 1.0D0
+          e1(k,l) = 1.0D0
         end do
       end do
 !
-      a3 = 0.0
-      d1 = 0.0
-      d2 = 0.0
-      s1 = 0.0
-      s2 = 0.0
-      x1 = 0.0
+      a3 = 0.0D0
+      d1 = 0.0D0
+      d2 = 0.0D0
+      s1 = 0.0D0
+      s2 = 0.0D0
+      x1 = 0.0D0
 !
       do k = 1 , kz
         a3(k,k) = -tbarh(k)
@@ -301,18 +301,18 @@
         d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+r8pt/pd)
         s1(k,k) = sigmaf(k)
         s2(k,k) = sigmah(k)
-        x1(k,k) = 1.
+        x1(k,k) = 1.0D0
       end do
 !
       do k = 1 , kz
         do l = 1 , kz
-          e3(k,l) = 0.
-          g1(k,l) = 0.
+          e3(k,l) = 0.0D0
+          g1(k,l) = 0.0D0
         end do
         e3(k,k) = 1.
         if ( k.gt.1 ) g1(k,k) = tbarf(k)
         if ( k.lt.kz ) g1(k,k+1) = -tbarf(k+1)
-        if ( k.lt.kz ) e3(k,k+1) = 1.
+        if ( k.lt.kz ) e3(k,k+1) = 1.0D0
       end do
 !
 !  compute g2 (i.e., the transform from divg. to sigma dot)
@@ -327,7 +327,7 @@
 !
       w2 = 0
       do k = 1 , kz
-        w2(k,k) = 1.0/d1(k,k)
+        w2(k,k) = 1.0D0/d1(k,k)
       end do
       w1 = matmul(g1,g2)
       a1 = matmul(w2,w1)
@@ -337,7 +337,7 @@
       w1 = matmul(e1,d1)
       a2 = matmul(s2,w1)
       w2 = matmul(e3,g2)
-      w2 = 0.5*w2
+      w2 = 0.5D0*w2
       w1 = w2-a2
       a2 = matmul(d2,w1)
 !
@@ -362,7 +362,7 @@
 !
 !  compute matrix which multiples t vector
 !
-      hydros = 0.0
+      hydros = 0.0D0
 !
       do k = 1 , kz - 1
         do l = k , kz - 1
@@ -375,14 +375,14 @@
 !
       do k = 1 , kz
         hydros(k,kz) = hydros(k,kz)                                     &
-                     & + dlog((1.+r8pt/pd)/(sigmah(kz)+r8pt/pd))
+                     & + dlog((1.0D0+r8pt/pd)/(sigmah(kz)+r8pt/pd))
       end do
 !
 !  compute matirx which multiplies log(sigma*p+r8pt) vector
 !
-      hydroc = 0.0
+      hydroc = 0.0D0
 !
-      tweigh(1) = 0.
+      tweigh(1) = 0.0D0
       do l = 2 , kz
         tweigh(l) = (tbarh(l)*sdsigma(l)+tbarh(l-1)*sdsigma(l-1))       &
                   & /(sdsigma(l)+sdsigma(l-1))
@@ -419,7 +419,7 @@
           w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+r8pt)
         end do
         x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
-        if ( x.gt.1.E-8 ) lhydro = .true.
+        if ( x.gt.1.D-8 ) lhydro = .true.
       end do
 !
       if ( lhydro ) then
@@ -435,7 +435,7 @@
 !
       do l = 1 , kz
         do k = 1 , kzp1
-          w3(k,l) = sdsigma(l)/(1.+r8pt/(pd*sigmah(k)))
+          w3(k,l) = sdsigma(l)/(1.0D0+r8pt/(pd*sigmah(k)))
         end do
       end do
 !
@@ -481,7 +481,7 @@
       call vcheki(ier,numerr,'taur    ')
 !
       do k = 1 , kz
-        cpfac(k) = 0.
+        cpfac(k) = 0.0D0
         do l = 1 , kz
           cpfac(k) = cpfac(k) + (sigmaf(l+1)-sigmaf(l))*w1(l,k)
         end do
@@ -492,15 +492,15 @@
 !       determine arrays needed for daley's variational scheme
 !             for determination of surface pressure changes
 !
-      hweigh = 0.0
-      hweigh(kz) = 1.    ! only lowest sigma level t considered
+      hweigh = 0.0D0
+      hweigh(kz) = 1.0D0    ! only lowest sigma level t considered
 !
       do k1 = 1 , kz
         do k2 = 1 , kz    ! compute b(-1t) w/tbar**2 b(-1)
-          w1(k2,k1) = 0.
+          w1(k2,k1) = 0.0D0
           do k = 1 , kz
             w1(k2,k1) = hydror(k,k2)*hydror(k,k1)*hweigh(k)/            &
-                    & (tbarh(k)**2)+w1(k2,k1)
+                    & (tbarh(k)**2.0D0)+w1(k2,k1)
           end do
         end do
       end do
@@ -508,7 +508,7 @@
       ps2 = xps*xps
       do k1 = 1 , kzp1
         do k2 = 1 , kz
-          varpa1(k2,k1) = 0.
+          varpa1(k2,k1) = 0.0D0
           do k = 1 , kz
             varpa1(k2,k1) = varpa1(k2,k1) + w1(k2,k)*hydroc(k,k1)*ps2
           end do
@@ -517,7 +517,7 @@
 !
       do k1 = 1 , kzp1
         do k2 = 1 , kzp1
-          varpa2(k2,k1) = 0.
+          varpa2(k2,k1) = 0.0D0
           do k = 1 , kz
             varpa2(k2,k1) = varpa2(k2,k1) + hydroc(k,k2)*varpa1(k,k1)
           end do
@@ -585,7 +585,7 @@
 !
 ! PARAMETER definitions
 !
-      real(8) , parameter :: tol = 1.E-9
+      real(8) , parameter :: tol = 1.D-9
 !
 ! Dummy arguments
 !
@@ -601,9 +601,9 @@
       integer :: n , nimag , numneg
 !
       numneg = 0
-      emax = 0.
+      emax = 0.0D0
       do n = 1 , nk
-        if ( er(n).le.0. ) numneg = numneg + 1
+        if ( er(n).le.0.0D0 ) numneg = numneg + 1
         if ( er(n).gt.emax ) emax = er(n)
       end do
 !
@@ -667,8 +667,8 @@
 !
       kmax = 1
       do l = 1 , nk
-        zmax = -1.
-        v = 0.
+        zmax = -1.0D0
+        v = 0.0D0
 !
         do k = 1 , nk
           a = dabs(z(k,l))
@@ -749,7 +749,7 @@
       kmax = 1
       do k = 1 , nk
         wh(k,1) = hbar(k)
-        wh(k,2) = 0.
+        wh(k,2) = 0.0D0
         do l = 1 , nk
           wz(k,l) = z(k,l)
         end do
@@ -758,14 +758,14 @@
       do l = 1 , nk
         hmax = -1.D100
         do k = 1 , nk
-          if ( (wh(k,2).eq.0.) .and. (wh(k,1).gt.hmax) ) then
+          if ( (wh(k,2).eq.0.0D0) .and. (wh(k,1).gt.hmax) ) then
             hmax = wh(k,1)
             kmax = k
           end if
         end do
 !
         hbar(l) = hmax
-        wh(kmax,2) = 1.
+        wh(kmax,2) = 1.0D0
         do k = 1 , nk
           z(k,l) = wz(k,kmax)
         end do
@@ -845,7 +845,7 @@
         tb = (ds1*tbarh(k)+ds2*tbarh(k+1))/(ds1+ds2)
         g1 = xkappa*tb/(sigmaf(k+1)+pt/pd)
         g2 = (tbarh(k+1)-tbarh(k))/(sigmah(k+1)-sigmah(k))
-        if ( g1-g2.lt.0. ) lstab = .false.
+        if ( g1-g2.lt.0.0D0 ) lstab = .false.
       end do
       if ( .not.lstab ) then
         numerr = numerr + 1
@@ -863,7 +863,7 @@
 !
 ! PARAMETER definitions
 !
-      real(8) , parameter :: tstrat = 218.15 , zstrat = 10769
+      real(8) , parameter :: tstrat = 218.15D0 , zstrat = 10769.D0
       real(8) :: p0
 !
 ! Dummy arguments
@@ -892,7 +892,6 @@
       end do
 !
       end subroutine vtlaps
-
 
 !
       end module mod_vmodes

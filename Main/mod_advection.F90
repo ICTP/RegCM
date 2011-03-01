@@ -115,34 +115,34 @@
 !       implement a "relaxed" upstream scheme
 !
 !hy     fact1=0.75
-        fact1 = 0.60
-        fact2 = 1. - fact1
+        fact1 = 0.60D0
+        fact2 = 1.0D0 - fact1
 !
 !-----for qc and qr:
 !       up-wind values of qc and qr are used.
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = 0.5*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
-            uavg1 = 0.5*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-            if ( uavg2.ge.0. ) then
+            uavg2 = 0.5D0*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = 0.5D0*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
+            if ( uavg2.ge.0.0D0 ) then
               fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
             else
               fx2 = fact1*var(i,k,jp1) + fact2*var(i,k,j)
             end if
-            if ( uavg1.ge.0. ) then
+            if ( uavg1.ge.0.0D0 ) then
               fx1 = fact1*var(i,k,jm1) + fact2*var(i,k,j)
             else
               fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
             end if
-            vavg2 = 0.5*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
-            vavg1 = 0.5*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-            if ( vavg2.ge.0. ) then
+            vavg2 = 0.5D0*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = 0.5D0*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
+            if ( vavg2.ge.0.0D0 ) then
               fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
             else
               fy2 = fact1*var(i+1,k,j) + fact2*var(i,k,j)
             end if
-            if ( vavg1.ge.0. ) then
+            if ( vavg1.ge.0.0D0 ) then
               fy1 = fact1*var(i-1,k,j) + fact2*var(i,k,j)
             else
               fy1 = fact1*var(i,k,j) + fact2*var(i-1,k,j)
@@ -214,16 +214,16 @@
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
             ucmona = atm1%u(idxp1,k,j) +  &
-                     2.*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
+                     2.0D0*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
             vcmona = atm1%v(idx,k,jp1) +  &
-                     2.*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
-            ucmonb = atm1%u(idxp1,k,jp1) + 2.*atm1%u(idx,k,jp1)  &
+                     2.0D0*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
+            ucmonb = atm1%u(idxp1,k,jp1) + 2.0D0*atm1%u(idx,k,jp1)  &
                    & + atm1%u(idxm1,k,jp1) + ucmona
-            vcmonb = atm1%v(idxp1,k,jp1) + 2.*atm1%v(idxp1,k,j)  &
+            vcmonb = atm1%v(idxp1,k,jp1) + 2.0D0*atm1%v(idxp1,k,j)  &
                    & + atm1%v(idxp1,k,jm1) + vcmona
-            ucmonc = atm1%u(idxp1,k,jm1) + 2.*atm1%u(idx,k,jm1)  &
+            ucmonc = atm1%u(idxp1,k,jm1) + 2.0D0*atm1%u(idx,k,jm1)  &
                    & + atm1%u(idxm1,k,jm1) + ucmona
-            vcmonc = atm1%v(idxm1,k,jp1) + 2.*atm1%v(idxm1,k,j)  &
+            vcmonc = atm1%v(idxm1,k,jp1) + 2.0D0*atm1%v(idxm1,k,j)  &
                    & + atm1%v(idxm1,k,jm1) + vcmona
             ften(i,k) = ften(i,k)                            &
                       & - ((var(i,k,jp1)+var(i,k,j))*ucmonb- &
@@ -253,17 +253,17 @@
             idxp1 = min0(idxp1,iym1)
             idxm1 = i - 1
             idxm1 = max0(idxm1,2)
-            ucmona = atm1%u(idxp1,k,j) + 2.*atm1%u(idx,k,j)        &
+            ucmona = atm1%u(idxp1,k,j) + 2.0D0*atm1%u(idx,k,j)        &
                    & + atm1%u(idxm1,k,j)
-            vcmona = atm1%v(idx,k,jdp1) + 2.*atm1%v(idx,k,j)       &
+            vcmona = atm1%v(idx,k,jdp1) + 2.0D0*atm1%v(idx,k,j)       &
                    & + atm1%v(idx,k,jdm1)
-            ucmonb = atm1%u(idxp1,k,jdp1) + 2.*atm1%u(idx,k,jdp1)  &
+            ucmonb = atm1%u(idxp1,k,jdp1) + 2.0D0*atm1%u(idx,k,jdp1)  &
                    & + atm1%u(idxm1,k,jdp1) + ucmona
-            vcmonb = atm1%v(idxp1,k,jdp1) + 2.*atm1%v(idxp1,k,j)   &
+            vcmonb = atm1%v(idxp1,k,jdp1) + 2.0D0*atm1%v(idxp1,k,j)   &
                    & + atm1%v(idxp1,k,jdm1) + vcmona
-            ucmonc = atm1%u(idxp1,k,jdm1) + 2.*atm1%u(idx,k,jdm1)  &
+            ucmonc = atm1%u(idxp1,k,jdm1) + 2.0D0*atm1%u(idx,k,jdm1)  &
                    & + atm1%u(idxm1,k,jdm1) + ucmona
-            vcmonc = atm1%v(idxm1,k,jdp1) + 2.*atm1%v(idxm1,k,j)   &
+            vcmonc = atm1%v(idxm1,k,jdp1) + 2.0D0*atm1%v(idxm1,k,j)   &
                    & + atm1%v(idxm1,k,jdm1) + vcmona
             ften(i,k) = ften(i,k) -                        &
                       & ((var(i,k,jp1)+var(i,k,j))*ucmonb- &
@@ -348,16 +348,16 @@
 !.....interpolate ta to full sigma levels:
 !
         do i = 2 , iym2
-          fg(i,1) = 0.
+          fg(i,1) = 0.0D0
         end do
         do k = 2 , kz
           do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k) * &
                     & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287D0 + &
                     & twt(k,2)*fa(i,k-1) * &
                     & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287
+                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287D0
           end do
         end do
 !......k = 1
@@ -383,15 +383,15 @@
 !.....interpolate qv to full sigma levels:
 !
         do i = 2 , iym2
-          fg(i,1) = 0.
+          fg(i,1) = 0.0D0
         end do
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k).gt.1.E-15 .and. fa(i,k-1).gt.1.E-15 ) then
+            if ( fa(i,k).gt.1.D-15 .and. fa(i,k-1).gt.1.D-15 ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
-              fg(i,k) = 0.
+              fg(i,k) = 0.0D0
             end if
           end do
         end do
@@ -418,7 +418,7 @@
 !
 !......k = 1
         do i = 2 , iym2
-          if ( qdot(i,2,j).ge.0. ) then
+          if ( qdot(i,2,j).ge.0.0D0 ) then
             f2 = fa(i,1)
           else
             f2 = fa(i,2)
@@ -428,12 +428,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if ( qdot(i,k+1,j).ge.0. ) then
+            if ( qdot(i,k+1,j).ge.0.0D0 ) then
               f2 = fa(i,k)
             else
               f2 = fa(i,k+1)
             end if
-            if ( qdot(i,k,j).ge.0. ) then
+            if ( qdot(i,k,j).ge.0.0D0 ) then
               f1 = fa(i,k-1)
             else
               f1 = fa(i,k)
@@ -444,7 +444,7 @@
         end do
 !......k = kz
         do i = 2 , iym2
-          if ( qdot(i,kz,j).ge.0. ) then
+          if ( qdot(i,kz,j).ge.0.0D0 ) then
             f1 = fa(i,kzm1)
           else
             f1 = fa(i,kz)
@@ -458,18 +458,18 @@
 !.....interpolate ua or va to full sigma levels:
 !
         do i = 2 , iym1
-          fg(i,1) = 0.
+          fg(i,1) = 0.0D0
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
+            fg(i,k) = 0.5D0*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
         do i = 2 , iym1
           ften(i,1) = ften(i,1)                                         &
                     & - (qdot(i-1,2,jm1)+qdot(i,2,jm1)+qdot(i,2,j)      &
-                    & +qdot(i-1,2,j))*fg(i,2)/(4.*dsigma(1))
+                    & +qdot(i-1,2,j))*fg(i,2)/(4.0D0*dsigma(1))
         end do
 !......k = 2,kzm1
         do k = 2 , kzm1
@@ -478,14 +478,14 @@
                       & - ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+qdot(i,   &
                       & k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)               &
                       & -(qdot(i,k,jm1)+qdot(i-1,k,jm1)+qdot(i,k,j)     &
-                      & +qdot(i-1,k,j))*fg(i,k))/(4.*dsigma(k))
+                      & +qdot(i-1,k,j))*fg(i,k))/(4.0D0*dsigma(k))
           end do
         end do
 !......k = kz
         do i = 2 , iym1
           ften(i,kz) = ften(i,kz)                                       &
                      & + (qdot(i,kz,jm1)+qdot(i-1,kz,jm1)+qdot(i,kz,j)  &
-                     & +qdot(i-1,kz,j))*fg(i,kz)/(4.*dsigma(kz))
+                     & +qdot(i-1,kz,j))*fg(i,kz)/(4.0D0*dsigma(kz))
         end do
 !
  
@@ -527,16 +527,16 @@
 !.....interpolate ta to full sigma levels:
 !
         do i = 2 , iym2
-          fg(i,1) = 0.
+          fg(i,1) = 0.0D0
         end do
         do k = 2 , kz
           do i = 2 , iym2
             fg(i,k) = twt(k,1)*fa(i,k) * &
                     & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287 + &
+                    &  (sps1%ps(i,j)*a(k)+r8pt))**0.287D0 + &
                     & twt(k,2)*fa(i,k-1) * &
                     & ((sps1%ps(i,j)*sigma(k)+r8pt)/ &
-                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287
+                    &  (sps1%ps(i,j)*a(k-1)+r8pt))**0.287D0
           end do
         end do
 !......k = 1
@@ -562,15 +562,15 @@
 !.....interpolate qv to full sigma levels:
 !
         do i = 2 , iym2
-          fg(i,1) = 0.
+          fg(i,1) = 0.D0
         end do
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k).gt.1.E-15 .and. fa(i,k-1).gt.1.E-15 ) then
+            if ( fa(i,k).gt.1.D-15 .and. fa(i,k-1).gt.1.D-15 ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
-              fg(i,k) = 0.
+              fg(i,k) = 0.0D0
             end if
           end do
         end do
@@ -597,7 +597,7 @@
 !
 !......k = 1
         do i = 2 , iym2
-          if ( qdot(i,2,j).ge.0. ) then
+          if ( qdot(i,2,j).ge.0.0D0 ) then
             f2 = fa(i,1)
           else
             f2 = fa(i,2)
@@ -607,12 +607,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym2
-            if ( qdot(i,k+1,j).ge.0. ) then
+            if ( qdot(i,k+1,j).ge.0.0D0 ) then
               f2 = fa(i,k)
             else
               f2 = fa(i,k+1)
             end if
-            if ( qdot(i,k,j).ge.0. ) then
+            if ( qdot(i,k,j).ge.0.0D0 ) then
               f1 = fa(i,k-1)
             else
               f1 = fa(i,k)
@@ -623,7 +623,7 @@
         end do
 !......k = kz
         do i = 2 , iym2
-          if ( qdot(i,kz,j).ge.0. ) then
+          if ( qdot(i,kz,j).ge.0.0D0 ) then
             f1 = fa(i,kzm1)
           else
             f1 = fa(i,kz)
@@ -637,18 +637,18 @@
 !.....interpolate ua or va to full sigma levels:
 !
         do i = 2 , iym1
-          fg(i,1) = 0.
+          fg(i,1) = 0.0D0
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = 0.5*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
+            fg(i,k) = 0.5D0*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
         do i = 2 , iym1
           ften(i,1) = ften(i,1)                                         &
                     & - (qdot(i-1,2,j-1)+qdot(i,2,j-1)+qdot(i,2,j)      &
-                    & +qdot(i-1,2,j))*fg(i,2)/(4.*dsigma(1))
+                    & +qdot(i-1,2,j))*fg(i,2)/(4.0D0*dsigma(1))
         end do
 !......k = 2,kzm1
         do k = 2 , kzm1
@@ -657,14 +657,14 @@
                       & - ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+qdot(i,   &
                       & k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)               &
                       & -(qdot(i,k,j-1)+qdot(i-1,k,j-1)+qdot(i,k,j)     &
-                      & +qdot(i-1,k,j))*fg(i,k))/(4.*dsigma(k))
+                      & +qdot(i-1,k,j))*fg(i,k))/(4.0D0*dsigma(k))
           end do
         end do
 !......k = kz
         do i = 2 , iym1
           ften(i,kz) = ften(i,kz)                                       &
                      & + (qdot(i,kz,j-1)+qdot(i-1,kz,j-1)+qdot(i,kz,j)  &
-                     & +qdot(i-1,kz,j))*fg(i,kz)/(4.*dsigma(kz))
+                     & +qdot(i-1,kz,j))*fg(i,kz)/(4.0D0*dsigma(kz))
         end do
 !
  

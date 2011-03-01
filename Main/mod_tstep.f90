@@ -48,21 +48,21 @@
 !
 !---------------------------------------------------------------------
 !
-      deltmn = 0.0
-      tscale = 0.0
+      deltmn = 0.0D0
+      tscale = 0.0D0
       if ( jyear.eq.jyear0 .and. ktau.eq.0 ) then
         idtmax = 1
-        tscale = 5.*dt
-        deltmn = 0.1*dt
+        tscale = 5.D0*dt
+        deltmn = 0.1D0*dt
         deltmx = dt
       end if
       if ( idtmax.eq.1 ) then
-        dt = deltmx*(1.-dexp(-extime/tscale)) + deltmn
+        dt = deltmx*(1.0D0-dexp(-extime/tscale)) + deltmn
         dtinc = dt
-        dtmin = dt/60.
+        dtmin = dt/60.0D0
         idtmax = 2
       end if
-      dt2 = 2.*dt
+      dt2 = 2.0D0*dt
       if ( jyear.ne.jyear0 .or. ktau.ne.0 ) dt = dt2
 !
       end subroutine tstep
