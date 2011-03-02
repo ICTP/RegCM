@@ -216,7 +216,7 @@ contains
           e = dexp(ae(iph)-be(iph)/t(i,k))
           eo = dexp(ae(ipho)-be(ipho)/tn(i,k))
           qes(i,k) = ep2*e/(100.0D0*p(i,k)-(1.0D0-ep2)*e)
-          qeso(i,k) = ep2*eo/(100.*po(i,k)-(1.-ep2)*eo)
+          qeso(i,k) = ep2*eo/(100.0D0*po(i,k)-(1.0D0-ep2)*eo)
           if ( qes(i,k) <= 1.D-08 ) qes(i,k) = 1.D-08
           if ( q(i,k) > qes(i,k) ) q(i,k) = qes(i,k)
           if ( qeso(i,k) <= 1.D-08 ) qeso(i,k) = 1.D-08

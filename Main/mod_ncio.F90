@@ -579,8 +579,8 @@
 !
           r8pt = ptsp/10.0D0
           rpt = ptop
-          tpd = 24./tapfrq
-          cfd = 24./chemfrq
+          tpd = 24.0D0/tapfrq
+          cfd = 24.0D0/chemfrq
           dx = dsx
           istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
           call check_ok('Variable sigma missing', 'DOMAIN FILE ERROR')

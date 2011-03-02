@@ -249,7 +249,7 @@
       do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i) > 0.5D0 ) then
-            age = (1.-1./(1.+sag1d(n,i)))
+            age = (1.0D0-1.0D0/(1.0D0+sag1d(n,i)))
             rhosw(n,i) = 0.10D0*(1.0D0+3.0D0*age)
             densi(n,i) = 0.01D0/(1.0D0+3.0D0*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)

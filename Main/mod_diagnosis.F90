@@ -127,7 +127,7 @@
             end do
             tdini = tdini + tttmp*dsigma(k)
           end do
-          tdini = tdini*dx*dx*1000.*rgti
+          tdini = tdini*dx*dx*1000.0D0*rgti
         end if
 
         call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -147,7 +147,7 @@
             end do
             tvmass = tvmass + tttmp*dsigma(k)
           end do
-          tvmass = tvmass*dx*dx*1000.*rgti
+          tvmass = tvmass*dx*dx*1000.0D0*rgti
         end if
 
         call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -165,7 +165,7 @@
             end do
             tcmass = tcmass + tttmp*dsigma(k)
           end do
-          tcmass = tcmass*dx*dx*1000.*rgti
+          tcmass = tcmass*dx*dx*1000.0D0*rgti
         end if
 
         call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -189,7 +189,7 @@
           end do
           tdini = tdini + tttmp*dsigma(k)
         end do
-        tdini = tdini*dx*dx*1000.*rgti
+        tdini = tdini*dx*dx*1000.0D0*rgti
 !
 !-----water substance (unit = kg):
 !
@@ -202,7 +202,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*1000.*rgti
+        tvmass = tvmass*dx*dx*1000.0D0*rgti
 !
         do k = 1 , kz
           tttmp = 0.0D0
@@ -213,7 +213,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*1000.*rgti
+        tcmass = tcmass*dx*dx*1000.0D0*rgti
         tqini = tvmass + tcmass
 !=======================================================================
         write(6,99003) tdini , tqini
@@ -633,7 +633,7 @@
           end do
           tdrym = tdrym + tttmp*dsigma(k)
         end do
-        tdrym = tdrym*dx*dx*1000.*rgti
+        tdrym = tdrym*dx*dx*1000.0D0*rgti
       end if
       call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
@@ -646,7 +646,7 @@
         end do
         tdrym = tdrym + tttmp*dsigma(k)
       end do
-      tdrym = tdrym*dx*dx*1000.*rgti
+      tdrym = tdrym*dx*dx*1000.0D0*rgti
 #endif
 !
 !-----water substance (unit = kg):
@@ -666,7 +666,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*1000.*rgti
+        tvmass = tvmass*dx*dx*1000.0D0*rgti
       end if
       call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
@@ -680,7 +680,7 @@
         end do
         tvmass = tvmass + tttmp*dsigma(k)
       end do
-      tvmass = tvmass*dx*dx*1000.*rgti
+      tvmass = tvmass*dx*dx*1000.0D0*rgti
 #endif
 !
       tcmass = 0.0D0
@@ -699,7 +699,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*1000.*rgti
+        tcmass = tcmass*dx*dx*1000.0D0*rgti
       end if
       call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
@@ -713,7 +713,7 @@
         end do
         tcmass = tcmass + tttmp*dsigma(k)
       end do
-      tcmass = tcmass*dx*dx*1000.*rgti
+      tcmass = tcmass*dx*dx*1000.0D0*rgti
 #endif
 
       tqmass = tvmass + tcmass
@@ -1385,13 +1385,13 @@
 #endif
  
       do itr = 1 , ntr
-        ttrace(itr,1) = ttrace(itr,1)*1000.*rgti
-        tremlsc(itr,1) = tremlsc(itr,1)*1000.*rgti
-        tremcvc(itr,1) = tremcvc(itr,1)*1000.*rgti
-        tremdrd(itr,1) = tremdrd(itr,1)*1000.*rgti
-        trxsg(itr,1) = trxsg(itr,1)*1000.*rgti
-        trxsaq1(itr,1) = trxsaq1(itr,1)*1000.*rgti
-        trxsaq2(itr,1) = trxsaq2(itr,1)*1000.*rgti
+        ttrace(itr,1) = ttrace(itr,1)*1000.0D0*rgti
+        tremlsc(itr,1) = tremlsc(itr,1)*1000.0D0*rgti
+        tremcvc(itr,1) = tremcvc(itr,1)*1000.0D0*rgti
+        tremdrd(itr,1) = tremdrd(itr,1)*1000.0D0*rgti
+        trxsg(itr,1) = trxsg(itr,1)*1000.0D0*rgti
+        trxsaq1(itr,1) = trxsaq1(itr,1)*1000.0D0*rgti
+        trxsaq2(itr,1) = trxsaq2(itr,1)*1000.0D0*rgti
       end do
 
  

@@ -2260,9 +2260,9 @@
       do i = 2 , ip
          ii = iy - i
 !.......south boundary:
-         ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+         ften(i) = wg(i)*ften(i) + (1.0D0-wg(i))*psbt(i,j)
 !.......north boundary:
-         ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+         ften(ii) = wg(i)*ften(ii) + (1.0D0-wg(i))*pnbt(i,j)
       end do
 
 #else
@@ -2293,9 +2293,9 @@
         do i = 2 , ip
           ii = iy - i
 !.......south boundary:
-          ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+          ften(i) = wg(i)*ften(i) + (1.0D0-wg(i))*psbt(i,j)
 !.......north boundary:
-          ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+          ften(ii) = wg(i)*ften(ii) + (1.0D0-wg(i))*pnbt(i,j)
         end do
 !
       else if ( jsls <= ip ) then
@@ -2305,9 +2305,9 @@
           do i = 2 , jsls - 1
             ii = iy - i
 !........south boundary:
-            ften(i) = wg(i)*ften(i) + (1.-wg(i))*psbt(i,j)
+            ften(i) = wg(i)*ften(i) + (1.0D0-wg(i))*psbt(i,j)
 !........north boundary:
-            ften(ii) = wg(i)*ften(ii) + (1.-wg(i))*pnbt(i,j)
+            ften(ii) = wg(i)*ften(ii) + (1.0D0-wg(i))*pnbt(i,j)
           end do
           ibeg = jsls
           iend = iy - jsls
@@ -2317,20 +2317,20 @@
 !------west-boundary slice:
           do i = ibeg , iend
 #ifdef MPP1
-            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.0D0-wg(jsls))&
                                       & *pwbt(i,jwb)
 #else
-            ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pwbt(i,jsls)
+            ften(i) = wg(jsls)*ften(i) + (1.0D0-wg(jsls))*pwbt(i,jsls)
 #endif
           end do
         else if ( jj <= ip ) then
 !------east-boundary slice:
           do i = ibeg , iend
 #ifdef MPP1
-            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))&
+            if ( jsls <= ip ) ften(i) = wg(jsls)*ften(i) + (1.0D0-wg(jsls))&
                                       & *pebt(i,jeb)
 #else
-            ften(i) = wg(jsls)*ften(i) + (1.-wg(jsls))*pebt(i,jsls)
+            ften(i) = wg(jsls)*ften(i) + (1.0D0-wg(jsls))*pebt(i,jsls)
 #endif
           end do
         end if
@@ -2375,9 +2375,9 @@
          ii = iy - i
          do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*tsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*tnbt(i,k,j)
          end do
       end do
 
@@ -2410,9 +2410,9 @@
           ii = iy - i
           do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*tsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*tnbt(i,k,j)
           end do
         end do
 !
@@ -2424,9 +2424,9 @@
             ii = iy - i
             do k = 1 , kz
 !........south boundary:
-              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*tsbt(i,k,j)
+              ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*tsbt(i,k,j)
 !........north boundary:
-              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*tnbt(i,k,j)
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*tnbt(i,k,j)
             end do
           end do
           ibeg = jsls
@@ -2439,9 +2439,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*twbt(i,k,jwb)
+                 & + (1.0D0-wg(jsls))*twbt(i,k,jwb)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *twbt(i,k,jsls)
 #endif
             end do
@@ -2452,9 +2452,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*tebt(i,k,jeb)
+                 & + (1.0D0-wg(jsls))*tebt(i,k,jeb)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *tebt(i,k,jsls)
 #endif
             end do
@@ -2501,9 +2501,9 @@
          ii = iy - i
          do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*qsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*qnbt(i,k,j)
          end do
       end do
 #else
@@ -2535,9 +2535,9 @@
           ii = iy - i
           do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*qsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*qnbt(i,k,j)
           end do
         end do
 !
@@ -2549,9 +2549,9 @@
             ii = iy - i
             do k = 1 , kz
 !........south boundary:
-              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*qsbt(i,k,j)
+              ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*qsbt(i,k,j)
 !........north boundary:
-              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*qnbt(i,k,j)
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*qnbt(i,k,j)
             end do
           end do
           ibeg = jsls
@@ -2564,9 +2564,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*qwbt(i,k,jwb)
+                 & + (1.0D0-wg(jsls))*qwbt(i,k,jwb)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *qwbt(i,k,jsls)
 #endif
             end do
@@ -2577,9 +2577,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*qebt(i,k,jeb)
+                 & + (1.0D0-wg(jsls))*qebt(i,k,jeb)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *qebt(i,k,jsls)
 #endif
             end do
@@ -2625,9 +2625,9 @@
          ii = iy - i + 1
          do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*usbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*unbt(i,k,j)
          end do
       end do
 #else
@@ -2652,9 +2652,9 @@
           ii = iy - i + 1
           do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*usbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*unbt(i,k,j)
           end do
         end do
 !
@@ -2666,9 +2666,9 @@
             ii = iy - i + 1
             do k = 1 , kz
 !........south boundary:
-              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*usbt(i,k,j)
+              ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*usbt(i,k,j)
 !........north boundary:
-              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*unbt(i,k,j)
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*unbt(i,k,j)
             end do
           end do
           ibeg = jsls
@@ -2681,9 +2681,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*uwbt(i,k,jew)
+                 & + (1.0D0-wg(jsls))*uwbt(i,k,jew)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *uwbt(i,k,jsls)
 #endif
             end do
@@ -2694,9 +2694,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*uebt(i,k,jew)
+                 & + (1.0D0-wg(jsls))*uebt(i,k,jew)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *uebt(i,k,jsls)
 #endif
             end do
@@ -2742,9 +2742,9 @@
          ii = iy - i + 1
          do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*vsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*vnbt(i,k,j)
          end do
       end do
 #else
@@ -2769,9 +2769,9 @@
           ii = iy - i + 1
           do k = 1 , kz
 !.......south boundary:
-            ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+            ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*vsbt(i,k,j)
 !.......north boundary:
-            ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+            ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*vnbt(i,k,j)
           end do
         end do
 !
@@ -2783,9 +2783,9 @@
             ii = iy - i + 1
             do k = 1 , kz
 !........south boundary:
-              ften(i,k) = wg(i)*ften(i,k) + (1.-wg(i))*vsbt(i,k,j)
+              ften(i,k) = wg(i)*ften(i,k) + (1.0D0-wg(i))*vsbt(i,k,j)
 !........north boundary:
-              ften(ii,k) = wg(i)*ften(ii,k) + (1.-wg(i))*vnbt(i,k,j)
+              ften(ii,k) = wg(i)*ften(ii,k) + (1.0D0-wg(i))*vnbt(i,k,j)
             end do
           end do
           ibeg = jsls
@@ -2798,9 +2798,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*vwbt(i,k,jew)
+                 & + (1.0D0-wg(jsls))*vwbt(i,k,jew)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *vwbt(i,k,jsls)
 #endif
             end do
@@ -2811,9 +2811,9 @@
             do i = ibeg , iend
 #ifdef MPP1
               if ( jsls <= ip ) ften(i,k) = wg(jsls)*ften(i,k)          &
-                 & + (1.-wg(jsls))*vebt(i,k,jew)
+                 & + (1.0D0-wg(jsls))*vebt(i,k,jew)
 #else
-              ften(i,k) = wg(jsls)*ften(i,k) + (1.-wg(jsls))            &
+              ften(i,k) = wg(jsls)*ften(i,k) + (1.0D0-wg(jsls))            &
                         & *vebt(i,k,jsls)
 #endif
             end do

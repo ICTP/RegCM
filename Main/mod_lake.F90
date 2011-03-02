@@ -185,7 +185,7 @@
             zl = z1d(n,i)
             ql = qs1d(n,i)
             fsw = fsw1d(i)
-            flw = -1.*flw1d(i)
+            flw = -1.0D0*flw1d(i)
             prec = prcp1d(n,i)*dtbat
             hsen = -1.0D0*sent1d(n,i)
             evp = evpr1d(n,i)
@@ -248,7 +248,7 @@
       real(8) , parameter :: zo = 0.001D0
       real(8) , parameter :: z2 = 2.0D0
       real(8) , parameter :: tcutoff = -0.001D0
-      logical , parameter :: lfreeze = .true.
+      logical , parameter :: lfreeze = .false.
       integer , parameter :: kmin = 1
 !
 !     interpolate winds at z1 m to 2m via log wind profile

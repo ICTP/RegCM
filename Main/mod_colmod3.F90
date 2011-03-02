@@ -725,7 +725,7 @@
 !       tg(n)=tgb(n,jlsc)
 !       when using bats calculate an equivalent ground (skin)
 !       temperature by averaging over vegetated and non-vegetated areas
-!jsp    tg(n)=((1.-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
+!jsp    tg(n)=((1.0D0-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
 !jsp    1   tlef2d(n,jslc)**4.)**0.25
 !jsp    tg(n)=sfsta%tgbb(n,jslc)
         ts(n) = sfsta%tgbb(n,jslc)
