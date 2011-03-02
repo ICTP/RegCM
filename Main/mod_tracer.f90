@@ -239,7 +239,7 @@
       end do
       do k = 1 , kz
         do i = 1 , iym1
-          rt(i) = 1./tnm(i,k)
+          rt(i) = 1.0D0/tnm(i,k)
           rsqrt(i) = dsqrt(rt(i))
           pbar(i) = 0.5D0*(pnm(i,k+1)+pnm(i,k))/sslp
           dpnm(i) = (pnm(i,k+1)-pnm(i,k))*rga
@@ -681,7 +681,7 @@
 !
       do i = 1 , iym1
         sqti(i) = dsqrt(tbar(i,kn))
-        rsqti(i) = 1./sqti(i)
+        rsqti(i) = 1.0D0/sqti(i)
 !       h2o transmission
         tt(i) = dabs(tbar(i,kn)-250.0D0)
         ds2c(i) = dabs(s2c(i,k2+1)-s2c(i,k2))*uinpl(i,kn)

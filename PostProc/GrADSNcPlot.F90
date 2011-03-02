@@ -36,9 +36,9 @@ program ncplot
 
   character(256) :: charatt
   character(6) :: iproj
-  real(4) :: clat , clon , plat , plon , ds , centeri , centerj
+  real(8) :: clat , clon , plat , plon , ds , centeri , centerj
   real(4) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(4) , dimension(2) :: trlat
+  real(8) , dimension(2) :: trlat
   real(4) , allocatable , dimension(:,:) :: xlat , xlon
   real(4) , allocatable , dimension(:) :: level
   real(8) , allocatable , dimension(:) :: times
@@ -280,8 +280,8 @@ program ncplot
       maxlon = rounder(maxval(xlon(jx,:)),.true.)
     end if
   end if
-  rlatinc = rounder(ds/111000.0/2.0,.false.)
-  rloninc = rounder(ds/111000.0/2.0,.false.)
+  rlatinc = rounder(real(ds/111000.0/2.0),.false.)
+  rloninc = rounder(real(ds/111000.0/2.0),.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0 .and. maxlon < 0.0) then
     nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1

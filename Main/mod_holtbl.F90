@@ -205,8 +205,8 @@
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
-            dumr = 4./(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
-                       sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
+            dumr = 4.0D0/(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
+                          sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
             auxx(i,k,j) = atm2%u(i,k,j)*dumr
             avxx(i,k,j) = atm2%v(i,k,j)*dumr
           end do

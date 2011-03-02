@@ -677,7 +677,7 @@
 ! rel     - Liquid effective drop size (microns)
 ! rei     - Ice effective drop size (microns)
 ! fice    - Fractional ice content within cloud
-! eccf    - Eccentricity factor (1./earth-sun dist ** 2)
+! eccf    - Eccentricity factor (1.0D0/earth-sun dist ** 2)
 ! asdir   - 0.2-0.7 micro-meter srfc alb to direct rad
 ! aldir   - 0.7-5.0 micro-meter srfc alb to direct rad
 ! asdif   - 0.2-0.7 micro-meter srfc alb to diffuse mod_rad
@@ -1231,7 +1231,7 @@
  
 !scheme       1
 !ccm3.6.6
-!             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
+!             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.0D0-fice(i,k))
 !             $                     *cld(i,k)*dsqrt(cld(i,k))
 !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
 !             $                     *cld(i,k)*dsqrt(cld(i,k))
@@ -1247,7 +1247,7 @@
  
 !scheme       3
 !EES          below replaced
-!             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.-fice(i,k))
+!             tauxcl(i,k) = clwp(i,k)*tmp1l*(1.0D0-fice(i,k))
 !             $                     *cld(i,k)**0.85
 !             tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)
 !             $                     *cld(i,k)**0.85
@@ -1595,7 +1595,7 @@
         do k = 1 , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = 1./(1.-rdif(i,k)*rupdif(i,k+1))
+              rdenom = 1.0D0/(1.0D0-rdif(i,k)*rupdif(i,k+1))
               rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
                           & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
                           & *(tdir(i,k)-explay(i,k)))*rdenom
@@ -1789,7 +1789,7 @@
 ! tint4   - Interface temperature**4
 ! tlayr   - Level temperature
 ! tlayr4  - Level temperature**4
-! rtclrsf - 1./tclrsf(i,k)
+! rtclrsf - 1.0D0/tclrsf(i,k)
 ! klov    - Cloud lowest level index
 ! khiv    - Cloud highest level index
 ! khivm   - khiv(i) - 1
@@ -2881,7 +2881,7 @@
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN         modified below (for computational stability)
-!           rdenom      = 1./(1. - rdif(i,k-1)*rdndif(i,k-1))
+!           rdenom      = 1.0D0/(1. - rdif(i,k-1)*rdndif(i,k-1))
             rdenom = 1.0D0/(1.0D0- &
                     dmin1(rdif(i,k-1)*rdndif(i,k-1),0.999999D0))
 !KN         modified above
@@ -2969,7 +2969,7 @@
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN       modified below (for computational stability)
-!         rdenom = 1./(1. - rdif(i,k-1)*rdndif(i,k-1))
+!         rdenom = 1.0D0/(1. - rdif(i,k-1)*rdndif(i,k-1))
           rdenom = 1.0D0/(1.0D0- &
                    dmin1(rdif(i,k-1)*rdndif(i,k-1),0.999999D0))
 !KN       modified above
@@ -3492,7 +3492,7 @@
               o3bndi = 74.D0*te*dlog(1.D0+tmp1+tmp2)
               abso(i,5) = o3bndi*to3h2o(i)*dbvtit(i,k2)
               to3(i) = 1.0D0/(1.D0+0.1D0*tmp1+0.1D0*tmp2)
-!             trab5(i)  = 1.-(o3bndi/(1060-980.))
+!             trab5(i)  = 1.0D0-(o3bndi/(1060-980.))
             end do
 !
 !           abso(i,6)      co2 15  micrometer band system
@@ -3778,7 +3778,7 @@
             o3bndi = 74.D0*te*dlog(1.D0+tmp1+tmp2)
             abso(i,5) = o3bndi*o3emm(i,kn)*(h2otr(i,k2+1)/h2otr(i,k2))
             to3(i) = 1.0D0/(1.D0+0.1D0*tmp1+0.1D0*tmp2)
-!           trab5(i) = 1.-(o3bndi/(1060-980.))
+!           trab5(i) = 1.0D0-(o3bndi/(1060-980.))
           end do
 !
 !         abso(i,6)   co2 15  micrometer band system
@@ -4325,7 +4325,7 @@
           rbeta8 = 1.D0/(10.6576D0*posqt)
           rbeta9 = rbeta7
           rbeta13 = rbeta9
-          f2co2 = (u7/dsqrt(4.D0+u7*(1.+rbeta7)))           &
+          f2co2 = (u7/dsqrt(4.D0+u7*(1.0D0+rbeta7)))           &
                 & + (u8/dsqrt(4.D0+u8*(1.D0+rbeta8)))       &
                 & + (u9/dsqrt(4.D0+u9*(1.D0+rbeta9)))
           f3co2 = u13/dsqrt(4.D0+u13*(1.D0+rbeta13))
@@ -4359,7 +4359,7 @@
           o3ems(i,k1) = dbvtt(i)*h2otr(i,k1)*o3bndi
           to3(i) = 1.0D0/(1.D0+0.1D0* &
                     fo3(u1,realnu)+0.1D0*fo3(u2,realnu))
-!         trem5(i)    = 1.-(o3bndi/(1060-980.))
+!         trem5(i)    = 1.0D0-(o3bndi/(1060-980.))
         end do
 !
 !       Calculate trace gas emissivities
@@ -4722,7 +4722,7 @@
                        & + rgsslp*(pintrd(i,k+1)**2.0D0 &
                        & - pintrd(i,k)**2.0D0) * h2ommr(i,k)
           plco2(i,k+1) = co2vmr*cpwpl*pintrd(i,k+1)**2.0D0
-          tclrsf(i,k+1) = tclrsf(i,k)*(1.-cld(i,k+1))
+          tclrsf(i,k+1) = tclrsf(i,k)*(1.0D0-cld(i,k+1))
         end do
       end do
 !

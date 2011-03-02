@@ -124,7 +124,7 @@
       real(DP) , intent(in) :: x , y
       logical , intent(in) :: lwrap
       real(SP) , intent(in) , dimension(m,n) :: grid
-      real(SP) , intent(in) :: h2opct
+      real(DP) , intent(in) :: h2opct
 !
       real(DP) , dimension(nbox*nbox) :: binval , bindist
       real(DP) :: dist , rx , ry , wtp
@@ -390,7 +390,7 @@
       logical , intent(in) :: lwrap , lcross
       integer , intent(in) , optional :: ival
       integer , intent(in) , optional :: ibnty
-      real(SP) , intent(in) , optional :: h2opct
+      real(DP) , intent(in) , optional :: h2opct
       real(SP) , intent(out) , dimension(iy, jx) :: omt
 !
       integer :: nbox , ii , jj

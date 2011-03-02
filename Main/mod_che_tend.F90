@@ -162,7 +162,7 @@
       if ( ichcumtra == 2 ) then
         do k = 2 , kz
           do i = 2 , iym2
-            wk(i,k) = (1./sps1%ps(i,j))           &
+            wk(i,k) = (1.0D0/sps1%ps(i,j))           &
                     & *(twt(k,1)*chib(i,k,j,itr)+ &
                         twt(k,2)*chib(i,k-1,j,itr))
  

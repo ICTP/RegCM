@@ -31,9 +31,9 @@
       real(sp) , allocatable , dimension(:,:) :: b3pd
       real(sp) , allocatable , dimension(:) :: dsigma , sigma2
       real(sp) , allocatable , dimension(:) :: sigmaf
-      real(sp) :: delx , grdfac
+      real(dp) :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
-      real(sp) :: lat0 , lat1 , lon0 , lon1
+      real(dp) :: lat0 , lat1 , lon0 , lon1
 
       contains
 

@@ -439,8 +439,8 @@
                 & *(tzero-1.8D0-ts1d(n,i))*cpd
 ! ******    get fluxes over ice for sublimation (subrout snow)
 ! ******    and melt (below) calculation
-            fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(1.-aarea(n,i))
-            fevpg(n,i) = (evpr1d(n,i)-aarea(n,i)*hrl)/(1.-aarea(n,i))
+            fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(1.0D0-aarea(n,i))
+            fevpg(n,i) = (evpr1d(n,i)-aarea(n,i)*hrl)/(1.0D0-aarea(n,i))
             hs = fsw1d(i) - flw1d(i) - fseng(n,i) - wlhs*fevpg(n,i)
             bb = dtbat*(hs+fss)/rsd1
 ! ******    snow melt

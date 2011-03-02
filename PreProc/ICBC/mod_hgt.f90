@@ -28,7 +28,7 @@
       implicit none
 !
       integer :: ni , nj , nk
-      real(sp) :: pt
+      real(dp) :: pt
       real(sp) , dimension(nk) :: dsigma , sigmah
       real(sp) , dimension(ni,nj,nk) :: h , t
       real(sp) , dimension(ni,nj) :: phis , ps
@@ -176,7 +176,7 @@
       implicit none
 !
       integer :: im , jm , km , kp
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(im,jm,km) :: h , t
       real(sp) , dimension(im,jm,kp) :: hp
       real(sp) , dimension(im,jm) :: ht , pstar
@@ -277,7 +277,7 @@
       implicit none
 !
       integer :: im , jm , km
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(im,jm,km) :: h , t
       real(sp) , dimension(im,jm) :: ht , pstar
       real(sp) , dimension(km) :: sig

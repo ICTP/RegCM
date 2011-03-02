@@ -1570,7 +1570,7 @@
 !       ****** call vector bats for surface physics calculations
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
            &  mod(ktau+1,nbatst) == 0 ) then
-          dtbat = dt/2.*nbatst
+          dtbat = dt/2.0D0*dble(nbatst)
           if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
           call interf(1 , j , kz , 2 , iym1 , nnsg)
           call vecbats
@@ -1941,8 +1941,8 @@
               tv2 = atmx%t(i,k,jm1)*(1.0D0+ep1*(atmx%qv(i,k,jm1)))
               tv3 = atmx%t(i-1,k,j)*(1.0D0+ep1*(atmx%qv(i-1,k,j)))
               tv4 = atmx%t(i,k,j)*(1.0D0+ep1*(atmx%qv(i,k,j)))
-              rtbar = tv1 + tv2 + tv3 + tv4 -                           &
-                    & 4.*t00pg*((a(k)*psasum/4.+r8pt)/p00pg)**pgfaa1
+              rtbar = tv1 + tv2 + tv3 + tv4 - 4.0D0*t00pg*              &
+                    & ((a(k)*psasum/4.0D0+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
                      (dlog(0.5D0*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
@@ -2008,7 +2008,7 @@
               tvavg = ((ttld(i,lev,j)*dsigma(lev)+ttld(i,lev+1,j)* &
                     & dsigma(lev+1))/(psd(i,j)*(dsigma(lev)+       &
                     & dsigma(lev+1))))/(1.0D0+atmx%qc(i,lev,j)/    &
-                    & (1.+atmx%qv(i,lev,j)))
+                    & (1.0D0+atmx%qv(i,lev,j)))
               phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
                      tvavg*dlog((a(lev)+r8pt/psd(i,j))/ &
                                (a(lev+1)+r8pt/psd(i,j)))
@@ -2018,7 +2018,7 @@
         else if ( ipgf == 0 ) then
  
           do i = 1 , iym1
-            tv = (td(i,kz,j)/psd(i,j))/(1.+atmx%qc(i,kz,j)/  &
+            tv = (td(i,kz,j)/psd(i,j))/(1.0D0+atmx%qc(i,kz,j)/  &
                  (1.0D0+atmx%qv(i,kz,j)))
             phi(i,kz,j) = mddom%ht(i,j) - rgas * &
                  tv*dlog((a(kz)+r8pt/psd(i,j))/(1.0D0+r8pt/psd(i,j)))

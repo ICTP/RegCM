@@ -39,7 +39,7 @@
 
       subroutine setup_lcc(clat,clon,ci,cj,ds,slon,trlat1,trlat2)
         implicit none
-        real(SP) , intent(in) :: ci , cj , slon , clat , clon , ds , &
+        real(DP) , intent(in) :: ci , cj , slon , clat , clon , ds , &
                              &  trlat1 , trlat2
         real(DP) :: arg , deltalon1
 !
@@ -167,7 +167,7 @@
 
       subroutine setup_plr(clat,clon,ci,cj,ds,slon)
         implicit none
-        real(SP) , intent(in) :: clat , clon , cj , ci , ds , slon
+        real(DP) , intent(in) :: clat , clon , cj , ci , ds , slon
         real(DP) :: ala1 , alo1
 
         stdlon = slon
@@ -252,7 +252,7 @@
 
       subroutine setup_mrc(clat,clon,ci,cj,ds)
         implicit none
-        real(SP) , intent(in) :: clat , clon , cj , ci , ds
+        real(DP) , intent(in) :: clat , clon , cj , ci , ds
         real(DP) :: clain
 
         stdlon = clon
@@ -299,7 +299,7 @@
 
       subroutine setup_rmc(clat,clon,ci,cj,ds,plon,plat)
         implicit none
-        real(SP) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
+        real(DP) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
         real(DP) :: plam , pphi
 
         polelon = plon

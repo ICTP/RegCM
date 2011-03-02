@@ -74,7 +74,7 @@
       character(256) :: namelistfile , prgname
       integer :: i , j , k , ierr , i0 , j0 , m , n
       logical :: ibndry
-      real(SP) :: clong , hsum , have , dsinm
+      real(DP) :: clong , hsum , have , dsinm
 !
       data ibndry /.true./
 !

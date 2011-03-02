@@ -429,7 +429,7 @@
             oveg(n,i) = lveg(n,i)
             if (ocld2d(n,i,j) > 1.5D0) lveg(n,i) = 12
             amxtem = dmax1(298.0D0-tgb1d(n,i),0.D0)
-            sfac = 1. - dmax1(0.D0,1.-0.0016D0*amxtem**2.0D0)
+            sfac = 1.0D0 - dmax1(0.D0,1.0D0-0.0016D0*amxtem**2.0D0)
             if ( lveg(n,i) == 0 ) then
               veg1d(n,i) = 0.0D0
             else
@@ -651,7 +651,7 @@
           do n = 1 , ng
             if ( ocld2d(n,i,j) >= 0.5D0 ) then
               fracv = sigf(n,i)
-              fracb = (1.-veg1d(n,i))*(1.0D0-scvk(n,i))
+              fracb = (1.0D0-veg1d(n,i))*(1.0D0-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (1.0D0-veg1d(n,i))*scvk(n,i)
               facv = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/rough(lveg(n,i)))
               facb = dlog(z1(n,i)/2.0D0)/dlog(z1(n,i)/zlnd)
@@ -1227,7 +1227,7 @@
               albsd = albs
               albld = albl
  
-!             Dec. 15   albzn=0.85+1./(1.+10.*czen(i))
+!             Dec. 15   albzn=0.85D0+1.0D0/(1.0D0+10.0D0*czen(i))
 !             Dec. 12, 2008
               albzn = 1.0D0
 !             Dec. 15, 2008
@@ -1566,7 +1566,7 @@
           oveg(n,i) = lveg(n,i)
           if (ocld2d(n,i,j) > 1.5D0) lveg(n,i) = 12
           amxtem = dmax1(298.0D0-tgb1d(n,i),0.D0)
-          sfac = 1. - dmax1(0.D0,1.0D0-0.0016D0*amxtem**2.0D0)
+          sfac = 1.0D0 - dmax1(0.D0,1.0D0-0.0016D0*amxtem**2.0D0)
           if ( lveg(n,i) == 0 ) then
             veg1d(n,i) = 0.0D0
           else

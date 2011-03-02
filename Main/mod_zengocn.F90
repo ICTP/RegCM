@@ -116,9 +116,9 @@
 !
 !             deep impact of aod on sst
 !             if ( sum(aerext(i,:,j)) <= 1 ) then
-!               td = ts1(i,j) - sum(aerext(i,:,j))*0.8
+!               td = ts1(i,j) - sum(aerext(i,:,j))*0.8D0
 !             else if ( sum(aerext(i,:,j)) > 1 ) then
-!               td = ts1(i,j)- 1.*0.8
+!               td = ts1(i,j)- 1.0D0*0.8D0
 !             end if
 !
 !             rs is the net surface sw flux (sw energy absorbed)

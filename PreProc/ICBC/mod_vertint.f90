@@ -84,7 +84,7 @@
       implicit none
 !
       integer :: im , jm , km , kp
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(im,jm,km) :: f
       real(sp) , dimension(im,jm,kp) :: fp
       real(sp) , dimension(kp) :: p
@@ -259,7 +259,7 @@
       implicit none
 !
       integer :: im , jm , km , kp
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(im,jm,km) :: f
       real(sp) , dimension(im,jm,kp) :: fp
       real(sp) , dimension(kp) :: p
@@ -320,7 +320,7 @@
       implicit none
 !
       integer :: ni , nj
-      real(sp) :: pt
+      real(dp) :: pt
       real(sp) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
       intent (in) ni , nj , pa , pt , tlayer , za , zrcm
       intent (out) psrcm
@@ -352,7 +352,7 @@
       real(sp) , parameter :: psccm = 100.
 !
       integer :: kccm , krcm , ni , nj
-      real(sp) :: pt
+      real(dp) :: pt
       real(sp) , dimension(ni,nj,kccm) :: fccm
       real(sp) , dimension(ni,nj,krcm) :: frcm
       real(sp) , dimension(ni,nj) :: psrcm
@@ -423,7 +423,7 @@
       real(sp) , parameter :: psccm = 100.
 !
       integer :: kccm , krcm , ni , nj
-      real(sp) :: pt
+      real(dp) :: pt
       real(sp) , dimension(ni,nj,kccm) :: fccm
       real(sp) , dimension(ni,nj,krcm) :: frcm
       real(sp) , dimension(ni,nj) :: psrcm
@@ -494,7 +494,7 @@
       real(sp) , parameter :: b1 = -gti/lrate
 !
       integer :: kccm , ni , nj
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(ni,nj,kccm) :: fccm
       real(sp) , dimension(ni,nj) :: fsccm , psrccm
       real(sp) , dimension(kccm) :: sccm

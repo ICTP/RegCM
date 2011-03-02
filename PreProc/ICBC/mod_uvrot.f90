@@ -30,7 +30,7 @@
 
       implicit none
 !
-      real(sp) :: clat , clon , gridfc , pollat , pollon
+      real(dp) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
       real(sp) , dimension(jx,iy) :: dlat , dlon
@@ -132,7 +132,7 @@
       use mod_constants , only : degrad
       implicit none
 !
-      real(sp) :: clat , clon , gridfc , pollat , pollon
+      real(dp) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
       real(sp) , dimension(jx,iy) :: dlat , dlon

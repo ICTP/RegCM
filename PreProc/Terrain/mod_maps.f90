@@ -35,7 +35,7 @@
       real(SP) , allocatable , dimension(:,:,:) :: frac_tex_s
 
       real(SP) , allocatable , dimension(:) :: sigma
-      real(SP) :: xn
+      real(DP) :: xn
 
       contains
 

@@ -32,7 +32,7 @@
 !
 ! Dummy arguments
 !
-      real(SP) :: clat , clon , ds , truelath , truelatl , xn
+      real(DP) :: clat , clon , ds , truelath , truelatl , xn
       integer :: idot , iy , jx
       real(SP) , dimension(iy,jx) :: coriol , smap , xlat , xlon
       intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
@@ -41,11 +41,11 @@
 !
 ! Local variables
 !
-      real(SP) :: cntri , cntrj
+      real(DP) :: cntri , cntrj
       integer :: i , j
 !
-      cntrj = (jx+idot)/2.
-      cntri = (iy+idot)/2.
+      cntrj = dble(jx+idot)/2.0D0
+      cntri = dble(iy+idot)/2.0D0
       call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
 !
       do j = 1 , jx
@@ -71,7 +71,7 @@
 !
 ! Dummy arguments
 !
-      real(SP) :: clat , clon , delx
+      real(DP) :: clat , clon , delx
       integer :: idot , iy , jx
       real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
@@ -79,11 +79,11 @@
 !
 ! Local variables
 !
-      real(SP) :: cntrj , cntri
+      real(DP) :: cntrj , cntri
       integer :: i , j
 !
-      cntrj = float(jx+idot)/2.
-      cntri = float(iy+idot)/2.
+      cntrj = dble(jx+idot)/2.0D0
+      cntri = dble(iy+idot)/2.0D0
       call setup_plr(clat,clon,cntrj,cntri,delx,clon)
 !
       do i = 1 , iy
@@ -109,7 +109,7 @@
 !
 ! Dummy arguments
 !
-      real(SP) :: clat , clon , delx
+      real(DP) :: clat , clon , delx
       integer :: idot , iy , jx
       real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , delx , idot , iy , jx
@@ -117,11 +117,11 @@
 !
 ! Local variables
 !
-      real(SP) :: cntri , cntrj
+      real(DP) :: cntri , cntrj
       integer :: i , j
 !
-      cntrj = (jx+idot)/2.
-      cntri = (iy+idot)/2.
+      cntrj = dble(jx+idot)/2.0D0
+      cntri = dble(iy+idot)/2.0D0
       call setup_mrc(clat,clon,cntrj,cntri,delx)
 !
       do i = 1 , iy
@@ -149,7 +149,7 @@
 !
 ! Dummy arguments
 !
-      real(SP) :: clat , clon , ds , pollat , pollon
+      real(DP) :: clat , clon , ds , pollat , pollon
       integer :: idot , iy , jx
       real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
       intent (in) clat , clon , ds , idot , iy , jx
@@ -157,11 +157,11 @@
 !
 ! Local variables
 !
-      real(SP) :: cntri , cntrj
+      real(DP) :: cntri , cntrj
       integer :: i , j
 !
-      cntrj = (jx+idot)/2.
-      cntri = (iy+idot)/2.
+      cntrj = dble(jx+idot)/2.0D0
+      cntri = dble(iy+idot)/2.0D0
       call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
 !
       do i = 1 , iy

@@ -28,7 +28,8 @@
       implicit none
 !
       integer :: ni , nj , nk
-      real(sp) :: ps , pt
+      real(sp) :: ps
+      real(dp) :: pt
       real(sp) , dimension(ni,nj,nk) :: q , t
       real(sp) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
@@ -58,7 +59,7 @@
       implicit none
 !
       integer :: im , jm , km
-      real(sp) :: ptop
+      real(dp) :: ptop
       real(sp) , dimension(im,jm) :: ps
       real(sp) , dimension(im,jm,km) :: q , t
       real(sp) , dimension(km) :: sigma
@@ -123,7 +124,7 @@
       implicit none
 !
       integer :: ni , nj , nk
-      real(sp) :: pt
+      real(dp) :: pt
       real(sp) , dimension(ni,nj) :: ps
       real(sp) , dimension(ni,nj,nk) :: q , t
       real(sp) , dimension(nk) :: sigma

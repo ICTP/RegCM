@@ -67,7 +67,7 @@
 
       integer :: iy_in , jx_in , kz_in
       character(6) :: iproj_in
-      real(sp) :: clat_in , clon_in , plat_in , plon_in , ptop_in , &
+      real(dp) :: clat_in , clon_in , plat_in , plon_in , ptop_in , &
                   grdfac_in
 !
       character(14) :: fillin

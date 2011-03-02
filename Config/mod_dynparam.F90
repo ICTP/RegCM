@@ -65,35 +65,35 @@
 
 ! Grid point horizontal resolution in km
 
-      real(SP) :: ds
+      real(DP) :: ds
 
 ! Pressure of model top in cbar
 
-      real(SP) :: ptop
+      real(DP) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-      real(SP) :: clat
+      real(DP) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-      real(SP) :: clon
+      real(DP) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-      real(SP) :: plat
+      real(DP) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-      real(SP) :: plon
+      real(DP) :: plon
 
 ! Lambert true latitude (low latitude side)
 
-      real(SP) :: truelatl
+      real(DP) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-      real(SP) :: truelath
+      real(DP) :: truelath
 
 !###################### I/O control flag ###############################
 
@@ -202,7 +202,7 @@
 
 ! Surface minimum H2O percent to be considered water
 
-      real(SP) :: h2opct
+      real(DP) :: h2opct
 
 ! Resolution of the global terrain and landuse data be used
 !
@@ -424,7 +424,7 @@
 
       subroutine init_globwindow(lat0,lon0,lat1,lon1)
         implicit none
-        real(SP) , intent(out) :: lat0 , lat1 , lon0 , lon1
+        real(DP) , intent(out) :: lat0 , lat1 , lon0 , lon1
         namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
         lat0 = 0.0
