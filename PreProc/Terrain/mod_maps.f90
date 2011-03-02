@@ -33,7 +33,7 @@
       real(4) , allocatable , dimension(:,:,:) :: frac_tex_s
 
       real(4) , allocatable , dimension(:) :: sigma
-      real(4) :: xn
+      real(8) :: xn
 
       contains
 

@@ -32,7 +32,8 @@
 ! Dummy arguments
 !
       integer :: ni , nj , nk
-      real(4) :: ps , pt
+      real(4) :: ps
+      real(8) :: pt
       real(4) , dimension(ni,nj,nk) :: q , t
       real(4) , dimension(nk) :: sigma
       intent (in) ni , nj , nk , ps , pt , sigma , t
@@ -71,7 +72,7 @@
 ! Dummy arguments
 !
       integer :: im , jm , km
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(im,jm) :: ps
       real(4) , dimension(im,jm,km) :: q , t
       real(4) , dimension(km) :: sigma
@@ -154,7 +155,7 @@
 ! Dummy arguments
 !
       integer :: ni , nj , nk
-      real(4) :: pt
+      real(8) :: pt
       real(4) , dimension(ni,nj) :: ps
       real(4) , dimension(ni,nj,nk) :: q , t
       real(4) , dimension(nk) :: sigma

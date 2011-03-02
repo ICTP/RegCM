@@ -19,7 +19,7 @@
 
       module mod_write
 
-      real(4) :: dsinm
+      real(8) :: dsinm
 
       contains
 
@@ -29,7 +29,7 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , ds
+      real(8) :: clat , clon , ds
       integer :: iy , jx , ntypec
       character(6) :: iproj
       intent (in) clat , clon , ds , iproj , iy , jx , ntypec

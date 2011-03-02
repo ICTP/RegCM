@@ -64,7 +64,7 @@
 
       integer :: iy_in , jx_in , kz_in , iotyp_in , idate0
 
-      real(4) :: clat_in , clon_in , plat_in , plon_in , ptop_in , &
+      real(8) :: clat_in , clon_in , plat_in , plon_in , ptop_in , &
                  grdfac_in
 
       public :: get_nest , headnest

@@ -30,7 +30,7 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , gridfc , pollat , pollon
+      real(8) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
       real(4) , dimension(jx,iy) :: dlat , dlon
@@ -136,7 +136,7 @@
 !
 ! Dummy arguments
 !
-      real(4) :: clat , clon , gridfc , pollat , pollon
+      real(8) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
       character(6) :: lgtype
       real(4) , dimension(jx,iy) :: dlat , dlon

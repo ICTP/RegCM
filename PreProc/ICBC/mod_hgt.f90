@@ -28,7 +28,7 @@
 ! Dummy arguments
 !
       integer :: ni , nj , nk
-      real(4) :: pt
+      real(8) :: pt
       real(4) , dimension(nk) :: dsigma , sigmah
       real(4) , dimension(ni,nj,nk) :: h , t
       real(4) , dimension(ni,nj) :: phis , ps
@@ -187,7 +187,7 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(im,jm,km) :: h , t
       real(4) , dimension(im,jm,kp) :: hp
       real(4) , dimension(im,jm) :: ht , pstar
@@ -298,7 +298,7 @@
 ! Dummy arguments
 !
       integer :: im , jm , km
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(im,jm,km) :: h , t
       real(4) , dimension(im,jm) :: ht , pstar
       real(4) , dimension(km) :: sig

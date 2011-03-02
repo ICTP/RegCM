@@ -85,7 +85,7 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(im,jm,km) :: f
       real(4) , dimension(im,jm,kp) :: fp
       real(4) , dimension(kp) :: p
@@ -274,7 +274,7 @@
 ! Dummy arguments
 !
       integer :: im , jm , km , kp
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(im,jm,km) :: f
       real(4) , dimension(im,jm,kp) :: fp
       real(4) , dimension(kp) :: p
@@ -341,7 +341,7 @@
 ! Dummy arguments
 !
       integer :: ni , nj
-      real(4) :: pt
+      real(8) :: pt
       real(4) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
       intent (in) ni , nj , pa , pt , tlayer , za , zrcm
       intent (out) psrcm
@@ -379,7 +379,7 @@
 ! Dummy arguments
 !
       integer :: kccm , krcm , ni , nj
-      real(4) :: pt
+      real(8) :: pt
       real(4) , dimension(ni,nj,kccm) :: fccm
       real(4) , dimension(ni,nj,krcm) :: frcm
       real(4) , dimension(ni,nj) :: psrcm
@@ -457,7 +457,7 @@
 ! Dummy arguments
 !
       integer :: kccm , krcm , ni , nj
-      real(4) :: pt
+      real(8) :: pt
       real(4) , dimension(ni,nj,kccm) :: fccm
       real(4) , dimension(ni,nj,krcm) :: frcm
       real(4) , dimension(ni,nj) :: psrcm
@@ -535,7 +535,7 @@
 ! Dummy arguments
 !
       integer :: kccm , ni , nj
-      real(4) :: ptop
+      real(8) :: ptop
       real(4) , dimension(ni,nj,kccm) :: fccm
       real(4) , dimension(ni,nj) :: fsccm , psrccm
       real(4) , dimension(kccm) :: sccm

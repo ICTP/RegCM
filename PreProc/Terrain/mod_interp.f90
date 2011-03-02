@@ -125,7 +125,7 @@
       real(8) , intent(in) :: x , y
       logical , intent(in) :: lwrap
       real(4) , intent(in) , dimension(m,n) :: grid
-      real(4) , intent(in) :: h2opct
+      real(8) , intent(in) :: h2opct
 !
       real(8) , dimension(nbox*nbox) :: binval , bindist
       real(8) :: dist , rx , ry , wtp
@@ -160,6 +160,7 @@
       end if
       mostaround = -1
       lastc = -1
+      dist = 0.0D0
       do i = 1 , maxbins
         if (bincnt(i) > 0) then
           if (bincnt(i) > lastc) then
@@ -388,7 +389,7 @@
       logical , intent(in) :: lwrap , lcross
       integer , intent(in) , optional :: ival
       integer , intent(in) , optional :: ibnty
-      real(4) , intent(in) , optional :: h2opct
+      real(8) , intent(in) , optional :: h2opct
       real(4) , intent(out) , dimension(iy, jx) :: omt
 !
       integer :: nbox , ii , jj

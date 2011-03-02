@@ -28,9 +28,9 @@
       real(4) , allocatable , dimension(:,:) :: b3pd
       real(4) , allocatable , dimension(:) :: dsigma , sigma2
       real(4) , allocatable , dimension(:) :: sigmaf
-      real(4) :: delx , grdfac
+      real(8) :: delx , grdfac
       integer :: i0 , i1 , j0 , j1
-      real(4) :: lat0 , lat1 , lon0 , lon1
+      real(8) :: lat0 , lat1 , lon0 , lon1
 
       contains
 
