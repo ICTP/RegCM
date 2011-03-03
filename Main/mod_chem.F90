@@ -20,10 +20,9 @@
       module mod_chem
 
 #ifdef CHEMTEST
-      use mod_dynparam
+      use mod_runparams
       use mod_date
       use mod_message
-      use mod_runparams
 #ifdef MPP1
       use mod_mppio
 #endif

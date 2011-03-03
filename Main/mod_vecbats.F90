@@ -19,10 +19,8 @@
  
       module mod_vecbats
 
-      use mod_constants
-      use mod_message
-      use mod_dynparam
       use mod_runparams
+      use mod_message
       use mod_bats
       use mod_lake, only : initlake
       use mod_slice

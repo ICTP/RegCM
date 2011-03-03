@@ -19,8 +19,6 @@
 
       module mod_param
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_pmoist
       use mod_bats

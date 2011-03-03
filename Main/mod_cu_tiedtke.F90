@@ -19,9 +19,7 @@
  
       module mod_cu_tiedtke
 !
-      use mod_dynparam
       use mod_runparams
-      use mod_constants
 !
 #ifdef WHEN_I_WILL_COMPILE_TAKE_AWAY_THIS
 

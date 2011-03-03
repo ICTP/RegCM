@@ -19,8 +19,6 @@
 
       module mod_main
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
 !
 ! Storage for all the 3d prognostic variables in two

@@ -22,8 +22,6 @@
 !     This module implements Kuo cumulus parameterization scheme.
 !     The basic method follows Anthes and Keyser (1979) and Kuo (1983).
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_cvaria

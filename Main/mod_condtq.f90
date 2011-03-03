@@ -21,8 +21,6 @@
 !
 ! Heating term for explicit moisture
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_cvaria

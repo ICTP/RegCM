@@ -21,8 +21,6 @@
 
       module mod_mppio
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main , only : atmstate , allocate_atmstate
       use mod_main , only : domain , allocate_domain

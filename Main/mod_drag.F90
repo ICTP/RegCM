@@ -19,9 +19,7 @@
  
       module mod_drag
 !
-      use mod_constants
       use mod_runparams
-      use mod_dynparam
       use mod_bats
 !
       private

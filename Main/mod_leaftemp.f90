@@ -23,8 +23,6 @@
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_bats
 !

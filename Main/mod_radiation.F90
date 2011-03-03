@@ -19,8 +19,6 @@
  
       module mod_radiation
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_bats
       use mod_aerosol

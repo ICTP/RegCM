@@ -21,7 +21,6 @@
 !
 ! Large Scale Precipitation -- Pal et al. 2000 JGR-Atmos
 !
-      use mod_constants
       use mod_runparams
       use mod_bats
       use mod_main

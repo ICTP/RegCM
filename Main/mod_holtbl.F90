@@ -22,8 +22,6 @@
 ! Holtslag planetary boundary layer scheme
 ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_mainchem

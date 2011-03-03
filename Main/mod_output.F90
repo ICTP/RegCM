@@ -19,8 +19,6 @@
  
       module mod_output
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_ncio
       use mod_date

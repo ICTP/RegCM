@@ -21,8 +21,6 @@
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_bats_param
 !

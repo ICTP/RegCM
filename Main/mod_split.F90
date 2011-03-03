@@ -21,12 +21,9 @@
 !
 ! Split explicit time integration
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_vmodes
-      use mod_runparams
       use mod_bdycod
       use mod_main
       use mod_date
