@@ -99,32 +99,33 @@
 !
       implicit none
 !
-      real(8) , parameter :: h1 = 1.E0 , h3000 = 3000.E0 ,              &
-                           & h10e5 = 100000.E0 , d00 = 0.E0 ,           &
-                           & d608 = 0.608E0 , dm2859 = -rgas/cpd ,      &
-                           & epsq = 2.E-12 , row = 1.E3 ,               &
-                           & t1 = tzero+1.D0, d273 = 1.0D0/tzero ,      &
-                           & stresh = 1.10E0 ,                          &
-                           & stabs = 1.0E0 , stabd = 0.90E0 ,           &
-                           & rhf = 0.20 , pmn = 6500.0 , epsdn = 1.05 , &
-                           & epsth = 6.0D00 , pbm = 30000.0 ,              &
-                           & pqm = 20000.0 , pone = 2500.0 ,            &
-                           & pfrz = 15000.0 , pshu = 45000.0 ,          &
-                           & zno = 750.0 , zsh = 3999.0
+      real(8) , parameter :: h1 = 1.0D0 , h3000 = 3000.0D0 ,            &
+                           & h10e5 = 100000.0D0 , d00 = 0.0D0 ,         &
+                           & d608 = 0.608D0 , dm2859 = -rgas/cpd ,      &
+                           & epsq = 2.0D-12 , row = d_1000 ,            &
+                           & t1 = tzero+1.0D0, d273 = 1.0D0/tzero ,     &
+                           & stresh = 1.10D0 ,                          &
+                           & stabs = 1.0D0 , stabd = 0.90D0 ,           &
+                           & rhf = 0.20D0 , pmn = 6500.0D0 ,            &
+                           & epsdn = 1.05D0 ,                           &
+                           & epsth = 6.0D00 , pbm = 30000.0D0 ,         &
+                           & pqm = 20000.0D0 , pone = 2500.0D0 ,        &
+                           & pfrz = 15000.0D0 , pshu = 45000.0D0 ,      &
+                           & zno = 750.0D0 , zsh = 3999.0D0
       logical , parameter :: unis = .false. , unil = .true. ,           &
                            & oct90 = .true.
-      real(8) , parameter :: fss = 0.60E0 , efimn = 0.20E0 ,            &
-                           & efmnt = 0.70E0 , fcc1 = 0.50 ,             &
-                           & fcp = h1 - fcc1 , dspbfl = -3875.E0 ,      &
-                           & dsp0fl = -5875.E0 , dsptfl = -1875.E0 ,    &
-                           & fsl = 1.0E0 , dspbfs = -3875.E0 ,          &
-                           & dsp0fs = -5875.E0 , dsptfs = -1875.E0 ,    &
+      real(8) , parameter :: fss = 0.60D0 , efimn = 0.20D0 ,            &
+                           & efmnt = 0.70D0 , fcc1 = 0.50D0 ,           &
+                           & fcp = h1 - fcc1 , dspbfl = -3875.0D0 ,     &
+                           & dsp0fl = -5875.0D0 , dsptfl = -1875.0D0 ,  &
+                           & fsl = 1.0D0 , dspbfs = -3875.0D0 ,         &
+                           & dsp0fs = -5875.0D0 , dsptfs = -1875.0D0 ,  &
                            & dspbsl = dspbfl*fsl , dsp0sl = dsp0fl*fsl ,&
                            & dsptsl = dsptfl*fsl , dspbss = dspbfs*fss ,&
                            & dsp0ss = dsp0fs*fss , dsptss = dsptfs*fss ,&
-                           & epsntp = 0.0010E0 , efifc = 5.0E0 ,        &
-                           & avgefi = (efimn+1.E0)*.5E0 ,               &
-                           & dspc = -3000.E0 , epsp = 1.E-7 ,           &
+                           & epsntp = 0.0010D0 , efifc = 5.0D0 ,        &
+                           & avgefi = (efimn+1.0D0)*.5D0 ,              &
+                           & dspc = -3000.0D0 , epsp = 1.0D-7 ,         &
                            & stefi = avgefi , slopbl = (dspbfl-dspbsl)  &
                            & /(h1-efimn) , slop0l = (dsp0fl-dsp0sl)     &
                            & /(h1-efimn) , sloptl = (dsptfl-dsptsl)     &
@@ -173,8 +174,8 @@
 !
 !-----------------------------------------------------------------------
 !
-      lqm = 0.0
-      lshu = 0.0
+      lqm = 0
+      lshu = 0
       lp1 = kzp1
       lm1 = kz - 1
 !
@@ -198,7 +199,7 @@
       icond = 0
       iconss = 0
       tauk = dt2/trel
-      cthrs = (0.006350/86400.)*dt2/cprlg
+      cthrs = (0.006350/secpd)*dt2/cprlg
 !-----------------------------------------------------------------------
 !
 !...  xsm is surface mask: =1 water; =0 land
@@ -243,7 +244,7 @@
         lbot(i) = kz
         thesp(i) = d00
         thbt(i) = d00
-        psp(i) = 9.5E4
+        psp(i) = 9.5D4
         tref(i,1) = t(i,1)
 !...ifbuoy = 0 means no positive buoyancy; ifbuoy(i) means yes...
 !...ip300 is the highest model level in the lowest 300 mb...
@@ -277,7 +278,7 @@
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
             tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.))
             tdpt = dmin1(tdpt,t(i,kb))
-            tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*(t(i,kb)- &
+            tlcl = tdpt - (.212+1.571D-3*(tdpt-tzero)-4.36D-4*(t(i,kb)- &
                  & tzero))*(t(i,kb)-tdpt)
             tthes(i) = tthbt(i)*dexp(elocp*q(i,kb)/tlcl)
 !--------------check for maximum buoyancy-------------------------------
@@ -715,7 +716,7 @@
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
         tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.))
         tdpt = dmin1(tdpt,t(i,ltp1))
-        tlcl = tdpt - (.212+1.571E-3*(tdpt-tzero)-4.36E-4*              &
+        tlcl = tdpt - (.212+1.571D-3*(tdpt-tzero)-4.36D-4*              &
              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
         ptpk = h10e5*(thtpk/tlcl)**cporng
         dpmix = ptpk - psp(i)
@@ -744,12 +745,12 @@
           fpk(l) = trfkl
         end do
 !--------------humidity profile equations-------------------------------
-        psum = 0.0
-        qsum = 0.0
-        potsum = 0.0
-        qotsum = 0.0
-        otsum = 0.0
-        dst = 0.0
+        psum = 0.0D0
+        qsum = 0.0D0
+        potsum = 0.0D0
+        qotsum = 0.0D0
+        otsum = 0.0D0
+        dst = 0.0D0
         fptk = fpk(ltp1)
         do l = ltp1 , lbtk
           dpkl = fpk(l) - fptk
@@ -888,7 +889,7 @@
 !
       implicit none
 !
-      real(8) , parameter :: eps = 2.D-12 ! little number
+      real(8) , parameter :: eps = 2.0D-12 ! little number
 
 !
       real(8) :: ptop
@@ -921,7 +922,7 @@
 !
       rdth = 1.0D0/dth
       rdp = 1.0D0/dp
-      rdq = kpm - 1
+      rdq = dble(kpm - 1)
 !
       th = thl - dth
  
@@ -932,7 +933,7 @@
         p = pl - dp
         do kp = 1 , kpm
           p = p + dp
-          ape = (100000.D0/p)**(rovcp)
+          ape = (100000.0D0/p)**(rovcp)
           qsold(kp) = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
           pold(kp) = p
         end do
@@ -981,7 +982,7 @@
         th = thl - dth
         do kth = 1 , kthm
           th = th + dth
-          ape = (100000.D0/p)**(rovcp)
+          ape = (100000.0D0/p)**(rovcp)
           qs = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
           told(kth) = th/ape
           theold(kth) = th*dexp(eliwv*qs/(cpd*told(kth)))
@@ -1067,9 +1068,9 @@
 !
 !-----------------------------------------------------------------------
 !
-      ak = 0.0
-      bk = 0.0
-      ck = 0.0
+      ak = 0.0D0
+      bk = 0.0D0
+      ck = 0.0D0
       noldm1 = nold - 1
 !
       dxl = xold(2) - xold(1)
@@ -1183,7 +1184,7 @@
  100  es = 611.0D0*dexp(rlorw*(d273-1.0D0/t1))
       qs = ep2*es/(press-es)
       f1 = t1*dexp(rlocpd*qs/t1) - rp
-      if ( dabs(f1) < .1 ) then
+      if ( dabs(f1) < 0.1D0 ) then
 !
         tpfc = t1
       else

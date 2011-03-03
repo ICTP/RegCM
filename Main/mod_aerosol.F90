@@ -19,8 +19,6 @@
 
       module mod_aerosol
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_message
       use mod_trachem
@@ -47,6 +45,13 @@
 !
       integer , parameter :: ncoefs = 5  ! Number of coefficients
 !
+      real(8) , parameter :: d10e5  = 1.0D+05
+      real(8) , parameter :: d10e4  = 1.0D+04
+      real(8) , parameter :: nearone  = 0.99D+00
+      real(8) , parameter :: minimum_aerosol = 1.0D-14
+      real(8) , parameter :: minimum_utaer   = 1.0D-10
+      real(8) , parameter :: fiveothree  = d_five/d_three
+!
 ! kscoef  - specific extinction (m2/g)
 ! wscoef  - single partical albedo
 ! gscoef  - asymmetry parameter
@@ -59,11 +64,11 @@
 !
       integer , private :: ii , jj ! coefficient index
 !
-      real(8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl ,         &
-                                 & gsoc_hb , gsoc_hl , ksbase ,         &
-                                 & ksbc_hb , ksbc_hl , ksoc_hb ,        &
-                                 & ksoc_hl , wsbase , wsbc_hb ,         &
-                                 & wsbc_hl , wsoc_hb , wsoc_hl
+      real(8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl ,   &
+                                   gsoc_hb , gsoc_hl , ksbase ,   &
+                                   ksbc_hb , ksbc_hl , ksoc_hb ,  &
+                                   ksoc_hl , wsbase , wsbc_hb ,   &
+                                   wsbc_hl , wsoc_hb , wsoc_hl
       real(8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
       real(8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
       real(4) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
@@ -82,19 +87,19 @@
 !
 !     Aerosol optical properties (for the mixing) 
 !
-      real(8) , allocatable , dimension(:,:,:) :: ftota_mix ,           &
-                 & gtota_mix , tauasc_mix , tauxar_mix
+      real(8) , allocatable , dimension(:,:,:) :: ftota_mix ,   &
+                  gtota_mix , tauasc_mix , tauxar_mix
 !
-      real(8) , allocatable , dimension(:,:) :: ftota_mix_cs ,          &
-                 & gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
+      real(8) , allocatable , dimension(:,:) :: ftota_mix_cs ,  &
+                  gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
 !
 !     Work arrays for aeroppt (aerosol individual optical properties SW)
 !
       real(8) , allocatable , dimension(:,:) :: aermtot , aervtot
-      real(8) , allocatable , dimension(:,:,:) :: fa , ga , tauxar ,    &
-                              &                   uaer , wa
-      real(8) , allocatable , dimension(:,:) :: faer , gaer , tauaer ,  &
-                              &   utaer , waer
+      real(8) , allocatable , dimension(:,:,:) :: fa , ga , tauxar , &
+                                                 uaer , wa
+      real(8) , allocatable , dimension(:,:) :: faer , gaer , tauaer , &
+                                 utaer , waer
       real(8) , dimension(4) :: frac , prop
 !
 !   Aersol LW optical properties
@@ -104,98 +109,98 @@
 !                  DATA SECTION
 !------------------------------------------------------------------------------
 !
-      data ksbase/5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 ,     &
-         & 5.206D0 , 5.206D0 , 3.203D0 , 3.203D0 , 1.302D0 , 5.992D-01 ,&
-         & 2.948D-01 , 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 ,  &
-         & 5.770D-02 , 2.290D-01 , 2.270D-01/
+      data ksbase/5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 ,    &
+          5.206D0 , 5.206D0 , 3.203D0 , 3.203D0 , 1.302D0 , 5.992D-01 ,&
+          2.948D-01 , 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 ,  &
+          5.770D-02 , 2.290D-01 , 2.270D-01/
 !
-      data ((kscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/1.126D+01 ,          &
-          & -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,          &
-          & 1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,          &
-          & 1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,           &
-          & -1.794D+02 , 1.556D+01 , 1.126D+01 , -2.502D-01 ,           &
-          & -1.087D+00 , -1.794D+02 , 1.556D+01 , 1.126D+01 ,           &
-          & -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,          &
-          & 1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,          &
-          & 1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,           &
-          & -1.794D+02 , 1.556D+01 , 1.124D+01 , -3.040D-01 ,           &
-          & -1.088D+00 , -1.776D+02 , 1.537D+01 , 1.124D+01 ,           &
-          & -3.040D-01 , -1.088D+00 , -1.776D+02 , 1.537D+01 ,          &
-          & 1.222D+01 , -3.770D-01 , -1.089D+00 , -1.898D+02 ,          &
-          & 1.504D+01 , 1.357D+01 , -4.190D-01 , -1.087D+00 ,           &
-          & -2.070D+02 , 1.478D+01 , 1.557D+01 , -4.353D-01 ,           &
-          & -1.083D+00 , -2.382D+02 , 1.486D+01 , 1.758D+01 ,           &
-          & -4.389D-01 , -1.078D+00 , -2.716D+02 , 1.505D+01 ,          &
-          & 1.597D+01 , -4.337D-01 , -1.073D+00 , -2.510D+02 ,          &
-          & 1.527D+01 , 2.107D+01 , -3.041D-01 , -1.067D+00 ,           &
-          & -2.494D+02 , 1.166D+01 , -2.424D-01 , -1.770D-01 ,          &
-          & -1.032D+00 , 1.469D-01 , 1.947D+00 , 2.535D+01 ,            &
-          & -2.270D-01 , -1.052D+00 , -2.528D+02 , 9.888D+00 ,          &
-          & -1.545D-01 , -1.661D-01 , -1.030D+00 , -4.698D-04 ,         &
-          & 7.275D-02 , 8.835D-01 , -1.590D-01 , -1.029D+00 ,           &
-          & -2.838D+01 , 2.734D+01/
+      data ((kscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/1.126D+01 ,      &
+           -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,       &
+           1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,       &
+           1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,        &
+           -1.794D+02 , 1.556D+01 , 1.126D+01 , -2.502D-01 ,        &
+           -1.087D+00 , -1.794D+02 , 1.556D+01 , 1.126D+01 ,        &
+           -2.502D-01 , -1.087D+00 , -1.794D+02 , 1.556D+01 ,       &
+           1.126D+01 , -2.502D-01 , -1.087D+00 , -1.794D+02 ,       &
+           1.556D+01 , 1.126D+01 , -2.502D-01 , -1.087D+00 ,        &
+           -1.794D+02 , 1.556D+01 , 1.124D+01 , -3.040D-01 ,        &
+           -1.088D+00 , -1.776D+02 , 1.537D+01 , 1.124D+01 ,        &
+           -3.040D-01 , -1.088D+00 , -1.776D+02 , 1.537D+01 ,       &
+           1.222D+01 , -3.770D-01 , -1.089D+00 , -1.898D+02 ,       &
+           1.504D+01 , 1.357D+01 , -4.190D-01 , -1.087D+00 ,        &
+           -2.070D+02 , 1.478D+01 , 1.557D+01 , -4.353D-01 ,        &
+           -1.083D+00 , -2.382D+02 , 1.486D+01 , 1.758D+01 ,        &
+           -4.389D-01 , -1.078D+00 , -2.716D+02 , 1.505D+01 ,       &
+           1.597D+01 , -4.337D-01 , -1.073D+00 , -2.510D+02 ,       &
+           1.527D+01 , 2.107D+01 , -3.041D-01 , -1.067D+00 ,        &
+           -2.494D+02 , 1.166D+01 , -2.424D-01 , -1.770D-01 ,       &
+           -1.032D+00 , 1.469D-01 , 1.947D+00 , 2.535D+01 ,         &
+           -2.270D-01 , -1.052D+00 , -2.528D+02 , 9.888D+00 ,       &
+           -1.545D-01 , -1.661D-01 , -1.030D+00 , -4.698D-04 ,      &
+           7.275D-02 , 8.835D-01 , -1.590D-01 , -1.029D+00 ,        &
+           -2.838D+01 , 2.734D+01/
 !
-      data wsbase/7.371D-08 , 7.371D-08 , 7.371D-08 , 7.371D-08 ,       &
-         & 7.371D-08 , 7.371D-08 , 7.371D-08 , 6.583D-08 , 6.583D-08 ,  &
-         & 3.656D-06 , 4.919D-05 , 3.539D-03 , 2.855D-02 , 2.126D-01 ,  &
-         & 8.433D-01 , 9.653D-01 , 6.198D-01 , 9.642D-01 , 9.699D-01/
+      data wsbase/7.371D-08 , 7.371D-08 , 7.371D-08 , 7.371D-08 ,     &
+          7.371D-08 , 7.371D-08 , 7.371D-08 , 6.583D-08 , 6.583D-08 , &
+          3.656D-06 , 4.919D-05 , 3.539D-03 , 2.855D-02 , 2.126D-01 , &
+          8.433D-01 , 9.653D-01 , 6.198D-01 , 9.642D-01 , 9.699D-01/
 !
-      data ((wscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/2.492D+00 ,          &
-          & -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,          &
-          & 2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,          &
-          & 1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,           &
-          & -4.398D+01 , 1.724D+01 , 2.492D+00 , -5.210D-02 ,           &
-          & -1.036D+00 , -4.398D+01 , 1.724D+01 , 2.492D+00 ,           &
-          & -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,          &
-          & 2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,          &
-          & 1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,           &
-          & -4.398D+01 , 1.724D+01 , 1.139D+00 , -1.110D-02 ,           &
-          & -1.011D+00 , -7.754D+00 , 6.737D+00 , 1.139D+00 ,           &
-          & -1.110D-02 , -1.011D+00 , -7.754D+00 , 6.737D+00 ,          &
-          & 1.848D+00 , -3.920D-04 , -9.924D-01 , -1.607D+00 ,          &
-          & 8.587D-01 , 5.459D+00 , 9.357D-01 , -1.626D+00 ,            &
-          & -5.282D+00 , 1.066D+00 , 1.187D+00 , 2.241D-01 ,            &
-          & -1.226D+00 , 1.442D+01 , -1.402D+01 , -3.640D+00 ,          &
-          & 2.552D-01 , -1.168D+00 , 4.458D+01 , 1.152D+01 ,            &
-          & -5.634D+00 , 2.068D-01 , -1.122D+00 , 7.528D+01 ,           &
-          & 1.290D+01 , 1.826D-01 , 6.588D-02 , -1.098D+00 ,            &
-          & -1.996D-02 , 1.618D-01 , 2.164D+00 , 1.194D-01 ,            &
-          & -1.044D+00 , -3.221D+01 , 1.564D+01 , 2.268D-01 ,           &
-          & 3.266D-02 , -1.064D+00 , -2.677D-02 , 1.309D-01 ,           &
-          & 2.178D+00 , 1.151D-01 , -1.042D+00 , -3.325D+01 ,           &
-          & 1.600D+01 , 1.713D+00 , 9.166D-02 , -1.039D+00 ,            &
-          & -2.660D+01 , 1.629D+01/
+      data ((wscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/2.492D+00 ,        &
+           -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,         &
+           2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,         &
+           1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,          &
+           -4.398D+01 , 1.724D+01 , 2.492D+00 , -5.210D-02 ,          &
+           -1.036D+00 , -4.398D+01 , 1.724D+01 , 2.492D+00 ,          &
+           -5.210D-02 , -1.036D+00 , -4.398D+01 , 1.724D+01 ,         &
+           2.492D+00 , -5.210D-02 , -1.036D+00 , -4.398D+01 ,         &
+           1.724D+01 , 2.492D+00 , -5.210D-02 , -1.036D+00 ,          &
+           -4.398D+01 , 1.724D+01 , 1.139D+00 , -1.110D-02 ,          &
+           -1.011D+00 , -7.754D+00 , 6.737D+00 , 1.139D+00 ,          &
+           -1.110D-02 , -1.011D+00 , -7.754D+00 , 6.737D+00 ,         &
+           1.848D+00 , -3.920D-04 , -9.924D-01 , -1.607D+00 ,         &
+           8.587D-01 , 5.459D+00 , 9.357D-01 , -1.626D+00 ,           &
+           -5.282D+00 , 1.066D+00 , 1.187D+00 , 2.241D-01 ,           &
+           -1.226D+00 , 1.442D+01 , -1.402D+01 , -3.640D+00 ,         &
+           2.552D-01 , -1.168D+00 , 4.458D+01 , 1.152D+01 ,           &
+           -5.634D+00 , 2.068D-01 , -1.122D+00 , 7.528D+01 ,          &
+           1.290D+01 , 1.826D-01 , 6.588D-02 , -1.098D+00 ,           &
+           -1.996D-02 , 1.618D-01 , 2.164D+00 , 1.194D-01 ,           &
+           -1.044D+00 , -3.221D+01 , 1.564D+01 , 2.268D-01 ,          &
+           3.266D-02 , -1.064D+00 , -2.677D-02 , 1.309D-01 ,          &
+           2.178D+00 , 1.151D-01 , -1.042D+00 , -3.325D+01 ,          &
+           1.600D+01 , 1.713D+00 , 9.166D-02 , -1.039D+00 ,           &
+           -2.660D+01 , 1.629D+01/
 !
-      data gsbase/6.899D-01 , 6.899D-01 , 6.899D-01 , 6.899D-01 ,       &
-         & 6.899D-01 , 6.899D-01 , 6.899D-01 , 6.632D-01 , 6.632D-01 ,  &
-         & 5.912D-01 , 5.111D-01 , 4.269D-01 , 3.321D-01 , 2.197D-01 ,  &
-         & 1.305D-01 , 7.356D-02 , 1.602D-01 , 6.883D-02 , 6.304D-02/
+      data gsbase/6.899D-01 , 6.899D-01 , 6.899D-01 , 6.899D-01 ,     &
+          6.899D-01 , 6.899D-01 , 6.899D-01 , 6.632D-01 , 6.632D-01 , &
+          5.912D-01 , 5.111D-01 , 4.269D-01 , 3.321D-01 , 2.197D-01 , &
+          1.305D-01 , 7.356D-02 , 1.602D-01 , 6.883D-02 , 6.304D-02/
 !
-      data ((gscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/ -9.874D-01 ,        &
-          & -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,          &
-          & -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,         &
-          & 5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,          &
-          & -2.265D+00 , 5.238D+00 , -9.874D-01 , -3.033D+01 ,          &
-          & -2.138D+01 , -2.265D+00 , 5.238D+00 , -9.874D-01 ,          &
-          & -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,          &
-          & -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,         &
-          & 5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,          &
-          & -2.265D+00 , 5.238D+00 , -3.666D-01 , -1.319D+00 ,          &
-          & -3.311D+00 , -2.821D-02 , 8.844D-01 , -3.666D-01 ,          &
-          & -1.319D+00 , -3.311D+00 , -2.821D-02 , 8.844D-01 ,          &
-          & 5.824D-01 , -1.875D-01 , -1.567D+00 , -4.402D+00 ,          &
-          & 6.268D+00 , 1.238D+00 , -1.550D-01 , -1.368D+00 ,           &
-          & -1.127D+01 , 8.334D+00 , 2.299D+00 , -1.686D-01 ,           &
-          & -1.304D+00 , -2.677D+01 , 1.101D+01 , 3.037D+00 ,           &
-          & -1.447D-01 , -1.223D+00 , -2.609D+01 , 8.267D+00 ,          &
-          & 4.683D+00 , -2.307D-01 , -1.241D+00 , -4.312D+01 ,          &
-          & 8.838D+00 , 3.842D+00 , -6.301D-01 , -1.367D+00 ,           &
-          & -4.144D+01 , 9.620D+00 , 3.237D+00 , -4.530D-01 ,           &
-          & -1.204D+00 , -3.234D+01 , 8.946D+00 , 4.181D+00 ,           &
-          & -4.140D-01 , -1.284D+00 , -4.489D+01 , 9.950D+00 ,          &
-          & 3.378D+00 , -4.334D-01 , -1.188D+00 , -3.664D+01 ,          &
-          & 9.786D+00 , 3.943D+00 , -3.952D-01 , -1.170D+00 ,           &
-          & -4.415D+01 , 1.031D+01/
+      data ((gscoef(ii,jj),jj=1,ncoefs),ii=1,nspi)/ -9.874D-01 ,   &
+           -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,      &
+           -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,     &
+           5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,      &
+           -2.265D+00 , 5.238D+00 , -9.874D-01 , -3.033D+01 ,      &
+           -2.138D+01 , -2.265D+00 , 5.238D+00 , -9.874D-01 ,      &
+           -3.033D+01 , -2.138D+01 , -2.265D+00 , 5.238D+00 ,      &
+           -9.874D-01 , -3.033D+01 , -2.138D+01 , -2.265D+00 ,     &
+           5.238D+00 , -9.874D-01 , -3.033D+01 , -2.138D+01 ,      &
+           -2.265D+00 , 5.238D+00 , -3.666D-01 , -1.319D+00 ,      &
+           -3.311D+00 , -2.821D-02 , 8.844D-01 , -3.666D-01 ,      &
+           -1.319D+00 , -3.311D+00 , -2.821D-02 , 8.844D-01 ,      &
+           5.824D-01 , -1.875D-01 , -1.567D+00 , -4.402D+00 ,      &
+           6.268D+00 , 1.238D+00 , -1.550D-01 , -1.368D+00 ,       &
+           -1.127D+01 , 8.334D+00 , 2.299D+00 , -1.686D-01 ,       &
+           -1.304D+00 , -2.677D+01 , 1.101D+01 , 3.037D+00 ,       &
+           -1.447D-01 , -1.223D+00 , -2.609D+01 , 8.267D+00 ,      &
+           4.683D+00 , -2.307D-01 , -1.241D+00 , -4.312D+01 ,      &
+           8.838D+00 , 3.842D+00 , -6.301D-01 , -1.367D+00 ,       &
+           -4.144D+01 , 9.620D+00 , 3.237D+00 , -4.530D-01 ,       &
+           -1.204D+00 , -3.234D+01 , 8.946D+00 , 4.181D+00 ,       &
+           -4.140D-01 , -1.284D+00 , -4.489D+01 , 9.950D+00 ,      &
+           3.378D+00 , -4.334D-01 , -1.188D+00 , -3.664D+01 ,      &
+           9.786D+00 , 3.943D+00 , -3.952D-01 , -1.170D+00 ,       &
+           -4.415D+01 , 1.031D+01/
 !
 !-----------------------------------------------------------------------
 !
@@ -369,31 +374,31 @@
         allocate(utaer(iym1,ntr))
         allocate(waer(iym1,ntr))
       end if
-      aermm = 0.0D0
-      aermmb = 0.0D0
-      ftota_mix = 0.0D0
-      gtota_mix = 0.0D0
-      tauasc_mix = 0.0D0
-      tauxar_mix = 0.0D0
-      ftota_mix_cs = 0.0D0
-      gtota_mix_cs = 0.0D0
-      tauasc_mix_cs = 0.0D0
-      tauxar_mix_cs = 0.0D0
-      aermtot = 0.0D0
-      aervtot = 0.0D0
-      aerlwtr = 0.0D0
+      aermm = d_zero
+      aermmb = d_zero
+      ftota_mix = d_zero
+      gtota_mix = d_zero
+      tauasc_mix = d_zero
+      tauxar_mix = d_zero
+      ftota_mix_cs = d_zero
+      gtota_mix_cs = d_zero
+      tauasc_mix_cs = d_zero
+      tauxar_mix_cs = d_zero
+      aermtot = d_zero
+      aervtot = d_zero
+      aerlwtr = d_zero
       if ( ichem == 1 ) then
-        aermmr = 0.0D0
-        fa = 0.0D0
-        ga = 0.0D0
-        tauxar = 0.0D0
-        uaer = 0.0D0
-        wa = 0.0D0
-        faer = 0.0D0
-        gaer = 0.0D0
-        tauaer = 0.0D0
-        utaer = 0.0D0
-        waer = 0.0D0
+        aermmr = d_zero
+        fa = d_zero
+        ga = d_zero
+        tauxar = d_zero
+        uaer = d_zero
+        wa = d_zero
+        faer = d_zero
+        gaer = d_zero
+        tauaer = d_zero
+        utaer = d_zero
+        waer = d_zero
       end if
       end subroutine allocate_mod_aerosol
 !
@@ -453,10 +458,10 @@
       real(8) :: gvis , kaervs , omgvis , rhfac , tauvis
       integer :: i , itr , k , mxaerl
 !
-      data kaervs/5.3012D0/         ! multiplication factor for kaer
-      data omgvis/0.999999D0/
-      data gvis/0.694889D0/
-      data rhfac/1.6718D0/          ! EES added for efficiency
+      data kaervs /5.3012D0/        ! multiplication factor for kaer
+      data omgvis /0.999999D0/
+      data gvis   /0.694889D0/
+      data rhfac  /1.6718D0/        ! EES added for efficiency
 !
 !--------------------------------------------------------------------------
 !
@@ -471,7 +476,7 @@
         do i = istart , iend
  
 !added    July 13, 2000: needed for aerosols in radiation
-          rh(i,k) = dmin1(rhb3d(i,k,j),0.99D0)
+          rh(i,k) = dmin1(rhb3d(i,k,j),nearone)
 !EES:     do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
 !         divided by RH.  rh is limited to .99 to avoid dividing by zero
 !added
@@ -483,10 +488,10 @@
 !
           if ( k >= nk + 1 - mxaerl ) then
             aermmb(i,k) = gtigts*tauvis/ &
-                         (1.0D4*kaervs*rhfac*(1.0D0-omgvis*gvis*gvis) &
-                        & *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
+                         (d10e4*kaervs*rhfac*(d_one-omgvis*gvis*gvis) &
+                         *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
           else
-            aermmb(i,k) = 0.0D0
+            aermmb(i,k) = d_zero
           end if
 ! 
           if ( ichem == 1 ) then
@@ -525,36 +530,36 @@
 ! faer          - Aerosol forward scattered fraction
 !
       if ( ichem /= 1 ) then
-        tauxar_mix_cs(:,:) = 0.0D0
-        tauasc_mix_cs(:,:) = 0.0D0
-        gtota_mix_cs(:,:) = 0.0D0
-        ftota_mix_cs(:,:) = 0.0D0
-        tauxar_mix(:,:,:) = 0.0D0
-        tauasc_mix(:,:,:) = 0.0D0
-        gtota_mix(:,:,:) = 0.0D0
-        ftota_mix(:,:,:) = 0.0D0
-        aerlwtr (:,:,:) = 1.0D0
+        tauxar_mix_cs(:,:) = d_zero
+        tauasc_mix_cs(:,:) = d_zero
+        gtota_mix_cs(:,:) = d_zero
+        ftota_mix_cs(:,:) = d_zero
+        tauxar_mix(:,:,:) = d_zero
+        tauasc_mix(:,:,:) = d_zero
+        gtota_mix(:,:,:) = d_zero
+        ftota_mix(:,:,:) = d_zero
+        aerlwtr (:,:,:) = d_one
         return
       end if
 !
       if ( idirect >= 1 ) then
-        tauxar = 0.0D0
-        wa = 0.0D0
-        ga = 0.0D0
-        fa = 0.0D0
+        tauxar = d_zero
+        wa = d_zero
+        ga = d_zero
+        fa = d_zero
       else
 !
 !       Nothing to do for this
 !
-        tauxar_mix_cs(:,:) = 0.0D0
-        tauasc_mix_cs(:,:) = 0.0D0
-        gtota_mix_cs(:,:) = 0.0D0
-        ftota_mix_cs(:,:) = 0.0D0
-        tauxar_mix(:,:,:) = 0.0D0
-        tauasc_mix(:,:,:) = 0.0D0
-        gtota_mix(:,:,:) = 0.0D0
-        ftota_mix(:,:,:) = 0.0D0
-        aerlwtr (:,:,:) = 1.0D0
+        tauxar_mix_cs(:,:) = d_zero
+        tauasc_mix_cs(:,:) = d_zero
+        gtota_mix_cs(:,:) = d_zero
+        ftota_mix_cs(:,:) = d_zero
+        tauxar_mix(:,:,:) = d_zero
+        tauasc_mix(:,:,:) = d_zero
+        gtota_mix(:,:,:) = d_zero
+        ftota_mix(:,:,:) = d_zero
+        aerlwtr (:,:,:) = d_one
         return
       end if
  
@@ -570,26 +575,26 @@
 !
         do ns = 1 , nspi
 
-          tauxar_mix_cs(:,ns) = 0.0D0
-          tauasc_mix_cs(:,ns) = 0.0D0
-          gtota_mix_cs(:,ns) = 0.0D0
-          ftota_mix_cs(:,ns) = 0.0D0
+          tauxar_mix_cs(:,ns) = d_zero
+          tauasc_mix_cs(:,ns) = d_zero
+          gtota_mix_cs(:,ns) = d_zero
+          ftota_mix_cs(:,ns) = d_zero
 !
-          tauxar_mix(:,:,ns) = 0.0D0
-          tauasc_mix(:,:,ns) = 0.0D0
-          gtota_mix(:,:,ns) = 0.0D0
-          ftota_mix(:,:,ns) = 0.0D0
+          tauxar_mix(:,:,ns) = d_zero
+          tauasc_mix(:,:,ns) = d_zero
+          gtota_mix(:,:,ns) = d_zero
+          ftota_mix(:,:,ns) = d_zero
 !
-          uaer(:,0,:) = 0.0D0
-          tauxar(:,0,:) = 0.0D0
-          wa(:,0,:) = 0.0D0
-          ga(:,0,:) = 0.0D0
-          fa(:,0,:) = 0.0D0
-          utaer(:,:) = 0.0D0
-          tauaer(:,:) = 0.0D0
-          waer(:,:) = 0.0D0
-          gaer(:,:) = 0.0D0
-          faer(:,:) = 0.0D0
+          uaer(:,0,:) = d_zero
+          tauxar(:,0,:) = d_zero
+          wa(:,0,:) = d_zero
+          ga(:,0,:) = d_zero
+          fa(:,0,:) = d_zero
+          utaer(:,:) = d_zero
+          tauaer(:,:) = d_zero
+          waer(:,:) = d_zero
+          gaer(:,:) = d_zero
+          faer(:,:) = d_zero
 ! 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
@@ -602,8 +607,8 @@
               path = (pint(i,k+1)-pint(i,k))/gtigts
               ibin = 0
               do itr = 1 , ntr
-                uaer(i,k,itr) = 0.0D0
-                if ( rh(i,k) < 0.0D0 .or. rh(i,k) > 1.0D0 ) &
+                uaer(i,k,itr) = d_zero
+                if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) &
                   print * , i , k , rh(i,k) , '  RH WARNING !!!!!'
 !
                 if ( chtrname(itr) == 'XXXXX') then
@@ -617,57 +622,57 @@
                   ibin = ibin + 1
                   if ( ibin > 4 ) print * , 'DUST OP PBLEME !!!!'
 !
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksdust(ns,ibin)
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
                   wa(i,k,itr) = wsdust(ns,ibin)
                   ga(i,k,itr) = gsdust(ns,ibin)
                   fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
 ! 
                 else if ( chtrname(itr) == 'SO4' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbase(ns)       &
-                                  & *dexp(kscoef(ns,1)+kscoef(ns,2)     &
-                                  & /(rh(i,k)+kscoef(ns,3))             &
-                                  & +kscoef(ns,4)                       &
-                                  & /(rh(i,k)+kscoef(ns,5)))
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbase(ns)       &
+                                   *dexp(kscoef(ns,1)+kscoef(ns,2)     &
+                                   /(rh(i,k)+kscoef(ns,3))             &
+                                   +kscoef(ns,4)                       &
+                                   /(rh(i,k)+kscoef(ns,5)))
 !
-                  wa(i,k,itr) = 1.0D0 - wsbase(ns)                      &
-                              & *dexp(wscoef(ns,1)+wscoef(ns,2)         &
-                              & /(rh(i,k)+wscoef(ns,3))+wscoef(ns,4)    &
-                              & /(rh(i,k)+wscoef(ns,5)))
+                  wa(i,k,itr) = d_one - wsbase(ns)                      &
+                               *dexp(wscoef(ns,1)+wscoef(ns,2)         &
+                               /(rh(i,k)+wscoef(ns,3))+wscoef(ns,4)    &
+                               /(rh(i,k)+wscoef(ns,5)))
 !
                   ga(i,k,itr) = gsbase(ns)                              &
-                              & *dexp(gscoef(ns,1)+gscoef(ns,2)         &
-                              & /(rh(i,k)+gscoef(ns,3))+gscoef(ns,4)    &
-                              & /(rh(i,k)+gscoef(ns,5)))
+                               *dexp(gscoef(ns,1)+gscoef(ns,2)         &
+                               /(rh(i,k)+gscoef(ns,3))+gscoef(ns,4)    &
+                               /(rh(i,k)+gscoef(ns,5)))
 !
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
 ! 
                 else if ( chtrname(itr) == 'OC_HL' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Humidity effect !
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hl(ns)      &
-                                  & *(1.0D0-rh(i,k))**(-0.2D0)
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hl(ns)      &
+                                   *(d_one-rh(i,k))**(-0.2D0)
                   wa(i,k,itr) = wsoc_hl(ns)
                   ga(i,k,itr) = gsoc_hl(ns)
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
                 else if ( chtrname(itr) == 'BC_HL' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Humidity effect !
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hl(ns)      &
-                                  & *(1.0D0-rh(i,k))**(-0.25D0)
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hl(ns)      &
+                                   *(d_one-rh(i,k))**(-0.25D0)
                   wa(i,k,itr) = wsbc_hl(ns)
                   ga(i,k,itr) = gsbc_hl(ns)
                   fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
                 else if ( chtrname(itr) == 'OC_HB' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksoc_hb(ns)
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hb(ns)
                   wa(i,k,itr) = wsoc_hb(ns)
                   ga(i,k,itr) = gsoc_hb(ns)
                   fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
                 else if ( chtrname(itr) == 'BC_HB' ) then
                   uaer(i,k,itr) = aermmr(i,k,itr)*path
 !                 Absorbing aerosols (soot type)
-                  tauxar(i,k,itr) = 1.D5*uaer(i,k,itr)*ksbc_hb(ns)
+                  tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hb(ns)
                   wa(i,k,itr) = wsbc_hb(ns)
                   ga(i,k,itr) = gsbc_hb(ns)
                   fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
@@ -687,7 +692,8 @@
                 gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
                 faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
               end do
-              if ( utaer(i,itr) <= 1.D-10 ) utaer(i,itr) = 1.D-10
+              if ( utaer(i,itr) <= minimum_utaer ) &
+                utaer(i,itr) = minimum_utaer
               waer(i,itr) = waer(i,itr)/utaer(i,itr)
               gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
               faer(i,itr) = faer(i,itr)/utaer(i,itr)
@@ -702,29 +708,29 @@
 !             only for climatic feedback allowed
               do k = 0 , kz
                 tauxar_mix(i,k,ns) = tauxar_mix(i,k,ns)               &
-                                   & + tauxar(i,k,itr)
+                                    + tauxar(i,k,itr)
                 tauasc_mix(i,k,ns) = tauasc_mix(i,k,ns)               &
-                                   & + tauxar(i,k,itr)*wa(i,k,itr)
+                                    + tauxar(i,k,itr)*wa(i,k,itr)
                 gtota_mix(i,k,ns) = gtota_mix(i,k,ns) + ga(i,k,itr)   &
-                                  & *tauxar(i,k,itr)*wa(i,k,itr)
+                                   *tauxar(i,k,itr)*wa(i,k,itr)
                 ftota_mix(i,k,ns) = ftota_mix(i,k,ns) + fa(i,k,itr)   &
-                                  & *tauxar(i,k,itr)*wa(i,k,itr)
+                                   *tauxar(i,k,itr)*wa(i,k,itr)
               end do
 !
 !             Clear sky (always calcuated if idirect >=1 for
 !             diagnostic radiative forcing)
 !
               tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns)               &
-                                  & + tauaer(i,itr)
-              if (waer(i,itr) > 1E-30) then
-                tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns) +             &
-                                  & tauaer(i,itr)*waer(i,itr)
+                                   + tauaer(i,itr)
+              if (waer(i,itr) > lowval) then
+                tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns) +           &
+                                   tauaer(i,itr)*waer(i,itr)
               end if
-              if (gaer(i,itr) > 1E-20 .and. waer(i,itr) > 1E-20) then
+              if (gaer(i,itr) > lowval .and. waer(i,itr) > lowval) then
                 gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr) * &
-                                 & tauaer(i,itr)*waer(i,itr)
+                                  tauaer(i,itr)*waer(i,itr)
                 ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr) * &
-                                 & tauaer(i,itr)*waer(i,itr)
+                                  tauaer(i,itr)*waer(i,itr)
               end if
             end do
           end do
@@ -745,36 +751,36 @@
 !
         do ns = 1 , nspi
 
-          tauxar_mix_cs(:,ns) = 0.0D0
-          tauasc_mix_cs(:,ns) = 0.0D0
-          gtota_mix_cs(:,ns) = 0.0D0
-          ftota_mix_cs(:,ns) = 0.0D0
-          tauxar_mix(:,:,ns) = 0.0D0
-          tauasc_mix(:,:,ns) = 0.0D0
-          gtota_mix(:,:,ns) = 0.0D0
-          ftota_mix(:,:,ns) = 0.0D0
+          tauxar_mix_cs(:,ns) = d_zero
+          tauasc_mix_cs(:,ns) = d_zero
+          gtota_mix_cs(:,ns)  = d_zero
+          ftota_mix_cs(:,ns)  = d_zero
+          tauxar_mix(:,:,ns)  = d_zero
+          tauasc_mix(:,:,ns)  = d_zero
+          gtota_mix(:,:,ns)   = d_zero
+          ftota_mix(:,:,ns)   = d_zero
 ! 
-          uaer(:,0,:) = 0.0D0
-          tauxar(:,0,:) = 0.0D0
-          wa(:,0,:) = 0.0D0
-          ga(:,0,:) = 0.0D0
-          fa(:,0,:) = 0.0D0
-          utaer(:,:) = 0.0D0
-          tauaer(:,:) = 0.0D0
-          waer(:,:) = 0.0D0
-          gaer(:,:) = 0.0D0
-          faer(:,:) = 0.0D0
+          uaer(:,0,:)   = d_zero
+          tauxar(:,0,:) = d_zero
+          wa(:,0,:)     = d_zero
+          ga(:,0,:)     = d_zero
+          fa(:,0,:)     = d_zero
+          utaer(:,:)    = d_zero
+          tauaer(:,:)   = d_zero
+          waer(:,:)     = d_zero
+          gaer(:,:)     = d_zero
+          faer(:,:)     = d_zero
 !
 !         calculate optical properties of each aerosol component
 !
           do i = 1 , iym1
             do k = 1 , kz
               path = (pint(i,k+1)-pint(i,k))/gtigts
-              if ( rh(i,k) < 0.0D0 .or. rh(i,k) > 1.0D0 ) &
+              if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) &
                 write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
 !             sum of hydrophilic aerosols
-              aervtot(i,k) = 0.D0
-              aermtot(i,k) = 0.D0
+              aervtot(i,k) = d_zero
+              aermtot(i,k) = d_zero
 !
               if ( iso4 /= 0 ) then
                 aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iso4)/rhoso4
@@ -792,12 +798,12 @@
               end if
 ! 
               if ( idust(1) /= 0 ) then
-                aervtot(i,k) = aervtot(i,k) + aermmr(i,k,idust(1))    &
-                             & /rhodust
+                aervtot(i,k) = aervtot(i,k) + &
+                               aermmr(i,k,idust(1))/rhodust
                 aermtot(i,k) = aermtot(i,k) + aermmr(i,k,idust(1))
               end if
 !             minimum quantity of total aerosol
-              if ( aermtot(i,k) > 1.D-14 ) then
+              if ( aermtot(i,k) > minimum_aerosol ) then
 !               indexes in the internal mixing table
                 prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
                 prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
@@ -809,22 +815,22 @@
                 frac(4) = fraction(prop(4))
 !               FIND THE GREATEST FRACTIONAL PART
                 if ( iso4 /= 0 ) then
-                  i1 = idnint(10.0D0*prop(1)) + 1
+                  i1 = idnint(d_10*prop(1)) + 1
                 else
                   i1 = 0 + 1
                 end if
                 if ( ibchl /= 0 ) then
-                  i2 = idnint(10.0D0*prop(2)) + 1
+                  i2 = idnint(d_10*prop(2)) + 1
                 else
                   i2 = 0 + 1
                 end if
                 if ( iochl /= 0 ) then
-                  i3 = idnint(10.0D0*prop(3)) + 1
+                  i3 = idnint(d_10*prop(3)) + 1
                 else
                   i3 = 0 + 1
                 end if
                 if ( idust(1) /= 0 ) then
-                  i4 = idnint(10.0D0*prop(4)) + 1
+                  i4 = idnint(d_10*prop(4)) + 1
                 else
                   i4 = 0 + 1
                 end if
@@ -844,8 +850,10 @@
                   if ( i3 /= 1 ) i3 = i3 - 1
                 end if
 ! 
-                if ( i1+i2+i3+i4 == 15 ) call fatal(__FILE__,__LINE__,&
-                    &'WRONG COMBINATION. SHOULD NEVER HAPPEN')
+                if ( i1+i2+i3+i4 == 15 ) then
+                  call fatal(__FILE__,__LINE__,&
+                    'WRONG COMBINATION. SHOULD NEVER HAPPEN')
+                end if
 ! 
                 if ( i1+i2+i3+i4 /= 14 ) then
                   print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
@@ -855,52 +863,52 @@
                   print * , 'SO4' , aermmr(i,k,iso4)/rhoso4
                   print * , 'DUST' , aermmr(i,k,idust(1))/rhodust
                   print * , 'VOL TOT' , aervtot(i,k)
-                  print * , 'OC HL%' , 10*(aermmr(i,k,iochl)/rhooc)   &
-                      & /aervtot(i,k)
-                  print * , 'BC HL%' , 10*(aermmr(i,k,ibchl)/rhobc)   &
-                      & /aervtot(i,k)
-                  print * , 'SO4 %' , 10*(aermmr(i,k,iso4)/rhoso4)    &
-                      & /aervtot(i,k)
-                  print * , 'SO4 %' ,                                 &
-                      & idnint(10.0D0*(aermmr(i,k,iso4)/rhoso4)/      &
-                      & aervtot(i,k))
+                  print * , 'OC HL%' , d_10*(aermmr(i,k,iochl)/rhooc) &
+                       /aervtot(i,k)
+                  print * , 'BC HL%' , d_10*(aermmr(i,k,ibchl)/rhobc) &
+                       /aervtot(i,k)
+                  print * , 'SO4 %' , d_10*(aermmr(i,k,iso4)/rhoso4)  &
+                       /aervtot(i,k)
+                  print * , 'SO4 %' ,                              &
+                       idnint(d_10*(aermmr(i,k,iso4)/rhoso4)/      &
+                       aervtot(i,k))
                   print * , 'DUST %' ,                                &
-                      & 10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
-                  print * , 'DUST %' ,                                &
-                      & idnint(10.0D0*(aermmr(i,k,idust(1))/rhodust)  &
-                      & /aervtot(i,k))
+                       10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+                  print * , 'DUST %' ,                             &
+                       idnint(d_10*(aermmr(i,k,idust(1))/rhodust)  &
+                       /aervtot(i,k))
                   call fatal(__FILE__,__LINE__,                       &
-                            &'SOMETHING WRONG ON SPECIES ABUNDANCE')
+                            'SOMETHING WRONG ON SPECIES ABUNDANCE')
                 end if
 !
-                tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)        &
-                                   & *aermtot(i,k)*path*1D5
-                tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)        &
-                                   & *tauxar_mix(i,k,ns)
-                gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
-                                  & *tauasc_mix(i,k,ns)               &
-                                  & *tauxar_mix(i,k,ns)
-                ftota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)           &
-                                  & *dgmix(1,ns,i4,i2,i3,i1)          &
-                                  & *tauasc_mix(i,k,ns)               &
-                                  & *tauxar_mix(i,k,ns)
+                tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)     &
+                                    *aermtot(i,k)*path*d10e5
+                tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)     &
+                                    *tauxar_mix(i,k,ns)
+                gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)        &
+                                   *tauasc_mix(i,k,ns)             &
+                                   *tauxar_mix(i,k,ns)
+                ftota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)        &
+                                   *dgmix(1,ns,i4,i2,i3,i1)        &
+                                   *tauasc_mix(i,k,ns)             &
+                                   *tauxar_mix(i,k,ns)
 ! 
 !               clear sky dignostic
                 utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
  
                 tauaer(i,1) = tauaer(i,1) + dextmix(1,ns,i4,i2,i3,i1) &
-                            & *aermtot(i,k)*path*1D5
+                             *aermtot(i,k)*path*d10e5
                 waer(i,1) = waer(i,1) + dssamix(1,ns,i4,i2,i3,i1)     &
-                          & *aermtot(i,k)*path
+                           *aermtot(i,k)*path
                 gaer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
-                          & *aermtot(i,k)*path
+                           *aermtot(i,k)*path
                 faer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1)       &
-                          & *dgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
+                           *dgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
 ! 
               end if ! end minimum concentration conditions
             end do ! end k loop
 ! 
-            if ( utaer(i,1) > 1.D-12 ) then
+            if ( utaer(i,1) > minimum_utaer ) then
               waer(i,1) = waer(i,1)/utaer(i,1)
               gaer(i,1) = gaer(i,1)/utaer(i,1)
               faer(i,1) = faer(i,1)/utaer(i,1)
@@ -921,30 +929,32 @@
 ! FAB 
 ! DUST LW emissivity 
 ! qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
-      qabslw = 0.1
+      qabslw = d_r10
 !     initialisation à 1 = perfect transmittivity
-      aerlwtr (:,:,:) = 1.0D0
+      aerlwtr (:,:,:) = d_one
 !
       if ( idirect >= 1 ) then
 !
         do k1 = 1 , kzp1
           do k2 = 1 , kzp1
             do i = 1 , iym1
-              if ( k1==k2 ) aerlwtr(i,k1,k2) = 1.0D0
+              if ( k1==k2 ) aerlwtr(i,k1,k2) = d_one
 !             aerosol path btw k1 and k2 flux level
               ibin = 0
-              uaerdust = 0.0D0
+              uaerdust = d_zero
               do itr = 1 , ntr     
                 if ( chtrname(itr) == 'DUST' ) then
                   ibin = ibin+1
                   if ( k1<k2 ) then
-                    uaerdust =  uaerdust + 1.D5 *                       &
-                            &   (sum(uaer(i,k1:k2-1,itr)))
-                    aerlwtr(i,k1,k2) = dexp(-1.66D0 * qabslw * uaerdust)
+                    uaerdust =  uaerdust + d10e5 *         &
+                               (sum(uaer(i,k1:k2-1,itr)))
+                    aerlwtr(i,k1,k2) = &
+                             dexp(-fiveothree * qabslw * uaerdust)
                   else if ( k1>k2 ) then
-                    uaerdust =  uaerdust + 1.D5 *                       &
-                            &   (sum(uaer(i,k2:k1-1,itr)))
-                    aerlwtr(i,k1,k2) = dexp(-1.66D0 * qabslw * uaerdust)
+                    uaerdust =  uaerdust + d10e5 *         &
+                               (sum(uaer(i,k2:k1-1,itr)))
+                    aerlwtr(i,k1,k2) = &
+                             dexp(-fiveothree * qabslw * uaerdust)
                   end if
                 end if
               end do
@@ -963,7 +973,7 @@
 !
       integer :: jslc
       real(8) , dimension(iym1) :: aeradfo , aeradfos, aerlwfo ,        &
-                                 & aerlwfos
+                                  aerlwfos
       intent (in) aeradfo , aeradfos, aerlwfo , aerlwfos
 !
       real(8) :: rntim
@@ -993,37 +1003,39 @@
 !     steps (in hour) according to radfrq (in min), aertarf is reset to
 !     0 at each chem output (cf output.f)
 !
-      rntim = 60.0D0*(chemfrq/radfrq)
+      rntim = minph*(chemfrq/radfrq)
 !
 !     aersol radative forcing (care cgs to mks after radiation scheme !)
 !
       do i = 2 , iym1
 #ifdef MPP1
-        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)*1.D-3/rntim
-        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)*1.D-3/rntim
-        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +                     &
-                            & aerlwfo(i)*1.D-3/rntim
-        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +                     &
-                            & aerlwfos(i)*1.D-3/rntim
+        aertarf(i-1,jslc) = aertarf(i-1,jslc) +            &
+                            aeradfo(i)*d_r1000/rntim
+        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) +            &
+                            aeradfos(i)*d_r1000/rntim
+        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +        &
+                             aerlwfo(i)*d_r1000/rntim
+        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +        &
+                             aerlwfos(i)*d_r1000/rntim
 #else
 #ifdef BAND
-        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)          &
-                            & *1.D-3/rntim
-        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)         &
-                            & *1.D-3/rntim
-        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +                 &
-                              & aerlwfo(i) * 1.D-3/rntim
-        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +                 &
-                              & aerlwfos(i) * 1.D-3/rntim
+        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)     &
+                             *d_r1000/rntim
+        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)    &
+                             *d_r1000/rntim
+        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +            &
+                               aerlwfo(i) * d_r1000/rntim
+        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +            &
+                               aerlwfos(i) * d_r1000/rntim
 #else
-        aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)          &
-                            & *1.D-3/rntim
-        aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)         &
-                            & *1.D-3/rntim
-        aertalwrf(i-1,jslc-1) = aertalwrf(i-1,jslc-1) +                 &
-                              & aerlwfo(i) * 1.D-3/rntim
-        aersrlwrf(i-1,jslc-1) = aersrlwrf(i-1,jslc-1) +                 &
-                              & aerlwfos(i) * 1.D-3/rntim
+        aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)   &
+                             *d_r1000/rntim
+        aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)  &
+                             *d_r1000/rntim
+        aertalwrf(i-1,jslc-1) = aertalwrf(i-1,jslc-1) +          &
+                               aerlwfo(i) * d_r1000/rntim
+        aersrlwrf(i-1,jslc-1) = aersrlwrf(i-1,jslc-1) +          &
+                               aerlwfos(i) * d_r1000/rntim
 #endif
 #endif
       end do

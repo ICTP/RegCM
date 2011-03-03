@@ -19,9 +19,8 @@
 
       module mod_savefile
 
-        use mod_dynparam
-        use mod_message
         use mod_runparams
+        use mod_message
         use mod_bats
         use mod_lake, only : lakesav_i, lakesav_o
         use mod_pmoist
@@ -60,7 +59,6 @@
 #endif
 
         data isavlast /-1/
-        data lastcdtime /0.0/
         data iutrst   /-1/
         data lrp1 /.false./
 

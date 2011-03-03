@@ -21,10 +21,8 @@
 !
 ! RegCM Init module
 !
-      use mod_constants
-      use mod_dynparam
-      use mod_o3blk
       use mod_runparams
+      use mod_o3blk
       use mod_bats
       use mod_lake
       use mod_vecbats
@@ -54,8 +52,8 @@
 !
       public :: init
 !
-      real(8) , parameter :: tlp = 50.D0
-      real(8) , parameter :: ts00 = 288.D0
+      real(8) , parameter :: tlp = 50.0D0
+      real(8) , parameter :: ts00 = 288.0D0
 !
       contains
 !
@@ -91,47 +89,47 @@
       existing = .false.
 #ifdef MPP1
 #ifndef BAND
-      peb  = 0.0D0
-      pwb  = 0.0D0
-      pebt = 0.0D0
-      pwbt = 0.0D0
-      teb  = 0.0D0
-      twb  = 0.0D0
-      tebt = 0.0D0
-      twbt = 0.0D0
-      qeb  = 0.0D0
-      qwb  = 0.0D0
-      qebt = 0.0D0
-      qwbt = 0.0D0
-      ueb  = 0.0D0
-      uwb  = 0.0D0
-      uebt = 0.0D0
-      uwbt = 0.0D0
-      veb  = 0.0D0
-      vwb  = 0.0D0
-      vebt = 0.0D0
-      vwbt = 0.0D0
+      peb  = d_zero
+      pwb  = d_zero
+      pebt = d_zero
+      pwbt = d_zero
+      teb  = d_zero
+      twb  = d_zero
+      tebt = d_zero
+      twbt = d_zero
+      qeb  = d_zero
+      qwb  = d_zero
+      qebt = d_zero
+      qwbt = d_zero
+      ueb  = d_zero
+      uwb  = d_zero
+      uebt = d_zero
+      uwbt = d_zero
+      veb  = d_zero
+      vwb  = d_zero
+      vebt = d_zero
+      vwbt = d_zero
 #endif
-      pnb  = 0.0D0
-      pss  = 0.0D0
-      pnbt = 0.0D0
-      psbt = 0.0D0
-      tnb  = 0.0D0
-      tsb  = 0.0D0
-      tnbt = 0.0D0
-      tsbt = 0.0D0
-      qnb  = 0.0D0
-      qsb  = 0.0D0
-      qnbt = 0.0D0
-      qsbt = 0.0D0
-      unb  = 0.0D0
-      usb  = 0.0D0
-      unbt = 0.0D0
-      usbt = 0.0D0
-      vnb  = 0.0D0
-      vsb  = 0.0D0
-      vnbt = 0.0D0
-      vsbt = 0.0D0
+      pnb  = d_zero
+      pss  = d_zero
+      pnbt = d_zero
+      psbt = d_zero
+      tnb  = d_zero
+      tsb  = d_zero
+      tnbt = d_zero
+      tsbt = d_zero
+      qnb  = d_zero
+      qsb  = d_zero
+      qnbt = d_zero
+      qsbt = d_zero
+      unb  = d_zero
+      usb  = d_zero
+      unbt = d_zero
+      usbt = d_zero
+      vnb  = d_zero
+      vsb  = d_zero
+      vnbt = d_zero
+      vsbt = d_zero
 #endif
       tgmx_o = -1.E30
       t2mx_o = -1.E30
@@ -142,12 +140,12 @@
 
       ndate0 = idate1
       ndate1 = ndate0
-      if (ndate0 == globidate1 .or.                                   &
-         (((ndate0/10000)*100+1)*100 ==                             &
+      if (ndate0 == globidate1 .or.      &
+         (((ndate0/10000)*100+1)*100 ==  &
          ((globidate1/10000)*100+1)*100 ) ) then
         icbc_date = globidate1
       else
-          icbc_date = ((ndate0/10000)*100+1)*100
+        icbc_date = ((ndate0/10000)*100+1)*100
       end if
 #ifdef MPP1
       if ( myid == 0 ) then
@@ -162,32 +160,32 @@
 !
 !------set rainwater and cloud water equal to zero initially.
 !
-        atm1%qc = 0.0D0
-        atm2%qc = 0.0D0
+        atm1%qc = d_zero
+        atm2%qc = d_zero
 !
 !chem2
         if ( ichem == 1 ) then
 !qhy      tchie, tchitb(replace tchidp:deposition)
 !         initialize removal terms
-          remlsc = 0.0D0
-          remcvc = 0.0D0
-          rxsg   = 0.0D0
-          rxsaq1 = 0.0D0
-          rxsaq2 = 0.0D0
-          remdrd = 0.0D0
-          wdlsc  = 0.0D0
+          remlsc = d_zero
+          remcvc = d_zero
+          rxsg   = d_zero
+          rxsaq1 = d_zero
+          rxsaq2 = d_zero
+          remdrd = d_zero
+          wdlsc  = d_zero
         end if
 !chem2_
 !------set the variables related to blackadar pbl equal to 0 initially.
 !
         if ( ibltyp /= 0 ) then
-          sfsta%hfx = 0.0D0
-          sfsta%qfx = 0.0D0
+          sfsta%hfx = d_zero
+          sfsta%qfx = d_zero
         end if
 !
         if ( icup == 1 ) then
-          rsheat = 0.0D0
-          rswat  = 0.0D0
+          rsheat = d_zero
+          rswat  = d_zero
         end if
 !
 !------read in the initial conditions for large domain:
@@ -199,9 +197,9 @@
 #endif
         if ( myid == 0 ) then
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
-                   &     tb0_io,qb0_io,so0_io)
+                         tb0_io,qb0_io,so0_io)
           write (6,*) 'READY IC DATA for ', ndate0
-          ps0_io = ps0_io/10.0D0
+          ps0_io = ps0_io/d_10
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -230,12 +228,12 @@
 !       Start transmission of data to other processors
 !
         call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+                         sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
+                         0,mpi_comm_world,ierr)
         if ( ehso4 )                                                    &
-          & call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,         &
-          &                  sav0s, iy*kz*jxp,mpi_real8,         &
-          &                  0,mpi_comm_world,ierr)
+            call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,         &
+                             sav0s, iy*kz*jxp,mpi_real8,         &
+                             0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
@@ -273,26 +271,26 @@
 !       and similarly for the i's.
 !
         call mpi_sendrecv(ps0(1,jxp),iy,mpi_real8,ieast,1,              &
-                        & ps0(1,0),iy,mpi_real8,iwest,1,                &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
+                          ps0(1,0),iy,mpi_real8,iwest,1,                &
+                          mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , iym1
-            psdot(i,j) = 0.25D0*(ps0(i,j)   + ps0(i-1,j) +   &
-                         &       ps0(i,j-1) + ps0(i-1,j-1))
+            psdot(i,j) = d_rfour*(ps0(i,j)   + ps0(i-1,j) +   &
+                                  ps0(i,j-1) + ps0(i-1,j-1))
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          if ( myid == 0 ) psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
+          if ( myid == 0 ) psdot(i,1) = d_half*(ps0(i,1)+ps0(i-1,1))
           if ( myid == nproc-1 ) psdot(i,jendl)                         &
-             & = 0.5D0*(ps0(i,jendx)+ps0(i-1,jendx))
+               = d_half*(ps0(i,jendx)+ps0(i-1,jendx))
         end do
 #endif
 !
         do j = jbegin , jendx
-          psdot(1,j) = 0.5D0*(ps0(1,j)+ps0(1,j-1))
-          psdot(iy,j) = 0.5D0*(ps0(iym1,j)+ps0(iym1,j-1))
+          psdot(1,j) = d_half*(ps0(1,j)+ps0(1,j-1))
+          psdot(iy,j) = d_half*(ps0(iym1,j)+ps0(iym1,j-1))
         end do
 !
 #ifndef BAND
@@ -346,32 +344,29 @@
         if (iseaice == 1) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( mddom%satbrt(i,j) > 13.5D0 .and. &
-                   mddom%satbrt(i,j) < 15.5D0 ) then
-                if ( ts0(i,j) <= 271.38D0 ) then
-                  sts1%tg(i,j) = 271.38D0
-                  sts2%tg(i,j) = 271.38D0
-                  ts0(i,j) = 271.38D0
+              if ( iswater(mddom%satbrt(i,j)) ) then
+                if ( ts0(i,j) <= icetemp ) then
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  ts0(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.0D0
+                    ocld2d(n,i,j) = d_two
                   end do
                 else
                   do n = 1, nnsg
-                    if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                         satbrt1(n,i,j) < 15.5D0 ) then
-                      ocld2d(n,i,j) = 0.0D0
+                    if ( iswater(mddom%satbrt(i,j)) ) then
+                      ocld2d(n,i,j) = d_zero
                     else
-                      ocld2d(n,i,j) = 1.0D0
+                      ocld2d(n,i,j) = d_one
                     end if
                   end do
                 end if
               else
                 do n = 1, nnsg
-                  if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                       satbrt1(n,i,j) < 15.5D0 ) then
-                    ocld2d(n,i,j) = 0.0D0
+                  if ( iswater(mddom%satbrt(i,j)) ) then
+                    ocld2d(n,i,j) = d_zero
                   else
-                    ocld2d(n,i,j) = 1.0D0
+                    ocld2d(n,i,j) = d_one
                   end if
                 end do
               end if
@@ -381,11 +376,10 @@
           do j = 1 , jendx
             do i = 1 , iym1
               do n = 1, nnsg
-                if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                     satbrt1(n,i,j) < 15.5D0 ) then
-                  ocld2d(n,i,j) = 0.0D0
+                if ( iswater(mddom%satbrt(i,j)) ) then
+                  ocld2d(n,i,j) = d_zero
                 else
-                  ocld2d(n,i,j) = 1.0D0
+                  ocld2d(n,i,j) = d_one
                 end if
               end do
             end do
@@ -396,7 +390,7 @@
             do j = 1 , jendl
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                          tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.0D0)
+                          tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/d_100)
               end do
             end do
           end do
@@ -422,18 +416,18 @@
         do j = 1 , jendx
           do i = 1 , iym1
             do k = 1 , nnsg
-              snowc(k,i,j) = 0.0D0
+              snowc(k,i,j) = d_zero
             end do
           end do
         end do
         if ( ichem == 1 ) then
-          ssw2da    = 0.0D0
-          sdeltk2d  = 0.0D0
-          sdelqk2d  = 0.0D0
-          sfracv2d  = 0.5D0
-          sfracb2d  = 0.5D0
-          sfracs2d  = 0.0D0
-          svegfrac2d = 0.0D0
+          ssw2da    = d_zero
+          sdeltk2d  = d_zero
+          sdelqk2d  = d_zero
+          sfracv2d  = d_half
+          sfracb2d  = d_half
+          sfracs2d  = d_zero
+          svegfrac2d = d_zero
         end if
 #else
         call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
@@ -441,7 +435,7 @@
 !
 !       Convert surface pressure to pstar
 !
-        ps0 = ps0/10.0D0 - r8pt
+        ps0 = ps0/d_10 - r8pt
 
 !=======================================================================
 !
@@ -460,15 +454,15 @@
           if(jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
-            psdot(i,j) = 0.25D0*(ps0(i,j)+ps0(i-1,j)+     &
-                       &         ps0(i,jm1)+ps0(i-1,jm1))
+            psdot(i,j) = d_rfour*(ps0(i,j)+ps0(i-1,j)+     &
+                                  ps0(i,jm1)+ps0(i-1,jm1))
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          psdot(i,1) = 0.5D0*(ps0(i,1)+ps0(i-1,1))
-          psdot(i,jx) = 0.5D0*(ps0(i,jxm1)+ps0(i-1,jxm1))
+          psdot(i,1)  = d_half*(ps0(i,1)   +ps0(i-1,1))
+          psdot(i,jx) = d_half*(ps0(i,jxm1)+ps0(i-1,jxm1))
         end do
 #endif
 !
@@ -481,14 +475,14 @@
 #if defined(BAND) && (!defined(MPP1))
           if(jm1 == 0) jm1=jx
 #endif
-          psdot(1,j) = 0.5D0*(ps0(1,j)+ps0(1,jm1))
-          psdot(iy,j) = 0.5D0*(ps0(iym1,j)+ps0(iym1,jm1))
+          psdot(1,j)  = d_half*(ps0(1,j)   +ps0(1,jm1))
+          psdot(iy,j) = d_half*(ps0(iym1,j)+ps0(iym1,jm1))
         end do
 !
 #ifndef BAND
-        psdot(1,1) = ps0(1,1)
-        psdot(iy,1) = ps0(iym1,1)
-        psdot(1,jx) = ps0(1,jxm1)
+        psdot(1,1)   = ps0(1,1)
+        psdot(iy,1)  = ps0(iym1,1)
+        psdot(1,jx)  = ps0(1,jxm1)
         psdot(iy,jx) = ps0(iym1,jxm1)
 #endif
 !
@@ -539,32 +533,29 @@
           do j = 1 , jxm1
 #endif
             do i = 1 , iym1
-              if ( mddom%satbrt(i,j) > 13.5D0 .and. &
-                   mddom%satbrt(i,j) < 15.5D0 ) then
-                if ( ts0(i,j) <= 271.38D0 ) then
-                  sts1%tg(i,j) = 271.38D0
-                  sts2%tg(i,j) = 271.38D0
-                  ts0(i,j) = 271.38D0
+              if ( iswater(mddom%satbrt(i,j)) ) then
+                if ( ts0(i,j) <= icetemp ) then
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  ts0(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = 2.0D0
+                    ocld2d(n,i,j) = d_two
                   end do
                 else
                   do n = 1, nnsg
-                    if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                         satbrt1(n,i,j) < 15.5D0 ) then
-                      ocld2d(n,i,j) = 0.0D0
+                    if ( iswater(mddom%satbrt(i,j)) ) then
+                      ocld2d(n,i,j) = d_zero
                     else
-                      ocld2d(n,i,j) = 1.0D0
+                      ocld2d(n,i,j) = d_one
                     end if
                   end do
                 end if
               else
                 do n = 1, nnsg
-                  if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                       satbrt1(n,i,j) < 15.5D0 ) then
-                    ocld2d(n,i,j) = 0.0D0
+                  if ( iswater(mddom%satbrt(i,j)) ) then
+                    ocld2d(n,i,j) = d_zero
                   else
-                    ocld2d(n,i,j) = 1.0D0
+                    ocld2d(n,i,j) = d_one
                   end if
                 end do
               end if
@@ -578,11 +569,10 @@
 #endif
             do i = 1 , iym1
               do n = 1, nnsg
-                if ( satbrt1(n,i,j) > 13.5D0 .and. &
-                     satbrt1(n,i,j) < 15.5D0 ) then
-                  ocld2d(n,i,j) = 0.0D0
+                if ( iswater(mddom%satbrt(i,j)) ) then
+                  ocld2d(n,i,j) = d_zero
                 else
-                  ocld2d(n,i,j) = 1.0D0
+                  ocld2d(n,i,j) = d_one
                 end if
               end do
             end do
@@ -593,7 +583,7 @@
             do j = 1 , jx
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                           tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/100.0D0)
+                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/d_100)
               end do
             end do
           end do
@@ -614,8 +604,8 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            sts1%tg(i,j) = atm1%t(i,kz,j)/sps1%ps(i,j)
-            sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
+            sts1%tg(i,j)    = atm1%t(i,kz,j)/sps1%ps(i,j)
+            sts2%tg(i,j)    = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%zpbl(i,j) = 500.0D0
                        ! For Zeng Ocean Flux Scheme
@@ -628,18 +618,18 @@
 #endif
           do i = 1 , iym1
             do k = 1 , nnsg
-              snowc(k,i,j) = 0.0D0
+              snowc(k,i,j) = d_zero
             end do
           end do
         end do
         if ( ichem == 1 ) then
-          ssw2da = 0.0D0
-          sdeltk2d = 0.0D0
-          sdelqk2d = 0.0D0
-          sfracv2d = 0.5D0
-          sfracb2d = 0.5D0
-          sfracs2d = 0.0D0
-          svegfrac2d = 0.0D0
+          ssw2da     = d_zero
+          sdeltk2d   = d_zero
+          sdelqk2d   = d_zero
+          sfracv2d   = d_half
+          sfracb2d   = d_half
+          sfracs2d   = d_zero
+          svegfrac2d = d_zero
         end if
 #endif
 #ifndef BAND
@@ -659,8 +649,8 @@
 #ifdef MPP1
               do j = 1 , jendx
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = sps1%ps(i,j)*0.0D0
-                  chib(i,k,j,itr) = sps2%ps(i,j)*0.0D0
+                  chia(i,k,j,itr) = sps1%ps(i,j)*d_zero
+                  chib(i,k,j,itr) = sps2%ps(i,j)*d_zero
 !                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
 !                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
                 end do
@@ -672,8 +662,8 @@
               do j = 1 , jxm1
 #endif
                 do i = 1 , iym1
-                  chia(i,k,j,itr) = sps1%ps(i,j)*0.0D0
-                  chib(i,k,j,itr) = sps2%ps(i,j)*0.0D0
+                  chia(i,k,j,itr) = sps1%ps(i,j)*d_zero
+                  chib(i,k,j,itr) = sps2%ps(i,j)*d_zero
 !                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
 !                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
                 end do
@@ -687,11 +677,11 @@
 !
 !------set rainc and rainnc equal to 0. initially
 !
-        sfsta%rainc  = 0.0D0
-        sfsta%rainnc = 0.0D0
+        sfsta%rainc  = d_zero
+        sfsta%rainnc = d_zero
  
         if ( icup==4 .or. icup==99 .or. icup==98) then
-          cbmf2d = 0.0D0
+          cbmf2d = d_zero
         end if
 !
       else ! ifrest=.true.
@@ -705,9 +695,9 @@
         if ( myid == 0 ) then
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
-            write (6,99004) o3prof_io(3,3,k)
+            write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
           end do
-          print 99005 , xtime , ktau , jyear
+          print 99001 , xtime , ktau , jyear
         end if
 !
         if ( lakemod == 1 ) then
@@ -718,8 +708,8 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = ub0_io(i,k,j)
-                sav_0(i,kz+k,j) = vb0_io(i,k,j)
+                sav_0(i,k,j)      = ub0_io(i,k,j)
+                sav_0(i,kz+k,j)   = vb0_io(i,k,j)
                 sav_0(i,kz*2+k,j) = qb0_io(i,k,j)
                 sav_0(i,kz*3+k,j) = tb0_io(i,k,j)
               end do
@@ -737,13 +727,14 @@
             end if
           end do
         end if
-        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
-        if ( ehso4 )                                                    &
-          &  call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,        &
-          &                   sav0s, iy*kz*jxp,mpi_real8,        &
-          &                   0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
+                         sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
+                         0,mpi_comm_world,ierr)
+        if ( ehso4 ) then
+          call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,  &
+                           sav0s, iy*kz*jxp,mpi_real8,  &
+                           0,mpi_comm_world,ierr)
+        end if
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
@@ -770,8 +761,8 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = atm1_io%u(i,k,j)
-                sav_0(i,kz+k,j) = atm2_io%u(i,k,j)
+                sav_0(i,k,j)      = atm1_io%u(i,k,j)
+                sav_0(i,kz+k,j)   = atm2_io%u(i,k,j)
                 sav_0(i,kz*2+k,j) = atm1_io%v(i,k,j)
                 sav_0(i,kz*3+k,j) = atm2_io%v(i,k,j)
               end do
@@ -782,9 +773,9 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
+                         sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
@@ -803,8 +794,8 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = atm1_io%t(i,k,j)
-                sav_0(i,kz+k,j) = atm2_io%t(i,k,j)
+                sav_0(i,k,j)      = atm1_io%t(i,k,j)
+                sav_0(i,kz+k,j)   = atm2_io%t(i,k,j)
                 sav_0(i,kz*2+k,j) = atm1_io%qv(i,k,j)
                 sav_0(i,kz*3+k,j) = atm2_io%qv(i,k,j)
               end do
@@ -815,14 +806,14 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,   &
+                         sav0, iy*(kz*4+2)*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
-              atm1%t(i,k,j) = sav0(i,k,j)
-              atm2%t(i,k,j) = sav0(i,kz+k,j)
+              atm1%t(i,k,j)  = sav0(i,k,j)
+              atm2%t(i,k,j)  = sav0(i,kz+k,j)
               atm1%qv(i,k,j) = sav0(i,kz*2+k,j)
               atm2%qv(i,k,j) = sav0(i,kz*3+k,j)
             end do
@@ -836,8 +827,8 @@
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
-                sav_0(i,k,j) = atm1_io%qc(i,k,j)
-                sav_0(i,kz+k,j) = atm2_io%qc(i,k,j)
+                sav_0(i,k,j)      = atm1_io%qc(i,k,j)
+                sav_0(i,kz+k,j)   = atm2_io%qc(i,k,j)
                 sav_0(i,kz*2+k,j) = fcc_io(i,k,j)
               end do
             end do
@@ -858,19 +849,19 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
+                         sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do k = 1 , kz
             do i = 1 , iy
               atm1%qc(i,k,j) = sav0(i,k,j)
               atm2%qc(i,k,j) = sav0(i,kz+k,j)
-              fcc(i,k,j) = sav0(i,kz*2+k,j)
+              fcc(i,k,j)     = sav0(i,kz*2+k,j)
             end do
           end do
           do i = 1 , iy
-            sfsta%rainc(i,j) = sav0(i,kz*4+1,j)
+            sfsta%rainc(i,j)  = sav0(i,kz*4+1,j)
             sfsta%rainnc(i,j) = sav0(i,kz*4+2,j)
           end do
         end do
@@ -908,15 +899,15 @@
           end do
         end if
         allrec = 4 + nnsg + kzp1
-        call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,         &
-                       & sav0a, iy*allrec*jxp,mpi_real8,         &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,  &
+                         sav0a, iy*allrec*jxp,mpi_real8,  &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendl
           do i = 1 , iy
-            sfsta%hfx(i,j) = sav0a(i,1,j)
-            sfsta%qfx(i,j) = sav0a(i,2,j)
+            sfsta%hfx(i,j)    = sav0a(i,1,j)
+            sfsta%qfx(i,j)    = sav0a(i,2,j)
             sfsta%uvdrag(i,j) = sav0a(i,3,j)
-            sfsta%tgbb(i,j) = sav0a(i,4,j)
+            sfsta%tgbb(i,j)   = sav0a(i,4,j)
           end do
           do n = 1 , nnsg
             do i = 1 , iy
@@ -931,29 +922,30 @@
             end do
           end do
         end do
-        if ( iocnflx == 2 )                                        &
-          & call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,             &
-          &                  sfsta%zpbl,   iy*jxp,mpi_real8,       &
-          &                  0,mpi_comm_world,ierr)
+        if ( iocnflx == 2 ) then
+          call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,         &
+                           sfsta%zpbl,   iy*jxp,mpi_real8,   &
+                           0,mpi_comm_world,ierr)
+        end if
         if ( icup == 1 ) then
           if ( myid == 0 ) then
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
-                  sav_0c(i,k,j) = rsheat_io(i,k,j)
+                  sav_0c(i,k,j)    = rsheat_io(i,k,j)
                   sav_0c(i,kz+k,j) = rswat_io(i,k,j)
                 end do
               end do
             end do
           end if
-          call mpi_scatter(sav_0c,iy*kz*2*jxp,mpi_real8,         &
-                         & sav0c, iy*kz*2*jxp,mpi_real8,         &
-                         & 0,mpi_comm_world,ierr)
+          call mpi_scatter(sav_0c,iy*kz*2*jxp,mpi_real8,  &
+                           sav0c, iy*kz*2*jxp,mpi_real8,  &
+                           0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
                 rsheat(i,k,j) = sav0c(i,k,j)
-                rswat(i,k,j) = sav0c(i,kz+k,j)
+                rswat(i,k,j)  = sav0c(i,kz+k,j)
               end do
             end do
           end do
@@ -971,9 +963,9 @@
               end do
             end do
           end if
-          call mpi_scatter(sav_0b,iy*(kzp1)*jxp,mpi_real8,       &
-                         & sav0b, iy*(kzp1)*jxp,mpi_real8,       &
-                         & 0,mpi_comm_world,ierr)
+          call mpi_scatter(sav_0b,iy*(kzp1)*jxp,mpi_real8,  &
+                           sav0b, iy*(kzp1)*jxp,mpi_real8,  &
+                           0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do k = 1 , kz
               do i = 1 , iy
@@ -986,9 +978,9 @@
           end do
         end if
         if ( icup==4 .or. icup==99 .or. icup==98 ) then
-          call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,             &
-                         & cbmf2d,   iy*jxp,mpi_real8,             &
-                         & 0,mpi_comm_world,ierr)
+          call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,  &
+                           cbmf2d,   iy*jxp,mpi_real8,  &
+                           0,mpi_comm_world,ierr)
         end if
         if ( myid == 0 ) then
 #ifdef BAND
@@ -1033,9 +1025,9 @@
           allrec = allrec + kzp1
         end if
         allrec = kz*4 + (kzp1*kzp2)
-        call mpi_scatter(sav_1,iym1*allrec*jxp,mpi_real8,        &
-                       & sav1, iym1*allrec*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_1,iym1*allrec*jxp,mpi_real8,   &
+                         sav1, iym1*allrec*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do l = 1 , 4
             do k = 1 , kz
@@ -1087,9 +1079,9 @@
           end do
         end if
         allrec = nnsg*5 + 4
-        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
-                       & sav2, iym1*allrec*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
+                         sav2, iym1*allrec*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
@@ -1131,9 +1123,9 @@
           end do
         end if
         allrec = nnsg*5 + 4
-        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
-                       & sav2, iym1*allrec*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
+                         sav2, iym1*allrec*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
@@ -1175,9 +1167,9 @@
           end do
         end if
         allrec = nnsg*5 + 4
-        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,        &
-                       & sav2, iym1*allrec*jxp,mpi_real8,        &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
+                         sav2, iym1*allrec*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
@@ -1203,8 +1195,8 @@
 #endif
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav_2a(i,n,j)        = ircp2d_io(n,i,j)
-                sav_2a(i,nnsg+n,j)   = text2d_io(n,i,j)
+                sav_2a(i,n,j)      = ircp2d_io(n,i,j)
+                sav_2a(i,nnsg+n,j) = text2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1213,9 +1205,9 @@
           end do
         end if
         allrec = nnsg*2 + 1
-        call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,       &
-                       & sav2a, iym1*allrec*jxp,mpi_real8,       &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,  &
+                         sav2a, iym1*allrec*jxp,mpi_real8,  &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
@@ -1252,9 +1244,9 @@
             allrec = allrec + ntr
           end if
           allrec = ntr*(kz*4+1)
-          call mpi_scatter(sav_4,iy*allrec*jxp,mpi_real8,        &
-                         & sav4, iy*allrec*jxp,mpi_real8,        &
-                         & 0,mpi_comm_world,ierr)
+          call mpi_scatter(sav_4,iy*allrec*jxp,mpi_real8,   &
+                           sav4, iy*allrec*jxp,mpi_real8,   &
+                           0,mpi_comm_world,ierr)
           do j = 1 , jendl
             do n = 1 , ntr
               do k = 1 , kz
@@ -1292,9 +1284,9 @@
               end do
             end do
           end if
-          call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,                 &
-                         & sav4a, iym1*7*jxp,mpi_real8,                 &
-                         & 0,mpi_comm_world,ierr)
+          call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,   &
+                           sav4a, iym1*7*jxp,mpi_real8,   &
+                           0,mpi_comm_world,ierr)
           do j = 1 , jendx
             do i = 1 , iym1
               ssw2da(i,j) = sav4a(i,1,j)
@@ -1326,9 +1318,9 @@
             end do
           end do
         end if
-        call mpi_scatter(sav_clmout,iym1*8*jxp,mpi_real8,             &
-                       & sav_clmin, iym1*8*jxp,mpi_real8,             &
-                       & 0,mpi_comm_world,ierr)
+        call mpi_scatter(sav_clmout,iym1*8*jxp,mpi_real8,   &
+                         sav_clmin, iym1*8*jxp,mpi_real8,   &
+                         0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do i = 1 , iym1
             sols2d(i,j)   = sav_clmin(i,1,j)
@@ -1342,8 +1334,8 @@
           end do
         end do
         call mpi_scatter(satbrt2d_io,iy*jxp,mpi_real8, &
-                       & satbrt2d,   iy*jxp,mpi_real8, &
-                       & 0,mpi_comm_world,ierr)
+                         satbrt2d,   iy*jxp,mpi_real8, &
+                         0,mpi_comm_world,ierr)
 #endif
         call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1365,9 +1357,9 @@
 !
         print * , 'ozone profiles restart'
         do k = 1 , kzp1
-          write (6,99004) o3prof(3,3,k)
+          write (6,'(1x,7E12.4)') o3prof(3,3,k)
         end do
-        print 99005 , xtime , ktau , jyear
+        print 99001 , xtime , ktau , jyear
         dt = dt2 ! First timestep successfully read in
 !
 #endif
@@ -1383,8 +1375,7 @@
 #ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
-            if ( mddom%satbrt(i,j) > 13.9D0 .and. &
-                 mddom%satbrt(i,j) < 15.1D0 ) then
+            if ( isocean(mddom%satbrt(i,j)) ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1402,8 +1393,7 @@
         do j = 1 , jxm1
 #endif
           do i = 1 , iym1
-            if ( mddom%satbrt(i,j) > 13.9D0 .and.  &
-                 mddom%satbrt(i,j) < 15.1D0 ) then
+            if ( isocean(mddom%satbrt(i,j)) ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1418,13 +1408,13 @@
       end if
 !chem2
       if ( ichem == 1 ) then
-        iso2 = 0
-        iso4 = 0
+        iso2  = 0
+        iso4  = 0
         ibchl = 0
         ibchb = 0
         iochl = 0
         iochb = 0
-        ibin = 0
+        ibin  = 0
         do itr = 1 , ntr
           if ( chtrname(itr) == 'SO2' ) iso2 = itr
           if ( chtrname(itr) == 'SO4' ) iso4 = itr
@@ -1466,10 +1456,10 @@
               else if ( ist == 12 ) then
                 emiss2d(n,i,j) = 0.97D0
               else
-                emiss2d(n,i,j) = 0.99D0 - (albvgs(ist)+albvgl(ist))     &
-                               & *0.1D0
+                emiss2d(n,i,j) = 0.99D0 - &
+                        (albvgs(ist)+albvgl(ist))*0.1D0
               end if
-!             emiss2d(n,i,j) = 1.0D0
+!             emiss2d(n,i,j) = d_one
             end do
           end do
         end do
@@ -1493,7 +1483,7 @@
       do j = 1 , jx
 #endif
         do i = 1 , iy
-          domfc%hgfact(i,j) = 1.0D0
+          domfc%hgfact(i,j) = d_one
         end do
       end do
 #ifdef BAND
@@ -1535,7 +1525,7 @@
           hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
           hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
           hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
-          domfc%hgfact(i,j) = 1.0D0/(1.0D0+(hgmax/0.001D0)**2.0D0)
+          domfc%hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
         end do
       end do
 !
@@ -1556,9 +1546,8 @@
       write (aline, *) 'dectim = ' , dectim
       call say
 
-99004 format (1x,7E12.4)
-99005 format (' ***** restart file for large domain at time = ',f8.0,   &
-             &' minutes, ktau = ',i7,' in year = ',i4,' read in')
+99001 format (' ***** restart file for large domain at time = ',f8.0,   &
+              ' minutes, ktau = ',i7,' in year = ',i4,' read in')
 !
       end subroutine init
 !
@@ -1582,8 +1571,8 @@
 #endif
 #endif
             do i = 1 , iym1
-              heatrt(i,k,j) = 0.0D0
-              o3prof(i,k,j) = 0.0D0
+              heatrt(i,k,j) = d_zero
+              o3prof(i,k,j) = d_zero
             end do
           end do
         end do
@@ -1597,7 +1586,7 @@
 #endif
 #endif
           do i = 1 , iym1
-            o3prof(i,kzp1,j) = 0.0D0
+            o3prof(i,kzp1,j) = d_zero
           end do
         end do
         call o3data
@@ -1606,13 +1595,12 @@
 #endif
           write (6,*) 'ozone profiles'
           do k = 1 , kzp1
-            write (6,99001) o3prof(3,k,2)
+            write (6,'(1x,7E12.4)') o3prof(3,k,2)
           end do
 #ifdef MPP1
         end if
 #endif
       end if
-99001 format (1x,7E12.4)
  
       end subroutine inirad
 !

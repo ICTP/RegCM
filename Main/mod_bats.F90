@@ -21,6 +21,7 @@
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_bats_param
@@ -146,7 +147,7 @@
         else
           allocate(spaceb2d(iym1,njm1,18))
         end if
-        spaceb2d = 0.0D0
+        spaceb2d = d_zero
 
         flw2d      => spaceb2d(:,:,1)
         flwa2d     => spaceb2d(:,:,2)
@@ -177,7 +178,7 @@
         end if
 
         allocate(spacebs2d(nnsg,iym1,njm1,22))
-        spacebs2d = 0.0D0
+        spacebs2d = d_zero
         col2d    => spacebs2d(:,:,:,1)
         dew2d    => spacebs2d(:,:,:,2)
         emiss2d  => spacebs2d(:,:,:,3)
@@ -206,25 +207,25 @@
         allocate(xlat1(nnsg,iy,nj))
         allocate(xlon1(nnsg,iy,nj))
         allocate(snowc(nnsg,iy,nj))
-        ht1 = 0.0D0
-        satbrt1 = 0.0D0
-        xlat1 = 0.0D0
-        xlon1 = 0.0D0
-        snowc = 0.0D0
+        ht1 = d_zero
+        satbrt1 = d_zero
+        xlat1 = d_zero
+        xlon1 = d_zero
+        snowc = d_zero
 
         if (idcsst == 1) then
           allocate(deltas(iy,nj))
           allocate(tdeltas(iy,nj))
           allocate(dtskin(iy,nj))
           allocate(firstcall(iy,nj))
-          deltas = 0.0D+0
-          tdeltas = 0.0D+0
-          dtskin = 0.0D+0
+          deltas = d_zero
+          tdeltas = d_zero
+          dtskin = d_zero
           firstcall = .false.
         end if
 
         allocate(spacebs1d(nnsg,iym1,125))
-        spacebs1d = 0.0D0
+        spacebs1d = d_zero
         p1d0     => spacebs1d(:,:,1)
         qs1d0    => spacebs1d(:,:,2)
         ts1d0    => spacebs1d(:,:,3)
@@ -357,9 +358,9 @@
         allocate(oveg(nnsg,iym1))
         oveg = 0
         allocate(coszrs(iy))
-        coszrs = 0.0D0
+        coszrs = d_zero
         allocate(spaceb1d(iym1,24))
-        spaceb1d = 0.0D0
+        spaceb1d = d_zero
         flw1d   => spaceb1d(:,1)
         fsw1d   => spaceb1d(:,2)
         us1d    => spaceb1d(:,3)

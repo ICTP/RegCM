@@ -23,6 +23,7 @@
       use m_die
       use m_zeit
       use m_mall
+      use m_realkinds
 
       private
 

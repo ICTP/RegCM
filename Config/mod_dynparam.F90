@@ -19,9 +19,7 @@
 !
       module mod_dynparam
 
-      use m_realkinds
-      use m_stdio
-
+      implicit none
 !
 ! PARAMETER definitions
 !
@@ -65,35 +63,35 @@
 
 ! Grid point horizontal resolution in km
 
-      real(DP) :: ds
+      real(8) :: ds
 
 ! Pressure of model top in cbar
 
-      real(DP) :: ptop
+      real(8) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-      real(DP) :: clat
+      real(8) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-      real(DP) :: clon
+      real(8) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-      real(DP) :: plat
+      real(8) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-      real(DP) :: plon
+      real(8) :: plon
 
 ! Lambert true latitude (low latitude side)
 
-      real(DP) :: truelatl
+      real(8) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-      real(DP) :: truelath
+      real(8) :: truelath
 
 !###################### I/O control flag ###############################
 
@@ -202,7 +200,7 @@
 
 ! Surface minimum H2O percent to be considered water
 
-      real(DP) :: h2opct
+      real(8) :: h2opct
 
 ! Resolution of the global terrain and landuse data be used
 !
@@ -272,22 +270,22 @@
 ! Model output control parameters
 
       logical :: ifsave
-      real(DP) :: savfrq
+      real(8) :: savfrq
 
       logical :: iftape
-      real(DP) :: tapfrq
+      real(8) :: tapfrq
 
       logical :: ifrad
-      real(DP) :: radisp
+      real(8) :: radisp
 
       logical :: ifbat
       logical :: ifsub
       logical :: iflak
-      real(DP) :: batfrq
-      real(DP) :: lakfrq
+      real(8) :: lakfrq
+      real(8) :: batfrq
 
       logical :: ifchem
-      real(DP) :: chemfrq
+      real(8) :: chemfrq
 
       integer :: ibdyfrq
 
@@ -349,8 +347,8 @@
         if ( i_band.eq.1 ) then
           ds = (2.0D0*mathpi*erkm)/dble(jx)
           iproj = 'NORMER'
-          clat  =   0.0
-          clon  = 180.0
+          clat  =   0.0D0
+          clon  = 180.0D0
         end if
 
         ! Defaults to have SAME behaviour of V3 if not specified
@@ -381,42 +379,42 @@
         ierr = 0
         return
 
-  100   write (stderr,*) 'Cannot read namelist file ', trim(filename)
+  100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
         ierr = 1 
         return 
-  101   write (stderr,*) 'Cannot read namelist stanza: dimparam       ',&
+  101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ',  &
             & trim(filename)
         ierr = 1
         return
-  102   write (stderr,*) 'Cannot read namelist stanza: geoparam       ',&
+  102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ',  &
             & trim(filename)
         ierr = 1
         return
-  103   write (stderr,*) 'Cannot read namelist stanza: terrainparam   ',&
+  103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ',  &
             & trim(filename)
         ierr = 1
         return
-  104   write (stderr,*) 'Cannot read namelist stanza: ioparam        ',&
+  104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ',  &
             & trim(filename)
         ierr = 1
         return
-  105   write (stderr,*) 'Cannot read namelist stanza: debugparam     ',&
+  105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ',  &
             & trim(filename)
         ierr = 1
         return
-  106   write (stderr,*) 'Cannot read namelist stanza: boundaryparam  ',&
+  106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
             & trim(filename)
         ierr = 1
         return
-  107   write (stderr,*) 'Cannot read namelist stanza: modesparam     ',&
+  107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ',  &
             & trim(filename)
         ierr = 1
         return
-  109   write (stderr,*) 'Cannot read namelist stanza: globdatparam   ',&
+  109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
             & trim(filename)
         ierr = 1
         return
-  111   write (stderr,*) 'Cannot read namelist stanza: aereosolparam  ',&
+  111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ',  &
             & trim(filename)
         ierr = 1
 
@@ -424,17 +422,17 @@
 
       subroutine init_globwindow(lat0,lon0,lat1,lon1)
         implicit none
-        real(DP) , intent(out) :: lat0 , lat1 , lon0 , lon1
+        real(8) , intent(out) :: lat0 , lat1 , lon0 , lon1
         namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
-        lat0 = 0.0
-        lon0 = 0.0
-        lat1 = 0.0
-        lon1 = 0.0
+        lat0 = 0.0D0
+        lon0 = 0.0D0
+        lat1 = 0.0D0
+        lon1 = 0.0D0
 
         read(ipunit, globwindow,err=101)
         return
-  101   write(stdout,*) 'Globwindow not present: Assuming Global input'
+  101   print *, 'Globwindow not present: Assuming Global data input'
         return
       end subroutine init_globwindow
 
@@ -450,7 +448,7 @@
         read(ipunit, outparam, err=100)
         return
 
-  100   write (stderr,*) 'Cannot read namelist stanza: outparam'
+  100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
         ierr = 1
 
       end subroutine init_outparam
@@ -488,6 +486,7 @@
         call mpi_bcast(plon,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(truelatl,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(i_band,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
 

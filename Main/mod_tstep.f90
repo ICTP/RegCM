@@ -21,6 +21,7 @@
 !
 ! Calculate smaller timesteps for model startup
 !
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_date
@@ -48,21 +49,21 @@
 !
 !---------------------------------------------------------------------
 !
-      deltmn = 0.0D0
-      tscale = 0.0D0
+      deltmn = d_zero
+      tscale = d_zero
       if ( jyear == jyear0 .and. ktau == 0 ) then
         idtmax = 1
-        tscale = 5.D0*dt
+        tscale = d_five*dt
         deltmn = 0.1D0*dt
         deltmx = dt
       end if
       if ( idtmax == 1 ) then
-        dt = deltmx*(1.0D0-dexp(-extime/tscale)) + deltmn
+        dt = deltmx*(d_one-dexp(-extime/tscale)) + deltmn
         dtinc = dt
-        dtmin = dt/60.0D0
+        dtmin = dt/secpm
         idtmax = 2
       end if
-      dt2 = 2.0D0*dt
+      dt2 = d_two*dt
       if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
 !
       end subroutine tstep

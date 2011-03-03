@@ -252,8 +252,8 @@
         else
           ib = 0
         end if
-        julianday = idint(365.25D+00*dble(iiy+4716)) + &
-          &         idint(30.6001D+00*dble(iim+1))   + &
+        julianday = dint(365.25D+00*dble(iiy+4716)) + &
+          &         dint(30.6001D+00*dble(iim+1))   + &
           &         dble(id + ib) - 1524.5D+00
       end function julianday
 
@@ -278,8 +278,8 @@
         integer :: jd1 , jd2
         call split_idate(idate2, iy2, im2, id2, ih2)
         call split_idate(idate1, iy1, im1, id1, ih1)
-        jd2 = julianday(iy2, im2, id2)
-        jd1 = julianday(iy1, im1, id1)
+        jd2 = idint(julianday(iy2, im2, id2))
+        jd1 = idint(julianday(iy1, im1, id1))
         idatediff = (jd2-jd1)*24+(ih2-ih1)
       end function idatediff
 
@@ -320,7 +320,7 @@
         real(8) :: rmomonth
         integer :: iy , im , id , ih
         call split_idate(idate, iy, im, id, ih)
-        rmomonth = dble(mdays(iy, im)) / 2.0
+        rmomonth = dble(mdays(iy, im)) / 2.0D0
         lfhomonth = (dble(id) < rmomonth)
       end function lfhomonth
 
@@ -449,7 +449,7 @@
         real(8) :: rmom
         integer :: iy , im , id , ih , imom
         call split_idate(idate, iy, im, id, ih)
-        rmom = dble(mdays(iy, im))/2.0
+        rmom = dble(mdays(iy, im))/2.0D0
         imom = idint(rmom)
         ih = idint((rmom-dble(imom))*24.0D0)
         imonmiddle = mkidate(iy, im, imom, ih)

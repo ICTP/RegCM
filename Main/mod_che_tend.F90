@@ -50,6 +50,8 @@
 
       public :: tractend2 , tracbud
 
+      real(8) , parameter :: d10e6 = 1.0D+06
+
       contains
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -72,23 +74,23 @@
 #endif
 !
       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
-               & facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
-               & remcum , rxs1 , rxs11 , rxs2 , rxs21 , satvp , shu10 , &
-               & u10 , v10
+                 facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
+                 remcum , rxs1 , rxs11 , rxs2 , rxs21 , satvp , shu10 , &
+                 u10 , v10
 #ifdef CHEMTEST
       real(8) :: h2o2mol
 #endif
       real(8) , dimension(ntr) :: agingtend , wetrem , wetrem_cvc
       real(8) , dimension(iy,kz) :: concmin , cutend_dwd , cutend_up ,  &
-                                  & fracloud , fracum , rho , settend , &
-                                  & ttb , wk , wl
+                                    fracloud , fracum , rho , settend , &
+                                    ttb , wk , wl
       logical :: gfcall , gfcall2 , gfcall3 , gfcall4
       integer :: i , ibin , itr , k , kb , kdwd
       integer , dimension(iy) :: ivegcov
       real(8) , dimension(iy,kz,nbin) :: pdepv
       real(8) , dimension(iy) :: psurf , rh10 , soilw , srad ,  &
-                               & temp10 , tsurf , vegfrac , wid10 ,     &
-                               & zeff , ustar
+                                 temp10 , tsurf , vegfrac , wid10 ,     &
+                                 zeff , ustar
       real(8) , dimension(iy,nbin) :: rsfrow
 !
 !     real(kind=8) :: ustar(iy)
@@ -98,7 +100,7 @@
 !     clmin=0.01g/m3
       clmin = 0.01D0
 !     remcum= removal rate for cumulus cloud scavenging (s-1)
-      remcum = 1.D-3
+      remcum = 1.0D-3
 !
 !     Preliminary calculations independant of tracer nature
  
@@ -106,8 +108,8 @@
       do k = 1 , kz
         do i = 2 , iym2
           rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)* &
-                      1000.D0/287.D0/atm2%t(i,k,j)*sps2%ps(i,j)
-          wl(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)*1000.D0*rho(i,k)
+                      d_1000/287.0D0/atm2%t(i,k,j)*sps2%ps(i,j)
+          wl(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)*d_1000*rho(i,k)
         end do
       end do
  
@@ -122,7 +124,7 @@
       do i = 2 , iym2
         do k = 1 , kz
           fracloud(i,k) = dmin1(fcc(i,k,j),fcmax)
-          fracum(i,k) = 0.0D0
+          fracum(i,k) = d_zero
         end do
         if ( icumtop(i,j) /= 0 ) then
           do k = icumtop(i,j) , kz
@@ -137,7 +139,7 @@
       do itr = 1 , ntr
         do k = 1 , kz
           do i = 1 , iym1
-            chiten(i,k,j,itr) = 0.0D0
+            chiten(i,k,j,itr) = d_zero
           end do
         end do
       end do
@@ -162,12 +164,12 @@
       if ( ichcumtra == 2 ) then
         do k = 2 , kz
           do i = 2 , iym2
-            wk(i,k) = (1.0D0/sps1%ps(i,j))           &
-                    & *(twt(k,1)*chib(i,k,j,itr)+ &
+            wk(i,k) = (d_one/sps1%ps(i,j))           &
+                      *(twt(k,1)*chib(i,k,j,itr)+ &
                         twt(k,2)*chib(i,k-1,j,itr))
  
-            cutend_up(i,k) = 0.0D0
-            cutend_dwd(i,k) = 0.0D0
+            cutend_up(i,k) = d_zero
+            cutend_dwd(i,k) = d_zero
           end do
         end do
  
@@ -190,22 +192,23 @@
               call say
             end if
             do k = kt , kdwd
-              cutend_up(i,k) = mflx(i,1)*gti*1.D-3*wk(i,kb)             &
-                             & /(sigma(kdwd)-sigma(kt))
+              cutend_up(i,k) = mflx(i,1)*gti*d_r1000*wk(i,kb) &
+                               /(sigma(kdwd)-sigma(kt))
             end do
  
-            cutend_up(i,kb) = -mflx(i,1)*gti*1.D-3*wk(i,kb)/(dsigma(kb))
+            cutend_up(i,kb) = -mflx(i,1)*gti*d_r1000*wk(i,kb)/ &
+                                   (dsigma(kb))
 !           transport linked to downdraft
  
-            cutend_dwd(i,kdwd) = -mflx(i,2)*gti*1.D-3*wk(i,kdwd)        &
-                               & /(dsigma(kdwd))
+            cutend_dwd(i,kdwd) = -mflx(i,2)*gti*d_r1000*wk(i,kdwd) &
+                                 /(dsigma(kdwd))
  
-            cutend_dwd(i,kz) = +mflx(i,2)*gti*1.D-3*wk(i,kdwd)          &
-                             & /(dsigma(kz))
+            cutend_dwd(i,kz) = +mflx(i,2)*gti*d_r1000*wk(i,kdwd)   &
+                               /(dsigma(kz))
  
             do k = kt , kz
-              chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k)    &
-                                & + cutend_dwd(i,k)
+              chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k) &
+                                  + cutend_dwd(i,k)
             end do
           end if
         end do
@@ -230,8 +233,8 @@
 !---------------------------------------------
 !       SOX CHEMSITRY / IN-CLOUD PROCESS
 !--------------------------------------------
-        if ( gfcall .and. (chtrname(itr) == 'SO2' .and. iso4 > 0) )    &
-           & then
+        if ( gfcall .and. &
+            (chtrname(itr) == 'SO2' .and. iso4 > 0) ) then
           gfcall = .false.
  
 !
@@ -243,7 +246,7 @@
  
           do k = 1 , kz
             do i = 2 , iym2
-              cldno = 1.0D0    ! no cloud fraction
+              cldno = d_one    ! no cloud fraction
  
 !             if(coszrs(i,j) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
 !             oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
@@ -255,27 +258,27 @@
 #endif
               if ( coszrs(i) < 0.001D0 ) oh1 = oh1*0.01D0 ! diurnal evolution
  
-              ak0tm = 3.D-31*(atm1%t(i,k,j)/sps1%ps(i,j)/ &
+              ak0tm = 3.0D-31*(atm1%t(i,k,j)/sps1%ps(i,j)/ &
                         300.0D0)**(-3.3D0)*rho(i,k)*2.084D19 ! k0(T)*[M]
               ak00t = 1.5D-12                            ! K00(T)
-              akval = ak0tm/(1.0D0+ak0tm/ak00t) * &
-                   & 0.6D0**(1.0D0/(1.0D0+(dlog10(ak0tm/ak00t))**2.0D0))
+              akval = ak0tm/(d_one+ak0tm/ak00t) * &
+                     0.6D0**(d_one/(d_one+(dlog10(ak0tm/ak00t))**d_two))
  
 !             tendencies
 !             here p1 unit: s^-1  and the ratio of molar mass of SO4 to
  
 !             SO2 is 96/64 = 1.5
-              chiten(i,k,j,iso2) = chiten(i,k,j,iso2) - chib(i,k,j,iso2)&
-                                 & *akval*oh1*cldno
-              chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + chib(i,k,j,iso2)&
-                                 & *akval*oh1*cldno*1.5D0
+              chiten(i,k,j,iso2) = chiten(i,k,j,iso2) - &
+                      chib(i,k,j,iso2)*akval*oh1*cldno
+              chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + &
+                      chib(i,k,j,iso2)*akval*oh1*cldno*1.5D0
  
 !             gazeous conversion diagnostic
  
-              rxsg(i,k,j,iso2) = rxsg(i,k,j,iso2) + chib(i,k,j,iso2)    &
-                               & *akval*oh1*cldno*dt/2.0D0
-              rxsg(i,k,j,iso4) = rxsg(i,k,j,iso4) + chib(i,k,j,iso2)    &
-                               & *akval*oh1*cldno*1.5D0*dt/2.0D0
+              rxsg(i,k,j,iso2) = rxsg(i,k,j,iso2) + chib(i,k,j,iso2) * &
+                                 akval*oh1*cldno*dt/d_two
+              rxsg(i,k,j,iso4) = rxsg(i,k,j,iso4) + chib(i,k,j,iso2) * &
+                                 akval*oh1*cldno*1.5D0*dt/d_two
  
             end do
           end do
@@ -289,7 +292,7 @@
 #ifdef CHEMTEST
               h2o2mol = h2o2(i,k,j)
 #endif
-              chimol = 28.9D0/64.0D0* &
+              chimol = 28.9D0/64.0D0 * &
                        chib(i,k,j,iso2)/sps2%ps(i,j) ! kg/kg to mole
 !             concmin(i,k)=dmin1(h2o2mol,chimol)*64./28.9*sps2%ps(i,j)  !
 !             cb*kg/kg do tests, suppose h2o2 always enough
@@ -301,15 +304,15 @@
  
           do k = 1 , kz
             do i = 2 , iym2
-              rxs1 = 0.0D0
-              rxs11 = 0.0D0 ! fraction of conversion, not removed, as SO4 src
-              wetrem(iso2) = 0.0D0 ! scavenging for SO2, below lsc
-              wetrem(iso4) = 0.0D0
+              rxs1 = d_zero
+              rxs11 = d_zero ! fraction of conversion, not removed, as SO4 src
+              wetrem(iso2) = d_zero ! scavenging for SO2, below lsc
+              wetrem(iso4) = d_zero
  
               if ( wl(i,k) > clmin ) then
 !               conversion from so2 to so4
-                rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k)         &
-                     & *(dexp(-wl(i,k)/360.0D0*dt)-1.0D0)
+                rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k) * &
+                       (dexp(-wl(i,k)/360.0D0*dt)-d_one)
  
                 rxs11 = rxs1*1.5D0
                                 ! SO4 src term and the ratio of molar
@@ -318,29 +321,31 @@
 !               if removal occurs, a fraction of SO4 src term is also
 !               removed and accounted for in the term  wetrem(iso4)
  
-                if ( remrat(i,k) > 0.0D0 ) wetrem(iso4)                &
-                   & = (fracloud(i,k)*chtrsol(iso4)*chib(i,k,j,iso4)    &
-                   & -rxs11)*(dexp(-remrat(i,k)*dt)-1.0D0)
+                if ( remrat(i,k) > d_zero ) then
+                  wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)* &
+                       chib(i,k,j,iso4)-rxs11)* &
+                       (dexp(-remrat(i,k)*dt)-d_one)
+                end if
               end if
  
 !             Below cloud scavenging only for SO2
  
-              if ( rembc(i,k) > 0.0D0 ) wetrem(iso2) = fracloud(i,k) * &
-                 chtrsol(iso2)*concmin(i,k)*(dexp(-rembc(i,k)*dt)-1.0D0)
+              if ( rembc(i,k) > d_zero ) wetrem(iso2) = fracloud(i,k) * &
+                 chtrsol(iso2)*concmin(i,k)*(dexp(-rembc(i,k)*dt)-d_one)
  
 !             Tendancies large scale cloud
-              chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs1/dt +       &
-                                 & wetrem(iso2)/dt
-              chiten(i,k,j,iso4) = chiten(i,k,j,iso4) - rxs11/dt +      &
-                                 & wetrem(iso4)/dt
+              chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs1/dt +   &
+                                   wetrem(iso2)/dt
+              chiten(i,k,j,iso4) = chiten(i,k,j,iso4) - rxs11/dt +  &
+                                   wetrem(iso4)/dt
  
 !             and wetdep diagnostics
-              remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2)-wetrem(iso2)/2.0D0
-              remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4)-wetrem(iso4)/2.0D0
+              remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2)-wetrem(iso2)/d_two
+              remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4)-wetrem(iso4)/d_two
  
 !             chemical aqueous conversion diagnostic
-              rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1/2.0D0
-              rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11/2.0D0
+              rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1/d_two
+              rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11/d_two
  
             end do
           end do
@@ -352,32 +357,32 @@
           do i = 2 , iym2
             if ( icumtop(i,j) /= 0 ) then
               do k = icumtop(i,j) , kz
-                rxs2 = 0.0D0
-                rxs21 = 0.0D0  ! fraction of conversion, not removed, as SO4 src
-                wetrem_cvc(iso2) = 0.0D0   ! scavenging for SO2, below lsc
-                wetrem_cvc(iso4) = 0.0D0
+                rxs2 = d_zero
+                rxs21 = d_zero  ! fraction of conversion, not removed, as SO4 src
+                wetrem_cvc(iso2) = d_zero   ! scavenging for SO2, below lsc
+                wetrem_cvc(iso4) = d_zero
  
 !               conversion from so2 to so4
-                rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k)           &
-                     & *(dexp(-2.0D0/360.0D0*dt)-1.0D0)
+                rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k) * &
+                       (dexp(-d_two/360.0D0*dt)-d_one)
                 rxs21 = rxs2*1.5D0
  
 !               removal (including theremoval on the rxs21 term)
                 wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)* &
-                        chib(i,k,j,iso4)-rxs21)*(dexp(-remcum*dt)-1.0D0)
+                        chib(i,k,j,iso4)-rxs21)*(dexp(-remcum*dt)-d_one)
  
 !               tendancies due to convective processes
                 chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + rxs2/dt
-                chiten(i,k,j,iso4) = chiten(i,k,j,iso4)                 &
-                                   & + wetrem_cvc(iso4)/dt - rxs21/dt
+                chiten(i,k,j,iso4) = chiten(i,k,j,iso4) + &
+                                     wetrem_cvc(iso4)/dt - rxs21/dt
  
 !               diagnostic of wet deposition
-!               remcvc(i,k,j,1) = remcvc(i,k,j,1)-wetrem_cvc(iso2)/2.D0
-                remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4)                 &
-                                   & - wetrem_cvc(iso4)/2.0D0
+!               remcvc(i,k,j,1) = remcvc(i,k,j,1)-wetrem_cvc(iso2)/2.0D0
+                remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4)  - &
+                                     wetrem_cvc(iso4)/d_two
 !               chemical aquesous conversion diagnostic
-                rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2/2.0D0
-                rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/2.0D0
+                rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2/d_two
+                rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/d_two
  
               end do
             end if
@@ -388,9 +393,11 @@
 !---------------------------------------
 !       Other than sulfate CARBON AEROSOL, DUST
 !----------------------------------------
-        if ( chtrname(itr) == 'BC_HB' .or. chtrname(itr) == 'BC_HL' .or.&
-           & chtrname(itr) == 'OC_HB' .or. chtrname(itr) == 'OC_HL' .or.&
-           & chtrname(itr) == 'DUST' ) then
+        if ( chtrname(itr) == 'BC_HB' .or. &
+             chtrname(itr) == 'BC_HL' .or. &
+             chtrname(itr) == 'OC_HB' .or. &
+             chtrname(itr) == 'OC_HL' .or. &
+             chtrname(itr) == 'DUST' ) then
  
 !         wet deposition term
  
@@ -403,15 +410,15 @@
             do k = 1 , kz
               do i = 2 , iym2
                 if ( wl(i,k) > clmin ) then
-                  wetrem(itr) = 0.0D0
-                  if ( remrat(i,k) > 0.0D0 ) then
-                    wetrem(itr) = fracloud(i,k)*chtrsol(itr)            &
-                                & *chib(i,k,j,itr)                      &
-                                & *(dexp(-remrat(i,k)*dt)-1.0D0)
-                    chiten(i,k,j,itr) = chiten(i,k,j,itr) + wetrem(itr) &
-                                      & /dt
-                    remlsc(i,k,j,itr) = remlsc(i,k,j,itr) - wetrem(itr) &
-                                      & /2.0D0
+                  wetrem(itr) = d_zero
+                  if ( remrat(i,k) > d_zero ) then
+                    wetrem(itr) = fracloud(i,k)*chtrsol(itr) * &
+                                  chib(i,k,j,itr)            * &
+                                  (dexp(-remrat(i,k)*dt)-d_one)
+                    chiten(i,k,j,itr) = chiten(i,k,j,itr) + &
+                                          wetrem(itr)/dt
+                    remlsc(i,k,j,itr) = remlsc(i,k,j,itr) - &
+                                          wetrem(itr)/d_two
                   end if
                 end if
               end do
@@ -425,13 +432,13 @@
             do i = 2 , iym2
               if ( icumtop(i,j) /= 0 ) then
                 do k = icumtop(i,j) , kz
-                  wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr)            &
-                                  & *chib(i,k,j,itr)                    &
-                                  & *(dexp(-remcum*dt)-1.0D0)
-                  chiten(i,k,j,itr) = chiten(i,k,j,itr)                 &
-                                    & + wetrem_cvc(itr)/dt
-                  remcvc(i,k,j,itr) = remcvc(i,k,j,itr)                 &
-                                    & - wetrem_cvc(itr)/2.0D0
+                  wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr) &
+                                    *chib(i,k,j,itr)         &
+                                    *(dexp(-remcum*dt)-d_one)
+                  chiten(i,k,j,itr) = chiten(i,k,j,itr)      &
+                                      + wetrem_cvc(itr)/dt
+                  remcvc(i,k,j,itr) = remcvc(i,k,j,itr)      &
+                                      - wetrem_cvc(itr)/d_two
                 end do
               end if
             end do
@@ -442,50 +449,50 @@
 !       Conversion from hydrophobic to hydrophilic: Carbonaceopus
 !       species time constant ( 1.15 day cooke et al.,1999)
  
-        if ( gfcall3 .and. chtrname(itr) == 'BC_HB' .and. ibchl > 0 )  &
-           & then
+        if ( gfcall3 .and. &
+          chtrname(itr) == 'BC_HB' .and. ibchl > 0 )  then
           gfcall3 = .false.
-          agct = 1.15D0*86400D0
-!         agct = 2.30D0*86400D0
+          agct = 1.15D0*secpd
+!         agct = 2.30D0*secpd
 !bxq      do itr = 1 , ntr
-!bxq        agingtend(itr) = 0.0D0
+!bxq        agingtend(itr) = d_zero
 !bxq      end do
  
           do k = 1 , kz
             do i = 2 , iym2
               agingtend(ibchb) = -chib(i,k,j,ibchb)* &
-                        (1.0D0-dexp(-dt/agct))/dt
+                        (d_one-dexp(-dt/agct))/dt
               agingtend(ibchl) = -agingtend(ibchb)
  
               chiten(i,k,j,ibchb) = chiten(i,k,j,ibchb) &
-                                  & + agingtend(ibchb)
+                                    + agingtend(ibchb)
               chiten(i,k,j,ibchl) = chiten(i,k,j,ibchl) &
-                                  & + agingtend(ibchl)
+                                    + agingtend(ibchl)
             end do
           end do
         end if
  
  
-        if ( gfcall4 .and. chtrname(itr) == 'OC_HB' .and. iochl > 0 )  &
-           & then
+        if ( gfcall4 .and. &
+             chtrname(itr) == 'OC_HB' .and. iochl > 0 ) then
  
           gfcall4 = .false.
-          agct = 1.15D0*86400D0
-!         agct = 2.30D0*86400D0
+          agct = 1.15D0*secpd
+!         agct = 2.30D0*secpd
 !bxq      do itr = 1 , ntr
-!bxq        agingtend(itr) = 0.0D0
+!bxq        agingtend(itr) = d_zero
 !bxq      end do
  
           do k = 1 , kz
             do i = 2 , iym2
               agingtend(iochb) = -chib(i,k,j,iochb)* &
-                           (1.0D0-dexp(-dt/agct))/dt
+                           (d_one-dexp(-dt/agct))/dt
               agingtend(iochl) = -agingtend(iochb)
  
               chiten(i,k,j,iochb) = chiten(i,k,j,iochb) &
-                                  & + agingtend(iochb)
+                                    + agingtend(iochb)
               chiten(i,k,j,iochl) = chiten(i,k,j,iochl) &
-                                  & + agingtend(iochl)
+                                    + agingtend(iochl)
             end do
           end do
  
@@ -512,7 +519,7 @@
  
           do i = 2 , iym2
             ivegcov(i) = idnint(veg2d(i,j))
-            psurf(i) = sps2%ps(i,j)*1000.0D0 + r8pt
+            psurf(i) = sps2%ps(i,j)*d_1000 + r8pt
  
             do k = 1 , kz
               ttb(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
@@ -523,31 +530,31 @@
 !           method based on bats diagnostic in routine interf.
  
             if ( (ivegcov(i) /= 0) ) then
-              facv = dlog(za(i,kz,j)/10.0D0)       &
-                   & /dlog(za(i,kz,j)/rough(ivegcov(i)))
-              facb = dlog(za(i,kz,j)/10.0D0)/dlog(za(i,kz,j)/zlnd)
-              facs = dlog(za(i,kz,j)/10.0D0)/dlog(za(i,kz,j)/zsno)
+              facv = dlog(za(i,kz,j)/d_10) / &
+                     dlog(za(i,kz,j)/rough(ivegcov(i)))
+              facb = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zlnd)
+              facs = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zsno)
  
-              fact = sfracv2d(i,j)*facv + sfracb2d(i,j)                 &
-                   & *facb + sfracs2d(i,j)*facs
+              fact = sfracv2d(i,j)*facv + sfracb2d(i,j)   &
+                     *facb + sfracs2d(i,j)*facs
  
 !             grid level effective roughness lenght
 !                (linear averaging for now)
 
-              zeff(i) = rough(ivegcov(i))*sfracv2d(i,j)                 &
-                      & + zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
+              zeff(i) = rough(ivegcov(i))*sfracv2d(i,j)   &
+                        + zlnd * sfracb2d(i,j) + zsno * sfracs2d(i,j)
 
             else
 !             water surface
-              fact = dlog(za(i,kz,j)/10.0D0)/dlog(za(i,kz,j)/zoce)
+              fact = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zoce)
  
               zeff(i) = zoce
             end if
  
 !           10 m wind
-            u10 = (atm2%u(i,kz,j)/sps2%ps(i,j))*(1.0D0-fact)
-            v10 = (atm2%v(i,kz,j)/sps2%ps(i,j))*(1.0D0-fact)
-            wid10(i) = dsqrt(u10**2.0D0+v10**2.0D0)
+            u10 = (atm2%u(i,kz,j)/sps2%ps(i,j))*(d_one-fact)
+            v10 = (atm2%v(i,kz,j)/sps2%ps(i,j))*(d_one-fact)
+            wid10(i) = dsqrt(u10**d_two+v10**d_two)
 !           wid10(5) = 15
 !           10 m air temperature
  
@@ -555,32 +562,32 @@
  
 !           specific  humidity at 10m
             shu10 = (atm2%qv(i,kz,j)/sps2%ps(i,j))/ &
-              (1.0D0+atm2%qv(i,kz,j)/sps2%ps(i,j))-sdelqk2d(i,j)*fact
+              (d_one+atm2%qv(i,kz,j)/sps2%ps(i,j))-sdelqk2d(i,j)*fact
  
 !           retransform in mixing ratio
  
-            shu10 = shu10/(1.0D0-shu10)
+            shu10 = shu10/(d_one-shu10)
  
 !           saturation mixing ratio at 10m
             if ( temp10(i) > tzero ) then
-              satvp = svp1*1.D3*dexp(svp2*(temp10(i)-tzero)             &
-                    & /(temp10(i)-svp3))
+              satvp = svp1*d_1000*dexp(svp2*(temp10(i)-tzero) / &
+                      (temp10(i)-svp3))
             else
-              satvp = svp4*1.D3*dexp(svp5-svp6/temp10(i))
+              satvp = svp4*d_1000*dexp(svp5-svp6/temp10(i))
             end if
             pres10 = psurf(i) - 98.0D0
             qsat10 = ep2*satvp/(pres10-satvp)
  
 !           relative humidity at 10m
-            rh10(i) = 0.0D0
-            if ( qsat10 > 0.0D0 ) rh10(i) = shu10/qsat10
+            rh10(i) = d_zero
+            if ( qsat10 > d_zero ) rh10(i) = shu10/qsat10
 !
 !           friction velocity ( not used fo the moment)
 !
             ustar(i) = sqrt ( sfsta%uvdrag(i,j)             *           &
-           &           sqrt ( (atm2%u(i,kz,j)/sps2%ps(i,j) )**2.0D0   + &
-           &                  (atm2%v(i,kz,j)/sps2%ps(i,j) )**2.0D0 ) / &
-           &                   rho(i,kz) )
+                       sqrt ( (atm2%u(i,kz,j)/sps2%ps(i,j) )**d_two   + &
+                              (atm2%v(i,kz,j)/sps2%ps(i,j) )**d_two ) / &
+                               rho(i,kz) )
  
 !           soil wetness
 !           soilw(i) = ssw2da(i,j)                                       &
@@ -588,8 +595,8 @@
 !                    & (idnint(mddom%satbrt(i,j))))
  
             soilw(i) = ssw2da(i,j)/depuv(idnint(mddom%satbrt(i,j))) /   &
-                  & (2650.0D0* &
-                  (1.0D0-xmopor(iexsol(idnint(mddom%satbrt(i,j))))))
+                    (2650.0D0* &
+                  (d_one-xmopor(iexsol(idnint(mddom%satbrt(i,j))))))
  
 !           soilw(i) = ssw2da(i,j) /(xmopor(iexsol(ivegcov(i)) )
 !           &                            * depuv(ivegcov(i))      )
@@ -616,11 +623,11 @@
           end do
 
           call sfflux(iy,2,iym2,j,20,ivegcov,vegfrac,ustar,       &
-                    & zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
+                      zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
  
           call chdrydep(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &
-                      & temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &
-                      & pdepv)
+                        temp10,tsurf,srad,rh10,wid10,zeff,dustbsiz,     &
+                        pdepv)
  
  
           gfcall2 = .false.
@@ -637,10 +644,10 @@
           do i = 2 , iym2
             chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + rsfrow(i,ibin)    &
-                               & *gti/(dsigma(kz)*1.D3)
+                                 *gti/(dsigma(kz)*d_1000)
 !           diagnostique source
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
-                           & *dt/2.0D0
+                             *dt/d_two
           end do
  
 !         calculate the tendancy du to gravitationnal settling and dry
@@ -648,9 +655,9 @@
 !         deposition
           do k = 2 , kz
             do i = 2 , iym2
-              wk(i,k) = (1.0D0/sps2%ps(i,j))*          &
-                      & (twt(k,1)*chib(i,k,j,itr)+ &
-                      &  twt(k,2)*chib(i,k-1,j,itr))
+              wk(i,k) = (d_one/sps2%ps(i,j))*          &
+                        (twt(k,1)*chib(i,k,j,itr)+ &
+                         twt(k,2)*chib(i,k-1,j,itr))
             end do
           end do
  
@@ -661,16 +668,16 @@
                         ! do not apply to the first level
               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin) - &
                               wk(i,k)*pdepv(i,k,ibin))*     &
-                              gti*1.D-3/dsigma(k)
+                              gti*d_r1000/dsigma(k)
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !
-            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*gti*1.D-3)      &
-                          & /dsigma(kz)
+            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*gti*d_r1000)      &
+                            /dsigma(kz)
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + settend(i,kz)
  
 !           dignoctic for dry deposition
-            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/2.0D0
+            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/d_two
           end do
        
         end if !( end calculation of dust tendancies)
@@ -680,17 +687,17 @@
         do i = 2 , iym2
           if ( chtrname(itr) /= 'DUST' ) then
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr)                     &
-                               & + chemsrc(i,j,lmonth,itr)              &
-                               & *gti*0.7D0/(dsigma(kz)*1.D3)
+                                 + chemsrc(i,j,lmonth,itr)              &
+                                 *gti*0.7D0/(dsigma(kz)*d_1000)
             chiten(i,kz-1,j,itr) = chiten(i,kz-1,j,itr)                 &
-                                 & + chemsrc(i,j,lmonth,itr)            &
-                                 & *gti*0.15D0/(dsigma(kz-1)*1.D3)
+                                   + chemsrc(i,j,lmonth,itr)            &
+                                   *gti*0.15D0/(dsigma(kz-1)*d_1000)
             chiten(i,kzm2,j,itr) = chiten(i,kzm2,j,itr)                 &
-                                 & + chemsrc(i,j,lmonth,itr)            &
-                                 & *gti*0.15D0/(dsigma(kzm2)*1.D3)
+                                   + chemsrc(i,j,lmonth,itr)            &
+                                   *gti*0.15D0/(dsigma(kzm2)*d_1000)
 !           diagnostic for source, cumul
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
-                           & *dt/2.0D0
+                             *dt/d_two
           end if
         end do
  
@@ -726,12 +733,12 @@
 #endif
 #endif
           do i = 1 , iym1
-            dtrace(i,j,itr) = 0.0D0
-            wdlsc(i,j,itr) = 0.0D0
-            wdcvc(i,j,itr) = 0.0D0
-            wxsg(i,j,itr) = 0.0D0
-            wxaq(i,j,itr) = 0.0D0
-            ddsfc(i,j,itr) = 0.0D0
+            dtrace(i,j,itr) = d_zero
+            wdlsc(i,j,itr)  = d_zero
+            wdcvc(i,j,itr)  = d_zero
+            wxsg(i,j,itr)   = d_zero
+            wxaq(i,j,itr)   = d_zero
+            ddsfc(i,j,itr)  = d_zero
           end do
         end do
       end do
@@ -750,16 +757,16 @@
           do i = 1 , iym1
             do k = 1 , kz
               dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
-                              & *dsigma(k)
+                                *dsigma(k)
               wdlsc(i,j,itr) = wdlsc(i,j,itr) + remlsc(i,k,j,itr)       &
-                             & *dsigma(k)
+                               *dsigma(k)
               wdcvc(i,j,itr) = wdcvc(i,j,itr) + remcvc(i,k,j,itr)       &
-                             & *dsigma(k)
+                               *dsigma(k)
               wxsg(i,j,itr) = wxsg(i,j,itr) + rxsg(i,k,j,itr)*dsigma(k)
 !             sum ls and conv contribution
               wxaq(i,j,itr) = wxaq(i,j,itr)                             &
-                            & + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
-                            & *dsigma(k)
+                              + (rxsaq1(i,k,j,itr)+rxsaq2(i,k,j,itr))   &
+                              *dsigma(k)
             end do
             ddsfc(i,j,itr) = ddsfc(i,j,itr) + remdrd(i,j,itr)*dsigma(kz)
 !           Source cumulated diag(care the unit are alredy .m-2)
@@ -783,16 +790,16 @@
 #endif
 #endif
           do i = 1 , iym1
-            dtrace(i,j,itr) = 1.D6*dtrace(i,j,itr)*1000.0D0*rgti
+            dtrace(i,j,itr) = d10e6*dtrace(i,j,itr)*d_1000*rgti
                                                         ! unit: mg/m2
-            wdlsc(i,j,itr) = 1.D6*wdlsc(i,j,itr)*1000.0D0*rgti
-            wdcvc(i,j,itr) = 1.D6*wdcvc(i,j,itr)*1000.0D0*rgti
-            ddsfc(i,j,itr) = 1.D6*ddsfc(i,j,itr)*1000.0D0*rgti
-            wxsg(i,j,itr) = 1.D6*wxsg(i,j,itr)*1000.0D0*rgti
-            wxaq(i,j,itr) = 1.D6*wxaq(i,j,itr)*1000.0D0*rgti
+            wdlsc(i,j,itr) = d10e6*wdlsc(i,j,itr)*d_1000*rgti
+            wdcvc(i,j,itr) = d10e6*wdcvc(i,j,itr)*d_1000*rgti
+            ddsfc(i,j,itr) = d10e6*ddsfc(i,j,itr)*d_1000*rgti
+            wxsg(i,j,itr)  = d10e6*wxsg(i,j,itr)*d_1000*rgti
+            wxaq(i,j,itr)  = d10e6*wxaq(i,j,itr)*d_1000*rgti
 !           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
 !           factor to to pass im mg/m2
-            cemtrac(i,j,itr) = 1.D6*cemtrac(i,j,itr)
+            cemtrac(i,j,itr) = d10e6*cemtrac(i,j,itr)
           end do
         end do
       end do

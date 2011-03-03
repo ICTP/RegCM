@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_o3blk
+      use mod_constants
       use mod_dynparam
       implicit none
       real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
@@ -62,7 +63,7 @@
       subroutine allocate_mod_o3blk
         implicit none
         allocate(prlevh(kzp2))
-        prlevh = 0.0D0
+        prlevh = d_zero
       end subroutine allocate_mod_o3blk
 !
 !----------------------------------------------------------------------
@@ -113,33 +114,33 @@
         do i = 1 , iym1
           do k = klevp1 , 1 , -1
             kj = klevp1 - k + 1
-            prlevh(kj) = (sigma(k)*sps2%ps(i,j)+r8pt)*10.0D0
+            prlevh(kj) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_10
           end do
           ppwrkh(1) = 1100.0D0
           do k = 2 , 31
-            ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))/2.0D0
+            ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))/d_two
           end do
-          ppwrkh(32) = 0.0D0
+          ppwrkh(32) = d_zero
           do k = 1 , kz
-            o3prof(i,k,j) = 0.0D0
+            o3prof(i,k,j) = d_zero
             do jj = 1 , 31
-              if ( (-(prlevh(k)-ppwrkh(jj))) >= 0.0D0 ) then
-                pb1 = 0.0D0
+              if ( (-(prlevh(k)-ppwrkh(jj))) >= d_zero ) then
+                pb1 = d_zero
               else
                 pb1 = prlevh(k) - ppwrkh(jj)
               end if
-              if ( (-(prlevh(k)-ppwrkh(jj+1))) >= 0.0D0 ) then
-                pb2 = 0.0D0
+              if ( (-(prlevh(k)-ppwrkh(jj+1))) >= d_zero ) then
+                pb2 = d_zero
               else
                 pb2 = prlevh(k) - ppwrkh(jj+1)
               end if
-              if ( (-(prlevh(k+1)-ppwrkh(jj))) >= 0.0D0 ) then
-                pt1 = 0.0D0
+              if ( (-(prlevh(k+1)-ppwrkh(jj))) >= d_zero ) then
+                pt1 = d_zero
               else
                 pt1 = prlevh(k+1) - ppwrkh(jj)
               end if
-              if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= 0.0D0 ) then
-                pt2 = 0.0D0
+              if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= d_zero ) then
+                pt2 = d_zero
               else
                 pt2 = prlevh(k+1) - ppwrkh(jj+1)
               end if

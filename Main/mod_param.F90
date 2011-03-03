@@ -296,9 +296,9 @@
       idcsst = 0
       iseaice = 0
       idesseas = 1
-      high_nudge = 3
-      medium_nudge=2
-      low_nudge=1   
+      high_nudge = 3.0D0
+      medium_nudge=2.0D0
+      low_nudge = 1.0D0   
       iconvlwp = 1
       cftotmax = 0.75D0
 !
@@ -340,12 +340,12 @@
       edtmaxo_ocn = 0.50D0  ! Maximum Precipitation Efficiency (o var)
       edtminx_ocn = 0.25D0  ! Minimum Precipitation Efficiency (x var)
       edtmaxx_ocn = 0.50D0  ! Maximum Precipitation Efficiency (x var)
-      pbcmax = 150.D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
-      mincld = 150.D0       ! Min cloud depth (mb).
-      htmin = -250.D0       ! Min convective heating
-      htmax = 500.D0        ! Max convective heating
+      pbcmax = 150.0D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
+      mincld = 150.0D0       ! Min cloud depth (mb).
+      htmin = -250.0D0       ! Min convective heating
+      htmax = 500.0D0        ! Max convective heating
       skbmax = 0.4D0        ! Max cloud base height in sigma
-      dtauc = 30.D0         ! Fritsch & Chappell (1980) 
+      dtauc = 30.0D0         ! Fritsch & Chappell (1980) 
                             ! ABE Removal Timescale (min)
  
 !------namelist emanparam:
@@ -411,7 +411,7 @@
       print * , 'param: OUTPARAM namelist READ IN'
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
-      if ( lakfrq < 0.0D0 ) lakfrq = batfrq
+      if ( lakfrq < d_zero ) lakfrq = batfrq
       read (ipunit, physicsparam)
       print * , 'param: PHYSICSPARAM namelist READ IN'
       if ( ipptls == 1 ) then
@@ -628,7 +628,7 @@
         call fatal(__FILE__,__LINE__,                                   &
                   &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(batfrq*3600.0D0),idnint(abatm)) /= 0 ) then
+      if ( mod(idnint(batfrq*secph),idnint(abatm)) /= 0 ) then
         write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
         call say
         call fatal(__FILE__,__LINE__,                                   &
@@ -648,7 +648,7 @@
           end if
         end if
       end if
-      if ( mod(idnint(abemh*3600.0D0),idnint(dt)) /= 0 ) then
+      if ( mod(idnint(abemh*secph),idnint(dt)) /= 0 ) then
         write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
         call say
         call fatal(__FILE__,__LINE__,                                   &
@@ -662,7 +662,7 @@
       end if
 
       if ( ichem == 0 ) ifchem = .false.
-      if ( ichem == 1 .and. chemfrq <=  0.0D0) then
+      if ( ichem == 1 .and. chemfrq <=  d_zero) then
         write (aline,*) 'CHEMFRQ=' ,chemfrq
         call say
         call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
@@ -671,29 +671,29 @@
 !-----reset the options/calculate variables using namelist info:
 !
       ndate0 = idate1
-      nsavfrq = idnint(3600.0D0*savfrq)
-      ntapfrq = idnint(3600.0D0*tapfrq)
-      ndbgfrq = idnint(3600.0D0*dbgfrq)
+      nsavfrq = idnint(secph*savfrq)
+      ntapfrq = idnint(secph*tapfrq)
+      ndbgfrq = idnint(secph*dbgfrq)
       ktau = 0
-      xtime = 0.0D0
+      xtime = d_zero
       ntime = 0
-      dtsplit(2) = dt/2.0D0
-      dtsplit(1) = dt/4.0D0
+      dtsplit(2) = dt/d_two
+      dtsplit(1) = dt/d_four
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)
       end do
       write (aline, *) 'param: dtau = ' , dtau
       call say
-      nradisp = idnint(radisp*3600.0D0)
+      nradisp = idnint(radisp*secph)
                                 !convert radisp to time steps
-      ifrabe = idnint(3600.0D0*abemh/dt)
+      ifrabe = idnint(secph*abemh/dt)
                                    !abemh is time interval abs./emis. calc.
-      kbats = idnint(3600.0D0*batfrq)
-      klak = lakfrq/batfrq
+      kbats = idnint(secph*batfrq)
+      klak = idnint(lakfrq/batfrq)
       nbatst = idnint(abatm/dt)
-      dt2 = 2.0D0*dt
+      dt2 = d_two*dt
 !chem2
-      kchem = idnint(3600.0D0*chemfrq)  ! convert chemfrq to time steps
+      kchem = idnint(secph*chemfrq)  ! convert chemfrq to time steps
 !chem2_
 !.....calculate the time step in minutes.
       dtmin = dt/60.0D0
@@ -768,13 +768,13 @@
                        'simulation: mdate  = ' , mdate0
       call say
       call split_idate(mdate0, myear, mmonth, mday, mhour)
-      gmt = mhour
+      gmt = dble(mhour)
       jyear0 = myear
 !
 !.....find the julian day of the year and calulate dectim
 !
       julday = idayofyear(mdate0)
-      dectim = (1440.0D0-gmt*60.0D0)
+      dectim = (minpd-gmt*secph)
  
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
@@ -784,19 +784,19 @@
 !     all the other constants are used to compute the cloud
 !     microphysical parameterization (ref. orville & kopp, 1977 jas).
 !
-      dx2 = 2.0D0*dx
-      dx4 = 4.0D0*dx
+      dx2 = d_two*dx
+      dx4 = d_four*dx
       dx8 = 8.0D0*dx
       dx16 = 16.0D0*dx
       dxsq = dx*dx
-      c200 = vonkar*vonkar*dx/(4.0D0*(100.0D0-r8pt))
+      c200 = vonkar*vonkar*dx/(d_four*(d_100-r8pt))
       c203 = 1.0D0/dxsq
       xkhz = 1.5D-3*dxsq/dt
       xkhmax = dxsq/(64.0D0*dt)
       akht1 = dxsq/tauht
       akht2 = dxsq/tauht
 !
-      conf = 1.0D0
+      conf = d_one
  
       write (aline, *) 'param: input/output parameters '
       call say
@@ -955,8 +955,8 @@
         do j = 1 , jx
           do i = 1 , iy
             mddom_io%ht(i,j)   = mddom_io%ht(i,j)*gti
-            mddom_io%msfd(i,j) = 1.0D0/mddom_io%msfd(i,j)
-            mddom_io%msfx(i,j) = 1.0D0/mddom_io%msfx(i,j)
+            mddom_io%msfd(i,j) = d_one/mddom_io%msfd(i,j)
+            mddom_io%msfx(i,j) = d_one/mddom_io%msfx(i,j)
           end do
         end do
 
@@ -1082,8 +1082,8 @@
       do j = 1 , jx
         do i = 1 , iy
           mddom%ht(i,j)   = mddom%ht(i,j)*gti
-          mddom%msfd(i,j) = 1.0D0/mddom%msfd(i,j)
-          mddom%msfx(i,j) = 1.0D0/mddom%msfx(i,j)
+          mddom%msfd(i,j) = d_one/mddom%msfd(i,j)
+          mddom%msfx(i,j) = d_one/mddom%msfx(i,j)
         end do
       end do
 
@@ -1111,7 +1111,7 @@
 !
       do k = 1 , kz
         dsigma(k) = sigma(k+1) - sigma(k)
-        a(k) = 0.50D0*(sigma(k+1)+sigma(k))
+        a(k) = d_half*(sigma(k+1)+sigma(k))
       end do
  
       do k = 1 , kz
@@ -1134,15 +1134,15 @@
       do kbase = 5 , kz
         do ktop = 1 , kbase - 3
           do k = 1 , kz
-            twght(k,kbase,ktop) = 0.0D0
-            vqflx(k,kbase,ktop) = 0.0D0
+            twght(k,kbase,ktop) = d_zero
+            vqflx(k,kbase,ktop) = d_zero
           end do
 !
 !......get twght from 1/2 level sigma values
 !
           bb = dlog(a(ktop)) + dlog(a(kbase))
           cc = dlog(a(ktop))*dlog(a(kbase))
-          ssum = 0.0D0
+          ssum = d_zero
           do k = ktop , kbase
             xx = dlog(a(k))
             twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
@@ -1155,19 +1155,19 @@
 !......get vqflx from  d(w*q) / dsigma on full levels
 !         do computations in p to avoid sigma=0. discontinuity
 !
-          xtop = dlog((100.0D0-r8pt)*sigma(ktop)+r8pt)
-          xbot = dlog((100.0D0-r8pt)*sigma(kbase+1)+r8pt)
+          xtop = dlog((d_100-r8pt)*sigma(ktop)+r8pt)
+          xbot = dlog((d_100-r8pt)*sigma(kbase+1)+r8pt)
           bb = xtop + xbot
           cc = xtop*xbot
-          vqmax = 0.0D0
-          ssum = 0.0D0
+          vqmax = d_zero
+          ssum = d_zero
           xx = xtop
           yy = xbot
           wk = (xx*xx) - (bb*xx) + cc
           qk = -((yy*yy)-(bb*yy)+cc)
           do k = ktop , kbase
-            xx = dlog((100.0D0-r8pt)*sigma(k+1)+r8pt)
-            yy = dlog((100.0D0-r8pt)                                    &
+            xx = dlog((d_100-r8pt)*sigma(k+1)+r8pt)
+            yy = dlog((d_100-r8pt)                                    &
                & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
             wkp1 = (xx*xx) - (bb*xx) + cc
             qkp1 = -((yy*yy)-(bb*yy)+cc)
@@ -1194,7 +1194,7 @@
       kt = 1
       do k = kz , 1 , -1
         delsig = a(k) - sigtbl
-        if ( delsig <= 0.0D0 ) then
+        if ( delsig <= d_zero ) then
           kt = k
           exit
         end if
@@ -1223,11 +1223,11 @@
         call say
         write (aline, *) 'rh0 temperature threshold: ' , tc0
         call say
-        if ( cevap <= 0.0D0 ) then
+        if ( cevap <= d_zero ) then
           write (aline, *) 'Raindrop evaporation not included'
           call say
         end if
-        if ( caccr <= 0.0D0 ) then
+        if ( caccr <= d_zero ) then
           write (aline, *) 'Raindrop accretion not included'
           call say
         end if
@@ -1357,7 +1357,7 @@
             kbmax2d(i,j) = kbmax
             htmax2d(i,j) = htmax
             htmin2d(i,j) = htmin
-            dtauc2d(i,j) = dtauc*60.0D0
+            dtauc2d(i,j) = dtauc*secph
           end do
         end do
       end if
@@ -1437,7 +1437,7 @@
       dsmalc = 10.0D0
       dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
       clfrcv = afracl + (afracs-afracl)                                 &
-             & *((dlargc-dxtemc)/(dlargc-dsmalc))**2
+             & *((dlargc-dxtemc)/(dlargc-dsmalc))**d_two
       clfrcv = dmin1(clfrcv,clfrcvmax)
       write (aline, *) ' '
       call say
@@ -1456,22 +1456,22 @@
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !
-      twt(1,1) = 0.0D0
-      twt(1,2) = 0.0D0
-      qcon(1) = 0.0D0
+      twt(1,1) = d_zero
+      twt(1,2) = d_zero
+      qcon(1) = d_zero
       do k = 2 , kz
         twt(k,1) = (sigma(k)-a(k-1))/(a(k)-a(k-1))
-        twt(k,2) = 1.0D0 - twt(k,1)
+        twt(k,2) = d_one - twt(k,1)
         qcon(k) = (sigma(k)-a(k))/(a(k-1)-a(k))
       end do
  
       chibot = 450.0D0
-      ptmb = 10.0D0*r8pt
-      pz = a(1)*(1000.0D0-ptmb) + ptmb
+      ptmb = d_10*r8pt
+      pz = a(1)*(d_1000-ptmb) + ptmb
       if ( pz > chibot ) call fatal(__FILE__,__LINE__,                 &
                                     &'VERTICAL INTERPOLATION ERROR')
       do k = 1 , kz
-        pk = a(k)*(1000.0D0-ptmb) + ptmb
+        pk = a(k)*(d_1000-ptmb) + ptmb
         if ( pk <= chibot ) kchi = k
       end do
  
@@ -1480,7 +1480,7 @@
 !     temperature will be regarded as the origin of air parcel that
 !     produces cloud (used in the cumulus parameterization scheme).
 !
-      sig700 = (70.0D0-r8pt)/(100.0D0-r8pt)
+      sig700 = (70.0D0-r8pt)/(d_100-r8pt)
       do k = 1 , kz
         k700 = k
         if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
@@ -1492,21 +1492,21 @@
       ispgx = nspgx - 1
 !.....for dot point variables:
       if ( iboudy == 4 ) then
-        wgtd(1) = 0.0D0
+        wgtd(1) = d_zero
         wgtd(2) = 0.2D0
         wgtd(3) = 0.55D0
         wgtd(4) = 0.8D0
         wgtd(5) = 0.95D0
         do k = 4 , nspgx
-          wgtd(k) = 1.0D0
+          wgtd(k) = d_one
         end do
 !.....for cross point variables:
-        wgtx(1) = 0.0D0
+        wgtx(1) = d_zero
         wgtx(2) = 0.4D0
         wgtx(3) = 0.7D0
         wgtx(4) = 0.9D0
         do k = 5 , nspgx
-          wgtx(k) = 1.0D0
+          wgtx(k) = d_one
         end do
       end if
 !

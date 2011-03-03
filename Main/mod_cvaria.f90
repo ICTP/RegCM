@@ -23,6 +23,7 @@
 !     decoupled variables, diagnostic variables and
 !     working spaces needed in the model.
 !
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_main , only : atmstate , allocate_atmstate
@@ -83,22 +84,22 @@
             end if
           end if
 !
-          diffq = 0.0D0
-          difft = 0.0D0
-          difuu = 0.0D0
-          difuv = 0.0D0
-          omega = 0.0D0
-          psc = 0.0D0
-          pten = 0.0D0
-          phi = 0.0D0
-          psd = 0.0D0
+          diffq = d_zero
+          difft = d_zero
+          difuu = d_zero
+          difuv = d_zero
+          omega = d_zero
+          psc = d_zero
+          pten = d_zero
+          phi = d_zero
+          psd = d_zero
           if ( ichem == 1 ) then
-            chi = 0.0D0
-            chic = 0.0D0
-            chiten = 0.0D0
+            chi = d_zero
+            chic = d_zero
+            chiten = d_zero
           end if
           if (.not. lmpi) then
-            qdot = 0.0D0
+            qdot = d_zero
           end if
         end  subroutine allocate_mod_cvaria
 !

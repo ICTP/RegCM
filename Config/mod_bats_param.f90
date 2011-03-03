@@ -103,12 +103,12 @@
 !     data iexsol/6,6,6,6,7,8,6,3,6,6,5,12,6,6,6,6,5,6,6,6/
 !     Laura  04/04/08 changed soil texture for desert: 3->1
       data iexsol/6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
-              &   6 , 6 , 6 , 5 , 6 , 6 , 6, 12, 8/
+              &   6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8/
 !     ******      kolsol is soil color type (see subr. albedo)
 !     Dec. 15, 2008
 !     data kolsol/5,3,4,4,4,4,4,1,3,3,2,1,5,5,5,4,3,4,4,4/
       data kolsol/6 , 4 , 5 , 5 , 5 , 5 , 5 , 1 , 4 , 4 , 2 , 1 , 6 ,   &
-             &    6 , 6 , 5 , 4 , 5 , 5 , 5, 4, 4/
+             &    6 , 6 , 5 , 4 , 5 , 5 , 5 , 4 , 4/
 !     Dec. 15, 2008_
 !     ******      xmopor is fraction of soil that is voids
       data xmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &

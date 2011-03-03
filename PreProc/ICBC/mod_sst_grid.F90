@@ -19,6 +19,7 @@
 
       module mod_sst_grid
       use m_realkinds
+      use m_stdio
       use m_die
       use m_zeit
       use m_mall

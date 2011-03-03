@@ -52,7 +52,7 @@
       real(8) , dimension(ndpmax) :: de , dnsty , tt
 !
 !     surface thickness
-      real(8) , parameter :: surf = 1.0D0
+      real(8) , parameter :: surf = d_one
 !     vertical grid spacing in m
       real(8) , parameter :: dz = surf
 !
@@ -79,13 +79,13 @@
       allocate(hsnow2d(nnsg,iym1,jx))
       allocate(tlak3d(ndpmax,nnsg,iym1,jx))
 #endif
-      dhlake1 = 0.0D0
+      dhlake1 = d_zero
       idep2d = 0
-      eta2d = 0.0D0
-      hi2d = 0.0D0
-      aveice2d = 0.0D0
-      hsnow2d = 0.0D0
-      tlak3d = 0.0D0
+      eta2d = d_zero
+      hi2d = d_zero
+      aveice2d = d_zero
+      hsnow2d = d_zero
+      tlak3d = d_zero
       end subroutine allocate_lake
 
       subroutine initlake
@@ -107,9 +107,9 @@
 #endif
 
       hi2d     = 0.01D0
-      aveice2d = 0.0D0
-      hsnow2d  = 0.0D0
-      eta2d    = 0.5D0
+      aveice2d = d_zero
+      hsnow2d  = d_zero
+      eta2d    = d_half
       tlak3d   = 6.0D0
       idep2d   = 0
 
@@ -128,15 +128,15 @@
 !     ******  initialize hostetler lake model
             if ( (satbrt1(n,i,j) > 13.9D0 .and.   &
                   satbrt1(n,i,j) < 14.1D0) .and.  &
-                 dhlake1(n,i,j) > 1.0D0) then
-              idep2d(n,i,j) = idint(dmax1(2.D0,dmin1(dhlake1(n,i,j), &
+                 dhlake1(n,i,j) > d_one) then
+              idep2d(n,i,j) = idint(dmax1(d_two,dmin1(dhlake1(n,i,j), &
                                     dble(ndpmax)))/dz)
               if ( ocld2d(n,i,j) > 1.5D0 ) then
                 tlak3d(1,n,i,j) = 1.78D0
                 tlak3d(2,n,i,j) = 1.78D0
-                aveice2d(n,i,j) = 1000.0D0
-                hi2d(n,i,j) = 1.0D0
-                hsnow2d(n,i,j) = 0.0D0
+                aveice2d(n,i,j) = d_1000
+                hi2d(n,i,j) = d_one
+                hsnow2d(n,i,j) = d_zero
               end if
               if (idep2d(n,i,j) < 50) then
                 eta2d(n,i,j) = 0.7D0
@@ -181,13 +181,13 @@
         do n = 1 , nnsg
           if ( idep2d(n,i,jslc) > 1 ) then
             tl = ts1d(n,i)
-            vl = dsqrt(us1d(i)**2.0D0+vs1d(i)**2.0D0)
+            vl = dsqrt(us1d(i)**d_two+vs1d(i)**d_two)
             zl = z1d(n,i)
             ql = qs1d(n,i)
             fsw = fsw1d(i)
-            flw = -1.0D0*flw1d(i)
+            flw = -d_one*flw1d(i)
             prec = prcp1d(n,i)*dtbat
-            hsen = -1.0D0*sent1d(n,i)
+            hsen = -d_one*sent1d(n,i)
             evp = evpr1d(n,i)
             if (nnsg == 1) then
               xl = mddom%xlat(i,jslc)
@@ -204,15 +204,15 @@
             tg1d(n,i) = tgl
             tgb1d(n,i) = tgl
 
-            if ( aveice2d(n,i,jslc) <= 10.0D0 ) then
-              ocld2d(n,i,jslc) = 0.0D0 
-              ldoc1d(n,i) = 0.0D0
-              sice1d(n,i) = 0.0D0
-              scv1d(n,i) = 0.0D0
-              sag1d(n,i) = 0.0D0
+            if ( aveice2d(n,i,jslc) <= d_10 ) then
+              ocld2d(n,i,jslc) = d_zero 
+              ldoc1d(n,i) = d_zero
+              sice1d(n,i) = d_zero
+              scv1d(n,i) = d_zero
+              sag1d(n,i) = d_zero
             else
-              ocld2d(n,i,jslc) = 2.0D0 
-              ldoc1d(n,i) = 2.0D0
+              ocld2d(n,i,jslc) = d_two 
+              ldoc1d(n,i) = d_two
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
               evpr1d(n,i) = evp                 !  units of evp = mm/sec
@@ -246,20 +246,20 @@
 !***  zo:      surface roughness length
 !
       real(8) , parameter :: zo = 0.001D0
-      real(8) , parameter :: z2 = 2.0D0
+      real(8) , parameter :: z2 = d_two
       real(8) , parameter :: tcutoff = -0.001D0
       logical , parameter :: lfreeze = .false.
       integer , parameter :: kmin = 1
 !
 !     interpolate winds at z1 m to 2m via log wind profile
       u2 = vl*dlog(z2/zo)/dlog(zl/zo)
-      if ( u2 < 0.5D0 ) u2 = 0.5D0
+      if ( u2 < d_half ) u2 = d_half
  
 !     ****** Check if conditions not exist for lake ice
       if ( (aveice < 1.0D-8) .and. (tprof(1) > tcutoff) ) then
  
         ! Graziano: removed hlat. It is calculated from evaporation
-        qe = -1.0D0*evl*wlhv
+        qe = -d_one*evl*wlhv
         qh = hsen
 
 !       ******    Calculate eddy diffusivities
@@ -271,9 +271,9 @@
 !       ******    Convective mixer
         call mixer(kmin,ndpt,tprof)
 
-        hi     = 0.01
-        aveice = 0.0D0
-        hsnow  = 0.0D0
+        hi     = 0.01D0
+        aveice = d_zero
+        hsnow  = d_zero
 
 !     ****** Lake ice
       else
@@ -282,18 +282,18 @@
         ea  = ql*88.0D0/(ep2+0.378D0*ql)
         tac = tl - tzero
         tk  = tzero + tprof(1)
-        lu  = -emsw*sigm*tk**4.0D0
+        lu  = -emsw*sigm*tk**d_four
         ld  = flw - lu
-        ev  = evl*3600.0D0        ! convert to mm/hr
-        ai  = aveice / 1000.0D0   ! convert to m
-        hs  = hsnow / 100.0D0     ! convert to m
+        ev  = evl*secph         ! convert to mm/hr
+        ai  = aveice / d_1000   ! convert to m
+        hs  = hsnow / d_100     ! convert to m
 
         call ice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
         if ( .not. lfreeze ) tprof(1) = tk - tzero
 
-        evl    = ev/3600.0D0      ! convert evl  from mm/hr to mm/sec
-        aveice = ai*1000.0D0      ! convert ice  from m to mm
-        hsnow  = hs*100.0D0       ! convert snow from m depth to mm h20
+        evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
+        aveice = ai*d_1000      ! convert ice  from m to mm
+        hsnow  = hs*d_100       ! convert snow from m depth to mm h20
  
       end if
  
@@ -321,11 +321,11 @@
       demin = hdmw
 !
 !     Added to keep numerical stability of code
-      demax = .50D0*dz**2.0D0/dtlake
+      demax = .50D0*dz**d_two/dtlake
       demax = .99D0*demax
 !
       do k = 1 , ndpt
-        dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
+        dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                       (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
 ! 
@@ -342,13 +342,13 @@
       ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
 
 !     Ekman layer depth where eddy diffusion happens
-      zmax = ceiling(surf+40.0D0/(vonkar*ks))
+      zmax = dble(ceiling(surf+40.0D0/(vonkar*ks)))
 
 !     Surface shear velocity
       ws = 0.0012D0*u2
 
 !     Inverse of turbulent Prandtl number
-      po = 1.0D0
+      po = d_one
  
       do k = 1 , ndpt - 1
 
@@ -369,19 +369,19 @@
 !       we just look for energy here.
 !        n2 = dabs((dpdz/dnsty(k))*gti)
         n2 = (dpdz/dnsty(k))*gti
-        if (dabs(n2) < 1.0D-30) then
+        if (dabs(n2) < lowval) then
           de(k) = demin
           cycle
         end if
 
 !       Richardson number estimate
-        rad = 1.0D0+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**2.0D0
-        if (rad < 0.0D0) rad = 0.0D0
-        ri = (-1.0D0+dsqrt(rad))/20.0D0
+        rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**d_two
+        if (rad < d_zero) rad = d_zero
+        ri = (-d_one+dsqrt(rad))/20.0D0
 
 !       Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
         de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / &
-                        (1.0D0+37.0D0*ri**2.0D0)
+                        (d_one+37.0D0*ri**d_two)
         if ( de(k) < demin ) de(k) = demin
         if ( de(k) > demax ) de(k) = demax
 
@@ -411,7 +411,7 @@
 
       tt(1:ndpt) = tprof(1:ndpt)
  
-      dt1 = (fsw*(1.0D0-dexp(-eta*surf))+(flw+qe+qh)) / &
+      dt1 = (fsw*(d_one-dexp(-eta*surf))+(flw+qe+qh)) / &
               (surf*dnsty(1)*cpw)
       dt2 = -de(1)*(tprof(1)-tprof(2))/surf
       tt(1) = tt(1) + (dt1+dt2)*dtlake
@@ -432,7 +432,7 @@
  
       do k = 1 , ndpt
         tprof(k) = tt(k)
-        dnsty(k) = 1000.0D0*(1.0D0-1.9549D-05 * &
+        dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                    (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
 
@@ -455,8 +455,8 @@
       tt(kmin:ndpt) = tprof(kmin:ndpt)
  
       do k = kmin , ndpt - 1
-        avet = 0.0D0
-        avev = 0.0D0
+        avet = d_zero
+        avev = d_zero
  
         if ( dnsty(k) > dnsty(k+1) ) then
  
@@ -474,7 +474,7 @@
 
           do k2 = kmin , k + 1
             tt(k2) = tav
-            dnsty(k2) = 1000.0D0*(1.0D0-1.9549D-05 * &
+            dnsty(k2) = d_1000*(d_one-1.9549D-05 * &
                         (dabs((tav+tzero)-277.0D0))**1.68D0)
           end do
         end if
@@ -528,26 +528,26 @@
 !     SIMULATES LAKE ICE                           
 !**********************************************************************
  
-      if ( (tac <= 0.0D0) .and. (aveice > 0.0D0) ) &
-        hs = hs + prec*10.0D0/1000.0D0  ! convert prec(mm) to depth(m)
-      if ( hs < 0.0D0 ) hs = 0.0D0
+      if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
+        hs = hs + prec*d_10/d_1000  ! convert prec(mm) to depth(m)
+      if ( hs < d_zero ) hs = d_zero
  
       ! temperature of ice/snow surface
       t0 = tprof(1)
       ! freezing temp of water
-      tf = 0.0D0
+      tf = d_zero
       ! approximate density of air (1 kg/m3)
-      rho = rhoh2o/1000.0D0
+      rho = rhoh2o/d_1000
  
       khat = (ki*hs+ks*hi)/(ki*ks)
       theta = cpd*rho*cd*u2
       psi = wlhv*rho*cd*u2*ep2/atm
-      evl = 100.0D0*psi*(eomb(t0)-ea)/(wlhv*rho)
+      evl = d_100*psi*(eomb(t0)-ea)/(wlhv*rho)
       ! amount of radiation that penetrates through the ice (W/m2)
-      qpen = fsw*0.7D0*((1.0D0-dexp(-lams1*hs))/(ks*lams1) +            &
-                        (dexp(-lams1*hs))*(1.0D0-dexp(-lami1*hi)) /     &
-                        (ki*lami1))+fsw*0.3D0*((1.0D0-dexp(-lams2)) /   &
-                        (ks*lams2)+(-lams2*hs)*(1.0D0-dexp(-lami2*hi))/ &
+      qpen = fsw*0.7D0*((d_one-dexp(-lams1*hs))/(ks*lams1) +            &
+                        (dexp(-lams1*hs))*(d_one-dexp(-lami1*hi)) /     &
+                        (ki*lami1))+fsw*0.3D0*((d_one-dexp(-lams2)) /   &
+                        (ks*lams2)+(-lams2*hs)*(d_one-dexp(-lami2*hi))/ &
                         (ki*lami2))
       ! radiation absorbed at the ice surface
       fsw = fsw - qpen
@@ -573,22 +573,22 @@
         t0 = t2
         if ( t0 >= tf ) then
  
-          if ( hs > 0.0D0 ) then
+          if ( hs > d_zero ) then
             ds = dtx*                                        &
                & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+ &
-               &  theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhos*li)
-            if ( ds > 0.0D0 ) ds = 0.0D0
+               &  theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/(rhos*li)
+            if ( ds > d_zero ) ds = d_zero
             hs = hs + ds
-            if ( hs < 0.0D0 ) then
-              hs = 0.0D0
+            if ( hs < d_zero ) then
+              hs = d_zero
               tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
             end if
           end if
-          if ( (dabs(hs) < 1.0D-30) .and. (aveice > 0.0D0) ) then
+          if ( (dabs(hs) < lowval) .and. (aveice > d_zero) ) then
             di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
-                 theta*(tf-tac)-fsw)-1.0D0/khat*(t0-tf+qpen))/(rhoi*li)
-            if ( di > 0.0D0 ) di = 0.0D0
+                 theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/(rhoi*li)
+            if ( di > d_zero ) di = d_zero
             hi = hi + di
           end if
  
@@ -596,8 +596,8 @@
  
           q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea)             &
              & + theta*(t0-tac) - fsw
-          qpen = fsw*0.7D0*(1.0D0-dexp(-(lams1*hs+lami1*hi))) +         &
-               & fsw*0.3D0*(1.0D0-dexp(-(lams2*hs+lami2*hi)))
+          qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) +         &
+               & fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
           di = dtx*(q0-qw-qpen)/(rhoi*li)
  
           hi = hi + di
@@ -605,8 +605,8 @@
  
         if ( hi <= 0.01D0 ) then
           hi = 0.01D0
-          aveice = 0.0D0
-          hs = 0.0D0
+          aveice = d_zero
+          hs = d_zero
           tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf
         else
           aveice = hi
@@ -621,28 +621,28 @@
         implicit none
         real(8) :: t4
         real(8) , intent(in) :: x
-        t4 = (x+tzero)**4.0D0
+        t4 = (x+tzero)**d_four
       end function t4
       ! Computes air vapor pressure as a function of temp (in K)
       function tr1(x)
         implicit none
         real(8) :: tr1
         real(8) , intent(in) :: x
-        tr1 = 1.0D0 - (tboil/(x+tzero))
+        tr1 = d_one - (tboil/(x+tzero))
       end function tr1
       function eomb(x)
         implicit none
         real(8) :: eomb
         real(8) , intent(in) :: x
-        eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2.D0   &
-           &   -0.6445D0*tr1(x)**3.D0- 0.1299D0*tr1(x)**4.D0)
+        eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
+           &   -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
        end function eomb
       function f(x)
         implicit none
         real(8) :: f
         real(8) , intent(in) :: x
         f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
-            - 1.0D0/khat*(qpen+tf-x)
+            - d_one/khat*(qpen+tf-x)
       end function f
  
       end subroutine ice
@@ -790,16 +790,16 @@
 #ifdef MPP1
       idep2d_io   = 0
       hi2d_io     = 0.01D0
-      aveice2d_io = 0.0D0
-      hsnow2d_io  = 0.0D0
-      eta2d_io    = 0.5D0
+      aveice2d_io = d_zero
+      hsnow2d_io  = d_zero
+      eta2d_io    = d_half
       tlak3d_io   = 6.0D0
 #else
       idep2d   = 0
       hi2d     = 0.01D0
-      aveice2d = 0.0D0
-      hsnow2d  = 0.0D0
-      eta2d    = 0.5D0
+      aveice2d = d_zero
+      hsnow2d  = d_zero
+      eta2d    = d_half
       tlak3d   = 6.0D0
 #endif
 !

@@ -19,6 +19,7 @@
 
       module mod_main
 !
+      use mod_constants
       use mod_dynparam
       use mod_runparams
 !
@@ -125,11 +126,11 @@
             allocate(atm%qv(iy,kz,jx))
             allocate(atm%qc(iy,kz,jx))
           end if
-          atm%u  = 0.0D0
-          atm%v  = 0.0D0
-          atm%t  = 0.0D0
-          atm%qv = 0.0D0
-          atm%qc = 0.0D0
+          atm%u  = d_zero
+          atm%v  = d_zero
+          atm%t  = d_zero
+          atm%qv = d_zero
+          atm%qc = d_zero
         end subroutine allocate_atmstate
 !
         subroutine allocate_surfpstate(sps,lmpi)
@@ -143,8 +144,8 @@
             allocate(sps%ps(iy,jx))
             allocate(sps%pdot(iy,jx))
           endif
-          sps%ps = 0.0D0
-          sps%pdot = 0.0D0
+          sps%ps = d_zero
+          sps%pdot = d_zero
         end subroutine allocate_surfpstate
 !
         subroutine allocate_surftstate(sts,lmpi)
@@ -156,7 +157,7 @@
           else
             allocate(sts%tg(iy,jx))
           endif
-          sts%tg = 0.0D0
+          sts%tg = d_zero
         end subroutine allocate_surftstate
 !
         subroutine allocate_domain(dom,lmpi)
@@ -181,13 +182,13 @@
             allocate(dom%msfd(iy,jx))
             allocate(dom%f(iy,jx))
           end if
-          dom%ht = 0.0D0
-          dom%satbrt = 0.0D0
-          dom%xlat = 0.0D0
-          dom%xlong = 0.0D0
-          dom%msfx = 0.0D0
-          dom%msfd = 0.0D0
-          dom%f = 0.0D0
+          dom%ht = d_zero
+          dom%satbrt = d_zero
+          dom%xlat = d_zero
+          dom%xlong = d_zero
+          dom%msfx = d_zero
+          dom%msfd = d_zero
+          dom%f = d_zero
         end subroutine allocate_domain
 !
         subroutine allocate_domfact(dfa,lmpi)
@@ -199,15 +200,15 @@
           else
             allocate(dfa%hgfact(iy,jx))
           end if
-          dfa%hgfact = 0.0D0
+          dfa%hgfact = d_zero
         end subroutine allocate_domfact
 !
         subroutine allocate_grellwinds
           implicit none
           allocate(gwnd%usk(iy,kz))
           allocate(gwnd%vsk(iy,kz))
-          gwnd%usk = 0.0D0
-          gwnd%vsk = 0.0D0
+          gwnd%usk = d_zero
+          gwnd%vsk = d_zero
         end subroutine allocate_grellwinds
 
         subroutine allocate_cumcontrol(cc,lmpi)
@@ -243,13 +244,13 @@
             allocate(sfs%zpbl(iy,jx))
             allocate(sfs%uvdrag(iy,jx))
           end if
-          sfs%hfx = 0.0D0
-          sfs%qfx = 0.0D0
-          sfs%rainc = 0.0D0
-          sfs%rainnc = 0.0D0
-          sfs%tgbb = 0.0D0
-          sfs%zpbl = 0.0D0
-          sfs%uvdrag = 0.0D0
+          sfs%hfx = d_zero
+          sfs%qfx = d_zero
+          sfs%rainc = d_zero
+          sfs%rainnc = d_zero
+          sfs%tgbb = d_zero
+          sfs%zpbl = d_zero
+          sfs%uvdrag = d_zero
         end subroutine allocate_surfstate
 
         subroutine allocate_mod_main(lmpi)
@@ -283,9 +284,9 @@
           allocate(spsav%hstor(iy,jx,nsplit))
         end if
 
-        sulf%so4 = 0.0D0
-        spsav%dstor = 0.0D0
-        spsav%hstor = 0.0D0
+        sulf%so4 = d_zero
+        spsav%dstor = d_zero
+        spsav%hstor = d_zero
 !
         end subroutine allocate_mod_main 
 !

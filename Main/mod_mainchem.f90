@@ -19,6 +19,7 @@
 
       module mod_mainchem
 
+      use mod_constants
       use mod_dynparam
       use mod_runparams
 
@@ -61,16 +62,16 @@
             allocate(wxaq(iy,jx,ntr))
             allocate(wxsg(iy,jx,ntr))
           end if
-          chemsrc = 0.0D0
-          chia = 0.0D0
-          chib = 0.0D0
-          srclp2 = 0.0D0
-          ddsfc = 0.0D0
-          dtrace = 0.0D0
-          wdcvc = 0.0D0
-          wdlsc = 0.0D0
-          wxaq = 0.0D0
-          wxsg = 0.0D0
+          chemsrc = d_zero
+          chia = d_zero
+          chib = d_zero
+          srclp2 = d_zero
+          ddsfc = d_zero
+          dtrace = d_zero
+          wdcvc = d_zero
+          wdlsc = d_zero
+          wxaq = d_zero
+          wxsg = d_zero
         end if
        end subroutine allocate_mod_mainchem
 !

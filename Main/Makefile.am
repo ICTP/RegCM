@@ -170,7 +170,7 @@ mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o mod_runparams.o
 mod_message.o: mod_message.F90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o mod_main.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
-            mod_date.o mod_runparams.o
+            mod_date.o mod_runparams.o mod_trachem.o
 mod_nudge.o: mod_nudge.F90 mod_bdycod.o mod_main.o mod_runparams.o \
              mod_dynparam.o
 mod_o3blk.o: mod_o3blk.F90 mod_dynparam.o mod_main.o mod_runparams.o mod_rad.o
@@ -225,7 +225,7 @@ mod_radiation.o: mod_radiation.F90 mod_constants.o mod_date.o mod_message.o \
                  mod_dynparam.o mod_tracer.o mod_scenarios.o mod_aerosol.o \
                  mod_bats.o mod_runparams.o
 endif
-mod_runparams.o: mod_runparams.F90 mod_message.o mod_dynparam.o
+mod_runparams.o: mod_runparams.F90 mod_message.o mod_dynparam.o mod_service.o
 if DO_COMPILE_LIBCLM
 mod_savefile.o: mod_savefile.F90 mod_dynparam.o mod_message.o mod_runparams.o \
                 mod_bats.o mod_pmoist.o mod_main.o mod_mainchem.o mod_bdycod.o \

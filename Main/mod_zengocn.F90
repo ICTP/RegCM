@@ -84,17 +84,17 @@
       do i = istart , iend
         do n = 1 , ng
 #ifdef CLM
-          if ( ocld2d(n,i,j) < 0.5D0 .or. landmask(jj,i) == 3 ) then
+          if ( ocld2d(n,i,j) < d_half .or. landmask(jj,i) == 3 ) then
 #else
-          if ( ocld2d(n,i,j) < 0.5D0 ) then
+          if ( ocld2d(n,i,j) < d_half ) then
 #endif
-            uv995 = dsqrt(ubx3d(i,k,j)**2.0D0+vbx3d(i,k,j)**2.0D0)
+            uv995 = dsqrt(ubx3d(i,k,j)**d_two+vbx3d(i,k,j)**d_two)
             tsurf = sts2%tg(i,j) - tzero
             t995 = tb3d(i,k,j) - tzero
-            q995 = qvb3d(i,k,j)/(1.0D0+qvb3d(i,k,j))
+            q995 = qvb3d(i,k,j)/(d_one+qvb3d(i,k,j))
             z995 = za(i,k,j)
             zi = sfsta%zpbl(i,j)
-            psurf = (sps2%ps(i,j)+r8pt)*10.0D0
+            psurf = (sps2%ps(i,j)+r8pt)*d_10
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
                        & uv10,tau,lh,sh,dth,dqh,ustar,zo)
             if (idcsst == 1) then
@@ -118,7 +118,7 @@
 !             if ( sum(aerext(i,:,j)) <= 1 ) then
 !               td = ts1(i,j) - sum(aerext(i,:,j))*0.8D0
 !             else if ( sum(aerext(i,:,j)) > 1 ) then
-!               td = ts1(i,j)- 1.0D0*0.8D0
+!               td = ts1(i,j)- d_one*0.8D0
 !             end if
 !
 !             rs is the net surface sw flux (sw energy absorbed)
@@ -126,7 +126,7 @@
 !             rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
 !             ustar water (with air density ==1)
-              ustarw = 0.5D0*ustar*(rhox2d(i,j)/rhoh2o)**0.5D0
+              ustarw = d_half*ustar*(rhox2d(i,j)/rhoh2o)**d_half
 !             lwds =  flwd2d(i,j)
 !             lwus =  emsw*sigm*(tsurf+273.16)**4
 !             q is the skin cooling term inckude net lw flux from
@@ -135,23 +135,23 @@
               q = -(lh+sh+flw2d(i,j))
 !             fraction of solar radiation abosrbed in the sublayer
               fs = 0.065D0+11.0D0*delta-(6.6D-5/delta)*&
-                          (1.0D0-dexp(-delta/8.D-4))
+                          (d_one-dexp(-delta/8.0D-4))
 !             dts= temperature difference between bulk level and skin level
 !                determined from previous time step (via tdelta and td)
               dts = tdelta-td
 !             m.o lenght calculation
-              if ( dts > 0.0D0 ) then
-                fd = (nu*gti*alphaw/(5.0D0*d))**0.5D0*    &
-                    &  rhoh2o*cpw0*ustarw**2.0D0*dts**0.5D0
+              if ( dts > d_zero ) then
+                fd = (nu*gti*alphaw/(d_five*d))**d_half*    &
+                    &  rhoh2o*cpw0*ustarw**d_two*dts**d_half
               else
                 fd = gti*alphaw*(q+rs-rd)
               end if
-              l = rhoh2o*cpw0*ustarw**3.0D0/(vonkar*fd)
+              l = rhoh2o*cpw0*ustarw**d_three/(vonkar*fd)
 !             calulation of phidl (stability function)
-              if ( (d/l) >= 0.0D0 ) then
-                phidl = 1.0D0+5.0D0*(d/l)
+              if ( (d/l) >= d_zero ) then
+                phidl = d_one+d_five*(d/l)
               else
-                phidl = (1.0D0-16.0D0*(d/l))**(-0.5D0)
+                phidl = (d_one-16.0D0*(d/l))**(-d_half)
               end if
 !             prognostic evolution of dts
 !             we can split the tendencies ddts/dt = a - b * dts
@@ -159,20 +159,20 @@
               aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+1))
               bb = (nu+1) * vonkar * ustarw / (d*phidl)
 !             exponential solution
-              dtstend = aa - dts*(1.0D0-dexp(-bb*dtsst))/dtsst
+              dtstend = aa - dts*(d_one-dexp(-bb*dtsst))/dtsst
 !             update dts
               dts = dts + dtstend * dtsst
 !             update tdelta
               tdelta = dts + td
 !             update delta thickness  and cool skin tempearture
-              aa = -16.0D0*gti*alphaw*rhoh2o*cpw0*nuw**3.0D0/ &
-                  &     (ustarw**4.0D0 *kw**2.0D0)
+              aa = -16.0D0*gti*alphaw*rhoh2o*cpw0*nuw**d_three/ &
+                  &     (ustarw**d_four *kw**d_two)
               bb =  aa *(q+rs*fs)
-              if ( bb > 0.0D0 ) then
+              if ( bb > d_zero ) then
 !               case of cool skin layer correction
-                cc= bb**(3.0D0/4.0D0)
+                cc= bb**(d_three/d_four)
                 lamb=6.0D0* &
-                    ((1.0D0+(aa*(q+rs*fs))**0.75D0)**(-1.0D0/3.0D0))
+                    ((d_one+(aa*(q+rs*fs))**0.75D0)**(-d_one/d_three))
                 delta = lamb*nuw/ustarw
                 tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
               else
@@ -193,16 +193,16 @@
             sent1d(n,i) = sh
             evpr1d(n,i) = lh/wlhv
 !           Back out Drag Coefficient
-            drag1d(n,i) = ustar**2.0D0*rhox2d(i,j)/uv995
-            facttq = dlog(z995/2.0D0)/dlog(z995/zo)
+            drag1d(n,i) = ustar**d_two*rhox2d(i,j)/uv995
+            facttq = dlog(z995/d_two)/dlog(z995/zo)
             u10m1d(n,i) = ubx3d(i,k,j)*uv10/uv995
             v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
             t2m_1d(n,i) = t995 + tzero - dth*facttq
 !
-            if ( mod(ntime+idnint(dtmin*60.0D0),kbats) == 0 .or. &
+            if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or. &
                 ( jyear == jyear0 .and. ktau == 0 ) .or. &
                 ( ifrest .and. .not. done_restart ) ) then
-              facttq = dlog(z995/2.0D0)/dlog(z995/zo)
+              facttq = dlog(z995/d_two)/dlog(z995/zo)
               q2m_1d(n,i) = q995 - dqh*facttq
               tgb2d(n,i,j) = sts2%tg(i,j)
             end if
@@ -274,39 +274,39 @@
       call time_begin(subroutine_name,idindx)
 !***********************************************************************
 !
-      zbeta = 1.0D0   ! -  (in computing W_*)
+      zbeta = d_one   ! -  (in computing W_*)
       pr = 0.71D0    ! =nu/thermal diffusivity (the Prandtl number)
-      z10 = 10.0D0    ! m  (reference height)
+      z10 = d_10    ! m  (reference height)
 !
       hu = hgt
       ht = hgt
       hq = hgt
 !
-      th = (t+tzero)*(1000.0D0/ps)**rovcp
+      th = (t+tzero)*(d_1000/ps)**rovcp
       ! potential T
       dth = t + 0.0098D0*ht - ts
       qs = qsat(ts,ps)*0.98D0
       qs = ep2*qs/(ps-0.378D0*qs)
       ! in kg/kg
       dqh = q - qs
-      thv = th*(1.0D0+0.61D0*q)
+      thv = th*(d_one+0.61D0*q)
       ! virtual potential T
-      dthv = dth*(1.0D0+0.61D0*q) + 0.61D0*th*dqh
-      rho = ps*100.0D0/(rgas*(ts+tzero)*(1.0D0+0.61D0*qs))
+      dthv = dth*(d_one+0.61D0*q) + 0.61D0*th*dqh
+      rho = ps*d_100/(rgas*(ts+tzero)*(d_one+0.61D0*qs))
       ! density
-      xlv = (2.501D0-0.00237D0*ts)*1.D+6
+      xlv = (2.501D0-0.00237D0*ts)*1.0D+6
       ! J/kg
 !
 !     Kinematic viscosity of dry air (m2/s)- Andreas (1989) CRREL Rep.
 !     89-11
 !
-      visa = 1.326D-5*(1.0D0+6.542D-3*t+8.301D-6*t*t-4.84D-9*t*t*t)
+      visa = 1.326D-5*(d_one+6.542D-3*t+8.301D-6*t*t-4.84D-9*t*t*t)
 !
 !     initial values of u* and convective velocity
 !
       ustar = 0.06D0
-      wc = 0.5D0
-      if ( dthv >= 0.0D0 ) then
+      wc = d_half
+      if ( dthv >= d_zero ) then
         um = dmax1(u,0.1D0)
       else
         um = dsqrt(u*u+wc*wc)
@@ -320,12 +320,12 @@
       end do
 !
       rb = gti*hu*dthv/(thv*um*um)
-      if ( rb >= 0.0D0 ) then       ! neutral or stable
-        zeta = rb*dlog(hu/zo)/(1.0D0-5.0D0*dmin1(rb,0.19D0))
-        zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
+      if ( rb >= d_zero ) then       ! neutral or stable
+        zeta = rb*dlog(hu/zo)/(d_one-d_five*dmin1(rb,0.19D0))
+        zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
       else                      !unstable
         zeta = rb*dlog(hu/zo)
-        zeta = dmax1(-100.D0,dmin1(zeta,-1.D-6))
+        zeta = dmax1(-d_100,dmin1(zeta,-1.0D-6))
       end if
       obu = hu/zeta
 !
@@ -341,17 +341,17 @@
         if ( zeta < -zetam ) then
                                  ! zeta < -1
           ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+ &
-                & psi(1,zo/obu)+1.14D0*((-zeta)**(1.0D0/3.0D0)- &
-                                        (zetam)**(1.0D0/3.0D0)))
-        else if ( zeta < 0.0D0 ) then
+                & psi(1,zo/obu)+1.14D0*((-zeta)**(d_one/d_three)- &
+                                        (zetam)**(d_one/d_three)))
+        else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           ustar = vonkar*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
-        else if ( zeta <= 1.0D0 ) then
+        else if ( zeta <= d_one ) then
                                   !  0 <= zeta <= 1
-          ustar = vonkar*um/(dlog(hu/zo)+5.0D0*zeta-5.0D0*zo/obu)
+          ustar = vonkar*um/(dlog(hu/zo)+d_five*zeta-d_five*zo/obu)
         else                   !  1 < zeta, phi=5+zeta
-          ustar = vonkar*um/(dlog(obu/zo)+5.0D0-5.0D0*zo/obu+  &
-                & (5.0D0*dlog(zeta)+zeta-1.0D0))
+          ustar = vonkar*um/(dlog(obu/zo)+d_five-d_five*zo/obu+  &
+                & (d_five*dlog(zeta)+zeta-d_one))
         end if
 !
 !       temperature
@@ -362,17 +362,17 @@
                                  ! zeta < -1
           tstar = vonkar*dth/(dlog(-zetat*obu/zot)-psi(2,-zetat)        &
                 & +psi(2,zot/obu)                                       &
-                & +0.8D0*((zetat)**(-1.0D0/3.0D0)-&
-                          (-zeta)**(-1.0D0/3.0D0)))
-        else if ( zeta < 0.0D0 ) then
+                & +0.8D0*((zetat)**(-d_one/d_three)-&
+                          (-zeta)**(-d_one/d_three)))
+        else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           tstar = vonkar*dth/(dlog(ht/zot)-psi(2,zeta)+psi(2,zot/obu))
-        else if ( zeta <= 1.0D0 ) then
+        else if ( zeta <= d_one ) then
                                   !  0 <= ztea <= 1
-          tstar = vonkar*dth/(dlog(ht/zot)+5.0D0*zeta-5.0D0*zot/obu)
+          tstar = vonkar*dth/(dlog(ht/zot)+d_five*zeta-d_five*zot/obu)
         else                   !  1 < zeta, phi=5+zeta
-          tstar = vonkar*dth/(dlog(obu/zot)+5.0D0-5.0D0*zot/obu+ &
-                & (5.0D0*dlog(zeta)+zeta-1.0D0))
+          tstar = vonkar*dth/(dlog(obu/zot)+d_five-d_five*zot/obu+ &
+                & (d_five*dlog(zeta)+zeta-d_one))
         end if
 !
 !       humidity
@@ -383,28 +383,28 @@
                                  ! zeta < -1
           qstar = vonkar*dqh/(dlog(-zetat*obu/zoq)-psi(2,-zetat)        &
                 & +psi(2,zoq/obu)                                       &
-                & +0.8D0*((zetat)**(-1.0D0/3.0D0)- &
-                (-zeta)**(-1.0D0/3.0D0)))
-        else if ( zeta < 0.0D0 ) then
+                & +0.8D0*((zetat)**(-d_one/d_three)- &
+                (-zeta)**(-d_one/d_three)))
+        else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           qstar = vonkar*dqh/(dlog(hq/zoq)-psi(2,zeta)+psi(2,zoq/obu))
-        else if ( zeta <= 1.0D0 ) then
+        else if ( zeta <= d_one ) then
                                   !  0 <= ztea <= 1
-          qstar = vonkar*dqh/(dlog(hq/zoq)+5.0D0*zeta-5.0D0*zoq/obu)
+          qstar = vonkar*dqh/(dlog(hq/zoq)+d_five*zeta-d_five*zoq/obu)
         else                   !  1 < zeta, phi=5+zeta
-          qstar = vonkar*dqh/(dlog(obu/zoq)+5.0D0-5.0D0*zoq/obu+ &
-                & (5.0D0*dlog(zeta)+zeta-1.0D0))
+          qstar = vonkar*dqh/(dlog(obu/zoq)+d_five-d_five*zoq/obu+ &
+                & (d_five*dlog(zeta)+zeta-d_one))
         end if
-        thvstar = tstar*(1.0D0+0.61D0*q) + 0.61D0*th*qstar
+        thvstar = tstar*(d_one+0.61D0*q) + 0.61D0*th*qstar
 !
-        zeta = vonkar*gti*thvstar*hu/(ustar**2.0D0*thv)
-        if ( zeta >= 0.0D0 ) then   !neutral or stable
+        zeta = vonkar*gti*thvstar*hu/(ustar**d_two*thv)
+        if ( zeta >= d_zero ) then   !neutral or stable
           um = dmax1(u,0.1D0)
-          zeta = dmin1(2.D0,dmax1(zeta,1.D-6))
+          zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
         else                   !unstable
-          wc = zbeta*(-gti*ustar*thvstar*zi/thv)**(1.0D0/3.0D0)
+          wc = zbeta*(-gti*ustar*thvstar*zi/thv)**(d_one/d_three)
           um = dsqrt(u*u+wc*wc)
-          zeta = dmax1(-100.D0,dmin1(zeta,-1.D-6))
+          zeta = dmax1(-d_100,dmin1(zeta,-1.0D-6))
         end if
         obu = hu/zeta
       end do
@@ -421,11 +421,11 @@
 !     10-meter wind (without w_* part)
 !
       zeta = z10/obu
-      if ( zeta < 0.0D0 ) then
+      if ( zeta < d_zero ) then
         u10 = u + (ustar/vonkar)*(dlog(z10/hu)-(psi(1,zeta)-            &
               & psi(1,hu/obu)))
       else
-        u10 = u + (ustar/vonkar)*(dlog(z10/hu)+5.0D0*zeta-5.0D0*hu/obu)
+        u10 = u + (ustar/vonkar)*(dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
       end if
       call time_end(subroutine_name,idindx)  
       end subroutine zengocn
@@ -441,13 +441,13 @@
 !
       real(kind=8) :: chik
 !
-      chik = (1.0D0-16.0D0*zeta)**0.25D0
+      chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
-        psi = 2.0D0*dlog((1.0D0+chik)*0.5D0) +       &
-                    dlog((1.0D0+chik*chik)*0.5D0) -  &
-              2.0D0*datan(chik) + 2.0D0*datan(1.0D0)
+        psi = d_two*dlog((d_one+chik)*d_half) +       &
+                    dlog((d_one+chik*chik)*d_half) -  &
+              d_two*datan(chik) + d_two*datan(d_one)
       else
-        psi = 2.0D0*dlog((1.0D0+chik*chik)*0.5D0)
+        psi = d_two*dlog((d_one+chik*chik)*d_half)
       end if
       end function psi
 
@@ -484,7 +484,7 @@
       zo = 0.0065D0*ustar*ustar/g
 !Im_
       re = ustar*zo/visa
-      xq = 2.67D0*re**0.25D0 - 2.57D0
+      xq = 2.67D0*re**d_rfour - 2.57D0
       xt = xq
       zoq = zo/dexp(xq)
       zot = zo/dexp(xt)

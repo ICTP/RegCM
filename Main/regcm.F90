@@ -355,7 +355,7 @@
         if (debug_level > 3) then
           if (myid == 0) write(6,'(a,i10,a,i10,a)') &
              'Simulation time: ', idatex , '+', &
-             idint(dmod(extime,3600.0D0)), ' s'
+             idint(dmod(extime,secph)), ' h'
         end if
 
       end do

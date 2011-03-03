@@ -19,6 +19,7 @@
  
       module mod_output
 
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_ncio
@@ -117,7 +118,7 @@
       if ( mod(ntime,nsavfrq) == 0 .and. ldatez /= idate1 ) then
         ldotmp = .true.
       end if
-      if ( ((lday==1 .and. lhour==0 .and. dabs(xtime)<0.00001) .and. &
+      if ( ((lday==1 .and. lhour==0 .and. dabs(xtime)<0.00001D0) .and. &
             ldatez /= idate1) .or. nnnnnn == nnnend ) then
         ldosav = .true.
         ldotmp = .false.
@@ -207,8 +208,8 @@
                         & atm_0,iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
-            rainc_io  = 0.0D0
-            rainnc_io = 0.0D0
+            rainc_io  = d_zero
+            rainnc_io = d_zero
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -222,9 +223,9 @@
               end do
               do i = 1 , iy
                 psa_io(i,j) = atm_0(i,1+kz*6,j)
-                if (atm_0(i,2+kz*6,j) > 1D-30) &
+                if (atm_0(i,2+kz*6,j) > lowval) &
                   rainc_io(i,j) = atm_0(i,2+kz*6,j)
-                if (atm_0(i,3+kz*6,j) > 1D-30) &
+                if (atm_0(i,3+kz*6,j) > lowval) &
                   rainnc_io(i,j) = atm_0(i,3+kz*6,j)
               end do
             end do
@@ -247,10 +248,10 @@
           do j = 1 , jendx
             do i = 1 , iym1
               do n = 1 , nnsg
-                rno2d(n,i,j) = 0.0D0
+                rno2d(n,i,j) = d_zero
               end do
-              sfsta%rainc(i,j) = 0.0D0
-              sfsta%rainnc(i,j) = 0.0D0
+              sfsta%rainc(i,j) = d_zero
+              sfsta%rainnc(i,j) = d_zero
             end do
           end do
         end if
@@ -543,33 +544,33 @@
               end do
             end do
             call outche
-            remlsc_io  = 0.0D0
-            remcvc_io  = 0.0D0
-            rxsg_io    = 0.0D0
-            rxsaq1_io  = 0.0D0
-            rxsaq2_io  = 0.0D0
-            cemtr_io   = 0.0D0
-            remdrd_io  = 0.0D0
-            wdlsc_io   = 0.0D0
-            wdcvc_io   = 0.0D0
-            ddsfc_io   = 0.0D0
-            wxsg_io    = 0.0D0
-            wxaq_io    = 0.0D0
-            cemtrac_io = 0.0D0
-            aertarf_io = 0.0D0
-            aersrrf_io = 0.0D0
-            aersrlwrf_io=0.0D0
-            aertalwrf_io=0.0D0
+            remlsc_io  = d_zero
+            remcvc_io  = d_zero
+            rxsg_io    = d_zero
+            rxsaq1_io  = d_zero
+            rxsaq2_io  = d_zero
+            cemtr_io   = d_zero
+            remdrd_io  = d_zero
+            wdlsc_io   = d_zero
+            wdcvc_io   = d_zero
+            ddsfc_io   = d_zero
+            wxsg_io    = d_zero
+            wxaq_io    = d_zero
+            cemtrac_io = d_zero
+            aertarf_io = d_zero
+            aersrrf_io = d_zero
+            aersrlwrf_io=d_zero
+            aertalwrf_io=d_zero
           end if
           do n = 1 , ntr
             do j = 1 , jendl
               do k = 1 , kz
                 do i = 1 , iy
-                  remlsc(i,k,j,n) = 0.0D0
-                  remcvc(i,k,j,n) = 0.0D0
-                  rxsg(i,k,j,n) = 0.0D0
-                  rxsaq1(i,k,j,n) = 0.0D0
-                  rxsaq2(i,k,j,n) = 0.0D0
+                  remlsc(i,k,j,n) = d_zero
+                  remcvc(i,k,j,n) = d_zero
+                  rxsg(i,k,j,n) = d_zero
+                  rxsaq1(i,k,j,n) = d_zero
+                  rxsaq2(i,k,j,n) = d_zero
                 end do
               end do
             end do
@@ -577,23 +578,23 @@
           do n = 1 , ntr
             do j = 1 , jendl
               do i = 1 , iy
-                cemtr(i,j,n) = 0.0D0
-                remdrd(i,j,n) = 0.0D0
-                wdlsc(i,j,n) = 0.0D0
-                wdcvc(i,j,n) = 0.0D0
-                ddsfc(i,j,n) = 0.0D0
-                wxsg(i,j,n) = 0.0D0
-                wxaq(i,j,n) = 0.0D0
-                cemtrac(i,j,n) = 0.0D0
+                cemtr(i,j,n) = d_zero
+                remdrd(i,j,n) = d_zero
+                wdlsc(i,j,n) = d_zero
+                wdcvc(i,j,n) = d_zero
+                ddsfc(i,j,n) = d_zero
+                wxsg(i,j,n) = d_zero
+                wxaq(i,j,n) = d_zero
+                cemtrac(i,j,n) = d_zero
               end do
             end do
           end do
           do j = 1 , jendl
             do i = 1 , iym1
-              aertarf(i,j) = 0.0D0
-              aersrrf(i,j) = 0.0D0
-              aertalwrf(i,j) = 0.0D0              
-              aersrlwrf(i,j) = 0.0D0
+              aertarf(i,j) = d_zero
+              aersrrf(i,j) = d_zero
+              aertalwrf(i,j) = d_zero              
+              aersrlwrf(i,j) = d_zero
             end do
           end do
         end if
@@ -752,8 +753,8 @@
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
-            rainc_io  = 0.0D0
-            rainnc_io = 0.0D0
+            rainc_io  = d_zero
+            rainnc_io = d_zero
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -763,9 +764,9 @@
                 end do
               end do
               do i = 1 , iy
-                if (sav_0(i,kz*4+1,j) > 1D-30) &
+                if (sav_0(i,kz*4+1,j) > lowval) &
                   rainc_io(i,j) = sav_0(i,kz*4+1,j)
-                if (sav_0(i,kz*4+2,j) > 1D-30) &
+                if (sav_0(i,kz*4+2,j) > lowval) &
                   rainnc_io(i,j) = sav_0(i,kz*4+2,j)
               end do
             end do
@@ -1365,23 +1366,23 @@
       if ( ifchem ) then
         if ( ldoche ) then
           call outche
-          remlsc    = 0.0D0
-          remcvc    = 0.0D0
-          rxsg      = 0.0D0
-          rxsaq1    = 0.0D0
-          rxsaq2    = 0.0D0
-          cemtr     = 0.0D0
-          remdrd    = 0.0D0
-          wdlsc     = 0.0D0
-          wdcvc     = 0.0D0
-          ddsfc     = 0.0D0
-          wxsg      = 0.0D0
-          wxaq      = 0.0D0
-          cemtrac   = 0.0D0
-          aertarf   = 0.0D0
-          aersrrf   = 0.0D0
-          aersrlwrf = 0.0D0
-          aertalwrf = 0.0D0
+          remlsc    = d_zero
+          remcvc    = d_zero
+          rxsg      = d_zero
+          rxsaq1    = d_zero
+          rxsaq2    = d_zero
+          cemtr     = d_zero
+          remdrd    = d_zero
+          wdlsc     = d_zero
+          wdcvc     = d_zero
+          ddsfc     = d_zero
+          wxsg      = d_zero
+          wxaq      = d_zero
+          cemtrac   = d_zero
+          aertarf   = d_zero
+          aersrrf   = d_zero
+          aersrlwrf = d_zero
+          aertalwrf = d_zero
         end if
       end if
 !
@@ -1400,7 +1401,7 @@
 #ifdef MPP1
       if ( myid == 0 ) then
 #endif        
-        if ( lday == 1 .and. lhour == 0 .and. dabs(xtime)<0.00001 ) then
+        if ( lday == 1 .and. lhour == 0 .and. dabs(xtime)<0.00001D0 ) then
           if ( .not. lstartup .and. idatex /= idate2 ) then
             call mkfile
           end if
@@ -1569,9 +1570,9 @@
       do i = 1 , imax
         do j = 1 , jmax
 #ifdef MPP1
-          radpsa_io(j,i) = (psa_io(i+istart,j+jstart)+r8pt)*10.0D0
+          radpsa_io(j,i) = real((psa_io(i+istart,j+jstart)+r8pt)*d_10)
 #else
-          radpsa(j,i) = (sps1%ps(i+istart,j+jstart)+r8pt)*10.0D0
+          radpsa(j,i) = real((sps1%ps(i+istart,j+jstart)+r8pt)*d_10)
 #endif
         end do
       end do

@@ -22,6 +22,7 @@
 ! Storage, parameters and constants related to
 !     moisture calculations.
 !
+      use mod_constants
       use mod_dynparam
 
       implicit none
@@ -77,26 +78,26 @@
       allocate(fcc(iy,kz,nj))
       allocate(rsheat(iy,kz,nj))
       allocate(rswat(iy,kz,nj))
-      cbmf2d = 0.0D0
-      cgul = 0.0D0
-      dtauc2d = 0.0D0
-      edtmax2d = 0.0D0
-      edtmaxo2d = 0.0D0
-      edtmaxx2d = 0.0D0
-      edtmin2d = 0.0D0
-      edtmino2d = 0.0D0
-      edtminx2d = 0.0D0
-      htmax2d = 0.0D0
-      htmin2d = 0.0D0
-      mincld2d = 0.0D0
-      pbcmax2d = 0.0D0
-      qck1 = 0.0D0
-      rh0 = 0.0D0
-      shrmax2d = 0.0D0
-      shrmin2d = 0.0D0
-      fcc = 0.0D0
-      rsheat = 0.0D0
-      rswat = 0.0D0
+      cbmf2d = d_zero
+      cgul = d_zero
+      dtauc2d = d_zero
+      edtmax2d = d_zero
+      edtmaxo2d = d_zero
+      edtmaxx2d = d_zero
+      edtmin2d = d_zero
+      edtmino2d = d_zero
+      edtminx2d = d_zero
+      htmax2d = d_zero
+      htmin2d = d_zero
+      mincld2d = d_zero
+      pbcmax2d = d_zero
+      qck1 = d_zero
+      rh0 = d_zero
+      shrmax2d = d_zero
+      shrmin2d = d_zero
+      fcc = d_zero
+      rsheat = d_zero
+      rswat = d_zero
       allocate(icon(nj))
       allocate(kbmax2d(iy,nj))
       icon = 0
@@ -104,9 +105,9 @@
       allocate(qwght(kz))
       allocate(twght(kz,5:kz,1:kz-3))
       allocate(vqflx(kz,5:kz,1:kz-3))
-      qwght = 0.0D0
-      twght = 0.0D0
-      vqflx = 0.0D0
+      qwght = d_zero
+      twght = d_zero
+      vqflx = d_zero
 !
       end subroutine allocate_mod_pmoist
 !
