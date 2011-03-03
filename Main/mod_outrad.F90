@@ -19,6 +19,7 @@
 
       module mod_outrad
 
+      use mod_constants
       use mod_dynparam
       use mod_runparams
       use mod_bats
@@ -57,10 +58,10 @@
         allocate(frad3d(jxm2,iym2,kz,nrad3d))
         allocate(radpsa(jxm2,iym2))
 #endif
-        radpsa = 0.0D0
+        radpsa = 0.0
 #endif
-        frad2d = 0.0D0
-        frad3d = 0.0D0
+        frad2d = 0.0
+        frad3d = 0.0
         end subroutine allocate_mod_outrad
 ! 
         subroutine radout(solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla, &
@@ -197,42 +198,42 @@
           end do
 !
           if ( ifrad ) then
-            if ( mod(ntime+idnint(dtmin*60.0D0),nradisp) == 0 .or.  &
+            if ( mod(ntime+idnint(dtmin*minph),nradisp) == 0 .or.  &
                 ( jyear == jyear0 .and. ktau == 0 ) .or.         &
                 ( ifrest .and. .not. done_restart) ) then
               do k = 1 , kz
                 do i = 2 , iym1
 #ifdef MPP1
-                  frad3d(jslc,i-1,k,1) = h2ommr(i,k)
-                  frad3d(jslc,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1D-30) then
-                    frad3d(jslc,i-1,k,3) = clwp(i,k)
+                  frad3d(jslc,i-1,k,1) = real(h2ommr(i,k))
+                  frad3d(jslc,i-1,k,2) = real(cld(i,k))
+                  if (clwp(i,k) > lowval) then
+                    frad3d(jslc,i-1,k,3) = real(clwp(i,k))
                   else
-                    frad3d(jslc,i-1,k,3) = 1D-30
+                    frad3d(jslc,i-1,k,3) = real(lowval)
                   end if
-                  frad3d(jslc,i-1,k,4) = qrs(i,k)
-                  frad3d(jslc,i-1,k,5) = qrl(i,k)
+                  frad3d(jslc,i-1,k,4) = real(qrs(i,k))
+                  frad3d(jslc,i-1,k,5) = real(qrl(i,k))
 #else
 #ifdef BAND
-                  frad3d(jslc,i-1,k,1) = h2ommr(i,k)
-                  frad3d(jslc,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1D-30) then
-                    frad3d(jslc,i-1,k,3) = clwp(i,k)
+                  frad3d(jslc,i-1,k,1) = real(h2ommr(i,k))
+                  frad3d(jslc,i-1,k,2) = real(cld(i,k))
+                  if (clwp(i,k) > lowval) then
+                    frad3d(jslc,i-1,k,3) = real(clwp(i,k))
                   else
-                    frad3d(jslc,i-1,k,3) = 1D-30
+                    frad3d(jslc,i-1,k,3) = real(lowval)
                   end if
-                  frad3d(jslc,i-1,k,4) = qrs(i,k)
-                  frad3d(jslc,i-1,k,5) = qrl(i,k)
+                  frad3d(jslc,i-1,k,4) = real(qrs(i,k))
+                  frad3d(jslc,i-1,k,5) = real(qrl(i,k))
 #else
-                  frad3d(jslc-1,i-1,k,1) = h2ommr(i,k)
-                  frad3d(jslc-1,i-1,k,2) = cld(i,k)
-                  if (clwp(i,k) > 1D-30) then
-                    frad3d(jslc-1,i-1,k,3) = clwp(i,k)
+                  frad3d(jslc-1,i-1,k,1) = real(h2ommr(i,k))
+                  frad3d(jslc-1,i-1,k,2) = real(cld(i,k))
+                  if (clwp(i,k) > lowval) then
+                    frad3d(jslc-1,i-1,k,3) = real(clwp(i,k))
                   else
-                    frad3d(jslc-1,i-1,k,3) = 1D-30
+                    frad3d(jslc-1,i-1,k,3) = real(lowval)
                   end if
-                  frad3d(jslc-1,i-1,k,4) = qrs(i,k)
-                  frad3d(jslc-1,i-1,k,5) = qrl(i,k)
+                  frad3d(jslc-1,i-1,k,4) = real(qrs(i,k))
+                  frad3d(jslc-1,i-1,k,5) = real(qrl(i,k))
 #endif
 #endif
                 end do
@@ -240,120 +241,120 @@
  
               do i = 2 , iym1
 #ifdef MPP1
-                frad2d(jslc,i-1,1) = frsa(i)      ! write
-                frad2d(jslc,i-1,2) = frla(i)      ! write
-                frad2d(jslc,i-1,3) = clrst(i)     ! write
-                frad2d(jslc,i-1,4) = clrss(i)     ! write
-                frad2d(jslc,i-1,5) = clrlt(i)     ! write
-                frad2d(jslc,i-1,6) = clrls(i)     ! write
-                frad2d(jslc,i-1,7) = solin(i)     ! write
-                frad2d(jslc,i-1,8) = sabtp(i)     ! write
-                frad2d(jslc,i-1,9) = firtp(i)     ! write
-                frad2d(jslc,i-1,10) = alb(i)      ! skip
-                frad2d(jslc,i-1,11) = albc(i)     ! skip
-                frad2d(jslc,i-1,12) = fsds(i)     ! skip
-                frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
-                frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
-                frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,16) = 0.0D0
+                frad2d(jslc,i-1,1) = real(frsa(i))      ! write
+                frad2d(jslc,i-1,2) = real(frla(i))      ! write
+                frad2d(jslc,i-1,3) = real(clrst(i))     ! write
+                frad2d(jslc,i-1,4) = real(clrss(i))     ! write
+                frad2d(jslc,i-1,5) = real(clrlt(i))     ! write
+                frad2d(jslc,i-1,6) = real(clrls(i))     ! write
+                frad2d(jslc,i-1,7) = real(solin(i))     ! write
+                frad2d(jslc,i-1,8) = real(sabtp(i))     ! write
+                frad2d(jslc,i-1,9) = real(firtp(i))     ! write
+                frad2d(jslc,i-1,10) = real(alb(i))      ! skip
+                frad2d(jslc,i-1,11) = real(albc(i))     ! skip
+                frad2d(jslc,i-1,12) = real(fsds(i))     ! skip
+                frad2d(jslc,i-1,13) = real(fsnirt(i))   ! skip
+                frad2d(jslc,i-1,14) = real(fsnrtc(i))   ! skip
+                frad2d(jslc,i-1,15) = real(fsnirtsq(i)) ! skip
+                if ( soll(i) < lowval ) then
+                  frad2d(jslc,i-1,16) = 0.0
                 else
-                  frad2d(jslc,i-1,16) = soll(i)     ! skip
+                  frad2d(jslc,i-1,16) = real(soll(i))     ! skip
                 end if
-                if ( sols(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,17) = 0.0D0
+                if ( sols(i) < lowval ) then
+                  frad2d(jslc,i-1,17) = 0.0
                 else
-                  frad2d(jslc,i-1,17) = sols(i)     ! skip
+                  frad2d(jslc,i-1,17) = real(sols(i))     ! skip
                 end if
-                if ( solsd(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,18) = 0.0D0
+                if ( solsd(i) < lowval ) then
+                  frad2d(jslc,i-1,18) = 0.0
                 else
-                  frad2d(jslc,i-1,18) = solsd(i)     ! skip
+                  frad2d(jslc,i-1,18) = real(solsd(i))     ! skip
                 end if
-                if ( solld(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,19) = 0.0D0
+                if ( solld(i) < lowval ) then
+                  frad2d(jslc,i-1,19) = 0.0
                 else
-                  frad2d(jslc,i-1,19) = solld(i)     ! skip
+                  frad2d(jslc,i-1,19) = real(solld(i))     ! skip
                 end if
-                frad2d(jslc,i-1,20) = solis(i)    ! skip
-                frad2d(jslc,i-1,21) = sabveg(i)   ! skip
+                frad2d(jslc,i-1,20) = real(solis(i))    ! skip
+                frad2d(jslc,i-1,21) = real(sabveg(i))   ! skip
 #else
 #ifdef BAND
-                frad2d(jslc,i-1,1) = frsa(i)      ! write
-                frad2d(jslc,i-1,2) = frla(i)      ! write
-                frad2d(jslc,i-1,3) = clrst(i)     ! write
-                frad2d(jslc,i-1,4) = clrss(i)     ! write
-                frad2d(jslc,i-1,5) = clrlt(i)     ! write
-                frad2d(jslc,i-1,6) = clrls(i)     ! write
-                frad2d(jslc,i-1,7) = solin(i)     ! write
-                frad2d(jslc,i-1,8) = sabtp(i)     ! write
-                frad2d(jslc,i-1,9) = firtp(i)     ! write
-                frad2d(jslc,i-1,10) = alb(i)      ! skip
-                frad2d(jslc,i-1,11) = albc(i)     ! skip
-                frad2d(jslc,i-1,12) = fsds(i)     ! skip
-                frad2d(jslc,i-1,13) = fsnirt(i)   ! skip
-                frad2d(jslc,i-1,14) = fsnrtc(i)   ! skip
-                frad2d(jslc,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,16) = 0.0D0
+                frad2d(jslc,i-1,1) = real(frsa(i))      ! write
+                frad2d(jslc,i-1,2) = real(frla(i))      ! write
+                frad2d(jslc,i-1,3) = real(clrst(i))     ! write
+                frad2d(jslc,i-1,4) = real(clrss(i))     ! write
+                frad2d(jslc,i-1,5) = real(clrlt(i))     ! write
+                frad2d(jslc,i-1,6) = real(clrls(i))     ! write
+                frad2d(jslc,i-1,7) = real(solin(i))     ! write
+                frad2d(jslc,i-1,8) = real(sabtp(i))     ! write
+                frad2d(jslc,i-1,9) = real(firtp(i))     ! write
+                frad2d(jslc,i-1,10) = real(alb(i))      ! skip
+                frad2d(jslc,i-1,11) = real(albc(i))     ! skip
+                frad2d(jslc,i-1,12) = real(fsds(i))     ! skip
+                frad2d(jslc,i-1,13) = real(fsnirt(i))   ! skip
+                frad2d(jslc,i-1,14) = real(fsnrtc(i))   ! skip
+                frad2d(jslc,i-1,15) = real(fsnirtsq(i)) ! skip
+                if ( soll(i) < lowval ) then
+                  frad2d(jslc,i-1,16) = 0.0
                 else
-                  frad2d(jslc,i-1,16) = soll(i)     ! skip
+                  frad2d(jslc,i-1,16) = real(soll(i))     ! skip
                 end if
-                if ( sols(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,17) = 0.0D0
+                if ( sols(i) < lowval ) then
+                  frad2d(jslc,i-1,17) = 0.0
                 else
-                  frad2d(jslc,i-1,17) = sols(i)     ! skip
+                  frad2d(jslc,i-1,17) = real(sols(i))     ! skip
                 end if
-                if ( solsd(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,18) = 0.0D0
+                if ( solsd(i) < lowval ) then
+                  frad2d(jslc,i-1,18) = 0.0
                 else
-                  frad2d(jslc,i-1,18) = solsd(i)     ! skip
+                  frad2d(jslc,i-1,18) = real(solsd(i))     ! skip
                 end if
-                if ( solld(i) < 1D-30 ) then
-                  frad2d(jslc,i-1,19) = 0.0D0
+                if ( solld(i) < lowval ) then
+                  frad2d(jslc,i-1,19) = 0.0
                 else
-                  frad2d(jslc,i-1,19) = solld(i)     ! skip
+                  frad2d(jslc,i-1,19) = real(solld(i))     ! skip
                 end if
-                frad2d(jslc,i-1,20) = solis(i)    ! skip
-                frad2d(jslc,i-1,21) = sabveg(i)   ! skip
+                frad2d(jslc,i-1,20) = real(solis(i))      ! skip
+                frad2d(jslc,i-1,21) = real(sabveg(i))     ! skip
 #else
-                frad2d(jslc-1,i-1,1) = frsa(i)      ! write
-                frad2d(jslc-1,i-1,2) = frla(i)      ! write
-                frad2d(jslc-1,i-1,3) = clrst(i)     ! write
-                frad2d(jslc-1,i-1,4) = clrss(i)     ! write
-                frad2d(jslc-1,i-1,5) = clrlt(i)     ! write
-                frad2d(jslc-1,i-1,6) = clrls(i)     ! write
-                frad2d(jslc-1,i-1,7) = solin(i)     ! write
-                frad2d(jslc-1,i-1,8) = sabtp(i)     ! write
-                frad2d(jslc-1,i-1,9) = firtp(i)     ! write
-                frad2d(jslc-1,i-1,10) = alb(i)      ! skip
-                frad2d(jslc-1,i-1,11) = albc(i)     ! skip
-                frad2d(jslc-1,i-1,12) = fsds(i)     ! skip
-                frad2d(jslc-1,i-1,13) = fsnirt(i)   ! skip
-                frad2d(jslc-1,i-1,14) = fsnrtc(i)   ! skip
-                frad2d(jslc-1,i-1,15) = fsnirtsq(i) ! skip
-                if ( soll(i) < 1D-30 ) then
-                  frad2d(jslc-1,i-1,16) = 0.0D0
+                frad2d(jslc-1,i-1,1) = real(frsa(i))      ! write
+                frad2d(jslc-1,i-1,2) = real(frla(i))      ! write
+                frad2d(jslc-1,i-1,3) = real(clrst(i))     ! write
+                frad2d(jslc-1,i-1,4) = real(clrss(i))     ! write
+                frad2d(jslc-1,i-1,5) = real(clrlt(i))     ! write
+                frad2d(jslc-1,i-1,6) = real(clrls(i))     ! write
+                frad2d(jslc-1,i-1,7) = real(solin(i))     ! write
+                frad2d(jslc-1,i-1,8) = real(sabtp(i))     ! write
+                frad2d(jslc-1,i-1,9) = real(firtp(i))     ! write
+                frad2d(jslc-1,i-1,10) = real(alb(i))      ! skip
+                frad2d(jslc-1,i-1,11) = real(albc(i))     ! skip
+                frad2d(jslc-1,i-1,12) = real(fsds(i))     ! skip
+                frad2d(jslc-1,i-1,13) = real(fsnirt(i))   ! skip
+                frad2d(jslc-1,i-1,14) = real(fsnrtc(i))   ! skip
+                frad2d(jslc-1,i-1,15) = real(fsnirtsq(i)) ! skip
+                if ( soll(i) < lowval ) then
+                  frad2d(jslc-1,i-1,16) = 0.0
                 else
-                  frad2d(jslc-1,i-1,16) = soll(i)     ! skip
+                  frad2d(jslc-1,i-1,16) = real(soll(i))   ! skip
                 end if
-                if ( sols(i) < 1D-30 ) then
-                  frad2d(jslc-1,i-1,17) = 0.0D0
+                if ( sols(i) < lowval ) then
+                  frad2d(jslc-1,i-1,17) = 0.0
                 else
-                  frad2d(jslc-1,i-1,17) = sols(i)     ! skip
+                  frad2d(jslc-1,i-1,17) = real(sols(i))   ! skip
                 end if
-                if ( solsd(i) < 1D-30 ) then
-                  frad2d(jslc-1,i-1,18) = 0.0D0
+                if ( solsd(i) < lowval ) then
+                  frad2d(jslc-1,i-1,18) = 0.0
                 else
-                  frad2d(jslc-1,i-1,18) = solsd(i)     ! skip
+                  frad2d(jslc-1,i-1,18) = real(solsd(i))  ! skip
                 end if
-                if ( solld(i) < 1D-30 ) then
-                  frad2d(jslc-1,i-1,19) = 0.0D0
+                if ( solld(i) < lowval ) then
+                  frad2d(jslc-1,i-1,19) = 0.0
                 else
-                  frad2d(jslc-1,i-1,19) = solld(i)     ! skip
+                  frad2d(jslc-1,i-1,19) = real(solld(i))  ! skip
                 end if
-                frad2d(jslc-1,i-1,20) = solis(i)    ! skip
-                frad2d(jslc-1,i-1,21) = sabveg(i)   ! skip
+                frad2d(jslc-1,i-1,20) = real(solis(i))    ! skip
+                frad2d(jslc-1,i-1,21) = real(sabveg(i))   ! skip
 #endif
 #endif
               end do

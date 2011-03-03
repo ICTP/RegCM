@@ -26,6 +26,7 @@
 ! Storage and parameters for CLM model v3.5
 !
       use mod_dynparam
+      use mod_constants
 !
       implicit none
 
@@ -171,7 +172,7 @@
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
       allocate(clmspace(jx,iy,44))
-      clmspace = 0.0D0
+      clmspace = d_zero
       r2ctb_all     => clmspace(:,:,1)
       r2cqb_all     => clmspace(:,:,2)
       r2czga_all    => clmspace(:,:,3)
@@ -223,7 +224,7 @@
       c2rngc = 0
       c2rdisps = 0
       allocate(spaceclm(iym1,njm1,11))
-      spaceclm = 0.0D0
+      spaceclm = d_zero
       sols2d   => spaceclm(:,:,1)
       soll2d   => spaceclm(:,:,2)
       solsd2d  => spaceclm(:,:,3)
@@ -236,7 +237,7 @@
       ra2d     => spaceclm(:,:,10)
       q2d      => spaceclm(:,:,11)
       allocate(satbrt2d(iy,nj))
-      satbrt2d = 0.0D0
+      satbrt2d = d_zero
       end subroutine allocate_mod_clm
 !
       end module mod_clm

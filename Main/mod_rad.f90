@@ -19,6 +19,7 @@
 
       module mod_rad
 
+      use mod_constants
       use mod_dynparam
 
       implicit none
@@ -47,10 +48,10 @@
             allocate(o3prof(iym1,kzp1,jxm1))
           end if
         end if
-        cldfra = 0.0D0
-        cldlwc = 0.0D0
-        heatrt = 0.0D0
-        o3prof = 0.0D0
+        cldfra = d_zero
+        cldlwc = d_zero
+        heatrt = d_zero
+        o3prof = d_zero
         end subroutine  allocate_mod_rad
 
       end module mod_rad

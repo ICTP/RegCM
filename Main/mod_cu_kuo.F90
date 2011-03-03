@@ -46,7 +46,7 @@
 !
       real(8) , parameter :: qdcrit = 3.0D-7
       real(8) , parameter :: pert   = 1.0D0
-      real(8) , parameter :: perq   = 1.D-3
+      real(8) , parameter :: perq   = 1.0D-3
       real(8) , parameter :: dlt    = 3.0D0
       real(8) , parameter :: cdscld = 0.3D0
 !
@@ -74,18 +74,18 @@
 !----------------------------------------------------------------------
 !
 !
-      pmax = 0.0D0
-      qmax = 0.0D0
-      tmax = 0.0D0
+      pmax = d_zero
+      qmax = d_zero
+      tmax = d_zero
       do k = 1 , kz
         do i = 1 , iym1
-          cldlwc(i,k) = 0.D0
-          cldfra(i,k) = 0.D0
+          cldlwc(i,k) = d_zero
+          cldfra(i,k) = d_zero
         end do
       end do
       do k = 1 , kz
         do i = 1 , iym1
-          aten%qv(i,k,j) = 0.D0
+          aten%qv(i,k,j) = d_zero
         end do
       end do
 !
@@ -113,7 +113,7 @@
 !
       do i = 2 , iym2
 !
-        sca = 0.0D0
+        sca = d_zero
         do k = 1 , kz
           sca = sca + aten%qv(i,k,j)*dsigma(k)
         end do
@@ -129,12 +129,12 @@
 !         and moisture added. the maximum eqt will be regarded
 !         as the origin of air parcel that produce cloud.
 !
-          eqtm = 0.0D0
+          eqtm = d_zero
           do k = k700 , kz
             ttp = atm1%t(i,k,j)/sps1%ps(i,j) + pert
             q = atm1%qv(i,k,j)/sps1%ps(i,j) + perq
             psg = sps1%ps(i,j)*a(k) + r8pt
-            t1 = ttp*(100.0D0/psg)**rovcp
+            t1 = ttp*(d_100/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
               eqtm = eqt
@@ -152,7 +152,7 @@
           dplr = (gti*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
-          tmean = 0.5D0*(tmax+tlcl)
+          tmean = d_half*(tmax+tlcl)
           dlnp = (gti*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
           siglcl = (plcl-r8pt)/sps1%ps(i,j)
@@ -173,7 +173,7 @@
             psg = sps1%ps(i,j)*a(k) + r8pt
             es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
             qs = ep2*es/(psg-es)
-            t1 = ttp*(100.0D0/psg)**rovcp
+            t1 = ttp*(d_100/psg)**rovcp
             seqt(k) = t1*dexp(wlhvocp*qs/ttp)
           end do
 !
@@ -201,11 +201,11 @@
 !           if negative area is larger than the positive area
 !           convection is killed.
 !
-            ttsum = 0.0D0
+            ttsum = d_zero
             do k = ktop , kbase
               ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
             end do
-            if ( ttsum >= 0.0D0 ) then
+            if ( ttsum >= d_zero ) then
 !
 !.....you     are here if stability was found.
 !
@@ -225,12 +225,12 @@
 !             c301   : is the 'b' factor in kuo's scheme.
 !
               icon(j) = icon(j) + 1
-              suma = 0.0D0
-              sumb = 0.0D0
-              arh = 0.0D0
+              suma = d_zero
+              sumb = d_zero
+              arh = d_zero
               psx = sps1%ps(i,j)
               do k = 1 , kz
-                qwght(k) = 0.0D0
+                qwght(k) = d_zero
               end do
               do k = ktop , kz
                 pux = psx*a(k) + r8pt
@@ -238,34 +238,34 @@
                                   (atm1%t(i,k,j)/psx))
                 qs = ep2*e1/(pux-e1)
                 rh = atm1%qv(i,k,j)/(qs*psx)
-                rh = dmin1(rh,1.D0)
-                xsav = (1.0D0-rh)*qs
+                rh = dmin1(rh,d_one)
+                xsav = (d_one-rh)*qs
                 qwght(k) = xsav
                 sumb = sumb + qs*dsigma(k)
                 arh = arh + rh*qs*dsigma(k)
                 suma = suma + xsav*dsigma(k)
               end do
               arh = arh/sumb
-              c301 = 2.0D0*(1.0D0-arh)
-              if ( c301 < 0.0D0 ) c301 = 0.0D0
-              if ( c301 > 1.0D0 ) c301 = 1.0D0
-              if ( suma <= 0.0D0 ) then
-                c301 = 0.0D0
-                suma = 1.0D0
+              c301 = d_two*(d_one-arh)
+              if ( c301 < d_zero ) c301 = d_zero
+              if ( c301 > d_one ) c301 = d_one
+              if ( suma <= d_zero ) then
+                c301 = d_zero
+                suma = d_one
               end if
               do k = ktop , kz
                 qwght(k) = qwght(k)/suma
               end do
               do k = 1 , kz
-                ttconv = wlhvocp*(1.0D0-c301)*twght(k,kbase,ktop)*sca
-                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/2.0D0
+                ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
+                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/d_two
 !x              if (ttconv*2. > 0.01) write(18,1234) i,j,k,ttconv*2.
 !1234           format(1x,'cupara, i=',i4,' j=',i4,' k=',i4,'
 !               qteva=',e12.4)
-                apcnt = (1.0D0-c301)*sca/4.3D-3
+                apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 aten%qv(i,k,j) = eddyf
-                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dt/2.0D0
+                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dt/d_two
               end do
 !
 !             find cloud fractional cover and liquid water content
@@ -273,19 +273,19 @@
               kbaseb = min0(kbase,kzm2)
               if ( ktop <= kbaseb ) then
                 kclth = kbaseb - ktop + 1
-                akclth = 1.0D0/dble(kclth)
+                akclth = d_one/dble(kclth)
                 do k = ktop , kbaseb
                   cldlwc(i,k) = cllwcv
-                  cldfra(i,k) = 1.0D0 - (1.0D0-clfrcv)**akclth
+                  cldfra(i,k) = d_one - (d_one-clfrcv)**akclth
                 end do
               end if
 !.....the     unit for rainfall is mm.
-              prainx = (1.0D0-c301)*sca*dtmin*60000.0D0*rgti
+              prainx = (d_one-c301)*sca*dtmin*60000.0D0*rgti
               sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)
-              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = 1.0D0
-              pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.0D0)/aprdiv
+              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+              pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
 !
 !chem2
               if ( ichem == 1 ) then
@@ -302,10 +302,10 @@
 !
 !.....convection not exist, compute the vertical advection term:
 !
-        tmp3(i,1) = 0.0D0
+        tmp3(i,1) = d_zero
         do k = 2 , kz
-          if ( atm1%qv(i,k,j) < 1.D-15 ) then
-            tmp3(i,k) = 0.0D0
+          if ( atm1%qv(i,k,j) < 1.0D-15 ) then
+            tmp3(i,k) = d_zero
           else
             tmp3(i,k) = atm1%qv(i,k,j)*(atm1%qv(i,k-1,j)/ &
                         atm1%qv(i,k,j))**qcon(k)
@@ -324,14 +324,14 @@
 !
       do k = 1 , kz
         do i = 2 , iym2
-          rsheat(i,k,j) = dmax1(rsheat(i,k,j),0.D0)
-          rswat(i,k,j) = dmax1(rswat(i,k,j),0.D0)
+          rsheat(i,k,j) = dmax1(rsheat(i,k,j),d_zero)
+          rswat(i,k,j) = dmax1(rswat(i,k,j),d_zero)
           rsht = rsheat(i,k,j)/tauht
           rswt = rswat(i,k,j)/tauht
           aten%t(i,k,j) = aten%t(i,k,j) + rsht
           aten%qv(i,k,j) = aten%qv(i,k,j) + rswt
-          rsheat(i,k,j) = rsheat(i,k,j)*(1.0D0-dt/(2.0D0*tauht))
-          rswat(i,k,j) = rswat(i,k,j)*(1.0D0-dt/(2.0D0*tauht))
+          rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dt/(d_two*tauht))
+          rswat(i,k,j) = rswat(i,k,j)*(d_one-dt/(d_two*tauht))
 !bxq if(rsht/psb(i,j) > .0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
 !1222     format (1x,'ktau= ',i7,' jyear= ',i5,' i= ',i5,' j= ',i5,
 !         1        ' k= ',i5,' ttconv =',e15.7)
@@ -400,7 +400,7 @@
             ip1 = min0(i+1,iym2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
-                          & +wr(i,jm1)+wr(i,jp1)-4.0D0*wr(i,j))
+                          & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
       end do
@@ -427,7 +427,7 @@
             ip1 = min0(i+1,iym2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
                           & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
-                          & +wr(i,jm1)+wr(i,jp1)-4.0D0*wr(i,j))
+                          & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
       end do
@@ -467,7 +467,7 @@
             ip1 = min0(i+1,iym2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
-                         & +wr(i,jm1)+wr(i,jp1)-4.0D0*wr(i,j))
+                         & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
       end do
@@ -494,7 +494,7 @@
             ip1 = min0(i+1,iym2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
-                         & +wr(i,jm1)+wr(i,jp1)-4.0D0*wr(i,j))
+                         & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
       end do

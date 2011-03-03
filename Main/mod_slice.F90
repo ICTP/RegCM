@@ -78,19 +78,19 @@
         allocate(vbd3d(iy,kz,jx))
 #endif
         if ( ichem == 1 ) then
-          chib3d = 0.0D0
+          chib3d = d_zero
         end if
-        pb3d = 0.0D0
-        qsb3d = 0.0D0
-        rhb3d = 0.0D0
-        rhob3d = 0.0D0
-        ubx3d = 0.0D0
-        vbx3d = 0.0D0
-        qcb3d = 0.0D0
-        qvb3d = 0.0D0
-        tb3d = 0.0D0
-        ubd3d = 0.0D0
-        vbd3d = 0.0D0
+        pb3d = d_zero
+        qsb3d = d_zero
+        rhb3d = d_zero
+        rhob3d = d_zero
+        ubx3d = d_zero
+        vbx3d = d_zero
+        qcb3d = d_zero
+        qvb3d = d_zero
+        tb3d = d_zero
+        ubd3d = d_zero
+        vbd3d = d_zero
 !
       end subroutine allocate_mod_slice
 !
@@ -151,10 +151,10 @@
           do i = 1 , iym1
             idx = max0(i,2)
             idxp1 = min0(i+1,iym1)
-            ubx3d(i,k,j) = 0.25D0* & 
+            ubx3d(i,k,j) = d_rfour* & 
                 (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
                  atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
-            vbx3d(i,k,j) = 0.25D0* &
+            vbx3d(i,k,j) = d_rfour* &
                 (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
                  atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
           end do
@@ -204,7 +204,7 @@
 #endif
 #endif
         do i = 2 , iym1
-          zq(i,kzp1) = 0.0D0
+          zq(i,kzp1) = d_zero
         end do
         do kk = 1 , kz
           k = kzp1 - kk
@@ -218,7 +218,7 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            za(i,k,j) = 0.5D0*(zq(i,k)+zq(i,k+1))
+            za(i,k,j) = d_half*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do
@@ -226,23 +226,23 @@
 !-----Calculate the relative humidity and air density
 
         do i = 2 , iym1
-          psrf = (sps2%ps(i,j)+r8pt)*1000.0D0
+          psrf = (sps2%ps(i,j)+r8pt)*d_1000
           tv = tb3d(i,kz,j)
           rhox2d(i,j) = psrf/(rgas*tv)
         end do
         do k = 1 , kz
           do i = 2 , iym2
-            pres = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
+            pres = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
             rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
             if ( tb3d(i,k,j) > tzero ) then
-              satvp = svp1*1.D3*dexp(svp2*(tb3d(i,k,j)-tzero)           &
+              satvp = svp1*d_1000*dexp(svp2*(tb3d(i,k,j)-tzero)           &
                     & /(tb3d(i,k,j)-svp3))
             else
-              satvp = svp4*1.D3*dexp(svp5-svp6/tb3d(i,k,j))
+              satvp = svp4*d_1000*dexp(svp5-svp6/tb3d(i,k,j))
             end if
             qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
-            rh = 0.0D0
-            if ( qsb3d(i,k,j) > 0.0D0 ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
+            rh = d_zero
+            if ( qsb3d(i,k,j) > d_zero ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
             rhb3d(i,k,j) = rh
           end do
         end do

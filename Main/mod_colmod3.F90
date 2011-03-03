@@ -202,53 +202,53 @@
 !
 !     Reset all arrays
 !
-      alb(:) = 0.0D0
-      albc(:) = 0.0D0
-      aldif(:) = 0.0D0
-      aldir(:) = 0.0D0
-      asdif(:) = 0.0D0
-      asdir(:) = 0.0D0
-      alat(:) = 0.0D0
-      coslat(:) = 0.0D0
-      flns(:) = 0.0D0
-      flnsc(:) = 0.0D0
-      flnt(:) = 0.0D0
-      flntc(:) = 0.0D0
-      flwds(:) = 0.0D0
-      fsds(:) = 0.0D0
-      fsnirt(:) = 0.0D0
-      fsnirtsq(:) = 0.0D0
-      fsnrtc(:) = 0.0D0
-      fsns(:) = 0.0D0
-      fsnsc(:) = 0.0D0
-      fsnt(:) = 0.0D0
-      fsntc(:) = 0.0D0
-      loctim(:) = 0.0D0
-      solin(:) = 0.0D0
-      soll(:) = 0.0D0
-      solld(:) = 0.0D0
-      sols(:) = 0.0D0
-      solsd(:) = 0.0D0
-      srfrad(:) = 0.0D0
-      ts(:) = 0.0D0
-      cld(:,:) = 0.0D0
-      effcld(:,:) = 0.0D0
-      pilnm1(:,:) = 0.0D0
-      pintm1(:,:) = 0.0D0
-      clwp(:,:) = 0.0D0
-      emis(:,:) = 0.0D0
-      fice(:,:) = 0.0D0
-      h2ommr(:,:) = 0.0D0
-      o3mmr(:,:) = 0.0D0
-      o3vmr(:,:) = 0.0D0
-      pmidm1(:,:) = 0.0D0
-      pmlnm1(:,:) = 0.0D0
-      qm1(:,:) = 0.0D0
-      qrl(:,:) = 0.0D0
-      qrs(:,:) = 0.0D0
-      rei(:,:) = 0.0D0
-      rel(:,:) = 0.0D0
-      tm1(:,:) = 0.0D0
+      alb(:) = d_zero
+      albc(:) = d_zero
+      aldif(:) = d_zero
+      aldir(:) = d_zero
+      asdif(:) = d_zero
+      asdir(:) = d_zero
+      alat(:) = d_zero
+      coslat(:) = d_zero
+      flns(:) = d_zero
+      flnsc(:) = d_zero
+      flnt(:) = d_zero
+      flntc(:) = d_zero
+      flwds(:) = d_zero
+      fsds(:) = d_zero
+      fsnirt(:) = d_zero
+      fsnirtsq(:) = d_zero
+      fsnrtc(:) = d_zero
+      fsns(:) = d_zero
+      fsnsc(:) = d_zero
+      fsnt(:) = d_zero
+      fsntc(:) = d_zero
+      loctim(:) = d_zero
+      solin(:) = d_zero
+      soll(:) = d_zero
+      solld(:) = d_zero
+      sols(:) = d_zero
+      solsd(:) = d_zero
+      srfrad(:) = d_zero
+      ts(:) = d_zero
+      cld(:,:) = d_zero
+      effcld(:,:) = d_zero
+      pilnm1(:,:) = d_zero
+      pintm1(:,:) = d_zero
+      clwp(:,:) = d_zero
+      emis(:,:) = d_zero
+      fice(:,:) = d_zero
+      h2ommr(:,:) = d_zero
+      o3mmr(:,:) = d_zero
+      o3vmr(:,:) = d_zero
+      pmidm1(:,:) = d_zero
+      pmlnm1(:,:) = d_zero
+      qm1(:,:) = d_zero
+      qrl(:,:) = d_zero
+      qrs(:,:) = d_zero
+      rei(:,:) = d_zero
+      rel(:,:) = d_zero
+      tm1(:,:) = d_zero
       ioro(:) = 0
 !
 !     Set latitude index to jslc
@@ -342,8 +342,8 @@
 !     Cloud cover at surface interface always zero (for safety's sake)
 !
       do i = 1 , iym1
-        effcld(i,kzp1) = 0.0D0
-        cld(i,kzp1) = 0.0D0
+        effcld(i,kzp1) = d_zero
+        cld(i,kzp1) = d_zero
       end do
 !
 !     Main radiation driving routine.
@@ -425,19 +425,19 @@
 !
 !           Effective liquid radius over ocean and sea ice
 !
-            rliq = 10.0D0
+            rliq = d_10
           else
 !
 !           Effective liquid radius over land
 !
-            rliq = 5.0D0 + 5.0D0* &
-              dmin1(1.D0,dmax1(0.D0,(263.16D0-t(i,k))*0.05D0))
+            rliq = d_five + d_five* &
+              dmin1(d_one,dmax1(d_zero,(263.16D0-t(i,k))*0.05D0))
           end if
 !
           rel(i,k) = rliq
 !fil
-!         test radius = 10.0
-!         rel(i,k) = 10.0
+!         test radius = d_10
+!         rel(i,k) = d_10
 !fil
 !+        rei(i,k) = 30.0
 !
@@ -449,14 +449,14 @@
           picemn = 0.4D0
 !
           pnrml = pmid(i,k)/ps(i)
-          weight = dmax1(dmin1((pnrml-picemn)/pirnge,1.D0),0.D0)
+          weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
           rei(i,k) = reimax - rirnge*weight
 !
 !         Define fractional amount of cloud that is ice
 !
 !         if warmer than -10 degrees C then water phase
 !
-          if ( t(i,k) > 263.16D0 ) fice(i,k) = 0.0D0
+          if ( t(i,k) > 263.16D0 ) fice(i,k) = d_zero
 !
 !         if colder than -10 degrees C but warmer than -30 C mixed phase
 !
@@ -465,12 +465,12 @@
 !
 !         if colder than -30 degrees C then ice phase
 !
-          if ( t(i,k) < 243.16D0 ) fice(i,k) = 1.0D0
+          if ( t(i,k) < 243.16D0 ) fice(i,k) = d_one
 !
 !         Turn off ice radiative properties by setting fice = 0.0
 !
 !fil      no-ice test
-!         fice(i,k) = 0.0
+!         fice(i,k) = d_zero
 !
         end do
       end do
@@ -523,9 +523,9 @@
 !
       do k = 1 , kz
         do i = 1 , iym1
-          kabsi = 0.005D0 + 1.0D0/rei(i,k)
-          kabs = kabsl*(1.0D0-fice(i,k)) + kabsi*fice(i,k)
-          emis(i,k) = 1.0D0 - dexp(-1.66D0*kabs*clwp(i,k))
+          kabsi = 0.005D0 + d_one/rei(i,k)
+          kabs = kabsl*(d_one-fice(i,k)) + kabsi*fice(i,k)
+          emis(i,k) = d_one - dexp(-1.66D0*kabs*clwp(i,k))
         end do
       end do
 !
@@ -591,9 +591,9 @@
 !-----surface pressure and scaled pressure, from which level pressures
 !-----are computed
       do n = 1 , iym1
-        ps(n) = (sps2%ps(n,jslc)+r8pt)*10.0D0
+        ps(n) = (sps2%ps(n,jslc)+r8pt)*d_10
         do nll = 1 , kz
-          pmidm1(n,nll) = (sps2%ps(n,jslc)*a(nll)+r8pt)*10.0D0
+          pmidm1(n,nll) = (sps2%ps(n,jslc)*a(nll)+r8pt)*d_10
 !KN       sclpr(nll)=pmidm1(n,nll)/ps(n)
         end do
       end do
@@ -602,17 +602,17 @@
 !.......... interface pressures:
 !
       do i = 1 , iym1
-        ps(i) = ps(i)*100.0D0
+        ps(i) = ps(i)*d_100
         do k = 1 , kz
 !
-          pmidm1(i,k) = pmidm1(i,k)*100.0D0
+          pmidm1(i,k) = pmidm1(i,k)*d_100
           pmlnm1(i,k) = dlog(pmidm1(i,k))
 !
         end do
       end do
       do k = 1 , kzp1
         do i = 1 , iym1
-          pintm1(i,k) = (sps2%ps(i,jslc)*sigma(k)+r8pt)*1000.0D0
+          pintm1(i,k) = (sps2%ps(i,jslc)*sigma(k)+r8pt)*d_1000
           pilnm1(i,k) = dlog(pintm1(i,k))
         end do
       end do
@@ -633,7 +633,7 @@
 !-----
       do nll = 1 , kz
         do n = 1 , iym1
-          h2ommr(n,nll) = dmax1(1.D-7, &
+          h2ommr(n,nll) = dmax1(1.0D-7, &
                                 atm2%qv(n,nll,jslc)/sps2%ps(n,jslc))
           qm1(n,nll) = h2ommr(n,nll)
         end do
@@ -654,7 +654,7 @@
       do nll = 1 , kz
         do n = 1 , iym1
  
-          ccvtem = 0.0D0   !cqc mod
+          ccvtem = d_zero   !cqc mod
 !KN       cldfrc(n,nll)=dmax1(cldfra(n,nll)*0.9999999,ccvtem)
           cld(n,nll) = dmax1(cldfra(n,nll)*0.9999999D0,ccvtem)
 !KN       cldfrc(n,nll)=dmin1(cldfrc(n,nll),0.9999999)
@@ -678,10 +678,10 @@
           deltaz(n,nll) = rgas*tm1(n,nll)*(pintm1(n,nll+1) - &
                           pintm1(n,nll))/(gti*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
-!KN       if (cldfrc(n,nll) == 0.) clwp(n,nll)=0.0D0
-          if ( dabs(cld(n,nll)) < 1.0D-30 ) then
-            cld(n,nll) = 0.0D0
-            clwp(n,nll) = 0.0D0
+!KN       if (cldfrc(n,nll) == 0.) clwp(n,nll)=d_zero
+          if ( dabs(cld(n,nll)) < lowval ) then
+            cld(n,nll) = d_zero
+            clwp(n,nll) = d_zero
           end if
         end do
       end do
@@ -701,10 +701,10 @@
 !
 !     set cloud fractional cover at top model level = 0
       do n = 1 , iym1
-        cld(n,1) = 0.0D0
-        clwp(n,1) = 0.0D0
-        cld(n,2) = 0.0D0       !yhuang, 8/97 two-level
-        clwp(n,2) = 0.0D0
+        cld(n,1) = d_zero
+        clwp(n,1) = d_zero
+        cld(n,2) = d_zero       !yhuang, 8/97 two-level
+        clwp(n,2) = d_zero
       end do
 !
 !     set cloud fractional cover at bottom (ncld) model levels = 0
@@ -712,9 +712,9 @@
       ncldm1 = ncld - 1
       do nll = kz - ncldm1 , kz
         do n = 1 , iym1
-!KN       cldfrc(n,nll)=0.0D0
-          cld(n,nll) = 0.0D0
-          clwp(n,nll) = 0.0D0
+!KN       cldfrc(n,nll)=d_zero
+          cld(n,nll) = d_zero
+          clwp(n,nll) = d_zero
         end do
       end do
 !
@@ -725,7 +725,7 @@
 !       tg(n)=tgb(n,jlsc)
 !       when using bats calculate an equivalent ground (skin)
 !       temperature by averaging over vegetated and non-vegetated areas
-!jsp    tg(n)=((1.0D0-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
+!jsp    tg(n)=((d_one-vgfrac(n))*tgb(n,jslc)**4.+vgfrac(n)*
 !jsp    1   tlef2d(n,jslc)**4.)**0.25
 !jsp    tg(n)=sfsta%tgbb(n,jslc)
         ts(n) = sfsta%tgbb(n,jslc)
@@ -734,9 +734,9 @@
 !     cloud cover at surface interface always zero
 !
       do i = 1 , iym1
-!KN     effcld(i,kzp1) = 0.0D0
-!KN     cldfrc(i,kzp1) = 0.0D0
-        cld(i,kzp1) = 0.0D0
+!KN     effcld(i,kzp1) = d_zero
+!KN     cldfrc(i,kzp1) = d_zero
+        cld(i,kzp1) = d_zero
       end do
 !
 !KN   adopted from regcm2 above
@@ -750,10 +750,10 @@
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
-        calday = dble(julday) + (nnnnnn-nstrt0)/4.0D0 + &
-                    (xtime/60.0D0+gmt)/24.0D0
+        calday = dble(julday) + (nnnnnn-nstrt0)/d_four + &
+                    (xtime/minph+gmt)/houpd
 !
-        loctim(i) = (calday-dint(calday))*24.0D0
+        loctim(i) = (calday-dint(calday))*houpd
         alat(i) = rlat(i)*degrad
         coslat(i) = dcos(alat(i))
 !

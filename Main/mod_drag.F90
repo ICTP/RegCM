@@ -66,30 +66,30 @@
 !=======================================================================
           if ( lveg(n,i) /= 0 ) then
             zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1(n,i)    &
-                   & *(1.0D0-sigf(n,i))
+                   & *(d_one-sigf(n,i))
           else
             zatild = z1(n,i)
           end if
           ribn(n,i) = zatild*gti*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
-                     & (1.0D0-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
+                     & (d_one-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
 !=======================================================================
 !         2.1  compute the bulk richardson number;
 !         first get avg winds to use for ri number by summing the
 !         squares of horiz., vertical, and convective velocities
 !=======================================================================
-          if ( ribn(n,i) <= 0.0D0 ) then
-            dthdz = (1.0D0-sigf(n,i))*tg1d(n,i) + sigf(n,i)*taf1d(n,i) &
+          if ( ribn(n,i) <= d_zero ) then
+            dthdz = (d_one-sigf(n,i))*tg1d(n,i) + sigf(n,i)*taf1d(n,i) &
                   & - ts1d(n,i)
-            u1 = wtur + 2.0D0*dsqrt(dthdz)
-            ribd(n,i) = us1d(i)**2.0D0 + vs1d(i)**2.0D0 + u1**2.0D0
+            u1 = wtur + d_two*dsqrt(dthdz)
+            ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
           else
             u2 = wtur
-            ribd(n,i) = us1d(i)**2.0D0 + vs1d(i)**2.0D0 + u2**2.0D0
+            ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u2**d_two
           end if
           vspda(n,i) = dsqrt(ribd(n,i))
-          if ( vspda(n,i) < 1.0D0 ) then
-            vspda(n,i) = 1.0D0
-            ribd(n,i) = 1.0D0
+          if ( vspda(n,i) < d_one ) then
+            vspda(n,i) = d_one
+            ribd(n,i) = d_one
           end if
           rib(n,i) = ribn(n,i)/ribd(n,i)
 !=======================================================================
@@ -97,14 +97,14 @@
 !         and stability correction
 !=======================================================================
 !         ****   -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
-          if ( rib(n,i) < 0.0D0 ) then
+          if ( rib(n,i) < d_zero ) then
             cdr(n,i) = cdrn(n,i)* &
-                     (1.0D0+24.5D0*dsqrt(-cdrn(n,i)*rib(n,i)))
+                     (d_one+24.5D0*dsqrt(-cdrn(n,i)*rib(n,i)))
           else
-            cdr(n,i) = cdrn(n,i)/(1.0D0+11.5D0*rib(n,i))
+            cdr(n,i) = cdrn(n,i)/(d_one+11.5D0*rib(n,i))
           end if
 !         3.1  apply lower limit to drag coefficient value
-          cdrmin(n,i) = dmax1(0.25D0*cdrn(n,i),6.D-4)
+          cdrmin(n,i) = dmax1(0.25D0*cdrn(n,i),6.0D-4)
           if ( cdr(n,i) < cdrmin(n,i) ) cdr(n,i) = cdrmin(n,i)
           cdrx(n,i) = cdr(n,i)
  
@@ -133,20 +133,20 @@
       do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i) > 1.5D0 ) then       !  check each point
-            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2.0D0
+            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**d_two
  
 !           4.5  drag coefficient over leads
-            ribl(n,i) = (1.0D0-271.5D0/ts1d(n,i))*z1(n,i)*gti/ribd(n,i)
-            if ( ribl(n,i) >= 0.0D0 ) then
-              clead(n,i) = cdrn(n,i)/(1.0D0+11.5D0*ribl(n,i))
+            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1(n,i)*gti/ribd(n,i)
+            if ( ribl(n,i) >= d_zero ) then
+              clead(n,i) = cdrn(n,i)/(d_one+11.5D0*ribl(n,i))
             else
-              clead(n,i) = cdrn(n,i)*(1.0D0+24.5D0*dsqrt(-cdrn(n,i)* &
+              clead(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)* &
                     & ribl(n,i)))
             end if
  
 !           4.6  calculate weighted avg of ice and lead drag
 !           coefficients
-            cdrx(n,i) = (1.0D0-aarea(n,i))*cdr(n,i) + &
+            cdrx(n,i) = (d_one-aarea(n,i))*cdr(n,i) + &
                                aarea(n,i)*clead(n,i)
           end if
         end do
@@ -184,7 +184,7 @@
 !     ******           sea ice classified same as desert
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( lveg(n,i) <= 0 .and. sice1d(n,i) > 0.0D0 ) lveg(n,i) = 8
+          if ( lveg(n,i) <= 0 .and. sice1d(n,i) > d_zero ) lveg(n,i) = 8
         end do
       end do
  
@@ -197,24 +197,24 @@
           z1log(n,i) = dlog(z1(n,i))
  
            if ( ldoc1d(n,i) > 1.5D0 ) then
-             sigf(n,i) = 0.0D0
-             cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**2.0D0
-           else if ( ldoc1d(n,i) > 0.5D0 ) then
+             sigf(n,i) = d_zero
+             cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**d_two
+           else if ( ldoc1d(n,i) > d_half ) then
 !           ******           drag coeff over land
             frav = sigf(n,i)
             asigf = veg1d(n,i)
-            fras = asigf*wt(n,i) + (1.0D0-asigf)*scvk(n,i)
-            frab = (1.0D0-asigf)*(1.0D0-scvk(n,i))
-            cdb = (vonkar/dlog(z1(n,i)/zlnd))**2.0D0
-            cds = (vonkar/dlog(z1(n,i)/zsno))**2.0D0
+            fras = asigf*wt(n,i) + (d_one-asigf)*scvk(n,i)
+            frab = (d_one-asigf)*(d_one-scvk(n,i))
+            cdb = (vonkar/dlog(z1(n,i)/zlnd))**d_two
+            cds = (vonkar/dlog(z1(n,i)/zsno))**d_two
             cdv = (vonkar/dlog((z1(n,i)-displa(lveg(n,i)))/             &
-                & rough(lveg(n,i))))**2.0D0
+                & rough(lveg(n,i))))**d_two
             cdrn(n,i) = frav*cdv + frab*cdb + fras*cds
  
           else
 !           ******           drag coeff over ocean
-            sigf(n,i) = 0.0D0
-            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**2.0D0
+            sigf(n,i) = d_zero
+            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**d_two
           end if
         end do
       end do
@@ -248,17 +248,17 @@
 ! 
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
-            age = (1.0D0-1.0D0/(1.0D0+sag1d(n,i)))
-            rhosw(n,i) = 0.10D0*(1.0D0+3.0D0*age)
-            densi(n,i) = 0.01D0/(1.0D0+3.0D0*age)
+          if ( ldoc1d(n,i) > d_half ) then
+            age = (d_one-d_one/(d_one+sag1d(n,i)))
+            rhosw(n,i) = 0.10D0*(d_one+d_three*age)
+            densi(n,i) = 0.01D0/(d_one+d_three*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)
-            wt(n,i) = 1.0D0
+            wt(n,i) = d_one
             if ( lveg(n,i) > 0 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))
-              wt(n,i) = wt(n,i)/(1.0D0+wt(n,i))
+              wt(n,i) = wt(n,i)/(d_one+wt(n,i))
             end if
-            sigf(n,i) = (1.0D0-wt(n,i))*veg1d(n,i)
+            sigf(n,i) = (d_one-wt(n,i))*veg1d(n,i)
             scvk(n,i) = scrat(n,i)/(0.1D0+scrat(n,i))
           end if
         end do

@@ -347,8 +347,8 @@
         if ( i_band.eq.1 ) then
           ds = (2.0D0*mathpi*erkm)/dble(jx)
           iproj = 'NORMER'
-          clat  =   0.0
-          clon  = 180.0
+          clat  =   0.0D0
+          clon  = 180.0D0
         end if
 
         ! Defaults to have SAME behaviour of V3 if not specified
@@ -425,10 +425,10 @@
         real(8) , intent(out) :: lat0 , lat1 , lon0 , lon1
         namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
-        lat0 = 0.0
-        lon0 = 0.0
-        lat1 = 0.0
-        lon1 = 0.0
+        lat0 = 0.0D0
+        lon0 = 0.0D0
+        lat1 = 0.0D0
+        lon1 = 0.0D0
 
         read(ipunit, globwindow,err=101)
         return

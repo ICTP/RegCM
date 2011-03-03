@@ -19,6 +19,7 @@
 
       module mod_runparams
 
+      use mod_constants
       use mod_dynparam
       use mod_message
       use mod_service 
@@ -61,7 +62,7 @@
 
       integer, private  :: ierr 
       real(8) , private :: total_allocation_size
-      data total_allocation_size /0.0/
+      data total_allocation_size /d_zero/
       data done_restart /.false./
 
       contains
@@ -88,15 +89,15 @@
         allocate(dtau(nsplit),stat=ierr)
         call check_alloc(ierr,myname,'dtau',size(dtau)*kind(dtau))
 
-        a = 0.0D0
-        anudg = 0.0D0
-        dsigma = 0.0D0
-        qcon = 0.0D0
-        sigma = 0.0D0
-        twt = 0.0D0
-        wgtd = 0.0D0
-        wgtx = 0.0D0
-        dtau = 0.0D0
+        a = d_zero
+        anudg = d_zero
+        dsigma = d_zero
+        qcon = d_zero
+        sigma = d_zero
+        twt = d_zero
+        wgtd = d_zero
+        wgtx = d_zero
+        dtau = d_zero
         
       call report_alloc('allocate_mod_run_params') 
 
@@ -114,7 +115,7 @@
         if (ierr /= 0) then
           call fatal(__FILE__,__LINE__,what//' CANNOT BE allocated')
         end if
-        storage=isize*kind(wgtd(1))
+        storage=dble(isize*kind(wgtd(1)))
 #ifdef DEBUG 
         if (debug_level > 3) then 
            write (buffer,*)  what, &
@@ -132,5 +133,23 @@
           ': total allocation (in Kbyte)=', total_allocation_size*8/1024
         call say
       end subroutine report_alloc
+!
+      logical function iswater(a)
+        real(8) , intent(in) :: a
+        iswater = .false.
+        if (a > 13.5D0 .and. a < 15.5D0) iswater = .true.
+      end function
+!
+      logical function isocean(a)
+        real(8) , intent(in) :: a
+        isocean = .false.
+        if (a > 14.5D0 .and. a < 15.5D0) isocean = .true.
+      end function
+!
+      logical function islake(a)
+        real(8) , intent(in) :: a
+        islake = .false.
+        if (a > 13.5D0 .and. a < 14.5D0) islake = .true.
+      end function
 !
       end module mod_runparams

@@ -21,6 +21,7 @@
 !
 ! Tracer convective transport
 !
+      use mod_constants
       use mod_dynparam
       use mod_trachem
       use mod_mainchem
@@ -59,9 +60,9 @@
 #endif
           do i = 2 , iym1
             if ( icumtop(i,j) > 0 ) then
-              deltas = 0.D0
-              chiabar = 0.D0
-              chibbar = 0.D0
+              deltas = d_zero
+              chiabar = d_zero
+              chibbar = d_zero
               kcumtop = max0(icumtop(i,j),4)
               do k = kcumtop , kz
                 deltas = deltas + dsigma(k)
@@ -71,9 +72,9 @@
 !?            do 95 k=icumtop(i,j),kz      ! yhuang, 12/98
 !qhy
               do k = kcumtop , kz
-                chia(i,k,j,n) = chia(i,k,j,n)*(1.0D0-cumfrc)  &
+                chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc)  &
                               & + cumfrc*chiabar/deltas
-                chib(i,k,j,n) = chib(i,k,j,n)*(1.0D0-cumfrc)  &
+                chib(i,k,j,n) = chib(i,k,j,n)*(d_one-cumfrc)  &
                               & + cumfrc*chibbar/deltas
               end do
             end if

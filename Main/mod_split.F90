@@ -88,19 +88,19 @@
         allocate(uuu(iy,kz,jx))
         allocate(vvv(iy,kz,jx))
 #endif 
-        m = 0.0D0
-        am = 0.0D0
-        an = 0.0D0
-        ddsum = 0.0D0
-        deld = 0.0D0
-        delh = 0.0D0
-        dhsum = 0.0D0
-        psdot = 0.0D0
-        work = 0.0D0
-        uu = 0.0D0
-        vv = 0.0D0
-        uuu = 0.0D0
-        vvv = 0.0D0
+        m = 0
+        am = d_zero
+        an = d_zero
+        ddsum = d_zero
+        deld = d_zero
+        delh = d_zero
+        dhsum = d_zero
+        psdot = d_zero
+        work = d_zero
+        uu = d_zero
+        vv = d_zero
+        uuu = d_zero
+        vvv = d_zero
         call time_end(subroutine_name,idindx)
         end subroutine allocate_mod_split
 !
@@ -143,14 +143,14 @@
 !
 !**   zero new arrays
 
-      spsav%dstor = 0.0D0
-      spsav%hstor = 0.0D0
+      spsav%dstor = d_zero
+      spsav%hstor = d_zero
 !
 !**   compute m.
       do ns = 1 , nsplit
         m(ns) = idnint(dt/dtau(ns))
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          m(ns) = idnint(0.5D0*dt/dtau(ns))
+          m(ns) = idnint(d_half*dt/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
@@ -159,9 +159,9 @@
 #endif
 !
 !**   compute xps and tbarh for use in vmodes.
-      xps = 0.0D0
+      xps = d_zero
       do k = 1 , kz
-        tbarh(k) = 0.0D0
+        tbarh(k) = d_zero
       end do
 #ifdef MPP1
       ijlx = iym1*jendx
@@ -210,13 +210,13 @@
 !
 !**   compute am and an.
       do n = 1 , nsplit
-        an(n) = 0.0D0
+        an(n) = d_zero
         do l = 1 , kz
           an(n) = an(n) + dsigma(l)*zmatx(l,n)
         end do
         do k = 1 , kz
-          am(k,n) = 0.0D0
-          tau(n,k) = 0.0D0
+          am(k,n) = d_zero
+          tau(n,k) = d_zero
         end do
         do l = 1 , kz
           do k = 1 , kz
@@ -226,7 +226,7 @@
         end do
 !
         do k = 1 , kzp1
-          varpa1(n,k) = 0.0D0
+          varpa1(n,k) = d_zero
         end do
         do l = 1 , kz
           do k = 1 , kzp1
@@ -237,9 +237,9 @@
 !
 !**   multiply am, an and zmatx by factor.
       do l = 1 , nsplit
-        fac = 2.0D0*dt/(2.0D0*dble(m(l))+1.0D0)
+        fac = d_two*dt/(d_two*dble(m(l))+d_one)
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          fac = dt/(2.0D0*dble(m(l))+1.0D0)
+          fac = dt/(d_two*dble(m(l))+d_one)
 #ifdef MPP1
         if ( myid == 0 ) print * , 'm, fac = ' , m(l) , fac
 #else
@@ -420,13 +420,13 @@
 #ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
-              spsav%dstor(i,j,l) = 0.0D0
+              spsav%dstor(i,j,l) = d_zero
             end do
           end do
 #else
           do j = 1 , jx
             do i = 1 , iy
-              spsav%dstor(i,j,l) = 0.0D0
+              spsav%dstor(i,j,l) = d_zero
             end do
           end do
 #endif
@@ -536,15 +536,15 @@
 #ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
-              deld(i,j,n,l) = 0.0D0
-              delh(i,j,n,l) = 0.0D0
+              deld(i,j,n,l) = d_zero
+              delh(i,j,n,l) = d_zero
             end do
           end do
 #else
           do j = 1 , jx
             do i = 1 , iy
-              deld(i,j,n,l) = 0.0D0
-              delh(i,j,n,l) = 0.0D0
+              deld(i,j,n,l) = d_zero
+              delh(i,j,n,l) = d_zero
             end do
           end do
 #endif
@@ -577,7 +577,7 @@
         if(jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
-          psdot(i,j)=0.25D0*(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
+          psdot(i,j)=d_rfour*(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
                              sps1%ps(i,jm1)+sps1%ps(i-1,jm1))
         end do
       end do
@@ -586,12 +586,12 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 ) & 
-          psdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
+          psdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
         if ( myid == nproc-1 ) &
-          psdot(i,jendl) = 0.5D0*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
+          psdot(i,jendl) = d_half*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
 #else
-        psdot(i,1) = 0.5D0*(sps1%ps(i,1)+sps1%ps(i-1,1))
-        psdot(i,jx) = 0.5D0*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
+        psdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
+        psdot(i,jx) = d_half*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
 #endif
       end do
 #endif
@@ -609,8 +609,8 @@
 #if defined(BAND) && (!defined(MPP1))
         if(jm1 == 0) jm1=jx
 #endif
-        psdot(1,j) = 0.5D0*(sps1%ps(1,j)+sps1%ps(1,jm1))
-        psdot(iy,j) = 0.5D0*(sps1%ps(iym1,j)+sps1%ps(iym1,jm1))
+        psdot(1,j) = d_half*(sps1%ps(1,j)+sps1%ps(1,jm1))
+        psdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,jm1))
       end do
 !
 #ifndef BAND
@@ -676,7 +676,7 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            deld(i,j,l,3) = 0.0D0
+            deld(i,j,l,3) = d_zero
           end do
         end do
 
@@ -748,7 +748,7 @@
         do j = 1 , jx
 #endif
           do i = 1 , iy
-            deld(i,j,l,2) = 0.0D0
+            deld(i,j,l,2) = d_zero
           end do
         end do
         do k = 1 , kz
@@ -1039,15 +1039,15 @@
 #ifdef MPP1
         do j = 1 , jendl
           do i = 1 , iy
-            ddsum(i,j,n) = 0.0D0
-            dhsum(i,j,n) = 0.0D0
+            ddsum(i,j,n) = d_zero
+            dhsum(i,j,n) = d_zero
           end do
         end do
 #else
         do j = 1 , jx
           do i = 1 , iy
-            ddsum(i,j,n) = 0.0D0
-            dhsum(i,j,n) = 0.0D0
+            ddsum(i,j,n) = d_zero
+            dhsum(i,j,n) = d_zero
           end do
         end do
 #endif
@@ -1059,7 +1059,7 @@
         n1 = 2
         n2 = n0
         m2 = im(ns)*2
-        dtau2 = dtau(ns)*2.0D0
+        dtau2 = dtau(ns)*d_two
 !
 !**     below follows madala(1987)
 !c      do 101 j=1,jlx
@@ -1212,7 +1212,7 @@
         end do
  
 !**     not in madala(1987)
-        fac = (im(ns)-1.0D0)/im(ns)
+        fac = (im(ns)-d_one)/im(ns)
 #ifndef BAND
         do i = 2 , iym2
 #ifdef MPP1
@@ -1385,13 +1385,13 @@
           do i = 2 , iym2
 #ifdef MPP1
             if ( myid == 0 ) &
-              delh(i,1,ns,n2) = 2.0D0*delh(i,1,ns,n1)-delh(i,1,ns,n0)
+              delh(i,1,ns,n2) = d_two*delh(i,1,ns,n1)-delh(i,1,ns,n0)
             if ( myid == nproc-1 ) &
-              delh(i,jendx,ns,n2) = 2.0D0* &
+              delh(i,jendx,ns,n2) = d_two* &
                               delh(i,jendx,ns,n1)-delh(i,jendx,ns,n0)
 #else
-            delh(i,1,ns,n2) = 2.0D0*delh(i,1,ns,n1) - delh(i,1,ns,n0)
-            delh(i,jxm1,ns,n2) = 2.0D0* &
+            delh(i,1,ns,n2) = d_two*delh(i,1,ns,n1) - delh(i,1,ns,n0)
+            delh(i,jxm1,ns,n2) = d_two* &
                              delh(i,jxm1,ns,n1)-delh(i,jxm1,ns,n0)
 #endif
           end do
@@ -1405,8 +1405,8 @@
           do j = 1 , jxm1
 #endif
 #endif
-            delh(1,j,ns,n2) = 2.0D0*delh(1,j,ns,n1)-delh(1,j,ns,n0)
-            delh(iym1,j,ns,n2) = 2.0D0* &
+            delh(1,j,ns,n2) = d_two*delh(1,j,ns,n1)-delh(1,j,ns,n0)
+            delh(iym1,j,ns,n2) = d_two* &
                               delh(iym1,j,ns,n1)-delh(iym1,j,ns,n0)
           end do
 !

@@ -82,9 +82,9 @@
         do i = 2 , iym2
           tmp3(i,k) = (atm2%t(i,k,j)+dt*aten%t(i,k,j))/psc(i,j)
           qvcs(i,k) = dmax1((atm2%qv(i,k,j)+dt*aten%qv(i,k,j))/psc(i,j),&
-                    & 1.D-30)
+                    & lowval)
           qccs(i,k) = dmax1((atm2%qc(i,k,j)+dt*aten%qc(i,k,j))/psc(i,j),&
-                    & 1.D-30)
+                    & lowval)
         end do
       end do
  
@@ -96,17 +96,17 @@
  
 !         2a. Calculate the saturation mixing ratio and relative
 !         humidity
-          pres = (a(k)*psc(i,j)+r8pt)*1000.0D0
+          pres = (a(k)*psc(i,j)+r8pt)*d_1000
           if ( tmp3(i,k) > tzero ) then
-            satvp = svp1*1.D3*dexp(svp2*(tmp3(i,k)-tzero)               &
+            satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero)               &
                   & /(tmp3(i,k)-svp3))
           else
-            satvp = svp4*1.D3*dexp(svp5-svp6/tmp3(i,k))
+            satvp = svp4*d_1000*dexp(svp5-svp6/tmp3(i,k))
           end if
-          qvs = dmax1(ep2*satvp/(pres-satvp),1.D-30)
-          rhc = dmax1(qvcs(i,k)/qvs,1.D-30)
+          qvs = dmax1(ep2*satvp/(pres-satvp),lowval)
+          rhc = dmax1(qvcs(i,k)/qvs,lowval)
 
-          r1 = 1.0D0/(1.0D0+wlhv*wlhv*qvs/ &
+          r1 = d_one/(d_one+wlhv*wlhv*qvs/ &
                       (rwat*cpd*tmp3(i,k)*tmp3(i,k)))
  
 !         2b. Compute the relative humidity threshold at ktau+1
@@ -114,7 +114,7 @@
             rh0adj = rh0(i,j)
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(i,j))/ &
-                      (1.0D0+0.15D0*(tc0-tmp3(i,k)))
+                      (d_one+0.15D0*(tc0-tmp3(i,k)))
           end if
  
 !         2c. Compute the water vapor in excess of saturation
@@ -123,17 +123,17 @@
             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
             tmp1(i,k) = r1*dqv
           else                                     ! Partial cloud cover
-            fccc = 1.0D0 - dsqrt(1.0D0-(rhc-rh0adj)/(rhmax-rh0adj))
-            fccc = dmin1(dmax1(fccc,0.01D0),1.0D0)
+            fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             qvc_cld = dmax1((qsb3d(i,k,j)+dt*aten%qv(i,k,j)/psc(i,j)),  &
-                    & 0.0D0)
+                    & d_zero)
             dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
             tmp1(i,k) = r1*dqv*fccc        ! grid cell average
           end if
  
 !         2d. Compute the new cloud water + old cloud water
           exces = qccs(i,k) + tmp1(i,k)
-          if ( exces >= 0.0D0 ) then
+          if ( exces >= d_zero ) then
                               ! Some cloud is left
             tmp2(i,k) = tmp1(i,k)/dt
           else                ! The cloud evaporates

@@ -79,30 +79,30 @@
         allocate(dlstaf(nnsg,iym1))
         allocate(rib(nnsg,iym1))
         allocate(rib1(nnsg,iym1))
-        lfta = 0.0D0
-        lftb = 0.0D0
-        lftra = 0.0D0
-        lftrs = 0.0D0
-        cdrd = 0.0D0
-        vpdc = 0.0D0
-        rppq = 0.0D0
-        efe = 0.0D0
-        qsatld = 0.0D0
-        dcd = 0.0D0
-        etrc = 0.0D0
-        dels = 0.0D0
-        efpot = 0.0D0
-        tbef = 0.0D0
-        fsol0 = 0.0D0
-        fsold = 0.0D0
-        radf = 0.0D0
-        rmini = 0.0D0
-        trup = 0.0D0
-        trupd = 0.0D0
-        cdrmin = 0.0D0
-        dlstaf = 0.0D0
-        rib = 0.0D0
-        rib1 = 0.0D0
+        lfta = d_zero
+        lftb = d_zero
+        lftra = d_zero
+        lftrs = d_zero
+        cdrd = d_zero
+        vpdc = d_zero
+        rppq = d_zero
+        efe = d_zero
+        qsatld = d_zero
+        dcd = d_zero
+        etrc = d_zero
+        dels = d_zero
+        efpot = d_zero
+        tbef = d_zero
+        fsol0 = d_zero
+        fsold = d_zero
+        radf = d_zero
+        rmini = d_zero
+        trup = d_zero
+        trupd = d_zero
+        cdrmin = d_zero
+        dlstaf = d_zero
+        rib = d_zero
+        rib1 = d_zero
       end subroutine allocate_mod_leaftemp
 !
 !=======================================================================
@@ -175,15 +175,15 @@
 !     (1st guess at vapor pressure deficit)
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
-              vpdc(n,i) = 10.0D0
+              vpdc(n,i) = d_10
               if ( iemiss == 1 ) then
-                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3.0D0)
+                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
               else
-                sgtg3 = sigm*tg1d(n,i)**3.0D0
+                sgtg3 = sigm*tg1d(n,i)**d_three
               end if
-              flneto(n,i) = 4.0D0*sgtg3*(tlef1d(n,i)-tg1d(n,i))
+              flneto(n,i) = d_four*sgtg3*(tlef1d(n,i)-tg1d(n,i))
             end if
           end if
         end do
@@ -206,9 +206,9 @@
 !=======================================================================
 !l    2.   begin iteration for leaf temperature calculation
 !=======================================================================
-      iter = 0.0D0
-      efeb = 0.0D0
-      delmax = 1.0D0
+      iter = 0
+      efeb = d_zero
+      delmax = d_one
       itmax = 10
       itfull = itmax
 !     itmax = 40
@@ -223,9 +223,9 @@
  
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( ldoc1d(n,i) > d_half ) then
               if ( sigf(n,i) > 0.001D0 ) then
-                lftra(n,i) = 1.0D0/(cf(n,i)*uaf(n,i))
+                lftra(n,i) = d_one/(cf(n,i)*uaf(n,i))
                 cn1(n,i) = wtlh(n,i)*rhs1d(n,i)
                 df(n,i) = cn1(n,i)*cpd
  
@@ -247,10 +247,10 @@
 !l      2.4  canopy evapotranspiration
         if ( iter == 0 ) call condcq
  
-        epss = 1.D-10
+        epss = 1.0D-10
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( ldoc1d(n,i) > d_half ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 efpot(n,i) = cn1(n,i)*(wtgaq(n,i)*qsatl(n,i) - &
                                           wtgq0(n,i)*qg1d(n,i) -  &
@@ -258,17 +258,17 @@
  
 !as             if(efpot(n,i) >= 0.) then     !if 0 rpp could have
 !               floating pt
-                if ( efpot(n,i) > 0.0D0 ) then
+                if ( efpot(n,i) > d_zero ) then
                   etr(n,i) = efpot(n,i)*lftra(n,i)*fdry(n,i) / &
                              (lftrs(n,i)+lftra(n,i))
                   rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
                             & dtbat)/efpot(n,i)-epss)
                 else
-                  etr(n,i) = 0.0D0
-                  rpp(n,i) = 1.0D0
+                  etr(n,i) = d_zero
+                  rpp(n,i) = d_one
                 end if
  
-                if ( ( efpot(n,i) >= 0.0D0 ) .and. &
+                if ( ( efpot(n,i) >= d_zero ) .and. &
                      ( etr(n,i) >= etrc(n,i) ) )  then
 !*                transpiration demand exceeds supply, stomat adjust
 !                 demand
@@ -276,7 +276,7 @@
                   rppdry = rppdry/(etr(n,i)/etrc(n,i))
                   etr(n,i) = etrc(n,i)
 !*                recalculate stomatl resistance and rpp
-                  lftrs(n,i) = lftra(n,i)*(fdry(n,i)/rppdry-1.0D0)
+                  lftrs(n,i) = lftra(n,i)*(fdry(n,i)/rppdry-d_one)
                   rpp(n,i) = rppdry + fwet(n,i)
                   rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
                             & dtbat)/efpot(n,i)-epss)
@@ -284,7 +284,7 @@
  
                 rppq(n,i) = wlhv*rpp(n,i)
                 efe(n,i) = rppq(n,i)*efpot(n,i)
-                if ( efe(n,i)*efeb < 0.0D0 ) &
+                if ( efe(n,i)*efeb < d_zero ) &
                   efe(n,i) = 0.1D0*efe(n,i)
               end if
             end if
@@ -306,19 +306,19 @@
 !l      3.3  compute dcn from dcd, output from subr. deriv
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( ldoc1d(n,i) > d_half ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 dcn = dcd(n,i)*tlef1d(n,i)
 !
 !l              1.2  radiative forcing for leaf temperature calculation
                 if ( iemiss == 1 ) then
-                  sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3.0D0)
+                  sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
                 else
-                  sgtg3 = sigm*tg1d(n,i)**3.0D0
+                  sgtg3 = sigm*tg1d(n,i)**d_three
                 end if
-                sf1 = sigf(n,i)*(sabveg(i)-flw1d(i)-(1.0D0-sigf(n,i))* &
-                      flneto(n,i)+4.0D0*sgtg3*tg1d(n,i))
-                sf2 = 4.0D0*sigf(n,i)*sgtg3 + df(n,i)*wtga(n,i) + &
+                sf1 = sigf(n,i)*(sabveg(i)-flw1d(i)-(d_one-sigf(n,i))* &
+                      flneto(n,i)+d_four*sgtg3*tg1d(n,i))
+                sf2 = d_four*sigf(n,i)*sgtg3 + df(n,i)*wtga(n,i) + &
                       dcd(n,i)
  
 !l              3.4  iterative leaf temperature calculation
@@ -336,7 +336,7 @@
 !l              on vapor pressure deficit
                 qcan = wtlq0(n,i)*qsatl(n,i) + qg1d(n,i)*wtgq0(n,i)     &
                      & + qs1d(n,i)*wtaq0(n,i)
-                vpdc(n,i) = (1.0D0-rpp(n,i))*(qsatl(n,i)-qcan)*1.D3/ep2
+                vpdc(n,i) = (d_one-rpp(n,i))*(qsatl(n,i)-qcan)*d_1000/ep2
               end if
             end if
           end do
@@ -350,7 +350,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !=======================================================================
 !l            4.   update dew accumulation (kg/m**2/s)
@@ -371,15 +371,15 @@
               delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
                            & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
               if ( iemiss == 1 ) then
-                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**3.0D0)
+                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
               else
-                sgtg3 = sigm*tg1d(n,i)**3.0D0
+                sgtg3 = sigm*tg1d(n,i)**d_three
               end if
-              flnet(n,i) = sgtg3*(tlef1d(n,i)-tg1d(n,i))*4.0D0
-              xxkb = dmin1(rough(lveg(n,i)),1.D0)
-              vakb = (1.0D0-sigf(n,i))*vspda(n,i) + sigf(n,i) &
-                   & *(xxkb*uaf(n,i)+(1.0D0-xxkb)*vspda(n,i))
-              wtg2(n,i) = (1.0D0-sigf(n,i))*cdr(n,i)*vakb
+              flnet(n,i) = sgtg3*(tlef1d(n,i)-tg1d(n,i))*d_four
+              xxkb = dmin1(rough(lveg(n,i)),d_one)
+              vakb = (d_one-sigf(n,i))*vspda(n,i) + sigf(n,i) &
+                   & *(xxkb*uaf(n,i)+(d_one-xxkb)*vspda(n,i))
+              wtg2(n,i) = (d_one-sigf(n,i))*cdr(n,i)*vakb
               fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
               qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
  
@@ -393,7 +393,7 @@
  
 !l            5.3  deriv of soil energy flux with respect to soil temp
               qsatdg = qg1d(n,i)*rgr(n,i)*lfta(n,i)*(tzero-lftb(n,i))   &
-                     & *(1.0D0/(tg1d(n,i)-lftb(n,i)))**2.0D0
+                     & *(d_one/(tg1d(n,i)-lftb(n,i)))**d_two
               cgrnds(n,i) = rhs1d(n,i)*cpd*(wtg(n,i)*(wta0(n,i)+        &
                      & wtl0(n,i))+wtg2(n,i))
               cgrndl(n,i) = rhs1d(n,i)*qsatdg*((wta(n,i)+wtlq(n,i))*    &
@@ -461,24 +461,24 @@
 !     rad) ***** trup is transmission of direct beam light in one
 !     canopy layer ***** trupd is transmission of diffuse light in one
 !     canopy layer
-      g = 0.5D0
-      difzen = 2.0D0
+      g = d_half
+      difzen = d_two
       ilmax = 4
 !*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !             **********            zenith angle set in zenitm
               if ( (czen(i)/ilmax) > 0.001D0 ) then
                 trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
                 trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
-                if ( trup(n,i) < 1D-30 ) trup(n,i) = 0.0D0
-                if ( trupd(n,i) < 1D-30 ) trupd(n,i) = 0.0D0
+                if ( trup(n,i) < lowval ) trup(n,i) = d_zero
+                if ( trupd(n,i) < lowval ) trupd(n,i) = d_zero
                 fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
-                fsol0(n,i) = (1.0D0-fracd(i))*solis(i)*fc(lveg(n,i))
+                fsol0(n,i) = (d_one-fracd(i))*solis(i)*fc(lveg(n,i))
                 rmini(n,i) = rsmin(lveg(n,i))/rmax0
               end if
             end if
@@ -488,20 +488,20 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
               if ( czen(i)/ilmax > 0.001D0 ) then
-                rad(1) = (1.0D0-trup(n,i))*fsol0(n,i)*ilmax/rlai(n,i)
-                radd(1) = (1.0D0-trupd(n,i))*fsold(n,i) * &
+                rad(1) = (d_one-trup(n,i))*fsol0(n,i)*ilmax/rlai(n,i)
+                radd(1) = (d_one-trupd(n,i))*fsold(n,i) * &
                           ilmax/rlai(n,i)
                 do il = 2 , ilmax
                   rad(il) = trup(n,i)*rad(il-1)
                   radd(il) = trupd(n,i)*radd(il-1)
                 end do
-                radfi = 0.0D0
+                radfi = d_zero
                 do il = 1 , ilmax
                   radfi = radfi + (rad(il)+radd(il)+rmini(n,i)) / &
-                          (1.0D0+rad(il)+radd(il))
+                          (d_one+rad(il)+radd(il))
                 end do
                 radf(n,i) = ilmax/radfi
               end if
@@ -512,11 +512,11 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
               if ( (czen(i)/ilmax) > 0.001D0 ) then
-                vpdf = 1.0D0/dmax1(0.3D0,1.D0-vpdc(n,i)*0.025D0)
-                seas = 1.0D0/(rmini(n,i)+fseas(tlef1d(n,i)))
+                vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,i)*0.025D0)
+                seas = d_one/(rmini(n,i)+fseas(tlef1d(n,i)))
                 lftrs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
                 lftrs(n,i) = dmin1(lftrs(n,i),rmax0)
               else
@@ -533,7 +533,7 @@
         implicit none
         real(8) :: fseas
         real(8) , intent(in) :: x
-        fseas = dmax1(0.0D0,1.0D0-0.0016D0*dmax1(298.D0-x,0.D0)**2.0D0)
+        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
       end function fseas
  
       end subroutine stomat
@@ -562,14 +562,14 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
-              fwet(n,i) = 0.0D0
-              if ( ldew1d(n,i) > 0.0D0 ) then
-                fwet(n,i) = ((dewmxi/vegt(n,i))*ldew1d(n,i))**(2.0D0/3.0D0)
-                fwet(n,i) = dmin1(fwet(n,i),1.D0)
+              fwet(n,i) = d_zero
+              if ( ldew1d(n,i) > d_zero ) then
+                fwet(n,i) = ((dewmxi/vegt(n,i))*ldew1d(n,i))**(d_two/d_three)
+                fwet(n,i) = dmin1(fwet(n,i),d_one)
               end if
-              fdry(n,i) = (1.0D0-fwet(n,i))*xlai(n,i)/xlsai(n,i)
+              fdry(n,i) = (d_one-fwet(n,i))*xlai(n,i)/xlsai(n,i)
             end if
           end if
         end do
@@ -612,22 +612,22 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !             trsmx = trsmx0*sigf(n,i)*seasb(n,i)
               trsmx = trsmx0*sigf(n,i)
               rotf = rootf(lveg(n,i))
               bneg = -bsw(n,i)
-              wmli = 1.0D0/(wiltr(n,i)**bneg-1.0D0)
-              wlttb = (watr(n,i)**bneg-1.0D0)*wmli
-              wltub = (watu(n,i)**bneg-1.0D0)*wmli
-              wlttb = dmin1(wlttb,1.D0)
-              wltub = dmin1(wltub,1.D0)
-              etrc(n,i) = trsmx*(1.0D0-(1.0D0-rotf)*wlttb-rotf*wltub)
-              efpr(n,i) = trsmx*rotf*(1.0D0-wltub)
-              if ( etrc(n,i) < 1.D-12 ) then
-                etrc(n,i) = 1.D-12
-                efpr(n,i) = 1.0D0
+              wmli = d_one/(wiltr(n,i)**bneg-d_one)
+              wlttb = (watr(n,i)**bneg-d_one)*wmli
+              wltub = (watu(n,i)**bneg-d_one)*wmli
+              wlttb = dmin1(wlttb,d_one)
+              wltub = dmin1(wltub,d_one)
+              etrc(n,i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
+              efpr(n,i) = trsmx*rotf*(d_one-wltub)
+              if ( etrc(n,i) < 1.0D-12 ) then
+                etrc(n,i) = 1.0D-12
+                efpr(n,i) = d_one
               else
                 efpr(n,i) = efpr(n,i)/etrc(n,i)
               end if
@@ -689,47 +689,47 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
               tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
                   & + wtg0(n,i)*tg1d(n,i)
               dlstaf(n,i) = ts1d(n,i) - sigf(n,i)                       &
-                           & *tkb - (1.0D0-sigf(n,i))*tg1d(n,i)
-              if ( dlstaf(n,i) <= 0.0D0 ) then
-                dthdz = (1.0D0-sigf(n,i))*tg1d(n,i) + sigf(n,i)         &
+                           & *tkb - (d_one-sigf(n,i))*tg1d(n,i)
+              if ( dlstaf(n,i) <= d_zero ) then
+                dthdz = (d_one-sigf(n,i))*tg1d(n,i) + sigf(n,i)         &
                       & *tkb - ts1d(n,i)
-                u1 = wtur + 2.0D0*dsqrt(dthdz)
-                ribd(n,i) = us1d(i)**2.0D0 + vs1d(i)**2.0D0 + u1**2.0D0
+                u1 = wtur + d_two*dsqrt(dthdz)
+                ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
               else
                 u2 = wtur
-                ribd(n,i) = us1d(i)**2.0D0 + vs1d(i)**2.0D0 + u2**2.0D0
+                ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u2**d_two
               end if
               vspda(n,i) = dsqrt(ribd(n,i))
-              if ( vspda(n,i) < 1.0D0 ) then
-                vspda(n,i) = 1.0D0
-                ribd(n,i) = 1.0D0
+              if ( vspda(n,i) < d_one ) then
+                vspda(n,i) = d_one
+                ribd(n,i) = d_one
               end if
               zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
-                     & + z1(n,i)*(1.0D0-sigf(n,i))
+                     & + z1(n,i)*(d_one-sigf(n,i))
               rib1(n,i) = gti*zatild/(ribd(n,i)*ts1d(n,i))
               rib(n,i) = rib1(n,i)*dlstaf(n,i)
-              if ( rib(n,i) < 0.0D0 ) then
-                cdr(n,i) = cdrn(n,i)*(1.0D0+24.5D0*dsqrt(-cdrn(n,i)*    &
+              if ( rib(n,i) < d_zero ) then
+                cdr(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)*    &
                       & rib(n,i)))
                 sqrtf = dmin1(dsqrt(-cdrn(n,i)/rib(n,i)),11.5D0/12.25D0)
                 cdrd(n,i) = cdrn(n,i)*12.25D0*wtl0(n,i)*rib1(n,i)      &
                            & *sigf(n,i)*sqrtf
               else
-                ribi = 1.0D0/(1.0D0+11.5D0*rib(n,i))
+                ribi = d_one/(d_one+11.5D0*rib(n,i))
                 cdr(n,i) = cdrn(n,i)*ribi
                 cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
                            & *sigf(n,i)
-                cdrmin(n,i) = dmax1(0.25D0*cdrn(n,i),6.D-4)
+                cdrmin(n,i) = dmax1(d_rfour*cdrn(n,i),6.0D-4)
               end if
-              if ( (rib(n,i) >= 0.0D0) ) then
+              if ( (rib(n,i) >= d_zero) ) then
                 if ( (cdr(n,i) < cdrmin(n,i)) ) then
                   cdr(n,i) = cdrmin(n,i)
-                  cdrd(n,i) = 0.0D0
+                  cdrd(n,i) = d_zero
                 end if
               end if
             end if
@@ -765,18 +765,18 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
               uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
               cf(n,i) = 0.01D0*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
               wta(n,i) = sigf(n,i)*cdr(n,i)*vspda(n,i)
               wtlh(n,i) = cf(n,i)*uaf(n,i)*vegt(n,i)
               wtg(n,i) = csoilc*uaf(n,i)*sigf(n,i)
-              wtshi(n,i) = 1.0D0/(wta(n,i)+wtlh(n,i)+wtg(n,i))
+              wtshi(n,i) = d_one/(wta(n,i)+wtlh(n,i)+wtg(n,i))
               wtl0(n,i) = wtlh(n,i)*wtshi(n,i)
               wtg0(n,i) = wtg(n,i)*wtshi(n,i)
               wtgl(n,i) = wtl0(n,i) + wtg0(n,i)
-              wta0(n,i) = 1.0D0 - wtgl(n,i)
+              wta0(n,i) = d_one - wtgl(n,i)
               wtga(n,i) = wta0(n,i) + wtg0(n,i)
             end if
           end if
@@ -812,16 +812,16 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 0.5D0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             if ( sigf(n,i) > 0.001D0 ) then
               rgr(n,i) = gwet1d(n,i)
               wtlq(n,i) = wtlh(n,i)*rpp(n,i)
               wtgq(n,i) = wtg(n,i)*rgr(n,i)
-              wtsqi(n,i) = 1.0D0/(wta(n,i)+wtlq(n,i)+wtgq(n,i))
+              wtsqi(n,i) = d_one/(wta(n,i)+wtlq(n,i)+wtgq(n,i))
               wtgq0(n,i) = wtgq(n,i)*wtsqi(n,i)
               wtlq0(n,i) = wtlq(n,i)*wtsqi(n,i)
               wtglq(n,i) = wtgq0(n,i) + wtlq0(n,i)
-              wtaq0(n,i) = 1.0D0 - wtglq(n,i)
+              wtaq0(n,i) = d_one - wtglq(n,i)
               wtgaq(n,i) = wtaq0(n,i) + wtgq0(n,i)
             end if
           end if
@@ -851,21 +851,21 @@
 !
         do i = 1 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > 0.5D0 ) then
+            if ( ldoc1d(n,i) > d_half ) then
               if ( sigf(n,i) > 0.001D0 ) then
-                dne = 1.0D0/(tlef1d(n,i)-lftb(n,i))
+                dne = d_one/(tlef1d(n,i)-lftb(n,i))
                 qsatld(n,i) = qsatl(n,i)*lfta(n,i) * &
-                              (tzero-lftb(n,i))*dne**2.0D0
+                              (tzero-lftb(n,i))*dne**d_two
                 xkb = cdrd(n,i)/cdr(n,i)
                 hfl = df(n,i)*(wtga(n,i)*tlef1d(n,i) - &
                                wtg0(n,i)*tg1d(n,i)   - &
                                wta0(n,i)*ts1d(n,i))
                 dcd(n,i) = cn1(n,i)*rppq(n,i)*wtgaq(n,i) *   &
-                              qsatld(n,i) + (1.0D0-wtgaq(n,i)) *   &
-                              efe(n,i) * xkb + (1.0D0-wtga(n,i)) * &
+                              qsatld(n,i) + (d_one-wtgaq(n,i)) *   &
+                              efe(n,i) * xkb + (d_one-wtga(n,i)) * &
                               hfl * xkb
-                dcd(n,i) = dmax1(dcd(n,i),0.D0)
-                dcd(n,i) = dmin1(dcd(n,i),500.D0)
+                dcd(n,i) = dmax1(dcd(n,i),d_zero)
+                dcd(n,i) = dmin1(dcd(n,i),500.0D0)
               end if
             end if
           end do

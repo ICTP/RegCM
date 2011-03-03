@@ -38,6 +38,8 @@
       integer , private :: iutox = 123
       integer , private :: oxrec
 
+
+      real(8) , parameter :: convertfact
       contains
 
 
@@ -277,7 +279,7 @@
 
         existing = .false.
 !
-        dtbdys = ibdyfrq*60.0D0*60.0D0
+        dtbdys = ibdyfrq*secph
         if ( myid == 0 ) then
 !        write(*,*)'SSSSSSSSSSSSSSS',ndate1,mdatez(nnnchk+1)
           do
@@ -356,8 +358,8 @@
               end do
             end do
           end do
-!      write(*,*)'O3====',o3_io(17,kz,32)*1e9
-      write(*,*)'MAX O3',maxval(o3_io(:,kz,:))*1e9
+!      write(*,*)'O3====',o3_io(17,kz,32)*convertfac
+      write(*,*)'MAX O3',maxval(o3_io(:,kz,:))*convertfac
           print * , 'NO3'
           do k = kz , 1 , -1
             oxrec = oxrec + 1
@@ -379,8 +381,8 @@
             end do
           end do
       write(*,*)'RECORD',oxrec
-!      write(*,*)'H2O2==',h2o2_io(17,kz,32)*1e9
-      write(*,*)'MAX H2O2',maxval(h2o2_io(:,kz,:))*1e9
+!      write(*,*)'H2O2==',h2o2_io(17,kz,32)*convertfac
+      write(*,*)'MAX H2O2',maxval(h2o2_io(:,kz,:))*convertfac
 
           do j = 1 , jx
             do k = 1 , kz
@@ -415,8 +417,8 @@
          end do
       end do
       write(*,*)'MAX OH 2',maxval(oh(:,kz,:))
-      write(*,*)'MAX O3 2',maxval(o3(:,kz,:))*1e9
-      write(*,*)'MAX H2O2 2',maxval(h2o2(:,kz,:))*1e9
+      write(*,*)'MAX O3 2',maxval(o3(:,kz,:))*convertfac
+      write(*,*)'MAX H2O2 2',maxval(h2o2(:,kz,:))*convertfac
 
 99001 format (a,a,a,a,i0.10)
 

@@ -22,6 +22,7 @@
 ! Storage parameters and constants related to
 !     the boundary layer
 !
+      use mod_constants
       use mod_dynparam
 !
       real(8) , allocatable , dimension(:,:) :: zq
@@ -49,12 +50,12 @@
           allocate(za(iy,kz,jx))
           allocate(rhox2d(iy,jx))
         end if
-        zq = 0.0D0
-        dzq = 0.0D0
-        thvx = 0.0D0
-        thx3d = 0.0D0
-        za = 0.0D0
-        rhox2d = 0.0D0
+        zq = d_zero
+        dzq = d_zero
+        thvx = d_zero
+        thx3d = d_zero
+        za = d_zero
+        rhox2d = d_zero
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim

@@ -425,7 +425,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 
 20 continue
 
-  xscale(m) = j
+  xscale(m) = dble(j)
 
   if ( j /= m ) then
 
@@ -1246,7 +1246,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
      eps2 = 0.001D+00 * norm * abs ( order)
      eps3 = abs ( norm ) * epsilon ( norm )
-     uk = n
+     uk = dble(n)
      uk = sqrt ( uk )
      eps4 = uk * eps3
 
@@ -2387,7 +2387,7 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
         i = low - ii
       end if
 
-      k = xscale(i)
+      k = idint(xscale(i))
 
       if ( k /= i ) then
 
@@ -2512,7 +2512,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 
 20 continue
 
-  xscale(m) = j
+  xscale(m) = dble(j)
 
   if ( j /= m ) then
 
@@ -3115,7 +3115,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !  GROWTO is the criterion for growth.
 !
-     ukroot = uk
+     ukroot = dble(uk)
      ukroot = sqrt ( ukroot )
      growto = 0.1D+00 / ukroot
 
@@ -8816,7 +8816,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !  GROWTO is the criterion for the growth.
 !
-     ukroot = uk
+     ukroot = dble(uk)
      ukroot = sqrt ( ukroot )
      growto = 0.1D+00 / ukroot
 
@@ -14772,7 +14772,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
      eps2 = 0.001D+00 * norm
      eps3 = abs ( norm ) * epsilon ( eps3 )
-     uk = q - p + 1
+     uk = dble(q - p + 1)
      eps4 = uk * eps3
      uk = eps4 / sqrt ( uk )
      s = p
@@ -16568,7 +16568,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 
   end do
 
-  x1 = n
+  x1 = dble(n)
   x1 = x1 * max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
   xu = xu - x1
   t1 = xu
@@ -17110,7 +17110,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
 180 continue
 
-  u = q - p + 1
+  u = dble(q - p + 1)
   x1 = u * x1
   lb = max ( t1, xu-x1 )
   ub = min ( t2, x0+x1 )
@@ -17252,7 +17252,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
   eps2 = 0.001D+00 * norm
   eps3 = abs ( norm ) * epsilon ( eps3 )
-  uk = q - p + 1
+  uk = dble(q - p + 1)
   eps4 = uk * eps3
   uk = eps4 / sqrt ( uk )
   group = 0

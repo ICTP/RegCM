@@ -443,16 +443,16 @@
           allocate(sp2d(jx,iy))
           allocate(atmsrfmask(nnsg,o_nj,o_ni))
           allocate(atmsrfsum(o_nj,o_ni))
-          hsigma(:) = 0.0D0
-          ioxlat(:,:) = 0.0D0
-          ioxlon(:,:) = 0.0D0
-          iotopo(:,:) = 0.0D0
-          iomask(:,:) = 0.0D0
-          iolnds(:,:) = 0.0D0
-          dumio(:,:,:) = 0.0D0
-          sp2d(:,:) = 0.0D0
-          atmsrfmask(:,:,:) = 0.0D0
-          atmsrfsum(:,:) = 0.0D0
+          hsigma(:) = 0.0
+          ioxlat(:,:) = 0.0
+          ioxlon(:,:) = 0.0
+          iotopo(:,:) = 0.0
+          iomask(:,:) = 0.0
+          iolnds(:,:) = 0.0
+          dumio(:,:,:) = 0.0
+          sp2d(:,:) = 0.0
+          atmsrfmask(:,:,:) = 0.0
+          atmsrfsum(:,:) = 0.0
           if (nsg > 1) then
             allocate(ioxlat_s(o_njg,o_nig))
             allocate(ioxlon_s(o_njg,o_nig))
@@ -460,13 +460,13 @@
             allocate(iomask_s(o_njg,o_nig))
             allocate(subio(o_njg,o_nig))
             allocate(sp2d1(jxsg,iysg))
-            ioxlat_s(:,:) = 0.0D0
-            ioxlon_s(:,:) = 0.0D0
-            iotopo_s(:,:) = 0.0D0
-            iotopo_s(:,:) = 0.0D0
-            iomask_s(:,:) = 0.0D0
-            subio(:,:) = 0.0D0
-            sp2d1(:,:) = 0.0D0
+            ioxlat_s(:,:) = 0.0
+            ioxlon_s(:,:) = 0.0
+            iotopo_s(:,:) = 0.0
+            iotopo_s(:,:) = 0.0
+            iomask_s(:,:) = 0.0
+            subio(:,:) = 0.0
+            sp2d1(:,:) = 0.0
           end if
         end subroutine init_mod_ncio
 
@@ -539,11 +539,11 @@
             call say
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
-          if (dabs(dble(ptsp/10.0D0)-dble(ptop)) > 0.001D+00) then
+          if (dabs(dble(ptsp/d_10)-dble(ptop)) > 0.001D+00) then
             write (6,*) 'Error: ptop from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ptop
-            write (6,*) 'DOMAIN file    = ', ptsp/10.0D0
+            write (6,*) 'DOMAIN file    = ', ptsp/d_10
             call fatal(__FILE__,__LINE__, 'DOMAIN ptop ERROR')
           end if
           if (proj /= iproj) then
@@ -553,11 +553,11 @@
             write (6,*) 'DOMAIN file    = ', proj
             call fatal(__FILE__,__LINE__, 'DOMAIN proj ERROR')
           end if
-          if (dabs(dble(dsx/1000.0D0)-dble(ds)) > 0.001D+00) then
+          if (dabs(dble(dsx/d_1000)-dble(ds)) > 0.001D+00) then
             write (6,*) 'Error: ds from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ds
-            write (6,*) 'DOMAIN file    = ', dsx/1000.0D0
+            write (6,*) 'DOMAIN file    = ', dsx/d_1000
             call fatal(__FILE__,__LINE__, 'DOMAIN ds ERROR')
           end if
           if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
@@ -577,18 +577,18 @@
 !
 !         Assign values in the top data modules
 !
-          r8pt = ptsp/10.0D0
+          r8pt = ptsp/d_10
           rpt = ptop
-          tpd = 24.0D0/tapfrq
-          cfd = 24.0D0/chemfrq
-          dx = dsx
+          tpd = houpd/tapfrq
+          cfd = houpd/chemfrq
+          dx = dble(dsx)
           istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
           call check_ok('Variable sigma missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, rsdum)
           call check_ok('Variable sigma read error','DOMAIN FILE ERROR')
-          sigma = rsdum
+          sigma = dble(rsdum)
           do k = 1 , kz
-            hsigma(k) = (sigma(k)+sigma(k+1))/2.0D0
+            hsigma(k) = real((sigma(k)+sigma(k+1))/2.0D0)
           end do
 
         end subroutine open_domain
@@ -617,51 +617,51 @@
           call check_ok('Variable topo missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable topo read error', 'DOMAIN FILE ERROR')
-          ht = transpose(sp2d)
+          ht = dble(transpose(sp2d))
           iotopo = sp2d(o_js:o_je,o_is:o_ie)
           istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
           call check_ok('Variable landuse missing','DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable landuse read error', &
                         'DOMAIN FILE ERROR')
-          lnd = transpose(sp2d)
+          lnd = dble(transpose(sp2d))
           iolnds = sp2d(o_js:o_je,o_is:o_ie)
           istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
           call check_ok('Variable xlat missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable xlat read error', 'DOMAIN FILE ERROR')
-          xlat = transpose(sp2d)
+          xlat = dble(transpose(sp2d))
           ioxlat = sp2d(o_js:o_je,o_is:o_ie)
           latrange = (/minval(ioxlat),maxval(ioxlat)/)
           istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
           call check_ok('Variable xlon missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable xlon read error', 'DOMAIN FILE ERROR')
-          xlon = transpose(sp2d)
+          xlon = dble(transpose(sp2d))
           ioxlon = sp2d(o_js:o_je,o_is:o_ie)
           istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
           call check_ok('Variable xmap missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable xmap read error','DOMAIN FILE ERROR')
-          xmap = transpose(sp2d)
+          xmap = dble(transpose(sp2d))
           istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
           call check_ok('Variable dmap missing','DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable dmap read error', 'DOMAIN FILE ERROR')
-          dmap = transpose(sp2d)
+          dmap = dble(transpose(sp2d))
           istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
           call check_ok('Variable coriol missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable coriol read error', &
                         'DOMAIN FILE ERROR')
-          f = transpose(sp2d)
+          f = dble(transpose(sp2d))
           istatus = nf90_inq_varid(idmin, 'snowam', ivarid)
           call check_ok('Variable snowam missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable snowam read error', &
                         'DOMAIN FILE ERROR')
           do n = 1 , nnsg
-            snw(n,:,:) = transpose(sp2d)
+            snw(n,:,:) = dble(transpose(sp2d))
           end do
           istatus = nf90_inq_varid(idmin, 'mask', ivarid)
           call check_ok('Variable mask missing', 'DOMAIN FILE ERROR')
@@ -690,7 +690,7 @@
           istatus = nf90_get_var(idmin, ivarid, sp2d)
           call check_ok('Variable dhlake read error', &
                         'DOMAIN FILE ERROR')
-          hlake = transpose(sp2d)
+          hlake = dble(transpose(sp2d))
         end subroutine read_domain_lake
 
         subroutine read_subdomain(ht1,lnd1,xlat1,xlon1)
@@ -724,7 +724,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(n,ii,jj) = sp2d1(j,i)*gti
+              ht1(n,ii,jj) = dble(sp2d1(j,i))*gti
             end do
           end do
           iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -743,7 +743,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              lnd1(n,ii,jj) = sp2d1(j,i)
+              lnd1(n,ii,jj) = dble(sp2d1(j,i))
             end do
           end do
           istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
@@ -760,7 +760,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlat1(n,ii,jj) = sp2d1(j,i)
+              xlat1(n,ii,jj) = dble(sp2d1(j,i))
             end do
           end do
           ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -778,7 +778,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              xlon1(n,ii,jj) = sp2d1(j,i)
+              xlon1(n,ii,jj) = dble(sp2d1(j,i))
             end do
           end do
           ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
@@ -821,7 +821,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              hlake1(n,ii,jj) = sp2d1(j,i)
+              hlake1(n,ii,jj) = dble(sp2d1(j,i))
             end do
           end do
         end subroutine read_subdomain_lake
@@ -877,7 +877,7 @@
             do j = 1 , jx
               do i = 1 , iy
                 texture(i,j,n) = dble(toto(j,i))*0.01D0
-                if (texture(i,j,n)<0.0D0) texture(i,j,n)=0.D0
+                if (texture(i,j,n)<d_zero) texture(i,j,n)=d_zero
               end do
             end do
           end do
@@ -918,7 +918,7 @@
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
-                        chemsrc(i,j,m,itr) = toto(j,i)
+                        chemsrc(i,j,m,itr) = dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -941,7 +941,7 @@
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
-                                              & toto(j,i)
+                                              & dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -957,7 +957,7 @@
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
-                        chemsrc(i,j,m,itr) = toto(j,i)
+                        chemsrc(i,j,m,itr) = dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -980,7 +980,7 @@
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
-                                       &        toto(j,i)
+                                       &        dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -996,7 +996,7 @@
                   do m = 1 , 12
                     do j = 1 , jx
                       do i = 1 , iy
-                        chemsrc(i,j,m,itr) = toto(j,i)
+                        chemsrc(i,j,m,itr) = dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -1019,7 +1019,7 @@
                     do j = 1 , jx
                       do i = 1 , iy
                         chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + &
-                                              & toto(j,i)
+                                              & dble(toto(j,i))
                       end do
                     end do
                   end do
@@ -1095,7 +1095,7 @@
             icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
           end do
           if ( ibcnrec > 1 ) then
-            chkdiff = icbc_xtime(2) - icbc_xtime(1)
+            chkdiff = idnint(icbc_xtime(2) - icbc_xtime(1))
             if (chkdiff /= ibdyfrq) then
               write (6,*) 'Time variable in ICBC inconsistency.'
               write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
@@ -1155,11 +1155,11 @@
           istatus = nf90_get_var(ibcin, icbc_ivar(1), xread(:,:,1), & 
                                  istart(1:3), icount(1:3))
           call check_ok('variable ps read error', 'ICBC FILE ERROR')
-          ps = transpose(xread(:,:,1))
+          ps = dble(transpose(xread(:,:,1)))
           istatus = nf90_get_var(ibcin, icbc_ivar(2), xread(:,:,1), & 
                                  istart(1:3), icount(1:3))
           call check_ok('variable ts read error', 'ICBC FILE ERROR')
-          ts = transpose(xread(:,:,1))
+          ts = dble(transpose(xread(:,:,1)))
           istart(4) = ibcrec
           istart(3) = 1
           istart(2) = 1
@@ -1174,7 +1174,7 @@
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-                u(i,k,j) = xread(j,i,k)
+                u(i,k,j) = dble(xread(j,i,k))
               end do
             end do
           end do
@@ -1184,7 +1184,7 @@
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-                v(i,k,j) = xread(j,i,k)
+                v(i,k,j) = dble(xread(j,i,k))
               end do
             end do
           end do
@@ -1194,7 +1194,7 @@
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-                t(i,k,j) = xread(j,i,k)
+                t(i,k,j) = dble(xread(j,i,k))
               end do
             end do
           end do
@@ -1204,7 +1204,7 @@
           do k = 1 , kz
             do j = 1 , jx
               do i = 1 , iy
-                qv(i,k,j) = xread(j,i,k)
+                qv(i,k,j) = dble(xread(j,i,k))
               end do
             end do
           end do
@@ -1215,12 +1215,12 @@
             do k = 1 , kz
               do j = 1 , jx
                 do i = 1 , iy
-                  so4(i,k,j) = xread(j,i,k)
+                  so4(i,k,j) = dble(xread(j,i,k))
                 end do
               end do
             end do
           else
-            so4 = 0.0D+00
+            so4 = d_zero
           end if
         end subroutine read_icbc
 
@@ -1394,7 +1394,7 @@
             call check_ok('Error adding global grid_mapping_name',fterr)
           end if
           istatus = nf90_put_att(ncid, nf90_global,   &
-                   &   'grid_size_in_meters', ds*1000.0D0)
+                   &   'grid_size_in_meters', ds*d_1000)
           call check_ok('Error adding global gridsize', fterr)
           istatus = nf90_put_att(ncid, nf90_global,   &
                    &   'latitude_of_projection_origin', clat)
@@ -1413,8 +1413,8 @@
                      &   'grid_north_pole_longitude', plon)
             call check_ok('Error adding global plon', fterr)
           else if (iproj == 'LAMCON') then
-            trlat(1) = truelatl
-            trlat(2) = truelath
+            trlat(1) = real(truelatl)
+            trlat(2) = real(truelath)
             istatus = nf90_put_att(ncid, nf90_global, &
                      &   'standard_parallel', trlat)
             call check_ok('Error adding global truelat', fterr)
@@ -1633,7 +1633,7 @@
             call check_ok('Error adding rcm_map grid_mapping_name',fterr)
           end if
           istatus = nf90_put_att(ncid, imapvar,   &
-                   &   'grid_size_in_meters', ds*1000.0D0)
+                   &   'grid_size_in_meters', ds*d_1000)
           call check_ok('Error adding rcm_map gridsize', fterr)
           istatus = nf90_put_att(ncid, imapvar,   &
                    &   'latitude_of_projection_origin', clat)
@@ -1652,8 +1652,8 @@
                      &   'grid_north_pole_longitude', plon)
             call check_ok('Error adding rcm_map plon', fterr)
           else if (iproj == 'LAMCON') then
-            trlat(1) = truelatl
-            trlat(2) = truelath
+            trlat(1) = real(truelatl)
+            trlat(2) = real(truelath)
             istatus = nf90_put_att(ncid, imapvar, &
                      &   'standard_parallel', trlat)
             call check_ok('Error adding rcm_map truelat', fterr)
@@ -2219,24 +2219,24 @@
 
           istatus = nf90_put_var(ncid, izvar(1), hsigma)
           call check_ok('Error variable sigma write', fterr)
-          hptop = ptop*10.0D0
+          hptop = real(ptop*d_10)
           istatus = nf90_put_var(ncid, izvar(2), hptop)
           call check_ok('Error variable ptop write', fterr)
           if (ctype == 'LAK') then
             do i = 1 , ndpmax
-              depth(i) = i
+              depth(i) = real(i)
             end do
             istatus = nf90_put_var(ncid, izvar(3), depth)
             call check_ok('Error variable depth write', fterr)
           end if
           if (ctype == 'SUB') then
-            yiy(1) = -(dble((o_nig-1)-1)/2.0D0) * ds
-            xjx(1) = -(dble((o_njg-1)-1)/2.0D0) * ds
+            yiy(1) = -real((dble((o_nig-1)-1)/2.0D0)*ds)
+            xjx(1) = -real((dble((o_njg-1)-1)/2.0D0)*ds)
             do i = 2 , o_nig
-              yiy(i) = yiy(i-1)+ds
+              yiy(i) = yiy(i-1)+real(ds)
             end do
             do j = 2 , o_njg
-              xjx(j) = xjx(j-1)+ds
+              xjx(j) = xjx(j-1)+real(ds)
             end do
             istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_nig))
             call check_ok('Error variable iy write', fterr)
@@ -2251,13 +2251,13 @@
             istatus = nf90_put_var(ncid, illtpvar(4), iomask_s)
             call check_ok('Error variable mask write', fterr)
           else
-            yiy(1) = -(dble(o_ni-1)/2.0D0) * ds
-            xjx(1) = -(dble(o_nj-1)/2.0D0) * ds
+            yiy(1) = -real((dble(o_ni-1)/2.0D0)*ds)
+            xjx(1) = -real((dble(o_nj-1)/2.0D0)*ds)
             do i = 2 , o_ni
-              yiy(i) = yiy(i-1)+ds
+              yiy(i) = yiy(i-1)+real(ds)
             end do
             do j = 2 , o_nj
-              xjx(j) = xjx(j-1)+ds
+              xjx(j) = xjx(j-1)+real(ds)
             end do
             istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
             call check_ok('Error variable iy write', fterr)
@@ -2273,14 +2273,14 @@
             call check_ok('Error variable mask write', fterr)
           end if
           if (ctype == 'SRF' .or. ctype == 'SUB') then
-            rdum1 = 10
+            rdum1 = 10.0
             istatus = nf90_put_var(ncid, isrvvar(1), rdum1)
             call check_ok('Error variable m10 write', fterr)
-            rdum1 = 2
+            rdum1 = 2.0
             istatus = nf90_put_var(ncid, isrvvar(2), rdum1)
             call check_ok('Error variable m2 write', fterr)
-            rdum2(1) = 0
-            rdum2(2) = 1
+            rdum2(1) = 0.0
+            rdum2(2) = 1.0
             istatus = nf90_put_var(ncid, isrvvar(3), rdum2)
             call check_ok('Error variable layer write', fterr)
           end if
@@ -2472,9 +2472,9 @@
             dumio(:,:,1) = 0.0
             do n = 1 , nnsg
               dumio(:,:,1) = dumio(:,:,1) + &
-                             transpose(mask(n,o_is:o_ie,o_js:o_je))
+                             real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
             end do
-            dumio(:,:,1) = dumio(:,:,1) / nnsg
+            dumio(:,:,1) = dumio(:,:,1) / real(nnsg)
             istart(3) = isrfrec
             istart(2) = 1
             istart(1) = 1
@@ -2722,7 +2722,8 @@
 
           if (.not. lmaskfill) then
             do n = 1 , ns
-              atmsrfmask(n,:,:) = transpose(mask(n,o_is:o_ie,o_js:o_je))
+              atmsrfmask(n,:,:) = &
+                    real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
             end do
             where ( atmsrfmask > 0.5 )
               atmsrfmask = 1.0
@@ -2740,7 +2741,8 @@
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
 
-          dumio(:,:,1) = (transpose(ps(o_is:o_ie,o_js:o_je))+rpt)*10.0
+          dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + &
+                               rpt)*d_10)
           istart(3) = iatmrec
           istart(2) = 1
           istart(1) = 1
@@ -2772,9 +2774,9 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = 0.25*(u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                                     u(ip2,k,jp1)+u(ip2,k,jp2)) / &
-                                  ps(ip1,jp1)
+                dumio(j,i,k) = real(d_rfour *    &
+                    (u(ip1,k,jp1)+u(ip1,k,jp2) + &
+                     u(ip2,k,jp1)+u(ip2,k,jp2)) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2795,9 +2797,9 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = 0.25*(v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                                     v(ip2,k,jp1)+v(ip2,k,jp2)) / &
-                                  ps(ip1,jp1)
+                dumio(j,i,k) = real(d_rfour*     &
+                    (v(ip1,k,jp1)+v(ip1,k,jp2) + &
+                     v(ip2,k,jp1)+v(ip2,k,jp2)) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2817,7 +2819,7 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                dumio(j,i,k) = omega(ip1,k,jp1)
+                dumio(j,i,k) = real(omega(ip1,k,jp1))
               end do
             end do
           end do
@@ -2837,7 +2839,7 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                dumio(j,i,k) = t(ip1,k,jp1)/ps(ip1,jp1)
+                dumio(j,i,k) = real(t(ip1,k,jp1)/ps(ip1,jp1))
               end do
             end do
           end do
@@ -2858,8 +2860,8 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                if (qv(ip1,k,jp1) > 1E-30) &
-                  dumio(j,i,k) = qv(ip1,k,jp1)/ps(ip1,jp1)
+                if (qv(ip1,k,jp1) > lowval) &
+                  dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
               end do
             end do
           end do
@@ -2880,8 +2882,8 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                if (qc(ip1,k,jp1) > 1E-30) &
-                  dumio(j,i,k) = qc(ip1,k,jp1)/ps(ip1,jp1)
+                if (qc(ip1,k,jp1) > lowval) &
+                  dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))
               end do
             end do
           end do
@@ -2898,20 +2900,20 @@
           icount(1) = o_nj
 
           dumio(:,:,1) = 0.0
-          where (transpose(rc(o_is:o_ie,o_js:o_je)) > 1E-20)
-            dumio(:,:,1) = transpose(rc(o_is:o_ie,o_js:o_je))
+          where (transpose(rc(o_is:o_ie,o_js:o_je)) > lowval)
+            dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
           end where
-          where (transpose(rnc(o_is:o_ie,o_js:o_je)) > 1E-20)
+          where (transpose(rnc(o_is:o_ie,o_js:o_je)) > lowval)
             dumio(:,:,1) = dumio(:,:,1) + &
-                           transpose(rnc(o_is:o_ie,o_js:o_je))
+                           real(transpose(rnc(o_is:o_ie,o_js:o_je)))
           end where
-          dumio(:,:,1) = dumio(:,:,1)*tpd
+          dumio(:,:,1) = dumio(:,:,1)*real(tpd)
           istatus = nf90_put_var(ncatm, iatmvar(9), & 
                      dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//atm_names(9)//' at '//ctime, &
                         'ATM FILE ERROR')
-          dumio(:,:,1) = transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), &
-                                       dim=1)*xns2r)
+          dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), &
+                                       dim=1)*xns2r))
           istatus = nf90_put_var(ncatm, iatmvar(10), & 
                      dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//atm_names(10)//' at '//ctime, &
@@ -2920,7 +2922,7 @@
           do n = 1 , ns
             where (atmsrfmask(n,:,:) > 0)
               dumio(:,:,1) = dumio(:,:,1) + &
-                    transpose(swt(n,o_is:o_ie,o_js:o_je))
+                    real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
             end where
           end do
           where (atmsrfsum > 0)
@@ -2936,7 +2938,7 @@
           do n = 1 , ns
             where (atmsrfmask(n,:,:) > 0)
               dumio(:,:,1) = dumio(:,:,1) + &
-                    transpose(rno(n,o_is:o_ie,o_js:o_je))
+                    real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
             end where
           end do
           where (atmsrfsum > 0)
@@ -2999,7 +3001,7 @@
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
 
-          dumio(:,:,1) = transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*10.0
+          dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*d_10)
           istart(3) = icherec
           istart(2) = 1
           istart(1) = 1
@@ -3022,8 +3024,8 @@
             icount(2) = o_ni
             icount(1) = o_nj
             do k = 1 , nz
-              dumio(:,:,k) = transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
-                                       ps(o_is:o_ie,o_js:o_je))
+              dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
+                                       ps(o_is:o_ie,o_js:o_je)))
             end do
             istatus = nf90_put_var(ncche, ichevar(3), &
                                  dumio, istart, icount)
@@ -3040,21 +3042,21 @@
           icount(2) = o_ni
           icount(1) = o_nj
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerext(o_is:o_ie,k,o_js:o_je))
+            dumio(:,:,k) = real(transpose(aerext(o_is:o_ie,k,o_js:o_je)))
           end do
           istatus = nf90_put_var(ncche, ichevar(4), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(4)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerssa(o_is:o_ie,k,o_js:o_je))
+            dumio(:,:,k) = real(transpose(aerssa(o_is:o_ie,k,o_js:o_je)))
           end do
           istatus = nf90_put_var(ncche, ichevar(5), &
                                  dumio, istart(1:4), icount(1:4))
           call check_ok('Error writing '//che_names(5)//' at '//ctime, &
                         'CHE FILE ERROR')
           do k = 1 , nz
-            dumio(:,:,k) = transpose(aerasp(o_is:o_ie,k,o_js:o_je))
+            dumio(:,:,k) = real(transpose(aerasp(o_is:o_ie,k,o_js:o_je)))
           end do
           istatus = nf90_put_var(ncche, ichevar(6), &
                                  dumio, istart(1:4), icount(1:4))
@@ -3069,37 +3071,37 @@
             icount(3) = 1
             icount(2) = o_ni
             icount(1) = o_nj
-            dumio(:,:,1) = transpose(dtrace(o_is:o_ie,o_js:o_je,n))
+            dumio(:,:,1) = real(transpose(dtrace(o_is:o_ie,o_js:o_je,n)))
             istatus = nf90_put_var(ncche, ichevar(7), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(7)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(8), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(8)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(9), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(9)//' at '//ctime,&
                           'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(10), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(10)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(11), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(11)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(12), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(12)// &
                           ' at '//ctime, 'CHE FILE ERROR')
-            dumio(:,:,1) = transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd
+            dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
             istatus = nf90_put_var(ncche, ichevar(13), &
                                  dumio(:,:,1), istart(1:4), icount(1:4))
             call check_ok('Error writing '//che_names(13)// &
@@ -3111,22 +3113,22 @@
           icount(3) = 1
           icount(2) = o_ni
           icount(1) = o_nj
-          dumio(:,:,1) = transpose(aertarf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = real(transpose(aertarf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche, ichevar(14), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(14)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = real(transpose(aersrrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche, ichevar(15), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(15)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aertalwrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = real(transpose(aertalwrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche, ichevar(16), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(16)//' at '//ctime, &
                         'CHE FILE ERROR')
-          dumio(:,:,1) = transpose(aersrlwrf(o_is:o_ie,o_js:o_je))
+          dumio(:,:,1) = real(transpose(aersrlwrf(o_is:o_ie,o_js:o_je)))
           istatus = nf90_put_var(ncche, ichevar(17), &
                                dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//che_names(17)//' at '//ctime, &
@@ -3188,21 +3190,24 @@
 
           ! Add lake model output
           dumio(:,:,1) =  &
-               transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))/nnsg
+               real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))/ &
+               dble(nnsg))
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
                         ' at '//ctime, 'LAK FILE ERROR')
           ivar = ivar + 1
           dumio(:,:,1) =  &
-               transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))/nnsg
+               real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))/ &
+               dble(nnsg))
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
                         ' at '//ctime, 'LAK FILE ERROR')
           ivar = ivar + 1
           dumio(:,:,1) =  &
-               transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))/nnsg
+               real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))/ &
+               dble(nnsg))
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
@@ -3218,9 +3223,10 @@
             icount(2) = o_ni
             icount(1) = o_nj
             dumio(:,:,1) =  &
-               transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))/nnsg
+               real(transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))/ &
+               dble(nnsg))
             where (iolnds == 14)
-              dumio(:,:,1) = dumio(:,:,1) + tzero
+              dumio(:,:,1) = dumio(:,:,1) + real(tzero)
             end where
             istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart, icount)
