@@ -195,7 +195,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
-      use mod_constants , only : rgas , rgti , lrate
+      use mod_constants , only : rgas , regrav , lrate
       implicit none
 !
 ! Dummy arguments
@@ -250,7 +250,7 @@
                 fp(i,j,n) = f(i,j,km)
               else if ( sigp>1. ) then
                 fp(i,j,n) = f(i,j,kbc)                                  &
-                          & *exp(+rgas*lrate*log(sigp/sig(kbc))*rgti)
+                          & *exp(+rgas*lrate*log(sigp/sig(kbc))*regrav)
 !               ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
               else
               end if
@@ -268,7 +268,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intlog_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
-      use mod_constants , only : rgas , rgti , lrate 
+      use mod_constants , only : rgas , regrav , lrate 
       implicit none
 !
 ! Dummy arguments
@@ -322,7 +322,7 @@
               fp(i,j,n) = f(i,j,km)
             else if ( sigp>1. ) then
               fp(i,j,n) = f(i,j,kbc)                                    &
-                        & *exp(rgas*lrate*log(sigp/sig(kbc))*rgti)
+                        & *exp(rgas*lrate*log(sigp/sig(kbc))*regrav)
 !             ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
             else
             end if
@@ -445,13 +445,13 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-      use mod_constants , only : rgas , gti , lrate
+      use mod_constants , only : rgas , egrav , lrate
       implicit none
 !
 ! PARAMETER definitions
 !
       real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -gti/lrate
+      real(4) , parameter :: b1 = -egrav/lrate
       real(4) , parameter :: psccm = 100.
 !
 ! Dummy arguments
@@ -524,13 +524,13 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
-      use mod_constants , only : rgas , gti , lrate
+      use mod_constants , only : rgas , egrav , lrate
       implicit none
 !
 ! PARAMETER definitions
 !
       real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -gti/lrate
+      real(4) , parameter :: b1 = -egrav/lrate
 !
 ! Dummy arguments
 !

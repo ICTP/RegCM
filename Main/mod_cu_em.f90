@@ -21,8 +21,6 @@
 !
 ! Kerry Emanuel Convective scheme
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_pmoist
@@ -473,7 +471,7 @@
               qnew = (alv*q(j)-(tnew-t(j)) * &
                      (cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
-              precip = precip + 1.0D5*(ph(j)-ph(j+1))*(q(j)-qnew)*rgti/ &
+              precip = precip + 1.0D5*(ph(j)-ph(j+1))*(q(j)-qnew)*regrav/ &
                         (delt*rowl)                         ! mm/s
               t(j) = tnew
               q(j) = qnew
@@ -876,12 +874,12 @@
 !
 !         ***              calculate detrained precipitation           
 !         ***
-          wdtrain = gti*ep(i)*m(i)*clw(i)
+          wdtrain = egrav*ep(i)*m(i)*clw(i)
           if ( i > 1 ) then
             do j = 1 , i - 1
               awat = elij(j,i) - (d_one-ep(i))*clw(i)
               awat = dmax1(d_zero,awat)
-              wdtrain = wdtrain + gti*awat*ment(j,i)
+              wdtrain = wdtrain + egrav*awat*ment(j,i)
             end do
           end if
 !
@@ -918,7 +916,7 @@
           if ( i /= 1 ) then
             dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
             dhdp = dmax1(dhdp,d_10)
-            mp(i) = d_100*rgti*lv(i)*sigd*evap(i)/dhdp
+            mp(i) = d_100*regrav*lv(i)*sigd*evap(i)/dhdp
             mp(i) = dmax1(mp(i),d_zero)
 !
 !           ***   add small amount of inertia to downdraft             
@@ -946,7 +944,7 @@
             if ( mp(i) > mp(i+1) ) then
               rat = mp(i+1)/mp(i)
               qp(i) = qp(i+1)*rat + q(i)*(d_one-rat)                    &
-                    & + d_100*rgti*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
+                    & + d_100*regrav*sigd*(ph(i)-ph(i+1))*(evap(i)/mp(i))
               up(i) = up(i+1)*rat + u(i)*(d_one-rat)
               vp(i) = vp(i+1)*rat + v(i)*(d_one-rat)
               do j = 1 , ntra
@@ -969,7 +967,7 @@
 !       ***  calculate surface precipitation in mm/s     ***
 !
 !rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
-        precip = precip + wt(1)*sigd*water(1)*d_1000/(rowl*gti)
+        precip = precip + wt(1)*sigd*water(1)*d_1000/(rowl*egrav)
                                                         ! mm/s
       end if
 !
@@ -991,25 +989,25 @@
           am = am + m(k)
         end do
       end if
-      if ( (d_two*gti*dpinv*am) >= delti ) iflag = 4
-      ft(1) = ft(1) + gti*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
+      if ( (d_two*egrav*dpinv*am) >= delti ) iflag = 4
+      ft(1) = ft(1) + egrav*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
       ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
       ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))          &
             & *dpinv/cpn(1)
-      fq(1) = fq(1) + gti*mp(2)*(qp(2)-q(1))*dpinv + sigd*evap(1)
-      fq(1) = fq(1) + gti*am*(q(2)-q(1))*dpinv
-      fu(1) = fu(1) + gti*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
-      fv(1) = fv(1) + gti*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
+      fq(1) = fq(1) + egrav*mp(2)*(qp(2)-q(1))*dpinv + sigd*evap(1)
+      fq(1) = fq(1) + egrav*am*(q(2)-q(1))*dpinv
+      fu(1) = fu(1) + egrav*dpinv*(mp(2)*(up(2)-u(1))+am*(u(2)-u(1)))
+      fv(1) = fv(1) + egrav*dpinv*(mp(2)*(vp(2)-v(1))+am*(v(2)-v(1)))
       do j = 1 , ntra
-        ftra(1,j) = ftra(1,j) + gti*dpinv*(mp(2)*(trap(2,j)-tra(1,j)) + &
+        ftra(1,j) = ftra(1,j) + egrav*dpinv*(mp(2)*(trap(2,j)-tra(1,j)) + &
                     am*(tra(2,j)-tra(1,j)))
       end do
       do j = 2 , inb
-        fq(1) = fq(1) + gti*dpinv*ment(j,1)*(qent(j,1)-q(1))
-        fu(1) = fu(1) + gti*dpinv*ment(j,1)*(uent(j,1)-u(1))
-        fv(1) = fv(1) + gti*dpinv*ment(j,1)*(vent(j,1)-v(1))
+        fq(1) = fq(1) + egrav*dpinv*ment(j,1)*(qent(j,1)-q(1))
+        fu(1) = fu(1) + egrav*dpinv*ment(j,1)*(uent(j,1)-u(1))
+        fv(1) = fv(1) + egrav*dpinv*ment(j,1)*(vent(j,1)-v(1))
         do k = 1 , ntra
-          ftra(1,k) = ftra(1,k) + gti*dpinv*ment(j,1)                   &
+          ftra(1,k) = ftra(1,k) + egrav*dpinv*ment(j,1)                   &
                     & *(traent(j,1,k)-tra(1,k))
         end do
       end do
@@ -1035,56 +1033,56 @@
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (d_two*gti*dpinv*amp1) >= delti ) iflag = 4
+        if ( (d_two*egrav*dpinv*amp1) >= delti ) iflag = 4
         do k = 1 , i - 1
           do j = i , inb
             ad = ad + ment(j,k)
           end do
         end do
-        ft(i) = ft(i) + gti*dpinv*(amp1*(t(i+1)-t(i)+ &
+        ft(i) = ft(i) + egrav*dpinv*(amp1*(t(i+1)-t(i)+ &
                    (gz(i+1)-gz(i))*cpinv)-ad*(t(i)-t(i-1)+ &
                    (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
-        ft(i) = ft(i) + gti*dpinv*ment(i,i)                             &
+        ft(i) = ft(i) + egrav*dpinv*ment(i,i)                             &
               & *(hp(i)-h(i)+t(i)*(cpv-cpd)*(q(i)-qent(i,i)))*cpinv
         ft(i) = ft(i) + sigd*wt(i+1)*(cl-cpd)*water(i+1)*(t(i+1)-t(i))  &
               & *dpinv*cpinv
-        fq(i) = fq(i) + gti*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
-        fu(i) = fu(i) + gti*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
-        fv(i) = fv(i) + gti*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
+        fq(i) = fq(i) + egrav*dpinv*(amp1*(q(i+1)-q(i))-ad*(q(i)-q(i-1)))
+        fu(i) = fu(i) + egrav*dpinv*(amp1*(u(i+1)-u(i))-ad*(u(i)-u(i-1)))
+        fv(i) = fv(i) + egrav*dpinv*(amp1*(v(i+1)-v(i))-ad*(v(i)-v(i-1)))
         do k = 1 , ntra
           ftra(i,k) = ftra(i,k)                                         &
-                    & + gti*dpinv*(amp1*(tra(i+1,k)-tra(i,k))-ad*       &
+                    & + egrav*dpinv*(amp1*(tra(i+1,k)-tra(i,k))-ad*       &
                     & (tra(i,k)-tra(i-1,k)))
         end do
         do k = 1 , i - 1
           awat = elij(k,i) - (d_one-ep(i))*clw(i)
           awat = dmax1(awat,d_zero)
-          fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
-          fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
-          fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          fq(i) = fq(i) + egrav*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
+          fu(i) = fu(i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i) = fv(i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(i))
           do j = 1 , ntra
-            ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
+            ftra(i,j) = ftra(i,j) + egrav*dpinv*ment(k,i)                 &
                       & *(traent(k,i,j)-tra(i,j))
           end do
         end do
         do k = i , inb
-          fq(i) = fq(i) + gti*dpinv*ment(k,i)*(qent(k,i)-q(i))
-          fu(i) = fu(i) + gti*dpinv*ment(k,i)*(uent(k,i)-u(i))
-          fv(i) = fv(i) + gti*dpinv*ment(k,i)*(vent(k,i)-v(i))
+          fq(i) = fq(i) + egrav*dpinv*ment(k,i)*(qent(k,i)-q(i))
+          fu(i) = fu(i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(i))
+          fv(i) = fv(i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(i))
           do j = 1 , ntra
-            ftra(i,j) = ftra(i,j) + gti*dpinv*ment(k,i)                 &
+            ftra(i,j) = ftra(i,j) + egrav*dpinv*ment(k,i)                 &
                       & *(traent(k,i,j)-tra(i,j))
           end do
         end do
-        fq(i) = fq(i) + sigd*evap(i)+ gti*(mp(i+1)                      &
+        fq(i) = fq(i) + sigd*evap(i)+ egrav*(mp(i+1)                      &
               & *(qp(i+1)-q(i))-mp(i)*(qp(i)-q(i-1)))*dpinv
-        fu(i) = fu(i) + gti*(mp(i+1)*(up(i+1)-u(i))-mp(i)*              &
+        fu(i) = fu(i) + egrav*(mp(i+1)*(up(i+1)-u(i))-mp(i)*              &
               & (up(i)-u(i-1)))*dpinv
-        fv(i) = fv(i) + gti*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*              &
+        fv(i) = fv(i) + egrav*(mp(i+1)*(vp(i+1)-v(i))-mp(i)*              &
               & (vp(i)-v(i-1)))*dpinv
         do j = 1 , ntra
           ftra(i,j) = ftra(i,j)                                         &
-                    & + gti*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-mp(i) &
+                    & + egrav*dpinv*(mp(i+1)*(trap(i+1,j)-tra(i,j))-mp(i) &
                     & *(trap(i,j)-trap(i-1,j)))
         end do
       end do

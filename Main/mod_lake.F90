@@ -21,9 +21,7 @@
 !     LAKE MODEL
 !
       module mod_lake
-
-      use mod_constants
-      use mod_dynparam
+!
       use mod_runparams
       use mod_main
       use mod_bats
@@ -367,8 +365,8 @@
 
 !       Brunt Vaisala frequency squared : we do not mind stability,
 !       we just look for energy here.
-!        n2 = dabs((dpdz/dnsty(k))*gti)
-        n2 = (dpdz/dnsty(k))*gti
+!        n2 = dabs((dpdz/dnsty(k))*egrav)
+        n2 = (dpdz/dnsty(k))*egrav
         if (dabs(n2) < lowval) then
           de(k) = demin
           cycle
@@ -574,9 +572,10 @@
         if ( t0 >= tf ) then
  
           if ( hs > d_zero ) then
-            ds = dtx*                                        &
-               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+ &
-               &  theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/(rhos*li)
+            ds = dtx*                                            &
+               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
+               &  theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen)) / &
+               & (rhosnow*li)
             if ( ds > d_zero ) ds = d_zero
             hs = hs + ds
             if ( hs < d_zero ) then
@@ -587,7 +586,8 @@
           if ( (dabs(hs) < lowval) .and. (aveice > d_zero) ) then
             di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
-                 theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/(rhoi*li)
+                 theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/ &
+                 (rhoice*li)
             if ( di > d_zero ) di = d_zero
             hi = hi + di
           end if
@@ -598,7 +598,7 @@
              & + theta*(t0-tac) - fsw
           qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) +         &
                & fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
-          di = dtx*(q0-qw-qpen)/(rhoi*li)
+          di = dtx*(q0-qw-qpen)/(rhoice*li)
  
           hi = hi + di
         end if

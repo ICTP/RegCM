@@ -22,8 +22,6 @@
 !     This module implements Kuo cumulus parameterization scheme.
 !     The basic method follows Anthes and Keyser (1979) and Kuo (1983).
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_cvaria
@@ -148,12 +146,12 @@
 !
           emax = qmax*pmax/(ep2+qmax)
           tdmax = 5418.12D0/(19.84659D0-dlog(emax/0.611D0))
-          dalr = gti*rcpd
-          dplr = (gti*tdmax*tdmax)/(ep2*wlhv*tmax)
+          dalr = egrav*rcpd
+          dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
           tmean = d_half*(tmax+tlcl)
-          dlnp = (gti*zlcl)/(rgas*tmean)
+          dlnp = (egrav*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
           siglcl = (plcl-r8pt)/sps1%ps(i,j)
 !
@@ -280,7 +278,7 @@
                 end do
               end if
 !.....the     unit for rainfall is mm.
-              prainx = (d_one-c301)*sca*dtmin*60000.0D0*rgti
+              prainx = (d_one-c301)*sca*dtmin*60000.0D0*regrav
               sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)

@@ -21,8 +21,6 @@
 !
 ! Prepare and fill 3D spaces for calculations
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_mainchem

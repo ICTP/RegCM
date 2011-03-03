@@ -21,11 +21,9 @@
 !
 ! Tracer convective transport
 !
-      use mod_constants
-      use mod_dynparam
+      use mod_runparams
       use mod_trachem
       use mod_mainchem
-      use mod_runparams
 !
       private
 !

@@ -86,9 +86,7 @@
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-      use mod_constants
       use mod_runparams
-      use mod_dynparam
       use mod_bats
       use mod_date
       use mod_radiation
@@ -676,7 +674,7 @@
           clwtem = cldlwc(n,nll)
                                !cqc mod
           deltaz(n,nll) = rgas*tm1(n,nll)*(pintm1(n,nll+1) - &
-                          pintm1(n,nll))/(gti*pmidm1(n,nll))
+                          pintm1(n,nll))/(egrav*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
 !KN       if (cldfrc(n,nll) == 0.) clwp(n,nll)=d_zero
           if ( dabs(cld(n,nll)) < lowval ) then

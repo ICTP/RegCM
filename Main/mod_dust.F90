@@ -450,8 +450,8 @@
 ! 
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
-      term1 = dsqrt(d_one+(c1/(rhop*gti*0.1D0*(dm**c5))))
-      term2 = dsqrt(rhop*gti*d_100*dm/rhair)
+      term1 = dsqrt(d_one+(c1/(rhop*egrav*0.1D0*(dm**c5))))
+      term2 = dsqrt(rhop*egrav*d_100*dm/rhair)
       term = term1*term2
       ustart01 = cvmgt(a2*term*(d_one-c3*dexp(c4*(rep-d_10))),  &
                & a2*term/dsqrt(c2*(rep**0.092D0)-d_one),rep > d_10)
@@ -481,7 +481,7 @@
 ! 
       sigma = rhop/rhoa
       dm = dum*1.0D-2
-      ustart0 = f*(sigma*gti*dm+agamma/(rhoa*dm))
+      ustart0 = f*(sigma*egrav*dm+agamma/(rhoa*dm))
       ustart0 = dsqrt(ustart0)
       ustart0 = ustart0*d_100
 !
@@ -765,7 +765,7 @@
               if ( uth <= d_one ) then
  
                 fdp1 = ustar(i)**d_three*(d_one-uth*uth)
-                fdp2 = (d_one+uth)*const*(1.0D-5)*roarow(i)*rgti
+                fdp2 = (d_one+uth)*const*(1.0D-5)*roarow(i)*regrav
  
                 if ( fdp2 <= d_zero ) fdp2 = d_zero
  

@@ -50,7 +50,7 @@
       real(8) , parameter :: houpd = 24.0D+00
 
       ! Standard Gravity (m/sec**2) 3rd CGPM
-      real(8) , parameter :: gti = 9.80665D+00
+      real(8) , parameter :: egrav = 9.80665D+00
 
       ! Gas constant for dry air in Joules/kg/K
       real(8) , parameter :: rgas = 287.0058D+00
@@ -79,16 +79,16 @@
       real(8) , parameter :: wlhs = wlhv + wlhf
 
       ! Various utility terms used in calculations
-      real(8) , parameter :: rgti = d_one/gti
+      real(8) , parameter :: regrav = d_one/egrav
       real(8) , parameter :: rcpd = d_one/cpd
       real(8) , parameter :: rovcp = rgas*rcpd
-      real(8) , parameter :: rovg  = rgas/gti
-      real(8) , parameter :: govr  = gti/rgas
+      real(8) , parameter :: rovg  = rgas/egrav
+      real(8) , parameter :: govr  = egrav/rgas
       real(8) , parameter :: vtmpc1 = rwat/rgas - d_one
       real(8) , parameter :: vtmpc2 = cpv*rcpd - d_one
       real(8) , parameter :: rhoh2o = 1000.0D+00
-      real(8) , parameter :: rhos = 330.0D+00
-      real(8) , parameter :: rhoi = 917.0D+00
+      real(8) , parameter :: rhosnow = 330.0D+00
+      real(8) , parameter :: rhoice = 917.0D+00
       real(8) , parameter :: tzero = 273.15D+00
       real(8) , parameter :: rtzero = d_one/tzero
       real(8) , parameter :: wattp = 273.16D+00
@@ -139,9 +139,9 @@
       ! Maximum stomatl resistance (s/m)
       real(8) , parameter :: rmax0 = 2.0D+04
 
-      ! Maximum allowed dew(mm) and inverse (dewmxi)
-      real(8) , parameter :: dewmx = 0.1D+00
-      real(8) , parameter :: dewmxi = d_one/dewmx
+      ! Maximum allowed dew(mm) and inverse (dewmaxi)
+      real(8) , parameter :: dewmax = 0.1D+00
+      real(8) , parameter :: dewmaxi = d_one/dewmax
 
       ! Maximum rate of transpiration with saturated soil (kg/m**2/s)
       real(8) , parameter :: trsmx0 = 2.D-04
@@ -240,14 +240,14 @@
       real(8) , parameter :: xls1 = 259.532D+00
 
       ! GTS system constants
-      real(8) , parameter :: gtigts = gti*d_100
-      real(8) , parameter :: rga = d_one/gtigts
+      real(8) , parameter :: egravgts = egrav*d_100
+      real(8) , parameter :: rga = d_one/egravgts
       real(8) , parameter :: cpdgts = cpd*1.0D+04
-      real(8) , parameter :: gocp = gtigts/cpdgts
+      real(8) , parameter :: gocp = egravgts/cpdgts
       real(8) , parameter :: sslp = stdp*d_10 ! dynes/cm^2
       real(8) , parameter :: rsslp = d_one/sslp
       real(8) , parameter :: stebol = sigm*d_1000
-      real(8) , parameter :: rgsslp = d_half/(gtigts*sslp)
+      real(8) , parameter :: rgsslp = d_half/(egravgts*sslp)
       ! Effective molecular weight of dry air (g/mol)
       real(8) , parameter :: amd = 28.9644D+00
       ! Molecular weight of ozone (g/mol)
@@ -263,7 +263,7 @@
       real(8) , parameter :: t00pg = 287.0D+00       ! stdt ?
       real(8) , parameter :: p00pg = 101.325D+00     ! stdp ?
       real(8) , parameter :: alam  = 6.5D-03         ! Lapse rate ?
-      real(8) , parameter :: pgfaa1 = alam*rgas*rgti ! Utility constant
+      real(8) , parameter :: pgfaa1 = alam*rgas*regrav ! Utility constant
 
       ! Molecular heat diffusion coefficient in water
       real(8) , parameter :: hdmw = 1.3889D-07  ! m^2/s

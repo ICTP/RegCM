@@ -22,8 +22,6 @@
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_pbldim
@@ -141,10 +139,10 @@
               dts = tdelta-td
 !             m.o lenght calculation
               if ( dts > d_zero ) then
-                fd = (nu*gti*alphaw/(d_five*d))**d_half*    &
+                fd = (nu*egrav*alphaw/(d_five*d))**d_half*    &
                     &  rhoh2o*cpw0*ustarw**d_two*dts**d_half
               else
-                fd = gti*alphaw*(q+rs-rd)
+                fd = egrav*alphaw*(q+rs-rd)
               end if
               l = rhoh2o*cpw0*ustarw**d_three/(vonkar*fd)
 !             calulation of phidl (stability function)
@@ -165,7 +163,7 @@
 !             update tdelta
               tdelta = dts + td
 !             update delta thickness  and cool skin tempearture
-              aa = -16.0D0*gti*alphaw*rhoh2o*cpw0*nuw**d_three/ &
+              aa = -16.0D0*egrav*alphaw*rhoh2o*cpw0*nuw**d_three/ &
                   &     (ustarw**d_four *kw**d_two)
               bb =  aa *(q+rs*fs)
               if ( bb > d_zero ) then
@@ -315,11 +313,11 @@
 !     loop to obtain initial and good ustar and zo
 !
       do i = 1 , 5
-        zo = 0.013D0*ustar*ustar*rgti + 0.11D0*visa/ustar
+        zo = 0.013D0*ustar*ustar*regrav + 0.11D0*visa/ustar
         ustar = vonkar*um/dlog(hu/zo)
       end do
 !
-      rb = gti*hu*dthv/(thv*um*um)
+      rb = egrav*hu*dthv/(thv*um*um)
       if ( rb >= d_zero ) then       ! neutral or stable
         zeta = rb*dlog(hu/zo)/(d_one-d_five*dmin1(rb,0.19D0))
         zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
@@ -332,7 +330,7 @@
 !     main iterations (2-10 iterations would be fine)
 !
       do i = 1 , 10
-        call ocnrough(zo,zot,zoq,ustar,visa,gti)
+        call ocnrough(zo,zot,zoq,ustar,visa,egrav)
 !
 !       wind
 !
@@ -397,12 +395,12 @@
         end if
         thvstar = tstar*(d_one+0.61D0*q) + 0.61D0*th*qstar
 !
-        zeta = vonkar*gti*thvstar*hu/(ustar**d_two*thv)
+        zeta = vonkar*egrav*thvstar*hu/(ustar**d_two*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
           um = dmax1(u,0.1D0)
           zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
         else                   !unstable
-          wc = zbeta*(-gti*ustar*thvstar*zi/thv)**(d_one/d_three)
+          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**(d_one/d_three)
           um = dsqrt(u*u+wc*wc)
           zeta = dmax1(-d_100,dmin1(zeta,-1.0D-6))
         end if

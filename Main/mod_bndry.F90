@@ -19,8 +19,6 @@
  
       module mod_bndry
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_bats
       use mod_leaftemp
@@ -337,13 +335,13 @@
 !             ***********         xrun = leaf drip ; sdrop = snow drop
 !             off foliage
               etrrun(n,i) = d_zero
-              xrun(n,i) = ldew1d(n,i) - dewmx*vegt(n,i)
+              xrun(n,i) = ldew1d(n,i) - dewmax*vegt(n,i)
               sdrop(n,i) = d_zero
  
 !             ***********         test on maximum value of dew
               if ( xrun(n,i) > d_zero ) then
                 etrrun(n,i) = xrun(n,i)
-                ldew1d(n,i) = dewmx*vegt(n,i)
+                ldew1d(n,i) = dewmax*vegt(n,i)
               end if
  
 !             ***********         below freezing excess leaf water

@@ -19,7 +19,6 @@
  
       module mod_tendency
 
-      use mod_dynparam
       use mod_runparams
       use mod_main
       use mod_mainchem
@@ -41,7 +40,6 @@
       use mod_date
       use mod_message
       use mod_aerosol
-      use mod_constants
       use mod_zengocn
       use mod_sun
       use mod_slice

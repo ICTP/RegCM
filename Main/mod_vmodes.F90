@@ -19,8 +19,6 @@
  
       module mod_vmodes
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_message
       use mod_service
@@ -883,7 +881,7 @@
 !  standard atmosphere (see text by hess). units of p are cb.
 !
       p0 = stdp/d_1000
-      fac = rgas*lrate*rgti
+      fac = rgas*lrate*regrav
       do k = 1 , nk
         p = sigma(k)*pd + pt
         t(k) = stdt*((p/p0)**fac)

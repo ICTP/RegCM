@@ -18,9 +18,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_o3blk
+
       use mod_constants
       use mod_dynparam
+
       implicit none
+
       real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                                & ppsum , ppwin , ppwrk
       real(8) , dimension(32) :: ppwrkh

@@ -19,10 +19,8 @@
  
       module mod_vecbats
 
-      use mod_constants
-      use mod_message
-      use mod_dynparam
       use mod_runparams
+      use mod_message
       use mod_bats
       use mod_lake, only : initlake
       use mod_slice
@@ -395,7 +393,7 @@
             rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)* &
                         0.01D0-satvp)),d_zero)
  
-            ts1d(n,i) = ts1d0(n,i) - lrate*rgti*(ht1(n,i,j)- &
+            ts1d(n,i) = ts1d0(n,i) - lrate*regrav*(ht1(n,i,j)- &
                                                  mddom%ht(i,j))
             p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
@@ -1572,7 +1570,7 @@
           else
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           end if
-          ts1d(n,i) = thx3d(i,kz,j)-6.5D-3*rgti*(ht1(n,i,j)- &
+          ts1d(n,i) = thx3d(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)- &
                       mddom%ht(i,j))
           scv1d(n,i) = scv2d(n,i,j)
           sag1d(n,i) = sag2d(n,i,j)

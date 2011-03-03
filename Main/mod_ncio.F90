@@ -19,8 +19,6 @@
 !
       module mod_ncio
 !
-        use mod_constants
-        use mod_dynparam
         use mod_runparams
         use mod_message
         use mod_date
@@ -724,7 +722,7 @@
               n = (jj-1)*nsg + ii
               jj = (j+nsg-1)/nsg
               ii = (i+nsg-1)/nsg
-              ht1(n,ii,jj) = dble(sp2d1(j,i))*gti
+              ht1(n,ii,jj) = dble(sp2d1(j,i))*egrav
             end do
           end do
           iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)

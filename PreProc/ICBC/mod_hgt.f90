@@ -92,7 +92,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate , bltop
+      use mod_constants , only : regrav , rgas , lrate , bltop
 
       implicit none
 !
@@ -131,21 +131,21 @@
               kb = kt + 1
               if ( p(n)<=psig(1) ) then
                 temp = t(i,j,1)
-                hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*rgti
+                hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*regrav
               else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
                 wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
                 wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
                 temp = wt*t(i,j,kt) + wb*t(i,j,kb)
                 temp = (temp+t(i,j,kb))/2.
                 hp(i,j,n) = h(i,j,kb) + rgas*temp*log(psig(kb)/p(n))    &
-                          & *rgti
+                          & *regrav
               else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
                 temp = t(i,j,km)
-                hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*rgti
+                hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*regrav
               else if ( p(n)>psfc ) then
                 temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
                 hp(i,j,n) = ht(i,j) + (temp/lrate)                      &
-                          & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*rgti))
+                          & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*regrav))
 !
               else
               end if
@@ -181,7 +181,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : rgti , rgas , lrate , bltop
+      use mod_constants , only : regrav , rgas , lrate , bltop
       implicit none
 !
 ! Dummy arguments
@@ -223,20 +223,20 @@
             kb = kt + 1
             if ( p(n)<=psig(1) ) then
               temp = t(i,j,1)
-              hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*rgti
+              hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*regrav
             else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
               wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
               wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
               temp = wt*t(i,j,kt) + wb*t(i,j,kb)
               temp = (temp+t(i,j,kb))/2.
-              hp(i,j,n) = h(i,j,kb) + rgas*temp*log(psig(kb)/p(n))*rgti
+              hp(i,j,n) = h(i,j,kb) + rgas*temp*log(psig(kb)/p(n))*regrav
             else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
               temp = t(i,j,km)
-              hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*rgti
+              hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*regrav
             else if ( p(n)>psfc ) then
               temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
               hp(i,j,n) = ht(i,j) + (temp/lrate)                        &
-                        & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*rgti))
+                        & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*regrav))
 !
             else
             end if
@@ -248,7 +248,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
-      use mod_constants , only : rgti, rgas
+      use mod_constants , only : regrav, rgas
       implicit none
 !
 ! Dummy arguments
@@ -267,7 +267,7 @@
       do j = 1 , jm
         do i = 1 , im
           if ( ps(i,j)>-9995.0 ) then
-            h(i,j,km) = ht(i,j) + rgas*rgti*t(i,j,km)                   &
+            h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km)                   &
                       & *log(ps(i,j)/p3d(i,j,km))
           else
             h(i,j,km) = -9999.0
@@ -280,7 +280,7 @@
             if ( h(i,j,k+1)>-9995.0 ) then
               tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
               h(i,j,k) = h(i,j,k+1)                                     &
-                       & + rgas*rgti*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
+                       & + rgas*regrav*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
             else
               h(i,j,k) = -9999.0
             end if
@@ -292,7 +292,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig_o(t,h,pstar,ht,sig,ptop,im,jm,km)
-      use mod_constants, only : rgas , rgti
+      use mod_constants, only : rgas , regrav
       implicit none
 !
 ! Dummy arguments
@@ -312,7 +312,7 @@
 !
       do j = 1 , jm
         do i = 1 , im
-          h(i,j,km) = ht(i,j) + rgas*rgti*t(i,j,km)                     &
+          h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km)                     &
                     & *log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
         end do
       end do
@@ -321,7 +321,7 @@
           do i = 1 , im
             tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
             h(i,j,k) = h(i,j,k+1)                                       &
-                     & + rgas*rgti*tbar*log(((pstar(i,j)-ptop)*sig(k+1) &
+                     & + rgas*regrav*tbar*log(((pstar(i,j)-ptop)*sig(k+1) &
                      & +ptop)/((pstar(i,j)-ptop)*sig(k)+ptop))
           end do
         end do

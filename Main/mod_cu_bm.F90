@@ -48,8 +48,6 @@
 !                                                                *
 !*****************************************************************
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_date
       use mod_main
@@ -135,7 +133,7 @@
                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
                            & , a23m4l = c3les*(tzero-c4les)*wlhv ,      &
                            & cporng = 1.0D0/dm2859 , elocp = wlhv/cpd , &
-                           & cprlg = cpd/(row*gti*wlhv)
+                           & cprlg = cpd/(row*egrav*wlhv)
       integer :: lp1 , lm1
 !
       integer :: j

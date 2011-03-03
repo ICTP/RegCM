@@ -68,9 +68,8 @@
 !
       program regcm
 !
-      use mod_dynparam
-      use mod_date
       use mod_runparams
+      use mod_date
       use mod_message
       use mod_ncio
       use mod_output

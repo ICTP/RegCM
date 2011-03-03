@@ -19,8 +19,6 @@
 
       module mod_param
 
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_pmoist
       use mod_bats
@@ -941,7 +939,7 @@
           if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
           do j = 1 , jx
             do i = 1 , iy
-              ht1_io(1,i,j) = mddom_io%ht(i,j)*gti
+              ht1_io(1,i,j) = mddom_io%ht(i,j)*egrav
               satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
               xlat1_io(1,i,j) = mddom_io%xlat(i,j)
               xlon1_io(1,i,j) = mddom_io%xlong(i,j)
@@ -954,7 +952,7 @@
 !
         do j = 1 , jx
           do i = 1 , iy
-            mddom_io%ht(i,j)   = mddom_io%ht(i,j)*gti
+            mddom_io%ht(i,j)   = mddom_io%ht(i,j)*egrav
             mddom_io%msfd(i,j) = d_one/mddom_io%msfd(i,j)
             mddom_io%msfx(i,j) = d_one/mddom_io%msfx(i,j)
           end do
@@ -1068,7 +1066,7 @@
         if ( lakemod == 1 ) call read_domain_lake(dhlake1)
         do j = 1 , jx
           do i = 1 , iy
-            ht1(1,i,j) = mddom%ht(i,j)*gti
+            ht1(1,i,j) = mddom%ht(i,j)*egrav
             satbrt1(1,i,j) = mddom%satbrt(i,j)
             xlat1(1,i,j) = mddom%xlat(i,j)
             xlon1(1,i,j) = mddom%xlong(i,j)
@@ -1081,7 +1079,7 @@
 !
       do j = 1 , jx
         do i = 1 , iy
-          mddom%ht(i,j)   = mddom%ht(i,j)*gti
+          mddom%ht(i,j)   = mddom%ht(i,j)*egrav
           mddom%msfd(i,j) = d_one/mddom%msfd(i,j)
           mddom%msfx(i,j) = d_one/mddom%msfx(i,j)
         end do

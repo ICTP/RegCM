@@ -487,7 +487,7 @@
 !         for the moment no more used
 !
           if ( k >= nk + 1 - mxaerl ) then
-            aermmb(i,k) = gtigts*tauvis/ &
+            aermmb(i,k) = egravgts*tauvis/ &
                          (d10e4*kaervs*rhfac*(d_one-omgvis*gvis*gvis) &
                          *(pint(i,kzp1)-pint(i,kz + 1 - mxaerl)))
           else
@@ -604,7 +604,7 @@
 !
           do k = 1 , kz
             do i = 1 , iym1
-              path = (pint(i,k+1)-pint(i,k))/gtigts
+              path = (pint(i,k+1)-pint(i,k))/egravgts
               ibin = 0
               do itr = 1 , ntr
                 uaer(i,k,itr) = d_zero
@@ -775,7 +775,7 @@
 !
           do i = 1 , iym1
             do k = 1 , kz
-              path = (pint(i,k+1)-pint(i,k))/gtigts
+              path = (pint(i,k+1)-pint(i,k))/egravgts
               if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) &
                 write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
 !             sum of hydrophilic aerosols

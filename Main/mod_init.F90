@@ -1524,7 +1524,7 @@
           hg2 = dabs((mddom%ht(i,j)-mddom%ht(ip1h,j))/dx)
           hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
           hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*rgti
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
           domfc%hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
         end do
       end do

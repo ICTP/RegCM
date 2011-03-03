@@ -125,20 +125,20 @@ module mod_derived
           kb = kt + 1
           if (p(n).le.psig(1)) then
             temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1)+rgas*temp*log(psig(1)/p(n))*rgti
+            hp(i,j,n) = h(i,j,1)+rgas*temp*log(psig(1)/p(n))*regrav
           else if((p(n).gt.psig(1)) .and. (p(n).lt.psig(km))) then
             wt = log(psig(kb)/p(n)) / log(psig(kb)/psig(kt))
             wb = log(p(n)/psig(kt)) / log(psig(kb)/psig(kt))
             temp = wt * t(i,j,kt) + wb * t(i,j,kb)
             temp = ( temp + t(i,j,kb) ) / 2.
-            hp(i,j,n) = h(i,j,kb)+rgas*temp*log(psig(kb)/p(n))*rgti
+            hp(i,j,n) = h(i,j,kb)+rgas*temp*log(psig(kb)/p(n))*regrav
           else if ((p(n).ge.psig(km)) .and. (p(n).le.psfc)) then
             temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j)+rgas*temp*log(psfc/p(n))*rgti
+            hp(i,j,n) = ht(i,j)+rgas*temp*log(psfc/p(n))*regrav
           else if (p(n).gt.psfc) then
             temp = t(i,j,kbc) - lrate * (h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j)-(temp/lrate)  &
-                    * ( 1.-exp(-rgas*lrate*log(p(n)/psfc)*rgti))
+                    * ( 1.-exp(-rgas*lrate*log(p(n)/psfc)*regrav))
           end if
         end do
       end do
@@ -164,14 +164,14 @@ module mod_derived
       do i = 1 , im
         tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
         slp(i,j) = pstar(i,j)  &
-            * exp( -gti/(rgas*lrate)*log(1.-ht(i,j)*lrate/tsfc))
+            * exp( -egrav/(rgas*lrate)*log(1.-ht(i,j)*lrate/tsfc))
       end do
     end do
 
 !   do j=1,jm
 !     do i=1,im
 !       slp2(i,j) = pstar(i,j) * &
-!             exp( gti*ht(i,j)/(rgas*0.5*(tg(i,j)+288.15)))
+!             exp( egrav*ht(i,j)/(rgas*0.5*(tg(i,j)+288.15)))
 !     end do
 !   end do
   end subroutine slpres
@@ -188,7 +188,7 @@ module mod_derived
 !
     do j = 1 , jm
       do i = 1 , im
-         h(i,j,km) = ht(i,j) + rgas*rgti*t(i,j,km) &
+         h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km) &
                    * log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
       end do
     end do
@@ -196,7 +196,7 @@ module mod_derived
       do j = 1 , jm
         do i = 1 , im
           tbar = 0.5*( t(i,j,k)+t(i,j,k+1) )
-          h(i,j,k) = h(i,j,k+1) +rgas*rgti*tbar  &
+          h(i,j,k) = h(i,j,k+1) +rgas*regrav*tbar  &
                    * log(((pstar(i,j)-ptop)*sig(k+1)+ptop)  &
                         /((pstar(i,j)-ptop)*sig(k)+ptop))
         end do

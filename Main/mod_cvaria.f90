@@ -23,8 +23,6 @@
 !     decoupled variables, diagnostic variables and
 !     working spaces needed in the model.
 !
-      use mod_constants
-      use mod_dynparam
       use mod_runparams
       use mod_main , only : atmstate , allocate_atmstate
 
