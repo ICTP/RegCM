@@ -53,6 +53,12 @@
       real(8) , parameter :: surf = d_one
 !     vertical grid spacing in m
       real(8) , parameter :: dz = surf
+!     minimum ice depth in mm: less that this is removed
+      real(8) , parameter :: iceminh = d_10
+!     reference hgt in mm for latent heat removal from ice
+      real(8) , parameter :: href = d_two * iceminh
+!     steepness factor of latent heat removal
+      real(8) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
       contains
 !
@@ -202,7 +208,7 @@
             tg1d(n,i) = tgl
             tgb1d(n,i) = tgl
 
-            if ( aveice2d(n,i,jslc) <= d_10 ) then
+            if ( aveice2d(n,i,jslc) <= iceminh ) then
               ocld2d(n,i,jslc) = d_zero 
               ldoc1d(n,i) = d_zero
               sice1d(n,i) = d_zero
@@ -214,6 +220,9 @@
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
               evpr1d(n,i) = evp                 !  units of evp = mm/sec
+              ! Reduce sensible heat flux for ice presence
+              sent1d(n,i) = sent1d(n,i) * &
+               (href/(aveice2d(n,i,jslc)+hsnow2d(n,i,jslc)))**steepf
             end if
           end if
         end do
@@ -246,6 +255,7 @@
       real(8) , parameter :: zo = 0.001D0
       real(8) , parameter :: z2 = d_two
       real(8) , parameter :: tcutoff = -0.001D0
+      real(8) , parameter :: twatui = 1.78D0
       logical , parameter :: lfreeze = .false.
       integer , parameter :: kmin = 1
 !
@@ -287,7 +297,7 @@
         hs  = hsnow / d_100     ! convert to m
 
         call ice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
-        if ( .not. lfreeze ) tprof(1) = tk - tzero
+        if ( .not. lfreeze ) tprof(1) = twatui
 
         evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
         aveice = ai*d_1000      ! convert ice  from m to mm
@@ -574,7 +584,7 @@
           if ( hs > d_zero ) then
             ds = dtx*                                            &
                & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
-               &  theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen)) / &
+               &  theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
                & (rhosnow*li)
             if ( ds > d_zero ) ds = d_zero
             hs = hs + ds
@@ -586,7 +596,7 @@
           if ( (dabs(hs) < lowval) .and. (aveice > d_zero) ) then
             di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
-                 theta*(tf-tac)-fsw)-d_one/khat*(t0-tf+qpen))/ &
+                 theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
                  (rhoice*li)
             if ( di > d_zero ) di = d_zero
             hi = hi + di
