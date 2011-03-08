@@ -57,7 +57,6 @@ module mod_derived
     real    sigma(km)
     integer i,j,k
     real    hl,satvp,qs,p
-    real , parameter :: qmin = 0.0 ! minimum value of specific humidity
 !
 !  this routine replaces specific humidity by relative humidity
 !  data on sigma levels
@@ -105,6 +104,7 @@ module mod_derived
     integer i,j,k,kbc,n,kt,kb
     real    psfc,temp,wt,wb
 !
+    kbc = -1
     do k = 1 , km
       if (sig(k).lt.bltop) then
         kbc = k
@@ -125,20 +125,20 @@ module mod_derived
           kb = kt + 1
           if (p(n).le.psig(1)) then
             temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1)+rgas*temp*log(psig(1)/p(n))*regrav
+            hp(i,j,n) = h(i,j,1)+rovg*temp*log(psig(1)/p(n))
           else if((p(n).gt.psig(1)) .and. (p(n).lt.psig(km))) then
             wt = log(psig(kb)/p(n)) / log(psig(kb)/psig(kt))
             wb = log(p(n)/psig(kt)) / log(psig(kb)/psig(kt))
             temp = wt * t(i,j,kt) + wb * t(i,j,kb)
             temp = ( temp + t(i,j,kb) ) / 2.
-            hp(i,j,n) = h(i,j,kb)+rgas*temp*log(psig(kb)/p(n))*regrav
+            hp(i,j,n) = h(i,j,kb)+rovg*temp*log(psig(kb)/p(n))
           else if ((p(n).ge.psig(km)) .and. (p(n).le.psfc)) then
             temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j)+rgas*temp*log(psfc/p(n))*regrav
+            hp(i,j,n) = ht(i,j)+rovg*temp*log(psfc/p(n))
           else if (p(n).gt.psfc) then
             temp = t(i,j,kbc) - lrate * (h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j)-(temp/lrate)  &
-                    * ( 1.-exp(-rgas*lrate*log(p(n)/psfc)*regrav))
+                    * ( 1.-exp(-rovg*lrate*log(p(n)/psfc)))
           end if
         end do
       end do
@@ -149,12 +149,12 @@ module mod_derived
     implicit none
     integer im,jm,km
     real    t(im,jm,km),h(im,jm,km),pstar(im,jm),ht(im,jm)
-!   real    tg(im,jm)
     real    slp(im,jm)
     real    sig(km)
     integer kbc,i,j,k
     real    tsfc
 !
+    kbc = -1
     do k=1,km
       if (sig(k).lt.bltop) then
         kbc=k
@@ -188,7 +188,7 @@ module mod_derived
 !
     do j = 1 , jm
       do i = 1 , im
-         h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km) &
+         h(i,j,km) = ht(i,j) + rovg*t(i,j,km) &
                    * log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
       end do
     end do
@@ -196,7 +196,7 @@ module mod_derived
       do j = 1 , jm
         do i = 1 , im
           tbar = 0.5*( t(i,j,k)+t(i,j,k+1) )
-          h(i,j,k) = h(i,j,k+1) +rgas*regrav*tbar  &
+          h(i,j,k) = h(i,j,k+1) + rovg*tbar  &
                    * log(((pstar(i,j)-ptop)*sig(k+1)+ptop)  &
                         /((pstar(i,j)-ptop)*sig(k)+ptop))
         end do

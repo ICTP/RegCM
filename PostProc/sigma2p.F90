@@ -425,7 +425,7 @@ contains
             fp(i,j,n) = f(i,j,km)
           else if (sigp.gt.1.) then
             fp(i,j,n) = f(i,j,kbc) &
-              * exp(-rgas*lrate*log(sigp/sig(kbc))*regrav)
+              * exp(-real(rovg*lrate)*log(sigp/sig(kbc)))
 !           ***** from r. errico, see routine height *****
           end if
         end do

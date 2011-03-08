@@ -292,12 +292,12 @@ program ncprepare
   if (minlon > 0.0 .and. maxlon < 0.0) then
     nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
   else if (minlon > 0.0 .and. maxlon < 1e-30) then
-    nlon = nint(360.0/rloninc) + 1.0
+    nlon = nint(360.0/rloninc) + 1
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
-  centeri = iy/2
-  centerj = jx/2
+  centeri = dble(iy)/2.0D0
+  centerj = dble(jx)/2.0D0
   deallocate(xlat)
   deallocate(xlon)
 
