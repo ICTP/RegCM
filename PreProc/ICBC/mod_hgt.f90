@@ -19,32 +19,33 @@
 
       module mod_hgt
 
+      use mod_constants
+
+      real(4) , parameter :: srovg = real(rovg)
+      real(4) , parameter :: slrate = real(lrate)
+
       contains
 
-      subroutine hydrost(h,t,phis,ps,pt,sigmaf,sigmah,dsigma,ni,nj,nk)
-      use mod_constants , only : rovg
+      subroutine hydrost(h,t,phis,ps,ptop,sigmaf,sigmah,dsigma,ni,nj,nk)
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj , nk
-      real(8) :: pt
+      real(8) :: ptop
       real(4) , dimension(nk) :: dsigma , sigmah
       real(4) , dimension(ni,nj,nk) :: h , t
       real(4) , dimension(ni,nj) :: phis , ps
       real(4) , dimension(nk+1) :: sigmaf
-      intent (in) ni , nj , nk , phis , ps , pt , sigmaf , sigmah , t
+      intent (in) ni , nj , nk , phis , ps , ptop , sigmaf , sigmah , t
       intent (inout) dsigma , h
 !
-! Local variables
-!
       integer :: i , j , k , k1 , k2
-      real(4) :: pf , tbar
+      real(4) :: pf , tbar , pt
 !
 !     ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
 !     THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
 !     HEIGHT IS COMPUTED IN THE RCM MODEL.
 !
+      pt = real(ptop)
       do k = 1 , nk
         dsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
@@ -55,7 +56,7 @@
       do i = 1 , ni
         do j = 1 , nj
           pf = pt/ps(i,j)
-          h(i,j,nk) = phis(i,j) + rovg*t(i,j,nk)                        &
+          h(i,j,nk) = phis(i,j) + srovg*t(i,j,nk)                       &
                     & *log((1.+pf)/(sigmah(nk)+pf))
           do k2 = 1 , nk - 1
             k = nk - k2
@@ -63,7 +64,7 @@
             tbar = (t(i,j,k)*dsigma(k)+t(i,j,k1)*dsigma(k1))            &
                  & /(dsigma(k)+dsigma(k1))
             h(i,j,k) = h(i,j,k1)                                        &
-                     & + rovg*tbar*log((sigmah(k1)+pf)/(sigmah(k)+pf))
+                     & + srovg*tbar*log((sigmah(k1)+pf)/(sigmah(k)+pf))
           end do
         end do
       end do
@@ -92,11 +93,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : regrav , rgas , lrate , bltop
-
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km , kp
       real(4) , dimension(im,jm,km) :: h , p3d , t
@@ -105,8 +102,6 @@
       real(4) , dimension(kp) :: p
       intent (in) h , ht , im , jm , km , kp , p , p3d , ps , t
       intent (out) hp
-!
-! Local variables
 !
       real(4) :: psfc , temp , wb , wt
       integer :: i , j , k , kb , kbc , kt , n
@@ -131,21 +126,20 @@
               kb = kt + 1
               if ( p(n)<=psig(1) ) then
                 temp = t(i,j,1)
-                hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*regrav
+                hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
               else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
                 wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
                 wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
                 temp = wt*t(i,j,kt) + wb*t(i,j,kb)
                 temp = (temp+t(i,j,kb))/2.
-                hp(i,j,n) = h(i,j,kb) + rgas*temp*log(psig(kb)/p(n))    &
-                          & *regrav
+                hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
               else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
                 temp = t(i,j,km)
-                hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*regrav
+                hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
               else if ( p(n)>psfc ) then
-                temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
-                hp(i,j,n) = ht(i,j) + (temp/lrate)                      &
-                          & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*regrav))
+                temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
+                hp(i,j,n) = ht(i,j) + (temp/slrate)                     &
+                          & *(1.-exp(+srovg*slrate*log(p(n)/psfc)))
 !
               else
               end if
@@ -181,10 +175,7 @@
 !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
 !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
 !
-      use mod_constants , only : regrav , rgas , lrate , bltop
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km , kp
       real(8) :: ptop
@@ -197,12 +188,11 @@
                 & t
       intent (out) hp
 !
-! Local variables
-!
-      real(4) :: psfc , temp , wb , wt
+      real(4) :: psfc , temp , wb , wt , pt
       integer :: i , j , k , kb , kbc , kt , n
       real(4) , dimension(100) :: psig
 !
+      pt = real(ptop)
       kbc = 1
       do k = 1 , km
         if ( sig(k)<bltop ) kbc = k
@@ -212,7 +202,7 @@
       do j = 1 , jm
         do i = 1 , im
           do k = 1 , km
-            psig(k) = sig(k)*(pstar(i,j)-ptop) + ptop
+            psig(k) = sig(k)*(pstar(i,j)-pt) + pt
           end do
           psfc = pstar(i,j)
           do n = 1 , kp
@@ -223,20 +213,20 @@
             kb = kt + 1
             if ( p(n)<=psig(1) ) then
               temp = t(i,j,1)
-              hp(i,j,n) = h(i,j,1) + rgas*temp*log(psig(1)/p(n))*regrav
+              hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
             else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
               wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
               wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
               temp = wt*t(i,j,kt) + wb*t(i,j,kb)
               temp = (temp+t(i,j,kb))/2.
-              hp(i,j,n) = h(i,j,kb) + rgas*temp*log(psig(kb)/p(n))*regrav
+              hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
             else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
               temp = t(i,j,km)
-              hp(i,j,n) = ht(i,j) + rgas*temp*log(psfc/p(n))*regrav
+              hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
             else if ( p(n)>psfc ) then
-              temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
-              hp(i,j,n) = ht(i,j) + (temp/lrate)                        &
-                        & *(1.-exp(+rgas*lrate*log(p(n)/psfc)*regrav))
+              temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
+              hp(i,j,n) = ht(i,j) + (temp/slrate)                       &
+                        & *(1.-exp(+srovg*slrate*log(p(n)/psfc)))
 !
             else
             end if
@@ -248,10 +238,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
-      use mod_constants , only : regrav, rgas
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km
       real(4) , dimension(im,jm,km) :: h , p3d , t
@@ -259,15 +246,13 @@
       intent (in) ht , im , jm , km , p3d , ps , t
       intent (inout) h
 !
-! Local variables
-!
       real(4) :: tbar
       integer :: i , j , k
 !
       do j = 1 , jm
         do i = 1 , im
           if ( ps(i,j)>-9995.0 ) then
-            h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km)                   &
+            h(i,j,km) = ht(i,j) + srovg*t(i,j,km)  &
                       & *log(ps(i,j)/p3d(i,j,km))
           else
             h(i,j,km) = -9999.0
@@ -280,7 +265,7 @@
             if ( h(i,j,k+1)>-9995.0 ) then
               tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
               h(i,j,k) = h(i,j,k+1)                                     &
-                       & + rgas*regrav*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
+                       & + srovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
             else
               h(i,j,k) = -9999.0
             end if
@@ -292,10 +277,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine htsig_o(t,h,pstar,ht,sig,ptop,im,jm,km)
-      use mod_constants, only : rgas , regrav
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km
       real(8) :: ptop
@@ -305,15 +287,14 @@
       intent (in) ht , im , jm , km , pstar , ptop , sig , t
       intent (inout) h
 !
-! Local variables
-!
-      real(4) :: tbar
+      real(4) :: tbar , pt
       integer :: i , j , k
 !
+      pt = real(ptop)
       do j = 1 , jm
         do i = 1 , im
-          h(i,j,km) = ht(i,j) + rgas*regrav*t(i,j,km)                     &
-                    & *log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
+          h(i,j,km) = ht(i,j) + srovg*t(i,j,km)                     &
+                    & *log(pstar(i,j)/((pstar(i,j)-pt)*sig(km)+pt))
         end do
       end do
       do k = km - 1 , 1 , -1
@@ -321,8 +302,8 @@
           do i = 1 , im
             tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
             h(i,j,k) = h(i,j,k+1)                                       &
-                     & + rgas*regrav*tbar*log(((pstar(i,j)-ptop)*sig(k+1) &
-                     & +ptop)/((pstar(i,j)-ptop)*sig(k)+ptop))
+                     & + srovg*tbar*log(((pstar(i,j)-pt)*sig(k+1) &
+                     & +pt)/((pstar(i,j)-pt)*sig(k)+pt))
           end do
         end do
       end do

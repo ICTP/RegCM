@@ -223,7 +223,7 @@
               if ( sstmm(i,j)<-5000. .and. (lu(i,j)>13.5 .and.          &
                 &  lu(i,j)<15.5) ) then
                 do iv = 1 , 20
-                  lund(iv) = 0.0
+                  lund(iv) = 0
                 end do
                 lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
                 lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
@@ -414,7 +414,7 @@
           if ( work(i,j)==32767 ) then
              sst(i,jlat+1-j) = -9999.
           else
-             sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+             sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           end if
         end do
       end do
@@ -509,7 +509,7 @@
           if ( work(i,j)==32767 ) then
              ice(i,jlat+1-j) = -9999.
           else
-             ice(i,jlat+1-j) = work(i,j)*xscale + xadd
+             ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           end if
         end do
       end do
@@ -618,7 +618,7 @@
           if ( work(i,j)==32767 ) then
              sst(i,jlat+1-j) = -9999.
           else
-             sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+             sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           end if
         end do
       end do
@@ -629,8 +629,8 @@
             if ( work1(i,j)==32767 ) then
                sst(i,jlat+1-j) = -9999.
             else
-               sst(i,jlat+1-j) = (sst(i,jlat+1-j)+(work1(i,j)*xscale    &
-                     &            + xadd))*0.5
+               sst(i,jlat+1-j) = (sst(i,jlat+1-j)+ &
+                        real(dble(work1(i,j))*xscale+xadd))*0.5
             end if
           end do
         end do
@@ -740,7 +740,7 @@
           if ( work(i,j)==32767 ) then
              ice(i,jlat+1-j) = -9999.
           else
-             ice(i,jlat+1-j) = work(i,j)*xscale + xadd
+             ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           end if
         end do
       end do
@@ -751,8 +751,8 @@
             if ( work1(i,j)==32767 ) then
                ice(i,jlat+1-j) = -9999.
             else
-               ice(i,jlat+1-j) = (ice(i,jlat+1-j)+(work1(i,j)*xscale    &
-                     &            + xadd))*0.5
+               ice(i,jlat+1-j) = (ice(i,jlat+1-j)+ &
+                                 real(dble(work1(i,j))*xscale+xadd))*0.5
             end if
           end do
         end do

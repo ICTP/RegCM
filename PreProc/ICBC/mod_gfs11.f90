@@ -164,9 +164,9 @@
             i2 = i - nint(lon0/1.0) + 1
             j2 = j - nint(lat0/1.0) + 1
             if ( numx==360 .and. numy==181 ) then
-              hvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+              hvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              hvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+              hvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
             end if
           end do
         end do
@@ -183,9 +183,9 @@
             i2 = i - nint(lon0/1.0) + 1
             j2 = j - nint(lat0/1.0) + 1
             if ( numx==360 .and. numy==181 ) then
-              tvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+              tvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              tvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+              tvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
             end if
           end do
         end do
@@ -202,9 +202,9 @@
             i2 = i - nint(lon0/1.0) + 1
             j2 = j - nint(lat0/1.0) + 1
             if ( numx==360 .and. numy==181 ) then
-              rhvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+              rhvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              rhvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+              rhvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
             end if
           end do
         end do
@@ -235,9 +235,9 @@
             i2 = i - nint(lon0/1.0) + 1
             j2 = j - nint(lat0/1.0) + 1
             if ( numx==360 .and. numy==181 ) then
-              uvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+              uvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              uvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+              uvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
             end if
           end do
         end do
@@ -254,9 +254,9 @@
             i2 = i - nint(lon0/1.0) + 1
             j2 = j - nint(lat0/1.0) + 1
             if ( numx==360 .and. numy==181 ) then
-              vvar(ii,91-j,k) = itmp(i2,j2)*xscale + offset
+              vvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              vvar(ii,j+90,k) = itmp(i2,j2)*xscale + offset
+              vvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
             end if
           end do
         end do

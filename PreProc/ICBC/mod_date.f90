@@ -228,9 +228,9 @@
         else
           ib = 0
         end if
-        julianday = int(365.25D+00*(iiy+4716)) +                        &
-          &         int(30.6001D+00*(iim+1))   +                        &
-          &         id + ib - 1524.5D+00
+        julianday = (365.25D+00*dble(iiy+4716)) +   &
+          &         (30.6001D+00*dble(iim+1))   +   &
+          &         dble(id + ib) - 1524.5D+00
       end function julianday
 
       function idatediff(idate2, idate1)
@@ -254,8 +254,8 @@
         integer :: jd1 , jd2
         call split_idate(idate2, iy2, im2, id2, ih2)
         call split_idate(idate1, iy1, im1, id1, ih1)
-        jd2 = julianday(iy2, im2, id2)
-        jd1 = julianday(iy1, im1, id1)
+        jd2 = idnint(julianday(iy2, im2, id2))
+        jd1 = idnint(julianday(iy1, im1, id1))
         idatediff = (jd2-jd1)*24+(ih2-ih1)
       end function idatediff
 

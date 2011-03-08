@@ -178,12 +178,12 @@
           stop
         end if
       end if
-      if (abs(lon1-lon0)<1E-30 .and. abs(lat1-lat0)<1E-30) then
+      if (abs(lon1-lon0)<1D-30 .and. abs(lat1-lat0)<1D-30) then
         print *, 'Assuming You have global dataset EH5OM'
-        lon0 = 0
-        lon1 = 358.125
-        lat0 = -89.0625
-        lat1 = 89.0625
+        lon0 = 0.0D0
+        lon1 = 358.125D0
+        lat0 = -89.0625D0
+        lat1 = 89.0625D0
       end if
       numx = nint((lon1-lon0)/1.875) + 1
       numy = nint((lat1-lat0)/1.875) + 1
@@ -460,11 +460,11 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              pso4_2(ii,49-j) = itmp(i2,j2)*xscale + offset +           &
+              pso4_2(ii,49-j) = real(dble(itmp(i2,j2))*xscale+offset)+ &
                               & pso4_0(ii,49-j)
             else
-              pso4_2(ii,j+jlat/2) = itmp(i2,j2)*xscale + offset +       &
-                                & pso4_0(ii,j+jlat/2)
+              pso4_2(ii,j+jlat/2) = real(dble(itmp(i2,j2))*xscale + &
+                                offset) + pso4_0(ii,j+jlat/2)
             end if
           end do
         end do
@@ -483,9 +483,9 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              hvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+              hvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              hvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+              hvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale+offset)
             end if
           end do
         end do
@@ -502,11 +502,11 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              rhvar(ii,49-j,k) = dmin1(dmax1(itmp(i2,j2)*xscale+offset, &
-                               & 0.D0),1.D0)
+              rhvar(ii,49-j,k) = real(dmin1(dmax1(dble(itmp(i2,j2))* &
+                                xscale+offset,0.D0),1.D0))
             else
-              rhvar(ii,j+jlat/2,k) = dmin1(dmax1(itmp(i2,j2)*xscale+    &
-                              & offset,0.D0),1.D0)
+              rhvar(ii,j+jlat/2,k) = real(dmin1(dmax1(dble(itmp(i2,j2))*&
+                                 xscale+offset,0.D0),1.D0))
             end if
           end do
         end do
@@ -523,9 +523,10 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              tvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+              tvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              tvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+              tvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))* &
+                                           xscale + offset)
             end if
           end do
         end do
@@ -542,9 +543,10 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              uvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+              uvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              uvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+              uvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + &
+                                         offset)
             end if
           end do
         end do
@@ -561,9 +563,10 @@
             i2 = i - nint(lon0/1.875) + 1
             j2 = j - nint((lat0+.9375)/1.875) + 1
             if ( numx==ilon .and. numy==jlat ) then
-              vvar(ii,49-j,k) = itmp(i2,j2)*xscale + offset
+              vvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
             else
-              vvar(ii,j+jlat/2,k) = itmp(i2,j2)*xscale + offset
+              vvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + &
+                                              offset)
             end if
           end do
         end do
@@ -1144,7 +1147,7 @@
         do i = 1 , iy
           do j = 1 , jx
             do l = 1 , kz
-              prcm = ((ps4(j,i)-ptop)*sigma2(l)+ptop)*10.
+              prcm = ((ps4(j,i)-real(ptop))*sigma2(l)+real(ptop))*10.
               k0 = -1
               do k = mlev , 1 , -1
                 pmpi = (pso4_3(j,i)*hybm(k)+hyam(k))*0.01

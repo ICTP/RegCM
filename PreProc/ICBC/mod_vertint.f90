@@ -18,13 +18,19 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_vertint
-
+!
+      use mod_constants
+!
+      real(4) , parameter :: rgas2 = real(rgas/2.0D0)
+      real(4) , parameter :: rglr = real(rgas*lrate)
+      real(4) , parameter :: b1 = -real(egrav/lrate)
+      real(4) , parameter :: rbltop = real(bltop)
+      real(4) , parameter :: psccm = 100.0
+!
       contains
 
       subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km , kp
       real(4) , dimension(im,jm,km) :: f , p3d
@@ -33,8 +39,6 @@
       real(4) , dimension(im,jm) :: ps
       intent (in) f , im , jm , km , kp , p , p3d , ps
       intent (out) fp
-!
-! Local variables
 !
       integer :: i , j , k , k1 , k1p , n
       real(4) , dimension(61) :: sig
@@ -82,8 +86,6 @@
       subroutine intlin_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
       implicit none
 !
-! Dummy arguments
-!
       integer :: im , jm , km , kp
       real(8) :: ptop
       real(4) , dimension(im,jm,km) :: f
@@ -93,8 +95,6 @@
       real(4) , dimension(km) :: sig
       intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
       intent (out) fp
-!
-! Local variables
 !
       integer :: i , j , k , k1 , k1p , n
       real(4) :: sigp , w1 , wp
@@ -106,7 +106,7 @@
       do j = 1 , jm
         do i = 1 , im
           do n = 1 , kp
-            sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
+            sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
             k1 = 0
             do k = 1 , km
               if ( sigp>sig(k) ) k1 = k
@@ -132,8 +132,6 @@
       subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj , nlev1
       real(4) , dimension(ni,nj) :: pa , tlayer , za , zrcm
       real(4) , dimension(nlev1) :: sccm
@@ -141,8 +139,6 @@
       intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
       intent (out) pa , za
       intent (inout) tlayer
-!
-! Local variables
 !
       integer :: i , j , k , kb , kt
 !
@@ -195,10 +191,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
-      use mod_constants , only : rgas , regrav , lrate
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km , kp
       real(4) , dimension(im,jm,km) :: f , p3d
@@ -208,12 +201,9 @@
       intent (in) f , im , jm , km , kp , p , p3d , ps
       intent (out) fp
 !
-! Local variables
-!
       real(4) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
       real(4) , dimension(61) :: sig
-      real(4) , parameter :: bltop = 0.96
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -231,7 +221,7 @@
             kbc = 1
             do k = 1 , km
               sig(k) = p3d(i,j,k)/ps(i,j)
-              if ( sig(k)<bltop ) kbc = k
+              if ( sig(k)<rbltop ) kbc = k
             end do
             do n = 1 , kp
               sigp = p(n)/ps(i,j)
@@ -249,8 +239,8 @@
               else if ( (sigp>=sig(km)) .and. (sigp<=1.) ) then
                 fp(i,j,n) = f(i,j,km)
               else if ( sigp>1. ) then
-                fp(i,j,n) = f(i,j,kbc)                                  &
-                          & *exp(+rgas*lrate*log(sigp/sig(kbc))*regrav)
+                fp(i,j,n) = f(i,j,kbc) *                                &
+                            exp(+rglr*log(sigp/sig(kbc))*real(regrav))
 !               ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
               else
               end if
@@ -268,10 +258,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intlog_o(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
-      use mod_constants , only : rgas , regrav , lrate 
       implicit none
-!
-! Dummy arguments
 !
       integer :: im , jm , km , kp
       real(8) :: ptop
@@ -287,7 +274,6 @@
 !
       real(4) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
-      real(4) , parameter :: bltop = .96
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -301,12 +287,12 @@
 !**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG=BLTOP)
       kbc = 1
       do k = 1 , km
-        if ( sig(k)<bltop ) kbc = k
+        if ( sig(k)<rbltop ) kbc = k
       end do
       do j = 1 , jm
         do i = 1 , im
           do n = 1 , kp
-            sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
+            sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
             k1 = 0
             do k = 1 , km
               if ( sigp>sig(k) ) k1 = k
@@ -321,8 +307,8 @@
             else if ( (sigp>=sig(km)) .and. (sigp<=1.) ) then
               fp(i,j,n) = f(i,j,km)
             else if ( sigp>1. ) then
-              fp(i,j,n) = f(i,j,kbc)                                    &
-                        & *exp(rgas*lrate*log(sigp/sig(kbc))*regrav)
+              fp(i,j,n) = f(i,j,kbc) *                                  &
+                          exp(rglr*log(sigp/sig(kbc))*real(regrav))
 !             ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
             else
             end if
@@ -335,10 +321,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
-      use mod_constants , only : govr
       implicit none
-!
-! Dummy arguments
 !
       integer :: ni , nj
       real(8) :: pt
@@ -358,7 +341,8 @@
       do i = 1 , ni
         do j = 1 , nj
           tb = tlayer(i,j)
-          psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tb) - pt
+          psrcm(i,j) = pa(i,j)* &
+               exp(-real(govr)*(zrcm(i,j)-za(i,j))/tb) - real(pt)
         end do
       end do
  
@@ -371,12 +355,6 @@
 !
       subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
       implicit none
-!
-! PARAMETER definitions
-!
-      real(4) , parameter :: psccm = 100.
-!
-! Dummy arguments
 !
       integer :: kccm , krcm , ni , nj
       real(8) :: pt
@@ -408,7 +386,7 @@
       do i = 1 , ni
         do j = 1 , nj
           dp1 = psrcm(i,j)/psccm
-          pt1 = pt/psccm
+          pt1 = real(pt)/psccm
           do n = 1 , krcm
             sc = srcm(n)*dp1 + pt1
             k1 = 0
@@ -445,16 +423,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
-      use mod_constants , only : rgas , egrav , lrate
       implicit none
-!
-! PARAMETER definitions
-!
-      real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -egrav/lrate
-      real(4) , parameter :: psccm = 100.
-!
-! Dummy arguments
 !
       integer :: kccm , krcm , ni , nj
       real(8) :: pt
@@ -486,7 +455,7 @@
       do i = 1 , ni
         do j = 1 , nj
           dp1 = psrcm(i,j)/psccm
-          pt1 = pt/psccm
+          pt1 = real(pt)/psccm
           do n = 1 , krcm
             sc = srcm(n)*dp1 + pt1
             k1 = 0
@@ -524,15 +493,7 @@
 !-----------------------------------------------------------------------
 !
       subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
-      use mod_constants , only : rgas , egrav , lrate
       implicit none
-!
-! PARAMETER definitions
-!
-      real(4) , parameter :: rgas2 = rgas/2.
-      real(4) , parameter :: b1 = -egrav/lrate
-!
-! Dummy arguments
 !
       integer :: kccm , ni , nj
       real(8) :: ptop
@@ -557,7 +518,7 @@
 !
       do i = 1 , ni
         do j = 1 , nj
-          sc = (psrccm(i,j)+ptop)/100.
+          sc = (psrccm(i,j)+real(ptop))/100.
           k1 = 0
 
 

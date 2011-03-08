@@ -241,7 +241,7 @@
             if ( ii>288 ) ii = ii - 288
             i2 = i - nint(lon0/1.25) + 1
             j2 = j - nint(lat0) + 1
-            u2(ii,j+91,k) = itmp(i2,j2)*xscale + offset
+            u2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
           end do
         end do
       end do
@@ -256,7 +256,7 @@
             if ( ii>288 ) ii = ii - 288
             i2 = i - nint(lon0/1.25) + 1
             j2 = j - nint(lat0) + 1
-            v2(ii,j+91,k) = itmp(i2,j2)*xscale + offset
+            v2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
           end do
         end do
       end do
@@ -271,7 +271,7 @@
             if ( ii>288 ) ii = ii - 288
             i2 = i - nint(lon0/1.25) + 1
             j2 = j - nint(lat0) + 1
-            t2(ii,j+91,k) = itmp(i2,j2)*xscale + offset
+            t2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
           end do
         end do
       end do
@@ -286,7 +286,7 @@
             if ( ii>288 ) ii = ii - 288
             i2 = i - nint(lon0/1.25) + 1
             j2 = j - nint(lat0) + 1
-            q2(ii,j+91,k) = itmp(i2,j2)*xscale + offset
+            q2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
           end do
         end do
       end do

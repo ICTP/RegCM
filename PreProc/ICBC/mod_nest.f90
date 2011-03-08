@@ -249,7 +249,7 @@
       use netcdf
       implicit none
 !
-      real(4) :: xsign
+      real(8) :: xsign
       integer :: i , k , istatus , idimid , ivarid
       logical :: there
       real(8) , dimension(:) , allocatable :: xtimes
@@ -388,9 +388,9 @@
                    &    'standard_parallel', trlat)
         call check_ok(istatus,'attribure truelat read error')
         if ( clat_in<0. ) then
-          xsign = -1.       ! SOUTH HEMESPHERE
+          xsign = -1.0D0       ! SOUTH HEMESPHERE
         else
-          xsign = 1.        ! NORTH HEMESPHERE
+          xsign =  1.0D0       ! NORTH HEMESPHERE
         end if
         if ( abs(trlat(1)-trlat(2))>1.E-1 ) then
           grdfac_in = (log10(cos(trlat(1)*degrad))                      &
@@ -398,12 +398,12 @@
                    & /(log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))     &
                    & -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
         else
-          grdfac_in = xsign*sin(trlat(1)*degrad)
+          grdfac_in = xsign*dsin(dble(trlat(1))*degrad)
         end if
       else if ( iproj_in=='POLSTR' ) then
-        grdfac_in = 1.0
+        grdfac_in = 1.0D0
       else if ( iproj_in=='NORMER' ) then
-        grdfac_in = 0.0
+        grdfac_in = 0.0D0
       else
         istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'grid_north_pole_latitude', plat_in)
@@ -411,7 +411,7 @@
         istatus = nf90_get_att(ncinp, nf90_global, &
                    &    'grid_north_pole_longitude', plon_in)
         call check_ok(istatus,'attribure plon read error')
-        grdfac_in = 0.0
+        grdfac_in = 0.0D0
       end if
  
 !     Set up pointers

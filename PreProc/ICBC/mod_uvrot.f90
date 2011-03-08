@@ -19,16 +19,14 @@
 
       module mod_uvrot
 
+      use mod_constants , only : degrad
+
       contains
 
       subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
                       & pollat,lgtype)
 
-      use mod_constants , only : degrad
-
       implicit none
-!
-! Dummy arguments
 !
       real(8) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
@@ -39,9 +37,7 @@
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
-! Local variables
-!
-      real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+      real(8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
             & zphi , zrla , zrlap
       integer :: i , j , l
@@ -71,54 +67,55 @@
  
         do j = 1 , iy
           do i = 1 , jx
-            zphi = dlat(i,j)*degrad
-            zrla = dlon(i,j)*degrad
-            if ( dlat(i,j)>89.999999 ) zrla = 0.0
+            zphi = dble(dlat(i,j))*degrad
+            zrla = dble(dlon(i,j))*degrad
+            if ( dlat(i,j)>89.999999 ) zrla = 0.0D0
             zrlap = pollam*degrad - zrla
-            zarg1 = polcphi*sin(zrlap)
-            zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-            znorm = 1.0/sqrt(zarg1**2+zarg2**2)
+            zarg1 = polcphi*dsin(zrlap)
+            zarg2 = polsphi*dcos(zphi) - polcphi*dsin(zphi)*dcos(zrlap)
+            znorm = 1.0D0/dsqrt(zarg1**2.0D0+zarg2**2.0D0)
             sindel = zarg1*znorm
             cosdel = zarg2*znorm
             do l = 1 , ll
-              us = u(i,j,l)*cosdel - v(i,j,l)*sindel
-              vs = u(i,j,l)*sindel + v(i,j,l)*cosdel
-              u(i,j,l) = us
-              v(i,j,l) = vs
+              us = dble(u(i,j,l))*cosdel - dble(v(i,j,l))*sindel
+              vs = dble(u(i,j,l))*sindel + dble(v(i,j,l))*cosdel
+              u(i,j,l) = real(us)
+              v(i,j,l) = real(vs)
             end do
           end do
         end do
       else
         do j = 1 , iy
           do i = 1 , jx
-            if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
-               & (clon<0.0 .and. dlon(i,j)<0.) ) then
+            if ( (clon>=0.0D0 .and. dlon(i,j)>=0.) .or.      &
+               & (clon<0.0D0 .and. dlon(i,j)<0.) ) then
               x = (clon-dlon(i,j))*degrad*gridfc
-            else if ( clon>=0.0 ) then
-              if ( abs(clon-(dlon(i,j)+360.))<abs(clon-dlon(i,j)) ) then
-                x = (clon-(dlon(i,j)+360.))*degrad*gridfc
+            else if ( clon>=0.0D0 ) then
+              if ( dabs(clon-(dble(dlon(i,j))+360.0D0)) < &
+                   dabs(clon-dble(dlon(i,j))) ) then
+                x = (clon-(dble(dlon(i,j))+360.0D0))*degrad*gridfc
               else
-                x = (clon-dlon(i,j))*degrad*gridfc
+                x = (clon-dble(dlon(i,j)))*degrad*gridfc
               end if
-            else if ( abs(clon-(dlon(i,j)-360.))<abs(clon-dlon(i,j)) )  &
-                    & then
-              x = (clon-(dlon(i,j)-360.))*degrad*gridfc
+            else if ( dabs(clon-(dble(dlon(i,j))-360.0D0)) < &
+                      dabs(clon-dble(dlon(i,j))) ) then
+              x = (clon-(dble(dlon(i,j))-360.0D0))*degrad*gridfc
             else
-              x = (clon-dlon(i,j))*degrad*gridfc
+              x = (clon-dble(dlon(i,j)))*degrad*gridfc
             end if
-            xs = sin(x)
-            xc = cos(x)
-            if ( clat>=0. ) then
+            xs = dsin(x)
+            xc = dcos(x)
+            if ( clat>=0.0D0 ) then
               do l = 1 , ll
-                d = v(i,j,l)*xs + u(i,j,l)*xc
-                v(i,j,l) = v(i,j,l)*xc - u(i,j,l)*xs
-                u(i,j,l) = d
+                d = dble(v(i,j,l))*xs + dble(u(i,j,l))*xc
+                v(i,j,l) = real(dble(v(i,j,l))*xc - dble(u(i,j,l))*xs)
+                u(i,j,l) = real(d)
               end do
             else
               do l = 1 , ll
-                d = -v(i,j,l)*xs + u(i,j,l)*xc
-                v(i,j,l) = v(i,j,l)*xc + u(i,j,l)*xs
-                u(i,j,l) = d
+                d = -dble(v(i,j,l))*xs + dble(u(i,j,l))*xc
+                v(i,j,l) = real(dble(v(i,j,l))*xc + dble(u(i,j,l))*xs)
+                u(i,j,l) = real(d)
               end do
             end if
           end do
@@ -131,10 +128,7 @@
       subroutine uvrot4nx(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,      &
                         & pollon,pollat,lgtype)
 
-      use mod_constants , only : degrad
       implicit none
-!
-! Dummy arguments
 !
       real(8) :: clat , clon , gridfc , pollat , pollon
       integer :: iy , jx , ll
@@ -145,9 +139,7 @@
                 & lgtype , ll , pollat , pollon
       intent (inout) u , v
 !
-! Local variables
-!
-      real(4) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
+      real(8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,     &
             & sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
             & zphi , zrla , zrlap
       integer :: i , j , l
@@ -164,67 +156,68 @@
 !
       if ( lgtype=='ROTMER' ) then
         if ( pollat>0. ) then
-          pollam = pollon + 180.
-          polphi = 90. - pollat
+          pollam = pollon + 180.0D0
+          polphi = 90.0D0 - pollat
         else
-          polphi = 90. + pollat
+          polphi = 90.0D0 + pollat
           pollam = pollon
         end if
-        if ( pollam>180. ) pollam = pollam - 360.
+        if ( pollam>180.0D0 ) pollam = pollam - 360.0D0
  
-        polcphi = cos(degrad*polphi)
-        polsphi = sin(degrad*polphi)
+        polcphi = dcos(degrad*polphi)
+        polsphi = dsin(degrad*polphi)
  
         do j = 1 , iy
           do i = 1 , jx
-            zphi = dlat(i,j)*degrad
-            zrla = dlon(i,j)*degrad
-            if ( dlat(i,j)>89.999999 ) zrla = 0.0
+            zphi = dble(dlat(i,j))*degrad
+            zrla = dble(dlon(i,j))*degrad
+            if ( dlat(i,j)>89.999999 ) zrla = 0.0D0
             zrlap = pollam*degrad - zrla
-            zarg1 = polcphi*sin(zrlap)
-            zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-            znorm = 1.0/sqrt(zarg1**2+zarg2**2)
+            zarg1 = polcphi*dsin(zrlap)
+            zarg2 = polsphi*dcos(zphi) - polcphi*dsin(zphi)*dcos(zrlap)
+            znorm = 1.0D0/dsqrt(zarg1**2.0D0+zarg2**2.0D0)
             sindel = zarg1*znorm
             cosdel = zarg2*znorm
             do l = 1 , ll
-              us = u(i,j,l)*cosdel + v(i,j,l)*sindel
-              vs = -u(i,j,l)*sindel + v(i,j,l)*cosdel
-              u(i,j,l) = us
-              v(i,j,l) = vs
+              us = dble(u(i,j,l))*cosdel + dble(v(i,j,l))*sindel
+              vs = -dble(u(i,j,l))*sindel + dble(v(i,j,l))*cosdel
+              u(i,j,l) = real(us)
+              v(i,j,l) = real(vs)
             end do
           end do
         end do
       else
         do j = 1 , iy
           do i = 1 , jx
-            if ( (clon>=0.0 .and. dlon(i,j)>=0.) .or.                   &
-               & (clon<0.0 .and. dlon(i,j)<0.) ) then
-              x = (clon-dlon(i,j))*degrad*gridfc
-            else if ( clon>=0.0 ) then
-              if ( abs(clon-(dlon(i,j)+360.))<abs(clon-dlon(i,j)) ) then
-                x = (clon-(dlon(i,j)+360.))*degrad*gridfc
+            if ( (clon>=0.0D0 .and. dlon(i,j)>=0.) .or.  &
+               & (clon<0.0D0 .and. dlon(i,j)<0.) ) then
+              x = (clon-dble(dlon(i,j)))*degrad*gridfc
+            else if ( clon>=0.0D0 ) then
+              if ( dabs(clon-(dble(dlon(i,j))+360.0D0)) < &
+                   dabs(clon-dble(dlon(i,j))) ) then
+                x = (clon-(dble(dlon(i,j))+360.0D0))*degrad*gridfc
               else
-                x = (clon-dlon(i,j))*degrad*gridfc
+                x = (clon-dble(dlon(i,j)))*degrad*gridfc
               end if
-            else if ( abs(clon-(dlon(i,j)-360.))<abs(clon-dlon(i,j)) )  &
-                    & then
-              x = (clon-(dlon(i,j)-360.))*degrad*gridfc
+            else if ( dabs(clon-(dble(dlon(i,j))-360.0D0)) < &
+                      dabs(clon-dble(dlon(i,j))) ) then
+              x = (clon-(dble(dlon(i,j))-360.0D0))*degrad*gridfc
             else
-              x = (clon-dlon(i,j))*degrad*gridfc
+              x = (clon-dble(dlon(i,j)))*degrad*gridfc
             end if
-            xs = sin(x)
-            xc = cos(x)
-            if ( clat>=0. ) then
+            xs = dsin(x)
+            xc = dcos(x)
+            if ( clat>=0.0D0 ) then
               do l = 1 , ll
-                d = u(i,j,l)*xc - v(i,j,l)*xs
-                v(i,j,l) = u(i,j,l)*xs + v(i,j,l)*xc
-                u(i,j,l) = d
+                d = dble(u(i,j,l))*xc - dble(v(i,j,l))*xs
+                v(i,j,l) = real(dble(u(i,j,l))*xs + dble(v(i,j,l))*xc)
+                u(i,j,l) = real(d)
               end do
             else
               do l = 1 , ll
-                d = u(i,j,l)*xc + v(i,j,l)*xs
-                v(i,j,l) = v(i,j,l)*xc - u(i,j,l)*xs
-                u(i,j,l) = d
+                d = dble(u(i,j,l))*xc + dble(v(i,j,l))*xs
+                v(i,j,l) = real(dble(v(i,j,l))*xc - dble(u(i,j,l))*xs)
+                u(i,j,l) = real(d)
               end do
             end if
           end do

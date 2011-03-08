@@ -187,8 +187,8 @@
                    &   'grid_north_pole_longitude', plon)
           call check_ok(istatus,'Error adding global plon')
         else if (iproj == 'LAMCON') then
-          trlat(1) = truelatl
-          trlat(2) = truelath
+          trlat(1) = real(truelatl)
+          trlat(2) = real(truelath)
           istatus = nf90_put_att(ncid, nf90_global, &
                    &   'standard_parallel', trlat)
           call check_ok(istatus,'Error adding global truelat')
@@ -365,18 +365,18 @@
 !
         istatus = nf90_put_var(ncid, izvar(1), sigma)
         call check_ok(istatus,'Error variable sigma write')
-        hptop = ptop*10.0
+        hptop = real(ptop*10.0D0)
         istatus = nf90_put_var(ncid, izvar(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
         allocate(yiy(iy))
         allocate(xjx(jx))
-        yiy(1) = -(dble(iy-1)/2.0) * ds
-        xjx(1) = -(dble(jx-1)/2.0) * ds
+        yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
+        xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
         do i = 2 , iy
-          yiy(i) = yiy(i-1)+ds
+          yiy(i) = real(dble(yiy(i-1))+ds)
         end do
         do j = 2 , jx
-          xjx(j) = xjx(j-1)+ds
+          xjx(j) = real(dble(xjx(j-1))+ds)
         end do
         istatus = nf90_put_var(ncid, ivvar(1), yiy)
         call check_ok(istatus,'Error variable iy write')

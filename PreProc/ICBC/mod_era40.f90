@@ -346,7 +346,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                tvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                tvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
               end do
             end do
           end do
@@ -354,7 +354,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                hvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                hvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
                 hvar(i,jlat+1-j,k) = hvar(i,jlat+1-j,k)/9.80616
               end do
             end do
@@ -363,7 +363,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                rhvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                rhvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
                 rhvar(i,jlat+1-j,k) = rhvar(i,jlat+1-j,k)*0.01
 !               RHvar(i,jlat+1-j,k)=amax1(RHvar(i,jlat+1-j,k),1.05)
               end do
@@ -373,7 +373,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                uvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                uvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
               end do
             end do
           end do
@@ -381,7 +381,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                vvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                vvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
               end do
             end do
           end do
@@ -389,7 +389,7 @@
           do k = 1 , klev
             do j = 1 , jlat
               do i = 1 , ilon
-                wvar(i,jlat+1-j,k) = work(i,j,k)*xscale + xadd
+                wvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale+xadd)
               end do
             end do
           end do

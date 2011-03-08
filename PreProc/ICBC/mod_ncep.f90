@@ -170,8 +170,8 @@
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
 !bxq
-      xadd = 0.0
-      xscale = 1.0
+      xadd = 0.0D0
+      xscale = 1.0D0
       nyear = idate/1000000
       month = idate/10000 - nyear*100
       nday = idate/100 - nyear*10000 - month*100
@@ -301,43 +301,43 @@
             if ( kkrec==1 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  tvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
-                  & *xscale + xadd
+                  tvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev)) &
+                  & *xscale + xadd)
                 end do
               end do
             else if ( kkrec==2 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  hvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
-                  & *xscale + xadd
+                  hvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))  &
+                  & *xscale + xadd)
                 end do
               end do
             else if ( kkrec==3 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  rhvar(i,jlat+1-j,14-ilev)                             &
-                  & = dmin1((work(i,j,ilev)*xscale+xadd)*0.01,1.D0)
+                  rhvar(i,jlat+1-j,14-ilev) = real(dmin1( &
+                      (dble(work(i,j,ilev))*xscale+xadd)*0.01D0,1.D0))
                 end do
               end do
             else if ( kkrec==4 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  uvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
-                  & *xscale + xadd
+                  uvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))  &
+                  & *xscale + xadd)
                 end do
               end do
             else if ( kkrec==5 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  vvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
-                  & *xscale + xadd
+                  vvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))  &
+                  & *xscale + xadd)
                 end do
               end do
             else if ( kkrec==6 ) then
               do j = 1 , jlat
                 do i = 1 , ilon
-                  wvar(i,jlat+1-j,14-ilev) = work(i,j,ilev)             &
-                  & *xscale + xadd
+                  wvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))  &
+                  & *xscale + xadd)
                 end do
               end do
             else
@@ -354,7 +354,7 @@
           if ( kkrec==7 ) then
             do j = 1 , jlat
               do i = 1 , ilon
-                psvar(i,jlat+1-j) = work(i,j,1)*xscale + xadd
+                psvar(i,jlat+1-j) = real(dble(work(i,j,1))*xscale+xadd)
               end do
             end do
           end if
@@ -503,16 +503,16 @@
       data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , &
           &        'pres'/
 !
-      xadd = 0.0
-      xscale = 1.0
+      xadd = 0.0D0
+      xscale = 1.0D0
       if ( idate==idate0 ) then
-        i0 = lon0/2.5 + 1
+        i0 = idint(lon0/2.5D0) + 1
         if ( i0<=0 ) i0 = i0 + ilon
         if ( i0>ilon ) i0 = i0 - ilon
-        i1 = lon1/2.5 + 1
+        i1 = idint(lon1/2.5D0) + 1
         if ( i1<=0 ) i1 = i1 + ilon
         if ( i1>ilon ) i1 = i1 - ilon
-        j0 = lat0/2.5 + 36
+        j0 = idint(lat0/2.5D0) + 36
       end if
 !
 !bxq
@@ -635,16 +635,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    tvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    tvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    tvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    tvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    tvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    tvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                xscale + xadd)
                   end do
                 end if
               end do
@@ -655,16 +658,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    hvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    hvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    hvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    hvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    hvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    hvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 end if
               end do
@@ -674,19 +680,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    rhvar(ii,jj,ilev) = dmin1((work(i,j,ilev+1)*xscale+ &
-                                      & xadd)*0.01,1.D0)
+                    rhvar(ii,jj,ilev) = real(dmin1( &
+                      (dble(work(i,j,ilev+1))*xscale+xadd)*0.01D0,1.D0))
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    rhvar(ii,jj,ilev) = dmin1((work(i,j,ilev+1)*xscale+ &
-                                      & xadd)*0.01,1.D0)
+                    rhvar(ii,jj,ilev) = real(dmin1( &
+                      (dble(work(i,j,ilev+1))*xscale+xadd)*0.01D0,1.D0))
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    rhvar(ii,jj,ilev) = dmin1((work(i,j,ilev+1)*xscale+ &
-                                      & xadd)*0.01,1.D0)
+                    rhvar(ii,jj,ilev) = real(dmin1( &
+                      (dble(work(i,j,ilev+1))*xscale+xadd)*0.01D0,1.D0))
                   end do
                 end if
               end do
@@ -696,16 +702,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    uvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    uvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    uvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    uvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    uvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    uvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 end if
               end do
@@ -715,16 +724,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    vvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    vvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    vvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    vvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    vvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    vvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1)) * &
+                                 xscale + xadd)
                   end do
                 end if
               end do
@@ -734,16 +746,19 @@
                 if ( i0>i1 ) then
                   do ii = i0 , ilon
                     i = ii - i0 + 1
-                    wvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    wvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))* &
+                            xscale + xadd)
                   end do
                   do ii = 1 , i1
                     i = ii + (ilon-i0) + 1
-                    wvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    wvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))* &
+                            xscale + xadd)
                   end do
                 else
                   do ii = i0 , i1
                     i = ii - i0 + 1
-                    wvar(ii,jj,ilev) = work(i,j,ilev+1)*xscale + xadd
+                    wvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))* &
+                            xscale + xadd)
                   end do
                 end if
               end do
@@ -764,16 +779,16 @@
               if ( i0>i1 ) then
                 do ii = i0 , ilon
                   i = ii - i0 + 1
-                  psvar(ii,jj) = work(i,j,1)*xscale + xadd
+                  psvar(ii,jj) = real(dble(work(i,j,1))*xscale + xadd)
                 end do
                 do ii = 1 , i1
                   i = ii + (ilon-i0) + 1
-                  psvar(ii,jj) = work(i,j,1)*xscale + xadd
+                  psvar(ii,jj) = real(dble(work(i,j,1))*xscale + xadd)
                 end do
               else
                 do ii = i0 , i1
                   i = ii - i0 + 1
-                  psvar(ii,jj) = work(i,j,1)*xscale + xadd
+                  psvar(ii,jj) = real(dble(work(i,j,1))*xscale + xadd)
                 end do
               end if
             end do

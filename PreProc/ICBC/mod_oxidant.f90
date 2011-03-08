@@ -529,7 +529,8 @@
         do i = 1 , iy
           do j = 1 , jx
             do l = 1 , kz
-              prcm=((poxid_3(j,i)*0.1-ptop)*sigma2(l)+ptop)*10.
+              prcm=((poxid_3(j,i)*0.1-real(ptop))* &
+                      sigma2(l)+real(ptop))*10.
 
               k0 = -1
               do k = ilev , 1 , -1

@@ -224,9 +224,9 @@
       do j = 1 , jlat
         do i = 1 , ilon
           if (work(i,j)/=xmiss) then
-            sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+            sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           else
-            sst(i,jlat+1-j)=-9999
+            sst(i,jlat+1-j)=-9999.0
           end if
         end do
       end do
@@ -313,9 +313,9 @@
       do j = 1 , jlat
         do i = 1 , ilon
           if (work(i,j)/=xmiss) then
-            sst(i,jlat+1-j) = work(i,j)*xscale + xadd
+            sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
           else
-            sst(i,jlat+1-j)=-9999
+            sst(i,jlat+1-j)=-9999.0
           end if
         end do
       end do

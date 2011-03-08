@@ -402,9 +402,9 @@
                    &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
                    &  glat(m,n)-alat(i,j) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( dista>aaa ) then
                     dista = aaa
                     mur = m
@@ -415,9 +415,9 @@
                    &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
                    &  glat(m,n)-alat(i,j) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distb>aaa ) then
                     distb = aaa
                     mul = m
@@ -428,9 +428,9 @@
                    &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
                    &  alat(i,j)-glat(m,n) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distc>aaa ) then
                     distc = aaa
                     mdr = m
@@ -441,9 +441,9 @@
                    &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
                    &  alat(i,j)-glat(m,n) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distd>aaa ) then
                     distd = aaa
                     mdl = m
@@ -641,9 +641,9 @@
                    &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
                    &  glat(m,n)-alat(i,j) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( dista>aaa ) then
                     dista = aaa
                     mur = m
@@ -654,9 +654,9 @@
                    &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)>=alat(i,j) .and.                        &
                    &  glat(m,n)-alat(i,j) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distb>aaa ) then
                     distb = aaa
                     mul = m
@@ -667,9 +667,9 @@
                    &  glon(m,n)-alon(i,j) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
                    &  alat(i,j)-glat(m,n) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distc>aaa ) then
                     distc = aaa
                     mdr = m
@@ -680,9 +680,9 @@
                    &  alon(i,j)-glon(m,n) < dlonmax ) .and.             &
                    & (glat(m,n)<alat(i,j) .and.                         &
                    &  alat(i,j)-glat(m,n) < dlatmax ) ) then
-                  aaa = ((glon(m,n)-alon(i,j)) *                        &
-                      & cos((glat(m,n)+alat(i,j))*degrad))**2 +         &
-                      & (glat(m,n)-alat(i,j))**2
+                  aaa = real((dble(glon(m,n)-alon(i,j)) *               &
+                      & dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
+                      & dble(glat(m,n)-alat(i,j))**2.0D0)
                   if ( distd>aaa ) then
                     distd = aaa
                     mdl = m

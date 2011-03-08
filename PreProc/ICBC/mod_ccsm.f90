@@ -552,9 +552,9 @@
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
  
-        checklon(kkrec) = lonlen
-        checklat(kkrec) = latlen
-        checktim(kkrec) = timlen
+        checklon(kkrec) = real(lonlen)
+        checklat(kkrec) = real(latlen)
+        checktim(kkrec) = real(timlen)
         if ( kkrec>1 ) then
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
@@ -613,8 +613,8 @@
         end if
  
         if ( idate==idate0 ) then
-          i0 = work1(1)/2.8125 + 1
-          i1 = work1(lonlen)/2.8125 + 1
+          i0 = nint(work1(1)/2.8125) + 1
+          i1 = nint(work1(lonlen)/2.8125) + 1
           do i = 1 , jlath
             jmin = nint(glat(i)-work2(1))
             jmax = nint(glat(i)-work2(latlen))
@@ -1180,9 +1180,9 @@
         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
-        checklon(kkrec) = lonlen
-        checklat(kkrec) = latlen
-        checktim(kkrec) = timlen
+        checklon(kkrec) = real(lonlen)
+        checklat(kkrec) = real(latlen)
+        checktim(kkrec) = real(timlen)
         if ( kkrec>1 ) then
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
@@ -1241,8 +1241,8 @@
         end if
  
         if ( idate==idate0 ) then
-          i0 = work1(1)/1.40625 + 1
-          i1 = work1(lonlen)/1.40625 + 1
+          i0 = nint(work1(1)/1.40625) + 1
+          i1 = nint(work1(lonlen)/1.40625) + 1
           do i = 1 , jlat
             jmin = nint(glat(i)-work2(1))
             jmax = nint(glat(i)-work2(latlen))

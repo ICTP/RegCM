@@ -172,7 +172,7 @@
                 tsccm(i,j) = work1(i,j)
                 if (lhasice) then
                   if ( work3(i,j)>-900.0) then
-                    if ( work3(i,j)>35. ) tsccm(i,j) = tzero - 2.15
+                    if ( work3(i,j)>35. ) tsccm(i,j) = 271.0
                   end if
                 end if
               end if
@@ -210,7 +210,7 @@
                 if (lhasice) then
                   if ( work3(i,j)>-900.0 .and. work4(i,j)>-900.0 ) then
                     if ( (1.-wt)*work3(i,j)+wt*work4(i,j)>35. ) then
-                      tsccm(i,j) = tzero - 2.15
+                      tsccm(i,j) = 271.0
                     endif
                   end if
                 end if

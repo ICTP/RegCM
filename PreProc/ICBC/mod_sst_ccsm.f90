@@ -103,7 +103,7 @@
             if ( sstmm(i,j)<-5000 .and.                                 &
                & (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
               do iv = 1 , 20
-                lund(iv) = 0.0
+                lund(iv) = 0
               end do
               lund(nint(lu(i-1,j-1))) = lund(nint(lu(i-1,j-1))) + 2
               lund(nint(lu(i-1,j))) = lund(nint(lu(i-1,j))) + 3
