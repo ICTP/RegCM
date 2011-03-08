@@ -29,7 +29,7 @@
 
       implicit none
 !
-      real(4) , parameter :: vmisdat=-9999
+      real(4) , parameter :: vmisdat=-9999.0
       integer , parameter :: ndim = 3
       logical , parameter :: bvoc = .false.
 !
@@ -177,8 +177,8 @@
                  &   'grid_north_pole_longitude', plon)
         call check_ok(istatus,'Error adding global plon')
       else if (iproj == 'LAMCON') then
-        trlat(1) = truelatl
-        trlat(2) = truelath
+        trlat(1) = real(truelatl)
+        trlat(2) = real(truelath)
         istatus = nf90_put_att(ncid, nf90_global, &
                  &   'standard_parallel', trlat)
         call check_ok(istatus,'Error adding global truelat')
@@ -285,18 +285,18 @@
 !
       istatus = nf90_put_var(ncid, izvar(1), sigx)
       call check_ok(istatus,'Error variable sigma write')
-      hptop = ptop * 10.0
+      hptop = real(ptop * 10.0D0)
       istatus = nf90_put_var(ncid, izvar(2), hptop)
       call check_ok(istatus,'Error variable ptop write')
       allocate(yiy(iy))
       allocate(xjx(jx))
-      yiy(1) = -(dble(iy-1)/2.0) * ds
-      xjx(1) = -(dble(jx-1)/2.0) * ds
+      yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
+      xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
       do i = 2 , iy
-        yiy(i) = yiy(i-1)+ds
+        yiy(i) = real(dble(yiy(i-1))+ds)
       end do
       do j = 2 , jx
-        xjx(j) = xjx(j-1)+ds
+        xjx(j) = real(dble(xjx(j-1))+ds)
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy)
       call check_ok(istatus,'Error variable iy write')
@@ -484,7 +484,7 @@
               do i = 1 , jx
                 if ( regyxzt(j,i,1,l)>-99. ) then
                   do k = 1 , nlev(ifld)
-                    regyxzt(j,i,k,l) = nint(regyxzt(j,i,k,l))
+                    regyxzt(j,i,k,l) = anint(regyxzt(j,i,k,l))
                   end do
                   perr = 100.
                   kmax = -1
@@ -510,7 +510,7 @@
                 if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
                   regxyz(i,j,k) = regyxzt(j,i,k,l)
                 else
-                  regxyz(i,j,k) = 0
+                  regxyz(i,j,k) = 0.0
                 end if
               end do
             end do
@@ -695,7 +695,7 @@
       julday = idy + jprev(imo) - 1
  
       julnc = ((iyr-1900)*365+julday+int((iyrm1-1900)/4))*24 + ihr
-      xhr = float(julnc)
+      xhr = dble(julnc)
  
       end subroutine julian
 

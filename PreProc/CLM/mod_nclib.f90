@@ -189,7 +189,7 @@
         varmax(i) = vvarmax(i)
       end do
 
-      tstep  = vtstep
+      tstep  = real(vtstep)
       ievar  = iadim(1)
       jevar  = iadim(2)
       kevar  = iadim(3)
@@ -524,7 +524,6 @@
       character(64) , dimension(maxdim) :: long_name
       character(64) , dimension(maxdim) :: units
       integer(2) , parameter :: shfill = -32767
-      real(4) , parameter :: flfill = 9.9692099683868690e+36
 
       data rdim /'lon','lat','level','time'/
       data long_name /'Longitude','Latitude','Height_Index','Time'/
@@ -615,8 +614,8 @@
           if ( ierr/=nf90_noerr ) go to 920
           ierr = nf90_put_att(cdfid,idtime,'units',units(4))
           if ( ierr/=nf90_noerr ) go to 920
-          dvrange(1)=0.
-          dvrange(2)=0.
+          dvrange(1)=0.0D0
+          dvrange(2)=0.0D0
           ierr = nf90_put_att(cdfid,idtime,'actual_range',dvrange)
           if ( ierr/=nf90_noerr ) go to 920
         end if

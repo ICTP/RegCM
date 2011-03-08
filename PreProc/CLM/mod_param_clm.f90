@@ -69,7 +69,7 @@
 !     ***** INFORMATION ON EACH CLM3 VARIABLE
  
 !     ** Plant functional types
-      data vnam(ipft) , vmin(ipft)/'PCT_PFT' , -99/
+      data vnam(ipft) , vmin(ipft)/'PCT_PFT' , -99.0/
       data infil(ipft)/'/CLM/mksrf_pft.nc'/
       data nlon(ipft) , nlat(ipft) , nlev(ipft) , ntim(ipft)/720 , 360 ,&
          & npft , 1/
@@ -77,10 +77,10 @@
          & / - 179.75 , 179.75 , -89.75 , 89.75/
  
 !     ** Vegetation parameters (LAI, SAI, etc)
-      data vnam(ilai) , vmin(ilai)/'MONTHLY_LAI' , -99/
-      data vnam(isai) , vmin(isai)/'MONTHLY_SAI' , -99/
-      data vnam(itop) , vmin(itop)/'MONTHLY_HEIGHT_TOP' , -99/
-      data vnam(ibot) , vmin(ibot)/'MONTHLY_HEIGHT_BOT' , -99/
+      data vnam(ilai) , vmin(ilai)/'MONTHLY_LAI' , -99.0/
+      data vnam(isai) , vmin(isai)/'MONTHLY_SAI' , -99.0/
+      data vnam(itop) , vmin(itop)/'MONTHLY_HEIGHT_TOP' , -99.0/
+      data vnam(ibot) , vmin(ibot)/'MONTHLY_HEIGHT_BOT' , -99.0/
       data infil(ilai)/'/CLM/mksrf_lai.nc'/
       data infil(isai)/'/CLM/mksrf_lai.nc'/
       data infil(itop)/'/CLM/mksrf_lai.nc'/
@@ -103,8 +103,8 @@
          & / - 179.75 , 179.75 , -89.75 , 89.75/
  
 !     ** Land water (lake and wetland)
-!     data vnam(ilak), vmin(ilak)  / 'PCT_LAKE', -99 /
-!     data vnam(iwtl), vmin(iwtl)  / 'PCT_WETLAND', -99 /
+!     data vnam(ilak), vmin(ilak)  / 'PCT_LAKE', -99.0 /
+!     data vnam(iwtl), vmin(iwtl)  / 'PCT_WETLAND', -99.0 /
 !     data infil(ilak) / '/CLM/mksrf_lanwat.nc' /
 !     data infil(iwtl) / '/CLM/mksrf_lanwat.nc' /
 !     data nlon(ilak),nlat(ilak),nlev(ilak),ntim(ilak)
@@ -115,8 +115,8 @@
 !     &   /         0.5,      359.5,      -89.5,       89.5 /
 !     data glon1(iwtl),glon2(iwtl),glat1(iwtl),glat2(iwtl)
 !     &   /         0.5,      359.5,      -89.5,       89.5 /
-      data vnam(ilak) , vmin(ilak)/'PCT_LAKE' , -99/
-      data vnam(iwtl) , vmin(iwtl)/'PCT_WETLAND' , -99/
+      data vnam(ilak) , vmin(ilak)/'PCT_LAKE' , -99.0/
+      data vnam(iwtl) , vmin(iwtl)/'PCT_WETLAND' , -99.0/
       data infil(ilak)/'/CLM/mksrf_lanwat.nc'/
       data infil(iwtl)/'/CLM/mksrf_lanwat.nc'/
       data nlon(ilak) , nlat(ilak) , nlev(ilak) , ntim(ilak)/7200 ,     &
@@ -129,7 +129,7 @@
          & / - 179.975 , 179.975 , -89.975 , 89.975/
  
 !     ** Glacier
-      data vnam(iglc) , vmin(iglc)/'PCT_GLACIER' , -99/
+      data vnam(iglc) , vmin(iglc)/'PCT_GLACIER' , -99.0/
       data infil(iglc)/'/CLM/mksrf_glacier.nc'/
       data nlon(iglc) , nlat(iglc) , nlev(iglc) , ntim(iglc)/7200 ,     &
          & 3600 , 1 , 1/
@@ -137,7 +137,7 @@
          & / - 179.975 , 179.975 , -89.975 , 89.975/
  
 !     ** Urban
-      data vnam(iurb) , vmin(iurb)/'PCT_URBAN' , -99/
+      data vnam(iurb) , vmin(iurb)/'PCT_URBAN' , -99.0/
       data infil(iurb)/'/CLM/mksrf_urban.nc'/
       data nlon(iurb) , nlat(iurb) , nlev(iurb) , ntim(iurb)/7200 ,     &
          & 3600 , 1 , 1/
@@ -146,8 +146,8 @@
  
 !     ** Soil texture
       data vnam_st/'MAPUNITS'/
-      data vnam(isnd) , vmin(isnd)/'PCT_SAND' , -99/
-      data vnam(icly) , vmin(icly)/'PCT_CLAY' , -99/
+      data vnam(isnd) , vmin(isnd)/'PCT_SAND' , -99.0/
+      data vnam(icly) , vmin(icly)/'PCT_CLAY' , -99.0/
       data infil(isnd)/'/CLM/mksrf_soitex.10level.nc'/
       data infil(icly)/'/CLM/mksrf_soitex.10level.nc'/
       data nlon(isnd) , nlat(isnd) , nlev(isnd) , ntim(isnd)/4320 ,     &
@@ -160,13 +160,13 @@
          & / - 179.9583 , 179.9583 , -89.95834 , 89.95834/
  
 !     ** Soil color
-!     data vnam(icol), vmin(icol)  / 'SOIL_COLOR', 0 /
+!     data vnam(icol), vmin(icol)  / 'SOIL_COLOR', 0.0 /
 !     data infil(icol) / '/CLM/mksrf_soicol_clm2.nc' /
 !     data nlon(icol),nlat(icol),nlev(icol),ntim(icol)
 !     &   /       128,       64,        1,       1 /
 !     data glon1(icol),glon2(icol),glat1(icol),glat2(icol)
 !     &   /          0.,   357.1875,   -87.8638,    87.8638 /
-      data vnam(icol) , vmin(icol)/'SOIL_COLOR' , 0/
+      data vnam(icol) , vmin(icol)/'SOIL_COLOR' , 0.0/
       data infil(icol)/'/CLM/mksrf_soicol_clm2.nc'/
       data nlon(icol) , nlat(icol) , nlev(icol) , ntim(icol)/7200 ,     &
          & 3600 , 1 , 1/
@@ -174,7 +174,7 @@
          & / - 179.975 , 179.975 , -89.975 , 89.975/
  
 !     ** Orography
-      data vnam(ioro) , vmin(ioro)/'LANDFRAC' , -99./
+      data vnam(ioro) , vmin(ioro)/'LANDFRAC' , -99.0/
       data infil(ioro)/'/CLM/mksrf_navyoro_20min.nc'/
       data nlon(ioro) , nlat(ioro) , nlev(ioro) , ntim(ioro)/7200 ,     &
          & 3600 , 1 , 1/
@@ -188,7 +188,7 @@
 !     &   /   0.1666667,   359.8333,  -89.83334,   89.83334 /
  
 !     ***** ADDITION ISOPRENE *****
-      data vnam(iiso) , vmin(iiso)/'ISOP' , -99./
+      data vnam(iiso) , vmin(iiso)/'ISOP' , -99.0/
       data infil(iiso)/'mksrf_iso.nc'/
       data nlon(iiso) , nlat(iiso) , nlev(iiso) , ntim(iiso)/8571 ,     &
          & 3333 , 1 , 1/
@@ -197,7 +197,7 @@
          & 82.965426650004/
  
 !     ***** ADDITION B-PINENE *****
-      data vnam(ibpin) , vmin(ibpin)/'BPINE' , -99./
+      data vnam(ibpin) , vmin(ibpin)/'BPINE' , -99.0/
       data infil(ibpin)/'mksrf_pinb.nc'/
       data nlon(ibpin) , nlat(ibpin) , nlev(ibpin) , ntim(ibpin)/8571 , &
          & 3333 , 1 , 1/
@@ -206,7 +206,7 @@
          & 82.965426650004/
  
 !     ***** ADDITION A-PINENE *****
-      data vnam(iapin) , vmin(iapin)/'APINE' , -99./
+      data vnam(iapin) , vmin(iapin)/'APINE' , -99.0/
       data infil(iapin)/'mksrf_pina.nc'/
       data nlon(iapin) , nlat(iapin) , nlev(iapin) , ntim(iapin)/8571 , &
          & 3333 , 1 , 1/
@@ -215,7 +215,7 @@
          & 82.965426650004/
  
 !     ***** ADDITION METHYLBUTENOL *****
-      data vnam(imbo) , vmin(imbo)/'MBO' , -99./
+      data vnam(imbo) , vmin(imbo)/'MBO' , -99.0/
       data infil(imbo)/'mksrf_mbo.nc'/
       data nlon(imbo) , nlat(imbo) , nlev(imbo) , ntim(imbo)/8571 ,     &
          & 4286 , 1 , 1/
@@ -223,7 +223,7 @@
          & / - 179.979 , 179.961000000012 , -89.979 , 89.9910000000055/
  
 !     **** ADDITION Maximum Fractional Saturated Area ***
-      data vnam(ifma) , vmin(ifma)/'FMAX' , -99/
+      data vnam(ifma) , vmin(ifma)/'FMAX' , -99.0/
       data infil(ifma)/'/CLM/mksrf_fmax.nc'/
       data nlon(ifma) , nlat(ifma) , nlev(ifma) , ntim(ifma)/720 , 360 ,&
          & 1 , 1/
@@ -256,10 +256,10 @@
 !
       varmin(1) = minval(xlon)
       varmin(2) = minval(xlat)
-      varmin(3) = 1 !1050.
+      varmin(3) = 1.0 !1050.
       varmax(1) = maxval(xlon)
       varmax(2) = maxval(xlat)
-      varmax(3) = kz !1050.
+      varmax(3) = real(kz) !1050.
       iadim(1) = nx
       iadim(2) = ny
       iadim(3) = kz

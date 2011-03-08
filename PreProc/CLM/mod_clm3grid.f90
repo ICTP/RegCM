@@ -49,8 +49,8 @@
 !     dlat = 180./nlat
 
 !     ABT added to get mksrf dependent resolution
-      dlon = (glon2+abs(glon1)+0.5)/nlon
-      dlat = (glat2+abs(glat1)+0.5)/nlat
+      dlon = (glon2+abs(glon1)+0.5)/real(nlon)
+      dlat = (glat2+abs(glat1)+0.5)/real(nlat)
 !     ABT correction terms in case the grid is not from 90S to 90N 
       corrlatn = 90 - nint(glat2)
       corrlats = -90 - nint(glat1)
@@ -117,7 +117,7 @@
         zlat(j) = glat(j+istart(2)-1)
       end do
       do k = 1 , icount(3)
-        zlev(k) = icount(3) - k + 1
+        zlev(k) = real(icount(3) - k + 1)
       end do
  
       end subroutine clm3grid2
