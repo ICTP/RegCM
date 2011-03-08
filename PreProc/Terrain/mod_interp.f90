@@ -35,18 +35,28 @@
       logical , dimension(2,maxbins) :: lndwt
       integer , dimension(2,maxbins) :: indwt
 !
-      data wt/1 , 0 , -3 , 2 , 4*0 , -3 , 0 , 9 , -6 , 2 , 0 , -6 , 4 , &
-         & 8*0 , 3 , 0 , -9 , 6 , -2 , 0 , 6 , -4 , 10*0 , 9 , -6 ,     &
-         & 2*0 , -6 , 4 , 2*0 , 3 , -2 , 6*0 , -9 , 6 , 2*0 , 6 , -4 ,  &
-         & 4*0 , 1 , 0 , -3 , 2 , -2 , 0 , 6 , -4 , 1 , 0 , -3 , 2 ,    &
-         & 8*0 , -1 , 0 , 3 , -2 , 1 , 0 , -3 , 2 , 10*0 , -3 , 2 ,     &
-         & 2*0 , 3 , -2 , 6*0 , 3 , -2 , 2*0 , -6 , 4 , 2*0 , 3 , -2 ,  &
-         & 0 , 1 , -2 , 1 , 5*0 , -3 , 6 , -3 , 0 , 2 , -4 , 2 , 9*0 ,  &
-         & 3 , -6 , 3 , 0 , -2 , 4 , -2 , 10*0 , -3 , 3 , 2*0 , 2 , -2 ,&
-         & 2*0 , -1 , 1 , 6*0 , 3 , -3 , 2*0 , -2 , 2 , 5*0 , 1 , -2 ,  &
-         & 1 , 0 , -2 , 4 , -2 , 0 , 1 , -2 , 1 , 9*0 , -1 , 2 , -1 ,   &
-         & 0 , 1 , -2 , 1 , 10*0 , 1 , -1 , 2*0 , -1 , 1 , 6*0 , -1 ,   &
-         & 1 , 2*0 , 2 , -2 , 2*0 , -1 , 1/
+      data wt/1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 4*0.0D0 , -3.0D0 ,  &
+       0.0D0 , 9.0D0 , -6.0D0 , 2.0D0 , 0.0D0 , -6.0D0 , 4.0D0 ,   &
+       8*0.0D0 , 3.0D0 , 0.0D0 , -9.0D0 , 6.0D0 , -2.0D0 , 0.0D0 , &
+       6.0D0 , -4.0D0 , 10*0.0D0 , 9.0D0 , -6.0D0 , 2*0.0D0 ,      &
+       -6.0D0 , 4.0D0 , 2*0.0D0 , 3.0D0 , -2.0D0 , 6*0.0D0 ,       &
+       -9.0D0 , 6.0D0 , 2*0.0D0 , 6.0D0 , -4.0D0 , 4*0.0D0 ,       &
+       1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , -2.0D0 , 0.0D0 , 6.0D0 ,   &
+       -4.0D0 , 1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 8*0.0D0 , -1.0D0 ,&
+       0.0D0 , 3.0D0 , -2.0D0 , 1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 ,   &
+       10*0.0D0 , -3.0D0 , 2.0D0 , 2*0.0D0 , 3.0D0 , -2.0D0 ,      &
+       6*0.0D0 , 3.0D0 , -2.0D0 , 2*0.0D0 , -6.0D0 , 4.0D0 ,       &
+       2*0.0D0 , 3.0D0 , -2.0D0 , 0.0D0 , 1.0D0 , -2.0D0 , 1.0D0 , &
+       5*0.0D0 , -3.0D0 , 6.0D0 , -3.0D0 , 0.0D0 , 2.0D0 , -4.0D0 ,&
+       2.0D0 , 9*0.0D0 , 3.0D0 , -6.0D0 , 3.0D0 , 0.0D0 , -2.0D0 , &
+       4.0D0 , -2.0D0 , 10*0.0D0 , -3.0D0 , 3.0D0 , 2*0.0D0 ,      &
+       2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0 , 6*0.0D0 ,       &
+       3.0D0 , -3.0D0 , 2*0.0D0 , -2.0D0 , 2.0D0 , 5*0.0D0 ,       &
+       1.0D0 , -2.0D0 , 1.0D0 , 0.0D0 , -2.0D0 , 4.0D0 , -2.0D0 ,  &
+       0.0D0 , 1.0D0 , -2.0D0 , 1.0D0 , 9*0.0D0 , -1.0D0 , 2.0D0 , &
+       -1.0D0 , 0.0D0 , 1.0D0 , -2.0D0 , 1.0D0 , 10*0.0D0 , 1.0D0 ,&
+       -1.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0 , 6*0.0D0 , -1.0D0 ,      &
+       1.0D0 , 2*0.0D0 , 2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0 /
 !
        data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
        data indwt /26*0,1,1,1,11*0/
@@ -115,7 +125,7 @@
       logical :: lwrap
       real(4) , dimension(m,n) :: grid
       intent (in) lwrap , m , n , grid , x , y
-      nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
+      nearpoint = dble(grid(inear(x,m,lwrap),jnear(y,n)))
       end function nearpoint
 !
       function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
@@ -138,27 +148,27 @@
       jj0 = jfloor(y,n)-hbox
       do i = 1 , nbox
         do j = 1 , nbox
-          rx = ii0 + i - 1
-          ry = jj0 + j - 1
+          rx = dble(ii0 + i - 1)
+          ry = dble(jj0 + j - 1)
           ii = ifloor(rx,m,lwrap)
           jj = jfloor(ry,n)
-          binval((i-1)*nbox+j) = grid(ii,jj)
+          binval((i-1)*nbox+j) = dble(grid(ii,jj))
           bindist((i-1)*nbox+j) = sqrt((x-rx)**2+(y-ry)**2)
         end do
       end do
-      bincnt = 0.0
-      bmindist = 2*nbox
+      bincnt = 0
+      bmindist = dble(2*nbox)
       do i = 1 , totpoints
         bincnt(int(binval(i))) = bincnt(int(binval(i))) + 1
         if (bindist(i) < bmindist(int(binval(i)))) &
           bmindist(int(binval(i))) = bindist(i)
       end do
 !     Set point to land if less than fixed percent of water
-      wtp = (sum(bincnt,mask=lndwt(ibnty,:))/totpoints)*100.0
+      wtp = dble(sum(bincnt,mask=lndwt(ibnty,:))/totpoints)*100.0D0
       if (wtp > 0.0 .and. wtp < h2opct) then
         bincnt(indwt(ibnty,:)) = 0
       end if
-      mostaround = -1
+      mostaround = -1.0D0
       lastc = -1
       dist = 0.0D0
       do i = 1 , maxbins
@@ -192,13 +202,13 @@
       real(8) :: pc
 
       pctaround = 0.0D0
-      pc = nbox*nbox
+      pc = dble(nbox*nbox)
       ii0 = ifloor(x,m,lwrap)
       jj0 = jfloor(y,n)
       do i = 1 , nbox
         do j = 1 , nbox
-          rx = ii0 + i - nbox/2
-          ry = jj0 + j - nbox/2
+          rx = dble(ii0 + i - nbox/2)
+          ry = dble(jj0 + j - nbox/2)
           ii = ifloor(rx,m,lwrap)
           jj = jfloor(ry,n)
           if (int(grid(ii,jj)) == ival) then
@@ -227,26 +237,26 @@
 !-----bilinear interpolation among four grid values
 !
       if (.not. lwrap) then
-        ii0 = min(max(floor(x),1),m)
-        ii2 = min(max(ceiling(x),1),m)
+        ii0 = dble(min(max(floor(x),1),m))
+        ii2 = dble(min(max(ceiling(x),1),m))
         dx = (x-ii0)
       else
-        ii0 = floor(x)
-        ii2 = ceiling(x)
+        ii0 = dble(floor(x))
+        ii2 = dble(ceiling(x))
         dx = (x-ii0)
         if (ii0 < 1) then
-          ii0 = m
+          ii0 = dble(m)
         end if
         if (ii2 > m) then
-          ii2 = 1
+          ii2 = 1.0D0
         end if
       end if
       ii1 = ii0
       ii3 = ii2
-      jj0 = min(max(floor(y),1),n)
+      jj0 = dble(min(max(floor(y),1),n))
       dy = (y-jj0)
       jj3 = jj0
-      jj1 = min(max(ceiling(y),1),n)
+      jj1 = dble(min(max(ceiling(y),1),n))
       jj2 = jj1
 
       i0 = int(ii0)
@@ -286,10 +296,10 @@
       end if
       nn = max(2, min(n-2,nn))
 
-      xl = mm
-      xu = mm + 1
-      yl = nn
-      yu = nn + 1
+      xl = dble(mm)
+      xu = dble(mm + 1)
+      yl = dble(nn)
+      yu = dble(nn + 1)
       do j = nn , nn + 1
         do i = mm , mm + 1
           ii = 1 + (i-mm) + 3*(j-nn)
@@ -309,11 +319,11 @@
             imp1 = i+1
             imn1 = i-1
           end if
-          f(ii) = grid(im,j)
-          f1(ii) = (grid(imp1,j)-grid(imn1,j))/(2D0)
-          f2(ii) = (grid(im,j+1)-grid(im,j-1))/(2D0)
-          f12(ii) = (grid(imp1,j+1)-grid(imp1,j-1)-grid(imn1,j+1)  &
-                  & +grid(imn1,j-1))/(4D0)
+          f(ii) = dble(grid(im,j))
+          f1(ii) = dble((grid(imp1,j)-grid(imn1,j)))/(2.0D0)
+          f2(ii) = dble((grid(im,j+1)-grid(im,j-1)))/(2.0D0)
+          f12(ii) = dble((grid(imp1,j+1)-grid(imp1,j-1)-grid(imn1,j+1)  &
+                  & +grid(imn1,j-1)))/(4.0D0)
         end do
       end do
  
@@ -420,55 +430,55 @@
  
           select case (itype)
             case(1)
-              omt(ii,jj) = bilinear(xx,yy,injx,iniy,imt,lwrap)
+              omt(ii,jj) = real(bilinear(xx,yy,injx,iniy,imt,lwrap))
             case(2)
-              omt(ii,jj) = bicubic(xx,yy,injx,iniy,imt,lwrap)
+              omt(ii,jj) = real(bicubic(xx,yy,injx,iniy,imt,lwrap))
             case(3)
-              omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+              omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
             case(4,5)
               if (lwrap) then
                 if (ii == 1 .or. ii == iy ) then 
-                  omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                  omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
                   cycle
                 else
                   if (jj == jx) then
                     nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+360))*&
-                                rinc/2.0D0, 2.0D0))
+                                real(rinc)/2.0, 2.0))
                     nbox = min(nbox,8)
                   else if (jj == 1) then
                     nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)-360))*&
-                                rinc/2.0D0, 2.0D0))
+                                real(rinc)/2.0, 2.0))
                     nbox = min(nbox,8)
                   else
                     nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                                rinc/2.0D0, 2.0D0))
+                                real(rinc)/2.0, 2.0))
                     nbox = min(nbox,8)
                   end if
                   nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                              rinc/2.0D0, dble(nbox)))
+                              real(rinc)/2.0, real(nbox)))
                 end if
               else
                 if (ii == 1 .or. jj == 1 .or. ii == iy .or. jj == jx) then
-                  omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                  omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
                   cycle
                 else
                   nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &
-                              rinc/2.0D0, 2.0D0))
+                              real(rinc)/2.0, 2.0))
                   nbox = nint(max(abs(xlat(ii-1,jj)-xlat(ii+1,jj))* &
-                              rinc/2.0D0, dble(nbox)))
+                              real(rinc)/2.0, real(nbox)))
                 end if
               end if
-              nbox = nbox * abs(cos(xlat(ii,jj)*degrad)) + 1
+              nbox = nbox * nint(abs(cos(xlat(ii,jj)*degrad))) + 1
               if (nbox < 2.0) then
-                omt(ii,jj) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                omt(ii,jj) = real(nearpoint(xx,yy,injx,iniy,imt,lwrap))
               else
                 nbox = (nbox / 2) * 2
                 if (itype == 4) then
-                  omt(ii,jj) = mostaround(xx,yy,injx,iniy,imt,nbox, &
-                                          ibnty,h2opct,lwrap)
+                  omt(ii,jj) = real(mostaround(xx,yy,injx,iniy,imt,nbox, &
+                                          ibnty,h2opct,lwrap))
                 else
-                  omt(ii,jj) = pctaround(xx,yy,injx,iniy,imt, &
-                                         nbox,ival,lwrap)
+                  omt(ii,jj) = real(pctaround(xx,yy,injx,iniy,imt, &
+                                         nbox,ival,lwrap))
                 end if
               end if
           end select
@@ -510,7 +520,7 @@
                   if (k == iocn) cycle
                   if (cnt(k) > mpindex) mpindex = k
                 end do
-                omt(i,j) = mpindex
+                omt(i,j) = real(mpindex)
               end if
             end if
           end do

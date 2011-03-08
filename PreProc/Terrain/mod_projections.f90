@@ -54,33 +54,33 @@
                 / (log(tan(colat1/2.0)) - log(tan(colat2/2.0)))
 
         if (truelat1 > 0.0) then
-          hemi = 1.0
+          hemi = 1.0D0
         else
-          hemi = -1.0
+          hemi = -1.0D0
         end if
         rebydx = earthrad / ds
 
-        if ( abs(truelat1-truelat2) > 0.1) then
-          conefac = log10(cos(tl1r)) - log10(cos(tl2r))
+        if ( dabs(truelat1-truelat2) > 0.1D0) then
+          conefac = dlog10(dcos(tl1r)) - dlog10(dcos(tl2r))
           conefac = conefac / &
-                  & (log10(tan((45.0-abs(truelat1)/2.0)*degrad)) - &
-                  & log10(tan((45.0 - abs(truelat2)/2.0) * degrad)))   
+             & (dlog10(dtan((45.0D0-dabs(truelat1)/2.0D0)*degrad)) - &
+             &  dlog10(dtan((45.0D0 - dabs(truelat2)/2.0D0) * degrad)))
           lamtan = .false.
         else
-          conefac = sin(abs(tl1r))
+          conefac = dsin(dabs(tl1r))
           lamtan = .true.
         end if
         deltalon1 = clon - stdlon
-        if (deltalon1 >  180.0) deltalon1 = deltalon1 - 360.
-        if (deltalon1 < -180.0) deltalon1 = deltalon1 + 360.
+        if (deltalon1 >  180.0D0) deltalon1 = deltalon1 - 360.0D0
+        if (deltalon1 < -180.0D0) deltalon1 = deltalon1 + 360.0D0
 
-        ctl1r = cos(tl1r)
-        rsw = rebydx * ctl1r/conefac * (tan((90.*hemi-clat)*degrad/2.) /&
-            &     tan((90.*hemi-truelat1)*degrad/2.))**conefac
+        ctl1r = dcos(tl1r)
+        rsw = rebydx * ctl1r/conefac * &
+                (dtan((90.0D0*hemi-clat)*degrad/2.0D0) /&
+            &    dtan((90.0D0*hemi-truelat1)*degrad/2.0D0))**conefac
         arg = conefac*(deltalon1*degrad)
-        polei = hemi*ci - hemi * rsw * sin(arg)
-        polej = hemi*cj + rsw * cos(arg)
-
+        polei = hemi*ci - hemi * rsw * dsin(arg)
+        polej = hemi*cj + rsw * dcos(arg)
       end subroutine setup_lcc
 
       subroutine ijll_lc(i,j,lat,lon)
@@ -89,27 +89,28 @@
         real(8) :: chi1 , chi2 , chi
         real(8) :: inew , jnew , xx , yy , r2 , r
 
-        chi1 = (90. - hemi*truelat1)*degrad
-        chi2 = (90. - hemi*truelat2)*degrad
-        inew = hemi * i
-        jnew = hemi * j
+        chi1 = (90.0D0 - hemi*truelat1)*degrad
+        chi2 = (90.0D0 - hemi*truelat2)*degrad
+        inew = hemi * dble(i)
+        jnew = hemi * dble(j)
         xx = inew - polei
         yy = polej - jnew
         r2 = (xx*xx + yy*yy)
-        r = sqrt(r2)/rebydx
-        if (abs(r2) < 1e-30) then
-          lat = hemi * 90.
-          lon = stdlon
+        r = dsqrt(r2)/rebydx
+        if (dabs(r2) < 1D-30) then
+          lat = real(hemi * 90.0D0)
+          lon = real(stdlon)
         else
-          lon = stdlon + raddeg * atan2(hemi*xx,yy)/conefac
+          lon = real(stdlon + raddeg * datan2(hemi*xx,yy)/conefac)
           lon = mod(lon+360.0, 360.0)
-          if (abs(chi1-chi2) < 1e-30) then
-            chi = 2.0*atan((r/tan(chi1))**(1./conefac)*tan(chi1*0.5))
+          if (dabs(chi1-chi2) < 1D-30) then
+            chi = 2.0D0*datan((r/dtan(chi1))** &
+                          (1.0D0/conefac)*tan(chi1*0.5D0))
           else
-            chi = 2.0*atan((r*conefac/sin(chi1))**(1./conefac) * &
-                & tan(chi1*0.5))
+            chi = 2.0D0*datan((r*conefac/dsin(chi1))** &
+                     (1.0D0/conefac)*dtan(chi1*0.5D0))
           end if
-          lat = (90.0-chi*raddeg)*hemi
+          lat = real((90.0D0-chi*raddeg)*hemi)
         end if
         if (lon >  180.0) lon = lon - 360.0
         if (lon < -180.0) lon = lon + 360.0
@@ -128,23 +129,20 @@
         rm = rebydx * ctl1r/conefac * (tan((90.*hemi-lat)*degrad/2.) / &
                 tan((90.*hemi-truelat1)*degrad/2.))**conefac
         arg = conefac*(deltalon*degrad)
-        i = polei + hemi * rm * sin(arg)
-        j = polej - rm * cos(arg)
-        i = hemi * i
-        j = hemi * j
+        i = real(hemi*(polei + hemi * rm * dsin(arg)))
+        j = real(hemi*(polej - rm * cos(arg)))
       end subroutine llij_lc
 
       subroutine uvrot_lc(lon, alpha)
         implicit none
         real(4) , intent(in) :: lon
         real(4) , intent(out) :: alpha
-        real(4) :: deltalon
+        real(8) :: deltalon
 
-        deltalon = stdlon - lon
-        if (deltalon > +180.) deltalon = deltalon - 360.0
-        if (deltalon < -180.) deltalon = deltalon + 360.0
-        alpha = deltalon*degrad*conefac
-
+        deltalon = stdlon - dble(lon)
+        if (deltalon > +180.D0) deltalon = deltalon - 360.0D0
+        if (deltalon < -180.D0) deltalon = deltalon + 360.0D0
+        alpha = real(deltalon*degrad*conefac)
       end subroutine uvrot_lc
 
       subroutine mapfac_lc(lat, xmap)
@@ -153,13 +151,13 @@
         real(4) , intent(out) :: xmap
         real(8) :: colat
 
-        colat = degrad*(90.0-lat)
+        colat = degrad*(90.0D0-dble(lat))
         if (.not. lamtan) then
-          xmap = sin(colat2)/sin(colat) * &
-               & (tan(colat/2.0)/tan(colat2/2.0))**nfac
+          xmap = real(dsin(colat2)/dsin(colat) * &
+               & (dtan(colat/2.0D0)/dtan(colat2/2.0D0))**nfac)
         else
-          xmap = sin(colat1)/sin(colat) * &
-               & (tan(colat/2.0)/tan(colat1/2.0))**cos(colat1)
+          xmap = real(dsin(colat1)/dsin(colat) * &
+               & (dtan(colat/2.0D0)/dtan(colat1/2.0D0))**dcos(colat1))
         endif
       end subroutine mapfac_lc
 
@@ -169,19 +167,19 @@
         real(8) :: ala1 , alo1
 
         stdlon = slon
-        if (clat > 0.0) then
-          hemi = 1.0
+        if (clat > 0.0D0) then
+          hemi = 1.0D0
         else
-          hemi = -1.0
+          hemi = -1.0D0
         end if
         rebydx = earthrad / ds
-        reflon = stdlon + 90.0
+        reflon = stdlon + 90.0D0
         ala1 = clat*degrad
         alo1 = (clon-reflon)*degrad
-        scale_top = 1. + hemi * sin(ala1)
-        rsw = rebydx*cos(ala1)*scale_top/(1.0+hemi*sin(ala1))
-        polei = ci - rsw * cos(alo1)
-        polej = cj - hemi * rsw * sin(alo1)
+        scale_top = 1.0D0 + hemi * dsin(ala1)
+        rsw = rebydx*dcos(ala1)*scale_top/(1.0D0+hemi*dsin(ala1))
+        polei = ci - rsw * dcos(alo1)
+        polej = cj - hemi * rsw * dsin(alo1)
       end subroutine setup_plr
 
       subroutine llij_ps(lat,lon,i,j)
@@ -196,10 +194,9 @@
         alo = deltalon * degrad
         ala = lat * degrad
 
-        rm = rebydx * cos(ala) * scale_top/(1.0 + hemi * sin(ala))
-        i = polei + rm * cos(alo)
-        j = polej + hemi * rm * sin(alo)
-
+        rm = rebydx * dcos(ala) * scale_top/(1.0D0 + hemi * dsin(ala))
+        i = real(polei + rm * dcos(alo))
+        j = real(polej + hemi * rm * dsin(alo))
       end subroutine llij_ps
 
       subroutine ijll_ps(i,j,lat,lon)
@@ -211,17 +208,17 @@
         xx = i - polei
         yy = (j - polej) * hemi
         r2 = xx**2 + yy**2
-        if (abs(r2) < 1e-30) then
-          lat = hemi*90.0
-          lon = reflon
+        if (abs(r2) < 1D-30) then
+          lat = real(hemi*90.0D0)
+          lon = real(reflon)
         else
-          gi2 = (rebydx * scale_top)**2.0
-          lat = raddeg * hemi * asin((gi2-r2)/(gi2+r2))
-          arcc = acos(xx/sqrt(r2))
+          gi2 = (rebydx * scale_top)**2.0D0
+          lat = real(raddeg * hemi * dasin((gi2-r2)/(gi2+r2)))
+          arcc = dacos(xx/dsqrt(r2))
           if (yy > 0) then
-            lon = reflon + raddeg * arcc
+            lon = real(reflon + raddeg * arcc)
           else
-            lon = reflon - raddeg * arcc
+            lon = real(reflon - raddeg * arcc)
           end if
         end if
         if (lon >  180.) lon = lon - 360.0
@@ -232,20 +229,19 @@
         implicit none
         real(4) , intent(in) :: lat
         real(4) , intent(out) :: xmap
-        xmap = scale_top/(1. + hemi * sin(lat*degrad))
+        xmap = real(scale_top/(1.0D0 + hemi * dsin(dble(lat)*degrad)))
       end subroutine mapfac_ps
 
       subroutine uvrot_ps(lon, alpha)
         implicit none
         real(4) , intent(in) :: lon
         real(4) , intent(out) :: alpha
-        real(4) :: deltalon
+        real(8) :: deltalon
 
-        deltalon = stdlon - lon
-        if (deltalon > +180.) deltalon = deltalon - 360.0
-        if (deltalon < -180.) deltalon = deltalon + 360.0
-        alpha = deltalon*degrad*hemi
-
+        deltalon = stdlon - dble(lon)
+        if (deltalon > +180.0D0) deltalon = deltalon - 360.0D0
+        if (deltalon < -180.0D0) deltalon = deltalon + 360.0D0
+        alpha = real(deltalon*degrad*hemi)
       end subroutine uvrot_ps
 
       subroutine setup_mrc(clat,clon,ci,cj,ds)
@@ -256,9 +252,9 @@
         stdlon = clon
         clain = cos(clat*degrad)
         dlon = ds / (earthrad * clain)
-        rsw = 0.0
-        if (abs(clat) > 1e-30) then
-          rsw = (log(tan(0.5*((clat+90.)*degrad))))/dlon
+        rsw = 0.0D0
+        if (dabs(clat) > 1D-30) then
+          rsw = (dlog(dtan(0.5D0*((clat+90.0D0)*degrad))))/dlon
         end if
         polei = ci
         polej = cj
@@ -270,11 +266,12 @@
         real(4) , intent(out) :: i , j
         real(8) :: deltalon
 
-        deltalon = lon - stdlon
-        if (deltalon > +180.) deltalon = deltalon - 360.0
-        if (deltalon < -180.) deltalon = deltalon + 360.0
-        i = polei + (deltalon/(dlon*raddeg))
-        j = polej + (log(tan(0.5*((lat + 90.)*degrad)))) / dlon - rsw
+        deltalon = dble(lon) - stdlon
+        if (deltalon > +180.D0) deltalon = deltalon - 360.0D0
+        if (deltalon < -180.D0) deltalon = deltalon + 360.0D0
+        i = real(polei + (deltalon/(dlon*raddeg)))
+        j = real(polej + (dlog(dtan(0.5D0* &
+                  ((dble(lat) + 90.0D0)*degrad)))) / dlon - rsw)
       end subroutine llij_mc
 
       subroutine ijll_mc(i,j,lat,lon)
@@ -282,8 +279,9 @@
         real(4) , intent(in) :: i , j
         real(4) , intent(out) :: lat , lon
 
-        lat = 2.0*atan(exp(dlon*(rsw + j-polej)))*raddeg - 90.
-        lon = (i-polei)*dlon*raddeg + stdlon
+        lat = real(2.0D0*datan(dexp(dlon*(rsw + &
+                                          j-polej)))*raddeg - 90.0D0)
+        lon = real((dble(i)-polei)*dlon*raddeg + stdlon)
         if (lon >  180.) lon = lon - 360.0
         if (lon < -180.) lon = lon + 360.0
       end subroutine ijll_mc
@@ -292,7 +290,7 @@
         implicit none
         real(4) , intent(in) :: lat
         real(4) , intent(out) :: xmap
-        xmap = 1.0/cos(lat*degrad)
+        xmap = real(1.0D0/dcos(dble(lat)*degrad))
       end subroutine mapfac_mc
 
       subroutine setup_rmc(clat,clon,ci,cj,ds,plon,plat)
@@ -307,13 +305,13 @@
         yoff = clat - plat
         polei = ci
         polej = cj
-        pphi = 90. - plat
-        plam = plon + 180.
-        if ( plam>180. ) plam = plam - 360.
+        pphi = 90.0D0 - plat
+        plam = plon + 180.0D0
+        if ( plam>180.0D0 ) plam = plam - 360.0D0
         zlampol = degrad*plam
         zphipol = degrad*pphi
-        zsinpol = sin(zphipol)
-        zcospol = cos(zphipol)
+        zsinpol = dsin(zphipol)
+        zcospol = dcos(zphipol)
       end subroutine setup_rmc
 
       subroutine llij_rc(lat,lon,i,j)
@@ -323,27 +321,27 @@
         real(8) :: zarg , zarg1 , zarg2 , zlam , zphi
         real(8) :: lams , phis
  
-        zphi = degrad*lat
-        zlam = lon
-        if ( zlam>180.0 ) zlam = zlam - 360.0
+        zphi = degrad*dble(lat)
+        zlam = dble(lon)
+        if ( zlam>180.0D0 ) zlam = zlam - 360.0D0
         zlam = degrad*zlam
 
-        zarg = zcospol*cos(zphi)*cos(zlam-zlampol) + zsinpol*sin(zphi)
-        phis = asin(zarg)
-        phis = log(tan(phis/2.+atan(1.)))*raddeg
-        zarg1 = -sin(zlam-zlampol)*cos(zphi)
-        zarg2 = -zsinpol*cos(zphi)*cos(zlam-zlampol) + zcospol*sin(zphi)
-        if ( abs(zarg2)>=1.E-37 ) then
-          lams = raddeg*atan2(zarg1,zarg2)
-        else if ( abs(zarg1)<1.E-37 ) then
-          lams = 0.0
-        else if ( zarg1>0. ) then
-          lams = 90.0
+        zarg = zcospol*dcos(zphi)*dcos(zlam-zlampol) + zsinpol*dsin(zphi)
+        phis = dasin(zarg)
+        phis = dlog(dtan(phis/2.0D0+datan(1.0D0)))*raddeg
+        zarg1 = -dsin(zlam-zlampol)*dcos(zphi)
+        zarg2 = -zsinpol*dcos(zphi)*dcos(zlam-zlampol) + zcospol*dsin(zphi)
+        if ( dabs(zarg2)>=1.D-37 ) then
+          lams = raddeg*datan2(zarg1,zarg2)
+        else if ( dabs(zarg1)<1.D-37 ) then
+          lams = 0.0D0
+        else if ( zarg1>0.0D0 ) then
+          lams = 90.0D0
         else
-          lams = -90.0
+          lams = -90.0D0
         end if
-        i = polei + (lams-xoff)/dlon
-        j = polej + (phis-yoff)/dlon
+        i = real(polei + (lams-xoff)/dlon)
+        j = real(polej + (phis-yoff)/dlon)
       end subroutine llij_rc
 
       subroutine ijll_rc(i,j,lat,lon)
@@ -353,22 +351,22 @@
         real(8) :: xr , yr , arg , zarg1 , zarg2
 
         xr = xoff + (i-polei)*dlon
-        if ( xr>180.0 ) xr = xr - 360.0
+        if ( xr>180.0D0 ) xr = xr - 360.0D0
         xr = degrad*xr
-        yr = yoff + (j-polej)*dlon
-        yr = 2*atan(exp(degrad*yr)) - atan(1.)*2.
+        yr = yoff + dble((j-polej))*dlon
+        yr = 2.0D0*datan(dexp(degrad*yr)) - datan(1.0D0)*2.0D0
  
-        arg = zcospol*cos(yr)*cos(xr) + zsinpol*sin(yr)
-        lat = raddeg*asin(arg)
-        zarg1 = sin(zlampol)*(-zsinpol*cos(xr)*cos(yr)+ &
-              & zcospol*sin(yr))-cos(zlampol)*sin(xr)*cos(yr)
-        zarg2 = cos(zlampol)*(-zsinpol*cos(xr)*cos(yr)+ &
-              & zcospol*sin(yr))+sin(zlampol)*sin(xr)*cos(yr)
-        if ( abs(zarg2)>=1.E-37 ) then
-          lon = raddeg*atan2(zarg1,zarg2)
-        else if ( abs(zarg1)<1.E-37 ) then
+        arg = zcospol*dcos(yr)*dcos(xr) + zsinpol*dsin(yr)
+        lat = real(raddeg*dasin(arg))
+        zarg1 = dsin(zlampol)*(-zsinpol*dcos(xr)*dcos(yr)+ &
+              & zcospol*dsin(yr))-dcos(zlampol)*dsin(xr)*dcos(yr)
+        zarg2 = dcos(zlampol)*(-zsinpol*dcos(xr)*dcos(yr)+ &
+              & zcospol*dsin(yr))+dsin(zlampol)*dsin(xr)*dcos(yr)
+        if ( dabs(zarg2)>=1.D-37 ) then
+          lon = real(raddeg*datan2(zarg1,zarg2))
+        else if ( dabs(zarg1)<1.D-37 ) then
           lon = 0.0
-        else if ( zarg1>0. ) then
+        else if ( zarg1>0.0D0 ) then
           lon = 90.0
         else
           lon = -90.0
@@ -384,12 +382,12 @@
         real(8) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
         zphi = lat*degrad
         zrla = lon*degrad
-        if (lat > 89.999999) zrla = 0.0
+        if (lat > 89.999999) zrla = 0.0D0
         zrlap = zlampol - zrla
-        zarg1 = zcospol*sin(zrlap)
-        zarg2 = zsinpol*cos(zphi) - zcospol*sin(zphi)*cos(zrlap)
-        znorm = 1.0/sqrt(zarg1**2+zarg2**2)
-        alpha = acos(zarg2*znorm)
+        zarg1 = zcospol*dsin(zrlap)
+        zarg2 = zsinpol*dcos(zphi) - zcospol*dsin(zphi)*dcos(zrlap)
+        znorm = 1.0D0/dsqrt(zarg1**2.0D0+zarg2**2.0D0)
+        alpha = real(dacos(zarg2*znorm))
       end subroutine uvrot_rc
 
       subroutine mapfac_rc(ir, xmap)
@@ -398,19 +396,19 @@
         real(4) , intent(out) :: xmap
         real(8) :: yr
         yr = yoff + (ir-polej)*dlon
-        xmap = 1.0/cos(yr*degrad)
+        xmap = real(1.0D0/dcos(yr*degrad))
       end subroutine mapfac_rc
 
-      function rounder(value,ltop)
+      function rounder(rval,ltop)
         implicit none
-        real(4) , intent(in) :: value
+        real(4) , intent(in) :: rval
         logical, intent(in) :: ltop
         real(4) :: rounder
         integer :: tmpval
         if (ltop) then
-          tmpval = ceiling(value*100.0)
+          tmpval = ceiling(rval*100.0)
         else
-          tmpval = floor(value*100.0)
+          tmpval = floor(rval*100.0)
         end if
         rounder = real(tmpval)/100.0
       end function rounder

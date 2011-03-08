@@ -53,7 +53,7 @@
         integer :: nlogb , nlagb , hnlogb , hnlagb , nfrac
         integer , parameter :: secpd = 3600
         integer , parameter :: secpm = 60
-        real(4) :: delta
+        real(8) :: delta
 
         iosec = iores*secpm
         inpsec = secpd/iires
@@ -73,25 +73,26 @@
         if (lreg) ireg = 1
         delta = ((dble(iires)/2.0D0)/dble(secpd))*dble(ireg)
 
-        grdltmn = floor(xminlat)  -delta
-        grdltma = ceiling(xmaxlat)+delta
-        if (grdltmn < -90+delta) grdltmn = -90.0+delta
-        if (grdltma > +90-delta) grdltma =  90.0-delta
+        grdltmn = dble(floor(xminlat))  -delta
+        grdltma = dble(ceiling(xmaxlat))+delta
+        if (grdltmn < -90.0D0+delta) grdltmn = -90.0D0+delta
+        if (grdltma > +90.0D0-delta) grdltma =  90.0D0-delta
         if (lonwrap) then
-          grdlnmn = -180.0+delta
-          grdlnma =  180.0-delta
+          grdlnmn = -180.0D0+delta
+          grdlnma =  180.0D0-delta
         else
-          grdlnmn = floor(xminlon)  -delta
-          grdlnma = ceiling(xmaxlon)+delta
+          grdlnmn = dble(floor(xminlon))  -delta
+          grdlnma = dble(ceiling(xmaxlon))+delta
         end if
 
-        nlat = (grdltma-grdltmn)*inpsec
+        nlat = idnint(grdltma-grdltmn)*inpsec
         if (lonwrap) then
           nlon = nlogb + 1 - ireg
         else if (lcrosstime) then
-          nlon = ((180.0-delta-grdlnmn)+(180.0-delta+grdlnma))*inpsec
+          nlon = idnint(((180.0D0-delta-grdlnmn)+ &
+                        (180.0D0-delta+grdlnma)))*inpsec
         else
-          nlon = (grdlnma-grdlnmn)*inpsec
+          nlon = idnint(grdlnma-grdlnmn)*inpsec
         end if
 
         nlatin = (nlat/ifrac)+1
@@ -116,11 +117,11 @@
         istatus = nf90_inq_varid(ncid, cvar, ivar)
         call checkerr(istatus)
 
-        istart(2) = hnlagb+(grdltmn*inpsec)+1
+        istart(2) = hnlagb+idnint(grdltmn*dble(inpsec))+1
         if (lonwrap) then
           istart(1) = 1
         else
-          istart(1) = hnlogb+(grdlnmn*inpsec)+1
+          istart(1) = hnlogb+idnint(grdlnmn*dble(inpsec))+1
         end if
         if (.not. lcrosstime) then
           ! Simple case: not crossing timeline
@@ -151,7 +152,7 @@
           readbuf(:,1) = readbuf(:,2)
         end if
 
-        print '(a$)', ' Resampling'
+        write (6, '(a)', advance='no') ' Resampling'
         nfrac = ifrac*ifrac
         allocate(copybuf(nfrac), stat=istatus)
         if (istatus /= 0) then
@@ -161,16 +162,16 @@
         select case (imeth)
           case (1)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write (6, '(a)', advance='no') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
-                values(j,i) = sum(copybuf)/size(copybuf)
+                values(j,i) = sum(copybuf)/real(size(copybuf))
               end do
             end do
           case (2)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write (6, '(a)', advance='no') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
@@ -180,22 +181,22 @@
             end do
           case (3)
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write (6, '(a)', advance='no') '.'
               do j = 1 , nlonin
                 call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                              (i-1)*ifrac+1,ifrac,lcrosstime)
-                values(j,i) = mpindex(copybuf)
+                values(j,i) = real(mpindex(copybuf))
               end do
             end do
           case default
             do i = 1 , nlatin
-              if (mod(i,10) == 0) print '(a$)', '.'
+              if (mod(i,10) == 0) write (6, '(a)', advance='no') '.'
               do j = 1 , nlonin
                 values(j,i) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
               end do
             end do
         end select
-        print *, 'Done.'
+        write (6,*) 'Done.'
         deallocate(readbuf)
         deallocate(copybuf)
 

@@ -193,19 +193,19 @@
                     & clat,dsinm,0)
           call mappol(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,1)
-          xn = 1.
+          xn = 1.0D0
         else if ( iproj=='NORMER' ) then
           call normer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0)
           call normer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,1)
-          xn = 0.
+          xn = 0.0D0
         else if ( iproj=='ROTMER' ) then
           call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clon,     &
                     & clat,plon,plat,dsinm,0)
           call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clon,     &
                     & clat,plon,plat,dsinm,1)
-          xn = 0.
+          xn = 0.0D0
         else
           write (6,*) 'iproj = ', iproj
           write (6,*) 'Unrecognized or unsupported projection'
@@ -336,17 +336,17 @@
       else if ( iproj=='POLSTR' ) then
         call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
         call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-        xn = 1.
+        xn = 1.0D0
       else if ( iproj=='NORMER' ) then
         call normer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
         call normer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-        xn = 0.
+        xn = 0.0D0
       else if ( iproj=='ROTMER' ) then
         call rotmer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,plon,plat,   &
                   & dsinm,0)
         call rotmer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,plon,plat,   &
                   & dsinm,1)
-        xn = 0.
+        xn = 0.0D0
       else
         write (6,*) 'iproj = ', iproj
         write (6,*) 'Unrecognized or unsupported projection'
@@ -493,7 +493,7 @@
           do j = 1 , jx
             i0 = (i-1)*nsg
             j0 = (j-1)*nsg
-            hsum = 0.0
+            hsum = 0.0D9
             do m = 1 , nsg
               do n = 1 , nsg
                 if ( htgrid(i,j)<0.1 .and. &
@@ -504,11 +504,11 @@
                 hsum = hsum + htgrid_s(i0+m,j0+n)
               end do
             end do
-            have = hsum/float(nnsg)
+            have = hsum/dble(nnsg)
             do m = 1 , nsg
               do n = 1 , nsg
                 htgrid_s(i0+m,j0+n) = htgrid(i,j) + &
-                                      (htgrid_s(i0+m,j0+n) - have)
+                                      (htgrid_s(i0+m,j0+n) - real(have))
               end do
             end do
           end do

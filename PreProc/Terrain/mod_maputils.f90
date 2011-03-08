@@ -57,7 +57,7 @@
       if ( idot==1 ) then
         do i = 1 , iy
           do j = 1 , jx
-            coriol(i,j) = eomeg2*sin(xlat(i,j)*degrad)
+            coriol(i,j) = real(eomeg2*sin(xlat(i,j)*degrad))
           end do
         end do
       end if
@@ -96,7 +96,7 @@
       if ( idot==1 ) then
         do i = 1 , iy
           do j = 1 , jx
-            coriol(i,j) = eomeg2*sin(xlat(i,j)*degrad)
+            coriol(i,j) = real(eomeg2*sin(xlat(i,j)*degrad))
           end do
         end do
       end if
@@ -134,7 +134,7 @@
       if ( idot==1 ) then
         do i = 1 , iy
           do j = 1 , jx
-            coriol(i,j) = eomeg2*sin(xlat(i,j)*degrad)
+            coriol(i,j) = real(eomeg2*sin(xlat(i,j)*degrad))
           end do
         end do
       end if
@@ -174,7 +174,7 @@
       if ( idot==1 ) then
         do i = 1 , iy
           do j = 1 , jx
-            coriol(i,j) = eomeg2*sin(xlat(i,j)*degrad)
+            coriol(i,j) = real(eomeg2*sin(xlat(i,j)*degrad))
           end do
         end do
       end if

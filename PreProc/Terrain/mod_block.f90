@@ -35,50 +35,50 @@
       integer :: iy , jx , iband
       real(4) , dimension(iy,jx) :: xlat , xlon
       intent (in) iy , jx , xlat , xlon , iband
-      real(4) :: xtstlon1 , xtstlon2
+      real(8) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
-      xminlat = floor(minval(xlat))
-      xmaxlat = ceiling(maxval(xlat))
+      xminlat = dble(floor(minval(xlat)))
+      xmaxlat = dble(ceiling(maxval(xlat)))
 
       if ( iband.eq.1 ) then
-        xminlon = -180.0
-        xmaxlon =  180.0
+        xminlon = -180.0D0
+        xmaxlon =  180.0D0
         xtstlon1 = xminlon
         xtstlon2 = xmaxlon
-      else if (abs(xminlat+90.0)<0.0001 .or. &
-               abs(xmaxlat-90.0)<0.001) then
-        xminlon = -180.0
-        xmaxlon =  180.0
+      else if (abs(xminlat+90.0D0)<0.0001D0 .or. &
+               abs(xmaxlat-90.0D0)<0.001D0) then
+        xminlon = -180.0D0
+        xmaxlon =  180.0D0
         xtstlon1 = xminlon
         xtstlon2 = xmaxlon
       else
-        xminlon = floor(minval(xlon(:,1)))
-        xmaxlon = ceiling(maxval(xlon(:,jx)))
-        xtstlon1 = floor(maxval(xlon(:,1)))
-        xtstlon2 = ceiling(minval(xlon(:,jx)))
+        xminlon = dble(floor(minval(xlon(:,1))))
+        xmaxlon = dble(ceiling(maxval(xlon(:,jx))))
+        xtstlon1 = dble(floor(maxval(xlon(:,1))))
+        xtstlon2 = dble(ceiling(minval(xlon(:,jx))))
       end if
 
       if (xminlon == xmaxlon) then
-        xminlon = -180.0
-        xmaxlon =  180.0
+        xminlon = -180.0D0
+        xmaxlon =  180.0D0
         xtstlon1 = xminlon
         xtstlon2 = xmaxlon
       end if
 
       lonwrap = .false.
       lcrosstime = .false.
-      if ((xmaxlon-xminlon) > 359.99) then
+      if ((xmaxlon-xminlon) > 359.99D0) then
         lonwrap = .true.
         print *, 'Special case for longitude wrapping'
       end if
-      if (abs(xminlon - xtstlon1) > 180.0 .or.   &
-          abs(xmaxlon - xtstlon2) > 180.0 .or.   &
-          xminlon > 0.0 .and. xmaxlon < 0.0) then
+      if (abs(xminlon - xtstlon1) > 180.0D0 .or.   &
+          abs(xmaxlon - xtstlon2) > 180.0D0 .or.   &
+          xminlon > 0.0D0 .and. xmaxlon < 0.0D0) then
         lcrosstime = .true.
-        if (xminlon < 0.0 .and. xtstlon1 > 0.0) xminlon = xtstlon1
-        if (xmaxlon > 0.0 .and. xtstlon2 < 0.0) xmaxlon = xtstlon2
+        if (xminlon < 0.0D0 .and. xtstlon1 > 0.0D0) xminlon = xtstlon1
+        if (xmaxlon > 0.0D0 .and. xtstlon2 < 0.0D0) xmaxlon = xtstlon2
         print *, 'Special case for timeline crossing'
       end if
 
