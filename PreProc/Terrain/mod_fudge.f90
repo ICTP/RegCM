@@ -17,370 +17,370 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_fudge
+module mod_fudge
 
-      use m_stdio
-      use m_realkinds
-      use m_die
-      use m_ioutil
+  use m_stdio
+  use m_realkinds
+  use m_die
+  use m_ioutil
 
-      private
+  private
 
-      public :: lndfudge , texfudge , lakfudge
+  public :: lndfudge , texfudge , lakfudge
 
-      contains
+  contains
 
-      subroutine lndfudge(fudge,lndout,htgrid,iy,jx,char_lnd)
+  subroutine lndfudge(fudge,lndout,htgrid,iy,jx,char_lnd)
 
-      implicit none
+  implicit none
 !
 ! Dummy arguments
 !
-      character(*) :: char_lnd
-      logical :: fudge , there
-      integer :: iy , jx
-      real(SP) , dimension(iy,jx) :: htgrid , lndout
-      intent (in) char_lnd , fudge , iy , jx
-      intent (inout) htgrid , lndout
+  character(*) :: char_lnd
+  logical :: fudge , there
+  integer :: iy , jx
+  real(SP) , dimension(iy,jx) :: htgrid , lndout
+  intent (in) char_lnd , fudge , iy , jx
+  intent (inout) htgrid , lndout
 !
 ! Local variables
 !
-      integer :: i , j , iunit
-      character(1) , dimension(iy,jx) :: ch
+  integer :: i , j , iunit
+  character(1) , dimension(iy,jx) :: ch
 !
-      iunit = luavail( )
-      if ( fudge ) then
-        inquire (file=char_lnd,exist=there)
-        if ( .not.there ) then
-          write(stderr,*) 'Fudging requested for landuse but '// &
-                   ' missing input ascii file ',trim(char_lnd)
-          write(stderr,*)  'ERROR OPENING ' , char_lnd ,  &
-             &' FILE:  FILE DOES NOT EXIST'
+  iunit = luavail( )
+  if ( fudge ) then
+    inquire (file=char_lnd,exist=there)
+    if ( .not.there ) then
+      write(stderr,*) 'Fudging requested for landuse but '// &
+               ' missing input ascii file ',trim(char_lnd)
+      write(stderr,*)  'ERROR OPENING ' , char_lnd ,  &
+          ' FILE:  FILE DOES NOT EXIST'
+      call die('lndfudge')
+    endif 
+    open (iunit,file=char_lnd,form='formatted')
+    do i = iy , 1 , -1
+      read (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+    do j = 1 , jx
+      do i = 1 , iy
+        if ( ch(i,j)==' ' ) then
+          lndout(i,j) = 15.
+        else if ( ch(i,j)=='1' ) then
+          lndout(i,j) = 1.
+        else if ( ch(i,j)=='2' ) then
+          lndout(i,j) = 2.
+        else if ( ch(i,j)=='3' ) then
+          lndout(i,j) = 3.
+        else if ( ch(i,j)=='4' ) then
+          lndout(i,j) = 4.
+        else if ( ch(i,j)=='5' ) then
+          lndout(i,j) = 5.
+        else if ( ch(i,j)=='6' ) then
+          lndout(i,j) = 6.
+        else if ( ch(i,j)=='7' ) then
+          lndout(i,j) = 7.
+        else if ( ch(i,j)=='8' ) then
+          lndout(i,j) = 8.
+        else if ( ch(i,j)=='9' ) then
+          lndout(i,j) = 9.
+        else if ( ch(i,j)=='A' ) then
+          lndout(i,j) = 10.
+        else if ( ch(i,j)=='B' ) then
+          lndout(i,j) = 11.
+        else if ( ch(i,j)=='C' ) then
+          lndout(i,j) = 12.
+        else if ( ch(i,j)=='D' ) then
+          lndout(i,j) = 13.
+        else if ( ch(i,j)=='E' ) then
+          lndout(i,j) = 14.
+        else if ( ch(i,j)=='F' ) then
+          lndout(i,j) = 15.
+        else if ( ch(i,j)=='G' ) then
+          lndout(i,j) = 16.
+        else if ( ch(i,j)=='H' ) then
+          lndout(i,j) = 17.
+        else if ( ch(i,j)=='I' ) then
+          lndout(i,j) = 18.
+        else if ( ch(i,j)=='J' ) then
+          lndout(i,j) = 19.
+        else if ( ch(i,j)=='K' ) then
+          lndout(i,j) = 20.
+        else if ( ch(i,j)=='L' ) then
+          lndout(i,j) = 21.
+        else if ( ch(i,j)=='M' ) then
+          lndout(i,j) = 22.
+        else if ( nint(lndout(i,j))==0 ) then
+          ch(i,j) = ' '
+        else
+          write (*,*) 'LANDUSE MASK exceed the limit'
           call die('lndfudge')
-        endif 
-        open (iunit,file=char_lnd,form='formatted')
-        do i = iy , 1 , -1
-          read (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-        do j = 1 , jx
-          do i = 1 , iy
-            if ( ch(i,j)==' ' ) then
-              lndout(i,j) = 15.
-            else if ( ch(i,j)=='1' ) then
-              lndout(i,j) = 1.
-            else if ( ch(i,j)=='2' ) then
-              lndout(i,j) = 2.
-            else if ( ch(i,j)=='3' ) then
-              lndout(i,j) = 3.
-            else if ( ch(i,j)=='4' ) then
-              lndout(i,j) = 4.
-            else if ( ch(i,j)=='5' ) then
-              lndout(i,j) = 5.
-            else if ( ch(i,j)=='6' ) then
-              lndout(i,j) = 6.
-            else if ( ch(i,j)=='7' ) then
-              lndout(i,j) = 7.
-            else if ( ch(i,j)=='8' ) then
-              lndout(i,j) = 8.
-            else if ( ch(i,j)=='9' ) then
-              lndout(i,j) = 9.
-            else if ( ch(i,j)=='A' ) then
-              lndout(i,j) = 10.
-            else if ( ch(i,j)=='B' ) then
-              lndout(i,j) = 11.
-            else if ( ch(i,j)=='C' ) then
-              lndout(i,j) = 12.
-            else if ( ch(i,j)=='D' ) then
-              lndout(i,j) = 13.
-            else if ( ch(i,j)=='E' ) then
-              lndout(i,j) = 14.
-            else if ( ch(i,j)=='F' ) then
-              lndout(i,j) = 15.
-            else if ( ch(i,j)=='G' ) then
-              lndout(i,j) = 16.
-            else if ( ch(i,j)=='H' ) then
-              lndout(i,j) = 17.
-            else if ( ch(i,j)=='I' ) then
-              lndout(i,j) = 18.
-            else if ( ch(i,j)=='J' ) then
-              lndout(i,j) = 19.
-            else if ( ch(i,j)=='K' ) then
-              lndout(i,j) = 20.
-            else if ( ch(i,j)=='L' ) then
-              lndout(i,j) = 21.
-            else if ( ch(i,j)=='M' ) then
-              lndout(i,j) = 22.
-            else if ( nint(lndout(i,j))==0 ) then
-              ch(i,j) = ' '
-            else
-              write (*,*) 'LANDUSE MASK exceed the limit'
-              call die('lndfudge')
-            end if
-            if ( htgrid(i,j)<0.1 .and. nint(lndout(i,j))==15 )        &
-               & htgrid(i,j) = 0.0
-          end do
-        end do
-      else
-        do j = 1 , jx
-          do i = 1 , iy
-            if ( nint(lndout(i,j))==15 .or. nint(lndout(i,j))==0 ) then
-              ch(i,j) = ' '
-            else if ( nint(lndout(i,j))==1 ) then
-              ch(i,j) = '1'
-            else if ( nint(lndout(i,j))==2 ) then
-              ch(i,j) = '2'
-            else if ( nint(lndout(i,j))==3 ) then
-              ch(i,j) = '3'
-            else if ( nint(lndout(i,j))==4 ) then
-              ch(i,j) = '4'
-            else if ( nint(lndout(i,j))==5 ) then
-              ch(i,j) = '5'
-            else if ( nint(lndout(i,j))==6 ) then
-              ch(i,j) = '6'
-            else if ( nint(lndout(i,j))==7 ) then
-              ch(i,j) = '7'
-            else if ( nint(lndout(i,j))==8 ) then
-              ch(i,j) = '8'
-            else if ( nint(lndout(i,j))==9 ) then
-              ch(i,j) = '9'
-            else if ( nint(lndout(i,j))==10 ) then
-              ch(i,j) = 'A'
-            else if ( nint(lndout(i,j))==11 ) then
-              ch(i,j) = 'B'
-            else if ( nint(lndout(i,j))==12 ) then
-              ch(i,j) = 'C'
-            else if ( nint(lndout(i,j))==13 ) then
-              ch(i,j) = 'D'
-            else if ( nint(lndout(i,j))==14 ) then
-              ch(i,j) = 'E'
-            else if ( nint(lndout(i,j))==16 ) then
-              ch(i,j) = 'G'
-            else if ( nint(lndout(i,j))==17 ) then
-              ch(i,j) = 'H'
-            else if ( nint(lndout(i,j))==18 ) then
-              ch(i,j) = 'I'
-            else if ( nint(lndout(i,j))==19 ) then
-              ch(i,j) = 'J'
-            else if ( nint(lndout(i,j))==20 ) then
-              ch(i,j) = 'K'
-            else if ( nint(lndout(i,j))==21 ) then
-              ch(i,j) = 'L'
-            else if ( nint(lndout(i,j))==22 ) then
-              ch(i,j) = 'M'
-            else
-              write (*,*) 'LANDUSE MASK' , nint(lndout(i,j)) ,        &
-                         &'exceed the limit'
-              call die('lndfudge')
-            end if
-          end do
-        end do
-        open (iunit,file=char_lnd,form='formatted')
-        do i = iy , 1 , -1
-          write (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-      end if
+        end if
+        if ( htgrid(i,j)<0.1 .and. nint(lndout(i,j))==15 )        &
+             htgrid(i,j) = 0.0
+      end do
+    end do
+  else
+    do j = 1 , jx
+      do i = 1 , iy
+        if ( nint(lndout(i,j))==15 .or. nint(lndout(i,j))==0 ) then
+          ch(i,j) = ' '
+        else if ( nint(lndout(i,j))==1 ) then
+          ch(i,j) = '1'
+        else if ( nint(lndout(i,j))==2 ) then
+          ch(i,j) = '2'
+        else if ( nint(lndout(i,j))==3 ) then
+          ch(i,j) = '3'
+        else if ( nint(lndout(i,j))==4 ) then
+          ch(i,j) = '4'
+        else if ( nint(lndout(i,j))==5 ) then
+          ch(i,j) = '5'
+        else if ( nint(lndout(i,j))==6 ) then
+          ch(i,j) = '6'
+        else if ( nint(lndout(i,j))==7 ) then
+          ch(i,j) = '7'
+        else if ( nint(lndout(i,j))==8 ) then
+          ch(i,j) = '8'
+        else if ( nint(lndout(i,j))==9 ) then
+          ch(i,j) = '9'
+        else if ( nint(lndout(i,j))==10 ) then
+          ch(i,j) = 'A'
+        else if ( nint(lndout(i,j))==11 ) then
+          ch(i,j) = 'B'
+        else if ( nint(lndout(i,j))==12 ) then
+          ch(i,j) = 'C'
+        else if ( nint(lndout(i,j))==13 ) then
+          ch(i,j) = 'D'
+        else if ( nint(lndout(i,j))==14 ) then
+          ch(i,j) = 'E'
+        else if ( nint(lndout(i,j))==16 ) then
+          ch(i,j) = 'G'
+        else if ( nint(lndout(i,j))==17 ) then
+          ch(i,j) = 'H'
+        else if ( nint(lndout(i,j))==18 ) then
+          ch(i,j) = 'I'
+        else if ( nint(lndout(i,j))==19 ) then
+          ch(i,j) = 'J'
+        else if ( nint(lndout(i,j))==20 ) then
+          ch(i,j) = 'K'
+        else if ( nint(lndout(i,j))==21 ) then
+          ch(i,j) = 'L'
+        else if ( nint(lndout(i,j))==22 ) then
+          ch(i,j) = 'M'
+        else
+          write (*,*) 'LANDUSE MASK' , nint(lndout(i,j)) ,        &
+                      'exceed the limit'
+          call die('lndfudge')
+        end if
+      end do
+    end do
+    open (iunit,file=char_lnd,form='formatted')
+    do i = iy , 1 , -1
+      write (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+  end if
 99001 format (132A1)
-      end subroutine lndfudge
+  end subroutine lndfudge
 
-      subroutine texfudge(fudge,texout,htgrid,iy,jx,char_tex)
-      implicit none
+  subroutine texfudge(fudge,texout,htgrid,iy,jx,char_tex)
+  implicit none
 !
 ! Dummy arguments
 !
-      character(*) :: char_tex
-      logical :: fudge, there
-      integer :: iy , jx
-      real(SP) , dimension(iy,jx) :: htgrid , texout
-      intent (in) char_tex , fudge , iy , jx
-      intent (out) htgrid
-      intent (inout) texout
+  character(*) :: char_tex
+  logical :: fudge, there
+  integer :: iy , jx
+  real(SP) , dimension(iy,jx) :: htgrid , texout
+  intent (in) char_tex , fudge , iy , jx
+  intent (out) htgrid
+  intent (inout) texout
 !
 ! Local variables
 !
-      integer :: i , j , iunit
-      character(1) , dimension(iy,jx) :: ch
+  integer :: i , j , iunit
+  character(1) , dimension(iy,jx) :: ch
 !
-      iunit = luavail( )
-      if ( fudge ) then
-        inquire (file=char_tex,exist=there)
-        if ( .not.there ) then
-          write(stderr,*) 'Fudging requested for texture but '// &
-                   'missing input ascii file ',trim(char_tex)
-          write(stderr,*)  'ERROR OPENING ' , char_tex ,   &
-                  &' FILE:  FILE DOES NOT EXIST'
+  iunit = luavail( )
+  if ( fudge ) then
+    inquire (file=char_tex,exist=there)
+    if ( .not.there ) then
+      write(stderr,*) 'Fudging requested for texture but '// &
+               'missing input ascii file ',trim(char_tex)
+      write(stderr,*)  'ERROR OPENING ' , char_tex ,   &
+               ' FILE:  FILE DOES NOT EXIST'
+      call die('texfudge')
+    endif 
+    open (iunit,file=char_tex,form='formatted')
+    do i = iy , 1 , -1
+      read (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+    do j = 1 , jx
+      do i = 1 , iy
+        if ( ch(i,j)==' ' ) then
+          texout(i,j) = 14.
+        else if ( ch(i,j)=='1' ) then
+          texout(i,j) = 1.
+        else if ( ch(i,j)=='2' ) then
+          texout(i,j) = 2.
+        else if ( ch(i,j)=='3' ) then
+          texout(i,j) = 3.
+        else if ( ch(i,j)=='4' ) then
+          texout(i,j) = 4.
+        else if ( ch(i,j)=='5' ) then
+          texout(i,j) = 5.
+        else if ( ch(i,j)=='6' ) then
+          texout(i,j) = 6.
+        else if ( ch(i,j)=='7' ) then
+          texout(i,j) = 7.
+        else if ( ch(i,j)=='8' ) then
+          texout(i,j) = 8.
+        else if ( ch(i,j)=='9' ) then
+          texout(i,j) = 9.
+        else if ( ch(i,j)=='A' ) then
+          texout(i,j) = 10.
+        else if ( ch(i,j)=='B' ) then
+          texout(i,j) = 11.
+        else if ( ch(i,j)=='C' ) then
+          texout(i,j) = 12.
+        else if ( ch(i,j)=='D' ) then
+          texout(i,j) = 13.
+        else if ( ch(i,j)=='E' ) then
+          texout(i,j) = 14.
+        else if ( ch(i,j)=='F' ) then
+          texout(i,j) = 15.
+        else if ( ch(i,j)=='G' ) then
+          texout(i,j) = 16.
+        else if ( ch(i,j)=='H' ) then
+          texout(i,j) = 17.
+        else if ( nint(texout(i,j))==0 ) then
+          ch(i,j) = ' '
+        else
+          write (*,*) 'TEXTURE TYPE exceed the limit'
           call die('texfudge')
-        endif 
-        open (iunit,file=char_tex,form='formatted')
-        do i = iy , 1 , -1
-          read (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-        do j = 1 , jx
-          do i = 1 , iy
-            if ( ch(i,j)==' ' ) then
-              texout(i,j) = 14.
-            else if ( ch(i,j)=='1' ) then
-              texout(i,j) = 1.
-            else if ( ch(i,j)=='2' ) then
-              texout(i,j) = 2.
-            else if ( ch(i,j)=='3' ) then
-              texout(i,j) = 3.
-            else if ( ch(i,j)=='4' ) then
-              texout(i,j) = 4.
-            else if ( ch(i,j)=='5' ) then
-              texout(i,j) = 5.
-            else if ( ch(i,j)=='6' ) then
-              texout(i,j) = 6.
-            else if ( ch(i,j)=='7' ) then
-              texout(i,j) = 7.
-            else if ( ch(i,j)=='8' ) then
-              texout(i,j) = 8.
-            else if ( ch(i,j)=='9' ) then
-              texout(i,j) = 9.
-            else if ( ch(i,j)=='A' ) then
-              texout(i,j) = 10.
-            else if ( ch(i,j)=='B' ) then
-              texout(i,j) = 11.
-            else if ( ch(i,j)=='C' ) then
-              texout(i,j) = 12.
-            else if ( ch(i,j)=='D' ) then
-              texout(i,j) = 13.
-            else if ( ch(i,j)=='E' ) then
-              texout(i,j) = 14.
-            else if ( ch(i,j)=='F' ) then
-              texout(i,j) = 15.
-            else if ( ch(i,j)=='G' ) then
-              texout(i,j) = 16.
-            else if ( ch(i,j)=='H' ) then
-              texout(i,j) = 17.
-            else if ( nint(texout(i,j))==0 ) then
-              ch(i,j) = ' '
-            else
-              write (*,*) 'TEXTURE TYPE exceed the limit'
-              call die('texfudge')
-            end if
-            if ( nint(texout(i,j))==14 ) htgrid(i,j) = 0.0
-          end do
-        end do
-      else
-        do j = 1 , jx
-          do i = 1 , iy
-            if ( nint(texout(i,j))==14 ) then
-              ch(i,j) = ' '
-            else if ( nint(texout(i,j))==1 ) then
-              ch(i,j) = '1'
-            else if ( nint(texout(i,j))==2 ) then
-              ch(i,j) = '2'
-            else if ( nint(texout(i,j))==3 ) then
-              ch(i,j) = '3'
-            else if ( nint(texout(i,j))==4 ) then
-              ch(i,j) = '4'
-            else if ( nint(texout(i,j))==5 ) then
-              ch(i,j) = '5'
-            else if ( nint(texout(i,j))==6 ) then
-              ch(i,j) = '6'
-            else if ( nint(texout(i,j))==7 ) then
-              ch(i,j) = '7'
-            else if ( nint(texout(i,j))==8 ) then
-              ch(i,j) = '8'
-            else if ( nint(texout(i,j))==9 ) then
-              ch(i,j) = '9'
-            else if ( nint(texout(i,j))==10 ) then
-              ch(i,j) = 'A'
-            else if ( nint(texout(i,j))==11 ) then
-              ch(i,j) = 'B'
-            else if ( nint(texout(i,j))==12 ) then
-              ch(i,j) = 'C'
-            else if ( nint(texout(i,j))==13 ) then
-              ch(i,j) = 'D'
-            else if ( nint(texout(i,j))==15 ) then
-              ch(i,j) = 'F'
-            else if ( nint(texout(i,j))==16 ) then
-              ch(i,j) = 'G'
-            else if ( nint(texout(i,j))==17 ) then
-              ch(i,j) = 'H'
-            else
-              write (*,*) 'TEXTURE TYPE' , nint(texout(i,j)) ,          &
-                         &'exceed the limit'
-              call die('texfudge')
-            end if
-          end do
-        end do
-        open (iunit,file=char_tex,form='formatted')
-        do i = iy , 1 , -1
-          write (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-      end if
+        end if
+        if ( nint(texout(i,j))==14 ) htgrid(i,j) = 0.0
+      end do
+    end do
+  else
+    do j = 1 , jx
+      do i = 1 , iy
+        if ( nint(texout(i,j))==14 ) then
+          ch(i,j) = ' '
+        else if ( nint(texout(i,j))==1 ) then
+          ch(i,j) = '1'
+        else if ( nint(texout(i,j))==2 ) then
+          ch(i,j) = '2'
+        else if ( nint(texout(i,j))==3 ) then
+          ch(i,j) = '3'
+        else if ( nint(texout(i,j))==4 ) then
+          ch(i,j) = '4'
+        else if ( nint(texout(i,j))==5 ) then
+          ch(i,j) = '5'
+        else if ( nint(texout(i,j))==6 ) then
+          ch(i,j) = '6'
+        else if ( nint(texout(i,j))==7 ) then
+          ch(i,j) = '7'
+        else if ( nint(texout(i,j))==8 ) then
+          ch(i,j) = '8'
+        else if ( nint(texout(i,j))==9 ) then
+          ch(i,j) = '9'
+        else if ( nint(texout(i,j))==10 ) then
+          ch(i,j) = 'A'
+        else if ( nint(texout(i,j))==11 ) then
+          ch(i,j) = 'B'
+        else if ( nint(texout(i,j))==12 ) then
+          ch(i,j) = 'C'
+        else if ( nint(texout(i,j))==13 ) then
+          ch(i,j) = 'D'
+        else if ( nint(texout(i,j))==15 ) then
+          ch(i,j) = 'F'
+        else if ( nint(texout(i,j))==16 ) then
+          ch(i,j) = 'G'
+        else if ( nint(texout(i,j))==17 ) then
+          ch(i,j) = 'H'
+        else
+          write (*,*) 'TEXTURE TYPE' , nint(texout(i,j)) ,          &
+                      'exceed the limit'
+          call die('texfudge')
+        end if
+      end do
+    end do
+    open (iunit,file=char_tex,form='formatted')
+    do i = iy , 1 , -1
+      write (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+  end if
 
 99001 format (132A1)
-      end subroutine texfudge
+  end subroutine texfudge
 
-      subroutine lakfudge(fudge,dpth,lnd,iy,jx,char_lak)
+  subroutine lakfudge(fudge,dpth,lnd,iy,jx,char_lak)
 
-      implicit none
+  implicit none
 !
 ! Dummy arguments
 !
-      character(*) :: char_lak
-      logical :: fudge , there
-      integer :: iy , jx
-      real(SP) , dimension(iy,jx) :: dpth , lnd
-      intent (in) char_lak , fudge , iy , jx , lnd
-      intent (inout) dpth
+  character(*) :: char_lak
+  logical :: fudge , there
+  integer :: iy , jx
+  real(SP) , dimension(iy,jx) :: dpth , lnd
+  intent (in) char_lak , fudge , iy , jx , lnd
+  intent (inout) dpth
 !
 ! Local variables
 !
-      integer :: i , j , iunit
-      character(1) , dimension(iy,jx) :: ch
+  integer :: i , j , iunit
+  character(1) , dimension(iy,jx) :: ch
 !
-      iunit = luavail( )
-      if ( fudge ) then
-        inquire (file=char_lak,exist=there)
-        if ( .not.there ) then
-          write(stderr,*) 'Fudging requested for lake but '// &
-                   'missing input ascii file ',trim(char_lak)
-          write(stderr,*)  'ERROR OPENING ' , char_lak ,  &
-             &' FILE:  FILE DOES NOT EXIST'
-          call die('lakfudge')
-        endif 
-        open (iunit,file=char_lak,form='formatted')
-        do i = iy , 1 , -1
-          read (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-        do j = 1 , jx
-          do i = 1 , iy
-            if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
-              if ( ch(i,j)/='L' ) then
-                dpth(i,j) = 0.0
-               end if
-             end if
-          end do
-        end do
-      else
-        do j = 1 , jx
-          do i = 1 , iy
-            if ( dpth(i,j) > 0.0 ) then
-              if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
-                ch(i,j) = 'L'
-              else
-                ch(i,j) = '*'
-              end if
-            else
-              ch(i,j) = '-'
-            end if
-          end do
-        end do
-        open (iunit,file=char_lak,form='formatted')
-        do i = iy , 1 , -1
-          write (iunit,99001) (ch(i,j),j=1,jx)
-        end do
-        close (iunit)
-      end if
+  iunit = luavail( )
+  if ( fudge ) then
+    inquire (file=char_lak,exist=there)
+    if ( .not.there ) then
+      write(stderr,*) 'Fudging requested for lake but '// &
+               'missing input ascii file ',trim(char_lak)
+      write(stderr,*)  'ERROR OPENING ' , char_lak ,  &
+          ' FILE:  FILE DOES NOT EXIST'
+      call die('lakfudge')
+    endif 
+    open (iunit,file=char_lak,form='formatted')
+    do i = iy , 1 , -1
+      read (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+    do j = 1 , jx
+      do i = 1 , iy
+        if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
+          if ( ch(i,j)/='L' ) then
+            dpth(i,j) = 0.0
+           end if
+         end if
+      end do
+    end do
+  else
+    do j = 1 , jx
+      do i = 1 , iy
+        if ( dpth(i,j) > 0.0 ) then
+          if (lnd(i,j) > 13.5 .and. lnd(i,j) < 14.5) then
+            ch(i,j) = 'L'
+          else
+            ch(i,j) = '*'
+          end if
+        else
+          ch(i,j) = '-'
+        end if
+      end do
+    end do
+    open (iunit,file=char_lak,form='formatted')
+    do i = iy , 1 , -1
+      write (iunit,99001) (ch(i,j),j=1,jx)
+    end do
+    close (iunit)
+  end if
 99001 format (132A1)
-      end subroutine lakfudge
+  end subroutine lakfudge
 
-      end module mod_fudge
+end module mod_fudge

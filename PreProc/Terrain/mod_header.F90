@@ -17,54 +17,52 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_header
+module mod_header
 
-      use m_stdio
+  use m_stdio
 
-      contains
+  contains
 
-      subroutine header(myid)
-      implicit none 
+  subroutine header(myid)
+  implicit none 
 !
 ! Dummy arguments
 !
-      integer , intent(in) :: myid
+  integer , intent(in) :: myid
 !
 ! Local variables:
 !
-      integer :: hostnm
-      integer :: ihost, idir
-      integer :: getcwd
-      character (len=32) :: cdata='?'
-      character (len=32) :: hostname='?' 
-      character (len=32) :: user='?' 
-      character (len=128) :: directory='?'
+  integer :: hostnm
+  integer :: ihost, idir
+  integer :: getcwd
+  character (len=32) :: cdata='?'
+  character (len=32) :: hostname='?' 
+  character (len=32) :: user='?' 
+  character (len=128) :: directory='?'
 !
-      if (myid.eq.1)  then 
-        write (stdout, &
-          "(/,2x,'This is Terrain part of RegCM package version 4 ')")
-        write (stdout,100)  SVN_REV, __DATE__ , __TIME__   
-100     format(2x,' SVN Revision: ',a,' compiled at: data : ',          &
-           &   a,'  time: ',a,/)
+  if (myid.eq.1)  then 
+    write (stdout, "(/,2x,'This is Terrain part of RegCM package version 4 ')")
+    write (stdout,100)  SVN_REV, __DATE__ , __TIME__   
+100 format(2x,' SVN Revision: ',a,' compiled at: data : ',a,'  time: ',a,/)
 
 #ifdef IBM
-        hostname='ibm platform '
-        user= 'Unknown'
-        call fdate_(cdata)
+    hostname='ibm platform '
+    user= 'Unknown'
+    call fdate_(cdata)
 #else
-        Ihost = hostnm(hostname)
-        call getlog(user)
-        call fdate(cdata)
+    Ihost = hostnm(hostname)
+    call getlog(user)
+    call fdate(cdata)
 #endif 
 
-        Idir=getcwd(directory)
+    Idir=getcwd(directory)
 
-        write(stdout,*) ": this run start at  : ",trim(cdata)
-        write(stdout,*) ": it is submitted by : ",trim(user)
-        write(stdout,*) ": it is running on   : ",trim(hostname)
-        write(stdout,*) ": in directory       : ",trim(directory)
-        write(stdout,*) "                     " 
-      end if 
-      end subroutine header
+    write(stdout,*) ": this run start at  : ",trim(cdata)
+    write(stdout,*) ": it is submitted by : ",trim(user)
+    write(stdout,*) ": it is running on   : ",trim(hostname)
+    write(stdout,*) ": in directory       : ",trim(directory)
+    write(stdout,*) "                     " 
+  end if 
+  end subroutine header
 
-      end module mod_header
+end module mod_header
