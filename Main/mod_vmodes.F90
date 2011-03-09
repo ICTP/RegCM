@@ -881,7 +881,7 @@
 !  standard atmosphere (see text by hess). units of p are cb.
 !
       p0 = stdp/d_1000
-      fac = rgas*lrate*rgti
+      fac = rgas*lrate*regrav
       do k = 1 , nk
         p = sigma(k)*pd + pt
         t(k) = stdt*((p/p0)**fac)

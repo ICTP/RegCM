@@ -125,7 +125,7 @@
             end do
             tdini = tdini + tttmp*dsigma(k)
           end do
-          tdini = tdini*dx*dx*d_1000*rgti
+          tdini = tdini*dx*dx*d_1000*regrav
         end if
 
         call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -145,7 +145,7 @@
             end do
             tvmass = tvmass + tttmp*dsigma(k)
           end do
-          tvmass = tvmass*dx*dx*d_1000*rgti
+          tvmass = tvmass*dx*dx*d_1000*regrav
         end if
 
         call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -163,7 +163,7 @@
             end do
             tcmass = tcmass + tttmp*dsigma(k)
           end do
-          tcmass = tcmass*dx*dx*d_1000*rgti
+          tcmass = tcmass*dx*dx*d_1000*regrav
         end if
 
         call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -187,7 +187,7 @@
           end do
           tdini = tdini + tttmp*dsigma(k)
         end do
-        tdini = tdini*dx*dx*d_1000*rgti
+        tdini = tdini*dx*dx*d_1000*regrav
 !
 !-----water substance (unit = kg):
 !
@@ -200,7 +200,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*d_1000*rgti
+        tvmass = tvmass*dx*dx*d_1000*regrav
 !
         do k = 1 , kz
           tttmp = d_zero
@@ -211,7 +211,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*d_1000*rgti
+        tcmass = tcmass*dx*dx*d_1000*regrav
         tqini = tvmass + tcmass
 !=======================================================================
         write(6,99003) tdini , tqini
@@ -349,7 +349,7 @@
       do k = 1 , kz
         do i = 1 , iym1
           tdadv = tdadv - dtmin*3.0D4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))*rgti
+                & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
 !
@@ -375,7 +375,7 @@
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))               &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) &
                   & -(va01_g(k,j+1)+va01_g(k,j))                   &
-                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
           end do
         end do
       end if
@@ -387,7 +387,7 @@
                   *dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j)) /    &
                   (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                   (atm1%v(1,k,j+1)+atm1%v(1,k,j)) /           &
-                  (mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
+                  (mddom%msfx(1,j)*mddom%msfx(1,j)))*regrav
         end do
       end do
 #endif
@@ -434,7 +434,7 @@
       do k = 1 , kz
         do i = 1 , iym1
           tqadv = tqadv - dtmin*3.0D4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))*rgti
+                & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
 !
@@ -468,7 +468,7 @@
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qva01_g(k,j)/psa01_g(j))                          &
-                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
           end do
         end do
       end if
@@ -481,7 +481,7 @@
                (atm1%qv(iym1,k,j)/sps1%ps(iym1,j)) /       &
                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qv(1,k,j) /   &
-               sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
+               sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*regrav
         end do
       end do
 #endif
@@ -527,7 +527,7 @@
       do k = 1 , kz
         do i = 1 , iym1
           tqadv = tqadv - dtmin*3.0D4*dsigma(k)                          &
-                & *dx*(worka(i,k)-workb(i,k))*rgti
+                & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
 !
@@ -555,7 +555,7 @@
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
                   & -(va01_g(k,j+1)+va01_g(k,j))                        &
                   & *(qca01_g(k,j)/psa01_g(j))                          &
-                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*rgti
+                  & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))*regrav
           end do
         end do
       end if
@@ -568,7 +568,7 @@
                 (atm1%qc(iym1,k,j)/sps1%ps(iym1,j)) /      &
                 (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))-   &
                 (atm1%v(1,k,j+1)+atm1%v(1,k,j))*(atm1%qc(1,k,j) /  &
-                sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*rgti
+                sps1%ps(1,j))/(mddom%msfx(1,j)*mddom%msfx(1,j)))*regrav
         end do
       end do
 #endif
@@ -631,7 +631,7 @@
           end do
           tdrym = tdrym + tttmp*dsigma(k)
         end do
-        tdrym = tdrym*dx*dx*d_1000*rgti
+        tdrym = tdrym*dx*dx*d_1000*regrav
       end if
       call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
 #else
@@ -644,7 +644,7 @@
         end do
         tdrym = tdrym + tttmp*dsigma(k)
       end do
-      tdrym = tdrym*dx*dx*d_1000*rgti
+      tdrym = tdrym*dx*dx*d_1000*regrav
 #endif
 !
 !-----water substance (unit = kg):
@@ -664,7 +664,7 @@
           end do
           tvmass = tvmass + tttmp*dsigma(k)
         end do
-        tvmass = tvmass*dx*dx*d_1000*rgti
+        tvmass = tvmass*dx*dx*d_1000*regrav
       end if
       call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
@@ -678,7 +678,7 @@
         end do
         tvmass = tvmass + tttmp*dsigma(k)
       end do
-      tvmass = tvmass*dx*dx*d_1000*rgti
+      tvmass = tvmass*dx*dx*d_1000*regrav
 #endif
 !
       tcmass = d_zero
@@ -697,7 +697,7 @@
           end do
           tcmass = tcmass + tttmp*dsigma(k)
         end do
-        tcmass = tcmass*dx*dx*d_1000*rgti
+        tcmass = tcmass*dx*dx*d_1000*regrav
       end if
       call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,               &
                    & ierr)
@@ -711,7 +711,7 @@
         end do
         tcmass = tcmass + tttmp*dsigma(k)
       end do
-      tcmass = tcmass*dx*dx*d_1000*rgti
+      tcmass = tcmass*dx*dx*d_1000*regrav
 #endif
 
       tqmass = tvmass + tcmass
@@ -988,7 +988,7 @@
           do k = 1 , kz
             do i = 2 , iym2
               tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)     &
-                        & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
+                        & *dx*(worka(i,k,n)-workb(i,k,n))*regrav
             end do
           end do
 !.....
@@ -1023,7 +1023,7 @@
                     & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
               end if
               tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx*(fx2-fx1) &
-                        & *rgti
+                        & *regrav
             end do
           end do
         end do
@@ -1034,7 +1034,7 @@
         do k = 1 , kz
           do i = 2 , iym2
             tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)                &
-                      & *dx*(worka(i,k,n)-workb(i,k,n))*rgti
+                      & *dx*(worka(i,k,n)-workb(i,k,n))*regrav
           end do
         end do
       end do
@@ -1072,7 +1072,7 @@
             end if
  
             tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx*            &
-                  & (fx2-fx1)*rgti
+                  & (fx2-fx1)*regrav
  
           end do
         end do
@@ -1120,7 +1120,7 @@
           do k = 1 , kz
             do i = 2 , iym2
               tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)              &
-                        & *(workb(i,k,n)+worka(i,k,n))*rgti
+                        & *(workb(i,k,n)+worka(i,k,n))*regrav
             end do
           end do
  
@@ -1135,7 +1135,7 @@
                     & *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     & /psa01_g(j))
               tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)*(chid2+chid1)&
-                        & *rgti
+                        & *regrav
             end do
           end do
         end do
@@ -1146,7 +1146,7 @@
         do k = 1 , kz
           do i = 2 , iym2
             tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)                &
-                      & *(workb(i,k,n)+worka(i,k,n))*rgti
+                      & *(workb(i,k,n)+worka(i,k,n))*regrav
           end do
         end do
       end do
@@ -1383,13 +1383,13 @@
 #endif
  
       do itr = 1 , ntr
-        ttrace(itr,1) = ttrace(itr,1)*d_1000*rgti
-        tremlsc(itr,1) = tremlsc(itr,1)*d_1000*rgti
-        tremcvc(itr,1) = tremcvc(itr,1)*d_1000*rgti
-        tremdrd(itr,1) = tremdrd(itr,1)*d_1000*rgti
-        trxsg(itr,1) = trxsg(itr,1)*d_1000*rgti
-        trxsaq1(itr,1) = trxsaq1(itr,1)*d_1000*rgti
-        trxsaq2(itr,1) = trxsaq2(itr,1)*d_1000*rgti
+        ttrace(itr,1) = ttrace(itr,1)*d_1000*regrav
+        tremlsc(itr,1) = tremlsc(itr,1)*d_1000*regrav
+        tremcvc(itr,1) = tremcvc(itr,1)*d_1000*regrav
+        tremdrd(itr,1) = tremdrd(itr,1)*d_1000*regrav
+        trxsg(itr,1) = trxsg(itr,1)*d_1000*regrav
+        trxsaq1(itr,1) = trxsaq1(itr,1)*d_1000*regrav
+        trxsaq2(itr,1) = trxsaq2(itr,1)*d_1000*regrav
       end do
 
  

@@ -367,7 +367,7 @@
 !           ********************************************************
  
             amfp = c1*(amu(i,l)/c2)*(c3/pre)*(throw(i,l)/c4)**(d_half)
-            prii = d_two/9.0D0*gti/amu(i,l)
+            prii = d_two/9.0D0*egrav/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
  
 !           ********************************************************
@@ -378,14 +378,14 @@
             cfac(i,l,n) = d_one + amfp/avesize(n) &
                           *(aa1+aa2*dexp(-aa3*avesize(n)/amfp))
             taurel(i,l,n) = dmax1(priiv*avesize(n)**d_two* &
-                                  cfac(i,l,n)*rgti,d_zero)
+                                  cfac(i,l,n)*regrav,d_zero)
  
 !           ********************************************************
 !           * stokes friction                                  *****
 !           pdepvsub(i,l,n) ' sellting dep. velocity = '
 !           ********************************************************
  
-            pdepvsub(i,l,n) = taurel(i,l,n)*gti
+            pdepvsub(i,l,n) = taurel(i,l,n)*egrav
           end do
         end do
       end do
@@ -514,7 +514,7 @@
 !           ****
  
 ! **************************************************************
-            rib = gti*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**d_two)
+            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**d_two)
  
 ! ***************************************************************
 !           * ensure that conditions over land are never stable when 
@@ -547,7 +547,7 @@
             ustar(i,j) = dsqrt(ustarsq)
             thstar = utstar/ustar(i,j)
 !
-            mol = tbar*ustarsq/(vonkar*gti*thstar)
+            mol = tbar*ustarsq/(vonkar*egrav*thstar)
           end if
  
           kui = d_one/(vonkar*ustar(i,j))

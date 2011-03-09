@@ -32,7 +32,7 @@
       implicit none 
       integer , intent(in) :: myid
 
-      if ( myid.eq.0 )  then 
+      if ( myid == 0 )  then 
         write (nrite,"(/,2x,'This is RegCM branch regcm-core')")
         write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
       end if
@@ -51,7 +51,7 @@
       character (len=32) :: user='?' 
       character (len=256) :: directory='?'
   
-      if ( myid.eq.0 )  then 
+      if ( myid == 0 )  then 
 #ifdef IBM
         hostname='ibm platform '
         user= 'Unknown'
@@ -75,7 +75,7 @@
         implicit none
         integer , intent (in) :: myid
 
-        if ( myid.eq. 0 ) then
+        if ( myid ==  0 ) then
 #ifdef IBM
           call fdate_(cdata)
 #else

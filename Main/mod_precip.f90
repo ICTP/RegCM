@@ -76,7 +76,7 @@
 !--------------------------------------------------------------------
  
 !     1a. Perform computations for the top layer (layer 1)
-      thog = d_1000*rgti       ! precipation accumulated from above
+      thog = d_1000*regrav       ! precipation accumulated from above
       i1000 = d_one/d_1000
 
       remrat(istart:iend,1:nk) = d_zero
@@ -259,7 +259,7 @@
 !     - Levin & Schwatz
 !--------------------------------------------------------------------
       if ( ichem == 1 ) then
-        uch = d_1000*rgti*secph
+        uch = d_1000*regrav*secph
         do i = istart , iend
           rembc(i,1) = d_zero
           do k = 2 , nk

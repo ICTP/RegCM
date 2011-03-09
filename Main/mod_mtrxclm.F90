@@ -159,7 +159,7 @@
         r2cnsrest = 0
       end if
 !     land surface timestep
-      r2cdtime = abatm
+      r2cdtime = idint(abatm)
 !     start date and time
       r2cstart_ymd = idate1/100
       r2cstart_tod = mod(idate1,100)
@@ -171,12 +171,12 @@
 !     don't write to NCAR Mass Store
       r2cmss_irt = 0
 !     clm output frequency
-      r2coutfrq = clmfrq
+      r2coutfrq = idint(clmfrq)
 !     radiation calculation frequency
 !     regcm: radfrq is in minutes
 !     clm: irad is (+) iterations or (-) hours
 !     clm: hours gets converted to seconds then divided by dtime
-      r2cirad = (radfrq*minph/r2cdtime)
+      r2cirad = idint(radfrq*minph/r2cdtime)
 !     write output
       if ( ifbat ) then
         r2cwrtdia = .true.
@@ -205,7 +205,7 @@
               satbrt_clm(i,j) = mddom_io%satbrt(i,j)
             end if
             init_tgb(i,j)  = ts0_io(i,j)
-            clm_fracveg(i,j) = 0
+            clm_fracveg(i,j) = d_zero
           end do
         end do
       end if
@@ -804,8 +804,8 @@
           albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) + &
                       albvl(i) *(d_one-landfrac(jj,i)) 
         end if
-        aldirs_o(j,i-1) = aldirs(i)
-        aldifs_o(j,i-1) = aldifs(i)
+        aldirs_o(j,i-1) = real(aldirs(i))
+        aldifs_o(j,i-1) = real(aldifs(i))
       end do
  
       end subroutine albedoclm
@@ -1378,131 +1378,131 @@
             do i = 2 , iym1
               ci = i
  
-              u10m_o(j,i-1) = d_zero
-              v10m_o(j,i-1) = d_zero
-              tg_o(j,i-1) = d_zero
-              t2m_o(j,i-1) = d_zero
+              u10m_o(j,i-1) = 0.0
+              v10m_o(j,i-1) = 0.0
+              tg_o(j,i-1) = 0.0
+              t2m_o(j,i-1) = 0.0
  
               do n = 1 , nnsg
                 if ( ocld2d(n,i,j)>d_half ) then
-                  u10m_s(n,j,i-1) = ubx3d(i,kz,j)
-                  v10m_s(n,j,i-1) = vbx3d(i,kz,j)
-                  tg_s(n,j,i-1) = tg2d(n,i,j)
-                  t2m_s(n,j,i-1) = taf2d(n,i,j)
-                  u10m_o(j,i-1) = u10m_o(j,i-1) + ubx3d(i,kz,j)
-                  v10m_o(j,i-1) = v10m_o(j,i-1) + vbx3d(i,kz,j)
-                  t2m_o(j,i-1) = t2m_o(j,i-1) + taf2d(n,i,j)
-                  tg_o(j,i-1) = tg_o(j,i-1) + tg2d(n,i,j)
+                  u10m_s(n,j,i-1) = real(ubx3d(i,kz,j))
+                  v10m_s(n,j,i-1) = real(vbx3d(i,kz,j))
+                  tg_s(n,j,i-1) = real(tg2d(n,i,j))
+                  t2m_s(n,j,i-1) = real(taf2d(n,i,j))
+                  u10m_o(j,i-1) = u10m_o(j,i-1) + real(ubx3d(i,kz,j))
+                  v10m_o(j,i-1) = v10m_o(j,i-1) + real(vbx3d(i,kz,j))
+                  t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf2d(n,i,j))
+                  tg_o(j,i-1) = tg_o(j,i-1) + real(tg2d(n,i,j))
                 else if ( ocld2d(n,i,j)<d_half ) then
-                  tg_s(n,j,i-1) = tg1d(n,i)
-                  u10m_s(n,j,i-1) = u10m1d(n,i)
-                  v10m_s(n,j,i-1) = v10m1d(n,i)
-                  t2m_s(n,j,i-1) = t2m_1d(n,i)
-                  u10m_o(j,i-1) = u10m_o(j,i-1) + u10m1d(n,i)
-                  v10m_o(j,i-1) = v10m_o(j,i-1) + v10m1d(n,i)
-                  t2m_o(j,i-1) = t2m_o(j,i-1) + t2m_1d(n,i)
-                  tg_o(j,i-1) = tg_o(j,i-1) + tg1d(n,i)
+                  tg_s(n,j,i-1) = real(tg1d(n,i))
+                  u10m_s(n,j,i-1) = real(u10m1d(n,i))
+                  v10m_s(n,j,i-1) = real(v10m1d(n,i))
+                  t2m_s(n,j,i-1) = real(t2m_1d(n,i))
+                  u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
+                  v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
+                  t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m_1d(n,i))
+                  tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
                 end if
               end do
  
-              u10m_o(j,i-1) = u10m_o(j,i-1)/dble(nnsg)
-              v10m_o(j,i-1) = v10m_o(j,i-1)/dble(nnsg)
-              t2m_o(j,i-1) = t2m_o(j,i-1)/dble(nnsg)
-              tg_o(j,i-1) = tg_o(j,i-1)/dble(nnsg)
+              u10m_o(j,i-1) = u10m_o(j,i-1)/real(nnsg)
+              v10m_o(j,i-1) = v10m_o(j,i-1)/real(nnsg)
+              t2m_o(j,i-1) = t2m_o(j,i-1)/real(nnsg)
+              tg_o(j,i-1) = tg_o(j,i-1)/real(nnsg)
               tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
               tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
               t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
               t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
               w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                        sqrt(u10m_o(j,i-1)**2+v10m_o(j,i-1)**2))
-              real_4 = (sps2%ps(i,j)+r8pt)*d_10
+              real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
               psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
  
-              drag_o(j,i-1) = d_zero
-              q2m_o(j,i-1) = d_zero
-              evpa_o(j,i-1) = d_zero
-              sena_o(j,i-1) = d_zero
+              drag_o(j,i-1) = 0.0
+              q2m_o(j,i-1) = 0.0
+              evpa_o(j,i-1) = 0.0
+              sena_o(j,i-1) = 0.0
               do n = 1 , nnsg
                 if ( ocld2d(n,i,j)>=d_half ) then
-                  q2m_s(n,j,i-1) = q2d(i,j)
-                  drag_s(n,j,i-1) = sfsta%uvdrag(i,j)
-                  evpa_s(n,j,i-1) = evpa2d(n,ci,j)*mmpd
-                  sena_s(n,j,i-1) = sena2d(n,ci,j)*wpm2
-                  tpr_s(n,j,i-1) = (prnca2d(ci,j)+prca2d(ci,j))*mmpd
-                  prcv_s(n,j,i-1) = prca2d(ci,j)*mmpd
-                  ps_s(n,j,i-1) = p1d(n,i)*0.01D0
+                  q2m_s(n,j,i-1) = real(q2d(i,j))
+                  drag_s(n,j,i-1) = real(sfsta%uvdrag(i,j))
+                  evpa_s(n,j,i-1) = real(evpa2d(n,ci,j)*mmpd)
+                  sena_s(n,j,i-1) = real(sena2d(n,ci,j)*wpm2)
+                  tpr_s(n,j,i-1) = real((prnca2d(ci,j)+prca2d(ci,j))*mmpd)
+                  prcv_s(n,j,i-1) = real(prca2d(ci,j)*mmpd)
+                  ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
-                  q2m_o(j,i-1) = q2m_o(j,i-1) + q2d(i,j)
-                  drag_o(j,i-1) = drag_o(j,i-1) + sfsta%uvdrag(i,j)
-                  evpa_o(j,i-1) = evpa_o(j,i-1) + evpa2d(n,ci,j)
-                  sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,ci,j)
+                  q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(i,j))
+                  drag_o(j,i-1) = drag_o(j,i-1) + real(sfsta%uvdrag(i,j))
+                  evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,ci,j))
+                  sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
                 else if ( ocld2d(n,i,j)<=d_half ) then
-                  q2m_s(n,j,i-1) = q2m_1d(n,i)
-                  drag_s(n,j,i-1) = drag1d(n,i)
-                  evpa_s(n,j,i-1) = evpa2d(n,i,j)*mmpd
-                  sena_s(n,j,i-1) = sena2d(n,i,j)*wpm2
-                  tpr_s(n,j,i-1) = (prnca2d(i,j)+prca2d(i,j))*mmpd
-                  prcv_s(n,j,i-1) = prca2d(i,j)*mmpd
-                  ps_s(n,j,i-1) = p1d(n,i)*0.01D0
+                  q2m_s(n,j,i-1) = real(q2m_1d(n,i))
+                  drag_s(n,j,i-1) = real(drag1d(n,i))
+                  evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
+                  sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
+                  tpr_s(n,j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
+                  prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
+                  ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
-                  q2m_o(j,i-1) = q2m_o(j,i-1) + q2m_1d(n,i)
-                  drag_o(j,i-1) = drag_o(j,i-1) + drag1d(n,i)
-                  evpa_o(j,i-1) = evpa_o(j,i-1) + evpa2d(n,i,j)
-                  sena_o(j,i-1) = sena_o(j,i-1) + sena2d(n,i,j)
+                  q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m_1d(n,i))
+                  drag_o(j,i-1) = drag_o(j,i-1) + real(drag1d(n,i))
+                  evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,i,j))
+                  sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,i,j))
                 end if
               end do
-              tpr_o(j,i-1) = (prnca2d(ci,j)+prca2d(ci,j))*mmpd
-              q2m_o(j,i-1) = q2m_o(j,i-1)/dble(nnsg)
-              drag_o(j,i-1) = drag_o(j,i-1)/dble(nnsg)
-              evpa_o(j,i-1) = evpa_o(j,i-1)/dble(nnsg)*mmpd
-              sena_o(j,i-1) = sena_o(j,i-1)/dble(nnsg)*wpm2
-              flwa_o(j,i-1) = flwa2d(ci,j)*wpm2
-              fswa_o(j,i-1) = fswa2d(ci,j)*wpm2
-              flwd_o(j,i-1) = flwda2d(ci,j)*wpm2
-              sina_o(j,i-1) = sina2d(ci,j)*wpm2
-              prcv_o(j,i-1) = prca2d(ci,j)*mmpd
-              ps_o(j,i-1) = (sps2%ps(i,j)+r8pt)*d_10
-              zpbl_o(j,i-1) = sfsta%zpbl(i,j)
+              tpr_o(j,i-1) = real((prnca2d(ci,j)+prca2d(ci,j))*mmpd)
+              q2m_o(j,i-1) = q2m_o(j,i-1)/real(nnsg)
+              drag_o(j,i-1) = drag_o(j,i-1)/real(nnsg)
+              evpa_o(j,i-1) = evpa_o(j,i-1)/real(nnsg)*real(mmpd)
+              sena_o(j,i-1) = sena_o(j,i-1)/real(nnsg)*real(wpm2)
+              flwa_o(j,i-1) = real(flwa2d(ci,j)*wpm2)
+              fswa_o(j,i-1) = real(fswa2d(ci,j)*wpm2)
+              flwd_o(j,i-1) = real(flwda2d(ci,j)*wpm2)
+              sina_o(j,i-1) = real(sina2d(ci,j)*wpm2)
+              prcv_o(j,i-1) = real(prca2d(ci,j)*mmpd)
+              ps_o(j,i-1) = real((sps2%ps(i,j)+r8pt)*d_10)
+              zpbl_o(j,i-1) = real(sfsta%zpbl(i,j))
  
-              tlef_o(j,i-1) = d_zero
-              ssw_o(j,i-1) = d_zero
-              rsw_o(j,i-1) = d_zero
-              rnos_o(j,i-1) = d_zero
-              scv_o(j,i-1) = d_zero
+              tlef_o(j,i-1) = 0.0
+              ssw_o(j,i-1) = 0.0
+              rsw_o(j,i-1) = 0.0
+              rnos_o(j,i-1) = 0.0
+              scv_o(j,i-1) = 0.0
               nnn = 0
               do n = 1 , nnsg
                 if ( ocld2d(n,ci,j)>=d_half .and. landmask(jj,ci)/=3 ) then
-                  tlef_o(j,i-1) = tlef_o(j,i-1) + c2rtlef(jj,ci)
-                  ssw_o(j,i-1) = ssw_o(j,i-1) + c2rsm10cm(jj,ci)
-                  rsw_o(j,i-1) = rsw_o(j,i-1) + c2rsm1m(jj,ci)
-                  rnos_o(j,i-1) = rnos_o(j,i-1) + rnos2d(n,ci,j)
-                  scv_o(j,i-1) = scv_o(j,i-1) + c2rsnowc(jj,ci)
-                  tlef_s(n,j,i-1) = c2rtlef(jj,ci)
-                  ssw_s(n,j,i-1) = c2rsm10cm(jj,ci)
-                  rsw_s(n,j,i-1) = c2rsm1m(jj,ci)
-                  rnos_s(n,j,i-1) = rnos2d(n,ci,j)*mmpd
-                  scv_s(n,j,i-1) = c2rsnowc(jj,ci)
+                  tlef_o(j,i-1) = tlef_o(j,i-1) + real(c2rtlef(jj,ci))
+                  ssw_o(j,i-1) = ssw_o(j,i-1) + real(c2rsm10cm(jj,ci))
+                  rsw_o(j,i-1) = rsw_o(j,i-1) + real(c2rsm1m(jj,ci))
+                  rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,ci,j))
+                  scv_o(j,i-1) = scv_o(j,i-1) + real(c2rsnowc(jj,ci))
+                  tlef_s(n,j,i-1) = real(c2rtlef(jj,ci))
+                  ssw_s(n,j,i-1) = real(c2rsm10cm(jj,ci))
+                  rsw_s(n,j,i-1) = real(c2rsm1m(jj,ci))
+                  rnos_s(n,j,i-1) = real(rnos2d(n,ci,j)*mmpd)
+                  scv_s(n,j,i-1) = real(c2rsnowc(jj,ci))
                   nnn = nnn + 1
                 else
-                  tlef_s(n,j,i-1) = -1.0D34
-                  ssw_s(n,j,i-1) = -1.0D34
-                  rsw_s(n,j,i-1) = -1.0D34
-                  rnos_s(n,j,i-1) = -1.0D34
-                  scv_s(n,j,i-1) = -1.0D34
+                  tlef_s(n,j,i-1) = -1.0E34
+                  ssw_s(n,j,i-1) = -1.0E34
+                  rsw_s(n,j,i-1) = -1.0E34
+                  rnos_s(n,j,i-1) = -1.0E34
+                  scv_s(n,j,i-1) = -1.0E34
                 end if
               end do
               if ( nnn>=max0(nnsg/2,1) ) then
-                tlef_o(j,i-1) = tlef_o(j,i-1)/dble(nnn)
-                ssw_o(j,i-1) = ssw_o(j,i-1)/dble(nnn)
-                rsw_o(j,i-1) = rsw_o(j,i-1)/dble(nnn)
-                rnos_o(j,i-1) = rnos_o(j,i-1)/dble(nnn)*mmpd
-                scv_o(j,i-1) = scv_o(j,i-1)/dble(nnn)
+                tlef_o(j,i-1) = tlef_o(j,i-1)/real(nnn)
+                ssw_o(j,i-1) = ssw_o(j,i-1)/real(nnn)
+                rsw_o(j,i-1) = rsw_o(j,i-1)/real(nnn)
+                rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
+                scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
               else
-                tlef_o(j,i-1) = -1.0D34
-                ssw_o(j,i-1) = -1.0D34
-                rsw_o(j,i-1) = -1.0D34
-                rnos_o(j,i-1) = -1.0D34
-                scv_o(j,i-1) = -1.0D34
+                tlef_o(j,i-1) = -1.0E34
+                ssw_o(j,i-1) = -1.0E34
+                rsw_o(j,i-1) = -1.0E34
+                rnos_o(j,i-1) = -1.0E34
+                scv_o(j,i-1) = -1.0E34
               end if
 !               ******    reset accumulation arrays to zero
               do n = 1 , nnsg

@@ -68,7 +68,7 @@
           else
             zatild = z1(n,i)
           end if
-          ribn(n,i) = zatild*gti*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
+          ribn(n,i) = zatild*egrav*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
                      & (d_one-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
 !=======================================================================
 !         2.1  compute the bulk richardson number;
@@ -134,7 +134,7 @@
             cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**d_two
  
 !           4.5  drag coefficient over leads
-            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1(n,i)*gti/ribd(n,i)
+            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1(n,i)*egrav/ribd(n,i)
             if ( ribl(n,i) >= d_zero ) then
               clead(n,i) = cdrn(n,i)/(d_one+11.5D0*ribl(n,i))
             else

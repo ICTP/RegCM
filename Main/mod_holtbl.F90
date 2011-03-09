@@ -241,13 +241,13 @@
             dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
             xps = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
             ps2 = (a(k+1)*sps2%ps(i,j)+r8pt)*d_1000
-            rhohf(i,k,j) = (ps2-xps)/(gti*dza(i,k,j))
+            rhohf(i,k,j) = (ps2-xps)/(egrav*dza(i,k,j))
           end do
         end do
 !
         do i = 2 , iym1
           xps = thx3d(i,kz,j)
-          govrth(i) = gti/thx3d(i,kz,j)
+          govrth(i) = egrav/thx3d(i,kz,j)
         end do
 !
 ! *********************************************************************
@@ -354,7 +354,7 @@
 !           approximation for obhukov length
             oblen = -d_half*(thx3d(i,kz,j)+sts2%tg(i,j)) *   &
                     (d_one+0.61D0*sh10)*ustr(i,j)**d_three /  &
-                  & (gti*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
+                  & (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
             if ( oblen >= za(i,kz,j) ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                         & *(dlog(za(i,kz,j)/d_10)                     &
@@ -373,7 +373,7 @@
  
 !         obklen compute obukhov length
           obklen(i,j) = -th10(i,j)*ustr(i,j)                            &
-                      & **d_three/(gti*vonkar*(hfxv(i,j)+dsign(1.0D-10,    &
+                      & **d_three/(egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,    &
                       & hfxv(i,j))))
         end do
 !
@@ -390,7 +390,7 @@
           do i = 2 , iym1
             if ( k > 1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)    &
                & /dza(i,k-1,j)
-            akzz2(i,k,j) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+            akzz2(i,k,j) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
 #ifndef BAND
@@ -437,7 +437,7 @@
           do i = 2 , iym1
             if ( k > 1 ) akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)      &
                & /dza(i,k-1,j)
-            akzz2(i,k,j) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+            akzz2(i,k,j) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
       end do
@@ -637,7 +637,7 @@
           do i = 2 , iym1
             if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+            alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
  
@@ -714,7 +714,7 @@
           do i = 2 , iym1
             if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+            alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
  
@@ -787,7 +787,7 @@
           do i = 2 , iym1
             if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
                                      & /dza(i,k-1,j)
-            alphak(i,k) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+            alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
  
@@ -874,13 +874,13 @@
 !-----compute the tendencies:
 !
         do i = 2 , iym1
-          difft(i,kz,j) = difft(i,kz,j) - gti*ttnp(i,kz)                &
+          difft(i,kz,j) = difft(i,kz,j) - egrav*ttnp(i,kz)                &
                         & /(d_1000*cpd*dsigma(kz))
         end do
 !
         do k = 1 , kzm1
           do i = 2 , iym1
-            difft(i,k,j) = difft(i,k,j) + gti*(ttnp(i,k+1)-ttnp(i,k))   &
+            difft(i,k,j) = difft(i,k,j) + egrav*(ttnp(i,k+1)-ttnp(i,k))   &
                          & /(d_1000*cpd*dsigma(k))
           end do
         end do
@@ -899,7 +899,7 @@
             do i = 2 , iym1
               if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvc(i,k,j)      &
                  & /dza(i,k-1,j)
-              alphak(i,k) = gti/(sps2%ps(i,j)*d_1000)/dsigma(k)
+              alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
             end do
           end do
  
@@ -1008,7 +1008,7 @@
               if ( chtrname(itr) /= 'DUST' ) &
                 remdrd(i,j,itr) = remdrd(i,j,itr) + chix(i,kz)* &
                     vdep(i,itr)*sps2%ps(i,j)*dt/d_two*rhox2d(i,j)* &
-                    gti/(sps2%ps(i,j)*d_1000*dsigma(kz))
+                    egrav/(sps2%ps(i,j)*d_1000*dsigma(kz))
  
             end do
           end do
@@ -1091,7 +1091,7 @@
         do k = kz , kt , -1
           do i = 2 , iym1
             vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-            ri(i,k) = gti*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/            &
+            ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/            &
                     & (th10(i,j)*vv)
           end do
         end do
@@ -1127,7 +1127,7 @@
             therm(i) = (xhfx(i,j)+0.61D0*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
             vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + vbx3d(i,kz,j)           &
                 & *vbx3d(i,kz,j)
-            ri(i,kz) = -gti*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
+            ri(i,kz) = -egrav*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
           end if
         end do
  
@@ -1140,7 +1140,7 @@
                   & *(d_one+0.61D0*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
               ttkl = tkv - tlv
               vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-              ri(i,k) = gti*ttkl*za(i,k,j)/(th10(i,j)*vv)
+              ri(i,k) = egrav*ttkl*za(i,k,j)/(th10(i,j)*vv)
             end if
           end do
         end do

@@ -190,18 +190,18 @@
               call say
             end if
             do k = kt , kdwd
-              cutend_up(i,k) = mflx(i,1)*gti*d_r1000*wk(i,kb) &
+              cutend_up(i,k) = mflx(i,1)*egrav*d_r1000*wk(i,kb) &
                                /(sigma(kdwd)-sigma(kt))
             end do
  
-            cutend_up(i,kb) = -mflx(i,1)*gti*d_r1000*wk(i,kb)/ &
+            cutend_up(i,kb) = -mflx(i,1)*egrav*d_r1000*wk(i,kb)/ &
                                    (dsigma(kb))
 !           transport linked to downdraft
  
-            cutend_dwd(i,kdwd) = -mflx(i,2)*gti*d_r1000*wk(i,kdwd) &
+            cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*d_r1000*wk(i,kdwd) &
                                  /(dsigma(kdwd))
  
-            cutend_dwd(i,kz) = +mflx(i,2)*gti*d_r1000*wk(i,kdwd)   &
+            cutend_dwd(i,kz) = +mflx(i,2)*egrav*d_r1000*wk(i,kdwd)   &
                                /(dsigma(kz))
  
             do k = kt , kz
@@ -642,7 +642,7 @@
           do i = 2 , iym2
             chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + rsfrow(i,ibin)    &
-                                 *gti/(dsigma(kz)*d_1000)
+                                 *egrav/(dsigma(kz)*d_1000)
 !           diagnostique source
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                              *dt/d_two
@@ -666,11 +666,11 @@
                         ! do not apply to the first level
               settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,ibin) - &
                               wk(i,k)*pdepv(i,k,ibin))*     &
-                              gti*d_r1000/dsigma(k)
+                              egrav*d_r1000/dsigma(k)
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !
-            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*gti*d_r1000)      &
+            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*egrav*d_r1000)      &
                             /dsigma(kz)
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + settend(i,kz)
  
@@ -686,13 +686,13 @@
           if ( chtrname(itr) /= 'DUST' ) then
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr)                     &
                                  + chemsrc(i,j,lmonth,itr)              &
-                                 *gti*0.7D0/(dsigma(kz)*d_1000)
+                                 *egrav*0.7D0/(dsigma(kz)*d_1000)
             chiten(i,kz-1,j,itr) = chiten(i,kz-1,j,itr)                 &
                                    + chemsrc(i,j,lmonth,itr)            &
-                                   *gti*0.15D0/(dsigma(kz-1)*d_1000)
+                                   *egrav*0.15D0/(dsigma(kz-1)*d_1000)
             chiten(i,kzm2,j,itr) = chiten(i,kzm2,j,itr)                 &
                                    + chemsrc(i,j,lmonth,itr)            &
-                                   *gti*0.15D0/(dsigma(kzm2)*d_1000)
+                                   *egrav*0.15D0/(dsigma(kzm2)*d_1000)
 !           diagnostic for source, cumul
             cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
                              *dt/d_two
@@ -788,13 +788,13 @@
 #endif
 #endif
           do i = 1 , iym1
-            dtrace(i,j,itr) = d10e6*dtrace(i,j,itr)*d_1000*rgti
+            dtrace(i,j,itr) = d10e6*dtrace(i,j,itr)*d_1000*regrav
                                                         ! unit: mg/m2
-            wdlsc(i,j,itr) = d10e6*wdlsc(i,j,itr)*d_1000*rgti
-            wdcvc(i,j,itr) = d10e6*wdcvc(i,j,itr)*d_1000*rgti
-            ddsfc(i,j,itr) = d10e6*ddsfc(i,j,itr)*d_1000*rgti
-            wxsg(i,j,itr)  = d10e6*wxsg(i,j,itr)*d_1000*rgti
-            wxaq(i,j,itr)  = d10e6*wxaq(i,j,itr)*d_1000*rgti
+            wdlsc(i,j,itr) = d10e6*wdlsc(i,j,itr)*d_1000*regrav
+            wdcvc(i,j,itr) = d10e6*wdcvc(i,j,itr)*d_1000*regrav
+            ddsfc(i,j,itr) = d10e6*ddsfc(i,j,itr)*d_1000*regrav
+            wxsg(i,j,itr)  = d10e6*wxsg(i,j,itr)*d_1000*regrav
+            wxaq(i,j,itr)  = d10e6*wxaq(i,j,itr)*d_1000*regrav
 !           emtrac isbuilt from chsurfem so just need the 1e6*dt/2
 !           factor to to pass im mg/m2
             cemtrac(i,j,itr) = d10e6*cemtrac(i,j,itr)

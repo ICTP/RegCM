@@ -54,6 +54,7 @@
 !
 !---------------------------------------------------------------------
       use mod_dynparam
+      use mod_constants
       use mod_maps
       use mod_block
       use mod_smooth
@@ -194,7 +195,7 @@
         write (stdout,*) 'clat   = ' , clat
         write (stdout,*) 'clon   = ' , clong
         write (stdout,*) 'iproj  = ' , iproj
-        dsinm = (ds/nsg)*1000.0
+        dsinm = (ds/dble(nsg))*d_1000
         write(stdout,*) 'Subgrid setup done'
 
         if ( iproj=='LAMCON' ) then
@@ -207,19 +208,19 @@
                     & clat,dsinm,0)
           call mappol(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,1)
-          xn = 1.
+          xn = d_one
         else if ( iproj=='NORMER' ) then
           call normer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,0)
           call normer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clong,    &
                     & clat,dsinm,1)
-          xn = 0.
+          xn = d_zero
         else if ( iproj=='ROTMER' ) then
           call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,iysg,jxsg,clon,     &
                     & clat,plon,plat,dsinm,0)
           call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,iysg,jxsg,clon,     &
                     & clat,plon,plat,dsinm,1)
-          xn = 0.
+          xn = d_zero
         else
           write (stderr,*) 'iproj = ', iproj
           write (stderr,*) 'Unrecognized or unsupported projection'
@@ -356,7 +357,7 @@
       write (stdout,*) 'clat   = ' , clat
       write (stdout,*) 'clon   = ' , clong
       write (stdout,*) 'iproj  = ' , iproj
-      dsinm = ds*1000.
+      dsinm = ds*d_1000
       write(stdout,*) 'Grid setup done'
 !
 !-----calling the map projection subroutine
@@ -368,17 +369,17 @@
       else if ( iproj=='POLSTR' ) then
         call mappol(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
         call mappol(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-        xn = 1.
+        xn = d_one
       else if ( iproj=='NORMER' ) then
         call normer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,dsinm,0)
         call normer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,dsinm,1)
-        xn = 0.
+        xn = d_zero
       else if ( iproj=='ROTMER' ) then
         call rotmer(xlon,xlat,xmap,coriol,iy,jx,clong,clat,plon,plat,   &
                   & dsinm,0)
         call rotmer(dlon,dlat,dmap,coriol,iy,jx,clong,clat,plon,plat,   &
                   & dsinm,1)
-        xn = 0.
+        xn = d_zero
       else
         write (stderr,*) 'iproj = ', iproj
         write (stderr,*) 'Unrecognized or unsupported projection'
@@ -534,7 +535,7 @@
           do j = 1 , jx
             i0 = (i-1)*nsg
             j0 = (j-1)*nsg
-            hsum = 0.0
+            hsum = d_zero
             do m = 1 , nsg
               do n = 1 , nsg
                 if ( htgrid(i,j)<0.1 .and. &
@@ -542,14 +543,14 @@
                   htgrid_s(i0+m,j0+n) = 0.0
                   lndout_s(i0+m,j0+n) = 15.0
                 end if
-                hsum = hsum + htgrid_s(i0+m,j0+n)
+                hsum = hsum + dble(htgrid_s(i0+m,j0+n))
               end do
             end do
-            have = hsum/float(nnsg)
+            have = hsum/dble(nnsg)
             do m = 1 , nsg
               do n = 1 , nsg
                 htgrid_s(i0+m,j0+n) = htgrid(i,j) + &
-                                      (htgrid_s(i0+m,j0+n) - have)
+                                      (htgrid_s(i0+m,j0+n) - real(have))
               end do
             end do
           end do

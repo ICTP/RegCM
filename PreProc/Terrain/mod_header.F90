@@ -41,8 +41,8 @@
       character (len=128) :: directory='?'
 !
       if (myid.eq.1)  then 
-        write (stdout,"(/,2x, &
-          'This is Terrain part of RegCM package version 4 ')")
+        write (stdout, &
+          "(/,2x,'This is Terrain part of RegCM package version 4 ')")
         write (stdout,100)  SVN_REV, __DATE__ , __TIME__   
 100     format(2x,' SVN Revision: ',a,' compiled at: data : ',          &
            &   a,'  time: ',a,/)

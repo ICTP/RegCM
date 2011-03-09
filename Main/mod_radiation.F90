@@ -319,8 +319,8 @@
 !     Constants for ozone path integrals (multiplication by 100 for unit
 !     conversion to cgs from mks):
 !
-      cplos = v0/(amd*gti)*d_100
-      cplol = v0/(amd*gti*p0)*d_half*d_100
+      cplos = v0/(amd*egrav)*d_100
+      cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
       call time_end(subroutine_name,indx)
       end subroutine radini
@@ -1068,7 +1068,7 @@
 !     Compute optical paths:
 !     CO2, use old scheme(as constant)
 !
-      tmp1 = d_half/(gtigts*sslp)
+      tmp1 = d_half/(egravgts*sslp)
 !     co2mmr = co2vmr*(mmwco2/mmwair)
  
       sqrco2 = dsqrt(co2mmr)
@@ -4707,7 +4707,7 @@
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
-      cpwpl = vmmr*d_half/(gtigts*sslp)
+      cpwpl = vmmr*d_half/(egravgts*sslp)
       do i = 1 , iym1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)

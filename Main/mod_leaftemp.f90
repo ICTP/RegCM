@@ -548,7 +548,7 @@
 !  fwet   = ratio of dew to max value to 2/3 power
 !           ( 2/3 power comes from deardorff (1978) )
 !              ** keep fwet le 1.0 **
-!  dewmxi = inverse of max allowed dew depth on leaf in mm
+!  dewmaxi = inverse of max allowed dew depth on leaf in mm
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -564,7 +564,7 @@
             if ( sigf(n,i) > 0.001D0 ) then
               fwet(n,i) = d_zero
               if ( ldew1d(n,i) > d_zero ) then
-                fwet(n,i) = ((dewmxi/vegt(n,i))*ldew1d(n,i))**(d_two/d_three)
+                fwet(n,i) = ((dewmaxi/vegt(n,i))*ldew1d(n,i))**(d_two/d_three)
                 fwet(n,i) = dmin1(fwet(n,i),d_one)
               end if
               fdry(n,i) = (d_one-fwet(n,i))*xlai(n,i)/xlsai(n,i)
@@ -709,7 +709,7 @@
               end if
               zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
                      & + z1(n,i)*(d_one-sigf(n,i))
-              rib1(n,i) = gti*zatild/(ribd(n,i)*ts1d(n,i))
+              rib1(n,i) = egrav*zatild/(ribd(n,i)*ts1d(n,i))
               rib(n,i) = rib1(n,i)*dlstaf(n,i)
               if ( rib(n,i) < d_zero ) then
                 cdr(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)*    &

@@ -21,6 +21,7 @@
 
       use m_stdio
       use m_mall
+      use mod_constants
 
       contains
 !
@@ -50,8 +51,8 @@
         real(SP) , allocatable , dimension(:) :: xjx
 
         fillv = 0.0
-        trlat(1) = truelatl
-        trlat(2) = truelath
+        trlat(1) = real(truelatl)
+        trlat(2) = real(truelath)
 
         if (lsub) then
           allocate(yiy(iysg), stat=istatus)
@@ -60,13 +61,13 @@
           allocate(xjx(jxsg), stat=istatus)
           if (istatus/=0) call die('write_domain', &
                                    'allocate xjx',istatus)
-          yiy(1) = -(dble(iysg-1)/2.0) * ds
-          xjx(1) = -(dble(jxsg-1)/2.0) * ds
+          yiy(1) = -real((dble(iysg-1)*d_half) * ds)
+          xjx(1) = -real((dble(jxsg-1)*d_half) * ds)
           do i = 2 , iysg
-            yiy(i) = yiy(i-1)+ds
+            yiy(i) = real(dble(yiy(i-1))+ds)
           end do
           do j = 2 , jxsg
-            xjx(j) = xjx(j-1)+ds
+            xjx(j) = real(dble(xjx(j-1))+ds)
           end do
         else
           allocate(yiy(iy), stat=istatus)
@@ -75,13 +76,13 @@
           allocate(xjx(jx), stat=istatus)
           if (istatus/=0) call die('write_domain', &
                                    'allocate xjx',istatus)
-          yiy(1) = -(dble(iy-1)/2.0) * ds
-          xjx(1) = -(dble(jx-1)/2.0) * ds
+          yiy(1) = -real((dble(iy-1)/d_two) * ds)
+          xjx(1) = -real((dble(jx-1)/d_two) * ds)
           do i = 2 , iy
-            yiy(i) = yiy(i-1)+ds
+            yiy(i) = real(dble(yiy(i-1))+ds)
           end do
           do j = 2 , jx
-            xjx(j) = xjx(j-1)+ds
+            xjx(j) = real(dble(xjx(j-1))+ds)
           end do
         end if
         call mall_mci(yiy,'write_domain')
@@ -608,7 +609,7 @@
 !
         istatus = nf90_put_var(ncid, izdim(1), sigma)
         call check_ok(istatus,'Error variable sigma write')
-        hptop = ptop * 10.0
+        hptop = real(ptop * 10.0D0)
         istatus = nf90_put_var(ncid, izdim(2), hptop)
         call check_ok(istatus,'Error variable ptop write')
         istatus = nf90_put_var(ncid, ivdim(1), yiy)

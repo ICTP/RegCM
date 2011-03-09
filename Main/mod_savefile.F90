@@ -568,7 +568,7 @@
 #endif
 
 #ifdef CLM
-          cdtime = get_step_size()
+          cdtime = dble(get_step_size())
           filer_rest = restFile_filename(type='netcdf', &
                      & offset=-idint(cdtime))
           call restFile_write(filer_rest)
