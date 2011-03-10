@@ -288,14 +288,14 @@
       ipgf = 1
       iemiss = 1
       iocnflx = 1
-      lakemod = 1
+      lakemod = 0
       ichem = 0
       scenario = 'A1B'
       idcsst = 0
       iseaice = 0
       idesseas = 1
       high_nudge = 3.0D0
-      medium_nudge=2.0D0
+      medium_nudge = 2.0D0
       low_nudge = 1.0D0   
       iconvlwp = 1
       cftotmax = 0.75D0
