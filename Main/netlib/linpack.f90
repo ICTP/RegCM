@@ -1827,7 +1827,7 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
   integer m
   integer ml
   integer mu
-  real, parameter :: ten = 10.0D+00
+  real(8), parameter :: ten = 10.0D+00
 !
   m = ml + mu + 1
   det(1) = 1.0D+00
@@ -2455,7 +2455,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
   integer k
   integer l
   real(8) t
-  real, parameter :: ten = 10.0D+00
+  real(8), parameter :: ten = 10.0D+00
   real(8) work(n)
 !
 !  Compute the determinant.
@@ -5878,7 +5878,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   integer ks
   integer kstep
   real(8) t
-  real, parameter :: ten = 10.0D+00
+  real(8) , parameter :: ten = 10.0D+00
   real(8) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
@@ -6956,7 +6956,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
   integer kskp1
   integer kstep
   real(8) t
-  real, parameter :: ten = 10.0D+00
+  real(8) , parameter :: ten = 10.0D+00
   real(8) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
@@ -8635,7 +8635,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
   integer k
   real(8) t(ldt,n)
   real(8) temp
-  real, parameter :: ten = 10.0D+00
+  real(8) , parameter :: ten = 10.0D+00
 !
 !  Determinant.
 !

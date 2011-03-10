@@ -614,7 +614,7 @@
           zpbl_io   => spacesurf(:,:,11)
           if (icup == 3) cldefi_io => spacesurf(:,:,12)
           allocate(omega_io(iy,kz,jx),stat=ierr)
-          call check_alloc(ierr,myname,'tbase_io',size(omega_io))
+          call check_alloc(ierr,myname,'omega_io',size(omega_io))
           omega_io = d_zero
           if (icup == 3) then
             allocate(tbase_io(iy,kz,jx),stat=ierr)

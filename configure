@@ -16054,7 +16054,10 @@ if eval "test x$DEBUG = x1"; then
   fi
   if eval "test x"$FC" = xgfortran"; then
     FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
-            -fdump-core -Wall -pedantic $FCFLAGS"
+            -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
+            -Wampersand -Warray-bounds -Wcharacter-truncation \
+            -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
+            -Wunused-parameter -Wno-align-commons $FCFLAGS"
 
   fi
   if eval "test x"$FC" = xifort"; then
@@ -16377,7 +16380,7 @@ CPPFLAGS="$AM_CPPFLAGS"
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile Main/clmlib/Makefile Main/Makefile external/Makefile"
+ac_config_files="$ac_config_files Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile Main/clmlib/Makefile Main/Makefile external/Makefile Tools/Programs/CheckSun/Makefile Tools/Programs/RegCM_read/Makefile Tools/Programs/SAV_read/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -17543,6 +17546,9 @@ do
     "Main/clmlib/Makefile") CONFIG_FILES="$CONFIG_FILES Main/clmlib/Makefile" ;;
     "Main/Makefile") CONFIG_FILES="$CONFIG_FILES Main/Makefile" ;;
     "external/Makefile") CONFIG_FILES="$CONFIG_FILES external/Makefile" ;;
+    "Tools/Programs/CheckSun/Makefile") CONFIG_FILES="$CONFIG_FILES Tools/Programs/CheckSun/Makefile" ;;
+    "Tools/Programs/RegCM_read/Makefile") CONFIG_FILES="$CONFIG_FILES Tools/Programs/RegCM_read/Makefile" ;;
+    "Tools/Programs/SAV_read/Makefile") CONFIG_FILES="$CONFIG_FILES Tools/Programs/SAV_read/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
