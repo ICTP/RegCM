@@ -1,22 +1,16 @@
 
-include ../../Makefile.inc
+include ../../../Makefile.inc
 
-all: readCRU reSAV resetSST
+vpath %.F90 $(REGCM_BASE_DIR)/Config:.
 
-mod_regcm_param.o: ../../Config/mod_regcm_param.F90
-	$(F90) $(CPPFLAGS) $(F90FLAGS) $(USCORING) -c -o $@ $<
+all: reSAV
 
-readCRU: readCRU.f90 mod_regcm_param.o
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-           $(USCORING) -o $@ $< mod_regcm_param.o
+%.o: %.F90
+	  $(MPIF90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) -c $<
 
-reSAV: reSAV.f90 mod_regcm_param.o
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-           $(USCORING) -o $@ $< mod_regcm_param.o
-
-resetSST: resetSST.f90 mod_regcm_param.o
-	$(F90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
-           $(USCORING) -o $@ $< mod_regcm_param.o
+reSAV: reSAV.F90 mod_constants.o mod_dynparam.o
+	$(MPIF90) $(CPPFLAGS) $(SVNDEF) $(F90FLAGS) $(INTELINC) \
+           $(USCORING) -o $@ $< mod_constants.o mod_dynparam.o
 
 clean:
-	rm -f *.o *.mod readCRU reSAV resetSST
+	rm -f *.o *.mod reSAV
