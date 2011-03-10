@@ -1,5 +1,5 @@
 
-include ../../../Makefile.inc
+include ../../../../Makefile.inc
 
 all: toGRADS1 toGRADS2
 

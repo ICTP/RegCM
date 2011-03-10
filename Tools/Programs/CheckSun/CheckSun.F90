@@ -87,7 +87,7 @@ program checksun
   end if
 
   call split_idate(idate0,iyear,imonth,iday,ihour)
-  gmt = ihour
+  gmt = dble(ihour)
   call split_idate(idate1,iyear,imonth,iday,ihour)
 
 ! Open the file
@@ -239,7 +239,7 @@ program checksun
     stop
   end if
 
-  xtime = 0.0
+  xtime = 0.0D0
   idate = idate1
   nt = idatediff(idate2,idate1)/ifrq+1
   julday = idayofyear(idate0)
@@ -285,28 +285,28 @@ program checksun
     real(8) :: eccf , theta , calday , xt24 , tlocap , omega , xxlat , coszrs
     real(8) :: delta , decdeg, lhour , xday
     call split_idate(idate,iyear,imonth,iday,ihour)
-    lhour = ihour
+    lhour = dble(ihour)
     idiff = (idatediff(idate,idate0)/ifrq)-ibase
     xday = dble(idiff)/24.0D0
     calday = dble(julday) + xday + gmt/24.0D0 + xtime/24.0D0
     theta = twopi*calday/dayspy
-    delta = .006918 - .399912*dcos(theta) + .070257*dsin(theta) &
-        & - .006758*dcos(2.*theta) + .000907*dsin(2.*theta)     &
-        & - .002697*dcos(3.*theta) + .001480*dsin(3.*theta)
+    delta = .006918D0 - .399912D0*dcos(theta) + .070257D0*dsin(theta) &
+        & - .006758D0*dcos(2.D0*theta) + .000907D0*dsin(2.D0*theta)     &
+        & - .002697D0*dcos(3.D0*theta) + .001480D0*dsin(3.D0*theta)
     decdeg = delta/degrad
-    eccf = 1.000110 + .034221*dcos(theta) + .001280*dsin(theta) + &
-           0.000719*dcos(2.*theta) + .000077*dsin(2.*theta)
-    xt24 =  dmod(lhour*60.+xtime,1440.D0)
+    eccf = 1.000110D0 + .034221D0*dcos(theta) + .001280D0*dsin(theta) + &
+           0.000719D0*dcos(2.D0*theta) + .000077D0*dsin(2.D0*theta)
+    xt24 =  dmod(lhour*60.D0+xtime,1440.D0)
     do i = 1 , iy
       do j = 1 , jx
-        tlocap = xt24/60. + xlon(i,j)/15.0
+        tlocap = xt24/60.D0 + xlon(i,j)/15.0D0
         tlocap = dmod(tlocap+24.0D0,24.0D0)
-        omega = 15.*(tlocap-12.)*degrad
+        omega = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = xlat(i,j)*degrad
         coszrs = dsin(delta)*dsin(xxlat) + dcos(delta) * &
                  dcos(xxlat)*dcos(omega)
         coszrs = dmax1(0.0D0,coszrs)
-        solin(i,j) = solcon*eccf*coszrs
+        solin(i,j) = real(solcon*eccf*coszrs)
       end do
     end do
     xtime = xtime + dble(ifrq)

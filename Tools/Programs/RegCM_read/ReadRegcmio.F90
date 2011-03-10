@@ -37,11 +37,11 @@ program readregcm
   real(4) , allocatable , dimension(:) :: sigma
   real(8) , allocatable , dimension(:) :: times
   integer , allocatable , dimension(:) :: dimids
-  integer :: ndims , nvars , natts , udimid , totvars
-  integer :: ivarid , idimid , xtype
+  integer :: ndims , nvars , natts , udimid
+  integer :: ivarid , idimid
   integer :: jxdimid , iydimid , kzdimid , itdimid
   integer :: jx , iy , kz, nt , nlat , nlon
-  integer :: i , j
+  integer :: i
   integer , dimension(4) :: istart , icount
 #ifdef IBM
   integer , external :: iargc
@@ -240,7 +240,7 @@ program readregcm
   if (minlon > 0.0 .and. maxlon < 0.0) then
     nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
   else if (minlon > 0.0 .and. maxlon < 1e-30) then
-    nlon = nint(360.0/rloninc) + 1.0
+    nlon = nint(360.0/rloninc) + 1
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
@@ -400,7 +400,7 @@ program readregcm
       print *, 'T2M at timestep 2'
       print *, 'Maximum value                 : ', maxval(var)
       print *, 'Minimum value                 : ', minval(var)
-      print *, 'Mean value                    : ', sum(var)/(jx*iy)
+      print *, 'Mean value                    : ', sum(var)/real(jx*iy)
       deallocate(var)
     end if
 
