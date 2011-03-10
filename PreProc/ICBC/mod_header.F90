@@ -17,65 +17,64 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_header
-      use m_stdio
+module mod_header
+  use m_stdio
 
-      contains
+  contains
 
-      subroutine header(myname)
-      implicit none 
-      character (len=*) , intent(in) :: myname
-      integer :: ihost , idir
-      integer :: hostnm
-      integer :: getcwd
-      character (len=24) :: cdata='?'
-      character (len=32) :: hostname='?' 
-      character (len=32) :: user='?' 
-      character (len=256) :: directory='?'
-      integer , parameter :: nrite=stdout
+  subroutine header(myname)
+  implicit none 
+  character (len=*) , intent(in) :: myname
+  integer :: ihost , idir
+  integer :: hostnm
+  integer :: getcwd
+  character (len=24) :: cdata='?'
+  character (len=32) :: hostname='?' 
+  character (len=32) :: user='?' 
+  character (len=256) :: directory='?'
+  integer , parameter :: nrite=stdout
   
 
-      write (nrite,99002)  myname 
-      write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+  write (nrite,99002)  myname 
+  write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
-        hostname='ibm platform '
-        user= 'Unknown'
-        call fdate_(cdata)
+    hostname='ibm platform '
+    user= 'Unknown'
+    call fdate_(cdata)
 #else
-        ihost = hostnm(hostname)
-        call getlog(user)
-        call fdate(cdata)
+    ihost = hostnm(hostname)
+    call getlog(user)
+    call fdate(cdata)
 #endif 
 
-        idir = getcwd(directory)
+    idir = getcwd(directory)
 
-        write (nrite,*) ": this run start at    : ",cdata
-        write (nrite,*) ": it is submitted by   : ",trim(user)
-        write (nrite,*) ": it is running on     : ",trim(hostname)
-        write (nrite,*) ": in directory         : ",trim(directory)
-        write (nrite,*) "                      " 
-      return 
+    write (nrite,*) ": this run start at    : ",cdata
+    write (nrite,*) ": it is submitted by   : ",trim(user)
+    write (nrite,*) ": it is running on     : ",trim(hostname)
+    write (nrite,*) ": in directory         : ",trim(directory)
+    write (nrite,*) "                      " 
+  return 
 99002 format(/,1x,' This is ',A,' part of the RegCM version 4')
-99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
-        &    '  time: ',A,/)
-      end subroutine header
+99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
+  end subroutine header
 
-      subroutine finaltime(myid)
-        implicit none
-        integer , intent (in) :: myid
-        character (len=24) :: cdata='?'
+  subroutine finaltime(myid)
+    implicit none
+    integer , intent (in) :: myid
+    character (len=24) :: cdata='?'
 
-        if ( myid.eq. 0 ) then
+    if ( myid ==  0 ) then
 #ifdef IBM
-          call fdate_(cdata)
+      call fdate_(cdata)
 #else
-          call fdate(cdata)
+      call fdate(cdata)
 #endif 
-          write ( stdout,* ) 'Input ready at : ', cdata
-        end if
+      write ( stdout,* ) 'Input ready at : ', cdata
+    end if
 
-        return
-      end subroutine finaltime
+    return
+  end subroutine finaltime
 
-      end module mod_header
+end module mod_header

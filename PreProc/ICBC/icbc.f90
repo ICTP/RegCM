@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 
-      program icbc
+program icbc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                      !
@@ -93,177 +93,175 @@
 !   have just provided EMOSLIB library for LINUX PGI5 and IBM AIX.     !
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      use mod_dynparam
-      use mod_mksst
-      use mod_date
-      use mod_grid
-      use mod_date
-      use mod_ecwcp
-      use mod_eh5om
-      use mod_ein
-      use mod_era40
-      use mod_erahi
-      use mod_fvgcm
-      use mod_gfs11
-      use mod_ncep
-      use mod_nest
-      use mod_write
-      use mod_header
-      use m_stdio
-      use m_die
-      use m_mall
-      use m_zeit
+  use mod_dynparam
+  use mod_mksst
+  use mod_date
+  use mod_grid
+  use mod_date
+  use mod_ecwcp
+  use mod_eh5om
+  use mod_ein
+  use mod_era40
+  use mod_erahi
+  use mod_fvgcm
+  use mod_gfs11
+  use mod_ncep
+  use mod_nest
+  use mod_write
+  use mod_header
+  use m_stdio
+  use m_die
+  use m_mall
+  use m_zeit
 
-      implicit none
+  implicit none
 !
 ! Local variables
 !
-      integer :: idate , iday , imon , iyr , ihr , nnn , iodate
-      integer :: nsteps
-      integer :: ierr
-      character(256) :: namelistfile, prgname
+  integer :: idate , iday , imon , iyr , ihr , nnn , iodate
+  integer :: nsteps
+  integer :: ierr
+  character(256) :: namelistfile, prgname
 !
-      call header('icbc')
+  call header('icbc')
 !
 !
 !     Read input global namelist
 !
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
-       &   dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
-        call init_globwindow(lat0,lon0,lat1,lon1)
-      end if
+  call getarg(0, prgname)
+  call getarg(1, namelistfile)
+  call initparam(namelistfile, ierr)
+  if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.   &
+       dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
+    call init_globwindow(lat0,lon0,lat1,lon1)
+  end if
 
-      if ( ierr/=0 ) then
-        write ( stderr, * ) 'Parameter initialization not completed'
-        write ( stderr, * ) 'Usage : '
-        write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
-        write ( stderr, * ) ' '
-        write ( stderr, * ) 'Check argument and namelist syntax'
-        call die('icbc','Check argument and namelist syntax',1)
-      end if
+  if ( ierr/=0 ) then
+    write ( stderr, * ) 'Parameter initialization not completed'
+    write ( stderr, * ) 'Usage : '
+    write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
+    write ( stderr, * ) ' '
+    write ( stderr, * ) 'Check argument and namelist syntax'
+    call die('icbc','Check argument and namelist syntax',1)
+  end if
 !
-      if (debug_level > 2) then
-        call mall_set()
-        call zeit_ci('icbc')
-      end if
+  if (debug_level > 2) then
+    call mall_set()
+    call zeit_ci('icbc')
+  end if
 
-      call init_grid(iy,jx,kz)
-      call init_output
+  call init_grid(iy,jx,kz)
+  call init_output
 
-      nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
+  nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 
-      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
-      write (stdout,*) 'NSTEPS     : ' , nsteps
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  write (stdout,*) 'NSTEPS     : ' , nsteps
  
-      idate = globidate1
-      iodate = idate
+  idate = globidate1
+  iodate = idate
 
-      if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
-         & then
-        call headernc
-      else if ( dattyp=='ECMWF' ) then
-        call headerec
-      else if ( dattyp=='ERA40' ) then
-        call headerera
-      else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
-        call headerein(15)
-      else if ( dattyp=='EIN75' ) then
-        call headerein(75)
-      else if ( dattyp=='EIN25' ) then
-        call headerein(25)
-      else if ( dattyp=='GFS11' ) then
-        call headergfs
-      else if ( dattyp=='ERAHI' ) then
-        call headerehi
-      else if ( dattyp=='EH5OM' ) then
-        call headermpi(ehso4)
-      else if ( dattyp=='FVGCM' ) then
-        call headerfv
-      else if ( dattyp=='FNEST' ) then
-        call headernest
-      else
-        call die('icbc','Unknown dattyp',1)
-      end if
+  if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' ) then
+    call headernc
+  else if ( dattyp=='ECMWF' ) then
+    call headerec
+  else if ( dattyp=='ERA40' ) then
+    call headerera
+  else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
+    call headerein(15)
+  else if ( dattyp=='EIN75' ) then
+    call headerein(75)
+  else if ( dattyp=='EIN25' ) then
+    call headerein(25)
+  else if ( dattyp=='GFS11' ) then
+    call headergfs
+  else if ( dattyp=='ERAHI' ) then
+    call headerehi
+  else if ( dattyp=='EH5OM' ) then
+    call headermpi(ehso4)
+  else if ( dattyp=='FVGCM' ) then
+    call headerfv
+  else if ( dattyp=='FNEST' ) then
+    call headernest
+  else
+    call die('icbc','Unknown dattyp',1)
+  end if
  
+  call newfile(idate)
+
+  do nnn = 1 , nsteps
+
+    call split_idate(idate, iyr, imon, iday, ihr)
+
+    if (.not. lsame_month(idate, iodate) ) then
       call newfile(idate)
+    end if
 
-      do nnn = 1 , nsteps
+    if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
+      call getncep(idate,1)
+    else if ( dattyp=='NRP2W' ) then
+      call getncep(idate,2)
+    else if ( dattyp=='ECMWF' ) then
+      call getecwcp(idate)
+    else if ( dattyp=='ERA40' ) then
+      call getera40(idate)
+    else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
+              dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+      call getein(idate)
+    else if ( dattyp=='GFS11' ) then
+      call getgfs11(idate)
+    else if ( dattyp=='ERAHI' ) then
+      call geterahi(idate)
+    else if ( dattyp=='EH5OM' ) then
+      call geteh5om(idate)
+    else if ( dattyp=='FVGCM' ) then
+      call getfvgcm(idate)
+    else if ( dattyp=='FNEST' ) then
+      call get_nest(idate)
+    end if
+    call writef(idate)
 
-        call split_idate(idate, iyr, imon, iday, ihr)
+    iodate = idate
+    call addhours(idate, ibdyfrq)
 
-        if (.not. lsame_month(idate, iodate) ) then
-          call newfile(idate)
-        end if
+  end do
 
-        if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
-          call getncep(idate,1)
-        else if ( dattyp=='NRP2W' ) then
-          call getncep(idate,2)
-        else if ( dattyp=='ECMWF' ) then
-          call getecwcp(idate)
-        else if ( dattyp=='ERA40' ) then
-          call getera40(idate)
-        else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
-                  dattyp=='EIN75' .or. dattyp=='EIN25' ) then
-          call getein(idate)
-        else if ( dattyp=='GFS11' ) then
-          call getgfs11(idate)
-        else if ( dattyp=='ERAHI' ) then
-          call geterahi(idate)
-        else if ( dattyp=='EH5OM' ) then
-          call geteh5om(idate)
-        else if ( dattyp=='FVGCM' ) then
-          call getfvgcm(idate)
-        else if ( dattyp=='FNEST' ) then
-          call get_nest(idate)
-        end if
-        call writef(idate)
-
-        iodate = idate
-        call addhours(idate, ibdyfrq)
-
-      end do
-
-      if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' )  &
-         & then
-        call footernc
-      else if ( dattyp=='ECMWF' ) then
-        call footerec
-      else if ( dattyp=='ERA40' ) then
-        call footerera
-      else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
-                dattyp=='EIN75' .or. dattyp=='EIN25' ) then
-        call footerein
-      else if ( dattyp=='GFS11' ) then
-        call footergfs
-      else if ( dattyp=='ERAHI' ) then
-        call footerehi
-      else if ( dattyp=='EH5OM' ) then
-        call footermpi(ehso4)
-      else if ( dattyp=='FVGCM' ) then
-        call footerfv
-      else if ( dattyp=='FNEST' ) then
-        call footernest
-      else
-        call die('icbc','Unknown dattyp',1)
-      end if
+  if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' ) then
+    call footernc
+  else if ( dattyp=='ECMWF' ) then
+    call footerec
+  else if ( dattyp=='ERA40' ) then
+    call footerera
+  else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
+            dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+    call footerein
+  else if ( dattyp=='GFS11' ) then
+    call footergfs
+  else if ( dattyp=='ERAHI' ) then
+    call footerehi
+  else if ( dattyp=='EH5OM' ) then
+    call footermpi(ehso4)
+  else if ( dattyp=='FVGCM' ) then
+    call footerfv
+  else if ( dattyp=='FNEST' ) then
+    call footernest
+  else
+    call die('icbc','Unknown dattyp',1)
+  end if
  
-      call free_output
-      call free_grid
-      call closesst
+  call free_output
+  call free_grid
+  call closesst
  
-      if (debug_level > 2) then
-        call mall_flush(stdout)
-        call mall_set(.false.)
-        call zeit_co('icbc')
-        call zeit_flush(stdout)
-      end if
+  if (debug_level > 2) then
+    call mall_flush(stdout)
+    call mall_set(.false.)
+    call zeit_co('icbc')
+    call zeit_flush(stdout)
+  end if
 
-      call finaltime(0)
-      write(stdout,*) 'Successfully completed ICBC'
+  call finaltime(0)
+  write(stdout,*) 'Successfully completed ICBC'
 
-      end program icbc
+end program icbc

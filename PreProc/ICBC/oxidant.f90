@@ -17,81 +17,81 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      program oxidant
+program oxidant
 
-      use mod_dynparam
-      use mod_date
-      use mod_grid
-      use mod_wrtoxd
-      use mod_header
-      use mod_oxidant
-      use m_stdio
-      use m_die
-      use m_mall
-      use m_zeit
+  use mod_dynparam
+  use mod_date
+  use mod_grid
+  use mod_wrtoxd
+  use mod_header
+  use mod_oxidant
+  use m_stdio
+  use m_die
+  use m_mall
+  use m_zeit
 !
-      implicit none
+  implicit none
 !
-      integer :: idate , iodate
-      integer :: nnn , nsteps
-      integer :: ierr
-      character(256) :: namelistfile , prgname
+  integer :: idate , iodate
+  integer :: nnn , nsteps
+  integer :: ierr
+  character(256) :: namelistfile , prgname
 !
-      call header('oxidant')
+  call header('oxidant')
 !
 !     Read input global namelist
 !
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
-        write (stderr,*) 'Parameter initialization not completed'
-        write (stderr,*) 'Usage : '
-        write (stderr,*) '          ', trim(prgname), ' regcm.in'
-        write (stderr,*) ' '
-        call die('oxidant','Check argument and namelist syntax.',1)
-      end if
+  call getarg(0, prgname)
+  call getarg(1, namelistfile)
+  call initparam(namelistfile, ierr)
+  if ( ierr/=0 ) then
+    write (stderr,*) 'Parameter initialization not completed'
+    write (stderr,*) 'Usage : '
+    write (stderr,*) '          ', trim(prgname), ' regcm.in'
+    write (stderr,*) ' '
+    call die('oxidant','Check argument and namelist syntax.',1)
+  end if
 !
-      if (debug_level > 2) then
-        call mall_set()
-        call zeit_ci('oxidant')
-      end if
+  if (debug_level > 2) then
+    call mall_set()
+    call zeit_ci('oxidant')
+  end if
 !
-      call init_grid(iy,jx,kz)
-      call init_outoxd
+  call init_grid(iy,jx,kz)
+  call init_outoxd
 !
-      nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
+  nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
 !
-      write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-      write (stdout,*) 'GLOBIDATE2 : ' , globidate2
-      write (stdout,*) 'NSTEPS     : ' , nsteps
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  write (stdout,*) 'NSTEPS     : ' , nsteps
 
-      idate = globidate1
-      iodate = idate
+  idate = globidate1
+  iodate = idate
+  call newfile(idate)
+
+  call headermozart
+
+  do nnn = 1 , nsteps
+    if (.not. lsame_month(idate, iodate) ) then
+      call getmozart(idate)
       call newfile(idate)
+    end if
+    call getmozart(idate)
+    iodate = idate
+    call addhours(idate, ibdyfrq)
+  end do
 
-      call headermozart
+  call free_grid
+  call free_outoxd
+  call freemozart
 
-      do nnn = 1 , nsteps
-        if (.not. lsame_month(idate, iodate) ) then
-          call getmozart(idate)
-          call newfile(idate)
-        end if
-        call getmozart(idate)
-        iodate = idate
-        call addhours(idate, ibdyfrq)
-      end do
+  if (debug_level > 2) then
+    call mall_flush(stdout)
+    call mall_set(.false.)
+    call zeit_co('oxidant')
+    call zeit_flush(stdout)
+  end if
+  write (stdout,*) 'Oxidant file successfully created'
 
-      call free_grid
-      call free_outoxd
-      call freemozart
-
-      if (debug_level > 2) then
-        call mall_flush(stdout)
-        call mall_set(.false.)
-        call zeit_co('oxidant')
-        call zeit_flush(stdout)
-      end if
-      write (stdout,*) 'Oxidant file successfully created'
-
-      end program oxidant
+end program oxidant
