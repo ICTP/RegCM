@@ -28,19 +28,19 @@ module mod_header
   integer :: ihost , idir
   integer :: hostnm
   integer :: getcwd
-  character (len=24) :: cdata='?'
-  character (len=32) :: hostname='?' 
-  character (len=32) :: user='?' 
-  character (len=256) :: directory='?'
-  integer , parameter :: nrite=stdout
+  character (len=24) :: cdata = '?'
+  character (len=32) :: hostname = '?' 
+  character (len=32) :: user = '?' 
+  character (len=256) :: directory = '?'
+  integer , parameter :: nrite = stdout
   
 
   write (nrite,99002)  myname 
   write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
 
 #ifdef IBM
-    hostname='ibm platform '
-    user= 'Unknown'
+    hostname = 'ibm platform '
+    user = 'Unknown'
     call fdate_(cdata)
 #else
     ihost = hostnm(hostname)
@@ -63,7 +63,7 @@ module mod_header
   subroutine finaltime(myid)
     implicit none
     integer , intent (in) :: myid
-    character (len=24) :: cdata='?'
+    character (len=24) :: cdata = '?'
 
     if ( myid ==  0 ) then
 #ifdef IBM

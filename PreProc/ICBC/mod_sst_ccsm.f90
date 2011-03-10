@@ -100,16 +100,18 @@ module mod_sst_ccsm
 
     call split_idate(idate, nyear, nmo, nday, nho)
  
-    inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
+    inpfile=trim(inpglob)//'/SST/ccsm_mn.sst.nc'
 
     call ccsm_sst(idate,idateo,ilon,jlat,sst,inpfile)
     call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
-    write (stdout,*) 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)+273.
+    write (stdout,*) 'XLON,XLAT,SST = ' , &
+                  xlon(1,1) , xlat(1,1) , sstmm(1,1)+273.
  
     do j = 1 , jx
       do i = 1 , iy
-        if ( sstmm(i,j)<-5000 .and. (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
+        if ( sstmm(i,j) < -5000 .and. &
+             (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
           do iv = 1 , 20
             lund(iv) = 0
           end do
@@ -124,8 +126,8 @@ module mod_sst_ccsm
           ludom = 18
           lumax = 0
           do iv = 1 , 20
-            if ( iv<=13 .or. iv>=16 ) then
-              if ( lund(iv)>lumax ) then
+            if ( iv <= 13 .or. iv >= 16 ) then
+              if ( lund(iv) > lumax ) then
                 ludom = k
                 lumax = lund(iv)
               end if
@@ -134,7 +136,7 @@ module mod_sst_ccsm
           lu(i,j) = float(ludom)
           write (stdout,*) ludom , sstmm(i,j)
         end if
-        if ( sstmm(i,j)>-100. ) then
+        if ( sstmm(i,j) > -100. ) then
           sstmm(i,j) = sstmm(i,j) + 273.15
         else
           sstmm(i,j) = -9999.
@@ -197,7 +199,7 @@ module mod_sst_ccsm
        call die('ccsm_sst',trim(pathaddname)//' is not available',1)
      endif
      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-     if ( istatus/=nf90_noerr ) then
+     if ( istatus /= nf90_noerr ) then
        call die('ccsm_sst','Error opening '//trim(pathaddname),1, &
                 nf90_strerror(istatus),istatus)
      end if
@@ -206,34 +208,34 @@ module mod_sst_ccsm
   endif  
 !     GET DIMENSION IDs
   istatus = nf90_inq_dimid(inet1,'lat',latid)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_dimid(inet1,'lon',lonid)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_dimid(inet1,'time',timid)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
              nf90_strerror(istatus),istatus)
   end if
 
 !     GET DIMENSION LENGTHS
   istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
              nf90_strerror(istatus),istatus)
   end if
@@ -244,26 +246,26 @@ module mod_sst_ccsm
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
   if(latlen /= jlat .or. lonlen /= ilon) then
     write (stderr,*) 'DIMENSIONS DO NOT MATCH'
-    write (stderr,*) 'No. of LON in SST file =',lonlen
-    write (stderr,*) 'No. of LON in 1x1 degree gloabl grid =',ilon
-    write (stderr,*) 'No. of LAT in SST file =',latlen
-    write (stderr,*) 'No. of LON in 1x1 degree gloabl grid =',jlat
+    write (stderr,*) 'No. of LON in SST file=',lonlen
+    write (stderr,*) 'No. of LON in 1x1 degree gloabl grid = ',ilon
+    write (stderr,*) 'No. of LAT in SST file=',latlen
+    write (stderr,*) 'No. of LON in 1x1 degree gloabl grid = ',jlat
     call die('ccsm_sst')
   endif
 !     GET VARIABLE IDs
   istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
              varname(1),1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
              varname(2),1,nf90_strerror(istatus),istatus)
   end if
 !     GET MISSING DATA VALUE
   istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',imisng)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
        varname(2)//':_FillValue',1,nf90_strerror(istatus),istatus)
   end if
@@ -271,7 +273,7 @@ module mod_sst_ccsm
   istartt(1) = 1
   icountt(1) = timlen
   istatus = nf90_get_var(inet1,ivar2(1),work1,istartt,icountt)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
         varname(1)//' read',1,nf90_strerror(istatus),istatus)
   end if
@@ -287,7 +289,7 @@ module mod_sst_ccsm
   i = 1
   do
     if (work1(i) == npos) then
-      nrec=i
+      nrec = i
       exit
     end if
     i = i + 1
@@ -302,7 +304,7 @@ module mod_sst_ccsm
   istart(3) = 1
   istart(3) = it
   istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
         varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if

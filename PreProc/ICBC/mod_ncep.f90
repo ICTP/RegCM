@@ -174,41 +174,41 @@ module mod_ncep
   month = idate/10000 - nyear*100
   nday = idate/100 - nyear*10000 - month*100
   nhour = idate - nyear*1000000 - month*10000 - nday*100
-!fix  do kkrec=1,7
+!fix  do kkrec = 1,7
   nlev = 0
   do kkrec = 1 , 5
-    if ( dattyp=='NNRP1' ) then
-      if ( kkrec==1 .or. kkrec==2 .or. kkrec==4 .or. kkrec==5 ) nlev = klev
-      if ( kkrec==6 ) nlev = 12
-      if ( kkrec==3 ) nlev = 8
-      if ( kkrec==7 ) nlev = 0
-    else if ( dattyp=='NNRP2' ) then
-      if ( kkrec<=6 ) nlev = klev
-      if ( kkrec==7 ) nlev = 0
+    if ( dattyp == 'NNRP1' ) then
+      if ( kkrec == 1 .or. kkrec == 2 .or. kkrec == 4 .or. kkrec == 5 ) nlev = klev
+      if ( kkrec == 6 ) nlev = 12
+      if ( kkrec == 3 ) nlev = 8
+      if ( kkrec == 7 ) nlev = 0
+    else if ( dattyp == 'NNRP2' ) then
+      if ( kkrec <= 6 ) nlev = klev
+      if ( kkrec == 7 ) nlev = 0
     else
     end if
-    if ( idate==idate0 .or.                                         &
-         (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100)) then
-      if ( kkrec==1 ) then
+    if ( idate == idate0 .or.                                         &
+         (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100)) then
+      if ( kkrec == 1 ) then
         write (inname,99001) nyear , 'air.' , nyear
-      else if ( kkrec==2 ) then
+      else if ( kkrec == 2 ) then
         write (inname,99001) nyear , 'hgt.' , nyear
-      else if ( kkrec==3 ) then
+      else if ( kkrec == 3 ) then
         write (inname,99002) nyear , 'rhum.' , nyear
-      else if ( kkrec==4 ) then
+      else if ( kkrec == 4 ) then
         write (inname,99002) nyear , 'uwnd.' , nyear
-      else if ( kkrec==5 ) then
+      else if ( kkrec == 5 ) then
         write (inname,99002) nyear , 'vwnd.' , nyear
-      else if ( kkrec==6 ) then
+      else if ( kkrec == 6 ) then
         write (inname,99003) nyear , 'omega.' , nyear
-      else if ( kkrec==7 ) then
+      else if ( kkrec == 7 ) then
         write (inname,99004) nyear , 'pres.sfc.' , nyear
       else
       end if
  
-      if ( dattyp=='NNRP1' ) then
+      if ( dattyp == 'NNRP1' ) then
         pathaddname = trim(inpglob)//'/NNRP1/'//inname
-      else if ( dattyp=='NNRP2' ) then
+      else if ( dattyp == 'NNRP2' ) then
         pathaddname = trim(inpglob)//'/NNRP2/'//inname
       else
       end if
@@ -233,20 +233,20 @@ module mod_ncep
     end if
  
     it = (nday-1)*4 + nhour/6 + 1
-    if ( month==2 ) it = it + 31*4
-    if ( month==3 ) it = it + 59*4
-    if ( month==4 ) it = it + 90*4
-    if ( month==5 ) it = it + 120*4
-    if ( month==6 ) it = it + 151*4
-    if ( month==7 ) it = it + 181*4
-    if ( month==8 ) it = it + 212*4
-    if ( month==9 ) it = it + 243*4
-    if ( month==10 ) it = it + 273*4
-    if ( month==11 ) it = it + 304*4
-    if ( month==12 ) it = it + 334*4
-    if ( mod(nyear,4)==0 .and. month>2 ) it = it + 4
-    if ( mod(nyear,100)==0 .and. month>2 ) it = it - 4
-    if ( mod(nyear,400)==0 .and. month>2 ) it = it + 4
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
+    if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 4
+    if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 4
+    if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -258,13 +258,13 @@ module mod_ncep
     icount(1) = ilon
     icount(2) = jlat
     icount(4) = 1460
-    if ( mod(nyear,4)==0 ) icount(4) = 1464
-    if ( mod(nyear,100)==0 ) icount(4) = 1460
-    if ( mod(nyear,400)==0 ) icount(4) = 1464
+    if ( mod(nyear,4) == 0 ) icount(4) = 1464
+    if ( mod(nyear,100) == 0 ) icount(4) = 1460
+    if ( mod(nyear,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)
-    if ( nlev>0 ) then
+    if ( nlev > 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
       call check_ok(istatus,'Variable '//varname(kkrec)// &
@@ -272,38 +272,38 @@ module mod_ncep
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
       do ilev = 1 , nlev
-        if ( kkrec==1 ) then
+        if ( kkrec == 1 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               tvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))*xscale+xadd)
             end do
           end do
-        else if ( kkrec==2 ) then
+        else if ( kkrec == 2 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               hvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))*xscale+xadd)
             end do
           end do
-        else if ( kkrec==3 ) then
+        else if ( kkrec == 3 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               rhvar(i,jlat+1-j,14-ilev) = real(dmin1((dble(work(i,j,ilev))* &
                             xscale+xadd)*0.01D0,1.D0))
             end do
           end do
-        else if ( kkrec==4 ) then
+        else if ( kkrec == 4 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               uvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))*xscale+xadd)
             end do
           end do
-        else if ( kkrec==5 ) then
+        else if ( kkrec == 5 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               vvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))*xscale+xadd)
             end do
           end do
-        else if ( kkrec==6 ) then
+        else if ( kkrec == 6 ) then
           do j = 1 , jlat
             do i = 1 , ilon
               wvar(i,jlat+1-j,14-ilev) = real(dble(work(i,j,ilev))*xscale+xadd)
@@ -312,12 +312,12 @@ module mod_ncep
         else
         end if
       end do
-    else if ( nlev==0 ) then
+    else if ( nlev == 0 ) then
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
       call check_ok(istatus,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
-      if ( kkrec==7 ) then
+      if ( kkrec == 7 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             psvar(i,jlat+1-j) = real(dble(work(i,j,1))*xscale + xadd)
@@ -326,7 +326,7 @@ module mod_ncep
       end if
     else
     end if
-    if ( dattyp=='NNRP1' ) then
+    if ( dattyp == 'NNRP1' ) then
 !         It's a pity that we have to nudge the values by the following
 !         way
       do k = 5 , 1 , -1
@@ -389,13 +389,13 @@ module mod_ncep
   xadd = 0.0D0
   xscale = 1.0D0
 
-  if ( idate==idate0 ) then
+  if ( idate == idate0 ) then
     i0 = idnint(lon0/2.5D0) + 1
-    if ( i0<=0 ) i0 = i0 + ilon
-    if ( i0>ilon ) i0 = i0 - ilon
+    if ( i0 <= 0 ) i0 = i0 + ilon
+    if ( i0 > ilon ) i0 = i0 - ilon
     i1 = idnint(lon1/2.5D0) + 1
-    if ( i1<=0 ) i1 = i1 + ilon
-    if ( i1>ilon ) i1 = i1 - ilon
+    if ( i1 <= 0 ) i1 = i1 + ilon
+    if ( i1 > ilon ) i1 = i1 - ilon
     j0 = idnint(lat0/2.5D0) + 36
     j1 = idnint(lat1/2.5D0) + 1
 
@@ -411,23 +411,23 @@ module mod_ncep
 !
   nlev = 0
   do kkrec = 1 , 5
-    if ( kkrec<=6 ) nlev = klev
-    if ( kkrec==7 ) nlev = 0
-    if ( idate==idate0 .or.                                         &
-         (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100)) then
-      if ( kkrec==1 ) then
+    if ( kkrec <= 6 ) nlev = klev
+    if ( kkrec == 7 ) nlev = 0
+    if ( idate == idate0 .or.                                         &
+         (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100)) then
+      if ( kkrec == 1 ) then
         write (inname,99001) nyear , 'air.WIN.' , nyear
-      else if ( kkrec==2 ) then
+      else if ( kkrec == 2 ) then
         write (inname,99001) nyear , 'hgt.WIN.' , nyear
-      else if ( kkrec==3 ) then
+      else if ( kkrec == 3 ) then
         write (inname,99002) nyear , 'rhum.WIN.' , nyear
-      else if ( kkrec==4 ) then
+      else if ( kkrec == 4 ) then
         write (inname,99002) nyear , 'uwnd.WIN.' , nyear
-      else if ( kkrec==5 ) then
+      else if ( kkrec == 5 ) then
         write (inname,99002) nyear , 'vwnd.WIN.' , nyear
-      else if ( kkrec==6 ) then
+      else if ( kkrec == 6 ) then
         write (inname,99003) nyear , 'omega.WIN.' , nyear
-      else if ( kkrec==7 ) then
+      else if ( kkrec == 7 ) then
         write (inname,99004) nyear , 'pres.sfc.WIN.' , nyear
       else
       end if
@@ -454,20 +454,20 @@ module mod_ncep
     end if
  
     it = (nday-1)*4 + nhour/6 + 1
-    if ( month==2 ) it = it + 31*4
-    if ( month==3 ) it = it + 59*4
-    if ( month==4 ) it = it + 90*4
-    if ( month==5 ) it = it + 120*4
-    if ( month==6 ) it = it + 151*4
-    if ( month==7 ) it = it + 181*4
-    if ( month==8 ) it = it + 212*4
-    if ( month==9 ) it = it + 243*4
-    if ( month==10 ) it = it + 273*4
-    if ( month==11 ) it = it + 304*4
-    if ( month==12 ) it = it + 334*4
-    if ( mod(nyear,4)==0 .and. month>2 ) it = it + 4
-    if ( mod(nyear,100)==0 .and. month>2 ) it = it - 4
-    if ( mod(nyear,400)==0 .and. month>2 ) it = it + 4
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
+    if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 4
+    if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 4
+    if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -479,13 +479,13 @@ module mod_ncep
     icount(1) = iii
     icount(2) = jjj
     icount(4) = 1460
-    if ( mod(nyear,4)==0 ) icount(4) = 1464
-    if ( mod(nyear,100)==0 ) icount(4) = 1460
-    if ( mod(nyear,400)==0 ) icount(4) = 1464
+    if ( mod(nyear,4) == 0 ) icount(4) = 1464
+    if ( mod(nyear,100) == 0 ) icount(4) = 1460
+    if ( mod(nyear,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)
-    if ( nlev>0 ) then
+    if ( nlev > 0 ) then
       icount(3) = nlev + 1
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
       call check_ok(istatus,'Variable '//varname(kkrec)// &
@@ -493,10 +493,10 @@ module mod_ncep
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
       do ilev = 1 , nlev
-        if ( kkrec==1 ) then
+        if ( kkrec == 1 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 tvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))*xscale + xadd)
@@ -513,10 +513,10 @@ module mod_ncep
             end if
           end do
  
-        else if ( kkrec==2 ) then
+        else if ( kkrec == 2 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 hvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))*xscale + xadd)
@@ -532,10 +532,10 @@ module mod_ncep
               end do
             end if
           end do
-        else if ( kkrec==3 ) then
+        else if ( kkrec == 3 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 rhvar(ii,jj,ilev) = real(dmin1((dble(work(i,j,ilev+1))*xscale+ &
@@ -554,10 +554,10 @@ module mod_ncep
               end do
             end if
           end do
-        else if ( kkrec==4 ) then
+        else if ( kkrec == 4 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 uvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))*xscale + xadd)
@@ -573,10 +573,10 @@ module mod_ncep
               end do
             end if
           end do
-        else if ( kkrec==5 ) then
+        else if ( kkrec == 5 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 vvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))*xscale + xadd)
@@ -592,10 +592,10 @@ module mod_ncep
               end do
             end if
           end do
-        else if ( kkrec==6 ) then
+        else if ( kkrec == 6 ) then
           do j = 1 , jjj
             jj = j0 + j
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 wvar(ii,jj,ilev) = real(dble(work(i,j,ilev+1))*xscale + xadd)
@@ -613,15 +613,15 @@ module mod_ncep
           end do
         end if
       end do
-    else if ( nlev==0 ) then
+    else if ( nlev == 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
       call check_ok(istatus,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
-      if ( kkrec==7 ) then
+      if ( kkrec == 7 ) then
         do j = 1 , jjj
           jj = j0 + j
-          if ( i0>i1 ) then
+          if ( i0 > i1 ) then
             do ii = i0 , ilon
               i = ii - i0 + 1
               psvar(ii,jj) = real(dble(work(i,j,1))*xscale + xadd)

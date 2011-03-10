@@ -110,31 +110,31 @@ module mod_hgt
     do i = 1 , im
       psfc = ps(i,j)
       kbc = 1
-      if ( psfc>-9995.0 ) then
+      if ( psfc > -9995.0 ) then
         do k = 1 , km
           sig(k) = p3d(i,j,k)/ps(i,j)
-          if ( sig(k)<bltop ) kbc = k
+          if ( sig(k) < bltop ) kbc = k
           psig(k) = p3d(i,j,k)
         end do
         do n = 1 , kp
           kt = 1
           do k = 1 , km
-            if ( psig(k)<p(n) ) kt = k
+            if ( psig(k) < p(n) ) kt = k
           end do
           kb = kt + 1
-          if ( p(n)<=psig(1) ) then
+          if ( p(n) <= psig(1) ) then
             temp = t(i,j,1)
             hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
-          else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
+          else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
             wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
             wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
             temp = wt*t(i,j,kt) + wb*t(i,j,kb)
             temp = (temp+t(i,j,kb))/2.
             hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
-          else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
+          else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
             temp = t(i,j,km)
             hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
-          else if ( p(n)>psfc ) then
+          else if ( p(n) > psfc ) then
             temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j)+ &
                     (temp/slrate)*(1.-exp(+srovg*slrate*log(p(n)/psfc)))
@@ -192,7 +192,7 @@ module mod_hgt
   pt = real(ptop)
   kbc = 1
   do k = 1 , km
-    if ( sig(k)<bltop ) kbc = k
+    if ( sig(k) < bltop ) kbc = k
   end do
 !     PRINT *,'FIRST SIGMA LEVEL ABOVE BNDY LAYER:', SIG(KBC)
 !
@@ -205,22 +205,22 @@ module mod_hgt
       do n = 1 , kp
         kt = 1
         do k = 1 , km
-          if ( psig(k)<p(n) ) kt = k
+          if ( psig(k) < p(n) ) kt = k
         end do
         kb = kt + 1
-        if ( p(n)<=psig(1) ) then
+        if ( p(n) <= psig(1) ) then
           temp = t(i,j,1)
           hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
-        else if ( (p(n)>psig(1)) .and. (p(n)<psig(km)) ) then
+        else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
           wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
           wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
           temp = wt*t(i,j,kt) + wb*t(i,j,kb)
           temp = (temp+t(i,j,kb))/2.
           hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
-        else if ( (p(n)>=psig(km)) .and. (p(n)<=psfc) ) then
+        else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
           temp = t(i,j,km)
           hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
-        else if ( p(n)>psfc ) then
+        else if ( p(n) > psfc ) then
           temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
           hp(i,j,n) = ht(i,j) + &
                 (temp/slrate)*(1.-exp(+srovg*slrate*log(p(n)/psfc)))
@@ -248,7 +248,7 @@ module mod_hgt
 !
   do j = 1 , jm
     do i = 1 , im
-      if ( ps(i,j)>-9995.0 ) then
+      if ( ps(i,j) > -9995.0 ) then
         h(i,j,km) = ht(i,j) + srovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
       else
         h(i,j,km) = -9999.0
@@ -258,7 +258,7 @@ module mod_hgt
   do k = km - 1 , 1 , -1
     do j = 1 , jm
       do i = 1 , im
-        if ( h(i,j,k+1)>-9995.0 ) then
+        if ( h(i,j,k+1) > -9995.0 ) then
           tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
           h(i,j,k) = h(i,j,k+1)+srovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
         else

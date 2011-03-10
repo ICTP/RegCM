@@ -100,13 +100,13 @@ module mod_interp
       q = yind - jq
  
       lon360 = lono(i,j)
-      if ( lono(i,j)<0. ) lon360 = lono(i,j) + 360.
+      if ( lono(i,j) < 0. ) lon360 = lono(i,j) + 360.
       xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))*float(nloni-1))+1.
-      if ( xind<1.0 .and. lg ) then
+      if ( xind < 1.0 .and. lg ) then
         ip = nloni
         ipp1 = 1
         p = xind
-      else if ( (xind-nloni)>0.0 .and. lg ) then
+      else if ( (xind-nloni) > 0.0 .and. lg ) then
         ip = nloni
         ipp1 = 1
         p = xind - nloni
@@ -120,23 +120,23 @@ module mod_interp
       do l = 1 , nflds
         xsum = 0.0
         bas = 0.0
-        if ( fin(ip,jq,l)<-9990.0 .and. fin(ipp1,jq,l)<-9990.0 .and. &
-             fin(ipp1,jqp1,l)<-9990.0 .and. fin(ip,jqp1,l)<-9990.0 ) then
+        if ( fin(ip,jq,l) < -9990.0 .and. fin(ipp1,jq,l) < -9990.0 .and. &
+             fin(ipp1,jqp1,l) < -9990.0 .and. fin(ip,jqp1,l) < -9990.0 ) then
           fout(i,j,l) = -9999.
         else
-          if ( fin(ip,jq,l)>-9990.0 ) then
+          if ( fin(ip,jq,l) > -9990.0 ) then
             xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
             bas = bas + (1.-q)*(1.-p)
           end if
-          if ( fin(ipp1,jq,l)>-9990.0 ) then
+          if ( fin(ipp1,jq,l) > -9990.0 ) then
             xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
             bas = bas + (1.-q)*p
           end if
-          if ( fin(ipp1,jqp1,l)>-9990.0 ) then
+          if ( fin(ipp1,jqp1,l) > -9990.0 ) then
             xsum = xsum + q*p*fin(ipp1,jqp1,l)
             bas = bas + q*p
           end if
-          if ( fin(ip,jqp1,l)>-9990.0 ) then
+          if ( fin(ip,jqp1,l) > -9990.0 ) then
             xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
             bas = bas + q*(1.-p)
           end if
@@ -201,19 +201,21 @@ module mod_interp
  
       i1 = 1000
       do ii = 1 , nlon - 1
-        if ( alon(i,j)>=hlon(ii) .and. alon(i,j)<hlon(ii+1) ) then
+        if ( alon(i,j) >= hlon(ii) .and. alon(i,j) < hlon(ii+1) ) then
           p1 = alon(i,j) - hlon(ii)
           p2 = hlon(ii+1) - alon(i,j)
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(i,j)>=hlon(ii)-360 .and. alon(i,j)<hlon(ii+1)-360. ) then
+        else if ( alon(i,j) >= hlon(ii)-360 .and. &
+                  alon(i,j) < hlon(ii+1)-360. ) then
           p1 = alon(i,j) - (hlon(ii)-360.)
           p2 = (hlon(ii+1)-360.) - alon(i,j)
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(i,j)>=hlon(ii)+360 .and. alon(i,j)<hlon(ii+1)+360. ) then
+        else if ( alon(i,j) >= hlon(ii)+360 .and. &
+                  alon(i,j) < hlon(ii+1)+360. ) then
           p1 = alon(i,j) - (hlon(ii)+360.)
           p2 = (hlon(ii+1)+360.) - alon(i,j)
           i1 = ii
@@ -221,60 +223,62 @@ module mod_interp
           exit
         end if
       end do
-      if ( alon(i,j)>=hlon(nlon) .and. alon(i,j)<hlon(1)+360. ) then
+      if ( alon(i,j) >= hlon(nlon) .and. alon(i,j) < hlon(1)+360. ) then
         p1 = alon(i,j) - hlon(nlon)
         p2 = (hlon(1)+360.) - alon(i,j)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j)>=hlon(nlon)+360 .and. alon(i,j)<hlon(1)+720. ) then
+      else if ( alon(i,j) >= hlon(nlon)+360 .and. &
+                alon(i,j) < hlon(1)+720. ) then
         p1 = alon(i,j) - (hlon(nlon)+360.)
         p2 = (hlon(1)+720.) - alon(i,j)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j)>=hlon(nlon)-360 .and. alon(i,j)<hlon(1) ) then
+      else if ( alon(i,j) >= hlon(nlon)-360 .and. alon(i,j) < hlon(1) ) then
         p1 = alon(i,j) - (hlon(nlon)-360.)
         p2 = hlon(1) - alon(i,j)
         i1 = nlon
         i2 = 1
-      else if ( alon(i,j)>=hlon(nlon)-720 .and. alon(i,j)<hlon(1)-360. ) then
+      else if ( alon(i,j) >= hlon(nlon)-720 .and. &
+                alon(i,j) < hlon(1)-360. ) then
         p1 = alon(i,j) - (hlon(nlon)-720.)
         p2 = (hlon(1)-360.) - alon(i,j)
         i1 = nlon
         i2 = 1
       end if
-      if ( i1==1000 ) then
+      if ( i1 == 1000 ) then
         call die('cressmdt','Could not find the right longitude',1)
       end if
       j1 = 1000
       do jj = 1 , nlat - 1
-        if ( alat(i,j)>=hlat(jj) .and. alat(i,j)<hlat(jj+1) ) then
+        if ( alat(i,j) >= hlat(jj) .and. alat(i,j) < hlat(jj+1) ) then
           q1 = alat(i,j) - hlat(jj)
           q2 = hlat(jj+1) - alat(i,j)
           j1 = jj
           j2 = jj + 1
           exit
-        else if ( alat(i,j)<=hlat(1) ) then
+        else if ( alat(i,j) <= hlat(1) ) then
           q1 = 1.0
           q2 = 1.0
           j1 = 1
           j2 = 1
           exit
-        else if ( alat(i,j)>=hlat(nlat) ) then
+        else if ( alat(i,j) >= hlat(nlat) ) then
           q1 = 1.0
           q2 = 1.0
           j1 = nlat
           j2 = nlat
         end if
       end do
-      if ( j1==1000 ) then
+      if ( j1 == 1000 ) then
         call die('cressmdt','Could not find the right latitude',1)
       end if
-      if ( j1>0 .and. j1<nlat ) then
+      if ( j1 > 0 .and. j1 < nlat ) then
         do l = 1 , llev
           b3(i,j,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+(b2(i1,j2,l)* &
                         p2+b2(i2,j2,l)*p1)*q1)/(p1+p2)/(q1+q2)
         end do
-      else if ( j1==0 ) then
+      else if ( j1 == 0 ) then
         do l = 1 , llev
           ave = 0.0
           do ii = 1 , nlon
@@ -284,7 +288,7 @@ module mod_interp
           b3(i,j,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
                                      p1)*q1)/(p1+p2)/(q1+q2)
         end do
-      else if ( j1==nlat ) then
+      else if ( j1 == nlat ) then
         do l = 1 , llev
           ave = 0.0
           do ii = 1 , nlon
@@ -332,7 +336,7 @@ module mod_interp
 !
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
-  if ( imxmn==0 ) then
+  if ( imxmn == 0 ) then
     glonmx = maxval(glon)
     glonmn = minval(glon)
     alonmx = maxval(alon)
@@ -350,7 +354,7 @@ module mod_interp
     imxmn = 1
   end if
 
-  if ( lcross==0 ) then
+  if ( lcross == 0 ) then
     if (.not. allocated(ic1dl)) allocate (ic1dl(jx,iy))
     if (.not. allocated(ic1dr)) allocate (ic1dr(jx,iy))
     if (.not. allocated(ic1ul)) allocate (ic1ul(jx,iy))
@@ -384,53 +388,53 @@ module mod_interp
         distd = 1.E8
         do n = 2 , nlat
           do m = 2 , nlon
-            if ( (glon(m,n)>=alon(i,j) .and.                        &
+            if ( (glon(m,n) >= alon(i,j) .and.                      &
                   glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n)>=alat(i,j) .and.                        &
+                 (glat(m,n) >= alat(i,j) .and.                      &
                   glat(m,n)-alat(i,j) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( dista>aaa ) then
+              if ( dista > aaa ) then
                 dista = aaa
                 mur = m
                 nur = n
               end if
             end if
-            if ( (glon(m,n)<alon(i,j) .and.                         &
+            if ( (glon(m,n) < alon(i,j) .and.                       &
                   alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n)>=alat(i,j) .and.                        &
+                 (glat(m,n) >= alat(i,j) .and.                      &
                   glat(m,n)-alat(i,j) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distb>aaa ) then
+              if ( distb > aaa ) then
                 distb = aaa
                 mul = m
                 nul = n
               end if
             end if
-            if ( (glon(m,n)>=alon(i,j) .and.                        &
+            if ( (glon(m,n) >= alon(i,j) .and.                      &
                   glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n)<alat(i,j) .and.                         &
+                 (glat(m,n) < alat(i,j) .and.                       &
                   alat(i,j)-glat(m,n) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distc>aaa ) then
+              if ( distc > aaa ) then
                 distc = aaa
                 mdr = m
                 ndr = n
               end if
             end if
-            if ( (glon(m,n)<alon(i,j) .and.                         &
+            if ( (glon(m,n) < alon(i,j) .and.                       &
                   alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n)<alat(i,j) .and.                         &
+                 (glat(m,n) < alat(i,j) .and.                       &
                   alat(i,j)-glat(m,n) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distd>aaa ) then
+              if ( distd > aaa ) then
                 distd = aaa
                 mdl = m
                 ndl = n
@@ -470,18 +474,18 @@ module mod_interp
         do l = 1 , nf
           do k = 1 , nlev
             kin = (l-1)*nlev+k
-            if ( dist>0.000001 ) then
+            if ( dist > 0.000001 ) then
               b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
                             /distb+b2(mdr,ndr,kin)                  &
                             /distc+b2(mdl,ndl,kin)/distd)           &
                             /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist==dista ) then
+            else if ( dist == dista ) then
               b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist==distb ) then
+            else if ( dist == distb ) then
               b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist==distc ) then
+            else if ( dist == distc ) then
               b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist==distd ) then
+            else if ( dist == distd ) then
               b3(i,j,kin) = b2(mdl,ndl,kin)
             else
             end if
@@ -512,18 +516,18 @@ module mod_interp
         do l = 1 , nf
           do k = 1 , nlev
             kin = (l-1)*nlev+k
-            if ( dist>0.000001 ) then
+            if ( dist > 0.000001 ) then
               b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
                             /distb+b2(mdr,ndr,kin)                  &
                             /distc+b2(mdl,ndl,kin)/distd)           &
                             /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist==dista ) then
+            else if ( dist == dista ) then
               b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist==distb ) then
+            else if ( dist == distb ) then
               b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist==distc ) then
+            else if ( dist == distc ) then
               b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist==distd ) then
+            else if ( dist == distd ) then
               b3(i,j,kin) = b2(mdl,ndl,kin)
             else
             end if
@@ -565,7 +569,7 @@ module mod_interp
 !
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
-  if ( imxmn==0 ) then
+  if ( imxmn == 0 ) then
     glonmx = maxval(glon)
     glonmn = minval(glon)
     alonmx = maxval(alon)
@@ -583,7 +587,7 @@ module mod_interp
     imxmn = 1
   end if
 
-  if ( ldot==0 ) then
+  if ( ldot == 0 ) then
     if (.not. allocated(id1dl)) allocate (id1dl(jx,iy))
     if (.not. allocated(id1dr)) allocate (id1dr(jx,iy))
     if (.not. allocated(id1ul)) allocate (id1ul(jx,iy))
@@ -617,53 +621,53 @@ module mod_interp
         distd = 1.E8
         do n = 2 , nlat
           do m = 2 , nlon
-            if ( (glon(m,n)>=alon(i,j) .and.                        &
+            if ( (glon(m,n) >= alon(i,j) .and.                      &
                   glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n)>=alat(i,j) .and.                        &
+                 (glat(m,n) >= alat(i,j) .and.                      &
                   glat(m,n)-alat(i,j) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( dista>aaa ) then
+              if ( dista > aaa ) then
                 dista = aaa
                 mur = m
                 nur = n
               end if
             end if
-            if ( (glon(m,n)<alon(i,j) .and.                         &
+            if ( (glon(m,n) < alon(i,j) .and.                       &
                   alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n)>=alat(i,j) .and.                        &
+                 (glat(m,n) >= alat(i,j) .and.                      &
                   glat(m,n)-alat(i,j) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distb>aaa ) then
+              if ( distb > aaa ) then
                 distb = aaa
                 mul = m
                 nul = n
               end if
             end if
-            if ( (glon(m,n)>=alon(i,j) .and.                        &
+            if ( (glon(m,n) >= alon(i,j) .and.                      &
                   glon(m,n)-alon(i,j) < dlonmax ) .and.             &
-                 (glat(m,n)<alat(i,j) .and.                         &
+                 (glat(m,n) < alat(i,j) .and.                       &
                   alat(i,j)-glat(m,n) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distc>aaa ) then
+              if ( distc > aaa ) then
                 distc = aaa
                 mdr = m
                 ndr = n
               end if
             end if
-            if ( (glon(m,n)<alon(i,j) .and.                         &
+            if ( (glon(m,n) < alon(i,j) .and.                       &
                   alon(i,j)-glon(m,n) < dlonmax ) .and.             &
-                 (glat(m,n)<alat(i,j) .and.                         &
+                 (glat(m,n) < alat(i,j) .and.                       &
                   alat(i,j)-glat(m,n) < dlatmax ) ) then
               aaa = real((dble(glon(m,n)-alon(i,j)) *               &
                     dcos(dble(glat(m,n)+alat(i,j))*degrad))**2.0D0 +&
                     dble(glat(m,n)-alat(i,j))**2.0D0)
-              if ( distd>aaa ) then
+              if ( distd > aaa ) then
                 distd = aaa
                 mdl = m
                 ndl = n
@@ -702,18 +706,18 @@ module mod_interp
         do l = 1 , nf
           do k = 1 , nlev
             kin = (l-1)*nlev+k
-            if ( dist>0.000001 ) then
+            if ( dist > 0.000001 ) then
               b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
                             /distb+b2(mdr,ndr,kin)                  &
                             /distc+b2(mdl,ndl,kin)/distd)           &
                             /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist==dista ) then
+            else if ( dist == dista ) then
               b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist==distb ) then
+            else if ( dist == distb ) then
               b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist==distc ) then
+            else if ( dist == distc ) then
               b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist==distd ) then
+            else if ( dist == distd ) then
               b3(i,j,kin) = b2(mdl,ndl,kin)
             else
             end if
@@ -744,18 +748,18 @@ module mod_interp
         do l = 1 , nf
           do k = 1 , nlev
             kin = (l-1)*nlev+k
-            if ( dist>0.000001 ) then
+            if ( dist > 0.000001 ) then
               b3(i,j,kin) = (b2(mur,nur,kin)/dista+b2(mul,nul,kin)  &
                             /distb+b2(mdr,ndr,kin)                  &
                             /distc+b2(mdl,ndl,kin)/distd)           &
                             /(1./dista+1./distb+1./distc+1./distd)
-            else if ( dist==dista ) then
+            else if ( dist == dista ) then
               b3(i,j,kin) = b2(mur,nur,kin)
-            else if ( dist==distb ) then
+            else if ( dist == distb ) then
               b3(i,j,kin) = b2(mul,nul,kin)
-            else if ( dist==distc ) then
+            else if ( dist == distc ) then
               b3(i,j,kin) = b2(mdr,ndr,kin)
-            else if ( dist==distd ) then
+            else if ( dist == distd ) then
               b3(i,j,kin) = b2(mdl,ndl,kin)
             else
             end if

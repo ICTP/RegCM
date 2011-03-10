@@ -40,8 +40,8 @@ module mod_vectutil
     smin = 1.E8
     do j = 1 , iy
       do i = 1 , jx
-        if ( smax<var(i,j,k) ) smax = var(i,j,k)
-        if ( smin>var(i,j,k) ) smin = var(i,j,k)
+        if ( smax < var(i,j,k) ) smax = var(i,j,k)
+        if ( smin > var(i,j,k) ) smin = var(i,j,k)
       end do
     end do
     write (stdout,*) cvar , k , smax , smin
@@ -62,7 +62,7 @@ module mod_vectutil
 !
 !     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
 !     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
-!     SATISFY P(0,J)=P(1,J); P(NI,J)=P(NI-1,J); AND SIMILARLY FOR THE
+!     SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
 !     I'S.
 !
   ni1 = ni - 1
@@ -104,22 +104,22 @@ module mod_vectutil
 !
 !     THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
 !     ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
-!     SATISFY P(0,J)=P(1,J); P(NI,J)=P(NI-1,J); AND SIMILARLY FOR THE
+!     SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
 !     I'S.
 !
   nj1 = nj - 1
 !
   do j = 2 , nj1
     do i = 1 , ni
-      im1=i-1
-      if(im1 == 0) im1=ni
+      im1 = i-1
+      if (im1 == 0) im1 = ni
       pd(i,j) = 0.25*(px(i,j)+px(im1,j)+px(i,j-1)+px(im1,j-1))
     end do
   end do
 !
   do i = 1 , ni
-    im1=i-1
-    if(im1 == 0) im1=ni
+    im1 = i-1
+    if (im1 == 0) im1 = ni
     pd(i,1) = 0.5*(px(i,1)+px(im1,1))
     pd(i,nj) = 0.5*(px(i,nj1)+px(im1,nj1))
   end do

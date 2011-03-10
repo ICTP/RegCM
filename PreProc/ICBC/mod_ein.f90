@@ -161,7 +161,7 @@ module mod_ein
 !
   call zeit_ci('readein')
 !
-  if ( idate<imindat .or. idate>imaxdat ) then
+  if ( idate < imindat .or. idate > imaxdat ) then
     write (stderr, *) 'EIN data for resolution ',xres,' degrees ', &
                   'are available only from ',imindat,' up to ', imaxdat
     call die('ein6hour','EIN dataset unavailable',1)
@@ -171,62 +171,62 @@ module mod_ein
   month = idate/10000 - nyear*100
   nday = idate/100 - nyear*10000 - month*100
   nhour = idate - nyear*1000000 - month*10000 - nday*100
-  if ( idate==idate0 .or.                                           &
-       (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100) ) then
+  if ( idate == idate0 .or.                                           &
+       (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100) ) then
     do k4 = 1 , 4
       do kkrec = 1 , 5
-        if ( kkrec==1 ) then
-          if ( k4==1 ) then
+        if ( kkrec == 1 ) then
+          if ( k4 == 1 ) then
             write (inname,99001) nyear , 'air.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99002) nyear , 'air.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99003) nyear , 'air.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99004) nyear , 'air.' , nyear
           else
           end if
-        else if ( kkrec==2 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 2 ) then
+          if ( k4 == 1 ) then
             write (inname,99001) nyear , 'hgt.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99002) nyear , 'hgt.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99003) nyear , 'hgt.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99004) nyear , 'hgt.' , nyear
           else
           end if
-        else if ( kkrec==3 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 3 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'rhum.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'rhum.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'rhum.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'rhum.' , nyear
           else
           end if
-        else if ( kkrec==4 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 4 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'uwnd.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'uwnd.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'uwnd.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'uwnd.' , nyear
           else
           end if
-        else if ( kkrec==5 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 5 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'vwnd.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'vwnd.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'vwnd.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'vwnd.' , nyear
           else
           end if
@@ -271,20 +271,20 @@ module mod_ein
  
   k4 = nhour/6 + 1
   it = nday
-  if ( month==2 ) it = it + 31
-  if ( month==3 ) it = it + 59
-  if ( month==4 ) it = it + 90
-  if ( month==5 ) it = it + 120
-  if ( month==6 ) it = it + 151
-  if ( month==7 ) it = it + 181
-  if ( month==8 ) it = it + 212
-  if ( month==9 ) it = it + 243
-  if ( month==10 ) it = it + 273
-  if ( month==11 ) it = it + 304
-  if ( month==12 ) it = it + 334
-  if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
-  if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
-  if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
+  if ( month == 2 ) it = it + 31
+  if ( month == 3 ) it = it + 59
+  if ( month == 4 ) it = it + 90
+  if ( month == 5 ) it = it + 120
+  if ( month == 6 ) it = it + 151
+  if ( month == 7 ) it = it + 181
+  if ( month == 8 ) it = it + 212
+  if ( month == 9 ) it = it + 243
+  if ( month == 10 ) it = it + 273
+  if ( month == 11 ) it = it + 304
+  if ( month == 12 ) it = it + 334
+  if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 1
+  if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 1
+  if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 1
   do k = 1 , 4
     istart(k) = 1
   end do
@@ -296,9 +296,9 @@ module mod_ein
   icount(2) = jlat
   icount(3) = inlev
   icount(4) = 365
-  if ( mod(nyear,4)==0 ) icount(4) = 366
-  if ( mod(nyear,100)==0 ) icount(4) = 365
-  if ( mod(nyear,400)==0 ) icount(4) = 366
+  if ( mod(nyear,4) == 0 ) icount(4) = 366
+  if ( mod(nyear,100) == 0 ) icount(4) = 365
+  if ( mod(nyear,400) == 0 ) icount(4) = 366
   istart(4) = it
   icount(4) = 1
 !bxq_
@@ -313,10 +313,10 @@ module mod_ein
     end if
     xscale = xscl(kkrec,k4)
     xadd = xoff(kkrec,k4)
-    if ( kkrec==1 ) then
+    if ( kkrec == 1 ) then
       do j = 1 , jlat
         do i = 1 , ilon
-!             Tvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+!             Tvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
           tvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
           tvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
           tvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
@@ -342,10 +342,10 @@ module mod_ein
           tvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
         end do
       end do
-    else if ( kkrec==2 ) then
+    else if ( kkrec == 2 ) then
       do j = 1 , jlat
         do i = 1 , ilon
-!             Hvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+!             Hvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
           hvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
           hvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
           hvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
@@ -378,10 +378,10 @@ module mod_ein
           end do
         end do
       end do
-    else if ( kkrec==3 ) then
+    else if ( kkrec == 3 ) then
       do j = 1 , jlat
         do i = 1 , ilon
-!             RHvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+!             RHvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
           rhvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
           rhvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
           rhvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
@@ -414,10 +414,10 @@ module mod_ein
           end do
         end do
       end do
-    else if ( kkrec==4 ) then
+    else if ( kkrec == 4 ) then
       do j = 1 , jlat
         do i = 1 , ilon
-!             Uvar(i,jlat+1-j,k)=work(i,j,k)*xscale+xadd
+!             Uvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
           uvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
           uvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
           uvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)
@@ -443,10 +443,10 @@ module mod_ein
           uvar(i,jlat+1-j,23) = real(dble(work(i,j,37))*xscale+xadd)
         end do
       end do
-    else if ( kkrec==5 ) then
+    else if ( kkrec == 5 ) then
       do j = 1 , jlat
         do i = 1 , ilon
-!             Vvar(i,jlat+1-j,k) =work(i,j,k)*xscale+xadd
+!             Vvar(i,jlat+1-j,k) = work(i,j,k)*xscale+xadd
           vvar(i,jlat+1-j,1) = real(dble(work(i,j,1))*xscale+xadd)
           vvar(i,jlat+1-j,2) = real(dble(work(i,j,2))*xscale+xadd)
           vvar(i,jlat+1-j,3) = real(dble(work(i,j,3))*xscale+xadd)

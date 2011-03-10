@@ -90,27 +90,27 @@ module mod_gfs11
   month = idate/10000 - nyear*100
   nday = idate/100 - (idate/10000)*100
   nhour = mod(idate,100)
-  if ( idate<2000010106 ) then
+  if ( idate < 2000010106 ) then
     write (stderr,*) 'GFS 1x1 datasets is avaiable from 2000010106'
     call die('getgfs11')
   end if
   numx = nint((lon1-lon0)/1.0) + 1
   numy = nint((lat1-lat0)/1.0) + 1
-  if ( numx/=360 .or. numy/=181 ) then
-    if ( nday/=1 .or. nhour/=0 ) then
+  if ( numx /= 360 .or. numy /= 181 ) then
+    if ( nday /= 1 .or. nhour /= 0 ) then
       finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
              //chmon(month)
-    else if ( month/=1 ) then
+    else if ( month /= 1 ) then
       finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
              //chmon(month-1)
     else
       finm = yrgfs(nyear-2000)//'/'//'GFS__'//yrgfs(nyear-2000)     &
              //chmon(12)
     end if
-  else if ( nday/=1 .or. nhour/=0 ) then
+  else if ( nday /= 1 .or. nhour /= 0 ) then
     finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
            //chmon(month)
-  else if ( month/=1 ) then
+  else if ( month /= 1 ) then
     finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
            //chmon(month-1)
   else
@@ -140,14 +140,14 @@ module mod_gfs11
   end if
   open (63,file=trim(inpglob)//'/GFS11/'//finm,form='unformatted',  &
         recl=(numx*numy*2+16)/4*ibyte,access='direct')
-  if ( nday/=1 .or. nhour/=0 ) then
+  if ( nday /= 1 .or. nhour /= 0 ) then
     nrec = ((nday-1)*4+nhour/6-1)*127
-  else if ( month==1 .or. month==2 .or. month==4 .or. month==6 .or. &
-            month==8 .or. month==9 .or. month==11 ) then
+  else if ( month == 1 .or. month == 2 .or. month == 4 .or. month == 6 .or. &
+            month == 8 .or. month == 9 .or. month == 11 ) then
     nrec = (31*4-1)*127
-  else if ( month==5 .or. month==7 .or. month==10 .or. month==12 ) then
+  else if ( month == 5 .or. month == 7 .or. month == 10 .or. month == 12 ) then
     nrec = (30*4-1)*127
-  else if ( mod(nyear,4)==0 ) then
+  else if ( mod(nyear,4) == 0 ) then
     nrec = (29*4-1)*127
   else
     nrec = (28*4-1)*127
@@ -158,11 +158,11 @@ module mod_gfs11
     do j = nint(lat0/1.0) , nint(lat1/1.0)
       do i = nint(lon0/1.0) , nint(lon1/1.0)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 360
-        if ( ii>360 ) ii = ii - 360
+        if ( ii <= 0 ) ii = ii + 360
+        if ( ii > 360 ) ii = ii - 360
         i2 = i - nint(lon0/1.0) + 1
         j2 = j - nint(lat0/1.0) + 1
-        if ( numx==360 .and. numy==181 ) then
+        if ( numx == 360 .and. numy == 181 ) then
           hvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
         else
           hvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -176,11 +176,11 @@ module mod_gfs11
     do j = nint(lat0/1.0) , nint(lat1/1.0)
       do i = nint(lon0/1.0) , nint(lon1/1.0)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 360
-        if ( ii>360 ) ii = ii - 360
+        if ( ii <= 0 ) ii = ii + 360
+        if ( ii > 360 ) ii = ii - 360
         i2 = i - nint(lon0/1.0) + 1
         j2 = j - nint(lat0/1.0) + 1
-        if ( numx==360 .and. numy==181 ) then
+        if ( numx == 360 .and. numy == 181 ) then
           tvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
         else
           tvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -194,11 +194,11 @@ module mod_gfs11
     do j = nint(lat0/1.0) , nint(lat1/1.0)
       do i = nint(lon0/1.0) , nint(lon1/1.0)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 360
-        if ( ii>360 ) ii = ii - 360
+        if ( ii <= 0 ) ii = ii + 360
+        if ( ii > 360 ) ii = ii - 360
         i2 = i - nint(lon0/1.0) + 1
         j2 = j - nint(lat0/1.0) + 1
-        if ( numx==360 .and. numy==181 ) then
+        if ( numx == 360 .and. numy == 181 ) then
           rhvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
         else
           rhvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -226,11 +226,11 @@ module mod_gfs11
     do j = nint(lat0/1.0) , nint(lat1/1.0)
       do i = nint(lon0/1.0) , nint(lon1/1.0)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 360
-        if ( ii>360 ) ii = ii - 360
+        if ( ii <= 0 ) ii = ii + 360
+        if ( ii > 360 ) ii = ii - 360
         i2 = i - nint(lon0/1.0) + 1
         j2 = j - nint(lat0/1.0) + 1
-        if ( numx==360 .and. numy==181 ) then
+        if ( numx == 360 .and. numy == 181 ) then
           uvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
         else
           uvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -244,11 +244,11 @@ module mod_gfs11
     do j = nint(lat0/1.0) , nint(lat1/1.0)
       do i = nint(lon0/1.0) , nint(lon1/1.0)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 360
-        if ( ii>360 ) ii = ii - 360
+        if ( ii <= 0 ) ii = ii + 360
+        if ( ii > 360 ) ii = ii - 360
         i2 = i - nint(lon0/1.0) + 1
         j2 = j - nint(lat0/1.0) + 1
-        if ( numx==360 .and. numy==181 ) then
+        if ( numx == 360 .and. numy == 181 ) then
           vvar(ii,91-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
         else
           vvar(ii,j+90,k) = real(dble(itmp(i2,j2))*xscale + offset)

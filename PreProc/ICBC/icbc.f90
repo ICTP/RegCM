@@ -47,14 +47,14 @@ program icbc
 !   NRP2W: Small Window (instead of global) of NNRP1/2 to save disk    !
 !          space. (For example, African window: 40W,80E;60S,70N)       !
 !   ECMWF: ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP)               !
-!          NCAR MSS:/TRENBERT/CTEC/ , ET42yymmdd, where yy=year,       !
-!          mm=month, dd=day=01,04,07,10,13,16,19,22,25,28, or 31       !
+!          NCAR MSS:/TRENBERT/CTEC/ , ET42yymmdd, where yy = year,     !
+!          mm = month, dd = day = 01,04,07,10,13,16,19,22,25,28, or 31 !
 !          Current holdings: January, 1993 - December, 1997            !
 !          Reformatted by PWC/ICTP to direct-access binary,            !
 !          T42L15, Gaussian Grid.                                      !
 !   EH5OM: EH5OM run by the MPI at Hamburg, T63, Gaussian grid.        !
-!          For present day  run: 1941 - 2000;                           !
-!          For A1B scenario run: 2001 - 2100.                           !
+!          For present day  run: 1941 - 2000;                          !
+!          For A1B scenario run: 2001 - 2100.                          !
 !          17 pressure levels, 4 times daily, direct-access binary.    !
 !   ERA40: ECMWF 40 year reanalysis datasets are available at:         !
 !          http://data.ecmwf.int/data/d/era40_daily/                   !
@@ -131,12 +131,12 @@ program icbc
   call getarg(0, prgname)
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
-  if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.   &
-       dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
+  if ( dattyp == 'FVGCM' .or. dattyp == 'NRP2W' .or.   &
+       dattyp == 'GFS11' .or. dattyp == 'EH5OM' ) then
     call init_globwindow(lat0,lon0,lat1,lon1)
   end if
 
-  if ( ierr/=0 ) then
+  if ( ierr /= 0 ) then
     write ( stderr, * ) 'Parameter initialization not completed'
     write ( stderr, * ) 'Usage : '
     write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
@@ -162,27 +162,27 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' ) then
+  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'NRP2W' ) then
     call headernc
-  else if ( dattyp=='ECMWF' ) then
+  else if ( dattyp == 'ECMWF' ) then
     call headerec
-  else if ( dattyp=='ERA40' ) then
+  else if ( dattyp == 'ERA40' ) then
     call headerera
-  else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' ) then
+  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' ) then
     call headerein(15)
-  else if ( dattyp=='EIN75' ) then
+  else if ( dattyp == 'EIN75' ) then
     call headerein(75)
-  else if ( dattyp=='EIN25' ) then
+  else if ( dattyp == 'EIN25' ) then
     call headerein(25)
-  else if ( dattyp=='GFS11' ) then
+  else if ( dattyp == 'GFS11' ) then
     call headergfs
-  else if ( dattyp=='ERAHI' ) then
+  else if ( dattyp == 'ERAHI' ) then
     call headerehi
-  else if ( dattyp=='EH5OM' ) then
+  else if ( dattyp == 'EH5OM' ) then
     call headermpi(ehso4)
-  else if ( dattyp=='FVGCM' ) then
+  else if ( dattyp == 'FVGCM' ) then
     call headerfv
-  else if ( dattyp=='FNEST' ) then
+  else if ( dattyp == 'FNEST' ) then
     call headernest
   else
     call die('icbc','Unknown dattyp',1)
@@ -198,26 +198,26 @@ program icbc
       call newfile(idate)
     end if
 
-    if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' ) then
+    if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' ) then
       call getncep(idate,1)
-    else if ( dattyp=='NRP2W' ) then
+    else if ( dattyp == 'NRP2W' ) then
       call getncep(idate,2)
-    else if ( dattyp=='ECMWF' ) then
+    else if ( dattyp == 'ECMWF' ) then
       call getecwcp(idate)
-    else if ( dattyp=='ERA40' ) then
+    else if ( dattyp == 'ERA40' ) then
       call getera40(idate)
-    else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
-              dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+    else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
+              dattyp == 'EIN75' .or. dattyp == 'EIN25' ) then
       call getein(idate)
-    else if ( dattyp=='GFS11' ) then
+    else if ( dattyp == 'GFS11' ) then
       call getgfs11(idate)
-    else if ( dattyp=='ERAHI' ) then
+    else if ( dattyp == 'ERAHI' ) then
       call geterahi(idate)
-    else if ( dattyp=='EH5OM' ) then
+    else if ( dattyp == 'EH5OM' ) then
       call geteh5om(idate)
-    else if ( dattyp=='FVGCM' ) then
+    else if ( dattyp == 'FVGCM' ) then
       call getfvgcm(idate)
-    else if ( dattyp=='FNEST' ) then
+    else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
     end if
     call writef(idate)
@@ -227,24 +227,24 @@ program icbc
 
   end do
 
-  if ( dattyp=='NNRP1' .or. dattyp=='NNRP2' .or. dattyp=='NRP2W' ) then
+  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'NRP2W' ) then
     call footernc
-  else if ( dattyp=='ECMWF' ) then
+  else if ( dattyp == 'ECMWF' ) then
     call footerec
-  else if ( dattyp=='ERA40' ) then
+  else if ( dattyp == 'ERA40' ) then
     call footerera
-  else if ( dattyp=='ERAIN' .or. dattyp=='EIN15' .or. &
-            dattyp=='EIN75' .or. dattyp=='EIN25' ) then
+  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
+            dattyp == 'EIN75' .or. dattyp == 'EIN25' ) then
     call footerein
-  else if ( dattyp=='GFS11' ) then
+  else if ( dattyp == 'GFS11' ) then
     call footergfs
-  else if ( dattyp=='ERAHI' ) then
+  else if ( dattyp == 'ERAHI' ) then
     call footerehi
-  else if ( dattyp=='EH5OM' ) then
+  else if ( dattyp == 'EH5OM' ) then
     call footermpi(ehso4)
-  else if ( dattyp=='FVGCM' ) then
+  else if ( dattyp == 'FVGCM' ) then
     call footerfv
-  else if ( dattyp=='FNEST' ) then
+  else if ( dattyp == 'FNEST' ) then
     call footernest
   else
     call die('icbc','Unknown dattyp',1)

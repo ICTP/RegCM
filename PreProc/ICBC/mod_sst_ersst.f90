@@ -37,8 +37,8 @@ module mod_sst_ersst
 !          'ERSST' for using the sea surface temperature;            !
 !          'ERSKT' for using the skin temperature.                   !
 !                                                                    !
-!          ML= 1 is   0.0; ML= 2 is   1.5; => ML=240 is 358.5E       !
-!          NL= 1 is  90.0; ML= 2 is  88.5; => ML=121 is -90.         !
+!          ML = 1 is   0.0; ML = 2 is   1.5; => ML = 240 is 358.5E   !
+!          NL = 1 is  90.0; ML = 2 is  88.5; => ML = 121 is -90.     !
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -62,10 +62,10 @@ module mod_sst_ersst
 !
   call zeit_ci('sst_ersst')
 !
-  if ( ssttyp=='ERSST' ) then
+  if ( ssttyp == 'ERSST' ) then
     there = .false.
-    if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
-         (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
+    if ( (globidate1 >= 1989010100 .and. globidate1 <= 2009053118) .or. &
+         (globidate2 >= 1989010100 .and. globidate2 <= 2009053118) ) then
       inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',exist=there)
       if ( .not.there ) then
         write(stderr,*) 'sstERAIN.1989-2009.nc is not available' ,  &
@@ -78,10 +78,10 @@ module mod_sst_ersst
             ' from 1989010100 to 2009053118'
       call die('sst_ersst')
     end if
-  else if ( ssttyp=='ERSKT' ) then
+  else if ( ssttyp == 'ERSKT' ) then
     there = .false.
-    if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
-         (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
+    if ( (globidate1 >= 1989010100 .and. globidate1 <= 2009053118) .or. &
+         (globidate2 >= 1989010100 .and. globidate2 <= 2009053118) ) then
       inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',exist=there)
       if ( .not.there ) then
         write(stderr,*) 'tskinERAIN.1989-2009.nc is not available' ,&
@@ -122,18 +122,18 @@ module mod_sst_ersst
 
     ierrec = idatediff(idate,ierastart)/idtbc+1
 
-    if ( ssttyp=='ERSST' ) then
-      inpfile = trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+    if ( ssttyp == 'ERSST' ) then
+      inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
       call sst_erain(ierrec,ilon,jlat,sst,inpfile,1)
-    else if ( ssttyp=='ERSKT' ) then
-      inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+    else if ( ssttyp == 'ERSKT' ) then
+      inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
       call sst_erain(ierrec,ilon,jlat,sst,inpfile,2)
     end if
 
     call split_idate(idate, nyear, nmo, nday, nhour)
  
     call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-    write(stdout,*) 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+    write(stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
@@ -186,18 +186,18 @@ module mod_sst_ersst
   data varname/'sst','skt'/
 !
   call zeit_ci('read_sst_era')
-  if ( it==1 ) then
+  if ( it == 1 ) then
     inquire (file=pathaddname,exist=there)
     if ( .not.there ) then
       call die('sst_erain',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_erain','Cannot open input file '// &
                trim(pathaddname)//' : '//nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(inet,varname(itype),ivar)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_erain','Cannot find variable '// &
                trim(varname(itype))//' in file '//   &
                trim(pathaddname)//' : '//nf90_strerror(istatus),istatus)
@@ -218,7 +218,7 @@ module mod_sst_ersst
   istart(3) = it
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     call die('sst_erain','Cannot read '//trim(varname(itype))// &
              ' from file '//trim(pathaddname)//' : '//          &
              nf90_strerror(istatus),istatus)
@@ -226,10 +226,10 @@ module mod_sst_ersst
 !
   do j = 1 , jlat
     do i = 1 , ilon
-      if (work(i,j)/=xmiss) then
+      if (work(i,j) /= xmiss) then
         sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
       else
-        sst(i,jlat+1-j)=-9999.0
+        sst(i,jlat+1-j) = -9999.0
       end if
     end do
   end do

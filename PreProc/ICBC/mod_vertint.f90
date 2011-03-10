@@ -53,7 +53,7 @@ module mod_vertint
 !
   do j = 1 , jm
     do i = 1 , im
-      if ( ps(i,j)>-9995.0 ) then
+      if ( ps(i,j) > -9995.0 ) then
         do k = 1 , km
           sig(k) = p3d(i,j,k)/ps(i,j)
         end do
@@ -61,16 +61,16 @@ module mod_vertint
           sigp = p(n)/ps(i,j)
           k1 = 0
           do k = 1 , km
-            if ( sigp>sig(k) ) k1 = k
+            if ( sigp > sig(k) ) k1 = k
           end do
-          if ( sigp<=sig(1) ) then
+          if ( sigp <= sig(1) ) then
             fp(i,j,n) = f(i,j,1)
-          else if ( (sigp>sig(1)) .and. (sigp<sig(km)) ) then
+          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
             k1p = k1 + 1
             wp = (sigp-sig(k1))/(sig(k1p)-sig(k1))
             w1 = 1. - wp
             fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
-          else if ( sigp>=sig(km) ) then
+          else if ( sigp >= sig(km) ) then
             fp(i,j,n) = f(i,j,km)
           else
           end if
@@ -112,16 +112,16 @@ module mod_vertint
         sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
         k1 = 0
         do k = 1 , km
-          if ( sigp>sig(k) ) k1 = k
+          if ( sigp > sig(k) ) k1 = k
         end do
-        if ( sigp<=sig(1) ) then
+        if ( sigp <= sig(1) ) then
           fp(i,j,n) = f(i,j,1)
-        else if ( (sigp>sig(1)) .and. (sigp<sig(km)) ) then
+        else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
           k1p = k1 + 1
           wp = (sigp-sig(k1))/(sig(k1p)-sig(k1))
           w1 = 1. - wp
           fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
-        else if ( sigp>=sig(km) ) then
+        else if ( sigp >= sig(km) ) then
           fp(i,j,n) = f(i,j,km)
         else
         end if
@@ -163,12 +163,12 @@ module mod_vertint
  
       kt = 0
       do k = 1 , nlev1 - 1
-        if ( zrcm(i,j)<=zp(i,j,nlev1+1-k) .and. &
-             zrcm(i,j) >zp(i,j,nlev1-k) ) kt = k
+        if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
+             zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
       end do
       kb = kt + 1
  
-      if ( kt/=0 ) then
+      if ( kt /= 0 ) then
         tlayer(i,j) = (tp(i,j,nlev1+1-kt)*(zrcm(i,j)-          &
                        zp(i,j,nlev1+1-kb))+tp(i,j,nlev1+1-kb)  &
                       *(zp(i,j,nlev1+1-kt)-zrcm(i,j)))         &
@@ -185,9 +185,9 @@ module mod_vertint
     end do
   end do
  
-!     PRINT *, 'ZRCM, ZP(6)   =', ZRCM(5,5), ZP(5,5,NLEV1+1-6)
-!     PRINT *, '      TP(6)   =',            TP(5,5,NLEV1+1-6)
-!     PRINT *, 'TLAYER, ZA, PA =', TLAYER(5,5), ZA(5,5), PA(5,5)
+!     PRINT *, 'ZRCM, ZP(6)   = ', ZRCM(5,5), ZP(5,5,NLEV1+1-6)
+!     PRINT *, '      TP(6)   = ',            TP(5,5,NLEV1+1-6)
+!     PRINT *, 'TLAYER, ZA, PA = ', TLAYER(5,5), ZA(5,5), PA(5,5)
  
   end subroutine intgtb
 !
@@ -217,31 +217,31 @@ module mod_vertint
 !     TWO EXTREME TEMPERATURES IN THE LAYER.
  
 !
-!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG=BLTOP)
+!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG = BLTOP)
   do j = 1 , jm
     do i = 1 , im
-      if ( ps(i,j)>-9995.0 ) then
+      if ( ps(i,j) > -9995.0 ) then
         kbc = 1
         do k = 1 , km
           sig(k) = p3d(i,j,k)/ps(i,j)
-          if ( sig(k)<rbltop ) kbc = k
+          if ( sig(k) < rbltop ) kbc = k
         end do
         do n = 1 , kp
           sigp = p(n)/ps(i,j)
           k1 = 0
           do k = 1 , km
-            if ( sigp>sig(k) ) k1 = k
+            if ( sigp > sig(k) ) k1 = k
           end do
-          if ( sigp<=sig(1) ) then
+          if ( sigp <= sig(1) ) then
             fp(i,j,n) = f(i,j,1)
-          else if ( (sigp>sig(1)) .and. (sigp<sig(km)) ) then
+          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
             k1p = k1 + 1
             wp = log(sigp/sig(k1))/log(sig(k1p)/sig(k1))
             w1 = 1. - wp
             fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
-          else if ( (sigp>=sig(km)) .and. (sigp<=1.) ) then
+          else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
             fp(i,j,n) = f(i,j,km)
-          else if ( sigp>1. ) then
+          else if ( sigp > 1. ) then
             fp(i,j,n) = f(i,j,kbc)*exp(+rglr*log(sigp/sig(kbc))*real(regrav))
 !               ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
           else
@@ -286,10 +286,10 @@ module mod_vertint
 !     TWO EXTREME TEMPERATURES IN THE LAYER.
  
 !
-!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG=BLTOP)
+!**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG = BLTOP)
   kbc = 1
   do k = 1 , km
-    if ( sig(k)<rbltop ) kbc = k
+    if ( sig(k) < rbltop ) kbc = k
   end do
   do j = 1 , jm
     do i = 1 , im
@@ -297,18 +297,18 @@ module mod_vertint
         sigp = (p(n)-real(ptop))/(pstar(i,j)-real(ptop))
         k1 = 0
         do k = 1 , km
-          if ( sigp>sig(k) ) k1 = k
+          if ( sigp > sig(k) ) k1 = k
         end do
-        if ( sigp<=sig(1) ) then
+        if ( sigp <= sig(1) ) then
           fp(i,j,n) = f(i,j,1)
-        else if ( (sigp>sig(1)) .and. (sigp<sig(km)) ) then
+        else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
           k1p = k1 + 1
           wp = log(sigp/sig(k1))/log(sig(k1p)/sig(k1))
           w1 = 1. - wp
           fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,k1p)
-        else if ( (sigp>=sig(km)) .and. (sigp<=1.) ) then
+        else if ( (sigp >= sig(km)) .and. (sigp <= 1.) ) then
           fp(i,j,n) = f(i,j,km)
-        else if ( sigp>1. ) then
+        else if ( sigp > 1. ) then
           fp(i,j,n) = f(i,j,kbc)*exp(rglr*log(sigp/sig(kbc))*real(regrav))
 !             ***** FROM R. ERRICO, SEE ROUTINE HEIGHT *****
         else
@@ -346,7 +346,7 @@ module mod_vertint
     end do
   end do
  
-!     PRINT *, 'ZRCM, ZA, PA, PT =', ZRCM(5,5), ZA(5,5), PA(5,5), PT
+!     PRINT *, 'ZRCM, ZA, PA, PT = ', ZRCM(5,5), ZA(5,5), PA(5,5), PT
 !     PRINT *, 'TLAYER(5,5), PSRCM(5,5) = ', TLAYER(5,5), PSRCM(5,5)
  
   end subroutine intpsn
@@ -388,17 +388,17 @@ module mod_vertint
         sc = srcm(n)*dp1 + pt1
         k1 = 0
         do k = 1 , kccm
-          if ( sc>sccm(k) ) k1 = k
+          if ( sc > sccm(k) ) k1 = k
         end do
 !
 !           CONDITION FOR SC .LT. SCCM(1) FOLLOWS
 !
-        if ( k1==0 ) then
+        if ( k1 == 0 ) then
           frcm(i,j,n) = fccm(i,j,kccm)
 !
 !             CONDITION FOR SCCM(1) .LT. SC .LT. SCCM(KCCM) FOLLOWS
 !
-        else if ( k1/=kccm ) then
+        else if ( k1 /= kccm ) then
           k1p = k1 + 1
           rc = (sc-sccm(k1))/(sccm(k1)-sccm(k1p))
           rc1 = rc + 1.
@@ -455,17 +455,17 @@ module mod_vertint
         sc = srcm(n)*dp1 + pt1
         k1 = 0
         do k = 1 , kccm
-          if ( sc>sccm(k) ) k1 = k
+          if ( sc > sccm(k) ) k1 = k
         end do
 !
 !           CONDITION FOR SC .LT. SCCM(1) FOLLOWS
 !
-        if ( k1==0 ) then
+        if ( k1 == 0 ) then
           frcm(i,j,n) = fccm(i,j,kccm)
 !
 !             CONDITION FOR SCCM(1) .LT. SC .LT. SCCM(KCCM) FOLLOWS
 !
-        else if ( k1/=kccm ) then
+        else if ( k1 /= kccm ) then
           k1p = k1 + 1
           rc = log(sc/sccm(k1))/log(sccm(k1)/sccm(k1p))
           rc1 = rc + 1.
@@ -517,7 +517,7 @@ module mod_vertint
 
 
       do k = 1 , kccm - 1
-        if ( sc<=sccm(k+1) .and. sc>=sccm(k) ) k1 = k
+        if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k
       end do
  
       !If the surface is below the GCM's lowest level,
@@ -527,7 +527,7 @@ module mod_vertint
         fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
       !Otherwise, interpolate the surface temperature between
       !the two adjacent GCM levels
-      else if ( k1==0 ) then
+      else if ( k1 == 0 ) then
 !           write (stderr,*) 'Error: the RCM surface is above the GCM'
 !           write (stderr,*) 'model top at i,j=',i,j
 !           write (stderr,*) 'This might reasonably happen if you have a'

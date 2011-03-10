@@ -96,7 +96,7 @@ module mod_nest
     istatus = nf90_close(ncinp)
     call check_ok(istatus, 'Error close')
     write (fillin,'(a,i10)') 'ATM.', idate
-    inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+    inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
     istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
     call check_ok(istatus, 'Error opening '//trim(inpfile))
     istatus = nf90_inq_dimid(ncinp, 'time', idimid)
@@ -280,7 +280,7 @@ module mod_nest
   end do
  
   write (fillin,'(a,i10)') 'ATM.', imonfirst(globidate1)
-  inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+  inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
   inquire (file=inpfile,exist=there)
   if ( .not.there ) then
     write (stderr,*) trim(inpfile), ' is not available'
@@ -327,46 +327,46 @@ module mod_nest
 !     Reserve space for I/O
 
   allocate(sig(kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: sig')
+  if (istatus /= 0) call die('Allocation Error in headernest: sig')
   call mall_mci(sig,'mod_oxidant')
   allocate(b2(jx_in,iy_in,np*3), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: b2')
+  if (istatus /= 0) call die('Allocation Error in headernest: b2')
   call mall_mci(b2,'mod_oxidant')
   allocate(d2(jx_in,iy_in,np*2), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: d2')
+  if (istatus /= 0) call die('Allocation Error in headernest: d2')
   call mall_mci(d2,'mod_oxidant')
   allocate(q(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: q')
+  if (istatus /= 0) call die('Allocation Error in headernest: q')
   call mall_mci(q,'mod_oxidant')
   allocate(t(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: t')
+  if (istatus /= 0) call die('Allocation Error in headernest: t')
   call mall_mci(t,'mod_oxidant')
   allocate(u(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: u')
+  if (istatus /= 0) call die('Allocation Error in headernest: u')
   call mall_mci(u,'mod_oxidant')
   allocate(v(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: v')
+  if (istatus /= 0) call die('Allocation Error in headernest: v')
   call mall_mci(v,'mod_oxidant')
   allocate(ps(jx_in,iy_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: ps')
+  if (istatus /= 0) call die('Allocation Error in headernest: ps')
   call mall_mci(ps,'mod_oxidant')
   allocate(xlat_in(jx_in,iy_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: xlat_in')
+  if (istatus /= 0) call die('Allocation Error in headernest: xlat_in')
   call mall_mci(xlat,'mod_oxidant')
   allocate(xlon_in(jx_in,iy_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: xlon_in')
+  if (istatus /= 0) call die('Allocation Error in headernest: xlon_in')
   call mall_mci(xlon,'mod_oxidant')
   allocate(ht_in(jx_in,iy_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: ht_in')
+  if (istatus /= 0) call die('Allocation Error in headernest: ht_in')
   call mall_mci(ht_in,'mod_oxidant')
   allocate(z1(iy_in,jx_in,kz_in), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: z1')
+  if (istatus /= 0) call die('Allocation Error in headernest: z1')
   call mall_mci(z1,'mod_oxidant')
   allocate(b3(iy,jx,np*3), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: b3')
+  if (istatus /= 0) call die('Allocation Error in headernest: b3')
   call mall_mci(b3,'mod_oxidant')
   allocate(d3(iy,jx,np*2), stat=istatus)
-  if (istatus/=0) call die('Allocation Error in headernest: d3')
+  if (istatus /= 0) call die('Allocation Error in headernest: d3')
   call mall_mci(d3,'mod_oxidant')
 
 
@@ -400,15 +400,15 @@ module mod_nest
                     'longitude_of_projection_origin', clon_in)
   call check_ok(istatus,'attribure clat read error')
 
-  if ( iproj_in=='LAMCON' ) then
+  if ( iproj_in == 'LAMCON' ) then
     istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
     call check_ok(istatus,'attribure truelat read error')
-    if ( clat_in<0. ) then
+    if ( clat_in < 0. ) then
       xsign = -1.0D0       ! SOUTH HEMESPHERE
     else
       xsign = 1.0D0        ! NORTH HEMESPHERE
     end if
-    if ( abs(trlat(1)-trlat(2))>1.E-1 ) then
+    if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
       grdfac_in = (log10(cos(trlat(1)*degrad))                   &
                   -log10(cos(trlat(2)*degrad))) /                &
                   (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
@@ -416,9 +416,9 @@ module mod_nest
     else
       grdfac_in = xsign*sin(dble(trlat(1))*degrad)
     end if
-  else if ( iproj_in=='POLSTR' ) then
+  else if ( iproj_in == 'POLSTR' ) then
     grdfac_in = 1.0D0
-  else if ( iproj_in=='NORMER' ) then
+  else if ( iproj_in == 'NORMER' ) then
     grdfac_in = 0.0D0
   else
     istatus = nf90_get_att(ncinp, nf90_global, &

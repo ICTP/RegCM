@@ -72,7 +72,7 @@ module mod_write
     allocate(v4(jx,iy,kz), stat=ierr)
     if (ierr /= 0) call die('init_output','allocate v4',ierr)
     call mall_mci(v4,'mod_write')
-    if ( dattyp=='EH5OM' .and. ehso4) then
+    if ( dattyp == 'EH5OM' .and. ehso4) then
       allocate(sulfate4(jx,iy,kz), stat=ierr)
       if (ierr /= 0) call die('init_output','allocate sulfate',ierr)
       call mall_mci(sulfate4,'mod_write')
@@ -103,7 +103,7 @@ module mod_write
     deallocate(u4)
     call mall_mco(v4,'mod_write')
     deallocate(v4)
-    if ( dattyp=='EH5OM' .and. ehso4) then
+    if ( dattyp == 'EH5OM' .and. ehso4) then
       call mall_mco(sulfate4,'mod_write')
       deallocate(sulfate4)
     end if
@@ -170,7 +170,7 @@ module mod_write
     call check_ok(istatus,'Error adding global source')
     istatus = nf90_put_att(ncout, nf90_global, 'Conventions', 'CF-1.4')
     call check_ok(istatus,'Error adding global Conventions')
-    call date_and_time(values=tvals)
+    call date_and_time(values = tvals)
     write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
          tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
          tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
@@ -400,7 +400,7 @@ module mod_write
     call check_ok(istatus,'Error adding qv units')
     istatus = nf90_put_att(ncout, ivar(7), 'coordinates', 'xlon xlat')
     call check_ok(istatus,'Error adding qv coordinates')
-    if ( dattyp=='EH5OM' .and. ehso4) then
+    if ( dattyp == 'EH5OM' .and. ehso4) then
       istatus = nf90_def_var(ncout, 'so4', nf90_float, x3ddim, ivar(8))
       call check_ok(istatus,'Error adding variable so4')
 #ifdef NETCDF4_HDF5
@@ -498,7 +498,7 @@ module mod_write
     call check_ok(istatus,'Error variable t write')
     istatus = nf90_put_var(ncout, ivar(7), q4, istart, icount)
     call check_ok(istatus,'Error variable qv write')
-    if ( dattyp=='EH5OM' .and. ehso4) then
+    if ( dattyp == 'EH5OM' .and. ehso4) then
       istatus = nf90_put_var(ncout, ivar(8), sulfate4,  istart, icount)
       call check_ok(istatus,'Error variable so4 write')
     end if

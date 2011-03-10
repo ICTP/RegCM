@@ -61,7 +61,7 @@ module mod_mksst
 
     call zeit_ci('readsst')
     if (.not. lopen) then
-      sstfile = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
+      sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
       call check_ok(istatus,'Error Opening SST file'//trim(sstfile))
       istatus = nf90_inq_dimid(ncst, 'time', idimid)
@@ -147,12 +147,12 @@ module mod_mksst
     if (idate == itime(irec)) then
       do i = 1 , jx
         do j = 1 , iy
-          if ( (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and. &
-               (work1(i,j)>-900.0) ) then
+          if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and. &
+               (work1(i,j) > -900.0) ) then
             tsccm(i,j) = work1(i,j)
             if (lhasice) then
-              if ( work3(i,j)>-900.0) then
-                if ( work3(i,j)>35. ) tsccm(i,j) = 271.0
+              if ( work3(i,j) > -900.0) then
+                if ( work3(i,j) > 35. ) tsccm(i,j) = 271.0
               end if
             end if
           end if
@@ -176,12 +176,12 @@ module mod_mksst
       wt = float(ks1)/float(ks2)
       do i = 1 , jx
         do j = 1 , iy
-          if ( (xlandu(i,j)>13.9 .and. xlandu(i,j)<15.1) .and.  &
-               (work1(i,j)>-900.0 .and. work2(i,j)>-900.0) ) then
+          if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &
+               (work1(i,j) > -900.0 .and. work2(i,j) > -900.0) ) then
             tsccm(i,j) = (1.-wt)*work1(i,j) + wt*work2(i,j)
             if (lhasice) then
-              if ( work3(i,j)>-900.0 .and. work4(i,j)>-900.0 ) then
-                if ( (1.-wt)*work3(i,j)+wt*work4(i,j)>35. ) then
+              if ( work3(i,j) > -900.0 .and. work4(i,j) > -900.0 ) then
+                if ( (1.-wt)*work3(i,j)+wt*work4(i,j) > 35. ) then
                   tsccm(i,j) = 271.0
                 endif
               end if

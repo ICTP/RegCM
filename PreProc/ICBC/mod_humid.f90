@@ -114,7 +114,7 @@ module mod_humid
   do i = 1 , ni
     do j = 1 , nj
       do k = 1 , nk
-        if ( p3d(i,j,k)>-9990. ) then
+        if ( p3d(i,j,k) > -9990. ) then
           lh = slh0 - slh1*(t(i,j,k)-t0)  ! LATENT HEAT OF EVAP.
           satvp = slsvp1*exp(slsvp2*lh*(rt0-1./t(i,j,k)))
                                                ! SATURATION VAP PRESS.

@@ -160,7 +160,7 @@ module mod_grid
     istatus = nf90_inquire_dimension(incin, idimid, len=kz_in)
     call check_ok('Error reading kz dimension')
 
-    if ( iy_in/=iy .or. jx_in/=jx .or. kz_in/=kz+1 ) then
+    if ( iy_in /= iy .or. jx_in /= jx .or. kz_in /= kz+1 ) then
       write(stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
       write(stderr,*) '  namelist  : ' , iy , jx , kz
       write(stderr,*) '  DOMAIN    : ' , iy_in , jx_in , kz_in

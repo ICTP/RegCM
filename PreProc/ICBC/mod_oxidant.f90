@@ -78,9 +78,9 @@ module mod_oxidant
     if (ierr /= 0) call die('headermozart','allocate h2o23',ierr)
     call mall_mci(h2o23,'mod_oxidant')
 
-    istatus=nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+    istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'oxid_3d_64x128_L26_c030722.nc', nf90_nowrite,ncid)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('headermozart','Cannot open input file '// &
                'oxid_3d_64x128_L26_c030722.nc',1,         &
                nf90_strerror(istatus),istatus)
@@ -232,7 +232,7 @@ module mod_oxidant
     icount(2) = jlat
     icount(3) = itime
 !C  Retrieve data for Variable 'PS'
-    istatus=nf90_get_var(ncid,13,t42PS,istart,icount)
+    istatus = nf90_get_var(ncid,13,t42PS,istart,icount)
 
 !C  Retrieve data for Variable 'OH', 'HO2', 'O3', 'NO3', 'H2O2'
     istart(4) = 1
@@ -241,11 +241,11 @@ module mod_oxidant
     icount(3) = jlat
     icount(4) = itime
 
-    istatus=nf90_get_var(ncid,14,t42OH,istart,icount)
-    istatus=nf90_get_var(ncid,15,t42HO2,istart,icount)
-    istatus=nf90_get_var(ncid,16,t42O3,istart,icount)
-    istatus=nf90_get_var(ncid,17,t42NO3,istart,icount)
-    istatus=nf90_get_var(ncid,18,t42H2O2,istart,icount)
+    istatus = nf90_get_var(ncid,14,t42OH,istart,icount)
+    istatus = nf90_get_var(ncid,15,t42HO2,istart,icount)
+    istatus = nf90_get_var(ncid,16,t42O3,istart,icount)
+    istatus = nf90_get_var(ncid,17,t42NO3,istart,icount)
+    istatus = nf90_get_var(ncid,18,t42H2O2,istart,icount)
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -264,13 +264,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month)*(1.-float(nday-16)/30.)    &
                           +T42OH(i,k,j,month+1)*(float(nday-16)/30.)  
-              ho22(i,j,k)= T42HO2(i,k,j,month)*(1.-float(nday-16)/30.)   &
+              ho22(i,j,k) = T42HO2(i,k,j,month)*(1.-float(nday-16)/30.)   &
                           +T42HO2(i,k,j,month+1)*(float(nday-16)/30.)  
               o32(i,j,k) = T42O3(i,k,j,month)*(1.-float(nday-16)/30.)    &
                           +T42O3(i,k,j,month+1)*(float(nday-16)/30.)   
-              no32(i,j,k)= T42NO3(i,k,j,month)*(1.-float(nday-16)/30.)   &
+              no32(i,j,k) = T42NO3(i,k,j,month)*(1.-float(nday-16)/30.)   &
                           +T42NO3(i,k,j,month+1)*(float(nday-16)/30.)  
-              h2o22(i,j,k)= T42H2O2(i,k,j,month)*(1.-float(nday-16)/30.) &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month)*(1.-float(nday-16)/30.) &
                            +T42H2O2(i,k,j,month+1)*(float(nday-16)/30.)  
             end do
           end do
@@ -282,13 +282,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month)*(1.-float(nday-16)/31.)    &
                           +T42OH(i,k,j,month+1)*(float(nday-16)/31.)   
-              ho22(i,j,k)= T42HO2(i,k,j,month)*(1.-float(nday-16)/31.)   &
+              ho22(i,j,k) = T42HO2(i,k,j,month)*(1.-float(nday-16)/31.)   &
                           +T42HO2(i,k,j,month+1)*(float(nday-16)/31.)  
               o32(i,j,k) = T42O3(i,k,j,month)*(1.-float(nday-16)/31.)    &
                           +T42O3(i,k,j,month+1)*(float(nday-16)/31.)   
-              no32(i,j,k)= T42NO3(i,k,j,month)*(1.-float(nday-16)/31.)   &
+              no32(i,j,k) = T42NO3(i,k,j,month)*(1.-float(nday-16)/31.)   &
                           +T42NO3(i,k,j,month+1)*(float(nday-16)/31.)  
-              h2o22(i,j,k)= T42H2O2(i,k,j,month)*(1.-float(nday-16)/31.) &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month)*(1.-float(nday-16)/31.) &
                            +T42H2O2(i,k,j,month+1)*(float(nday-16)/31.)  
             end do
           end do
@@ -299,13 +299,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month)*(1.-float(nday-16)/32.)    &
                           +T42OH(i,k,j,month+1)*(float(nday-16)/32.)   
-              ho22(i,j,k)= T42HO2(i,k,j,month)*(1.-float(nday-16)/32.)   &
+              ho22(i,j,k) = T42HO2(i,k,j,month)*(1.-float(nday-16)/32.)   &
                           +T42HO2(i,k,j,month+1)*(float(nday-16)/32.)  
               o32(i,j,k) = T42O3(i,k,j,month)*(1.-float(nday-16)/32.)    &
                           +T42O3(i,k,j,month+1)*(float(nday-16)/32.)   
-              no32(i,j,k)= T42NO3(i,k,j,month)*(1.-float(nday-16)/32.)   &
+              no32(i,j,k) = T42NO3(i,k,j,month)*(1.-float(nday-16)/32.)   &
                           +T42NO3(i,k,j,month+1)*(float(nday-16)/32.)  
-              h2o22(i,j,k)= T42H2O2(i,k,j,month)*(1.-float(nday-16)/32.) &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month)*(1.-float(nday-16)/32.) &
                            +T42H2O2(i,k,j,month+1)*(float(nday-16)/32.)  
             end do
           end do
@@ -317,13 +317,13 @@ module mod_oxidant
           do i = 1 , ilon
             oh2(i,j,k) = T42OH(i,k,j,month)*(1.-float(nday-16)/30.)    &
                         +T42OH(i,k,j,month+1)*(float(nday-16)/30.)     
-            ho22(i,j,k)= T42HO2(i,k,j,month)*(1.-float(nday-16)/30.)   &
+            ho22(i,j,k) = T42HO2(i,k,j,month)*(1.-float(nday-16)/30.)   &
                         +T42HO2(i,k,j,month+1)*(float(nday-16)/30.)    
             o32(i,j,k) = T42O3(i,k,j,month)*(1.-float(nday-16)/30.)    &
                         +T42O3(i,k,j,month+1)*(float(nday-16)/30.)     
-            no32(i,j,k)= T42NO3(i,k,j,month)*(1.-float(nday-16)/30.)   &
+            no32(i,j,k) = T42NO3(i,k,j,month)*(1.-float(nday-16)/30.)   &
                         +T42NO3(i,k,j,month+1)*(float(nday-16)/30.)    
-            h2o22(i,j,k)= T42H2O2(i,k,j,month)*(1.-float(nday-16)/30.) &
+            h2o22(i,j,k) = T42H2O2(i,k,j,month)*(1.-float(nday-16)/30.) &
                          +T42H2O2(i,k,j,month+1)*(float(nday-16)/30.)   
           end do
         end do
@@ -335,13 +335,13 @@ module mod_oxidant
           do i = 1 ,ilon
             oh2(i,j,k) = T42OH(i,k,j,month)*(1.-float(nday-16)/31.)    &
                         +T42OH(i,k,j,month+1)*(float(nday-16)/31.)     
-            ho22(i,j,k)= T42HO2(i,k,j,month)*(1.-float(nday-16)/31.)   &
+            ho22(i,j,k) = T42HO2(i,k,j,month)*(1.-float(nday-16)/31.)   &
                         +T42HO2(i,k,j,month+1)*(float(nday-16)/31.)
             o32(i,j,k) = T42O3(i,k,j,month)*(1.-float(nday-16)/31.)    &
                         +T42O3(i,k,j,month+1)*(float(nday-16)/31.)
-            no32(i,j,k)=  T42NO3(i,k,j,month)*(1.-float(nday-16)/31.)  &
+            no32(i,j,k) =  T42NO3(i,k,j,month)*(1.-float(nday-16)/31.)  &
                          +T42NO3(i,k,j,month+1)*(float(nday-16)/31.)
-            h2o22(i,j,k)= T42H2O2(i,k,j,month)*(1.-float(nday-16)/31.) &
+            h2o22(i,j,k) = T42H2O2(i,k,j,month)*(1.-float(nday-16)/31.) &
                          +T42H2O2(i,k,j,month+1)*(float(nday-16)/31.)
           end do
         end do
@@ -352,13 +352,13 @@ module mod_oxidant
           do i = 1 , ilon
             oh2(i,j,k) = T42OH(i,k,j,12)*(1.-float(nday-16)/32.)       &
                         +T42OH(i,k,j,1)*(float(nday-16)/32.)
-            ho22(i,j,k)= T42HO2(i,k,j,12)*(1.-float(nday-16)/32.)      &
+            ho22(i,j,k) = T42HO2(i,k,j,12)*(1.-float(nday-16)/32.)      &
                         +T42HO2(i,k,j,1)*(float(nday-16)/32.)
             o32(i,j,k) = T42O3(i,k,j,12)*(1.-float(nday-16)/32.)       &
                         +T42O3(i,k,j,1)*(float(nday-16)/32.)
-            no32(i,j,k)= T42NO3(i,k,j,12)*(1.-float(nday-16)/32.)      &
+            no32(i,j,k) = T42NO3(i,k,j,12)*(1.-float(nday-16)/32.)      &
                         +T42NO3(i,k,j,1)*(float(nday-16)/32.)
-            h2o22(i,j,k)= T42H2O2(i,k,j,12)*(1.-float(nday-16)/32.)    &
+            h2o22(i,j,k) = T42H2O2(i,k,j,12)*(1.-float(nday-16)/32.)    &
                          +T42H2O2(i,k,j,1)*(float(nday-16)/32.)
           end do
         end do
@@ -372,13 +372,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month-1)*(float(16-nday)/30.)    &
                           +T42OH(i,k,j,month)*(1.-float(16-nday)/30.)
-              ho22(i,j,k)= T42HO2(i,k,j,month-1)*(float(16-nday)/30.)   &
+              ho22(i,j,k) = T42HO2(i,k,j,month-1)*(float(16-nday)/30.)   &
                           +T42HO2(i,k,j,month)*(1.-float(16-nday)/30.)  
               o32(i,j,k) = T42O3(i,k,j,month-1)*(float(16-nday)/30.)    &
                           +T42O3(i,k,j,month)*(1.-float(16-nday)/30.)
-              no32(i,j,k)= T42NO3(i,k,j,month-1)*(float(16-nday)/30.)   &
+              no32(i,j,k) = T42NO3(i,k,j,month-1)*(float(16-nday)/30.)   &
                           +T42NO3(i,k,j,month)*(1.-float(16-nday)/30.)
-              h2o22(i,j,k)= T42H2O2(i,k,j,month-1)*(float(16-nday)/30.) &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month-1)*(float(16-nday)/30.) &
                            +T42H2O2(i,k,j,month)*(1.-float(16-nday)/30.)
             end do
           end do
@@ -390,13 +390,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month-1)*(float(16-nday)/31.)    &
                           +T42OH(i,k,j,month)*(1.-float(16-nday)/31.)
-              ho22(i,j,k)= T42HO2(i,k,j,month-1)*(float(16-nday)/31.)   &
+              ho22(i,j,k) = T42HO2(i,k,j,month-1)*(float(16-nday)/31.)   &
                           +T42HO2(i,k,j,month)*(1.-float(16-nday)/31.)
               o32(i,j,k) = T42O3(i,k,j,month-1)*(float(16-nday)/31.)    &
                           +T42O3(i,k,j,month)*(1.-float(16-nday)/31.)
-              no32(i,j,k)= T42NO3(i,k,j,month-1)*(float(16-nday)/31.)   &
+              no32(i,j,k) = T42NO3(i,k,j,month-1)*(float(16-nday)/31.)   &
                           +T42NO3(i,k,j,month)*(1.-float(16-nday)/31.)
-              h2o22(i,j,k)= T42H2O2(i,k,j,month-1)*(float(16-nday)/31.) &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month-1)*(float(16-nday)/31.) &
                            +T42H2O2(i,k,j,month)*(1.-float(16-nday)/31.)
             end do
           end do
@@ -407,13 +407,13 @@ module mod_oxidant
             do i = 1 , ilon
               oh2(i,j,k) = T42OH(i,k,j,month-1)*(float(16-nday)/32.)     &
                           +T42OH(i,k,j,month)*(1.-float(16-nday)/32.)
-              ho22(i,j,k)= T42HO2(i,k,j,month-1)*(float(16-nday)/32.)    &
+              ho22(i,j,k) = T42HO2(i,k,j,month-1)*(float(16-nday)/32.)    &
                           +T42HO2(i,k,j,month)*(1.-float(16-nday)/32.)
               o32(i,j,k) = T42O3(i,k,j,month-1)*(float(16-nday)/32.)     &
                           +T42O3(i,k,j,month)*(1.-float(16-nday)/32.)
-              no32(i,j,k)= T42NO3(i,k,j,month-1)*(float(16-nday)/32.)    &
+              no32(i,j,k) = T42NO3(i,k,j,month-1)*(float(16-nday)/32.)    &
                           +T42NO3(i,k,j,month)*(1.-float(16-nday)/32.)
-              h2o22(i,j,k)= T42H2O2(i,k,j,month-1)*(float(16-nday)/32.)  &
+              h2o22(i,j,k) = T42H2O2(i,k,j,month-1)*(float(16-nday)/32.)  &
                            +T42H2O2(i,k,j,month)*(1.-float(16-nday)/32.)
             end do
           end do
@@ -425,13 +425,13 @@ module mod_oxidant
           do i = 1 , ilon
             oh2(i,j,k) = T42OH(i,k,j,month-1)*(float(15-nday)/30.)      &
                         +T42OH(i,k,j,month)*(1.-float(15-nday)/30.)    
-            ho22(i,j,k)= T42HO2(i,k,j,month-1)*(float(15-nday)/30.)     &
+            ho22(i,j,k) = T42HO2(i,k,j,month-1)*(float(15-nday)/30.)     &
                         +T42HO2(i,k,j,month)*(1.-float(15-nday)/30.)
             o32(i,j,k) = T42O3(i,k,j,month-1)*(float(15-nday)/30.)      &
                         +T42O3(i,k,j,month)*(1.-float(15-nday)/30.)
-            no32(i,j,k)= T42NO3(i,k,j,month-1)*(float(15-nday)/30.)     &
+            no32(i,j,k) = T42NO3(i,k,j,month-1)*(float(15-nday)/30.)     &
                         +T42NO3(i,k,j,month)*(1.-float(15-nday)/30.)
-            h2o22(i,j,k)= T42H2O2(i,k,j,month-1)*(float(15-nday)/30.)   &
+            h2o22(i,j,k) = T42H2O2(i,k,j,month-1)*(float(15-nday)/30.)   &
                          +T42H2O2(i,k,j,month)*(1.-float(15-nday)/30.)
           end do
         end do
@@ -443,13 +443,13 @@ module mod_oxidant
           do i = 1 , ilon
             oh2(i,j,k) = T42OH(i,k,j,month-1)*(float(16-nday)/31.)      &
                         +T42OH(i,k,j,month)*(1.-float(16-nday)/31.)
-            ho22(i,j,k)= T42HO2(i,k,j,month-1)*(float(16-nday)/31.)     &
+            ho22(i,j,k) = T42HO2(i,k,j,month-1)*(float(16-nday)/31.)     &
                         +T42HO2(i,k,j,month)*(1.-float(16-nday)/31.)
             o32(i,j,k) = T42O3(i,k,j,month-1)*(float(16-nday)/31.)      &
                         +T42O3(i,k,j,month)*(1.-float(16-nday)/31.)
-            no32(i,j,k)= T42NO3(i,k,j,month-1)*(float(16-nday)/31.)     &
+            no32(i,j,k) = T42NO3(i,k,j,month-1)*(float(16-nday)/31.)     &
                         +T42NO3(i,k,j,month)*(1.-float(16-nday)/31.)
-            h2o22(i,j,k)= T42H2O2(i,k,j,month-1)*(float(16-nday)/31.)   &
+            h2o22(i,j,k) = T42H2O2(i,k,j,month-1)*(float(16-nday)/31.)   &
                          +T42H2O2(i,k,j,month)*(1.-float(16-nday)/31.)
           end do
         end do
@@ -460,13 +460,13 @@ module mod_oxidant
           do i = 1 , ilon
             oh2(i,j,k) = T42OH(i,k,j,12)*(float(16-nday)/32.)   &
                        + T42OH(i,k,j,1)*(1.-float(16-nday)/32.)
-            ho22(i,j,k)=T42HO2(i,k,j,12)*(float(16-nday)/32.)   &
+            ho22(i,j,k) = T42HO2(i,k,j,12)*(float(16-nday)/32.)   &
                        +T42HO2(i,k,j,1)*(1.-float(16-nday)/32.)
             o32(i,j,k) = T42O3(i,k,j,12)*(float(16-nday)/32.)   &
                        + T42O3(i,k,j,1)*(1.-float(16-nday)/32.)
-            no32(i,j,k)=T42NO3(i,k,j,12)*(float(16-nday)/32.)   &
+            no32(i,j,k) = T42NO3(i,k,j,12)*(float(16-nday)/32.)   &
                        +T42NO3(i,k,j,1)*(1.-float(16-nday)/32.)
-            h2o22(i,j,k)=T42H2O2(i,k,j,12)*(float(16-nday)/32.) &
+            h2o22(i,j,k) = T42H2O2(i,k,j,12)*(float(16-nday)/32.) &
                       +T42H2O2(i,k,j,1)*(1.-float(16-nday)/32.)
           end do
         end do
@@ -482,12 +482,12 @@ module mod_oxidant
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-real(ptop))*sigma2(l)+real(ptop))*10.
+          prcm = ((poxid_3(j,i)*0.1-real(ptop))*sigma2(l)+real(ptop))*10.
 
           k0 = -1
           do k = ilev , 1 , -1
             pmpi = poxid_3(j,i)*t42hybm(k)+t42hyam(k)
-            k0=k
+            k0 = k
             if (prcm > pmpi) exit
           end do
           if (k0 == ilev) then
@@ -503,7 +503,7 @@ module mod_oxidant
             h2o24(j,i,l) = h2o23(j,i,ilev)+(h2o23(j,i,ilev)-h2o23(j,i,ilev-1)) &
                           *(prcm-pmpi)/(pmpi-pmpj)
           else if (k0 >= 1) then
-            pmpi=poxid_3(j,i)*t42hybm(k0+1)+t42hyam(k0+1)
+            pmpi = poxid_3(j,i)*t42hybm(k0+1)+t42hyam(k0+1)
             oh4(j,i,l) = (oh3(j,i,k0+1)*(prcm-pmpj)            &
                           +oh3(j,i,k0)*(pmpi-prcm))/(pmpi-pmpj)
             ho24(j,i,l) = (ho23(j,i,k0+1)*(prcm-pmpj)          &
@@ -525,8 +525,8 @@ module mod_oxidant
   subroutine freemozart
     use netcdf
     implicit none
-    istatus=nf90_close(ncid)
-    if ( istatus/=nf90_noerr ) then
+    istatus = nf90_close(ncid)
+    if ( istatus /= nf90_noerr ) then
       call die('freemozart','Cannot close input file',1, &
                nf90_strerror(istatus),istatus)
     end if

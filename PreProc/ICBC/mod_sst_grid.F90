@@ -115,7 +115,7 @@ module mod_sst_grid
     call check_ok(istatus,'Dimension jx missing')
     istatus = nf90_inquire_dimension(incin, idimid, len=jxx)
     call check_ok(istatus,'Dimension jx read error')
-    if ( iyy/=iy .or. jxx/=jx ) then
+    if ( iyy /= iy .or. jxx /= jx ) then
       write (stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
       write (stderr,*) '  namelist   : ' , iy , jx
       write (stderr,*) '  DOMAIN     : ' , iyy , jxx
@@ -188,7 +188,7 @@ module mod_sst_grid
     call check_ok(istatus,'Error adding global source')
     istatus = nf90_put_att(ncid, nf90_global, 'Conventions','CF-1.4')
     call check_ok(istatus,'Error adding global Conventions')
-    call date_and_time(values=tvals)
+    call date_and_time(values = tvals)
     write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
          tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
          tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
@@ -319,7 +319,7 @@ module mod_sst_grid
     call check_ok(istatus,'Error adding sst _FillValue')
     istatus = nf90_put_att(ncid, ivar(2), 'coordinates', 'xlon xlat')
     call check_ok(istatus,'Error adding sst coordinates')
-    if ( ssttyp=='OI2ST' .or. ssttyp=='OI2WK' ) then
+    if ( ssttyp == 'OI2ST' .or. ssttyp == 'OI2WK' ) then
       istatus = nf90_def_var(ncid, 'ice', nf90_float, idims(1:3), ivar(3))
       call check_ok(istatus,'Error adding variable ice')
       istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &

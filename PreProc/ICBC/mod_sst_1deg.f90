@@ -35,14 +35,14 @@ module mod_sst_1deg
 !              from UKMO DATA archive (http://www.badc.rl.ac.uk/)    c
 !              and reformed as direct-accessed binary GrADS format   c
 !              in file GISST_187101_200209                           c
-!              ML= 1 is-179.5; ML= 2 is-178.5; => ML=360 is 179.5E   c
-!              NL= 1 is -89.5; NL= 2 is -88.5; => NL=180 is  89.5    c
+!          ML = 1 is-179.5; ML = 2 is-178.5; => ML = 360 is 179.5E   c
+!          NL = 1 is -89.5; NL = 2 is -88.5; => NL = 180 is  89.5    c
 !              see the GrADS control file for details.               c
 !                                                                    c
 ! OISST        from CAC Optimal Interpolation dataset.               c
 !              in the original netCDF format.                        c
-!              ML= 1 is   0.5; ML= 2 is   1.5; => ML=360 is 359.5E   c
-!              NL= 1 is -89.5; NL= 2 is -88.5; => NL=180 is  89.5    c
+!          ML = 1 is   0.5; ML = 2 is   1.5; => ML = 360 is 359.5E   c
+!          NL = 1 is -89.5; NL = 2 is -88.5; => NL = 180 is  89.5    c
 !                                                                    c
 ! OI2ST        both SST and SeaIce in the original netCDF format.    c
 !                                                                    c
@@ -71,8 +71,8 @@ module mod_sst_1deg
   logical :: there
 !
   call zeit_ci('sst_1deg')
-  if ( ssttyp=='GISST' ) then
-    if ( globidate1<1947121512 .or. globidate2>2002091512 ) then
+  if ( ssttyp == 'GISST' ) then
+    if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
       write (stderr,*) 'GISST data required are not available'
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
@@ -84,9 +84,10 @@ module mod_sst_1deg
     end if
     open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
           form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
-          status='old')
-  else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or. ssttyp=='OI2ST' ) then
-    if ( globidate1<1981121512 .or. globidate2<1981121512 ) then
+          status = 'old')
+  else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
+            ssttyp == 'OI2ST' ) then
+    if ( globidate1 < 1981121512 .or. globidate2 < 1981121512 ) then
       write (stderr,*) 'OISST data required are not available'
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
@@ -96,15 +97,15 @@ module mod_sst_1deg
       call die('sst_1deg','sst.mnmean.nc is not available'// &
                ' under '//trim(inpglob)//'/SST/',1)
     end if
-    if ( ssttyp=='OI2ST' ) then
+    if ( ssttyp == 'OI2ST' ) then
       inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',exist=there)
       if ( .not. there ) then
         call die('sst_1deg','icec.mnmean.nc is not available'// &
                  ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-  else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
-    if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
+  else if ( ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
+    if ( globidate1 < 1981110100 .or. globidate2 < 1981110106 ) then
       write (stderr,*) 'OI_WK (or OI2WK) data are not available'
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
@@ -120,7 +121,7 @@ module mod_sst_1deg
       call die('sst_1deg','sst.wkmean.1990-present.nc is not '// &
                'available under '//trim(inpglob)//'/SST/',1)
     end if
-    if ( ssttyp=='OI2WK' ) then
+    if ( ssttyp == 'OI2WK' ) then
       inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
               exist=there)
       if ( .not.there ) then
@@ -141,7 +142,7 @@ module mod_sst_1deg
   end if
 
   ! Montly dataset
-  if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+  if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
     idateo = imonfirst(globidate1)
     if (lfhomonth(globidate1)) then
       idateo = iprevmon(globidate1)
@@ -182,34 +183,36 @@ module mod_sst_1deg
 
   idate = idateo
 
-  if ( ssttyp/='OI_WK' .and. ssttyp/='OI2WK' ) then
+  if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
 
     do k = 1 , nsteps
 
       call split_idate(idate, nyear, nmo, nday, nho)
 
-      if ( ssttyp=='GISST' ) then
+      if ( ssttyp == 'GISST' ) then
         nrec = (nyear-1947)*12 + nmo - 11
         read (11,rec=nrec) sst
-      else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or. ssttyp=='OI2ST') then
-        inpfile = trim(inpglob)//'/SST/sst.mnmean.nc'
+      else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
+                ssttyp == 'OI2ST') then
+        inpfile=trim(inpglob)//'/SST/sst.mnmean.nc'
         call sst_mn(idate,idateo,ilon,jlat,sst,inpfile)
-        if ( ssttyp=='OI2ST' ) then
-          inpfile = trim(inpglob)//'/SST/icec.mnmean.nc'
+        if ( ssttyp == 'OI2ST' ) then
+          inpfile=trim(inpglob)//'/SST/icec.mnmean.nc'
           call ice_mn(idate,idateo,ilon,jlat,ice,inpfile)
         end if
       end if
  
       call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
-      if ( ssttyp=='OI2ST' ) then
+      if ( ssttyp == 'OI2ST' ) then
         call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
       end if
 
-      write (stdout,*) 'XLON,XLAT,SST=', xlon(1,1), xlat(1,1), sstmm(1,1)
+      write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
  
       do j = 1 , jx
         do i = 1 , iy
-          if ( sstmm(i,j)<-5000. .and. (lu(i,j)>13.5 .and. lu(i,j)<15.5) ) then
+          if ( sstmm(i,j) < -5000. .and. &
+               (lu(i,j) > 13.5 .and. lu(i,j) < 15.5) ) then
             do iv = 1 , 20
               lund(iv) = 0
             end do
@@ -224,8 +227,8 @@ module mod_sst_1deg
             ludom = 18
             lumax = 0
             do iv = 1 , 20
-              if ( iv<=13 .or. iv>=16 ) then
-                if ( lund(iv)>lumax ) then
+              if ( iv <= 13 .or. iv >= 16 ) then
+                if ( lund(iv) > lumax ) then
                   ludom = iv
                   lumax = lund(iv)
                 end if
@@ -234,7 +237,7 @@ module mod_sst_1deg
             lu(i,j) = float(ludom)
             write (stdout,*) ludom , sstmm(i,j)
           end if
-          if ( sstmm(i,j)>-100. ) then
+          if ( sstmm(i,j) > -100. ) then
             sstmm(i,j) = sstmm(i,j) + 273.15
           else
             sstmm(i,j) = -9999.
@@ -243,7 +246,7 @@ module mod_sst_1deg
       end do
  
 !         ******           WRITE OUT SST DATA ON MM4 GRID
-      if ( ssttyp/='OI2ST' ) then
+      if ( ssttyp /= 'OI2ST' ) then
         call writerec(idatem,.false.)
       else
         call writerec(idatem,.true.)
@@ -263,32 +266,32 @@ module mod_sst_1deg
 
       call split_idate(idate, nyear, nmo, nday, nho)
 
-      if ( idate<1989123100 ) then
-        inpfile = trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
+      if ( idate < 1989123100 ) then
+        inpfile=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
         iwk = iwkdiff(idate,1981110100) + 1
       else
-        inpfile = trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
+        inpfile=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
         iwk = iwkdiff(idate,1989123100) + 1
       end if
 
       call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
       call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
  
-      if ( ssttyp=='OI2WK') then
-        if ( idate<19891231 ) then
-          inpfile = trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc'
+      if ( ssttyp == 'OI2WK') then
+        if ( idate < 19891231 ) then
+          inpfile=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc'
         else
-          inpfile = trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
+          inpfile=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
         end if
         call ice_wk(idate,iwk,ilon,jlat,ice,inpfile)
         call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
       end if 
 
-      write (stdout,*) 'XLON,XLAT,SST=', xlon(1,1), xlat(1,1), sstmm(1,1)
+      write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
 
       do j = 1 , jx
         do i = 1 , iy
-          if ( sstmm(i,j)>-100. ) then
+          if ( sstmm(i,j) > -100. ) then
             sstmm(i,j) = sstmm(i,j) + 273.15
           else
             sstmm(i,j) = -9999.
@@ -349,28 +352,28 @@ module mod_sst_1deg
   data varname/'sst'/
 !
   call zeit_ci('sst_mn')
-  if ( idate==idate0 ) then
+  if ( idate == idate0 ) then
     inquire (file=pathaddname,exist=there)
     if ( .not.there ) then
       call die('sst_mn',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_mn',trim(pathaddname)//' open error',1, &
               nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
                ' error',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
                ':scale_factor',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
                ':add_offset',1,nf90_strerror(istatus),istatus)
     end if
@@ -391,7 +394,7 @@ module mod_sst_1deg
   icount(3) = 1
 
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     write (stderr,*) istart
     write (stderr,*) icount
     call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
@@ -400,7 +403,7 @@ module mod_sst_1deg
 !
   do j = 1 , jlat
     do i = 1 , ilon
-      if ( work(i,j)==32767 ) then
+      if ( work(i,j) == 32767 ) then
          sst(i,jlat+1-j) = -9999.
       else
          sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
@@ -447,28 +450,28 @@ module mod_sst_1deg
   data varname/'icec'/
 !
   call zeit_ci('ice_mn')
-  if ( idate==idate0 ) then
+  if ( idate == idate0 ) then
     inquire (file=pathaddname,exist=there)
     if ( .not.there ) then
       call die('ice_mn',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_mn',trim(pathaddname)//' open error',1, &
               nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
                ' error',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
                ':scale_factor',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
                ':add_offset',1,nf90_strerror(istatus),istatus)
     end if
@@ -488,7 +491,7 @@ module mod_sst_1deg
   istart(3) = it
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     write (stderr,*) istart
     write (stderr,*) icount
     call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
@@ -497,7 +500,7 @@ module mod_sst_1deg
 !
   do j = 1 , jlat
     do i = 1 , ilon
-      if ( work(i,j)==32767 ) then
+      if ( work(i,j) == 32767 ) then
          ice(i,jlat+1-j) = -9999.
       else
          ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
@@ -555,22 +558,22 @@ module mod_sst_1deg
       call die('sst_wk',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_wk',trim(pathaddname)//' open error',1, &
               nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
                ' error',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
                ':scale_factor',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
                ':add_offset',1,nf90_strerror(istatus),istatus)
     end if
@@ -588,7 +591,7 @@ module mod_sst_1deg
   istart(3) = kkk
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     write (stderr,*) istart
     write (stderr,*) icount
     call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
@@ -598,7 +601,7 @@ module mod_sst_1deg
     istart(3) = kkk-1
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       write (stderr,*) istart
       write (stderr,*) icount
       call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
@@ -608,7 +611,7 @@ module mod_sst_1deg
 
   do j = 1 , jlat
     do i = 1 , ilon
-      if ( work(i,j)==32767 ) then
+      if ( work(i,j) == 32767 ) then
          sst(i,jlat+1-j) = -9999.
       else
          sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
@@ -619,7 +622,7 @@ module mod_sst_1deg
   if (idate < 1989123100) then
     do j = 1 , jlat
       do i = 1 , ilon
-        if ( work1(i,j)==32767 ) then
+        if ( work1(i,j) == 32767 ) then
            sst(i,jlat+1-j) = -9999.
         else
            sst(i,jlat+1-j) = &
@@ -679,22 +682,22 @@ module mod_sst_1deg
       call die('ice_wk',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_wk',trim(pathaddname)//' open error',1, &
               nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
                ' error',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
                ':scale_factor',1,nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
                ':add_offset',1,nf90_strerror(istatus),istatus)
     end if
@@ -712,7 +715,7 @@ module mod_sst_1deg
   istart(3) = kkk
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus/=nf90_noerr ) then
+  if ( istatus /= nf90_noerr ) then
     write (stderr,*) istart
     write (stderr,*) icount
     call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
@@ -722,7 +725,7 @@ module mod_sst_1deg
     istart(3) = kkk-1
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       write (stderr,*) istart
       write (stderr,*) icount
       call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
@@ -732,7 +735,7 @@ module mod_sst_1deg
 
   do j = 1 , jlat
     do i = 1 , ilon
-      if ( work(i,j)==32767 ) then
+      if ( work(i,j) == 32767 ) then
          ice(i,jlat+1-j) = -9999.
       else
          ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
@@ -743,7 +746,7 @@ module mod_sst_1deg
   if (idate < 1989123100) then
     do j = 1 , jlat
       do i = 1 , ilon
-        if ( work1(i,j)==32767 ) then
+        if ( work1(i,j) == 32767 ) then
            ice(i,jlat+1-j) = -9999.
         else
            ice(i,jlat+1-j) = &

@@ -184,7 +184,7 @@ module mod_era40
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
 !bxq
-  if ( idate<1957090100 .or. idate>2002083118 ) then
+  if ( idate < 1957090100 .or. idate > 2002083118 ) then
     call die('getera40', 'ERA40 datasets is just available from'// &
              ' 1957090100 to 2002083118', 1)
   end if
@@ -193,73 +193,73 @@ module mod_era40
   month = idate/10000 - nyear*100
   nday = idate/100 - nyear*10000 - month*100
   nhour = idate - nyear*1000000 - month*10000 - nday*100
-  if ( idate==idate0 .or.                                           &
-       (mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100) ) then
+  if ( idate == idate0 .or.                                           &
+       (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100) ) then
     do k4 = 1 , 4
       do kkrec = 1 , 5
-        if ( kkrec==1 ) then
-          if ( k4==1 ) then
+        if ( kkrec == 1 ) then
+          if ( k4 == 1 ) then
             write (inname,99001) nyear , 'air.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99002) nyear , 'air.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99003) nyear , 'air.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99004) nyear , 'air.' , nyear
           else
           end if
-        else if ( kkrec==2 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 2 ) then
+          if ( k4 == 1 ) then
             write (inname,99001) nyear , 'hgt.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99002) nyear , 'hgt.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99003) nyear , 'hgt.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99004) nyear , 'hgt.' , nyear
           else
           end if
-        else if ( kkrec==3 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 3 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'rhum.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'rhum.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'rhum.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'rhum.' , nyear
           else
           end if
-        else if ( kkrec==4 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 4 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'uwnd.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'uwnd.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'uwnd.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'uwnd.' , nyear
           else
           end if
-        else if ( kkrec==5 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 5 ) then
+          if ( k4 == 1 ) then
             write (inname,99005) nyear , 'vwnd.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99006) nyear , 'vwnd.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99007) nyear , 'vwnd.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99008) nyear , 'vwnd.' , nyear
           else
           end if
-        else if ( kkrec==6 ) then
-          if ( k4==1 ) then
+        else if ( kkrec == 6 ) then
+          if ( k4 == 1 ) then
             write (inname,99009) nyear , 'omega.' , nyear
-          else if ( k4==2 ) then
+          else if ( k4 == 2 ) then
             write (inname,99010) nyear , 'omega.' , nyear
-          else if ( k4==3 ) then
+          else if ( k4 == 3 ) then
             write (inname,99011) nyear , 'omega.' , nyear
-          else if ( k4==4 ) then
+          else if ( k4 == 4 ) then
             write (inname,99012) nyear , 'omega.' , nyear
           else
           end if
@@ -272,17 +272,17 @@ module mod_era40
           call die('getera40', trim(pathaddname)//' is not available', 1)
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec,k4))
-        if ( istatus/=nf90_noerr ) then
+        if ( istatus /= nf90_noerr ) then
           call die('getera40', trim(pathaddname), 1, &
                    nf90_strerror(istatus), istatus)
         end if
         istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',xscl(kkrec,k4))
-        if ( istatus/=nf90_noerr ) then
+        if ( istatus /= nf90_noerr ) then
           call die('getera40', trim(pathaddname)//': scale_factor', 1, &
                    nf90_strerror(istatus), istatus)
         end if
         istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',xoff(kkrec,k4))
-        if ( istatus/=nf90_noerr ) then
+        if ( istatus /= nf90_noerr ) then
           call die('getera40', trim(pathaddname)//': add_offset', 1, &
                    nf90_strerror(istatus), istatus)
         end if
@@ -295,20 +295,20 @@ module mod_era40
  
   k4 = nhour/6 + 1
   it = nday
-  if ( month==2 ) it = it + 31
-  if ( month==3 ) it = it + 59
-  if ( month==4 ) it = it + 90
-  if ( month==5 ) it = it + 120
-  if ( month==6 ) it = it + 151
-  if ( month==7 ) it = it + 181
-  if ( month==8 ) it = it + 212
-  if ( month==9 ) it = it + 243
-  if ( month==10 ) it = it + 273
-  if ( month==11 ) it = it + 304
-  if ( month==12 ) it = it + 334
-  if ( mod(nyear,4)==0 .and. month>2 ) it = it + 1
-  if ( mod(nyear,100)==0 .and. month>2 ) it = it - 1
-  if ( mod(nyear,400)==0 .and. month>2 ) it = it + 1
+  if ( month == 2 ) it = it + 31
+  if ( month == 3 ) it = it + 59
+  if ( month == 4 ) it = it + 90
+  if ( month == 5 ) it = it + 120
+  if ( month == 6 ) it = it + 151
+  if ( month == 7 ) it = it + 181
+  if ( month == 8 ) it = it + 212
+  if ( month == 9 ) it = it + 243
+  if ( month == 10 ) it = it + 273
+  if ( month == 11 ) it = it + 304
+  if ( month == 12 ) it = it + 334
+  if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 1
+  if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 1
+  if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 1
   do k = 1 , 4
     istart(k) = 1
   end do
@@ -320,25 +320,25 @@ module mod_era40
   icount(2) = jlat
   icount(3) = klev
   icount(4) = 365
-  if ( mod(nyear,4)==0 ) icount(4) = 366
-  if ( mod(nyear,100)==0 ) icount(4) = 365
-  if ( mod(nyear,400)==0 ) icount(4) = 366
-  if ( nyear==2002 ) icount(4) = 243
-  if ( nyear==1957 ) icount(4) = 122
-  if ( nyear==1957 ) it = it - 243
+  if ( mod(nyear,4) == 0 ) icount(4) = 366
+  if ( mod(nyear,100) == 0 ) icount(4) = 365
+  if ( mod(nyear,400) == 0 ) icount(4) = 366
+  if ( nyear == 2002 ) icount(4) = 243
+  if ( nyear == 1957 ) icount(4) = 122
+  if ( nyear == 1957 ) it = it - 243
   istart(4) = it
   icount(4) = 1
 !bxq_
   do kkrec = 1 , 5
     inet = inet6(kkrec,k4)
     istatus = nf90_get_var(inet,5,work,istart,icount)
-    if ( istatus/=nf90_noerr ) then
+    if ( istatus /= nf90_noerr ) then
       call die('getera40', trim(pathaddname)//': getvar', 1, &
                nf90_strerror(istatus), istatus)
     end if
     xscale = xscl(kkrec,k4)
     xadd = xoff(kkrec,k4)
-    if ( kkrec==1 ) then
+    if ( kkrec == 1 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon
@@ -346,7 +346,7 @@ module mod_era40
           end do
         end do
       end do
-    else if ( kkrec==2 ) then
+    else if ( kkrec == 2 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon
@@ -355,17 +355,17 @@ module mod_era40
           end do
         end do
       end do
-    else if ( kkrec==3 ) then
+    else if ( kkrec == 3 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon
             rhvar(i,jlat+1-j,k) = real(dble(work(i,j,k))*xscale + xadd)
             rhvar(i,jlat+1-j,k) = rhvar(i,jlat+1-j,k)*0.01
-!               RHvar(i,jlat+1-j,k)=amax1(RHvar(i,jlat+1-j,k),1.05)
+!               RHvar(i,jlat+1-j,k) = amax1(RHvar(i,jlat+1-j,k),1.05)
           end do
         end do
       end do
-    else if ( kkrec==4 ) then
+    else if ( kkrec == 4 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon
@@ -373,7 +373,7 @@ module mod_era40
           end do
         end do
       end do
-    else if ( kkrec==5 ) then
+    else if ( kkrec == 5 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon
@@ -381,7 +381,7 @@ module mod_era40
           end do
         end do
       end do
-    else if ( kkrec==6 ) then
+    else if ( kkrec == 6 ) then
       do k = 1 , klev
         do j = 1 , jlat
           do i = 1 , ilon

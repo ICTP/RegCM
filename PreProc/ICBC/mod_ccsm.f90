@@ -40,11 +40,11 @@ module mod_ccsm
 !  Define pressure levels, Ak and Bk coeffcients and global grid dimensions
 !     In CCSM, the vertical coordinate is a hybrid sigma-pressure system
 !     The pressure is defined as:
-!     P=Ak*Po+Bk*PS(i,j)
+!     P = Ak*Po+Bk*PS(i,j)
 !     All 3D fields required for ICBC are at mid-points, so
 !     Ak refers to hyam, the hybrid A coefficient at midpoints, and
 !     Bk refers to hybm, the hybrid B coefficient at midpoints
-!     Po=1000mb
+!     Po = 1000mb
 !
 !  SUBROUTINE GET_CAM85
 !  Main subroutine to read data arrays from CAM85 and prepare ICBCs at RCM Grid
@@ -198,37 +198,37 @@ module mod_ccsm
 
     call cam42(idate,globidate1,glat)
 
-    if ( idate==globidate1 ) then
+    if ( idate == globidate1 ) then
       pathaddname = trim(inpglob)//'/CAM42/ccsm_ht.nc'
       inquire (file=pathaddname,exist=there)
       if ( .not.there ) then
         call die('get_cam42',trim(pathaddname)//'is not available',1)
       end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inq_varid(inet1,varname,ivar1)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       write (stdout,*) inet1 , trim(pathaddname) , ivar1 , varname
       istatus = nf90_inq_dimid(inet1,'lon',lonid)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inq_dimid(inet1,'lat',latid)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       imin = i0
       imax = i1
-      if ( i0>i1 ) imax = i1 + ilonh
+      if ( i0 > i1 ) imax = i1 + ilonh
       checklon = (imax-imin) + 1
       checklat = (j1-j0) + 1
       write (stdout, *) 'i0,i1' , i0 , i1
-      if ( checklon/=lonlen .or. checklat/=latlen ) then
+      if ( checklon /= lonlen .or. checklat /= latlen ) then
         write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
         write(stderr,*) 'LAT for 3D Variables = ' , checklat
-        write(stderr,*) 'LAT for' , varname , '= ' , latlen
+        write(stderr,*) 'LAT for' , varname , ' = ' , latlen
         write(stderr,*) 'LON for 3D Variables = ' , checklon
-        write(stderr,*) 'LON for' , varname , '= ' , lonlen
+        write(stderr,*) 'LON for' , varname , ' = ' , lonlen
         call die('get_cam42','Check Dims in CCSM Data Files',1)
       end if
       allocate (work(lonlen,latlen), stat=istatus)
@@ -241,11 +241,11 @@ module mod_ccsm
       istart(2) = 1
       istart(3) = 1
       istatus = nf90_get_var(inet1,ivar1,work,istart,icount)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_close(inet1)
       do jj = j0 , j1
         j = jj - j0 + 1
-        if ( i0>i1 ) then
+        if ( i0 > i1 ) then
           do ii = i0 , ilonh
             i = ii - i0 + 1
             zsvar(ii,jj) = work(i,j)/9.80665
@@ -267,7 +267,7 @@ module mod_ccsm
     do k = 1 , klev
       do j = 1 , jlath
         do i = 1 , ilonh
-          if ( psvar(i,j)>-9995. ) then
+          if ( psvar(i,j) > -9995. ) then
             pp3d(i,j,k) = psvar(i,j)*0.5*(bk(k)+bk(k+1))   &
                         + 0.5*(ak(k)+ak(k+1))
           else
@@ -493,21 +493,22 @@ module mod_ccsm
   nhour = idate - nyear*1000000 - month*10000 - nday*100
   nlev = 0
   do kkrec = 1 , 6
-    if ( kkrec<=5 ) nlev = klev
-    if ( kkrec==6 ) nlev = 0
-    if ( idate==idate0 .or.                                         &
-         ((mod(idate,100000)==10100) .and. mod(idate,1000000)/=110100) ) then
-      if ( kkrec==1 ) then
+    if ( kkrec <= 5 ) nlev = klev
+    if ( kkrec == 6 ) nlev = 0
+    if ( idate == idate0 .or.                    &
+         ((mod(idate,100000) == 10100) .and.     &
+           mod(idate,1000000) /= 110100) ) then
+      if ( kkrec == 1 ) then
         write (inname,99001) nyear , 'air.' , nyear
-      else if ( kkrec==2 ) then
+      else if ( kkrec == 2 ) then
         write (inname,99001) nyear , 'hgt.' , nyear
-      else if ( kkrec==3 ) then
+      else if ( kkrec == 3 ) then
         write (inname,99002) nyear , 'shum.' , nyear
-      else if ( kkrec==4 ) then
+      else if ( kkrec == 4 ) then
         write (inname,99002) nyear , 'uwnd.' , nyear
-      else if ( kkrec==5 ) then
+      else if ( kkrec == 5 ) then
         write (inname,99002) nyear , 'vwnd.' , nyear
-      else if ( kkrec==6 ) then
+      else if ( kkrec == 6 ) then
         write (inname,99002) nyear , 'pres.' , nyear
       else
       end if
@@ -519,44 +520,44 @@ module mod_ccsm
       end if
  
       istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec), ivar6(kkrec))
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       write (stdout,*) inet6(kkrec) , trim(pathaddname) , &
                        ivar6(kkrec) , varname(kkrec)
     end if
  
     istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_dimid(inet6(kkrec),'lat',latid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),lonid,len=lonlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),latid,len=latlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
  
     checklon(kkrec) = lonlen
     checklat(kkrec) = latlen
     checktim(kkrec) = timlen
-    if ( kkrec>1 ) then
-      if ( checklat(kkrec)/=checklat(kkrec-1) .or. &
-           checklon(kkrec)/=checklon(kkrec-1) .or. &
-           checktim(kkrec)/=checktim(kkrec-1) ) then
+    if ( kkrec > 1 ) then
+      if ( checklat(kkrec) /= checklat(kkrec-1) .or. &
+           checklon(kkrec) /= checklon(kkrec-1) .or. &
+           checktim(kkrec) /= checktim(kkrec-1) ) then
         write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
-        write(stderr,*) 'LAT for' , varname(kkrec+1) , '=' , checklat(kkrec)
-        write(stderr,*) 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
-        write(stderr,*) 'LON for' , varname(kkrec+1) , '=' , checklon(kkrec)
-        write(stderr,*) 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
-        write(stderr,*) 'TIME for' , varname(kkrec+1) , '=' , checktim(kkrec)
-        write(stderr,*) 'TIME for' , varname(kkrec) , '=' , checktim(kkrec)
+        write(stderr,*) 'LAT for' , varname(kkrec+1) , ' = ' , checklat(kkrec)
+        write(stderr,*) 'LAT for' , varname(kkrec) , ' = ' , checklat(kkrec)
+        write(stderr,*) 'LON for' , varname(kkrec+1) , ' = ' , checklon(kkrec)
+        write(stderr,*) 'LON for' , varname(kkrec) , ' = ' , checklon(kkrec)
+        write(stderr,*) 'TIME for' , varname(kkrec+1) , ' = ' , checktim(kkrec)
+        write(stderr,*) 'TIME for' , varname(kkrec) , ' = ' , checktim(kkrec)
         call die('cam42','Check CCSM Data Files',1)
       end if
     end if
-    if ( kkrec==1 ) then
+    if ( kkrec == 1 ) then
       allocate (work(lonlen,latlen,klev), stat=istatus)
       if (istatus /= 0) call die('cam42','allocate work',istatus)
       call mall_mci(work,'mod_ccsm')
@@ -567,12 +568,12 @@ module mod_ccsm
       if (istatus /= 0) call die('cam42','allocate work2',istatus)
       call mall_mci(work2,'mod_ccsm')
     end if
-    if ( xlon(1,1)<0.0 ) then
+    if ( xlon(1,1) < 0.0 ) then
       nlon0 = xlon(1,1) + 360.
     else
       nlon0 = xlon(1,1)
     end if
-    if ( xlon(jx,1)<0.0 ) then
+    if ( xlon(jx,1) < 0.0 ) then
       nlon1 = xlon(jx,1) + 360.
     else
       nlon1 = xlon(jx,1)
@@ -582,46 +583,46 @@ module mod_ccsm
     istart(1) = 1
     icount(1) = lonlen
     istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_varid(inet6(kkrec),'lat',latid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_get_var(inet6(kkrec),lonid,work1,istart,icount)
     icount(1) = latlen
     istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
  
-    if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. &
-         nlat0<work2(1) .or. nlat1>work2(latlen) ) then
+    if ( nlon0 < work1(1) .or. nlon1 > work1(lonlen) .or. &
+         nlat0 < work2(1) .or. nlat1 > work2(latlen) ) then
       write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
-      write(stderr,*) 'CCSM Window LON min=',work1(1),'max=', work1(lonlen)
-      write(stderr,*) 'RCM  Domain LON min=',nlon0,'max=',nlon1
-      write(stderr,*) 'CCSM Window LAT min=',work2(1),'max=', work2(latlen)
-      write(stderr,*) 'RCM  Domain LAT min=',nlat0,'max=',nlat1
+      write(stderr,*) 'CCSM Window LON min = ',work1(1),'max = ', work1(lonlen)
+      write(stderr,*) 'RCM  Domain LON min = ',nlon0,'max = ',nlon1
+      write(stderr,*) 'CCSM Window LAT min = ',work2(1),'max = ', work2(latlen)
+      write(stderr,*) 'RCM  Domain LAT min = ',nlat0,'max = ',nlat1
       call die('cam42','Correct Domain Parameters in regcm.in',1)
     end if
  
-    if ( idate==idate0 ) then
+    if ( idate == idate0 ) then
       i0 = int(work1(1)/2.8125) + 1
       i1 = int(work1(lonlen)/2.8125) + 1
       do i = 1 , jlath
         jmin = nint(glat(i)-work2(1))
         jmax = nint(glat(i)-work2(latlen))
-        if ( jmin==0 ) j0 = i
-        if ( jmax==0 ) j1 = i
+        if ( jmin == 0 ) j0 = i
+        if ( jmax == 0 ) j1 = i
       end do
     end if
  
     it = (nday-1)*4 + nhour/6 + 1
-    if ( month==2 ) it = it + 31*4
-    if ( month==3 ) it = it + 59*4
-    if ( month==4 ) it = it + 90*4
-    if ( month==5 ) it = it + 120*4
-    if ( month==6 ) it = it + 151*4
-    if ( month==7 ) it = it + 181*4
-    if ( month==8 ) it = it + 212*4
-    if ( month==9 ) it = it + 243*4
-    if ( month==10 ) it = it + 273*4
-    if ( month==11 ) it = it + 304*4
-    if ( month==12 ) it = it + 334*4
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
  
     icount(1) = lonlen
     icount(2) = latlen
@@ -633,14 +634,14 @@ module mod_ccsm
     istart(4) = it
     inet = inet6(kkrec)
     ivar = ivar6(kkrec)
-    if ( nlev>0 ) then
+    if ( nlev > 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       do ilev = 1 , nlev
-        if ( kkrec==1 ) then
+        if ( kkrec == 1 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilonh
                 i = ii - i0 + 1
                 tvar(ii,jj,ilev) = work(i,j,ilev)
@@ -657,10 +658,10 @@ module mod_ccsm
             end if
           end do
 !
-        else if ( kkrec==2 ) then
+        else if ( kkrec == 2 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilonh
                 i = ii - i0 + 1
                 hvar(ii,jj,ilev) = work(i,j,ilev)
@@ -676,10 +677,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==3 ) then
+        else if ( kkrec == 3 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilonh
                 i = ii - i0 + 1
                 qvar(ii,jj,ilev) = work(i,j,ilev)
@@ -695,10 +696,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==4 ) then
+        else if ( kkrec == 4 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilonh
                 i = ii - i0 + 1
                 uvar(ii,jj,ilev) = work(i,j,ilev)
@@ -714,10 +715,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==5 ) then
+        else if ( kkrec == 5 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilonh
                 i = ii - i0 + 1
                 vvar(ii,jj,ilev) = work(i,j,ilev)
@@ -736,14 +737,14 @@ module mod_ccsm
         else
         end if
       end do
-    else if ( nlev==0 ) then
+    else if ( nlev == 0 ) then
       icount(3) = 1
       istart(3) = it
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
-      if ( kkrec==6 ) then
+      if ( kkrec == 6 ) then
         do jj = j0 , j1
           j = jj - j0 + 1
-          if ( i0>i1 ) then
+          if ( i0 > i1 ) then
             do ii = i0 , ilonh
               i = ii - i0 + 1
               psvar(ii,jj) = work(i,j,1)*0.01
@@ -809,36 +810,36 @@ module mod_ccsm
   call zeit_ci('get_cam85')
   call cam85(idate,globidate1,glat)
 
-  if ( idate==globidate1 ) then
+  if ( idate == globidate1 ) then
     pathaddname = trim(inpglob)//'/CAM85/ccsm_ht.nc'
     inquire (file=pathaddname,exist=there)
     if ( .not.there ) then
       call die('get_cam85',trim(pathaddname)//'is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_varid(inet1,varname,ivar1)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     write (stdout,*) inet1 , ivar1 , trim(pathaddname) , ivar1 , varname
     istatus = nf90_inq_dimid(inet1,'lon',lonid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_dimid(inet1,'lat',latid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     imin = i0
     imax = i1
-    if ( i0>i1 ) imax = i1 + ilon
+    if ( i0 > i1 ) imax = i1 + ilon
     checklon = (imax-imin) + 1
     checklat = (j1-j0) + 1
-    if ( checklon/=lonlen .or. checklat/=latlen ) then
+    if ( checklon /= lonlen .or. checklat /= latlen ) then
       write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
       write(stderr,*) 'LAT for 3D Variables = ' , checklat
-      write(stderr,*) 'LAT for' , varname , '= ' , latlen
+      write(stderr,*) 'LAT for' , varname , ' = ' , latlen
       write(stderr,*) 'LON for 3D Variables = ' , checklon
-      write(stderr,*) 'LON for' , varname , '= ' , lonlen
+      write(stderr,*) 'LON for' , varname , ' = ' , lonlen
       call die('get_cam85','Check Dimensions in CCSM Data Files',1)
     end if
     allocate (work(lonlen,latlen), stat=istatus)
@@ -851,11 +852,11 @@ module mod_ccsm
     istart(2) = 1
     istart(3) = 1
     istatus = nf90_get_var(inet1,ivar1,work,istart,icount)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_close(inet1)
     do jj = j0 , j1
       j = jj - j0 + 1
-      if ( i0>i1 ) then
+      if ( i0 > i1 ) then
         do ii = i0 , ilon
           i = ii - i0 + 1
           zsvar(ii,jj) = work(i,j)/9.80665
@@ -877,7 +878,7 @@ module mod_ccsm
   do k = 1 , klev
     do j = 1 , jlat
       do i = 1 , ilon
-        if ( psvar(i,j)>-9995. ) then
+        if ( psvar(i,j) > -9995. ) then
           pp3d(i,j,k) = psvar(i,j)*0.5*(ak(k)+bk(k+1))  &
                         + 0.5*(ak(k)+bk(k+1))
         else
@@ -1117,22 +1118,23 @@ module mod_ccsm
   nhour = idate - nyear*1000000 - month*10000 - nday*100
   nlev = 0
   do kkrec = 1 , 6
-    if ( kkrec<=5 ) nlev = klev
-    if ( kkrec==6 ) nlev = 0
-    if ( idate==idate0 .or.                                         &
-         ((mod(idate,100000)==10100 .and. mod(idate,1000000)/=110100)) .or. &
-           mod(idate,10000)==100 ) then
-      if ( kkrec==1 ) then
+    if ( kkrec <= 5 ) nlev = klev
+    if ( kkrec == 6 ) nlev = 0
+    if ( idate == idate0 .or.                  &
+         ((mod(idate,100000) == 10100 .and.    &
+           mod(idate,1000000) /= 110100)) .or. &
+           mod(idate,10000) == 100 ) then
+      if ( kkrec == 1 ) then
         write (inname,99001) nyear , 'air' , nmonth(month) , nyear
-      else if ( kkrec==2 ) then
+      else if ( kkrec == 2 ) then
         write (inname,99001) nyear , 'hgt' , nmonth(month) , nyear
-      else if ( kkrec==3 ) then
+      else if ( kkrec == 3 ) then
         write (inname,99002) nyear , 'shum' , nmonth(month) , nyear
-      else if ( kkrec==4 ) then
+      else if ( kkrec == 4 ) then
         write (inname,99002) nyear , 'uwnd' , nmonth(month) , nyear
-      else if ( kkrec==5 ) then
+      else if ( kkrec == 5 ) then
         write (inname,99002) nyear , 'vwnd' , nmonth(month) , nyear
-      else if ( kkrec==6 ) then
+      else if ( kkrec == 6 ) then
         write (inname,99002) nyear , 'pres' , nmonth(month) , nyear
       else
       end if
@@ -1144,44 +1146,44 @@ module mod_ccsm
       end if
  
       istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),ivar6(kkrec))
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
       write (stdout,*) inet6(kkrec) , trim(pathaddname) , &
                        ivar6(kkrec) , varname(kkrec)
     end if
  
     istatus = nf90_inq_dimid(inet6(kkrec),'lon',lonid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_dimid(inet6(kkrec),'lat',latid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),lonid,len=lonlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),latid,len=latlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
  
     checklon(kkrec) = lonlen
     checklat(kkrec) = latlen
     checktim(kkrec) = timlen
-    if ( kkrec>1 ) then
-      if ( checklat(kkrec)/=checklat(kkrec-1) .or. &
-           checklon(kkrec)/=checklon(kkrec-1) .or. &
-           checktim(kkrec)/=checktim(kkrec-1) ) then
+    if ( kkrec > 1 ) then
+      if ( checklat(kkrec) /= checklat(kkrec-1) .or. &
+           checklon(kkrec) /= checklon(kkrec-1) .or. &
+           checktim(kkrec) /= checktim(kkrec-1) ) then
         write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
-        write(stderr,*) 'LAT for' , varname(kkrec+1) , '=' , checklat(kkrec)
-        write(stderr,*) 'LAT for' , varname(kkrec) , '=' , checklat(kkrec)
-        write(stderr,*) 'LON for' , varname(kkrec+1) , '=' , checklon(kkrec)
-        write(stderr,*) 'LON for' , varname(kkrec) , '=' , checklon(kkrec)
-        write(stderr,*) 'TIME for' , varname(kkrec+1) , '=' , checktim(kkrec)
-        write(stderr,*) 'TIME for' , varname(kkrec) , '=' , checktim(kkrec)
+        write(stderr,*) 'LAT for' , varname(kkrec+1) , ' = ' , checklat(kkrec)
+        write(stderr,*) 'LAT for' , varname(kkrec) , ' = ' , checklat(kkrec)
+        write(stderr,*) 'LON for' , varname(kkrec+1) , ' = ' , checklon(kkrec)
+        write(stderr,*) 'LON for' , varname(kkrec) , ' = ' , checklon(kkrec)
+        write(stderr,*) 'TIME for' , varname(kkrec+1) , ' = ' , checktim(kkrec)
+        write(stderr,*) 'TIME for' , varname(kkrec) , ' = ' , checktim(kkrec)
         call die('cam85','Check CCSM Data Files',1)
       end if
     end if
-    if ( kkrec==1 ) then
+    if ( kkrec == 1 ) then
       allocate (work(lonlen,latlen,klev), stat=istatus)
       if (istatus /= 0) call die('cam85','allocate work',istatus)
       call mall_mci(work,'mod_ccsm')
@@ -1192,12 +1194,12 @@ module mod_ccsm
       if (istatus /= 0) call die('cam85','allocate work2',istatus)
       call mall_mci(work2,'mod_ccsm')
     end if
-    if ( xlon(1,1)<0.0 ) then
+    if ( xlon(1,1) < 0.0 ) then
       nlon0 = xlon(1,1) + 360.
     else
       nlon0 = xlon(1,1)
     end if
-    if ( xlon(jx,1)<0.0 ) then
+    if ( xlon(jx,1) < 0.0 ) then
       nlon1 = xlon(jx,1) + 360.
     else
       nlon1 = xlon(jx,1)
@@ -1207,46 +1209,46 @@ module mod_ccsm
     istart(1) = 1
     icount(1) = lonlen
     istatus = nf90_inq_varid(inet6(kkrec),'lon',lonid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_varid(inet6(kkrec),'lat',latid)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_get_var(inet6(kkrec),lonid,work1,istart,icount)
     icount(1) = latlen
     istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
  
-    if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. &
-         nlat0<work2(1) .or. nlat1>work2(latlen) ) then
+    if ( nlon0 < work1(1) .or. nlon1 > work1(lonlen) .or. &
+         nlat0 < work2(1) .or. nlat1 > work2(latlen) ) then
       write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
-      write(stderr,*) 'CCSM Window LON min=', work1(1), 'max=', work1(lonlen)
-      write(stderr,*) 'RCM  Domain LON min=', nlon0, 'max=', nlon1
-      write(stderr,*) 'CCSM Window LAT min=', work2(1) , 'max=', work2(latlen)
-      write(stderr,*) 'RCM  Domain LAT min=', nlat0, 'max=', nlat1
+      write(stderr,*) 'CCSM Window LON min= ', work1(1), 'max= ', work1(lonlen)
+      write(stderr,*) 'RCM  Domain LON min= ', nlon0, 'max= ', nlon1
+      write(stderr,*) 'CCSM Window LAT min= ', work2(1) , 'max= ', work2(latlen)
+      write(stderr,*) 'RCM  Domain LAT min= ', nlat0, 'max= ', nlat1
       call die('cam85','Correct Domain Parameters in regcm.in',1)
     end if
  
-    if ( idate==idate0 ) then
+    if ( idate == idate0 ) then
       i0 = int(work1(1)/1.40625) + 1
       i1 = int(work1(lonlen)/1.40625) + 1
       do i = 1 , jlat
         jmin = nint(glat(i)-work2(1))
         jmax = nint(glat(i)-work2(latlen))
-        if ( jmin==0 ) j0 = i
-        if ( jmax==0 ) j1 = i
+        if ( jmin == 0 ) j0 = i
+        if ( jmax == 0 ) j1 = i
       end do
     end if
  
     it = (nday-1)*4 + nhour/6 + 1
-    if ( month==2 ) it = it + 31*4
-    if ( month==3 ) it = it + 59*4
-    if ( month==4 ) it = it + 90*4
-    if ( month==5 ) it = it + 120*4
-    if ( month==6 ) it = it + 151*4
-    if ( month==7 ) it = it + 181*4
-    if ( month==8 ) it = it + 212*4
-    if ( month==9 ) it = it + 243*4
-    if ( month==10 ) it = it + 273*4
-    if ( month==11 ) it = it + 304*4
-    if ( month==12 ) it = it + 334*4
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
  
     icount(1) = lonlen
     icount(2) = latlen
@@ -1258,14 +1260,14 @@ module mod_ccsm
     istart(4) = it
     inet = inet6(kkrec)
     ivar = ivar6(kkrec)
-    if ( nlev>0 ) then
+    if ( nlev > 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       do ilev = 1 , nlev
-        if ( kkrec==1 ) then
+        if ( kkrec == 1 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 tvar(ii,jj,ilev) = work(i,j,ilev)
@@ -1281,10 +1283,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==2 ) then
+        else if ( kkrec == 2 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 hvar(ii,jj,ilev) = work(i,j,ilev)
@@ -1300,10 +1302,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==3 ) then
+        else if ( kkrec == 3 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 qvar(ii,jj,ilev) = work(i,j,ilev)
@@ -1319,10 +1321,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==4 ) then
+        else if ( kkrec == 4 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 uvar(ii,jj,ilev) = work(i,j,ilev)
@@ -1338,10 +1340,10 @@ module mod_ccsm
               end do
             end if
           end do
-        else if ( kkrec==5 ) then
+        else if ( kkrec == 5 ) then
           do jj = j0 , j1
             j = jj - j0 + 1
-            if ( i0>i1 ) then
+            if ( i0 > i1 ) then
               do ii = i0 , ilon
                 i = ii - i0 + 1
                 vvar(ii,jj,ilev) = work(i,j,ilev)
@@ -1361,14 +1363,14 @@ module mod_ccsm
         end if
       end do
  
-    else if ( nlev==0 ) then
+    else if ( nlev == 0 ) then
       icount(3) = 1
       istart(3) = it
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
-      if ( kkrec==6 ) then
+      if ( kkrec == 6 ) then
         do jj = j0 , j1
           j = jj - j0 + 1
-          if ( i0>i1 ) then
+          if ( i0 > i1 ) then
             do ii = i0 , ilon
               i = ii - i0 + 1
               psvar(ii,jj) = work(i,j,1)*0.01

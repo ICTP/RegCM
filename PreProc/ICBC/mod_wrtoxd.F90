@@ -137,7 +137,7 @@ module mod_wrtoxd
     istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
                'CF-1.4')
     call check_ok(istatus,'Error adding global Conventions')
-    call date_and_time(values=tvals)
+    call date_and_time(values = tvals)
     write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
          tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
          tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &

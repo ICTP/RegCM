@@ -77,7 +77,7 @@ program aerosol
   call getarg(0, prgname)
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
-  if ( ierr/=0 ) then
+  if ( ierr /= 0 ) then
     write ( stderr, * ) 'Parameter initialization not completed'
     write ( stderr, * ) 'Usage : '
     write ( stderr, * ) '          ', trim(prgname), ' regcm.in'
@@ -112,7 +112,7 @@ program aerosol
         form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
         status='old',err=100)
 
-  aerofile = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
+  aerofile=trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
 #ifdef NETCDF4_HDF5
   istatus = nf90_create(aerofile, &
             ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
@@ -121,7 +121,7 @@ program aerosol
 #endif
   call check_ok(istatus, ('Error creating NetCDF output '//trim(aerofile)))
 
-  terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+  terfile=trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   istatus = nf90_open(terfile, nf90_nowrite, incin)
   call check_ok(istatus, ('Error Opening Domain '//trim(terfile)))
 
@@ -137,7 +137,7 @@ program aerosol
   call check_ok(istatus, 'Dimension kz missing')
   istatus = nf90_inquire_dimension(incin, idimid, len=kzz)
   call check_ok(istatus, 'Dimension kz read error')
-  if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1) then
+  if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz+1) then
     write(stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
     write(stderr,*) '  namelist   : ' , iy , jx , kz
     write(stderr,*) '  DOMAIN     : ' , iyy , jxx , kzz-1
@@ -172,7 +172,7 @@ program aerosol
   call check_ok(istatus, 'Error adding global institution')
   istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
   call check_ok(istatus, 'Error adding global Conventions')
-  call date_and_time(values=tvals)
+  call date_and_time(values = tvals)
   write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
        tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
        tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
@@ -543,8 +543,8 @@ program aerosol
       q = yind - jq
  
       lon180 = lono(i,j)
-      if ( lono(i,j)<-180. ) lon180 = lono(i,j) + 360.
-      if ( lono(i,j)>180. ) lon180 = lono(i,j) - 360.
+      if ( lono(i,j) < -180. ) lon180 = lono(i,j) + 360.
+      if ( lono(i,j) > 180. ) lon180 = lono(i,j) - 360.
       xind = (((lon180-loni(1))/(loni(nloni)-loni(1)))*float(nloni-1))+1.
       ip = int(xind)
       ip = max0(ip,1)
@@ -554,23 +554,23 @@ program aerosol
       do l = 1 , nflds
         xsum = 0.0
         bas = 0.0
-        if ( fin(ip,jq,l)<-9990.0 .and. fin(ipp1,jq,l)<-9990.0 .and. &
-             fin(ipp1,jqp1,l)<-9990.0 .and. fin(ip,jqp1,l)<-9990.0 ) then
+        if ( fin(ip,jq,l) < -9990.0 .and. fin(ipp1,jq,l) < -9990.0 .and. &
+             fin(ipp1,jqp1,l) < -9990.0 .and. fin(ip,jqp1,l) < -9990.0 ) then
           fout(i,j,l) = -9999.
         else
-          if ( fin(ip,jq,l)>-9990.0 ) then
+          if ( fin(ip,jq,l) > -9990.0 ) then
             xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
             bas = bas + (1.-q)*(1.-p)
           end if
-          if ( fin(ipp1,jq,l)>-9990.0 ) then
+          if ( fin(ipp1,jq,l) > -9990.0 ) then
             xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
             bas = bas + (1.-q)*p
           end if
-          if ( fin(ipp1,jqp1,l)>-9990.0 ) then
+          if ( fin(ipp1,jqp1,l) > -9990.0 ) then
             xsum = xsum + q*p*fin(ipp1,jqp1,l)
             bas = bas + q*p
           end if
-          if ( fin(ip,jqp1,l)>-9990.0 ) then
+          if ( fin(ip,jqp1,l) > -9990.0 ) then
             xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
             bas = bas + q*(1.-p)
           end if

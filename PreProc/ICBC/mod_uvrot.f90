@@ -52,7 +52,7 @@ module mod_uvrot
 !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
 !**   AUTHOR:   D.MAJEWSKI
 !
-  if ( lgtype=='ROTMER' ) then
+  if ( lgtype == 'ROTMER' ) then
     if ( pollat > d_zero ) then
       pollam = pollon + 180.0D0
       polphi = 90.0D0 - pollat
@@ -60,7 +60,7 @@ module mod_uvrot
       polphi = 90.0D0 + pollat
       pollam = pollon
     end if
-    if ( pollam>180.0D0 ) pollam = pollam - 360.0D0
+    if ( pollam > 180.0D0 ) pollam = pollam - 360.0D0
  
     polcphi = cos(degrad*polphi)
     polsphi = sin(degrad*polphi)
@@ -69,7 +69,7 @@ module mod_uvrot
       do i = 1 , jx
         zphi = dble(dlat(i,j))*degrad
         zrla = dble(dlon(i,j))*degrad
-        if ( dlat(i,j)>89.999999 ) zrla = d_zero
+        if ( dlat(i,j) > 89.999999 ) zrla = d_zero
         zrlap = pollam*degrad - zrla
         zarg1 = polcphi*sin(zrlap)
         zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
@@ -87,10 +87,10 @@ module mod_uvrot
   else
     do j = 1 , iy
       do i = 1 , jx
-        if ( (clon>=d_zero .and. dlon(i,j)>=0.0) .or.   &
-             (clon<d_zero  .and. dlon(i,j)<0.0) ) then
+        if ( (clon >= d_zero .and. dlon(i,j) >= 0.0) .or.   &
+             (clon < d_zero  .and. dlon(i,j) < 0.0) ) then
           x = (clon-dble(dlon(i,j)))*degrad*gridfc
-        else if ( clon>=d_zero ) then
+        else if ( clon >= d_zero ) then
           if ( abs(clon-(dble(dlon(i,j))+360.0D0)) < &
                abs(clon-dble(dlon(i,j))) ) then
             x = (clon-(dble(dlon(i,j))+360.0D0))*degrad*gridfc
@@ -153,7 +153,7 @@ module mod_uvrot
 !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
 !**   AUTHOR:   D.MAJEWSKI
 !
-  if ( lgtype=='ROTMER' ) then
+  if ( lgtype == 'ROTMER' ) then
     if ( pollat > d_zero ) then
       pollam = pollon + 180.0D0
       polphi = 90.0D0 - pollat
@@ -161,7 +161,7 @@ module mod_uvrot
       polphi = 90.0D0 + pollat
       pollam = pollon
     end if
-    if ( pollam>180.0D0 ) pollam = pollam - 360.0D0
+    if ( pollam > 180.0D0 ) pollam = pollam - 360.0D0
  
     polcphi = cos(degrad*polphi)
     polsphi = sin(degrad*polphi)
@@ -170,7 +170,7 @@ module mod_uvrot
       do i = 1 , jx
         zphi = dble(dlat(i,j))*degrad
         zrla = dble(dlon(i,j))*degrad
-        if ( dlat(i,j)>89.999999 ) zrla = d_zero
+        if ( dlat(i,j) > 89.999999 ) zrla = d_zero
         zrlap = pollam*degrad - zrla
         zarg1 = polcphi*sin(zrlap)
         zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
@@ -188,10 +188,10 @@ module mod_uvrot
   else
     do j = 1 , iy
       do i = 1 , jx
-        if ( (clon>=d_zero .and. dlon(i,j)>=0.) .or.  &
-             (clon<d_zero .and. dlon(i,j)<0.) ) then
+        if ( (clon >= d_zero .and. dlon(i,j) >= 0.) .or.  &
+             (clon < d_zero .and. dlon(i,j) < 0.) ) then
           x = (clon-dble(dlon(i,j)))*degrad*gridfc
-        else if ( clon>=d_zero ) then
+        else if ( clon >= d_zero ) then
           if ( abs(clon-(dble(dlon(i,j))+360.0D0)) <  &
                abs(clon-dble(dlon(i,j))) ) then
             x = (clon-(dble(dlon(i,j))+360.0D0))*degrad*gridfc
@@ -206,7 +206,7 @@ module mod_uvrot
         end if
         xs = sin(x)
         xc = cos(x)
-        if ( clat>=d_zero ) then
+        if ( clat >= d_zero ) then
           do l = 1 , ll
             d = dble(u(i,j,l))*xc - dble(v(i,j,l))*xs
             v(i,j,l) = real(dble(u(i,j,l))*xs + dble(v(i,j,l))*xc)

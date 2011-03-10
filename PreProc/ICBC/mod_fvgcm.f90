@@ -95,7 +95,7 @@ module mod_fvgcm
              'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
   call zeit_ci('getfvgcm')
-  if ( idate==globidate1 ) then
+  if ( idate == globidate1 ) then
     numx = nint((lon1-lon0)/1.25) + 1
     numy = nint(lat1-lat0) + 1
     inquire (file=trim(inpglob)//'/FVGCM/HT_SRF',exist=there)
@@ -109,8 +109,8 @@ module mod_fvgcm
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 288
-        if ( ii>288 ) ii = ii - 288
+        if ( ii <= 0 ) ii = ii + 288
+        if ( ii > 288 ) ii = ii - 288
         i2 = i - nint(lon0/1.25) + 1
         j2 = j - nint(lat0) + 1
         zs2(ii,j+91) = temp(i2,j2)/9.80616
@@ -124,13 +124,13 @@ module mod_fvgcm
   nday = idate/100 - (idate/10000)*100
   nhour = mod(idate,100)
  
-  if ( nday/=1 .or. nhour/=0 ) then
-    if ( ssttyp=='FV_RF' ) then
+  if ( nday /= 1 .or. nhour /= 0 ) then
+    if ( ssttyp == 'FV_RF' ) then
       finm = 'RF/'//yr_rf(nyear-1960)//'/'//fn_rf//yr_rf(nyear-1960) &
              //chmon(month)
       fips = 'RF/'//yr_rf(nyear-1960)//'/'//pn_rf//yr_rf(nyear-1960) &
              //chmon(month)
-    else if ( ssttyp=='FV_A2' ) then
+    else if ( ssttyp == 'FV_A2' ) then
       finm = 'A2/'//yr_a2(nyear-2070)//'/'//fn_a2//yr_a2(nyear-2070) &
              //chmon(month)
       fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070) &
@@ -139,13 +139,13 @@ module mod_fvgcm
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
-  else if ( month/=1 ) then
-    if ( ssttyp=='FV_RF' ) then
+  else if ( month /= 1 ) then
+    if ( ssttyp == 'FV_RF' ) then
       finm = 'RF/'//yr_rf(nyear-1960)//'/'//fn_rf//yr_rf(nyear-1960) &
              //chmon(month-1)
       fips = 'RF/'//yr_rf(nyear-1960)//'/'//pn_rf//yr_rf(nyear-1960) &
              //chmon(month-1)
-    else if ( ssttyp=='FV_A2' ) then
+    else if ( ssttyp == 'FV_A2' ) then
       finm = 'A2/'//yr_a2(nyear-2070)//'/'//fn_a2//yr_a2(nyear-2070) &
              //chmon(month-1)
       fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070) &
@@ -154,8 +154,8 @@ module mod_fvgcm
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
-  else if ( ssttyp=='FV_RF' ) then
-    if ( nyear==1961 ) then
+  else if ( ssttyp == 'FV_RF' ) then
+    if ( nyear == 1961 ) then
       write (stderr,*) 'Fields on 00z01jan1961 is not saved'
       write (stderr,*) 'Please run from 00z02jan1961'
       call die('getfvgcm')
@@ -164,8 +164,8 @@ module mod_fvgcm
            //chmon(12)
     fips = 'RF/'//yr_rf(nyear-1961)//'/'//pn_rf//yr_rf(nyear-1961)  &
            //chmon(12)
-  else if ( ssttyp=='FV_A2' ) then
-    if ( nyear==2071 ) then
+  else if ( ssttyp == 'FV_A2' ) then
+    if ( nyear == 2071 ) then
       write (stderr,*) 'Fields on 00z01jan2071 is not saved'
       write (stderr,*) 'Please run from 00z02jan2071'
       call die('getfvgcm')
@@ -198,17 +198,17 @@ module mod_fvgcm
         recl=(numx*numy*2+16)/4*ibyte,access='direct')
   open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
         recl=numx*numy*ibyte,access='direct')
-  if ( nday/=1 .or. nhour/=0 ) then
+  if ( nday /= 1 .or. nhour /= 0 ) then
     nrec = ((nday-1)*4+nhour/6-1)*(nlev2*4)
     mrec = (nday-1)*4 + nhour/6 - 1
-  else if ( month==1 .or. month==2 .or. month==4 .or. month==6 .or. &
-            month==8 .or. month==9 .or. month==11 ) then
+  else if ( month == 1 .or. month == 2 .or. month == 4 .or. month == 6 .or. &
+            month == 8 .or. month == 9 .or. month == 11 ) then
     nrec = (31*4-1)*(nlev2*4)
     mrec = 31*4 - 1
-  else if ( month==5 .or. month==7 .or. month==10 .or. month==12 ) then
+  else if ( month == 5 .or. month == 7 .or. month == 10 .or. month == 12 ) then
     nrec = (30*4-1)*(nlev2*4)
     mrec = 30*4 - 1
-  else if ( mod(nyear,4)==0 .and. nyear/=2100 ) then
+  else if ( mod(nyear,4) == 0 .and. nyear /= 2100 ) then
     nrec = (29*4-1)*(nlev2*4)
     mrec = 29*4 - 1
   else
@@ -220,8 +220,8 @@ module mod_fvgcm
   do j = nint(lat0) , nint(lat1)
     do i = nint(lon0/1.25) , nint(lon1/1.25)
       ii = i + 1
-      if ( ii<=0 ) ii = ii + 288
-      if ( ii>288 ) ii = ii - 288
+      if ( ii <= 0 ) ii = ii + 288
+      if ( ii > 288 ) ii = ii - 288
       i2 = i - nint(lon0/1.25) + 1
       j2 = j - nint(lat0) + 1
       ps2(ii,j+91) = temp(i2,j2)*0.01
@@ -233,8 +233,8 @@ module mod_fvgcm
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 288
-        if ( ii>288 ) ii = ii - 288
+        if ( ii <= 0 ) ii = ii + 288
+        if ( ii > 288 ) ii = ii - 288
         i2 = i - nint(lon0/1.25) + 1
         j2 = j - nint(lat0) + 1
         u2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -247,8 +247,8 @@ module mod_fvgcm
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 288
-        if ( ii>288 ) ii = ii - 288
+        if ( ii <= 0 ) ii = ii + 288
+        if ( ii > 288 ) ii = ii - 288
         i2 = i - nint(lon0/1.25) + 1
         j2 = j - nint(lat0) + 1
         v2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -261,8 +261,8 @@ module mod_fvgcm
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 288
-        if ( ii>288 ) ii = ii - 288
+        if ( ii <= 0 ) ii = ii + 288
+        if ( ii > 288 ) ii = ii - 288
         i2 = i - nint(lon0/1.25) + 1
         j2 = j - nint(lat0) + 1
         t2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -275,8 +275,8 @@ module mod_fvgcm
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
-        if ( ii<=0 ) ii = ii + 288
-        if ( ii>288 ) ii = ii - 288
+        if ( ii <= 0 ) ii = ii + 288
+        if ( ii > 288 ) ii = ii - 288
         i2 = i - nint(lon0/1.25) + 1
         j2 = j - nint(lat0) + 1
         q2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
@@ -289,7 +289,7 @@ module mod_fvgcm
   do k = 1 , nlev2
     do j = 1 , nlat2
       do i = 1 , nlon2
-        if ( ps2(i,j)>-9995. ) then
+        if ( ps2(i,j) > -9995. ) then
           pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))    &
                         + 0.5*(ak(k)+ak(k+1))
         else

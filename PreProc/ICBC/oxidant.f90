@@ -44,7 +44,7 @@ program oxidant
   call getarg(0, prgname)
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
-  if ( ierr/=0 ) then
+  if ( ierr /= 0 ) then
     write (stderr,*) 'Parameter initialization not completed'
     write (stderr,*) 'Usage : '
     write (stderr,*) '          ', trim(prgname), ' regcm.in'

@@ -76,24 +76,24 @@ module mod_erahi
   real(sp) :: slonmax , slonmin , xlonmax , xlonmin
 !
   call zeit_ci('geterahi')
-  if ( idate==globidate1 ) then
+  if ( idate == globidate1 ) then
               !,lrec
     xlonmin = 400.
     xlonmax = -400.
     do j = 1 , iy
       do i = 1 , jx
-        if ( xlon(i,j)<xlonmin ) xlonmin = xlon(i,j)
-        if ( xlon(i,j)>xlonmax ) xlonmax = xlon(i,j)
+        if ( xlon(i,j) < xlonmin ) xlonmin = xlon(i,j)
+        if ( xlon(i,j) > xlonmax ) xlonmax = xlon(i,j)
       end do
     end do
-    write (stdout,*) 'XLONMIN,XLONMAX= ' , xlonmin , xlonmax
+    write (stdout,*) 'XLONMIN,XLONMAX = ' , xlonmin , xlonmax
     slonmin = 400.
     slonmax = -400.
     do i = 1 , nlons
-      if ( slon(i)<slonmin ) slonmin = slon(i)
-      if ( slon(i)>slonmax ) slonmax = slon(i)
+      if ( slon(i) < slonmin ) slonmin = slon(i)
+      if ( slon(i) > slonmax ) slonmax = slon(i)
     end do
-    write (stdout,*) 'SLONMIN,SLONMAX= ' , slonmin , slonmax
+    write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
   end if
   write (finame,99001) idate
   open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte, &
@@ -107,7 +107,7 @@ module mod_erahi
   read (61,rec=nrec) ps2
   do j = 1 , nlats
     do i = 1 , nlons
-      if ( lsm(i,j)<0.5 ) zs2(i,j) = 0.000
+      if ( lsm(i,j) < 0.5 ) zs2(i,j) = 0.000
     end do
   end do
   do k = 1 , nlevs
@@ -131,7 +131,7 @@ module mod_erahi
   do k = 1 , nlevs
     do j = 1 , nlats
       do i = 1 , nlons
-        if ( ps2(i,j)>-9995. ) then
+        if ( ps2(i,j) > -9995. ) then
           pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))   &
                         + 0.5*(ak(k)+ak(k+1))
         else

@@ -45,7 +45,7 @@ program sst
   call getarg(0, prgname)
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
-  if ( ierr/=0 ) then
+  if ( ierr /= 0 ) then
     write (stderr,*) 'Parameter initialization not completed'
     write (stderr,*) 'Usage : '
     write (stderr,*) '          ', trim(prgname), ' regcm.in'
@@ -59,20 +59,20 @@ program sst
   end if
 
   call init_grid
-  terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+  terfile=trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call read_domain(terfile)
 
-  if ( ssttyp=='GISST' .or. ssttyp=='OISST' .or.       &
-       ssttyp=='OI_NC' .or. ssttyp=='OI2ST' .or.       &
-       ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
+  if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.       &
+       ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
+       ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
     call sst_1deg
-  else if ( ssttyp=='EH5RF' .or. ssttyp=='EH5A2' .or.  &
-            ssttyp=='EH5B1' .or. ssttyp=='EHA1B' ) then
+  else if ( ssttyp == 'EH5RF' .or. ssttyp == 'EH5A2' .or.  &
+            ssttyp == 'EH5B1' .or. ssttyp == 'EHA1B' ) then
     call sst_eh5om
-  else if ( ssttyp=='ERSST' .or. ssttyp=='ERSKT' ) then
+  else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' ) then
     call sst_ersst
-  else if ( ssttyp=='FV_RF' .or. ssttyp=='FV_A2' .or.  &
-            ssttyp=='FV_B2' ) then
+  else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
+            ssttyp == 'FV_B2' ) then
     call sst_fvgcm
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
