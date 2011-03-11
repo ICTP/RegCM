@@ -19,12 +19,15 @@
  
       module mod_cu_tiedtke
 !
+      use mod_dynparam
       use mod_runparams
+      use mod_constants
+      use mod_cu_tables
+      use mod_message
 !
-#ifdef WHEN_I_WILL_COMPILE_TAKE_AWAY_THIS
-
       contains
 !
+#ifdef WHEN_I_WILL_COMPILE_TAKE_AWAY_THIS
 !
       subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
                       & pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
@@ -55,12 +58,8 @@
 !
 !          CUMASTR, CUMASTRT OR CUMASTRH
 !
-      use mo_time_control , only : time_step_len
-      use mo_constants , only : vtmpc1
-      use mo_param_switches , only : iconv
-      use mo_convect_tables , only : tlucua , jptlucu1 , jptlucu2 , &
-      &                              lookuperror , lookupoverflow
- 
+      use mod_date , only : dt
+
       implicit none
 !
       integer(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
@@ -96,7 +95,7 @@
 !*    1.           CALCULATE T,Q AND QS AT MAIN LEVELS
 !*    -----------------------------------
 !
-      ztmst = time_step_len
+      ztmst = dt
       do jk = 1 , klev
         do jl = 1 , kproma
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*ztmst
@@ -116,7 +115,10 @@
           zqsat(jl,jk) = zqsat(jl,jk)/(1.0D0-vtmpc1*zqsat(jl,jk))
         end do
  
-        if ( lookupoverflow ) call lookuperror('cucall      ')
+        if ( lookupoverflow ) then
+          call fatal(__FILE__,__LINE__, &
+               'Cumulus Tables lookup error: OVERFLOW')
+        end if
  
         do jt = 1 , ktrac
           do jl = 1 , kproma
@@ -284,13 +286,9 @@
 !
 !          PAPER ON MASSFLUX SCHEME (TIEDTKE,1989)
 !
-      use mo_control , only : nn
-      use mo_constants , only : alv , als , vtmpc1
       use mo_cumulus_flux , only : entrpen , entrscv , lmfdd , cmfdeps ,&
       &                            lmfdudv
-      use mo_convect_tables , only : tlucua , tlucub , jptlucu1 ,       &
-      &                         jptlucu2 , lookuperror , lookupoverflow
-      use mo_time_control , only : time_step_len
+      use mod_date , only : dt
 !
       implicit none
 !
@@ -335,8 +333,17 @@
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-      zcons2 = 1.0D0/(gti*time_step_len)
-      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
+      zcons2 = 1.0D0/(egrav*dt)
+
+! *AMT* NOTE!
+! this paramter is the CAPE adjustment timescale which in the global model
+! was a function of horizontal resolution (nn wavenumber of a spectral model)
+! this is translated roughly into horizontal resolution in meters
+! !!!WARNING: this is defined twice and should be removed into a module!!!!
+!
+!      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
+      ztau=min(3.0D0*3600.0D0,22.7D0*ds)
+
 !
 !----------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -389,13 +396,13 @@
         zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
         zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
         llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl)
-        zmfub(jl) = merge(zdqpbl(jl)/(gti*max(zqumqe,zdqmin)),0.010D0,  &
+        zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010D0,  &
                   & llo1)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         zmfub(jl) = min(zmfub(jl),zmfmax)
         if ( .not.llo1 ) ldcum(jl) = .false.
         ktype(jl) = merge(1,2,zdqcv(jl)>max(0.0D0,-1.10D0               &
-                  & *pqhfla(jl)*gti))
+                  & *pqhfla(jl)*egrav))
         zentr(jl) = merge(entrpen,entrscv,ktype(jl)==1)
       end do
 !
@@ -410,14 +417,16 @@
 !
       do jl = 1 , kproma
         ikb = kcbot(jl)
-        zalvs = merge(alv,als,ptu(jl,ikb)>tzero)
+        zalvs = merge(wlhv,wlhs
+,ptu(jl,ikb)>tzero)
         zhcbase(jl) = zcpcu(jl,ikb)*ptu(jl,ikb) + zgeoh(jl,ikb)         &
                     & + zalvs*pqu(jl,ikb)
         ictop0(jl) = kcbot(jl) - 1
       end do
       do jk = klevm1 , 3 , -1
         do jl = 1 , kproma
-          zalvs = merge(alv,als,ztenh(jl,jk)>tzero)
+          zalvs = merge(wlhv,wlhs
+,ztenh(jl,jk)>tzero)
           zalvdcp = zalvs/zcpcu(jl,jk)
           zqalv = 1.0D0/zalvs
           zhsat = zcpcu(jl,jk)*ztenh(jl,jk) + zgeoh(jl,jk)              &
@@ -454,7 +463,10 @@
 !     zentr(jl)=MERGE(entrpen,entrscv,ktype(jl).eq.1)
 !     ENDDO
 !!
-      if ( lookupoverflow ) call lookuperror('cumastr ')
+      if ( lookupoverflow ) then
+        call fatal(__FILE__,__LINE__, &
+             'Cumulus Tables lookup error: OVERFLOW')
+      end if
 !
 !     FIND LOWEST POSSIBLE ORG. DETRAINMENT LEVEL
 !     -------------------------------------------
@@ -470,20 +482,21 @@
       end do
 !
       zb = 25.0D0
-      zbi = 1.0D0/(zb*gti)
+      zbi = 1.0D0/(zb*egrav)
       do jk = klev , 1 , -1
         do jl = 1 , kproma
           llo1 = ldcum(jl) .and. ktype(jl)==1 .and. ihmin(jl)==kcbot(jl)
           if ( llo1 .and. jk<kcbot(jl) .and. jk>=ictop0(jl) ) then
-            zalvs = merge(alv,als,ztenh(jl,jk)>tzero)
+            zalvs = merge(wlhv,wlhs
+,ztenh(jl,jk)>tzero)
             ikb = kcbot(jl)
             zro = paphp1(jl,jk)                                         &
                 & /(rgas*ztenh(jl,jk)*(1.0D0+vtmpc1*zqenh(jl,jk)))
-            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(gti*zro)
+            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
             zdhdz = (zcpen(jl,jk-1)*pten(jl,jk-1)-zcpen(jl,jk)          &
                   & *pten(jl,jk)+zalvs*(pqen(jl,jk-1)-pqen(jl,jk))      &
                   & +(pgeo(jl,jk-1)-pgeo(jl,jk)))                       &
-                  & *gti/(pgeo(jl,jk-1)-pgeo(jl,jk))
+                  & *egrav/(pgeo(jl,jk-1)-pgeo(jl,jk))
             zdepth = zgeoh(jl,jk) - zgeoh(jl,ikb)
             zfac = sqrt(1.0D0+zdepth*zbi)
             zhmin(jl) = zhmin(jl) + zdhdz*zfac*zdz
@@ -570,16 +583,16 @@
             ikb = kcbot(jl)
             zro = paphp1(jl,jk)                                         &
                 & /(rgas*ztenh(jl,jk)*(1.0D0+vtmpc1*zqenh(jl,jk)))
-            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(gti*zro)
+            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
             zheat(jl) = zheat(jl)                                       &
                       & + ((pten(jl,jk-1)-pten(jl,jk)                   &
-                      & +gti*zdz/zcpcu(jl,jk))/ztenh(jl,jk)             &
+                      & +egrav*zdz/zcpcu(jl,jk))/ztenh(jl,jk)             &
                       & +vtmpc1*(pqen(jl,jk-1)-pqen(jl,jk)))            &
-                      & *(gti*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
+                      & *(egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
             zcape(jl) = zcape(jl)                                       &
-                      & + (gti*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk)   &
-                      & +gti*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))           &
-                      & -gti*plu(jl,jk))*zdz
+                      & + (egrav*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk)   &
+                      & +egrav*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))           &
+                      & -egrav*plu(jl,jk))*zdz
           end if
         end do
       end do
@@ -610,7 +623,7 @@
           zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
           llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl)   &
                & .and. zmfub(jl)<zmfmax
-          zmfub1(jl) = merge(zdqpbl(jl)/(gti                            &
+          zmfub1(jl) = merge(zdqpbl(jl)/(egrav                            &
                      & *max(zqumqe,zdqmin)),zmfub(jl),llo1)
           zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),abs(zmfub1(jl)        &
                      & -zmfub(jl))<0.20D0*zmfub(jl))
@@ -777,13 +790,9 @@
 !
 !          PAPER ON MASSFLUX SCHEME (TIEDTKE,1989)
 !
-      use mo_control , only : nn
-      use mo_constants , only : alv , als , vtmpc1
       use mo_cumulus_flux , only : entrpen , entrscv , lmfdd , cmfdeps ,&
                                  & lmfdudv
-      use mo_convect_tables , only : tlucua , tlucub , jptlucu1 ,       &
-                            & jptlucu2 , lookuperror , lookupoverflow
-      use mo_time_control , only : fime_step_len
+      use mod_date , only : fime_step_len
 !
       implicit none
 !
@@ -827,8 +836,13 @@
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-      zcons2 = 1.0D0/(gti*time_step_len)
-      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
+      zcons2 = 1.0D0/(egrav*dt)
+! *AMT* NOTE!
+! this paramter is the CAPE adjustment timescale which in the global model
+! was a function of horizontal resolution (nn wavenumber of a spectral model)
+! this is translated roughly into horizontal resolution in meters
+!      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
+      ztau=min(3.0D0*3600.0D0,22.7D0*ds)
 !
 !-----------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -881,13 +895,13 @@
         zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
         zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
         llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl)
-        zmfub(jl) = merge(zdqpbl(jl)/(gti*max(zqumqe,zdqmin)),0.010D0,  &
+        zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010D0,  &
                   & llo1)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         zmfub(jl) = min(zmfub(jl),zmfmax)
         if ( .not.llo1 ) ldcum(jl) = .false.
         ktype(jl) = merge(1,2,zdqcv(jl)>max(0.0D0,-1.10D0               &
-                  & *pqhfla(jl)*gti))
+                  & *pqhfla(jl)*egrav))
         zentr(jl) = merge(entrpen,entrscv,ktype(jl)==1)
       end do
 !
@@ -902,14 +916,16 @@
 !
       do jl = 1 , kproma
         ikb = kcbot(jl)
-        zalvs = merge(alv,als,ptu(jl,ikb)>tzero)
+        zalvs = merge(wlhv,wlhs
+,ptu(jl,ikb)>tzero)
         zhcbase(jl) = zcpcu(jl,ikb)*ptu(jl,ikb) + zgeoh(jl,ikb)         &
                     & + zalvs*pqu(jl,ikb)
         ictop0(jl) = kcbot(jl) - 1
       end do
       do jk = klevm1 , 3 , -1
         do jl = 1 , kproma
-          zalvs = merge(alv,als,ztenh(jl,jk)>tzero)
+          zalvs = merge(wlhv,wlhs
+,ztenh(jl,jk)>tzero)
           zalvdcp = zalvs/zcpcu(jl,jk)
           zqalv = 1.0D0/zalvs
           zhsat = zcpcu(jl,jk)*ztenh(jl,jk) + zgeoh(jl,jk)              &
@@ -936,7 +952,10 @@
         end do
       end do
 !
-      if ( lookupoverflow ) call lookuperror('cumastrh')
+      if ( lookupoverflow ) then
+        call fatal(__FILE__,__LINE__, &
+             'Cumulus Tables lookup error: OVERFLOW')
+      end if
 !!
 !!    DEEP CONVECTION IF CLOUD DEPTH > 200 HPA, ELSE SHALLOW
 !!    (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
@@ -1017,16 +1036,16 @@
             ikb = kcbot(jl)
             zro = paphp1(jl,jk)                                         &
                 & /(rgas*ztenh(jl,jk)*(1.0D0+vtmpc1*zqenh(jl,jk)))
-            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(gti*zro)
+            zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
             zheat(jl) = zheat(jl)                                       &
                       & + ((pten(jl,jk-1)-pten(jl,jk)                   &
-                      & +gti*zdz/zcpcu(jl,jk))/ztenh(jl,jk)             &
+                      & +egrav*zdz/zcpcu(jl,jk))/ztenh(jl,jk)             &
                       & +vtmpc1*(pqen(jl,jk-1)-pqen(jl,jk)))            &
-                      & *(gti*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
+                      & *(egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
             zcape(jl) = zcape(jl)                                       &
-                      & + (gti*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk)   &
-                      & +gti*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))           &
-                      & -gti*plu(jl,jk))*zdz
+                      & + (egrav*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk)   &
+                      & +egrav*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))           &
+                      & -egrav*plu(jl,jk))*zdz
           end if
         end do
       end do
@@ -1057,7 +1076,7 @@
           zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
           llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl)   &
                & .and. zmfub(jl)<zmfmax
-          zmfub1(jl) = merge(zdqpbl(jl)/(gti                            &
+          zmfub1(jl) = merge(zdqpbl(jl)/(egrav                            &
                & *max(zqumqe,zdqmin)),zmfub(jl),llo1)
           zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),abs(zmfub1(jl)        &
                      & -zmfub(jl))<0.20D0*zmfub(jl))
@@ -1223,13 +1242,9 @@
 !
 !          PAPER ON MASSFLUX SCHEME (TIEDTKE,1989)
 !
-      use mo_control , only : nn
-      use mo_constants , only : alv , als , vtmpc1
       use mo_cumulus_flux , only : entrpen , entrscv , lmfdd , cmfdeps ,&
                                  & lmfdudv
-      use mo_convect_tables , only : tlucua , tlucub , jptlucu1 ,       &
-                          & jptlucu2 , lookuperror , lookupoverflow
-      use mo_time_control , only : time_step_len
+      use mod_date , only : dt
 !
       implicit none
 !
@@ -1273,7 +1288,7 @@
 !     --------------------------------
 !
 !
-      zcons2 = 1.0D0/(gti*time_step_len)
+      zcons2 = 1.0D0/(egrav*dt)
 !
 !---------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1328,12 +1343,12 @@
         zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
         llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl)
         zmfub(jl) = merge(zdqpbl(jl)                                    &
-                  & /(gti*max(zqumqe,zdqmin)),0.010D0,llo1)
+                  & /(egrav*max(zqumqe,zdqmin)),0.010D0,llo1)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         zmfub(jl) = min(zmfub(jl),zmfmax)
         if ( .not.llo1 ) ldcum(jl) = .false.
         ktype(jl) = merge(1,2,zdqcv(jl)>max(0.0D0,-1.10D0               &
-                  & *pqhfla(jl)*gti))
+                  & *pqhfla(jl)*egrav))
         zentr(jl) = merge(entrpen,entrscv,ktype(jl)==1)
       end do
 !
@@ -1348,14 +1363,16 @@
 !
       do jl = 1 , kproma
         ikb = kcbot(jl)
-        zalvs = merge(alv,als,ptu(jl,ikb)>tzero)
+        zalvs = merge(wlhv,wlhs
+,ptu(jl,ikb)>tzero)
         zhcbase(jl) = zcpcu(jl,ikb)*ptu(jl,ikb) + zgeoh(jl,ikb)         &
                     & + zalvs*pqu(jl,ikb)
         ictop0(jl) = kcbot(jl) - 1
       end do
       do jk = klevm1 , 3 , -1
         do jl = 1 , kproma
-          zalvs = merge(alv,als,ztenh(jl,jk)>tzero)
+          zalvs = merge(wlhv,wlhs
+,ztenh(jl,jk)>tzero)
           zalvdcp = zalvs/zcpcu(jl,jk)
           zqalv = 1.0D0/zalvs
           zhsat = zcpcu(jl,jk)*ztenh(jl,jk) + zgeoh(jl,jk)              &
@@ -1382,7 +1399,10 @@
         end do
       end do
 !
-      if ( lookupoverflow ) call lookuperror('cumastrt')
+      if ( lookupoverflow ) then
+        call fatal(__FILE__,__LINE__, &
+             'Cumulus Tables lookup error: OVERFLOW')
+      end if
 !!
 !!    DEEP CONVECTION IF CLOUD DEPTH > 200 HPA, ELSE SHALLOW
 !!    (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
@@ -1458,7 +1478,7 @@
             zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
             llo1 = zdqpbl(jl)>0.0D0 .and. zqumqe>zdqmin .and. ldcum(jl) &
                  & .and. zmfub(jl)<zmfmax
-            zmfub1(jl) = merge(zdqpbl(jl)/(gti*max(zqumqe,zdqmin)),     &
+            zmfub1(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),     &
                        & zmfub(jl),llo1)
             zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),(ktype(jl)==1 .or.  &
                        & ktype(jl)==2) .and. abs(zmfub1(jl)-zmfub(jl))  &
@@ -1780,11 +1800,9 @@
 !          ---------
 !          (TIEDTKE,1989)
 !
-      use mo_control , only : nn
-      use mo_constants , only : vtmpc1 , alv , als
       use mo_cumulus_flux , only : lmfdudv , lmfmid , nmctop , cmfcmin ,&
                                  & cprcon , cmfctop , centrmax
-      use mo_time_control , only : time_step_len
+      use mod_date , only : dt
  
       implicit none
 !
@@ -1825,18 +1843,25 @@
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-      zcons2 = 1.0D0/(gti*time_step_len)
+      zcons2 = 1.0D0/(egrav*dt)
       ztglace = tzero - 13.0D0
       zqold(1:kproma) = 0.0D0
-      if ( klev/=11 ) then
-        zdlev = 3.0D4
-      else if ( nn==21 ) then
-        zdlev = 1.5D4
-      else if ( nn==31 ) then
-        zdlev = 2.0D4
-      else
-        zdlev = 3.0D4
-      end if
+
+! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
+! below a certain pressure (from the surface) is hard wired according to the 
+! vertical resolution of the model - This has been fixed to 150 hPa.
+! WARNING - this should be set outside of the routines.
+!      if ( klev/=11 ) then
+!        zdlev = 3.0D4
+!      else if ( nn==21 ) then
+!        zdlev = 1.5D4
+!      else if ( nn==31 ) then
+!        zdlev = 2.0D4 
+!      else
+!        zdlev = 3.0D4
+!      end if
+       zdlev = 1.5D4
+
 !
 !----------------------------------------------------------------------
 !     2.           SET DEFAULT VALUES
@@ -1914,12 +1939,12 @@
       do jl = 1 , kproma
         if ( ktype(jl)==1 ) then
           ikb = kcbot(jl)
-          zbuoy(jl) = gti*(ptu(jl,ikb)-ptenh(jl,ikb))/ptenh(jl,ikb)     &
-                    & + gti*vtmpc1*(pqu(jl,ikb)-pqenh(jl,ikb))
+          zbuoy(jl) = egrav*(ptu(jl,ikb)-ptenh(jl,ikb))/ptenh(jl,ikb)     &
+                    & + egrav*vtmpc1*(pqu(jl,ikb)-pqenh(jl,ikb))
           if ( zbuoy(jl)>0.0D0 ) then
-            zdz = (pgeo(jl,ikb-1)-pgeo(jl,ikb))*rgti
+            zdz = (pgeo(jl,ikb-1)-pgeo(jl,ikb))*regrav
             zdrodz = -log(pten(jl,ikb-1)/pten(jl,ikb))                  &
-                   & /zdz - gti/(rgas*ptenh(jl,ikb)                     &
+                   & /zdz - egrav/(rgas*ptenh(jl,ikb)                     &
                    & *(1.0D0+vtmpc1*pqenh(jl,ikb)))
 !           nb zoentr is here a fractional value
             zoentr(jl,ikb-1) = zbuoy(jl)*0.50D0/(1.0D0+zbuoy(jl)*zdz)   &
@@ -2019,7 +2044,7 @@
             zdmfde(jl) = min(zdmfde(jl),0.750D0*pmfu(jl,jk+1))
             pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
             if ( ktype(jl)==1 .and. jk<kcbot(jl) ) then
-              zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*rgti
+              zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
               zoentr(jl,jk) = zoentr(jl,jk)*zdprho*pmfu(jl,jk+1)
               zmftest = pmfu(jl,jk) + zoentr(jl,jk) - zodetr(jl,jk)
               zmfmax = min(zmftest,(paphp1(jl,jk)-paphp1(jl,jk-1))      &
@@ -2033,14 +2058,15 @@
                & then
 !             limit organized detrainment to not allowing for too
 !             deep clouds
-              zalvs = merge(alv,als,ptu(jl,jk+1)>tzero)
+              zalvs = merge(wlhv,wlhs
+,ptu(jl,jk+1)>tzero)
               zmse = pcpcu(jl,jk+1)*ptu(jl,jk+1) + zalvs*pqu(jl,jk+1)   &
                    & + pgeoh(jl,jk+1)
               ikt = kctop0(jl)
               znevn = (pgeoh(jl,ikt)-pgeoh(jl,jk+1))                    &
-                    & *(zmse-phhatt(jl,jk+1))*rgti
+                    & *(zmse-phhatt(jl,jk+1))*regrav
               if ( znevn<=0.0D0 ) znevn = 1.
-              zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*rgti
+              zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
               zodmax = ((phcbase(jl)-zmse)/znevn)*zdprho*pmfu(jl,jk+1)
               zodmax = max(zodmax,0.0D0)
               zodetr(jl,jk) = min(zodetr(jl,jk),zodmax)
@@ -2057,7 +2083,8 @@
             zscde = (pcpcu(jl,jk+1)*ptu(jl,jk+1)+pgeoh(jl,jk+1))        &
                   & *zdmfde(jl)
 !           find moist static energy that give nonbuoyant air
-            zalvs = merge(alv,als,ptenh(jl,jk+1)>tzero)
+            zalvs = merge(wlhv,wlhs
+,ptenh(jl,jk+1)>tzero)
             zga = zalvs*pqsenh(jl,jk+1)/(rwat*(ptenh(jl,jk+1)**2))
             zdt = (plu(jl,jk+1)-vtmpc1*(pqsenh(jl,jk+1)-pqenh(jl,jk+1)))&
                 & /(1.0D0/ptenh(jl,jk+1)+vtmpc1*zga)
@@ -2179,13 +2206,13 @@
 !
         do jl = 1 , kproma
           if ( loflag(jl) .and. ktype(jl)==1 ) then
-            zbuoyz = gti*(ptu(jl,jk)-ptenh(jl,jk))/ptenh(jl,jk)         &
-                   & + gti*vtmpc1*(pqu(jl,jk)-pqenh(jl,jk))             &
-                   & - gti*plu(jl,jk)
+            zbuoyz = egrav*(ptu(jl,jk)-ptenh(jl,jk))/ptenh(jl,jk)         &
+                   & + egrav*vtmpc1*(pqu(jl,jk)-pqenh(jl,jk))             &
+                   & - egrav*plu(jl,jk)
             zbuoyz = max(zbuoyz,0.00D0)
-            zdz = (pgeo(jl,jk-1)-pgeo(jl,jk))*rgti
+            zdz = (pgeo(jl,jk-1)-pgeo(jl,jk))*regrav
             zdrodz = -log(pten(jl,jk-1)/pten(jl,jk))                    &
-                   & /zdz - gti/(rgas*ptenh(jl,jk)                      &
+                   & /zdz - egrav/(rgas*ptenh(jl,jk)                      &
                    & *(1.0D0+vtmpc1*pqenh(jl,jk)))
             zbuoy(jl) = zbuoy(jl) + zbuoyz*zdz
             zoentr(jl,jk-1) = zbuoyz*0.50D0/(1.0D0+zbuoy(jl)) + zdrodz
@@ -2297,10 +2324,9 @@
 !          (TIEDTKE,1989)
 !
       use mo_control , only : nn
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : lmfdudv , lmfmid , nmctop , cmfcmin ,&
                                  & cprcon , cmfctop
-      use mo_time_control , only : time_step_len
+      use mod_date , only : dt
 !
       implicit none
 !
@@ -2336,17 +2362,24 @@
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-      zcons2 = 1.0D0/(gti*time_step_len)
+      zcons2 = 1.0D0/(egrav*dt)
       ztglace = tzero - 13.0D0
-      if ( klev/=11 ) then
-        zdlev = 3.0D4
-      else if ( nn==21 ) then
-        zdlev = 1.5D4
-      else if ( nn==31 ) then
-        zdlev = 2.0D4
-      else
-        zdlev = 3.0D4
-      end if
+
+! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
+! below a certain pressure (from the surface) is hard wired according to the 
+! vertical resolution of the model - This has been fixed to 150 hPa.
+! WARNING - this should be set outside of the routines.
+!      if ( klev/=11 ) then
+!        zdlev = 3.0D4
+!      else if ( nn==21 ) then
+!        zdlev = 1.5D4
+!      else if ( nn==31 ) then
+!        zdlev = 2.0D4 
+!      else
+!        zdlev = 3.0D4
+!      end if
+       zdlev = 1.5D4
+
 !
 !----------------------------------------------------------------------
 !     2.           SET DEFAULT VALUES
@@ -2675,7 +2708,6 @@
 !          ---------
 !          *CUADJTQ* FOR ADJUSTING T AND Q DUE TO CONDENSATION IN ASCENT
 !
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : lmfdudv
  
       implicit none
@@ -2816,7 +2848,6 @@
 !          ---------
 !          NONE
 !
-      use mo_constants , only : g
       use mo_cumulus_flux , only : lmfdudv , entrmid , cmfcmin , cmfcmax
 !
       implicit none
@@ -2854,7 +2885,7 @@
                        & kk+1))/pcpen(jl,kk)
           pqu(jl,kk+1) = pqen(jl,kk)
           plu(jl,kk+1) = 0.0D0
-          zzzmb = max(cmfcmin,-pverv(jl,kk)*rgti
+          zzzmb = max(cmfcmin,-pverv(jl,kk)*regrav
           zzzmb = min(zzzmb,cmfcmax)
           pmfub(jl) = zzzmb
           pmfu(jl,kk+1) = pmfub(jl)
@@ -2923,7 +2954,6 @@
 !          ---------
 !          (TIEDTKE,1989)
 !
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : lmfdudv , cmfcmin , entrdd
 !
       implicit none
@@ -2971,7 +3001,7 @@
           do jl = 1 , kproma
             if ( llo2(jl) ) then
               zentr = entrdd*pmfd(jl,jk-1)*rgas*ptenh(jl,jk-1)          &
-                    & /(gti*paphp1(jl,jk-1))                            &
+                    & /(egrav*paphp1(jl,jk-1))                            &
                     & *(paphp1(jl,jk)-paphp1(jl,jk-1))
               zdmfen(jl) = zentr
               zdmfde(jl) = zentr
@@ -3100,7 +3130,6 @@
 !          ---------
 !          *CUADJTQ* FOR CALCULATING WET BULB T AND Q AT LFS
 !
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : lmfdudv , lmfdd , cmfdeps
 !
       implicit none
@@ -3254,9 +3283,8 @@
 !
 !          *CUDTDQ* IS CALLED FROM *CUMASTR*
 !
-      use mo_constants , only : alv , als , alf
       use mo_tracer , only : trlist
-      use mo_time_control , only : delta_time
+      use mod_date , only : delta_time
 !
       implicit none
 !
@@ -3304,22 +3332,23 @@
           do jl = 1 , kproma
             if ( ldcum(jl) ) then
               llo1 = (pten(jl,jk)-tzero)>0.0D0
-              zalv = merge(alv,als,llo1)
+              zalv = merge(wlhv,wlhs
+,llo1)
               zrcpm = 1.0D0/pcpen(jl,jk)
-              zdtdt = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
+              zdtdt = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
                     & *zrcpm*(pmfus(jl,jk+1)-pmfus(jl,jk)+pmfds(jl,jk+1)&
-                    & -pmfds(jl,jk)-alf*pdpmel(jl,jk)                   &
+                    & -pmfds(jl,jk)-wlhf*pdpmel(jl,jk)                   &
                     & -zalv*(pmful(jl,jk+1)-pmful(jl,jk)-plude(jl,jk)   &
                     & -(pdmfup(jl,jk)+pdmfdp(jl,jk))))
               ptte(jl,jk) = ptte(jl,jk) + zdtdt
-              zdqdt = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
+              zdqdt = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
                     & *(pmfuq(jl,jk+1)-pmfuq(jl,jk)+pmfdq(jl,jk+1)      &
                     & -pmfdq(jl,jk)+pmful(jl,jk+1)-pmful(jl,jk)         &
                     & -plude(jl,jk)-(pdmfup(jl,jk)+pdmfdp(jl,jk)))
               pqte(jl,jk) = pqte(jl,jk) + zdqdt
-              pxtec(jl,jk) = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
+              pxtec(jl,jk) = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
                            & *plude(jl,jk)
-              pqtec(jl,jk) = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
+              pqtec(jl,jk) = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
                            & *pqude(jl,jk)
               zsheat(jl) = zsheat(jl)                                   &
                          & + zalv*(pdmfup(jl,jk)+pdmfdp(jl,jk))
@@ -3332,7 +3361,7 @@
               if ( trlist%ti(jt)%nconv==1 ) then
                 do jl = 1 , kproma
                   if ( ldcum(jl) ) then
-                    zdxtdt = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
+                    zdxtdt = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
                            & *(pmfuxt(jl,jk+1,jt)-pmfuxt(jl,jk,jt)      &
                            & +pmfdxt(jl,jk+1,jt)-pmfdxt(jl,jk,jt))
                     pxtte(jl,jk,jt) = pxtte(jl,jk,jt) + zdxtdt
@@ -3346,21 +3375,21 @@
           do jl = 1 , kproma
             if ( ldcum(jl) ) then
               llo1 = (pten(jl,jk)-tzero)>0.0D0
-              zalv = merge(alv,als,llo1)
+              zalv = merge(wlhv,wlhs,llo1)
               zrcpm = 1.0D0/pcpen(jl,jk)
-              zdtdt = -(gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
+              zdtdt = -(egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
                     & *zrcpm*(pmfus(jl,jk)+pmfds(jl,jk)                 &
-                    & +alf*pdpmel(jl,jk)                                &
+                    & +wlhf*pdpmel(jl,jk)                                &
                     & -zalv*(pmful(jl,jk)+pdmfup(jl,jk)+pdmfdp(jl,jk)   &
                     & +plude(jl,jk)))
               ptte(jl,jk) = ptte(jl,jk) + zdtdt
-              zdqdt = -(gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
+              zdqdt = -(egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
                     & *(pmfuq(jl,jk)+pmfdq(jl,jk)+plude(jl,jk)          &
                     & +(pmful(jl,jk)+pdmfup(jl,jk)+pdmfdp(jl,jk)))
               pqte(jl,jk) = pqte(jl,jk) + zdqdt
-              pxtec(jl,jk) = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
+              pxtec(jl,jk) = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
                            & *plude(jl,jk)
-              pqtec(jl,jk) = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
+              pqtec(jl,jk) = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))      &
                            & *pqude(jl,jk)
               zsheat(jl) = zsheat(jl)                                   &
                          & + zalv*(pdmfup(jl,jk)+pdmfdp(jl,jk))
@@ -3373,7 +3402,7 @@
               if ( trlist%ti(jt)%nconv==1 ) then
                 do jl = 1 , kproma
                   if ( ldcum(jl) ) then
-                    zdxtdt = -(gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))     &
+                    zdxtdt = -(egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))     &
                            & *(pmfuxt(jl,jk,jt)+pmfdxt(jl,jk,jt))
                     pxtte(jl,jk,jt) = pxtte(jl,jk,jt) + zdxtdt
                   end if
@@ -3415,7 +3444,6 @@
 !
 !          *CUDUDV* IS CALLED FROM *CUMASTR*
 !
-      use mo_constants , only : g
 !
       implicit none
 !
@@ -3491,10 +3519,10 @@
         if ( jk<klev ) then
           do jl = 1 , kproma
             if ( ldcum(jl) ) then
-              zdudt = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
+              zdudt = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
                     & *(zmfuu(jl,jk+1)-zmfuu(jl,jk)+zmfdu(jl,jk+1)      &
                     & -zmfdu(jl,jk))
-              zdvdt = (gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
+              zdvdt = (egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))             &
                     & *(zmfuv(jl,jk+1)-zmfuv(jl,jk)+zmfdv(jl,jk+1)      &
                     & -zmfdv(jl,jk))
               pvom(jl,jk) = pvom(jl,jk) + zdudt
@@ -3505,9 +3533,9 @@
         else
           do jl = 1 , kproma
             if ( ldcum(jl) ) then
-              zdudt = -(gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
+              zdudt = -(egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
                     & *(zmfuu(jl,jk)+zmfdu(jl,jk))
-              zdvdt = -(gti/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
+              zdvdt = -(egrav/(paphp1(jl,jk+1)-paphp1(jl,jk)))            &
                     & *(zmfuv(jl,jk)+zmfdv(jl,jk))
               pvom(jl,jk) = pvom(jl,jk) + zdudt
               pvol(jl,jk) = pvol(jl,jk) + zdvdt
@@ -3546,7 +3574,6 @@
 !          ---------
 !          NONE
 !
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : centrmax , cmfcmin
 !
       implicit none
@@ -3590,7 +3617,7 @@
         ppbase(jl) = paphp1(jl,kcbot(jl))
         zrrho = (rgas*ptenh(jl,kk+1)*(1.0D0+vtmpc1*pqenh(jl,kk+1)))     &
               & /paphp1(jl,kk+1)
-        zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*rgti
+        zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
         zpmid = 0.50D0*(ppbase(jl)+paphp1(jl,kctop0(jl)))
         zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
         llo1 = kk<kcbot(jl) .and. ldcum(jl)
@@ -3620,11 +3647,11 @@
           ikt = kctop0(jl)
           ikh = khmin(jl)
           if ( ikh>ikt ) then
-            zzmzk = -(pgeoh(jl,ikh)-pgeoh(jl,kk))*rgti
-            ztmzk = -(pgeoh(jl,ikh)-pgeoh(jl,ikt))*rgti
+            zzmzk = -(pgeoh(jl,ikh)-pgeoh(jl,kk))*regrav
+            ztmzk = -(pgeoh(jl,ikh)-pgeoh(jl,ikt))*regrav
             zarg = 3.14150D0*(zzmzk/ztmzk)*0.50D0
             zorgde = tan(zarg)*3.14150D0*0.50D0/ztmzk
-            zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*(rgti*zrrho)
+            zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*(regrav*zrrho)
             podetr(jl,kk) = min(zorgde,centrmax)*pmfu(jl,kk+1)*zdprho
           end if
         end if
@@ -3659,7 +3686,6 @@
 !          ---------
 !          NONE
 !
-      use mo_constants , only : vtmpc1
       use mo_cumulus_flux , only : centrmax , cmfcmin
 !
       implicit none
@@ -3698,7 +3724,7 @@
         ppbase(jl) = paphp1(jl,kcbot(jl))
         zrrho = (rgas*ptenh(jl,kk+1)*(1.0D0+vtmpc1*pqenh(jl,kk+1)))     &
               & /paphp1(jl,kk+1)
-        zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*rgti
+        zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
         zpmid = 0.50D0*(ppbase(jl)+paphp1(jl,kctop0(jl)))
         zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
         llo1 = kk<kcbot(jl) .and. ldcum(jl)
@@ -3742,9 +3768,8 @@
 !          ---------
 !          NONE
 !
-      use mo_constants , only : alf , vtmpc2
       use mo_physc2 , only : cevapcu
-      use mo_time_control , only : time_step_len
+      use mod_date , only : dt
 !
       implicit none
 !
@@ -3774,8 +3799,8 @@
 !
 !*    SPECIFY CONSTANTS
 !
-      zcons1 = cpd/(alf*gti*time_step_len)
-      zcons2 = 1.0D0/(gti*time_step_len)
+      zcons1 = cpd/(wlhf*egrav*dt)
+      zcons2 = 1.0D0/(egrav*dt)
       zcucov = 0.050D0
       ztmelp2 = tzero + 2.0D0
 !
