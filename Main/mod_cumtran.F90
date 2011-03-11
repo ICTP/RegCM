@@ -35,8 +35,6 @@
 
       implicit none
 !
-! Local variables
-!
       real(8) :: chiabar , chibbar , cumfrc , deltas
       integer :: i , j , k , kcumtop , n
 !

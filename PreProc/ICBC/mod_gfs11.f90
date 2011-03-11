@@ -60,11 +60,7 @@ module mod_gfs11
   use mod_vectutil
   implicit none
 !
-! Dummy arguments
-!
   integer :: idate
-!
-! Local variables
 !
   character(3) , dimension(12) :: chmon
   character(17) :: finm
@@ -318,8 +314,6 @@ module mod_gfs11
 !
   subroutine headergfs
   implicit none
-!
-! Local variables
 !
   integer :: i , j , k , kr , ierr
 !

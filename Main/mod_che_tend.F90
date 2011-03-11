@@ -716,8 +716,6 @@
 #endif
       implicit none
 !
-! Local variables
-!
       integer :: i , itr , j , k
 !
       do itr = 1 , ntr

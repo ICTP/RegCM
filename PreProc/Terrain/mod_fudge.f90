@@ -34,16 +34,12 @@ module mod_fudge
 
   implicit none
 !
-! Dummy arguments
-!
   character(*) :: char_lnd
   logical :: fudge , there
   integer :: iy , jx
   real(SP) , dimension(iy,jx) :: htgrid , lndout
   intent (in) char_lnd , fudge , iy , jx
   intent (inout) htgrid , lndout
-!
-! Local variables
 !
   integer :: i , j , iunit
   character(1) , dimension(iy,jx) :: ch
@@ -187,8 +183,6 @@ module mod_fudge
   subroutine texfudge(fudge,texout,htgrid,iy,jx,char_tex)
   implicit none
 !
-! Dummy arguments
-!
   character(*) :: char_tex
   logical :: fudge, there
   integer :: iy , jx
@@ -196,8 +190,6 @@ module mod_fudge
   intent (in) char_tex , fudge , iy , jx
   intent (out) htgrid
   intent (inout) texout
-!
-! Local variables
 !
   integer :: i , j , iunit
   character(1) , dimension(iy,jx) :: ch
@@ -322,16 +314,12 @@ module mod_fudge
 
   implicit none
 !
-! Dummy arguments
-!
   character(*) :: char_lak
   logical :: fudge , there
   integer :: iy , jx
   real(SP) , dimension(iy,jx) :: dpth , lnd
   intent (in) char_lak , fudge , iy , jx , lnd
   intent (inout) dpth
-!
-! Local variables
 !
   integer :: i , j , iunit
   character(1) , dimension(iy,jx) :: ch

@@ -25,25 +25,6 @@ module mod_param_clm
 
   implicit none
 !
-! PARAMETER definitions
-!
-!     ** Define number of CLM3 fields to interpolate to RegCM3 grid
-!     ** nlon   = number of longitudes
-!     ** nlat   = number of latitudes
-!     ** nlev   = number of vertical levels or PFTs
-!     ** ntim   = number of times
-!     ** nfil   = number of fields
-!     ** glon1  = first longitude in CLM3 file
-!     ** glon2  = last longitude in CLM3 file
-!     ** glat1  = first latitude in CLM3 file
-!     ** glat2  = last latitude in CLM3 file
-!     ** vnam   = variable name (short name)
-!     ** vmin   = minimum possible data value (for undefined values)
-!     ** infil  = names of global CLM3 input files (NetCDF is defined
-!     elsewhere)
-!     ** npft = number of plant functional types
-!     ** nsoi = number of soil levels
-
   integer, private :: k
 
   integer , parameter :: nfld = 18 , npft = 17 , nsoi = 10 ,        &
@@ -53,8 +34,6 @@ module mod_param_clm
                          icol = 12 , ioro = 13 , iiso = 15 ,        &
                          ifma = 14 , iapin = 16 , ibpin = 17 ,      &
                          imbo = 18
-!
-! Local variables
 !
   real(sp) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
   integer , dimension(nfld) :: nlat , nlev , nlon , ntim
@@ -242,8 +221,6 @@ module mod_param_clm
  
   implicit none
 !
-! Dummy arguments
-!
   real(sp) :: xlatmax , xlatmin , xlonmax , xlonmin
   integer :: kz , ndim , nx , ny
   integer , dimension(ndim) :: iadim
@@ -254,8 +231,6 @@ module mod_param_clm
   intent (in) kz , ndim , nx , ny , xlat , xlon
   intent (out) iadim , varmax , varmin , xlat1d , xlatmax , xlatmin ,&
                xlon1d , xlonmax , xlonmin
-!
-! Local variables
 !
   integer :: i , j
 !
@@ -284,14 +259,10 @@ module mod_param_clm
   subroutine comp(fields,bvoc)
   implicit none
 !
-! Dummy arguments
-!
   integer :: fields
   logical :: bvoc
   intent (in) bvoc
   intent (out) fields
-!
-! Local variables
 !
   integer :: numcompounds
  

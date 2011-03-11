@@ -105,10 +105,6 @@
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 ! fsds     - Flux Shortwave Downwelling Surface
 !
- 
-!
-! Dummy arguments
-!
           integer :: jslc
           real(8) , dimension(iym1) :: alb , albc , clrls , clrlt , &
                       clrss , clrst , firtp , frla , frsa , fsds ,  &
@@ -121,8 +117,6 @@
                     & fsnirtsq , fsnrtc , h2ommr , jslc , qrl , qrs ,   &
                     & sabtp , slwd , solin , soll , solld , sols , solsd
           intent (out) srfrad
-!
-! Local variables
 !
           integer :: i , k , n , nll
 !

@@ -153,15 +153,11 @@ module mod_sst_ersst
   use netcdf
   implicit none
 !
-! Dummy arguments
-!
   integer :: it , ilon , jlat , itype
   character(256) :: pathaddname
   intent (in) it , ilon , jlat , pathaddname , itype
   real(sp) , dimension(ilon,jlat) :: sst
   intent (out) :: sst
-!
-! Local variables
 !
   integer :: i , j , n
   logical :: there

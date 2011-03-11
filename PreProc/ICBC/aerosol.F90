@@ -493,8 +493,6 @@ program aerosol
   subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,iy,jx,nflds)
   implicit none
 !
-! Dummy arguments
-!
   integer :: iy , jx , nflds , nlati , nloni
   real(sp) , dimension(nloni,nlati,nflds) :: fin
   real(sp) , dimension(nlati) :: lati
@@ -504,8 +502,6 @@ program aerosol
   intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
               nlati , nloni
   intent (out) fout
-!
-! Local variables
 !
   real(sp) :: bas , lon180 , p , q , xsum , xind , yind
   integer :: i , ip , ipp1 , j , jq , jqp1 , l

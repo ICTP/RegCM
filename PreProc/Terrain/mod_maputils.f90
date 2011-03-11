@@ -30,16 +30,12 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-! Dummy arguments
-!
   real(DP) :: clat , clon , ds , truelath , truelatl , xn
   integer :: idot , iy , jx
   real(SP) , dimension(iy,jx) :: coriol , smap , xlat , xlon
   intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
               truelatl
   intent (out) coriol , smap , xlat , xlon , xn
-!
-! Local variables
 !
   real(DP) :: cntri , cntrj
   integer :: i , j
@@ -69,15 +65,11 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-! Dummy arguments
-!
   real(DP) :: clat , clon , delx
   integer :: idot , iy , jx
   real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
-!
-! Local variables
 !
   real(DP) :: cntrj , cntri
   integer :: i , j
@@ -107,15 +99,11 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-! Dummy arguments
-!
   real(DP) :: clat , clon , delx
   integer :: idot , iy , jx
   real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
-!
-! Local variables
 !
   real(DP) :: cntri , cntrj
   integer :: i , j
@@ -147,15 +135,11 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-! Dummy arguments
-!
   real(DP) :: clat , clon , ds , pollat , pollon
   integer :: idot , iy , jx
   real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , ds , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
-!
-! Local variables
 !
   real(DP) :: cntri , cntrj
   integer :: i , j

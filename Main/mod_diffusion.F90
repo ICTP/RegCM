@@ -49,8 +49,6 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       integer :: ind , j
       real(8) , dimension(iy,kz) :: ften , xkc
 #ifdef MPP1
@@ -64,8 +62,6 @@
 #endif
       intent (in) ind , j , xkc
       intent (inout) ften
-!
-! Local variables
 !
       integer :: i , k
       integer :: jm1 , jm2 , jp1, jp2

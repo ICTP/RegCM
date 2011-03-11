@@ -317,8 +317,6 @@
       intent (in) fa , ind , j
       intent (inout) ften
 !
-! Local variables
-!
       real(8) :: f1 , f2
       real(8) , dimension(iy,kz) :: fg
       integer :: i , k

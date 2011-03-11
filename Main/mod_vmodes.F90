@@ -140,14 +140,10 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       integer :: kv1
       logical :: lstand
       real(8) , dimension(kv1) :: sigmaf
       intent (in) kv1 , lstand
-!
-! Local variables
 !
       real(8) , dimension(2) :: det
       integer :: ier , k , k1 , k2 , l , mm , numerr
@@ -585,15 +581,11 @@
 !
       real(8) , parameter :: tol = 1.0D-9
 !
-! Dummy arguments
-!
       character(8) :: aname
       integer :: nk , numerr
       real(8) , dimension(nk) :: ei , er
       intent (in) aname , ei , er , nk
       intent (inout) numerr
-!
-! Local variables
 !
       real(8) :: emax
       integer :: n , nimag , numneg
@@ -627,8 +619,6 @@
       subroutine vcheki(ier,numerr,aname)
       implicit none
 !
-! Dummy arguments
-!
       character(8) :: aname
       integer :: ier , numerr
       intent (in) aname , ier
@@ -650,15 +640,11 @@
       subroutine vnorml(z,s,nk,nk1)
       implicit none
 !
-! Dummy arguments
-!
       integer :: nk , nk1
       real(8) , dimension(nk1) :: s
       real(8) , dimension(nk,nk) :: z
       intent (in) nk , nk1 , s
       intent (inout) z
-!
-! Local variables
 !
       real(8) :: a , v , zmax
       integer :: k , kmax , l
@@ -730,16 +716,12 @@
       subroutine vorder(z,hbar,wz,wh,nk)
       implicit none
 !
-! Dummy arguments
-!
       integer :: nk
       real(8) , dimension(nk) :: hbar
       real(8) , dimension(nk,2) :: wh
       real(8) , dimension(nk,nk) :: wz , z
       intent (in) nk
       intent (inout) hbar , wh , wz , z
-!
-! Local variables
 !
       real(8) :: hmax
       integer :: k , kmax , l
@@ -776,8 +758,6 @@
       subroutine vprntv(a,n,nam)
       implicit none
 !
-! Dummy arguments
-!
       integer :: n
       character(8) :: nam
       real(8) , dimension(n) :: a
@@ -792,14 +772,10 @@
       subroutine vprntm(a,n1,n2,nam)
       implicit none
 !
-! Dummy arguments
-!
       integer :: n1 , n2
       character(8) :: nam
       real(8) , dimension(n1,n2) :: a
       intent (in) a , n1 , n2 , nam
-!
-! Local variables
 !
       integer :: k , l
  
@@ -817,16 +793,12 @@
       subroutine vchekt(tbarh,sigmah,sigmaf,xkappa,pt,pd,nk,numerr)
       implicit none
 !
-! Dummy arguments
-!
       integer :: nk , numerr
       real(8) :: pd , pt , xkappa
       real(8) , dimension(nk+1) :: sigmaf
       real(8) , dimension(nk) :: sigmah , tbarh
       intent (in) nk , pd , pt , sigmaf , sigmah , tbarh , xkappa
       intent (inout) numerr
-!
-! Local variables
 !
       real(8) :: ds1 , ds2 , g1 , g2 , tb
       integer :: k
@@ -859,20 +831,14 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       real(8) , parameter :: tstrat = 218.15D0 , zstrat = 10769.0D0
       real(8) :: p0
-!
-! Dummy arguments
 !
       integer :: nk
       real(8) :: pd , pt
       real(8) , dimension(nk) :: sigma , t
       intent (in) nk , pd , pt , sigma
       intent (inout) t
-!
-! Local variables
 !
       real(8) :: fac , p , z
       integer :: k

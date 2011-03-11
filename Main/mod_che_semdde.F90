@@ -78,8 +78,6 @@
 #endif
       implicit none
 !
-! Local variables
-!
       integer :: i , j , k , l , m , n
       integer , parameter :: iutopt = 12
       logical :: there

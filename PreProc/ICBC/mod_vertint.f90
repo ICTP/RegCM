@@ -272,8 +272,6 @@ module mod_vertint
   intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
   intent (out) fp
 !
-! Local variables
-!
   real(sp) :: sigp , w1 , wp
   integer :: i , j , k , k1 , k1p , kbc , n
 !
@@ -329,8 +327,6 @@ module mod_vertint
   real(sp) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
   intent (in) ni , nj , pa , pt , tlayer , za , zrcm
   intent (out) psrcm
-!
-! Local variables
 !
   real(sp) :: tb
   integer :: i , j
@@ -431,8 +427,6 @@ module mod_vertint
   intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
   intent (out) frcm
 !
-! Local variables
-!
   real(sp) :: a1 , dp1 , pt1 , rc , rc1 , sc
   integer :: i , j , k , k1 , k1p , n
 !
@@ -496,8 +490,6 @@ module mod_vertint
   real(sp) , dimension(kccm) :: sccm
   intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
   intent (out) fsccm
-!
-! Local variables
 !
   real(sp) :: a1 , rc , rc1 , sc
   integer :: i , j , k , k1 , kp1

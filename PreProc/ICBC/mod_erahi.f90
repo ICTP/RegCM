@@ -65,11 +65,7 @@ module mod_erahi
   use mod_vectutil
   implicit none
 !
-! Dummy arguments
-!
   integer :: idate
-!
-! Local variables
 !
   character(14) :: finame
   integer :: i , j , k , nrec

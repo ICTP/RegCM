@@ -44,13 +44,11 @@ module mod_nclib
 
   implicit none
 
-!     Argument declarations.
   integer , intent (in) :: ndim
   character(256), intent(in) :: filnam
   real(sp) , dimension(ndim) :: phymin , phymax
   integer , intent (out) :: ierr , cdfid
 
-!     Local variable declarations.
   integer , parameter :: maxdim = 4
   character(64) :: attnam
   character(1)  :: chrid(maxdim)
@@ -506,7 +504,6 @@ module mod_nclib
 
   integer , parameter :: maxdim = 4
 
-!     Argument declarations.
   integer , intent(in) :: cdfid , ndim , iotype
   character(64) , intent(in) :: varnam , clname , clunits
   integer , dimension(ndim) :: vardim
@@ -514,7 +511,6 @@ module mod_nclib
   real(sp) , intent(in) :: xscale , offset , misdat
   integer , intent(out) :: ierr
 
-!     Local variable declarations.
   character(64) :: dimnam , dimchk
   character(64) , dimension(10) :: dimnams
   character(5) , dimension(maxdim) :: rdim
@@ -874,7 +870,6 @@ module mod_nclib
   use netcdf
   implicit none
 
-!     Argument declarations.
   integer , parameter :: maxdim = 4
 
   integer , intent(in) :: cdfid
@@ -884,7 +879,6 @@ module mod_nclib
   real(sp) , intent(out) :: misdat
   integer , intent(out) :: ierr
 
-!     Local variable declarations.
   character(64) , dimension(maxdim) :: dimnam
   character(64) :: vnam
   integer :: id , i , k
@@ -985,7 +979,6 @@ module mod_nclib
   use netcdf
   implicit none
 
-!     Argument declarations.
   integer , intent(in) :: cdfid
   character(64) , intent(in) :: varnam
   integer , intent(out) :: ndim
@@ -993,7 +986,6 @@ module mod_nclib
   real(sp) , intent(out) :: misdat
   integer , intent(out) :: ierr
 
-!     Local variable declarations.
   character(64), dimension(10) :: dimnam
   character(64) :: vnam
   integer :: id , i , k
@@ -1086,8 +1078,6 @@ module mod_nclib
   use netcdf
   implicit none
 !
-! Dummy arguments
-!
   integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
   character(64) :: lnam , units , vnam
@@ -1095,11 +1085,9 @@ module mod_nclib
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1
 !
-! Local variables
-!
   integer , dimension(4) :: icount , istart
   integer :: iflag , invarid
-!     /*get variable and attributes*/
+!
   istart(1) = nlon1
   icount(1) = nlon
   istart(2) = nlat1
@@ -1138,8 +1126,6 @@ module mod_nclib
   use netcdf
   implicit none
 !
-! Dummy arguments
-!
   integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
              nlev , nlev1 , nlon , nlon1 , ntim , ntim1
   character(64) :: lnam , units , vnam
@@ -1147,8 +1133,6 @@ module mod_nclib
   intent (in) nglat , nglev , nglon , ngtim , nlat , nlat1 , nlev , &
               nlev1 , nlon , nlon1 , ntim , ntim1
   intent (out) vals
-!
-! Local variables
 !
   integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
              l , ll , nlat2 , nlev2 , nlon2 , ntim2
@@ -1238,8 +1222,6 @@ module mod_nclib
   use netcdf
   implicit none
 !
-! Dummy arguments
-!
   integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
              ntim , ntim1
   character(64) :: lnam
@@ -1249,8 +1231,6 @@ module mod_nclib
   intent (in) nlat , nlat1 , nlev , nlev1 , nlon , nlon1 , ntim ,   &
               ntim1
   intent (out) vals
-!
-! Local variables
 !
   integer , dimension(4) :: icount , istart
   integer , dimension(2) :: icount1 , istart1

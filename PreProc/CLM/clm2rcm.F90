@@ -36,8 +36,6 @@ program clm2rcm
   integer , parameter :: ndim = 3
   logical , parameter :: bvoc = .false.
 !
-! Local variables
-!
   integer :: istatus , ncid , idum
   integer , dimension(4) :: idims
   integer , dimension(4) :: ivdims
@@ -635,14 +633,10 @@ program clm2rcm
  
   implicit none
 !
-! Dummy arguments
-!
   integer :: idate , idy , ihr , imo , iyr , julnc
   real(dp) :: xhr
   intent (out) xhr
   intent (inout) idate , idy , ihr , imo , iyr , julnc
-!
-! Local variables
 !
   integer :: ileap , iyrm1 , j , julday
   integer , dimension(12) :: jprev , lenmon

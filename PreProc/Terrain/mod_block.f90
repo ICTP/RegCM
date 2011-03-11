@@ -35,8 +35,6 @@ module mod_block
   subroutine mxmnll(iy,jx,xlon,xlat,iband)
   implicit none
 !
-! Dummy arguments
-!
   integer :: iy , jx , iband
   real(SP) , dimension(iy,jx) :: xlat , xlon
   intent (in) iy , jx , xlat , xlon , iband

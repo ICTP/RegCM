@@ -26,6 +26,7 @@ program sst
   use mod_sst_eh5om
   use mod_sst_ersst
   use mod_sst_fvgcm
+  use mod_sst_ccsm
   use m_die
   use m_stdio
   use m_mall
@@ -74,6 +75,8 @@ program sst
   else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
             ssttyp == 'FV_B2' ) then
     call sst_fvgcm
+  else if ( ssttyp == 'CCSST' ) then
+    call sst_ccsm
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)

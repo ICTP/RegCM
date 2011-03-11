@@ -58,15 +58,11 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
-!
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & pmid
       real(8) , dimension(iym1) :: alat , coslat
       intent (in) alat , coslat , pmid
       intent (out) cfc11 , cfc12 , ch4 , n2o
-!
-! Local variables
 !
 ! i      - longitude loop index
 ! k      - level index
@@ -170,8 +166,6 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
-!
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
            & ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,        &
            & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
@@ -181,8 +175,6 @@
       intent (inout) bch4 , bn2o0 , bn2o1 , ucfc11 , ucfc12 , uch4 ,    &
                    & uco211 , uco212 , uco213 , uco221 , uco222 ,       &
                    & uco223 , un2o0 , un2o1 , uptype
-!
-! Local variables
 !
 ! i      - Longitude index
 ! k      - Level index
@@ -329,8 +321,6 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
-!
       integer :: k1 , k2
       real(8) , dimension(14,iym1,kzp1) :: abplnk1
       real(8) , dimension(iym1) :: abstrc , dplh2o , dw , pnew , tco2 ,&
@@ -343,8 +333,6 @@
                 & ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,   &
                 & uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
       intent (out) abstrc
-!
-!     Local Variables
 !
 !-----------------------------------------------------------------------
 !
@@ -573,8 +561,6 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
-!
       integer :: k2 , kn
       real(8) , dimension(iym1) :: abstrc , dw , pnew , tco2 , th2o ,  &
                                   & to3 , up2
@@ -588,8 +574,6 @@
                 & uco212 , uco213 , uco221 , uco222 , uco223 , uinpl ,  &
                 & un2o0 , un2o1 , up2 , uptype , winpl
       intent (out) abstrc
-!
-! Local variables
 !
 ! sqti    - square root of mean temp
 ! rsqti   - reciprocal of sqti
@@ -794,16 +778,12 @@
 ! abplnk1 - non-nearest layer Plack factor
 ! abplnk2 - nearest layer factor
 !
-! Dummy arguments
-!
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(14,iym1) :: emplnk
       real(8) , dimension(iym1,kzp1) :: tint , tlayr
       real(8) , dimension(iym1) :: tplnke
       intent (in) tint , tlayr , tplnke
       intent (out) abplnk1 , abplnk2 , emplnk
-!
-! Local variables
 !
 ! wvl   - wavelength index
 ! f1    - Planck function factor
@@ -900,8 +880,6 @@
 !
 !-----------------------------------------------------------------------
 !
-! Dummy arguments
-!
       integer :: k
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2t , &
            & emstrc , pnm , s2c , ucfc11 , ucfc12 , uch4 , uco211 ,     &
@@ -914,8 +892,6 @@
                 & uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,  &
                 & un2o1 , up2 , uptype , w
       intent (out) emstrc
-!
-! Local variables
 !
 ! sqti   - square root of mean temp
 ! ecfc1  - emissivity of cfc11 798 cm-1 band

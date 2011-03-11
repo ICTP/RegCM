@@ -69,8 +69,6 @@ program terrain
   use m_zeit
   implicit none
 !
-! Local variables
-!
   character(256) :: char_lnd , char_tex , char_lak
   character(256) :: namelistfile , prgname
   integer :: i , j , k , ierr , i0 , j0 , m , n

@@ -26,14 +26,10 @@ module mod_smooth
   subroutine smth121(htgrid,iy,jx)
   implicit none
 !
-! Dummy arguments
-!
   integer :: iy , jx
   real(SP) , dimension(iy,jx) :: htgrid
   intent (in) iy , jx
   intent (inout) htgrid
-!
-! Local variables
 !
   integer :: i , j
   real(SP) , dimension(iy,jx) :: hscr1
@@ -64,15 +60,11 @@ module mod_smooth
 
   implicit none
 !
-! Dummy arguments
-!
   integer :: iflg , is1 , is2 , npass
   character(5) :: point
   real(SP) , dimension(is1,is2) :: slab
   intent (in) iflg , is1 , is2 , npass , point
   intent (inout) slab
-!
-! Local variables
 !
   real(SP) :: aplus , asv , cell
   integer :: i , icross , ie , iem , j , je , jem , k , kp
@@ -138,17 +130,11 @@ module mod_smooth
 
   implicit none
 !
-! PARAMETER definitions
-!
   integer , parameter :: nocean = 20000
-!
-! Dummy arguments
 !
   integer :: is1 , is2
   real(SP) , dimension(is1,is2) :: slab1
   intent (inout) slab1
-!
-! Local variables
 !
   integer :: i , iflg , j , k , n , n1 , npass
   integer , dimension(nocean) :: ii , jj

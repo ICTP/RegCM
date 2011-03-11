@@ -75,11 +75,7 @@ module mod_eh5om
   use mod_vectutil
   implicit none
 !
-! Dummy arguments
-!
   integer :: idate
-!
-! Local variables
 !
   character(3) , dimension(12) :: chmon
   character(21) :: finm , psnm

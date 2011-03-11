@@ -60,11 +60,7 @@ module mod_sst_ccsm
 
   implicit none
 !
-! PARAMETER definitions
-!
   integer , parameter :: ilon = 360 , jlat = 180
-!
-! Local variables
 !
   real(sp) , dimension(jlat) :: glat
   real(sp) , dimension(ilon) :: glon

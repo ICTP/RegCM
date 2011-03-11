@@ -79,8 +79,6 @@
       use mod_rad
       implicit none
 !
-! Local variables
-!
       integer :: i , j , jj , k , kj , klevp1
       real(8) :: pb1 , pb2 , pt1 , pt2
 !

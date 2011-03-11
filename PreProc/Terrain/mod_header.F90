@@ -26,11 +26,7 @@ module mod_header
   subroutine header(myid)
   implicit none 
 !
-! Dummy arguments
-!
   integer , intent(in) :: myid
-!
-! Local variables:
 !
   integer :: hostnm
   integer :: ihost, idir

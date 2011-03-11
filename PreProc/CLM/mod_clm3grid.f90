@@ -28,8 +28,6 @@ module mod_clm3grid
                        istart,icount)
   implicit none
 !
-! Dummy arguments
-!
   real(sp) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
           xlonmax , xlonmin
   integer :: nlat , nlev , nlon , ntim
@@ -40,8 +38,6 @@ module mod_clm3grid
   intent (out) glat , glon , icount , istart
   intent (inout) glon1 , glon2 , xlatmax , xlatmin , xlonmax ,      &
                  xlonmin
-!
-! Local variables
 !
   integer :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
              ilonmin , j
@@ -96,8 +92,6 @@ module mod_clm3grid
  
   implicit none
 !
-! Dummy arguments
-!
   integer :: nlat , nlon
   real(sp) , dimension(nlat) :: glat
   real(sp) , dimension(nlon) :: glon
@@ -107,8 +101,6 @@ module mod_clm3grid
   real(sp) , dimension(icount(1)) :: zlon
   intent (in) glat , glon , icount , istart , nlat , nlon
   intent (out) zlat , zlev , zlon
-!
-! Local variables
 !
   integer :: i , j , k
 ! 
@@ -149,8 +141,6 @@ module mod_clm3grid
  
   implicit none
 !
-! Dummy arguments
-!
   integer :: iy , jx , nlati , nloni , nt , nz
   real(sp) :: vmisdat , xming
   real(sp) , dimension(nloni,nlati,nz,nt) :: mti
@@ -161,8 +151,6 @@ module mod_clm3grid
   intent (in) mti , iy , jx , lati , lato , loni , lono , nlati ,   &
               nloni , nt , nz , vmisdat , xming
   intent (out) mto
-!
-! Local variables
 !
   integer :: i , ip , ipp1 , j , jq , jqp1 , k , l
   real(sp) :: lon360 , p , q , temp1 , temp2 , xind , yind
@@ -232,8 +220,6 @@ module mod_clm3grid
   subroutine maskme(landmask,vals,vmisdat,nlon,nlat,nlev,ntim)
   implicit none
 !
-! Dummy arguments
-!
   integer :: nlat , nlev , nlon , ntim
   real(sp) :: vmisdat
   real(sp) , dimension(nlon,nlat) :: landmask
@@ -241,13 +227,8 @@ module mod_clm3grid
   intent (in) landmask , nlat , nlev , nlon , ntim , vmisdat
   intent (inout) vals
 !
-! Local variables
-!
   integer :: i , j , k , l
 !
-!     ** Variables Passed in
-!     ** Local variables
- 
   do l = 1 , ntim
     do k = 1 , nlev
       do j = 1 , nlat
