@@ -29,6 +29,7 @@
       use mod_message
       use mod_cu_bm
       use mod_cu_em
+      use mod_cu_tiedtke
       use mod_rad
       use mod_split
       use mod_slice
@@ -140,6 +141,10 @@
       & sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
       & dtmax , alphae , damp
  
+      namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,     &
+        entrdd , centrmax , cmfcmax , cmfcmin , cmfdeps , rhcdd ,       &
+        cprcon , nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
+
       namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
       & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
       & inpchtrdpv , inpdustbsiz
@@ -194,6 +199,7 @@
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
+!     = 5 ; Tiedtke (1986) - version from ECHAM 5.4 
 !     = 98; variable: emanuel over land and grell over ocean
 !     = 99; variable: grell over land and emanuel over ocean
 !
@@ -342,8 +348,7 @@
       htmax = 500.0D0        ! Max convective heating
       skbmax = 0.4D0        ! Max cloud base height in sigma
       dtauc = 30.0D0         ! Fritsch & Chappell (1980) 
-                            ! ABE Removal Timescale (min)
- 
+! 
 !------namelist emanparam:
       minsig = 0.95D0   ! Lowest sigma level from which convection can originate
       elcrit = 0.0011D0 ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
@@ -360,6 +365,28 @@
       dtmax = 0.9D0     ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
       alphae = 0.2D0    ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
       damp = 0.1D0      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+!
+!------namelist tiedtkeparam:
+      iconv    = 1  ! Selects the actual scheme
+      entrpen  = 1.0D-4
+      entrscv  = 3.0D-4
+      entrmid  = 1.0D-4
+      entrdd   = 2.0D-4
+      centrmax = 3.0D-4
+      cmfcmax  = 1.0D0
+      cmfcmin  = 1.0D-10
+      cmfdeps  = 0.3D0
+      rhcdd    = 1.0D0
+! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
+      nmctop   = 4
+      cmfctop  = 0.35D0
+      cprcon   = 1.0D-4
+! Control switch flags
+      lmfpen   = .true.
+      lmfscv   = .true.
+      lmfmid   = .true.
+      lmfdd    = .true.
+      lmfdudv  = .true.
 !
 !c------namelist chemparam ; ( 0= none, 1= activated)
       ichremlsc = 1     ! tracer removal by large scale clouds
@@ -421,6 +448,10 @@
       if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
         read (ipunit, emanparam)
         print * , 'param: EMANPARAM namelist READ IN'
+      end if
+      if ( icup == 5 ) then
+        read (ipunit, tiedtkeparam)
+        print * , 'param: TIEDTKEPARAM namelist READ IN'
       end if
       if ( ichem == 1 ) then
         read (ipunit, chemparam)
@@ -554,6 +585,27 @@
         call mpi_bcast(damp,1,mpi_real8,0,mpi_comm_world,ierr)
       end if
  
+      if ( icup.eq.5 ) then
+        call mpi_bcast(iconv,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(entrpen,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(entrscv,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(entrmid,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(entrdd,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(centrmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cmfctop,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cmfcmax,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cmfcmin,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cmfdeps,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(rhcdd,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(cprcon,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(nmctop,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(lmfpen,1,mpi_logical,0,mpi_comm_world,ierr)
+        call mpi_bcast(lmfscv,1,mpi_logical,0,mpi_comm_world,ierr)
+        call mpi_bcast(lmfmid,1,mpi_logical,0,mpi_comm_world,ierr)
+        call mpi_bcast(lmfdd,1,mpi_logical,0,mpi_comm_world,ierr)
+        call mpi_bcast(lmfdudv,1,mpi_logical,0,mpi_comm_world,ierr)
+      end if
+
       if ( ichem == 1 ) then
         call mpi_bcast(ichremlsc,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ichremcvc,1,mpi_integer,0,mpi_comm_world,ierr)
