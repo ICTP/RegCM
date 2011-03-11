@@ -16,7 +16,7 @@
         read (10,rec=k) offset , xscale , ia
         do j = 1 , 96
           do i = 1 , 192
-            a(i,j) = ia(i,97-j)*xscale + offset
+            a(i,j) = real(dble(ia(i,97-j))*xscale + offset)
           end do
         end do
         write (20,rec=k) a
