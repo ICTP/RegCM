@@ -190,6 +190,8 @@
              write (cdum,'(a)') 'Betts-Miller (1986)'
             case(4)
              write (cdum,'(a)') 'Emanuel (1991)'
+            case(5)
+             write (cdum,'(a)') 'Tiedtke (1986)'
             case(98)
              write (cdum,'(a)') &
                'Grell over ocean, Emanuel (1991) over land'

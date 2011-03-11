@@ -37,6 +37,7 @@
       use mod_cu_kuo
       use mod_cu_bm
       use mod_cu_em
+      use mod_cu_tiedtke
       use mod_date
       use mod_message
       use mod_aerosol
@@ -1449,6 +1450,7 @@
 !....icup = 2 : grell cumulus paramterization scheme
 !....icup = 3 : betts-miller (1986)
 !....icup = 4 : emanuel (1991)
+!....icup = 5 : tiedtke (1986)
 !....icup = 99: grell over land, emanuel over ocean
 !....icup = 98: emanuel over land, grell over ocean
 !
@@ -1492,6 +1494,9 @@
           end if
           if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
             call cupemandrv(j)
+          end if
+          if ( icup == 5 ) then
+            call tiedtkedrv(j)
           end if
 
           if ( ipptls == 1 ) then

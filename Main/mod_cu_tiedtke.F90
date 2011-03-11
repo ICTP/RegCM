@@ -27,14 +27,23 @@ module mod_cu_tiedtke
   use mod_message
   use mod_date
 !
+  private
+!
+  public :: tiedtkedrv
+!
+  public :: entrpen , entrscv , entrmid , entrdd , cmfctop , cmfcmax , &
+            cmfcmin , cmfdeps , rhcdd , cprcon , iconv , nmctop ,      &
+            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
+!
   ! evaporation coefficient for kuo0
   real(dp) , allocatable , dimension(:) :: cevapcu
+
+  real(dp) , parameter :: centrmax = 3.0D-4
 
   real(dp) :: entrpen      !    entrainment rate for penetrative convection
   real(dp) :: entrscv      !    entrainment rate for shallow convection
   real(dp) :: entrmid      !    entrainment rate for midlevel convection
   real(dp) :: entrdd       !    entrainment rate for cumulus downdrafts
-  real(dp) :: centrmax     !
   real(dp) :: cmfctop      !    relat. cloud massflux at level above nonbuoyanc
   real(dp) :: cmfcmax      !    maximum massflux value allowed for
   real(dp) :: cmfcmin      !    minimum massflux value (for safety)
@@ -49,10 +58,18 @@ module mod_cu_tiedtke
   logical :: lmfmid    !  true if midlevel convection is switched on
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
-
-  integer :: nn
 !
   contains
+!
+! This subroutines calls cucall
+!
+  subroutine tiedtkedrv(j)
+    implicit none
+    integer , intent(in) :: j
+    !
+    ! CALL CUCALL
+    !
+  end subroutine tiedtkedrv
 !
   subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
