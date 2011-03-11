@@ -43,12 +43,8 @@
 
       implicit none
 !
-! PARAMETERS
-!
       integer , parameter :: ilon = 240 , jlat = 121
       integer , parameter :: idtbc = 6
-!
-! Local variables
 !
       integer :: i , it , j , nday , nhour , nmo , nyear
       real(4) , dimension(jlat) :: lati
@@ -150,15 +146,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: it , ilon , jlat
       character(256) :: pathaddname
       intent (in) it , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there
@@ -239,15 +231,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: it , ilon , jlat
       character(256) :: pathaddname
       intent (in) it , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there

@@ -71,11 +71,7 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
-!
-! Local variables
 !
       character(3) , dimension(12) :: chmon
       character(21) :: finm , psnm
@@ -1182,12 +1178,8 @@
       subroutine headermpi(ehso4)
       implicit none
 !
-! Dummy arguments
-!
       logical :: ehso4
       intent (in) ehso4
-!
-! Local variables
 !
       integer :: i , k , kr
       logical :: there

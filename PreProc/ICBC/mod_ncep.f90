@@ -61,8 +61,6 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
@@ -135,12 +133,8 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       intent (in) idate , idate0
-!
-! Local variables
 !
       integer :: i , ilev , inet , it , j , kkrec , m , month , nday ,  &
                & k , nhour , nlev , nyear , istatus
@@ -397,8 +391,6 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
@@ -472,12 +464,8 @@
       use mod_grid
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       intent (in) idate , idate0
-!
-! Local variables
 !
       integer :: i , ii , ilev , inet , it , j , jj , kkrec , m ,       &
                & month , nday , nhour , nlev , nyear , istatus
@@ -805,8 +793,6 @@
 
       subroutine headernc
       implicit none
-!
-! Local variables
 !
       integer :: i , j , k , kr
 !

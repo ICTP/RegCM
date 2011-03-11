@@ -64,11 +64,7 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
-!
-! Local variables
 !
       character(3) , dimension(12) :: chmon
       character(20) :: finm , fips
@@ -382,8 +378,6 @@
 
       subroutine headerfv
       implicit none
-!
-! Local variables
 !
       integer :: i , j , k , kr
 !

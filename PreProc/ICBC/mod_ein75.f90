@@ -57,8 +57,6 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
@@ -129,13 +127,9 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       character(5) :: dattyp
       integer :: idate , idate0
       intent (in) dattyp , idate , idate0
-!
-! Local variables
 !
       integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,    &
                & nhour , nyear , istatus
@@ -497,8 +491,6 @@
 
       subroutine headerein75
       implicit none
-!
-! Local variables
 !
       integer :: i , j , k , kr
 !

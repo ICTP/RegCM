@@ -270,8 +270,6 @@
       intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
       intent (out) fp
 !
-! Local variables
-!
       real(4) :: sigp , w1 , wp
       integer :: i , j , k , k1 , k1p , kbc , n
 !
@@ -329,8 +327,6 @@
       intent (in) ni , nj , pa , pt , tlayer , za , zrcm
       intent (out) psrcm
 !
-! Local variables
-!
       real(4) :: tb
       integer :: i , j
 !
@@ -366,8 +362,6 @@
       intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm ,    &
                 & srcm
       intent (out) frcm
-!
-! Local variables
 !
       real(4) :: dp1 , pt1 , rc , rc1 , sc
       integer :: i , j , k , k1 , k1p , n
@@ -436,8 +430,6 @@
                 & srcm
       intent (out) frcm
 !
-! Local variables
-!
       real(4) :: a1 , dp1 , pt1 , rc , rc1 , sc
       integer :: i , j , k , k1 , k1p , n
 !
@@ -502,8 +494,6 @@
       real(4) , dimension(kccm) :: sccm
       intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
       intent (out) fsccm
-!
-! Local variables
 !
       real(4) :: a1 , rc , rc1 , sc
       integer :: i , j , k , k1 , kp1

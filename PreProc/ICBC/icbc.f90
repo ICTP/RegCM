@@ -38,6 +38,10 @@
 !                        Xunqiang Bi, ESP group, Abdus Salam ICTP      !
 !                                                October 07, 2009      !
 !                                                                      !
+!   CAM85: unpacked CCSM NETCDF T85 L26 (six hourly) data              !
+!          WARNING: untested input module                              !
+!   CAM42: unpacked CCSM NETCDF T42 L26 (six hourly) data              !
+!          WARNING: untested input module                              !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -53,8 +57,8 @@
 !          Reformatted by PWC/ICTP to direct-access binary,            !
 !          T42L15, Gaussian Grid.                                      !
 !   EH5OM: EH5OM run by the MPI at Hamburg, T63, Gaussian grid.        !
-!          For present day  run: 1941 - 2000;                           !
-!          For A1B scenario run: 2001 - 2100.                           !
+!          For present day  run: 1941 - 2000;                          !
+!          For A1B scenario run: 2001 - 2100.                          !
 !          17 pressure levels, 4 times daily, direct-access binary.    !
 !   ERA40: ECMWF 40 year reanalysis datasets are available at:         !
 !          http://data.ecmwf.int/data/d/era40_daily/                   !
@@ -70,7 +74,7 @@
 !          Current holdings: 01/01/1989 - 31/12/1998,                  !
 !          Pressure levels, 2.5x2.5L37, 4 times daily.                 !
 !   GFS11: NCEP Global Forecast System (GFS) product FNL are           !
-!                                                available at:         !
+!          available at:                                               !
 !          http://dss.ucar.edu/datasets/ds083.2/data/fnl-yyyymm/       !
 !          Current holdings: 01/01/2000 - present,                     !
 !          Pressure levels, 1.0x1.0L27, 4 times daily.                 !
@@ -99,6 +103,7 @@
       use mod_grid
       use mod_date
       use mod_ecwcp
+      use mod_ccsm
       use mod_eh5om
       use mod_ein15
       use mod_ein25
@@ -113,15 +118,12 @@
       use mod_header
       implicit none
 !
-! Local variables
-!
       integer :: idate , iday , imon , iyr , ihr , nnn , iodate
       integer :: nsteps
       integer :: ierr
       character(256) :: namelistfile, prgname
 !
       call header('icbc')
-!
 !
 !     Read input global namelist
 !
@@ -177,6 +179,10 @@
         call headerfv
       else if ( dattyp=='FNEST' ) then
         call headnest
+      else if ( dattyp=='CAM85' ) then
+        call head_cam85
+      else if ( dattyp=='CAM42' ) then
+        call head_cam42
       else
         write ( 6,* ) 'Unknown dattyp'
         stop
@@ -216,6 +222,10 @@
           call getfvgcm(idate)
         else if ( dattyp=='FNEST' ) then
           call get_nest(idate)
+        else if ( dattyp=='CAM85' ) then
+          call get_cam85(idate)
+        else if ( dattyp=='CAM42' ) then
+          call get_cam42(idate)
         else
         end if
 

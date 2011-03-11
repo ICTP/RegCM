@@ -41,11 +41,7 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 192 , jlat = 145
-!
-! Local variables
 !
       integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
              &   nday , nmo , nho , nyear , nsteps , iv

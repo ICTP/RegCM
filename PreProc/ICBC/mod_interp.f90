@@ -44,8 +44,6 @@
                       & nflds)
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nflds , nlati , nloni
       real(4) , dimension(nloni,nlati,nflds) :: fin
       real(4) , dimension(nlati) :: lati
@@ -55,8 +53,6 @@
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
-!
-! Local variables
 !
       real(4) :: bas , lon360 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l
@@ -156,8 +152,6 @@
       subroutine bilinx2(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , llev , nlat , nlon
       real(4) , dimension(jx,iy) :: alat , alon
       real(4) , dimension(nlon,nlat,llev) :: b2
@@ -167,8 +161,6 @@
       intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev ,     &
                 & nlat , nlon
       intent (out) b3
-!
-! Local variables
 !
       real(4) :: ave , p1 , p2 , q1 , q2
       integer :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
@@ -316,8 +308,6 @@
       use mod_constants , only : degrad
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nlat , nlev , nlon , nf
       real(4) , dimension(jx,iy) :: alat , alon
       real(4) , dimension(jx,iy,nlev*nf) :: b3
@@ -326,8 +316,6 @@
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon , nf
       intent (out) b3
-!
-! Local variables
 !
       real(4) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &
@@ -556,8 +544,6 @@
       use mod_constants , only : degrad
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nlat , nlev , nlon , nf
       real(4) , dimension(jx,iy) :: alat , alon
       real(4) , dimension(jx,iy,nlev*nf) :: b3
@@ -566,8 +552,6 @@
       intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 & nlev , nlon , nf
       intent (out) b3
-!
-! Local variables
 !
       real(4) :: aaa , dist , dista , distb , distc , distd
       integer :: i , j , k , l , m , mdl , mdr , mul , mur , n , ndl ,  &

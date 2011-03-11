@@ -24,14 +24,10 @@
       subroutine mxmn3d(var,cvar,jx,iy,np)
       implicit none
 !
-! Dummy arguments
-!
       character(2) :: cvar
       integer :: iy , jx , np
       real(4) , dimension(jx,iy,np) :: var
       intent (in) cvar , iy , jx , np , var
-!
-! Local variables
 !
       integer :: i , j , k
       real(4) :: smax , smin
@@ -54,14 +50,10 @@
       subroutine p1p2(pd,px,ni,nj)
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj
       real(4) , dimension(ni,nj) :: pd , px
       intent (in) ni , nj , px
       intent (out) pd
-!
-! Local variables
 !
       integer :: i , j , ni1 , nj1
 !
@@ -100,14 +92,10 @@
       subroutine p1p2_band(pd,px,ni,nj)
       implicit none
 !
-! Dummy arguments
-!
       integer :: ni , nj
       real(4) , dimension(ni,nj) :: pd , px
       intent (in) ni , nj , px
       intent (out) pd
-!
-! Local variables
 !
       integer :: i , j , nj1 , im1
 !
@@ -140,14 +128,10 @@
       subroutine top2btm(x,nlon1,nlat1,nlev1)
       implicit none
 !
-! Dummy arguments
-!
       integer :: nlat1 , nlev1 , nlon1
       real(4) , dimension(nlon1,nlat1,nlev1) :: x
       intent (in) nlat1 , nlev1 , nlon1
       intent (inout) x
-!
-! Local variables
 !
       integer :: i , j , k , kr
       real(4) , dimension(nlev1) :: work

@@ -183,11 +183,7 @@
 
         implicit none
 !
-! Dummy arguments
-!
         integer :: idate
-!
-! Local variables
 !
         integer :: checklat , checklon , i , ii , imax , imin , j , jj ,&
                 & k , latid ,latlen , lonid , lonlen , istatus
@@ -332,8 +328,6 @@
       subroutine head_cam42
         implicit none
 !
-! Local variables
-!
         integer :: i , k , kr
         real(4) , dimension(jlath) :: fixlat
 !
@@ -473,13 +467,9 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       real(4) , dimension(jlath) :: glat
       intent (in) glat , idate , idate0
-!
-! Local variables
 !
       integer :: i , ii , ilev , inet , it , ivar , j , jj ,            &
                & jmax , jmin , kkrec , latid , latlen , lonid ,         &
@@ -803,11 +793,7 @@
 
         implicit none
 !
-! Dummy arguments
-!
         integer :: idate
-!
-! Local variables
 !
       integer :: checklat , checklon , i , ii , imax , imin , j , jj ,  &
                & k , latid ,  latlen , lonid , lonlen , istatus
@@ -948,8 +934,6 @@
 ! 
       subroutine head_cam85
       implicit none
-!
-! Local variables
 !
       integer :: i , k , kr
       real(4) , dimension(jlat) :: fixlat
@@ -1098,13 +1082,9 @@
       use mod_write
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0
       real(4) , dimension(jlat) :: glat
       intent (in) glat , idate , idate0
-!
-! Local variables
 !
       integer :: i , ii , ilev , inet , it , ivar , j , jj , jmax ,     &
                & jmin , kkrec , latid , latlen , lonid , lonlen ,       &
@@ -1421,8 +1401,6 @@
       subroutine handle_err(istatus)
         use netcdf
         implicit none
-!
-! Dummy arguments
 !
         integer :: istatus
         intent (in) :: istatus

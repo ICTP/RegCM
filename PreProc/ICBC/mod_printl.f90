@@ -24,13 +24,9 @@
       subroutine printl(a,n1,n2)
       implicit none
 !
-! Dummy arguments
-!
       integer :: n1 , n2
       real(4) , dimension(n1,n2) :: a
       intent (in) a , n1 , n2
-!
-! Local variables
 !
       integer :: inc1 , inc2 , k , l
 !

@@ -53,11 +53,7 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 360 , jlat = 180
-!
-! Local variables
 !
       real(4) , dimension(ilon,jlat) :: sst , ice
       integer :: i , j , k , iwk , iv , ludom , lumax , nrec
@@ -333,15 +329,11 @@
       use mod_date , only : split_idate
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
       logical :: there
@@ -428,15 +420,11 @@
       use mod_date , only : split_idate
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , idate0 , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , idate0 , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
-!
-! Local variables
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
       logical :: there
@@ -522,15 +510,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: sst
       intent (out) :: sst
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there
@@ -644,15 +628,11 @@
       use netcdf
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate , kkk , ilon , jlat
       character(256) :: pathaddname
       intent (in) idate , kkk , ilon , jlat , pathaddname
       real(4) , dimension(ilon,jlat) :: ice
       intent (out) :: ice
-!
-! Local variables
 !
       integer :: i , j , n
       logical :: there

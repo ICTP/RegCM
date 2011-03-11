@@ -51,11 +51,7 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 360 , jlat = 180
-!
-! Local variables
 !
       real(4) , dimension(jlat) :: glat
       real(4) , dimension(ilon) :: glon

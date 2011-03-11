@@ -38,11 +38,7 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 360 , jlat = 180
-!
-! Local variables
 !
       logical :: there
       integer :: i , j , nrec , ierr
@@ -498,8 +494,6 @@
                       & nflds)
       implicit none
 !
-! Dummy arguments
-!
       integer :: iy , jx , nflds , nlati , nloni
       real(4) , dimension(nloni,nlati,nflds) :: fin
       real(4) , dimension(nlati) :: lati
@@ -509,8 +503,6 @@
       intent (in) fin , iy , jx , lati , lato , loni , lono , nflds ,   &
                 & nlati , nloni
       intent (out) fout
-!
-! Local variables
 !
       real(4) :: bas , lon180 , p , q , xsum , xind , yind
       integer :: i , ip , ipp1 , j , jq , jqp1 , l

@@ -26,6 +26,7 @@
       use mod_sst_eh5om
       use mod_sst_ersst
       use mod_sst_fvgcm
+      use mod_sst_ccsm
 
       implicit none
       integer :: ierr
@@ -66,6 +67,8 @@
       else if ( ssttyp=='FV_RF' .or. ssttyp=='FV_A2' .or.               &
        &        ssttyp=='FV_B2' ) then
         call sst_fvgcm
+      else if ( ssttyp=='CCSST' ) then
+        call sst_ccsm
       else
         print *, 'Unknown SSTTYP ', ssttyp , ' specified in ',          &
               & trim(namelistfile)

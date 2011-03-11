@@ -43,12 +43,8 @@
 
       implicit none
 !
-! PARAMETER definitions
-!
       integer , parameter :: ilon = 192 , jlat = 96
       integer , parameter :: idtbc = 6
-!
-! Local variables
 !
       integer :: it_base
       integer(2) , dimension(ilon,jlat) :: ivar

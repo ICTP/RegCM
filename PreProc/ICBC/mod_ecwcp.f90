@@ -59,11 +59,7 @@
       use mod_vectutil
       implicit none
 !
-! Dummy arguments
-!
       integer :: idate
-!
-! Local variables
 !
       character(12) , dimension(12,5) :: finm
       integer :: i , j , k , month , nday , nhour , nrec , nyear
@@ -187,8 +183,6 @@
 !
       subroutine headerec
       implicit none
-!
-! Local variables
 !
       integer :: i , k , kr
 !
