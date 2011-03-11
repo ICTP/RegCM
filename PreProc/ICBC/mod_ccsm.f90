@@ -489,7 +489,7 @@
       real(4) :: nlat0 , nlat1 , nlon0 , nlon1
       character(256) :: pathaddname
       logical :: there
-      real(4) , dimension(6) :: checklat , checklon , checktim
+      integer , dimension(6) :: checklat , checklon , checktim
       character(2) , dimension(6) :: varname
       real(4) , allocatable , dimension(:,:,:) :: work
       real(4) , allocatable , dimension(:) :: work1 , work2
@@ -552,9 +552,9 @@
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
  
-        checklon(kkrec) = real(lonlen)
-        checklat(kkrec) = real(latlen)
-        checktim(kkrec) = real(timlen)
+        checklon(kkrec) = lonlen
+        checklat(kkrec) = latlen
+        checktim(kkrec) = timlen
         if ( kkrec>1 ) then
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
@@ -1118,7 +1118,7 @@
       character(2) , dimension(6) :: varname
       real(4) , allocatable , dimension(:,:,:) :: work
       real(4) , allocatable , dimension(:) :: work1 , work2
-      real(4) , dimension(6) :: checklat , checklon , checktim
+      integer , dimension(6) :: checklat , checklon , checktim
 !
       data nmonth/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' ,       &
          & 'JUL' , 'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
@@ -1180,9 +1180,9 @@
         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
-        checklon(kkrec) = real(lonlen)
-        checklat(kkrec) = real(latlen)
-        checktim(kkrec) = real(timlen)
+        checklon(kkrec) = lonlen
+        checklat(kkrec) = latlen
+        checktim(kkrec) = timlen
         if ( kkrec>1 ) then
           if ( checklat(kkrec)/=checklat(kkrec-1) .or. checklon(kkrec)  &
              & /=checklon(kkrec-1) .or. checktim(kkrec)                 &
