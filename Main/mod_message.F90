@@ -54,13 +54,9 @@
 #endif
       implicit none
 !
-! Dummy arguments
-!
       character(*) :: filename , str
       integer :: line
       intent (in) filename , line , str
-!
-! Local variables
 !
       character(8) :: cline
 #ifdef MPP1

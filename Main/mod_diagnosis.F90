@@ -595,8 +595,6 @@
 #endif
       implicit none
 !
-! Local variables
-!
       real(8) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
                & tqmass , tttmp , tvmass , xh
       integer :: i , j , k

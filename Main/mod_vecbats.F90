@@ -186,8 +186,6 @@
 !
       implicit none
 ! 
-! Local variables
-!
       integer :: ill , is , itex , jll , k , nlveg
       real(8) , dimension(20) :: slmo
 !
@@ -337,11 +335,7 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       integer , intent (in) :: ivers , j , k , istart , iend , ng
-!
-! Local variables
 !
       real(8) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
                & fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
@@ -1072,12 +1066,8 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: iemiss , j
       intent (in) iemiss , j
-!
-! Local variables
 !
       real(8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                & albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
@@ -1402,8 +1392,6 @@
 !
       implicit none
 !
-! Local variables
-!
       real(8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
       integer :: itex , n , i
 !
@@ -1504,13 +1492,9 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       integer , intent (in) :: imax
       real(kind=8) , intent (in) :: alat , dec , fjd
       real(kind=8) , intent (out) , dimension(imax) :: coszrs , frac
-!
-! Local variables
 !
       real(8) :: cc , cosz , dlon , ha , ss , tpifjd
       integer :: i
@@ -1541,12 +1525,8 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: j
       intent (in) j
-!
-! Local variables
 !
       real(8) :: amxtem , sfac
       integer :: n , i

@@ -824,11 +824,7 @@
       use mpi
       implicit none
 !
-! Dummy arguments
-!
       integer , intent(in) :: ivers
-!
-! Local variables
 !
       real(8) :: mmpd , wpm2
       integer :: ci , cj , counter , i , ii , iii , j , jj , kk ,       &

@@ -1487,8 +1487,6 @@
 
       implicit none
 !
-! Local variables
-!
       integer :: i , j
 !
 #ifdef BAND

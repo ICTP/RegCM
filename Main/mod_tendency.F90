@@ -101,12 +101,8 @@
 #endif
       implicit none
 !
-! Dummy arguments
-!
       integer :: iexec
       intent (inout) iexec
-!
-! Local variables
 !
       real(8) :: cell , chias , chibs , dto2 , dudx , dudy ,            &
                & dvdx , dvdy , psabar , psasum ,                        &

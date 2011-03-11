@@ -34,8 +34,6 @@
       real(8) , allocatable , dimension(:,:) :: lfta , lftb
       real(8) , allocatable , dimension(:,:) :: lftra , lftrs
 !
-!     Local use
-!
       real(8) , allocatable , dimension(:,:) :: cdrd , vpdc
       real(8) , allocatable , dimension(:,:) :: rppq , efe
       real(8) , allocatable , dimension(:,:) :: dcd , etrc

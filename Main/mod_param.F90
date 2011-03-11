@@ -79,8 +79,6 @@
 #endif
       implicit none
 !
-! Local variables
-!
       real(8) :: afracl , afracs , bb , cc , chibot , delsig , &
                & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &

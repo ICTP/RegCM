@@ -213,8 +213,6 @@
 ! p0     - Standard pressure (pascals)
 ! amd    - Effective molecular weight of dry air (kg/kmol)
 !
-! Local variables
-!
       real(8) :: amd , p0 , v0
       integer :: iband
 
@@ -401,8 +399,6 @@
 ! flwds   - Surface down longwave flux
 !
 !
-! Dummy arguments
-!
       real(8) :: eccf
       integer :: jslc
       real(8) , dimension(iym1) :: alb , albc , albl , albld , albs ,  &
@@ -449,8 +445,6 @@
 ! cfc11    - cfc11 mass mixing ratio
 ! cfc12    - cfc12 mass mixing ratio
 ! rh       - level relative humidity (fraction)
-!
-! Local variables
 !
       real(8) , dimension(iym1) :: fslwdcs
       real(8) , dimension(iym1) :: aeradfo , aeradfos
@@ -700,8 +694,6 @@
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 !
 !
-! Dummy arguments
-!
       real(8) :: eccf
       real(8) , dimension(iym1) :: aeradfo , aeradfos , aldif , aldir ,&
                                   & asdif , asdir , fsds , fsnirt ,     &
@@ -867,8 +859,6 @@
 ! wkaer    - works table
 ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
 !-----------------------------------------------------------------------
-!
-! Local variables
 !
       real(8) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
                               & cbarl , dbari , dbarl , ebari , ebarl , &
@@ -1727,8 +1717,6 @@
 ! flntc   - Net clear sky outgoing flux
 ! flwds   - Down longwave flux at surface
 !
-! Dummy arguments
-!
       integer :: jslc
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            & o3vmr , pmid , pmln , qnm , qrl , tnm
@@ -1809,8 +1797,6 @@
 ! uptype  - p-type continuum path length
 ! abplnk1 - non-nearest layer Plack factor
 ! abplnk2 - nearest layer factor
-!
-! Local variables
 !
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1) :: absbt , bk1 , bk2 , delt , delt1 ,  &
@@ -2354,8 +2340,6 @@
 ! tottrn   - Total transmission for layers above
 !
 !
-! Dummy arguments
-!
       real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
       integer :: nloop
       real(8) , dimension(iym1) :: coszrs , ftota_mix_css ,            &
@@ -2401,9 +2385,6 @@
 !     explanation of individual terms, see the routine 'radded'.
 !
 !     Intermediate terms for delta-Eddington solution
-!
-!
-! Local variables
 !
       real(8) :: alp , amg , apg , arg , extins , ftot ,   &
                & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
@@ -2682,8 +2663,6 @@
 ! tottrn   - Total transmission for layers above
 !
 !
-! Dummy arguments
-!
       real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
       integer :: nloop
       real(8) , dimension(iym1) :: coszrs
@@ -2757,8 +2736,6 @@
 ! extins   - Extinction
 ! amg      - Alp - gam
 ! apg      - Alp + gam
-!
-! Local variables
 !
       real(8) :: alp , amg , apg , arg , extins , ftot ,   &
                & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
@@ -3092,8 +3069,6 @@
 ! Non-adjacent layer absorptivites
 ! Total emissivity
 !
-! Dummy arguments
-!
       integer :: jslc
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
@@ -3245,9 +3220,6 @@
 ! dbvtit   - Intrfc drvtv plnck fnctn for o3
 ! dbvtly   - Level drvtv plnck fnctn for o3
 ! dbvt     - Planck fnctn tmp derivative for o3
-!
-!
-! Local variables
 !
       real(8) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
                & absbnd , alphat , beta , cf812 , corfac , denom ,      &
@@ -3932,8 +3904,6 @@
 ! abplnk2 - nearest layer factor
 ! emstrc  - total trace gas emissivity
 !
-! Dummy arguments
-!
       integer :: jslc
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
@@ -4078,9 +4048,6 @@
 ! tco2    - co2 overlap factor
 ! th2o    - h2o overlap factor
 ! to3     - o3 overlap factor
-!
-!
-! Local variables
 !
       real(8) , dimension(iym1) :: a , co2plk , corfac , dbvtt , dtp ,  &
                                   & dtx , dty , dtz , k21 , k22 , pnew ,&
@@ -4405,8 +4372,6 @@
 ! plos    - Ozone path length (cm)
 !
 !
-! Dummy arguments
-!
       real(8) , dimension(iym1,kz) :: o3vmr
       real(8) , dimension(iym1,kzp1) :: pint , plol , plos
       intent (in) o3vmr , pint
@@ -4418,8 +4383,6 @@
 ! k       - level index
 !
 !-----------------------------------------------------------------------
-!
-! Local variables
 !
       integer :: i , k
       character (len=50) :: subroutine_name='radoz2'
@@ -4487,8 +4450,6 @@
 ! piln   - Ln(pintm1)
 !
 !
-! Dummy arguments
-!
       real(8) , dimension(iym1,kzp1) :: piln , plh2o , pnm , s2c ,    &
            & s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
       real(8) , dimension(iym1,kz) :: pmln , qnm , tnm
@@ -4509,8 +4470,6 @@
 ! rtnm   - Inverse level temperature
 !
 !-----------------------------------------------------------------------
-!
-! Local variables
 !
       real(8) :: dpnm , dpnmsq , dy , r296 , repsil , rtnm
       integer :: i , k
@@ -4619,8 +4578,6 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       real(8) :: eccf
       real(8) , dimension(iym1,kzp1) :: cld , pint , pintrd , plco2 ,   &
            & plh2o , tclrsf
@@ -4629,8 +4586,6 @@
       intent (in) cld , h2ommr , o3vmr , pint , pmid
       intent (out) eccf , o3mmr , plco2 , pmidrd
       intent (inout) pintrd , plh2o , tclrsf
-!
-! Local variables
 !
 #ifndef CLM
       real(8) :: theta
@@ -4789,15 +4744,11 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , itarg , n , nval
       integer , dimension(*) :: array , indx
       intent (in) array , inc , itarg , n
       intent (out) indx
       intent (inout) nval
-!
-! Local variables
 !
       integer :: i , ina
 !
@@ -4818,15 +4769,11 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , itarg , n , nval
       integer , dimension(*) :: array , indx
       intent (in) array , inc , itarg , n
       intent (out) indx
       intent (inout) nval
-!
-! Local variables
 !
       integer :: i , ina
 !
@@ -4846,8 +4793,6 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , n , nval
       real(8) :: rtarg
       real(8) , dimension(*) :: array
@@ -4855,8 +4800,6 @@
       intent (in) array , inc , n , rtarg
       intent (out) indx
       intent (inout) nval
-!
-! Local variables
 !
       integer :: i , ina
 !
@@ -4877,8 +4820,6 @@
  
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , n , nval
       real(8) :: rtarg
       real(8) , dimension(*) :: array
@@ -4886,8 +4827,6 @@
       intent (in) array , inc , n , rtarg
       intent (out) indx
       intent (inout) nval
-!
-! Local variables
 !
       integer :: i , ina
 !
@@ -4907,14 +4846,10 @@
 !
       implicit none
 !
-! Dummy arguments
-!
       integer :: inc , n
       integer :: intmax
       integer , dimension(*) :: iy
       intent (in) inc , iy , n
-!
-! Local variables
 !
       integer :: i , mx
 !
