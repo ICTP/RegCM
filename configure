@@ -55,6 +55,7 @@ def main():
     nclib = ""
     ncinc = ""
     hdf5lib = ""
+    compress = 0
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
@@ -75,6 +76,19 @@ def main():
     if hdf5 == 1 :
         print "\n  ****  Please note that this requires NetCDF to be compiled with HDF5.\n  ****  This configuration guide will just check if the HDF5 library is present... "
         hdf5lib = hdf5_search(hdf5lib)
+        print "\n  ****  Would you like to enable NetCDF v4 compression? (0/1) \n\t[0]"
+    
+        compress = raw_input("\tzlib = ")
+    
+        if len(compress) == 0 :
+            compress = int(0)
+        else:
+            try :
+                compress = int(compress)
+                if not 0<=compress<=1:
+                    compress = int(0)
+            except :
+                compress = int(0)
 
     print "\n  !!!!  The following options are all documented in detail \n\ton the eForge wiki page and in the RegCM Users' Guide,\n\tso please check there for more information."
 
@@ -176,9 +190,9 @@ def main():
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5,compress)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,hdf5lib,hdf5)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,hdf5lib,hdf5,compress)
 
     #If the user has chosen the Sun compilers:
     #Write a note to the user indicating that the -M line will need to be
@@ -347,7 +361,7 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5,compress) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
@@ -389,7 +403,8 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
                 
                 line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
 
-                line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
+                if (compress == 1):
+                    line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
