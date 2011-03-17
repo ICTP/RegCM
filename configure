@@ -81,12 +81,12 @@ def main():
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
-    hasnc4 = ""
+    hasnc4 = "no"
     try : 
         hasnc4 = getresult('nc-config --has-nc4')
     except :
         print "\n *** nc-config program seems not to be present."
-    if (not hasnc4 == "") :
+    if (hasnc4 == "yes") :
         print "\n  ****  Would you like to enable NetCDF v4 compression? (0/1) \n\t[0]"
     
         compress = raw_input("\tzlib = ")
