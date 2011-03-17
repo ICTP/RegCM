@@ -36,6 +36,7 @@
       real(8) , parameter :: fact1 = 0.60D0
 !hy   real(8) , parameter :: fact1 = 0.75D0
       real(8) , parameter :: fact2 = d_one - fact1
+      real(8) , parameter :: falow = 1.0D-15
 !
       contains
 !
@@ -387,7 +388,7 @@
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k) > lowval .and. fa(i,k-1) > lowval ) then
+            if ( fa(i,k) > falow .and. fa(i,k-1) > falow ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
               fg(i,k) = d_zero
@@ -566,7 +567,7 @@
         do k = 2 , kz
           do i = 2 , iym2
 ! modif !!
-            if ( fa(i,k) > lowval .and. fa(i,k-1) > lowval ) then
+            if ( fa(i,k) > falow .and. fa(i,k-1) > falow ) then
               fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
             else
               fg(i,k) = d_zero

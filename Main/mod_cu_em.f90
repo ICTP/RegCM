@@ -43,6 +43,7 @@
 !
       integer :: minorig
       real(8) , parameter :: cl = 2500.0D0
+      real(8) , parameter :: mincbmf = 1.0D-30
 !
       contains
 !
@@ -573,7 +574,7 @@
 !     ***  if there was no convection at last time step and parcel   
 !     *** ***       is stable at icb then skip rest of calculation     
 !     ***
-      if ( dabs(cbmf) < lowval .and. tvp(icb) <= (tv(icb)-dtmax) ) then
+      if ( dabs(cbmf) < mincbmf .and. tvp(icb) <= (tv(icb)-dtmax) ) then
         iflag = 0
         return
       end if
@@ -718,7 +719,7 @@
 !
 !     *** if cloud base mass flux is zero, skip rest of calculation  ***
 !
-      if ( dabs(cbmf) < lowval .and. dabs(cbmfold) < lowval ) return
+      if ( dabs(cbmf) < mincbmf .and. dabs(cbmfold) < mincbmf ) return
 !
 !     ***   calculate rates of mixing,  m(i)   ***
 !
@@ -834,7 +835,7 @@
               ment(i,j) = ment(i,j)*(delp+delm)*(ph(j)-ph(j+1))
             end if
           end do
-          asij = dmax1(lowval,asij)
+          asij = dmax1(1.0D-21,asij)
           asij = d_one/asij
           do j = icb , inb
             ment(i,j) = ment(i,j)*asij

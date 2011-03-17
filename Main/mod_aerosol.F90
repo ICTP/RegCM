@@ -50,6 +50,8 @@
       real(8) , parameter :: nearone  = 0.99D+00
       real(8) , parameter :: minimum_aerosol = 1.0D-14
       real(8) , parameter :: minimum_utaer   = 1.0D-10
+      real(8) , parameter :: minimum_waer   = 1.0D-30
+      real(8) , parameter :: minimum_gaer   = 1.0D-20
       real(8) , parameter :: fiveothree  = d_five/d_three
 !
 ! kscoef  - specific extinction (m2/g)
@@ -722,11 +724,12 @@
 !
               tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns)               &
                                    + tauaer(i,itr)
-              if (waer(i,itr) > lowval) then
+              if (waer(i,itr) > minimum_waer) then
                 tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns) +           &
                                    tauaer(i,itr)*waer(i,itr)
               end if
-              if (gaer(i,itr) > lowval .and. waer(i,itr) > lowval) then
+              if (gaer(i,itr) > minimum_gaer .and.  &
+                  waer(i,itr) > minimum_gaer) then
                 gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr) * &
                                   tauaer(i,itr)*waer(i,itr)
                 ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr) * &

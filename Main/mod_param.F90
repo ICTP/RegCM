@@ -770,7 +770,7 @@
 !.....find the julian day of the year and calulate dectim
 !
       julday = idayofyear(mdate0)
-      dectim = (minpd-gmt*secph)
+      dectim = (minpd-gmt*minph)
  
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
@@ -1353,7 +1353,7 @@
             kbmax2d(i,j) = kbmax
             htmax2d(i,j) = htmax
             htmin2d(i,j) = htmin
-            dtauc2d(i,j) = dtauc*secph
+            dtauc2d(i,j) = dtauc*minph
           end do
         end do
       end if
@@ -1488,21 +1488,21 @@
       ispgx = nspgx - 1
 !.....for dot point variables:
       if ( iboudy == 4 ) then
-        wgtd(1) = d_zero
-        wgtd(2) = 0.2D0
+        wgtd(1) = 0.00D0
+        wgtd(2) = 0.20D0
         wgtd(3) = 0.55D0
-        wgtd(4) = 0.8D0
+        wgtd(4) = 0.80D0
         wgtd(5) = 0.95D0
         do k = 4 , nspgx
           wgtd(k) = d_one
         end do
 !.....for cross point variables:
-        wgtx(1) = d_zero
+        wgtx(1) = 0.0D0
         wgtx(2) = 0.4D0
         wgtx(3) = 0.7D0
         wgtx(4) = 0.9D0
         do k = 5 , nspgx
-          wgtx(k) = d_one
+          wgtx(k) = 1.0D0
         end do
       end if
 !

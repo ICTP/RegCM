@@ -97,6 +97,7 @@
       private
 !
       public :: colmod3
+      real(8) , parameter :: lowcld = 1.0D-30
 !
       contains
 !
@@ -677,7 +678,7 @@
                           pintm1(n,nll))/(egrav*pmidm1(n,nll))
           clwp(n,nll) = clwtem*deltaz(n,nll)
 !KN       if (cldfrc(n,nll) == 0.) clwp(n,nll)=d_zero
-          if ( dabs(cld(n,nll)) < lowval ) then
+          if ( dabs(cld(n,nll)) < lowcld ) then
             cld(n,nll) = d_zero
             clwp(n,nll) = d_zero
           end if

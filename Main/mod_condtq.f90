@@ -28,6 +28,7 @@
       use mod_slice
 !
       private
+      real(8) , parameter :: lowq = 1.0D-30
 !
       public :: condtq
 !
@@ -80,9 +81,9 @@
         do i = 2 , iym2
           tmp3(i,k) = (atm2%t(i,k,j)+dt*aten%t(i,k,j))/psc(i,j)
           qvcs(i,k) = dmax1((atm2%qv(i,k,j)+dt*aten%qv(i,k,j))/psc(i,j),&
-                    & lowval)
+                    & lowq)
           qccs(i,k) = dmax1((atm2%qc(i,k,j)+dt*aten%qc(i,k,j))/psc(i,j),&
-                    & lowval)
+                    & lowq)
         end do
       end do
  
@@ -101,8 +102,8 @@
           else
             satvp = svp4*d_1000*dexp(svp5-svp6/tmp3(i,k))
           end if
-          qvs = dmax1(ep2*satvp/(pres-satvp),lowval)
-          rhc = dmax1(qvcs(i,k)/qvs,lowval)
+          qvs = dmax1(ep2*satvp/(pres-satvp),lowq)
+          rhc = dmax1(qvcs(i,k)/qvs,lowq)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/ &
                       (rwat*cpd*tmp3(i,k)*tmp3(i,k)))
