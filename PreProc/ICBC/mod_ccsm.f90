@@ -592,7 +592,7 @@ module mod_ccsm
  
     if ( nlon0 < work1(1) .or. nlon1 > work1(lonlen) .or. &
          nlat0 < work2(1) .or. nlat1 > work2(latlen) ) then
-      write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+      write(stderr,*) 'RCM DATA WINDOW NOT INSIDE CCSM DATA WINDOW'
       write(stderr,*) 'CCSM Window LON min = ',work1(1),'max = ', work1(lonlen)
       write(stderr,*) 'RCM  Domain LON min = ',nlon0,'max = ',nlon1
       write(stderr,*) 'CCSM Window LAT min = ',work2(1),'max = ', work2(latlen)
@@ -1218,7 +1218,7 @@ module mod_ccsm
  
     if ( nlon0 < work1(1) .or. nlon1 > work1(lonlen) .or. &
          nlat0 < work2(1) .or. nlat1 > work2(latlen) ) then
-      write(stderr,*) 'DOMAIN DIMENSIONS DO NOT MATCH'
+      write(stderr,*) 'RCM DATA WINDOW NOT INSIDE CCSM DATA WINDOW'
       write(stderr,*) 'CCSM Window LON min= ', work1(1), 'max= ', work1(lonlen)
       write(stderr,*) 'RCM  Domain LON min= ', nlon0, 'max= ', nlon1
       write(stderr,*) 'CCSM Window LAT min= ', work2(1) , 'max= ', work2(latlen)
