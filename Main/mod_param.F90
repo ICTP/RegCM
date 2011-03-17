@@ -29,6 +29,7 @@ module mod_param
   use mod_message
   use mod_cu_bm
   use mod_cu_em
+  use mod_cu_tables
   use mod_cu_tiedtke
   use mod_rad
   use mod_split
@@ -585,6 +586,7 @@ module mod_param
   end if
  
   if ( icup.eq.5 ) then
+    call init_convect_tables
     call mpi_bcast(iconv,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(entrpen,1,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(entrscv,1,mpi_real8,0,mpi_comm_world,ierr)
