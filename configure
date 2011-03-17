@@ -28,14 +28,19 @@ except:
     import os,sys,shutil,fileinput
     oldpy=1
 
-def getresult(command,result):
+def getresult(command):
+    result = ""
     if (oldpy) :
-        result = os.popen(command).read()
+        try:
+            result = os.popen(command).read()
+        except:
+            throw(KeyError)
     else:
         try:
             result = subprocess.check_output(command.split())
         except:
             throw(KeyError)
+    return result
 
 def main():
     os.system("clear")
@@ -72,9 +77,12 @@ def main():
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
-    result = ''
-    getresult('nc-config --has-nc4', result)
-    if (result) :
+    hasnc4 = ""
+    try : 
+        hasnc4 = getresult('nc-config --has-nc4')
+    except :
+        print "\n *** nc-config program seems not to be present."
+    if (not hasnc4 == "") :
         print "\n  ****  Would you like to enable NetCDF v4 compression? (0/1) \n\t[0]"
     
         compress = raw_input("\tzlib = ")
@@ -219,8 +227,8 @@ def netcdf_search(nclib,ncinc):
     ncok=True
 
     try :
-        getresult('nc-config --prefix', nclib)
-        getresult('nc-config --includedir', ncinc)
+        nclib = getresult('nc-config --prefix')
+        ncinc = getresult('nc-config --includedir')
     except KeyError , CalledProcessError :
         ncok=False
 
@@ -386,7 +394,7 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
         ncliblist = ""
         hdf5lib = ""
         try :
-            getresult('nc-config --flibs', ncliblist)
+            ncliblist = getresult('nc-config --flibs')
             ncliblist = ncliblist.replace(' -Wl,--as-needed',' ')
             ncliblist = ncliblist.replace('-lmfhdf -ldf','-lmfhdf -ldf -ljpeg')
             hdf5lib = ""
