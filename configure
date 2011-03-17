@@ -21,7 +21,7 @@
 
 # Configuration script for the RegCM distribution by M. Scarcia
 
-import os,sys,shutil,fileinput
+import os,sys,shutil,fileinput,subprocess
 
 def main():
     os.system("clear")
@@ -54,28 +54,11 @@ def main():
 
     nclib = ""
     ncinc = ""
-    hdf5lib = ""
     compress = 0
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
-    print "\n  ****  Would you like to enable NetCDF v4 features? (0/1) \n\t[1]"
-    
-    hdf5 = raw_input("\thdf5 = ")
-    
-    if len(hdf5) == 0 :
-        hdf5 = int(1)
-    else:
-        try :
-            hdf5 = int(hdf5)
-            if not 0<=hdf5<=1:
-                hdf5 = int(1)
-        except :
-            hdf5 = int(1)
-
-    if hdf5 == 1 :
-        print "\n  ****  Please note that this requires NetCDF to be compiled with HDF5.\n  ****  This configuration guide will just check if the HDF5 library is present... "
-        hdf5lib = hdf5_search(hdf5lib)
+    if (subprocess.check_output(['nc-config', '--has-nc4'])) :
         print "\n  ****  Would you like to enable NetCDF v4 compression? (0/1) \n\t[0]"
     
         compress = raw_input("\tzlib = ")
@@ -190,9 +173,9 @@ def main():
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5,compress)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,compress)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,hdf5lib,hdf5,compress)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,compress)
 
     #If the user has chosen the Sun compilers:
     #Write a note to the user indicating that the -M line will need to be
@@ -219,14 +202,24 @@ def netcdf_search(nclib,ncinc):
 
     ncok=True
 
+    try :
+        nclib = subprocess.check_output(['nc-config', '--prefix'])+'/lib'
+        ncinc = subprocess.check_output(['nc-config', '--includedir'])
+    except KeyError , CalledProcessError :
+        ncok=False
+
     # check for path in env variables
     try :
         path_a=os.environ['NETCDF']
-        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
-            nclib = path_a+"/lib"
-            ncinc = path_a+"/include"
+        if (os.path.isdir(path_a)):
+            if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+                nclib = path_a+"/lib"
+                ncinc = path_a+"/include"
+            else :
+                ncok=False
         else :
-            ncok=False
+            if ncok:
+              ncok=False
     except KeyError :
         ncok=False
 
@@ -361,7 +354,7 @@ def choose_template(regcm_root,compiler,dbg):
 
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib,hdf5,compress) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,compress) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
@@ -374,20 +367,25 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
         #If the sun compilers are being used, also indicate the path
         #of the file netcdf.mod
 
-        if hdf5lib == "":
-        
+        ncliblist = ""
+        hdf5lib = ""
+        try :
+            ncliblist = subprocess.check_output(['nc-config', '--flibs'])
+            ncliblist = ncliblist.replace(' -Wl,--as-needed',' ')
+            ncliblist = ncliblist.replace('-lmfhdf -ldf','-lmfhdf -ldf -ljpeg')
+            hdf5lib = ""
+        except KeyError , CalledProcessError :
+            hdf5_search(hdf5lib)
+
+        if not ncliblist == "" :
             if not compiler == 5 :
                 if compiler == 6 :
                     line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
                 else :
                     line=line.replace("!NETCDFINC","-I"+ncinc)
-
-                if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
-                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
-                else :
-                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
-                
-                line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
+                line=line.replace("!NETCDFLIB","-L"+nclib+' '+ncliblist)
+                if (compress == 1) :
+                    line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
         else :
 
             if not compiler == 5 :
@@ -397,12 +395,15 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
                     line=line.replace("!NETCDFINC","-I"+ncinc)
 
                 if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
-                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
+                    if hdf5lib == "" :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
+                    else :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
                 else :
-                    line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
-                
-                line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
-
+                    if hdf5lib == "" :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+                    else :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
                 if (compress == 1):
                     line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
 
