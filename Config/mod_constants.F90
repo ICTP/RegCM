@@ -39,7 +39,7 @@
       real(8) , parameter :: d_1000 = 1.0D+03
       real(8) , parameter :: d_r1000 = 1.0D-03
 
-      real(8) , parameter :: lowval = 1.0D-34
+      real(8) , parameter :: lowval = 1.0D-30
 
       ! time conversion
       real(8) , parameter :: secpm = 60.0D+00

@@ -30,6 +30,7 @@
       public :: bndry
 !
       real(8) , parameter :: minsigf = 0.001D+00
+      real(8) , parameter :: lowsice = 1.0D-22
 !
       contains
 !
@@ -967,14 +968,14 @@
 !l          2.1  add freezing thermal inertia
             if ( (tg1d(n,i) < tzero) .and.  &
                  (tg1d(n,i) > (tzero-d_four)) .and. &
-                 (sice1d(n,i) < lowval) ) then
+                 (sice1d(n,i) < lowsice) ) then
               depu = depuv(lveg(n,i))*d_r1000
               cc(n,i) = d_one + dmax1(ssw1d(n,i)- &
                          frezu(lveg(n,i)),d_zero)*fct1(depu*rscsd(n,i))
             end if
             if ( (tgb1d(n,i) < tzero) .and.                  &
                  (tgb1d(n,i) > (tzero-d_four)) .and.         &
-                 (sice1d(n,i) < lowval) ) then
+                 (sice1d(n,i) < lowsice) ) then
               depr = deprv(lveg(n,i))*d_r1000
               fct2(n,i) = dmax1(rsw1d(n,i)-freza(lveg(n,i)),d_zero)  &
                            *fct1(depr*rscsa(n,i))
