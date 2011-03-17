@@ -36,7 +36,7 @@ def getresult(command):
     result = ""
     if (oldpy) :
         try:
-            result = os.popen(command).read()
+            result = os.popen(command).read().strip()
         except:
             raise KeyError 
     else:
