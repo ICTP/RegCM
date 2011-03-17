@@ -83,7 +83,7 @@ def main():
 
     hasnc4 = "no"
     try : 
-        hasnc4 = getresult('nc-config --has-nc4')
+        hasnc4 = getresult('nc-config --has-nc4').rstrip('\n')
     except :
         print "\n *** nc-config program seems not to be present."
     if (hasnc4 == "yes") :
