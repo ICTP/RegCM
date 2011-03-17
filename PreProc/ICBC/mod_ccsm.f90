@@ -541,7 +541,6 @@
         istatus = nf90_inquire_dimension(inet6(kkrec),timid,len=timlen)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
  
- 
         checklon(kkrec) = lonlen
         checklat(kkrec) = latlen
         checktim(kkrec) = timlen
@@ -590,16 +589,16 @@
         icount(1) = latlen
         istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
  
-        if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
-           & .or. nlat1>work2(latlen) ) then
-          print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+        if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. &
+             nlat0<work2(1) .or. nlat1>work2(latlen) ) then
+          print * , 'RCM DATA WINDOW NOT INSIDE CCSM DATA WINDOW'
           print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
               & work1(lonlen)
           print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
               & work2(latlen)
           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in mod_preproc_param.f90'
+          stop 'Correct Domain Parameters in regcm.in'
         end if
  
         if ( idate==idate0 ) then
@@ -1208,16 +1207,16 @@
         icount(1) = latlen
         istatus = nf90_get_var(inet6(kkrec),latid,work2,istart,icount)
  
-        if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. nlat0<work2(1)&
-           & .or. nlat1>work2(latlen) ) then
-          print * , 'DOMAIN DIMENSIONS DO NOT MATCH'
+        if ( nlon0<work1(1) .or. nlon1>work1(lonlen) .or. &
+             nlat0<work2(1) .or. nlat1>work2(latlen) ) then
+          print * , 'RCM DATA WINDOW NOT INSIDE CCSM DATA WINDOW'
           print * , 'CCSM Window LON min=' , work1(1) , 'max=' ,        &
               & work1(lonlen)
           print * , 'RCM  Domain LON min=' , nlon0 , 'max=' , nlon1
           print * , 'CCSM Window LAT min=' , work2(1) , 'max=' ,        &
               & work2(latlen)
           print * , 'RCM  Domain LAT min=' , nlat0 , 'max=' , nlat1
-          stop 'Correct Domain Parameters in mod_preproc_param.f90'
+          stop 'Correct Domain Parameters in regcm.in'
         end if
  
         if ( idate==idate0 ) then
