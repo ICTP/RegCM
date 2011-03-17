@@ -1866,7 +1866,7 @@
                 'Total daily precipitation rate','kg m-2 day-1', &
                 tyx,.false.,iatmvar(9))
             call addvara(ncid,ctype,'tgb','soil_temperature', &
-                'Lower groud temperature in BATS','K', &
+                'Lower groud temperature','K', &
                 tyx,.false.,iatmvar(10))
             call addvara(ncid,ctype,'swt', &
                 'moisture_content_of_soil_layer', &
