@@ -40,7 +40,6 @@ def getresult(command):
         except:
             raise KeyError 
     else:
-        result = subprocess.check_output(command.split())
         try:
             result = subprocess.check_output(command.split())
         except:
