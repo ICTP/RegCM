@@ -1,0 +1,86 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# Script that runs the NCL script diurnalaverages, which does diurnal averages
+# of generic netcdf data 
+#--Created 03/2011 for RegCMv4.1 by Travis A. O'Brien <tobrien@ucsc.edu>
+#
+
+#A subroutine for printing the proper usage to the screen
+printusage ()
+{
+  echo "usage: $0  FILENAME.nc OUTFILENAME.nc [STARTHOUR]"
+  echo "  Where FILENAME.nc is an hourly netcdf file, with less than 6 total "
+  echo "  dimensions, that should be averaged."
+  echo "  "
+  echo "  OUTFILENAME.nc is the output file name."
+  echo "  "
+  echo "  STARTHOUR is the start hour of the file.  Defaults to 0."
+  exit
+}
+
+#Check if the Environment variable REGCMSRCDIR has been set
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+else
+  INFILENAME=$1
+fi
+if [ ! -e "$INFILENAME" ]; then
+  echo "Error: '${INFILENAME}' does not exist"
+  printusage
+fi
+if [ -z "$2" ]; then
+  printusage
+else
+  OUTFILENAME=$2
+fi
+if [ -z "$3" ]; then
+  STARTHOUR=0
+else
+  STARTHOUR=$3
+fi
+
+echo "Diurnally averaging $INFILENAME..."
+
+NCLBASE="" #Assume that the NCL binary directory is in the user's path
+NCL="${NCLBASE}ncl"
+DIURNALAVENCL="$REGCMSRCDIR/Tools/Scripts/NCL/diurnalaverager.ncl"
+
+#Generate file names with quotes around them so that they can be passed to
+#ncl
+INFILE="\"${INFILENAME}\""
+OUTFILE="\"${OUTFILENAME}\""
+
+#Run NCL, giving it the file paths from above
+$NCL $DIURNALAVENCL \
+      "infilename=${INFILE}" \
+      "outfilename=${OUTFILE}" \
+      "starthour=\"${STARTHOUR}\""
+
+
+
+

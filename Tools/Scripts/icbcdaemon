@@ -1,0 +1,108 @@
+#!/bin/sh
+#Script parameters
+
+#The only argument from the command line: the regcm.in file
+REGCMIN=$1
+PID=$$
+
+##########Control variables################
+
+#A couple of variables to make writing filenames in this script possible
+endstr="0100"
+endstrd="010100"
+us="_"
+
+SLEEPTIME=300
+
+
+##################### Reading regcm.in ########################
+#Use grep and sed to pull the experiment name from the regcm.in file
+EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
+EXPNAME=`echo $EXPNAME`
+
+#Use grep and sed to pull the output directory and the start/end dates
+#from the regcm.in file
+#Start date of run
+IDATE0=`grep -i idate0 $REGCMIN | sed "s/[Ii][Dd][Aa][Tt][Ee]0\s*=\s*\(.*\),/\1/"`
+IDATE0=`echo $IDATE0`
+#End date of run; inverse search for glob to avoid globidate2
+IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+IDATE2=`echo $IDATE2`
+#Output directory (allow for no comma at the end, since it is the last item in 
+#the namelist
+OUTDIR=`grep -i dirout $REGCMIN | sed "s/[Dd][Ii][Rr][Oo][Uu][Tt]\s*=\s*'\(.*\)',*/\1/"`
+OUTDIR=`echo $OUTDIR`
+
+#Assume that icbc lives in Bin, which is a directory up from the output
+#directory
+ICBCBIN="$OUTDIR/../Bin/icbc"
+
+
+#Parse the start and end date strings
+STARTYEAR=`echo $IDATE0 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+STARTMONTH=`echo $IDATE0 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+ENDYEAR=`echo $IDATE2 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+
+##################### End Reading regcm.in ####################
+
+
+
+##################### Main loop ###############################
+#Loop through all years
+#Run icbc to make sure that at least one year of data exists
+#ahead of the current year
+#Wait for startmonth of each year to be created; when it is,
+#run icbc for the next year, and delete files from the previous year
+for year in `seq $STARTYEAR $ENDYEAR`
+do
+    YEAR0=`expr $year + 1`
+    YEAR1=`expr $year + 2`
+    MON0=$STARTMONTH
+    MON1=$STARTMONTH
+    #If this is the last year, then make the end year
+    #and end month the final 
+    if [ "$YEAR1" -ge "$ENDYEAR" ]; then
+      YEAR1=$ENDYEAR
+      MON1=$ENDMONTH
+    fi
+
+    ##################### Waiting loop ############################
+    #Enter a while loop that waits for startmonth to be completed
+    #icbc the next year when it is
+    MONTHREADY=0
+    while [ "$MONTHREADY" -ne "1" ]
+    do
+      #The RegCM output file for the requested month
+      nextfile="${OUTDIR}/${EXPNAME}_ATM.${year}${STARTMONTH}${endstr}.nc"
+#      echo $nextfile
+      if [ -s $nextfile ]; then
+        MONTHREADY=1
+      else
+        MONTHREADY=0
+      fi
+      #Wait SLEEPTIME seconds before trying again
+      if [ $MONTHREADY -ne "1" ];then
+        echo "Waiting for $STARTMONTH/$year to be ready..."
+        sleep $SLEEPTIME
+      fi
+    done
+    ################# End Waiting loop ############################
+
+    ################# Run ICBC on the next year ###################
+    GID0="$YEAR0$MON0$endstr"
+    GID1="$YEAR1$MON1$endstr"
+    cat $REGCMIN | sed "s/\(globidate0\s*=\s*\).*,/\1$GID0,/" | sed "s/\(globidate1\s*=\s*\).*,/\1$GID1,/" > regcm.$PID
+    $ICBCBIN regcm.$PID
+
+    #Check that all files were created
+
+    #remove the regcm.in
+    rm regcm.$PID
+    ################# End Run ICBC on the next year ###############
+
+    ########## Delete ICBC files from the previous year ###########
+    ####### End Delete ICBC files from the previous year ##########
+
+done
+################# End Main loop ###############################
