@@ -21,7 +21,21 @@
 
 # Configuration script for the RegCM distribution by M. Scarcia
 
-import os,sys,shutil,fileinput,subprocess
+try:
+    import os,sys,shutil,fileinput,subprocess
+    oldpy=0
+except:
+    import os,sys,shutil,fileinput
+    oldpy=1
+
+def getresult(command,result):
+    if (oldpy) :
+        result = os.popen(command).read()
+    else:
+        try:
+            result = subprocess.check_output(command.split())
+        except:
+            throw(KeyError)
 
 def main():
     os.system("clear")
@@ -58,7 +72,9 @@ def main():
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
 
-    if (subprocess.check_output(['nc-config', '--has-nc4'])) :
+    result = ''
+    getresult('nc-config --has-nc4', result)
+    if (result) :
         print "\n  ****  Would you like to enable NetCDF v4 compression? (0/1) \n\t[0]"
     
         compress = raw_input("\tzlib = ")
@@ -203,8 +219,8 @@ def netcdf_search(nclib,ncinc):
     ncok=True
 
     try :
-        nclib = subprocess.check_output(['nc-config', '--prefix'])+'/lib'
-        ncinc = subprocess.check_output(['nc-config', '--includedir'])
+        getresult('nc-config --prefix', nclib)
+        getresult('nc-config --includedir', ncinc)
     except KeyError , CalledProcessError :
         ncok=False
 
@@ -370,7 +386,7 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
         ncliblist = ""
         hdf5lib = ""
         try :
-            ncliblist = subprocess.check_output(['nc-config', '--flibs'])
+            getresult('nc-config --flibs', ncliblist)
             ncliblist = ncliblist.replace(' -Wl,--as-needed',' ')
             ncliblist = ncliblist.replace('-lmfhdf -ldf','-lmfhdf -ldf -ljpeg')
             hdf5lib = ""
