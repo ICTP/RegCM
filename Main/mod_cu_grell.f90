@@ -28,6 +28,12 @@ module mod_cu_grell
   use mod_date
   use mod_service 
  
+  private
+
+  real(8) , parameter :: aa0act = -0.99999D0
+
+  public :: cuparan
+
 contains
 
   subroutine cuparan(tten,qten,j)
@@ -418,14 +424,14 @@ contains
     end do
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( aa0(i) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           dby(i,k) = hkb(i) - d_half*(hes(i,k)+hes(i,k+1))
           dbyo(i,k) = hkbo(i) - d_half*(heso(i,k)+heso(i,k+1))
         end if
       end do
     end do
     do i = istart , iend
-      if ( aa0(i) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         do k = 2 , kz - kbcon(i) - 1
           kk = kz - k + 1
           if ( dby(i,kk) >= d_zero ) then
@@ -448,7 +454,7 @@ contains
 !
     do k = 2 , kz - 1
       do i = istart , iend
-        if ( aa0(i) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           if ( k > kbcon(i) ) then
             if ( k < ktop(i) ) then
               dz = -d_half*z(i,k-1) + d_half*z(i,k+1)
@@ -473,8 +479,8 @@ contains
                      (rwat*(tn(i,k)**d_two)))*qeso(i,k)
               gammo0 = (wlhvocp)*(wlhv/(rwat*(tn(i,k-1)**d_two)))*  &
                  & qeso(i,k-1)
-              qrcho = qeso(i,k) + & 
-               (d_one/wlhv)*(gammo/(d_one+gammo))*dbyo(i,k)
+              qrcho = qeso(i,k) + &
+                     (d_one/wlhv)*(gammo/(d_one+gammo))*dbyo(i,k)
               qco(i,k) = (qcko(i)-qrcho)/(d_one+c0*dzo) + qrcho
               pwo(i,k) = c0*dzo*(qco(i,k)-qrcho)
               qcko(i) = qco(i,k)
@@ -490,7 +496,7 @@ contains
 !
 !
     do i = istart , iend
-      if ( aa0(i) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         k = ktop(i)
         dz = -d_half*z(i,k-1) + d_half*z(i,k)
         agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**d_two)))*qes(i,k)
@@ -516,12 +522,14 @@ contains
 !
     do kk = 1 , kz/2
       do i = istart , iend
-        if ( aa0(i) > -d_one ) vshear(i) = vshear(i)              &
-           & + dabs((vsp(i,kk+1)-vsp(i,kk))/(z(i,kk+1)-z(i,kk)))
+        if ( aa0(i) > aa0act ) then
+          vshear(i) = vshear(i)              &
+               & + dabs((vsp(i,kk+1)-vsp(i,kk))/(z(i,kk+1)-z(i,kk)))
+        end if
       end do
     end do
     do i = istart , iend
-      if ( aa0(i) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         vshear(i) = d_1000*vshear(i)/dble(kz/2)
         edt(i) = d_one - (1.591D0-0.639D0*vshear(i)+  &
                     0.0953D0*(vshear(i)**d_two) &
@@ -545,7 +553,7 @@ contains
     end do
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( aa0(i) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           if ( k < jmin(i) ) then
             kk = jmin(i) - k
             dz = -(z(i,kk)-z(i,kk+2))*d_half
@@ -576,10 +584,10 @@ contains
     end do
 !
     do i = istart , iend
-      if ( aa0(i) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         if ( bu(i) >= d_zero .or. buo(i) >= d_zero .or. &
           pwev(i) >= d_zero .or. pwevo(i) >= d_zero ) then
-         aa0(i) = -d_one
+          aa0(i) = -d_one
         end if
         edt(i) = -edt(i)*pwav(i)/pwev(i)
         if ( edt(i) > edtmax2d(i,jslc) ) edt(i) = edtmax2d(i,jslc)
@@ -595,7 +603,7 @@ contains
 !---  what would the change be?
 !
     do i = istart , iend
-      if ( aa0(1) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         k = 1
         dz = d_half*(z(i,2)-z(i,1))
         dp_s = 50.0D0*(psur(i)-p(i,2))
@@ -615,7 +623,7 @@ contains
 !
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( aa0(1) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           if ( k /= 1 .and. k < ktop(i) ) then
             dv1 = d_half*(he(i,k)+he(i,k+1))
             dv2 = he(i,k)
@@ -657,7 +665,7 @@ contains
 !------- cloud top
 !
     do i = istart , iend
-      if ( aa0(1) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         lpt = ktop(i)
         dp_s = d_100*(p(i,lpt-1)-p(i,lpt))
         dv1 = d_half*(he(i,lpt)+he(i,lpt-1))
@@ -681,7 +689,7 @@ contains
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( aa0(1) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           iph = 1
           if ( xt(i,k) <= tcrit ) iph = 2
           e = dexp(ae(iph)-be(iph)/xt(i,k))
@@ -695,19 +703,19 @@ contains
 !    bug fix
     do k = 1 , kz - 1
       do i = istart , iend
-        if ( aa0(1) > -d_one ) &
+        if ( aa0(i) > aa0act ) &
          xqrcd(i,k) = d_half*(xqes(i,k)+xqes(i,k+1))
       end do
     end do
 !
     do i = istart , iend
-      if ( aa0(1) > -d_one ) xz(i,1) = z1(i)                   &
+      if ( aa0(i) > aa0act ) xz(i,1) = z1(i)                   &
          & - (dlog(p(i,1))-dlog(psur(i)))  &
          & *rgas*xtv(i,1)*regrav
     end do
     do k = 2 , kz
       do i = istart , iend
-        if ( aa0(1) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           tvbar = d_half*xtv(i,k) + d_half*xtv(i,k-1)
           xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))      &
              & *rgas*tvbar*regrav
@@ -719,7 +727,7 @@ contains
 !
     do k = 1 , kz
       do i = istart , iend
-        if ( aa0(1) > -d_one ) then
+        if ( aa0(i) > aa0act ) then
           xhes(i,k) = egrav*xz(i,k) + cpd*xt(i,k) + wlhv*xqes(i,k)
           if ( xhe(i,k) >= xhes(i,k) ) xhe(i,k) = xhes(i,k)
         end if
@@ -730,7 +738,7 @@ contains
 !**************************** static control
 !
     do i = istart , iend
-      if ( aa0(1) > -d_one ) then
+      if ( aa0(i) > aa0act ) then
         xqck(i) = xqkb(i)
         xdby(i,kz) = xhkb(i) - xhes(i,kz)
       end if
