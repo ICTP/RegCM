@@ -41,7 +41,7 @@ def getresult(command):
             raise KeyError 
     else:
         try:
-            result = subprocess.check_output(command.split())
+            result = subprocess.check_output(command.split()).strip()
         except:
             raise KeyError 
     return result
@@ -83,7 +83,7 @@ def main():
 
     hasnc4 = "no"
     try : 
-        hasnc4 = getresult('nc-config --has-nc4').rstrip('\n')
+        hasnc4 = getresult('nc-config --has-nc4')
     except :
         print "\n *** nc-config program seems not to be present."
     if (hasnc4 == "yes") :
