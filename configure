@@ -23,10 +23,14 @@
 
 try:
     import os,sys,shutil,fileinput,subprocess
-    oldpy=0
+    oldpy = 0
+    try :
+        hasp25 = subprocess.check_output(['true'])
+    except :
+        oldpy = 1
 except:
     import os,sys,shutil,fileinput
-    oldpy=1
+    oldpy = 1
 
 def getresult(command):
     result = ""
@@ -34,12 +38,13 @@ def getresult(command):
         try:
             result = os.popen(command).read()
         except:
-            throw(KeyError)
+            raise KeyError 
     else:
+        result = subprocess.check_output(command.split())
         try:
             result = subprocess.check_output(command.split())
         except:
-            throw(KeyError)
+            raise KeyError 
     return result
 
 def main():
