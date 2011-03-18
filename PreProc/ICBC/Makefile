@@ -67,7 +67,7 @@ clean:
 mod_date.o: mod_date.f90
 mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
+             mod_vectutil.o mod_date.o
 mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o

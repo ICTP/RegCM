@@ -19,6 +19,8 @@
 
       module mod_sst_ccsm
 
+      use mod_date
+
       contains
 
       subroutine sst_ccsm
@@ -91,9 +93,6 @@
         call ccsm_sst(idate,idateo,ilon,jlat,sst,inpfile)
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
-        print * , 'XLON,XLAT,SST=' , xlon(1,1) , xlat(1,1) , sstmm(1,1) &
-            & + 273.
- 
         do j = 1 , jx
           do i = 1 , iy
             if ( sstmm(i,j)<-5000 .and.                                 &
@@ -120,7 +119,6 @@
                 end if
               end do
               lu(i,j) = float(ludom)
-              print * , ludom , sstmm(i,j)
             end if
             if ( sstmm(i,j)>-100. ) then
               sstmm(i,j) = sstmm(i,j) + 273.15
@@ -158,14 +156,15 @@
 
       integer, dimension(12) :: ndays
       character(len=4), dimension(2) :: varname
-      integer, allocatable ::  work1(:)
-      real(4) , dimension (ilon , jlat) :: work2
-      real(4) :: imisng
+      character(64) :: cunit
+      real(8), allocatable ::  work1(:)
+      real(4) , dimension (ilon , jlat) :: work2 , work3
+      real(4) :: wt1 , wt2
+      integer :: cssidate1 , cssidate2
 
-      integer :: nyear , month
-      integer :: inet1
-      integer, dimension(10) :: istart , icount , istartt , icountt
-      integer, dimension(2) :: ivar2
+      integer , save :: inet1
+      integer , dimension(10) :: istart , icount , istartt , icountt
+      integer , dimension(2) :: ivar2
       integer :: it , icode , i , j , npos , nrec
       integer :: latid , lonid , timid
       integer :: latlen , lonlen , timlen
@@ -175,32 +174,58 @@
       data ndays/31,59,90,120,151,181,212,243,273,304,334,365/
       data varname/'time','TEMP'/
       
-      nyear = idate/1000000
-      month = idate/10000 - nyear*100
-      
       if (idate == idate0) then
          inquire(file=pathaddname,exist=there)
          if (.not.there) then
-            print *, trim(pathaddname),' is not available'
-            stop
+           print *, trim(pathaddname),' is not available'
+           stop 'ERROR OPEN FILE'
          endif
          istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
          if ( istatus/=nf90_noerr ) then
            write ( 6,*) 'Error opening ', trim(pathaddname)
            stop 'ERROR OPEN FILE'
          end if
-         
          write(*,*) inet1 , trim(pathaddname) , icode
       endif  
 !     GET DIMENSION IDs
       istatus = nf90_inq_dimid(inet1,'lat',latid)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension lat'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       istatus = nf90_inq_dimid(inet1,'lon',lonid)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension lon'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       istatus = nf90_inq_dimid(inet1,'time',timid)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension time'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
 
 !     GET DIMENSION LENGTHS
       istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension lat lenght'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension lon lenght'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire dimension time lenght'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       allocate(work1(timlen))
       
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
@@ -210,51 +235,86 @@
          print*,'No. of LON in 1x1 degree gloabl grid =',ilon
          print*,'No. of LAT in SST file =',latlen
          print*,'No. of LON in 1x1 degree gloabl grid =',jlat
-         STOP   'Check SST data file' 
+         stop   'Check SST data file' 
       endif
 !     GET VARIABLE IDs
       istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire variable '//varname(1)
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-!     GET MISSING DATA VALUE
-      istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',imisng)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire variable '//varname(2)
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
 !     GET TIME VALUES
       istartt(1) = 1
       icountt(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istartt,icountt)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire variable '//varname(2)
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
       
 !     CHECK FOR THE REQUIRED RECORD IN DATA FILE  
-      npos = (nyear - 1000) * 365 + ndays(month)
-      i = 0
-      print *,  npos
- 10   continue
-      i = i + 1
-      if (npos < work1(i) .or. npos > work1(timlen)) then
-         print *, 'Error in finding SST data for',(idate-100)/10000
-         print *, 'Required NREC=',npos
-         stop    'Check SST data file' 
-      else if (work1(i) == npos) then
-         nrec=i
-         go to 20
+      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error inquire variable '//varname(2)//':units'
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
       end if
-      go to 10
- 
- 20   it = nrec
+      cunit = '-'//trim(cunit)//' GMT-'
+      cssidate1 = timeval2idate(work1(1)*24.0,cunit)
+      it = 1
+      do
+        it = it + 1
+        cssidate2 = timeval2idate(work1(it)*24.0,cunit)
+        if ( cssidate2 > idate ) then
+          exit
+        end if
+        if ( it > timlen ) then
+          print *, 'Error in finding SST data for ', idate
+          print *, 'Required NREC = ', it
+          stop 'Check SST data file' 
+        end if
+        cssidate1 = cssidate2
+      end do
+
       icount(1) = ilon
       icount(2) = jlat
       icount(3) = 1
       istart(1) = 1
       istart(2) = 1
       istart(3) = 1
-      istart(3) = it
+      istart(3) = it-1
       istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error read variable '//varname(2)
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
+      istart(3) = it
+      istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
+      if ( istatus/=nf90_noerr ) then
+        write ( 6,*) 'Error read variable '//varname(2)
+        write ( 6,* ) nf90_strerror(istatus)
+        stop 'Netcdf read error'
+      end if
+
+      wt1 = real(cssidate2-idate)/real(cssidate2-cssidate1)
+      wt2 = 1.0-wt1
       do j = 1 , jlat
-         do i = 1 , ilon
-            if (work2(i,j) > (imisng+10) .and. work2(i,j) < 10000.0) then
-               sst(i,j) = work2(i,j)
-            else
-               sst(i,j) = -9999.
-            end if
-         end do
+        do i = 1 , ilon
+          if (work2(i,j) > -100.0 .and. work2(i,j) < 100.0) then
+            sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
+          else
+            sst(i,j) = -9999.0
+          end if
+        end do
       end do
 
       end subroutine ccsm_sst
