@@ -27,13 +27,11 @@
 #A subroutine for printing the proper usage to the screen
 printusage ()
 {
-  echo "usage: $0  FILENAME.nc OUTFILENAME.nc [STARTHOUR]"
+  echo "usage: $0  FILENAME.nc OUTFILENAME.nc"
   echo "  Where FILENAME.nc is an hourly netcdf file, with less than 6 total "
   echo "  dimensions, that should be averaged."
   echo "  "
   echo "  OUTFILENAME.nc is the output file name."
-  echo "  "
-  echo "  STARTHOUR is the start hour of the file.  Defaults to 0."
   exit
 }
 
@@ -79,7 +77,6 @@ OUTFILE="\"${OUTFILENAME}\""
 $NCL $DIURNALAVENCL \
       "infilename=${INFILE}" \
       "outfilename=${OUTFILE}" \
-      "starthour=\"${STARTHOUR}\""
 
 
 
