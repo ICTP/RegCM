@@ -70,9 +70,9 @@
       real(8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
       real(8) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
       real(8) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
-               & c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
-               & c28 , c29 , c30 , c31 , c8 , c9 , cfa1 , fc1 , fwc1 ,  &
-               & fwc2 , fwcoef
+                 c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
+                 c28 , c29 , c30 , c31 , c8 , c9 , cfa1 , fc1 , fwc1 ,  &
+                 fwc2 , fwcoef
       real(8) :: co2vmr
       real(8) , dimension(3,4) :: coefa , coefc , coefe
       real(8) , dimension(4,4) :: coefb , coefd
@@ -80,22 +80,97 @@
       real(8) , dimension(2,4) :: coefg , coefh
       real(8) , dimension(3,2) :: coefj , coefk
 !
+!     v_raytau_xx - Constants for new bands
+!     v_abo3_xx   - Constants for new bands
+!
+      real(8) , parameter :: v_raytau_35 = 0.155208D0
+      real(8) , parameter :: v_raytau_64 = 0.0392D0
+      real(8) , parameter :: v_abo3_35   = 2.4058030D+01
+      real(8) , parameter :: v_abo3_64   = 2.210D+01
+!
+!     delta    - Pressure (atmospheres) for stratos. h2o limit
+!     o2mmr    - O2 mass mixing ratio
+!
+      real(8) , parameter :: delta = 1.70D-3
+      real(8) , parameter :: o2mmr = 0.23143D0
+!
+!     Minimum total transmission below which no layer computation are
+!     done:
+!
+! trmin   - Minimum total transmission allowed
+! wray    - Rayleigh single scatter albedo
+! gray    - Rayleigh asymetry parameter
+! fray    - Rayleigh forward scattered fraction
+!
+      real(8) , parameter :: trmin = 1.0D-3
+      real(8) , parameter :: wray = 0.999999D0
+      real(8) , parameter :: gray = 0.0D0
+      real(8) , parameter :: fray = 0.1D0
+! 
+!     A. Slingo's data for cloud particle radiative properties (from 'A
+!     GCM Parameterization for the Shortwave Properties of Water
+!     Clouds' JAS vol. 46 may 1989 pp 1419-1427)
+!
+! abarl    - A coefficient for extinction optical depth
+! bbarl    - B coefficient for extinction optical depth
+! cbarl    - C coefficient for single particle scat albedo
+! dbarl    - D coefficient for single particle scat albedo
+! ebarl    - E coefficient for asymmetry parameter
+! fbarl    - F coefficient for asymmetry parameter
+!
+!     Caution... A. Slingo recommends no less than 4.0 micro-meters nor
+!     greater than 20 micro-meters
+!
+!     ice water coefficients (Ebert and Curry,1992, JGR, 97, 3831-3836)
+!
+! abari    - a coefficient for extinction optical depth
+! bbari    - b coefficient for extinction optical depth
+! cbari    - c coefficient for single particle scat albedo
+! dbari    - d coefficient for single particle scat albedo
+! ebari    - e coefficient for asymmetry parameter
+! fbari    - f coefficient for asymmetry parameter
+!
+      real(8) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
+                                cbarl , dbari , dbarl , ebari , ebarl , &
+                                fbari , fbarl
+!
+!     Next series depends on spectral interval
+!
+! frcsol   - Fraction of solar flux in each spectral interval
+! wavmin   - Min wavelength (micro-meters) of interval
+! wavmax   - Max wavelength (micro-meters) of interval
+! raytau   - Rayleigh scattering optical depth
+! abh2o    - Absorption coefficiant for h2o (cm2/g)
+! abo3     - Absorption coefficiant for o3  (cm2/g)
+! abco2    - Absorption coefficiant for co2 (cm2/g)
+! abo2     - Absorption coefficiant for o2  (cm2/g)
+! ph2o     - Weight of h2o in spectral interval
+! pco2     - Weight of co2 in spectral interval
+! po2      - Weight of o2  in spectral interval
+! nirwgt   - Weight for intervals to simulate satellite filter
+!
+      real(8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
+                                   frcsol , nirwgt , pco2 , ph2o , &
+                                   po2 , raytau , wavmax , wavmin
+!
 !     H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
 !
-      data coefa/1.01400D+00 , 6.41695D-03 , 2.85787D-05 , 1.01320D+00 ,&
-               & 6.86400D-03 , 2.96961D-05 , 1.02920D+00 , 1.01680D-02 ,&
-               & 5.30226D-05 , 1.02743D+00 , 9.85113D-03 , 5.00233D-05/
+      data coefa/1.01400D+00 , 6.41695D-03 , 2.85787D-05 , &
+                 1.01320D+00 , 6.86400D-03 , 2.96961D-05 , &
+                 1.02920D+00 , 1.01680D-02 , 5.30226D-05 , &
+                 1.02743D+00 , 9.85113D-03 , 5.00233D-05/
 !
       data coefb/8.85675D+00 , -3.51620D-02 ,  2.38653D-04 , &
-              & -1.71439D-06 ,  5.73841D+00 , -1.91919D-02 , &
-              &  1.65993D-04 , -1.54665D-06 ,  6.64034D+00 , &
-              &  1.56651D-02 , -9.73357D-05 ,  0.00000D+00 , &
-              &  7.09281D+00 ,  1.40056D-02 , -1.15774D-04 , &
-              &  0.00000D+00/
+                -1.71439D-06 ,  5.73841D+00 , -1.91919D-02 , &
+                 1.65993D-04 , -1.54665D-06 ,  6.64034D+00 , &
+                 1.56651D-02 , -9.73357D-05 ,  0.00000D+00 , &
+                 7.09281D+00 ,  1.40056D-02 , -1.15774D-04 , &
+                 0.00000D+00/
 !
-      data coefc/9.90127D-01 , 1.22475D-03 , 4.90135D-06 , 9.89753D-01 ,&
-               & 1.97081D-03 , 3.42046D-06 , 9.75230D-01 , 1.03341D-03 ,&
-               & 0.00000D+00 , 9.77366D-01 , 8.60014D-04 , 0.00000D+00/
+      data coefc/9.90127D-01 , 1.22475D-03 , 4.90135D-06 , &
+                 9.89753D-01 , 1.97081D-03 , 3.42046D-06 , &
+                 9.75230D-01 , 1.03341D-03 , 0.00000D+00 , &
+                 9.77366D-01 , 8.60014D-04 , 0.00000D+00/
 !
       data coefd/7.03047D-01 , -2.63501D-03 , -1.57023D-06 , &
                  0.00000D+00 ,  5.29269D-01 , -3.14754D-03 , &
@@ -105,30 +180,30 @@
                 -4.30133D-08/
 !
       data coefe/3.93137D-02 , -4.34341D-05 , 3.74545D-07 , &
-               & 3.67785D-02 , -3.10794D-05 , 2.94436D-07 , &
-               & 7.42500D-02 ,  3.97397D-05 , 0.00000D+00 , &
-               & 7.52859D-02 ,  4.18073D-05 , 0.00000D+00/
+                 3.67785D-02 , -3.10794D-05 , 2.94436D-07 , &
+                 7.42500D-02 ,  3.97397D-05 , 0.00000D+00 , &
+                 7.52859D-02 ,  4.18073D-05 , 0.00000D+00/
 !
       data coeff/2.20370D-01 , 1.39719D-03 , -7.32011D-06 , &
-              & -1.40262D-08 , 2.13638D-10 , -2.35955D-13 , &
-              &  3.07431D-01 , 8.27225D-04 , -1.30067D-05 , &
-              &  3.49847D-08 , 2.07835D-10 , -1.98937D-12/
+                -1.40262D-08 , 2.13638D-10 , -2.35955D-13 , &
+                 3.07431D-01 , 8.27225D-04 , -1.30067D-05 , &
+                 3.49847D-08 , 2.07835D-10 , -1.98937D-12/
 !
       data coefg/9.04489D+00 , -9.56499D-03 ,  1.80898D+01 , &
-              & -1.91300D-02 ,  8.72239D+00 , -9.53359D-03 , &
-              &  1.74448D+01 , -1.90672D-02/
+                -1.91300D-02 ,  8.72239D+00 , -9.53359D-03 , &
+                 1.74448D+01 , -1.90672D-02/
 !
       data coefh/5.46557D+01 , -7.30387D-02 ,  1.09311D+02 ,  &
-              & -1.46077D-01 ,  5.11479D+01 , -6.82615D-02 ,  &
-              &  1.02296D+02 , -1.36523D-01/
+                -1.46077D-01 ,  5.11479D+01 , -6.82615D-02 ,  &
+                 1.02296D+02 , -1.36523D-01/
 !
       data coefi/3.31654D-01 , -2.86103D-04 , -7.87860D-06 , &
-               & 5.88187D-08 , -1.25340D-10 , -1.37731D-12 , &
-               & 3.14365D-01 , -1.33872D-03 , -2.15585D-06 , &
-               & 6.07798D-08 , -3.45612D-10 , -9.34139D-15/
+                 5.88187D-08 , -1.25340D-10 , -1.37731D-12 , &
+                 3.14365D-01 , -1.33872D-03 , -2.15585D-06 , &
+                 6.07798D-08 , -3.45612D-10 , -9.34139D-15/
 !
       data coefj/2.82096D-02 , 2.47836D-04 , 1.16904D-06 , &
-               & 9.27379D-02 , 8.04454D-04 , 6.88844D-06/
+                 9.27379D-02 , 8.04454D-04 , 6.88844D-06/
 !
       data coefk/2.48852D-01 , 2.09667D-03 , 2.60377D-06 , &
                  1.03594D+00 , 6.58620D-03 , 4.04456D-06/
@@ -142,6 +217,91 @@
       data a2  /-0.57966222388131D-04 , -0.95105504388411D-04/
       data b1   /0.29927771523756D-01 ,  0.21737073577293D-01/
       data b2  /-0.86322071248593D-04 , -0.78543550629536D-04/
+!
+      data abarl / 2.817D-02 ,  2.682D-02 , 2.264D-02 , 1.281D-02/
+      data bbarl / 1.305D+00 ,  1.346D+00 , 1.454D+00 , 1.641D+00/
+      data cbarl /-5.620D-08 , -6.940D-06 , 4.640D-04 , 0.201D+00/
+      data dbarl / 1.630D-07 ,  2.350D-05 , 1.240D-03 , 7.560D-03/
+      data ebarl / 0.829D+00 ,  0.794D+00 , 0.754D+00 , 0.826D+00/
+      data fbarl / 2.482D-03 ,  4.226D-03 , 6.560D-03 , 4.353D-03/
+! 
+      data abari / 3.4480D-03 , 3.4480D-03 , 3.4480D-03 , 3.44800D-03/
+      data bbari / 2.4310D+00 , 2.4310D+00 , 2.4310D+00 , 2.43100D+00/
+      data cbari / 1.0000D-05 , 1.1000D-04 , 1.8610D-02 , 0.46658D+00/
+      data dbari / 0.0000D+00 , 1.4050D-05 , 8.3280D-04 , 2.05000D-05/
+      data ebari / 0.7661D+00 , 0.7730D+00 , 0.7940D+00 , 0.95950D+00/
+      data fbari / 5.8510D-04 , 5.6650D-04 , 7.2670D-04 , 1.07600D-04/
+
+      data frcsol/0.001488D0 , 0.001389D0 , 0.001290D0 , 0.001686D0 , &
+                  0.002877D0 , 0.003869D0 , 0.026336D0 , 0.360739D0 , &
+                  0.065392D0 , 0.526861D0 , 0.526861D0 , 0.526861D0 , &
+                  0.526861D0 , 0.526861D0 , 0.526861D0 , 0.526861D0 , &
+                  0.006239D0 , 0.001834D0 , 0.001834D0/
+
+! weight for 0.64 - 0.7 microns  appropriate to clear skies over oceans
+
+      data nirwgt/0.000000D0 , 0.000000D0 , 0.000000D0 , 0.000000D0 , &
+                  0.000000D0 , 0.000000D0 , 0.000000D0 , 0.000000D0 , &
+                  0.320518D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
+                  1.000000D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
+                  1.000000D0 , 1.000000D0 , 1.000000D0/
+ 
+      data wavmin/0.200D0 , 0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 ,&
+                  0.295D0 , 0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 ,&
+                  0.701D0 , 0.701D0 , 0.701D0 , 0.701D0 , 0.702D0 ,&
+                  0.702D0 , 2.630D0 , 4.160D0 , 4.160D0/
+ 
+      data wavmax/0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 , 0.295D0 ,&
+                  0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 , 5.000D0 ,&
+                  5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 ,&
+                  5.000D0 , 2.860D0 , 4.550D0 , 4.550D0/
+ 
+      data raytau/4.0200D0 , 2.1800D0 , 1.7000D0 , 1.4500D0 , &
+                  1.2500D0 , 1.0850D0 , 0.7300D0 ,            &
+                  v_raytau_35 , v_raytau_64 ,                 &
+                  0.0200D0 , 0.0001D0 , 0.0001D0 , 0.0001D0 , &
+                  0.0001D0 , 0.0001D0 , 0.0001D0 , 0.0001D0 , &
+                  0.0001D0 , 0.0001D0/
+!
+!     Absorption coefficients
+!
+      data abh2o/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 , &
+                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.002D0 , &
+                 0.035D0 , 0.377D0 , 1.950D0 , 9.400D0 , 44.600D0 , &
+               190.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
+ 
+      data abo3/5.370D+04 , 13.080D+04 , 9.292D+04 , 4.530D+04 , &
+                1.616D+04 ,  4.441D+03 , 1.775D+02 , v_abo3_35 , &
+                v_abo3_64 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
+                0.000D+00 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
+                0.000D+00 ,  0.000D+00 , 0.000D+00/
+ 
+      data abco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                 0.000D0 , 0.094D0 , 0.196D0 , 1.963D0/
+ 
+      data abo2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
+                0.000D0 , 0.000D0 , 0.000D0 , 1.11D-05 , 6.69D-05 , &
+                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
+                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
+!
+!     Spectral interval weights
+!
+      data ph2o/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.505D0 , &
+                0.210D0 , 0.120D0 , 0.070D0 , 0.048D0 , 0.029D0 , &
+                0.018D0 , 0.000D0 , 0.000D0 , 0.000D0/
+ 
+      data pco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+                0.000D0 , 1.000D0 , 0.640D0 , 0.360D0/
+ 
+      data po2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+               0.000D0 , 0.000D0 , 0.000D0 , 1.000D0 , 1.000D0 , &
+               0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
+               0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
 !
       contains 
 
@@ -248,8 +408,7 @@
         write (aline,*) '  Simulation date:  ' , lyear
         call say
         call fatal(__FILE__,__LINE__,                                   &
-               &'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)'&
-              & )
+              'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
       end if
 !     print*,'IN RADINI (TOP)'
 !     print*,'  co2vmr= ',co2vmr
@@ -324,11 +483,11 @@
       end subroutine radini
 !
       subroutine radctl(jslc,alat,coslat,ts,pmid,pint,pmln,piln,t,      &
-                      & h2ommr,cld,effcld,clwp,albs,albsd,albl,albld,   &
-                      & fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd,&
-                      & solld,emiss1d,fsnt,fsntc,fsnsc,flnt,flns,flntc, &
-                      & flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,        &
-                      & fsnirtsq,eccf,o3vmr)
+                        h2ommr,cld,effcld,clwp,albs,albsd,albl,albld,   &
+                        fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd,&
+                        solld,emiss1d,fsnt,fsntc,fsnsc,flnt,flns,flntc, &
+                        flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,        &
+                        fsnirtsq,eccf,o3vmr)
 !
 !-----------------------------------------------------------------------
 !
@@ -402,20 +561,20 @@
       real(8) :: eccf
       integer :: jslc
       real(8) , dimension(iym1) :: alb , albc , albl , albld , albs ,  &
-                                  & albsd , alat , coslat , emiss1d ,   &
-                                  & flns , flnsc , flnt , flntc ,       &
-                                  & flwds , fsds , fsnirt , fsnirtsq ,  &
-                                  & fsnrtc , fsns , fsnsc , fsnt ,      &
-                                  & fsntc , solin , soll , solld ,      &
-                                  & sols , solsd , ts
+                                    albsd , alat , coslat , emiss1d ,   &
+                                    flns , flnsc , flnt , flntc ,       &
+                                    flwds , fsds , fsnirt , fsnirtsq ,  &
+                                    fsnrtc , fsns , fsnsc , fsnt ,      &
+                                    fsntc , solin , soll , solld ,      &
+                                    sols , solsd , ts
       real(8) , dimension(iym1,kzp1) :: cld , effcld , piln , pint
       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , pmid ,  &
-           & pmln , qrl , qrs , rei , rel , t
+             pmln , qrl , qrs , rei , rel , t
       real(8) , dimension(iym1,kz) :: o3vmr
       intent (out) alb , albc
       intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
-                   & fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   & fsntc , solin
+                     fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
+                     fsntc , solin
 !
 !---------------------------Local variables-----------------------------
 !
@@ -466,7 +625,7 @@
 !     Set latitude dependent radiation input
 !
       call radinp(pmid,pint,h2ommr,cld,o3vmr,pbr,pnm,plco2,plh2o,tclrsf,&
-                & eccf,o3mmr)
+                  eccf,o3mmr)
 !
 !     Solar radiation computation
 !
@@ -479,9 +638,9 @@
         call aeroppt(rh,pint)
 !
         call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,albs,   &
-                  & albsd,albl,albld,solin,qrs,fsns,fsnt,fsds,fsnsc,    &
-                  & fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
-                  & aeradfo,aeradfos)
+                    albsd,albl,albld,solin,qrs,fsns,fsnt,fsds,fsnsc,    &
+                    fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
+                    aeradfo,aeradfos)
 !
 !       call aerout(jslc,aeradfo,aeradfos)
 !
@@ -553,9 +712,9 @@
         call trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
 !
         call radclw(jslc,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
-                  & plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo,     &
-                  & aerlwfos)
+                    plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
+                    flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo,     &
+                    aerlwfos)
 !
 !       Convert units of longwave fields needed by rest of model from
 !       CGS to MKS
@@ -592,9 +751,9 @@
       end subroutine radctl
 !
       subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
-                      & asdir,asdif,aldir,aldif,solin,qrs,fsns,fsnt,    &
-                      & fsds,fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,  &
-                      & fsnrtc,fsnirtsq,aeradfo,aeradfos)
+                        asdir,asdif,aldir,aldif,solin,qrs,fsns,fsnt,    &
+                        fsds,fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,  &
+                        fsnrtc,fsnirtsq,aeradfo,aeradfos)
  
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
@@ -650,15 +809,6 @@
 !
       implicit none
 !
-! PARAMETER definitions
-!
-! v_raytau_xx - Constants for new bands
-! v_abo3_xx   - Constants for new bands
-!
-      real(8) , parameter :: v_raytau_35 = 0.155208D0 ,                 &
-                           & v_raytau_64 = 0.0392D0 ,                   &
-                           & v_abo3_35 = 2.4058030D+01 ,                &
-                           & v_abo3_64 = 2.210D+01
 !
 !     Input arguments
 !
@@ -696,18 +846,18 @@
 !
       real(8) :: eccf
       real(8) , dimension(iym1) :: aeradfo , aeradfos , aldif , aldir ,&
-                                  & asdif , asdir , fsds , fsnirt ,     &
-                                  & fsnirtsq , fsnrtc , fsns , fsnsc ,  &
-                                  & fsnt , fsntc , solin , soll ,       &
-                                  & solld , sols , solsd
+                                    asdif , asdir , fsds , fsnirt ,     &
+                                    fsnirtsq , fsnrtc , fsns , fsnsc ,  &
+                                    fsnt , fsntc , solin , soll ,       &
+                                    solld , sols , solsd
       real(8) , dimension(iym1,kzp1) :: cld , pint
       real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , o3mmr , &
-           & qrs , rei , rel
+             qrs , rei , rel
       intent (in) aldif , aldir , asdif , asdir , cld , clwp , eccf ,   &
-                & fice , h2ommr , o3mmr , pint , rei , rel
+                  fice , h2ommr , o3mmr , pint , rei , rel
       intent (out) aeradfo , aeradfos , fsds , qrs
       intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   & fsntc , solin , soll , solld , sols , solsd
+                     fsntc , solin , soll , solld , sols , solsd
 !
 !---------------------------Local variables-----------------------------
 !
@@ -754,23 +904,6 @@
 ! dbarii   - D coefficient for current spectral interval
 ! ebarii   - E coefficient for current spectral interval
 ! fbarii   - F coefficient for current spectral interval
-! delta    - Pressure (atmospheres) for stratos. h2o limit
-! o2mmr    - O2 mass mixing ratio
-!
-!     Next series depends on spectral interval
-!
-! frcsol   - Fraction of solar flux in each spectral interval
-! wavmin   - Min wavelength (micro-meters) of interval
-! wavmax   - Max wavelength (micro-meters) of interval
-! raytau   - Rayleigh scattering optical depth
-! abh2o    - Absorption coefficiant for h2o (cm2/g)
-! abo3     - Absorption coefficiant for o3  (cm2/g)
-! abco2    - Absorption coefficiant for co2 (cm2/g)
-! abo2     - Absorption coefficiant for o2  (cm2/g)
-! ph2o     - Weight of h2o in spectral interval
-! pco2     - Weight of co2 in spectral interval
-! po2      - Weight of o2  in spectral interval
-! nirwgt   - Weight for intervals to simulate satellite filter
 ! wgtint   - Weight for specific spectral interval
 !
 !     Diagnostic and accumulation arrays; note that sfltot, fswup, and
@@ -860,117 +993,24 @@
 ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
 !-----------------------------------------------------------------------
 !
-      real(8) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
-                              & cbarl , dbari , dbarl , ebari , ebarl , &
-                              & fbari , fbarl
       real(8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
-               & dbarii , dbarli , delta , ebarii , ebarli , fbarii ,   &
-               & fbarli , h2ostr , o2mmr , path , pdel , psf ,          &
-               & pthco2 , pthh2o , ptho2 , ptho3 , xptop , rdenom ,     &
-               & sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
-               & tmp3i , tmp3l , trayoslp , wavmid , wgtint
-      real(8) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,        &
-                                   & frcsol , nirwgt , pco2 , ph2o ,    &
-                                   & po2 , raytau , wavmax , wavmin
+                 dbarii , dbarli , ebarii , ebarli , fbarii ,   &
+                 fbarli , h2ostr , path , pdel , psf ,          &
+                 pthco2 , pthh2o , ptho2 , ptho3 , xptop , rdenom ,     &
+                 sqrco2 , tmp1 , tmp1i , tmp1l , tmp2 , tmp2i , tmp2l , &
+                 tmp3i , tmp3l , trayoslp , wavmid , wgtint
       real(8) , dimension(iym1,0:kz) :: explay , fci , fcl , flxdiv ,&
-           & gci , gcl , rdif , rdir , tauxci , tauxcl , tdif , tdir ,  &
-           & totfld , uco2 , uh2o , uo2 , uo3 , wci , wcl
+             gci , gcl , rdif , rdir , tauxci , tauxcl , tdif , tdir ,  &
+             totfld , uco2 , uh2o , uo2 , uo3 , wci , wcl
       real(8) , dimension(iym1,0:kzp1) :: exptdn , fluxdn , fluxup ,  &
-           & fswdn , fswup , pflx , rdndif , rupdif , rupdir , tottrn
+             fswdn , fswup , pflx , rdndif , rupdif , rupdir , tottrn
       integer :: i , indxsl , k , n , nloop , ns
       integer , dimension(2) :: ie , is
       real(8) , dimension(iym1) :: sfltot , solflx , utco2 , uth2o ,   &
-                                  & uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
-                                  & x0fsntc , zenfac
+                                    uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
+                                    x0fsntc , zenfac
       real(8) , dimension(iym1,0:kz,4) :: wkaer
       real(8) , dimension(iym1,4) :: zero
-!
-      data abarl / 2.817D-02 ,  2.682D-02 , 2.264D-02 , 1.281D-02/
-      data bbarl / 1.305D+00 ,  1.346D+00 , 1.454D+00 , 1.641D+00/
-      data cbarl /-5.620D-08 , -6.940D-06 , 4.640D-04 , 0.201D+00/
-      data dbarl / 1.630D-07 ,  2.350D-05 , 1.240D-03 , 7.560D-03/
-      data ebarl / 0.829D+00 ,  0.794D+00 , 0.754D+00 , 0.826D+00/
-      data fbarl / 2.482D-03 ,  4.226D-03 , 6.560D-03 , 4.353D-03/
- 
-      data abari / 3.4480D-03 , 3.4480D-03 , 3.4480D-03 , 3.44800D-03/
-      data bbari / 2.4310D+00 , 2.4310D+00 , 2.4310D+00 , 2.43100D+00/
-      data cbari / 1.0000D-05 , 1.1000D-04 , 1.8610D-02 , 0.46658D+00/
-      data dbari / 0.0000D+00 , 1.4050D-05 , 8.3280D-04 , 2.05000D-05/
-      data ebari / 0.7661D+00 , 0.7730D+00 , 0.7940D+00 , 0.95950D+00/
-      data fbari / 5.8510D-04 , 5.6650D-04 , 7.2670D-04 , 1.07600D-04/
-      data delta /1.70D-3/
-      data o2mmr /0.23143D0/
- 
-      data frcsol/.001488D0 , .001389D0 , .001290D0 , .001686D0 , &
-                  .002877D0 , .003869D0 , .026336D0 , .360739D0 , &
-                  .065392D0 , .526861D0 , .526861D0 , .526861D0 , &
-                  .526861D0 , .526861D0 , .526861D0 , .526861D0 , &
-                  .006239D0 , .001834D0 , .001834D0/
-
-! weight for 0.64 - 0.7 microns  appropriate to clear skies over oceans
-
-      data nirwgt/0.000000D0 , 0.000000D0 , 0.000000D0 , 0.000000D0 , &
-                  0.000000D0 , 0.000000D0 , 0.000000D0 , 0.000000D0 , &
-                  0.320518D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
-                  1.000000D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
-                  1.000000D0 , 1.000000D0 , 1.000000D0/
- 
-      data wavmin/0.200D0 , 0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 ,&
-                  0.295D0 , 0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 ,&
-                  0.701D0 , 0.701D0 , 0.701D0 , 0.701D0 , 0.702D0 ,&
-                  0.702D0 , 2.630D0 , 4.160D0 , 4.160D0/
- 
-      data wavmax/0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 , 0.295D0 ,&
-                  0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 , 5.000D0 ,&
-                  5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 ,&
-                  5.000D0 , 2.860D0 , 4.550D0 , 4.550D0/
- 
-      data raytau/4.0200D0 , 2.1800D0 , 1.7000D0 , 1.4500D0 , &
-                  1.2500D0 , 1.0850D0 , 0.7300D0 ,            &
-                  v_raytau_35 , v_raytau_64 ,                 &
-                  0.0200D0 , 0.0001D0 , 0.0001D0 , 0.0001D0 , &
-                  0.0001D0 , 0.0001D0 , 0.0001D0 , 0.0001D0 , &
-                  0.0001D0 , 0.0001D0/
-!
-!     Absorption coefficients
-!
-      data abh2o/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 , &
-                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.002D0 , &
-                 0.035D0 , 0.377D0 , 1.950D0 , 9.400D0 , 44.600D0 , &
-               190.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
- 
-      data abo3/5.370D+04 , 13.080D+04 , 9.292D+04 , 4.530D+04 , &
-                1.616D+04 ,  4.441D+03 , 1.775D+02 , v_abo3_35 , &
-                v_abo3_64 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 ,  0.000D+00 , 0.000D+00/
- 
-      data abco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                 0.000D0 , 0.094D0 , 0.196D0 , 1.963D0/
- 
-      data abo2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
-                0.000D0 , 0.000D0 , 0.000D0 , 1.11D-05 , 6.69D-05 , &
-                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
-                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
-!
-!     Spectral interval weights
-!
-      data ph2o/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.505D0 , &
-                0.210D0 , 0.120D0 , 0.070D0 , 0.048D0 , 0.029D0 , &
-                0.018D0 , 0.000D0 , 0.000D0 , 0.000D0/
- 
-      data pco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-                0.000D0 , 1.000D0 , 0.640D0 , 0.360D0/
- 
-      data po2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-               0.000D0 , 0.000D0 , 0.000D0 , 1.000D0 , 1.000D0 , &
-               0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
-               0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
 !
       character (len=50) :: subroutine_name='radcsw'
       integer :: indx = 0
@@ -1090,7 +1130,7 @@
             pthco2 = sqrco2*path
             h2ostr = dsqrt(d_one/h2ommr(i,k))
             pthh2o = (pflx(i,k+1)**d_two-pflx(i,k)**d_two)  &
-                   & *tmp1 + pdel*h2ostr*zenfac(i)*tmp2
+                     *tmp1 + pdel*h2ostr*zenfac(i)*tmp2
             uh2o(i,k) = h2ommr(i,k)*pthh2o
             uco2(i,k) = zenfac(i)*pthco2
             uo2(i,k) = zenfac(i)*ptho2
@@ -1228,11 +1268,11 @@
 !scheme       2
 !KN
               tauxcl(i,k) = clwp(i,k)*tmp1l*(d_one-fice(i,k))*cld(i,k) &
-                          & /(d_one+(d_one-0.85D0)*(d_one-cld(i,k))* &
-                          & clwp(i,k)*tmp1l*(d_one-fice(i,k)))
+                            /(d_one+(d_one-0.85D0)*(d_one-cld(i,k))* &
+                            clwp(i,k)*tmp1l*(d_one-fice(i,k)))
               tauxci(i,k) = clwp(i,k)*tmp1i*fice(i,k)*cld(i,k)       &
-                          & /(d_one+(d_one-0.78D0)*(d_one-cld(i,k))* &
-                          & clwp(i,k)*tmp1i*fice(i,k))
+                            /(d_one+(d_one-0.78D0)*(d_one-cld(i,k))* &
+                            clwp(i,k)*tmp1i*fice(i,k))
  
 !scheme       3
 !EES          below replaced
@@ -1323,11 +1363,11 @@
           end do
         end if
  
-        call radded(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),  &
-                  & abo2(ns),uh2o,uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,      &
-                  & tauxci,wci,gci,fci,wkaer(1,0,1),wkaer(1,0,2),       &
-                  & wkaer(1,0,3),wkaer(1,0,4),nloop,is,ie,rdir,rdif,    &
-                  & tdir,tdif,explay,exptdn,rdndif,tottrn)
+        call radded(coszrs,trayoslp,pflx,ns, &
+                    uh2o,uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,      &
+                    tauxci,wci,gci,fci,wkaer(1,0,1),wkaer(1,0,2),       &
+                    wkaer(1,0,3),wkaer(1,0,4),nloop,is,ie,rdir,rdif,    &
+                    tdir,tdif,explay,exptdn,rdndif,tottrn)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for layers
 !       below by adding succesive layers starting from the surface and
@@ -1344,10 +1384,10 @@
             do i = is(n) , ie(n)
               rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
               rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
-                          & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
-                          & *(tdir(i,k)-explay(i,k)))*rdenom
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+                            *(tdir(i,k)-explay(i,k)))*rdenom
               rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
-                          & **d_two*rdenom
+                            **d_two*rdenom
             end do
           end do
         end do
@@ -1360,11 +1400,11 @@
             do i = is(n) , ie(n)
               rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+                   &
-                          & (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
-                          & rdenom
+                            (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
+                            rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
-                          & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                          & *rupdir(i,k)*rdndif(i,k))*rdenom
+                            + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
+                            *rupdir(i,k)*rdndif(i,k))*rdenom
             end do
           end do
         end do
@@ -1376,7 +1416,7 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               flxdiv(i,k) = (fluxdn(i,k)-fluxdn(i,k+1))                 &
-                          & + (fluxup(i,k+1)-fluxup(i,k))
+                            + (fluxup(i,k+1)-fluxup(i,k))
             end do
           end do
         end do
@@ -1395,7 +1435,7 @@
             fsnt(i) = fsnt(i) + solflx(i)*(fluxdn(i,1)-fluxup(i,1))
  
             fsns(i) = fsns(i) + solflx(i)                               &
-                    & *(fluxdn(i,kzp1)-fluxup(i,kz + 1))
+                      *(fluxdn(i,kzp1)-fluxup(i,kz + 1))
  
             sfltot(i) = sfltot(i) + solflx(i)
             fswup(i,0) = fswup(i,0) + solflx(i)*fluxup(i,0)
@@ -1406,21 +1446,21 @@
             if ( wavmid < 0.7D0 ) then
               sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
               solsd(i) = solsd(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))   &
-                       & *solflx(i)*d_r1000
+                         *solflx(i)*d_r1000
 !KN           added below
-              sabveg(i) = sabveg(i)                                     &
-                        & + (solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1))&
-                        & )*(d_one-albvs(i))/(d_one-albdir(i))*d_r1000
+              sabveg(i) = sabveg(i) +                                   &
+                          (solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))*&
+                          (d_one-albvs(i))/(d_one-albdir(i))*d_r1000
 !KN           added above
             else
               soll(i) = soll(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
               solld(i) = solld(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))   &
-                       & *solflx(i)*d_r1000
+                         *solflx(i)*d_r1000
               fsnirtsq(i) = fsnirtsq(i) + solflx(i)                     &
-                          & *(fluxdn(i,0)-fluxup(i,0))
+                            *(fluxdn(i,0)-fluxup(i,0))
 !KN           added below
               sabveg(i) = sabveg(i)                     &
-                        & + (solflx(i)*(fluxdn(i,kzp1)- &
+                          + (solflx(i)*(fluxdn(i,kzp1)- &
                              fluxup(i,kz + 1)))* &
                            (d_one-albvl(i))/(d_one-albdir(i))*d_r1000
 !KN           added above
@@ -1452,7 +1492,7 @@
             do i = is(n) , ie(n)
               solvs(i) = exptdn(i,kzp1)*solflx(i)*d_r1000
               solvd(i) = (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)    &
-                       & *d_r1000
+                         *d_r1000
               solis(i) = solflx(i)*d_r1000*fluxdn(i,kzp1)
             end do
           end do
@@ -1483,12 +1523,10 @@
 !         quantities refers to the entire atmospheric column, and where
 !         0 for interface quantities refers to top of atmos- phere,
 !         while 1 refers to the surface:
-          call radclr(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),&
-                    & abo2(ns),uth2o,uto3,utco2,uto2,zero(1,1),zero(1,2)&
-                    & ,zero(1,3),zero(1,4),nloop,is,ie,rdir,rdif,tdir,  &
-                    & tdif,explay,exptdn,rdndif,tottrn)
- 
- 
+          call radclr(coszrs,trayoslp,pflx,ns, &
+                      uth2o,uto3,utco2,uto2,zero(1,1),zero(1,2)&
+                      ,zero(1,3),zero(1,4),nloop,is,ie,rdir,rdif,tdir,  &
+                      tdif,explay,exptdn,rdndif,tottrn)
 !
 !         Compute reflectivity to direct and diffuse mod_radiation for
 !         entire column; 0,1 on layer quantities refers to two
@@ -1507,10 +1545,10 @@
               do i = is(n) , ie(n)
                 rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
                 rupdir(i,k) = rdir(i,k) + tdif(i,k)                     &
-                            & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1) &
-                            & *(tdir(i,k)-explay(i,k)))*rdenom
+                              *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1) &
+                              *(tdir(i,k)-explay(i,k)))*rdenom
                 rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)       &
-                            & **d_two*rdenom
+                              **d_two*rdenom
               end do
             end do
           end do
@@ -1523,10 +1561,10 @@
               do i = is(n) , ie(n)
                 rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
                 fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-    &
-                            & exptdn(i,k))*rupdif(i,k))*rdenom
+                              exptdn(i,k))*rupdif(i,k))*rdenom
                 fluxdn(i,k) = exptdn(i,k)                               &
-                            & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)    &
-                            & *rupdir(i,k)*rdndif(i,k))*rdenom
+                              + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)    &
+                              *rupdir(i,k)*rdndif(i,k))*rdenom
               end do
             end do
           end do
@@ -1534,11 +1572,11 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               x0fsntc(i) = x0fsntc(i) + solflx(i)                       &
-                         & *(fluxdn(i,0)-fluxup(i,0))
+                           *(fluxdn(i,0)-fluxup(i,0))
               x0fsnsc(i) = x0fsnsc(i) + solflx(i)                       &
-                         & *(fluxdn(i,2)-fluxup(i,2))
+                           *(fluxdn(i,2)-fluxup(i,2))
               x0fsnrtc(i) = x0fsnrtc(i) + wgtint*solflx(i)              &
-                          & *(fluxdn(i,0)-fluxup(i,0))
+                            *(fluxdn(i,0)-fluxup(i,0))
  
 !             SAVE the ref net TOA flux ( and put back the cumul
  
@@ -1559,12 +1597,11 @@
 !       to the entire atmospheric column, and where 0 for interface
 !       quantities refers to top of atmos- phere, while 1 refers to the
 !       surface:
-        call radclr(coszrs,trayoslp,pflx,abh2o(ns),abo3(ns),abco2(ns),  &
-                  & abo2(ns),uth2o,uto3,utco2,uto2,tauxar_mix_cs(1,ns), &
-                  & tauasc_mix_cs(1,ns),gtota_mix_cs(1,ns),             &
-                  & ftota_mix_cs(1,ns),nloop,is,ie,rdir,rdif,tdir,tdif, &
-                  & explay,exptdn,rdndif,tottrn)
- 
+        call radclr(coszrs,trayoslp,pflx,ns,  &
+                    uth2o,uto3,utco2,uto2,tauxar_mix_cs(1,ns), &
+                    tauasc_mix_cs(1,ns),gtota_mix_cs(1,ns),             &
+                    ftota_mix_cs(1,ns),nloop,is,ie,rdir,rdif,tdir,tdif, &
+                    explay,exptdn,rdndif,tottrn)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for entire
 !       column; 0,1 on layer quantities refers to two effective layers
@@ -1584,10 +1621,10 @@
             do i = is(n) , ie(n)
               rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
               rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
-                          & *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
-                          & *(tdir(i,k)-explay(i,k)))*rdenom
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+                            *(tdir(i,k)-explay(i,k)))*rdenom
               rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
-                          & **d_two*rdenom
+                            **d_two*rdenom
             end do
           end do
         end do
@@ -1600,10 +1637,10 @@
             do i = is(n) , ie(n)
               rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-exptdn&
-                          & (i,k))*rupdif(i,k))*rdenom
+                            (i,k))*rupdif(i,k))*rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
-                          & + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                          & *rupdir(i,k)*rdndif(i,k))*rdenom
+                            + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
+                            *rupdir(i,k)*rdndif(i,k))*rdenom
             end do
           end do
         end do
@@ -1613,7 +1650,7 @@
             fsntc(i) = fsntc(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
             fsnsc(i) = fsnsc(i) + solflx(i)*(fluxdn(i,2)-fluxup(i,2))
             fsnrtc(i) = fsnrtc(i) + wgtint*solflx(i)                    &
-                      & *(fluxdn(i,0)-fluxup(i,0))
+                        *(fluxdn(i,0)-fluxup(i,0))
  
           end do
         end do
@@ -1652,9 +1689,9 @@
       end subroutine radcsw
 !
       subroutine radclw(jslc,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
-                      & plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
-                      & flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo, &
-                      & aerlwfos)
+                        plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
+                        flnt,flnsc,flntc,flwds,fslwdcs,emiss1d,aerlwfo, &
+                        aerlwfos)
 
 !-----------------------------------------------------------------------
 !
@@ -1719,11 +1756,11 @@
 !
       integer :: jslc
       real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
-           & o3vmr , pmid , pmln , qnm , qrl , tnm
+             o3vmr , pmid , pmln , qnm , qrl , tnm
       real(8) , dimension(iym1,kzp1) :: cld , piln , pint , plco2 ,   &
-           & plh2o , tclrsf
+             plh2o , tclrsf
       real(8) , dimension(iym1) :: emiss1d , flns , flnsc , flnt ,     &
-                                  & flntc , flwds , fslwdcs , ts
+                                    flntc , flwds , fslwdcs , ts
       real(8), dimension(iym1) :: aerlwfo , aerlwfos
 
       intent (in) cld , emiss1d
@@ -1800,18 +1837,18 @@
 !
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1) :: absbt , bk1 , bk2 , delt , delt1 ,  &
-                                  & tmp , tplnke
+                                    tmp , tplnke
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
-           & co2t , fdl , fsdl , fsul , ful , h2otr , plol , plos ,     &
-           & rtclrsf , s2c , s2t , tint , tint4 , tlayr , tlayr4 ,      &
-           & tplnka , ucfc11 , ucfc12 , uch4 , uco211 , uco212 ,        &
-           & uco213 , uco221 , uco222 , uco223 , un2o0 , un2o1 ,        &
-           & uptype , w , fsul0 , fsdl0 , ful0 , fdl0
+             co2t , fdl , fsdl , fsul , ful , h2otr , plol , plos ,     &
+             rtclrsf , s2c , s2t , tint , tint4 , tlayr , tlayr4 ,      &
+             tplnka , ucfc11 , ucfc12 , uch4 , uco211 , uco212 ,        &
+             uco213 , uco221 , uco222 , uco223 , un2o0 , un2o1 ,        &
+             uptype , w , fsul0 , fsdl0 , ful0 , fdl0
       real(8) , dimension(iym1,kz) :: co2eml , fclb4 , fclt4
       logical , dimension(iym1) :: done , start
       real(8) :: tmp1
       integer :: i , ii , k , k1 , k2 , k3 , khighest , km , km1 , km2 ,&
-               & km3 , km4 , iym1c , irad , n , nradaer
+                 km3 , km4 , iym1c , irad , n , nradaer
       integer , dimension(iym1) :: indx , khiv , khivm , klov
       real(8) , dimension(iym1,kzp1,kzp1) :: s , s0
       real(8) , dimension(iym1,kzp1,kzp1) :: tone
@@ -1842,13 +1879,13 @@
 !     emissivity, as well as some h2o path lengths
 !
       call radtpl(tnm,ts,qnm,pint,plh2o,tplnka,s2c,s2t,w,tplnke,tint,   &
-                & tint4,tlayr,tlayr4,pmln,piln)
+                  tint4,tlayr,tlayr4,pmln,piln)
  
 !     do emissivity and absorptivity calculations
 !     only if abs/ems computation
 !
       if ( (jyear == jyear0 .and. ktau == 0) .or.                       &
-         & (mod(ktau+1,ifrabe) == 0) ) then
+           (mod(ktau+1,ifrabe) == 0) ) then
  
 !
 !       Compute ozone path lengths at frequency of a/e calculation.
@@ -1858,25 +1895,25 @@
 !       Compute trace gas path lengths
 !
         call trcpth(tnm,pint,cfc11,cfc12,n2o,ch4,qnm,ucfc11,ucfc12,     &
-                  & un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,uco222,&
-                  & uco223,bn2o0,bn2o1,bch4,uptype)
+                    un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,uco222,&
+                    uco223,bn2o0,bn2o1,bch4,uptype)
 !
 !
 !       Compute total emissivity:
 !
         call radems(s2c,s2t,w,tplnke,plh2o,pint,plco2,tint,tint4,tlayr, &
-                  & tlayr4,plol,plos,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
-                  & uco211,uco212,uco213,uco221,uco222,uco223,uptype,   &
-                  & bn2o0,bn2o1,bch4,co2em,co2eml,co2t,h2otr,abplnk1,   &
-                  & abplnk2,jslc)
+                    tlayr4,plol,plos,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
+                    uco211,uco212,uco213,uco221,uco222,uco223,uptype,   &
+                    bn2o0,bn2o1,bch4,co2em,co2eml,co2t,h2otr,abplnk1,   &
+                    abplnk2,jslc)
 !
 !       Compute total absorptivity:
 !
         call radabs(pmid,pint,co2em,co2eml,tplnka,s2c,s2t,w,h2otr,plco2,&
-                  & plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,ucfc11,   &
-                  & ucfc12,un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,&
-                  & uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
-                  & abplnk2,jslc)
+                    plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,ucfc11,   &
+                    ucfc12,un2o0,un2o1,uch4,uco211,uco212,uco213,uco221,&
+                    uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
+                    abplnk2,jslc)
 
          if (ichem /= 0 .and. idirect > 0) then
            abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
@@ -1953,7 +1990,7 @@
           do k = 1 , kz  ! aerlwtr defined on plev levels
             do n = 1 , 4
               absnxt(:,k,n,jslc) = d_one-(d_one-absnxt0(:,k,n,jslc))*   &
-                                & (aerlwtr(:,k,k+1)**xuinpl(:,k,n,jslc))
+                                  (aerlwtr(:,k,k+1)**xuinpl(:,k,n,jslc))
             end do
           end do
         end if
@@ -1971,9 +2008,9 @@
           delt(i) = tint4(i,kz) - tlayr4(i,kzp1)
           delt1(i) = tlayr4(i,kzp1) - tint4(i,kzp1)
           s(i,kzp1,kzp1) = stebol*(delt1(i)*absnxt(i,kz,1,jslc)         &
-                         & +delt(i)*absnxt(i,kz,4,jslc))
+                           +delt(i)*absnxt(i,kz,4,jslc))
           s(i,kz,kzp1) = stebol*(delt(i)*absnxt(i,kz,2,jslc)+delt1(i)   &
-                        & *absnxt(i,kz,3,jslc))
+                          *absnxt(i,kz,3,jslc))
         end do
         do k = 1 , kz - 1
           do i = 1 , iym1
@@ -2010,7 +2047,7 @@
             end if
             do i = 1 , iym1
               s(i,k,km) = s(i,k,km+1)                                   &
-                      & + stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
+                        + stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
             end do
           end do
         end do
@@ -2031,7 +2068,7 @@
         do i = 1 , iym1
           tmp(i) = fsul(i,kzp1) - stebol*tint4(i,kzp1)
           fsul(i,1) = fsul(i,kzp1) - abstot(i,1,kzp1,jslc)*tmp(i)       &
-                  & + s(i,1,2)
+                    + s(i,1,2)
           fsdl(i,1) = stebol*(tplnke(i)**d_four)*emstot(i,1,jslc)
           ful(i,1) = fsul(i,1)
           fdl(i,1) = fsdl(i,1)
@@ -2042,10 +2079,10 @@
         do k = 2 , kz
           do i = 1 , iym1
             fsul(i,k) = fsul(i,kzp1) - abstot(i,k,kzp1,jslc)*tmp(i) &
-                    & + s(i,k,k+1)
+                      + s(i,k,k+1)
             ful(i,k) = fsul(i,k)
             fsdl(i,k) = stebol*(tplnke(i)**d_four)*emstot(i,k,jslc) &
-                    & - (s(i,k,2)-s(i,k,k+1))
+                      - (s(i,k,2)-s(i,k,k+1))
             fdl(i,k) = fsdl(i,k)
           end do
         end do
@@ -2082,7 +2119,7 @@
 !       surface lw net ! fsul(i,plevp) - fsdl(i,plevp)
 !       aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
         aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))-                    &
-                 &    (fsul(:,kzp1) - fsdl(:,kzp1))
+                      (fsul(:,kzp1) - fsdl(:,kzp1))
          
 !       return to no aerosol LW effect  situation if idirect ==1
         if ( idirect==1 ) then
@@ -2115,8 +2152,8 @@
 !       First clear sky flux plus flux from cloud at level 1
 !
         fdl(i,kzp1) = fsdl(i,kzp1)*tclrsf(i,kz)                     &
-                     & *rtclrsf(i,kzp1-khiv(i)) + fclb4(i,kz-1)      &
-                     & *cld(i,kz)
+                       *rtclrsf(i,kzp1-khiv(i)) + fclb4(i,kz-1)      &
+                       *cld(i,kz)
       end do
 !
 !     Flux emitted by other layers
@@ -2132,7 +2169,7 @@
           if ( km <= khiv(i) ) then
             tmp1 = cld(i,km2)*tclrsf(i,kz)*rtclrsf(i,km2)
             fdl(i,kzp1) = fdl(i,kzp1) + (fclb4(i,km1)-s(i,kzp1,km4)) &
-                         & *tmp1
+                           *tmp1
           end if
         end do
       end do
@@ -2146,7 +2183,7 @@
         do ii = 1 , iym1c
           i = indx(ii)
           if ( k >= klov(i) .and. k <= khivm(i) ) ful(i,k2) = fsul(i,k2)&
-             & *(tclrsf(i,kzp1)*rtclrsf(i,k1))
+               *(tclrsf(i,kzp1)*rtclrsf(i,k1))
         end do
         do km = 1 , k
           km1 = kzp1 - km
@@ -2155,10 +2192,10 @@
           do ii = 1 , iym1c
             i = indx(ii)
 !
-            if ( k <= khivm(i) .and. km >= klov(i) .and. km <= khivm(i) &
-               & ) ful(i,k2) = ful(i,k2)                                &
-                             & + (fclt4(i,km1)+s(i,k2,k3)-s(i,k2,km3))  &
-                             & *cld(i,km2)*(tclrsf(i,km1)*rtclrsf(i,k1))
+            if ( k <= khivm(i) .and. km >= klov(i) .and. &
+                 km <= khivm(i)) ful(i,k2) = ful(i,k2)                  &
+                               + (fclt4(i,km1)+s(i,k2,k3)-s(i,k2,km3))  &
+                               *cld(i,km2)*(tclrsf(i,km1)*rtclrsf(i,k1))
           end do
         end do             ! km=1,k
       end do               ! k=1,khighest-1
@@ -2174,7 +2211,7 @@
           if ( k >= khiv(i) ) then
             start(i) = .true.
             ful(i,k2) = fsul(i,k2)*tclrsf(i,kzp1)                      &
-                      & *rtclrsf(i,kzp1-khiv(i))
+                        *rtclrsf(i,kzp1-khiv(i))
           end if
         end do
         do km = 1 , khighest
@@ -2184,7 +2221,7 @@
           do ii = 1 , iym1c
             i = indx(ii)
             if ( start(i) .and. km >= klov(i) .and. km <= khiv(i) )     &
-               & ful(i,k2) = ful(i,k2) +           &
+                 ful(i,k2) = ful(i,k2) +           &
                         (cld(i,km2)*tclrsf(i,km1)* &
                          rtclrsf(i,kzp1-khiv(i)))* &
                       (fclt4(i,km1)+s(i,k2,k3)-s(i,k2,km3))
@@ -2210,15 +2247,15 @@
             i = indx(ii)
 !
             if ( k <= khiv(i) .and. km >= max0(k+1,klov(i)) .and.       &
-               & km <= khiv(i) ) fdl(i,k2) = fdl(i,k2)                  &
-               & + (cld(i,km2)*tclrsf(i,k1)*rtclrsf(i,km2))             &
-               & *(fclb4(i,km1)-s(i,k2,km4)+s(i,k2,k3))
+                 km <= khiv(i) ) fdl(i,k2) = fdl(i,k2)                  &
+                 + (cld(i,km2)*tclrsf(i,k1)*rtclrsf(i,km2))             &
+                 *(fclb4(i,km1)-s(i,k2,km4)+s(i,k2,k3))
           end do
         end do             ! km=k+1,khighest
         do ii = 1 , iym1c
           i = indx(ii)
           if ( k <= khivm(i) ) fdl(i,k2) = fdl(i,k2) + fsdl(i,k2)       &
-             & *(tclrsf(i,k1)*rtclrsf(i,kzp1-khiv(i)))
+               *(tclrsf(i,k1)*rtclrsf(i,kzp1-khiv(i)))
         end do
       end do               ! k=1,khighest-1
 !
@@ -2251,18 +2288,18 @@
       do k = 1 , kz
         do i = 1 , iym1
           qrl(i,k) = (ful(i,k)-fdl(i,k)-ful(i,k+1)+fdl(i,k+1))          &
-                   & *gocp/((pint(i,k)-pint(i,k+1)))
+                     *gocp/((pint(i,k)-pint(i,k+1)))
         end do
       end do
 !
       call time_end(subroutine_name,idindx)
       end subroutine radclw
 !
-      subroutine radclr(coszrs,trayoslp,pflx,abh2o,abo3,abco2,abo2,     &
-                      & uth2o,uto3,utco2,uto2,tauxar_mix_css,           &
-                      & tauasc_mix_css,gtota_mix_css,ftota_mix_css,     &
-                      & nloop,is,ie,rdir,rdif,tdir,tdif,explay,exptdn,  &
-                      & rdndif,tottrn)
+      subroutine radclr(coszrs,trayoslp,pflx,ns, &
+                        uth2o,uto3,utco2,uto2,tauxar_mix_css,           &
+                        tauasc_mix_css,gtota_mix_css,ftota_mix_css,     &
+                        nloop,is,ie,rdir,rdif,tdir,tdif,explay,exptdn,  &
+                        rdndif,tottrn)
 !
 !-----------------------------------------------------------------------
 !
@@ -2286,20 +2323,6 @@
 !
       implicit none
 !
-!     Minimum total transmission below which no layer computation are
-!     done:
-!
-! trmin   - Minimum total transmission allowed
-! wray    - Rayleigh single scatter albedo
-! gray    - Rayleigh asymetry parameter
-! fray    - Rayleigh forward scattered fraction
-!
-!
-! PARAMETER definitions
-!
-      real(8) , parameter :: trmin = 1.0D-3 , wray = 0.999999D0 , &
-                           & gray = d_zero , fray = 0.1D0
-!
 !------------------------------Arguments--------------------------------
 !
 !     Input arguments
@@ -2307,10 +2330,6 @@
 ! coszrs   - Cosine zenith angle
 ! trayoslp - Tray/sslp
 ! pflx     - Interface pressure
-! abh2o    - Absorption coefficiant for h2o
-! abo3     - Absorption coefficiant for o3
-! abco2    - Absorption coefficiant for co2
-! abo2     - Absorption coefficiant for o2
 ! uth2o    - Total column absorber amount of h2o
 ! uto3     - Total column absorber amount of  o3
 ! utco2    - Total column absorber amount of co2
@@ -2340,23 +2359,23 @@
 ! tottrn   - Total transmission for layers above
 !
 !
-      real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
-      integer :: nloop
+      real(8) :: trayoslp
+      integer :: nloop , ns
       real(8) , dimension(iym1) :: coszrs , ftota_mix_css ,            &
-                                  & gtota_mix_css , tauasc_mix_css ,    &
-                                  & tauxar_mix_css , utco2 , uth2o ,    &
-                                  & uto2 , uto3
+                                    gtota_mix_css , tauasc_mix_css ,    &
+                                    tauxar_mix_css , utco2 , uth2o ,    &
+                                    uto2 , uto3
       real(8) , dimension(iym1,0:kz) :: explay , rdif , rdir , tdif ,&
-           & tdir
+             tdir
       real(8) , dimension(iym1,0:kzp1) :: exptdn , pflx , rdndif ,    &
-           & tottrn
+             tottrn
       integer , dimension(2) :: ie , is
-      intent (in) abco2 , abh2o , abo2 , abo3 , coszrs , ftota_mix_css ,&
-                & gtota_mix_css , ie , is , nloop , pflx ,              &
-                & tauasc_mix_css , tauxar_mix_css , trayoslp , utco2 ,  &
-                & uth2o , uto2 , uto3
+      intent (in) coszrs , ftota_mix_css ,&
+                  gtota_mix_css , ie , is , nloop , pflx ,              &
+                  tauasc_mix_css , tauxar_mix_css , trayoslp , utco2 ,  &
+                  uth2o , uto2 , uto3 , ns
       intent (inout) explay , exptdn , rdif , rdir , rdndif , tdif ,    &
-                   & tdir , tottrn
+                     tdir , tottrn
 !
 !---------------------------Local variables-----------------------------
 !
@@ -2387,8 +2406,8 @@
 !     Intermediate terms for delta-Eddington solution
 !
       real(8) :: alp , amg , apg , arg , extins , ftot ,   &
-               & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               & tautot , tdnmexp , ts , ue , ws , wtot
+                 gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+                 tautot , tdnmexp , ts , ue , ws , wtot
       integer :: i , ii , k , nn , nval
       integer , dimension(iym1) :: indx
       real(8) , dimension(iym1) :: taugab , tauray
@@ -2424,7 +2443,7 @@
       do nn = 1 , nloop
         do i = is(nn) , ie(nn)
 !
-          taugab(i) = abo3*uto3(i)
+          taugab(i) = abo3(ns)*uto3(i)
 !
 !         Limit argument of exponential to 25, in case coszrs is very
 !         small:
@@ -2480,9 +2499,9 @@
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
             tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
-                        & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
             rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                        & *(tdif(i,k-1)*rdenom)
+                          *(tdif(i,k-1)*rdenom)
 !
           end do
         end do
@@ -2499,7 +2518,8 @@
 !           Remember, no ozone absorption in this layer:
 !
             tauray(i) = trayoslp*pflx(i,kzp1)
-            taugab(i) = abh2o*uth2o(i) + abco2*utco2(i) + abo2*uto2(i)
+            taugab(i) = abh2o(ns)*uth2o(i) + abco2(ns)*utco2(i) + &
+                        abo2(ns)*uto2(i)
 !
             tautot = tauray(i) + taugab(i) + tauxar_mix_css(i)
 !
@@ -2535,7 +2555,7 @@
             amg = alp - gam
             rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
             tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one))  &
-                      & *explay(i,k)
+                        *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
 !           can be negative; zero out any negative values
@@ -2562,20 +2582,20 @@
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
           tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
-                      & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
           rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                      & *(tdif(i,k-1)*rdenom)
+                        *(tdif(i,k-1)*rdenom)
         end do
       end do
 !
       call time_end(subroutine_name,idindx)
       end subroutine radclr
 !
-      subroutine radded(coszrs,trayoslp,pflx,abh2o,abo3,abco2,abo2,uh2o,&
-                      & uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,tauxci,wci,gci, &
-                      & fci,tauxar_mixs,tauasc_mixs,gtota_mixs,         &
-                      & ftota_mixs,nloop,is,ie,rdir,rdif,tdir,tdif,     &
-                      & explay,exptdn,rdndif,tottrn)
+      subroutine radded(coszrs,trayoslp,pflx,ns,uh2o,&
+                        uo3,uco2,uo2,tauxcl,wcl,gcl,fcl,tauxci,wci,gci, &
+                        fci,tauxar_mixs,tauasc_mixs,gtota_mixs,         &
+                        ftota_mixs,nloop,is,ie,rdir,rdif,tdir,tdif,     &
+                        explay,exptdn,rdndif,tottrn)
 
 !-----------------------------------------------------------------------
 !
@@ -2601,19 +2621,6 @@
 !
       implicit none
 !
-! PARAMETER definitions
-!
-!     Minimum total transmission below which no layer computation are
-!     done:
-!
-! trmin  - Minimum total transmission allowed
-! wray   - Rayleigh single scatter albedo
-! gray   - Rayleigh asymetry parameter
-! fray   - Rayleigh forward scattered fraction
-!
-      real(8) , parameter :: trmin = 1.0D-3 , wray = 0.999999D0 , &
-                           & gray = d_zero , fray = 0.1D0
-!
 !------------------------------Arguments--------------------------------
 !
 !     Input arguments
@@ -2621,10 +2628,6 @@
 ! coszrs   - Cosine zenith angle
 ! trayoslp - Tray/sslp
 ! pflx     - Interface pressure
-! abh2o    - Absorption coefficiant for h2o
-! abo3     - Absorption coefficiant for o3
-! abco2    - Absorption coefficiant for co2
-! abo2     - Absorption coefficiant for o2
 ! uh2o     - Layer absorber amount of h2o
 ! uo3      - Layer absorber amount of  o3
 ! uco2     - Layer absorber amount of co2
@@ -2663,23 +2666,23 @@
 ! tottrn   - Total transmission for layers above
 !
 !
-      real(8) :: abco2 , abh2o , abo2 , abo3 , trayoslp
-      integer :: nloop
+      real(8) :: trayoslp
+      integer :: nloop , ns
       real(8) , dimension(iym1) :: coszrs
       real(8) , dimension(iym1,0:kz) :: explay , fci , fcl ,         &
-           & ftota_mixs , gci , gcl , gtota_mixs , rdif , rdir ,        &
-           & tauasc_mixs , tauxar_mixs , tauxci , tauxcl , tdif , tdir ,&
-           & uco2 , uh2o , uo2 , uo3 , wci , wcl
+             ftota_mixs , gci , gcl , gtota_mixs , rdif , rdir ,        &
+             tauasc_mixs , tauxar_mixs , tauxci , tauxcl , tdif , tdir ,&
+             uco2 , uh2o , uo2 , uo3 , wci , wcl
       real(8) , dimension(iym1,0:kzp1) :: exptdn , pflx , rdndif ,    &
-           & tottrn
+             tottrn
       integer , dimension(2) :: ie , is
-      intent (in) abco2 , abh2o , abo2 , abo3 , coszrs , fci , fcl ,    &
-                & ftota_mixs , gci , gcl , gtota_mixs , ie , is ,       &
-                & nloop , pflx , tauasc_mixs , tauxar_mixs , tauxci ,   &
-                & tauxcl , trayoslp , uco2 , uh2o , uo2 , uo3 , wci ,   &
-                & wcl
+      intent (in) coszrs , fci , fcl ,    &
+                  ftota_mixs , gci , gcl , gtota_mixs , ie , is ,       &
+                  nloop , pflx , tauasc_mixs , tauxar_mixs , tauxci ,   &
+                  tauxcl , trayoslp , uco2 , uh2o , uo2 , uo3 , wci ,   &
+                  wcl , ns
       intent (inout) explay , exptdn , rdif , rdir , rdndif , tdif ,    &
-                   & tdir , tottrn
+                     tdir , tottrn
 !
 !---------------------------Local variables-----------------------------
 !
@@ -2738,9 +2741,9 @@
 ! apg      - Alp + gam
 !
       real(8) :: alp , amg , apg , arg , extins , ftot ,   &
-               & gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               & taucsc , tautot , tdnmexp , ts , ue , ws ,    &
-               & wt , wtau , wtot
+                 gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+                 taucsc , tautot , tdnmexp , ts , ue , ws ,    &
+                 wt , wtau , wtot
       integer :: i , ii , k , nn , nval
       integer , dimension(iym1) :: indx
       real(8) , dimension(iym1) :: taugab , tauray
@@ -2767,20 +2770,20 @@
         do i = is(nn) , ie(nn)
 !
           tauray(i) = trayoslp*(pflx(i,1)-pflx(i,0))
-          taugab(i) = abh2o*uh2o(i,0) + abo3*uo3(i,0) + abco2*uco2(i,0) &
-                    & + abo2*uo2(i,0)
+          taugab(i) = abh2o(ns)*uh2o(i,0) + abo3(ns)*uo3(i,0) + &
+                      abco2(ns)*uco2(i,0) + abo2(ns)*uo2(i,0)
 !
           tautot = tauxcl(i,0) + tauxci(i,0) + tauray(i) + taugab(i)    &
-                 & + tauxar_mixs(i,0)
+                   + tauxar_mixs(i,0)
           taucsc = tauxcl(i,0)*wcl(i,0) + tauxci(i,0)*wci(i,0)          &
-                 & + tauasc_mixs(i,0)
+                   + tauasc_mixs(i,0)
           wtau = wray*tauray(i)
           wt = wtau + taucsc
           wtot = wt/tautot
           gtot = (wtau*gray+gcl(i,0)*tauxcl(i,0)*wcl(i,0)+gci(i,0)      &
-               & *tauxci(i,0)*wci(i,0)+gtota_mixs(i,0))/wt
+                 *tauxci(i,0)*wci(i,0)+gtota_mixs(i,0))/wt
           ftot = (wtau*fray+fcl(i,0)*tauxcl(i,0)*wcl(i,0)+fci(i,0)      &
-               & *tauxci(i,0)*wci(i,0)+ftota_mixs(i,0))/wt
+                 *tauxci(i,0)*wci(i,0)+ftota_mixs(i,0))/wt
 !
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
@@ -2808,7 +2811,7 @@
           amg = alp - gam
           rdir(i,0) = amg*(tdif(i,0)*explay(i,0)-d_one) + apg*rdif(i,0)
           tdir(i,0) = apg*tdif(i,0) + (amg*rdif(i,0)-(apg-d_one))  &
-                    & *explay(i,0)
+                      *explay(i,0)
 !
 !         Under rare conditions, reflectivies and transmissivities can
 !         be negative; zero out any negative values
@@ -2862,9 +2865,9 @@
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
             tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
-                        & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
             rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                        & *(tdif(i,k-1)*rdenom)
+                          *(tdif(i,k-1)*rdenom)
 !
           end do
         end do
@@ -2879,20 +2882,20 @@
             i = indx(ii)
 !
             tauray(i) = trayoslp*(pflx(i,k+1)-pflx(i,k))
-            taugab(i) = abh2o*uh2o(i,k) + abo3*uo3(i,k)                 &
-                      & + abco2*uco2(i,k) + abo2*uo2(i,k)
+            taugab(i) = abh2o(ns)*uh2o(i,k) + abo3(ns)*uo3(i,k) +  &
+                        abco2(ns)*uco2(i,k) + abo2(ns)*uo2(i,k)
 !
             tautot = tauxcl(i,k) + tauxci(i,k) + tauray(i) + taugab(i)  &
-                   & + tauxar_mixs(i,k)
+                     + tauxar_mixs(i,k)
             taucsc = tauxcl(i,k)*wcl(i,k) + tauxci(i,k)*wci(i,k)        &
-                   & + tauasc_mixs(i,k)
+                     + tauasc_mixs(i,k)
             wtau = wray*tauray(i)
             wt = wtau + taucsc
             wtot = wt/tautot
             gtot = (wtau*gray+gcl(i,k)*wcl(i,k)*tauxcl(i,k)+gci(i,k)    &
-                 & *wci(i,k)*tauxci(i,k)+gtota_mixs(i,k))/wt
+                   *wci(i,k)*tauxci(i,k)+gtota_mixs(i,k))/wt
             ftot = (wtau*fray+fcl(i,k)*wcl(i,k)*tauxcl(i,k)+fci(i,k)    &
-                 & *wci(i,k)*tauxci(i,k)+ftota_mixs(i,k))/wt
+                   *wci(i,k)*tauxci(i,k)+ftota_mixs(i,k))/wt
 !
             ts = taus(wtot,ftot,tautot)
             ws = omgs(wtot,ftot)
@@ -2920,7 +2923,7 @@
             amg = alp - gam
             rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
             tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one)) &
-                      & *explay(i,k)
+                        *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
 !           can be negative; zero out any negative values
@@ -2950,9 +2953,9 @@
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
           tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
-                      & *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
           rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                      & *(tdif(i,k-1)*rdenom)
+                        *(tdif(i,k-1)*rdenom)
         end do
       end do
 !
@@ -2960,10 +2963,10 @@
       end subroutine radded
 !
       subroutine radabs(pbr,pnm,co2em,co2eml,tplnka,s2c,s2t,w,h2otr,    &
-                      & plco2,plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,&
-                      & ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,   &
-                      & uco213,uco221,uco222,uco223,uptype,bn2o0,bn2o1, &
-                      & bch4,abplnk1,abplnk2,jslc)
+                        plco2,plh2o,co2t,tint,tlayr,plol,plos,pmln,piln,&
+                        ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,   &
+                        uco213,uco221,uco222,uco223,uptype,bn2o0,bn2o1, &
+                        bch4,abplnk1,abplnk2,jslc)
 
 !-----------------------------------------------------------------------
 !
@@ -3072,14 +3075,14 @@
       integer :: jslc
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
-           & co2t , h2otr , piln , plco2 , plh2o , plol , plos , pnm ,  &
-           & s2c , s2t , tint , tlayr , tplnka , ucfc11 , ucfc12 ,      &
-           & uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
-           & uco223 , un2o0 , un2o1 , uptype , w
+             co2t , h2otr , piln , plco2 , plh2o , plol , plos , pnm ,  &
+             s2c , s2t , tint , tlayr , tplnka , ucfc11 , ucfc12 ,      &
+             uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
+             uco223 , un2o0 , un2o1 , uptype , w
       real(8) , dimension(iym1,kz) :: co2eml , pbr , pmln
       intent (in) abplnk2 , co2em , co2eml , co2t , h2otr , jslc , pbr ,&
-                & piln , plco2 , plh2o , plol , plos , pmln , s2t ,     &
-                & tint , tlayr , tplnka , w
+                  piln , plco2 , plh2o , plol , plos , pmln , s2t ,     &
+                  tint , tlayr , tplnka , w
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3222,32 +3225,32 @@
 ! dbvt     - Planck fnctn tmp derivative for o3
 !
       real(8) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
-               & absbnd , alphat , beta , cf812 , corfac , denom ,      &
-               & dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
-               & et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
-               & oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
-               & r250 , r293 , r2sslp , r300 , r3205 , r80257 ,         &
-               & rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
-               & rphat , rsqti , rsslp , rsum , sqwp , t1t4 , t2t5 ,&
-               & tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
-               & tr1 , tr2 , tr5 , tr6 , u1 , u13 , u2 , u8 , u9 ,      &
-               & ubar , wco2
+                 absbnd , alphat , beta , cf812 , corfac , denom ,      &
+                 dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
+                 et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
+                 oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
+                 r250 , r293 , r2sslp , r300 , r3205 , r80257 ,         &
+                 rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
+                 rphat , rsqti , rsslp , rsum , sqwp , t1t4 , t2t5 ,&
+                 tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
+                 tr1 , tr2 , tr5 , tr6 , u1 , u13 , u2 , u8 , u9 ,      &
+                 ubar , wco2
       real(8) , dimension(iym1,6) :: abso
       real(8) , dimension(iym1) :: abstrc , dplh2o , dpnm , dtp , dtx ,&
-                                  & dty , dtyp15 , dtyp15sq , dtz , dw ,&
-                                  & f1sqwp , f2co2 , f3co2 , fwk ,      &
-                                  & fwku , pnew , rbeta7 , sqrtu ,      &
-                                  & sqti , t1co2 , tco2 , th2o , to3 ,  &
-                                  & to3co2 , to3h2o , tpatha , tr10 ,   &
-                                  & tr9 , trab2 , trab4 , trab6 , u ,   &
-                                  & u7 , uc , uc1
+                                    dty , dtyp15 , dtyp15sq , dtz , dw ,&
+                                    f1sqwp , f2co2 , f3co2 , fwk ,      &
+                                    fwku , pnew , rbeta7 , sqrtu ,      &
+                                    sqti , t1co2 , tco2 , th2o , to3 ,  &
+                                    to3co2 , to3h2o , tpatha , tr10 ,   &
+                                    tr9 , trab2 , trab4 , trab6 , u ,   &
+                                    u7 , uc , uc1
       real(8) , dimension(14,iym1,4) :: bplnk
       real(8) , dimension(iym1,kzp1) :: dbvtit , pnmsq , term6 , term9
       real(8) , dimension(iym1,kz) :: dbvtly
       real(8) , dimension(iym1,4) :: emm , o3emm , pinpl , tbar ,      &
-                                    & temh2o , term1 , term2 , term3 ,  &
-                                    & term4 , term5 , uinpl , winpl ,   &
-                                    & zinpl
+                                      temh2o , term1 , term2 , term3 ,  &
+                                      term4 , term5 , uinpl , winpl ,   &
+                                      zinpl
       integer :: i , iband , k , k1 , k2 , kn , wvl
       real(8) , dimension(2) :: r2st
       real(8) , dimension(iym1,2) :: term7 , term8 , trline
@@ -3297,11 +3300,11 @@
           pnmsq(i,k) = pnm(i,k)**d_two
           dtx(i) = tplnka(i,k) - 250.0D0
           term6(i,k) = coeff(1,2) + coeff(2,2)*dtx(i)            &
-                     & *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)       &
-                     & *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
+                       *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)       &
+                       *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
           term9(i,k) = coefi(1,2) + coefi(2,2)*dtx(i)            &
-                     & *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)      &
-                     & *(d_one+c23*dtx(i)*(d_one+c25*dtx(i)))))
+                       *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)      &
+                       *(d_one+c23*dtx(i)*(d_one+c25*dtx(i)))))
         end do
       end do
 !
@@ -3333,17 +3336,17 @@
             do iband = 2 , 4 , 2
               do i = 1 , iym1
                 term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i) &
-                               & *(d_one+c1(iband)*dtx(i))
+                                 *(d_one+c1(iband)*dtx(i))
                 term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i) &
-                               & *(d_one+c2(iband)*dtx(i)               &
-                               & *(d_one+c3(iband)*dtx(i)))
+                                 *(d_one+c2(iband)*dtx(i)               &
+                                 *(d_one+c3(iband)*dtx(i)))
                 term3(i,iband) = coefd(1,iband) + coefd(2,iband)*dtx(i) &
-                               & *(d_one+c4(iband)*dtx(i)               &
-                               & *(d_one+c5(iband)*dtx(i)))
+                                 *(d_one+c4(iband)*dtx(i)               &
+                                 *(d_one+c5(iband)*dtx(i)))
                 term4(i,iband) = coefa(1,iband) + coefa(2,iband)*dty(i) &
-                               & *(d_one+c6(iband)*dty(i))
+                                 *(d_one+c6(iband)*dty(i))
                 term5(i,iband) = coefc(1,iband) + coefc(2,iband)*dty(i) &
-                               & *(d_one+c7(iband)*dty(i))
+                                 *(d_one+c7(iband)*dty(i))
               end do
             end do
 !
@@ -3397,13 +3400,13 @@
             end do
             do i = 1 , iym1
               term7(i,1) = coefj(1,1) + coefj(2,1)*dty(i)               &
-                         & *(d_one+c16*dty(i))
+                           *(d_one+c16*dty(i))
               term8(i,1) = coefk(1,1) + coefk(2,1)*dty(i)               &
-                         & *(d_one+c17*dty(i))
+                           *(d_one+c17*dty(i))
               term7(i,2) = coefj(1,2) + coefj(2,2)*dty(i)               &
-                         & *(d_one+c26*dty(i))
+                           *(d_one+c26*dty(i))
               term8(i,2) = coefk(1,2) + coefk(2,2)*dty(i)               &
-                         & *(d_one+c27*dty(i))
+                           *(d_one+c27*dty(i))
             end do
 !
 !           abso(i,3)   800 - 1200 cm-1   h2o window
@@ -3411,10 +3414,10 @@
 !           with co2
             do i = 1 , iym1
               k21 = term7(i,1) + term8(i,1)         &
-                  & /(d_one+(c30+c31*(dty(i)-d_10)* &
-                  & (dty(i)-d_10))*sqrtu(i))
+                    /(d_one+(c30+c31*(dty(i)-d_10)* &
+                    (dty(i)-d_10))*sqrtu(i))
               k22 = term7(i,2) + term8(i,2)                             &
-                  & /(d_one+(c28+c29*(dty(i)-d_10))*sqrtu(i))
+                    /(d_one+(c28+c29*(dty(i)-d_10))*sqrtu(i))
               tr1 = dexp(-(k21*(sqrtu(i)+fc1*fwku(i))))
               tr2 = dexp(-(k22*(sqrtu(i)+fc1*fwku(i))))
               tr5 = dexp(-((coefh(1,3)+coefh(2,3)*dtx(i))*uc1(i)))
@@ -3426,8 +3429,8 @@
               trab4(i) = dexp(-(coefg(1,3)+coefg(2,3)*dtx(i))*uc(i))
               trab6(i) = dexp(-(coefg(1,4)+coefg(2,4)*dtx(i))*uc(i))
               abso(i,3) = term6(i,k2)                                   &
-                        & *(d_one-d_half*trab4(i)*trline(i,2)- &
-                        & d_half*trab6(i)*trline(i,1))
+                          *(d_one-d_half*trab4(i)*trline(i,2)- &
+                          d_half*trab6(i)*trline(i,1))
               abso(i,4) = term9(i,k2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
             end do
             if ( k2 < k1 ) then
@@ -3445,7 +3448,7 @@
             do i = 1 , iym1
               dpnm(i) = pnm(i,k1) - pnm(i,k2)
               to3co2(i) = (pnm(i,k1)*co2t(i,k1)-pnm(i,k2)*co2t(i,k2))   &
-                        & /dpnm(i)
+                          /dpnm(i)
               te = (to3co2(i)*r293)**0.7D0
               dplos = plos(i,k1) - plos(i,k2)
               dplol = plol(i,k1) - plol(i,k2)
@@ -3495,8 +3498,8 @@
               rbeta9 = rbeta7(i)
               rbeta13 = rbeta9
               f2co2(i) = (u7(i)/dsqrt(d_four+u7(i)*(d_one+rbeta7(i))))  &
-                       & + (u8/dsqrt(d_four+u8*(d_one+rbeta8)))         &
-                       & + (u9/dsqrt(d_four+u9*(d_one+rbeta9)))
+                         + (u8/dsqrt(d_four+u8*(d_one+rbeta8)))         &
+                         + (u9/dsqrt(d_four+u9*(d_one+rbeta9)))
               f3co2(i) = u13/dsqrt(d_four+u13*(d_one+rbeta13))
             end do
             if ( k2 >= k1 ) then
@@ -3519,16 +3522,16 @@
 !           Calculate absorptivity due to trace gases
 !
             call trcab(k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,     &
-                     & uco212,uco213,uco221,uco222,uco223,bn2o0,bn2o1,  &
-                     & bch4,to3co2,pnm,dw,pnew,s2c,uptype,u,abplnk1,    &
-                     & tco2,th2o,to3,abstrc)
+                       uco212,uco213,uco221,uco222,uco223,bn2o0,bn2o1,  &
+                       bch4,to3co2,pnm,dw,pnew,s2c,uptype,u,abplnk1,    &
+                       tco2,th2o,to3,abstrc)
 !
 !           Sum total absorptivity
 !
             do i = 1 , iym1
               abstot(i,k1,k2,jslc) = abso(i,1) + abso(i,2) + abso(i,3)  &
-                                   & + abso(i,4) + abso(i,5) + abso(i,6)&
-                                   & + abstrc(i)
+                                     + abso(i,4) + abso(i,5) + abso(i,6)&
+                                     + abstrc(i)
             end do
           end if
         end do
@@ -3631,17 +3634,17 @@
           do iband = 2 , 4 , 2
             do i = 1 , iym1
               term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i)   &
-                             & *(d_one+c1(iband)*dtx(i))
+                               *(d_one+c1(iband)*dtx(i))
               term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i)   &
-                             & *(d_one+c2(iband)*dtx(i)                  &
-                             & *(d_one+c3(iband)*dtx(i)))
+                               *(d_one+c2(iband)*dtx(i)                  &
+                               *(d_one+c3(iband)*dtx(i)))
               term3(i,iband) = coefd(1,iband) + coefd(2,iband)*dtx(i)   &
-                             & *(d_one+c4(iband)*dtx(i)                  &
-                             & *(d_one+c5(iband)*dtx(i)))
+                               *(d_one+c4(iband)*dtx(i)                  &
+                               *(d_one+c5(iband)*dtx(i)))
               term4(i,iband) = coefa(1,iband) + coefa(2,iband)*dty(i)   &
-                             & *(d_one+c6(iband)*dty(i))
+                               *(d_one+c6(iband)*dty(i))
               term5(i,iband) = coefc(1,iband) + coefc(2,iband)*dty(i)   &
-                             & *(d_one+c7(iband)*dty(i))
+                               *(d_one+c7(iband)*dty(i))
             end do
           end do
 !
@@ -3710,8 +3713,8 @@
             denom = d_one + (c28+c29*dtym10)*sqrtu(i)
             k22 = term7(i,2) + term8(i,2)/denom
             term9(i,2) = coefi(1,2) + coefi(2,2)*dtx(i)                 &
-                       & *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)             &
-                       & *(d_one+c23*dtx(i)*(d_one+c25*dtx(i)))))
+                         *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)             &
+                         *(d_one+c23*dtx(i)*(d_one+c25*dtx(i)))))
             tr1 = dexp(-(k21*(sqrtu(i)+fc1*fwku(i))))
             tr2 = dexp(-(k22*(sqrtu(i)+fc1*fwku(i))))
             tr5 = dexp(-((coefh(1,3)+coefh(2,3)*dtx(i))*uc1(i)))
@@ -3723,11 +3726,11 @@
             trab4(i) = dexp(-(coefg(1,3)+coefg(2,3)*dtx(i))*uc(i))
             trab6(i) = dexp(-(coefg(1,4)+coefg(2,4)*dtx(i))*uc(i))
             term6(i,2) = coeff(1,2) + coeff(2,2)*dtx(i)                 &
-                       & *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)              &
-                       & *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
+                         *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)              &
+                         *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
             abso(i,3) = term6(i,2)                                      &
-                      & *(d_one-d_half*trab4(i)*trline(i,2)-d_half*trab6(i)  &
-                      & *trline(i,1))
+                        *(d_one-d_half*trab4(i)*trline(i,2)-d_half*trab6(i)  &
+                        *trline(i,1))
             abso(i,4) = term9(i,2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
           end do
 !
@@ -3781,8 +3784,8 @@
             rbeta9 = rbeta7(i)
             rbeta13 = rbeta9
             f2co2(i) = u7(i)/dsqrt(d_four+u7(i)*(d_one+rbeta7(i))) &
-                     & + u8/dsqrt(d_four+u8*(d_one+rbeta8))       &
-                     & + u9/dsqrt(d_four+u9*(d_one+rbeta9))
+                       + u8/dsqrt(d_four+u8*(d_one+rbeta8))       &
+                       + u9/dsqrt(d_four+u9*(d_one+rbeta9))
             f3co2(i) = u13/dsqrt(d_four+u13*(d_one+rbeta13))
             tmp1 = dlog(d_one+f1sqwp(i))
             tmp2 = dlog(d_one+f2co2(i))
@@ -3797,16 +3800,16 @@
 !         Calculate trace gas absorptivity for nearest layer
 !
           call trcabn(k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,      &
-                    & uco212,uco213,uco221,uco222,uco223,tbar,bplnk,    &
-                    & winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,u,pnew,   &
-                    & abstrc,uinpl)
+                      uco212,uco213,uco221,uco222,uco223,tbar,bplnk,    &
+                      winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,u,pnew,   &
+                      abstrc,uinpl)
 !
 !         Total next layer absorptivity:
 !
           do i = 1 , iym1
             absnxt(i,k2,kn,jslc) = abso(i,1) + abso(i,2) + abso(i,3)    &
-                                 & + abso(i,4) + abso(i,5) + abso(i,6)  &
-                                 & + abstrc(i)
+                                   + abso(i,4) + abso(i,5) + abso(i,6)  &
+                                   + abstrc(i)
           end do
         end do
       end do                    !  end of nearest layer level loop
@@ -3815,10 +3818,10 @@
       end subroutine radabs
 !
       subroutine radems(s2c,s2t,w,tplnke,plh2o,pnm,plco2,tint,tint4,    &
-                      & tlayr,tlayr4,plol,plos,ucfc11,ucfc12,un2o0,     &
-                      & un2o1,uch4,uco211,uco212,uco213,uco221,uco222,  &
-                      & uco223,uptype,bn2o0,bn2o1,bch4,co2em,co2eml,    &
-                      & co2t,h2otr,abplnk1,abplnk2,jslc)
+                        tlayr,tlayr4,plol,plos,ucfc11,ucfc12,un2o0,     &
+                        un2o1,uch4,uco211,uco212,uco213,uco221,uco222,  &
+                        uco223,uptype,bn2o0,bn2o1,bch4,co2em,co2eml,    &
+                        co2t,h2otr,abplnk1,abplnk2,jslc)
 !
 !-----------------------------------------------------------------------
 !
@@ -3907,14 +3910,14 @@
       integer :: jslc
       real(8) , dimension(14,iym1,kzp1) :: abplnk1 , abplnk2
       real(8) , dimension(iym1,kzp1) :: bch4 , bn2o0 , bn2o1 , co2em ,&
-           & co2t , h2otr , plco2 , plh2o , plol , plos , pnm , s2c ,   &
-           & s2t , tint , tint4 , tlayr , tlayr4 , ucfc11 , ucfc12 ,    &
-           & uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
-           & uco223 , un2o0 , un2o1 , uptype , w
+             co2t , h2otr , plco2 , plh2o , plol , plos , pnm , s2c ,   &
+             s2t , tint , tint4 , tlayr , tlayr4 , ucfc11 , ucfc12 ,    &
+             uch4 , uco211 , uco212 , uco213 , uco221 , uco222 ,        &
+             uco223 , un2o0 , un2o1 , uptype , w
       real(8) , dimension(iym1,kz) :: co2eml
       real(8) , dimension(iym1) :: tplnke
       intent (in) jslc , plco2 , plh2o , plol , plos , s2t , tint4 ,    &
-                & tlayr4
+                  tlayr4
       intent (out) co2em , co2eml
       intent (inout) co2t , h2otr
 !
@@ -4050,27 +4053,27 @@
 ! to3     - o3 overlap factor
 !
       real(8) , dimension(iym1) :: a , co2plk , corfac , dbvtt , dtp ,  &
-                                  & dtx , dty , dtz , k21 , k22 , pnew ,&
-                                  & rsum , tco2 , th2o , to3 , tpathe , &
-                                  & tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , &
-                                  & trem4 , trem6 , u , uc , uc1 , xsum
+                                    dtx , dty , dtz , k21 , k22 , pnew ,&
+                                    rsum , tco2 , th2o , to3 , tpathe , &
+                                    tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , &
+                                    trem4 , trem6 , u , uc , uc1 , xsum
       real(8) :: a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,        &
-               & absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
-               & exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
-               & g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
-               & phi , pi , posqt , psi , r250 , r300 , r80257 ,        &
-               & rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
-               & sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 ,              &
-               & tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
-               & tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2
+                 absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
+                 exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
+                 g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
+                 phi , pi , posqt , psi , r250 , r300 , r80257 ,        &
+                 rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
+                 sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 ,              &
+                 tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
+                 tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2
       real(8) , dimension(iym1,kzp1) :: co2ems , emstrc , h2oems ,    &
-           & o3ems , troco2
+             o3ems , troco2
       real(8) , dimension(iym1,4) :: emis , term1 , term2 , term3 ,    &
-                                    & term4 , term5
+                                      term4 , term5
       real(8) , dimension(14,iym1) :: emplnk
       integer :: i , iband , k , k1
       real(8) , dimension(iym1,2) :: term6 , term7 , term8 , term9 ,   &
-                                    & trline
+                                      trline
 !
       character (len=50) :: subroutine_name='radems'
       integer :: indx = 0
@@ -4149,18 +4152,17 @@
         do iband = 1 , 3 , 2
           do i = 1 , iym1
             term1(i,iband) = coefe(1,iband) + coefe(2,iband)*dtx(i)     &
-                           & *(d_one+c1(iband)*dtx(i))
+                             *(d_one+c1(iband)*dtx(i))
             term2(i,iband) = coefb(1,iband) + coefb(2,iband)*dtx(i)     &
-                           & *(d_one+c2(iband)*dtx(i)* &
-                           &  (d_one+c3(iband)*dtx(i))&
-                           & )
+                             *(d_one+c2(iband)*dtx(i)* &
+                              (d_one+c3(iband)*dtx(i)))
             term3(i,iband) = coefd(1,iband) + coefd(2,iband)*dtx(i)     &
-                           & *(d_one+c4(iband)*dtx(i)* &
-                           &  (d_one+c5(iband)*dtx(i)))
+                             *(d_one+c4(iband)*dtx(i)* &
+                              (d_one+c5(iband)*dtx(i)))
             term4(i,iband) = coefa(1,iband) + coefa(2,iband)*dty(i)     &
-                           & *(d_one+c6(iband)*dty(i))
+                             *(d_one+c6(iband)*dty(i))
             term5(i,iband) = coefc(1,iband) + coefc(2,iband)*dty(i)     &
-                           & *(d_one+c7(iband)*dty(i))
+                             *(d_one+c7(iband)*dty(i))
           end do
         end do
 !
@@ -4226,24 +4228,24 @@
 !
         do i = 1 , iym1
           term6(i,1) = coeff(1,1) + coeff(2,1)*dtx(i)                   &
-                     & *(d_one+c8*dtx(i)*(d_one+c10*dtx(i)                &
-                     & *(d_one+c12*dtx(i)*(d_one+c14*dtx(i)))))
+                       *(d_one+c8*dtx(i)*(d_one+c10*dtx(i)                &
+                       *(d_one+c12*dtx(i)*(d_one+c14*dtx(i)))))
           trem4(i) = dexp(-(coefg(1,1)+coefg(2,1)*dtx(i))*uc(i))        &
-                   & *trline(i,2)
+                     *trline(i,2)
           trem6(i) = dexp(-(coefg(1,2)+coefg(2,2)*dtx(i))*uc(i))        &
-                   & *trline(i,1)
+                     *trline(i,1)
           emis(i,3) = term6(i,1)*(d_one-d_half*trem4(i)-d_half*trem6(i))
 !
 !         emis(i,4)   500 -  800 cm-1   rotation band overlap with co2
 !
           k21(i) = term7(i,1) + term8(i,1)         &
-                 & /(d_one+(c30+c31*(dty(i)-d_10)* &
-                 & (dty(i)-d_10))*dsqrt(u(i)))
+                   /(d_one+(c30+c31*(dty(i)-d_10)* &
+                   (dty(i)-d_10))*dsqrt(u(i)))
           k22(i) = term7(i,2) + term8(i,2)         &
-                 & /(d_one+(c28+c29*(dty(i)-d_10))*dsqrt(u(i)))
+                   /(d_one+(c28+c29*(dty(i)-d_10))*dsqrt(u(i)))
           term9(i,1) = coefi(1,1) + coefi(2,1)*dtx(i)         &
-                     & *(d_one+c18*dtx(i)*(d_one+c20*dtx(i)     &
-                     & *(d_one+c22*dtx(i)*(d_one+c24*dtx(i)))))
+                       *(d_one+c18*dtx(i)*(d_one+c20*dtx(i)     &
+                       *(d_one+c22*dtx(i)*(d_one+c24*dtx(i)))))
           fwk = fwcoef + fwc1/(d_one+fwc2*u(i))
           tr1(i) = dexp(-(k21(i)*(dsqrt(u(i))+fc1*fwk*u(i))))
           tr2(i) = dexp(-(k22(i)*(dsqrt(u(i))+fc1*fwk*u(i))))
@@ -4290,8 +4292,8 @@
           rbeta9 = rbeta7
           rbeta13 = rbeta9
           f2co2 = (u7/dsqrt(d_four+u7*(d_one+rbeta7)))           &
-                & + (u8/dsqrt(d_four+u8*(d_one+rbeta8)))       &
-                & + (u9/dsqrt(d_four+u9*(d_one+rbeta9)))
+                  + (u8/dsqrt(d_four+u8*(d_one+rbeta8)))       &
+                  + (u9/dsqrt(d_four+u9*(d_one+rbeta9)))
           f3co2 = u13/dsqrt(d_four+u13*(d_one+rbeta13))
           tmp1 = dlog(d_one+f1sqwp)
           tmp2 = dlog(d_one+f2co2)
@@ -4319,7 +4321,7 @@
           beta = (d_one/.3205D0)*((d_one/phat)+(dpfo3*tcrfac))
           realnu = (d_one/beta)*te
           o3bndi = 74.0D0*te*(tplnke(i)/375.0D0)   &
-                 & *dlog(d_one+fo3(u1,realnu)+fo3(u2,realnu))
+                   *dlog(d_one+fo3(u1,realnu)+fo3(u2,realnu))
           o3ems(i,k1) = dbvtt(i)*h2otr(i,k1)*o3bndi
           to3(i) = d_one/(d_one+0.1D0* &
                     fo3(u1,realnu)+0.1D0*fo3(u2,realnu))
@@ -4329,14 +4331,14 @@
 !       Calculate trace gas emissivities
 !
         call trcems(k1,co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,  &
-                  & uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,&
-                  & uptype,w,s2c,u,emplnk,th2o,tco2,to3,emstrc)
+                    uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,&
+                    uptype,w,s2c,u,emplnk,th2o,tco2,to3,emstrc)
 !
 !       Total emissivity:
 !
         do i = 1 , iym1
           emstot(i,k1,jslc) = h2oems(i,k1) + co2ems(i,k1) + o3ems(i,k1) &
-                            & + emstrc(i,k1)
+                              + emstrc(i,k1)
         end do
       end do            ! End of interface loop
 !
@@ -4402,9 +4404,9 @@
       do k = 2 , kzp1
         do i = 1 , iym1
           plos(i,k) = plos(i,k-1) + 0.1D0*cplos*o3vmr(i,k-1)   &
-                    & *(pint(i,k)-pint(i,k-1))
+                      *(pint(i,k)-pint(i,k-1))
           plol(i,k) = plol(i,k-1) + 0.01D0*cplol*o3vmr(i,k-1)  &
-                    & *(pint(i,k)*pint(i,k)-pint(i,k-1)*pint(i,k-1))
+                      *(pint(i,k)*pint(i,k)-pint(i,k-1)*pint(i,k-1))
         end do
       end do
 !
@@ -4412,7 +4414,7 @@
       end subroutine radoz2
 !
       subroutine radtpl(tnm,ts,qnm,pnm,plh2o,tplnka,s2c,s2t,w,tplnke,   &
-                      & tint,tint4,tlayr,tlayr4,pmln,piln)
+                        tint,tint4,tlayr,tlayr4,pmln,piln)
 !-----------------------------------------------------------------------
 !
 ! Compute temperatures and path lengths for longwave radiation
@@ -4451,7 +4453,7 @@
 !
 !
       real(8) , dimension(iym1,kzp1) :: piln , plh2o , pnm , s2c ,    &
-           & s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
+             s2t , tint , tint4 , tlayr , tlayr4 , tplnka , w
       real(8) , dimension(iym1,kz) :: pmln , qnm , tnm
       real(8) , dimension(iym1) :: tplnke , ts
       intent (in) piln , plh2o , pmln , pnm , qnm , tnm , ts
@@ -4549,7 +4551,7 @@
           s2t(i,k+1) = s2t(i,k) + rgsslp*dpnmsq*qnm(i,k)*tnm(i,k)
           w(i,k+1) = w(i,k) + rga*qnm(i,k)*dpnm
           s2c(i,k+1) = s2c(i,k) + rgsslp*dpnmsq*qnm(i,k)                &
-                     & *dexp(1800.0D0*(rtnm-r296))*qnm(i,k)*repsil
+                       *dexp(1800.0D0*(rtnm-r296))*qnm(i,k)*repsil
         end do
       end do
 !
@@ -4557,7 +4559,7 @@
       end subroutine radtpl
 !
       subroutine radinp(pmid,pint,h2ommr,cld,o3vmr,pmidrd,pintrd,plco2, &
-                      & plh2o,tclrsf,eccf,o3mmr)
+                        plh2o,tclrsf,eccf,o3mmr)
 
 !-----------------------------------------------------------------------
 !
@@ -4580,9 +4582,9 @@
 !
       real(8) :: eccf
       real(8) , dimension(iym1,kzp1) :: cld , pint , pintrd , plco2 ,   &
-           & plh2o , tclrsf
+             plh2o , tclrsf
       real(8) , dimension(iym1,kz) :: h2ommr , o3mmr , o3vmr , pmid ,   &
-           & pmidrd
+             pmidrd
       intent (in) cld , h2ommr , o3vmr , pint , pmid
       intent (out) eccf , o3mmr , plco2 , pmidrd
       intent (inout) pintrd , plh2o , tclrsf
@@ -4671,8 +4673,8 @@
       do k = 1 , kz
         do i = 1 , iym1
           plh2o(i,k+1) = plh2o(i,k) &
-                       & + rgsslp*(pintrd(i,k+1)**d_two &
-                       & - pintrd(i,k)**d_two) * h2ommr(i,k)
+                         + rgsslp*(pintrd(i,k+1)**d_two &
+                         - pintrd(i,k)**d_two) * h2ommr(i,k)
           plco2(i,k+1) = co2vmr*cpwpl*pintrd(i,k+1)**d_two
           tclrsf(i,k+1) = tclrsf(i,k)*(d_one-cld(i,k+1))
         end do
