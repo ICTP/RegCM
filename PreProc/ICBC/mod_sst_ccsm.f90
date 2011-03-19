@@ -154,7 +154,6 @@
       character(len=256) ,intent(in) :: pathaddname
       real(4) , dimension(ilon, jlat) , intent(out) :: sst
 
-      integer, dimension(12) :: ndays
       character(len=4), dimension(2) :: varname
       character(64) :: cunit
       real(8), allocatable ::  work1(:)
@@ -165,13 +164,12 @@
       integer , save :: inet1
       integer , dimension(10) :: istart , icount , istartt , icountt
       integer , dimension(2) :: ivar2
-      integer :: it , icode , i , j , npos , nrec
+      integer :: it , icode , i , j
       integer :: latid , lonid , timid
       integer :: latlen , lonlen , timlen
       logical :: there
       integer :: istatus
 
-      data ndays/31,59,90,120,151,181,212,243,273,304,334,365/
       data varname/'time','TEMP'/
       
       if (idate == idate0) then

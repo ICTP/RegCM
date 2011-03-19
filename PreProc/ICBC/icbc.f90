@@ -38,10 +38,7 @@
 !                        Xunqiang Bi, ESP group, Abdus Salam ICTP      !
 !                                                October 07, 2009      !
 !                                                                      !
-!   CAM85: unpacked CCSM NETCDF T85 L26 (six hourly) data              !
-!          WARNING: untested input module                              !
-!   CAM42: unpacked CCSM NETCDF T42 L26 (six hourly) data              !
-!          WARNING: untested input module                              !
+!   CCSMN: unpacked CCSM NETCDF L26 (six hourly) data                  !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -179,10 +176,8 @@
         call headerfv
       else if ( dattyp=='FNEST' ) then
         call headnest
-      else if ( dattyp=='CAM85' ) then
-        call head_cam85
-      else if ( dattyp=='CAM42' ) then
-        call head_cam42
+      else if ( dattyp=='CCSMN' ) then
+        call headccsm
       else
         write ( 6,* ) 'Unknown dattyp'
         stop
@@ -222,11 +217,8 @@
           call getfvgcm(idate)
         else if ( dattyp=='FNEST' ) then
           call get_nest(idate)
-        else if ( dattyp=='CAM85' ) then
-          call get_cam85(idate)
-        else if ( dattyp=='CAM42' ) then
-          call get_cam42(idate)
-        else
+        else if ( dattyp=='CCSMN' ) then
+          call get_ccsm(idate)
         end if
 
         iodate = idate
