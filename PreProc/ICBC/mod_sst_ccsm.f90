@@ -305,8 +305,9 @@
         stop 'Netcdf read error'
       end if
 
-      wt1 = real(cssidate2-idate)/real(cssidate2-cssidate1)
-      wt2 = 1.0-wt1
+      wt1 = real(idatediff(cssidate2,idate)) / &
+            real(idatediff(cssidate2,cssidate1))
+      wt2 = 1.0 - wt1
       do j = 1 , jlat
         do i = 1 , ilon
           if (work2(i,j) > -100.0 .and. work2(i,j) < 100.0) then
