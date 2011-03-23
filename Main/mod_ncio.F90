@@ -2293,8 +2293,10 @@
             call check_ok('Error variable dustbsiz write', fterr)
           end if
 
-          istatus = nf90_sync(ncid)
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncid)
             call check_ok('Error initial sync', fterr)
+          end if
 
           if (ctype == 'ATM') then
             ncatm = ncid
@@ -2485,8 +2487,10 @@
                           ' at '//ctime, 'SRF FILE ERROR')
           end if
 
-          istatus = nf90_sync(ncsrf)
-          call check_ok('Error sync at '//ctime, 'SRF FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncsrf)
+            call check_ok('Error sync at '//ctime, 'SRF FILE ERROR')
+          end if
           isrfrec = isrfrec + 1
         end subroutine writerec_srf
 
@@ -2579,8 +2583,10 @@
             end if
             ivar = ivar + 1
           end do
-          istatus = nf90_sync(ncsub)
-          call check_ok('Error sync at '//ctime, 'SUB FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncsub)
+            call check_ok('Error sync at '//ctime, 'SUB FILE ERROR')
+          end if
           isubrec = isubrec + 1
         end subroutine writerec_sub
 
@@ -2678,8 +2684,10 @@
             ivar = ivar + 1
           end do
 
-          istatus = nf90_sync(ncrad)
-          call check_ok('Error sync at '//ctime, 'RAD FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncrad)
+            call check_ok('Error sync at '//ctime, 'RAD FILE ERROR')
+          end if
           iradrec = iradrec + 1
         end subroutine writerec_rad
 
@@ -2949,8 +2957,10 @@
           call check_ok('Error writing '//atm_names(12)//' at '//ctime, &
                         'ATM FILE ERROR')
 
-          istatus = nf90_sync(ncatm)
-          call check_ok('Error sync at '//ctime, 'ATM FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncatm)
+            call check_ok('Error sync at '//ctime, 'ATM FILE ERROR')
+          end if
           iatmrec = iatmrec + 1
         end subroutine writerec_atm
 
@@ -3132,8 +3142,10 @@
           call check_ok('Error writing '//che_names(17)//' at '//ctime, &
                         'CHE FILE ERROR')
 
-          istatus = nf90_sync(ncche)
-          call check_ok('Error sync at '//ctime, 'CHE FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(ncche)
+            call check_ok('Error sync at '//ctime, 'CHE FILE ERROR')
+          end if
           icherec = icherec + 1
         end subroutine writerec_che
 
@@ -3232,8 +3244,10 @@
                         ' at '//ctime, 'LAK FILE ERROR')
           end do
 
-          istatus = nf90_sync(nclak)
-          call check_ok('Error sync at '//ctime, 'LAK FILE ERROR')
+          if ( debug_level > 2 ) then
+            istatus = nf90_sync(nclak)
+            call check_ok('Error sync at '//ctime, 'LAK FILE ERROR')
+          end if
           ilakrec = ilakrec + 1
         end subroutine writerec_lak
 
