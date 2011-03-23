@@ -38,10 +38,8 @@ program icbc
 !                        Xunqiang Bi, ESP group, Abdus Salam ICTP      !
 !                                                October 07, 2009      !
 !                                                                      !
-!   CAM85: unpacked CCSM NETCDF T85 L26 (six hourly) data              !
-!          WARNING: untested input module                              !
-!   CAM42: unpacked CCSM NETCDF T42 L26 (six hourly) data              !
-!          WARNING: untested input module                              !
+!   CCSMN: unpacked CCSM NETCDF (six hourly) data                      !
+!          Get from EarthSystemGrid                                    !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -186,10 +184,8 @@ program icbc
     call headerfv
   else if ( dattyp == 'FNEST' ) then
     call headernest
-  else if ( dattyp == 'CAM85' ) then
-    call head_cam85
-  else if ( dattyp == 'CAM42' ) then
-    call head_cam42
+  else if ( dattyp == 'CCSMN' ) then
+    call headccsm
   else
     call die('icbc','Unknown dattyp',1)
   end if
@@ -225,10 +221,8 @@ program icbc
       call getfvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
-    else if ( dattyp == 'CAM85' ) then
-      call get_cam85(idate)
-    else if ( dattyp == 'CAM42' ) then
-      call get_cam42(idate)
+    else if ( dattyp == 'CCSMN' ) then
+      call get_ccsm(idate)
     end if
     call writef(idate)
 
@@ -256,8 +250,8 @@ program icbc
     call footerfv
   else if ( dattyp == 'FNEST' ) then
     call footernest
-  else if ( dattyp == 'CAM85' .or. dattyp == 'CAM42' ) then
-    call footercam
+  else if ( dattyp == 'CCSMN' ) then
+    call footerccsm
   else
     call die('icbc','Unknown dattyp',1)
   end if
