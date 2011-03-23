@@ -38,28 +38,10 @@
 !
       public :: zengocndrv
 !
-      contains
+! Module Constants
 !
-      subroutine zengocndrv(j , ng , istart , iend , k)
-!
-      implicit none
-!
-      integer , intent (in) :: j , ng , istart , iend , k
-!
-      real(kind=8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh ,&
-               & t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi ,&
-               & zo
-      integer :: i , n
-#ifdef CLM
-      integer :: jj
-#endif
-!     Implement Zeng and Beljaars, GRL , 2005, ZB2005
-!     Account for SST diurnal evoluation warm layer/ skin temperature
-!     scheme
-!     real(8) :: lwds , lwus
-      real(8) :: rs , rd , td , tdelta , delta
-      real(8) :: q , ustarw , fd , l , phidl , aa , bb , cc , lamb
-      real(8) :: dtstend , dts , fs , tskin , dtsst
+      real(8) , parameter :: onet = d_one/d_three
+      real(8) , parameter :: r1e6 = 1.0D-6
       real(8) , parameter :: a1 = 0.28D+00
       real(8) , parameter :: a2 = 0.27D+00
       real(8) , parameter :: a3 = 0.45D+00
@@ -71,6 +53,37 @@
       real(8) , parameter :: kw = 0.60D0
       real(8) , parameter :: nu = 0.3D0
       real(8) , parameter :: d = 3.0D0 ! reference depth for bulk SST
+!
+      ! nu / thermal diffusivity
+      real(8) , parameter :: pr = 0.71D0   ! Prandtl number
+!
+      real(8) , parameter :: z10 = d_10    ! m  (reference height)
+      real(8) , parameter :: zbeta = d_one ! -  (in computing W_*)
+!
+      real(8) , parameter :: zetat = 0.465D0
+      real(8) , parameter :: zetam = 1.574D0
+!
+      contains
+!
+      subroutine zengocndrv(j , ng , istart , iend , k)
+!
+      implicit none
+!
+      integer , intent (in) :: j , ng , istart , iend , k
+!
+      real(8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
+               & t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
+      integer :: i , n
+#ifdef CLM
+      integer :: jj
+#endif
+!     Implement Zeng and Beljaars, GRL , 2005, ZB2005
+!     Account for SST diurnal evoluation warm layer/ skin temperature
+!     scheme
+!     real(8) :: lwds , lwus
+      real(8) :: rs , rd , td , tdelta , delta
+      real(8) :: q , ustarw , fd , l , phidl , aa , bb , cc , lamb
+      real(8) :: dtstend , dts , fs , tskin , dtsst
 !
       character (len=50) :: subroutine_name='zengocndrv'
       integer :: idindx=0
@@ -154,8 +167,8 @@
 !             prognostic evolution of dts
 !             we can split the tendencies ddts/dt = a - b * dts
 !             with a and b are ultimately function of dts through q
-              aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+1))
-              bb = (nu+1) * vonkar * ustarw / (d*phidl)
+              aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
+              bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
 !             exponential solution
               dtstend = aa - dts*(d_one-dexp(-bb*dtsst))/dtsst
 !             update dts
@@ -169,8 +182,7 @@
               if ( bb > d_zero ) then
 !               case of cool skin layer correction
                 cc= bb**(d_three/d_four)
-                lamb=6.0D0* &
-                    ((d_one+(aa*(q+rs*fs))**0.75D0)**(-d_one/d_three))
+                lamb=6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
                 delta = lamb*nuw/ustarw
                 tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
               else
@@ -261,20 +273,17 @@
       real(kind=8) , intent (out) :: alh , ash , tau , u10
       real(kind=8) , intent (inout) :: dqh , dth , qs , ustar , zo
 !
-      real(kind=8) :: dthv , hq , ht , hu , obu , pr , qstar , rb ,     &
-               & rho , th , thv , thvstar , tstar , um , visa , zot ,   &
-               & wc , xlv , z10 , zbeta , zeta , zetam , zetat , zoq
+      real(kind=8) :: dthv , hq , ht , hu , obu , qstar , rb , rho ,    &
+               & th , thv , thvstar , tstar , um , visa , zot , wc ,    &
+               & xlv , zeta , zoq
       integer :: i
 !
       character (len=50) :: subroutine_name='zengocn'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-!***********************************************************************
 !
-      zbeta = d_one   ! -  (in computing W_*)
-      pr = 0.71D0    ! =nu/thermal diffusivity (the Prandtl number)
-      z10 = d_10    ! m  (reference height)
+!***********************************************************************
 !
       hu = hgt
       ht = hgt
@@ -320,27 +329,25 @@
       rb = egrav*hu*dthv/(thv*um*um)
       if ( rb >= d_zero ) then       ! neutral or stable
         zeta = rb*dlog(hu/zo)/(d_one-d_five*dmin1(rb,0.19D0))
-        zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
-      else                      !unstable
+        zeta = dmin1(d_two,dmax1(zeta,r1e6))
+      else                           ! unstable
         zeta = rb*dlog(hu/zo)
-        zeta = dmax1(-d_100,dmin1(zeta,-1.0D-6))
+        zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
       end if
       obu = hu/zeta
 !
 !     main iterations (2-10 iterations would be fine)
 !
       do i = 1 , 10
-        call ocnrough(zo,zot,zoq,ustar,visa,egrav)
+        call ocnrough(zo,zot,zoq,ustar,visa)
 !
 !       wind
 !
         zeta = hu/obu
-        zetam = 1.574D0
         if ( zeta < -zetam ) then
                                  ! zeta < -1
           ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+ &
-                & psi(1,zo/obu)+1.14D0*((-zeta)**(d_one/d_three)- &
-                                        (zetam)**(d_one/d_three)))
+               & psi(1,zo/obu)+1.14D0*((-zeta)**(onet)-(zetam)**(onet)))
         else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           ustar = vonkar*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
@@ -355,13 +362,11 @@
 !       temperature
 !
         zeta = ht/obu
-        zetat = 0.465D0
         if ( zeta < -zetat ) then
                                  ! zeta < -1
-          tstar = vonkar*dth/(dlog(-zetat*obu/zot)-psi(2,-zetat)        &
-                & +psi(2,zot/obu)                                       &
-                & +0.8D0*((zetat)**(-d_one/d_three)-&
-                          (-zeta)**(-d_one/d_three)))
+          tstar = vonkar*dth/ &
+              (dlog(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+                    0.8D0*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           tstar = vonkar*dth/(dlog(ht/zot)-psi(2,zeta)+psi(2,zot/obu))
@@ -376,13 +381,11 @@
 !       humidity
 !
         zeta = hq/obu
-        zetat = 0.465D0
         if ( zeta < -zetat ) then
                                  ! zeta < -1
-          qstar = vonkar*dqh/(dlog(-zetat*obu/zoq)-psi(2,-zetat)        &
-                & +psi(2,zoq/obu)                                       &
-                & +0.8D0*((zetat)**(-d_one/d_three)- &
-                (-zeta)**(-d_one/d_three)))
+          qstar = vonkar*dqh/ &
+             (dlog(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
+                   0.8D0*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           qstar = vonkar*dqh/(dlog(hq/zoq)-psi(2,zeta)+psi(2,zoq/obu))
@@ -398,11 +401,11 @@
         zeta = vonkar*egrav*thvstar*hu/(ustar**d_two*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
           um = dmax1(u,0.1D0)
-          zeta = dmin1(d_two,dmax1(zeta,1.0D-6))
+          zeta = dmin1(d_two,dmax1(zeta,r1e6))
         else                   !unstable
-          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**(d_one/d_three)
+          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**(onet)
           um = dsqrt(u*u+wc*wc)
-          zeta = dmax1(-d_100,dmin1(zeta,-1.0D-6))
+          zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
         end if
         obu = hu/zeta
       end do
@@ -420,10 +423,11 @@
 !
       zeta = z10/obu
       if ( zeta < d_zero ) then
-        u10 = u + (ustar/vonkar)*(dlog(z10/hu)-(psi(1,zeta)-            &
-              & psi(1,hu/obu)))
+        u10 = u + (ustar/vonkar)*(dlog(z10/hu)- &
+                  (psi(1,zeta)-psi(1,hu/obu)))
       else
-        u10 = u + (ustar/vonkar)*(dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
+        u10 = u + (ustar/vonkar)* &
+                 (dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
       end if
       call time_end(subroutine_name,idindx)  
       end subroutine zengocn
@@ -435,9 +439,8 @@
 !
       integer , intent(in) :: k
       real(kind=8) , intent(in) :: zeta
-      real(kind=8) :: psi
 !
-      real(kind=8) :: chik
+      real(kind=8) :: chik , psi
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
@@ -466,26 +469,25 @@
 !
 !  our formulation for zo,zot,zoq
 !
-      subroutine ocnrough(zo,zot,zoq,ustar,visa,g)
+      subroutine ocnrough(zo,zot,zoq,ustar,visa)
 !
       implicit none
 !
-      real(kind=8) , intent (in) :: g , ustar , visa
+      real(kind=8) , intent (in) :: ustar , visa
       real(kind=8) , intent (out) :: zoq , zot
       real(kind=8) , intent (inout) :: zo
 !
-      real(kind=8) :: re , xq , xt
+      real(kind=8) :: re , xtq
 !
-!Im
-!     zo=0.013*ustar*ustar/g+0.11*visa/ustar
-!     zo=0.013*ustar*ustar/g
-      zo = 0.0065D0*ustar*ustar/g
+!     zo=0.013D0*ustar*ustar/egrav+0.11D0*visa/ustar
+!     zo=0.013D0*ustar*ustar/egrav
 !Im_
-      re = ustar*zo/visa
-      xq = 2.67D0*re**d_rfour - 2.57D0
-      xt = xq
-      zoq = zo/dexp(xq)
-      zot = zo/dexp(xt)
+      zo = (0.0065D0*ustar*ustar)/egrav
+!Im_
+      re = (ustar*zo)/visa
+      xtq = 2.67D0*(re**d_rfour) - 2.57D0
+      zoq = zo/dexp(xtq)
+      zot = zoq
       end subroutine ocnrough
 !
       end module mod_zengocn
