@@ -493,7 +493,7 @@ module mod_ccsm
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
-            itimes(it) = timeval2idate(xtimes(it)*24.0+744.0,cunit)
+            itimes(it) = timeval2idate(xtimes(it)*24.0,cunit)
           end do
           deallocate(xtimes)
           call mall_mco(xtimes,'mod_ccsm')
