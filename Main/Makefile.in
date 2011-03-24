@@ -661,7 +661,7 @@ mod_drag.o: mod_drag.F90 mod_constants.o mod_bats.o mod_dynparam.o \
             mod_runparams.o
 mod_dust.o: mod_dust.F90 mod_trachem.o mod_dynparam.o mod_constants.o \
             mod_trachem.o mod_ncio.o mod_mppio.o
-mod_header.o: mod_header.F90
+mod_header.o: mod_header.F90 mod_date.o
 mod_holtbl.o: mod_holtbl.F90 mod_bats.o mod_constants.o mod_cvaria.o \
           mod_diagnosis.o mod_main.o mod_mainchem.o mod_runparams.o \
           mod_pbldim.o mod_pmoist.o mod_dynparam.o mod_slice.o \

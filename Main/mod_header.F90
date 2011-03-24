@@ -19,61 +19,71 @@
 
       module mod_header
 
+      use mod_date
+
       private
 
       public :: whoami , header , finaltime
 
       integer , parameter :: nrite=6
       character (len=24) :: cdata='?'
+      integer , dimension(8) :: timearr
+      real(8) :: start_time
 
       contains
 
       subroutine whoami(myid)
-      implicit none 
-      integer , intent(in) :: myid
+        implicit none 
+        integer , intent(in) :: myid
 
-      if ( myid == 0 )  then 
-        write (nrite,"(/,2x,'This is RegCM branch regcm-core')")
-        write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
-      end if
+        if ( myid == 0 )  then 
+          call date_and_time(values=timearr)
+          start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
+                       timearr(5)*3600.0 + timearr(6)*60.0 + &
+                       timearr(7)+0.001 * timearr(8)
+          write (nrite,"(/,2x,'This is RegCM branch regcm-core')")
+          write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+        end if
 
-99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,          &
-        &    '  time: ',A,/)
+99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
+        &    '  time: ',a,/)
       end subroutine whoami
 
       subroutine header(myid,nproc)
-      implicit none 
-      integer , intent(in) :: myid , nproc
-      integer :: ihost , idir
-      integer :: hostnm
-      integer :: getcwd
-      character (len=32) :: hostname='?' 
-      character (len=32) :: user='?' 
-      character (len=256) :: directory='?'
+        implicit none 
+        integer , intent(in) :: myid , nproc
+        integer :: ihost , idir
+        integer :: hostnm
+        integer :: getcwd
+        character (len=32) :: hostname='?' 
+        character (len=32) :: user='?' 
+        character (len=256) :: directory='?'
   
-      if ( myid == 0 )  then 
+        if ( myid == 0 )  then 
 #ifdef IBM
-        hostname='ibm platform '
-        user= 'Unknown'
-        call fdate_(cdata)
+          hostname='ibm platform '
+          user= 'Unknown'
+          call fdate_(cdata)
 #else
-        ihost = hostnm(hostname)
-        call getlog(user)
-        call fdate(cdata)
+          ihost = hostnm(hostname)
+          call getlog(user)
+          call fdate(cdata)
 #endif 
-        idir = getcwd(directory)
-        write (nrite,*) ": this run start at  : ",cdata
-        write (nrite,*) ": it is submitted by : ",trim(user)
-        write (nrite,*) ": it is running on   : ",trim(hostname)
-        write (nrite,*) ": it is using        : ",nproc, '  processors' 
-        write (nrite,*) ": in directory       : ",trim(directory)
-        write (nrite,*) "                      " 
-      end if 
+          idir = getcwd(directory)
+          write (nrite,*) ": this run start at  : ",cdata
+          write (nrite,*) ": it is submitted by : ",trim(user)
+          write (nrite,*) ": it is running on   : ",trim(hostname)
+          write (nrite,*) ": it is using        : ",nproc, &
+                           '  processors' 
+          write (nrite,*) ": in directory       : ",trim(directory)
+          write (nrite,*) "                      " 
+        end if 
       end subroutine header
 
       subroutine finaltime(myid)
         implicit none
         integer , intent (in) :: myid
+        real(8) :: finish_time
 
         if ( myid ==  0 ) then
 #ifdef IBM
@@ -81,10 +91,14 @@
 #else
           call fdate(cdata)
 #endif 
+          call date_and_time(values=timearr)
+          finish_time = julianday(timearr(1), timearr(2), timearr(3)) + &
+                        timearr(5)*3600.0 + timearr(6)*60.0 + &
+                        timearr(7)+0.001 * timearr(8)
           write (nrite,*) ': this run stops at  : ', cdata
+          write (nrite,*) ': Total elapsed seconds of run : ', &
+                          finish_time - start_time
         end if
-
-        return
       end subroutine finaltime
 
       end module mod_header

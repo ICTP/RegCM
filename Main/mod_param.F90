@@ -124,9 +124,9 @@ module mod_param
   & chemfrq , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-  & iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
-  & medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
-  & idesseas , iconvlwp
+  & iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
+  & high_nudge , medium_nudge, low_nudge , scenario , idcsst ,      &
+  & iseaice , idesseas , iconvlwp
 
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
   & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -215,6 +215,10 @@ module mod_param
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
 !
+!     iocnrough: Zeng Ocean Model Roughness model
+!     = 1 ; zo = (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
+!     = 2 ; zo = (0.013*ustar*ustar)/egrav+0.11*visa/ustar (the Zeng one)
+!
 !     iboudy : specify the laterial boundary conditions.
 !     = 0 ; fixed.
 !     = 1 ; relaxation, linear technique.
@@ -293,6 +297,7 @@ module mod_param
   ipgf = 1
   iemiss = 1
   iocnflx = 1
+  iocnrough = 1
   lakemod = 0
   ichem = 0
   scenario = 'A1B'
@@ -508,6 +513,7 @@ module mod_param
   call mpi_bcast(igcc,1,mpi_integer,0,mpi_comm_world,ierr)
   call mpi_bcast(ipptls,1,mpi_integer,0,mpi_comm_world,ierr)
   call mpi_bcast(iocnflx,1,mpi_integer,0,mpi_comm_world,ierr)
+  call mpi_bcast(iocnrough,1,mpi_integer,0,mpi_comm_world,ierr)
   call mpi_bcast(ipgf,1,mpi_integer,0,mpi_comm_world,ierr)
   call mpi_bcast(iemiss,1,mpi_integer,0,mpi_comm_world,ierr)
   call mpi_bcast(lakemod,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -895,9 +901,12 @@ module mod_param
   write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
   call say
   write  (aline,'(a,i2)') ' Ocean Flux scheme: iocnflx = ' , iocnflx
+  if ( iocnflx == 2 ) then
+    write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
+    call say
+  end if
   call say
-  write  (aline,'(a,i2)') ' Pressure gradient force scheme: '// &
-                          'ipgf = ' , ipgf 
+  write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
   call say
   write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &
                           'iemiss = ' , iemiss 

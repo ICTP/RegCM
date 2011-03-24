@@ -479,11 +479,13 @@
 !
       real(kind=8) :: re , xtq
 !
-!     zo=0.013D0*ustar*ustar/egrav+0.11D0*visa/ustar
-!     zo=0.013D0*ustar*ustar/egrav
-!Im_
-      zo = (0.0065D0*ustar*ustar)/egrav
-!Im_
+!     Graziano: make this selectable on iocnrough flag
+      if ( iocnrough == 2 ) then
+        zo = (0.013D0*ustar*ustar)/egrav + 0.11D0*visa/ustar
+      else
+        zo = (0.0065D0*ustar*ustar)/egrav
+!       zo = (0.013D0*ustar*ustar)/egrav
+      end if
       re = (ustar*zo)/visa
       xtq = 2.67D0*(re**d_rfour) - 2.57D0
       zoq = zo/dexp(xtq)
