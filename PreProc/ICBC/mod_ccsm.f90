@@ -241,10 +241,8 @@
 
         istatus = nf90_get_var(inet1,ilat,glat)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
-        print *, glat
         istatus = nf90_get_var(inet1,ilon,glon)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
-        print *, glon
         istatus = nf90_get_var(inet1,ihyam,ak)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
         istatus = nf90_get_var(inet1,ihybm,bk)
@@ -404,7 +402,6 @@
 
         if ( ldopen ) then
           do kkrec = 1 , 6
-            print *, 'Open file'
             if ( kkrec==1 ) then
               write (inname,99001) nyear , 'air' , mname(month), nyear
             else if ( kkrec==2 ) then
@@ -456,7 +453,7 @@
               istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
               if ( istatus/=nf90_noerr ) call handle_err(istatus)
               do it = 1 , timlen
-                itimes(it) = timeval2idate(xtimes(it)*24.0+744.0,cunit)
+                itimes(it) = timeval2idate(xtimes(it)*24.0,cunit)
               end do
               deallocate(xtimes)
             end if
