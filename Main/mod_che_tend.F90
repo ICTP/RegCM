@@ -274,9 +274,9 @@
 !             gazeous conversion diagnostic
  
               rxsg(i,k,j,iso2) = rxsg(i,k,j,iso2) + chib(i,k,j,iso2) * &
-                                 akval*oh1*cldno*dt/d_two
+                                 akval*oh1*cldno*dto2
               rxsg(i,k,j,iso4) = rxsg(i,k,j,iso4) + chib(i,k,j,iso2) * &
-                                 akval*oh1*cldno*1.5D0*dt/d_two
+                                 akval*oh1*cldno*1.5D0*dto2
  
             end do
           end do
@@ -644,8 +644,7 @@
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + rsfrow(i,ibin)    &
                                  *egrav/(dsigma(kz)*d_1000)
 !           diagnostique source
-            cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
-                             *dt/d_two
+            cemtr(i,j,itr) = cemtr(i,j,itr)+chemsrc(i,j,lmonth,itr)*dto2
           end do
  
 !         calculate the tendancy du to gravitationnal settling and dry
@@ -670,12 +669,12 @@
               chiten(i,k,j,itr) = chiten(i,k,j,itr) - settend(i,k)
             end do
 !
-            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*egrav*d_r1000)      &
+            settend(i,kz) = -(wk(i,kz)*pdepv(i,kz,ibin)*egrav*d_r1000) &
                             /dsigma(kz)
             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + settend(i,kz)
  
 !           dignoctic for dry deposition
-            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dt/d_two
+            remdrd(i,j,itr) = remdrd(i,j,itr) - settend(i,kz)*dto2
           end do
        
         end if !( end calculation of dust tendancies)
@@ -694,8 +693,7 @@
                                    + chemsrc(i,j,lmonth,itr)            &
                                    *egrav*0.15D0/(dsigma(kzm2)*d_1000)
 !           diagnostic for source, cumul
-            cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)   &
-                             *dt/d_two
+            cemtr(i,j,itr) = cemtr(i,j,itr)+chemsrc(i,j,lmonth,itr)*dto2
           end if
         end do
  

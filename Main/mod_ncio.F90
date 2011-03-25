@@ -2780,9 +2780,8 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = real(d_rfour *    &
-                    (u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                     u(ip2,k,jp1)+u(ip2,k,jp2)) / ps(ip1,jp1))
+                dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
+                     u(ip2,k,jp1)+u(ip2,k,jp2))/d_four) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2803,9 +2802,8 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = real(d_rfour*     &
-                    (v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                     v(ip2,k,jp1)+v(ip2,k,jp2)) / ps(ip1,jp1))
+                dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
+                     v(ip2,k,jp1)+v(ip2,k,jp2))/d_four) / ps(ip1,jp1))
               end do
             end do
           end do

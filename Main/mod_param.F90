@@ -209,8 +209,8 @@
 !     = 2 ; Zeng et al.
 !
 !     iocnrough: Zeng Ocean Model Roughness model
-!     = 1 ; zo = (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
-!     = 2 ; zo = (0.013*ustar*ustar)/egrav+0.11*visa/ustar (the Zeng one)
+!     = 1 ; (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
+!     = 2 ; (0.013*ustar*ustar)/egrav+0.11*visa/ustar (the Zeng one)
 !
 !     iboudy : specify the laterial boundary conditions.
 !     = 0 ; fixed.
@@ -679,7 +679,8 @@
       ktau = 0
       xtime = d_zero
       ntime = 0
-      dtsplit(2) = dt/d_two
+      dto2 = dt/d_two
+      dtsplit(2) = dto2
       dtsplit(1) = dt/d_four
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)
@@ -1118,7 +1119,7 @@
 !
       do k = 1 , kz
         dsigma(k) = sigma(k+1) - sigma(k)
-        a(k) = d_half*(sigma(k+1)+sigma(k))
+        a(k) = (sigma(k+1)+sigma(k))/d_two
       end do
  
       do k = 1 , kz

@@ -28,7 +28,7 @@
  
       integer :: ifrabe , nbatst
 !
-      real(8) :: dt , dt2 , dtbat , dtlake , dtmin
+      real(8) :: dt , dt2 , dto2 , dtbat , dtlake , dtmin
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
       real(8) :: abatm , abemh
       real(8) :: c200 , c203 

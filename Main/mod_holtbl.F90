@@ -48,7 +48,7 @@
       real(8) , allocatable , dimension(:,:) :: alphak , betak , chix , &
                                coef1 , coef2 , coef3 , coefe , coeff1 , &
                                coeff2 , tpred1 , tpred2
-      real(8) , allocatable , dimension(:,:) :: kzm , rc , ttnp
+      real(8) , allocatable , dimension(:,:) :: kzm , ttnp
       real(8) , allocatable , dimension(:,:) :: vdep
       real(8) , allocatable , dimension(:) :: govrth
 !
@@ -62,6 +62,7 @@
 !
 !     minimum eddy diffusivity
       real(8) , parameter :: kzo = d_one
+      real(8) , parameter :: szkm = 1600.0D0
 !     coef. of proportionality and lower % of bl in sfc layer
       real(8) , parameter :: fak = 8.5D0
       real(8) , parameter :: sffrac = 0.1D0
@@ -69,6 +70,9 @@
       real(8) , parameter :: betam = 15.0D0
       real(8) , parameter :: betas = 5.0D0
       real(8) , parameter :: betah = 15.0D0
+      real(8) , parameter :: ccon = fak*sffrac*vonkar
+      real(8) , parameter :: binm = betam*sffrac
+      real(8) , parameter :: binh = betah*sffrac
 !     power in formula for k and critical ri for judging stability
       real(8) , parameter :: pink = d_two
       real(8) , parameter :: ricr = d_rfour
@@ -90,7 +94,6 @@
       allocate(tpred1(iy,kz))
       allocate(tpred2(iy,kz))
       allocate(kzm(iym1,kz))
-      allocate(rc(iym1,kz))
       allocate(ttnp(iym1,kz))
       if ( ichem == 1 .and. ichdrdepo == 1 ) then
         allocate(chix(iy,kz))
@@ -181,8 +184,8 @@
       implicit none
 !
       real(8) :: drgdot , dumr , kzmax , oblen , xps , ps2 , ri , &
-                 sf , sh10 , ss , tvcon , uflxsf , uflxsfx ,      &
-                 vflxsf , vflxsfx
+                 sf , sh10 , ss , uflxsf , uflxsfx ,      &
+                 vflxsf , vflxsfx , rcik
       integer :: jdx , jm1
 #ifndef BAND
       integer :: jdxm1
@@ -191,8 +194,6 @@
 #ifdef MPP1
       integer :: ierr , ii
 #endif
-!
-      real(8) , parameter :: szkm = 1600.0D0
 !
 #ifndef BAND
 !
@@ -241,7 +242,7 @@
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
-            dumr = d_four/(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
+            dumr = d_four/(sps2%ps(i,j)  +sps2%ps(i,jm1) +    &
                            sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
             auxx(i,k,j) = atm2%u(i,k,j)*dumr
             avxx(i,k,j) = atm2%v(i,k,j)*dumr
@@ -260,13 +261,7 @@
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
-            tvcon = (d_one+ep1*qvb3d(i,k,j))
-            thvx(i,k,j) = thx3d(i,k,j)*tvcon
-          end do
-        end do
-!
-        do k = 1 , kz
-          do i = 2 , iym1
+            thvx(i,k,j) = thx3d(i,k,j)*(d_one+ep1*qvb3d(i,k,j))
             qcx(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
           end do
         end do
@@ -284,19 +279,10 @@
         end do
 !
         do i = 2 , iym1
-          xps = thx3d(i,kz,j)
           govrth(i) = egrav/thx3d(i,kz,j)
         end do
 !
 ! *********************************************************************
-!
-!-----compute the vertical diffusion term:
-!
-        do k = 2 , kz
-          do i = 2 , iym1
-            rc(i,k) = 0.257D0*dzq(i,k,j)**0.175D0
-          end do
-        end do
 !
 !-----compute the diffusion coefficient:
 !
@@ -304,6 +290,8 @@
 !
         do k = 2 , kz
           do i = 2 , iym1
+!           compute the vertical diffusion term:
+            rcik = 0.257D0*dzq(i,k,j)**0.175D0
             kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)/dt
             ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
                  *(ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
@@ -311,10 +299,10 @@
                  *(vbx3d(i,k-1,j)-vbx3d(i,k,j)))                        &
                  /(dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
-            if ( (ri-rc(i,k)) >= d_zero ) then
+            if ( (ri-rcik) >= d_zero ) then
               kzm(i,k) = kzo
             else
-              kzm(i,k) = kzo + dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
+              kzm(i,k) = kzo + dsqrt(ss)*(rcik-ri)*szkm/rcik
             end if
             kzm(i,k) = dmin1(kzm(i,k),kzmax)
           end do
@@ -361,8 +349,8 @@
           uflxsfx = sfsta%uvdrag(idx,jdx)*ubx3d(i,kz,j)
           vflxsfx = sfsta%uvdrag(idx,jdx)*vbx3d(i,kz,j)
 
-          ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)      &
-                      /rhox2d(i,j))
+          ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx) / &
+                             rhox2d(i,j))
  
 !         convert surface fluxes to kinematic units
           xhfx(i,j) = sfsta%hfx(i,j)/(cpd*rhox2d(i,j))
@@ -390,7 +378,7 @@
 !           th10(i,j) =
 !----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+0.61*sh10) first
 !           approximation for obhukov length
-            oblen = -d_half*(thx3d(i,kz,j)+sts2%tg(i,j)) *   &
+            oblen = -(thx3d(i,kz,j)+sts2%tg(i,j))/d_two *   &
                     (d_one+0.61D0*sh10)*ustr(i,j)**d_three /  &
                     (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
             if ( oblen >= za(i,kz,j) ) then
@@ -513,9 +501,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = d_half*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
+                betak(i,k) = (akzz1(idx,k,j)+akzz1(idxm1,k,j))/d_two
               end if
-              alphak(i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
+              alphak(i,k) = (akzz2(idx,k,j)+akzz2(idxm1,k,j))/d_two
             end do
           end do
 #ifdef MPP1
@@ -530,9 +518,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = d_half*(akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))
+                betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))/d_two
               end if
-              alphak(i,k) = d_half*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
+              alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))/d_two
             end do
           end do
         else
@@ -544,13 +532,13 @@
              idxm1 = i - 1
              idxm1 = max0(idxm1,2)
              if ( k > 1 ) then
-               betak(i,k) = d_rfour*(akzz1(idx,k,jm1)+               &
-                                     akzz1(idxm1,k,jm1)+             &
-                                     akzz1(idx,k,j)+akzz1(idxm1,k,j))
+               betak(i,k) = (akzz1(idx,k,jm1)+               &
+                             akzz1(idxm1,k,jm1)+             &
+                             akzz1(idx,k,j)+akzz1(idxm1,k,j))/d_four
              end if
-             alphak(i,k) = d_rfour*(akzz2(idx,k,jm1)+ &
-                                    akzz2(idxm1,k,jm1)+ &
-                                    akzz2(idx,k,j)+akzz2(idxm1,k,j))
+             alphak(i,k) = (akzz2(idx,k,jm1)+ &
+                            akzz2(idxm1,k,jm1)+ &
+                            akzz2(idx,k,j)+akzz2(idxm1,k,j))/d_four
            end do
          end do
 #ifndef BAND
@@ -613,8 +601,8 @@
           idxm1 = max0(idxm1,2)
 
 #ifdef BAND
-          drgdot = d_rfour*(sfsta%uvdrag(idxm1,jm1)+sfsta%uvdrag(idxm1,j)&
-                   +sfsta%uvdrag(idx,jm1)+sfsta%uvdrag(idx,j))
+          drgdot = (sfsta%uvdrag(idxm1,jm1)+sfsta%uvdrag(idxm1,j) + &
+                    sfsta%uvdrag(idx,jm1)  +sfsta%uvdrag(idx,j))/d_four
 #else
           jdx = j
           jdxm1 = j - 1
@@ -625,9 +613,8 @@
           jdx = min0(jdx,jxm1)
           jdxm1 = max0(jdxm1,2)
 #endif
-          drgdot = d_rfour* &
-                   (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)  &
-                   +sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))
+          drgdot = (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)  &
+                  +sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))/d_four
 #endif
           uflxsf = drgdot*auxx(i,kz,j)
           vflxsf = drgdot*avxx(i,kz,j)
@@ -663,24 +650,24 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            dumr = d_rfour*(sps2%ps(i,j)+sps2%ps(i,jm1)+ &
-                           sps2%ps(i-1,j)+sps2%ps(i-1,jm1))
-            aten%u(i,k,j) = aten%u(i,k,j) + (tpred1(i,k)-auxx(i,k,j))   &
-                          /dt*dumr
-            aten%v(i,k,j) = aten%v(i,k,j) + (tpred2(i,k)-avxx(i,k,j))   &
-                          /dt*dumr
+            dumr = (sps2%ps(i,j)  +sps2%ps(i,jm1) +  &
+                    sps2%ps(i-1,j)+sps2%ps(i-1,jm1))/d_four
+            aten%u(i,k,j) = aten%u(i,k,j) + &
+                            (tpred1(i,k)-auxx(i,k,j))/dt*dumr
+            aten%v(i,k,j) = aten%v(i,k,j) + &
+                            (tpred2(i,k)-avxx(i,k,j))/dt*dumr
           end do
         end do
  
 !       temperature
 !
- 
 !       calculate coefficients at cross points for temperature
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)        &
-                                       /dza(i,k-1,j)
+            if ( k > 1 ) then
+              betak(i,k) = rhohf(i,k-1,j)*kvh(i,k,j)/dza(i,k-1,j)
+            end if
             alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
@@ -710,16 +697,18 @@
         do k = 2 , kz - 1
           do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (thx3d(i,k,j) + &
+                  coef3(i,k)*coeff1(i,k-1)) / &
+                 (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
         do i = 2 , iym1
           coefe(i,kz) = d_zero
-          coeff1(i,kz) = (thx3d(i,kz,j)+dt*alphak(i,kz)*sfsta%hfx(i,j)  &
-                         *rcpd+coef3(i,kz)*coeff1(i,kz-1))              &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+          coeff1(i,kz) = (thx3d(i,kz,j) + &
+                 dt*alphak(i,kz)*sfsta%hfx(i,j)*rcpd + &
+                   coef3(i,kz)*coeff1(i,kz-1)) /       &
+                   (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
@@ -744,8 +733,8 @@
         do k = 1 , kz
           do i = 2 , iym1
             sf = atm2%t(i,k,j)/thx3d(i,k,j)
-            difft(i,k,j) = difft(i,k,j) + (tpred1(i,k)-thx3d(i,k,j))    &
-                           /dt*sf
+            difft(i,k,j) = difft(i,k,j) + &
+                           (tpred1(i,k)-thx3d(i,k,j))/dt*sf
           end do
         end do
 !
@@ -756,8 +745,9 @@
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
-                                       /dza(i,k-1,j)
+            if ( k > 1 ) then
+              betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)/dza(i,k-1,j)
+            end if
             alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
@@ -787,16 +777,17 @@
         do k = 2 , kz - 1
           do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1))       &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
+                           (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
         do i = 2 , iym1
           coefe(i,kz) = d_zero
-          coeff1(i,kz) = (qvb3d(i,kz,j)+dt*alphak(i,kz)*sfsta%qfx(i,j)  &
-                         +coef3(i,kz)*coeff1(i,kz-1))                   &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+          coeff1(i,kz) = (qvb3d(i,kz,j) + &
+                   dt*alphak(i,kz)*sfsta%qfx(i,j) + &
+                   coef3(i,kz)*coeff1(i,kz-1)) /    &
+                   (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
@@ -819,9 +810,9 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            diffq(i,k,j) = diffq(i,k,j)                                 &
-                           + (tpred1(i,k)-atm2%qv(i,k,j)/sps2%ps(i,j))  &
-                           /dt*sps2%ps(i,j)
+            diffq(i,k,j) = diffq(i,k,j) + &
+                           (tpred1(i,k)-atm2%qv(i,k,j) / &
+                           sps2%ps(i,j))/dt*sps2%ps(i,j)
           end do
         end do
  
@@ -829,8 +820,9 @@
  
         do k = 1 , kz
           do i = 2 , iym1
-            if ( k > 1 ) betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)        &
-                                       /dza(i,k-1,j)
+            if ( k > 1 ) then
+              betak(i,k) = rhohf(i,k-1,j)*kvq(i,k,j)/dza(i,k-1,j)
+            end if
             alphak(i,k) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
           end do
         end do
@@ -860,15 +852,15 @@
         do k = 2 , kz - 1
           do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (qcx(i,k,j)+coef3(i,k)*coeff1(i,k-1))         &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (qcx(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
+                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
         do i = 2 , iym1
           coefe(i,kz) = d_zero
-          coeff1(i,kz) = (qcx(i,kz,j)+coef3(i,kz)*coeff1(i,kz-1))       &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+          coeff1(i,kz) = (qcx(i,kz,j)+coef3(i,kz)*coeff1(i,kz-1)) / &
+                         (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
         end do
  
 !
@@ -892,9 +884,9 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            aten%qc(i,k,j) = aten%qc(i,k,j)                             &
-                           + (tpred1(i,k)-atm2%qc(i,k,j)/sps2%ps(i,j))  &
-                           /dt*sps2%ps(i,j)
+            aten%qc(i,k,j) = aten%qc(i,k,j) +             &
+                            (tpred1(i,k)-atm2%qc(i,k,j) / &
+                            sps2%ps(i,j))/dt*sps2%ps(i,j)
           end do
         end do
  
@@ -918,14 +910,14 @@
 !-----compute the tendencies:
 !
         do i = 2 , iym1
-          difft(i,kz,j) = difft(i,kz,j) - egrav*ttnp(i,kz)                &
-                          /(d_1000*cpd*dsigma(kz))
+          difft(i,kz,j) = difft(i,kz,j) - &
+                  egrav*ttnp(i,kz)/(d_1000*cpd*dsigma(kz))
         end do
 !
         do k = 1 , kzm1
           do i = 2 , iym1
-            difft(i,k,j) = difft(i,k,j) + egrav*(ttnp(i,k+1)-ttnp(i,k))   &
-                           /(d_1000*cpd*dsigma(k))
+            difft(i,k,j) = difft(i,k,j) + &
+                  egrav*(ttnp(i,k+1)-ttnp(i,k))/(d_1000*cpd*dsigma(k))
           end do
         end do
  
@@ -1052,7 +1044,7 @@
  
               if ( chtrname(itr) /= 'DUST' ) &
                 remdrd(i,j,itr) = remdrd(i,j,itr) + chix(i,kz)* &
-                    vdep(i,itr)*sps2%ps(i,j)*dt/d_two*rhox2d(i,j)* &
+                    vdep(i,itr)*sps2%ps(i,j)*dto2*rhox2d(i,j)* &
                     egrav/(sps2%ps(i,j)*d_1000*dsigma(kz))
  
             end do
@@ -1100,10 +1092,10 @@
 !
       implicit none
 !
-      real(8) :: binh , binm , ccon , fak1 , fak2 , fht , xfmt , pblk , &
-                 pblk1 , pblk2 , pfcor , phpblm , pr , therm2 , tkv ,   &
-                 tlv , ttkl , vv , vvl , wsc , z , zh , zl , zm , zp ,  &
-                 zzh , zzhnew , zzhnew2
+      real(8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 ,  &
+                 pfcor , phpblm , pr , therm2 , tkv , tlv , vv ,    &
+                 vvl , wsc , z , zh , zl , zm , zp , zzh , zzhnew , &
+                 zzhnew2
       integer :: i , j , k , k2
 !
 !     ------------------------------------------------------------
@@ -1112,10 +1104,6 @@
  
       pblk2 = d_zero
       zzhnew2 = d_zero
-!     set constants
-      ccon = fak*sffrac*vonkar
-      binm = betam*sffrac
-      binh = betah*sffrac
 #ifdef MPP1
       do j = jbegin , jendx
 #else
@@ -1134,7 +1122,7 @@
         do k = kz , kt , -1
           do i = 2 , iym1
             vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-            ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/            &
+            ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/ &
                       (th10(i,j)*vv)
           end do
         end do
@@ -1150,8 +1138,8 @@
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )       &
-               sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
-                   *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
+              sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
+                  *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
           end do
         end do
  
@@ -1168,8 +1156,8 @@
             wsc = ustr(i,j)*xfmt
 !           ******   thermal temperature excess
             therm(i) = (xhfx(i,j)+0.61D0*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
-            vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + vbx3d(i,kz,j)           &
-                  *vbx3d(i,kz,j)
+            vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + &
+                  vbx3d(i,kz,j)*vbx3d(i,kz,j)
             ri(i,kz) = -egrav*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
           end if
         end do
@@ -1179,11 +1167,10 @@
           do i = 2 , iym1
             if ( hfxv(i,j) > d_zero ) then
               tlv = th10(i,j) + therm(i)
-              tkv = thx3d(i,k,j)                                        &
-                    *(d_one+0.61D0*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
-              ttkl = tkv - tlv
-              vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
-              ri(i,k) = egrav*ttkl*za(i,k,j)/(th10(i,j)*vv)
+              tkv = thx3d(i,k,j) * &
+                    (d_one+0.61D0*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
+              vv = ubx3d(i,k,j)*ubx3d(i,k,j)+vbx3d(i,k,j)*vbx3d(i,k,j)
+              ri(i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(i,j)*vv)
             end if
           end do
         end do
@@ -1196,8 +1183,8 @@
             if ( hfxv(i,j) > d_zero ) then
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
-              if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )         &
-                   sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
+              if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )       &
+                sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
                                *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
             end if
           end do
@@ -1229,7 +1216,7 @@
             zp = za(i,k2,j)
             if ( zm < sfsta%zpbl(i,j) ) then
               zp = dmin1(zp,sfsta%zpbl(i,j))
-              z = d_half*(zm+zp)
+              z = (zm+zp)/d_two
               zh = z/sfsta%zpbl(i,j)
               zl = z/obklen(i,j)
               if ( zh <= d_one ) then
@@ -1243,7 +1230,7 @@
 !               zzhnew =0.25* (d_one - zh)
 !               zzhnew =0.75* (d_one - zh)
 !Sara_
-                zzhnew = d_rfour*(d_one-zh)
+                zzhnew = (d_one-zh)/d_four
 !xexp10         zzhnew =zh * (d_one - zh)**2
 !chem
                 if ( ichem == 1 ) zzhnew2 = (d_one-zh)**d_two
@@ -1267,8 +1254,8 @@
 !xexp5            pblk1 = vonkar * ustr(i,j) / (d_one+betas*zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
 !chem
-                  if ( ichem == 1 )                                     &
-                       pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
+                  if ( ichem == 1 ) &
+                    pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
 !chem_
                 else
                   pblk = fak1*zh*zzh/(betas+zl)

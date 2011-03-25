@@ -149,12 +149,12 @@
           do i = 1 , iym1
             idx = max0(i,2)
             idxp1 = min0(i+1,iym1)
-            ubx3d(i,k,j) = d_rfour* & 
-                (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
-                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
-            vbx3d(i,k,j) = d_rfour* &
-                (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
-                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
+            ubx3d(i,k,j) = ((atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+  &
+                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/d_four)/ &
+                 sps2%ps(i,j)
+            vbx3d(i,k,j) = ((atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+  &
+                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/d_four)/ &
+                 sps2%ps(i,j)
           end do
         end do
       end do
@@ -216,7 +216,7 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            za(i,k,j) = d_half*(zq(i,k)+zq(i,k+1))
+            za(i,k,j) = (zq(i,k)+zq(i,k+1))/d_two
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do

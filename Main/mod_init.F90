@@ -275,22 +275,23 @@
                           mpi_comm_world,mpi_status_ignore,ierr)
         do j = jbegin , jendx
           do i = 2 , iym1
-            psdot(i,j) = d_rfour*(ps0(i,j)   + ps0(i-1,j) +   &
-                                  ps0(i,j-1) + ps0(i-1,j-1))
+            psdot(i,j) = (ps0(i,j)   + ps0(i-1,j) +   &
+                          ps0(i,j-1) + ps0(i-1,j-1))/d_four
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          if ( myid == 0 ) psdot(i,1) = d_half*(ps0(i,1)+ps0(i-1,1))
-          if ( myid == nproc-1 ) psdot(i,jendl)                         &
-               = d_half*(ps0(i,jendx)+ps0(i-1,jendx))
+          if ( myid == 0 ) psdot(i,1) = (ps0(i,1)+ps0(i-1,1))/d_two
+          if ( myid == nproc-1 ) then
+            psdot(i,jendl) = (ps0(i,jendx)+ps0(i-1,jendx))/d_two
+          end if
         end do
 #endif
 !
         do j = jbegin , jendx
-          psdot(1,j) = d_half*(ps0(1,j)+ps0(1,j-1))
-          psdot(iy,j) = d_half*(ps0(iym1,j)+ps0(iym1,j-1))
+          psdot(1,j) = (ps0(1,j)+ps0(1,j-1))/d_two
+          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,j-1))/d_two
         end do
 !
 #ifndef BAND
@@ -454,15 +455,15 @@
           if(jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
-            psdot(i,j) = d_rfour*(ps0(i,j)+ps0(i-1,j)+     &
-                                  ps0(i,jm1)+ps0(i-1,jm1))
+            psdot(i,j) = (ps0(i,j)+ps0(i-1,j)+     &
+                          ps0(i,jm1)+ps0(i-1,jm1))/d_four
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          psdot(i,1)  = d_half*(ps0(i,1)   +ps0(i-1,1))
-          psdot(i,jx) = d_half*(ps0(i,jxm1)+ps0(i-1,jxm1))
+          psdot(i,1)  = (ps0(i,1)   +ps0(i-1,1))/d_two
+          psdot(i,jx) = (ps0(i,jxm1)+ps0(i-1,jxm1))/d_two
         end do
 #endif
 !
@@ -475,8 +476,8 @@
 #if defined(BAND) && (!defined(MPP1))
           if(jm1 == 0) jm1=jx
 #endif
-          psdot(1,j)  = d_half*(ps0(1,j)   +ps0(1,jm1))
-          psdot(iy,j) = d_half*(ps0(iym1,j)+ps0(iym1,jm1))
+          psdot(1,j)  = (ps0(1,j)   +ps0(1,jm1))/d_two
+          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,jm1))/d_two
         end do
 !
 #ifndef BAND
@@ -1353,6 +1354,7 @@
         if (debug_level > 2) call mpidiag
 #endif
         dt = dt2 ! First timestep successfully read in
+        dto2 = dt/d_two
 #else
 !
         print * , 'ozone profiles restart'
@@ -1361,6 +1363,7 @@
         end do
         print 99001 , xtime , ktau , jyear
         dt = dt2 ! First timestep successfully read in
+        dto2 = dt/d_two
 !
 #endif
 !

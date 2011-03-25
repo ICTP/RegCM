@@ -181,7 +181,7 @@
               bb =  aa *(q+rs*fs)
               if ( bb > d_zero ) then
 !               case of cool skin layer correction
-                cc= bb**(d_three/d_four)
+                cc= bb**(d_three*d_rfour)
                 lamb=6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
                 delta = lamb*nuw/ustarw
                 tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
@@ -444,11 +444,11 @@
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
-        psi = d_two*dlog((d_one+chik)*d_half) +       &
-                    dlog((d_one+chik*chik)*d_half) -  &
+        psi = d_two*dlog((d_one+chik)/d_two) +       &
+                    dlog((d_one+chik*chik)/d_two) -  &
               d_two*datan(chik) + d_two*datan(d_one)
       else
-        psi = d_two*dlog((d_one+chik*chik)*d_half)
+        psi = d_two*dlog((d_one+chik*chik)/d_two)
       end if
       end function psi
 
@@ -481,10 +481,10 @@
 !
 !     Graziano: make this selectable on iocnrough flag
       if ( iocnrough == 2 ) then
-        zo = (0.013D0*ustar*ustar)/egrav + 0.11D0*visa/ustar
+        zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
       else
-        zo = (0.0065D0*ustar*ustar)/egrav
-!       zo = (0.013D0*ustar*ustar)/egrav
+        zo = (0.0065D0*ustar*ustar)*regrav
+!       zo = (0.013D0*ustar*ustar)*regrav
       end if
       re = (ustar*zo)/visa
       xtq = 2.67D0*(re**d_rfour) - 2.57D0

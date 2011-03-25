@@ -405,7 +405,7 @@
               wss = (scv1d(n,i)+2.8D0*rhosw3*sice1d(n,i)) / &
                     (scv1d(n,i)+1.4D0*rhosw3*sice1d(n,i))
 ! ******      include snow heat capacity
-              rsd1 = d_half*(wss*rss+wtt*rsd1)
+              rsd1 = (wss*rss+wtt*rsd1)/d_two
             end if
             tgb1d(n,i) = -d_two + tzero
 ! ******    subsurface heat flux through ice
@@ -601,7 +601,7 @@
 !
 !           2.1  surface runoff
 !
-            wata(n,i) = d_half*(watu(n,i)+watr(n,i))
+            wata(n,i) = (watu(n,i)+watr(n,i))/d_two
 !
 !           2.11 increase surface runoff over frozen ground
 !
@@ -898,11 +898,11 @@
 !l    1.   define thermal conductivity, heat capacity,
 !l    and other force restore parameters
 !=======================================================================
-      xnu = d_two*mathpi/tau1
+      xnu = twopi/tau1
       xnua = xnu/365.0D0
       xdtime = dtbat*xnu
       dtimea = dtbat*xnua
-      xdt2 = d_half*xdtime
+      xdt2 = xdtime/d_two
       xkperi = 1.4D-6
  
 !l    3.4  permafrost temperature
@@ -919,7 +919,7 @@
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
             if ( tg1d(n,i) < tzero ) then
-              frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tg1d(n,i)))
+              frozen = 0.85D0*dmin1(d_one,(tzero-tg1d(n,i))/d_four)
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(d_one-0.51D0*frozen))
             else
@@ -928,7 +928,7 @@
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
             if ( tgb1d(n,i) < tzero ) then
-              froze2 = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgb1d(n,i)))
+              froze2 = 0.85D0*dmin1(d_one,(tzero-tgb1d(n,i))/d_four)
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(d_one-0.51D0*froze2))
             else
@@ -1035,13 +1035,13 @@
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
             if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
-              c31 = d_half*dtimea*(d_one+deprat(n,i))
+              c31 = (dtimea/d_two)*(d_one+deprat(n,i))
               c41 = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c31+fct2(n,i)) * &
                      tgb1d(n,i)+c41*tg1d(n,i) +     &
                      dtimea*t3)/(d_one+c31+fct2(n,i))
             else
-              c3t = d_half*dtimea*deprat(n,i)
+              c3t = dtimea/d_two*deprat(n,i)
               c4t = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c3t+fct2(n,i))* &
                     tgb1d(n,i)+c4t*tg1d(n,i)) /    &
@@ -1070,7 +1070,7 @@
         implicit none
         real(8) :: fct1
         real(8) , intent(in) :: x
-        fct1 = wlhf*d_rfour*1.414D0/x
+        fct1 = wlhf/d_four*1.414D0/x
       end function fct1
 ! 
       end subroutine tgrund

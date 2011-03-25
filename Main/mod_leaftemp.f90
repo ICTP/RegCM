@@ -720,7 +720,7 @@
                 cdr(n,i) = cdrn(n,i)*ribi
                 cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
                            & *sigf(n,i)
-                cdrmin(n,i) = dmax1(d_rfour*cdrn(n,i),6.0D-4)
+                cdrmin(n,i) = dmax1(cdrn(n,i)/d_four,6.0D-4)
               end if
               if ( (rib(n,i) >= d_zero) ) then
                 if ( (cdr(n,i) < cdrmin(n,i)) ) then
