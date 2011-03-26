@@ -499,12 +499,12 @@
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
             end if
             if ( ocld2d(n,i,j) < d_half ) then
-              ssw1d(n,i)  = -1.0D34
-              rsw1d(n,i)  = -1.0D34
-              tsw1d(n,i)  = -1.0D34
-              rno1d(n,i)  = -1.0D34
-              rnos1d(n,i) = -1.0D34
-              scv1d(n,i)  = -1.0D34
+              ssw1d(n,i)  = dmissval
+              rsw1d(n,i)  = dmissval
+              tsw1d(n,i)  = dmissval
+              rno1d(n,i)  = dmissval
+              rnos1d(n,i) = dmissval
+              scv1d(n,i)  = dmissval
             end if
           end do
           sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/dble(ng)
@@ -545,14 +545,14 @@
                & then
               rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
             else
-              rnos2d(n,i,j) = -1.0D34
+              rnos2d(n,i,j) = dmissval
             end if
             if ( rno2d(n,i,j) > -1.0D10 .and. rnos1d(n,i)               &
                &  > -1.0D10 .and. rno1d(n,i) > -1.0D10 ) then
               rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))    &
                            & /tau1*dtbat
             else
-              rno2d(n,i,j) = -1.0D34
+              rno2d(n,i,j) = dmissval
             end if
           end do
 !
@@ -560,8 +560,8 @@
 !
           prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
           prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
-          if ( prnca2d(i,j) < lowval ) prnca2d(i,j) = d_zero
-          if ( prca2d(i,j) < lowval ) prca2d(i,j) = d_zero
+          if ( prnca2d(i,j) < dlowval ) prnca2d(i,j) = d_zero
+          if ( prca2d(i,j) < dlowval ) prca2d(i,j) = d_zero
           flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
           flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
           fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
@@ -827,23 +827,23 @@
                 ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
                 rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
                 rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,i,j))
-                if (dabs(scv1d(n,i)) > lowval) then
+                if (dabs(scv1d(n,i)) > dlowval) then
                   scv_o(j,i-1) = scv_o(j,i-1) + real(scv1d(n,i))
                 end if
                 tlef_s(n,j,i-1) = real(tlef1d(n,i))
                 ssw_s(n,j,i-1) = real(ssw1d(n,i))
                 rsw_s(n,j,i-1) = real(rsw1d(n,i))
                 rnos_s(n,j,i-1) = real(rnos2d(n,i,j)*mmpd)
-                if (dabs(scv1d(n,i)) > lowval) then
+                if (dabs(scv1d(n,i)) > dlowval) then
                   scv_s(n,j,i-1) = real(scv1d(n,i))
                 end if
                 nnn = nnn + 1
               else
-                tlef_s(n,j,i-1) = -1.E34
-                ssw_s(n,j,i-1) = -1.E34
-                rsw_s(n,j,i-1) = -1.E34
-                rnos_s(n,j,i-1) = -1.E34
-                scv_s(n,j,i-1) = -1.E34
+                tlef_s(n,j,i-1) = smissval
+                ssw_s(n,j,i-1) = smissval
+                rsw_s(n,j,i-1) = smissval
+                rnos_s(n,j,i-1) = smissval
+                scv_s(n,j,i-1) = smissval
               end if
             end do
             if ( nnn >= max0(ng/2,1) ) then
@@ -853,11 +853,11 @@
               rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
               scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
             else
-              tlef_o(j,i-1) = -1.E34
-              ssw_o(j,i-1) = -1.E34
-              rsw_o(j,i-1) = -1.E34
-              rnos_o(j,i-1) = -1.E34
-              scv_o(j,i-1) = -1.E34
+              tlef_o(j,i-1) = smissval
+              ssw_o(j,i-1) = smissval
+              rsw_o(j,i-1) = smissval
+              rnos_o(j,i-1) = smissval
+              scv_o(j,i-1) = smissval
             end if
 #else
 #ifdef BAND
@@ -927,11 +927,11 @@
                 scv_s(n,j,i-1) = real(scv1d(n,i))
                 nnn = nnn + 1
               else
-                tlef_s(n,j,i-1) = -1.E34
-                ssw_s(n,j,i-1) = -1.E34
-                rsw_s(n,j,i-1) = -1.E34
-                rnos_s(n,j,i-1) = -1.E34
-                scv_s(n,j,i-1) = -1.E34
+                tlef_s(n,j,i-1) = smissval
+                ssw_s(n,j,i-1) = smissval
+                rsw_s(n,j,i-1) = smissval
+                rnos_s(n,j,i-1) = smissval
+                scv_s(n,j,i-1) = smissval
               end if
             end do
             if ( nnn >= max0(ng/2,1) ) then
@@ -941,11 +941,11 @@
               rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
               scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
             else
-              tlef_o(j,i-1) = -1.E34
-              ssw_o(j,i-1) = -1.E34
-              rsw_o(j,i-1) = -1.E34
-              rnos_o(j,i-1) = -1.E34
-              scv_o(j,i-1) = -1.E34
+              tlef_o(j,i-1) = smissval
+              ssw_o(j,i-1) = smissval
+              rsw_o(j,i-1) = smissval
+              rnos_o(j,i-1) = smissval
+              scv_o(j,i-1) = smissval
             end if
 #else
             drag_o(j-1,i-1) = 0.0
@@ -1006,23 +1006,23 @@
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + real(ssw1d(n,i))
                 rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + real(rsw1d(n,i))
                 rnos_o(j-1,i-1) = rnos_o(j-1,i-1) + real(rnos2d(n,i,j))
-                if (dabs(scv1d(n,i)) > lowval) then
+                if (dabs(scv1d(n,i)) > dlowval) then
                   scv_o(j-1,i-1) = scv_o(j-1,i-1) + real(scv1d(n,i))
                 end if
                 tlef_s(n,j-1,i-1) = real(tlef1d(n,i))
                 ssw_s(n,j-1,i-1) = real(ssw1d(n,i))
                 rsw_s(n,j-1,i-1) = real(rsw1d(n,i))
                 rnos_s(n,j-1,i-1) = real(rnos2d(n,i,j)*mmpd)
-                if (dabs(scv1d(n,i)) > lowval) then
+                if (dabs(scv1d(n,i)) > dlowval) then
                   scv_s(n,j-1,i-1) = real(scv1d(n,i))
                 end if
                 nnn = nnn + 1
               else
-                tlef_s(n,j-1,i-1) = -1.E34
-                ssw_s(n,j-1,i-1) = -1.E34
-                rsw_s(n,j-1,i-1) = -1.E34
-                rnos_s(n,j-1,i-1) = -1.E34
-                scv_s(n,j-1,i-1) = -1.E34
+                tlef_s(n,j-1,i-1) = smissval
+                ssw_s(n,j-1,i-1) = smissval
+                rsw_s(n,j-1,i-1) = smissval
+                rnos_s(n,j-1,i-1) = smissval
+                scv_s(n,j-1,i-1) = smissval
               end if
             end do
             if ( nnn >= max0(ng/2,1) ) then
@@ -1032,11 +1032,11 @@
               rnos_o(j-1,i-1) = rnos_o(j-1,i-1)/real(nnn)*real(mmpd)
               scv_o(j-1,i-1) = scv_o(j-1,i-1)/real(nnn)
             else
-              tlef_o(j-1,i-1) = -1.E34
-              ssw_o(j-1,i-1) = -1.E34
-              rsw_o(j-1,i-1) = -1.E34
-              rnos_o(j-1,i-1) = -1.E34
-              scv_o(j-1,i-1) = -1.E34
+              tlef_o(j-1,i-1) = smissval
+              ssw_o(j-1,i-1) = smissval
+              rsw_o(j-1,i-1) = smissval
+              rnos_o(j-1,i-1) = smissval
+              scv_o(j-1,i-1) = smissval
             end if
 #endif
 #endif
@@ -1185,7 +1185,7 @@
             albgsd = albgs
             albgld = albgl
           else if ( ldoc1d(n,i) > 0.1D0 .and. &
-                    dabs(sice1d(n,i)) < lowval ) then
+                    dabs(sice1d(n,i)) < dlowval ) then
             sfac = d_one - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils
 !c          data *** reduces albedo at low temps !!!!!should respond to

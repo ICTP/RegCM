@@ -62,7 +62,10 @@
         idtmax = 2
       end if
       dt2 = d_two*dt
-      if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
+      if ( jyear /= jyear0 .or. ktau /= 0 ) then
+        dt = dt2
+      end if
+      dto2 = dt/d_two
 !
       end subroutine tstep
 !

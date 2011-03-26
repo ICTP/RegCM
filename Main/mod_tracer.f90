@@ -233,7 +233,7 @@
         do i = 1 , iym1
           rt(i) = d_one/tnm(i,k)
           rsqrt(i) = dsqrt(rt(i))
-          pbar(i) = d_half*(pnm(i,k+1)+pnm(i,k))/sslp
+          pbar(i) = ((pnm(i,k+1)+pnm(i,k))/d_two)/sslp
           dpnm(i) = (pnm(i,k+1)-pnm(i,k))*rga
           alpha1(i) = diff*rsqrt(i)* &
                     (d_one-dexp(-1540.0D0/tnm(i,k)))**d_three

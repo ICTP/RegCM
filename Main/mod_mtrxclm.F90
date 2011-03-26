@@ -1172,12 +1172,12 @@
                 else
                   sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
                 end if
-                ssw1d(n,i)  = -1.0D34
-                rsw1d(n,i)  = -1.0D34
-                tsw1d(n,i)  = -1.0D34
-                rno1d(n,i)  = -1.0D34
-                rnos1d(n,i) = -1.0D34
-                scv1d(n,i)  = -1.0D34
+                ssw1d(n,i)  = dmissval
+                rsw1d(n,i)  = dmissval
+                tsw1d(n,i)  = dmissval
+                rno1d(n,i)  = dmissval
+                rnos1d(n,i) = dmissval
+                scv1d(n,i)  = dmissval
               end do
  
               sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/dble(nnsg)
@@ -1216,14 +1216,14 @@
                    & then
                   rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
                 else
-                  rnos2d(n,i,j) = -1.0D34
+                  rnos2d(n,i,j) = dmissval
                 end if
                 if ( rno2d(n,i,j)>-1.E10 .and. rnos1d(n,i)>-1.E10 .and. &
                    & rno1d(n,i)>-1.E10 ) then
                   rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))&
                                & /tau1*dtbat
                 else
-                  rno2d(n,i,j) = -1.0D34
+                  rno2d(n,i,j) = dmissval
                 end if
               end do
 !
@@ -1480,11 +1480,11 @@
                   scv_s(n,j,i-1) = real(c2rsnowc(jj,ci))
                   nnn = nnn + 1
                 else
-                  tlef_s(n,j,i-1) = -1.0E34
-                  ssw_s(n,j,i-1) = -1.0E34
-                  rsw_s(n,j,i-1) = -1.0E34
-                  rnos_s(n,j,i-1) = -1.0E34
-                  scv_s(n,j,i-1) = -1.0E34
+                  tlef_s(n,j,i-1) = smissval
+                  ssw_s(n,j,i-1) = smissval
+                  rsw_s(n,j,i-1) = smissval
+                  rnos_s(n,j,i-1) = smissval
+                  scv_s(n,j,i-1) = smissval
                 end if
               end do
               if ( nnn>=max0(nnsg/2,1) ) then
@@ -1494,11 +1494,11 @@
                 rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
                 scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
               else
-                tlef_o(j,i-1) = -1.0E34
-                ssw_o(j,i-1) = -1.0E34
-                rsw_o(j,i-1) = -1.0E34
-                rnos_o(j,i-1) = -1.0E34
-                scv_o(j,i-1) = -1.0E34
+                tlef_o(j,i-1) = smissval
+                ssw_o(j,i-1) = smissval
+                rsw_o(j,i-1) = smissval
+                rnos_o(j,i-1) = smissval
+                scv_o(j,i-1) = smissval
               end if
 !               ******    reset accumulation arrays to zero
               do n = 1 , nnsg

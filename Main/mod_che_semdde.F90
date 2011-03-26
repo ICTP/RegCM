@@ -157,8 +157,8 @@
             end if
 !           OC
             if ( iochb > 0 .and. iochl > 0 ) then
-              chemsrc(i,j,m,iochl) = d_half*chemsrc(i,j,m,iochb)
-              chemsrc(i,j,m,iochb) = d_half*chemsrc(i,j,m,iochb)
+              chemsrc(i,j,m,iochl) = chemsrc(i,j,m,iochb)/d_two
+              chemsrc(i,j,m,iochb) = chemsrc(i,j,m,iochb)/d_two
             end if
           end do
         end do
@@ -335,6 +335,8 @@
       call time_begin(subroutine_name,idindx)
 
       i = 0
+      pdepvsub = d_zero
+
       do n = 1 , isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/d_two
       end do
@@ -482,9 +484,9 @@
  
 ! **************************************************************
               x = (d_one-15.0D0*zdl)**d_rfour
-              psiu = d_two*dlog(d_half*(d_one+x)) + & 
-                           dlog(d_half*(d_one+x*x)) - &
-                     d_two*datan(x) + d_half*mathpi
+              psiu = d_two*dlog((d_one+x)/d_two) + & 
+                           dlog((d_one+x*x)/d_two) - &
+                     d_two*datan(x) + halfpi
  
 ! **************************************************************
 !             *                       pot temp                        
@@ -523,7 +525,7 @@
 !
             dtemp = ptemp2 - sutemp(i)
             if ( dabs(dtemp) < 1.0D-10 ) dtemp = dsign(1.0D-10,dtemp)
-            tbar = d_half*(ptemp2+sutemp(i))
+            tbar = (ptemp2+sutemp(i))/d_two
 !
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
@@ -561,7 +563,7 @@
             ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
           else
             ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
-                      d_two*dlog((d_one+dsqrt(d_one-9.0D0*zl))*d_half))
+                      d_two*dlog((d_one+dsqrt(d_one-9.0D0*zl))/d_two))
           end if
           ra(i,j) = dmax1(ra(i,j),0.99D0)
           ra(i,j) = dmin1(ra(i,j),999.9D0)

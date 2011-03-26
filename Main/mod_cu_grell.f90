@@ -273,10 +273,10 @@ contains
     end do
     do k = 2 , kz
       do i = istart , iend
-        tvbar = d_half*tv(i,k) + d_half*tv(i,k-1)
+        tvbar = tv(i,k)/d_two + tv(i,k-1)/d_two
         z(i,k) = z(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))         &
            & *rgas*tvbar*regrav
-        tvbaro = d_half*tvo(i,k) + d_half*tvo(i,k-1)
+        tvbaro = tvo(i,k)/d_two + tvo(i,k-1)/d_two
         zo(i,k) = zo(i,k-1) - (dlog(po(i,k))-dlog(po(i,k-1)))      &
            & *rgas*tvbaro*regrav
       end do
@@ -309,8 +309,8 @@ contains
         xt(i,k) = t(i,k)
         xq(i,k) = q(i,k)
         xhe(i,k) = he(i,k)
-        if ( k /= kz ) qrcd(i,k) = d_half*(qes(i,k)+qes(i,k+1))
-        if ( k /= kz ) qrcdo(i,k) = d_half*(qeso(i,k)+qeso(i,k+1))
+        if ( k /= kz ) qrcd(i,k) = (qes(i,k)+qes(i,k+1))/d_two
+        if ( k /= kz ) qrcdo(i,k) = (qeso(i,k)+qeso(i,k+1))/d_two
       end do
     end do
 !
@@ -347,7 +347,7 @@ contains
 !----------------------------------
         kbcon(i) = kb(i)
 140     continue
-        dh = d_half*hes(i,kbcon(i)) + d_half*hes(i,kbcon(i)+1)
+        dh = hes(i,kbcon(i))/d_two + hes(i,kbcon(i)+1)/d_two
         if ( hkb(i) < dh ) then
           kbcon(i) = kbcon(i) + 1
           if ( kbcon(i) > kbmax2d(i,jslc) ) then
@@ -368,7 +368,7 @@ contains
             go to 200
           end if
 !ictp_
-          dh = d_half*heso(i,kbcono) + d_half*heso(i,kbcono+1)
+          dh = heso(i,kbcono)/d_two + heso(i,kbcono+1)/d_two
           if ( hkbo(i) < dh ) then
             kbcono = kbcono + 1
             go to 150
@@ -425,8 +425,8 @@ contains
     do k = 1 , kz - 1
       do i = istart , iend
         if ( aa0(i) > aa0act ) then
-          dby(i,k) = hkb(i) - d_half*(hes(i,k)+hes(i,k+1))
-          dbyo(i,k) = hkbo(i) - d_half*(heso(i,k)+heso(i,k+1))
+          dby(i,k) = hkb(i) - (hes(i,k)+hes(i,k+1))/d_two
+          dbyo(i,k) = hkbo(i) - (heso(i,k)+heso(i,k+1))/d_two
         end if
       end do
     end do
@@ -457,7 +457,7 @@ contains
         if ( aa0(i) > aa0act ) then
           if ( k > kbcon(i) ) then
             if ( k < ktop(i) ) then
-              dz = -d_half*z(i,k-1) + d_half*z(i,k+1)
+              dz = -z(i,k-1)/d_two + z(i,k+1)/d_two
               dz1 = z(i,k) - z(i,k-1)
               agamma = (wlhvocp)* &
                 (wlhv/(rwat*(t(i,k)**d_two)))*qes(i,k)
@@ -471,9 +471,9 @@ contains
               pwav(i) = pwav(i) + pw(i,k)
               dz1 = z(i,k) - z(i,k-1)
               aa0(i) = aa0(i)                         &
-                 & + dz1*(egrav/(cpd*(d_half*(t(i,k)+t(i,k-1)))))  &
-                 & *dby(i,k-1)/(d_one+d_half*agamma+d_half*gamma0)
-              dzo = -d_half*zo(i,k-1) + d_half*zo(i,k+1)
+                 & + dz1*(egrav/(cpd*((t(i,k)+t(i,k-1))/d_two)))  &
+                 & *dby(i,k-1)/(d_one+agamma/d_two+gamma0/d_two)
+              dzo = -zo(i,k-1)/d_two + zo(i,k+1)/d_two
               dz2 = zo(i,k) - zo(i,k-1)
               gammo = (wlhvocp)*(wlhv/ &
                      (rwat*(tn(i,k)**d_two)))*qeso(i,k)
@@ -486,8 +486,8 @@ contains
               qcko(i) = qco(i,k)
               pwavo(i) = pwavo(i) + pwo(i,k)
               aa1(i) = aa1(i)                          &
-                 & + dz2*(egrav/(cpd*(d_half*(tn(i,k)+tn(i,k-1)))))  &
-                 & *dbyo(i,k-1)/(d_one+d_half*gammo+d_half*gammo0)
+                 & + dz2*(egrav/(cpd*((tn(i,k)+tn(i,k-1))/d_two)))  &
+                 & *dbyo(i,k-1)/(d_one+gammo/d_two+gammo0/d_two)
             end if
           end if
         end if
@@ -498,14 +498,14 @@ contains
     do i = istart , iend
       if ( aa0(i) > aa0act ) then
         k = ktop(i)
-        dz = -d_half*z(i,k-1) + d_half*z(i,k)
+        dz = -z(i,k-1)/d_two + z(i,k)/d_two
         agamma = (wlhvocp)*(wlhv/(rwat*(t(i,k)**d_two)))*qes(i,k)
         qrch = qes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dby(i,k)
         qc(i,k) = qes(i,k)
         pw(i,k) = (qrch-qes(i,k))
         pwav(i) = pwav(i) + pw(i,k)
 !
-        dz = -d_half*zo(i,k-1) + d_half*zo(i,k)
+        dz = -zo(i,k-1)/d_two + zo(i,k)/d_two
         agamma = (wlhvocp)*(wlhv/(rwat*(tn(i,k)**d_two)))*qeso(i,k)
         qrcho = qeso(i,k) + (d_one/wlhv)* &
            (agamma/(d_one+agamma))*dbyo(i,k)
@@ -541,12 +541,12 @@ contains
         edto(i) = edt(i)
         edtx(i) = edt(i)
         qrcd(i,kz) = qes(i,kz)
-        hcd(i) = d_half*(he(i,jmin(i))+he(i,jmin(i)+1))
-        qcd(i) = d_half*(q(i,jmin(i))+q(i,jmin(i)+1))
+        hcd(i) = (he(i,jmin(i))+he(i,jmin(i)+1))/d_two
+        qcd(i) = (q(i,jmin(i))+q(i,jmin(i)+1))/d_two
         qrcdo(i,kz) = qeso(i,kz)
         hcdo(i) = heso(i,kz)
-        hcdo(i) = d_half*(heo(i,jmin(i))+heo(i,jmin(i)+1))
-        qcdo(i) = d_half*(qo(i,jmin(i))+qo(i,jmin(i)+1))
+        hcdo(i) = (heo(i,jmin(i))+heo(i,jmin(i)+1))/d_two
+        qcdo(i) = (qo(i,jmin(i))+qo(i,jmin(i)+1))/d_two
         bu(i) = d_zero
         buo(i) = d_zero
       end if
@@ -556,24 +556,24 @@ contains
         if ( aa0(i) > aa0act ) then
           if ( k < jmin(i) ) then
             kk = jmin(i) - k
-            dz = -(z(i,kk)-z(i,kk+2))*d_half
-            bu(i) = bu(i) + dz*(hcd(i)-d_half*(hes(i,kk)+hes(i,kk+1)))
-            dq = (qes(i,kk)+qes(i,kk+1))*d_half
-            xdt = (t(i,kk)+t(i,kk+1))*d_half
+            dz = -(z(i,kk)-z(i,kk+2))/d_two
+            bu(i) = bu(i) + dz*(hcd(i)-(hes(i,kk)+hes(i,kk+1))/d_two)
+            dq = (qes(i,kk)+qes(i,kk+1))/d_two
+            xdt = (t(i,kk)+t(i,kk+1))/d_two
             agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = hcd(i) - d_half*(hes(i,kk)+hes(i,kk+1))
+            dh = hcd(i) - (hes(i,kk)+hes(i,kk+1))/d_two
             qrcd(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
             pwd(i,kk) = dkk(i,kk)*(qcd(i)-qrcd(i,kk))
             qcd(i) = qrcd(i,kk)
             pwev(i) = pwev(i) + pwd(i,kk)
 !
-            dz = -(zo(i,kk)-zo(i,kk+2))*d_half
+            dz = -(zo(i,kk)-zo(i,kk+2))/d_two
             buo(i) = buo(i) + dz*(hcdo(i)- &
-                  d_half*(heso(i,kk)+heso(i,kk+1)))
-            dq = (qeso(i,kk)+qeso(i,kk+1))*d_half
-            xdt = (tn(i,kk)+tn(i,kk+1))*d_half
+                  (heso(i,kk)+heso(i,kk+1))/d_two)
+            dq = (qeso(i,kk)+qeso(i,kk+1))/d_two
+            xdt = (tn(i,kk)+tn(i,kk+1))/d_two
             agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = hcdo(i) - d_half*(heso(i,kk)+heso(i,kk+1))
+            dh = hcdo(i) - (heso(i,kk)+heso(i,kk+1))/d_two
             qrcdo(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
             pwdo(i,kk) = dkk(i,kk)*(qcdo(i)-qrcdo(i,kk))
             qcdo(i) = qrcdo(i,kk)
@@ -605,14 +605,14 @@ contains
     do i = istart , iend
       if ( aa0(i) > aa0act ) then
         k = 1
-        dz = d_half*(z(i,2)-z(i,1))
+        dz = (z(i,2)-z(i,1))/d_two
         dp_s = 50.0D0*(psur(i)-p(i,2))
         dellah(i,1) = edt(i)                          &
            & *(dkk(i,1)*hcd(i)-dkk(i,1)* &
-             d_half*(he(i,1)+he(i,2)))*egrav/dp_s
+             (he(i,1)+he(i,2))/d_two)*egrav/dp_s
         dellaq(i,1) = edt(i)                          &
            & *(dkk(i,1)*qrcd(i,1)-dkk(i,1)* &
-             d_half*(q(i,1)+q(i,2)))*egrav/dp_s
+             (q(i,1)+q(i,2))/d_two)*egrav/dp_s
         xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
         xq(i,k) = dellaq(i,k)*mbdt + q(i,k)
         dellat(i,k) = rcpd*(dellah(i,k)-wlhv*dellaq(i,k))
@@ -625,19 +625,19 @@ contains
       do i = istart , iend
         if ( aa0(i) > aa0act ) then
           if ( k /= 1 .and. k < ktop(i) ) then
-            dv1 = d_half*(he(i,k)+he(i,k+1))
+            dv1 = (he(i,k)+he(i,k+1))/d_two
             dv2 = he(i,k)
-            dv3 = d_half*(he(i,k)+he(i,k-1))
-            dv1q = d_half*(q(i,k)+q(i,k+1))
+            dv3 = (he(i,k)+he(i,k-1))/d_two
+            dv1q = (q(i,k)+q(i,k+1))/d_two
             dv2q = q(i,k)
-            dv3q = d_half*(q(i,k)+q(i,k-1))
+            dv3q = (q(i,k)+q(i,k-1))/d_two
 !
 !---  specifiy detrainment of downdraft, has to be consistent
 !---  with zd calculations in soundd.
 !
             detdo = (d_one-dkk(i,k))*(hcd(i)-dv2)
             detdoq = (d_one-dkk(i,k))*(qrcd(i,k)-dv2q)
-            dz = d_half*(z(i,k+1)-z(i,k-1))
+            dz = (z(i,k+1)-z(i,k-1))/d_two
 !
 !---   changed due to subsidence and entrainment
 !
@@ -668,9 +668,9 @@ contains
       if ( aa0(i) > aa0act ) then
         lpt = ktop(i)
         dp_s = d_100*(p(i,lpt-1)-p(i,lpt))
-        dv1 = d_half*(he(i,lpt)+he(i,lpt-1))
+        dv1 = (he(i,lpt)+he(i,lpt-1))/d_two
         dellah(i,lpt) = (hkb(i)-dv1)*egrav/dp_s
-        dv1 = d_half*(q(i,lpt)+q(i,lpt-1))
+        dv1 = (q(i,lpt)+q(i,lpt-1))/d_two
         dellaq(i,lpt) = (qes(i,lpt)-dv1)*egrav/dp_s
         k = lpt
         xhe(i,k) = dellah(i,k)*mbdt + he(i,k)
@@ -704,7 +704,7 @@ contains
     do k = 1 , kz - 1
       do i = istart , iend
         if ( aa0(i) > aa0act ) &
-         xqrcd(i,k) = d_half*(xqes(i,k)+xqes(i,k+1))
+         xqrcd(i,k) = (xqes(i,k)+xqes(i,k+1))/d_two
       end do
     end do
 !
@@ -716,7 +716,7 @@ contains
     do k = 2 , kz
       do i = istart , iend
         if ( aa0(i) > aa0act ) then
-          tvbar = d_half*xtv(i,k) + d_half*xtv(i,k-1)
+          tvbar = xtv(i,k)/d_two + xtv(i,k-1)/d_two
           xz(i,k) = xz(i,k-1) - (dlog(p(i,k))-dlog(p(i,k-1)))      &
              & *rgas*tvbar*regrav
         end if
@@ -749,9 +749,9 @@ contains
     do k = 1 , kz - 1
       do i = istart , iend
         if ( aa0(i) >= d_zero ) then
-          xdby(i,k) = xhkb(i) - d_half*(xhes(i,k)+xhes(i,k+1))
+          xdby(i,k) = xhkb(i) - (xhes(i,k)+xhes(i,k+1))/d_two
           if ( k > kbcon(i) .and. k < ktop(i) ) then
-            dz = -d_half*xz(i,k-1) + d_half*xz(i,k+1)
+            dz = -xz(i,k-1)/d_two + xz(i,k+1)/d_two
             dz1 = xz(i,k) - xz(i,k-1)
             agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**d_two)))*xqes(i,k)
             gamma0 = (wlhvocp)*(wlhv/(rwat*(xt(i,k-1)**d_two)))* &
@@ -763,8 +763,8 @@ contains
             xqck(i) = xqc(i,k)
             xpwav(i) = xpwav(i) + xpw(i,k)
             xaa0(i) = xaa0(i)                            &
-               & + dz1*(egrav/(cpd*(d_half*(xt(i,k)+xt(i,k-1)))))    &
-               & *xdby(i,k-1)/(d_one+d_half*agamma+d_half*gamma0)
+               & + dz1*(egrav/(cpd*((xt(i,k)+xt(i,k-1))/d_two)))    &
+               & *xdby(i,k-1)/(d_one+agamma/d_two+gamma0/d_two)
           end if
         end if
       end do
@@ -772,15 +772,15 @@ contains
     do i = istart , iend
       if ( aa0(i) >= d_zero ) then
         k = ktop(i)
-        dz = -d_half*xz(i,k-1) + d_half*xz(i,k)
+        dz = -xz(i,k-1)/d_two + xz(i,k)/d_two
         agamma = (wlhvocp)*(wlhv/(rwat*(xt(i,k)**d_two)))*xqes(i,k)
         qrch = xqes(i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*xdby(i,k)
         xqc(i,k) = xqes(i,k)
         xpw(i,k) = (qrch-xqes(i,k))
         xpwav(i) = xpwav(i) + xpw(i,k)
         xqrcd(i,kz) = xqes(i,kz)
-        xhcd(i) = d_half*(xhe(i,jmin(i))+xhe(i,jmin(i)+1))
-        xqcd(i) = d_half*(xq(i,jmin(i))+xq(i,jmin(i)+1))
+        xhcd(i) = (xhe(i,jmin(i))+xhe(i,jmin(i)+1))/d_two
+        xqcd(i) = (xq(i,jmin(i))+xq(i,jmin(i)+1))/d_two
         xpwev(i) = d_zero
         bu(i) = d_zero
       end if
@@ -796,12 +796,12 @@ contains
         if ( aa0(i) >= d_zero ) then
           if ( k < jmin(i) ) then
             kk = jmin(i) - k
-            dz = -(xz(i,kk)-xz(i,kk+2))*d_half
-            bu(i) = bu(i) + dz*(xhcd(i)-d_half*(xhes(i,kk)+xhes(i,kk+1)))
-            dq = (xqes(i,kk)+xqes(i,kk+1))*d_half
-            xdt = (xt(i,kk)+xt(i,kk+1))*d_half
+            dz = -(xz(i,kk)-xz(i,kk+2))/d_two
+            bu(i) = bu(i) + dz*(xhcd(i)-(xhes(i,kk)+xhes(i,kk+1))/d_two)
+            dq = (xqes(i,kk)+xqes(i,kk+1))/d_two
+            xdt = (xt(i,kk)+xt(i,kk+1))/d_two
             agamma = (wlhvocp)*(wlhv/(rwat*(xdt**d_two)))*dq
-            dh = xhcd(i) - d_half*(xhes(i,kk)+xhes(i,kk+1))
+            dh = xhcd(i) - (xhes(i,kk)+xhes(i,kk+1))/d_two
             xqrcd(i,kk) = (dq+(d_one/wlhv)*(agamma/(d_one+agamma))*dh)
             xpwd(i,kk) = dkk(i,kk)*(xqcd(i)-xqrcd(i,kk))
             xqcd(i) = xqrcd(i,kk)
@@ -841,9 +841,9 @@ contains
             gamma2 = (wlhvocp)*(wlhv/(rwat*(t(i,kk+1)**d_two)))*       &
                & qes(i,kk+1)
             dhh = hcd(i)
-            xdt = d_half*(t(i,kk)+t(i,kk+1))
-            dg = d_half*(gamma1+gamma2)
-            dh = d_half*(hes(i,kk)+hes(i,kk+1))
+            xdt = (t(i,kk)+t(i,kk+1))/d_two
+            dg = (gamma1+gamma2)/d_two
+            dh = (hes(i,kk)+hes(i,kk+1))/d_two
             dz = (z(i,kk)-z(i,kk+1))*dkk(i,kk)
             aa0(i) = aa0(i) + edt(i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/   &
                & (d_one+dg))
@@ -854,9 +854,9 @@ contains
             gamma2 = (wlhvocp)*(wlhv/(rwat*(tn(i,kk+1)**d_two)))*      &
                & qeso(i,kk+1)
             dhh = hcdo(i)
-            xdt = d_half*(tn(i,kk)+tn(i,kk+1))
-            dg = d_half*(gamma1+gamma2)
-            dh = d_half*(heso(i,kk)+heso(i,kk+1))
+            xdt = (tn(i,kk)+tn(i,kk+1))/d_two
+            dg = (gamma1+gamma2)/d_two
+            dh = (heso(i,kk)+heso(i,kk+1))/d_two
             dz = (zo(i,kk)-zo(i,kk+1))*dkk(i,kk)
             aa1(i) = aa1(i) + edto(i)*dz*(egrav/(cpd*xdt))          &
                & *((dhh-dh)/(d_one+dg))
@@ -867,9 +867,9 @@ contains
             gamma2 = (wlhvocp)*(wlhv/(rwat*(xt(i,kk+1)**d_two)))*      &
                & xqes(i,kk+1)
             dhh = xhcd(i)
-            xdt = d_half*(xt(i,kk)+xt(i,kk+1))
-            dg = d_half*(gamma1+gamma2)
-            dh = d_half*(xhes(i,kk)+xhes(i,kk+1))
+            xdt = (xt(i,kk)+xt(i,kk+1))/d_two
+            dg = (gamma1+gamma2)/d_two
+            dh = (xhes(i,kk)+xhes(i,kk+1))/d_two
             dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
             xaa0(i) = xaa0(i) + edtx(i)*dz*(egrav/(cpd*xdt))        &
                & *((dhh-dh)/(d_one+dg))

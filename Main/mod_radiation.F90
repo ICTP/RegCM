@@ -477,7 +477,7 @@
 !     conversion to cgs from mks):
 !
       cplos = v0/(amd*egrav)*d_100
-      cplol = v0/(amd*egrav*p0)*d_half*d_100
+      cplol = v0/(amd*egrav*p0)/d_two*d_100
 !
       call time_end(subroutine_name,indx)
       end subroutine radini
@@ -1211,11 +1211,11 @@
         indxsl = 0
         if ( wavmax(ns) <= 0.70D0 ) then
           indxsl = 1
-        else if ( dabs(wavmin(ns)-0.700D0) < lowval ) then
+        else if ( dabs(wavmin(ns)-0.700D0) < dlowval ) then
           indxsl = 2
-        else if ( dabs(wavmin(ns)-0.701D0) < lowval ) then
+        else if ( dabs(wavmin(ns)-0.701D0) < dlowval ) then
           indxsl = 3
-        else if ( dabs(wavmin(ns)-0.702D0) < lowval .or. &
+        else if ( dabs(wavmin(ns)-0.702D0) < dlowval .or. &
                        wavmin(ns) > 2.38D0 ) then
           indxsl = 4
         end if
@@ -1301,7 +1301,7 @@
 !
 !       Set reflectivities for surface based on mid-point wavelength
 !
-        wavmid = d_half*(wavmin(ns)+wavmax(ns))
+        wavmid = (wavmin(ns)+wavmax(ns))/d_two
 !
 !       Wavelength less  than 0.7 micro-meter
 !
@@ -2014,7 +2014,7 @@
         end do
         do k = 1 , kz - 1
           do i = 1 , iym1
-            bk2(i) = (abstot(i,k,kz,jslc)+abstot(i,k,kzp1,jslc))*d_half
+            bk2(i) = (abstot(i,k,kz,jslc)+abstot(i,k,kzp1,jslc))/d_two
             bk1(i) = bk2(i)
             s(i,k,kzp1) = stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
           end do
@@ -2041,7 +2041,7 @@
             else
               do i = 1 , iym1
                 bk2(i) = (abstot(i,k,km-1,jslc)+ &
-                          abstot(i,k,km,jslc))*d_half
+                          abstot(i,k,km,jslc))/d_two
                 bk1(i) = bk2(i)
               end do
             end if
@@ -3429,9 +3429,9 @@
               trab4(i) = dexp(-(coefg(1,3)+coefg(2,3)*dtx(i))*uc(i))
               trab6(i) = dexp(-(coefg(1,4)+coefg(2,4)*dtx(i))*uc(i))
               abso(i,3) = term6(i,k2)                                   &
-                          *(d_one-d_half*trab4(i)*trline(i,2)- &
-                          d_half*trab6(i)*trline(i,1))
-              abso(i,4) = term9(i,k2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
+                          *(d_one-trab4(i)/d_two*trline(i,2)- &
+                                  trab6(i)/d_two*trline(i,1))
+              abso(i,4) = term9(i,k2)/d_two*(tr1-tr9(i)+tr2-tr10(i))
             end do
             if ( k2 < k1 ) then
               do i = 1 , iym1
@@ -3550,16 +3550,16 @@
 !
       do k2 = kz , 1 , -1
         do i = 1 , iym1
-          tbar(i,1) = d_half*(tint(i,k2+1)+tlayr(i,k2+1))
-          emm(i,1) = d_half*(co2em(i,k2+1)+co2eml(i,k2))
-          tbar(i,2) = d_half*(tlayr(i,k2+1)+tint(i,k2))
-          emm(i,2) = d_half*(co2em(i,k2)+co2eml(i,k2))
-          tbar(i,3) = d_half*(tbar(i,2)+tbar(i,1))
+          tbar(i,1) = (tint(i,k2+1)+tlayr(i,k2+1))/d_two
+          emm(i,1) = (co2em(i,k2+1)+co2eml(i,k2))/d_two
+          tbar(i,2) = (tlayr(i,k2+1)+tint(i,k2))/d_two
+          emm(i,2) = (co2em(i,k2)+co2eml(i,k2))/d_two
+          tbar(i,3) = (tbar(i,2)+tbar(i,1))/d_two
           emm(i,3) = emm(i,1)
           tbar(i,4) = tbar(i,3)
           emm(i,4) = emm(i,2)
-          o3emm(i,1) = d_half*(dbvtit(i,k2+1)+dbvtly(i,k2))
-          o3emm(i,2) = d_half*(dbvtit(i,k2)+dbvtly(i,k2))
+          o3emm(i,1) = (dbvtit(i,k2+1)+dbvtly(i,k2))/d_two
+          o3emm(i,2) = (dbvtit(i,k2)+dbvtly(i,k2))/d_two
           o3emm(i,3) = o3emm(i,1)
           o3emm(i,4) = o3emm(i,2)
           temh2o(i,1) = tbar(i,1)
@@ -3573,9 +3573,8 @@
 !
         do wvl = 1 , 14
           do i = 1 , iym1
-            bplnk(wvl,i,1) = d_half* &
-                      (abplnk1(wvl,i,k2+1)+abplnk2(wvl,i,k2))
-            bplnk(wvl,i,2) = d_half*(abplnk1(wvl,i,k2)+abplnk2(wvl,i,k2))
+            bplnk(wvl,i,1) = (abplnk1(wvl,i,k2+1)+abplnk2(wvl,i,k2))/d_two
+            bplnk(wvl,i,2) = (abplnk1(wvl,i,k2)+abplnk2(wvl,i,k2))/d_two
             bplnk(wvl,i,3) = bplnk(wvl,i,1)
             bplnk(wvl,i,4) = bplnk(wvl,i,2)
           end do
@@ -3584,27 +3583,27 @@
         do i = 1 , iym1
           rdpnmsq = d_one/(pnmsq(i,k2+1)-pnmsq(i,k2))
           rdpnm = d_one/dpnm(i)
-          p1 = d_half*(pbr(i,k2)+pnm(i,k2+1))
-          p2 = d_half*(pbr(i,k2)+pnm(i,k2))
+          p1 = (pbr(i,k2)+pnm(i,k2+1))/d_two
+          p2 = (pbr(i,k2)+pnm(i,k2))/d_two
           uinpl(i,1) = (pnmsq(i,k2+1)-p1**d_two)*rdpnmsq
           uinpl(i,2) = -(pnmsq(i,k2)-p2**d_two)*rdpnmsq
           uinpl(i,3) = -(pnmsq(i,k2)-p1**d_two)*rdpnmsq
           uinpl(i,4) = (pnmsq(i,k2+1)-p2**d_two)*rdpnmsq
-          winpl(i,1) = (d_half*(pnm(i,k2+1)-pbr(i,k2)))*rdpnm
-          winpl(i,2) = (d_half*(-pnm(i,k2)+pbr(i,k2)))*rdpnm
-          winpl(i,3) = (d_half*(pnm(i,k2+1)+pbr(i,k2))-pnm(i,k2))*rdpnm
-          winpl(i,4) = (d_half*(-pnm(i,k2)-pbr(i,k2))+pnm(i,k2+1))*rdpnm
+          winpl(i,1) = ((pnm(i,k2+1)-pbr(i,k2))/d_two)*rdpnm
+          winpl(i,2) = ((-pnm(i,k2)+pbr(i,k2))/d_two)*rdpnm
+          winpl(i,3) = ((pnm(i,k2+1)+pbr(i,k2))/d_two-pnm(i,k2))*rdpnm
+          winpl(i,4) = ((-pnm(i,k2)-pbr(i,k2))/d_two+pnm(i,k2+1))*rdpnm
           tmp1 = d_one/(piln(i,k2+1)-piln(i,k2))
           tmp2 = piln(i,k2+1) - pmln(i,k2)
           tmp3 = piln(i,k2) - pmln(i,k2)
-          zinpl(i,1) = (d_half*tmp2)*tmp1
-          zinpl(i,2) = (-d_half*tmp3)*tmp1
-          zinpl(i,3) = (d_half*tmp2-tmp3)*tmp1
-          zinpl(i,4) = (tmp2-d_half*tmp3)*tmp1
-          pinpl(i,1) = d_half*(p1+pnm(i,k2+1))
-          pinpl(i,2) = d_half*(p2+pnm(i,k2))
-          pinpl(i,3) = d_half*(p1+pnm(i,k2))
-          pinpl(i,4) = d_half*(p2+pnm(i,k2+1))
+          zinpl(i,1) = (tmp2/d_two)*tmp1
+          zinpl(i,2) = (-tmp3/d_two)*tmp1
+          zinpl(i,3) = (tmp2/d_two-tmp3)*tmp1
+          zinpl(i,4) = (tmp2-tmp3/d_two)*tmp1
+          pinpl(i,1) = (p1+pnm(i,k2+1))/d_two
+          pinpl(i,2) = (p2+pnm(i,k2))/d_two
+          pinpl(i,3) = (p1+pnm(i,k2))/d_two
+          pinpl(i,4) = (p2+pnm(i,k2+1))/d_two
         end do
 
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
@@ -3712,8 +3711,8 @@
             k21 = term7(i,1) + term8(i,1)/denom
             denom = d_one + (c28+c29*dtym10)*sqrtu(i)
             k22 = term7(i,2) + term8(i,2)/denom
-            term9(i,2) = coefi(1,2) + coefi(2,2)*dtx(i)                 &
-                         *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)             &
+            term9(i,2) = coefi(1,2) + coefi(2,2)*dtx(i)              &
+                         *(d_one+c19*dtx(i)*(d_one+c21*dtx(i)        &
                          *(d_one+c23*dtx(i)*(d_one+c25*dtx(i)))))
             tr1 = dexp(-(k21*(sqrtu(i)+fc1*fwku(i))))
             tr2 = dexp(-(k22*(sqrtu(i)+fc1*fwku(i))))
@@ -3725,13 +3724,13 @@
             th2o(i) = tr10(i)
             trab4(i) = dexp(-(coefg(1,3)+coefg(2,3)*dtx(i))*uc(i))
             trab6(i) = dexp(-(coefg(1,4)+coefg(2,4)*dtx(i))*uc(i))
-            term6(i,2) = coeff(1,2) + coeff(2,2)*dtx(i)                 &
-                         *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)              &
+            term6(i,2) = coeff(1,2) + coeff(2,2)*dtx(i)              &
+                         *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)         &
                          *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
-            abso(i,3) = term6(i,2)                                      &
-                        *(d_one-d_half*trab4(i)*trline(i,2)-d_half*trab6(i)  &
-                        *trline(i,1))
-            abso(i,4) = term9(i,2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
+            abso(i,3) = term6(i,2)                                   &
+                        *(d_one-trab4(i)/d_two*trline(i,2)-          &
+                                trab6(i)/d_two*trline(i,1))
+            abso(i,4) = term9(i,2)/d_two*(tr1-tr9(i)+tr2-tr10(i))
           end do
 !
 !         abso(i,5)  o3  9.6 micrometer (nu3 and nu1 bands)
@@ -4234,7 +4233,7 @@
                      *trline(i,2)
           trem6(i) = dexp(-(coefg(1,2)+coefg(2,2)*dtx(i))*uc(i))        &
                      *trline(i,1)
-          emis(i,3) = term6(i,1)*(d_one-d_half*trem4(i)-d_half*trem6(i))
+          emis(i,3) = term6(i,1)*(d_one-trem4(i)/d_two-trem6(i)/d_two)
 !
 !         emis(i,4)   500 -  800 cm-1   rotation band overlap with co2
 !
@@ -4253,7 +4252,7 @@
           tr4(i) = dexp(-((coefh(1,2)+coefh(2,2)*dtx(i))*uc1(i)))
           tr7(i) = tr1(i)*tr3(i)
           tr8(i) = tr2(i)*tr4(i)
-          emis(i,4) = term9(i,1)*d_half*(tr1(i)-tr7(i)+tr2(i)-tr8(i))
+          emis(i,4) = term9(i,1)/d_two*(tr1(i)-tr7(i)+tr2(i)-tr8(i))
           h2oems(i,k1) = emis(i,1) + emis(i,2) + emis(i,3) + emis(i,4)
           troco2(i,k1) = 0.65D0*tr7(i) + 0.35D0*tr8(i)
           th2o(i) = tr8(i)
@@ -4518,7 +4517,7 @@
         do i = 1 , iym1
           tlayr(i,k) = tnm(i,k-1)
           tlayr4(i,k) = tlayr(i,k)**d_four
-          tplnka(i,k) = d_half*(tint(i,k)+tint(i,k-1))
+          tplnka(i,k) = (tint(i,k)+tint(i,k-1))/d_two
         end do
       end do
 !
@@ -4664,7 +4663,7 @@
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
-      cpwpl = vmmr*d_half/(egravgts*sslp)
+      cpwpl = vmmr/d_two/(egravgts*sslp)
       do i = 1 , iym1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)
@@ -4875,7 +4874,7 @@
         implicit none
         real(8) :: xgamma
         real(8) , intent(in) :: w , uu , g , e
-        xgamma = d_half*w*((3.0D0*g*(d_one-w)*uu*uu+d_one) / &
+        xgamma = (w/d_two)*((3.0D0*g*(d_one-w)*uu*uu+d_one) / &
                            (d_one-e*e*uu*uu))
       end function xgamma
       function el(w,g)

@@ -182,7 +182,7 @@
           ac = cco2 + xkb + rm*(pm-w)
           bc = d_four*rm*(cco2*(pm-w)-xkb*w)
           ab = dsqrt(ac**d_two-bc)
-          p = d_half*(ac-ab)/rm
+          p = ((ac-ab)/d_two)/rm
           ccold = cco2i
           cco2i = cco2 - p*rm
           if ( dabs(cco2i-ccold) <= 0.05D0 .and. it > 9 ) exit

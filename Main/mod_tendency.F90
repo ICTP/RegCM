@@ -105,11 +105,11 @@
       integer :: iexec
       intent (inout) iexec
 !
-      real(8) :: cell , chias , chibs , dto2 , dudx , dudy ,            &
-               & dvdx , dvdy , psabar , psasum ,                        &
-               & pt2bar , pt2tot , ptnbar , ptntot , qcas , qcbs ,      &
-               & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,           &
-               & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,      &
+      real(8) :: cell , chias , chibs , dudx , dudy ,               &
+               & dvdx , dvdy , psabar , psasum ,                    &
+               & pt2bar , pt2tot , ptnbar , ptntot , qcas , qcbs ,  &
+               & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,       &
+               & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,  &
                & xday , xmsf , xtm1
       real(8) , dimension(iy,kz) :: divl
       integer :: i , icons , iptn , itr , j , k , lev , n
@@ -309,8 +309,8 @@
 #endif
           do k = 1 , kz
             do i = 3 , iym2
-              psabar=d_rfour*(sps1%ps(i,j)+sps1%ps(i,jm1)+ &
-                           sps1%ps(i-1,j)+sps1%ps(i-1,jm1))
+              psabar=(sps1%ps(i,j)+sps1%ps(i,jm1)+ &
+                      sps1%ps(i-1,j)+sps1%ps(i-1,jm1))/d_four
               xmsf = mddom%msfd(i,j)
               atmx%u(i,k,j) = atm1%u(i,k,j)/(psabar*xmsf)
               atmx%v(i,k,j) = atm1%v(i,k,j)/(psabar*xmsf)
@@ -563,8 +563,8 @@
          if(jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
-          sps2%pdot(i,j)=d_rfour*(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
-                                 sps2%ps(i,jm1)+sps2%ps(i-1,jm1))
+          sps2%pdot(i,j)=(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
+                          sps2%ps(i,jm1)+sps2%ps(i-1,jm1))/d_four
         end do
       end do
 !
@@ -574,13 +574,13 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 )  &
-           sps2%pdot(i,1) = d_half*(sps2%ps(i,1)+sps2%ps(i-1,1))
+          sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))/d_two
         if ( myid == nproc-1 ) &
-           sps2%pdot(i,jendl) = d_half*(sps2%ps(i,jendx)+ &
-                                       sps2%ps(i-1,jendx))
+          sps2%pdot(i,jendl) = (sps2%ps(i,jendx)+ &
+                                sps2%ps(i-1,jendx))/d_two
 #else
-        sps2%pdot(i,1) = d_half*(sps2%ps(i,1)+sps2%ps(i-1,1))
-        sps2%pdot(i,jx) = d_half*(sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))
+        sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))/d_two
+        sps2%pdot(i,jx) = (sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))/d_two
 #endif
       end do
 #endif
@@ -600,8 +600,8 @@
 #if defined(BAND) && (!defined(MPP1))
          if(jm1 == 0) jm1=jx
 #endif
-        sps2%pdot(1,j) = d_half*(sps2%ps(1,j)+sps2%ps(1,jm1))
-        sps2%pdot(iy,j) = d_half*(sps2%ps(iym1,j)+sps2%ps(iym1,jm1))
+        sps2%pdot(1,j)  = (sps2%ps(1,j)+sps2%ps(1,jm1))/d_two
+        sps2%pdot(iy,j) = (sps2%ps(iym1,j)+sps2%ps(iym1,jm1))/d_two
       end do
 !
 !-----corner points:
@@ -894,7 +894,7 @@
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = d_half*sps1%ps(i,j)* &
+              omega(i,k,j) = (sps1%ps(i,j)/d_two)* &
                        & (qdot(i,k+1,j)+qdot(i,k,j))+a(k)*(pten(i,j)+   &
                        & ((atmx%u(i,k,j)+atmx%u(i+1,k,j)+               &
                        &   atmx%u(i+1,k,jp1)+atmx%u(i,k,jp1))*          &
@@ -1318,7 +1318,7 @@
               ptntot = ptntot + dabs(ps_4(i,1,j))
               pt2tot = pt2tot +                       &
                      & dabs((ps_4(i,2,j)+ps_4(i,3,j)- &
-                             d_two*ps_4(i,4,j))/(d_rfour*dt*dt))
+                             d_two*ps_4(i,4,j))/((dt*dt)/d_four))
             end do
           end if
         end do
@@ -1340,7 +1340,7 @@
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+sps2%ps(i,j)- &
-                      d_two*sps1%ps(i,j))/(d_rfour*dt*dt))
+                      d_two*sps1%ps(i,j))/((dt*dt)/d_four))
             end do
           end if
 #ifndef BAND
@@ -1471,14 +1471,14 @@
 #if defined(BAND) && (!defined(MPP1))
                 if ( jp1 == jx+1 ) jp1 = 1
 #endif
-                gwnd%usk(i,k) = d_rfour*(atm1%u(i,k,j)/sps2%ps(i,j)+  &
-                          &      atm1%u(i+1,k,j)/sps2%ps(i+1,j)+     &
-                          &      atm1%u(i,k,jp1)/sps2%ps(i,jp1)+     &
-                          &      atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))
-                gwnd%vsk(i,k) = d_rfour*(atm1%v(i,k,j)/sps2%ps(i,j)+  &
-                          &      atm1%v(i+1,k,j)/sps2%ps(i+1,j)+     &
-                          &      atm1%v(i,k,jp1)/sps2%ps(i,jp1)+     &
-                          &      atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))
+                gwnd%usk(i,k) = (atm1%u(i,k,j)/sps2%ps(i,j)+  &
+                          & atm1%u(i+1,k,j)/sps2%ps(i+1,j)+   &
+                          & atm1%u(i,k,jp1)/sps2%ps(i,jp1)+   &
+                          & atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))/d_four
+                gwnd%vsk(i,k) = (atm1%v(i,k,j)/sps2%ps(i,j)+  &
+                          & atm1%v(i+1,k,j)/sps2%ps(i+1,j)+   &
+                          & atm1%v(i,k,jp1)/sps2%ps(i,jp1)+   &
+                          & atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))/d_four
               end do
             end do
             call cuparan(aten%t(:,:,j),aten%qv(:,:,j),j)
@@ -1569,7 +1569,7 @@
 !       ****** call vector bats for surface physics calculations
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
            &  mod(ktau+1,nbatst) == 0 ) then
-          dtbat = dt/d_two*dble(nbatst)
+          dtbat = dto2*dble(nbatst)
           if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
           call interf(1 , j , kz , 2 , iym1 , nnsg)
           call vecbats
@@ -1601,14 +1601,13 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
-        dtbat = dt/d_two*nbatst
+        dtbat = dto2*nbatst
         ! CLM j loop is in mtrxclm
         call mtrxclm
       end if
 #endif
 
       if ( icup == 1 ) then
-        dto2 = dt/d_two
         call htdiff(dto2,dxsq,akht1)
       end if
 !     call medium resolution pbl
@@ -1940,16 +1939,16 @@
               tv2 = atmx%t(i,k,jm1)*(d_one+ep1*(atmx%qv(i,k,jm1)))
               tv3 = atmx%t(i-1,k,j)*(d_one+ep1*(atmx%qv(i-1,k,j)))
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
-              rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*              &
-                    & ((a(k)*psasum/d_four+r8pt)/p00pg)**pgfaa1
+              rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
+                    & ((a(k)*(psasum/d_four)+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                     (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
-                      dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
+                     (dlog((psd(i,j)+psd(i-1,j))/d_two*a(k)+r8pt) -     &
+                      dlog((psd(i,jm1)+psd(i-1,jm1))/d_two*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
-                     (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
-                      dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
+                     (dlog((psd(i,j)+psd(i,jm1))/d_two*a(k)+r8pt) -     &
+                      dlog((psd(i-1,jm1)+psd(i-1,j))/d_two*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
             end do
           end do
@@ -1964,12 +1963,12 @@
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                      (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -    &
-                       dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/&
+                      (dlog((psd(i,j)+psd(i-1,j))/d_two*a(k)+r8pt) -    &
+                       dlog((psd(i,jm1)+psd(i-1,jm1))/d_two*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
-                      (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -    &
-                       dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/&
+                      (dlog((psd(i,j)+psd(i,jm1))/d_two*a(k)+r8pt) -    &
+                       dlog((psd(i-1,jm1)+psd(i-1,j))/d_two*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
             end do
           end do
@@ -2171,8 +2170,8 @@
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
             qvas = atmc%qv(i,k,j)
-            atm2%qv(i,k,j) = dmax1(qvbs,lowval)
-            atm1%qv(i,k,j) = dmax1(qvas,lowval)
+            atm2%qv(i,k,j) = dmax1(qvbs,dlowval)
+            atm1%qv(i,k,j) = dmax1(qvas,dlowval)
           end do
           do i = 2 , iym2
             qcbs = omu*atm1%qc(i,k,j) + &
@@ -2191,7 +2190,7 @@
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 chib(i,k,j,itr) = dmax1(chibs,d_zero)
                 chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = dmax1(chias,d_zero)
+                chia(i,k,j,itr) = dmax1(chias,dlowval)
               end do
             end do
           end if
@@ -2239,6 +2238,7 @@
         end if
       end if
       if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
+      dto2 = dt/d_two
 !
 !-----compute the amounts advected through the lateral boundaries:
 !     *** note *** we must calculate the amounts advected through

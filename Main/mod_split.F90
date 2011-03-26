@@ -147,7 +147,7 @@
       do ns = 1 , nsplit
         m(ns) = idnint(dt/dtau(ns))
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          m(ns) = idnint(d_half*dt/dtau(ns))
+          m(ns) = idnint(dto2/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
@@ -574,8 +574,8 @@
         if(jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
-          psdot(i,j)=d_rfour*(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
-                             sps1%ps(i,jm1)+sps1%ps(i-1,jm1))
+          psdot(i,j)=(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
+                      sps1%ps(i,jm1)+sps1%ps(i-1,jm1))/d_four
         end do
       end do
 !
@@ -583,12 +583,12 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 ) & 
-          psdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
+          psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))/d_two
         if ( myid == nproc-1 ) &
-          psdot(i,jendl) = d_half*(sps1%ps(i,jendx)+sps1%ps(i-1,jendx))
+          psdot(i,jendl) = (sps1%ps(i,jendx)+sps1%ps(i-1,jendx))/d_two
 #else
-        psdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
-        psdot(i,jx) = d_half*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
+        psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))/d_two
+        psdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))/d_two
 #endif
       end do
 #endif
@@ -606,8 +606,8 @@
 #if defined(BAND) && (!defined(MPP1))
         if(jm1 == 0) jm1=jx
 #endif
-        psdot(1,j) = d_half*(sps1%ps(1,j)+sps1%ps(1,jm1))
-        psdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,jm1))
+        psdot(1,j) = (sps1%ps(1,j)+sps1%ps(1,jm1))/d_two
+        psdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,jm1))/d_two
       end do
 !
 #ifndef BAND

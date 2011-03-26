@@ -471,8 +471,8 @@
               if ( (czen(i)/ilmax) > 0.001D0 ) then
                 trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
                 trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
-                if ( trup(n,i) < lowval ) trup(n,i) = d_zero
-                if ( trupd(n,i) < lowval ) trupd(n,i) = d_zero
+                if ( trup(n,i) < dlowval ) trup(n,i) = d_zero
+                if ( trupd(n,i) < dlowval ) trupd(n,i) = d_zero
                 fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
                 fsol0(n,i) = (d_one-fracd(i))*solis(i)*fc(lveg(n,i))
                 rmini(n,i) = rsmin(lveg(n,i))/rmax0
@@ -720,7 +720,7 @@
                 cdr(n,i) = cdrn(n,i)*ribi
                 cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
                            & *sigf(n,i)
-                cdrmin(n,i) = dmax1(d_rfour*cdrn(n,i),6.0D-4)
+                cdrmin(n,i) = dmax1(cdrn(n,i)/d_four,6.0D-4)
               end if
               if ( (rib(n,i) >= d_zero) ) then
                 if ( (cdr(n,i) < cdrmin(n,i)) ) then

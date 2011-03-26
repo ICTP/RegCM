@@ -606,7 +606,7 @@
 !
           do k = 1 , kz
             do i = 1 , iym1
-              path = (pint(i,k+1)-pint(i,k))/egravgts
+              path = (pint(i,k+1)-pint(i,k))*rga
               ibin = 0
               do itr = 1 , ntr
                 uaer(i,k,itr) = d_zero
@@ -778,7 +778,7 @@
 !
           do i = 1 , iym1
             do k = 1 , kz
-              path = (pint(i,k+1)-pint(i,k))/egravgts
+              path = (pint(i,k+1)-pint(i,k))*rga
               if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) &
                 write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
 !             sum of hydrophilic aerosols

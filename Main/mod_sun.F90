@@ -95,7 +95,7 @@
 #else
       calday = dble(julday) + (nnnnnn-nstrt0)/d_four + &
                        (xtime/minph+gmt)/houpd
-      theta = 2.0D0*mathpi*calday/dayspy
+      theta = twopi*calday/dayspy
 !
 !     Solar declination in radians:
 !

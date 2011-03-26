@@ -20,6 +20,7 @@
       module mod_header
 
       use mod_date
+      use mod_constants
 
       private
 
@@ -39,8 +40,8 @@
         if ( myid == 0 )  then 
           call date_and_time(values=timearr)
           start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                       timearr(5)*3600.0 + timearr(6)*60.0 + &
-                       timearr(7)+0.001 * timearr(8)
+                       timearr(5)*secph+ timearr(6)*secpm + &
+                       dble(timearr(7)) + d_r1000*timearr(8)
           write (nrite,"(/,2x,'This is RegCM branch regcm-core')")
           write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
         end if
@@ -93,8 +94,8 @@
 #endif 
           call date_and_time(values=timearr)
           finish_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                        timearr(5)*3600.0 + timearr(6)*60.0 + &
-                        timearr(7)+0.001 * timearr(8)
+                        timearr(5)*secph+ timearr(6)*secpm + &
+                        dble(timearr(7)) + d_r1000*timearr(8)
           write (nrite,*) ': this run stops at  : ', cdata
           write (nrite,*) ': Total elapsed seconds of run : ', &
                           finish_time - start_time

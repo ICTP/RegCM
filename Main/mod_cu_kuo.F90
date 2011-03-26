@@ -150,7 +150,7 @@
           dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
-          tmean = d_half*(tmax+tlcl)
+          tmean = (tmax+tlcl)/d_two
           dlnp = (egrav*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
           siglcl = (plcl-r8pt)/sps1%ps(i,j)
@@ -256,14 +256,14 @@
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt/d_two
+                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dto2
 !x              if (ttconv*2. > 0.01) write(18,1234) i,j,k,ttconv*2.
 !1234           format(1x,'cupara, i=',i4,' j=',i4,' k=',i4,'
 !               qteva=',e12.4)
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 aten%qv(i,k,j) = eddyf
-                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dt/d_two
+                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dto2
               end do
 !
 !             find cloud fractional cover and liquid water content

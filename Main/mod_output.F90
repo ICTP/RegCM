@@ -221,9 +221,9 @@
               end do
               do i = 1 , iy
                 psa_io(i,j) = atm_0(i,1+kz*6,j)
-                if (atm_0(i,2+kz*6,j) > lowval) &
+                if (atm_0(i,2+kz*6,j) > dlowval) &
                   rainc_io(i,j) = atm_0(i,2+kz*6,j)
-                if (atm_0(i,3+kz*6,j) > lowval) &
+                if (atm_0(i,3+kz*6,j) > dlowval) &
                   rainnc_io(i,j) = atm_0(i,3+kz*6,j)
               end do
             end do
@@ -762,9 +762,9 @@
                 end do
               end do
               do i = 1 , iy
-                if (sav_0(i,kz*4+1,j) > lowval) &
+                if (sav_0(i,kz*4+1,j) > dlowval) &
                   rainc_io(i,j) = sav_0(i,kz*4+1,j)
-                if (sav_0(i,kz*4+2,j) > lowval) &
+                if (sav_0(i,kz*4+2,j) > dlowval) &
                   rainnc_io(i,j) = sav_0(i,kz*4+2,j)
               end do
             end do
@@ -1387,10 +1387,12 @@
 !-----output for restart:
 !
       if ( ifsave ) then
-        if (ldosav) then
-          call write_savefile(idatex,.false.)
-        else
-          call write_savefile(idatex,.true.)
+        if ( ldosav .or. ldotmp ) then
+          if (ldosav) then
+            call write_savefile(idatex,.false.)
+          else
+            call write_savefile(idatex,.true.)
+          end if
         end if
       end if
 !

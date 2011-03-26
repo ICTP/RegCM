@@ -2327,7 +2327,6 @@
           logical , intent(in) :: lmiss
           integer , intent(out) :: ivar
 
-          real(4) , parameter :: fillv = -1E+34
           integer :: i , ndims
 
           ndims = 0
@@ -2367,7 +2366,7 @@
                         ctype//' FILE ERROR')
           if (lmiss) then
             istatus = nf90_put_att(ncid, ivar, '_FillValue', &
-                              &  fillv)
+                              &  smissval)
             call check_ok('Error adding '//vname//' coordinates', &
                           ctype//' FILE ERROR')
           end if
@@ -2783,9 +2782,8 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = real(d_rfour *    &
-                    (u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                     u(ip2,k,jp1)+u(ip2,k,jp2)) / ps(ip1,jp1))
+                dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
+                     u(ip2,k,jp1)+u(ip2,k,jp2))/d_four) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2806,9 +2804,8 @@
                   jp2 = j+1
                   if (j == o_nj) jp2 = 1
                 end if
-                dumio(j,i,k) = real(d_rfour*     &
-                    (v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                     v(ip2,k,jp1)+v(ip2,k,jp2)) / ps(ip1,jp1))
+                dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
+                     v(ip2,k,jp1)+v(ip2,k,jp2))/d_four) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2869,7 +2866,7 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                if (qv(ip1,k,jp1) > lowval) &
+                if (qv(ip1,k,jp1) > dlowval) &
                   dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
               end do
             end do
@@ -2891,7 +2888,7 @@
                   jp1 = j
                   jp2 = j+1
                 end if
-                if (qc(ip1,k,jp1) > lowval) &
+                if (qc(ip1,k,jp1) > dlowval) &
                   dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))
               end do
             end do
@@ -2909,10 +2906,10 @@
           icount(1) = o_nj
 
           dumio(:,:,1) = 0.0
-          where (transpose(rc(o_is:o_ie,o_js:o_je)) > lowval)
+          where (transpose(rc(o_is:o_ie,o_js:o_je)) > dlowval)
             dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
           end where
-          where (transpose(rnc(o_is:o_ie,o_js:o_je)) > lowval)
+          where (transpose(rnc(o_is:o_ie,o_js:o_je)) > dlowval)
             dumio(:,:,1) = dumio(:,:,1) + &
                            real(transpose(rnc(o_is:o_ie,o_js:o_je)))
           end where
@@ -3038,6 +3035,7 @@
               dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
                                        ps(o_is:o_ie,o_js:o_je)))
             end do
+            dumio = amax1(dumio,slowval)
             istatus = nf90_put_var(ncche, ichevar(3), &
                                  dumio, istart, icount)
             call check_ok('Error writing '//che_names(3)//' at '//ctime,&
