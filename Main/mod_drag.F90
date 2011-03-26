@@ -252,7 +252,7 @@
             rhosw(n,i) = 0.10D0*(d_one+d_three*age)
             densi(n,i) = 0.01D0/(d_one+d_three*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)
-            if (scrat(n,i) < lowval) scrat(n,i) = d_zero
+            if (scrat(n,i) < dlowval) scrat(n,i) = d_zero
             wt(n,i) = d_one
             if ( lveg(n,i) > 0 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))

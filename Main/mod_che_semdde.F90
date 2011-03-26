@@ -335,6 +335,8 @@
       call time_begin(subroutine_name,idindx)
 
       i = 0
+      pdepvsub = d_zero
+
       do n = 1 , isize
         avesize(n) = (aerosize(1,n)+aerosize(2,n))/d_two
       end do

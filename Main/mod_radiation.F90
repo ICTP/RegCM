@@ -1211,11 +1211,11 @@
         indxsl = 0
         if ( wavmax(ns) <= 0.70D0 ) then
           indxsl = 1
-        else if ( dabs(wavmin(ns)-0.700D0) < lowval ) then
+        else if ( dabs(wavmin(ns)-0.700D0) < dlowval ) then
           indxsl = 2
-        else if ( dabs(wavmin(ns)-0.701D0) < lowval ) then
+        else if ( dabs(wavmin(ns)-0.701D0) < dlowval ) then
           indxsl = 3
-        else if ( dabs(wavmin(ns)-0.702D0) < lowval .or. &
+        else if ( dabs(wavmin(ns)-0.702D0) < dlowval .or. &
                        wavmin(ns) > 2.38D0 ) then
           indxsl = 4
         end if

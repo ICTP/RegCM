@@ -153,13 +153,13 @@
               idep2d(n,i,j) = 0
             end if
             if (idep2d(n,i,j) == 0) then
-              hi2d(n,i,j)     = -1D+34
-              aveice2d(n,i,j) = -1D+34
-              hsnow2d(n,i,j)  = -1D+34
-              eta2d(n,i,j)    = -1D+34
-              tlak3d(:,n,i,j) = -1D+34
+              hi2d(n,i,j)     = dmissval
+              aveice2d(n,i,j) = dmissval
+              hsnow2d(n,i,j)  = dmissval
+              eta2d(n,i,j)    = dmissval
+              tlak3d(:,n,i,j) = dmissval
             else if (idep2d(n,i,j) < ndpmax) then
-              tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
+              tlak3d(idep2d(n,i,j)+1:,n,i,j) = dmissval
             end if
           end do
         end do
@@ -377,7 +377,7 @@
 !       we just look for energy here.
 !        n2 = dabs((dpdz/dnsty(k))*egrav)
         n2 = (dpdz/dnsty(k))*egrav
-        if (dabs(n2) < lowval) then
+        if (dabs(n2) < dlowval) then
           de(k) = demin
           cycle
         end if
@@ -593,7 +593,7 @@
               tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
             end if
           end if
-          if ( (dabs(hs) < lowval) .and. (aveice > d_zero) ) then
+          if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
             di = dtx*                                        &
               & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
                  theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
@@ -867,23 +867,23 @@
           do n = 1 , nnsg
 #ifdef MPP1
             if (idep2d_io(n,i,j) == 0) then
-              hi2d_io(n,i,j)     = -1D+34
-              aveice2d_io(n,i,j) = -1D+34
-              hsnow2d_io(n,i,j)  = -1D+34
-              eta2d_io(n,i,j)    = -1D+34
-              tlak3d_io(:,n,i,j) = -1D+34
+              hi2d_io(n,i,j)     = dmissval
+              aveice2d_io(n,i,j) = dmissval
+              hsnow2d_io(n,i,j)  = dmissval
+              eta2d_io(n,i,j)    = dmissval
+              tlak3d_io(:,n,i,j) = dmissval
             else if (idep2d_io(n,i,j) < ndpmax) then
-              tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = -1D+34
+              tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = dmissval
             end if
 #else
             if (idep2d(n,i,j) == 0) then
-              hi2d(n,i,j)     = -1D+34
-              aveice2d(n,i,j) = -1D+34
-              hsnow2d(n,i,j)  = -1D+34
-              eta2d(n,i,j)    = -1D+34
-              tlak3d(:,n,i,j) = -1D+34
+              hi2d(n,i,j)     = dmissval
+              aveice2d(n,i,j) = dmissval
+              hsnow2d(n,i,j)  = dmissval
+              eta2d(n,i,j)    = dmissval
+              tlak3d(:,n,i,j) = dmissval
             else if (idep2d(n,i,j) < ndpmax) then
-              tlak3d(idep2d(n,i,j)+1:,n,i,j) = -1D+34
+              tlak3d(idep2d(n,i,j)+1:,n,i,j) = dmissval
             end if
 #endif
           end do

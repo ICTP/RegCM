@@ -265,7 +265,7 @@
       tbarf(kzp1) = d_zero
 !
       do k = 1 , kzp1
-        if ( sigmaf(k) < lowval ) then
+        if ( sigmaf(k) < dlowval ) then
           thetaf(k) = tbarf(k)
         else
           thetaf(k) = tbarf(k)*((sigmaf(k)+r8pt/pd)**(-rovcp))
@@ -738,7 +738,7 @@
       do l = 1 , nk
         hmax = -1.0D100
         do k = 1 , nk
-          if ( (dabs(wh(k,2)) < lowval) .and. (wh(k,1) > hmax) ) then
+          if ( (dabs(wh(k,2)) < dlowval) .and. (wh(k,1) > hmax) ) then
             hmax = wh(k,1)
             kmax = k
           end if

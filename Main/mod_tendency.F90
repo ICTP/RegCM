@@ -2165,8 +2165,8 @@
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
             qvas = atmc%qv(i,k,j)
-            atm2%qv(i,k,j) = dmax1(qvbs,lowval)
-            atm1%qv(i,k,j) = dmax1(qvas,lowval)
+            atm2%qv(i,k,j) = dmax1(qvbs,dlowval)
+            atm1%qv(i,k,j) = dmax1(qvas,dlowval)
           end do
           do i = 2 , iym2
             qcbs = omu*atm1%qc(i,k,j) + &
@@ -2185,7 +2185,7 @@
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 chib(i,k,j,itr) = dmax1(chibs,d_zero)
                 chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = dmax1(chias,d_zero)
+                chia(i,k,j,itr) = dmax1(chias,dlowval)
               end do
             end do
           end if
