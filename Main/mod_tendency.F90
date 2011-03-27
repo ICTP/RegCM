@@ -2190,7 +2190,12 @@
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 chib(i,k,j,itr) = dmax1(chibs,d_zero)
                 chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = dmax1(chias,dlowval)
+                chia(i,k,j,itr) = dmax1(chias,d_zero)
+                ! Graziano - flush chemistry arrays to avoid numerical
+                ! problems in multiple parts of the code.
+                if (chia(i,k,j,itr) < dlowval) chia(i,k,j,itr) = d_zero
+                if (chib(i,k,j,itr) < dlowval) chib(i,k,j,itr) = d_zero
+                !
               end do
             end do
           end if
