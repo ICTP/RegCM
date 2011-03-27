@@ -3032,7 +3032,6 @@
               dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
                                        ps(o_is:o_ie,o_js:o_je)))
             end do
-            dumio = amax1(dumio,slowval)
             istatus = nf90_put_var(ncche, ichevar(3), &
                                  dumio, istart, icount)
             call check_ok('Error writing '//che_names(3)//' at '//ctime,&
