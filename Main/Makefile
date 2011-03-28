@@ -150,9 +150,9 @@ mod_cu_bm.o: mod_cu_bm.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
              mod_runparams.o mod_pmoist.o mod_rad.o mod_dynparam.o mod_trachem.o
 mod_cu_em.o: mod_cu_em.f90 mod_bats.o mod_cvaria.o mod_date.o mod_main.o \
              mod_runparams.o mod_pmoist.o mod_rad.o mod_dynparam.o mod_slice.o
-mod_cu_grell.o: mod_cu_grell.f90 mod_pmoist.o mod_rad.o mod_dynparam.o \
+mod_cu_grell.o: mod_cu_grell.F90 mod_pmoist.o mod_rad.o mod_dynparam.o \
                 mod_trachem.o mod_bats.o mod_constants.o mod_date.o mod_main.o \
-                mod_runparams.o
+                mod_cvaria.o mod_runparams.o
 mod_cu_kuo.o: mod_cu_kuo.F90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_runparams.o mod_pmoist.o mod_rad.o \
               mod_dynparam.o mod_trachem.o mod_advection.o
@@ -227,14 +227,16 @@ mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
              mod_pmoist.o mod_dynparam.o mod_trachem.o mod_mppio.o \
              mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o mod_chem.o \
              mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_clm.o \
-             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o
+             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
+						 mod_cu_grell.o
 else
 mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
              mod_main.o mod_message.o mod_runparams.o mod_o3blk.o \
              mod_pmoist.o mod_dynparam.o mod_trachem.o mod_mppio.o \
              mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
              mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_chem.o \
-             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o
+             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
+						 mod_cu_grell.o
 endif
 mod_pbldim.o: mod_pbldim.f90 mod_dynparam.o
 mod_pmoist.o: mod_pmoist.f90 mod_dynparam.o

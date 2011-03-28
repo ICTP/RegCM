@@ -29,6 +29,7 @@
       use mod_message
       use mod_cu_bm
       use mod_cu_em
+      use mod_cu_grell
       use mod_rad
       use mod_split
       use mod_slice
@@ -1281,6 +1282,7 @@
         call say
       end if
       if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+        call allocate_mod_cu_grell
         kbmax = kz
         do k = 1 , kz - 1
           if ( a(k) <= skbmax ) kbmax = kz - k
