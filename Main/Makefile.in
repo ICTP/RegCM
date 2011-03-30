@@ -66,8 +66,8 @@ am__regcm_SOURCES_DIST = mod_constants.F90 mod_dynparam.F90 \
 	mod_savefile.F90 mod_scenarios.F90 mod_slice.F90 mod_split.F90 \
 	mod_sun.F90 mod_tendency.F90 mod_tracer.f90 mod_trachem.F90 \
 	mod_tstep.f90 mod_vecbats.F90 mod_vmodes.F90 mod_zengocn.F90 \
-	mod_cu_tiedtke.F90 mod_cu_tables.f90 regcm.F90 mod_clm.F90 \
-	mod_mtrxclm.F90
+	mod_cu_tiedtke.F90 mod_memutil.f90 mod_cu_tables.f90 regcm.F90 \
+	mod_clm.F90 mod_mtrxclm.F90
 @DO_COMPILE_LIBCLM_TRUE@am__objects_1 = mod_clm.$(OBJEXT) \
 @DO_COMPILE_LIBCLM_TRUE@	mod_mtrxclm.$(OBJEXT)
 am_regcm_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
@@ -95,7 +95,8 @@ am_regcm_OBJECTS = mod_constants.$(OBJEXT) mod_dynparam.$(OBJEXT) \
 	mod_trachem.$(OBJEXT) mod_tstep.$(OBJEXT) \
 	mod_vecbats.$(OBJEXT) mod_vmodes.$(OBJEXT) \
 	mod_zengocn.$(OBJEXT) mod_cu_tiedtke.$(OBJEXT) \
-	mod_cu_tables.$(OBJEXT) regcm.$(OBJEXT) $(am__objects_1)
+	mod_memutil.$(OBJEXT) mod_cu_tables.$(OBJEXT) regcm.$(OBJEXT) \
+	$(am__objects_1)
 regcm_OBJECTS = $(am_regcm_OBJECTS)
 regcm_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -270,7 +271,8 @@ regcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_bats_param.f90 \
 	mod_savefile.F90 mod_scenarios.F90 mod_slice.F90 mod_split.F90 \
 	mod_sun.F90 mod_tendency.F90 mod_tracer.f90 mod_trachem.F90 \
 	mod_tstep.f90 mod_vecbats.F90 mod_vmodes.F90 mod_zengocn.F90 \
-	mod_cu_tiedtke.F90 mod_cu_tables.f90 regcm.F90 $(am__append_2)
+	mod_cu_tiedtke.F90 mod_memutil.f90 mod_cu_tables.f90 regcm.F90 \
+	$(am__append_2)
 EXTRAOBJS = mod_co2.o
 all: all-am
 
@@ -642,9 +644,9 @@ mod_cu_bm.o: mod_cu_bm.F90 mod_bats.o mod_constants.o mod_date.o mod_main.o \
              mod_runparams.o mod_pmoist.o mod_rad.o mod_dynparam.o mod_trachem.o
 mod_cu_em.o: mod_cu_em.f90 mod_bats.o mod_cvaria.o mod_date.o mod_main.o \
              mod_runparams.o mod_pmoist.o mod_rad.o mod_dynparam.o mod_slice.o
-mod_cu_grell.o: mod_cu_grell.f90 mod_pmoist.o mod_rad.o mod_dynparam.o \
+mod_cu_grell.o: mod_cu_grell.F90 mod_pmoist.o mod_rad.o mod_dynparam.o \
                 mod_trachem.o mod_bats.o mod_constants.o mod_date.o mod_main.o \
-                mod_runparams.o
+                mod_runparams.o mod_cvaria.o
 mod_cu_kuo.o: mod_cu_kuo.F90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_runparams.o mod_pmoist.o mod_rad.o \
               mod_dynparam.o mod_trachem.o mod_advection.o
@@ -681,6 +683,7 @@ mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
                 mod_runparams.o mod_dynparam.o
 mod_main.o: mod_main.f90 mod_dynparam.o mod_runparams.o
 mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o mod_runparams.o
+mod_memutil.o: mod_memutil.f90 mod_dynparam.o mod_constants.o
 mod_message.o: mod_message.F90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o mod_main.o
 mod_ncio.o: mod_ncio.F90 mod_dynparam.o mod_message.o mod_constants.o \
@@ -709,14 +712,14 @@ mod_o3blk.o: mod_o3blk.F90 mod_dynparam.o mod_main.o mod_runparams.o mod_rad.o
 @DO_COMPILE_LIBCLM_TRUE@             mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o mod_chem.o \
 @DO_COMPILE_LIBCLM_TRUE@             mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_clm.o \
 @DO_COMPILE_LIBCLM_TRUE@             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
-@DO_COMPILE_LIBCLM_TRUE@						 mod_cu_tables.o mod_cu_tiedtke.o
+@DO_COMPILE_LIBCLM_TRUE@						 mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o
 @DO_COMPILE_LIBCLM_FALSE@mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
 @DO_COMPILE_LIBCLM_FALSE@             mod_main.o mod_message.o mod_runparams.o mod_o3blk.o \
 @DO_COMPILE_LIBCLM_FALSE@             mod_pmoist.o mod_dynparam.o mod_trachem.o mod_mppio.o \
 @DO_COMPILE_LIBCLM_FALSE@             mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
 @DO_COMPILE_LIBCLM_FALSE@             mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_chem.o \
 @DO_COMPILE_LIBCLM_FALSE@             mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
-@DO_COMPILE_LIBCLM_FALSE@						 mod_cu_tables.o mod_cu_tiedtke.o
+@DO_COMPILE_LIBCLM_FALSE@						 mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o
 mod_pbldim.o: mod_pbldim.f90 mod_dynparam.o
 mod_pmoist.o: mod_pmoist.f90 mod_dynparam.o
 mod_precip.o: mod_precip.f90 mod_bats.o mod_constants.o mod_cvaria.o \

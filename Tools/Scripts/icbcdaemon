@@ -1,8 +1,27 @@
 #!/bin/sh
 #Script parameters
 
-#The only argument from the command line: the regcm.in file
+#A subroutine for printing the proper usage to the screen
+printusage ()
+{
+  echo "usage: $0 regcm.in"
+  echo "  where regcm.in is the namelist file for the run that you want to postprocess"
+  exit
+}
+
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ ! -e "$1" ]; then
+  echo "Error: '$1' does not exist"
+  printusage
+fi
+
+#Set the regcm.in file
 REGCMIN=$1
+
+#The only argument from the command line: the regcm.in file
 PID=$$
 
 ##########Control variables################
@@ -15,6 +34,7 @@ us="_"
 SLEEPTIME=300
 
 
+echo "Parsing $REGCMIN..."
 ##################### Reading regcm.in ########################
 #Use grep and sed to pull the experiment name from the regcm.in file
 EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
@@ -32,6 +52,9 @@ IDATE2=`echo $IDATE2`
 #the namelist
 OUTDIR=`grep -i dirout $REGCMIN | sed "s/[Dd][Ii][Rr][Oo][Uu][Tt]\s*=\s*'\(.*\)',*/\1/"`
 OUTDIR=`echo $OUTDIR`
+INPDIR=`grep -i dirglob $REGCMIN | sed "s/[Dd][Ii][Rr][Gg][Ll][Oo][Bb]\s*=\s*'\(.*\)',*/\1/"`
+INPDIR=`echo $INPDIR`
+echo $INPDIR
 
 #Assume that icbc lives in Bin, which is a directory up from the output
 #directory
@@ -46,6 +69,23 @@ ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
 
 ##################### End Reading regcm.in ####################
 
+################# Run ICBC on the first year ###################
+YEAR0=$STARTYEAR
+YEAR1=`expr $STARTYEAR + 1`
+MON0=$STARTMONTH
+MON1=$STARTMONTH
+GID0="$YEAR0$MON0$endstr"
+GID1="$YEAR1$MON1$endstr"
+echo "\tCreating files for ${GID0}-${GID1}..."
+cat $REGCMIN | sed "s/\(globidate1\s*=\s*\).*,/\1$GID0,/" | sed "s/\(globidate2\s*=\s*\).*,/\1$GID1,/" > regcm.$PID
+$ICBCBIN regcm.$PID
+
+#remove the regcm.in
+rm regcm.$PID
+echo "\t...done"
+################# End Run ICBC on the first year ###############
+
+
 
 
 ##################### Main loop ###############################
@@ -56,6 +96,7 @@ ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
 #run icbc for the next year, and delete files from the previous year
 for year in `seq $STARTYEAR $ENDYEAR`
 do
+    YEARM1=`expr $year - 1`
     YEAR0=`expr $year + 1`
     YEAR1=`expr $year + 2`
     MON0=$STARTMONTH
@@ -92,16 +133,47 @@ do
     ################# Run ICBC on the next year ###################
     GID0="$YEAR0$MON0$endstr"
     GID1="$YEAR1$MON1$endstr"
-    cat $REGCMIN | sed "s/\(globidate0\s*=\s*\).*,/\1$GID0,/" | sed "s/\(globidate1\s*=\s*\).*,/\1$GID1,/" > regcm.$PID
+    echo "\tCreating files for ${GID0}-${GID1}..."
+    cat $REGCMIN | sed "s/\(globidate1\s*=\s*\).*,/\1$GID0,/" | sed "s/\(globidate2\s*=\s*\).*,/\1$GID1,/" > regcm.$PID
     $ICBCBIN regcm.$PID
 
-    #Check that all files were created
+    #TODO: Check that all files were created
 
     #remove the regcm.in
     rm regcm.$PID
+    echo "\t...done"
     ################# End Run ICBC on the next year ###############
 
     ########## Delete ICBC files from the previous year ###########
+    #Generate a list of months that represent the 
+    #previous 12 months
+    if [ "$MON0" -eq "1" ];then
+      MLIST=`seq --equal-width 1 12`
+    else
+      MLIST1=`seq --equal-width ${MON0} 12`
+      MM1=`expr $MON0 - 1`
+      MLIST2=`seq --equal-width 1 ${MM1}`
+      MLIST="${MLIST1} ${MLIST2}"
+    fi
+    #Go through each month in the list
+    for month in $MLIST
+    do
+      #Increment the year if the month list has
+      #wrapped past 12
+      if [ "$month" -lt "$MON0" ]; then
+        yearstr=$year
+      else
+        yearstr=$YEARM1
+      fi
+      #Set the file name
+      fname="${INPDIR}/${EXPNAME}_ICBC.${yearstr}${month}0100.nc"
+      #Delete the file
+      if [ -s $fname ]; then
+        echo "\t\t...deleting ${fname}"
+        rm $fname
+      fi
+        echo "\t${fname}"
+    done
     ####### End Delete ICBC files from the previous year ##########
 
 done

@@ -1463,25 +1463,7 @@
             call cupara(j)
           end if
           if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-
-!! the following part moved from subroutine cuparan
-            do k = 1 , kz
-              do i = 2 , iym2
-                jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-                if ( jp1 == jx+1 ) jp1 = 1
-#endif
-                gwnd%usk(i,k) = (atm1%u(i,k,j)/sps2%ps(i,j)+  &
-                          & atm1%u(i+1,k,j)/sps2%ps(i+1,j)+   &
-                          & atm1%u(i,k,jp1)/sps2%ps(i,jp1)+   &
-                          & atm1%u(i+1,k,jp1)/sps2%ps(i+1,jp1))/d_four
-                gwnd%vsk(i,k) = (atm1%v(i,k,j)/sps2%ps(i,j)+  &
-                          & atm1%v(i+1,k,j)/sps2%ps(i+1,j)+   &
-                          & atm1%v(i,k,jp1)/sps2%ps(i,jp1)+   &
-                          & atm1%v(i+1,k,jp1)/sps2%ps(i+1,jp1))/d_four
-              end do
-            end do
-            call cuparan(aten%t(:,:,j),aten%qv(:,:,j),j)
+            call cuparan(j)
           end if
           if ( icup == 3 ) then
             write (aline,*)                                             &
@@ -1490,7 +1472,7 @@
             call say
             call fatal(__FILE__,__LINE__,                               &
                       &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
-            call bmpara(aten%t(1,1,j),aten%qv(1,1,j),j)
+            call bmpara(aten%t(:,:,j),aten%qv(:,:,j),j)
           end if
           if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
             call cupemandrv(j)

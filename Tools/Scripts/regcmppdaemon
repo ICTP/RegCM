@@ -228,7 +228,7 @@ do
       do
         echo "  Averaging $type for $year/$month..."
         #Average the files
-        if [ "$type" == "OPT" ]; then
+        if [ "$type" = "OPT" ]; then
           filenamein="${EXPNAME}_${type}.${year}${month}${endstr}.nc"
         else
           filenamein="${OUTDIR}/${EXPNAME}_${type}.${year}${month}${endstr}.nc"
@@ -243,7 +243,7 @@ do
         for type in $TYPESOPT
         do
           #Don't look in the output directory if it is an OPT file
-          if [ "$type" == "OPT" ]; then
+          if [ "$type" = "OPT" ]; then
             curfile="${EXPNAME}_${type}.${year}${month}${endstr}.nc"
           else
             curfile="${OUTDIR}/${EXPNAME}_${type}.${year}${month}${endstr}.nc"

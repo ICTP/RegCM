@@ -40,8 +40,8 @@
 !
       public :: allocate_mod_holtbl , holtbl
 !
-      real(8) ,allocatable, dimension(:,:,:) :: cgh , kvc , kvh , kvm , &
-                                                kvq
+      real(8) , allocatable , dimension(:,:,:) :: cgh , kvc , kvh ,   &
+                                                  kvm , kvq ! , cgq
       real(8) , allocatable, dimension(:,:) :: hfxv , obklen , th10 , &
                                                ustr , xhfx , xqfx
 !
@@ -70,6 +70,7 @@
       real(8) , parameter :: betam = 15.0D0
       real(8) , parameter :: betas = 5.0D0
       real(8) , parameter :: betah = 15.0D0
+      real(8) , parameter :: mult = 0.61D0
       real(8) , parameter :: ccon = fak*sffrac*vonkar
       real(8) , parameter :: binm = betam*sffrac
       real(8) , parameter :: binh = betah*sffrac
@@ -95,16 +96,12 @@
       allocate(tpred2(iy,kz))
       allocate(kzm(iym1,kz))
       allocate(ttnp(iym1,kz))
-      if ( ichem == 1 .and. ichdrdepo == 1 ) then
-        allocate(chix(iy,kz))
-        allocate(vdep(iym1,ntr))
-      end if
       allocate(govrth(iym1))
       allocate(ri(iy,kz))
       allocate(therm(iy))
 #ifdef MPP1
-      allocate(cgh(iy,kz,jxp))        
-      allocate(kvc(iy,kz,jxp))        
+      allocate(cgh(iy,kz,jxp))
+!     allocate(cgq(iy,kz,jxp))
       allocate(kvh(iy,kz,jxp))        
       allocate(kvm(iy,kz,jxp))        
       allocate(kvq(iy,kz,jxp))
@@ -126,7 +123,6 @@
 #else 
 #ifdef BAND
       allocate(cgh(iy,kz,jx))        
-      allocate(kvc(iy,kz,jx))        
       allocate(kvh(iy,kz,jx))        
       allocate(kvm(iy,kz,jx))        
       allocate(kvq(iy,kz,jx))
@@ -139,7 +135,6 @@
       allocate(rhohf(iy,kz,jx))
 #else
       allocate(cgh(iy,kz,jxm1))        
-      allocate(kvc(iy,kz,jxm1))        
       allocate(kvh(iy,kz,jxm1))        
       allocate(kvm(iy,kz,jxm1))        
       allocate(kvq(iy,kz,jxm1))
@@ -158,8 +153,25 @@
       allocate(xhfx(iy,jx))        
       allocate(xqfx(iy,jx))        
 #endif 
+      if ( ichem == 1 ) then
+        if ( ichdrdepo == 1 ) then
+          allocate(chix(iy,kz))
+          allocate(vdep(iym1,ntr))
+          chix = d_zero
+          vdep = d_zero
+        end if
+#ifdef MPP1
+        allocate(kvc(iy,kz,jxp))        
+#else
+#ifdef BAND
+        allocate(kvc(iy,kz,jx))        
+#else
+        allocate(kvc(iy,kz,jxm1))        
+#endif
+#endif
+        kvc = d_zero
+      end if
       cgh = d_zero
-      kvc = d_zero
       kvh = d_zero
       kvm = d_zero
       kvq = d_zero
@@ -184,8 +196,8 @@
       implicit none
 !
       real(8) :: drgdot , dumr , kzmax , oblen , xps , ps2 , ri , &
-                 sf , sh10 , ss , uflxsf , uflxsfx ,      &
-                 vflxsf , vflxsfx , rcik
+                 sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
+                 vflxsfx , rcik
       integer :: jdx , jm1
 #ifndef BAND
       integer :: jdxm1
@@ -220,11 +232,11 @@
 !     tendencies.
 !
 #ifdef MPP1
-      call mpi_sendrecv(sps2%ps(1,jxp),iy,mpi_real8,ieast,1,            &
-                        sps2%ps(1,0),iy,mpi_real8,iwest,1,              &
+      call mpi_sendrecv(sps2%ps(1,jxp),iy,mpi_real8,ieast,1,       &
+                        sps2%ps(1,0),  iy,mpi_real8,iwest,1,       &
                         mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,       &
-                        sfsta%uvdrag(1,0),iy,mpi_real8,iwest,1,         &
+      call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
+                        sfsta%uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
                         mpi_comm_world,mpi_status_ignore,ierr)
 #endif 
 #ifdef MPP1
@@ -293,11 +305,11 @@
 !           compute the vertical diffusion term:
             rcik = 0.257D0*dzq(i,k,j)**0.175D0
             kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)/dt
-            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
-                 *(ubx3d(i,k-1,j)-ubx3d(i,k,j))                         &
-                 +(vbx3d(i,k-1,j)-vbx3d(i,k,j))                         &
-                 *(vbx3d(i,k-1,j)-vbx3d(i,k,j)))                        &
-                 /(dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
+            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*                        &
+                  (ubx3d(i,k-1,j)-ubx3d(i,k,j))+                        &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j))*                        &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/                       &
+                  (dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
             if ( (ri-rcik) >= d_zero ) then
               kzm(i,k) = kzo
@@ -322,7 +334,9 @@
             kvh(i,k,j) = kzm(i,k)
             kvq(i,k,j) = kzm(i,k)
 !chem
-            if ( ichem == 1 ) kvc(i,k,j) = kzm(i,k)
+            if ( ichem == 1 ) then
+              kvc(i,k,j) = kzm(i,k)
+            end if
 !chem_
 !           counter gradient terms for heat and moisture
             cgh(i,k,j) = d_zero
@@ -356,7 +370,7 @@
           xhfx(i,j) = sfsta%hfx(i,j)/(cpd*rhox2d(i,j))
           xqfx(i,j) = sfsta%qfx(i,j)/rhox2d(i,j)
 !         compute virtual heat flux at surface
-          hfxv(i,j) = xhfx(i,j) + 0.61D0*thx3d(i,kz,j)*xqfx(i,j)
+          hfxv(i,j) = xhfx(i,j) + mult*thx3d(i,kz,j)*xqfx(i,j)
         end do
 !
 !       estimate potential temperature at 10m via log temperature
@@ -367,28 +381,27 @@
  
         do i = 2 , iym1
           sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+1)
-!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))/2.0)*(d_one+0.61*sh10)
-!         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))
-!         1            *dlog(za(i,kz,j)/10.)
+!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))/d_two)*(d_one+mult*sh10)
+!         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)* &
+!                     dlog(za(i,kz,j)/d_10)
  
 !         "virtual" potential temperature
           if ( hfxv(i,j) >= d_zero ) then
             th10(i,j) = thvx(i,kz,j)
           else
 !           th10(i,j) =
-!----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+0.61*sh10) first
+!----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+mult*sh10) first
 !           approximation for obhukov length
             oblen = -(thx3d(i,kz,j)+sts2%tg(i,j))/d_two *   &
-                    (d_one+0.61D0*sh10)*ustr(i,j)**d_three /  &
+                    (d_one+mult*sh10)*ustr(i,j)**d_three /  &
                     (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
             if ( oblen >= za(i,kz,j) ) then
-              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
-                          *(dlog(za(i,kz,j)/d_10)                     &
-                          +d_five/oblen*(za(i,kz,j)-d_10))
+              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
+                  (dlog(za(i,kz,j)/d_10)+d_five/oblen*(za(i,kz,j)-d_10))
             else if ( oblen < za(i,kz,j) .and. oblen > d_10 ) then
-              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
-                       *(dlog(oblen/d_10)+d_five/oblen*(oblen-d_10)  &
-                          +6.0D0*dlog(za(i,kz,j)/oblen))
+              th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
+                  (dlog(oblen/d_10)+d_five/oblen*(oblen-d_10)+          &
+                           6.0D0*dlog(za(i,kz,j)/oblen))
             else if ( oblen <= d_10 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                           *6.0D0*dlog(za(i,kz,j)/d_10)
@@ -438,10 +451,9 @@
           wksend(ii) = akzz2(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(wksend(1),(iym2)*kz*2,mpi_real8,                &
-                        ieast,1,wkrecv(1),(iym2)*kz*2,                  &
-                        mpi_real8,iwest,1,mpi_comm_world,               &
-                        mpi_status_ignore,ierr)
+      call mpi_sendrecv(wksend(1),(iym2)*kz*2,mpi_real8,ieast,1, &
+                        wkrecv(1),(iym2)*kz*2,mpi_real8,iwest,1, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
       ii = 0
       do k = 1 , kz
         do i = 2 , iym1
@@ -587,10 +599,10 @@
         do k = 2 , kz - 1
           do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (auxx(i,k,j)+coef3(i,k)*coeff1(i,k-1))        &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff2(i,k) = (avxx(i,k,j)+coef3(i,k)*coeff2(i,k-1))        &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (auxx(i,k,j)+coef3(i,k)*coeff1(i,k-1))/       &
+                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff2(i,k) = (avxx(i,k,j)+coef3(i,k)*coeff2(i,k-1))/       &
+                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
@@ -613,19 +625,19 @@
           jdx = min0(jdx,jxm1)
           jdxm1 = max0(jdxm1,2)
 #endif
-          drgdot = (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)  &
-                  +sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))/d_four
+          drgdot = (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)+  &
+                  sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))/d_four
 #endif
           uflxsf = drgdot*auxx(i,kz,j)
           vflxsf = drgdot*avxx(i,kz,j)
  
           coefe(i,kz) = d_zero
           coeff1(i,kz) = (auxx(i,kz,j)-dt*alphak(i,kz)*uflxsf+          &
-                          coef3(i,kz)*coeff1(i,kz-1))                   &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+                          coef3(i,kz)*coeff1(i,kz-1))/                  &
+                         (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
           coeff2(i,kz) = (avxx(i,kz,j)-dt*alphak(i,kz)*vflxsf+          &
-                          coef3(i,kz)*coeff2(i,kz-1))                   &
-                         /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
+                          coef3(i,kz)*coeff2(i,kz-1))/                  &
+                         (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
  
         end do
 !
@@ -1098,12 +1110,9 @@
                  zzhnew2
       integer :: i , j , k , k2
 !
-!     ------------------------------------------------------------
-!     real(8) :: cgq(iy,kz)
-!     -----------------------------------------------------------
- 
       pblk2 = d_zero
       zzhnew2 = d_zero
+!
 #ifdef MPP1
       do j = jbegin , jendx
 #else
@@ -1115,18 +1124,16 @@
 #endif
 !       ****note: kt, max no. of pbl levels, calculated in param
 !       ******   compute richardson number
-        do i = 2 , iym1
-          therm(i) = d_zero
-        end do
+!
+        therm(:) = d_zero
  
         do k = kz , kt , -1
           do i = 2 , iym1
             vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
             ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/ &
-                      (th10(i,j)*vv)
+                            (th10(i,j)*vv)
           end do
         end do
- 
 !       ******   first, set bl height to height of lowest model level
         do i = 2 , iym1
           sfsta%zpbl(i,j) = za(i,kz,j)
@@ -1155,7 +1162,7 @@
             xfmt = (d_one-(binm*sfsta%zpbl(i,j)/obklen(i,j)))**onet
             wsc = ustr(i,j)*xfmt
 !           ******   thermal temperature excess
-            therm(i) = (xhfx(i,j)+0.61D0*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
+            therm(i) = (xhfx(i,j)+mult*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
             vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + &
                   vbx3d(i,kz,j)*vbx3d(i,kz,j)
             ri(i,kz) = -egrav*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
@@ -1168,7 +1175,7 @@
             if ( hfxv(i,j) > d_zero ) then
               tlv = th10(i,j) + therm(i)
               tkv = thx3d(i,k,j) * &
-                    (d_one+0.61D0*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
+                    (d_one+mult*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
               vv = ubx3d(i,k,j)*ubx3d(i,k,j)+vbx3d(i,k,j)*vbx3d(i,k,j)
               ri(i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(i,j)*vv)
             end if
@@ -1183,9 +1190,10 @@
             if ( hfxv(i,j) > d_zero ) then
 !     ******   bl height lies between this level and the last
 !     ******   use linear interp. of rich. no. to height of ri=ricr
-              if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) )       &
+              if ( (ri(i,k) < ricr) .and. (ri(i,k2) >= ricr) ) then
                 sfsta%zpbl(i,j) = za(i,k,j) + (za(i,k2,j)-za(i,k,j)) &
                                *((ricr-ri(i,k))/(ri(i,k2)-ri(i,k)))
+              end if
             end if
           end do
         end do
@@ -1193,7 +1201,9 @@
         do i = 2 , iym1
           if ( hfxv(i,j) > d_zero ) then
 !     ******   set bl top to highest allowable model layer
-            if ( ri(i,kt) < ricr ) sfsta%zpbl(i,j) = za(i,kt,j)
+            if ( ri(i,kt) < ricr ) then
+              sfsta%zpbl(i,j) = za(i,kt,j)
+            end if
           end if
         end do
  
@@ -1233,7 +1243,9 @@
                 zzhnew = (d_one-zh)/d_four
 !xexp10         zzhnew =zh * (d_one - zh)**2
 !chem
-                if ( ichem == 1 ) zzhnew2 = (d_one-zh)**d_two
+                if ( ichem == 1 ) then
+                  zzhnew2 = (d_one-zh)**d_two
+                end if
 !chem_
               else
                 zzh = d_zero
@@ -1254,15 +1266,18 @@
 !xexp5            pblk1 = vonkar * ustr(i,j) / (d_one+betas*zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
 !chem
-                  if ( ichem == 1 ) &
+                  if ( ichem == 1 ) then
                     pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
+                  end if
 !chem_
                 else
                   pblk = fak1*zh*zzh/(betas+zl)
 !xexp5            pblk1 = vonkar * ustr(i,j) / (betas+zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(betas+zl)
 !chem
-                  if ( ichem == 1 ) pblk2 = fak1*zh*zzhnew2/(betas+zl)
+                  if ( ichem == 1 ) then
+                    pblk2 = fak1*zh*zzhnew2/(betas+zl)
+                  end if
 !chem_
                 end if
 !**             compute eddy diffusivities
@@ -1278,7 +1293,9 @@
 ! Erika put k=0 in very stable conditions
 
 !chem
-                if ( ichem == 1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
+                if ( ichem == 1 ) then
+                  kvc(i,k,j) = dmax1(pblk2,kzo)
+                end if
 !chem_
 !**             compute counter-gradient term
                 cgh(i,k,j) = d_zero
@@ -1298,12 +1315,13 @@
 !xexp5            pblk1 = vonkar * wsc * zzhnew
                   pblk1 = fak2*zh*zzhnew
 !chem
-                  if ( ichem == 1 ) pblk2 = fak2*zh*zzhnew2
+                  if ( ichem == 1 ) then
+                    pblk2 = fak2*zh*zzhnew2
+                  end if
 !chem_
                   therm2 = fak/(sfsta%zpbl(i,j)*wsc)
                   cgh(i,k,j) = hfxv(i,j)*therm2
 !                 cgq(i,k) = xqfx(i,j)*therm2
-!                 cgq(i,k) = d_zero
                 else
 !**               igroup = 3
                   pblk = fak1*zh*zzh*(d_one-betam*zl)**onet
@@ -1326,9 +1344,10 @@
 !               kvq(i,k,j) = kvh(i,k,j)
                 kvq(i,k,j) = dmax1(pblk1,kzo)
 !chem
-                if ( ichem == 1 ) kvc(i,k,j) = dmax1(pblk2,kzo)
+                if ( ichem == 1 ) then
+                  kvc(i,k,j) = dmax1(pblk2,kzo)
+                end if
 !chem_
- 
               end if
             end if
           end do
