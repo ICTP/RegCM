@@ -18,17 +18,26 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
       module mod_pbldim
+
 !
 ! Storage parameters and constants related to
 !     the boundary layer
 !
       use mod_constants
       use mod_dynparam
+      use mod_memutil
 !
-      real(8) , allocatable , dimension(:,:) :: zq
-      real(8) , allocatable ,  dimension(:,:) :: rhox2d
-      real(8) , allocatable , dimension(:,:,:) :: dzq , thvx , thx3d
-      real(8) , allocatable , dimension(:,:,:) :: za
+      private
+
+      real(8) , pointer , dimension(:,:) :: zq
+      real(8) , pointer ,  dimension(:,:) :: rhox2d
+      real(8) , pointer , dimension(:,:,:) :: dzq , thvx , thx3d
+      real(8) , pointer , dimension(:,:,:) :: za
+!
+      public :: allocate_mod_pbldim
+      public :: zq
+      public :: za , dzq , thvx , thx3d
+      public :: rhox2d
 !
       contains
 !
@@ -36,26 +45,20 @@
         implicit none
         logical , intent(in) :: lmpi
 !        
-        allocate(zq(iy,kzp1))
+        call getmem2d(zq,iy,kzp1,'pbldim:zq')
         if (lmpi) then
-          allocate(dzq(iy,kz,jxp))
-          allocate(thvx(iy,kz,jxp))
-          allocate(thx3d(iy,kz,jxp))
-          allocate(za(iy,kz,jxp))
-          allocate(rhox2d(iy,jxp))
+          call getmem3d(dzq,iy,kz,jxp,'pbldim:dzq')
+          call getmem3d(thvx,iy,kz,jxp,'pbldim:thvx')
+          call getmem3d(thx3d,iy,kz,jxp,'pbldim:thx3d')
+          call getmem3d(za,iy,kz,jxp,'pbldim:za')
+          call getmem2d(rhox2d,iy,jxp,'pbldim:rhox2d')
         else
-          allocate(dzq(iy,kz,jx))
-          allocate(thvx(iy,kz,jx))
-          allocate(thx3d(iy,kz,jx))
-          allocate(za(iy,kz,jx))
-          allocate(rhox2d(iy,jx))
+          call getmem3d(dzq,iy,kz,jx,'pbldim:dzq')
+          call getmem3d(thvx,iy,kz,jx,'pbldim:thvx')
+          call getmem3d(thx3d,iy,kz,jx,'pbldim:thx3d')
+          call getmem3d(za,iy,kz,jx,'pbldim:za')
+          call getmem2d(rhox2d,iy,jx,'pbldim:rhox2d')
         end if
-        zq = d_zero
-        dzq = d_zero
-        thvx = d_zero
-        thx3d = d_zero
-        za = d_zero
-        rhox2d = d_zero
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim

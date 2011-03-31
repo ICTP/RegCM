@@ -115,9 +115,9 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8)') nv
     allocate(last1d%space(nv),stat=ials)
-    last1d%space(:) = d_zero
     call checkalloc('getmem1d : '//what//' : '//cspace)
     call mall_mci(last1d%space,'pool1d')
+    last1d%space(:) = d_zero
     a => last1d%space
     curr1d => last1d
     allocate(last1d%next)
@@ -134,9 +134,9 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8,a,i8)') nv, 'x', nw
     allocate(last2d%space(nv,nw),stat=ials)
-    last2d%space(:,:) = d_zero
     call checkalloc('getmem2d : '//what//' : '//cspace)
     call mall_mci(last2d%space,'pool2d')
+    last2d%space(:,:) = d_zero
     a => last2d%space
     curr2d => last2d
     allocate(last2d%next)
@@ -153,9 +153,9 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx
     allocate(last3d%space(nv,nw,nx),stat=ials)
-    last3d%space(:,:,:) = d_zero
     call checkalloc('getmem3d : '//what//' : '//cspace)
     call mall_mci(last3d%space,'pool3d')
+    last3d%space(:,:,:) = d_zero
     a => last3d%space
     curr3d => last3d
     allocate(last3d%next)
@@ -173,11 +173,11 @@ module mod_memutil
     integer :: i
     write(cspace,'(i8,a,i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx, 'x', ny
     allocate(last4d%space(nv,nw,nx,ny),stat=ials)
-    last4d%space(:,:,:,:) = d_zero
     call checkalloc('getmem4d : '//what//' : '//cspace)
     do i = 1 , nv
       call mall_mci(last4d%space(i,:,:,:),'pool4d')
     end do
+    last4d%space(:,:,:,:) = d_zero
     a => last4d%space
     curr4d => last4d
     allocate(last4d%next)
@@ -196,13 +196,13 @@ module mod_memutil
     write(cspace,'(i8,a,i8,a,i8,a,i8,a,i8)') &
               nv, 'x', nw, 'x', nx, 'x', ny, 'x', nz
     allocate(last5d%space(nv,nw,nx,ny,nz),stat=ials)
-    last5d%space(:,:,:,:,:) = d_zero
     call checkalloc('getmem5d : '//what//' : '//cspace)
     do i = 1 , nv
       do j = 1 , nw
         call mall_mci(last5d%space(i,j,:,:,:),'pool5d')
       end do
     end do
+    last5d%space(:,:,:,:,:) = d_zero
     a => last5d%space
     curr5d => last5d
     allocate(last5d%next)

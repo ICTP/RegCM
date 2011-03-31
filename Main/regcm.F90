@@ -68,6 +68,7 @@
 !
       program regcm
 !
+      use mod_memutil
       use mod_runparams
       use mod_date
       use mod_message
@@ -153,6 +154,8 @@
 #ifdef MPP1
       end if
 #endif
+
+      call memory_init
 
 #ifdef MPP1
 !
@@ -403,6 +406,7 @@
       call t_finalizef()
 #endif
 !
+      call memory_destroy
       call finaltime(myid)
 !
       if ( myid == 0 ) then

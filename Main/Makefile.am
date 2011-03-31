@@ -214,7 +214,7 @@ mod_param.o: mod_param.F90 mod_constants.o mod_bats.o mod_cu_em.o mod_date.o \
              mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
 						 mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o
 endif
-mod_pbldim.o: mod_pbldim.f90 mod_dynparam.o
+mod_pbldim.o: mod_pbldim.f90 mod_memutil.o
 mod_pmoist.o: mod_pmoist.f90 mod_dynparam.o
 mod_precip.o: mod_precip.f90 mod_bats.o mod_constants.o mod_cvaria.o \
               mod_date.o mod_main.o mod_runparams.o mod_pmoist.o \
@@ -300,11 +300,13 @@ if DO_COMPILE_LIBCLM
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
          mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o \
+				 mod_memutil.o
          $(CLMLIB)
 else
 regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
          mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o
+         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o \
+				 mod_memutil.o
 endif
 #
 # CLM subroutines
