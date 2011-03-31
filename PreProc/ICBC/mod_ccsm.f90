@@ -185,9 +185,10 @@
         implicit none
 !
         integer :: istatus , ivar1 , inet1 , ilat , ilon , ihyam , &
-                   ihybm , k
+                   ihybm , ip0 , k
         integer :: lonid , latid , ilevid
         character(256) :: pathaddname
+        real(8) :: dp0
         logical :: there
 !
         pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
@@ -222,6 +223,8 @@
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
         istatus = nf90_inq_varid(inet1,'PHIS',ivar1)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
+        istatus = nf90_inq_varid(inet1,'P0',ip0)
+        if ( istatus/=nf90_noerr ) call handle_err(istatus)
 
         ! Input layer and pressure interpolated values
 
@@ -247,6 +250,9 @@
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
         istatus = nf90_get_var(inet1,ihybm,bk)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
+        istatus = nf90_get_var(inet1,ip0,dp0)
+        if ( istatus/=nf90_noerr ) call handle_err(istatus)
+        p0 = real(dp0)
 
         icount(1) = nlon
         icount(2) = nlat
@@ -389,7 +395,6 @@
         logical :: there
         character(2) , dimension(6) :: varname
         real(8) , allocatable , dimension(:) :: xtimes
-        real(8) :: dp0
         character(3) , dimension(12) :: mname
         character(64) :: cunit
         logical :: lfound
@@ -431,11 +436,6 @@
             write (*,*) inet6(kkrec), trim(pathaddname), ' : ', &
                         varname(kkrec)
             if ( kkrec == 1 ) then
-              istatus = nf90_inq_varid(inet6(kkrec),'P0',ivar)
-              if ( istatus/=nf90_noerr ) call handle_err(istatus)
-              istatus = nf90_get_var(inet6(kkrec),ivar,dp0)
-              if ( istatus/=nf90_noerr ) call handle_err(istatus)
-              p0 = real(dp0)
               istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
               if ( istatus/=nf90_noerr ) call handle_err(istatus)
               istatus = nf90_inquire_dimension(inet6(kkrec),timid, &
