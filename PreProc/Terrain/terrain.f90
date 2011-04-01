@@ -224,7 +224,7 @@
         print *, 'Static DEM data successfully read in'
         call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
                     nlatin,nlonin,grdltmn,grdlnmn,values, &
-                    ntypec_s,2,lonwrap,lcrosstime)
+                    ntypec_s,3,lonwrap,lcrosstime)
         print *, 'Interpolated DEM on SUBGRID'
 !
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -262,7 +262,7 @@
           print *, 'Static bathymetry data successfully read in'
           call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
                       nlatin,nlonin,grdltmn,grdlnmn,values, &
-                      ntypec_s,2,lonwrap,lcrosstime)
+                      ntypec_s,3,lonwrap,lcrosstime)
           print *, 'Interpolated bathymetry on SUBGRID'
         end if
 
@@ -365,7 +365,7 @@
       print *, 'Static DEM data successfully read in'
       call interp(iy,jx,xlat,xlon,htgrid,           &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec,2,lonwrap,lcrosstime)
+                  ntypec,3,lonwrap,lcrosstime)
       print *, 'Interpolated DEM on model GRID'
 !
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -403,7 +403,7 @@
         print *, 'Static bathymetry data successfully read in'
         call interp(iy,jx,xlat,xlon,dpth,              &
                     nlatin,nlonin,grdltmn,grdlnmn,values, &
-                    ntypec,2,lonwrap,lcrosstime)
+                    ntypec,3,lonwrap,lcrosstime)
         print *, 'Interpolated bathymetry on model GRID'
       end if
 
