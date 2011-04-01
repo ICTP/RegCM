@@ -17,9 +17,15 @@
 ;
 ;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-;********************************************************************
+;**************************************************************************
+;
 ; Remap POP gx1v3 grid to regular latlon 1dx1d grid
-;********************************************************************
+; POP gx1v3 grid is used in CCSM3.
+; To build the map_gx1v3_to_1x1d_aave_da_050401.nc use SCRIP software.
+;
+; Reference at http://www-pcmdi.llnl.gov/ipcc/model_documentation/CCSM3.htm
+;
+;**************************************************************************
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl" 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/popRemap.ncl"
