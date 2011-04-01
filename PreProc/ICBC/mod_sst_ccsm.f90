@@ -43,14 +43,14 @@ module mod_sst_ccsm
 !       DATA PREPARATION
 !       Dataset required to use this code can be preapred using NCO utilitiles
 !       such as NCKS, NCRCAT etc.
-!       We need top level of TEMP for SSTs which can be extarcted as following:
-!       ncks -v time,TEMP -d z_t,0 input.nc output.nc
+!       We need top level of SST for SSTs which can be extarcted as following:
+!       ncks -v time,SST -d z_t,0 input.nc output.nc
 !       Files can be further concatenated using 'ncrcat'
 !       Finally, the POP grid can be converted into lat/lon grid at 1x1 degree
 !       resolution  using PopLatLon function in NCL
 !******************************************************************************
 !     NAMING CONVENTION (Global Data File)
-!       ccsm_mn.sst.nc  for TEMP
+!       ccsm_mn.sst.nc  for SST
 !     PATH /DATA/SST/
 !
 !******************************************************************************
@@ -176,7 +176,7 @@ module mod_sst_ccsm
   logical :: there
   integer :: istatus
 
-  data varname/'time','TEMP'/
+  data varname/'time','SST'/
   
   call zeit_ci('read_ccsm')
 

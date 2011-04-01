@@ -52,7 +52,7 @@ program ncprepare
   integer :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
   integer :: i , j , iid
-  logical :: lvarsplit , existing , lsigma , ldepth
+  logical :: lvarsplit , existing , lsigma , lcdolev , ldepth
 #ifdef __PGI
   integer , external :: iargc
 #endif
@@ -63,6 +63,7 @@ program ncprepare
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
   data lsigma /.true./
+  data lcdolev /.false./
   data ldepth /.false./
   data kzdimid  /-1/
   data itdimid  /-1/
@@ -147,6 +148,10 @@ program ncprepare
   if (istatus /= nf90_noerr) then
     lsigma = .false.
     istatus = nf90_inq_dimid(ncid, "plev", kzdimid)
+    if (istatus /= nf90_noerr) then
+      istatus = nf90_inq_dimid(ncid, "lev", kzdimid)
+      if ( istatus == nf90_noerr) lcdolev = .true.
+    end if
   end if
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, kzdimid, len=kz)
@@ -401,7 +406,11 @@ program ncprepare
     if (lsigma) then
       istatus = nf90_inq_varid(ncid, "sigma", ivarid)
     else
-      istatus = nf90_inq_varid(ncid, "plev", ivarid)
+      if (lcdolev) then
+        istatus = nf90_inq_varid(ncid, "lev", ivarid)
+      else
+        istatus = nf90_inq_varid(ncid, "plev", ivarid)
+      end if
     end if
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error : level variable undefined'
