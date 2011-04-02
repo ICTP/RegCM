@@ -10,15 +10,18 @@ and easily improve upon the existing code.
 
 \section{About \fort in \PR}
 
-Release \PR differs significantly from the previous ones (versions 3  and
-4.0.  The most important change is that the package is almost completely
-rewritten in \fort. This means a radical change from the previous \oldfort,
-a procedural programming language, to an {\em object-based/oriented}
-programming protocol.
+Release \PR differs significantly from the previous ones (versions 3 and
+4.0).  The most important change is that the package is undergoing a complete
+refactoring to be written in \fort. This will require in the next future a
+radical change from the previous \oldfort, a procedural programming language,
+to an {\em object-based/oriented} programming protocol.
 
 It is our opinion that \oldfort is no longer the right tool to deal with
 such a large project, especially when large type of data sets need to be
-managed across the whole package. The main weakness of \oldfort is the lack
+managed across the whole package, and the model itself needs a clean and
+convenient infrastructure to be coupled with a broad spectrum of complementary
+physics models to become part of more complete earth climate modelling
+framework. The main weakness of \oldfort is the lack
 of any explicit mechanism to express the dependencies among different data
 structures and procedures. This makes the development process hard and
 difficult: any new change in the code requires an analysis of the involved
@@ -73,16 +76,16 @@ Potential contributors to the code are kindly requested to follow the stylistic 
 The general programming language is \fort. 
 Some \oldfort routines are still present in the
 package and they should be regarded as temporary, and due to migration
-from version 1.2.
-\C routines are permissible, provided they
-are Fortran compatible.
+from version 3.0.
+\C routines are permissible, provided they are Fortran compatible.
 File names extensions are:
 
  \begin{itemize}
  \item 
- \verb=.F90= : for F90 free format code (default for all the new code parts)
+ \verb=.F90= : for f90 free format code, containing preprocessing directives
+  to be analyzed by fortran preprocessor
  \item
- \verb=.f= : for f77 routines ( it will eventually disappear in future release)
+ \verb=.f90= : for f90 free format code not to be preprocessed.
  \item
  \verb=.c= : for C code 
  \end{itemize}
@@ -93,23 +96,20 @@ Compilation is achieved with a hierarchy of Makefiles
     \verb=Makefile= : the Makefile with general and architecture-independent 
                       rules
   \item
-    \verb=Makefile.depend= : the interdependence of modules/include files/code
-  \item
     \verb=Makefile.={\it arch} : the architecture dependent Makefiles
   \end{itemize}
 Two distinct rules are given in the Makefile:
 
  \begin{itemize}
  \item
-  \verb=.f.o= rule, using the macros {\macro \$(FC)} for compiler and 
-{\macro \$(FFLAGS)} for related flags. There is no preprocessing phase on
- f77 files.
- \item
   \verb=.F90.o=  using the macros {\macro \$(F90)} and 
-{\macro \$(FLAGSF90)} for related flags. The files are preprocessed.
+{\macro \$(FCFLAGS)} for related flags. The files are preprocessed.
+ \item
+  \verb=.f90.o= rule, using the macros {\macro \$(F90)} for compiler and 
+{\macro \$(FCFLAGS)} for related flags.
  \end{itemize}
 
-Modules have always the extension \verb=.F90=. and should end in \verb=\_mod=.
+Modules have always the extension \verb=.[fF]90=. and should start with \verb=\mod_=.
 Avoid uppercase letters, especially for modules, since module names
 are converted to lowercase by the compiler.
  
@@ -134,7 +134,7 @@ are converted to lowercase by the compiler.
 During its developing phase the code is compiled using three different suite of compilers:
 
 \begin{itemize}
-\item Intel suite compiler (from 10.1 to 11.1 )
+\item Intel suite compiler (from 10.1 to 12.0 )
 \item gfortran compiler  version 4.4 on 
 \item Pgi suite of compiler (version 9.03 on) 
 \end{itemize}
@@ -142,54 +142,40 @@ During its developing phase the code is compiled using three different suite of 
 The code is, however, developed having in mind portability (see later for a detailed
 discussion about this issue) and it has also been carefully tested (parallel version) on AIX SP6 IBM platform with xlf  compiler.
 
+\section{Module Template}
 
-\section{Internal Data Transfer}
-Differently from \D, \PR uses modules to store non local arrays. The user
-should refer to the chapter ``Module hierarchy'' for a more detailed
-description.
+A \verb=module= is the basic unit of the code, and any function or subroutine is
+wrapped in a \verb=module=. A \verb=module= contains data to be shared with
+other \PR modules and data internal to the \verb=module=. The \fort attribute
+\verb=private= should be placed right after the \verb=use= lines in the
+\verb=module= code. Any items, be data, function or subroutine to be accessed
+from other modules or the Main program is to be explicitly given the 
+\verb=public= attribute.
 
-\section{Subroutine/Function Calling Sequences}
+Two default subroutines should be present in a \verb=module=:
 
-The variables in the subroutine arguments are specified in the order:
 \begin{enumerate}
-\item logical and logical arrays
-\item character and character arrays
-\item integer and integer arrays
-\item real and real arrays
+\item \verb=init_mod_modname= : Allocates dynamic space in heap and set up any
+internal control flag.
+\item \verb=release_mod_modname= : Deallocates resources and cleanup
 \end{enumerate}
+
+Any number of function and subroutines can be present in a \verb=module=
+The variables in the subroutine arguments are specified in the order:
+
+\begin{enumerate}
+\item input arguments to subroutine
+\item output arguments from subroutine
+\item logical flags to control internal branching
+\end{enumerate}
+
 This method is sometimes used quite liberally. 
-\PR uses quite intensively for a safer a cleaner programming the \fort
-attribute \verb=intent(in/out/inout)= for subroutine arguments.
-Ideally in a subroutine all the arguments are declared first with the
-inten attribute defined as in the following example:
+\PR enforces for a safer a cleaner programming usage of the \fort
+attribute \verb=intent(in/out/inout)= for subroutine arguments.  
+An example of a module with a defined subroutine is given in the following
+example:
 
-\begin{verbatim}
-
-THIS EXAMPLES TO BE CHANGED 
-
-subroutine shake_prot (safe,imcon,natms, &
-     tstep,vircon,cell, xxx,yyy,zzz,stress,keyens,pkd)
-  !!---
-  use service_mod
-  use CONSTRAINTS_MOD
-  use INTERACTION_TABLES_MOD , only:nummols
-
-  IMPLICIT NONE
-
-  !!-- arguments:
-  logical, intent(inout) :: safe
-  integer, intent(in)    :: imcon,natms
-  integer, intent(in)    :: keyens
-  real(kind=8),intent(inout) :: xxx(natms),yyy(natms),zzz(natms)
-  real(kind=8),intent(out) :: vircon     !! constraints virial
-  real(kind=8),intent(out) :: stress(9)  !! stress due to constraints
-  real(kind=8),intent(in)  :: cell(9)
-  real(kind=8),intent(in)   ::  pkd(natms,6)
-
-  !! local variables
-  ....
-\end{verbatim}
-
+\lstinputlisting[language=Fortran]{mod_template.f90}
 
 \section{FORTRAN Parameters}
 All parameters defined by the \fort parameter statements are specified
@@ -200,7 +186,6 @@ All real variables and parameters are specified in 64-bit precision
 (i.e. real(kind=8)). 
 The future release of \PR will count on \fort features in order to set its
 proper defined precision. 
-
 
 \section{Units}
 \PR uses the same internal units of \D ({\it molecular units}). 
@@ -382,10 +367,12 @@ sections of the code. For this task two subroutines within
 \verb=service_module.F90= are provided : \verb=start_debug= 
 and \verb=stop_debug=;
 
+In the code all the debug section are inserted within
+\begin{verbatim}
+ifdef DEBUG
+endif macro.
+\end{verbatim}
 
-
-In the code all the debug section are inserted within \verb=ifdef DEBUG
-endif=  macro.
 It is a good idea when a new DEBUG section is placed in the code to
 add a short comment about the information printed-out. 
 Also in the service module there is a specific routine \verb=print_info=  to

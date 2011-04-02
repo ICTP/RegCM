@@ -44,9 +44,11 @@
  \kern-1pt \nointerlineskip}$\hfil\displaystyle{#1}\hfil$\crcr}}}
 
 %
-\documentstyle[12pt,epsf]{report}
-%\input eqalign.sty 
-% \input doublespace.sty 
+\documentclass[12pt,epsf]{report}
+\usepackage{listings}
+
+\lstset{language=Fortran}
+\lstset{basicstyle=\scriptsize,commentstyle=\scriptsize,stringstyle=\scriptsize}
 
 \renewcommand{\baselinestretch}{0.5} 
 
@@ -79,7 +81,7 @@
 \addcontentsline{toc}{chapter}{References}    % suppressed by * option 
 
 \begin{thebibliography}{10}      %                    %
-\input{Biblio_developer}
+\input{Biblio_Developer}
 \end{thebibliography}             %                    %
 
 \end{document}
