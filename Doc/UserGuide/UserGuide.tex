@@ -1,0 +1,90 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+\documentclass[11pt,twoside,a4paper]{report}
+\usepackage{natbib}
+\usepackage{graphics}
+\usepackage{fancyvrb}
+\usepackage{wrapfig}
+
+\citestyle{apalike}
+
+\begin{document}
+
+\begin{titlepage}
+
+\begin{wrapfigure}{l}{4cm}
+\vspace{-35pt}
+\begin{center}
+\includegraphics{ICTP_logo}
+\end{center}
+\end{wrapfigure}
+
+\noindent {\bf The Abdus Salam }\\
+\noindent {\bf International Centre for Theoretical Physics} \\
+\noindent {\bf Strada Costiera, 11 I - 34151 Trieste, Italy} \\
+\noindent {\bf Earth System Physics Section - ESP}
+
+\vspace{3cm}
+
+\begin{center}
+{\Large
+  {\bf Regional Climatic Model RegCM User's Guide} \\
+  {\bf Version 4.1} \\
+  \vspace{2cm}
+  Graziano Giuliani  - ICTP
+}
+\end{center}
+
+\end{titlepage}
+
+\cleardoublepage
+
+\tableofcontents
+
+\cleardoublepage
+
+\chapter{Release Notes}
+\input{ReleaseNotes}
+
+\chapter{Obtain the model}
+\input{ObtainCode}
+
+\chapter{Installing procedure}
+\input{Install}
+
+\newpage
+
+\chapter{Access global datasets}
+
+\newpage
+
+\chapter{Run a test simulation using the model}
+
+\newpage
+
+\chapter{Localize the model and run Your simulation}
+
+\newpage
+
+\chapter{Postprocessing tools}
+
+\newpage
+
+\chapter{Getting help and reporting bugs}
+
+\newpage
+
+\cleardoublepage
+
+\bibliographystyle{jas}
+
+\cleardoublepage
+
+\evensidemargin=1.0cm
+\oddsidemargin=1.5cm
+\VerbatimInput[fontfamily=courier,fontsize=\footnotesize]{COPYING}
+
+\end{document}

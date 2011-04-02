@@ -1,0 +1,53 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+In order to configure and install the RegCM code, the following software are
+needed:
+
+\begin{enumerate}
+\item Python 2 language interpreter
+\item GNU Make program
+\item Fortran 90 compiler
+\item NetCDF Format I/O library compiled with the above compiler.
+   Source code can be found from \\
+{\bf ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz} \\
+Note that current version 4.1.2 is dependent on HDF5 1.8.6.
+\end{enumerate}
+
+Optional requirements strongly suggested are :
+
+\begin{enumerate}
+\item MPI2 Message Passing Library compiled with the above fortran compiler
+for parallel runs using multiple core single machines or cluster of machines.
+Source code for the implementation code was tested with can be obtained at: \\
+{\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
+\item HDF5 Format I/O Library compiled with the above fortran compiler to
+enable NetCDF V4 features. Source code can be obtained at: \\
+{\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
+\item NCO NetCDF Operators for manging NetCDF file. Most Linux distribution
+have this already packed, and You should refer to Your System Administrator or
+OS Software Installation manual to obtain it. Source code is at: \\
+{\bf http://nco.sourceforge.net/src}
+\item CDO Climatic data Operators for managing NetCDF file. Most Linux
+distribution have this already packed, and You should refer to Your System
+Administrator or OS Software Installation manual to obtain it.
+Source code is at: \\
+{\bf https://code.zmaw.de/projects/cdo/files}
+\item A Scientific Plotting and Data Analysis Software such as:
+\begin{itemize}
+\item GrADS 2.0 Graphical Analysis and Display System. Convenient helpers
+are packed in RegCM to use GrADS with RegCM NetCDF output files.
+Binaries and source code can be obtained from \\
+{\bf http://www.iges.org/grads/downloads.html}
+\item NCL, NCAR Command Language. The NCL can read NetCDF output files, and
+sample scripts can be found in the {\em Tools/Scripts/NCL} directory.
+Binaries and source code can be obtained from \\
+{\bf http://www.ncl.ucar.edu}
+\end{itemize}
+\end{enumerate}
+
+The RegCM Version 4.1 is configured by a python2 script, which will select
+and edit for You sample configuration files for the supported architectures.
