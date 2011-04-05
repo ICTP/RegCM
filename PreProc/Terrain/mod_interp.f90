@@ -520,6 +520,9 @@
                   if (k == iocn) cycle
                   if (cnt(k) > mpindex) mpindex = k
                 end do
+                ! Graziano - Treat the case where just ocean points
+                !            are near the lake point.
+                if (mpindex == 0) mpindex = iocn
                 omt(i,j) = real(mpindex)
               end if
             end if
