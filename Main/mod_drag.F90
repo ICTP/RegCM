@@ -63,10 +63,10 @@
 !         ri(numerator)/ri(denominator)
 !=======================================================================
           if ( lveg(n,i) /= 0 ) then
-            zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1(n,i)    &
+            zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1d(n,i)    &
                    & *(d_one-sigf(n,i))
           else
-            zatild = z1(n,i)
+            zatild = z1d(n,i)
           end if
           ribn(n,i) = zatild*egrav*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
                      & (d_one-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
@@ -131,10 +131,10 @@
       do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i) > 1.5D0 ) then       !  check each point
-            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**d_two
+            cdrn(n,i) = (vonkar/zlgocn(n,i))**d_two
  
 !           4.5  drag coefficient over leads
-            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1(n,i)*egrav/ribd(n,i)
+            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1d(n,i)*egrav/ribd(n,i)
             if ( ribl(n,i) >= d_zero ) then
               clead(n,i) = cdrn(n,i)/(d_one+11.5D0*ribl(n,i))
             else
@@ -179,41 +179,29 @@
       real(8) :: asigf , cdb , cds , cdv , frab , fras , frav
       integer :: n , i
 !
-!     ******           sea ice classified same as desert
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( lveg(n,i) <= 0 .and. sice1d(n,i) > d_zero ) lveg(n,i) = 8
-        end do
-      end do
- 
       call depth
  
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          z1(n,i) = z1d(n,i)
-          z1log(n,i) = dlog(z1(n,i))
- 
-           if ( ldoc1d(n,i) > 1.5D0 ) then
+          if ( ldoc1d(n,i) > 1.5D0 ) then
 !           ******           drag coeff over seaice
-             sigf(n,i) = d_zero
-             cdrn(n,i) = ( vonkar / dlog( z1(n,i)/zlnd ) )**d_two
-           else if ( ldoc1d(n,i) > d_half ) then
+            sigf(n,i) = d_zero
+            cdrn(n,i) = ( vonkar / zlglnd(n,i) )**d_two
+          else if ( ldoc1d(n,i) > d_half ) then
 !           ******           drag coeff over land
             frav = sigf(n,i)
             asigf = veg1d(n,i)
             fras = asigf*wt(n,i) + (d_one-asigf)*scvk(n,i)
             frab = (d_one-asigf)*(d_one-scvk(n,i))
-            cdb = (vonkar/dlog(z1(n,i)/zlnd))**d_two
-            cds = (vonkar/dlog(z1(n,i)/zsno))**d_two
-            cdv = (vonkar/dlog((z1(n,i)-displa(lveg(n,i)))/             &
-                & rough(lveg(n,i))))**d_two
+            cdb = (vonkar/zlglnd(n,i))**d_two
+            cds = (vonkar/zlgsno(n,i))**d_two
+            cdv = (vonkar/zlgdis(n,i))**d_two
             cdrn(n,i) = frav*cdv + frab*cdb + fras*cds
- 
           else
 !           ******           drag coeff over ocean
             sigf(n,i) = d_zero
-            cdrn(n,i) = (vonkar/dlog(z1(n,i)/zoce))**d_two
+            cdrn(n,i) = (vonkar/zlgocn(n,i))**d_two
           end if
         end do
       end do
@@ -260,6 +248,8 @@
             end if
             sigf(n,i) = (d_one-wt(n,i))*veg1d(n,i)
             scvk(n,i) = scrat(n,i)/(0.1D0+scrat(n,i))
+            if (scvk(n,i) < dlowval) scvk(n,i) = d_zero
+            if (sigf(n,i) < dlowval) sigf(n,i) = d_zero
           end if
         end do
       end do

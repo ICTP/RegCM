@@ -705,8 +705,8 @@
                 vspda(n,i) = d_one
                 ribd(n,i) = d_one
               end if
-              zatild = (z1(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
-                     & + z1(n,i)*(d_one-sigf(n,i))
+              zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
+                     & + z1d(n,i)*(d_one-sigf(n,i))
               rib1(n,i) = egrav*zatild/(ribd(n,i)*ts1d(n,i))
               rib(n,i) = rib1(n,i)*dlstaf(n,i)
               if ( rib(n,i) < d_zero ) then

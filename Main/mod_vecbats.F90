@@ -38,6 +38,12 @@
 
       public :: interf , initb , vecbats , albedov , slice1D
 
+      real(8) , parameter :: dlogtwo = dlog(d_two)
+      real(8) , parameter :: dlogten = dlog(d_10)
+      real(8) , parameter :: dloglnd = dlog(zlnd)
+      real(8) , parameter :: dlogocn = dlog(zoce)
+      real(8) , parameter :: dlogsno = dlog(zsno)
+
       contains
 
       subroutine vecbats
@@ -377,7 +383,6 @@
         do i = istart, iend
           do n = 1 , ng
             p1d0(n,i) = (sps2%ps(i,j)+r8pt)*d_1000
-            z1d(n,i) = za(i,k,j)
             ts1d0(n,i) = thx3d(i,k,j)
             qs1d0(n,i) = qvb3d(i,k,j)/(d_one+qvb3d(i,k,j))
             qs1d(n,i) = qs1d0(n,i)
@@ -428,7 +433,20 @@
               veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
             end if
             emiss_1d(n,i) = emiss2d(n,i,j)
+            z1d(n,i) = za(i,k,j)
+            z1log(n,i)  = dlog(z1d(n,i))
+            z2fra(n,i)  = z1log(n,i) - dlogtwo
+            z10fra(n,i) = z1log(n,i) - dlogten
+            zlgocn(n,i) = z1log(n,i) - dlogocn
+            zlglnd(n,i) = z1log(n,i) - dloglnd
+            zlgsno(n,i) = z1log(n,i) - dlogsno
+            if ( lveg(n,i) /= 0 ) then
+              zlgveg(n,i) = z1log(n,i) - dlog(rough(lveg(n,i)))
+              zlgdis(n,i) = dlog(z1d(n,i)-displa(lveg(n,i)) / &
+                                 rough(lveg(n,i)))
+            end if
           end do
+
  
           rh0 = d_zero
           do n = 1 , ng
@@ -584,21 +602,21 @@
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+              facv = z2fra(n,i)/zlgveg(n,i)
+              facb = z2fra(n,i)/zlglnd(n,i)
+              facs = z2fra(n,i)/zlgsno(n,i)
               fact = fracv*facv + fracb*facb + fracs*facs
-              facv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zsno)
+              facv = z10fra(n,i)/zlgveg(n,i)
+              facb = z10fra(n,i)/zlglnd(n,i)
+              facs = z10fra(n,i)/zlgsno(n,i)
               factuv = fracv*facv + fracb*facb + fracs*facs
               u10m1d(n,i) = us1d(i)*(d_one-factuv)
               v10m1d(n,i) = vs1d(i)*(d_one-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
               if ( iocnflx == 1 ) then
-                fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
-                factuv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zoce)
+                fact = z2fra(n,i)/zlgocn(n,i)
+                factuv = z10fra(n,i)/zlgocn(n,i)
                 u10m1d(n,i) = us1d(i)*(d_one-factuv)
                 v10m1d(n,i) = vs1d(i)*(d_one-factuv)
                 t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
@@ -645,21 +663,21 @@
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+              facv = z2fra(n,i)/zlgveg(n,i)
+              facb = z2fra(n,i)/zlglnd(n,i)
+              facs = z2fra(n,i)/zlgsno(n,i)
               fact = fracv*facv + fracb*facb + fracs*facs
-              facv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zsno)
+              facv = z10fra(n,i)/zlgveg(n,i)
+              facb = z10fra(n,i)/zlglnd(n,i)
+              facs = z10fra(n,i)/zlgsno(n,i)
               factuv = fracv*facv + fracb*facb + fracs*facs
               u10m1d(n,i) = us1d(i)*(d_one-factuv)
               v10m1d(n,i) = vs1d(i)*(d_one-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
               if ( iocnflx == 1 ) then
-                fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
-                factuv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zoce)
+                fact = z2fra(n,i)/zlgocn(n,i)
+                factuv = z10fra(n,i)/zlgocn(n,i)
                 u10m1d(n,i) = us1d(i)*(d_one-factuv)
                 v10m1d(n,i) = vs1d(i)*(d_one-factuv)
                 t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
@@ -703,21 +721,21 @@
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+              facv = z2fra(n,i)/zlgveg(n,i)
+              facb = z2fra(n,i)/zlglnd(n,i)
+              facs = z2fra(n,i)/zlgsno(n,i)
               fact = fracv*facv + fracb*facb + fracs*facs
-              facv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/rough(lveg(n,i)))
-              facb = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zlnd)
-              facs = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zsno)
+              facv = z10fra(n,i)/zlgveg(n,i)
+              facb = z10fra(n,i)/zlglnd(n,i)
+              facs = z10fra(n,i)/zlgsno(n,i)
               factuv = fracv*facv + fracb*facb + fracs*facs
               u10m1d(n,i) = us1d(i)*(d_one-factuv)
               v10m1d(n,i) = vs1d(i)*(d_one-factuv)
               t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
             else 
               if ( iocnflx == 1 ) then
-                fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
-                factuv = dlog(z1(n,i)/d_10)/dlog(z1(n,i)/zoce)
+                fact = z2fra(n,i)/zlgocn(n,i)
+                factuv = z10fra(n,i)/zlgocn(n,i)
                 u10m1d(n,i) = us1d(i)*(d_one-factuv)
                 v10m1d(n,i) = vs1d(i)*(d_one-factuv)
                 t2m_1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
@@ -778,14 +796,14 @@
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-                facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-                facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-                facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+                facv = z2fra(n,i)/zlgveg(n,i)
+                facb = z2fra(n,i)/zlglnd(n,i)
+                facs = z2fra(n,i)/zlgsno(n,i)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else
                 if ( iocnflx == 1 ) then
-                  fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
+                  fact = z2fra(n,i)/zlgocn(n,i)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
               end if
@@ -870,14 +888,14 @@
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-                facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-                facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-                facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+                facv = z2fra(n,i)/zlgveg(n,i)
+                facb = z2fra(n,i)/zlglnd(n,i)
+                facs = z2fra(n,i)/zlgsno(n,i)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else
                 if ( iocnflx == 1 ) then
-                  fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
+                  fact = z2fra(n,i)/zlgocn(n,i)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
               end if
@@ -957,14 +975,14 @@
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-                facv = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/rough(lveg(n,i)))
-                facb = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zlnd)
-                facs = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zsno)
+                facv = z2fra(n,i)/zlgveg(n,i)
+                facb = z2fra(n,i)/zlglnd(n,i)
+                facs = z2fra(n,i)/zlgsno(n,i)
                 fact = fracv*facv + fracb*facb + fracs*facs
                 q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               else 
                 if ( iocnflx == 1 ) then
-                  fact = dlog(z1(n,i)/d_two)/dlog(z1(n,i)/zoce)
+                  fact = z2fra(n,i)/zlgocn(n,i)
                   q2m_1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
                 end if
               end if

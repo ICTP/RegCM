@@ -48,7 +48,8 @@
            & fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,     &
            & rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,    &
            & tm , uaf , vspda , wata , watr , watt , watu , wta , xlai ,&
-           & xlsai , xrun , z1 , z1log
+           & xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,  &
+           & zlgsno , zlgveg , zlgdis
 !
       real(8) , pointer , dimension(:,:) :: cn1 , rgr , wta0 , wtaq0 ,  &
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
@@ -222,7 +223,7 @@
           firstcall = .false.
         end if
 
-        allocate(spacebs1d(nnsg,iym1,125))
+        allocate(spacebs1d(nnsg,iym1,131))
         spacebs1d = d_zero
         p1d0     => spacebs1d(:,:,1)
         qs1d0    => spacebs1d(:,:,2)
@@ -325,30 +326,36 @@
         xlai     => spacebs1d(:,:,99)
         xlsai    => spacebs1d(:,:,100)
         xrun     => spacebs1d(:,:,101)
-        z1       => spacebs1d(:,:,102)
-        z1log    => spacebs1d(:,:,103)
-        cn1      => spacebs1d(:,:,104)
-        df       => spacebs1d(:,:,105)
-        rgr      => spacebs1d(:,:,106)
-        wta0     => spacebs1d(:,:,107)
-        wtaq0    => spacebs1d(:,:,108)
-        wtg      => spacebs1d(:,:,109)
-        wtg0     => spacebs1d(:,:,110)
-        wtg2     => spacebs1d(:,:,111)
-        wtga     => spacebs1d(:,:,112)
-        wtgaq    => spacebs1d(:,:,113)
-        wtgl     => spacebs1d(:,:,114)
-        wtglq    => spacebs1d(:,:,115)
-        wtgq     => spacebs1d(:,:,116)
-        wtgq0    => spacebs1d(:,:,117)
-        wtl0     => spacebs1d(:,:,118)
-        wtlh     => spacebs1d(:,:,119)
-        wtlq     => spacebs1d(:,:,120)
-        wtlq0    => spacebs1d(:,:,121)
-        wtshi    => spacebs1d(:,:,122)
-        wtsqi    => spacebs1d(:,:,123)
-        aldirs1d => spacebs1d(:,:,124)
-        aldifs1d => spacebs1d(:,:,125)
+        cn1      => spacebs1d(:,:,102)
+        df       => spacebs1d(:,:,103)
+        rgr      => spacebs1d(:,:,104)
+        wta0     => spacebs1d(:,:,105)
+        wtaq0    => spacebs1d(:,:,106)
+        wtg      => spacebs1d(:,:,107)
+        wtg0     => spacebs1d(:,:,108)
+        wtg2     => spacebs1d(:,:,109)
+        wtga     => spacebs1d(:,:,110)
+        wtgaq    => spacebs1d(:,:,111)
+        wtgl     => spacebs1d(:,:,112)
+        wtglq    => spacebs1d(:,:,113)
+        wtgq     => spacebs1d(:,:,114)
+        wtgq0    => spacebs1d(:,:,115)
+        wtl0     => spacebs1d(:,:,116)
+        wtlh     => spacebs1d(:,:,117)
+        wtlq     => spacebs1d(:,:,118)
+        wtlq0    => spacebs1d(:,:,119)
+        wtshi    => spacebs1d(:,:,120)
+        wtsqi    => spacebs1d(:,:,121)
+        z2fra    => spacebs1d(:,:,122)
+        z10fra   => spacebs1d(:,:,123)
+        z1log    => spacebs1d(:,:,124)
+        zlgocn   => spacebs1d(:,:,125)
+        zlglnd   => spacebs1d(:,:,126)
+        zlgsno   => spacebs1d(:,:,127)
+        zlgveg   => spacebs1d(:,:,128)
+        zlgdis   => spacebs1d(:,:,129)
+        aldirs1d => spacebs1d(:,:,130)
+        aldifs1d => spacebs1d(:,:,131)
         allocate(imelt(nnsg,iym1))
         imelt = 0
         allocate(lveg(nnsg,iym1))
