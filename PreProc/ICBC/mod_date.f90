@@ -297,8 +297,8 @@
         integer :: jd1 , jd2
         call split_idate(idate2, iy2, im2, id2, ih2)
         call split_idate(idate1, iy1, im1, id1, ih1)
-        jd2 = idnint(julianday(iy2, im2, id2))
-        jd1 = idnint(julianday(iy1, im1, id1))
+        jd2 = idint(julianday(iy2, im2, id2))
+        jd1 = idint(julianday(iy1, im1, id1))
         idatediff = (jd2-jd1)*24+(ih2-ih1)
       end function idatediff
 
