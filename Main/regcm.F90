@@ -195,7 +195,7 @@
 #endif
       end if
       if ( jxp < 3 ) then
-        write (aline,*) 'The number of jxp must be greater than 3'
+        write (aline,*) 'The number of jxp must be greater than 2'
         call say
         write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
         call say
