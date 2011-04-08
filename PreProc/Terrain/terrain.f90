@@ -238,7 +238,7 @@ program terrain
     write(stdout,*)'Static DEM data successfully read in'
     call interp(iysg,jxsg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,2,lonwrap,lcrosstime)
+                ntypec_s,3,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated DEM on SUBGRID'
     if (debug_level > 2) call zeit_co('TOPO read')
 !
@@ -282,7 +282,7 @@ program terrain
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(iysg,jxsg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec_s,2,lonwrap,lcrosstime)
+                  ntypec_s,3,lonwrap,lcrosstime)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
       if (debug_level > 2) call zeit_co('BATH read')
     end if
@@ -397,7 +397,7 @@ program terrain
   write(stdout,*)'Static DEM data successfully read in'
   call interp(iy,jx,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,2,lonwrap,lcrosstime)
+              ntypec,3,lonwrap,lcrosstime)
   write(stdout,*)'Interpolated DEM on model GRID'
   if (debug_level > 2) call zeit_co('TOPO read')
 !
@@ -441,7 +441,7 @@ program terrain
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(iy,jx,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec,2,lonwrap,lcrosstime)
+                ntypec,3,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated bathymetry on model GRID'
     if (debug_level > 2) call zeit_co('BATH read')
   end if

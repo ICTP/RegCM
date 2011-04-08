@@ -127,6 +127,49 @@ module mod_date
     iprevwk = mkidate(basey, basem, based, baseh)
   end function iprevwk
 
+  subroutine addhours_noleap(idate, ihours)
+    implicit none
+    integer , intent(in) :: ihours
+    integer , intent(inout) :: idate
+    integer :: basey , basem , based , baseh , nmd
+    integer :: nsum , isum , ilast
+
+    call split_idate(idate, basey, basem, based, baseh)
+    nsum  = ihours / 23
+    ilast = ihours - nsum*23;
+    do isum = 1 , nsum
+      baseh = baseh + 23
+      if (baseh > 23) then
+        based = based + 1
+        baseh = baseh - 24
+        nmd = mlen(basem)
+        if (based > nmd) then
+          based = based - nmd
+          basem = basem + 1
+          if (basem > 12) then
+            basem = basem - 12
+            basey = basey + 1
+          end if
+        end if
+      end if
+    end do
+    baseh = baseh + ilast
+    if (baseh > 23) then
+      based = based + 1
+      baseh = baseh - 24
+      nmd = mlen(basem)
+      if (based > nmd) then
+        based = based - nmd
+        basem = basem + 1
+        if (basem > 12) then
+          basem = basem - 12
+          basey = basey + 1
+        end if
+      end if
+    end if
+    idate = mkidate(basey, basem, based, baseh)
+  end subroutine addhours_noleap
+
   subroutine addhours(idate, ihours)
     implicit none
     integer , intent(in) :: ihours
@@ -496,7 +539,35 @@ module mod_date
         call addhours(timeval2idate,nint(xval))
       end if
     end if
-
   end function timeval2idate
-!      
+!
+  function timeval2idate_noleap(xval,cunit)
+    implicit none
+    integer :: timeval2idate_noleap
+    real(8) , intent(in) :: xval
+    character(*) , intent(in) :: cunit
+    character(35) , save :: csave
+    integer :: year , month , day , hour
+    integer , save :: iref
+    character(12) :: cdum
+
+    data csave/'none'/
+
+    if (csave == cunit) then
+      timeval2idate_noleap = iref
+      call addhours_noleap(timeval2idate_noleap,nint(xval))
+    else
+      if (len_trim(cunit) < 35) then
+        timeval2idate_noleap = 0
+      else
+        read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+          cdum, month, cdum, day, cdum, hour
+        timeval2idate_noleap = mkidate(year,month,day,hour)
+        iref = timeval2idate_noleap
+        csave = cunit
+        call addhours_noleap(timeval2idate_noleap,nint(xval))
+      end if
+    end if
+  end function timeval2idate_noleap
+!
 end module mod_date

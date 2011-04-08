@@ -165,7 +165,7 @@ module mod_interp
       bmindist(int(binval(i))) = bindist(i)
   end do
 !     Set point to land if less than fixed percent of water
-  wtp = (dble(sum(bincnt,mask=lndwt(ibnty,:)))/dble(totpoints))*100.0D0
+  wtp = (dble(sum(bincnt,mask=lndwt(ibnty,:)))/dble(totpoints))*d_100
   if (wtp > 0.0 .and. wtp < h2opct) then
     bincnt(indwt(ibnty,:)) = 0
   end if
@@ -201,7 +201,7 @@ module mod_interp
   integer :: i , j
   real(DP) :: pc
 
-  pctaround = 0.0D0
+  pctaround = d_zero
   pc = dble(nbox*nbox)
   ii0 = ifloor(x,m,lwrap)
   jj0 = jfloor(y,n)
@@ -216,7 +216,7 @@ module mod_interp
       end if
     end do
   end do
-  pctaround = (pctaround / pc) * 100.0D0
+  pctaround = (pctaround / pc) * d_100
   end function pctaround
 !
   function bilinear(x,y,m,n,grid,lwrap)
@@ -321,9 +321,9 @@ module mod_interp
       end if
       f(ii) = dble(grid(im,j))
       f1(ii) = dble((grid(imp1,j)-grid(imn1,j)))/(d_two)
-      f2(ii) = (grid(im,j+1)-grid(im,j-1))/(2D0)
-      f12(ii) = (grid(imp1,j+1)-grid(imp1,j-1)-&
-                 grid(imn1,j+1)+grid(imn1,j-1))/(4D0)
+      f2(ii) = dble((grid(im,j+1)-grid(im,j-1)))/(d_two)
+      f12(ii) = dble((grid(imp1,j+1)-grid(imp1,j-1)-&
+                      grid(imn1,j+1)+grid(imn1,j-1)))/(d_four)
     end do
   end do
  
@@ -345,7 +345,7 @@ module mod_interp
   call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
   t = (x1-x1l)/(x1u-x1l)
   u = (x2-x2l)/(x2u-x2l)
-  a = 0D0
+  a = d_zero
   do i = 4 , 1 , -1
     a = t*a + ((c(i,4)*u+c(i,3))*u+c(i,2))*u + c(i,1)
   end do
@@ -370,7 +370,7 @@ module mod_interp
     x(i+12) = y12(i)*d1d2
   end do
   do i = 1 , 16
-    xx = 0D0
+    xx = d_zero
     do k = 1 , 16
       xx = xx + wt(i,k)*x(k)
     end do
@@ -417,12 +417,12 @@ module mod_interp
 !
   do ii = 1 , iy
     do jj = 1 , jx
-      yy = (dble(xlat(ii,jj))-milat)*rinc + 1.0D+00
+      yy = (dble(xlat(ii,jj))-milat)*rinc + d_one
       if (lcross) then
-        xx = (mod((dble(xlon(ii,jj))+360.0D0),360.0D0)-milon) * &
-              rinc + 1.0D+00
+        xx = (mod((dble(xlon(ii,jj))+deg360),deg360)-milon) * &
+              rinc + d_one
       else
-        xx = (dble(xlon(ii,jj))-milon)*rinc + 1.0D+00
+        xx = (dble(xlon(ii,jj))-milon)*rinc + d_one
       end if
  
 !     yy and xx are the exact index values of a point i,j of the
@@ -445,11 +445,11 @@ module mod_interp
               cycle
             else
               if (jj == jx) then
-                nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+360.0))*&
+                nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+deg360))*&
                             real(rinc)/2.0, 2.0))
                 nbox = min(nbox,8)
               else if (jj == 1) then
-                nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)-360.0))*&
+                nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)-deg360))*&
                             real(rinc)/2.0, 2.0))
                 nbox = min(nbox,8)
               else
@@ -524,6 +524,7 @@ module mod_interp
               if (k == iocn) cycle
               if (cnt(k) > mpindex) mpindex = k
             end do
+            if (mpindex == 0) mpindex = iocn
             omt(i,j) = real(mpindex)
           end if
         end if

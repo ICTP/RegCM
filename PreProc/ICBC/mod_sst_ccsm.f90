@@ -265,11 +265,11 @@ module mod_sst_ccsm
             varname(1)//':units',1,nf90_strerror(istatus),istatus)
   end if
   cunit = '-'//trim(cunit)//' GMT-'
-  cssidate1 = timeval2idate(work1(1)*24.0,cunit)
+  cssidate1 = timeval2idate_noleap(work1(1)*24.0,cunit)
   it = 1
   do
     it = it + 1
-    cssidate2 = timeval2idate(work1(it)*24.0,cunit)
+    cssidate2 = timeval2idate_noleap(work1(it)*24.0,cunit)
     if ( cssidate2 > idate ) then
       exit
     end if

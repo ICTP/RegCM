@@ -39,6 +39,13 @@
       real(8) , parameter :: d_1000 = 1.0D+03
       real(8) , parameter :: d_r1000 = 1.0D-03
 
+      ! Angles degrees
+      real(8) , parameter :: deg00  = 0.0D+00
+      real(8) , parameter :: deg45  = 45.0D+00
+      real(8) , parameter :: deg90  = 90.0D+00
+      real(8) , parameter :: deg180 = 180.0D+00
+      real(8) , parameter :: deg360 = 360.0D+00
+
       real(8) , parameter :: dlowval = 1.0D-30
       real(4) , parameter :: slowval = 1.0E-30
       real(8) , parameter :: dmissval = -1.0D+34

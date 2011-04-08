@@ -23,6 +23,7 @@ module mod_block
   use m_realkinds
   use m_die
   use m_mall
+  use mod_constants
 
   real(DP) :: grdlnmn , grdltmn , grdlnma , grdltma
   real(DP) :: xmaxlat , xmaxlon , xminlat , xminlon
@@ -46,14 +47,14 @@ module mod_block
   xmaxlat = dble(ceiling(maxval(xlat)))
 
   if ( iband.eq.1 ) then
-    xminlon = -180.0D0
-    xmaxlon =  180.0D0
+    xminlon = -deg180
+    xmaxlon =  deg180
     xtstlon1 = xminlon
     xtstlon2 = xmaxlon
-  else if (abs(xminlat+90.0D0)<0.0001D0 .or. &
-           abs(xmaxlat-90.0D0)<0.001D0) then
-    xminlon = -180.0D0
-    xmaxlon =  180.0D0
+  else if (abs(xminlat+deg90)<0.0001D0 .or. &
+           abs(xmaxlat-deg90)<0.001D0) then
+    xminlon = -deg180
+    xmaxlon =  deg180
     xtstlon1 = xminlon
     xtstlon2 = xmaxlon
   else
@@ -64,24 +65,24 @@ module mod_block
   end if
 
   if (xminlon == xmaxlon) then
-    xminlon = -180.0D0
-    xmaxlon =  180.0D0
+    xminlon = -deg180
+    xmaxlon =  deg180
     xtstlon1 = xminlon
     xtstlon2 = xmaxlon
   end if
 
   lonwrap = .false.
   lcrosstime = .false.
-  if ((xmaxlon-xminlon) > 359.99) then
+  if ((xmaxlon-xminlon) > (deg360-0.001)) then
     lonwrap = .true.
     write(stdout,*) 'Special case for longitude wrapping'
   end if
-  if (abs(xminlon - xtstlon1) > 180.0D0 .or.   &
-      abs(xmaxlon - xtstlon2) > 180.0D0 .or.   &
-      xminlon > 0.0D0 .and. xmaxlon < 0.0D0) then
+  if (abs(xminlon - xtstlon1) > deg180 .or.   &
+      abs(xmaxlon - xtstlon2) > deg180 .or.   &
+      xminlon > deg00 .and. xmaxlon < deg00) then
     lcrosstime = .true.
-    if (xminlon < 0.0D0 .and. xtstlon1 > 0.0D0) xminlon = xtstlon1
-    if (xmaxlon > 0.0D0 .and. xtstlon2 < 0.0D0) xmaxlon = xtstlon2
+    if (xminlon < deg00 .and. xtstlon1 > deg00) xminlon = xtstlon1
+    if (xmaxlon > deg00 .and. xtstlon2 < deg00) xmaxlon = xtstlon2
     write(stdout,*) 'Special case for timeline crossing'
   end if
 

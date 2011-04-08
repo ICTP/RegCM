@@ -19,8 +19,7 @@
 
 module mod_maputils
 
-  use mod_constants , only : earthrad , eomeg2
-  use mod_constants , only : degrad , raddeg
+  use mod_constants
 
   contains
 
@@ -40,8 +39,8 @@ module mod_maputils
   real(DP) :: cntri , cntrj
   integer :: i , j
 !
-  cntrj = dble(jx+idot)/2.0D0
-  cntri = dble(iy+idot)/2.0D0
+  cntrj = dble(jx+idot)/d_two
+  cntri = dble(iy+idot)/d_two
   call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
 !
   do j = 1 , jx
@@ -74,8 +73,8 @@ module mod_maputils
   real(DP) :: cntrj , cntri
   integer :: i , j
 !
-  cntrj = dble(jx+idot)/2.0D0
-  cntri = dble(iy+idot)/2.0D0
+  cntrj = dble(jx+idot)/d_two
+  cntri = dble(iy+idot)/d_two
   call setup_plr(clat,clon,cntrj,cntri,delx,clon)
 !
   do i = 1 , iy
@@ -108,8 +107,8 @@ module mod_maputils
   real(DP) :: cntri , cntrj
   integer :: i , j
 !
-  cntrj = dble(jx+idot)/2.0D0
-  cntri = dble(iy+idot)/2.0D0
+  cntrj = dble(jx+idot)/d_two
+  cntri = dble(iy+idot)/d_two
   call setup_mrc(clat,clon,cntrj,cntri,delx)
 !
   do i = 1 , iy
@@ -144,8 +143,8 @@ module mod_maputils
   real(DP) :: cntri , cntrj
   integer :: i , j
 !
-  cntrj = dble(jx+idot)/2.0D0
-  cntri = dble(iy+idot)/2.0D0
+  cntrj = dble(jx+idot)/d_two
+  cntri = dble(iy+idot)/d_two
   call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
 !
   do i = 1 , iy

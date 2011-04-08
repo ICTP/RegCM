@@ -172,15 +172,12 @@ module mod_ccsm
 
   ! Shared by netcdf I/O routines
   integer :: ilastdate
-  logical :: lfirst , ldopen
   integer , dimension(4) :: icount , istart
   integer , dimension(6) :: inet6 , ivar6
 
   public :: get_ccsm , headccsm , footerccsm
 
   data ilastdate /0/
-  data lfirst /.true./
-  data ldopen /.true./
 
   contains
 !
@@ -408,7 +405,6 @@ module mod_ccsm
  
     call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
-    call writef(idate)
     call zeit_co('get_ccsm')
   end subroutine get_ccsm
 !
@@ -442,7 +438,7 @@ module mod_ccsm
 !
     call split_idate(idate,nyear,month,nday,nhour)
 
-    if ( ldopen ) then
+    if ( .not. lsame_month(idate,ilastdate) ) then
       do kkrec = 1 , 6
         if ( kkrec == 1 ) then
           write (inname,99001) nyear , 'air' , mname(month), nyear
@@ -493,13 +489,12 @@ module mod_ccsm
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
-            itimes(it) = timeval2idate(xtimes(it)*24.0,cunit)
+            itimes(it) = timeval2idate_noleap(xtimes(it)*24.0,cunit)
           end do
           deallocate(xtimes)
           call mall_mco(xtimes,'mod_ccsm')
         end if
       end do
-      ldopen = .false.
     end if
 
     do kkrec = 1 , 6
@@ -571,11 +566,6 @@ module mod_ccsm
       end do
     end do
  
-    if ( .not. lfirst .and. &
-         .not. lsame_month(idate,ilastdate) ) then
-      ldopen = .true.
-    end if
-    lfirst = .false.
     ilastdate = idate
     call zeit_co('readccsm')
 

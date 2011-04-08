@@ -23,6 +23,7 @@ module mod_rdldtr
   use m_stdio
   use m_die
   use m_mall
+  use mod_constants
 
   contains
 !
@@ -75,15 +76,15 @@ module mod_rdldtr
 
     ireg = 0
     if (lreg) ireg = 1
-    delta = ((dble(iires)/2.0D0)/dble(secpd))*dble(ireg)
+    delta = ((dble(iires)/d_two)/dble(secpd))*dble(ireg)
 
     grdltmn = dble(floor(xminlat))  -delta
     grdltma = dble(ceiling(xmaxlat))+delta
-    if (grdltmn < -90+delta) grdltmn = -90.0+delta
-    if (grdltma > +90-delta) grdltma =  90.0-delta
+    if (grdltmn < -deg90+delta) grdltmn = -deg90+delta
+    if (grdltma > +deg90-delta) grdltma =  deg90-delta
     if (lonwrap) then
-      grdlnmn = -180.0+delta
-      grdlnma =  180.0-delta
+      grdlnmn = -deg180+delta
+      grdlnma =  deg180-delta
     else
       grdlnmn = dble(floor(xminlon))  -delta
       grdlnma = dble(ceiling(xmaxlon))+delta
@@ -93,8 +94,8 @@ module mod_rdldtr
     if (lonwrap) then
       nlon = nlogb + 1 - ireg
     else if (lcrosstime) then
-      nlon = idnint(((180.0D0-delta-grdlnmn)+ &
-                     (180.0D0-delta+grdlnma))*dble(inpsec))
+      nlon = idnint(((deg180-delta-grdlnmn)+ &
+                     (deg180-delta+grdlnma))*dble(inpsec))
     else
       nlon = idnint((grdlnma-grdlnmn)*dble(inpsec))
     end if

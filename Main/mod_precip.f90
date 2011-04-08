@@ -229,7 +229,8 @@
             if ( pptkm1 > d_zero .or. pptnew > d_zero ) then
 !             1bfa. Compute the amount of water remaining in the cloud
 !             [kg/kg]
-              qcleft = dmax1(qcw-pptnew*dt,d_zero)           ![kg/kg][avg]
+              qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
+              if (qcleft < dlowval) qcleft = d_zero
 !             1bfb. Add 1/2 of the new precipitation to the accumulated
 !             precipitation [kg/m3]
               pptkm1 = (pptkm1+(pptnew/d_two)/afc)*rho*dt    ![kg/m3][cld]

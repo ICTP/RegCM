@@ -33,7 +33,7 @@ module mod_cu_grell
 
   integer , parameter :: icut = 0
   real(8) , parameter :: xacact = -0.99999D0
-  real(8) , parameter :: alsixt = dlog(610.71D0)
+  real(8) , parameter :: alsixt = 6.41462221474706417723D0 ! dlog(610.71D0)
   real(8) , parameter :: tcrit = 50.0D0
   real(8) , parameter :: c0 = 0.002D0
   real(8) , parameter , dimension(2) :: be = (/ep2*wlhvocp*3.50D0, &

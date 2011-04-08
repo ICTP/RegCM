@@ -20,7 +20,6 @@
 module mod_projections
 
   use m_realkinds
-
   use mod_constants
 
   real(DP) :: conefac
@@ -48,8 +47,8 @@ module mod_projections
 
     tl1r = truelat1*degrad
     tl2r = truelat2*degrad
-    colat1  = degrad*(90.0D0 - truelat1)
-    colat2  = degrad*(90.0D0 - truelat2)
+    colat1  = degrad*(deg90 - truelat1)
+    colat2  = degrad*(deg90 - truelat2)
 
     nfac = (log(sin(colat1))        - log(sin(colat2))) / &
            (log(tan(colat1*d_half)) - log(tan(colat2*d_half)))
@@ -64,21 +63,21 @@ module mod_projections
     if ( abs(truelat1-truelat2) > 0.1D0) then
       conefac = log10(cos(tl1r)) - log10(cos(tl2r))
       conefac = conefac / &
-                (log10(tan((45.0D0-abs(truelat1)/2.0D0)*degrad)) - &
-                 log10(tan((45.0D0-abs(truelat2)/2.0D0)*degrad)))
+                (log10(tan((deg45-abs(truelat1)/d_two)*degrad)) - &
+                 log10(tan((deg45-abs(truelat2)/d_two)*degrad)))
       lamtan = .false.
     else
       conefac = sin(abs(tl1r))
       lamtan = .true.
     end if
     deltalon1 = clon - stdlon
-    if (deltalon1 >  180.0D0) deltalon1 = deltalon1 - 360.0D0
-    if (deltalon1 < -180.0D0) deltalon1 = deltalon1 + 360.0D0
+    if (deltalon1 >  deg180) deltalon1 = deltalon1 - deg360
+    if (deltalon1 < -deg180) deltalon1 = deltalon1 + deg360
 
     ctl1r = cos(tl1r)
     rsw = rebydx * ctl1r/conefac * &
-             (tan((90.0D0*hemi-clat)    *degrad*d_half) / &
-              tan((90.0D0*hemi-truelat1)*degrad*d_half))**conefac
+             (tan((deg90*hemi-clat)    *degrad*d_half) / &
+              tan((deg90*hemi-truelat1)*degrad*d_half))**conefac
     arg = conefac*(deltalon1*degrad)
     polei = hemi*ci - hemi * rsw * sin(arg)
     polej = hemi*cj + rsw * cos(arg)
@@ -91,27 +90,27 @@ module mod_projections
     real(DP) :: chi1 , chi2 , chi
     real(DP) :: inew , jnew , xx , yy , r2 , r
 
-    chi1 = (90.0D0 - hemi*truelat1)*degrad
-    chi2 = (90.0D0 - hemi*truelat2)*degrad
+    chi1 = (deg90 - hemi*truelat1)*degrad
+    chi2 = (deg90 - hemi*truelat2)*degrad
     inew = hemi * dble(i)
     jnew = hemi * dble(j)
     xx = inew - polei
     yy = polej - jnew
     r2 = (xx*xx + yy*yy)
     r = sqrt(r2)/rebydx
-    if (abs(r2) < 1D-30) then
-      lat = real(hemi * 90.0D0)
+    if (abs(r2) < dlowval) then
+      lat = real(hemi * deg90)
       lon = real(stdlon)
     else
       lon = real(stdlon + raddeg * atan2(hemi*xx,yy)/conefac)
       lon = mod(lon+360.0, 360.0)
-      if (abs(chi1-chi2) < 1D-30) then
+      if (abs(chi1-chi2) < dlowval) then
         chi = d_two*atan((r/tan(chi1))**(d_one/conefac)*tan(chi1*d_half))
       else
         chi = d_two*atan((r*conefac/sin(chi1))**(d_one/conefac) * &
               tan(chi1*d_half))
       end if
-      lat = real((90.0D0-chi*raddeg)*hemi)
+      lat = real((deg90-chi*raddeg)*hemi)
     end if
     if (lon >  180.0) lon = lon - 360.0
     if (lon < -180.0) lon = lon + 360.0
@@ -124,12 +123,12 @@ module mod_projections
     real(DP) :: arg , deltalon , rm
 
     deltalon = lon - stdlon
-    if (deltalon > +180.) deltalon = deltalon - 360.0
-    if (deltalon < -180.) deltalon = deltalon + 360.0
+    if (deltalon > +deg180) deltalon = deltalon - deg360
+    if (deltalon < -deg180) deltalon = deltalon + deg360
 
     rm = rebydx * ctl1r/conefac * &
-           (tan((90.0D0*hemi-dble(lat))*degrad*d_half) / &
-            tan((90.0D0*hemi-truelat1)*degrad*d_half))**conefac
+           (tan((deg90*hemi-dble(lat))*degrad*d_half) / &
+            tan((deg90*hemi-truelat1)*degrad*d_half))**conefac
     arg = conefac*(deltalon*degrad)
     i = real(hemi*(polei + hemi * rm * sin(arg)))
     j = real(hemi*(polej - rm * cos(arg)))
@@ -142,8 +141,8 @@ module mod_projections
     real(DP) :: deltalon
 
     deltalon = stdlon - dble(lon)
-    if (deltalon > +180.0D0) deltalon = deltalon - 360.0D0
-    if (deltalon < -180.0D0) deltalon = deltalon + 360.0D0
+    if (deltalon > +deg180) deltalon = deltalon - deg360
+    if (deltalon < -deg180) deltalon = deltalon + deg360
     alpha = real(deltalon*degrad*conefac)
   end subroutine uvrot_lc
 
@@ -153,7 +152,7 @@ module mod_projections
     real(SP) , intent(out) :: xmap
     real(DP) :: colat
 
-    colat = degrad*dble(90.0-lat)
+    colat = degrad*(deg90-lat)
     if (.not. lamtan) then
       xmap = real(sin(colat2)/sin(colat) * &
              (tan(colat*d_half)/tan(colat2*d_half))**nfac)
@@ -175,7 +174,7 @@ module mod_projections
       hemi = -d_one
     end if
     rebydx = earthrad / ds
-    reflon = stdlon + 90.0D0
+    reflon = stdlon + deg90
     ala1 = clat*degrad
     alo1 = (clon-reflon)*degrad
     scale_top = d_one + hemi * sin(ala1)
@@ -191,8 +190,8 @@ module mod_projections
     real(DP) :: ala , alo , rm , deltalon
 
     deltalon = dble(lon) - reflon
-    if (deltalon > +180.0D0) deltalon = deltalon - 360.0D0
-    if (deltalon < -180.0D0) deltalon = deltalon + 360.0D0
+    if (deltalon > +deg180) deltalon = deltalon - deg360
+    if (deltalon < -deg180) deltalon = deltalon + deg360
     alo = deltalon * degrad
     ala = lat * degrad
 
@@ -211,8 +210,8 @@ module mod_projections
     xx = dble(i) - polei
     yy = (dble(j) - polej) * hemi
     r2 = xx**d_two + yy**d_two
-    if (abs(r2) < 1D-30) then
-      lat = real(hemi*90.0D0)
+    if (abs(r2) < dlowval) then
+      lat = real(hemi*deg90)
       lon = real(reflon)
     else
       gi2 = (rebydx * scale_top)**d_two
@@ -224,8 +223,8 @@ module mod_projections
         lon = real(reflon - raddeg * arcc)
       end if
     end if
-    if (lon >  180.) lon = lon - 360.0
-    if (lon < -180.) lon = lon + 360.0
+    if (lon >  180.0) lon = lon - 360.0
+    if (lon < -180.0) lon = lon + 360.0
   end subroutine ijll_ps
  
   subroutine mapfac_ps(lat, xmap)
@@ -242,8 +241,8 @@ module mod_projections
     real(DP) :: deltalon
 
     deltalon = stdlon - dble(lon)
-    if (deltalon > +180.0D0) deltalon = deltalon - 360.0D0
-    if (deltalon < -180.0D0) deltalon = deltalon + 360.0D0
+    if (deltalon > +deg180) deltalon = deltalon - deg360
+    if (deltalon < -deg180) deltalon = deltalon + deg360
     alpha = real(deltalon*degrad*hemi)
   end subroutine uvrot_ps
 
@@ -256,8 +255,8 @@ module mod_projections
     clain = cos(clat*degrad)
     dlon = ds / (earthrad * clain)
     rsw = d_zero
-    if (abs(clat) > 1D-30) then
-      rsw = (log(tan(d_half*((clat+90.0D0)*degrad))))/dlon
+    if (abs(clat) > dlowval) then
+      rsw = (log(tan(d_half*((clat+deg90)*degrad))))/dlon
     end if
     polei = ci
     polej = cj
@@ -270,11 +269,11 @@ module mod_projections
     real(DP) :: deltalon
 
     deltalon = lon - stdlon
-    if (deltalon > +180.0D0) deltalon = deltalon - 360.0D0
-    if (deltalon < -180.0D0) deltalon = deltalon + 360.0D0
+    if (deltalon > +deg180) deltalon = deltalon - deg360
+    if (deltalon < -deg180) deltalon = deltalon + deg360
     i = real(polei + (deltalon/(dlon*raddeg)))
     j = real(polej + &
-         (log(tan(d_half*((dble(lat)+90.0D0)*degrad)))) / dlon - rsw)
+         (log(tan(d_half*((dble(lat)+deg90)*degrad)))) / dlon - rsw)
   end subroutine llij_mc
 
   subroutine ijll_mc(i,j,lat,lon)
@@ -282,10 +281,10 @@ module mod_projections
     real(SP) , intent(in) :: i , j
     real(SP) , intent(out) :: lat , lon
 
-    lat = real(d_two*atan(exp(dlon*(rsw + dble(j)-polej)))*raddeg-90.0D0)
+    lat = real(d_two*atan(exp(dlon*(rsw + dble(j)-polej)))*raddeg-deg90)
     lon = real((dble(i)-polei)*dlon*raddeg + stdlon)
-    if (lon >  180.) lon = lon - 360.0
-    if (lon < -180.) lon = lon + 360.0
+    if (lon >  180.0) lon = lon - 360.0
+    if (lon < -180.0) lon = lon + 360.0
   end subroutine ijll_mc
  
   subroutine mapfac_mc(lat, xmap)
@@ -307,9 +306,9 @@ module mod_projections
     yoff = clat - plat
     polei = ci
     polej = cj
-    pphi = 90. - plat
-    plam = plon + 180.
-    if ( plam>180. ) plam = plam - 360.
+    pphi = deg90 - plat
+    plam = plon + deg180
+    if ( plam>deg180 ) plam = plam - deg360
     zlampol = degrad*plam
     zphipol = degrad*pphi
     zsinpol = sin(zphipol)
@@ -325,7 +324,7 @@ module mod_projections
  
     zphi = degrad*dble(lat)
     zlam = dble(lon)
-    if ( zlam>180.0D0 ) zlam = zlam - 360.0D0
+    if ( zlam>deg180 ) zlam = zlam - deg360
     zlam = degrad*zlam
 
     zarg = zcospol*cos(zphi)*cos(zlam-zlampol) + zsinpol*sin(zphi)
@@ -333,14 +332,14 @@ module mod_projections
     phis = log(tan(phis*d_half+atan(d_one)))*raddeg
     zarg1 = -sin(zlam-zlampol)*cos(zphi)
     zarg2 = -zsinpol*cos(zphi)*cos(zlam-zlampol) + zcospol*sin(zphi)
-    if ( abs(zarg2)>=1.D-37 ) then
+    if ( abs(zarg2)>=dlowval ) then
       lams = raddeg*atan2(zarg1,zarg2)
-    else if ( abs(zarg1)<1.D-37 ) then
-      lams = 0.0D0
-    else if ( zarg1>0. ) then
-      lams = 90.0D0
+    else if ( abs(zarg1)<dlowval ) then
+      lams = deg00
+    else if ( zarg1>d_zero ) then
+      lams = deg90
     else
-      lams = -90.0D0
+      lams = -deg90
     end if
     i = real(polei + (lams-xoff)/dlon)
     j = real(polej + (phis-yoff)/dlon)
@@ -353,7 +352,7 @@ module mod_projections
     real(DP) :: xr , yr , arg , zarg1 , zarg2
 
     xr = xoff + (i-polei)*dlon
-    if ( xr>180.0D0 ) xr = xr - 360.0D0
+    if ( xr>deg180 ) xr = xr - deg360
     xr = degrad*xr
     yr = yoff + (j-polej)*dlon
     yr = d_two*atan(exp(degrad*yr)) - atan(d_one)*d_two
@@ -364,17 +363,17 @@ module mod_projections
             zcospol*sin(yr))-cos(zlampol)*sin(xr)*cos(yr)
     zarg2 = cos(zlampol)*(-zsinpol*cos(xr)*cos(yr)+ &
             zcospol*sin(yr))+sin(zlampol)*sin(xr)*cos(yr)
-    if ( abs(zarg2)>=1.D-37 ) then
+    if ( abs(zarg2)>=dlowval ) then
       lon = real(raddeg*atan2(zarg1,zarg2))
-    else if ( abs(zarg1)<1.D-37 ) then
-      lon = 0.0
+    else if ( abs(zarg1)<dlowval ) then
+      lon = deg00
     else if ( zarg1>d_zero ) then
-      lon = 90.0
+      lon = deg90
     else
-      lon = -90.0
+      lon = -deg90
     end if
-    if (lon >  180.) lon = lon - 360.0
-    if (lon < -180.) lon = lon + 360.0
+    if (lon >  180.0) lon = lon - 360.0
+    if (lon < -180.0) lon = lon + 360.0
   end subroutine ijll_rc
  
   subroutine uvrot_rc(lat, lon, alpha)
@@ -384,11 +383,11 @@ module mod_projections
     real(DP) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
     zphi = lat*degrad
     zrla = lon*degrad
-    if (lat > 89.999999) zrla = d_zero
+    if (lat > deg90-0.00001D0) zrla = d_zero
     zrlap = zlampol - zrla
     zarg1 = zcospol*sin(zrlap)
     zarg2 = zsinpol*cos(zphi) - zcospol*sin(zphi)*cos(zrlap)
-    znorm = 1.0D0/dsqrt(zarg1**d_two+zarg2**d_two)
+    znorm = d_one/dsqrt(zarg1**d_two+zarg2**d_two)
     alpha = real(dacos(zarg2*znorm))
   end subroutine uvrot_rc
 
@@ -398,19 +397,19 @@ module mod_projections
     real(SP) , intent(out) :: xmap
     real(DP) :: yr
     yr = yoff + (ir-polej)*dlon
-    xmap = real(1.0D0/dcos(yr*degrad))
+    xmap = real(d_one/dcos(yr*degrad))
   end subroutine mapfac_rc
 
-  function rounder(value,ltop)
+  function rounder(xval,ltop)
     implicit none
-    real(SP) , intent(in) :: value
+    real(SP) , intent(in) :: xval
     logical, intent(in) :: ltop
     real(SP) :: rounder
     integer :: tmpval
     if (ltop) then
-      tmpval = ceiling(value*100.0)
+      tmpval = ceiling(xval*100.0)
     else
-      tmpval = floor(value*100.0)
+      tmpval = floor(xval*100.0)
     end if
     rounder = real(tmpval)/100.0
   end function rounder

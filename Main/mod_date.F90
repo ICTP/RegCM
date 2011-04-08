@@ -252,8 +252,8 @@
         else
           ib = 0
         end if
-        julianday = dint(365.25D+00*dble(iiy+4716)) + &
-          &         dint(30.6001D+00*dble(iim+1))   + &
+        julianday = (365.25D+00*dble(iiy+4716)) + &
+          &         (30.6001D+00*dble(iim+1))   + &
           &         dble(id + ib) - 1524.5D+00
       end function julianday
 
