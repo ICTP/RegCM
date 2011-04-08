@@ -1,0 +1,301 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+We will review here a sample installation session of software needed to
+install the RegCM model.
+
+Starting point is here a Linux system on a multicore processor box, and final
+goal is to have an optimized system to run the model.
+I will use \verb=bash= as my shell and assume that GNU development tools like
+\verb=make=, \verb=sed=, \verb=awk= are installed as part of the default
+Operating System environment as it is the case in most Linux distro.
+I will require also for commodity a command line web downloader such as
+\verb=curl= installed on the system, along its development libraries to be
+used to enable OpenDAP remote data access protocol capabilities of NetCDF
+library. Standard file management tools such as \verb=tar= and \verb=gzip=
+are also required.
+The symbol \verb=$>= will stand for a shell prompt.
+I will assume that the process is performed as a normal system user, which
+will own all the toolchain. I will be now just the \verb=regcm= user.
+
+\section{Identify Processor}
+
+First step is to identify the processor to know its capabilities:
+
+\begin{Verbatim}
+$> cat /proc/cpuinfo
+\end{Verbatim}
+
+This command will ask to the operating system to print processor informations.
+A sample answer on my laptop is:
+
+\begin{Verbatim}
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 30
+model name      : Intel(R) Core(TM) i7 CPU       Q 740  @ 1.73GHz
+stepping        : 5
+cpu MHz         : 933.000
+cache size      : 6144 KB
+physical id     : 0
+siblings        : 8
+core id         : 0
+cpu cores       : 4
+apicid          : 0
+initial apicid  : 0
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 11
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall
+nx rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology
+nonstop_tsc aperfmperf pni dtes64 monitor ds_cpl vmx smx est tm2 ssse3
+cx16 xtpr pdcm sse4_1 sse4_2 popcnt lahf_lm ida dts tpr_shadow vnmi
+flexpriority ept vpid
+bogomips        : 3467.81                                                       
+clflush size    : 64                                                            
+cache_alignment : 64                                                            
+address sizes   : 36 bits physical, 48 bits virtual                             
+power management:
+\end{Verbatim}
+
+repeated eight time with Processor Ids from 0 to 7: I have a Quad Core Intel
+with Hyperthreading on (this multiply by 2 the reported processor list).
+The processor reports here also to support Intel Streaming SIMD Extensions V4.2,
+which can be later used to speed up code execution vectorizing floating point
+operation on any single CPU core.
+
+\section{Chose compiler}
+
+Depending on the processor, we can chose which compiler to use. On a Linux box,
+we have multiple choices:
+
+\begin{itemize}
+\item GNU Gfortran
+\item G95
+\item Intel ifort compiler
+\item Portland pgf90 compiler
+\item Absoft ProFortran
+\item NAG Fortran Compiler
+\end{itemize}
+
+and for sure other which I may not be aware of. Any of this compilers has pros
+and cons, so I am just for now selecting one in the pool only to continue the
+exposition. I am not selecting the trivial solution of Gfortran as most
+Linux distributions have it already packaged, and all the other required
+software as well (most complete distribution I am aware of for this is Fedora:
+all needed software is packaged and it is a matter of yum install).
+
+So let us assume I have licensed the Intel Composer XE Professional Suite
+12.0.2 on my laptop. My system administrator installed it on the default
+location under \verb=/opt/intel=, and I have my shell environment update
+loading vendor provided script:
+
+\begin{Verbatim}
+$> source /opt/intel/bin/compilervars.sh intel64
+\end{Verbatim}
+
+With some modification (the path, the script, the arguments to the script),
+same step is to be performed for all non-GNU compilers in the above list, and
+is documented in the installation manual of the compiler itself.
+
+In case of Intel, to check the correct behaviour of the compiler, try to
+type the following command:
+
+\begin{Verbatim}
+$> ifort --version
+ifort (IFORT) 12.0.2 20110112
+Copyright (C) 1985-2011 Intel Corporation.  All rights reserved.
+
+\end{Verbatim}
+
+I am skipping here any problem that may arise from license installation for any
+of the compilers, so I am assuming that if the compiler is callable, it works.
+As this step is usually performed by a system administrator on the machine,
+I am assuming a skilled professional will take care of that.
+
+\section{Environment setup}
+
+To efficiently use the compilers, I will setup now some environment variables.
+On my system (see the above processor informations) I will use:
+
+\begin{Verbatim}
+$> # Where all the software will be installed ?
+$> # I am chosing here a place under my home directory.
+$> export INTELROOT=/home/regcm/intelsoft
+$> export INTELSRC=/home/regcm/intelsoft/src
+$> mkdir -p $INTELROOT/{bin,include,lib,share/man,src}
+$> # the C compiler. I am assuming here to have the whole Intel
+$> # Composer XE suite, so I will use the intel C compiler.
+$> export CC=icc
+$> # the C++ compiler, the intel one.
+$> export CXX=icpc
+$> # the Fortran 9X compiler.
+$> export FC=ifort
+$> # the Foirtran 77 compiler. For intel, is just the fortran one.
+$> export F77=ifort
+$> # C Compiler flags
+$> export CFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
+$> # F9X Compiler flags
+$> export FCFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
+$> # F77 Compiler flags
+$> export FFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
+$> # CXX Compiler flags
+$> export CXXFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
+$> # Linker flags
+$> export LDFLAGS="-Wl,-rpath=$INTELROOT/lib \
+> -Wl,-rpath=/opt/intel/lib/intel64 -i-dynamic"
+$> # Preset PATH to use the installed software during build
+$> export PATH=$INTELROOT/bin:$PATH
+$> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INTELROOT/lib
+$> export MANPATH=$INTELROOT/share/man:$MANPATH
+\end{Verbatim}
+
+This step will allow me not to specify those variables at every following step.
+Depending on the above compiler selected, those flags my differ for You, but the
+concept is that I am selecting a performance target build for the machine I am
+on. I am now ready to compile software.
+
+\section{Compression Library Installation}
+
+To have a complete optimized stack, I will compile also here the compression
+libraries optionally needed by HDF5 library.
+
+I will need the sources:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> curl -o zlib-1.2.5.tar.gz http://zlib.net/zlib-1.2.5.tar.gz
+$> curl -o szip-2.1.tar.gz \
+> http://www.hdfgroup.org/ftp/lib-external/szip/2.1/src/szip-2.1.tar.gz
+\end{Verbatim}
+
+Please note that the szip library license allows to use that software only
+together with HDF5 library.
+
+Then I must decompress the sources:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> tar -zxvf zlib-1.2.5.tar.gz
+$> tar -zxvf szip-2.1.tar.gz
+\end{Verbatim}
+
+Let us start with zlib:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> cd zlib-1.2.5
+$> LDSHARED="icc -shared -Wl,-soname \
+> -Wl,libz.so.1,--version-script,zlib.map" \
+> ./configure --prefix=$INTELROOT
+$> make
+$> make check
+$> make install
+\end{Verbatim}
+
+This will install the zlib software under \verb=/home/regcm/intelsoft=.
+Let us continue with szip.
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> cd szip-2.1
+$> ./configure --prefix=$INTELROOT
+$> make
+$> make check
+$> make install
+\end{Verbatim}
+
+This will install the szip software under \verb=/home/regcm/intelsoft=.
+
+\section{HDF5 Library installation}
+
+Download the source pack:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> curl -o hdf5-1.8.6.tar.bz2 \
+> ftp://ftp.hdfgroup.org/HDF5/current/src/hdf5-1.8.6.tar.bz2
+\end{Verbatim}
+
+Install it:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> cd hdf5-1.8.6
+$> ./configure --prefix=$INTELROOT --enable-hl --enable-linux-lfs \
+> --enable-production --with-pic --docdir=$INTELROOT/share/doc/hdf5/ \
+> --with-szlib=$INTELROOT --with-zlib=$INTELROOT
+$> make
+$> make check
+$> make install
+\end{Verbatim}
+
+\section{NetCDF Library installation}
+
+Download the source pack:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> curl -o netcdf-4.1.2.tar.gz \
+> http://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-4.1.2.tar.gz
+\end{Verbatim}
+
+Install it:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> cd netcdf-4.1.2
+$> ./configure --prefix=$INTELROOT --enable-shared --enable-netcdf-4 \
+> --with-udunits --with-libcf --enable-dap-netcdf --enable-cxx-4 \
+> --with-hdf5=$INTELROOT --with-zlib=$INTELROOT --with-szlib=$INTELROOT
+$> make
+$> make check
+$> make install
+\end{Verbatim}
+
+\section{OpenMPI library installation}
+
+This optional step will install OpenMPI message passing library to enable
+parallel run of the RegCM model using all cores of my processor.
+Download the souece pack:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> curl -o openmpi-1.5.3.tar.bz2 \
+> http://www.open-mpi.org/software/ompi/v1.5/downloads/openmpi-1.5.3.tar.bz2
+\end{Verbatim}
+
+Install it:
+
+\begin{Verbatim}
+$> cd $INTELSRC
+$> cd openmpi-1.5.3
+$> ./configure --prefix=$INTELROOT --sysconfdir=$INTELROOT/etc/openmpi \
+> --mandir=$INTELROOT/share/man --enable-mpi-f90 --libdir=$INTELROOT/lib \
+> --with-threads=posix --enable-mpi-threads --enable-smp-locks \
+> --with-valgrind --enable-memchecker --enable-debug \
+> --enable-pretty-print-stacktrace --without-slurm --with-hwloc=external \
+> --with-libltdl=/usr FC=ifort LDFLAGS="$LDFLAGS -Wl,-z,noexecstack" \
+> CXXFLAGS="$CXXFLAGS -std=c++0x"
+$> make
+$> make check
+$> make install
+\end{Verbatim}
+
+\section{Final step}
+
+To enable all the ready installed software to be used by the regcm user whenever
+it logs in the box, edit the \verb=.bashrc= file in the home directory and add
+the following lines:
+
+\begin{Verbatim}
+export PATH=$INTELROOT/bin:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INTELROOT/lib
+export MANPATH=$INTELROOT/share/man:$MANPATH
+\end{Verbatim}

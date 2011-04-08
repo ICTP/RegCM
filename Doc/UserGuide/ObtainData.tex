@@ -1,0 +1,131 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+First step to run a test simulation is to obtain static data to localize
+model DOMAIN and Atmosphere and Ocean global model dataset to build initial
+and boundary conditions ICBC to run a local area simulation.
+
+ICTP does mantain a public accessible web repository of datasets on:
+
+{\bf http://users.ictp.it/~pubregcm/RegCM4/globedat.htm}
+
+As of now You are requested to download required global data on Your local disk
+storage before any run attempt. In the next future the ICTP ESP team has
+plannend to make available an OpenDAP RAMADDA Server to give remote access
+to global dataset for creating DOMAIN and ICBC without the need to
+download the global dataset, but just the required subset in space and time,
+using the ICTP web server capabilities to create that subset.
+
+\section{Global dataset directory Layout}
+
+You are suggested to establish a convenient location for global datasets
+on Your local storage. Keep in mind that required space for a Year of global
+data can be as large as 8 GBytes.
+
+Having this in mind, we will now consider that You the user have identified
+on Your system or have network access to such a storage resource to store say
+100 GB of data, and have it reachable on Your system under the
+\verb=$REGCM_GLOBEDAT= location.
+On this directory, You are required to make the following directories:
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> mkdir SURFACE SST AERGLOB EIN15
+\end{Verbatim}
+
+This does not fill all possible global data sources paths, but will be enough
+for the scope of running the model for testing its capabilities.
+
+\section{Static Surface Dataset}
+
+The model needs to be localized on a particular DOMAIN. The needed informations
+are topography, land type classification and optionally lake depth (to run
+Hostetler lake model) and soil texture classification (to run chemistry option
+with DUST enabled).
+
+This means downloading four files, which are global archives at $30 second$
+horizontal resolution on a global latitude-longitude grid of the above data.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SURFACE
+$> curl -o GTOPO_DEM_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GTOPO_DEM_30s.nc.gz
+$> gunzip GTOPO_DEM_30s.nc.gz
+$> curl -o GLCC_BATS_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GLCC_BATS_30s.nc.gz
+$> gunzip GLCC_BATS_30s.nc.gz
+\end{Verbatim}
+
+Optional Lake and Texture datasets:
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SURFACE
+$> curl -o ETOPO_BTM_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/ETOPO_BTM_30s.nc.gz
+$> gunzip ETOPO_BTM_30s.nc.gz
+$> curl -o GLZB_SOIL_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GLZB_SOIL_30s.nc.gz
+$> gunzip GLZB_SOIL_30s.nc.gz
+\end{Verbatim}
+
+\section{Aerosol Database}
+
+If You are planning to enable chemistry in the model, You will need a single
+file, which contains sources of chemical species used in the model regridded
+from global model run.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd AERGLOB
+$> curl -o AEROSOL.dat \
+> http://clima-dods.ictp.it/data/d4/AEROSOL/AEROSOL.dat
+\end{Verbatim}
+
+This is the input file for the \verb=aerosol= icbc program.
+
+\section{Sea Surface Temperature}
+
+The model needs a global SST dataset to feed the model with ocean temperature.
+You have multiple choices for SST source:
+
+\begin{enumerate}
+\item GISST - UKMO SST (Rayner et al 1996), 1 degree from
+{\bf http://www.badc.rl.ac.uk} UKMO DATA archive reformed as direct access
+binary format from the original ASCII format.
+\item OISST - CAC Monthly Optimal Interpolation dataset in the original 
+NetCDF format.
+\item OI2ST - Same as above, but both SST and Sea Ice dataset (used if seaice
+option is enabled in the model).
+\item OI\_WK - OISST CAC Weekly Optimal Interpolation dataset in the original
+NetCDF format
+\item OI2WK - Same as above, but both SST and Sea Ice dataset
+\item EH5RF - EC-MPI 6 hourly 1.875x1.875, reference from 1941 to 2000
+\item EH5A2 - Same as above, from 2001 to 2100 IPCC A2 scenario
+\item EH5B1 - Same as above, from 2001 to 2100 IPCC B1 scenario
+\item EHA1B - Same as above, from 2001 to 2100 IPCC A1B scenario
+\item ERSST - ERA interim Project 6 hourly 1.5x1.5 degree SST
+\item ERSKT - ERA interim as above but Skin temperature
+\item FV\_RF - HadAMH\_SST in the original netCDF format, from 1959 to 1991
+\item FV\_A2 - Same as above, IPCC A2 scenario
+\item FV\_B2 - Same as above, IPCC B2 scenario 
+\item CCSST - CCSM3 POP gx1v3 regridded 1x1 data
+\end{enumerate}
+
+We will for now for our test run download just CAC OISST weekly for the
+period 1981 - present.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SST
+$> curl -o sst.wkmean.1981-1989.nc \
+> ftp://ftp.cdc.noaa.gov/pub/Datasets/noaa.oisst.v2/sst.wkmean.1981-1989.nc
+$> curl -o sst.wkmean.1990-present.nc \
+> ftp://ftp.cdc.noaa.gov/pub/Datasets/noaa.oisst.v2/sst.wkmean.1990-present.nc
+\end{Verbatim}
+
+\section{Atmosphere and Land temperature Global Dataset}

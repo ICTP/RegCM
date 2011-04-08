@@ -1,0 +1,52 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+Source code can be obtained via svn (preferred method).
+Check that {\bf Subversion} suftware is installed on Your machine typing
+the following command:
+
+\begin{verbatim}
+$> svn --version
+\end{verbatim}
+
+If Your system answers \verb=command not found=, refer to Your System
+Administrator or software installation manual of Your OS to install the
+subversion software. To be just an example, on Scientific Linux the command
+to install it as root is:
+
+\begin{verbatim}
+#> yum install subversion
+\end{verbatim}
+
+If Subversion is installed, just type the following command:
+
+\begin{verbatim}
+$> svn checkout https://eforge.escience-lab.org/svn/regcm/tags/RegCM-4.1
+\end{verbatim}
+
+If svn software is not present, a packed archive file can be downloaded from:
+
+\begin{Verbatim}
+http://eforge.escience-lab.org/gf/project/regcm/frs/
+\end{Verbatim}
+
+and it can be later on decompressed and unpacked using:
+
+\begin{Verbatim}
+$> tar -zxvf RegCM-4.1.tar.gz
+\end{Verbatim}
+
+The RegCM team strongly encourage the users to use the svn software to have
+always the possibility to be up to date and to check on-line all the news of
+the package.
+
+Whatever method is chosen to download the code, we assume that You have now
+on Your working directory a new directory, named \verb=RegCM-4.1=.
+That directory will be for the rest of this guide referred as 
+\verb=$REGCM_ROOT= .
+
+All the operations to build the model binaries will be performed in this
+directory.
