@@ -62,9 +62,46 @@
 
       private
 
-      public :: tend
+      public :: allocate_mod_tend , tend
+
+      real(8) , allocatable , dimension(:,:) :: divl
+      real(8) , allocatable , dimension(:,:,:) :: ttld , xkc , td
+      real(8) , allocatable , dimension(:,:) :: bdyewrcv , bdyewsnd
+      real(8) , allocatable , dimension(:,:) :: bdynsrcv , bdynssnd
+      real(8) , allocatable , dimension(:,:,:) :: ps4
+      real(8) , allocatable , dimension(:,:,:) :: ps_4 
+      real(8) , allocatable , dimension(:,:) :: var2rcv , var2snd
+      real(8) , allocatable , dimension(:,:) :: tvar1rcv , tvar1snd
 
       contains
+
+      subroutine allocate_mod_tend(lmpi,lband)
+        implicit none
+        logical , intent(in) :: lmpi , lband
+
+        allocate(divl(iy,kz))
+        if (lmpi) then
+          allocate(ttld(iy,kz,jxp))
+          allocate(xkc(iy,kz,jxp))
+          allocate(td(iy,kz,jxp))
+          if ( .not. lband ) then
+            allocate(bdyewrcv(iy,kz*16+4))
+            allocate(bdyewsnd(iy,kz*16+4))
+          end if
+          allocate(bdynsrcv(nspgx,kz*16+4))
+          allocate(bdynssnd(nspgx,kz*16+4))
+          allocate(ps4(iy,4,jxp))
+          allocate(ps_4(iy,4,jx))
+          allocate(var2rcv(iy,kz*(ntr+5)*2))
+          allocate(var2snd(iy,kz*(ntr+5)*2))
+          allocate(tvar1rcv(iy,kz*11+1+ntr*kz*2))
+          allocate(tvar1snd(iy,kz*11+1+ntr*kz*2))
+        else
+          allocate(ttld(iy,kz,jx))
+          allocate(xkc(iy,kz,jx))
+          allocate(td(iy,kz,jx))
+        end if
+      end subroutine allocate_mod_tend
 
       subroutine tend(iexec)
 
@@ -110,26 +147,10 @@
                & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,       &
                & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,  &
                & xday , xmsf , xtm1
-      real(8) , dimension(iy,kz) :: divl
       integer :: i , icons , iptn , itr , j , k , lev , n
       integer :: jm1, jp1
 #ifdef MPP1
       integer :: ierr , icons_mpi , numrec
-      real(8) , dimension(iy,kz,jxp) :: ttld
-      real(8) , dimension(iy,kz,jxp) :: xkc
-      real(8) , dimension(iy,kz,jxp) :: td
-#ifndef BAND
-      real(8) , dimension(iy,kz*16+4) :: bdyewrcv , bdyewsnd
-#endif
-      real(8) , dimension(nspgx,kz*16+4) :: bdynsrcv , bdynssnd
-      real(8) , dimension(iy,4,jxp) :: ps4
-      real(8) , dimension(iy,4,jx) :: ps_4 
-      real(8) , dimension(iy,kz*(ntr+5)*2) :: var2rcv , var2snd
-      real(8) , dimension(iy,kz*11+1+ntr*kz*2) :: tvar1rcv , tvar1snd
-#else
-      real(8) , dimension(iy,kz,jx) :: ttld
-      real(8) , dimension(iy,kz,jx) :: xkc
-      real(8) , dimension(iy,kz,jx) :: td
 #endif
       character (len=50) :: subroutine_name='tend'
       integer :: idindx=0
@@ -430,10 +451,9 @@
 #endif
       numrec = kz*11 + 1
       if ( ichem == 1 ) numrec = kz*11 + 1 + ntr*2 *kz
-      call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
-                      & ieast,1,tvar1rcv(1,1),iy*numrec,                &
-                      & mpi_real8,iwest,1,mpi_comm_world,               &
-                      & mpi_status_ignore,ierr)
+      call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,ieast,1, &
+                      & tvar1rcv,iy*numrec,mpi_real8,iwest,1, &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= 0 ) then
 #endif
@@ -503,10 +523,9 @@
 #endif
       numrec = kz*11 + 1
       if ( ichem == 1 ) numrec = kz*11 + 1 + ntr*kz*2
-      call mpi_sendrecv(tvar1snd(1,1),iy*numrec,mpi_real8,              &
-                      & iwest,2,tvar1rcv(1,1),iy*numrec,                &
-                      & mpi_real8,ieast,2,mpi_comm_world,               &
-                      & mpi_status_ignore,ierr)
+      call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,iwest,2, &
+                      & tvar1rcv,iy*numrec,mpi_real8,ieast,2, &
+                      & mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -2142,37 +2161,32 @@
             atm2%t(i,k,j) = omuhf*atm1%t(i,k,j) + &
                             gnuhf*(atm2%t(i,k,j)+atmc%t(i,k,j))
             atm1%t(i,k,j) = atmc%t(i,k,j)
-          end do
-          do i = 2 , iym2
+            qvas = atmc%qv(i,k,j)
+            if ( qvas < dlowval ) qvas = d_zero
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
-            qvas = atmc%qv(i,k,j)
-            atm2%qv(i,k,j) = dmax1(qvbs,dlowval)
-            atm1%qv(i,k,j) = dmax1(qvas,dlowval)
-          end do
-          do i = 2 , iym2
+            if ( qvbs < dlowval ) qvbs = d_zero
+            atm2%qv(i,k,j) = qvbs
+            atm1%qv(i,k,j) = qvas
+            qcas = atmc%qc(i,k,j)
+            if ( qcas < dlowval ) qcas = d_zero
             qcbs = omu*atm1%qc(i,k,j) + &
                    gnu*(atm2%qc(i,k,j)+atmc%qc(i,k,j))
-            atm2%qc(i,k,j) = dmax1(qcbs,d_zero)
-          end do
-          do i = 2 , iym2
-            qcas = atmc%qc(i,k,j)
-            atm1%qc(i,k,j) = dmax1(qcas,d_zero)
+            if ( qcbs < dlowval ) qcbs = d_zero
+            atm2%qc(i,k,j) = qcbs
+            atm1%qc(i,k,j) = qcas
           end do
 !chem2
           if ( ichem == 1 ) then
             do itr = 1 , ntr
               do i = 2 , iym2
+                chias = chic(i,k,j,itr)
+                if ( chias < dlowval ) chias = d_zero
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
-                chib(i,k,j,itr) = dmax1(chibs,d_zero)
-                chias = chic(i,k,j,itr)
-                chia(i,k,j,itr) = dmax1(chias,d_zero)
-                ! Graziano - flush chemistry arrays to avoid numerical
-                ! problems in multiple parts of the code.
-                if (chia(i,k,j,itr) < dlowval) chia(i,k,j,itr) = d_zero
-                if (chib(i,k,j,itr) < dlowval) chib(i,k,j,itr) = d_zero
-                !
+                if ( chibs < dlowval ) chibs = d_zero
+                chib(i,k,j,itr) = chibs
+                chia(i,k,j,itr) = chias
               end do
             end do
           end if

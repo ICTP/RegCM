@@ -47,6 +47,7 @@
       use mod_ncio
       use mod_scenarios
       use mod_diagnosis
+      use mod_tendency
 #ifdef CHEMTEST
       use mod_chem 
 #endif
@@ -580,6 +581,7 @@
 #ifdef CHEMTEST
       if ( ichem == 1 ) call allocate_mod_chem(lmpi)
 #endif
+      call allocate_mod_tend(lmpi,lband)
       call allocate_mod_aerosol
       call allocate_mod_bats(lmpi,lband)
       call allocate_mod_bdycon
