@@ -197,8 +197,8 @@
         ieast = mpi_proc_null
 #endif
       end if
-      if ( jxp < 2 ) then
-        write (aline,*) 'The number of jxp must be greater than 1'
+      if ( jxp < 3 ) then
+        write (aline,*) 'The number of jxp must be greater than 2'
         call say
         write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
         call say

@@ -213,7 +213,7 @@ module mod_memutil
 
   subroutine relmem1d(a)
     implicit none
-    real(dp) , intent(in) , dimension(:) , pointer :: a
+    real(dp) , intent(inout) , dimension(:) , pointer :: a
     if ( .not. associated(a) ) return
     curr1d => root1d
     do while ( associated(curr1d) )
@@ -250,7 +250,7 @@ module mod_memutil
 
   subroutine relmem2d(a)
     implicit none
-    real(dp) , intent(in) , dimension(:,:) , pointer :: a
+    real(dp) , intent(inout) , dimension(:,:) , pointer :: a
     if ( .not. associated(a) ) return
     curr2d => root2d
     do while ( associated(curr2d) )
@@ -287,7 +287,7 @@ module mod_memutil
 
   subroutine relmem3d(a)
     implicit none
-    real(dp) , intent(in) , dimension(:,:,:) , pointer :: a
+    real(dp) , intent(inout) , dimension(:,:,:) , pointer :: a
     if ( .not. associated(a) ) return
     curr3d => root3d
     do while ( associated(curr3d) )
@@ -324,7 +324,7 @@ module mod_memutil
 
   subroutine relmem4d(a)
     implicit none
-    real(dp) , intent(in) , dimension(:,:,:,:) , pointer :: a
+    real(dp) , intent(inout) , dimension(:,:,:,:) , pointer :: a
     integer :: i
     if ( .not. associated(a) ) return
     curr4d => root4d
@@ -364,7 +364,7 @@ module mod_memutil
 
   subroutine relmem5d(a)
     implicit none
-    real(dp) , intent(in) , dimension(:,:,:,:,:) , pointer :: a
+    real(dp) , intent(inout) , dimension(:,:,:,:,:) , pointer :: a
     integer :: i , j
     if ( .not. associated(a) ) return
     curr5d => root5d
