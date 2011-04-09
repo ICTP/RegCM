@@ -29,20 +29,20 @@
 !
       public :: cumtran
 !
+!hy   the well-mixing only over cumulus cloud fraction (assuming 0.3)
+!     add the well-mixing fraction in dt step (5%) - only updraft
+!hy   cumfrc = 0.3
+!
+      real(8) , parameter :: cumfrc = 0.015D0
+!
       contains
 !
       subroutine cumtran
 
       implicit none
 !
-      real(8) :: chiabar , chibbar , cumfrc , deltas
+      real(8) :: chiabar , chibbar , deltas
       integer :: i , j , k , kcumtop , n
-!
-!hy   the well-mixing only over cumulus cloud fraction (assuming 0.3)
-!     add the well-mixing fraction in dt step (5%) - only updraft
-!hy   cumfrc = 0.3
-!
-      cumfrc = 0.015D0
 !
       do n = 1 , ntr
 #ifdef MPP1
@@ -65,8 +65,6 @@
                 chiabar = chiabar + chia(i,k,j,n)*dsigma(k)
                 chibbar = chibbar + chib(i,k,j,n)*dsigma(k)
               end do
-!?            do 95 k=icumtop(i,j),kz      ! yhuang, 12/98
-!qhy
               do k = kcumtop , kz
                 chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc)  &
                               & + cumfrc*chiabar/deltas

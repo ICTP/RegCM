@@ -662,6 +662,9 @@ module mod_param
 #ifndef BAND
   if ( ichem == 1 ) then
     if (debug_level > 2) call allocate_mod_diagnosis
+  else
+    ichem = 0
+    ifchem = .false.
   end if
 #endif
 !
@@ -670,60 +673,64 @@ module mod_param
 !-----------------------ALLOCATE NEEDED SPACE---------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-!
-  write (aline,*) 'param: starting first checks' 
-  call say
-  if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
-    write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
+! 
+#ifdef MPP1
+  if ( myid == 0 ) then
+#endif
+    write (aline,*) 'param: starting first checks' 
     call say
-    call fatal(__FILE__,__LINE__,                                   &
-              &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
-  end if
-  if ( mod(idnint(abatm),idnint(dt)) /= 0 ) then
-    write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
-    call say
-    call fatal(__FILE__,__LINE__,                                   &
-              &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
-  end if
-  if ( mod(idnint(batfrq*secph),idnint(abatm)) /= 0 ) then
-    write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
-    call say
-    call fatal(__FILE__,__LINE__,                                   &
-              &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
-  end if
-  if ( lakemod == 1 ) then
-    if ( lakfrq < batfrq .or. &
-         mod(idnint(lakfrq),idnint(batfrq)) /= 0 ) then
-      write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
+    if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
+      write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
       call say
-      write (aline,*) 'Lake frequency needs to be an integer ',&
-                      ' multiple of batfrq.'
+      call fatal(__FILE__,__LINE__,                                   &
+                &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
+    end if
+    if ( mod(idnint(abatm),idnint(dt)) /= 0 ) then
+      write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
       call say
-      if (myid == 0) then
-        call fatal(__FILE__,__LINE__, &
-                 &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+      call fatal(__FILE__,__LINE__,                                   &
+                &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
+    end if
+    if ( mod(idnint(batfrq*secph),idnint(abatm)) /= 0 ) then
+      write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
+      call say
+      call fatal(__FILE__,__LINE__,                                   &
+                &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
+    end if
+    if ( lakemod == 1 ) then
+      if ( lakfrq < batfrq .or. &
+           mod(idnint(lakfrq),idnint(batfrq)) /= 0 ) then
+        write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
+        call say
+        write (aline,*) 'Lake frequency needs to be an integer ',&
+                        ' multiple of batfrq.'
+        call say
+        if (myid == 0) then
+          call fatal(__FILE__,__LINE__, &
+                   &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+        end if
       end if
     end if
+    if ( mod(idnint(abemh*secph),idnint(dt)) /= 0 ) then
+      write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
+      call say
+      call fatal(__FILE__,__LINE__,                                   &
+                &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
+    end if
+    if ( mod(idnint(abemh*60.0D0),idnint(radfrq)) /= 0 ) then
+      write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
+      call fatal(__FILE__,__LINE__,                                   &
+                &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
+                &' TIMESTEPS SPECIFIED')
+    end if
+    if ( ichem == 1 .and. chemfrq <=  d_zero) then
+      write (aline,*) 'CHEMFRQ=' ,chemfrq
+      call say
+      call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
+    end if
+#ifdef MPP1
   end if
-  if ( mod(idnint(abemh*secph),idnint(dt)) /= 0 ) then
-    write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
-    call say
-    call fatal(__FILE__,__LINE__,                                   &
-              &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
-  end if
-  if ( mod(idnint(abemh*60.0D0),idnint(radfrq)) /= 0 ) then
-    write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
-    call fatal(__FILE__,__LINE__,                                   &
-              &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
-              &' TIMESTEPS SPECIFIED')
-  end if
-
-  if ( ichem == 0 ) ifchem = .false.
-  if ( ichem == 1 .and. chemfrq <=  d_zero) then
-    write (aline,*) 'CHEMFRQ=' ,chemfrq
-    call say
-    call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
-  end if
+#endif
 !
 !-----reset the options/calculate variables using namelist info:
 !

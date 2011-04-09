@@ -517,6 +517,9 @@
  
           do i = 2 , iym2
             ivegcov(i) = idnint(veg2d(i,j))
+            if ( ivegcov(i) == 14 .or. ivegcov(i) == 15 ) then
+              ivegcov(i) = 0
+            end if
             psurf(i) = sps2%ps(i,j)*d_1000 + r8pt
  
             do k = 1 , kz

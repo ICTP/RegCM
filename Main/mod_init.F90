@@ -1450,7 +1450,7 @@
           do i = 1 , iym1
             do n = 1 , nnsg
               ist = idnint(veg2d1(n,i,j))
-              if ( ist == 0 ) then
+              if ( ist == 14 .or. ist == 15 ) then
                 emiss2d(n,i,j) = 0.955D0
               else if ( ist == 8 ) then
                 emiss2d(n,i,j) = 0.76D0
