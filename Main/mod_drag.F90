@@ -62,7 +62,7 @@
 !         2.   compute stability as bulk rich. no. = rin/rid =
 !         ri(numerator)/ri(denominator)
 !=======================================================================
-          if ( lveg(n,i) /= 0 ) then
+          if ( ldoc1d(n,i) > d_half ) then
             zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1d(n,i)    &
                    & *(d_one-sigf(n,i))
           else
@@ -242,7 +242,7 @@
             scrat(n,i) = scv1d(n,i)*densi(n,i)
             if (scrat(n,i) < dlowval) scrat(n,i) = d_zero
             wt(n,i) = d_one
-            if ( lveg(n,i) > 0 ) then
+            if ( ldoc1d(n,i) < 1.5D0 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))
               wt(n,i) = wt(n,i)/(d_one+wt(n,i))
             end if

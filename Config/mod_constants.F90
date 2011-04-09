@@ -156,8 +156,6 @@
       ! Earth radius in meters
       real(8) , parameter :: earthrad = 6.371229D+06
       real(8) , parameter :: erkm = earthrad/d_1000
-      ! Length of day in seconds
-      real(8) , parameter :: tau1 = 8.64D+04
       ! Days per year
       real(8) , parameter :: dayspy = 365.2422D+00
       ! Degrees per day

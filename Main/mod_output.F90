@@ -1197,12 +1197,10 @@
                 do n = 1 , ntr
                   do k = 1 , kz
                     do i = 1 , iy
-                      chia_io(i,k,j,n) = sav_4(i,(n-1)*kz+k,j)
-                      chib_io(i,k,j,n) = sav_4(i,ntr*kz+(n-1)*kz+k,j)
-                      remlsc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
-                      remcvc_io(i,k,j,n)                                &
-                      & = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
+                      chia_io(i,k,j,n)   = sav_4(i,(n-1)*kz+k,j)
+                      chib_io(i,k,j,n)   = sav_4(i,ntr*kz+(n-1)*kz+k,j)
+                      remlsc_io(i,k,j,n) = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
+                      remcvc_io(i,k,j,n) = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
                     end do
                   end do
                 end do

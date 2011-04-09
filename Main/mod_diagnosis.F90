@@ -258,6 +258,7 @@
         if ( ichem == 1 ) then
           read (iunit) tchiad
           read (iunit) tchitb
+          read (iunit) tchie
         end if
       end subroutine restchemdiag
 !

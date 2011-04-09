@@ -746,12 +746,12 @@
               end do
             end if
 
-            if ( veg2d(i,j) < 0.1D0 .and. ocld2d(1,i,j) > 0.9D0 ) then
+            if ( veg2d(i,j) < 0.1D0 .and. ocld2d(1,i,j) > d_half ) then
               veg2d(i,j)        =  d_two
               mddom%satbrt(i,j) =  d_two
             end if
             do n = 1 , nnsg
-              if ( veg2d(i,j) < 0.1D0 .and. ocld2d(n,i,j) > 0.9D0 ) then
+              if ( veg2d(i,j) < 0.1D0 .and. ocld2d(n,i,j) > d_half ) then
                 veg2d1(n,i,j)     =  d_two
                 satbrt1(n,i,j)    =  d_two
               end if
@@ -789,7 +789,7 @@
 !
       do i = 2 , iym1
         jj = j+(jxp*myid)
-        if (ocld2d(1,i,j) >= 1 .and. &
+        if (ocld2d(1,i,j) > d_half .and. &
             (d_one-aldirs2d(i,j)) > 1.0D-10) then
           aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + &
                       aldirs(i)*(d_one-landfrac(jj,i))
@@ -1165,7 +1165,7 @@
                 end if
  
                 if ( iocnflx==1 .or.                                    &
-                   & (iocnflx==2 .and. ocld2d(n,i,j)>=d_half) ) then
+                   & (iocnflx==2 .and. ocld2d(n,i,j) > d_half) ) then
                   sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
                             & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
                             & veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
@@ -1212,18 +1212,14 @@
                 ircp2d(n,i,j) = ircp1d(n,i)
                 evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
                 sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
-                if ( rnos2d(n,i,j)>-1.E10 .and. rnos1d(n,i)>-1.E10 )    &
-                   & then
-                  rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)/tau1*dtbat
-                else
-                  rnos2d(n,i,j) = dmissval
+                if ( dabs(rnos1d(n,i)) > 1.0D-10 ) then
+                  rnos2d(n,i,j) = rnos2d(n,i,j) + &
+                                  rnos1d(n,i)/secpd*dtbat
                 end if
-                if ( rno2d(n,i,j)>-1.E10 .and. rnos1d(n,i)>-1.E10 .and. &
-                   & rno1d(n,i)>-1.E10 ) then
-                  rno2d(n,i,j) = rno2d(n,i,j) + (rno1d(n,i)-rnos1d(n,i))&
-                               & /tau1*dtbat
-                else
-                  rno2d(n,i,j) = dmissval
+                if ( dabs(rnos1d(n,i)) > 1.0D-10 .and. &
+                   & dabs(rno1d(n,i))  > 1.0D-10 ) then
+                  rno2d(n,i,j) = rno2d(n,i,j) + &
+                          (rno1d(n,i)-rnos1d(n,i))/secpd*dtbat
                 end if
               end do
 !
@@ -1276,7 +1272,7 @@
                 end if
  
                 if ( iocnflx==1 .or.                                    &
-                   & (iocnflx==2 .and. ocld2d(n,i,j)>=d_half) ) then
+                   & (iocnflx==2 .and. ocld2d(n,i,j) > d_half) ) then
                   sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
                             & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
                             &   veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
@@ -1380,7 +1376,7 @@
               t2m_o(j,i-1) = 0.0
  
               do n = 1 , nnsg
-                if ( ocld2d(n,i,j)>d_half ) then
+                if ( ocld2d(n,i,j) > d_half ) then
                   u10m_s(n,j,i-1) = real(ubx3d(i,kz,j))
                   v10m_s(n,j,i-1) = real(vbx3d(i,kz,j))
                   tg_s(n,j,i-1) = real(tg2d(n,i,j))
@@ -1389,7 +1385,7 @@
                   v10m_o(j,i-1) = v10m_o(j,i-1) + real(vbx3d(i,kz,j))
                   t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf2d(n,i,j))
                   tg_o(j,i-1) = tg_o(j,i-1) + real(tg2d(n,i,j))
-                else if ( ocld2d(n,i,j)<d_half ) then
+                else if ( ocld2d(n,i,j) < d_half ) then
                   tg_s(n,j,i-1) = real(tg1d(n,i))
                   u10m_s(n,j,i-1) = real(u10m1d(n,i))
                   v10m_s(n,j,i-1) = real(v10m1d(n,i))
@@ -1419,7 +1415,7 @@
               evpa_o(j,i-1) = 0.0
               sena_o(j,i-1) = 0.0
               do n = 1 , nnsg
-                if ( ocld2d(n,i,j)>=d_half ) then
+                if ( ocld2d(n,i,j) > d_half ) then
                   q2m_s(n,j,i-1) = real(q2d(i,j))
                   drag_s(n,j,i-1) = real(sfsta%uvdrag(i,j))
                   evpa_s(n,j,i-1) = real(evpa2d(n,ci,j)*mmpd)
@@ -1432,7 +1428,7 @@
                   drag_o(j,i-1) = drag_o(j,i-1) + real(sfsta%uvdrag(i,j))
                   evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,ci,j))
                   sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
-                else if ( ocld2d(n,i,j)<=d_half ) then
+                else if ( ocld2d(n,i,j) < d_half ) then
                   q2m_s(n,j,i-1) = real(q2m_1d(n,i))
                   drag_s(n,j,i-1) = real(drag1d(n,i))
                   evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
@@ -1467,7 +1463,7 @@
               scv_o(j,i-1) = 0.0
               nnn = 0
               do n = 1 , nnsg
-                if ( ocld2d(n,ci,j)>=d_half .and. landmask(jj,ci)/=3 ) then
+                if ( ocld2d(n,ci,j) > d_half .and. landmask(jj,ci)/=3 ) then
                   tlef_o(j,i-1) = tlef_o(j,i-1) + real(c2rtlef(jj,ci))
                   ssw_o(j,i-1) = ssw_o(j,i-1) + real(c2rsm10cm(jj,ci))
                   rsw_o(j,i-1) = rsw_o(j,i-1) + real(c2rsm1m(jj,ci))

@@ -610,6 +610,8 @@
 #ifndef BAND
       if ( ichem == 1 ) then
         if (debug_level > 2) call allocate_mod_diagnosis
+      else
+        if ( ichem == 0 ) ifchem = .false.
       end if
 #endif
 !
@@ -619,6 +621,9 @@
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
+#ifdef MPP1
+      if ( myid == 0 ) then
+#endif
       write (aline,*) 'param: starting first checks' 
       call say
       if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
@@ -665,13 +670,14 @@
                   &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                   &' TIMESTEPS SPECIFIED')
       end if
-
-      if ( ichem == 0 ) ifchem = .false.
       if ( ichem == 1 .and. chemfrq <=  d_zero) then
         write (aline,*) 'CHEMFRQ=' ,chemfrq
         call say
         call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
       end if
+#ifdef MPP1
+      end if
+#endif
 !
 !-----reset the options/calculate variables using namelist info:
 !

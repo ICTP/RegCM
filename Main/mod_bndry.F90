@@ -114,7 +114,7 @@
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( lveg(n,i) >= 1 ) then
+          if ( checkisground(ldoc1d(n,i)) ) then
             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
@@ -493,8 +493,8 @@
 !     rsubsr = soil water flux by grav. drainage thru 1 m interface
 !     rsubst = soil water flux by grav. drainage thru 10 m interface
 !       rsur = surface runoff
-!     rno1d(n,i) = total runoff (mm/day)
-!     rnos1d(n,i) = surface runoff (mm/day)
+!     rno1d(n,i) = total runoff mm
+!     rnos1d(n,i) = surface runoff mm
 !
 !     xkmxr and wflux1 determine flow thru upper/root soil interface
 !     evmxt, xkmx1, and xkmx2 determine flow thru lower interfaces
@@ -682,7 +682,7 @@
 !
 !           4.4  check for negative water in top layer
 !
-            if ( ssw1d(n,i) <= 1.0D-2 ) ssw1d(n,i) = 1.0D-2
+            if ( ssw1d(n,i) < 1.0D-2 ) ssw1d(n,i) = 1.0D-2
 !
 !=======================================================================
 !           5.   accumulate leaf interception
@@ -698,8 +698,8 @@
 !*          update total runoff
 !
             rnof(n,i)   = rsur(n,i) + rsubst(n,i)
-            rno1d(n,i)  = rnof(n,i)*tau1
-            rnos1d(n,i) = rsur(n,i)*tau1
+            rno1d(n,i)  = rnof(n,i)
+            rnos1d(n,i) = rsur(n,i)
           else                       ! ocean or sea ice
             rnof(n,i)   = d_zero
             rno1d(n,i)  = d_zero
@@ -858,7 +858,7 @@
 !     fct1=1/range and the range for subsoil temperature freezing
 !     are correspondingly changed.
 !
-!       tau1 = seconds in a day
+!      secpd = seconds in a day
 !       wlhv = latent heat of vaporization of water
 !       wlhs = latent heat of sublimation of water
 !       wlhf = latent heat of freezing of water
@@ -898,7 +898,7 @@
 !l    1.   define thermal conductivity, heat capacity,
 !l    and other force restore parameters
 !=======================================================================
-      xnu = twopi/tau1
+      xnu = twopi/secpd
       xnua = xnu/365.0D0
       xdtime = dtbat*xnu
       dtimea = dtbat*xnua

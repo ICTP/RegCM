@@ -203,9 +203,9 @@
 !...  xsm is surface mask: =1 water; =0 land
       do i = 2 , iym2
 #ifdef CLM
-        if ( ocld2d(1,i,j) >= 0.5 ) then
+        if ( ocld2d(1,i,j) > d_half ) then
 #else
-        if ( veg2d(i,j) >= 0.002 ) then
+        if ( veg2d(i,j) > 13.5D0 .and. veg2d(i,j) < 15.5D0 ) then
 #endif
           xsm(i) = 0.0D0
         else
