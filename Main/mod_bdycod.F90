@@ -728,7 +728,7 @@
                 sts1%tg(i,j) = tdum(i,j)
                 sts2%tg(i,j) = tdum(i,j)
               end if
-              if (iseaice == 1) then
+              if ( iseaice == 1 ) then
                 if ( lakemod == 1 .and. &
                      islake(mddom%satbrt(i,j)) ) cycle
                 if ( tdum(i,j) <= icetemp ) then
@@ -1024,7 +1024,7 @@
                 sts1%tg(i,j) = tdum(i,j)
                 sts2%tg(i,j) = tdum(i,j)
               end if
-              if (iseaice == 1) then
+              if ( iseaice == 1 ) then
                 if ( lakemod == 1 .and. &
                      islake(mddom%satbrt(i,j)) ) cycle
                 if ( tdum(i,j) <= icetemp ) then

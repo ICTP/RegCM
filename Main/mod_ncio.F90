@@ -1980,7 +1980,7 @@
                 'surface_albedo_short_wave_diffuse', &
                 'Surface albedo to diffuse short wave radiation', &
                 '1',tyx,.false.,isrfvar(30))
-            if (iseaice == 1) then
+            if ( iseaice == 1 .or. lakemod == 1 ) then
               call addvara(ncid,ctype,'seaice', &
                   'seaice_binary_mask', &
                   'Sea ice mask', &
@@ -2458,7 +2458,7 @@
             ivar = ivar + 1
           end do
 
-          if (iseaice == 1) then
+          if ( iseaice == 1 .or. lakemod == 1 ) then
             dumio(:,:,1) = 0.0
             do n = 1 , nnsg
               dumio(:,:,1) = dumio(:,:,1) + &

@@ -342,10 +342,10 @@
             sts2%tg(i,j) = ts0(i,j)
           end do
         end do
-        if (iseaice == 1) then
+        if ( iseaice == 1 ) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( iswater(mddom%satbrt(i,j)) ) then
+              if ( isocean(mddom%satbrt(i,j)) ) then
                 if ( ts0(i,j) <= icetemp ) then
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
@@ -358,7 +358,22 @@
             end do
           end do
         end if
-
+        if ( lakemod == 1 ) then
+          do j = 1 , jendx
+            do i = 1 , iym1
+              if ( islake(mddom%satbrt(i,j)) ) then
+                if ( ts0(i,j) <= icetemp ) then
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  ts0(i,j) = icetemp
+                  do n = 1, nnsg
+                    ocld2d(n,i,j) = 2
+                  end do
+                end if
+              end if
+            end do
+          end do
+        end if
         if (icup == 3) then
           do k = 1 , kz
             do j = 1 , jendl
@@ -493,14 +508,34 @@
             sts2%tg(i,j) = ts0(i,j)
           end do
         end do
-        if (iseaice == 1) then
+        if ( iseaice == 1 ) then
 #ifdef BAND
           do j = 1 , jx
 #else
           do j = 1 , jxm1
 #endif
             do i = 1 , iym1
-              if ( iswater(mddom%satbrt(i,j)) ) then
+              if ( isocean(mddom%satbrt(i,j)) ) then
+                if ( ts0(i,j) <= icetemp ) then
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  ts0(i,j) = icetemp
+                  do n = 1, nnsg
+                    ocld2d(n,i,j) = 2
+                  end do
+                end if
+              end if
+            end do
+          end do
+        end if
+        if ( lakemod == 1 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do i = 1 , iym1
+              if ( islake(mddom%satbrt(i,j)) ) then
                 if ( ts0(i,j) <= icetemp ) then
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp

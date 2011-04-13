@@ -255,7 +255,7 @@
             tlef2d(k,ill,jll) = sts2%tg(ill,jll)
 
             if ( ocld2d(k,ill,jll) == 2 ) then
-              if ( iseaice == 1 ) then
+              if ( iseaice == 1 .or. lakemod == 1 ) then
                 sice2d(k,ill,jll) = d_1000
                 scv2d(k,ill,jll) = d_zero
               end if
