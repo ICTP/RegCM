@@ -274,13 +274,13 @@
         ii1 = 0
         ii2 = 0
         do n = 1 , nnsg
-          if ( ocld2d(n,i,jslc) > 1.5D0 ) then
+          if ( ocld2d(n,i,jslc) == 2 ) then
             if ( sice1d(n,i) >= 0.0001D0 ) then
               ii2 = ii2 + 1
             else
               ii0 = ii0 + 1
             endif
-          else if ( ocld2d(n,i,jslc) > 0.1D0 ) then
+          else if ( ocld2d(n,i,jslc) == 1 ) then
             if ( sice1d(n,i) < 0.0001D0 ) then
               ii1 = ii1 + 1
             else if ( sice1d(n,i) >= 0.0001D0 ) then

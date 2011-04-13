@@ -1559,7 +1559,9 @@
  
 !       ****** call ccm3 radiative transfer package
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
-            mod(ktau+1,ntrad) == 0 ) call colmod3(j)
+            mod(ktau+1,ntrad) == 0 ) then
+          call colmod3(j)
+        end if
  
 #ifndef CLM
 !       ****** call vector bats for surface physics calculations

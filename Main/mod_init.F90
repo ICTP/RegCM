@@ -351,41 +351,14 @@
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_two
-                  end do
-                else
-                  do n = 1, nnsg
-                    if ( iswater(mddom%satbrt(i,j)) ) then
-                      ocld2d(n,i,j) = d_zero
-                    else
-                      ocld2d(n,i,j) = d_one
-                    end if
+                    ocld2d(n,i,j) = 2
                   end do
                 end if
-              else
-                do n = 1, nnsg
-                  if ( iswater(mddom%satbrt(i,j)) ) then
-                    ocld2d(n,i,j) = d_zero
-                  else
-                    ocld2d(n,i,j) = d_one
-                  end if
-                end do
               end if
             end do
           end do
-        else
-          do j = 1 , jendx
-            do i = 1 , iym1
-              do n = 1, nnsg
-                if ( iswater(mddom%satbrt(i,j)) ) then
-                  ocld2d(n,i,j) = d_zero
-                else
-                  ocld2d(n,i,j) = d_one
-                end if
-              end do
-            end do
-          end do
         end if
+
         if (icup == 3) then
           do k = 1 , kz
             do j = 1 , jendl
@@ -412,13 +385,6 @@
             sts2%tg(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%zpbl(i,j) = 500.0D0  ! For Zeng Ocean Flux Scheme
-          end do
-        end do
-        do j = 1 , jendx
-          do i = 1 , iym1
-            do k = 1 , nnsg
-              snowc(k,i,j) = d_zero
-            end do
           end do
         end do
         if ( ichem == 1 ) then
@@ -540,42 +506,10 @@
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_two
-                  end do
-                else
-                  do n = 1, nnsg
-                    if ( iswater(mddom%satbrt(i,j)) ) then
-                      ocld2d(n,i,j) = d_zero
-                    else
-                      ocld2d(n,i,j) = d_one
-                    end if
+                    ocld2d(n,i,j) = 2
                   end do
                 end if
-              else
-                do n = 1, nnsg
-                  if ( iswater(mddom%satbrt(i,j)) ) then
-                    ocld2d(n,i,j) = d_zero
-                  else
-                    ocld2d(n,i,j) = d_one
-                  end if
-                end do
               end if
-            end do
-          end do
-        else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-            do i = 1 , iym1
-              do n = 1, nnsg
-                if ( iswater(mddom%satbrt(i,j)) ) then
-                  ocld2d(n,i,j) = d_zero
-                else
-                  ocld2d(n,i,j) = d_one
-                end if
-              end do
             end do
           end do
         end if
@@ -610,17 +544,6 @@
             sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
             sfsta%zpbl(i,j) = 500.0D0
                        ! For Zeng Ocean Flux Scheme
-          end do
-        end do
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          do i = 1 , iym1
-            do k = 1 , nnsg
-              snowc(k,i,j) = d_zero
-            end do
           end do
         end do
         if ( ichem == 1 ) then
@@ -881,11 +804,6 @@
               sav_0a(i,3,j) = uvdrag_io(i,j)
               sav_0a(i,4,j) = tgbb_io(i,j)
             end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                sav_0a(i,4+n,j) = snowc_io(n,i,j)
-              end do
-            end do
           end do
 #ifdef BAND
           do j = 1 , jx
@@ -894,12 +812,12 @@
 #endif
             do k = 1 , kzp1
               do i = 1 , iym1
-                sav_0a(i,nnsg+4+k,j) = o3prof_io(i,k,j)
+                sav_0a(i,4+k,j) = o3prof_io(i,k,j)
               end do
             end do
           end do
         end if
-        allrec = 4 + nnsg + kzp1
+        allrec = 4 + kzp1
         call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,  &
                          sav0a, iy*allrec*jxp,mpi_real8,  &
                          0,mpi_comm_world,ierr)
@@ -910,22 +828,17 @@
             sfsta%uvdrag(i,j) = sav0a(i,3,j)
             sfsta%tgbb(i,j)   = sav0a(i,4,j)
           end do
-          do n = 1 , nnsg
-            do i = 1 , iy
-              snowc(n,i,j) = sav0a(i,4+n,j)
-            end do
-          end do
         end do
         do j = 1 , jendx
           do k = 1 , kzp1
             do i = 1 , iym1
-              o3prof(i,k,j) = sav0a(i,nnsg+4+k,j)
+              o3prof(i,k,j) = sav0a(i,4+k,j)
             end do
           end do
         end do
         if ( iocnflx == 2 ) then
-          call mpi_scatter(zpbl_io,iy*jxp,mpi_real8,         &
-                           sfsta%zpbl,   iy*jxp,mpi_real8,   &
+          call mpi_scatter(zpbl_io,    iy*jxp,mpi_real8,         &
+                           sfsta%zpbl, iy*jxp,mpi_real8,   &
                            0,mpi_comm_world,ierr)
         end if
         if ( icup == 1 ) then
@@ -1152,11 +1065,11 @@
 #endif
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav_2(i,n,j) = veg2d1_io(n,i,j)
-                sav_2(i,nnsg+n,j) = sag2d_io(n,i,j)
+                sav_2(i,n,j)        = ircp2d_io(n,i,j)
+                sav_2(i,nnsg+n,j)   = sag2d_io(n,i,j)
                 sav_2(i,nnsg*2+n,j) = sice2d_io(n,i,j)
                 sav_2(i,nnsg*3+n,j) = dew2d_io(n,i,j)
-                sav_2(i,nnsg*4+n,j) = ocld2d_io(n,i,j)
+                sav_2(i,nnsg*4+n,j) = emiss2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1174,11 +1087,11 @@
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
-              veg2d1(n,i,j) = sav2(i,n,j)
-              sag2d(n,i,j) = sav2(i,nnsg+n,j)
-              sice2d(n,i,j) = sav2(i,nnsg*2+n,j)
-              dew2d(n,i,j) = sav2(i,nnsg*3+n,j)
-              ocld2d(n,i,j) = sav2(i,nnsg*4+n,j)
+              ircp2d(n,i,j)  = sav2(i,n,j)
+              sag2d(n,i,j)   = sav2(i,nnsg+n,j)
+              sice2d(n,i,j)  = sav2(i,nnsg*2+n,j)
+              dew2d(n,i,j)   = sav2(i,nnsg*3+n,j)
+              emiss2d(n,i,j) = sav2(i,nnsg*4+n,j)
             end do
           end do
           do i = 1 , iym1
@@ -1196,8 +1109,8 @@
 #endif
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav_2a(i,n,j)      = ircp2d_io(n,i,j)
-                sav_2a(i,nnsg+n,j) = text2d_io(n,i,j)
+                sav_2a(i,n,j)      = veg2d1_io(n,i,j)
+                sav_2a(i,nnsg+n,j) = ocld2d_io(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1206,14 +1119,14 @@
           end do
         end if
         allrec = nnsg*2 + 1
-        call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_real8,  &
-                         sav2a, iym1*allrec*jxp,mpi_real8,  &
+        call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_integer,  &
+                         sav2a, iym1*allrec*jxp,mpi_integer,  &
                          0,mpi_comm_world,ierr)
         do j = 1 , jendx
           do n = 1 , nnsg
             do i = 1 , iym1
-              ircp2d(n,i,j) = sav2a(i,n,j)
-              text2d(n,i,j) = sav2a(i,nnsg+n,j)
+              veg2d1(n,i,j) = sav2a(i,n,j)
+              ocld2d(n,i,j) = sav2a(i,nnsg+n,j)
             end do
           end do
           do i = 1 , iym1
@@ -1437,7 +1350,7 @@
  
       if ( jyear == jyear0 .and. ktau == 0 ) call initb
 
-      if ( iemiss == 1 ) then
+      if ( iemiss == 1 .and. .not. ifrest ) then
 #ifdef MPP1
         do j = 1 , jendx
 #else
@@ -1449,7 +1362,7 @@
 #endif
           do i = 1 , iym1
             do n = 1 , nnsg
-              ist = idnint(veg2d1(n,i,j))
+              ist = veg2d1(n,i,j)
               if ( ist == 14 .or. ist == 15 ) then
                 emiss2d(n,i,j) = 0.955D0
               else if ( ist == 8 ) then

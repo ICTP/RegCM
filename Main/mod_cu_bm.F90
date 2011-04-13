@@ -203,13 +203,13 @@
 !...  xsm is surface mask: =1 water; =0 land
       do i = 2 , iym2
 #ifdef CLM
-        if ( ocld2d(1,i,j) > d_half ) then
+        if ( ocld2d(1,i,j) == 0 ) then
 #else
-        if ( veg2d(i,j) > 13.5D0 .and. veg2d(i,j) < 15.5D0 ) then
+        if ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) then
 #endif
-          xsm(i) = 0.0D0
-        else
           xsm(i) = 1.0D0
+        else
+          xsm(i) = 0.0D0
         end if
       end do
       if ( jyear == jyear0 .and. ktau == 0 ) then

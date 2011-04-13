@@ -39,12 +39,14 @@
       real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
       private :: spaceclm
 #endif
+      integer , allocatable , dimension(:,:,:) :: ocld2d_io , veg2d1_io
+      integer , allocatable , dimension(:,:) :: veg2d_io
 
       real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
-           & evpa2d_io , gwet2d_io , ircp2d_io , ocld2d_io , rno2d_io , &
+           & evpa2d_io , gwet2d_io , ircp2d_io , rno2d_io , &
            & rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
            & srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
-           & tg2d_io , tgb2d_io , tlef2d_io , veg2d1_io
+           & tg2d_io , tgb2d_io , tlef2d_io , emiss2d_io
 
       integer , allocatable , dimension(:,:,:) :: idep2d_io
       real(8) , allocatable , dimension(:,:,:) :: dhlake1_io
@@ -56,14 +58,12 @@
       real(8) , allocatable , dimension(:,:,:,:) :: tlak3d_io
 
       real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
-                                         &    xlat1_io , xlon1_io ,     &
-                                         &    snowc_io
+                                         &    xlat1_io , xlon1_io
 !
       real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
                                      & fsw2d_io , sabv2d_io ,           &
                                      & sinc2d_io , sol2d_io ,           &
-                                     & solvd2d_io , solvs2d_io ,        &
-                                     & veg2d_io
+                                     & solvd2d_io , solvs2d_io
 !
       real(8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,  &
                            & sdelqk2d_io , sfracv2d_io , sfracb2d_io , &
@@ -134,8 +134,8 @@
       real(8) , allocatable , dimension(:,:,:) :: inisrf_0
 
       real(8) , allocatable , dimension(:,:) :: var1snd , var1rcv
-      real(8) , allocatable , dimension(:,:,:) :: var2d0
-      real(8) , allocatable , dimension(:,:,:) :: var2d_0
+      integer , allocatable , dimension(:,:,:) :: var2d0
+      integer , allocatable , dimension(:,:,:) :: var2d_0
  
       real(8) , allocatable , dimension(:,:,:) :: atm0
       real(8) , allocatable , dimension(:,:,:) :: atm_0
@@ -177,8 +177,8 @@
       real(8) , allocatable , dimension(:,:,:) :: sav_1
       real(8) , allocatable , dimension(:,:,:) :: sav2
       real(8) , allocatable , dimension(:,:,:) :: sav_2
-      real(8) , allocatable , dimension(:,:,:) :: sav2a
-      real(8) , allocatable , dimension(:,:,:) :: sav_2a
+      integer , allocatable , dimension(:,:,:) :: sav2a
+      integer , allocatable , dimension(:,:,:) :: sav_2a
       real(8) , allocatable , dimension(:,:,:) :: sav4
       real(8) , allocatable , dimension(:,:,:) :: sav_4
       real(8) , allocatable , dimension(:,:,:) :: sav4a
@@ -208,15 +208,12 @@
         allocate(var1rcv(kz,8),stat=ierr)
         call check_alloc(ierr,myname,'var1rcv',size(var1rcv))
         var1rcv = d_zero
-        if ( iseaice == 1 ) then
-          allocate(var2d0(iy,nnsg,jxp),stat=ierr)
-          call check_alloc(ierr,myname,'var2d0',size(var2d0))
-          var2d0 = d_zero
-        end if
+        allocate(var2d0(iy,nnsg,jxp),stat=ierr)
+        var2d0 = -1
         allocate(inisrf0(iy,nnsg*4+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = d_zero
-        allocate(atm0(iy,kz*6+3+nnsg*4,jxp),stat=ierr)
+        allocate(atm0(iy,kz*6+3+nnsg*3,jxp),stat=ierr)
         call check_alloc(ierr,myname,'atm0',size(atm0))
         atm0 = d_zero
         allocate(bat0(iym2,numbat,jxp),stat=ierr)
@@ -252,12 +249,9 @@
           allocate(inisrf_0(iy,nnsg*4+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = d_zero
-          if ( iseaice == 1 ) then
-            allocate(var2d_0(iy,nnsg,jx),stat=ierr)
-            call check_alloc(ierr,myname,'var2d_0',size(var2d_0))
-            var2d_0 = d_zero
-          end if
-          allocate(atm_0(iy,kz*6+3+nnsg*4,jx),stat=ierr)
+          allocate(var2d_0(iy,nnsg,jx),stat=ierr)
+          var2d_0 = -1
+          allocate(atm_0(iy,kz*6+3+nnsg*3,jx),stat=ierr)
           call check_alloc(ierr,myname,'atm_0',size(atm_0))
           atm_0 = d_zero
           allocate(bat_0(iym2,numbat,jx),stat=ierr)
@@ -284,9 +278,9 @@
             src_1 = d_zero
           end if
           if (lband) then
-            allocate(spacesubm1(nnsg,iym1,jx,21),stat=ierr)
+            allocate(spacesubm1(nnsg,iym1,jx,20),stat=ierr)
           else
-            allocate(spacesubm1(nnsg,iym1,jxm1,21),stat=ierr)
+            allocate(spacesubm1(nnsg,iym1,jxm1,20),stat=ierr)
           end if
           call check_alloc(ierr,myname,'spacesubm1',size(spacesubm1))
           spacesubm1 = d_zero
@@ -295,30 +289,40 @@
           evpa2d_io => spacesubm1(:,:,:,3)
           gwet2d_io => spacesubm1(:,:,:,4)
           ircp2d_io => spacesubm1(:,:,:,5)
-          ocld2d_io => spacesubm1(:,:,:,6)
-          rno2d_io  => spacesubm1(:,:,:,7)
-          rnos2d_io => spacesubm1(:,:,:,8)
-          sag2d_io  => spacesubm1(:,:,:,9)
-          scv2d_io  => spacesubm1(:,:,:,10)
-          sena2d_io => spacesubm1(:,:,:,11)
-          sice2d_io => spacesubm1(:,:,:,12)
-          srw2d_io  => spacesubm1(:,:,:,13)
-          ssw2d_io  => spacesubm1(:,:,:,14)
-          swt2d_io  => spacesubm1(:,:,:,15)
-          taf2d_io  => spacesubm1(:,:,:,16)
-          text2d_io => spacesubm1(:,:,:,17)
-          tg2d_io   => spacesubm1(:,:,:,18)
-          tgb2d_io  => spacesubm1(:,:,:,19)
-          tlef2d_io => spacesubm1(:,:,:,20)
-          veg2d1_io => spacesubm1(:,:,:,21)
-          allocate(spacesub(nnsg,iy,jx,5),stat=ierr)
+          rno2d_io  => spacesubm1(:,:,:,6)
+          rnos2d_io => spacesubm1(:,:,:,7)
+          sag2d_io  => spacesubm1(:,:,:,8)
+          scv2d_io  => spacesubm1(:,:,:,9)
+          sena2d_io => spacesubm1(:,:,:,10)
+          sice2d_io => spacesubm1(:,:,:,11)
+          srw2d_io  => spacesubm1(:,:,:,12)
+          ssw2d_io  => spacesubm1(:,:,:,13)
+          swt2d_io  => spacesubm1(:,:,:,14)
+          taf2d_io  => spacesubm1(:,:,:,15)
+          text2d_io => spacesubm1(:,:,:,16)
+          tg2d_io   => spacesubm1(:,:,:,17)
+          tgb2d_io  => spacesubm1(:,:,:,18)
+          tlef2d_io => spacesubm1(:,:,:,19)
+          emiss2d_io => spacesubm1(:,:,:,20)
+          if (lband) then
+            allocate(veg2d1_io(nnsg,iym1,jx),stat=ierr)
+            allocate(ocld2d_io(nnsg,iym1,jx),stat=ierr)
+            allocate(veg2d_io(iym1,jx),stat=ierr)
+          else
+            allocate(veg2d1_io(nnsg,iym1,jxm1),stat=ierr)
+            allocate(ocld2d_io(nnsg,iym1,jxm1),stat=ierr)
+            allocate(veg2d_io(iym1,jxm1),stat=ierr)
+          end if
+          veg2d1_io = -1
+          ocld2d_io = -1
+          veg2d_io = -1
+          allocate(spacesub(nnsg,iy,jx,4),stat=ierr)
           call check_alloc(ierr,myname,'spacesub',size(spacesub))
           spacesub = d_zero
           ht1_io     => spacesub(:,:,:,1)
           satbrt1_io => spacesub(:,:,:,2)
-          snowc_io   => spacesub(:,:,:,3)
-          xlat1_io   => spacesub(:,:,:,4)
-          xlon1_io   => spacesub(:,:,:,5)
+          xlat1_io   => spacesub(:,:,:,3)
+          xlon1_io   => spacesub(:,:,:,4)
           if (lakemod == 1) then
             allocate(dhlake1_io(nnsg,iy,jx),stat=ierr)
             call check_alloc(ierr,myname,'dhlake1_io',size(dhlake1_io))
@@ -329,8 +333,7 @@
             allocate(hi2d_io(nnsg,iym1,jx),stat=ierr)
             call check_alloc(ierr,myname,'hi2d_io',size(hi2d_io))
             allocate(aveice2d_io(nnsg,iym1,jx),stat=ierr)
-            call check_alloc(ierr,myname,'aveice2d_io', &
-                             size(aveice2d_io))
+            call check_alloc(ierr,myname,'aveice2d_io', size(aveice2d_io))
             allocate(hsnow2d_io(nnsg,iym1,jx),stat=ierr)
             call check_alloc(ierr,myname,'hsnow2d_io',size(hsnow2d_io))
             allocate(evl2d_io(nnsg,iym1,jx),stat=ierr)
@@ -340,15 +343,15 @@
           endif
           if (lband) then
             if ( ichem == 1 ) then
-              allocate(spacebat(iym1,jx,16),stat=ierr)
+              allocate(spacebat(iym1,jx,15),stat=ierr)
             else
-              allocate(spacebat(iym1,jx,9),stat=ierr)
+              allocate(spacebat(iym1,jx,8),stat=ierr)
             end if
           else
             if ( ichem == 1 ) then
-              allocate(spacebat(iym1,jxm1,16),stat=ierr)
+              allocate(spacebat(iym1,jxm1,15),stat=ierr)
             else
-              allocate(spacebat(iym1,jxm1,9),stat=ierr)
+              allocate(spacebat(iym1,jxm1,8),stat=ierr)
             end if
           end if
           call check_alloc(ierr,myname,'spacebat',size(spacebat))
@@ -357,19 +360,18 @@
           flwd2d_io     => spacebat(:,:,2)
           fsw2d_io      => spacebat(:,:,3)
           sabv2d_io     => spacebat(:,:,4)
-          veg2d_io      => spacebat(:,:,5)
-          sinc2d_io     => spacebat(:,:,6)
-          sol2d_io      => spacebat(:,:,7)
-          solvd2d_io    => spacebat(:,:,8)
-          solvs2d_io    => spacebat(:,:,9)
+          sinc2d_io     => spacebat(:,:,5)
+          sol2d_io      => spacebat(:,:,6)
+          solvd2d_io    => spacebat(:,:,7)
+          solvs2d_io    => spacebat(:,:,8)
           if ( ichem == 1 ) then
-            ssw2da_io     => spacebat(:,:,10)
-            sdelqk2d_io   => spacebat(:,:,11)
-            sdeltk2d_io   => spacebat(:,:,12)
-            sfracb2d_io   => spacebat(:,:,13)
-            sfracs2d_io   => spacebat(:,:,14)
-            sfracv2d_io   => spacebat(:,:,15)
-            svegfrac2d_io => spacebat(:,:,16)
+            ssw2da_io     => spacebat(:,:,9)
+            sdelqk2d_io   => spacebat(:,:,10)
+            sdeltk2d_io   => spacebat(:,:,11)
+            sfracb2d_io   => spacebat(:,:,12)
+            sfracs2d_io   => spacebat(:,:,13)
+            sfracv2d_io   => spacebat(:,:,14)
+            svegfrac2d_io => spacebat(:,:,15)
           end if
           if (lband) then
             allocate(fbat_io(jx,iym2,numbat),stat=ierr)
@@ -594,7 +596,7 @@
             call check_alloc(ierr,myname,'chib_io',size(chib_io))
             chib_io = d_zero
           end if
-         if (icup == 3) then
+          if (icup == 3) then
             allocate(spacesurf(iy,jx,11),stat=ierr)
           else
             allocate(spacesurf(iy,jx,12),stat=ierr)
@@ -646,7 +648,7 @@
           allocate(sav_0(iy,kz*4+2,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_0',size(sav_0))
           sav_0 = d_zero
-          allocate(sav_0a(iy,kzp1+nnsg+4,jx) ,stat=ierr)
+          allocate(sav_0a(iy,kzp1+4,jx) ,stat=ierr)
           call check_alloc(ierr,myname,'sav_0a',size(sav_0a))
           sav_0a = d_zero
           allocate(sav_0b(iy,kzp1,jx),stat=ierr)
@@ -668,8 +670,7 @@
           call check_alloc(ierr,myname,'sav_2',size(sav_2))
           sav_2 = d_zero
           allocate(sav_2a(iym1,nnsg*2+1,jx),stat=ierr)
-          call check_alloc(ierr,myname,'sav_2a',size(sav_2a))
-          sav_2a = d_zero
+          sav_2a = -1
           if ( ichem == 1 ) then
             allocate(sav_4(iy,ntr*(kz*4+1),jx),stat=ierr)
             call check_alloc(ierr,myname,'sav_4',size(sav_4))
@@ -690,7 +691,7 @@
         allocate(sav0(iy,kz*4+2,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav0',size(sav0))
         sav0 = d_zero
-        allocate(sav0a(iy,kzp1+nnsg+4,jxp) ,stat=ierr)
+        allocate(sav0a(iy,kzp1+4,jxp) ,stat=ierr)
         call check_alloc(ierr,myname,'sav0a',size(sav0a))
         sav0a = d_zero
         allocate(sav0b(iy,kzp1,jxp),stat=ierr)
@@ -712,8 +713,7 @@
         call check_alloc(ierr,myname,'sav2',size(sav2))
         sav2 = d_zero
         allocate(sav2a(iym1,nnsg*2+1,jxp),stat=ierr)
-        call check_alloc(ierr,myname,'sav2a',size(sav2a))
-        sav2a = d_zero
+        sav2a = -1
         if ( ichem == 1 ) then
           allocate(sav4(iy,ntr*(kz*4+1),jxp),stat=ierr)
           call check_alloc(ierr,myname,'sav4',size(sav4))

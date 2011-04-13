@@ -195,15 +195,14 @@
           do j = 1 , jendx
             do n = 1 , nnsg
               do i = 1 , iym1
-                atm0(i,3+kz*6+n,j) = ocld2d(n,i,j)
-                atm0(i,3+kz*6+n+nnsg,j) = tgb2d(n,i,j)
-                atm0(i,3+kz*6+n+nnsg*2,j) = swt2d(n,i,j)
-                atm0(i,3+kz*6+n+nnsg*3,j) = rno2d(n,i,j)
+                atm0(i,3+kz*6+n,j)        = tgb2d(n,i,j)
+                atm0(i,3+kz*6+n+nnsg,j)   = swt2d(n,i,j)
+                atm0(i,3+kz*6+n+nnsg*2,j) = rno2d(n,i,j)
               end do
             end do
           end do
-          call mpi_gather(atm0, iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
-                        & atm_0,iy*(kz*6+3+nnsg*4)*jxp,mpi_real8,&
+          call mpi_gather(atm0, iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
+                        & atm_0,iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
             rainc_io  = d_zero
@@ -234,13 +233,37 @@
 #endif
               do n = 1 , nnsg
                 do i = 1 , iym1
-                  ocld2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
-                  tgb2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
-                  swt2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
-                  rno2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*3,j)
+                  tgb2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
+                  swt2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
+                  rno2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
                 end do
               end do
             end do
+          end if
+          do j = 1 , jendx
+            do n = 1 , nnsg
+              do i = 1 , iym1
+                var2d0(i,n,j) = ocld2d(n,i,j)
+              end do
+            end do
+          end do
+          call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
+                        & var2d_0,iy*nnsg*jxp,mpi_integer, &
+                        & 0,mpi_comm_world,ierr)
+          if (myid == 0) then
+#ifdef BAND
+            do j = 1 , jx
+#else
+            do j = 1 , jxm1
+#endif
+              do n = 1 , nnsg
+                do i = 1 , iym1
+                  ocld2d_io(n,i,j) = var2d_0(i,n,j)
+                end do
+              end do
+            end do
+          end if
+          if ( myid == 0 ) then
             call outatm
           end if
           do j = 1 , jendx
@@ -270,8 +293,8 @@
                 end do
               end do
             end do
-            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_real8, &
-                          & var2d_0,iy*nnsg*jxp,mpi_real8, &
+            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
+                          & var2d_0,iy*nnsg*jxp,mpi_integer, &
                           & 0,mpi_comm_world,ierr)
             if (myid == 0) then
 #ifdef BAND
@@ -787,20 +810,15 @@
               sav0a(i,3,j) = sfsta%uvdrag(i,j)
               sav0a(i,4,j) = sfsta%tgbb(i,j)
             end do
-            do n = 1 , nnsg
-              do i = 1 , iy
-                sav0a(i,4+n,j) = snowc(n,i,j)
-              end do
-            end do
           end do
           do j = 1 , jendx
             do k = 1 , kzp1
               do i = 1 , iym1
-                sav0a(i,nnsg+4+k,j) = o3prof(i,k,j)
+                sav0a(i,4+k,j) = o3prof(i,k,j)
               end do
             end do
           end do
-          allrec = 4 + nnsg + kzp1
+          allrec = 4 + kzp1
           call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                         & sav_0a,iy*allrec*jxp,mpi_real8,        &
                         & 0,mpi_comm_world,ierr)
@@ -812,11 +830,6 @@
                 uvdrag_io(i,j) = sav_0a(i,3,j)
                 tgbb_io(i,j) = sav_0a(i,4,j)
               end do
-              do n = 1 , nnsg
-                do i = 1 , iy
-                  snowc_io(n,i,j) = sav_0a(i,4+n,j)
-                end do
-              end do
             end do
 #ifdef BAND
             do j = 1 , jx
@@ -825,7 +838,7 @@
 #endif
               do k = 1 , kzp1
                 do i = 1 , iym1
-                  o3prof_io(i,k,j) = sav_0a(i,4+nnsg+k,j)
+                  o3prof_io(i,k,j) = sav_0a(i,4+k,j)
                 end do
               end do
             end do
@@ -1093,11 +1106,11 @@
           do j = 1 , jendx
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav2(i,n,j) = veg2d1(n,i,j)
-                sav2(i,nnsg+n,j) = sag2d(n,i,j)
+                sav2(i,n,j)        = ircp2d(n,i,j)
+                sav2(i,nnsg+n,j)   = sag2d(n,i,j)
                 sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
                 sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
-                sav2(i,nnsg*4+n,j) = ocld2d(n,i,j)
+                sav2(i,nnsg*4+n,j) = emiss2d(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1119,11 +1132,11 @@
 #endif
               do n = 1 , nnsg
                 do i = 1 , iym1
-                  veg2d1_io(n,i,j) = sav_2(i,n,j)
+                  ircp2d_io(n,i,j) = sav_2(i,n,j)
                   sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
                   sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
                   dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                  ocld2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
+                  emiss2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
                 end do
               end do
               do i = 1 , iym1
@@ -1137,8 +1150,8 @@
           do j = 1 , jendx
             do n = 1 , nnsg
               do i = 1 , iym1
-                sav2a(i,n,j) = ircp2d(n,i,j)
-                sav2a(i,nnsg+n,j) = text2d(n,i,j)
+                sav2a(i,n,j)      = veg2d1(n,i,j)
+                sav2a(i,nnsg+n,j) = ocld2d(n,i,j)
               end do
             end do
             do i = 1 , iym1
@@ -1146,8 +1159,8 @@
             end do
           end do
           allrec = nnsg*2 + 1
-          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_real8,      &
-                        & sav_2a,iym1*allrec*jxp,mpi_real8,      &
+          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_integer, &
+                        & sav_2a,iym1*allrec*jxp,mpi_integer, &
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
 #ifdef BAND
@@ -1157,8 +1170,8 @@
 #endif
               do n = 1 , nnsg
                 do i = 1 , iym1
-                  ircp2d_io(n,i,j) = sav_2a(i,n,j)
-                  text2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
+                  veg2d1_io(n,i,j) = sav_2a(i,n,j)
+                  ocld2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
                 end do
               end do
               do i = 1 , iym1

@@ -226,11 +226,11 @@
         do ill = 1 , iym1
           pptnc(ill,jll) = d_zero
           pptc(ill,jll) = d_zero
-          veg2d(ill,jll) = mddom%satbrt(ill,jll)
+          veg2d(ill,jll) = idnint(mddom%satbrt(ill,jll))
         end do
         do ill = 1 , iym1
           do k = 1 , nnsg
-            veg2d1(k,ill,jll) = satbrt1(k,ill,jll)
+            veg2d1(k,ill,jll) = idnint(satbrt1(k,ill,jll))
           end do
         end do
       end do
@@ -249,29 +249,29 @@
 #endif
         do ill = 1 , iym1
           do k = 1 , nnsg
-            if ( ocld2d(k,ill,jll) > 1.5D0 ) then
-              if ( iseaice == 1 ) then
-                sice2d(k,ill,jll) = d_1000
-                scv2d(k,ill,jll) = d_zero
-              end if
-              nlveg = 12
-            else if ( ocld2d(k,ill,jll) > d_half ) then
-              sice2d(k,ill,jll) = d_zero
-              scv2d(k,ill,jll) = dmax1(snowc(k,ill,jll),d_zero)
-              nlveg = idint(veg2d1(k,ill,jll))
-            else
-              sice2d(k,ill,jll) = d_zero
-              scv2d(k,ill,jll) = d_zero
-              nlveg = idint(veg2d1(k,ill,jll))
-            end if
-            itex = iexsol(nlveg)
             tg2d(k,ill,jll) = sts2%tg(ill,jll)
             tgb2d(k,ill,jll) = sts2%tg(ill,jll)
             taf2d(k,ill,jll) = sts2%tg(ill,jll)
             tlef2d(k,ill,jll) = sts2%tg(ill,jll)
 
+            if ( ocld2d(k,ill,jll) == 2 ) then
+              if ( iseaice == 1 ) then
+                sice2d(k,ill,jll) = d_1000
+                scv2d(k,ill,jll) = d_zero
+              end if
+              nlveg = 12
+            else if ( ocld2d(k,ill,jll) == 1 ) then
+              sice2d(k,ill,jll) = d_zero
+              scv2d(k,ill,jll) = dmax1(scv2d(k,ill,jll),d_zero)
+              nlveg = veg2d1(k,ill,jll)
+            else
+              sice2d(k,ill,jll) = d_zero
+              scv2d(k,ill,jll) = d_zero
+              nlveg = veg2d1(k,ill,jll)
+            end if
 !           ******  initialize soil moisture in the 3 layers
             is = idint(satbrt1(k,ill,jll))
+            itex = iexsol(nlveg)
             swt2d(k,ill,jll) = deptv(nlveg)*xmopor(itex)*slmo(is)
             srw2d(k,ill,jll) = deprv(nlveg)*xmopor(itex)*slmo(is)
             ssw2d(k,ill,jll) = depuv(nlveg)*xmopor(itex)*slmo(is)
@@ -406,16 +406,12 @@
             evpr1d(n,i) = sfsta%qfx(i,j)
             ldoc1d(n,i) = ocld2d(n,i,j)
             ircp1d(n,i) = ircp2d(n,i,j)
-            lveg(n,i) = idint(veg2d1(n,i,j))
+            lveg(n,i) = veg2d1(n,i,j)
             oveg(n,i) = lveg(n,i)
-            if ( ldoc1d(n,i) > 1.5D0 ) lveg(n,i) = 12
+            if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
             amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-            if ( ldoc1d(n,i) < d_half ) then
-              veg1d(n,i) = d_zero
-            else
-              veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-            end if
+            veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
             emiss_1d(n,i) = emiss2d(n,i,j)
             z1d(n,i) = za(i,k,j)
             z1log(n,i)  = dlog(z1d(n,i))
@@ -490,15 +486,15 @@
                             & + (d_one-veg1d(n,i))*scvk(n,i)
               svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
             end if
-            if ( iocnflx == 1 .or.                                      &
-               & (iocnflx == 2 .and. ldoc1d(n,i) > d_half ) ) then
+            if ( iocnflx == 1 .or. &
+                (iocnflx == 2 .and. ldoc1d(n,i) /= 0 ) ) then
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                   &
                          + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+ &
                          veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
             else
               sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
             end if
-            if ( ldoc1d(n,i) < d_half ) then
+            if ( ldoc1d(n,i) == 0 ) then
               ssw1d(n,i)  = dmissval
               rsw1d(n,i)  = dmissval
               tsw1d(n,i)  = dmissval
@@ -524,7 +520,7 @@
             svegfrac2d(i,j) = svegfrac2d(i,j)/dble(ng)
           end if
           do n = 1 , ng
-            snowc(n,i,j) = scv1d(n,i)
+            scv2d(n,i,j) = scv1d(n,i)
             tg2d(n,i,j) = tg1d(n,i)
             tgb2d(n,i,j) = tgb1d(n,i)
             taf2d(n,i,j) = taf1d(n,i)
@@ -534,7 +530,6 @@
             ssw2d(n,i,j) = ssw1d(n,i)
             dew2d(n,i,j) = ldew1d(n,i)
             sag2d(n,i,j) = sag1d(n,i)
-            scv2d(n,i,j) = scv1d(n,i)
             sice2d(n,i,j) = sice1d(n,i)
             gwet2d(n,i,j) = gwet1d(n,i)
             ocld2d(n,i,j) = ldoc1d(n,i)
@@ -575,7 +570,7 @@
           aldirs_o(j,i-1) = 0.0
           aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -636,7 +631,7 @@
           aldirs_o(j,i-1) = 0.0
           aldifs_o(j,i-1) = 0.0
           do n = 1 , ng
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -694,7 +689,7 @@
           aldirs_o(j-1,i-1) = 0.0
           aldifs_o(j-1,i-1) = 0.0
           do n = 1 , ng
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               fracv = sigf(n,i)
               fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
               fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -769,7 +764,7 @@
             evpa_o(j,i-1) = 0.0
             sena_o(j,i-1) = 0.0
             do n = 1 , ng
-              if ( ldoc1d(n,i) > d_half ) then
+              if ( ldoc1d(n,i) /= 0 ) then
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -817,7 +812,7 @@
             scv_o(j,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ldoc1d(n,i) > d_half ) then
+              if ( ldoc1d(n,i) /= 0 ) then
                 tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef1d(n,i))
                 ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
                 rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
@@ -861,7 +856,7 @@
             evpa_o(j,i-1) = 0.0
             sena_o(j,i-1) = 0.0
             do n = 1 , ng
-              if ( ldoc1d(n,i) > d_half ) then
+              if ( ldoc1d(n,i) /= 0 ) then
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -909,7 +904,7 @@
             scv_o(j,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ldoc1d(n,i,j) > d_half ) then
+              if ( ldoc1d(n,i,j) /= 0 ) then
                 tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef1d(n,i))
                 ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
                 rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
@@ -948,7 +943,7 @@
             evpa_o(j-1,i-1) = 0.0
             sena_o(j-1,i-1) = 0.0
             do n = 1 , ng
-              if ( ldoc1d(n,i) > d_half ) then
+              if ( ldoc1d(n,i) /= 0 ) then
                 fracv = sigf(n,i)
                 fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
                 fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
@@ -996,7 +991,7 @@
             scv_o(j-1,i-1) = 0.0
             nnn = 0
             do n = 1 , ng
-              if ( ldoc1d(n,i) > d_half ) then
+              if ( ldoc1d(n,i) /= 0 ) then
                 tlef_o(j-1,i-1) = tlef_o(j-1,i-1) + real(tlef1d(n,i))
                 ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + real(ssw1d(n,i))
                 rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + real(rsw1d(n,i))
@@ -1170,7 +1165,7 @@
 !         can't use pointer "nalbk" here because not set - use nldock
 !         instead tgb1d(i) used instead of tbelow
 !
-          if ( ldoc1d(n,i) > 1.5D0 ) then
+          if ( ldoc1d(n,i) == 2 ) then
             tdiffs = ts1d(n,i) - tzero
             tdiff = dmax1(tdiffs,d_zero)
             tdiffs = dmin1(tdiff,20.0D0)
@@ -1179,7 +1174,7 @@
             albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
             albgld = albgl
-          else if ( ldoc1d(n,i) > d_half ) then
+          else if ( ldoc1d(n,i) == 1 ) then
             sfac = d_one - fseas(tgb1d(n,i))
 !           **********  ccm tests here on land mask for veg and soils
 !c          data *** reduces albedo at low temps !!!!!should respond to
@@ -1297,7 +1292,7 @@
 !=====================================================================
 !         5.  albedo over open ocean
 !=====================================================================
-          if ( ldoc1d(n,i) < d_half ) then
+          if ( ldoc1d(n,i) == 0 ) then
 !           *********   ocean albedo depends on zenith angle
             if ( czeta >= d_zero ) then
 !             **********   albedo independent of wavelength
@@ -1394,7 +1389,7 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
  
 !           **********            lveg is set in subr. interf
             freza(lveg(n,i)) = 0.15D0*deprv(lveg(n,i))
@@ -1519,23 +1514,19 @@
           sice1d(n,i) = sice2d(n,i,j)
           tgb1d(n,i) = tgb2d(n,i,j)
           ssw1d(n,i) = ssw2d(n,i,j)
-          lveg(n,i) = idint(veg2d1(n,i,j))
+          lveg(n,i) = veg2d1(n,i,j)
           oveg(n,i) = lveg(n,i)
-          if (ocld2d(n,i,j) > 1.5D0) lveg(n,i) = 12
+          if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
           amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-          if ( ldoc1d(n,i) < d_half ) then
-            veg1d(n,i) = d_zero
-          else
-            veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-          end if
+          veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           ts1d(n,i) = thx3d(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)- &
                       mddom%ht(i,j))
           scv1d(n,i) = scv2d(n,i,j)
           sag1d(n,i) = sag2d(n,i,j)
         end do
       end do
- 
+
       end subroutine slice1D
 !
       end module mod_vecbats

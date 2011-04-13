@@ -171,7 +171,7 @@
 !     (1st guess at vapor pressure deficit)
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               vpdc(n,i) = d_10
               if ( iemiss == 1 ) then
@@ -219,7 +219,7 @@
  
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 lftra(n,i) = d_one/(cf(n,i)*uaf(n,i))
                 cn1(n,i) = wtlh(n,i)*rhs1d(n,i)
@@ -246,7 +246,7 @@
         epss = 1.0D-10
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 efpot(n,i) = cn1(n,i)*(wtgaq(n,i)*qsatl(n,i) - &
                                           wtgq0(n,i)*qg1d(n,i) -  &
@@ -302,7 +302,7 @@
 !l      3.3  compute dcn from dcd, output from subr. deriv
         do i = 2 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 dcn = dcd(n,i)*tlef1d(n,i)
 !
@@ -346,7 +346,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !=======================================================================
 !l            4.   update dew accumulation (kg/m**2/s)
@@ -465,7 +465,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !             **********            zenith angle set in zenitm
               if ( (czen(i)/ilmax) > 0.001D0 ) then
@@ -484,7 +484,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               if ( czen(i)/ilmax > 0.001D0 ) then
                 rad(1) = (d_one-trup(n,i))*fsol0(n,i)*ilmax/rlai(n,i)
@@ -508,7 +508,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               if ( (czen(i)/ilmax) > 0.001D0 ) then
                 vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,i)*0.025D0)
@@ -558,7 +558,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               fwet(n,i) = d_zero
               if ( ldew1d(n,i) > d_zero ) then
@@ -608,7 +608,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !             trsmx = trsmx0*sigf(n,i)*seasb(n,i)
               trsmx = trsmx0*sigf(n,i)
@@ -685,7 +685,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
                   & + wtg0(n,i)*tg1d(n,i)
@@ -761,7 +761,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
               cf(n,i) = 0.01D0*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
@@ -808,7 +808,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               rgr(n,i) = gwet1d(n,i)
               wtlq(n,i) = wtlh(n,i)*rpp(n,i)
@@ -847,7 +847,7 @@
 !
         do i = 1 , iym1
           do n = 1 , nnsg
-            if ( ldoc1d(n,i) > d_half ) then
+            if ( ldoc1d(n,i) /= 0 ) then
               if ( sigf(n,i) > 0.001D0 ) then
                 dne = d_one/(tlef1d(n,i)-lftb(n,i))
                 qsatld(n,i) = qsatl(n,i)*lfta(n,i) * &

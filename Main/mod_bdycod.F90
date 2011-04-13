@@ -736,7 +736,7 @@
                    sts2%tg(i,j) = icetemp
                    tdum(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_two
+                    ocld2d(n,i,j) = 2
                     sice2d(n,i,j) = d_1000
                     scv2d(n,i,j) = d_zero
                   end do
@@ -744,7 +744,7 @@
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_zero
+                    ocld2d(n,i,j) = 0
                     sice2d(n,i,j) = d_zero
                     scv2d(n,i,j)  = d_zero
                   end do
@@ -1032,7 +1032,7 @@
                    sts2%tg(i,j) = icetemp
                    tdum(i,j) = icetemp
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_two
+                    ocld2d(n,i,j) = 2
                     sice2d(n,i,j) = d_1000
                     scv2d(n,i,j)  = d_zero
                   end do
@@ -1040,7 +1040,7 @@
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
                   do n = 1, nnsg
-                    ocld2d(n,i,j) = d_zero
+                    ocld2d(n,i,j) = 0
                     sice2d(n,i,j) = d_zero
                     scv2d(n,i,j)  = d_zero
                   end do

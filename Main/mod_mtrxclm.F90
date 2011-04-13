@@ -697,13 +697,13 @@
           jj = myid*jxp + j
           do i = 1 , iym1
             do n = 1 , nnsg
-              ocld2d(n,i,j) = dble(landmask(jj,i))
+              ocld2d(n,i,j) = landmask(jj,i)
               tgb2d(n,i,j) = sts2%tg(i,j)
               taf2d(n,i,j) = sts2%tg(i,j)
               tlef2d(n,i,j) = sts2%tg(i,j)
               dew2d(n,i,j) = d_zero
               sag2d(n,i,j) = d_zero
-              scv2d(n,i,j) = dmax1(snowc(n,i,j),d_zero)
+              scv2d(n,i,j) = dmax1(scv2d(n,i,j),d_zero)
               sice2d(n,i,j) = d_zero
               gwet2d(n,i,j) = d_half
               sena2d(n,i,j) = d_zero
@@ -733,26 +733,20 @@
               if ( clm2bats_veg(jj,i) < 0.1D0 ) satbrt1(n,i,j) = 15.0D0
             end do
 
-            if ( mddom%satbrt(i,j) > 13.9D0 .and. &
-                 mddom%satbrt(i,j) < 15.1D0 ) then
-              veg2d(i,j)  = d_zero
-              do n = 1 , nnsg
-                veg2d1(n,i,j) = d_zero
-              end do
-            else
-              veg2d(i,j) = mddom%satbrt(i,j)
-              do n = 1 , nnsg
-                veg2d1(n,i,j)  = satbrt1(n,i,j)
-              end do
-            end if
+            veg2d(i,j) = idnint(mddom%satbrt(i,j))
+            do n = 1 , nnsg
+              veg2d1(n,i,j)  = idnint(satbrt1(n,i,j))
+            end do
 
-            if ( veg2d(i,j) < 0.1D0 .and. ocld2d(1,i,j) > d_half ) then
-              veg2d(i,j)        =  d_two
+            if ( ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) .and. &
+                   ocld2d(1,i,j) /= 0 ) then
+              veg2d(i,j)        =  2
               mddom%satbrt(i,j) =  d_two
             end if
             do n = 1 , nnsg
-              if ( veg2d(i,j) < 0.1D0 .and. ocld2d(n,i,j) > d_half ) then
-                veg2d1(n,i,j)     =  d_two
+              if ( ( veg2d1(i,j) == 14 .or. veg2d1(i,j) == 15 ) .and. &
+                   ocld2d(n,i,j) /= 0 ) then
+                veg2d1(n,i,j)     =  2
                 satbrt1(n,i,j)    =  d_two
               end if
             end do
@@ -789,7 +783,7 @@
 !
       do i = 2 , iym1
         jj = j+(jxp*myid)
-        if (ocld2d(1,i,j) > d_half .and. &
+        if (ocld2d(1,i,j) /= 0 .and. &
             (d_one-aldirs2d(i,j)) > 1.0D-10) then
           aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + &
                       aldirs(i)*(d_one-landfrac(jj,i))
@@ -1091,7 +1085,6 @@
               end if
  
               do n = 1 , nnsg
-                snowc(n,i,j) = c2rsnowc(jj,ci)
                 tg2d(n,i,j) = c2rtgb(jj,ci)
                 tgb2d(n,i,j) = c2rtgb(jj,ci)
                 !supposed to be lower soil layer temp not tgrnd
@@ -1165,7 +1158,7 @@
                 end if
  
                 if ( iocnflx==1 .or.                                    &
-                   & (iocnflx==2 .and. ocld2d(n,i,j) > d_half) ) then
+                   & (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
                   sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
                             & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
                             & veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
@@ -1196,7 +1189,6 @@
                 sfracs2d(i,j) = sfracs2d(i,j)/dble(nnsg)
               end if
               do n = 1 , nnsg
-                snowc(n,i,j) = scv1d(n,i)
                 tg2d(n,i,j) = tg1d(n,i)
                 tgb2d(n,i,j) = tgb1d(n,i)
                 taf2d(n,i,j) = t2m_1d(n,i)
@@ -1272,7 +1264,7 @@
                 end if
  
                 if ( iocnflx==1 .or.                                    &
-                   & (iocnflx==2 .and. ocld2d(n,i,j) > d_half) ) then
+                   & (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
                   sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
                             & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
                             &   veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
@@ -1320,7 +1312,7 @@
                 gwet2d(n,i,j) = gwet1d(n,i)
                 ircp2d(n,i,j) = ircp1d(n,i)
 !abt            added below for the landfraction method
-                snowc(n,i,j) = c2rsnowc(jj,ci)*landfrac(jj,ci)          &
+                scv2d(n,i,j) = c2rsnowc(jj,ci)*landfrac(jj,ci)          &
                              & + scv1d(n,i)*(d_one-landfrac(jj,ci))
                 tg2d(n,i,j) = c2rtgb(jj,ci)*landfrac(jj,ci) + tg1d(n,i) &
                             & *(d_one-landfrac(jj,ci))
@@ -1376,7 +1368,7 @@
               t2m_o(j,i-1) = 0.0
  
               do n = 1 , nnsg
-                if ( ocld2d(n,i,j) > d_half ) then
+                if ( ocld2d(n,i,j) /= 0 ) then
                   u10m_s(n,j,i-1) = real(ubx3d(i,kz,j))
                   v10m_s(n,j,i-1) = real(vbx3d(i,kz,j))
                   tg_s(n,j,i-1) = real(tg2d(n,i,j))
@@ -1385,7 +1377,7 @@
                   v10m_o(j,i-1) = v10m_o(j,i-1) + real(vbx3d(i,kz,j))
                   t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf2d(n,i,j))
                   tg_o(j,i-1) = tg_o(j,i-1) + real(tg2d(n,i,j))
-                else if ( ocld2d(n,i,j) < d_half ) then
+                else if ( ocld2d(n,i,j) == 0 ) then
                   tg_s(n,j,i-1) = real(tg1d(n,i))
                   u10m_s(n,j,i-1) = real(u10m1d(n,i))
                   v10m_s(n,j,i-1) = real(v10m1d(n,i))
@@ -1415,7 +1407,7 @@
               evpa_o(j,i-1) = 0.0
               sena_o(j,i-1) = 0.0
               do n = 1 , nnsg
-                if ( ocld2d(n,i,j) > d_half ) then
+                if ( ocld2d(n,i,j) /= 0 ) then
                   q2m_s(n,j,i-1) = real(q2d(i,j))
                   drag_s(n,j,i-1) = real(sfsta%uvdrag(i,j))
                   evpa_s(n,j,i-1) = real(evpa2d(n,ci,j)*mmpd)
@@ -1428,7 +1420,7 @@
                   drag_o(j,i-1) = drag_o(j,i-1) + real(sfsta%uvdrag(i,j))
                   evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,ci,j))
                   sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
-                else if ( ocld2d(n,i,j) < d_half ) then
+                else if ( ocld2d(n,i,j) == 0 ) then
                   q2m_s(n,j,i-1) = real(q2m_1d(n,i))
                   drag_s(n,j,i-1) = real(drag1d(n,i))
                   evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
@@ -1463,7 +1455,7 @@
               scv_o(j,i-1) = 0.0
               nnn = 0
               do n = 1 , nnsg
-                if ( ocld2d(n,ci,j) > d_half .and. landmask(jj,ci)/=3 ) then
+                if ( ocld2d(n,ci,j) /= 0 .and. landmask(jj,ci)/=3 ) then
                   tlef_o(j,i-1) = tlef_o(j,i-1) + real(c2rtlef(jj,ci))
                   ssw_o(j,i-1) = ssw_o(j,i-1) + real(c2rsm10cm(jj,ci))
                   rsw_o(j,i-1) = rsw_o(j,i-1) + real(c2rsm1m(jj,ci))

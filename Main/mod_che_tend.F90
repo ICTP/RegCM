@@ -516,7 +516,7 @@
         if ( chtrname(itr) == 'DUST' .and. gfcall2 ) then
  
           do i = 2 , iym2
-            ivegcov(i) = idnint(veg2d(i,j))
+            ivegcov(i) = veg2d(i,j)
             if ( ivegcov(i) == 14 .or. ivegcov(i) == 15 ) then
               ivegcov(i) = 0
             end if
