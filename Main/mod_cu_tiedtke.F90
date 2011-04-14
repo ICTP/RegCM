@@ -2081,7 +2081,7 @@ module mod_cu_tiedtke
           ikt = kctop0(jl)
           znevn = (pgeoh(jl,ikt)-pgeoh(jl,jk+1))                    &
                   *(zmse-phhatt(jl,jk+1))*regrav
-          if ( znevn<=0.0D0 ) znevn = 1.
+          if ( znevn<=0.0D0 ) znevn = 1.0D0
           zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
           zodmax = ((phcbase(jl)-zmse)/znevn)*zdprho*pmfu(jl,jk+1)
           zodmax = max(zodmax,0.0D0)

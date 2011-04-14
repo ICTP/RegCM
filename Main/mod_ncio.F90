@@ -593,7 +593,7 @@
 
         end subroutine open_domain
 
-        subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f,snw)
+        subroutine read_domain(ht,lnd,xlat,xlon,xmap,dmap,f)
           use netcdf
           implicit none
 
@@ -604,9 +604,8 @@
           real(8) , dimension(iy,jx) , intent(out) :: xmap
           real(8) , dimension(iy,jx) , intent(out) :: dmap
           real(8) , dimension(iy,jx) , intent(out) :: f
-          real(8) , dimension(nnsg,iy,jx) , intent(out) :: snw
 
-          integer :: ivarid , n
+          integer :: ivarid
 
           if (idmin < 0) then
             write (6,*) 'Error : Domain file not in open state'
@@ -655,14 +654,6 @@
           call check_ok('Variable coriol read error', &
                         'DOMAIN FILE ERROR')
           f = dble(transpose(sp2d))
-          istatus = nf90_inq_varid(idmin, 'snowam', ivarid)
-          call check_ok('Variable snowam missing', 'DOMAIN FILE ERROR')
-          istatus = nf90_get_var(idmin, ivarid, sp2d)
-          call check_ok('Variable snowam read error', &
-                        'DOMAIN FILE ERROR')
-          do n = 1 , nnsg
-            snw(n,:,:) = dble(transpose(sp2d))
-          end do
           istatus = nf90_inq_varid(idmin, 'mask', ivarid)
           call check_ok('Variable mask missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -1991,7 +1982,7 @@
                 'surface_albedo_short_wave_diffuse', &
                 'Surface albedo to diffuse short wave radiation', &
                 '1',tyx,.false.,isrfvar(30))
-            if (iseaice == 1) then
+            if ( iseaice == 1 .or. lakemod == 1 ) then
               call addvara(ncid,ctype,'seaice', &
                   'seaice_binary_mask', &
                   'Sea ice mask', &
@@ -2377,7 +2368,7 @@
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
-          real(8) , dimension(nnsg,iym1,jxm1) , intent(in) :: mask
+          integer , dimension(nnsg,iym1,jxm1) , intent(in) :: mask
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -2469,11 +2460,11 @@
             ivar = ivar + 1
           end do
 
-          if (iseaice == 1) then
+          if ( iseaice == 1 .or. lakemod == 1 ) then
             dumio(:,:,1) = 0.0
             do n = 1 , nnsg
               dumio(:,:,1) = dumio(:,:,1) + &
-                             real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
+                            real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
             end do
             dumio(:,:,1) = dumio(:,:,1) / real(nnsg)
             istart(3) = isrfrec
@@ -2711,7 +2702,7 @@
           real(8) , dimension(ns,nny,nnx) , intent(in) :: tgb
           real(8) , dimension(ns,nny,nnx) , intent(in) :: swt
           real(8) , dimension(ns,nny,nnx) , intent(in) :: rno
-          real(8) , dimension(ns,nny,nnx) , intent(in) :: mask
+          integer , dimension(ns,nny,nnx) , intent(in) :: mask
           integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
           integer , dimension(4) :: istart , icount
           real(8) , dimension(1) :: xtime

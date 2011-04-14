@@ -122,7 +122,7 @@
             if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               read (iutrst) cbmf2d_io
             end if
-            read (iutrst) hfx_io , qfx_io , snowc_io , uvdrag_io
+            read (iutrst) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
             if (debug_level > 2) call restdiag(iutrst)
 #endif
@@ -154,7 +154,6 @@
             read (iutrst) sice2d_io
             read (iutrst) dew2d_io
             read (iutrst) ircp2d_io
-            read (iutrst) text2d_io
             read (iutrst) col2d_io
             read (iutrst) veg2d_io
             read (iutrst) veg2d1_io
@@ -168,6 +167,7 @@
             read (iutrst) sinc2d_io
             read (iutrst) taf2d_io
             read (iutrst) ocld2d_io
+            read (iutrst) emiss2d_io
             read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
             if ( iocnflx == 2 ) read (iutrst) zpbl_io
             if ( ichem == 1 ) then
@@ -216,7 +216,7 @@
             if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               read (iutrst) cbmf2d
             end if
-            read (iutrst) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
+            read (iutrst) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
 #ifndef BAND
             if (debug_level > 2) call restdiag(iutrst)
 #endif
@@ -237,7 +237,6 @@
             read (iutrst) sice2d
             read (iutrst) dew2d
             read (iutrst) ircp2d
-            read (iutrst) text2d
             read (iutrst) col2d
             read (iutrst) veg2d
             read (iutrst) veg2d1
@@ -251,6 +250,7 @@
             read (iutrst) sinc2d
             read (iutrst) taf2d
             read (iutrst) ocld2d
+            read (iutrst) emiss2d
             read (iutrst) pptnc , pptc , prca2d , prnca2d
             if ( iocnflx == 2 ) read (iutrst) sfsta%zpbl
             if ( ichem == 1 ) then
@@ -385,7 +385,7 @@
             if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               write (iutsav) cbmf2d_io
             end if
-            write (iutsav) hfx_io , qfx_io , snowc_io , uvdrag_io
+            write (iutsav) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
             if (debug_level > 2) call savediag(iutsav)
 #endif
@@ -417,7 +417,6 @@
             write (iutsav) sice2d_io
             write (iutsav) dew2d_io
             write (iutsav) ircp2d_io
-            write (iutsav) text2d_io
             write (iutsav) col2d_io
             write (iutsav) veg2d_io
             write (iutsav) veg2d1_io
@@ -431,6 +430,7 @@
             write (iutsav) sinc2d_io
             write (iutsav) taf2d_io
             write (iutsav) ocld2d_io
+            write (iutsav) emiss2d_io
             write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
             if ( iocnflx == 2 ) write (iutsav) zpbl_io
             if ( ichem == 1 ) then
@@ -479,7 +479,7 @@
             if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
               write (iutsav) cbmf2d
             end if
-            write (iutsav) sfsta%hfx , sfsta%qfx , snowc , sfsta%uvdrag
+            write (iutsav) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
 #ifndef BAND
             if (debug_level > 2) call savediag(iutsav)
 #endif
@@ -500,7 +500,6 @@
             write (iutsav) sice2d
             write (iutsav) dew2d
             write (iutsav) ircp2d
-            write (iutsav) text2d
             write (iutsav) col2d
             write (iutsav) veg2d
             write (iutsav) veg2d1
@@ -514,6 +513,7 @@
             write (iutsav) sinc2d
             write (iutsav) taf2d
             write (iutsav) ocld2d
+            write (iutsav) emiss2d
             write (iutsav) pptnc , pptc , prca2d , prnca2d
             if ( iocnflx == 2 ) write (iutsav) sfsta%zpbl
             if ( ichem == 1 ) then

@@ -62,13 +62,13 @@
 !         2.   compute stability as bulk rich. no. = rin/rid =
 !         ri(numerator)/ri(denominator)
 !=======================================================================
-          if ( ldoc1d(n,i) > d_half ) then
-            zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i) + z1d(n,i)    &
-                   & *(d_one-sigf(n,i))
+          if ( ldoc1d(n,i) /= 0 ) then
+            zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i) + &
+                      z1d(n,i)*(d_one-sigf(n,i))
           else
             zatild = z1d(n,i)
           end if
-          ribn(n,i) = zatild*egrav*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)-       &
+          ribn(n,i) = zatild*egrav*(ts1d(n,i)-sigf(n,i)*taf1d(n,i)- &
                      & (d_one-sigf(n,i))*tg1d(n,i))/ts1d(n,i)
 !=======================================================================
 !         2.1  compute the bulk richardson number;
@@ -76,8 +76,8 @@
 !         squares of horiz., vertical, and convective velocities
 !=======================================================================
           if ( ribn(n,i) <= d_zero ) then
-            dthdz = (d_one-sigf(n,i))*tg1d(n,i) + sigf(n,i)*taf1d(n,i) &
-                  & - ts1d(n,i)
+            dthdz = (d_one-sigf(n,i))*tg1d(n,i) + &
+                     sigf(n,i)*taf1d(n,i) - ts1d(n,i)
             u1 = wtur + d_two*dsqrt(dthdz)
             ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
           else
@@ -108,7 +108,7 @@
  
         end do
       end do
- 
+
 !=======================================================================
 !     4.   obtain drag coefficient over sea ice as weighted average
 !     over ice and leads
@@ -122,7 +122,7 @@
 !cc   if(lat(i) ==     1) aarea(i) = 0.005  ! ccm specific code
 !cc   if(lat(i) ==     2) aarea(i) = 0.01
 !cc   if(lat(i) >= nlat2) aarea(i) = 0.04   !  4.2  antarctic
-          if ( ldoc1d(n,i) > 1.5D0 ) aarea(n,i) = 0.02D0
+          if ( ldoc1d(n,i) == 2 ) aarea(n,i) = 0.02D0
                                                     !  4.3  arctic
         end do
       end do
@@ -130,16 +130,17 @@
 !     4.4  neutral cd over lead water
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > 1.5D0 ) then       !  check each point
+          if ( ldoc1d(n,i) == 2 ) then       !  check each point
             cdrn(n,i) = (vonkar/zlgocn(n,i))**d_two
  
 !           4.5  drag coefficient over leads
-            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))*z1d(n,i)*egrav/ribd(n,i)
+            ribl(n,i) = (d_one-271.5D0/ts1d(n,i))* &
+                         z1d(n,i)*egrav/ribd(n,i)
             if ( ribl(n,i) >= d_zero ) then
               clead(n,i) = cdrn(n,i)/(d_one+11.5D0*ribl(n,i))
             else
-              clead(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)* &
-                    & ribl(n,i)))
+              clead(n,i) = cdrn(n,i)*(d_one+24.5D0* &
+                           dsqrt(-cdrn(n,i)*ribl(n,i)))
             end if
  
 !           4.6  calculate weighted avg of ice and lead drag
@@ -184,11 +185,11 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,i) > 1.5D0 ) then
+          if ( ldoc1d(n,i) == 2 ) then
 !           ******           drag coeff over seaice
             sigf(n,i) = d_zero
             cdrn(n,i) = ( vonkar / zlglnd(n,i) )**d_two
-          else if ( ldoc1d(n,i) > d_half ) then
+          else if ( ldoc1d(n,i) == 1 ) then
 !           ******           drag coeff over land
             frav = sigf(n,i)
             asigf = veg1d(n,i)
@@ -235,21 +236,19 @@
 ! 
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             age = (d_one-d_one/(d_one+sag1d(n,i)))
             rhosw(n,i) = 0.10D0*(d_one+d_three*age)
             densi(n,i) = 0.01D0/(d_one+d_three*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)
             if (scrat(n,i) < dlowval) scrat(n,i) = d_zero
             wt(n,i) = d_one
-            if ( ldoc1d(n,i) < 1.5D0 ) then
+            if ( ldoc1d(n,i) /= 2 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))
               wt(n,i) = wt(n,i)/(d_one+wt(n,i))
             end if
             sigf(n,i) = (d_one-wt(n,i))*veg1d(n,i)
             scvk(n,i) = scrat(n,i)/(0.1D0+scrat(n,i))
-            if (scvk(n,i) < dlowval) scvk(n,i) = d_zero
-            if (sigf(n,i) < dlowval) sigf(n,i) = d_zero
           end if
         end do
       end do

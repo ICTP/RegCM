@@ -30,8 +30,9 @@
 !
       real(8) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
 !
+      integer , allocatable , dimension(:,:) :: ldoc1d
       real(8) , pointer , dimension(:,:) :: delq1d , delt1d , drag1d ,  &
-           & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d , ldoc1d ,    &
+           & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d ,             &
            & p1d , pbp1d , prcp1d , q2m_1d , qg1d , qs1d , resp1d ,     &
            & rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
            & sice1d , ssw1d , t2m_1d , taf1d , tg1d , tgb1d , tlef1d ,  &
@@ -78,7 +79,7 @@
                                     & flwda2d , fsw2d , fswa2d , pptc , &
                                     & pptnc , prca2d , prnca2d ,        &
                                     & sabv2d , sina2d , sinc2d , sol2d ,&
-                                    & solvd2d , solvs2d , svga2d , veg2d
+                                    & solvd2d , solvs2d , svga2d
 !
       real(8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
                                sdelqk2d , sfracv2d , sfracb2d , &
@@ -87,13 +88,16 @@
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacebs2d
       private :: spacebs2d
 !
+      integer , allocatable , dimension(:,:,:) :: ocld2d , veg2d1
+      integer , allocatable , dimension(:,:) :: veg2d
+!
       real(8) , pointer, dimension(:,:,:) :: col2d , dew2d ,        &
-           & emiss2d , evpa2d , gwet2d , ircp2d , ocld2d , rno2d ,      &
+           & emiss2d , evpa2d , gwet2d , ircp2d , rno2d ,      &
            & rnos2d , sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , &
-           & swt2d , taf2d , text2d , tg2d , tgb2d , tlef2d , veg2d1
+           & swt2d , taf2d , tg2d , tgb2d , tlef2d
 !
       real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
-                                             &  xlon1 , snowc
+                                             &  xlon1
 !
       real(4) , target , allocatable, dimension(:,:,:) :: fbat
 !
@@ -141,10 +145,13 @@
           end if
         end if
 
+        allocate(veg2d(iym1,njm1))
+        veg2d = -1
+
         if ( ichem == 1 ) then
-          allocate(spaceb2d(iym1,njm1,25))
+          allocate(spaceb2d(iym1,njm1,24))
         else
-          allocate(spaceb2d(iym1,njm1,18))
+          allocate(spaceb2d(iym1,njm1,17))
         end if
         spaceb2d = d_zero
 
@@ -165,18 +172,22 @@
         solvd2d    => spaceb2d(:,:,15)
         solvs2d    => spaceb2d(:,:,16)
         svga2d     => spaceb2d(:,:,17)
-        veg2d      => spaceb2d(:,:,18)
         if ( ichem == 1 ) then
-          ssw2da     => spaceb2d(:,:,19)
-          sdeltk2d   => spaceb2d(:,:,20)
-          sdelqk2d   => spaceb2d(:,:,21)
-          sfracv2d   => spaceb2d(:,:,22)
-          sfracb2d   => spaceb2d(:,:,23)
+          ssw2da     => spaceb2d(:,:,18)
+          sdeltk2d   => spaceb2d(:,:,19)
+          sdelqk2d   => spaceb2d(:,:,20)
+          sfracv2d   => spaceb2d(:,:,21)
+          sfracb2d   => spaceb2d(:,:,22)
           sfracs2d   => spaceb2d(:,:,23)
           svegfrac2d => spaceb2d(:,:,24)
         end if
 
-        allocate(spacebs2d(nnsg,iym1,njm1,22))
+        allocate(ocld2d(nnsg,iym1,njm1))
+        ocld2d = -1
+        allocate(veg2d1(nnsg,iym1,njm1))
+        veg2d1 = -1
+
+        allocate(spacebs2d(nnsg,iym1,njm1,19))
         spacebs2d = d_zero
         col2d    => spacebs2d(:,:,:,1)
         dew2d    => spacebs2d(:,:,:,2)
@@ -184,33 +195,28 @@
         evpa2d   => spacebs2d(:,:,:,4)
         gwet2d   => spacebs2d(:,:,:,5)
         ircp2d   => spacebs2d(:,:,:,6)
-        ocld2d   => spacebs2d(:,:,:,7)
-        rno2d    => spacebs2d(:,:,:,8)
-        rnos2d   => spacebs2d(:,:,:,9)
-        sag2d    => spacebs2d(:,:,:,10)
-        scv2d    => spacebs2d(:,:,:,11)
-        sena2d   => spacebs2d(:,:,:,12)
-        sice2d   => spacebs2d(:,:,:,13)
-        srw2d    => spacebs2d(:,:,:,14)
-        ssw2d    => spacebs2d(:,:,:,15)
-        swt2d    => spacebs2d(:,:,:,16)
-        taf2d    => spacebs2d(:,:,:,17)
-        text2d   => spacebs2d(:,:,:,18)
-        tg2d     => spacebs2d(:,:,:,19)
-        tgb2d    => spacebs2d(:,:,:,20)
-        tlef2d   => spacebs2d(:,:,:,21)
-        veg2d1   => spacebs2d(:,:,:,22)
+        rno2d    => spacebs2d(:,:,:,7)
+        rnos2d   => spacebs2d(:,:,:,8)
+        sag2d    => spacebs2d(:,:,:,9)
+        scv2d    => spacebs2d(:,:,:,10)
+        sena2d   => spacebs2d(:,:,:,11)
+        sice2d   => spacebs2d(:,:,:,12)
+        srw2d    => spacebs2d(:,:,:,13)
+        ssw2d    => spacebs2d(:,:,:,14)
+        swt2d    => spacebs2d(:,:,:,15)
+        taf2d    => spacebs2d(:,:,:,16)
+        tg2d     => spacebs2d(:,:,:,17)
+        tgb2d    => spacebs2d(:,:,:,18)
+        tlef2d   => spacebs2d(:,:,:,19)
 
         allocate(ht1(nnsg,iy,nj))
         allocate(satbrt1(nnsg,iy,nj))
         allocate(xlat1(nnsg,iy,nj))
         allocate(xlon1(nnsg,iy,nj))
-        allocate(snowc(nnsg,iy,nj))
         ht1 = d_zero
         satbrt1 = d_zero
         xlat1 = d_zero
         xlon1 = d_zero
-        snowc = d_zero
 
         if (idcsst == 1) then
           allocate(deltas(iy,nj))
@@ -223,7 +229,10 @@
           firstcall = .false.
         end if
 
-        allocate(spacebs1d(nnsg,iym1,131))
+        allocate(ldoc1d(nnsg,iym1))
+        ldoc1d = -1
+
+        allocate(spacebs1d(nnsg,iym1,130))
         spacebs1d = d_zero
         p1d0     => spacebs1d(:,:,1)
         qs1d0    => spacebs1d(:,:,2)
@@ -236,132 +245,131 @@
         gwet1d   => spacebs1d(:,:,9)
         ircp1d   => spacebs1d(:,:,10)
         ldew1d   => spacebs1d(:,:,11)
-        ldoc1d   => spacebs1d(:,:,12)
-        p1d      => spacebs1d(:,:,13)
-        pbp1d    => spacebs1d(:,:,14)
-        prcp1d   => spacebs1d(:,:,15)
-        q2m_1d   => spacebs1d(:,:,16)
-        qg1d     => spacebs1d(:,:,17)
-        qs1d     => spacebs1d(:,:,18)
-        resp1d   => spacebs1d(:,:,19)
-        rhs1d    => spacebs1d(:,:,20)
-        rno1d    => spacebs1d(:,:,21)
-        rnos1d   => spacebs1d(:,:,22)
-        rsw1d    => spacebs1d(:,:,23)
-        sag1d    => spacebs1d(:,:,24)
-        scv1d    => spacebs1d(:,:,25)
-        sent1d   => spacebs1d(:,:,26)
-        sice1d   => spacebs1d(:,:,27)
-        ssw1d    => spacebs1d(:,:,28)
-        t2m_1d   => spacebs1d(:,:,29)
-        taf1d    => spacebs1d(:,:,30)
-        tg1d     => spacebs1d(:,:,31)
-        tgb1d    => spacebs1d(:,:,32)
-        tlef1d   => spacebs1d(:,:,33)
-        ts1d     => spacebs1d(:,:,34)
-        tsw1d    => spacebs1d(:,:,35)
-        u10m1d   => spacebs1d(:,:,36)
-        v10m1d   => spacebs1d(:,:,37)
-        veg1d    => spacebs1d(:,:,38)
-        z1d      => spacebs1d(:,:,39)
-        bfc      => spacebs1d(:,:,40)
-        bsw      => spacebs1d(:,:,41)
-        evmx0    => spacebs1d(:,:,42)
-        fdry     => spacebs1d(:,:,43)
-        fwet     => spacebs1d(:,:,44)
-        gwmx0    => spacebs1d(:,:,45)
-        gwmx1    => spacebs1d(:,:,46)
-        gwmx2    => spacebs1d(:,:,47)
-        porsl    => spacebs1d(:,:,48)
-        relfc    => spacebs1d(:,:,49)
-        rnet     => spacebs1d(:,:,50)
-        texrat   => spacebs1d(:,:,51)
-        vegt     => spacebs1d(:,:,52)
-        wiltr    => spacebs1d(:,:,53)
-        wt       => spacebs1d(:,:,54)
-        xkmx     => spacebs1d(:,:,55)
-        aarea    => spacebs1d(:,:,56)
-        cdr      => spacebs1d(:,:,57)
-        cdrn     => spacebs1d(:,:,58)
-        cdrx     => spacebs1d(:,:,59)
-        cf       => spacebs1d(:,:,60)
-        cgrnd    => spacebs1d(:,:,61)
-        cgrndl   => spacebs1d(:,:,62)
-        cgrnds   => spacebs1d(:,:,63)
-        clead    => spacebs1d(:,:,64)
-        densi    => spacebs1d(:,:,65)
-        efpr     => spacebs1d(:,:,66)
-        eg       => spacebs1d(:,:,67)
-        etr      => spacebs1d(:,:,68)
-        etrrun   => spacebs1d(:,:,69)
-        evaps    => spacebs1d(:,:,70)
-        evapw    => spacebs1d(:,:,71)
-        fevpg    => spacebs1d(:,:,72)
-        flnet    => spacebs1d(:,:,73)
-        flneto   => spacebs1d(:,:,74)
-        fseng    => spacebs1d(:,:,75)
-        htvp     => spacebs1d(:,:,76)
-        ps       => spacebs1d(:,:,77)
-        pw       => spacebs1d(:,:,78)
-        qice     => spacebs1d(:,:,79)
-        qsatl    => spacebs1d(:,:,80)
-        rhosw    => spacebs1d(:,:,81)
-        ribd     => spacebs1d(:,:,82)
-        rlai     => spacebs1d(:,:,83)
-        rpp      => spacebs1d(:,:,84)
-        scrat    => spacebs1d(:,:,85)
-        scvk     => spacebs1d(:,:,86)
-        sdrop    => spacebs1d(:,:,87)
-        seasb    => spacebs1d(:,:,88)
-        sigf     => spacebs1d(:,:,89)
-        sm       => spacebs1d(:,:,90)
-        tm       => spacebs1d(:,:,91)
-        uaf      => spacebs1d(:,:,92)
-        vspda    => spacebs1d(:,:,93)
-        wata     => spacebs1d(:,:,94)
-        watr     => spacebs1d(:,:,95)
-        watt     => spacebs1d(:,:,96)
-        watu     => spacebs1d(:,:,97)
-        wta      => spacebs1d(:,:,98)
-        xlai     => spacebs1d(:,:,99)
-        xlsai    => spacebs1d(:,:,100)
-        xrun     => spacebs1d(:,:,101)
-        cn1      => spacebs1d(:,:,102)
-        df       => spacebs1d(:,:,103)
-        rgr      => spacebs1d(:,:,104)
-        wta0     => spacebs1d(:,:,105)
-        wtaq0    => spacebs1d(:,:,106)
-        wtg      => spacebs1d(:,:,107)
-        wtg0     => spacebs1d(:,:,108)
-        wtg2     => spacebs1d(:,:,109)
-        wtga     => spacebs1d(:,:,110)
-        wtgaq    => spacebs1d(:,:,111)
-        wtgl     => spacebs1d(:,:,112)
-        wtglq    => spacebs1d(:,:,113)
-        wtgq     => spacebs1d(:,:,114)
-        wtgq0    => spacebs1d(:,:,115)
-        wtl0     => spacebs1d(:,:,116)
-        wtlh     => spacebs1d(:,:,117)
-        wtlq     => spacebs1d(:,:,118)
-        wtlq0    => spacebs1d(:,:,119)
-        wtshi    => spacebs1d(:,:,120)
-        wtsqi    => spacebs1d(:,:,121)
-        z2fra    => spacebs1d(:,:,122)
-        z10fra   => spacebs1d(:,:,123)
-        z1log    => spacebs1d(:,:,124)
-        zlgocn   => spacebs1d(:,:,125)
-        zlglnd   => spacebs1d(:,:,126)
-        zlgsno   => spacebs1d(:,:,127)
-        zlgveg   => spacebs1d(:,:,128)
-        zlgdis   => spacebs1d(:,:,129)
-        aldirs1d => spacebs1d(:,:,130)
-        aldifs1d => spacebs1d(:,:,131)
+        p1d      => spacebs1d(:,:,12)
+        pbp1d    => spacebs1d(:,:,13)
+        prcp1d   => spacebs1d(:,:,14)
+        q2m_1d   => spacebs1d(:,:,15)
+        qg1d     => spacebs1d(:,:,16)
+        qs1d     => spacebs1d(:,:,17)
+        resp1d   => spacebs1d(:,:,18)
+        rhs1d    => spacebs1d(:,:,19)
+        rno1d    => spacebs1d(:,:,20)
+        rnos1d   => spacebs1d(:,:,21)
+        rsw1d    => spacebs1d(:,:,22)
+        sag1d    => spacebs1d(:,:,23)
+        scv1d    => spacebs1d(:,:,24)
+        sent1d   => spacebs1d(:,:,25)
+        sice1d   => spacebs1d(:,:,26)
+        ssw1d    => spacebs1d(:,:,27)
+        t2m_1d   => spacebs1d(:,:,28)
+        taf1d    => spacebs1d(:,:,29)
+        tg1d     => spacebs1d(:,:,30)
+        tgb1d    => spacebs1d(:,:,31)
+        tlef1d   => spacebs1d(:,:,32)
+        ts1d     => spacebs1d(:,:,33)
+        tsw1d    => spacebs1d(:,:,34)
+        u10m1d   => spacebs1d(:,:,35)
+        v10m1d   => spacebs1d(:,:,36)
+        veg1d    => spacebs1d(:,:,37)
+        z1d      => spacebs1d(:,:,38)
+        bfc      => spacebs1d(:,:,39)
+        bsw      => spacebs1d(:,:,40)
+        evmx0    => spacebs1d(:,:,41)
+        fdry     => spacebs1d(:,:,42)
+        fwet     => spacebs1d(:,:,43)
+        gwmx0    => spacebs1d(:,:,44)
+        gwmx1    => spacebs1d(:,:,45)
+        gwmx2    => spacebs1d(:,:,46)
+        porsl    => spacebs1d(:,:,47)
+        relfc    => spacebs1d(:,:,48)
+        rnet     => spacebs1d(:,:,49)
+        texrat   => spacebs1d(:,:,50)
+        vegt     => spacebs1d(:,:,51)
+        wiltr    => spacebs1d(:,:,52)
+        wt       => spacebs1d(:,:,53)
+        xkmx     => spacebs1d(:,:,54)
+        aarea    => spacebs1d(:,:,55)
+        cdr      => spacebs1d(:,:,56)
+        cdrn     => spacebs1d(:,:,57)
+        cdrx     => spacebs1d(:,:,58)
+        cf       => spacebs1d(:,:,59)
+        cgrnd    => spacebs1d(:,:,60)
+        cgrndl   => spacebs1d(:,:,61)
+        cgrnds   => spacebs1d(:,:,62)
+        clead    => spacebs1d(:,:,63)
+        densi    => spacebs1d(:,:,64)
+        efpr     => spacebs1d(:,:,65)
+        eg       => spacebs1d(:,:,66)
+        etr      => spacebs1d(:,:,67)
+        etrrun   => spacebs1d(:,:,68)
+        evaps    => spacebs1d(:,:,69)
+        evapw    => spacebs1d(:,:,70)
+        fevpg    => spacebs1d(:,:,71)
+        flnet    => spacebs1d(:,:,72)
+        flneto   => spacebs1d(:,:,73)
+        fseng    => spacebs1d(:,:,74)
+        htvp     => spacebs1d(:,:,75)
+        ps       => spacebs1d(:,:,76)
+        pw       => spacebs1d(:,:,77)
+        qice     => spacebs1d(:,:,78)
+        qsatl    => spacebs1d(:,:,79)
+        rhosw    => spacebs1d(:,:,80)
+        ribd     => spacebs1d(:,:,81)
+        rlai     => spacebs1d(:,:,82)
+        rpp      => spacebs1d(:,:,83)
+        scrat    => spacebs1d(:,:,84)
+        scvk     => spacebs1d(:,:,85)
+        sdrop    => spacebs1d(:,:,86)
+        seasb    => spacebs1d(:,:,87)
+        sigf     => spacebs1d(:,:,88)
+        sm       => spacebs1d(:,:,89)
+        tm       => spacebs1d(:,:,90)
+        uaf      => spacebs1d(:,:,91)
+        vspda    => spacebs1d(:,:,92)
+        wata     => spacebs1d(:,:,93)
+        watr     => spacebs1d(:,:,94)
+        watt     => spacebs1d(:,:,95)
+        watu     => spacebs1d(:,:,96)
+        wta      => spacebs1d(:,:,97)
+        xlai     => spacebs1d(:,:,98)
+        xlsai    => spacebs1d(:,:,99)
+        xrun     => spacebs1d(:,:,100)
+        cn1      => spacebs1d(:,:,101)
+        df       => spacebs1d(:,:,102)
+        rgr      => spacebs1d(:,:,103)
+        wta0     => spacebs1d(:,:,104)
+        wtaq0    => spacebs1d(:,:,105)
+        wtg      => spacebs1d(:,:,106)
+        wtg0     => spacebs1d(:,:,107)
+        wtg2     => spacebs1d(:,:,108)
+        wtga     => spacebs1d(:,:,109)
+        wtgaq    => spacebs1d(:,:,110)
+        wtgl     => spacebs1d(:,:,111)
+        wtglq    => spacebs1d(:,:,112)
+        wtgq     => spacebs1d(:,:,113)
+        wtgq0    => spacebs1d(:,:,114)
+        wtl0     => spacebs1d(:,:,115)
+        wtlh     => spacebs1d(:,:,116)
+        wtlq     => spacebs1d(:,:,117)
+        wtlq0    => spacebs1d(:,:,118)
+        wtshi    => spacebs1d(:,:,119)
+        wtsqi    => spacebs1d(:,:,120)
+        z2fra    => spacebs1d(:,:,121)
+        z10fra   => spacebs1d(:,:,122)
+        z1log    => spacebs1d(:,:,123)
+        zlgocn   => spacebs1d(:,:,124)
+        zlglnd   => spacebs1d(:,:,125)
+        zlgsno   => spacebs1d(:,:,126)
+        zlgveg   => spacebs1d(:,:,127)
+        zlgdis   => spacebs1d(:,:,128)
+        aldirs1d => spacebs1d(:,:,129)
+        aldifs1d => spacebs1d(:,:,130)
         allocate(imelt(nnsg,iym1))
-        imelt = 0
+        imelt = -1
         allocate(lveg(nnsg,iym1))
-        lveg = 0
+        lveg = -1
         allocate(oveg(nnsg,iym1))
-        oveg = 0
+        oveg = -1
         allocate(coszrs(iy))
         coszrs = d_zero
         allocate(spaceb1d(iym1,24))

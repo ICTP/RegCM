@@ -135,7 +135,7 @@
                  dhlake1(n,i,j) > d_one) then
               idep2d(n,i,j) = idint(dmax1(d_two,dmin1(dhlake1(n,i,j), &
                                     dble(ndpmax)))/dz)
-              if ( ocld2d(n,i,j) > 1.5D0 ) then
+              if ( ocld2d(n,i,j) == 2 ) then
                 tlak3d(1,n,i,j) = 1.78D0
                 tlak3d(2,n,i,j) = 1.78D0
                 aveice2d(n,i,j) = d_1000
@@ -209,14 +209,14 @@
             tgb1d(n,i) = tgl
 
             if ( aveice2d(n,i,jslc) <= iceminh ) then
-              ocld2d(n,i,jslc) = d_zero 
-              ldoc1d(n,i) = d_zero
+              ocld2d(n,i,jslc) = 0 
+              ldoc1d(n,i) = 0
               sice1d(n,i) = d_zero
               scv1d(n,i) = d_zero
               sag1d(n,i) = d_zero
             else
-              ocld2d(n,i,jslc) = d_two 
-              ldoc1d(n,i) = d_two
+              ocld2d(n,i,jslc) = 2 
+              ldoc1d(n,i) = 2
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
               evpr1d(n,i) = evp                 !  units of evp = mm/sec

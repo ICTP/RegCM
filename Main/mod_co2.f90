@@ -69,7 +69,7 @@
       rmp = 800.0D0
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               rsp = lftrs(n,i)*1.7D0
               rap = lftra(n,i)*1.5D0
@@ -85,7 +85,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
               if ( pbp1d(n,i) < 0 ) pbp1d(n,i) = d_zero
               resps = 0.7D-7*resp1d(n,i)*dexp(0.1D0*(tg1d(n,i)-300.0D0))&

@@ -95,9 +95,9 @@
       do i = istart , iend
         do n = 1 , ng
 #ifdef CLM
-          if ( ocld2d(n,i,j) < d_half .or. landmask(jj,i) == 3 ) then
+          if ( ocld2d(n,i,j) == 0 .or. landmask(jj,i) == 3 ) then
 #else
-          if ( ocld2d(n,i,j) < d_half ) then
+          if ( ocld2d(n,i,j) == 0 ) then
 #endif
             uv995 = dsqrt(ubx3d(i,k,j)**d_two+vbx3d(i,k,j)**d_two)
             tsurf = sts2%tg(i,j) - tzero

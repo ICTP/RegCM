@@ -912,11 +912,11 @@ module mod_param
   write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
   call say
   write  (aline,'(a,i2)') ' Ocean Flux scheme: iocnflx = ' , iocnflx
+  call say
   if ( iocnflx == 2 ) then
     write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
     call say
   end if
-  call say
   write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
   call say
   write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &
@@ -1001,7 +1001,7 @@ module mod_param
   if ( myid == 0 ) then
     call read_domain(mddom_io%ht,mddom_io%satbrt, &
                      mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
-                     mddom_io%msfd,mddom_io%f,snowc_io)
+                     mddom_io%msfd,mddom_io%f)
     if ( nsg > 1 ) then
       call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
       if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
@@ -1128,7 +1128,7 @@ module mod_param
   call say
   call read_domain(mddom%ht,mddom%satbrt, &
                    mddom%xlat,mddom%xlong,mddom%msfx,&
-                   mddom%msfd,mddom%f,snowc)
+                   mddom%msfd,mddom%f)
   if ( nsg > 1 ) then
     call read_subdomain(ht1,satbrt1,xlat1,xlon1)
     if ( lakemod == 1 ) call read_subdomain_lake(dhlake1)
@@ -1174,6 +1174,23 @@ module mod_param
 
 #endif
 
+!
+!-----compute land/water mask on subgrid space
+!
+      do j = 1 , jendx
+        do i = 1 , iym1
+          if ( mddom%satbrt(i,j) > 13.5D0 .and. &
+               mddom%satbrt(i,j) < 15.5D0 ) then
+            do n = 1, nnsg
+              ocld2d(n,i,j) = 0
+            end do
+          else
+            do n = 1, nnsg
+              ocld2d(n,i,j) = 1
+            end do
+          end if
+        end do
+      end do
 !
 !-----compute dsigma and half sigma levels.
 !
@@ -1315,7 +1332,7 @@ module mod_param
     write (aline,*) 'Variable cumulus scheme: will use Grell '// &
          'over land and Emanuel over ocean.'
     call say
-    where (mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0)
+    where ( mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0 )
       cumcon%cuscheme = 4
     elsewhere
       cumcon%cuscheme = 2
@@ -1325,7 +1342,7 @@ module mod_param
     write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
          'over land and Grell over ocean.'
     call say
-    where (mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0)
+    where ( mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0 )
       cumcon%cuscheme = 2
     elsewhere
       cumcon%cuscheme = 4
@@ -1402,7 +1419,8 @@ module mod_param
 #endif
 #endif
       do i = 1 , iym1
-        if (mddom%satbrt(i,j)>14.5.and.mddom%satbrt(i,j)<15.5) then
+        if ( mddom%satbrt(i,j) > 14.5D0 .and. &
+             mddom%satbrt(i,j) < 15.5D0) then
           shrmax2d(i,j) = shrmax_ocn
           shrmin2d(i,j) = shrmin_ocn
           edtmax2d(i,j) = edtmax_ocn

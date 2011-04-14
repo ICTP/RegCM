@@ -31,6 +31,7 @@
 !
       real(8) , parameter :: minsigf = 0.001D+00
       real(8) , parameter :: lowsice = 1.0D-22
+      real(8) , parameter :: rainsnowtemp = 2.2D0
 !
       contains
 !
@@ -83,7 +84,7 @@
       real(8) :: fact , qsatd , rai
       integer :: n , i
       character (len=50) :: subroutine_name='bndry'
-      integer :: idindx=0
+      integer :: idindx = 0
       real(8) , parameter :: minwrat = 1.0D-04
 !
       call time_begin(subroutine_name,idindx)
@@ -96,7 +97,7 @@
         do n = 1 , nnsg
  
           htvp(n,i) = wlhv
-          if ( (tg1d(n,i) < tzero .and. ldoc1d(n,i) > d_half) .or.       &
+          if ( ( tg1d(n,i) < tzero .and. ldoc1d(n,i) /= 0 ) .or. &
                 scv1d(n,i) > d_zero ) htvp(n,i) = wlhs
           sdrop(n,i) = d_zero
           etrrun(n,i) = d_zero
@@ -106,15 +107,15 @@
           vegt(n,i) = d_zero
           efpr(n,i) = d_zero
           etr(n,i) = d_zero
-!         **********            switch between rain and snow /tm is
-!         ref. temp set= anemom temp -2.2
-          tm(n,i) = ts1d(n,i) - 2.2D0
+!         **********    switch between rain and snow /tm is
+!         ref. temp set= anemom temp - rainsnowtemp
+          tm(n,i) = ts1d(n,i) - rainsnowtemp
  
 !*        soil moisture ratio (to max) as used in subrouts tgrund,
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
@@ -144,8 +145,8 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
-            if ( sigf(n,i) <= minsigf .and. ldoc1d(n,i) < 1.5D0 ) then
+          if ( ldoc1d(n,i) /= 0 ) then
+            if ( sigf(n,i) <= minsigf .and. ldoc1d(n,i) /= 2 ) then
               qsatd = qg1d(n,i)*gwet1d(n,i)*lfta(n,i)*(tzero-lftb(n,i)) &
                       *(d_one/(tg1d(n,i)-lftb(n,i)))**d_two
               rai = cdrx(n,i)*vspda(n,i)*rhs1d(n,i)
@@ -176,7 +177,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > minsigf ) then   !  check each point
 !=======================================================================
 !l            4.   vegetation
@@ -215,7 +216,7 @@
 !l    set snow cover to zero in case it was previously sea ice
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) < d_half ) then
+          if ( ldoc1d(n,i) == 0 ) then
             scv1d(n,i) = d_zero
             sag1d(n,i) = d_zero
           end if
@@ -229,8 +230,8 @@
       do i = 2 , iym1
         do n = 1 , nnsg
  
-          if ( ldoc1d(n,i) < d_half .or. &
-               lveg(n,i) == 14 .or. &
+          if ( ldoc1d(n,i) == 0 .or. &
+               lveg(n,i) == 14 .or.  &
                lveg(n,i) == 15 ) then
             gwet1d(n,i) = d_one
           end if
@@ -240,7 +241,7 @@
           drag1d(n,i) = -drag1d(n,i)        ! for coupling with mm4
  
 !l        6.3  latent and heat fluxes over ocean, plus a dummy taf
-          if ( ldoc1d(n,i) < d_half ) then
+          if ( ldoc1d(n,i) == 0 ) then
             tlef1d(n,i) = ts1d(n,i)
             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
             delq1d(n,i) = (qs1d(n,i)-qg1d(n,i))*gwet1d(n,i)
@@ -280,13 +281,13 @@
 !
       integer :: n , i
       character (len=50) :: subroutine_name='vcover'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > minsigf ) then
               seasb(n,i) = dmax1(d_zero,d_one-0.0016D0 * &
                            dmax1(298.0D0-tgb1d(n,i),d_zero)**d_two)
@@ -297,7 +298,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > minsigf ) then
               xlai(n,i) = xla(lveg(n,i))
               xlai(n,i) = xlai(n,i) + (xlai0(lveg(n,i))-xlai(n,i))      &
@@ -325,13 +326,13 @@
 !
       integer :: n , i
       character (len=50) :: subroutine_name='drip'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > minsigf ) then
 !             ***********         xrun = leaf drip ; sdrop = snow drop
 !             off foliage
@@ -382,7 +383,7 @@
                  wtt
       integer :: n , i
       character (len=50) :: subroutine_name='tseaice'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -392,7 +393,7 @@
           ! lake model handles this case
           if ( lakemod == 1 .and. oveg(n,i) == 14 ) exit
  
-          if ( checkisseaice(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 2 ) then
 ! ******    rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**d_three
             imelt(n,i) = 0
@@ -517,7 +518,7 @@
              xkmx2 , xkmxr
       integer :: n , i
       character (len=50) :: subroutine_name='water'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -527,7 +528,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
 !
 !           1.1  reduce infiltration for frozen ground
 !
@@ -591,7 +592,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
             gwatr(n,i) = pw(n,i) - evapw(n,i) + sm(n,i) + &
                             etrrun(n,i)/dtbat
 !
@@ -657,7 +658,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
 !
 !=======================================================================
 !           4.   check whether soil water exceeds maximum capacity or
@@ -715,7 +716,7 @@
 !
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
             xxkb = dmin1(rough(lveg(n,i)),d_one)
             vakb = (d_one-sigf(n,i))*vspda(n,i) + sigf(n,i) &
                    *(xxkb*uaf(n,i)+(d_one-xxkb)*vspda(n,i))
@@ -767,7 +768,7 @@
       real(8) , dimension(nnsg,iym1) :: sold
 !
       character (len=50) :: subroutine_name='snow'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 !
@@ -779,10 +780,10 @@
 !=======================================================================
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             evapw(n,i) = fevpg(n,i)
             evaps(n,i) = scvk(n,i)*evapw(n,i)
-            if ( checkisseaice(ldoc1d(n,i)) ) then
+            if ( ldoc1d(n,i) == 2 ) then
               evaps(n,i) = fevpg(n,i)
             end if
             evapw(n,i) = (d_one-scvk(n,i))*evapw(n,i)
@@ -804,7 +805,7 @@
 !=======================================================================
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( ldoc1d(n,i) > d_half ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             sold(n,i) = scv1d(n,i)
             scv1d(n,i) = scv1d(n,i) + dtbat                             &
                           *(ps(n,i)-evaps(n,i)-sm(n,i)) + sdrop(n,i)
@@ -887,7 +888,7 @@
       real(8) :: dtbat2 , rdtbat2
       integer :: n , i
       character (len=50) :: subroutine_name='tgrund'
-      integer :: idindx=0
+      integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
 ! 
@@ -910,7 +911,7 @@
  
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
  
 !l          1.1  frozen ground values using 44 m2/yr for frozen ground
 !l          thermal diffusion coefficient, based on the values of
@@ -1014,7 +1015,7 @@
 !l    3.1  update surface soil temperature
       do i = 2 , iym1
         do n = 1 , nnsg
-          if ( checkisground(ldoc1d(n,i)) ) then
+          if ( ldoc1d(n,i) == 1 ) then
             tbef = tg1d(n,i)
             cder = bcoef(n,i)*cgrnd(n,i)
             tg = (bb(n,i)+(cc(n,i)-xdt2+cder)*tg1d(n,i))/(cc(n,i)+   &
@@ -1074,17 +1075,5 @@
       end function fct1
 ! 
       end subroutine tgrund
-!
-      logical function checkisground(a)
-        real(8) , intent(in) :: a
-        checkisground = .false.
-        if ( a > 0.5D0 .and. a < 1.5D0 ) checkisground = .true.
-      end function checkisground
-!
-      logical function checkisseaice(a)
-        real(8) , intent(in) :: a
-        checkisseaice = .false.
-        if ( a > 1.5D0 ) checkisseaice = .true.
-      end function checkisseaice
 !
       end module mod_bndry

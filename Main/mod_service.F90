@@ -55,14 +55,12 @@
 !!<
 MODULE mod_service
 
+  use m_realkinds
   use mod_dynparam , only : debug_level
 
 #ifdef DEBUG
 
 !!! definition of single and double precision 
-
-    integer, parameter, public :: sp = kind( 1.0 )
-    integer, parameter, public :: dp = kind( 1.0d0 )
 
 !! all constant/numbers used in the code should be defined as
 !!  DD.DD_dp for double precision numbers: 
