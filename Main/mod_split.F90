@@ -441,7 +441,7 @@
 #endif
               jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-              if(jp1 == jx+1) jp1 = 1
+              if (jp1 == jx+1) jp1 = 1
 #endif
               do i = 1 , iym1
                 fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -571,11 +571,11 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1=jx
+        if (jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
           psdot(i,j)=(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
-                      sps1%ps(i,jm1)+sps1%ps(i-1,jm1))/d_four
+                      sps1%ps(i,jm1)+sps1%ps(i-1,jm1))*d_rfour
         end do
       end do
 !
@@ -583,12 +583,12 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 ) & 
-          psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))/d_two
+          psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
         if ( myid == nproc-1 ) &
-          psdot(i,jendl) = (sps1%ps(i,jendx)+sps1%ps(i-1,jendx))/d_two
+          psdot(i,jendl) = (sps1%ps(i,jendx)+sps1%ps(i-1,jendx))*d_half
 #else
-        psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))/d_two
-        psdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))/d_two
+        psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
+        psdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))*d_half
 #endif
       end do
 #endif
@@ -604,10 +604,10 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1=jx
+        if (jm1 == 0) jm1=jx
 #endif
-        psdot(1,j) = (sps1%ps(1,j)+sps1%ps(1,jm1))/d_two
-        psdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,jm1))/d_two
+        psdot(1,j) = (sps1%ps(1,j)+sps1%ps(1,jm1))*d_half
+        psdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,jm1))*d_half
       end do
 !
 #ifndef BAND
@@ -689,7 +689,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1 == jx+1) jp1 = 1
+            if (jp1 == jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -760,7 +760,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1 == jx+1) jp1 = 1
+            if (jp1 == jx+1) jp1 = 1
 #endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -980,7 +980,7 @@
 #endif
             jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-            if(jm1 == 0) jm1 = jx
+            if (jm1 == 0) jm1 = jx
 #endif
             do i = 2 , iym1
               fac = psdot(i,j)/(dx2*mddom%msfd(i,j))
@@ -1104,7 +1104,7 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1 == 0) jm1=jx
+          if (jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
             fac = dx2*mddom%msfx(i,j)
@@ -1178,7 +1178,7 @@
 #endif
           jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-          if(jp1 == jx+1) jp1=1
+          if (jp1 == jx+1) jp1=1
 #endif
           do i = 2 , iym2
             fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
@@ -1274,7 +1274,7 @@
 #endif
             jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-            if(jm1 == 0) jm1=jx
+            if (jm1 == 0) jm1=jx
 #endif
             do i = 2 , iym1
               fac = dx2*mddom%msfx(i,j)
@@ -1347,7 +1347,7 @@
 #endif
             jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-            if(jp1 == jx+1) jp1=1
+            if (jp1 == jx+1) jp1=1
 #endif
             do i = 2 , iym2
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)

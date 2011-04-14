@@ -82,7 +82,7 @@
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = dble(julday) + (nnnnnn-nstrt0)/d_four + &
+      calday = dble(julday) + (nnnnnn-nstrt0)*d_rfour + &
                              (xtime/minph+gmt)/houpd
 
 !     Get declin,eccf
@@ -93,7 +93,7 @@
       declin = declin
       decdeg = declin/degrad
 #else
-      calday = dble(julday) + (nnnnnn-nstrt0)/d_four + &
+      calday = dble(julday) + (nnnnnn-nstrt0)*d_rfour + &
                        (xtime/minph+gmt)/houpd
       theta = twopi*calday/dayspy
 !

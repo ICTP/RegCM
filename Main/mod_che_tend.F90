@@ -246,7 +246,7 @@
             do i = 2 , iym2
               cldno = d_one    ! no cloud fraction
  
-!             if(coszrs(i,j) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
+!             if (coszrs(i,j) < 0.001) ohconc(i,j,k)=ohconc(i,j,k)*0.01
 !             oh1=ohconc(i,j,k)*rho(i,k)*2.084e13             !
 !             molecules/cm3 test j eprends directement une valeur de oh1
 #ifdef CHEMTEST 
@@ -338,12 +338,12 @@
                                    wetrem(iso4)/dt
  
 !             and wetdep diagnostics
-              remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2)-wetrem(iso2)/d_two
-              remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4)-wetrem(iso4)/d_two
+              remlsc(i,k,j,iso2) = remlsc(i,k,j,iso2)-wetrem(iso2)*d_half
+              remlsc(i,k,j,iso4) = remlsc(i,k,j,iso4)-wetrem(iso4)*d_half
  
 !             chemical aqueous conversion diagnostic
-              rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1/d_two
-              rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11/d_two
+              rxsaq1(i,k,j,iso2) = rxsaq1(i,k,j,iso2) - rxs1*d_half
+              rxsaq1(i,k,j,iso4) = rxsaq1(i,k,j,iso4) - rxs11*d_half
  
             end do
           end do
@@ -377,10 +377,10 @@
 !               diagnostic of wet deposition
 !               remcvc(i,k,j,1) = remcvc(i,k,j,1)-wetrem_cvc(iso2)/2.0D0
                 remcvc(i,k,j,iso4) = remcvc(i,k,j,iso4)  - &
-                                     wetrem_cvc(iso4)/d_two
+                                     wetrem_cvc(iso4)*d_half
 !               chemical aquesous conversion diagnostic
-                rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2/d_two
-                rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21/d_two
+                rxsaq2(i,k,j,iso2) = rxsaq2(i,k,j,iso2) - rxs2*d_half
+                rxsaq2(i,k,j,iso4) = rxsaq2(i,k,j,iso4) - rxs21*d_half
  
               end do
             end if
@@ -416,7 +416,7 @@
                     chiten(i,k,j,itr) = chiten(i,k,j,itr) + &
                                           wetrem(itr)/dt
                     remlsc(i,k,j,itr) = remlsc(i,k,j,itr) - &
-                                          wetrem(itr)/d_two
+                                          wetrem(itr)*d_half
                   end if
                 end if
               end do
@@ -436,7 +436,7 @@
                   chiten(i,k,j,itr) = chiten(i,k,j,itr)      &
                                       + wetrem_cvc(itr)/dt
                   remcvc(i,k,j,itr) = remcvc(i,k,j,itr)      &
-                                      - wetrem_cvc(itr)/d_two
+                                      - wetrem_cvc(itr)*d_half
                 end do
               end if
             end do
@@ -531,10 +531,10 @@
 !           method based on bats diagnostic in routine interf.
  
             if ( (ivegcov(i) /= 0) ) then
-              facv = dlog(za(i,kz,j)/d_10) / &
+              facv = dlog(za(i,kz,j)*d_r10) / &
                      dlog(za(i,kz,j)/rough(ivegcov(i)))
-              facb = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zlnd)
-              facs = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zsno)
+              facb = dlog(za(i,kz,j)*d_r10)/dlog(za(i,kz,j)/zlnd)
+              facs = dlog(za(i,kz,j)*d_r10)/dlog(za(i,kz,j)/zsno)
  
               fact = sfracv2d(i,j)*facv + sfracb2d(i,j)   &
                      *facb + sfracs2d(i,j)*facs
@@ -547,7 +547,7 @@
 
             else
 !             water surface
-              fact = dlog(za(i,kz,j)/d_10)/dlog(za(i,kz,j)/zoce)
+              fact = dlog(za(i,kz,j)*d_r10)/dlog(za(i,kz,j)/zoce)
  
               zeff(i) = zoce
             end if

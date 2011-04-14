@@ -102,7 +102,7 @@
                                                  uaer , wa
       real(8) , allocatable , dimension(:,:) :: faer , gaer , tauaer , &
                                  utaer , waer
-      real(8) , dimension(4) :: frac , prop
+      real(8) , dimension(4) :: prop
 !
 !   Aersol LW optical properties
       real(8) ,allocatable, dimension(:,:,:) ::  aerlwtr 
@@ -812,10 +812,6 @@
                 prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
                 prop(3) = (aermmr(i,k,iochl)/rhooc)/aervtot(i,k)
                 prop(4) = (aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
-                frac(1) = fraction(prop(1))
-                frac(2) = fraction(prop(2))
-                frac(3) = fraction(prop(3))
-                frac(4) = fraction(prop(4))
 !               FIND THE GREATEST FRACTIONAL PART
                 if ( iso4 /= 0 ) then
                   i1 = idnint(d_10*prop(1)) + 1

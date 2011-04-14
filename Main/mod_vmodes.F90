@@ -231,7 +231,7 @@
 !
 !  compute sigmah (sigma at half levels) and delta sigma
       do k = 1 , kz
-        sigmah(k) = (sigmaf(k)+sigmaf(k+1))/d_two
+        sigmah(k) = (sigmaf(k)+sigmaf(k+1))*d_half
         sdsigma(k) = sigmaf(k+1) - sigmaf(k)
       end do
       sigmah(kzp1) = d_one
@@ -331,7 +331,7 @@
       w1 = matmul(e1,d1)
       a2 = matmul(s2,w1)
       w2 = matmul(e3,g2)
-      w2 = w2/d_two
+      w2 = w2*d_half
       w1 = w2-a2
       a2 = matmul(d2,w1)
 !
@@ -846,7 +846,7 @@
 !  this routine computes the temperature corresponding to a u. s.
 !  standard atmosphere (see text by hess). units of p are cb.
 !
-      p0 = stdp/d_1000
+      p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
       do k = 1 , nk
         p = sigma(k)*pd + pt

@@ -69,7 +69,7 @@
       real(8) , dimension(kzp1) :: phcup
 !
       dtime = dt
-      uconv = dt/d_two
+      uconv = dt*d_half
       aprdiv = d_one/dble(nbatst)
       if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
       iconj = 0
@@ -304,7 +304,7 @@
       real(8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                & t , u , v
       real(8) , dimension(nd,1) :: ftra , tra
-      intent (in) delt , na , ntra , ph
+      intent (in) delt , na , ntra , ph , p , nd , nl
       intent (out) tprime , wd
       intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    & inb , precip , q , qprime , qs , t , tra , u , v
@@ -496,7 +496,7 @@
       do i = 2 , nl + 1
         tvx = t(i)*(d_one+q(i)*epsi-q(i))
         tvy = t(i-1)*(d_one+q(i-1)*epsi-q(i-1))
-        gz(i) = gz(i-1) + (rgas/d_two)*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
+        gz(i) = gz(i-1) + (rgas*d_half)*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
         cpn(i) = cpd*(d_one-q(i)) + cpv*q(i)
         h(i) = t(i)*cpn(i) + gz(i)
         lv(i) = wlhv - cpvmcl*(t(i)-tzero)
@@ -899,7 +899,7 @@
             coeff = coeffr
             wt(i) = omtrain
           end if
-          qsm = (q(i)+qp(i+1))/d_two
+          qsm = (q(i)+qp(i+1))*d_half
           afac = coeff*ph(i)*(qs(i)-qsm)/(1.0D4+2.0D3*ph(i)*qs(i))
           afac = dmax1(afac,d_zero)
           sigt = sigp(i)
@@ -907,7 +907,7 @@
           sigt = dmin1(d_one,sigt)
           b6 = d_100*(ph(i)-ph(i+1))*sigt*afac/wt(i)
           c6 = (water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
-          revap = (-b6+dsqrt(b6*b6+d_four*c6))/d_two
+          revap = (-b6+dsqrt(b6*b6+d_four*c6))*d_half
           evap(i) = sigt*afac*revap
           water(i) = revap*revap
 !
@@ -977,7 +977,7 @@
 !     and  *** ***                    water vapor fluctuations         
 !     ***
       wd = betae*dabs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
-      qprime = (qp(1)-q(1))/d_two
+      qprime = (qp(1)-q(1))*d_half
       tprime = wlhv*qprime*rcpd
 !
 !     ***  calculate tendencies of lowest level potential temperature 

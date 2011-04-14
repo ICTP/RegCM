@@ -82,7 +82,7 @@
 !     scheme
 !     real(8) :: lwds , lwus
       real(8) :: rs , rd , td , tdelta , delta
-      real(8) :: q , ustarw , fd , l , phidl , aa , bb , cc , lamb
+      real(8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
       real(8) :: dtstend , dts , fs , tskin , dtsst
 !
       character (len=50) :: subroutine_name='zengocndrv'
@@ -181,7 +181,6 @@
               bb =  aa *(q+rs*fs)
               if ( bb > d_zero ) then
 !               case of cool skin layer correction
-                cc= bb**(d_three*d_rfour)
                 lamb=6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
                 delta = lamb*nuw/ustarw
                 tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
@@ -204,7 +203,7 @@
             evpr1d(n,i) = lh/wlhv
 !           Back out Drag Coefficient
             drag1d(n,i) = ustar**d_two*rhox2d(i,j)/uv995
-            facttq = dlog(z995/d_two)/dlog(z995/zo)
+            facttq = dlog(z995*d_half)/dlog(z995/zo)
             u10m1d(n,i) = ubx3d(i,k,j)*uv10/uv995
             v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
             t2m_1d(n,i) = t995 + tzero - dth*facttq
@@ -212,7 +211,7 @@
             if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or. &
                 ( jyear == jyear0 .and. ktau == 0 ) .or. &
                 ( ifrest .and. .not. done_restart ) ) then
-              facttq = dlog(z995/d_two)/dlog(z995/zo)
+              facttq = dlog(z995*d_half)/dlog(z995/zo)
               q2m_1d(n,i) = q995 - dqh*facttq
               tgb2d(n,i,j) = sts2%tg(i,j)
             end if
@@ -444,11 +443,11 @@
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
-        psi = d_two*dlog((d_one+chik)/d_two) +       &
-                    dlog((d_one+chik*chik)/d_two) -  &
+        psi = d_two*dlog((d_one+chik)*d_half) +       &
+                    dlog((d_one+chik*chik)*d_half) -  &
               d_two*datan(chik) + d_two*datan(d_one)
       else
-        psi = d_two*dlog((d_one+chik*chik)/d_two)
+        psi = d_two*dlog((d_one+chik*chik)*d_half)
       end if
       end function psi
 

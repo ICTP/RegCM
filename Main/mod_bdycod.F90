@@ -378,7 +378,7 @@
         end if
         call read_icbc(ndate1,ps1_io,ts1_io,ub1_io,vb1_io, &
                        tb1_io,qb1_io,so1_io)
-        ps1_io = ps1_io/d_10
+        ps1_io = ps1_io*d_r10
         do j = 1 , jx
           do k = 1 , kz
             do i = 1 , iy
@@ -453,26 +453,26 @@
       do j = jbegin , jendx
         do i = 2 , iym1
           psdot(i,j) = (ps1(i,j)  +ps1(i-1,j) +       &
-                        ps1(i,j-1)+ps1(i-1,j-1))/d_four
+                        ps1(i,j-1)+ps1(i-1,j-1))*d_rfour
         end do
       end do
 #ifdef BAND
       do j = jbegin , jendx
-        psdot(1,j)  = (ps1(1,j)+ps1(1,j-1))/d_two
-        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))/d_two
+        psdot(1,j)  = (ps1(1,j)+ps1(1,j-1))*d_half
+        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))*d_half
       end do
 #else
 !
       do i = 2 , iym1
         if ( myid == 0 ) &
-          psdot(i,1) = (ps1(i,1)+ps1(i-1,1))/d_two
+          psdot(i,1) = (ps1(i,1)+ps1(i-1,1))*d_half
         if ( myid == nproc-1 ) &
-          psdot(i,jendl) = (ps1(i,jendx)+ps1(i-1,jendx))/d_two
+          psdot(i,jendl) = (ps1(i,jendx)+ps1(i-1,jendx))*d_half
       end do
 !
       do j = jbegin , jendx
-        psdot(1,j)  = (ps1(1,j)+ps1(1,j-1))/d_two
-        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))/d_two
+        psdot(1,j)  = (ps1(1,j)+ps1(1,j-1))*d_half
+        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))*d_half
       end do
 !
       if ( myid == 0 ) then
@@ -776,7 +776,7 @@
 !     Convert surface pressure to pstar
       do j = 1 , jx
         do i = 1 , iy
-          ps1(i,j) = ps1(i,j)/d_10 - r8pt
+          ps1(i,j) = ps1(i,j)*d_r10 - r8pt
         end do
       end do
 !=====================================================================
@@ -790,39 +790,39 @@
       do j = 2 , jx
         do i = 2 , iym1
           psdot(i,j) = (ps1(i,j)  +ps1(i-1,j) +      &
-                        ps1(i,j-1)+ps1(i-1,j-1))/d_four
+                        ps1(i,j-1)+ps1(i-1,j-1))*d_rfour
         end do
       end do
 !
       do i = 2 , iym1
         psdot(i,1) = (ps1(i,1) +ps1(i-1,1) +        &
-                      ps1(i,jx)+ps1(i-1,jx))/d_four
+                      ps1(i,jx)+ps1(i-1,jx))*d_rfour
       end do
 !
       do j = 2 , jx
-        psdot(1,j)  = (ps1(1,j)   +ps1(1,j-1))/d_two
-        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))/d_two
+        psdot(1,j)  = (ps1(1,j)   +ps1(1,j-1))*d_half
+        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))*d_half
       end do
 !
-      psdot(1,1)  = (ps1(1,1)   +ps1(1,jx))/d_two
-      psdot(iy,1) = (ps1(iym1,1)+ps1(iym1,jx))/d_two
+      psdot(1,1)  = (ps1(1,1)   +ps1(1,jx))*d_half
+      psdot(iy,1) = (ps1(iym1,1)+ps1(iym1,jx))*d_half
 !
 #else
       do j = 2 , jxm1
         do i = 2 , iym1
           psdot(i,j) = (ps1(i,j)+ps1(i-1,j) +      &
-                        ps1(i,j-1)+ps1(i-1,j-1))/d_four
+                        ps1(i,j-1)+ps1(i-1,j-1))*d_rfour
         end do
       end do
 !
       do i = 2 , iym1
-        psdot(i,1)  = (ps1(i,1)   +ps1(i-1,1))/d_two
-        psdot(i,jx) = (ps1(i,jxm1)+ps1(i-1,jxm1))/d_two
+        psdot(i,1)  = (ps1(i,1)   +ps1(i-1,1))*d_half
+        psdot(i,jx) = (ps1(i,jxm1)+ps1(i-1,jxm1))*d_half
       end do
 !
       do j = 2 , jxm1
-        psdot(1,j)  = (ps1(1,j)   +ps1(1,j-1))/d_two
-        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))/d_two
+        psdot(1,j)  = (ps1(1,j)   +ps1(1,j-1))*d_half
+        psdot(iy,j) = (ps1(iym1,j)+ps1(iym1,j-1))*d_half
       end do
 !
       psdot(1,1)   = ps1(1,1)
@@ -1111,7 +1111,7 @@
       do j = jbegin , jendx
         do i = 2 , iym1
           sps1%pdot(i,j) = (sps1%ps(i,j)+sps1%ps(i-1,j)+     &
-                            sps1%ps(i,j-1)+sps1%ps(i-1,j-1))/d_four
+                            sps1%ps(i,j-1)+sps1%ps(i-1,j-1))*d_rfour
         end do
       end do
 #else
@@ -1122,13 +1122,13 @@
 #endif
         do i = 2 , iym1
           sps1%pdot(i,j) = (sps1%ps(i,j)+sps1%ps(i-1,j)+     &
-                            sps1%ps(i,j-1)+sps1%ps(i-1,j-1))/d_four
+                            sps1%ps(i,j-1)+sps1%ps(i-1,j-1))*d_rfour
         end do
       end do
 #ifdef BAND
       do i = 2 , iym1
         sps1%pdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1)+   &
-                          sps1%ps(i,jx)+sps1%ps(i-1,jx))/d_four
+                          sps1%ps(i,jx)+sps1%ps(i-1,jx))*d_rfour
       enddo
 #endif
 #endif
@@ -1139,14 +1139,14 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 )  &
-          sps1%pdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))/d_two
+          sps1%pdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
         if ( myid == nproc-1 ) then
           sps1%pdot(i,jendl) = (sps1%ps(i,jendx)+ &
-                                sps1%ps(i-1,jendx))/d_two
+                                sps1%ps(i-1,jendx))*d_half
         end if
 #else
-        sps1%pdot(i,1)  = (sps1%ps(i,1)   +sps1%ps(i-1,1))/d_two
-        sps1%pdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))/d_two
+        sps1%pdot(i,1)  = (sps1%ps(i,1)   +sps1%ps(i-1,1))*d_half
+        sps1%pdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))*d_half
 #endif
       end do
 #endif
@@ -1155,21 +1155,21 @@
 !
 #ifdef MPP1
       do j = jbegin , jendx
-        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))/d_two
-        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))/d_two
+        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))*d_half
+        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))*d_half
       end do
 #else
 #ifdef BAND
       do j = 2 , jx
-        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))/d_two
-        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))/d_two
+        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))*d_half
+        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))*d_half
       end do
-      sps1%pdot(1,1)  = (sps1%ps(1,1)   +sps1%ps(1,jx))/d_two
-      sps1%pdot(iy,1) = (sps1%ps(iym1,1)+sps1%ps(iym1,jx))/d_two
+      sps1%pdot(1,1)  = (sps1%ps(1,1)   +sps1%ps(1,jx))*d_half
+      sps1%pdot(iy,1) = (sps1%ps(iym1,1)+sps1%ps(iym1,jx))*d_half
 #else
       do j = 2 , jxm1
-        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))/d_two
-        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))/d_two
+        sps1%pdot(1,j)  = (sps1%ps(1,j)   +sps1%ps(1,j-1))*d_half
+        sps1%pdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,j-1))*d_half
       end do
 #endif
 #endif
@@ -1637,7 +1637,7 @@
           end do
         end do
 !
-      end if      !end if(iexec /= 1) test
+      end if      !end if (iexec /= 1) test
 !**********************************************************************
 !*****compute the boundary values for xxa variables:
 !
@@ -1862,7 +1862,7 @@
           end do
 !
         end do
-      end if      !end if(iboudy == 3.or.4) test
+      end if      !end if (iboudy == 3.or.4) test
 !
 !-----set boundary values for p*qc and p*qr:
 !     *** note ***
@@ -2134,7 +2134,7 @@
           end do
         end do
 !
-      end if      !end if(iexec /= 1) test
+      end if      !end if (iexec /= 1) test
 !**********************************************************************
 !*****compute the boundary values for xxa variables:
 !
@@ -2349,7 +2349,7 @@
 #ifdef BAND
           do j = 1 , jx
             jp1 = j+1
-            if(jp1 == jx+1) jp1=1
+            if (jp1 == jx+1) jp1=1
             qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
             qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
             vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
@@ -2372,7 +2372,7 @@
 #ifdef BAND
           do j = 1 , jx
             jp1 = j+1
-            if(jp1 == jx+1) jp1=1
+            if (jp1 == jx+1) jp1=1
             qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
             qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
             vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
@@ -2391,7 +2391,7 @@
           end do
 !
         end do
-      end if      !end if(iboudy == 3.or.4) test
+      end if      !end if (iboudy == 3.or.4) test
 !
 !-----set boundary values for p*qc and p*qr:
 !     *** note ***
@@ -2439,7 +2439,7 @@
 #ifdef BAND
         do j = 1 , jx
           jp1 = j+1
-          if(jp1 == jx+1) jp1=1
+          if (jp1 == jx+1) jp1=1
           qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
           vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
 #else
@@ -2460,7 +2460,7 @@
 #ifdef BAND
         do j = 1 , jx
           jp1 = j+1
-          if(jp1 == jx+1) jp1=1
+          if (jp1 == jx+1) jp1=1
           qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
           vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
 #else
@@ -2525,7 +2525,7 @@
 #ifdef BAND
             do j = 1 , jx
               jp1 = j+1
-              if(jp1 == jx+1) jp1=1
+              if (jp1 == jx+1) jp1=1
               chix1 = d_zero
               chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
               vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
@@ -2549,7 +2549,7 @@
 #ifdef BAND
             do j = 1 , jx
               jp1 = j+1
-              if(jp1 == jx+1) jp1=1
+              if (jp1 == jx+1) jp1=1
 !             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
               chix1 = d_zero
               chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)

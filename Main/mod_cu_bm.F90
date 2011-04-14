@@ -63,10 +63,7 @@
       integer , parameter :: itb = 100
       integer , parameter :: jtb = 150
 
-      real(8) :: pl , rdp , rdq , rdth , rdthe , thl
-      real(8) , dimension(itb,jtb) :: ptbl
-      real(8) , dimension(jtb) :: qs0 , sqs , sthe , the0
-      real(8) , dimension(jtb,itb) :: ttbl
+      real(8) :: pl , thl
       real(8) , allocatable , dimension(:,:,:) :: tbase
       real(8) , allocatable , dimension(:,:) :: cldefi
 
@@ -338,7 +335,7 @@
       end do
 !--------------cloud top pressure---------------------------------------
       do i = 2 , iym2
-!       if(kf(i) == 1) goto 275
+!       if (kf(i) == 1) goto 275
         prtop(i) = (a(ltop(i))*sps2%ps(i,j)+r8pt)*1000.0D0
       end do
 !-----------------------------------------------------------------------
@@ -507,7 +504,7 @@
 !--------------below lqm correct both temperature and moisture----------
           do l = lcor , lb
             tskl = trefk(l)*apek(l)/apesk(l)
-            dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
+            dhdt = qrefk(l)*a23m4l/(tskl-c4les)**d_two + cpd
             trefk(l) = hcorr/dhdt + trefk(l)
             thskl = trefk(l)*apek(l)
             qrefk(l) = pq0/psk(l)                                       &
@@ -918,10 +915,6 @@
       dth = (thh-thl)/dble(kthm-1)
       dp = (ph-pl)/dble(kpm-1)
 !
-      rdth = 1.0D0/dth
-      rdp = 1.0D0/dp
-      rdq = dble(kpm - 1)
-!
       th = thl - dth
  
 !-----------------------------------------------------------------------
@@ -950,8 +943,6 @@
 
         end do
 !
-        qs0(kth) = qs0k
-        sqs(kth) = sqsk
 !-----------------------------------------------------------------------
         qsnew(1) = 0.0D0
         qsnew(kpm) = 1.0D0
@@ -966,9 +957,6 @@
 !
         call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
 !
-        do kp = 1 , kpm
-          ptbl(kp,kth) = pnew(kp)
-        end do
 !-----------------------------------------------------------------------
       end do
 !-----------------------------------------------------------------------
@@ -999,13 +987,10 @@
 !mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
         end do
 !
-        the0(kp) = the0k
-        sthe(kp) = sthek
 !-----------------------------------------------------------------------
         thenew(1) = 0.0D0
         thenew(kthm) = 1.0D0
         dthe = 1.0D0/dble(kthm-1)
-        rdthe = 1.0D0/dthe
 !
         do kth = 2 , kthm1
           thenew(kth) = thenew(kth-1) + dthe
@@ -1016,9 +1001,6 @@
 !
         call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
 !
-        do kth = 1 , kthm
-          ttbl(kth,kp) = tnew(kth)
-        end do
 !-----------------------------------------------------------------------
       end do
 !-----------------------------------------------------------------------

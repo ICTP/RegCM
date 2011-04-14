@@ -186,7 +186,7 @@
 !     Set grid spacing resolution
       r2cdx = dx
 !     Set gridcell area
-      r2carea = (dx/d_1000)*(dx/d_1000)
+      r2carea = (dx*d_r1000)*(dx*d_r1000)
 !     Set landmask method
       r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
@@ -1398,7 +1398,7 @@
               t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
               t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
               w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
-                       sqrt(u10m_o(j,i-1)**2+v10m_o(j,i-1)**2))
+                       sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
               real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
               psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
  

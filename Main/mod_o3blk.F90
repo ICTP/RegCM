@@ -119,7 +119,7 @@
           end do
           ppwrkh(1) = 1100.0D0
           do k = 2 , 31
-            ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))/d_two
+            ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))*d_half
           end do
           ppwrkh(32) = d_zero
           do k = 1 , kz

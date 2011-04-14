@@ -150,7 +150,7 @@
           dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
-          tmean = (tmax+tlcl)/d_two
+          tmean = (tmax+tlcl)*d_half
           dlnp = (egrav*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
           siglcl = (plcl-r8pt)/sps1%ps(i,j)
@@ -330,7 +330,7 @@
           aten%qv(i,k,j) = aten%qv(i,k,j) + rswt
           rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dt/(d_two*tauht))
           rswat(i,k,j) = rswat(i,k,j)*(d_one-dt/(d_two*tauht))
-!bxq if(rsht/psb(i,j) > .0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
+!bxq if (rsht/psb(i,j) > .0002)write(18,1222)ktau,jyear,i,j,k,rsht/psb(i
 !1222     format (1x,'ktau= ',i7,' jyear= ',i5,' i= ',i5,' j= ',i5,
 !         1        ' k= ',i5,' ttconv =',e15.7)
         end do
@@ -413,8 +413,8 @@
         do j = 1 , jx
           jm1 = j - 1
           jp1 = j + 1
-          if(jm1 == 0) jm1 = jx
-          if(jp1 == jx+1) jp1 = 1
+          if (jm1 == 0) jm1 = jx
+          if (jp1 == jx+1) jp1 = 1
 #else
         do j = 2 , jxm2
           jm1 = max0(j-1,2)
@@ -480,8 +480,8 @@
         do j = 1 , jx
           jm1 = j - 1
           jp1 = j + 1
-          if(jm1 == 0) jm1 = jx
-          if(jp1 == jx+1) jp1 = 1
+          if (jm1 == 0) jm1 = jx
+          if (jp1 == jx+1) jp1 = 1
 #else
         do j = 2 , jxm2
           jm1 = max0(j-1,2)

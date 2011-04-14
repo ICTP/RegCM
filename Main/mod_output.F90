@@ -1613,7 +1613,7 @@
 
       implicit none
 !
-      integer :: ni , itr , nj , nk , is , ie , js , je
+      integer :: ni , itr , nj , nk , ie , je
 
 !      character (len=50) :: subroutine_name='outche'
 !      integer :: idindx=0
@@ -1624,8 +1624,6 @@
       nj = jx
       nk = kz
       itr = ntr
-      is = 2
-      js = 1
       ie = iym1
       je = jx
 #else
@@ -1633,8 +1631,6 @@
       nj = jxm2
       nk = kz
       itr = ntr
-      is = 2
-      js = 2
       ie = iym1
       je = jxm1
 #endif

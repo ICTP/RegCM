@@ -857,7 +857,7 @@
         do k = 1 , kz
           do i = 2 , iym2
             if ( myid == nproc-1 ) then
-              uavg2 = (atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))/d_two
+              uavg2 = (atm1%u(i+1,k,jendx)+atm1%u(i,k,jendx))*d_half
               if ( uavg2 < d_zero ) then
                 worka(i,k,n) =  &
                     -uavg2*(fact1*chia(i,k,jendx,n)/sps1%ps(i,jendx)/ &
@@ -873,7 +873,7 @@
               end if
             end if
             if ( myid == 0 ) then
-              uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))/d_two
+              uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))*d_half
               if ( uavg1 > d_zero ) then
                 workb(i,k,n) = &
                     -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1)/ &
@@ -897,7 +897,7 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = (atm1%u(i+1,k,jxm1)+atm1%u(i,k,jxm1))/d_two
+            uavg2 = (atm1%u(i+1,k,jxm1)+atm1%u(i,k,jxm1))*d_half
             if ( uavg2 < d_zero ) then
               worka(i,k,n) =  &
                   -uavg2*(fact1*chia(i,k,jxm1,n)/sps1%ps(i,jxm1) / &
@@ -912,7 +912,7 @@
                   (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)))
             end if
  
-            uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))/d_two
+            uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))*d_half
             if ( uavg1 > d_zero ) then
               workb(i,k,n) = &
                   -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1) / &
@@ -996,7 +996,7 @@
           do k = 1 , kz
             do j = 2 , jxm2
 !hy           inflow/outflow
-              vavg2 = (vaill_g(k,j+1)+vaill_g(k,j))/d_two
+              vavg2 = (vaill_g(k,j+1)+vaill_g(k,j))*d_half
               if ( vavg2 < d_zero ) then
                 fx2 = -vavg2*(fact1*chiaill_g(k,n,j)/psaill_g(j)        &
                     & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))    &
@@ -1009,7 +1009,7 @@
                     & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)))
               end if
  
-              vavg1 = (va02_g(k,j+1)+va02_g(k,j))/d_two
+              vavg1 = (va02_g(k,j+1)+va02_g(k,j))*d_half
               if ( vavg1 > d_zero ) then
                 fx1 = -vavg1*(fact1*chia01_g(k,n,j)/psa01_g(j)          &
                     & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j))+         &
@@ -1044,7 +1044,7 @@
         do k = 1 , kz
           do j = 2 , jxm2
 !hy         inflow/outflow
-            vavg2 = (atm1%v(iym1,k,j+1)+atm1%v(iym1,k,j))/d_two
+            vavg2 = (atm1%v(iym1,k,j+1)+atm1%v(iym1,k,j))*d_half
             if ( vavg2 < d_zero ) then
               fx2 = -vavg2*(fact1*chia(iym1,k,j,n)/sps1%ps(iym1,j) / &
                       (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) +    &
@@ -1057,7 +1057,7 @@
                   & /(mddom%msfx(iym1,j)*mddom%msfx(iym1,j)))
             end if
  
-            vavg1 = (atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))/d_two
+            vavg1 = (atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))*d_half
             if ( vavg1 > d_zero ) then
               fx1 = -vavg1*(fact1*chia(1,k,j,n)/sps1%ps(1,j) / &
                       (mddom%msfx(1,j)*mddom%msfx(1,j)) +    &

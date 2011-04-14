@@ -56,9 +56,10 @@
 MODULE mod_service
 
   use m_realkinds
-  use mod_dynparam , only : debug_level
 
 #ifdef DEBUG
+
+  use mod_dynparam , only : debug_level
 
 !!! definition of single and double precision 
 
