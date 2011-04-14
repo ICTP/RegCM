@@ -98,8 +98,6 @@
         real(4) , dimension(:,:) , allocatable :: sp2d1
         real(4) , dimension(:,:,:) , allocatable :: atmsrfmask
         real(4) , dimension(:,:) , allocatable :: atmsrfsum
-        real(4) , dimension(2) :: latrange
-        real(4) , dimension(2) :: lonrange
 
         character(len=8) , dimension(n_atmvar) :: atm_names
         character(len=8) , dimension(n_srfvar) :: srf_names
@@ -537,11 +535,11 @@
             call say
             call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
           end if
-          if (dabs(dble(ptsp/d_10)-dble(ptop)) > 0.001D+00) then
+          if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
             write (6,*) 'Error: ptop from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ptop
-            write (6,*) 'DOMAIN file    = ', ptsp/d_10
+            write (6,*) 'DOMAIN file    = ', ptsp*d_r10
             call fatal(__FILE__,__LINE__, 'DOMAIN ptop ERROR')
           end if
           if (proj /= iproj) then
@@ -551,11 +549,11 @@
             write (6,*) 'DOMAIN file    = ', proj
             call fatal(__FILE__,__LINE__, 'DOMAIN proj ERROR')
           end if
-          if (dabs(dble(dsx/d_1000)-dble(ds)) > 0.001D+00) then
+          if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00) then
             write (6,*) 'Error: ds from regcm.in and DOMAIN file ', &
                         'differ.'
             write (6,*) 'Input namelist = ', ds
-            write (6,*) 'DOMAIN file    = ', dsx/d_1000
+            write (6,*) 'DOMAIN file    = ', dsx*d_r1000
             call fatal(__FILE__,__LINE__, 'DOMAIN ds ERROR')
           end if
           if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
@@ -575,7 +573,7 @@
 !
 !         Assign values in the top data modules
 !
-          r8pt = ptsp/d_10
+          r8pt = dble(ptsp)*d_r10
           rpt = ptop
           tpd = houpd/tapfrq
           cfd = houpd/chemfrq
@@ -629,7 +627,6 @@
           call check_ok('Variable xlat read error', 'DOMAIN FILE ERROR')
           xlat = dble(transpose(sp2d))
           ioxlat = sp2d(o_js:o_je,o_is:o_ie)
-          latrange = (/minval(ioxlat),maxval(ioxlat)/)
           istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
           call check_ok('Variable xlon missing', 'DOMAIN FILE ERROR')
           istatus = nf90_get_var(idmin, ivarid, sp2d)
@@ -881,7 +878,7 @@
           character(5) , dimension(ntr) , intent(in) :: chtrname
           real(8) , dimension(iy,jx,12,ntr) , intent(out) :: chemsrc
 
-          integer :: ncid , ivarid , istatus
+          integer :: ncid , ivarid
           real(4) , dimension(jx,iy) :: toto
           character(5) :: aerctl
           integer , dimension(3) :: istart , icount
@@ -1736,9 +1733,6 @@
           istatus = nf90_put_att(ncid, illtpvar(1), 'units', &
                             &  'degrees_north')
           call check_ok('Error adding xlat units', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(1), 'actual_range', &
-                            &    latrange)
-          call check_ok('Error adding xlat actual_range', fterr)
           istatus = nf90_def_var(ncid, 'xlon', nf90_float, &
                              &   idims(1:2), illtpvar(2))
           call check_ok('Error adding variable xlon', fterr)
@@ -1751,9 +1745,6 @@
           istatus = nf90_put_att(ncid, illtpvar(2), 'units',  &
                             &  'degrees_east')
           call check_ok('Error adding xlon units', fterr)
-          istatus = nf90_put_att(ncid, illtpvar(2), 'actual_range', &
-                            &    lonrange)
-          call check_ok('Error adding xlon actual_range', fterr)
           istatus = nf90_def_var(ncid, 'topo', nf90_float, &
                              &   idims(1:2), illtpvar(3))
           call check_ok('Error adding variable topo', fterr)
@@ -2771,7 +2762,7 @@
                   if (j == o_nj) jp2 = 1
                 end if
                 dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                     u(ip2,k,jp1)+u(ip2,k,jp2))/d_four) / ps(ip1,jp1))
+                     u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
               end do
             end do
           end do
@@ -2793,7 +2784,7 @@
                   if (j == o_nj) jp2 = 1
                 end if
                 dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                     v(ip2,k,jp1)+v(ip2,k,jp2))/d_four) / ps(ip1,jp1))
+                     v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
               end do
             end do
           end do

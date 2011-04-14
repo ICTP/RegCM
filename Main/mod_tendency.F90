@@ -312,7 +312,7 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1=jx
+        if (jm1 == 0) jm1=jx
 #endif
 !
 !-----interior slice:
@@ -320,17 +320,17 @@
 !
 #ifndef BAND
 #ifdef MPP1
-        if((.not.(myid == 0 .and. (j == 1 .or. j == 2))) .and. &
+        if ((.not.(myid == 0 .and. (j == 1 .or. j == 2))) .and. &
            (.not.(myid == nproc-1 .and. &
            (j == jendl-1 .or. j == jendl))) ) then
 #else
-        if(.not.(j == 1 .or. j == 2 .or. j == jxm1 .or. j == jx) ) then
+        if (.not.(j == 1 .or. j == 2 .or. j == jxm1 .or. j == jx) ) then
 #endif
 #endif
           do k = 1 , kz
             do i = 3 , iym2
               psabar=(sps1%ps(i,j)+sps1%ps(i,jm1)+ &
-                      sps1%ps(i-1,j)+sps1%ps(i-1,jm1))/d_four
+                      sps1%ps(i-1,j)+sps1%ps(i-1,jm1))*d_rfour
               xmsf = mddom%msfd(i,j)
               atmx%u(i,k,j) = atm1%u(i,k,j)/(psabar*xmsf)
               atmx%v(i,k,j) = atm1%v(i,k,j)/(psabar*xmsf)
@@ -578,11 +578,11 @@
 #endif
          jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-         if(jm1 == 0) jm1=jx
+         if (jm1 == 0) jm1=jx
 #endif
         do i = 2 , iym1
           sps2%pdot(i,j)=(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
-                          sps2%ps(i,jm1)+sps2%ps(i-1,jm1))/d_four
+                          sps2%ps(i,jm1)+sps2%ps(i-1,jm1))*d_rfour
         end do
       end do
 !
@@ -592,13 +592,13 @@
       do i = 2 , iym1
 #ifdef MPP1
         if ( myid == 0 )  &
-          sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))/d_two
+          sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))*d_half
         if ( myid == nproc-1 ) &
           sps2%pdot(i,jendl) = (sps2%ps(i,jendx)+ &
-                                sps2%ps(i-1,jendx))/d_two
+                                sps2%ps(i-1,jendx))*d_half
 #else
-        sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))/d_two
-        sps2%pdot(i,jx) = (sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))/d_two
+        sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))*d_half
+        sps2%pdot(i,jx) = (sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))*d_half
 #endif
       end do
 #endif
@@ -616,10 +616,10 @@
 #endif
          jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-         if(jm1 == 0) jm1=jx
+         if (jm1 == 0) jm1=jx
 #endif
-        sps2%pdot(1,j)  = (sps2%ps(1,j)+sps2%ps(1,jm1))/d_two
-        sps2%pdot(iy,j) = (sps2%ps(iym1,j)+sps2%ps(iym1,jm1))/d_two
+        sps2%pdot(1,j)  = (sps2%ps(1,j)+sps2%ps(1,jm1))*d_half
+        sps2%pdot(iy,j) = (sps2%ps(iym1,j)+sps2%ps(iym1,jm1))*d_half
       end do
 !
 !-----corner points:
@@ -827,15 +827,15 @@
 #endif
         jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-        if(jp1 == jx+1) jp1 = 1
+        if (jp1 == jx+1) jp1 = 1
 #endif
 !
 #ifndef BAND
 #ifdef MPP1
-        if((.not.(myid == 0 .and. j == 1)) .and. &
+        if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
 #else
-        if( .not.(j == 1 .or. j == jxm1) ) then
+        if ( .not.(j == 1 .or. j == jxm1) ) then
 #endif
 #endif
         icon(j) = 0
@@ -899,20 +899,20 @@
         jp1 = j+1
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jp1 == jx+1) jp1 = 1
-        if(jm1 == 0) jm1=jx
+        if (jp1 == jx+1) jp1 = 1
+        if (jm1 == 0) jm1=jx
 #endif
 #ifndef BAND
 #ifdef MPP1
-        if((.not.(myid == 0 .and. j == 1)) .and. &
+        if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
 #else
-        if( .not.(j == 1 .or. j == jxm1) ) then
+        if ( .not.(j == 1 .or. j == jxm1) ) then
 #endif
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = (sps1%ps(i,j)/d_two)* &
+              omega(i,k,j) = (sps1%ps(i,j)*d_half)* &
                        & (qdot(i,k+1,j)+qdot(i,k,j))+a(k)*(pten(i,j)+   &
                        & ((atmx%u(i,k,j)+atmx%u(i+1,k,j)+               &
                        &   atmx%u(i+1,k,jp1)+atmx%u(i,k,jp1))*          &
@@ -1233,7 +1233,7 @@
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
-        end if     !end if(j /= jxm1) test
+        end if     !end if (j /= jxm1) test
 #endif
       end do
 
@@ -1272,10 +1272,10 @@
 #endif
 #ifndef BAND
 #ifdef MPP1
-        if((.not.(myid == 0 .and. j == 1)) .and. &
+        if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
 #else
-        if( .not.(j == 1 .or. j == jxm1) ) then
+        if ( .not.(j == 1 .or. j == jxm1) ) then
 #endif
 #endif
 !
@@ -1336,7 +1336,7 @@
               ptntot = ptntot + dabs(ps_4(i,1,j))
               pt2tot = pt2tot +                       &
                      & dabs((ps_4(i,2,j)+ps_4(i,3,j)- &
-                             d_two*ps_4(i,4,j))/((dt*dt)/d_four))
+                             d_two*ps_4(i,4,j))/((dt*dt)*d_rfour))
             end do
           end if
         end do
@@ -1358,7 +1358,7 @@
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+sps2%ps(i,j)- &
-                      d_two*sps1%ps(i,j))/((dt*dt)/d_four))
+                      d_two*sps1%ps(i,j))/((dt*dt)*d_rfour))
             end do
           end if
 #ifndef BAND
@@ -1378,7 +1378,7 @@
 #endif
         jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-        if(jp1 == jx+1) jp1 = 1
+        if (jp1 == jx+1) jp1 = 1
 #endif
 !
 !------compute the horizontal diffusion coefficient and stored in xkc:
@@ -1525,7 +1525,7 @@
 !chem2_
 !
 #ifndef BAND
-        end if           !end if(j /= jxm1) test
+        end if           !end if (j /= jxm1) test
 #endif
 !----------------------------------------------------------------------
 !*****compute the pbl fluxes:
@@ -1733,7 +1733,7 @@
           end if
 !chem2_
 #ifndef BAND
-        end if       !end if(j /= jxm1),else test
+        end if       !end if (j /= jxm1),else test
 #endif
       end do
 !
@@ -1805,10 +1805,10 @@
 #endif
 #ifndef BAND
 #ifdef MPP1
-        if((.not.(myid == 0 .and. j == 1)) .and. &
+        if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
 #else
-        if( .not.(j == 1 .or. j == jxm1) ) then
+        if ( .not.(j == 1 .or. j == jxm1) ) then
 #endif
 #endif
 !
@@ -1923,7 +1923,7 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1 = jx
+        if (jm1 == 0) jm1 = jx
 #endif
 !
 !..uv.compute pressure gradient terms:
@@ -1938,15 +1938,15 @@
               tv3 = atmx%t(i-1,k,j)*(d_one+ep1*(atmx%qv(i-1,k,j)))
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
-                    & ((a(k)*(psasum/d_four)+r8pt)/p00pg)**pgfaa1
+                    & ((a(k)*(psasum*d_rfour)+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                     (dlog((psd(i,j)+psd(i-1,j))/d_two*a(k)+r8pt) -     &
-                      dlog((psd(i,jm1)+psd(i-1,jm1))/d_two*a(k)+r8pt))/ &
+                     (dlog((psd(i,j)+psd(i-1,j))*d_half*a(k)+r8pt) -     &
+                      dlog((psd(i,jm1)+psd(i-1,jm1))*d_half*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
-                     (dlog((psd(i,j)+psd(i,jm1))/d_two*a(k)+r8pt) -     &
-                      dlog((psd(i-1,jm1)+psd(i-1,j))/d_two*a(k)+r8pt))/ &
+                     (dlog((psd(i,j)+psd(i,jm1))*d_half*a(k)+r8pt) -     &
+                      dlog((psd(i-1,jm1)+psd(i-1,j))*d_half*a(k)+r8pt))/ &
                       (dx*mddom%msfd(i,j))
             end do
           end do
@@ -1961,12 +1961,12 @@
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                      (dlog((psd(i,j)+psd(i-1,j))/d_two*a(k)+r8pt) -    &
-                       dlog((psd(i,jm1)+psd(i-1,jm1))/d_two*a(k)+r8pt))/&
+                      (dlog((psd(i,j)+psd(i-1,j))*d_half*a(k)+r8pt) -    &
+                       dlog((psd(i,jm1)+psd(i-1,jm1))*d_half*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
-                      (dlog((psd(i,j)+psd(i,jm1))/d_two*a(k)+r8pt) -    &
-                       dlog((psd(i-1,jm1)+psd(i-1,j))/d_two*a(k)+r8pt))/&
+                      (dlog((psd(i,j)+psd(i,jm1))*d_half*a(k)+r8pt) -    &
+                       dlog((psd(i-1,jm1)+psd(i-1,j))*d_half*a(k)+r8pt))/&
                        (dx*mddom%msfd(i,j))
             end do
           end do
@@ -2052,7 +2052,7 @@
 #endif
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1 = jx
+        if (jm1 == 0) jm1 = jx
 #endif
 !
 !..uv.compute the geopotential gradient terms:
@@ -2236,7 +2236,7 @@
         end if
       end if
       if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
-      dto2 = dt/d_two
+      dto2 = dt*d_half
 !
 !-----compute the amounts advected through the lateral boundaries:
 !     *** note *** we must calculate the amounts advected through

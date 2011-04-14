@@ -111,11 +111,9 @@
         character(len=50) :: buffer
 #endif
 
-        real(8) :: storage 
         if (ierr /= 0) then
           call fatal(__FILE__,__LINE__,what//' CANNOT BE allocated')
         end if
-        storage=dble(isize*kind(wgtd(1)))
 #ifdef DEBUG 
         if (debug_level > 3) then 
            write (buffer,*)  what, &

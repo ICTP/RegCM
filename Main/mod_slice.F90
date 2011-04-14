@@ -130,7 +130,7 @@
       do j = 1 , jx
         jdx = j
         jdxp1 = j+1
-        if(jdxp1 == jx+1) jdxp1 = 1
+        if (jdxp1 == jx+1) jdxp1 = 1
 #endif
 #else
 #ifdef MPP1
@@ -150,10 +150,10 @@
             idx = max0(i,2)
             idxp1 = min0(i+1,iym1)
             ubx3d(i,k,j) = ((atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+  &
-                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/d_four)/ &
+                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))*d_rfour)/ &
                  sps2%ps(i,j)
             vbx3d(i,k,j) = ((atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+  &
-                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/d_four)/ &
+                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))*d_rfour)/ &
                  sps2%ps(i,j)
           end do
         end do
@@ -216,7 +216,7 @@
 !
         do k = 1 , kz
           do i = 2 , iym1
-            za(i,k,j) = (zq(i,k)+zq(i,k+1))/d_two
+            za(i,k,j) = (zq(i,k)+zq(i,k+1))*d_half
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do

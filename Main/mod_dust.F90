@@ -344,7 +344,7 @@
                   else
                     xm = d_zero
                   end if
-                  xn = rhop*(d_two/d_three)*(dp_array(ns)/d_two)
+                  xn = rhop*(d_two/d_three)*(dp_array(ns)*d_half)
                   deldp = 0.0460517018598807D0
                   ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)
@@ -378,7 +378,7 @@
 
       do n = 1 , isize
 
-        rwi = (aerosize(1,n)+aerosize(2,n))/d_two*1.0D6
+        rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
         alogdi = dlog10(rwi)
         amean1 = dlog10(d1)
         amean2 = dlog10(d2)
@@ -515,9 +515,8 @@
       integer :: i , ieff , ieffmax , n , ns
       real(8) , dimension(ilg) :: xclayrow , xroarow , xsoilw ,         &
                          & xsurfwd , xvegfrac , xz0 , xustarnd
-      real(8) , dimension(ilg,20) :: xfland
       real(8) , dimension(ilg,nbin) :: xrsfrow
-      real(8) , dimension(ilg,nats) :: xsand2row,xftex
+      real(8) , dimension(ilg,nats) :: xftex
       real(8) , dimension(ilg,nsoil,nats) :: xsrel2d
 ! 
       rsfrow = d_zero
@@ -530,9 +529,7 @@
       xclayrow = d_zero
       xroarow = d_zero
       xsrel2d = d_zero
-      xsand2row = d_zero
       xustarnd=d_zero
-      xfland = d_zero
       xrsfrow = d_zero
  
       ieff = 0
@@ -549,13 +546,9 @@
           xclayrow(ieff) = clayrow2(i,jloop)
           do n = 1 , nats
             xftex(ieff,n) = dustsotex(i,jloop,n)
-            xsand2row(ieff,n) = sand2row2(i,n,jloop)
           do  ns = 1 , nsoil
              xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
           end do
-          end do
-          do n = 1 ,luc 
-            xfland(ieff,n) = d_one
           end do
         end if
       end do
@@ -823,7 +816,7 @@
                                 fsoil2(i,nt)*frac2(n) + &
                                 fsoil3(i,nt)*frac3(n)
 !         and in tranport bins (nbin)
-            rwi = (aerosize(1,n)+aerosize(2,n))/d_two*1.0D6
+            rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
 
             do k = 1 , nbin
               if ( rwi >= trsize(k,1) .and. rwi < trsize(k,2) )          &

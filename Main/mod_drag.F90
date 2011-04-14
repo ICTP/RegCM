@@ -119,9 +119,9 @@
       do i = 2 , iym1
         do n = 1 , nnsg
                                                     ! check each point
-!cc   if(lat(i) ==     1) aarea(i) = 0.005  ! ccm specific code
-!cc   if(lat(i) ==     2) aarea(i) = 0.01
-!cc   if(lat(i) >= nlat2) aarea(i) = 0.04   !  4.2  antarctic
+!cc   if (lat(i) ==     1) aarea(i) = 0.005  ! ccm specific code
+!cc   if (lat(i) ==     2) aarea(i) = 0.01
+!cc   if (lat(i) >= nlat2) aarea(i) = 0.04   !  4.2  antarctic
           if ( ldoc1d(n,i) == 2 ) aarea(n,i) = 0.02D0
                                                     !  4.3  arctic
         end do

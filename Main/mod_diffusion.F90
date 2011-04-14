@@ -77,10 +77,10 @@
 #ifdef BAND
 !---------------------------------------------------------------------
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1 < 1) jm1 = jm1 + jx
-      if(jm2 < 1) jm2 = jm2 + jx
-      if(jp1 > jx) jp1 = jp1 -jx
-      if(jp2 > jx) jp2 = jp2 -jx
+      if (jm1 < 1) jm1 = jm1 + jx
+      if (jm2 < 1) jm2 = jm2 + jx
+      if (jp1 > jx) jp1 = jp1 -jx
+      if (jp2 > jx) jp2 = jp2 -jx
 #endif
 !
 !.....fourth-order scheme for interior:
@@ -243,10 +243,10 @@
 #ifdef BAND
 !---------------------------------------------------------------------
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1 < 1) jm1 = jm1 + jx
-      if(jm2 < 1) jm2 = jm2 + jx
-      if(jp1 > jx) jp1 = jp1 -jx
-      if(jp2 > jx) jp2 = jp2 -jx
+      if (jm1 < 1) jm1 = jm1 + jx
+      if (jm2 < 1) jm2 = jm2 + jx
+      if (jp1 > jx) jp1 = jp1 -jx
+      if (jp2 > jx) jp2 = jp2 -jx
 #endif
 !
 !......fourth-order scheme for interior:

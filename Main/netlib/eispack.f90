@@ -9295,7 +9295,6 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   integer ( kind = 4 ) l1
   integer ( kind = 4 ) ll
   integer ( kind = 4 ) m
-  integer ( kind = 4 ) m1
   real    ( kind = 8 ) rv1(n)
   real    ( kind = 8 ) s
   real    ( kind = 8 ) xscale
@@ -9435,7 +9434,6 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   end do
 
   if ( m < n .and. ip /= 0 ) then
-    m1 = m + 1
     b(m+1:n,1:ip) = 0.0D+00
   end if
 !
@@ -13527,17 +13525,8 @@ subroutine rsm ( n, a, w, m, z, ierr )
   real    ( kind = 8 ) fwork3(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) iwork(n)
-  integer ( kind = 4 ) k1
-  integer ( kind = 4 ) k2
-  integer ( kind = 4 ) k3
-  integer ( kind = 4 ) k4
   real    ( kind = 8 ) w(n)
   real    ( kind = 8 ) z(n,m)
-
-  k1 = 1
-  k2 = k1 + n
-  k3 = k2 + n
-  k4 = k3 + n
 
   if ( m <= 0 ) then
 

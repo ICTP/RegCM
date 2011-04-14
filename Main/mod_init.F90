@@ -84,9 +84,6 @@
 #else
       real(8) , dimension(iy,jx) :: psdot
 #endif
-      logical :: existing
-!
-      existing = .false.
 #ifdef MPP1
 #ifndef BAND
       peb  = d_zero
@@ -199,7 +196,7 @@
           call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
                          tb0_io,qb0_io,so0_io)
           write (6,*) 'READY IC DATA for ', ndate0
-          ps0_io = ps0_io/d_10
+          ps0_io = ps0_io*d_r10
           do j = 1 , jx
             do k = 1 , kz
               do i = 1 , iy
@@ -276,22 +273,22 @@
         do j = jbegin , jendx
           do i = 2 , iym1
             psdot(i,j) = (ps0(i,j)   + ps0(i-1,j) +   &
-                          ps0(i,j-1) + ps0(i-1,j-1))/d_four
+                          ps0(i,j-1) + ps0(i-1,j-1))*d_rfour
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          if ( myid == 0 ) psdot(i,1) = (ps0(i,1)+ps0(i-1,1))/d_two
+          if ( myid == 0 ) psdot(i,1) = (ps0(i,1)+ps0(i-1,1))*d_half
           if ( myid == nproc-1 ) then
-            psdot(i,jendl) = (ps0(i,jendx)+ps0(i-1,jendx))/d_two
+            psdot(i,jendl) = (ps0(i,jendx)+ps0(i-1,jendx))*d_half
           end if
         end do
 #endif
 !
         do j = jbegin , jendx
-          psdot(1,j) = (ps0(1,j)+ps0(1,j-1))/d_two
-          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,j-1))/d_two
+          psdot(1,j) = (ps0(1,j)+ps0(1,j-1))*d_half
+          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,j-1))*d_half
         end do
 !
 #ifndef BAND
@@ -379,7 +376,7 @@
             do j = 1 , jendl
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                          tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/d_100)
+                          tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)*d_r100)
               end do
             end do
           end do
@@ -417,7 +414,7 @@
 !
 !       Convert surface pressure to pstar
 !
-        ps0 = ps0/d_10 - r8pt
+        ps0 = ps0*d_r10 - r8pt
 
 !=======================================================================
 !
@@ -433,18 +430,18 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1 == 0) jm1=jx
+          if (jm1 == 0) jm1=jx
 #endif
           do i = 2 , iym1
             psdot(i,j) = (ps0(i,j)+ps0(i-1,j)+     &
-                          ps0(i,jm1)+ps0(i-1,jm1))/d_four
+                          ps0(i,jm1)+ps0(i-1,jm1))*d_rfour
           end do
         end do
 !
 #ifndef BAND
         do i = 2 , iym1
-          psdot(i,1)  = (ps0(i,1)   +ps0(i-1,1))/d_two
-          psdot(i,jx) = (ps0(i,jxm1)+ps0(i-1,jxm1))/d_two
+          psdot(i,1)  = (ps0(i,1)   +ps0(i-1,1))*d_half
+          psdot(i,jx) = (ps0(i,jxm1)+ps0(i-1,jxm1))*d_half
         end do
 #endif
 !
@@ -455,10 +452,10 @@
 #endif
           jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-          if(jm1 == 0) jm1=jx
+          if (jm1 == 0) jm1=jx
 #endif
-          psdot(1,j)  = (ps0(1,j)   +ps0(1,jm1))/d_two
-          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,jm1))/d_two
+          psdot(1,j)  = (ps0(1,j)   +ps0(1,jm1))*d_half
+          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,jm1))*d_half
         end do
 !
 #ifndef BAND
@@ -553,7 +550,7 @@
             do j = 1 , jx
               do i = 1 , iy
                 tbase(i,k,j) = ts00 + &
-                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)/d_100)
+                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)*d_r100)
               end do
             end do
           end do
@@ -1302,7 +1299,7 @@
         if (debug_level > 2) call mpidiag
 #endif
         dt = dt2 ! First timestep successfully read in
-        dto2 = dt/d_two
+        dto2 = dt*d_half
 #else
 !
         print * , 'ozone profiles restart'
@@ -1311,7 +1308,7 @@
         end do
         print 99001 , xtime , ktau , jyear
         dt = dt2 ! First timestep successfully read in
-        dto2 = dt/d_two
+        dto2 = dt*d_half
 !
 #endif
 !
@@ -1446,8 +1443,8 @@
         jm1 = j-1
         jp1 = j+1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1 = jx
-        if(jp1 == jx+1) jp1 = 1
+        if (jm1 == 0) jm1 = jx
+        if (jp1 == jx+1) jp1 = 1
 #endif
 #else
 #ifdef MPP1

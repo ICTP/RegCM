@@ -22,7 +22,6 @@
 #ifdef MPP1
       use mod_dynparam , only : myid
 #endif
-      use mod_dynparam , only : debug_level
 
       implicit none
 !

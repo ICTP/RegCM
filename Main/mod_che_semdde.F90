@@ -157,8 +157,8 @@
             end if
 !           OC
             if ( iochb > 0 .and. iochl > 0 ) then
-              chemsrc(i,j,m,iochl) = chemsrc(i,j,m,iochb)/d_two
-              chemsrc(i,j,m,iochb) = chemsrc(i,j,m,iochb)/d_two
+              chemsrc(i,j,m,iochl) = chemsrc(i,j,m,iochb)*d_half
+              chemsrc(i,j,m,iochb) = chemsrc(i,j,m,iochb)*d_half
             end if
           end do
         end do
@@ -338,7 +338,7 @@
       pdepvsub = d_zero
 
       do n = 1 , isize
-        avesize(n) = (aerosize(1,n)+aerosize(2,n))/d_two
+        avesize(n) = (aerosize(1,n)+aerosize(2,n))*d_half
       end do
  
 !======================================================================
@@ -484,8 +484,8 @@
  
 ! **************************************************************
               x = (d_one-15.0D0*zdl)**d_rfour
-              psiu = d_two*dlog((d_one+x)/d_two) + & 
-                           dlog((d_one+x*x)/d_two) - &
+              psiu = d_two*dlog((d_one+x)*d_half) + & 
+                           dlog((d_one+x*x)*d_half) - &
                      d_two*datan(x) + halfpi
  
 ! **************************************************************
@@ -493,7 +493,7 @@
 !             *****
 ! **************************************************************
               y = dsqrt(d_one-9.0D0*zdl)
-              psit = d_two*0.74D0*dlog((d_one+y)/d_two)
+              psit = d_two*0.74D0*dlog((d_one+y)*d_half)
             else
               psiu = -4.7D0*zdl
               psit = psiu
@@ -525,7 +525,7 @@
 !
             dtemp = ptemp2 - sutemp(i)
             if ( dabs(dtemp) < 1.0D-10 ) dtemp = dsign(1.0D-10,dtemp)
-            tbar = (ptemp2+sutemp(i))/d_two
+            tbar = (ptemp2+sutemp(i))*d_half
 !
             ratioz = z10/zz0(i)
             logratio = dlog(ratioz)
@@ -563,7 +563,7 @@
             ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
           else
             ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
-                      d_two*dlog((d_one+dsqrt(d_one-9.0D0*zl))/d_two))
+                      d_two*dlog((d_one+dsqrt(d_one-9.0D0*zl))*d_half))
           end if
           ra(i,j) = dmax1(ra(i,j),0.99D0)
           ra(i,j) = dmin1(ra(i,j),999.9D0)

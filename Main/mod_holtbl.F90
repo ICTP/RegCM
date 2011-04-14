@@ -54,7 +54,9 @@
 !
       real(8) , allocatable , dimension(:,:,:) :: auxx , avxx , dza , qcx
       real(8) , allocatable , dimension(:,:,:) :: akzz1 , akzz2
+#ifdef MPP1
       real(8) , allocatable , dimension(:) :: wkrecv , wksend
+#endif
       real(8) , allocatable , dimension(:,:,:) :: rhohf
 !
       real(8) , allocatable , dimension(:,:) :: ri
@@ -250,7 +252,7 @@
 #endif 
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1 = jx
+        if (jm1 == 0) jm1 = jx
 #endif 
         do k = 1 , kz
           do i = 2 , iym1
@@ -380,10 +382,10 @@
 !
  
         do i = 2 , iym1
-          sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+1)
-!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))/d_two)*(d_one+mult*sh10)
+          sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+d_one)
+!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))*d_half)*(d_one+mult*sh10)
 !         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)* &
-!                     dlog(za(i,kz,j)/d_10)
+!                     dlog(za(i,kz,j)*d_r10)
  
 !         "virtual" potential temperature
           if ( hfxv(i,j) >= d_zero ) then
@@ -392,19 +394,19 @@
 !           th10(i,j) =
 !----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+mult*sh10) first
 !           approximation for obhukov length
-            oblen = -(thx3d(i,kz,j)+sts2%tg(i,j))/d_two *   &
+            oblen = -(thx3d(i,kz,j)+sts2%tg(i,j))*d_half *   &
                     (d_one+mult*sh10)*ustr(i,j)**d_three /  &
                     (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
             if ( oblen >= za(i,kz,j) ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
-                  (dlog(za(i,kz,j)/d_10)+d_five/oblen*(za(i,kz,j)-d_10))
+                  (dlog(za(i,kz,j)*d_r10)+d_five/oblen*(za(i,kz,j)-d_10))
             else if ( oblen < za(i,kz,j) .and. oblen > d_10 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
-                  (dlog(oblen/d_10)+d_five/oblen*(oblen-d_10)+          &
+                  (dlog(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
                            6.0D0*dlog(za(i,kz,j)/oblen))
             else if ( oblen <= d_10 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
-                          *6.0D0*dlog(za(i,kz,j)/d_10)
+                          *6.0D0*dlog(za(i,kz,j)*d_r10)
             end if
             th10(i,j) = dmax1(th10(i,j),sts2%tg(i,j))
           end if
@@ -495,7 +497,7 @@
 #endif
          jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
-         if(jm1 == 0) jm1 = jx
+         if (jm1 == 0) jm1 = jx
 #endif
  
 !       calculate coefficients at dot points for u and v wind
@@ -513,9 +515,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = (akzz1(idx,k,j)+akzz1(idxm1,k,j))/d_two
+                betak(i,k) = (akzz1(idx,k,j)+akzz1(idxm1,k,j))*d_half
               end if
-              alphak(i,k) = (akzz2(idx,k,j)+akzz2(idxm1,k,j))/d_two
+              alphak(i,k) = (akzz2(idx,k,j)+akzz2(idxm1,k,j))*d_half
             end do
           end do
 #ifdef MPP1
@@ -530,9 +532,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))/d_two
+                betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))*d_half
               end if
-              alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))/d_two
+              alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))*d_half
             end do
           end do
         else
@@ -546,11 +548,11 @@
              if ( k > 1 ) then
                betak(i,k) = (akzz1(idx,k,jm1)+               &
                              akzz1(idxm1,k,jm1)+             &
-                             akzz1(idx,k,j)+akzz1(idxm1,k,j))/d_four
+                             akzz1(idx,k,j)+akzz1(idxm1,k,j))*d_rfour
              end if
              alphak(i,k) = (akzz2(idx,k,jm1)+ &
                             akzz2(idxm1,k,jm1)+ &
-                            akzz2(idx,k,j)+akzz2(idxm1,k,j))/d_four
+                            akzz2(idx,k,j)+akzz2(idxm1,k,j))*d_rfour
            end do
          end do
 #ifndef BAND
@@ -614,7 +616,7 @@
 
 #ifdef BAND
           drgdot = (sfsta%uvdrag(idxm1,jm1)+sfsta%uvdrag(idxm1,j) + &
-                    sfsta%uvdrag(idx,jm1)  +sfsta%uvdrag(idx,j))/d_four
+                    sfsta%uvdrag(idx,jm1)  +sfsta%uvdrag(idx,j))*d_rfour
 #else
           jdx = j
           jdxm1 = j - 1
@@ -626,7 +628,7 @@
           jdxm1 = max0(jdxm1,2)
 #endif
           drgdot = (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)+  &
-                  sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))/d_four
+                  sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))*d_rfour
 #endif
           uflxsf = drgdot*auxx(i,kz,j)
           vflxsf = drgdot*avxx(i,kz,j)
@@ -663,7 +665,7 @@
         do k = 1 , kz
           do i = 2 , iym1
             dumr = (sps2%ps(i,j)  +sps2%ps(i,jm1) +  &
-                    sps2%ps(i-1,j)+sps2%ps(i-1,jm1))/d_four
+                    sps2%ps(i-1,j)+sps2%ps(i-1,jm1))*d_rfour
             aten%u(i,k,j) = aten%u(i,k,j) + &
                             (tpred1(i,k)-auxx(i,k,j))/dt*dumr
             aten%v(i,k,j) = aten%v(i,k,j) + &
@@ -709,9 +711,8 @@
         do k = 2 , kz - 1
           do i = 2 , iym1
             coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (thx3d(i,k,j) + &
-                  coef3(i,k)*coeff1(i,k-1)) / &
-                 (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
+                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
@@ -971,7 +972,6 @@
 !
 !         set the Vd for in case of prescribed deposition velocities
 !
- 
           do itr = 1 , ntr
             do i = 2 , iym1
 #ifdef CLM
@@ -1175,7 +1175,7 @@
             if ( hfxv(i,j) > d_zero ) then
               tlv = th10(i,j) + therm(i)
               tkv = thx3d(i,k,j) * &
-                    (d_one+mult*(qvb3d(i,k,j)/(qvb3d(i,k,j)+1)))
+                    (d_one+mult*(qvb3d(i,k,j)/(qvb3d(i,k,j)+d_one)))
               vv = ubx3d(i,k,j)*ubx3d(i,k,j)+vbx3d(i,k,j)*vbx3d(i,k,j)
               ri(i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(i,j)*vv)
             end if
@@ -1226,7 +1226,7 @@
             zp = za(i,k2,j)
             if ( zm < sfsta%zpbl(i,j) ) then
               zp = dmin1(zp,sfsta%zpbl(i,j))
-              z = (zm+zp)/d_two
+              z = (zm+zp)*d_half
               zh = z/sfsta%zpbl(i,j)
               zl = z/obklen(i,j)
               if ( zh <= d_one ) then
@@ -1240,7 +1240,7 @@
 !               zzhnew =0.25* (d_one - zh)
 !               zzhnew =0.75* (d_one - zh)
 !Sara_
-                zzhnew = (d_one-zh)/d_four
+                zzhnew = (d_one-zh)*d_rfour
 !xexp10         zzhnew =zh * (d_one - zh)**2
 !chem
                 if ( ichem == 1 ) then

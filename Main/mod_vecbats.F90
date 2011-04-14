@@ -1194,7 +1194,7 @@
               alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
               alwet = dmin1(alwet,solour(kolour))
               albg = solour(kolour) + alwet
-!             if((lveg(n,i) == 8)) albg=0.40      !Laura, cambiato il
+!             if ((lveg(n,i) == 8)) albg=0.40      !Laura, cambiato il
 !             DESERTO
               albgs = albg
               albgl = d_two*albg

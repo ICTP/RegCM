@@ -60,11 +60,7 @@
 !
       integer , parameter :: pnoz = 100
       integer , parameter :: pozlon = 1
-      real(8) :: cplol , cplos , ldoyoz , ndoyoz
-      real(8) , dimension(1,pnoz) :: ozmix
-      real(8) , dimension(pozlon,pnoz,1,2) :: ozmixm
-      real(8) , dimension(pnoz) :: pin
-      integer :: koz , nyroz
+      real(8) :: cplol , cplos
       real(8) , parameter :: verynearone = 0.999999D0
 !
       real(8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
@@ -477,7 +473,7 @@
 !     conversion to cgs from mks):
 !
       cplos = v0/(amd*egrav)*d_100
-      cplol = v0/(amd*egrav*p0)/d_two*d_100
+      cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
       call time_end(subroutine_name,indx)
       end subroutine radini
@@ -1301,7 +1297,7 @@
 !
 !       Set reflectivities for surface based on mid-point wavelength
 !
-        wavmid = (wavmin(ns)+wavmax(ns))/d_two
+        wavmid = (wavmin(ns)+wavmax(ns))*d_half
 !
 !       Wavelength less  than 0.7 micro-meter
 !
@@ -1309,7 +1305,7 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               albdir(i) = asdir(i)
-              albdif(i) = asdif(i)
+              albdif (i) = asdif(i)
             end do
           end do
 !
@@ -1319,7 +1315,7 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               albdir(i) = aldir(i)
-              albdif(i) = aldif(i)
+              albdif (i) = aldif(i)
             end do
           end do
         end if
@@ -1376,17 +1372,17 @@
         do n = 1 , nloop
           do i = is(n) , ie(n)
             rupdir(i,kzp1) = albdir(i)
-            rupdif(i,kzp1) = albdif(i)
+            rupdif (i,kzp1) = albdif(i)
           end do
         end do
         do k = kz , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
-              rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
-                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+              rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
+              rupdir(i,k) = rdir(i,k) + tdif (i,k)                       &
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1)   &
                             *(tdir(i,k)-explay(i,k)))*rdenom
-              rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+              rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
                             **d_two*rdenom
             end do
           end do
@@ -1398,13 +1394,13 @@
         do k = 0 , kzp1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
+              rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+                   &
-                            (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
+                            (tottrn(i,k)-exptdn(i,k))*rupdif (i,k))*     &
                             rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
                             + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                            *rupdir(i,k)*rdndif(i,k))*rdenom
+                            *rupdir(i,k)*rdndif (i,k))*rdenom
             end do
           end do
         end do
@@ -1536,18 +1532,18 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               rupdir(i,2) = albdir(i)
-              rupdif(i,2) = albdif(i)
+              rupdif (i,2) = albdif(i)
             end do
           end do
 !
           do k = 1 , 0 , -1
             do n = 1 , nloop
               do i = is(n) , ie(n)
-                rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
-                rupdir(i,k) = rdir(i,k) + tdif(i,k)                     &
-                              *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1) &
+                rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
+                rupdir(i,k) = rdir(i,k) + tdif (i,k)                     &
+                              *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1) &
                               *(tdir(i,k)-explay(i,k)))*rdenom
-                rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)       &
+                rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)       &
                               **d_two*rdenom
               end do
             end do
@@ -1559,12 +1555,12 @@
           do k = 0 , 2
             do n = 1 , nloop
               do i = is(n) , ie(n)
-                rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
+                rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
                 fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-    &
-                              exptdn(i,k))*rupdif(i,k))*rdenom
+                              exptdn(i,k))*rupdif (i,k))*rdenom
                 fluxdn(i,k) = exptdn(i,k)                               &
                               + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)    &
-                              *rupdir(i,k)*rdndif(i,k))*rdenom
+                              *rupdir(i,k)*rdndif (i,k))*rdenom
               end do
             end do
           end do
@@ -1612,18 +1608,18 @@
         do n = 1 , nloop
           do i = is(n) , ie(n)
             rupdir(i,2) = albdir(i)
-            rupdif(i,2) = albdif(i)
+            rupdif (i,2) = albdif(i)
           end do
         end do
 !
         do k = 1 , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
-              rupdir(i,k) = rdir(i,k) + tdif(i,k)                       &
-                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
+              rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
+              rupdir(i,k) = rdir(i,k) + tdif (i,k)                       &
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1)   &
                             *(tdir(i,k)-explay(i,k)))*rdenom
-              rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+              rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
                             **d_two*rdenom
             end do
           end do
@@ -1635,12 +1631,12 @@
         do k = 0 , 2
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
+              rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-exptdn&
-                            (i,k))*rupdif(i,k))*rdenom
+                            (i,k))*rupdif (i,k))*rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
                             + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                            *rupdir(i,k)*rdndif(i,k))*rdenom
+                            *rupdir(i,k)*rdndif (i,k))*rdenom
             end do
           end do
         end do
@@ -1851,16 +1847,12 @@
                  km3 , km4 , iym1c , irad , n , nradaer
       integer , dimension(iym1) :: indx , khiv , khivm , klov
       real(8) , dimension(iym1,kzp1,kzp1) :: s , s0
-      real(8) , dimension(iym1,kzp1,kzp1) :: tone
 !
 !
       character (len=50) :: subroutine_name='radclw'
       integer :: idindx = 0
 !
       call time_begin(subroutine_name,idindx)
-!
-      tone(:,:,:)=d_one
-
 !
       do i = 1 , iym1
         rtclrsf(i,1) = d_one/tclrsf(i,1)
@@ -2014,7 +2006,7 @@
         end do
         do k = 1 , kz - 1
           do i = 1 , iym1
-            bk2(i) = (abstot(i,k,kz,jslc)+abstot(i,k,kzp1,jslc))/d_two
+            bk2(i) = (abstot(i,k,kz,jslc)+abstot(i,k,kzp1,jslc))*d_half
             bk1(i) = bk2(i)
             s(i,k,kzp1) = stebol*(bk2(i)*delt(i)+bk1(i)*delt1(i))
           end do
@@ -2041,7 +2033,7 @@
             else
               do i = 1 , iym1
                 bk2(i) = (abstot(i,k,km-1,jslc)+ &
-                          abstot(i,k,km,jslc))/d_two
+                          abstot(i,k,km,jslc))*d_half
                 bk1(i) = bk2(i)
               end do
             end if
@@ -2454,18 +2446,18 @@
 !         Same limit for diffuse mod_transmission:
 !
           arg = dmin1(1.66D0*taugab(i),25.0D0)
-          tdif(i,0) = dexp(-arg)
+          tdif (i,0) = dexp(-arg)
 !
           rdir(i,0) = d_zero
-          rdif(i,0) = d_zero
+          rdif (i,0) = d_zero
 !
 !         Initialize top interface of extra layer:
 !
           exptdn(i,0) = d_one
-          rdndif(i,0) = d_zero
+          rdndif (i,0) = d_zero
           tottrn(i,0) = d_one
 !
-          rdndif(i,1) = rdif(i,0)
+          rdndif (i,1) = rdif(i,0)
           tottrn(i,1) = tdir(i,0)
 !
         end do
@@ -2485,9 +2477,9 @@
           do i = is(nn) , ie(nn)
 !
             rdir(i,k) = d_zero
-            rdif(i,k) = d_zero
+            rdif (i,k) = d_zero
             tdir(i,k) = d_zero
-            tdif(i,k) = d_zero
+            tdif (i,k) = d_zero
             explay(i,k) = d_zero
 !
 !           Calculates the solar beam transmission, total transmission,
@@ -2495,13 +2487,13 @@
 !           top of the current layer:
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
-            rdenom = d_one/(d_one-rdif(i,k-1)*rdndif(i,k-1))
+            rdenom = d_one/(d_one-rdif (i,k-1)*rdndif(i,k-1))
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
-                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
-            rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                          *(tdif(i,k-1)*rdenom)
+            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)       &
+                          *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
+            rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
+                          *(tdif (i,k-1)*rdenom)
 !
           end do
         end do
@@ -2543,8 +2535,8 @@
             extins = dexp(-arg)
             ne = n(ue,extins)
 !
-            rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(i,k) = d_four*ue/ne
+            rdif (i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif (i,k) = d_four*ue/ne
 !
 !           Limit argument of exponential to 25, in case coszrs is very
 !           small:
@@ -2553,8 +2545,8 @@
 !
             apg = alp + gam
             amg = alp - gam
-            rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
-            tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one))  &
+            rdir(i,k) = amg*(tdif (i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
+            tdir(i,k) = apg*tdif (i,k) + (amg*rdif(i,k)-(apg-d_one))  &
                         *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
@@ -2562,8 +2554,8 @@
 !
             rdir(i,k) = dmax1(rdir(i,k),d_zero)
             tdir(i,k) = dmax1(tdir(i,k),d_zero)
-            rdif(i,k) = dmax1(rdif(i,k),d_zero)
-            tdif(i,k) = dmax1(tdif(i,k),d_zero)
+            rdif (i,k) = dmax1(rdif(i,k),d_zero)
+            tdif (i,k) = dmax1(tdif(i,k),d_zero)
 !
           end do
         end if
@@ -2578,13 +2570,13 @@
       do nn = 1 , nloop
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
-          rdenom = d_one/(d_one-rdif(i,k-1)*rdndif(i,k-1))
+          rdenom = d_one/(d_one-rdif (i,k-1)*rdndif(i,k-1))
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
-                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
-          rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                        *(tdif(i,k-1)*rdenom)
+          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)         &
+                        *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
+          rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
+                        *(tdif (i,k-1)*rdenom)
         end do
       end do
 !
@@ -2799,8 +2791,8 @@
           extins = dexp(-arg)
           ne = n(ue,extins)
 !
-          rdif(i,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif(i,0) = d_four*ue/ne
+          rdif (i,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif (i,0) = d_four*ue/ne
 !
 !         Limit argument of exponential to 25, in case coszrs is very
 !         small:
@@ -2809,8 +2801,8 @@
 !
           apg = alp + gam
           amg = alp - gam
-          rdir(i,0) = amg*(tdif(i,0)*explay(i,0)-d_one) + apg*rdif(i,0)
-          tdir(i,0) = apg*tdif(i,0) + (amg*rdif(i,0)-(apg-d_one))  &
+          rdir(i,0) = amg*(tdif (i,0)*explay(i,0)-d_one) + apg*rdif(i,0)
+          tdir(i,0) = apg*tdif (i,0) + (amg*rdif(i,0)-(apg-d_one))  &
                       *explay(i,0)
 !
 !         Under rare conditions, reflectivies and transmissivities can
@@ -2818,16 +2810,16 @@
 !
           rdir(i,0) = dmax1(rdir(i,0),d_zero)
           tdir(i,0) = dmax1(tdir(i,0),d_zero)
-          rdif(i,0) = dmax1(rdif(i,0),d_zero)
-          tdif(i,0) = dmax1(tdif(i,0),d_zero)
+          rdif (i,0) = dmax1(rdif(i,0),d_zero)
+          tdif (i,0) = dmax1(tdif(i,0),d_zero)
 !
 !         Initialize top interface of extra layer:
 !
           exptdn(i,0) = d_one
-          rdndif(i,0) = d_zero
+          rdndif (i,0) = d_zero
           tottrn(i,0) = d_one
 !
-          rdndif(i,1) = rdif(i,0)
+          rdndif (i,1) = rdif(i,0)
           tottrn(i,1) = tdir(i,0)
 !
         end do
@@ -2847,9 +2839,9 @@
           do i = is(nn) , ie(nn)
 !
             rdir(i,k) = d_zero
-            rdif(i,k) = d_zero
+            rdif (i,k) = d_zero
             tdir(i,k) = d_zero
-            tdif(i,k) = d_zero
+            tdif (i,k) = d_zero
             explay(i,k) = d_zero
 !
 !           Calculates the solar beam transmission, total transmission,
@@ -2858,16 +2850,16 @@
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN         modified below (for computational stability)
-!           rdenom      = d_one/(1. - rdif(i,k-1)*rdndif(i,k-1))
+!           rdenom      = d_one/(1. - rdif (i,k-1)*rdndif(i,k-1))
             rdenom = d_one/(d_one- &
-                    dmin1(rdif(i,k-1)*rdndif(i,k-1),verynearone))
+                    dmin1(rdif (i,k-1)*rdndif(i,k-1),verynearone))
 !KN         modified above
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
-                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
-            rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                          *(tdif(i,k-1)*rdenom)
+            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)       &
+                          *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
+            rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
+                          *(tdif (i,k-1)*rdenom)
 !
           end do
         end do
@@ -2911,8 +2903,8 @@
             extins = dexp(-arg)
             ne = n(ue,extins)
 !
-            rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(i,k) = d_four*ue/ne
+            rdif (i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif (i,k) = d_four*ue/ne
 !
 !           Limit argument of exponential to 25, in case coszrs is very
 !           small:
@@ -2921,8 +2913,8 @@
 !
             apg = alp + gam
             amg = alp - gam
-            rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
-            tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one)) &
+            rdir(i,k) = amg*(tdif (i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
+            tdir(i,k) = apg*tdif (i,k) + (amg*rdif(i,k)-(apg-d_one)) &
                         *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
@@ -2930,8 +2922,8 @@
 !
             rdir(i,k) = dmax1(rdir(i,k),d_zero)
             tdir(i,k) = dmax1(tdir(i,k),d_zero)
-            rdif(i,k) = dmax1(rdif(i,k),d_zero)
-            tdif(i,k) = dmax1(tdif(i,k),d_zero)
+            rdif (i,k) = dmax1(rdif(i,k),d_zero)
+            tdif (i,k) = dmax1(tdif(i,k),d_zero)
           end do
         end if
 !
@@ -2946,16 +2938,16 @@
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN       modified below (for computational stability)
-!         rdenom = d_one/(1. - rdif(i,k-1)*rdndif(i,k-1))
+!         rdenom = d_one/(1. - rdif (i,k-1)*rdndif(i,k-1))
           rdenom = d_one/(d_one- &
-                   dmin1(rdif(i,k-1)*rdndif(i,k-1),verynearone))
+                   dmin1(rdif (i,k-1)*rdndif(i,k-1),verynearone))
 !KN       modified above
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
-                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
-          rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                        *(tdif(i,k-1)*rdenom)
+          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)         &
+                        *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
+          rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
+                        *(tdif (i,k-1)*rdenom)
         end do
       end do
 !
@@ -3429,9 +3421,9 @@
               trab4(i) = dexp(-(coefg(1,3)+coefg(2,3)*dtx(i))*uc(i))
               trab6(i) = dexp(-(coefg(1,4)+coefg(2,4)*dtx(i))*uc(i))
               abso(i,3) = term6(i,k2)                                   &
-                          *(d_one-trab4(i)/d_two*trline(i,2)- &
-                                  trab6(i)/d_two*trline(i,1))
-              abso(i,4) = term9(i,k2)/d_two*(tr1-tr9(i)+tr2-tr10(i))
+                          *(d_one-trab4(i)*d_half*trline(i,2)- &
+                                  trab6(i)*d_half*trline(i,1))
+              abso(i,4) = term9(i,k2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
             end do
             if ( k2 < k1 ) then
               do i = 1 , iym1
@@ -3550,16 +3542,16 @@
 !
       do k2 = kz , 1 , -1
         do i = 1 , iym1
-          tbar(i,1) = (tint(i,k2+1)+tlayr(i,k2+1))/d_two
-          emm(i,1) = (co2em(i,k2+1)+co2eml(i,k2))/d_two
-          tbar(i,2) = (tlayr(i,k2+1)+tint(i,k2))/d_two
-          emm(i,2) = (co2em(i,k2)+co2eml(i,k2))/d_two
-          tbar(i,3) = (tbar(i,2)+tbar(i,1))/d_two
+          tbar(i,1) = (tint(i,k2+1)+tlayr(i,k2+1))*d_half
+          emm(i,1) = (co2em(i,k2+1)+co2eml(i,k2))*d_half
+          tbar(i,2) = (tlayr(i,k2+1)+tint(i,k2))*d_half
+          emm(i,2) = (co2em(i,k2)+co2eml(i,k2))*d_half
+          tbar(i,3) = (tbar(i,2)+tbar(i,1))*d_half
           emm(i,3) = emm(i,1)
           tbar(i,4) = tbar(i,3)
           emm(i,4) = emm(i,2)
-          o3emm(i,1) = (dbvtit(i,k2+1)+dbvtly(i,k2))/d_two
-          o3emm(i,2) = (dbvtit(i,k2)+dbvtly(i,k2))/d_two
+          o3emm(i,1) = (dbvtit(i,k2+1)+dbvtly(i,k2))*d_half
+          o3emm(i,2) = (dbvtit(i,k2)+dbvtly(i,k2))*d_half
           o3emm(i,3) = o3emm(i,1)
           o3emm(i,4) = o3emm(i,2)
           temh2o(i,1) = tbar(i,1)
@@ -3573,8 +3565,8 @@
 !
         do wvl = 1 , 14
           do i = 1 , iym1
-            bplnk(wvl,i,1) = (abplnk1(wvl,i,k2+1)+abplnk2(wvl,i,k2))/d_two
-            bplnk(wvl,i,2) = (abplnk1(wvl,i,k2)+abplnk2(wvl,i,k2))/d_two
+            bplnk(wvl,i,1) = (abplnk1(wvl,i,k2+1)+abplnk2(wvl,i,k2))*d_half
+            bplnk(wvl,i,2) = (abplnk1(wvl,i,k2)+abplnk2(wvl,i,k2))*d_half
             bplnk(wvl,i,3) = bplnk(wvl,i,1)
             bplnk(wvl,i,4) = bplnk(wvl,i,2)
           end do
@@ -3583,27 +3575,27 @@
         do i = 1 , iym1
           rdpnmsq = d_one/(pnmsq(i,k2+1)-pnmsq(i,k2))
           rdpnm = d_one/dpnm(i)
-          p1 = (pbr(i,k2)+pnm(i,k2+1))/d_two
-          p2 = (pbr(i,k2)+pnm(i,k2))/d_two
+          p1 = (pbr(i,k2)+pnm(i,k2+1))*d_half
+          p2 = (pbr(i,k2)+pnm(i,k2))*d_half
           uinpl(i,1) = (pnmsq(i,k2+1)-p1**d_two)*rdpnmsq
           uinpl(i,2) = -(pnmsq(i,k2)-p2**d_two)*rdpnmsq
           uinpl(i,3) = -(pnmsq(i,k2)-p1**d_two)*rdpnmsq
           uinpl(i,4) = (pnmsq(i,k2+1)-p2**d_two)*rdpnmsq
-          winpl(i,1) = ((pnm(i,k2+1)-pbr(i,k2))/d_two)*rdpnm
-          winpl(i,2) = ((-pnm(i,k2)+pbr(i,k2))/d_two)*rdpnm
-          winpl(i,3) = ((pnm(i,k2+1)+pbr(i,k2))/d_two-pnm(i,k2))*rdpnm
-          winpl(i,4) = ((-pnm(i,k2)-pbr(i,k2))/d_two+pnm(i,k2+1))*rdpnm
+          winpl(i,1) = ((pnm(i,k2+1)-pbr(i,k2))*d_half)*rdpnm
+          winpl(i,2) = ((-pnm(i,k2)+pbr(i,k2))*d_half)*rdpnm
+          winpl(i,3) = ((pnm(i,k2+1)+pbr(i,k2))*d_half-pnm(i,k2))*rdpnm
+          winpl(i,4) = ((-pnm(i,k2)-pbr(i,k2))*d_half+pnm(i,k2+1))*rdpnm
           tmp1 = d_one/(piln(i,k2+1)-piln(i,k2))
           tmp2 = piln(i,k2+1) - pmln(i,k2)
           tmp3 = piln(i,k2) - pmln(i,k2)
-          zinpl(i,1) = (tmp2/d_two)*tmp1
-          zinpl(i,2) = (-tmp3/d_two)*tmp1
-          zinpl(i,3) = (tmp2/d_two-tmp3)*tmp1
-          zinpl(i,4) = (tmp2-tmp3/d_two)*tmp1
-          pinpl(i,1) = (p1+pnm(i,k2+1))/d_two
-          pinpl(i,2) = (p2+pnm(i,k2))/d_two
-          pinpl(i,3) = (p1+pnm(i,k2))/d_two
-          pinpl(i,4) = (p2+pnm(i,k2+1))/d_two
+          zinpl(i,1) = (tmp2*d_half)*tmp1
+          zinpl(i,2) = (-tmp3*d_half)*tmp1
+          zinpl(i,3) = (tmp2*d_half-tmp3)*tmp1
+          zinpl(i,4) = (tmp2-tmp3*d_half)*tmp1
+          pinpl(i,1) = (p1+pnm(i,k2+1))*d_half
+          pinpl(i,2) = (p2+pnm(i,k2))*d_half
+          pinpl(i,3) = (p1+pnm(i,k2))*d_half
+          pinpl(i,4) = (p2+pnm(i,k2+1))*d_half
         end do
 
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
@@ -3728,9 +3720,9 @@
                          *(d_one+c9*dtx(i)*(d_one+c11*dtx(i)         &
                          *(d_one+c13*dtx(i)*(d_one+c15*dtx(i)))))
             abso(i,3) = term6(i,2)                                   &
-                        *(d_one-trab4(i)/d_two*trline(i,2)-          &
-                                trab6(i)/d_two*trline(i,1))
-            abso(i,4) = term9(i,2)/d_two*(tr1-tr9(i)+tr2-tr10(i))
+                        *(d_one-trab4(i)*d_half*trline(i,2)-          &
+                                trab6(i)*d_half*trline(i,1))
+            abso(i,4) = term9(i,2)*d_half*(tr1-tr9(i)+tr2-tr10(i))
           end do
 !
 !         abso(i,5)  o3  9.6 micrometer (nu3 and nu1 bands)
@@ -4233,7 +4225,7 @@
                      *trline(i,2)
           trem6(i) = dexp(-(coefg(1,2)+coefg(2,2)*dtx(i))*uc(i))        &
                      *trline(i,1)
-          emis(i,3) = term6(i,1)*(d_one-trem4(i)/d_two-trem6(i)/d_two)
+          emis(i,3) = term6(i,1)*(d_one-trem4(i)*d_half-trem6(i)*d_half)
 !
 !         emis(i,4)   500 -  800 cm-1   rotation band overlap with co2
 !
@@ -4252,7 +4244,7 @@
           tr4(i) = dexp(-((coefh(1,2)+coefh(2,2)*dtx(i))*uc1(i)))
           tr7(i) = tr1(i)*tr3(i)
           tr8(i) = tr2(i)*tr4(i)
-          emis(i,4) = term9(i,1)/d_two*(tr1(i)-tr7(i)+tr2(i)-tr8(i))
+          emis(i,4) = term9(i,1)*d_half*(tr1(i)-tr7(i)+tr2(i)-tr8(i))
           h2oems(i,k1) = emis(i,1) + emis(i,2) + emis(i,3) + emis(i,4)
           troco2(i,k1) = 0.65D0*tr7(i) + 0.35D0*tr8(i)
           th2o(i) = tr8(i)
@@ -4517,7 +4509,7 @@
         do i = 1 , iym1
           tlayr(i,k) = tnm(i,k-1)
           tlayr4(i,k) = tlayr(i,k)**d_four
-          tplnka(i,k) = (tint(i,k)+tint(i,k-1))/d_two
+          tplnka(i,k) = (tint(i,k)+tint(i,k-1))*d_half
         end do
       end do
 !
@@ -4663,7 +4655,7 @@
 !     Compute path quantities used in the longwave radiation:
 !
       vmmr = amco2/amd
-      cpwpl = vmmr/d_two/(egravgts*sslp)
+      cpwpl = vmmr*d_half/(egravgts*sslp)
       do i = 1 , iym1
         plh2o(i,1) = rgsslp*h2ommr(i,1)*pintrd(i,1)*pintrd(i,1)
         plco2(i,1) = co2vmr*cpwpl*pintrd(i,1)*pintrd(i,1)
@@ -4874,7 +4866,7 @@
         implicit none
         real(8) :: xgamma
         real(8) , intent(in) :: w , uu , g , e
-        xgamma = (w/d_two)*((3.0D0*g*(d_one-w)*uu*uu+d_one) / &
+        xgamma = (w*d_half)*((3.0D0*g*(d_one-w)*uu*uu+d_one) / &
                            (d_one-e*e*uu*uu))
       end function xgamma
       function el(w,g)

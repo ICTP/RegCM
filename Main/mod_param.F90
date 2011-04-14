@@ -95,10 +95,10 @@
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
-      integer :: len_path
+      integer :: n , len_path
       logical :: lband , lmpi
 #ifdef MPP1
-      integer :: n , ierr
+      integer :: ierr
 #ifndef CLM
       real(8) :: clmfrq
 #endif
@@ -688,9 +688,9 @@
       ktau = 0
       xtime = d_zero
       ntime = 0
-      dto2 = dt/d_two
+      dto2 = dt*d_half
       dtsplit(2) = dto2
-      dtsplit(1) = dt/d_four
+      dtsplit(1) = dt*d_rfour
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)
       end do
@@ -998,7 +998,7 @@
         end do
       end if  ! end if (myid == 0)
 
-      if(lakemod == 1) then
+      if (lakemod == 1) then
         call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
                      &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
                      &   0,mpi_comm_world,ierr)
@@ -1145,7 +1145,7 @@
 !
       do k = 1 , kz
         dsigma(k) = sigma(k+1) - sigma(k)
-        a(k) = (sigma(k+1)+sigma(k))/d_two
+        a(k) = (sigma(k+1)+sigma(k))*d_half
       end do
  
       do k = 1 , kz

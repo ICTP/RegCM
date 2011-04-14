@@ -88,8 +88,8 @@
       jp1 = j + 1
 !
 #if defined(BAND) && (!defined(MPP1))
-      if(jm1 == 0) jm1 = jx
-      if(jp1 == jx+1) jp1 = 1
+      if (jm1 == 0) jm1 = jx
+      if (jp1 == jx+1) jp1 = 1
 #endif
 !
 !----------------------------------------------------------------------
@@ -125,8 +125,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = (atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))/d_two
-            uavg1 = (atm1%u(i+1,k,j)+atm1%u(i,k,j))/d_two
+            uavg2 = (atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*d_half
+            uavg1 = (atm1%u(i+1,k,j)+atm1%u(i,k,j))*d_half
             if ( uavg2 >= d_zero ) then
               fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
             else
@@ -137,8 +137,8 @@
             else
               fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
             end if
-            vavg2 = (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))/d_two
-            vavg1 = (atm1%v(i,k,jp1)+atm1%v(i,k,j))/d_two
+            vavg2 = (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*d_half
+            vavg1 = (atm1%v(i,k,jp1)+atm1%v(i,k,j))*d_half
             if ( vavg2 >= d_zero ) then
               fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
             else
@@ -204,8 +204,8 @@
 !
 #ifdef BAND
 #if defined(BAND) && (!defined(MPP1))
-        if(jm1 == 0) jm1 = jx
-        if(jp1 == jx+1) jp1 = 1
+        if (jm1 == 0) jm1 = jx
+        if (jp1 == jx+1) jp1 = 1
 #endif
 !
         do k = 1 , kz
@@ -334,7 +334,7 @@
       jm1 = j-1
 #else
       jm1 = j-1
-      if(jm1 == 0) jm1=jx
+      if (jm1 == 0) jm1=jx
 #endif
 !
 !     qdot   : is the vertical sigma-velocity
@@ -462,7 +462,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = ((fa(i,k)+fa(i,k-1))/d_two)/mddom%msfd(i,j)
+            fg(i,k) = ((fa(i,k)+fa(i,k-1))*d_half)/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
@@ -475,8 +475,8 @@
         do k = 2 , kzm1
           do i = 2 , iym1
             ften(i,k) = ften(i,k)                                       &
-                      & - ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+qdot(i,   &
-                      & k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)               &
+                      & - ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+          &
+                      &     qdot(i,k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)    &
                       & -(qdot(i,k,jm1)+qdot(i-1,k,jm1)+qdot(i,k,j)     &
                       & +qdot(i-1,k,j))*fg(i,k))/(d_four*dsigma(k))
           end do
@@ -641,7 +641,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = ((fa(i,k)+fa(i,k-1))/d_two)/mddom%msfd(i,j)
+            fg(i,k) = ((fa(i,k)+fa(i,k-1))*d_half)/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
@@ -654,8 +654,8 @@
         do k = 2 , kzm1
           do i = 2 , iym1
             ften(i,k) = ften(i,k)                                       &
-                      & - ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+qdot(i,   &
-                      & k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)               &
+                      & - ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+          &
+                            qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1)  &
                       & -(qdot(i,k,j-1)+qdot(i-1,k,j-1)+qdot(i,k,j)     &
                       & +qdot(i-1,k,j))*fg(i,k))/(d_four*dsigma(k))
           end do

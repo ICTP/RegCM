@@ -55,9 +55,9 @@
 !!<
 MODULE mod_service
 
-  use mod_dynparam , only : debug_level
-
 #ifdef DEBUG
+
+  use mod_dynparam , only : debug_level
 
 !!! definition of single and double precision 
 

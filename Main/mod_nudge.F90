@@ -131,8 +131,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -187,8 +187,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -519,8 +519,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -578,8 +578,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -961,8 +961,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -1020,8 +1020,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iym1 - i + 1
@@ -1410,8 +1410,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1468,8 +1468,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1843,8 +1843,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1
@@ -1901,8 +1901,8 @@
 #else
          jm1 = j-1
          jp1 = j+1
-         if(jm1 == 0) jm1 = jx
-         if(jp1 == jx+1) jp1 = 1
+         if (jm1 == 0) jm1 = jx
+         if (jp1 == jx+1) jp1 = 1
 !------interior j slices:
          do i = 2 , ip
             ii = iy - i + 1

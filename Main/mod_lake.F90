@@ -537,7 +537,7 @@
 !**********************************************************************
  
       if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
-        hs = hs + prec*d_10/d_1000  ! convert prec(mm) to depth(m)
+        hs = hs + prec*d_10*d_r1000  ! convert prec(mm) to depth(m)
       if ( hs < d_zero ) hs = d_zero
  
       ! temperature of ice/snow surface
@@ -545,7 +545,7 @@
       ! freezing temp of water
       tf = d_zero
       ! approximate density of air (1 kg/m3)
-      rho = rhoh2o/d_1000
+      rho = rhoh2o*d_r1000
  
       khat = (ki*hs+ks*hi)/(ki*ks)
       theta = cpd*rho*cd*u2

@@ -398,15 +398,15 @@
             rhosw3 = rhosw(n,i)**d_three
             imelt(n,i) = 0
 ! ******    cice = specific heat of sea-ice per unit volume
-            rsd1 = cice*sice1d(n,i)/d_1000
+            rsd1 = cice*sice1d(n,i)*d_r1000
             if ( scv1d(n,i) > d_zero ) then
-              rss = csnw*scv1d(n,i)/d_1000
+              rss = csnw*scv1d(n,i)*d_r1000
               ratsi = scv1d(n,i)/(1.4D0*rhosw3*sice1d(n,i))
               wtt = d_one/(d_one+ratsi)
               wss = (scv1d(n,i)+2.8D0*rhosw3*sice1d(n,i)) / &
                     (scv1d(n,i)+1.4D0*rhosw3*sice1d(n,i))
 ! ******      include snow heat capacity
-              rsd1 = (wss*rss+wtt*rsd1)/d_two
+              rsd1 = (wss*rss+wtt*rsd1)*d_half
             end if
             tgb1d(n,i) = -d_two + tzero
 ! ******    subsurface heat flux through ice
@@ -554,7 +554,7 @@
             evmxt = evmx0(n,i)*xkmx1(n,i)/xkmx(n,i)
             b = bsw(n,i)
             bfac = watr(n,i)**(d_three+bfc(n,i))* &
-                               watu(n,i)**(b-bfc(n,i)-1)
+                               watu(n,i)**(b-bfc(n,i)-d_one)
             bfac2 = watt(n,i)**(d_two+bfc(n,i))* &
                                watr(n,i)**(b-bfc(n,i))
             wfluxc(n,i) = evmxr*(depuv(lveg(n,i))/ &
@@ -602,7 +602,7 @@
 !
 !           2.1  surface runoff
 !
-            wata(n,i) = (watu(n,i)+watr(n,i))/d_two
+            wata(n,i) = (watu(n,i)+watr(n,i))*d_half
 !
 !           2.11 increase surface runoff over frozen ground
 !
@@ -724,7 +724,7 @@
             rap = rhs1d(n,i)*(csoilc*uaf(n,i)*sigf(n,i)*(qg1d(n,i)+     &
                   delq1d(n,i)-qs1d(n,i))+wtg2c*(qg1d(n,i)-qs1d(n,i)))
             bfac = watr(n,i)**(d_three+bfc(n,i))*watu(n,i) &
-                   **(bsw(n,i)-bfc(n,i)-1)
+                   **(bsw(n,i)-bfc(n,i)-d_one)
             est0 = evmx0(n,i)*bfac*watu(n,i)
             evmax = dmax1(est0,d_zero)
             gwet1d(n,i) = dmin1(d_one,evmax/dmax1(1.0D-14,rap))
@@ -903,7 +903,7 @@
       xnua = xnu/365.0D0
       xdtime = dtbat*xnu
       dtimea = dtbat*xnua
-      xdt2 = xdtime/d_two
+      xdt2 = xdtime*d_half
       xkperi = 1.4D-6
  
 !l    3.4  permafrost temperature
@@ -920,7 +920,7 @@
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
             if ( tg1d(n,i) < tzero ) then
-              frozen = 0.85D0*dmin1(d_one,(tzero-tg1d(n,i))/d_four)
+              frozen = 0.85D0*dmin1(d_one,(tzero-tg1d(n,i))*d_rfour)
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(d_one-0.51D0*frozen))
             else
@@ -929,7 +929,7 @@
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
             if ( tgb1d(n,i) < tzero ) then
-              froze2 = 0.85D0*dmin1(d_one,(tzero-tgb1d(n,i))/d_four)
+              froze2 = 0.85D0*dmin1(d_one,(tzero-tgb1d(n,i))*d_rfour)
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(d_one-0.51D0*froze2))
             else
@@ -1036,13 +1036,13 @@
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
             if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
-              c31 = (dtimea/d_two)*(d_one+deprat(n,i))
+              c31 = (dtimea*d_half)*(d_one+deprat(n,i))
               c41 = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c31+fct2(n,i)) * &
                      tgb1d(n,i)+c41*tg1d(n,i) +     &
                      dtimea*t3)/(d_one+c31+fct2(n,i))
             else
-              c3t = dtimea/d_two*deprat(n,i)
+              c3t = dtimea*d_half*deprat(n,i)
               c4t = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c3t+fct2(n,i))* &
                     tgb1d(n,i)+c4t*tg1d(n,i)) /    &
@@ -1071,7 +1071,7 @@
         implicit none
         real(8) :: fct1
         real(8) , intent(in) :: x
-        fct1 = wlhf/d_four*1.414D0/x
+        fct1 = wlhf*d_rfour*1.414D0/x
       end function fct1
 ! 
       end subroutine tgrund

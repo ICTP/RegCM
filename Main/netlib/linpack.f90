@@ -3048,7 +3048,6 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
   integer j
   integer j2
   integer k
-  integer kp1
   integer l
   integer la
   integer lb
@@ -3121,7 +3120,6 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
     sm = abs ( wkm )
     wk = wk / abd(m+1,k)
     wkm = wkm / abd(m+1,k)
-    kp1 = k + 1
     j2 = min ( k+m, n )
     i = m + 1
 
@@ -3565,7 +3563,6 @@ subroutine spoco ( a, lda, n, rcond, z, info )
   integer info
   integer j
   integer k
-  integer kp1
   real(8) rcond
   real(8) s
   real(8) sm
@@ -3626,7 +3623,6 @@ subroutine spoco ( a, lda, n, rcond, z, info )
         sm = abs ( wkm )
         wk = wk / a(k,k)
         wkm = wkm / a(k,k)
-        kp1 = k + 1
 
         if ( k+1 <= n ) then
 
@@ -3783,7 +3779,6 @@ subroutine spodi ( a, lda, n, det, job )
   integer j
   integer job
   integer k
-  integer kp1
   real(8) s
   real(8) t
 !
@@ -3826,7 +3821,6 @@ subroutine spodi ( a, lda, n, det, job )
         a(k,k) = 1.0D+00 / a(k,k)
         t = -a(k,k)
         call sscal ( k-1, t, a(1,k), 1 )
-        kp1 = k + 1
 
         do j = k+1, n
           t = a(k,j)
@@ -4093,7 +4087,6 @@ subroutine sppco ( ap, n, rcond, z, info )
   integer k
   integer kj
   integer kk
-  integer kp1
   real(8) rcond
   real(8) s
   real(8) sm
@@ -4162,7 +4155,6 @@ subroutine sppco ( ap, n, rcond, z, info )
         sm = abs ( wkm )
         wk = wk / ap(kk)
         wkm = wkm / ap(kk)
-        kp1 = k + 1
         kj = kk + k
 
         if ( k+1 <= n ) then
@@ -4324,7 +4316,6 @@ subroutine sppdi ( ap, n, det, job )
   integer k1
   integer kj
   integer kk
-  integer kp1
   real(8) s
   real(8) t
 !
@@ -4374,7 +4365,6 @@ subroutine sppdi ( ap, n, det, job )
         ap(kk) = 1.0D+00 / ap(kk)
         t = - ap(kk)
         call sscal ( k-1, t, ap(k1), 1 )
-        kp1 = k + 1
         j1 = kk + 1
         kj = kk + k
 
@@ -5072,7 +5062,6 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
   integer jj
   integer job
   integer ju
-  integer kp1
   real(8) qraux(*)
   real(8) qty(n)
   real(8) qy(n)
@@ -5180,8 +5169,6 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
      if ( cb ) then
        b(1:k) = qty(1:k)
      end if
-
-     kp1 = k + 1
 
      if ( cab ) then
        ab(1:k) = qty(1:k)
@@ -6125,7 +6112,6 @@ subroutine ssifa ( a, lda, n, kpvt, info )
   integer jj
   integer jmax
   integer k
-  integer km1
   integer kpvt(n)
   integer kstep
   real(8) mulk
@@ -6159,7 +6145,6 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !  KSTEP will be set to the size of the pivot block, and
 !  SWAP will be set to .true. if an interchange is required.
 !
-     km1 = k - 1
      absakk = abs ( a(k,k) )
 !
 !  Determine the largest off-diagonal element in column K.
@@ -7234,7 +7219,6 @@ subroutine sspfa ( ap, n, kpvt, info )
   real(8) colmax
   real(8) denom
   integer ij
-  integer ijj
   integer ik
   integer ikm1
   integer im
@@ -7383,7 +7367,6 @@ subroutine sspfa ( ap, n, kpvt, info )
            mulk = -ap(jk)/ap(kk)
            t = mulk
            call saxpy ( j, t, ap(ik+1), 1, ap(ij+1), 1 )
-           ijj = ij + j
            ap(jk) = mulk
            ij = ij - (j - 1)
         end do
@@ -7450,7 +7433,6 @@ subroutine sspfa ( ap, n, kpvt, info )
               call saxpy ( j, t, ap(ikm1+1), 1, ap(ij+1), 1 )
               ap(jk) = mulk
               ap(jkm1) = mulkm1
-              ijj = ij + j
               ij = ij - (j - 1)
           end do
 
@@ -7787,7 +7769,6 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   integer, parameter :: maxit = 30
   integer mm
   integer mm1
-  integer mp1
   integer nct
   integer nctp1
   integer ncu
@@ -8052,8 +8033,6 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
         kase = 4
 
      else
-
-        mp1 = m + 1
 
         do lls = l+1, m+1
 

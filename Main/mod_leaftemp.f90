@@ -252,7 +252,7 @@
                                           wtgq0(n,i)*qg1d(n,i) -  &
                                           wtaq0(n,i)*qs1d(n,i))
  
-!as             if(efpot(n,i) >= 0.) then     !if 0 rpp could have
+!as             if (efpot(n,i) >= 0.) then     !if 0 rpp could have
 !               floating pt
                 if ( efpot(n,i) > d_zero ) then
                   etr(n,i) = efpot(n,i)*lftra(n,i)*fdry(n,i) / &
@@ -720,7 +720,7 @@
                 cdr(n,i) = cdrn(n,i)*ribi
                 cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
                            & *sigf(n,i)
-                cdrmin(n,i) = dmax1(cdrn(n,i)/d_four,6.0D-4)
+                cdrmin(n,i) = dmax1(cdrn(n,i)*d_rfour,6.0D-4)
               end if
               if ( (rib(n,i) >= d_zero) ) then
                 if ( (cdr(n,i) < cdrmin(n,i)) ) then
