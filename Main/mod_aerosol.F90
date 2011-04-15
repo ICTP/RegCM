@@ -872,7 +872,7 @@
                        idnint(d_10*(aermmr(i,k,iso4)/rhoso4)/      &
                        aervtot(i,k))
                   print * , 'DUST %' ,                                &
-                       10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
+                       d_10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
                   print * , 'DUST %' ,                             &
                        idnint(d_10*(aermmr(i,k,idust(1))/rhodust)  &
                        /aervtot(i,k))

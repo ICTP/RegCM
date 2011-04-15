@@ -52,23 +52,19 @@
       real(8) , allocatable, dimension(:,:,:) :: emstot , emstot0
       real(8) , allocatable, dimension(:,:,:,:):: xuinpl
 !
-!     Ozone
-!
-      real(8) :: cplol , cplos
-      real(8) , parameter :: verynearone = 0.999999D0
-!
       real(8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
       real(8) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
       real(8) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
                  c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
-                 c28 , c29 , c30 , c31 , c8 , c9 , cfa1 , fc1 , fwc1 ,  &
-                 fwc2 , fwcoef
+                 c28 , c29 , c30 , c31 , c8 , c9 , cfa1
       real(8) :: co2vmr
       real(8) , dimension(3,4) :: coefa , coefc , coefe
       real(8) , dimension(4,4) :: coefb , coefd
       real(8) , dimension(6,2) :: coeff , coefi
       real(8) , dimension(2,4) :: coefg , coefh
       real(8) , dimension(3,2) :: coefj , coefk
+!
+      real(8) , parameter :: verynearone = 0.999999D0
 !
 !     r80257   - Conversion factor for h2o pathlength
       real(8) , parameter :: r80257 = d_one/8.0257D-04
@@ -83,6 +79,29 @@
       real(8) , parameter :: r296 = d_one/296.0D0
 !     repsil - Inver ratio mol weight h2o to dry air
       real(8) , parameter :: repsil = d_one/ep2
+!
+!     Initialize further longwave constants referring to far wing
+!     correction; R&D refers to:
+!
+!     Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
+!     Emissivity and Absorptivity Formulation for Water Vapor
+!     Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
+!
+      real(8) , parameter :: fwcoef = 0.1D0      ! See eq(33) R&D
+      real(8) , parameter :: fwc1 = 0.30D0       ! See eq(33) R&D
+      real(8) , parameter :: fwc2 = 4.5D0        ! See eq(33) and eq(34) in R&D
+      real(8) , parameter :: fc1 = 2.6D0         ! See eq(34) R&D
+!
+!     Initialize ozone data.
+!
+      real(8) , parameter :: v0 = 22.4136D0 ! Volume of a gas at stp (m**3/kmol)
+      real(8) , parameter :: p0 = 0.1D0*sslp ! Standard pressure (pascals)
+!
+!     Constants for ozone path integrals (multiplication by 100 for unit
+!     conversion to cgs from mks):
+!
+      real(8) , parameter :: cplos = v0/(amd*egrav)*d_100
+      real(8) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
 !     v_raytau_xx - Constants for new bands
 !     v_abo3_xx   - Constants for new bands
@@ -373,11 +392,7 @@
 !---------------------------Local variables-----------------------------
 !
 ! iband  - H2O band index
-! v0     - Volume of a gas at stp (m**3/kmol)
-! p0     - Standard pressure (pascals)
-! amd    - Effective molecular weight of dry air (kg/kmol)
 !
-      real(8) :: amd , p0 , v0
       integer :: iband
 
       character (len=50) :: subroutine_name='radini'
@@ -458,30 +473,6 @@
       c30 = 0.1D0
       c31 = 3.0D-5
       cfa1 = 0.61D0
-!
-!     Initialize further longwave constants referring to far wing
-!     correction; R&D refers to:
-!
-!     Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
-!     Emissivity and Absorptivity Formulation for Water Vapor
-!     Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
-!
-      fwcoef = 0.1D0           ! See eq(33) R&D
-      fwc1 = 0.30D0            ! See eq(33) R&D
-      fwc2 = 4.5D0             ! See eq(33) and eq(34) in R&D
-      fc1 = 2.6D0              ! See eq(34) R&D
-!
-!     Initialize ozone data.
-!
-      v0 = 22.4136D0          ! Volume of a gas at stp (m**3/kmol)
-      p0 = 0.1D0*sslp         ! Standard pressure (pascals)
-      amd = 28.9644D0         ! Molecular weight of dry air (kg/kmol)
-!
-!     Constants for ozone path integrals (multiplication by 100 for unit
-!     conversion to cgs from mks):
-!
-      cplos = v0/(amd*egrav)*d_100
-      cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
       call time_end(subroutine_name,indx)
       end subroutine radini
@@ -735,9 +726,9 @@
 !         flwds(i) = flwds(i) * maxval(cld((i,:))) + &
 !                    flwds(i) * (1-maxval(cld((i,:))))
 !         flwds(i) = flwds(i) * maxval(cld(i,:)) + &
-!                    fslwdcs(i)*(1- maxval(cld(i,:)))
+!                    fslwdcs(i)*(d_one- maxval(cld(i,:)))
 !         flns(i) = flns(i) * maxval(cld(i,:)) + &
-!                   flnsc(i)*(1- maxval(cld(i,:))) 
+!                   flnsc(i)*(d_one- maxval(cld(i,:))) 
 !
 !         totcf(i) has been calculated for the SW, dolw is always true 
           flwds(i) = flwds(i) * totcf(i) + &

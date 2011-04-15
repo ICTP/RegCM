@@ -250,9 +250,9 @@
           dzq(k) = rovg*tbase(i,k,j)                                    &
                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
-        z0(i,kz) = 0.5*dzq(kz)
+        z0(i,kz) = d_half*dzq(kz)
         do k = kz - 1 , 1 , -1
-          z0(i,k) = z0(i,k+1) + 0.5*(dzq(k)+dzq(k+1))
+          z0(i,k) = z0(i,k+1) + d_half*(dzq(k)+dzq(k+1))
         end do
       end do
 !--------------padding specific humidity if too small-------------------
@@ -271,9 +271,9 @@
           if ( pkl >= psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
-            tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.))
+            tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0.))
             tdpt = dmin1(tdpt,t(i,kb))
-            tlcl = tdpt - (.212+1.571D-3*(tdpt-tzero)-4.36D-4*(t(i,kb)- &
+            tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*(t(i,kb)- &
                  & tzero))*(t(i,kb)-tdpt)
             tthes(i) = tthbt(i)*dexp(elocp*q(i,kb)/tlcl)
 !--------------check for maximum buoyancy-------------------------------
@@ -575,7 +575,7 @@
 !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         preck = preck*fefi
 !--------------update precipitation, temperature & moisture-------------
-        prainx = 0.5*((sps2%ps(i,j)*1000.*preck*cprlg)*100.)
+        prainx = d_half*((sps2%ps(i,j)*1000.*preck*cprlg)*100.)
         sfsta%rainc(i,j) = prainx + sfsta%rainc(i,j)
 !.....................precipitation rate for bats (mm/s)
         aprdiv = dble(nbatst)
@@ -709,9 +709,9 @@
         thtpk = t(i,ltp1)*ape(i,ltp1)
         pkl = (a(ltp1)*sps2%ps(i,j)+r8pt)*1000.0D0
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
-        tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.))
+        tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0.))
         tdpt = dmin1(tdpt,t(i,ltp1))
-        tlcl = tdpt - (.212+1.571D-3*(tdpt-tzero)-4.36D-4*              &
+        tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*              &
              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
         ptpk = h10e5*(thtpk/tlcl)**cporng
         dpmix = ptpk - psp(i)
@@ -1057,7 +1057,7 @@
       dxr = xold(3) - xold(2)
       dydxl = (yold(2)-yold(1))/dxl
       dydxr = (yold(3)-yold(2))/dxr
-      rtdxc = .5/(dxl+dxr)
+      rtdxc = d_half/(dxl+dxr)
 !
       p(1) = rtdxc*(6.0D0*(dydxr-dydxl)-dxl*y2(1))
       q(1) = -rtdxc*dxr
@@ -1121,9 +1121,9 @@
       y2kp1 = y2(k+1)
       dx = xold(k+1) - xold(k)
       rdx = 1.0D0/dx
-      ak = .1666667*rdx*(y2kp1-y2k)
-      bk = .5*y2k
-      ck = rdx*(yold(k+1)-yold(k)) - .1666667*dx*(y2kp1+y2k+y2k)
+      ak = (d_five/d_three)*rdx*(y2kp1-y2k)
+      bk = d_half*y2k
+      ck = rdx*(yold(k+1)-yold(k)) - (d_five/d_three)*dx*(y2kp1+y2k+y2k)
 !
  300  continue
       x = xk - xold(k)
@@ -1159,7 +1159,7 @@
       es = 611.0D0*dexp(rlorw*(d273-1.0D0/tgs))
       qs = ep2*es/(press-es)
       fo = tgs*dexp(rlocpd*qs/tgs) - rp
-      t1 = tgs - 0.5*fo
+      t1 = tgs - d_half*fo
       tguess = tgs
  100  es = 611.0D0*dexp(rlorw*(d273-1.0D0/t1))
       qs = ep2*es/(press-es)
