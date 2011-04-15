@@ -623,7 +623,7 @@
  
           end do
 
-          call sfflux(iy,2,iym2,j,20,ivegcov,vegfrac,ustar,       &
+          call sfflux(iy,2,iym2,j,ivegcov,vegfrac,ustar, &
                       zeff,soilw,wid10,rho(:,kz),dustbsiz,rsfrow)
  
           call chdrydep(iy,2,iym2,kz,1,nbin,ivegcov,ttb,rho,a,psurf,    &

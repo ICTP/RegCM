@@ -497,12 +497,12 @@
 !  * ashraf s. zakey                                   ******
 !  **********************************************************
 ! 
-      subroutine sfflux(ilg,il1,il2,jloop,luc,ivegcov,vegfrac, &
+      subroutine sfflux(ilg,il1,il2,jloop,ivegcov,vegfrac, &
                       & ustarnd,z0,soilw,surfwd,roarow,trsize,rsfrow)
 ! 
       implicit none
 !
-      integer :: il1 , il2 , ilg , jloop , luc
+      integer :: il1 , il2 , ilg , jloop
       integer , dimension(ilg) ::  ivegcov
       real(8) , dimension(ilg) :: roarow , soilw , surfwd , vegfrac ,   &
                        &          z0 , ustarnd
