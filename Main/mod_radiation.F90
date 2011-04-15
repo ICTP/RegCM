@@ -4804,22 +4804,22 @@
       end do
       end subroutine whenflt
 !
-      function intmax(n,iy,inc)
+      function intmax(n,imax,inc)
 !
       implicit none
 !
       integer :: inc , n
       integer :: intmax
-      integer , dimension(*) :: iy
-      intent (in) inc , iy , n
+      integer , dimension(*) :: imax
+      intent (in) inc , imax , n
 !
       integer :: i , mx
 !
-      mx = iy(1)
+      mx = imax(1)
       intmax = 1
       do i = 1 + inc , inc*n , inc
-        if ( iy(i) > mx ) then
-          mx = iy(i)
+        if ( imax(i) > mx ) then
+          mx = imax(i)
           intmax = i
         end if
       end do

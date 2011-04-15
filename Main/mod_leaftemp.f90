@@ -444,7 +444,7 @@
 !
       implicit none
 !
-      real(8) :: difzen , g , radfi , seas , vpdf
+      real(8) :: difzen , g , radfi , seas , vpdf , rilmax
       integer :: il , ilmax , n , i
       real(8) , dimension(10) :: rad , radd
 !
@@ -460,6 +460,7 @@
       g = d_half
       difzen = d_two
       ilmax = 4
+      rilmax = d_four
 !*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
@@ -468,9 +469,9 @@
           if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
 !             **********            zenith angle set in zenitm
-              if ( (czen(i)/ilmax) > 0.001D0 ) then
-                trup(n,i) = dexp(-g*rlai(n,i)/(ilmax*czen(i)))
-                trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(ilmax))
+              if ( (czen(i)/rilmax) > 0.001D0 ) then
+                trup(n,i) = dexp(-g*rlai(n,i)/(rilmax*czen(i)))
+                trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(rilmax))
                 if ( trup(n,i) < dlowval ) trup(n,i) = d_zero
                 if ( trupd(n,i) < dlowval ) trupd(n,i) = d_zero
                 fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
@@ -486,10 +487,10 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
-              if ( czen(i)/ilmax > 0.001D0 ) then
-                rad(1) = (d_one-trup(n,i))*fsol0(n,i)*ilmax/rlai(n,i)
+              if ( czen(i)/rilmax > 0.001D0 ) then
+                rad(1) = (d_one-trup(n,i))*fsol0(n,i)*rilmax/rlai(n,i)
                 radd(1) = (d_one-trupd(n,i))*fsold(n,i) * &
-                          ilmax/rlai(n,i)
+                          rilmax/rlai(n,i)
                 do il = 2 , ilmax
                   rad(il) = trup(n,i)*rad(il-1)
                   radd(il) = trupd(n,i)*radd(il-1)
@@ -499,7 +500,7 @@
                   radfi = radfi + (rad(il)+radd(il)+rmini(n,i)) / &
                           (d_one+rad(il)+radd(il))
                 end do
-                radf(n,i) = ilmax/radfi
+                radf(n,i) = rilmax/radfi
               end if
             end if
           end if
@@ -510,7 +511,7 @@
         do n = 1 , nnsg
           if ( ldoc1d(n,i) /= 0 ) then
             if ( sigf(n,i) > 0.001D0 ) then
-              if ( (czen(i)/ilmax) > 0.001D0 ) then
+              if ( (czen(i)/rilmax) > 0.001D0 ) then
                 vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,i)*0.025D0)
                 seas = d_one/(rmini(n,i)+fseas(tlef1d(n,i)))
                 lftrs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
