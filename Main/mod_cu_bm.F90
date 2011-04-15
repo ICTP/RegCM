@@ -271,7 +271,7 @@
           if ( pkl >= psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
-            tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0.))
+            tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0))
             tdpt = dmin1(tdpt,t(i,kb))
             tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*(t(i,kb)- &
                  & tzero))*(t(i,kb)-tdpt)
@@ -709,7 +709,7 @@
         thtpk = t(i,ltp1)*ape(i,ltp1)
         pkl = (a(ltp1)*sps2%ps(i,j)+r8pt)*1000.0D0
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
-        tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0.))
+        tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0))
         tdpt = dmin1(tdpt,t(i,ltp1))
         tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*              &
              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
