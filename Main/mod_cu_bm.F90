@@ -82,8 +82,8 @@
           allocate(tbase(iy,kz,jx))
           allocate(cldefi(iy,jx))
         end if
-        tbase = 0.0D0
-        cldefi = 0.0D0
+        tbase = d_zero
+        cldefi = d_zero
       end subroutine allocate_mod_cu_bm
 
       subroutine bmpara(tten,qten,j)
@@ -95,10 +95,10 @@
       implicit none
 !
       real(8) , parameter :: h1 = 1.0D0 , h3000 = 3000.0D0 ,            &
-                           & h10e5 = 100000.0D0 , d00 = 0.0D0 ,         &
+                           & h10e5 = 100000.0D0 , &
                            & d608 = 0.608D0 , dm2859 = -rgas/cpd ,      &
                            & epsq = 2.0D-12 , row = d_1000 ,            &
-                           & t1 = tzero+1.0D0, d273 = 1.0D0/tzero ,     &
+                           & t1 = tzero+1.0D0,     &
                            & stresh = 1.10D0 ,                          &
                            & stabs = 1.0D0 , stabd = 0.90D0 ,           &
                            & rhf = 0.20D0 , pmn = 6500.0D0 ,            &
@@ -129,7 +129,7 @@
                            & /(h1-efimn) , slopts = (dsptfs-dsptss)     &
                            & /(h1-efimn) , slope = (h1-efmnt)/(h1-efimn)&
                            & , a23m4l = c3les*(tzero-c4les)*wlhv ,      &
-                           & cporng = 1.0D0/dm2859 , elocp = wlhv/cpd , &
+                           & cporng = d_one/dm2859 , elocp = wlhv/cpd , &
                            & cprlg = cpd/(row*egrav*wlhv)
       integer :: lp1 , lm1
 !
@@ -176,8 +176,8 @@
 !
       do k = 1 , kz
         do i = 1 , iym1
-          cldlwc(i,k) = 0.0D0
-          cldfra(i,k) = 0.0D0
+          cldlwc(i,k) = d_zero
+          cldfra(i,k) = d_zero
         end do
       end do
       if ( ichem == 1 ) then
@@ -204,9 +204,9 @@
 #else
         if ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) then
 #endif
-          xsm(i) = 1.0D0
+          xsm(i) = d_one
         else
-          xsm(i) = 0.0D0
+          xsm(i) = d_zero
         end if
       end do
       if ( jyear == jyear0 .and. ktau == 0 ) then
@@ -233,12 +233,12 @@
           t(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
           if ( t(i,k) > tzero .and. ml(i) == kzp1 ) ml(i) = k
           q(i,k) = atm2%qv(i,k,j)/sps2%ps(i,j)
-          pppk = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
+          pppk = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
           ape(i,k) = (pppk/h10e5)**dm2859
         end do
         lbot(i) = kz
-        thesp(i) = d00
-        thbt(i) = d00
+        thesp(i) = d_zero
+        thbt(i) = d_zero
         psp(i) = 9.5D4
         tref(i,1) = t(i,1)
 !...ifbuoy = 0 means no positive buoyancy; ifbuoy(i) means yes...
@@ -259,19 +259,19 @@
       do k = 1 , kz
         do i = 2 , iym2
           if ( q(i,k) < epsq ) q(i,k) = epsq
-          pdiff = (1.0D0-a(k))*sps2%ps(i,j)
-          if ( pdiff < 30. .and. ip300(i) == 0 ) ip300(i) = k
+          pdiff = (d_one-a(k))*sps2%ps(i,j)
+          if ( pdiff < 30.0D0 .and. ip300(i) == 0 ) ip300(i) = k
         end do
       end do
 !--------------search for maximum buoyancy level------------------------
       do kb = 1 , kz
         do i = 2 , iym2
-          pkl = (a(kb)*sps2%ps(i,j)+r8pt)*1000.0D0
-          psfck = (a(kz)*sps2%ps(i,j)+r8pt)*1000.0D0
+          pkl = (a(kb)*sps2%ps(i,j)+r8pt)*d_1000
+          psfck = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
           if ( pkl >= psfck-pbm ) then
             tthbt(i) = t(i,kb)*ape(i,kb)
             ee = pkl*q(i,kb)/(ep2+q(i,kb))
-            tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0))
+            tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
             tdpt = dmin1(tdpt,t(i,kb))
             tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*(t(i,kb)- &
                  & tzero))*(t(i,kb)-tdpt)
@@ -290,7 +290,7 @@
       do k = 1 , lm1
         ak = a(k)
         do i = 2 , iym2
-          p(i) = (ak*sps2%ps(i,j)+r8pt)*1000.0D0
+          p(i) = (ak*sps2%ps(i,j)+r8pt)*d_1000
 !         cloud bottom cannot be above 200 mb
           if ( p(i) < psp(i) .and. p(i) >= pqm ) lbot(i) = k + 1
         end do
@@ -298,15 +298,15 @@
 !***  warning: lbot must not be gt kz-1 in shallow convection
 !***  make sure the cloud base is at least 25 mb above the surface
       do i = 2 , iym2
-        pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*1000.0D0
-        psfck = (a(kz)*sps2%ps(i,j)+r8pt)*1000.0D0
+        pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*d_1000
+        psfck = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
         if ( pbot(i) >= psfck-pone .or. lbot(i) >= kz ) then
 !***      cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , lm1
-            p(i) = (a(kz)*sps2%ps(i,j)+r8pt)*1000.0D0
+            p(i) = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
             if ( p(i) < psfck-pone ) lbot(i) = k
           end do
-          pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*1000.0D0
+          pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*d_1000
         end if
       end do
 !--------------cloud top computation------------------------------------
@@ -318,7 +318,7 @@
         l = lp1 - ivi
 !--------------find environmental saturation equiv pot temp...
         do i = 2 , iym2
-          p(i) = (a(l)*sps2%ps(i,j)+r8pt)*1000.0D0
+          p(i) = (a(l)*sps2%ps(i,j)+r8pt)*d_1000
           es = aliq*dexp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
           qs = ep2*es/(p(i)-es)
           ths(i) = t(i,l)*ape(i,l)*dexp(elocp*qs/t(i,l))
@@ -336,7 +336,7 @@
 !--------------cloud top pressure---------------------------------------
       do i = 2 , iym2
 !       if (kf(i) == 1) goto 275
-        prtop(i) = (a(ltop(i))*sps2%ps(i,j)+r8pt)*1000.0D0
+        prtop(i) = (a(ltop(i))*sps2%ps(i,j)+r8pt)*d_1000
       end do
 !-----------------------------------------------------------------------
 !--------------define and smooth dsps and cldefi------------------------
@@ -368,8 +368,8 @@
 !--------------initialize changes of t and q due to convection----------
       do k = 1 , kz
         do i = 2 , iym2
-          tmod(i,k) = d00
-          qqmod(i,k) = d00
+          tmod(i,k) = d_zero
+          qqmod(i,k) = d_zero
         end do
       end do
 !--------------clean up and gather deep convection points---------------
@@ -393,9 +393,9 @@
 !************* horizontal loop for deep convection *********************
       do n = 1 , khdeep
         i = kdeep(n)
-        dentpy = d00
-        avrgt = d00
-        preck = d00
+        dentpy = d_zero
+        avrgt = d_zero
+        preck = d_zero
         ltpk = ltop(i)
         lbtk = lbot(i)
 !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
@@ -407,17 +407,17 @@
         dsptk = dspt(i)
 !--------------initialize variables in the convective column------------
         do k = 1 , kz
-          dift(k) = d00
-          difq(k) = d00
+          dift(k) = d_zero
+          difq(k) = d_zero
           tkl = t(i,k)
           tk(k) = tkl
           trefk(k) = tkl
           qkl = q(i,k)
           qk(k) = qkl
           qrefk(k) = qkl
-          pkl = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
+          pkl = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
 !**************
-          tref(i,k) = tpfc(pkl,thesp(i),t(i,k),d273,wlhv,qu,ape(i,k))
+          tref(i,k) = tpfc(pkl,thesp(i),t(i,k),wlhv,qu,ape(i,k))
 !***************
           pk(k) = pkl
           psk(k) = pkl
@@ -481,8 +481,8 @@
 !--------------enthalpy conservation integral--------------------------
         do iter = 1 , 2
 !-----------------------------------------------------------------------
-          sumde = d00
-          sumdp = d00
+          sumde = d_zero
+          sumdp = d_zero
           do l = ltpk , lb
             sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)        &
                   & *dsigma(l) + sumde
@@ -530,7 +530,7 @@
         end do
         dentpy = dentpy + dentpy
         avrgt = avrgt/(sumdp+sumdp)
-        if ( dentpy < epsntp .or. preck <= d00 ) then
+        if ( dentpy < epsntp .or. preck <= d_zero ) then
           if ( oct90 ) then
             cldefi(i,j) = efimn
           else
@@ -579,7 +579,7 @@
         sfsta%rainc(i,j) = prainx + sfsta%rainc(i,j)
 !.....................precipitation rate for bats (mm/s)
         aprdiv = dble(nbatst)
-        if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = 1.0D0
+        if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
         pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
         do l = ltpk , lb
           tmod(i,l) = dift(l)*fefi/dt2
@@ -630,7 +630,7 @@
           qk(k) = qkl
           qrefk(k) = qkl
           qsatk(k) = qkl
-          pkl = (a(k)*sps2%ps(i,j)+r8pt)*1000.0D0
+          pkl = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
           pk(k) = pkl
           apekl = ape(i,k)
           apek(k) = apekl
@@ -707,9 +707,9 @@
         end if
 !--------------scaling potential temperature & table index at top-------
         thtpk = t(i,ltp1)*ape(i,ltp1)
-        pkl = (a(ltp1)*sps2%ps(i,j)+r8pt)*1000.0D0
+        pkl = (a(ltp1)*sps2%ps(i,j)+r8pt)*d_1000
         ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
-        tdpt = 1.0D0/(d273-rwat/wlhv*dlog(ee/611.D0))
+        tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
         tdpt = dmin1(tdpt,t(i,ltp1))
         tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero)-4.36D-4*              &
              & (t(i,ltp1)-tzero))*(t(i,ltp1)-tdpt)
@@ -724,14 +724,14 @@
                      & *apek(ivi+1))/apek(ivi)
         end do
 !--------------temperature reference profile correction-----------------
-        sumdt = d00
-        sumdp = d00
+        sumdt = d_zero
+        sumdp = d_zero
         do l = ltp1 , lbtk
           sumdt = (tk(l)-trefk(l))*dsigma(l) + sumdt
           sumdp = sumdp + dsigma(l)
         end do
 !
-        rdpsum = 1.0D0/sumdp
+        rdpsum = d_one/sumdp
         fpk(lbtk) = trefk(lbtk)
         tcorr = sumdt*rdpsum
         do l = ltp1 , lbtk
@@ -740,12 +740,12 @@
           fpk(l) = trfkl
         end do
 !--------------humidity profile equations-------------------------------
-        psum = 0.0D0
-        qsum = 0.0D0
-        potsum = 0.0D0
-        qotsum = 0.0D0
-        otsum = 0.0D0
-        dst = 0.0D0
+        psum = d_zero
+        qsum = d_zero
+        potsum = d_zero
+        qotsum = d_zero
+        otsum = d_zero
+        dst = d_zero
         fptk = fpk(ltp1)
         do l = ltp1 , lbtk
           dpkl = fpk(l) - fptk
@@ -760,12 +760,12 @@
 !
         psum = psum*rdpsum
         qsum = qsum*rdpsum
-        rotsum = 1.0D0/otsum
+        rotsum = d_one/otsum
         potsum = potsum*rotsum
         qotsum = qotsum*rotsum
         dst = dst*rotsum*cpd/wlhv
 !--------------ensure positive entropy change---------------------------
-        if ( dst > 0. ) then
+        if ( dst > d_zero ) then
           prtop(i) = pbot(i)
           ltop(i) = lbot(i)
           ndstp = ndstp + 1
@@ -814,12 +814,12 @@
             go to 100
           end if
         end do
-        if ( dst > 0. ) then
+        if ( dst > d_zero ) then
           ndstp = ndstp + 1
         else
           ndstn = ndstn + 1
         end if
-        dentpy = d00
+        dentpy = d_zero
         do l = ltp1 , lbtk
           dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv)         &
                  & /(tk(l)+trefk(l))*dsigma(l) + dentpy
@@ -855,10 +855,10 @@
           kbaseb = min0(lbtk,kzm2)
           if ( ltpk <= kbaseb ) then
             kclth = kbaseb - ltpk + 1
-            akclth = 1.0D0/dble(kclth)
+            akclth = d_one/dble(kclth)
             do k = ltpk , kbaseb
               cldlwc(i,k) = cllwcv
-              cldfra(i,k) = 1.0D0 - (1.0D0-clfrcv)**akclth
+              cldfra(i,k) = d_one - (d_one-clfrcv)**akclth
             end do
           end if
           if ( ichem == 1 ) then
@@ -899,7 +899,7 @@
 !
 !--------------coarse look-up table for saturation point----------------
 !
-      pt = ptop*1000.0D0
+      pt = ptop*d_1000
 !     ptop in pascal
  
       kthm = jtb
@@ -931,8 +931,8 @@
 !
         qs0k = qsold(1)
         sqsk = qsold(kpm) - qsold(1)
-        qsold(1) = 0.0D0
-        qsold(kpm) = 1.0D0
+        qsold(1) = d_zero
+        qsold(kpm) = d_one
 !
         do kp = 2 , kpm1
           qsold(kp) = (qsold(kp)-qs0k)/sqsk
@@ -944,16 +944,16 @@
         end do
 !
 !-----------------------------------------------------------------------
-        qsnew(1) = 0.0D0
-        qsnew(kpm) = 1.0D0
-        dqs = 1.0D0/dble(kpm-1)
+        qsnew(1) = d_zero
+        qsnew(kpm) = d_one
+        dqs = d_one/dble(kpm-1)
 !
         do kp = 2 , kpm1
           qsnew(kp) = qsnew(kp-1) + dqs
         end do
 !
-        y2p(1) = 0.0D0
-        y2p(kpm) = 0.0D0
+        y2p(1) = d_zero
+        y2p(kpm) = d_zero
 !
         call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
 !
@@ -976,8 +976,8 @@
 !
         the0k = theold(1)
         sthek = theold(kthm) - theold(1)
-        theold(1) = 0.0D0
-        theold(kthm) = 1.0D0
+        theold(1) = d_zero
+        theold(kthm) = d_one
 !
         do kth = 2 , kthm1
           theold(kth) = (theold(kth)-the0k)/sthek
@@ -988,16 +988,16 @@
         end do
 !
 !-----------------------------------------------------------------------
-        thenew(1) = 0.0D0
-        thenew(kthm) = 1.0D0
-        dthe = 1.0D0/dble(kthm-1)
+        thenew(1) = d_zero
+        thenew(kthm) = d_one
+        dthe = d_one/dble(kthm-1)
 !
         do kth = 2 , kthm1
           thenew(kth) = thenew(kth-1) + dthe
         end do
 !
-        y2t(1) = 0.0D0
-        y2t(kthm) = 0.0D0
+        y2t(1) = d_zero
+        y2t(kthm) = d_zero
 !
         call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
 !
@@ -1048,9 +1048,9 @@
 !
 !-----------------------------------------------------------------------
 !
-      ak = 0.0D0
-      bk = 0.0D0
-      ck = 0.0D0
+      ak = d_zero
+      bk = d_zero
+      ck = d_zero
       noldm1 = nold - 1
 !
       dxl = xold(2) - xold(1)
@@ -1075,7 +1075,7 @@
           dxr = xold(k+1) - xold(k)
           dydxr = (yold(k+1)-yold(k))/dxr
           dxc = dxl + dxr
-          den = 1.0D0/(dxl*q(k-2)+dxc+dxc)
+          den = d_one/(dxl*q(k-2)+dxc+dxc)
 !
           p(k-1) = den*(6.0D0*(dydxr-dydxl)-dxl*p(k-2))
           q(k-1) = -den*dxr
@@ -1120,7 +1120,7 @@
       y2k = y2(k)
       y2kp1 = y2(k+1)
       dx = xold(k+1) - xold(k)
-      rdx = 1.0D0/dx
+      rdx = d_one/dx
       ak = (d_five/d_three)*rdx*(y2kp1-y2k)
       bk = d_half*y2k
       ck = rdx*(yold(k+1)-yold(k)) - (d_five/d_three)*dx*(y2kp1+y2k+y2k)
@@ -1139,13 +1139,13 @@
 !
 ! Calculates tpfc
 !
-      function tpfc(press,thetae,tgs,d273,rl,qs,pi)
+      function tpfc(press,thetae,tgs,rl,qs,pi)
  
       implicit none
 !
-      real(8) :: d273 , pi , press , qs , rl , tgs , thetae
+      real(8) :: pi , press , qs , rl , tgs , thetae
       real(8) :: tpfc
-      intent (in) d273 , pi , press , rl , tgs , thetae
+      intent (in) pi , press , rl , tgs , thetae
       intent (inout) qs
 !
       real(8) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
@@ -1156,12 +1156,12 @@
       rlorw = rl/rwat
       rlocpd = rl*rcpd
       rp = thetae/pi
-      es = 611.0D0*dexp(rlorw*(d273-1.0D0/tgs))
+      es = 611.0D0*dexp(rlorw*(rtzero-d_one/tgs))
       qs = ep2*es/(press-es)
       fo = tgs*dexp(rlocpd*qs/tgs) - rp
       t1 = tgs - d_half*fo
       tguess = tgs
- 100  es = 611.0D0*dexp(rlorw*(d273-1.0D0/t1))
+ 100  es = 611.0D0*dexp(rlorw*(rtzero-d_one/t1))
       qs = ep2*es/(press-es)
       f1 = t1*dexp(rlocpd*qs/t1) - rp
       if ( dabs(f1) < 0.1D0 ) then
