@@ -33,11 +33,10 @@
       private
 !
       public :: allocate_mod_split , spinit , splitf
-      public :: m
       public :: uuu , vvv
       public :: am , an
 !
-      integer , allocatable , dimension(:) :: m
+      real(8) , allocatable , dimension(:) :: aam
       real(8) , allocatable , dimension(:) :: an
       real(8) , allocatable , dimension(:,:) :: am
       real(8) , allocatable , dimension(:,:,:) :: uuu , vvv
@@ -59,7 +58,7 @@
 !
       call time_begin(subroutine_name,idindx)
         call allocate_mod_vmodes
-        allocate(m(nsplit))
+        allocate(aam(nsplit))
         allocate(am(kz,nsplit))
         allocate(an(nsplit))
 #ifdef MPP1
@@ -85,7 +84,7 @@
         allocate(uuu(iy,kz,jx))
         allocate(vvv(iy,kz,jx))
 #endif 
-        m = 0
+        aam = d_zero
         am = d_zero
         an = d_zero
         ddsum = d_zero
@@ -145,9 +144,9 @@
 !
 !**   compute m.
       do ns = 1 , nsplit
-        m(ns) = idnint(dt/dtau(ns))
+        aam(ns) = dnint(dt/dtau(ns))
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          m(ns) = idnint(dto2/dtau(ns))
+          aam(ns) = dnint(dto2/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
@@ -234,13 +233,13 @@
 !
 !**   multiply am, an and zmatx by factor.
       do l = 1 , nsplit
-        fac = d_two*dt/(d_two*dble(m(l))+d_one)
+        fac = d_two*dt/(d_two*aam(l)+d_one)
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          fac = dt/(d_two*dble(m(l))+d_one)
+          fac = dt/(d_two*aam(l)+d_one)
 #ifdef MPP1
-        if ( myid == 0 ) print * , 'm, fac = ' , m(l) , fac
+        if ( myid == 0 ) print * , 'aam, fac = ' , aam(l) , fac
 #else
-        print * , 'm, fac = ' , m(l) , fac
+        print * , 'aam, fac = ' , aam(l) , fac
 #endif
         an(l) = an(l)*fac
         do k = 1 , kz
@@ -906,7 +905,7 @@
       end do
 !
 !******* split explicit time integration
-      call spstep(hbar,dx2,dtau,m)
+      call spstep(hbar,dx2,dtau,aam)
 !
 !******* add corrections to t and p;  u and v
 !=======================================================================
@@ -1016,7 +1015,7 @@
 !
       real(8) :: dx2
       real(8) , dimension(nsplit) :: dtau , hhbar
-      integer , dimension(nsplit) :: im
+      real(8) , dimension(nsplit) :: im
       intent (in) dtau , dx2 , hhbar , im
 !
       real(8) :: dtau2 , fac
@@ -1055,7 +1054,7 @@
         n0 = 1
         n1 = 2
         n2 = n0
-        m2 = im(ns)*2
+        m2 = idint(im(ns))*2
         dtau2 = dtau(ns)*d_two
 !
 !**     below follows madala(1987)
@@ -1370,10 +1369,10 @@
 #endif
             do i = 2 , iym2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
-                              & + deld(i,j,ns,3)/m(ns)
+                              & + deld(i,j,ns,3)/aam(ns)
               delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hhbar(ns)       &
                               & *deld(i,j,ns,n1)/sps1%ps(i,j)           &
-                              & + delh(i,j,ns,3)/m(ns)
+                              & + delh(i,j,ns,3)/aam(ns)
             end do
           end do
 !

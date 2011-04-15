@@ -26,11 +26,16 @@
       use mod_pmoist
       use mod_rad
       use mod_slice
-      use mod_radiation, only : iconvlwp
 !
       private
 !
       public :: cldfrac
+      public :: iconvlwp
+!
+      ! TAO 2/8/11:
+      ! Flag for using convective liquid water path as the large-scale
+      ! liquid water path (iconvlwp=1)
+      integer :: iconvlwp
 !
       contains
 !

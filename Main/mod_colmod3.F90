@@ -203,9 +203,9 @@
 !
       alb(:) = d_zero
       albc(:) = d_zero
-      aldif (:) = d_zero
+      aldif(:) = d_zero
       aldir(:) = d_zero
-      asdif (:) = d_zero
+      asdif(:) = d_zero
       asdir(:) = d_zero
       alat(:) = d_zero
       coslat(:) = d_zero
@@ -317,9 +317,9 @@
 !
       do i = 1 , iym1
         asdir(i) = aldirs(i)
-        asdif (i) = aldifs(i)
+        asdif(i) = aldifs(i)
         aldir(i) = aldirl(i)
-        aldif (i) = aldifl(i)
+        aldif(i) = aldifl(i)
       end do
 !
 !     Cloud particle size and fraction of ice
