@@ -36,16 +36,12 @@
 
       private
 
-      !TAO 2/8/11:
-      !Flag for using convective liquid water path as the large-scale
-      !liquid water path (iconvlwp=1)
-      integer :: iconvlwp
       !Maximum total cloud fraction for radiation model
       real(8) :: cftotmax
 
       public :: allocate_mod_radiation , radini , radctl
       public :: absnxt , abstot , emstot
-      public :: iconvlwp , cftotmax
+      public :: cftotmax
 
       ! absnxt  - Nearest layer absorptivities
       ! abstot  - Non-adjacent layer absorptivites
@@ -56,25 +52,56 @@
       real(8) , allocatable, dimension(:,:,:) :: emstot , emstot0
       real(8) , allocatable, dimension(:,:,:,:):: xuinpl
 !
-!     Ozone
-!
-      integer , parameter :: pnoz = 100
-      integer , parameter :: pozlon = 1
-      real(8) :: cplol , cplos
-      real(8) , parameter :: verynearone = 0.999999D0
-!
       real(8) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
       real(8) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
       real(8) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
                  c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
-                 c28 , c29 , c30 , c31 , c8 , c9 , cfa1 , fc1 , fwc1 ,  &
-                 fwc2 , fwcoef
+                 c28 , c29 , c30 , c31 , c8 , c9 , cfa1
       real(8) :: co2vmr
       real(8) , dimension(3,4) :: coefa , coefc , coefe
       real(8) , dimension(4,4) :: coefb , coefd
       real(8) , dimension(6,2) :: coeff , coefi
       real(8) , dimension(2,4) :: coefg , coefh
       real(8) , dimension(3,2) :: coefj , coefk
+!
+      real(8) , parameter :: verynearone = 0.999999D0
+!
+!     r80257   - Conversion factor for h2o pathlength
+      real(8) , parameter :: r80257 = d_one/8.0257D-04
+      real(8) , parameter :: r293 = d_one/293.0D0
+      real(8) , parameter :: r250 = d_one/250.0D0
+!     r3205    - Line width factor for o3 (see R&Di)
+      real(8) , parameter :: r3205 = d_one/0.3205D0
+      real(8) , parameter :: r300 = d_one/300.0D0
+!     r2sslp   - 1/2 of rsslp
+      real(8) , parameter :: r2sslp = d_one/(d_two*sslp)
+!     r296   - Inverse stand temp for h2o continuum
+      real(8) , parameter :: r296 = d_one/296.0D0
+!     repsil - Inver ratio mol weight h2o to dry air
+      real(8) , parameter :: repsil = d_one/ep2
+!
+!     Initialize further longwave constants referring to far wing
+!     correction; R&D refers to:
+!
+!     Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
+!     Emissivity and Absorptivity Formulation for Water Vapor
+!     Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
+!
+      real(8) , parameter :: fwcoef = 0.1D0      ! See eq(33) R&D
+      real(8) , parameter :: fwc1 = 0.30D0       ! See eq(33) R&D
+      real(8) , parameter :: fwc2 = 4.5D0        ! See eq(33) and eq(34) in R&D
+      real(8) , parameter :: fc1 = 2.6D0         ! See eq(34) R&D
+!
+!     Initialize ozone data.
+!
+      real(8) , parameter :: v0 = 22.4136D0 ! Volume of a gas at stp (m**3/kmol)
+      real(8) , parameter :: p0 = 0.1D0*sslp ! Standard pressure (pascals)
+!
+!     Constants for ozone path integrals (multiplication by 100 for unit
+!     conversion to cgs from mks):
+!
+      real(8) , parameter :: cplos = v0/(amd*egrav)*d_100
+      real(8) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
 !     v_raytau_xx - Constants for new bands
 !     v_abo3_xx   - Constants for new bands
@@ -365,11 +392,7 @@
 !---------------------------Local variables-----------------------------
 !
 ! iband  - H2O band index
-! v0     - Volume of a gas at stp (m**3/kmol)
-! p0     - Standard pressure (pascals)
-! amd    - Effective molecular weight of dry air (kg/kmol)
 !
-      real(8) :: amd , p0 , v0
       integer :: iband
 
       character (len=50) :: subroutine_name='radini'
@@ -394,12 +417,12 @@
 !     cfc120 = 4.14307 * 0.503e-9
 !     co2mmr = 1.51913 * co2vmr
       if ( lyear >= 1750 .and. lyear <= 2100 ) then
-        co2vmr = dble(cgas(2,lyear))*1.0D-6
+        co2vmr = cgas(2,lyear)*1.0D-6
         co2mmr = co2vmr*44.0D0/28.9644D0
-        ch40 = dble(cgas(3,lyear))*1.0D-9*0.55241D0
-        n2o0 = dble(cgas(4,lyear))*1.0D-9*1.51913D0
-        cfc110 = dble(cgas(5,lyear))*1.0D-12*4.69548D0
-        cfc120 = dble(cgas(6,lyear))*1.0D-12*4.14307D0
+        ch40 = cgas(3,lyear)*1.0D-9*0.55241D0
+        n2o0 = cgas(4,lyear)*1.0D-9*1.51913D0
+        cfc110 = cgas(5,lyear)*1.0D-12*4.69548D0
+        cfc120 = cgas(6,lyear)*1.0D-12*4.14307D0
       else
         write (aline,*) '  Simulation date:  ' , lyear
         call say
@@ -450,30 +473,6 @@
       c30 = 0.1D0
       c31 = 3.0D-5
       cfa1 = 0.61D0
-!
-!     Initialize further longwave constants referring to far wing
-!     correction; R&D refers to:
-!
-!     Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
-!     Emissivity and Absorptivity Formulation for Water Vapor
-!     Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
-!
-      fwcoef = 0.1D0           ! See eq(33) R&D
-      fwc1 = 0.30D0            ! See eq(33) R&D
-      fwc2 = 4.5D0             ! See eq(33) and eq(34) in R&D
-      fc1 = 2.6D0              ! See eq(34) R&D
-!
-!     Initialize ozone data.
-!
-      v0 = 22.4136D0          ! Volume of a gas at stp (m**3/kmol)
-      p0 = 0.1D0*sslp         ! Standard pressure (pascals)
-      amd = 28.9644D0         ! Molecular weight of dry air (kg/kmol)
-!
-!     Constants for ozone path integrals (multiplication by 100 for unit
-!     conversion to cgs from mks):
-!
-      cplos = v0/(amd*egrav)*d_100
-      cplol = v0/(amd*egrav*p0)*d_half*d_100
 !
       call time_end(subroutine_name,indx)
       end subroutine radini
@@ -727,9 +726,9 @@
 !         flwds(i) = flwds(i) * maxval(cld((i,:))) + &
 !                    flwds(i) * (1-maxval(cld((i,:))))
 !         flwds(i) = flwds(i) * maxval(cld(i,:)) + &
-!                    fslwdcs(i)*(1- maxval(cld(i,:)))
+!                    fslwdcs(i)*(d_one- maxval(cld(i,:)))
 !         flns(i) = flns(i) * maxval(cld(i,:)) + &
-!                   flnsc(i)*(1- maxval(cld(i,:))) 
+!                   flnsc(i)*(d_one- maxval(cld(i,:))) 
 !
 !         totcf(i) has been calculated for the SW, dolw is always true 
           flwds(i) = flwds(i) * totcf(i) + &
@@ -1200,8 +1199,8 @@
 !       Use index 3 (1.19 to 2.38 micrometers) for near-infrared
 !       Use index 4 (2.38 to 4.00 micrometers) for near-infrared
 !
-!       Note that the minimum wavelength is encoded (with .001, .002,
-!       .003) in order to specify the index appropriate for the
+!       Note that the minimum wavelength is encoded (with 0.001, 0.002,
+!       0.003) in order to specify the index appropriate for the
 !       near-infrared cloud absorption properties
 !
         indxsl = 0
@@ -1282,7 +1281,7 @@
 !             Do not let single scatter albedo be 1; delta-eddington
 !             solution for non-conservative case:
 !
-!qian         30/06/99        wcl(i,k) = dmin1(tmp2l,.999999)
+!qian         30/06/99        wcl(i,k) = dmin1(tmp2l,0.999999)
               wcl(i,k) = dmin1(tmp2l,verynearone)
               gcl(i,k) = ebarli + tmp3l
               fcl(i,k) = gcl(i,k)*gcl(i,k)
@@ -1305,7 +1304,7 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               albdir(i) = asdir(i)
-              albdif (i) = asdif(i)
+              albdif(i) = asdif(i)
             end do
           end do
 !
@@ -1315,7 +1314,7 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               albdir(i) = aldir(i)
-              albdif (i) = aldif(i)
+              albdif(i) = aldif(i)
             end do
           end do
         end if
@@ -1372,17 +1371,17 @@
         do n = 1 , nloop
           do i = is(n) , ie(n)
             rupdir(i,kzp1) = albdir(i)
-            rupdif (i,kzp1) = albdif(i)
+            rupdif(i,kzp1) = albdif(i)
           end do
         end do
         do k = kz , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
-              rupdir(i,k) = rdir(i,k) + tdif (i,k)                       &
-                            *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1)   &
+              rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
+              rupdir(i,k) = rdir(i,k) + tdif(i,k)                      &
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
                             *(tdir(i,k)-explay(i,k)))*rdenom
-              rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+              rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)        &
                             **d_two*rdenom
             end do
           end do
@@ -1394,13 +1393,13 @@
         do k = 0 , kzp1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
+              rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+                   &
-                            (tottrn(i,k)-exptdn(i,k))*rupdif (i,k))*     &
+                            (tottrn(i,k)-exptdn(i,k))*rupdif(i,k))*     &
                             rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
                             + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                            *rupdir(i,k)*rdndif (i,k))*rdenom
+                            *rupdir(i,k)*rdndif(i,k))*rdenom
             end do
           end do
         end do
@@ -1437,7 +1436,7 @@
             fswup(i,0) = fswup(i,0) + solflx(i)*fluxup(i,0)
             fswdn(i,0) = fswdn(i,0) + solflx(i)*fluxdn(i,0)
 !
-!           Down spectral fluxes need to be in mks; thus the .001
+!           Down spectral fluxes need to be in mks; thus the 0.001
 !           conversion factors
             if ( wavmid < 0.7D0 ) then
               sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
@@ -1520,8 +1519,8 @@
 !         0 for interface quantities refers to top of atmos- phere,
 !         while 1 refers to the surface:
           call radclr(coszrs,trayoslp,pflx,ns, &
-                      uth2o,uto3,utco2,uto2,zero(1,1),zero(1,2)&
-                      ,zero(1,3),zero(1,4),nloop,is,ie,rdir,rdif,tdir,  &
+                      uth2o,uto3,utco2,uto2,zero(1,1),zero(1,2), &
+                      zero(1,3),zero(1,4),nloop,is,ie,rdir,rdif,tdir,  &
                       tdif,explay,exptdn,rdndif,tottrn)
 !
 !         Compute reflectivity to direct and diffuse mod_radiation for
@@ -1532,18 +1531,18 @@
           do n = 1 , nloop
             do i = is(n) , ie(n)
               rupdir(i,2) = albdir(i)
-              rupdif (i,2) = albdif(i)
+              rupdif(i,2) = albdif(i)
             end do
           end do
 !
           do k = 1 , 0 , -1
             do n = 1 , nloop
               do i = is(n) , ie(n)
-                rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
-                rupdir(i,k) = rdir(i,k) + tdif (i,k)                     &
-                              *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1) &
+                rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
+                rupdir(i,k) = rdir(i,k) + tdif(i,k)                    &
+                              *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1) &
                               *(tdir(i,k)-explay(i,k)))*rdenom
-                rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)       &
+                rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)      &
                               **d_two*rdenom
               end do
             end do
@@ -1555,12 +1554,12 @@
           do k = 0 , 2
             do n = 1 , nloop
               do i = is(n) , ie(n)
-                rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
+                rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
                 fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-    &
-                              exptdn(i,k))*rupdif (i,k))*rdenom
+                              exptdn(i,k))*rupdif(i,k))*rdenom
                 fluxdn(i,k) = exptdn(i,k)                               &
                               + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)    &
-                              *rupdir(i,k)*rdndif (i,k))*rdenom
+                              *rupdir(i,k)*rdndif(i,k))*rdenom
               end do
             end do
           end do
@@ -1608,18 +1607,18 @@
         do n = 1 , nloop
           do i = is(n) , ie(n)
             rupdir(i,2) = albdir(i)
-            rupdif (i,2) = albdif(i)
+            rupdif(i,2) = albdif(i)
           end do
         end do
 !
         do k = 1 , 0 , -1
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdif (i,k)*rupdif(i,k+1))
-              rupdir(i,k) = rdir(i,k) + tdif (i,k)                       &
-                            *(rupdir(i,k+1)*explay(i,k)+rupdif (i,k+1)   &
+              rdenom = d_one/(d_one-rdif(i,k)*rupdif(i,k+1))
+              rupdir(i,k) = rdir(i,k) + tdif(i,k)                      &
+                            *(rupdir(i,k+1)*explay(i,k)+rupdif(i,k+1)   &
                             *(tdir(i,k)-explay(i,k)))*rdenom
-              rupdif (i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)         &
+              rupdif(i,k) = rdif(i,k) + rupdif(i,k+1)*tdif(i,k)        &
                             **d_two*rdenom
             end do
           end do
@@ -1631,12 +1630,12 @@
         do k = 0 , 2
           do n = 1 , nloop
             do i = is(n) , ie(n)
-              rdenom = d_one/(d_one-rdndif (i,k)*rupdif(i,k))
+              rdenom = d_one/(d_one-rdndif(i,k)*rupdif(i,k))
               fluxup(i,k) = (exptdn(i,k)*rupdir(i,k)+(tottrn(i,k)-exptdn&
-                            (i,k))*rupdif (i,k))*rdenom
+                            (i,k))*rupdif(i,k))*rdenom
               fluxdn(i,k) = exptdn(i,k)                                 &
                             + (tottrn(i,k)-exptdn(i,k)+exptdn(i,k)      &
-                            *rupdir(i,k)*rdndif (i,k))*rdenom
+                            *rupdir(i,k)*rdndif(i,k))*rdenom
             end do
           end do
         end do
@@ -2408,8 +2407,6 @@
       character (len=50) :: subroutine_name='radclw'
       integer :: idindx = 0
 !
-!
-!
       call time_begin(subroutine_name,idindx)
 !-----------------------------------------------------------------------
 !
@@ -2446,18 +2443,18 @@
 !         Same limit for diffuse mod_transmission:
 !
           arg = dmin1(1.66D0*taugab(i),25.0D0)
-          tdif (i,0) = dexp(-arg)
+          tdif(i,0) = dexp(-arg)
 !
           rdir(i,0) = d_zero
-          rdif (i,0) = d_zero
+          rdif(i,0) = d_zero
 !
 !         Initialize top interface of extra layer:
 !
           exptdn(i,0) = d_one
-          rdndif (i,0) = d_zero
+          rdndif(i,0) = d_zero
           tottrn(i,0) = d_one
 !
-          rdndif (i,1) = rdif(i,0)
+          rdndif(i,1) = rdif(i,0)
           tottrn(i,1) = tdir(i,0)
 !
         end do
@@ -2477,9 +2474,9 @@
           do i = is(nn) , ie(nn)
 !
             rdir(i,k) = d_zero
-            rdif (i,k) = d_zero
+            rdif(i,k) = d_zero
             tdir(i,k) = d_zero
-            tdif (i,k) = d_zero
+            tdif(i,k) = d_zero
             explay(i,k) = d_zero
 !
 !           Calculates the solar beam transmission, total transmission,
@@ -2487,13 +2484,13 @@
 !           top of the current layer:
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
-            rdenom = d_one/(d_one-rdif (i,k-1)*rdndif(i,k-1))
+            rdenom = d_one/(d_one-rdif(i,k-1)*rdndif(i,k-1))
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)       &
-                          *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
-            rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                          *(tdif (i,k-1)*rdenom)
+            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
+                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+            rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))    &
+                          *(tdif(i,k-1)*rdenom)
 !
           end do
         end do
@@ -2535,8 +2532,8 @@
             extins = dexp(-arg)
             ne = n(ue,extins)
 !
-            rdif (i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif (i,k) = d_four*ue/ne
+            rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif(i,k) = d_four*ue/ne
 !
 !           Limit argument of exponential to 25, in case coszrs is very
 !           small:
@@ -2545,8 +2542,8 @@
 !
             apg = alp + gam
             amg = alp - gam
-            rdir(i,k) = amg*(tdif (i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
-            tdir(i,k) = apg*tdif (i,k) + (amg*rdif(i,k)-(apg-d_one))  &
+            rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
+            tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one))  &
                         *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
@@ -2554,8 +2551,8 @@
 !
             rdir(i,k) = dmax1(rdir(i,k),d_zero)
             tdir(i,k) = dmax1(tdir(i,k),d_zero)
-            rdif (i,k) = dmax1(rdif(i,k),d_zero)
-            tdif (i,k) = dmax1(tdif(i,k),d_zero)
+            rdif(i,k) = dmax1(rdif(i,k),d_zero)
+            tdif(i,k) = dmax1(tdif(i,k),d_zero)
 !
           end do
         end if
@@ -2570,13 +2567,13 @@
       do nn = 1 , nloop
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
-          rdenom = d_one/(d_one-rdif (i,k-1)*rdndif(i,k-1))
+          rdenom = d_one/(d_one-rdif(i,k-1)*rdndif(i,k-1))
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)         &
-                        *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
-          rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                        *(tdif (i,k-1)*rdenom)
+          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
+                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+          rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))      &
+                        *(tdif(i,k-1)*rdenom)
         end do
       end do
 !
@@ -2791,8 +2788,8 @@
           extins = dexp(-arg)
           ne = n(ue,extins)
 !
-          rdif (i,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif (i,0) = d_four*ue/ne
+          rdif(i,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(i,0) = d_four*ue/ne
 !
 !         Limit argument of exponential to 25, in case coszrs is very
 !         small:
@@ -2801,8 +2798,8 @@
 !
           apg = alp + gam
           amg = alp - gam
-          rdir(i,0) = amg*(tdif (i,0)*explay(i,0)-d_one) + apg*rdif(i,0)
-          tdir(i,0) = apg*tdif (i,0) + (amg*rdif(i,0)-(apg-d_one))  &
+          rdir(i,0) = amg*(tdif(i,0)*explay(i,0)-d_one) + apg*rdif(i,0)
+          tdir(i,0) = apg*tdif(i,0) + (amg*rdif(i,0)-(apg-d_one))  &
                       *explay(i,0)
 !
 !         Under rare conditions, reflectivies and transmissivities can
@@ -2810,16 +2807,16 @@
 !
           rdir(i,0) = dmax1(rdir(i,0),d_zero)
           tdir(i,0) = dmax1(tdir(i,0),d_zero)
-          rdif (i,0) = dmax1(rdif(i,0),d_zero)
-          tdif (i,0) = dmax1(tdif(i,0),d_zero)
+          rdif(i,0) = dmax1(rdif(i,0),d_zero)
+          tdif(i,0) = dmax1(tdif(i,0),d_zero)
 !
 !         Initialize top interface of extra layer:
 !
           exptdn(i,0) = d_one
-          rdndif (i,0) = d_zero
+          rdndif(i,0) = d_zero
           tottrn(i,0) = d_one
 !
-          rdndif (i,1) = rdif(i,0)
+          rdndif(i,1) = rdif(i,0)
           tottrn(i,1) = tdir(i,0)
 !
         end do
@@ -2839,9 +2836,9 @@
           do i = is(nn) , ie(nn)
 !
             rdir(i,k) = d_zero
-            rdif (i,k) = d_zero
+            rdif(i,k) = d_zero
             tdir(i,k) = d_zero
-            tdif (i,k) = d_zero
+            tdif(i,k) = d_zero
             explay(i,k) = d_zero
 !
 !           Calculates the solar beam transmission, total transmission,
@@ -2850,16 +2847,16 @@
 !
             exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN         modified below (for computational stability)
-!           rdenom      = d_one/(1. - rdif (i,k-1)*rdndif(i,k-1))
+!           rdenom      = d_one/(1. - rdif(i,k-1)*rdndif(i,k-1))
             rdenom = d_one/(d_one- &
-                    dmin1(rdif (i,k-1)*rdndif(i,k-1),verynearone))
+                    dmin1(rdif(i,k-1)*rdndif(i,k-1),verynearone))
 !KN         modified above
             rdirexp = rdir(i,k-1)*exptdn(i,k-1)
             tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)       &
-                          *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
-            rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
-                          *(tdif (i,k-1)*rdenom)
+            tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)       &
+                          *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+            rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))     &
+                          *(tdif(i,k-1)*rdenom)
 !
           end do
         end do
@@ -2903,8 +2900,8 @@
             extins = dexp(-arg)
             ne = n(ue,extins)
 !
-            rdif (i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif (i,k) = d_four*ue/ne
+            rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif(i,k) = d_four*ue/ne
 !
 !           Limit argument of exponential to 25, in case coszrs is very
 !           small:
@@ -2913,8 +2910,8 @@
 !
             apg = alp + gam
             amg = alp - gam
-            rdir(i,k) = amg*(tdif (i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
-            tdir(i,k) = apg*tdif (i,k) + (amg*rdif(i,k)-(apg-d_one)) &
+            rdir(i,k) = amg*(tdif(i,k)*explay(i,k)-d_one)+apg*rdif(i,k)
+            tdir(i,k) = apg*tdif(i,k) + (amg*rdif(i,k)-(apg-d_one)) &
                         *explay(i,k)
 !
 !           Under rare conditions, reflectivies and transmissivities
@@ -2922,8 +2919,8 @@
 !
             rdir(i,k) = dmax1(rdir(i,k),d_zero)
             tdir(i,k) = dmax1(tdir(i,k),d_zero)
-            rdif (i,k) = dmax1(rdif(i,k),d_zero)
-            tdif (i,k) = dmax1(tdif(i,k),d_zero)
+            rdif(i,k) = dmax1(rdif(i,k),d_zero)
+            tdif(i,k) = dmax1(tdif(i,k),d_zero)
           end do
         end if
 !
@@ -2938,16 +2935,16 @@
         do i = is(nn) , ie(nn)
           exptdn(i,k) = exptdn(i,k-1)*explay(i,k-1)
 !KN       modified below (for computational stability)
-!         rdenom = d_one/(1. - rdif (i,k-1)*rdndif(i,k-1))
+!         rdenom = d_one/(1. - rdif(i,k-1)*rdndif(i,k-1))
           rdenom = d_one/(d_one- &
-                   dmin1(rdif (i,k-1)*rdndif(i,k-1),verynearone))
+                   dmin1(rdif(i,k-1)*rdndif(i,k-1),verynearone))
 !KN       modified above
           rdirexp = rdir(i,k-1)*exptdn(i,k-1)
           tdnmexp = tottrn(i,k-1) - exptdn(i,k-1)
-          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif (i,k-1)         &
-                        *(tdnmexp+rdndif (i,k-1)*rdirexp)*rdenom
-          rdndif (i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
-                        *(tdif (i,k-1)*rdenom)
+          tottrn(i,k) = exptdn(i,k-1)*tdir(i,k-1) + tdif(i,k-1)         &
+                        *(tdnmexp+rdndif(i,k-1)*rdirexp)*rdenom
+          rdndif(i,k) = rdif(i,k-1) + (rdndif(i,k-1)*tdif(i,k-1))       &
+                        *(tdif(i,k-1)*rdenom)
         end do
       end do
 !
@@ -3160,13 +3157,6 @@
 ! zinpl    - Nearest layer subdivision factor
 ! pinpl    - Nearest layer subdivision factor
 ! dplh2o   - Difference in press weighted h2o amount
-! r80257   - Conversion factor for h2o pathlength
-! r293     - 1/293
-! r250     - 1/250
-! r3205    - Line width factor for o3 (see R&Di)
-! r300     - 1/300
-! rsslp    - Reciprocal of sea level pressure
-! r2sslp   - 1/2 of rsslp
 ! ds2c     - Y in eq(7) in table A2 of R&D
 ! a11      - A1 in table A3b for rotation band absorptivity
 ! a31      - A3 in table A3b for rotation band absorptivity
@@ -3221,9 +3211,8 @@
                  dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
                  et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
                  oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
-                 r250 , r293 , r2sslp , r300 , r3205 , r80257 ,         &
                  rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
-                 rphat , rsqti , rsslp , rsum , sqwp , t1t4 , t2t5 ,&
+                 rphat , rsqti , rsum , sqwp , t1t4 , t2t5 ,&
                  tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
                  tr1 , tr2 , tr5 , tr6 , u1 , u13 , u2 , u8 , u9 ,      &
                  ubar , wco2
@@ -3267,13 +3256,6 @@
         dbvtit(i,kzp1) = dbvt(tint(i,kz + 1))
       end do
 !
-      r80257 = d_one/8.0257D-04
-      r293 = d_one/293.0D0
-      r250 = d_one/250.0D0
-      r3205 = d_one/0.3205D0
-      r300 = d_one/300.0D0
-      rsslp = d_one/sslp
-      r2sslp = d_one/(d_two*sslp)
       r2st(1) = d_one/(d_two*st(1))
       r2st(2) = d_one/(d_two*st(2))
 !     bndfct  = 2.0*22.18d0/(dsqrt(196.d0)*300.)
@@ -3367,7 +3349,7 @@
               a41 = 1.75D0 - 3.960D-03*dtz(i)
               a51 = 1.00D0 + 1.3D0*sqrtu(i)
               a61 = 1.00D0 + 1.250D-03*dtp(i) + 6.250D-05*dtp(i)*dtp(i)
-              corfac = .29D0*(d_one+a41/a51)*a61
+              corfac = 0.29D0*(d_one+a41/a51)*a61
               t1t4 = term1(i,4)*term4(i,4)
               t2t5 = term2(i,4)*term5(i,4)
               a = t1t4 + t2t5/(d_one+t2t5*sqrtu(i)*corfac)
@@ -3664,7 +3646,7 @@
             a41 = 1.75D0 - 3.960D-03*dtz(i)
             a51 = 1.00D0 + 1.3D0*sqrtu(i)
             a61 = 1.00D0 + 1.250D-03*dtp(i) + 6.250D-05*dtp(i)*dtp(i)
-            corfac = .29D0*(d_one+a41/a51)*a61
+            corfac = 0.29D0*(d_one+a41/a51)*a61
             t1t4 = term1(i,4)*term4(i,4)
             t2t5 = term2(i,4)*term5(i,4)
             a = t1t4 + t2t5/(d_one+t2t5*sqrtu(i)*corfac)
@@ -3728,10 +3710,10 @@
 !         abso(i,5)  o3  9.6 micrometer (nu3 and nu1 bands)
 !
           do i = 1 , iym1
-            te = (tbar(i,kn)*r293)**.7D0
+            te = (tbar(i,kn)*r293)**0.7D0
             dplos = dabs(plos(i,k2+1)-plos(i,k2))
             u1 = zinpl(i,kn)*18.29D0*dplos/te
-            u2 = zinpl(i,kn)*.5649D0*dplos/te
+            u2 = zinpl(i,kn)*0.5649D0*dplos/te
             tlocal = tbar(i,kn)
             tcrfac = dsqrt(tlocal*r250)*te
             beta = r3205*(pinpl(i,kn)*rsslp+dpfo3*tcrfac)
@@ -3955,7 +3937,6 @@
 !           in the 500-650 cm-1 region (tr2)
 ! u       - Pressure weighted H2O path length
 ! uc1     - H2o continuum pathlength 500-800 cm-1
-! r80257  - Conversion factor for h2o pathlength
 ! a11     - A1 in table A3b for rotation band emiss
 ! a31     - A3 in table A3b for rotation band emiss
 ! a21     - First part in numerator of A2 table A3b
@@ -4016,9 +3997,6 @@
 ! u8      - Absorber amount for various co2 band systems
 ! u9      - Absorber amount for various co2 band systems
 ! u13     - Absorber amount for various co2 band systems
-! r250    - Inverse 250K
-! r300    - Inverse 300K
-! rsslp   - Inverse standard sea-level pressure
 !
 !     Local variables for O3:
 !
@@ -4052,7 +4030,7 @@
                  absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
                  exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
                  g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
-                 phi , pi , posqt , psi , r250 , r300 , r80257 ,        &
+                 phi , pi , posqt , psi , &
                  rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
                  sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 ,              &
                  tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
@@ -4074,10 +4052,6 @@
 !
 !     Initialize
 !
-      r80257 = d_one/8.0257D-04
-!
-      r250 = d_one/250.0D0
-      r300 = d_one/300.0D0
 !
 !     Planck function for co2
 !
@@ -4303,13 +4277,13 @@
 !
         do i = 1 , iym1
           h2otr(i,k1) = dexp(-12.0D0*s2c(i,k1))
-          te = (co2t(i,k1)/293.0D0)**.7D0
+          te = (co2t(i,k1)/293.0D0)**0.7D0
           u1 = 18.29D0*plos(i,k1)/te
-          u2 = .5649D0*plos(i,k1)/te
+          u2 = 0.5649D0*plos(i,k1)/te
           phat = plos(i,k1)/plol(i,k1)
           tlocal = tplnke(i)
           tcrfac = dsqrt(tlocal*r250)*te
-          beta = (d_one/.3205D0)*((d_one/phat)+(dpfo3*tcrfac))
+          beta = (d_one/0.3205D0)*((d_one/phat)+(dpfo3*tcrfac))
           realnu = (d_one/beta)*te
           o3bndi = 74.0D0*te*(tplnke(i)/375.0D0)   &
                    *dlog(d_one+fo3(u1,realnu)+fo3(u2,realnu))
@@ -4384,7 +4358,7 @@
       call time_begin(subroutine_name,indx)
 !
 !     Evaluate the ozone path length integrals to interfaces;
-!     factors of .1 and .01 to convert pressures from cgs to mks:
+!     factors of 0.1 and 0.01 to convert pressures from cgs to mks:
 !
 !     Bug fix, 24 May 1996:  the 0.5 and 0.25 factors removed.
 !
@@ -4455,8 +4429,6 @@
 !
 ! i      - Longitude index
 ! k      - Level index
-! r296   - Inverse stand temp for h2o continuum
-! repsil - Inver ratio mol weight h2o to dry air
 ! dy     - Thickness of layer for tmp interp
 ! dpnm   - Pressure thickness of layer
 ! dpnmsq - Prs squared difference across layer
@@ -4464,15 +4436,12 @@
 !
 !-----------------------------------------------------------------------
 !
-      real(8) :: dpnm , dpnmsq , dy , r296 , repsil , rtnm
+      real(8) :: dpnm , dpnmsq , dy , rtnm
       integer :: i , k
       character (len=50) :: subroutine_name='radtpl'
       integer :: indx = 0
 !
       call time_begin(subroutine_name,indx)
-!
-      r296 = d_one/296.0D0
-      repsil = d_one/ep2
 !
 !     Set the top and bottom intermediate level temperatures,
 !     top level planck temperature and top layer temp**4.
@@ -4634,10 +4603,10 @@
       eccf  = r2ceccf
 #else
       theta = twopi*calday/dayspy
-      eccf = 1.000110D0 + .034221D0*dcos(theta) +  &
+      eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
              0.001280D0 * dsin(theta) + &
-             0.000719D0*dcos(d_two*theta) + &
-             0.000077D0*dsin(d_two*theta)
+             0.000719D0 * dcos(d_two*theta) + &
+             0.000077D0 * dsin(d_two*theta)
 #endif
 !
 !     Convert pressure from pascals to dynes/cm2
@@ -4835,22 +4804,22 @@
       end do
       end subroutine whenflt
 !
-      function intmax(n,iy,inc)
+      function intmax(n,imax,inc)
 !
       implicit none
 !
       integer :: inc , n
       integer :: intmax
-      integer , dimension(*) :: iy
-      intent (in) inc , iy , n
+      integer , dimension(*) :: imax
+      intent (in) inc , imax , n
 !
       integer :: i , mx
 !
-      mx = iy(1)
+      mx = imax(1)
       intmax = 1
       do i = 1 + inc , inc*n , inc
-        if ( iy(i) > mx ) then
-          mx = iy(i)
+        if ( imax(i) > mx ) then
+          mx = imax(i)
           intmax = i
         end if
       end do

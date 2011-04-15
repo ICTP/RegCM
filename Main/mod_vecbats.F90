@@ -1115,18 +1115,18 @@
 !     Works for Sahara desert and generally northern emisphere
 !     In souther emisphere only some points have this class
 !
-      if (idesseas == 1) then
-        if (lmonth==1.or.lmonth==2.or.lmonth==12) then
-          solour(1)=0.12D0
+      if ( idesseas == 1 ) then
+        if ( lmonth == 1 .or. lmonth == 2 .or. lmonth == 12 ) then
+          solour(1) = 0.12D0
         endif        
-        if (lmonth==3.or.lmonth==4.or.lmonth==5) then
-          solour(1)=0.15D0
+        if ( lmonth == 3 .or. lmonth == 4 .or. lmonth == 5 ) then
+          solour(1) = 0.15D0
         endif        
-        if (lmonth==6.or.lmonth==7.or.lmonth==8) then
-          solour(1)=0.18D0
+        if ( lmonth == 6 .or. lmonth == 7 .or. lmonth == 8) then
+          solour(1) = 0.18D0
         endif        
-        if (lmonth==9.or.lmonth==10.or.lmonth==11) then
-          solour(1)=0.15D0
+        if ( lmonth == 9 .or. lmonth == 10 .or. lmonth == 11) then
+          solour(1) = 0.15D0
         endif
       end if
 !

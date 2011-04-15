@@ -298,12 +298,12 @@ module mod_date
     integer , intent(in) :: idate2 , idate1
     integer :: iy1 , im1 , id1 , ih1
     integer :: iy2 , im2 , id2 , ih2
-    integer :: jd1 , jd2
+    real(8) :: jd1 , jd2
     call split_idate(idate2, iy2, im2, id2, ih2)
     call split_idate(idate1, iy1, im1, id1, ih1)
-    jd2 = idnint(julianday(iy2, im2, id2))
-    jd1 = idnint(julianday(iy1, im1, id1))
-    idatediff = (jd2-jd1)*24+(ih2-ih1)
+    jd2 = julianday(iy2, im2, id2)
+    jd1 = julianday(iy1, im1, id1)
+    idatediff = idnint(jd2-jd1)*24+(ih2-ih1)
   end function idatediff
 
   function lsame_month(idate1, idate2)

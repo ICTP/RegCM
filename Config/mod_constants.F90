@@ -66,6 +66,10 @@
       real(8) , parameter :: rgas = 287.0058D+00
       ! Gas constant for water vapor in Joules/kg/K
       real(8) , parameter :: rwat = 461.90D+00
+      ! Ratio of the two above
+      real(8) , parameter :: rgow = rgas/rwat
+      ! Reverse of the above
+      real(8) , parameter :: rgowi = d_one/rgow
 
       ! Specific heat at constant pressure for dry air J/kg/K
       real(8) , parameter :: cpd = 1005.46D+00

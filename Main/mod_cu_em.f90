@@ -43,6 +43,7 @@
 !
       integer :: minorig
       real(8) , parameter :: cl = 2500.0D0
+      real(8) , parameter :: cpvmcl = cl - cpv
       real(8) , parameter :: mincbmf = 1.0D-30
 !
       contains
@@ -60,7 +61,7 @@
 !
       integer , parameter :: ntra = 0
 !
-      real(8) :: akclth , aprdiv , cbmf , dtime , fppt , qprime ,       &
+      real(8) :: akclth , aprdiv , cbmf , fppt , qprime ,       &
                & tprime , uconv , wd
       real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                & qscup , tcup , ucup , vcup
@@ -68,7 +69,6 @@
       integer :: i , iconj , iflag , k , kbase , kclth , kk , ktop
       real(8) , dimension(kzp1) :: phcup
 !
-      dtime = dt
       uconv = dt*d_half
       aprdiv = d_one/dble(nbatst)
       if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
@@ -95,7 +95,7 @@
         cbmf = cbmf2d(i,j)                                ! [(kg/m**2)/s]
  
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
-                   & kzm1,ntra,dtime,iflag,ft,fq,fu,fv,ftra,fppt,wd,    &
+                   & kzm1,ntra,iflag,ft,fq,fu,fv,ftra,fppt,wd,    &
                    & tprime,qprime,cbmf,kbase,ktop)
  
         cbmf2d(i,j) = cbmf
@@ -211,8 +211,6 @@
 !            is needed, set this equal to 1. (on most compilers, setting
 !            ntra to 0 will bypass tracer calculation, saving some cpu.)
 !
-!     delt: the model time step (sec) between calls to convect
-!
 !----------------------------------------------------------------------------
 !    ***   on output:         ***
 !
@@ -293,18 +291,18 @@
 !      to be evacuated.
 !   7. a maximum value to the cloud base mass flux has been added.
 !
-      subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,delt,iflag,  &
+      subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,iflag,  &
                        & ft,fq,fu,fv,ftra,precip,wd,tprime,qprime,cbmf, &
                        & icb,inb)
 !
       implicit none
 !
-      real(8) :: cbmf , delt , precip , qprime , tprime , wd
+      real(8) :: cbmf , precip , qprime , tprime , wd
       integer :: icb , iflag , inb , na , nd , nl , ntra
       real(8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                & t , u , v
       real(8) , dimension(nd,1) :: ftra , tra
-      intent (in) delt , na , ntra , ph , p , nd , nl
+      intent (in) na , ntra , ph , p , nd , nl
       intent (out) tprime , wd
       intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    & inb , precip , q , qprime , qs , t , tra , u , v
@@ -313,13 +311,13 @@
                & alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                & b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
                & cbmfold , chi , coeff , cpinv ,                   &
-               & cpvmcl , cwat , damps , dbo , dbosum , defrac , dei ,  &
+               & cwat , damps , dbo , dbosum , defrac , dei ,  &
                & delm , delp , delt0 , delti , denom , dhdp , dphinv ,  &
                & dpinv , dtma , dtmin , dtpbl , elacrit , ents , epmax ,&
-               & eps , epsi , fac , fqold , frac , ftold , ftraold ,    &
+               & fac , fqold , frac , ftold , ftraold ,    &
                & fuold , fvold , plcl , qnew , qp1 ,                    &
                & qsm , qstm , qti , rat , rdcp , revap , rh , rm ,      &
-               & rowl , scrit , sigt
+               & scrit , sigt
       real(8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
                                & hp , lv , lvcp , m , mp , qp , sigp ,  &
                                & th , told , tp , tratm , tv , tvp ,    &
@@ -357,12 +355,7 @@
 !     ***              those used in calling program              ***
 !     ***     note: these are also specified in subroutine tlift  ***
 !
-      rowl = d_1000
-!
-      cpvmcl = cl - cpv
-      eps = rgas/rwat
-      epsi = d_one/eps
-      delti = d_one/delt
+      delti = d_one/dt
 !
 !     ***  initialize output arrays and parameters  ***
 !
@@ -392,11 +385,11 @@
         jc = 0
         do i = nl - 1 , 1 , -1
           jn = 0
-          asum = th(i)*(d_one+q(i)*epsi-q(i))
+          asum = th(i)*(d_one+q(i)*rgowi-q(i))
           do j = i + 1 , nl
-            asum = asum + th(j)*(d_one+q(j)*epsi-q(j))
+            asum = asum + th(j)*(d_one+q(j)*rgowi-q(j))
             thbar = asum/dble(j+1-i)
-            if ( (th(j)*(d_one+q(j)*epsi-q(j))) < thbar ) jn = j
+            if ( (th(j)*(d_one+q(j)*rgowi-q(j))) < thbar ) jn = j
           end do
           if ( i == 1 ) jn = max0(jn,2)
           if ( jn /= 0 ) then
@@ -445,11 +438,11 @@
                 t(j) = t(j)*th(j)
                 tc = told(j) - tzero
                 alv = wlhv - cpvmcl*tc
-                qs(j) = qs(j) + qs(j)*(d_one+qs(j)*(epsi-d_one)) * &
+                qs(j) = qs(j) + qs(j)*(d_one+qs(j)*(rgowi-d_one)) * &
                         alv*(t(j)-told(j))/(rwat*told(j)*told(j))
               end do
-              if ( ((th(jn+1)*(d_one+q(jn+1)*epsi-q(jn+1))) <  &
-                    (th(jn)*(d_one+q(jn)*epsi-q(jn)))) ) then
+              if ( ((th(jn+1)*(d_one+q(jn+1)*rgowi-q(jn+1))) <  &
+                    (th(jn)*(d_one+q(jn)*rgowi-q(jn)))) ) then
                 jn = jn + 1
                 cycle
               end if
@@ -472,8 +465,8 @@
               qnew = (alv*q(j)-(tnew-t(j)) * &
                      (cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm          precip=precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
-              precip = precip + 1.0D5*(ph(j)-ph(j+1))*(q(j)-qnew)*regrav/ &
-                        (delt*rowl)                         ! mm/s
+              precip = precip + 1.0D5*(ph(j)-ph(j+1))* &
+                         (q(j)-qnew)*regrav/(dt*d_1000)  ! mm/s
               t(j) = tnew
               q(j) = qnew
               qs(j) = qnew
@@ -490,18 +483,18 @@
       h(1) = t(1)*cpn(1)
       lv(1) = wlhv - cpvmcl*(t(1)-tzero)
       hm(1) = lv(1)*q(1)
-      tv(1) = t(1)*(d_one+q(1)*epsi-q(1))
+      tv(1) = t(1)*(d_one+q(1)*rgowi-q(1))
       ahmin = 1.0D12
       ihmin = nl
       do i = 2 , nl + 1
-        tvx = t(i)*(d_one+q(i)*epsi-q(i))
-        tvy = t(i-1)*(d_one+q(i-1)*epsi-q(i-1))
+        tvx = t(i)*(d_one+q(i)*rgowi-q(i))
+        tvy = t(i-1)*(d_one+q(i-1)*rgowi-q(i-1))
         gz(i) = gz(i-1) + (rgas*d_half)*(tvx+tvy)*(p(i-1)-p(i))/ph(i)
         cpn(i) = cpd*(d_one-q(i)) + cpv*q(i)
         h(i) = t(i)*cpn(i) + gz(i)
         lv(i) = wlhv - cpvmcl*(t(i)-tzero)
         hm(i) = (cpd*(d_one-q(i))+cl*q(i))*(t(i)-t(1))+lv(i)*q(i)+gz(i)
-        tv(i) = t(i)*(d_one+q(i)*epsi-q(i))
+        tv(i) = t(i)*(d_one+q(i)*rgowi-q(i))
 !
 !       ***  find level of minimum moist static energy    ***
 !
@@ -713,7 +706,7 @@
 !
       cbmfold = cbmf
       delt0 = 300.0D0
-      damps = damp*delt/delt0
+      damps = damp*dt/delt0
       cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
       cbmf = dmax1(cbmf,d_zero)
 !
@@ -967,8 +960,8 @@
 !
 !       ***  calculate surface precipitation in mm/s     ***
 !
-!rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(rowl*g)  ! mm/d
-        precip = precip + wt(1)*sigd*water(1)*d_1000/(rowl*egrav)
+!rcm    precip=precip+wt(1)*sigd*water(1)*3600.*24000./(d_1000*g)  ! mm/d
+        precip = precip + wt(1)*sigd*water(1)*d_1000/(d_1000*egrav)
                                                         ! mm/s
       end if
 !
@@ -1162,17 +1155,10 @@
       intent (out) tvp
       intent (inout) clw , tpk
 !
-      real(8) :: ah0 , ahg , alv , cpinv , cpp ,                   &
-               & cpvmcl , denom , eps , epsi , es , qg , rg ,           &
-               & s , tc , tg
+      real(8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
+                 qg , rg , s , tc , tg
       integer :: i , j , nsb , nst
 !
-!     ***   assign values of thermodynamic constants     ***
-!
-!
-      cpvmcl = cl - cpv
-      eps = rgas/rwat
-      epsi = d_one/eps
 !
 !     ***  calculate certain parcel quantities, including static energy
 !     ***
@@ -1190,7 +1176,7 @@
         end do
         do i = nk , icb - 1
           tpk(i) = t(nk) - (gz(i)-gz(nk))*cpinv
-          tvp(i) = tpk(i)*(d_one+q(nk)*epsi)
+          tvp(i) = tpk(i)*(d_one+q(nk)*rgowi)
         end do
       end if
 !
@@ -1219,14 +1205,14 @@
           else
             es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))
           end if
-          qg = eps*es/(p(i)-es*(d_one-eps))
+          qg = rgow*es/(p(i)-es*(d_one-rgow))
         end do
         alv = wlhv - cpvmcl*(t(i)-tzero)
         tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
         clw(i) = q(nk) - qg
         clw(i) = dmax1(d_zero,clw(i))
         rg = qg/(d_one-q(nk))
-        tvp(i) = tpk(i)*(d_one+rg*epsi)
+        tvp(i) = tpk(i)*(d_one+rg*rgowi)
       end do
 !
       end subroutine tlift

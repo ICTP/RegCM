@@ -439,8 +439,6 @@
       subroutine init_outparam
         implicit none
 
-        integer :: ierr
-
         namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
         &     ifrad , radisp , ifbat , ifsub ,  iflak , batfrq ,        &
         &     lakfrq , ifchem , chemfrq
@@ -449,7 +447,6 @@
         return
 
   100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
-        ierr = 1
 
       end subroutine init_outparam
 

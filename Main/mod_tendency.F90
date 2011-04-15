@@ -148,7 +148,6 @@
                & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,       &
                & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,  &
                & xday , xmsf , xtm1
-      real(8) , dimension(iy,kz) :: divl
       integer :: i , icons , iptn , itr , j , k , lev , n
       integer :: jm1, jp1
 #ifdef MPP1
@@ -1565,7 +1564,7 @@
  
 !       ****** call ccm3 radiative transfer package
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
-          mod(ktau+1,ntrad) == 0 ) then
+            mod(ktau+1,ntrad) == 0 ) then
           call colmod3(j)
         end if
  
@@ -2174,15 +2173,15 @@
             qvbs = omuhf*atm1%qv(i,k,j) + &
                    gnuhf*(atm2%qv(i,k,j)+atmc%qv(i,k,j))
             if ( qvbs < dlowval ) qvbs = d_zero
-            atm1%qv(i,k,j) = qvas
             atm2%qv(i,k,j) = qvbs
+            atm1%qv(i,k,j) = qvas
             qcas = atmc%qc(i,k,j)
             if ( qcas < dlowval ) qcas = d_zero
             qcbs = omu*atm1%qc(i,k,j) + &
                    gnu*(atm2%qc(i,k,j)+atmc%qc(i,k,j))
             if ( qcbs < dlowval ) qcbs = d_zero
-            atm1%qc(i,k,j) = qcas
             atm2%qc(i,k,j) = qcbs
+            atm1%qc(i,k,j) = qcas
           end do
 !chem2
           if ( ichem == 1 ) then
@@ -2193,8 +2192,8 @@
                 chibs = omu*chia(i,k,j,itr)                             &
                       & + gnu*(chib(i,k,j,itr)+chic(i,k,j,itr))
                 if ( chibs < dlowval ) chibs = d_zero
-                chia(i,k,j,itr) = chias
                 chib(i,k,j,itr) = chibs
+                chia(i,k,j,itr) = chias
               end do
             end do
           end if

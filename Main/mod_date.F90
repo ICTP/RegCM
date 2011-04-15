@@ -252,8 +252,8 @@
         else
           ib = 0
         end if
-        julianday = (365.25D+00*dble(iiy+4716)) + &
-          &         (30.6001D+00*dble(iim+1))   + &
+        julianday = dint(365.25D+00*dble(iiy+4716)) + &
+          &         dint(30.6001D+00*dble(iim+1))   + &
           &         dble(id + ib) - 1524.5D+00
       end function julianday
 
@@ -275,12 +275,12 @@
         integer , intent(in) :: idate2 , idate1
         integer :: iy1 , im1 , id1 , ih1
         integer :: iy2 , im2 , id2 , ih2
-        integer :: jd1 , jd2
+        real(8) :: jd1 , jd2
         call split_idate(idate2, iy2, im2, id2, ih2)
         call split_idate(idate1, iy1, im1, id1, ih1)
-        jd2 = idint(julianday(iy2, im2, id2))
-        jd1 = idint(julianday(iy1, im1, id1))
-        idatediff = (jd2-jd1)*24+(ih2-ih1)
+        jd2 = julianday(iy2, im2, id2)
+        jd1 = julianday(iy1, im1, id1)
+        idatediff = idnint(jd2-jd1)*24+(ih2-ih1)
       end function idatediff
 
       function lsame_month(idate1, idate2)

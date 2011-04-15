@@ -43,97 +43,34 @@
       real(8) , allocatable , dimension(:,:) :: varpa1
       real(8) , allocatable , dimension(:,:) :: hydroc , hydros
 !
-      real(8) , allocatable , dimension(:,:) :: a1 , a2 , a3 , &
-                & d1 , d2 , e1 , e2 , e3 , g1 , g2 , g3 , s1 , &
-                & s2 , w1 , w2 , w3 , x1
-      integer , allocatable , dimension(:) :: iw2
-      real(8) , allocatable , dimension(:) :: tbarf , thetaf
-      real(8) , allocatable , dimension(:) :: thetah , tweigh
-      real(8) :: alpha1 , alpha2
-      real(8) , allocatable , dimension(:) :: cpfac , sdsigma , hweigh
-      real(8) , allocatable , dimension(:,:) :: varpa2
-      real(8) , allocatable , dimension(:,:) :: hydror
 
       contains
 
       subroutine allocate_mod_vmodes
         implicit none
         allocate(a0(kz,kz))
-        allocate(a1(kz,kz))
-        allocate(a2(kz,kz))
-        allocate(a3(kz,kz))
         allocate(a4(kz,kz))
-        allocate(d1(kz,kz))
-        allocate(d2(kz,kz))
-        allocate(e1(kz,kz))
-        allocate(e2(kz,kz))
-        allocate(e3(kz,kz))
-        allocate(g1(kz,kz))
-        allocate(g2(kz,kz))
-        allocate(g3(kz,kz))
-        allocate(s1(kz,kz))
-        allocate(s2(kz,kz))
-        allocate(w1(kz,kz))
-        allocate(w2(kz,kz))
-        allocate(x1(kz,kz))
-        allocate(iw2(kz))
-        allocate(thetah(kz))
-        allocate(tweigh(kz))
-        allocate(tbarf(kzp1))
-        allocate(thetaf(kzp1))
-        allocate(w3(kzp1,kz))
-        allocate(cpfac(kz))
-        allocate(sdsigma(kz))
         allocate(hbar(kz))
-        allocate(hweigh(kz))
+        allocate(sigmah(kzp1))
         allocate(tbarh(kz))
-        allocate(hydroc(kz,kzp1))
-        allocate(varpa1(kz,kzp1))
-        allocate(hydror(kz,kz))
-        allocate(hydros(kz,kz))
-        allocate(tau(kz,kz))
         allocate(zmatx(kz,kz))
         allocate(zmatxr(kz,kz))
-        allocate(sigmah(kzp1))
-        allocate(varpa2(kzp1,kzp1))
+        allocate(tau(kz,kz))
+        allocate(varpa1(kz,kzp1))
+        allocate(hydroc(kz,kzp1))
+        allocate(hydros(kz,kz))
         a0 = d_zero
-        a1 = d_zero
-        a2 = d_zero
-        a3 = d_zero
         a4 = d_zero
-        d1 = d_zero
-        d2 = d_zero
-        e1 = d_zero
-        e2 = d_zero
-        e3 = d_zero
-        g1 = d_zero
-        g2 = d_zero
-        g3 = d_zero
-        s1 = d_zero
-        s2 = d_zero
-        w1 = d_zero
-        w2 = d_zero
-        x1 = d_zero
-        iw2 = 0
-        thetah = d_zero
-        tweigh = d_zero
-        tbarf = d_zero
-        thetaf = d_zero
-        w3 = d_zero
-        cpfac = d_zero
-        sdsigma = d_zero
         hbar = d_zero
-        hweigh = d_zero
+        sigmah = d_zero
         tbarh = d_zero
-        hydroc = d_zero
-        varpa1 = d_zero
-        hydror = d_zero
-        hydros = d_zero
-        tau = d_zero
         zmatx = d_zero
         zmatxr = d_zero
-        sigmah = d_zero
-        varpa2 = d_zero
+        tau = d_zero
+        varpa1 = d_zero
+        hydroc = d_zero
+        hydros = d_zero
+
       end subroutine allocate_mod_vmodes
 
       subroutine vmodes(lstand,sigmaf,kv1)
@@ -151,6 +88,17 @@
       real(8) :: ps2 , x
       real(8) , dimension(kz) :: work
       real(8) , dimension(1) :: pps
+      real(8) , dimension(kz,kz) :: a1 , a2 , a3 , &
+                & d1 , d2 , e1 , e2 , e3 , g1 , g2 , g3 , s1 , &
+                & s2 , w1 , w2 , x1
+      real(8) , dimension(kzp1,kz) :: w3
+      integer , dimension(kz) :: iw2
+      real(8) , dimension(kzp1) :: tbarf , thetaf
+      real(8) , dimension(kz) :: thetah , tweigh
+      real(8) :: alpha1 , alpha2
+      real(8) , dimension(kz) :: cpfac , sdsigma , hweigh
+      real(8) , dimension(kzp1,kzp1) :: varpa2
+      real(8) , dimension(kz,kz) :: hydror
 !
 !  this subroutine determines the vertical modes of the psu/ncar meso-
 !  scale model designated mm4.  it also computes associated transform
@@ -187,6 +135,33 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
+      a1 = d_zero
+      a2 = d_zero
+      a3 = d_zero
+      d1 = d_zero
+      d2 = d_zero
+      e1 = d_zero
+      e2 = d_zero
+      e3 = d_zero
+      g1 = d_zero
+      g2 = d_zero
+      g3 = d_zero
+      s1 = d_zero
+      s2 = d_zero
+      w1 = d_zero
+      w2 = d_zero
+      x1 = d_zero
+      iw2 = 0
+      thetah = d_zero
+      tweigh = d_zero
+      tbarf = d_zero
+      thetaf = d_zero
+      w3 = d_zero
+      cpfac = d_zero
+      sdsigma = d_zero
+      hweigh = d_zero
+      hydror = d_zero
+      varpa2 = d_zero
       numerr = 0
       lprint = .false.
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -281,13 +256,6 @@
           e1(k,l) = d_one
         end do
       end do
-!
-      a3 = d_zero
-      d1 = d_zero
-      d2 = d_zero
-      s1 = d_zero
-      s2 = d_zero
-      x1 = d_zero
 !
       do k = 1 , kz
         a3(k,k) = -tbarh(k)
@@ -560,7 +528,6 @@
       call vprntm(varpa1,kz,kzp1,'varpa1  ')
       call vprntm(varpa2,kzp1,kzp1,'varpa2  ')
 !
-      return
 
 99001 format ('0 for k=',i3,' sigmaf(k+1)=',f9.6,' <= sigmaf(k)=',    &
              & f9.6)
@@ -675,7 +642,8 @@
 !
       subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
       implicit none
-      integer :: na , nv , n , ier , info , ip(n)
+      integer :: na , nv , n , ier , info
+      integer , dimension(n) :: ip
       real(8) :: a(n,n) , v(n,n) , work(n) , d(2)
       integer :: i , j , job
 !

@@ -40,6 +40,7 @@ module mod_param
   use mod_holtbl
   use mod_aerosol
   use mod_radiation
+  use mod_cldfrac
   use mod_dust
   use mod_bdycod
   use mod_mainchem

@@ -873,17 +873,17 @@
               end if
             end if
             if ( myid == 0 ) then
-              uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))*d_half
+              uavg1 = (atm1%u(i+1,k,j+1)+atm1%u(i,k,j+1))*d_half
               if ( uavg1 > d_zero ) then
                 workb(i,k,n) = &
                     -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1)/ &
                     (mddom%msfx(i,1)*mddom%msfx(i,1)) +     &
-                    fact2*chia(i,k,1+1,n)/sps1%ps(i,1+1) /    &
-                    (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)))
+                    fact2*chia(i,k,j+1,n)/sps1%ps(i,j+1) /    &
+                    (mddom%msfx(i,j+1)*mddom%msfx(i,j+1)))
               else
                 workb(i,k,n) = & 
-                    -uavg1*(fact1*chia(i,k,1+1,n)/sps1%ps(i,1+1) / &
-                    (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)) +      &
+                    -uavg1*(fact1*chia(i,k,j+1,n)/sps1%ps(i,j+1) / &
+                    (mddom%msfx(i,j+1)*mddom%msfx(i,j+1)) +      &
                     fact2*chia(i,k,1,n)/sps1%ps(i,1) /             &
                     (mddom%msfx(i,1)*mddom%msfx(i,1)))
               end if
@@ -912,17 +912,17 @@
                   (mddom%msfx(i,jxm1)*mddom%msfx(i,jxm1)))
             end if
  
-            uavg1 = (atm1%u(i+1,k,1+1)+atm1%u(i,k,1+1))*d_half
+            uavg1 = (atm1%u(i+1,k,j+1)+atm1%u(i,k,j+1))*d_half
             if ( uavg1 > d_zero ) then
               workb(i,k,n) = &
                   -uavg1*(fact1*chia(i,k,1,n)/sps1%ps(i,1) / &
                   (mddom%msfx(i,1)*mddom%msfx(i,1)) +      &
-                  fact2*chia(i,k,1+1,n)/sps1%ps(i,1+1) /     &
-                  (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)))
+                  fact2*chia(i,k,j+1,n)/sps1%ps(i,j+1) /     &
+                  (mddom%msfx(i,j+1)*mddom%msfx(i,j+1)))
             else
               workb(i,k,n) = &
-                  -uavg1*(fact1*chia(i,k,1+1,n)/sps1%ps(i,1+1) / &
-                  (mddom%msfx(i,1+1)*mddom%msfx(i,1+1)) +      &
+                  -uavg1*(fact1*chia(i,k,j+1,n)/sps1%ps(i,j+1) / &
+                  (mddom%msfx(i,j+1)*mddom%msfx(i,j+1)) +      &
                   fact2*chia(i,k,1,n)/sps1%ps(i,1) /             &
                   (mddom%msfx(i,1)*mddom%msfx(i,1)))
             end if
@@ -1057,15 +1057,15 @@
                   & /(mddom%msfx(iym1,j)*mddom%msfx(iym1,j)))
             end if
  
-            vavg1 = (atm1%v(1+1,k,j+1)+atm1%v(1+1,k,j))*d_half
+            vavg1 = (atm1%v(j+1,k,j+1)+atm1%v(j+1,k,j))*d_half
             if ( vavg1 > d_zero ) then
               fx1 = -vavg1*(fact1*chia(1,k,j,n)/sps1%ps(1,j) / &
                       (mddom%msfx(1,j)*mddom%msfx(1,j)) +    &
-                       fact2*chia(1+1,k,j,n)/sps1%ps(1+1,j) /  &
-                       (mddom%msfx(1+1,j)*mddom%msfx(1+1,j)))
+                       fact2*chia(j+1,k,j,n)/sps1%ps(j+1,j) /  &
+                       (mddom%msfx(j+1,j)*mddom%msfx(j+1,j)))
             else
-              fx1 = -vavg1*(fact1*chia(1+1,k,j,n)/sps1%ps(1+1,j) / &
-                      (mddom%msfx(1+1,j)*mddom%msfx(1+1,j)) +    &
+              fx1 = -vavg1*(fact1*chia(j+1,k,j,n)/sps1%ps(j+1,j) / &
+                      (mddom%msfx(j+1,j)*mddom%msfx(j+1,j)) +    &
                        fact2*chia(1,k,j,n)/sps1%ps(1,j) /          &
                        (mddom%msfx(1,j)*mddom%msfx(1,j)))
             end if
