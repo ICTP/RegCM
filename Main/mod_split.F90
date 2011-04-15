@@ -1002,7 +1002,7 @@
       call time_end(subroutine_name,idindx)
       end subroutine splitf
 !
-      subroutine spstep(hhbar,dx2,dtau,im)
+      subroutine spstep(hhbar,dx2,dtau,xm)
 !
 #ifdef MPP1
 #ifndef IBM
@@ -1015,8 +1015,8 @@
 !
       real(8) :: dx2
       real(8) , dimension(nsplit) :: dtau , hhbar
-      real(8) , dimension(nsplit) :: im
-      intent (in) dtau , dx2 , hhbar , im
+      real(8) , dimension(nsplit) :: xm
+      intent (in) dtau , dx2 , hhbar , xm
 !
       real(8) :: dtau2 , fac
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
@@ -1054,7 +1054,7 @@
         n0 = 1
         n1 = 2
         n2 = n0
-        m2 = idint(im(ns))*2
+        m2 = idint(xm(ns))*2
         dtau2 = dtau(ns)*d_two
 !
 !**     below follows madala(1987)
@@ -1208,7 +1208,7 @@
         end do
  
 !**     not in madala(1987)
-        fac = (im(ns)-d_one)/im(ns)
+        fac = (xm(ns)-d_one)/xm(ns)
 #ifndef BAND
         do i = 2 , iym2
 #ifdef MPP1

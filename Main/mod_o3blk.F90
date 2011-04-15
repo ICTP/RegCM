@@ -79,7 +79,7 @@
       use mod_rad
       implicit none
 !
-      integer :: i , j , jj , k , kj , klevp1
+      integer :: i , j , jj , k , kj
       real(8) :: pb1 , pb2 , pt1 , pt2
 !
       do k = 1 , 31
@@ -101,8 +101,6 @@
 !
 !     calculate half pressure levels for model and data levels
 !
-      klevp1 = kzp1
-!
 #ifdef MPP1
       do j = 1 , jendx
 #else
@@ -113,8 +111,8 @@
 #endif
 #endif
         do i = 1 , iym1
-          do k = klevp1 , 1 , -1
-            kj = klevp1 - k + 1
+          do k = kzp1 , 1 , -1
+            kj = kzp1 - k + 1
             prlevh(kj) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_10
           end do
           ppwrkh(1) = 1100.0D0
