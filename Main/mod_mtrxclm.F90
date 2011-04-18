@@ -744,7 +744,7 @@
               mddom%satbrt(i,j) =  d_two
             end if
             do n = 1 , nnsg
-              if ( ( veg2d1(i,j) == 14 .or. veg2d1(i,j) == 15 ) .and. &
+              if ( ( veg2d1(n,i,j) == 14 .or. veg2d1(n,i,j) == 15 ) .and. &
                    ocld2d(n,i,j) /= 0 ) then
                 veg2d1(n,i,j)     =  2
                 satbrt1(n,i,j)    =  d_two
