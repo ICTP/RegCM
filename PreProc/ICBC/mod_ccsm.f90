@@ -22,44 +22,12 @@
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
 ! This is a package of subroutines to read CCSM T85 and T42 L26 data in
-! NETCDF format and to prepare Initial and boundary conditions for RegCM3.
+! NETCDF format and to prepare Initial and boundary conditions for RegCM
 ! Both Global and Window of CCSM data are acceptable.
 ! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU
+! Revised By Graziano Giuliani Apr-2011 @ ICTP.IT
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
-!
-!  SUBROUTINE CAM85
-!  Read unpacked CCSM NETCDF T85 L26 (six hourly) data and save into data
-!    arrays. Each varaible is read in seperate monthly data files.
-!
-!  SUBROUTINE CAM42
-!  Read unpacked CCSM NETCDF T42 L26 (six hourly) data and save into data
-!     arrays. Each varaible is read in seperate yearly data files.
-!
-!  SUBROUTINE HEADER_CAM85 & HEADER_CAM42
-!  Define pressure levels, Ak and Bk coeffcients and global grid dimensions
-!     In CCSM, the vertical coordinate is a hybrid sigma-pressure system
-!     The pressure is defined as:
-!     P=Ak*Po+Bk*PS(i,j)
-!     All 3D fields required for ICBC are at mid-points, so
-!     Ak refers to hyam, the hybrid A coefficient at midpoints, and
-!     Bk refers to hybm, the hybrid B coefficient at midpoints
-!     Po=1000mb
-!
-!  SUBROUTINE GET_CAM85
-!  Main subroutine to read data arrays from CAM85 and prepare ICBCs at RCM Grid
-!
-!  SUBROUTINE GET_CAM42
-!  Main subroutine to read data arrays from CAM42 and prepare ICBCs at RCM Grid
-!
-!  SUBROUTINE INITDATE3
-!  Initialize CCSM 365 days calendar (No leap years)
-!
-!  SUBROUTINE CAMCLNDR
-!  Subroutine for SST preparation with No leap year
-!
-!  SUBROUTINE HANDLE_ERR
-!  Handle error for NETCDF calls
 !
 !  SUBROUTINES CALLED FROM ICBC.f
 !     1) INTLIN
@@ -82,15 +50,10 @@
 !  Dataset required to use this code can be preapred using NCO utilitiles
 !     such as NCKS, NCRCAT etc.
 !  Prepare:
-!     Monthly data files for CAM85
-!     Yearly data files for CAM42
-!  For example:
-!     To extract global data of CAM42 for Specific Humidity
-!     ncks -v Q input.nc ccsm.shum.nyear.nc    ,and
 !     to extract a subset (window) of CAM85 data for Specific Humidity
 !     ncks -d lat,min,max -d lon,min,max -v Q input.nc ccsm.shumJAN.nyear.nc
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
-!  NAMING CONVENTION (Global Data Files) CAM85
+!  NAMING CONVENTION (Global Data Files)
 !  (MONTH) = JAN/FEB/MAR/APR/MAY/JUN/JUL/AUG/SEP/OCT/NOV/DEC
 !
 !  ccsm.air(MONTH).nyear.nc     for 'T'     (Temperature)
@@ -100,24 +63,8 @@
 !  ccsm.vwnd(MONTH).nyear.nc    for 'V'     (Meridonial Wind)
 !  ccsm.pres(MONTH).nyear.nc    for 'PS'    (Surface Pressure)
 !
-!  PATH /DATA/CAM85/NYEAR/
+!  PATH /DATA/CCSM
 !  ccsm_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
-!
-!  PATH /DATA/CAM85/
-!
-!  NAMING CONVENTION (Global Data Files) CAM42
-!  ccsm.air.nyear        for 'T'   (Temperature)
-!  ccsm.hgt.nyear.nc     for 'Z3'  (Geopotential Height)
-!  ccsm.shum.nyear.nc    for 'Q'   (Specific Humidity)
-!  ccsm.uwnd.nyear.nc    for 'U'   (Zonal Wind)
-!  ccsm.vwnd.nyear.nc    for 'V'   (Meridonial Wind)
-!  ccsm.pres.nyear.nc    for 'PS'  (Surface Pressure)
-!
-!  PATH /DATA/CAM42/NYEAR/
-!  ccsm_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
-!
-!  PATH /DATA/CAM42/
-!
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
