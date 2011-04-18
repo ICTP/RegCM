@@ -38,11 +38,11 @@
 
       public :: interf , initb , vecbats , albedov , slice1D
 
-      real(8) , parameter :: dlogtwo = dlog(d_two)
-      real(8) , parameter :: dlogten = dlog(d_10)
-      real(8) , parameter :: dloglnd = dlog(zlnd)
-      real(8) , parameter :: dlogocn = dlog(zoce)
-      real(8) , parameter :: dlogsno = dlog(zsno)
+      real(8) :: dlogtwo
+      real(8) :: dlogten
+      real(8) :: dloglnd
+      real(8) :: dlogocn
+      real(8) :: dlogsno
 
       contains
 
@@ -213,6 +213,12 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
+!
+      dlogtwo = dlog(d_two)
+      dlogten = dlog(d_10)
+      dloglnd = dlog(zlnd)
+      dlogocn = dlog(zoce)
+      dlogsno = dlog(zsno)
 !
 #ifdef MPP1
       do jll = 1 , jendx
