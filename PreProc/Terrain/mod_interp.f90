@@ -59,7 +59,6 @@
        1.0D0 , 2*0.0D0 , 2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0 /
 !
        data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
-       data indwt /26*0,1,1,1,11*0/
 !
       contains
 !
@@ -166,7 +165,12 @@
 !     Set point to land if less than fixed percent of water
       wtp = dble(sum(bincnt,mask=lndwt(ibnty,:))/totpoints)*100.0D0
       if (wtp > 0.0 .and. wtp < h2opct) then
-        bincnt(indwt(ibnty,:)) = 0
+        if (ibnty == 1) then
+          bincnt(14) = 0
+          bincnt(15) = 0
+        else
+          bincnt(15) = 0
+        end if
       end if
       mostaround = -1.0D0
       lastc = -1
