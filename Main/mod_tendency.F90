@@ -2296,9 +2296,9 @@
                          & mpi_comm_world,ierr)
 #endif
         xday = ((nnnnnn-nstrt0)*ibdyfrq*minph+xtime-dtmin)/minpd
-        ! Added a check for nan...
-        if ((ptnbar/=ptnbar) .or. &
-           ((ptnbar>d_zero).eqv.(ptnbar<=d_zero))) then
+        ! Added a check for nan... The following inequality is wanted.
+        if ((ptnbar /= ptnbar) .or. &
+           ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
 #ifdef MPP1
           if ( myid == 0 ) then
 #endif

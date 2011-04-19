@@ -913,7 +913,9 @@ contains
           xac(i) = -d_one
           go to 500
         end if
-        if ( xpwcev(i) /= d_zero ) edtx(i) = -edtx(i)*xpwcav(i)/xpwcev(i)
+        if ( dabs(xpwcev(i)) > dlowval ) then
+          edtx(i) = -edtx(i)*xpwcav(i)/xpwcev(i)
+        end if
         if ( edtx(i) > edtmaxx2d(i,j) ) edtx(i)             &
            & = edtmaxx2d(i,j)
         if ( edtx(i) < edtminx2d(i,j) ) edtx(i)             &
