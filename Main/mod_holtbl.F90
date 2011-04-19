@@ -79,8 +79,6 @@
 !     power in formula for k and critical ri for judging stability
       real(8) , parameter :: pink = d_two
       real(8) , parameter :: ricr = d_rfour
-!     exponent : one third
-      real(8) , parameter :: onet = d_one/d_three
 ! 
       contains
 !

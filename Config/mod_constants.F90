@@ -38,6 +38,7 @@
       real(8) , parameter :: d_r100 = 1.0D-02
       real(8) , parameter :: d_1000 = 1.0D+03
       real(8) , parameter :: d_r1000 = 1.0D-03
+      real(8) , parameter :: onet = d_one/d_three
 
       real(8) , parameter :: dlowval = 1.0D-30
       real(4) , parameter :: slowval = 1.0E-30

@@ -267,22 +267,17 @@ Download the souece pack:
 
 \begin{Verbatim}
 $> cd $INTELSRC
-$> curl -o openmpi-1.5.3.tar.bz2 \
-> http://www.open-mpi.org/software/ompi/v1.5/downloads/openmpi-1.5.3.tar.bz2
+$> curl -o openmpi-1.4.3.tar.bz2 \
+> http://www.open-mpi.org/software/ompi/v1.5/downloads/openmpi-1.4.3.tar.bz2
 \end{Verbatim}
 
 Install it:
 
 \begin{Verbatim}
 $> cd $INTELSRC
-$> cd openmpi-1.5.3
+$> cd openmpi-1.4.3
 $> ./configure --prefix=$INTELROOT --sysconfdir=$INTELROOT/etc/openmpi \
-> --mandir=$INTELROOT/share/man --enable-mpi-f90 --libdir=$INTELROOT/lib \
-> --with-threads=posix --enable-mpi-threads --enable-smp-locks \
-> --with-valgrind --enable-memchecker --enable-debug \
-> --enable-pretty-print-stacktrace --without-slurm --with-hwloc=external \
-> --with-libltdl=/usr FC=ifort LDFLAGS="$LDFLAGS -Wl,-z,noexecstack" \
-> CXXFLAGS="$CXXFLAGS -std=c++0x"
+> --mandir=$INTELROOT/share/man --libdir=$INTELROOT/lib --enable-mpi-f90 
 $> make
 $> make check
 $> make install

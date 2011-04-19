@@ -1907,15 +1907,15 @@
                 'Net infrared energy flux','W m-2', &
                 tyx,.false.,isrfvar(17))
             call addvara(ncid,ctype,'fsw', &
-                'surface_downwelling_shortwave_flux_in_air', &
-                'Solar absorbed energy flux','W m-2', &
+                'net_downward_shortwave_flux_in_air', &
+                'Net solar absorbed energy flux','W m-2', &
                 tyx,.false.,isrfvar(18))
             call addvara(ncid,ctype,'fld', &
                 'surface_downwelling_longwave_flux_in_air', &
                 'Downward LW flux','W m-2',tyx,.false.,isrfvar(19))
             call addvara(ncid,ctype,'sina', &
-              'net_downward_radiative_flux_at_top_of_atmosphere_model', &
-              'Incident solar energy flux','W m-2', &
+                'surface_downwelling_shortwave_flux_in_air', &
+                'Incident solar energy flux','W m-2', &
                 tyx,.false.,isrfvar(20))
             call addvara(ncid,ctype,'prcv', 'convective_rainfall_flux', &
                 'Convective precipitation','kg m-2 day-1', &

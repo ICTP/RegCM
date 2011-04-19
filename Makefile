@@ -13,6 +13,7 @@ printall::
 	@echo '  --- make postproc:  to compile F90 postprocessing code' 
 	@echo '  --- make clean:  to clean all ' 
 	@echo '  --- make all: to compile all the codes and tools'
+	@echo '  --- make doc: to compile the Documentation into pdf files'
 
 all: terrain icbc clm2rcm regcm postproc
 	@echo "##############################################################"
@@ -53,6 +54,11 @@ postproc:
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "SUCCESSFULLY CREATED F90 POSTPROC BINARY FILES"
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+
+doc:
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Doc/UserGuide all
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Doc/ReferenceManual all
+	@$(MAKE) -C $(REGCM_BASE_DIR)/Doc/DeveloperGuide all
 
 clean:
 	@$(MAKE) -C $(REGCM_BASE_DIR)/PreProc/Terrain clean 
