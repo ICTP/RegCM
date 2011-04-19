@@ -191,10 +191,10 @@
       end if
 !
       lsigma = .false.
-      if ( sigmaf(1) /= d_zero ) lsigma = .true.
-      if ( sigmaf(kzp1) /= d_one ) lsigma = .true.
+      if ( dabs(sigmaf(1)) > dlowval ) lsigma = .true.
+      if ( dabs(sigmaf(kzp1)-d_one) > dlowval ) lsigma = .true.
       do k = 1 , kz
-        if ( sigmaf(k+1) <= sigmaf(k) ) then
+        if ( sigmaf(k+1) < sigmaf(k) ) then
           lsigma = .true.
           write (aline,99001) k , sigmaf(k+1) , sigmaf(k)
           call say

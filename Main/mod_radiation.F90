@@ -1421,9 +1421,9 @@
 !       possibility of sub-divisions within a particular interval:
 !
         psf = d_one
-        if ( ph2o(ns) /= d_zero ) psf = psf*ph2o(ns)
-        if ( pco2(ns) /= d_zero ) psf = psf*pco2(ns)
-        if ( po2(ns) /= d_zero ) psf = psf*po2(ns)
+        if ( dabs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
+        if ( dabs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
+        if ( dabs(po2(ns)) > dlowval ) psf = psf*po2(ns)
         do n = 1 , nloop
           do i = is(n) , ie(n)
             solflx(i) = solin(i)*frcsol(ns)*psf
@@ -4702,13 +4702,13 @@
       end do
       end function isrchfle
 !
-      subroutine wheneq(n,array,inc,itarg,indx,nval)
+      subroutine wheneq(n,iarray,inc,itarg,indx,nval)
  
       implicit none
 !
       integer :: inc , itarg , n , nval
-      integer , dimension(*) :: array , indx
-      intent (in) array , inc , itarg , n
+      integer , dimension(*) :: iarray , indx
+      intent (in) iarray , inc , itarg , n
       intent (out) indx
       intent (inout) nval
 !
@@ -4718,7 +4718,7 @@
       nval = 0
       if ( inc < 0 ) ina = (-inc)*(n-1) + 1
       do i = 1 , n
-        if ( array(ina) == itarg ) then
+        if ( iarray(ina) == itarg ) then
           nval = nval + 1
           indx(nval) = i
         end if

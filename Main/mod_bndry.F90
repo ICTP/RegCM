@@ -623,7 +623,7 @@
 !
 !           2.13 saturate swamp or rice paddy
 !
-            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) < 16) ) then
+            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) <= 15) ) then
               rsur(n,i) = rsur(n,i) + dmin1(d_zero,(rsw1d(n,i)- &
                                             gwmx1(n,i))/dtbat)
             end if
