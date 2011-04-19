@@ -32,7 +32,6 @@ module mod_interp
   integer , dimension(maxbins) :: bincnt
   real(DP) , dimension(maxbins) :: bmindist
   logical , dimension(2,maxbins) :: lndwt
-  integer , dimension(2,maxbins) :: indwt
 !
   data wt/1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 4*0.0D0 , -3.0D0 ,   &
           0.0D0 , 9.0D0 , -6.0D0 , 2.0D0 , 0.0D0 , -6.0D0 ,     &
@@ -60,7 +59,6 @@ module mod_interp
           2*0.0D0 , 2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0/
 !
    data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
-   data indwt /26*0,1,1,1,11*0/
 !
   contains
 !
@@ -167,7 +165,12 @@ module mod_interp
 !     Set point to land if less than fixed percent of water
   wtp = (dble(sum(bincnt,mask=lndwt(ibnty,:)))/dble(totpoints))*d_100
   if (wtp > 0.0 .and. wtp < h2opct) then
-    bincnt(indwt(ibnty,:)) = 0
+    if (ibnty == 1) then
+      bincnt(14) = 0
+      bincnt(15) = 0
+    else
+      bincnt(15) = 0
+    end if
   end if
   mostaround = -d_one
   lastc = -1
