@@ -40,7 +40,6 @@
 !
 ! Module Constants
 !
-      real(8) , parameter :: onet = d_one/d_three
       real(8) , parameter :: r1e6 = 1.0D-6
       real(8) , parameter :: a1 = 0.28D+00
       real(8) , parameter :: a2 = 0.27D+00
@@ -429,42 +428,46 @@
                  (dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
       end if
       call time_end(subroutine_name,idindx)  
-      end subroutine zengocn
+
+      contains
+
 !
 ! stability function for rb < 0
 !
-      function psi(k,zeta)
-      implicit none
+        function psi(k,zeta)
+        implicit none
 !
-      integer , intent(in) :: k
-      real(kind=8) , intent(in) :: zeta
+        integer , intent(in) :: k
+        real(kind=8) , intent(in) :: zeta
 !
-      real(kind=8) :: chik , psi
+        real(kind=8) :: chik , psi
 !
-      chik = (d_one-16.0D0*zeta)**d_rfour
-      if ( k == 1 ) then
-        psi = d_two*dlog((d_one+chik)*d_half) +       &
-                    dlog((d_one+chik*chik)*d_half) -  &
-              d_two*datan(chik) + d_two*datan(d_one)
-      else
-        psi = d_two*dlog((d_one+chik*chik)*d_half)
-      end if
-      end function psi
+        chik = (d_one-16.0D0*zeta)**d_rfour
+        if ( k == 1 ) then
+          psi = d_two*dlog((d_one+chik)*d_half) +       &
+                      dlog((d_one+chik*chik)*d_half) -  &
+                d_two*datan(chik) + d_two*datan(d_one)
+        else
+          psi = d_two*dlog((d_one+chik*chik)*d_half)
+        end if
+        end function psi
 
 !
 ! Tetens' formula for saturation vp Buck(1981) JAM 20, 1527-1532
 ! p in mb, t in C, and qsat in mb
 !
-      function qsat(t,p)
-      implicit none
+        function qsat(t,p)
+        implicit none
 !
-      real(kind=8) , intent (in) :: p , t
-      real(kind=8) :: qsat
+        real(kind=8) , intent (in) :: p , t
+        real(kind=8) :: qsat
 !
-      qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
+        qsat = (1.0007D0+3.46D-6*p)*6.1121D0* &
+                dexp(17.502D0*t/(240.97D0+t))
 !
-      end function qsat
+        end function qsat
 
+      end subroutine zengocn
 !
 !  our formulation for zo,zot,zoq
 !

@@ -267,7 +267,8 @@ if eval "test x$DEBUG = x1"; then
   if eval "test x"$FC" = xifort"; then
     FCFLAGS="-O0 -g \
              -check arg_temp_created,bounds,format,output_conversion,uninit \
-             -traceback -warn all -fp-model strict $FCFLAGS"
+             -traceback -warn all -fp-model precise -fp-model source -ftz \
+             -fimf-arch-consistency=true $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xxlf90"; then
@@ -295,7 +296,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xifort"; then
-    FCFLAGS="-O3 -fp-model precise $FCFLAGS"
+    FCFLAGS="-O3 -fp-model fast=1 -xHost -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xxlf90"; then

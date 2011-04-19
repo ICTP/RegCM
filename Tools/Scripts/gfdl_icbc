@@ -1,0 +1,96 @@
+#!/bin/sh
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#This script uses NCL to generate ICBC's for RegCM4.1 from GFDL model output
+#--Created 04/2011 by Travis A. O'Brien <tobrien@ucsc.edu> for RegCM v4.1
+#
+
+#Print the proper usage of the program if improper arguments are given
+printusage ()
+{
+  echo "usage: $0 regcm.in"
+  echo "  where regcm.in is the namelist file for the run for which you want to generate GFDL ICBC's."
+  exit
+}
+
+
+if [ -z "$REGCMSRCDIR" ]; then
+  echo "Error: the environtment variable REGCMSRCDIR is not set.  Please set it to the base directory of your RegCM 4.1 source code: $REGCMSRCDIR"
+  exit
+fi
+
+
+#The only argument from the command line: the regcm.in file
+#TODO: Check validity and occurrence of command line arguments
+if [ -z "$1" ]; then
+  printusage
+fi
+if [ ! -e "$1" ]; then
+  echo "Error: '$1' does not exist"
+  printusage
+fi
+
+#Script parameters
+REGCMIN=$1
+
+NCL="ncl"
+
+GFDLNCL="${REGCMSRCDIR}/Tools/Scripts/NCL/gfdl_icbc.ncl"
+
+
+
+#echo "Parsing $REGCMIN:"
+##################### Reading regcm.in ########################
+#Use grep and sed to pull the experiment name from the regcm.in file
+EXPNAME=`grep -i domname $REGCMIN | sed "s/[Dd][Oo][Mm][Nn][Aa][Mm][Ee]\s*=\s*'\(.*\)',/\1/"`
+EXPNAME=`echo $EXPNAME`
+
+#Use grep and sed to pull the output directory and the start/end dates
+#from the regcm.in file
+#Start date of run
+IDATE1=`grep -i globidate1 $REGCMIN | sed "s/[Gg][Ll][Oo][Bb][Ii][Dd][Aa][Tt][Ee]1\s*=\s*\(.*\),/\1/"`
+IDATE1=`echo $IDATE1`
+IDATE2=`grep -i globidate2 $REGCMIN | sed "s/[Gg][Ll][Oo][Bb][Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+IDATE2=`echo $IDATE2`
+#Input directory (allow for no comma at the end, since it is the last item in 
+#the namelist
+INPDIR=`grep -i dirglob $REGCMIN | sed "s/[Dd][Ii][Rr][Gg][Ll][Oo][Bb]\s*=\s*'\(.*\)',*/\1/"`
+INPDIR=`echo $INPDIR`
+BCDIR=`grep -i inpglob $REGCMIN | sed "s/[Ii][Nn][Pp][Gg][Ll][Oo][Bb]\s*=\s*'\(.*\)',*/\1/"`
+BCDIR=`echo $BCDIR`
+
+echo $BCDIR
+
+##################### End Reading regcm.in ####################
+
+
+  EXPNAMESTRING="\"${EXPNAME}\""
+  IDATE1STRING="${IDATE1}"
+  IDATE2STRING="${IDATE2}"
+  BCDIRSTRING="\"${BCDIR}\""
+  INPDIRSTRING="\"${INPDIR}\""
+  $NCL $GFDLNCL \
+            "DOMNAME=$EXPNAMESTRING"  \
+            "istartdate=$IDATE1STRING"  \
+            "ienddate=$IDATE2STRING"  \
+            "bcdir=$BCDIRSTRING"  \
+            "inpdir=$INPDIRSTRING"
+

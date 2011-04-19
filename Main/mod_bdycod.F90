@@ -359,7 +359,7 @@
       if ( dabs(xtime) > 0.0001D0 ) return
 !
 #ifdef MPP1
-      dtbdys = ibdyfrq*secph
+      dtbdys = dble(ibdyfrq)*secph
       if ( myid == 0 ) then
         if ( ehso4 ) then
           do k = 1 , kz
@@ -755,7 +755,7 @@
         end do
       end if
 #else
-      dtbdys = ibdyfrq*secph
+      dtbdys = dble(ibdyfrq)*secph
       if ( ehso4 ) then
         do k = 1 , kz
           do j = 1 , jx
@@ -1645,7 +1645,7 @@
 !
       dtb = xt*minph
       if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
-        dtb = ibdyfrq*secph
+        dtb = dble(ibdyfrq)*secph
       end if
 !
 !-----set boundary values for p*:
@@ -2142,7 +2142,7 @@
 !
       dtb = xt*minph
       if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
-        dtb = ibdyfrq*secph
+        dtb = dble(ibdyfrq)*secph
       end if
 !
 !-----set boundary values for p*:

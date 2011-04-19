@@ -38,6 +38,7 @@
       real(8) , parameter :: d_r100 = 1.0D-02
       real(8) , parameter :: d_1000 = 1.0D+03
       real(8) , parameter :: d_r1000 = 1.0D-03
+      real(8) , parameter :: onet = d_one/d_three
 
       ! Angles degrees
       real(8) , parameter :: deg00  = 0.0D+00
