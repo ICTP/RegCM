@@ -106,7 +106,8 @@
       terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
       call read_domain(terfile)
 
-      if ( clatx/=clat .or. clonx/=clon) then
+      if ( dabs(clatx-clat) > 0.001D0 .or.   &
+           dabs(clonx-clon) > 0.001D0) then
         print * , 'DOMAIN file is inconsistent with regcm.in'
         print * , '  namelist       :  clat=' , clat , ' clon=' , clon
         print * , '  DOMAIN file    :  clat=' , clatx , ' clon=' , clonx
