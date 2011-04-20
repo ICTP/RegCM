@@ -193,7 +193,9 @@ at run time just one processor. The penalty time in this case is less than
 $1\%$ of the run time of a serial built executable. The RegCM team
 strongly suggest to build MPI enabled model, as the serial option will be
 dropped in future releases. To enable serial build, enter \verb=0=, otherwise
-accept the default choice pressing enter.
+accept the default choice pressing enter. \footnote{The serial version of the
+model is deprecated, and support for this non MPI version will be dropped in
+future model releases.}
 \item BAND option
 \begin{Verbatim}
   ****  Do you want to run the tropical band version, BAND - 1 or not - 0?
@@ -206,6 +208,8 @@ band around earth. This is documented in the \cite{refman_11}.
 The default is to not enable this feature, i.e. to run the model on a limited
 area not going round the whole earth. If You are planning to run such a
 simulation, enter \verb=1=, otherwise accept the default choice pressing enter.
+For the scope of the tutorial test run in chapter \ref{tutorial}, use the
+default option.
 \item CLM option
 \begin{Verbatim}
   ****  Do you want to enable CLM  - 1 or not - 0? 
@@ -217,6 +221,8 @@ and enables the use of the Community Land Model V3.5 inside RegCM. The default
 is to use the RegCM BATS Land Model. If You are planning to run a simulation
 using CLM, enter \verb=1=, otherwise accept the default choice pressing enter.
 \footnote{The CLM option needs the GNU patch program to be compiled.}
+For the scope of the tutorial test run in chapter \ref{tutorial}, use the
+default option.
 \end{enumerate}
 
 \subsection{Choice of Fortran compiler}

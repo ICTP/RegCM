@@ -4,7 +4,7 @@ all: UserGuide.pdf
 
 FIGURES = ICTP_logo.eps
 TEXFILES = Appendices.tex Install.tex ObtainCode.tex ObtainData.tex \
-					 ReleaseNotes.tex
+					 ReleaseNotes.tex TestRun.tex
 BIBFILES = references.bib
 
 UserGuide.pdf: UserGuide.tex $(TEXFILES) $(BIBFILES) $(FIGURES)
