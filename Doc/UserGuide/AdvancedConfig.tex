@@ -1,0 +1,125 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+We will examin in this chapter in more detail the namelist configuration file,
+to give You the User a deeper knowledge of model capabilities.
+
+\section{The commented namelist}
+
+In this section we will show You the commented namelist input file You will
+find under \verb=$REGCM_ROOT/Doc= with the name \verb=README.namelist= .
+All model programs seen so far, with the exception of the GrADS helper program,
+use as input this namelist file, which is unique to a particular simulation.
+The model input namelist file is divided in stanzas, each one devoted to
+configuring the model capabilities.
+A stanza in the namelist is identified with a starting \verb=&= character
+followed by stanza name, and ends on a single line with the \verb=\=
+character.
+
+\subsection{dimparam stanza}
+
+This stanza contains the base X,Y,Z domain dimension information, used
+by the model dynamic memory allocator to request the Operating System the
+memory space to store the model internal variables.
+
+\footnotesize{
+\begin{Verbatim}
+ &dimparam
+ iy     = 34,  ! This is number of points in the N/S direction
+ jx     = 48,  ! This is number of points in the E/W direction
+ kz     = 18,  ! Number of vertical levels: supported are 14, 18 and 23
+ nsg    = 1,   ! For subgridding, number of points to decompose. If nsg=1,
+               ! no subgridding is performed. CLM does NOT work as of now with
+               ! subgridding enabled.
+ /
+\end{Verbatim}
+}
+
+The things You need to know here:
+
+\begin{enumerate}
+\item In the current version 4.1 the model parallelize execution dividing
+the work between the processors along the jx (longitude) dimension. The
+minimum work per processor is 3 points along the jx dimension, so the maximum
+number of processors which can be used in a parallel run for the above
+configuration is just $16$. In future revision ICTP plans to introduce 2D
+decomposition.
+\item In the future model revision the kz (vertical) dimension will be
+more configurable, but for now you are limited to have 14, 18 and 23 levels.
+We at ICTP normally use 18 levels.
+\item Specifying an nsg number greater than one triggers the subgrid BATS model
+on. There is no plan to extend this feature to CLM model. This affects only
+surface variable calculations. All dynamics variable are calculated still
+on the coarser grid. Rain in the current implementation is also calculated on
+the coarser grid.
+\end{enumerate}
+
+\subsection{geoparam stanza}
+
+This stanza is used by the \verb=terrain= program to geolocate the model grid
+on the earth surface. The RegCM model uses a limited number of projection
+engines. The value here are used by the other model programs to assert
+consistency with the geolocation information written by the \verb=terrain=
+program in the \verb=DOMAIN= file.
+
+\footnotesize{
+\begin{Verbatim}
+ &geoparam
+ iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
+                   ! 'LAMCON', Lambert conformal.
+                   ! 'POLSTR', Polar stereographic. (Doesn't work)
+                   ! 'NORMER', Normal  Mercator.
+                   ! 'ROTMER', Rotated Mercator.
+ ds = 60.0,        ! Grid point horizontal resolution in km
+ ptop = 5.0,       ! Pressure of model top in cbar
+ clat = 45.39,     ! Central latitude  of model domain in degrees
+                   ! North hemisphere is positive
+ clon = 13.48,     ! entral longitude of model domain in degrees
+                   ! West is negative.
+ plat = 45.39,     ! Pole latitude (only for rotated Mercator Proj)
+ plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
+ truelatl = 30.0,  ! Lambert true latitude (low latitude side)
+ truelath = 60,    ! Lambert true latitude (high latitude side)
+ /
+\end{Verbatim}
+}
+
+The things You need to know here:
+
+\begin{enumerate}
+\item The different projection engines produce better results depending on the
+position and extent of the domain. In particular, regardless of emisphere:
+\begin{itemize}
+\item Middle latitudes (around 45 degrees) - Lambert Conformal
+\item Polar latitudes (more than 75 degrees) - Polar Stereographic
+\item Low latitudes (up to 30 degrees and crossing the equator) - Mercator
+\item Crossing more than 45 degrees extent in latitude - Rotated Mercator
+\end{itemize}
+\item The model hydrostatic engine does not allow resolution lower than
+$20 km$. If want higher resolution consider using the subgridding scheme.
+ICTP plans to introduce in the future a non-hydrostatic compressible core to
+the RegCM model.
+\item Lowering the top pressure of the model can give You problems in regions
+with complex topography. Touch the default after thinking twice on that.
+\item Always specify \verb=clat= and \verb=clon=, the central domain point,
+and do fine adjustment of the position moving it around a little bit. A
+little shift in position and some tests can help You obtain a better
+representation of coastlines and topography at the coarse resolutions.
+\item If using \verb=LAMCON= projection, take care to place the two
+true latitudes at around one fourth and three fourth of the domain latitude
+space to better correct the projection distorsion of the domain.
+\item The pole position for the rotated mercator position should be as near as
+possible to the center domain position.
+\end{enumerate}
+
+\subsection{terrainparam stanza}
+
+This stanza is used by the \verb=terrain= program to geolocate the model grid
+on the earth surface. The RegCM model uses a limited number of projection
+engines. The value here are used by the other model programs to assert
+consistency with the geolocation information written by the \verb=terrain=
+program in the \verb=DOMAIN= file.
+
