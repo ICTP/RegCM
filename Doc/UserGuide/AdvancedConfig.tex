@@ -25,7 +25,7 @@ This stanza contains the base X,Y,Z domain dimension information, used
 by the model dynamic memory allocator to request the Operating System the
 memory space to store the model internal variables.
 
-\footnotesize{
+{\footnotesize
 \begin{Verbatim}
  &dimparam
  iy     = 34,  ! This is number of points in the N/S direction
@@ -65,7 +65,7 @@ engines. The value here are used by the other model programs to assert
 consistency with the geolocation information written by the \verb=terrain=
 program in the \verb=DOMAIN= file.
 
-\footnotesize{
+{\footnotesize
 \begin{Verbatim}
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
@@ -117,9 +117,91 @@ possible to the center domain position.
 
 \subsection{terrainparam stanza}
 
-This stanza is used by the \verb=terrain= program to geolocate the model grid
-on the earth surface. The RegCM model uses a limited number of projection
-engines. The value here are used by the other model programs to assert
-consistency with the geolocation information written by the \verb=terrain=
-program in the \verb=DOMAIN= file.
+This stanza is used by the \verb=terrain= program to know how You want him
+to generate the \verb=DOMAIN= file. You can control its work using a number of
+parameter to obtain what You consider the best representation of the
+physical reality. Do not underestimate what You can do at this early stage,
+having a good representation of the surface can lead to valuable results
+later when the model calculates climatic parameters.
 
+{\footnotesize
+\begin{Verbatim}
+ &terrainparam
+ domname  = 'AQWA',      ! Name of the domain. Controls naming of input files
+ ntypec = 5,             ! Resolution of the global terrain and landuse data
+                         ! Use 60, for  1  degree resolution
+                         !     30, for 30 minutes resolution
+                         !     10, for 10 minutes resolution
+                         !      5, for  5 minutes resolution
+                         !      3, for  3 minutes resolution
+                         !      2, for  2 minutes resolution
+ ntypec_s = 2,           ! Same for subgrid (Used only if nsg > 1)
+ smthbdy = .false.,      ! Smoothing Control flag
+                         !  true  -> Perform extra smoothing in boundaries
+ lakedpth    = .false.,  ! If using lakemod (see below), produce from
+                         ! terrain program the domain bathymetry
+ fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid
+ fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
+ fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid
+ fudge_tex_s = .false.,  ! Fudging Control flag, for texture of subgrid
+ fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
+ fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
+ h2opct = 75.,           ! Surface minimum H2O percent to be considered water
+ dirter = '../../Input', ! Output directory for terrain files
+ inpter = '../DATA',     ! Input directory for SURFACE dataset
+ /
+\end{Verbatim}
+}
+
+The things You need to know here:
+
+\begin{enumerate}
+\item The \verb=domname= will control output file naming convention, all
+generated file will prepend this string to the old V3 naming convention,
+giving You the capability to recognize different run. Try to use always
+meaningful names.
+\item In version 4.1 does exist a single input dataset, the 30s one. The
+\verb=ntypec= parameter controls initial subsampling of input dataset before
+the smoothing interpolation performed by the \verb=terrain= program.
+\item Use lakedepth if You plan to use the Hostetler lake model in the
+model. It will be useless otherwise. It may be used in the future to
+have a common sea bathymetry with the ocean coupled model. The coupling
+engine of RegCM will be included in future model releases.
+\item You can control the final land-water mask using the h2opct parameter.
+This parameter can be used to have more land point than calculated by
+the simple interpolation engine. Try it with different values to find best
+land shapes. A zero value does mean use just interpolation engine, higher
+values will extend into ocean points the land at land-water interface.
+\item A number of flag control the capability of the \verb=terrain= program
+to modify on request the class type variables in the \verb=DOMAIN= file. You can
+modify on request the landuse, the texture and the lake/land interface.
+Running once the \verb=terrain= program, it will generate for You aside the
+\verb=DOMAIN= file a series of ASCII files You can modify with any text
+editor. Running the \verb=terrain= program the second time and setting
+a \verb=fudge= flag, will tell the program to overwrite the selected
+variable with the modified value in the ASCII file. This can be useful
+for sensitivity experiments on the BATS surface model or to design
+a scenario experiment.
+\item If the NetCDF library is compiled with OpenDAP support, an URL
+can be used as a path in the \verb=dirter= and \verb=inpter= variables.
+Note that the $256$ character limit for paths holds in the whole program.
+For \verb=terrain= program You may want to try the following URL: \\
+http://clima-dods.ictp.it/thredds/dodsC
+\item The texture dataset is built if the aerosol model is activated.
+This is controlled by the \verb=AERTYP= flag. See below.
+\end{enumerate}
+
+\subsection{ioparam stanza}
+
+{\footnotesize
+\begin{Verbatim}
+ &ioparam
+ ibyte = 4,   ! Number of bytes in reclen. Usually 4
+ /
+\end{Verbatim}
+}
+
+Leave this untouched. The model expects input record syze to be 4 bytes.
+You will need to change some compilation parameters if You change this value.
+
+\subsection{debugparam stanza}
