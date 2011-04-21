@@ -5,11 +5,11 @@
 %
 
 We will examin in this chapter in more detail the namelist configuration file,
-to give You the User a deeper knowledge of model capabilities.
+to give you the User a deeper knowledge of model capabilities.
 
 \section{The commented namelist}
 
-In this section we will show You the commented namelist input file You will
+In this section we will show you the commented namelist input file you will
 find under \verb=$REGCM_ROOT/Doc= with the name \verb=README.namelist= .
 All model programs seen so far, with the exception of the GrADS helper program,
 use as input this namelist file, which is unique to a particular simulation.
@@ -38,7 +38,7 @@ memory space to store the model internal variables.
 \end{Verbatim}
 }
 
-The things You need to know here:
+The things you need to know here:
 
 \begin{enumerate}
 \item In the current version 4.1 the model parallelize execution dividing
@@ -87,7 +87,7 @@ program in the \verb=DOMAIN= file.
 \end{Verbatim}
 }
 
-The things You need to know here:
+The things you need to know here:
 
 \begin{enumerate}
 \item The different projection engines produce better results depending on the
@@ -102,11 +102,11 @@ position and extent of the domain. In particular, regardless of emisphere:
 $20 km$. If want higher resolution consider using the subgridding scheme.
 ICTP plans to introduce in the future a non-hydrostatic compressible core to
 the RegCM model.
-\item Lowering the top pressure of the model can give You problems in regions
+\item Lowering the top pressure of the model can give you problems in regions
 with complex topography. Touch the default after thinking twice on that.
 \item Always specify \verb=clat= and \verb=clon=, the central domain point,
 and do fine adjustment of the position moving it around a little bit. A
-little shift in position and some tests can help You obtain a better
+little shift in position and some tests can help you obtain a better
 representation of coastlines and topography at the coarse resolutions.
 \item If using \verb=LAMCON= projection, take care to place the two
 true latitudes at around one fourth and three fourth of the domain latitude
@@ -117,10 +117,10 @@ possible to the center domain position.
 
 \subsection{terrainparam stanza}
 
-This stanza is used by the \verb=terrain= program to know how You want him
+This stanza is used by the \verb=terrain= program to know how you want him
 to generate the \verb=DOMAIN= file. You can control its work using a number of
-parameter to obtain what You consider the best representation of the
-physical reality. Do not underestimate what You can do at this early stage,
+parameter to obtain what you consider the best representation of the
+physical reality. Do not underestimate what you can do at this early stage,
 having a good representation of the surface can lead to valuable results
 later when the model calculates climatic parameters.
 
@@ -153,17 +153,17 @@ later when the model calculates climatic parameters.
 \end{Verbatim}
 }
 
-The things You need to know here:
+The things you need to know here:
 
 \begin{enumerate}
 \item The \verb=domname= will control output file naming convention, all
 generated file will prepend this string to the old V3 naming convention,
-giving You the capability to recognize different run. Try to use always
+giving you the capability to recognize different run. Try to use always
 meaningful names.
 \item In version 4.1 does exist a single input dataset, the 30s one. The
 \verb=ntypec= parameter controls initial subsampling of input dataset before
 the smoothing interpolation performed by the \verb=terrain= program.
-\item Use lakedepth if You plan to use the Hostetler lake model in the
+\item Use lakedepth if you plan to use the Hostetler lake model in the
 model. It will be useless otherwise. It may be used in the future to
 have a common sea bathymetry with the ocean coupled model. The coupling
 engine of RegCM will be included in future model releases.
@@ -175,8 +175,8 @@ values will extend into ocean points the land at land-water interface.
 \item A number of flag control the capability of the \verb=terrain= program
 to modify on request the class type variables in the \verb=DOMAIN= file. You can
 modify on request the landuse, the texture and the lake/land interface.
-Running once the \verb=terrain= program, it will generate for You aside the
-\verb=DOMAIN= file a series of ASCII files You can modify with any text
+Running once the \verb=terrain= program, it will generate for you aside the
+\verb=DOMAIN= file a series of ASCII files you can modify with any text
 editor. Running the \verb=terrain= program the second time and setting
 a \verb=fudge= flag, will tell the program to overwrite the selected
 variable with the modified value in the ASCII file. This can be useful
@@ -185,7 +185,7 @@ a scenario experiment.
 \item If the NetCDF library is compiled with OpenDAP support, an URL
 can be used as a path in the \verb=dirter= and \verb=inpter= variables.
 Note that the $256$ character limit for paths holds in the whole program.
-For \verb=terrain= program You may want to try the following URL: \\
+For \verb=terrain= program you may want to try the following URL: \\
 http://clima-dods.ictp.it/thredds/dodsC
 \item The texture dataset is built if the aerosol model is activated.
 This is controlled by the \verb=AERTYP= flag. See below.
@@ -202,6 +202,6 @@ This is controlled by the \verb=AERTYP= flag. See below.
 }
 
 Leave this untouched. The model expects input record syze to be 4 bytes.
-You will need to change some compilation parameters if You change this value.
+You will need to change some compilation parameters if you change this value.
 
 \subsection{debugparam stanza}

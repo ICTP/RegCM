@@ -13,7 +13,7 @@ The model executables prepared in chapter \ref{install} are waiting for us to
 use them. So let's give them a chance.
 
 The model test run proposed here requires around 100Mb of disk space to store
-the DOMAIN and ICBC in input and the output files. We will assume here that You,
+the DOMAIN and ICBC in input and the output files. We will assume here that you,
 the user, have already established a convenient directory on a disk partition
 with enough space identified in the following discussion with \verb=$REGCM_RUN=
 
@@ -31,8 +31,8 @@ $> cd $REGCM_RUN
 Now we are ready to modify the input namelist file to reflect this directory
 layout. A namelist file in Fortran90 is a convenient way to give input to a
 program in a formatted file, read at runtime by the program to setup its
-execution behaviour. So next step is somewhat tricky, as You need to edit
-the namelist file respecting its well defined syntax. Open Your preferred text
+execution behaviour. So next step is somewhat tricky, as you need to edit
+the namelist file respecting its well defined syntax. Open your preferred text
 file editor and load the \verb=test_001.in= file. You will need to modify for
 the scope of the present tutorial the following lines:
 
@@ -77,14 +77,14 @@ TO:
 \end{Verbatim}
 
 This modifications just reflect the above directory layout proposed for this
-tutorial, and any of this paths can point anywhere on Your system disks. Path
+tutorial, and any of this paths can point anywhere on your system disks. Path
 is limited to $256$ characters.
 We are now ready to execute the first program of the RegCM model.
 
 \section{Create the DOMAIN file using terrain}
 
 First step is to create the DOMAIN file to localize the model on a world region.
-The program which does this for You reading the global databases is
+The program which does this for you reading the global databases is
 \verb=terrain= .
 
 To launch the terrain program, enter the following commands:
@@ -112,7 +112,7 @@ test_001_DOMAIN000.nc test_001_LANDUSE
 The DOMAIN file contains the localized topography and landuse databases, as
 well as projection informations and land sea mask. The second file is an ASCII
 encoded version of the landuse, used for modifying it on request. We will cover
-it's usage later on.  To have a quick look at DOMAIN file content, You may want
+it's usage later on.  To have a quick look at DOMAIN file content, you may want
 to use the GrADSNcPlot program:
 
 \begin{Verbatim}
@@ -140,7 +140,7 @@ this will plot the topography and the landuse on the X11 window.
 
 We are now ready to create the Sea Surface Temperature for the model, reading a
 global dataset.
-The program which does this for You is the \verb=sst= program, which is executed
+The program which does this for you is the \verb=sst= program, which is executed
 with the following commands:
 
 \begin{Verbatim}
@@ -164,7 +164,7 @@ test_001_DOMAIN000.nc test_001_LANDUSE test_001_SST.nc
 
 The SST file contains the Sea Surface temperature to be used in generating the
 Initial and Boundary Conditions for the model for the period specified in the
-namelist file. Again You may want to use the GrADSNcPlot program to look at
+namelist file. Again you may want to use the GrADSNcPlot program to look at
 file content:
 
 \begin{Verbatim}
@@ -188,7 +188,7 @@ this will plot the interpolated sst field on the X11 window.
 \section{Create the ICBC files using the icbc program}
 
 Next step is to create the ICBC (Initial Condition, Boundary Conditions) for
-the model itself. The program which does this for You is the \verb=icbc=
+the model itself. The program which does this for you is the \verb=icbc=
 program, executed with the following commands:
 
 \begin{Verbatim}
@@ -214,7 +214,7 @@ test_001_ICBC.1990060100.nc test_001_ICBC.1990070100.nc
 The ICBC files contain the surface pressure, surface temperature, horizontal
 3D wind components, 3D temperature and mixing ratio for the RegCM domain for the
 period and time resolution specified in the input file.
-Again You may want to use the GrADSNcPlot program to look at file content:
+Again you may want to use the GrADSNcPlot program to look at file content:
 
 \begin{Verbatim}
 $> ./Bin/GrADSNcPlot input/test_001_ICBC.1990060100.nc
@@ -245,13 +245,13 @@ We are now ready to run the model!
 
 \section{First RegCM model simulation}
 
-The model has now all needed data to allow You to launch a test simulation,
+The model has now all needed data to allow you to launch a test simulation,
 the final goal of our little tutorial.
 
-The model command line now will differ if You have prepared the Serial or the
-MPI version. For the MPI enabled version we will assume that Your machine is
+The model command line now will differ if you have prepared the Serial or the
+MPI version. For the MPI enabled version we will assume that your machine is
 a dual core processor (baseline for current machines, even for laptops).
-Change the \verb=-np 2= argument to the number of processors You have on
+Change the \verb=-np 2= argument to the number of processors you have on
 Your platform (on my laptop QuadCore I use \verb=-np 4=).
 
 \begin{itemize}
@@ -270,7 +270,7 @@ $> ./Bin/regcmSerial test_001.in
 
 Now the model will start running, and a series of diagnostic messages will be
 printed on screen. As this is a simulation known to well behave, no stoppers
-will appear, so You may want now to have a coffe break and come back in 10
+will appear, so you may want now to have a coffe break and come back in 10
 minutes from now.
 
 At the end of the run, the model will print the following message:
@@ -293,16 +293,16 @@ fluxes informations. The SAV file stores the status of the model at the end of
 the simulation period to enable a restart, thus allowing a long simulation
 period to be splitted in shorter simulations.
 
-To have a look for example at surface fields, You may want to use the
+To have a look for example at surface fields, you may want to use the
 following command:
 
 \begin{Verbatim}
 $> ./Bin/GrADSNcPlot output/test_001_SRF.1990060100.nc
 \end{Verbatim}
 
-Assuming the previous crash course in using GraDS was received, You should be
+Assuming the previous crash course in using GraDS was received, you should be
 able to plot the variables in the file.
 
 This is the end of this little tutorial, and in the next chapter we will
-examine how to configure the model for Your research needs.
+examine how to configure the model for your research needs.
 
