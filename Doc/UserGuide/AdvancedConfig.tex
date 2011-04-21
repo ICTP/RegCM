@@ -144,7 +144,7 @@ active chemistry tracers part of the model.
 The things you need to know here:
 
 \begin{enumerate}
-\item If \verb=aertype= is left to \verb=AER00D0=, it is nonsense to activate
+\item If \verb=aertyp= is left to \verb=AER00D0=, it is nonsense to activate
 chemistry in the model.
 \item The total number of tracers activated must be greater than nbin.
 \item If Anthropogenic and/or Biomass is activated, the model will also need
@@ -158,7 +158,7 @@ The aerosol program preapares an emission dataset used by the model
 to consider optical active chemistry species effects in the radiation
 calculation. The surface dust emission are calculated using the soil
 texture dataset prepared by the \verb=terrain= program if the last
-$0$ is set to $1$.
+$0$ is set to $1$ in \verb=aertyp=.
 \end{enumerate}
 
 \subsection{terrainparam stanza}
@@ -210,8 +210,8 @@ meaningful names.
 \item In version 4.1 does exist a single input dataset, the 30s one. The
 \verb=ntypec= parameter controls initial subsampling of input dataset before
 the smoothing interpolation performed by the \verb=terrain= program.
-\item Use lakedepth if you plan to use the Hostetler lake model in the
-model. It will be useless otherwise. It may be used in the future to
+\item Use lakedepth if you plan to use the Hostetler lake model later on.
+It will be useless otherwise. It may be used in the future to
 have a common sea bathymetry with the ocean coupled model. The coupling
 engine of RegCM will be included in future model releases.
 \item You can control the final land-water mask using the h2opct parameter.
@@ -229,6 +229,10 @@ a \verb=fudge= flag, will tell the program to overwrite the selected
 variable with the modified value in the ASCII file. This can be useful
 for sensitivity experiments on the BATS surface model or to design
 a scenario experiment.
+\item The \verb=inpter= directory is expected to contain a \verb=SURFACE=
+directory where the actual NetCDF global dataset are stored. The overall
+path is limited to $256$ characters.
+\label{pathnote}
 \item If the NetCDF library is compiled with OpenDAP support, an URL
 can be used as a path in the \verb=dirter= and \verb=inpter= variables.
 Note that the $256$ character limit for paths holds in the whole program.
@@ -236,6 +240,51 @@ For \verb=terrain= program you may want to try the following URL: \\
 http://clima-dods.ictp.it/thredds/dodsC
 \item The texture dataset is built if the aerosol model is activated.
 This is controlled by the \verb=AERTYP= flag. See above in \ref{aertyp}.
+\end{enumerate}
+
+\subsection{globdatparam stanza}
+
+This stanza is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
+tell them how to build initial and bondary conditions.
+
+{\footnotesize
+\begin{Verbatim}
+ &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
+ ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
+                             !          FV_RF, FV_A2, FV_B2,
+                             !          EH5RF, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST
+ dattyp = 'EIN15',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
+                             !          FVGCM, FNEST, EH5OM , CCSMN
+ ehso4 = .false.,            ! Sulfate dataset Control Flag
+ globidate1 = 1990060100,    ! Start date for ICBC data generation
+ globidate2 = 1990070100,    ! End data for ICBC data generation
+ dirglob = '/scratch/Input', ! Path for ICBC produced input files
+ inpglob = '../DATA',        ! Path for ICBC global input datasets.
+                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
+                   ! on how to download them.
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The globidate time window to build ICBC must be always greater or equal to
+the time window you plan to run the model in.
+\item Even if listed, not all the input engines are fully tested. Some of them
+need data which have been reformatted by ICTP (they are not in the original
+format with which they are distributed by the institution producing them).
+Some input data are not freely distibutable by ICTP, and you need a special
+agreement with the owner to use them.
+Hopefully the situation is changing, and data exchange is becoming more and more
+the basis for good science in the climatic field.
+\item For notes on path, you can see the above in terrainparam stanza
+description at \ref{pathnote}.
 \end{enumerate}
 
 \subsection{ioparam stanza}
@@ -267,3 +316,75 @@ are not a developer you may find this flags useless.
 \end{Verbatim}
 }
 
+\subsection{boundaryparam and modesparam stanzas}
+
+Consider changing just under guidance of ICTP researchers. This have been
+tuned to optimize the results over all tested configurations.
+
+{\footnotesize
+\begin{Verbatim}
+ &boundaryparam
+ nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ nspgd  = 12, ! nspgd-1 represent the number of dot point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ /
+ &modesparam
+ nsplit = 2, ! Number od split exp modes
+ /
+\end{Verbatim}
+}
+
+\subsection{restartparam stanza}
+
+This stanza lets you control the time period the model is currently simulating
+in this particular run. You may want to split longer runs for which you have
+prepared the ICBC's into shorter runs, to schedule HPC resource usage in a more
+collaborative way with other researcher sharing it: the regcm model allows
+restart, so be friendly with other research projects which may not have this
+fortune (unless you are late for pubblication).
+
+{\footnotesize
+\begin{Verbatim}
+ &restartparam
+ ifrest  = .false. ,   ! If a restart
+ idate0  = 1990060100, ! Global start (is globidate1)
+ idate1  = 1990060100, ! Start date of this run
+ idate2  = 1990060200, ! End date for this run
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item After the simulation start, on restart NEVER change the \verb=idate0=
+value. The correct scheme for restart is:
+\begin{itemize}
+\item Set \verb=ifrest= to \verb=.true.=
+\item Set \verb=idate1= to the value in \verb=idate2=
+\item Define the new value for \verb=idate2=
+\end{itemize}
+\item Consider that current RegCM convention is to place midnight of first
+day of month as the last timestep in previous month, except on first model
+output file (\verb=ifrest= = \verb=.false.=). It is for this reason better
+to use as start and end time a month boundary. We usually consider a month
+data file the basic unit of output, each time you cross a month a new output
+file will be created for you.
+\end{enumerate}
+
+\subsection{timeparam stanza}
+
+This stanza contains model internal timesteps, used by the model as basic
+integration timestep and triggers for calling internal parametric schemes.
+
+{\footnotesize
+\begin{Verbatim}
+ &timeparam
+ radfrq  =    30.,   ! time interval in min solar rad caluclated
+ abemh   =    18.,   ! time interval at which bats is called (secs)
+ abatm   =   600.,   ! time interval absorption-emission calculated (hours)
+ dt      =   150.,   ! time step in seconds
+ /
+\end{Verbatim}
+}
