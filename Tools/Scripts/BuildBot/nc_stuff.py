@@ -20,7 +20,7 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # Module that contains NetCDF related functions
-import subprocess
+import subprocess,os
 
 # compares two RegCM outputs in NetCDF format
 # requirements: subprocess
