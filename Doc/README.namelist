@@ -20,7 +20,7 @@
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
                    ! 'LAMCON', Lambert conformal.
-                   ! 'POLSTR', Polar stereographic. (Doesn't work)
+                   ! 'POLSTR', Polar stereographic.
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
  ds = 60.0,        ! Grid point horizontal resolution in km
@@ -33,6 +33,23 @@
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
  truelath = 60,    ! Lambert true latitude (high latitude side)
+ /
+!
+! Aerosol dataset creation and use
+!
+ &aerosolparam
+ aertyp = 'AER00D0' ! Aerosol dataset used
+                    ! One in :
+                    ! AER00D0 -> Neither aerosol, nor dust used
+                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
+                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+                    ! AER00D1 -> No aerosol, with dust
+                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
+                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
+ ntr =  4,          ! Tracer parameters: number of tracers
+ nbin = 2,          ! Tracer parameters: bins number for dust
  /
 !
 ! DOMAIN terrain generation parameters
@@ -62,40 +79,6 @@
  inpter = '../DATA',     ! Input directory for SURFACE dataset
  /
 !
-! Global I/O control Stanza
-!
- &ioparam
- igrads = 1,  ! Create GrADS CTL files
- ibigend = 1, ! Machine endianess.
-              ! LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
- ibyte = 4,   ! Number of bytes in reclen. Usually 4
- iotyp = 1,   ! Type of output file, used in regcm only as of now.
-              !   1 => direct access file OK for the GrADS, mostly used
-              !   2 => sequential I/O with time listing interleaved for legacy
- /
-!
-! Debug I/O printout level.
-!
- &debugparam
- debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
- dbgfrq = 3,      ! Interval for printout if debug_level >= 3
- /
-!
-! Buffer Zone Depth
-!
- &boundaryparam
- nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
-              ! the boundary sponge or relaxation boundary conditions.
- nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
-              ! the boundary sponge or relaxation boundary conditions.
- /
-!
-! Split modes
-!
- &modesparam
- nsplit = 2, ! Number od split exp modes
- /
-!
 ! ICBC Global data input control
 !
  &globdatparam
@@ -118,21 +101,32 @@
                              ! on how to download them.
  /
 !
-! Aerosol dataset creation and use
+! Global I/O control Stanza
 !
- &aerosolparam
- aertyp = 'AER00D0' ! Aerosol dataset used
-                    ! One in :
-                    ! AER00D0 -> Neither aerosol, nor dust used
-                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
-                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
-                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
-                    ! AER00D1 -> No aerosol, with dust
-                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
-                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
-                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
- ntr =  4,          ! Tracer parameters: number of tracers
- nbin = 2,          ! Tracer parameters: bins number for dust
+ &ioparam
+ ibyte = 4,   ! Number of bytes in reclen. Usually 4
+ /
+!
+! Debug I/O printout level.
+!
+ &debugparam
+ debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
+ dbgfrq = 3,      ! Interval for printout if debug_level >= 3
+ /
+!
+! Buffer Zone Depth
+!
+ &boundaryparam
+ nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
+              ! the boundary sponge or relaxation boundary conditions.
+ /
+!
+! Split modes
+!
+ &modesparam
+ nsplit = 2, ! Number od split exp modes
  /
 !
 ! Model start/restart control

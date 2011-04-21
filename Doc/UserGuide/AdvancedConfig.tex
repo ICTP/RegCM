@@ -115,8 +115,55 @@ space to better correct the projection distorsion of the domain.
 possible to the center domain position.
 \end{enumerate}
 
+\subsection{aerosolparam stanza}
+
+This stanza allows the user to specify aerosol usage in the model. It does
+enable building of soil texture database in the \verb=terrain= program and
+control the dimension of the sumber of optical active tracers used in the
+active chemistry tracers part of the model.
+
+{\footnotesize
+\begin{Verbatim}
+ &aerosolparam
+ aertyp = 'AER00D0' ! Aerosol dataset used
+                    ! One in :
+                    ! AER00D0 -> Neither aerosol, nor dust used
+                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
+                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+                    ! AER00D1 -> No aerosol, with dust
+                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
+                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
+ ntr =  4,          ! Tracer parameters: number of tracers
+ nbin = 2,          ! Tracer parameters: bins number for dust
+ /
+\end{Verbatim}
+}
+
+The things you need to know here:
+
+\begin{enumerate}
+\item If \verb=aertype= is left to \verb=AER00D0=, it is nonsense to activate
+chemistry in the model.
+\item The total number of tracers activated must be greater than nbin.
+\item If Anthropogenic and/or Biomass is activated, the model will also need
+the user to run the aerosol program. It can be run at the same level of the
+sst program, with the same calling syntax. Just replace sst with aerosol.
+\begin{Verbatim}
+$> cd $REGCM_RUN
+$> ./Bin/aerosol myregcm.in
+\end{Verbatim}
+The aerosol program preapares an emission dataset used by the model
+to consider optical active chemistry species effects in the radiation
+calculation. The surface dust emission are calculated using the soil
+texture dataset prepared by the \verb=terrain= program if the last
+$0$ is set to $1$.
+\end{enumerate}
+
 \subsection{terrainparam stanza}
 
+\label{aertyp}
 This stanza is used by the \verb=terrain= program to know how you want him
 to generate the \verb=DOMAIN= file. You can control its work using a number of
 parameter to obtain what you consider the best representation of the
@@ -188,7 +235,7 @@ Note that the $256$ character limit for paths holds in the whole program.
 For \verb=terrain= program you may want to try the following URL: \\
 http://clima-dods.ictp.it/thredds/dodsC
 \item The texture dataset is built if the aerosol model is activated.
-This is controlled by the \verb=AERTYP= flag. See below.
+This is controlled by the \verb=AERTYP= flag. See above in \ref{aertyp}.
 \end{enumerate}
 
 \subsection{ioparam stanza}
@@ -203,5 +250,20 @@ This is controlled by the \verb=AERTYP= flag. See below.
 
 Leave this untouched. The model expects input record syze to be 4 bytes.
 You will need to change some compilation parameters if you change this value.
+\footnote{This namelist stanza will be removed in future versions}
 
 \subsection{debugparam stanza}
+
+This stanza is used by all RegCM programs to enable/disable some debug printout.
+In the current release this flag is honored only by the model itself. If you
+are not a developer you may find this flags useless.
+
+{\footnotesize
+\begin{Verbatim}
+ &debugparam
+ debug_level = 1, ! Currently value of 2 and 3 control previous DIAG flag
+ dbgfrq = 3,      ! Interval for printout if debug_level >= 3
+ /
+\end{Verbatim}
+}
+
