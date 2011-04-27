@@ -27,12 +27,13 @@
  ptop = 5.0,       ! Pressure of model top in cbar
  clat = 45.39,     ! Central latitude  of model domain in degrees
                    ! North hemisphere is positive
- clon = 13.48,     ! entral longitude of model domain in degrees
+ clon = 13.48,     ! Central longitude of model domain in degrees
                    ! West is negative.
  plat = 45.39,     ! Pole latitude (only for rotated Mercator Proj)
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
  truelath = 60,    ! Lambert true latitude (high latitude side)
+ i_band = 0,       ! Use this only if BAND option is used.
  /
 !
 ! Aerosol dataset creation and use
@@ -284,11 +285,11 @@
 !
 ! Chemical control parameter
 !
-&chemparam
+ &chemparam
     ! Some example of defaults parameter namelist are given in the Examples
     ! directory. Here we consider two dust bin and two type of BC aerosol
     ! ( see inpchtrname).
-idirect      =    1,  ! enable or not aerosol feedbacks on radiation and
+ idirect      =    1, ! enable or not aerosol feedbacks on radiation and
                       ! dynamics (aerosol direct and semi direct effcts):
                       !  0 = no coupling. Aerosol are only transported and
                       !      don't interact with radiation scheme.
@@ -297,37 +298,38 @@ idirect      =    1,  ! enable or not aerosol feedbacks on radiation and
                       !      aerosol radiative forcings are diagnosed.
                       !  2 = allows aerosol feedbacks on radiative,
                       !      thermodynamic and dynamic fields.   
-ichremlsc    =    1,  ! 1 = allows tracer removal (wet deposition) by large
+ ichremlsc    =    1, ! 1 = allows tracer removal (wet deposition) by large
                       !     scale cloud
-ichremcvc    =    1,  ! 1 = allows tracer removal by convective clouds
-ichdrdepo    =    1,  ! 1 = enable tracer surface dry deposition. For dust,
+ ichremcvc    =    1, ! 1 = allows tracer removal by convective clouds
+ ichdrdepo    =    1, ! 1 = enable tracer surface dry deposition. For dust,
                       !     it is calculated by a size settling and dry
                       !     deposition scheme. For other aerosol,a dry
                       !     deposition velocity is simply prescribed further.
                       !     Next release will include an improved aerosol dry
                       !     deposition scheme for non dust aerosols.
-ichcumtra    =    1,  ! 1 = enable tracer convective transport and mixing.
-inpchtrname  =  'DUST','DUST,'BC_HB','BC_HL',
+ ichcumtra    =    1, ! 1 = enable tracer convective transport and mixing.
+ inpchtrname  =  'DUST','DUST,'BC_HB','BC_HL',
                       ! Tracer identifier. The number of input should be equal
-                      ! to ntr you have the choice between DUST
+                      ! to ntr you have the choice between
+                      ! DUST  = Dust particle from soil
                       ! BC_HB = Hydrophobic Black carbon aerosol
                       ! BC_HL = Hydrophilic or aged black carbon
                       ! OC_HB = Hydrophobic organic carbon aerosl
                       ! OC_HL = Hydrophilic or aged organic carbon
-                      ! SO2 = sulfur dioxide
-                      ! SO4 = sulfate aerosol
-inpchtrsol   =  0.1, 0.1, 0.05, 0.8,
+                      ! SO2   = sulfur dioxide
+                      ! SO4   = sulfate aerosol
+ inpchtrsol   =  0.1, 0.1, 0.05, 0.8,
                       ! Tracer solubility (fraction). The number of input
                       ! should be equal to ntr. Will determine if tracer are
                       ! efficiently removed by wet deposition or not
-inpchtrdpv   =  0.,0.,0.00025,0.00025,  0.,0.,0.00025,0.00250,
+ inpchtrdpv   =  0.,0.,0.00025,0.00025,  0.,0.,0.00025,0.00250,
                       ! Dry deposition velocity (in m/s) over land (first ntr)
                       ! and ocean (second ntr values), a total of ntr*2 values.
                       ! Should be consistent with tracer identifier.
                       ! for DUST type this value is not effectively considered
                       ! since a dry deposition scheme is explicitely included
                       ! in RegCM.
-inpdustbsiz  =   0.1,  1., 1., 2.5,
+ inpdustbsiz  =   0.1,  1., 1., 2.5,
                       ! Lower Size limit (first nbin) and Upper Size limit
                       ! (second nbin values) of diameter bin classes for dust
                       ! (in micrometer). Should never exceed nbin * 2 values.
