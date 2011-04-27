@@ -141,10 +141,10 @@
 ! Model timing parameters
 !
  &timeparam
- radfrq  =    30.,   ! time interval in min solar rad caluclated
- abemh   =    18.,   ! time interval at which bats is called (secs)
- abatm   =   600.,   ! time interval absorption-emission calculated (hours)
  dt      =   150.,   ! time step in seconds
+ radfrq  =    30.,   ! time interval in min solar rad calculated
+ abemh   =    18.,   ! time interval absorption-emission calculated (hours)
+ abatm   =   600.,   ! time interval at which bats is called (secs)
  /
 !
 ! Model Output control
@@ -203,13 +203,16 @@
                         !   1 => Hydrostatic deduction with pert. temperature
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
- ichem   =          1,  ! Use chemical model
+ ichem   =          1,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          1, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective liquid water path as the large-scale
                         ! liquid water path
+ high_nudge =    3.0D0, ! Nudge value high range
+ medium_nudge =  2.0D0, ! Nudge value medium range
+ low_nudge =     1.0D0  ! Nudge value low range
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)
@@ -232,19 +235,52 @@
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
  /
 !
-! Grell Cumulus scheme control (please look mod_param.F90)
+! Grell Cumulus scheme control
 !
  &grellparam
+ shrmin = 0.25,       ! Minimum Shear effect on precip eff.
+ shrmax = 0.50,       ! Maximum Shear effect on precip eff.
+ edtmin = 0.25,       ! Minimum Precipitation Efficiency
+ edtmax = 0.50,       ! Maximum Precipitation Efficiency
+ edtmino = 0.25,      ! Minimum Precipitation Efficiency (o var)
+ edtmaxo = 0.50,      ! Maximum Precipitation Efficiency (o var)
+ edtminx = 0.25,      ! Minimum Precipitation Efficiency (x var)
+ edtmaxx = 0.50,      ! Maximum Precipitation Efficiency (x var)
+ shrmin_ocn = 0.25,   ! Minimum Shear effect on precip eff. OCEAN points
+ shrmax_ocn = 0.50,   ! Maximum Shear effect on precip eff.
+ edtmin_ocn = 0.25,   ! Minimum Precipitation Efficiency
+ edtmax_ocn = 0.50,   ! Maximum Precipitation Efficiency
+ edtmino_ocn = 0.25,  ! Minimum Precipitation Efficiency (o var)
+ edtmaxo_ocn = 0.50,  ! Maximum Precipitation Efficiency (o var)
+ edtminx_ocn = 0.25,  ! Minimum Precipitation Efficiency (x var)
+ edtmaxx_ocn = 0.50,  ! Maximum Precipitation Efficiency (x var)
+ pbcmax = 150.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
+ mincld = 150.0,      ! Min cloud depth (mb).
+ htmin = -250.0,      ! Min convective heating
+ htmax = 500.0,       ! Max convective heating
+ skbmax = 0.4,        ! Max cloud base height in sigma
+ dtauc = 30.0,        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 !
-! Emanuel Cumuls scheme control (please look mod_param.F90)
+! Emanuel Cumuls scheme control
 !
  &emanparam
- elcrit  = 0.0011D0  ! Autoconversion threshold water content (gm/gm)
- coeffr  = 1.0D0     ! Coefficient governing the rate of rain evaporation
-!elcrit = 0.01D0    ! to make the scheme drier
-!coeffr = 1.5D0     ! to make the scheme drier
-  / 
+ minsig = 0.95,   ! Lowest sigma level from which convection can originate
+ elcrit = 0.0011, ! Autoconversion threshold water content (g/g)
+ tlcrit = -55.0,  ! Below tlcrit auto-conversion threshold is zero
+ entp = 1.5,      ! Coefficient of mixing in the entrainment formulation
+ sigd = 0.05,     ! Fractional area covered by unsaturated dndraft
+ sigs = 0.12,     ! Fraction of precipitation falling outside of cloud
+ omtrain = 50.0,  ! Fall speed of rain (Pa/s)
+ omtsnow = 5.5,   ! Fall speed of snow (Pa/s)
+ coeffr = 1.0,    ! Coefficient governing the rate of rain evaporation
+ coeffs = 0.8,    ! Coefficient governing the rate of snow evaporation
+ cu = 0.7,        ! Coefficient governing convective momentum transport
+ betae = 10.0,    ! Controls downdraft velocity scale
+ dtmax = 0.9,     ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.2,    ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,      ! Controls the approach rate to quasi-equilibrium
+ / 
 !
 ! Chemical control parameter
 !

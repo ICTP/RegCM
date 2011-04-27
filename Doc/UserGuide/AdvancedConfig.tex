@@ -20,6 +20,7 @@ followed by stanza name, and ends on a single line with the \verb=\=
 character.
 
 \subsection{dimparam stanza}
+\label{dimparam}
 
 This stanza contains the base X,Y,Z domain dimension information, used
 by the model dynamic memory allocator to request the Operating System the
@@ -58,6 +59,7 @@ the coarser grid.
 \end{enumerate}
 
 \subsection{geoparam stanza}
+\label{geoparam}
 
 This stanza is used by the \verb=terrain= program to geolocate the model grid
 on the earth surface. The RegCM model uses a limited number of projection
@@ -381,10 +383,217 @@ integration timestep and triggers for calling internal parametric schemes.
 {\footnotesize
 \begin{Verbatim}
  &timeparam
- radfrq  =    30.,   ! time interval in min solar rad caluclated
- abemh   =    18.,   ! time interval at which bats is called (secs)
- abatm   =   600.,   ! time interval absorption-emission calculated (hours)
  dt      =   150.,   ! time step in seconds
+ radfrq  =    30.,   ! time interval in min solar rad caluclated
+ abemh   =    18.,   ! time interval absorption-emission calculated (hours)
+ abatm   =   600.,   ! time interval at which bats is called (secs)
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The dinamical hydrostatical core of RegCM requires a fixed timestep,
+and you need to manually find the correct value which permits not to break
+the Courant–Friedrichs–Lewy condition considering \cite{CFL}. A good rule
+of thumb is to have a \verb=dt= not greater than three times the \verb=ds=
+value in $km$ specified in the \verb=geoparam= stanza at \ref{geoparam}.
+A greater value may lower computing time, but in case of strong advection
+may lead to non accurate computation or even the violation of CFL condition
+and the divergence of the solution.
+\item All the other internal timesteps need to be multiple of the base timestep.
+Note that the units are different, so you need to convert the other timesteps
+in seconds before the check.
+\item In case of strong surface gradients, a low value for the surface timesteps
+may help the model better describe the interaction with the atmosphere and
+obtain a stable solution.
+\item If you hit a non stable condition, the restart capability of the model
+may help find the correct timestep just for a particular period, using a
+different timestep at different times.
+\end{enumerate}
+
+\subsection{outparam stanza}
+
+This stanza controls the model output engine, allowing you to enable/disable
+any of the output file writeout, or to modify the frequency the fields are
+written in the files.
+
+{\footnotesize
+\begin{Verbatim}
+ &outparam
+ ifsave  = .true. ,    ! Create SAV files for restart
+ savfrq  =    48.,     ! Frequency in hours to create them
+ iftape  = .true. ,    ! Output ATM ?
+ tapfrq  =     6.,     ! Frequency in hours to write to ATM
+ ifrad   = .true. ,    ! Output RAD ?
+ radisp  =     6.,     ! Frequency in hours to write to RAD
+ ifbat   = .true. ,    ! Output SRF ?
+ ifsub   = .true. ,    ! Output SUB ?
+ batfrq  =     3.,     ! Frequency in hours to write to SRF and SUB (and CLM)
+ iflak   = .true.,     ! Output LAK ?
+ lakfrq  =     6.,     ! Frequency in hours to write to LAK if lakemod is 1
+                       ! It must be an integer multiple of batfrq
+ ifchem  = .true.,     ! Output CHE ?
+ chemfrq =     6.,     ! Frequency in hours to write to CHE
+ dirout  = './output', ! Path where all output will be placed
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The surface fields are the mean values in the interval specified by
+the frequency values. The dinamical fields are instead the point value at the
+output time. Refer to the Reference Manual \cite{refman_11} for a detailled
+description of the model output fields.
+\item If the chemistry or lake model are not enabled, the values specified in
+the control flags are not considered. If \verb=nsg= is not greater than one
+in dimparam at \ref{dimparam}, the \verb=ifsub= flag is not considered.
+\item For the output directory, the path variable has a limit of $256$
+characters. This path must be a local path on disk where the user running
+the model has write permissions granted.
+\end{enumerate}
+
+\subsection{physicsparam stanza}
+\label{physicsparam}
+
+This stanza controls the model physics. You have a number of option here,
+and the best way to select the right set is to carefully read the the
+Reference Manual \cite{refman_11}. We are for the purposes of this User Guide
+not going in detail in here, except in saying that probably you will need
+to run some experiments expecially with different cumulus convection
+schemes before finding out the best model setting.
+
+{\footnotesize
+\begin{Verbatim}
+ &physicsparam
+ iboudy  =          5,  ! Lateral Boundary conditions scheme
+                        !   0 => Fixed
+                        !   1 => Relaxation, linear technique.
+                        !   2 => Time-dependent
+                        !   3 => Time and inflow/outflow dependent.
+                        !   4 => Sponge (Perkey & Kreitzberg, MWR 1976)
+                        !   5 => Relaxation, exponential technique.
+ ibltyp  =          1,  ! Boundary layer scheme
+                        !   0 => Frictionless
+                        !   1 => Holtslag PBL (Holtslag, 1990)
+ icup    =          4,  ! Cumulus convection scheme
+                        !   1 => Kuo
+                        !   2 => Grell
+                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
+                        !   4 => Emanuel (1991)
+                        !  99 => Use Grell over land and Emanuel over ocean
+                        !  98 => Use Emanuel over land and Grell over ocean
+   igcc  =          1,  ! Grell Scheme Cumulus closure scheme
+                        !   1 => Arakawa & Schubert (1974)
+                        !   2 => Fritsch & Chappell (1980)
+ ipptls  =          1,  ! Moisture scheme
+                        !   1 => Explicit moisture (SUBEX; Pal et al 2000)
+ iocnflx =          2,  ! Ocean Flux scheme
+                        !   1 => Use BATS1e Monin-Obukhov
+                        !   2 => Zeng et al (1998)
+   iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
+                        !   1 => (0.0065*ustar*ustar)/egrav
+                        !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar
+ ipgf    =          0,  ! Pressure gradient force scheme
+                        !   0 => Use full fields
+                        !   1 => Hydrostatic deduction with pert. temperature
+ iemiss  =          0,  ! Calculate emission
+ lakemod =          0,  ! Use lake model
+ ichem   =          1,  ! Use active aerosol chemical model
+ scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
+ idcsst   =          0, ! Use diurnal cycle sst scheme
+ iseaice  =          0, ! Model seaice effects
+ idesseas =          1, ! Model desert seasonal albedo variability
+ iconvlwp =          1, ! Use convective liquid water path as the large-scale
+                        ! liquid water path
+ \
+\end{Verbatim}
+}
+
+\subsection{subexparam stanza}
+
+This stanza controls the moisture scheme. Please consider carefully reporting
+in your work the tuning you perform on this parameters. The parameters below
+are the one currently used at ICTP. Again read the Reference Manual before
+changing this numbers.
+
+{\footnotesize
+\begin{Verbatim}
+ &subexparam
+ ncld      =          1, ! # of bottom model levels with no clouds
+ fcmax     =       0.80, ! Maximum cloud fraction cover
+ qck1land  =   .250E-03, ! Autoconversion Rate for Land
+ qck1oce   =   .250E-03, ! Autoconversion Rate for Ocean
+ gulland   =        0.4, ! Fract of Gultepe eqn (qcth) when precip occurs
+ guloce    =        0.4, ! Fract of Gultepe eqn (qcth) for ocean
+ rhmax     =       1.01, ! RH at whicn FCC = 1.0
+ rh0oce    =       0.90, ! Relative humidity threshold for ocean
+ rh0land   =       0.80, ! Relative humidity threshold for land
+ tc0       =      238.0, ! Below this temperature, rh0 begins to approach unity
+ cevap     =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+ caccr     =      3.000, ! Raindrop accretion rate [m3/kg/s]
+ cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
+ clfrcvmax =       0.25, ! Max cloud fractional cover for convective precip.
+ cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
+ high_nudge   =     3.0, ! Nudge value high range
+ medium_nudge =     2.0, ! Nudge value medium range
+ low_nudge    =     1.0  ! Nudge value low range
+ /
+\end{Verbatim}
+}
+
+\subsection{grellparam and emanparam stanzas}
+
+You are allowed here to tune the convection scheme selected above in
+\ref{physicsparam} with the \verb=icup= number if selected number is
+$2, 4, 98 or 99$. 
+
+{\footnotesize
+\begin{Verbatim}
+ &grellparam
+ shrmin = 0.25,       ! Minimum Shear effect on precip eff.
+ shrmax = 0.50,       ! Maximum Shear effect on precip eff.
+ edtmin = 0.25,       ! Minimum Precipitation Efficiency
+ edtmax = 0.50,       ! Maximum Precipitation Efficiency
+ edtmino = 0.25,      ! Minimum Precipitation Efficiency (o var)
+ edtmaxo = 0.50,      ! Maximum Precipitation Efficiency (o var)
+ edtminx = 0.25,      ! Minimum Precipitation Efficiency (x var)
+ edtmaxx = 0.50,      ! Maximum Precipitation Efficiency (x var)
+ shrmin_ocn = 0.25,   ! Minimum Shear effect on precip eff. OCEAN points
+ shrmax_ocn = 0.50,   ! Maximum Shear effect on precip eff.
+ edtmin_ocn = 0.25,   ! Minimum Precipitation Efficiency
+ edtmax_ocn = 0.50,   ! Maximum Precipitation Efficiency
+ edtmino_ocn = 0.25,  ! Minimum Precipitation Efficiency (o var)
+ edtmaxo_ocn = 0.50,  ! Maximum Precipitation Efficiency (o var)
+ edtminx_ocn = 0.25,  ! Minimum Precipitation Efficiency (x var)
+ edtmaxx_ocn = 0.50,  ! Maximum Precipitation Efficiency (x var)
+ pbcmax = 150.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
+ mincld = 150.0,      ! Min cloud depth (mb).
+ htmin = -250.0,      ! Min convective heating
+ htmax = 500.0,       ! Max convective heating
+ skbmax = 0.4,        ! Max cloud base height in sigma
+ dtauc = 30.0,        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+ /
+
+ &emanparam
+ minsig = 0.95,   ! Lowest sigma level from which convection can originate
+ elcrit = 0.0011, ! Autoconversion threshold water content (g/g)
+ tlcrit = -55.0,  ! Below tlcrit auto-conversion threshold is zero
+ entp = 1.5,      ! Coefficient of mixing in the entrainment formulation
+ sigd = 0.05,     ! Fractional area covered by unsaturated dndraft
+ sigs = 0.12,     ! Fraction of precipitation falling outside of cloud
+ omtrain = 50.0,  ! Fall speed of rain (Pa/s)
+ omtsnow = 5.5,   ! Fall speed of snow (Pa/s)
+ coeffr = 1.0,    ! Coefficient governing the rate of rain evaporation
+ coeffs = 0.8,    ! Coefficient governing the rate of snow evaporation
+ cu = 0.7,        ! Coefficient governing convective momentum transport
+ betae = 10.0,    ! Controls downdraft velocity scale
+ dtmax = 0.9,     ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.2,    ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,      ! Controls the approach rate to quasi-equilibrium
  /
 \end{Verbatim}
 }

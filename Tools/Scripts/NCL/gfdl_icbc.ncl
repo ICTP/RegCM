@@ -204,6 +204,8 @@ do while(bProcessingDates)
     filevarattdef(ficbc,"qv",dumAtt)
 
     dumAtt = True
+;    ;Set the time units to be 'hours since ...' ...the start of the month
+;    timeunits = "hours since " + date2str(startmonth)
     dumAtt@units = timeunits
     filevarattdef(ficbc,"time",dumAtt)
 
@@ -394,7 +396,9 @@ do while(bProcessingDates)
   imonth = round(curdate@month,3) 
   iday = round(curdate@day,3) 
   ihour = round(curdate@hour,3) 
-  curtime = ut_inv_calendar(iyear,imonth,iday,ihour,0,0,timeunits,0)
+  iopt = 0
+  iopt@calendar = "noleap"
+  curtime = ut_inv_calendar(iyear,imonth,iday,ihour,0,0,timeunits,iopt)
 
   ;*****************************************************************************
   ;*************************** Write output ************************************

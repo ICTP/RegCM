@@ -90,6 +90,7 @@
                & edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
       real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
                  edtmino , edtmaxx , edtminx
+      real(8) :: high_nudge , medium_nudge , low_nudge
       real(8) , dimension(nsplit) :: dtsplit
       integer :: i , j , k , kbase , ktop , ns
       character(5) , dimension(maxntr) :: inpchtrname
@@ -304,7 +305,6 @@
       medium_nudge = 2.0D0
       low_nudge = 1.0D0   
       iconvlwp = 1
-      cftotmax = 0.75D0
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -326,48 +326,49 @@
       caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
       cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
       clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
+      cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
  
 !------namelist grellparam:
-      shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
-      shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
-      edtmin = 0.25D0       ! Minimum Precipitation Efficiency
-      edtmax = 0.50D0       ! Maximum Precipitation Efficiency
-      edtmino = 0.25D0      ! Minimum Precipitation Efficiency (o var)
-      edtmaxo = 0.50D0      ! Maximum Precipitation Efficiency (o var)
-      edtminx = 0.25D0      ! Minimum Precipitation Efficiency (x var)
-      edtmaxx = 0.50D0      ! Maximum Precipitation Efficiency (x var)
-      shrmin_ocn = 0.25D0   ! Minimum Shear effect on precip eff.
-      shrmax_ocn = 0.50D0   ! Maximum Shear effect on precip eff.
-      edtmin_ocn = 0.25D0   ! Minimum Precipitation Efficiency
-      edtmax_ocn = 0.50D0   ! Maximum Precipitation Efficiency
-      edtmino_ocn = 0.25D0  ! Minimum Precipitation Efficiency (o var)
-      edtmaxo_ocn = 0.50D0  ! Maximum Precipitation Efficiency (o var)
-      edtminx_ocn = 0.25D0  ! Minimum Precipitation Efficiency (x var)
-      edtmaxx_ocn = 0.50D0  ! Maximum Precipitation Efficiency (x var)
-      pbcmax = 150.0D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
-      mincld = 150.0D0       ! Min cloud depth (mb).
-      htmin = -250.0D0       ! Min convective heating
-      htmax = 500.0D0        ! Max convective heating
-      skbmax = 0.4D0        ! Max cloud base height in sigma
-      dtauc = 30.0D0         ! Fritsch & Chappell (1980) 
-                            ! ABE Removal Timescale (min)
+      shrmin = 0.25D0      ! Minimum Shear effect on precip eff.
+      shrmax = 0.50D0      ! Maximum Shear effect on precip eff.
+      edtmin = 0.25D0      ! Minimum Precipitation Efficiency
+      edtmax = 0.50D0      ! Maximum Precipitation Efficiency
+      edtmino = 0.25D0     ! Minimum Precipitation Efficiency (o var)
+      edtmaxo = 0.50D0     ! Maximum Precipitation Efficiency (o var)
+      edtminx = 0.25D0     ! Minimum Precipitation Efficiency (x var)
+      edtmaxx = 0.50D0     ! Maximum Precipitation Efficiency (x var)
+      shrmin_ocn = 0.25D0  ! Minimum Shear effect on precip eff.
+      shrmax_ocn = 0.50D0  ! Maximum Shear effect on precip eff.
+      edtmin_ocn = 0.25D0  ! Minimum Precipitation Efficiency
+      edtmax_ocn = 0.50D0  ! Maximum Precipitation Efficiency
+      edtmino_ocn = 0.25D0 ! Minimum Precipitation Efficiency (o var)
+      edtmaxo_ocn = 0.50D0 ! Maximum Precipitation Efficiency (o var)
+      edtminx_ocn = 0.25D0 ! Minimum Precipitation Efficiency (x var)
+      edtmaxx_ocn = 0.50D0 ! Maximum Precipitation Efficiency (x var)
+      pbcmax = 150.0D0     ! Max depth (mb) of stable layer b/twn LCL & LFC
+      mincld = 150.0D0     ! Min cloud depth (mb).
+      htmin = -250.0D0     ! Min convective heating
+      htmax = 500.0D0      ! Max convective heating
+      skbmax = 0.4D0       ! Max cloud base height in sigma
+      dtauc = 30.0D0       ! Fritsch & Chappell (1980) 
+                           ! ABE Removal Timescale (min)
  
 !------namelist emanparam:
       minsig = 0.95D0   ! Lowest sigma level from which convection can originate
-      elcrit = 0.0011D0 ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
-      tlcrit = -55.0D0  ! BELOW TLCRIT AUTO-CONVERSION THRESHOLD IS ZERO
-      entp = 1.5D0      ! COEFFICIENT OF MIXING IN THE ENTRAINMENT FORMULATION
-      sigd = 0.05D0     ! FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT
-      sigs = 0.12D0     ! FRACTION OF PRECIPITATION FALLING OUTSIDE OF CLOUD
-      omtrain = 50.0D0  ! FALL SPEED OF RAIN (P/s)
-      omtsnow = 5.5D0   ! FALL SPEED OF SNOW (P/s)
-      coeffr = 1.0D0    ! COEFFICIENT GOVERNING THE RATE OF RAIN EVAPORATION
-      coeffs = 0.8D0    ! COEFFICIENT GOVERNING THE RATE OF SNOW EVAPORATION
-      cu = 0.7D0        ! COEFFICIENT GOVERNING CONVECTIVE MOMENTUM TRANSPORT
-      betae = 10.0D0    ! CONTROLS DOWNDRAFT VELOCITY SCALE
-      dtmax = 0.9D0     ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
-      alphae = 0.2D0    ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
-      damp = 0.1D0      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+      elcrit = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
+      tlcrit = -55.0D0  ! Below tlcrit auto-conversion threshold is zero
+      entp = 1.5D0      ! Coefficient of mixing in the entrainment formulation
+      sigd = 0.05D0     ! Fractional area covered by unsaturated dndraft
+      sigs = 0.12D0     ! Fraction of precipitation falling outside of cloud
+      omtrain = 50.0D0  ! Fall speed of rain (P/s)
+      omtsnow = 5.5D0   ! Fall speed of snow (P/s)
+      coeffr = 1.0D0    ! Coefficient governing the rate of rain evaporation
+      coeffs = 0.8D0    ! Coefficient governing the rate of snow evaporation
+      cu = 0.7D0        ! Coefficient governing convective momentum transport
+      betae = 10.0D0    ! Controls downdraft velocity scale
+      dtmax = 0.9D0     ! Max negative parcel temperature perturbation below LFC
+      alphae = 0.2D0    ! Controls the approach rate to quasi-equilibrium
+      damp = 0.1D0      ! Controls the approach rate to quasi-equilibrium
 !
 !c------namelist chemparam ; ( 0= none, 1= activated)
       ichremlsc = 1     ! tracer removal by large scale clouds
@@ -376,6 +377,8 @@
       ichcumtra = 1     ! tracer convective transport
       idirect = 1       ! tracer direct effect
       mixtype = 1
+
+
 #ifdef CLM
 !c------CLM Specific
       imask = 1
