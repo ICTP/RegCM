@@ -50,45 +50,10 @@
       real(4) , dimension(jlat) :: lati
       real(4) , dimension(ilon) :: loni
       integer :: idate , ierastart , ierrec , nsteps
-      logical :: there
       real(4) , dimension(ilon,jlat) :: sst
       character(256) :: inpfile
 !
-      if ( ssttyp=='ERSST' ) then
-        there = .false.
-        if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
-           & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
-          inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',    &
-            &      exist=there)
-          if ( .not.there ) then
-            print * , 'sstERAIN.1989-2009.nc is not available' ,        &
-                 &' under ',trim(inpglob),'/SST/'
-            stop
-          end if
-        end if
-        if ( .not.there ) then
-          print * , 'ERSST Sea Surface Temperature is just available' , &
-               &' from 1989010100 to 2009053118'
-          stop
-        end if
-      else if ( ssttyp=='ERSKT' ) then
-        there = .false.
-        if ( (globidate1>=1989010100 .and. globidate1<=2009053118) .or. &
-           & (globidate2>=1989010100 .and. globidate2<=2009053118) ) then
-          inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',  &
-                 & exist=there)
-          if ( .not.there ) then
-            print * , 'tskinERAIN.1989-2009.nc is not available' ,      &
-                 &' under ',trim(inpglob),'/SST/'
-            stop
-          end if
-        end if
-        if ( .not.there ) then
-          print * , 'ERSKT Skin Temperature is just available' ,        &
-               &' from 1989010100 to 2009053118'
-          stop
-        end if
-      else
+      if ( ssttyp /= 'ERSST' .and. ssttyp /= 'ERSKT' ) then
         write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
         write (*,*) 'Supported types are ERSST ERSKT'
         stop
@@ -153,7 +118,6 @@
       intent (out) :: sst
 !
       integer :: i , j , n
-      logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer :: istatus
@@ -175,11 +139,6 @@
       data varname/'skt'/
 !
       if ( it==1 ) then
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
@@ -238,7 +197,6 @@
       intent (out) :: sst
 !
       integer :: i , j , n
-      logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer :: istatus
@@ -260,11 +218,6 @@
       data varname/'sst'/
 !
       if ( it==1 ) then
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)

@@ -140,7 +140,6 @@
                & k , nhour , nlev , nyear , istatus
       character(21) :: inname
       character(256) :: pathaddname
-      logical :: there
       character(5) , dimension(7) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
@@ -209,11 +208,6 @@
           else if ( dattyp=='NNRP2' ) then
             pathaddname = trim(inpglob)//'/NNRP2/'//inname
           else
-          end if
-          inquire (file=pathaddname,exist=there)
-          if ( .not.there ) then
-            print * , trim(pathaddname) , ' is not available'
-            stop
           end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
           if (istatus /= nf90_noerr) then
@@ -471,7 +465,6 @@
                & month , nday , nhour , nlev , nyear , istatus
       character(24) :: inname
       character(256) :: pathaddname
-      logical :: there
       character(5) , dimension(7) :: varname
       integer(2) , dimension(iii,jjj,klev+1) :: work
       real(8) :: xadd , xscale
@@ -535,11 +528,6 @@
           end if
  
           pathaddname = trim(inpglob)//'/NNRP2/'//inname
-          inquire (file=pathaddname,exist=there)
-          if ( .not.there ) then
-            print * , pathaddname , ' is not available'
-            stop
-          end if
           istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
           if (istatus /= nf90_noerr) then
             print *, 'Error opening ',trim(pathaddname)

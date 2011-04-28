@@ -133,14 +133,8 @@
         integer :: lonid , latid , ilevid
         character(256) :: pathaddname
         real(8) :: dp0
-        logical :: there
 !
         pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          print * , pathaddname , 'is not available'
-          stop
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
         if ( istatus/=nf90_noerr ) call handle_err(istatus)
 
@@ -336,7 +330,6 @@
         integer :: inet , ivar
         character(25) :: inname
         character(256) :: pathaddname
-        logical :: there
         character(2) , dimension(6) :: varname
         real(8) , allocatable , dimension(:) :: xtimes
         character(3) , dimension(12) :: mname
@@ -366,11 +359,6 @@
             end if
  
             pathaddname = trim(inpglob)//'/CCSM/'//inname
-            inquire (file=pathaddname,exist=there)
-            if ( .not.there ) then
-              print * , pathaddname , ' is not available'
-              stop
-            end if
  
             istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
             if ( istatus/=nf90_noerr ) call handle_err(istatus)

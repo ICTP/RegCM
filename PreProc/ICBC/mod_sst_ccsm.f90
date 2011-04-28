@@ -167,17 +167,11 @@
       integer :: it , icode , i , j
       integer :: latid , lonid , timid
       integer :: latlen , lonlen , timlen
-      logical :: there
       integer :: istatus
 
       data varname/'time','SST'/
       
       if (idate == idate0) then
-         inquire(file=pathaddname,exist=there)
-         if (.not.there) then
-           print *, trim(pathaddname),' is not available'
-           stop 'ERROR OPEN FILE'
-         endif
          istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
          if ( istatus/=nf90_noerr ) then
            write ( 6,*) 'Error opening ', trim(pathaddname)

@@ -22,9 +22,8 @@
       implicit none
 
       integer , dimension(12) :: mlen
-      integer , dimension(12) :: mmid
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
-      data mmid /16, 14, 16, 15, 16, 15, 16, 16, 15, 16, 15, 16/
+
       contains
 
       subroutine normidate(idate)
@@ -39,8 +38,8 @@
         implicit none
         logical :: lleap
         integer , intent(in) :: iyear
-        if ( mod(iyear,400).eq.0 .or.                                   &
-          & ( mod(iyear,4).eq.0 .and. mod(iyear,100).ne.0 ) ) then
+        if ( mod(iyear,400) == 0 .or.                                   &
+          & ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
           lleap = .true.
         else
           lleap = .false.
@@ -89,7 +88,7 @@
         implicit none
         integer :: inextwk
         integer , intent(in) :: idate
-         integer :: nmd , basey , basem , based , baseh
+        integer :: nmd , basey , basem , based , baseh
         call split_idate(idate, basey, basem, based, baseh)
         based = based + 7
         nmd = mdays(basey, basem)
@@ -271,8 +270,8 @@
         else
           ib = 0
         end if
-        julianday = dint(365.25D+00*dble(iiy+4716)) +   &
-          &         dint(30.6001D+00*dble(iim+1))   +   &
+        julianday = dint(365.25D+00*dble(iiy+4716)) + &
+          &         dint(30.6001D+00*dble(iim+1))   + &
           &         dble(id + ib) - 1524.5D+00
       end function julianday
 
@@ -328,12 +327,12 @@
       function lfhomonth(idate)
         implicit none
         logical :: lfhomonth
-        real(4) :: rmomonth
+        real(8) :: rmomonth
         integer , intent(in) :: idate
         integer :: iy , im , id , ih
         call split_idate(idate, iy, im, id, ih)
-        rmomonth = real(mdays(iy, im)) / 2.0
-        lfhomonth = (id < rmomonth)
+        rmomonth = dble(mdays(iy, im)) / 2.0D0
+        lfhomonth = (dble(id) < rmomonth)
       end function lfhomonth
 
       function idayofweek(idate)
@@ -346,7 +345,7 @@
         real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = int(mod(jd+1.5D+00, 7.0D+00))+1
+        idayofweek = idint(dmod(jd+1.5D+00, 7.0D+00))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -456,14 +455,14 @@
 
       function imonmiddle(idate)
         implicit none
-        integer imonmiddle
+        integer :: imonmiddle
         integer , intent(in) :: idate
-        real(4) :: rmom
+        real(8) :: rmom
         integer :: iy , im , id , ih , imom
         call split_idate(idate, iy, im, id, ih)
-        rmom = real(mdays(iy, im))/2.0
-        imom = int(rmom)
-        ih = int((rmom-real(imom))*24.0)
+        rmom = dble(mdays(iy, im))/2.0D0
+        imom = idint(rmom)
+        ih = idint((rmom-dble(imom))*24.0D0)
         imonmiddle = mkidate(iy, im, imom, ih)
       end function imonmiddle
 
@@ -522,7 +521,7 @@
 
         if (csave == cunit) then
           timeval2idate = iref
-          call addhours(timeval2idate,nint(xval))
+          call addhours(timeval2idate,idnint(xval))
         else
           if (len_trim(cunit) < 35) then
             timeval2idate = 0
@@ -532,7 +531,7 @@
             timeval2idate = mkidate(year,month,day,hour)
             iref = timeval2idate
             csave = cunit
-            call addhours(timeval2idate,nint(xval))
+            call addhours(timeval2idate,idnint(xval))
           end if
         end if
       end function timeval2idate
@@ -551,7 +550,7 @@
 
         if (csave == cunit) then
           timeval2idate_noleap = iref
-          call addhours_noleap(timeval2idate_noleap,nint(xval))
+          call addhours_noleap(timeval2idate_noleap,idnint(xval))
         else
           if (len_trim(cunit) < 35) then
             timeval2idate_noleap = 0
@@ -561,7 +560,7 @@
             timeval2idate_noleap = mkidate(year,month,day,hour)
             iref = timeval2idate_noleap
             csave = cunit
-            call addhours_noleap(timeval2idate_noleap,nint(xval))
+            call addhours_noleap(timeval2idate_noleap,idnint(xval))
           end if
         end if
       end function timeval2idate_noleap

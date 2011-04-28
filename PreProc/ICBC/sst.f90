@@ -35,7 +35,6 @@
 
 !     call and print header
       call header('sst')
-
 !
 !     Read input global namelist
 !

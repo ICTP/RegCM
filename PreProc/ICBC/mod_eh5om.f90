@@ -626,12 +626,12 @@
         if ( ssttyp=='EH5RF' ) then
           fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                    & yr_rf(nyear-1940)//'.nc'
-          inquire (file=fnso4_rf,exist=there)
-          if ( .not.there ) then
-            write (*,*) fnso4_rf , ' is not available'
+          istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+          if ( istatus /= nf90_noerr ) then
+            write (6,*) 'Cannot open file ',trim(fnso4_rf)
+            write (6,*) nf90_strerror(istatus)
             stop
           end if
-          istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
           istatus = nf90_close(ncid)
           if ( nyear==1950 .and. month==1 .and. nday<16 ) then
@@ -722,12 +722,12 @@
             end do
             fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1939)//'.nc'
-            inquire (file=fnso4_rf,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_rf , ' is not available'
+            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+            if ( istatus /= nf90_noerr ) then
+              write (6,*) 'Cannot open file ',trim(fnso4_rf)
+              write (6,*) nf90_strerror(istatus)
               stop
             end if
-            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
             istatus = nf90_close(ncid)
             do k = 1 , mlev
@@ -819,12 +819,12 @@
             end do
             fnso4_rf = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                      & yr_rf(nyear-1941)//'.nc'
-            inquire (file=fnso4_rf,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_rf , ' is not available'
+            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
+            if ( istatus /= nf90_noerr ) then
+              write (6,*) 'Cannot open file ',trim(fnso4_rf)
+              write (6,*) nf90_strerror(istatus)
               stop
             end if
-            istatus = nf90_open(fnso4_rf,nf90_nowrite,ncid)
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
             istatus = nf90_close(ncid)
             do k = 1 , mlev
@@ -850,32 +850,31 @@
           if ( ssttyp=='EH5A2' ) then
             fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//  &
                      & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_a2,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_a2 , ' is not available'
+            istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+            if ( istatus /= nf90_noerr ) then
+              write (6,*) 'Cannot open file ',trim(fnso4_a2)
+              write (6,*) nf90_strerror(istatus)
               stop
             end if
-            istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
           else if ( ssttyp=='EHA1B' ) then
             fnso4_a1b = trim(inpglob)//                                 &
                  & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//                   &
                  & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_a1b,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_a1b , ' is not available'
+            istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+            if ( istatus /= nf90_noerr ) then
+              write (6,*) 'Cannot open file ',trim(fnso4_a1b)
+              write (6,*) nf90_strerror(istatus)
               stop
             end if
-            istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
           else if ( ssttyp=='EH5B1' ) then
             fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//  &
                      & yr_a2(nyear-2000)//'.nc'
-            inquire (file=fnso4_b1,exist=there)
-            if ( .not.there ) then
-              write (*,*) fnso4_b1 , ' is not available'
+            istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+            if ( istatus /= nf90_noerr ) then
+              write (6,*) 'Cannot open file ',trim(fnso4_b1)
+              write (6,*) nf90_strerror(istatus)
               stop
             end if
-            istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-          else
           end if
           istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
           istatus = nf90_close(ncid)
@@ -968,32 +967,31 @@
             if ( ssttyp=='EH5A2' ) then
               fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_a2,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a2 , ' is not available'
+              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_a2)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
               fnso4_a1b = trim(inpglob)//                               &
                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_a1b,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a1b , ' is not available'
+              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_a1b)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
               fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-1999)//'.nc'
-              inquire (file=fnso4_b1,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_b1 , ' is not available'
+              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_b1)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-            else
             end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
             istatus = nf90_close(ncid)
@@ -1087,32 +1085,31 @@
             if ( ssttyp=='EH5A2' ) then
               fnso4_a2 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//&
                        & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_a2,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a2 , ' is not available'
+              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_a2)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_a2,nf90_nowrite,ncid)
             else if ( ssttyp=='EHA1B' ) then
               fnso4_a1b = trim(inpglob)//                               &
                         & '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//            &
                         & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_a1b,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_a1b , ' is not available'
+              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_a1b)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_a1b,nf90_nowrite,ncid)
             else if ( ssttyp=='EH5B1' ) then
               fnso4_b1 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//&
                        & yr_a2(nyear-2001)//'.nc'
-              inquire (file=fnso4_b1,exist=there)
-              if ( .not.there ) then
-                write (*,*) fnso4_b1 , ' is not available'
+              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
+              if ( istatus /= nf90_noerr ) then
+                write (6,*) 'Cannot open file ',trim(fnso4_b1)
+                write (6,*) nf90_strerror(istatus)
                 stop
               end if
-              istatus = nf90_open(fnso4_b1,nf90_nowrite,ncid)
-            else
             end if
             istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
             istatus = nf90_close(ncid)

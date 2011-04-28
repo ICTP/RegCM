@@ -79,7 +79,7 @@
           stop
         end if
         open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
-             &form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
+            & form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
             & status='old')
       else if ( ssttyp=='OISST' .or. ssttyp=='OI_NC' .or.               &
             &   ssttyp=='OI2ST' ) then
@@ -88,56 +88,11 @@
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
         end if
-        inquire (file=trim(inpglob)//'/SST/sst.mnmean.nc',exist=there)
-        if ( .not.there ) then
-          print * , 'sst.mnmean.nc is not available' ,  &
-                  &' under ',trim(inpglob),'/SST/'
-          stop
-        end if
-        if ( ssttyp=='OI2ST' ) then
-          inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',           &
-              &    exist=there)
-          if ( .not. there ) then
-            print *, 'icec.mnmean.nc is not available' ,                &
-                   &' under ',trim(inpglob),'/SST/'
-            stop
-          end if
-        end if
       else if ( ssttyp=='OI_WK' .or. ssttyp=='OI2WK' ) then
         if ( globidate1<1981110100 .or. globidate2<1981110106 ) then
           print * , 'OI_WK (or OI2WK) data required are not available'
           print * , 'IDATE1, IDATE2 = ' , globidate1 , globidate2
           stop
-        end if
-        inquire (file=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc',    &
-             &   exist=there)
-        if ( .not.there ) then
-          print * , 'sst.wkmean.1981-1989.nc is not available'&
-                  & , ' under ',trim(inpglob),'/SST/'
-          stop
-        end if
-        inquire (file=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc', &
-               & exist=there)
-        if ( .not.there ) then
-          print * , 'sst.wkmean.1990-present.nc is not available'&
-                    & , ' under ',trim(inpglob),'/SST/'
-          stop
-        end if
-        if ( ssttyp=='OI2WK' ) then
-          inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
-                & exist=there)
-          if ( .not.there ) then
-            print *, 'icec.wkmean.1981-1989.nc is not available',       &
-                &    ' under ',trim(inpglob),'/SST/'
-            stop
-          end if
-          inquire (file=trim(inpglob)//                                 &
-                 '/SST/icec.wkmean.1990-present.nc',exist=there)
-          if ( .not.there ) then
-            print *, 'icec.wkmean.1990-present.nc is not available',    &
-                &    ' under ',trim(inpglob),'/SST/'
-            stop
-          end if
         end if
       else
         write (*,*) 'PLEASE SET right SSTTYP in regcm.in'
@@ -336,7 +291,6 @@
       intent (out) :: sst
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer :: istatus
@@ -358,11 +312,6 @@
       data varname/'sst'/
 !
       if ( idate==idate0 ) then
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
@@ -427,7 +376,6 @@
       intent (out) :: ice
 !
       integer :: i , it , j , month , n , nday , nhour , nyear
-      logical :: there
       character(5) :: varname
       integer(2) , dimension(ilon,jlat) :: work
       integer :: istatus
@@ -449,11 +397,6 @@
       data varname/'icec'/
 !
       if ( idate==idate0 ) then
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
@@ -517,7 +460,6 @@
       intent (out) :: sst
 !
       integer :: i , j , n
-      logical :: there
       character(3) :: varname
       integer :: istatus
       integer(2) , dimension(ilon,jlat) :: work , work1
@@ -544,11 +486,6 @@
       if ( pathaddname /= usename ) then
         if (inet >= 0) then
           istatus = nf90_close(inet)
-        end if
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
@@ -635,7 +572,6 @@
       intent (out) :: ice
 !
       integer :: i , j , n
-      logical :: there
       character(4) :: varname
       integer(2) , dimension(ilon,jlat) :: work , work1
       integer :: istatus
@@ -662,11 +598,6 @@
       if ( pathaddname /= usename ) then
         if (inet >= 0) then
           istatus = nf90_close(inet)
-        end if
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          write (*,*) trim(pathaddname) , ' is not available'
-          stop
         end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then

@@ -145,7 +145,6 @@
       character(256) :: pathaddname
 !     character(5) , dimension(3,4) :: sarname
 !     character(2) :: snownm
-      logical :: there
 !     character(5) , dimension(6) :: varname
       integer(2) , dimension(ilon,jlat,klev) :: work
       real(8) :: xadd , xscale
@@ -261,11 +260,6 @@
             end if
  
             pathaddname = trim(inpglob)//dattyp//'/'//inname
-            inquire (file=pathaddname,exist=there)
-            if ( .not.there ) then
-              print * , trim(pathaddname) , ' is not available'
-              stop
-            end if
             istatus = nf90_open(pathaddname,nf90_nowrite,               &
                    & inet6(kkrec,k4))
             if ( istatus/=nf90_noerr ) then

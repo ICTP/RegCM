@@ -251,7 +251,6 @@
 !
       real(8) :: xsign
       integer :: i , k , istatus , idimid , ivarid
-      logical :: there
       real(8) , dimension(:) , allocatable :: xtimes
       real(4) , dimension(2) :: trlat
 !
@@ -283,12 +282,6 @@
  
       write (fillin,'(a,i10)') 'ATM.', imonfirst(globidate1)
       inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
-      inquire (file=inpfile,exist=there)
-      if ( .not.there ) then
-        write (*,*) trim(inpfile), ' is not available'
-        write (*,*) 'please copy (or link)' , trim(inpfile)
-        stop
-      end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
       call check_ok(istatus, 'Error opening '//trim(inpfile))
 
