@@ -76,8 +76,8 @@
  fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
  fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
- dirter = '../../Input', ! Output directory for terrain files
- inpter = '../DATA',     ! Input directory for SURFACE dataset
+ dirter = 'input/',      ! Output directory for terrain files
+ inpter = 'globdata/',   ! Input directory for SURFACE dataset
  /
 !
 ! ICBC Global data input control
@@ -96,10 +96,10 @@
  ehso4 = .false.,            ! Sulfate dataset Control Flag
  globidate1 = 1990060100,    ! Start date for ICBC data generation
  globidate2 = 1990070100,    ! End data for ICBC data generation
- dirglob = '/scratch/Input', ! Path for ICBC produced input files
- inpglob = '../DATA',        ! Path for ICBC global input datasets.
-                             ! Look http://users.ictp.it/~pubregcm/RegCM3
-                             ! on how to download them.
+ dirglob = 'input/',         ! Path for ICBC produced input files
+ inpglob = 'globdata/',      ! Path for ICBC global input datasets.
+                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
+                   ! on how to download them.
  /
 !
 ! Global I/O control Stanza
@@ -348,15 +348,15 @@
 ! CLM parameters
 !
  &clmparam
- dirclm = '../Input', ! CLM path to Input data produced by clm2rcm. If 
-                      ! relative, It should be how to reach the Input dir
-                      ! from the Run dir.
- clmfrq =  12.,       ! Frequency for CLM own output write
- imask  =   1,        ! For CLM, Type of land surface parameterization
-                      !   1 => using DOMAIN.INFO for landmask (same as BATS)
-                      !   2 => using mksrf_navyoro file landfraction for
-                      !        landmask and perform a weighted average over
-                      !        ocean/land gridcells; for example:
-                      ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
+ dirclm = 'input/', ! CLM path to Input data produced by clm2rcm. If 
+                    ! relative, It should be how to reach the Input dir
+                    ! from the Run dir.
+ clmfrq =  12.,     ! Frequency for CLM own output write
+ imask  =   1,      ! For CLM, Type of land surface parameterization
+                    !   1 => using DOMAIN.INFO for landmask (same as BATS)
+                    !   2 => using mksrf_navyoro file landfraction for
+                    !        landmask and perform a weighted average over
+                    !        ocean/land gridcells; for example:
+                    ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
  /
 ! ####################################################################

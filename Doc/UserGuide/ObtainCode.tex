@@ -4,6 +4,8 @@
 % See the file COPYING for copying conditions.
 %
 
+\section{Simple Model User}
+
 A packed archive file with the model code can be downloaded from:
 
 \begin{Verbatim}
@@ -16,10 +18,25 @@ and it can be later on decompressed and unpacked using:
 $> tar -zxvf RegCM-4.1.tar.gz
 \end{Verbatim}
 
+\section{Model Developer}
+
 If you plan to become a model developer, source code can be obtained via svn.
 The RegCM team strongly encourage the contributing developers to enroll on
 the eforge site to always be up to date and to check on-line all the news of
 the package.
+
+\vspace{0.5cm}
+\begin{tabular}{|c|}
+\hline
+{\bf https://eforge.escience-lab.org/gf/project/regcm} \\
+\hline
+\end{tabular}
+\vspace{0.5cm}
+
+The correct procedure is first to register on the e-forge site, than ask
+the ICTP scientific team head Filippo Giorgi to be enrolled as a model
+developer. After being officially granted the status, you will gain
+access to the model subversion repository.
 
 Check that {\bf Subversion} suftware is installed on your machine typing
 the following command:
@@ -43,10 +60,3 @@ If Subversion is installed, just type the following command:
 $> svn checkout https://eforge.escience-lab.org/svn/regcm/tags/RegCM-4.1
 \end{verbatim}
 
-Whatever method is chosen to download the code, we assume that you have now
-on your working directory a new directory, named \verb=RegCM-4.1=.
-That directory will be for the rest of this guide referred as 
-\verb=$REGCM_ROOT= .
-
-All the operations to build the model binaries will be performed in this
-directory.

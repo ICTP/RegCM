@@ -33,7 +33,7 @@ On this directory, you are required to make the following directories:
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
-$> mkdir SURFACE SST AERGLOB EIN15
+$> mkdir SURFACE CLM SST AERGLOB EIN15
 \end{Verbatim}
 
 This does not fill all possible global data sources paths, but will be enough
@@ -75,9 +75,9 @@ $> gunzip GLZB_SOIL_30s.nc.gz
 
 \section{Aerosol Database}
 
-If you are planning to enable chemistry in the model, you will need a single
-file, which contains sources of chemical species used in the model regridded
-from global model run.
+If you are planning to enable aerosol in the model, you will need a single
+file, which contains sources of optical active species used in the model
+regridded from global model run.
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
@@ -87,6 +87,45 @@ $> curl -o AEROSOL.dat \
 \end{Verbatim}
 
 This is the input file for the \verb=aerosol= icbc program.
+
+\section{CLM Dataset}
+\label{clmdata}
+
+If you are planning to enable \verb=CLM= option in the model, you will need
+a series of files with global land surface characteristics datasets.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd CLM
+$> CLMURL="clima-dods.ictp.it/data/d4/CLM"
+$> curl -o mksrf_fmax.nc.gz \
+> http://$CLMURL/mksrf_fmax.nc.gz
+$> curl -o mksrf_glacier.nc.gz \
+> http://$CLMURL/mksrf_glacier.nc.gz
+$> curl -o mksrf_lai.nc.gz \
+> http://$CLMURL/mksrf_lai.nc.gz
+$> curl -o mksrf_lanwat.nc.gz \
+> http://$CLMURL/mksrf_lanwat.nc.gz
+$> curl -o mksrf_navyoro_20min.nc.gz \
+> http://$CLMURL/mksrf_navyoro_20min.nc.gz
+$> curl -o mksrf_pft.nc.gz \
+> http://$CLMURL/mksrf_pft.nc.gz
+$> curl -o mksrf_soicol_clm2.nc.gz \
+> http://$CLMURL/mksrf_soicol_clm2.nc.gz
+$> curl -o mksrf_soitex.10level.nc.gz \
+> http://$CLMURL/mksrf_soitex.10level.nc.gz
+$> curl -o mksrf_urban.nc.gz \
+> http://$CLMURL/mksrf_urban.nc.gz
+$> curl -o pft-physiology.c070207.gz \
+> http://$CLMURL/pft-physiology.c070207.gz
+$> curl -o pft-physiology.c070207.readme.gz \
+> http://$CLMURL/pft-physiology.c070207.readme.gz
+$> curl -o rdirc.05.061026.gz \
+> http://$CLMURL/rdirc.05.061026.gz
+$> gunzip *.gz
+\end{Verbatim}
+
+This is the input file for the \verb=clm2rcm= program (see at \ref{clm}).
 
 \section{Sea Surface Temperature}
 

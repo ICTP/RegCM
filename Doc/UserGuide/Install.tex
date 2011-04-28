@@ -4,6 +4,14 @@
 % See the file COPYING for copying conditions.
 %
 
+Whatever method is chosen to download the code, we assume that you have now
+on your working directory a new directory, named \verb=RegCM-4.1=.
+That directory will be for the rest of this guide referred as 
+\verb=$REGCM_ROOT= .
+
+All the operations to build the model binaries will be performed in this
+directory.
+
 \section{Software requirements}
 
 In order to configure and install the RegCM code, the following software are
@@ -22,7 +30,7 @@ Note that current version 4.1.2 is dependent on HDF5 1.8.6.
 Optional requirements strongly suggested are :
 
 \begin{enumerate}
-\item GNU \verb=patch= program if CLM option is activated. See below.
+\item GNU \verb=patch= program if CLM option is activated.
 \item MPI2 Message Passing Library compiled with the above fortran compiler
 for parallel runs using multiple core single machines or cluster of machines.
 Source code for the implementation code was tested with can be obtained at: \\
@@ -55,7 +63,7 @@ Binaries and source code can be obtained from \\
 \end{enumerate}
 
 An example session of installation of basic software needed to compile the
-RegCM model is detailed in chapter $[$\ref{Appendice}$]$.
+RegCM model is detailed in chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
@@ -67,11 +75,12 @@ Currently tested and supported configurations (OS/Compiler) are:
 
 \begin{enumerate}
 \item Linux with GNU gfortran compiler version $\ge 4.4$
-\item Linux with Intel ifort compiler version $\ge 10.0$
-\item Linux with Portland pgf90 compiler version $\ge 9.3$
-\item Mac OsX with g95 compiler
-\item IBM AIX with xlf compiler
-\item Oracle Solaris with Oracle Solaris Studio compiler $\ge 8.3$
+\item Linux with Intel\texttrademark ifort compiler version $\ge 10.0$
+\item Linux with Portland\texttrademark pgf90 compiler version $\ge 9.3$
+\item Mac OsX\texttrademark with g95 compiler
+\item IBM AIX\texttrademark with xlf compiler
+\item Oracle Solaris\texttrademark with Oracle Solaris Studio\texttrademark
+compiler $\ge 8.3$
 \end{enumerate}
 
 First step is change working directory to \verb=$REGCM_ROOT= and run the
@@ -221,7 +230,7 @@ This option switch off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
 is to use the RegCM BATS Land Model. If you are planning to run a simulation
 using CLM, enter \verb=1=, otherwise accept the default choice pressing enter.
-\footnote{The CLM option needs the GNU patch program to be compiled.}
+\footnote{The CLM option needs the GNU patch program to be installed.}
 For the scope of the tutorial test run in chapter \ref{tutorial}, use the
 default option.
 \end{enumerate}
