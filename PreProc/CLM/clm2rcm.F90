@@ -53,7 +53,6 @@
       integer , dimension(3) :: iadim
       character(64) , dimension(nfld) :: lnam
       character(64) :: cdum
-      logical :: there
       character(64) , dimension(nfld) :: units
       real(4) , dimension(3) :: varmax , varmin
       real(8) :: xhr
@@ -332,11 +331,6 @@
 !       **   Some files have more than one required variable. 
 !       Therefore, **   the output file should only be opened once.
         inpfile = trim(inpglob)//infil(ifld)
-        inquire (file=inpfile,exist=there)
-        if ( .not.there ) then
-          print * , 'CLM Input file does not exist: ', trim(inpfile)
-          stop 'NON-EXISTENT FILE'
-        end if
         if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.            &
            & ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.            &
            & ifld==icol .or. ifld==ioro .or. ifld==iiso .or.            &
