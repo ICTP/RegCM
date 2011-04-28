@@ -45,13 +45,13 @@ program resav
   real(8) , allocatable , dimension(:,:,:,:) :: chia , chib
   real(8) , allocatable , dimension(:,:,:,:) :: remlsc , remcvc
   real(8) , allocatable , dimension(:,:,:) :: remdrd
-  real(8) , allocatable , dimension(:) :: tchiad , tchitb
+  real(8) , allocatable , dimension(:) :: tchiad , tchitb , tchie
   real(8) , allocatable , dimension(:,:,:) :: dstor , hstor
   real(8) , allocatable , dimension(:,:) :: uj1 , uj2 , ujlx , ujl
   real(8) , allocatable , dimension(:,:) :: vj1 , vj2 , vjlx , vjl
   real(8) , allocatable , dimension(:,:) :: ui1 , ui2 , uilx , uil
   real(8) , allocatable , dimension(:,:) :: vi1 , vi2 , vilx , vil
-  real(8) :: high_nudge , medium_nudge , low_nudge , cftotmax
+  real(8) :: high_nudge , medium_nudge , low_nudge
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
              idesseas , iconvlwp
@@ -82,7 +82,6 @@ program resav
   medium_nudge = 2.0D0
   low_nudge = 1.0D0
   iconvlwp = 1
-  cftotmax = 0.75D0
 
   call getarg(0, prgname)
   call getarg(1, namelistfile)
@@ -272,6 +271,7 @@ program resav
   if ( debug_level > 2 ) then
     allocate(tchiad(ntr))
     allocate(tchitb(ntr))
+    allocate(tchie(ntr))
   end if
 #endif
   allocate(dstor(iy,jx,nsplit))
@@ -394,6 +394,7 @@ program resav
     if (debug_level > 2) then
       read (iutrst) tchiad
       read (iutrst) tchitb
+      read (iutrst) tchie
     end if
   end if
 #endif
