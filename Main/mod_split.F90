@@ -143,7 +143,7 @@
       do ns = 1 , nsplit
         aam(ns) = dnint(dt/dtau(ns))
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
-          aam(ns) = dnint(dto2/dtau(ns))
+          aam(ns) = dnint((dt*d_half)/dtau(ns))
       end do
 #ifdef MPP1
       if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau

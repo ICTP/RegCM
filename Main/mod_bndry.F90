@@ -626,7 +626,7 @@
 !
             if ( lveg(n,i) == 13 ) then
               rsur(n,i) = rsur(n,i) + dmin1(d_zero,(rsw1d(n,i)- &
-                                            gwmx1(n,i))/dtbat)
+                                    relfc(n,i)*gwmx1(n,i))/dtbat)
             end if
 !
 !           2.2  total runoff

@@ -285,7 +285,7 @@
           if ( lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
            call lakegather
           end if
-          if ( iseaice == 1 ) then
+          if ( iseaice == 1 .or. lakemod == 1 ) then
             do j = 1 , jendx
               do n = 1 , nnsg
                 do i = 1 , iym1

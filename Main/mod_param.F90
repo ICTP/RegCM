@@ -692,8 +692,7 @@
       ktau = 0
       xtime = d_zero
       ntime = 0
-      dto2 = dt*d_half
-      dtsplit(2) = dto2
+      dtsplit(2) = dt*d_half
       dtsplit(1) = dt*d_rfour
       do ns = 1 , nsplit
         dtau(ns) = dtsplit(ns)

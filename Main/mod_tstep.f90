@@ -65,7 +65,6 @@
       if ( jyear /= jyear0 .or. ktau /= 0 ) then
         dt = dt2
       end if
-      dto2 = dt*d_half
 !
       end subroutine tstep
 !

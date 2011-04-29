@@ -1567,7 +1567,7 @@
 !       ****** call vector bats for surface physics calculations
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
            &  mod(ktau+1,nbatst) == 0 ) then
-          dtbat = dto2*dble(nbatst)
+          dtbat = dt*d_half*dble(nbatst)
           if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
           call interf(1,j,2,iym1,nnsg)
           call vecbats
@@ -1599,14 +1599,14 @@
         else
           r2cnstep = (ktau+1)/nbatst
         end if
-        dtbat = dto2*nbatst
+        dtbat = dt*d_half*nbatst
         ! CLM j loop is in mtrxclm
         call mtrxclm
       end if
 #endif
 
       if ( icup == 1 ) then
-        call htdiff(dto2,dxsq,akht1)
+        call htdiff(dxsq,akht1)
       end if
 !     call medium resolution pbl
       if ( ibltyp == 1 ) call holtbl
@@ -2236,7 +2236,6 @@
         end if
       end if
       if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
-      dto2 = dt*d_half
 !
 !-----compute the amounts advected through the lateral boundaries:
 !     *** note *** we must calculate the amounts advected through

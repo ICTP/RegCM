@@ -1299,7 +1299,6 @@
         if (debug_level > 2) call mpidiag
 #endif
         dt = dt2 ! First timestep successfully read in
-        dto2 = dt*d_half
 #else
 !
         print * , 'ozone profiles restart'
@@ -1308,7 +1307,6 @@
         end do
         print 99001 , xtime , ktau , jyear
         dt = dt2 ! First timestep successfully read in
-        dto2 = dt*d_half
 !
 #endif
 !
