@@ -190,9 +190,9 @@ contains
     end do
 
     do k = 1 , kz
-      do i = 2 + icut , iym2 - icut
+      do i = istart , iend
         kk = kz - k + 1
-        jp1 = j+1
+        jp1 = j + 1
 #if defined(BAND) && (!defined(MPP1))
         if ( jp1 == jx+1 ) jp1 = 1
 #endif

@@ -726,9 +726,9 @@
 !         flwds(i) = flwds(i) * maxval(cld((i,:))) + &
 !                    flwds(i) * (1-maxval(cld((i,:))))
 !         flwds(i) = flwds(i) * maxval(cld(i,:)) + &
-!                    fslwdcs(i)*(d_one- maxval(cld(i,:)))
+!                    fslwdcs(i)*(d_one-maxval(cld(i,:)))
 !         flns(i) = flns(i) * maxval(cld(i,:)) + &
-!                   flnsc(i)*(d_one- maxval(cld(i,:))) 
+!                   flnsc(i)*(d_one-maxval(cld(i,:))) 
 !
 !         totcf(i) has been calculated for the SW, dolw is always true 
           flwds(i) = flwds(i) * totcf(i) + &
@@ -1042,7 +1042,7 @@
       do k = 1 , kz
         do i = 1 , iym1
           pdel = pint(i,k+1) - pint(i,k)
-          path = pdel*rga
+          path = pdel*regravgts
         end do
       end do
       nloop = 0
@@ -1100,13 +1100,13 @@
       do n = 1 , nloop
         do i = is(n) , ie(n)
           xptop = pflx(i,1)
-          ptho2 = o2mmr*xptop*rga
-          ptho3 = o3mmr(i,1)*xptop*rga
-          pthco2 = sqrco2*(xptop*rga)
+          ptho2 = o2mmr*xptop*regravgts
+          ptho3 = o3mmr(i,1)*xptop*regravgts
+          pthco2 = sqrco2*(xptop*regravgts)
           h2ostr = dsqrt(d_one/h2ommr(i,1))
           zenfac(i) = dsqrt(coszrs(i))
           pthh2o = xptop**d_two*tmp1 + &
-                   (xptop*rga)*(h2ostr*zenfac(i)*delta)
+                   (xptop*regravgts)*(h2ostr*zenfac(i)*delta)
           uh2o(i,0) = h2ommr(i,1)*pthh2o
           uco2(i,0) = zenfac(i)*pthco2
           uo2(i,0) = zenfac(i)*ptho2
@@ -1114,12 +1114,12 @@
         end do
       end do
 !
-      tmp2 = delta*rga
+      tmp2 = delta*regravgts
       do k = 1 , kz
         do n = 1 , nloop
           do i = is(n) , ie(n)
             pdel = pflx(i,k+1) - pflx(i,k)
-            path = pdel*rga
+            path = pdel*regravgts
             ptho2 = o2mmr*path
             ptho3 = o3mmr(i,k)*path
             pthco2 = sqrco2*path
@@ -3458,7 +3458,7 @@
               oneme = d_one - et2
               alphat = oneme**3.0D0*rsqti
               pi = dabs(dpnm(i))
-              wco2 = 2.5221D0*co2vmr*pi*rga
+              wco2 = 2.5221D0*co2vmr*pi*regravgts
               u7(i) = 4.9411D4*alphat*et2*wco2
               u8 = 3.9744D4*alphat*et4*wco2
               u9 = 1.0447D5*alphat*et4*et2*wco2
@@ -3743,7 +3743,7 @@
             oneme = d_one - et2
             alphat = oneme**3.0D0*rsqti
             pi = dabs(dpnm(i))*winpl(i,kn)
-            wco2 = 2.5221D0*co2vmr*pi*rga
+            wco2 = 2.5221D0*co2vmr*pi*regravgts
             u7(i) = 4.9411D4*alphat*et2*wco2
             u8 = 3.9744D4*alphat*et4*wco2
             u9 = 1.0447D5*alphat*et4*et2*wco2
@@ -4241,7 +4241,7 @@
           t1co2 = d_one/(d_one+245.18D0*omet*sqwp*rsqti)
           oneme = d_one - et2
           alphat = oneme**3.0D0*rsqti
-          wco2 = 2.5221D0*co2vmr*pnm(i,k1)*rga
+          wco2 = 2.5221D0*co2vmr*pnm(i,k1)*regravgts
           u7 = 4.9411D4*alphat*et2*wco2
           u8 = 3.9744D4*alphat*et4*wco2
           u9 = 1.0447D5*alphat*et4*et2*wco2
@@ -4509,7 +4509,7 @@
           dpnmsq = pnm(i,k+1)**d_two - pnm(i,k)**d_two
           rtnm = d_one/tnm(i,k)
           s2t(i,k+1) = s2t(i,k) + rgsslp*dpnmsq*qnm(i,k)*tnm(i,k)
-          w(i,k+1) = w(i,k) + rga*qnm(i,k)*dpnm
+          w(i,k+1) = w(i,k) + regravgts*qnm(i,k)*dpnm
           s2c(i,k+1) = s2c(i,k) + rgsslp*dpnmsq*qnm(i,k)                &
                        *dexp(1800.0D0*(rtnm-r296))*qnm(i,k)*repsil
         end do

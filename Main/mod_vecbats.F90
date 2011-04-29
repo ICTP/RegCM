@@ -38,12 +38,6 @@
 
       public :: interf , initb , vecbats , albedov , slice1D
 
-      real(8) :: dlogtwo
-      real(8) :: dlogten
-      real(8) :: dloglnd
-      real(8) :: dlogocn
-      real(8) :: dlogsno
-
       contains
 
       subroutine vecbats
@@ -214,12 +208,6 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-      dlogtwo = dlog(d_two)
-      dlogten = dlog(d_10)
-      dloglnd = dlog(zlnd)
-      dlogocn = dlog(zoce)
-      dlogsno = dlog(zsno)
-!
 #ifdef MPP1
       do jll = 1 , jendx
 #else
@@ -320,7 +308,7 @@
       call time_end(subroutine_name,idindx)
       end subroutine initb
 !
-      subroutine interf(ivers,j,k,istart,iend,ng)
+      subroutine interf(ivers,j,istart,iend,ng)
 
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -331,7 +319,7 @@
 !
       implicit none
 !
-      integer , intent (in) :: ivers , j , k , istart , iend , ng
+      integer , intent (in) :: ivers , j , istart , iend , ng
 !
       real(8) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
                & fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
@@ -373,8 +361,8 @@
         do i = istart, iend
           do n = 1 , ng
             p1d0(n,i) = (sps2%ps(i,j)+r8pt)*d_1000
-            ts1d0(n,i) = thx3d(i,k,j)
-            qs1d0(n,i) = qvb3d(i,k,j)/(d_one+qvb3d(i,k,j))
+            ts1d0(n,i) = thx3d(i,kz,j)
+            qs1d0(n,i) = qvb3d(i,kz,j)/(d_one+qvb3d(i,kz,j))
             qs1d(n,i) = qs1d0(n,i)
  
             hl = lh0 - lh1*(ts1d0(n,i)-tzero)
@@ -419,14 +407,14 @@
             sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
             veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
             emiss_1d(n,i) = emiss2d(n,i,j)
-            z1d(n,i) = za(i,k,j)
+            z1d(n,i) = za(i,kz,j)
             z1log(n,i)  = dlog(z1d(n,i))
-            z2fra(n,i)  = z1log(n,i) - dlogtwo
-            z10fra(n,i) = z1log(n,i) - dlogten
-            zlgocn(n,i) = z1log(n,i) - dlogocn
-            zlglnd(n,i) = z1log(n,i) - dloglnd
-            zlgsno(n,i) = z1log(n,i) - dlogsno
-            zlgveg(n,i) = z1log(n,i) - dlog(rough(lveg(n,i)))
+            z2fra(n,i)  = dlog(z1d(n,i)/d_two)
+            z10fra(n,i) = dlog(z1d(n,i)/d_10)
+            zlgocn(n,i) = dlog(z1d(n,i)/zoce)
+            zlglnd(n,i) = dlog(z1d(n,i)/zlnd)
+            zlgsno(n,i) = dlog(z1d(n,i)/zsno)
+            zlgveg(n,i) = dlog(z1d(n,i)/rough(lveg(n,i)))
             zlgdis(n,i) = dlog(z1d(n,i)-displa(lveg(n,i)) / &
                                rough(lveg(n,i)))
           end do
@@ -441,8 +429,8 @@
             qs1d(n,i) = dmax1(qs1d(n,i)-rh0,d_zero)
           end do
  
-          us1d(i) = ubx3d(i,k,j)
-          vs1d(i) = vbx3d(i,k,j)
+          us1d(i) = ubx3d(i,kz,j)
+          vs1d(i) = vbx3d(i,kz,j)
           fsw1d(i) = fsw2d(i,j)
           flw1d(i) = flw2d(i,j)
           solis(i) = sol2d(i,j)

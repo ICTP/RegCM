@@ -57,7 +57,7 @@
 !
       real(8) , intent(in) :: xtime
 !
-      real(8) :: calday , decdeg
+      real(8) :: calday , decdeg , xdfbdy
 #ifdef CLM
       real(8) :: mvelp , obliq
       integer :: iyear_ad
@@ -72,6 +72,7 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
+      xdfbdy = 24.0D0/ibdyfrq
 #ifdef CLM
       log_print = .false.
 
@@ -82,7 +83,7 @@
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = dble(julday) + (nnnnnn-nstrt0)*d_rfour + &
+      calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
                              (xtime/minph+gmt)/houpd
 
 !     Get declin,eccf
@@ -93,7 +94,7 @@
       declin = declin
       decdeg = declin/degrad
 #else
-      calday = dble(julday) + (nnnnnn-nstrt0)*d_rfour + &
+      calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
                        (xtime/minph+gmt)/houpd
       theta = twopi*calday/dayspy
 !

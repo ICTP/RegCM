@@ -211,12 +211,14 @@
             if ( aveice2d(n,i,jslc) <= iceminh ) then
               ocld2d(n,i,jslc) = 0 
               ldoc1d(n,i) = 0
+              lveg(n,i) = 14
               sice1d(n,i) = d_zero
               scv1d(n,i) = d_zero
               sag1d(n,i) = d_zero
             else
               ocld2d(n,i,jslc) = 2 
               ldoc1d(n,i) = 2
+              lveg(n,i) = 12
               sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
               scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
               evpr1d(n,i) = evp                 !  units of evp = mm/sec
@@ -302,6 +304,8 @@
         evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
         aveice = ai*d_1000      ! convert ice  from m to mm
         hsnow  = hs*d_100       ! convert snow from m depth to mm h20
+        if (aveice < dlowval) aveice = d_zero
+        if (hsnow < dlowval) hsnow = d_zero
  
       end if
  
@@ -752,10 +756,9 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d_io(n,i,j) > 1 ) then
-              write(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
-                   & hi2d_io(n,i,j), aveice2d_io(n,i,j), &
-                   & hsnow2d_io(n,i,j), &
-                   & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
+              write(iutl) eta2d_io(n,i,j), hi2d_io(n,i,j), &
+                   aveice2d_io(n,i,j), hsnow2d_io(n,i,j),  &
+                   (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
             end if
           end do
         end do
@@ -775,10 +778,8 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d(n,i,j) > 1 ) then
-              write(iutl) idep2d(n,i,j), eta2d(n,i,j), &
-                   & hi2d(n,i,j), aveice2d(n,i,j), &
-                   & hsnow2d(n,i,j), &
-                   & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
+              write(iutl) eta2d(n,i,j), hi2d(n,i,j), aveice2d(n,i,j), &
+                    hsnow2d(n,i,j), (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))
             end if
           end do
         end do
@@ -827,10 +828,9 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d_io(n,i,j) > 1 ) then
-              read(iutl) idep2d_io(n,i,j), eta2d_io(n,i,j), &
-                 & hi2d_io(n,i,j), &
-                 & aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
-                 & (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
+              read(iutl) eta2d_io(n,i,j), hi2d_io(n,i,j), &
+                   aveice2d_io(n,i,j), hsnow2d_io(n,i,j), &
+                   (tlak3d_io(k,n,i,j),k=1,idep2d_io(n,i,j))  
             end if
           end do
         end do
@@ -849,9 +849,9 @@
         do i = 2 , iym1
           do n = 1 , nnsg
             if ( idep2d(n,i,j) > 1 ) then
-              read(iutl) idep2d(n,i,j), eta2d(n,i,j), &
-                 & hi2d(n,i,j), aveice2d(n,i,j), hsnow2d(n,i,j), &
-                 & (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
+              read(iutl) eta2d(n,i,j), hi2d(n,i,j), &
+                  aveice2d(n,i,j), hsnow2d(n,i,j),  &
+                  (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
             end if
           end do
         end do

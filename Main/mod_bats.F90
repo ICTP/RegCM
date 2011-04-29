@@ -56,7 +56,7 @@
            & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
            & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
 !
-      integer , allocatable , dimension(:,:) :: imelt , lveg , oveg
+      integer , allocatable , dimension(:,:) :: lveg , oveg
 !
       real(8) :: difrat
 !
@@ -364,8 +364,6 @@
         zlgdis   => spacebs1d(:,:,128)
         aldirs1d => spacebs1d(:,:,129)
         aldifs1d => spacebs1d(:,:,130)
-        allocate(imelt(nnsg,iym1))
-        imelt = -1
         allocate(lveg(nnsg,iym1))
         lveg = -1
         allocate(oveg(nnsg,iym1))

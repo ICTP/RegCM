@@ -102,7 +102,7 @@
 !
 ! Intial computation of vertical modes.
 !
-      subroutine spinit(xsigma,kv1)
+      subroutine spinit
 #ifdef MPP1
       use mod_mppio
 #ifndef IBM
@@ -112,9 +112,6 @@
 #endif
 #endif
       implicit none
-!
-      integer :: kv1
-      real(8) , dimension(kv1) :: xsigma
 !
       real(8) :: eps , eps1 , fac , pdlog
       integer :: i , ijlx , j , k , l , n , ns
@@ -195,7 +192,7 @@
 !**   compute vertical modes.
       lstand = .true.
       if ( jyear /= jyear0 .or. ktau /= 0 ) lstand = .true.
-      call vmodes(lstand,xsigma,kv1)
+      call vmodes(lstand,sigma,kzp1)
 !
 !**   subract a4 from a for use in computing am.
       do l = 1 , kz
@@ -905,7 +902,7 @@
       end do
 !
 !******* split explicit time integration
-      call spstep(hbar,dx2,dtau,aam)
+      call spstep
 !
 !******* add corrections to t and p;  u and v
 !=======================================================================
@@ -1002,7 +999,7 @@
       call time_end(subroutine_name,idindx)
       end subroutine splitf
 !
-      subroutine spstep(hhbar,dx2,dtau,xm)
+      subroutine spstep
 !
 #ifdef MPP1
 #ifndef IBM
@@ -1012,11 +1009,6 @@
 #endif
 #endif
       implicit none
-!
-      real(8) :: dx2
-      real(8) , dimension(nsplit) :: dtau , hhbar
-      real(8) , dimension(nsplit) :: xm
-      intent (in) dtau , dx2 , hhbar , xm
 !
       real(8) :: dtau2 , fac
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
@@ -1054,7 +1046,7 @@
         n0 = 1
         n1 = 2
         n2 = n0
-        m2 = idint(xm(ns))*2
+        m2 = idint(aam(ns))*2
         dtau2 = dtau(ns)*d_two
 !
 !**     below follows madala(1987)
@@ -1201,14 +1193,14 @@
 !           work3: 2,iym2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
                             & + deld(i,j,ns,3)/m2
-            delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hhbar(ns) &
+            delh(i,j,ns,n1) = delh(i,j,ns,n0) - dtau(ns)*hbar(ns)  &
                             & *deld(i,j,ns,n0)/sps1%ps(i,j) +      &
                                delh(i,j,ns,3)/m2
           end do
         end do
  
 !**     not in madala(1987)
-        fac = (xm(ns)-d_one)/xm(ns)
+        fac = (aam(ns)-d_one)/aam(ns)
 #ifndef BAND
         do i = 2 , iym2
 #ifdef MPP1
@@ -1370,7 +1362,7 @@
             do i = 2 , iym2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/aam(ns)
-              delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hhbar(ns)       &
+              delh(i,j,ns,n2) = delh(i,j,ns,n0) - dtau2*hbar(ns)        &
                               & *deld(i,j,ns,n1)/sps1%ps(i,j)           &
                               & + delh(i,j,ns,3)/aam(ns)
             end do

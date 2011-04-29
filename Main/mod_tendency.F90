@@ -1569,7 +1569,7 @@
            &  mod(ktau+1,nbatst) == 0 ) then
           dtbat = dto2*dble(nbatst)
           if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
-          call interf(1 , j , kz , 2 , iym1 , nnsg)
+          call interf(1,j,2,iym1,nnsg)
           call vecbats
 !         Zeng ocean flux model
           if ( iocnflx == 2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
@@ -1578,7 +1578,7 @@
             call lakedrv(j)
           endif
 !         ****** accumulate quantities for energy and moisture budgets
-          call interf(2 , j , kz , 2 , iym1 , nnsg)
+          call interf(2,j,2,iym1,nnsg)
         end if
 #endif
  

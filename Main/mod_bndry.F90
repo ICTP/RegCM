@@ -115,7 +115,7 @@
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( ldoc1d(n,i) == 1 ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
@@ -370,8 +370,6 @@
 !     hsl = sensible heat through leads
 !     hs  = heat energy balance at surface of ice
 !
-!         sea-ice mask could be reset in here with "imelt" - but not
-!                  done at present
 !=======================================================================
 !
       subroutine tseaice
@@ -396,17 +394,16 @@
           if ( ldoc1d(n,i) == 2 ) then
 ! ******    rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**d_three
-            imelt(n,i) = 0
 ! ******    cice = specific heat of sea-ice per unit volume
-            rsd1 = cice*sice1d(n,i)*d_r1000
+            rsd1 = (cice*sice1d(n,i))*d_r1000
             if ( scv1d(n,i) > d_zero ) then
-              rss = csnw*scv1d(n,i)*d_r1000
+              rss = (csnw*scv1d(n,i))*d_r1000
               ratsi = scv1d(n,i)/(1.4D0*rhosw3*sice1d(n,i))
               wtt = d_one/(d_one+ratsi)
               wss = (scv1d(n,i)+2.8D0*rhosw3*sice1d(n,i)) / &
                     (scv1d(n,i)+1.4D0*rhosw3*sice1d(n,i))
 ! ******      include snow heat capacity
-              rsd1 = (wss*rss+wtt*rsd1)*d_half
+              rsd1 = d_half*(wss*rss+wtt*rsd1)
             end if
             tgb1d(n,i) = -d_two + tzero
 ! ******    subsurface heat flux through ice
@@ -416,7 +413,9 @@
  
 ! ******    set sea ice parameter for melting and return
             if ( sice1d(n,i) <= d_zero ) then
-              imelt(n,i) = 1
+              sice1d(n,i) = d_zero
+              ldoc1d(n,i) = 0
+              lveg(n,i) = 15
               exit
             end if
 ! ******    assume lead ocean temp is -1.8c
@@ -461,7 +460,9 @@
               tg1d(n,i) = tzero
 ! ******      set sea ice parameter for melting and return
               if ( sice1d(n,i) <= d_zero ) then
-                imelt(n,i) = 1
+                sice1d(n,i) = d_zero
+                ldoc1d(n,i) = 0
+                lveg(n,i) = 15
                 exit
               end if
             else
@@ -602,7 +603,7 @@
 !
 !           2.1  surface runoff
 !
-            wata(n,i) = (watu(n,i)+watr(n,i))*d_half
+            wata(n,i) = d_half*(watu(n,i)+watr(n,i))
 !
 !           2.11 increase surface runoff over frozen ground
 !
@@ -623,7 +624,7 @@
 !
 !           2.13 saturate swamp or rice paddy
 !
-            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) <= 15) ) then
+            if ( lveg(n,i) == 13 ) then
               rsur(n,i) = rsur(n,i) + dmin1(d_zero,(rsw1d(n,i)- &
                                             gwmx1(n,i))/dtbat)
             end if
@@ -683,7 +684,7 @@
 !
 !           4.4  check for negative water in top layer
 !
-            if ( ssw1d(n,i) < 1.0D-2 ) ssw1d(n,i) = 1.0D-2
+            if ( ssw1d(n,i) <= 1.0D-2 ) ssw1d(n,i) = 1.0D-2
 !
 !=======================================================================
 !           5.   accumulate leaf interception
@@ -883,12 +884,15 @@
              sks , swtrta , swtrtd
       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
                depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,&
-               t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds ,       &
-               xkperi , xnu , xnua
+               t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds
       real(8) :: dtbat2 , rdtbat2
       integer :: n , i
       character (len=50) :: subroutine_name='tgrund'
       integer :: idindx = 0
+!
+      real(8) , parameter :: xnu = twopi/secpd
+      real(8) , parameter :: xnua = xnu/365.0D0
+      real(8) , parameter :: xkperi = 1.4D-6
 !
       call time_begin(subroutine_name,idindx)
 ! 
@@ -899,12 +903,9 @@
 !l    1.   define thermal conductivity, heat capacity,
 !l    and other force restore parameters
 !=======================================================================
-      xnu = twopi/secpd
-      xnua = xnu/365.0D0
       xdtime = dtbat*xnu
       dtimea = dtbat*xnua
-      xdt2 = xdtime*d_half
-      xkperi = 1.4D-6
+      xdt2 = d_half*xdtime
  
 !l    3.4  permafrost temperature
       t3 = 271.0D0
@@ -920,7 +921,7 @@
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
             if ( tg1d(n,i) < tzero ) then
-              frozen = 0.85D0*dmin1(d_one,(tzero-tg1d(n,i))*d_rfour)
+              frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tg1d(n,i)))
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(d_one-0.51D0*frozen))
             else
@@ -929,7 +930,7 @@
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
             if ( tgb1d(n,i) < tzero ) then
-              froze2 = 0.85D0*dmin1(d_one,(tzero-tgb1d(n,i))*d_rfour)
+              froze2 = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgb1d(n,i)))
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(d_one-0.51D0*froze2))
             else
@@ -1036,13 +1037,13 @@
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
             if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
-              c31 = (dtimea*d_half)*(d_one+deprat(n,i))
+              c31 = d_half*dtimea*(d_one+deprat(n,i))
               c41 = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c31+fct2(n,i)) * &
                      tgb1d(n,i)+c41*tg1d(n,i) +     &
                      dtimea*t3)/(d_one+c31+fct2(n,i))
             else
-              c3t = dtimea*d_half*deprat(n,i)
+              c3t = d_half*dtimea*deprat(n,i)
               c4t = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c3t+fct2(n,i))* &
                     tgb1d(n,i)+c4t*tg1d(n,i)) /    &

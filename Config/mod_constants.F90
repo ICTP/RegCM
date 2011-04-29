@@ -247,7 +247,7 @@
 
       ! GTS system constants
       real(8) , parameter :: egravgts = egrav*d_100
-      real(8) , parameter :: rga = d_one/egravgts
+      real(8) , parameter :: regravgts = d_one/egravgts
       real(8) , parameter :: cpdgts = cpd*1.0D+04
       real(8) , parameter :: gocp = egravgts/cpdgts
       real(8) , parameter :: sslp = stdp*d_10 ! dynes/cm^2

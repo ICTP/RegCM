@@ -1045,7 +1045,7 @@
         do j = jbegin , jendx
           jj = (jxp*myid) + j
  
-          call interf(1,j,kz,2,iym1,nnsg)
+          call interf(1,j,2,iym1,nnsg)
 
           if ( iocnflx==2 ) then
             call zengocndrv(j,nnsg,2,iym1,kz)

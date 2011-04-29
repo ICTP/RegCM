@@ -577,13 +577,15 @@
       intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
                    & ps , tm1
 !
-      real(8) :: amd , amo , ccvtem , clwtem , vmmr
+      real(8) :: ccvtem , clwtem , vmmr , xdfbdy
       real(8) , dimension(iym1,kz) :: deltaz
       integer :: i , k , kj , n , ncldm1 , nll
       real(8) , dimension(iym1) :: rlat
 !
-      data amd/28.9644D0/
-      data amo/48.0000D0/
+      real(8) , parameter :: amd = 28.9644D0
+      real(8) , parameter :: amo = 48.0000D0
+!
+      xdfbdy = 24.0D0/dble(ibdyfrq)
 !
 !     begin read of data:
 !-----
@@ -749,7 +751,7 @@
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
-        calday = dble(julday) + (nnnnnn-nstrt0)*d_rfour + &
+        calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
                     (xtime/minph+gmt)/houpd
 !
         loctim(i) = (calday-dint(calday))*houpd

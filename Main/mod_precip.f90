@@ -124,7 +124,7 @@
 !           cloud [kg/kg]
             qcleft = qcw - pptnew*dt                         ![kg/kg][avg]
 !           1agb. Add 1/2 of the new precipitation can accrete.
-            pptkm1 = (pptnew*d_half)/afc*rho*dt               ![kg/m3][cld]
+            pptkm1 = d_half*pptnew/afc*rho*dt                ![kg/m3][cld]
 !           1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
             pptacc = caccr*qcleft*pptkm1                     ![kg/kg/s][avg]
 !           1agd. Update the precipitation accounting for the accretion
@@ -232,7 +232,7 @@
               if (qcleft < dlowval) qcleft = d_zero
 !             1bfb. Add 1/2 of the new precipitation to the accumulated
 !             precipitation [kg/m3]
-              pptkm1 = (pptkm1+(pptnew*d_half)/afc)*rho*dt    ![kg/m3][cld]
+              pptkm1 = (pptkm1+d_half*pptnew/afc)*rho*dt     ![kg/m3][cld]
 !             1bfc. accretion [kg/kg/s]
               pptacc = caccr*qcleft*pptkm1                   ![kg/kg/s][avg]
 !             1bfd. Update the precipitation accounting for the

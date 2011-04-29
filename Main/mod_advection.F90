@@ -125,8 +125,8 @@
 !
         do k = 1 , kz
           do i = 2 , iym2
-            uavg2 = (atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))*d_half
-            uavg1 = (atm1%u(i+1,k,j)+atm1%u(i,k,j))*d_half
+            uavg2 = d_half*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
+            uavg1 = d_half*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
             if ( uavg2 >= d_zero ) then
               fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
             else
@@ -137,8 +137,8 @@
             else
               fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
             end if
-            vavg2 = (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))*d_half
-            vavg1 = (atm1%v(i,k,jp1)+atm1%v(i,k,j))*d_half
+            vavg2 = d_half*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
+            vavg1 = d_half*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
             if ( vavg2 >= d_zero ) then
               fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
             else
@@ -462,7 +462,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = ((fa(i,k)+fa(i,k-1))*d_half)/mddom%msfd(i,j)
+            fg(i,k) = d_half*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
@@ -641,7 +641,7 @@
         end do
         do k = 2 , kz
           do i = 2 , iym1
-            fg(i,k) = ((fa(i,k)+fa(i,k-1))*d_half)/mddom%msfd(i,j)
+            fg(i,k) = d_half*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
           end do
         end do
 !......k = 1
