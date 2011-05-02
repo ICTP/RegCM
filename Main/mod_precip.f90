@@ -285,13 +285,13 @@
 !--------------------------------------------------------------------
 !
       uconv = minph*dtmin
-      aprdiv = uconv/dble(nbatst)
+      aprdiv = d_one/dble(nbatst)
       if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = uconv
       do i = istart , iend
         prainx = pptsum(i)*uconv
         if ( prainx > dlowval ) then
           sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + prainx
-          pptnc(i,j) = pptnc(i,j) + prainx*aprdiv
+          pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
         end if
       end do
  
