@@ -1045,10 +1045,10 @@
         do j = jbegin , jendx
           jj = (jxp*myid) + j
  
-          call interf(1,j,2,iym1,nnsg)
+          call interf(1,j,2,iym1)
 
           if ( iocnflx==2 ) then
-            call zengocndrv(j,nnsg,2,iym1,kz)
+            call zengocndrv(j,2,iym1)
           end if
  
           do i = 2 , iym1
@@ -1129,14 +1129,6 @@
               sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
               pptnc(i,j) = d_zero
               pptc(i,j) = d_zero
-              if (ichem == 1 ) then
-                ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
-                sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
-                sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
-                sfracv2d(i,j) = sfracv2d(i,j)/dble(nnsg)
-                sfracb2d(i,j) = sfracb2d(i,j)/dble(nnsg)
-                sfracs2d(i,j) = sfracs2d(i,j)/dble(nnsg)
-              end if
             else if ( landmask(jj,ci)==0 ) then !ocean
  
               do n = 1 , nnsg
@@ -1173,25 +1165,10 @@
                 scv1d(n,i)  = dmissval
               end do
  
-              sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/dble(nnsg)
-              sfsta%hfx(i,j) = sfsta%hfx(i,j)/dble(nnsg)
-              sfsta%qfx(i,j) = sfsta%qfx(i,j)/dble(nnsg)
-              sts2%tg(i,j) = sts2%tg(i,j)/dble(nnsg)
-              sts1%tg(i,j) = sts1%tg(i,j)/dble(nnsg)
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(nnsg)
-
-              if ( ichem == 1 ) then
-                ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
-                sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
-                sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
-                sfracv2d(i,j) = sfracv2d(i,j)/dble(nnsg)
-                sfracb2d(i,j) = sfracb2d(i,j)/dble(nnsg)
-                sfracs2d(i,j) = sfracs2d(i,j)/dble(nnsg)
-              end if
               do n = 1 , nnsg
                 tg2d(n,i,j) = tg1d(n,i)
                 tgb2d(n,i,j) = tgb1d(n,i)
-                taf2d(n,i,j) = t2m_1d(n,i)
+                taf2d(n,i,j) = t2m1d(n,i)
                 tlef2d(n,i,j) = tlef1d(n,i)
                 swt2d(n,i,j) = tsw1d(n,i)
                 srw2d(n,i,j) = rsw1d(n,i)
@@ -1288,22 +1265,6 @@
               sts1%tg(i,j) = sts1%tg(i,j)*(d_one-landfrac(jj,ci)) +     &
                              c2rtgb(jj,ci)*landfrac(jj,ci)
  
-              sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)/dble(nnsg)
-              sfsta%hfx(i,j) = sfsta%hfx(i,j)/dble(nnsg)
-              sfsta%qfx(i,j) = sfsta%qfx(i,j)/dble(nnsg)
-              sts2%tg(i,j) = sts2%tg(i,j)/dble(nnsg)
-              sts1%tg(i,j) = sts1%tg(i,j)/dble(nnsg)
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j)/dble(nnsg)
-
-              if ( ichem == 1 ) then
-                ssw2da(i,j) = ssw2da(i,j)/dble(nnsg)
-                sdeltk2d(i,j) = sdeltk2d(i,j)/dble(nnsg)
-                sdelqk2d(i,j) = sdelqk2d(i,j)/dble(nnsg)
-                sfracv2d(i,j) = sfracv2d(i,j)/dble(nnsg)
-                sfracb2d(i,j) = sfracb2d(i,j)/dble(nnsg)
-                sfracs2d(i,j) = sfracs2d(i,j)/dble(nnsg)
-              end if
-
               do n = 1 , nnsg
                 dew2d(n,i,j) = ldew1d(n,i)
                 sag2d(n,i,j) = sag1d(n,i)
@@ -1319,7 +1280,7 @@
                 tgb2d(n,i,j) = c2rtgb(jj,ci)*landfrac(jj,ci)            &
                              & + tgb1d(n,i)*(d_one-landfrac(jj,ci))
                 taf2d(n,i,j) = c2r2mt(jj,ci)*landfrac(jj,ci)            &
-                             & + t2m_1d(n,i)*(d_one-landfrac(jj,ci))
+                             & + t2m1d(n,i)*(d_one-landfrac(jj,ci))
                 !note taf2d is 2m temp not temp in foilage
                 tlef2d(n,i,j) = c2rtlef(jj,ci)*landfrac(jj,ci)          &
                               & + tlef1d(n,i)*(d_one-landfrac(jj,ci))
@@ -1329,7 +1290,7 @@
                              & + rsw1d(n,i)*(d_one-landfrac(jj,ci))
                 ssw2d(n,i,j) = c2rsm10cm(jj,ci)*landfrac(jj,ci)         &
                              & + ssw1d(n,i)*(d_one-landfrac(jj,ci))
-                q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m_1d(n,i)  &
+                q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m1d(n,i)  &
                          & *(d_one-landfrac(jj,ci))
  
                 evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*sfsta%qfx(i,j)
@@ -1381,18 +1342,14 @@
                   tg_s(n,j,i-1) = real(tg1d(n,i))
                   u10m_s(n,j,i-1) = real(u10m1d(n,i))
                   v10m_s(n,j,i-1) = real(v10m1d(n,i))
-                  t2m_s(n,j,i-1) = real(t2m_1d(n,i))
+                  t2m_s(n,j,i-1) = real(t2m1d(n,i))
                   u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
                   v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
-                  t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m_1d(n,i))
+                  t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m1d(n,i))
                   tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
                 end if
               end do
  
-              u10m_o(j,i-1) = u10m_o(j,i-1)/real(nnsg)
-              v10m_o(j,i-1) = v10m_o(j,i-1)/real(nnsg)
-              t2m_o(j,i-1) = t2m_o(j,i-1)/real(nnsg)
-              tg_o(j,i-1) = tg_o(j,i-1)/real(nnsg)
               tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
               tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
               t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
@@ -1421,7 +1378,7 @@
                   evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,ci,j))
                   sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
                 else if ( ocld2d(n,i,j) == 0 ) then
-                  q2m_s(n,j,i-1) = real(q2m_1d(n,i))
+                  q2m_s(n,j,i-1) = real(q2m1d(n,i))
                   drag_s(n,j,i-1) = real(drag1d(n,i))
                   evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
                   sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
@@ -1429,17 +1386,15 @@
                   prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
                   ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
-                  q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m_1d(n,i))
+                  q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m1d(n,i))
                   drag_o(j,i-1) = drag_o(j,i-1) + real(drag1d(n,i))
                   evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,i,j))
                   sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,i,j))
                 end if
               end do
               tpr_o(j,i-1) = real((prnca2d(ci,j)+prca2d(ci,j))*mmpd)
-              q2m_o(j,i-1) = q2m_o(j,i-1)/real(nnsg)
-              drag_o(j,i-1) = drag_o(j,i-1)/real(nnsg)
-              evpa_o(j,i-1) = evpa_o(j,i-1)/real(nnsg)*real(mmpd)
-              sena_o(j,i-1) = sena_o(j,i-1)/real(nnsg)*real(wpm2)
+              evpa_o(j,i-1) = evpa_o(j,i-1)*real(mmpd)
+              sena_o(j,i-1) = sena_o(j,i-1)*real(wpm2)
               flwa_o(j,i-1) = real(flwa2d(ci,j)*wpm2)
               fswa_o(j,i-1) = real(fswa2d(ci,j)*wpm2)
               flwd_o(j,i-1) = real(flwda2d(ci,j)*wpm2)

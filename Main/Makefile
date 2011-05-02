@@ -286,7 +286,7 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_mainchem.o mod_message.o mod_runparams.o mod_pmoist.o \
                 mod_rad.o mod_vecbats.o mod_holtbl.o mod_dynparam.o \
                 mod_slice.o mod_trachem.o mod_cu_grell.o mod_cu_kuo.o \
-                mod_cu_bm.o mod_cu_em.o mod_zengocn.o mod_sun.o \
+                mod_cu_bm.o mod_cu_em.o mod_sun.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
                 mod_clm.o mod_mtrxclm.o mod_cldfrac.o mod_cumtran.o $(CLMLIB)
@@ -297,7 +297,7 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_mainchem.o mod_message.o mod_runparams.o mod_pmoist.o \
                 mod_rad.o mod_vecbats.o mod_holtbl.o mod_dynparam.o \
                 mod_slice.o mod_trachem.o mod_cu_grell.o mod_cu_kuo.o \
-                mod_cu_bm.o mod_cu_em.o mod_zengocn.o mod_sun.o \
+                mod_cu_bm.o mod_cu_em.o mod_sun.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
 								mod_cldfrac.o mod_cumtran.o
@@ -308,7 +308,7 @@ mod_tstep.o: mod_tstep.f90 mod_date.o mod_runparams.o mod_dynparam.o
 mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
                mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \
                mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o \
-               mod_message.o
+               mod_message.o mod_zengocn.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_dynparam.o \
               mod_constants.o mod_message.o $(NETLIB)
 	$(F90) $(CPPFLAGS) -Inetlib $(F90FLAGS) -c $<

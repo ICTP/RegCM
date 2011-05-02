@@ -24,26 +24,22 @@
       use mod_runparams
       use mod_bats_param
 !
-      real(8) , allocatable , target , dimension(:,:) :: spaceb1d
-      real(8) , allocatable , target , dimension(:,:,:) :: spacebs1d
-      private :: spacebs1d , spaceb1d
-!
-      real(8) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
+      real(8) , allocatable , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
 !
       integer , allocatable , dimension(:,:) :: ldoc1d
-      real(8) , pointer , dimension(:,:) :: delq1d , delt1d , drag1d ,  &
-           & emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d ,             &
-           & p1d , pbp1d , prcp1d , q2m_1d , qg1d , qs1d , resp1d ,     &
-           & rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
-           & sice1d , ssw1d , t2m_1d , taf1d , tg1d , tgb1d , tlef1d ,  &
-           & ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d , aldirs1d , &
-           & aldifs1d
+      real(8) , allocatable , dimension(:,:) :: delq1d , delt1d ,       &
+             drag1d , emiss_1d , evpr1d , gwet1d , ircp1d , ldew1d ,    &
+             p1d , pbp1d , prcp1d , q2m1d , qg1d , qs1d , resp1d ,      &
+             rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,  &
+             sice1d , ssw1d , t2m1d , taf1d , tg1d , tgb1d , tlef1d ,   &
+             ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d , aldirs1d ,  &
+             aldifs1d
 !
-      real(8) , pointer , dimension(:,:) :: bfc , bsw , evmx0 , fdry ,  &
-           & fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,      &
-           & texrat , vegt , wiltr , wt , xkmx
+      real(8) , allocatable , dimension(:,:) :: bfc , bsw , evmx0 ,     &
+             fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,      &
+             rnet , texrat , vegt , wiltr , wt , xkmx
 !
-      real(8) , pointer , dimension(:,:) :: aarea , cdr , cdrn , cdrx , &
+      real(8) , allocatable , dimension(:,:) :: cdr , cdrn , cdrx ,     &
            & cf , cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg , &
            & etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,    &
            & fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,     &
@@ -52,49 +48,43 @@
            & xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,  &
            & zlgsno , zlgveg , zlgdis
 !
-      real(8) , pointer , dimension(:,:) :: cn1 , rgr , wta0 , wtaq0 ,  &
-           & wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq , wtgq ,   &
-           & wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
+      real(8) , allocatable , dimension(:,:) :: cn1 , rgr , wta0 ,      &
+             wtaq0 , wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  &
+             wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi ,        &
+             wtsqi , df
 !
       integer , allocatable , dimension(:,:) :: lveg , oveg
 !
-      real(8) :: difrat
+      real(8) :: difrat , rdnnsg
+      real(4) :: rrnnsg
 !
       integer :: ilat , ihis , mhis , ncase
 !
-      real(8) , pointer , dimension(:) :: flw1d , fsw1d , us1d , vs1d
-      real(8) , pointer , dimension(:) :: czen , sola , vpdd
-      real(8) , pointer , dimension(:) :: ems
-      real(8) , pointer , dimension(:) :: albdif , albdir , albvl ,     &
+      real(8) , allocatable , dimension(:) :: flw1d , fsw1d
+      real(8) , allocatable , dimension(:) :: czen , sola , vpdd
+      real(8) , allocatable , dimension(:) :: ems , us1d , vs1d
+      real(8) , allocatable , dimension(:) :: albdif , albdir , albvl , &
                                & albvs , albvsd , aldifl , aldifs ,     &
                                & aldirl , aldirs , emiss1d , fracd ,    &
                                & sabveg , solis , solvd , solvs , albvld
 !
       real(8) , allocatable , dimension(:) :: coszrs
 !
-      real(8) , allocatable , target , dimension(:,:,:) :: spaceb2d
-      private :: spaceb2d
+      real(8) , allocatable , dimension(:,:) :: flw2d , flwa2d ,   &
+             flwd2d , flwda2d , fsw2d , fswa2d , pptc , pptnc ,    &
+             prca2d , prnca2d , sabv2d , sina2d , sinc2d , sol2d , &
+             solvd2d , solvs2d , svga2d
 !
-      real(8) , pointer , dimension(:,:) :: flw2d , flwa2d , flwd2d , &
-                                    & flwda2d , fsw2d , fswa2d , pptc , &
-                                    & pptnc , prca2d , prnca2d ,        &
-                                    & sabv2d , sina2d , sinc2d , sol2d ,&
-                                    & solvd2d , solvs2d , svga2d
-!
-      real(8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
-                               sdelqk2d , sfracv2d , sfracb2d , &
-                               sfracs2d , svegfrac2d
-!
-      real(8) , allocatable , target , dimension(:,:,:,:) :: spacebs2d
-      private :: spacebs2d
+      real(8) , allocatable , dimension(:,:) :: ssw2da , sdeltk2d , &
+            sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
       integer , allocatable , dimension(:,:,:) :: ocld2d , veg2d1
       integer , allocatable , dimension(:,:) :: veg2d
 !
-      real(8) , pointer, dimension(:,:,:) :: col2d , dew2d ,        &
-           & emiss2d , evpa2d , gwet2d , ircp2d , rno2d ,      &
-           & rnos2d , sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , &
-           & swt2d , taf2d , tg2d , tgb2d , tlef2d
+      real(8) , allocatable , dimension(:,:,:) :: col2d , dew2d ,       &
+           emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,        &
+           sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,    &
+           taf2d , tg2d , tgb2d , tlef2d
 !
       real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
                                              &  xlon1
@@ -102,20 +92,16 @@
       real(4) , target , allocatable, dimension(:,:,:) :: fbat
 !
       real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
-                                     & flwd_o , fswa_o , prcv_o ,       &
-                                     & psmn_o , ps_o , q2m_o , rnos_o , &
-                                     & rsw_o , scv_o , sena_o , sina_o ,&
-                                     & ssw_o , t2mn_o , t2mx_o , t2m_o ,&
-                                     & tgmn_o , tgmx_o , tg_o , tlef_o ,&
-                                     & tpr_o , u10m_o , v10m_o ,        &
-                                     & w10x_o , zpbl_o , aldirs_o ,  &
-                                     & aldifs_o
+            flwd_o , fswa_o , prcv_o , psmn_o , ps_o , q2m_o , rnos_o , &
+            rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
+            t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
+            v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o
 !
       real(4) , target ,allocatable, dimension(:,:,:,:) :: fsub
 !
       real(4) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
-           & ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
-           & t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
+             ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
+             t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 !
       ! dtskin is difference between skin temp and bulk sst
       real(8) , allocatable , dimension(:,:) :: deltas , tdeltas ,      &
@@ -128,6 +114,9 @@
         implicit none
         logical , intent(in) :: lmpi , lband
         integer :: nj , njm1 , njm2
+
+        rrnnsg = 1.0/real(nnsg)
+        rdnnsg = d_one/dble(nnsg)
 
         if (lmpi) then
           nj = jxp
@@ -148,38 +137,55 @@
         allocate(veg2d(iym1,njm1))
         veg2d = -1
 
+        allocate(flw2d(iym1,njm1))
+        flw2d = d_zero
+        allocate(flwa2d(iym1,njm1))
+        flwa2d = d_zero
+        allocate(flwd2d(iym1,njm1))
+        flwd2d = d_zero
+        allocate(flwda2d(iym1,njm1))
+        flwda2d = d_zero
+        allocate(fsw2d(iym1,njm1))
+        fsw2d = d_zero
+        allocate(fswa2d(iym1,njm1))
+        fswa2d = d_zero
+        allocate(pptc(iym1,njm1))
+        pptc = d_zero
+        allocate(pptnc(iym1,njm1))
+        pptnc = d_zero
+        allocate(prca2d(iym1,njm1))
+        prca2d = d_zero
+        allocate(prnca2d(iym1,njm1))
+        prnca2d = d_zero
+        allocate(sabv2d(iym1,njm1))
+        sabv2d = d_zero
+        allocate(sina2d(iym1,njm1))
+        sina2d = d_zero
+        allocate(sinc2d(iym1,njm1))
+        sinc2d = d_zero
+        allocate(sol2d(iym1,njm1))
+        sol2d = d_zero
+        allocate(solvd2d(iym1,njm1))
+        solvd2d = d_zero
+        allocate(solvs2d(iym1,njm1))
+        solvs2d = d_zero
+        allocate(svga2d(iym1,njm1))
+        svga2d = d_zero
         if ( ichem == 1 ) then
-          allocate(spaceb2d(iym1,njm1,24))
-        else
-          allocate(spaceb2d(iym1,njm1,17))
-        end if
-        spaceb2d = d_zero
-
-        flw2d      => spaceb2d(:,:,1)
-        flwa2d     => spaceb2d(:,:,2)
-        flwd2d     => spaceb2d(:,:,3)
-        flwda2d    => spaceb2d(:,:,4)
-        fsw2d      => spaceb2d(:,:,5)
-        fswa2d     => spaceb2d(:,:,6)
-        pptc       => spaceb2d(:,:,7)
-        pptnc      => spaceb2d(:,:,8)
-        prca2d     => spaceb2d(:,:,9)
-        prnca2d    => spaceb2d(:,:,10)
-        sabv2d     => spaceb2d(:,:,11)
-        sina2d     => spaceb2d(:,:,12)
-        sinc2d     => spaceb2d(:,:,13)
-        sol2d      => spaceb2d(:,:,14)
-        solvd2d    => spaceb2d(:,:,15)
-        solvs2d    => spaceb2d(:,:,16)
-        svga2d     => spaceb2d(:,:,17)
-        if ( ichem == 1 ) then
-          ssw2da     => spaceb2d(:,:,18)
-          sdeltk2d   => spaceb2d(:,:,19)
-          sdelqk2d   => spaceb2d(:,:,20)
-          sfracv2d   => spaceb2d(:,:,21)
-          sfracb2d   => spaceb2d(:,:,22)
-          sfracs2d   => spaceb2d(:,:,23)
-          svegfrac2d => spaceb2d(:,:,24)
+          allocate(ssw2da(iym1,njm1))
+          ssw2da = d_zero
+          allocate(sdeltk2d(iym1,njm1))
+          sdeltk2d = d_zero
+          allocate(sdelqk2d(iym1,njm1))
+          sdelqk2d = d_zero
+          allocate(sfracv2d(iym1,njm1))
+          sfracv2d = d_zero
+          allocate(sfracb2d(iym1,njm1))
+          sfracb2d = d_zero
+          allocate(sfracs2d(iym1,njm1))
+          sfracs2d = d_zero
+          allocate(svegfrac2d(iym1,njm1))
+          svegfrac2d = d_zero
         end if
 
         allocate(ocld2d(nnsg,iym1,njm1))
@@ -187,27 +193,44 @@
         allocate(veg2d1(nnsg,iym1,njm1))
         veg2d1 = -1
 
-        allocate(spacebs2d(nnsg,iym1,njm1,19))
-        spacebs2d = d_zero
-        col2d    => spacebs2d(:,:,:,1)
-        dew2d    => spacebs2d(:,:,:,2)
-        emiss2d  => spacebs2d(:,:,:,3)
-        evpa2d   => spacebs2d(:,:,:,4)
-        gwet2d   => spacebs2d(:,:,:,5)
-        ircp2d   => spacebs2d(:,:,:,6)
-        rno2d    => spacebs2d(:,:,:,7)
-        rnos2d   => spacebs2d(:,:,:,8)
-        sag2d    => spacebs2d(:,:,:,9)
-        scv2d    => spacebs2d(:,:,:,10)
-        sena2d   => spacebs2d(:,:,:,11)
-        sice2d   => spacebs2d(:,:,:,12)
-        srw2d    => spacebs2d(:,:,:,13)
-        ssw2d    => spacebs2d(:,:,:,14)
-        swt2d    => spacebs2d(:,:,:,15)
-        taf2d    => spacebs2d(:,:,:,16)
-        tg2d     => spacebs2d(:,:,:,17)
-        tgb2d    => spacebs2d(:,:,:,18)
-        tlef2d   => spacebs2d(:,:,:,19)
+        allocate(col2d(nnsg,iym1,njm1))
+        col2d = d_zero
+        allocate(dew2d(nnsg,iym1,njm1))
+        dew2d = d_zero
+        allocate(emiss2d(nnsg,iym1,njm1))
+        emiss2d = d_zero
+        allocate(evpa2d(nnsg,iym1,njm1))
+        evpa2d = d_zero
+        allocate(gwet2d(nnsg,iym1,njm1))
+        gwet2d = d_zero
+        allocate(ircp2d(nnsg,iym1,njm1))
+        ircp2d = d_zero
+        allocate(rno2d(nnsg,iym1,njm1))
+        rno2d = d_zero
+        allocate(rnos2d(nnsg,iym1,njm1))
+        rnos2d = d_zero
+        allocate(sag2d(nnsg,iym1,njm1))
+        sag2d = d_zero
+        allocate(scv2d(nnsg,iym1,njm1))
+        scv2d = d_zero
+        allocate(sena2d(nnsg,iym1,njm1))
+        sena2d = d_zero
+        allocate(sice2d(nnsg,iym1,njm1))
+        sice2d = d_zero
+        allocate(srw2d(nnsg,iym1,njm1))
+        srw2d = d_zero
+        allocate(ssw2d(nnsg,iym1,njm1))
+        ssw2d = d_zero
+        allocate(swt2d(nnsg,iym1,njm1))
+        swt2d = d_zero
+        allocate(taf2d(nnsg,iym1,njm1))
+        taf2d = d_zero
+        allocate(tg2d(nnsg,iym1,njm1))
+        tg2d = d_zero
+        allocate(tgb2d(nnsg,iym1,njm1))
+        tgb2d = d_zero
+        allocate(tlef2d(nnsg,iym1,njm1))
+        tlef2d = d_zero
 
         allocate(ht1(nnsg,iy,nj))
         allocate(satbrt1(nnsg,iy,nj))
@@ -232,170 +255,318 @@
         allocate(ldoc1d(nnsg,iym1))
         ldoc1d = -1
 
-        allocate(spacebs1d(nnsg,iym1,130))
-        spacebs1d = d_zero
-        p1d0     => spacebs1d(:,:,1)
-        qs1d0    => spacebs1d(:,:,2)
-        ts1d0    => spacebs1d(:,:,3)
-        delq1d   => spacebs1d(:,:,4)
-        delt1d   => spacebs1d(:,:,5)
-        drag1d   => spacebs1d(:,:,6)
-        emiss_1d => spacebs1d(:,:,7)
-        evpr1d   => spacebs1d(:,:,8)
-        gwet1d   => spacebs1d(:,:,9)
-        ircp1d   => spacebs1d(:,:,10)
-        ldew1d   => spacebs1d(:,:,11)
-        p1d      => spacebs1d(:,:,12)
-        pbp1d    => spacebs1d(:,:,13)
-        prcp1d   => spacebs1d(:,:,14)
-        q2m_1d   => spacebs1d(:,:,15)
-        qg1d     => spacebs1d(:,:,16)
-        qs1d     => spacebs1d(:,:,17)
-        resp1d   => spacebs1d(:,:,18)
-        rhs1d    => spacebs1d(:,:,19)
-        rno1d    => spacebs1d(:,:,20)
-        rnos1d   => spacebs1d(:,:,21)
-        rsw1d    => spacebs1d(:,:,22)
-        sag1d    => spacebs1d(:,:,23)
-        scv1d    => spacebs1d(:,:,24)
-        sent1d   => spacebs1d(:,:,25)
-        sice1d   => spacebs1d(:,:,26)
-        ssw1d    => spacebs1d(:,:,27)
-        t2m_1d   => spacebs1d(:,:,28)
-        taf1d    => spacebs1d(:,:,29)
-        tg1d     => spacebs1d(:,:,30)
-        tgb1d    => spacebs1d(:,:,31)
-        tlef1d   => spacebs1d(:,:,32)
-        ts1d     => spacebs1d(:,:,33)
-        tsw1d    => spacebs1d(:,:,34)
-        u10m1d   => spacebs1d(:,:,35)
-        v10m1d   => spacebs1d(:,:,36)
-        veg1d    => spacebs1d(:,:,37)
-        z1d      => spacebs1d(:,:,38)
-        bfc      => spacebs1d(:,:,39)
-        bsw      => spacebs1d(:,:,40)
-        evmx0    => spacebs1d(:,:,41)
-        fdry     => spacebs1d(:,:,42)
-        fwet     => spacebs1d(:,:,43)
-        gwmx0    => spacebs1d(:,:,44)
-        gwmx1    => spacebs1d(:,:,45)
-        gwmx2    => spacebs1d(:,:,46)
-        porsl    => spacebs1d(:,:,47)
-        relfc    => spacebs1d(:,:,48)
-        rnet     => spacebs1d(:,:,49)
-        texrat   => spacebs1d(:,:,50)
-        vegt     => spacebs1d(:,:,51)
-        wiltr    => spacebs1d(:,:,52)
-        wt       => spacebs1d(:,:,53)
-        xkmx     => spacebs1d(:,:,54)
-        aarea    => spacebs1d(:,:,55)
-        cdr      => spacebs1d(:,:,56)
-        cdrn     => spacebs1d(:,:,57)
-        cdrx     => spacebs1d(:,:,58)
-        cf       => spacebs1d(:,:,59)
-        cgrnd    => spacebs1d(:,:,60)
-        cgrndl   => spacebs1d(:,:,61)
-        cgrnds   => spacebs1d(:,:,62)
-        clead    => spacebs1d(:,:,63)
-        densi    => spacebs1d(:,:,64)
-        efpr     => spacebs1d(:,:,65)
-        eg       => spacebs1d(:,:,66)
-        etr      => spacebs1d(:,:,67)
-        etrrun   => spacebs1d(:,:,68)
-        evaps    => spacebs1d(:,:,69)
-        evapw    => spacebs1d(:,:,70)
-        fevpg    => spacebs1d(:,:,71)
-        flnet    => spacebs1d(:,:,72)
-        flneto   => spacebs1d(:,:,73)
-        fseng    => spacebs1d(:,:,74)
-        htvp     => spacebs1d(:,:,75)
-        ps       => spacebs1d(:,:,76)
-        pw       => spacebs1d(:,:,77)
-        qice     => spacebs1d(:,:,78)
-        qsatl    => spacebs1d(:,:,79)
-        rhosw    => spacebs1d(:,:,80)
-        ribd     => spacebs1d(:,:,81)
-        rlai     => spacebs1d(:,:,82)
-        rpp      => spacebs1d(:,:,83)
-        scrat    => spacebs1d(:,:,84)
-        scvk     => spacebs1d(:,:,85)
-        sdrop    => spacebs1d(:,:,86)
-        seasb    => spacebs1d(:,:,87)
-        sigf     => spacebs1d(:,:,88)
-        sm       => spacebs1d(:,:,89)
-        tm       => spacebs1d(:,:,90)
-        uaf      => spacebs1d(:,:,91)
-        vspda    => spacebs1d(:,:,92)
-        wata     => spacebs1d(:,:,93)
-        watr     => spacebs1d(:,:,94)
-        watt     => spacebs1d(:,:,95)
-        watu     => spacebs1d(:,:,96)
-        wta      => spacebs1d(:,:,97)
-        xlai     => spacebs1d(:,:,98)
-        xlsai    => spacebs1d(:,:,99)
-        xrun     => spacebs1d(:,:,100)
-        cn1      => spacebs1d(:,:,101)
-        df       => spacebs1d(:,:,102)
-        rgr      => spacebs1d(:,:,103)
-        wta0     => spacebs1d(:,:,104)
-        wtaq0    => spacebs1d(:,:,105)
-        wtg      => spacebs1d(:,:,106)
-        wtg0     => spacebs1d(:,:,107)
-        wtg2     => spacebs1d(:,:,108)
-        wtga     => spacebs1d(:,:,109)
-        wtgaq    => spacebs1d(:,:,110)
-        wtgl     => spacebs1d(:,:,111)
-        wtglq    => spacebs1d(:,:,112)
-        wtgq     => spacebs1d(:,:,113)
-        wtgq0    => spacebs1d(:,:,114)
-        wtl0     => spacebs1d(:,:,115)
-        wtlh     => spacebs1d(:,:,116)
-        wtlq     => spacebs1d(:,:,117)
-        wtlq0    => spacebs1d(:,:,118)
-        wtshi    => spacebs1d(:,:,119)
-        wtsqi    => spacebs1d(:,:,120)
-        z2fra    => spacebs1d(:,:,121)
-        z10fra   => spacebs1d(:,:,122)
-        z1log    => spacebs1d(:,:,123)
-        zlgocn   => spacebs1d(:,:,124)
-        zlglnd   => spacebs1d(:,:,125)
-        zlgsno   => spacebs1d(:,:,126)
-        zlgveg   => spacebs1d(:,:,127)
-        zlgdis   => spacebs1d(:,:,128)
-        aldirs1d => spacebs1d(:,:,129)
-        aldifs1d => spacebs1d(:,:,130)
+        allocate(p1d0(nnsg,iym1))
+        p1d0 = d_zero
+        allocate(qs1d0(nnsg,iym1))
+        qs1d0 = d_zero
+        allocate(ts1d0(nnsg,iym1))
+        ts1d0 = d_zero
+        allocate(delq1d(nnsg,iym1))
+        delq1d = d_zero
+        allocate(delt1d(nnsg,iym1))
+        delt1d = d_zero
+        allocate(drag1d(nnsg,iym1))
+        drag1d = d_zero
+        allocate(emiss_1d(nnsg,iym1))
+        emiss_1d = d_zero
+        allocate(evpr1d(nnsg,iym1))
+        evpr1d = d_zero
+        allocate(gwet1d(nnsg,iym1))
+        gwet1d = d_zero
+        allocate(ircp1d(nnsg,iym1))
+        ircp1d = d_zero
+        allocate(ldew1d(nnsg,iym1))
+        ldew1d = d_zero
+        allocate(p1d(nnsg,iym1))
+        p1d = d_zero
+        allocate(pbp1d(nnsg,iym1))
+        pbp1d = d_zero
+        allocate(prcp1d(nnsg,iym1))
+        prcp1d = d_zero
+        allocate(q2m1d(nnsg,iym1))
+        q2m1d = d_zero
+        allocate(qg1d(nnsg,iym1))
+        qg1d = d_zero
+        allocate(qs1d(nnsg,iym1))
+        qs1d = d_zero
+        allocate(resp1d(nnsg,iym1))
+        resp1d = d_zero
+        allocate(rhs1d(nnsg,iym1))
+        rhs1d = d_zero
+        allocate(rno1d(nnsg,iym1))
+        rno1d = d_zero
+        allocate(rnos1d(nnsg,iym1))
+        rnos1d = d_zero
+        allocate(rsw1d(nnsg,iym1))
+        rsw1d = d_zero
+        allocate(sag1d(nnsg,iym1))
+        sag1d = d_zero
+        allocate(scv1d(nnsg,iym1))
+        scv1d = d_zero
+        allocate(sent1d(nnsg,iym1))
+        sent1d = d_zero
+        allocate(sice1d(nnsg,iym1))
+        sice1d = d_zero
+        allocate(ssw1d(nnsg,iym1))
+        ssw1d = d_zero
+        allocate(t2m1d(nnsg,iym1))
+        t2m1d = d_zero
+        allocate(taf1d(nnsg,iym1))
+        taf1d = d_zero
+        allocate(tg1d(nnsg,iym1))
+        tg1d = d_zero
+        allocate(tgb1d(nnsg,iym1))
+        tgb1d = d_zero
+        allocate(tlef1d(nnsg,iym1))
+        tlef1d = d_zero
+        allocate(ts1d(nnsg,iym1))
+        ts1d = d_zero
+        allocate(tsw1d(nnsg,iym1))
+        tsw1d = d_zero
+        allocate(u10m1d(nnsg,iym1))
+        u10m1d = d_zero
+        allocate(v10m1d(nnsg,iym1))
+        v10m1d = d_zero
+        allocate(veg1d(nnsg,iym1))
+        veg1d = d_zero
+        allocate(z1d(nnsg,iym1))
+        z1d = d_zero
+        allocate(bfc(nnsg,iym1))
+        bfc = d_zero
+        allocate(bsw(nnsg,iym1))
+        bsw = d_zero
+        allocate(evmx0(nnsg,iym1))
+        evmx0 = d_zero
+        allocate(fdry(nnsg,iym1))
+        fdry = d_zero
+        allocate(fwet(nnsg,iym1))
+        fwet = d_zero
+        allocate(gwmx0(nnsg,iym1))
+        gwmx0 = d_zero
+        allocate(gwmx1(nnsg,iym1))
+        gwmx1 = d_zero
+        allocate(gwmx2(nnsg,iym1))
+        gwmx2 = d_zero
+        allocate(porsl(nnsg,iym1))
+        porsl = d_zero
+        allocate(relfc(nnsg,iym1))
+        relfc = d_zero
+        allocate(rnet(nnsg,iym1))
+        rnet = d_zero
+        allocate(texrat(nnsg,iym1))
+        texrat = d_zero
+        allocate(vegt(nnsg,iym1))
+        vegt = d_zero
+        allocate(wiltr(nnsg,iym1))
+        wiltr = d_zero
+        allocate(wt(nnsg,iym1))
+        wt = d_zero
+        allocate(xkmx(nnsg,iym1))
+        xkmx = d_zero
+        allocate(cdr(nnsg,iym1))
+        cdr = d_zero
+        allocate(cdrn(nnsg,iym1))
+        cdrn = d_zero
+        allocate(cdrx(nnsg,iym1))
+        cdrx = d_zero
+        allocate(cf(nnsg,iym1))
+        cf = d_zero
+        allocate(cgrnd(nnsg,iym1))
+        cgrnd = d_zero
+        allocate(cgrndl(nnsg,iym1))
+        cgrndl = d_zero
+        allocate(cgrnds(nnsg,iym1))
+        cgrnds = d_zero
+        allocate(clead(nnsg,iym1))
+        clead = d_zero
+        allocate(densi(nnsg,iym1))
+        densi = d_zero
+        allocate(efpr(nnsg,iym1))
+        efpr = d_zero
+        allocate(eg(nnsg,iym1))
+        eg = d_zero
+        allocate(etr(nnsg,iym1))
+        etr = d_zero
+        allocate(etrrun(nnsg,iym1))
+        etrrun = d_zero
+        allocate(evaps(nnsg,iym1))
+        evaps = d_zero
+        allocate(evapw(nnsg,iym1))
+        evapw = d_zero
+        allocate(fevpg(nnsg,iym1))
+        fevpg = d_zero
+        allocate(flnet(nnsg,iym1))
+        flnet = d_zero
+        allocate(flneto(nnsg,iym1))
+        flneto = d_zero
+        allocate(fseng(nnsg,iym1))
+        fseng = d_zero
+        allocate(htvp(nnsg,iym1))
+        htvp = d_zero
+        allocate(ps(nnsg,iym1))
+        ps = d_zero
+        allocate(pw(nnsg,iym1))
+        pw = d_zero
+        allocate(qice(nnsg,iym1))
+        qice = d_zero
+        allocate(qsatl(nnsg,iym1))
+        qsatl = d_zero
+        allocate(rhosw(nnsg,iym1))
+        rhosw = d_zero
+        allocate(ribd(nnsg,iym1))
+        ribd = d_zero
+        allocate(rlai(nnsg,iym1))
+        rlai = d_zero
+        allocate(rpp(nnsg,iym1))
+        rpp = d_zero
+        allocate(scrat(nnsg,iym1))
+        scrat = d_zero
+        allocate(scvk(nnsg,iym1))
+        scvk = d_zero
+        allocate(sdrop(nnsg,iym1))
+        sdrop = d_zero
+        allocate(seasb(nnsg,iym1))
+        seasb = d_zero
+        allocate(sigf(nnsg,iym1))
+        sigf = d_zero
+        allocate(sm(nnsg,iym1))
+        sm = d_zero
+        allocate(tm(nnsg,iym1))
+        tm = d_zero
+        allocate(uaf(nnsg,iym1))
+        uaf = d_zero
+        allocate(vspda(nnsg,iym1))
+        vspda = d_zero
+        allocate(wata(nnsg,iym1))
+        wata = d_zero
+        allocate(watr(nnsg,iym1))
+        watr = d_zero
+        allocate(watt(nnsg,iym1))
+        watt = d_zero
+        allocate(watu(nnsg,iym1))
+        watu = d_zero
+        allocate(wta(nnsg,iym1))
+        wta = d_zero
+        allocate(xlai(nnsg,iym1))
+        xlai = d_zero
+        allocate(xlsai(nnsg,iym1))
+        xlsai = d_zero
+        allocate(xrun(nnsg,iym1))
+        xrun = d_zero
+        allocate(cn1(nnsg,iym1))
+        cn1 = d_zero
+        allocate(df(nnsg,iym1))
+        df = d_zero
+        allocate(rgr(nnsg,iym1))
+        rgr = d_zero
+        allocate(wta0(nnsg,iym1))
+        wta0 = d_zero
+        allocate(wtaq0(nnsg,iym1))
+        wtaq0 = d_zero
+        allocate(wtg(nnsg,iym1))
+        wtg = d_zero
+        allocate(wtg0(nnsg,iym1))
+        wtg0 = d_zero
+        allocate(wtg2(nnsg,iym1))
+        wtg2 = d_zero
+        allocate(wtga(nnsg,iym1))
+        wtga = d_zero
+        allocate(wtgaq(nnsg,iym1))
+        wtgaq = d_zero
+        allocate(wtgl(nnsg,iym1))
+        wtgl = d_zero
+        allocate(wtglq(nnsg,iym1))
+        wtglq = d_zero
+        allocate(wtgq(nnsg,iym1))
+        wtgq = d_zero
+        allocate(wtgq0(nnsg,iym1))
+        wtgq0 = d_zero
+        allocate(wtl0(nnsg,iym1))
+        wtl0 = d_zero
+        allocate(wtlh(nnsg,iym1))
+        wtlh = d_zero
+        allocate(wtlq(nnsg,iym1))
+        wtlq = d_zero
+        allocate(wtlq0(nnsg,iym1))
+        wtlq0 = d_zero
+        allocate(wtshi(nnsg,iym1))
+        wtshi = d_zero
+        allocate(wtsqi(nnsg,iym1))
+        wtsqi = d_zero
+        allocate(z2fra(nnsg,iym1))
+        z2fra = d_zero
+        allocate(z10fra(nnsg,iym1))
+        z10fra = d_zero
+        allocate(z1log(nnsg,iym1))
+        z1log = d_zero
+        allocate(zlgocn(nnsg,iym1))
+        zlgocn = d_zero
+        allocate(zlglnd(nnsg,iym1))
+        zlglnd = d_zero
+        allocate(zlgsno(nnsg,iym1))
+        zlgsno = d_zero
+        allocate(zlgveg(nnsg,iym1))
+        zlgveg = d_zero
+        allocate(zlgdis(nnsg,iym1))
+        zlgdis = d_zero
+        allocate(aldirs1d(nnsg,iym1))
+        aldirs1d = d_zero
+        allocate(aldifs1d(nnsg,iym1))
+        aldifs1d = d_zero
         allocate(lveg(nnsg,iym1))
         lveg = -1
         allocate(oveg(nnsg,iym1))
         oveg = -1
         allocate(coszrs(iy))
         coszrs = d_zero
-        allocate(spaceb1d(iym1,24))
-        spaceb1d = d_zero
-        flw1d   => spaceb1d(:,1)
-        fsw1d   => spaceb1d(:,2)
-        us1d    => spaceb1d(:,3)
-        vs1d    => spaceb1d(:,4)
-        czen    => spaceb1d(:,5)
-        sola    => spaceb1d(:,6)
-        vpdd    => spaceb1d(:,7)
-        ems     => spaceb1d(:,8)
-        albdif  => spaceb1d(:,9)
-        albdir  => spaceb1d(:,10)
-        albvl   => spaceb1d(:,11)
-        albvld  => spaceb1d(:,12)
-        albvs   => spaceb1d(:,13)
-        albvsd  => spaceb1d(:,14)
-        aldifl  => spaceb1d(:,15)
-        aldifs  => spaceb1d(:,16)
-        aldirl  => spaceb1d(:,17)
-        aldirs  => spaceb1d(:,18)
-        emiss1d => spaceb1d(:,19)
-        fracd   => spaceb1d(:,20)
-        sabveg  => spaceb1d(:,21)
-        solis   => spaceb1d(:,22)
-        solvd   => spaceb1d(:,23)
-        solvs   => spaceb1d(:,24)
+        allocate(flw1d(iym1))
+        flw1d = d_zero
+        allocate(fsw1d(iym1))
+        fsw1d = d_zero
+        allocate(us1d(iym1))
+        us1d = d_zero
+        allocate(vs1d(iym1))
+        vs1d = d_zero
+        allocate(czen(iym1))
+        czen = d_zero
+        allocate(sola(iym1))
+        sola = d_zero
+        allocate(vpdd(iym1))
+        vpdd = d_zero
+        allocate(ems(iym1))
+        ems = d_zero
+        allocate(albdif(iym1))
+        albdif = d_zero
+        allocate(albdir(iym1))
+        albdir = d_zero
+        allocate(albvl(iym1))
+        albvl = d_zero
+        allocate(albvld(iym1))
+        albvld = d_zero
+        allocate(albvs(iym1))
+        albvs = d_zero
+        allocate(albvsd(iym1))
+        albvsd = d_zero
+        allocate(aldifl(iym1))
+        aldifl = d_zero
+        allocate(aldifs(iym1))
+        aldifs = d_zero
+        allocate(aldirl(iym1))
+        aldirl = d_zero
+        allocate(aldirs(iym1))
+        aldirs = d_zero
+        allocate(emiss1d(iym1))
+        emiss1d = d_zero
+        allocate(fracd(iym1))
+        fracd = d_zero
+        allocate(sabveg(iym1))
+        sabveg = d_zero
+        allocate(solis(iym1))
+        solis = d_zero
+        allocate(solvd(iym1))
+        solvd = d_zero
+        allocate(solvs(iym1))
+        solvs = d_zero
 
         allocate(fbat(njm2,iym2,numbat))
         fbat = 0.0

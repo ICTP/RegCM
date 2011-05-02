@@ -510,7 +510,8 @@
       intent (inout) hi , aveice , hs , fsw , tprof
 !
       real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-               & t2 , tf , theta , rho
+               & t2 , tf , theta , rho , xlexpc
+      real(8) :: xea , xeb , xec
       integer :: nits
 !
       real(8) , parameter :: isurf = 0.6D0
@@ -534,6 +535,8 @@
       real(8) , parameter :: li = 334.0D03
       ! drag coefficient for the turbulent momentum flux.
       real(8) , parameter :: cd = 0.001D0
+      ! Maximum exponent
+      real(8) , parameter :: minexp = -25.0D0
 !
 !
 !****************************SUBROUINE ICE*****************************
@@ -541,8 +544,8 @@
 !**********************************************************************
  
       if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
-        hs = hs + prec*d_10*d_r1000  ! convert prec(mm) to depth(m)
-      if ( hs < d_zero ) hs = d_zero
+        hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
+      if ( hs < dlowval ) hs = d_zero
  
       ! temperature of ice/snow surface
       t0 = tprof(1)
@@ -556,11 +559,29 @@
       psi = wlhv*rho*cd*u2*ep2/atm
       evl = d_100*psi*(eomb(t0)-ea)/(wlhv*rho)
       ! amount of radiation that penetrates through the ice (W/m2)
-      qpen = fsw*0.7D0*((d_one-dexp(-lams1*hs))/(ks*lams1) +            &
-                        (dexp(-lams1*hs))*(d_one-dexp(-lami1*hi)) /     &
-                        (ki*lami1))+fsw*0.3D0*((d_one-dexp(-lams2)) /   &
-                        (ks*lams2)+(-lams2*hs)*(d_one-dexp(-lami2*hi))/ &
-                        (ki*lami2))
+      xea = -lams1*hs
+      xeb = -lami1*hi
+      xec = -lami2*hi
+      if ( xea > minexp ) then
+        xea = dexp(xea)
+      else
+        xea = d_zero
+      end if
+      if ( xeb > minexp ) then
+        xeb = dexp(xeb)
+      else
+        xeb = d_zero
+      end if
+      if ( xec > minexp ) then
+        xec = dexp(xec)
+      else
+        xec = d_zero
+      end if
+
+      qpen = fsw*0.7D0*((d_one-xea)/(ks*lams1) +            &
+                        (xea*(d_one-xeb)/(ki*lami1))) +     &
+             fsw*0.3D0*((d_one-dexp(-lams2))/(ks*lams2)+    &
+                        (-lams2*hs)*(d_one-xec)/(ki*lami2))
       ! radiation absorbed at the ice surface
       fsw = fsw - qpen
  
@@ -608,10 +629,16 @@
  
         else if ( t0 < tf ) then
  
-          q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea)             &
-             & + theta*(t0-tac) - fsw
-          qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) +         &
-               & fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
+          q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
+               theta*(t0-tac) - fsw
+          xlexpc = -(lams1*hs+lami1*hi)
+          ! Graziano : limit exponential
+          if (xlexpc > minexp ) then
+            qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
+                   fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
+          else
+            qpen = fsw
+          end if
           di = dtx*(q0-qw-qpen)/(rhoice*li)
  
           hi = hi + di

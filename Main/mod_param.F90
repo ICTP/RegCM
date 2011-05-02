@@ -404,6 +404,16 @@
         call fatal(__FILE__,__LINE__,  &
                   &'BAND Compile / i_band namelist mismatch')
       end if
+
+#ifdef CLM
+      if ( myid == 0 ) then
+        if (nsg /= 1 ) then
+          write (6,*) 'Running SUBGRID with CLM: not implemented'
+          write (6,*) 'Please set nsg to 1 in regcm.in'
+          call fatal(__FILE__,__LINE__,'CLM & SUBGRID TOGETHER')
+        end if
+      end if
+#endif
 !
 #ifdef MPP1
       if ( myid == 0 ) then
@@ -445,8 +455,12 @@
                   &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
         end if
       else
+        ichem = 0
         ntr = 0
+        nbin = 0
+        ifchem = .false.
       end if
+
 #ifdef CLM
       read (ipunit , clmparam)
       print * , 'param: CLMPARAM namelist READ IN'
@@ -614,8 +628,6 @@
 #ifndef BAND
       if ( ichem == 1 ) then
         if (debug_level > 2) call allocate_mod_diagnosis
-      else
-        if ( ichem == 0 ) ifchem = .false.
       end if
 #endif
 !
@@ -692,9 +704,8 @@
       ktau = 0
       xtime = d_zero
       ntime = 0
-      dtsplit(2) = dt*d_half
-      dtsplit(1) = dt*d_rfour
       do ns = 1 , nsplit
+        dtsplit(ns) = dt*(d_half/dble(ns))
         dtau(ns) = dtsplit(ns)
       end do
       write (aline, *) 'param: dtau = ' , dtau
@@ -737,6 +748,7 @@
       end if
 #endif
       nnnend = idatediff(idate2,idate0)/ibdyfrq
+      xdfbdy = dble(ibdyfrq)/houpd
 ! 
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1

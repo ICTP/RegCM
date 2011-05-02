@@ -36,7 +36,7 @@
 
       integer :: nnnnnn , nnnend , nstart , nstrt0
 
-      real(8) :: declin , dectim , deltmx , gmt
+      real(8) :: declin , dectim , deltmx , gmt , xdfbdy
       real(8) :: xtime
       integer :: ktau
 

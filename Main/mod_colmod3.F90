@@ -275,17 +275,9 @@
         ii2 = 0
         do n = 1 , nnsg
           if ( ocld2d(n,i,jslc) == 2 ) then
-            if ( sice1d(n,i) >= 0.0001D0 ) then
-              ii2 = ii2 + 1
-            else
-              ii0 = ii0 + 1
-            endif
+            ii2 = ii2 + 1
           else if ( ocld2d(n,i,jslc) == 1 ) then
-            if ( sice1d(n,i) < 0.0001D0 ) then
-              ii1 = ii1 + 1
-            else if ( sice1d(n,i) >= 0.0001D0 ) then
-              ii2 = ii2 + 1
-            end if
+            ii1 = ii1 + 1
           else
             ii0 = ii0 + 1
           end if
@@ -577,15 +569,13 @@
       intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 ,    &
                    & ps , tm1
 !
-      real(8) :: ccvtem , clwtem , vmmr , xdfbdy
+      real(8) :: ccvtem , clwtem , vmmr
       real(8) , dimension(iym1,kz) :: deltaz
       integer :: i , k , kj , n , ncldm1 , nll
       real(8) , dimension(iym1) :: rlat
 !
       real(8) , parameter :: amd = 28.9644D0
       real(8) , parameter :: amo = 48.0000D0
-!
-      xdfbdy = 24.0D0/dble(ibdyfrq)
 !
 !     begin read of data:
 !-----
@@ -751,7 +741,7 @@
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
-        calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
+        calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
                     (xtime/minph+gmt)/houpd
 !
         loctim(i) = (calday-dint(calday))*houpd

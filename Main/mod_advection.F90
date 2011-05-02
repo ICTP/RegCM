@@ -474,11 +474,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym1
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+          &
-                      &     qdot(i,k+1,j)+qdot(i-1,k+1,j))*fg(i,k+1)    &
-                      & -(qdot(i,k,jm1)+qdot(i-1,k,jm1)+qdot(i,k,j)     &
-                      & +qdot(i-1,k,j))*fg(i,k))/(d_four*dsigma(k))
+            ften(i,k) = ften(i,k) -                                     &
+                      & ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+            &
+                      &   qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1) -  &
+                      &  (qdot(i,k,jm1)  +qdot(i-1,k,jm1)+              &
+                      &   qdot(i,k,j)    +qdot(i-1,k,j))*fg(i,k)) /     &
+                      & (d_four*dsigma(k))
           end do
         end do
 !......k = kz
@@ -653,11 +654,12 @@
 !......k = 2,kzm1
         do k = 2 , kzm1
           do i = 2 , iym1
-            ften(i,k) = ften(i,k)                                       &
-                      & - ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+          &
-                            qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1)  &
-                      & -(qdot(i,k,j-1)+qdot(i-1,k,j-1)+qdot(i,k,j)     &
-                      & +qdot(i-1,k,j))*fg(i,k))/(d_four*dsigma(k))
+            ften(i,k) = ften(i,k) -                                     &
+                      & ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+            &
+                      &   qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1) -  &
+                      &  (qdot(i,k,j-1)  +qdot(i-1,k,j-1)+              &
+                      &   qdot(i,k,j)    +qdot(i-1,k,j))*fg(i,k)) /     &
+                      & (d_four*dsigma(k))
           end do
         end do
 !......k = kz

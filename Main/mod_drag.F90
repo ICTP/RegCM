@@ -115,25 +115,13 @@
 !     warning! the lat test below (4.1-4.3) is model dependent!
 !=======================================================================
  
-!     4.1  test if northern or southern hemisphere
-      do i = 2 , iym1
-        do n = 1 , nnsg
-                                                    ! check each point
-!cc   if (lat(i) ==     1) aarea(i) = 0.005  ! ccm specific code
-!cc   if (lat(i) ==     2) aarea(i) = 0.01
-!cc   if (lat(i) >= nlat2) aarea(i) = 0.04   !  4.2  antarctic
-          if ( ldoc1d(n,i) == 2 ) aarea(n,i) = 0.02D0
-                                                    !  4.3  arctic
-        end do
-      end do
- 
-!     4.4  neutral cd over lead water
+!     4.1  neutral cd over lead water
       do i = 2 , iym1
         do n = 1 , nnsg
           if ( ldoc1d(n,i) == 2 ) then       !  check each point
-            cdrn(n,i) = (vonkar/zlgocn(n,i))**d_two
+            cdrn(n,i) = (vonkar/zlgsno(n,i))**d_two
  
-!           4.5  drag coefficient over leads
+!           4.1  drag coefficient over leads
             ribl(n,i) = (d_one-271.5D0/ts1d(n,i))* &
                          z1d(n,i)*egrav/ribd(n,i)
             if ( ribl(n,i) >= d_zero ) then
@@ -143,10 +131,9 @@
                            dsqrt(-cdrn(n,i)*ribl(n,i)))
             end if
  
-!           4.6  calculate weighted avg of ice and lead drag
+!           4.2  calculate weighted avg of ice and lead drag
 !           coefficients
-            cdrx(n,i) = (d_one-aarea(n,i))*cdr(n,i) + &
-                               aarea(n,i)*clead(n,i)
+            cdrx(n,i) = (d_one-aarea)*cdr(n,i) + aarea*clead(n,i)
           end if
         end do
       end do
@@ -181,10 +168,9 @@
       integer :: n , i
 !
       call depth
- 
+!
       do i = 2 , iym1
         do n = 1 , nnsg
- 
           if ( ldoc1d(n,i) == 2 ) then
 !           ******           drag coeff over seaice
             sigf(n,i) = d_zero
@@ -241,7 +227,6 @@
             rhosw(n,i) = 0.10D0*(d_one+d_three*age)
             densi(n,i) = 0.01D0/(d_one+d_three*age)
             scrat(n,i) = scv1d(n,i)*densi(n,i)
-            if (scrat(n,i) < dlowval) scrat(n,i) = d_zero
             wt(n,i) = d_one
             if ( ldoc1d(n,i) /= 2 ) then
               wt(n,i) = 0.1D0*scrat(n,i)/rough(lveg(n,i))

@@ -97,7 +97,7 @@
 !         humidity
           pres = (a(k)*psc(i,j)+r8pt)*d_1000
           if ( tmp3(i,k) > tzero ) then
-            satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero)               &
+            satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero) &
                   & /(tmp3(i,k)-svp3))
           else
             satvp = svp4*d_1000*dexp(svp5-svp6/tmp3(i,k))

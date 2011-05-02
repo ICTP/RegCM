@@ -60,7 +60,7 @@
       real(8) :: aprdiv , dpovg , es , afc , p , pptacc ,       &
                & pptkm1 , pptmax , pptnew , q , qcincld , qcleft , qcw ,&
                & qs , rdevap , rh , rhcs , rho , tcel , thog , tk ,     &
-               & uch , uconv
+               & uch , uconv , prainx
       integer :: i , k , kk
       real(8) , dimension(istart:iend) :: pptsum
 !
@@ -111,6 +111,8 @@
 !         1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(i,j)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)         ![kg/kg/s][avg]
+          if ( pptnew < dlowval ) pptnew = d_zero
+
           if ( pptnew > d_zero ) then
                                    ! New precipitation
 !           1af. Compute the cloud removal rate (for chemistry) [1/s]
@@ -217,6 +219,7 @@
 !           1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(i,j)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
             pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)       ![kg/kg/s][avg]
+            if ( pptnew < dlowval ) pptnew = d_zero
 !           1be. Compute the cloud removal rate (for chemistry) [1/s]
 !chem2
             if ( pptnew > d_zero ) remrat(i,k) = pptnew/qcw
@@ -229,7 +232,6 @@
 !             1bfa. Compute the amount of water remaining in the cloud
 !             [kg/kg]
               qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
-              if (qcleft < dlowval) qcleft = d_zero
 !             1bfb. Add 1/2 of the new precipitation to the accumulated
 !             precipitation [kg/m3]
               pptkm1 = (pptkm1+d_half*pptnew/afc)*rho*dt     ![kg/m3][cld]
@@ -283,11 +285,14 @@
 !--------------------------------------------------------------------
 !
       uconv = minph*dtmin
-      aprdiv = d_one/dble(nbatst)
-      if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+      aprdiv = uconv/dble(nbatst)
+      if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = uconv
       do i = istart , iend
-        sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + pptsum(i)*uconv
-        pptnc(i,j) = pptnc(i,j) + pptsum(i)*aprdiv
+        prainx = pptsum(i)*uconv
+        if ( prainx > dlowval ) then
+          sfsta%rainnc(i,j) = sfsta%rainnc(i,j) + prainx
+          pptnc(i,j) = pptnc(i,j) + prainx*aprdiv
+        end if
       end do
  
       end subroutine pcp

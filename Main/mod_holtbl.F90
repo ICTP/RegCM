@@ -458,8 +458,8 @@
           wksend(ii) = akzz2(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(wksend,(iym2)*kz*2,mpi_real8,ieast,1, &
-                        wkrecv,(iym2)*kz*2,mpi_real8,iwest,1, &
+      call mpi_sendrecv(wksend,iym2*kz*2,mpi_real8,ieast,1, &
+                        wkrecv,iym2*kz*2,mpi_real8,iwest,1, &
                         mpi_comm_world,mpi_status_ignore,ierr)
       ii = 0
       do k = 1 , kz

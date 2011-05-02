@@ -575,12 +575,14 @@
 !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         preck = preck*fefi
 !--------------update precipitation, temperature & moisture-------------
-        prainx = d_half*((sps2%ps(i,j)*1000.*preck*cprlg)*100.)
-        sfsta%rainc(i,j) = prainx + sfsta%rainc(i,j)
+        prainx = d_half*((sps2%ps(i,j)*d_1000*preck*cprlg)*d_100)
+        if ( prainx > dlowval ) then
+          sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !.....................precipitation rate for bats (mm/s)
-        aprdiv = dble(nbatst)
-        if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
-        pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
+          aprdiv = dble(nbatst)
+          if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+          pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+        end if
         do l = ltpk , lb
           tmod(i,l) = dift(l)*fefi/dt2
           qqmod(i,l) = difq(l)*fefi/dt2

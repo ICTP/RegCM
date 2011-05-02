@@ -57,7 +57,7 @@
 !
       real(8) , intent(in) :: xtime
 !
-      real(8) :: calday , decdeg , xdfbdy
+      real(8) :: calday , decdeg
 #ifdef CLM
       real(8) :: mvelp , obliq
       integer :: iyear_ad
@@ -72,7 +72,6 @@
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
-      xdfbdy = 24.0D0/ibdyfrq
 #ifdef CLM
       log_print = .false.
 
@@ -83,7 +82,7 @@
       call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                         & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
+      calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
                              (xtime/minph+gmt)/houpd
 
 !     Get declin,eccf
@@ -94,7 +93,7 @@
       declin = declin
       decdeg = declin/degrad
 #else
-      calday = dble(julday) + dble(nnnnnn-nstrt0)/xdfbdy + &
+      calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
                        (xtime/minph+gmt)/houpd
       theta = twopi*calday/dayspy
 !
@@ -139,7 +138,7 @@
 #ifdef CLM
       real(8) :: cldy , declinp1 , xxlon
 #else
-      real(8) :: omega , tlocap , xt24
+      real(8) :: omga , tlocap , xt24
 #endif
       character (len=50) :: subroutine_name='zenitm'
       real(8) :: xxlat
@@ -166,11 +165,11 @@
       do ill = 1 , ivmx
         tlocap = xt24/minph + mddom%xlong(ill,jslc)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
-        omega = 15.0D0*(tlocap-12.0D0)*degrad
+        omga = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad
 !       coszrs = cosine of solar zenith angle
         coszrs(ill) = dsin(declin)*dsin(xxlat) +           &
-                      dcos(declin)*dcos(xxlat)*dcos(omega)
+                      dcos(declin)*dcos(xxlat)*dcos(omga)
         coszrs(ill) = dmax1(0.0D0,coszrs(ill))
         coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do

@@ -280,11 +280,13 @@
               end if
 !.....the     unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtmin*60000.0D0*regrav
-              sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
-!             instantaneous precipitation rate for use in bats (mm/s)
-              aprdiv = dble(nbatst)
-              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
-              pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+              if ( prainx > dlowval ) then
+                sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
+!               instantaneous precipitation rate for use in bats (mm/s)
+                aprdiv = dble(nbatst)
+                if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+                pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+              end if
 !
 !chem2
               if ( ichem == 1 ) then

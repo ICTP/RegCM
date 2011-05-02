@@ -28,7 +28,6 @@
       use mod_precip
       use mod_rad
       use mod_bats
-      use mod_lake
       use mod_vecbats
       use mod_holtbl
       use mod_trachem
@@ -40,7 +39,6 @@
       use mod_date
       use mod_message
       use mod_aerosol
-      use mod_zengocn
       use mod_sun
       use mod_slice
       use mod_cldfrac
@@ -141,12 +139,11 @@
       integer :: iexec
       intent (inout) iexec
 !
-      real(8) :: cell , chias , chibs , dudx , dudy ,               &
-               & dvdx , dvdy , psabar , psasum ,                    &
-               & pt2bar , pt2tot , ptnbar , ptntot , qcas , qcbs ,  &
-               & qvas , qvbs , rovcpm , rtbar , sigpsa , tv ,       &
-               & tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,  &
-               & xday , xmsf , xtm1
+      real(8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
+                 psabar , psasum , pt2bar , pt2tot , ptnbar ,        &
+                 ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
+                 rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
+                 tvavg , tvb , tvc , xday , xmsf , xtm1
       integer :: i , icons , iptn , itr , j , k , lev , n
       integer :: jm1, jp1
 #ifdef MPP1
@@ -186,11 +183,11 @@
         end do
       end do
 #ifdef MPP1
-      call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,            &
-                      & sps1%ps(1,0),iy,mpi_real8,iwest,1,              &
+      call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1, &
+                      & sps1%ps(1,0),  iy,mpi_real8,iwest,1, &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(sps1%ps(1,1),iy,mpi_real8,iwest,2,              &
-                      & sps1%ps(1,jxp+1),iy,mpi_real8,ieast,2,          &
+      call mpi_sendrecv(sps1%ps(1,1),    iy,mpi_real8,iwest,2, &
+                      & sps1%ps(1,jxp+1),iy,mpi_real8,ieast,2, &
                       & mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
@@ -688,10 +685,9 @@
 #endif
       numrec = kz*5*2
       if ( ichem == 1 ) numrec = kz*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),iy*numrec,mpi_real8,               &
-                      & ieast,1,var2rcv(1,1),iy*numrec,                 &
-                      & mpi_real8,iwest,1,mpi_comm_world,               &
-                      & mpi_status_ignore,ierr)
+      call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,ieast,1, &
+                        var2rcv,iy*numrec,mpi_real8,iwest,1, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= 0 ) then
 #endif
@@ -753,10 +749,9 @@
 #endif
       numrec = kz*5*2
       if ( ichem == 1 ) numrec = kz*(ntr+5)*2
-      call mpi_sendrecv(var2snd(1,1),iy*numrec,mpi_real8,               &
-                      & iwest,2,var2rcv(1,1),iy*numrec,                 &
-                      & mpi_real8,ieast,2,mpi_comm_world,               &
-                      & mpi_status_ignore,ierr)
+      call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,iwest,2, &
+                        var2rcv,iy*numrec,mpi_real8,ieast,2, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -876,13 +871,12 @@
 #endif
       end do
 #ifdef MPP1
-      call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,                &
-                      & ieast,1,qdot(1,1,0),iy*kzp1,                    &
-                      & mpi_real8,iwest,1,mpi_comm_world,               &
-                      & mpi_status_ignore,ierr)
-      call mpi_sendrecv(qdot(1,1,1),iy*kzp1,mpi_real8,iwest,            &
-                      & 2,qdot(1,1,jxp+1),iy*kzp1,mpi_real8,            &
-                      & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,ieast,1, &
+                        qdot(1,1,0),  iy*kzp1,mpi_real8,iwest,1, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(qdot(1,1,1),    iy*kzp1,mpi_real8,iwest,2, &
+                        qdot(1,1,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
 !..p..compute omega
@@ -900,7 +894,7 @@
         jm1 = j-1
 #if defined(BAND) && (!defined(MPP1))
         if (jp1 == jx+1) jp1 = 1
-        if (jm1 == 0) jm1=jx
+        if (jm1 == 0) jm1 = jx
 #endif
 #ifndef BAND
 #ifdef MPP1
@@ -912,7 +906,7 @@
 #endif
         do k = 1 , kz
            do i = 2 , iym2
-              omega(i,k,j) = (sps1%ps(i,j)*d_half)* &
+              omega(i,k,j) = d_half*sps1%ps(i,j)* &
                        & (qdot(i,k+1,j)+qdot(i,k,j))+a(k)*(pten(i,j)+   &
                        & ((atmx%u(i,k,j)+atmx%u(i+1,k,j)+               &
                        &   atmx%u(i+1,k,jp1)+atmx%u(i,k,jp1))*          &
@@ -957,10 +951,9 @@
             bdyewsnd(i,4+kz*15+k) = vwbt(i,k,jxp)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                &
-                        & mpi_real8,ieast,1,bdyewrcv(1,1),           &
-                        & iy*(kz*16+4),mpi_real8,iwest,1,            &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
+        call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,ieast,1, &
+                          bdyewrcv,iy*(kz*16+4),mpi_real8,iwest,1, &
+                          mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , iy
           if ( myid == nproc-1 ) then
             peb(i,jendl) = bdyewrcv(i,1)
@@ -1037,10 +1030,9 @@
             bdyewsnd(i,4+kz*15+k) = vwbt(i,k,1)
           end do
         end do
-        call mpi_sendrecv(bdyewsnd(1,1),iy*(kz*16+4),                &
-                        & mpi_real8,iwest,2,bdyewrcv(1,1),           &
-                        & iy*(kz*16+4),mpi_real8,ieast,2,            &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
+        call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,iwest,2, &
+                          bdyewrcv,iy*(kz*16+4),mpi_real8,ieast,2, &
+                          mpi_comm_world,mpi_status_ignore,ierr)
         do i = 1 , iy
           peb(i,0) = bdyewrcv(i,1)
           pebt(i,0) = bdyewrcv(i,3)
@@ -1102,10 +1094,9 @@
 #ifndef BAND
       end if
 #endif
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),               &
-                      & mpi_real8,ieast,1,bdynsrcv(1,1),             &
-                      & nspgx*(kz*16+4),mpi_real8,iwest,1,           &
-                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,ieast,1, &
+                        bdynsrcv,nspgx*(kz*16+4),mpi_real8,iwest,1, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= 0 ) then
 #endif
@@ -1168,10 +1159,9 @@
 #ifndef BAND
       end if
 #endif
-      call mpi_sendrecv(bdynssnd(1,1),nspgx*(kz*16+4),               &
-                      & mpi_real8,iwest,2,bdynsrcv(1,1),             &
-                      & nspgx*(kz*16+4),mpi_real8,ieast,2,           &
-                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,iwest,2, &
+                        bdynsrcv,nspgx*(kz*16+4),mpi_real8,ieast,2, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -1224,7 +1214,7 @@
 !
           if ( iboudy == 4 ) then
 !..p..apply sponge boundary conditions to pten:
-            call sponge_p(ispgx,wgtx,pten(1,j),j)
+            call sponge_p(ispgx,wgtx,pten(:,j),j)
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
             xtm1 = xtime - dtmin
@@ -1336,7 +1326,7 @@
               ptntot = ptntot + dabs(ps_4(i,1,j))
               pt2tot = pt2tot +                       &
                      & dabs((ps_4(i,2,j)+ps_4(i,3,j)- &
-                             d_two*ps_4(i,4,j))/((dt*dt)*d_rfour))
+                             d_two*ps_4(i,4,j))/(dt*dt*d_rfour))
             end do
           end if
         end do
@@ -1358,7 +1348,7 @@
               iptn = iptn + 1
               ptntot = ptntot + dabs(pten(i,j))
               pt2tot = pt2tot + dabs((psc(i,j)+sps2%ps(i,j)- &
-                      d_two*sps1%ps(i,j))/((dt*dt)*d_rfour))
+                      d_two*sps1%ps(i,j))/(dt*dt*d_rfour))
             end do
           end if
 #ifndef BAND
@@ -1438,7 +1428,7 @@
 !
 !..t..compute the vertical advection term:
 !
-          call vadv(aten%t(1,1,j),qdot,atm1%t(1,1,j),j,1)
+          call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1)
 !
 !..t..compute the adiabatic term:
 !
@@ -1569,16 +1559,7 @@
            &  mod(ktau+1,nbatst) == 0 ) then
           dtbat = dt*d_half*dble(nbatst)
           if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
-          call interf(1,j,2,iym1,nnsg)
-          call vecbats
-!         Zeng ocean flux model
-          if ( iocnflx == 2 ) call zengocndrv(j , nnsg , 2 , iym1 , kz)
-!         Hostetler lake model for every BATS timestep at lake points
-          if ( lakemod == 1 ) then
-            call lakedrv(j)
-          endif
-!         ****** accumulate quantities for energy and moisture budgets
-          call interf(2,j,2,iym1,nnsg)
+          call vecbats(j)
         end if
 #endif
  
@@ -1667,7 +1648,7 @@
                 aten%t(i,k,j) = aten%t(i,k,j) - difft(i,k,j)
               end do
             end do
-            call sponge_t(ispgx,wgtx,aten%t(1,1,j),j)
+            call sponge_t(ispgx,wgtx,aten%t(:,:,j),j)
             do k = 1 , kz
               do i = 2 , iym2
                 aten%t(i,k,j) = aten%t(i,k,j) + difft(i,k,j)
@@ -1678,7 +1659,7 @@
                 aten%qv(i,k,j) = aten%qv(i,k,j) - diffq(i,k,j)
               end do
             end do
-            call spongeqv(ispgx,wgtx,aten%qv(1,1,j),j)
+            call spongeqv(ispgx,wgtx,aten%qv(:,:,j),j)
             do k = 1 , kz
               do i = 2 , iym2
                 aten%qv(i,k,j) = aten%qv(i,k,j) + diffq(i,k,j)
@@ -1938,16 +1919,16 @@
               tv3 = atmx%t(i-1,k,j)*(d_one+ep1*(atmx%qv(i-1,k,j)))
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
-                    & ((a(k)*(psasum*d_rfour)+r8pt)/p00pg)**pgfaa1
+                    & ((a(k)*psasum*d_rfour+r8pt)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                     (dlog((psd(i,j)+psd(i-1,j))*d_half*a(k)+r8pt) -     &
-                      dlog((psd(i,jm1)+psd(i-1,jm1))*d_half*a(k)+r8pt))/ &
-                      (dx*mddom%msfd(i,j))
+                    (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
+                     dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
+                     (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
-                     (dlog((psd(i,j)+psd(i,jm1))*d_half*a(k)+r8pt) -     &
-                      dlog((psd(i-1,jm1)+psd(i-1,j))*d_half*a(k)+r8pt))/ &
-                      (dx*mddom%msfd(i,j))
+                    (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
+                     dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
+                     (dx*mddom%msfd(i,j))
             end do
           end do
         else if ( ipgf == 0 ) then
@@ -1961,13 +1942,13 @@
               tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
               aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                      (dlog((psd(i,j)+psd(i-1,j))*d_half*a(k)+r8pt) -    &
-                       dlog((psd(i,jm1)+psd(i-1,jm1))*d_half*a(k)+r8pt))/&
-                       (dx*mddom%msfd(i,j))
+                     (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -    &
+                      dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/&
+                      (dx*mddom%msfd(i,j))
               aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
-                      (dlog((psd(i,j)+psd(i,jm1))*d_half*a(k)+r8pt) -    &
-                       dlog((psd(i-1,jm1)+psd(i-1,j))*d_half*a(k)+r8pt))/&
-                       (dx*mddom%msfd(i,j))
+                     (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -    &
+                      dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/&
+                      (dx*mddom%msfd(i,j))
             end do
           end do
         else   ! ipgf if block
@@ -2037,9 +2018,9 @@
         end if
       end do
 #ifdef MPP1
-      call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1,           &
-                      & phi(1,1,0),iy*kz,mpi_real8,iwest,1,             &
-                      & mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1, &
+                        phi(1,1,0),  iy*kz,mpi_real8,iwest,1, &
+                        mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 #ifdef MPP1
       do j = jbegin , jendx
@@ -2083,14 +2064,14 @@
 !
 !..uv.compute teh vertical advection terms:
 !
-        call vadv(aten%u(1,1,j),qdot,atm1%u(1,1,j),j,4)
-        call vadv(aten%v(1,1,j),qdot,atm1%v(1,1,j),j,4)
+        call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4)
+        call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4)
 !
 !..uv.apply the sponge boundary condition on u and v:
 !
         if ( iboudy == 4 ) then
-          call sponge_u(ispgd,wgtd,aten%u(1,1,j),j)
-          call sponge_v(ispgd,wgtd,aten%v(1,1,j),j)
+          call sponge_u(ispgd,wgtd,aten%u(:,:,j),j)
+          call sponge_v(ispgd,wgtd,aten%v(:,:,j),j)
         end if
 !
 !..uv.apply the nudging boundary conditions:
