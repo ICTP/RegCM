@@ -178,7 +178,7 @@
       integer , intent(in) :: jslc
 !
       real(8) :: flw , fsw , hsen , prec , &
-               & ql , tgl , tl , vl , zl , xl , evp
+               & ql , tgl , tl , vl , zl , xl , evp , toth
       integer :: i , n
 !
       do i = 2 , iym1
@@ -223,8 +223,10 @@
               scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
               evpr1d(n,i) = evp                 !  units of evp = mm/sec
               ! Reduce sensible heat flux for ice presence
-              sent1d(n,i) = sent1d(n,i) * &
-               (href/(aveice2d(n,i,jslc)+hsnow2d(n,i,jslc)))**steepf
+              toth = sice1d(n,i) + scv1d(n,i)
+              if ( toth > href ) then
+                sent1d(n,i) = sent1d(n,i) * (href/toth)**steepf
+              end if
             end if
           end if
         end do

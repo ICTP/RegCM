@@ -275,7 +275,7 @@
         do k = 1 , kz
           do i = 2 , iym1
             thvx(i,k,j) = thx3d(i,k,j)*(d_one+ep1*qvb3d(i,k,j))
-            qcx(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
+            qcx(i,k,j)  = atm2%qc(i,k,j)/sps2%ps(i,j)
           end do
         end do
 !
@@ -312,10 +312,10 @@
         do k = 2 , kz
           do i = 2 , iym1
             kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)/dt
-            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*                        &
-                  (ubx3d(i,k-1,j)-ubx3d(i,k,j))+                        &
-                  (vbx3d(i,k-1,j)-vbx3d(i,k,j))*                        &
-                  (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/                       &
+            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*   &
+                  (ubx3d(i,k-1,j)-ubx3d(i,k,j))+   &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j))*   &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/  &
                   (dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
             if ( (ri-rc(i,k)) >= d_zero ) then
