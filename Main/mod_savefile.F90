@@ -124,7 +124,7 @@
             end if
             read (iutrst) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
-            if (debug_level > 2) call restdiag(iutrst)
+            call restdiag(iutrst)
 #endif
             read (iutrst) absnxt_io , abstot_io , emstot_io
             if ( ipptls == 1 ) read (iutrst) fcc_io
@@ -186,7 +186,7 @@
               read (iutrst) sfracs2d_io
               read (iutrst) svegfrac2d_io
 #ifndef BAND
-              if (debug_level > 2) call restchemdiag(iutrst)
+              call restchemdiag(iutrst)
 #endif
             end if
 #else
@@ -218,7 +218,7 @@
             end if
             read (iutrst) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
 #ifndef BAND
-            if (debug_level > 2) call restdiag(iutrst)
+            call restdiag(iutrst)
 #endif
             read (iutrst) absnxt , abstot , emstot
             if ( ipptls == 1 ) read (iutrst) fcc
@@ -269,7 +269,7 @@
               read (iutrst) sfracs2d
               read (iutrst) svegfrac2d
 #ifndef BAND
-              if (debug_level > 2) call restchemdiag(iutrst)
+              call restchemdiag(iutrst)
 #endif
             end if
 #endif
@@ -387,7 +387,7 @@
             end if
             write (iutsav) hfx_io , qfx_io , uvdrag_io
 #ifndef BAND
-            if (debug_level > 2) call savediag(iutsav)
+            call savediag(iutsav)
 #endif
             write (iutsav) absnxt_io , abstot_io , emstot_io
             if ( ipptls == 1 ) write (iutsav) fcc_io
@@ -449,7 +449,7 @@
               write (iutsav) sfracs2d_io
               write (iutsav) svegfrac2d_io
 #ifndef BAND
-              if (debug_level > 2) call savechemdiag(iutsav)
+              call savechemdiag(iutsav)
 #endif
             end if
 #else
@@ -481,7 +481,7 @@
             end if
             write (iutsav) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
 #ifndef BAND
-            if (debug_level > 2) call savediag(iutsav)
+            call savediag(iutsav)
 #endif
             write (iutsav) absnxt , abstot , emstot
             if ( ipptls == 1 ) write (iutsav) fcc
@@ -532,7 +532,7 @@
               write (iutsav) sfracs2d
               write (iutsav) svegfrac2d
 #ifndef BAND
-              if (debug_level > 2) call savechemdiag(iutsav)
+              call savechemdiag(iutsav)
 #endif
             end if
 #endif

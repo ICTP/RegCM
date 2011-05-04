@@ -626,9 +626,7 @@
 #endif
 #endif
 #ifndef BAND
-      if ( ichem == 1 ) then
-        if (debug_level > 2) call allocate_mod_diagnosis
-      end if
+      call allocate_mod_diagnosis
 #endif
 !
 !-----------------------------------------------------------------------
