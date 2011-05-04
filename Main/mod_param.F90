@@ -705,7 +705,7 @@
       xtime = d_zero
       ntime = 0
       do ns = 1 , nsplit
-        dtsplit(ns) = dt*(d_half/dble(ns))
+        dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
         dtau(ns) = dtsplit(ns)
       end do
       write (aline, *) 'param: dtau = ' , dtau
