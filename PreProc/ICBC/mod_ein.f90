@@ -145,7 +145,6 @@ module mod_ein
              nhour , nyear , istatus , ivar
   character(24) :: inname
   character(256) :: pathaddname
-  logical :: there
   character(1) , dimension(5) :: varname
   real(dp) :: xadd , xscale
   integer , dimension(10) :: icount , istart
@@ -234,10 +233,6 @@ module mod_ein
         end if
  
         pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          call die('ein6hour',trim(pathaddname)//' is not available',1)
-        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
         if ( istatus /= nf90_noerr) then
           call die('ein6hour',trim(pathaddname)//':open',1, &

@@ -249,7 +249,6 @@ module mod_nest
 !
   real(dp) :: xsign
   integer :: i , k , istatus , idimid , ivarid
-  logical :: there
   real(dp) , dimension(:) , allocatable :: xtimes
   real(sp) , dimension(2) :: trlat
 !
@@ -281,12 +280,6 @@ module mod_nest
  
   write (fillin,'(a,i10)') 'ATM.', imonfirst(globidate1)
   inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
-  inquire (file=inpfile,exist=there)
-  if ( .not.there ) then
-    write (stderr,*) trim(inpfile), ' is not available'
-    write (stderr,*) 'Please copy (or link)' , trim(inpfile)
-    call die('headernest')
-  end if
   istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
   call check_ok(istatus, 'Error opening '//trim(inpfile))
 

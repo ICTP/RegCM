@@ -4,6 +4,14 @@
 % See the file COPYING for copying conditions.
 %
 
+Whatever method is chosen to download the code, we assume that you have now
+on your working directory a new directory, named \verb=RegCM-4.1=.
+That directory will be for the rest of this guide referred as 
+\verb=$REGCM_ROOT= .
+
+All the operations to build the model binaries will be performed in this
+directory.
+
 \section{Software requirements}
 
 In order to configure and install the RegCM code, the following software are
@@ -22,7 +30,7 @@ Note that current version 4.1.2 is dependent on HDF5 1.8.6.
 Optional requirements strongly suggested are :
 
 \begin{enumerate}
-\item GNU \verb=patch= program if CLM option is activated. See below.
+\item GNU \verb=patch= program if CLM option is activated.
 \item MPI2 Message Passing Library compiled with the above fortran compiler
 for parallel runs using multiple core single machines or cluster of machines.
 Source code for the implementation code was tested with can be obtained at: \\
@@ -31,11 +39,11 @@ Source code for the implementation code was tested with can be obtained at: \\
 enable NetCDF V4 features. Source code can be obtained at: \\
 {\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
 \item NCO NetCDF Operators for manging NetCDF file. Most Linux distribution
-have this already packed, and You should refer to Your System Administrator or
+have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
 {\bf http://nco.sourceforge.net/src}
 \item CDO Climatic data Operators for managing NetCDF file. Most Linux
-distribution have this already packed, and You should refer to Your System
+distribution have this already packed, and you should refer to your System
 Administrator or OS Software Installation manual to obtain it.
 Source code is at: \\
 {\bf https://code.zmaw.de/projects/cdo/files}
@@ -55,23 +63,24 @@ Binaries and source code can be obtained from \\
 \end{enumerate}
 
 An example session of installation of basic software needed to compile the
-RegCM model is detailed in chapter $[$\ref{Appendice}$]$.
+RegCM model is detailed in chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
 The RegCM Version 4.1 is configured by a python2 script, which will select
-and edit for You sample configuration files for the supported architectures.
+and edit for you sample configuration files for the supported architectures.
 These files are kept in the \verb=Arch= directory under \verb=$REGCM_ROOT=.
 
 Currently tested and supported configurations (OS/Compiler) are:
 
 \begin{enumerate}
 \item Linux with GNU gfortran compiler version $\ge 4.4$
-\item Linux with Intel ifort compiler version $\ge 10.0$
-\item Linux with Portland pgf90 compiler version $\ge 9.3$
-\item Mac OsX with g95 compiler
-\item IBM AIX with xlf compiler
-\item Oracle Solaris with Oracle Solaris Studio compiler $\ge 8.3$
+\item Linux with Intel\texttrademark ifort compiler version $\ge 10.0$
+\item Linux with Portland\texttrademark pgf90 compiler version $\ge 9.3$
+\item Mac OsX\texttrademark with g95 compiler
+\item IBM AIX\texttrademark with xlf compiler
+\item Oracle Solaris\texttrademark with Oracle Solaris Studio\texttrademark
+compiler $\ge 8.3$
 \end{enumerate}
 
 First step is change working directory to \verb=$REGCM_ROOT= and run the
@@ -89,7 +98,7 @@ $> ./configure
   will be assumed if you don't select valid options.
 \end{Verbatim}
 
-The script interactively asks You a series of questions, divided into three
+The script interactively asks you a series of questions, divided into three
 distinct groups:
 \begin{itemize}
 \item General path and software requirements
@@ -105,14 +114,14 @@ distinct groups:
   [ /home/regcm/RegCM4.1 ]
   regcm_root =
 \end{Verbatim}
-This because You may be running the script from a different directory.
+This because you may be running the script from a different directory.
 You probably are not, so just press enter.
 \item Built binaries destination directory.
 \begin{Verbatim}
   ****  Please enter the path where the RegCM binaries will be stored: 
   [ /home/regcm/RegCM4.1/Bin ]
 \end{Verbatim}
-If You are the only one using the model on the machine, You may safely
+If you are the only one using the model on the machine, you may safely
 accept the default choice pressing enter.
 \item NetCDF installation path. The script tries to detect the NetCDF
 installation automatically using the \verb=nc-config= program, searching
@@ -121,27 +130,27 @@ If successfull, the message
 \begin{Verbatim}
 NetCDF library found...
 \end{Verbatim}
-should appear. Otherwise You will be prompted the following question:
+should appear. Otherwise you will be prompted the following question:
 \begin{Verbatim}
    Unable to find a working NetCDF. Please input a valid path...
    For NetCDF library =
 \end{Verbatim}
-The answer should be the directory where on Your system the file
+The answer should be the directory where on your system the file
 \verb=libnetcdf.a= is stored. Next the file will ask:
 \begin{Verbatim}
    For NetCDF include files =
 \end{Verbatim}
-The answer should be the directory where on Your system the file
+The answer should be the directory where on your system the file
 \verb=netcdf.mod= is stored.
 \item OPTIONAL - If version 4 of NetCDF library is detected, but the
 script is unable to use the \verb=nc-config= program, and autodetection
-using standard paths or the HDF5 environment variable fails, You may be
+using standard paths or the HDF5 environment variable fails, you may be
 prompted also for location of HDF5 library
 \begin{Verbatim}
    Unable to find a working HDF5. Please input a valid path...
    For HDF5 library =
 \end{Verbatim}
-The answer should be the directory where on Your system the file
+The answer should be the directory where on your system the file
 \verb=libhdf5.a= is stored.
 \item OPTIONAL - If version 4 of NetCDF library is detected, the script
 will ask if to enable NetCDF file compression filter.
@@ -151,13 +160,14 @@ will ask if to enable NetCDF file compression filter.
   zlib =
 \end{Verbatim}
 As the compression causes a run time penalty, it is not enabled by
-default. If You are concerned by disk space, this option may help
+default. If you are concerned by disk space, this option may help
 significantly reduce storage usage by model output, expecially if
 chemistry option is enabled. To enable it enter \verb=1=, otherwise
 just accept default option pressing enter.
 \end{enumerate}
 
 \subsection{Model configuration}
+\label{modconf}
 
 The configure script goes to second phase.
 
@@ -186,14 +196,16 @@ turned on.
         mpi =
 \end{Verbatim}
 The model is coded to use an MPI2 library to run in parallel mode using
-multiple cores/processors or run on a cluster. To enable this option You
-will need to have installed on Your system this library. Note that even
+multiple cores/processors or run on a cluster. To enable this option you
+will need to have installed on your system this library. Note that even
 if built using MPI, the model can be still executed in serial mode using
 at run time just one processor. The penalty time in this case is less than
 $1\%$ of the run time of a serial built executable. The RegCM team
 strongly suggest to build MPI enabled model, as the serial option will be
 dropped in future releases. To enable serial build, enter \verb=0=, otherwise
-accept the default choice pressing enter.
+accept the default choice pressing enter. \footnote{The serial version of the
+model is deprecated, and support for this non MPI version will be dropped in
+future model releases.}
 \item BAND option
 \begin{Verbatim}
   ****  Do you want to run the tropical band version, BAND - 1 or not - 0?
@@ -204,8 +216,10 @@ This option build a special version of the model capable of running an
 experiment with a spatial domain configured as a full circular equatorial
 band around earth. This is documented in the \cite{refman_11}.
 The default is to not enable this feature, i.e. to run the model on a limited
-area not going round the whole earth. If You are planning to run such a
+area not going round the whole earth. If you are planning to run such a
 simulation, enter \verb=1=, otherwise accept the default choice pressing enter.
+For the scope of the tutorial test run in chapter \ref{tutorial}, use the
+default option.
 \item CLM option
 \begin{Verbatim}
   ****  Do you want to enable CLM  - 1 or not - 0? 
@@ -214,15 +228,17 @@ simulation, enter \verb=1=, otherwise accept the default choice pressing enter.
 \end{Verbatim}
 This option switch off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
-is to use the RegCM BATS Land Model. If You are planning to run a simulation
+is to use the RegCM BATS Land Model. If you are planning to run a simulation
 using CLM, enter \verb=1=, otherwise accept the default choice pressing enter.
-\footnote{The CLM option needs the GNU patch program to be compiled.}
+\footnote{The CLM option needs the GNU patch program to be installed.}
+For the scope of the tutorial test run in chapter \ref{tutorial}, use the
+default option.
 \end{enumerate}
 
 \subsection{Choice of Fortran compiler}
 
 The \verb=configure= script now prompts the user for selecting a fortran
-compiler. Depending on Your OS/compiler combination, select one in the list
+compiler. Depending on your OS/compiler combination, select one in the list
 of supported, or ask for a generic configuration.
 
 \begin{Verbatim}
@@ -241,19 +257,19 @@ of supported, or ask for a generic configuration.
         compiler =
 \end{Verbatim}
 
-If Your OS/compiler is not listed, enter \verb=8= for a generic system.
+If your OS/compiler is not listed, enter \verb=8= for a generic system.
 You are required afterwards to edit the \verb=Makefile.inc= file in the
-\verb=$REGCM_ROOT= directory to configure You build.
+\verb=$REGCM_ROOT= directory to configure you build.
 Otherwise, select one in the list. The \verb=configure= script should now
 create a \verb=Makefile.inc= file inside \verb=$REGCM_ROOT= to be used
 to compile the RegCM model. You may now want to doublecheck result editing
-the \verb=Makefile.inc= file, or accept what we have arranged for You.
+the \verb=Makefile.inc= file, or accept what we have arranged for you.
 
 \section{Build the model executables}
 
-Now that everithing is hopefully configured, You may use the \verb=make=
+Now that everithing is hopefully configured, you may use the \verb=make=
 program to build executables.
-You have multiple target for the build, but at this stage You may want to
+You have multiple target for the build, but at this stage you may want to
 
 \begin{Verbatim}
 $> make all
@@ -272,7 +288,7 @@ This target will builds all model parts. Other allowed targets are:
 
 The compilation is started in the whole model tree (PreProc, Main and PostProc).
 Lot of messages will appear on screen, and if everithing goes fine at the end
-You will see this message:
+you will see this message:
 
 \begin{Verbatim}
 ##############################################################

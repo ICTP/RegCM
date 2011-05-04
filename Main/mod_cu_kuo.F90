@@ -256,14 +256,15 @@
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dto2
+                rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt*d_half
 !x              if (ttconv*2. > 0.01) write(18,1234) i,j,k,ttconv*2.
 !1234           format(1x,'cupara, i=',i4,' j=',i4,' k=',i4,'
 !               qteva=',e12.4)
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 aten%qv(i,k,j) = eddyf
-                rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dto2
+                rswat(i,k,j) = rswat(i,k,j) + &
+                               c301*qwght(k)*sca*dt*d_half
               end do
 !
 !             find cloud fractional cover and liquid water content
@@ -279,11 +280,13 @@
               end if
 !.....the     unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtmin*60000.0D0*regrav
-              sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
-!             instantaneous precipitation rate for use in bats (mm/s)
-              aprdiv = dble(nbatst)
-              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
-              pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+              if ( prainx > dlowval ) then
+                sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
+!               instantaneous precipitation rate for use in bats (mm/s)
+                aprdiv = dble(nbatst)
+                if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+                pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+              end if
 !
 !chem2
               if ( ichem == 1 ) then
@@ -342,7 +345,7 @@
 !
       end subroutine cupara
 !
-      subroutine htdiff(dto2,dxsq,akht1)
+      subroutine htdiff(dxsq,akht1)
 
 #ifdef MPP1
 #ifndef IBM
@@ -353,8 +356,8 @@
 #endif
       implicit none
 !
-      real(8) :: akht1 , dto2 , dxsq
-      intent (in) akht1 , dto2 , dxsq
+      real(8) :: akht1 , dxsq
+      intent (in) akht1 , dxsq
 !
       integer :: i , im1 , ip1 , j , jm1 , jp1 , k
 #ifdef MPP1
@@ -397,7 +400,7 @@
             im1 = max0(i-1,2)
             ip1 = min0(i+1,iym2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
-                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+                          & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j) &
                           & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
@@ -424,7 +427,7 @@
             im1 = max0(i-1,2)
             ip1 = min0(i+1,iym2)
             rsheat(i,k,j) = rsheat(i,k,j)                               &
-                          & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)      &
+                          & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j) &
                           & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
@@ -464,7 +467,7 @@
             im1 = max0(i-1,2)
             ip1 = min0(i+1,iym2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
-                         & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+                         & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j)  &
                          & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do
@@ -491,7 +494,7 @@
             im1 = max0(i-1,2)
             ip1 = min0(i+1,iym2)
             rswat(i,k,j) = rswat(i,k,j)                                 &
-                         & + akht1*dto2/dxsq*(wr(im1,j)+wr(ip1,j)       &
+                         & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j)  &
                          & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
           end do
         end do

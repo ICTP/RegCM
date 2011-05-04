@@ -24,10 +24,8 @@ module mod_date
   use m_die
 
   integer , private , dimension(12) :: mlen
-  integer , private , dimension(12) :: mmid
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
-  data mmid /16, 14, 16, 15, 16, 15, 16, 16, 15, 16, 15, 16/
 
   contains
 
@@ -44,7 +42,7 @@ module mod_date
     logical :: lleap
     integer , intent(in) :: iyear
     if ( mod(iyear,400) == 0 .or.                                   &
-        ( mod(iyear,4) == 0 .and. mod(iyear,100).ne.0 ) ) then
+        ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
       lleap = .true.
     else
       lleap = .false.
@@ -332,12 +330,12 @@ module mod_date
   function lfhomonth(idate)
     implicit none
     logical :: lfhomonth
-    real(sp) :: rmomonth
+    real(dp) :: rmomonth
     integer , intent(in) :: idate
     integer :: iy , im , id , ih
     call split_idate(idate, iy, im, id, ih)
-    rmomonth = real(mdays(iy, im)) / 2.0
-    lfhomonth = (id < rmomonth)
+    rmomonth = dble(mdays(iy, im)) * 0.5D0
+    lfhomonth = (dble(id) < rmomonth)
   end function lfhomonth
 
   function idayofweek(idate)
@@ -350,7 +348,7 @@ module mod_date
     real(dp) :: jd
     call split_idate(idate, iy, im, id, ih)
     jd = julianday(iy, im, id)
-    idayofweek = int(mod(jd+1.5D+00, 7.0D+00))+1
+    idayofweek = idint(dmod(jd+1.5D+00, 7.0D+00))+1
   end function idayofweek
 
   function lsame_week(idate1, idate2)
@@ -460,14 +458,14 @@ module mod_date
 
   function imonmiddle(idate)
     implicit none
-    integer imonmiddle
+    integer :: imonmiddle
     integer , intent(in) :: idate
-    real(sp) :: rmom
+    real(dp) :: rmom
     integer :: iy , im , id , ih , imom
     call split_idate(idate, iy, im, id, ih)
-    rmom = real(mdays(iy, im))/2.0
-    imom = int(rmom)
-    ih = int((rmom-real(imom))*24.0)
+    rmom = dble(mdays(iy, im)) * 0.5D0
+    imom = idint(rmom)
+    ih = idint((rmom-dble(imom))*24.0D0)
     imonmiddle = mkidate(iy, im, imom, ih)
   end function imonmiddle
 
@@ -526,7 +524,7 @@ module mod_date
 
     if (csave == cunit) then
       timeval2idate = iref
-      call addhours(timeval2idate,nint(xval))
+      call addhours(timeval2idate,idnint(xval))
     else
       if (len_trim(cunit) < 35) then
         timeval2idate = 0
@@ -536,7 +534,7 @@ module mod_date
         timeval2idate = mkidate(year,month,day,hour)
         iref = timeval2idate
         csave = cunit
-        call addhours(timeval2idate,nint(xval))
+        call addhours(timeval2idate,idnint(xval))
       end if
     end if
   end function timeval2idate
@@ -555,7 +553,7 @@ module mod_date
 
     if (csave == cunit) then
       timeval2idate_noleap = iref
-      call addhours_noleap(timeval2idate_noleap,nint(xval))
+      call addhours_noleap(timeval2idate_noleap,idnint(xval))
     else
       if (len_trim(cunit) < 35) then
         timeval2idate_noleap = 0
@@ -565,7 +563,7 @@ module mod_date
         timeval2idate_noleap = mkidate(year,month,day,hour)
         iref = timeval2idate_noleap
         csave = cunit
-        call addhours_noleap(timeval2idate_noleap,nint(xval))
+        call addhours_noleap(timeval2idate_noleap,idnint(xval))
       end if
     end if
   end function timeval2idate_noleap

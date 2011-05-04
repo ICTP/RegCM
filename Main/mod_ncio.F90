@@ -61,7 +61,8 @@
         integer , dimension(7) :: icbc_ivar
         logical :: lso4p
         real(8) :: rpt, tpd, cfd
-        real(8) :: xns2r
+        real(8) :: xns2d
+        real(4) :: xns2r
 
         ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
         ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv
@@ -189,7 +190,7 @@
             case(4)
              write (cdum,'(a)') 'Emanuel (1991)'
             case(5)
-             write (cdum,'(a)') 'Tiedtke (1986)'
+              write (cdum,'(a)') 'Tiedtke (1986)'
             case(98)
              write (cdum,'(a)') &
                'Grell over ocean, Emanuel (1991) over land'
@@ -399,6 +400,9 @@
           icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'// &
               &      'YYYYMMDDHH.nc'
 
+          xns2r = 1.0/real(nnsg)
+          xns2d = 1.0D0/dble(nnsg)
+
           if (lband) then
             o_is = 2
             o_ie = iy-1
@@ -430,7 +434,6 @@
             o_nz = kz
             lwrap = .false.
           end if
-          xns2r = 1.0D0/dble(nnsg)
           allocate(hsigma(o_nz))
           allocate(ioxlat(o_nj,o_ni))
           allocate(ioxlon(o_nj,o_ni))
@@ -2457,7 +2460,7 @@
               dumio(:,:,1) = dumio(:,:,1) + &
                             real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
             end do
-            dumio(:,:,1) = dumio(:,:,1) / real(nnsg)
+            dumio(:,:,1) = dumio(:,:,1)*xns2r
             istart(3) = isrfrec
             istart(2) = 1
             istart(1) = 1
@@ -2566,7 +2569,6 @@
             end if
             ivar = ivar + 1
           end do
-
           if ( debug_level > 2 ) then
             istatus = nf90_sync(ncsub)
             call check_ok('Error sync at '//ctime, 'SUB FILE ERROR')
@@ -2901,7 +2903,7 @@
           call check_ok('Error writing '//atm_names(9)//' at '//ctime, &
                         'ATM FILE ERROR')
           dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), &
-                                       dim=1)*xns2r))
+                                       dim=1)*xns2d))
           istatus = nf90_put_var(ncatm, iatmvar(10), & 
                      dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//atm_names(10)//' at '//ctime, &
@@ -3182,24 +3184,21 @@
 
           ! Add lake model output
           dumio(:,:,1) =  &
-               real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))/ &
-               dble(nnsg))
+             real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))*xns2d)
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
                         ' at '//ctime, 'LAK FILE ERROR')
           ivar = ivar + 1
           dumio(:,:,1) =  &
-               real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))/ &
-               dble(nnsg))
+             real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))*xns2d)
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
                         ' at '//ctime, 'LAK FILE ERROR')
           ivar = ivar + 1
           dumio(:,:,1) =  &
-               real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))/ &
-               dble(nnsg))
+             real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))*xns2d)
           istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                    dumio(:,:,1), istart(1:3), icount(1:3))
           call check_ok('Error writing '//lak_names(ivar)// &
@@ -3215,8 +3214,7 @@
             icount(2) = o_ni
             icount(1) = o_nj
             dumio(:,:,1) =  &
-               real(transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))/ &
-               dble(nnsg))
+              real(transpose(sum(tlake(n,:,o_is:o_ie,o_js:o_je),1))*xns2d)
             where (iolnds == 14)
               dumio(:,:,1) = dumio(:,:,1) + real(tzero)
             end where

@@ -173,7 +173,6 @@ module mod_sst_ccsm
   integer :: it , icode , i , j
   integer :: latid , lonid , timid
   integer :: latlen , lonlen , timlen
-  logical :: there
   integer :: istatus
 
   data varname/'time','SST'/
@@ -181,10 +180,6 @@ module mod_sst_ccsm
   call zeit_ci('read_ccsm')
 
   if (idate == idate0) then
-     inquire(file=pathaddname, exist=there)
-     if ( .not. there) then
-       call die('ccsm_sst',trim(pathaddname)//' is not available',1)
-     endif
      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
      if ( istatus /= nf90_noerr ) then
        call die('ccsm_sst','Error opening '//trim(pathaddname),1, &

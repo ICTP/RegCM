@@ -54,7 +54,6 @@ program clm2rcm
   integer , dimension(3) :: iadim
   character(64) , dimension(nfld) :: lnam
   character(64) :: cdum
-  logical :: there
   character(64) , dimension(nfld) :: units
   real(sp) , dimension(3) :: varmax , varmin
   real(dp) :: xhr
@@ -320,11 +319,6 @@ program clm2rcm
 !       **   Some files have more than one required variable. 
 !       Therefore, **   the output file should only be opened once.
     inpfile = trim(inpglob)//infil(ifld)
-    inquire (file=inpfile,exist=there)
-    if ( .not.there ) then
-      call die('clm2rcm','CLM Input file does not exist: '// &
-                trim(inpfile),1)
-    end if
     if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.   &
          ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.   &
          ifld==icol .or. ifld==ioro .or. ifld==iiso .or.   &

@@ -48,7 +48,7 @@
       real(8) , allocatable , dimension(:,:) :: alphak , betak , chix , &
                                coef1 , coef2 , coef3 , coefe , coeff1 , &
                                coeff2 , tpred1 , tpred2
-      real(8) , allocatable , dimension(:,:) :: kzm , ttnp
+      real(8) , allocatable , dimension(:,:) :: kzm , rc , ttnp
       real(8) , allocatable , dimension(:,:) :: vdep
       real(8) , allocatable , dimension(:) :: govrth
 !
@@ -95,6 +95,7 @@
       allocate(tpred1(iy,kz))
       allocate(tpred2(iy,kz))
       allocate(kzm(iym1,kz))
+      allocate(rc(iym1,kz))
       allocate(ttnp(iym1,kz))
       allocate(govrth(iym1))
       allocate(ri(iy,kz))
@@ -197,7 +198,7 @@
 !
       real(8) :: drgdot , dumr , kzmax , oblen , xps , ps2 , ri , &
                  sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
-                 vflxsfx , rcik
+                 vflxsfx
       integer :: jdx , jm1
 #ifndef BAND
       integer :: jdxm1
@@ -274,7 +275,7 @@
         do k = 1 , kz
           do i = 2 , iym1
             thvx(i,k,j) = thx3d(i,k,j)*(d_one+ep1*qvb3d(i,k,j))
-            qcx(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
+            qcx(i,k,j)  = atm2%qc(i,k,j)/sps2%ps(i,j)
           end do
         end do
 !
@@ -296,25 +297,31 @@
 !
 ! *********************************************************************
 !
+!     compute the vertical diffusion term:
+!
+        do k = 2 , kz
+          do i = 2 , iym1
+            rc(i,k) = 0.257D0*dzq(i,k,j)**0.175D0
+          end do
+        end do
+!
 !-----compute the diffusion coefficient:
 !
 !       blackadar scheme above boundary layer top
 !
         do k = 2 , kz
           do i = 2 , iym1
-!           compute the vertical diffusion term:
-            rcik = 0.257D0*dzq(i,k,j)**0.175D0
             kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)/dt
-            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*                        &
-                  (ubx3d(i,k-1,j)-ubx3d(i,k,j))+                        &
-                  (vbx3d(i,k-1,j)-vbx3d(i,k,j))*                        &
-                  (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/                       &
+            ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*   &
+                  (ubx3d(i,k-1,j)-ubx3d(i,k,j))+   &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j))*   &
+                  (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/  &
                   (dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
             ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
-            if ( (ri-rcik) >= d_zero ) then
+            if ( (ri-rc(i,k)) >= d_zero ) then
               kzm(i,k) = kzo
             else
-              kzm(i,k) = kzo + dsqrt(ss)*(rcik-ri)*szkm/rcik
+              kzm(i,k) = kzo + dsqrt(ss)*(rc(i,k)-ri)*szkm/rc(i,k)
             end if
             kzm(i,k) = dmin1(kzm(i,k),kzmax)
           end do
@@ -392,16 +399,16 @@
 !           th10(i,j) =
 !----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+mult*sh10) first
 !           approximation for obhukov length
-            oblen = -(thx3d(i,kz,j)+sts2%tg(i,j))*d_half *   &
+            oblen = -d_half*(thx3d(i,kz,j)+sts2%tg(i,j)) *  &
                     (d_one+mult*sh10)*ustr(i,j)**d_three /  &
                     (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
             if ( oblen >= za(i,kz,j) ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
-                  (dlog(za(i,kz,j)*d_r10)+d_five/oblen*(za(i,kz,j)-d_10))
+                 (dlog(za(i,kz,j)*d_r10)+d_five/oblen*(za(i,kz,j)-d_10))
             else if ( oblen < za(i,kz,j) .and. oblen > d_10 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))*  &
                   (dlog(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                           6.0D0*dlog(za(i,kz,j)/oblen))
+                  6.0D0*dlog(za(i,kz,j)/oblen))
             else if ( oblen <= d_10 ) then
               th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j))   &
                           *6.0D0*dlog(za(i,kz,j)*d_r10)
@@ -451,8 +458,8 @@
           wksend(ii) = akzz2(i,k,jxp)
         end do
       end do
-      call mpi_sendrecv(wksend(1),(iym2)*kz*2,mpi_real8,ieast,1, &
-                        wkrecv(1),(iym2)*kz*2,mpi_real8,iwest,1, &
+      call mpi_sendrecv(wksend,iym2*kz*2,mpi_real8,ieast,1, &
+                        wkrecv,iym2*kz*2,mpi_real8,iwest,1, &
                         mpi_comm_world,mpi_status_ignore,ierr)
       ii = 0
       do k = 1 , kz
@@ -513,9 +520,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = (akzz1(idx,k,j)+akzz1(idxm1,k,j))*d_half
+                betak(i,k) = d_half*(akzz1(idx,k,j)+akzz1(idxm1,k,j))
               end if
-              alphak(i,k) = (akzz2(idx,k,j)+akzz2(idxm1,k,j))*d_half
+              alphak(i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
             end do
           end do
 #ifdef MPP1
@@ -530,9 +537,9 @@
               idxm1 = i - 1
               idxm1 = max0(idxm1,2)
               if ( k > 1 ) then
-                betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))*d_half
+                betak(i,k) = d_half*(akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1))
               end if
-              alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))*d_half
+              alphak(i,k) = d_half*(akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1))
             end do
           end do
         else
@@ -544,12 +551,10 @@
              idxm1 = i - 1
              idxm1 = max0(idxm1,2)
              if ( k > 1 ) then
-               betak(i,k) = (akzz1(idx,k,jm1)+               &
-                             akzz1(idxm1,k,jm1)+             &
+               betak(i,k) = (akzz1(idx,k,jm1)+akzz1(idxm1,k,jm1)+ &
                              akzz1(idx,k,j)+akzz1(idxm1,k,j))*d_rfour
              end if
-             alphak(i,k) = (akzz2(idx,k,jm1)+ &
-                            akzz2(idxm1,k,jm1)+ &
+             alphak(i,k) = (akzz2(idx,k,jm1)+akzz2(idxm1,k,jm1)+ &
                             akzz2(idx,k,j)+akzz2(idxm1,k,j))*d_rfour
            end do
          end do
@@ -1054,7 +1059,7 @@
  
               if ( chtrname(itr) /= 'DUST' ) &
                 remdrd(i,j,itr) = remdrd(i,j,itr) + chix(i,kz)* &
-                    vdep(i,itr)*sps2%ps(i,j)*dto2*rhox2d(i,j)* &
+                    vdep(i,itr)*sps2%ps(i,j)*dt*d_half*rhox2d(i,j)* &
                     egrav/(sps2%ps(i,j)*d_1000*dsigma(kz))
  
             end do

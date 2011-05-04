@@ -146,7 +146,6 @@ module mod_ncep
              k , nhour , nlev , nyear , istatus
   character(21) :: inname
   character(256) :: pathaddname
-  logical :: there
   character(5) , dimension(7) :: varname
   real(dp) :: xadd , xscale
   integer , dimension(10) , save :: icount , istart
@@ -211,10 +210,6 @@ module mod_ncep
       else if ( dattyp == 'NNRP2' ) then
         pathaddname = trim(inpglob)//'/NNRP2/'//inname
       else
-      end if
-      inquire (file=pathaddname,exist=there)
-      if ( .not.there ) then
-        call die ('cdc6hour',trim(pathaddname)//' is not available',1)
       end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
       call check_ok(istatus,'Error opening '//trim(pathaddname))
@@ -366,7 +361,6 @@ module mod_ncep
              month , nday , nhour , nlev , nyear , istatus
   character(24) :: inname
   character(256) :: pathaddname
-  logical :: there
   character(5) , dimension(7) :: varname
   integer :: iii , jjj
   real(dp) :: xadd , xscale
@@ -433,10 +427,6 @@ module mod_ncep
       end if
  
       pathaddname = trim(inpglob)//'/NNRP2/'//inname
-      inquire (file=pathaddname,exist=there)
-      if ( .not.there ) then
-        call die('cdc6hour2',trim(pathaddname)//' is not available',1)
-      end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
       call check_ok(istatus,'Error opening '//trim(pathaddname))
       istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec),ivar7(kkrec))

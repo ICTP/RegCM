@@ -138,12 +138,11 @@
           end do
  
 !         **** Precipitation
-          if ( fppt > d_zero ) then
+          if ( fppt > dlowval ) then
             sfsta%rainc(i,j) = sfsta%rainc(i,j) + fppt*uconv ! mm
             pptc(i,j)        = pptc(i,j) + fppt*aprdiv       ! mm/s
             iconj = iconj + 1
           end if
- 
         end if
  
       end do

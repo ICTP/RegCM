@@ -282,7 +282,7 @@
 #endif
       call addhours(ibcdate,ibdyfrq)
 !
-      call spinit(sigma,kzp1)
+      call spinit
 ! 
       if ( ichem == 1 ) call chsrfem
 !

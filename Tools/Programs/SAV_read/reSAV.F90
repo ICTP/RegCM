@@ -6,7 +6,7 @@ program resav
 !
   integer , parameter :: iutrst = 14
 !
-  character(256) :: namelistfile , prgname
+  character(256) :: namelistfile , prgname , savfile
   integer :: ierr
   real(8) :: xtime
   integer :: mdate0 , ktau , ldatez , lyear , lmonth , lday , &
@@ -19,7 +19,6 @@ program resav
   real(8) , allocatable , dimension(:,:) :: tga , tgb
   real(8) , allocatable , dimension(:,:) :: rainc , rainnc
   real(8) , allocatable , dimension(:,:,:) :: rsheat , rswat , tbase
-  real(8) , allocatable , dimension(:,:,:) :: snowc
   real(8) , allocatable , dimension(:,:) :: cldefi , cbmf2d
   real(8) , allocatable , dimension(:,:) :: hfx , qfx , uvdrag
 #ifndef BAND
@@ -33,24 +32,26 @@ program resav
         solld2d , aldirs2d , aldirl2d , aldifs2d , aldifl2d , satbrt2d
 #endif
   real(8) , allocatable , dimension(:,:) :: sol2d , solvd2d , solvs2d , &
-        sabv2d , veg2d , flw2d , flwd2d , fsw2d , sinc2d , pptc , pptnc , &
+        sabv2d , flw2d , flwd2d , fsw2d , sinc2d , pptc , pptnc , &
         prca2d , prnca2d , ssw2da , sdelqk2d , sdeltk2d , sfracb2d , &
         sfracs2d , sfracv2d , svegfrac2d
   real(8) , allocatable , dimension(:,:,:) :: tlef2d , ssw2d , srw2d , &
         tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , ircp2d , &
-        text2d , col2d , veg2d1 , taf2d , ocld2d
+        col2d , taf2d , emiss2d
+  integer , allocatable , dimension(:,:) :: veg2d
+  integer , allocatable , dimension(:,:,:) :: veg2d1 , ocld2d
   real(8) , allocatable , dimension(:,:,:) :: heatrt , o3prof , swt2d
   real(8) , allocatable , dimension(:,:) :: tgbb , zpbl
   real(8) , allocatable , dimension(:,:,:,:) :: chia , chib
   real(8) , allocatable , dimension(:,:,:,:) :: remlsc , remcvc
   real(8) , allocatable , dimension(:,:,:) :: remdrd
-  real(8) , allocatable , dimension(:) :: tchiad , tchitb
+  real(8) , allocatable , dimension(:) :: tchiad , tchitb , tchie
   real(8) , allocatable , dimension(:,:,:) :: dstor , hstor
   real(8) , allocatable , dimension(:,:) :: uj1 , uj2 , ujlx , ujl
   real(8) , allocatable , dimension(:,:) :: vj1 , vj2 , vjlx , vjl
   real(8) , allocatable , dimension(:,:) :: ui1 , ui2 , uilx , uil
   real(8) , allocatable , dimension(:,:) :: vi1 , vi2 , vilx , vil
-  real(8) :: high_nudge , medium_nudge , low_nudge , cftotmax
+  real(8) :: high_nudge , medium_nudge , low_nudge
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
              idesseas , iconvlwp
@@ -81,10 +82,10 @@ program resav
   medium_nudge = 2.0D0
   low_nudge = 1.0D0
   iconvlwp = 1
-  cftotmax = 0.75D0
 
   call getarg(0, prgname)
   call getarg(1, namelistfile)
+  call getarg(2, savfile)
   call initparam(namelistfile, ierr)
   if ( ierr/=0 ) then
     write ( 6, * ) 'Parameter initialization not completed'
@@ -94,7 +95,8 @@ program resav
     write ( 6, * ) 'Check * argument * and * namelist * syntax'
     stop
   end if
-
+  read (ipunit, physicsparam)
+  close (ipunit)
 !
 ! Allocate space
 !
@@ -140,10 +142,15 @@ program resav
   allocate(uvdrag(iy,jx))
   allocate(tgbb(iy,jx))
   allocate(zpbl(iy,jx))
-  allocate(snowc(nnsg,iy,jx))
+#ifdef BAND
   allocate(absnxt(iym1,kz,4,jx))
   allocate(abstot(iym1,kzp1,kz + 1,jx))
   allocate(emstot(iym1,kzp1,jx))
+#else
+  allocate(absnxt(iym1,kz,4,jxm1))
+  allocate(abstot(iym1,kzp1,kzp1,jxm1))
+  allocate(emstot(iym1,kzp1,jxm1))
+#endif
   if ( ipptls == 1 ) allocate(fcc(iy,kz,jx))
 #ifdef CLM
 #ifdef BAND
@@ -184,7 +191,6 @@ program resav
   allocate(sice2d(nnsg,iym1,jx))
   allocate(dew2d(nnsg,iym1,jx))
   allocate(ircp2d(nnsg,iym1,jx))
-  allocate(text2d(nnsg,iym1,jx))
   allocate(col2d(nnsg,iym1,jx))
   allocate(veg2d(iym1,jx))
   allocate(veg2d1(nnsg,iym1,jx))
@@ -197,6 +203,7 @@ program resav
   allocate(sinc2d(iym1,jx))
   allocate(taf2d(nnsg,iym1,jx))
   allocate(ocld2d(nnsg,iym1,jx))
+  allocate(emiss2d(nnsg,iym1,jx))
   allocate(pptnc(iym1,jx))
   allocate(pptc(iym1,jx))
   allocate(prca2d(iym1,jx))
@@ -226,7 +233,6 @@ program resav
   allocate(sice2d(nnsg,iym1,jxm1))
   allocate(dew2d(nnsg,iym1,jxm1))
   allocate(ircp2d(nnsg,iym1,jxm1))
-  allocate(text2d(nnsg,iym1,jxm1))
   allocate(col2d(nnsg,iym1,jxm1))
   allocate(veg2d(iym1,jxm1))
   allocate(veg2d1(nnsg,iym1,jxm1))
@@ -239,6 +245,7 @@ program resav
   allocate(sinc2d(iym1,jxm1))
   allocate(taf2d(nnsg,iym1,jxm1))
   allocate(ocld2d(nnsg,iym1,jxm1))
+  allocate(emiss2d(nnsg,iym1,jxm1))
   allocate(pptnc(iym1,jxm1))
   allocate(pptc(iym1,jxm1))
   allocate(prca2d(iym1,jxm1))
@@ -264,6 +271,7 @@ program resav
   if ( debug_level > 2 ) then
     allocate(tchiad(ntr))
     allocate(tchitb(ntr))
+    allocate(tchie(ntr))
   end if
 #endif
   allocate(dstor(iy,jx,nsplit))
@@ -287,6 +295,7 @@ program resav
   allocate(vil(kz,jx))
   allocate(vilx(kz,jx))
 !
+  open (iutrst, file=savfile, form='unformatted',status='old')
   read (iutrst) mdate0
   read (iutrst) ktau, xtime, ldatez, lyear, lmonth, lday, &
                 lhour, ntime
@@ -316,7 +325,7 @@ program resav
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     read (iutrst) cbmf2d
   end if
-  read (iutrst) hfx, qfx, snowc, uvdrag
+  read (iutrst) hfx, qfx, uvdrag
 #ifndef BAND
   if (debug_level > 2) then
     read (iutrst) tdini , tdadv , tqini , tqadv , tqeva , tqrai
@@ -350,7 +359,6 @@ program resav
   read (iutrst) sice2d
   read (iutrst) dew2d
   read (iutrst) ircp2d
-  read (iutrst) text2d
   read (iutrst) col2d
   read (iutrst) veg2d
   read (iutrst) veg2d1
@@ -364,6 +372,7 @@ program resav
   read (iutrst) sinc2d
   read (iutrst) taf2d
   read (iutrst) ocld2d
+  read (iutrst) emiss2d
   read (iutrst) pptnc, pptc, prca2d, prnca2d
   if ( iocnflx == 2 ) read (iutrst) zpbl
   if ( ichem == 1 ) then
@@ -385,6 +394,7 @@ program resav
     if (debug_level > 2) then
       read (iutrst) tchiad
       read (iutrst) tchitb
+      read (iutrst) tchie
     end if
   end if
 #endif

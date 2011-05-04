@@ -205,8 +205,6 @@
                         & atm_0,iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
-            rainc_io  = d_zero
-            rainnc_io = d_zero
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -219,11 +217,9 @@
                 end do
               end do
               do i = 1 , iy
-                psa_io(i,j) = atm_0(i,1+kz*6,j)
-                if (atm_0(i,2+kz*6,j) > dlowval) &
-                  rainc_io(i,j) = atm_0(i,2+kz*6,j)
-                if (atm_0(i,3+kz*6,j) > dlowval) &
-                  rainnc_io(i,j) = atm_0(i,3+kz*6,j)
+                psa_io(i,j)    = atm_0(i,1+kz*6,j)
+                rainc_io(i,j)  = atm_0(i,2+kz*6,j)
+                rainnc_io(i,j) = atm_0(i,3+kz*6,j)
               end do
             end do
 #ifdef BAND
@@ -271,7 +267,7 @@
               do n = 1 , nnsg
                 rno2d(n,i,j) = d_zero
               end do
-              sfsta%rainc(i,j) = d_zero
+              sfsta%rainc(i,j)  = d_zero
               sfsta%rainnc(i,j) = d_zero
             end do
           end do
@@ -285,7 +281,7 @@
           if ( lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
            call lakegather
           end if
-          if ( iseaice == 1 ) then
+          if ( iseaice == 1 .or. lakemod == 1 ) then
             do j = 1 , jendx
               do n = 1 , nnsg
                 do i = 1 , iym1
@@ -774,8 +770,6 @@
                         & sav_0,iy*allrec*jxp,mpi_real8,         &
                         & 0,mpi_comm_world,ierr)
           if ( myid == 0 ) then
-            rainc_io  = d_zero
-            rainnc_io = d_zero
             do j = 1 , jx
               do k = 1 , kz
                 do i = 1 , iy
@@ -785,10 +779,8 @@
                 end do
               end do
               do i = 1 , iy
-                if (sav_0(i,kz*4+1,j) > dlowval) &
-                  rainc_io(i,j) = sav_0(i,kz*4+1,j)
-                if (sav_0(i,kz*4+2,j) > dlowval) &
-                  rainnc_io(i,j) = sav_0(i,kz*4+2,j)
+                rainc_io(i,j)  = sav_0(i,kz*4+1,j)
+                rainnc_io(i,j) = sav_0(i,kz*4+2,j)
               end do
             end do
 #ifdef BAND

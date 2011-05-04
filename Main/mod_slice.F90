@@ -149,12 +149,12 @@
           do i = 1 , iym1
             idx = max0(i,2)
             idxp1 = min0(i+1,iym1)
-            ubx3d(i,k,j) = ((atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+  &
-                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))*d_rfour)/ &
-                 sps2%ps(i,j)
-            vbx3d(i,k,j) = ((atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+  &
-                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))*d_rfour)/ &
-                 sps2%ps(i,j)
+            ubx3d(i,k,j) = d_rfour* & 
+                (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
+                 atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
+            vbx3d(i,k,j) = d_rfour* &
+                (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
+                 atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
           end do
         end do
       end do
@@ -208,15 +208,14 @@
           k = kzp1 - kk
           do i = 2 , iym1
             cell = r8pt/sps2%ps(i,j)
-            zq(i,k) = rovg*tb3d(i,k,j)                                  &
-                    & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))          &
-                    & + zq(i,k+1)
+            zq(i,k) = zq(i,k+1) + rovg*tb3d(i,k,j) *  &
+                      dlog((sigma(k+1)+cell)/(sigma(k)+cell))
           end do
         end do
 !
         do k = 1 , kz
           do i = 2 , iym1
-            za(i,k,j) = (zq(i,k)+zq(i,k+1))*d_half
+            za(i,k,j) = d_half*(zq(i,k)+zq(i,k+1))
             dzq(i,k,j) = zq(i,k) - zq(i,k+1)
           end do
         end do

@@ -64,11 +64,11 @@
 !
       contains
 !
-      subroutine zengocndrv(j , ng , istart , iend , k)
+      subroutine zengocndrv(j,istart,iend)
 !
       implicit none
 !
-      integer , intent (in) :: j , ng , istart , iend , k
+      integer , intent (in) :: j , istart , iend
 !
       real(8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                & t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
@@ -92,17 +92,17 @@
       jj = (jxp*myid) + j
 #endif
       do i = istart , iend
-        do n = 1 , ng
+        do n = 1 , nnsg
 #ifdef CLM
           if ( ocld2d(n,i,j) == 0 .or. landmask(jj,i) == 3 ) then
 #else
           if ( ocld2d(n,i,j) == 0 ) then
 #endif
-            uv995 = dsqrt(ubx3d(i,k,j)**d_two+vbx3d(i,k,j)**d_two)
+            uv995 = dsqrt(ubx3d(i,kz,j)**d_two+vbx3d(i,kz,j)**d_two)
             tsurf = sts2%tg(i,j) - tzero
-            t995 = tb3d(i,k,j) - tzero
-            q995 = qvb3d(i,k,j)/(d_one+qvb3d(i,k,j))
-            z995 = za(i,k,j)
+            t995 = tb3d(i,kz,j) - tzero
+            q995 = qvb3d(i,kz,j)/(d_one+qvb3d(i,kz,j))
+            z995 = za(i,kz,j)
             zi = sfsta%zpbl(i,j)
             psurf = (sps2%ps(i,j)+r8pt)*d_10
             call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs,        &
@@ -203,15 +203,15 @@
 !           Back out Drag Coefficient
             drag1d(n,i) = ustar**d_two*rhox2d(i,j)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            u10m1d(n,i) = ubx3d(i,k,j)*uv10/uv995
-            v10m1d(n,i) = vbx3d(i,k,j)*uv10/uv995
-            t2m_1d(n,i) = t995 + tzero - dth*facttq
+            u10m1d(n,i) = ubx3d(i,kz,j)*uv10/uv995
+            v10m1d(n,i) = vbx3d(i,kz,j)*uv10/uv995
+            t2m1d(n,i) = t995 + tzero - dth*facttq
 !
             if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or. &
                 ( jyear == jyear0 .and. ktau == 0 ) .or. &
                 ( ifrest .and. .not. done_restart ) ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)
-              q2m_1d(n,i) = q995 - dqh*facttq
+              q2m1d(n,i) = q995 - dqh*facttq
               tgb2d(n,i,j) = sts2%tg(i,j)
             end if
           end if
@@ -345,7 +345,7 @@
         if ( zeta < -zetam ) then
                                  ! zeta < -1
           ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+ &
-               & psi(1,zo/obu)+1.14D0*((-zeta)**(onet)-(zetam)**(onet)))
+               & psi(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
         else if ( zeta < d_zero ) then
                                   ! -1 <= zeta < 0
           ustar = vonkar*um/(dlog(hu/zo)-psi(1,zeta)+psi(1,zo/obu))
@@ -401,7 +401,7 @@
           um = dmax1(u,0.1D0)
           zeta = dmin1(d_two,dmax1(zeta,r1e6))
         else                   !unstable
-          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**(onet)
+          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
           um = dsqrt(u*u+wc*wc)
           zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
         end if

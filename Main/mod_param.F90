@@ -92,6 +92,7 @@ module mod_param
            & edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
   real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
              edtmino , edtmaxx , edtminx
+  real(8) :: high_nudge , medium_nudge , low_nudge
   real(8) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns
   character(5) , dimension(maxntr) :: inpchtrname
@@ -311,7 +312,6 @@ module mod_param
   medium_nudge = 2.0D0
   low_nudge = 1.0D0   
   iconvlwp = 1
-  cftotmax = 0.75D0
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -333,6 +333,7 @@ module mod_param
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
   cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
   clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
+  cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
  
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
@@ -360,20 +361,20 @@ module mod_param
 ! 
 !------namelist emanparam:
   minsig = 0.95D0   ! Lowest sigma level from which convection can originate
-  elcrit = 0.0011D0 ! AUTOCONVERSION THRESHOLD WATER CONTENT (gm/gm)
-  tlcrit = -55.0D0  ! BELOW TLCRIT AUTO-CONVERSION THRESHOLD IS ZERO
-  entp = 1.5D0      ! COEFFICIENT OF MIXING IN THE ENTRAINMENT FORMULATION
-  sigd = 0.05D0     ! FRACTIONAL AREA COVERED BY UNSATURATED DNDRAFT
-  sigs = 0.12D0     ! FRACTION OF PRECIPITATION FALLING OUTSIDE OF CLOUD
-  omtrain = 50.0D0  ! FALL SPEED OF RAIN (P/s)
-  omtsnow = 5.5D0   ! FALL SPEED OF SNOW (P/s)
-  coeffr = 1.0D0    ! COEFFICIENT GOVERNING THE RATE OF RAIN EVAPORATION
-  coeffs = 0.8D0    ! COEFFICIENT GOVERNING THE RATE OF SNOW EVAPORATION
-  cu = 0.7D0        ! COEFFICIENT GOVERNING CONVECTIVE MOMENTUM TRANSPORT
-  betae = 10.0D0    ! CONTROLS DOWNDRAFT VELOCITY SCALE
-  dtmax = 0.9D0     ! MAX NEGATIVE PARCEL TEMPERATURE PERTURBATION BELOW LFC
-  alphae = 0.2D0    ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
-  damp = 0.1D0      ! CONTROLS THE APPROACH RATE TO QUASI-EQUILIBRIUM
+  elcrit = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
+  tlcrit = -55.0D0  ! Below tlcrit auto-conversion threshold is zero
+  entp = 1.5D0      ! Coefficient of mixing in the entrainment formulation
+  sigd = 0.05D0     ! Fractional area covered by unsaturated dndraft
+  sigs = 0.12D0     ! Fraction of precipitation falling outside of cloud
+  omtrain = 50.0D0  ! Fall speed of rain (P/s)
+  omtsnow = 5.5D0   ! Fall speed of snow (P/s)
+  coeffr = 1.0D0    ! Coefficient governing the rate of rain evaporation
+  coeffs = 0.8D0    ! Coefficient governing the rate of snow evaporation
+  cu = 0.7D0        ! Coefficient governing convective momentum transport
+  betae = 10.0D0    ! Controls downdraft velocity scale
+  dtmax = 0.9D0     ! Max negative parcel temperature perturbation below LFC
+  alphae = 0.2D0    ! Controls the approach rate to quasi-equilibrium
+  damp = 0.1D0      ! Controls the approach rate to quasi-equilibrium
 !
 !------namelist tiedtkeparam:
   iconv    = 1  ! Selects the actual scheme
@@ -429,6 +430,16 @@ module mod_param
               &'BAND Compile / i_band namelist mismatch')
   end if
 !
+#ifdef CLM
+  if ( myid == 0 ) then
+    if (nsg /= 1 ) then
+      write (6,*) 'Running SUBGRID with CLM: not implemented'
+      write (6,*) 'Please set nsg to 1 in regcm.in'
+      call fatal(__FILE__,__LINE__,'CLM & SUBGRID TOGETHER')
+    end if
+  end if
+#endif
+
 #ifdef MPP1
   if ( myid == 0 ) then
 #endif 
@@ -473,7 +484,10 @@ module mod_param
               &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
     end if
   else
+    ichem = 0
     ntr = 0
+    nbin = 0
+    ifchem = .false.
   end if
 #ifdef CLM
   read (ipunit , clmparam)
@@ -742,10 +756,8 @@ module mod_param
   ktau = 0
   xtime = d_zero
   ntime = 0
-  dto2 = dt*d_half
-  dtsplit(2) = dto2
-  dtsplit(1) = dt*d_rfour
   do ns = 1 , nsplit
+    dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
     dtau(ns) = dtsplit(ns)
   end do
   write (aline, *) 'param: dtau = ' , dtau
@@ -788,6 +800,7 @@ module mod_param
   end if
 #endif
   nnnend = idatediff(idate2,idate0)/ibdyfrq
+  xdfbdy = dble(ibdyfrq)/houpd
 ! 
   write (aline,*) 'param: initial date of this '// &
                   'simulation: IDATE1',idate1

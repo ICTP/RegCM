@@ -56,45 +56,12 @@ module mod_sst_ersst
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   integer :: idate , ierastart , ierrec , nsteps
-  logical :: there
   real(sp) , dimension(ilon,jlat) :: sst
   character(256) :: inpfile
 !
   call zeit_ci('sst_ersst')
 !
-  if ( ssttyp == 'ERSST' ) then
-    there = .false.
-    if ( (globidate1 >= 1989010100 .and. globidate1 <= 2009053118) .or. &
-         (globidate2 >= 1989010100 .and. globidate2 <= 2009053118) ) then
-      inquire (file=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc',exist=there)
-      if ( .not.there ) then
-        write(stderr,*) 'sstERAIN.1989-2009.nc is not available' ,  &
-              ' under ',trim(inpglob),'/SST/'
-        call die('sst_ersst')
-      end if
-    end if
-    if ( .not.there ) then
-      write(stderr,*) 'ERSST Sea Surface Temp is just available' , &
-            ' from 1989010100 to 2009053118'
-      call die('sst_ersst')
-    end if
-  else if ( ssttyp == 'ERSKT' ) then
-    there = .false.
-    if ( (globidate1 >= 1989010100 .and. globidate1 <= 2009053118) .or. &
-         (globidate2 >= 1989010100 .and. globidate2 <= 2009053118) ) then
-      inquire (file=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc',exist=there)
-      if ( .not.there ) then
-        write(stderr,*) 'tskinERAIN.1989-2009.nc is not available' ,&
-              ' under ',trim(inpglob),'/SST/'
-        call die('sst_ersst')
-      end if
-    end if
-    if ( .not.there ) then
-      write(stderr,*) 'ERSKT Skin Temperature is just available' ,  &
-            ' from 1989010100 to 2009053118'
-      call die('sst_ersst')
-    end if
-  else
+  if ( ssttyp /= 'ERSST' .and. ssttyp /= 'ERSKT' ) then
     write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
     write (stderr,*) 'Supported types are ERSST ERSKT'
     call die('sst_ersst')
@@ -160,7 +127,6 @@ module mod_sst_ersst
   intent (out) :: sst
 !
   integer :: i , j , n
-  logical :: there
   character(4) , dimension(2) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
@@ -183,10 +149,6 @@ module mod_sst_ersst
 !
   call zeit_ci('read_sst_era')
   if ( it == 1 ) then
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      call die('sst_erain',trim(pathaddname)//' is not available',1)
-    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then
       call die('sst_erain','Cannot open input file '// &

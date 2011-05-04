@@ -344,7 +344,7 @@
                   else
                     xm = d_zero
                   end if
-                  xn = rhop*(d_two/d_three)*(dp_array(ns)*d_half)
+                  xn = rhop*twot*(dp_array(ns)*d_half)
                   deldp = 0.0460517018598807D0
                   ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)

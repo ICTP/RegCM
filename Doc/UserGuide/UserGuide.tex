@@ -3,9 +3,9 @@
 % Copyright (C) 2011 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
-\documentclass[11pt,twoside,a4paper]{report}
+\documentclass[10pt,twoside,a4paper]{report}
 \usepackage{natbib}
-\usepackage{graphics}
+\usepackage{graphicx}
 \usepackage{fancyvrb}
 \usepackage{wrapfig}
 
@@ -53,27 +53,33 @@
 \input{ObtainCode}
 
 \chapter{Installing procedure}
+\label{install}
 \input{Install}
 \newpage
 
 \chapter{Access global datasets}
+\label{obdata}
 \input{ObtainData}
 \newpage
 
 \chapter{Run a test simulation using the model}
+\label{tutorial}
 \input{TestRun}
 \newpage
 
-\chapter{Localize the model and run Your simulation}
-
+\chapter{Localize the model and run your simulation}
+\label{advanced}
+\input{AdvancedConfig}
 \newpage
 
 \chapter{Postprocessing tools}
-
+\label{postproc}
+\input{PostProcess}
 \newpage
 
 \chapter{Getting help and reporting bugs}
-
+\label{tracker}
+\input{ReportProblem}
 \newpage
 
 \cleardoublepage

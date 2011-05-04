@@ -197,13 +197,14 @@
 !     Calculate path lengths for the trace gases
 !-----------------------------------------------------------------------
       do i = 1 , iym1
-        ucfc11(i,1) = 1.8D0*cfc11(i,1)*pnm(i,1)*rga
-        ucfc12(i,1) = 1.8D0*cfc12(i,1)*pnm(i,1)*rga
+        ucfc11(i,1) = 1.8D0*cfc11(i,1)*pnm(i,1)*regravgts
+        ucfc12(i,1) = 1.8D0*cfc12(i,1)*pnm(i,1)*regravgts
         un2o0(i,1) = diff*1.02346D5*n2o(i,1)*pnm(i,1)         &
-                   & *rga/dsqrt(tnm(i,1))
+                   & *regravgts/dsqrt(tnm(i,1))
         un2o1(i,1) = diff*2.01909D0*un2o0(i,1)*dexp(-847.36D0/tnm(i,1))
-        uch4(i,1) = diff*8.60957D4*ch4(i,1)*pnm(i,1)*rga/dsqrt(tnm(i,1))
-        co2fac(i,1) = diff*co2mmr*pnm(i,1)*rga
+        uch4(i,1) = diff*8.60957D4*ch4(i,1)*pnm(i,1)* &
+                    regravgts/dsqrt(tnm(i,1))
+        co2fac(i,1) = diff*co2mmr*pnm(i,1)*regravgts
         alpha1(i) = (d_one-dexp(-1540.0D0/ &
                      tnm(i,1)))**d_three/dsqrt(tnm(i,1))
         alpha2(i) = (d_one-dexp(-1360.0D0/ &
@@ -221,20 +222,20 @@
         uco223(i,1) = 6.50642D3*co2fac(i,1)*alpha2(i)         &
                     & *dexp(-2989.7D0/tnm(i,1))
         bn2o0(i,1) = diff*19.399D0*pnm(i,1)**d_two*n2o(i,1)   &
-                   & *1.02346D5*rga/(sslp*tnm(i,1))
+                   & *1.02346D5*regravgts/(sslp*tnm(i,1))
         bn2o1(i,1) = bn2o0(i,1)*dexp(-847.36D0/tnm(i,1))*2.06646D5
         bch4(i,1) = diff*2.94449D0*ch4(i,1)*pnm(i,1)          &
-                  & **d_two*rga*8.60957D4/(sslp*tnm(i,1))
+                  & **d_two*regravgts*8.60957D4/(sslp*tnm(i,1))
         uptype(i,1) = diff*qnm(i,1)*pnm(i,1)                  &
                       **d_two*dexp(1800.0D0*                  &
-                     (d_one/tnm(i,1)-d_one/296.0D0))*rga/sslp
+                     (d_one/tnm(i,1)-d_one/296.0D0))*regravgts/sslp
       end do
       do k = 1 , kz
         do i = 1 , iym1
           rt(i) = d_one/tnm(i,k)
           rsqrt(i) = dsqrt(rt(i))
           pbar(i) = ((pnm(i,k+1)+pnm(i,k))*d_half)/sslp
-          dpnm(i) = (pnm(i,k+1)-pnm(i,k))*rga
+          dpnm(i) = (pnm(i,k+1)-pnm(i,k))*regravgts
           alpha1(i) = diff*rsqrt(i)* &
                     (d_one-dexp(-1540.0D0/tnm(i,k)))**d_three
           alpha2(i) = diff*rsqrt(i)* &

@@ -600,10 +600,6 @@ module mod_eh5om
     if ( ssttyp == 'EH5RF' ) then
       fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                  yr_rf(nyear-1940)//'.nc'
-      inquire (file=fnso4,exist=there)
-      if ( .not.there ) then
-        call die('geteh5om', fnso4//' is not available',1)
-      end if
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
       if (istatus /= nf90_noerr) then
         call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -704,10 +700,6 @@ module mod_eh5om
         end do
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//  &
                    yr_rf(nyear-1939)//'.nc'
-        inquire (file=fnso4,exist=there)
-        if ( .not.there ) then
-          call die('geteh5om',fnso4//' is not available',1)
-        end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
           call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -809,10 +801,6 @@ module mod_eh5om
         end do
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                    yr_rf(nyear-1941)//'.nc'
-        inquire (file=fnso4,exist=there)
-        if ( .not.there ) then
-          call die('geteh5om',fnso4//' is not available',1)
-        end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
           call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -855,10 +843,6 @@ module mod_eh5om
       else if ( ssttyp == 'EH5B1' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'// &
                    yr_a2(nyear-2000)//'.nc'
-      end if
-      inquire (file=fnso4,exist=there)
-      if ( .not.there ) then
-        call die('geteh5om',fnso4//' is not available',1)
       end if
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
       if (istatus /= nf90_noerr) then
@@ -967,10 +951,6 @@ module mod_eh5om
         else if ( ssttyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
                      yr_a2(nyear-1999)//'.nc'
-        end if
-        inquire (file=fnso4,exist=there)
-        if ( .not.there ) then
-          call die('geteh5om',fnso4//' is not available',1)
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
@@ -1083,10 +1063,6 @@ module mod_eh5om
         else if ( ssttyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
                      yr_a2(nyear-2001)//'.nc'
-        end if
-        inquire (file=fnso4,exist=there)
-        if ( .not.there ) then
-          call die('geteh5om',fnso4//' is not available',1)
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then

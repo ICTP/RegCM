@@ -115,7 +115,7 @@
 !*        water, and root (called by lftemp): watu=upper, watr=root,
  
 !         watt=total
-          if ( ldoc1d(n,i) == 1 ) then
+          if ( ldoc1d(n,i) /= 0 ) then
             watu(n,i) = ssw1d(n,i)/gwmx0(n,i)
             watr(n,i) = rsw1d(n,i)/gwmx1(n,i)
             watt(n,i) = tsw1d(n,i)/gwmx2(n,i)
@@ -370,8 +370,6 @@
 !     hsl = sensible heat through leads
 !     hs  = heat energy balance at surface of ice
 !
-!         sea-ice mask could be reset in here with "imelt" - but not
-!                  done at present
 !=======================================================================
 !
       subroutine tseaice
@@ -396,17 +394,16 @@
           if ( ldoc1d(n,i) == 2 ) then
 ! ******    rhosw = density of snow relative to water
             rhosw3 = rhosw(n,i)**d_three
-            imelt(n,i) = 0
 ! ******    cice = specific heat of sea-ice per unit volume
-            rsd1 = cice*sice1d(n,i)*d_r1000
+            rsd1 = cice*(sice1d(n,i)*d_r1000)
             if ( scv1d(n,i) > d_zero ) then
-              rss = csnw*scv1d(n,i)*d_r1000
+              rss = csnw*(scv1d(n,i)*d_r1000)
               ratsi = scv1d(n,i)/(1.4D0*rhosw3*sice1d(n,i))
               wtt = d_one/(d_one+ratsi)
               wss = (scv1d(n,i)+2.8D0*rhosw3*sice1d(n,i)) / &
                     (scv1d(n,i)+1.4D0*rhosw3*sice1d(n,i))
 ! ******      include snow heat capacity
-              rsd1 = (wss*rss+wtt*rsd1)*d_half
+              rsd1 = d_half*(wss*rss+wtt*rsd1)
             end if
             tgb1d(n,i) = -d_two + tzero
 ! ******    subsurface heat flux through ice
@@ -416,7 +413,9 @@
  
 ! ******    set sea ice parameter for melting and return
             if ( sice1d(n,i) <= d_zero ) then
-              imelt(n,i) = 1
+              sice1d(n,i) = d_zero
+              ldoc1d(n,i) = 0
+              lveg(n,i) = 15
               exit
             end if
 ! ******    assume lead ocean temp is -1.8c
@@ -425,13 +424,13 @@
             qice(n,i) = 3.3D-3 * stdp/p1d(n,i)
 !
 !  determine effective surface fluxes over ice, allowing for leads;
-!  aarea(n,i) is set in subroutine drag.
+!  aarea is set in mod_bats_runparams
 !
             tlef1d(n,i) = ts1d(n,i)
-            qgrnd = ((d_one-aarea(n,i))*cdr(n,i)*qg1d(n,i) + &
-                        aarea(n,i)*clead(n,i)*qice(n,i))/cdrx(n,i)
-            tgrnd = ((d_one-aarea(n,i))*cdr(n,i)*tg1d(n,i) + &
-                        aarea(n,i)*clead(n,i)*(tzero-1.8D0))/cdrx(n,i)
+            qgrnd = ((d_one-aarea)*cdr(n,i)*qg1d(n,i) + &
+                        aarea*clead(n,i)*qice(n,i))/cdrx(n,i)
+            tgrnd = ((d_one-aarea)*cdr(n,i)*tg1d(n,i) + &
+                        aarea*clead(n,i)*(tzero-1.8D0))/cdrx(n,i)
             fact = -rhs1d(n,i)*cdrx(n,i)*vspda(n,i)
             delq1d(n,i) = (qs1d(n,i)-qgrnd)*gwet1d(n,i)
             delt1d(n,i) = ts1d(n,i) - tgrnd
@@ -443,8 +442,8 @@
                   *(tzero-1.8D0-ts1d(n,i))*cpd
 ! ******    get fluxes over ice for sublimation (subrout snow)
 ! ******    and melt (below) calculation
-            fseng(n,i) = (sent1d(n,i)-aarea(n,i)*hsl)/(d_one-aarea(n,i))
-            fevpg(n,i) = (evpr1d(n,i)-aarea(n,i)*hrl)/(d_one-aarea(n,i))
+            fseng(n,i) = (sent1d(n,i)-aarea*hsl)/(d_one-aarea)
+            fevpg(n,i) = (evpr1d(n,i)-aarea*hrl)/(d_one-aarea)
             hs = fsw1d(i) - flw1d(i) - fseng(n,i) - wlhs*fevpg(n,i)
             bb = dtbat*(hs+fss)/rsd1
 ! ******    snow melt
@@ -461,7 +460,9 @@
               tg1d(n,i) = tzero
 ! ******      set sea ice parameter for melting and return
               if ( sice1d(n,i) <= d_zero ) then
-                imelt(n,i) = 1
+                sice1d(n,i) = d_zero
+                ldoc1d(n,i) = 0
+                lveg(n,i) = 15
                 exit
               end if
             else
@@ -602,7 +603,7 @@
 !
 !           2.1  surface runoff
 !
-            wata(n,i) = (watu(n,i)+watr(n,i))*d_half
+            wata(n,i) = d_half*(watu(n,i)+watr(n,i))
 !
 !           2.11 increase surface runoff over frozen ground
 !
@@ -623,9 +624,12 @@
 !
 !           2.13 saturate swamp or rice paddy
 !
-            if ( (lveg(n,i) >= 13) .and. (lveg(n,i) <= 15) ) then
+            if ( lveg(n,i) == 13 ) then
+              ! Graziano. Seems that this runoff is borken at least
+              ! at time step zero. Try to mediate using relfc. Is this
+              ! correct ? Mhhhh....
               rsur(n,i) = rsur(n,i) + dmin1(d_zero,(rsw1d(n,i)- &
-                                            gwmx1(n,i))/dtbat)
+                                    relfc(n,i)*gwmx1(n,i))/dtbat)
             end if
 !
 !           2.2  total runoff
@@ -683,7 +687,7 @@
 !
 !           4.4  check for negative water in top layer
 !
-            if ( ssw1d(n,i) < 1.0D-2 ) ssw1d(n,i) = 1.0D-2
+            if ( ssw1d(n,i) <= 1.0D-2 ) ssw1d(n,i) = 1.0D-2
 !
 !=======================================================================
 !           5.   accumulate leaf interception
@@ -699,6 +703,8 @@
 !*          update total runoff
 !
             rnof(n,i)   = rsur(n,i) + rsubst(n,i)
+            ! Graziano: Do not go to mm*day here and then back
+            !           to mm in vecbats
             rno1d(n,i)  = rnof(n,i)
             rnos1d(n,i) = rsur(n,i)
           else                       ! ocean or sea ice
@@ -763,7 +769,7 @@
       implicit none
 !
       real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels ,&
-                 sge , tage
+                 tage
       integer :: n , i
       real(8) , dimension(nnsg,iym1) :: sold
 !
@@ -809,9 +815,10 @@
             sold(n,i) = scv1d(n,i)
             scv1d(n,i) = scv1d(n,i) + dtbat                             &
                           *(ps(n,i)-evaps(n,i)-sm(n,i)) + sdrop(n,i)
-            scv1d(n,i) = dmax1(scv1d(n,i),d_zero)
-            sag1d(n,i) = dmax1(sag1d(n,i),d_zero)
- 
+            if ( scv1d(n,i) < dlowval ) then
+              scv1d(n,i) = d_zero
+              sag1d(n,i) = d_zero
+            end if
 !           ******           snow cover except for antarctica
 !=======================================================================
 !           3.   increment non-dimensional "age" of snow;
@@ -826,8 +833,8 @@
               dela0 = 1.0D-6*dtbat
               dela = dela0*tage
               dels = d_r10*dmax1(d_zero,scv1d(n,i)-sold(n,i))
-              sge = (sag1d(n,i)+dela)*(d_one-dels)
-              sag1d(n,i) = dmax1(d_zero,sge)
+              sag1d(n,i) = (sag1d(n,i)+dela)*(d_one-dels)
+              if ( sag1d(n,i) < dlowval ) sag1d(n,i) = d_zero
             end if
  
 !           ******           antarctica
@@ -883,12 +890,15 @@
              sks , swtrta , swtrtd
       real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
                depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,&
-               t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds ,       &
-               xkperi , xnu , xnua
-      real(8) :: dtbat2 , rdtbat2
+               t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds
+      real(8) :: dtbat2 , rdtbat2 , xlexp
       integer :: n , i
       character (len=50) :: subroutine_name='tgrund'
       integer :: idindx = 0
+!
+      real(8) , parameter :: xnu = twopi/secpd
+      real(8) , parameter :: xnua = xnu/365.0D0
+      real(8) , parameter :: xkperi = 1.4D-6
 !
       call time_begin(subroutine_name,idindx)
 ! 
@@ -899,12 +909,9 @@
 !l    1.   define thermal conductivity, heat capacity,
 !l    and other force restore parameters
 !=======================================================================
-      xnu = twopi/secpd
-      xnua = xnu/365.0D0
       xdtime = dtbat*xnu
       dtimea = dtbat*xnua
-      xdt2 = xdtime*d_half
-      xkperi = 1.4D-6
+      xdt2 = d_half*xdtime
  
 !l    3.4  permafrost temperature
       t3 = 271.0D0
@@ -920,7 +927,7 @@
  
             swtrtd(n,i) = watu(n,i)*porsl(n,i)
             if ( tg1d(n,i) < tzero ) then
-              frozen = 0.85D0*dmin1(d_one,(tzero-tg1d(n,i))*d_rfour)
+              frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tg1d(n,i)))
               skd(n,i) = xkperi
               rscsd(n,i) = fsc(swtrtd(n,i)*(d_one-0.51D0*frozen))
             else
@@ -929,7 +936,7 @@
             end if
             swtrta(n,i) = watr(n,i)*porsl(n,i)
             if ( tgb1d(n,i) < tzero ) then
-              froze2 = 0.85D0*dmin1(d_one,(tzero-tgb1d(n,i))*d_rfour)
+              froze2 = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgb1d(n,i)))
               ska(n,i) = xkperi
               rscsa(n,i) = fsc(swtrta(n,i)*(d_one-0.51D0*froze2))
             else
@@ -940,8 +947,14 @@
 !l          1.2  correct for snow cover, if significant
             depdiu(n,i) = dsqrt(d_two*skd(n,i)/xnu)
             bcoef(n,i) = xdtime*depdiu(n,i)/(rscsd(n,i)*skd(n,i))
-            if ( scv1d(n,i) > d_one ) then
-              wtd = dexp(-d_two*scrat(n,i)/depdiu(n,i))
+            if ( scrat(n,i) > 0.001D0 ) then
+              xlexp = -d_two*scrat(n,i)/depdiu(n,i)
+              ! Graziano : Limit exponential argument
+              if ( xlexp > -25.0D0 ) then
+                wtd = dexp(xlexp)
+              else
+                wtd = d_zero
+              end if
               rscss = csnw*rhosw(n,i)
               sks(n,i) = 7.0D-7*cws*rhosw(n,i)
               bcoefs = dsqrt(d_two*sks(n,i)/xnu)/(rscss*sks(n,i))
@@ -952,8 +965,13 @@
                             (d_one-wtds)*depdiu(n,i)
             end if
             depann(n,i) = dsqrt(d_two*ska(n,i)/xnua)
-            if ( scv1d(n,i) > 20.0D0 ) then
-              wtax = dexp(-d_two*scrat(n,i)/depann(n,i))
+            if ( scrat(n,i) > 0.02D0 ) then
+              xlexp = -d_two*scrat(n,i)/depann(n,i)
+              if ( xlexp > -25.0D0 ) then
+                wtax = dexp(xlexp)
+              else
+                wtax = d_zero
+              end if
               wtas = (d_one-wtax)*scvk(n,i)
               depann(n,i) = wtas*dsqrt(d_two*sks(n,i)/xnua) + &
                             (d_one-wtas)*depann(n,i)
@@ -1036,13 +1054,13 @@
 !l          3.5  couple to deep temperature in permafrost
 !l          3.6  update subsoil temperature
             if ( lveg(n,i) == 9 .or. lveg(n,i) == 12 ) then
-              c31 = (dtimea*d_half)*(d_one+deprat(n,i))
+              c31 = d_half*dtimea*(d_one+deprat(n,i))
               c41 = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c31+fct2(n,i)) * &
                      tgb1d(n,i)+c41*tg1d(n,i) +     &
                      dtimea*t3)/(d_one+c31+fct2(n,i))
             else
-              c3t = dtimea*d_half*deprat(n,i)
+              c3t = d_half*dtimea*deprat(n,i)
               c4t = dtimea*deprat(n,i)
               tgb1d(n,i) = ((d_one-c3t+fct2(n,i))* &
                     tgb1d(n,i)+c4t*tg1d(n,i)) /    &

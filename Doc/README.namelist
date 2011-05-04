@@ -20,19 +20,37 @@
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
                    ! 'LAMCON', Lambert conformal.
-                   ! 'POLSTR', Polar stereographic. (Doesn't work)
+                   ! 'POLSTR', Polar stereographic.
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
  ds = 60.0,        ! Grid point horizontal resolution in km
  ptop = 5.0,       ! Pressure of model top in cbar
  clat = 45.39,     ! Central latitude  of model domain in degrees
                    ! North hemisphere is positive
- clon = 13.48,     ! entral longitude of model domain in degrees
+ clon = 13.48,     ! Central longitude of model domain in degrees
                    ! West is negative.
  plat = 45.39,     ! Pole latitude (only for rotated Mercator Proj)
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
  truelath = 60,    ! Lambert true latitude (high latitude side)
+ i_band = 0,       ! Use this only if BAND option is used.
+ /
+!
+! Aerosol dataset creation and use
+!
+ &aerosolparam
+ aertyp = 'AER00D0' ! Aerosol dataset used
+                    ! One in :
+                    ! AER00D0 -> Neither aerosol, nor dust used
+                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
+                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
+                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
+                    ! AER00D1 -> No aerosol, with dust
+                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
+                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
+                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
+ ntr =  4,          ! Tracer parameters: number of tracers
+ nbin = 2,          ! Tracer parameters: bins number for dust
  /
 !
 ! DOMAIN terrain generation parameters
@@ -58,20 +76,36 @@
  fudge_lak   = .false.,  ! Fudging Control flag, for lake of grid
  fudge_lak_s = .false.,  ! Fudging Control flag, for lake of subgrid
  h2opct = 75.,           ! Surface minimum H2O percent to be considered water
- dirter = '../../Input', ! Output directory for terrain files
- inpter = '../DATA',     ! Input directory for SURFACE dataset
+ dirter = 'input/',      ! Output directory for terrain files
+ inpter = 'globdata/',   ! Input directory for SURFACE dataset
+ /
+!
+! ICBC Global data input control
+!
+ &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
+ ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
+                             !          FV_RF, FV_A2, FV_B2,
+                             !          EH5RF, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST
+ dattyp = 'EIN15',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
+                             !          FVGCM, FNEST, EH5OM , CCSMN
+ ehso4 = .false.,            ! Sulfate dataset Control Flag
+ globidate1 = 1990060100,    ! Start date for ICBC data generation
+ globidate2 = 1990070100,    ! End data for ICBC data generation
+ dirglob = 'input/',         ! Path for ICBC produced input files
+ inpglob = 'globdata/',      ! Path for ICBC global input datasets.
+                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
+                   ! on how to download them.
  /
 !
 ! Global I/O control Stanza
 !
  &ioparam
- igrads = 1,  ! Create GrADS CTL files
- ibigend = 1, ! Machine endianess.
-              ! LEAVE IT UNTOUCHED IF WANT TO EXCHANGE I/O FILES
  ibyte = 4,   ! Number of bytes in reclen. Usually 4
- iotyp = 1,   ! Type of output file, used in regcm only as of now.
-              !   1 => direct access file OK for the GrADS, mostly used
-              !   2 => sequential I/O with time listing interleaved for legacy
  /
 !
 ! Debug I/O printout level.
@@ -96,45 +130,6 @@
  nsplit = 2, ! Number od split exp modes
  /
 !
-! ICBC Global data input control
-!
- &globdatparam
- ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
-                             !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_RF, FV_A2, FV_B2,
-                             !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT
- dattyp = 'EIN15',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5OM
- ehso4 = .false.,            ! Sulfate dataset Control Flag
- globidate1 = 1990060100,    ! Start date for ICBC data generation
- globidate2 = 1990070100,    ! End data for ICBC data generation
- dirglob = '/scratch/Input', ! Path for ICBC produced input files
- inpglob = '../DATA',        ! Path for ICBC global input datasets.
-                             ! Look http://users.ictp.it/~pubregcm/RegCM3
-                             ! on how to download them.
- /
-!
-! Aerosol dataset creation and use
-!
- &aerosolparam
- aertyp = 'AER00D0' ! Aerosol dataset used
-                    ! One in :
-                    ! AER00D0 -> Neither aerosol, nor dust used
-                    ! AER01D0 -> Biomass, SO2 + BC + OC, no dust
-                    ! AER10D0 -> Anthropogenic, SO2 + BC + OC, no dust
-                    ! AER11D0 -> Anthropogenic+Biomass, SO2 + BC + OC, no dust
-                    ! AER00D1 -> No aerosol, with dust
-                    ! AER01D1 -> Biomass, SO2 + BC + OC, with dust
-                    ! AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
-                    ! AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
- ntr =  4,          ! Tracer parameters: number of tracers
- nbin = 2,          ! Tracer parameters: bins number for dust
- /
-!
 ! Model start/restart control
 !
  &restartparam
@@ -147,10 +142,10 @@
 ! Model timing parameters
 !
  &timeparam
- radfrq  =    30.,   ! time interval in min solar rad caluclated
- abemh   =    18.,   ! time interval at which bats is called (secs)
- abatm   =   600.,   ! time interval absorption-emission calculated (hours)
  dt      =   150.,   ! time step in seconds
+ radfrq  =    30.,   ! time interval in min solar rad calculated
+ abemh   =    18.,   ! time interval absorption-emission calculated (hours)
+ abatm   =   600.,   ! time interval at which bats is called (secs)
  /
 !
 ! Model Output control
@@ -209,13 +204,16 @@
                         !   1 => Hydrostatic deduction with pert. temperature
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
- ichem   =          1,  ! Use chemical model
+ ichem   =          1,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          1, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective liquid water path as the large-scale
                         ! liquid water path
+ high_nudge =    3.0D0, ! Nudge value high range
+ medium_nudge =  2.0D0, ! Nudge value medium range
+ low_nudge =     1.0D0  ! Nudge value low range
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)
@@ -238,27 +236,60 @@
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
  /
 !
-! Grell Cumulus scheme control (please look mod_param.F90)
+! Grell Cumulus scheme control
 !
  &grellparam
+ shrmin = 0.25,       ! Minimum Shear effect on precip eff.
+ shrmax = 0.50,       ! Maximum Shear effect on precip eff.
+ edtmin = 0.25,       ! Minimum Precipitation Efficiency
+ edtmax = 0.50,       ! Maximum Precipitation Efficiency
+ edtmino = 0.25,      ! Minimum Precipitation Efficiency (o var)
+ edtmaxo = 0.50,      ! Maximum Precipitation Efficiency (o var)
+ edtminx = 0.25,      ! Minimum Precipitation Efficiency (x var)
+ edtmaxx = 0.50,      ! Maximum Precipitation Efficiency (x var)
+ shrmin_ocn = 0.25,   ! Minimum Shear effect on precip eff. OCEAN points
+ shrmax_ocn = 0.50,   ! Maximum Shear effect on precip eff.
+ edtmin_ocn = 0.25,   ! Minimum Precipitation Efficiency
+ edtmax_ocn = 0.50,   ! Maximum Precipitation Efficiency
+ edtmino_ocn = 0.25,  ! Minimum Precipitation Efficiency (o var)
+ edtmaxo_ocn = 0.50,  ! Maximum Precipitation Efficiency (o var)
+ edtminx_ocn = 0.25,  ! Minimum Precipitation Efficiency (x var)
+ edtmaxx_ocn = 0.50,  ! Maximum Precipitation Efficiency (x var)
+ pbcmax = 150.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
+ mincld = 150.0,      ! Min cloud depth (mb).
+ htmin = -250.0,      ! Min convective heating
+ htmax = 500.0,       ! Max convective heating
+ skbmax = 0.4,        ! Max cloud base height in sigma
+ dtauc = 30.0,        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 !
-! Emanuel Cumuls scheme control (please look mod_param.F90)
+! Emanuel Cumuls scheme control
 !
  &emanparam
- elcrit  = 0.0011D0  ! Autoconversion threshold water content (gm/gm)
- coeffr  = 1.0D0     ! Coefficient governing the rate of rain evaporation
-!elcrit = 0.01D0    ! to make the scheme drier
-!coeffr = 1.5D0     ! to make the scheme drier
-  / 
+ minsig = 0.95,   ! Lowest sigma level from which convection can originate
+ elcrit = 0.0011, ! Autoconversion threshold water content (g/g)
+ tlcrit = -55.0,  ! Below tlcrit auto-conversion threshold is zero
+ entp = 1.5,      ! Coefficient of mixing in the entrainment formulation
+ sigd = 0.05,     ! Fractional area covered by unsaturated dndraft
+ sigs = 0.12,     ! Fraction of precipitation falling outside of cloud
+ omtrain = 50.0,  ! Fall speed of rain (Pa/s)
+ omtsnow = 5.5,   ! Fall speed of snow (Pa/s)
+ coeffr = 1.0,    ! Coefficient governing the rate of rain evaporation
+ coeffs = 0.8,    ! Coefficient governing the rate of snow evaporation
+ cu = 0.7,        ! Coefficient governing convective momentum transport
+ betae = 10.0,    ! Controls downdraft velocity scale
+ dtmax = 0.9,     ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.2,    ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,      ! Controls the approach rate to quasi-equilibrium
+ / 
 !
 ! Chemical control parameter
 !
-&chemparam
+ &chemparam
     ! Some example of defaults parameter namelist are given in the Examples
     ! directory. Here we consider two dust bin and two type of BC aerosol
     ! ( see inpchtrname).
-idirect      =    1,  ! enable or not aerosol feedbacks on radiation and
+ idirect      =    1, ! enable or not aerosol feedbacks on radiation and
                       ! dynamics (aerosol direct and semi direct effcts):
                       !  0 = no coupling. Aerosol are only transported and
                       !      don't interact with radiation scheme.
@@ -267,37 +298,38 @@ idirect      =    1,  ! enable or not aerosol feedbacks on radiation and
                       !      aerosol radiative forcings are diagnosed.
                       !  2 = allows aerosol feedbacks on radiative,
                       !      thermodynamic and dynamic fields.   
-ichremlsc    =    1,  ! 1 = allows tracer removal (wet deposition) by large
+ ichremlsc    =    1, ! 1 = allows tracer removal (wet deposition) by large
                       !     scale cloud
-ichremcvc    =    1,  ! 1 = allows tracer removal by convective clouds
-ichdrdepo    =    1,  ! 1 = enable tracer surface dry deposition. For dust,
+ ichremcvc    =    1, ! 1 = allows tracer removal by convective clouds
+ ichdrdepo    =    1, ! 1 = enable tracer surface dry deposition. For dust,
                       !     it is calculated by a size settling and dry
                       !     deposition scheme. For other aerosol,a dry
                       !     deposition velocity is simply prescribed further.
                       !     Next release will include an improved aerosol dry
                       !     deposition scheme for non dust aerosols.
-ichcumtra    =    1,  ! 1 = enable tracer convective transport and mixing.
-inpchtrname  =  'DUST','DUST,'BC_HB','BC_HL',
+ ichcumtra    =    1, ! 1 = enable tracer convective transport and mixing.
+ inpchtrname  =  'DUST','DUST,'BC_HB','BC_HL',
                       ! Tracer identifier. The number of input should be equal
-                      ! to ntr you have the choice between DUST
+                      ! to ntr you have the choice between
+                      ! DUST  = Dust particle from soil
                       ! BC_HB = Hydrophobic Black carbon aerosol
                       ! BC_HL = Hydrophilic or aged black carbon
                       ! OC_HB = Hydrophobic organic carbon aerosl
                       ! OC_HL = Hydrophilic or aged organic carbon
-                      ! SO2 = sulfur dioxide
-                      ! SO4 = sulfate aerosol
-inpchtrsol   =  0.1, 0.1, 0.05, 0.8,
+                      ! SO2   = sulfur dioxide
+                      ! SO4   = sulfate aerosol
+ inpchtrsol   =  0.1, 0.1, 0.05, 0.8,
                       ! Tracer solubility (fraction). The number of input
                       ! should be equal to ntr. Will determine if tracer are
                       ! efficiently removed by wet deposition or not
-inpchtrdpv   =  0.,0.,0.00025,0.00025,  0.,0.,0.00025,0.00250,
+ inpchtrdpv   =  0.,0.,0.00025,0.00025,  0.,0.,0.00025,0.00250,
                       ! Dry deposition velocity (in m/s) over land (first ntr)
                       ! and ocean (second ntr values), a total of ntr*2 values.
                       ! Should be consistent with tracer identifier.
                       ! for DUST type this value is not effectively considered
                       ! since a dry deposition scheme is explicitely included
                       ! in RegCM.
-inpdustbsiz  =   0.1,  1., 1., 2.5,
+ inpdustbsiz  =   0.1,  1., 1., 2.5,
                       ! Lower Size limit (first nbin) and Upper Size limit
                       ! (second nbin values) of diameter bin classes for dust
                       ! (in micrometer). Should never exceed nbin * 2 values.
@@ -316,15 +348,15 @@ inpdustbsiz  =   0.1,  1., 1., 2.5,
 ! CLM parameters
 !
  &clmparam
- dirclm = '../Input', ! CLM path to Input data produced by clm2rcm. If 
-                      ! relative, It should be how to reach the Input dir
-                      ! from the Run dir.
- clmfrq =  12.,       ! Frequency for CLM own output write
- imask  =   1,        ! For CLM, Type of land surface parameterization
-                      !   1 => using DOMAIN.INFO for landmask (same as BATS)
-                      !   2 => using mksrf_navyoro file landfraction for
-                      !        landmask and perform a weighted average over
-                      !        ocean/land gridcells; for example:
-                      ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
+ dirclm = 'input/', ! CLM path to Input data produced by clm2rcm. If 
+                    ! relative, It should be how to reach the Input dir
+                    ! from the Run dir.
+ clmfrq =  12.,     ! Frequency for CLM own output write
+ imask  =   1,      ! For CLM, Type of land surface parameterization
+                    !   1 => using DOMAIN.INFO for landmask (same as BATS)
+                    !   2 => using mksrf_navyoro file landfraction for
+                    !        landmask and perform a weighted average over
+                    !        ocean/land gridcells; for example:
+                    ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
  /
 ! ####################################################################

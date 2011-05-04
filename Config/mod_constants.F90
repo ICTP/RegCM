@@ -39,6 +39,7 @@
       real(8) , parameter :: d_1000 = 1.0D+03
       real(8) , parameter :: d_r1000 = 1.0D-03
       real(8) , parameter :: onet = d_one/d_three
+      real(8) , parameter :: twot = d_two/d_three
 
       ! Angles degrees
       real(8) , parameter :: deg00  = 0.0D+00
@@ -254,7 +255,7 @@
 
       ! GTS system constants
       real(8) , parameter :: egravgts = egrav*d_100
-      real(8) , parameter :: rga = d_one/egravgts
+      real(8) , parameter :: regravgts = d_one/egravgts
       real(8) , parameter :: cpdgts = cpd*1.0D+04
       real(8) , parameter :: gocp = egravgts/cpdgts
       real(8) , parameter :: sslp = stdp*d_10 ! dynes/cm^2

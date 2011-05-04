@@ -92,48 +92,11 @@ module mod_sst_1deg
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
     end if
-    inquire (file=trim(inpglob)//'/SST/sst.mnmean.nc',exist=there)
-    if ( .not.there ) then
-      call die('sst_1deg','sst.mnmean.nc is not available'// &
-               ' under '//trim(inpglob)//'/SST/',1)
-    end if
-    if ( ssttyp == 'OI2ST' ) then
-      inquire (file=trim(inpglob)//'/SST/icec.mnmean.nc',exist=there)
-      if ( .not. there ) then
-        call die('sst_1deg','icec.mnmean.nc is not available'// &
-                 ' under '//trim(inpglob)//'/SST/',1)
-      end if
-    end if
   else if ( ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
     if ( globidate1 < 1981110100 .or. globidate2 < 1981110106 ) then
       write (stderr,*) 'OI_WK (or OI2WK) data are not available'
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
-    end if
-    inquire (file=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc',exist=there)
-    if ( .not.there ) then
-      call die('sst_1deg','sst.wkmean.1981-1989.nc is not '// &
-               'available under '//trim(inpglob)//'/SST/',1)
-    end if
-    inquire (file=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc', &
-             exist=there)
-    if ( .not.there ) then
-      call die('sst_1deg','sst.wkmean.1990-present.nc is not '// &
-               'available under '//trim(inpglob)//'/SST/',1)
-    end if
-    if ( ssttyp == 'OI2WK' ) then
-      inquire (file=trim(inpglob)//'/SST/icec.wkmean.1981-1989.nc', &
-              exist=there)
-      if ( .not.there ) then
-        call die('sst_1deg','icec.wkmean.1981-1989.nc is not '// &
-                 'available under '//trim(inpglob)//'/SST/',1)
-      end if
-      inquire (file=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc', &
-               exist=there)
-      if ( .not.there ) then
-        call die('sst_1deg','icec.wkmean.1990-present.nc is not '// &
-                 'available under '//trim(inpglob)//'/SST/',1)
-      end if
     end if
   else
     write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
@@ -330,7 +293,6 @@ module mod_sst_1deg
   intent (out) :: sst
 !
   integer :: i , it , j , month , n , nday , nhour , nyear
-  logical :: there
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
@@ -353,10 +315,6 @@ module mod_sst_1deg
 !
   call zeit_ci('sst_mn')
   if ( idate == idate0 ) then
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      call die('sst_mn',trim(pathaddname)//' is not available',1)
-    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then
       call die('sst_mn',trim(pathaddname)//' open error',1, &
@@ -428,7 +386,6 @@ module mod_sst_1deg
   intent (out) :: ice
 !
   integer :: i , it , j , month , n , nday , nhour , nyear
-  logical :: there
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
@@ -451,10 +408,6 @@ module mod_sst_1deg
 !
   call zeit_ci('ice_mn')
   if ( idate == idate0 ) then
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      call die('ice_mn',trim(pathaddname)//' is not available',1)
-    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then
       call die('ice_mn',trim(pathaddname)//' open error',1, &
@@ -524,7 +477,6 @@ module mod_sst_1deg
   intent (out) :: sst
 !
   integer :: i , j , n
-  logical :: there
   character(3) :: varname
   integer :: istatus
   integer(2) , dimension(ilon,jlat) :: work , work1
@@ -552,10 +504,6 @@ module mod_sst_1deg
   if ( pathaddname /= usename ) then
     if (inet >= 0) then
       istatus = nf90_close(inet)
-    end if
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      call die('sst_wk',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then
@@ -648,7 +596,6 @@ module mod_sst_1deg
   intent (out) :: ice
 !
   integer :: i , j , n
-  logical :: there
   character(4) :: varname
   integer(2) , dimension(ilon,jlat) :: work , work1
   integer :: istatus
@@ -676,10 +623,6 @@ module mod_sst_1deg
   if ( pathaddname /= usename ) then
     if (inet >= 0) then
       istatus = nf90_close(inet)
-    end if
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      call die('ice_wk',trim(pathaddname)//' is not available',1)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then

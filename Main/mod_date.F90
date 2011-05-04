@@ -36,7 +36,7 @@
 
       integer :: nnnnnn , nnnend , nstart , nstrt0
 
-      real(8) :: declin , dectim , deltmx , gmt
+      real(8) :: declin , dectim , deltmx , gmt , xdfbdy
       real(8) :: xtime
       integer :: ktau
 
@@ -316,8 +316,8 @@
       function lfhomonth(idate)
         implicit none
         logical :: lfhomonth
-        integer , intent(in) :: idate
         real(8) :: rmomonth
+        integer , intent(in) :: idate
         integer :: iy , im , id , ih
         call split_idate(idate, iy, im, id, ih)
         rmomonth = dble(mdays(iy, im)) / 2.0D0
@@ -334,7 +334,7 @@
         real(8) :: jd
         call split_idate(idate, iy, im, id, ih)
         jd = julianday(iy, im, id)
-        idayofweek = idint(dmod(dble(jd)+1.5D+00, 7.0D+00))+1
+        idayofweek = idint(dmod(jd+1.5D+00, 7.0D+00))+1
       end function idayofweek
 
       function lsame_week(idate1, idate2)
@@ -466,7 +466,7 @@
           iy = iy + 1
           im = 1
         end if
-        inextmon = mkidate(iy, im, 1, 0)
+        inextmon = mkidate(iy, im, id, ih)
       end function inextmon
 
       function iprevmon(idate)
@@ -480,7 +480,7 @@
           iy = iy - 1
           im = 12
         end if
-        iprevmon = mkidate(iy, im, 1, 0)
+        iprevmon = mkidate(iy, im, id, ih)
       end function iprevmon
 
       function timeval2idate(xval,cunit)

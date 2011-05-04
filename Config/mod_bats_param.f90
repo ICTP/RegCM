@@ -29,6 +29,11 @@
       real(8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                                & xmosuc , xmowil
       integer , dimension(22) :: iexsol , kolsol
+      real(8) , parameter :: aarea = 0.02D0
+      ! 0.005 ccm specific
+      ! 0.01  high
+      ! 0.04  Antartic
+      ! 0.02  Artic best
 !
 !------------------ DATA SECTION ----------------------------------------
 !

@@ -28,7 +28,7 @@
  
       integer :: ifrabe , nbatst
 !
-      real(8) :: dt , dt2 , dto2 , dtbat , dtlake , dtmin
+      real(8) :: dt , dt2 , dtbat , dtlake , dtmin
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
       real(8) :: abatm , abemh
       real(8) :: c200 , c203 
@@ -40,7 +40,7 @@
                & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
                & idcsst , iseaice , idesseas , klak , iocnrough
 
-               logical :: ifrest , rfstrt , done_restart
+      logical :: ifrest , rfstrt , done_restart
  
       real(8) :: bdytim , prttim , radfrq , savtim , taptim , tbdybe
       integer :: ndbgfrq , nsavfrq , ntapfrq
@@ -49,7 +49,6 @@
 !
       real(8) :: r8pt
       real(8) :: akht1 , akht2
-      real(8) :: high_nudge , medium_nudge , low_nudge
 
       real(8) , allocatable , dimension(:) :: dtau
       real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon

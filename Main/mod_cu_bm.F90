@@ -151,7 +151,7 @@
                & tkl , tlcl , trfkl , tskl , ztop
       real(8) , dimension(iy,kz) :: ape , q , qqmod , t , tmod , tref , &
                                   & z0
-      real(8) , dimension(kz) :: apek , apesk , difq , dift , dzq ,     &
+      real(8) , dimension(kz) :: apek , apesk , difq , dift , ddzq ,    &
                                & fpk , pdp , pk , psk , qk , qrefk ,    &
                                & qsatk , therk , thsk , thvref , tk ,   &
                                & trefk
@@ -247,12 +247,12 @@
         ip300(i) = 0
         cell = r8pt/sps2%ps(i,j)
         do k = 1 , kz
-          dzq(k) = rovg*tbase(i,k,j)                                    &
+          ddzq(k) = rovg*tbase(i,k,j)                                   &
                  & *dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
-        z0(i,kz) = d_half*dzq(kz)
+        z0(i,kz) = d_half*ddzq(kz)
         do k = kz - 1 , 1 , -1
-          z0(i,k) = z0(i,k+1) + d_half*(dzq(k)+dzq(k+1))
+          z0(i,k) = z0(i,k+1) + d_half*(ddzq(k)+ddzq(k+1))
         end do
       end do
 !--------------padding specific humidity if too small-------------------
@@ -575,12 +575,14 @@
 !aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         preck = preck*fefi
 !--------------update precipitation, temperature & moisture-------------
-        prainx = d_half*((sps2%ps(i,j)*1000.*preck*cprlg)*100.)
-        sfsta%rainc(i,j) = prainx + sfsta%rainc(i,j)
+        prainx = d_half*((sps2%ps(i,j)*d_1000*preck*cprlg)*d_100)
+        if ( prainx > dlowval ) then
+          sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !.....................precipitation rate for bats (mm/s)
-        aprdiv = dble(nbatst)
-        if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
-        pptc(i,j) = pptc(i,j) + prainx/(dtmin*60.)/aprdiv
+          aprdiv = dble(nbatst)
+          if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+          pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+        end if
         do l = ltpk , lb
           tmod(i,l) = dift(l)*fefi/dt2
           qqmod(i,l) = difq(l)*fefi/dt2

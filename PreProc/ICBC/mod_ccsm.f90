@@ -189,16 +189,10 @@ module mod_ccsm
     integer :: istatus , ivar1 , inet1 , ilat , ilon , ihyam , ihybm , ip0 , k
     integer :: lonid , latid , ilevid
     character(256) :: pathaddname
-    logical :: there
     real(8) :: dp0
 !
     call zeit_ci('headccsm')
     pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
-    inquire (file=pathaddname,exist=there)
-    if ( .not.there ) then
-      write (stderr,*) trim(pathaddname) , 'is not available'
-      call die('headccsm')
-    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
@@ -423,7 +417,6 @@ module mod_ccsm
     integer :: inet , ivar
     character(25) :: inname
     character(256) :: pathaddname
-    logical :: there
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
     character(3) , dimension(12) :: mname
@@ -455,10 +448,6 @@ module mod_ccsm
         end if
  
         pathaddname = trim(inpglob)//'/CCSM/'//inname
-        inquire (file=pathaddname,exist=there)
-        if ( .not.there ) then
-          call die('readccsm',trim(pathaddname)//'is not available',1)
-        end if
  
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
