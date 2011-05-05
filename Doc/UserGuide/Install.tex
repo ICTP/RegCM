@@ -21,7 +21,7 @@ needed:
 \item Python 2 language interpreter
 \item GNU Make program
 \item Fortran 90 compiler
-\item NetCDF Format I/O library compiled with the above compiler.
+\item netCDF Format I/O library compiled with the above compiler.
    Source code can be found from \\
 {\bf ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz} \\
 Note that current version 4.1.2 is dependent on HDF5 1.8.6.
@@ -36,13 +36,13 @@ for parallel runs using multiple core single machines or cluster of machines.
 Source code for the implementation code was tested with can be obtained at: \\
 {\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
 \item HDF5 Format I/O Library compiled with the above fortran compiler to
-enable NetCDF V4 features. Source code can be obtained at: \\
+enable netCDF V4 features. Source code can be obtained at: \\
 {\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
-\item NCO NetCDF Operators for manging NetCDF file. Most Linux distribution
+\item NCO netCDF Operators for manging netCDF file. Most Linux distribution
 have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
 {\bf http://nco.sourceforge.net/src}
-\item CDO Climatic data Operators for managing NetCDF file. Most Linux
+\item CDO Climatic data Operators for managing netCDF file. Most Linux
 distribution have this already packed, and you should refer to your System
 Administrator or OS Software Installation manual to obtain it.
 Source code is at: \\
@@ -50,15 +50,15 @@ Source code is at: \\
 \item A Scientific Plotting and Data Analysis Software such as:
 \begin{itemize}
 \item IGES GrADS 2.0 Graphical Analysis and Display System. Convenient helpers
-are packed in RegCM to use GrADS with RegCM NetCDF output files.
+are packed in RegCM to use GrADS with RegCM netCDF output files.
 Binaries and source code can be obtained from \\
 {\bf http://www.iges.org/grads/downloads.html}
-\item NCL, NCAR CISL Command Language. The NCL can read NetCDF output files, and
+\item NCL, NCAR CISL Command Language. The NCL can read netCDF output files, and
 sample scripts can be found in the {\em Tools/Scripts/NCL} directory.
 Binaries and source code can be obtained from \\
 {\bf http://www.ncl.ucar.edu}
 \end{itemize}
-\item A quick viewer for NetCDF files like NcView: \\
+\item A quick viewer for netCDF files like NcView: \\
 {\bf http://meteora.ucsd.edu/~pierce/ncview\_home\_page.html}
 \end{enumerate}
 
@@ -123,26 +123,26 @@ You probably are not, so just press enter.
 \end{Verbatim}
 If you are the only one using the model on the machine, you may safely
 accept the default choice pressing enter.
-\item NetCDF installation path. The script tries to detect the NetCDF
+\item netCDF installation path. The script tries to detect the netCDF
 installation automatically using the \verb=nc-config= program, searching
 standard directories and using the \verb=NETCDF= environment variable.
 If successfull, the message
 \begin{Verbatim}
-NetCDF library found...
+netCDF library found...
 \end{Verbatim}
 should appear. Otherwise you will be prompted the following question:
 \begin{Verbatim}
-   Unable to find a working NetCDF. Please input a valid path...
-   For NetCDF library =
+   Unable to find a working netCDF. Please input a valid path...
+   For netCDF library =
 \end{Verbatim}
 The answer should be the directory where on your system the file
 \verb=libnetcdf.a= is stored. Next the file will ask:
 \begin{Verbatim}
-   For NetCDF include files =
+   For netCDF include files =
 \end{Verbatim}
 The answer should be the directory where on your system the file
 \verb=netcdf.mod= is stored.
-\item OPTIONAL - If version 4 of NetCDF library is detected, but the
+\item OPTIONAL - If version 4 of netCDF library is detected, but the
 script is unable to use the \verb=nc-config= program, and autodetection
 using standard paths or the HDF5 environment variable fails, you may be
 prompted also for location of HDF5 library
@@ -152,10 +152,10 @@ prompted also for location of HDF5 library
 \end{Verbatim}
 The answer should be the directory where on your system the file
 \verb=libhdf5.a= is stored.
-\item OPTIONAL - If version 4 of NetCDF library is detected, the script
-will ask if to enable NetCDF file compression filter.
+\item OPTIONAL - If version 4 of netCDF library is detected, the script
+will ask if to enable netCDF file compression filter.
 \begin{Verbatim}
-  ****  Would you like to enable NetCDF v4 compression? (0/1)
+  ****  Would you like to enable netCDF v4 compression? (0/1)
   [0]
   zlib =
 \end{Verbatim}

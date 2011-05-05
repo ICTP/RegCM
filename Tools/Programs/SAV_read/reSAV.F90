@@ -266,14 +266,12 @@ program resav
     allocate(remlsc(iy,kz,jx,ntr))
     allocate(remcvc(iy,kz,jx,ntr))
     allocate(remdrd(iy,jx,ntr))
-  end if
 #ifndef BAND
-  if ( debug_level > 2 ) then
     allocate(tchiad(ntr))
     allocate(tchitb(ntr))
     allocate(tchie(ntr))
-  end if
 #endif
+  end if
   allocate(dstor(iy,jx,nsplit))
   allocate(hstor(iy,jx,nsplit))
 #ifndef BAND
@@ -327,9 +325,7 @@ program resav
   end if
   read (iutrst) hfx, qfx, uvdrag
 #ifndef BAND
-  if (debug_level > 2) then
-    read (iutrst) tdini , tdadv , tqini , tqadv , tqeva , tqrai
-  end if
+  read (iutrst) tdini , tdadv , tqini , tqadv , tqeva , tqrai
 #endif
   read (iutrst) absnxt, abstot, emstot
   if ( ipptls == 1 ) read (iutrst) fcc
@@ -391,11 +387,9 @@ program resav
     read (iutrst) sfracs2d
     read (iutrst) svegfrac2d
 #ifndef BAND
-    if (debug_level > 2) then
-      read (iutrst) tchiad
-      read (iutrst) tchitb
-      read (iutrst) tchie
-    end if
+    read (iutrst) tchiad
+    read (iutrst) tchitb
+    read (iutrst) tchie
   end if
 #endif
   read (iutrst) dstor
