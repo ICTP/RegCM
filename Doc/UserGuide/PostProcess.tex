@@ -4,4 +4,263 @@
 % See the file COPYING for copying conditions.
 %
 
-Talk about Post Processing tools
+The new netCDF output format allow user to use a number of general purpose
+tools to postprocess model output files. We will in this section do a quick
+review of some of the Open Source and Free Software ones.
+
+\section{Command line tools}
+
+Three major set of tools may help you do even complex calculation just from
+command line prompt. 
+
+\subsection{netCDF library tools}
+
+The netCDF library itself offers three basic tools to play with netCDF
+archived data.
+
+\begin{itemize}
+\item \verb=ncdump= program, generates a text representation of a specified
+netCDF file on standard output. The text representation is in a form called
+CDL (‘‘network Common Data form Language’’) that can be viewed, edited, or
+serve as input to \verb=ncgen=, thus \verb=ncdump= and \verb=ncgen= can be
+used as inverses to transform data representation between binary and text
+representations. \verb=ncdump= may also be used as a simple browser for netCDF
+datasets, to display the dimension names and lengths; variable names, types,
+and shapes; attribute names and values; and optionally, the values of data
+for all variables or selected variables in a netCDF dataset. 
+Sample usage patterns:
+\begin{enumerate}
+\item Look at the structure of the data in the netCDF dataset:
+\begin{Verbatim}
+ncdump -c test_001_SRF.1990060100.nc
+\end{Verbatim}
+\item Produce a fully-annotated (one data value per line) listing of the data
+for the variables time and t2m, using FORTRAN conventions for indices, and show
+the floating-point data with only four significant digits of precision and the
+time values with ISO format:
+\begin{Verbatim}
+ncdump -v time,t2m -p 4 -t -f \
+         fortran test_001_SRF.1990060100.nc
+\end{Verbatim}
+\end{enumerate}
+\item \verb=ncgen= program, the reverse of the \verb=ncdump= program: generates
+a netCDF file or a C or FORTRAN program that creates a netCDF dataset from a
+CDL input.
+Sample usage patterns:
+\begin{enumerate}
+\item From a CDL file, generate a binary netCDF file:
+\begin{Verbatim}
+ncgen -o test_001_SRF.1990060100_modif.nc \
+         test_001_SRF.1990060100.cdl
+\end{Verbatim}
+\item From a CDL file, generate a Fortran 77 program to write the netCDF file:
+\begin{Verbatim}
+ncgen -f test_001_SRF.1990060100.cdl > prog.f
+\end{Verbatim}
+\end{enumerate}
+\item \verb=nccopy= utility copies an input netCDF file to an output netCDF
+file, in any of the four format variants, if possible, and in function of
+the selected output format add compression filter and/or data chunking.
+Sample usage patterns:
+\begin{enumerate}
+\item Convert a netCDF dataset to a netCDF 4 classic model compressed
+data file using shuffling to enhance compression level:
+\begin{Verbatim}
+nccopy -k 4 -d 9 -s test_001_SRF.1990060100.nc \
+         test_001_SRF.1990060100_compressed.nc
+\end{Verbatim}
+\end{enumerate}
+\end{itemize}
+
+You can also find, in the \verb=Tools/Programs/RegCM_read= directory
+under \verb=$REGCM_ROOT= a sample program to read an output file using
+the netCDF library you can modify to fit your needs.
+Another sample program to read SAV output file format can be found
+under the directory \verb=SAV_read= in the \verb=Tools/Programs= directory.
+
+\subsection{NetCDF operators NCO}
+
+This set of tools can be considered a swiss army knife to manage netCDF
+datasets. There are multiple operators, and Each operator takes netCDF
+files as input, then operates (e.g., derives new data, averages, hyperslabs,
+manipulates metadata) and produces a netCDF output file.
+The single-command style of NCO allows users to manipulate and analyze files
+interactively, or with simple scripts that avoid some overhead of higher level
+programming environments.
+The major tools are:
+\begin{itemize}
+\item \verb=ncap2= netCDF Arithmetic Processor 
+\item \verb=ncatted= netCDF Attribute Editor
+\item \verb=ncbo= netCDF Binary Operator
+\item \verb=ncea= netCDF Ensemble Averager
+\item \verb=ncecat= netCDF Ensemble Concatenator
+\item \verb=ncflint= netCDF File Interpolator
+\item \verb=ncks= netCDF Kitchen Sink
+\item \verb=ncpdq= netCDF Permute Dimensions Quickly, Pack Data Quietly
+\item \verb=ncra= netCDF Record Averager
+\item \verb=ncrcat= netCDF Record Concatenator
+\item \verb=ncrename= netCDF Renamer
+\item \verb=ncwa= netCDF Weighted Averager
+\end{itemize}
+
+A comprehensive user guide can be found at:
+
+\begin{Verbatim}
+http://nco.sourceforge.net/nco.html
+\end{Verbatim}
+
+Sample usage patterns:
+\begin{enumerate}
+\item Get value of t2m variable at a particular point for all timesteps with
+a prescribed format one per line on stdout:
+\begin{Verbatim}
+ncks -C -H -s "%6.2f\n" -v t2m -d iy,16 -d jx,16 \
+         test_001_SRF.1990060100.nc
+\end{Verbatim}
+\item Extract one timestep of t2m from a file and save into a new netCDF file:
+\begin{Verbatim}
+ncks -c -v t2m -d time,6 test_001_SRF.1990060100.nc \
+       test_001_SRF.1990060212.nc
+\end{Verbatim}
+\item Cat together a year worth of output data for the single t2m variable
+into a single file:
+\begin{Verbatim}
+ncrcat -c -v t2m test_001_SRF.1990??0100.nc \
+         test_001_T2M.1990.nc
+\end{Verbatim}
+\item Get the DJF mean value of the tempertaure from a multiyear run:
+\begin{Verbatim}
+ncra -c -v t2m test_001_SRF.????120100.nc \
+               test_001_SRF.????010100.nc \
+               test_001_SRF.????020100.nc \
+               test_001_DJF_T2M.nc
+\end{Verbatim}
+\end{enumerate}
+
+We strongly encourage you to read the on-line user guide of the NCO tools.
+You will for sure get a boost on your data manipulation and analysis skills.
+
+\subsection{Climate data Operators CDO}
+
+The monolithic \verb=cdo= program from the Max Planck Institut f\''ur
+Meteorologie implements a really comprehensive collection of command line
+Operators to manipulate and analyse Climate and NWP model Data either in netCDF
+or GRIB format. There are more than 400 operators available, covering the
+following topics:
+
+\begin{itemize}
+\item File information and file operations
+\item Selection and Comparision
+\item Modification of meta data
+\item Arithmetic operations
+\item Statistical analysis
+\item Regression and Interpolation
+\item Vector and spectral Transformations
+\item Formatted I/O
+\item Climate indices
+\end{itemize}
+
+We wont make here a comprehensive analysis of this tool, but you can
+find some ideas in the \verb=PostProc= directory on \verb=$REGCM_ROOT= reading
+the two sample \verb=average= and \verb=regrid= scripts, which use a combination
+of \verb=NCO= programs and \verb=cdo= operators to reach goal.
+A very simple usage pattern for example to obtain a monthly mean is:
+
+\begin{Verbatim}
+cdo monmean test_001_T2M.1990.nc
+\end{Verbatim}
+
+\section{GrADS program}
+
+This tool is the one mostly used at ICTP to analyze and plot model output
+results. It can be used either as an interactive tool either as a batch
+data analysis tool. We have already written in chapter \ref{tutorial} about
+the helper program \verb=GrADSNcPlot= which can be used to interactively
+plot model output results. We will here detail why an helper program is
+needed and how it does work. For information regarding the \verb=grads=
+program itself, a comprehensive guide may be found at:
+
+\begin{Verbatim}
+http://www.iges.org/grads/gadoc/users.html
+\end{Verbatim}
+
+\subsection{GrADS limits}
+
+The \verb=grads= program is powerful, yet has limits:
+
+\begin{enumerate}
+\item Only equirectangular projection or Plate Carr\'ee is supported. Some
+other projections can be used through a pdef entry in the \verb=CTL= file
+using the internal direct preprojection engines, but not all RegCM supported
+projections are supported using direct engine.
+\item NetCDF format allows multidimensional variables, while \verb=grads=
+supports just four dimensional (time,level,latitude,longitude) variables.
+\end{enumerate}
+
+Luckily, these limits can be exceeded, carefully telling \verb=grads= the
+RegCM data structure using the \verb=CTL= file and one ancillary \verb=proj=
+file:
+
+\begin{enumerate}
+\item The \verb=grads= program allows usage of the \verb=pdef BILIN= option
+in the \verb=CTL= file, which allows the user specify a supplementary file
+name. In this file are stored three lat-lon floating-point grids which have
+for each point on the equirectangular grid the indexes i,j on the projected
+grid, as well as wind rotation values.
+\item The \verb=grads= program allows identifying four dimentional slices of
+a multidimensional variable as new variables, providing them a unique name.
+This is how we are able to see in \verb=grads= chemical output variables.
+\end{enumerate}
+
+While the \verb=GrADSNcPlot= program allows interactive plotting and after
+quitting the \verb=grads= program removes the \verb=CTL= file and the
+\verb=proj= file, the \verb=GrADSNcPrepare= program only creates this two
+files, allowing share of the \verb=proj= file between multiple \verb=CTL=
+files sharing the same RegCM domain (i.e. it creates just only once the
+\verb=proj= file). To use the \verb=grads= program, you need to have both
+this ancillary files together with the data netCDF file.
+
+A collection of sample \verb=grads= scripts commonly used at ICTP to plot
+simulation results can be found in the \verb=Tools/Scripts/GrADS=
+directory under \verb=$REGCM_ROOT=.
+
+\section{CISL's NCL : NCAR Command Language}
+
+This awesome tool from NCAR is an interpreted language designed for scientific
+data analysis and visualization. Noah Diffenbaugh and Mark Snyder have
+created a website dedicated to visualizing RegCM3 output using the NCAR Command Language (NCL). While this scripts where built using RegCM3 model output
+converted to netCDF using an external converter, they may be easily ported
+to use the native netCDF RegCM V4.1 file format.
+
+\begin{Verbatim}
+http://es.ucsc.edu/~msnyder/NCL/index.html
+\end{Verbatim}
+
+A dedicated page also exist on the NCAR \verb=NCL= site itself:
+
+\begin{Verbatim}
+http://www.ncl.ucar.edu/Applications/rcm.shtml
+\end{Verbatim}
+
+Travis O'Brien from the User Community also contributed sample scripts,
+which may be found under the \verb=Tools/Scripts/NCL= directory.
+A very basic script under that directory, \verb=terplt.ncl=, may be used
+as example on how to plot a variable form a RegCM file using the \verb=NCL=
+projection engin to display using the native projected grid.
+
+\section{Non free tools}
+
+Note that the netCDF format, using plugins or native capabilities, allows
+clean access to model output from a number of non free tools like
+Matlab\texttrademark or IDL\texttrademark.
+
+For a more complete list of tools, you are invited to scroll down the
+very long list of tools at:
+
+\vspace{0.5cm}
+\begin{tabular}{|c|}
+\hline
+{\bf http://www.unidata.ucar.edu/software/netcdf/software.html} \\
+\hline
+\end{tabular}
+\vspace{0.5cm}

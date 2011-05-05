@@ -82,6 +82,26 @@ bMethod1 = True
   xvec = frcmdom->jx
   yvec = frcmdom->iy
 
+  ;determine min and max lat/lon
+  minlat = min(xlat)-1.1
+  maxlat = max(xlat)+1.1
+  minlon = min(xlon)-1.1
+  maxlon = max(xlon)+1.1
+
+  ;Shift by 360 if necessary
+  if(minlon.lt.0)then
+    minlon = minlon + 360
+  end if
+  if(maxlon.lt.0)then
+    maxlon = maxlon + 360
+  end if
+  ;Check if min/max lon need to be swapped
+  if(maxlon.lt.minlon)then
+    dum = maxlon
+    maxlon = minlon
+    minlon = dum
+  end if
+
 ;*******************************************************************************
 ;*******************************************************************************
 ;*************************** Pre-set File Parameters****************************
@@ -227,7 +247,7 @@ do while(bProcessingDates)
 
   startyear = startmonth
   startyear@month = 1
-  if(equiv_date(curdate,startmonth))then
+  if(equiv_date(curdate,startyear))then
   ;Open the new input files
     itimegcm = 0
     endyear = curdate
@@ -257,13 +277,20 @@ do while(bProcessingDates)
     ;Create 3d sinx and cosx arrays for rotating winds
     ;also pre-create temporary variables
     kzgcm = dimsizes(fu->ua(0,:,0,0))
-    iygcm = dimsizes(fu->ua(0,0,:,0))
-    jxgcm = dimsizes(fu->ua(0,0,0,:))
+    iygcm = dimsizes(fu->ua(0,0,{minlat:maxlat},0))
+    jxgcm = dimsizes(fu->ua(0,0,0,{minlon:maxlon}))
     ds3d = (/kzgcm,iy,jx/)
     sinx3d = conform_dims(ds3d,sin(x),(/1,2/))
     cosx3d = conform_dims(ds3d,cos(x),(/1,2/))
     utmp = sinx3d
     vtmp = sinx3d
+    lat = fu->lat
+    lon = fu->lon
+
+    iminlat = ind(lat.eq.lat({minlat}))
+    imaxlat = ind(lat.eq.lat({maxlat}))
+    iminlon = ind(lon.eq.lon({minlon}))
+    imaxlon = ind(lon.eq.lon({maxlon}))
 
     ;Create a super-variable for interpolating
     supervar = new((/2*kzgcm+1,iygcm,jxgcm/),float)
@@ -276,13 +303,13 @@ do while(bProcessingDates)
   ;*****************************************************************************
   ;************************* Read GCM T,U,V,Q,PS *******************************
   ;*****************************************************************************
-  t_gcm = ft->ta(itimegcm,:,:,:)
-  qv_gcm = fq->hus(itimegcm,:,:,:)
-  u_gcm = fu->ua(itimegcm,:,:,:)
-  v_gcm = fv->va(itimegcm,:,:,:)
-  ps_gcm = fps->ps(itimegcm,:,:)
-  sst_gcm = fsst->sst(itimegcm,:,:)
-  oro_gcm = foro->orog(:,:)
+  t_gcm = ft->ta(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
+  qv_gcm = fq->hus(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
+  u_gcm = fu->ua(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
+  v_gcm = fv->va(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
+  ps_gcm = fps->ps(itimegcm,iminlat:imaxlat,iminlon:imaxlon)
+  sst_gcm = fsst->sst(itimegcm,iminlat:imaxlat,iminlon:imaxlon)
+  oro_gcm = foro->orog(iminlat:imaxlat,iminlon:imaxlon)
 
   ;Shift the longitudes (rgrid2rcm won't work with 0:360 longitudes; it needs 
   ; -180:180 longitudes)

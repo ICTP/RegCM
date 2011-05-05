@@ -124,7 +124,7 @@ discussion in \ref{i_band}.
 \label{aerosolparam}
 This stanza allows the user to specify aerosol usage in the model. It does
 enable building of soil texture database in the \verb=terrain= program and
-control the dimension of the sumber of optical active tracers used in the
+control the dimension of the number of optical active tracers used in the
 active chemistry tracers part of the model.
 
 {\footnotesize
@@ -234,10 +234,10 @@ variable with the modified value in the ASCII file. This can be useful
 for sensitivity experiments on the BATS surface model or to design
 a scenario experiment.
 \item The \verb=inpter= directory is expected to contain a \verb=SURFACE=
-directory where the actual NetCDF global dataset are stored. The overall
+directory where the actual netCDF global dataset are stored. The overall
 path is limited to $256$ characters.
 \label{pathnote}
-\item If the NetCDF library is compiled with OpenDAP support, an URL
+\item If the netCDF library is compiled with OpenDAP support, an URL
 can be used as a path in the \verb=dirter= and \verb=inpter= variables.
 Note that the $256$ character limit for paths holds in the whole program.
 For \verb=terrain= program you may want to try the following URL: \\
@@ -610,7 +610,7 @@ are used.
 and report in any work modification of this parameters.
 \end{enumerate}
 
-\subsection{chemparam}
+\subsection{chemparam stanza}
 
 This stanza controls the optical active aerosols scheme in the RegCM model.
 \footnote{In the future model version a more complete chemical scheme will
