@@ -17,22 +17,33 @@
 
 \section{Introduction}
 
-\subsection{History} The idea that \ac{LAMs} could be used for regional studies
-was originally proposed by \citet{Dickinson_89} and \citet{Giorgi_90}. This idea
-was based on the concept of one-way nesting, in which large scale meteorological
-fields from \ac{GCM} runs provide initial and time-dependent meteorological
-\ac{LBCs} for high resolution \ac{RCM} simulations, with no feedback from the
-\ac{RCM} to the driving \ac{GCM}.
+\subsection{History}
+
+The idea that \ac{LAMs} could be used for regional studies was originally
+proposed by \citet{Dickinson_89} and \citet{Giorgi_90}.
+
+This idea was based on the concept of one-way nesting, in which large scale
+meteorological fields from \ac{GCM} runs provide initial and time-dependent
+meteorological \ac{LBCs} for high resolution \ac{RCM} simulations, with no
+feedback from the \ac{RCM} to the driving \ac{GCM}.
 
 The first generation NCAR \ac{RegCM} was built upon the \ac{NCAR}-\ac{PSU}
-\ac{MM4} in the late 1980s \citep{Dickinson_89,Giorgi_89}. The dynamical
+\ac{MM4} in the late 1980s \citep{Dickinson_89, Giorgi_89}. The dynamical
 component of the model originated from the \ac{MM4}, which is a compressible,
 finite difference model with hydrostatic balance and vertical
-$\sigma$-coordinates. Later, the use of a split-explicit time integration scheme
-was added along with an algorithm for reducing horizontal diffusion in the
-presence of steep topographical gradients \citep{Giorgi_93,Giorgi_93b}.  As a
-result, the dynamical core of the \ac{RegCM} is similar to that of the
-hydrostatic version of \ac{MM5} \citep{Grell_94}.
+$\sigma$-coordinates.
+
+Later, the use of a split-explicit time integration scheme was added along
+with an algorithm for reducing horizontal diffusion in the presence of steep
+topographical gradients \citep{Giorgi_93,Giorgi_93b}.
+
+As a result, the dynamical core of the \ac{RegCM} is similar to that of the
+hydrostatic version of \ac{MM5} \citep{Grell_94}: the \ac{RegCM}4 is thus a
+hydrostatic, compressible, sigma-p vertical coordinate model run on an
+Arakawa B-grid in which wind and thermodynamical variables are horizontally
+staggered using a time-splitting explicit integration scheme in which the two
+fastest gravity modes are first separated from the model solution and then
+integrated with smaller time steps.
 
 For application of the \ac{MM4} to climate studies, a number of physics
 parameterizations were replaced, mostly in the areas of radiative transfer and
@@ -65,33 +76,49 @@ parameters, the cloud fractional cover, the cloud liquid water content, and the
 cloud effective droplet radius. The \ac{CCM3} scheme retains the same structure
 as that of the \ac{CCM2}, but it includes new features such as the effect of
 additional greenhouse gases (${\rm NO_2, CH_4, CFCs}$), atmospheric aerosols,
-and cloud ice.
+and cloud ice. Scattering and absorption of solar radiation by aerosols are
+also included based on the aerosol optical properties (Absorption Coefficient
+and Single Scattering Albedo).
  
-The other primary changes are in the areas of cloud and precipitation processes.
-The original explicit moisture scheme of \citet{Hsie_84} has been substituted
-with a simplified version because the original scheme was computationally too
-expensive to be run in climate mode. In the simplified scheme only a prognostic
-equation for cloud water is included, which accounts for cloud water formation,
-advection and mixing by turbulence, re-evaporation in sub-saturated conditions,
-and conversion into rain via a bulk autoconversion term. The main novelty of
-this scheme does not reside of course in the simplistic microphysics, but in the
-fact that the prognosed cloud water variable is directly used in the cloud
-radiation calculations. In the previous versions of the model, cloud water
-variables for radiation calculations were diagnosed in terms of the local
-relative humidity. This new feature adds a very important and far reaching
-element of interaction between the simulated hydrologic cycle and energy budget
+A simplified explicit moisture scheme \citet{Hsie_84} is included, where only a
+prognostic equation for cloud water is used, which accounts for cloud water
+formation, advection and mixing by turbulence, re-evaporation in sub-saturated
+conditions, and conversion into rain via a bulk autoconversion term.
+Prognosed cloud water variable is directly used in the cloud
+radiation calculations, and not diagnosed in terms of the local
+relative humidity, adding a very important and far reaching element of
+interaction between the simulated hydrologic cycle and energy budget
 calculations. 
+The solar spectrum optical properties are based on the cloud liquid water path,
+which is in turn based on the cloud liquid water amount prognostically
+calculated by the model, cloud fractional cover, which is calculated
+diagnostically as a function of relative humidity, and effective cloud droplet
+radius, which is parameterized as a function of temperature and land sea mask
+for liquid water and as a function of height for ice phase.
+In addition, the scheme diagnostically calculates a fraction of cloud ice as a
+function of temperature. In the infrared spectrum the cloud emissivity is
+calculated as a function of cloud liquid/ice water path and cloud infrared
+absorption cross sections depending on effective radii for the liquid and ice
+phase.
 
-%Other new features in the \ac{RegCM} include improvements in the coupled lake
-%model \citep{Small_99} and the incorporation of a tracer model with capability
-%of radiative interactions \citep{Qian_99}.
-
-%Finally, an important aspect of model development was the inclusion of a
-%stretched grid model configuration, by which the model horizontal resolution is
-%relatively coarse in the lateral buffer zone and increases towards the interior
-%of the domain. Preliminary experiments using an adiabatic version of the model
-%in stretched grid mode are presented by \citep{Qian_99}. However, the stretched
-%grid option is not available with the new \ac{RegCM}3 version.  
+One of the problems in this formulation is that the scheme uses the cloud
+fractional cover to produce grid box mean cloud properties which are then
+treated as if the entire grid box was covered by an effectively thinner
+cloud layer. However, because of the non-linear nature of radiative transfer,
+this approach tends to produce a ‘grayer’ mean grid box than if separate
+cloudy and clear sky fractional fluxes were calculated. By taking advantage
+of the fact that the scheme also calculates clear sky fluxes for diagnostic
+purposes, in RegCM4 we modified this radiative cloud representation by first
+calculating the total cloud cover at a given grid point and then calculating
+the surface fluxes separately for the cloudy and clear sky portions of the
+grid box. The total cloud cover at a model grid box is given by a value
+intermediate between that obtained using the random overlap assumption
+(which maximizes cloud cover) and that given by the largest cloud cover
+found in any single layer of the column overlying the grid box (which implies
+a full overlap and it is thus is a minimum estimate of total cloud cover).
+This modification thus accounts for the occurrence of fractional clear sky at
+a given grid box, leading to more realistic grid-box average surface radiative
+fluxes in fractional cloudy conditions.
 
 Changes in the model physics include a large-scale cloud and precipitation
 scheme which accounts for the subgrid-scale variability of clouds
@@ -123,7 +150,6 @@ Since the vertical and horizontal resolution and domain size can vary, the
 modeling package programs employ parameterized dimensions requiring a variable
 amount of core memory, and the requisite hard-disk storage amount is varied
 accordingly.
-
 
 \subsection{The \ac{RegCM} Model Horizontal and Vertical Grid} \begin{figure}
 \resizebox{6.45in}{!}{\includegraphics{sigma_levels.eps}} \caption{Schematic
