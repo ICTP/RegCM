@@ -1345,7 +1345,7 @@
                    & 'ICTP')
           call check_ok('Error adding global institution', fterr)
           istatus = nf90_put_att(ncid, nf90_global, 'source', &
-                   & 'RegCM Model '//'SVN_REV'//' simulation output')
+                   & 'RegCM Model '//SVN_REV//' simulation output')
           call check_ok('Error adding global source', fterr)
           istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
                    & 'CF-1.4')
