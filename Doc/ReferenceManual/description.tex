@@ -17,12 +17,15 @@
 
 \newpage
 
-\section{Model Description}
+\chapter{Model Physics}
 
-\subsection{Dynamics} The model dynamic equations and numerical discretization
-are described by \cite{Grell_94}.
+\section{Dynamics}
+The model dynamic equations and numerical discretization are described by
+\cite{Grell_94}.
 
-\noindent {\bf Horizontal Momentum Equations} \begin{eqnarray} \nonumber
+\subsection{Horizontal Momentum Equations}
+
+\begin{eqnarray} \nonumber
 {\partial{p^{\ast}u} \over \partial{t}} = -m^2 \left( {\partial{p^{\ast}uu/m}
 \over \partial{x}} + {\partial{p^{\ast}vu/m} \over \partial{y}} \right) -
 {\partial{p^{\ast}u \dot{\sigma}} \over \partial{\sigma}}  \hspace{6cm} \\
@@ -35,78 +38,103 @@ F_Hu + F_Vu, \hspace{3cm} \\\nonumber \\ \nonumber {\partial{p^{\ast}v} \over
 \dot{\sigma}} \over \partial{\sigma}}  \hspace{6cm} \\ \nonumber \\
 - m p^{\ast} \left[ {RT_v \over ({p^{\ast} + p_t/\sigma)}} {\partial{p^{\ast}}
   \over \partial{y}} + {\partial{\phi} \over \partial{y}} \right] + fp^{\ast}u +
-F_Hv + F_Vv, \hspace{3cm} \\ \nonumber \end{eqnarray} \noindent where $u$ and
-$v$ are the eastward and northward components of velocity, $T_v$ is virtual
-temperature, $\phi$ is geopotential height, $f$ is the coriolis parameter, $R$
-is the gas constant for dry air, $m$ is the map scale factor for either the
-Polar Stereographic, Lambert Conformal, or Mercator map projections,
-$\dot{\sigma} = {d\sigma \over dt}$, and $F_H$ and $F_V$ represent the effects
-of horizontal and vertical diffusion, and $p^{\ast}=p_s-p_t$.  \\
+F_Hv + F_Vv, \hspace{3cm} \\ \nonumber
+\end{eqnarray}
 
-\noindent {\bf Continuity and Sigmadot} $({\bf \dot{\sigma}})$ {\bf  Equations}
-\begin{eqnarray} \label{eq:continuity} {{\partial{p^{\ast}} \over \partial{t}}}
+where $u$ and $v$ are the eastward and northward components of
+velocity, $T_v$ is virtual temperature, $\phi$ is geopotential height, $f$ is
+the coriolis parameter, $R$ is the gas constant for dry air, $m$ is the map
+scale factor for either the Polar Stereographic, Lambert Conformal, or Mercator
+map projections, $\dot{\sigma} = {d\sigma \over dt}$, and $F_H$ and $F_V$
+represent the effects of horizontal and vertical diffusion, and
+$p^{\ast}=p_s-p_t$.  \\
+
+\subsection{Continuity and Sigmadot $({\bf \dot{\sigma}})$ Equations}
+
+\begin{eqnarray} \label{eq:continuity}
+{{\partial{p^{\ast}} \over \partial{t}}}
 = -m^2 \left( {\partial{p^{\ast}u/m} \over \partial{x}} + {\partial{p^{\ast}v/m}
 \over \partial{y}} \right) - {\partial{p^{\ast}\dot{\sigma}} \over
-\partial{\sigma}}.  \end{eqnarray} \\ \noindent The vertical integral of
-Equation~\ref{eq:continuity} is used to compute the temporal variation of the
-surface pressure in the model,
+\partial{\sigma}}.
+\end{eqnarray}
 
-\begin{eqnarray} {{\partial{p^{\ast}} \over \partial{t}}} = -m^2 \int_{0}^{1}
+The vertical integral of Equation~\ref{eq:continuity} is used to
+compute the temporal variation of the surface pressure in the model,
+
+\begin{eqnarray}
+{{\partial{p^{\ast}} \over \partial{t}}} = -m^2 \int_{0}^{1}
 \left( {\partial{p^{\ast}u/m} \over \partial{x}} + {\partial{p^{\ast}v/m} \over
-\partial{y}} \right) d\sigma.  \end{eqnarray} \\ \noindent After calculation of
-the surface-pressure tendency ${\partial{p^{\ast}} \over \partial{t}}$, the
+\partial{y}} \right) d\sigma.
+\end{eqnarray}
+
+After calculation of the surface-pressure tendency
+${\partial{p^{\ast}} \over \partial{t}}$, the
 vertical velocity in sigma coordinates $(\dot{\sigma})$ is computed at each
 level in the model from the vertical integral of Equation~\ref{eq:continuity}.
-\begin{eqnarray} \dot{\sigma} = - {1 \over p^{\ast}} \int_{0}^{\sigma} \left[
+
+\begin{eqnarray}
+\dot{\sigma} = - {1 \over p^{\ast}} \int_{0}^{\sigma} \left[
 {\partial{p^{\ast}} \over \partial{t}} + m^2 \left( {\partial{p^{\ast}u/m} \over
 \partial{x}} + {\partial{p^{\ast}v/m} \over \partial{y}} \right) \right]
-d\sigma\prime, \end{eqnarray} \\ \noindent where $\sigma\prime$ is a dummy
-variable of integration and $\dot{\sigma}(\sigma=0)=0$.  \\ \newpage \noindent
-{\bf Thermodynamic Equation and Equation for Omega} ${\bf (\omega)}$ \\
-\noindent The thermodynamic equation is \begin{eqnarray} \nonumber
+d\sigma\prime
+\end{eqnarray}
+
+where $\sigma\prime$ is a dummy
+variable of integration and $\dot{\sigma}(\sigma=0)=0$.
+
+\subsection{Thermodynamic Equation and Equation for Omega ${\bf (\omega)}$}
+
+The thermodynamic equation is
+
+\begin{eqnarray} \nonumber
 {{\partial{p^{\ast}T} \over \partial{t}}} = -m^2 \left( {\partial{p^{\ast}uT/m}
 \over \partial{x}} + {\partial{p^{\ast}vT/m} \over \partial{y}} \right) -
 {\partial{p^{\ast}T\dot{\sigma}} \over \partial{\sigma}} +  \\ \nonumber \\
 {RT_v\omega \over c_{pm}(\sigma + P_t/p_{ast})} + {p^{\ast}Q \over c_{pm}} +
-F_HT + F_VT, \end{eqnarray} \\ \noindent where $c_{pm}$ is the specific heat for
+F_HT + F_VT
+\end{eqnarray}
+
+where $c_{pm}$ is the specific heat for
 moist air at constant pressure, $Q$ is the diabatic heating, $F_HT$ represents
 the effect of horizontal diffusion, $F_VT$ represents the effect of vertical
 mixing and dry convective adjustment, and $\omega$ is
 
-\begin{eqnarray} \omega = p^{\ast} \dot{\sigma} + \sigma {dp^{\ast} \over dt},
-\end{eqnarray} \noindent \\ where, \begin{eqnarray} {dp^{\ast} \over dt} =
+\begin{eqnarray}
+\omega = p^{\ast} \dot{\sigma} + \sigma {dp^{\ast} \over dt}
+\end{eqnarray}
+
+where,
+  
+\begin{eqnarray}
+{dp^{\ast} \over dt} =
 {\partial{p^{\ast}} \over \partial{t}} + m \left( u {\partial{p^{\ast}} \over
-\partial{x}} + v {\partial{p^{\ast}} \over \partial{y}} \right).  \end{eqnarray}
-\\
+\partial{x}} + v {\partial{p^{\ast}} \over \partial{y}} \right)
+\end{eqnarray}
 
-\noindent The expression for $c_{pm} = c_p(1+0.8q_v)$, \noindent \\ where $c_p$
+The expression for $c_{pm} = c_p(1+0.8q_v)$, where $c_p$
 is the specific heat at constant pressure for dry air and $q_v$ is the mixing
-ratio of water vapor.  \\
+ratio of water vapor.
 
-\noindent {\bf Hydrostatic Equation} \\ \noindent The hydrostatic equation is
+\subsection{Hydrostatic Equation}
+
+\noindent The hydrostatic equation is
 used to compute the geopotential heights from the virtual temperature $T_v$,
 
-\begin{eqnarray} {\partial{\phi} \over \partial l n (\sigma + p_t / p^{\ast})} =
--RT_v \left[ 1 + {q_c + q_r \over 1 + q_v} \right]^{-1}, \end{eqnarray}
+\begin{eqnarray}
+{\partial{\phi} \over \partial l n (\sigma + p_t / p^{\ast})} =
+-RT_v \left[ 1 + {q_c + q_r \over 1 + q_v} \right]^{-1}
+\end{eqnarray}
+
 \noindent \\ where $T_v = T(1 + 0.608q_v)$, $q_v$, $q_c$, and $q_r$ are the
 water vapor, cloud water or ice, and rain water or snow, mixing ratios.  
-%\\
 
-%\noindent {\bf Conservation equations for water vapor, cloud water, and rain
-%water} \\ \noindent To resolve precipitation processes, the model
-%prognostically solves three conservation equations for water vapor, cloud water
-%or ice, and rain water or snow, mixing ratios, respectively: \begin{eqnarray}
-%{\partial{q_v} \over \partial{t}} & = & - {\bf V} \cdot \nabla q_v + P_{q_v} +
-%D_{q_v} \\ {\partial{q_c} \over \partial{t}} & = & - {\bf V} \cdot \nabla q_c +
-%P_{q_c} + D_{q_c} \\ {\partial{q_r} \over \partial{t}} & = & - {\bf V} \cdot
-%\nabla q_r - {\partial{V_f \rho g q_r} \over \partial{\sigma}} + P_r + D_{q_r}
-%\end{eqnarray} \noindent where the $P$ terms represent phase-change processes
-%and the $D$ terms represent horizontal and vertical diffusion rates for each of
-%the conserved properties, respectively.
+\newpage
 
-\newpage \subsection{Physics} \label{sec:physics}
+\section{Physics parametrizations} \label{sec:physics}
 
-\subsubsection{Radiation Scheme} \noindent RegCM4 uses the radiation scheme of
+\subsection{Radiation Scheme}
+
+\noindent RegCM4 uses the radiation scheme of
 the NCAR CCM3, which is described in \cite{Kiehl_96}.  Briefly, the solar
 component, which accounts for the effect of ${\rm O_3}$, ${\rm H_2O}$, ${\rm
 CO_2}$, and ${\rm O_2}$, follows the $\delta$-Eddington approximation of
@@ -122,7 +150,7 @@ random overlap) is a function of horizontal gridpoint spacing.  The thickness of
 the cloud layer is assumed to be equal to that of the model layer, and a
 different cloud water content is specified for middle and low clouds.
 
-\subsubsection{Land Surface Models}
+\subsection{Land Surface Models}
 
 \noindent {\bf BATS (default):} BATS is a surface package designed to describe
 the role of vegetation and interactive soil moisture in modifying the
@@ -208,21 +236,49 @@ representation of coastlines using the high-resolution land fraction data
 described in Table~\ref{clm}.  For a more detailed description of CLM physics
 parameterizations see \cite{Oleson_04}.
 
-\begin{table} \begin{center} \caption{Land Cover/Vegetation classes}
-\label{VegTypes} \begin{tabular}{rl} \hline\hline 1.&Crop/mixed farming\\
-2.&Short grass\\ 3.&Evergreen needleleaf tree\\ 4.&Deciduous needleleaf tree\\
-5.&Deciduous broadleaf tree\\ 6.&Evergreen broadleaf tree\\ 7.&Tall grass\\
-8.&Desert\\ 9.&Tundra\\ 10.&Irrigated Crop\\ 11.&Semi-desert\\ 12.&Ice
-cap/glacier\\ 13.&Bog or marsh\\ 14.&Inland water\\ 15.&Ocean\\ 16.&Evergreen
-shrub\\ 17.&Deciduous shrub\\ 18.&Mixed Woodland\\ 19.&Forest/Field mosaic \\
-20.&Water and Land mixture \\ \hline\hline \end{tabular} \end{center}
+\begin{table}
+\centering
+\caption{Land Cover/Vegetation classes}
+\label{VegTypes}
+\begin{tabular}{rl}
+\hline
+\hline
+1.&Crop/mixed farming\\
+2.&Short grass\\
+3.&Evergreen needleleaf tree\\
+4.&Deciduous needleleaf tree\\
+5.&Deciduous broadleaf tree\\
+6.&Evergreen broadleaf tree\\
+7.&Tall grass\\
+8.&Desert\\
+9.&Tundra\\
+10.&Irrigated Crop\\
+11.&Semi-desert\\
+12.&Ice cap/glacier\\
+13.&Bog or marsh\\
+14.&Inland water\\
+15.&Ocean\\
+16.&Evergreen shrub\\
+17.&Deciduous shrub\\
+18.&Mixed Woodland\\
+19.&Forest/Field mosaic \\
+20.&Water and Land mixture \\
+\hline
+\hline
+\end{tabular}
 \end{table}
 
-\begin{center} \begin{landscape} \begin{table}
-%\scriptsize{
-\caption{BATS vegetation/land-cover}  \label{landuse} \hspace{-0.8cm}
-%\vspace{-2.0cm}
-\begin{tabular}{lcccccccccccccccccccc} \hline \hline
+\newpage
+
+\begin{landscape}
+\begin{table}
+\centering
+\caption{BATS vegetation/land-cover}
+\label{landuse}
+{\small
+\begin{tabular}{lcccccccccccccccccccc}
+\hline
+\hline
 \multicolumn{1}{c}{Parameter}&\multicolumn{20}{c}{Land Cover/Vegetation Type}\\
 &1&2&3&4&5&6&7&8&9&10&11&12&13&14&15&16&17&18&19&20 \\ \hline Max fractional \\
 vegetation
@@ -256,61 +312,88 @@ soil (mm) &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000 &3000
 for \\ wavelengths $<$ 0.7 $\mu$ m
 &0.10&0.10&0.05&0.05&0.08&0.04&0.08&0.20&0.10&0.08&0.17&0.80&0.06&0.07&0.07&0.05&0.08&0.06
 &0.06 &0.06 \\ Vegetation albedo for \\ wavelengths $>$ 0.7 $\mu$ m
-&0.30&0.30&0.23&0.23&0.28&0.20&0.30&0.40&0.30&0.28&0.34&0.60&0.18&0.20&0.20&0.23&0.28&0.24&0.18&0.18
-\\  \hline \hline \end{tabular} \end{table} \end{landscape} \end{center}
+&0.30&0.30&0.23&0.23&0.28&0.20&0.30&0.40&0.30&0.28&0.34&0.60&0.18&0.20&0.20&0.23&0.28&0.24&0.18&0.18 \\
+\hline
+\hline
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+\newpage
 
+\begin{table}
+\centering
+\caption{Resolution for CLM input parameters}
+\begin{tabular}{ l  c c c   }
+\hline
+\hline
+Input data & Grid Spacing & Lon range & Lat range \\
+\hline
+Glacier      & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\Lake         & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\
+Wetland      & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\
+Land fraction& $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\
+LAI/SAI      & $0.5^{\circ}$ x $0.5^{\circ}$   & $\pm 179.75$  & $\pm 89.75$  \\
+PFT          & $0.5^{\circ}$ x $0.5^{\circ}$   & $\pm 179.75$  & $\pm 89.75$  \\
+Soil color   & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\
+Soil texture & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$ \\
+Max. sat. area  & $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$  \\
+\hline
+\hline
+\label{clm}
+\end{tabular}
+\end{table}
 
-\begin{table} \begin{center} \caption{Resolution for CLM input parameters}
-\begin{tabular}{ l  c c c   }  \hline \hline Input data & Grid Spacing & Lon
-range & Lat range \\ \hline Glacier      & $0.05^{\circ}$ x $0.05^{\circ}$ &
-$\pm 179.975$ & $\pm 89.975$   \\ Lake          & $0.05^{\circ}$ x
-$0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$   \\ Wetland    & $0.05^{\circ}$ x
-$0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$   \\ Land fraction      &
-$0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$   \\ LAI/SAI
-& $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$    \\ PFT
-& $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$    \\ Soil color
-& $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$   \\ Soil
-texture    & $0.05^{\circ}$ x $0.05^{\circ}$ & $\pm 179.975$ & $\pm 89.975$   \\
-Max. sat. area      & $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$
-\\ \hline \hline \label{clm} \end{tabular} \end{center} \end{table}
+\subsection{Planetary Boundary Layer Scheme}
 
-
-\subsubsection{Planetary Boundary Layer Scheme} \noindent The planetary boundary
+The planetary boundary
 layer scheme, developed by \cite{Holtslag_90}, is based on a nonlocal diffusion
 concept that takes into account countergradient fluxes resulting from
 large-scale eddies in an unstable, well-mixed atmosphere.  The vertical eddy
-flux within the PBL is given by \\ \begin{eqnarray} F_c = -K_c \left(
-{\partial{C} \over \partial{z}} - \gamma_c \right) \end{eqnarray} \\
+flux within the PBL is given by
 
-\noindent where $\gamma_c$ is a ``countergradient'' transport term describing
+\begin{eqnarray}
+F_c = -K_c \left( {\partial{C} \over \partial{z}} - \gamma_c \right)
+\end{eqnarray}
+
+where $\gamma_c$ is a ``countergradient'' transport term describing
 nonlocal transport due to dry deep convection.  The eddy diffusivity is given by
-the nonlocal formulation \\ \begin{eqnarray} K_c = kw_tz \left( 1- {z \over h}^2
-\right), \end{eqnarray}
+the nonlocal formulation
 
-\noindent where $k$ is the von Karman constant; $w_t$ is a turbulent convective
+\begin{eqnarray}
+K_c = kw_tz \left( 1- {z \over h}^2 \right)
+\end{eqnarray}
+
+where $k$ is the von Karman constant; $w_t$ is a turbulent convective
 velocity that depends on the friction velocity, height, and the Monin--Obhukov
-length;  and $h$ is the PBL height.  The countergradient term for temperature
-and water vapor is given by \\ \begin{eqnarray}  \label{eq:countergradient}
-\gamma_c = C { {\phi_c}^0 \over w_t h}, \end{eqnarray}
+length;  and $h$ is the PBL height.
 
-\noindent where C is a constant equal to 8.5, and ${\phi_c}^0$ is the surface
+The countergradient term for temperature and water vapor is given by
+
+\begin{eqnarray}
+\label{eq:countergradient}
+\gamma_c = C { {\phi_c}^0 \over w_t h}
+\end{eqnarray}
+
+where C is a constant equal to 8.5, and ${\phi_c}^0$ is the surface
 temperature or water vapor flux. Equation~\ref{eq:countergradient} is applied
 between the top of the PBL and the top of the surface layer, which is assumed to
 be equal to $0.1h$. Outside this region and for momentum, $\gamma_c$ is assumed
 to be equal to 0.  
 
 For the calculation of the eddy diffusivity and countergradient terms, the PBL
-height is diagnostically computed from \\ \begin{eqnarray} h = { {\rm Ri_cr}
-[u(h)^2 + v(h)^2] \over (g/\theta_s)[\theta_v(h)-\theta_s] } \end{eqnarray}
+height is diagnostically computed from
 
-\noindent where $u(h)$, $v(h)$, and $\theta_v$ are the wind components and the
+\begin{eqnarray}
+h = { {\rm Ri_cr} [u(h)^2 + v(h)^2] \over (g/\theta_s)[\theta_v(h)-\theta_s] }
+\end{eqnarray}
+
+where $u(h)$, $v(h)$, and $\theta_v$ are the wind components and the
 virtual potential temperature at the PBL height, $g$ is gravity, ${\rm Ri_cr}$
 is the critical bulk Richardson number, and $\theta_s$ is an appropriate
 temperature of are near the surface.  Refer to \cite{Holtslag_90} and
 \cite{Holtslag_93} for a more detailed description.
 
-
-\subsubsection{Convective Precipitation Schemes}
+\subsection{Convective Precipitation Schemes}
 
 Convective precipitation is computed using one of three schemes: (1)
 Modified-Kuo scheme \cite{Anthes_77}; (2) Grell scheme \cite{Grell_93}; and (3)
@@ -320,16 +403,33 @@ Arakawa and Schubert closure \cite{Grell_94} and (2) the Fritsch and Chappell
 closure \cite{Fritsch_80}, hereafter refered to as AS74 and FC80,
 respectively.\\
 
-\noindent {\bf 1.  Kuo Scheme:}  Convective activity in the Kuo scheme is
+\noindent{
+\begin{enumerate}
+\item {\bf Kuo Scheme:}  Convective activity in the Kuo scheme is
 initiated when the moisture convergence $M$ in a column exceeds a given
 threshold and the vertical sounding is convectively unstable. A fraction of the
 moisture convergence $\beta$ moistens the column and the rest is converted into
-rainfall $P^{CU}$ according to the following relation: \begin{eqnarray}
-P^{CU}&=&M(1-\beta).  \label{eqn_model:KUOppt} \end{eqnarray} $\beta$ is a
-function of the average relative humidity $\overline{RH}$ of the sounding as
-follows: \begin{eqnarray} \beta&=&\left\{ \begin{array} {r@{\quad\quad}l}
-2(1-\overline{RH}) & \overline{RH}\ge 0.5 \\ 1.0 & \mbox{otherwise} \end{array}
-\right.  \label{eqn_model:Bfact} \end{eqnarray} Note that the moisture
+rainfall $P^{CU}$ according to the following relation:
+
+\begin{eqnarray}
+P^{CU}&=&M(1-\beta).
+\label{eqn_model:KUOppt}
+\end{eqnarray}
+
+$\beta$ is a function of the average relative humidity $\overline{RH}$ of the
+sounding as follows:
+
+\begin{eqnarray}
+\beta&=&\left\{
+  \begin{array}
+  {r@{\quad\quad}l} 2(1-\overline{RH}) & \overline{RH}\ge 0.5 \\
+  1.0 & \mbox{otherwise}
+  \end{array} 
+  \right\}
+\label{eqn_model:Bfact}
+\end{eqnarray}
+
+Note that the moisture
 convergence term includes only the advective tendencies for water vapor.
 However, evapotranspiration from the previous time step is indirectly included
 in $M$ since it tends to moisten the lower atmosphere. Hence, as the
@@ -341,7 +441,7 @@ point storms, a horizontal diffusion term and a time release constant are
 included so that the redistributions of moisture and the latent heat release are
 not performed instantaneously \citep{Giorgi_89b, Giorgi_91c}. \\
 
-\noindent {\bf 2.  Grell Scheme:}    The Grell scheme \cite{Grell_93}, similar
+\item {\bf Grell Scheme:} The Grell scheme \cite{Grell_93}, similar
 to the AS74 parameterization, considers clouds as two steady-state circulations:
 an updraft and a downdraft. No direct mixing occurs between the cloudy air and
 the environmental air except at the top and bottom of the circulations. The mass
@@ -351,12 +451,24 @@ the levels of maximum and minimum moist static energy, respectively. The Grell
 scheme is activated when a lifted parcel attains moist convection. Condensation
 in the updraft is calculated by lifting a saturated parcel. The downdraft mass
 flux ($m_0$) depends on the updraft mass flux ($m_b$) according to the following
-relation: \begin{eqnarray} m_0=\frac{\beta I_1}{I_2}m_b, \end{eqnarray} where
+relation:
+
+\begin{eqnarray}
+m_0=\frac{\beta I_1}{I_2}m_b
+\end{eqnarray}
+
+where
 $I_1$ is the normalized updraft condensation, $I_2$ is the normalized downdraft
 evaporation, and $\beta$ is the fraction of updraft condensation that
 re-evaporates in the downdraft. $\beta$ depends on the wind shear and typically
-varies between 0.3 and 0.5. Rainfall is given by \begin{eqnarray}
-P^{CU}&=&I_1m_b(1-\beta).  \label{eqn_model:GCCppt} \end{eqnarray} Heating and
+varies between 0.3 and 0.5. Rainfall is given by
+
+\begin{eqnarray}
+P^{CU}&=&I_1m_b(1-\beta)
+\label{eqn_model:GCCppt}
+\end{eqnarray}
+
+Heating and
 moistening in the Grell scheme are determined both by the mass fluxes and the
 detrainment at the cloud top and bottom. In addition, the cooling effect of
 moist downdrafts is included.
@@ -365,8 +477,14 @@ Due to the simplistic nature of the Grell scheme, several closure assumptions
 can be adopted. RegCM4's earlier version directly implements the
 quasi-equilibrium assumption of AS74. It assumes that convective clouds
 stabilize the environment as fast as non-convective processes destabilize it as
-follows: \begin{eqnarray} m_b=\frac{ABE''-ABE}{NA\Delta t},
-\label{eqn_model:closureAS} \end{eqnarray} where $ABE$ is the buoyant energy
+follows:
+
+\begin{eqnarray}
+m_b=\frac{ABE''-ABE}{NA\Delta t}
+\label{eqn_model:closureAS}
+\end{eqnarray}
+
+where $ABE$ is the buoyant energy
 available for convection, $ABE''$ is the amount of buoyant energy available for
 convection in addition to the buoyant energy generated by some of the
 non-convective processes during the time interval $\Delta t$, and $NA$ is the
@@ -378,20 +496,24 @@ advection of heat and moisture and the dry adiabatic adjustment.
 In the latest RegCM4 version, by default, we use a stability based closure
 assumption, the FC80 type closure assumption, that is commonly implemented in
 GCMs and RCMs. In this closure, it is assumed that convection removes the $ABE$
-over a given time scale as follows: \begin{eqnarray} m_b=\frac{ABE}{NA \tau},
-\label{eqn_model:closureFC} \end{eqnarray} where $\tau$ is the $ABE$ removal
-time scale.
+over a given time scale as follows:
+
+\begin{eqnarray}
+m_b=\frac{ABE}{NA \tau}
+\label{eqn_model:closureFC}
+\end{eqnarray}
+
+where $\tau$ is the $ABE$ removal time scale.
 
 The fundamental difference between the two assumptions is that the AS74 closure
 assumption relates the convective fluxes and rainfall to the tendencies in the
 state of the atmosphere, while the FC80 closure assumption relates the
 convective fluxes to the degree of instability in the atmosphere. Both schemes
 achieve a statistical equilibrium between convection and the large-scale
-processes.  \\
+processes.
 
-
-\noindent {\bf 3. MIT-Emanuel scheme:} The newest cumulus convection option to
-the \ac{RegCM4} is the\ac{MIT} scheme. More detailed descriptions can be found
+\item {\bf MIT-Emanuel scheme:} 
+More detailed descriptions can be found
 in \citet{Emanuel_91} and\citet{Emanuel_99}.  The scheme assumes that the
 mixing in clouds ishighly episodic and inhomogeneous (as opposed to a
 continuousentraining plume) and considers convective fluxes based on
@@ -418,7 +540,11 @@ single,hydrostatic, unsaturated downdraft that transports heat and
 water.Lastly, the MIT-Emanuel scheme considers the transport of passive
 tracers.
 
-\subsubsection{Large-Scale Precipitation Scheme}  Subgrid Explicit Moisture
+\end{enumerate}
+
+\subsection{Large-Scale Precipitation Scheme}
+
+Subgrid Explicit Moisture
 Scheme (SUBEX) is used to handle nonconvective clouds and precipitation resolved
 by the model.  This is one of the new components of the model.  SUBEX accounts
 for the subgrid variability in clouds by linking the average grid cell relative
@@ -426,61 +552,78 @@ humidity to the cloud fraction and cloud water following the work of
 \cite{Sundqvist_89}.  
 
 The fraction of the grid cell covered by clouds, $FC$, is determined by,
-\begin{eqnarray} FC = \sqrt{ { {RH - RH_{min}} \over {RH_{max} - RH_{min} }} }
+
+\begin{eqnarray}
+FC = \sqrt{ { {RH - RH_{min}} \over {RH_{max} - RH_{min} }} }
 \end{eqnarray}
 
-\noindent where ${RH_{min}}$ is the relative humidity threshold at which clouds
+where ${RH_{min}}$ is the relative humidity threshold at which clouds
 begin to form, and ${RH_{max}}$ is the relative humidity where $FC$ reaches
 unity.  $FC$ is assumed to be zero when RH is less than ${RH_{min}}$ and unity
 when RH is greater than ${RH_{max}}$.  
 
 Precipitation $P$ forms when the cloud water content exceeds the autoconversion
-threshold ${Q^{th}}_c$ according to the following relation: \begin{eqnarray} P =
-C_{ppt}(Q_c/FC - {{Q_c}^{th}})FC \end{eqnarray}
+threshold ${Q^{th}}_c$ according to the following relation:
 
-\noindent where $1/C_{ppt}$ can be considered the characteristic time for which
+\begin{eqnarray}
+P = C_{ppt}(Q_c/FC - {{Q_c}^{th}})FC
+\end{eqnarray}
+
+where $1/C_{ppt}$ can be considered the characteristic time for which
 cloud droplets are converted to raindrops.  The threshold is obtained by scaling
 the median cloud liquid water content equation according to the following:
-\begin{eqnarray} {Q^{th}}_c = C_{acs} 10^{-0.49 + 0.013T}, \end{eqnarray}
 
-\noindent where $T$ is temperature in degrees Celsius, and $C_{acs}$ is the
+\begin{eqnarray}
+{Q^{th}}_c = C_{acs} 10^{-0.49 + 0.013T}
+\end{eqnarray}
+
+where $T$ is temperature in degrees Celsius, and $C_{acs}$ is the
 autoconversion scale factor.  Precipitation is assumed to fall instantaneously.
 
 SUBEX also includes simple formulations for raindrop accretion and evaporation.
 The formulation for the accretion of cloud droplets by falling rain droplets is
-based on the work of \cite{Beheng_94} and is as follows: \begin{eqnarray}
-P_{acc} = C_{acc} Q P_{sum} \end{eqnarray}
+based on the work of \cite{Beheng_94} and is as follows:
 
-\noindent where $P_{acc}$ is the amount of accreted cloud water, $C_{acc}$ is
+\begin{eqnarray}
+P_{acc} = C_{acc} Q P_{sum}
+\end{eqnarray}
+
+where $P_{acc}$ is the amount of accreted cloud water, $C_{acc}$ is
 the accretion rate coefficient, and $P_{sum}$ is the accumulated precipitation
 from above falling through the cloud.  
 
 Precipitation evaporation is based on the work of \cite{Sundqvist_89} and is as
-follows, \begin{eqnarray} P_{evap} = C_{evap} (1-RH) {P^{1/2}}_{sum}
+follows
+
+\begin{eqnarray}
+P_{evap} = C_{evap} (1-RH) {P^{1/2}}_{sum}
 \end{eqnarray}
 
-\noindent where $P_{evap}$ is the amount of evaporated precipitation, and
+where $P_{evap}$ is the amount of evaporated precipitation, and
 $C_{evap}$ is the rate coefficient.  For a more detailed description of SUBEX
 and a list of the parameter values refer to \cite{Pal_00}. 
 
+\subsection{Ocean flux Parameterization}
 
-
-\subsubsection{Ocean flux Parameterization} \noindent 1.  BATS: {BATS} uses
-standard Monin-Obukhov similarity relations to compute the fluxes with no
+\ac{BATS} uses standard Monin-Obukhov similarity relations to compute the
+fluxes with no
 special treatment of convective and very stable conditions.  In addition, the
 roughness length is set to a constant, i.e. it is not a function of wind and
 stability.  
 
-\noindent 2.  Zeng:  The Zeng scheme describes all stability conditions and
+The Zeng scheme describes all stability conditions and
 includes a gustiness velocity to account for the additional flux induced by
 boundary layer scale variability. Sensible heat (${\rm SH}$), latent heat (${\rm
 LH}$), and momentum ($\tau$) fluxes between the sea surface and lower atmosphere
-are calculated using the following bulk aerodynamic algorithms, \begin{eqnarray}
+are calculated using the following bulk aerodynamic algorithms,
+    
+\begin{eqnarray}
 \tau = \rho_a {u_{\ast}}^2 ({u_{x}}^2 + {u_{y}}^2)^{1/2} / u \\ \nonumber \\
 {\rm SH} = -\rho_a C_{pa} u_{\ast} \theta_{\ast} \hspace{.6cm} \\ \nonumber \\
-{\rm LH} =  -\rho_a L_{e} u_{\ast} q_{\ast}  \hspace{.65cm} \end{eqnarray}
+{\rm LH} =  -\rho_a L_{e} u_{\ast} q_{\ast}  \hspace{.65cm}
+\end{eqnarray}
 
-\noindent where $u_x$ and $u_y$ are mean wind components, $u_{\ast}$ is the
+where $u_x$ and $u_y$ are mean wind components, $u_{\ast}$ is the
 frictional wind velocity, $\theta_{\ast}$ is the temperature scaling parameter,
 $q_{\ast}$ is the specific humidity scaling parameter,  $\rho_a$ is air density,
 $C_{pa}$ is specific heat of air, and $L_{e}$ is the latent heat of
@@ -488,36 +631,42 @@ vaporization.  For further details on the calculation of these parameters refer
 to \cite{Zeng_98}.
  
 
-\subsubsection{Prognostic Sea Surface Skin Temperature Scheme} RegCM4 contains a
+\subsection{Prognostic Sea Surface Skin Temperature Scheme}
+
+RegCM4 contains a
 option which allows for the computation of sea surface skin temperature as a
 prognostic variable following the scheme of \cite{Zeng_05}.  This allows for a
 realistic representation of the diurnal sea surface skin temperature, leading to
 improvements in the surface fluxes thus air-sea interactions.  The scheme is
 based on a two-layer model which includes warm layer/cool skin effects as
-described by \cite{Fairall_96}).  Temperatures in the two layers are calculated
+described by \cite{Fairall_96}.  Temperatures in the two layers are calculated
 using a one-dimensional heat transfer equation and boundary conditions
 determined by surface to atmosphere fluxes (latent, sensible and radiative) and
 a 3~m depth sea surface temperature taken from the prescribed SSTs. 
 
+\subsection{Pressure Gradient Scheme}
 
-\subsubsection{Pressure Gradient Scheme} Two options are available for
+Two options are available for
 calculating the pressure gradient force.  The normal way uses the full fields.
 The other way is the hydrostatic deduction scheme which makes use of a
 perturbation temperature.  In this scheme, extra smoothing on the top is done in
 order to reduce errors related to the PGF calculation. 
 
-\subsubsection{Lake Model} The lake model developed by  \cite{Hostetler_93} can
+\subsection{Lake Model}
+The lake model developed by \cite{Hostetler_93} can
 be interactively coupled to the atmospheric model.  In the lake model, fluxes of
 heat, moisture, and momentum are calculated based on meteorological inputs and
 the lake surface temperature and albedo.  Heat is transferred vertically between
 lake model layers by eddy and convective mixing.  Ice and snow may cover part or
 all of the lake surface.
 
-In the lake model, the prognostic equation for temperature is, \begin{eqnarray}
-{\partial{T} \over \partial{t}} = (k_e + k_m) {\partial^2{T} \over \partial{z}^2
-} \end{eqnarray}
+In the lake model, the prognostic equation for temperature is
 
-\noindent where $T$ is the temperature of the lake layer, and $k_e$ and $k_m$
+\begin{eqnarray}
+{\partial{T}\over \partial{t}} = (k_e + k_m) {\partial^2{T}\over \partial{z}^2 }
+\end{eqnarray}
+
+where $T$ is the temperature of the lake layer, and $k_e$ and $k_m$
 are the eddy and molecular diffusivities, respectively.   The parameterization
 of \cite{Henderson-Sellers_86} is used to calculate $k_e$ and $k_m$ is set to a
 constant value of $39 \times 10^{-7}~m^2~s^{-1}$ except under ice and at the
@@ -526,15 +675,16 @@ deepest points in the lake.
 Sensible and latent heat fluxes from the lake are calculated using  the BATS
 parameterizations \cite{Dickinson_93}.  The bulk aerodynamic formulations for
 latent heat flux ($F_q$) and sensible heat flux ($F_s$) are as follows,
-\begin{eqnarray} F_q = \rho_a C_D V_a (q_s - q_a) \\ F_s = \rho_a C_p C_D V_a
-(T_s - T_a) \end{eqnarray}
 
-\noindent where the subscripts $s$ and $a$ refer to surface and air,
+\begin{eqnarray}
+F_q = \rho_a C_D V_a (q_s - q_a) \\ F_s = \rho_a C_p C_D V_a (T_s - T_a)
+\end{eqnarray}
+
+where the subscripts $s$ and $a$ refer to surface and air,
 respectively; $\rho_a$ is the density of air, $V_a$ is the wind speed, $C_p$,
 $q$ is specific humidity, and $T$ is temperature.  The momentum drag
 coefficient, $C_D$, depends on roughness length and the surface bulk Richardson
 number.
-
 
 Under ice-free conditions, the lake surface albedo is calculated as a function
 of solar zenith angle \cite{Henderson-Sellers_86}.  Longwave radiation emitted
@@ -544,7 +694,9 @@ different heat and moisture exchanges between open water and ice surfaces and
 the atmosphere, and to calculate the surface energy of lake ice and overlying
 snow.  For further details refer to \cite{Hostetler_93} and \cite{Small_99b}. 
 
-\subsubsection{Aerosols and Dust (Chemistry Model)} The representation of dust
+\subsection{Aerosols and Dust (Chemistry Model)}
+
+The representation of dust
 emission processes is a key element in a dust model and depends on the wind
 conditions, the soil characteristics and the particle size. Following
 Marticorena and Bergametti (1995) and Alfaro and Gomes (2001), here the dust
