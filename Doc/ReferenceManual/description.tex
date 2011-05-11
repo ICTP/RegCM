@@ -192,8 +192,17 @@ Meteorological variables are disaggregatedfrom the coarse grid to the fine
 grid based on the elevationdifferences.  The \ac{BATS} calculations are then
 performed separatelyfor each subgrid cell, and surface fluxes are reaggregated
 onto thecoarse grid cell for input to the atmospheric model.
-Thisparameterization showed a marked improvement in the representation ofthe
-surface hydrological cycle in mountainous regions \citep{Giorgi03b}. \\
+This parameterization showed a marked improvement in the representation ofthe
+surface hydrological cycle in mountainous regions \citep{Giorgi03b}.
+As a first augmentation, in \ac{RegCM4} two new land use types were added to
+\ac{BATS} to represent urban and sub-urban environments. Urban development not
+only modifies the surface albedo and alters the surface energy balance, but
+also creates impervious surfaces with large effects on runoff and
+evapotranspiration.
+These effects can be described by modifying relevant properties of the land
+surface types in the BATS package, such as maximum vegetation cover, roughness
+length, albedo, and soil characteristics. For this purpose, we implemented the
+parameters proposed in Table 1 of \cite{Kueppers_08}.
 
 \noindent {\bf CLM (optional):} The Community Land Model (CLM; \cite{Oleson_08})
 is the land surface model developed by the National Center of Atmospheric
@@ -393,6 +402,36 @@ is the critical bulk Richardson number, and $\theta_s$ is an appropriate
 temperature of are near the surface.  Refer to \cite{Holtslag_90} and
 \cite{Holtslag_93} for a more detailed description.
 
+Compared to other schemes this formulation tends to produce relatively strong,
+and often excessive, turbulent vertical transfer.
+For example, after extensive testing, we found excessive vertical transfer
+of moisture in the model resulting in low moisture amounts near the surface
+and excessive moisture near the PBL top.
+
+Therefore in order to ameliorate this problem, the countergradient term for
+water vapor was removed in \ac{RegCM4}. Another problem of the Holtslag scheme
+(at least in our implementation) is an excessive vertical transport of heat,
+moisture and momentum in very stable conditions, such as during the winter in
+northern hemisphere high latitude regions. For example we found that in such
+conditions the scheme fails to simulate near surface temperature inversions.
+
+This in turn leads to large warm winter biases (even > 10 degrees) over regions
+such as Northern Siberia and Northern Canada. As an ad-hoc fix to address this
+problem, in \ac{RegCM4} we implemented the following modification to the scheme:
+
+\begin{itemize}
+\item We first define “very stable” conditions within the Holtslag
+parameterization as conditions in which the ratio of the height from the
+surface over the Monin-Obhukov length is lower than 0.1.
+\item When such conditions are found, we set to 0 the eddy diffusivity
+and counter-gradient terms for all variables.
+\end{itemize}
+
+Preliminary tests showed that this modification reduces the warm bias in high
+latitude winter conditions and allows the model to better capture surface
+inversions. These modifications have thus been incorporated as default in the
+\ac{RegCM4} code.
+
 \subsection{Convective Precipitation Schemes}
 
 Convective precipitation is computed using one of three schemes: (1)
@@ -512,6 +551,13 @@ convective fluxes to the degree of instability in the atmosphere. Both schemes
 achieve a statistical equilibrium between convection and the large-scale
 processes.
 
+A number of parameters present in the scheme can be used to optimize its
+performance, and \cite{Giorgi_93c} discusses a wide range of sensitivity
+experiments. We found that the parameter to which the scheme is most sensitive
+is by and large the fraction of precipitation evaporated in the downdraft
+(Peff, with values from 0 to 1), which essentially measures the precipitation
+efficiency. Larger values of Peff lead to reduced precipitation.
+
 \item {\bf MIT-Emanuel scheme:} 
 More detailed descriptions can be found
 in \citet{Emanuel_91} and\citet{Emanuel_99}.  The scheme assumes that the
@@ -530,17 +576,41 @@ is proportional to the undiluted buoyancy rate of change withaltitude.  The
 cloud base upward mass flux is relaxed towards thesub-cloud layer quasi
 equilibrium.
 
-In addition to a more physical representation of convection, theMIT-Emanuel
+In addition to a more physical representation of convection, the MIT-Emanuel
 scheme offers several advantages compared to theother RegCM4 convection
 options.  For instance, it includes aformulation of the auto-conversion of
 cloud water into precipitationinside cumulus clouds, and ice processes are
 accounted for by allowingthe auto-conversion threshold water content to be
 temperaturedependent.  Additionally, the precipitation is added to a
 single,hydrostatic, unsaturated downdraft that transports heat and
-water.Lastly, the MIT-Emanuel scheme considers the transport of passive
+water. Lastly, the MIT-Emanuel scheme considers the transport of passive
 tracers.
 
+The MIT scheme is the most complex of the three and also includes a number of
+parameters that can be used to optimize the model performance in different
+climate regimes. Differently from the Grell scheme, however, test experiments
+did not identify a single parameter to which the model is most sensitive.
 \end{enumerate}
+
+
+A major augmentation in \ac{RegCM4} compared to previous versions of the model
+is the capability of running different convection schemes over land and ocean,
+a configuration which we refer to as “mixed convection”. Extensive test
+experiments showed that different schemes have different performance over
+different regions, and in particular over land vs. ocean areas.
+
+For example, the MIT scheme tends to produce excessive precipitation over land
+areas, especially through the occurrence of very intense individual
+precipitation events.
+
+In other words, once the scheme is activated, it becomes difficult to
+“decelerate”. Conversely, we found that the Grell scheme tends to produce
+excessively weak precipitation over tropical oceans.
+
+These preliminary tests suggested that a mixed convection approach by which,
+for example, the MIT scheme is used over oceans and the Grell scheme over
+land, might be the most suitable option to pursue, and therefore this option
+was added to the model.
 
 \subsection{Large-Scale Precipitation Scheme}
 
@@ -603,6 +673,13 @@ where $P_{evap}$ is the amount of evaporated precipitation, and
 $C_{evap}$ is the rate coefficient.  For a more detailed description of SUBEX
 and a list of the parameter values refer to \cite{Pal_00}. 
 
+Traditionally, \ac{RegCM3} has shown a tendency to produce excessive
+precipitation, especially at high resolutions, and optimizations of 
+the in-cloud liquid water threshold for the activation of the autoconversion
+term $Qcth$ and the rate of sub-cloud evaporation $Cevap$ parameters have
+proven effective in ameliorating this problem: greater values of $Qth$ and
+$Cevap$ lead to decreased precipitation amounts.
+
 \subsection{Ocean flux Parameterization}
 
 \ac{BATS} uses standard Monin-Obukhov similarity relations to compute the
@@ -630,19 +707,24 @@ $C_{pa}$ is specific heat of air, and $L_{e}$ is the latent heat of
 vaporization.  For further details on the calculation of these parameters refer
 to \cite{Zeng_98}.
  
-
 \subsection{Prognostic Sea Surface Skin Temperature Scheme}
 
-RegCM4 contains a
-option which allows for the computation of sea surface skin temperature as a
-prognostic variable following the scheme of \cite{Zeng_05}.  This allows for a
-realistic representation of the diurnal sea surface skin temperature, leading to
-improvements in the surface fluxes thus air-sea interactions.  The scheme is
-based on a two-layer model which includes warm layer/cool skin effects as
-described by \cite{Fairall_96}.  Temperatures in the two layers are calculated
-using a one-dimensional heat transfer equation and boundary conditions
-determined by surface to atmosphere fluxes (latent, sensible and radiative) and
-a 3~m depth sea surface temperature taken from the prescribed SSTs. 
+By default in \ac{RegCM}, sea surface temperatures (SST) are prescribed every
+six hours from temporally interpolated weekly or monthly SST products.
+These products, which are produced from satellite retrievals and in situ
+measurements, are representative of the mean temperature in the top
+few meters of the ocean. However, the actual SST can differ significantly
+from this mean temperature due to the cool-skin and warm-layer effects
+described by \cite{Fairall_96}. To improve the calculation of diurnal fluxes
+over the ocean, the prognostic SST scheme described by \cite{Zeng_05} was
+implemented in \ac{RegCM4}. The scheme is based on a two-layer
+one-dimensional heat transfer model, with the top layer representing the
+upper few millimeters of the ocean which is cooled by net longwave radiation
+loss and surface fluxes. The bottom layer is three meters thick, it is warmer by
+solar radiation and exchanges heat with the top layer. This diurnal SST
+scheme appears to provide significant, although not major, effects on the
+model climatology mostly over tropical oceans, for example the Indian ocean,
+and it is now used as default in \ac{RegCM4}.
 
 \subsection{Pressure Gradient Scheme}
 
