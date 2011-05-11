@@ -31,7 +31,7 @@ $> cd $REGCM_RUN
 Now we are ready to modify the input namelist file to reflect this directory
 layout. A namelist file in Fortran90 is a convenient way to give input to a
 program in a formatted file, read at runtime by the program to setup its
-execution behaviour. So next step is somewhat tricky, as you need to edit
+execution behaviour. So the next step is somewhat tricky, as you need to edit
 the namelist file respecting its well defined syntax. Open your preferred text
 file editor and load the \verb=test_001.in= file. You will need to modify for
 the scope of the present tutorial the following lines:
@@ -76,14 +76,14 @@ TO:
  dirout='output/'
 \end{Verbatim}
 
-This modifications just reflect the above directory layout proposed for this
-tutorial, and any of this paths can point anywhere on your system disks. Path
+These modifications just reflect the above directory layout proposed for this
+tutorial, and any of these paths can point anywhere on your system disks. The path
 is limited to $256$ characters.
 We are now ready to execute the first program of the RegCM model.
 
 \section{Create the DOMAIN file using terrain}
 
-First step is to create the DOMAIN file to localize the model on a world region.
+The first step is to create the DOMAIN file to localize the model on a world region.
 The program which does this for you reading the global databases is
 \verb=terrain= .
 
@@ -110,9 +110,9 @@ test_001_DOMAIN000.nc test_001_LANDUSE
 \end{Verbatim}
 
 The DOMAIN file contains the localized topography and landuse databases, as
-well as projection informations and land sea mask. The second file is an ASCII
+well as projection information and land sea mask. The second file is an ASCII
 encoded version of the landuse, used for modifying it on request. We will cover
-it's usage later on.  To have a quick look at DOMAIN file content, you may want
+it's usage later on.  To have a quick look at the DOMAIN file content, you may want
 to use the GrADSNcPlot program:
 
 \begin{Verbatim}
@@ -272,8 +272,8 @@ $> ./Bin/regcmSerial test_001.in
 \end{itemize}
 
 Now the model will start running, and a series of diagnostic messages will be
-printed on screen. As this is a simulation known to well behave, no stoppers
-will appear, so you may want now to have a coffe break and come back in 10
+printed on screen. As this is a simulation known to behave well, no stoppers
+will appear, so you may want now to have a coffee break and come back in 10
 minutes from now.
 
 At the end of the run, the model will print the following message:
@@ -292,7 +292,7 @@ test_001_RAD.1990060100.nc test_001_SAV.1990070100
 
 the ATM file contains the atmosphere status from the model, the SRF file
 contains the surface diagnostic variables, and the RAD file contains radiation
-fluxes informations. The SAV file stores the status of the model at the end of
+fluxes information. The SAV file stores the status of the model at the end of
 the simulation period to enable a restart, thus allowing a long simulation
 period to be splitted in shorter simulations.
 
