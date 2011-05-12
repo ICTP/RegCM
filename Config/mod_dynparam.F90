@@ -515,6 +515,9 @@
         call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
 
+        call mpi_bcast(dayspy,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dpd,1,mpi_real8,0,mpi_comm_world,ierr)
+
         call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
 
         call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
