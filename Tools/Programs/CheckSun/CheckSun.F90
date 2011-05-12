@@ -28,7 +28,7 @@ program checksun
   real(4) , allocatable , dimension(:,:) :: xlat , xlon , solin
   integer , dimension(3) :: idims , istart , icount
   integer , dimension(1) :: ixtime
-  integer :: ivarid , itimid
+  integer :: ivarid , itimid , ilonid , ilatid
   integer :: idate0 , idate1 , idate2 , idate , ifrq
   integer :: jxdimid , iydimid
   integer :: jx , iy
@@ -219,6 +219,30 @@ program checksun
     write (6,*) nf90_strerror(istatus)
     stop
   end if
+  istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), ilatid)
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error create variable xlat'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
+  istatus = nf90_put_att(ncid, ilatid, 'units', 'degrees_north')
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error adding xlat units'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
+  istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), ilonid)
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error create variable xlon'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
+  istatus = nf90_put_att(ncid, ilonid, 'units', 'degrees_east')
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error adding xlon units'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
   istatus = nf90_def_var(ncid, 'solin', nf90_float, idims, ivarid)
   if (istatus /= nf90_noerr) then
     write (6,*) 'Error create variable solin'
@@ -244,6 +268,19 @@ program checksun
   nt = idatediff(idate2,idate1)/ifrq+1
   julday = idayofyear(idate0)
   ibase = idatediff(idate1,idate0)/ifrq
+
+  istatus = nf90_put_var(ncid,ilatid,xlat)
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error variable xlat write'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
+  istatus = nf90_put_var(ncid,ilonid,xlon)
+  if (istatus /= nf90_noerr) then
+    write (6,*) 'Error variable xlon write'
+    write (6,*) nf90_strerror(istatus)
+    stop
+  end if
 
   istart(1) = 1
   istart(2) = 1
@@ -282,7 +319,7 @@ program checksun
   subroutine calcsolin
     implicit none
     integer :: i , j , idiff
-    real(8) :: eccf , theta , calday , xt24 , tlocap , omega , xxlat , coszrs
+    real(8) :: eccf , theta , calday , xt24 , tlocap , omga , xxlat , coszrs
     real(8) :: delta , decdeg, lhour , xday
     call split_idate(idate,iyear,imonth,iday,ihour)
     lhour = dble(ihour)
@@ -290,23 +327,29 @@ program checksun
     xday = dble(idiff)/24.0D0
     calday = dble(julday) + xday + gmt/24.0D0 + xtime/24.0D0
     theta = twopi*calday/dayspy
-    delta = .006918D0 - .399912D0*dcos(theta) + .070257D0*dsin(theta) &
-        & - .006758D0*dcos(2.D0*theta) + .000907D0*dsin(2.D0*theta)     &
-        & - .002697D0*dcos(3.D0*theta) + .001480D0*dsin(3.D0*theta)
+    delta = 0.006918D0 - 0.399912D0*dcos(theta) + &
+            0.070257D0*dsin(theta) -              &
+            0.006758D0*dcos(2.0D0*theta) +        &
+            0.000907D0*dsin(2.0D0*theta) -        &
+            0.002697D0*dcos(3.0D0*theta) +        &
+            0.001480D0*dsin(3.0D0*theta)
     decdeg = delta/degrad
-    eccf = 1.000110D0 + .034221D0*dcos(theta) + .001280D0*dsin(theta) + &
-           0.000719D0*dcos(2.D0*theta) + .000077D0*dsin(2.D0*theta)
-    xt24 =  dmod(lhour*60.D0+xtime,1440.D0)
+    eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
+           0.001280D0 * dsin(theta) +             &
+           0.000719D0 * dcos(d_two*theta) +       &
+           0.000077D0 * dsin(d_two*theta)
+    xt24 = dmod(lhour*minph+xtime,minpd)
     do i = 1 , iy
       do j = 1 , jx
-        tlocap = xt24/60.D0 + xlon(i,j)/15.0D0
-        tlocap = dmod(tlocap+24.0D0,24.0D0)
-        omega = 15.0D0*(tlocap-12.0D0)*degrad
-        xxlat = xlat(i,j)*degrad
-        coszrs = dsin(delta)*dsin(xxlat) + dcos(delta) * &
-                 dcos(xxlat)*dcos(omega)
+        tlocap = xt24/minph + xlon(j,i)/15.0D0
+        tlocap = dmod(tlocap+houpd,houpd)
+        omga = 15.0D0*(tlocap-12.0D0)*degrad
+        xxlat = xlat(j,i)*degrad
+        coszrs = dsin(delta)*dsin(xxlat) +           &
+                 dcos(delta)*dcos(xxlat)*dcos(omga)
         coszrs = dmax1(0.0D0,coszrs)
-        solin(i,j) = real(solcon*eccf*coszrs)
+        coszrs = dmin1(1.0D0,coszrs)
+        solin(j,i) = real(solcon*eccf*coszrs)
       end do
     end do
     xtime = xtime + dble(ifrq)
