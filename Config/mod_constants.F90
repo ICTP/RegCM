@@ -162,10 +162,6 @@
       ! Earth radius in meters
       real(8) , parameter :: earthrad = 6.371229D+06
       real(8) , parameter :: erkm = earthrad/d_1000
-      ! Days per year
-      real(8) , parameter :: dayspy = 365.2422D+00
-      ! Degrees per day
-      real(8) , parameter :: dpd = 360.0/dayspy
       ! Angular velocity of rotation of Earth
       real(8) , parameter :: eomeg = 7.2921159D-05
       real(8) , parameter :: eomeg2 = d_two*eomeg

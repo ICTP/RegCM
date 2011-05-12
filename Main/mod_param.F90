@@ -90,7 +90,6 @@
                & edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
       real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
                  edtmino , edtmaxx , edtminx
-      real(8) :: high_nudge , medium_nudge , low_nudge
       real(8) , dimension(nsplit) :: dtsplit
       integer :: i , j , k , kbase , ktop , ns
       character(5) , dimension(maxntr) :: inpchtrname
@@ -127,8 +126,7 @@
 
       namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
       & iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem,        &
-      & high_nudge , medium_nudge, low_nudge , scenario , idcsst ,      &
-      & iseaice , idesseas , iconvlwp
+      & scenario , idcsst , iseaice , idesseas , iconvlwp
 
       namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
       & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -301,9 +299,6 @@
       idcsst = 0
       iseaice = 0
       idesseas = 1
-      high_nudge = 3.0D0
-      medium_nudge = 2.0D0
-      low_nudge = 1.0D0   
       iconvlwp = 1
 !
 !----------------------------------------------------------------------
@@ -512,9 +507,6 @@
       call mpi_bcast(iseaice,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(idesseas,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(iconvlwp,1,mpi_integer,0,mpi_comm_world,ierr)
-      call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
 #ifdef CLM
       call mpi_bcast(dirclm,256,mpi_character,0,mpi_comm_world,ierr)
       call mpi_bcast(imask,1,mpi_integer,0,mpi_comm_world,ierr)

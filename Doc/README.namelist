@@ -96,6 +96,7 @@
  ehso4 = .false.,            ! Sulfate dataset Control Flag
  globidate1 = 1990060100,    ! Start date for ICBC data generation
  globidate2 = 1990070100,    ! End data for ICBC data generation
+ dayspy  = 365.2422D0,       ! Number of days per year
  dirglob = 'input/',         ! Path for ICBC produced input files
  inpglob = 'globdata/',      ! Path for ICBC global input datasets.
                    ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
@@ -115,13 +116,16 @@
  dbgfrq = 3,      ! Interval for printout if debug_level >= 3
  /
 !
-! Buffer Zone Depth
+! Buffer Zone Control relaxation + diffusion term
 !
  &boundaryparam
  nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
               ! the boundary sponge or relaxation boundary conditions.
  nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
               ! the boundary sponge or relaxation boundary conditions.
+ high_nudge =    3.0D0, ! Nudge value high range
+ medium_nudge =  2.0D0, ! Nudge value medium range
+ low_nudge =     1.0D0  ! Nudge value low range
  /
 !
 ! Split modes
@@ -211,9 +215,6 @@
  idesseas =          1, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective liquid water path as the large-scale
                         ! liquid water path
- high_nudge =    3.0D0, ! Nudge value high range
- medium_nudge =  2.0D0, ! Nudge value medium range
- low_nudge =     1.0D0  ! Nudge value low range
  /
 !
 ! Moisture scheme comtrol (You know what You are doing, don't You?)
