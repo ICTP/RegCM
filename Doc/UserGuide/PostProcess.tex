@@ -4,7 +4,7 @@
 % See the file COPYING for copying conditions.
 %
 
-The new netCDF output format allow user to use a number of general purpose
+The new netCDF output format allows users to use a number of general purpose
 tools to postprocess model output files. We will in this section do a quick
 review of some of the Open Source and Free Software ones.
 
@@ -189,7 +189,7 @@ http://www.iges.org/grads/gadoc/users.html
 The \verb=grads= program is powerful, yet has limits:
 
 \begin{enumerate}
-\item Only equirectangular projection or Plate Carr\'ee is supported. Some
+\item Only the equirectangular projection or Plate Carr\'ee is supported. Some
 other projections can be used through a pdef entry in the \verb=CTL= file
 using the internal direct preprojection engines, but not all RegCM supported
 projections are supported using direct engine.
@@ -203,7 +203,7 @@ file:
 
 \begin{enumerate}
 \item The \verb=grads= program allows usage of the \verb=pdef BILIN= option
-in the \verb=CTL= file, which allows the user specify a supplementary file
+in the \verb=CTL= file, which allows the user to specify a supplementary file
 name. In this file are stored three lat-lon floating-point grids which have
 for each point on the equirectangular grid the indexes i,j on the projected
 grid, as well as wind rotation values.
@@ -228,25 +228,13 @@ directory under \verb=$REGCM_ROOT=.
 
 This awesome tool from NCAR is an interpreted language designed for scientific
 data analysis and visualization. Noah Diffenbaugh and Mark Snyder have
-created a website dedicated to visualizing RegCM3 output using the NCAR Command Language (NCL). While this scripts where built using RegCM3 model output
-converted to netCDF using an external converter, they may be easily ported
-to use the native netCDF RegCM V4.1 file format.
-
-\begin{Verbatim}
-http://es.ucsc.edu/~msnyder/NCL/index.html
-\end{Verbatim}
-
-A dedicated page also exist on the NCAR \verb=NCL= site itself:
-
-\begin{Verbatim}
-http://www.ncl.ucar.edu/Applications/rcm.shtml
-\end{Verbatim}
-
+created a website dedicated to visualizing RegCM3 output using the NCAR Command Language (NCL). These scripts where built using RegCM3 model output
+converted to netCDF using an external converter.
+They have been adapted to serve as very basic example scripts to process a
+native RegCM 4.1 output data file or do some data analysis using the \verb=NCL=
+language and are available in the \verb=Tools/Scripts/NCL/examples= directory.
 Travis O'Brien from the User Community also contributed sample scripts,
 which may be found under the \verb=Tools/Scripts/NCL= directory.
-A very basic script under that directory, \verb=terplt.ncl=, may be used
-as example on how to plot a variable form a RegCM file using the \verb=NCL=
-projection engin to display using the native projected grid.
 
 \section{Non free tools}
 

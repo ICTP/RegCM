@@ -83,7 +83,7 @@ Currently tested and supported configurations (OS/Compiler) are:
 compiler $\ge 8.3$
 \end{enumerate}
 
-First step is change working directory to \verb=$REGCM_ROOT= and run the
+The first step is to change working directory to \verb=$REGCM_ROOT= and run the
 \verb=configure= script:
 
 \begin{Verbatim}
@@ -114,7 +114,7 @@ distinct groups:
   [ /home/regcm/RegCM4.1 ]
   regcm_root =
 \end{Verbatim}
-This because you may be running the script from a different directory.
+This is because you may be running the script from a different directory.
 You probably are not, so just press enter.
 \item Built binaries destination directory.
 \begin{Verbatim}
@@ -126,7 +126,7 @@ accept the default choice pressing enter.
 \item netCDF installation path. The script tries to detect the netCDF
 installation automatically using the \verb=nc-config= program, searching
 standard directories and using the \verb=NETCDF= environment variable.
-If successfull, the message
+If successful, the message
 \begin{Verbatim}
 netCDF library found...
 \end{Verbatim}
@@ -161,15 +161,15 @@ will ask if to enable netCDF file compression filter.
 \end{Verbatim}
 As the compression causes a run time penalty, it is not enabled by
 default. If you are concerned by disk space, this option may help
-significantly reduce storage usage by model output, expecially if
-chemistry option is enabled. To enable it enter \verb=1=, otherwise
+significantly reduce storage usage by model output, especially if
+the chemistry option is enabled. To enable it enter \verb=1=, otherwise
 just accept default option pressing enter.
 \end{enumerate}
 
 \subsection{Model configuration}
 \label{modconf}
 
-The configure script goes to second phase.
+The configure script goes to the second phase.
 
 \begin{Verbatim}
   !!!!  The following options are all documented in detail 
@@ -185,7 +185,7 @@ The configure script goes to second phase.
         dbg =
 \end{Verbatim}
 If enabled, the model will be compiled using debug flags for the compiler,
-which will allow the use of a debugger such as gdb. More diagnostic will
+which will allow the use of a debugger such as gdb. More diagnostics will
 also be generated during model run. To enable debug mode, enter \verb=0=.
 The default is to build production binaries with all optimization flags
 turned on.
@@ -212,7 +212,7 @@ future model releases.}
         [0]
         BAND =
 \end{Verbatim}
-This option build a special version of the model capable of running an
+This option builds a special version of the model capable of running an
 experiment with a spatial domain configured as a full circular equatorial
 band around earth. This is documented in the \cite{refman_11}.
 The default is to not enable this feature, i.e. to run the model on a limited
@@ -226,7 +226,7 @@ default option.
         [0]
         CLM =
 \end{Verbatim}
-This option switch off the default Land model of RegCM (derived from BATS1e),
+This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
 is to use the RegCM BATS Land Model. If you are planning to run a simulation
 using CLM, enter \verb=1=, otherwise accept the default choice pressing enter.
@@ -238,8 +238,8 @@ default option.
 \subsection{Choice of Fortran compiler}
 
 The \verb=configure= script now prompts the user for selecting a fortran
-compiler. Depending on your OS/compiler combination, select one in the list
-of supported, or ask for a generic configuration.
+compiler. Depending on your OS/compiler combination, select a supported one in the list
+, or ask for a generic configuration.
 
 \begin{Verbatim}
   ****  The following compiler/architecture combinations 
@@ -262,14 +262,14 @@ You are required afterwards to edit the \verb=Makefile.inc= file in the
 \verb=$REGCM_ROOT= directory to configure you build.
 Otherwise, select one in the list. The \verb=configure= script should now
 create a \verb=Makefile.inc= file inside \verb=$REGCM_ROOT= to be used
-to compile the RegCM model. You may now want to doublecheck result editing
+to compile the RegCM model. You may now want to double check
 the \verb=Makefile.inc= file, or accept what we have arranged for you.
 
 \section{Build the model executables}
 
-Now that everithing is hopefully configured, you may use the \verb=make=
+Now that everything is hopefully configured, you may use the \verb=make=
 program to build executables.
-You have multiple target for the build, but at this stage you may want to
+You have multiple targets for the build, but at this stage you may want to
 
 \begin{Verbatim}
 $> make all

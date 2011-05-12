@@ -4,17 +4,17 @@
 % See the file COPYING for copying conditions.
 %
 
-First step to run a test simulation is to obtain static data to localize
+The first step to run a test simulation is to obtain static data to localize
 model DOMAIN and Atmosphere and Ocean global model dataset to build initial
 and boundary conditions ICBC to run a local area simulation.
 
-ICTP does mantain a public accessible web repository of datasets on:
+ICTP maintains a public accessible web repository of datasets on:
 
 {\bf http://users.ictp.it/~pubregcm/RegCM4/globedat.htm}
 
 As of now you are requested to download required global data on your local disk
-storage before any run attempt. In the next future the ICTP ESP team has
-plannend to make available an OpenDAP THREDDS Server to give remote access
+storage before any run attempt. In the future, the ICTP ESP team has
+planned to make available an OpenDAP THREDDS Server to give remote access
 to global dataset for creating DOMAIN and ICBC without the need to
 download the global dataset, but just the required subset in space and time,
 using the ICTP web server capabilities to create that subset.
@@ -22,7 +22,7 @@ using the ICTP web server capabilities to create that subset.
 \section{Global dataset directory Layout}
 
 You are suggested to establish a convenient location for global datasets
-on your local storage. Keep in mind that required space for a Year of global
+on your local storage. Keep in mind that required space for a year of global
 data can be as large as 8 GBytes.
 
 Having this in mind, we will now consider that you the user have identified
@@ -41,9 +41,9 @@ for the scope of running the model for testing its capabilities.
 
 \section{Static Surface Dataset}
 
-The model needs to be localized on a particular DOMAIN. The needed informations
-are topography, land type classification and optionally lake depth (to run
-Hostetler lake model) and soil texture classification (to run chemistry option
+The model needs to be localized on a particular DOMAIN. The needed information
+are topography, land type classification and optionally lake depth (to run the
+Hostetler lake model) and soil texture classification (to run the chemistry option
 with DUST enabled).
 
 This means downloading four files, which are global archives at $30 second$
@@ -91,7 +91,7 @@ This is the input file for the \verb=aerosol= icbc program.
 \section{CLM Dataset}
 \label{clmdata}
 
-If you are planning to enable \verb=CLM= option in the model, you will need
+If you are planning to enable the \verb=CLM= option in the model, you will need
 a series of files with global land surface characteristics datasets.
 
 \begin{Verbatim}
@@ -130,7 +130,7 @@ This is the input file for the \verb=clm2rcm= program (see at \ref{clm}).
 \section{Sea Surface Temperature}
 
 The model needs a global SST dataset to feed the model with ocean temperature.
-You have multiple choices for SST source:
+You have multiple choices for SST data:
 
 \begin{enumerate}
 \item {\em GISST} - UKMO SST (Rayner et al 1996), 1 degree from \\
@@ -210,7 +210,7 @@ or window, can be obtained from \\ {\bf http://www.earthsystemgrid.org}
 \item {\em FNEST} - Further oneway NESTing from previous RegCM run.
 \end{enumerate}
 
-We will for now for our test run download just EIN15 dataset for the
+We will for now for our test run download just the EIN15 dataset for the
 year 1990 (Jan 01 00:00:00 UTC to Dec 31 18:00:00 UTC)
 
 \begin{Verbatim}

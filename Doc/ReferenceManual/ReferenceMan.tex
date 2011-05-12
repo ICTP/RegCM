@@ -14,8 +14,15 @@
 %%   You should have received a copy of the GNU General Public License
 %%   along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 %%
-\documentclass{article}
-\usepackage{lscape,acronym,graphics,epsfig,rotating,natbib,pslatex}
+\documentclass[10pt,twoside,a4paper]{report}
+\usepackage{pdflscape}
+\usepackage{acronym}
+\usepackage{epsfig}
+\usepackage{rotating}
+\usepackage{pslatex}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{wrapfig}
 
 \topmargin=-10pt
 \textwidth=16cm
@@ -28,33 +35,59 @@
 
 \begin{document}
 
-\title{RegCM Version 4.1\\ Reference Manual\vspace{-0.10in}
+\begin{titlepage}
+
+\begin{wrapfigure}{l}{4cm}
+\vspace{-35pt}
+\begin{center}
+\includegraphics{ICTP_logo}
+\end{center}
+\end{wrapfigure}
+
+\noindent {\bf The Abdus Salam }\\
+\noindent {\bf International Centre for Theoretical Physics} \\
+\noindent {\bf Strada Costiera, 11 I - 34151 Trieste, Italy} \\
+\noindent {\bf Earth System Physics Section - ESP}
+
+\vspace{3cm}
+
+\begin{center}
+\noindent{{\Large
+{\bf Regional Climatic Model RegCM User Manual} \\
+{\bf Version 4.1} \\
+}}
+\end{center}
+\begin{center}
+\noindent{
+Nellie Elguindi, Xunqiang Bi, Filippo Giorgi, Badrinath Nagarajan,\\
+Jeremy Pal, Fabien Solmon, Sara Rauscher, Ashraf Zakey and Graziano Giuliani\\
+{Trieste, Italy\\May 2011}
 }
+\end{center}
 
-\author{Nellie Elguindi, Xunqiang Bi, Filippo Giorgi, Badrinath Nagarajan,\\ 
-Jeremy Pal, Fabien Solmon, Sara Rauscher, Ashraf Zakey and Graziano Giuliani}
+\end{titlepage}
 
-\date{Trieste, Italy\\June 2011}
-
-\maketitle
-
-\include{ack}
-\include{abstract}
-\newpage
+\cleardoublepage
+\input{ack}
+\cleardoublepage
 \tableofcontents
-\newpage
+\cleardoublepage
+
 \listoffigures
 \listoftables
-\newpage
-\include{intro}
-\include{description}
-%\include{preproc}
-%\include{model}
-%\include{practice}
+\cleardoublepage
+
+\input{abstract}
+
+\input{intro}
+
+\input{description}
+
+\input{future}
+
 \bibliography{references}
 \bibliographystyle{agu}
+
 \include{acronyms}
-%\include{appendix}
-%\include{figures}
 
 \end{document}

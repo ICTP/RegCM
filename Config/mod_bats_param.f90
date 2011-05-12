@@ -68,6 +68,8 @@
 !Sara
 !     data rsmin/45.,60.,2*80.,120.,2*60.,200.,80.,45.,150.,200.,45.
 !     &          ,2*200.,80.,120.,100.,2*120./
+! (increase in rsmin will lead to a decrease in evapotranspration)
+! Model is expecially sensible to this, tune it carefully
       data rsmin /5*200.0D0,50.0D0,14*200.0D0, 120.0D0, 60.0D0/
 !Sara_
 !     ******      max leaf area index (ratio unit cover per unit ground)

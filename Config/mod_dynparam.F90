@@ -113,6 +113,11 @@
       integer :: nspgx
       integer :: nspgd
 
+! Nudge control coefficients
+      real(8) :: high_nudge
+      real(8) :: medium_nudge
+      real(8) :: low_nudge
+
 ! Number od split exp modes
 
       integer :: nsplit
@@ -241,6 +246,11 @@
       integer :: globidate1 ! BEGIN
       integer :: globidate2 ! END
 
+! Days per year and degrees per day
+
+      real(8) :: dayspy
+      real(8) :: dpd
+
 ! Fixed dimensions
 
       integer , parameter :: numbat = 23 + 6
@@ -306,10 +316,11 @@
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ ibyte
         namelist /debugparam/ debug_level , dbgfrq
-        namelist /boundaryparam/ nspgx , nspgd
+        namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
+                       medium_nudge , low_nudge
         namelist /modesparam/ nsplit
         namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
-                     & globidate2 , dirglob , inpglob , ibdyfrq
+                     & globidate2 , dirglob , inpglob , dayspy , ibdyfrq
         namelist /aerosolparam/ aertyp , ntr, nbin
 
         open(ipunit, file=filename, status='old', &
@@ -364,6 +375,10 @@
         read(ipunit, ioparam, err=104)
         dbgfrq = 3600
         read(ipunit, debugparam, err=105)
+
+        high_nudge = 3.0D0
+        medium_nudge = 2.0D0
+        low_nudge = 1.0D0
         read(ipunit, boundaryparam, err=106)
 
         nspgv = (nspgd+nspgx)*8 + 8
@@ -372,8 +387,10 @@
         read(ipunit, modesparam, err=107)
 
         ibdyfrq = 6 ! Convenient default
-
+        dayspy = 365.2422D+00
         read(ipunit, globdatparam, err=109)
+        dpd = 360.0D0/dayspy
+
         read(ipunit, aerosolparam, err=111)
 
         ierr = 0
@@ -494,6 +511,12 @@
 
         call mpi_bcast(nspgx,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(nspgd,1,mpi_integer,0,mpi_comm_world,ierr)
+        call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+
+        call mpi_bcast(dayspy,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(dpd,1,mpi_real8,0,mpi_comm_world,ierr)
 
         call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
 

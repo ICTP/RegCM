@@ -41,13 +41,6 @@
       real(8) , parameter :: onet = d_one/d_three
       real(8) , parameter :: twot = d_two/d_three
 
-      ! Angles degrees
-      real(8) , parameter :: deg00  = 0.0D+00
-      real(8) , parameter :: deg45  = 45.0D+00
-      real(8) , parameter :: deg90  = 90.0D+00
-      real(8) , parameter :: deg180 = 180.0D+00
-      real(8) , parameter :: deg360 = 360.0D+00
-
       real(8) , parameter :: dlowval = 1.0D-30
       real(4) , parameter :: slowval = 1.0E-30
       real(8) , parameter :: dmissval = -1.0D+34
@@ -169,6 +162,10 @@
       ! Earth radius in meters
       real(8) , parameter :: earthrad = 6.371229D+06
       real(8) , parameter :: erkm = earthrad/d_1000
+      ! Days per year
+      real(8) , parameter :: dayspy = 365.2422D+00
+      ! Degrees per day
+      real(8) , parameter :: dpd = 360.0/dayspy
       ! Angular velocity of rotation of Earth
       real(8) , parameter :: eomeg = 7.2921159D-05
       real(8) , parameter :: eomeg2 = d_two*eomeg

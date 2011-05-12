@@ -3,7 +3,8 @@
 all: ReferenceMan.pdf
 
 FIGURES = grid2.eps sigma_levels.eps
-TEXFILES = abstract.tex acronyms.tex description.tex intro.tex ack.tex
+TEXFILES = abstract.tex acronyms.tex description.tex \
+					 intro.tex ack.tex future.tex
 BIBFILES = references.bib 
 
 ReferenceMan.pdf: ReferenceMan.tex $(TEXFILES) $(BIBFILES) $(FIGURES)

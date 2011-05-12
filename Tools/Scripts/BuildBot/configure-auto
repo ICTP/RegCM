@@ -19,10 +19,32 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-# Command line non-interactive configuration script
-# for the RegCM distribution by M. Scarcia
+# Configuration script for the RegCM distribution by M. Scarcia
 
-import os,sys,shutil,fileinput
+try:
+    import os,sys,shutil,fileinput,subprocess
+    oldpy = 0
+    try :
+        hasp25 = subprocess.check_output(['true'])
+    except :
+        oldpy = 1
+except:
+    import os,sys,shutil,fileinput
+    oldpy = 1
+
+def getresult(command):
+    result = ""
+    if (oldpy) :
+        try:
+            result = os.popen(command).read().strip()
+        except:
+            raise KeyError 
+    else:
+        try:
+            result = subprocess.check_output(command.split()).strip()
+        except:
+            raise KeyError 
+    return result
 
 def main(argv):
 
@@ -38,11 +60,11 @@ def main(argv):
     if (len(sys.argv) < numargs+1 ):
         print "Not enough command line arguments!!"
         sys.exit(1)
-    
+
     os.system("clear")
     print "\tAutomatically configuring the RegCM distribution"
     print "\n\tConfiguration pattern",sys.argv[1]
-    
+
     print "\tAssuming CWD as RegCM root..."
     regcm_root = os.getcwd()
 
@@ -54,11 +76,13 @@ def main(argv):
             os.mkdir(bin_dir)
         except OSError :
             print "\tCannot create",bin_dir,"! Aborting..."
-            sys.exit(1)
+            sys.exit(1)   
 
     nclib = ""
     ncinc = ""
     hdf5lib = ""
+    
+    compress = 0 # never use gzip
     
     nclib,ncinc = netcdf_search(nclib,ncinc)
     hdf5lib = hdf5_search(hdf5lib)
@@ -89,7 +113,7 @@ def main(argv):
     print "root =",regcm_root
     print "compiler =",compiler
     print "debug =",dbg
-
+ 
     # Start real stuff
 
     choose_template(regcm_root,compiler,dbg)
@@ -100,9 +124,26 @@ def main(argv):
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
     if mpi == 1 :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,compress)
     else :
-        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,hdf5lib)
+        makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,"",band,clm,compiler,compress)
+
+    #If the user has chosen the Sun compilers:
+    #Write a note to the user indicating that the -M line will need to be
+    #commented out before postnc will compile.  This is because the fortran
+    #portions of the program require the command line option '-M' to specify
+    #the location of the NetCDF modules, whereas the C++ portion (postnc) does
+    #not recognize this option.  The Sun compilers do not currently have an
+    #option to ignore unrecognized command-line options, and the current 
+    #Makefile.inc scheme requires that C++ and Fortran portions of the code
+    #both use the same NetCDF Include flags.
+    if compiler == 6 :
+        print "\n\t###################################################################"
+        print "\n\tNOTE: the '-M' portion of the NETCDFINC line in Makefile.inc will "
+        print "\tneed to be commented out after all programs are compiled but before"
+        print "\t'postnc' can be compiled.  Insert a '#' right before -M on that"
+        print "\tline to do this."
+        print "\n\t###################################################################"
 
     print "\n\t###################################################################"
     print "\t# Configuration complete! You should now be able to compile RegCM #"
@@ -112,14 +153,24 @@ def netcdf_search(nclib,ncinc):
 
     ncok=True
 
+    try :
+        nclib = getresult('nc-config --prefix')
+        ncinc = getresult('nc-config --includedir')
+    except KeyError , CalledProcessError :
+        ncok=False
+
     # check for path in env variables
     try :
         path_a=os.environ['NETCDF']
-        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
-            nclib = path_a+"/lib"
-            ncinc = path_a+"/include"
+        if (os.path.isdir(path_a)):
+            if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+                nclib = path_a+"/lib"
+                ncinc = path_a+"/include"
+            else :
+                ncok=False
         else :
-            ncok=False
+            if ncok:
+              ncok=False
     except KeyError :
         ncok=False
 
@@ -131,19 +182,75 @@ def netcdf_search(nclib,ncinc):
                 nclib = path_lib
                 ncinc = path_inc
                 ncok=True
-                if not(os.path.isfile(path_lib+"/libnetcdf_c++.a") or os.path.isfile(path_lib+"/libnetcdf_c++.so")):
-                    print "\tWarning! NetCDF C++ interface not found, you won't be able to compile PostNC!"
             else :
                 ncok=False
         except KeyError :
             ncok=False
+
+    if not ncok:
+        path_a="/usr"
+        if (os.path.isfile(path_a+"/lib/libnetcdf.a") or os.path.isfile(path_a+"/lib/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib"
+            ncinc = path_a+"/include"
+            ncok=True
+        elif (os.path.isfile(path_a+"/lib64/libnetcdf.a") or os.path.isfile(path_a+"/lib64/libnetcdf.so")) and (os.path.isfile(path_a+"/include/netcdf.mod")):
+            nclib = path_a+"/lib64"
+            ncinc = path_a+"/include"
+            ncok=True
+        else :
+            ncok=False
+
     if ncok:
         print "\tNetCDF library found..."
         return nclib,ncinc
     else:
-        print "\tNetCDF not found! Cannot continue. Please provide a working NetCDF library."
-        os.sys.exit(1)
+    	print "\tNetCDF not found! Cannot continue. Please provide a working NetCDF library."
+       	os.sys.exit(1)
 
+def hdf5_search(hdf5lib):
+
+    libok = True
+    
+    try :
+        path_a=os.environ['HDF5']
+        print path_a
+        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
+            hdf5lib = path_a+"/lib"
+        else :
+            libok=False
+    except KeyError :
+        libok=False
+
+    if not libok:
+        try :
+            path_a=os.environ['HDF5_LIB']
+            if (os.path.isfile(path_a+"/libhdf5.a") or os.path.isfile(path_a+"/libhdf5.so")):
+                hdf5lib = path_a
+                libok = True
+            else :
+                libok=False
+        except KeyError :
+            libok=False
+
+    if not libok:
+        path_a="/usr"
+        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
+            hdf5lib = path_a+"/lib"
+            libok=True
+        elif (os.path.isfile(path_a+"/lib64/libhdf5.a") or os.path.isfile(path_a+"/lib64/libhdf5.so")):
+            hdf5lib = path_a+"/lib64"
+            libok=True
+        else :
+            libok=False
+
+    if libok:
+        print "\tHDF5 library found..."
+        return hdf5lib
+    else:
+       	print "\tHDF5 not found! RegCM will not use NetCDF v4 features..."
+      	return ""
+    
+    
 def choose_template(regcm_root,compiler,dbg):
 
     choices = 8
@@ -183,10 +290,9 @@ def choose_template(regcm_root,compiler,dbg):
         shutil.copyfile(regcm_root+"/Arch/Makefile.inc_other",regcm_root+"/Makefile.inc")
     return
 
-
 #TAO: compiler was added as an argument to makefile_edit() so that a -M line
 #could be added to the NetCDF include line for the Sun compilers
-def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,hdf5lib) :
+def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compiler,compress) :
 
     for line in fileinput.FileInput(regcm_root+"/Makefile.inc",inplace=1):
 
@@ -198,19 +304,46 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
 
         #If the sun compilers are being used, also indicate the path
         #of the file netcdf.mod
-        if not compiler == 5 :
-            if compiler == 6 :
-                line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
-            else :
-                line=line.replace("!NETCDFINC","-I"+ncinc)
 
-            if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
-                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
-            else :
-                line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
-                
-            line=line.replace("!NETCDFC++","-L"+nclib+" -lnetcdf_c++ -lnetcdf")
-            line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5 ")
+        ncliblist = ""
+        hdf5lib = ""
+        try :
+            ncliblist = getresult('nc-config --flibs')
+            ncliblist = ncliblist.replace(' -Wl,--as-needed',' ')
+            ncliblist = ncliblist.replace('-lmfhdf -ldf','-lmfhdf -ldf -ljpeg')
+            hdf5lib = ""
+        except KeyError , CalledProcessError :
+            hdf5_search(hdf5lib)
+
+        if not ncliblist == "" :
+            if not compiler == 5 :
+                if compiler == 6 :
+                    line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
+                else :
+                    line=line.replace("!NETCDFINC","-I"+ncinc)
+                line=line.replace("!NETCDFLIB","-L"+nclib+' '+ncliblist)
+                if (compress == 1) :
+                    line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
+        else :
+
+            if not compiler == 5 :
+                if compiler == 6 :
+                    line=line.replace("!NETCDFINC","-I"+ncinc+" -M"+ncinc)
+                else :
+                    line=line.replace("!NETCDFINC","-I"+ncinc)
+
+                if os.path.isfile(nclib+"/libnetcdff.a") or os.path.isfile(nclib+"/libnetcdff.so"):
+                    if hdf5lib == "" :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf")
+                    else :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdff -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
+                else :
+                    if hdf5lib == "" :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf")
+                    else :
+                        line=line.replace("!NETCDFLIB","-L"+nclib+" -lnetcdf -L"+hdf5lib+" -lhdf5_hl -lhdf5")
+                if (compress == 1):
+                    line=line.replace("CPPFLAGS =","CPPFLAGS = -DNETCDF4_HDF5")
 
         if mpi == 1 :
             line=line.replace("# PARALLEL = MPP1","PARALLEL = MPP1")
@@ -222,51 +355,5 @@ def makefile_edit(regcm_root,bin_dir,nclib,ncinc,mpi,mpi_compiler,band,clm,compi
 
     fileinput.close()
 
-def hdf5_search(hdf5lib):
-
-    libok = True
-    
-    try :
-        path_a=os.environ['HDF5']
-        #print path_a
-        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
-            hdf5lib = path_a+"/lib"
-        else :
-            libok=False
-    except KeyError :
-        libok=False
-
-    if not libok:
-        try :
-            path_a=os.environ['HDF5_LIB']
-            if (os.path.isfile(path_a+"/libhdf5.a") or os.path.isfile(path_a+"/libhdf5.so")):
-                hdf5lib = path_a
-                libok = True
-            else :
-                libok=False
-        except KeyError :
-            libok=False
-
-    if not libok:
-        path_a="/usr"
-        if (os.path.isfile(path_a+"/lib/libhdf5.a") or os.path.isfile(path_a+"/lib/libhdf5.so")):
-            hdf5lib = path_a+"/lib"
-            libok=True
-        elif (os.path.isfile(path_a+"/lib64/libhdf5.a") or os.path.isfile(path_a+"/lib64/libhdf5.so")):
-            hdf5lib = path_a+"/lib64"
-            libok=True
-        else :
-            libok=False
-
-    if libok:
-        print "\tHDF5 library found..."
-        return hdf5lib
-    else:
-        print "\tUnable to find a working HDF5 library! Cannot continue."
-        os.sys.exit(1)
-
 if __name__ == "__main__":
-    #try:
     main(sys.argv[1:])
-    #except:
-    #    print "Error! Missing argument!"

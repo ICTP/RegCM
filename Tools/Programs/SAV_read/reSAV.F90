@@ -54,13 +54,13 @@ program resav
   real(8) :: high_nudge , medium_nudge , low_nudge
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
-             idesseas , iconvlwp
+             idesseas , iconvlwp , iocnrough
   character(3) :: scenario
 !
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-    iemiss , lakemod , ipptls , iocnflx , ichem, high_nudge,        &
-    medium_nudge, low_nudge , scenario , idcsst , iseaice ,         &
-    idesseas , iconvlwp
+    iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem,        &
+    high_nudge, medium_nudge, low_nudge , scenario , idcsst ,       &
+    iseaice , idesseas , iconvlwp
 !
 ! Read input global namelist
 !

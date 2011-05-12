@@ -1,15 +1,32 @@
-;********************************************************************
-; Plot terrain NetCDF output file
-;********************************************************************
+;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;
+;    This file is part of ICTP RegCM.
+;
+;    ICTP RegCM is free software: you can redistribute it and/or modify
+;    it under the terms of the GNU General Public License as published by
+;    the Free Software Foundation, either version 3 of the License, or
+;    (at your option) any later version.
+;
+;    ICTP RegCM is distributed in the hope that it will be useful,
+;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;    GNU General Public License for more details.
+;
+;    You should have received a copy of the GNU General Public License
+;    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+;
+;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"    
+load "$NCARG_ROOT/lib/ncarg/nclscripts/contrib/ut_string.ncl"
 
 begin
 ;*************************
 ; read in data
 ;*************************
-  a = addfile("SAM_DOMAIN000.nc","r")
-  topo = a->topo
+  a = addfile("CAS_SRF.1990010100.nc","r")
+  prec = a->tpr
 
   xlat = a->xlat
   xlon = a->xlon
@@ -17,11 +34,16 @@ begin
   nlat = dims(1)                            
   nlon = dims(0)
 
+  pdims = dimsizes(prec)
+  ntimes = pdims(0)
+
+  times = a->time;
+
 ;***********************
 ; plot
 ;***********************
-  wks = gsn_open_wks("x11","Topography")    ; open a workstation
-  gsn_define_colormap(wks,"WhViBlGrYeOrReWh")
+  wks = gsn_open_wks("ps","RegCM_Precipitation")
+  gsn_define_colormap(wks,"gui_default")
   
   res            = True                    ; plot mods desired
 ; !!!!! any plot of data that is on a native grid, must use the "corners"
@@ -76,15 +98,18 @@ begin
   res@mpGeophysicalLineColor = "red"     ; color of continental outlines
   res@mpPerimOn              = True      ; draw box around map
   res@mpGridLineDashPattern  = 2         ; lat/lon lines as dashed
-  res@cnLevelSelectionMode        = "ManualLevels"       ; manual levels
-  res@cnMinLevelValF              = 0.
-  res@cnMaxLevelValF              = 3000.
-  res@cnLevelSpacingF             = 300.
   
-  res@tiMainString           = a@title     ;
+  res@gsnAddCyclic           = False     ; regional data don't add
 
-  res@gsnAddCyclic           = False       ; regional data don't add
-  
-  plot = gsn_csm_contour_map(wks,topo,res) 
+  res@pmTickMarkDisplayMode  = "Always"  ;
+  res@lbAutoManage           = True      ;
+
+  res@tiMainFuncCode = "~" ;
+  i = 1
+  do while (i .lt. ntimes)
+    res@tiMainString = a@title + "~C~" + ut_string(times(i), "");
+    plot = gsn_csm_contour_map(wks,prec(i,:,:),res)
+    i = i + 1
+  end do
 
 end

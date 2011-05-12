@@ -24,7 +24,6 @@
       use mod_lake
       use mod_message
       use mod_bats
-      use mod_lake, only : initlake
       use mod_slice
       use mod_pbldim
       use mod_date

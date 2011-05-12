@@ -1,0 +1,253 @@
+*	subpg : GrADS script to create pre-defined subpages (virtual pages).
+*
+*	Command : run subpg <format> <pos>
+*	where:	format = one of the following strings:
+*			 p2, ps2, p3, p4, ps4, p6 for portrait mode;
+*			 l2, l3, l4, l6 for landscape mode;
+*		pos = integer number which defines the subpage position;
+*		      it must be between 1 and n, where n is the end digit in <format>;
+*		      positions are ordered from top to bottom and from left to right.
+*
+function subpg(args)
+
+format = subwrd(args,1)
+pos = subwrd(args,2)
+
+if (format='p2')
+  if (pos <= 1)
+    'set vpage 0. 8.2 5.6 11.'
+  endif
+  if (pos >= 2)
+    'set vpage 0. 8.2 0.2 5.6'
+  endif
+endif
+
+if (format='ps2')
+  if (pos <= 1)
+    'set vpage 1.6 6.6 6. 11.'
+  endif
+  if (pos >= 2)
+    'set vpage 1.6 6.6 1. 6.'
+  endif
+endif
+
+if (format='p3')
+  if (pos <= 1)
+    'set vpage 1. 7.2 7.4 11.'
+  endif
+  if (pos = 2)
+    'set vpage 1. 7.2 3.8 7.4'
+  endif
+  if (pos >= 3)
+    'set vpage 1. 7.2 0.2 3.8'
+  endif
+endif
+
+if (format='ps3')
+  if (pos <= 1)
+    'set vpage 2.1 6.1 7 11'
+  endif
+  if (pos = 2)
+    'set vpage 0.2 4.2 3 7'
+  endif
+  if (pos >= 3)
+    'set vpage 4.2 8.2 3 7'
+  endif
+endif
+
+if (format='p4')
+  if (pos <= 1)
+    'set vpage 0. 4.1 5.8 11.'
+  endif
+  if (pos = 2)
+    'set vpage 0. 4.1 0.4 5.8'
+  endif
+  if (pos = 3)
+    'set vpage 4.1 8.2 5.8 11.'
+  endif
+  if (pos >= 4)
+    'set vpage 4.1 8.2 0.4 5.8'
+  endif
+endif
+
+if (format='ps4')
+  if (pos <= 1)
+    'set vpage 0.2 4.2 7 11'
+  endif
+  if (pos = 2)
+    'set vpage 0.2 4.2 3 7'
+  endif
+  if (pos = 3)
+    'set vpage 4.2 8.2 7 11'
+  endif
+  if (pos >= 4)
+    'set vpage 4.2 8.2 3 7'
+  endif
+endif
+
+if (format='p6')
+  if (pos <= 1)
+    'set vpage 0. 4.1 7.4 11.'
+  endif
+  if (pos = 2)
+    'set vpage 0. 4.1 3.8 7.4'
+  endif
+  if (pos = 3)
+    'set vpage 0. 4.1 0.2 3.8'
+  endif
+  if (pos = 4)
+    'set vpage 4.1 8.2 7.4 11.'
+  endif
+  if (pos = 5)
+    'set vpage 4.1 8.2 3.8 7.4'
+  endif
+  if (pos >= 6)
+    'set vpage 4.1 8.2 0.4 4.0'
+  endif
+endif
+
+if (format='ps6')
+  if (pos <= 1)
+    'set vpage 0.0 4.25 7.5 11.'
+  endif
+  if (pos = 2)
+    'set vpage 0.0 4.25 4.0 7.5'
+  endif
+  if (pos = 3)
+    'set vpage 0.0 4.25 0.5 4.0'
+  endif
+  if (pos = 4)
+    'set vpage 4.25 8.5 7.5 11.'
+  endif
+  if (pos = 5)
+    'set vpage 4.25 8.5 4.0 7.5'
+  endif
+  if (pos >= 6)
+    'set vpage 4.25 8.5 0.5 4.0'
+  endif
+endif
+
+*aggiunto da Laura
+if (format='p8')
+  if (pos <= 1)
+    'set vpage 0.25 4.25 8.25 11  ' 
+  endif
+  if (pos = 2)
+    'set vpage 0.25 4.25  5.5 8.25 ' 
+  endif
+  if (pos = 3)
+    'set vpage 0.25 4.25 2.75 5.5'
+  endif
+  if (pos = 4)
+    'set vpage 0.25 4.25 0 2.75'
+  endif
+  if (pos = 5)
+    'set vpage  4.25 8.25 8.25 11'
+  endif
+  if (pos = 6)
+    'set vpage  4.25 8.25 5.5 8.25'
+  endif
+  if (pos >= 7)
+    'set vpage  4.25 8.25 2.75 5.5'
+  endif
+  if (pos >= 8)
+    'set vpage  4.25 8.25 0 2.75'
+  endif
+endif
+
+*aggiunto da Laura
+if (format='l8')
+  if (pos <= 1)
+    'set vpage 0 2.75 4.25 8.25 '
+  endif
+  if (pos = 2)
+    'set vpage 2.75 5.5 4.25 8.25'
+  endif
+  if (pos = 3)
+    'set vpage  5.5 8.25 4.25 8.25 '
+  endif
+  if (pos = 4)
+    'set vpage  8.25 11 4.25 8.25' 
+  endif
+  if (pos = 5)
+    'set vpage 0 2.75 0.25 4.25'
+  endif
+  if (pos = 6)
+    'set vpage 2.75 5.5 0.25 4.25'
+  endif
+  if (pos >= 7)
+    'set vpage 5.5 8.25 0.25 4.25'
+  endif
+  if (pos >= 8)
+    'set vpage  8.25 11 0.25 4.25'
+  endif
+endif
+
+if (format='l2')
+  if (pos <= 1)
+    'set vpage 0. 5.5 0.2 8.2'
+  endif
+  if (pos >= 2)
+    'set vpage 5.5 11. 0.2 8.2'
+  endif
+endif
+
+*Laura
+if (format='l2bis')
+  if (pos <= 1)
+    'set vpage 0 5.5 2.3 8.0'
+  endif
+  if (pos >= 2)
+    'set vpage 5.5 11.0 2.3 8.0'
+  endif
+endif
+
+if (format='l3')
+  if (pos <= 1)
+    'set vpage 0.2 3.8 0.2 8.2'
+  endif
+  if (pos = 2)
+    'set vpage 3.8 7.4 0.2 8.2'
+  endif
+  if (pos >= 3)
+    'set vpage 7.4 11. 0.2 8.2'
+  endif
+endif
+
+if (format='l4')
+  if (pos <= 1)
+    'set vpage 0.7 5.7 4.2 8.2'
+  endif
+  if (pos = 2)
+    'set vpage 0.7 5.7 0.2 4.2'
+  endif
+  if (pos = 3)
+    'set vpage 5.7 10.7 4.2 8.2'
+  endif
+  if (pos >= 4)
+    'set vpage 5.7 10.7 0.2 4.2'
+  endif
+endif
+
+if (format='l6')
+  if (pos <= 1)
+    'set vpage 0.2 3.8 4.2 8.2'
+  endif
+  if (pos = 2)
+    'set vpage 0.2 3.8 0.2 4.2'
+  endif
+  if (pos = 3)
+    'set vpage 3.8 7.4 4.2 8.2'
+  endif
+  if (pos = 4)
+    'set vpage 3.8 7.4 0.2 4.2'
+  endif
+  if (pos = 5)
+    'set vpage 7.4 11. 4.2 8.2'
+  endif
+  if (pos >= 6)
+    'set vpage 7.4 11. 0.2 4.2'
+  endif
+endif
+
+return
