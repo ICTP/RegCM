@@ -160,7 +160,7 @@ def main():
 
     choices = 8
 
-    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran v. 10 or 11 (Linux x86-64)\n\t\t3. PGI Fortran v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (generic AIX)\n\t\t5. IBM Xlf Compiler (Cineca SP6)\n\t\t6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t7. GNU+g95 Fortran compiler (Linux x86-64)\n\t\t8. Other"
+    print "\n  ****  The following compiler/architecture combinations \n\tare tested and known to work, please choose one:\n\n\t\t1. GNU Fortran >= v. 4.4 (Linux x86-64)\n\t\t2. Intel Fortran >= v. 10 (Linux x86-64)\n\t\t3. PGI Fortran >= v. 9 (Linux x86-64)\n\t\t4. IBM Xlf Compiler (generic AIX)\n\t\t5. IBM Xlf Compiler (Cineca SP6)\n\t\t6. Sun Ceres Fortran 95 v 8.3 r2008/01/28 (Linux x86-64)\n\t\t7. GNU+g95 Fortran compiler (Linux x86-64)\n\t\t8. Other"
     while isnotint :
         try :
             compiler=int(raw_input("\n\tcompiler = "))
