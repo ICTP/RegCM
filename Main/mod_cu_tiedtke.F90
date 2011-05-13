@@ -65,16 +65,20 @@ module mod_cu_tiedtke
   logical :: lmfdudv   !  true if cumulus friction is switched on
 
   integer , allocatable , dimension(:,:) :: ilab
+  integer , allocatable , dimension(:) :: ktype
 
   logical , allocatable , dimension(:) :: ldland
 
   real(dp) , allocatable , dimension(:,:,:) :: pxtm1 , pxtte 
 
   real(dp) , allocatable , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
-        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pgeo , pxtec , pqtec
+        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec
 
   real(dp) , allocatable , dimension(:) :: prsfc , pssfc , paprc , &
-        paprs , ptopmax
+        paprs , ptopmax , xphfx
+
+  real(dp) , allocatable , dimension(:,:) :: xpt , xpu , xpv , xpqv , &
+        xpqc , xpw , xpg
 
   contains
 !
@@ -83,33 +87,81 @@ module mod_cu_tiedtke
   subroutine allocate_mod_cu_tiedtke
     implicit none
 
-    allocate(pxtm1(iy,kz,ntr))
-    allocate(pxtte(iy,kz,ntr))
+    allocate(cevapcu(kz))
 
-    allocate(ilab(iy,kz))
+    allocate(xpt(iym3,kz))
+    allocate(xpu(iym3,kz))
+    allocate(xpv(iym3,kz))
+    allocate(xpqv(iym3,kz))
+    allocate(xpqc(iym3,kz))
+    allocate(xpw(iym3,kz))
+    allocate(xpg(iym3,kz))
 
-    allocate(ptm1(iy,kz))
-    allocate(pqm1(iy,kz))
-    allocate(pum1(iy,kz))
-    allocate(pvm1(iy,kz))
-    allocate(pxlm1(iy,kz))
-    allocate(pxim1(iy,kz))
-    allocate(pxite(iy,kz))
-    allocate(papp1(iy,kz))
+    allocate(pxtm1(iym3,kz,ntr))
+    allocate(pxtte(iym3,kz,ntr))
 
-    allocate(pxtec(iy,kz))
-    allocate(pqtec(iy,kz))
+    allocate(ilab(iym3,kz))
+    allocate(ktype(iym3))
 
-    allocate(paphp1(iy,kzp1))
+    allocate(ptm1(iym3,kz))
+    allocate(pqm1(iym3,kz))
+    allocate(pum1(iym3,kz))
+    allocate(pvm1(iym3,kz))
+    allocate(pxlm1(iym3,kz))
+    allocate(pxim1(iym3,kz))
+    allocate(pxite(iym3,kz))
+    allocate(papp1(iym3,kz))
 
-    allocate(pgeo(iy,kz))
-    allocate(prsfc(iy))
-    allocate(pssfc(iy))
-    allocate(paprc(iy))
-    allocate(paprs(iy))
-    allocate(ptopmax(iy))
-    allocate(ldland(iy))
+    allocate(pxtec(iym3,kz))
+    allocate(pqtec(iym3,kz))
 
+    allocate(paphp1(iym3,kzp1))
+
+    allocate(prsfc(iym3))
+    allocate(pssfc(iym3))
+    allocate(paprc(iym3))
+    allocate(paprs(iym3))
+    allocate(ptopmax(iym3))
+    allocate(xphfx(iym3))
+    allocate(ldland(iym3))
+
+    cevapcu(:) = d_zero
+
+    xpt(:,:) = d_zero
+    xpu(:,:) = d_zero
+    xpv(:,:) = d_zero
+    xpqv(:,:) = d_zero
+    xpqc(:,:) = d_zero
+    xpw(:,:) = d_zero
+    xpg(:,:) = d_zero
+
+    pxtm1(:,:,:) = d_zero
+    pxtte(:,:,:) = d_zero
+
+    ilab(:,:) = 0
+    ktype(:) = 0
+
+    ptm1(:,:) = d_zero
+    pqm1(:,:) = d_zero
+    pum1(:,:) = d_zero
+    pvm1(:,:) = d_zero
+    pxlm1(:,:) = d_zero
+    pxim1(:,:) = d_zero
+    pxite(:,:) = d_zero
+    papp1(:,:) = d_zero
+
+    pxtec(:,:) = d_zero
+    pqtec(:,:) = d_zero
+
+    paphp1(:,:) = d_zero
+
+    prsfc(:) = d_zero
+    pssfc(:) = d_zero
+    paprc(:) = d_zero
+    paprs(:) = d_zero
+    ptopmax(:) = d_zero
+    xphfx(:) = d_zero
+    ldland(:) = .false.
   end subroutine allocate_mod_cu_tiedtke
 !
 ! This subroutines calls cucall
@@ -119,46 +171,63 @@ module mod_cu_tiedtke
     integer , intent(in) :: j
 
 !   local integers
-    integer :: i , k
+    integer :: i , k , ii
 
 !   need to translate REGCM to TIEDTKE vars...
-    ilab(:,:) = 0
+    ilab(:,:) = 2
+
+!   evaporation coefficient for kuo0 ?????????????
+    cevapcu = 0.2D0
 
 !   tracers to be added here:
     pxtm1(:,:,:) = d_zero ! tracers input profiles
     pxtte(:,:,:) = d_zero ! tracer tendencies
 
-    do k = 1 , kz
-      do i = 2 , iy 
-        ptm1(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)  ! temperature
-        pqm1(i,k) = atm2%qv(i,k,j)/sps2%ps(i,j) ! humidity
-        pum1(i,k) = atm2%u(i,k,j)/sps2%ps(i,j)  ! u (guessing!)
-        pvm1(i,k) = atm2%v(i,k,j)/sps2%ps(i,j)  ! v     "
-        pxlm1(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)! cloud liquid water
+    do i = 2 , iym2
+      ii = i - 1
+!     AMT NOTE: This is used in the switch between deep and shallow convectio
+!     The simpler switch on pressure difference still used in ECMWF 
+!     is commented out - possibly tests should be made to reinstate 
+!     the ECMWF version of this - this array will then be obsolete 
+      xphfx(ii) = sfsta%qfx(i,j)
+      ! Land/water flag - not correctly set
+      ldland(ii) = .false.
+    end do
 
-        pxim1(i,k) = d_zero                      ! cloud ice water
-        pxite(i,j) = d_zero                      ! ice tend
+    do k = 1 , kz
+      do i = 2 , iym2
+        ii = i - 1
+        ! Pascal
+        papp1(ii,k) = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+
+        ptm1(ii,k)  = atm2%t(i,k,j)/sps2%ps(i,j)  ! temperature
+        pum1(ii,k)  = atm2%u(i,k,j)/sps2%ps(i,j)  ! u (guessing!)
+        pvm1(ii,k)  = atm2%v(i,k,j)/sps2%ps(i,j)  ! v     "
+        pqm1(ii,k)  = atm2%qv(i,k,j)/sps2%ps(i,j) ! humidity
+        pxlm1(ii,k) = atm2%qc(i,k,j)/sps2%ps(i,j)! cloud liquid water
+
+        xpt(ii,k)  = aten%t(i,k,j)
+        xpu(ii,k)  = aten%u(i,k,j)
+        xpv(ii,k)  = aten%v(i,k,j)
+        xpqv(ii,k) = aten%qv(i,k,j)
+        xpqc(ii,k) = aten%qc(i,k,j)
+        ! IS vertical velocity in Pa/s or in m/s?
+        xpw(ii,k)  = omega(i,j,k)
+
+        pxim1(ii,k) = d_zero                      ! cloud ice water
+        pxite(ii,k) = d_zero                      ! ice tend
 
 ! scheme diagnostic output - tendencies due to convection
-        pxtec(i,k) = d_zero  ! detrained cloud water tendancy
-        pqtec(i,k) = d_zero  ! detrained humidity tendancy
-
-!
-! AMT NOTE: This is used in the switch between deep and shallow convectio
-!           The simpler switch on pressure difference still used in ECMWF 
-!           is commented out - possibly tests should be made to reinstate 
-!           the ECMWF version of this - this array will then be obsolete 
-!
-!        pqhfla(i)=sfsta%qfx(i,j) ! surface flux of moisture
-
+        pxtec(ii,k) = d_zero  ! detrained cloud water tendancy
+        pqtec(ii,k) = d_zero  ! detrained humidity tendancy
 ! 1st guess pressure at full levels
-        papp1(i,k) = a(k)*sps2%ps(i,j) + r8pt
-        pgeo(i,k) = za(i,k,j)*egrav   !   geopotential
+        xpg(ii,k) = za(i,k,j)  !   geopotential
       end do
     end do
     do k = 1 , kzp1
       do i = 2 , iy 
-        paphp1(i,k) = sigma(k)*sps2%ps(i,j) + r8pt
+        ii = i - 1
+        paphp1(ii,k) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_1000
       end do
     end do
 
@@ -168,34 +237,34 @@ module mod_cu_tiedtke
     paprc(:) = d_zero ! total precip cumulative 
     paprs(:) = d_zero ! total snow cumulative 
 
-    ldland(:) = .false.  ! land surface /ocean flag - set to false for now 
-
     ptopmax(:) = r8pt  ! pressure top limit for convection 
 
-    call cucall(iy,iy,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1, &
-                pqm1,pum1,pvm1,pxlm1,pxim1,aten%t(:,:,j),     &
-                aten%qv(:,:,j),aten%u(:,:,j),aten%v(:,:,j),   &
-                aten%qc(:,:,j),pxite,omega(:,:,j),pxtec,      &
-                pqtec,sfsta%qfx(:,j),papp1,paphp1,pgeo,prsfc, &
-                pssfc,paprc,paprs,icon(:),ldland,ptopmax)
+    call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
+                pqm1,pum1,pvm1,pxlm1,pxim1,xpt,xpqv,xpu,xpv,xpqc,   &
+                pxite,xpw,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
+                pssfc,paprc,paprs,ktype,ldland,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
-    do i = 2 , iy
-      sfsta%rainc(i,j) = sfsta%rainc(i,j) + paprc(i)+paprs(i) ! total precip cumulative 
-      pptc(i,j)= pptc(i,j) + (prsfc(i)+pssfc(i))/dble(nbatst)
+    icon(j) = 0
+    do i = 2 , iym2
+      ii = i - 1
+      if (ktype(ii) > 0) then
+        icon(j) = icon(j) + 1
+        ! total precip cumulative 
+        sfsta%rainc(i,j) = sfsta%rainc(i,j) + paprc(ii)+paprs(ii)
+        pptc(i,j)= pptc(i,j) + (prsfc(ii)+pssfc(ii))/dble(nbatst)
+      end if
     end do
 
     do k = 1 , kz
-      do i = 2 , iy 
-!       NOTE: there is an iconsistency here for the latent heating, as heat of fusion 
-!             used inside the convection scheme - please correct!
-        aten%qc(i,k,j) = aten%qc(i,k,j)+pxtec(i,k)
-        aten%qv(i,k,j) = aten%qv(i,k,j)+pqtec(i,k)
+      do i = 2 , iym2
+        ii = i - 1
+!       NOTE: there is an iconsistency here for the latent heating,
+!       as heat of fusion used inside the convection scheme - please correct!
+        aten%qc(i,k,j) = aten%qc(i,k,j)+pxtec(ii,k)
+        aten%qv(i,k,j) = aten%qv(i,k,j)+pqtec(ii,k)
       end do
     end do
-
-    ! convection on/off
-    icon=merge(0,1,icon>0)
 
   end subroutine tiedtkedrv
 !
