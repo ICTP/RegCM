@@ -54,6 +54,7 @@
       use mod_pmoist
       use mod_rad
       use mod_bats
+      use mod_cvaria
       use mod_trachem
 
       implicit none
@@ -86,13 +87,15 @@
         cldefi = d_zero
       end subroutine allocate_mod_cu_bm
 
-      subroutine bmpara(tten,qten,j)
+      subroutine bmpara(j)
 !
 !*****************************************************************
 ! *** warning: this subroutine will not work if kz < 12;
 !*****************************************************************
 !
       implicit none
+!
+      integer , intent(in) :: j
 !
       real(8) , parameter :: h1 = 1.0D0 , h3000 = 3000.0D0 ,            &
                            & h10e5 = 100000.0D0 , &
@@ -132,11 +135,6 @@
                            & cporng = d_one/dm2859 , elocp = wlhv/cpd , &
                            & cprlg = cpd/(row*egrav*wlhv)
       integer :: lp1 , lm1
-!
-      integer :: j
-      real(8) , dimension(iy,kz) :: qten , tten
-      intent (in) j
-      intent (inout) qten , tten
 !
       real(8) :: ak , akclth , apekl , aprdiv , avrgt , avrgtl , cell , &
                & cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
@@ -199,11 +197,7 @@
 !
 !...  xsm is surface mask: =1 water; =0 land
       do i = 2 , iym2
-#ifdef CLM
-        if ( ocld2d(1,i,j) == 0 ) then
-#else
-        if ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) then
-#endif
+        if ( ldmsk(i,j) == 0 ) then
           xsm(i) = d_one
         else
           xsm(i) = d_zero
@@ -872,8 +866,8 @@
 !-----------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
-          tten(i,k) = tten(i,k) + tmod(i,k)*sps2%ps(i,j)
-          qten(i,k) = qten(i,k) + qqmod(i,k)*sps2%ps(i,j)
+          aten%t(i,k,j)  = aten%t(i,k,j)  +  tmod(i,k)*sps2%ps(i,j)
+          aten%qv(i,k,j) = aten%qv(i,k,j) + qqmod(i,k)*sps2%ps(i,j)
         end do
       end do
       icon(j) = icond

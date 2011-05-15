@@ -239,12 +239,12 @@
           do j = 1 , jendx
             do n = 1 , nnsg
               do i = 1 , iym1
-                var2d0(i,n,j) = ocld2d(n,i,j)
+                var2d1(i,n,j) = ocld2d(n,i,j)
               end do
             end do
           end do
-          call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
-                        & var2d_0,iy*nnsg*jxp,mpi_integer, &
+          call mpi_gather(var2d1, iy*nnsg*jxp,mpi_integer, &
+                        & var2d_1,iy*nnsg*jxp,mpi_integer, &
                         & 0,mpi_comm_world,ierr)
           if (myid == 0) then
 #ifdef BAND
@@ -254,7 +254,7 @@
 #endif
               do n = 1 , nnsg
                 do i = 1 , iym1
-                  ocld2d_io(n,i,j) = var2d_0(i,n,j)
+                  ocld2d_io(n,i,j) = var2d_1(i,n,j)
                 end do
               end do
             end do
@@ -283,14 +283,12 @@
           end if
           if ( iseaice == 1 .or. lakemod == 1 ) then
             do j = 1 , jendx
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  var2d0(i,n,j) = ocld2d(n,i,j)
-                end do
+              do i = 1 , iym1
+                var2d0(i,j) = ldmsk(i,j)
               end do
             end do
-            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
-                          & var2d_0,iy*nnsg*jxp,mpi_integer, &
+            call mpi_gather(var2d0, iy*jxp,mpi_integer, &
+                          & var2d_0,iy*jxp,mpi_integer, &
                           & 0,mpi_comm_world,ierr)
             if (myid == 0) then
 #ifdef BAND
@@ -298,10 +296,8 @@
 #else
               do j = 1 , jxm1
 #endif
-                do n = 1 , nnsg
-                  do i = 1 , iym1
-                    ocld2d_io(n,i,j) = var2d_0(i,n,j)
-                  end do
+                do i = 1 , iym1
+                  ldmsk_io(i,j) = var2d_0(i,j)
                 end do
               end do
             end if
@@ -1148,9 +1144,10 @@
             end do
             do i = 1 , iym1
               sav2a(i,nnsg*2+1,j) = veg2d(i,j)
+              sav2a(i,nnsg*2+2,j) = ldmsk(i,j)
             end do
           end do
-          allrec = nnsg*2 + 1
+          allrec = nnsg*2 + 2
           call mpi_gather(sav2a, iym1*allrec*jxp,mpi_integer, &
                         & sav_2a,iym1*allrec*jxp,mpi_integer, &
                         & 0,mpi_comm_world,ierr)
@@ -1168,6 +1165,7 @@
               end do
               do i = 1 , iym1
                 veg2d_io(i,j) = sav_2a(i,nnsg*2+1,j)
+                ldmsk_io(i,j) = sav_2a(i,nnsg*2+2,j)
               end do
             end do
           end if
@@ -1503,9 +1501,9 @@
 #endif
 
 #ifdef MPP1
-      call writerec_srf(j,i,numbat,fbat_io,ocld2d_io,idatex)
+      call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
 #else
-      call writerec_srf(j,i,numbat,fbat,ocld2d,idatex)
+      call writerec_srf(j,i,numbat,fbat,ldmsk,idatex)
 #endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  

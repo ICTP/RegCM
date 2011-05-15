@@ -156,6 +156,7 @@
             read (iutrst) ircp2d_io
             read (iutrst) col2d_io
             read (iutrst) veg2d_io
+            read (iutrst) ldmsk_io
             read (iutrst) veg2d1_io
             read (iutrst) heatrt_io
             read (iutrst) o3prof_io
@@ -239,6 +240,7 @@
             read (iutrst) ircp2d
             read (iutrst) col2d
             read (iutrst) veg2d
+            read (iutrst) ldmsk
             read (iutrst) veg2d1
             read (iutrst) heatrt
             read (iutrst) o3prof
@@ -419,6 +421,7 @@
             write (iutsav) ircp2d_io
             write (iutsav) col2d_io
             write (iutsav) veg2d_io
+            write (iutsav) ldmsk_io
             write (iutsav) veg2d1_io
             write (iutsav) heatrt_io
             write (iutsav) o3prof_io
@@ -502,6 +505,7 @@
             write (iutsav) ircp2d
             write (iutsav) col2d
             write (iutsav) veg2d
+            write (iutsav) ldmsk
             write (iutsav) veg2d1
             write (iutsav) heatrt
             write (iutsav) o3prof

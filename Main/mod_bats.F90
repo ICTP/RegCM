@@ -79,7 +79,7 @@
             sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
       integer , allocatable , dimension(:,:,:) :: ocld2d , veg2d1
-      integer , allocatable , dimension(:,:) :: veg2d
+      integer , allocatable , dimension(:,:) :: veg2d , ldmsk
 !
       real(8) , allocatable , dimension(:,:,:) :: col2d , dew2d ,       &
            emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,        &
@@ -136,6 +136,8 @@
 
         allocate(veg2d(iym1,njm1))
         veg2d = -1
+        allocate(ldmsk(iym1,njm1))
+        ldmsk = -1
 
         allocate(flw2d(iym1,njm1))
         flw2d = d_zero

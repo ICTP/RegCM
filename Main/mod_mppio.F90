@@ -40,7 +40,7 @@
       private :: spaceclm
 #endif
       integer , allocatable , dimension(:,:,:) :: ocld2d_io , veg2d1_io
-      integer , allocatable , dimension(:,:) :: veg2d_io
+      integer , allocatable , dimension(:,:) :: veg2d_io , ldmsk_io
 
       real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
            & evpa2d_io , gwet2d_io , ircp2d_io , rno2d_io , &
@@ -134,8 +134,10 @@
       real(8) , allocatable , dimension(:,:,:) :: inisrf_0
 
       real(8) , allocatable , dimension(:,:) :: var1snd , var1rcv
-      integer , allocatable , dimension(:,:,:) :: var2d0
-      integer , allocatable , dimension(:,:,:) :: var2d_0
+      integer , allocatable , dimension(:,:) :: var2d0
+      integer , allocatable , dimension(:,:) :: var2d_0
+      integer , allocatable , dimension(:,:,:) :: var2d1
+      integer , allocatable , dimension(:,:,:) :: var2d_1
  
       real(8) , allocatable , dimension(:,:,:) :: atm0
       real(8) , allocatable , dimension(:,:,:) :: atm_0
@@ -208,8 +210,10 @@
         allocate(var1rcv(kz,8),stat=ierr)
         call check_alloc(ierr,myname,'var1rcv',size(var1rcv))
         var1rcv = d_zero
-        allocate(var2d0(iy,nnsg,jxp),stat=ierr)
+        allocate(var2d0(iy,jxp),stat=ierr)
         var2d0 = -1
+        allocate(var2d1(iy,nnsg,jxp),stat=ierr)
+        var2d1 = -1
         allocate(inisrf0(iy,nnsg*4+7,jxp),stat=ierr)
         call check_alloc(ierr,myname,'inisrf0',size(inisrf0))
         inisrf0 = d_zero
@@ -249,8 +253,10 @@
           allocate(inisrf_0(iy,nnsg*4+7,jx),stat=ierr)
           call check_alloc(ierr,myname,'inisrf_0',size(inisrf_0))
           inisrf_0 = d_zero
-          allocate(var2d_0(iy,nnsg,jx),stat=ierr)
+          allocate(var2d_0(iy,jx),stat=ierr)
           var2d_0 = -1
+          allocate(var2d_1(iy,nnsg,jx),stat=ierr)
+          var2d_1 = -1
           allocate(atm_0(iy,kz*6+3+nnsg*3,jx),stat=ierr)
           call check_alloc(ierr,myname,'atm_0',size(atm_0))
           atm_0 = d_zero
@@ -308,14 +314,17 @@
             allocate(veg2d1_io(nnsg,iym1,jx),stat=ierr)
             allocate(ocld2d_io(nnsg,iym1,jx),stat=ierr)
             allocate(veg2d_io(iym1,jx),stat=ierr)
+            allocate(ldmsk_io(iym1,jx),stat=ierr)
           else
             allocate(veg2d1_io(nnsg,iym1,jxm1),stat=ierr)
             allocate(ocld2d_io(nnsg,iym1,jxm1),stat=ierr)
             allocate(veg2d_io(iym1,jxm1),stat=ierr)
+            allocate(ldmsk_io(iym1,jxm1),stat=ierr)
           end if
           veg2d1_io = -1
           ocld2d_io = -1
           veg2d_io = -1
+          ldmsk_io = -1
           allocate(spacesub(nnsg,iy,jx,4),stat=ierr)
           call check_alloc(ierr,myname,'spacesub',size(spacesub))
           spacesub = d_zero
@@ -669,7 +678,7 @@
           allocate(sav_2(iym1,nnsg*5+4,jx),stat=ierr)
           call check_alloc(ierr,myname,'sav_2',size(sav_2))
           sav_2 = d_zero
-          allocate(sav_2a(iym1,nnsg*2+1,jx),stat=ierr)
+          allocate(sav_2a(iym1,nnsg*2+2,jx),stat=ierr)
           sav_2a = -1
           if ( ichem == 1 ) then
             allocate(sav_4(iy,ntr*(kz*4+1),jx),stat=ierr)
@@ -712,7 +721,7 @@
         allocate(sav2(iym1,nnsg*5+4,jxp),stat=ierr)
         call check_alloc(ierr,myname,'sav2',size(sav2))
         sav2 = d_zero
-        allocate(sav2a(iym1,nnsg*2+1,jxp),stat=ierr)
+        allocate(sav2a(iym1,nnsg*2+2,jxp),stat=ierr)
         sav2a = -1
         if ( ichem == 1 ) then
           allocate(sav4(iy,ntr*(kz*4+1),jxp),stat=ierr)

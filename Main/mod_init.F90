@@ -347,6 +347,7 @@
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                   end do
@@ -363,6 +364,7 @@
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                   end do
@@ -517,6 +519,7 @@
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                   end do
@@ -537,6 +540,7 @@
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
                   ts0(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                   end do
@@ -1147,10 +1151,11 @@
             end do
             do i = 1 , iym1
               sav_2a(i,nnsg*2+1,j) = veg2d_io(i,j)
+              sav_2a(i,nnsg*2+2,j) = ldmsk(i,j)
             end do
           end do
         end if
-        allrec = nnsg*2 + 1
+        allrec = nnsg*2 + 2
         call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_integer,  &
                          sav2a, iym1*allrec*jxp,mpi_integer,  &
                          0,mpi_comm_world,ierr)
@@ -1163,6 +1168,7 @@
           end do
           do i = 1 , iym1
             veg2d(i,j) = sav2a(i,nnsg*2+1,j)
+            ldmsk(i,j) = sav2a(i,nnsg*2+2,j)
           end do
         end do
         if ( ichem == 1 ) then

@@ -1475,13 +1475,7 @@
             call cuparan(j)
           end if
           if ( icup == 3 ) then
-            write (aline,*)                                             &
-                & 'ICTP RegCM team thinks the Betts-Miller code',       &
-                & ' is not ready for Regional Climate Run yet.'
-            call say
-            call fatal(__FILE__,__LINE__,                               &
-                      &'BETTS MILLER CUMULUS OPTION NOT ALLOWED')
-            call bmpara(aten%t(:,:,j),aten%qv(:,:,j),j)
+            call bmpara(j)
           end if
           if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
             call cupemandrv(j)

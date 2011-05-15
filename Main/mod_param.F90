@@ -1182,10 +1182,12 @@ module mod_param
         do i = 1 , iym1
           if ( mddom%satbrt(i,j) > 13.5D0 .and. &
                mddom%satbrt(i,j) < 15.5D0 ) then
+            ldmsk(i,j) = 0
             do n = 1, nnsg
               ocld2d(n,i,j) = 0
             end do
           else
+            ldmsk(i,j) = 1
             do n = 1, nnsg
               ocld2d(n,i,j) = 1
             end do

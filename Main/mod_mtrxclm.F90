@@ -739,7 +739,7 @@
             end do
 
             if ( ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) .and. &
-                   ocld2d(1,i,j) /= 0 ) then
+                   ldmsk(i,j) /= 0 ) then
               veg2d(i,j)        =  2
               mddom%satbrt(i,j) =  d_two
             end if

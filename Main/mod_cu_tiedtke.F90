@@ -69,6 +69,7 @@ module mod_cu_tiedtke
 
   logical , allocatable , dimension(:) :: ldland
 
+  real(dp) :: ztmx
   real(dp) , allocatable , dimension(:,:,:) :: pxtm1 , pxtte 
 
   real(dp) , allocatable , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
@@ -170,14 +171,16 @@ module mod_cu_tiedtke
     implicit none
     integer , intent(in) :: j
 
-!   local integers
+!   local variables
     integer :: i , k , ii
 
 !   need to translate REGCM to TIEDTKE vars...
+
+    ztmx = dt*d_half
     ilab(:,:) = 2
 
-!   evaporation coefficient for kuo0 ?????????????
-    cevapcu = 0.2D0
+!   evaporation coefficient for kuo0 
+    cevapcu = cevap
 
 !   tracers to be added here:
     pxtm1(:,:,:) = d_zero ! tracers input profiles
@@ -190,8 +193,8 @@ module mod_cu_tiedtke
 !     is commented out - possibly tests should be made to reinstate 
 !     the ECMWF version of this - this array will then be obsolete 
       xphfx(ii) = sfsta%qfx(i,j)
-      ! Land/water flag - not correctly set
-      ldland(ii) = .false.
+      ! Land/water flag - is correctly set?
+      ldland(ii) = (ldmsk(i,j) == 0)
     end do
 
     do k = 1 , kz
@@ -212,7 +215,7 @@ module mod_cu_tiedtke
         xpqv(ii,k) = aten%qv(i,k,j)
         xpqc(ii,k) = aten%qc(i,k,j)
         ! IS vertical velocity in Pa/s or in m/s?
-        xpw(ii,k)  = omega(i,j,k)
+        xpw(ii,k)  = omega(i,k,j)
 
         pxim1(ii,k) = d_zero                      ! cloud ice water
         pxite(ii,k) = d_zero                      ! ice tend
@@ -237,7 +240,7 @@ module mod_cu_tiedtke
     paprc(:) = d_zero ! total precip cumulative 
     paprs(:) = d_zero ! total snow cumulative 
 
-    ptopmax(:) = r8pt  ! pressure top limit for convection 
+    ptopmax(:) = r8pt*d_1000  ! pressure top limit for convection 
 
     call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,xpt,xpqv,xpu,xpv,xpqc,   &
@@ -321,7 +324,7 @@ module mod_cu_tiedtke
          zqp1 , zqsat , zqu , zqude , ztp1 , ztu , ztvp1 , zup1 ,   &
          zvp1 , zxp1
   real(dp) , dimension(kbdim) :: zrain , ztopmax
-  real(dp) :: ztmst , zxip1 , zxlp1
+  real(dp) :: zxip1 , zxlp1
   real(dp) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
 !
 !  Executable statements
@@ -332,17 +335,16 @@ module mod_cu_tiedtke
 !*    1.           CALCULATE T,Q AND QS AT MAIN LEVELS
 !*    -----------------------------------
 !
-  ztmst = dt
   do jk = 1 , klev
     do jl = 1 , kproma
-      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*ztmst
-      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*ztmst)
-      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*ztmst
-      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*ztmst
+      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*ztmx
+      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*ztmx)
+      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*ztmx
+      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*ztmx
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
       ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+vtmpc1*zqp1(jl,jk)-zxp1(jl,jk))
-      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*ztmst
-      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*ztmst
+      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*ztmx
+      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*ztmx
       it = int(ztp1(jl,jk)*d_1000)
       if ( it<jptlucu1 .or. it>jptlucu2 ) lookupoverflow = .true.
       it = max(min(it,jptlucu2),jptlucu1)
@@ -357,7 +359,7 @@ module mod_cu_tiedtke
  
     do jt = 1 , ktrac
       do jl = 1 , kproma
-        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*ztmst
+        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*ztmx
       end do
     end do
  
@@ -407,15 +409,11 @@ module mod_cu_tiedtke
     itopec2(jl) = klevp1
   end do
 !
-
-!*AMT* no search for tropopause, code not required 
-!
-!  do jk = 1 , ilevmin
-!    do jl = 1 , kproma
-!      if ( ilab(jl,jk)==2 .and. itopec2(jl)==klevp1 ) itopec2(jl) = jk
-!    end do
-!  end do
-
+  do jk = 1 , ilevmin
+    do jl = 1 , kproma
+      if ( ilab(jl,jk)==2 .and. itopec2(jl)==klevp1 ) itopec2(jl) = jk
+    end do
+  end do
 !
   ztopmax(1:kproma) = ptopmax(1:kproma)
  
@@ -3449,16 +3447,8 @@ module mod_cu_tiedtke
 !
   integer :: jk , jl , jt
   logical :: llo1
-  real(dp) :: zalv , zdiagt , zdqdt , zdtdt , zdxtdt , zrcpm
+  real(dp) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
   real(dp) , dimension(kbdim) :: zmelt , zsheat
-!
-!----------------------------------------------------------------------
-!*    1.0          SPECIFY PARAMETERS
-!     ------------------
-!
-  zdiagt = dt
-             ! reciprocal value of specific heat of moist air
-!
 !
 !----------------------------------------------------------------------
 !*    2.0          INCREMENTATION OF T AND Q TENDENCIES
@@ -3556,8 +3546,8 @@ module mod_cu_tiedtke
   do jl = 1 , kproma
     prsfc(jl) = prfl(jl)
     pssfc(jl) = psfl(jl)
-    paprc(jl) = paprc(jl) + zdiagt*(prfl(jl)+psfl(jl))
-    paprs(jl) = paprs(jl) + zdiagt*psfl(jl)
+    paprc(jl) = paprc(jl) + ztmx*(prfl(jl)+psfl(jl))
+    paprs(jl) = paprs(jl) + ztmx*psfl(jl)
   end do
 !
   end subroutine cudtdq

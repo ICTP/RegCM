@@ -733,9 +733,10 @@
                 if ( lakemod == 1 .and. &
                      islake(mddom%satbrt(i,j)) ) cycle
                 if ( tdum(i,j) <= icetemp ) then
-                   sts1%tg(i,j) = icetemp
-                   sts2%tg(i,j) = icetemp
-                   tdum(i,j) = icetemp
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  tdum(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                     sice2d(n,i,j) = d_1000
@@ -744,6 +745,7 @@
                 else
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
+                  ldmsk(i,j) = 0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0
                     sice2d(n,i,j) = d_zero
@@ -1029,9 +1031,10 @@
                 if ( lakemod == 1 .and. &
                      islake(mddom%satbrt(i,j)) ) cycle
                 if ( tdum(i,j) <= icetemp ) then
-                   sts1%tg(i,j) = icetemp
-                   sts2%tg(i,j) = icetemp
-                   tdum(i,j) = icetemp
+                  sts1%tg(i,j) = icetemp
+                  sts2%tg(i,j) = icetemp
+                  tdum(i,j) = icetemp
+                  ldmsk(i,j) = 2
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 2
                     sice2d(n,i,j) = d_1000
@@ -1040,6 +1043,7 @@
                 else
                   sts1%tg(i,j) = tdum(i,j)
                   sts2%tg(i,j) = tdum(i,j)
+                  ldmsk(i,j) = 0
                   do n = 1, nnsg
                     ocld2d(n,i,j) = 0
                     sice2d(n,i,j) = d_zero

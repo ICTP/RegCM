@@ -2362,7 +2362,7 @@
           implicit none
           integer , intent(in) :: nx , ny , numbat , idate
           real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
-          integer , dimension(nnsg,iym1,jxm1) , intent(in) :: mask
+          integer , dimension(iym1,jxm1) , intent(in) :: mask
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
@@ -2455,12 +2455,7 @@
           end do
 
           if ( iseaice == 1 .or. lakemod == 1 ) then
-            dumio(:,:,1) = 0.0
-            do n = 1 , nnsg
-              dumio(:,:,1) = dumio(:,:,1) + &
-                            real(transpose(mask(n,o_is:o_ie,o_js:o_je)))
-            end do
-            dumio(:,:,1) = dumio(:,:,1)*xns2r
+            dumio(:,:,1) = real(transpose(mask(o_is:o_ie,o_js:o_je)))
             istart(3) = isrfrec
             istart(2) = 1
             istart(1) = 1

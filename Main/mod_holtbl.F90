@@ -977,11 +977,7 @@
 !
           do itr = 1 , ntr
             do i = 2 , iym1
-#ifdef CLM
-              if ( ocld2d(1,i,j) == 0 ) then
-#else
-              if ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) then
-#endif
+              if ( ldmsk(i,j) == 0 ) then
                 vdep(i,itr) = chtrdpv(itr,2)
               else
                 vdep(i,itr) = chtrdpv(itr,1)
