@@ -120,7 +120,7 @@ program sigma2p
     else if (dimname == 'jx' .or. dimname == 'x') then
       jx = dimlen(i)
       jxdimid = i
-    else if (dimname == 'kz' .or. dimname == 'z') then
+    else if (dimname == 'kz' .or. dimname == 'z' .or. dimname == 'lev') then
       kz = dimlen(i)
       kzdimid = i
     end if
@@ -187,7 +187,7 @@ program sigma2p
     call check_ok('Error inquire variable')
     if (varname == 'time') then
       itvarid = i
-    else if (varname == 'sigma') then
+    else if (varname == 'sigma' .or. varname == 'lev') then
       varname = 'plev'
       ikvarid = i
     else if (varname == 'ptop') then
@@ -243,7 +243,10 @@ program sigma2p
   end do
 
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
-  call check_ok('Error reading variable sigma.')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(ncid, "lev", ivarid)
+    call check_ok('Error reading variable sigma.')
+  end if
   istatus = nf90_get_var(ncid, ivarid, sigma)
   call check_ok('Error reading variable sigma.')
 
