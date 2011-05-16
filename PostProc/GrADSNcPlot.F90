@@ -52,7 +52,7 @@ program ncplot
   integer :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
   integer :: i , j
-  logical :: lvarsplit , lsigma , lcdolev , ldepth
+  logical :: lvarsplit , lsigma , ldepth
 #ifdef __PGI
   integer , external :: iargc
 #endif
@@ -63,7 +63,6 @@ program ncplot
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
   data lsigma /.true./
-  data lcdolev /.false./
   data ldepth /.false./
   data kzdimid  /-1/
   data itdimid  /-1/
@@ -148,10 +147,9 @@ program ncplot
   istatus = nf90_inq_dimid(ncid, "kz", kzdimid)
   if (istatus /= nf90_noerr) then
     lsigma = .false.
-    istatus = nf90_inq_dimid(ncid, "plev", kzdimid)
+    istatus = nf90_inq_dimid(ncid, "lev", kzdimid)
     if (istatus /= nf90_noerr) then
-      istatus = nf90_inq_dimid(ncid, "lev", kzdimid)
-      if ( istatus == nf90_noerr) lcdolev = .true.
+      istatus = nf90_inq_dimid(ncid, "plev", kzdimid)
     end if
   end if
   if (istatus == nf90_noerr) then
@@ -393,9 +391,8 @@ program ncplot
     if (lsigma) then
       istatus = nf90_inq_varid(ncid, "sigma", ivarid)
     else
-      if (lcdolev) then
-        istatus = nf90_inq_varid(ncid, "lev", ivarid)
-      else
+      istatus = nf90_inq_varid(ncid, "lev", ivarid)
+      if (istatus /= nf90_noerr) then
         istatus = nf90_inq_varid(ncid, "plev", ivarid)
       end if
     end if

@@ -260,6 +260,8 @@
       real(8) , parameter :: rgsslp = d_half/(egravgts*sslp)
       ! Effective molecular weight of dry air (g/mol)
       real(8) , parameter :: amd = 28.9644D+00
+      ! Effective molecular weight of dry air (kg/mol)
+      real(8) , parameter :: amdk = amd*d_r1000
       ! Molecular weight of ozone (g/mol)
       real(8) , parameter :: amo = 48.0D+00
       ! Molecular weight of co2 (g/mol)
