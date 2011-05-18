@@ -87,7 +87,6 @@
         else if ( ssttyp=='ERSKT' ) then
           inpfile = trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
           call skt_erain(ierrec,ilon,jlat,sst,inpfile)
-        else
         end if
 
         call split_idate(idate, nyear, nmo, nday, nhour)
@@ -125,6 +124,7 @@
       integer , dimension(10) , save :: icount , istart
       integer , save :: inet , ivar
       real(8) , save :: xadd , xscale , xmiss
+      logical , save :: lfirst
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -137,8 +137,9 @@
 !     DATA ARRAY AND WORK ARRAY
 !
       data varname/'skt'/
+      data lfirst/.true./
 !
-      if ( it==1 ) then
+      if ( lfirst ) then
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
@@ -161,6 +162,7 @@
           istart(n) = 0
           icount(n) = 0
         end do
+        lfirst = .false.
       end if
 ! 
       istart(3) = it
