@@ -134,6 +134,7 @@ module mod_sst_ersst
   integer , save :: inet , ivar
   real(dp) , save :: xadd , xscale , xmiss
   integer , dimension(10) , save :: icount , istart
+  logical , save :: lfirst
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -146,9 +147,10 @@ module mod_sst_ersst
 !     DATA ARRAY AND WORK ARRAY
 !
   data varname/'sst','skt'/
+  data lfirst /.true./
 !
   call zeit_ci('read_sst_era')
-  if ( it == 1 ) then
+  if ( lfirst ) then
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     if ( istatus /= nf90_noerr ) then
       call die('sst_erain','Cannot open input file '// &
@@ -171,6 +173,7 @@ module mod_sst_ersst
       istart(n) = 0
       icount(n) = 0
     end do
+    lfirst = .false.
   end if
 !
   istart(3) = it
