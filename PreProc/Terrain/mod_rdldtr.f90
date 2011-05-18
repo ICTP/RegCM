@@ -126,6 +126,7 @@
         if (.not. lcrosstime) then
           ! Simple case: not crossing timeline
           icount(2) = nlat
+          if (icount(2)+istart(2) > nlagb) icount(2) = icount(2) - 1
           icount(1) = nlon
           istatus = nf90_get_var(ncid, ivar, readbuf, istart, icount)
           call checkerr(istatus)
@@ -147,9 +148,13 @@
         istatus = nf90_close(ncid)
         call checkerr(istatus)
 
-        ! Fix South pole missing in dataset
+        ! Fix Poles for interpolations
         if (istart(2) == 1) then
+          print *, 'Correcting South pole.'
           readbuf(:,1) = readbuf(:,2)
+        else if (istart(2)+icount(2)-1 == nlagb) then
+          print *, 'Correcting North pole.'
+          readbuf(:,nlat) = readbuf(:,nlat-1)
         end if
 
         write (6, '(a)', advance='no') ' Resampling'
