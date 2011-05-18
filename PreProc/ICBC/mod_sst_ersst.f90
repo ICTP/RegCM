@@ -206,6 +206,7 @@
       integer , save :: inet , ivar
       real(8) , save :: xadd , xscale , xmiss
       integer , dimension(10) , save :: icount , istart
+      logical , save :: lfirst
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -218,8 +219,9 @@
 !     DATA ARRAY AND WORK ARRAY
 !
       data varname/'sst'/
+      data lfirst /.true./
 !
-      if ( it==1 ) then
+      if ( lfirst ) then
         istatus = nf90_open(pathaddname,nf90_nowrite,inet)
         if ( istatus/=nf90_noerr ) then
           write ( 6,* ) 'Cannot open input file ', trim(pathaddname)
@@ -242,6 +244,7 @@
           istart(n) = 0
           icount(n) = 0
         end do
+        lfirst = .false.
       end if
 !
       istart(3) = it
