@@ -380,7 +380,7 @@ module mod_sst_eh5om
     else
     end if
     call split_idate(idate, nyear, nmo, nday, nhour)
-    ieh5orec = idatediff(idate, ieh5ostart)
+    ieh5orec = idatediff(idate, ieh5ostart)/ibdyfrq+1
     read (11,rec=ieh5orec-it_base) offset , xscale , ivar
     do j = 1 , jlat
       do i = 1 , ilon

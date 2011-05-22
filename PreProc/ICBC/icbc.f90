@@ -132,7 +132,9 @@ program icbc
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
   if ( dattyp == 'FVGCM' .or. dattyp == 'NRP2W' .or.   &
-       dattyp == 'GFS11' .or. dattyp == 'EH5OM' ) then
+       dattyp == 'GFS11' .or. dattyp == 'EH5RF' .or.   &
+       dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or.   &
+       dattyp == 'EHA1B') then
     call init_globwindow(lat0,lon0,lat1,lon1)
   end if
 
@@ -178,7 +180,8 @@ program icbc
     call headergfs
   else if ( dattyp == 'ERAHI' ) then
     call headerehi
-  else if ( dattyp == 'EH5OM' ) then
+  else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+            dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call headermpi(ehso4)
   else if ( dattyp == 'FVGCM' ) then
     call headerfv
@@ -215,7 +218,8 @@ program icbc
       call getgfs11(idate)
     else if ( dattyp == 'ERAHI' ) then
       call geterahi(idate)
-    else if ( dattyp == 'EH5OM' ) then
+    else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+              dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
       call geteh5om(idate)
     else if ( dattyp == 'FVGCM' ) then
       call getfvgcm(idate)
@@ -244,7 +248,8 @@ program icbc
     call footergfs
   else if ( dattyp == 'ERAHI' ) then
     call footerehi
-  else if ( dattyp == 'EH5OM' ) then
+  else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+            dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call footermpi(ehso4)
   else if ( dattyp == 'FVGCM' ) then
     call footerfv

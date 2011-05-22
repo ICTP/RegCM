@@ -157,10 +157,10 @@ module mod_rdldtr
 
     ! Fix Poles for interpolations
     if (istart(2) == 1) then
-      print *, 'Correcting South pole.'
+      write (stdout,*) 'Correcting South pole.'
       readbuf(:,1) = readbuf(:,2)
     else if (istart(2)+icount(2)-1 == nlagb) then
-      print *, 'Correcting North pole.'
+      write (stdout,*) 'Correcting North pole.'
       readbuf(:,nlat) = readbuf(:,nlat-1)
     end if
 
