@@ -447,6 +447,7 @@
         lat1 = 0.0D0
         lon1 = 0.0D0
 
+        rewind(ipunit)
         read(ipunit, globwindow,err=101)
         return
   101   print *, 'Globwindow not present: Assuming Global data input'

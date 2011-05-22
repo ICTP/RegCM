@@ -128,7 +128,9 @@
       call getarg(1, namelistfile)
       call initparam(namelistfile, ierr)
       if ( dattyp=='FVGCM' .or. dattyp=='NRP2W' .or.                    &
-       &   dattyp=='GFS11' .or. dattyp=='EH5OM' ) then
+       &   dattyp=='GFS11' .or. dattyp=='EH5RF' .or.                    &
+       &   dattyp=='EH5A2' .or. dattyp=='EH5B1' .or.                    &
+       &   dattyp=='EHA1B') then
         call init_globwindow(lat0,lon0,lat1,lon1)
       end if
 
