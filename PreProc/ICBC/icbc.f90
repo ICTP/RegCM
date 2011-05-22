@@ -170,7 +170,8 @@
         call headergfs
       else if ( dattyp=='ERAHI' ) then
         call headerehi
-      else if ( dattyp=='EH5OM' ) then
+      else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+                dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
         call headermpi(ehso4)
       else if ( dattyp=='FVGCM' ) then
         call headerfv
@@ -211,7 +212,8 @@
           call getgfs11(idate)
         else if ( dattyp=='ERAHI' ) then
           call geterahi(idate)
-        else if ( dattyp=='EH5OM' ) then
+        else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+                  dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
           call geteh5om(idate)
         else if ( dattyp=='FVGCM' ) then
           call getfvgcm(idate)
