@@ -142,12 +142,14 @@
                 hi2d(n,i,j) = d_one
                 hsnow2d(n,i,j) = d_zero
               end if
+              ! Azar Zarrin: Fixed unrealistic high ice tickness and
+              ! high water temperatures during warm months.
               if (idep2d(n,i,j) < 50) then
-                eta2d(n,i,j) = 0.7D0
-              else if (idep2d(n,i,j) > 100) then
-                eta2d(n,i,j) = 0.3D0
-              else
                 eta2d(n,i,j) = 0.5D0
+              else if (idep2d(n,i,j) > 100) then
+                eta2d(n,i,j) = 0.1D0
+              else
+                eta2d(n,i,j) = 0.3D0
               end if
             else
               idep2d(n,i,j) = 0
