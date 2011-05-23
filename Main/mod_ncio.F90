@@ -2802,10 +2802,8 @@
               do j = 1 , o_nj
                 if (.not. lwrap) then
                   jp1 = j+1
-                  jp2 = j+2
                 else
                   jp1 = j
-                  jp2 = j+1
                 end if
                 dumio(j,i,k) = real(omega(ip1,k,jp1))
               end do
@@ -2822,10 +2820,8 @@
               do j = 1 , o_nj
                 if (.not. lwrap) then
                   jp1 = j+1
-                  jp2 = j+2
                 else
                   jp1 = j
-                  jp2 = j+1
                 end if
                 dumio(j,i,k) = real(t(ip1,k,jp1)/ps(ip1,jp1))
               end do
@@ -2843,10 +2839,8 @@
               do j = 1 , o_nj
                 if (.not. lwrap) then
                   jp1 = j+1
-                  jp2 = j+2
                 else
                   jp1 = j
-                  jp2 = j+1
                 end if
                 if (qv(ip1,k,jp1) > dlowval) &
                   dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
@@ -2865,10 +2859,8 @@
               do j = 1 , o_nj
                 if (.not. lwrap) then
                   jp1 = j+1
-                  jp2 = j+2
                 else
                   jp1 = j
-                  jp2 = j+1
                 end if
                 if (qc(ip1,k,jp1) > dlowval) &
                   dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))

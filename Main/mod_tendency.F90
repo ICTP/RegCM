@@ -871,11 +871,11 @@
 #endif
       end do
 #ifdef MPP1
-      call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,ieast,1, &
-                        qdot(1,1,0),  iy*kzp1,mpi_real8,iwest,1, &
+      call mpi_sendrecv(qdot(:,:,jxp),iy*kzp1,mpi_real8,ieast,1, &
+                        qdot(:,:,0),  iy*kzp1,mpi_real8,iwest,1, &
                         mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(qdot(1,1,1),    iy*kzp1,mpi_real8,iwest,2, &
-                        qdot(1,1,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
+      call mpi_sendrecv(qdot(:,:,1),    iy*kzp1,mpi_real8,iwest,2, &
+                        qdot(:,:,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
                         mpi_comm_world,mpi_status_ignore,ierr)
 #endif
 !
