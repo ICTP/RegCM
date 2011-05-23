@@ -128,7 +128,7 @@ program sigma2p
       itdimid = i
       nt = dimlen(i)
       istatus = nf90_def_dim(ncout, dimname, nf90_unlimited, idimid)
-    else if (dimname == 'kz') then
+    else if (dimname == 'kz' .or. dimname == 'z' .or. dimname == 'lev') then
       istatus = nf90_def_dim(ncout, 'plev', np, idimid)
     else
       istatus = nf90_def_dim(ncout, dimname, dimlen(i), idimid)
