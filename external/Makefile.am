@@ -15,7 +15,8 @@ else
 noinst_LIBRARIES = libmpiser.a libmpeu.a libmct.a
 endif
 libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
-	                    handles.c comm.c group.c time.c pack.c fort.F90
+	                    handles.c comm.c group.c time.c pack.c fort.F90 \
+											mpistub.f90
 libmpeu_a_SOURCES = get_zeits.c m_chars.F90 m_die.F90 m_dropdead.F90      \
 										m_FcComms.F90 m_Filename.F90 m_FileResolv.F90         \
 										m_flow.F90 m_IndexBin_char.F90 m_IndexBin_integer.F90 \

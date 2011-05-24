@@ -327,7 +327,7 @@ if eval "test x$PARALLEL = x1"; then
 else
   FORT_SIZE="real4double8"
   MPIFC=$FC
-  LIBS="$LIBS -lmpiser -lmpeu -lmct"
+  LIBS="$LIBS -lmpeu -lmct -lmpiser"
   AC_SUBST(MPIFC)
   AC_SUBST(FORT_SIZE)
 fi
