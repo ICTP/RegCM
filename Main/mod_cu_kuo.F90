@@ -347,27 +347,20 @@
 !
       subroutine htdiff(dxsq,akht1)
 
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif 
-#endif
       implicit none
 !
       real(8) :: akht1 , dxsq
       intent (in) akht1 , dxsq
 !
       integer :: i , im1 , ip1 , j , jm1 , jp1 , k
-#ifdef MPP1
       integer :: ierr
       real(8) , dimension(iy,0:jxp+1) :: wr
-#else
-      real(8) , dimension(iy,jx) :: wr
-#endif
 !
-#ifdef MPP1
       do k = 1 , kz
         do j = 1 , jendl
           do i = 1 , iy
@@ -405,36 +398,7 @@
           end do
         end do
       end do
-#else
-      do k = 1 , kz
-        do j = 1 , jx
-          do i = 1 , iy
-            wr(i,j) = rsheat(i,k,j)
-          end do
-        end do
-#ifdef BAND
-        do j = 1 , jx
-          jm1 = j - 1
-          jp1 = j + 1
-          if (jm1 == 0) jm1 = jx
-          if (jp1 == jx+1) jp1 = 1
-#else
-        do j = 2 , jxm2
-          jm1 = max0(j-1,2)
-          jp1 = min0(j+1,jxm2)
-#endif
-          do i = 2 , iym2
-            im1 = max0(i-1,2)
-            ip1 = min0(i+1,iym2)
-            rsheat(i,k,j) = rsheat(i,k,j)                               &
-                          & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j) &
-                          & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
-          end do
-        end do
-      end do
-#endif
 !
-#ifdef MPP1
       do k = 1 , kz
         do j = 1 , jendl
           do i = 1 , iy
@@ -472,34 +436,6 @@
           end do
         end do
       end do
-#else
-      do k = 1 , kz
-        do j = 1 , jx
-          do i = 1 , iy
-            wr(i,j) = rswat(i,k,j)
-          end do
-        end do
-#ifdef BAND
-        do j = 1 , jx
-          jm1 = j - 1
-          jp1 = j + 1
-          if (jm1 == 0) jm1 = jx
-          if (jp1 == jx+1) jp1 = 1
-#else
-        do j = 2 , jxm2
-          jm1 = max0(j-1,2)
-          jp1 = min0(j+1,jxm2)
-#endif
-          do i = 2 , iym2
-            im1 = max0(i-1,2)
-            ip1 = min0(i+1,iym2)
-            rswat(i,k,j) = rswat(i,k,j)                                 &
-                         & + akht1*dt*d_half/dxsq*(wr(im1,j)+wr(ip1,j)  &
-                         & +wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
-          end do
-        end do
-      end do
-#endif
       end subroutine htdiff
 !
       end module mod_cu_kuo

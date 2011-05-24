@@ -127,12 +127,10 @@ CONTAINS
   !!< 
   SUBROUTINE activate_debug(level)
 
-#ifdef MPP1
 #ifndef IBM
     use mpi
 #else
     INCLUDE 'mpif.h'  
-#endif
 #endif
     IMPLICIT NONE
     INTEGER, optional :: LEVEL
@@ -143,8 +141,6 @@ CONTAINS
     LOGICAL :: safe=.TRUE.
     INTEGER :: ierr1,idum
     INTEGER,EXTERNAL :: intstr
-
-#ifdef MPP1
 
     ! check if MPI is on.
     called_mpi=.FALSE.
@@ -159,9 +155,6 @@ CONTAINS
     !! allocate and initialize this vector needed in timing routines..
     ALLOCATE(a_tmp(0:mxnode-1))
     a_tmp=0 
-
-
-#endif 
 
     !! the following procedure accounts up to 999 processors  
     IF (mxnode.LT.10) THEN
@@ -356,12 +349,10 @@ CONTAINS
 
   SUBROUTINE time_print(iunit,name_of_section)
 
-#ifdef MPP1
 #ifndef IBM
     use mpi
 #else
     INCLUDE 'mpif.h'  
-#endif
 #endif
     IMPLICIT NONE
     ! arguments:
@@ -382,9 +373,7 @@ CONTAINS
     CHARACTER (len=50) :: name
     CHARACTER (len=50) :: sub='time_print'
 
-#ifdef MPP1
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
-#endif  
 
     L_ENTRY=.TRUE.
     IF (node==0) THEN
@@ -405,7 +394,6 @@ CONTAINS
     ALLOCATE(array_tmp(0:mxnode-1))
     ALLOCATE(array_entries(0:mxnode-1))
 
-#ifdef MPP1
     ! check if the calling tree is the same on all nodes 
     CALL gather_i(array_entries,n_of_ENTRY)
     test=array_entries(0)  
@@ -418,15 +406,12 @@ CONTAINS
           L_ENTRY=.FALSE.
        END IF
     END DO
-#endif  
-
 
     ! if the calling tree is the same print out gathered data 
     ! on iunit (OUTPUT file)
     IF (L_ENTRY) THEN
        DO ENTRY=1,n_of_ENTRY
 
-#ifdef MPP1 
           L_times_on_pe=.FALSE.
           CALL gather_i(a_tmp,info_serial(ENTRY)%n_of_time)
           ! check the number of time
@@ -438,7 +423,6 @@ CONTAINS
              END IF
              CALL MPI_barrier(MPI_COMM_WORLD,ierr1)
           END DO
-#endif
           ! set to zero times less then 0.1 microseconds
           IF (info_serial(ENTRY)%total_time<=0.0000001) & 
                info_serial(ENTRY)%total_time=0.0000001
@@ -479,8 +463,6 @@ CONTAINS
     END DO
     endif 
 
-#ifdef MPP1
-
     IF (node==0) THEN
        WRITE(iunit,"(1x,'!',19x,a30,/)") 'Communication subroutines :   '
        WRITE(iunit,*) &
@@ -511,7 +493,6 @@ CONTAINS
        total_comm_time=0.0
 
     END IF
-#endif
     IF(node==0) THEN  
        WRITE(iunit,"(/,1x,10('!'),' End of Specific TIMING ', 47('!'),/)")
        call flusha(iunit)
@@ -554,20 +535,15 @@ CONTAINS
   !!<
 
   SUBROUTINE gather(f_collect,f_sub)
-#ifdef MPP1
 #ifndef IBM
     use mpi
 #else
     INCLUDE 'mpif.h'  
 #endif
-#endif
     IMPLICIT NONE 
     REAL (kind=8), DIMENSION(:)  :: f_collect 
     REAL (kind=8) :: f_sub
 
-#ifndef MPP1 
-    f_collect(1)=f_sub
-#else
     LOGICAL :: called
     INTEGER :: nwords,ierr,nword_send,nword_receive
     Nword_send=1
@@ -579,23 +555,18 @@ CONTAINS
             message=' error in MPI_allgather!! ')
 
     END IF
-#endif 
   END SUBROUTINE gather
 
-
-#ifdef MPP1 
   !!>
   !!   ROUTINE : GATHER_I
   !!   PACKAGE VERSION : DLPROTEIN-2.1
   !!   ACTION : another gathering routine
   !!<
   SUBROUTINE gather_i(f_collect,f_sub)
-#ifdef MPP1
 #ifndef IBM
     use mpi
 #else
     INCLUDE 'mpif.h'  
-#endif
 #endif
     IMPLICIT NONE 
     ! assumed shaped array... 
@@ -613,7 +584,6 @@ CONTAINS
             message=' error in MPI_allgather!! ')
     END IF
   END SUBROUTINE gather_i
-#endif
 
   !!>
   !!
@@ -661,12 +631,10 @@ CONTAINS
   !!<
   SUBROUTINE error_prot(sub,err_code,message,line) 
 
-#ifdef MPP1
 #ifndef IBM
     use mpi
 #else
     INCLUDE 'mpif.h'  
-#endif
 #endif
     IMPLICIT NONE
     CHARACTER*(*), INTENT(in) :: sub
@@ -711,14 +679,9 @@ CONTAINS
     IF (err_code > 0) THEN
 
        CLOSE (nrite)
-#ifndef  MPP1 
-       STOP 
-#else
        CALL MPI_BARRIER(MPI_COMM_WORLD,ierr) 
        CALL MPI_finalize(ierr) 
-#endif 
     ENDIF
-
 
   END SUBROUTINE error_prot
 

@@ -61,7 +61,6 @@
         allocate(aam(nsplit))
         allocate(am(kz,nsplit))
         allocate(an(nsplit))
-#ifdef MPP1
         allocate(ddsum(iy,jxp,nsplit))
         allocate(deld(iy,jxp,nsplit,3))
         allocate(delh(iy,0:jxp,nsplit,3))
@@ -72,18 +71,6 @@
         allocate(vv(iy,jxp+1))
         allocate(uuu(iy,kz,jxp+1))
         allocate(vvv(iy,kz,jxp+1))
-#else
-        allocate(ddsum(iy,jx,nsplit))
-        allocate(deld(iy,jx,nsplit,3))
-        allocate(delh(iy,jx,nsplit,3))
-        allocate(dhsum(iy,jx,nsplit))
-        allocate(psdot(iy,jx))
-        allocate(work(iy,jx,3))
-        allocate(uu(iy,jx))
-        allocate(vv(iy,jx))
-        allocate(uuu(iy,kz,jx))
-        allocate(vvv(iy,kz,jx))
-#endif 
         aam = d_zero
         am = d_zero
         an = d_zero
@@ -103,22 +90,18 @@
 ! Intial computation of vertical modes.
 !
       subroutine spinit
-#ifdef MPP1
       use mod_mppio
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
 #endif
-#endif
       implicit none
 !
       real(8) :: eps , eps1 , fac , pdlog
       integer :: i , ijlx , j , k , l , n , ns
       logical :: lstand
-#ifdef MPP1
       integer :: ierr
-#endif
       integer :: jp1
       character (len=50) :: subroutine_name='spinit'
       integer :: idindx=0
@@ -145,44 +128,22 @@
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
           aam(ns) = dnint((dt*d_half)/dtau(ns))
       end do
-#ifdef MPP1
       if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
-#else
-      print * , 'dt, dtau = ' , dt , dtau
-#endif
 !
 !**   compute xps and tbarh for use in vmodes.
       xps = d_zero
       do k = 1 , kz
         tbarh(k) = d_zero
       end do
-#ifdef MPP1
       ijlx = iym1*jendx
       do j = 1 , jendx
-#else
-#ifdef BAND
-      ijlx = iym1*jx
-      do j = 1 , jx
-#else
-      ijlx = iym1*jxm1
-      do j = 1 , jxm1
-#endif
-#endif
         do i = 1 , iym1
           xps = xps + sps1%ps(i,j)/ijlx
         end do
       end do
 
       do k = 1 , kz
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             tbarh(k) = tbarh(k) + atm1%t(i,k,j)/(sps1%ps(i,j)*ijlx)
           end do
@@ -233,11 +194,7 @@
         fac = d_two*dt/(d_two*aam(l)+d_one)
         if ( jyear /= jyear0 .or. ktau /= 0 ) &
           fac = dt/(d_two*aam(l)+d_one)
-#ifdef MPP1
         if ( myid == 0 ) print * , 'aam, fac = ' , aam(l) , fac
-#else
-        print * , 'aam, fac = ' , aam(l) , fac
-#endif
         an(l) = an(l)*fac
         do k = 1 , kz
           zmatx(k,l) = zmatx(k,l)*fac
@@ -248,7 +205,6 @@
       if ( ifrest ) then
         call read_savefile_part2
 !
-#ifdef MPP1
         if ( myid == 0 ) then
           do j = 1 , jx
             do n = 1 , nsplit
@@ -373,7 +329,6 @@
 #ifndef BAND
         end if
 #endif
-#endif
       else
 !
 !=======================================================================
@@ -384,61 +339,31 @@
 !       ( note: map scale factors have been inverted in model (init) )
 !
         do k = 1 , kz
-#ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
               uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
               vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
             end do
           end do
-#else
-          do j = 1 , jx
-            do i = 1 , iy
-              uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
-              vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
-            end do
-          end do
-#endif
         end do
-#ifdef MPP1
         call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,           &
                         & uuu(1,1,jxp+1),iy*kz,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
         call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,           &
                         & vvv(1,1,jxp+1),iy*kz,mpi_real8,               &
                         & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
-#endif
 !
         do l = 1 , nsplit
-#ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
               spsav%dstor(i,j,l) = d_zero
             end do
           end do
-#else
-          do j = 1 , jx
-            do i = 1 , iy
-              spsav%dstor(i,j,l) = d_zero
-            end do
-          end do
-#endif
         end do
         do l = 1 , nsplit
           do k = 1 , kz
-#ifdef MPP1
             do j = 1 , jendx
-#else
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-#endif
               jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-              if (jp1 == jx+1) jp1 = 1
-#endif
               do i = 1 , iym1
                 fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
                 spsav%dstor(i,j,l) = spsav%dstor(i,j,l) + zmatxr(l,k) &
@@ -456,15 +381,7 @@
         do l = 1 , nsplit
           pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
           eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               eps = eps1*(sps2%ps(i,j)-pd)
               spsav%hstor(i,j,l) = pdlog + eps
@@ -474,15 +391,7 @@
           do k = 1 , kz
             pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
             eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
-#ifdef MPP1
             do j = 1 , jendx
-#else
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-#endif
               do i = 1 , iym1
                 eps = eps1*(sps2%ps(i,j)-pd)
                 spsav%hstor(i,j,l) = spsav%hstor(i,j,l) + pdlog + &
@@ -501,12 +410,10 @@
 !
       subroutine splitf
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
-#endif
 #endif
 !
       implicit none
@@ -515,10 +422,8 @@
                & y
       integer :: i , j , k , l , n
       integer :: jm1, jp1
-#ifdef MPP1
       integer :: ierr , ii
       real(8) , dimension(iy*nsplit) :: wkrecv , wksend
-#endif
       character (len=50) :: subroutine_name='splitf'
       integer :: idindx=0
 !
@@ -526,21 +431,12 @@
 !
       do l = 1 , 3
         do n = 1 , nsplit
-#ifdef MPP1
           do j = 1 , jendl
             do i = 1 , iy
               deld(i,j,n,l) = d_zero
               delh(i,j,n,l) = d_zero
             end do
           end do
-#else
-          do j = 1 , jx
-            do i = 1 , iy
-              deld(i,j,n,l) = d_zero
-              delh(i,j,n,l) = d_zero
-            end do
-          end do
-#endif
         end do
       end do
 !
@@ -551,24 +447,11 @@
 !     on the x-grid, a p(x) point outside the grid domain is assumed to
 !     satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j); and similarly for the
 !     i's.
-#ifdef MPP1
       call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
                       & sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-#endif
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1=jx
-#endif
         do i = 2 , iym1
           psdot(i,j)=(sps1%ps(i,j)+sps1%ps(i-1,j)+ &
                       sps1%ps(i,jm1)+sps1%ps(i-1,jm1))*d_rfour
@@ -577,37 +460,20 @@
 !
 #ifndef BAND
       do i = 2 , iym1
-#ifdef MPP1
         if ( myid == 0 ) & 
           psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
         if ( myid == nproc-1 ) &
           psdot(i,jendl) = (sps1%ps(i,jendx)+sps1%ps(i-1,jendx))*d_half
-#else
-        psdot(i,1) = (sps1%ps(i,1)+sps1%ps(i-1,1))*d_half
-        psdot(i,jx) = (sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))*d_half
-#endif
       end do
 #endif
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1=jx
-#endif
         psdot(1,j) = (sps1%ps(1,j)+sps1%ps(1,jm1))*d_half
         psdot(iy,j) = (sps1%ps(iym1,j)+sps1%ps(iym1,jm1))*d_half
       end do
 !
 #ifndef BAND
-#ifdef MPP1
       if ( myid == 0 ) then
         psdot(1,1) = sps1%ps(1,1)
         psdot(iy,1) = sps1%ps(iym1,1)
@@ -616,23 +482,13 @@
         psdot(1,jendl) = sps1%ps(1,jendx)
         psdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
-#else
-      psdot(1,1) = sps1%ps(1,1)
-      psdot(iy,1) = sps1%ps(iym1,1)
-      psdot(1,jx) = sps1%ps(1,jxm1)
-      psdot(iy,jx) = sps1%ps(iym1,jxm1)
-#endif
 #endif
 !
 !=======================================================================
 !
 !**   get deld(0), delh(0) from storage
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             deld(i,j,n,1) = spsav%dstor(i,j,n)
             delh(i,j,n,1) = spsav%hstor(i,j,n)
@@ -643,50 +499,29 @@
 !=======================================================================
 !******* divergence manipulations (f)
       do k = 1 , kz
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             uuu(i,k,j) = atm1%u(i,k,j)*mddom%msfd(i,j)
             vvv(i,k,j) = atm1%v(i,k,j)*mddom%msfd(i,j)
           end do
         end do
       end do
-#ifdef MPP1
       call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                       & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                       & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
-#endif
       do l = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             deld(i,j,l,3) = d_zero
           end do
         end do
 
         do k = 1 , kz
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-            if (jp1 == jx+1) jp1 = 1
-#endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               deld(i,j,l,3) = deld(i,j,l,3) + zmatxr(l,k)      &
@@ -701,11 +536,7 @@
 !=======================================================================
  
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             deld(i,j,n,3) = deld(i,j,n,3) - deld(i,j,n,1)
           end do
@@ -715,49 +546,28 @@
 !=======================================================================
 !******* divergence manipulations (0)
       do k = 1 , kz
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             uuu(i,k,j) = atm2%u(i,k,j)*mddom%msfd(i,j)
             vvv(i,k,j) = atm2%v(i,k,j)*mddom%msfd(i,j)
           end do
         end do
       end do
-#ifdef MPP1
       call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                       & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                       & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
                       & 2,mpi_comm_world,mpi_status_ignore,ierr)
-#endif
       do l = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             deld(i,j,l,2) = d_zero
           end do
         end do
         do k = 1 , kz
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-            if (jp1 == jx+1) jp1 = 1
-#endif
             do i = 1 , iym1
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               deld(i,j,l,2) = deld(i,j,l,2) + zmatxr(l,k)     &
@@ -771,11 +581,7 @@
 !
 !=======================================================================
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             deld(i,j,n,1) = deld(i,j,n,1) - deld(i,j,n,2)
           end do
@@ -787,15 +593,7 @@
       do l = 1 , nsplit
         pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
         eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             eps = eps1*(sps1%ps(i,j)-pd)
             delh(i,j,l,3) = pdlog + eps
@@ -804,15 +602,7 @@
         do k = 1 , kz
           pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               eps = eps1*(sps1%ps(i,j)-pd)
               delh(i,j,l,3) = delh(i,j,l,3) + pdlog +  &
@@ -824,11 +614,7 @@
 !=======================================================================
  
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             delh(i,j,n,3) = delh(i,j,n,3) - delh(i,j,n,1)
           end do
@@ -840,15 +626,7 @@
       do l = 1 , nsplit
         pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
         eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             eps = eps1*(sps2%ps(i,j)-pd)
             delh(i,j,l,2) = pdlog + eps
@@ -857,15 +635,7 @@
         do k = 1 , kz
           pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
           eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               eps = eps1*(sps2%ps(i,j)-pd)
               delh(i,j,l,2) = delh(i,j,l,2) + pdlog +  &
@@ -876,11 +646,7 @@
       end do
 !=======================================================================
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             delh(i,j,n,1) = delh(i,j,n,1) - delh(i,j,n,2)
           end do
@@ -889,11 +655,7 @@
 !
 !**   put deld(0), delh(0) into storage
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             spsav%dstor(i,j,n) = deld(i,j,n,2)
             spsav%hstor(i,j,n) = delh(i,j,n,2)
@@ -908,15 +670,7 @@
 !=======================================================================
       do l = 1 , nsplit
         gnuan = gnuhf*an(l)
-#ifdef MPP1
         do j = jbegin , jendm
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-#endif
           do i = 2 , iym2
             sps1%ps(i,j) = sps1%ps(i,j) - an(l)*ddsum(i,j,l)
             sps2%ps(i,j) = sps2%ps(i,j) - gnuan*ddsum(i,j,l)
@@ -926,15 +680,7 @@
       do l = 1 , nsplit
         do k = 1 , kz
           gnuam = gnuhf*am(k,l)
-#ifdef MPP1
           do j = jbegin , jendm
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-#endif
             do i = 2 , iym2
               atm1%t(i,k,j) = atm1%t(i,k,j) + am(k,l)*ddsum(i,j,l)
               atm2%t(i,k,j) = atm2%t(i,k,j) + gnuam*ddsum(i,j,l)
@@ -943,7 +689,6 @@
         end do
       end do
 !=======================================================================
-#ifdef MPP1
       ii = 0
       do l = 1 , nsplit
         do i = 1 , iy
@@ -961,23 +706,11 @@
           dhsum(i,0,l) = wkrecv(ii)
         end do
       end do
-#endif
       do l = 1 , nsplit
         do k = 1 , kz
           gnuzm = gnuhf*zmatx(k,l)
-#ifdef MPP1
           do j = jbegin , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-#endif
             jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-            if (jm1 == 0) jm1 = jx
-#endif
             do i = 2 , iym1
               fac = psdot(i,j)/(dx2*mddom%msfd(i,j))
               x = fac*(dhsum(i,j,l)+dhsum(i-1,j,l)-dhsum(i,jm1,l) &
@@ -1001,22 +734,18 @@
 !
       subroutine spstep
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
-#endif
 #endif
       implicit none
 !
       real(8) :: dtau2 , fac
       integer :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
       integer :: jm1, jp1
-#ifdef MPP1
       integer :: ierr
       real(8) , dimension(iy*2) :: wkrecv , wksend
-#endif
       character (len=50) :: subroutine_name='spstep'
       integer :: idindx=0
 !
@@ -1024,21 +753,12 @@
 !--
       
       do n = 1 , nsplit
-#ifdef MPP1
         do j = 1 , jendl
           do i = 1 , iy
             ddsum(i,j,n) = d_zero
             dhsum(i,j,n) = d_zero
           end do
         end do
-#else
-        do j = 1 , jx
-          do i = 1 , iy
-            ddsum(i,j,n) = d_zero
-            dhsum(i,j,n) = d_zero
-          end do
-        end do
-#endif
       end do
 !
       do ns = 1 , nsplit
@@ -1057,15 +777,7 @@
 !c      delh(i,j,ns,n1) = delh(i,j,ns,n0)
 !c101   continue
 !
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
 !           deld, delh: 1,ilx on cross grid
             ddsum(i,j,ns) = deld(i,j,ns,n0)
@@ -1078,25 +790,12 @@
 !
 !**     compute gradient of delh;  output = (work1,work2)
 !
-#ifdef MPP1
         call mpi_sendrecv(delh(1,jxp,ns,n0),iy,mpi_real8,               &
                         & ieast,1,delh(1,0,ns,n0),iy,                   &
                         & mpi_real8,iwest,1,mpi_comm_world,             &
                         & mpi_status_ignore,ierr)
-#endif
-#ifdef MPP1
         do j = jbegin , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-#endif
           jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-          if (jm1 == 0) jm1=jx
-#endif
           do i = 2 , iym1
             fac = dx2*mddom%msfx(i,j)
             work(i,j,1) = (delh(i,j,ns,n0)+delh(i-1,j,ns,n0)  &
@@ -1108,15 +807,7 @@
 !
 !=======================================================================
         do nw = 1 , 2
-#ifdef MPP1
           do j = jbegin , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-#endif
             do i = 2 , iym1
 !             work: 2,ilx on dot grid
               work(i,j,nw) = work(i,j,nw)*psdot(i,j)
@@ -1129,22 +820,13 @@
 !       ( u must be pstar * u ; similarly for v )
 !       ( note: map scale factors have been inverted in model (init) )
 !
-#ifdef MPP1
         do j = jbegin , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-#endif
           do i = 2 , iym1
             uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
             vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
           end do
         end do
 !
-#ifdef MPP1
         do i = 1 , iy
           wksend(i) = uu(i,1)
           wksend(i+iy) = vv(i,1)
@@ -1156,21 +838,9 @@
           uu(i,jxp+1) = wkrecv(i)
           vv(i,jxp+1) = wkrecv(i+iy)
         end do
-#endif
 !
-#ifdef MPP1
         do j = jbegin , jendm
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-#endif
           jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-          if (jp1 == jx+1) jp1=1
-#endif
           do i = 2 , iym2
             fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
             work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
@@ -1180,15 +850,7 @@
 !
 !=======================================================================
 !
-#ifdef MPP1
         do j = jbegin , jendm
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-#endif
           do i = 2 , iym2
 !           work3: 2,iym2 on cross grid
             deld(i,j,ns,n1) = deld(i,j,ns,n0) - dtau(ns)*work(i,j,3)    &
@@ -1203,39 +865,18 @@
         fac = (aam(ns)-d_one)/aam(ns)
 #ifndef BAND
         do i = 2 , iym2
-#ifdef MPP1
           if ( myid == 0 ) &
             delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
           if ( myid == nproc-1 ) &
             delh(i,jendx,ns,n1) = delh(i,jendx,ns,n0)*fac
-#else
-          delh(i,1,ns,n1) = delh(i,1,ns,n0)*fac
-          delh(i,jxm1,ns,n1) = delh(i,jxm1,ns,n0)*fac
-#endif
         end do
 #endif
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           delh(1,j,ns,n1) = delh(1,j,ns,n0)*fac
           delh(iym1,j,ns,n1) = delh(iym1,j,ns,n0)*fac
         end do
 !
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n1)
             dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n1)
@@ -1248,25 +889,12 @@
 !
 !**       compute gradient of delh;  output = (work1,work2)
 !
-#ifdef MPP1
           call mpi_sendrecv(delh(1,jxp,ns,n1),iy,mpi_real8,             &
                           & ieast,1,delh(1,0,ns,n1),iy,                 &
                           & mpi_real8,iwest,1,mpi_comm_world,           &
                           & mpi_status_ignore,ierr)
-#endif
-#ifdef MPP1
           do j = jbegin , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-#endif
             jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-            if (jm1 == 0) jm1=jx
-#endif
             do i = 2 , iym1
               fac = dx2*mddom%msfx(i,j)
               work(i,j,1) = (delh(i,j,ns,n1)+delh(i-1,j,ns,n1)  &
@@ -1278,15 +906,7 @@
 !=======================================================================
 !
           do nw = 1 , 2
-#ifdef MPP1
             do j = jbegin , jendx
-#else
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 2 , jxm1
-#endif
-#endif
               do i = 2 , iym1
                 work(i,j,nw) = work(i,j,nw)*psdot(i,j)
               end do
@@ -1298,22 +918,13 @@
 !         ( u must be pstar * u ; similarly for v )
 !         ( note: map scale factors have been inverted in model (init) )
 !
-#ifdef MPP1
           do j = jbegin , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-#endif
             do i = 2 , iym1
               uu(i,j) = work(i,j,1)*mddom%msfd(i,j)
               vv(i,j) = work(i,j,2)*mddom%msfd(i,j)
             end do
           end do
 !
-#ifdef MPP1
           do i = 1 , iy
             wksend(i) = uu(i,1)
             wksend(i+iy) = vv(i,1)
@@ -1325,21 +936,9 @@
             uu(i,jxp+1) = wkrecv(i)
             vv(i,jxp+1) = wkrecv(i+iy)
           end do
-#endif
 !
-#ifdef MPP1
           do j = jbegin , jendm
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-#endif
             jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-            if (jp1 == jx+1) jp1=1
-#endif
             do i = 2 , iym2
               fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
               work(i,j,3) = (-uu(i+1,j)+uu(i+1,jp1)-uu(i,j)+uu(i,jp1) &
@@ -1350,15 +949,7 @@
 !
 !=======================================================================
 !
-#ifdef MPP1
           do j = jbegin , jendm
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-#endif
             do i = 2 , iym2
               deld(i,j,ns,n2) = deld(i,j,ns,n0) - dtau2*work(i,j,3)     &
                               & + deld(i,j,ns,3)/aam(ns)
@@ -1371,42 +962,20 @@
 !**       not in madala(1987)
 #ifndef BAND
           do i = 2 , iym2
-#ifdef MPP1
             if ( myid == 0 ) &
               delh(i,1,ns,n2) = d_two*delh(i,1,ns,n1)-delh(i,1,ns,n0)
             if ( myid == nproc-1 ) &
               delh(i,jendx,ns,n2) = d_two* &
                               delh(i,jendx,ns,n1)-delh(i,jendx,ns,n0)
-#else
-            delh(i,1,ns,n2) = d_two*delh(i,1,ns,n1) - delh(i,1,ns,n0)
-            delh(i,jxm1,ns,n2) = d_two* &
-                             delh(i,jxm1,ns,n1)-delh(i,jxm1,ns,n0)
-#endif
           end do
 #endif
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             delh(1,j,ns,n2) = d_two*delh(1,j,ns,n1)-delh(1,j,ns,n0)
             delh(iym1,j,ns,n2) = d_two* &
                               delh(iym1,j,ns,n1)-delh(iym1,j,ns,n0)
           end do
 !
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               ddsum(i,j,ns) = ddsum(i,j,ns) + deld(i,j,ns,n2)
               dhsum(i,j,ns) = dhsum(i,j,ns) + delh(i,j,ns,n2)

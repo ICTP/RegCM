@@ -51,12 +51,10 @@
       use mod_che_tend
       use mod_diagnosis
       use mod_service
-#ifdef MPP1
 #ifdef CLM
       use mod_clm
       use mod_mtrxclm
       use clm_varsur
-#endif
 #endif
 
       private
@@ -74,32 +72,26 @@
 
       contains
 
-      subroutine allocate_mod_tend(lmpi,lband)
+      subroutine allocate_mod_tend(lband)
         implicit none
-        logical , intent(in) :: lmpi , lband
+        logical , intent(in) :: lband
 
         allocate(divl(iy,kz))
-        if (lmpi) then
-          allocate(ttld(iy,kz,jxp))
-          allocate(xkc(iy,kz,jxp))
-          allocate(td(iy,kz,jxp))
-          if ( .not. lband ) then
-            allocate(bdyewrcv(iy,kz*16+4))
-            allocate(bdyewsnd(iy,kz*16+4))
-          end if
-          allocate(bdynsrcv(nspgx,kz*16+4))
-          allocate(bdynssnd(nspgx,kz*16+4))
-          allocate(ps4(iy,4,jxp))
-          allocate(ps_4(iy,4,jx))
-          allocate(var2rcv(iy,kz*(ntr+5)*2))
-          allocate(var2snd(iy,kz*(ntr+5)*2))
-          allocate(tvar1rcv(iy,kz*11+1+ntr*kz*2))
-          allocate(tvar1snd(iy,kz*11+1+ntr*kz*2))
-        else
-          allocate(ttld(iy,kz,jx))
-          allocate(xkc(iy,kz,jx))
-          allocate(td(iy,kz,jx))
+        allocate(ttld(iy,kz,jxp))
+        allocate(xkc(iy,kz,jxp))
+        allocate(td(iy,kz,jxp))
+        if ( .not. lband ) then
+          allocate(bdyewrcv(iy,kz*16+4))
+          allocate(bdyewsnd(iy,kz*16+4))
         end if
+        allocate(bdynsrcv(nspgx,kz*16+4))
+        allocate(bdynssnd(nspgx,kz*16+4))
+        allocate(ps4(iy,4,jxp))
+        allocate(ps_4(iy,4,jx))
+        allocate(var2rcv(iy,kz*(ntr+5)*2))
+        allocate(var2snd(iy,kz*(ntr+5)*2))
+        allocate(tvar1rcv(iy,kz*11+1+ntr*kz*2))
+        allocate(tvar1snd(iy,kz*11+1+ntr*kz*2))
       end subroutine allocate_mod_tend
 
       subroutine tend(iexec)
@@ -128,12 +120,10 @@
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
-#endif
 #endif
       implicit none
 !
@@ -147,9 +137,7 @@
                  tvavg , tvb , tvc , xday , xmsf , xtm1
       integer :: i , icons , iptn , itr , j , k , lev , n
       integer :: jm1, jp1
-#ifdef MPP1
       integer :: ierr , icons_mpi , numrec
-#endif
       character (len=50) :: subroutine_name='tend'
       integer :: idindx=0
 !
@@ -171,11 +159,7 @@
 !
 !-----multiply ua and va by inverse of mapscale factor at dot point:
 !
-#ifdef MPP1
       do j = 1 , jendl
-#else
-      do j = 1 , jx
-#endif
         do k = 1 , kz
           do i = 1 , iy
             atm1%u(i,k,j) = atm1%u(i,k,j)*mddom%msfd(i,j)
@@ -183,25 +167,18 @@
           end do
         end do
       end do
-#ifdef MPP1
       call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1, &
                       & sps1%ps(1,0),  iy,mpi_real8,iwest,1, &
                       & mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(sps1%ps(1,1),    iy,mpi_real8,iwest,2, &
                       & sps1%ps(1,jxp+1),iy,mpi_real8,ieast,2, &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-#endif
 !
 !-----decouple u, v, t, qv, and qc
 !
 #ifndef BAND
-#ifdef MPP1
       do j = 1 , jendl
         if ( myid == 0 .and. j == 1 ) then
-#else
-      do j = 1 , jx
-        if ( j == 1 ) then
-#endif
 !-----------lateral slices:
 !-----------west boundary:
           do k = 1 , kz
@@ -221,11 +198,7 @@
               end do
             end do
           end if
-#ifdef MPP1
         else if ( myid == 0 .and. j == 2 ) then
-#else
-        else if ( j == 2 ) then
-#endif
           do k = 1 , kz
             do i = 1 , iy
               atmx%u(i,k,j) = uj2(i,k)
@@ -247,11 +220,7 @@
               end if
             end do
           end if
-#ifdef MPP1
         else if ( myid == nproc-1 .and. j == jendl-1 ) then
-#else
-        else if ( j == jxm1 ) then
-#endif
           do k = 1 , kz
             do i = 1 , iy
               atmx%u(i,k,j) = ujlx(i,k)
@@ -273,11 +242,7 @@
               end if
             end do
           end if
-#ifdef MPP1
         else if ( myid == nproc-1 .and. j == jendl ) then
-#else
-        else if ( j == jx ) then
-#endif
 !-----------east boundary:
 !
 !...........no inflow/outflow dependence:
@@ -303,27 +268,16 @@
       end do
 #endif
 
-#ifdef MPP1
       do j = 1 , jendl
-#else
-      do j = 1 , jx
-#endif
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1=jx
-#endif
 !
 !-----interior slice:
 !-----interior points:
 !
 #ifndef BAND
-#ifdef MPP1
         if ((.not.(myid == 0 .and. (j == 1 .or. j == 2))) .and. &
            (.not.(myid == nproc-1 .and. &
            (j == jendl-1 .or. j == jendl))) ) then
-#else
-        if (.not.(j == 1 .or. j == 2 .or. j == jxm1 .or. j == jx) ) then
-#endif
 #endif
           do k = 1 , kz
             do i = 3 , iym2
@@ -370,15 +324,7 @@
 #endif
       end do
 !
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
         do k = 1 , kz
           do i = 1 , iym1
             atmx%t(i,k,j) = atm1%t(i,k,j)/sps1%ps(i,j)
@@ -393,15 +339,7 @@
 !-----call special tracer decoupling routine for multiple (ntr) species
 !
         do n = 1 , ntr
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do k = 1 , kz
               do i = 1 , iym1
                 chi(i,k,j,n) = chia(i,k,j,n)/sps1%ps(i,j)
@@ -412,7 +350,6 @@
       end if
 !
 !=======================================================================
-#ifdef MPP1
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -558,26 +495,15 @@
 #ifndef BAND
       end if
 #endif
-#endif
+!
 !=======================================================================
 !
 !=======================================================================
 !
 !-----interior points:
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
-         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-         if (jm1 == 0) jm1=jx
-#endif
+        jm1 = j-1
         do i = 2 , iym1
           sps2%pdot(i,j)=(sps2%ps(i,j)+sps2%ps(i-1,j)+ &
                           sps2%ps(i,jm1)+sps2%ps(i-1,jm1))*d_rfour
@@ -588,34 +514,18 @@
 !
 #ifndef BAND
       do i = 2 , iym1
-#ifdef MPP1
         if ( myid == 0 )  &
           sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))*d_half
         if ( myid == nproc-1 ) &
           sps2%pdot(i,jendl) = (sps2%ps(i,jendx)+ &
                                 sps2%ps(i-1,jendx))*d_half
-#else
-        sps2%pdot(i,1) = (sps2%ps(i,1)+sps2%ps(i-1,1))*d_half
-        sps2%pdot(i,jx) = (sps2%ps(i,jxm1)+sps2%ps(i-1,jxm1))*d_half
-#endif
       end do
 #endif
 !
 !-----north and south boundaries:
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
-         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-         if (jm1 == 0) jm1=jx
-#endif
+        jm1 = j-1
         sps2%pdot(1,j)  = (sps2%ps(1,j)+sps2%ps(1,jm1))*d_half
         sps2%pdot(iy,j) = (sps2%ps(iym1,j)+sps2%ps(iym1,jm1))*d_half
       end do
@@ -623,7 +533,6 @@
 !-----corner points:
 !
 #ifndef BAND
-#ifdef MPP1
       if ( myid == 0 ) then
         sps2%pdot(1,1) = sps2%ps(1,1)
         sps2%pdot(iy,1) = sps2%ps(iym1,1)
@@ -632,12 +541,6 @@
         sps2%pdot(1,jendl) = sps2%ps(1,jendx)
         sps2%pdot(iy,jendl) = sps2%ps(iym1,jendx)
       end if
-#else
-      sps2%pdot(1,1) = sps2%ps(1,1)
-      sps2%pdot(iy,1) = sps2%ps(iym1,1)
-      sps2%pdot(1,jx) = sps2%ps(1,jxm1)
-      sps2%pdot(iy,jx) = sps2%ps(iym1,jxm1)
-#endif
 #endif
 !
 !=======================================================================
@@ -653,7 +556,6 @@
 !
 !=======================================================================
 !
-#ifdef MPP1
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -783,20 +685,14 @@
 #ifndef BAND
       end if
 #endif
-#endif
 !
 !**********************************************************************
 !***** "j" loop begins here:
 !
 #ifndef BAND
-#ifdef MPP1
       do j = 1 , jendx
         if ( (myid == 0 .and. j == 1) .or.                              &
            & (myid == nproc-1 .and. j == jendx) ) then
-#else
-      do j = 1 , jxm1
-        if ( j == 1 .or. j == jxm1 ) then
-#endif
           icon(j) = 0
           do k = 1 , kzp1
             do i = 1 , iym1
@@ -812,27 +708,12 @@
       end do
 #endif
 
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
         jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-        if (jp1 == jx+1) jp1 = 1
-#endif
 !
 #ifndef BAND
-#ifdef MPP1
         if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
-#else
-        if ( .not.(j == 1 .or. j == jxm1) ) then
-#endif
 #endif
         icon(j) = 0
 !
@@ -871,39 +752,21 @@
         end if
 #endif
       end do
-#ifdef MPP1
-      call mpi_sendrecv(qdot(1,1,jxp),iy*kzp1,mpi_real8,ieast,1, &
-                        qdot(1,1,0),  iy*kzp1,mpi_real8,iwest,1, &
+      call mpi_sendrecv(qdot(:,:,jxp),iy*kzp1,mpi_real8,ieast,1, &
+                        qdot(:,:,0),  iy*kzp1,mpi_real8,iwest,1, &
                         mpi_comm_world,mpi_status_ignore,ierr)
-      call mpi_sendrecv(qdot(1,1,1),    iy*kzp1,mpi_real8,iwest,2, &
-                        qdot(1,1,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
+      call mpi_sendrecv(qdot(:,:,1),    iy*kzp1,mpi_real8,iwest,2, &
+                        qdot(:,:,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
                         mpi_comm_world,mpi_status_ignore,ierr)
-#endif
 !
 !..p..compute omega
 !
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
         jp1 = j+1
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jp1 == jx+1) jp1 = 1
-        if (jm1 == 0) jm1 = jx
-#endif
 #ifndef BAND
-#ifdef MPP1
         if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
-#else
-        if ( .not.(j == 1 .or. j == jxm1) ) then
-#endif
 #endif
         do k = 1 , kz
            do i = 2 , iym2
@@ -923,7 +786,6 @@
 #endif
       end do
 
-#ifdef MPP1
 #ifndef BAND
       if ( nspgx >= jxp ) then
         do i = 1 , iy
@@ -1195,20 +1057,10 @@
 #ifndef BAND
       end if
 #endif
-#endif
 
-#ifdef MPP1
       do j = jbegin , jendx
 #ifndef BAND
         if ( myid /= nproc-1 .or. j /= jendx ) then
-#endif
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-        if ( j /= jxm1 ) then
-#endif
 #endif
 !EES      omega change: I broke up the write onto two lines
 !         and commented out the if statment
@@ -1229,22 +1081,13 @@
       end do
 
 #ifndef BAND
-#ifdef MPP1
       do j = 1 , jendx
         if ( myid == 0 .and. j == 1 ) then
-#else
-      do j = 1 , jxm1
-        if ( j == 1 ) then
-#endif
           do i = 1 , iym1
             psc(i,j) = sps2%ps(i,j) + dt*pwbt(i,j)
             psd(i,j) = sps1%ps(i,j)
           end do
-#ifdef MPP1
         else if ( myid == nproc-1 .and. j == jendx ) then
-#else
-        else if ( j == jxm1 ) then
-#endif
           do i = 1 , iym1
             psd(i,j) = sps1%ps(i,j)
           end do
@@ -1252,22 +1095,10 @@
       end do
 #endif
 
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
 #ifndef BAND
-#ifdef MPP1
         if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
-#else
-        if ( .not.(j == 1 .or. j == jxm1) ) then
-#endif
 #endif
 !
 !..p..forecast pressure:
@@ -1290,15 +1121,12 @@
         end if
 #endif
       end do
-#ifdef MPP1
       call mpi_sendrecv(psd(1,jxp),iy,mpi_real8,ieast,1,                &
                       & psd(1,0),iy,mpi_real8,iwest,1,                  &
                       & mpi_comm_world,mpi_status_ignore,ierr)
-#endif
 !
 !-----compute bleck (1977) noise parameters:
 !
-#ifdef MPP1
       do j = 1 , jendl
         do i = 1 , iy
           ps4(i,1,j) = pten(i,j)
@@ -1310,11 +1138,9 @@
       call mpi_gather(ps4, iy*4*jxp,mpi_real8, &
                       ps_4,iy*4*jxp,mpi_real8, &
                       0,mpi_comm_world,ierr)
-#endif
       iptn = 0
       ptntot = d_zero
       pt2tot = d_zero
-#ifdef MPP1
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1335,42 +1161,9 @@
       call mpi_bcast(iptn,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_bcast(ptntot,1,mpi_real8,0,mpi_comm_world,ierr)
       call mpi_bcast(pt2tot,1,mpi_real8,0,mpi_comm_world,ierr)
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#ifndef BAND
-        if ( j /= jxm1 ) then
-#endif
-          if ( jyear /= jyear0 .or. ktau /= 0 ) then
-            do i = 2 , iym2
-              iptn = iptn + 1
-              ptntot = ptntot + dabs(pten(i,j))
-              pt2tot = pt2tot + dabs((psc(i,j)+sps2%ps(i,j)- &
-                      d_two*sps1%ps(i,j))/(dt*dt*d_rfour))
-            end do
-          end if
-#ifndef BAND
-        end if
-#endif
-      end do
-#endif
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-        if (jp1 == jx+1) jp1 = 1
-#endif
 !
 !------compute the horizontal diffusion coefficient and stored in xkc:
 !       the values are calculated at cross points, but they also used
@@ -1397,18 +1190,9 @@
       end do
 !
 
-#ifdef MPP1
       do j = jbegin , jendx
 #ifndef BAND
         if ( myid /= nproc-1 .or. j /= jendx ) then
-#endif
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-        if ( j /= jxm1 ) then
-#endif
 #endif
 !
 !---------------------------------------------------------------------
@@ -1591,15 +1375,7 @@
 !     call medium resolution pbl
       if ( ibltyp == 1 ) call holtbl
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
 !       add ccm radiative transfer package-calculated heating rates to
 !       temperature tendency
         do k = 1 , kz
@@ -1610,11 +1386,7 @@
         end do
 !
 #ifndef BAND
-#ifdef MPP1
         if ( myid /= nproc-1 .or. j /= jendx ) then
-#else
-        if ( j /= jxm1 ) then
-#endif
 #endif
 !
 !..tq.add horizontal diffusion and pbl tendencies for t and qv to aten%t
@@ -1718,13 +1490,8 @@
       end do
 !
 #ifndef BAND
-#ifdef MPP1
       do j = 1 , jendx
         if ( myid == 0 .and. j == 1 ) then
-#else
-      do j = 1 , jxm1
-        if ( j == 1 ) then
-#endif
           if ( ipgf == 1 ) then
             do k = 1 , kz
               do i = 1 , iym1
@@ -1742,11 +1509,7 @@
             end do
           end if
 !
-#ifdef MPP1
         else if ( myid == nproc-1 .and. j == jendx ) then
-#else
-        else if ( j == jxm1 ) then
-#endif
 !
 !-----set td and psd at j=jlx equal to ta and sps1%ps:
 !
@@ -1774,22 +1537,10 @@
       end do
 #endif
 
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
 #ifndef BAND
-#ifdef MPP1
         if ((.not.(myid == 0 .and. j == 1)) .and. &
            (.not.(myid == nproc-1 .and. j == jendx)) ) then
-#else
-        if ( .not.(j == 1 .or. j == jxm1) ) then
-#endif
 #endif
 !
 !..t..compute weighted p*t (td) for use in ssi:
@@ -1843,15 +1594,7 @@
 !
 !----------------------------------------------------------------------
 !**uv*compute the u and v tendencies:
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
 !
 !..uv.compute the diffusion terms:
 !       put diffusion and pbl tendencies of u and v in difuu and difuv.
@@ -1892,19 +1635,8 @@
         end do
       end do
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1 = jx
-#endif
 !
 !..uv.compute pressure gradient terms:
 !
@@ -1954,15 +1686,7 @@
         end if
       end do
 !
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
 !
 !..uv.compute geopotential height at half-k levels, cross points:
 !
@@ -2016,24 +1740,11 @@
         else   ! ipgf if block
         end if
       end do
-#ifdef MPP1
       call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1, &
                         phi(1,1,0),  iy*kz,mpi_real8,iwest,1, &
                         mpi_comm_world,mpi_status_ignore,ierr)
-#endif
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1 = jx
-#endif
 !
 !..uv.compute the geopotential gradient terms:
 !
@@ -2051,15 +1762,7 @@
         end do
       end do
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
 !
 !..uv.compute teh vertical advection terms:
 !
@@ -2108,15 +1811,7 @@
 !-----store the xxa variables in xxb and xxc in xxa:
 !     perform time smoothing operations.
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         do k = 1 , kz
           do i = 2 , iym1
             atm2%u(i,k,j) = omuhf*atm1%u(i,k,j)/mddom%msfd(i,j)  &
@@ -2129,15 +1824,7 @@
         end do
       end do
 !
-#ifdef MPP1
       do j = jbegin , jendm
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm2
-#endif
-#endif
         do k = 1 , kz
           do i = 2 , iym2
             atm2%t(i,k,j) = omuhf*atm1%t(i,k,j) + &
@@ -2182,15 +1869,7 @@
       end do
       if ( ehso4 ) then
         do k = 1 , kz
-#ifdef MPP1
           do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               aermm(i,k,j) = sulf%so4(i,k,j)
             end do
@@ -2257,50 +1936,32 @@
         ptnbar = ptntot/dble(iptn)
         pt2bar = pt2tot/dble(iptn)
         icons = 0
-#ifdef MPP1
         icons_mpi = 0
         do j = jbegin , jendm
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-#endif
           icons = icons + icon(j)
         end do
-#ifdef MPP1
         icons_mpi = 0
         call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          & mpi_comm_world,ierr)
-#endif
         xday = ((nnnnnn-nstrt0)*ibdyfrq*minph+xtime-dtmin)/minpd
         ! Added a check for nan... The following inequality is wanted.
         if ((ptnbar /= ptnbar) .or. &
            ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
-#ifdef MPP1
           if ( myid == 0 ) then
-#endif
-          write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
-          write (*,*) 'No more atmosphere here....'
-          write (*,*) 'CFL violation detected, so model STOP'
-          write (*,*) '#####################################'
-          write (*,*) '#            DECREASE DT !!!!       #'
-          write (*,*) '#####################################'
-          call fatal(__FILE__,__LINE__,'CFL VIOLATION')
-#ifdef MPP1
+            write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
+            write (*,*) 'No more atmosphere here....'
+            write (*,*) 'CFL violation detected, so model STOP'
+            write (*,*) '#####################################'
+            write (*,*) '#            DECREASE DT !!!!       #'
+            write (*,*) '#####################################'
+            call fatal(__FILE__,__LINE__,'CFL VIOLATION')
+          end if
         end if
-#endif
-        end if
-#ifdef MPP1
         if ( myid == 0 ) then
           if ( mod(ktau,50) == 0 ) print 99001 , xday , ktau , ptnbar , &
              & pt2bar , icons_mpi
         end if
-#else
-        if ( mod(ktau,50) == 0 ) print 99001 , xday , ktau , ptnbar ,   &
-                                     & pt2bar , icons
-#endif
+
 99001     format (5x,'at day = ',f9.4,', ktau = ',i10,                  &
                  &' :  1st, 2nd time deriv of ps = ',2E12.5,            &
                  &',  no. of points w/convection = ',i7)
@@ -2314,11 +1975,7 @@
       if ( dabs(xtime) < 0.00001D0 .and. ldatez /= idate1 ) then
         call solar1(xtime)
         dectim = dnint(minpd+dectim)
-#ifdef MPP1
         if ( myid == 0 ) write (*,*) ' dectim = ' , dectim
-#else
-        write (*,*) ' dectim = ' , dectim
-#endif
       end if
 !
       call time_end(subroutine_name,idindx)

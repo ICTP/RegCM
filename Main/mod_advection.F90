@@ -69,11 +69,7 @@
       real(8) ,intent (in) :: dxx
       integer ,intent (in) :: ind , j
       real(8) ,intent (inout), dimension(iy,kz) :: ften
-#ifdef MPP1
       real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
-#else
-      real(8) ,intent (in) , dimension(iy,kz,jx) :: var
-#endif
 !
       integer :: jm1 , jp1
       real(8) :: fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 ,&
@@ -86,11 +82,6 @@
 !
       jm1 = j - 1
       jp1 = j + 1
-!
-#if defined(BAND) && (!defined(MPP1))
-      if (jm1 == 0) jm1 = jx
-      if (jp1 == jx+1) jp1 = 1
-#endif
 !
 !----------------------------------------------------------------------
 !
@@ -171,11 +162,7 @@
       real(8) ,intent (in) :: dxx
       integer ,intent (in) :: ind , j
       real(8) ,intent (inout), dimension(iy,kz) :: ften
-#ifdef MPP1
       real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
-#else
-      real(8) ,intent (in) , dimension(iy,kz,jx) :: var
-#endif
 !
       integer :: jm1 , jp1
 #ifndef BAND
@@ -203,11 +190,6 @@
 !-----for u and v:
 !
 #ifdef BAND
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1 = jx
-        if (jp1 == jx+1) jp1 = 1
-#endif
-!
         do k = 1 , kz
           do i = 2 , iym1
             idx = i
@@ -240,13 +222,8 @@
 #else
         jdp1 = j + 1
         jdm1 = j - 1
-#ifdef MPP1
         if ( myid == 0 ) jdm1 = max0(jdm1,2)
         if ( myid == nproc-1 ) jdp1 = min0(jdp1,jendl-1)
-#else
-        jdp1 = min0(jdp1,jxm1)
-        jdm1 = max0(jdm1,2)
-#endif
 !
         do k = 1 , kz
           do i = 2 , iym1
@@ -310,11 +287,7 @@
 !
       integer :: ind , j
       real(8) , dimension(iy,kz) :: fa , ften
-#ifdef MPP1
       real(8) , dimension(iy,kzp1,0:jxp+1) , intent(in) :: qdot
-#else
-      real(8) , dimension(iy,kzp1,jx) , intent(in) :: qdot
-#endif
       intent (in) fa , ind , j
       intent (inout) ften
 !
@@ -330,12 +303,7 @@
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
       call time_begin(subroutine_name,idindx)
-#ifdef MPP1
       jm1 = j-1
-#else
-      jm1 = j-1
-      if (jm1 == 0) jm1=jx
-#endif
 !
 !     qdot   : is the vertical sigma-velocity
 !     fg     : is the working space used to store the interlated

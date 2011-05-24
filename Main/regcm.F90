@@ -86,13 +86,11 @@
 #ifdef CHEMTEST
       use mod_chem
 #endif
-#ifdef MPP1
       use mod_mppio
       use mpi
 #ifdef CLM
       use perf_mod
       use spmdMod, only: mpicom
-#endif
 #endif
       implicit none
 !
@@ -100,14 +98,9 @@
       integer :: iexec
       integer :: nhours , ibcdate
       integer :: ierr
-#ifdef MPP1
       integer :: ncpu
-#endif
       character(256) :: namelistfile, prgname
 ! 
-!**********************************************************************
-!
-#ifdef MPP1
 !**********************************************************************
 !
 !     MPI Initialization
@@ -117,7 +110,6 @@
       call mpi_init(ierr)
       call mpi_comm_rank(mpi_comm_world,myid,ierr)
       call mpi_comm_size(mpi_comm_world,ncpu,ierr)
-#endif
 !
       call whoami(myid)
 !
@@ -130,34 +122,29 @@
 !
 !**********************************************************************
 !
-#ifdef MPP1
       if ( myid == 0 ) then
-#endif
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
-      call initparam(namelistfile, ierr)
-      if ( ierr/=0 ) then
-        write ( 6, * ) 'Parameter initialization not completed'
-        write ( 6, * ) 'Usage : '
-        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-        write ( 6, * ) ' '
-        write ( 6, * ) 'Check argument and namelist syntax'
-        stop
-      end if
+        call getarg(0, prgname)
+        call getarg(1, namelistfile)
+        call initparam(namelistfile, ierr)
+        if ( ierr/=0 ) then
+          write ( 6, * ) 'Parameter initialization not completed'
+          write ( 6, * ) 'Usage : '
+          write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+          write ( 6, * ) ' '
+          write ( 6, * ) 'Check argument and namelist syntax'
+          stop
+        end if
 !
 #ifdef BAND
-      call init_mod_ncio(.true.)
+        call init_mod_ncio(.true.)
 #else
-      call init_mod_ncio(.false.)
+        call init_mod_ncio(.false.)
 #endif
 !
-#ifdef MPP1
       end if
-#endif
 
       call memory_init
 
-#ifdef MPP1
 !
 !**********************************************************************
 !
@@ -223,10 +210,6 @@
         jendx = jxp - 1
         jendm = jxp - 2
       end if
-#endif
-#else
-      myid = 0
-      nproc= 1 
 #endif
 
 !**********************************************************************
@@ -300,9 +283,7 @@
 !
 !**********************************************************************
 !
-#ifdef MPP1
       call free_mpp_initspace
-#endif
       call time_print(6,'inizialization phase')
       call time_reset()
 !
@@ -393,14 +374,10 @@
       write (aline, *) ' *** new max DATE will be ' , idate2
       call say
 !
-#ifdef MPP1
       if ( myid == 0 ) then
         call for_next
       end if
       call mpi_finalize(ierr)
-#else
-      call for_next
-#endif
 #ifdef CLM
       call t_prf('timing_all',mpicom)
       call t_finalizef()

@@ -1,5 +1,6 @@
---- orig/decompMod.F90	2010-03-10 16:34:21.000000000 +0100
-+++ patchd/decompMod.F90	2010-03-10 16:19:07.000000000 +0100
+diff -Naurb org/decompMod.F90 patchd/decompMod.F90
+--- org/decompMod.F90	2011-05-24 11:32:05.687004248 +0200
++++ patchd/decompMod.F90	2011-05-24 11:32:42.310376320 +0200
 @@ -13,14 +13,14 @@
    use clm_mct_mod
    use shr_sys_mod , only : shr_sys_flush
@@ -646,7 +647,7 @@
            clmin = 1
            clmax = procinfo%nclumps
            if (dbug == 1) then
-@@ -1308,8 +744,23 @@
+@@ -1308,8 +744,16 @@
  #ifndef UNICOSMP
         call shr_sys_flush(6)
  #endif
@@ -654,23 +655,16 @@
         call mpi_barrier(mpicom,ier)
      end do
 +
-+
-+
-+
 +!!!! total # of cells given to each processor !!! abt rcm below
-+#ifdef MPP1
 +    dummy_in = procinfo%ncells
 +    call MPI_GATHER(dummy_in,1,MPI_INTEGER,c2rngc(iam+1),1,MPI_INTEGER,0,MPI_COMM_WORLD,ier)
 +    call MPI_BCAST(c2rngc(1),npes,MPI_INTEGER,0,MPI_COMM_WORLD,ier)
-+#endif
 +!!! abt above
-+
-+
 +
      call shr_sys_flush(6)
  
    end subroutine decomp_glcp_init
-@@ -1330,6 +781,7 @@
+@@ -1330,6 +774,7 @@
  ! !USES:
      use clm_varctl, only : nsegspc
      use domainMod , only : latlon_type
@@ -678,7 +672,7 @@
  !
  ! !ARGUMENTS:
      implicit none
-@@ -1547,6 +999,18 @@
+@@ -1547,6 +992,18 @@
      enddo
      enddo
  
@@ -697,7 +691,7 @@
      ! Set ldecomp and adecomp data
      ag = 0
      do pid = 0,npes-1
-@@ -1557,6 +1021,11 @@
+@@ -1557,6 +1014,11 @@
            do ai = 1,ani
               an = (aj-1)*ani + ai
               if (acid(an) == cid) then
@@ -709,7 +703,7 @@
                  ag = ag + 1
                  adecomp%gdc2i(ag) = ai
                  adecomp%gdc2j(ag) = aj
-@@ -1608,6 +1077,7 @@
+@@ -1608,6 +1070,7 @@
  
      call shr_sys_flush(6)
      call mpi_barrier(mpicom,ier)
@@ -717,7 +711,7 @@
       npmin = 0
       npmax = npes-1
       npint = 1
-@@ -1639,6 +1109,7 @@
+@@ -1639,6 +1102,7 @@
         end if
         call shr_sys_flush(6)
         call mpi_barrier(mpicom,ier)

@@ -17,13 +17,12 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
       module mod_mppio
 
       use mod_runparams
       use mod_main , only : atmstate , allocate_atmstate
       use mod_main , only : domain , allocate_domain
+      use mod_outrad , only : nrad2d , nrad3d
       use mod_message
 !
       real(8) , allocatable , target , dimension(:,:,:,:) :: spacesubm1
@@ -764,5 +763,3 @@
       end subroutine free_mpp_initspace
 !
       end module mod_mppio
-
-#endif

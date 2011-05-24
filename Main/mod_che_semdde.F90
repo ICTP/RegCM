@@ -31,13 +31,11 @@
       use mod_message
       use mod_ncio
       use mod_service 
-#ifdef MPP1
       use mod_mppio
 #ifdef CLM
 !      use surfrdMod , only : clm_getsoitex
 !      use clm_varsur, only : clm_soitex
 #endif
-#endif 
 !
       private
 !
@@ -69,21 +67,17 @@
       subroutine chsrfem
 
       use netcdf
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif 
-#endif
       implicit none
 !
       integer :: i , j , k , l , m , n
       integer , parameter :: iutopt = 12
       logical :: there
-#ifdef MPP1
       integer :: itr , ierr
-#endif
 !
       character (len=50) :: subroutine_name='chsrfem'
       integer :: idindx=0
@@ -99,7 +93,6 @@
 
 ! read the monthly aerosol emission files
 
-#ifdef MPP1
       if ( myid == 0 ) then
         chemsrc_io = d_zero
         if (aertyp(4:5) /= '00') then
@@ -128,21 +121,10 @@
           end do
         end do
       end do
-#else
-      chemsrc = d_zero
-      if (aertyp(4:5) /= '00') then
-        call read_aerosol(chtrname,chemsrc)
-      end if
-#endif
- 
 !     sulfates sources
 
       do m = 1 , mpy
-#ifdef MPP1
         do j = 1 , jendl
-#else
-        do j = 1 , jx
-#endif
           do i = 1 , iy
             if ( iso4 > 0 ) chemsrc(i,j,m,iso4)                        &
                  = 0.02D0*chemsrc(i,j,m,iso2)
@@ -166,7 +148,6 @@
  
 !     OPtical properties / internal mixing
       if ( mixtype == 2 ) then
-#ifdef MPP1
         if ( myid == 0 ) then
           inquire (file='optdat.bin',exist=there)
           if ( .not.there ) then
@@ -190,24 +171,6 @@
                        mpi_comm_world,ierr)
         call mpi_bcast(dgmix,4*19*11*11*11*11,mpi_real,0,mpi_comm_world,&
                        ierr)
-#else
-        inquire (file='optdat.bin',exist=there)
-        if ( .not.there ) then
-          write (*,*) 'For mixtype=2, optdat.bin is required'
-          write (*,*) 'ln -s ../Main/Commons/optdat.bin optdat.bin'
-          call fatal(__FILE__,__LINE__,'optdat.bin is required')
-        end if
-        open (iutopt,file='optdat.bin',form='unformatted',              &
-              recl=4*19*11*11*11*11*ibyte,access='direct')
-        read (iutopt,rec=1) ((((((dextmix(i,j,k,l,m,n),i=1,4),j=1,19),k=&
-                            1,11),l=1,11),m=1,11),n=1,11)
-        read (iutopt,rec=2) ((((((dssamix(i,j,k,l,m,n),i=1,4),j=1,19),k=&
-                            1,11),l=1,11),m=1,11),n=1,11)
-        read (iutopt,rec=3) ((((((dgmix(i,j,k,l,m,n),i=1,4),j=1,19),k=1,&
-                            11),l=1,11),m=1,11),n=1,11)
-        close (iutopt)
-#endif
- 
 !       Check !
  
         do k = 1 , 11
@@ -252,11 +215,7 @@
           end do
         end do
  
-#ifdef MPP1
         if ( myid == 0 ) write (*,*) '! OPDATA CHECKED !'
-#else
-        write (*,*) '! OPDATA CHECKED !'
-#endif
       end if
       call time_end(subroutine_name,idindx) 
       end subroutine chsrfem

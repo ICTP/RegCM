@@ -40,46 +40,27 @@
 
       contains 
 
-        subroutine allocate_mod_cvaria(lmpi)
+        subroutine allocate_mod_cvaria
           implicit none
-          logical , intent(in) :: lmpi
 
-          call allocate_atmstate(atmx,lmpi,0,1)
-          call allocate_atmstate(atmc,lmpi,0,0)
-          call allocate_atmstate(aten,lmpi,0,0)
+          call allocate_atmstate(atmx,.true.,0,1)
+          call allocate_atmstate(atmc,.true.,0,0)
+          call allocate_atmstate(aten,.true.,0,0)
 
-          if (lmpi) then
-            allocate(diffq(iy,kz,jxp))
-            allocate(difft(iy,kz,jxp))
-            allocate(difuu(iy,kz,jxp))
-            allocate(difuv(iy,kz,jxp))
-            allocate(omega(iy,kz,jxp))
-            allocate(psc(iy,jxp))
-            allocate(pten(iy,jxp))
-            allocate(phi(iy,kz,0:jxp))
-            allocate(psd(iy,0:jxp+1))
-            allocate(qdot(iy,kzp1,0:jxp+1))
-            if ( ichem == 1 ) then
-              allocate(chi(iy,kz,0:jxp+1,ntr))
-              allocate(chic(iy,kz,jxp,ntr))
-              allocate(chiten(iy,kz,jxp,ntr))
-            end if
-          else
-            allocate(diffq(iy,kz,jx))
-            allocate(difft(iy,kz,jx))
-            allocate(difuu(iy,kz,jx))
-            allocate(difuv(iy,kz,jx))
-            allocate(omega(iy,kz,jx))
-            allocate(psc(iy,jx))
-            allocate(pten(iy,jx))
-            allocate(phi(iy,kz,jx))
-            allocate(psd(iy,jx))
-            allocate(qdot(iy,kzp1,jx))
-            if ( ichem == 1 ) then
-              allocate(chi(iy,kz,jx,ntr))
-              allocate(chic(iy,kz,jx,ntr))
-              allocate(chiten(iy,kz,jx,ntr))
-            end if
+          allocate(diffq(iy,kz,jxp))
+          allocate(difft(iy,kz,jxp))
+          allocate(difuu(iy,kz,jxp))
+          allocate(difuv(iy,kz,jxp))
+          allocate(omega(iy,kz,jxp))
+          allocate(psc(iy,jxp))
+          allocate(pten(iy,jxp))
+          allocate(phi(iy,kz,0:jxp))
+          allocate(psd(iy,0:jxp+1))
+          allocate(qdot(iy,kzp1,0:jxp+1))
+          if ( ichem == 1 ) then
+            allocate(chi(iy,kz,0:jxp+1,ntr))
+            allocate(chic(iy,kz,jxp,ntr))
+            allocate(chiten(iy,kz,jxp,ntr))
           end if
 !
           diffq = d_zero
@@ -96,9 +77,7 @@
             chic = d_zero
             chiten = d_zero
           end if
-          if (.not. lmpi) then
-            qdot = d_zero
-          end if
+          qdot = d_zero
         end  subroutine allocate_mod_cvaria
 !
       end module mod_cvaria

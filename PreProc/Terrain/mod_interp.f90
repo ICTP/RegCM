@@ -448,12 +448,12 @@ module mod_interp
               cycle
             else
               if (jj == jx) then
-                nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+deg360))*&
-                            real(rinc)/2.0, 2.0))
+                nbox = nint(max(abs(xlon(ii,jx-1)-(xlon(ii,1)+ &
+                            real(deg360)))*real(rinc)/2.0, 2.0))
                 nbox = min(nbox,8)
               else if (jj == 1) then
-                nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)-deg360))*&
-                            real(rinc)/2.0, 2.0))
+                nbox = nint(max(abs(xlon(ii,2)-(xlon(ii,jx)- &
+                            real(deg360)))*real(rinc)/2.0, 2.0))
                 nbox = min(nbox,8)
               else
                 nbox = nint(max(abs(xlon(ii,jj-1)-xlon(ii,jj+1))* &

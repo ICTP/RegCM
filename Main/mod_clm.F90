@@ -17,8 +17,6 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
 #ifdef CLM
 
       module mod_clm
@@ -148,26 +146,10 @@
 !
       contains
 !
-      subroutine allocate_mod_clm(lmpi,lband)
+      subroutine allocate_mod_clm(lband)
       implicit none
-      logical , intent(in) :: lmpi , lband
-      integer :: nj , njm1 , njm2
+      logical , intent(in) :: lband
 
-      if (lmpi) then
-        nj = jxp
-        njm1 = jxp
-        njm2 = jxp
-      else
-        if (lband) then
-          nj = jx
-          njm1 = jx
-          njm2 = jx
-        else
-          nj = jx
-          njm1 = jxm1
-          njm2 = jxm2
-        end if
-      end if
 !     About the dimension ordering:
 !     regcm: ix=lat,jx=lon, arrays are lat by lon
 !     clm: i=lon, j=lat, arrays are lon by lat
@@ -223,7 +205,7 @@
       c2rprocmap = 0
       c2rngc = 0
       c2rdisps = 0
-      allocate(spaceclm(iym1,njm1,11))
+      allocate(spaceclm(iym1,jxp,11))
       spaceclm = d_zero
       sols2d   => spaceclm(:,:,1)
       soll2d   => spaceclm(:,:,2)
@@ -236,12 +218,10 @@
       rs2d     => spaceclm(:,:,9)
       ra2d     => spaceclm(:,:,10)
       q2d      => spaceclm(:,:,11)
-      allocate(satbrt2d(iy,nj))
+      allocate(satbrt2d(iy,jxp))
       satbrt2d = d_zero
       end subroutine allocate_mod_clm
 !
       end module mod_clm
-!
-#endif
 !
 #endif

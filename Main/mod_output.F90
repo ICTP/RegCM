@@ -38,13 +38,9 @@
       use mod_savefile
       use mod_service
       use mod_cu_bm
-#ifdef MPP1
       use mod_mppio
 #ifdef CLM
       use mod_clm
-#endif
-#else
-      use mod_lake
 #endif
 
       private
@@ -68,15 +64,11 @@
 !     this subroutine handles all of the output                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-#ifdef MPP1
       use mpi
-#endif
       implicit none
 !
       integer :: i , j
-#ifdef MPP1
       integer :: allrec , ierr , l , k , n
-#endif
       logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
       logical :: lstartup
       character (len=50) :: subroutine_name='output'
@@ -94,17 +86,13 @@
       end if
  
       lstartup = .false.
-#ifdef MPP1
       if ( myid == 0 ) then
-#endif        
         if ( (jyear == jyear0 .and. ktau == 0) .or. &
              (ifrest .and. .not. done_restart) ) then
           call mkfile
           lstartup = .true.
         end if
-#ifdef MPP1
       end if
-#endif
 !
       ldoatm = .false.
       ldosrf = .false.
@@ -167,7 +155,6 @@
         lskipche = .true.
       end if
 !
-#ifdef MPP1
 !
 !-----output for dataflow analyses:
 !
@@ -1317,99 +1304,13 @@
         end if
       end if
 
-#else
-!
-!-----output for dataflow analyses:
-!
-      if ( iftape ) then
-        if ( ldoatm ) then
-          call outatm
-        end if
-      end if
-!
-!
-!     Call surface output
-      if ( ifbat ) then
-        if ( ldosrf ) then
-          call outsrf
-          do i = 1 , iym2
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm2
-#endif
-              tgmx_o(j,i) = -1.E30
-              t2mx_o(j,i) = -1.E30
-              tgmn_o(j,i) =  1.E30
-              t2mn_o(j,i) =  1.E30
-              w10x_o(j,i) = -1.E30
-              psmn_o(j,i) =  1.E30
-            end do
-          end do
-          if ( ifsub .and. nsg > 1 ) then
-            call outsub
-          end if
-        end if
-      end if
-! 
-! 
-!     Call radiation output
-      if ( ifrad ) then
-        if ( ldorad ) then
-          call outrad
-        end if
-      end if
-!
-!
-!     Call chem output
-      if ( ifchem ) then
-        if ( ldoche ) then
-          call outche
-          remlsc    = d_zero
-          remcvc    = d_zero
-          rxsg      = d_zero
-          rxsaq1    = d_zero
-          rxsaq2    = d_zero
-          cemtr     = d_zero
-          remdrd    = d_zero
-          wdlsc     = d_zero
-          wdcvc     = d_zero
-          ddsfc     = d_zero
-          wxsg      = d_zero
-          wxaq      = d_zero
-          cemtrac   = d_zero
-          aertarf   = d_zero
-          aersrrf   = d_zero
-          aersrlwrf = d_zero
-          aertalwrf = d_zero
-        end if
-      end if
-!
-!-----output for restart:
-!
-      if ( ifsave ) then
-        if ( ldosav .or. ldotmp ) then
-          if (ldosav) then
-            call write_savefile(idatex,.false.)
-          else
-            call write_savefile(idatex,.true.)
-          end if
-        end if
-      end if
-!
-#endif
-
-#ifdef MPP1
       if ( myid == 0 ) then
-#endif        
         if ( lday == 1 .and. lhour == 0 .and. dabs(xtime)<0.00001D0 ) then
           if ( .not. lstartup .and. idatex /= idate2 ) then
             call mkfile
           end if
         end if
-#ifdef MPP1
       end if
-#endif
 !
       call time_end(subroutine_name,idindx) 
 
@@ -1471,16 +1372,10 @@
       iiy = iym1
 #endif
 
-#ifdef MPP1
       call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
               omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,      &
               rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io,        &
               ocld2d_io,idatex)
-#else
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1%u,atm1%v,omega, &
-                        atm1%t,atm1%qv,atm1%qc,sps1%ps,sfsta%rainc,&
-                        sfsta%rainnc,tgb2d,swt2d,rno2d,ocld2d,idatex)
-#endif
  
       write (*,*) 'ATM variables written at ' , idatex , xtime
  
@@ -1500,21 +1395,12 @@
       j = jx-2
 #endif
 
-#ifdef MPP1
       call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
-#else
-      call writerec_srf(j,i,numbat,fbat,ldmsk,idatex)
-#endif
       write (*,*) 'SRF variables written at ' , idatex , xtime
  
       if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
-#ifdef MPP1
         call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                           hsnow2d_io,tlak3d_io,idatex)
-#else
-        call writerec_lak(j,i,numbat,fbat,evpa2d,aveice2d,hsnow2d, &
-                          tlak3d,idatex)
-#endif
         write (*,*) 'LAK variables written at ' , idatex , xtime
       end if
 
@@ -1534,11 +1420,7 @@
       j = jxm2sg
 #endif
 
-#ifdef MPP1
       call writerec_sub(j,i,nsg,numsub,fsub_io,idatex)
-#else
-      call writerec_sub(j,i,nsg,numsub,fsub,idatex)
-#endif
 
       write (*,*) 'SUB variables written at ' , idatex , xtime
 
@@ -1568,23 +1450,13 @@
 
       do i = 1 , imax
         do j = 1 , jmax
-#ifdef MPP1
           radpsa_io(j,i) = real((psa_io(i+istart,j+jstart)+r8pt)*d_10)
-#else
-          radpsa(j,i) = real((sps1%ps(i+istart,j+jstart)+r8pt)*d_10)
-#endif
         end do
       end do
 
-#ifdef MPP1
       call writerec_rad(jmax, imax, kz, 4, 9, &
                         frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
                         radpsa_io, idatex)
-#else
-      call writerec_rad(jmax, imax, kz, 4, 9, &
-                        frad3d(:,:,:,2:5), frad2d(:,:,1:10), &
-                        radpsa, idatex)
-#endif
 
       print * , 'RAD variables written at ' , idatex , xtime
  
@@ -1625,18 +1497,12 @@
       je = jxm1
 #endif
 
-#ifdef MPP1
      call writerec_che(nj, ni, je, ie, nk, itr, chia_io,     &
                 aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
                 wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
                 wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
                 aertalwrf_io, aersrlwrf_io, psa_io, idatex)
-#else
-     call writerec_che(nj, ni, je , ie , nk, itr, chia, aerext,   &
-                aerssa, aerasp, dtrace, wdlsc, wdcvc, ddsfc,      &
-                wxsg, wxaq, cemtrac, aertarf, aersrrf, aertalwrf, &
-                aersrlwrf, sps1%ps, idatex)
-#endif
+
       write (*,*) 'CHE variables written at ' , idatex , xtime
 
       end subroutine outche

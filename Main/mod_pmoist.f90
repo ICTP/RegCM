@@ -47,37 +47,29 @@
 !
       contains
 !
-      subroutine allocate_mod_pmoist(lmpi)
+      subroutine allocate_mod_pmoist
       implicit none
-      logical , intent(in) :: lmpi
-      integer :: nj
 
-      if (lmpi) then
-        nj = jxp
-      else
-        nj = jx
-      end if
-
-      allocate(cbmf2d(iy,nj))
-      allocate(cgul(iy,nj))
-      allocate(dtauc2d(iy,nj))
-      allocate(edtmax2d(iy,nj))
-      allocate(edtmaxo2d(iy,nj))
-      allocate(edtmaxx2d(iy,nj))
-      allocate(edtmin2d(iy,nj))
-      allocate(edtmino2d(iy,nj))
-      allocate(edtminx2d(iy,nj))
-      allocate(htmax2d(iy,nj))
-      allocate(htmin2d(iy,nj))
-      allocate(mincld2d(iy,nj))
-      allocate(pbcmax2d(iy,nj))
-      allocate(qck1(iy,nj))
-      allocate(rh0(iy,nj))
-      allocate(shrmax2d(iy,nj))
-      allocate(shrmin2d(iy,nj))
-      allocate(fcc(iy,kz,nj))
-      allocate(rsheat(iy,kz,nj))
-      allocate(rswat(iy,kz,nj))
+      allocate(cbmf2d(iy,jxp))
+      allocate(cgul(iy,jxp))
+      allocate(dtauc2d(iy,jxp))
+      allocate(edtmax2d(iy,jxp))
+      allocate(edtmaxo2d(iy,jxp))
+      allocate(edtmaxx2d(iy,jxp))
+      allocate(edtmin2d(iy,jxp))
+      allocate(edtmino2d(iy,jxp))
+      allocate(edtminx2d(iy,jxp))
+      allocate(htmax2d(iy,jxp))
+      allocate(htmin2d(iy,jxp))
+      allocate(mincld2d(iy,jxp))
+      allocate(pbcmax2d(iy,jxp))
+      allocate(qck1(iy,jxp))
+      allocate(rh0(iy,jxp))
+      allocate(shrmax2d(iy,jxp))
+      allocate(shrmin2d(iy,jxp))
+      allocate(fcc(iy,kz,jxp))
+      allocate(rsheat(iy,kz,jxp))
+      allocate(rswat(iy,kz,jxp))
       cbmf2d = d_zero
       cgul = d_zero
       dtauc2d = d_zero
@@ -98,8 +90,8 @@
       fcc = d_zero
       rsheat = d_zero
       rswat = d_zero
-      allocate(icon(nj))
-      allocate(kbmax2d(iy,nj))
+      allocate(icon(jxp))
+      allocate(kbmax2d(iy,jxp))
       icon = 0
       kbmax2d = 0
       allocate(qwght(kz))

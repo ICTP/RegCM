@@ -40,12 +40,10 @@
       use mod_savefile
       use mod_diagnosis
       use mod_cu_bm
-#ifdef MPP1
       use mod_mppio
 #ifdef CLM
       use mod_clm
       use clm_varsur , only : init_tgb , init_grid
-#endif
 #endif
 !
       private
@@ -65,12 +63,10 @@
 !
       subroutine init
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
-#endif
 #endif
       implicit none
 !
@@ -78,13 +74,8 @@
                  icbc_date
       real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
       integer :: jp1 , jm1
-#ifdef MPP1
       real(8) , dimension(iy,jxp) :: psdot
       integer :: allrec , ierr , l
-#else
-      real(8) , dimension(iy,jx) :: psdot
-#endif
-#ifdef MPP1
 #ifndef BAND
       peb  = d_zero
       pwb  = d_zero
@@ -127,7 +118,7 @@
       vsb  = d_zero
       vnbt = d_zero
       vsbt = d_zero
-#endif
+
       tgmx_o = -1.E30
       t2mx_o = -1.E30
       tgmn_o =  1.E30
@@ -144,13 +135,9 @@
       else
         icbc_date = ((ndate0/10000)*100+1)*100
       end if
-#ifdef MPP1
       if ( myid == 0 ) then
         call open_icbc(icbc_date)
       end if
-#else
-      call open_icbc(icbc_date)
-#endif
 !
       if ( .not.ifrest ) then
 !-----for initial run--not using restart
@@ -188,7 +175,6 @@
 !------read in the initial conditions for large domain:
 !       the initial conditions are the output from PREPROC/ICBC.
 !
-#ifdef MPP1
 #ifdef CLM
         if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
@@ -410,188 +396,6 @@
           sfracs2d  = d_zero
           svegfrac2d = d_zero
         end if
-#else
-        call read_icbc(ndate0,ps0,ts0,ub0,vb0,tb0,qb0,so0)
-        write (6,*) 'READY IC DATA for ', ndate0
-!
-!       Convert surface pressure to pstar
-!
-        ps0 = ps0*d_r10 - r8pt
-
-!=======================================================================
-!
-!       this routine determines p(.) from p(x) by a 4-point
-!       interpolation. on the x-grid, a p(x) point outside the grid
-!       domain is assumed to satisfy p(0,j)=p(1,j);
-!       p(iy,j)=p(iym1,j); and similarly for the i's.
-!
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-          jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-          if (jm1 == 0) jm1=jx
-#endif
-          do i = 2 , iym1
-            psdot(i,j) = (ps0(i,j)+ps0(i-1,j)+     &
-                          ps0(i,jm1)+ps0(i-1,jm1))*d_rfour
-          end do
-        end do
-!
-#ifndef BAND
-        do i = 2 , iym1
-          psdot(i,1)  = (ps0(i,1)   +ps0(i-1,1))*d_half
-          psdot(i,jx) = (ps0(i,jxm1)+ps0(i-1,jxm1))*d_half
-        end do
-#endif
-!
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-          jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-          if (jm1 == 0) jm1=jx
-#endif
-          psdot(1,j)  = (ps0(1,j)   +ps0(1,jm1))*d_half
-          psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,jm1))*d_half
-        end do
-!
-#ifndef BAND
-        psdot(1,1)   = ps0(1,1)
-        psdot(iy,1)  = ps0(iym1,1)
-        psdot(1,jx)  = ps0(1,jxm1)
-        psdot(iy,jx) = ps0(iym1,jxm1)
-#endif
-!
-!=======================================================================
-!       Couple pressure u,v,t,q
-!
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              ub0(i,k,j) = ub0(i,k,j)*psdot(i,j)
-              vb0(i,k,j) = vb0(i,k,j)*psdot(i,j)
-              tb0(i,k,j) = tb0(i,k,j)*ps0(i,j)
-              qb0(i,k,j) = qb0(i,k,j)*ps0(i,j)
-            end do
-          end do
-        end do
-!
-        mdate = ndate0
-!
-!       Initialize variables and convert to double precision
-!
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              atm1%u(i,k,j) = ub0(i,k,j)
-              atm2%u(i,k,j) = ub0(i,k,j)
-              atm1%v(i,k,j) = vb0(i,k,j)
-              atm2%v(i,k,j) = vb0(i,k,j)
-              atm1%qv(i,k,j) = qb0(i,k,j)
-              atm2%qv(i,k,j) = qb0(i,k,j)
-              atm1%t(i,k,j) = tb0(i,k,j)
-              atm2%t(i,k,j) = tb0(i,k,j)
-            end do
-          end do
-        end do
-        do j = 1 , jx
-          do i = 1 , iy
-            sps1%ps(i,j) = ps0(i,j)
-            sps2%ps(i,j) = ps0(i,j)
-            sts1%tg(i,j) = ts0(i,j)
-            sts2%tg(i,j) = ts0(i,j)
-          end do
-        end do
-        if ( iseaice == 1 ) then
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-            do i = 1 , iym1
-              if ( isocean(mddom%satbrt(i,j)) ) then
-                if ( ts0(i,j) <= icetemp ) then
-                  sts1%tg(i,j) = icetemp
-                  sts2%tg(i,j) = icetemp
-                  ts0(i,j) = icetemp
-                  ldmsk(i,j) = 2
-                  do n = 1, nnsg
-                    ocld2d(n,i,j) = 2
-                  end do
-                end if
-              end if
-            end do
-          end do
-        end if
-        if ( lakemod == 1 ) then
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-            do i = 1 , iym1
-              if ( islake(mddom%satbrt(i,j)) ) then
-                if ( ts0(i,j) <= icetemp ) then
-                  sts1%tg(i,j) = icetemp
-                  sts2%tg(i,j) = icetemp
-                  ts0(i,j) = icetemp
-                  ldmsk(i,j) = 2
-                  do n = 1, nnsg
-                    ocld2d(n,i,j) = 2
-                  end do
-                end if
-              end if
-            end do
-          end do
-        end if
-        if (icup == 3) then
-          do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                tbase(i,k,j) = ts00 + &
-                               tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)*d_r100)
-              end do
-            end do
-          end do
-        end if
-        if ( ehso4 ) then
-          do k = 1 , kz
-            do j = 1 , jx
-              do i = 1 , iy
-                sulf%so4(i,k,j) = so0(i,k,j)
-              end do
-            end do
-          end do
-        end if
-!
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          do i = 1 , iym1
-            sts1%tg(i,j)    = atm1%t(i,kz,j)/sps1%ps(i,j)
-            sts2%tg(i,j)    = atm2%t(i,kz,j)/sps2%ps(i,j)
-            sfsta%tgbb(i,j) = atm2%t(i,kz,j)/sps2%ps(i,j)
-            sfsta%zpbl(i,j) = 500.0D0
-                       ! For Zeng Ocean Flux Scheme
-          end do
-        end do
-        if ( ichem == 1 ) then
-          ssw2da     = d_zero
-          sdeltk2d   = d_zero
-          sdelqk2d   = d_zero
-          sfracv2d   = d_half
-          sfracb2d   = d_half
-          sfracs2d   = d_zero
-          svegfrac2d = d_zero
-        end if
-#endif
 #ifndef BAND
         if (debug_level > 2) call initdiag
 #endif
@@ -606,7 +410,6 @@
  
           do itr = 1 , ntr
             do k = 1 , kz
-#ifdef MPP1
               do j = 1 , jendx
                 do i = 1 , iym1
                   chia(i,k,j,itr) = sps1%ps(i,j)*d_zero
@@ -615,20 +418,6 @@
 !                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
                 end do
               end do
-#else
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 1 , jxm1
-#endif
-                do i = 1 , iym1
-                  chia(i,k,j,itr) = sps1%ps(i,j)*d_zero
-                  chib(i,k,j,itr) = sps2%ps(i,j)*d_zero
-!                 chia(i,k,j,itr)=sps1%ps(i,j)*1.e-11
-!                 chib(i,k,j,itr)=sps2%ps(i,j)*1.e-11
-                end do
-              end do
-#endif
             end do
           end do
  
@@ -651,7 +440,6 @@
 !
         call read_savefile_part1(ndate0)
 !
-#ifdef MPP1
         if ( myid == 0 ) then
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
@@ -1305,16 +1093,6 @@
         if (debug_level > 2) call mpidiag
 #endif
         dt = dt2 ! First timestep successfully read in
-#else
-!
-        print * , 'ozone profiles restart'
-        do k = 1 , kzp1
-          write (6,'(1x,7E12.4)') o3prof(3,3,k)
-        end do
-        print 99001 , xtime , ktau , jyear
-        dt = dt2 ! First timestep successfully read in
-!
-#endif
 !
 !-----end of initial/restart if test
 !
@@ -1324,7 +1102,6 @@
 !     Zhang DongFeng
 !
       if ( ipptls == 1 ) then
-#ifdef MPP1
         do j = 1 , jendx
           do i = 1 , iym1
             if ( isocean(mddom%satbrt(i,j)) ) then
@@ -1338,25 +1115,6 @@
             end if
           end do
         end do
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          do i = 1 , iym1
-            if ( isocean(mddom%satbrt(i,j)) ) then
-              qck1(i,j) = qck1oce  ! OCEAN
-              cgul(i,j) = guloce   ! OCEAN
-              rh0(i,j) = rh0oce    ! OCEAN
-            else
-              qck1(i,j) = qck1land ! LAND
-              cgul(i,j) = gulland  ! LAND
-              rh0(i,j) = rh0land   ! LAND
-            end if
-          end do
-        end do
-#endif
       end if
 !chem2
       if ( ichem == 1 ) then
@@ -1387,15 +1145,7 @@
       if ( jyear == jyear0 .and. ktau == 0 ) call initb
 
       if ( iemiss == 1 .and. .not. ifrest ) then
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             do n = 1 , nnsg
               ist = veg2d1(n,i,j)
@@ -1429,29 +1179,16 @@
       call inirad
 !
 !-----calculating topographical correction to diffusion coefficient
-#ifdef MPP1
       do j = 1 , jendl
-#else
-      do j = 1 , jx
-#endif
         do i = 1 , iy
           domfc%hgfact(i,j) = d_one
         end do
       end do
 #ifdef BAND
-#ifdef MPP1
       do j = jbegin , jendm
-#else
-      do j = 1 , jx
-#endif
         jm1 = j-1
         jp1 = j+1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1 = jx
-        if (jp1 == jx+1) jp1 = 1
-#endif
 #else
-#ifdef MPP1
       do j = jbegin , jendm
         if ( myid == 0 ) then
           jm1 = max0(j-1,2)
@@ -1463,11 +1200,6 @@
         else
           jp1 = j + 1
         end if
-#else
-      do j = 2 , jxm2
-        jm1 = max0(j-1,2)
-        jp1 = min0(j+1,jxm2)
-#endif
 #endif
         do i = 2 , iym2
           im1h = max0(i-1,2)
@@ -1513,45 +1245,25 @@
 !
       if ( jyear == jyear0 .and. ktau == 0 ) then
         do k = 1 , kz
-#ifdef MPP1
           do j = 1 , jendl
-#else
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-#endif
             do i = 1 , iym1
               heatrt(i,k,j) = d_zero
               o3prof(i,k,j) = d_zero
             end do
           end do
         end do
-#ifdef MPP1
         do j = 1 , jendl
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             o3prof(i,kzp1,j) = d_zero
           end do
         end do
         call o3data
-#ifdef MPP1
         if ( myid == 0 ) then
-#endif
           write (6,*) 'ozone profiles'
           do k = 1 , kzp1
             write (6,'(1x,7E12.4)') o3prof(3,k,2)
           end do
-#ifdef MPP1
         end if
-#endif
       end if
  
       end subroutine inirad

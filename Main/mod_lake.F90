@@ -26,18 +26,13 @@
       use mod_main
       use mod_bats
       use mod_date
-#ifdef MPP1
       use mod_mppio
-#endif
 !
       private
 !
       public :: allocate_lake , lakesav_i, lakesav_o
       public :: initlake , lakescatter , lakegather , lakedrv
       public :: dhlake1
-#ifndef MPP1
-      public :: aveice2d , hsnow2d , tlak3d
-#endif
 !
       real(8) , allocatable , dimension(:,:,:) :: dhlake1
       integer , allocatable , dimension(:,:,:) :: idep2d
@@ -66,7 +61,6 @@
 !
       subroutine allocate_lake
       implicit none
-#ifdef MPP1
       allocate(dhlake1(nnsg,iy,jxp))
       allocate(idep2d(nnsg,iym1,jxp))
       allocate(eta2d(nnsg,iym1,jxp))
@@ -74,15 +68,6 @@
       allocate(aveice2d(nnsg,iym1,jxp))
       allocate(hsnow2d(nnsg,iym1,jxp))
       allocate(tlak3d(ndpmax,nnsg,iym1,jxp))
-#else
-      allocate(dhlake1(nnsg,iy,jx))
-      allocate(idep2d(nnsg,iym1,jx))
-      allocate(eta2d(nnsg,iym1,jx))
-      allocate(hi2d(nnsg,iym1,jx))
-      allocate(aveice2d(nnsg,iym1,jx))
-      allocate(hsnow2d(nnsg,iym1,jx))
-      allocate(tlak3d(ndpmax,nnsg,iym1,jx))
-#endif
       dhlake1 = d_zero
       idep2d = 0
       eta2d = d_zero
@@ -93,23 +78,17 @@
       end subroutine allocate_lake
 
       subroutine initlake
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
-#endif
       implicit none
-#ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
 #endif
-#endif
 ! 
       integer :: i, j, n
-#ifdef MPP1
       integer :: ierr
-#endif
-
+!
       hi2d     = 0.01D0
       aveice2d = d_zero
       hsnow2d  = d_zero
@@ -117,15 +96,7 @@
       tlak3d   = 6.0D0
       idep2d   = 0
 
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         do i = 2 , iym1
           do n = 1 , nnsg
 
@@ -167,11 +138,9 @@
         end do
       end do
 
-#ifdef MPP1
       call mpi_gather(idep2d,   nnsg*iym1*jxp,mpi_integer, &
                     & idep2d_io,nnsg*iym1*jxp,mpi_integer, &
                     & 0, mpi_comm_world,ierr)
-#endif
       end subroutine initlake
 !
       subroutine lakedrv(jslc)
@@ -696,7 +665,6 @@
 !
       subroutine lakegather
 
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
@@ -722,7 +690,6 @@
       call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                     & 0, mpi_comm_world,ierr)
-#endif
 
       end subroutine lakegather
 !
@@ -730,7 +697,6 @@
 !
       subroutine lakescatter
 
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
@@ -759,7 +725,6 @@
       call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                      & tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                      & 0, mpi_comm_world,ierr)
-#endif
 
       end subroutine lakescatter
 !
@@ -773,7 +738,6 @@
 !
       integer :: i , j , k , n
 !
-#ifdef MPP1
 #ifdef BAND
       write (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
 #else
@@ -795,28 +759,6 @@
         end do
       end do
 
-#else
-#ifdef BAND
-      write (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
-#else
-      write (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
-#endif
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1 
-#endif
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( idep2d(n,i,j) > 1 ) then
-              write(iutl) eta2d(n,i,j), hi2d(n,i,j), aveice2d(n,i,j), &
-                    hsnow2d(n,i,j), (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))
-            end if
-          end do
-        end do
-      end do
-#endif
-
       end subroutine lakesav_o
 !
 !-----------------------------------------------------------------------
@@ -829,23 +771,13 @@
 !
       integer :: i , j , k , n
 !
-#ifdef MPP1
       idep2d_io   = 0
       hi2d_io     = 0.01D0
       aveice2d_io = d_zero
       hsnow2d_io  = d_zero
       eta2d_io    = d_half
       tlak3d_io   = 6.0D0
-#else
-      idep2d   = 0
-      hi2d     = 0.01D0
-      aveice2d = d_zero
-      hsnow2d  = d_zero
-      eta2d    = d_half
-      tlak3d   = 6.0D0
-#endif
 !
-#ifdef MPP1
 #ifdef BAND
       read (iutl) (((idep2d_io(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
 #else
@@ -866,28 +798,6 @@
           end do
         end do
       end do
-#else
-#ifdef BAND
-      read (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=1,jx)
-#else
-      read (iutl) (((idep2d(n,i,j),n=1,nnsg),i=2,iym1),j=2,jxm1)
-#endif
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( idep2d(n,i,j) > 1 ) then
-              read(iutl) eta2d(n,i,j), hi2d(n,i,j), &
-                  aveice2d(n,i,j), hsnow2d(n,i,j),  &
-                  (tlak3d(k,n,i,j),k=1,idep2d(n,i,j))  
-            end if
-          end do
-        end do
-      end do
-#endif
 
 #ifdef BAND
       do j = 1 , jx
@@ -896,7 +806,6 @@
 #endif
         do i = 2 , iym1
           do n = 1 , nnsg
-#ifdef MPP1
             if (idep2d_io(n,i,j) == 0) then
               hi2d_io(n,i,j)     = dmissval
               aveice2d_io(n,i,j) = dmissval
@@ -906,17 +815,6 @@
             else if (idep2d_io(n,i,j) < ndpmax) then
               tlak3d_io(idep2d_io(n,i,j)+1:,n,i,j) = dmissval
             end if
-#else
-            if (idep2d(n,i,j) == 0) then
-              hi2d(n,i,j)     = dmissval
-              aveice2d(n,i,j) = dmissval
-              hsnow2d(n,i,j)  = dmissval
-              eta2d(n,i,j)    = dmissval
-              tlak3d(:,n,i,j) = dmissval
-            else if (idep2d(n,i,j) < ndpmax) then
-              tlak3d(idep2d(n,i,j)+1:,n,i,j) = dmissval
-            end if
-#endif
           end do
         end do
       end do

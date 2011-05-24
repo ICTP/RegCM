@@ -51,15 +51,9 @@
 !
       integer :: ind , j
       real(8) , dimension(iy,kz) :: ften , xkc
-#ifdef MPP1
       real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bd3d
       real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
       real(8) , dimension(iy,-1:jxp+2) , intent(in) :: mapf
-#else
-      real(8) , dimension(iy,kz,jx) , intent(in) :: bd3d
-      real(8) , dimension(iy,jx) , intent(in) :: press
-      real(8) , dimension(iy,jx) , intent(in) :: mapf
-#endif
       intent (in) ind , j , xkc
       intent (inout) ften
 !
@@ -76,13 +70,6 @@
       jp2 = j + 2
 #ifdef BAND
 !---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if (jm1 < 1) jm1 = jm1 + jx
-      if (jm2 < 1) jm2 = jm2 + jx
-      if (jp1 > jx) jp1 = jp1 -jx
-      if (jp2 > jx) jp2 = jp2 -jx
-#endif
-!
 !.....fourth-order scheme for interior:
       do k = 1 , kz
         do i = 3 , iym1 - 1
@@ -131,12 +118,8 @@
 #else
 !---------------------------------------------------------------------
 !
-#ifdef MPP1
       if ( (myid == 0 .and. j == 2) .or.                        &
          & (myid == nproc-1 .and. j == jendx) ) then
-#else
-      if (j == 2 .or. j == jxm1) then
-#endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kz
@@ -217,13 +200,8 @@
 !
       integer :: j
       real(8) , dimension(iy,kz) :: ften , xkc
-#ifdef MPP1
       real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bc3d
       real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
-#else
-      real(8) , dimension(iy,kz,jx) , intent(in) :: bc3d
-      real(8) , dimension(iy,jx) , intent(in) :: press
-#endif
       intent (in) j , xkc
       intent (inout) ften
 !
@@ -242,13 +220,6 @@
       jp2 = j + 2
 #ifdef BAND
 !---------------------------------------------------------------------
-#if defined(BAND) && (!defined(MPP1))
-      if (jm1 < 1) jm1 = jm1 + jx
-      if (jm2 < 1) jm2 = jm2 + jx
-      if (jp1 > jx) jp1 = jp1 -jx
-      if (jp2 > jx) jp2 = jp2 -jx
-#endif
-!
 !......fourth-order scheme for interior:
       do k = 1 , kz
         do i = 3 , iym3
@@ -279,12 +250,8 @@
 #else
 !----------------------------------------------------------------------
 !
-#ifdef MPP1
       if ( (myid == 0 .and. j == 2) .or.                                &
          & (myid == nproc-1 .and. j == jendm) ) then
-#else
-      if ( j == 2 .or. j == jxm2 ) then
-#endif
 !
 !......second-order scheme for east or west boundary:
         do k = 1 , kz

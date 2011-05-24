@@ -40,6 +40,7 @@ program icbc
 !                                                                      !
 !   CCSMN: unpacked CCSM NETCDF (six hourly) data                      !
 !          Get from EarthSystemGrid                                    !
+!   CAM2N: CAM2 NETCDF (six hourly) data                               !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -110,6 +111,7 @@ program icbc
   use mod_ncep
   use mod_nest
   use mod_ccsm
+  use mod_cam2
   use mod_write
   use mod_header
   use m_stdio
@@ -189,6 +191,8 @@ program icbc
     call headernest
   else if ( dattyp == 'CCSMN' ) then
     call headccsm
+  else if ( dattyp == 'CAM2N' ) then
+    call headcam2
   else
     call die('icbc','Unknown dattyp',1)
   end if
@@ -227,6 +231,8 @@ program icbc
       call get_nest(idate)
     else if ( dattyp == 'CCSMN' ) then
       call get_ccsm(idate)
+    else if ( dattyp == 'CAM2N' ) then
+      call get_cam2(idate)
     end if
     call writef(idate)
 
@@ -257,6 +263,8 @@ program icbc
     call footernest
   else if ( dattyp == 'CCSMN' ) then
     call footerccsm
+  else if ( dattyp == 'CAM2N' ) then
+    call footercam2
   else
     call die('icbc','Unknown dattyp',1)
   end if

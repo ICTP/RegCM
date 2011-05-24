@@ -26,9 +26,7 @@
       use mod_ncio
       use mod_trachem
       use mod_message
-#ifdef MPP1
       use mod_mppio
-#endif
 
       implicit none
 !
@@ -93,7 +91,6 @@
         frac1 = d_zero
         frac2 = d_zero
         frac3 = d_zero
-#ifdef MPP1
         allocate(clay2row2(iy,nats,jxp))
         allocate(sand2row2(iy,nats,jxp))
         allocate(silt2row2(iy,nats,jxp))
@@ -101,15 +98,6 @@
         allocate(dustsotex(iy,jxp,nats))
         allocate(sandrow2(iy,jxp))
         allocate(srel2d(iy,jxp,nsoil,nats))
-#else        
-        allocate(clay2row2(iy,nats,jx))
-        allocate(sand2row2(iy,nats,jx))
-        allocate(silt2row2(iy,nats,jx))
-        allocate(clayrow2(iy,jx))
-        allocate(dustsotex(iy,jx,nats))
-        allocate(sandrow2(iy,jx))
-        allocate(srel2d(iy,jx,nsoil,nats))
-#endif 
         clay2row2 = d_zero
         sand2row2 = d_zero
         silt2row2 = d_zero
@@ -141,19 +129,14 @@
 !
       subroutine inidust
 ! 
-#ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
 #else
       use mpi
 #endif
-#endif
       implicit none
 !
-#ifdef MPP1
       integer :: ierr
-#endif
-!
       real(8) , dimension(nats) :: bcly , bslt , bsnd
       real(8) :: deldp , eps , rhop , stotal , xk , xl , xm , xn
       integer :: i , j , n , nm , ns , nt , itr
@@ -203,7 +186,6 @@
                   0.60D0 , 0.00D0 , 0.40D0 , 0.50D0 , 0.00D0 , 0.50D0/
 !
       rd_tex = .false.
-#ifdef MPP1
       if ( myid == 0 ) then
         do itr = 1 , ntr
           aerctl = chtrname(itr)
@@ -213,30 +195,20 @@
           end if
         end do
       end if
-    call mpi_bcast(rd_tex,1,mpi_logical,0,mpi_comm_world,ierr)
-#else
-      do itr = 1 , ntr
-        aerctl = chtrname(itr)
-        if ( aerctl(1:4) == 'DUST' ) then
-          rd_tex = .true.
-          exit
-        end if
-      end do
-#endif
+      call mpi_bcast(rd_tex,1,mpi_logical,0,mpi_comm_world,ierr)
 
-#ifdef MPP1
 #ifdef CLM
-!      if ( myid == 0 ) then
-!        if ( rd_tex ) then
-!          call clm_getsoitex()
-!          do j = 1 , jx
-!            do i = 1 , iy
-!              dustsotex_io(i,j) = clm_soitex(i,j)
-!            end do
-!          end do
-!        end if
-!      end if
-!      if ( allocated(clm_soitex) ) deallocate(clm_soitex)
+!     if ( myid == 0 ) then
+!       if ( rd_tex ) then
+!         call clm_getsoitex()
+!         do j = 1 , jx
+!           do i = 1 , iy
+!             dustsotex_io(i,j) = clm_soitex(i,j)
+!           end do
+!         end do
+!       end if
+!     end if
+!     if ( allocated(clm_soitex) ) deallocate(clm_soitex)
       if ( myid == 0 ) then
         if ( rd_tex ) then
           call read_texture(nats,dustsotex_io)
@@ -272,12 +244,6 @@
         end do
       end do
 
-#else
-      if ( rd_tex ) then
-        call read_texture(nats,dustsotex)
-      end if
-#endif
-    
 ! end texture file reading
 
       clay2row2 = d_zero
@@ -286,16 +252,7 @@
       silt2row2 = d_zero
       srel2d    = d_zero
 
-#ifdef MPP1
       do j = jbegin , jendm
-#else
-
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm2
-#endif
-#endif
        do i = 2 , iym2
          do nt=1,nats
             clay2row2(i,nt,j) = bcly(nt)*d_100
@@ -317,15 +274,7 @@
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
  
-#ifdef MPP1
       do j = jbegin , jendm
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm2
-#endif
-#endif
         srel(:,:,:) = d_zero
         do i = 2 , iym2
           do nt = 1 , nats

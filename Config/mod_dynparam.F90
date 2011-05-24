@@ -255,8 +255,6 @@
 
       integer , parameter :: numbat = 23 + 6
       integer , parameter :: numsub = 16
-      integer , parameter :: nrad2d = 21
-      integer , parameter :: nrad3d = 5
       integer , parameter :: mpy = 12
 
 ! Number of Soil texture categories, leave it to 17
@@ -468,7 +466,6 @@
 
       end subroutine init_outparam
 
-#ifdef MPP1
       subroutine set_nproc(ncpu)
         implicit none
         integer , intent(in) :: ncpu
@@ -556,6 +553,5 @@
         call mpi_barrier(mpi_comm_world,ierr)
 
       end subroutine broadcast_params
-#endif
 
       end module mod_dynparam

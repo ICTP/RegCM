@@ -56,10 +56,6 @@ AC_ARG_ENABLE(mpiserial,
                  [Use the included MPI replacement library for single processor]),
   [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
 )
-if eval "test x$PARALLEL = x1"; then
-  AM_CPPFLAGS="-DMPP1 $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
 
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
@@ -93,9 +89,6 @@ AC_ARG_ENABLE(clm,
 )
 AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
 if eval "test x"$USECLM" = x1"; then
-  if eval "test x"$PARALLEL" = x0"; then
-    AC_MSG_ERROR([CLM enabled code works only with MPI version])
-  fi
   AC_MSG_WARN([Compiling CLM enabled code])
   AM_CPPFLAGS="-DCLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)

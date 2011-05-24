@@ -55,11 +55,9 @@ module mod_param
   use mod_chem 
 #endif
 
-#ifdef MPP1
   use mod_mppio
 #ifdef CLM
   use mod_clm
-#endif
 #endif
 
   private
@@ -75,13 +73,11 @@ module mod_param
 !     this subroutine defines various model parameters.               c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-#ifdef MPP1
 #ifndef IBM
   use mpi
 #else 
   include 'mpif.h'
 #endif 
-#endif
   implicit none
 !
   real(8) :: afracl , afracs , bb , cc , chibot , delsig , &
@@ -99,16 +95,11 @@ module mod_param
   real(8) , dimension(maxntr,2) :: inpchtrdpv
   real(8) , dimension(maxnbin,2) :: inpdustbsiz
   integer :: n , len_path
-  logical :: lband , lmpi
-#ifdef MPP1
+  logical :: lband
   integer :: ierr
 #ifndef CLM
   real(8) :: clmfrq
 #endif
-#else
-  real(8) :: clmfrq
-#endif
-!
 !
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
@@ -404,11 +395,6 @@ module mod_param
   imask = 1
 #endif
 
-#ifdef MPP1
-  lmpi = .true.
-#else
-  lmpi = .false.
-#endif
 #ifdef BAND
   lband = .true.
 #else
@@ -435,60 +421,57 @@ module mod_param
   end if
 #endif
 
-#ifdef MPP1
   if ( myid == 0 ) then
-#endif 
 !  
 !-----read in namelist variables:
-  read (ipunit, restartparam)
-  print * , 'param: RESTARTPARAM namelist READ IN'
-  read (ipunit, timeparam)
-  print * , 'param: TIMEPARAM namelist READ IN'
-  read (ipunit, outparam)
-  print * , 'param: OUTPARAM namelist READ IN'
-  len_path = len(trim(dirout))
-  if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
-  if ( lakfrq < d_zero ) lakfrq = batfrq
-  read (ipunit, physicsparam)
-  print * , 'param: PHYSICSPARAM namelist READ IN'
-  if ( ipptls == 1 ) then
-    read (ipunit, subexparam)
-    print * , 'param: SUBEXPARAM namelist READ IN'
-  end if
-  if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-    read (ipunit, grellparam)
-    print * , 'param: GRELLPARAM namelist READ IN'
-  end if
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-    read (ipunit, emanparam)
-    print * , 'param: EMANPARAM namelist READ IN'
-  end if
-  if ( icup == 5 ) then
-    read (ipunit, tiedtkeparam)
-    print * , 'param: TIEDTKEPARAM namelist READ IN'
-  end if
-  if ( ichem == 1 ) then
-    read (ipunit, chemparam)
-    print * , 'param: CHEMPARAM namelist READ IN'
-    if (ntr <= 0) then
-      call fatal(__FILE__,__LINE__,                                 &
-              &'CHEMICAL SCHEME WITH 0 TRACERS?')
+    read (ipunit, restartparam)
+    print * , 'param: RESTARTPARAM namelist READ IN'
+    read (ipunit, timeparam)
+    print * , 'param: TIMEPARAM namelist READ IN'
+    read (ipunit, outparam)
+    print * , 'param: OUTPARAM namelist READ IN'
+    len_path = len(trim(dirout))
+    if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
+    if ( lakfrq < d_zero ) lakfrq = batfrq
+    read (ipunit, physicsparam)
+    print * , 'param: PHYSICSPARAM namelist READ IN'
+    if ( ipptls == 1 ) then
+      read (ipunit, subexparam)
+      print * , 'param: SUBEXPARAM namelist READ IN'
     end if
-    if (ntr < nbin) then
-      call fatal(__FILE__,__LINE__,                                 &
-              &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
+    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+      read (ipunit, grellparam)
+      print * , 'param: GRELLPARAM namelist READ IN'
     end if
-  else
-    ichem = 0
-    ntr = 0
-    nbin = 0
-    ifchem = .false.
-  end if
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+      read (ipunit, emanparam)
+      print * , 'param: EMANPARAM namelist READ IN'
+    end if
+    if ( icup == 5 ) then
+      read (ipunit, tiedtkeparam)
+      print * , 'param: TIEDTKEPARAM namelist READ IN'
+    end if
+    if ( ichem == 1 ) then
+      read (ipunit, chemparam)
+      print * , 'param: CHEMPARAM namelist READ IN'
+      if (ntr <= 0) then
+        call fatal(__FILE__,__LINE__,                                 &
+                &'CHEMICAL SCHEME WITH 0 TRACERS?')
+      end if
+      if (ntr < nbin) then
+        call fatal(__FILE__,__LINE__,                                 &
+                &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
+      end if
+    else
+      ichem = 0
+      ntr = 0
+      nbin = 0
+      ifchem = .false.
+    end if
 #ifdef CLM
-  read (ipunit , clmparam)
-  print * , 'param: CLMPARAM namelist READ IN'
+    read (ipunit , clmparam)
+    print * , 'param: CLMPARAM namelist READ IN'
 #endif
-#ifdef MPP1
   end if 
 
   call mpi_barrier(mpi_comm_world,ierr) 
@@ -628,7 +611,6 @@ module mod_param
     call mpi_bcast(ichcumtra,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(idirect,1,mpi_integer,0,mpi_comm_world,ierr)
   end if
-#endif
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -638,33 +620,31 @@ module mod_param
 !
   if ( lakemod == 1 ) call allocate_lake
 #ifdef CHEMTEST
-  if ( ichem == 1 ) call allocate_mod_chem(lmpi)
+  if ( ichem == 1 ) call allocate_mod_chem
 #endif
-  call allocate_mod_tend(lmpi,lband)
+  call allocate_mod_tend(lband)
   call allocate_mod_aerosol
-  call allocate_mod_bats(lmpi,lband)
+  call allocate_mod_bats
   call allocate_mod_bdycon
   call allocate_mod_holtbl
-  call allocate_mod_cvaria(lmpi)
+  call allocate_mod_cvaria
   call allocate_mod_dust
   call allocate_mod_leaftemp
-  call allocate_mod_main(lmpi)
-  call allocate_mod_mainchem(lmpi)
+  call allocate_mod_main
+  call allocate_mod_mainchem
   call allocate_mod_outrad
   call allocate_mod_o3blk
-  call allocate_mod_pbldim(lmpi)
-  call allocate_mod_pmoist(lmpi)
+  call allocate_mod_pbldim
+  call allocate_mod_pmoist
   call allocate_mod_radiation 
-  call allocate_mod_rad(lmpi,lband)
+  call allocate_mod_rad
   call allocate_mod_slice
   call allocate_mod_split
   call allocate_mod_trachem
   call allocate_mod_runparams
-#ifdef MPP1
   call allocate_mod_mppio(lband)
 #ifdef CLM
-  call allocate_mod_clm(lmpi,lband)
-#endif
+  call allocate_mod_clm(lband)
 #endif
 #ifndef BAND
   call allocate_mod_diagnosis
@@ -676,9 +656,7 @@ module mod_param
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! 
-#ifdef MPP1
   if ( myid == 0 ) then
-#endif
     write (aline,*) 'param: starting first checks' 
     call say
     if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
@@ -730,9 +708,7 @@ module mod_param
       call say
       call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
     end if
-#ifdef MPP1
   end if
-#endif
 !
 !-----reset the options/calculate variables using namelist info:
 !
@@ -774,18 +750,15 @@ module mod_param
 !
   nstrt0 = 0
   nstart = idatediff(idate1,idate0)/ibdyfrq
-#ifdef MPP1
   if (myid == 0) then
-#endif
-  if (ifrest .and. nstart == 0) then
-    write (6,*) 'Error in parameter set.'
-    write (6,*) 'Cannot set idate0 == idate1 on restart run'
-    write (6,*) 'Correct idate0.'
-    call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+    if (ifrest .and. nstart == 0) then
+      write (6,*) 'Error in parameter set.'
+      write (6,*) 'Cannot set idate0 == idate1 on restart run'
+      write (6,*) 'Correct idate0.'
+      call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+    end if
   end if
-#ifdef MPP1
-  end if
-#endif
+!
   nnnend = idatediff(idate2,idate0)/ibdyfrq
   xdfbdy = dble(ibdyfrq)/houpd
 ! 
@@ -815,18 +788,14 @@ module mod_param
 !     dectim : is the time in minutes after which the solar declination
 !     angle must be recalculated.
 !
-#ifdef MPP1
   if ( myid == 0 ) then
-#endif              
     call open_domain(r8pt,dx,sigma)
-#ifdef MPP1        
   end if
   call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(r8pt,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
-#endif 
  
 !rst-fix
   mdate0 = idate0
@@ -984,7 +953,6 @@ module mod_param
     chtrdpv = inpchtrdpv(1:ntr,:)
     dustbsiz = inpdustbsiz(1:nbin,:)
     chtrsol = inpchtrsol(1:ntr)
-#ifdef MPP1
     do n = 1 , ntr
       call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
                    & ierr)
@@ -992,10 +960,8 @@ module mod_param
     call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
-#endif
   end if
 
-#ifdef MPP1
   write (aline, *) 'param: Reading in DOMAIN data'
   call say
 
@@ -1122,58 +1088,6 @@ module mod_param
   call mpi_sendrecv(mddom%msfd(1,1),    iy*2,mpi_real8,iwest,2,  &
                   & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
                   & mpi_comm_world,mpi_status_ignore,ierr)
-
-#else
-
-  write (aline, *) 'Reading in DOMAIN data'
-  call say
-  call read_domain(mddom%ht,mddom%satbrt, &
-                   mddom%xlat,mddom%xlong,mddom%msfx,&
-                   mddom%msfd,mddom%f)
-  if ( nsg > 1 ) then
-    call read_subdomain(ht1,satbrt1,xlat1,xlon1)
-    if ( lakemod == 1 ) call read_subdomain_lake(dhlake1)
-  else
-    if ( lakemod == 1 ) call read_domain_lake(dhlake1)
-    do j = 1 , jx
-      do i = 1 , iy
-        ht1(1,i,j) = mddom%ht(i,j)*egrav
-        satbrt1(1,i,j) = mddom%satbrt(i,j)
-        xlat1(1,i,j) = mddom%xlat(i,j)
-        xlon1(1,i,j) = mddom%xlong(i,j)
-      end do
-    end do
-  end if
-  call close_domain
-!
-!------invert mapscale factors and convert hgt to geopotential
-!
-  do j = 1 , jx
-    do i = 1 , iy
-      mddom%ht(i,j)   = mddom%ht(i,j)*egrav
-      mddom%msfd(i,j) = d_one/mddom%msfd(i,j)
-      mddom%msfx(i,j) = d_one/mddom%msfx(i,j)
-    end do
-  end do
-
-  print * , ' '
-  print * , '***************************************************'
-  print * , '***************************************************'
-  print * , '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
-  print * , '****     Map Projection: ' , iproj ,                 &
-       &'                ****'
-  print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,     &
-       &'             ****'
-  print * , '****     PTOP=' , r8pt , ' DX=' , ds ,               &
-       &'       ****'
-  print * , '****     CLAT= ' , clat , ' CLON=' , clon ,          &
-       &'    ****'
-  if ( iproj == 'ROTMER' ) print * , '****     PLAT= ' , plat ,   &
-                               &' PLON=' , plon , '    ****'
-  print * , '***************************************************'
-  print * , ' '
-
-#endif
 
 !
 !-----compute land/water mask on subgrid space
@@ -1412,15 +1326,7 @@ module mod_param
 
     write (aline, *) '*********************************'
     call say
-#ifdef MPP1
     do j = 1 , jendx
-#else
-#ifdef BAND
-    do j = 1 , jx
-#else
-    do j = 1 , jxm1
-#endif
-#endif
       do i = 1 , iym1
         if ( mddom%satbrt(i,j) > 14.5D0 .and. &
              mddom%satbrt(i,j) < 15.5D0) then
@@ -1456,7 +1362,7 @@ module mod_param
                    &' properly implemented'
     call say
     call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
-    call allocate_mod_cu_bm(lmpi)
+    call allocate_mod_cu_bm
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
@@ -1637,7 +1543,6 @@ module mod_param
 !
 !-----print out the parameters specified in the model.
 !
-#ifdef MPP1
   if ( myid == 0 ) then
     if ( ibltyp == 0 ) print 99002
     print 99003 , julday , gmt , ntrad
@@ -1664,31 +1569,7 @@ module mod_param
     print 99019 , xkhmax
   end if
   call mpi_barrier(mpi_comm_world,ierr) 
-#else
-  if ( ibltyp == 0 ) print 99002
-  print 99003 , julday , gmt , ntrad
 !
-  if ( iboudy == 0 ) print 99004
-  if ( iboudy == 1 ) print 99005 , fnudge , gnudge
-  if ( iboudy == 2 ) print 99007
-  if ( iboudy == 3 ) print 99008
-  if ( iboudy == 4 ) print 99009
-  if ( iboudy == 5 ) print 99006 , fnudge , gnudge
-
-  print 99010
-!
-  do k = 1 , kz
-    print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,      &
-        & twt(k,2) , qcon(k)
-  end do
-  print 99012 , kzp1 , sigma(kzp1)
-  print 99014 , dt
-  print 99015 , dx
-  print 99016 , jx , iy
-  print 99017 , kz
-  print 99018 , xkhz
-  print 99019 , xkhmax
-#endif
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                          &
      &'     the surface energy budget is used to calculate the ground te&

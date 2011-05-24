@@ -44,10 +44,6 @@
 !
       subroutine allocate_mod_slice
         implicit none   
-#ifdef MPP1
-        if (ichem == 1 ) then
-          allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
-        end if
         allocate(pb3d(iy,kz,jxp))
         allocate(qsb3d(iy,kz,jxp))
         allocate(rhb3d(iy,kz,jxp))
@@ -59,25 +55,6 @@
         allocate(tb3d(iy,kz,-1:jxp+2))
         allocate(ubd3d(iy,kz,-1:jxp+2))
         allocate(vbd3d(iy,kz,-1:jxp+2))
-#else
-        if ( ichem == 1 ) then
-          allocate(chib3d(iy,kz,jx,ntr))      
-        end if
-        allocate(pb3d(iy,kz,jx))
-        allocate(qsb3d(iy,kz,jx))
-        allocate(rhb3d(iy,kz,jx))
-        allocate(rhob3d(iy,kz,jx))
-        allocate(ubx3d(iy,kz,jx))
-        allocate(vbx3d(iy,kz,jx))
-        allocate(qcb3d(iy,kz,jx))
-        allocate(qvb3d(iy,kz,jx))
-        allocate(tb3d(iy,kz,jx))
-        allocate(ubd3d(iy,kz,jx))
-        allocate(vbd3d(iy,kz,jx))
-#endif
-        if ( ichem == 1 ) then
-          chib3d = d_zero
-        end if
         pb3d = d_zero
         qsb3d = d_zero
         rhb3d = d_zero
@@ -89,7 +66,10 @@
         tb3d = d_zero
         ubd3d = d_zero
         vbd3d = d_zero
-!
+        if ( ichem == 1 ) then
+          allocate(chib3d(iy,kz,-1:jxp+2,ntr))      
+          chib3d = d_zero
+        end if
       end subroutine allocate_mod_slice
 !
       subroutine slice
@@ -99,15 +79,7 @@
       real(8) :: cell , pl , pres , psrf , rh , satvp , thcon , tv
       integer :: i , idx , idxp1 , j , jdx , jdxp1 , k , kk , n
  
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
         do k = 1 , kz
           do i = 1 , iym1
             tb3d(i,k,j) = atm2%t(i,k,j)/sps2%ps(i,j)
@@ -121,29 +93,12 @@
           end do
         end do
       end do
-#ifdef BAND
-#ifdef MPP1
       do j = jbegin , jendx
         jdx = j
         jdxp1 = j + 1
-#else
-      do j = 1 , jx
-        jdx = j
-        jdxp1 = j+1
-        if (jdxp1 == jx+1) jdxp1 = 1
-#endif
-#else
-#ifdef MPP1
-      do j = jbegin , jendx
-        jdx = j
+#ifndef BAND
         if ( myid == 0 ) jdx = max0(j,2)
-        jdxp1 = j + 1
         if ( myid == nproc-1 ) jdxp1 = min0(j+1,jendx)
-#else
-      do j = 2 , jxm1
-        jdx = max0(j,2)
-        jdxp1 = min0(j+1,jxm1)
-#endif
 #endif
         do k = 1 , kz
           do i = 1 , iym1
@@ -159,11 +114,7 @@
         end do
       end do
  
-#ifdef MPP1
       do j = 1 , jendl
-#else
-      do j = 1 , jx
-#endif
         do k = 1 , kz
           do i = 1 , iy
             ubd3d(i,k,j) = atm2%u(i,k,j)/sps2%pdot(i,j)
@@ -172,15 +123,7 @@
         end do
       end do
  
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         do k = 1 , kz
           do i = 2 , iym1
             pl = a(k)*sps2%ps(i,j) + r8pt
@@ -192,15 +135,7 @@
       end do
  
 !-----compute the height at full (za) and half (zq) sigma levels:
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
         do i = 2 , iym1
           zq(i,kzp1) = d_zero
         end do

@@ -23,9 +23,7 @@
       use mod_runparams
       use mod_date
       use mod_message
-#ifdef MPP1
       use mod_mppio
-#endif
 
       implicit none
 
@@ -42,45 +40,32 @@
       contains
 
 
-      subroutine allocate_mod_chem(lmpi)
+      subroutine allocate_mod_chem
         implicit none
-        logical , intent(in) :: lmpi
-        if (lmpi) then
-          allocate(oh(iy,kz,jxp))
-          allocate(ho2(iy,kz,jxp))
-          allocate(o3(iy,kz,jxp))
-          allocate(no3(iy,kz,jxp))
-          allocate(h2o2(iy,kz,jxp))
-          allocate(sav7(iy,5*kz,jxp))
-          allocate(sav_7(iy,5*kz,jx))
-          allocate(oh_io(iy,kz,jx))
-          allocate(ho2_io(iy,kz,jx))
-          allocate(o3_io(iy,kz,jx))
-          allocate(no3_io(iy,kz,jx))
-          allocate(h2o2_io(iy,kz,jx))
-        else
-          allocate(oh(iy,kz,jx))
-          allocate(ho2(iy,kz,jx))
-          allocate(o3(iy,kz,jx))
-          allocate(no3(iy,kz,jx))
-          allocate(h2o2(iy,kz,jx))
-        end if
+        allocate(oh(iy,kz,jxp))
+        allocate(ho2(iy,kz,jxp))
+        allocate(o3(iy,kz,jxp))
+        allocate(no3(iy,kz,jxp))
+        allocate(h2o2(iy,kz,jxp))
+        allocate(sav7(iy,5*kz,jxp))
+        allocate(sav_7(iy,5*kz,jx))
+        allocate(oh_io(iy,kz,jx))
+        allocate(ho2_io(iy,kz,jx))
+        allocate(o3_io(iy,kz,jx))
+        allocate(no3_io(iy,kz,jx))
+        allocate(h2o2_io(iy,kz,jx))
       end subroutine allocate_mod_chem
 !
 ! this routine reads the oxidant data written by 
 ! the oxidant program 
 !
       subroutine init_chem
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #endif
-#endif
       implicit none 
-#ifdef MPP1
 #ifdef IBM
       include 'mpif.h'
-#endif
 #endif
       logical :: existing
       character(256) :: finm
@@ -90,7 +75,6 @@
 !
       existing = .false.
 
-#ifdef MPP1
       if ( myid == 0 ) then
         if (ndate0 == globidate1 .or.  &
            (((ndate0/10000)*100+1)*100 == &
@@ -113,32 +97,8 @@
         end if
         oxrec = 0
       end if
-#else
-      if (ndate0 == globidate1 .or.                                     &
-         (((ndate0/10000)*100+1)*100 ==                               &
-         ((globidate1/10000)*100+1)*100 ) ) then
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',  &
-             & globidate1
-      else
-        write (finm,99001) trim(dirglob),pthsep,trim(domname),'_OXBC',  &
-             & ((ndate0/10000)*100+1)*100
-      end if
-      inquire(file=finm,exist=existing)
-      if (.not.existing) then
-        write (aline,*) 'The following OXBC File does not exist: ' ,   &
-              &            trim(finm), 'please check location'
-        call say
-        call fatal(__FILE__,__LINE__,' ICBC FILE NOT FOUND')
-      else 
-        open (iutox,file=finm,form='unformatted',status='old',       &
-          &     access='direct',recl=iy*jx*ibyte)
-      end if
-      oxrec = 0
-#endif
       do
-#ifdef MPP1
         if ( myid == 0 ) then
-#endif
         oxrec = oxrec + 1
         read (iutox,rec=oxrec) ndate0 , nxxx , nyyy , kzzz
         if ( nyyy /= iy .or. nxxx /= jx .or. kzzz /= kz ) then
@@ -259,16 +219,12 @@
       end subroutine init_chem
 !
       subroutine bdyin_chem
-#ifdef MPP1
 #ifndef IBM
         use mpi
 #endif
-#endif
         implicit none 
-#ifdef MPP1
 #ifdef IBM
         include 'mpif.h'
-#endif
 #endif
         logical :: existing
         character(256) :: finm
@@ -394,9 +350,7 @@
               end do
             end do
           end do  
-#ifdef MPP1
         end if ! end if myid=0
-#endif
 !
 !       Start transmission of data to other processors
 !

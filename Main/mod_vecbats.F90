@@ -31,9 +31,7 @@
       use mod_drag
       use mod_main
       use mod_service
-#ifdef MPP1
       use mod_mppio
-#endif
 
       private
 
@@ -224,15 +222,7 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-#ifdef MPP1
       do jll = 1 , jendx
-#else
-#ifdef BAND
-      do jll = 1 , jx
-#else
-      do jll = 1 , jxm1
-#endif
-#endif
         do ill = 1 , iym1
           pptnc(ill,jll) = d_zero
           pptc(ill,jll) = d_zero
@@ -248,15 +238,7 @@
 !     ******  initialize hostetler lake model
       if (lakemod == 1) call initlake
  
-#ifdef MPP1
       do jll = 1 , jendx
-#else
-#ifdef BAND
-      do jll = 1 , jx
-#else
-      do jll = 1 , jxm1
-#endif
-#endif
         do ill = 1 , iym1
           do k = 1 , nnsg
             tg2d(k,ill,jll) = sts2%tg(ill,jll)
@@ -298,15 +280,7 @@
         end do
       end do
  
-#ifdef MPP1
       do jll = 1 , jendx
-#else
-#ifdef BAND
-      do jll = 1 , jx
-#else
-      do jll = 1 , jxm1
-#endif
-#endif
         do ill = 1 , iym1
           fsw2d(ill,jll) = d_zero
           flw2d(ill,jll) = d_zero
@@ -570,7 +544,6 @@
         end do
 
         do i = istart, iend
-#ifdef MPP1
           u10m_o(j,i-1) = 0.0
           v10m_o(j,i-1) = 0.0
           tg_o(j,i-1) = 0.0
@@ -629,126 +602,6 @@
                           sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
           real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
-
-#else
-#ifdef BAND
-          u10m_o(j,i-1) = 0.0
-          v10m_o(j,i-1) = 0.0
-          tg_o(j,i-1) = 0.0
-          t2m_o(j,i-1) = 0.0
-          aldirs_o(j,i-1) = 0.0
-          aldifs_o(j,i-1) = 0.0
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              fracv = sigf(n,i)
-              fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-              fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = z2fra(n,i)/zlgveg(n,i)
-              facb = z2fra(n,i)/zlglnd(n,i)
-              facs = z2fra(n,i)/zlgsno(n,i)
-              fact = fracv*facv + fracb*facb + fracs*facs
-              facv = z10fra(n,i)/zlgveg(n,i)
-              facb = z10fra(n,i)/zlglnd(n,i)
-              facs = z10fra(n,i)/zlgsno(n,i)
-              factuv = fracv*facv + fracb*facb + fracs*facs
-              u10m1d(n,i) = us1d(i)*(d_one-factuv)
-              v10m1d(n,i) = vs1d(i)*(d_one-factuv)
-              t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            else 
-              if ( iocnflx == 1 ) then
-                fact = z2fra(n,i)/zlgocn(n,i)
-                factuv = z10fra(n,i)/zlgocn(n,i)
-                u10m1d(n,i) = us1d(i)*(d_one-factuv)
-                v10m1d(n,i) = vs1d(i)*(d_one-factuv)
-                t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-              end if
-            end if
-            tg_s(n,j,i-1) = real(tg1d(n,i))
-            u10m_s(n,j,i-1) = real(u10m1d(n,i))
-            v10m_s(n,j,i-1) = real(v10m1d(n,i))
-            t2m_s(n,j,i-1) = real(t2m1d(n,i))
-
-            u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
-            v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
-            t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m1d(n,i))
-            tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
-            aldirs_o(j,i-1) = aldirs_o(j,i-1) + real(aldirs1d(n,i))
-            aldifs_o(j,i-1) = aldifs_o(j,i-1) + real(aldifs1d(n,i))
-          end do
-          u10m_o(j,i-1) = u10m_o(j,i-1)*rrnnsg
-          v10m_o(j,i-1) = v10m_o(j,i-1)*rrnnsg
-          t2m_o(j,i-1) = t2m_o(j,i-1)*rrnnsg
-          tg_o(j,i-1) = tg_o(j,i-1)*rrnnsg
-          aldirs_o(j,i-1) = aldirs_o(j,i-1)*rrnnsg
-          aldifs_o(j,i-1) = aldifs_o(j,i-1)*rrnnsg
-          tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
-          tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
-          t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
-          t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
-          w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
-                           sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-          real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
-          psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
-#else
-          u10m_o(j-1,i-1) = 0.0
-          v10m_o(j-1,i-1) = 0.0
-          tg_o(j-1,i-1) = 0.0
-          t2m_o(j-1,i-1) = 0.0
-          aldirs_o(j-1,i-1) = 0.0
-          aldifs_o(j-1,i-1) = 0.0
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              fracv = sigf(n,i)
-              fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-              fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = z2fra(n,i)/zlgveg(n,i)
-              facb = z2fra(n,i)/zlglnd(n,i)
-              facs = z2fra(n,i)/zlgsno(n,i)
-              fact = fracv*facv + fracb*facb + fracs*facs
-              facv = z10fra(n,i)/zlgveg(n,i)
-              facb = z10fra(n,i)/zlglnd(n,i)
-              facs = z10fra(n,i)/zlgsno(n,i)
-              factuv = fracv*facv + fracb*facb + fracs*facs
-              u10m1d(n,i) = us1d(i)*(d_one-factuv)
-              v10m1d(n,i) = vs1d(i)*(d_one-factuv)
-              t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            else 
-              if ( iocnflx == 1 ) then
-                fact = z2fra(n,i)/zlgocn(n,i)
-                factuv = z10fra(n,i)/zlgocn(n,i)
-                u10m1d(n,i) = us1d(i)*(d_one-factuv)
-                v10m1d(n,i) = vs1d(i)*(d_one-factuv)
-                t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-              end if
-            end if
-            tg_s(n,j-1,i-1) = real(tg1d(n,i))
-            u10m_s(n,j-1,i-1) = real(u10m1d(n,i))
-            v10m_s(n,j-1,i-1) = real(v10m1d(n,i))
-            t2m_s(n,j-1,i-1) = real(t2m1d(n,i))
-
-            u10m_o(j-1,i-1) = u10m_o(j-1,i-1) + real(u10m1d(n,i))
-            v10m_o(j-1,i-1) = v10m_o(j-1,i-1) + real(v10m1d(n,i))
-            t2m_o(j-1,i-1) = t2m_o(j-1,i-1) + real(t2m1d(n,i))
-            tg_o(j-1,i-1) = tg_o(j-1,i-1) + real(tg1d(n,i))
-            aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1) + real(aldirs1d(n,i))
-            aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1) + real(aldifs1d(n,i))
-          end do
-          u10m_o(j-1,i-1) = u10m_o(j-1,i-1)*rrnnsg
-          v10m_o(j-1,i-1) = v10m_o(j-1,i-1)*rrnnsg
-          t2m_o(j-1,i-1) = t2m_o(j-1,i-1)*rrnnsg
-          tg_o(j-1,i-1) = tg_o(j-1,i-1)*rrnnsg
-          aldirs_o(j-1,i-1) = aldirs_o(j-1,i-1)*rrnnsg
-          aldifs_o(j-1,i-1) = aldifs_o(j-1,i-1)*rrnnsg
-          tgmx_o(j-1,i-1) = amax1(tgmx_o(j-1,i-1),tg_o(j-1,i-1))
-          tgmn_o(j-1,i-1) = amin1(tgmn_o(j-1,i-1),tg_o(j-1,i-1))
-          t2mx_o(j-1,i-1) = amax1(t2mx_o(j-1,i-1),t2m_o(j-1,i-1))
-          t2mn_o(j-1,i-1) = amin1(t2mn_o(j-1,i-1),t2m_o(j-1,i-1))
-          w10x_o(j-1,i-1) = amax1(w10x_o(j-1,i-1), &
-                      sqrt(u10m_o(j-1,i-1)**2.0+v10m_o(j-1,i-1)**2.0))
-          real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
-          psmn_o(j-1,i-1) = amin1(psmn_o(j-1,i-1),real_4)
-#endif
-#endif
         end do
 
         if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or.    &
@@ -766,7 +619,6 @@
             wpm2 = d_one/(batfrq*secph)
           end if
           do i = istart, iend
-#ifdef MPP1
             drag_o(j,i-1) = 0.0
             q2m_o(j,i-1) = 0.0
             evpa_o(j,i-1) = 0.0
@@ -853,183 +705,6 @@
               rnos_o(j,i-1) = smissval
               scv_o(j,i-1) = smissval
             end if
-#else
-#ifdef BAND
-            drag_o(j,i-1) = 0.0
-            q2m_o(j,i-1) = 0.0
-            evpa_o(j,i-1) = 0.0
-            sena_o(j,i-1) = 0.0
-            do n = 1 , nnsg
-              if ( ldoc1d(n,i) /= 0 ) then
-                fracv = sigf(n,i)
-                fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-                fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-                facv = z2fra(n,i)/zlgveg(n,i)
-                facb = z2fra(n,i)/zlglnd(n,i)
-                facs = z2fra(n,i)/zlgsno(n,i)
-                fact = fracv*facv + fracb*facb + fracs*facs
-                q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-              else
-                if ( iocnflx == 1 ) then
-                  fact = z2fra(n,i)/zlgocn(n,i)
-                  q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-                end if
-              end if
-              q2m_s(n,j,i-1) = real(q2m1d(n,i))
-              drag_s(n,j,i-1) = real(drag1d(n,i))
-              evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
-              sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
-              tpr_s(n,j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-              prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
-              ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
-
-              q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2m1d(n,i))
-              drag_o(j,i-1) = drag_o(j,i-1) + real(drag1d(n,i))
-              evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,i,j))
-              sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,i,j))
-            end do
-            tpr_o(j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-            q2m_o(j,i-1) = q2m_o(j,i-1)*rrnnsg
-            drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
-            evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
-            sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)
-            flwa_o(j,i-1) = real(flwa2d(i,j)*wpm2)
-            fswa_o(j,i-1) = real(fswa2d(i,j)*wpm2)
-            flwd_o(j,i-1) = real(flwda2d(i,j)*wpm2)
-            sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
-            prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
-            ps_o(j,i-1) = real((sps2%ps(i,j)+r8pt)*d_10)
-            zpbl_o(j,i-1) = real(sfsta%zpbl(i,j))
-
-            tlef_o(j,i-1) = 0.0
-            ssw_o(j,i-1) = 0.0
-            rsw_o(j,i-1) = 0.0
-            rnos_o(j,i-1) = 0.0
-            scv_o(j,i-1) = 0.0
-            nnn = 0
-            do n = 1 , nnsg
-              if ( ldoc1d(n,i,j) /= 0 ) then
-                tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef1d(n,i))
-                ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
-                rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
-                rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,i,j))
-                scv_o(j,i-1) = scv_o(j,i-1) + real(scv1d(n,i))
-                tlef_s(n,j,i-1) = real(tlef1d(n,i))
-                ssw_s(n,j,i-1) = real(ssw1d(n,i))
-                rsw_s(n,j,i-1) = real(rsw1d(n,i))
-                rnos_s(n,j,i-1) = real(rnos2d(n,i,j)*mmpd)
-                scv_s(n,j,i-1) = real(scv1d(n,i))
-                nnn = nnn + 1
-              else
-                tlef_s(n,j,i-1) = smissval
-                ssw_s(n,j,i-1) = smissval
-                rsw_s(n,j,i-1) = smissval
-                rnos_s(n,j,i-1) = smissval
-                scv_s(n,j,i-1) = smissval
-              end if
-            end do
-            if ( nnn >= max0(nnsg/2,1) ) then
-              tlef_o(j,i-1) = tlef_o(j,i-1)/real(nnn)
-              ssw_o(j,i-1) = ssw_o(j,i-1)/real(nnn)
-              rsw_o(j,i-1) = rsw_o(j,i-1)/real(nnn)
-              rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
-              scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
-            else
-              tlef_o(j,i-1) = smissval
-              ssw_o(j,i-1) = smissval
-              rsw_o(j,i-1) = smissval
-              rnos_o(j,i-1) = smissval
-              scv_o(j,i-1) = smissval
-            end if
-#else
-            drag_o(j-1,i-1) = 0.0
-            q2m_o(j-1,i-1) = 0.0
-            evpa_o(j-1,i-1) = 0.0
-            sena_o(j-1,i-1) = 0.0
-            do n = 1 , nnsg
-              if ( ldoc1d(n,i) /= 0 ) then
-                fracv = sigf(n,i)
-                fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-                fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-                facv = z2fra(n,i)/zlgveg(n,i)
-                facb = z2fra(n,i)/zlglnd(n,i)
-                facs = z2fra(n,i)/zlgsno(n,i)
-                fact = fracv*facv + fracb*facb + fracs*facs
-                q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-              else 
-                if ( iocnflx == 1 ) then
-                  fact = z2fra(n,i)/zlgocn(n,i)
-                  q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-                end if
-              end if
-              q2m_s(n,j-1,i-1) = real(q2m1d(n,i))
-              drag_s(n,j-1,i-1) = real(drag1d(n,i))
-              evpa_s(n,j-1,i-1) = real(evpa2d(n,i,j)*mmpd)
-              sena_s(n,j-1,i-1) = real(sena2d(n,i,j)*wpm2)
-              tpr_s(n,j-1,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-              prcv_s(n,j-1,i-1) = real(prca2d(i,j)*mmpd)
-              ps_s(n,j-1,i-1) = real(p1d(n,i)*0.01D0)
-
-              q2m_o(j-1,i-1) = q2m_o(j-1,i-1) + real(q2m1d(n,i))
-              drag_o(j-1,i-1) = drag_o(j-1,i-1) + real(drag1d(n,i))
-              evpa_o(j-1,i-1) = evpa_o(j-1,i-1) + real(evpa2d(n,i,j))
-              sena_o(j-1,i-1) = sena_o(j-1,i-1) + real(sena2d(n,i,j))
-            end do
-            tpr_o(j-1,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-            q2m_o(j-1,i-1) = q2m_o(j-1,i-1)*rrnnsg
-            drag_o(j-1,i-1) = drag_o(j-1,i-1)*rrnnsg
-            evpa_o(j-1,i-1) = evpa_o(j-1,i-1)*rrnnsg*real(mmpd)
-            sena_o(j-1,i-1) = sena_o(j-1,i-1)*rrnnsg*real(wpm2)
-            flwa_o(j-1,i-1) = real(flwa2d(i,j)*wpm2)
-            fswa_o(j-1,i-1) = real(fswa2d(i,j)*wpm2)
-            flwd_o(j-1,i-1) = real(flwda2d(i,j)*wpm2)
-            sina_o(j-1,i-1) = real(sina2d(i,j)*wpm2)
-            prcv_o(j-1,i-1) = real(prca2d(i,j)*mmpd)
-            ps_o(j-1,i-1) = real((sps2%ps(i,j)+r8pt)*d_10)
-            zpbl_o(j-1,i-1) = real(sfsta%zpbl(i,j))
-
-            tlef_o(j-1,i-1) = 0.0
-            ssw_o(j-1,i-1) = 0.0
-            rsw_o(j-1,i-1) = 0.0
-            rnos_o(j-1,i-1) = 0.0
-            scv_o(j-1,i-1) = 0.0
-            nnn = 0
-            do n = 1 , nnsg
-              if ( ldoc1d(n,i) /= 0 ) then
-                tlef_o(j-1,i-1) = tlef_o(j-1,i-1) + real(tlef1d(n,i))
-                ssw_o(j-1,i-1) = ssw_o(j-1,i-1) + real(ssw1d(n,i))
-                rsw_o(j-1,i-1) = rsw_o(j-1,i-1) + real(rsw1d(n,i))
-                rnos_o(j-1,i-1) = rnos_o(j-1,i-1) + real(rnos2d(n,i,j))
-                scv_o(j-1,i-1) = scv_o(j-1,i-1) + real(scv1d(n,i))
-                tlef_s(n,j-1,i-1) = real(tlef1d(n,i))
-                ssw_s(n,j-1,i-1) = real(ssw1d(n,i))
-                rsw_s(n,j-1,i-1) = real(rsw1d(n,i))
-                rnos_s(n,j-1,i-1) = real(rnos2d(n,i,j)*mmpd)
-                scv_s(n,j-1,i-1) = real(scv1d(n,i))
-                nnn = nnn + 1
-              else
-                tlef_s(n,j-1,i-1) = smissval
-                ssw_s(n,j-1,i-1) = smissval
-                rsw_s(n,j-1,i-1) = smissval
-                rnos_s(n,j-1,i-1) = smissval
-                scv_s(n,j-1,i-1) = smissval
-              end if
-            end do
-            if ( nnn >= max0(nnsg/2,1) ) then
-              tlef_o(j-1,i-1) = tlef_o(j-1,i-1)/real(nnn)
-              ssw_o(j-1,i-1) = ssw_o(j-1,i-1)/real(nnn)
-              rsw_o(j-1,i-1) = rsw_o(j-1,i-1)/real(nnn)
-              rnos_o(j-1,i-1) = rnos_o(j-1,i-1)/real(nnn)*real(mmpd)
-              scv_o(j-1,i-1) = scv_o(j-1,i-1)/real(nnn)
-            else
-              tlef_o(j-1,i-1) = smissval
-              ssw_o(j-1,i-1) = smissval
-              rsw_o(j-1,i-1) = smissval
-              rnos_o(j-1,i-1) = smissval
-              scv_o(j-1,i-1) = smissval
-            end if
-#endif
-#endif
  
 !           ******    reset accumulation arrays to zero
             do n = 1 , nnsg

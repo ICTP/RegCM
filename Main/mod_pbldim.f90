@@ -41,24 +41,15 @@
 !
       contains
 !
-      subroutine allocate_mod_pbldim(lmpi)
+      subroutine allocate_mod_pbldim
         implicit none
-        logical , intent(in) :: lmpi
 !        
         call getmem2d(zq,iy,kzp1,'pbldim:zq')
-        if (lmpi) then
-          call getmem3d(dzq,iy,kz,jxp,'pbldim:dzq')
-          call getmem3d(thvx,iy,kz,jxp,'pbldim:thvx')
-          call getmem3d(thx3d,iy,kz,jxp,'pbldim:thx3d')
-          call getmem3d(za,iy,kz,jxp,'pbldim:za')
-          call getmem2d(rhox2d,iy,jxp,'pbldim:rhox2d')
-        else
-          call getmem3d(dzq,iy,kz,jx,'pbldim:dzq')
-          call getmem3d(thvx,iy,kz,jx,'pbldim:thvx')
-          call getmem3d(thx3d,iy,kz,jx,'pbldim:thx3d')
-          call getmem3d(za,iy,kz,jx,'pbldim:za')
-          call getmem2d(rhox2d,iy,jx,'pbldim:rhox2d')
-        end if
+        call getmem3d(dzq,iy,kz,jxp,'pbldim:dzq')
+        call getmem3d(thvx,iy,kz,jxp,'pbldim:thvx')
+        call getmem3d(thx3d,iy,kz,jxp,'pbldim:thx3d')
+        call getmem3d(za,iy,kz,jxp,'pbldim:za')
+        call getmem2d(rhox2d,iy,jxp,'pbldim:rhox2d')
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim

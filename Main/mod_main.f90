@@ -101,13 +101,13 @@
 !
       contains
 !
-        subroutine allocate_atmstate(atm,lmpi,ib,jb)
+        subroutine allocate_atmstate(atm,lpar,ib,jb)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           integer , intent(in) :: ib , jb
           type(atmstate) , intent(out) :: atm
           integer :: is , ie , js , je
-          if (lmpi) then
+          if (lpar) then
             is = 1-ib
             ie = iy+ib
             js = 1-jb
@@ -131,11 +131,11 @@
           atm%qc = d_zero
         end subroutine allocate_atmstate
 !
-        subroutine allocate_surfpstate(sps,lmpi)
+        subroutine allocate_surfpstate(sps,lpar)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           type(surfpstate) , intent(out) :: sps
-          if (lmpi) then
+          if (lpar) then
             allocate(sps%ps(iy,-1:jxp+2))
             allocate(sps%pdot(iy,-1:jxp+2))
           else
@@ -146,11 +146,11 @@
           sps%pdot = d_zero
         end subroutine allocate_surfpstate
 !
-        subroutine allocate_surftstate(sts,lmpi)
+        subroutine allocate_surftstate(sts,lpar)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           type(surftstate) , intent(out) :: sts
-          if (lmpi) then
+          if (lpar) then
             allocate(sts%tg(iy,jxp+1))
           else
             allocate(sts%tg(iy,jx))
@@ -158,12 +158,12 @@
           sts%tg = d_zero
         end subroutine allocate_surftstate
 !
-        subroutine allocate_domain(dom,lmpi)
+        subroutine allocate_domain(dom,lpar)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           type(domain) , intent(out) :: dom
 
-          if (lmpi) then
+          if (lpar) then
             allocate(dom%ht(iy,0:jxp+1))
             allocate(dom%satbrt(iy,jxp)) 
             allocate(dom%xlat(iy,jxp))
@@ -189,11 +189,11 @@
           dom%f = d_zero
         end subroutine allocate_domain
 !
-        subroutine allocate_domfact(dfa,lmpi)
+        subroutine allocate_domfact(dfa,lpar)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           type(domfact) , intent(out) :: dfa
-          if (lmpi) then
+          if (lpar) then
             allocate(dfa%hgfact(iy,jxp))
           else
             allocate(dfa%hgfact(iy,jx))
@@ -201,23 +201,18 @@
           dfa%hgfact = d_zero
         end subroutine allocate_domfact
 !
-        subroutine allocate_cumcontrol(cc,lmpi)
+        subroutine allocate_cumcontrol(cc)
           implicit none
           type(cumcontrol) , intent(out) :: cc
-          logical , intent(in) :: lmpi
-          if (lmpi) then
-            allocate(cc%cuscheme(iy,jxp))
-          else
-            allocate(cc%cuscheme(iy,jx))
-          end if
+          allocate(cc%cuscheme(iy,jxp))
           cc%cuscheme(:,:) = -1
         end subroutine allocate_cumcontrol
 
-        subroutine allocate_surfstate(sfs,lmpi)
+        subroutine allocate_surfstate(sfs,lpar)
           implicit none
-          logical , intent(in) :: lmpi
+          logical , intent(in) :: lpar
           type(surfstate) , intent(out) :: sfs
-          if (lmpi) then
+          if (lpar) then
             allocate(sfs%hfx(iy,jxp))
             allocate(sfs%qfx(iy,jxp))
             allocate(sfs%rainc(iy,jxp))
@@ -243,33 +238,25 @@
           sfs%uvdrag = d_zero
         end subroutine allocate_surfstate
 
-        subroutine allocate_mod_main(lmpi)
+        subroutine allocate_mod_main
         implicit none
-        logical , intent(in) :: lmpi
 
-        call allocate_domain(mddom,lmpi)
-        call allocate_domfact(domfc,lmpi)
-
-        call allocate_atmstate(atm1,lmpi,0,2)
-        call allocate_surfpstate(sps1,lmpi)
-        call allocate_surftstate(sts1,lmpi)
-        call allocate_atmstate(atm2,lmpi,0,2)
-        call allocate_surfpstate(sps2,lmpi)
-        call allocate_surftstate(sts2,lmpi)
-        call allocate_surfstate(sfsta,lmpi)
+        call allocate_domain(mddom,.true.)
+        call allocate_domfact(domfc,.true.)
+        call allocate_atmstate(atm1,.true.,0,2)
+        call allocate_surfpstate(sps1,.true.)
+        call allocate_surftstate(sts1,.true.)
+        call allocate_atmstate(atm2,.true.,0,2)
+        call allocate_surfpstate(sps2,.true.)
+        call allocate_surftstate(sts2,.true.)
+        call allocate_surfstate(sfsta,.true.)
         if (icup == 99 .or. icup == 98) then
-          call allocate_cumcontrol(cumcon,lmpi)
+          call allocate_cumcontrol(cumcon)
         end if
 
-        if (lmpi) then
-          allocate(sulf%so4(iy,kz,jxp))
-          allocate(spsav%dstor(iy,0:jxp+1,nsplit))
-          allocate(spsav%hstor(iy,0:jxp+1,nsplit))
-        else
-          allocate(sulf%so4(iy,kz,jx))
-          allocate(spsav%dstor(iy,jx,nsplit))
-          allocate(spsav%hstor(iy,jx,nsplit))
-        end if
+        allocate(sulf%so4(iy,kz,jxp))
+        allocate(spsav%dstor(iy,0:jxp+1,nsplit))
+        allocate(spsav%hstor(iy,0:jxp+1,nsplit))
 
         sulf%so4 = d_zero
         spsav%dstor = d_zero

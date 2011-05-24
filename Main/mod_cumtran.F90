@@ -45,15 +45,7 @@
       integer :: i , j , k , kcumtop , n
 !
       do n = 1 , ntr
-#ifdef MPP1
         do j = jbegin , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-#endif
           do i = 2 , iym1
             if ( icumtop(i,j) > 0 ) then
               deltas = d_zero

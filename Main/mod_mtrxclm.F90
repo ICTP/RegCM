@@ -17,8 +17,6 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef MPP1
-
 #ifdef CLM
 
       module mod_mtrxclm
@@ -1465,7 +1463,5 @@
       end subroutine interfclm
 !
       end module mod_mtrxclm
-
-#endif
 
 #endif

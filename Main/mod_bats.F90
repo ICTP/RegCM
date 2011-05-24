@@ -21,6 +21,7 @@
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
+      use mod_memutil
       use mod_runparams
       use mod_bats_param
 !
@@ -70,20 +71,20 @@
 !
       real(8) , allocatable , dimension(:) :: coszrs
 !
-      real(8) , allocatable , dimension(:,:) :: flw2d , flwa2d ,   &
+      real(8) , pointer , dimension(:,:) :: flw2d , flwa2d ,       &
              flwd2d , flwda2d , fsw2d , fswa2d , pptc , pptnc ,    &
              prca2d , prnca2d , sabv2d , sina2d , sinc2d , sol2d , &
              solvd2d , solvs2d , svga2d
 !
-      real(8) , allocatable , dimension(:,:) :: ssw2da , sdeltk2d , &
+      real(8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
             sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
       integer , allocatable , dimension(:,:,:) :: ocld2d , veg2d1
       integer , allocatable , dimension(:,:) :: veg2d , ldmsk
 !
-      real(8) , allocatable , dimension(:,:,:) :: col2d , dew2d ,       &
-           emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,        &
-           sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d ,    &
+      real(8) , pointer , dimension(:,:,:) :: col2d , dew2d ,        &
+           emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,     &
+           sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d , &
            taf2d , tg2d , tgb2d , tlef2d
 !
       real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
@@ -110,144 +111,83 @@
 
       contains
 
-        subroutine allocate_mod_bats(lmpi,lband)
+        subroutine allocate_mod_bats
         implicit none
-        logical , intent(in) :: lmpi , lband
-        integer :: nj , njm1 , njm2
 
         rrnnsg = 1.0/real(nnsg)
         rdnnsg = d_one/dble(nnsg)
 
-        if (lmpi) then
-          nj = jxp
-          njm1 = jxp
-          njm2 = jxp
-        else
-          if (lband) then
-            nj = jx
-            njm1 = jx
-            njm2 = jx
-          else
-            nj = jx
-            njm1 = jxm1
-            njm2 = jxm2
-          end if
-        end if
-
-        allocate(veg2d(iym1,njm1))
+        allocate(veg2d(iym1,jxp))
         veg2d = -1
-        allocate(ldmsk(iym1,njm1))
+        allocate(ldmsk(iym1,jxp))
         ldmsk = -1
 
-        allocate(flw2d(iym1,njm1))
-        flw2d = d_zero
-        allocate(flwa2d(iym1,njm1))
-        flwa2d = d_zero
-        allocate(flwd2d(iym1,njm1))
-        flwd2d = d_zero
-        allocate(flwda2d(iym1,njm1))
-        flwda2d = d_zero
-        allocate(fsw2d(iym1,njm1))
-        fsw2d = d_zero
-        allocate(fswa2d(iym1,njm1))
-        fswa2d = d_zero
-        allocate(pptc(iym1,njm1))
-        pptc = d_zero
-        allocate(pptnc(iym1,njm1))
-        pptnc = d_zero
-        allocate(prca2d(iym1,njm1))
-        prca2d = d_zero
-        allocate(prnca2d(iym1,njm1))
-        prnca2d = d_zero
-        allocate(sabv2d(iym1,njm1))
-        sabv2d = d_zero
-        allocate(sina2d(iym1,njm1))
-        sina2d = d_zero
-        allocate(sinc2d(iym1,njm1))
-        sinc2d = d_zero
-        allocate(sol2d(iym1,njm1))
-        sol2d = d_zero
-        allocate(solvd2d(iym1,njm1))
-        solvd2d = d_zero
-        allocate(solvs2d(iym1,njm1))
-        solvs2d = d_zero
-        allocate(svga2d(iym1,njm1))
-        svga2d = d_zero
+        call getmem2d(flw2d,iym1,jxp,'bats:flw2d')
+        call getmem2d(flwa2d,iym1,jxp,'bats:flwa2d')
+        call getmem2d(flwd2d,iym1,jxp,'bats:flwd2d')
+        call getmem2d(flwda2d,iym1,jxp,'bats:flwda2d')
+        call getmem2d(fsw2d,iym1,jxp,'bats:fsw2d')
+        call getmem2d(fswa2d,iym1,jxp,'bats:fswa2d')
+        call getmem2d(pptc,iym1,jxp,'bats:pptc')
+        call getmem2d(pptnc,iym1,jxp,'bats:pptnc')
+        call getmem2d(prca2d,iym1,jxp,'bats:prca2d')
+        call getmem2d(prnca2d,iym1,jxp,'bats:prnca2d')
+        call getmem2d(sabv2d,iym1,jxp,'bats:sabv2d')
+        call getmem2d(sina2d,iym1,jxp,'bats:sina2d')
+        call getmem2d(sinc2d,iym1,jxp,'bats:sinc2d')
+        call getmem2d(sol2d,iym1,jxp,'bats:sol2d')
+        call getmem2d(solvd2d,iym1,jxp,'bats:solvd2d')
+        call getmem2d(solvs2d,iym1,jxp,'bats:solvs2d')
+        call getmem2d(svga2d,iym1,jxp,'bats:svga2d')
         if ( ichem == 1 ) then
-          allocate(ssw2da(iym1,njm1))
-          ssw2da = d_zero
-          allocate(sdeltk2d(iym1,njm1))
-          sdeltk2d = d_zero
-          allocate(sdelqk2d(iym1,njm1))
-          sdelqk2d = d_zero
-          allocate(sfracv2d(iym1,njm1))
-          sfracv2d = d_zero
-          allocate(sfracb2d(iym1,njm1))
-          sfracb2d = d_zero
-          allocate(sfracs2d(iym1,njm1))
-          sfracs2d = d_zero
-          allocate(svegfrac2d(iym1,njm1))
-          svegfrac2d = d_zero
+          call getmem2d(ssw2da,iym1,jxp,'bats:ssw2da')
+          call getmem2d(sdeltk2d,iym1,jxp,'bats:sdeltk2d')
+          call getmem2d(sdelqk2d,iym1,jxp,'bats:sdelqk2d')
+          call getmem2d(sfracv2d,iym1,jxp,'bats:sfracv2d')
+          call getmem2d(sfracb2d,iym1,jxp,'bats:sfracb2d')
+          call getmem2d(sfracs2d,iym1,jxp,'bats:sfracs2d')
+          call getmem2d(svegfrac2d,iym1,jxp,'bats:svegfrac2d')
         end if
 
-        allocate(ocld2d(nnsg,iym1,njm1))
+        allocate(ocld2d(nnsg,iym1,jxp))
         ocld2d = -1
-        allocate(veg2d1(nnsg,iym1,njm1))
+        allocate(veg2d1(nnsg,iym1,jxp))
         veg2d1 = -1
 
-        allocate(col2d(nnsg,iym1,njm1))
-        col2d = d_zero
-        allocate(dew2d(nnsg,iym1,njm1))
-        dew2d = d_zero
-        allocate(emiss2d(nnsg,iym1,njm1))
-        emiss2d = d_zero
-        allocate(evpa2d(nnsg,iym1,njm1))
-        evpa2d = d_zero
-        allocate(gwet2d(nnsg,iym1,njm1))
-        gwet2d = d_zero
-        allocate(ircp2d(nnsg,iym1,njm1))
-        ircp2d = d_zero
-        allocate(rno2d(nnsg,iym1,njm1))
-        rno2d = d_zero
-        allocate(rnos2d(nnsg,iym1,njm1))
-        rnos2d = d_zero
-        allocate(sag2d(nnsg,iym1,njm1))
-        sag2d = d_zero
-        allocate(scv2d(nnsg,iym1,njm1))
-        scv2d = d_zero
-        allocate(sena2d(nnsg,iym1,njm1))
-        sena2d = d_zero
-        allocate(sice2d(nnsg,iym1,njm1))
-        sice2d = d_zero
-        allocate(srw2d(nnsg,iym1,njm1))
-        srw2d = d_zero
-        allocate(ssw2d(nnsg,iym1,njm1))
-        ssw2d = d_zero
-        allocate(swt2d(nnsg,iym1,njm1))
-        swt2d = d_zero
-        allocate(taf2d(nnsg,iym1,njm1))
-        taf2d = d_zero
-        allocate(tg2d(nnsg,iym1,njm1))
-        tg2d = d_zero
-        allocate(tgb2d(nnsg,iym1,njm1))
-        tgb2d = d_zero
-        allocate(tlef2d(nnsg,iym1,njm1))
-        tlef2d = d_zero
+        call getmem3d(col2d,nnsg,iym1,jxp,'bats:col2d')
+        call getmem3d(dew2d,nnsg,iym1,jxp,'bats:dew2d')
+        call getmem3d(emiss2d,nnsg,iym1,jxp,'bats:emiss2d')
+        call getmem3d(evpa2d,nnsg,iym1,jxp,'bats:evpa2d')
+        call getmem3d(gwet2d,nnsg,iym1,jxp,'bats:gwet2d')
+        call getmem3d(ircp2d,nnsg,iym1,jxp,'bats:ircp2d')
+        call getmem3d(rno2d,nnsg,iym1,jxp,'bats:rno2d')
+        call getmem3d(rnos2d,nnsg,iym1,jxp,'bats:rnos2d')
+        call getmem3d(sag2d,nnsg,iym1,jxp,'bats:sag2d')
+        call getmem3d(scv2d,nnsg,iym1,jxp,'bats:scv2d')
+        call getmem3d(sena2d,nnsg,iym1,jxp,'bats:sena2d')
+        call getmem3d(sice2d,nnsg,iym1,jxp,'bats:sice2d')
+        call getmem3d(srw2d,nnsg,iym1,jxp,'bats:srw2d')
+        call getmem3d(ssw2d,nnsg,iym1,jxp,'bats:ssw2d')
+        call getmem3d(swt2d,nnsg,iym1,jxp,'bats:swt2d')
+        call getmem3d(taf2d,nnsg,iym1,jxp,'bats:taf2d')
+        call getmem3d(tg2d,nnsg,iym1,jxp,'bats:tg2d')
+        call getmem3d(tgb2d,nnsg,iym1,jxp,'bats:tgb2d')
+        call getmem3d(tlef2d,nnsg,iym1,jxp,'bats:tlef2d')
 
-        allocate(ht1(nnsg,iy,nj))
-        allocate(satbrt1(nnsg,iy,nj))
-        allocate(xlat1(nnsg,iy,nj))
-        allocate(xlon1(nnsg,iy,nj))
+        allocate(ht1(nnsg,iy,jxp))
+        allocate(satbrt1(nnsg,iy,jxp))
+        allocate(xlat1(nnsg,iy,jxp))
+        allocate(xlon1(nnsg,iy,jxp))
         ht1 = d_zero
         satbrt1 = d_zero
         xlat1 = d_zero
         xlon1 = d_zero
 
         if (idcsst == 1) then
-          allocate(deltas(iy,nj))
-          allocate(tdeltas(iy,nj))
-          allocate(dtskin(iy,nj))
-          allocate(firstcall(iy,nj))
+          allocate(deltas(iy,jxp))
+          allocate(tdeltas(iy,jxp))
+          allocate(dtskin(iy,jxp))
+          allocate(firstcall(iy,jxp))
           deltas = d_zero
           tdeltas = d_zero
           dtskin = d_zero
@@ -570,7 +510,7 @@
         allocate(solvs(iym1))
         solvs = d_zero
 
-        allocate(fbat(njm2,iym2,numbat))
+        allocate(fbat(jxp,iym2,numbat))
         fbat = 0.0
         ps_o   => fbat(:,:,1)
         u10m_o => fbat(:,:,2)
@@ -602,7 +542,7 @@
         aldirs_o => fbat(:,:,28)
         aldifs_o => fbat(:,:,29)
 
-        allocate(fsub(nnsg,njm2,iym2,numsub))
+        allocate(fsub(nnsg,jxp,iym2,numsub))
         fsub = 0.0
         ps_s   => fsub(:,:,:,1)
         u10m_s => fsub(:,:,:,2)

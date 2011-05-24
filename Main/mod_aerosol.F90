@@ -342,15 +342,7 @@
 ! 
       subroutine allocate_mod_aerosol
       implicit none   
-#ifdef MPP1
       allocate(aermm(iym1,kz,jxp))
-#else
-#ifdef BAND
-      allocate(aermm(iym1,kz,jx))
-#else
-      allocate(aermm(iym1,kz,jxm1))
-#endif 
-#endif 
       allocate(aermmb(iym1,kz))
       allocate(ftota_mix(iym1,0:kz,nspi))
       allocate(gtota_mix(iym1,0:kz,nspi))
@@ -980,21 +972,9 @@
 ! 
       do k = 1 , kz
         do i = 2 , iym1
-#ifdef MPP1
           aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
           aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
           aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
-#else
-#ifdef BAND
-          aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
-          aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
-          aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
-#else
-          aerext(i-1,k,jslc-1) = tauxar_mix(i,k,8)
-          aerssa(i-1,k,jslc-1) = tauasc_mix(i,k,8)
-          aerasp(i-1,k,jslc-1) = gtota_mix(i,k,8)
-#endif
-#endif
         end do
       end do
 !
@@ -1007,7 +987,6 @@
 !     aersol radative forcing (care cgs to mks after radiation scheme !)
 !
       do i = 2 , iym1
-#ifdef MPP1
         aertarf(i-1,jslc) = aertarf(i-1,jslc) +            &
                             aeradfo(i)*d_r1000/rntim
         aersrrf(i-1,jslc) = aersrrf(i-1,jslc) +            &
@@ -1016,27 +995,6 @@
                              aerlwfo(i)*d_r1000/rntim
         aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +        &
                              aerlwfos(i)*d_r1000/rntim
-#else
-#ifdef BAND
-        aertarf(i-1,jslc) = aertarf(i-1,jslc) + aeradfo(i)     &
-                             *d_r1000/rntim
-        aersrrf(i-1,jslc) = aersrrf(i-1,jslc) + aeradfos(i)    &
-                             *d_r1000/rntim
-        aertalwrf(i-1,jslc) = aertalwrf(i-1,jslc) +            &
-                               aerlwfo(i) * d_r1000/rntim
-        aersrlwrf(i-1,jslc) = aersrlwrf(i-1,jslc) +            &
-                               aerlwfos(i) * d_r1000/rntim
-#else
-        aertarf(i-1,jslc-1) = aertarf(i-1,jslc-1) + aeradfo(i)   &
-                             *d_r1000/rntim
-        aersrrf(i-1,jslc-1) = aersrrf(i-1,jslc-1) + aeradfos(i)  &
-                             *d_r1000/rntim
-        aertalwrf(i-1,jslc-1) = aertalwrf(i-1,jslc-1) +          &
-                               aerlwfo(i) * d_r1000/rntim
-        aersrlwrf(i-1,jslc-1) = aersrlwrf(i-1,jslc-1) +          &
-                               aerlwfos(i) * d_r1000/rntim
-#endif
-#endif
       end do
 ! 
       end subroutine aerout

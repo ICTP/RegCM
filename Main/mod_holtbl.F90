@@ -32,9 +32,7 @@
       use mod_slice
       use mod_trachem
       use mod_diagnosis
-#ifdef MPP1
       use mod_mppio
-#endif
 !
       private
 !
@@ -54,9 +52,7 @@
 !
       real(8) , allocatable , dimension(:,:,:) :: auxx , avxx , dza , qcx
       real(8) , allocatable , dimension(:,:,:) :: akzz1 , akzz2
-#ifdef MPP1
       real(8) , allocatable , dimension(:) :: wkrecv , wksend
-#endif
       real(8) , allocatable , dimension(:,:,:) :: rhohf
 !
       real(8) , allocatable , dimension(:,:) :: ri
@@ -100,7 +96,6 @@
       allocate(govrth(iym1))
       allocate(ri(iy,kz))
       allocate(therm(iy))
-#ifdef MPP1
       allocate(cgh(iy,kz,jxp))
 !     allocate(cgq(iy,kz,jxp))
       allocate(kvh(iy,kz,jxp))        
@@ -121,39 +116,6 @@
       allocate(wkrecv(2*iym2*kz))
       allocate(wksend(2*iym2*kz))
       allocate(rhohf(iy,kz,jxp))
-#else 
-#ifdef BAND
-      allocate(cgh(iy,kz,jx))        
-      allocate(kvh(iy,kz,jx))        
-      allocate(kvm(iy,kz,jx))        
-      allocate(kvq(iy,kz,jx))
-      allocate(auxx(iym1,kz,jx))
-      allocate(avxx(iym1,kz,jx))
-      allocate(dza(iym1,kz,jx))
-      allocate(qcx(iym1,kz,jx))
-      allocate(akzz1(iym1,kz,0:jx))
-      allocate(akzz2(iym1,kz,0:jx))
-      allocate(rhohf(iy,kz,jx))
-#else
-      allocate(cgh(iy,kz,jxm1))        
-      allocate(kvh(iy,kz,jxm1))        
-      allocate(kvm(iy,kz,jxm1))        
-      allocate(kvq(iy,kz,jxm1))
-      allocate(auxx(iym1,kz,jxm1))
-      allocate(avxx(iym1,kz,jxm1))
-      allocate(dza(iym1,kz,jxm1))
-      allocate(qcx(iym1,kz,jxm1))
-      allocate(akzz1(iym1,kz,0:jxm1))
-      allocate(akzz2(iym1,kz,0:jxm1))
-      allocate(rhohf(iy,kz,jxm1))
-#endif
-      allocate(hfxv(iy,jx))        
-      allocate(obklen(iy,jx))        
-      allocate(th10(iy,jx))        
-      allocate(ustr(iy,jx))        
-      allocate(xhfx(iy,jx))        
-      allocate(xqfx(iy,jx))        
-#endif 
       if ( ichem == 1 ) then
         if ( ichdrdepo == 1 ) then
           allocate(chix(iy,kz))
@@ -161,15 +123,7 @@
           chix = d_zero
           vdep = d_zero
         end if
-#ifdef MPP1
         allocate(kvc(iy,kz,jxp))        
-#else
-#ifdef BAND
-        allocate(kvc(iy,kz,jx))        
-#else
-        allocate(kvc(iy,kz,jxm1))        
-#endif
-#endif
         kvc = d_zero
       end if
       cgh = d_zero
@@ -186,13 +140,11 @@
 !
       subroutine holtbl
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif 
-#endif
 !
       implicit none
 !
@@ -204,9 +156,7 @@
       integer :: jdxm1
 #endif
       integer :: i , idx , idxm1 , itr , j , k
-#ifdef MPP1
       integer :: ierr , ii
-#endif
 !
 #ifndef BAND
 !
@@ -232,27 +182,14 @@
 !     so use only interior values of ubx3d and vbx3d to calculate
 !     tendencies.
 !
-#ifdef MPP1
       call mpi_sendrecv(sps2%ps(1,jxp),iy,mpi_real8,ieast,1,       &
                         sps2%ps(1,0),  iy,mpi_real8,iwest,1,       &
                         mpi_comm_world,mpi_status_ignore,ierr)
       call mpi_sendrecv(sfsta%uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
                         sfsta%uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
                         mpi_comm_world,mpi_status_ignore,ierr)
-#endif 
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif 
         jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-        if (jm1 == 0) jm1 = jx
-#endif 
         do k = 1 , kz
           do i = 2 , iym1
             dumr = d_four/(sps2%ps(i,j)  +sps2%ps(i,jm1) +    &
@@ -263,15 +200,7 @@
         end do
       end do
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif 
         do k = 1 , kz
           do i = 2 , iym1
             thvx(i,k,j) = thx3d(i,k,j)*(d_one+ep1*qvb3d(i,k,j))
@@ -359,13 +288,8 @@
           idxm1 = i - 1
           idxm1 = max0(idxm1,2)
           jdxm1 = j - 1
-#ifdef MPP1
           if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
           if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
-#else
-          jdx = min0(jdx,jxm1)
-          jdxm1 = max0(jdxm1,2)
-#endif
 #endif
           uflxsfx = sfsta%uvdrag(idx,jdx)*ubx3d(i,kz,j)
           vflxsfx = sfsta%uvdrag(idx,jdx)*vbx3d(i,kz,j)
@@ -428,7 +352,6 @@
 
       call blhnew
 
-#ifdef MPP1
       do j = jbegin , jendx
 #ifndef BAND
       if ( (myid /= nproc-1) .or. (myid == nproc-1 .and. j < jendx)) then
@@ -474,45 +397,14 @@
           akzz2(i,k,0) = wkrecv(ii)
         end do
       end do
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm2
-#endif
-        do k = 1 , kz
-          do i = 2 , iym1
-            if ( k > 1 ) then
-              akzz1(i,k,j) = rhohf(i,k-1,j)*kvm(i,k,j)/dza(i,k-1,j)
-            end if
-            akzz2(i,k,j) = egrav/(sps2%ps(i,j)*d_1000)/dsigma(k)
-          end do
-        end do
-      end do
-#endif
-
-#ifdef MPP1
+!
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
          jm1 = j-1
-#if defined(BAND) && (!defined(MPP1))
-         if (jm1 == 0) jm1 = jx
-#endif
  
 !       calculate coefficients at dot points for u and v wind
  
 #ifndef BAND
-#ifdef MPP1
         if ( myid == 0 .and. j == 2 ) then
-#else
-        if ( j == 2 ) then
-#endif
           do k = 1 , kz
             do i = 2 , iym1
               idx = i
@@ -525,11 +417,7 @@
               alphak(i,k) = d_half*(akzz2(idx,k,j)+akzz2(idxm1,k,j))
             end do
           end do
-#ifdef MPP1
         else if ( myid == nproc-1 .and. j == jendx ) then
-#else
-        else if ( j == jxm1 ) then
-#endif
           do k = 1 , kz
             do i = 2 , iym1
               idx = i
@@ -623,13 +511,8 @@
 #else
           jdx = j
           jdxm1 = j - 1
-#ifdef MPP1
           if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
           if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
-#else
-          jdx = min0(jdx,jxm1)
-          jdxm1 = max0(jdxm1,2)
-#endif
           drgdot = (sfsta%uvdrag(idxm1,jdxm1)+sfsta%uvdrag(idxm1,jdx)+  &
                   sfsta%uvdrag(idx,jdxm1)+sfsta%uvdrag(idx,jdx))*d_rfour
 #endif
@@ -1112,15 +995,7 @@
       pblk2 = d_zero
       zzhnew2 = d_zero
 !
-#ifdef MPP1
       do j = jbegin , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 2 , jxm1
-#endif
-#endif
 !       ****note: kt, max no. of pbl levels, calculated in param
 !       ******   compute richardson number
 !

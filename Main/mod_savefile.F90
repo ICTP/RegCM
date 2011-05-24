@@ -35,7 +35,6 @@
 #ifndef BAND
         use mod_diagnosis
 #endif
-#ifdef MPP1
         use mod_mppio
 #ifdef CLM
         use mod_clm
@@ -43,7 +42,6 @@
         use restFileMod, only : restFile_filename
         use clm_varctl , only : filer_rest
         use clm_time_manager, only : get_step_size
-#endif
 #endif
         private
 
@@ -71,9 +69,7 @@
           character(16) :: fbname
           logical :: existing
 
-#ifdef MPP1
           if ( myid == 0 ) then
-#endif
             iutrst = 14
             write (fbname, '(a,i10)') 'SAV.', idate
             ffin = trim(dirout)//pthsep//trim(domname)// &
@@ -93,7 +89,6 @@
             read (iutrst) ktau, xtime, ldatez, lyear, lmonth, lday, &
                        & lhour, ntime
             jyear = lyear
-#ifdef MPP1
             if ( ehso4 ) then
               read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, &
                          & ts0_io, so0_io
@@ -190,113 +185,23 @@
               call restchemdiag(iutrst)
 #endif
             end if
-#else
-            if ( ehso4 ) then
-              read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
-            else
-              read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
-            end if
-            read (iutrst) atm1%u
-            read (iutrst) atm1%v
-            read (iutrst) atm1%t
-            read (iutrst) atm1%qv
-            read (iutrst) atm1%qc
-            read (iutrst) atm2%u
-            read (iutrst) atm2%v
-            read (iutrst) atm2%t
-            read (iutrst) atm2%qv
-            read (iutrst) atm2%qc
-            read (iutrst) sps1%ps , sps2%ps
-            read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
-            if ( icup == 1 ) then
-              read (iutrst) rsheat , rswat
-            end if
-            if ( icup == 3 ) then
-              read (iutrst) tbase , cldefi
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              read (iutrst) cbmf2d
-            end if
-            read (iutrst) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
-#ifndef BAND
-            call restdiag(iutrst)
-#endif
-            read (iutrst) absnxt , abstot , emstot
-            if ( ipptls == 1 ) read (iutrst) fcc
-            read (iutrst) sol2d
-            read (iutrst) solvd2d
-            read (iutrst) solvs2d
-            read (iutrst) sabv2d
-            read (iutrst) tlef2d
-            read (iutrst) ssw2d
-            read (iutrst) srw2d
-            read (iutrst) tg2d
-            read (iutrst) tgb2d
-            read (iutrst) scv2d
-            read (iutrst) gwet2d
-            read (iutrst) sag2d
-            read (iutrst) sice2d
-            read (iutrst) dew2d
-            read (iutrst) ircp2d
-            read (iutrst) col2d
-            read (iutrst) veg2d
-            read (iutrst) ldmsk
-            read (iutrst) veg2d1
-            read (iutrst) heatrt
-            read (iutrst) o3prof
-            read (iutrst) sfsta%tgbb
-            read (iutrst) flw2d
-            read (iutrst) flwd2d
-            read (iutrst) fsw2d
-            read (iutrst) swt2d
-            read (iutrst) sinc2d
-            read (iutrst) taf2d
-            read (iutrst) ocld2d
-            read (iutrst) emiss2d
-            read (iutrst) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx == 2 ) read (iutrst) sfsta%zpbl
-            if ( ichem == 1 ) then
-              read (iutrst) chia
-              read (iutrst) chib
-!             cumul removal terms (3d, 2d)
-              read (iutrst) remlsc
-              read (iutrst) remcvc
-              read (iutrst) remdrd
-!             cumul ad, dif, emis terms ( scalar)
-              read (iutrst) ssw2da
-              read (iutrst) sdeltk2d
-              read (iutrst) sdelqk2d
-              read (iutrst) sfracv2d
-              read (iutrst) sfracb2d
-              read (iutrst) sfracs2d
-              read (iutrst) svegfrac2d
-#ifndef BAND
-              call restchemdiag(iutrst)
-#endif
-            end if
-#endif
 !------lake model
             if ( lakemod == 1 ) then
               call lakesav_i(iutrst)
             end if
             lrp1 = .true.
-#ifdef MPP1
           end if
-#endif
         end subroutine read_savefile_part1
 
         subroutine read_savefile_part2
           implicit none
 
-#ifdef MPP1
           if ( myid == 0 ) then
-#endif
             if (.not. lrp1) then
               write (6,*) 'Reading part2 before part1'
               call fatal(__FILE__,__LINE__, 'SAV FILE ERROR')
             end if
 
-#ifdef MPP1
             read (iutrst) dstor_io
             read (iutrst) hstor_io
 #ifndef BAND
@@ -307,22 +212,8 @@
             read (iutrst) vj1 , vj2 , vjlx , vjl
 #endif
             read (iutrst) vi1_io , vi2_io , vilx_io , vil_io
-#else
-            read (iutrst) spsav%dstor
-            read (iutrst) spsav%hstor
-#ifndef BAND
-            read (iutrst) uj1 , uj2 , ujlx , ujl
-#endif
-            read (iutrst) ui1 , ui2 , uilx , uil
-#ifndef BAND
-            read (iutrst) vj1 , vj2 , vjlx , vjl
-#endif
-            read (iutrst) vi1 , vi2 , vilx , vil
-#endif
             close(iutrst)
-#ifdef MPP1
           end if
-#endif
         end subroutine read_savefile_part2
 
         subroutine write_savefile(idate,ltmp)
@@ -336,9 +227,7 @@
 #ifdef CLM
           real(8) :: cdtime
 #endif
-#ifdef MPP1
           if ( myid == 0 ) then
-#endif
             if (ltmp) then
               write (fbname, '(a,i10)') 'TMPSAV.', idate
             else
@@ -358,7 +247,6 @@
 
             write (iutsav) ktau , xtime , ldatez , lyear , lmonth , &
                        & lday , lhour , ntime
-#ifdef MPP1
             if ( ehso4 ) then
               write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
                        & ps0_io , ts0_io , so0_io
@@ -455,95 +343,9 @@
               call savechemdiag(iutsav)
 #endif
             end if
-#else
-            if ( ehso4 ) then
-              write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
-            else
-              write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
-            end if
-            write (iutsav) atm1%u
-            write (iutsav) atm1%v
-            write (iutsav) atm1%t
-            write (iutsav) atm1%qv
-            write (iutsav) atm1%qc
-            write (iutsav) atm2%u
-            write (iutsav) atm2%v
-            write (iutsav) atm2%t
-            write (iutsav) atm2%qv
-            write (iutsav) atm2%qc
-            write (iutsav) sps1%ps, sps2%ps
-            write (iutsav) sts1%tg, sts2%tg, sfsta%rainc, sfsta%rainnc
-            if ( icup == 1 ) then
-              write (iutsav) rsheat, rswat
-            end if
-            if ( icup == 3 ) then
-              write (iutsav) tbase, cldefi
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              write (iutsav) cbmf2d
-            end if
-            write (iutsav) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
-#ifndef BAND
-            call savediag(iutsav)
-#endif
-            write (iutsav) absnxt , abstot , emstot
-            if ( ipptls == 1 ) write (iutsav) fcc
-            write (iutsav) sol2d
-            write (iutsav) solvd2d
-            write (iutsav) solvs2d
-            write (iutsav) sabv2d
-            write (iutsav) tlef2d
-            write (iutsav) ssw2d
-            write (iutsav) srw2d
-            write (iutsav) tg2d
-            write (iutsav) tgb2d
-            write (iutsav) scv2d
-            write (iutsav) gwet2d
-            write (iutsav) sag2d
-            write (iutsav) sice2d
-            write (iutsav) dew2d
-            write (iutsav) ircp2d
-            write (iutsav) col2d
-            write (iutsav) veg2d
-            write (iutsav) ldmsk
-            write (iutsav) veg2d1
-            write (iutsav) heatrt
-            write (iutsav) o3prof
-            write (iutsav) sfsta%tgbb
-            write (iutsav) flw2d
-            write (iutsav) flwd2d
-            write (iutsav) fsw2d
-            write (iutsav) swt2d
-            write (iutsav) sinc2d
-            write (iutsav) taf2d
-            write (iutsav) ocld2d
-            write (iutsav) emiss2d
-            write (iutsav) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx == 2 ) write (iutsav) sfsta%zpbl
-            if ( ichem == 1 ) then
-              write (iutsav) chia
-              write (iutsav) chib
-!             cumul removal terms (3d, 2d)
-              write (iutsav) remlsc
-              write (iutsav) remcvc
-              write (iutsav) remdrd
-!             cumul ad, dif, emis terms ( scalar)
-              write (iutsav) ssw2da
-              write (iutsav) sdeltk2d
-              write (iutsav) sdelqk2d
-              write (iutsav) sfracv2d
-              write (iutsav) sfracb2d
-              write (iutsav) sfracs2d
-              write (iutsav) svegfrac2d
-#ifndef BAND
-              call savechemdiag(iutsav)
-#endif
-            end if
-#endif
             if ( lakemod == 1 ) then
               call lakesav_o(iutsav)
             end if
-#ifdef MPP1
             write (iutsav) dstor_io
             write (iutsav) hstor_io
 #ifndef BAND
@@ -554,22 +356,8 @@
             write (iutsav) vj1 , vj2 , vjlx , vjl
 #endif
             write (iutsav) vi1_io , vi2_io , vilx_io , vil_io
-#else
-            write (iutsav) spsav%dstor
-            write (iutsav) spsav%hstor
-#ifndef BAND
-            write (iutsav) uj1 , uj2 , ujlx , ujl
-#endif
-            write (iutsav) ui1 , ui2 , uilx , uil
-#ifndef BAND
-            write (iutsav) vj1 , vj2 , vjlx , vjl
-#endif
-            write (iutsav) vi1 , vi2 , vilx , vil
-#endif
             close(iutsav)
-#ifdef MPP1
           end if
-#endif
 
 #ifdef CLM
           cdtime = dble(get_step_size())
@@ -581,9 +369,7 @@
           call restFile_write_binary(filer_rest)
           thisclmrest = filer_rest(1:256)
 #endif
-#ifdef MPP1
           if ( myid == 0 ) then
-#endif
             write (6,*) 'SAV variables written at ', idate, xtime
 
             if (isavlast > 0) then
@@ -601,12 +387,10 @@
             else
               isavlast = 0
             end if
-#ifdef MPP1
 #ifdef CLM
             lastclmrest = thisclmrest
 #endif
           end if
-#endif
         end subroutine write_savefile
 
       end module mod_savefile

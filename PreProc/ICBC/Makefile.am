@@ -19,7 +19,7 @@ icbc_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90  \
 							 mod_ncep.f90 mod_nest.f90 mod_write.F90          \
 							 mod_interp.f90 mod_vertint.f90 mod_header.F90    \
 							 mod_hgt.f90 mod_humid.f90 mod_mksst.f90          \
-							 mod_uvrot.f90 icbc.f90
+							 mod_uvrot.f90 icbc.f90 mod_cam2.f90
 oxidant_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_date.F90  \
 			   				  mod_oxidant.f90 mod_wrtoxd.F90 mod_grid.f90      \
 									mod_header.F90 mod_interp.f90 oxidant.f90
@@ -42,6 +42,9 @@ mod_constants.o: mod_constants.F90
 mod_dynparam.o: mod_dynparam.F90 mod_constants.o
 mod_date.o: mod_date.f90
 mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_cam2.o:  mod_cam2.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o
 mod_ecwcp.o: mod_ecwcp.f90 mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
@@ -96,4 +99,5 @@ mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_dynparam.o mod_interp.o
 sst.o: sst.f90 mod_dynparam.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
        mod_sst_fvgcm.o mod_sst_ccsm.o mod_sst_grid.o mod_header.o
 icbc.o: icbc.f90 mod_dynparam.o mod_date.o mod_grid.o mod_write.o \
-        mod_ein.o mod_ccsm.o mod_ncep.o mod_interp.o mod_header.o mod_mksst.o
+        mod_ein.o mod_ccsm.o mod_cam2.o mod_ncep.o mod_interp.o mod_header.o \
+				mod_mksst.o

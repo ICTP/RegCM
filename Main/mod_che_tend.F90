@@ -41,9 +41,7 @@
 #ifdef CHEMTEST
       use mod_chem
 #endif
-#ifdef MPP1
       use mod_mppio
-#endif
       private
 
       public :: tractend2 , tracbud
@@ -65,11 +63,7 @@
       implicit none
 !
       integer , intent(in) :: j
-#ifdef MPP1
       real(8) , dimension(iy,kz,jxp) :: xkc
-#else
-      real(8) , dimension(iy,kz,jx) :: xkc
-#endif
 !
       real(8) :: agct , ak00t , ak0tm , akval , chimol , cldno , clmin ,&
                  facb , facs , fact , facv , oh1 , pres10 , qsat10 ,    &
@@ -710,27 +704,17 @@
 !
       subroutine tracbud
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif 
-#endif
       implicit none
 !
       integer :: i , itr , j , k
 !
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             dtrace(i,j,itr) = d_zero
             wdlsc(i,j,itr)  = d_zero
@@ -744,15 +728,7 @@
  
 !-----tracers (unit = kg):
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             do k = 1 , kz
               dtrace(i,j,itr) = dtrace(i,j,itr) + chia(i,k,j,itr)       &
@@ -779,15 +755,7 @@
 #endif
 
       do itr = 1 , ntr
-#ifdef MPP1
         do j = 1 , jendx
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-#endif
           do i = 1 , iym1
             dtrace(i,j,itr) = d10e6*dtrace(i,j,itr)*d_1000*regrav
                                                         ! unit: mg/m2

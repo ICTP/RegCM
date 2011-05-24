@@ -19,9 +19,7 @@
 
       module mod_message
 
-#ifdef MPP1
       use mod_dynparam , only : myid
-#endif
 
       implicit none
 !
@@ -31,26 +29,16 @@
 
       subroutine say
       implicit none
-#ifdef MPP1
       if ( myid == 0 ) print * , trim(aline)
-#else
-      print * , trim(aline)
-#endif
       end subroutine say
  
       subroutine warning
       implicit none
-#ifdef MPP1
       print * , ' Processor ' , myid , ' : ' , trim(aline)
-#else
-      print * , trim(aline)
-#endif
       end subroutine warning
  
       subroutine fatal(filename,line,str)
-#ifdef MPP1
       use mpi
-#endif
       implicit none
 !
       character(*) :: filename , str
@@ -58,9 +46,7 @@
       intent (in) filename , line , str
 !
       character(8) :: cline
-#ifdef MPP1
       integer :: ierr
-#endif
 !
       write (cline,'(i6)') line
       write (aline,*) '-------------- FATAL CALLED ---------------'
@@ -74,11 +60,7 @@
       call say
       write (aline,*) '-------------------------------------------'
       call say
-#ifdef MPP1
       call mpi_abort(mpi_comm_world,1,ierr)
-#else
-      call abort
-#endif
       end subroutine fatal
 
       end module mod_message

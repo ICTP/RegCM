@@ -101,15 +101,7 @@
 !
 !     calculate half pressure levels for model and data levels
 !
-#ifdef MPP1
       do j = 1 , jendx
-#else
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-#endif
         do i = 1 , iym1
           do k = kzp1 , 1 , -1
             kj = kzp1 - k + 1

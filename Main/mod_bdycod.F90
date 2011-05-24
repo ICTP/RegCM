@@ -31,9 +31,7 @@
       use mod_ncio
       use mod_date
       use mod_cvaria
-#ifdef MPP1
       use mod_mppio
-#endif
 !
       private
 !
@@ -90,7 +88,6 @@
         integer :: idindx=0
 !
         call time_begin(subroutine_name,idindx)
-#ifdef MPP1
         allocate(ps0(iy,0:jxp+1))
         allocate(ps1(iy,0:jxp+1))
         allocate(ts0(iy,jxp))
@@ -160,76 +157,6 @@
         allocate(vnbt(nspgd,kz,0:jxp+1))
         allocate(vsb(nspgd,kz,0:jxp+1))
         allocate(vsbt(nspgd,kz,0:jxp+1))
-#else
-        allocate(ps0(iy,jx))
-        allocate(ps1(iy,jx))
-        allocate(ts0(iy,jx))
-        allocate(ts1(iy,jx))
-        allocate(qb0(iy,kz,jx))
-        allocate(qb1(iy,kz,jx))
-        allocate(so0(iy,kz,jx))
-        allocate(so1(iy,kz,jx))
-        allocate(tb0(iy,kz,jx))
-        allocate(tb1(iy,kz,jx))
-        allocate(ub0(iy,kz,jx))
-        allocate(ub1(iy,kz,jx))
-        allocate(vb0(iy,kz,jx))
-        allocate(vb1(iy,kz,jx))
-#ifndef BAND
-        allocate(peb(iy,nspgx))
-        allocate(pebt(iy,nspgx))
-        allocate(pwb(iy,nspgx))
-        allocate(pwbt(iy,nspgx))
-#endif
-        allocate(pnb(nspgx,jx))
-        allocate(pnbt(nspgx,jx))
-        allocate(psbt(nspgx,jx))
-        allocate(pss(nspgx,jx))
-#ifndef BAND
-        allocate(qeb(iy,kz,nspgx))
-        allocate(qebt(iy,kz,nspgx))
-        allocate(qwb(iy,kz,nspgx))
-        allocate(qwbt(iy,kz,nspgx))
-        allocate(teb(iy,kz,nspgx))
-        allocate(tebt(iy,kz,nspgx))
-        allocate(twb(iy,kz,nspgx))
-        allocate(twbt(iy,kz,nspgx))
-#endif
-        allocate(qnb(nspgx,kz,jx))
-        allocate(qnbt(nspgx,kz,jx))
-        allocate(qsb(nspgx,kz,jx))
-        allocate(qsbt(nspgx,kz,jx))
-        allocate(tnb(nspgx,kz,jx))
-        allocate(tnbt(nspgx,kz,jx))
-        allocate(tsb(nspgx,kz,jx))
-        allocate(tsbt(nspgx,kz,jx))
-#ifndef BAND
-        allocate(ueb(iy,kz,nspgd))
-        allocate(uebt(iy,kz,nspgd))
-        allocate(uwb(iy,kz,nspgd))
-        allocate(uwbt(iy,kz,nspgd))
-        allocate(veb(iy,kz,nspgd))
-        allocate(vebt(iy,kz,nspgd))
-        allocate(vwb(iy,kz,nspgd))
-        allocate(vwbt(iy,kz,nspgd))
-#endif
-        allocate(ui1(kz,jx))
-        allocate(ui2(kz,jx))
-        allocate(uil(kz,jx))
-        allocate(uilx(kz,jx))
-        allocate(vi1(kz,jx))
-        allocate(vi2(kz,jx))
-        allocate(vil(kz,jx))
-        allocate(vilx(kz,jx))
-        allocate(unb(nspgd,kz,jx))
-        allocate(unbt(nspgd,kz,jx))
-        allocate(usb(nspgd,kz,jx))
-        allocate(usbt(nspgd,kz,jx))
-        allocate(vnb(nspgd,kz,jx))
-        allocate(vnbt(nspgd,kz,jx))
-        allocate(vsb(nspgd,kz,jx))
-        allocate(vsbt(nspgd,kz,jx))
-#endif 
 #ifndef BAND
         allocate(uj1(iy,kz))
         allocate(uj2(iy,kz))
@@ -329,27 +256,21 @@
 !
       subroutine bdyin
 !
-#ifdef MPP1
       use mod_mppio
 #ifndef IBM
       use mpi
 #else
       include 'mpif.h'
 #endif
-#endif
       implicit none
 !
       real(8) :: dtbdys
       integer :: i , j , k , nn , nnb , mmrec
-#ifdef MPP1
       integer :: ierr , ndeb , ndwb , nxeb , nxwb
 #ifndef BAND
       integer :: nkk
 #endif
       real(8) , dimension(iy,jxp) :: psdot , tdum
-#else
-      real(8) , dimension(iy,jx) :: psdot , tdum
-#endif
       integer :: n
       character (len=50) :: subroutine_name='bdyin'
       integer :: idindx=0
@@ -358,7 +279,6 @@
 !
       if ( dabs(xtime) > 0.0001D0 ) return
 !
-#ifdef MPP1
       dtbdys = dble(ibdyfrq)*secph
       if ( myid == 0 ) then
         if ( ehso4 ) then
@@ -757,305 +677,6 @@
           end do
         end do
       end if
-#else
-      dtbdys = dble(ibdyfrq)*secph
-      if ( ehso4 ) then
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              sulf%so4(i,k,j) = so0(i,k,j)
-            end do
-          end do
-        end do
-      end if
-      call addhours(ndate1, ibdyfrq)
-      write (6,'(a,i10)') 'SEARCH BC data for ',ndate1
-      mmrec = icbc_search(ndate1)
-      if (mmrec < 0) then
-        call open_icbc(imonfirst(ndate1))
-      end if
-      call read_icbc(ndate1,ps1,ts1,ub1,vb1,tb1,qb1,so1)
-
-!     Convert surface pressure to pstar
-      do j = 1 , jx
-        do i = 1 , iy
-          ps1(i,j) = ps1(i,j)*d_r10 - r8pt
-        end do
-      end do
-!=====================================================================
-!
-!   this routine determines p(.) from p(x) by a 4-point
-!   interpolation. on the x-grid, a p(x) point outside the grid
-!   domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
-!   and similarly for the i's.
-
-#ifdef BAND
-      do j = 2 , jx
-        do i = 2 , iym1
-          psdot(i,j) = d_rfour*(ps1(i,j)  +ps1(i-1,j) +      &
-                                ps1(i,j-1)+ps1(i-1,j-1))
-        end do
-      end do
-!
-      do i = 2 , iym1
-        psdot(i,1) = d_rfour*(ps1(i,1) +ps1(i-1,1) +        &
-                              ps1(i,jx)+ps1(i-1,jx))
-      end do
-!
-      do j = 2 , jx
-        psdot(1,j)  = d_half*(ps1(1,j)   +ps1(1,j-1))
-        psdot(iy,j) = d_half*(ps1(iym1,j)+ps1(iym1,j-1))
-      end do
-!
-      psdot(1,1)  = d_half*(ps1(1,1)   +ps1(1,jx))
-      psdot(iy,1) = d_half*(ps1(iym1,1)+ps1(iym1,jx))
-!
-#else
-      do j = 2 , jxm1
-        do i = 2 , iym1
-          psdot(i,j) = d_rfour*(ps1(i,j)+ps1(i-1,j) +      &
-                                ps1(i,j-1)+ps1(i-1,j-1))
-        end do
-      end do
-!
-      do i = 2 , iym1
-        psdot(i,1)  = d_half*(ps1(i,1)   +ps1(i-1,1))
-        psdot(i,jx) = d_half*(ps1(i,jxm1)+ps1(i-1,jxm1))
-      end do
-!
-      do j = 2 , jxm1
-        psdot(1,j)  = d_half*(ps1(1,j)   +ps1(1,j-1))
-        psdot(iy,j) = d_half*(ps1(iym1,j)+ps1(iym1,j-1))
-      end do
-!
-      psdot(1,1)   = ps1(1,1)
-      psdot(iy,1)  = ps1(iym1,1)
-      psdot(1,jx)  = ps1(1,jxm1)
-      psdot(iy,jx) = ps1(iym1,jxm1)
-!
-#endif
-!=======================================================================
-!     Couple pressure u,v,t,q
-      do k = 1 , kz
-        do j = 1 , jx
-          do i = 1 , iy
-            ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
-            vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
-            tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
-            qb1(i,k,j) = qb1(i,k,j)*ps1(i,j)
-          end do
-        end do
-      end do
- 
-      mdate = ndate0
-!
-!-----compute boundary conditions for p*:
-!
- 
-#ifndef BAND
-      do nn = 1 , nspgx
-        do i = 1 , iym1
-          pwb(i,nn) = ps0(i,nn)
-          pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
-        end do
-      end do
-      do nn = 1 , nspgx
-        nnb = jxm1 - nn + 1
-        do i = 1 , iym1
-          peb(i,nn) = ps0(i,nnb)
-          pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
-        end do
-      end do
-#endif
-      do nn = 1 , nspgx
-        nnb = iym1 - nn + 1
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          pnb(nn,j)  = ps0(nnb,j)
-          pss(nn,j)  = ps0(nn,j)
-          pnbt(nn,j) = (ps1(nnb,j)-ps0(nnb,j))/dtbdys
-          psbt(nn,j) = (ps1(nn,j)-ps0(nn,j))/dtbdys
-        end do
-      end do
-!
-!-----compute boundary conditions for p*u and p*v:
-!
-#ifdef BAND
-#else
-      do nn = 1 , nspgd
-        do k = 1 , kz
-          do i = 1 , iy
-            uwb(i,k,nn)  = ub0(i,k,nn)
-            vwb(i,k,nn)  = vb0(i,k,nn)
-            uwbt(i,k,nn) = (ub1(i,k,nn)-ub0(i,k,nn))/dtbdys
-            vwbt(i,k,nn) = (vb1(i,k,nn)-vb0(i,k,nn))/dtbdys
-          end do
-        end do
-      end do
-      do nn = 1 , nspgd
-        nnb = jx - nn + 1
-        do k = 1 , kz
-          do i = 1 , iy
-            ueb(i,k,nn)  = ub0(i,k,nnb)
-            veb(i,k,nn)  = vb0(i,k,nnb)
-            uebt(i,k,nn) = (ub1(i,k,nnb)-ub0(i,k,nnb))/dtbdys
-            vebt(i,k,nn) = (vb1(i,k,nnb)-vb0(i,k,nnb))/dtbdys
-          end do
-        end do
-      end do
-#endif
-      do nn = 1 , nspgd
-        nnb = iy - nn + 1
-        do k = 1 , kz
-          do j = 1 , jx
-            unb(nn,k,j)  = ub0(nnb,k,j)
-            usb(nn,k,j)  = ub0(nn,k,j)
-            vnb(nn,k,j)  = vb0(nnb,k,j)
-            vsb(nn,k,j)  = vb0(nn,k,j)
-            unbt(nn,k,j) = (ub1(nnb,k,j)-ub0(nnb,k,j))/dtbdys
-            usbt(nn,k,j) = (ub1(nn,k,j)-ub0(nn,k,j))/dtbdys
-            vnbt(nn,k,j) = (vb1(nnb,k,j)-vb0(nnb,k,j))/dtbdys
-            vsbt(nn,k,j) = (vb1(nn,k,j)-vb0(nn,k,j))/dtbdys
-          end do
-        end do
-      end do
-!
-!-----compute boundary conditions for p*t and p*qv:
-!
-#ifndef BAND
-      do nn = 1 , nspgx
-        do k = 1 , kz
-          do i = 1 , iym1
-            twb(i,k,nn)  = tb0(i,k,nn)
-            qwb(i,k,nn)  = qb0(i,k,nn)
-            twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
-            qwbt(i,k,nn) = (qb1(i,k,nn)-qb0(i,k,nn))/dtbdys
-          end do
-        end do
-      end do
-      do nn = 1 , nspgx
-        nnb = jxm1 - nn + 1
-        do k = 1 , kz
-          do i = 1 , iym1
-            teb(i,k,nn)  = tb0(i,k,nnb)
-            qeb(i,k,nn)  = qb0(i,k,nnb)
-            tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
-            qebt(i,k,nn) = (qb1(i,k,nnb)-qb0(i,k,nnb))/dtbdys
-          end do
-        end do
-      end do
-#endif
-      do nn = 1 , nspgx
-        nnb = iym1 - nn + 1
-        do k = 1 , kz
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 1 , jxm1
-#endif
-            tnb(nn,k,j)  = tb0(nnb,k,j)
-            tsb(nn,k,j)  = tb0(nn,k,j)
-            qnb(nn,k,j)  = qb0(nnb,k,j)
-            qsb(nn,k,j)  = qb0(nn,k,j)
-            tnbt(nn,k,j) = (tb1(nnb,k,j)-tb0(nnb,k,j))/dtbdys
-            tsbt(nn,k,j) = (tb1(nn,k,j)-tb0(nn,k,j))/dtbdys
-            qnbt(nn,k,j) = (qb1(nnb,k,j)-qb0(nnb,k,j))/dtbdys
-            qsbt(nn,k,j) = (qb1(nn,k,j)-qb0(nn,k,j))/dtbdys
-          end do
-        end do
-      end do
-      if ( myid == 0 ) then
-        write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
-                             ' to ' , ndate1
-      end if
-      idatex = ndate0
-      ndate0 = ndate1
-#ifdef BAND
-      do j = 1 , jx
-#else
-      do j = 1 , jxm1
-#endif
-        do i = 1 , iym1
-          tdum(i,j) = ts1(i,j)
-        end do
-      end do
-      do k = 1 , kz
-        do j = 1 , jx
-          do i = 1 , iy
-            ub0(i,k,j) = ub1(i,k,j)
-            vb0(i,k,j) = vb1(i,k,j)
-            qb0(i,k,j) = qb1(i,k,j)
-            tb0(i,k,j) = tb1(i,k,j)
-          end do
-        end do
-      end do
-      do j = 1 , jx
-        do i = 1 , iy
-          ps0(i,j) = ps1(i,j)
-          ts0(i,j) = ts1(i,j)
-        end do
-      end do
-      if ( ehso4 ) then
-        do k = 1 , kz
-          do j = 1 , jx
-            do i = 1 , iy
-              so0(i,k,j) = so1(i,k,j)
-            end do
-          end do
-        end do
-      end if
- 
-      call split_idate(mdate, nyear, nmonth, nday, nhour)
- 
-!-----------------------------------------------------------------------
-      if ( ldatez < ndate1 ) then
- 
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 1 , jxm1
-#endif
-          do i = 1 , iym1
-            if ( iswater(mddom%satbrt(i,j)) ) then
-              if (idcsst == 1) then
-                sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-                sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
-              else
-                sts1%tg(i,j) = tdum(i,j)
-                sts2%tg(i,j) = tdum(i,j)
-              end if
-              if ( iseaice == 1 ) then
-                if ( lakemod == 1 .and. &
-                     islake(mddom%satbrt(i,j)) ) cycle
-                if ( tdum(i,j) <= icetemp ) then
-                  sts1%tg(i,j) = icetemp
-                  sts2%tg(i,j) = icetemp
-                  tdum(i,j) = icetemp
-                  ldmsk(i,j) = 2
-                  do n = 1, nnsg
-                    ocld2d(n,i,j) = 2
-                    sice2d(n,i,j) = d_1000
-                    scv2d(n,i,j)  = d_zero
-                  end do
-                else
-                  sts1%tg(i,j) = tdum(i,j)
-                  sts2%tg(i,j) = tdum(i,j)
-                  ldmsk(i,j) = 0
-                  do n = 1, nnsg
-                    ocld2d(n,i,j) = 0
-                    sice2d(n,i,j) = d_zero
-                    scv2d(n,i,j)  = d_zero
-                  end do
-                end if
-              end if
-            end if
-          end do
-        end do
-      end if
-#endif
       call time_end(subroutine_name,idindx)
       end subroutine bdyin
 !
@@ -1077,13 +698,11 @@
 !
       subroutine bdyuv(ib,dtb)
 !
-#ifdef MPP1
 #ifndef IBM
       use mpi
 #else 
       include 'mpif.h'
 #endif 
-#endif
       implicit none
 !
       real(8) :: dtb
@@ -1091,15 +710,12 @@
       intent (in) dtb , ib
 !
       integer :: i , j , k
-#ifdef MPP1
       integer :: ierr
-#endif
       character (len=50) :: subroutine_name='bdyuv'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
 !
-#ifdef MPP1
 !----------------------------------------------------------------------
 !-----compute the p* at dot points:
 !
@@ -1107,82 +723,40 @@
       call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
                         sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
                         mpi_comm_world,mpi_status_ignore,ierr)
-#endif
 !=======================================================================
 !
 !-----interior points:
 !
-#ifdef MPP1
       do j = jbegin , jendx
         do i = 2 , iym1
           sps1%pdot(i,j) = d_rfour*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
                                     sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
         end do
       end do
-#else
-#ifdef BAND
-      do j = 2 , jx
-#else
-      do j = 2 , jxm1
-#endif
-        do i = 2 , iym1
-          sps1%pdot(i,j) = d_rfour*(sps1%ps(i,j)+sps1%ps(i-1,j)+     &
-                                    sps1%ps(i,j-1)+sps1%ps(i-1,j-1))
-        end do
-      end do
-#ifdef BAND
-      do i = 2 , iym1
-        sps1%pdot(i,1) = d_rfour*(sps1%ps(i,1)+sps1%ps(i-1,1)+   &
-                                  sps1%ps(i,jx)+sps1%ps(i-1,jx))
-      enddo
-#endif
-#endif
 !
 !-----east and west boundaries:
 !
 #ifndef BAND
       do i = 2 , iym1
-#ifdef MPP1
         if ( myid == 0 )  &
           sps1%pdot(i,1) = d_half*(sps1%ps(i,1)+sps1%ps(i-1,1))
         if ( myid == nproc-1 ) then
           sps1%pdot(i,jendl) = d_half*(sps1%ps(i,jendx)+ &
                                        sps1%ps(i-1,jendx))
         end if
-#else
-        sps1%pdot(i,1)  = d_half*(sps1%ps(i,1)   +sps1%ps(i-1,1))
-        sps1%pdot(i,jx) = d_half*(sps1%ps(i,jxm1)+sps1%ps(i-1,jxm1))
-#endif
       end do
 #endif
 !
 !-----north and south boundaries:
 !
-#ifdef MPP1
       do j = jbegin , jendx
         sps1%pdot(1,j)  = d_half*(sps1%ps(1,j)   +sps1%ps(1,j-1))
         sps1%pdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
       end do
-#else
-#ifdef BAND
-      do j = 2 , jx
-        sps1%pdot(1,j)  = d_half*(sps1%ps(1,j)   +sps1%ps(1,j-1))
-        sps1%pdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
-      end do
-      sps1%pdot(1,1)  = d_half*(sps1%ps(1,1)   +sps1%ps(1,jx))
-      sps1%pdot(iy,1) = d_half*(sps1%ps(iym1,1)+sps1%ps(iym1,jx))
-#else
-      do j = 2 , jxm1
-        sps1%pdot(1,j)  = d_half*(sps1%ps(1,j)   +sps1%ps(1,j-1))
-        sps1%pdot(iy,j) = d_half*(sps1%ps(iym1,j)+sps1%ps(iym1,j-1))
-      end do
-#endif
-#endif
 !
 !-----corner points:
 !
 #ifndef BAND
-#ifdef MPP1
       if ( myid == 0 ) then
         sps1%pdot(1,1)  = sps1%ps(1,1)
         sps1%pdot(iy,1) = sps1%ps(iym1,1)
@@ -1191,12 +765,6 @@
         sps1%pdot(1,jendl)  = sps1%ps(1,jendx)
         sps1%pdot(iy,jendl) = sps1%ps(iym1,jendx)
       end if
-#else
-      sps1%pdot(1,1)   = sps1%ps(1,1)
-      sps1%pdot(iy,1)  = sps1%ps(iym1,1)
-      sps1%pdot(1,jx)  = sps1%ps(1,jxm1)
-      sps1%pdot(iy,jx) = sps1%ps(iym1,jxm1)
-#endif
 #endif
 !=======================================================================
 !
@@ -1208,7 +776,6 @@
 !.....for j = 2 and j = jlx :
 !
         do i = 2 , iym1
-#ifdef MPP1
           if ( myid == 0 ) then
             uj2(i,k) = atm1%u(i,k,2)/sps1%pdot(i,2)
             vj2(i,k) = atm1%v(i,k,2)/sps1%pdot(i,2)
@@ -1217,18 +784,11 @@
             ujlx(i,k) = atm1%u(i,k,jendx)/sps1%pdot(i,jendx)
             vjlx(i,k) = atm1%v(i,k,jendx)/sps1%pdot(i,jendx)
           end if
-#else
-          uj2(i,k)  = atm1%u(i,k,2)/sps1%pdot(i,2)
-          vj2(i,k)  = atm1%v(i,k,2)/sps1%pdot(i,2)
-          ujlx(i,k) = atm1%u(i,k,jxm1)/sps1%pdot(i,jxm1)
-          vjlx(i,k) = atm1%v(i,k,jxm1)/sps1%pdot(i,jxm1)
-#endif
         end do
 #endif
 !
 !.....for i = 2 and i = iym1 :
 !
-#ifdef MPP1
 #ifdef BAND
         do j = 1 , jendl
 #else
@@ -1239,19 +799,6 @@
           uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(iym1,j)
           vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(iym1,j)
         end do
-#else
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm1
-#endif
-          ui2(k,j)  = atm1%u(2,k,j)/sps1%pdot(2,j)
-          vi2(k,j)  = atm1%v(2,k,j)/sps1%pdot(2,j)
-          uilx(k,j) = atm1%u(iym1,k,j)/sps1%pdot(iym1,j)
-          vilx(k,j) = atm1%v(iym1,k,j)/sps1%pdot(iym1,j)
-        end do
-#endif
-!
       end do
 !
 !----------------------------------------------------------------------
@@ -1267,7 +814,6 @@
 !.....west (j = 1) and east (j = jx) boundaries:
 !
           do i = 1 , iy
-#ifdef MPP1
             if ( myid == 0 ) then
               uj1(i,k) = uwb(i,k,1)/sps1%pdot(i,1)
               vj1(i,k) = vwb(i,k,1)/sps1%pdot(i,1)
@@ -1276,32 +822,17 @@
               ujl(i,k) = ueb(i,k,1)/sps1%pdot(i,jendl)
               vjl(i,k) = veb(i,k,1)/sps1%pdot(i,jendl)
             end if
-#else
-            uj1(i,k) = uwb(i,k,1)/sps1%pdot(i,1)
-            vj1(i,k) = vwb(i,k,1)/sps1%pdot(i,1)
-            ujl(i,k) = ueb(i,k,1)/sps1%pdot(i,jx)
-            vjl(i,k) = veb(i,k,1)/sps1%pdot(i,jx)
-#endif
           end do
 #endif
 !
 !.....south (i = 1) and north (i = iy) boundaries:
 !
-#ifdef MPP1
           do j = 1 , jendl
             ui1(k,j) = usb(1,k,j)/sps1%pdot(1,j)
             vi1(k,j) = vsb(1,k,j)/sps1%pdot(1,j)
             uil(k,j) = unb(1,k,j)/sps1%pdot(iy,j)
             vil(k,j) = vnb(1,k,j)/sps1%pdot(iy,j)
           end do
-#else
-          do j = 1 , jx
-            ui1(k,j) = usb(1,k,j)/sps1%pdot(1,j)
-            vi1(k,j) = vsb(1,k,j)/sps1%pdot(1,j)
-            uil(k,j) = unb(1,k,j)/sps1%pdot(iy,j)
-            vil(k,j) = vnb(1,k,j)/sps1%pdot(iy,j)
-          end do
-#endif
         end do
       else
 !
@@ -1313,7 +844,6 @@
 !.....west (j = 1) and east (j = jx) boundaries:
 !
           do i = 1 , iy
-#ifdef MPP1
             if ( myid == 0 ) then
               uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/sps1%pdot(i,1)
               vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/sps1%pdot(i,1)
@@ -1322,41 +852,23 @@
               ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/sps1%pdot(i,jendl)
               vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/sps1%pdot(i,jendl)
             end if
-#else
-            uj1(i,k) = (uwb(i,k,1)+dtb*uwbt(i,k,1))/sps1%pdot(i,1)
-            vj1(i,k) = (vwb(i,k,1)+dtb*vwbt(i,k,1))/sps1%pdot(i,1)
-            ujl(i,k) = (ueb(i,k,1)+dtb*uebt(i,k,1))/sps1%pdot(i,jx)
-            vjl(i,k) = (veb(i,k,1)+dtb*vebt(i,k,1))/sps1%pdot(i,jx)
-#endif
           end do
 #endif
 !
 !.....south (i = 1) and north (i = iy) boundaries:
 !
-#ifdef MPP1
           do j = 1 , jendl
             ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/sps1%pdot(1,j)
             vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/sps1%pdot(1,j)
             uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/sps1%pdot(iy,j)
             vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/sps1%pdot(iy,j)
           end do
-#else
-          do j = 1 , jx
-            ui1(k,j) = (usb(1,k,j)+dtb*usbt(1,k,j))/sps1%pdot(1,j)
-            vi1(k,j) = (vsb(1,k,j)+dtb*vsbt(1,k,j))/sps1%pdot(1,j)
-            uil(k,j) = (unb(1,k,j)+dtb*unbt(1,k,j))/sps1%pdot(iy,j)
-            vil(k,j) = (vnb(1,k,j)+dtb*vnbt(1,k,j))/sps1%pdot(iy,j)
-          end do
-#endif
-!
         end do
 !
       end if
 !
 !-----fill up the interior silces:
 !
-#ifdef MPP1
-
 #ifndef BAND
       do k = 1 , kz
         if ( myid == 0 ) then
@@ -1453,31 +965,6 @@
       end if
 #endif
 
-#else
-
-#ifndef BAND
-      do k = 1 , kz
-        uj2(1,k)   = ui1(k,2)
-        uj2(iy,k)  = uil(k,2)
-        ui2(k,1)   = uj1(2,k)
-        uilx(k,1)  = uj1(iym1,k)
-        vj2(1,k)   = vi1(k,2)
-        vj2(iy,k)  = vil(k,2)
-        vi2(k,1)   = vj1(2,k)
-        vilx(k,1)  = vj1(iym1,k)
-        ujlx(1,k)  = ui1(k,jxm1)
-        ujlx(iy,k) = uil(k,jxm1)
-        ui2(k,jx)  = ujl(2,k)
-        uilx(k,jx) = ujl(iym1,k)
-        vjlx(1,k)  = vi1(k,jxm1)
-        vjlx(iy,k) = vil(k,jxm1)
-        vi2(k,jx)  = vjl(2,k)
-        vilx(k,jx) = vjl(iym1,k)
-      end do
-#endif
-
-#endif
-!
       call time_end(subroutine_name,idindx)
       end subroutine bdyuv
 !
@@ -1516,10 +1003,6 @@
 #ifndef BAND
       integer :: i
       real(8) :: uavg
-#else
-#ifndef MPP1
-      integer :: jp1
-#endif
 #endif
       character (len=50) :: subroutine_name='bdyval'
       integer :: idindx=0
@@ -1532,7 +1015,6 @@
 !     shall be skipped.
 !
       if ( iexec /= 1 ) then
-#ifdef MPP1
 !
 !-----for p*:
 !
@@ -2015,569 +1497,6 @@
         end do
 !chem2_
       end if
-#else
-!
-!-----for p*:
-!
-#ifndef BAND
-        do i = 1 , iym1
-          sps2%ps(i,1)    = sps1%ps(i,1)
-          sps2%ps(i,jxm1) = sps1%ps(i,jxm1)
-        end do
-#endif
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-          sps2%ps(1,j)    = sps1%ps(1,j)
-          sps2%ps(iym1,j) = sps1%ps(iym1,j)
-        end do
-!
-!-----for p*u and p*v:
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iy
-            atm2%u(i,k,1)  = atm1%u(i,k,1)/mddom%msfd(i,1)
-            atm2%v(i,k,1)  = atm1%v(i,k,1)/mddom%msfd(i,1)
-            atm2%u(i,k,jx) = atm1%u(i,k,jx)/mddom%msfd(i,jx)
-            atm2%v(i,k,jx) = atm1%v(i,k,jx)/mddom%msfd(i,jx)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-            atm2%u(1,k,j)  = atm1%u(1,k,j)/mddom%msfd(1,j)
-            atm2%u(iy,k,j) = atm1%u(iy,k,j)/mddom%msfd(iy,j)
-            atm2%v(1,k,j)  = atm1%v(1,k,j)/mddom%msfd(1,j)
-            atm2%v(iy,k,j) = atm1%v(iy,k,j)/mddom%msfd(iy,j)
-          end do
-        end do
-!
-!-----for p*t:
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iym1
-            atm2%t(i,k,1)    = atm1%t(i,k,1)
-            atm2%t(i,k,jxm1) = atm1%t(i,k,jxm1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            atm2%t(1,k,j)    = atm1%t(1,k,j)
-            atm2%t(iym1,k,j) = atm1%t(iym1,k,j)
-          end do
-        end do
-!
-!-----for p*qv:
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iym1
-            atm2%qv(i,k,1)    = atm1%qv(i,k,1)
-            atm2%qv(i,k,jxm1) = atm1%qv(i,k,jxm1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            atm2%qv(1,k,j)    = atm1%qv(1,k,j)
-            atm2%qv(iym1,k,j) = atm1%qv(iym1,k,j)
-          end do
-        end do
-!
-!chem2
-!
-        if ( ichem == 1 ) then
-!-----for p*chi (tracers)
-          do itr = 1 , ntr
-            do k = 1 , kz
-#ifndef BAND
-              do i = 1 , iym1
-                chib(i,k,1,itr)    = chia(i,k,1,itr)
-                chib(i,k,jxm1,itr) = chia(i,k,jxm1,itr)
-              end do
-#endif
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 2 , jxm2
-#endif
-                chib(1,k,j,itr)    = chia(1,k,j,itr)
-                chib(iym1,k,j,itr) = chia(iym1,k,j,itr)
-              end do
-            end do
-          end do
-        end if
-!chem2_
-!
-!-----for p*qc:
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iym1
-            atm2%qc(i,k,1)    = atm1%qc(i,k,1)
-            atm2%qc(i,k,jxm1) = atm1%qc(i,k,jxm1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            atm2%qc(1,k,j)    = atm1%qc(1,k,j)
-            atm2%qc(iym1,k,j) = atm1%qc(iym1,k,j)
-          end do
-        end do
-!
-      end if      !end if (iexec /= 1) test
-!**********************************************************************
-!*****compute the boundary values for xxa variables:
-!
-!-----compute the time interval for boundary tendency:
-!
-      dtb = xt*minph
-      if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
-        dtb = dble(ibdyfrq)*secph
-      end if
-!
-!-----set boundary values for p*:
-!-----set boundary conditions for p*u and p*v:
-!
-      if ( .not.(iexec == 1 .and. ifrest) ) then
-!
-        if ( iboudy == 0 ) then
-!.....fixed boundary conditions:
-#ifndef BAND
-          do i = 1 , iym1
-            sps1%ps(i,1)    = pwb(i,1)
-            sps1%ps(i,jxm1) = peb(i,1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            sps1%ps(1,j)    = pss(1,j)
-            sps1%ps(iym1,j) = pnb(1,j)
-          end do
-!
-          do k = 1 , kz
-#ifndef BAND
-            do i = 1 , iy
-              atm1%u(i,k,1)  = uwb(i,k,1)
-              atm1%v(i,k,1)  = vwb(i,k,1)
-              atm1%u(i,k,jx) = ueb(i,k,1)
-              atm1%v(i,k,jx) = veb(i,k,1)
-            end do
-#endif
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 2 , jxm1
-#endif
-              atm1%u(1,k,j)  = usb(1,k,j)
-              atm1%u(iy,k,j) = unb(1,k,j)
-              atm1%v(1,k,j)  = vsb(1,k,j)
-              atm1%v(iy,k,j) = vnb(1,k,j)
-            end do
-          end do
-        end if
-!
-!.....time-dependent boundary conditions:
-!
-#ifndef BAND
-        do i = 1 , iym1
-          sps1%ps(i,1)    = pwb(i,1) + dtb*pwbt(i,1)
-          sps1%ps(i,jxm1) = peb(i,1) + dtb*pebt(i,1)
-        end do
-#endif
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-          sps1%ps(1,j)    = pss(1,j) + dtb*psbt(1,j)
-          sps1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
-        end do
-!
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iy
-            atm1%u(i,k,1)  = uwb(i,k,1) + dtb*uwbt(i,k,1)
-            atm1%v(i,k,1)  = vwb(i,k,1) + dtb*vwbt(i,k,1)
-            atm1%u(i,k,jx) = ueb(i,k,1) + dtb*uebt(i,k,1)
-            atm1%v(i,k,jx) = veb(i,k,1) + dtb*vebt(i,k,1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm1
-#endif
-            atm1%u(1,k,j)  = usb(1,k,j) + dtb*usbt(1,k,j)
-            atm1%u(iy,k,j) = unb(1,k,j) + dtb*unbt(1,k,j)
-            atm1%v(1,k,j)  = vsb(1,k,j) + dtb*vsbt(1,k,j)
-            atm1%v(iy,k,j) = vnb(1,k,j) + dtb*vnbt(1,k,j)
-          end do
-        end do
-      end if
-!
-!-----get boundary values of u and v:
-!
-      call bdyuv(iboudy,dtb)
-!
-      if ( iexec == 1 .and. ifrest ) return
-!
-!-----set boundary values for p*t:
-!-----set boundary values for p*qv:
-!
-      if ( iboudy == 0 ) then
-!.....fixed boundary conditions:
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iym1
-            atm1%t(i,k,1)    = twb(i,k,1)
-            atm1%t(i,k,jxm1) = teb(i,k,1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            atm1%t(1,k,j)    = tsb(1,k,j)
-            atm1%t(iym1,k,j) = tnb(1,k,j)
-          end do
-        end do
-        do k = 1 , kz
-#ifndef BAND
-          do i = 1 , iym1
-            atm1%qv(i,k,1)    = qwb(i,k,1)
-            atm1%qv(i,k,jxm1) = qeb(i,k,1)
-          end do
-#endif
-#ifdef BAND
-          do j = 1 , jx
-#else
-          do j = 2 , jxm2
-#endif
-            atm1%qv(1,k,j)    = qsb(1,k,j)
-            atm1%qv(iym1,k,j) = qnb(1,k,j)
-          end do
-        end do
-      end if
-!
-!.....time-dependent boundary conditions:
-!
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          atm1%t(i,k,1)    = twb(i,k,1) + dtb*twbt(i,k,1)
-          atm1%t(i,k,jxm1) = teb(i,k,1) + dtb*tebt(i,k,1)
-        end do
-#endif
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-          atm1%t(1,k,j)    = tsb(1,k,j) + dtb*tsbt(1,k,j)
-          atm1%t(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
-        end do
-      end do
-      do k = 1 , kz
-#ifndef BAND
-        do i = 1 , iym1
-          atm1%qv(i,k,1)    = qwb(i,k,1) + dtb*qwbt(i,k,1)
-          atm1%qv(i,k,jxm1) = qeb(i,k,1) + dtb*qebt(i,k,1)
-        end do
-#endif
-#ifdef BAND
-        do j = 1 , jx
-#else
-        do j = 2 , jxm2
-#endif
-          atm1%qv(1,k,j)    = qsb(1,k,j) + dtb*qsbt(1,k,j)
-          atm1%qv(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
-        end do
-      end do
-!
-      if ( iboudy == 3 .or. iboudy == 4 ) then
-!
-!-----determine boundary values depends on inflow/outflow:
-!
-        do k = 1 , kz
-#ifndef BAND
-!
-!.....west boundary:
-!
-          do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,1)/sps1%ps(i,1)
-            qvx2 = atm1%qv(i,k,2)/sps1%ps(i,2)
-            uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-            if ( uavg >= d_zero ) then
-              qvx = qvx1
-            else
-              qvx = qvx2
-            end if
-            atm1%qv(i,k,1) = qvx*sps1%ps(i,1)
-          end do
-!
-!.....east boundary:
-!
-          do i = 1 , iym1
-            qvx1 = atm1%qv(i,k,jxm1)/sps1%ps(i,jxm1)
-            qvx2 = atm1%qv(i,k,jxm2)/sps1%ps(i,jxm2)
-            uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-            if ( uavg < d_zero ) then
-              qvx = qvx1
-            else
-              qvx = qvx2
-            end if
-            atm1%qv(i,k,jxm1) = qvx*sps1%ps(i,jxm1)
-          end do
-#endif
-!
-!.....south boundary:
-!
-#ifdef BAND
-          do j = 1 , jx
-            jp1 = j+1
-            if (jp1 == jx+1) jp1=1
-            qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
-            qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
-            vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
-#else
-          do j = 2 , jxm2
-            qvx1 = atm1%qv(1,k,j)/sps1%ps(1,j)
-            qvx2 = atm1%qv(2,k,j)/sps1%ps(2,j)
-            vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-#endif
-            if ( vavg >= d_zero ) then
-              qvx = qvx1
-            else
-              qvx = qvx2
-            end if
-            atm1%qv(1,k,j) = qvx*sps1%ps(1,j)
-          end do
-!
-!.....north boundary:
-!
-#ifdef BAND
-          do j = 1 , jx
-            jp1 = j+1
-            if (jp1 == jx+1) jp1=1
-            qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
-            qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
-            vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
-#else
-          do j = 2 , jxm2
-            qvx1 = atm1%qv(iym1,k,j)/sps1%ps(iym1,j)
-            qvx2 = atm1%qv(iym2,k,j)/sps1%ps(iym2,j)
-            vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-#endif
-            if ( vavg < d_zero ) then
-              qvx = qvx1
-            else
-              qvx = qvx2
-            end if
-            atm1%qv(iym1,k,j) = qvx*sps1%ps(iym1,j)
-          end do
-!
-        end do
-      end if      !end if (iboudy == 3.or.4) test
-!
-!-----set boundary values for p*qc and p*qr:
-!     *** note ***
-!     for large domain, we assume the boundary tendencies are not
-!     available.
-!
-!
-!-----if the boundary values and tendencies are not available,
-!     determine boundary values depends on inflow/outflow:
-!     inflow  : set it equal to zero.
-!     outflow : get from interior point.
-!
-      do k = 1 , kz
-#ifndef BAND
-!
-!.....west boundary:
-!
-        do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,2)/sps1%ps(i,2)
-          uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-          if ( uavg >= d_zero ) then
-            qcx = d_zero
-          else
-            qcx = qcx2
-          end if
-          atm1%qc(i,k,1) = qcx*sps1%ps(i,1)
-        end do
-!
-!.....east boundary:
-!
-        do i = 1 , iym1
-          qcx2 = atm1%qc(i,k,jxm2)/sps1%ps(i,jxm2)
-          uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-          if ( uavg < d_zero ) then
-            qcx = d_zero
-          else
-            qcx = qcx2
-          end if
-          atm1%qc(i,k,jxm1) = qcx*sps1%ps(i,jxm1)
-        end do
-#endif
-!
-!.....south boundary:
-!
-#ifdef BAND
-        do j = 1 , jx
-          jp1 = j+1
-          if (jp1 == jx+1) jp1=1
-          qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
-          vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
-#else
-        do j = 2 , jxm2
-          qcx2 = atm1%qc(2,k,j)/sps1%ps(2,j)
-          vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-#endif
-          if ( vavg >= d_zero ) then
-            qcx = d_zero
-          else
-            qcx = qcx2
-          end if
-          atm1%qc(1,k,j) = qcx*sps1%ps(1,j)
-        end do
-!
-!.....north boundary:
-!
-#ifdef BAND
-        do j = 1 , jx
-          jp1 = j+1
-          if (jp1 == jx+1) jp1=1
-          qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
-          vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
-#else
-        do j = 2 , jxm2
-          qcx2 = atm1%qc(iym2,k,j)/sps1%ps(iym2,j)
-          vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-#endif
-          if ( vavg < d_zero ) then
-            qcx = d_zero
-          else
-            qcx = qcx2
-          end if
-          atm1%qc(iym1,k,j) = qcx*sps1%ps(iym1,j)
-        end do
-!
-      end do
- 
-      if ( ichem == 1 ) then
-!chem2
- 
-!----add tracer bc's
-!
-        do itr = 1 , ntr
-          do k = 1 , kz
-#ifndef BAND
-!
-!.....west  boundary:
-!
- 
-            do i = 1 , iym1
-!             FAB force to zero inflow conditions
-!             chix1 = chia(i,k,1,itr)/sps1%ps(i,1)
-              chix1 = d_zero
-              chix2 = chia(i,k,2,itr)/sps1%ps(i,2)
-              uavg = uj1(i,k) + uj1(i+1,k) + uj2(i,k) + uj2(i+1,k)
-              if ( uavg >= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(i,k,1,itr) = chix*sps1%ps(i,1)
-            end do
-!
-!.....east  boundary:
-!
-            do i = 1 , iym1
-!             chix1 = chia(i,k,jxm1,itr)/sps1%ps(i,jxm1)
-              chix1 = d_zero
-              chix2 = chia(i,k,jxm2,itr)/sps1%ps(i,jxm2)
-              uavg = ujlx(i,k) + ujlx(i+1,k) + ujl(i,k) + ujl(i+1,k)
-              if ( uavg < d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(i,k,jxm1,itr) = chix*sps1%ps(i,jxm1)
-            end do
-#endif
-!
-!.....south boundary:
-!
-#ifdef BAND
-            do j = 1 , jx
-              jp1 = j+1
-              if (jp1 == jx+1) jp1=1
-              chix1 = d_zero
-              chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
-              vavg = vi1(k,j) + vi1(k,jp1) + vi2(k,j) + vi2(k,jp1)
-#else
-            do j = 2 , jxm2
-!             chix1 = chia(1,k,j,itr)/sps1%ps(1,j)
-              chix1 = d_zero
-              chix2 = chia(2,k,j,itr)/sps1%ps(2,j)
-              vavg = vi1(k,j) + vi1(k,j+1) + vi2(k,j) + vi2(k,j+1)
-#endif
-              if ( vavg >= d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(1,k,j,itr) = chix*sps1%ps(1,j)
-            end do
-!
-!.....north boundary:
-!
-#ifdef BAND
-            do j = 1 , jx
-              jp1 = j+1
-              if (jp1 == jx+1) jp1=1
-!             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-              chix1 = d_zero
-              chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
-              vavg = vilx(k,j) + vilx(k,jp1) + vil(k,j) + vil(k,jp1)
-#else
-            do j = 2 , jxm2
-!             chix1 = chia(iym1,k,j,itr)/sps1%ps(iym1,j)
-              chix1 = d_zero
-              chix2 = chia(iym2,k,j,itr)/sps1%ps(iym2,j)
-              vavg = vilx(k,j) + vilx(k,j+1) + vil(k,j) + vil(k,j+1)
-#endif
-              if ( vavg < d_zero ) then
-                chix = chix1
-              else
-                chix = chix2
-              end if
-              chia(iym1,k,j,itr) = chix*sps1%ps(iym1,j)
-            end do
-          end do
-        end do
-!chem2_
-      end if
-#endif
 !
       call time_end(subroutine_name,idindx)
       end subroutine bdyval

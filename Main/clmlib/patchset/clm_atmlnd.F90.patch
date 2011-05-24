@@ -1,5 +1,6 @@
---- org/clm_atmlnd.F90	2010-06-02 15:27:38.000000000 -0400
-+++ patchd/clm_atmlnd.F90	2010-06-04 05:40:53.000000000 -0400
+diff -Naurb org/clm_atmlnd.F90 patchd/clm_atmlnd.F90
+--- org/clm_atmlnd.F90	2011-05-24 11:27:05.193366652 +0200
++++ patchd/clm_atmlnd.F90	2011-05-24 11:28:32.753452597 +0200
 @@ -22,6 +22,7 @@
  !
  ! !PUBLIC TYPES:
@@ -454,7 +455,7 @@
  
       call p2g(begp, endp, begc, endc, begl, endl, begg, endg, numrad, &
            pptr%pps%albd, clm_l2a%albd, &
-@@ -874,10 +1218,285 @@
+@@ -874,10 +1218,228 @@
          clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
  
@@ -604,7 +605,6 @@
 +     call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
 +     call get_proc_global(numg,numl,numc,nump) 
 +
-+#ifdef MPP1
 +     nt = endg-begg+1
 +     if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
 +       nout = 22
@@ -674,62 +674,6 @@
 +    
 +    deallocate(c2r_all,displace)        
 +!!!!!!!new code above
-+
-+#else
-+!!!!!!below is for serial runs
-+        do nt = begg,endg
-+           ni = ldecomp%gdc2i(nt)
-+           nj = ldecomp%gdc2j(nt)
-+
-+!!!! ground temp
-+          c2rtgb(ni,nj)    = clm_l2a%tgrnd(nt)          
-+
-+!!!! snow depth in liquid water equiv [mm]
-+          c2rsnowc(ni,nj)  = clm_l2a%h2osno(nt)
-+
-+!!!! sensible heat (FSH) [watt/m^2]
-+          c2rsenht(ni,nj)  = clm_l2a%eflx_sh_tot(nt)
-+
-+!!!! evaporation rate [mm/day]
-+          c2rlatht(ni,nj)  = clm_l2a%qflx_evap_tot(nt)
-+
-+!!!! Surface drag stress
-+          c2ruvdrag(ni,nj) = clm_l2a%uvdrag(nt)
-+
-+!!!! land sea mask [0 = ocean, 1 = land, no sea-ice]
-+          c2rlsmask(ni,nj) = landmask(ni,nj)
-+
-+!!!! surface albedos
-+          c2ralbdirs(ni,nj) = clm_l2a%albd(nt,1)
-+          c2ralbdirl(ni,nj) = clm_l2a%albd(nt,2)
-+          c2ralbdifs(ni,nj) = clm_l2a%albi(nt,1)
-+          c2ralbdifl(ni,nj) = clm_l2a%albi(nt,2)
-+
-+!!!! tgbb use radiative temperature or outgoing LW ???
-+          c2rtgbb(ni,nj)    = clm_l2a%t_rad(nt)
-+
-+          c2r2mt(ni,nj)    = clm_l2a%t_ref2m(nt)
-+          c2r2mq(ni,nj)    = clm_l2a%q_ref2m(nt)
-+          c2ru10(ni,nj)    = clm_l2a%u10(nt)
-+          c2rtlef(ni,nj)   = clm_l2a%tlef(nt)
-+          c2rsm10cm(ni,nj) = clm_l2a%sm10cm(nt)
-+          c2rsm1m(ni,nj)   = clm_l2a%sm1m(nt)
-+          c2rsmtot(ni,nj)  = clm_l2a%smtot(nt)
-+          c2rinfl(ni,nj)   = clm_l2a%qflx_infl(nt)*(24._r8 * 3600._r8)
-+          c2rro_sur(ni,nj) = clm_l2a%qflx_surf(nt)*(24._r8 * 3600._r8)
-+          c2rro_sub(ni,nj) = clm_l2a%qflx_drain(nt)*(24._r8 * 3600._r8)
-+
-+          if(AERTYP.ne.'AER00D0') then  !Aerosol scheme on
-+             !!!! fraction of ground covered by snow
-+             c2rfracsno(ni,nj) = clm_l2a%frac_sno(nt)
-+             !!!! fraction of vegetation not covered by snow
-+             c2rfvegnosno(ni,nj) = clm_l2a%frac_veg_nosno(nt)
-+          end if
-+
-+        enddo !begg/endg loop
-+
-+    enddo !nclump loop
-+#endif
 +
 +end subroutine clm2rcm
 +

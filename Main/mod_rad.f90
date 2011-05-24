@@ -30,24 +30,13 @@
 
       contains 
 
-        subroutine allocate_mod_rad(lmpi,lband)
+        subroutine allocate_mod_rad
         implicit none
-        logical , intent(in) :: lmpi , lband
 !
         allocate(cldfra(iym1,kz))
         allocate(cldlwc(iym1,kz))
-        if (lmpi) then
-          allocate(heatrt(iym1,kz,jxp))
-          allocate(o3prof(iym1,kzp1,jxp))
-        else
-          if (lband) then
-            allocate(heatrt(iym1,kz,jx))
-            allocate(o3prof(iym1,kzp1,jx))
-          else
-            allocate(heatrt(iym1,kz,jxm1))
-            allocate(o3prof(iym1,kzp1,jxm1))
-          end if
-        end if
+        allocate(heatrt(iym1,kz,jxp))
+        allocate(o3prof(iym1,kzp1,jxp))
         cldfra = d_zero
         cldlwc = d_zero
         heatrt = d_zero

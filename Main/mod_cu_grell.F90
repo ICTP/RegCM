@@ -280,9 +280,6 @@ contains
       do i = istart , iend
         kk = kz - k + 1
         jp1 = j + 1
-#if defined(BAND) && (!defined(MPP1))
-        if ( jp1 == jx+1 ) jp1 = 1
-#endif
         us = (atm1%u(i,kk,j)/sps2%ps(i,j)+  &
               atm1%u(i+1,kk,j)/sps2%ps(i+1,j)+   &
               atm1%u(i,kk,jp1)/sps2%ps(i,jp1)+   &

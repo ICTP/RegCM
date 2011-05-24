@@ -71,7 +71,6 @@
           call say
           nbin = maxnbin
         end if
-#ifdef MPP1
         allocate(icumbot(iy,jxp))
         allocate(icumdwd(iy,jxp))
         allocate(icumtop(iy,jxp)) 
@@ -93,39 +92,7 @@
           allocate(rxsaq2(iy,kz,jxp,ntr))
           allocate(rxsg(iy,kz,jxp,ntr))
         end if
-#else
-        allocate(icumbot(iy,jx))
-        allocate(icumdwd(iy,jx))
-        allocate(icumtop(iy,jx))
-#ifdef BAND
-        allocate(aerasp(iym1,kz,jx))
-        allocate(aerext(iym1,kz,jx))
-        allocate(aerssa(iym1,kz,jx))
-        allocate(aersrrf(iym1,jx))
-        allocate(aertarf(iym1,jx))
-        allocate(aertalwrf(iym1,jx))
-        allocate(aersrlwrf(iym1,jx))
-#else
-        allocate(aerasp(iym1,kz,jxm1))
-        allocate(aerext(iym1,kz,jxm1))
-        allocate(aerssa(iym1,kz,jxm1))
-        allocate(aersrrf(iym1,jxm1))
-        allocate(aertarf(iym1,jxm1))
-        allocate(aertalwrf(iym1,jxm1))
-        allocate(aersrlwrf(iym1,jxm1))
-#endif
 
-        if ( ichem == 1 ) then
-          allocate(cemtr(iy,jx,ntr))
-          allocate(cemtrac(iy,jx,ntr))
-          allocate(remdrd(iy,jx,ntr))
-          allocate(remcvc(iy,kz,jx,ntr))
-          allocate(remlsc(iy,kz,jx,ntr))
-          allocate(rxsaq1(iy,kz,jx,ntr))
-          allocate(rxsaq2(iy,kz,jx,ntr))
-          allocate(rxsg(iy,kz,jx,ntr))
-        end if
-#endif 
         icumbot = 0
         icumdwd = 0
         icumtop = 0

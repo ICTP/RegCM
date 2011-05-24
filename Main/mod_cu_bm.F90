@@ -73,16 +73,10 @@
 
       contains
 !
-      subroutine allocate_mod_cu_bm(lmpi)
+      subroutine allocate_mod_cu_bm
         implicit none
-        logical , intent(in) :: lmpi
-        if (lmpi) then
-          allocate(tbase(iy,kz,jxp))
-          allocate(cldefi(iy,jxp))
-        else
-          allocate(tbase(iy,kz,jx))
-          allocate(cldefi(iy,jx))
-        end if
+        allocate(tbase(iy,kz,jxp))
+        allocate(cldefi(iy,jxp))
         tbase = d_zero
         cldefi = d_zero
       end subroutine allocate_mod_cu_bm
