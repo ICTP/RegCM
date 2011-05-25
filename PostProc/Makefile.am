@@ -23,10 +23,11 @@ regrid: regrid.sh
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-clean:
-		@echo -n Removing objects, mods and $(bin_PROGRAMS) ... 
-		@rm -f *.o *.mod $(bin_PROGRAMS)
-		@echo Done
+distclean-local:
+	rm -f *.mod
+
+clean-local:
+		rm -f *.mod
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

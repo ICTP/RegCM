@@ -54,10 +54,11 @@ mpif.h:
 %.o: %.F90
 	  $(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
-clean:
-	    @echo -n Removing objects, mods and $(noinst_LIBRARIES) ... 
-			@rm -f *.o *.mod $(noinst_LIBRARIES) mpif.h
-			@echo Done
+distclean-local:
+	rm -f *.mod
+
+clean-local:
+	rm -f *.mod
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
