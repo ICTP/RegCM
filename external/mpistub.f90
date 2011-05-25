@@ -20,7 +20,21 @@ module mpi
 
   include 'mpif.h'
 
-  integer MPI_STATUS_IGNORE(MPI_STATUS_SIZE)
-  integer , parameter :: MPI_PROC_NULL = -2
+  integer mpi_status_ignore(mpi_status_size)
+  integer , parameter :: mpi_proc_null = -2
 
 end module mpi
+
+subroutine mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, &
+             recvbuf, recvcount, recvtype, source, recvtag, &
+             comm, status, ierror)
+  implicit none
+
+  include 'mpif.h'
+
+  real(8) , dimension(:) :: sendbuf , recvbuf
+  integer :: sendcount , sendtype , dest , sendtag
+  integer :: recvcount , recvtype , source , recvtag , comm
+  integer :: status(mpi_status_size)
+  integer :: ierror
+end subroutine mpi_sendrecv

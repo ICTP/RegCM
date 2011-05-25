@@ -21,6 +21,7 @@ module mod_memutil
 
   use mod_constants
   use mod_dynparam
+  use mod_message
   use m_realkinds
   use m_die
   use m_stdio
@@ -81,15 +82,15 @@ module mod_memutil
       call mall_set()
     end if
     allocate(root1d, stat=ials)
-    call checkalloc('memory_init: root1d')
+    call checkalloc(ials,__FILE__,__LINE__,'root1d')
     allocate(root2d, stat=ials)
-    call checkalloc('memory_init: root2d')
+    call checkalloc(ials,__FILE__,__LINE__,'root2d')
     allocate(root3d, stat=ials)
-    call checkalloc('memory_init: root3d')
+    call checkalloc(ials,__FILE__,__LINE__,'root3d')
     allocate(root4d, stat=ials)
-    call checkalloc('memory_init: root4d')
+    call checkalloc(ials,__FILE__,__LINE__,'root4d')
     allocate(root5d, stat=ials)
-    call checkalloc('memory_init: root5d')
+    call checkalloc(ials,__FILE__,__LINE__,'root5d')
     nullify(root1d%next)
     nullify(root1d%prev)
     nullify(root2d%next)
@@ -115,7 +116,7 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8)') nv
     allocate(last1d%space(nv),stat=ials)
-    call checkalloc('getmem1d : '//what//' : '//cspace)
+    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
     call mall_mci(last1d%space,'pool1d')
     last1d%space(:) = d_zero
     a => last1d%space
@@ -134,7 +135,7 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8,a,i8)') nv, 'x', nw
     allocate(last2d%space(nv,nw),stat=ials)
-    call checkalloc('getmem2d : '//what//' : '//cspace)
+    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
     call mall_mci(last2d%space,'pool2d')
     last2d%space(:,:) = d_zero
     a => last2d%space
@@ -153,7 +154,7 @@ module mod_memutil
     character (len=64) :: cspace
     write(cspace,'(i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx
     allocate(last3d%space(nv,nw,nx),stat=ials)
-    call checkalloc('getmem3d : '//what//' : '//cspace)
+    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
     call mall_mci(last3d%space,'pool3d')
     last3d%space(:,:,:) = d_zero
     a => last3d%space
@@ -173,7 +174,7 @@ module mod_memutil
     integer :: i
     write(cspace,'(i8,a,i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx, 'x', ny
     allocate(last4d%space(nv,nw,nx,ny),stat=ials)
-    call checkalloc('getmem4d : '//what//' : '//cspace)
+    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
     do i = 1 , nv
       call mall_mci(last4d%space(i,:,:,:),'pool4d')
     end do
@@ -196,7 +197,7 @@ module mod_memutil
     write(cspace,'(i8,a,i8,a,i8,a,i8,a,i8)') &
               nv, 'x', nw, 'x', nx, 'x', ny, 'x', nz
     allocate(last5d%space(nv,nw,nx,ny,nz),stat=ials)
-    call checkalloc('getmem5d : '//what//' : '//cspace)
+    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
     do i = 1 , nv
       do j = 1 , nw
         call mall_mci(last5d%space(i,j,:,:,:),'pool5d')
@@ -468,14 +469,5 @@ module mod_memutil
       call mall_set(.false.)
     end if
   end subroutine memory_destroy
-
-  subroutine checkalloc(message)
-    implicit none
-    character (len=*) :: message
-    if ( ials /= 0 ) then
-      write (stderr,*) 'Memory error in allocation.'
-      call die('mod_memutil',message,1)
-    end if
-  end subroutine checkalloc
 
 end module mod_memutil
