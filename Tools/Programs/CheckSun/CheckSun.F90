@@ -40,6 +40,7 @@ program checksun
 #ifdef IBM
   integer , external :: iargc
 #endif
+  real(8) , parameter :: dayspy = 365.2422D0
 
   call getarg(0, chararg)
   numarg = iargc( )

@@ -51,7 +51,6 @@ program resav
   real(8) , allocatable , dimension(:,:) :: vj1 , vj2 , vjlx , vjl
   real(8) , allocatable , dimension(:,:) :: ui1 , ui2 , uilx , uil
   real(8) , allocatable , dimension(:,:) :: vi1 , vi2 , vilx , vil
-  real(8) :: high_nudge , medium_nudge , low_nudge
   integer :: ibltyp , iboudy , igcc , ichem , icup , iocnflx , &
              ipptls , ipgf , iemiss , lakemod , idcsst , iseaice , &
              idesseas , iconvlwp , iocnrough
@@ -59,8 +58,7 @@ program resav
 !
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem,        &
-    high_nudge, medium_nudge, low_nudge , scenario , idcsst ,       &
-    iseaice , idesseas , iconvlwp
+    scenario , idcsst , iseaice , idesseas , iconvlwp
 !
 ! Read input global namelist
 !
