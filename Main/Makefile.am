@@ -59,7 +59,8 @@ regcm_SOURCES = mod_constants.F90 mod_dynparam.F90 mod_bats_param.f90 \
                 mod_sun.F90 mod_tendency.F90 mod_tracer.f90           \
                 mod_trachem.F90 mod_tstep.f90 mod_vecbats.F90         \
                 mod_vmodes.F90 mod_zengocn.F90 mod_cu_tiedtke.F90     \
-								mod_memutil.f90 mod_cu_tables.f90 regcm.F90
+								mod_memutil.f90 mod_cu_tables.f90 mod_space.f90       \
+								regcm.F90
 
 if DO_COMPILE_LIBCLM
 regcm_SOURCES += mod_clm.F90 mod_mtrxclm.F90
@@ -251,6 +252,7 @@ mod_scenarios.o: mod_scenarios.F90 mod_message.o
 mod_service.o: mod_service.F90 mod_dynparam.o
 mod_slice.o: mod_slice.F90 mod_dynparam.o mod_constants.o mod_main.o \
              mod_runparams.o mod_mainchem.o mod_pbldim.o mod_pmoist.o
+mod_space.o: mod_space.f90
 mod_split.o: mod_split.F90 mod_dynparam.o mod_main.o mod_runparams.o \
             mod_constants.o mod_vmodes.o mod_date.o mod_savefile.o mod_service.o
 if DO_COMPILE_LIBCLM

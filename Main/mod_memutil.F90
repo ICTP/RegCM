@@ -16,16 +16,13 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_memutil
 
-  use mod_constants
-  use mod_dynparam
+  use mod_space
   use mod_message
   use m_realkinds
-  use m_die
-  use m_stdio
-  use m_mall
+  use mod_constants
 
   private
 
@@ -36,438 +33,1409 @@ module mod_memutil
   public :: getmem4d , relmem4d
   public :: getmem5d , relmem5d
 
-  type pool1d
-    real(dp) , allocatable , dimension(:) :: space
-    type(pool1d) , pointer :: next
-    type(pool1d) , pointer :: prev
-  end type pool1d
+  interface getmem1d
+    module procedure getmem1d_l
+    module procedure getmem1d_i
+    module procedure getmem1d_r
+    module procedure getmem1d_d
+  end interface getmem1d
 
-  type pool2d
-    real(dp) , allocatable , dimension(:,:) :: space
-    type(pool2d) , pointer :: next
-    type(pool2d) , pointer :: prev
-  end type pool2d
+  interface relmem1d
+    module procedure relmem1d_l
+    module procedure relmem1d_i
+    module procedure relmem1d_r
+    module procedure relmem1d_d
+  end interface relmem1d
 
-  type pool3d
-    real(dp) , allocatable , dimension(:,:,:) :: space
-    type(pool3d) , pointer :: next
-    type(pool3d) , pointer :: prev
-  end type pool3d
+  interface getmem2d
+    module procedure getmem2d_l
+    module procedure getmem2d_i
+    module procedure getmem2d_r
+    module procedure getmem2d_d
+  end interface getmem2d
 
-  type pool4d
-    real(dp) , allocatable , dimension(:,:,:,:) :: space
-    type(pool4d) , pointer :: next
-    type(pool4d) , pointer :: prev
-  end type pool4d
+  interface relmem2d
+    module procedure relmem2d_l
+    module procedure relmem2d_i
+    module procedure relmem2d_r
+    module procedure relmem2d_d
+  end interface relmem2d
 
-  type pool5d
-    real(dp) , allocatable , dimension(:,:,:,:,:) :: space
-    type(pool5d) , pointer :: next
-    type(pool5d) , pointer :: prev
-  end type pool5d
+  interface getmem3d
+    module procedure getmem3d_l
+    module procedure getmem3d_i
+    module procedure getmem3d_r
+    module procedure getmem3d_d
+  end interface getmem3d
 
-  type(pool1d) , pointer :: root1d , curr1d , prev1d , next1d , last1d
-  type(pool2d) , pointer :: root2d , curr2d , prev2d , next2d , last2d
-  type(pool3d) , pointer :: root3d , curr3d , prev3d , next3d , last3d
-  type(pool4d) , pointer :: root4d , curr4d , prev4d , next4d , last4d
-  type(pool5d) , pointer :: root5d , curr5d , prev5d , next5d , last5d
+  interface relmem3d
+    module procedure relmem3d_l
+    module procedure relmem3d_i
+    module procedure relmem3d_r
+    module procedure relmem3d_d
+  end interface relmem3d
 
-  integer :: ials
+  interface getmem4d
+    module procedure getmem4d_l
+    module procedure getmem4d_i
+    module procedure getmem4d_r
+    module procedure getmem4d_d
+  end interface getmem4d
+
+  interface relmem4d
+    module procedure relmem4d_l
+    module procedure relmem4d_i
+    module procedure relmem4d_r
+    module procedure relmem4d_d
+  end interface relmem4d
+
+  interface getmem5d
+    module procedure getmem5d_l
+    module procedure getmem5d_i
+    module procedure getmem5d_r
+    module procedure getmem5d_d
+  end interface getmem5d
+
+  interface relmem5d
+    module procedure relmem5d_l
+    module procedure relmem5d_i
+    module procedure relmem5d_r
+    module procedure relmem5d_d
+  end interface relmem5d
+
+  type pool1d_i
+    type(pool1d_i) , pointer :: next => null()
+    type(iarr1d) :: a
+  end type pool1d_i
+
+  type pool1d_l
+    type(pool1d_l) , pointer :: next => null()
+    type(larr1d) :: a
+  end type pool1d_l
+
+  type pool1d_r
+    type(pool1d_r) , pointer :: next => null()
+    type(r4arr1d) :: a
+  end type pool1d_r
+
+  type pool1d_d
+    type(pool1d_d) , pointer :: next => null()
+    type(r8arr1d) :: a
+  end type pool1d_d
+
+  type pool2d_i
+    type(pool2d_i) , pointer :: next => null()
+    type(iarr2d) :: a
+  end type pool2d_i
+
+  type pool2d_l
+    type(pool2d_l) , pointer :: next => null()
+    type(larr2d) :: a
+  end type pool2d_l
+
+  type pool2d_r
+    type(pool2d_r) , pointer :: next => null()
+    type(r4arr2d) :: a
+  end type pool2d_r
+
+  type pool2d_d
+    type(pool2d_d) , pointer :: next => null()
+    type(r8arr2d) :: a
+  end type pool2d_d
+
+  type pool3d_i
+    type(pool3d_i) , pointer :: next => null()
+    type(iarr3d) :: a
+  end type pool3d_i
+
+  type pool3d_l
+    type(pool3d_l) , pointer :: next => null()
+    type(larr3d) :: a
+  end type pool3d_l
+
+  type pool3d_r
+    type(pool3d_r) , pointer :: next => null()
+    type(r4arr3d) :: a
+  end type pool3d_r
+
+  type pool3d_d
+    type(pool3d_d) , pointer :: next => null()
+    type(r8arr3d) :: a
+  end type pool3d_d
+
+  type pool4d_i
+    type(pool4d_i) , pointer :: next => null()
+    type(iarr4d) :: a
+  end type pool4d_i
+
+  type pool4d_l
+    type(pool4d_l) , pointer :: next => null()
+    type(larr4d) :: a
+  end type pool4d_l
+
+  type pool4d_r
+    type(pool4d_r) , pointer :: next => null()
+    type(r4arr4d) :: a
+  end type pool4d_r
+
+  type pool4d_d
+    type(pool4d_d) , pointer :: next => null()
+    type(r8arr4d) :: a
+  end type pool4d_d
+
+  type pool5d_i
+    type(pool5d_i) , pointer :: next => null()
+    type(iarr5d) :: a
+  end type pool5d_i
+
+  type pool5d_l
+    type(pool5d_l) , pointer :: next => null()
+    type(larr5d) :: a
+  end type pool5d_l
+
+  type pool5d_r
+    type(pool5d_r) , pointer :: next => null()
+    type(r4arr5d) :: a
+  end type pool5d_r
+
+  type pool5d_d
+    type(pool5d_d) , pointer :: next => null()
+    type(r8arr5d) :: a
+  end type pool5d_d
+
+  type (pool1d_i) , pointer :: r1di , l1di , c1di , n1di , p1di
+  type (pool1d_l) , pointer :: r1dl , l1dl , c1dl , n1dl , p1dl
+  type (pool1d_r) , pointer :: r1dr , l1dr , c1dr , n1dr , p1dr
+  type (pool1d_d) , pointer :: r1dd , l1dd , c1dd , n1dd , p1dd
+
+  type (pool2d_i) , pointer :: r2di , l2di , c2di , n2di , p2di
+  type (pool2d_l) , pointer :: r2dl , l2dl , c2dl , n2dl , p2dl
+  type (pool2d_r) , pointer :: r2dr , l2dr , c2dr , n2dr , p2dr
+  type (pool2d_d) , pointer :: r2dd , l2dd , c2dd , n2dd , p2dd
+
+  type (pool3d_i) , pointer :: r3di , l3di , c3di , n3di , p3di
+  type (pool3d_l) , pointer :: r3dl , l3dl , c3dl , n3dl , p3dl
+  type (pool3d_r) , pointer :: r3dr , l3dr , c3dr , n3dr , p3dr
+  type (pool3d_d) , pointer :: r3dd , l3dd , c3dd , n3dd , p3dd
+
+  type (pool4d_i) , pointer :: r4di , l4di , c4di , n4di , p4di
+  type (pool4d_l) , pointer :: r4dl , l4dl , c4dl , n4dl , p4dl
+  type (pool4d_r) , pointer :: r4dr , l4dr , c4dr , n4dr , p4dr
+  type (pool4d_d) , pointer :: r4dd , l4dd , c4dd , n4dd , p4dd
+
+  type (pool5d_i) , pointer :: r5di , l5di , c5di , n5di , p5di
+  type (pool5d_l) , pointer :: r5dl , l5dl , c5dl , n5dl , p5dl
+  type (pool5d_r) , pointer :: r5dr , l5dr , c5dr , n5dr , p5dr
+  type (pool5d_d) , pointer :: r5dd , l5dd , c5dd , n5dd , p5dd
+
+  integer :: ista
 
   contains
 
   subroutine memory_init
-    implicit none
-    if ( debug_level > 2 ) then
-      call mall_set()
-    end if
-    allocate(root1d, stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,'root1d')
-    allocate(root2d, stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,'root2d')
-    allocate(root3d, stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,'root3d')
-    allocate(root4d, stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,'root4d')
-    allocate(root5d, stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,'root5d')
-    nullify(root1d%next)
-    nullify(root1d%prev)
-    nullify(root2d%next)
-    nullify(root2d%prev)
-    nullify(root3d%next)
-    nullify(root3d%prev)
-    nullify(root4d%next)
-    nullify(root4d%prev)
-    nullify(root5d%next)
-    nullify(root5d%prev)
-    last1d => root1d
-    last2d => root2d
-    last3d => root3d
-    last4d => root4d
-    last5d => root5d
+    allocate(r1di, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1d1')
+    allocate(r1dl, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1dl')
+    allocate(r1dr, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1dr')
+    allocate(r1dd, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1dd')
+    l1di => r1di
+    l1dl => r1dl
+    l1dr => r1dr
+    l1dd => r1dd
+    allocate(r2di, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r2d1')
+    allocate(r2dl, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r2dl')
+    allocate(r2dr, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r2dr')
+    allocate(r2dd, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r2dd')
+    l2di => r2di
+    l2dl => r2dl
+    l2dr => r2dr
+    l2dd => r2dd
+    allocate(r3di, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r3d1')
+    allocate(r3dl, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r3dl')
+    allocate(r3dr, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r3dr')
+    allocate(r3dd, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r3dd')
+    l3di => r3di
+    l3dl => r3dl
+    l3dr => r3dr
+    l3dd => r3dd
+    allocate(r4di, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r4d1')
+    allocate(r4dl, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r4dl')
+    allocate(r4dr, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r4dr')
+    allocate(r4dd, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r4dd')
+    l4di => r4di
+    l4dl => r4dl
+    l4dr => r4dr
+    l4dd => r4dd
+    allocate(r5di, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r5d1')
+    allocate(r5dl, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r5dl')
+    allocate(r5dr, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r5dr')
+    allocate(r5dd, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r5dd')
+    l5di => r5di
+    l5dl => r5dl
+    l5dr => r5dr
+    l5dd => r5dd
   end subroutine memory_init
 
-  subroutine getmem1d(a,nv,what)
-    implicit none
-    integer , intent (in) :: nv
-    real(dp) , intent(out) , dimension(:) , pointer :: a
-    character (len=*) , intent(in) :: what
-    character (len=64) :: cspace
-    write(cspace,'(i8)') nv
-    allocate(last1d%space(nv),stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
-    call mall_mci(last1d%space,'pool1d')
-    last1d%space(:) = d_zero
-    a => last1d%space
-    curr1d => last1d
-    allocate(last1d%next)
-    last1d => last1d%next
-    last1d%prev => curr1d
-    nullify(last1d%next)
-  end subroutine getmem1d
+  subroutine getmem1d_l(a,l,h,vn)
+    logical , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1dl => l1dl
+    call getspc1d(c1dl%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1dl%a%space
+    a(:) = .false.
+    allocate(c1dl%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1dl%next')
+    l1dl => c1dl%next
+  end subroutine getmem1d_l
 
-  subroutine getmem2d(a,nv,nw,what)
-    implicit none
-    integer , intent (in) :: nv , nw
-    real(dp) , intent(out) , dimension(:,:) , pointer :: a
-    character (len=*) , intent(in) :: what
-    character (len=64) :: cspace
-    write(cspace,'(i8,a,i8)') nv, 'x', nw
-    allocate(last2d%space(nv,nw),stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
-    call mall_mci(last2d%space,'pool2d')
-    last2d%space(:,:) = d_zero
-    a => last2d%space
-    curr2d => last2d
-    allocate(last2d%next)
-    last2d => last2d%next
-    last2d%prev => curr2d
-    nullify(last2d%next)
-  end subroutine getmem2d
-
-  subroutine getmem3d(a,nv,nw,nx,what)
-    implicit none
-    integer , intent (in) :: nv , nw , nx
-    real(dp) , intent(out) , dimension(:,:,:) , pointer :: a
-    character (len=*) , intent(in) :: what
-    character (len=64) :: cspace
-    write(cspace,'(i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx
-    allocate(last3d%space(nv,nw,nx),stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
-    call mall_mci(last3d%space,'pool3d')
-    last3d%space(:,:,:) = d_zero
-    a => last3d%space
-    curr3d => last3d
-    allocate(last3d%next)
-    last3d => last3d%next
-    last3d%prev => curr3d
-    nullify(last3d%next)
-  end subroutine getmem3d
-
-  subroutine getmem4d(a,nv,nw,nx,ny,what)
-    implicit none
-    integer , intent (in) :: nv , nw , nx , ny
-    real(dp) , intent(out) , dimension(:,:,:,:) , pointer :: a
-    character (len=*) , intent(in) :: what
-    character (len=64) :: cspace
-    integer :: i
-    write(cspace,'(i8,a,i8,a,i8,a,i8)') nv, 'x', nw, 'x', nx, 'x', ny
-    allocate(last4d%space(nv,nw,nx,ny),stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
-    do i = 1 , nv
-      call mall_mci(last4d%space(i,:,:,:),'pool4d')
-    end do
-    last4d%space(:,:,:,:) = d_zero
-    a => last4d%space
-    curr4d => last4d
-    allocate(last4d%next)
-    last4d => last4d%next
-    last4d%prev => curr4d
-    nullify(last4d%next)
-  end subroutine getmem4d
-
-  subroutine getmem5d(a,nv,nw,nx,ny,nz,what)
-    implicit none
-    integer , intent (in) :: nv , nw , nx , ny , nz
-    real(dp) , intent(out) , dimension(:,:,:,:,:) , pointer :: a
-    character (len=*) , intent(in) :: what
-    character (len=64) :: cspace
-    integer :: i , j
-    write(cspace,'(i8,a,i8,a,i8,a,i8,a,i8)') &
-              nv, 'x', nw, 'x', nx, 'x', ny, 'x', nz
-    allocate(last5d%space(nv,nw,nx,ny,nz),stat=ials)
-    call checkalloc(ials,__FILE__,__LINE__,what//' : '//cspace)
-    do i = 1 , nv
-      do j = 1 , nw
-        call mall_mci(last5d%space(i,j,:,:,:),'pool5d')
-      end do
-    end do
-    last5d%space(:,:,:,:,:) = d_zero
-    a => last5d%space
-    curr5d => last5d
-    allocate(last5d%next)
-    last5d => last5d%next
-    last5d%prev => curr5d
-    nullify(last5d%next)
-  end subroutine getmem5d
-
-  subroutine relmem1d(a)
-    implicit none
-    real(dp) , intent(inout) , dimension(:) , pointer :: a
+  subroutine relmem1d_l(a)
+    logical , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
-    curr1d => root1d
-    do while ( associated(curr1d) )
-      if ( associated(a,curr1d%space) ) then
-        call mall_mco(curr1d%space,'pool1d')
-        deallocate(curr1d%space)
-        nullify(a)
-        if ( associated(curr1d%prev) ) then
-          prev1d => curr1d%prev
-          if ( associated(curr1d%next) ) then
-            next1d => curr1d%next
-            next1d%prev => prev1d
-            prev1d%next => next1d
+    p1dl => null()
+    c1dl => r1dl
+    do while ( associated(c1dl) )
+      n1dl => c1dl%next
+      if ( associated(a,c1dl%a%space) ) then
+        deallocate(c1dl%a%space)
+        a => null()
+        if ( associated(p1dl) ) then
+          if ( associated(n1dl) ) then
+            p1dl%next => n1dl
           else
-            nullify(prev1d%next)
-            last1d => prev1d
+            l1dl => p1dl
+            p1dl%next => null()
           end if
-          deallocate(curr1d)
         else
-          if ( associated(curr1d%next) ) then
-            next1d => curr1d%next
-            nullify(next1d%prev)
-            root1d => next1d
-            deallocate(curr1d)
-          end if
+          r1dl => n1dl
         end if
-        return
+        deallocate(c1dl)
+        exit
       end if
-      curr1d => curr1d%next
+      p1dl => c1dl
+      c1dl => c1dl%next
     end do
-    write (stderr,*) 'This should not happen! 1D Array not found.'
-    call die('mod_memutil','relmem1d',1)
-  end subroutine relmem1d
+  end subroutine relmem1d_l
 
-  subroutine relmem2d(a)
-    implicit none
-    real(dp) , intent(inout) , dimension(:,:) , pointer :: a
-    if ( .not. associated(a) ) return
-    curr2d => root2d
-    do while ( associated(curr2d) )
-      if ( associated(a,curr2d%space) ) then
-        call mall_mco(curr2d%space,'pool2d')
-        deallocate(curr2d%space)
-        nullify(a)
-        if ( associated(curr2d%prev) ) then
-          prev2d => curr2d%prev
-          if ( associated(curr2d%next) ) then
-            next2d => curr2d%next
-            next2d%prev => prev2d
-            prev2d%next => next2d
-          else
-            nullify(prev2d%next)
-            last2d => prev2d
-          end if
-          deallocate(curr2d)
-        else
-          if ( associated(curr2d%next) ) then
-            next2d => curr2d%next
-            nullify(next2d%prev)
-            root2d => next2d
-            deallocate(curr2d)
-          end if
-        end if
-        return
-      end if
-      curr2d => curr2d%next
-    end do
-    write (stderr,*) 'This should not happen! 2D Array not found.'
-    call die('mod_memutil','relmem2d',1)
-  end subroutine relmem2d
+  subroutine getmem1d_i(a,l,h,vn)
+    integer , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1di => l1di
+    call getspc1d(c1di%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1di%a%space
+    a(:) = -1
+    allocate(c1di%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1di%next')
+    l1di => c1di%next
+  end subroutine getmem1d_i
 
-  subroutine relmem3d(a)
-    implicit none
-    real(dp) , intent(inout) , dimension(:,:,:) , pointer :: a
+  subroutine relmem1d_i(a)
+    integer , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
-    curr3d => root3d
-    do while ( associated(curr3d) )
-      if ( associated(a,curr3d%space) ) then
-        call mall_mco(curr3d%space,'pool3d')
-        deallocate(curr3d%space)
-        nullify(a)
-        if ( associated(curr3d%prev) ) then
-          prev3d => curr3d%prev
-          if ( associated(curr3d%next) ) then
-            next3d => curr3d%next
-            next3d%prev => prev3d
-            prev3d%next => next3d
+    p1di => null()
+    c1di => r1di
+    do while ( associated(c1di) )
+      n1di => c1di%next
+      if ( associated(a,c1di%a%space) ) then
+        deallocate(c1di%a%space)
+        a => null()
+        if ( associated(p1di) ) then
+          if ( associated(n1di) ) then
+            p1di%next => n1di
           else
-            nullify(prev3d%next)
-            last3d => prev3d
+            l1di => p1di
+            p1di%next => null()
           end if
-          deallocate(curr3d)
         else
-          if ( associated(curr3d%next) ) then
-            next3d => curr3d%next
-            nullify(next3d%prev)
-            root3d => next3d
-            deallocate(curr3d)
-          end if
+          r1di => n1di
         end if
-        return
+        deallocate(c1di)
+        exit
       end if
-      curr3d => curr3d%next
+      p1di => c1di
+      c1di => c1di%next
     end do
-    write (stderr,*) 'This should not happen! 3D Array not found.'
-    call die('mod_memutil','relmem3d',1)
-  end subroutine relmem3d
+  end subroutine relmem1d_i
 
-  subroutine relmem4d(a)
-    implicit none
-    real(dp) , intent(inout) , dimension(:,:,:,:) , pointer :: a
-    integer :: i
-    if ( .not. associated(a) ) return
-    curr4d => root4d
-    do while ( associated(curr4d) )
-      if ( associated(a,curr4d%space) ) then
-        do i = 1 , size(curr4d%space,1)
-          call mall_mco(curr4d%space(i,:,:,:),'pool4d')
-        end do
-        deallocate(curr4d%space)
-        nullify(a)
-        if ( associated(curr4d%prev) ) then
-          prev4d => curr4d%prev
-          if ( associated(curr4d%next) ) then
-            next4d => curr4d%next
-            next4d%prev => prev4d
-            prev4d%next => next4d
-          else
-            nullify(prev4d%next)
-            last4d => prev4d
-          end if
-          deallocate(curr4d)
-        else
-          if ( associated(curr4d%next) ) then
-            next4d => curr4d%next
-            nullify(next4d%prev)
-            root4d => next4d
-            deallocate(curr4d)
-          end if
-        end if
-        return
-      end if
-      curr4d => curr4d%next
-    end do
-    write (stderr,*) 'This should not happen! 4D Array not found.'
-    call die('mod_memutil','relmem4d',1)
-  end subroutine relmem4d
+  subroutine getmem1d_r(a,l,h,vn)
+    real(sp) , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1dr => l1dr
+    call getspc1d(c1dr%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1dr%a%space
+    a(:) = 0.0
+    allocate(c1dr%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1dr%next')
+    l1dr => c1dr%next
+  end subroutine getmem1d_r
 
-  subroutine relmem5d(a)
-    implicit none
-    real(dp) , intent(inout) , dimension(:,:,:,:,:) , pointer :: a
-    integer :: i , j
+  subroutine relmem1d_r(a)
+    real(sp) , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
-    curr5d => root5d
-    do while ( associated(curr5d) )
-      if ( associated(a,curr5d%space) ) then
-        do i = 1 , size(curr5d%space,1)
-          do j = 1 , size(curr5d%space,2)
-            call mall_mco(curr5d%space(i,j,:,:,:),'pool5d')
-          end do
-        end do
-        deallocate(curr5d%space)
-        nullify(a)
-        if ( associated(curr5d%prev) ) then
-          prev5d => curr5d%prev
-          if ( associated(curr5d%next) ) then
-            next5d => curr5d%next
-            next5d%prev => prev5d
-            prev5d%next => next5d
+    p1dr => null()
+    c1dr => r1dr
+    do while ( associated(c1dr) )
+      n1dr => c1dr%next
+      if ( associated(a,c1dr%a%space) ) then
+        deallocate(c1dr%a%space)
+        a => null()
+        if ( associated(p1dr) ) then
+          if ( associated(n1dr) ) then
+            p1dr%next => n1dr
           else
-            nullify(prev5d%next)
-            last5d => prev5d
+            l1dr => p1dr
+            p1dr%next => null()
           end if
-          deallocate(curr5d)
         else
-          if ( associated(curr5d%next) ) then
-            next5d => curr5d%next
-            nullify(next5d%prev)
-            root5d => next5d
-            deallocate(curr5d)
-          end if
+          r1dr => n1dr
         end if
-        return
+        deallocate(c1dr)
+        exit
       end if
-      curr5d => curr5d%next
+      p1dr => c1dr
+      c1dr => c1dr%next
     end do
-    write (stderr,*) 'This should not happen! 5D Array not found.'
-    call die('mod_memutil','relmem5d',1)
-  end subroutine relmem5d
+  end subroutine relmem1d_r
+
+  subroutine getmem1d_d(a,l,h,vn)
+    real(dp) , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1dd => l1dd
+    call getspc1d(c1dd%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1dd%a%space
+    a(:) = d_zero
+    allocate(c1dd%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1dd%next')
+    l1dd => c1dd%next
+  end subroutine getmem1d_d
+
+  subroutine relmem1d_d(a)
+    real(dp) , pointer , dimension(:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p1dd => null()
+    c1dd => r1dd
+    do while ( associated(c1dd) )
+      n1dd => c1dd%next
+      if ( associated(a,c1dd%a%space) ) then
+        deallocate(c1dd%a%space)
+        a => null()
+        if ( associated(p1dd) ) then
+          if ( associated(n1dd) ) then
+            p1dd%next => n1dd
+          else
+            l1dd => p1dd
+            p1dd%next => null()
+          end if
+        else
+          r1dd => n1dd
+        end if
+        deallocate(c1dd)
+        exit
+      end if
+      p1dd => c1dd
+      c1dd => c1dd%next
+    end do
+  end subroutine relmem1d_d
+
+  recursive subroutine finalize_pool1d_i(n)
+    type(pool1d_i) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_i(n%next)
+    end if
+  end subroutine finalize_pool1d_i
+
+  recursive subroutine finalize_pool1d_l(n)
+    type(pool1d_l) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_l(n%next)
+    end if
+  end subroutine finalize_pool1d_l
+
+  recursive subroutine finalize_pool1d_r(n)
+    type(pool1d_r) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_r(n%next)
+    end if
+  end subroutine finalize_pool1d_r
+
+  recursive subroutine finalize_pool1d_d(n)
+    type(pool1d_d) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_d(n%next)
+    end if
+  end subroutine finalize_pool1d_d
+
+  subroutine getmem2d_l(a,l1,h1,l2,h2,vn)
+    logical , pointer , dimension(:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(2) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    c2dl => l2dl
+    call getspc2d(c2dl%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c2dl%a%space
+    a(:,:) = .false.
+    allocate(c2dl%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c2dl%next')
+    l2dl => c2dl%next
+  end subroutine getmem2d_l
+
+  subroutine relmem2d_l(a)
+    logical , pointer , dimension(:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p2dl => null()
+    c2dl => r2dl
+    do while ( associated(c2dl) )
+      n2dl => c2dl%next
+      if ( associated(a,c2dl%a%space) ) then
+        deallocate(c2dl%a%space)
+        a => null()
+        if ( associated(p2dl) ) then
+          if ( associated(n2dl) ) then
+            p2dl%next => n2dl
+          else
+            l2dl => p2dl
+            p2dl%next => null()
+          end if
+        else
+          r2dl => n2dl
+        end if
+        deallocate(c2dl)
+        exit
+      end if
+      p2dl => c2dl
+      c2dl => c2dl%next
+    end do
+  end subroutine relmem2d_l
+
+  subroutine getmem2d_i(a,l1,h1,l2,h2,vn)
+    integer , pointer , dimension(:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(2) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    c2di => l2di
+    call getspc2d(c2di%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c2di%a%space
+    a(:,:) = -1
+    allocate(c2di%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c2di%next')
+    l2di => c2di%next
+  end subroutine getmem2d_i
+
+  subroutine relmem2d_i(a)
+    integer , pointer , dimension(:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p2di => null()
+    c2di => r2di
+    do while ( associated(c2di) )
+      n2di => c2di%next
+      if ( associated(a,c2di%a%space) ) then
+        deallocate(c2di%a%space)
+        a => null()
+        if ( associated(p2di) ) then
+          if ( associated(n2di) ) then
+            p2di%next => n2di
+          else
+            l2di => p2di
+            p2di%next => null()
+          end if
+        else
+          r2di => n2di
+        end if
+        deallocate(c2di)
+        exit
+      end if
+      p2di => c2di
+      c2di => c2di%next
+    end do
+  end subroutine relmem2d_i
+
+  subroutine getmem2d_r(a,l1,h1,l2,h2,vn)
+    real(sp) , pointer , dimension(:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(2) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    c2dr => l2dr
+    call getspc2d(c2dr%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c2dr%a%space
+    a(:,:) = 0.0
+    allocate(c2dr%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c2dr%next')
+    l2dr => c2dr%next
+  end subroutine getmem2d_r
+
+  subroutine relmem2d_r(a)
+    real(sp) , pointer , dimension(:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p2dr => null()
+    c2dr => r2dr
+    do while ( associated(c2dr) )
+      n2dr => c2dr%next
+      if ( associated(a,c2dr%a%space) ) then
+        deallocate(c2dr%a%space)
+        a => null()
+        if ( associated(p2dr) ) then
+          if ( associated(n2dr) ) then
+            p2dr%next => n2dr
+          else
+            l2dr => p2dr
+            p2dr%next => null()
+          end if
+        else
+          r2dr => n2dr
+        end if
+        deallocate(c2dr)
+        exit
+      end if
+      p2dr => c2dr
+      c2dr => c2dr%next
+    end do
+  end subroutine relmem2d_r
+
+  subroutine getmem2d_d(a,l1,h1,l2,h2,vn)
+    real(dp) , pointer , dimension(:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(2) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    c2dd => l2dd
+    call getspc2d(c2dd%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c2dd%a%space
+    a(:,:) = d_zero
+    allocate(c2dd%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c2dd%next')
+    l2dd => c2dd%next
+  end subroutine getmem2d_d
+
+  subroutine relmem2d_d(a)
+    real(dp) , pointer , dimension(:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p2dd => null()
+    c2dd => r2dd
+    do while ( associated(c2dd) )
+      n2dd => c2dd%next
+      if ( associated(a,c2dd%a%space) ) then
+        deallocate(c2dd%a%space)
+        a => null()
+        if ( associated(p2dd) ) then
+          if ( associated(n2dd) ) then
+            p2dd%next => n2dd
+          else
+            l2dd => p2dd
+            p2dd%next => null()
+          end if
+        else
+          r2dd => n2dd
+        end if
+        deallocate(c2dd)
+        exit
+      end if
+      p2dd => c2dd
+      c2dd => c2dd%next
+    end do
+  end subroutine relmem2d_d
+
+  recursive subroutine finalize_pool2d_i(n)
+    type(pool2d_i) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool2d_i(n%next)
+    end if
+  end subroutine finalize_pool2d_i
+
+  recursive subroutine finalize_pool2d_l(n)
+    type(pool2d_l) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool2d_l(n%next)
+    end if
+  end subroutine finalize_pool2d_l
+
+  recursive subroutine finalize_pool2d_r(n)
+    type(pool2d_r) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool2d_r(n%next)
+    end if
+  end subroutine finalize_pool2d_r
+
+  recursive subroutine finalize_pool2d_d(n)
+    type(pool2d_d) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool2d_d(n%next)
+    end if
+  end subroutine finalize_pool2d_d
+
+  subroutine getmem3d_l(a,l1,h1,l2,h2,l3,h3,vn)
+    logical , pointer , dimension(:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(3) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    c3dl => l3dl
+    call getspc3d(c3dl%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c3dl%a%space
+    a(:,:,:) = .false.
+    allocate(c3dl%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c3dl%next')
+    l3dl => c3dl%next
+  end subroutine getmem3d_l
+
+  subroutine relmem3d_l(a)
+    logical , pointer , dimension(:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p3dl => null()
+    c3dl => r3dl
+    do while ( associated(c3dl) )
+      n3dl => c3dl%next
+      if ( associated(a,c3dl%a%space) ) then
+        deallocate(c3dl%a%space)
+        a => null()
+        if ( associated(p3dl) ) then
+          if ( associated(n3dl) ) then
+            p3dl%next => n3dl
+          else
+            l3dl => p3dl
+            p3dl%next => null()
+          end if
+        else
+          r3dl => n3dl
+        end if
+        deallocate(c3dl)
+        exit
+      end if
+      p3dl => c3dl
+      c3dl => c3dl%next
+    end do
+  end subroutine relmem3d_l
+
+  subroutine getmem3d_i(a,l1,h1,l2,h2,l3,h3,vn)
+    integer , pointer , dimension(:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(3) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    c3di => l3di
+    call getspc3d(c3di%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c3di%a%space
+    a(:,:,:) = -1
+    allocate(c3di%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c3di%next')
+    l3di => c3di%next
+  end subroutine getmem3d_i
+
+  subroutine relmem3d_i(a)
+    integer , pointer , dimension(:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p3di => null()
+    c3di => r3di
+    do while ( associated(c3di) )
+      n3di => c3di%next
+      if ( associated(a,c3di%a%space) ) then
+        deallocate(c3di%a%space)
+        a => null()
+        if ( associated(p3di) ) then
+          if ( associated(n3di) ) then
+            p3di%next => n3di
+          else
+            l3di => p3di
+            p3di%next => null()
+          end if
+        else
+          r3di => n3di
+        end if
+        deallocate(c3di)
+        exit
+      end if
+      p3di => c3di
+      c3di => c3di%next
+    end do
+  end subroutine relmem3d_i
+
+  subroutine getmem3d_r(a,l1,h1,l2,h2,l3,h3,vn)
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(3) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    c3dr => l3dr
+    call getspc3d(c3dr%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c3dr%a%space
+    a(:,:,:) = 0.0
+    allocate(c3dr%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c3dr%next')
+    l3dr => c3dr%next
+  end subroutine getmem3d_r
+
+  subroutine relmem3d_r(a)
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p3dr => null()
+    c3dr => r3dr
+    do while ( associated(c3dr) )
+      n3dr => c3dr%next
+      if ( associated(a,c3dr%a%space) ) then
+        deallocate(c3dr%a%space)
+        a => null()
+        if ( associated(p3dr) ) then
+          if ( associated(n3dr) ) then
+            p3dr%next => n3dr
+          else
+            l3dr => p3dr
+            p3dr%next => null()
+          end if
+        else
+          r3dr => n3dr
+        end if
+        deallocate(c3dr)
+        exit
+      end if
+      p3dr => c3dr
+      c3dr => c3dr%next
+    end do
+  end subroutine relmem3d_r
+
+  subroutine getmem3d_d(a,l1,h1,l2,h2,l3,h3,vn)
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(3) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    c3dd => l3dd
+    call getspc3d(c3dd%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c3dd%a%space
+    a(:,:,:) = d_zero
+    allocate(c3dd%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c3dd%next')
+    l3dd => c3dd%next
+  end subroutine getmem3d_d
+
+  subroutine relmem3d_d(a)
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p3dd => null()
+    c3dd => r3dd
+    do while ( associated(c3dd) )
+      n3dd => c3dd%next
+      if ( associated(a,c3dd%a%space) ) then
+        deallocate(c3dd%a%space)
+        a => null()
+        if ( associated(p3dd) ) then
+          if ( associated(n3dd) ) then
+            p3dd%next => n3dd
+          else
+            l3dd => p3dd
+            p3dd%next => null()
+          end if
+        else
+          r3dd => n3dd
+        end if
+        deallocate(c3dd)
+        exit
+      end if
+      p3dd => c3dd
+      c3dd => c3dd%next
+    end do
+  end subroutine relmem3d_d
+
+  recursive subroutine finalize_pool3d_i(n)
+    type(pool3d_i) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool3d_i(n%next)
+    end if
+  end subroutine finalize_pool3d_i
+
+  recursive subroutine finalize_pool3d_l(n)
+    type(pool3d_l) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool3d_l(n%next)
+    end if
+  end subroutine finalize_pool3d_l
+
+  recursive subroutine finalize_pool3d_r(n)
+    type(pool3d_r) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool3d_r(n%next)
+    end if
+  end subroutine finalize_pool3d_r
+
+  recursive subroutine finalize_pool3d_d(n)
+    type(pool3d_d) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool3d_d(n%next)
+    end if
+  end subroutine finalize_pool3d_d
+
+  subroutine getmem4d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    logical , pointer , dimension(:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(4) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    c4dl => l4dl
+    call getspc4d(c4dl%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c4dl%a%space
+    a(:,:,:,:) = .false.
+    allocate(c4dl%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c4dl%next')
+    l4dl => c4dl%next
+  end subroutine getmem4d_l
+
+  subroutine relmem4d_l(a)
+    logical , pointer , dimension(:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p4dl => null()
+    c4dl => r4dl
+    do while ( associated(c4dl) )
+      n4dl => c4dl%next
+      if ( associated(a,c4dl%a%space) ) then
+        deallocate(c4dl%a%space)
+        a => null()
+        if ( associated(p4dl) ) then
+          if ( associated(n4dl) ) then
+            p4dl%next => n4dl
+          else
+            l4dl => p4dl
+            p4dl%next => null()
+          end if
+        else
+          r4dl => n4dl
+        end if
+        deallocate(c4dl)
+        exit
+      end if
+      p4dl => c4dl
+      c4dl => c4dl%next
+    end do
+  end subroutine relmem4d_l
+
+  subroutine getmem4d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(4) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    c4di => l4di
+    call getspc4d(c4di%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c4di%a%space
+    a(:,:,:,:) = -1
+    allocate(c4di%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c4di%next')
+    l4di => c4di%next
+  end subroutine getmem4d_i
+
+  subroutine relmem4d_i(a)
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p4di => null()
+    c4di => r4di
+    do while ( associated(c4di) )
+      n4di => c4di%next
+      if ( associated(a,c4di%a%space) ) then
+        deallocate(c4di%a%space)
+        a => null()
+        if ( associated(p4di) ) then
+          if ( associated(n4di) ) then
+            p4di%next => n4di
+          else
+            l4di => p4di
+            p4di%next => null()
+          end if
+        else
+          r4di => n4di
+        end if
+        deallocate(c4di)
+        exit
+      end if
+      p4di => c4di
+      c4di => c4di%next
+    end do
+  end subroutine relmem4d_i
+
+  subroutine getmem4d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(4) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    c4dr => l4dr
+    call getspc4d(c4dr%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c4dr%a%space
+    a(:,:,:,:) = 0.0
+    allocate(c4dr%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c4dr%next')
+    l4dr => c4dr%next
+  end subroutine getmem4d_r
+
+  subroutine relmem4d_r(a)
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p4dr => null()
+    c4dr => r4dr
+    do while ( associated(c4dr) )
+      n4dr => c4dr%next
+      if ( associated(a,c4dr%a%space) ) then
+        deallocate(c4dr%a%space)
+        a => null()
+        if ( associated(p4dr) ) then
+          if ( associated(n4dr) ) then
+            p4dr%next => n4dr
+          else
+            l4dr => p4dr
+            p4dr%next => null()
+          end if
+        else
+          r4dr => n4dr
+        end if
+        deallocate(c4dr)
+        exit
+      end if
+      p4dr => c4dr
+      c4dr => c4dr%next
+    end do
+  end subroutine relmem4d_r
+
+  subroutine getmem4d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(4) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    c4dd => l4dd
+    call getspc4d(c4dd%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c4dd%a%space
+    a(:,:,:,:) = d_zero
+    allocate(c4dd%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c4dd%next')
+    l4dd => c4dd%next
+  end subroutine getmem4d_d
+
+  subroutine relmem4d_d(a)
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p4dd => null()
+    c4dd => r4dd
+    do while ( associated(c4dd) )
+      n4dd => c4dd%next
+      if ( associated(a,c4dd%a%space) ) then
+        deallocate(c4dd%a%space)
+        a => null()
+        if ( associated(p4dd) ) then
+          if ( associated(n4dd) ) then
+            p4dd%next => n4dd
+          else
+            l4dd => p4dd
+            p4dd%next => null()
+          end if
+        else
+          r4dd => n4dd
+        end if
+        deallocate(c4dd)
+        exit
+      end if
+      p4dd => c4dd
+      c4dd => c4dd%next
+    end do
+  end subroutine relmem4d_d
+
+  recursive subroutine finalize_pool4d_i(n)
+    type(pool4d_i) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool4d_i(n%next)
+    end if
+  end subroutine finalize_pool4d_i
+
+  recursive subroutine finalize_pool4d_l(n)
+    type(pool4d_l) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool4d_l(n%next)
+    end if
+  end subroutine finalize_pool4d_l
+
+  recursive subroutine finalize_pool4d_r(n)
+    type(pool4d_r) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool4d_r(n%next)
+    end if
+  end subroutine finalize_pool4d_r
+
+  recursive subroutine finalize_pool4d_d(n)
+    type(pool4d_d) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool4d_d(n%next)
+    end if
+  end subroutine finalize_pool4d_d
+
+  subroutine getmem5d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    logical , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(5) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    b(5) = bounds(l5,h5)
+    c5dl => l5dl
+    call getspc5d(c5dl%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c5dl%a%space
+    a(:,:,:,:,:) = .false.
+    allocate(c5dl%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c5dl%next')
+    l5dl => c5dl%next
+  end subroutine getmem5d_l
+
+  subroutine relmem5d_l(a)
+    logical , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p5dl => null()
+    c5dl => r5dl
+    do while ( associated(c5dl) )
+      n5dl => c5dl%next
+      if ( associated(a,c5dl%a%space) ) then
+        deallocate(c5dl%a%space)
+        a => null()
+        if ( associated(p5dl) ) then
+          if ( associated(n5dl) ) then
+            p5dl%next => n5dl
+          else
+            l5dl => p5dl
+            p5dl%next => null()
+          end if
+        else
+          r5dl => n5dl
+        end if
+        deallocate(c5dl)
+        exit
+      end if
+      p5dl => c5dl
+      c5dl => c5dl%next
+    end do
+  end subroutine relmem5d_l
+
+  subroutine getmem5d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    integer , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(5) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    b(5) = bounds(l5,h5)
+    c5di => l5di
+    call getspc5d(c5di%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c5di%a%space
+    a(:,:,:,:,:) = -1
+    allocate(c5di%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c5di%next')
+    l5di => c5di%next
+  end subroutine getmem5d_i
+
+  subroutine relmem5d_i(a)
+    integer , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p5di => null()
+    c5di => r5di
+    do while ( associated(c5di) )
+      n5di => c5di%next
+      if ( associated(a,c5di%a%space) ) then
+        deallocate(c5di%a%space)
+        a => null()
+        if ( associated(p5di) ) then
+          if ( associated(n5di) ) then
+            p5di%next => n5di
+          else
+            l5di => p5di
+            p5di%next => null()
+          end if
+        else
+          r5di => n5di
+        end if
+        deallocate(c5di)
+        exit
+      end if
+      p5di => c5di
+      c5di => c5di%next
+    end do
+  end subroutine relmem5d_i
+
+  subroutine getmem5d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(5) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    b(5) = bounds(l5,h5)
+    c5dr => l5dr
+    call getspc5d(c5dr%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c5dr%a%space
+    a(:,:,:,:,:) = 0.0
+    allocate(c5dr%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c5dr%next')
+    l5dr => c5dr%next
+  end subroutine getmem5d_r
+
+  subroutine relmem5d_r(a)
+    real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p5dr => null()
+    c5dr => r5dr
+    do while ( associated(c5dr) )
+      n5dr => c5dr%next
+      if ( associated(a,c5dr%a%space) ) then
+        deallocate(c5dr%a%space)
+        a => null()
+        if ( associated(p5dr) ) then
+          if ( associated(n5dr) ) then
+            p5dr%next => n5dr
+          else
+            l5dr => p5dr
+            p5dr%next => null()
+          end if
+        else
+          r5dr => n5dr
+        end if
+        deallocate(c5dr)
+        exit
+      end if
+      p5dr => c5dr
+      c5dr => c5dr%next
+    end do
+  end subroutine relmem5d_r
+
+  subroutine getmem5d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(5) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    b(5) = bounds(l5,h5)
+    c5dd => l5dd
+    call getspc5d(c5dd%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c5dd%a%space
+    a(:,:,:,:,:) = d_zero
+    allocate(c5dd%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c5dd%next')
+    l5dd => c5dd%next
+  end subroutine getmem5d_d
+
+  subroutine relmem5d_d(a)
+    real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p5dd => null()
+    c5dd => r5dd
+    do while ( associated(c5dd) )
+      n5dd => c5dd%next
+      if ( associated(a,c5dd%a%space) ) then
+        deallocate(c5dd%a%space)
+        a => null()
+        if ( associated(p5dd) ) then
+          if ( associated(n5dd) ) then
+            p5dd%next => n5dd
+          else
+            l5dd => p5dd
+            p5dd%next => null()
+          end if
+        else
+          r5dd => n5dd
+        end if
+        deallocate(c5dd)
+        exit
+      end if
+      p5dd => c5dd
+      c5dd => c5dd%next
+    end do
+  end subroutine relmem5d_d
+
+  recursive subroutine finalize_pool5d_i(n)
+    type(pool5d_i) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool5d_i(n%next)
+    end if
+  end subroutine finalize_pool5d_i
+
+  recursive subroutine finalize_pool5d_l(n)
+    type(pool5d_l) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool5d_l(n%next)
+    end if
+  end subroutine finalize_pool5d_l
+
+  recursive subroutine finalize_pool5d_r(n)
+    type(pool5d_r) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool5d_r(n%next)
+    end if
+  end subroutine finalize_pool5d_r
+
+  recursive subroutine finalize_pool5d_d(n)
+    type(pool5d_d) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool5d_d(n%next)
+    end if
+  end subroutine finalize_pool5d_d
 
   subroutine memory_destroy
-    implicit none
-    integer :: i , j
-    curr1d => root1d
-    do while ( associated(curr1d) )
-      if ( allocated(curr1d%space) ) then
-        call mall_mco(curr1d%space,'pool1d')
-        deallocate(curr1d%space)
-      end if
-      next1d => curr1d%next
-      deallocate(curr1d)
-      curr1d => next1d
-    end do
-    curr2d => root2d
-    do while ( associated(curr2d) )
-      if ( allocated(curr2d%space) ) then
-        call mall_mco(curr2d%space,'pool2d')
-        deallocate(curr2d%space)
-      end if
-      next2d => curr2d%next
-      deallocate(curr2d)
-      curr2d => next2d
-    end do
-    curr3d => root3d
-    do while ( associated(curr3d) )
-      if ( allocated(curr3d%space) ) then
-        call mall_mco(curr3d%space,'pool3d')
-        deallocate(curr3d%space)
-      end if
-      next3d => curr3d%next
-      deallocate(curr3d)
-      curr3d => next3d
-    end do
-    curr4d => root4d
-    do while ( associated(curr4d) )
-      if ( allocated(curr4d%space) ) then
-        do i = 1 , size(curr4d%space,1)
-          call mall_mco(curr4d%space(i,:,:,:),'pool4d')
-        end do
-        deallocate(curr4d%space)
-      end if
-      next4d => curr4d%next
-      deallocate(curr4d)
-      curr4d => next4d
-    end do
-    curr5d => root5d
-    do while ( associated(curr5d) )
-      if ( allocated(curr5d%space) ) then
-        do i = 1 , size(curr5d%space,1)
-          do j = 1 , size(curr5d%space,2)
-            call mall_mco(curr5d%space(i,j,:,:,:),'pool5d')
-          end do
-        end do
-        deallocate(curr5d%space)
-      end if
-      next5d => curr5d%next
-      deallocate(curr5d)
-      curr5d => next5d
-    end do
-    if (debug_level > 2 ) then
-      call mall_flush(stdout)
-      call mall_set(.false.)
-    end if
+    call finalize_pool1d_i(r1di)
+    call finalize_pool1d_l(r1dl)
+    call finalize_pool1d_r(r1dr)
+    call finalize_pool1d_d(r1dd)
+    call finalize_pool2d_i(r2di)
+    call finalize_pool2d_l(r2dl)
+    call finalize_pool2d_r(r2dr)
+    call finalize_pool2d_d(r2dd)
+    call finalize_pool3d_i(r3di)
+    call finalize_pool3d_l(r3dl)
+    call finalize_pool3d_r(r3dr)
+    call finalize_pool3d_d(r3dd)
+    call finalize_pool4d_i(r4di)
+    call finalize_pool4d_l(r4dl)
+    call finalize_pool4d_r(r4dr)
+    call finalize_pool4d_d(r4dd)
+    call finalize_pool5d_i(r5di)
+    call finalize_pool5d_l(r5dl)
+    call finalize_pool5d_r(r5dr)
+    call finalize_pool5d_d(r5dd)
   end subroutine memory_destroy
 
 end module mod_memutil

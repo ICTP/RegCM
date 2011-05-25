@@ -44,12 +44,12 @@
       subroutine allocate_mod_pbldim
         implicit none
 !        
-        call getmem2d(zq,iy,kzp1,'pbldim:zq')
-        call getmem3d(dzq,iy,kz,jxp,'pbldim:dzq')
-        call getmem3d(thvx,iy,kz,jxp,'pbldim:thvx')
-        call getmem3d(thx3d,iy,kz,jxp,'pbldim:thx3d')
-        call getmem3d(za,iy,kz,jxp,'pbldim:za')
-        call getmem2d(rhox2d,iy,jxp,'pbldim:rhox2d')
+        call getmem2d(zq,1,iy,1,kzp1,'pbldim:zq')
+        call getmem3d(dzq,1,iy,1,kz,1,jxp,'pbldim:dzq')
+        call getmem3d(thvx,1,iy,1,kz,1,jxp,'pbldim:thvx')
+        call getmem3d(thx3d,1,iy,1,kz,1,jxp,'pbldim:thx3d')
+        call getmem3d(za,1,iy,1,kz,1,jxp,'pbldim:za')
+        call getmem2d(rhox2d,1,iy,1,jxp,'pbldim:rhox2d')
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim
