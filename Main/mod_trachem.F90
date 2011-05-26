@@ -17,124 +17,91 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_trachem
+module mod_trachem
 
-      use mod_dynparam
-      use mod_runparams
+  use mod_dynparam
+  use mod_runparams
+  use mod_memutil
 
-      implicit none
+  implicit none
 !
-      integer , parameter :: maxntr = 20
-      integer , parameter :: maxnbin = 20
+  integer , parameter :: maxntr = 20
+  integer , parameter :: maxnbin = 20
 
-      character(5) , allocatable , dimension(:) :: chtrname
+  character(5) , allocatable , dimension(:) :: chtrname
 !
-      real(8) , allocatable , dimension(:,:) :: chtrdpv
-      real(8) , allocatable , dimension(:,:) :: chtrsize , dustbsiz
-      real(8) , allocatable , dimension(:) :: chtrsol
+  real(8) , pointer , dimension(:,:) :: chtrdpv
+  real(8) , pointer , dimension(:,:) :: chtrsize , dustbsiz
+  real(8) , pointer , dimension(:) :: chtrsol
 !
-      integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc ,        &
-               & ichsursrc
-      integer , allocatable, dimension(:,:) :: icumbot , icumdwd ,      &
-               & icumtop
+  integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
+  integer , pointer, dimension(:,:) :: icumbot , icumdwd , icumtop
 !
-      integer :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
-      integer , allocatable , dimension(:) :: idust
+  integer :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
+  integer , pointer , dimension(:) :: idust
 !
-      real(8) , allocatable , dimension(:,:) :: mflx
+  real(8) , pointer , dimension(:,:) :: mflx
 !
-      real(8) , allocatable , dimension(:,:,:) :: aerasp , aerext ,     &
-                                & aerssa
-      real(8) , allocatable , dimension(:,:) :: aersrrf , aertarf
-      real(8) , allocatable , dimension(:,:) :: aertalwrf , aersrlwrf 
+  real(8) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
+  real(8) , pointer , dimension(:,:) :: aersrrf , aertarf
+  real(8) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf 
 !
-      real(8) , allocatable , dimension(:,:,:) :: cemtr , cemtrac ,     &
-                        & remdrd
-      real(8) , allocatable , dimension(:,:) :: rembc , remrat
-      real(8) , allocatable , dimension(:,:,:,:) :: remcvc , remlsc ,   &
-                        & rxsaq1 , rxsaq2 , rxsg
+  real(8) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
+  real(8) , pointer , dimension(:,:) :: rembc , remrat
+  real(8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc ,   &
+                                            rxsaq1 , rxsaq2 , rxsg
 
-      contains
+  contains
 
-        subroutine allocate_mod_trachem
-        use mod_message , only : say , aline
-        implicit none
-        if ( ntr>maxntr ) then
-          write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', &
-                 maxntr
-          call say
-          ntr = maxntr
-        end if
-        if ( nbin>maxnbin ) then
-          write (aline , *) 'In mod_trachem, resetting nbin to maxbin ',&
-                 maxnbin
-          call say
-          nbin = maxnbin
-        end if
-        allocate(icumbot(iy,jxp))
-        allocate(icumdwd(iy,jxp))
-        allocate(icumtop(iy,jxp)) 
-        allocate(aerasp(iym1,kz,jxp))
-        allocate(aerext(iym1,kz,jxp))
-        allocate(aerssa(iym1,kz,jxp))
-        allocate(aersrrf(iym1,jxp))
-        allocate(aertalwrf(iym1,jxp))
-        allocate(aersrlwrf(iym1,jxp))
+    subroutine allocate_mod_trachem
+    use mod_message , only : say , aline
+    implicit none
+    if ( ntr>maxntr ) then
+      write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', &
+             maxntr
+      call say
+      ntr = maxntr
+    end if
+    if ( nbin>maxnbin ) then
+      write (aline , *) 'In mod_trachem, resetting nbin to maxbin ',&
+             maxnbin
+      call say
+      nbin = maxnbin
+    end if
 
-        allocate(aertarf(iym1,jxp))
-        if ( ichem == 1 ) then
-          allocate(cemtr(iy,jxp,ntr))
-          allocate(cemtrac(iy,jxp,ntr))
-          allocate(remdrd(iy,jxp,ntr))
-          allocate(remcvc(iy,kz,jxp,ntr))
-          allocate(remlsc(iy,kz,jxp,ntr))
-          allocate(rxsaq1(iy,kz,jxp,ntr))
-          allocate(rxsaq2(iy,kz,jxp,ntr))
-          allocate(rxsg(iy,kz,jxp,ntr))
-        end if
+    call getmem2d(icumbot,1,iy,1,jxp,'trachem:icumbot')
+    call getmem2d(icumdwd,1,iy,1,jxp,'trachem:icumdwd')
+    call getmem2d(icumtop,1,iy,1,jxp,'trachem:icumtop')
+    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'trachem:aerasp')
+    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'trachem:aerext')
+    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'trachem:aerssa')
+    call getmem2d(aersrrf,1,iym1,1,jxp,'trachem:aersrrf')
+    call getmem2d(aertalwrf,1,iym1,1,jxp,'trachem:aertalwrf')
+    call getmem2d(aersrlwrf,1,iym1,1,jxp,'trachem:aersrlwrf')
+    call getmem2d(aertarf,1,iym1,1,jxp,'trachem:aertarf')
 
-        icumbot = 0
-        icumdwd = 0
-        icumtop = 0
-        aerasp = 0.0D0
-        aerext = 0.0D0
-        aerssa = 0.0D0
-        aersrrf = 0.0D0
-        aertalwrf = 0.0D0
-        aersrlwrf = 0.0D0
+    if ( ichem == 1 ) then
+      call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'trachem:cemtr')
+      call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'trachem:cemtrac')
+      call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'trachem:remdrd')
+      call getmem4d(remcvc,1,iy,1,kz,1,jxp,1,ntr,'trachem:remcvc')
+      call getmem4d(remlsc,1,iy,1,kz,1,jxp,1,ntr,'trachem:remlsc')
+      call getmem4d(rxsaq1,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsaq1')
+      call getmem4d(rxsaq2,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsaq2')
+      call getmem4d(rxsg,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsg')
 
-        aertarf = 0.0D0
-        if ( ichem == 1 ) then
-          cemtr = 0.0D0
-          cemtrac = 0.0D0
-          remdrd = 0.0D0
-          remcvc = 0.0D0
-          remlsc = 0.0D0
-          rxsaq1 = 0.0D0
-          rxsaq2 = 0.0D0
-          rxsg = 0.0D0
-        end if
+      allocate(chtrname(ntr))
+      chtrname = ' '
 
-        if ( ichem == 1 ) then
-          allocate(chtrname(ntr))
-          chtrname = ' '
-          allocate(chtrdpv(ntr,2))
-          allocate(chtrsize(nbin,2))
-          allocate(chtrsol(ntr))
-          allocate(dustbsiz(nbin,2))
-          chtrdpv = 0.0D0
-          chtrsize = 0.0D0
-          chtrsol = 0.0D0
-          dustbsiz = 0.0D0
-          allocate(idust(nbin))
-          idust = 0
-        end if
-        allocate(mflx(iy,2))
-        allocate(rembc(iy,kz))
-        allocate(remrat(iy,kz))
-        mflx = 0.0D0
-        rembc = 0.0D0
-        remrat = 0.0D0
-        end subroutine allocate_mod_trachem
+      call getmem2d(chtrdpv,1,ntr,1,2,'trachem:chtrdpv')
+      call getmem2d(chtrsize,1,nbin,1,2,'trachem:chtrdpv')
+      call getmem1d(chtrsol,1,nbin,'trachem:chtrsol')
+      call getmem2d(dustbsiz,1,nbin,1,2,'trachem:dustbsiz')
+      call getmem1d(idust,1,nbin,'trachem:idust')
+    end if
+    call getmem2d(mflx,1,iy,1,2,'trachem:mflx')
+    call getmem2d(rembc,1,iy,1,kz,'trachem:rembc')
+    call getmem2d(remrat,1,iy,1,kz,'trachem:remrat')
+    end subroutine allocate_mod_trachem
 
-      end module mod_trachem
+end module mod_trachem

@@ -20,6 +20,7 @@
       module mod_vmodes
 
       use mod_runparams
+      use mod_memutil
       use mod_message
       use mod_service
       use linpack
@@ -36,41 +37,28 @@
       public :: hydroc , hydros
 
       real(8) :: xps , pd
-      real(8) , allocatable , dimension(:,:) :: a0 , a4
-      real(8) , allocatable , dimension(:) ::  hbar , sigmah , tbarh
-      real(8) , allocatable , dimension(:,:) :: zmatx , zmatxr
-      real(8) , allocatable , dimension(:,:) :: tau
-      real(8) , allocatable , dimension(:,:) :: varpa1
-      real(8) , allocatable , dimension(:,:) :: hydroc , hydros
+      real(8) , pointer , dimension(:,:) :: a0 , a4
+      real(8) , pointer , dimension(:) ::  hbar , sigmah , tbarh
+      real(8) , pointer , dimension(:,:) :: zmatx , zmatxr
+      real(8) , pointer , dimension(:,:) :: tau
+      real(8) , pointer , dimension(:,:) :: varpa1
+      real(8) , pointer , dimension(:,:) :: hydroc , hydros
 !
-
       contains
 
       subroutine allocate_mod_vmodes
         implicit none
-        allocate(a0(kz,kz))
-        allocate(a4(kz,kz))
-        allocate(hbar(kz))
-        allocate(sigmah(kzp1))
-        allocate(tbarh(kz))
-        allocate(zmatx(kz,kz))
-        allocate(zmatxr(kz,kz))
-        allocate(tau(kz,kz))
-        allocate(varpa1(kz,kzp1))
-        allocate(hydroc(kz,kzp1))
-        allocate(hydros(kz,kz))
-        a0 = d_zero
-        a4 = d_zero
-        hbar = d_zero
-        sigmah = d_zero
-        tbarh = d_zero
-        zmatx = d_zero
-        zmatxr = d_zero
-        tau = d_zero
-        varpa1 = d_zero
-        hydroc = d_zero
-        hydros = d_zero
-
+        call getmem2d(a0,1,kz,1,kz,'vmodes:a0')
+        call getmem2d(a4,1,kz,1,kz,'vmodes:a4')
+        call getmem1d(hbar,1,kz,'vmodes:hbar')
+        call getmem1d(sigmah,1,kzp1,'vmodes:sigmah')
+        call getmem1d(tbarh,1,kz,'vmodes:tbarh')
+        call getmem2d(zmatx,1,kz,1,kz,'vmodes:zmatx')
+        call getmem2d(zmatxr,1,kz,1,kz,'vmodes:zmatxr')
+        call getmem2d(tau,1,kz,1,kz,'vmodes:tau')
+        call getmem2d(varpa1,1,kz,1,kzp1,'vmodes:varpa1')
+        call getmem2d(hydroc,1,kz,1,kzp1,'vmodes:hydroc')
+        call getmem2d(hydros,1,kz,1,kz,'vmodes:hydros')
       end subroutine allocate_mod_vmodes
 
       subroutine vmodes(lstand,sigmaf,kv1)

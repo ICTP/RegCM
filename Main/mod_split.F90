@@ -28,6 +28,7 @@
       use mod_main
       use mod_date
       use mod_savefile
+      use mod_memutil
       use mod_service
 !
       private
@@ -36,56 +37,43 @@
       public :: uuu , vvv
       public :: am , an
 !
-      real(8) , allocatable , dimension(:) :: aam
-      real(8) , allocatable , dimension(:) :: an
-      real(8) , allocatable , dimension(:,:) :: am
-      real(8) , allocatable , dimension(:,:,:) :: uuu , vvv
+      real(8) , pointer , dimension(:) :: aam
+      real(8) , pointer , dimension(:) :: an
+      real(8) , pointer , dimension(:,:) :: am
+      real(8) , pointer , dimension(:,:,:) :: uuu , vvv
 !
-      real(8) , allocatable , dimension(:,:,:) :: ddsum
-      real(8) , allocatable , dimension(:,:,:,:) :: deld
-      real(8) , allocatable , dimension(:,:,:,:) :: delh
-      real(8) , allocatable , dimension(:,:,:) :: dhsum
-      real(8) , allocatable , dimension(:,:) :: psdot
-      real(8) , allocatable , dimension(:,:,:) :: work
-      real(8) , allocatable , dimension(:,:) :: uu , vv
+      real(8) , pointer , dimension(:,:,:) :: ddsum
+      real(8) , pointer , dimension(:,:,:,:) :: deld
+      real(8) , pointer , dimension(:,:,:,:) :: delh
+      real(8) , pointer , dimension(:,:,:) :: dhsum
+      real(8) , pointer , dimension(:,:) :: psdot
+      real(8) , pointer , dimension(:,:,:) :: work
+      real(8) , pointer , dimension(:,:) :: uu , vv
 !
       contains 
 !
       subroutine allocate_mod_split
-      implicit none
-      character (len=50) :: subroutine_name='allocate_mod_split'
-      integer :: idindx = 0
+        implicit none
+        character (len=50) :: subroutine_name='allocate_mod_split'
+        integer :: idindx = 0
 !
-      call time_begin(subroutine_name,idindx)
+        call time_begin(subroutine_name,idindx)
         call allocate_mod_vmodes
-        allocate(aam(nsplit))
-        allocate(am(kz,nsplit))
-        allocate(an(nsplit))
-        allocate(ddsum(iy,jxp,nsplit))
-        allocate(deld(iy,jxp,nsplit,3))
-        allocate(delh(iy,0:jxp,nsplit,3))
-        allocate(dhsum(iy,0:jxp,nsplit))
-        allocate(psdot(iy,jxp))
-        allocate(work(iy,jxp,3))
-        allocate(uu(iy,jxp+1))
-        allocate(vv(iy,jxp+1))
-        allocate(uuu(iy,kz,jxp+1))
-        allocate(vvv(iy,kz,jxp+1))
-        aam = d_zero
-        am = d_zero
-        an = d_zero
-        ddsum = d_zero
-        deld = d_zero
-        delh = d_zero
-        dhsum = d_zero
-        psdot = d_zero
-        work = d_zero
-        uu = d_zero
-        vv = d_zero
-        uuu = d_zero
-        vvv = d_zero
+        call getmem1d(aam,1,nsplit,'split:aam')
+        call getmem2d(am,1,kz,1,nsplit,'split:am')
+        call getmem1d(an,1,nsplit,'split:naam')
+        call getmem3d(ddsum,1,iy,1,jxp,1,nsplit,'split:ddsum')
+        call getmem4d(deld,1,iy,1,jxp,1,nsplit,1,3,'split:deld')
+        call getmem4d(delh,1,iy,0,jxp,1,nsplit,1,3,'split:delh')
+        call getmem3d(dhsum,1,iy,0,jxp,1,nsplit,'split:dhsum')
+        call getmem2d(psdot,1,iy,0,jxp,'split:psdot')
+        call getmem3d(work,1,iy,1,jxp,1,3,'split:work')
+        call getmem2d(uu,1,iy,1,jxp+1,'split:uu')
+        call getmem2d(vv,1,iy,1,jxp+1,'split:vv')
+        call getmem3d(uuu,1,iy,1,kz,1,jxp+1,'split:uuu')
+        call getmem3d(vvv,1,iy,1,kz,1,jxp+1,'split:vvv')
         call time_end(subroutine_name,idindx)
-        end subroutine allocate_mod_split
+      end subroutine allocate_mod_split
 !
 ! Intial computation of vertical modes.
 !
