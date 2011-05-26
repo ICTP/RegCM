@@ -1084,7 +1084,7 @@
 !       ******   limit bl height to be at least mech. mixing depth
         do i = 2 , iym1
 !         ******   limit coriolis parameter to value at 10 deg. latitude
-          pfcor = dmax1(dabs(mddom%f(i,j)),2.546D-5)
+          pfcor = dmax1(dabs(mddom%coriol(i,j)),2.546D-5)
 !         ******   compute mechanical mixing depth,
 !         ******   set to lowest model level if lower
           phpblm = 0.07D0*ustr(i,j)/pfcor

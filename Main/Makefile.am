@@ -169,9 +169,9 @@ endif
 mod_lake.o: mod_lake.F90 mod_bats.o mod_runparams.o mod_dynparam.o mod_mppio.o
 mod_leaftemp.o: mod_leaftemp.f90 mod_constants.o mod_bats.o \
                 mod_runparams.o mod_dynparam.o
-mod_main.o: mod_main.f90 mod_dynparam.o mod_runparams.o
+mod_main.o: mod_main.f90 mod_dynparam.o mod_runparams.o mod_memutil.o
 mod_mainchem.o: mod_mainchem.f90 mod_dynparam.o mod_runparams.o
-mod_memutil.o: mod_memutil.F90 mod_dynparam.o mod_constants.o
+mod_memutil.o: mod_memutil.F90 mod_dynparam.o mod_constants.o mod_space.o
 mod_message.o: mod_message.f90 mod_dynparam.o
 mod_mppio.o: mod_mppio.F90 mod_dynparam.o mod_message.o mod_runparams.o \
 	           mod_main.o mod_outrad.o

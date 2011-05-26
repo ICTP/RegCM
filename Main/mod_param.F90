@@ -966,20 +966,20 @@ module mod_param
   call say
 
   if ( myid == 0 ) then
-    call read_domain(mddom_io%ht,mddom_io%satbrt, &
-                     mddom_io%xlat,mddom_io%xlong,mddom_io%msfx,&
-                     mddom_io%msfd,mddom_io%f)
+    call read_domain(mddom_io%ht,mddom_io%lndcat, &
+                     mddom_io%xlat,mddom_io%xlon,mddom_io%msfx,&
+                     mddom_io%msfd,mddom_io%coriol)
     if ( nsg > 1 ) then
-      call read_subdomain(ht1_io,satbrt1_io,xlat1_io,xlon1_io)
+      call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
       if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
     else
       if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
       do j = 1 , jx
         do i = 1 , iy
           ht1_io(1,i,j) = mddom_io%ht(i,j)*egrav
-          satbrt1_io(1,i,j) = mddom_io%satbrt(i,j)
+          lndcat1_io(1,i,j) = mddom_io%lndcat(i,j)
           xlat1_io(1,i,j) = mddom_io%xlat(i,j)
-          xlon1_io(1,i,j) = mddom_io%xlong(i,j)
+          xlon1_io(1,i,j) = mddom_io%xlon(i,j)
         end do
       end do
     end if
@@ -998,17 +998,17 @@ module mod_param
     do j = 1 , jx
       do i = 1 , iy
         inisrf_0(i,1,j) = mddom_io%ht(i,j)
-        inisrf_0(i,2,j) = mddom_io%satbrt(i,j)
+        inisrf_0(i,2,j) = mddom_io%lndcat(i,j)
         inisrf_0(i,3,j) = mddom_io%xlat(i,j)
-        inisrf_0(i,4,j) = mddom_io%xlong(i,j)
+        inisrf_0(i,4,j) = mddom_io%xlon(i,j)
         inisrf_0(i,5,j) = mddom_io%msfx(i,j)
         inisrf_0(i,6,j) = mddom_io%msfd(i,j)
-        inisrf_0(i,7,j) = mddom_io%f(i,j)
+        inisrf_0(i,7,j) = mddom_io%coriol(i,j)
       end do
       do n = 1 , nnsg
         do i = 1 , iy
           inisrf_0(i,7+n,j) = ht1_io(n,i,j)
-          inisrf_0(i,7+nnsg+n,j) = satbrt1_io(n,i,j)
+          inisrf_0(i,7+nnsg+n,j) = lndcat1_io(n,i,j)
           inisrf_0(i,7+nnsg*2+n,j) = xlat1_io(n,i,j)
           inisrf_0(i,7+nnsg*3+n,j) = xlon1_io(n,i,j)
         end do
@@ -1029,17 +1029,17 @@ module mod_param
   do j = 1 , jxp
     do i = 1 , iy
       mddom%ht(i,j) = inisrf0(i,1,j)
-      mddom%satbrt(i,j) = inisrf0(i,2,j)
+      mddom%lndcat(i,j) = inisrf0(i,2,j)
       mddom%xlat(i,j) = inisrf0(i,3,j)
-      mddom%xlong(i,j) = inisrf0(i,4,j)
+      mddom%xlon(i,j) = inisrf0(i,4,j)
       mddom%msfx(i,j) = inisrf0(i,5,j)
       mddom%msfd(i,j) = inisrf0(i,6,j)
-      mddom%f(i,j) = inisrf0(i,7,j)
+      mddom%coriol(i,j) = inisrf0(i,7,j)
     end do
     do n = 1 , nnsg
       do i = 1 , iy
         ht1(n,i,j) = inisrf0(i,7+n,j)
-        satbrt1(n,i,j) = inisrf0(i,7+nnsg+n,j)
+        lndcat1(n,i,j) = inisrf0(i,7+nnsg+n,j)
         xlat1(n,i,j) = inisrf0(i,7+nnsg*2+n,j)
         xlon1(n,i,j) = inisrf0(i,7+nnsg*3+n,j)
       end do
@@ -1094,8 +1094,8 @@ module mod_param
 !
       do j = 1 , jendx
         do i = 1 , iym1
-          if ( mddom%satbrt(i,j) > 13.5D0 .and. &
-               mddom%satbrt(i,j) < 15.5D0 ) then
+          if ( mddom%lndcat(i,j) > 13.5D0 .and. &
+               mddom%lndcat(i,j) < 15.5D0 ) then
             ldmsk(i,j) = 0
             do n = 1, nnsg
               ocld2d(n,i,j) = 0
@@ -1249,20 +1249,20 @@ module mod_param
     write (aline,*) 'Variable cumulus scheme: will use Grell '// &
          'over land and Emanuel over ocean.'
     call say
-    where ( mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0 )
-      cumcon%cuscheme = 4
+    where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
+      cucontrol = 4
     elsewhere
-      cumcon%cuscheme = 2
+      cucontrol = 2
     end where
   end if
   if (icup == 98) then
     write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
          'over land and Grell over ocean.'
     call say
-    where ( mddom%satbrt > 14.5D0 .and. mddom%satbrt < 15.5D0 )
-      cumcon%cuscheme = 2
+    where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
+      cucontrol = 2
     elsewhere
-      cumcon%cuscheme = 4
+      cucontrol = 4
     end where
   end if
 
@@ -1328,8 +1328,8 @@ module mod_param
     call say
     do j = 1 , jendx
       do i = 1 , iym1
-        if ( mddom%satbrt(i,j) > 14.5D0 .and. &
-             mddom%satbrt(i,j) < 15.5D0) then
+        if ( mddom%lndcat(i,j) > 14.5D0 .and. &
+             mddom%lndcat(i,j) < 15.5D0) then
           shrmax2d(i,j) = shrmax_ocn
           shrmin2d(i,j) = shrmin_ocn
           edtmax2d(i,j) = edtmax_ocn

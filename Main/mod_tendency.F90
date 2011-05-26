@@ -1179,8 +1179,8 @@
                    atm2%u(i,k,j)   - atm2%u(i,k,jp1)
             dvdy = atm2%v(i+1,k,j) + atm2%v(i+1,k,jp1) - &
                    atm2%v(i,k,j)   - atm2%v(i,k,jp1)
-!fil        cell=(xkhz*domfc%hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
-            cell = (xkhz*domfc%hgfact(i,j)                         &
+!fil        cell=(xkhz*hgfact(i,j)/5.+c200*dsqrt((dudx-dvdy)*(dudx-dvdy)
+            cell = (xkhz*hgfact(i,j)                         &
                  & +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy) &
                  & *(dvdx+dudy)))
             xkc(i,k,j) = dmin1(cell,xkhmax)
@@ -1628,9 +1628,9 @@
         do k = 1 , kz
           do i = 2 , iym1
             aten%u(i,k,j) = aten%u(i,k,j) + &
-                         mddom%f(i,j)*atm1%v(i,k,j)/mddom%msfd(i,j)
+                         mddom%coriol(i,j)*atm1%v(i,k,j)/mddom%msfd(i,j)
             aten%v(i,k,j) = aten%v(i,k,j) - &
-                         mddom%f(i,j)*atm1%u(i,k,j)/mddom%msfd(i,j)
+                         mddom%coriol(i,j)*atm1%u(i,k,j)/mddom%msfd(i,j)
           end do
         end do
       end do
@@ -1871,7 +1871,7 @@
         do k = 1 , kz
           do j = 1 , jendx
             do i = 1 , iym1
-              aermm(i,k,j) = sulf%so4(i,k,j)
+              aermm(i,k,j) = sulfate(i,k,j)
             end do
           end do
         end do

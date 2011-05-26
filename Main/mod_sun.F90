@@ -155,7 +155,7 @@
            &            r2cobliqr,declinp1,r2ceccf)
       do ill = 1 , ivmx
         xxlat = mddom%xlat(ill,jslc)*degrad
-        xxlon = mddom%xlong(ill,jslc)*degrad
+        xxlon = mddom%xlon(ill,jslc)*degrad
         coszrs(ill) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
         coszrs(ill) = dmax1(0.0D0,coszrs(ill))
         coszrs(ill) = dmin1(1.0D0,coszrs(ill))
@@ -163,7 +163,7 @@
 #else
       xt24 = dmod(lhour*minph+xtime,minpd)
       do ill = 1 , ivmx
-        tlocap = xt24/minph + mddom%xlong(ill,jslc)/15.0D0
+        tlocap = xt24/minph + mddom%xlon(ill,jslc)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
         omga = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad

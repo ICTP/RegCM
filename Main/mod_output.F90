@@ -1030,8 +1030,8 @@
               end do
             end do
           end if
-          call mpi_gather(satbrt2d,   iy*jxp,mpi_real8, &
-                        & satbrt2d_io,iy*jxp,mpi_real8, &
+          call mpi_gather(lndcat2d,   iy*jxp,mpi_real8, &
+                        & lndcat2d_io,iy*jxp,mpi_real8, &
                         & 0,mpi_comm_world,ierr)
 #endif
           do j = 1 , jendx
@@ -1239,8 +1239,8 @@
           do j = 1 , jendl
             do n = 1 , nsplit
               do i = 1 , iy
-                sav0d(i,n,j) = spsav%dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
+                sav0d(i,n,j)        = dstor(i,j,n)
+                sav0d(i,n+nsplit,j) = hstor(i,j,n)
               end do
             end do
           end do

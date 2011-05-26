@@ -20,84 +20,65 @@
       module mod_main
 !
       use mod_runparams
+      use mod_memutil
+
+      private
+
 !
 ! Storage for all the 3d prognostic variables in two
 !     timesteps and all the 2d variables and constants
 !
       type domain
-        real(8) , allocatable , dimension(:,:) :: ht
-        real(8) , allocatable , dimension(:,:) :: satbrt
-        real(8) , allocatable , dimension(:,:) :: xlat
-        real(8) , allocatable , dimension(:,:) :: xlong
-        real(8) , allocatable , dimension(:,:) :: msfx
-        real(8) , allocatable , dimension(:,:) :: msfd
-        real(8) , allocatable , dimension(:,:) :: f
+        real(8) , pointer , dimension(:,:) :: ht
+        real(8) , pointer , dimension(:,:) :: lndcat
+        real(8) , pointer , dimension(:,:) :: xlat
+        real(8) , pointer , dimension(:,:) :: xlon
+        real(8) , pointer , dimension(:,:) :: msfx
+        real(8) , pointer , dimension(:,:) :: msfd
+        real(8) , pointer , dimension(:,:) :: coriol
       end type domain
 
       type atmstate
-        real(8) , allocatable , dimension(:,:,:) :: u
-        real(8) , allocatable , dimension(:,:,:) :: v
-        real(8) , allocatable , dimension(:,:,:) :: t
-        real(8) , allocatable , dimension(:,:,:) :: qv
-        real(8) , allocatable , dimension(:,:,:) :: qc
+        real(8) , pointer , dimension(:,:,:) :: u
+        real(8) , pointer , dimension(:,:,:) :: v
+        real(8) , pointer , dimension(:,:,:) :: t
+        real(8) , pointer , dimension(:,:,:) :: qv
+        real(8) , pointer , dimension(:,:,:) :: qc
       end type atmstate
 
       type surfpstate
-        real(8) , allocatable , dimension(:,:) :: ps
-        real(8) , allocatable , dimension(:,:) :: pdot
+        real(8) , pointer , dimension(:,:) :: ps
+        real(8) , pointer , dimension(:,:) :: pdot
       end type surfpstate
 
       type surftstate
-        real(8) , allocatable , dimension(:,:) :: tg
+        real(8) , pointer , dimension(:,:) :: tg
       end type surftstate
 
-      type domfact
-        real(8) , allocatable , dimension(:,:) :: hgfact
-      end type domfact
-
       type surfstate
-        real(8) , allocatable , dimension(:,:) :: rainc
-        real(8) , allocatable , dimension(:,:) :: rainnc
-        real(8) , allocatable , dimension(:,:) :: hfx
-        real(8) , allocatable , dimension(:,:) :: qfx
-        real(8) , allocatable , dimension(:,:) :: tgbb
-        real(8) , allocatable , dimension(:,:) :: zpbl
-        real(8) , allocatable , dimension(:,:) :: uvdrag
+        real(8) , pointer , dimension(:,:) :: rainc
+        real(8) , pointer , dimension(:,:) :: rainnc
+        real(8) , pointer , dimension(:,:) :: hfx
+        real(8) , pointer , dimension(:,:) :: qfx
+        real(8) , pointer , dimension(:,:) :: tgbb
+        real(8) , pointer , dimension(:,:) :: zpbl
+        real(8) , pointer , dimension(:,:) :: uvdrag
       end type surfstate
-
-      type sulfate
-        real(8) , allocatable , dimension(:,:,:) :: so4
-      end type sulfate
-
-      type splitsave
-        real(8) , allocatable, dimension(:,:,:) :: dstor
-        real(8) , allocatable, dimension(:,:,:) :: hstor
-      end type splitsave
-
-      type grellwinds
-        real(8) , allocatable , dimension(:,:) :: usk
-        real(8) , allocatable , dimension(:,:) :: vsk
-      end type grellwinds
-
-      type cumcontrol
-        integer , allocatable , dimension(:,:) :: cuscheme
-      end type cumcontrol
 
       type(domain) , public :: mddom
       type(atmstate) , public :: atm1 , atm2
       type(surfpstate) , public :: sps1 , sps2
       type(surftstate) , public :: sts1 , sts2
       type(surfstate) , public :: sfsta
-      type(sulfate) , public :: sulf
-      type(splitsave) , public :: spsav
-      type(domfact) , public :: domfc
-      type(grellwinds) , public :: gwnd
-      type(cumcontrol), public :: cumcon
 
       public :: atmstate , domain
       public :: allocate_mod_main , allocate_atmstate , allocate_domain
 
-!     private
+      real(8) , public , pointer , dimension(:,:) :: hgfact
+      integer , public , pointer , dimension(:,:) :: cucontrol
+      real(8) , public , pointer , dimension(:,:,:) :: sulfate
+      real(8) , public , pointer, dimension(:,:,:) :: dstor
+      real(8) , public , pointer, dimension(:,:,:) :: hstor
 !
       contains
 !
@@ -112,50 +93,31 @@
             ie = iy+ib
             js = 1-jb
             je = jxp+jb
-            allocate(atm%u(is:ie,kz,js:je))
-            allocate(atm%v(is:ie,kz,js:je))
-            allocate(atm%t(is:ie,kz,js:je))
-            allocate(atm%qv(is:ie,kz,js:je))
-            allocate(atm%qc(is:ie,kz,js:je))
+            call getmem3d(atm%u,is,ie,1,kz,js,je,'atmstate:u')
+            call getmem3d(atm%v,is,ie,1,kz,js,je,'atmstate:v')
+            call getmem3d(atm%t,is,ie,1,kz,js,je,'atmstate:t')
+            call getmem3d(atm%qv,is,ie,1,kz,js,je,'atmstate:qv')
+            call getmem3d(atm%qc,is,ie,1,kz,js,je,'atmstate:qc')
           else
-            allocate(atm%u(iy,kz,jx))
-            allocate(atm%v(iy,kz,jx))
-            allocate(atm%t(iy,kz,jx))
-            allocate(atm%qv(iy,kz,jx))
-            allocate(atm%qc(iy,kz,jx))
+            call getmem3d(atm%u,1,iy,1,kz,1,jx,'atmstate:u')
+            call getmem3d(atm%v,1,iy,1,kz,1,jx,'atmstate:v')
+            call getmem3d(atm%t,1,iy,1,kz,1,jx,'atmstate:t')
+            call getmem3d(atm%qv,1,iy,1,kz,1,jx,'atmstate:qv')
+            call getmem3d(atm%qc,1,iy,1,kz,1,jx,'atmstate:qc')
           end if
-          atm%u  = d_zero
-          atm%v  = d_zero
-          atm%t  = d_zero
-          atm%qv = d_zero
-          atm%qc = d_zero
         end subroutine allocate_atmstate
 !
-        subroutine allocate_surfpstate(sps,lpar)
+        subroutine allocate_surfpstate(sps)
           implicit none
-          logical , intent(in) :: lpar
           type(surfpstate) , intent(out) :: sps
-          if (lpar) then
-            allocate(sps%ps(iy,-1:jxp+2))
-            allocate(sps%pdot(iy,-1:jxp+2))
-          else
-            allocate(sps%ps(iy,jx))
-            allocate(sps%pdot(iy,jx))
-          endif
-          sps%ps = d_zero
-          sps%pdot = d_zero
+          call getmem2d(sps%ps,1,iy,-1,jxp+2,'surfpstate:ps')
+          call getmem2d(sps%pdot,1,iy,-1,jxp+2,'surfpstate:pdot')
         end subroutine allocate_surfpstate
 !
-        subroutine allocate_surftstate(sts,lpar)
+        subroutine allocate_surftstate(sts)
           implicit none
-          logical , intent(in) :: lpar
           type(surftstate) , intent(out) :: sts
-          if (lpar) then
-            allocate(sts%tg(iy,jxp+1))
-          else
-            allocate(sts%tg(iy,jx))
-          endif
-          sts%tg = d_zero
+          call getmem2d(sts%tg,1,iy,1,jxp+1,'surftstate:tg')
         end subroutine allocate_surftstate
 !
         subroutine allocate_domain(dom,lpar)
@@ -164,103 +126,58 @@
           type(domain) , intent(out) :: dom
 
           if (lpar) then
-            allocate(dom%ht(iy,0:jxp+1))
-            allocate(dom%satbrt(iy,jxp)) 
-            allocate(dom%xlat(iy,jxp))
-            allocate(dom%xlong(iy,jxp))
-            allocate(dom%msfx(iy,-1:jxp+2))
-            allocate(dom%msfd(iy,-1:jxp+2))
-            allocate(dom%f(iy,jxp))
+            call getmem2d(dom%ht,1,iy,0,jxp+1,'domain:ht')
+            call getmem2d(dom%lndcat,1,iy,1,jxp,'domain:lndcat')
+            call getmem2d(dom%xlat,1,iy,1,jxp,'domain:xlat')
+            call getmem2d(dom%xlon,1,iy,1,jxp,'domain:xlon')
+            call getmem2d(dom%msfx,1,iy,-1,jxp+2,'domain:msfx')
+            call getmem2d(dom%msfd,1,iy,-1,jxp+2,'domain:msfd')
+            call getmem2d(dom%coriol,1,iy,1,jxp,'domain:f')
           else
-            allocate(dom%ht(iy,jx))
-            allocate(dom%satbrt(iy,jx)) 
-            allocate(dom%xlat(iy,jx))
-            allocate(dom%xlong(iy,jx))
-            allocate(dom%msfx(iy,jx))
-            allocate(dom%msfd(iy,jx))
-            allocate(dom%f(iy,jx))
+            call getmem2d(dom%ht,1,iy,1,jx,'domain:ht')
+            call getmem2d(dom%lndcat,1,iy,1,jx,'domain:lndcat')
+            call getmem2d(dom%xlat,1,iy,1,jx,'domain:xlat')
+            call getmem2d(dom%xlon,1,iy,1,jx,'domain:xlon')
+            call getmem2d(dom%msfx,1,iy,1,jx,'domain:msfx')
+            call getmem2d(dom%msfd,1,iy,1,jx,'domain:msfd')
+            call getmem2d(dom%coriol,1,iy,1,jx,'domain:f')
           end if
-          dom%ht = d_zero
-          dom%satbrt = d_zero
-          dom%xlat = d_zero
-          dom%xlong = d_zero
-          dom%msfx = d_zero
-          dom%msfd = d_zero
-          dom%f = d_zero
         end subroutine allocate_domain
 !
-        subroutine allocate_domfact(dfa,lpar)
+        subroutine allocate_surfstate(sfs)
           implicit none
-          logical , intent(in) :: lpar
-          type(domfact) , intent(out) :: dfa
-          if (lpar) then
-            allocate(dfa%hgfact(iy,jxp))
-          else
-            allocate(dfa%hgfact(iy,jx))
-          end if
-          dfa%hgfact = d_zero
-        end subroutine allocate_domfact
-!
-        subroutine allocate_cumcontrol(cc)
-          implicit none
-          type(cumcontrol) , intent(out) :: cc
-          allocate(cc%cuscheme(iy,jxp))
-          cc%cuscheme(:,:) = -1
-        end subroutine allocate_cumcontrol
-
-        subroutine allocate_surfstate(sfs,lpar)
-          implicit none
-          logical , intent(in) :: lpar
           type(surfstate) , intent(out) :: sfs
-          if (lpar) then
-            allocate(sfs%hfx(iy,jxp))
-            allocate(sfs%qfx(iy,jxp))
-            allocate(sfs%rainc(iy,jxp))
-            allocate(sfs%rainnc(iy,jxp))
-            allocate(sfs%tgbb(iy,jxp))
-            allocate(sfs%zpbl(iy,jxp))
-            allocate(sfs%uvdrag(iy,0:jxp))
-          else
-            allocate(sfs%hfx(iy,jx))
-            allocate(sfs%qfx(iy,jx))
-            allocate(sfs%rainc(iy,jx))
-            allocate(sfs%rainnc(iy,jx))
-            allocate(sfs%tgbb(iy,jx))
-            allocate(sfs%zpbl(iy,jx))
-            allocate(sfs%uvdrag(iy,jx))
-          end if
-          sfs%hfx = d_zero
-          sfs%qfx = d_zero
-          sfs%rainc = d_zero
-          sfs%rainnc = d_zero
-          sfs%tgbb = d_zero
-          sfs%zpbl = d_zero
-          sfs%uvdrag = d_zero
+          call getmem2d(sfs%hfx,1,iy,1,jxp,'surfstate:hfx')
+          call getmem2d(sfs%qfx,1,iy,1,jxp,'surfstate:qfx')
+          call getmem2d(sfs%rainc,1,iy,1,jxp,'surfstate:rainc')
+          call getmem2d(sfs%rainnc,1,iy,1,jxp,'surfstate:rainnc')
+          call getmem2d(sfs%tgbb,1,iy,1,jxp,'surfstate:tgbb')
+          call getmem2d(sfs%zpbl,1,iy,1,jxp,'surfstate:zpbl')
+          call getmem2d(sfs%uvdrag,1,iy,0,jxp,'surfstate:uvdrag')
         end subroutine allocate_surfstate
 
         subroutine allocate_mod_main
         implicit none
 
         call allocate_domain(mddom,.true.)
-        call allocate_domfact(domfc,.true.)
+        call getmem2d(hgfact,1,iy,1,jxp,'main:hgfact')
         call allocate_atmstate(atm1,.true.,0,2)
-        call allocate_surfpstate(sps1,.true.)
-        call allocate_surftstate(sts1,.true.)
+        call allocate_surfpstate(sps1)
+        call allocate_surftstate(sts1)
         call allocate_atmstate(atm2,.true.,0,2)
-        call allocate_surfpstate(sps2,.true.)
-        call allocate_surftstate(sts2,.true.)
-        call allocate_surfstate(sfsta,.true.)
+        call allocate_surfpstate(sps2)
+        call allocate_surftstate(sts2)
+        call allocate_surfstate(sfsta)
         if (icup == 99 .or. icup == 98) then
-          call allocate_cumcontrol(cumcon)
+          call getmem2d(cucontrol,1,iy,1,jxp,'main:cucontrol')
         end if
 
-        allocate(sulf%so4(iy,kz,jxp))
-        allocate(spsav%dstor(iy,0:jxp+1,nsplit))
-        allocate(spsav%hstor(iy,0:jxp+1,nsplit))
+        if ( ehso4 ) then
+          call getmem3d(sulfate,1,iy,1,kz,1,jxp,'main:sulfate')
+        end if
 
-        sulf%so4 = d_zero
-        spsav%dstor = d_zero
-        spsav%hstor = d_zero
+        call getmem3d(dstor,1,iy,0,jxp+1,1,nsplit,'main:dstor')
+        call getmem3d(hstor,1,iy,0,jxp+1,1,nsplit,'main:hstor')
 !
         end subroutine allocate_mod_main 
 !

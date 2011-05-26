@@ -87,7 +87,7 @@
            sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d , &
            taf2d , tg2d , tgb2d , tlef2d
 !
-      real(8) ,allocatable, dimension(:,:,:) :: ht1 , satbrt1 , xlat1 , &
+      real(8) ,allocatable, dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , &
                                              &  xlon1
 !
       real(4) , target , allocatable, dimension(:,:,:) :: fbat
@@ -175,11 +175,11 @@
         call getmem3d(tlef2d,1,nnsg,1,iym1,1,jxp,'bats:tlef2d')
 
         allocate(ht1(nnsg,iy,jxp))
-        allocate(satbrt1(nnsg,iy,jxp))
+        allocate(lndcat1(nnsg,iy,jxp))
         allocate(xlat1(nnsg,iy,jxp))
         allocate(xlon1(nnsg,iy,jxp))
         ht1 = d_zero
-        satbrt1 = d_zero
+        lndcat1 = d_zero
         xlat1 = d_zero
         xlon1 = d_zero
 

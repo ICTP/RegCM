@@ -132,7 +132,7 @@
             read (iutrst) aldirl2d_io
             read (iutrst) aldifs2d_io
             read (iutrst) aldifl2d_io
-            read (iutrst) satbrt2d_io
+            read (iutrst) lndcat2d_io
 #endif
             read (iutrst) sol2d_io
             read (iutrst) solvd2d_io
@@ -290,7 +290,7 @@
             write (iutsav) aldirl2d_io
             write (iutsav) aldifs2d_io
             write (iutsav) aldifl2d_io
-            write (iutsav) satbrt2d_io
+            write (iutsav) lndcat2d_io
 #endif
             write (iutsav) sol2d_io
             write (iutsav) solvd2d_io

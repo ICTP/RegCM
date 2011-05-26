@@ -226,11 +226,11 @@
         do ill = 1 , iym1
           pptnc(ill,jll) = d_zero
           pptc(ill,jll) = d_zero
-          veg2d(ill,jll) = idnint(mddom%satbrt(ill,jll)+0.1D0)
+          veg2d(ill,jll) = idnint(mddom%lndcat(ill,jll)+0.1D0)
         end do
         do ill = 1 , iym1
           do k = 1 , nnsg
-            veg2d1(k,ill,jll) = idnint(satbrt1(k,ill,jll)+0.1D0)
+            veg2d1(k,ill,jll) = idnint(lndcat1(k,ill,jll)+0.1D0)
           end do
         end do
       end do
@@ -262,7 +262,7 @@
               nlveg = veg2d1(k,ill,jll)
             end if
 !           ******  initialize soil moisture in the 3 layers
-            is = idint(satbrt1(k,ill,jll))
+            is = idint(lndcat1(k,ill,jll))
             itex = iexsol(nlveg)
             swt2d(k,ill,jll) = deptv(nlveg)*xmopor(itex)*slmo(is)
             srw2d(k,ill,jll) = deprv(nlveg)*xmopor(itex)*slmo(is)

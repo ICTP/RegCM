@@ -119,7 +119,7 @@
       use shr_orb_mod
       use shr_kind_mod,  only : r8 => shr_kind_r8
       use clm_varpar,    only : lsmlon , lsmlat
-      use clm_varsur,    only : landmask , landfrac , satbrt_clm
+      use clm_varsur,    only : landmask , landfrac , lndcat_clm
       use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
       use clm_varsur,    only : clm2bats_veg , ht_rcm
       use clm_varsur,    only : clm_fracveg
@@ -189,7 +189,7 @@
       r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
       if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
-      if ( .not.allocated(satbrt_clm) ) allocate(satbrt_clm(iy,jx))
+      if ( .not.allocated(lndcat_clm) ) allocate(lndcat_clm(iy,jx))
       if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
       if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
       if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
@@ -198,9 +198,9 @@
           do i = 1 , iy
             ht_rcm(i,j)      = mddom_io%ht(i,j)
             if ( ifrest ) then
-              satbrt_clm(i,j) = satbrt2d_io(i,j)
+              lndcat_clm(i,j) = lndcat2d_io(i,j)
             else
-              satbrt_clm(i,j) = mddom_io%satbrt(i,j)
+              lndcat_clm(i,j) = mddom_io%lndcat(i,j)
             end if
             init_tgb(i,j)  = ts0_io(i,j)
             clm_fracveg(i,j) = d_zero
@@ -272,10 +272,10 @@
  
 !         xlat,xlon in degrees
           r2cxlatd(j,i) = mddom%xlat(ci,cj)
-          r2cxlond(j,i) = mddom%xlong(ci,cj)
+          r2cxlond(j,i) = mddom%xlon(ci,cj)
 !         xlat,xlon in radians
           r2cxlat(j,i) = mddom%xlat(ci,cj)*degrad
-          r2cxlon(j,i) = mddom%xlong(ci,cj)*degrad
+          r2cxlon(j,i) = mddom%xlon(ci,cj)*degrad
  
           if ( .not.ifrest ) then
 !           T(K) at bottom layer
@@ -724,39 +724,39 @@
             ! Set some clm land surface/vegetation variables to the ones
             ! used in RegCM.  Make sure all are consistent  
 
-            mddom%satbrt(i,j) = clm2bats_veg(jj,i)
-            if ( clm2bats_veg(jj,i) < 0.1D0 ) mddom%satbrt(i,j) = 15.0D0
+            mddom%lndcat(i,j) = clm2bats_veg(jj,i)
+            if ( clm2bats_veg(jj,i) < 0.1D0 ) mddom%lndcat(i,j) = 15.0D0
             do n = 1 , nnsg
-              satbrt1(n,i,j) = clm2bats_veg(jj,i)
-              if ( clm2bats_veg(jj,i) < 0.1D0 ) satbrt1(n,i,j) = 15.0D0
+              lndcat1(n,i,j) = clm2bats_veg(jj,i)
+              if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat1(n,i,j) = 15.0D0
             end do
 
-            veg2d(i,j) = idnint(mddom%satbrt(i,j))
+            veg2d(i,j) = idnint(mddom%lndcat(i,j))
             do n = 1 , nnsg
-              veg2d1(n,i,j)  = idnint(satbrt1(n,i,j))
+              veg2d1(n,i,j)  = idnint(lndcat1(n,i,j))
             end do
 
             if ( ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) .and. &
                    ldmsk(i,j) /= 0 ) then
               veg2d(i,j)        =  2
-              mddom%satbrt(i,j) =  d_two
+              mddom%lndcat(i,j) =  d_two
             end if
             do n = 1 , nnsg
               if ( ( veg2d1(n,i,j) == 14 .or. veg2d1(n,i,j) == 15 ) .and. &
                    ocld2d(n,i,j) /= 0 ) then
                 veg2d1(n,i,j)     =  2
-                satbrt1(n,i,j)    =  d_two
+                lndcat1(n,i,j)    =  d_two
               end if
             end do
           end do
         end do
         ! Save CLM modified landuse for restart
-        satbrt2d(:,:) = mddom%satbrt(:,:)
+        lndcat2d(:,:) = mddom%lndcat(:,:)
       end if !end ifrest test
 
 !     deallocate some variables used in CLM initialization only
       if ( allocated(ht_rcm) )       deallocate(ht_rcm)
-      if ( allocated(satbrt_clm) )   deallocate(satbrt_clm)
+      if ( allocated(lndcat_clm) )   deallocate(lndcat_clm)
       if ( allocated(init_tgb) )     deallocate(init_tgb)
       if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
       if ( allocated(clm_fracveg) )  deallocate(clm_fracveg)

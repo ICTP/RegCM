@@ -586,12 +586,12 @@
  
 !           soil wetness
 !           soilw(i) = ssw2da(i,j)                                       &
-!                    & /(xmopor(iexsol(idnint(mddom%satbrt(i,j))))*depuv &
-!                    & (idnint(mddom%satbrt(i,j))))
+!                    & /(xmopor(iexsol(idnint(mddom%lndcat(i,j))))*depuv &
+!                    & (idnint(mddom%lndcat(i,j))))
  
-            soilw(i) = ssw2da(i,j)/depuv(idnint(mddom%satbrt(i,j))) /   &
+            soilw(i) = ssw2da(i,j)/depuv(idnint(mddom%lndcat(i,j))) /   &
                     (2650.0D0* &
-                  (d_one-xmopor(iexsol(idnint(mddom%satbrt(i,j))))))
+                  (d_one-xmopor(iexsol(idnint(mddom%lndcat(i,j))))))
  
 !           soilw(i) = ssw2da(i,j) /(xmopor(iexsol(ivegcov(i)) )
 !           &                            * depuv(ivegcov(i))      )

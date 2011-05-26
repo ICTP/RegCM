@@ -138,7 +138,7 @@
       real(8) , pointer , dimension(:,:) :: aldirl2d
       real(8) , pointer , dimension(:,:) :: aldifs2d
       real(8) , pointer , dimension(:,:) :: aldifl2d
-      real(8) , pointer , dimension(:,:) :: satbrt2d
+      real(8) , pointer , dimension(:,:) :: lndcat2d
       real(8) , pointer , dimension(:,:) :: rs2d
       real(8) , pointer , dimension(:,:) :: ra2d
       ! 2 meter specific humidity
@@ -218,8 +218,8 @@
       rs2d     => spaceclm(:,:,9)
       ra2d     => spaceclm(:,:,10)
       q2d      => spaceclm(:,:,11)
-      allocate(satbrt2d(iy,jxp))
-      satbrt2d = d_zero
+      allocate(lndcat2d(iy,jxp))
+      lndcat2d = d_zero
       end subroutine allocate_mod_clm
 !
       end module mod_clm

@@ -119,8 +119,8 @@
 !
 !**   zero new arrays
 
-      spsav%dstor = d_zero
-      spsav%hstor = d_zero
+      dstor = d_zero
+      hstor = d_zero
 !
 !**   compute m.
       do ns = 1 , nsplit
@@ -233,8 +233,8 @@
         do j = 1 , jendl
           do n = 1 , nsplit
             do i = 1 , iy
-              spsav%dstor(i,j,n) = sav0d(i,n,j)
-              spsav%hstor(i,j,n) = sav0d(i,n+nsplit,j)
+              dstor(i,j,n) = sav0d(i,n,j)
+              hstor(i,j,n) = sav0d(i,n+nsplit,j)
             end do
           end do
         end do
@@ -356,7 +356,7 @@
         do l = 1 , nsplit
           do j = 1 , jendl
             do i = 1 , iy
-              spsav%dstor(i,j,l) = d_zero
+              dstor(i,j,l) = d_zero
             end do
           end do
         end do
@@ -366,7 +366,7 @@
               jp1 = j+1
               do i = 1 , iym1
                 fac = dx2*mddom%msfx(i,j)*mddom%msfx(i,j)
-                spsav%dstor(i,j,l) = spsav%dstor(i,j,l) + zmatxr(l,k) &
+                dstor(i,j,l) = dstor(i,j,l) + zmatxr(l,k) &
                              & *(-uuu(i+1,k,j)+uuu(i+1,k,jp1)-uuu(i,k,j)&
                              & +uuu(i,k,jp1)+vvv(i+1,k,j)+vvv(i+1,k,jp1)&
                              & -vvv(i,k,j)-vvv(i,k,jp1))/fac
@@ -384,7 +384,7 @@
           do j = 1 , jendx
             do i = 1 , iym1
               eps = eps1*(sps2%ps(i,j)-pd)
-              spsav%hstor(i,j,l) = pdlog + eps
+              hstor(i,j,l) = pdlog + eps
             end do
           end do
 
@@ -394,7 +394,7 @@
             do j = 1 , jendx
               do i = 1 , iym1
                 eps = eps1*(sps2%ps(i,j)-pd)
-                spsav%hstor(i,j,l) = spsav%hstor(i,j,l) + pdlog + &
+                hstor(i,j,l) = hstor(i,j,l) + pdlog + &
                             tau(l,k)*atm2%t(i,k,j)/sps2%ps(i,j) + eps
               end do
             end do
@@ -490,8 +490,8 @@
       do n = 1 , nsplit
         do j = 1 , jendl
           do i = 1 , iy
-            deld(i,j,n,1) = spsav%dstor(i,j,n)
-            delh(i,j,n,1) = spsav%hstor(i,j,n)
+            deld(i,j,n,1) = dstor(i,j,n)
+            delh(i,j,n,1) = hstor(i,j,n)
           end do
         end do
       end do
@@ -657,8 +657,8 @@
       do n = 1 , nsplit
         do j = 1 , jendl
           do i = 1 , iy
-            spsav%dstor(i,j,n) = deld(i,j,n,2)
-            spsav%hstor(i,j,n) = delh(i,j,n,2)
+            dstor(i,j,n) = deld(i,j,n,2)
+            hstor(i,j,n) = delh(i,j,n,2)
           end do
         end do
       end do

@@ -75,7 +75,7 @@
       iconj = 0
       do i = 2 , iym2
         if ( icup==99 .or. icup==98 ) then
-          if ( cumcon%cuscheme(i,j) /= 4 ) cycle
+          if ( cucontrol(i,j) /= 4 ) cycle
         end if
         do k = 1 , kz
           kk = kzp1 - k

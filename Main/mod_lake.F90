@@ -101,8 +101,8 @@
           do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
-            if ( (satbrt1(n,i,j) > 13.9D0 .and.   &
-                  satbrt1(n,i,j) < 14.1D0) .and.  &
+            if ( (lndcat1(n,i,j) > 13.9D0 .and.   &
+                  lndcat1(n,i,j) < 14.1D0) .and.  &
                  dhlake1(n,i,j) > d_one) then
               idep2d(n,i,j) = idint(dmax1(d_two,dmin1(dhlake1(n,i,j), &
                                     dble(ndpmax)))/dz)

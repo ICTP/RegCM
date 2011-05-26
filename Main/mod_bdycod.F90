@@ -285,7 +285,7 @@
           do k = 1 , kz
             do j = 1 , jendl
               do i = 1 , iy
-                sulf%so4(i,k,j) = so0(i,k,j)
+                sulfate(i,k,j) = so0(i,k,j)
               end do
             end do
           end do
@@ -641,7 +641,7 @@
  
         do j = 1 , jendx
           do i = 1 , iym1
-            if ( iswater(mddom%satbrt(i,j)) ) then
+            if ( iswater(mddom%lndcat(i,j)) ) then
               if (idcsst == 1) then
                 sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
                 sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
@@ -651,7 +651,7 @@
               end if
               if ( iseaice == 1 ) then
                 if ( lakemod == 1 .and. &
-                     islake(mddom%satbrt(i,j)) ) cycle
+                     islake(mddom%lndcat(i,j)) ) cycle
                 if ( tdum(i,j) <= icetemp ) then
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp

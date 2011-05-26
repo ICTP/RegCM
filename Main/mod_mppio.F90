@@ -56,7 +56,7 @@
       real(8) , allocatable , dimension(:,:,:) :: evl2d_io
       real(8) , allocatable , dimension(:,:,:,:) :: tlak3d_io
 
-      real(8) , pointer , dimension(:,:,:) :: ht1_io , satbrt1_io ,     &
+      real(8) , pointer , dimension(:,:,:) :: ht1_io , lndcat1_io ,     &
                                          &    xlat1_io , xlon1_io
 !
       real(8) , pointer , dimension(:,:) :: flw2d_io , flwd2d_io ,      &
@@ -155,7 +155,7 @@
       real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
                    &      solsd2d_io , solld2d_io , aldifl2d_io ,       &
                    &      aldirs2d_io , aldirl2d_io , aldifs2d_io
-      real(8) , allocatable , dimension(:,:) :: satbrt2d_io
+      real(8) , allocatable , dimension(:,:) :: lndcat2d_io
 #endif
       real(8) , allocatable , dimension(:,:,:,:) :: src0
       real(8) , allocatable , dimension(:,:,:,:) :: src_0
@@ -328,7 +328,7 @@
           call check_alloc(ierr,myname,'spacesub',size(spacesub))
           spacesub = d_zero
           ht1_io     => spacesub(:,:,:,1)
-          satbrt1_io => spacesub(:,:,:,2)
+          lndcat1_io => spacesub(:,:,:,2)
           xlat1_io   => spacesub(:,:,:,3)
           xlon1_io   => spacesub(:,:,:,4)
           if (lakemod == 1) then
@@ -647,9 +647,9 @@
           aldirs2d_io => spaceclm(:,:,6)
           aldirl2d_io => spaceclm(:,:,7)
           aldifs2d_io => spaceclm(:,:,8)
-          allocate(satbrt2d_io(iy,jx))
-          call check_alloc(ierr,myname,'satbrt2d_io',size(satbrt2d_io))
-          satbrt2d_io = d_zero
+          allocate(lndcat2d_io(iy,jx))
+          call check_alloc(ierr,myname,'lndcat2d_io',size(lndcat2d_io))
+          lndcat2d_io = d_zero
 #endif
         endif
         if (myid == 0) then

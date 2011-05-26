@@ -328,7 +328,7 @@
         if ( iseaice == 1 ) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( isocean(mddom%satbrt(i,j)) ) then
+              if ( isocean(mddom%lndcat(i,j)) ) then
                 if ( ts0(i,j) <= icetemp ) then
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
@@ -345,7 +345,7 @@
         if ( lakemod == 1 ) then
           do j = 1 , jendx
             do i = 1 , iym1
-              if ( islake(mddom%satbrt(i,j)) ) then
+              if ( islake(mddom%lndcat(i,j)) ) then
                 if ( ts0(i,j) <= icetemp ) then
                   sts1%tg(i,j) = icetemp
                   sts2%tg(i,j) = icetemp
@@ -373,7 +373,7 @@
           do k = 1 , kz
             do j = 1 , jendl
               do i = 1 , iy
-                sulf%so4(i,k,j) = so0(i,k,j)
+                sulfate(i,k,j) = so0(i,k,j)
               end do
             end do
           end do
@@ -1073,8 +1073,8 @@
             aldifl2d(i,j) = sav_clmin(i,8,j)
           end do
         end do
-        call mpi_scatter(satbrt2d_io,iy*jxp,mpi_real8, &
-                         satbrt2d,   iy*jxp,mpi_real8, &
+        call mpi_scatter(lndcat2d_io,iy*jxp,mpi_real8, &
+                         lndcat2d,   iy*jxp,mpi_real8, &
                          0,mpi_comm_world,ierr)
 #endif
         call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -1104,7 +1104,7 @@
       if ( ipptls == 1 ) then
         do j = 1 , jendx
           do i = 1 , iym1
-            if ( isocean(mddom%satbrt(i,j)) ) then
+            if ( isocean(mddom%lndcat(i,j)) ) then
               qck1(i,j) = qck1oce  ! OCEAN
               cgul(i,j) = guloce   ! OCEAN
               rh0(i,j) = rh0oce    ! OCEAN
@@ -1181,7 +1181,7 @@
 !-----calculating topographical correction to diffusion coefficient
       do j = 1 , jendl
         do i = 1 , iy
-          domfc%hgfact(i,j) = d_one
+          hgfact(i,j) = d_one
         end do
       end do
 #ifdef BAND
@@ -1209,7 +1209,7 @@
           hg3 = dabs((mddom%ht(i,j)-mddom%ht(i,jm1))/dx)
           hg4 = dabs((mddom%ht(i,j)-mddom%ht(i,jp1))/dx)
           hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-          domfc%hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
+          hgfact(i,j) = d_one/(d_one+(hgmax/0.001D0)**d_two)
         end do
       end do
 !
@@ -1219,9 +1219,9 @@
       if ( ifrest ) then
         ! CLM modifies landuse table. Get the modified one from
         ! restart file
-        mddom%satbrt(:,:) = satbrt2d(:,:)
+        mddom%lndcat(:,:) = lndcat2d(:,:)
         do n = 1 , nnsg
-          satbrt1(n,:,:) = satbrt2d(:,:)
+          lndcat1(n,:,:) = lndcat2d(:,:)
         end do
       end if
 #endif

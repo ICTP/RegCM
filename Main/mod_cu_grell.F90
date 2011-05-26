@@ -400,7 +400,7 @@ contains
         xac(i) = -d_one
       end if
       if ( icup /= 2 ) then
-        if (cumcon%cuscheme(i,j) /= 2 ) then
+        if (cucontrol(i,j) /= 2 ) then
           xac(i) = -d_one
         end if
       end if
