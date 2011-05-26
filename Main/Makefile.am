@@ -254,7 +254,8 @@ mod_slice.o: mod_slice.F90 mod_dynparam.o mod_constants.o mod_main.o \
              mod_runparams.o mod_mainchem.o mod_pbldim.o mod_pmoist.o
 mod_space.o: mod_space.f90
 mod_split.o: mod_split.F90 mod_dynparam.o mod_main.o mod_runparams.o \
-            mod_constants.o mod_vmodes.o mod_date.o mod_savefile.o mod_service.o
+             mod_constants.o mod_vmodes.o mod_date.o mod_savefile.o \
+             mod_service.o mod_memutil.o
 if DO_COMPILE_LIBCLM
 mod_sun.o: mod_sun.F90 $(CLMLIB) mod_clm.o mod_message.o mod_date.o \
              mod_constants.o mod_dynparam.o mod_main.o
@@ -271,7 +272,7 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
-                mod_clm.o mod_mtrxclm.o mod_cldfrac.o $(CLMLIB)
+                mod_clm.o mod_mtrxclm.o mod_cldfrac.o mod_memutil.o $(CLMLIB)
 else
 mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_constants.o mod_cvaria.o mod_date.o mod_main.o \
@@ -281,17 +282,18 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
-								mod_cldfrac.o
+								mod_cldfrac.o mod_memutil.o
 endif
 mod_tracer.o: mod_tracer.f90 mod_constants.o mod_dynparam.o
-mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o mod_runparams.o
+mod_trachem.o: mod_trachem.F90 mod_dynparam.o mod_message.o mod_runparams.o \
+	             mod_memutil.o
 mod_tstep.o: mod_tstep.f90 mod_date.o mod_runparams.o mod_dynparam.o
 mod_vecbats.o: mod_vecbats.F90 mod_constants.o mod_dynparam.o mod_date.o \
                mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \
                mod_lake.o mod_main.o mod_bndry.o mod_drag.o mod_mppio.o \
                mod_message.o mod_zengocn.o
 mod_vmodes.o: mod_vmodes.F90 mod_runparams.o mod_dynparam.o \
-              mod_constants.o mod_message.o
+              mod_constants.o mod_message.o mod_memutil.o
 if DO_COMPILE_LIBCLM
 mod_zengocn.o: mod_zengocn.F90 mod_bats.o mod_constants.o mod_date.o \
                mod_main.o mod_runparams.o mod_pbldim.o mod_dynparam.o \
