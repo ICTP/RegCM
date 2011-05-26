@@ -57,6 +57,35 @@ AC_ARG_ENABLE(mpiserial,
   [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
 )
 
+USECPL="0"
+AC_ARG_WITH([esmf],
+  AC_HELP_STRING([--with-esmf=<yes|no|directory> (default=no)],
+            [Path to ESMF installation (default: ESMF_LIB environment)]),
+            [AS_CASE(["$with_esmf"],
+                     [no],[AC_MSG_CHECKING([for ESMF library])
+                           AC_MSG_RESULT([suppressed])],
+                     [yes],[AC_CHECK_FILE([$ESMF_LIB/esmf.mk],
+                           [AS_IF([test x"$PARALLEL" = x1],
+                                  [ESMF_PREFIX="${ESMF_LIB}"
+                                   USECPL="1"
+                                   AM_CPPFLAGS="-DESMF $AM_CPPFLAGS"],
+                                  [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])])],
+                     [*],[ESMF_PREFIX=$with_esmf
+                          AS_IF([test -d "$ESMF_PREFIX"],
+                                [AS_IF([test x"$PARALLEL" = x1],
+                                       [USECPL="1" AM_CPPFLAGS="-DESMF $AM_CPPFLAGS"],
+                                       [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])],
+                                [AC_MSG_NOTICE([$ESMF_PREFIX is not a directory! ESMF suppressed])])],
+            [AC_MSG_CHECKING([for ESMF library])
+             AC_MSG_RESULT([suppressed])]
+  )]
+)
+AM_CONDITIONAL([DO_COMPILE_LIBESMF], [test x"$USECPL" = x1])
+if eval "test x$USECPL = x1"; then
+  AC_MSG_WARN([Compiling CPL enabled code using ESMF library])
+  AC_SUBST(ESMF_PREFIX)
+fi
+
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
                  [define single precision and double precision numbers using the selected_real_kind function. Default uses the kind inquiry function.]),
@@ -343,6 +372,14 @@ AC_SUBST(MPEUFCFLAGS)
 
 F90FLAGS="$FCFLAGS"
 AC_SUBST(F90FLAGS)
+
+if eval "test x$USECPL = x1"; then
+  tmp_inc="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90COMPILEPATHS | awk -F= '{print $2}'`"
+  tmp_lib="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90LINKPATHS | awk -F= '{print $2}'`"
+  tmp_lib="$tmp_lib `cat $ESMF_LIB/esmf.mk | grep ESMF_F90ESMFLINKLIBS | awk -F= '{print $2}'`"
+  FCFLAGS="$FCFLAGS $tmp_inc"
+  LIBS="$LIBS $tmp_lib"
+fi
 
 REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
