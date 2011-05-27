@@ -171,12 +171,17 @@
             end if
           end do
         end do
-        open (13,file=char_lnd,form='formatted')
+        open (13,file=char_lnd,form='formatted',err=100)
         do i = iy , 1 , -1
           write (13,99001) (ch(i,j),j=1,jx)
         end do
         close (13)
       end if
+      return
+  100 write (6,*) 'Cannot create file ',trim(char_lnd)
+      write (6,*) 'Is the directory "dirter" present?'
+      write (6,*) 'Have you got write privileges on it?'
+      stop
 99001 format (132A1)
       end subroutine lndfudge
 
