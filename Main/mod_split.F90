@@ -141,7 +141,7 @@
 !**   compute vertical modes.
       lstand = .true.
       if ( jyear /= jyear0 .or. ktau /= 0 ) lstand = .true.
-      call vmodes(lstand,sigma,kzp1)
+      call vmodes(lstand)
 !
 !**   subract a4 from a for use in computing am.
       do l = 1 , kz
