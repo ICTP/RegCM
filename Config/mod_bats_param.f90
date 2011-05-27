@@ -25,7 +25,7 @@
                                & deptv , depuv , displa , fc , freza ,  &
                                & frezu , rough , rsmin , sai , seasf ,  &
                                & sqrtdi , vegc , xla , xlai0 , rootf ,  &
-                               & aest , arye
+                               & aest , arye , slmo
       real(8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                                & xmosuc , xmowil
       integer , dimension(22) :: iexsol , kolsol
@@ -117,6 +117,12 @@
       data kolsol/6 , 4 , 5 , 5 , 5 , 5 , 5 , 1 , 4 , 4 , 2 , 1 , 6 ,   &
              &    6 , 6 , 5 , 4 , 5 , 5 , 5 , 4 , 4/
 !     Dec. 15, 2008_
+      data slmo/0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
+                0.65D0 , 0.55D0 , 0.10D0 , 0.90D0 , 0.80D0 , &
+                0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &
+                0.50D0 , 0.50D0 , 0.65D0 , 0.60D0 , 0.60D0 , &
+                0.50D0 , 0.60D0 /
+!
 !     ******      xmopor is fraction of soil that is voids
       data xmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
              &    0.51D0 , 0.54D0 , 0.57D0 , 0.6D0 , 0.63D0 , 0.66D0/
@@ -173,6 +179,6 @@
       data arye     /0.5D0 , 5.0D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 ,    &
          0.0001D0 , 5.0D0 , 10.0D0 , 10.0D0 , 0.0001D0 , 0.0001D0 ,     &
          0.56D0 , 0.56D0 , 0.56D0 , 0.56D0 ,  0.56D0 , 0.56D0 , 0.56D0 ,&
-         0.56D0 , 1.0D0 , 1.0D0/
+         0.56D0 , 1.0D0 , 1.0D0 /
 !
       end module mod_bats_param

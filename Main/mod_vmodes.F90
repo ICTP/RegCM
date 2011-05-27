@@ -30,7 +30,7 @@ module mod_vmodes
   public :: allocate_mod_vmodes , vmodes
 
   public :: a0
-  public :: hbar , sigmah , tbarh
+  public :: sigmah , tbarh , hbar
   public :: xps , pd
   public :: zmatx , zmatxr
   public :: tau , varpa1
@@ -38,7 +38,7 @@ module mod_vmodes
 
   real(8) :: xps , pd
   real(8) , pointer , dimension(:,:) :: a0
-  real(8) , pointer , dimension(:) ::  hbar , sigmah , tbarh
+  real(8) , pointer , dimension(:) ::  sigmah , tbarh , hbar
   real(8) , pointer , dimension(:,:) :: zmatx , zmatxr
   real(8) , pointer , dimension(:,:) :: tau
   real(8) , pointer , dimension(:,:) :: varpa1
@@ -382,9 +382,9 @@ module mod_vmodes
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!       determine other matrices and vectors
+!   determine other matrices and vectors
 !
-!  compute eigenvalues and vectors for tau (rg calls eispack routines)
+!   compute eigenvalues and vectors for tau (rg calls eispack routines)
 !
     w1 = tau
     call rg(kz,w1,hbar,w2,1,zmatx,ier)
@@ -393,17 +393,17 @@ module mod_vmodes
     call vorder
     call vnorml
 !
-!  compute inverse of zmatx
+!   compute inverse of zmatx
 !
     call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'zmatxr  ')
 !
-!  compute inverse of hydros
+!   compute inverse of hydros
 !
     call invmtrx(hydros,kz,hydror,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'hydror  ')
 !
-!  compute cpfac
+!   compute cpfac
 !
     call invmtrx(tau,kz,w1,kz,kz,det,iw2,ier,work)
     call vcheki(ier,numerr,'taur    ')
@@ -417,11 +417,11 @@ module mod_vmodes
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!       determine arrays needed for daley's variational scheme
-!             for determination of surface pressure changes
+!   determine arrays needed for daley's variational scheme
+!   for determination of surface pressure changes
 !
     hweigh = d_zero
-    hweigh(kz) = d_one    ! only lowest sigma level t considered
+    hweigh(kz) = d_one  ! only lowest sigma level t considered
 !
     do k1 = 1 , kz
       do k2 = 1 , kz    ! compute b(-1t) w/tbar**2 b(-1)
@@ -465,7 +465,7 @@ module mod_vmodes
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!       output desired arrays
+!   output desired arrays
 !
     if ( myid == 0 ) then
       call vprntv(sigma,kzp1,'sigma   ')
@@ -475,7 +475,7 @@ module mod_vmodes
       print 99003 , kz , numerr
     end if
 !
-!  printout if desired
+!   printout if desired
     if ( .not.lprint ) then
       return
     end if
@@ -509,8 +509,8 @@ module mod_vmodes
 
     contains
 !
-!    Check if tbar is stable.  This is not the actual stability condition
-!    consistent with the model finite differences.
+!   Check if tbar is stable.  This is not the actual stability condition
+!   consistent with the model finite differences.
 !
     subroutine vchekt
       implicit none
@@ -543,6 +543,9 @@ module mod_vmodes
 !
     end subroutine vchekt
 !
+!   This routine computes the temperature corresponding to a U.S.
+!   standard atmosphere (see text by hess). Units of p are cb.
+!
     subroutine vtlaps
       implicit none
 !
@@ -551,9 +554,6 @@ module mod_vmodes
 !
       real(8) :: p0 , fac , p , z
       integer :: k
-!
-!     this routine computes the temperature corresponding to a u. s.
-!     standard atmosphere (see text by hess). units of p are cb.
 !
       p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
@@ -694,6 +694,7 @@ module mod_vmodes
 !
   subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
     implicit none
+!
     integer :: na , nv , n , ier
     integer , dimension(n) :: ip
     real(8) :: a(n,n) , v(n,n) , work(n) , d(2)

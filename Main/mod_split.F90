@@ -58,7 +58,6 @@ module mod_split
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
-    call allocate_mod_vmodes
     call getmem1d(aam,1,nsplit,'split:aam')
     call getmem2d(am,1,kz,1,nsplit,'split:am')
     call getmem1d(an,1,nsplit,'split:naam')
@@ -111,6 +110,8 @@ module mod_split
     if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
 !
 !   compute xps and tbarh for use in vmodes.
+!
+    call allocate_mod_vmodes
 !
     xps = d_zero
     do k = 1 , kz
@@ -729,6 +730,7 @@ module mod_split
 !=======================================================================
 !
     call time_end(subroutine_name,idindx)
+!
   end subroutine splitf
 !
   subroutine spstep
