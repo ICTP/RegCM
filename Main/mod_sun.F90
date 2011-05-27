@@ -17,165 +17,166 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      module mod_sun
+module mod_sun
 !
 ! Sun zenith and declination
 !
-      use mod_constants
-      use mod_dynparam
-      use mod_main
-      use mod_message
-      use mod_date
-      use mod_service
+  use mod_constants
+  use mod_dynparam
+  use mod_main
+  use mod_message
+  use mod_date
+  use mod_service
 !
 #ifdef CLM
-      use mod_clm
-      use clm_time_manager , only : get_curr_calday
-      use clm_varsur ,  only : numdays
-      use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
-                               shr_orb_params
+  use mod_clm
+  use clm_time_manager , only : get_curr_calday
+  use clm_varsur ,  only : numdays
+  use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
+                           shr_orb_params
 #endif
 !
-      private
+  private
 !
-      public :: solar1 , zenitm
+  public :: solar1 , zenitm
 !
-      contains
+  contains
 !
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the solar declination angle from the   c
-!     julian date.                                                    c
-!                                                                     c
-!     xtime  : forecast time in minutes.                              c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine solar1(xtime)
+! This subroutine computes the solar declination angle
+! from the julian date.
+!
+! xtime  : forecast time in minutes.
+!
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+  subroutine solar1(xtime)
 
-      implicit none
+    implicit none
 !
-      real(8) , intent(in) :: xtime
+    real(8) , intent(in) :: xtime
 !
-      real(8) :: calday , decdeg
+    real(8) :: calday , decdeg
 #ifdef CLM
-      real(8) :: mvelp , obliq
-      integer :: iyear_ad
-      logical :: log_print
+    real(8) :: mvelp , obliq
+    integer :: iyear_ad
+    logical :: log_print
 #else
-      real(8) :: theta
+    real(8) :: theta
 #endif
 !
 !----------------------------------------------------------------------
 !
-      character (len=50) :: subroutine_name='solar1'
-      integer :: idindx=0
+    character (len=50) :: subroutine_name='solar1'
+    integer :: idindx=0
 !
-      call time_begin(subroutine_name,idindx)
+    call time_begin(subroutine_name,idindx)
 #ifdef CLM
-      log_print = .false.
+    log_print = .false.
 
-      iyear_ad = idate1/1000000
-      numdays = dayspy
+    iyear_ad = idate1/1000000
+    numdays = dayspy
 
-!     Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
-      call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
-                        & r2clambm0,r2cmvelpp,log_print)
+!   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
+    call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
+                      & r2clambm0,r2cmvelpp,log_print)
 !
-      calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
-                             (xtime/minph+gmt)/houpd
+    calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
+                           (xtime/minph+gmt)/houpd
 
-!     Get declin,eccf
-      call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
-                      & declin,r2ceccf)
+!   Get declin,eccf
+    call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
+                    & declin,r2ceccf)
 
-!     convert declin to degrees
-      declin = declin
-      decdeg = declin/degrad
+!   convert declin to degrees
+    declin = declin
+    decdeg = declin/degrad
 #else
-      calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
-                       (xtime/minph+gmt)/houpd
-      theta = twopi*calday/dayspy
+    calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
+                     (xtime/minph+gmt)/houpd
+    theta = twopi*calday/dayspy
 !
-!     Solar declination in radians:
+!   Solar declination in radians:
 !
-      declin = 0.006918D0 - 0.399912D0*dcos(theta) + &
-               0.070257D0*dsin(theta) -              &
-               0.006758D0*dcos(2.0D0*theta) +        &
-               0.000907D0*dsin(2.0D0*theta) -        &
-               0.002697D0*dcos(3.0D0*theta) +        &
-               0.001480D0*dsin(3.0D0*theta)
+    declin = 0.006918D0 - 0.399912D0*dcos(theta) + &
+             0.070257D0*dsin(theta) -              &
+             0.006758D0*dcos(2.0D0*theta) +        &
+             0.000907D0*dsin(2.0D0*theta) -        &
+             0.002697D0*dcos(3.0D0*theta) +        &
+             0.001480D0*dsin(3.0D0*theta)
 !
-      decdeg = declin/degrad
+    decdeg = declin/degrad
 !
 #endif
-      write (aline, 99001) calday, decdeg
-      call say
+    write (aline, 99001) calday, decdeg
+    call say
 99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
-          &   ' degrees.')
+        &   ' degrees.')
 !
-      call time_end(subroutine_name,idindx)
-      end subroutine solar1
+    call time_end(subroutine_name,idindx)
 !
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-!   this subroutine calculates the cosine of the solar zenith angle
-!   for all longitude points of the mm42d domain. it needs as inputs
-!   the longitude and latitude of the points, the initial date of the
-!   simulation and the gmt. all these quantities are specified
-!   in the initialization procedure of RegCM
+  end subroutine solar1
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine zenitm(coszrs,ivmx,jslc)
+! This subroutine calculates the cosine of the solar zenith angle
+! for all longitude points of the RegCM domain. It needs as inputs
+! the longitude and latitude of the points, the initial date of the
+! simulation and the gmt. All these quantities are specified
+! in the initialization procedure of RegCM
 !
-      implicit none
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      integer, intent (in) :: ivmx , jslc
-      real(8) , intent (inout), dimension(iy) :: coszrs
+  subroutine zenitm(coszrs,ivmx,j)
 !
-      integer :: ill
+    implicit none
+!
+    integer, intent (in) :: ivmx , j
+    real(8) , intent (inout), dimension(iy) :: coszrs
+!
+    integer :: i
 #ifdef CLM
-      real(8) :: cldy , declinp1 , xxlon
+    real(8) :: cldy , declinp1 , xxlon
 #else
-      real(8) :: omga , tlocap , xt24
+    real(8) :: omga , tlocap , xt24
 #endif
-      character (len=50) :: subroutine_name='zenitm'
-      real(8) :: xxlat
-      integer :: idindx=0
+    character (len=50) :: subroutine_name='zenitm'
+    real(8) :: xxlat
+    integer :: idindx=0
 !
-      call time_begin(subroutine_name,idindx)
+    call time_begin(subroutine_name,idindx)
 !
 !***********************************************************************
 !
 #ifdef CLM
-      cldy = get_curr_calday()
-!     cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
-      call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
-           &            r2cobliqr,declinp1,r2ceccf)
-      do ill = 1 , ivmx
-        xxlat = mddom%xlat(ill,jslc)*degrad
-        xxlon = mddom%xlon(ill,jslc)*degrad
-        coszrs(ill) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-        coszrs(ill) = dmax1(0.0D0,coszrs(ill))
-        coszrs(ill) = dmin1(1.0D0,coszrs(ill))
-      end do
+    cldy = get_curr_calday()
+!   cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+    call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
+         &            r2cobliqr,declinp1,r2ceccf)
+    do i = 1 , ivmx
+      xxlat = mddom%xlat(i,j)*degrad
+      xxlon = mddom%xlon(i,j)*degrad
+      coszrs(i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
+      coszrs(i) = dmax1(0.0D0,coszrs(i))
+      coszrs(i) = dmin1(1.0D0,coszrs(i))
+    end do
 #else
-      xt24 = dmod(lhour*minph+xtime,minpd)
-      do ill = 1 , ivmx
-        tlocap = xt24/minph + mddom%xlon(ill,jslc)/15.0D0
-        tlocap = dmod(tlocap+houpd,houpd)
-        omga = 15.0D0*(tlocap-12.0D0)*degrad
-        xxlat = mddom%xlat(ill,jslc)*degrad
-!       coszrs = cosine of solar zenith angle
-        coszrs(ill) = dsin(declin)*dsin(xxlat) +           &
-                      dcos(declin)*dcos(xxlat)*dcos(omga)
-        coszrs(ill) = dmax1(0.0D0,coszrs(ill))
-        coszrs(ill) = dmin1(1.0D0,coszrs(ill))
-      end do
+    xt24 = dmod(lhour*minph+xtime,minpd)
+    do i = 1 , ivmx
+      tlocap = xt24/minph + mddom%xlon(i,j)/15.0D0
+      tlocap = dmod(tlocap+houpd,houpd)
+      omga = 15.0D0*(tlocap-12.0D0)*degrad
+      xxlat = mddom%xlat(i,j)*degrad
+!     coszrs = cosine of solar zenith angle
+      coszrs(i) = dsin(declin)*dsin(xxlat) +           &
+                    dcos(declin)*dcos(xxlat)*dcos(omga)
+      coszrs(i) = dmax1(0.0D0,coszrs(i))
+      coszrs(i) = dmin1(1.0D0,coszrs(i))
+    end do
 #endif
 !
-      call time_end(subroutine_name,idindx)
-      end subroutine zenitm
+    call time_end(subroutine_name,idindx)
+  end subroutine zenitm
 !
-      end module mod_sun
+end module mod_sun
