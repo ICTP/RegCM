@@ -371,7 +371,7 @@ module mod_fudge
         end if
       end do
     end do
-    open (iunit,file=char_lak,form='formatted')
+    open (iunit,file=char_lak,form='formatted',err=100)
     do i = iy , 1 , -1
       write (iunit,99001) (ch(i,j),j=1,jx)
     end do
