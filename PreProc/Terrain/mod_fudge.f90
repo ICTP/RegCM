@@ -171,12 +171,17 @@ module mod_fudge
         end if
       end do
     end do
-    open (iunit,file=char_lnd,form='formatted')
+    open (iunit,file=char_lnd,form='formatted',err=100)
     do i = iy , 1 , -1
       write (iunit,99001) (ch(i,j),j=1,jx)
     end do
     close (iunit)
   end if
+  return
+100 write(stderr, *) 'Cannot create file ',trim(char_lnd)
+  write (stderr, *)  'Is the directory "dirter" present?'
+  write (stderr, *)  'Have you got write privileges on it?'
+  call die('lndfudge','Path or permission problem',1)
 99001 format (132A1)
   end subroutine lndfudge
 
@@ -300,13 +305,17 @@ module mod_fudge
         end if
       end do
     end do
-    open (iunit,file=char_tex,form='formatted')
+    open (iunit,file=char_tex,form='formatted',err=100)
     do i = iy , 1 , -1
       write (iunit,99001) (ch(i,j),j=1,jx)
     end do
     close (iunit)
   end if
-
+  return
+100 write(stderr, *) 'Cannot create file ',trim(char_tex)
+  write (stderr, *)  'Is the directory "dirter" present?'
+  write (stderr, *)  'Have you got write privileges on it?'
+  call die('lndfudge','Path or permission problem',1)
 99001 format (132A1)
   end subroutine texfudge
 
@@ -368,6 +377,11 @@ module mod_fudge
     end do
     close (iunit)
   end if
+  return
+100 write(stderr, *) 'Cannot create file ',trim(char_lak)
+  write (stderr, *)  'Is the directory "dirter" present?'
+  write (stderr, *)  'Have you got write privileges on it?'
+  call die('lndfudge','Path or permission problem',1)
 99001 format (132A1)
   end subroutine lakfudge
 
