@@ -25,6 +25,7 @@ module mod_vmodes
   use mod_service
   use linpack
   use eispack
+
   private
 
   public :: allocate_mod_vmodes , vmodes

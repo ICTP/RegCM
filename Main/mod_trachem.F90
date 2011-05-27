@@ -21,50 +21,50 @@ module mod_trachem
 
   use mod_dynparam
   use mod_runparams
+  use mod_message
   use mod_memutil
-
-  implicit none
 !
-  integer , parameter :: maxntr = 20
-  integer , parameter :: maxnbin = 20
-
-  character(5) , allocatable , dimension(:) :: chtrname
+  private
 !
-  real(8) , pointer , dimension(:,:) :: chtrdpv
-  real(8) , pointer , dimension(:,:) :: chtrsize , dustbsiz
-  real(8) , pointer , dimension(:) :: chtrsol
+  integer , public , parameter :: maxntr  = 20
+  integer , public , parameter :: maxnbin = 20
 !
-  integer :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
-  integer , pointer, dimension(:,:) :: icumbot , icumdwd , icumtop
+  character(5) , public , allocatable , dimension(:) :: chtrname
 !
-  integer :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
-  integer , pointer , dimension(:) :: idust
+  real(8) , public , pointer , dimension(:,:) :: chtrdpv
+  real(8) , public , pointer , dimension(:,:) :: chtrsize , dustbsiz
+  real(8) , public , pointer , dimension(:) :: chtrsol
 !
-  real(8) , pointer , dimension(:,:) :: mflx
+  integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
+  integer , public , pointer, dimension(:,:) :: icumbot , icumdwd , icumtop
 !
-  real(8) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
-  real(8) , pointer , dimension(:,:) :: aersrrf , aertarf
-  real(8) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf 
+  integer , public :: ibchb , ibchl , iochb , iochl , iso2 , iso4 , mixtype
+  integer , public , pointer , dimension(:) :: idust
 !
-  real(8) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
-  real(8) , pointer , dimension(:,:) :: rembc , remrat
-  real(8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc ,   &
+  real(8) , public , pointer , dimension(:,:) :: mflx
+!
+  real(8) , public , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
+  real(8) , public , pointer , dimension(:,:) :: aersrrf , aertarf
+  real(8) , public , pointer , dimension(:,:) :: aertalwrf , aersrlwrf 
+!
+  real(8) , public , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
+  real(8) , public , pointer , dimension(:,:) :: rembc , remrat
+  real(8) , public , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                             rxsaq1 , rxsaq2 , rxsg
+
+  public :: allocate_mod_trachem
 
   contains
 
-    subroutine allocate_mod_trachem
-    use mod_message , only : say , aline
+  subroutine allocate_mod_trachem
     implicit none
     if ( ntr>maxntr ) then
-      write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', &
-             maxntr
+      write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', maxntr
       call say
       ntr = maxntr
     end if
     if ( nbin>maxnbin ) then
-      write (aline , *) 'In mod_trachem, resetting nbin to maxbin ',&
-             maxnbin
+      write (aline , *) 'In mod_trachem, resetting nbin to maxbin ', maxnbin
       call say
       nbin = maxnbin
     end if
@@ -102,6 +102,6 @@ module mod_trachem
     call getmem2d(mflx,1,iy,1,2,'trachem:mflx')
     call getmem2d(rembc,1,iy,1,kz,'trachem:rembc')
     call getmem2d(remrat,1,iy,1,kz,'trachem:remrat')
-    end subroutine allocate_mod_trachem
+  end subroutine allocate_mod_trachem
 
 end module mod_trachem

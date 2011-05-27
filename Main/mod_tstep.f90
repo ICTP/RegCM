@@ -17,55 +17,54 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      module mod_tstep
+module mod_tstep
 !
 ! Calculate smaller timesteps for model startup
 !
-      use mod_runparams
-      use mod_date
+  use mod_runparams
+  use mod_date
 !
-      private
+  private
 !
-      public :: tstep
+  public :: tstep
 !
-      contains
+  contains
 !
-!     This subroutine makes a refined start to the model, i.e. the
-!     model is started with a series of small time steps.
+! This subroutine makes a refined start to the model, i.e. the
+! model is started with a series of small time steps.
 !
-      subroutine tstep(extime,dtinc,deltmx)
-
-      implicit none
+  subroutine tstep(extime,dtinc,deltmx)
 !
-      real(8) :: deltmx , dtinc , extime
-      intent (in) extime
-      intent (out) dtinc
-      intent (inout) deltmx
+    implicit none
 !
-      real(8) :: deltmn , tscale
-      integer :: idtmax
+    real(8) , intent (in) :: extime
+    real(8) , intent (out) :: dtinc
+    real(8) , intent (inout) :: deltmx
+!
+    real(8) :: deltmn , tscale
+    integer :: idtmax
 !
 !---------------------------------------------------------------------
 !
-      deltmn = d_zero
-      tscale = d_zero
-      if ( jyear == jyear0 .and. ktau == 0 ) then
-        idtmax = 1
-        tscale = d_five*dt
-        deltmn = 0.1D0*dt
-        deltmx = dt
-      end if
-      if ( idtmax == 1 ) then
-        dt = deltmx*(d_one-dexp(-extime/tscale)) + deltmn
-        dtinc = dt
-        dtmin = dt/secpm
-        idtmax = 2
-      end if
-      dt2 = d_two*dt
-      if ( jyear /= jyear0 .or. ktau /= 0 ) then
-        dt = dt2
-      end if
+    deltmn = d_zero
+    tscale = d_zero
+    if ( jyear == jyear0 .and. ktau == 0 ) then
+      idtmax = 1
+      tscale = d_five*dt
+      deltmn = 0.1D0*dt
+      deltmx = dt
+    end if
+    if ( idtmax == 1 ) then
+      dt = deltmx*(d_one-dexp(-extime/tscale)) + deltmn
+      dtinc = dt
+      dtmin = dt/secpm
+      idtmax = 2
+    end if
+    dt2 = d_two*dt
+    if ( jyear /= jyear0 .or. ktau /= 0 ) then
+      dt = dt2
+    end if
 !
-      end subroutine tstep
+  end subroutine tstep
 !
-      end module mod_tstep
+end module mod_tstep
