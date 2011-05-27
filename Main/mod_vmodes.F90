@@ -29,7 +29,7 @@ module mod_vmodes
 
   public :: allocate_mod_vmodes , vmodes
 
-  public :: a0 , a4
+  public :: a0
   public :: hbar , sigmah , tbarh
   public :: xps , pd
   public :: zmatx , zmatxr
@@ -37,7 +37,7 @@ module mod_vmodes
   public :: hydroc , hydros
 
   real(8) :: xps , pd
-  real(8) , pointer , dimension(:,:) :: a0 , a4
+  real(8) , pointer , dimension(:,:) :: a0
   real(8) , pointer , dimension(:) ::  hbar , sigmah , tbarh
   real(8) , pointer , dimension(:,:) :: zmatx , zmatxr
   real(8) , pointer , dimension(:,:) :: tau
@@ -49,7 +49,6 @@ module mod_vmodes
   subroutine allocate_mod_vmodes
     implicit none
     call getmem2d(a0,1,kz,1,kz,'vmodes:a0')
-    call getmem2d(a4,1,kz,1,kz,'vmodes:a4')
     call getmem1d(hbar,1,kz,'vmodes:hbar')
     call getmem1d(sigmah,1,kzp1,'vmodes:sigmah')
     call getmem1d(tbarh,1,kz,'vmodes:tbarh')
@@ -91,8 +90,8 @@ module mod_vmodes
     real(8) :: ps2 , x
     real(8) , dimension(kz) :: work
     real(8) , dimension(1) :: pps
-    real(8) , dimension(kz,kz) :: a1 , a2 , a3 , d1 , d2 , e1 , e2 , e3 , &
-                                  g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
+    real(8) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
+                   e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
     real(8) , dimension(kzp1,kz) :: w3
     integer , dimension(kz) :: iw2
     real(8) , dimension(kzp1) :: tbarf , thetaf
@@ -455,6 +454,14 @@ module mod_vmodes
 !
     alpha1 = hydros(kz,kz)*tbarh(kz)/xps
     alpha2 = hweigh(kz)
+!
+!   subract a4 from a for use in computing am.
+!
+    do k1 = 1 , kz
+      do k2 = 1 , kz
+        a0(k2,k1) = a0(k2,k1) - a4(k2,k1)
+      end do
+    end do
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
