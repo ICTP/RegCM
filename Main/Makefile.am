@@ -307,17 +307,17 @@ endif
 # RegCM Main Program
 #
 if DO_COMPILE_LIBCLM
-regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
-         mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o \
-				 mod_memutil.o
-         $(CLMLIB)
+mod_interface.o: mod_interface.F90 mod_date.o mod_message.o \
+	       mod_runparams.o mod_init.o mod_dynparam.o mod_ncio.o \
+				 mod_output.o mod_split.o mod_header.o mod_param.o mod_tendency.o \
+				 mod_tstep.o mod_chem.o mod_mppio.o mod_memutil.o $(CLMLIB)
 else
-regcm.o: regcm.F90 mod_date.o mod_message.o mod_runparams.o mod_init.o \
-         mod_dynparam.o mod_ncio.o mod_output.o mod_split.o mod_header.o \
-         mod_param.o mod_tendency.o mod_tstep.o mod_chem.o mod_mppio.o \
-				 mod_memutil.o
+mod_interface.o: mod_interface.F90 mod_date.o mod_message.o \
+	       mod_runparams.o mod_init.o mod_dynparam.o mod_ncio.o \
+				 mod_output.o mod_split.o mod_header.o mod_param.o mod_tendency.o \
+				 mod_tstep.o mod_chem.o mod_mppio.o mod_memutil.o
 endif
+regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90
 #
 # CLM subroutines
 #

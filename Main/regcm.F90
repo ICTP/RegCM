@@ -65,9 +65,9 @@
 !     CCM3.6.6 code introduced by Xunqiang Bi, 2000
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
 #ifdef ESMF
-#include "regcm_esmf.h"
+#include "regcm_esmf.F90"
 #else
-#include "regcm_nonesmf.h"
+#include "regcm_nonesmf.F90"
 #endif

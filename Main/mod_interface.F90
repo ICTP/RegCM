@@ -1,45 +1,67 @@
-      module mod_interface
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+
+module mod_interface
+
 !**********************************************************************
 !
 !     Used module declarations 
 !
 !**********************************************************************
 !
-      use mod_memutil
-      use mod_runparams
-      use mod_date
-      use mod_message
-      use mod_ncio
-      use mod_output
-      use mod_split
-      use mod_bdycod
-      use mod_che_semdde
-      use mod_init
-      use mod_header
-      use mod_param
-      use mod_tendency
-      use mod_tstep
-      use mod_service
+  use mod_memutil
+  use mod_runparams
+  use mod_date
+  use mod_message
+  use mod_ncio
+  use mod_output
+  use mod_split
+  use mod_bdycod
+  use mod_che_semdde
+  use mod_init
+  use mod_header
+  use mod_param
+  use mod_tendency
+  use mod_tstep
+  use mod_service
 #ifdef CHEMTEST
-      use mod_chem
+  use mod_chem
 #endif
-      use mod_mppio
-      use mpi
+  use mod_mppio
+  use mpi
 #ifdef CLM
-      use perf_mod
-      use spmdMod, only: mpicom
+  use perf_mod
+  use spmdMod, only: mpicom
 #endif
-      implicit none
+  implicit none
 !
-      private
-      public :: RCM_initialize
-      public :: RCM_run
-      public :: RCM_finalize
+  private
+  public :: RCM_initialize
+  public :: RCM_run
+  public :: RCM_finalize
 
-      contains
+  integer :: ibcdate
+
+  contains
  
-      subroutine RCM_initialize(mpiCommunicator)
+  subroutine RCM_initialize(mpiCommunicator)
 !
 !**********************************************************************
 !
@@ -47,7 +69,7 @@
 !
 !**********************************************************************
 !
-      integer, intent(in), optional :: mpiCommunicator
+    integer, intent(in), optional :: mpiCommunicator
 !
 !**********************************************************************
 !
@@ -55,8 +77,8 @@
 !
 !**********************************************************************
 !
-      integer :: MyComm, ncpu, ibcdate, ierr
-      character(256) :: namelistfile, prgname
+    integer :: MyComm, ncpu, ierr
+    character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
 !
@@ -66,18 +88,18 @@
 !
 !**********************************************************************
 !
-      if (present(mpiCommunicator)) then
-        MyComm = mpiCommunicator
-      else
-        MyComm = MPI_COMM_WORLD
-      end if
-      call mpi_comm_rank(MyComm, myid, ierr)
-      call mpi_comm_size(MyComm, ncpu, ierr)
+    if (present(mpiCommunicator)) then
+      MyComm = mpiCommunicator
+    else
+      MyComm = MPI_COMM_WORLD
+    end if
+    call mpi_comm_rank(MyComm, myid, ierr)
+    call mpi_comm_size(MyComm, ncpu, ierr)
 !
-      call whoami(myid)
+    call whoami(myid)
 !
 #ifdef DEBUG 
-      call activate_debug()
+    call activate_debug()
 #endif
 !
 !**********************************************************************
@@ -86,28 +108,29 @@
 !
 !**********************************************************************
 !
-      if ( myid == 0 ) then
-        call getarg(0, prgname)
-        call getarg(1, namelistfile)
-        call initparam(namelistfile, ierr)
-        if ( ierr/=0 ) then
-          write ( 6, * ) 'Parameter initialization not completed'
-          write ( 6, * ) 'Usage : '
-          write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-          write ( 6, * ) ' '
-          write ( 6, * ) 'Check argument and namelist syntax'
-          stop
-        end if
+    if ( myid == 0 ) then
+      call getarg(0, prgname)
+      call getarg(1, namelistfile)
+      call initparam(namelistfile, ierr)
+      if ( ierr/=0 ) then
+        write ( 6, * ) 'Parameter initialization not completed'
+        write ( 6, * ) 'Usage : '
+        write ( 6, * ) '          ', trim(prgname), ' regcm.in'
+        write ( 6, * ) ' '
+        write ( 6, * ) 'Check argument and namelist syntax'
+        stop
+      end if
 !
 #ifdef BAND
-        call init_mod_ncio(.true.)
+      call init_mod_ncio(.true.)
 #else
-        call init_mod_ncio(.false.)
+      call init_mod_ncio(.false.)
 #endif
 !
-      end if
+    end if
 
-      call memory_init
+    call memory_init
+
 !
 !**********************************************************************
 !
@@ -115,64 +138,64 @@
 !
 !**********************************************************************
 !
-      call broadcast_params
+    call broadcast_params
 
-      call set_nproc(ncpu)
+    call set_nproc(ncpu)
 
-      if ( ncpu /= nproc ) then
-        write (aline,*) 'The number of CPU is not well set'
-        call say
-        write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
-        call say
-        call fatal(__FILE__,__LINE__,'CPU Count mismatch')
-      end if
+    if ( ncpu /= nproc ) then
+      write (aline,*) 'The number of CPU is not well set'
+      call say
+      write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
+      call say
+      call fatal(__FILE__,__LINE__,'CPU Count mismatch')
+    end if
 !      print * , "process" , myid , "of" , nproc
-      call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_barrier(mpi_comm_world,ierr)
 !     starttime= MPI_WTIME()
-      if ( myid > 0 ) then
-        iwest = myid - 1
-      else
+    if ( myid > 0 ) then
+      iwest = myid - 1
+    else
 #ifdef BAND
-        iwest = nproc-1
+      iwest = nproc-1
 #else
-        iwest = mpi_proc_null
+      iwest = mpi_proc_null
 #endif
-      end if
-      if ( myid < nproc-1 ) then
-        ieast = myid + 1
-      else
+    end if
+    if ( myid < nproc-1 ) then
+      ieast = myid + 1
+    else
 #ifdef BAND
-        ieast = 0
+      ieast = 0
 #else
-        ieast = mpi_proc_null
+      ieast = mpi_proc_null
 #endif
-      end if
-      if ( jxp < 3 ) then
-        write (aline,*) 'The number of jxp must be greater than 2'
-        call say
-        write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
-        call say
-        call fatal(__FILE__,__LINE__,'Domain too small')
-      end if
-      if ( jxp*nproc /= jx ) then
-        write (aline,*) 'jx should be divided by nproc'
-        call say
-        write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
-        call say
-        call fatal(__FILE__,__LINE__,                                   &
-                 & 'Domain dimension not multiple of' //                &
-                 & ' processor number')
-      end if
-      jbegin = 1
-      jendl = jxp
-      jendx = jxp
-      jendm = jxp
+    end if
+    if ( jxp < 3 ) then
+      write (aline,*) 'The number of jxp must be greater than 2'
+      call say
+      write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
+      call say
+      call fatal(__FILE__,__LINE__,'Domain too small')
+    end if
+    if ( jxp*nproc /= jx ) then
+      write (aline,*) 'jx should be divided by nproc'
+      call say
+      write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
+      call say
+      call fatal(__FILE__,__LINE__,                                   &
+               & 'Domain dimension not multiple of' //                &
+               & ' processor number')
+    end if
+    jbegin = 1
+    jendl = jxp
+    jendx = jxp
+    jendm = jxp
 #ifndef BAND
-      if ( myid == 0 ) jbegin = 2
-      if ( myid == nproc-1 ) then
-        jendx = jxp - 1
-        jendm = jxp - 2
-      end if
+    if ( myid == 0 ) jbegin = 2
+    if ( myid == nproc-1 ) then
+      jendx = jxp - 1
+      jendm = jxp - 2
+    end if
 #endif
 !
 !**********************************************************************
@@ -181,7 +204,7 @@
 !
 !**********************************************************************
 !
-      call header(myid,nproc)
+    call header(myid,nproc)
 !
 !**********************************************************************
 !
@@ -189,9 +212,9 @@
 !
 !**********************************************************************
 !
-      call param
+    call param
 !
-      ibcdate = idatex
+    ibcdate = idatex
 !
 !**********************************************************************
 !
@@ -201,14 +224,14 @@
 !
 ! this below enable debugging
 #ifdef DEBUG 
-      call start_debug()
+    call start_debug()
 #endif 
 !
-      call init
+    call init
 #ifdef CHEMTEST
-      if ( ichem == 1 ) then
-        call init_chem
-      end if
+    if ( ichem == 1 ) then
+      call init_chem
+    end if
 #endif
 !
 !**********************************************************************
@@ -217,17 +240,17 @@
 !
 !**********************************************************************
 !
-      call bdyin
+    call bdyin
 #ifdef CHEMTEST
-      if ( ichem == 1 ) then
-        call bdyin_chem
-      end if
+    if ( ichem == 1 ) then
+      call bdyin_chem
+    end if
 #endif
-      call addhours(ibcdate,ibdyfrq)
+    call addhours(ibcdate,ibdyfrq)
 !
-      call spinit
+    call spinit
 ! 
-      if ( ichem == 1 ) call chsrfem
+    if ( ichem == 1 ) call chsrfem
 !
 !**********************************************************************
 !
@@ -235,7 +258,7 @@
 !
 !**********************************************************************
 !
-      call output
+    call output
 !
 !**********************************************************************
 !
@@ -243,12 +266,13 @@
 !
 !**********************************************************************
 !
-      call free_mpp_initspace
-      call time_print(6,'inizialization phase')
-      call time_reset()
+    call free_mpp_initspace
+    call time_print(6,'inizialization phase')
+    call time_reset()
 !
-      return
-      end subroutine RCM_initialize
+    return
+
+  end subroutine RCM_initialize
 !
 !=======================================================================
 !                                                                      !
@@ -257,8 +281,8 @@
 !                                                                      !
 !=======================================================================
 !
-      subroutine RCM_run(timestr, timeend, first)
-      implicit none
+  subroutine RCM_run(timestr, timeend, first)
+    implicit none
 !
 !**********************************************************************
 !
@@ -266,9 +290,9 @@
 !
 !**********************************************************************
 !
-      real(8), intent(in) :: timestr   ! starting time-step
-      real(8), intent(in) :: timeend   ! ending   time-step
-      logical, intent(in) :: first
+    real(8), intent(in) :: timestr   ! starting time-step
+    real(8), intent(in) :: timeend   ! ending   time-step
+    logical, intent(in) :: first
 !
 !**********************************************************************
 !
@@ -276,9 +300,8 @@
 !
 !**********************************************************************
 !
-      real(8) :: dtinc, extime
-      integer :: iexec
-      integer :: ibcdate
+    real(8) :: dtinc, extime
+    integer :: iexec
 !
 !**********************************************************************
 !
@@ -286,12 +309,11 @@
 !
 !**********************************************************************
 !
-      if ( first ) then
-        extime = 0.0D0
-        iexec  = 1
-        dtinc  = dt
-        ibcdate = idatex 
-      end if
+    if ( first ) then
+      extime = 0.0
+      iexec  = 1
+      dtinc  = dt
+    end if
 !
 !**********************************************************************
 !
@@ -299,61 +321,61 @@
 !
 !**********************************************************************
 !     
-      do while ( extime >= timestr .and. extime < timeend)
+    do while ( extime >= timestr .and. extime < timeend)
 !
 !       Read in boundary conditions if needed
 !
-        if ( idatex == ibcdate .and. idatex < idate2 ) then
-          call bdyin
+      if ( idatex == ibcdate .and. idatex < idate2 ) then
+        call bdyin
 #ifdef CHEMTEST
-          if ( ichem == 1 ) call bdyin_chem
+        if ( ichem == 1 ) call bdyin_chem
 #endif
-          call addhours(ibcdate,ibdyfrq)
-        end if
+        call addhours(ibcdate,ibdyfrq)
+      end if
 !
 !       Refined start
 !
-        if ( .not.ifrest ) then
-          if ( rfstrt ) then
-            if ( (jyear == jyear0 .and. ktau == 0) .or.                 &
-               & dtinc /= deltmx ) then
-              call tstep(extime,dtinc,deltmx)
-              write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                                   & dtmin , ktau , jyear
-              call say
-            end if
+      if ( .not.ifrest ) then
+        if ( rfstrt ) then
+          if ( (jyear == jyear0 .and. ktau == 0) .or.                 &
+             & dtinc /= deltmx ) then
+            call tstep(extime,dtinc,deltmx)
+            write (aline, 99001) extime , dtinc , dt , dt2 ,          &
+                                 & dtmin , ktau , jyear
+            call say
           end if
         end if
+      end if
 !
 !       Compute tendencies
 !
-        call tend(iexec)
+      call tend(iexec)
 !
 !       Split modes
 !
-        call splitf
+      call splitf
 !
 !       Write output for this timestep if requested
 !
-        if (ifrest) done_restart = .true.
-        call output
+      if (ifrest) done_restart = .true.
+      call output
 !
 !       Increment time
 !
-        extime = extime + dtinc
-        if (debug_level > 3) then
-          if (myid == 0) write(6,'(a,i10,a,i10,a)') &
-             'Simulation time: ', idatex , '+', &
-             idint(dmod(extime,secph)), ' h'
-        end if
+      extime = extime + dtinc
+      if (debug_level > 3) then
+        if (myid == 0) write(6,'(a,i10,a,i10,a)') &
+           'Simulation time: ', idatex , '+', &
+           idint(dmod(extime,secph)), ' h'
+      end if
 !
-      end do
+    end do
 
 !this below close down debug 
 #ifdef DEBUG
-      call stop_debug()
+    call stop_debug()
 #endif 
-      call time_print(6,'evolution phase')
+    call time_print(6,'evolution phase')
 !
 !**********************************************************************
 !
@@ -362,13 +384,13 @@
 !**********************************************************************
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
-            & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
-            & i7,' in year ',i4)
+        & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
+        & i7,' in year ',i4)
 
-      end subroutine RCM_run
+  end subroutine RCM_run
 
-      subroutine RCM_finalize
-      implicit none
+  subroutine RCM_finalize
+    implicit none
 !
 !**********************************************************************
 !
@@ -376,7 +398,7 @@
 !
 !**********************************************************************
 !
-      integer :: nhours, ierr
+    integer :: nhours, ierr
 !
 !**********************************************************************
 !
@@ -384,10 +406,10 @@
 !
 !**********************************************************************
 !
-      call release_mod_ncio
+    call release_mod_ncio
 !
-      write (aline, 99002) xtime , ktau , jyear
-      call say
+    write (aline, 99002) xtime , ktau , jyear
+    call say
 !
 !**********************************************************************
 !
@@ -395,11 +417,11 @@
 !
 !**********************************************************************
 !
-      nhours = idatediff(idate2,idate1)
-      idate1 = idate2
-      call addhours(idate2,nhours)
-      write (aline, *) ' *** new max DATE will be ' , idate2
-      call say
+    nhours = idatediff(idate2,idate1)
+    idate1 = idate2
+    call addhours(idate2,nhours)
+    write (aline, *) ' *** new max DATE will be ' , idate2
+    call say
 !
 !**********************************************************************
 !
@@ -407,21 +429,21 @@
 !
 !**********************************************************************
 !
-      if ( myid == 0 ) then
-        call for_next
-      end if
-      call mpi_finalize(ierr)
+    if ( myid == 0 ) then
+      call for_next
+    end if
+    call mpi_finalize(ierr)
 #ifdef CLM
-      call t_prf('timing_all',mpicom)
-      call t_finalizef()
+    call t_prf('timing_all',mpicom)
+    call t_finalizef()
 #endif
 !
-      call memory_destroy
-      call finaltime(myid)
+    call memory_destroy
+    call finaltime(myid)
 !
-      if ( myid == 0 ) then
-        print *, 'RegCM V4 simulation successfully reached end'
-      end if
+    if ( myid == 0 ) then
+      print *, 'RegCM V4 simulation successfully reached end'
+    end if
 !
 !**********************************************************************
 !
@@ -430,10 +452,10 @@
 !**********************************************************************
 !
 99002 format (                                                          &
-         & ' ***** restart file for next run is written at time     = ',&
-         & f10.2,' minutes, ktau = ',i7,' in year ',i4)
-!
-      end subroutine RCM_finalize
+     & ' ***** restart file for next run is written at time     = ',&
+     & f10.2,' minutes, ktau = ',i7,' in year ',i4)
+
+    contains
 !
 !**********************************************************************
 !
@@ -442,7 +464,7 @@
 !
 !**********************************************************************
 !
-      subroutine for_next
+    subroutine for_next
       implicit none
 ! 
 !**********************************************************************
@@ -480,5 +502,8 @@
 99001 format (1x,a)
 99002 format (1x,a,i10,',')
 !
-      end subroutine for_next
-      end module mod_interface
+    end subroutine for_next
+!
+  end subroutine RCM_finalize
+!
+end module mod_interface
