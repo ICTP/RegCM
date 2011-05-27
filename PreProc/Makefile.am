@@ -17,4 +17,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = external PreProc Main PostProc
+SUBDIRS = Terrain ICBC CLM

@@ -1,4 +1,6 @@
 
+SUBDIRS = netlib clmlib
+
 include $(REGCM_ROOT)/makeinc
 
 vpath %.F90 $(REGCM_ROOT)/Config:.

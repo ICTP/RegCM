@@ -390,7 +390,8 @@ CPPFLAGS="$AM_CPPFLAGS"
 AC_SUBST(CPPFLAGS)
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
+AC_CONFIG_FILES([Makefile PreProc/Makefile \
+                 PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
                  Main/clmlib/Makefile Main/Makefile external/Makefile \
                  Tools/Programs/CheckSun/Makefile \
