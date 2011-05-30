@@ -1573,11 +1573,11 @@
 !       to the entire atmospheric column, and where 0 for interface
 !       quantities refers to top of atmos- phere, while 1 refers to the
 !       surface:
-        call radclr(coszrs,trayoslp,pflx,ns,  &
-                    uth2o,uto3,utco2,uto2,tauxar_mix_cs(1,ns), &
-                    tauasc_mix_cs(1,ns),gtota_mix_cs(1,ns),             &
-                    ftota_mix_cs(1,ns),nloop,is,ie,rdir,rdif,tdir,tdif, &
-                    explay,exptdn,rdndif,tottrn)
+        call radclr(coszrs,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
+                    tauxar_mix_cs(:,ns),tauasc_mix_cs(:,ns),       &
+                    gtota_mix_cs(:,ns),ftota_mix_cs(:,ns),nloop,   &
+                    is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,&
+                    tottrn)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for entire
 !       column; 0,1 on layer quantities refers to two effective layers

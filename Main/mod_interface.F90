@@ -120,16 +120,17 @@ module mod_interface
         write ( 6, * ) 'Check argument and namelist syntax'
         stop
       end if
+    end if
 !
+    call memory_init
+!
+    if ( myid == 0 ) then
 #ifdef BAND
       call init_mod_ncio(.true.)
 #else
       call init_mod_ncio(.false.)
 #endif
-!
     end if
-
-    call memory_init
 
 !
 !**********************************************************************
