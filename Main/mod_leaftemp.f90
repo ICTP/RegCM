@@ -175,7 +175,7 @@
             if ( sigf(n,i) > 0.001D0 ) then
               vpdc(n,i) = d_10
               if ( iemiss == 1 ) then
-                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
+                sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
               else
                 sgtg3 = sigm*tg1d(n,i)**d_three
               end if
@@ -308,7 +308,7 @@
 !
 !l              1.2  radiative forcing for leaf temperature calculation
                 if ( iemiss == 1 ) then
-                  sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
+                  sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
                 else
                   sgtg3 = sigm*tg1d(n,i)**d_three
                 end if
@@ -367,7 +367,7 @@
               delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
                            & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
               if ( iemiss == 1 ) then
-                sgtg3 = emiss_1d(n,i)*(sigm*tg1d(n,i)**d_three)
+                sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
               else
                 sgtg3 = sigm*tg1d(n,i)**d_three
               end if

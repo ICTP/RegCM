@@ -365,7 +365,7 @@ module mod_vecbats
           amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
           veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-          emiss_1d(n,i) = emiss2d(n,i,j)
+          emiss1d(n,i) = emiss2d(n,i,j)
           z1d(n,i) = za(i,kz,j)
           z1log(n,i)  = dlog(z1d(n,i))
           z2fra(n,i)  = dlog(z1d(n,i)*d_half)
@@ -949,7 +949,7 @@ module mod_vecbats
       aldirl(i) = aldirl_s(1)
       aldifs(i) = aldifs_s(1)
       aldifl(i) = aldifl_s(1)
-      if ( iemiss == 1 ) emiss1d(i) = emiss2d(1,i,j)
+      if ( iemiss == 1 ) emiss(i) = emiss2d(1,i,j)
       aldirs1d(1,i) = aldirs_s(1)
       aldifs1d(1,i) = aldifs_s(1)
       do n = 2 , nnsg
@@ -959,7 +959,7 @@ module mod_vecbats
         aldirl(i) = aldirl(i) + aldirl_s(n)
         aldifs(i) = aldifs(i) + aldifs_s(n)
         aldifl(i) = aldifl(i) + aldifl_s(n)
-        if ( iemiss == 1 ) emiss1d(i) = emiss1d(i) + emiss2d(n,i,j)
+        if ( iemiss == 1 ) emiss(i) = emiss(i) + emiss2d(n,i,j)
         aldirs1d(n,i) = aldirs_s(n)
         aldifs1d(n,i) = aldifs_s(n)
       end do
@@ -969,7 +969,7 @@ module mod_vecbats
       aldirl(i) = aldirl(i)*rdnnsg
       aldifs(i) = aldifs(i)*rdnnsg
       aldifl(i) = aldifl(i)*rdnnsg
-      if ( iemiss == 1 ) emiss1d(i) = emiss1d(i)*rdnnsg
+      if ( iemiss == 1 ) emiss(i) = emiss(i)*rdnnsg
  
 !     fsw1d(i),sabveg(i),solis(i) computed in colrad
  
