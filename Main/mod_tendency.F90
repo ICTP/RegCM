@@ -930,7 +930,7 @@ module mod_tendency
       do i = 1 , nspgx
         bdynssnd(i,1) = pnb(i,jxp)
         bdynssnd(i,2) = pnbt(i,jxp)
-        bdynssnd(i,3) = pss(i,jxp)
+        bdynssnd(i,3) = psb(i,jxp)
         bdynssnd(i,4) = psbt(i,jxp)
       end do
       do k = 1 , kz
@@ -965,7 +965,7 @@ module mod_tendency
       do i = 1 , nspgx
         pnb(i,0) = bdynsrcv(i,1)
         pnbt(i,0) = bdynsrcv(i,2)
-        pss(i,0) = bdynsrcv(i,3)
+        psb(i,0) = bdynsrcv(i,3)
         psbt(i,0) = bdynsrcv(i,4)
       end do
       do k = 1 , kz
@@ -995,7 +995,7 @@ module mod_tendency
       do i = 1 , nspgx
         bdynssnd(i,1) = pnb(i,1)
         bdynssnd(i,2) = pnbt(i,1)
-        bdynssnd(i,3) = pss(i,1)
+        bdynssnd(i,3) = psb(i,1)
         bdynssnd(i,4) = psbt(i,1)
       end do
       do k = 1 , kz
@@ -1030,7 +1030,7 @@ module mod_tendency
       do i = 1 , nspgx
         pnb(i,jxp+1) = bdynsrcv(i,1)
         pnbt(i,jxp+1) = bdynsrcv(i,2)
-        pss(i,jxp+1) = bdynsrcv(i,3)
+        psb(i,jxp+1) = bdynsrcv(i,3)
         psbt(i,jxp+1) = bdynsrcv(i,4)
       end do
       do k = 1 , kz

@@ -48,7 +48,7 @@
 !                                                                     c
 !     xpten : is the tendency calculated from the model.              c
 !                                                                     c
-!     peb, pwb, pss, pnb : are the observed boundary values           c
+!     peb, pwb, psb, pnb : are the observed boundary values           c
 !                   on east, west, south, and north boundaries.       c
 !                                                                     c
 !     pebt, pwbt, psbt, pnbt : are the large-scale or observed        c
@@ -102,11 +102,11 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+            fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
@@ -129,11 +129,11 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+            fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
@@ -176,11 +176,11 @@
             fcx = fcoef*xfun(i)
             gcx = gcoef*xfun(i)
 !.......south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+            fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
@@ -203,11 +203,11 @@
               fcx = fcoef*xfun(i)
               gcx = gcoef*xfun(i)
 !........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+              fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+              fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+              fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+              fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+              fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
@@ -263,11 +263,11 @@
             fcx = fcoef*xfune(i,kz)
             gcx = gcoef*xfune(i,kz)
 !........south boundary:
-            fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-            fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-            fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-            fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-            fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+            fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+            fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+            fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+            fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+            fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
             xpten(i) = xpten(i) + fcx*fls0 -                            &
                     & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
@@ -290,11 +290,11 @@
               fcx = fcoef*xfune(i,kz)
               gcx = gcoef*xfune(i,kz)
 !.........south boundary:
-              fls0 = (pss(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-              fls1 = (pss(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-              fls2 = (pss(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-              fls3 = (pss(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-              fls4 = (pss(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
+              fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
+              fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
+              fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
+              fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
+              fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
               xpten(i) = xpten(i) + fcx*fls0 -                          &
                       & gcx*c203*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:

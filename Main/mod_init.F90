@@ -99,7 +99,7 @@
       vwbt = d_zero
 #endif
       pnb  = d_zero
-      pss  = d_zero
+      psb  = d_zero
       pnbt = d_zero
       psbt = d_zero
       tnb  = d_zero
