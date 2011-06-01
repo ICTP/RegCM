@@ -96,7 +96,7 @@
       if ( idate > itimes(nrec) ) then
         istatus = nf90_close(ncinp)
         call check_ok(istatus, 'Error close')
-        write (fillin,'(a,i10)') 'ATM.', idate
+        write (fillin,'(a,i10)') 'ATM.', imonfirst(idate)
         inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
         istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
         call check_ok(istatus, 'Error opening '//trim(inpfile))
