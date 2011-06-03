@@ -19,209 +19,198 @@
 
 #ifdef CLM
 
-      module mod_clm
+module mod_clm
 !
 ! Storage and parameters for CLM model v3.5
 !
-      use mod_dynparam
-      use mod_constants
+  use mod_dynparam
+  use mod_constants
+  use mod_memutil
 !
-      implicit none
+  implicit none
 
-      integer :: imask
-      real(8) :: clmfrq
+  integer :: imask
+  real(8) :: clmfrq
 !
-      integer :: r2cdtime      ! timestep in seconds
-      integer :: r2cnsrest     ! 0=initial, 1=restart
-      integer :: r2cnestep     ! final timestep (or day if negative) number
-      integer :: r2cnelapse    ! # of timesteps (or days if negative) 
-                               ! to extend a run
-      integer :: r2cnstep      ! current timestep (ktau)
+  integer :: r2cdtime      ! timestep in seconds
+  integer :: r2cnsrest     ! 0=initial, 1=restart
+  integer :: r2cnestep     ! final timestep (or day if negative) number
+  integer :: r2cnelapse    ! # of timesteps (or days if negative) 
+                           ! to extend a run
+  integer :: r2cnstep      ! current timestep (ktau)
 !
-      integer :: r2cstart_ymd  ! starting date for run in yearmmdd format
-      integer :: r2cstart_tod  ! starting time of day for run in seconds
-      integer :: r2cstop_ymd   ! stopping date for run in yearmmdd format
-      integer :: r2cstop_tod   ! stopping time of day for run in seconds
-      integer :: r2cref_ymd    ! reference date for time coordinate 
-                               ! in yearmmdd format
-      integer :: r2cref_tod    ! reference time of day for time 
-                               ! coordinate in seconds
+  integer :: r2cstart_ymd  ! starting date for run in yearmmdd format
+  integer :: r2cstart_tod  ! starting time of day for run in seconds
+  integer :: r2cstop_ymd   ! stopping date for run in yearmmdd format
+  integer :: r2cstop_tod   ! stopping time of day for run in seconds
+  integer :: r2cref_ymd    ! reference date for time coordinate 
+                           ! in yearmmdd format
+  integer :: r2cref_tod    ! reference time of day for time 
+                           ! coordinate in seconds
 
-      character(len=32) :: r2cclndr ! Calendar type ('NO_LEAP' or 'GREGORIAN')
+  character(len=32) :: r2cclndr ! Calendar type ('NO_LEAP' or 'GREGORIAN')
 
-      logical :: r2cwrtdia     ! write output true/false
-      integer :: r2cirad       ! radiation calculation 
-      integer :: r2cmss_irt    ! NCAR mass store retention time set to 0
+  logical :: r2cwrtdia     ! write output true/false
+  integer :: r2cirad       ! radiation calculation 
+  integer :: r2cmss_irt    ! NCAR mass store retention time set to 0
 
-      integer :: r2clsmlon     ! number of longitude points
-      integer :: r2clsmlat     ! number of latitude points
-      real(8) :: r2cdx         ! model resolution (m)
-      real(8) :: r2carea       ! area of each grid cell (km^2)
-      real(8) :: r2cedgen      ! N edge of grid
-      real(8) :: r2cedges      ! S edge of grid
-      real(8) :: r2cedgee      ! E edge of grid
-      real(8) :: r2cedgew      ! W edge of grid
+  integer :: r2clsmlon     ! number of longitude points
+  integer :: r2clsmlat     ! number of latitude points
+  real(8) :: r2cdx         ! model resolution (m)
+  real(8) :: r2carea       ! area of each grid cell (km^2)
+  real(8) :: r2cedgen      ! N edge of grid
+  real(8) :: r2cedges      ! S edge of grid
+  real(8) :: r2cedgee      ! E edge of grid
+  real(8) :: r2cedgew      ! W edge of grid
 
-      real(8) :: r2ceccen      ! orbital eccentricity
-      real(8) :: r2cobliqr     ! Earths obliquity in rad
-      real(8) :: r2clambm0     ! Mean long of perihelion at
-                               ! vernal equinox (radians)
-      real(8) :: r2cmvelpp     ! moving vernal equinox long
-      real(8) :: r2ceccf       ! Earth-sun distance factor (1/r)**2
+  real(8) :: r2ceccen      ! orbital eccentricity
+  real(8) :: r2cobliqr     ! Earths obliquity in rad
+  real(8) :: r2clambm0     ! Mean long of perihelion at
+                           ! vernal equinox (radians)
+  real(8) :: r2cmvelpp     ! moving vernal equinox long
+  real(8) :: r2ceccf       ! Earth-sun distance factor (1/r)**2
 
-      logical :: r2cdoalb      ! time for next albedo call
+  logical :: r2cdoalb      ! time for next albedo call
 
-      integer :: c2rcnts
+  integer :: c2rcnts
 
-      real(8) , target , allocatable , dimension(:,:,:) :: clmspace
-      private :: clmspace
-
-      real(8) , pointer , dimension(:,:) :: r2ctb_all   
-      real(8) , pointer , dimension(:,:) :: r2cqb_all    
-      real(8) , pointer , dimension(:,:) :: r2czga_all   
-      real(8) , pointer , dimension(:,:) :: r2cpsb_all   
-      real(8) , pointer , dimension(:,:) :: r2cuxb_all   
-      real(8) , pointer , dimension(:,:) :: r2cvxb_all   
-      real(8) , pointer , dimension(:,:) :: r2crnc_all   
-      real(8) , pointer , dimension(:,:) :: r2crnnc_all  
-      real(8) , pointer , dimension(:,:) :: r2csols_all  
-      real(8) , pointer , dimension(:,:) :: r2csoll_all  
-      real(8) , pointer , dimension(:,:) :: r2csolsd_all 
-      real(8) , pointer , dimension(:,:) :: r2csolld_all
-      real(8) , pointer , dimension(:,:) :: r2cflwd_all
-      real(8) , pointer , dimension(:,:) :: r2ccosz_all
-      real(8) , pointer , dimension(:,:) :: r2cxlat_all     ! xlat in radians
-      real(8) , pointer , dimension(:,:) :: r2cxlon_all     ! xlon in radians
-      real(8) , pointer , dimension(:,:) :: r2cxlatd_all    ! xlat in degrees
-      real(8) , pointer , dimension(:,:) :: r2cxlond_all    ! xlon in degrees
-      real(8) , pointer , dimension(:,:) :: c2rtgb
-      real(8) , pointer , dimension(:,:) :: c2rsenht
-      real(8) , pointer , dimension(:,:) :: c2rlatht
-      real(8) , pointer , dimension(:,:) :: c2ralbdirs
-      real(8) , pointer , dimension(:,:) :: c2ralbdirl
-      real(8) , pointer , dimension(:,:) :: c2ralbdifs
-      real(8) , pointer , dimension(:,:) :: c2ralbdifl
-      real(8) , pointer , dimension(:,:) :: c2rtaux
-      real(8) , pointer , dimension(:,:) :: c2rtauy
-      real(8) , pointer , dimension(:,:) :: c2ruvdrag
-      real(8) , pointer , dimension(:,:) :: c2rlsmask
-      real(8) , pointer , dimension(:,:) :: c2rtgbb
-      real(8) , pointer , dimension(:,:) :: c2rsnowc
-      real(8) , pointer , dimension(:,:) :: c2rtest
-      real(8) , pointer , dimension(:,:) :: c2r2mt
-      real(8) , pointer , dimension(:,:) :: c2r2mq
-      real(8) , pointer , dimension(:,:) :: c2rtlef
-      real(8) , pointer , dimension(:,:) :: c2ru10
-      real(8) , pointer , dimension(:,:) :: c2rsm10cm
-      real(8) , pointer , dimension(:,:) :: c2rsm1m
-      real(8) , pointer , dimension(:,:) :: c2rsmtot
-      real(8) , pointer , dimension(:,:) :: c2rinfl
-      real(8) , pointer , dimension(:,:) :: c2rro_sur
-      real(8) , pointer , dimension(:,:) :: c2rro_sub
-      real(8) , pointer , dimension(:,:) :: c2rfracsno      
-      real(8) , pointer , dimension(:,:) :: c2rfvegnosno 
-      integer , allocatable , dimension(:,:) :: c2rprocmap
-      integer , allocatable , dimension(:) :: c2rngc
-      integer , allocatable , dimension(:) :: c2rdisps
+  real(8) , pointer , dimension(:,:) :: r2ctb_all   
+  real(8) , pointer , dimension(:,:) :: r2cqb_all    
+  real(8) , pointer , dimension(:,:) :: r2czga_all   
+  real(8) , pointer , dimension(:,:) :: r2cpsb_all   
+  real(8) , pointer , dimension(:,:) :: r2cuxb_all   
+  real(8) , pointer , dimension(:,:) :: r2cvxb_all   
+  real(8) , pointer , dimension(:,:) :: r2crnc_all   
+  real(8) , pointer , dimension(:,:) :: r2crnnc_all  
+  real(8) , pointer , dimension(:,:) :: r2csols_all  
+  real(8) , pointer , dimension(:,:) :: r2csoll_all  
+  real(8) , pointer , dimension(:,:) :: r2csolsd_all 
+  real(8) , pointer , dimension(:,:) :: r2csolld_all
+  real(8) , pointer , dimension(:,:) :: r2cflwd_all
+  real(8) , pointer , dimension(:,:) :: r2ccosz_all
+  real(8) , pointer , dimension(:,:) :: r2cxlat_all     ! xlat in radians
+  real(8) , pointer , dimension(:,:) :: r2cxlon_all     ! xlon in radians
+  real(8) , pointer , dimension(:,:) :: r2cxlatd_all    ! xlat in degrees
+  real(8) , pointer , dimension(:,:) :: r2cxlond_all    ! xlon in degrees
+  real(8) , pointer , dimension(:,:) :: c2rtgb
+  real(8) , pointer , dimension(:,:) :: c2rsenht
+  real(8) , pointer , dimension(:,:) :: c2rlatht
+  real(8) , pointer , dimension(:,:) :: c2ralbdirs
+  real(8) , pointer , dimension(:,:) :: c2ralbdirl
+  real(8) , pointer , dimension(:,:) :: c2ralbdifs
+  real(8) , pointer , dimension(:,:) :: c2ralbdifl
+  real(8) , pointer , dimension(:,:) :: c2rtaux
+  real(8) , pointer , dimension(:,:) :: c2rtauy
+  real(8) , pointer , dimension(:,:) :: c2ruvdrag
+  real(8) , pointer , dimension(:,:) :: c2rlsmask
+  real(8) , pointer , dimension(:,:) :: c2rtgbb
+  real(8) , pointer , dimension(:,:) :: c2rsnowc
+  real(8) , pointer , dimension(:,:) :: c2rtest
+  real(8) , pointer , dimension(:,:) :: c2r2mt
+  real(8) , pointer , dimension(:,:) :: c2r2mq
+  real(8) , pointer , dimension(:,:) :: c2rtlef
+  real(8) , pointer , dimension(:,:) :: c2ru10
+  real(8) , pointer , dimension(:,:) :: c2rsm10cm
+  real(8) , pointer , dimension(:,:) :: c2rsm1m
+  real(8) , pointer , dimension(:,:) :: c2rsmtot
+  real(8) , pointer , dimension(:,:) :: c2rinfl
+  real(8) , pointer , dimension(:,:) :: c2rro_sur
+  real(8) , pointer , dimension(:,:) :: c2rro_sub
+  real(8) , pointer , dimension(:,:) :: c2rfracsno      
+  real(8) , pointer , dimension(:,:) :: c2rfvegnosno 
+  integer , pointer , dimension(:,:) :: c2rprocmap
+  integer , pointer , dimension(:) :: c2rngc
+  integer , pointer , dimension(:) :: c2rdisps
 !
-      real(8) , allocatable , target , dimension(:,:,:) :: spaceclm
-      private :: spaceclm
-      ! Direct solar rad incident on surface (<0.7)
-      real(8) , pointer , dimension(:,:) :: sols2d
-      ! Direct solar rad incident on surface (>=0.7)
-      real(8) , pointer , dimension(:,:) :: soll2d
-      ! Diffuse solar rad incident on surface (<0.7)
-      real(8) , pointer , dimension(:,:) :: solsd2d
-      ! Diffuse solar rad incident on surface (>=0.7)
-      real(8) , pointer , dimension(:,:) :: solld2d
-      real(8) , pointer , dimension(:,:) :: aldirs2d
-      real(8) , pointer , dimension(:,:) :: aldirl2d
-      real(8) , pointer , dimension(:,:) :: aldifs2d
-      real(8) , pointer , dimension(:,:) :: aldifl2d
-      real(8) , pointer , dimension(:,:) :: lndcat2d
-      real(8) , pointer , dimension(:,:) :: rs2d
-      real(8) , pointer , dimension(:,:) :: ra2d
-      ! 2 meter specific humidity
-      real(8) , pointer , dimension(:,:) :: q2d
+  ! Direct solar rad incident on surface (<0.7)
+  real(8) , pointer , dimension(:,:) :: sols2d
+  ! Direct solar rad incident on surface (>=0.7)
+  real(8) , pointer , dimension(:,:) :: soll2d
+  ! Diffuse solar rad incident on surface (<0.7)
+  real(8) , pointer , dimension(:,:) :: solsd2d
+  ! Diffuse solar rad incident on surface (>=0.7)
+  real(8) , pointer , dimension(:,:) :: solld2d
+  real(8) , pointer , dimension(:,:) :: aldirs2d
+  real(8) , pointer , dimension(:,:) :: aldirl2d
+  real(8) , pointer , dimension(:,:) :: aldifs2d
+  real(8) , pointer , dimension(:,:) :: aldifl2d
+  real(8) , pointer , dimension(:,:) :: lndcat2d
+  real(8) , pointer , dimension(:,:) :: rs2d
+  real(8) , pointer , dimension(:,:) :: ra2d
+  ! 2 meter specific humidity
+  real(8) , pointer , dimension(:,:) :: q2d
 !
-      contains
+  contains
 !
-      subroutine allocate_mod_clm(lband)
-      implicit none
-      logical , intent(in) :: lband
+  subroutine allocate_mod_clm(lband)
+    implicit none
+    logical , intent(in) :: lband
 
-!     About the dimension ordering:
-!     regcm: ix=lat,jx=lon, arrays are lat by lon
-!     clm: i=lon, j=lat, arrays are lon by lat
-      allocate(clmspace(jx,iy,44))
-      clmspace = d_zero
-      r2ctb_all     => clmspace(:,:,1)
-      r2cqb_all     => clmspace(:,:,2)
-      r2czga_all    => clmspace(:,:,3)
-      r2cpsb_all    => clmspace(:,:,4)
-      r2cuxb_all    => clmspace(:,:,5)
-      r2cvxb_all    => clmspace(:,:,6)
-      r2crnc_all    => clmspace(:,:,7)
-      r2crnnc_all   => clmspace(:,:,8)
-      r2csols_all   => clmspace(:,:,9)
-      r2csoll_all   => clmspace(:,:,10)
-      r2csolsd_all  => clmspace(:,:,11)
-      r2csolld_all  => clmspace(:,:,12)
-      r2cflwd_all   => clmspace(:,:,13)
-      r2ccosz_all   => clmspace(:,:,14)
-      r2cxlat_all   => clmspace(:,:,15)
-      r2cxlon_all   => clmspace(:,:,16)
-      r2cxlatd_all  => clmspace(:,:,17)
-      r2cxlond_all  => clmspace(:,:,18)
-      c2rtgb        => clmspace(:,:,19)
-      c2rsenht      => clmspace(:,:,20)
-      c2rlatht      => clmspace(:,:,21)
-      c2ralbdirs    => clmspace(:,:,22)
-      c2ralbdirl    => clmspace(:,:,23)
-      c2ralbdifs    => clmspace(:,:,24)
-      c2ralbdifl    => clmspace(:,:,25)
-      c2rtaux       => clmspace(:,:,26)
-      c2rtauy       => clmspace(:,:,27)
-      c2ruvdrag     => clmspace(:,:,28)
-      c2rlsmask     => clmspace(:,:,29)
-      c2rtgbb       => clmspace(:,:,30)
-      c2rsnowc      => clmspace(:,:,31)
-      c2rtest       => clmspace(:,:,32)
-      c2r2mt        => clmspace(:,:,33)
-      c2r2mq        => clmspace(:,:,34)
-      c2rtlef       => clmspace(:,:,35)
-      c2ru10        => clmspace(:,:,36)
-      c2rsm10cm     => clmspace(:,:,37)
-      c2rsm1m       => clmspace(:,:,38)
-      c2rsmtot      => clmspace(:,:,39)
-      c2rinfl       => clmspace(:,:,40)
-      c2rro_sur     => clmspace(:,:,41)
-      c2rro_sub     => clmspace(:,:,42)
-      c2rfracsno    => clmspace(:,:,43)
-      c2rfvegnosno  => clmspace(:,:,44)
-      allocate(c2rprocmap(jx,iy))
-      allocate(c2rngc(nproc))
-      allocate(c2rdisps(nproc))
-      c2rprocmap = 0
-      c2rngc = 0
-      c2rdisps = 0
-      allocate(spaceclm(iym1,jxp,11))
-      spaceclm = d_zero
-      sols2d   => spaceclm(:,:,1)
-      soll2d   => spaceclm(:,:,2)
-      solsd2d  => spaceclm(:,:,3)
-      solld2d  => spaceclm(:,:,4)
-      aldirs2d => spaceclm(:,:,5)
-      aldirl2d => spaceclm(:,:,6)
-      aldifs2d => spaceclm(:,:,7)
-      aldifl2d => spaceclm(:,:,8)
-      rs2d     => spaceclm(:,:,9)
-      ra2d     => spaceclm(:,:,10)
-      q2d      => spaceclm(:,:,11)
-      allocate(lndcat2d(iy,jxp))
-      lndcat2d = d_zero
-      end subroutine allocate_mod_clm
+! About the dimension ordering:
+! regcm: ix=lat,jx=lon, arrays are lat by lon
+! clm: i=lon, j=lat, arrays are lon by lat
+    call getmem2d(r2ctb_all,1,jx,1,iy,'clm:r2ctb_all')
+    call getmem2d(r2cqb_all,1,jx,1,iy,'clm:r2cqb_all')
+    call getmem2d(r2czga_all,1,jx,1,iy,'clm:r2czga_all')
+    call getmem2d(r2cpsb_all,1,jx,1,iy,'clm:r2cpsb_all')
+    call getmem2d(r2cuxb_all,1,jx,1,iy,'clm:r2cuxb_all')
+    call getmem2d(r2cvxb_all,1,jx,1,iy,'clm:r2cvxb_all')
+    call getmem2d(r2crnc_all,1,jx,1,iy,'clm:r2crnc_all')
+    call getmem2d(r2crnnc_all,1,jx,1,iy,'clm:r2crnnc_all')
+    call getmem2d(r2csols_all,1,jx,1,iy,'clm:r2csols_all')
+    call getmem2d(r2csoll_all,1,jx,1,iy,'clm:r2csoll_all')
+    call getmem2d(r2csolsd_all,1,jx,1,iy,'clm:r2csolsd_all')
+    call getmem2d(r2csolld_all,1,jx,1,iy,'clm:r2csolld_all')
+    call getmem2d(r2cflwd_all,1,jx,1,iy,'clm:r2cflwd_all')
+    call getmem2d(r2ccosz_all,1,jx,1,iy,'clm:r2ccosz_all')
+    call getmem2d(r2cxlat_all,1,jx,1,iy,'clm:r2cxlat_all')
+    call getmem2d(r2cxlon_all,1,jx,1,iy,'clm:r2cxlon_all')
+    call getmem2d(r2cxlatd_all,1,jx,1,iy,'clm:r2cxlatd_all')
+    call getmem2d(r2cxlond_all,1,jx,1,iy,'clm:r2cxlond_all')
+    call getmem2d(c2rtgb,1,jx,1,iy,'clm:c2rtgb')
+    call getmem2d(c2rsenht,1,jx,1,iy,'clm:c2rsenht')
+    call getmem2d(c2rlatht,1,jx,1,iy,'clm:c2rlatht')
+    call getmem2d(c2ralbdirs,1,jx,1,iy,'clm:c2ralbdirs')
+    call getmem2d(c2ralbdirl,1,jx,1,iy,'clm:c2ralbdirl')
+    call getmem2d(c2ralbdifs,1,jx,1,iy,'clm:c2ralbdifs')
+    call getmem2d(c2ralbdifl,1,jx,1,iy,'clm:c2ralbdifl')
+    call getmem2d(c2rtaux,1,jx,1,iy,'clm:c2rtaux')
+    call getmem2d(c2rtauy,1,jx,1,iy,'clm:c2rtauy')
+    call getmem2d(c2ruvdrag,1,jx,1,iy,'clm:c2ruvdrag')
+    call getmem2d(c2rlsmask,1,jx,1,iy,'clm:c2rlsmask')
+    call getmem2d(c2rtgbb,1,jx,1,iy,'clm:c2rtgbb')
+    call getmem2d(c2rsnowc,1,jx,1,iy,'clm:c2rsnowc')
+    call getmem2d(c2rtest,1,jx,1,iy,'clm:c2rtest')
+    call getmem2d(c2r2mt,1,jx,1,iy,'clm:c2r2mt')
+    call getmem2d(c2r2mq,1,jx,1,iy,'clm:c2r2mq')
+    call getmem2d(c2rtlef,1,jx,1,iy,'clm:c2rtlef')
+    call getmem2d(c2ru10,1,jx,1,iy,'clm:c2ru10')
+    call getmem2d(c2rsm10cm,1,jx,1,iy,'clm:c2rsm10cm')
+    call getmem2d(c2rsm1m,1,jx,1,iy,'clm:c2rsm1m')
+    call getmem2d(c2rsmtot,1,jx,1,iy,'clm:c2rsmtot')
+    call getmem2d(c2rinfl,1,jx,1,iy,'clm:c2rinfl')
+    call getmem2d(c2rro_sur,1,jx,1,iy,'clm:c2rro_sur')
+    call getmem2d(c2rro_sub,1,jx,1,iy,'clm:c2rro_sub')
+    call getmem2d(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
+    call getmem2d(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
+    call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
+    call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
+    call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
+
+    call getmem2d(sols2d,1,iym1,1,jxp,'clm:sols2d')
+    call getmem2d(soll2d,1,iym1,1,jxp,'clm:soll2d')
+    call getmem2d(solsd2d,1,iym1,1,jxp,'clm:solsd2d')
+    call getmem2d(solld2d,1,iym1,1,jxp,'clm:solld2d')
+    call getmem2d(aldirs2d,1,iym1,1,jxp,'clm:aldirs2d')
+    call getmem2d(aldirl2d,1,iym1,1,jxp,'clm:aldirl2d')
+    call getmem2d(aldifs2d,1,iym1,1,jxp,'clm:aldifs2d')
+    call getmem2d(aldifl2d,1,iym1,1,jxp,'clm:aldifl2d')
+    call getmem2d(rs2d,1,iym1,1,jxp,'clm:rs2d')
+    call getmem2d(ra2d,1,iym1,1,jxp,'clm:ra2d')
+    call getmem2d(q2d,1,iym1,1,jxp,'clm:q2d')
+    call getmem2d(lndcat2d,1,iy,1,jxp,'clm:lndcat2d')
+  end subroutine allocate_mod_clm
 !
-      end module mod_clm
+end module mod_clm
 !
 #endif

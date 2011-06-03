@@ -70,6 +70,7 @@ module mod_tendency
   real(8) , pointer , dimension(:,:,:) :: ps_4 
   real(8) , pointer , dimension(:,:) :: var2rcv , var2snd
   real(8) , pointer , dimension(:,:) :: tvar1rcv , tvar1snd
+  real(8) , pointer , dimension(:,:) :: qvcs
 
   contains
 
@@ -93,6 +94,7 @@ module mod_tendency
     call getmem2d(var2snd,1,iy,1,kz*(ntr+5)*2,'tendency:var2snd')
     call getmem2d(tvar1rcv,1,iy,1,kz*11+1+ntr*kz*2,'tendency:tvar1rcv')
     call getmem2d(tvar1snd,1,iy,1,kz*11+1+ntr*kz*2,'tendency:tvar1snd')
+    call getmem2d(qvcs,1,iy,1,kz,'tendency:qvcs')
   end subroutine allocate_mod_tend
 
   subroutine tend(iexec)
@@ -1406,7 +1408,7 @@ module mod_tendency
 !       compute the condensation and precipitation terms for explicit
 !       moisture scheme:
 !
-        call condtq(j)
+        call condtq(j,qvcs)
 !
 !       subtract horizontal diffusion and pbl tendencies from aten%t and
 !       aten%qv for appling the sponge boundary conditions on t and qv:
