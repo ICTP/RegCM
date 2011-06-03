@@ -17,67 +17,50 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_cvaria
+module mod_cvaria
 !
-! Storage for the prognostic variables at tau+1,
-!     decoupled variables, diagnostic variables and
-!     working spaces needed in the model.
+! Storage for the prognostic variables at tau+1, decoupled variables,
+! diagnostic variables and working spaces needed in the model.
 !
-      use mod_runparams
-      use mod_main , only : atmstate , allocate_atmstate
+  use mod_runparams
+  use mod_main , only : atmstate , allocate_atmstate
+  use mod_memutil
 
+  implicit none
+!
+  real(8) , pointer , dimension(:,:,:) :: diffq , difft , difuu , difuv
+  real(8) , pointer , dimension(:,:) :: psc , pten , psd
+  real(8) , pointer , dimension(:,:,:) :: phi , qdot , omega
+!
+  real(8) , pointer , dimension(:,:,:,:) :: chi
+  real(8) , pointer , dimension(:,:,:,:) :: chic , chiten
+
+  type(atmstate) , public :: atmx , atmc , aten
+
+  contains 
+
+    subroutine allocate_mod_cvaria
       implicit none
+
+      call allocate_atmstate(atmx,.true.,0,1)
+      call allocate_atmstate(atmc,.true.,0,0)
+      call allocate_atmstate(aten,.true.,0,0)
+
+      call getmem3d(diffq,1,iy,1,kz,1,jxp,'cvaria:diffq')
+      call getmem3d(difft,1,iy,1,kz,1,jxp,'cvaria:difft')
+      call getmem3d(difuu,1,iy,1,kz,1,jxp,'cvaria:difuu')
+      call getmem3d(difuv,1,iy,1,kz,1,jxp,'cvaria:difuv')
+      call getmem3d(omega,1,iy,1,kz,1,jxp,'cvaria:omega')
+      call getmem2d(psc,1,iy,1,jxp,'cvaria:psc')
+      call getmem2d(pten,1,iy,1,jxp,'cvaria:pten')
+      call getmem3d(phi,1,iy,1,kz,0,jxp,'cvaria:phi')
+      call getmem2d(psd,1,iy,0,jxp+1,'cvaria:psd')
+      call getmem3d(qdot,1,iy,1,kzp1,0,jxp+1,'cvaria:qdot')
+      if ( ichem == 1 ) then
+        call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
+        call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
+        call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')
+      end if
+    end  subroutine allocate_mod_cvaria
 !
-      real(8) , allocatable , dimension(:,:,:) :: diffq , difft ,   &
-                                                & difuu , difuv
-      real(8) , allocatable , dimension(:,:) :: psc , pten , psd
-      real(8) , allocatable , dimension(:,:,:) :: phi , qdot , omega
-!
-      real(8) , allocatable , dimension(:,:,:,:) :: chi
-      real(8) , allocatable , dimension(:,:,:,:) :: chic , chiten
-
-      type(atmstate) , public :: atmx , atmc , aten
-
-      contains 
-
-        subroutine allocate_mod_cvaria
-          implicit none
-
-          call allocate_atmstate(atmx,.true.,0,1)
-          call allocate_atmstate(atmc,.true.,0,0)
-          call allocate_atmstate(aten,.true.,0,0)
-
-          allocate(diffq(iy,kz,jxp))
-          allocate(difft(iy,kz,jxp))
-          allocate(difuu(iy,kz,jxp))
-          allocate(difuv(iy,kz,jxp))
-          allocate(omega(iy,kz,jxp))
-          allocate(psc(iy,jxp))
-          allocate(pten(iy,jxp))
-          allocate(phi(iy,kz,0:jxp))
-          allocate(psd(iy,0:jxp+1))
-          allocate(qdot(iy,kzp1,0:jxp+1))
-          if ( ichem == 1 ) then
-            allocate(chi(iy,kz,0:jxp+1,ntr))
-            allocate(chic(iy,kz,jxp,ntr))
-            allocate(chiten(iy,kz,jxp,ntr))
-          end if
-!
-          diffq = d_zero
-          difft = d_zero
-          difuu = d_zero
-          difuv = d_zero
-          omega = d_zero
-          psc = d_zero
-          pten = d_zero
-          phi = d_zero
-          psd = d_zero
-          if ( ichem == 1 ) then
-            chi = d_zero
-            chic = d_zero
-            chiten = d_zero
-          end if
-          qdot = d_zero
-        end  subroutine allocate_mod_cvaria
-!
-      end module mod_cvaria
+end module mod_cvaria

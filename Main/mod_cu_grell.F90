@@ -102,6 +102,7 @@ module mod_cu_grell
     call getmem2d(qes,1,iy,1,kz,'cu_grell:qes')
     call getmem2d(qeso,1,iy,1,kz,'cu_grell:qeso')
     call getmem2d(qrcd,1,iy,1,kz,'cu_grell:qrcd')
+    call getmem2d(qrcdo,1,iy,1,kz,'cu_grell:qrcdo')
     call getmem2d(tv,1,iy,1,kz,'cu_grell:tv')
     call getmem2d(tvo,1,iy,1,kz,'cu_grell:tvo')
     call getmem2d(xdby,1,iy,1,kz,'cu_grell:xdby')

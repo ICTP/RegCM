@@ -17,57 +17,55 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      module mod_cumtran
+module mod_cumtran
 !
 ! Tracer convective transport
 !
-      use mod_runparams
-      use mod_trachem
-      use mod_mainchem
+  use mod_runparams
+  use mod_trachem
+  use mod_mainchem
 !
-      private
+  private
 !
-      public :: cumtran
+  public :: cumtran
 !
 !hy   the well-mixing only over cumulus cloud fraction (assuming 0.3)
 !     add the well-mixing fraction in dt step (5%) - only updraft
 !hy   cumfrc = 0.3
 !
-      real(8) , parameter :: cumfrc = 0.015D0
+  real(8) , parameter :: cumfrc = 0.015D0
 !
-      contains
+  contains
 !
-      subroutine cumtran
+  subroutine cumtran
 
-      implicit none
+  implicit none
 !
-      real(8) :: chiabar , chibbar , deltas
-      integer :: i , j , k , kcumtop , n
+  real(8) :: chiabar , chibbar , deltas
+  integer :: i , j , k , kcumtop , n
 !
-      do n = 1 , ntr
-        do j = jbegin , jendx
-          do i = 2 , iym1
-            if ( icumtop(i,j) > 0 ) then
-              deltas = d_zero
-              chiabar = d_zero
-              chibbar = d_zero
-              kcumtop = max0(icumtop(i,j),4)
-              do k = kcumtop , kz
-                deltas = deltas + dsigma(k)
-                chiabar = chiabar + chia(i,k,j,n)*dsigma(k)
-                chibbar = chibbar + chib(i,k,j,n)*dsigma(k)
-              end do
-              do k = kcumtop , kz
-                chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc)  &
-                              & + cumfrc*chiabar/deltas
-                chib(i,k,j,n) = chib(i,k,j,n)*(d_one-cumfrc)  &
-                              & + cumfrc*chibbar/deltas
-              end do
-            end if
+  do n = 1 , ntr
+    do j = jbegin , jendx
+      do i = 2 , iym1
+        if ( icumtop(i,j) > 0 ) then
+          deltas = d_zero
+          chiabar = d_zero
+          chibbar = d_zero
+          kcumtop = max0(icumtop(i,j),4)
+          do k = kcumtop , kz
+            deltas = deltas + dsigma(k)
+            chiabar = chiabar + chia(i,k,j,n)*dsigma(k)
+            chibbar = chibbar + chib(i,k,j,n)*dsigma(k)
           end do
-        end do
+          do k = kcumtop , kz
+            chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc) + cumfrc*chiabar/deltas
+            chib(i,k,j,n) = chib(i,k,j,n)*(d_one-cumfrc) + cumfrc*chibbar/deltas
+          end do
+        end if
       end do
+    end do
+  end do
 !
-      end subroutine cumtran
+  end subroutine cumtran
 !
-      end module mod_cumtran
+end module mod_cumtran
