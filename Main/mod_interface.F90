@@ -37,7 +37,7 @@ module mod_interface
   use mod_che_semdde
   use mod_init
   use mod_header
-  use mod_param
+  use mod_params
   use mod_tendency
   use mod_tstep
   use mod_service

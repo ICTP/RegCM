@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_param
+module mod_params
 
   use mod_runparams
   use mod_pmoist
@@ -1598,4 +1598,4 @@ module mod_param
 !
   end subroutine param
 !
-end module mod_param
+end module mod_params
