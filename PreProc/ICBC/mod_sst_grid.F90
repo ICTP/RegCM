@@ -26,18 +26,24 @@ module mod_sst_grid
   use m_mall
   use netcdf
   use mod_dynparam
+  use mod_date
 
-  integer , private :: ncid
-  integer , dimension(4) , private :: idims
-  integer , dimension(4) , private :: ivar
-  integer , private :: irefdate
-  integer , private :: itime
+  private
 
-  real(sp) , allocatable , dimension(:,:) :: lu , sstmm , icemm ,   &
+  integer :: ncid
+  integer , dimension(4) :: idims
+  integer , dimension(4) :: ivar
+  type (rcm_time_and_date) :: refdate
+  integer :: itime
+
+  real(sp) , public , allocatable , dimension(:,:) :: lu , sstmm , icemm ,   &
                                             xlat , xlon , finmat
   real(sp) , allocatable , dimension(:) :: sigma
   real(sp) , allocatable , dimension(:) :: yiy
   real(sp) , allocatable , dimension(:) :: xjx
+
+  public :: init_grid , free_grid , read_domain , open_sstfile , &
+            close_sstfile , writerec
 
   contains
 
@@ -148,9 +154,8 @@ module mod_sst_grid
   end subroutine read_domain
 
   subroutine open_sstfile(idate1)
-    use mod_date , only : split_idate
     implicit none
-    integer , intent(in) :: idate1
+    type(rcm_time_and_date) , intent(in) :: idate1
     integer :: istatus
     character(256) :: sstname , history
     character(64) :: csdate
@@ -163,12 +168,9 @@ module mod_sst_grid
     integer :: iyy , im , id , ih , i , j
 
     call zeit_ci('newfile')
-    irefdate = idate1
+    refdate = idate1
+    csdate = refdate%tostring( )
     itime = 1
-
-    call split_idate(idate1,iyy,im,id,ih)
-    write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-              iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
 
     sstname = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
 #ifdef NETCDF4_HDF5
@@ -406,14 +408,14 @@ module mod_sst_grid
   end subroutine close_sstfile
 
   subroutine writerec(idate,lice)
-    use mod_date , only : idatediff
     implicit none
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
     logical , intent(in) :: lice
     integer :: istatus
     integer , dimension(1) :: istart1 , icount1
     integer , dimension(3) :: istart , icount
     real(dp) , dimension(1) :: xdate
+    type(rcm_time_interval) :: tdiff
 
     call zeit_ci('writerec')
     istart(3) = itime
@@ -424,7 +426,8 @@ module mod_sst_grid
     icount(2) = iy
     icount(1) = jx
     icount1(1) = 1
-    xdate(1) = dble(idatediff(idate,irefdate))
+    tdiff = idate - refdate
+    xdate(1) = tdiff%hours( )
     istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
     istatus = nf90_put_var(ncid, ivar(2), transpose(sstmm), istart, icount)

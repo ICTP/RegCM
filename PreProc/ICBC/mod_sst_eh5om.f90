@@ -23,6 +23,11 @@ module mod_sst_eh5om
   use m_die
   use m_stdio
   use m_zeit
+  use netcdf
+  use mod_dynparam
+  use mod_sst_grid
+  use mod_date
+  use mod_interp
 
   contains
 
@@ -41,11 +46,6 @@ module mod_sst_eh5om
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  use netcdf
-  use mod_sst_grid
-  use mod_date
-  use mod_interp , only : bilinx
-
   implicit none
 !
   integer , parameter :: ilon = 192 , jlat = 96
@@ -55,7 +55,11 @@ module mod_sst_eh5om
   integer(2) , dimension(ilon,jlat) :: ivar
   real(dp) :: offset , xscale
   real(sp) , dimension(ilon,jlat) :: sst
-  integer :: idate , ieh5ostart , ieh5orec, nsteps
+  type(rcm_time_and_date) :: idate , ieh5ostart
+  type(rcm_time_and_date) :: a1 , a2 , a3 , a4 , a5 , a6 , a7 , a8 , a9 , &
+                             a10  , a11 , a12 , a13 , a14
+  type(rcm_time_interval) :: tdiff
+  integer :: ieh5orec , nsteps
   integer :: i , it , j , nday , nhour , nmo , nyear
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
@@ -65,10 +69,25 @@ module mod_sst_eh5om
 !
   it_base = 0
 
+  a1 = rcm_time_and_date(gregorian,1941,1,1,6,0,0)
+  a2 = rcm_time_and_date(gregorian,1961,12,31,18,0,0)
+  a3 = rcm_time_and_date(gregorian,1962,1,1,0,0,0)
+  a4 = rcm_time_and_date(gregorian,1993,12,31,18,0,0)
+  a5 = rcm_time_and_date(gregorian,1994,1,1,0,0,0)
+  a6 = rcm_time_and_date(gregorian,2001,1,1,0,0,0)
+  a7 = rcm_time_and_date(gregorian,2001,1,1,0,0,0)
+  a8 = rcm_time_and_date(gregorian,2029,12,31,18,0,0)
+  a9 = rcm_time_and_date(gregorian,2030,1,1,0,0,0)
+  a10 = rcm_time_and_date(gregorian,2061,12,31,18,0,0)
+  a11 = rcm_time_and_date(gregorian,2062,1,1,0,0,0)
+  a12 = rcm_time_and_date(gregorian,2093,12,31,18,0,0)
+  a13 = rcm_time_and_date(gregorian,2094,1,1,0,0,0)
+  a14 = rcm_time_and_date(gregorian,2100,12,31,18,0,0)
+
   if ( ssttyp == 'EH5RF' ) then
     there = .false.
-    if ( (globidate1 >= 1941010106 .and. globidate1 <= 1961123118) .or. &
-         (globidate2 >= 1941010106 .and. globidate2 <= 1961123118) ) then
+    if ( (globidate1 >= a1 .and. globidate1 <= a2) .or. &
+         (globidate2 >= a1 .and. globidate2 <= a2) ) then
       inquire (file=trim(inpglob)//'/SST/SST_20C_3_1941010106_1961123118', &
                exist=there)
       if ( .not.there ) then
@@ -77,8 +96,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 1962010100 .and. globidate1 <= 1993123118) .or. &
-         (globidate2 >= 1962010100 .and. globidate2 <= 1993123118) ) then
+    if ( (globidate1 >= a3 .and. globidate1 <= a4) .or. &
+         (globidate2 >= a3 .and. globidate2 <= a4) ) then
       inquire (file=trim(inpglob)//'/SST/SST_20C_3_1962010100_1993123118', &
                exist=there)
       if ( .not.there ) then
@@ -87,8 +106,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 1994010100 .and. globidate1 <= 2001010100) .or. &
-         (globidate2 >= 1994010100 .and. globidate2 <= 2001010100) ) then
+    if ( (globidate1 >= a5 .and. globidate1 <= a6) .or. &
+         (globidate2 >= a5 .and. globidate2 <= a6) ) then
       inquire (file=trim(inpglob)//'/SST/SST_20C_3_1994010100_2001010100', &
                exist=there)
       if ( .not.there ) then
@@ -104,8 +123,8 @@ module mod_sst_eh5om
     end if
   else if ( ssttyp == 'EH5A2' ) then
     there = .false.
-    if ( (globidate1 >= 2001010100 .and. globidate1 <= 2029123118) .or. &
-         (globidate2 >= 2001010100 .and. globidate2 <= 2029123118) ) then
+    if ( (globidate1 >= a7 .and. globidate1 <= a8) .or. &
+         (globidate2 >= a7 .and. globidate2 <= a8) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A2_1_2001010100_2029123118',exist=there)
       if ( .not.there ) then
@@ -114,8 +133,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2030010100 .and. globidate1 <= 2061123118) .or. &
-         (globidate2 >= 2030010100 .and. globidate2 <= 2061123118) ) then
+    if ( (globidate1 >= a9 .and. globidate1 <= a10) .or. &
+         (globidate2 >= a9 .and. globidate2 <= a10) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A2_1_2030010100_2061123118',exist=there)
       if ( .not.there ) then
@@ -124,8 +143,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2062010100 .and. globidate1 <= 2093123118) .or. &
-         (globidate2 >= 2062010100 .and. globidate2 <= 2093123118) ) then
+    if ( (globidate1 >= a11 .and. globidate1 <= a12) .or. &
+         (globidate2 >= a11 .and. globidate2 <= a12) ) then
       inquire (file=trim(inpglob)//                                 &
           '/SST/SST_A2_1_2062010100_2093123118',exist=there)
       if ( .not.there ) then
@@ -134,8 +153,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2094010100 .and. globidate1 <= 2100123118) .or. &
-         (globidate2 >= 2094010100 .and. globidate2 <= 2100123118) ) then
+    if ( (globidate1 >= a13 .and. globidate1 <= a14) .or. &
+         (globidate2 >= a13 .and. globidate2 <= a14) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A2_1_2094010100_2100123118',exist=there)
       if ( .not.there ) then
@@ -151,8 +170,8 @@ module mod_sst_eh5om
     end if
   else if ( ssttyp == 'EH5B1' ) then
     there = .false.
-    if ( (globidate1 >= 2001010100 .and. globidate1 <= 2029123118) .or. &
-         (globidate2 >= 2001010100 .and. globidate2 <= 2029123118) ) then
+    if ( (globidate1 >= a7 .and. globidate1 <= a8) .or. &
+         (globidate2 >= a7 .and. globidate2 <= a8) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_B1_1_2001010100_2029123118',exist=there)
       if ( .not.there ) then
@@ -161,8 +180,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2030010100 .and. globidate1 <= 2061123118) .or. &
-         (globidate2 >= 2030010100 .and. globidate2 <= 2061123118) ) then
+    if ( (globidate1 >= a9 .and. globidate1 <= a10) .or. &
+         (globidate2 >= a9 .and. globidate2 <= a10) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_B1_1_2030010100_2061123118',exist=there)
       if ( .not.there ) then
@@ -171,8 +190,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2062010100 .and. globidate1 <= 2093123118) .or. &
-         (globidate2 >= 2062010100 .and. globidate2 <= 2093123118) ) then
+    if ( (globidate1 >= a11 .and. globidate1 <= a12) .or. &
+         (globidate2 >= a11 .and. globidate2 <= a12) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_B1_1_2062010100_2093123118',exist=there)
       if ( .not.there ) then
@@ -181,8 +200,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2094010100 .and. globidate1 <= 2100123118) .or. &
-         (globidate2 >= 2094010100 .and. globidate2 <= 2100123118) ) then
+    if ( (globidate1 >= a13 .and. globidate1 <= a14) .or. &
+         (globidate2 >= a13 .and. globidate2 <= a14) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_B1_1_2094010100_2100123118',exist=there)
       if ( .not.there ) then
@@ -198,8 +217,8 @@ module mod_sst_eh5om
     end if
   else if ( ssttyp == 'EHA1B' ) then
     there = .false.
-    if ( (globidate1 >= 2001010100 .and. globidate1 <= 2029123118) .or. &
-         (globidate2 >= 2001010100 .and. globidate2 <= 2029123118) ) then
+    if ( (globidate1 >= a7 .and. globidate1 <= a8) .or. &
+         (globidate2 >= a7 .and. globidate2 <= a8) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A1B_3_2001010100_2029123118',exist=there)
       if ( .not.there ) then
@@ -208,8 +227,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2030010100 .and. globidate1 <= 2061123118) .or. &
-         (globidate2 >= 2030010100 .and. globidate2 <= 2061123118) ) then
+    if ( (globidate1 >= a9 .and. globidate1 <= a10) .or. &
+         (globidate2 >= a9 .and. globidate2 <= a10) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A1B_3_2030010100_2061123118',exist=there)
       if ( .not.there ) then
@@ -218,8 +237,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2062010100 .and. globidate1 <= 2093123118) .or. &
-         (globidate2 >= 2062010100 .and. globidate2 <= 2093123118) ) then
+    if ( (globidate1 >= a11 .and. globidate1 <= a12) .or. &
+         (globidate2 >= a11 .and. globidate2 <= a12) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A1B_3_2062010100_2093123118',exist=there)
       if ( .not.there ) then
@@ -228,8 +247,8 @@ module mod_sst_eh5om
                ' under '//trim(inpglob)//'/SST/',1)
       end if
     end if
-    if ( (globidate1 >= 2094010100 .and. globidate1 <= 2100123118) .or. &
-         (globidate2 >= 2094010100 .and. globidate2 <= 2100123118) ) then
+    if ( (globidate1 >= a13 .and. globidate1 <= a14) .or. &
+         (globidate2 >= a13 .and. globidate2 <= a14) ) then
       inquire (file=trim(inpglob)//                                 &
                '/SST/SST_A1B_3_2094010100_2100123118',exist=there)
       if ( .not.there ) then
@@ -249,7 +268,8 @@ module mod_sst_eh5om
     call die('sst_eh5om')
   end if
 
-  nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+  tdiff = globidate2 - globidate1
+  nsteps = idnint(tdiff%hours())/idtbc + 1
   write (stdout,*) 'GLOBIDATE1 : ' , globidate1
   write (stdout,*) 'GLOBIDATE2 : ' , globidate2
   write (stdout,*) 'NSTEPS     : ' , nsteps
@@ -276,19 +296,19 @@ module mod_sst_eh5om
   do it = 1 , nsteps
     
     if ( ssttyp == 'EH5RF' ) then
-      if ( idate >= 1941010106 .and. idate <= 1961123118 ) then
+      if ( idate >= a1 .and. idate <= a2 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_20C_3_1941010106_1961123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 1
-      else if ( idate >= 1962010100 .and. idate <= 1993123118 ) then
+      else if ( idate >= a3 .and. idate <= a4 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_20C_3_1962010100_1993123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 30680
-      else if ( idate >= 1994010100 .and. idate <= 2001010100 ) then
+      else if ( idate >= a5 .and. idate <= a6 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_20C_3_1994010100_2001010100',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
@@ -297,25 +317,25 @@ module mod_sst_eh5om
       else
       end if
     else if ( ssttyp == 'EH5A2' ) then
-      if ( idate >= 2001010100 .and. idate <= 2029123118 ) then
+      if ( idate >= a7 .and. idate <= a8 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2001010100_2029123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 0
-      else if ( idate >= 2030010100 .and. idate <= 2061123118 ) then
+      else if ( idate >= a9 .and. idate <= a10 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2030010100_2061123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368
-      else if ( idate >= 2062010100 .and. idate <= 2093123118 ) then
+      else if ( idate >= a11 .and. idate <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2062010100_2093123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368 + 46752
-      else if ( idate >= 2094010100 .and. idate <= 2100123118 ) then
+      else if ( idate >= a13 .and. idate <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2094010100_2100123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
@@ -324,25 +344,25 @@ module mod_sst_eh5om
       else
       end if
     else if ( ssttyp == 'EH5B1' ) then
-      if ( idate >= 2001010100 .and. idate <= 2029123118 ) then
+      if ( idate >= a7 .and. idate <= a8 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2001010100_2029123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 0
-      else if ( idate >= 2030010100 .and. idate <= 2061123118 ) then
+      else if ( idate >= a9 .and. idate <= a10 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2030010100_2061123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368
-      else if ( idate >= 2062010100 .and. idate <= 2093123118 ) then
+      else if ( idate >= a11 .and. idate <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2062010100_2093123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368 + 46752
-      else if ( idate >= 2094010100 .and. idate <= 2100123118 ) then
+      else if ( idate >= a13 .and. idate <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2094010100_2100123118',            &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
@@ -351,36 +371,35 @@ module mod_sst_eh5om
       else
       end if
     else if ( ssttyp == 'EHA1B' ) then
-      if ( idate >= 2001010100 .and. idate <= 2029123118 ) then
+      if ( idate >= a7 .and. idate <= a8 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2001010100_2029123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 0
-      else if ( idate >= 2030010100 .and. idate <= 2061123118 ) then
+      else if ( idate >= a9 .and. idate <= a10 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2030010100_2061123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368
-      else if ( idate >= 2062010100 .and. idate <= 2093123118 ) then
+      else if ( idate >= a11 .and. idate <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2062010100_2093123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368 + 46752
-      else if ( idate >= 2094010100 .and. idate <= 2100123118 ) then
+      else if ( idate >= a13 .and. idate <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2094010100_2100123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
         it_base = 42368 + 46752*2
-      else
       end if
-    else
     end if
-    call split_idate(idate, nyear, nmo, nday, nhour)
-    ieh5orec = idatediff(idate, ieh5ostart)/ibdyfrq+1
+
+    tdiff = idate-ieh5ostart
+    ieh5orec = idnint(tdiff%hours())/ibdyfrq+1
     read (11,rec=ieh5orec-it_base) offset , xscale , ivar
     do j = 1 , jlat
       do i = 1 , ilon

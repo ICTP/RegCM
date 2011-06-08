@@ -91,9 +91,17 @@ module mod_date
     module procedure date_less , interval_less
   end interface
 
+  interface operator(>=)
+    module procedure date_ge
+  end interface
+
+  interface operator(<=)
+    module procedure date_le
+  end interface
+
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
-  public :: operator(>) , operator(<)
+  public :: operator(>) , operator(<) , operator(>=) , operator(<=)
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , idayofyear
@@ -1192,6 +1200,20 @@ module mod_date
     call check_cal(x,y)
     lt = ((x - y) < rcm_time_interval(1,usec))
   end function date_less
+
+  logical function date_ge(x,y) result(gt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x , y
+    call check_cal(x,y)
+    gt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
+  end function date_ge
+
+  logical function date_le(x,y) result(lt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x , y
+    call check_cal(x,y)
+    lt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
+  end function date_le
 
   real(dp) function tohours(x) result(hs)
     implicit none

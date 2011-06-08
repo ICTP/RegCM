@@ -19,7 +19,10 @@
 !
       module mod_dynparam
 
-      implicit none
+      use mod_constants
+      use mod_date
+
+      public
 !
 ! PARAMETER definitions
 !
@@ -243,11 +246,12 @@
 
 ! Global Begin and End date for Input Pre processing
 
-      integer :: globidate1 ! BEGIN
-      integer :: globidate2 ! END
+      type(rcm_time_and_date) :: globidate1 ! BEGIN
+      type(rcm_time_and_date) :: globidate2 ! END
 
 ! Days per year and degrees per day
 
+      character(12) :: calendar
       real(8) :: dayspy
       real(8) :: dpd
 
@@ -300,25 +304,25 @@
       contains
 
       subroutine initparam(filename, ierr)
-        use mod_constants
         implicit none
         character (len=*) , intent(in) :: filename
         integer , intent(out) :: ierr
+        integer :: g1 , g2
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                     & plon , truelatl, truelath , i_band
+                       plon , truelatl, truelath , i_band
         namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
-                    & smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
-                    & fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
-                    & h2opct , dirter , inpter
+                      smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
+                      fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
+                      h2opct , dirter , inpter
         namelist /dimparam/ iy , jx , kz , nsg
         namelist /ioparam/ ibyte
         namelist /debugparam/ debug_level , dbgfrq
         namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
                        medium_nudge , low_nudge
         namelist /modesparam/ nsplit
-        namelist /globdatparam/ dattyp , ssttyp , ehso4 , globidate1 ,  &
-                     & globidate2 , dirglob , inpglob , dayspy , ibdyfrq
+        namelist /globdatparam/ dattyp , ssttyp , ehso4 , g1 , g2 , &
+                       dirglob , inpglob , calendar , ibdyfrq
         namelist /aerosolparam/ aertyp , ntr, nbin
 
         open(ipunit, file=filename, status='old', &
@@ -385,8 +389,18 @@
         read(ipunit, modesparam, err=107)
 
         ibdyfrq = 6 ! Convenient default
-        dayspy = 365.2422D+00
         read(ipunit, globdatparam, err=109)
+        globidate1 = g1
+        globidate2 = g2
+        if (calendar == 'gregorian') then
+          dayspy = 365.2422D+00
+        else if (calendar == 'noleap' .or. calendar == '365_day') then
+          dayspy = 365.0D+00
+        else if (calendar == '360_day') then
+          dayspy = 365.0D+00
+        else
+          dayspy = 365.2422D+00
+        end if
         dpd = 360.0D0/dayspy
 
         read(ipunit, aerosolparam, err=111)
@@ -513,6 +527,7 @@
         call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
 
+        call mpi_bcast(calendar,12,mpi_character,0,mpi_comm_world,ierr)
         call mpi_bcast(dayspy,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(dpd,1,mpi_real8,0,mpi_comm_world,ierr)
 

@@ -40,7 +40,7 @@ distclean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_constants.o: mod_constants.F90
-mod_dynparam.o: mod_dynparam.F90 mod_constants.o
+mod_dynparam.o: mod_dynparam.F90 mod_constants.o mod_date.o
 mod_date.o: mod_date.f90
 mod_ccsm.o:  mod_ccsm.f90  mod_dynparam.o mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
