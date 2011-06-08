@@ -23,6 +23,13 @@ module mod_sst_fvgcm
   use m_die
   use m_stdio
   use m_zeit
+  use mod_dynparam
+  use mod_sst_grid
+  use mod_interp
+
+  private
+
+  public :: sst_fvgcm
 
   contains
 
@@ -40,22 +47,17 @@ module mod_sst_fvgcm
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  use mod_sst_grid
-  use mod_interp , only : bilinx
-  use mod_date
-
   implicit none
 !
   integer , parameter :: ilon = 192 , jlat = 145
 !
-  integer :: i , idatef , idateo , it , j , k , ludom , lumax ,     &
-             nday , nmo , nho , nyear , nsteps , iv
+  integer :: i , it , j , k , ludom , lumax , nsteps , iv
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   integer , dimension(20) :: lund
   real(sp) , dimension(ilon,jlat) :: temp
   real(sp) , dimension(ilon,jlat) :: sst
-  integer :: idate
+  type(rcm_time_and_date) :: idate , idateo , idatef
   logical :: there
 !
   call zeit_ci('sst_fvgcm')
@@ -94,13 +96,13 @@ module mod_sst_fvgcm
     call die('sst fvgcm')
   end if
 
-  idateo = imonfirst(globidate1)
+  idateo = monfirst(globidate1)
   if (lfhomonth(globidate1)) then
-    idateo = iprevmon(globidate1)
+    idateo = prevmon(globidate1)
   end if
-  idatef = imonfirst(globidate2)
+  idatef = monfirst(globidate2)
   if (idatef < globidate2) then
-    idatef = inextmon(idatef)
+    idatef = nextmon(idatef)
   end if
   nsteps = imondiff(idatef,idateo) + 1
 
@@ -117,12 +119,10 @@ module mod_sst_fvgcm
   idate = idateo
   do k = 1 , nsteps
 
-    call split_idate(idate, nyear, nmo, nday, nho)
-
     if ( ssttyp == 'FV_RF' ) then
-      it = (nyear-1959)*12 + nmo
+      it = (idate%year-1959)*12 + idate%month
     else
-      it = (nyear-2069)*12 + nmo
+      it = (idate%year-2069)*12 + idate%month
     end if
 
     read (11,rec=it) temp
@@ -178,8 +178,8 @@ module mod_sst_fvgcm
  
     call writerec(idate,.false.)
 
-    write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
-    idate = inextmon(idate)
+    write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
+    idate = nextmon(idate)
 
   end do
  

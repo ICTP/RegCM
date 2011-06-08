@@ -23,6 +23,14 @@ module mod_sst_1deg
   use m_die
   use m_stdio
   use m_zeit
+  use netcdf
+  use mod_dynparam
+  use mod_sst_grid
+  use mod_interp
+
+  private
+
+  public :: sst_1deg
 
   contains
 
@@ -52,18 +60,14 @@ module mod_sst_1deg
 !                                                                    c
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  use mod_sst_grid
-  use mod_date
-  use mod_interp , only : bilinx
-
   implicit none
 !
   integer , parameter :: ilon = 360 , jlat = 180
 !
   real(sp) , dimension(ilon,jlat) :: sst , ice
   integer :: i , j , k , iwk , iv , ludom , lumax , nrec
-  integer :: idate , idateo , idatef , idatem , nsteps
-  integer :: nyear , nmo , nday , nho
+  integer :: nsteps
+  type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   integer , dimension(25) :: lund
@@ -106,31 +110,28 @@ module mod_sst_1deg
 
   ! Montly dataset
   if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
-    idateo = imonfirst(globidate1)
+    idateo = monfirst(globidate1)
     if (lfhomonth(globidate1)) then
-      idateo = iprevmon(globidate1)
+      idateo = prevmon(globidate1)
     end if
-    idatef = imonfirst(globidate2)
+    idatef = monfirst(globidate2)
     if (idatef < globidate2) then
-      idatef = inextmon(idatef)
+      idatef = nextmon(idatef)
     end if
     nsteps = imondiff(idatef,idateo) + 1
-    idatem = imonmiddle(idateo)
+    idatem = monmiddle(idateo)
     call open_sstfile(idatem)
   ! Weekly dataset
   else
-    idateo = ifodweek(globidate1)
-    if (idateo > globidate1) then
-      idateo = iprevwk(idateo)
-    end if
-    idatef = ifodweek(globidate2)
-    if (idatef < globidate2) then
-      idatef = inextwk(idatef)
-    end if
+    idateo = ifdoweek(globidate1)
+    idatef = ildoweek(globidate2)
     nsteps = iwkdiff(idatef,idateo) + 1
     call open_sstfile(idateo)
   end if
 
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  write (stdout,*) 'NSTEPS     : ' , nsteps
 
   ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
   do i = 1 , ilon
@@ -150,10 +151,8 @@ module mod_sst_1deg
 
     do k = 1 , nsteps
 
-      call split_idate(idate, nyear, nmo, nday, nho)
-
       if ( ssttyp == 'GISST' ) then
-        nrec = (nyear-1947)*12 + nmo - 11
+        nrec = (idate%year-1947)*12 + idate%month - 11
         read (11,rec=nrec) sst
       else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
                 ssttyp == 'OI2ST') then
@@ -215,10 +214,10 @@ module mod_sst_1deg
         call writerec(idatem,.true.)
       end if
 
-      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
+      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
 
-      idate = inextmon(idate)
-      idatem = imonmiddle(idate)
+      idate = nextmon(idate)
+      idatem = monmiddle(idate)
 
     end do
 
@@ -227,14 +226,14 @@ module mod_sst_1deg
 
     do k = 1 , nsteps
 
-      call split_idate(idate, nyear, nmo, nday, nho)
-
       if ( idate < 1989123100 ) then
+        irefd = 1981110100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
-        iwk = iwkdiff(idate,1981110100) + 1
+        iwk = iwkdiff(idate,irefd) + 1
       else
+        irefd = 1989123100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
-        iwk = iwkdiff(idate,1989123100) + 1
+        iwk = iwkdiff(idate,irefd) + 1
       end if
 
       call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
@@ -269,9 +268,9 @@ module mod_sst_1deg
         call writerec(idate,.true.)
       endif
 
-      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate
+      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
 
-      idate = inextwk(idate)
+      idate = nextwk(idate)
 
     end do
   end if
@@ -282,17 +281,16 @@ module mod_sst_1deg
 !-----------------------------------------------------------------------
 !
   subroutine sst_mn(idate,idate0,ilon,jlat,sst,pathaddname)
-  use netcdf
-  use mod_date , only : split_idate
   implicit none
 !
-  integer :: idate , idate0 , ilon , jlat
-  character(256) :: pathaddname
-  intent (in) idate , idate0 , ilon , jlat , pathaddname
+  integer , intent(in) :: ilon , jlat
+  type(rcm_time_and_date) :: idate , idate0
+  character(256) , intent(in) :: pathaddname
+!
   real(sp) , dimension(ilon,jlat) :: sst
   intent (out) :: sst
 !
-  integer :: i , it , j , month , n , nday , nhour , nyear
+  integer :: i , it , j , n
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
@@ -345,8 +343,7 @@ module mod_sst_1deg
     end do
   end if
  
-  call split_idate(idate, nyear, month, nday, nhour)
-  it = (nyear-1981)*12 + month - 11
+  it = (idate%year-1981)*12 + idate%month - 11
  
   istart(3) = it
   icount(3) = 1
@@ -375,17 +372,15 @@ module mod_sst_1deg
 !-----------------------------------------------------------------------
 !
   subroutine ice_mn(idate,idate0,ilon,jlat,ice,pathaddname)
-  use netcdf
-  use mod_date , only : split_idate
   implicit none
 !
-  integer :: idate , idate0 , ilon , jlat
-  character(256) :: pathaddname
-  intent (in) idate , idate0 , ilon , jlat , pathaddname
+  integer , intent(in) :: ilon , jlat
+  type(rcm_time_and_date) :: idate , idate0
+  character(256) , intent(in) :: pathaddname
   real(sp) , dimension(ilon,jlat) :: ice
   intent (out) :: ice
 !
-  integer :: i , it , j , month , n , nday , nhour , nyear
+  integer :: i , it , j , n
   character(5) :: varname
   integer(2) , dimension(ilon,jlat) :: work
   integer :: istatus
@@ -438,8 +433,7 @@ module mod_sst_1deg
     end do
   end if
  
-  call split_idate(idate, nyear, month, nday, nhour)
-  it = (nyear-1981)*12 + month - 11
+  it = (idate%year-1981)*12 + idate%month - 11
  
   istart(3) = it
   icount(3) = 1
@@ -467,14 +461,13 @@ module mod_sst_1deg
 !-----------------------------------------------------------------------
 !
   subroutine sst_wk(idate,kkk,ilon,jlat,sst,pathaddname)
-  use netcdf
   implicit none
 !
-  integer :: idate , kkk , ilon , jlat
-  character(256) :: pathaddname
-  intent (in) idate , kkk , ilon , jlat , pathaddname
-  real(sp) , dimension(ilon,jlat) :: sst
-  intent (out) :: sst
+  type(rcm_time_and_date) , intent(in) :: idate
+  integer , intent(in) :: kkk , ilon , jlat
+  character(256) , intent(in) :: pathaddname
+!
+  real(sp) , dimension(ilon,jlat) , intent(out) :: sst
 !
   integer :: i , j , n
   character(3) :: varname
@@ -586,14 +579,13 @@ module mod_sst_1deg
 !-----------------------------------------------------------------------
 !
   subroutine ice_wk(idate,kkk,ilon,jlat,ice,pathaddname)
-  use netcdf
   implicit none
 !
-  integer :: idate , kkk , ilon , jlat
-  character(256) :: pathaddname
-  intent (in) idate , kkk , ilon , jlat , pathaddname
-  real(sp) , dimension(ilon,jlat) :: ice
-  intent (out) :: ice
+  type(rcm_time_and_date) , intent(in) :: idate
+  integer , intent(in) :: kkk , ilon , jlat
+  character(256) , intent(in) :: pathaddname
+!
+  real(sp) , dimension(ilon,jlat) , intent(out) :: ice
 !
   integer :: i , j , n
   character(4) :: varname

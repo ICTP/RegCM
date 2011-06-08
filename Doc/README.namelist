@@ -95,8 +95,8 @@
                              !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
                              !          EHA1B, , CCSMN
  ehso4 = .false.,            ! Sulfate dataset Control Flag
- globidate1 = 1990060100,    ! Start date for ICBC data generation
- globidate2 = 1990070100,    ! End data for ICBC data generation
+ gdate1 = 1990060100,        ! Start date for ICBC data generation
+ gdate2 = 1990070100,        ! End data for ICBC data generation
  dayspy  = 365.2422D0,       ! Number of days per year
  dirglob = 'input/',         ! Path for ICBC produced input files
  inpglob = 'globdata/',      ! Path for ICBC global input datasets.

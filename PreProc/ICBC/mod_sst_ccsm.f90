@@ -24,8 +24,8 @@ module mod_sst_ccsm
   use m_stdio
   use m_mall
   use m_zeit
+  use mod_dynparam
   use mod_sst_grid
-  use mod_date
   use mod_interp
 
   contains
@@ -62,9 +62,8 @@ module mod_sst_ccsm
   real(sp) , dimension(jlat) :: glat
   real(sp) , dimension(ilon) :: glon
   real(sp) , dimension(ilon,jlat) :: sst
-  integer :: idate
-  integer :: i , idatef , idateo , j , k , ludom , lumax , &
-             nday , nmo , nyear , nho , iv , nsteps
+  type(rcm_time_and_date) :: idate , idatef , idateo
+  integer :: i , j , k , ludom , lumax , iv , nsteps
   integer , dimension(20) :: lund
   character(256) :: inpfile
 !
@@ -77,13 +76,13 @@ module mod_sst_ccsm
     glat(j) = -89.5 + 1.*float(j-1)
   end do
  
-  idateo = imonfirst(globidate1)
+  idateo = monfirst(globidate1)
   if (lfhomonth(globidate1)) then
-    idateo = iprevmon(globidate1)
+    idateo = prevmon(globidate1)
   end if
-  idatef = imonfirst(globidate2)
+  idatef = monfirst(globidate2)
   if (idatef < globidate2) then
-    idatef = inextmon(idatef)
+    idatef = nextmon(idatef)
   end if
   nsteps = imondiff(idatef,idateo) + 1
  
@@ -92,8 +91,6 @@ module mod_sst_ccsm
   idate = idateo
   do k = 1 , nsteps
 
-    call split_idate(idate, nyear, nmo, nday, nho)
- 
     inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
 
     call ccsm_sst(idate,idateo,ilon,jlat,sst,inpfile)
@@ -135,9 +132,9 @@ module mod_sst_ccsm
     end do
 
     call writerec(idate,.false.)
-    write (stdout,*) 'WRITEN OUT SST DATA : ' , idate
+    write (stdout,*) 'WRITEN OUT SST DATA : ' , idate%tostring()
 
-    idate = inextmon(idate)
+    idate = nextmon(idate)
 
   end do
  
@@ -155,17 +152,17 @@ module mod_sst_ccsm
 
   implicit none
 
-  integer , intent (in) :: idate , idate0
+  type(rcm_time_and_date) , intent (in) :: idate , idate0
   integer , intent (in) :: ilon , jlat
   character(len=256) ,intent(in) :: pathaddname
   real(sp) , dimension(ilon, jlat) , intent(out) :: sst
 
   character(len=4), dimension(2) :: varname
-  character(64) :: cunit
+  character(64) :: cunit , ccal
   real(dp), allocatable ::  work1(:)
   real(sp) , dimension (ilon , jlat) :: work2 , work3
   real(sp) :: wt1 , wt2
-  integer :: cssidate1 , cssidate2
+  type(rcm_time_and_date) :: cssidate1 , cssidate2
 
   integer , save :: inet1
   integer , dimension(10) :: istart , icount , istartt , icountt
@@ -174,6 +171,7 @@ module mod_sst_ccsm
   integer :: latid , lonid , timid
   integer :: latlen , lonlen , timlen
   integer :: istatus
+  type(rcm_time_interval) :: tdiff1 , tdiff2
 
   data varname/'time','SST'/
   
@@ -260,11 +258,16 @@ module mod_sst_ccsm
             varname(1)//':units',1,nf90_strerror(istatus),istatus)
   end if
   cunit = '-'//trim(cunit)//' GMT-'
-  cssidate1 = timeval2idate_noleap(work1(1)*24.0,cunit)
+  istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+  if ( istatus /= nf90_noerr ) then
+    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+            varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
+  end if
+  cssidate1 = timeval2date(work1(1)*24.0D0,cunit,ccal)
   it = 1
   do
     it = it + 1
-    cssidate2 = timeval2idate_noleap(work1(it)*24.0,cunit)
+    cssidate2 = timeval2date(work1(it)*24.0D0,cunit,ccal)
     if ( cssidate2 > idate ) then
       exit
     end if
@@ -295,8 +298,9 @@ module mod_sst_ccsm
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
 
-  wt1 = real(idatediff(cssidate2,idate)) / &
-        real(idatediff(cssidate2,cssidate1))
+  tdiff1 = cssidate2-idate
+  tdiff2 = cssidate2-cssidate1
+  wt1 = tdiff1%hours( )/tdiff2%hours()
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon

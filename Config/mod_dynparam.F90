@@ -307,7 +307,7 @@
         implicit none
         character (len=*) , intent(in) :: filename
         integer , intent(out) :: ierr
-        integer :: g1 , g2
+        integer :: idate1 , idate2
 
         namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
                        plon , truelatl, truelath , i_band
@@ -321,7 +321,7 @@
         namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
                        medium_nudge , low_nudge
         namelist /modesparam/ nsplit
-        namelist /globdatparam/ dattyp , ssttyp , ehso4 , g1 , g2 , &
+        namelist /globdatparam/ dattyp , ssttyp , ehso4 , idate1 , idate2 , &
                        dirglob , inpglob , calendar , ibdyfrq
         namelist /aerosolparam/ aertyp , ntr, nbin
 
@@ -390,8 +390,8 @@
 
         ibdyfrq = 6 ! Convenient default
         read(ipunit, globdatparam, err=109)
-        globidate1 = g1
-        globidate2 = g2
+        globidate1 = idate1
+        globidate2 = idate2
         if (calendar == 'gregorian') then
           dayspy = 365.2422D+00
         else if (calendar == 'noleap' .or. calendar == '365_day') then

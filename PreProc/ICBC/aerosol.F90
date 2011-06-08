@@ -33,7 +33,6 @@ program aerosol
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
   use mod_dynparam
-  use mod_date
   use netcdf
   use m_realkinds
   use m_stdio

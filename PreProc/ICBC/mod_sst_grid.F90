@@ -26,7 +26,6 @@ module mod_sst_grid
   use m_mall
   use netcdf
   use mod_dynparam
-  use mod_date
 
   private
 

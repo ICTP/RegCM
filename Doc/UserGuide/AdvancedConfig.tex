@@ -291,9 +291,9 @@ tell them how to build initial and bondary conditions.
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5OM , CCSMN
  ehso4 = .false.,            ! Sulfate dataset Control Flag
- globidate1 = 1990060100,    ! Start date for ICBC data generation
- globidate2 = 1990070100,    ! End data for ICBC data generation
- dayspy  = 365.2422D0,       ! Number of days per year
+ gdate1 = 1990060100,        ! Start date for ICBC data generation
+ gdate2 = 1990070100,        ! End data for ICBC data generation
+ calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
  dirglob = 'input/',         ! Path for ICBC produced input files
  inpglob = 'globdata/',      ! Path for ICBC global input datasets.
                    ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
@@ -305,7 +305,7 @@ tell them how to build initial and bondary conditions.
 Things you need to know here:
 
 \begin{enumerate}
-\item The globidate time window to build ICBC must be always greater or equal to
+\item The gdate time window to build ICBC must be always greater or equal to
 the time window you plan to run the model in.
 Different GCMs and reanalysis products have different length of the year.
 For example, the reanalysis products employ the real year length (365 days +
@@ -455,7 +455,7 @@ fortune (unless you are late for publication).
 \begin{Verbatim}
  &restartparam
  ifrest  = .false. ,   ! If a restart
- idate0  = 1990060100, ! Global start (is globidate1)
+ idate0  = 1990060100, ! Global start (is gdate1, most probably)
  idate1  = 1990060100, ! Start date of this run
  idate2  = 1990060200, ! End date for this run
  /

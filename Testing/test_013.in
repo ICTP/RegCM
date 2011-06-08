@@ -57,8 +57,8 @@
  ssttyp = 'EHA1B',
  dattyp = 'EH5OM',
  ehso4 = .false.,
- globidate1 = 2004120100,
- globidate2 = 2006010100,
+ gdate1 = 2004120100,
+ gdate2 = 2006010100,
  dirglob = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
  inpglob = '/lustre/fsolmon/DATA',
  /

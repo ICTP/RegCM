@@ -26,8 +26,11 @@ module mod_sst_eh5om
   use netcdf
   use mod_dynparam
   use mod_sst_grid
-  use mod_date
   use mod_interp
+
+  private
+
+  public :: sst_eh5om
 
   contains
 
@@ -58,7 +61,7 @@ module mod_sst_eh5om
   type(rcm_time_and_date) :: idate , ieh5ostart
   type(rcm_time_and_date) :: a1 , a2 , a3 , a4 , a5 , a6 , a7 , a8 , a9 , &
                              a10  , a11 , a12 , a13 , a14
-  type(rcm_time_interval) :: tdiff
+  type(rcm_time_interval) :: tdiff , itbc
   integer :: ieh5orec , nsteps
   integer :: i , it , j , nday , nhour , nmo , nyear
   real(sp) , dimension(jlat) :: lati
@@ -68,6 +71,8 @@ module mod_sst_eh5om
   call zeit_ci('sst_eh5om')
 !
   it_base = 0
+
+  itbc = rcm_time_interval(idtbc,uhrs)
 
   a1 = rcm_time_and_date(gregorian,1941,1,1,6,0,0)
   a2 = rcm_time_and_date(gregorian,1961,12,31,18,0,0)
@@ -270,8 +275,8 @@ module mod_sst_eh5om
 
   tdiff = globidate2 - globidate1
   nsteps = idnint(tdiff%hours())/idtbc + 1
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   call open_sstfile(globidate1)
@@ -415,7 +420,7 @@ module mod_sst_eh5om
     call writerec(idate,.false.)
     write (stdout,*) 'WRITING OUT SST DATA:' , nmo , nyear
 
-    call addhours(idate, idtbc)
+    idate = idate + itbc
 
   end do
 

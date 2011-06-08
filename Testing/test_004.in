@@ -50,8 +50,8 @@
  ssttyp = 'OI_WK',
  dattyp = 'NNRP1',
  ehso4 = .false.,
- globidate1 = 1989050100,
- globidate2 = 1989060100,
+ gdate1 = 1989050100,
+ gdate2 = 1989060100,
  dirglob = '/set/this/to/where/your/icbc/for/model/is',
  inpglob = '/set/this/to/where/your/input/global/data/is',
  /

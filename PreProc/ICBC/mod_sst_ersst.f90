@@ -23,6 +23,14 @@ module mod_sst_ersst
   use m_die
   use m_stdio
   use m_zeit
+  use netcdf
+  use mod_dynparam
+  use mod_sst_grid
+  use mod_interp
+
+  private
+
+  public :: sst_ersst
 
   contains
 
@@ -42,11 +50,6 @@ module mod_sst_ersst
 !                                                                    !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  use netcdf
-  use mod_sst_grid
-  use mod_date
-  use mod_interp , only : bilinx
-
   implicit none
 !
   integer , parameter :: ilon = 240 , jlat = 121
@@ -55,7 +58,9 @@ module mod_sst_ersst
   integer :: i , it , j , nday , nhour , nmo , nyear
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
-  integer :: idate , ierastart , ierrec , nsteps
+  integer :: ierrec , nsteps
+  type(rcm_time_and_date) :: idate , ierastart
+  type(rcm_time_interval) :: tdiff , itbc
   real(sp) , dimension(ilon,jlat) :: sst
   character(256) :: inpfile
 !
@@ -67,10 +72,12 @@ module mod_sst_ersst
     call die('sst_ersst')
   end if
 
-  nsteps = idatediff(globidate2,globidate1)/idtbc + 1
+  itbc = rcm_time_interval(idtbc,uhrs)
+  tdiff = globidate2-globidate1
+  nsteps = idnint(tdiff%hours())/idtbc + 1
 
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   call open_sstfile(globidate1)
@@ -87,7 +94,8 @@ module mod_sst_ersst
   ierastart = 1989010100
   do it = 1 , nsteps
 
-    ierrec = idatediff(idate,ierastart)/idtbc+1
+    tdiff = idate-ierastart
+    ierrec = idnint(tdiff%hours())/idtbc+1
 
     if ( ssttyp == 'ERSST' ) then
       inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
@@ -97,8 +105,6 @@ module mod_sst_ersst
       call sst_erain(ierrec,ilon,jlat,sst,inpfile,2)
     end if
 
-    call split_idate(idate, nyear, nmo, nday, nhour)
- 
     call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
     write(stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
  
@@ -106,7 +112,7 @@ module mod_sst_ersst
     call writerec(idate,.false.)
     write(stdout,*) 'WRITING OUT MM4 SST DATA:' , nmo , nyear
 
-    call addhours(idate, idtbc)
+    idate = idate + itbc
 
   end do
 

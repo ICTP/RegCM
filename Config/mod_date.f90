@@ -84,33 +84,63 @@ module mod_date
   end interface operator(-)
 
   interface operator(>)
-    module procedure date_greater , interval_greater
+    module procedure date_greater , interval_greater , idate_greater
   end interface
 
   interface operator(<)
-    module procedure date_less , interval_less
+    module procedure date_less , interval_less , idate_less
   end interface
 
   interface operator(>=)
-    module procedure date_ge
+    module procedure date_ge , idate_ge
   end interface
 
   interface operator(<=)
-    module procedure date_le
+    module procedure date_le , idate_le
   end interface
 
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
   public :: operator(>) , operator(<) , operator(>=) , operator(<=)
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
-  public :: nextmon , prevmon , yrfirst
-  public :: lsameweek , iwkdiff , idayofweek , ifdoweek , idayofyear
+  public :: nextmon , prevmon , yrfirst , nextwk , prevwk
+  public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
   public :: timeval2date
 
   data cintstr /'seconds', 'minutes', 'hours', 'days', &
                 'months', 'years', 'centuries'/
 
   contains
+
+  subroutine adjustp(a,b,i)
+    implicit none
+    integer , intent(inout) :: a , b
+    integer , intent(in) :: i
+    if ( a > i ) then
+      a = a - i
+      b = b + 1
+    end if
+  end subroutine adjustp
+
+  subroutine adjustm(a,b,i)
+    implicit none
+    integer , intent(inout) :: a , b
+    integer , intent(in) :: i
+    if ( a < 0 ) then
+      a = i - a
+      b = b - 1
+    end if
+  end subroutine adjustm
+
+  subroutine adjustmp(a,b,i)
+    implicit none
+    integer , intent(inout) :: a , b
+    integer , intent(in) :: i
+    if ( a < 1 ) then
+      a = i - a
+      b = b - 1
+    end if
+  end subroutine adjustmp
 
   subroutine normidate(idate)
     implicit none
@@ -379,9 +409,9 @@ module mod_date
     tmp = a
     if ( tmp > (mdays_leap(y,m)-d) ) then
       tmp = tmp - (mdays_leap(y,m)-d+1)
+      m = m+1
+      call adjustp(m,y,12)
       d = 1
-      m = mod(m,12)+1
-      y = y+m/12
       call add_days_leap(d,m,y,tmp)
     else
       d = d + tmp
@@ -396,10 +426,7 @@ module mod_date
     if ( tmp >= d ) then
       tmp = tmp-d
       m = m-1
-      if ( m == 0 ) then
-        m = 12
-        y = y-1
-      end if
+      call adjustmp(m,y,12)
       d = mdays_leap(y,m)
       call sub_days_leap(d,m,y,tmp)
     else
@@ -414,9 +441,9 @@ module mod_date
     tmp = a
     if ( tmp > mlen(m)-d ) then
       tmp = tmp - mlen(m)-d+1
+      m = m + 1
+      call adjustp(m,y,12)
       d = 1
-      m = mod(m,12)+1
-      y = y+m/12
       call add_days_noleap(d,m,y,tmp)
     else
       d = d + tmp
@@ -431,10 +458,7 @@ module mod_date
     if ( tmp > d ) then
       tmp = tmp-d
       m = m-1
-      if ( m == 0 ) then
-        m = 12
-        y = y-1
-      end if
+      call adjustmp(m,y,12)
       d = mlen(m)
       call sub_days_noleap(d,m,y,tmp)
     else
@@ -454,26 +478,33 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second+mod(tmp,60)
+            call adjustp(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_leap(z%day, z%month, z%year, tmp)
           case (umin)
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_leap(z%day, z%month, z%year, tmp)
           case (uhrs)
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_leap(z%day, z%month, z%year, tmp)
           case (uday)
             call add_days_leap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uyrs)
@@ -485,26 +516,33 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second+mod(tmp,60)
+            call adjustp(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_noleap(z%day, z%month, z%year, tmp)
           case (umin)
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_noleap(z%day, z%month, z%year, tmp)
           case (uhrs)
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             call add_days_noleap(z%day, z%month, z%year, tmp)
           case (uday)
             call add_days_noleap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uyrs)
@@ -516,42 +554,57 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second+mod(tmp,60)
+            call adjustp(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day+mod(tmp,30)
+            call adjustp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (umin)
             z%minute = z%minute+mod(tmp,60)
+            call adjustp(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day+mod(tmp,30)
+            call adjustp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uhrs)
             z%hour = z%hour+mod(tmp,24)
+            call adjustp(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day+mod(tmp,30)
+            call adjustp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uday)
             z%day = z%day+mod(tmp,30)
+            call adjustp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (umnt)
             z%month = z%month+mod(tmp,12)
+            call adjustp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uyrs)
@@ -683,26 +736,33 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second-mod(tmp,60)
+            call adjustm(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_leap(z%day, z%month, z%year, tmp)
           case (umin)
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_leap(z%day, z%month, z%year, tmp)
           case (uhrs)
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_leap(z%day, z%month, z%year, tmp)
           case (uday)
             call sub_days_leap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uyrs)
@@ -714,26 +774,33 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second-mod(tmp,60)
+            call adjustm(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_noleap(z%day, z%month, z%year, tmp)
           case (umin)
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_noleap(z%day, z%month, z%year, tmp)
           case (uhrs)
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             call sub_days_noleap(z%day, z%month, z%year, tmp)
           case (uday)
             call sub_days_noleap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month-mod(tmp,12)
+            call adjustm(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uyrs)
@@ -745,42 +812,57 @@ module mod_date
         select case (y%iunit)
           case (usec)
             z%second = z%second-mod(tmp,60)
+            call adjustm(z%second,z%minute,60)
             tmp = tmp/60
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day-mod(tmp,30)
+            call adjustmp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (umin)
             z%minute = z%minute-mod(tmp,60)
+            call adjustm(z%minute,z%hour,60)
             tmp = tmp/60
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day-mod(tmp,30)
+            call adjustmp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uhrs)
             z%hour = z%hour-mod(tmp,24)
+            call adjustm(z%hour,z%day,24)
             tmp = tmp/24
             z%day = z%day-mod(tmp,30)
+            call adjustmp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uday)
             z%day = z%day-mod(tmp,30)
+            call adjustmp(z%day,z%month,30)
             tmp = tmp/30
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (umnt)
             z%month = z%month-mod(tmp,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uyrs)
@@ -864,13 +946,24 @@ module mod_date
     ifd = setmidnight(x - z)
   end function ifdoweek
 
+  function ildoweek(x) result(ild)
+    implicit none
+    integer :: iwkday
+    type (rcm_time_and_date) , intent(in) :: x
+    type (rcm_time_interval) :: z
+    type (rcm_time_and_date) :: ild
+    iwkday = 7 - idayofweek(x)
+    z = rcm_time_interval(iwkday,uday)
+    ild = setmidnight(x + z)
+  end function ildoweek
+
   integer function iwkdiff(x,y) result(iwk)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     type (rcm_time_interval) :: z
     call check_cal(x,y)
     z = x - y
-    iwk = z%ival/604800
+    iwk = z%ival/604800 + 1
   end function iwkdiff
 
   function monfirst(x) result(mf)
@@ -940,6 +1033,24 @@ module mod_date
     z = rcm_time_interval(1,umnt)
     pm = x - z
   end function prevmon
+
+  function nextwk(x) result(nm)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    type (rcm_time_and_date) :: nm
+    type (rcm_time_interval) :: z
+    z = rcm_time_interval(7,uday)
+    nm = x + z
+  end function nextwk
+
+  function prevwk(x) result(pm)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    type (rcm_time_and_date) :: pm
+    type (rcm_time_interval) :: z
+    z = rcm_time_interval(7,uday)
+    pm = x - z
+  end function prevwk
 
   integer function idayofyear(x) result(id)
     implicit none
@@ -1194,12 +1305,32 @@ module mod_date
     gt = ((x - y) > rcm_time_interval(1,usec))
   end function date_greater
 
+  logical function idate_greater(x,y) result(gt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    yy%calendar = x%calendar
+    gt = ((x - yy) > rcm_time_interval(1,usec))
+  end function idate_greater
+
   logical function date_less(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
     lt = ((x - y) < rcm_time_interval(1,usec))
   end function date_less
+
+  logical function idate_less(x,y) result(lt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    yy%calendar = x%calendar
+    lt = ((x - yy) < rcm_time_interval(1,usec))
+  end function idate_less
 
   logical function date_ge(x,y) result(gt)
     implicit none
@@ -1208,12 +1339,32 @@ module mod_date
     gt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
   end function date_ge
 
+  logical function idate_ge(x,y) result(gt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    yy%calendar = x%calendar
+    gt = (x == yy) .or. ((x - yy) > rcm_time_interval(1,usec))
+  end function idate_ge
+
   logical function date_le(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
     lt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
   end function date_le
+
+  logical function idate_le(x,y) result(lt)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    yy%calendar = x%calendar
+    lt = (x == yy) .or. ((x - yy) > rcm_time_interval(1,usec))
+  end function idate_le
 
   real(dp) function tohours(x) result(hs)
     implicit none
