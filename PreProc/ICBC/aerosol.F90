@@ -59,7 +59,9 @@ program aerosol
   character(64) :: history , csdate , aerdesc
   integer , dimension(4) :: idims
   integer , dimension(7) :: ivar
-  integer :: irefdate , imondate , year , month , day , hour , imon
+  type(rcm_time_and_date) :: refdate , mondate
+  type(rcm_time_interval) :: tdiff
+  integer :: imon
   real(sp) , dimension(2) :: trlat
   real(sp) :: hptop
   real(sp) , allocatable , dimension(:) :: yiy
@@ -303,13 +305,12 @@ program aerosol
   call check_ok(istatus, 'Error adding xlon units')
   istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), ivar(1))
   call check_ok(istatus, 'Error adding variable time')
-
-  irefdate = globidate1
-  call split_idate(irefdate, year, month, day, hour)
-  write (csdate, '(i0.4,a)') year,'-01-16 00:00:00'
-  irefdate = mkidate(year, 1, 16, 0)
-  istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//csdate)
+  refdate = globidate1
+  refdate = monmiddle(yrfirst(refdate))
+  istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//refdate%tostring())
   call check_ok(istatus, 'Error adding time units')
+  istatus = nf90_put_att(ncid, ivar(1), 'calendar', 'gregorian')
+  call check_ok(istatus, 'Error adding time calendar')
   istatus = nf90_def_var(ncid, 'so2', nf90_float, idims(1:2), ivar(2))
   call check_ok(istatus, 'Error adding variable so2')
   istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
@@ -438,14 +439,15 @@ program aerosol
     call check_ok(istatus, 'Error variable write')
   end do
 
-  imondate = irefdate
+  mondate = refdate
   do imon = 1 , 12
     istart1(1) = imon
     icount1(1) = 1
-    xdate(1) = dble(idatediff(imondate,irefdate))
+    tdiff = mondate-refdate
+    xdate(1) = tdiff%hours( )
     istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
     call check_ok(istatus, 'Error variable time write')
-    imondate = inextmon(imondate)
+    mondate = nextmon(mondate)
   end do
 
   nrec = 4

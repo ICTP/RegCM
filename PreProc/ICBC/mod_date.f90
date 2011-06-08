@@ -19,6 +19,10 @@
 
 module mod_date
 
+  use m_realkinds
+  use m_stdio
+  use m_die
+
   private
 
   integer , public , parameter :: gregorian = 1
@@ -49,6 +53,7 @@ module mod_date
     contains
       procedure , pass :: printdate => print_rcm_time_and_date
       procedure , pass :: toidate => toint
+      procedure , pass :: tostring => tochar
       procedure , pass(x) :: setcal => set_calendar
   end type rcm_time_and_date
 
@@ -58,6 +63,7 @@ module mod_date
     contains
       procedure , pass :: printint => print_rcm_time_interval
       procedure , pass(x) :: setunit => set_timeunit
+      procedure , pass(x) :: hours => tohours
   end type rcm_time_interval
 
   interface assignment(=) 
@@ -89,7 +95,7 @@ module mod_date
   public :: rcm_time_interval , operator(+) , operator(-)
   public :: operator(>) , operator(<)
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
-  public :: nextmon , prevmon
+  public :: nextmon , prevmon , yrfirst
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , idayofyear
   public :: timeval2date
 
@@ -153,7 +159,7 @@ module mod_date
       case (y360)
         x%calendar = c
       case default
-        write (6,*) 'Unknown calendar, using Julian/Gregorian'
+        write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
         x%calendar = gregorian
     end select
   end subroutine set_calendar
@@ -178,7 +184,7 @@ module mod_date
       case (ucnt)
         x%iunit = u
       case default
-        write (6,*) 'Unknown time unit, assuming hours'
+        write (stderr,*) 'Unknown time unit, assuming hours'
         x%iunit = uhrs
     end select
   end subroutine set_timeunit
@@ -207,14 +213,22 @@ module mod_date
   subroutine print_rcm_time_and_date(x)
     implicit none
     class (rcm_time_and_date) , intent(in) :: x
-    write (6,'(i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2)') &
+    write (stdout,'(i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2)') &
        x%year, x%month, x%day, x%hour, x%minute, x%second
   end subroutine print_rcm_time_and_date
+
+  function tochar(x) result(cdat)
+    implicit none
+    class (rcm_time_and_date) , intent(in) :: x
+    character (len=23) :: cdat
+    write (cdat,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
+       x%year, x%month, x%day, x%hour, x%minute, x%second
+  end function tochar
 
   subroutine print_rcm_time_interval(x)
     implicit none
     class (rcm_time_interval) , intent(in) :: x
-    write (6,'(i10," ",a)') x%ival, trim(cintstr(x%iunit))
+    write (stdout,'(i10," ",a)') x%ival, trim(cintstr(x%iunit))
   end subroutine print_rcm_time_interval
 
   logical function isequaldt(x, y)
@@ -542,7 +556,7 @@ module mod_date
 
   function julianday(iy, im, id)
     implicit none
-    real(8) :: julianday
+    real(dp) :: julianday
     integer , intent(in) :: iy , im , id
     integer :: ia , ib , iiy , iim
     iiy = iy
@@ -597,11 +611,10 @@ module mod_date
       else if (icaltype == 2) then
         lcaltype = .true.
       else
-        write (6, *) 'year  = ', iy
-        write (6, *) 'month = ', im
-        write (6, *) 'day   = ', id
-        write (6, *) 'Day non existent, inside Julian/Gregorian jump'
-        stop
+        write (stderr, *) 'year  = ', iy
+        write (stderr, *) 'month = ', im
+        write (stderr, *) 'day   = ', id
+        call die('mod_date','Day non existent, inside Julian/Gregorian jump',1)
       end if
     end function lcaltype
   end function julianday
@@ -611,8 +624,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
     if ( x%calendar /= y%calendar ) then
-      write(6,*) 'Dates not comparable: not using same calendar.'
-      stop
+      call die('mod_date','Dates not comparable: not using same calendar.',1)
     end if
   end subroutine check_cal
 
@@ -620,7 +632,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
     type (rcm_time_interval) :: z
-    real(8) :: jd1 , jd2
+    real(dp) :: jd1 , jd2
     integer :: it1 , it2
     call check_cal(x,y)
     z%ival = 0
@@ -804,10 +816,9 @@ module mod_date
     ! 1   2   3   4   5   6   7
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
-    real(8) :: jd
+    real(dp) :: jd
     if (x%calendar /= gregorian) then
-      write (6,*) 'Error: week concept works only for gregorian calendar.'
-      stop
+      call die('mod_date','Error: week concept works only for gregorian calendar.',1)
     end if
     jd = julianday(x%year, x%month, x%day)
     iday = idint(dmod(jd+1.5D+00, 7.0D+00))+1
@@ -861,6 +872,13 @@ module mod_date
     mf = rcm_time_and_date(x%calendar,x%year,x%month,1,0,0,0)
   end function monfirst
 
+  function yrfirst(x) result(mf)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    type (rcm_time_and_date) :: mf
+    mf = rcm_time_and_date(x%calendar,x%year,1,1,0,0,0)
+  end function yrfirst
+
   function monlast(x) result(ml)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
@@ -880,7 +898,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: mm
-    real(8) :: rmom
+    real(dp) :: rmom
     integer :: imom
     select case (x%calendar)
       case (gregorian)
@@ -934,7 +952,7 @@ module mod_date
 
   function timeval2date(xval,cunit,ccal) result(dd)
     implicit none
-    real(8) , intent(in) :: xval
+    real(dp) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     character(*) , intent(in) :: ccal
 
@@ -1174,5 +1192,22 @@ module mod_date
     call check_cal(x,y)
     lt = ((x - y) < rcm_time_interval(1,usec))
   end function date_less
+
+  real(dp) function tohours(x) result(hs)
+    implicit none
+    class (rcm_time_interval) , intent(in) :: x
+    select case (x%iunit)
+      case (usec)
+        hs = dble(x%ival)/3600.0D0
+      case (umin)
+        hs = dble(x%ival)/60.0D0
+      case (uhrs)
+        hs = dble(x%ival)
+      case (uday)
+        hs = dble(x%ival)*24.0D0
+      case default
+        call die('mod_date','Interval unit conversion depend on calendar',1)
+    end select
+  end function tohours
 
 end module mod_date
