@@ -19,17 +19,19 @@
 
 module mod_write
 
-  use mod_dynparam
   use m_die
   use m_zeit
   use m_mall
   use m_realkinds
+  use netcdf
+  use mod_dynparam
+  use mod_grid
 
   private
 
   integer :: ncout
   character(256) :: ofname
-  integer :: irefdate
+  type(rcm_time_and_date) :: irefdate
   integer :: itime
   integer , dimension(5) :: idims
   integer , dimension(8) :: ivar
@@ -86,7 +88,6 @@ module mod_write
   end subroutine init_output
 
   subroutine free_output
-    use netcdf
     implicit none
     integer :: istatus
     call mall_mco(ps4,'mod_write')
@@ -118,11 +119,8 @@ module mod_write
   end subroutine free_output
 
   subroutine newfile(idate1)
-    use mod_date
-    use mod_grid , only : xlat , xlon , topogm , sigma2
-    use netcdf
     implicit none
-    integer , intent(in) :: idate1
+    type(rcm_time_and_date) , intent(in) :: idate1
     integer :: istatus
     integer :: iyy , im , id , ih , i , j
     integer , dimension(8) :: tvals
@@ -143,14 +141,12 @@ module mod_write
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, &
-           trim(domname), '_ICBC.', idate1, '.nc'
+           trim(domname), '_ICBC.', idate1%toidate(), '.nc'
 
     irefdate = idate1
     itime = 1
 
-    call split_idate(idate1,iyy,im,id,ih)
-    write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-              iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
+    csdate = idate1%tostring()
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
@@ -455,10 +451,9 @@ module mod_write
   end subroutine newfile
 
   subroutine writef(idate)
-    use netcdf
-    use mod_date
     implicit none
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_interval) :: tdiff
     integer :: istatus
     integer , dimension(1) :: istart1 , icount1
     integer , dimension(4) :: istart , icount
@@ -468,7 +463,8 @@ module mod_write
 !
     istart1(1) = itime
     icount1(1) = 1
-    xdate(1) = dble(idatediff(idate,irefdate))
+    tdiff = idate - irefdate
+    xdate(1) = tdiff%hours()
     istatus = nf90_put_var(ncout, ivar(1), xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
     istart(3) = itime
@@ -508,7 +504,6 @@ module mod_write
   end subroutine writef
 !
   subroutine check_ok(ierr,message)
-    use netcdf
     implicit none
     integer , intent(in) :: ierr
     character(*) :: message

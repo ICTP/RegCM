@@ -306,6 +306,8 @@ module mod_sst_grid
     call check_ok(istatus,'Error adding variable time')
     istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//csdate)
     call check_ok(istatus,'Error adding time units')
+    istatus = nf90_put_att(ncid, ivar(1), 'calendar', calstr(refdate%calendar))
+    call check_ok(istatus,'Error adding time calendar')
     istatus = nf90_def_var(ncid, 'sst', nf90_float, idims(1:3), ivar(2))
     call check_ok(istatus,'Error adding variable sst')
     istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &

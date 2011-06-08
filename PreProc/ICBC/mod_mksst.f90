@@ -19,19 +19,21 @@
 
 module mod_mksst
 
-  use mod_constants
   use m_realkinds
   use m_die
   use m_stdio
   use m_zeit
   use m_mall
+  use netcdf
+  use mod_constants
+  use mod_dynparam
 
   private
 
   logical , private :: lopen , lhasice
   integer , private :: ncst , ntime
   integer , dimension(3) , private :: ivar
-  integer , dimension(:) , allocatable , private :: itime
+  type(rcm_time_and_date) , dimension(:) , allocatable , private :: itime
   real(sp) , dimension(:,:) , allocatable , private :: xlandu
   real(sp) , dimension(:,:) , allocatable , private :: work1 , work2
   real(sp) , dimension(:,:) , allocatable , private :: work3 , work4
@@ -45,18 +47,16 @@ module mod_mksst
 !-----------------------------------------------------------------------
 !
   subroutine readsst(tsccm, idate)
-    use netcdf
-    use mod_dynparam        
-    use mod_date
     implicit none
     real(sp) , dimension(jx,iy) , intent(inout) :: tsccm
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
     real(dp) , dimension(:) , allocatable :: xtime
     integer :: istatus , idimid , itvar
     integer , dimension(3) :: istart , icount
     character(256) :: sstfile
-    character(64) :: timeunits
-    integer :: i , j , irec , ks1 , ks2
+    character(64) :: timeunits , timecal
+    integer :: i , j , irec
+    type(rcm_time_interval) :: ks1 , ks2
     real(sp) :: wt
 
     call zeit_ci('readsst')
@@ -81,6 +81,8 @@ module mod_mksst
       end if
       istatus = nf90_get_att(ncst, itvar, "units", timeunits)
       call check_ok(istatus,'Error time var units SST file'//trim(sstfile))
+      istatus = nf90_get_att(ncst, itvar, "calendar", timecal)
+      call check_ok(istatus,'Error time var units SST file'//trim(sstfile))
 
       allocate(xlandu(jx,iy), stat=istatus)
       if (istatus /= 0) call die('readsst','allocate xlandu',istatus)
@@ -104,12 +106,11 @@ module mod_mksst
       call mall_mci(xtime,'readsst')
       allocate(itime(ntime), stat=istatus)
       if (istatus /= 0) call die('readsst','allocate itime',istatus)
-      call mall_mci(itime,'readsst')
 
       istatus = nf90_get_var(ncst, itvar, xtime)
       call check_ok(istatus,'Error time var read SST file'//trim(sstfile))
       do i = 1 , ntime
-        itime(i) = timeval2idate(xtime(i), timeunits)
+        itime(i) = timeval2date(xtime(i), timeunits, timecal)
       end do
       deallocate(xtime)
       call mall_mco(xtime,'readsst')
@@ -117,8 +118,9 @@ module mod_mksst
     end if
 
     if (idate > itime(ntime) .or. idate < itime(1)) then
-      write (stderr,*) 'Cannot find ', idate, ' in SST file'
-      write (stderr,*) 'Range is : ', itime(1) , '-', itime(ntime)
+      write (stderr,*) 'Cannot find ', idate%tostring(), ' in SST file'
+      write (stderr,*) 'Range is : ', itime(1)%tostring() , '-', &
+                       itime(ntime)%tostring()
       call die('readsst')
     end if
 
@@ -171,9 +173,9 @@ module mod_mksst
         istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
         call check_ok(istatus,'Error ice var read SST file'//trim(sstfile))
       end if
-      ks1 = idatediff(itime(irec),idate)
-      ks2 = idatediff(itime(irec),itime(irec-1))
-      wt = float(ks1)/float(ks2)
+      ks1 = itime(irec)-idate
+      ks2 = itime(irec)-itime(irec-1)
+      wt = ks1%hours()/ks2%hours()
       do i = 1 , jx
         do j = 1 , iy
           if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &
@@ -194,12 +196,10 @@ module mod_mksst
   end subroutine readsst
 
   subroutine closesst
-    use netcdf
     implicit none
     integer :: istatus
     istatus = nf90_close(ncst)
     if (allocated(itime)) then
-      call mall_mco(itime,'readsst')
       deallocate(itime)
     end if
     if (allocated(work1)) then
@@ -225,7 +225,6 @@ module mod_mksst
   end subroutine closesst
 !
   subroutine check_ok(ierr,message)
-    use netcdf
     implicit none
     integer , intent(in) :: ierr
     character(*) :: message

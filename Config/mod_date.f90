@@ -37,10 +37,10 @@ module mod_date
   integer , public , parameter :: uyrs = 6
   integer , public , parameter :: ucnt = 7
 
-  character (len=16) , dimension(7) :: cintstr
+  character (len=16) , public , dimension(7) :: cintstr
+  character (len=12) , public , dimension(3) :: calstr
 
   integer , dimension(12) :: mlen
-  data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
 
   type rcm_time_and_date
     integer :: calendar
@@ -107,6 +107,8 @@ module mod_date
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
   public :: timeval2date
 
+  data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
+  data calstr /'gregorian','noleap','360_days'/
   data cintstr /'seconds', 'minutes', 'hours', 'days', &
                 'months', 'years', 'centuries'/
 
