@@ -28,6 +28,15 @@ module mod_sst_ccsm
   use mod_sst_grid
   use mod_interp
 
+  private
+
+  integer , parameter :: ilon = 360 , jlat = 180
+!
+  real(dp) , allocatable ::  work1(:)
+  real(sp) , dimension (ilon , jlat) :: work2 , work3
+
+  public :: sst_ccsm
+
   contains
 
   subroutine sst_ccsm
@@ -57,8 +66,6 @@ module mod_sst_ccsm
 
   implicit none
 !
-  integer , parameter :: ilon = 360 , jlat = 180
-!
   real(sp) , dimension(jlat) :: glat
   real(sp) , dimension(ilon) :: glon
   real(sp) , dimension(ilon,jlat) :: sst
@@ -80,9 +87,6 @@ module mod_sst_ccsm
   call globidate2%setcal(noleap)
 
   idateo = monfirst(globidate1)
-  if (lfhomonth(globidate1)) then
-    idateo = prevmon(globidate1)
-  end if
   idatef = monfirst(globidate2)
   if (idatef < globidate2) then
     idatef = nextmon(idatef)
@@ -143,6 +147,9 @@ module mod_sst_ccsm
  
   call zeit_co('sst_ccsm')
 
+  call mall_mco(work1,'mod_sst_ccsm')
+  deallocate(work1)
+
   end subroutine sst_ccsm
 !
 !-----------------------------------------------------------------------
@@ -161,18 +168,19 @@ module mod_sst_ccsm
   real(sp) , dimension(ilon, jlat) , intent(out) :: sst
 
   character(len=4), dimension(2) :: varname
-  character(64) :: cunit , ccal
-  real(dp), allocatable ::  work1(:)
-  real(sp) , dimension (ilon , jlat) :: work2 , work3
+  character(64) , save :: cunit , ccal
   real(sp) :: wt1 , wt2
-  type(rcm_time_and_date) :: cssidate1 , cssidate2
+  type(rcm_time_and_date) , save :: cssidate1
+  type(rcm_time_and_date) :: prev , next
 
   integer , save :: inet1
+  integer , save , dimension(2) :: ivar2
+
   integer , dimension(10) :: istart , icount , istartt , icountt
-  integer , dimension(2) :: ivar2
-  integer :: it , icode , i , j
+  integer :: it , i , j
   integer :: latid , lonid , timid
-  integer :: latlen , lonlen , timlen
+  integer :: latlen , lonlen
+  integer :: timlen
   integer :: istatus
   type(rcm_time_interval) :: tdiff1 , tdiff2
 
@@ -186,101 +194,90 @@ module mod_sst_ccsm
        call die('ccsm_sst','Error opening '//trim(pathaddname),1, &
                  nf90_strerror(istatus),istatus)
      end if
-     write (stdout,*) inet1 , trim(pathaddname) , icode
-  endif  
+     write (stdout,*) inet1 , trim(pathaddname)
 !     GET DIMENSION IDs
-  istatus = nf90_inq_dimid(inet1,'lat',latid)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
-             nf90_strerror(istatus),istatus)
-  end if
-  istatus = nf90_inq_dimid(inet1,'lon',lonid)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
-             nf90_strerror(istatus),istatus)
-  end if
-  istatus = nf90_inq_dimid(inet1,'time',timid)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
-             nf90_strerror(istatus),istatus)
-  end if
+    istatus = nf90_inq_dimid(inet1,'lat',latid)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
+               nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inq_dimid(inet1,'lon',lonid)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
+               nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inq_dimid(inet1,'time',timid)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
+               nf90_strerror(istatus),istatus)
+    end if
 
 !     GET DIMENSION LENGTHS
-  istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
-             nf90_strerror(istatus),istatus)
-  end if
-  istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
-             nf90_strerror(istatus),istatus)
-  end if
-  istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
-             nf90_strerror(istatus),istatus)
-  end if
-  allocate(work1(timlen), stat=istatus)
-  if (istatus /= 0) call die('ccsm_sst','allocate work1',istatus)
-  call mall_mci(work1,'mod_sst_ccsm')
-  
+    istatus = nf90_inquire_dimension(inet1,latid,len=latlen)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim lat',1,  &
+               nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inquire_dimension(inet1,lonid,len=lonlen)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim lon',1,  &
+               nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
+               nf90_strerror(istatus),istatus)
+    end if
+    allocate(work1(timlen), stat=istatus)
+    if (istatus /= 0) call die('ccsm_sst','allocate work1',istatus)
+    call mall_mci(work1,'mod_sst_ccsm')
+    
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
-  if(latlen /= jlat .or. lonlen /= ilon) then
-     write(stderr,*) 'DIMENSIONS DO NOT MATCH'
-     write(stderr,*) 'No. of LON in SST file =',lonlen
-     write(stderr,*) 'No. of LON in 1x1 degree gloabl grid =',ilon
-     write(stderr,*) 'No. of LAT in SST file =',latlen
-     write(stderr,*) 'No. of LON in 1x1 degree gloabl grid =',jlat
-     call die('ccsm_sst')
-  endif
+    if(latlen /= jlat .or. lonlen /= ilon) then
+       write(stderr,*) 'DIMENSIONS DO NOT MATCH'
+       write(stderr,*) 'No. of LON in SST file =',lonlen
+       write(stderr,*) 'No. of LON in 1x1 degree gloabl grid =',ilon
+       write(stderr,*) 'No. of LAT in SST file =',latlen
+       write(stderr,*) 'No. of LON in 1x1 degree gloabl grid =',jlat
+       call die('ccsm_sst')
+    endif
 !     GET VARIABLE IDs
-  istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
-             varname(1),1,nf90_strerror(istatus),istatus)
-  end if
-  istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
-             varname(2),1,nf90_strerror(istatus),istatus)
-  end if
+    istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+               varname(1),1,nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+               varname(2),1,nf90_strerror(istatus),istatus)
+    end if
 !     GET TIME VALUES
-  istartt(1) = 1
-  icountt(1) = timlen
-  istatus = nf90_get_var(inet1,ivar2(1),work1,istartt,icountt)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
-             varname(1)//' read',1,nf90_strerror(istatus),istatus)
-  end if
-  
+    istartt(1) = 1
+    icountt(1) = timlen
+    istatus = nf90_get_var(inet1,ivar2(1),work1,istartt,icountt)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+               varname(1)//' read',1,nf90_strerror(istatus),istatus)
+    end if
+    
 !     CHECK FOR THE REQUIRED RECORD IN DATA FILE  
-  istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
-            varname(1)//':units',1,nf90_strerror(istatus),istatus)
-  end if
-  cunit = '-'//trim(cunit)//' GMT-'
-  istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-  if ( istatus /= nf90_noerr ) then
-    call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
-            varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
-  end if
-  cssidate1 = timeval2date(work1(1)*24.0D0,cunit,ccal)
-  it = 1
-  do
-    it = it + 1
-    cssidate2 = timeval2date(work1(it)*24.0D0,cunit,ccal)
-    if ( cssidate2 > idate ) then
-      exit
+    istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+              varname(1)//':units',1,nf90_strerror(istatus),istatus)
     end if
-    if ( it > timlen ) then
-      write (stderr,*) 'Error in finding SST data for ', idate
-      write (stderr,*) 'Required NREC = ', it
-      call die('ccsm_sst')
+    cunit = '-'//trim(cunit)//' GMT-'
+    istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+    if ( istatus /= nf90_noerr ) then
+      call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
+              varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
     end if
-    cssidate1 = cssidate2
-  end do
+    cssidate1 = timeval2date(work1(1)*24.0D0,cunit,ccal)
+    call cssidate1%printdate
+  endif  
+
+  it = imondiff(idate,cssidate1) + 1
 
   icount(1) = ilon
   icount(2) = jlat
@@ -301,8 +298,10 @@ module mod_sst_ccsm
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
 
-  tdiff1 = cssidate2-idate
-  tdiff2 = cssidate2-cssidate1
+  prev = timeval2date(work1(it-1),cunit,ccal)
+  next = timeval2date(work1(it),cunit,ccal)
+  tdiff1 = next-idate
+  tdiff2 = next-prev
   wt1 = tdiff1%hours( )/tdiff2%hours()
   wt2 = 1.0 - wt1
   do j = 1 , jlat
@@ -315,8 +314,6 @@ module mod_sst_ccsm
     end do
   end do
 
-  call mall_mco(work1,'mod_sst_ccsm')
-  deallocate(work1)
   call zeit_co('read_ccsm')
   end subroutine ccsm_sst
 !

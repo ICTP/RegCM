@@ -472,7 +472,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
-    integer :: tmp
+    integer :: nye , nmo , nda , nho , nmi , nse , tmp
     z = x
     tmp = y%ival
     select case (x%calendar)
@@ -555,60 +555,80 @@ module mod_date
       case (y360)
         select case (y%iunit)
           case (usec)
-            z%second = z%second+mod(tmp,60)
+            nye = tmp/31104000
+            tmp = tmp-(nye*31104000)
+            nmo = tmp/2592000
+            tmp = tmp-(nmo*2592000)
+            nda = tmp/86400
+            tmp = tmp-(nda*86400)
+            nho = tmp/3600
+            tmp = tmp-(nho*3600)
+            nmi = tmp/60
+            tmp = tmp-(nmi*60)
+            nse = tmp
+            z%second = z%second+nse
             call adjustp(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute+mod(tmp,60)
+            z%minute = z%minute+nmi
             call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
+            z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day+mod(tmp,30)
+            z%day = z%day+nda
             call adjustp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month+mod(tmp,12)
+            z%month = z%month+nmo
             call adjustp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
+            z%year = z%year+nye
           case (umin)
-            z%minute = z%minute+mod(tmp,60)
+            nye = tmp/518400
+            tmp = tmp-(nye*518400)
+            nmo = tmp/43200
+            tmp = tmp-(nmo*43200)
+            nda = tmp/1440
+            tmp = tmp-(nda*1440)
+            nho = tmp/60
+            tmp = tmp-(nho*60)
+            nmi = tmp
+            z%minute = z%minute+nmi
             call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
+            z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day+mod(tmp,30)
+            z%day = z%day+nda
             call adjustp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month+mod(tmp,12)
+            z%month = z%month+nmo
             call adjustp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
+            z%year = z%year+nye
           case (uhrs)
-            z%hour = z%hour+mod(tmp,24)
+            nye = tmp/8640
+            tmp = tmp-(nye*8640)
+            nmo = tmp/720
+            tmp = tmp-(nmo*720)
+            nda = tmp/24
+            tmp = tmp-(nda*24)
+            nho = tmp
+            z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day+mod(tmp,30)
+            z%day = z%day+nda
             call adjustp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month+mod(tmp,12)
+            z%month = z%month+nmo
             call adjustp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
+            z%year = z%year+nye
           case (uday)
-            z%day = z%day+mod(tmp,30)
+            nye = tmp/360
+            tmp = tmp-(nye*360)
+            nmo = tmp/30
+            tmp = tmp-(nmo*30)
+            nda = tmp
+            z%day = z%day+nda
             call adjustp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month+mod(tmp,12)
+            z%month = z%month+nmo
             call adjustp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
+            z%year = z%year+nye
           case (umnt)
-            z%month = z%month+mod(tmp,12)
+            nye = tmp/12
+            tmp = tmp-(nye*12)
+            nmo = tmp
+            z%month = z%month+nmo
             call adjustp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
+            z%year = z%year+nye
           case (uyrs)
             z%year = z%year+tmp
           case (ucnt)
@@ -687,6 +707,8 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
     if ( x%calendar /= y%calendar ) then
+      write (stderr,*) 'X calendar = ', calstr(x%calendar)
+      write (stderr,*) 'Y calendar = ', calstr(y%calendar)
       call die('mod_date','Dates not comparable: not using same calendar.',1)
     end if
   end subroutine check_cal
@@ -700,29 +722,48 @@ module mod_date
     call check_cal(x,y)
     z%ival = 0
     z%iunit = usec
-    select case (x%calendar)
-      case (gregorian)
-        jd2 = julianday(x%year, x%month, x%day)
-        jd1 = julianday(y%year, y%month, y%day)
-        z%ival = x%second-y%second +           &
-                 (x%minute-y%minute) * 60 +    &
-                 (x%hour-y%hour) * 3600 +      &
-                 idnint(jd2-jd1)*86400
-      case (noleap)
-        it2 = (x%year-2000)*31536000+sum(mlen(1:x%month-1))*86400+(x%day-1)*86400
-        it1 = (y%year-2000)*31536000+sum(mlen(1:y%month-1))*86400+(y%day-1)*86400
-        z%ival = it2-it1 +                  &
-                 x%second-y%second +        &
-                 (x%minute-y%minute) * 60 + &
-                 (x%hour-y%hour) * 3600
-      case (y360)
-        z%ival = x%second-y%second +           &
-                 (x%minute-y%minute) * 60 +    &
-                 (x%hour-y%hour) * 3600 +      &
-                 (x%day-y%day) * 86400 +       &
-                 (x%month-y%month) * 2592000 + &
-                 (x%year-y%year) * 31104000
-    end select
+
+    if ((x%year - y%year) < 64) then
+      select case (x%calendar)
+        case (gregorian)
+          jd2 = julianday(x%year, x%month, x%day)
+          jd1 = julianday(y%year, y%month, y%day)
+          z%ival = x%second-y%second +           &
+                   (x%minute-y%minute) * 60 +    &
+                   (x%hour-y%hour) * 3600 +      &
+                   idnint(jd2-jd1)*86400
+        case (noleap)
+          it2 = (x%year-2000)*31536000+sum(mlen(1:x%month-1))*86400+(x%day-1)*86400
+          it1 = (y%year-2000)*31536000+sum(mlen(1:y%month-1))*86400+(y%day-1)*86400
+          z%ival = it2-it1 +                  &
+                   x%second-y%second +        &
+                   (x%minute-y%minute) * 60 + &
+                   (x%hour-y%hour) * 3600
+        case (y360)
+          z%ival = x%second-y%second +           &
+                   (x%minute-y%minute) * 60 +    &
+                   (x%hour-y%hour) * 3600 +      &
+                   (x%day-y%day) * 86400 +       &
+                   (x%month-y%month) * 2592000 + &
+                   (x%year-y%year) * 31104000
+      end select
+    else
+      z%iunit = uday
+      select case (x%calendar)
+        case (gregorian)
+          jd2 = julianday(x%year, x%month, x%day)
+          jd1 = julianday(y%year, y%month, y%day)
+          z%ival = idnint(jd2-jd1)
+        case (noleap)
+          it2 = (x%year-2000)*365+sum(mlen(1:x%month-1))+(x%day-1)
+          it1 = (y%year-2000)*365+sum(mlen(1:y%month-1))+(y%day-1)
+          z%ival = it2-it1
+        case (y360)
+          z%ival = (x%day-y%day) +          &
+                   (x%month-y%month) * 30 + &
+                   (x%year-y%year) * 360
+      end select
+    end if
 
   end function diffdate
 
@@ -802,7 +843,7 @@ module mod_date
             call sub_days_noleap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month-mod(tmp,12)
-            call adjustm(z%month,z%year,12)
+            call adjustmp(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year-tmp
           case (uyrs)
@@ -813,60 +854,80 @@ module mod_date
       case (y360)
         select case (y%iunit)
           case (usec)
-            z%second = z%second-mod(tmp,60)
+            nye = tmp/31104000
+            tmp = tmp-(nye*31104000)
+            nmo = tmp/2592000
+            tmp = tmp-(nmo*2592000)
+            nda = tmp/86400
+            tmp = tmp-(nda*86400)
+            nho = tmp/3600
+            tmp = tmp-(nho*3600)
+            nmi = tmp/60
+            tmp = tmp-(nmi*60)
+            nse = tmp
+            z%second = z%second-nye
             call adjustm(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute-mod(tmp,60)
+            z%minute = z%minute-nmi
             call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
+            z%hour = z%hour-nho
             call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day-mod(tmp,30)
+            z%day = z%day-nda
             call adjustmp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month-mod(tmp,12)
+            z%month = z%month-nmo
             call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
+            z%year = z%year-nye
           case (umin)
-            z%minute = z%minute-mod(tmp,60)
+            nye = tmp/518400
+            tmp = tmp-(nye*518400)
+            nmo = tmp/43200
+            tmp = tmp-(nmo*43200)
+            nda = tmp/1440
+            tmp = tmp-(nda*1440)
+            nho = tmp/60
+            tmp = tmp-(nho*60)
+            nmi = tmp
+            z%minute = z%minute-nmi
             call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
+            z%hour = z%hour-nho
             call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day-mod(tmp,30)
+            z%day = z%day-nda
             call adjustmp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month-mod(tmp,12)
+            z%month = z%month-nmo
             call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
+            z%year = z%year-nye
           case (uhrs)
-            z%hour = z%hour-mod(tmp,24)
+            nye = tmp/8640
+            tmp = tmp-(nye*8640)
+            nmo = tmp/720
+            tmp = tmp-(nmo*720)
+            nda = tmp/24
+            tmp = tmp-(nda*24)
+            nho = tmp
+            z%hour = z%hour-nho
             call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            z%day = z%day-mod(tmp,30)
+            z%day = z%day-nda
             call adjustmp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month-mod(tmp,12)
+            z%month = z%month-nmo
             call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
+            z%year = z%year-nye
           case (uday)
-            z%day = z%day-mod(tmp,30)
+            nye = tmp/360
+            tmp = tmp-(nye*360)
+            nmo = tmp/30
+            tmp = tmp-(nmo*30)
+            nda = tmp
+            z%day = z%day-nda
             call adjustmp(z%day,z%month,30)
-            tmp = tmp/30
-            z%month = z%month-mod(tmp,12)
+            z%month = z%month-nmo
             call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
+            z%year = z%year-nye
           case (umnt)
-            z%month = z%month-mod(tmp,12)
+            nye = tmp/12
+            tmp = tmp-(nye*12)
+            nmo = tmp
+            z%month = z%month-nmo
             call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
+            z%year = z%year-nye
           case (uyrs)
             z%year = z%year-tmp
           case (ucnt)
@@ -1131,7 +1192,7 @@ module mod_date
       case (umin)
         select case (y%iunit)
           case (usec)
-            interval_greater = ( x%ival > y%ival/60 )
+            interval_greater = (y%ival > 60) .and. ( x%ival > y%ival/60 )
           case (umin)
             interval_greater = ( x%ival > y%ival )
           case (uhrs)
@@ -1144,9 +1205,9 @@ module mod_date
       case (uhrs)
         select case (y%iunit)
           case (usec)
-            interval_greater = ( x%ival > y%ival/3600 )
+            interval_greater = (y%ival > 3600) .and. ( x%ival > y%ival/3600 )
           case (umin)
-            interval_greater = ( x%ival > y%ival/60 )
+            interval_greater = (y%ival > 60) .and. ( x%ival > y%ival/60 )
           case (uhrs)
             interval_greater = ( x%ival > y%ival )
           case (uday)
@@ -1157,11 +1218,11 @@ module mod_date
       case (uday)
         select case (y%iunit)
           case (usec)
-            interval_greater = ( x%ival > y%ival/86400 )
+            interval_greater = (y%ival > 86400) .and. ( x%ival > y%ival/86400 )
           case (umin)
-            interval_greater = ( x%ival > y%ival/1440 )
+            interval_greater = (y%ival > 1440) .and. ( x%ival > y%ival/1440 )
           case (uhrs)
-            interval_greater = ( x%ival > y%ival*24 )
+            interval_greater = (y%ival > 24) .and. ( x%ival > y%ival/24 )
           case (uday)
             interval_greater = ( x%ival > y%ival )
           case default
@@ -1226,7 +1287,7 @@ module mod_date
       case (umin)
         select case (y%iunit)
           case (usec)
-            interval_less = ( x%ival < y%ival/60 )
+            interval_less = (y%ival > 60) .and. ( x%ival < y%ival/60 )
           case (umin)
             interval_less = ( x%ival < y%ival )
           case (uhrs)
@@ -1239,9 +1300,9 @@ module mod_date
       case (uhrs)
         select case (y%iunit)
           case (usec)
-            interval_less = ( x%ival < y%ival/3600 )
+            interval_less = (y%ival > 3600) .and. ( x%ival < y%ival/3600 )
           case (umin)
-            interval_less = ( x%ival < y%ival/60 )
+            interval_less = (y%ival > 60) .and. ( x%ival < y%ival/60 )
           case (uhrs)
             interval_less = ( x%ival < y%ival )
           case (uday)
@@ -1252,11 +1313,11 @@ module mod_date
       case (uday)
         select case (y%iunit)
           case (usec)
-            interval_less = ( x%ival < y%ival/86400 )
+            interval_less = (y%ival > 86400) .and. ( x%ival < y%ival/86400 )
           case (umin)
-            interval_less = ( x%ival < y%ival/1440 )
+            interval_less = (y%ival > 1440) .and. ( x%ival < y%ival/1440 )
           case (uhrs)
-            interval_less = ( x%ival < y%ival*24 )
+            interval_less = (y%ival > 24) .and. ( x%ival < y%ival/24 )
           case (uday)
             interval_less = ( x%ival < y%ival )
           case default
