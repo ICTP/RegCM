@@ -274,11 +274,9 @@ module mod_sst_ccsm
               varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
     end if
     cssidate1 = timeval2date(work1(1)*24.0D0,cunit,ccal)
-    call cssidate1%printdate
   endif  
 
   it = imondiff(idate,cssidate1) + 1
-
   icount(1) = ilon
   icount(2) = jlat
   icount(3) = 1
@@ -298,8 +296,8 @@ module mod_sst_ccsm
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
 
-  prev = timeval2date(work1(it-1),cunit,ccal)
-  next = timeval2date(work1(it),cunit,ccal)
+  prev = timeval2date(work1(it-1)*24.0D0,cunit,ccal)
+  next = timeval2date(work1(it)*24.0D0,cunit,ccal)
   tdiff1 = next-idate
   tdiff2 = next-prev
   wt1 = tdiff1%hours( )/tdiff2%hours()
