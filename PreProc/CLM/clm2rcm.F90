@@ -39,7 +39,9 @@ program clm2rcm
   integer :: istatus , ncid , idum
   integer , dimension(4) :: idims
   integer , dimension(4) :: ivdims
-  integer :: irefdate , imondate , ldim , ivar
+  integer :: ldim , ivar
+  type(rcm_time_and_date) :: irefdate , imondate
+  type(rcm_time_interval) :: tdif
   real(sp) , dimension(2) :: trlat
   real(sp) , allocatable , dimension(:) :: yiy
   real(sp) , allocatable , dimension(:) :: xjx
@@ -69,7 +71,7 @@ program clm2rcm
   integer :: ipathdiv , ierr
   integer :: i , iz , it , j , k , l , kmax
   integer :: jotyp , idin , idout , ifield , ifld , imap
-  integer :: idatex , iyr , imo , idy , ihr , julnc
+  type(rcm_time_and_date) :: idatex
   character(256) :: namelistfile , prgname
   character(256) :: inpfile , terfile , checkfile
   character(256) :: outfil_nc
@@ -258,15 +260,13 @@ program clm2rcm
   istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), ivar)
   call check_ok(istatus,'Error adding variable time')
 
-  irefdate = globidate1
-  call split_idate(irefdate, iyr , imo , idy , ihr)
-  irefdate = imonmiddle(mkidate(iyr, 1, 1, 0))
-  call split_idate(irefdate, iyr , imo , idy , ihr)
-  write (csdate, '(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') iyr, '-', imo, &
-         '-', idy, ' ', ihr, ':00:00 UTC'
-  istatus = nf90_put_att(ncid, ivar, 'units', &
-                     'hours since '//csdate)
+  irefdate = rcm_time_and_date(globidate1%calendar,globidate1%year,1,1,0,0,0)
+  irefdate = monmiddle(irefdate)
+  csdate = irefdate%tostring()
+  istatus = nf90_put_att(ncid, ivar, 'units', 'hours since '//csdate)
   call check_ok(istatus,'Error adding time units')
+  istatus = nf90_put_att(ncid, ivar, 'calendar', calendar)
+  call check_ok(istatus,'Error adding time calendar')
 !
   istatus = nf90_enddef(ncid)
   call check_ok(istatus,'Error End Definitions NetCDF output')
@@ -302,11 +302,12 @@ program clm2rcm
   do it = 1 , 12
     istart1(1) = it
     icount1(1) = 1
-    xdate(1) = dble(idatediff(imondate,irefdate))
+    tdif = imondate-irefdate 
+    xdate(1) = tdif%hours()
     istatus = nf90_put_var(ncid, ivar, xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
-    imondate = inextmon(imondate)
-    imondate = imonmiddle(imondate)
+    imondate = nextmon(imondate)
+    imondate = monmiddle(imondate)
   end do
 
 !     ** determine which files to create (emission factor map or not)
@@ -460,8 +461,6 @@ program clm2rcm
 !       ** Write the interpolated data to NetCDF for CLM and checkfile
 
     do l = 1 , ntim(ifld)
-      idatex = 1900000000 + l*10000 + 1500
-      call julian(idatex,julnc,iyr,imo,idy,ihr,xhr)
       if ( ifld==ipft ) then
         do j = 1 , iy
           do i = 1 , jx
@@ -488,8 +487,9 @@ program clm2rcm
       do k = 1 , nlev(ifld)
         do j = 1 , iy
           do i = 1 , jx
-            if ( ifld==icol ) regyxzt(j,i,k,l)                      &
-                 = float(nint(regyxzt(j,i,k,l)))
+            if ( ifld==icol ) then
+              regyxzt(j,i,k,l) = float(nint(regyxzt(j,i,k,l)))
+            end if
             if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
               regxyz(i,j,k) = regyxzt(j,i,k,l)
             else
@@ -623,59 +623,6 @@ program clm2rcm
   write(stdout,*) 'Successfully completed CLM preprocessing.'
  
   contains
-
-  subroutine julian(idate,julnc,iyr,imo,idy,ihr,xhr)
- 
-  implicit none
-!
-  integer :: idate , idy , ihr , imo , iyr , julnc
-  real(dp) :: xhr
-  intent (out) xhr
-  intent (inout) idate , idy , ihr , imo , iyr , julnc
-!
-  integer :: ileap , iyrm1 , j , julday
-  integer , dimension(12) :: jprev , lenmon
-!
-  data lenmon/31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 , 30 , 31/
- 
-  iyr = idate/1000000
-  imo = idate/10000 - iyr*100
-  idy = idate/100 - iyr*10000 - imo*100
-  ihr = idate - idate/100*100
-  ileap = mod(iyr,4)
-  if ( ileap==0 ) then
-    lenmon(2) = 29
-  else
-    lenmon(2) = 28
-  end if
- 
-  if ( ihr>23 ) then
-    ihr = ihr - 24
-    idy = idy + 1
-  end if
-  if ( idy>lenmon(imo) ) then
-    idy = 1
-    imo = imo + 1
-  end if
-  if ( imo>12 ) then
-    imo = 1
-    iyr = iyr + 1
-  end if
-  idate = iyr*1000000 + imo*10000 + idy*100 + ihr
- 
-  iyrm1 = iyr - 1
- 
-  jprev(1) = 0
-  do j = 2 , 12
-    jprev(j) = jprev(j-1) + lenmon(j-1)
-  end do
- 
-  julday = idy + jprev(imo) - 1
- 
-  julnc = ((iyr-1900)*365+julday+int((iyrm1-1900)/4))*24 + ihr
-  xhr = dble(julnc)
- 
-  end subroutine julian
 
   subroutine check_ok(ierr,message)
     use netcdf
