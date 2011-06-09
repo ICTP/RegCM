@@ -25,6 +25,15 @@ module mod_era40
   use m_stdio
   use m_zeit
   use m_mall
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -57,24 +66,15 @@ module mod_era40
   contains
 
   subroutine getera40(idate)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
   call zeit_ci('getera40')
   call era6hour(dattyp,idate,globidate1)
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -137,12 +137,10 @@ module mod_era40
   use netcdf
   implicit none
 !
-  character(5) :: dattyp
-  integer :: idate , idate0
-  intent (in) dattyp , idate , idate0
+  character(5) , intent(in) :: dattyp
+  type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , inet , it , j , k , k4 , kkrec , month , nday , &
-             nhour , nyear , istatus
+  integer :: i , inet , it , j , k , k4 , kkrec , istatus
   character(24) :: inname
   character(256) :: pathaddname
 !     character(5) , dimension(3,4) :: sarname
@@ -182,78 +180,73 @@ module mod_era40
              ' 1957090100 to 2002083118', 1)
   end if
  
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - nyear*10000 - month*100
-  nhour = idate - nyear*1000000 - month*10000 - nday*100
-  if ( idate == idate0 .or.                                           &
-       (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100) ) then
+  if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then 
     do k4 = 1 , 4
       do kkrec = 1 , 5
         if ( kkrec == 1 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) nyear , 'air.' , nyear
+            write (inname,99001) idate%year , 'air.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99002) nyear , 'air.' , nyear
+            write (inname,99002) idate%year , 'air.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99003) nyear , 'air.' , nyear
+            write (inname,99003) idate%year , 'air.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99004) nyear , 'air.' , nyear
+            write (inname,99004) idate%year , 'air.' , idate%year
           else
           end if
         else if ( kkrec == 2 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) nyear , 'hgt.' , nyear
+            write (inname,99001) idate%year , 'hgt.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99002) nyear , 'hgt.' , nyear
+            write (inname,99002) idate%year , 'hgt.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99003) nyear , 'hgt.' , nyear
+            write (inname,99003) idate%year , 'hgt.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99004) nyear , 'hgt.' , nyear
+            write (inname,99004) idate%year , 'hgt.' , idate%year
           else
           end if
         else if ( kkrec == 3 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'rhum.' , nyear
+            write (inname,99005) idate%year , 'rhum.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'rhum.' , nyear
+            write (inname,99006) idate%year , 'rhum.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'rhum.' , nyear
+            write (inname,99007) idate%year , 'rhum.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'rhum.' , nyear
+            write (inname,99008) idate%year , 'rhum.' , idate%year
           else
           end if
         else if ( kkrec == 4 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'uwnd.' , nyear
+            write (inname,99005) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'uwnd.' , nyear
+            write (inname,99006) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'uwnd.' , nyear
+            write (inname,99007) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'uwnd.' , nyear
+            write (inname,99008) idate%year , 'uwnd.' , idate%year
           else
           end if
         else if ( kkrec == 5 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'vwnd.' , nyear
+            write (inname,99005) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'vwnd.' , nyear
+            write (inname,99006) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'vwnd.' , nyear
+            write (inname,99007) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'vwnd.' , nyear
+            write (inname,99008) idate%year , 'vwnd.' , idate%year
           else
           end if
         else if ( kkrec == 6 ) then
           if ( k4 == 1 ) then
-            write (inname,99009) nyear , 'omega.' , nyear
+            write (inname,99009) idate%year , 'omega.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99010) nyear , 'omega.' , nyear
+            write (inname,99010) idate%year , 'omega.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99011) nyear , 'omega.' , nyear
+            write (inname,99011) idate%year , 'omega.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99012) nyear , 'omega.' , nyear
+            write (inname,99012) idate%year , 'omega.' , idate%year
           else
           end if
         else
@@ -282,22 +275,22 @@ module mod_era40
  
   end if
  
-  k4 = nhour/6 + 1
-  it = nday
-  if ( month == 2 ) it = it + 31
-  if ( month == 3 ) it = it + 59
-  if ( month == 4 ) it = it + 90
-  if ( month == 5 ) it = it + 120
-  if ( month == 6 ) it = it + 151
-  if ( month == 7 ) it = it + 181
-  if ( month == 8 ) it = it + 212
-  if ( month == 9 ) it = it + 243
-  if ( month == 10 ) it = it + 273
-  if ( month == 11 ) it = it + 304
-  if ( month == 12 ) it = it + 334
-  if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 1
-  if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 1
-  if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 1
+  k4 = idate%hour/6 + 1
+  it = idate%day
+  if ( idate%month == 2 ) it = it + 31
+  if ( idate%month == 3 ) it = it + 59
+  if ( idate%month == 4 ) it = it + 90
+  if ( idate%month == 5 ) it = it + 120
+  if ( idate%month == 6 ) it = it + 151
+  if ( idate%month == 7 ) it = it + 181
+  if ( idate%month == 8 ) it = it + 212
+  if ( idate%month == 9 ) it = it + 243
+  if ( idate%month == 10 ) it = it + 273
+  if ( idate%month == 11 ) it = it + 304
+  if ( idate%month == 12 ) it = it + 334
+  if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 1
+  if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 1
+  if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 1
   do k = 1 , 4
     istart(k) = 1
   end do
@@ -309,12 +302,12 @@ module mod_era40
   icount(2) = jlat
   icount(3) = klev
   icount(4) = 365
-  if ( mod(nyear,4) == 0 ) icount(4) = 366
-  if ( mod(nyear,100) == 0 ) icount(4) = 365
-  if ( mod(nyear,400) == 0 ) icount(4) = 366
-  if ( nyear == 2002 ) icount(4) = 243
-  if ( nyear == 1957 ) icount(4) = 122
-  if ( nyear == 1957 ) it = it - 243
+  if ( mod(idate%year,4) == 0 ) icount(4) = 366
+  if ( mod(idate%year,100) == 0 ) icount(4) = 365
+  if ( mod(idate%year,400) == 0 ) icount(4) = 366
+  if ( idate%year == 2002 ) icount(4) = 243
+  if ( idate%year == 1957 ) icount(4) = 122
+  if ( idate%year == 1957 ) it = it - 243
   istart(4) = it
   icount(4) = 1
 !bxq_

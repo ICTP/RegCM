@@ -121,7 +121,9 @@ program icbc
 
   implicit none
 !
-  integer :: idate , iday , imon , iyr , ihr , nnn , iodate
+  integer :: nnn
+  type(rcm_time_and_date) :: idate , iodate
+  type(rcm_time_interval) :: tdiff , tbdy
   integer :: nsteps
   integer :: ierr
   character(256) :: namelistfile, prgname
@@ -157,10 +159,19 @@ program icbc
   call init_grid(iy,jx,kz)
   call init_output
 
-  nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
+  if (dattyp == 'CCSMN' .or. dattyp == 'CAM2N') then
+    if (calendar /= 'noleap') then
+      write(stderr,*) 'CCSM calendar should be set to noleap'
+      call die('icbc','Calendar mismatch',1)
+    end if
+  end if
 
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  tdiff = globidate2-globidate1
+  tbdy = rcm_time_interval(ibdyfrq,uhrs)
+  nsteps = idnint(tdiff%hours())/ibdyfrq + 1
+
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
   write (stdout,*) 'NSTEPS     : ' , nsteps
  
   idate = globidate1
@@ -201,9 +212,7 @@ program icbc
 
   do nnn = 1 , nsteps
 
-    call split_idate(idate, iyr, imon, iday, ihr)
-
-    if (.not. lsame_month(idate, iodate) ) then
+    if (.not. lsamemonth(idate, iodate) ) then
       call newfile(idate)
     end if
 
@@ -237,7 +246,7 @@ program icbc
     call writef(idate)
 
     iodate = idate
-    call addhours(idate, ibdyfrq)
+    idate = idate + tbdy
 
   end do
 

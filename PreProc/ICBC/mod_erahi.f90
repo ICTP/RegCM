@@ -25,6 +25,15 @@ module mod_erahi
   use m_die
   use m_mall
   use m_zeit
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -54,18 +63,9 @@ module mod_erahi
   contains
 
   subroutine geterahi(idate)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
   character(14) :: finame
   integer :: i , j , k , nrec
@@ -91,7 +91,7 @@ module mod_erahi
     end do
     write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
   end if
-  write (finame,99001) idate
+  write (finame,99001) idate%toidate()
   open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte, &
         access='direct')
   nrec = 0
@@ -123,7 +123,7 @@ module mod_erahi
     read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
   end do
  
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
   do k = 1 , nlevs
     do j = 1 , nlats
       do i = 1 , nlons

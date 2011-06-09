@@ -25,7 +25,7 @@ distclean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_constants.o: mod_constants.F90
-mod_dynparam.o: mod_constants.o mod_constants.F90
+mod_dynparam.o: mod_dynparam.F90 mod_constants.o mod_date.o
 clm2rcm.o: clm2rcm.F90 mod_dynparam.o mod_read_domain.o mod_date.o \
            mod_clm3grid.o mod_nclib.o
 mod_clm3grid.o: mod_clm3grid.f90

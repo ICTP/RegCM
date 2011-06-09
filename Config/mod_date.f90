@@ -105,7 +105,7 @@ module mod_date
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
-  public :: timeval2date
+  public :: timeval2date , lfdoyear , lmidnight
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_days'/
@@ -941,6 +941,18 @@ module mod_date
     class (rcm_time_and_date) , intent(in) :: x
     z = x%year*1000000+x%month*10000+x%day*100+x%hour;
   end function toint
+
+  logical function lfdoyear(x) result(l11)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    l11 = (x%month == 1 .and. x%day == 1)
+  end function
+
+  logical function lmidnight(x) result(lm)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    lm = (x%hour == 0 .and. x%minute == 0 .and. x%second == 0)
+  end function
 
   logical function lsamemonth(x,y) result(lm)
     implicit none

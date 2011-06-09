@@ -62,10 +62,10 @@ module mod_ecwcp
   use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
   character(12) , dimension(12,5) :: finm
-  integer :: i , j , k , month , nday , nhour , nrec , nyear
+  integer :: i , j , k , nrec
   logical :: there
 !
   data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &
@@ -90,20 +90,16 @@ module mod_ecwcp
             'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
 !
   call zeit_ci('getecwcp')
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - (idate/10000)*100
-  nhour = mod(idate,100)
  
-  inquire (file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
+  inquire (file=trim(inpglob)//'/ECWCRP/'//finm(idate%month,idate%year-1992),  &
            exist=there)
   if ( .not.there ) then
     call die('getecwcp',trim(inpglob)//'/ECWCRP/'// &
-             finm(month,nyear-1992)//' is not available',1)
+             finm(idate%month,idate%year-1992)//' is not available',1)
   end if
-  open (63,file=trim(inpglob)//'/ECWCRP/'//finm(month,nyear-1992),  &
+  open (63,file=trim(inpglob)//'/ECWCRP/'//finm(idate%month,idate%year-1992),  &
         form='unformatted',recl=ilon*jlat*ibyte,access='direct')
-  nrec = ((nday-1)*4+nhour/6)*(nlev1*6+1)
+  nrec = ((idate%day-1)*4+idate%hour/6)*(nlev1*6+1)
   nrec = nrec + 1
   do k = 1 , nlev1
     nrec = nrec + 1
@@ -130,7 +126,7 @@ module mod_ecwcp
     read (63,rec=nrec) ((q1(i,j,k),i=1,ilon),j=1,jlat)
   end do
   write (stdout,*) 'READ IN fields at DATE:' , idate , ' from ' , &
-              finm(month,nyear-1992)
+              finm(idate%month,idate%year-1992)
   close (21)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS

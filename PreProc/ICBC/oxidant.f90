@@ -32,7 +32,8 @@ program oxidant
 !
   implicit none
 !
-  integer :: idate , iodate
+  type(rcm_time_and_date) :: idate , iodate
+  type(rcm_time_interval) :: tdif , tbdy
   integer :: nnn , nsteps
   integer :: ierr
   character(256) :: namelistfile , prgname
@@ -60,10 +61,12 @@ program oxidant
   call init_grid(iy,jx,kz)
   call init_outoxd
 !
-  nsteps = idatediff(globidate2,globidate1)/ibdyfrq + 1
+  tbdy = rcm_time_interval(ibdyfrq,uhrs)
+  tdif = globidate2-globidate1
+  nsteps = idnint(tdif%hours())/ibdyfrq + 1
 !
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2
+  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
+  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   idate = globidate1
@@ -73,13 +76,13 @@ program oxidant
   call headermozart
 
   do nnn = 1 , nsteps
-    if (.not. lsame_month(idate, iodate) ) then
+    if (.not. lsamemonth(idate, iodate) ) then
       call getmozart(idate)
       call newfile(idate)
     end if
     call getmozart(idate)
     iodate = idate
-    call addhours(idate, ibdyfrq)
+    idate = idate + tbdy
   end do
 
   call free_grid

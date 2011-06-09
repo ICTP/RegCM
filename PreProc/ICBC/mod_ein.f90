@@ -25,6 +25,15 @@ module mod_ein
   use m_die
   use m_zeit
   use m_mall
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -55,18 +64,9 @@ module mod_ein
   contains
 
   subroutine getein(idate)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
 !     READ DATA AT IDATE
 !
@@ -74,7 +74,7 @@ module mod_ein
 
   call ein6hour(dattyp,idate,globidate1)
 
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -137,12 +137,10 @@ module mod_ein
   use netcdf
   implicit none
 !
-  character(5) :: dattyp
-  integer :: idate , idate0
-  intent (in) dattyp , idate , idate0
+  character(5) , intent(in) :: dattyp
+  type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , inet , it , j , k , k4 , kkrec , month , nday ,  &
-             nhour , nyear , istatus , ivar
+  integer :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
   character(24) :: inname
   character(256) :: pathaddname
   character(1) , dimension(5) :: varname
@@ -166,70 +164,59 @@ module mod_ein
     call die('ein6hour','EIN dataset unavailable',1)
   end if
  
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - nyear*10000 - month*100
-  nhour = idate - nyear*1000000 - month*10000 - nday*100
-  if ( idate == idate0 .or.                                           &
-       (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100) ) then
+  if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
     do k4 = 1 , 4
       do kkrec = 1 , 5
         if ( kkrec == 1 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) nyear , 'air.' , nyear
+            write (inname,99001) idate%year , 'air.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99002) nyear , 'air.' , nyear
+            write (inname,99002) idate%year , 'air.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99003) nyear , 'air.' , nyear
+            write (inname,99003) idate%year , 'air.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99004) nyear , 'air.' , nyear
-          else
+            write (inname,99004) idate%year , 'air.' , idate%year
           end if
         else if ( kkrec == 2 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) nyear , 'hgt.' , nyear
+            write (inname,99001) idate%year , 'hgt.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99002) nyear , 'hgt.' , nyear
+            write (inname,99002) idate%year , 'hgt.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99003) nyear , 'hgt.' , nyear
+            write (inname,99003) idate%year , 'hgt.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99004) nyear , 'hgt.' , nyear
-          else
+            write (inname,99004) idate%year , 'hgt.' , idate%year
           end if
         else if ( kkrec == 3 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'rhum.' , nyear
+            write (inname,99005) idate%year , 'rhum.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'rhum.' , nyear
+            write (inname,99006) idate%year , 'rhum.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'rhum.' , nyear
+            write (inname,99007) idate%year , 'rhum.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'rhum.' , nyear
-          else
+            write (inname,99008) idate%year , 'rhum.' , idate%year
           end if
         else if ( kkrec == 4 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'uwnd.' , nyear
+            write (inname,99005) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'uwnd.' , nyear
+            write (inname,99006) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'uwnd.' , nyear
+            write (inname,99007) idate%year , 'uwnd.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'uwnd.' , nyear
-          else
+            write (inname,99008) idate%year , 'uwnd.' , idate%year
           end if
         else if ( kkrec == 5 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) nyear , 'vwnd.' , nyear
+            write (inname,99005) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 2 ) then
-            write (inname,99006) nyear , 'vwnd.' , nyear
+            write (inname,99006) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 3 ) then
-            write (inname,99007) nyear , 'vwnd.' , nyear
+            write (inname,99007) idate%year , 'vwnd.' , idate%year
           else if ( k4 == 4 ) then
-            write (inname,99008) nyear , 'vwnd.' , nyear
-          else
+            write (inname,99008) idate%year , 'vwnd.' , idate%year
           end if
-        else
         end if
  
         pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
@@ -258,28 +245,28 @@ module mod_ein
                    nf90_strerror(istatus),istatus)
         end if
         write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
-                      xscl(kkrec,k4) , xoff(kkrec,k4)
+                         xscl(kkrec,k4) , xoff(kkrec,k4)
       end do
     end do
  
   end if
  
-  k4 = nhour/6 + 1
-  it = nday
-  if ( month == 2 ) it = it + 31
-  if ( month == 3 ) it = it + 59
-  if ( month == 4 ) it = it + 90
-  if ( month == 5 ) it = it + 120
-  if ( month == 6 ) it = it + 151
-  if ( month == 7 ) it = it + 181
-  if ( month == 8 ) it = it + 212
-  if ( month == 9 ) it = it + 243
-  if ( month == 10 ) it = it + 273
-  if ( month == 11 ) it = it + 304
-  if ( month == 12 ) it = it + 334
-  if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 1
-  if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 1
-  if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 1
+  k4 = idate%hour/6 + 1
+  it = idate%day
+  if ( idate%month == 2 ) it = it + 31
+  if ( idate%month == 3 ) it = it + 59
+  if ( idate%month == 4 ) it = it + 90
+  if ( idate%month == 5 ) it = it + 120
+  if ( idate%month == 6 ) it = it + 151
+  if ( idate%month == 7 ) it = it + 181
+  if ( idate%month == 8 ) it = it + 212
+  if ( idate%month == 9 ) it = it + 243
+  if ( idate%month == 10 ) it = it + 273
+  if ( idate%month == 11 ) it = it + 304
+  if ( idate%month == 12 ) it = it + 334
+  if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 1
+  if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 1
+  if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 1
   do k = 1 , 4
     istart(k) = 1
   end do
@@ -291,9 +278,9 @@ module mod_ein
   icount(2) = jlat
   icount(3) = inlev
   icount(4) = 365
-  if ( mod(nyear,4) == 0 ) icount(4) = 366
-  if ( mod(nyear,100) == 0 ) icount(4) = 365
-  if ( mod(nyear,400) == 0 ) icount(4) = 366
+  if ( mod(idate%year,4) == 0 ) icount(4) = 366
+  if ( mod(idate%year,100) == 0 ) icount(4) = 365
+  if ( mod(idate%year,400) == 0 ) icount(4) = 366
   istart(4) = it
   icount(4) = 1
 !bxq_

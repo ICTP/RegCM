@@ -305,6 +305,8 @@ module mod_write
     call check_ok(istatus,'Error adding variable time')
     istatus = nf90_put_att(ncout, ivar(1), 'units', 'hours since '//csdate)
     call check_ok(istatus,'Error adding time units')
+    istatus = nf90_put_att(ncout, ivar(1), 'calendar', calendar)
+    call check_ok(istatus,'Error adding time calendar')
     istatus = nf90_def_var(ncout, 'ps', nf90_float, idims(1:3), ivar(2))
     call check_ok(istatus,'Error adding variable ps')
 #ifdef NETCDF4_HDF5

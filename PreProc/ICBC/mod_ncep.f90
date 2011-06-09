@@ -25,6 +25,15 @@ module mod_ncep
   use m_stdio
   use m_mall
   use m_zeit
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -53,18 +62,10 @@ module mod_ncep
   contains
 
   subroutine getncep(idate,itype)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer , intent(in) :: idate , itype
+  integer , intent(in) :: itype
+  type(rcm_time_and_date) , intent(in) :: idate
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
@@ -76,7 +77,7 @@ module mod_ncep
     call cdc6hour2(idate,globidate1)
   end if
 
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -139,11 +140,9 @@ module mod_ncep
   use netcdf
   implicit none
 !
-  integer :: idate , idate0
-  intent (in) idate , idate0
+  type(rcm_time_and_date) , intent (in) :: idate , idate0
 !
-  integer :: i , ilev , inet , it , j , kkrec , m , month , nday ,  &
-             k , nhour , nlev , nyear , istatus
+  integer :: i , ilev , inet , it , j , kkrec , m , k , nlev , istatus
   character(21) :: inname
   character(256) :: pathaddname
   character(5) , dimension(7) :: varname
@@ -169,10 +168,6 @@ module mod_ncep
   call zeit_ci('read_cdc')
   xadd = 0.0D0
   xscale = 1.0D0
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - nyear*10000 - month*100
-  nhour = idate - nyear*1000000 - month*10000 - nday*100
 !fix  do kkrec = 1,7
   nlev = 0
   do kkrec = 1 , 5
@@ -186,22 +181,21 @@ module mod_ncep
       if ( kkrec == 7 ) nlev = 0
     else
     end if
-    if ( idate == idate0 .or.                                         &
-         (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100)) then
+    if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
       if ( kkrec == 1 ) then
-        write (inname,99001) nyear , 'air.' , nyear
+        write (inname,99001) idate%year , 'air.' , idate%year
       else if ( kkrec == 2 ) then
-        write (inname,99001) nyear , 'hgt.' , nyear
+        write (inname,99001) idate%year , 'hgt.' , idate%year
       else if ( kkrec == 3 ) then
-        write (inname,99002) nyear , 'rhum.' , nyear
+        write (inname,99002) idate%year , 'rhum.' , idate%year
       else if ( kkrec == 4 ) then
-        write (inname,99002) nyear , 'uwnd.' , nyear
+        write (inname,99002) idate%year , 'uwnd.' , idate%year
       else if ( kkrec == 5 ) then
-        write (inname,99002) nyear , 'vwnd.' , nyear
+        write (inname,99002) idate%year , 'vwnd.' , idate%year
       else if ( kkrec == 6 ) then
-        write (inname,99003) nyear , 'omega.' , nyear
+        write (inname,99003) idate%year , 'omega.' , idate%year
       else if ( kkrec == 7 ) then
-        write (inname,99004) nyear , 'pres.sfc.' , nyear
+        write (inname,99004) idate%year , 'pres.sfc.' , idate%year
       else
       end if
  
@@ -227,21 +221,21 @@ module mod_ncep
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
  
-    it = (nday-1)*4 + nhour/6 + 1
-    if ( month == 2 ) it = it + 31*4
-    if ( month == 3 ) it = it + 59*4
-    if ( month == 4 ) it = it + 90*4
-    if ( month == 5 ) it = it + 120*4
-    if ( month == 6 ) it = it + 151*4
-    if ( month == 7 ) it = it + 181*4
-    if ( month == 8 ) it = it + 212*4
-    if ( month == 9 ) it = it + 243*4
-    if ( month == 10 ) it = it + 273*4
-    if ( month == 11 ) it = it + 304*4
-    if ( month == 12 ) it = it + 334*4
-    if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 4
-    if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 4
-    if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 4
+    it = (idate%day-1)*4 + idate%hour/6 + 1
+    if ( idate%month == 2 ) it = it + 31*4
+    if ( idate%month == 3 ) it = it + 59*4
+    if ( idate%month == 4 ) it = it + 90*4
+    if ( idate%month == 5 ) it = it + 120*4
+    if ( idate%month == 6 ) it = it + 151*4
+    if ( idate%month == 7 ) it = it + 181*4
+    if ( idate%month == 8 ) it = it + 212*4
+    if ( idate%month == 9 ) it = it + 243*4
+    if ( idate%month == 10 ) it = it + 273*4
+    if ( idate%month == 11 ) it = it + 304*4
+    if ( idate%month == 12 ) it = it + 334*4
+    if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 4
+    if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 4
+    if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -253,9 +247,9 @@ module mod_ncep
     icount(1) = ilon
     icount(2) = jlat
     icount(4) = 1460
-    if ( mod(nyear,4) == 0 ) icount(4) = 1464
-    if ( mod(nyear,100) == 0 ) icount(4) = 1460
-    if ( mod(nyear,400) == 0 ) icount(4) = 1464
+    if ( mod(idate%year,4) == 0 ) icount(4) = 1464
+    if ( mod(idate%year,100) == 0 ) icount(4) = 1460
+    if ( mod(idate%year,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)
@@ -354,11 +348,9 @@ module mod_ncep
   use mod_grid
   implicit none
 !
-  integer :: idate , idate0
-  intent (in) idate , idate0
+  type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , ii , ilev , inet , it , j , jj , kkrec , m ,       &
-             month , nday , nhour , nlev , nyear , istatus
+  integer :: i , ii , ilev , inet , it , j , jj , kkrec , m , nlev , istatus
   character(24) :: inname
   character(256) :: pathaddname
   character(5) , dimension(7) :: varname
@@ -396,33 +388,26 @@ module mod_ncep
     iii = i1 - i0
     jjj = j1 - j0
   end if
-
-!
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - nyear*10000 - month*100
-  nhour = idate - nyear*1000000 - month*10000 - nday*100
 !
   nlev = 0
   do kkrec = 1 , 5
     if ( kkrec <= 6 ) nlev = klev
     if ( kkrec == 7 ) nlev = 0
-    if ( idate == idate0 .or.                                         &
-         (mod(idate,100000) == 10100 .and. mod(idate,1000000) /= 110100)) then
+    if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
       if ( kkrec == 1 ) then
-        write (inname,99001) nyear , 'air.WIN.' , nyear
+        write (inname,99001) idate%year , 'air.WIN.' , idate%year
       else if ( kkrec == 2 ) then
-        write (inname,99001) nyear , 'hgt.WIN.' , nyear
+        write (inname,99001) idate%year , 'hgt.WIN.' , idate%year
       else if ( kkrec == 3 ) then
-        write (inname,99002) nyear , 'rhum.WIN.' , nyear
+        write (inname,99002) idate%year , 'rhum.WIN.' , idate%year
       else if ( kkrec == 4 ) then
-        write (inname,99002) nyear , 'uwnd.WIN.' , nyear
+        write (inname,99002) idate%year , 'uwnd.WIN.' , idate%year
       else if ( kkrec == 5 ) then
-        write (inname,99002) nyear , 'vwnd.WIN.' , nyear
+        write (inname,99002) idate%year , 'vwnd.WIN.' , idate%year
       else if ( kkrec == 6 ) then
-        write (inname,99003) nyear , 'omega.WIN.' , nyear
+        write (inname,99003) idate%year , 'omega.WIN.' , idate%year
       else if ( kkrec == 7 ) then
-        write (inname,99004) nyear , 'pres.sfc.WIN.' , nyear
+        write (inname,99004) idate%year , 'pres.sfc.WIN.' , idate%year
       else
       end if
  
@@ -443,21 +428,21 @@ module mod_ncep
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
  
-    it = (nday-1)*4 + nhour/6 + 1
-    if ( month == 2 ) it = it + 31*4
-    if ( month == 3 ) it = it + 59*4
-    if ( month == 4 ) it = it + 90*4
-    if ( month == 5 ) it = it + 120*4
-    if ( month == 6 ) it = it + 151*4
-    if ( month == 7 ) it = it + 181*4
-    if ( month == 8 ) it = it + 212*4
-    if ( month == 9 ) it = it + 243*4
-    if ( month == 10 ) it = it + 273*4
-    if ( month == 11 ) it = it + 304*4
-    if ( month == 12 ) it = it + 334*4
-    if ( mod(nyear,4) == 0 .and. month > 2 ) it = it + 4
-    if ( mod(nyear,100) == 0 .and. month > 2 ) it = it - 4
-    if ( mod(nyear,400) == 0 .and. month > 2 ) it = it + 4
+    it = (idate%day-1)*4 + idate%hour/6 + 1
+    if ( idate%month == 2 ) it = it + 31*4
+    if ( idate%month == 3 ) it = it + 59*4
+    if ( idate%month == 4 ) it = it + 90*4
+    if ( idate%month == 5 ) it = it + 120*4
+    if ( idate%month == 6 ) it = it + 151*4
+    if ( idate%month == 7 ) it = it + 181*4
+    if ( idate%month == 8 ) it = it + 212*4
+    if ( idate%month == 9 ) it = it + 243*4
+    if ( idate%month == 10 ) it = it + 273*4
+    if ( idate%month == 11 ) it = it + 304*4
+    if ( idate%month == 12 ) it = it + 334*4
+    if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 4
+    if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 4
+    if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -469,9 +454,9 @@ module mod_ncep
     icount(1) = iii
     icount(2) = jjj
     icount(4) = 1460
-    if ( mod(nyear,4) == 0 ) icount(4) = 1464
-    if ( mod(nyear,100) == 0 ) icount(4) = 1460
-    if ( mod(nyear,400) == 0 ) icount(4) = 1464
+    if ( mod(idate%year,4) == 0 ) icount(4) = 1464
+    if ( mod(idate%year,100) == 0 ) icount(4) = 1460
+    if ( mod(idate%year,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)

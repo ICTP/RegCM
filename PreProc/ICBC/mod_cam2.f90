@@ -21,11 +21,106 @@ module mod_cam2
 
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
-! This is a package of subroutines to read CAM2 NETCDF format data
-! and to prepare Initial and boundary conditions for RegCM3.
+! This is a package of subroutines to read CCSM T85 and T42 L26 data in
+! NETCDF format and to prepare Initial and boundary conditions for RegCM3.
+! Both Global and Window of CCSM data are acceptable.
+! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
+!  SUBROUTINE CAM85
+!  Read unpacked CCSM NETCDF T85 L26 (six hourly) data and save into data
+!    arrays. Each varaible is read in seperate monthly data files.
+!
+!  SUBROUTINE CAM42
+!  Read unpacked CCSM NETCDF T42 L26 (six hourly) data and save into data
+!     arrays. Each varaible is read in seperate yearly data files.
+!
+!  SUBROUTINE HEADER_CAM85 & HEADER_CAM42
+!  Define pressure levels, Ak and Bk coeffcients and global grid dimensions
+!     In CCSM, the vertical coordinate is a hybrid sigma-pressure system
+!     The pressure is defined as:
+!     P = Ak*Po+Bk*PS(i,j)
+!     All 3D fields required for ICBC are at mid-points, so
+!     Ak refers to hyam, the hybrid A coefficient at midpoints, and
+!     Bk refers to hybm, the hybrid B coefficient at midpoints
+!     Po = 1000mb
+!
+!  SUBROUTINE GET_CAM85
+!  Main subroutine to read data arrays from CAM85 and prepare ICBCs at RCM Grid
+!
+!  SUBROUTINE GET_CAM42
+!  Main subroutine to read data arrays from CAM42 and prepare ICBCs at RCM Grid
+!
+!  SUBROUTINE INITDATE3
+!  Initialize CCSM 365 days calendar (No leap years)
+!
+!  SUBROUTINE CAMCLNDR
+!  Subroutine for SST preparation with No leap year
+!
+!  SUBROUTINE HANDLE_ERR
+!  Handle error for NETCDF calls
+!
+!  SUBROUTINES CALLED FROM ICBC.f
+!     1) INTLIN
+!     2) INTLOG
+!     3) HUMIF1FV
+!     3) BILINX2CR
+!     4) BILINX2DT
+!     5) TOP2BTM
+!     6) UVROT4
+!     7) INTGTB
+!     8) P1P2
+!     8) INTPSN
+!     9) INTV3
+!     10) MKSST
+!     10) HUMID2FV
+!     10) INTV1
+!     11) WRITEF
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!  DATA PREPARATION
+!  Dataset required to use this code can be preapred using NCO utilitiles
+!     such as NCKS, NCRCAT etc.
+!  Prepare:
+!     Monthly data files for CAM85
+!     Yearly data files for CAM42
+!  For example:
+!     To extract global data of CAM42 for Specific Humidity
+!     ncks -v Q input.nc cam2.shum.nyear.nc    ,and
+!     to extract a subset (window) of CAM85 data for Specific Humidity
+!     ncks -d lat,min,max -d lon,min,max -v Q input.nc cam2.shumJAN.nyear.nc
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!  NAMING CONVENTION (Global Data Files) CAM85
+!  (MONTH) = JAN/FEB/MAR/APR/MAY/JUN/JUL/AUG/SEP/OCT/NOV/DEC
+!
+!  cam2.air(MONTH).nyear.nc     for 'T'     (Temperature)
+!  cam2.hgt(MONTH).nyear.nc     for 'Z3'    (Geopotential Height)
+!  cam2.shum(MONTH).nyear.nc    for 'Q'     (Specific Humidity)
+!  cam2.uwnd(MONTH).nyear.nc    for 'U'     (Zonal Wind)
+!  cam2.vwnd(MONTH).nyear.nc    for 'V'     (Meridonial Wind)
+!  cam2.pres(MONTH).nyear.nc    for 'PS'    (Surface Pressure)
+!
+!  PATH /DATA/CAM85/NYEAR/
+!  cam2_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
+!
+!  PATH /DATA/CAM85/
+!
+!  NAMING CONVENTION (Global Data Files) CAM42
+!  cam2.air.nyear        for 'T'   (Temperature)
+!  cam2.hgt.nyear.nc     for 'Z3'  (Geopotential Height)
+!  cam2.shum.nyear.nc    for 'Q'   (Specific Humidity)
+!  cam2.uwnd.nyear.nc    for 'U'   (Zonal Wind)
+!  cam2.vwnd.nyear.nc    for 'V'   (Meridonial Wind)
+!  cam2.pres.nyear.nc    for 'PS'  (Surface Pressure)
+!
+!  PATH /DATA/CAM42/NYEAR/
+!  cam2_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
+!
+!  PATH /DATA/CAM42/
+!
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+
   use m_realkinds
   use m_stdio
   use m_die
@@ -33,7 +128,6 @@ module mod_cam2
   use m_zeit
   use mod_dynparam
   use mod_constants
-  use mod_date
   use mod_grid
   use mod_write
   use mod_interp
@@ -72,17 +166,15 @@ module mod_cam2
   real(sp) , allocatable , dimension(:,:,:) :: hvar , qvar , tvar , &
                                                uvar , vvar , pp3d
   integer :: timlen
-  integer , allocatable , dimension(:) :: itimes
+  type(rcm_time_and_date) , allocatable , dimension(:) :: itimes
   real(sp) , dimension(npl) :: pplev , sigmar
 
   ! Shared by netcdf I/O routines
-  integer :: ilastdate
+  type(rcm_time_and_date) :: ilastdate
   integer , dimension(4) :: icount , istart
   integer , dimension(6) :: inet6 , ivar6
 
   public :: get_cam2 , headcam2 , footercam2
-
-  data ilastdate /0/
 
   contains
 !
@@ -97,7 +189,7 @@ module mod_cam2
     real(8) :: dp0
 !
     call zeit_ci('headcam2')
-    pathaddname = trim(inpglob)//'/CAM2/cam2_ht.nc'
+    pathaddname = trim(inpglob)//'/CCSM/cam2_ht.nc'
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
@@ -125,11 +217,7 @@ module mod_cam2
     istatus = nf90_inq_varid(inet1,'PHIS',ivar1)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_inq_varid(inet1,'P0',ip0)
-    if ( istatus/=nf90_noerr ) then
-      write (stderr, *) 'Assuming default reference pressure: 100000'
-      p0 = 100000
-      ip0 = -1
-    end if
+    if ( istatus/=nf90_noerr ) call handle_err(istatus)
 
     ! Input layer and pressure interpolated values
 
@@ -179,11 +267,9 @@ module mod_cam2
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_get_var(inet1,ihybm,bk)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
-    if ( ip0 > 0 ) then
-      istatus = nf90_get_var(inet1,ip0,dp0)
-      if ( istatus/=nf90_noerr ) call handle_err(istatus)
-      p0 = real(dp0)
-    end if
+    istatus = nf90_get_var(inet1,ip0,dp0)
+    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    p0 = real(dp0)
 
     icount(1) = nlon
     icount(2) = nlat
@@ -262,13 +348,13 @@ module mod_cam2
 
     implicit none
 !
-    integer :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
 !
 
     call zeit_ci('get_cam2')
     call readcam2(idate)
 
-    write (stdout,*) 'Read in fields at Date: ' , idate
+    write (stdout,*) 'Read in fields at Date: ', idate%tostring()
  
     call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
  
@@ -321,9 +407,9 @@ module mod_cam2
 !
     implicit none
 !
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
 !
-    integer :: istatus , nyear , month , nday , nhour
+    integer :: istatus
     integer :: i , it , j , k , kkrec , timid
     integer :: inet , ivar
     character(25) :: inname
@@ -331,34 +417,33 @@ module mod_cam2
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
     character(3) , dimension(12) :: mname
-    character(64) :: cunit
-    logical :: lfound
+    character(64) :: cunit , ccal
+    logical :: lfound , lfirst
 !
-    data mname /'JAN','FEB','MAR','APR','MAY','JUN', &
-                'JUL','AUG','SEP','OCT','NOV','DEC'/
-    data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+    data mname   /'JAN','FEB','MAR','APR','MAY','JUN', &
+                  'JUL','AUG','SEP','OCT','NOV','DEC'/
+    data varname /'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+    data lfirst  /.true./
 !
     call zeit_ci('readcam2')
 !
-    call split_idate(idate,nyear,month,nday,nhour)
-
-    if ( .not. lsame_month(idate,ilastdate) ) then
+    if ( lfirst .or. .not. lsamemonth(idate,ilastdate) ) then
       do kkrec = 1 , 6
         if ( kkrec == 1 ) then
-          write (inname,99001) nyear , 'air' , mname(month), nyear
+          write (inname,99001) idate%year, 'air', mname(idate%month), idate%year
         else if ( kkrec == 2 ) then
-          write (inname,99001) nyear , 'hgt' , mname(month), nyear
+          write (inname,99001) idate%year, 'hgt', mname(idate%month), idate%year
         else if ( kkrec == 3 ) then
-          write (inname,99002) nyear , 'shum' , mname(month), nyear
+          write (inname,99002) idate%year, 'shum', mname(idate%month), idate%year
         else if ( kkrec == 4 ) then
-          write (inname,99002) nyear , 'uwnd' , mname(month), nyear
+          write (inname,99002) idate%year, 'uwnd', mname(idate%month), idate%year
         else if ( kkrec == 5 ) then
-          write (inname,99002) nyear , 'vwnd' , mname(month), nyear
+          write (inname,99002) idate%year, 'vwnd', mname(idate%month), idate%year
         else if ( kkrec == 6 ) then
-          write (inname,99002) nyear , 'pres' , mname(month), nyear
+          write (inname,99002) idate%year, 'pres', mname(idate%month), idate%year
         end if
  
-        pathaddname = trim(inpglob)//'/CAM2/'//inname
+        pathaddname = trim(inpglob)//'/CCSM/'//inname
  
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
@@ -375,26 +460,27 @@ module mod_cam2
           istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           cunit = '-'//trim(cunit)//' GMT-'
+          istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
+          if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
           if (allocated(itimes)) then
             deallocate(itimes)
-            call mall_mco(itimes,'mod_cam2')
           end if
           allocate(xtimes(timlen),stat=istatus)
           if (istatus /= 0) call die('mod_cam2','Allocation error on xtimes',1)
           call mall_mci(xtimes,'mod_cam2')
           allocate(itimes(timlen),stat=istatus)
           if (istatus /= 0) call die('mod_cam2','Allocation error on itimes',1)
-          call mall_mci(itimes,'mod_cam2')
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
-            itimes(it) = timeval2idate_noleap(xtimes(it)*24.0,cunit)
+            itimes(it) = timeval2date(xtimes(it)*24.0,cunit,ccal)
           end do
           deallocate(xtimes)
           call mall_mco(xtimes,'mod_cam2')
         end if
       end do
+      if (lfirst) lfirst = .false.
     end if
 
     do kkrec = 1 , 6
@@ -408,8 +494,9 @@ module mod_cam2
       end do
  
       if ( .not. lfound ) then
-        write (stderr,*) idate, ' not found in ', trim(pathaddname)
-        write (stderr,*) 'Extremes are : ', itimes(1), '-', itimes(timlen)
+        write (stderr,*) idate%tostring(), ' not found in ', trim(pathaddname)
+        write (stderr,*) 'Extremes are : ', itimes(1)%tostring(), &
+                         '-', itimes(timlen)%tostring()
         call die('readcam2')
       end if
 
@@ -510,7 +597,6 @@ module mod_cam2
     deallocate(b2)
     call mall_mco(d2,'mod_cam2')
     deallocate(d2)
-    call mall_mco(itimes,'mod_cam2')
     deallocate(itimes)
   end subroutine footercam2
 !

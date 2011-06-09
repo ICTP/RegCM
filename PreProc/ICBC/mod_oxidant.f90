@@ -215,7 +215,7 @@ module mod_oxidant
     implicit none
 !
     integer :: i , j , k , k0
-    integer :: idate
+    type(rcm_time_and_date) :: idate
     integer, dimension(10) ::  istart , icount
 
     call zeit_ci('getmozart')
@@ -247,7 +247,10 @@ module mod_oxidant
     istatus = nf90_get_var(ncid,17,t42NO3,istart,icount)
     istatus = nf90_get_var(ncid,18,t42H2O2,istart,icount)
 
-    call split_idate(idate,nyear,month,nday,nhour)
+    nyear = idate%year
+    month = idate%month
+    nday = idate%day
+    nhour = idate%hour
 
     do j = 1 , jlat
       do i = 1 , ilon

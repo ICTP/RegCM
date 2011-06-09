@@ -24,6 +24,15 @@ module mod_fvgcm
   use m_die
   use m_mall
   use m_zeit
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -55,24 +64,14 @@ module mod_fvgcm
   contains
 
   subroutine getfvgcm(idate)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
   character(3) , dimension(12) :: chmon
   character(20) :: finm , fips
   character(5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
-  integer :: i , i2 , ii , j , j2 , k , month , mrec , nday ,  &
-             nhour , nrec , numx , numy , nyear
+  integer :: i , i2 , ii , j , j2 , k , mrec , nrec , numx , numy
   integer(2) , dimension(288,181) :: itmp
   real(dp) :: offset , xscale
   real(sp) , dimension(288,181) :: temp
@@ -119,60 +118,55 @@ module mod_fvgcm
     close (61)
   end if
  
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - (idate/10000)*100
-  nhour = mod(idate,100)
- 
-  if ( nday /= 1 .or. nhour /= 0 ) then
+  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
     if ( ssttyp == 'FV_RF' ) then
-      finm = 'RF/'//yr_rf(nyear-1960)//'/'//fn_rf//yr_rf(nyear-1960) &
-             //chmon(month)
-      fips = 'RF/'//yr_rf(nyear-1960)//'/'//pn_rf//yr_rf(nyear-1960) &
-             //chmon(month)
+      finm = 'RF/'//yr_rf(idate%year-1960)//'/'//fn_rf//yr_rf(idate%year-1960) &
+             //chmon(idate%month)
+      fips = 'RF/'//yr_rf(idate%year-1960)//'/'//pn_rf//yr_rf(idate%year-1960) &
+             //chmon(idate%month)
     else if ( ssttyp == 'FV_A2' ) then
-      finm = 'A2/'//yr_a2(nyear-2070)//'/'//fn_a2//yr_a2(nyear-2070) &
-             //chmon(month)
-      fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070) &
-             //chmon(month)
+      finm = 'A2/'//yr_a2(idate%year-2070)//'/'//fn_a2//yr_a2(idate%year-2070) &
+             //chmon(idate%month)
+      fips = 'A2/'//yr_a2(idate%year-2070)//'/'//pn_a2//yr_a2(idate%year-2070) &
+             //chmon(idate%month)
     else
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
-  else if ( month /= 1 ) then
+  else if ( idate%month /= 1 ) then
     if ( ssttyp == 'FV_RF' ) then
-      finm = 'RF/'//yr_rf(nyear-1960)//'/'//fn_rf//yr_rf(nyear-1960) &
-             //chmon(month-1)
-      fips = 'RF/'//yr_rf(nyear-1960)//'/'//pn_rf//yr_rf(nyear-1960) &
-             //chmon(month-1)
+      finm = 'RF/'//yr_rf(idate%year-1960)//'/'//fn_rf//yr_rf(idate%year-1960) &
+             //chmon(idate%month-1)
+      fips = 'RF/'//yr_rf(idate%year-1960)//'/'//pn_rf//yr_rf(idate%year-1960) &
+             //chmon(idate%month-1)
     else if ( ssttyp == 'FV_A2' ) then
-      finm = 'A2/'//yr_a2(nyear-2070)//'/'//fn_a2//yr_a2(nyear-2070) &
-             //chmon(month-1)
-      fips = 'A2/'//yr_a2(nyear-2070)//'/'//pn_a2//yr_a2(nyear-2070) &
-             //chmon(month-1)
+      finm = 'A2/'//yr_a2(idate%year-2070)//'/'//fn_a2//yr_a2(idate%year-2070) &
+             //chmon(idate%month-1)
+      fips = 'A2/'//yr_a2(idate%year-2070)//'/'//pn_a2//yr_a2(idate%year-2070) &
+             //chmon(idate%month-1)
     else
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
   else if ( ssttyp == 'FV_RF' ) then
-    if ( nyear == 1961 ) then
+    if ( idate%year == 1961 ) then
       write (stderr,*) 'Fields on 00z01jan1961 is not saved'
       write (stderr,*) 'Please run from 00z02jan1961'
       call die('getfvgcm')
     end if
-    finm = 'RF/'//yr_rf(nyear-1961)//'/'//fn_rf//yr_rf(nyear-1961)  &
+    finm = 'RF/'//yr_rf(idate%year-1961)//'/'//fn_rf//yr_rf(idate%year-1961)  &
            //chmon(12)
-    fips = 'RF/'//yr_rf(nyear-1961)//'/'//pn_rf//yr_rf(nyear-1961)  &
+    fips = 'RF/'//yr_rf(idate%year-1961)//'/'//pn_rf//yr_rf(idate%year-1961)  &
            //chmon(12)
   else if ( ssttyp == 'FV_A2' ) then
-    if ( nyear == 2071 ) then
+    if ( idate%year == 2071 ) then
       write (stderr,*) 'Fields on 00z01jan2071 is not saved'
       write (stderr,*) 'Please run from 00z02jan2071'
       call die('getfvgcm')
     end if
-    finm = 'A2/'//yr_a2(nyear-2071)//'/'//fn_a2//yr_a2(nyear-2071)  &
+    finm = 'A2/'//yr_a2(idate%year-2071)//'/'//fn_a2//yr_a2(idate%year-2071)  &
            //chmon(12)
-    fips = 'A2/'//yr_a2(nyear-2071)//'/'//pn_a2//yr_a2(nyear-2071)  &
+    fips = 'A2/'//yr_a2(idate%year-2071)//'/'//pn_a2//yr_a2(idate%year-2071)  &
            //chmon(12)
   else
     write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
@@ -198,17 +192,20 @@ module mod_fvgcm
         recl=(numx*numy*2+16)/4*ibyte,access='direct')
   open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
         recl=numx*numy*ibyte,access='direct')
-  if ( nday /= 1 .or. nhour /= 0 ) then
-    nrec = ((nday-1)*4+nhour/6-1)*(nlev2*4)
-    mrec = (nday-1)*4 + nhour/6 - 1
-  else if ( month == 1 .or. month == 2 .or. month == 4 .or. month == 6 .or. &
-            month == 8 .or. month == 9 .or. month == 11 ) then
+  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+    nrec = ((idate%day-1)*4+idate%hour/6-1)*(nlev2*4)
+    mrec = (idate%day-1)*4 + idate%hour/6 - 1
+  else if ( idate%month == 1 .or. idate%month == 2 .or. &
+            idate%month == 4 .or. idate%month == 6 .or. &
+            idate%month == 8 .or. idate%month == 9 .or. &
+            idate%month == 11 ) then
     nrec = (31*4-1)*(nlev2*4)
     mrec = 31*4 - 1
-  else if ( month == 5 .or. month == 7 .or. month == 10 .or. month == 12 ) then
+  else if ( idate%month == 5 .or. idate%month == 7 .or. &
+            idate%month == 10 .or. idate%month == 12 ) then
     nrec = (30*4-1)*(nlev2*4)
     mrec = 30*4 - 1
-  else if ( mod(nyear,4) == 0 .and. nyear /= 2100 ) then
+  else if ( mod(idate%year,4) == 0 .and. idate%year /= 2100 ) then
     nrec = (29*4-1)*(nlev2*4)
     mrec = 29*4 - 1
   else

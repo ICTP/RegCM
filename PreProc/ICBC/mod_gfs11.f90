@@ -25,6 +25,15 @@ module mod_gfs11
   use m_stdio
   use m_mall
   use m_zeit
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -49,23 +58,13 @@ module mod_gfs11
   contains
 
   subroutine getgfs11(idate)
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) :: idate
 !
   character(3) , dimension(12) :: chmon
   character(17) :: finm
-  integer :: i , i2 , ii , j , j2 , k , month , nday , nhour ,   &
-             nrec , numx , numy , nyear
+  integer :: i , i2 , ii , j , j2 , k , nrec , numx , numy
   integer(2) , dimension(360,181) :: itmp
   real(dp) :: offset , xscale
   logical :: there
@@ -82,10 +81,7 @@ module mod_gfs11
 !     D      BEGIN LOOP OVER NTIMES
 !
   call zeit_ci('getgfs11')
-  nyear = idate/1000000
-  month = idate/10000 - nyear*100
-  nday = idate/100 - (idate/10000)*100
-  nhour = mod(idate,100)
+!
   if ( idate < 2000010106 ) then
     write (stderr,*) 'GFS 1x1 datasets is avaiable from 2000010106'
     call die('getgfs11')
@@ -93,24 +89,24 @@ module mod_gfs11
   numx = nint((lon1-lon0)/1.0) + 1
   numy = nint((lat1-lat0)/1.0) + 1
   if ( numx /= 360 .or. numy /= 181 ) then
-    if ( nday /= 1 .or. nhour /= 0 ) then
-      finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
-             //chmon(month)
-    else if ( month /= 1 ) then
-      finm = yrgfs(nyear-1999)//'/'//'GFS__'//yrgfs(nyear-1999)     &
-             //chmon(month-1)
+    if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+      finm = yrgfs(idate%year-1999)//'/'//'GFS__'//yrgfs(idate%year-1999)     &
+             //chmon(idate%month)
+    else if ( idate%month /= 1 ) then
+      finm = yrgfs(idate%year-1999)//'/'//'GFS__'//yrgfs(idate%year-1999)     &
+             //chmon(idate%month-1)
     else
-      finm = yrgfs(nyear-2000)//'/'//'GFS__'//yrgfs(nyear-2000)     &
+      finm = yrgfs(idate%year-2000)//'/'//'GFS__'//yrgfs(idate%year-2000)     &
              //chmon(12)
     end if
-  else if ( nday /= 1 .or. nhour /= 0 ) then
-    finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
-           //chmon(month)
-  else if ( month /= 1 ) then
-    finm = yrgfs(nyear-1999)//'/'//'GFSg_'//yrgfs(nyear-1999)       &
-           //chmon(month-1)
+  else if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+    finm = yrgfs(idate%year-1999)//'/'//'GFSg_'//yrgfs(idate%year-1999)       &
+           //chmon(idate%month)
+  else if ( idate%month /= 1 ) then
+    finm = yrgfs(idate%year-1999)//'/'//'GFSg_'//yrgfs(idate%year-1999)       &
+           //chmon(idate%month-1)
   else
-    finm = yrgfs(nyear-2000)//'/'//'GFSg_'//yrgfs(nyear-2000)       &
+    finm = yrgfs(idate%year-2000)//'/'//'GFSg_'//yrgfs(idate%year-2000)       &
            //chmon(12)
   end if
   do k = 1 , klev*3
@@ -136,14 +132,17 @@ module mod_gfs11
   end if
   open (63,file=trim(inpglob)//'/GFS11/'//finm,form='unformatted',  &
         recl=(numx*numy*2+16)/4*ibyte,access='direct')
-  if ( nday /= 1 .or. nhour /= 0 ) then
-    nrec = ((nday-1)*4+nhour/6-1)*127
-  else if ( month == 1 .or. month == 2 .or. month == 4 .or. month == 6 .or. &
-            month == 8 .or. month == 9 .or. month == 11 ) then
+  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+    nrec = ((idate%day-1)*4+idate%hour/6-1)*127
+  else if ( idate%month == 1 .or. idate%month == 2 .or. &
+            idate%month == 4 .or. idate%month == 6 .or. &
+            idate%month == 8 .or. idate%month == 9 .or. &
+            idate%month == 11 ) then
     nrec = (31*4-1)*127
-  else if ( month == 5 .or. month == 7 .or. month == 10 .or. month == 12 ) then
+  else if ( idate%month == 5 .or. idate%month == 7 .or. &
+            idate%month == 10 .or. idate%month == 12 ) then
     nrec = (30*4-1)*127
-  else if ( mod(nyear,4) == 0 ) then
+  else if ( mod(idate%year,4) == 0 ) then
     nrec = (29*4-1)*127
   else
     nrec = (28*4-1)*127

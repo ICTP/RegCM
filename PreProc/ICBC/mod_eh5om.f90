@@ -25,6 +25,16 @@ module mod_eh5om
   use m_die
   use m_zeit
   use m_mall
+  use netcdf
+  use mod_grid
+  use mod_write
+  use mod_interp
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -63,25 +73,14 @@ module mod_eh5om
   contains
 
   subroutine geteh5om(idate)
-  use netcdf
-  use mod_grid
-  use mod_write
-  use mod_interp , only : bilinx2
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_uvrot
-  use mod_vectutil
   implicit none
 !
-  integer :: idate
+  type(rcm_time_and_date) , intent(in) :: idate
 !
   character(3) , dimension(12) :: chmon
   character(21) :: finm , psnm
   character(256) :: fnso4
-  integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , month ,  &
-             nday , nhour , nrec , numx , numy , nyear
+  integer :: i , i2 , ii , j , j2 , k , k0 , krec , l , nrec , numx , numy
   integer(2) , dimension(ilon,jlat) :: itmp
   real(dp) :: offset , xscale
   real(sp) :: pmpi , pmpj , prcm
@@ -125,11 +124,6 @@ module mod_eh5om
 !     D      BEGIN LOOP OVER NTIMES
 !
   call zeit_ci('get_eh5om')
-  nyear = idate/1000000
-                     !, SST2(JX,IY)
-  month = idate/10000 - nyear*100
-  nday = idate/100 - (idate/10000)*100
-  nhour = mod(idate,100)
  
   if ( ssttyp == 'EH5RF' ) then
     if ( idate < 1941010106 ) then
@@ -179,189 +173,189 @@ module mod_eh5om
   numx = nint((lon1-lon0)/1.875) + 1
   numy = nint((lat1-lat0)/1.875) + 1
   if ( numx /= ilon .or. numy /= jlat ) then
-    if ( nday /= 1 .or. nhour /= 0 ) then
+    if ( idate%day /= 1 .or. idate%hour /= 0 ) then
       if ( ssttyp == 'EH5RF' ) then
-        finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_RF'//              &
-               yr_rf(nyear-1940)//chmon(month)
-        if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_PS'// &
-                            yr_rf(nyear-1940)//chmon(month)
+        finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_RF'//              &
+               yr_rf(idate%year-1940)//chmon(idate%month)
+        if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_PS'// &
+                            yr_rf(idate%year-1940)//chmon(idate%month)
       else if ( ssttyp == 'EH5A2' ) then
-        finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_A2'//              &
-               yr_a2(nyear-2000)//chmon(month)
-        if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2000)//chmon(month)
+        finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_A2'//              &
+               yr_a2(idate%year-2000)//chmon(idate%month)
+        if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2000)//chmon(idate%month)
       else if ( ssttyp == 'EH5B1' ) then
-        finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_B1'//              &
-               yr_a2(nyear-2000)//chmon(month)
-        if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2000)//chmon(month)
+        finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_B1'//              &
+               yr_a2(idate%year-2000)//chmon(idate%month)
+        if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2000)//chmon(idate%month)
       else if ( ssttyp == 'EHA1B' ) then
-        finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'E_A1B'//             &
-               yr_a2(nyear-2000)//chmon(month)
-        if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)                &
-                            //'/'//'EH_PS'//yr_a2(nyear-2000)        &
-                            //chmon(month)
+        finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'E_A1B'//             &
+               yr_a2(idate%year-2000)//chmon(idate%month)
+        if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)                &
+                            //'/'//'EH_PS'//yr_a2(idate%year-2000)        &
+                            //chmon(idate%month)
       else
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
-    else if ( month /= 1 ) then
+    else if ( idate%month /= 1 ) then
       if ( ssttyp == 'EH5RF' ) then
-        finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_RF'//              &
-               yr_rf(nyear-1940)//chmon(month-1)
-        if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EH_PS'// &
-                            yr_rf(nyear-1940)//chmon(month-1)
+        finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_RF'//              &
+               yr_rf(idate%year-1940)//chmon(idate%month-1)
+        if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_PS'// &
+                            yr_rf(idate%year-1940)//chmon(idate%month-1)
       else if ( ssttyp == 'EH5A2' ) then
-        finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_A2'//              &
-               yr_a2(nyear-2000)//chmon(month-1)
-        if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2000)//chmon(month-1)
+        finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_A2'//              &
+               yr_a2(idate%year-2000)//chmon(idate%month-1)
+        if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2000)//chmon(idate%month-1)
       else if ( ssttyp == 'EH5B1' ) then
-        finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_B1'//              &
-               yr_a2(nyear-2000)//chmon(month-1)
-        if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2000)//chmon(month-1)
+        finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_B1'//              &
+               yr_a2(idate%year-2000)//chmon(idate%month-1)
+        if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2000)//chmon(idate%month-1)
       else if ( ssttyp == 'EHA1B' ) then
-        finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'E_A1B'//             &
-               yr_a2(nyear-2000)//chmon(month-1)
-        if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)                &
-                            //'/'//'EH_PS'//yr_a2(nyear-2000)        &
-                            //chmon(month-1)
+        finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'E_A1B'//             &
+               yr_a2(idate%year-2000)//chmon(idate%month-1)
+        if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)                &
+                            //'/'//'EH_PS'//yr_a2(idate%year-2000)        &
+                            //chmon(idate%month-1)
       else
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
     else if ( ssttyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//                &
-             yr_rf(nyear-1941)//chmon(12)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'//   &
-                          yr_rf(nyear-1941)//chmon(12)
+      finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//                &
+             yr_rf(idate%year-1941)//chmon(12)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_PS'//   &
+                          yr_rf(idate%year-1941)//chmon(12)
     else if ( ssttyp == 'EH5A2' ) then
-      if ( nyear == 2001 ) then
-        finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//              &
-               yr_rf(nyear-1941)//chmon(12)
-        if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'// &
-                            yr_rf(nyear-1941)//chmon(12)
+      if ( idate%year == 2001 ) then
+        finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
+               yr_rf(idate%year-1941)//chmon(12)
+        if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_PS'// &
+                            yr_rf(idate%year-1941)//chmon(12)
       else
-        finm = 'A2/'//yr_a2(nyear-2001)//'/'//'EH_A2'//              &
-               yr_a2(nyear-2001)//chmon(12)
-        if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2001)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2001)//chmon(12)
+        finm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EH_A2'//              &
+               yr_a2(idate%year-2001)//chmon(12)
+        if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2001)//chmon(12)
       end if
     else if ( ssttyp == 'EH5B1' ) then
-      if ( nyear == 2001 ) then
-        finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//              &
-               yr_rf(nyear-1941)//chmon(12)
-        if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'// &
-                            yr_rf(nyear-1941)//chmon(12)
+      if ( idate%year == 2001 ) then
+        finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
+               yr_rf(idate%year-1941)//chmon(12)
+        if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_PS'// &
+                            yr_rf(idate%year-1941)//chmon(12)
       else
-        finm = 'B1/'//yr_a2(nyear-2001)//'/'//'EH_B1'//              &
-               yr_a2(nyear-2001)//chmon(12)
-        if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2001)//'/'//'EH_PS'// &
-                            yr_a2(nyear-2001)//chmon(12)
+        finm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EH_B1'//              &
+               yr_a2(idate%year-2001)//chmon(12)
+        if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EH_PS'// &
+                            yr_a2(idate%year-2001)//chmon(12)
       end if
     else if ( ssttyp == 'EHA1B' ) then
-      if ( nyear == 2001 ) then
-        finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_RF'//              &
-               yr_rf(nyear-1941)//chmon(12)
-        if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EH_PS'// &
-                            yr_rf(nyear-1941)//chmon(12)
+      if ( idate%year == 2001 ) then
+        finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
+               yr_rf(idate%year-1941)//chmon(12)
+        if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_PS'// &
+                            yr_rf(idate%year-1941)//chmon(12)
       else
-        finm = 'A1B/'//yr_a2(nyear-2001)//'/'//'E_A1B'//             &
-               yr_a2(nyear-2001)//chmon(12)
-        if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2001)                &
-                            //'/'//'EH_PS'//yr_a2(nyear-2001)        &
+        finm = 'A1B/'//yr_a2(idate%year-2001)//'/'//'E_A1B'//             &
+               yr_a2(idate%year-2001)//chmon(12)
+        if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2001)                &
+                            //'/'//'EH_PS'//yr_a2(idate%year-2001)        &
                             //chmon(12)
       end if
     else
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
-  else if ( nday /= 1 .or. nhour /= 0 ) then
+  else if ( idate%day /= 1 .or. idate%hour /= 0 ) then
     if ( ssttyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgRF'//                &
-             yr_rf(nyear-1940)//chmon(month)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgPS'//   &
-                          yr_rf(nyear-1940)//chmon(month)
+      finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgRF'//                &
+             yr_rf(idate%year-1940)//chmon(idate%month)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgPS'//   &
+                          yr_rf(idate%year-1940)//chmon(idate%month)
     else if ( ssttyp == 'EH5A2' ) then
-      finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgA2'//                &
-             yr_a2(nyear-2000)//chmon(month)
-      if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgPS'//   &
-                          yr_a2(nyear-2000)//chmon(month)
+      finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgA2'//                &
+             yr_a2(idate%year-2000)//chmon(idate%month)
+      if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//   &
+                          yr_a2(idate%year-2000)//chmon(idate%month)
     else if ( ssttyp == 'EH5B1' ) then
-      finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgB1'//                &
-             yr_a2(nyear-2000)//chmon(month)
-      if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgPS'//   &
-                          yr_a2(nyear-2000)//chmon(month)
+      finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgB1'//                &
+             yr_a2(idate%year-2000)//chmon(idate%month)
+      if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//   &
+                          yr_a2(idate%year-2000)//chmon(idate%month)
     else if ( ssttyp == 'EHA1B' ) then
-      finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EgA1B'//               &
-             yr_a2(nyear-2000)//chmon(month)
-      if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
-                          yr_a2(nyear-2000)//chmon(month)
+      finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EgA1B'//               &
+             yr_a2(idate%year-2000)//chmon(idate%month)
+      if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
+                          yr_a2(idate%year-2000)//chmon(idate%month)
     else
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
-  else if ( month /= 1 ) then
+  else if ( idate%month /= 1 ) then
     if ( ssttyp == 'EH5RF' ) then
-      finm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgRF'//               &
-             yr_rf(nyear-1940)//chmon(month-1)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1940)//'/'//'EHgPS'//  &
-                          yr_rf(nyear-1940)//chmon(month-1)
+      finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgRF'//               &
+             yr_rf(idate%year-1940)//chmon(idate%month-1)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgPS'//  &
+                          yr_rf(idate%year-1940)//chmon(idate%month-1)
     else if ( ssttyp == 'EH5A2' ) then
-      finm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgA2'//               &
-             yr_a2(nyear-2000)//chmon(month-1)
-      if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
-                          yr_a2(nyear-2000)//chmon(month-1)
+      finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgA2'//               &
+             yr_a2(idate%year-2000)//chmon(idate%month-1)
+      if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
+                          yr_a2(idate%year-2000)//chmon(idate%month-1)
     else if ( ssttyp == 'EH5B1' ) then
-      finm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgB1'//               &
-             yr_a2(nyear-2000)//chmon(month-1)
-      if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2000)//'/'//'EHgPS'//  &
-                          yr_a2(nyear-2000)//chmon(month-1)
+      finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgB1'//               &
+             yr_a2(idate%year-2000)//chmon(idate%month-1)
+      if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
+                          yr_a2(idate%year-2000)//chmon(idate%month-1)
     else if ( ssttyp == 'EHA1B' ) then
-      finm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EgA1B'//              &
-             yr_a2(nyear-2000)//chmon(month-1)
-      if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2000)//'/'//'EHgPS'// &
-                          yr_a2(nyear-2000)//chmon(month-1)
+      finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EgA1B'//              &
+             yr_a2(idate%year-2000)//chmon(idate%month-1)
+      if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EHgPS'// &
+                          yr_a2(idate%year-2000)//chmon(idate%month-1)
     else
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
   else if ( ssttyp == 'EH5RF' ) then
-    finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//yr_rf(nyear-1941)&
-           //chmon(12)
-    if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//    &
-                        yr_rf(nyear-1941)//chmon(12)
+    finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'// &
+                  yr_rf(idate%year-1941)//chmon(12)
+    if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgPS'//    &
+                        yr_rf(idate%year-1941)//chmon(12)
   else if ( ssttyp == 'EH5A2' ) then
-    if ( nyear == 2001 ) then
-      finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
-             yr_rf(nyear-1941)//chmon(12)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
-                          yr_rf(nyear-1941)//chmon(12)
+    if ( idate%year == 2001 ) then
+      finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
+             yr_rf(idate%year-1941)//chmon(12)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgPS'//  &
+                          yr_rf(idate%year-1941)//chmon(12)
     else
-      finm = 'A2/'//yr_a2(nyear-2001)//'/'//'EHgA2'//               &
-             yr_a2(nyear-2001)//chmon(12)
-      if ( ehso4 ) psnm = 'A2/'//yr_a2(nyear-2001)//'/'//'EHgPS'//  &
-                          yr_a2(nyear-2001)//chmon(12)
+      finm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EHgA2'//               &
+             yr_a2(idate%year-2001)//chmon(12)
+      if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EHgPS'//  &
+                          yr_a2(idate%year-2001)//chmon(12)
     end if
   else if ( ssttyp == 'EH5B1' ) then
-    if ( nyear == 2001 ) then
-      finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
-             yr_rf(nyear-1941)//chmon(12)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
-                          yr_rf(nyear-1941)//chmon(12)
+    if ( idate%year == 2001 ) then
+      finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
+             yr_rf(idate%year-1941)//chmon(12)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgPS'//  &
+                          yr_rf(idate%year-1941)//chmon(12)
     else
-      finm = 'B1/'//yr_a2(nyear-2001)//'/'//'EHgB1'//               &
-             yr_a2(nyear-2001)//chmon(12)
-      if ( ehso4 ) psnm = 'B1/'//yr_a2(nyear-2001)//'/'//'EHgPS'//  &
-                          yr_a2(nyear-2001)//chmon(12)
+      finm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EHgB1'//               &
+             yr_a2(idate%year-2001)//chmon(12)
+      if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EHgPS'//  &
+                          yr_a2(idate%year-2001)//chmon(12)
     end if
   else if ( ssttyp == 'EHA1B' ) then
-    if ( nyear == 2001 ) then
-      finm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgRF'//               &
-             yr_rf(nyear-1941)//chmon(12)
-      if ( ehso4 ) psnm = 'RF/'//yr_rf(nyear-1941)//'/'//'EHgPS'//  &
-                          yr_rf(nyear-1941)//chmon(12)
+    if ( idate%year == 2001 ) then
+      finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
+             yr_rf(idate%year-1941)//chmon(12)
+      if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgPS'//  &
+                          yr_rf(idate%year-1941)//chmon(12)
     else
-      finm = 'A1B/'//yr_a2(nyear-2001)//'/'//'EgA1B'//              &
-             yr_a2(nyear-2001)//chmon(12)
-      if ( ehso4 ) psnm = 'A1B/'//yr_a2(nyear-2001)//'/'//'EHgPS'// &
-                          yr_a2(nyear-2001)//chmon(12)
+      finm = 'A1B/'//yr_a2(idate%year-2001)//'/'//'EgA1B'//              &
+             yr_a2(idate%year-2001)//chmon(12)
+      if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2001)//'/'//'EHgPS'// &
+                          yr_a2(idate%year-2001)//chmon(12)
     end if
   else
     call die('geteh5om','ERROR IN geteh5om',1)
@@ -411,18 +405,19 @@ module mod_eh5om
     open (62,file=trim(inpglob)//'/EH5OM/'//psnm,form='unformatted',&
           recl=(numx*numy*2+16)/4*ibyte,access='direct')
   end if
-  if ( nday /= 1 .or. nhour /= 0 ) then
-    nrec = ((nday-1)*4+nhour/6-1)*(klev*5)
-    if ( ehso4 ) krec = (nday-1)*4 + nhour/6
-  else if ( month == 1 .or. month == 2 .or. month == 4 .or. month == 6 .or. &
-            month == 8 .or. month == 9 .or. month == 11 ) then
+  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+    nrec = ((idate%day-1)*4+idate%hour/6-1)*(klev*5)
+    if ( ehso4 ) krec = (idate%day-1)*4 + idate%hour/6
+  else if ( idate%month == 1 .or. idate%month == 2 .or. &
+            idate%month == 4 .or. idate%month == 6 .or. &
+            idate%month == 8 .or. idate%month == 9 .or. idate%month == 11 ) then
     nrec = (mlev*4-1)*(klev*5)
     if ( ehso4 ) krec = mlev*4
-  else if ( month == 5 .or. month == 7 .or. &
-            month == 10 .or. month == 12 ) then
+  else if ( idate%month == 5 .or. idate%month == 7 .or. &
+            idate%month == 10 .or. idate%month == 12 ) then
     nrec = (30*4-1)*(klev*5)
     if ( ehso4 ) krec = 30*4
-  else if ( mod(nyear,4) == 0 .and. nyear /= 2100 ) then
+  else if ( mod(idate%year,4) == 0 .and. idate%year /= 2100 ) then
     nrec = (29*4-1)*(klev*5)
     if ( ehso4 ) krec = 29*4
   else
@@ -599,7 +594,7 @@ module mod_eh5om
   if ( ehso4 ) then
     if ( ssttyp == 'EH5RF' ) then
       fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
-                 yr_rf(nyear-1940)//'.nc'
+                 yr_rf(idate%year-1940)//'.nc'
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
       if (istatus /= nf90_noerr) then
         call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -612,7 +607,7 @@ module mod_eh5om
       if (istatus /= nf90_noerr) then
         call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
       end if
-      if ( nyear == 1950 .and. month == 1 .and. nday < 16 ) then
+      if ( idate%year == 1950 .and. idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -620,7 +615,8 @@ module mod_eh5om
             end do
           end do
         end do
-      else if ( nyear == 2000 .and. month == 12 .and. nday >= 16 ) then
+      else if ( idate%year == 2000 .and. idate%month == 12 .and. &
+                idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -628,69 +624,71 @@ module mod_eh5om
             end do
           end do
         end do
-      else if ( (month == 1 .or. month == 3. .or. month == 5 .or.     &
-                 month == 7 .or. month == 8 .or. month == 10) .and.   &
-                 nday >= 16 ) then
-        if ( month == 1 ) then
+      else if ( (idate%month == 1 .or. idate%month == 3 .or. &
+                 idate%month == 5 .or. idate%month == 7 .or. &
+                 idate%month == 8 .or. idate%month == 10) .and.   &
+                 idate%day >= 16 ) then
+        if ( idate%month == 1 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)        &
-                                  *(1.-float(nday-16)/30.)    &
-                                  + sulfate(i,j,k,month+1)    &
-                                  *(float(nday-16)/30.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(idate%day-16)/30.) + &
+                                  sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/30.)
               end do
             end do
           end do
-        else if ( month == 3 .or. month == 5 .or. &
-                  month == 8 .or. month == 10 ) then
+        else if ( idate%month == 3 .or. idate%month == 5 .or. &
+                  idate%month == 8 .or. idate%month == 10 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)        &
-                                  *(1.-float(nday-16)/31.)    &
-                                  + sulfate(i,j,k,month+1)    &
-                                  *(float(nday-16)/31.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(idate%day-16)/31.) + &
+                                  sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/31.)
               end do
             end do
           end do
-        else if ( month == 7 ) then
+        else if ( idate%month == 7 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)        &
-                                  *(1.-float(nday-16)/32.)    &
-                                  + sulfate(i,j,k,month+1)    &
-                                  *(float(nday-16)/32.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *    &
+                                  (1.-float(idate%day-16)/32.) +  &
+                                   sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/32.)
               end do
             end do
           end do
         else
         end if
-      else if ( month == 2 .and. nday >= 15 ) then
+      else if ( idate%month == 2 .and. idate%day >= 15 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month)          &
-                                *(1.-float(nday-16)/30.)      &
-                                + sulfate(i,j,k,month+1)      &
-                                *(float(nday-16)/30.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                (1.-float(idate%day-16)/30.) + &
+                                sulfate(i,j,k,idate%month+1) * &
+                                (float(idate%day-16)/30.)
             end do
           end do
         end do
-      else if ( (month == 4. .or. month == 6 .or. month == 9 .or.   &
-                 month == 11) .and. nday >= 16 ) then
+      else if ( (idate%month == 4 .or. idate%month == 6 .or. &
+                 idate%month == 9 .or. idate%month == 11) .and. &
+                 idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month)          &
-                                *(1.-float(nday-16)/31.)      &
-                                + sulfate(i,j,k,month+1)      &
-                                *(float(nday-16)/31.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                (1.-float(idate%day-16)/31.) + &
+                                sulfate(i,j,k,idate%month+1) * &
+                                (float(idate%day-16)/31.)
             end do
           end do
         end do
-      else if ( month == 12. .and. nday >= 16 ) then
+      else if ( idate%month == 12. .and. idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -699,7 +697,7 @@ module mod_eh5om
           end do
         end do
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//  &
-                   yr_rf(nyear-1939)//'.nc'
+                   yr_rf(idate%year-1939)//'.nc'
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
           call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -722,76 +720,78 @@ module mod_eh5om
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate1(i,j,k,1)            &
-                                *(1.-float(nday-16)/32.)     &
-                                + sulfate1(i,j,k,2)          &
-                                *(float(nday-16)/32.)
+              sulfate2(i,j,k) = sulfate1(i,j,k,1) *            &
+                                (1.-float(idate%day-16)/32.) + &
+                                sulfate1(i,j,k,2) *            &
+                                (float(idate%day-16)/32.)
             end do
           end do
         end do
-      else if ( (month == 3 .or. month == 5 .or. month == 7 .or.      &
-                 month == 8 .or. month == 10 .or. month == 12) .and.  &
-                 nday < 16 ) then
-        if ( month == 3 ) then
+      else if ( (idate%month == 3 .or. idate%month == 5 .or. &
+                 idate%month == 7 .or. idate%month == 8 .or. &
+                 idate%month == 10 .or. idate%month == 12) .and.  &
+                 idate%day < 16 ) then
+        if ( idate%month == 3 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)      &
-                                  *(float(16-nday)/30.)       &
-                                  + sulfate(i,j,k,month)      &
-                                  *(1.-float(16-nday)/30.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/30.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/30.)
               end do
             end do
           end do
-        else if ( month == 5 .or. month == 7 .or. &
-                  month == 10 .or. month == 12 ) then
+        else if ( idate%month == 5 .or. idate%month == 7 .or. &
+                  idate%month == 10 .or. idate%month == 12 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)      &
-                                  *(float(16-nday)/31.)       &
-                                  + sulfate(i,j,k,month)      &
-                                  *(1.-float(16-nday)/31.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/31.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/31.)
               end do
             end do
           end do
-        else if ( month == 8 ) then
+        else if ( idate%month == 8 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)      &
-                                  *(float(16-nday)/32.)       &
-                                  + sulfate(i,j,k,month)      &
-                                  *(1.-float(16-nday)/32.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/32.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/32.)
               end do
             end do
           end do
         else
         end if
-      else if ( month == 2 .and. nday < 15 ) then
+      else if ( idate%month == 2 .and. idate%day < 15 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month-1)        &
-                                *(float(15-nday)/30.)         &
-                                + sulfate(i,j,k,month)        &
-                                *(1.-float(15-nday)/30.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                (float(15-idate%day)/30.) +    &
+                                sulfate(i,j,k,idate%month) *   &
+                                (1.-float(15-idate%day)/30.)
             end do
           end do
         end do
-      else if ( (month == 4. .or. month == 6 .or. month == 9 .or.   &
-                 month == 11) .and. nday < 16 ) then
+      else if ( (idate%month == 4 .or. idate%month == 6 .or. &
+                 idate%month == 9 .or. idate%month == 11) .and. &
+                 idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month-1)        &
-                                *(float(16-nday)/31.)         &
-                                + sulfate(i,j,k,month)        &
-                                *(1.-float(16-nday)/31.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                (float(16-idate%day)/31.) +    &
+                                sulfate(i,j,k,idate%month) *   &
+                                (1.-float(16-idate%day)/31.)
             end do
           end do
         end do
-      else if ( month == 1 .and. nday < 16 ) then
+      else if ( idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -800,7 +800,7 @@ module mod_eh5om
           end do
         end do
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
-                   yr_rf(nyear-1941)//'.nc'
+                   yr_rf(idate%year-1941)//'.nc'
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
           call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
@@ -823,10 +823,10 @@ module mod_eh5om
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate1(i,j,k,1)          &
-                                *(float(16-nday)/32.)      &
-                                + sulfate1(i,j,k,2)        &
-                                *(1.-float(16-nday)/32.)
+              sulfate2(i,j,k) = sulfate1(i,j,k,1) *         &
+                                (float(16-idate%day)/32.) + &
+                                sulfate1(i,j,k,2) *         &
+                                (1.-float(16-idate%day)/32.)
             end do
           end do
         end do
@@ -835,14 +835,13 @@ module mod_eh5om
     else
       if ( ssttyp == 'EH5A2' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'// &
-                   yr_a2(nyear-2000)//'.nc'
+                   yr_a2(idate%year-2000)//'.nc'
       else if ( ssttyp == 'EHA1B' ) then
-        fnso4 = trim(inpglob)//                                 &
-               '/EH5OM/SO4/A1B/T63L31_skg_A1B_'//               &
-               yr_a2(nyear-2000)//'.nc'
+        fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
+               yr_a2(idate%year-2000)//'.nc'
       else if ( ssttyp == 'EH5B1' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'// &
-                   yr_a2(nyear-2000)//'.nc'
+                   yr_a2(idate%year-2000)//'.nc'
       end if
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
       if (istatus /= nf90_noerr) then
@@ -856,7 +855,7 @@ module mod_eh5om
       if (istatus /= nf90_noerr) then
         call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
       end if
-      if ( nyear == 2001 .and. month == 1 .and. nday < 16 ) then
+      if ( idate%year == 2001 .and. idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -864,7 +863,8 @@ module mod_eh5om
             end do
           end do
         end do
-      else if ( nyear == 2100 .and. month == 12 .and. nday >= 16 ) then
+      else if ( idate%year == 2100 .and. idate%month == 12 .and. &
+                idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -872,69 +872,71 @@ module mod_eh5om
             end do
           end do
         end do
-      else if ( (month == 1 .or. month == 3. .or. month == 5 .or.    &
-                 month == 7 .or. month == 8 .or. month == 10) .and.  &
-                 nday >= 16 ) then
-        if ( month == 1 ) then
+      else if ( (idate%month == 1 .or. idate%month == 3 .or. &
+                 idate%month == 5 .or. idate%month == 7 .or. &
+                 idate%month == 8 .or. idate%month == 10) .and.  &
+                 idate%day >= 16 ) then
+        if ( idate%month == 1 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)         &
-                                  *(1.-float(nday-16)/30.)     &
-                                  + sulfate(i,j,k,month+1)     &
-                                  *(float(nday-16)/30.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(idate%day-16)/30.) + &
+                                  sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/30.)
               end do
             end do
           end do
-        else if ( month == 3 .or. month == 5 .or. &
-                  month == 8 .or. month == 10 ) then
+        else if ( idate%month == 3 .or. idate%month == 5 .or. &
+                  idate%month == 8 .or. idate%month == 10 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)         &
-                                  *(1.-float(nday-16)/31.)     &
-                                  + sulfate(i,j,k,month+1)     &
-                                  *(float(nday-16)/31.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(idate%day-16)/31.) + &
+                                  sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/31.)
               end do
             end do
           end do
-        else if ( month == 7 ) then
+        else if ( idate%month == 7 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month)         &
-                                  *(1.-float(nday-16)/32.)     &
-                                  + sulfate(i,j,k,month+1)     &
-                                  *(float(nday-16)/32.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(idate%day-16)/32.) + &
+                                  sulfate(i,j,k,idate%month+1) * &
+                                  (float(idate%day-16)/32.)
               end do
             end do
           end do
         else
         end if
-      else if ( month == 2 .and. nday >= 15 ) then
+      else if ( idate%month == 2 .and. idate%day >= 15 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month)           &
-                                *(1.-float(nday-16)/30.)       &
-                                + sulfate(i,j,k,month+1)       &
-                                *(float(nday-16)/30.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                (1.-float(idate%day-16)/30.) + &
+                                sulfate(i,j,k,idate%month+1) * &
+                                (float(idate%day-16)/30.)
             end do
           end do
         end do
-      else if ( (month == 4. .or. month == 6 .or. month == 9 .or.    &
-                 month == 11) .and. nday >= 16 ) then
+      else if ( (idate%month == 4 .or. idate%month == 6 .or. &
+                 idate%month == 9 .or. idate%month == 11) .and. &
+                 idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month)           &
-                                *(1.-float(nday-16)/31.)       &
-                                + sulfate(i,j,k,month+1)       &
-                                *(float(nday-16)/31.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month) *   &
+                                (1.-float(idate%day-16)/31.) + &
+                                sulfate(i,j,k,idate%month+1) * &
+                                (float(idate%day-16)/31.)
             end do
           end do
         end do
-      else if ( month == 12. .and. nday >= 16 ) then
+      else if ( idate%month == 12. .and. idate%day >= 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -944,13 +946,13 @@ module mod_eh5om
         end do
         if ( ssttyp == 'EH5A2' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//   &
-                     yr_a2(nyear-1999)//'.nc'
+                     yr_a2(idate%year-1999)//'.nc'
         else if ( ssttyp == 'EHA1B' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
-                      yr_a2(nyear-1999)//'.nc'
+                      yr_a2(idate%year-1999)//'.nc'
         else if ( ssttyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
-                     yr_a2(nyear-1999)//'.nc'
+                     yr_a2(idate%year-1999)//'.nc'
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
@@ -977,76 +979,78 @@ module mod_eh5om
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
-                                *(1.-float(nday-16)/32.)            &
-                                + sulfate1(i,j,k,2)                 &
-                                *(float(nday-16)/32.)
+              sulfate2(i,j,k) = sulfate1(i,j,k,1) *            &
+                                (1.-float(idate%day-16)/32.) + &
+                                sulfate1(i,j,k,2) *            &
+                                (float(idate%day-16)/32.)
             end do
           end do
         end do
-      else if ( (month == 3 .or. month == 5 .or. month == 7 .or.          &
-                month == 8 .or. month == 10 .or. month == 12) .and.       &
-                nday < 16 ) then
-        if ( month == 3 ) then
+      else if ( (idate%month == 3 .or. idate%month == 5 .or. &
+                 idate%month == 7 .or. idate%month == 8 .or. &
+                 idate%month == 10 .or. idate%month == 12) .and. &
+                 idate%day < 16 ) then
+        if ( idate%month == 3 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
-                                  *(float(16-nday)/30.)             &
-                                  + sulfate(i,j,k,month)            &
-                                  *(1.-float(16-nday)/30.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/30.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/30.)
               end do
             end do
           end do
-        else if ( month == 5 .or. month == 7 .or. month == 10 .or.        &
-                  month == 12 ) then
+        else if ( idate%month == 5 .or. idate%month == 7 .or. &
+                  idate%month == 10 .or. idate%month == 12 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
-                                  *(float(16-nday)/31.)             &
-                                  + sulfate(i,j,k,month)            &
-                                  *(1.-float(16-nday)/31.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/31.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/31.)
               end do
             end do
           end do
-        else if ( month == 8 ) then
+        else if ( idate%month == 8 ) then
           do k = 1 , mlev
             do j = 1 , jlat
               do i = 1 , ilon
-                sulfate2(i,j,k) = sulfate(i,j,k,month-1)            &
-                                  *(float(16-nday)/32.)             &
-                                  + sulfate(i,j,k,month)            &
-                                  *(1.-float(16-nday)/32.)
+                sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                  (float(16-idate%day)/32.) +    &
+                                  sulfate(i,j,k,idate%month) *   &
+                                  (1.-float(16-idate%day)/32.)
               end do
             end do
           end do
         else
         end if
-      else if ( month == 2 .and. nday < 15 ) then
+      else if ( idate%month == 2 .and. idate%day < 15 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
-                                *(float(15-nday)/30.)               &
-                                + sulfate(i,j,k,month)              &
-                                *(1.-float(15-nday)/30.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                (float(15-idate%day)/30.) +    &
+                                sulfate(i,j,k,idate%month) *   &
+                                (1.-float(15-idate%day)/30.)
             end do
           end do
         end do
-      else if ( (month == 4. .or. month == 6 .or. month == 9 .or.         &
-                month == 11) .and. nday < 16 ) then
+      else if ( (idate%month == 4 .or. idate%month == 6 .or. &
+                 idate%month == 9 .or. idate%month == 11) .and. &
+                 idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate(i,j,k,month-1)              &
-                                *(float(16-nday)/31.)               &
-                                + sulfate(i,j,k,month)              &
-                                *(1.-float(16-nday)/31.)
+              sulfate2(i,j,k) = sulfate(i,j,k,idate%month-1) * &
+                                (float(16-idate%day)/31.) +    &
+                                sulfate(i,j,k,idate%month) *   &
+                                (1.-float(16-idate%day)/31.)
             end do
           end do
         end do
-      else if ( month == 1 .and. nday < 16 ) then
+      else if ( idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -1056,13 +1060,13 @@ module mod_eh5om
         end do
         if ( ssttyp == 'EH5A2' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//   &
-                     yr_a2(nyear-2001)//'.nc'
+                     yr_a2(idate%year-2001)//'.nc'
         else if ( ssttyp == 'EHA1B' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
-                      yr_a2(nyear-2001)//'.nc'
+                      yr_a2(idate%year-2001)//'.nc'
         else if ( ssttyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
-                     yr_a2(nyear-2001)//'.nc'
+                     yr_a2(idate%year-2001)//'.nc'
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
         if (istatus /= nf90_noerr) then
@@ -1089,20 +1093,18 @@ module mod_eh5om
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
-              sulfate2(i,j,k) = sulfate1(i,j,k,1)                   &
-                                *(float(16-nday)/32.)               &
-                                + sulfate1(i,j,k,2)                 &
-                                *(1.-float(16-nday)/32.)
+              sulfate2(i,j,k) = sulfate1(i,j,k,1) *         &
+                                (float(16-idate%day)/32.) + &
+                                sulfate1(i,j,k,2) *         &
+                                (1.-float(16-idate%day)/32.)
             end do
           end do
         end do
       else
       end if
     end if
-    call bilinx2(sulfate3,sulfate2,xlon,xlat,glon,glat,             &
-                 ilon,jlat,jx,iy,mlev)
-    call bilinx2(pso4_3,pso4_2,xlon,xlat,glon,glat,                 &
-                 ilon,jlat,jx,iy,1)
+    call bilinx2(sulfate3,sulfate2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,mlev)
+    call bilinx2(pso4_3,pso4_2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
@@ -1116,16 +1118,13 @@ module mod_eh5om
           if ( k0 == mlev ) then
             pmpj = (pso4_3(j,i)*hybm(mlev-1)+hyam(mlev-1))*0.01
             pmpi = (pso4_3(j,i)*hybm(mlev)+hyam(mlev))*0.01
-            sulfate4(j,i,l) = sulfate3(j,i,mlev)                    &
-                              + (sulfate3(j,i,mlev)                 &
-                              -sulfate3(j,i,mlev-1))*(prcm-pmpi)    &
-                              /(pmpi-pmpj)
+            sulfate4(j,i,l) = sulfate3(j,i,mlev) + (sulfate3(j,i,mlev) - &
+                              sulfate3(j,i,mlev-1))*(prcm-pmpi)/(pmpi-pmpj)
           else if ( k0 >= 1 ) then
             pmpj = (pso4_3(j,i)*hybm(k0)+hyam(k0))*0.01
             pmpi = (pso4_3(j,i)*hybm(k0+1)+hyam(k0+1))*0.01
             sulfate4(j,i,l) = (sulfate3(j,i,k0+1)*(prcm-pmpj)+      &
-                              sulfate3(j,i,k0)*(pmpi-prcm))         &
-                              /(pmpi-pmpj)
+                               sulfate3(j,i,k0)*(pmpi-prcm))/(pmpi-pmpj)
           else
           end if
         end do

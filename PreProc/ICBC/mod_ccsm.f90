@@ -128,7 +128,6 @@ module mod_ccsm
   use m_zeit
   use mod_dynparam
   use mod_constants
-  use mod_date
   use mod_grid
   use mod_write
   use mod_interp
@@ -167,17 +166,15 @@ module mod_ccsm
   real(sp) , allocatable , dimension(:,:,:) :: hvar , qvar , tvar , &
                                                uvar , vvar , pp3d
   integer :: timlen
-  integer , allocatable , dimension(:) :: itimes
+  type(rcm_time_and_date) , allocatable , dimension(:) :: itimes
   real(sp) , dimension(npl) :: pplev , sigmar
 
   ! Shared by netcdf I/O routines
-  integer :: ilastdate
+  type(rcm_time_and_date) :: ilastdate
   integer , dimension(4) :: icount , istart
   integer , dimension(6) :: inet6 , ivar6
 
   public :: get_ccsm , headccsm , footerccsm
-
-  data ilastdate /0/
 
   contains
 !
@@ -351,13 +348,13 @@ module mod_ccsm
 
     implicit none
 !
-    integer :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
 !
 
     call zeit_ci('get_ccsm')
     call readccsm(idate)
 
-    write (stdout,*) 'Read in fields at Date: ' , idate
+    write (stdout,*) 'Read in fields at Date: ', idate%tostring()
  
     call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
  
@@ -410,9 +407,9 @@ module mod_ccsm
 !
     implicit none
 !
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
 !
-    integer :: istatus , nyear , month , nday , nhour
+    integer :: istatus
     integer :: i , it , j , k , kkrec , timid
     integer :: inet , ivar
     character(25) :: inname
@@ -420,31 +417,30 @@ module mod_ccsm
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
     character(3) , dimension(12) :: mname
-    character(64) :: cunit
-    logical :: lfound
+    character(64) :: cunit , ccal
+    logical :: lfound , lfirst
 !
-    data mname /'JAN','FEB','MAR','APR','MAY','JUN', &
-                'JUL','AUG','SEP','OCT','NOV','DEC'/
-    data varname/'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+    data mname   /'JAN','FEB','MAR','APR','MAY','JUN', &
+                  'JUL','AUG','SEP','OCT','NOV','DEC'/
+    data varname /'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
+    data lfirst  /.true./
 !
     call zeit_ci('readccsm')
 !
-    call split_idate(idate,nyear,month,nday,nhour)
-
-    if ( .not. lsame_month(idate,ilastdate) ) then
+    if ( lfirst .or. .not. lsamemonth(idate,ilastdate) ) then
       do kkrec = 1 , 6
         if ( kkrec == 1 ) then
-          write (inname,99001) nyear , 'air' , mname(month), nyear
+          write (inname,99001) idate%year, 'air', mname(idate%month), idate%year
         else if ( kkrec == 2 ) then
-          write (inname,99001) nyear , 'hgt' , mname(month), nyear
+          write (inname,99001) idate%year, 'hgt', mname(idate%month), idate%year
         else if ( kkrec == 3 ) then
-          write (inname,99002) nyear , 'shum' , mname(month), nyear
+          write (inname,99002) idate%year, 'shum', mname(idate%month), idate%year
         else if ( kkrec == 4 ) then
-          write (inname,99002) nyear , 'uwnd' , mname(month), nyear
+          write (inname,99002) idate%year, 'uwnd', mname(idate%month), idate%year
         else if ( kkrec == 5 ) then
-          write (inname,99002) nyear , 'vwnd' , mname(month), nyear
+          write (inname,99002) idate%year, 'vwnd', mname(idate%month), idate%year
         else if ( kkrec == 6 ) then
-          write (inname,99002) nyear , 'pres' , mname(month), nyear
+          write (inname,99002) idate%year, 'pres', mname(idate%month), idate%year
         end if
  
         pathaddname = trim(inpglob)//'/CCSM/'//inname
@@ -464,26 +460,27 @@ module mod_ccsm
           istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           cunit = '-'//trim(cunit)//' GMT-'
+          istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
+          if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
           if (allocated(itimes)) then
             deallocate(itimes)
-            call mall_mco(itimes,'mod_ccsm')
           end if
           allocate(xtimes(timlen),stat=istatus)
           if (istatus /= 0) call die('mod_ccsm','Allocation error on xtimes',1)
           call mall_mci(xtimes,'mod_ccsm')
           allocate(itimes(timlen),stat=istatus)
           if (istatus /= 0) call die('mod_ccsm','Allocation error on itimes',1)
-          call mall_mci(itimes,'mod_ccsm')
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
-            itimes(it) = timeval2idate_noleap(xtimes(it)*24.0,cunit)
+            itimes(it) = timeval2date(xtimes(it)*24.0,cunit,ccal)
           end do
           deallocate(xtimes)
           call mall_mco(xtimes,'mod_ccsm')
         end if
       end do
+      if (lfirst) lfirst = .false.
     end if
 
     do kkrec = 1 , 6
@@ -497,8 +494,9 @@ module mod_ccsm
       end do
  
       if ( .not. lfound ) then
-        write (stderr,*) idate, ' not found in ', trim(pathaddname)
-        write (stderr,*) 'Extremes are : ', itimes(1), '-', itimes(timlen)
+        write (stderr,*) idate%tostring(), ' not found in ', trim(pathaddname)
+        write (stderr,*) 'Extremes are : ', itimes(1)%tostring(), &
+                         '-', itimes(timlen)%tostring()
         call die('readccsm')
       end if
 
@@ -599,7 +597,6 @@ module mod_ccsm
     deallocate(b2)
     call mall_mco(d2,'mod_ccsm')
     deallocate(d2)
-    call mall_mco(itimes,'mod_ccsm')
     deallocate(itimes)
   end subroutine footerccsm
 !

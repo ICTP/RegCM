@@ -33,7 +33,7 @@ module mod_wrtoxd
 
   integer :: ncid
   character(256) :: ofname
-  integer :: irefdate
+  type(rcm_time_and_date) :: irefdate
   integer :: itime
   integer , dimension(5) :: idims
   integer , dimension(6) :: ivar
@@ -87,9 +87,9 @@ module mod_wrtoxd
   subroutine newfile(idate1)
     use netcdf
     implicit none
-    integer , intent(in) :: idate1
+    type(rcm_time_and_date) , intent(in) :: idate1
     integer :: istatus
-    integer :: iyy , im , id , ih , i , j
+    integer :: i , j
     integer , dimension(8) :: tvals
     integer , dimension(2) :: izvar
     integer , dimension(2) :: ivvar
@@ -108,14 +108,12 @@ module mod_wrtoxd
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, trim(domname), &
-                '_OXBC.', idate1, '.nc'
+                '_OXBC.', idate1%toidate(), '.nc'
 
     irefdate = idate1
     itime = 1
 
-    call split_idate(idate1,iyy,im,id,ih)
-    write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-              iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
+    csdate = idate1%tostring()
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
@@ -257,6 +255,8 @@ module mod_wrtoxd
     call check_ok(istatus,'Error adding variable time')
     istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//csdate)
     call check_ok(istatus,'Error adding time units')
+    istatus = nf90_put_att(ncid, ivar(1), 'calendar', calendar)
+    call check_ok(istatus,'Error adding time calendar')
     istatus = nf90_def_var(ncid, 'oh', nf90_float, x3ddim, ivar(2))
     call check_ok(istatus,'Error adding variable oh')
 #ifdef NETCDF4_HDF5
@@ -380,7 +380,8 @@ module mod_wrtoxd
   subroutine writeox(idate)
     use netcdf
     implicit none
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_interval) :: tdif
     integer :: istatus
     integer , dimension(1) :: istart1 , icount1
     integer , dimension(4) :: istart , icount
@@ -388,7 +389,8 @@ module mod_wrtoxd
 !
     istart1(1) = itime
     icount1(1) = 1
-    xdate(1) = dble(idatediff(idate,irefdate))
+    tdif = idate-irefdate
+    xdate(1) = tdif%hours()
     istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
     istart(4) = itime
