@@ -105,7 +105,8 @@ module mod_date
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
-  public :: timeval2date , lfdoyear , lmidnight
+  public :: timeval2date , lfdoyear , lmidnight , yeardayfrac
+  public :: julianday
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_days'/
@@ -1457,5 +1458,12 @@ module mod_date
         call die('mod_date','Interval unit conversion depend on calendar',1)
     end select
   end function tohours
+
+  real(dp) function yeardayfrac(x)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    yeardayfrac = dble(idayofyear(x)) + dble(x%hour)/24.0D+00 + &
+                  dble(x%minute/1440.0D0) + dble(x%second/86400.0D0)
+  end function yeardayfrac
 
 end module mod_date
