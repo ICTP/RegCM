@@ -1,11 +1,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.F90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
-vpath %.f90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
-
 bin_PROGRAMS = ReadRegcmio
-ReadRegcmio_SOURCES = mod_date.f90 ReadRegcmio.F90
+ReadRegcmio_SOURCES = ReadRegcmio.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -22,4 +19,4 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-ReadRegcmio.o: mod_date.o
+ReadRegcmio.o: ReadRegcmio.F90

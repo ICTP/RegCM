@@ -17,4 +17,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = external PreProc Main PostProc
+SUBDIRS = external Share PreProc Main PostProc

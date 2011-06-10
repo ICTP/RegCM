@@ -1,11 +1,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.F90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
-vpath %.f90 $(REGCM_ROOT)/Config:$(REGCM_ROOT)/PreProc/ICBC:.
-
 bin_PROGRAMS = reSAV
-reSAV_SOURCES = mod_constants.F90 mod_dynparam.F90 reSAV.F90
+reSAV_SOURCES = reSAV.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -22,4 +19,4 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-reSAV.o: mod_constants.o mod_dynparam.o
+reSAV.o: reSAV.F90

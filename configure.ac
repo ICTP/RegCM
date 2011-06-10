@@ -386,11 +386,17 @@ AC_SUBST(REGCM_ROOT)
 bindir=${REGCM_ROOT}/Bin
 AC_SUBST(bindir)
 
-CPPFLAGS="$AM_CPPFLAGS"
-AC_SUBST(CPPFLAGS)
+if eval "test x"$FC" = xsunf95"; then
+  CPPFLAGS="$AM_CPPFLAGS -M$REGCM_ROOT/Share"
+  AC_SUBST(CPPFLAGS)
+else
+  CPPFLAGS="$AM_CPPFLAGS -I$REGCM_ROOT/Share"
+  AC_SUBST(CPPFLAGS)
+fi
+LIBS="$LIBS -L$REGCM_ROOT/Share -lrcmlib"
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile PreProc/Makefile \
+AC_CONFIG_FILES([Makefile Share/Makefile PreProc/Makefile \
                  PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
                  Main/clmlib/Makefile Main/Makefile external/Makefile \

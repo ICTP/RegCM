@@ -8,10 +8,11 @@ libnetlib_a_SOURCES = linpack.f90 eispack.f90
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
-clean:
-		@echo -n Removing objects, mods and $(noinst_LIBRARIES) ... 
-		@rm -f *.o *.mod $(noinst_LIBRARIES)
-		@echo Done
+distclean-local:
+	rm -f *.mod
+
+clean-local:
+	rm -f *.mod
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
