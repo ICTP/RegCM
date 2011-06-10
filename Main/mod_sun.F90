@@ -25,7 +25,6 @@ module mod_sun
   use mod_dynparam
   use mod_main
   use mod_message
-  use mod_date
   use mod_service
 !
 #ifdef CLM

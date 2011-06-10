@@ -27,7 +27,6 @@ module mod_zengocn
   use mod_pbldim
   use mod_slice
   use mod_bats
-  use mod_date
   use mod_bdycod
   use mod_service
 #ifdef CLM

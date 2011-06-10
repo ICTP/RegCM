@@ -22,7 +22,6 @@ module mod_tstep
 ! Calculate smaller timesteps for model startup
 !
   use mod_runparams
-  use mod_date
 !
   private
 !

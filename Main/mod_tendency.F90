@@ -37,7 +37,6 @@ module mod_tendency
   use mod_cu_bm
   use mod_cu_em
   use mod_cu_tiedtke
-  use mod_date
   use mod_message
   use mod_aerosol
   use mod_sun

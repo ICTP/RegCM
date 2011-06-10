@@ -21,7 +21,6 @@ module mod_chem
 
 #ifdef CHEMTEST
   use mod_runparams
-  use mod_date
   use mod_message
   use mod_mppio
   use mod_memutil

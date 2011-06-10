@@ -28,7 +28,6 @@ module mod_cu_em
   use mod_slice
   use mod_rad
   use mod_bats
-  use mod_date
 !
   private
 !

@@ -88,7 +88,6 @@ module mod_colmod3
 !
   use mod_runparams
   use mod_bats
-  use mod_date
   use mod_radiation
   use mod_main
   use mod_rad

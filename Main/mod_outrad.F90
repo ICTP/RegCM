@@ -22,7 +22,6 @@
       use mod_runparams
       use mod_bats
       use mod_rad
-      use mod_date
 #ifdef CLM
       use mod_clm
 #endif

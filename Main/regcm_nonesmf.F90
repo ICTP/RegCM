@@ -26,7 +26,6 @@ program regcm
 !**********************************************************************
 !
   use mod_interface
-  use mod_date
   use mpi
 !
   real(8) :: timestr, timeend

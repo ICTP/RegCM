@@ -28,7 +28,6 @@
       use mod_pmoist
       use mod_slice
       use mod_trachem
-      use mod_date
 !
       private
 !

@@ -25,7 +25,6 @@
       use mod_runparams
       use mod_main
       use mod_bats
-      use mod_date
       use mod_mppio
 !
       private

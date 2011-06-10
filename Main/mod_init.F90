@@ -33,7 +33,6 @@
       use mod_rad
       use mod_trachem
       use mod_message
-      use mod_date
       use mod_radiation
       use mod_sun
       use mod_ncio

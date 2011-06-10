@@ -29,7 +29,6 @@ module mod_cu_kuo
   use mod_rad
   use mod_bats
   use mod_trachem
-  use mod_date
   use mod_advection
 
   private

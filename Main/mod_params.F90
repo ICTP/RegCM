@@ -25,7 +25,6 @@ module mod_params
   use mod_lake , only: allocate_lake, dhlake1
   use mod_main
   use mod_trachem
-  use mod_date
   use mod_message
   use mod_cu_bm
   use mod_cu_em

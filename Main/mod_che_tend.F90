@@ -31,7 +31,6 @@ module mod_che_tend
   use mod_rad
   use mod_pmoist
   use mod_dust
-  use mod_date
   use mod_message
   use mod_che_semdde
   use mod_diffusion

@@ -28,7 +28,6 @@ module mod_interface
 !
   use mod_memutil
   use mod_runparams
-  use mod_date
   use mod_message
   use mod_ncio
   use mod_output

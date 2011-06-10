@@ -29,7 +29,6 @@
         use mod_bdycod
         use mod_rad
         use mod_trachem
-        use mod_date
         use mod_radiation
         use mod_cu_bm
 #ifndef BAND

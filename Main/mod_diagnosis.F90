@@ -26,7 +26,6 @@ module mod_diagnosis
   use mod_runparams
   use mod_main
   use mod_mainchem
-  use mod_date
   use mod_trachem
   use mod_mppio
   use mod_memutil

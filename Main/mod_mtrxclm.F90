@@ -22,7 +22,6 @@
       module mod_mtrxclm
 
       use mod_runparams
-      use mod_date
       use mod_clm
       use mod_bats
       use mod_mppio

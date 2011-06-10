@@ -30,7 +30,6 @@ module mod_bdycod
   use mod_bats
   use mod_message 
   use mod_ncio
-  use mod_date
   use mod_cvaria
   use mod_mppio
 !

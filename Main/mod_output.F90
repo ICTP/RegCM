@@ -21,7 +21,6 @@
 
       use mod_runparams
       use mod_ncio
-      use mod_date
       use mod_lake
       use mod_main
       use mod_mainchem

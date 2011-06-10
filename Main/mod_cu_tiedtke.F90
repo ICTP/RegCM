@@ -30,7 +30,6 @@ module mod_cu_tiedtke
   use mod_constants
   use mod_cu_tables
   use mod_message
-  use mod_date
 !
   private
 !

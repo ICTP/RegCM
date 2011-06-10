@@ -135,9 +135,8 @@ mod_cu_tables.o: mod_cu_tables.f90
 mod_cu_tiedke.o: mod_cu_tiedtke.F90 mod_runparams.o \
                  mod_cu_tables.o
 mod_cvaria.o: mod_cvaria.f90 mod_main.o mod_runparams.o
-mod_diagnosis.o: mod_diagnosis.F90 \
-                 mod_runparams.o mod_main.o mod_mppio.o \
-                 mod_mainchem.o
+mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.o mod_main.o mod_mppio.o \
+                 mod_mainchem.o mod_trachem.o
 mod_diffusion.o: mod_diffusion.F90 mod_runparams.o
 mod_drag.o: mod_drag.F90 mod_bats.o \
             mod_runparams.o

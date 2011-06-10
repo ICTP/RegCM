@@ -26,7 +26,6 @@ module mod_vecbats
   use mod_bats
   use mod_slice
   use mod_pbldim
-  use mod_date
   use mod_bndry
   use mod_drag
   use mod_main

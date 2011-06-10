@@ -26,7 +26,6 @@ module mod_split
   use mod_vmodes
   use mod_bdycod
   use mod_main
-  use mod_date
   use mod_savefile
   use mod_memutil
   use mod_service
