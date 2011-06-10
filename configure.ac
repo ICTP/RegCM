@@ -393,7 +393,7 @@ else
   CPPFLAGS="$AM_CPPFLAGS -I$REGCM_ROOT/Share"
   AC_SUBST(CPPFLAGS)
 fi
-LIBS="$LIBS -L$REGCM_ROOT/Share -lrcmlib"
+LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile Share/Makefile PreProc/Makefile \

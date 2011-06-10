@@ -26,13 +26,14 @@ program ncplot
   character(256) :: prgname , ncfile , tmpctl , tmpcoord
   character(512) :: command , levels
   character(32) :: lvformat , varname
-  character(64) :: vardesc , timeunit
+  character(64) :: vardesc , timeunit , timecal
   character(16) :: varunit
   character(16) :: dimdesc
   integer :: numarg , istatus , ncid
-  integer :: year , month , day , hour , delta , idate
+  type(rcm_time_and_date) :: idate1 , idate2
+  type(rcm_time_interval) :: tdif
+  integer :: delta
   character(3) , dimension(12) :: cmon
-  character(12) :: cdum
 
   character(256) :: charatt
   character(6) :: iproj
@@ -433,43 +434,47 @@ program ncplot
     end if
     istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable'
+      write (6,*) 'Error reading time variable units'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    read (timeunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
-            cdum, month, cdum, day, cdum, hour
+    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable calendar'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
     istatus = nf90_get_var(ncid, ivarid, times)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error reading time variable'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    delta = nint(times(2)-times(1))
-    idate = year*1000000+month*10000+day*100+hour
-    call addhours(idate,idnint(times(1)))
-    call split_idate(idate,year,month,day,hour)
+    idate1 = timeval2date(times(1),timeunit,timecal)
+    idate2 = timeval2date(times(2),timeunit,timecal)
+    tdif = idate2 - idate1
+    delta = idnint(tdif%hours())
     deallocate(times)
     if (delta == 24) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , ' 1dy'
+             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+             cmon(idate1%month), idate1%year , ' 1dy'
     else if (delta == 168) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , ' 7dy'
+             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+             cmon(idate1%month), idate1%year , ' 7dy'
     else if (delta >= 672 .and. delta <= 744) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , ' 1mo'
+             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+             cmon(idate1%month), idate1%year , ' 1mo'
     else if (delta > 8640) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , ' 1yr'
+             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+             cmon(idate1%month), idate1%year , ' 1yr'
     else
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
-             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-             year , delta, 'hr'
+             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+             cmon(idate1%month), idate1%year , delta, 'hr'
     end if
   else if (nt == 1) then
     istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -480,25 +485,27 @@ program ncplot
     end if
     istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable'
+      write (6,*) 'Error reading time variable units'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    read (timeunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
-            cdum, month, cdum, day, cdum, hour
+    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable calendar'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
     istatus = nf90_get_var(ncid, ivarid, time1)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error reading time variable'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    idate = year*1000000+month*10000+day*100+hour
-    call addhours(idate,idnint(time1))
-    call split_idate(idate,year,month,day,hour)
+    idate1 = timeval2date(time1,timeunit,timecal)
     delta = 6
     write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
-           'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month),&
-           year , delta, 'hr'
+           'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
+           cmon(idate1%month), idate1%year , delta, 'hr'
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
   end if
