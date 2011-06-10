@@ -71,7 +71,6 @@ program clm2rcm
   integer :: ipathdiv , ierr
   integer :: i , iz , it , j , k , l , kmax
   integer :: jotyp , idin , idout , ifield , ifld , imap
-  type(rcm_time_and_date) :: idatex
   character(256) :: namelistfile , prgname
   character(256) :: inpfile , terfile , checkfile
   character(256) :: outfil_nc

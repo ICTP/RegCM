@@ -55,7 +55,7 @@ program aerosol
   real(sp) , allocatable , dimension(:,:) :: finmat
   real(sp) , allocatable , dimension(:) :: sigma
   character(256) :: namelistfile, prgname , terfile , aerofile
-  character(64) :: history , csdate , aerdesc
+  character(64) :: history , aerdesc
   integer , dimension(4) :: idims
   integer , dimension(7) :: ivar
   type(rcm_time_and_date) :: refdate , mondate

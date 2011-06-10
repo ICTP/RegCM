@@ -771,7 +771,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
-    integer :: tmp
+    integer :: nye , nmo , nda , nho , nmi , nse , tmp
     z = x
     tmp = y%ival
     select case (x%calendar)

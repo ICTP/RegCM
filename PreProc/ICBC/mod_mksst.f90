@@ -175,7 +175,7 @@ module mod_mksst
       end if
       ks1 = itime(irec)-idate
       ks2 = itime(irec)-itime(irec-1)
-      wt = ks1%hours()/ks2%hours()
+      wt = real(ks1%hours()/ks2%hours())
       do i = 1 , jx
         do j = 1 , iy
           if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &

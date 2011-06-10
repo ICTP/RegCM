@@ -63,7 +63,7 @@ module mod_sst_eh5om
                              a10  , a11 , a12 , a13 , a14
   type(rcm_time_interval) :: tdiff , itbc
   integer :: ieh5orec , nsteps
-  integer :: i , it , j , nday , nhour , nmo , nyear
+  integer :: i , it , j
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   logical :: there
@@ -418,7 +418,7 @@ module mod_sst_eh5om
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
-    write (stdout,*) 'WRITING OUT SST DATA:' , nmo , nyear
+    write (stdout,*) 'WRITING OUT SST DATA:' , idate%tostring()
 
     idate = idate + itbc
 

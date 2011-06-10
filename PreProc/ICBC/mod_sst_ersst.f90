@@ -55,7 +55,7 @@ module mod_sst_ersst
   integer , parameter :: ilon = 240 , jlat = 121
   integer , parameter :: idtbc = 6
 !
-  integer :: i , it , j , nday , nhour , nmo , nyear
+  integer :: i , it , j
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   integer :: ierrec , nsteps
@@ -110,7 +110,7 @@ module mod_sst_ersst
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
-    write(stdout,*) 'WRITING OUT MM4 SST DATA:' , nmo , nyear
+    write(stdout,*) 'WRITING OUT MM4 SST DATA:' , idate%tostring()
 
     idate = idate + itbc
 

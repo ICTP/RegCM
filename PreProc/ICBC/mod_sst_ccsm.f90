@@ -300,7 +300,7 @@ module mod_sst_ccsm
   next = timeval2date(work1(it)*24.0D0,cunit,ccal)
   tdiff1 = next-idate
   tdiff2 = next-prev
-  wt1 = tdiff1%hours( )/tdiff2%hours()
+  wt1 = real(tdiff1%hours( )/tdiff2%hours())
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon

@@ -122,7 +122,7 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
     integer :: istatus
-    integer :: iyy , im , id , ih , i , j
+    integer :: i , j
     integer , dimension(8) :: tvals
     integer , dimension(2) :: izvar
     integer , dimension(2) :: ivvar

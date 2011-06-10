@@ -164,7 +164,7 @@ module mod_sst_grid
     integer , dimension(2) :: illvar
     integer , dimension(2) :: izvar
     integer , dimension(8) :: tvals
-    integer :: iyy , im , id , ih , i , j
+    integer :: i , j
 
     call zeit_ci('newfile')
     refdate = idate1
