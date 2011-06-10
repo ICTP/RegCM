@@ -2805,7 +2805,7 @@
                 else
                   jp1 = j
                 end if
-                dumio(j,i,k) = real(omega(ip1,k,jp1))
+                dumio(j,i,k) = real(omega(ip1,k,jp1)*d_10)
               end do
             end do
           end do
