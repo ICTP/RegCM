@@ -217,9 +217,9 @@ module mod_bdycod
       write (6,'(a,i10)') 'SEARCH BC data for ',ndate1
       mmrec = icbc_search(ndate1)
       if (mmrec < 0) then
-        call open_icbc(imonfirst(ndate1))
+        call open_icbc(monfirst(ndate1))
       end if
-      call read_icbc(ndate1,ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
+      call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
       ps1_io = ps1_io*d_r10
       do j = 1 , jx
         do k = 1 , kz
@@ -552,8 +552,6 @@ module mod_bdycod
       end do
     end if
    
-    call split_idate(mdate, nyear, nmonth, nday, nhour)
-
     if ( ldatez < ndate1 ) then
       do j = 1 , jendx
         do i = 1 , iym1

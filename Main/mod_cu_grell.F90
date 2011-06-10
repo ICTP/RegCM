@@ -336,7 +336,7 @@ module mod_cu_grell
         sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !       precipitation rate for bats (mm/s)
         aprdiv = dble(nbatst)
-        if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+        if ( idatex == idate0 ) aprdiv = d_one
         pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
         iconj = iconj + 1
       end if

@@ -69,7 +69,7 @@ module mod_cu_em
 !
     uconv = dt*d_half
     aprdiv = d_one/dble(nbatst)
-    if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+    if ( idatex == idate0 ) aprdiv = d_one
     iconj = 0
     do i = 2 , iym2
       if ( icup==99 .or. icup==98 ) then

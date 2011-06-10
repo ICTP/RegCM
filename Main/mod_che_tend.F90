@@ -597,11 +597,11 @@ module mod_che_tend
    
 !       calculate the source tendancy
         do i = 2 , iym2
-          chemsrc(i,j,lmonth,itr) = rsfrow(i,ibin)
+          chemsrc(i,j,idatex%month,itr) = rsfrow(i,ibin)
           chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
                                rsfrow(i,ibin)*egrav/(dsigma(kz)*d_1000)
 !         diagnostique source
-          cemtr(i,j,itr) = cemtr(i,j,itr)+chemsrc(i,j,lmonth,itr)*dt*d_half
+          cemtr(i,j,itr) = cemtr(i,j,itr)+chemsrc(i,j,idatex%month,itr)*dt*d_half
         end do
    
 !       calculate the tendancy du to gravitationnal settling and dry deposition
@@ -636,13 +636,13 @@ module mod_che_tend
       do i = 2 , iym2
         if ( chtrname(itr) /= 'DUST' ) then
           chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
-                         chemsrc(i,j,lmonth,itr)*egrav*0.7D0/(dsigma(kz)*d_1000)
+                     chemsrc(i,j,idatex%month,itr)*egrav*0.7D0/(dsigma(kz)*d_1000)
           chiten(i,kz-1,j,itr) = chiten(i,kz-1,j,itr) + &
-                         chemsrc(i,j,lmonth,itr)*egrav*0.15D0/(dsigma(kz-1)*d_1000)
+                     chemsrc(i,j,idatex%month,itr)*egrav*0.15D0/(dsigma(kz-1)*d_1000)
           chiten(i,kzm2,j,itr) = chiten(i,kzm2,j,itr) + &
-                         chemsrc(i,j,lmonth,itr)*egrav*0.15D0/(dsigma(kzm2)*d_1000)
+                     chemsrc(i,j,idatex%month,itr)*egrav*0.15D0/(dsigma(kzm2)*d_1000)
 !         diagnostic for source, cumul
-          cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,lmonth,itr)*dt*d_half
+          cemtr(i,j,itr) = cemtr(i,j,itr) + chemsrc(i,j,idatex%month,itr)*dt*d_half
         end if
       end do
 !   

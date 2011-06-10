@@ -388,15 +388,15 @@ module mod_radiation
 !   cfc110 = 4.69548 * 0.280e-9
 !   cfc120 = 4.14307 * 0.503e-9
 !   co2mmr = 1.51913 * co2vmr
-    if ( lyear >= 1750 .and. lyear <= 2100 ) then
-      co2vmr = cgas(2,lyear)*1.0D-6
+    if ( idatex%year >= 1750 .and. idatex%year <= 2100 ) then
+      co2vmr = cgas(2,idatex%year)*1.0D-6
       co2mmr = co2vmr*44.0D0/28.9644D0
-      ch40 = cgas(3,lyear)*1.0D-9*0.55241D0
-      n2o0 = cgas(4,lyear)*1.0D-9*1.51913D0
-      cfc110 = cgas(5,lyear)*1.0D-12*4.69548D0
-      cfc120 = cgas(6,lyear)*1.0D-12*4.14307D0
+      ch40 = cgas(3,idatex%year)*1.0D-9*0.55241D0
+      n2o0 = cgas(4,idatex%year)*1.0D-9*1.51913D0
+      cfc110 = cgas(5,idatex%year)*1.0D-12*4.69548D0
+      cfc120 = cgas(6,idatex%year)*1.0D-12*4.14307D0
     else
-      write (aline,*) '  Simulation date:  ' , lyear
+      write (aline,*) '  Simulation date:  ' , idatex%tostring()
       call say
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
@@ -1814,9 +1814,8 @@ module mod_radiation
 !   do emissivity and absorptivity calculations
 !   only if abs/ems computation
 !
-    if ( (jyear == jyear0 .and. ktau == 0) .or. &
-         (mod(ktau+1,ifrabe) == 0) ) then
-   
+    if ( idatex == idate0 .or. (mod(ktau+1,ifrabe) == 0) ) then
+ 
 !
 !     Compute ozone path lengths at frequency of a/e calculation.
 !

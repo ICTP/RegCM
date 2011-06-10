@@ -31,7 +31,23 @@ module mod_runparams
   type(rcm_time_and_date) :: ndate0 , ndate1 , ldatez
   type(rcm_time_and_date) :: mdate , mdate0
 
-  type(rcm_time_interval) :: abatm , abemh
+  type(rcm_time_and_date) :: oatmtime
+  type(rcm_time_and_date) :: osrftime
+  type(rcm_time_and_date) :: olaktime
+  type(rcm_time_and_date) :: osubtime
+  type(rcm_time_and_date) :: ochetime
+  type(rcm_time_and_date) :: oradtime
+  type(rcm_time_and_date) :: odbgtime
+  type(rcm_time_and_date) :: osavtime
+
+  type(rcm_time_interval) :: intatm
+  type(rcm_time_interval) :: intsrf
+  type(rcm_time_interval) :: intlak
+  type(rcm_time_interval) :: intsub
+  type(rcm_time_interval) :: intche
+  type(rcm_time_interval) :: intrad
+  type(rcm_time_interval) :: intdbg
+  type(rcm_time_interval) :: intsav
 
   integer :: julday , julian
 
@@ -51,7 +67,7 @@ module mod_runparams
 !
   real(8) :: dt , dt2 , dtbat , dtlake , dtmin
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(8) :: c200 , c203 
+  real(8) :: c200 , c203 , abatm , abemh
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 

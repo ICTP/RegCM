@@ -540,9 +540,9 @@ module mod_diagnosis
 !   print out the information:
 !
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+      if ( debug_level > 3 .and. idatex == odbgtime ) then
         xh = xtime/minpd
-        write(6,*)  '***** day = ' , ldatez + xh , ' *****'
+        write(6,*)  '***** ' , idatex%tostring(), ' *****'
         write(6,99001) tdrym , error1
         write(6,99002) tdadv
         write(6,99003) tqmass , error2
@@ -911,7 +911,7 @@ module mod_diagnosis
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtmin*60.*dx*dx
+            tttmp = tttmp + chemsrc_io(i,j,idatex%month,itr)*dtmin*60.*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp
@@ -940,7 +940,7 @@ module mod_diagnosis
    
 !   print out the information:
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+      if ( debug_level > 3 .and. idatex == odbgtime ) then
    
 !       tracers
    

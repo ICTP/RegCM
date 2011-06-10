@@ -207,7 +207,7 @@ module mod_cu_kuo
 !           kbase/ktop, then flag it, and set kbase/ktop to standard
 !
             if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-              print 99001 , ktau , jyear , i , j , kbase , ktop
+              print 99001 , idatex%tostring() , i , j , kbase , ktop
               if ( kbase < 5 ) kbase = 5
               if ( ktop > kbase-3 ) ktop = kbase - 3
             end if
@@ -275,7 +275,7 @@ module mod_cu_kuo
               sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
               aprdiv = dble(nbatst)
-              if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
+              if ( idatex == idate0 ) aprdiv = d_one
               pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
             end if
 !

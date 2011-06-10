@@ -55,7 +55,7 @@ module mod_ncio
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_lakvar) :: ilakvar
   character(256) :: dname , sdname , aername , icbcname
-  integer , dimension(:) , pointer :: icbc_idate
+  type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   real(4) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
   logical :: lso4p
@@ -958,18 +958,37 @@ contains
 
   end subroutine read_aerosol
 
+  function icbc_search(idate)
+    implicit none
+    integer :: icbc_search
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_interval) :: tdif
+    if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
+      icbc_search = -1
+    else
+      tdif = idate-icbc_idate(1)
+      ibcrec = (idnint(tdif%hours())/ibdyfrq)+1
+      if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
+        write (6,*) 'Record is not found in ICBC file for ',idate%tostring()
+        write (6,*) 'Range is : ', icbc_idate(1)%tostring() , '-', &
+                     icbc_idate(ibcnrec)%tostring()
+        call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+      end if
+    end if 
+  end function icbc_search
+
   subroutine open_icbc(idate)
     use netcdf
-    integer , intent(in) :: idate
-    character(10) :: cdate
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(10) :: ctime
     integer :: idimid , itvar , i , chkdiff
-    real(8) , dimension(:) , pointer :: icbc_xtime
-    character(64) :: icbc_timeunits
+    real(8) , dimension(:) , allocatable :: icbc_xtime
+    character(64) :: icbc_timeunits , icbc_timecal
     integer :: iyy , jxx , kzz
 
     call close_icbc
-    write (cdate, '(i10)') idate
-    icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//cdate//'.nc'
+    write (ctime, '(i10)') idate%toidate()
+    icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
     istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
     call check_ok('Error Opening ICBC file '//trim(icbcname), &
                   'ICBC FILE OPEN ERROR')
@@ -1007,12 +1026,22 @@ contains
     call check_ok('variable time missing', 'ICBC FILE ERROR')
     istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
     call check_ok('variable time units missing','ICBC FILE ERROR')
-    call getmem1d(icbc_idate,1,ibcnrec,'ncio:icbc_idate')
-    call getmem1d(icbc_xtime,1,ibcnrec,'ncio:icbc_xtime')
+    istatus = nf90_get_att(ibcin, itvar, 'calendar', icbc_timecal)
+    call check_ok('variable time calendar missing','ICBC FILE ERROR')
+    allocate(icbc_xtime(ibcnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(6,*) 'Memory allocation error in ICBC for time real values'
+      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+    end if
+    allocate(icbc_idate(ibcnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(6,*) 'Memory allocation error in ICBC for time array'
+      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+    end if
     istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
     call check_ok('variable time read error', 'ICBC FILE ERROR')
     do i = 1 , ibcnrec
-      icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
+      icbc_idate(i) = timeval2date(icbc_xtime(i), icbc_timeunits, icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
       chkdiff = idnint(icbc_xtime(2) - icbc_xtime(1))
@@ -1023,7 +1052,7 @@ contains
         call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
       end if
     end if
-    call relmem1d(icbc_xtime)
+    deallocate(icbc_xtime)
     istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
     call check_ok('variable ps missing', 'ICBC FILE ERROR')
     istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
@@ -1042,10 +1071,9 @@ contains
     end if
   end subroutine open_icbc
 
-  subroutine read_icbc(idate,ps,ts,u,v,t,qv,so4)
+  subroutine read_icbc(ps,ts,u,v,t,qv,so4)
     use netcdf
     implicit none
-    integer , intent(in) :: idate
     real(8) , dimension(iy,kz,jx) , intent(out) :: u
     real(8) , dimension(iy,kz,jx) , intent(out) :: v
     real(8) , dimension(iy,kz,jx) , intent(out) :: t
@@ -1054,17 +1082,11 @@ contains
     real(8) , dimension(iy,jx) , intent(out) :: ps
     real(8) , dimension(iy,jx) , intent(out) :: ts
 
+    type(rcm_time_interval) :: tdif
     integer , dimension(4) :: istart , icount
     real(4) , dimension(jx,iy,kz) :: xread
     integer :: i , j , k
 
-    if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
-      write (6,*) 'Cannot find ', idate, ' in ICBC file'
-      write (6,*) 'Range is : ', icbc_idate(1) , '-', icbc_idate(ibcnrec)
-      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
-    end if 
-
-    ibcrec = (idatediff(idate, icbc_idate(1)) / ibdyfrq) + 1
     istart(3) = ibcrec
     istart(2) = 1
     istart(1) = 1
@@ -1145,7 +1167,7 @@ contains
       istatus = nf90_close(ibcin)
       call check_ok('Error Closing ICBC file '//trim(icbcname), &
                     'ICBC FILE ERROR')
-      call relmem1d(icbc_idate)
+      if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
   end subroutine close_icbc
@@ -1162,24 +1184,13 @@ contains
     end if
   end subroutine close_common
 
-  function icbc_search(idate)
-    implicit none
-    integer :: icbc_search
-    integer , intent(in) :: idate
-    if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
-      icbc_search = -1
-    else
-      icbc_search = (idatediff(idate, icbc_idate(1))/ibdyfrq)+1
-    end if 
-  end function icbc_search
-
   subroutine prepare_common_out(idate,ctype)
     use netcdf
     implicit none
-    integer , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate
     character(3) , intent(in) :: ctype
     character(64) :: title
-    character(32) :: fbname , csdate
+    character(32) :: fbname , ctime
     character(64) :: cmethodmax , cmethodmin
     character(16) :: fterr
     character(256) :: ofname , history
@@ -1244,13 +1255,10 @@ contains
     call close_common(ncid, ctype)
 
     write (fterr, '(a3,a)') ctype, ' FILE ERROR'
-    write (fbname,'(a,a,i10)') trim(ctype), '.', idate
+    write (fbname,'(a,a,i10)') trim(ctype), '.', idate%toidate()
     ofname = trim(dirout)//pthsep//trim(domname)// &
              '_'//trim(fbname)//'.nc'
-    call split_idate(idate0,iyy,im,id,ih)
-    write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-           iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
-
+    ctime = idate%tostring()
     write (aline, *) 'Opening new output file ', trim(ofname)
     call say
 
@@ -1394,13 +1402,13 @@ contains
             'model_seasonal_desert_albedo_effect' , trim(cdum))
     call check_ok('Error adding global desseas', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_initial_start' , globidate1)
+            'model_simulation_initial_start' , globidate1%tostring())
     call check_ok('Error adding global globidate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_start' , idate1)
+            'model_simulation_start' , idate1%tostring())
     call check_ok('Error adding global idate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_expected_end' , idate2)
+            'model_simulation_expected_end' , idate2%tostring())
     call check_ok('Error adding global idate2', fterr)
     if (ifrest) then
       cdum = 'Yes'
@@ -1671,9 +1679,9 @@ contains
     call check_ok('Error adding time standard_name', fterr)
     istatus = nf90_put_att(ncid, itvar, 'long_name', 'time')
     call check_ok('Error adding time long_name', fterr)
-    istatus = nf90_put_att(ncid, itvar, 'calendar', 'standard')
+    istatus = nf90_put_att(ncid, itvar, 'calendar', calstr(idate%calendar))
     call check_ok('Error adding time calendar', fterr)
-    istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//csdate)
+    istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
     call check_ok('Error adding time units', fterr)
     if (ctype == 'SRF') then
       istatus = nf90_put_att(ncid, itvar, 'bounds', 'tbnds')
@@ -1736,10 +1744,9 @@ contains
       istatus = nf90_def_var(ncid, 'tbnds', nf90_double, &
                              (/idims(8),idims(3)/), isrfvar(2))
       call check_ok('Error adding variable tbnds', fterr)
-      istatus = nf90_put_att(ncid, isrfvar(2), 'calendar', 'standard')
+      istatus = nf90_put_att(ncid, isrfvar(2), 'calendar', calstr(idate%calendar))
       call check_ok('Error adding tbnds calendar', fterr)
-      istatus = nf90_put_att(ncid, isrfvar(2), 'units', &
-                           'hours since '//csdate)
+      istatus = nf90_put_att(ncid, isrfvar(2), 'units', 'hours since '//ctime)
       call check_ok('Error adding tbnds units', fterr)
       isrfvar(3) = illtpvar(5)
       call addvara(ncid,ctype,'u10m','eastward_wind', &
@@ -1789,9 +1796,9 @@ contains
           'atmosphere_boundary_layer_thickness', &
           'PBL layer thickness','m',tyx,.false.,isrfvar(22))
       write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', &
-             idint(batfrq) , ' hours)'
+             idint(intsrf%hours()) , ' hours)'
       write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', &
-             idint(batfrq) , ' hours)'
+             idint(intsrf%hours()) , ' hours)'
       call addvara(ncid,ctype,'tgmax','surface_temperature', &
           'Maximum surface temperature','K', tyx,.false.,isrfvar(23))
       istatus = nf90_put_att(ncid, isrfvar(23), 'cell_methods', cmethodmax)
@@ -2172,15 +2179,18 @@ contains
   subroutine writerec_srf(nx, ny, numbat, fbat, mask , idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , ny , numbat , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , ny , numbat
     real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
     integer , dimension(iym1,jxm1) , intent(in) :: mask
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
     real(8) , dimension(2) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    type(rcm_time_and_date) :: prev
     logical :: lskip
+    character(len=36) :: ctime
 
     if (nx /= o_nj .or. ny /= o_ni) then
       write (6,*) 'Error writing record on SRF file'
@@ -2188,15 +2198,17 @@ contains
       write (6,*) 'Got layers       ', nx, 'x', ny
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
-
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     istart(2) = isrfrec
     istart(1) = 1
     icount(2) = 1
     icount(1) = 2
-    xtime(2) = dble(idatediff(idate,idate0))
-    xtime(1) = xtime(2) - batfrq
+    tdif = idate-idate0
+    xtime(2) = tdif%hours()
+    prev = idate-intsrf
+    tdif = prev-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
                            istart(2:2), icount(2:2))
     call check_ok('Error writing itime '//ctime, 'SRF FILE ERROR')
@@ -2288,13 +2300,15 @@ contains
   subroutine writerec_sub(nx, ny, ns, nsub, fsub, idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , ny , ns , nsub , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , ny , ns , nsub
     real(4) , dimension(ns*ns,nx/ns,ny/ns,nsub) , intent(in) :: fsub
     integer :: ivar
     integer :: n , nxb , nyb
     integer , dimension(4) :: istart , icount
     real(8) , dimension(1) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    character(len=36) :: ctime
     logical :: lskip
 
     nxb = o_njg / nsg
@@ -2307,11 +2321,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     istart(1) = isubrec
     icount(1) = 1
-    xtime(1) = dble(idatediff(idate,idate0))
+    tdif = idate-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncsub, isubvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
     ivar = 2
@@ -2403,7 +2418,8 @@ contains
   subroutine writerec_rad(nx,ny,nz,nrad3d,nrad2d,frad3d,frad2d,ps,idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , ny , nz , nrad3d , nrad2d , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , ny , nz , nrad3d , nrad2d
     real(4) , dimension(nx,ny,nz,nrad3d) , intent(in) :: frad3d
     real(4) , dimension(nx,ny,nrad2d) , intent(in) :: frad2d
     real(4) , dimension(nx,ny) , intent(in) :: ps
@@ -2411,7 +2427,8 @@ contains
     integer :: n
     integer , dimension(4) :: istart , icount
     real(8) , dimension(1) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    character(len=36) :: ctime
 
     if (nx /= o_nj .or. ny /= o_ni .or. nz /= o_nz) then
       write (6,*) 'Error writing record on RAD file'
@@ -2420,11 +2437,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     istart(1) = iradrec
     icount(1) = 1
-    xtime(1) = dble(idatediff(idate,idate0))
+    tdif = idate-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncrad, iradvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'RAD FILE ERROR')
 
@@ -2479,7 +2497,8 @@ contains
                           mask, idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , nnx, nny , ny , ns , nz , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , nnx, nny , ny , ns , nz
     real(8) , dimension(ny,nz,nx) , intent(in) :: u
     real(8) , dimension(ny,nz,nx) , intent(in) :: v
     real(8) , dimension(ny,nz,nx) , intent(in) :: omega
@@ -2496,7 +2515,8 @@ contains
     integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
     integer , dimension(4) :: istart , icount
     real(8) , dimension(1) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    character(len=36) :: ctime
 
     if (nx < o_nj .or. ny < o_ni .or. nz > o_nz .or. &
         nnx < o_nj .or. nny < o_ni) then
@@ -2507,7 +2527,7 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     if (.not. lmaskfill) then
       do n = 1 , ns
@@ -2524,7 +2544,8 @@ contains
 
     istart(1) = iatmrec
     icount(1) = 1
-    xtime(1) = dble(idatediff(idate,idate0))
+    tdif = idate-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncatm, iatmvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
 
@@ -2731,7 +2752,8 @@ contains
                           idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , ny , nnx , nny , nz , nt , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , ny , nnx , nny , nz , nt
     real(8) , dimension(iy,kz,jx,nt) , intent(in) :: chia
     real(8) , dimension(nny,nz,nnx) , intent(in) :: aerext
     real(8) , dimension(nny,nz,nnx) , intent(in) :: aerssa
@@ -2751,7 +2773,8 @@ contains
     integer :: n , k
     integer , dimension(5) :: istart , icount
     real(8) , dimension(1) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    character(len=36) :: ctime
 
     if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
       write (6,*) 'Error writing record on CHE file'
@@ -2760,11 +2783,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     istart(1) = icherec
     icount(1) = 1
-    xtime(1) = dble(idatediff(idate,idate0))
+    tdif = idate-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncche, ichevar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
 
@@ -2907,7 +2931,8 @@ contains
   subroutine writerec_lak(nx,ny,numbat,fbat,evl,aveice,hsnow,tlake,idate)
     use netcdf
     implicit none
-    integer , intent(in) :: nx , ny , numbat , idate
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer , intent(in) :: nx , ny , numbat
     real(4) , dimension(nx,ny,numbat) , intent(in) :: fbat
     real(8) , dimension(nnsg,iym1,jx) , intent(in) :: evl
     real(8) , dimension(nnsg,iym1,jx) , intent(in) :: aveice
@@ -2917,7 +2942,8 @@ contains
     integer :: n
     integer , dimension(4) :: istart , icount
     real(8) , dimension(1) :: xtime
-    character(len=10) :: ctime
+    type(rcm_time_interval) :: tdif
+    character(len=36) :: ctime
 
     if (nx /= o_nj .or. ny /= o_ni) then
       write (6,*) 'Error writing record on LAK file'
@@ -2926,11 +2952,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    write (ctime, '(i10)') idate
+    ctime = idate%tostring()
 
     istart(1) = ilakrec
     icount(1) = 1
-    xtime(1) = dble(idatediff(idate,idate0))
+    tdif = idate-idate0
+    xtime(1) = tdif%hours()
     istatus = nf90_put_var(nclak, ilakvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'LAK FILE ERROR')
 
