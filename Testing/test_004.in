@@ -68,9 +68,9 @@
  /
 &restartparam
  ifrest  = .false. ,
- idate0  = 1989050100,
- idate1  = 1989050100,
- idate2  = 1989050600,
+ mdate0  = 1989050100,
+ mdate1  = 1989050100,
+ mdate2  = 1989050600,
  /
  &timeparam
  abrad   =    30.,

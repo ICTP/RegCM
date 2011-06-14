@@ -38,23 +38,29 @@ module mod_date
   integer , public , parameter :: uyrs = 6
   integer , public , parameter :: ucnt = 7
 
+  integer , parameter :: reference_year = 1900
+
   character (len=16) , public , dimension(7) :: cintstr
   character (len=12) , public , dimension(3) :: calstr
 
   integer , dimension(12) :: mlen
 
   type rcm_time_and_date
-    integer :: calendar
-    integer :: year
-    integer :: month
-    integer :: day
-    integer :: hour
-    integer :: minute
-    integer :: second
+    integer :: calendar = gregorian
+    integer :: year = reference_year
+    integer :: month = 1
+    integer :: day = 1
+    integer :: hour = 0
+    integer :: minute = 0
+    integer :: second = 0
+    integer :: days_from_reference = 0
+    integer :: second_of_day = 0
     contains
       procedure , pass :: printdate => print_rcm_time_and_date
       procedure , pass :: toidate => toint
       procedure , pass :: tostring => tochar
+      procedure , pass :: setup => internal_setup
+      procedure , pass :: recalculate => recalculate_from_internal
       procedure , pass(x) :: setcal => set_calint
       procedure , pass(x) :: setccal => set_calstring
       procedure , pass(x) :: broadcast => date_broadcast
@@ -123,15 +129,151 @@ module mod_date
 
   contains
 
-  subroutine adjustp(a,b,i)
+  function lleap(iyear)
     implicit none
-    integer , intent(inout) :: a , b
-    integer , intent(in) :: i
-    if ( a > i-1 ) then
-      a = a - i
-      b = b + 1
+    logical :: lleap
+    integer , intent(in) :: iyear
+    if ( mod(iyear,400) == 0 .or.  &
+        ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
+      lleap = .true.
+    else
+      lleap = .false.
     end if
-  end subroutine adjustp
+  end function lleap
+
+  integer function mdays_leap(iyear, imon) result(mdays)
+    implicit none
+    integer , intent(in) :: iyear , imon
+    if (imon /= 2) then
+      mdays = mlen(imon)
+    else
+      mdays = mlen(2)
+      if (lleap(iyear)) then
+        mdays = mdays + 1
+      end if
+    end if
+  end function mdays_leap
+
+  integer function yeardays(y,c)
+    implicit none
+    integer , intent(in) :: y , c
+    select case (c)
+      case (noleap)
+        yeardays = 365
+      case (y360)
+        yeardays = 360
+      case default
+        yeardays = 365
+        if ( lleap(y) ) yeardays = 366
+    end select
+  end function yeardays
+
+  subroutine idayofyear_to_monthdate(j,y,c,m,d)
+    implicit none
+    integer , intent(in) :: j , y , c
+    integer , intent(out) :: m , d
+    integer :: id , md
+    id = j
+    m = 1
+    d = 1
+    select case (c)
+      case (noleap)
+        do while (id > mlen(m))
+          m = m + 1
+          id = id - mlen(m)
+        end do
+      case (y360)
+        do while (id > 30)
+          m  = m + 1
+          id = id - 30
+        end do
+      case default
+        md = mdays_leap(y,1)
+        do while (id > md)
+          m = m + 1
+          id = id - md
+          md = mdays_leap(y,m)
+        end do
+    end select
+    d = id
+  end subroutine idayofyear_to_monthdate
+
+  integer function idayofyear(x) result(id)
+    implicit none
+    class (rcm_time_and_date) , intent(in) :: x
+    integer :: i
+    id = x%day
+    select case (x%calendar)
+      case (gregorian)
+        do i = 1 , x%month-1
+          id = id + mdays_leap(x%year, i)
+        end do
+      case (noleap)
+        id = id + sum(mlen(1:x%month-1))
+      case (y360)
+        id = id + 30*(x%month-1)
+    end select
+  end function idayofyear
+
+  subroutine days_from_reference(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    integer :: ny , ipm , id , iy
+    ny = x%year - reference_year
+    ipm = isign(1,ny)
+    iy = reference_year
+    id = 0
+    do while (ny > 0)
+      ny = ny - 1
+      id = id + yeardays(iy,x%calendar)
+      iy = iy + ipm
+    end do
+    x%days_from_reference = id + idayofyear(x) - 1
+  end subroutine days_from_reference
+
+  subroutine days_from_reference_to_date(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    integer :: id , ipm , iy , ny
+    id = x%days_from_reference
+    ipm = isign(1,id)
+    x%year = reference_year
+    iy = yeardays(x%year,x%calendar)
+    do while ((id*ipm) >= iy)
+      x%year = x%year + ipm
+      iy = yeardays(x%year,x%calendar)
+      id = id - ipm*iy
+    end do
+    call idayofyear_to_monthdate(id*ipm+1,x%year,x%calendar,x%month,x%day)
+  end subroutine days_from_reference_to_date
+
+  subroutine seconds_from_midnight(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    x%second_of_day = x%hour*3600+x%minute*60+x%second
+  end subroutine seconds_from_midnight
+
+  subroutine seconds_from_midnight_to_time(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    integer :: i1 , i2
+    i1 = x%second_of_day
+    i2 = i1/3600
+    x%hour = i2
+    i1 = i1-i2*3600
+    i2 = i1/60
+    x%minute = i2
+    i1 = i1-i2*60
+    x%second = i1
+  end subroutine seconds_from_midnight_to_time
+
+  subroutine internal_setup(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    call days_from_reference(x)
+    call seconds_from_midnight(x)
+  end subroutine internal_setup
+
+  subroutine recalculate_from_internal(x)
+    class(rcm_time_and_date) , intent(inout) :: x
+    call days_from_reference_to_date(x)
+    call seconds_from_midnight_to_time(x)
+  end subroutine recalculate_from_internal
 
   subroutine adjustpm(a,b,i)
     implicit none
@@ -142,16 +284,6 @@ module mod_date
       b = b + 1
     end if
   end subroutine adjustpm
-
-  subroutine adjustm(a,b,i)
-    implicit none
-    integer , intent(inout) :: a , b
-    integer , intent(in) :: i
-    if ( a < 0 ) then
-      a = i - a
-      b = b - 1
-    end if
-  end subroutine adjustm
 
   subroutine adjustmp(a,b,i)
     implicit none
@@ -196,6 +328,7 @@ module mod_date
     x%minute = 0
     x%second = 0
     x%calendar = gregorian
+    call x%setup( )
   end subroutine initfromintdt
 
   subroutine initfromintit(x, i)
@@ -238,6 +371,7 @@ module mod_date
       write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
       x%calendar = gregorian
     end if
+    call x%setup( )
   end subroutine set_calstring
 
   subroutine set_timeunit(x, u)
@@ -276,6 +410,8 @@ module mod_date
     x%hour = y%hour
     x%minute = y%minute
     x%second = y%second
+    x%days_from_reference = y%days_from_reference
+    x%second_of_day = y%second_of_day
   end subroutine initfromtypedt
 
   subroutine initfromtypeit(x, y)
@@ -296,7 +432,7 @@ module mod_date
   function tochar(x) result(cdat)
     implicit none
     class (rcm_time_and_date) , intent(in) :: x
-    character (len=23) :: cdat
+    character (len=32) :: cdat
     write (cdat,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
        x%year, x%month, x%day, x%hour, x%minute, x%second
   end function tochar
@@ -311,13 +447,9 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
-    isequaldt = ( x%calendar == y%calendar ) .and. &
-                ( x%year == y%year )         .and. &
-                ( x%month == y%month )       .and. &
-                ( x%day == y%day )           .and. &
-                ( x%hour == y%hour )         .and. &
-                ( x%minute == y%minute )     .and. &
-                ( x%second == y%second )
+    isequaldt = ( x%calendar == y%calendar ) .and.                     &
+                ( x%days_from_reference == y%days_from_reference) .and. &
+                ( x%second_of_day == y%second_of_day)
   end function isequaldt
 
   logical function isequalit(x, y)
@@ -415,31 +547,6 @@ module mod_date
     end select
   end function isequalit
 
-  integer function mdays_leap(iyear, imon) result(mdays)
-    implicit none
-    integer , intent(in) :: iyear , imon
-    if (imon /= 2) then
-      mdays = mlen(imon)
-    else
-      mdays = mlen(2)
-      if (lleap(iyear)) then
-        mdays = mdays + 1
-      end if
-    end if
-    contains
-      function lleap(iyear)
-        implicit none
-        logical :: lleap
-        integer , intent(in) :: iyear
-        if ( mod(iyear,400) == 0 .or.  &
-             ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
-          lleap = .true.
-        else
-          lleap = .false.
-        end if
-      end function lleap
-  end function mdays_leap
-
   recursive subroutine add_days_leap(d,m,y,a)
     integer , intent(inout) :: d , m , y
     integer , intent(in) :: a
@@ -508,168 +615,43 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
-    integer :: nye , nmo , nda , nho , nmi , nse , tmp
+    integer :: tmp
     z = x
     tmp = y%ival
-    select case (x%calendar)
-      case (gregorian)
-        select case (y%iunit)
-          case (usec)
-            z%second = z%second+mod(tmp,60)
-            call adjustp(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute+mod(tmp,60)
-            call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_leap(z%day, z%month, z%year, tmp)
-          case (umin)
-            z%minute = z%minute+mod(tmp,60)
-            call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_leap(z%day, z%month, z%year, tmp)
-          case (uhrs)
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_leap(z%day, z%month, z%year, tmp)
-          case (uday)
-            call add_days_leap(z%day, z%month, z%year, tmp)
-          case (umnt)
-            z%month = z%month+mod(tmp,12)
-            call adjustpm(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
-          case (uyrs)
-            z%year = z%year+tmp
-          case (ucnt)
-            z%year = z%year+100*tmp
-        end select
-      case (noleap)
-        select case (y%iunit)
-          case (usec)
-            z%second = z%second+mod(tmp,60)
-            call adjustp(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute+mod(tmp,60)
-            call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_noleap(z%day, z%month, z%year, tmp)
-          case (umin)
-            z%minute = z%minute+mod(tmp,60)
-            call adjustp(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_noleap(z%day, z%month, z%year, tmp)
-          case (uhrs)
-            z%hour = z%hour+mod(tmp,24)
-            call adjustp(z%hour,z%day,24)
-            tmp = tmp/24
-            call add_days_noleap(z%day, z%month, z%year, tmp)
-          case (uday)
-            call add_days_noleap(z%day, z%month, z%year, tmp)
-          case (umnt)
-            z%month = z%month+mod(tmp,12)
-            call adjustpm(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year+tmp
-          case (uyrs)
-            z%year = z%year+tmp
-          case (ucnt)
-            z%year = z%year+100*tmp
-        end select
-      case (y360)
-        select case (y%iunit)
-          case (usec)
-            nye = tmp/31104000
-            tmp = tmp-(nye*31104000)
-            nmo = tmp/2592000
-            tmp = tmp-(nmo*2592000)
-            nda = tmp/86400
-            tmp = tmp-(nda*86400)
-            nho = tmp/3600
-            tmp = tmp-(nho*3600)
-            nmi = tmp/60
-            tmp = tmp-(nmi*60)
-            nse = tmp
-            z%second = z%second+nse
-            call adjustp(z%second,z%minute,60)
-            z%minute = z%minute+nmi
-            call adjustp(z%minute,z%hour,60)
-            z%hour = z%hour+nho
-            call adjustp(z%hour,z%day,24)
-            z%day = z%day+nda
-            call adjustpm(z%day,z%month,30)
-            z%month = z%month+nmo
-            call adjustpm(z%month,z%year,12)
-            z%year = z%year+nye
-          case (umin)
-            nye = tmp/518400
-            tmp = tmp-(nye*518400)
-            nmo = tmp/43200
-            tmp = tmp-(nmo*43200)
-            nda = tmp/1440
-            tmp = tmp-(nda*1440)
-            nho = tmp/60
-            tmp = tmp-(nho*60)
-            nmi = tmp
-            z%minute = z%minute+nmi
-            call adjustp(z%minute,z%hour,60)
-            z%hour = z%hour+nho
-            call adjustp(z%hour,z%day,24)
-            z%day = z%day+nda
-            call adjustpm(z%day,z%month,30)
-            z%month = z%month+nmo
-            call adjustpm(z%month,z%year,12)
-            z%year = z%year+nye
-          case (uhrs)
-            nye = tmp/8640
-            tmp = tmp-(nye*8640)
-            nmo = tmp/720
-            tmp = tmp-(nmo*720)
-            nda = tmp/24
-            tmp = tmp-(nda*24)
-            nho = tmp
-            z%hour = z%hour+nho
-            call adjustp(z%hour,z%day,24)
-            z%day = z%day+nda
-            call adjustpm(z%day,z%month,30)
-            z%month = z%month+nmo
-            call adjustpm(z%month,z%year,12)
-            z%year = z%year+nye
-          case (uday)
-            nye = tmp/360
-            tmp = tmp-(nye*360)
-            nmo = tmp/30
-            tmp = tmp-(nmo*30)
-            nda = tmp
-            z%day = z%day+nda
-            call adjustpm(z%day,z%month,30)
-            z%month = z%month+nmo
-            call adjustpm(z%month,z%year,12)
-            z%year = z%year+nye
-          case (umnt)
-            nye = tmp/12
-            tmp = tmp-(nye*12)
-            nmo = tmp
-            z%month = z%month+nmo
-            call adjustpm(z%month,z%year,12)
-            z%year = z%year+nye
-          case (uyrs)
-            z%year = z%year+tmp
-          case (ucnt)
-            z%year = z%year+100*tmp
-        end select
+    select case (y%iunit)
+      case (usec)
+        z%second_of_day = z%second_of_day+tmp
+        z%days_from_reference = z%days_from_reference + &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (umin)
+        z%second_of_day = z%second_of_day+tmp*60
+        z%days_from_reference = z%days_from_reference + &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (uhrs)
+        z%second_of_day = z%second_of_day+tmp*3600
+        z%days_from_reference = z%days_from_reference + &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (uday)
+        z%days_from_reference = z%days_from_reference + tmp
+        call z%recalculate()
+      case (umnt)
+        z%month = z%month+mod(tmp,12)
+        call adjustpm(z%month,z%year,12)
+        tmp = tmp/12
+        z%year = z%year+tmp
+        call z%setup()
+      case (uyrs)
+        z%year = z%year+tmp
+        call z%setup()
+      case (ucnt)
+        z%year = z%year+100*tmp
+        call z%setup()
     end select
   end function add_interval
 
@@ -753,54 +735,15 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
     type (rcm_time_interval) :: z
-    real(dp) :: jd1 , jd2
-    integer :: it1 , it2
     call check_cal(x,y)
-    z%ival = 0
-    z%iunit = usec
-
     if ((x%year - y%year) < 64) then
-      select case (x%calendar)
-        case (gregorian)
-          jd2 = julianday(x%year, x%month, x%day)
-          jd1 = julianday(y%year, y%month, y%day)
-          z%ival = x%second-y%second +           &
-                   (x%minute-y%minute) * 60 +    &
-                   (x%hour-y%hour) * 3600 +      &
-                   idnint(jd2-jd1)*86400
-        case (noleap)
-          it2 = (x%year-2000)*31536000+sum(mlen(1:x%month-1))*86400+(x%day-1)*86400
-          it1 = (y%year-2000)*31536000+sum(mlen(1:y%month-1))*86400+(y%day-1)*86400
-          z%ival = it2-it1 +                  &
-                   x%second-y%second +        &
-                   (x%minute-y%minute) * 60 + &
-                   (x%hour-y%hour) * 3600
-        case (y360)
-          z%ival = x%second-y%second +           &
-                   (x%minute-y%minute) * 60 +    &
-                   (x%hour-y%hour) * 3600 +      &
-                   (x%day-y%day) * 86400 +       &
-                   (x%month-y%month) * 2592000 + &
-                   (x%year-y%year) * 31104000
-      end select
+      z%iunit = usec
+      z%ival = (x%second_of_day-y%second_of_day) +  &
+               (x%days_from_reference-y%days_from_reference)*86400
     else
       z%iunit = uday
-      select case (x%calendar)
-        case (gregorian)
-          jd2 = julianday(x%year, x%month, x%day)
-          jd1 = julianday(y%year, y%month, y%day)
-          z%ival = idnint(jd2-jd1)
-        case (noleap)
-          it2 = (x%year-2000)*365+sum(mlen(1:x%month-1))+(x%day-1)
-          it1 = (y%year-2000)*365+sum(mlen(1:y%month-1))+(y%day-1)
-          z%ival = it2-it1
-        case (y360)
-          z%ival = (x%day-y%day) +          &
-                   (x%month-y%month) * 30 + &
-                   (x%year-y%year) * 360
-      end select
+      z%ival = x%days_from_reference-y%days_from_reference
     end if
-
   end function diffdate
 
   function sub_interval(x,y) result (z)
@@ -810,165 +753,40 @@ module mod_date
     integer :: nye , nmo , nda , nho , nmi , nse , tmp
     z = x
     tmp = y%ival
-    select case (x%calendar)
-      case (gregorian)
-        select case (y%iunit)
-          case (usec)
-            z%second = z%second-mod(tmp,60)
-            call adjustm(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute-mod(tmp,60)
-            call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_leap(z%day, z%month, z%year, tmp)
-          case (umin)
-            z%minute = z%minute-mod(tmp,60)
-            call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_leap(z%day, z%month, z%year, tmp)
-          case (uhrs)
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_leap(z%day, z%month, z%year, tmp)
-          case (uday)
-            call sub_days_leap(z%day, z%month, z%year, tmp)
-          case (umnt)
-            z%month = z%month-mod(tmp,12)
-            call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
-          case (uyrs)
-            z%year = z%year-tmp
-          case (ucnt)
-            z%year = z%year-100*tmp
-        end select
-      case (noleap)
-        select case (y%iunit)
-          case (usec)
-            z%second = z%second-mod(tmp,60)
-            call adjustm(z%second,z%minute,60)
-            tmp = tmp/60
-            z%minute = z%minute-mod(tmp,60)
-            call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_noleap(z%day, z%month, z%year, tmp)
-          case (umin)
-            z%minute = z%minute-mod(tmp,60)
-            call adjustm(z%minute,z%hour,60)
-            tmp = tmp/60
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_noleap(z%day, z%month, z%year, tmp)
-          case (uhrs)
-            z%hour = z%hour-mod(tmp,24)
-            call adjustm(z%hour,z%day,24)
-            tmp = tmp/24
-            call sub_days_noleap(z%day, z%month, z%year, tmp)
-          case (uday)
-            call sub_days_noleap(z%day, z%month, z%year, tmp)
-          case (umnt)
-            z%month = z%month-mod(tmp,12)
-            call adjustmp(z%month,z%year,12)
-            tmp = tmp/12
-            z%year = z%year-tmp
-          case (uyrs)
-            z%year = z%year-tmp
-          case (ucnt)
-            z%year = z%year-100*tmp
-        end select
-      case (y360)
-        select case (y%iunit)
-          case (usec)
-            nye = tmp/31104000
-            tmp = tmp-(nye*31104000)
-            nmo = tmp/2592000
-            tmp = tmp-(nmo*2592000)
-            nda = tmp/86400
-            tmp = tmp-(nda*86400)
-            nho = tmp/3600
-            tmp = tmp-(nho*3600)
-            nmi = tmp/60
-            tmp = tmp-(nmi*60)
-            nse = tmp
-            z%second = z%second-nye
-            call adjustm(z%second,z%minute,60)
-            z%minute = z%minute-nmi
-            call adjustm(z%minute,z%hour,60)
-            z%hour = z%hour-nho
-            call adjustm(z%hour,z%day,24)
-            z%day = z%day-nda
-            call adjustmp(z%day,z%month,30)
-            z%month = z%month-nmo
-            call adjustmp(z%month,z%year,12)
-            z%year = z%year-nye
-          case (umin)
-            nye = tmp/518400
-            tmp = tmp-(nye*518400)
-            nmo = tmp/43200
-            tmp = tmp-(nmo*43200)
-            nda = tmp/1440
-            tmp = tmp-(nda*1440)
-            nho = tmp/60
-            tmp = tmp-(nho*60)
-            nmi = tmp
-            z%minute = z%minute-nmi
-            call adjustm(z%minute,z%hour,60)
-            z%hour = z%hour-nho
-            call adjustm(z%hour,z%day,24)
-            z%day = z%day-nda
-            call adjustmp(z%day,z%month,30)
-            z%month = z%month-nmo
-            call adjustmp(z%month,z%year,12)
-            z%year = z%year-nye
-          case (uhrs)
-            nye = tmp/8640
-            tmp = tmp-(nye*8640)
-            nmo = tmp/720
-            tmp = tmp-(nmo*720)
-            nda = tmp/24
-            tmp = tmp-(nda*24)
-            nho = tmp
-            z%hour = z%hour-nho
-            call adjustm(z%hour,z%day,24)
-            z%day = z%day-nda
-            call adjustmp(z%day,z%month,30)
-            z%month = z%month-nmo
-            call adjustmp(z%month,z%year,12)
-            z%year = z%year-nye
-          case (uday)
-            nye = tmp/360
-            tmp = tmp-(nye*360)
-            nmo = tmp/30
-            tmp = tmp-(nmo*30)
-            nda = tmp
-            z%day = z%day-nda
-            call adjustmp(z%day,z%month,30)
-            z%month = z%month-nmo
-            call adjustmp(z%month,z%year,12)
-            z%year = z%year-nye
-          case (umnt)
-            nye = tmp/12
-            tmp = tmp-(nye*12)
-            nmo = tmp
-            z%month = z%month-nmo
-            call adjustmp(z%month,z%year,12)
-            z%year = z%year-nye
-          case (uyrs)
-            z%year = z%year-tmp
-          case (ucnt)
-            z%year = z%year-100*tmp
-        end select
+    select case (y%iunit)
+      case (usec)
+        z%second_of_day = z%second_of_day-tmp
+        z%days_from_reference = z%days_from_reference - &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (umin)
+        z%second_of_day = z%second_of_day-tmp*60
+        z%days_from_reference = z%days_from_reference - &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (uhrs)
+        z%second_of_day = z%second_of_day-tmp*3600
+        z%days_from_reference = z%days_from_reference - &
+                               (z%second_of_day/86400)
+        z%second_of_day = mod(z%second_of_day,86400)
+        call z%recalculate()
+      case (uday)
+        z%days_from_reference = z%days_from_reference - tmp
+        call z%recalculate()
+      case (umnt)
+        z%month = z%month+mod(tmp,12)
+        call adjustmp(z%month,z%year,12)
+        tmp = tmp/12
+        z%year = z%year+tmp
+        call z%setup()
+      case (uyrs)
+        z%year = z%year+tmp
+        call z%setup()
+      case (ucnt)
+        z%year = z%year+100*tmp
+        call z%setup()
     end select
   end function sub_interval
 
@@ -1087,14 +905,16 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: mf
-    mf = rcm_time_and_date(x%calendar,x%year,x%month,1,0,0,0)
+    mf = rcm_time_and_date(x%calendar,x%year,x%month)
+    call mf%setup( )
   end function monfirst
 
-  function yrfirst(x) result(mf)
+  function yrfirst(x) result(yf)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
-    type (rcm_time_and_date) :: mf
-    mf = rcm_time_and_date(x%calendar,x%year,1,1,0,0,0)
+    type (rcm_time_and_date) :: yf
+    yf = rcm_time_and_date(x%calendar,x%year)
+    call yf%setup( )
   end function yrfirst
 
   function monlast(x) result(ml)
@@ -1104,12 +924,13 @@ module mod_date
     select case (x%calendar)
       case (gregorian)
         ml = rcm_time_and_date(x%calendar,x%year,x%month, &
-                               mdays_leap(x%year, x%month), 0, 0 ,0)
+                               mdays_leap(x%year, x%month))
       case (noleap)
-        ml = rcm_time_and_date(x%calendar,x%year,x%month,mlen(x%month), 0, 0 ,0)
+        ml = rcm_time_and_date(x%calendar,x%year,x%month,mlen(x%month))
       case (y360)
-        ml = rcm_time_and_date(x%calendar,x%year,x%month,30, 0, 0 ,0)
+        ml = rcm_time_and_date(x%calendar,x%year,x%month,30)
     end select
+    call ml%setup( )
   end function monlast
 
   function monmiddle(x) result(mm)
@@ -1123,14 +944,15 @@ module mod_date
         imom = mlen(x%month)/2
         rmom = dble(mdays_leap(x%year, x%month)) * 0.5D0
         mm = rcm_time_and_date(x%calendar,x%year,x%month, imom, &
-                               idint((rmom-dble(imom))*24.0D0),0,0)
+                               idint((rmom-dble(imom))*24.0D0))
       case (noleap)
         imom = mlen(x%month)/2
         mm = rcm_time_and_date(x%calendar,x%year,x%month,imom, &
-                               12*(mlen(x%month)-imom*2),0,0)
+                               12*(mlen(x%month)-imom*2))
       case (y360)
-        mm = rcm_time_and_date(x%calendar,x%year,x%month,15,0,0,0)
+        mm = rcm_time_and_date(x%calendar,x%year,x%month,15)
     end select
+    call mm%setup( )
   end function monmiddle
 
   function nextmon(x) result(nm)
@@ -1169,23 +991,6 @@ module mod_date
     pm = x - z
   end function prevwk
 
-  integer function idayofyear(x) result(id)
-    implicit none
-    type (rcm_time_and_date) , intent(in) :: x
-    integer :: i
-    id = x%day
-    select case (x%calendar)
-      case (gregorian)
-        do i = 1 , x%month-1
-          id = id + mdays_leap(x%year, i)
-        end do
-      case (noleap)
-        id = id + sum(mlen(1:x%month-1))
-      case (y360)
-        id = id + 30*(x%month-1)
-    end select
-  end function
-
   function timeval2date(xval,cunit,ccal) result(dd)
     implicit none
     real(dp) , intent(in) :: xval
@@ -1219,6 +1024,7 @@ module mod_date
         else
           dref = rcm_time_and_date(gregorian,year,month,day,hour,minute,second)
         end if
+        call dref%setup( )
         z = idnint(xval)
         dd = dref + z
       end if

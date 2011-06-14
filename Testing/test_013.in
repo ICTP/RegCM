@@ -72,9 +72,9 @@
  /
  &restartparam
  ifrest  = .false. ,
- idate0  = 2004120100,
- idate1  = 2004120100,
- idate2  = 2006010100,
+ mdate0  = 2004120100,
+ mdate1  = 2004120100,
+ mdate2  = 2006010100,
  nslice  =        120,
  /
  &timeparam

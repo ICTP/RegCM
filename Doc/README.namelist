@@ -139,9 +139,9 @@
 !
  &restartparam
  ifrest  = .false. ,   ! If a restart
- idate0  = 1990060100, ! Global start (is globidate1)
- idate1  = 1990060100, ! Start date of this run
- idate2  = 1990060200, ! End date for this run
+ mdate0  = 1990060100, ! Global start (is globidate1)
+ mdate1  = 1990060100, ! Start date of this run
+ mdate2  = 1990060200, ! End date for this run
  /
 !
 ! Model timing parameters

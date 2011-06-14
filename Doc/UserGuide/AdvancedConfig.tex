@@ -455,9 +455,9 @@ fortune (unless you are late for publication).
 \begin{Verbatim}
  &restartparam
  ifrest  = .false. ,   ! If a restart
- idate0  = 1990060100, ! Global start (is gdate1, most probably)
- idate1  = 1990060100, ! Start date of this run
- idate2  = 1990060200, ! End date for this run
+ mdate0  = 1990060100, ! Global start (is gdate1, most probably)
+ mdate1  = 1990060100, ! Start date of this run
+ mdate2  = 1990060200, ! End date for this run
  /
 \end{Verbatim}
 }
@@ -465,12 +465,12 @@ fortune (unless you are late for publication).
 Things you need to know here:
 
 \begin{enumerate}
-\item After the simulation starts, on restart NEVER change the \verb=idate0=
+\item After the simulation starts, on restart NEVER change the \verb=mdate0=
 value. The correct scheme for restart is:
 \begin{itemize}
 \item Set \verb=ifrest= to \verb=.true.=
-\item Set \verb=idate1= to the value in \verb=idate2=
-\item Define the new value for \verb=idate2=
+\item Set \verb=mdate1= to the value in \verb=mdate2=
+\item Define the new value for \verb=mdate2=
 \end{itemize}
 \item Consider that current RegCM convention is to place midnight of first
 day of month as the last timestep in previous month, except on first model

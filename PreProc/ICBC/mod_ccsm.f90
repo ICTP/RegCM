@@ -488,6 +488,8 @@ module mod_ccsm
     tdif = idate - itimes(1)
     it = idnint(tdif%hours())/6 + 1
 
+    print *, it , timlen, idate%tostring() , itimes(1)%toidate()
+
     do kkrec = 1 , 6
 
       inet = inet6(kkrec)
