@@ -83,9 +83,6 @@ module mod_sst_ccsm
     glat(j) = -89.5 + 1.*float(j-1)
   end do
  
-  call globidate1%setcal(noleap)
-  call globidate2%setcal(noleap)
-
   idateo = monfirst(globidate1)
   idatef = monfirst(globidate2)
   if (idatef < globidate2) then

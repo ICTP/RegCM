@@ -69,8 +69,8 @@
 #endif
       implicit none
 !
-      integer :: i , ibin , im1h , ip1h , ist ,itr , j , k , n , &
-                 icbc_date
+      integer :: i , ibin , im1h , ip1h , ist ,itr , j , k , n
+      type (rcm_time_and_date) :: icbc_date
       real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
       integer :: jp1 , jm1
       real(8) , dimension(iy,jxp) :: psdot
@@ -125,14 +125,12 @@
       w10x_o = -1.E30
       psmn_o =  1.E30
 
-      ndate0 = idate1
-      ndate1 = ndate0
-      if (ndate0 == globidate1 .or.      &
-         (((ndate0/10000)*100+1)*100 ==  &
-         ((globidate1/10000)*100+1)*100 ) ) then
-        icbc_date = globidate1
+      bdydate1 = idate1
+      bdydate2 = idate1
+      if ( bdydate1 == globidate1 ) then
+        icbc_date = bdydate1
       else
-        icbc_date = ((ndate0/10000)*100+1)*100
+        icbc_date = monfirst(bdydate1)
       end if
       if ( myid == 0 ) then
         call open_icbc(icbc_date)
@@ -178,9 +176,8 @@
         if ( .not. allocated(init_tgb) ) allocate(init_tgb(iy,jx))
 #endif
         if ( myid == 0 ) then
-          call read_icbc(ndate0,ps0_io,ts0_io,ub0_io,vb0_io, &
-                         tb0_io,qb0_io,so0_io)
-          write (6,*) 'READY IC DATA for ', ndate0
+          call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io,so0_io)
+          write (6,*) 'READY IC DATA for ', bdydate1%tostring()
           ps0_io = ps0_io*d_r10
           do j = 1 , jx
             do k = 1 , kz
@@ -437,14 +434,14 @@
 !-----when ifrest=.true., read in the data saved from previous run
 !       for large domain
 !
-        call read_savefile_part1(ndate0)
+        call read_savefile_part1(bdydate1)
 !
         if ( myid == 0 ) then
           print * , 'ozone profiles restart'
           do k = 1 , kzp1
             write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
           end do
-          print 99001 , xtime , ktau , jyear
+          print 99001 , xtime , ktau , idatex%tostring()
         end if
 !
         if ( lakemod == 1 ) then
@@ -1076,18 +1073,10 @@
                          lndcat2d,   iy*jxp,mpi_real8, &
                          0,mpi_comm_world,ierr)
 #endif
-        call mpi_bcast(mdate0,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(jyear0,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(jyear,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(ldatez,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(lyear,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(lmonth,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(lday,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(lhour,1,mpi_integer,0,mpi_comm_world,ierr)
+        call idatex%broadcast(0,mpi_comm_world,ierr)
         call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
-
 #ifndef BAND
         if (debug_level > 2) call mpidiag
 #endif
@@ -1141,7 +1130,7 @@
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
  
-      if ( jyear == jyear0 .and. ktau == 0 ) call initb
+      if ( ktau == 0 ) call initb
 
       if ( iemiss == 1 .and. .not. ifrest ) then
         do j = 1 , jendx
@@ -1230,7 +1219,7 @@
       call say
 
 99001 format (' ***** restart file for large domain at time = ',f8.0,   &
-              ' minutes, ktau = ',i7,' in year = ',i4,' read in')
+              ' minutes, ktau = ',i7,' date = ',a,' read in')
 !
       end subroutine init
 !
@@ -1242,7 +1231,7 @@
 !
       integer :: i , j , k
 !
-      if ( jyear == jyear0 .and. ktau == 0 ) then
+      if ( ktau == 0 ) then
         do k = 1 , kz
           do j = 1 , jendl
             do i = 1 , iym1

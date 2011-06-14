@@ -56,8 +56,6 @@ module mod_interface
   public :: RCM_run
   public :: RCM_finalize
 
-  integer :: ibcdate
-
   contains
  
   subroutine RCM_initialize(mpiCommunicator)
@@ -214,8 +212,6 @@ module mod_interface
 !
     call param
 !
-    ibcdate = idatex
-!
 !**********************************************************************
 !
 !     Read initial data
@@ -246,7 +242,6 @@ module mod_interface
       call bdyin_chem
     end if
 #endif
-    call addhours(ibcdate,ibdyfrq)
 !
     call spinit
 ! 
@@ -325,23 +320,21 @@ module mod_interface
 !
 !       Read in boundary conditions if needed
 !
-      if ( idatex == ibcdate .and. idatex < idate2 ) then
+      if ( idatex == bdydate1 .and. idatex < idate2 ) then
         call bdyin
 #ifdef CHEMTEST
         if ( ichem == 1 ) call bdyin_chem
 #endif
-        call addhours(ibcdate,ibdyfrq)
       end if
 !
 !       Refined start
 !
       if ( .not.ifrest ) then
         if ( rfstrt ) then
-          if ( (jyear == jyear0 .and. ktau == 0) .or.                 &
-             & dtinc /= deltmx ) then
+          if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc,deltmx)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                                 & dtmin , ktau , jyear
+                                 & dtmin , ktau , idatex%tostring()
             call say
           end if
         end if
@@ -408,7 +401,7 @@ module mod_interface
 !
     call release_mod_ncio
 !
-    write (aline, 99002) xtime , ktau , jyear
+    write (aline, 99002) xtime , ktau , idatex%year
     call say
 !
 !**********************************************************************
@@ -417,10 +410,10 @@ module mod_interface
 !
 !**********************************************************************
 !
-    nhours = idatediff(idate2,idate1)
+    nhours = nnnend - nstart
     idate1 = idate2
-    call addhours(idate2,nhours)
-    write (aline, *) ' *** new max DATE will be ' , idate2
+    idate2 = idate1 + rcm_time_interval(nhours,uhrs)
+    write (aline, *) ' *** new max DATE will be ' , idate2%tostring()
     call say
 !
 !**********************************************************************
@@ -480,9 +473,9 @@ module mod_interface
       else
         write (99,99001) 'ifrest  = .false.'
       end if
-      write (99,99002) 'idate0  = ' , idate0
-      write (99,99002) 'idate1  = ' , idate1
-      write (99,99002) 'idate2  = ' , globidate2
+      write (99,99002) 'idate0  = ' , idate0%toidate()
+      write (99,99002) 'idate1  = ' , idate1%toidate()
+      write (99,99002) 'idate2  = ' , globidate2%toidate()
       write (99,99002) '/'
 ! 
 !**********************************************************************

@@ -73,21 +73,21 @@
  idate2  = 1994010600,
  /
  &timeparam
- radfrq  =    30.,
-   abemh   =    18.,
+ abrad   =    30.,
+ abemh   =    18.,
  abatm   =   600.,
  dt      =   120.,
  /
  &outparam
  ifsave  = .true. ,
   savfrq  =    7200.,
- iftape  = .true. ,
- tapfrq  =     6.,
+ ifatm  = .true. ,
+ atmfrq  =     6.,
  ifrad   = .true. ,
-   radisp  =     6.,
- ifbat   = .true. ,
+   radfrq  =     6.,
+ ifsrf   = .true. ,
  ifsub   = .true. ,
-   batfrq  =     3.,
+   srffrq  =     3.,
  ifchem  = .false.,
    chemfrq =     6.,
  dirout = '/set/this/to/where/your/output/files/will/be/written',

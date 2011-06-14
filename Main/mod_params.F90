@@ -88,7 +88,7 @@ module mod_params
   real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
              edtmino , edtmaxx , edtminx
   real(8) , dimension(nsplit) :: dtsplit
-  integer :: i , j , k , kbase , ktop , ns
+  integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   character(5) , dimension(maxntr) :: inpchtrname
   real(8) , dimension(maxntr) :: inpchtrsol
   real(8) , dimension(maxntr,2) :: inpchtrdpv
@@ -96,6 +96,7 @@ module mod_params
   integer :: n , len_path
   logical :: lband
   integer :: ierr
+  type(rcm_time_interval) :: bdif
 #ifndef CLM
   real(8) :: clmfrq
 #endif
@@ -108,12 +109,12 @@ module mod_params
 !----------------------------------------------------------------------
 !-----namelist:
 !
-  namelist /restartparam/ ifrest , idate0 , idate1 , idate2
+  namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
  
-  namelist /timeparam/ radfrq , abatm , abemh , dt
+  namelist /timeparam/ abrad , abatm , abemh , dt
  
-  namelist /outparam/ ifsave , savfrq , iftape , tapfrq , ifrad ,   &
-  & radisp , ifbat , ifsub , iflak , batfrq , lakfrq , ifchem ,     &
+  namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,   &
+  & radfrq , ifsrf , ifsub , iflak , srffrq , lakfrq , ifchem ,     &
   & chemfrq , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
@@ -174,7 +175,7 @@ module mod_params
 !     = 0 ; frictionless
 !     = 1 ; holtslag pbl (holtslag, 1990)
 !
-!     radfrq : specify the frequency in
+!     abrad : specify the frequency in
 !     minutes, the solar radiation will be computed in
 !     subroutine "sfcrd". a typical value would be 30 minutes.
 !
@@ -220,18 +221,18 @@ module mod_params
 !     = 4 ; sponge (perkey & kreitzberg, mwr 1976).
 !     = 5 ; relaxation, exponential technique.
 !
-!     iftape : whether you want output in a saved tape (unit 20) for
+!     ifatm : whether you want output in a saved tape (unit 20) for
 !     analyses in dataflow.
 !     = .true. ; yes
 !     = .false. ; no
 !
-!     tapfrq : if iftape=true., specify the output interval in hours.
+!     atmfrq : if ifatm=true., specify the output interval in hours.
 !
 !     ifrad  : whether you want radiation output saved
 !     = .true. ; yes
 !     = .false. ; no
 !
-!     radisp : if ifrad=1, specify the output interval in hours.
+!     radfrq : if ifrad=1, specify the output interval in hours.
 !
 !     imask : Type of land surface parameterization
 !     1= using DOMAIN.INFO for landmask (same as BATS);
@@ -252,7 +253,7 @@ module mod_params
  
 !------namelist timeparam:
 !
-  radfrq = 30.0D0 ! time interval in min solar rad caluclated
+  abrad = 30.0D0 ! time interval in min solar rad caluclated
   abatm = 600.0D0 ! time interval at which bats is called (secs)
   abemh = 12.0D0  ! time interval absorption-emission calculated (hours)
   dt = 200.0D0    ! time step in seconds
@@ -262,14 +263,14 @@ module mod_params
   rfstrt = .false.      ! *
   ifsave = .false.
   savfrq = 6.0D0
-  iftape = .true.
-  tapfrq = 6.0D0
+  ifatm = .true.
+  atmfrq = 6.0D0
   ifrad = .true.
-  radisp = 6.0D0     ! time interval for disposing rad output (hrs)
-  ifbat = .true.
+  radfrq = 6.0D0     ! time interval for disposing rad output (hrs)
+  ifsrf = .true.
   ifsub = .true.
   iflak = .true.
-  batfrq = 1.0D0    ! time interval for disposing bats output (hrs)
+  srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
   lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
   dirout = './output' 
 !chem2
@@ -425,13 +426,21 @@ module mod_params
 !-----read in namelist variables:
     read (ipunit, restartparam)
     print * , 'param: RESTARTPARAM namelist READ IN'
+
+    idate0 = mdate0
+    idate1 = mdate1
+    idate2 = mdate2
+    call idate0%setcal(ical)
+    call idate1%setcal(ical)
+    call idate2%setcal(ical)
+
     read (ipunit, timeparam)
     print * , 'param: TIMEPARAM namelist READ IN'
     read (ipunit, outparam)
     print * , 'param: OUTPARAM namelist READ IN'
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
-    if ( lakfrq < d_zero ) lakfrq = batfrq
+    if ( lakfrq < d_zero ) lakfrq = srffrq
     read (ipunit, physicsparam)
     print * , 'param: PHYSICSPARAM namelist READ IN'
     if ( ipptls == 1 ) then
@@ -478,24 +487,24 @@ module mod_params
 !  communicate to all processors 
 !
   call mpi_bcast(ifrest,1,mpi_logical,0,mpi_comm_world,ierr)
-  call mpi_bcast(idate0,1,mpi_integer,0,mpi_comm_world,ierr)
-  call mpi_bcast(idate1,1,mpi_integer,0,mpi_comm_world,ierr)
-  call mpi_bcast(idate2,1,mpi_integer,0,mpi_comm_world,ierr)
+  call idate0%broadcast(0,mpi_comm_world,ierr)
+  call idate1%broadcast(0,mpi_comm_world,ierr)
+  call idate2%broadcast(0,mpi_comm_world,ierr)
  
-  call mpi_bcast(radfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(abrad,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(abatm,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(dt,1,mpi_real8,0,mpi_comm_world,ierr)
  
   call mpi_bcast(ifsave,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(savfrq,1,mpi_real8,0,mpi_comm_world,ierr)
-  call mpi_bcast(iftape,1,mpi_logical,0,mpi_comm_world,ierr)
-  call mpi_bcast(tapfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(ifatm,1,mpi_logical,0,mpi_comm_world,ierr)
+  call mpi_bcast(atmfrq,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(ifrad,1,mpi_logical,0,mpi_comm_world,ierr)
-  call mpi_bcast(radisp,1,mpi_real8,0,mpi_comm_world,ierr)
-  call mpi_bcast(ifbat,1,mpi_logical,0,mpi_comm_world,ierr)
+  call mpi_bcast(radfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(ifsrf,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(ifsub,1,mpi_logical,0,mpi_comm_world,ierr)
-  call mpi_bcast(batfrq,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(srffrq,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(lakfrq,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(ifchem,1,mpi_logical,0,mpi_comm_world,ierr)
   call mpi_bcast(chemfrq,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -658,8 +667,8 @@ module mod_params
   if ( myid == 0 ) then
     write (aline,*) 'param: starting first checks' 
     call say
-    if ( mod(idnint(radfrq*60.0D0),idnint(dt)) /= 0 ) then
-      write (aline,*) 'RADFRQ=' , radfrq , 'DT=' , dt
+    if ( mod(idnint(abrad*60.0D0),idnint(dt)) /= 0 ) then
+      write (aline,*) 'ABRAD=' , abrad , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
@@ -670,19 +679,19 @@ module mod_params
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
-    if ( mod(idnint(batfrq*secph),idnint(abatm)) /= 0 ) then
-      write (aline,*) 'BATFRQ=' , batfrq , 'ABATM=' , abatm
+    if ( mod(idnint(srffrq*secph),idnint(abatm)) /= 0 ) then
+      write (aline,*) 'BATFRQ=' , srffrq , 'ABATM=' , abatm
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( lakemod == 1 ) then
-      if ( lakfrq < batfrq .or. &
-           mod(idnint(lakfrq),idnint(batfrq)) /= 0 ) then
-        write (aline,*) 'BATFRQ=' , batfrq , ' LAKFRQ=' , lakfrq
+      if ( lakfrq < srffrq .or. &
+           mod(idnint(lakfrq),idnint(srffrq)) /= 0 ) then
+        write (aline,*) 'BATFRQ=' , srffrq , ' LAKFRQ=' , lakfrq
         call say
         write (aline,*) 'Lake frequency needs to be an integer ',&
-                        ' multiple of batfrq.'
+                        ' multiple of srffrq.'
         call say
         if (myid == 0) then
           call fatal(__FILE__,__LINE__, &
@@ -696,8 +705,8 @@ module mod_params
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
-    if ( mod(idnint(abemh*60.0D0),idnint(radfrq)) /= 0 ) then
-      write (aline,*) 'ABEMH=' , abemh , 'RADFRQ=' , radfrq
+    if ( mod(idnint(abemh*60.0D0),idnint(abrad)) /= 0 ) then
+      write (aline,*) 'ABEMH=' , abemh , 'ABRAD=' , abrad
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                 &' TIMESTEPS SPECIFIED')
@@ -711,9 +720,9 @@ module mod_params
 !
 !-----reset the options/calculate variables using namelist info:
 !
-  ndate0 = idate1
+  bdydate1 = idate1
   nsavfrq = idnint(secph*savfrq)
-  ntapfrq = idnint(secph*tapfrq)
+  natmfrq = idnint(secph*atmfrq)
   ndbgfrq = idnint(secph*dbgfrq)
   ktau = 0
   xtime = d_zero
@@ -724,22 +733,24 @@ module mod_params
   end do
   write (aline, *) 'param: dtau = ' , dtau
   call say
-  nradisp = idnint(radisp*secph)
-                            !convert radisp to time steps
+  nradfrq = idnint(abrad*secph)
+                            !convert abrad to time steps
   ifrabe = idnint(secph*abemh/dt)
                                !abemh is time interval abs./emis. calc.
-  kbats = idnint(secph*batfrq)
-  klak = idnint(lakfrq/batfrq)
+  nsrffrq = idnint(secph*srffrq)
+  klak = idnint(lakfrq/srffrq)
   nbatst = idnint(abatm/dt)
   dt2 = d_two*dt
-!chem2
-  kchem = idnint(secph*chemfrq)  ! convert chemfrq to time steps
-!chem2_
+  nchefreq = idnint(secph*chemfrq)  ! convert chemfrq to time steps
+!
+  intmdl = rcm_time_interval(idnint(dt),usec)
+  intbdy = rcm_time_interval(ibdyfrq,uhrs)
+!
 !.....calculate the time step in minutes.
   dtmin = dt/60.0D0
   deltmx = dt
 !.....compute the time steps for radiation computation.
-  ntrad = idnint(radfrq/dtmin)
+  ntrad = idnint(abrad/dtmin)
 !sb   lake model mods
 !.....compute the time steps for lake model call.
   dtlake = abatm
@@ -747,8 +758,8 @@ module mod_params
 !
   call set_scenario(scenario)
 !
-  nstrt0 = 0
-  nstart = idatediff(idate1,idate0)/ibdyfrq
+  bdif = idate1 - idate0
+  nstart = idnint(bdif%hours())/ibdyfrq
   if (myid == 0) then
     if (ifrest .and. nstart == 0) then
       write (6,*) 'Error in parameter set.'
@@ -758,30 +769,24 @@ module mod_params
     end if
   end if
 !
-  nnnend = idatediff(idate2,idate0)/ibdyfrq
+  bdif = idate2 - idate0
+  nnnend = idnint(bdif%hours())/ibdyfrq
   xdfbdy = dble(ibdyfrq)/houpd
 ! 
   write (aline,*) 'param: initial date of this '// &
-                  'simulation: IDATE1',idate1
+                  'simulation: IDATE1',idate1%tostring()
   call say
   write (aline,*) 'param:   final date of this '// &
-                  'simulation: IDATE2' , idate2
+                  'simulation: IDATE2' , idate2%tostring()
   call say
   write (aline,'(a,i10,a)')  &
-       'param: total simulation lenght ' ,  &
-        idatediff(idate2,idate1) , ' hours'
+       'param: total simulation lenght ' , nnnend-nstart , ' hours'
   call say
   write (aline,'(a,f9.4)')  &
        'param: dtmin (timestep in minutes)' , dtmin
   call say
-  ldatez = idate1
   nnnnnn = nstart
-  lyear = ldatez/1000000
-  lmonth = (ldatez-lyear*1000000)/10000
-  lday = (ldatez-lyear*1000000-lmonth*10000)/100
-  lhour = mod(ldatez,100)
-  idatex = ldatez
-  jyear = lyear
+  idatex = idate1
 !
 !-----specify the julian date and gmt of the initial data.
 !     dectim : is the time in minutes after which the solar declination
@@ -797,17 +802,14 @@ module mod_params
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
  
 !rst-fix
-  mdate0 = idate0
   write (aline, *) 'param: initial date of the global '// &
-                   'simulation: mdate  = ' , mdate0
+                   'simulation: idate  = ' , idate0%tostring()
   call say
-  call split_idate(mdate0, myear, mmonth, mday, mhour)
-  gmt = dble(mhour)
-  jyear0 = myear
+  gmt = dble(idate0%hour)
 !
 !.....find the julian day of the year and calulate dectim
 !
-  julday = idayofyear(mdate0)
+  julday = idayofyear(idate0)
   dectim = (minpd-gmt*minph)
  
 !-----specify the constants used in the model.
@@ -840,17 +842,17 @@ module mod_params
   write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , &
                   savfrq
   call say 
-  write (aline,*) 'if true (T) Output ATM files:  iftape = ' , &
-                   iftape 
+  write (aline,*) 'if true (T) Output ATM files:  ifatm = ' , &
+                   ifatm 
   call say 
-  write (aline,*) 'Frequency in hours to write  ATM: tapfrq = ' , &
-                  tapfrq 
+  write (aline,*) 'Frequency in hours to write  ATM: atmfrq = ' , &
+                  atmfrq 
   call say  
-  write (aline,*) 'Frequency in hours to write  RAD: radisp = ' , &
-                  radisp 
+  write (aline,*) 'Frequency in hours to write  RAD: radfrq = ' , &
+                  radfrq 
   call say
-  write (aline,*) 'Frequency in hours to write  SRF: batfrq = ' , &
-                  batfrq  
+  write (aline,*) 'Frequency in hours to write  SRF: srffrq = ' , &
+                  srffrq  
   call say
   if ( lakemod == 1 ) then
     write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
@@ -928,7 +930,7 @@ module mod_params
   write (aline, *) 'param: model parameters '
   call say
   write (aline,'(a,f12.6)')  ' time step for radiation '// &
-          'model in minutes:  radfrq = ' , radfrq 
+          'model in minutes:  abrad = ' , abrad 
   call say 
   write (aline,'(a,f12.6)')  ' time step for land surface '// &
           'model in seconds:  abatm  = ' , abatm 

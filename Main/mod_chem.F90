@@ -71,18 +71,18 @@ module mod_chem
     integer :: i , j , k , ierr
     integer :: nxxx , nyyy, kzzz 
     real(4) , dimension(iy,jx) :: io2d
+    type(rcm_time_and_date) :: bdydate
 !
     existing = .false.
 
     if ( myid == 0 ) then
-      if (ndate0 == globidate1 .or.  &
-         (((ndate0/10000)*100+1)*100 == &
-         ((globidate1/10000)*100+1)*100 ) ) then
+      if ( idatex == globidate1 ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname), &
-               '_OXBC',globidate1
+               '_OXBC',globidate1%toidate()
       else
+        bdydate = monfirst(idatex)
         write (finm,99001) trim(dirglob),pthsep,trim(domname), &
-               '_OXBC',((ndate0/10000)*100+1)*100
+               '_OXBC',bdydate%toidate()
       end if
       inquire (file=finm,exist=existing)
       if (.not.existing) then
@@ -99,7 +99,7 @@ module mod_chem
     do
       if ( myid == 0 ) then
       oxrec = oxrec + 1
-      read (iutox,rec=oxrec) ndate0 , nxxx , nyyy , kzzz
+      read (iutox,rec=oxrec) nxxx , nyyy , kzzz
       if ( nyyy /= iy .or. nxxx /= jx .or. kzzz /= kz ) then
         write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
                            jx , ' KX=' , kz
@@ -110,22 +110,7 @@ module mod_chem
         call fatal(__FILE__,__LINE__,                             &
                        'IMPROPER DIMENSION SPECIFICATION')
           end if
-          print * , 'READING INITAL CONDITIONS' , ndate0
-!!            if ( ndate0 < mdatez(nnnchk) ) then
-!!            if ( ndate0 < 0 ) then
-!!              print * , ndate0 , mdatez(nnnchk) , nnnchk
-!!              print * , 'read in datasets at :' , ndate0
-!!              oxrec = oxrec + kz*5
-!!              print * , 'Searching for proper date: ' , ndate1 
-!!                   mdatez(nnnchk+1)
-!!              print * , ndate0 , mdatez(nnnchk)
-!!              cycle ! Proper date not found
-!!            else if ( ndate0 > mdatez(nnnchk) ) then
-!!              write (aline,*) ndate0 , mdatez(nnnchk)
-!!              call say
-!!              call fatal(__FILE__,__LINE__,                             &
-!!                         'DATE IN ICBC FILE EXCEEDED DATE IN RegCM')
-!!            end if
+          print * , 'READING INITAL CONDITIONS' , bdydate1
         end if
         exit ! Found proper date
     end do
@@ -197,7 +182,6 @@ module mod_chem
 !
 !     Start transmission of data to other processors
 !
-      call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
       call mpi_scatter(sav_7(1,1,1),iy*(kz*5)*jxp,mpi_real8,        &
                        sav7(1,1,1), iy*(kz*5)*jxp,mpi_real8,        &
                        0,mpi_comm_world,ierr)
@@ -235,16 +219,13 @@ module mod_chem
 !
     dtbdys = ibdyfrq*secph
     if ( myid == 0 ) then
-!     write(*,*)'SSSSSSSSSSSSSSS',ndate1,mdatez(nnnchk+1)
       do
       oxrec=oxrec+1
-      read (iutox,rec=oxrec,iostat=ierr1) ndate1
-!       write(*,*)'NNNNNNOXXXXX',ndate1,mdatez(nnnchk)
         if ( ierr1 /= 0 ) then
           close (iutox)
           iutox = iutox + 1
           write (finm,99001) trim(dirglob),pthsep,trim(domname),    &
-                             '_OXBC',((ndate1/10000)*100+1)*100
+                             '_OXBC',idatex%toidate()
           inquire(file=finm,exist=existing)
           if ( .not.existing ) then
             write (aline,*)                                      &
@@ -263,19 +244,6 @@ module mod_chem
           end if
           cycle
         end if
-!       if ( ndate1 < mdatez(nnnchk) ) then
-!         if ( ndate1 < mdatez(nnnchk) ) then
-!           print * , 'Searching for proper date: ' , ndate1 ,      &
-!                      mdatez(nnnchk+1)
-!           print * , 'read in datasets at :' , ndate0
-!           oxrec = oxrec + kz*5
-!           cycle
-!         end if
-!       else if ( ndate1 > mdatez(nnnchk+1) ) then
-!         print * , 'DATE IN OX BC FILE EXCEEDED DATE IN RegCM'
-!         print * , ndate1 , mdatez(nnnchk+1) , nnnchk + 1
-!         call fatal(__FILE__,__LINE__,'ICBC date')
-!       end if
         exit
       end do
     end if

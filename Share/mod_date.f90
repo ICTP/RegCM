@@ -22,6 +22,7 @@ module mod_date
   use m_realkinds
   use m_stdio
   use m_die
+  use mpi
 
   private
 
@@ -54,7 +55,9 @@ module mod_date
       procedure , pass :: printdate => print_rcm_time_and_date
       procedure , pass :: toidate => toint
       procedure , pass :: tostring => tochar
-      procedure , pass(x) :: setcal => set_calendar
+      procedure , pass(x) :: setcal => set_calint
+      procedure , pass(x) :: setccal => set_calstring
+      procedure , pass(x) :: broadcast => date_broadcast
   end type rcm_time_and_date
 
   type rcm_time_interval
@@ -99,13 +102,18 @@ module mod_date
     module procedure date_le , idate_le
   end interface
 
+  interface operator(/=)
+    module procedure date_ne , idate_ne
+  end interface
+
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
-  public :: operator(>) , operator(<) , operator(>=) , operator(<=)
+  public :: operator(>) , operator(<) , operator(>=) , &
+            operator(<=) , operator(/=)
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
-  public :: timeval2date , lfdoyear , lmidnight , yeardayfrac
+  public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
   public :: julianday
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
@@ -119,11 +127,21 @@ module mod_date
     implicit none
     integer , intent(inout) :: a , b
     integer , intent(in) :: i
-    if ( a > i ) then
+    if ( a > i-1 ) then
       a = a - i
       b = b + 1
     end if
   end subroutine adjustp
+
+  subroutine adjustpm(a,b,i)
+    implicit none
+    integer , intent(inout) :: a , b
+    integer , intent(in) :: i
+    if ( a > i ) then
+      a = a - i
+      b = b + 1
+    end if
+  end subroutine adjustpm
 
   subroutine adjustm(a,b,i)
     implicit none
@@ -188,7 +206,7 @@ module mod_date
     x%iunit = uhrs
   end subroutine initfromintit
 
-  subroutine set_calendar(x, c)
+  subroutine set_calint(x, c)
     implicit none
     class (rcm_time_and_date) , intent(inout) :: x
     integer , intent(in) :: c
@@ -203,7 +221,24 @@ module mod_date
         write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
         x%calendar = gregorian
     end select
-  end subroutine set_calendar
+  end subroutine set_calint
+
+  subroutine set_calstring(x, c)
+    implicit none
+    class (rcm_time_and_date) , intent(inout) :: x
+    character (len=*) , intent(in) :: c
+
+    if ( c == 'gregorian' ) then
+      x%calendar = gregorian
+    else if ( c == 'noleap' .or. c == 'days_365' ) then
+      x%calendar = noleap
+    else if ( c == 'days_360' ) then
+      x%calendar = y360
+    else
+      write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
+      x%calendar = gregorian
+    end if
+  end subroutine set_calstring
 
   subroutine set_timeunit(x, u)
     implicit none
@@ -413,7 +448,7 @@ module mod_date
     if ( tmp > (mdays_leap(y,m)-d) ) then
       tmp = tmp - (mdays_leap(y,m)-d+1)
       m = m+1
-      call adjustp(m,y,12)
+      call adjustpm(m,y,12)
       d = 1
       call add_days_leap(d,m,y,tmp)
     else
@@ -445,7 +480,7 @@ module mod_date
     if ( tmp > mlen(m)-d ) then
       tmp = tmp - mlen(m)-d+1
       m = m + 1
-      call adjustp(m,y,12)
+      call adjustpm(m,y,12)
       d = 1
       call add_days_noleap(d,m,y,tmp)
     else
@@ -507,7 +542,7 @@ module mod_date
             call add_days_leap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month+mod(tmp,12)
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uyrs)
@@ -545,7 +580,7 @@ module mod_date
             call add_days_noleap(z%day, z%month, z%year, tmp)
           case (umnt)
             z%month = z%month+mod(tmp,12)
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             tmp = tmp/12
             z%year = z%year+tmp
           case (uyrs)
@@ -574,9 +609,9 @@ module mod_date
             z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
             z%day = z%day+nda
-            call adjustp(z%day,z%month,30)
+            call adjustpm(z%day,z%month,30)
             z%month = z%month+nmo
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             z%year = z%year+nye
           case (umin)
             nye = tmp/518400
@@ -593,9 +628,9 @@ module mod_date
             z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
             z%day = z%day+nda
-            call adjustp(z%day,z%month,30)
+            call adjustpm(z%day,z%month,30)
             z%month = z%month+nmo
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             z%year = z%year+nye
           case (uhrs)
             nye = tmp/8640
@@ -608,9 +643,9 @@ module mod_date
             z%hour = z%hour+nho
             call adjustp(z%hour,z%day,24)
             z%day = z%day+nda
-            call adjustp(z%day,z%month,30)
+            call adjustpm(z%day,z%month,30)
             z%month = z%month+nmo
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             z%year = z%year+nye
           case (uday)
             nye = tmp/360
@@ -619,16 +654,16 @@ module mod_date
             tmp = tmp-(nmo*30)
             nda = tmp
             z%day = z%day+nda
-            call adjustp(z%day,z%month,30)
+            call adjustpm(z%day,z%month,30)
             z%month = z%month+nmo
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             z%year = z%year+nye
           case (umnt)
             nye = tmp/12
             tmp = tmp-(nye*12)
             nmo = tmp
             z%month = z%month+nmo
-            call adjustp(z%month,z%year,12)
+            call adjustpm(z%month,z%year,12)
             z%year = z%year+nye
           case (uyrs)
             z%year = z%year+tmp
@@ -947,6 +982,12 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     l11 = (x%month == 1 .and. x%day == 1)
+  end function
+
+  logical function lfdomonth(x) result(l1)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    l1 = (x%day == 1)
   end function
 
   logical function lmidnight(x) result(lm)
@@ -1378,7 +1419,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    gt = ((x - y) > rcm_time_interval(1,usec))
+    gt = ((x-y) > rcm_time_interval(0,usec))
   end function date_greater
 
   logical function idate_greater(x,y) result(gt)
@@ -1388,14 +1429,14 @@ module mod_date
     type (rcm_time_and_date) :: yy
     yy = y
     yy%calendar = x%calendar
-    gt = ((x - yy) > rcm_time_interval(1,usec))
+    gt = ((x - yy) > rcm_time_interval(0,usec))
   end function idate_greater
 
   logical function date_less(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    lt = ((x - y) < rcm_time_interval(1,usec))
+    lt = ((x-y) < rcm_time_interval(0,usec))
   end function date_less
 
   logical function idate_less(x,y) result(lt)
@@ -1405,14 +1446,14 @@ module mod_date
     type (rcm_time_and_date) :: yy
     yy = y
     yy%calendar = x%calendar
-    lt = ((x - yy) < rcm_time_interval(1,usec))
+    lt = ((x - yy) < rcm_time_interval(0,usec))
   end function idate_less
 
   logical function date_ge(x,y) result(gt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    gt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
+    gt = (x == y) .or. ((x - y) > rcm_time_interval(0,usec))
   end function date_ge
 
   logical function idate_ge(x,y) result(gt)
@@ -1422,14 +1463,14 @@ module mod_date
     type (rcm_time_and_date) :: yy
     yy = y
     yy%calendar = x%calendar
-    gt = (x == yy) .or. ((x - yy) > rcm_time_interval(1,usec))
+    gt = (x == yy) .or. ((x - yy) > rcm_time_interval(0,usec))
   end function idate_ge
 
   logical function date_le(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    lt = (x == y) .or. ((x - y) > rcm_time_interval(1,usec))
+    lt = (x == y) .or. ((x - y) > rcm_time_interval(0,usec))
   end function date_le
 
   logical function idate_le(x,y) result(lt)
@@ -1439,8 +1480,25 @@ module mod_date
     type (rcm_time_and_date) :: yy
     yy = y
     yy%calendar = x%calendar
-    lt = (x == yy) .or. ((x - yy) > rcm_time_interval(1,usec))
+    lt = (x == yy) .or. ((x - yy) > rcm_time_interval(0,usec))
   end function idate_le
+
+  logical function date_ne(x,y) result(ln)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x , y
+    call check_cal(x,y)
+    ln = .not. (x == y)
+  end function date_ne
+
+  logical function idate_ne(x,y) result(ln)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    yy%calendar = x%calendar
+    ln = .not. (x == yy)
+  end function idate_ne
 
   real(dp) function tohours(x) result(hs)
     implicit none
@@ -1465,5 +1523,27 @@ module mod_date
     yeardayfrac = dble(idayofyear(x)) + dble(x%hour)/24.0D+00 + &
                   dble(x%minute/1440.0D0) + dble(x%second/86400.0D0)
   end function yeardayfrac
+
+  subroutine date_broadcast(x,from,comm,ierr)
+    class (rcm_time_and_date) , intent(inout) :: x
+    integer , intent(in) :: from , comm
+    integer , intent(out) :: ierr
+    integer :: lerr
+    ierr = 0
+    call mpi_bcast(x%calendar,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%year,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%month,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%day,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%hour,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%minute,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%second,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+  end subroutine date_broadcast
 
 end module mod_date

@@ -170,12 +170,12 @@
 !     clm output frequency
       r2coutfrq = idint(clmfrq)
 !     radiation calculation frequency
-!     regcm: radfrq is in minutes
+!     regcm: abrad is in minutes
 !     clm: irad is (+) iterations or (-) hours
 !     clm: hours gets converted to seconds then divided by dtime
-      r2cirad = idint(radfrq*minph/r2cdtime)
+      r2cirad = idint(abrad*minph/r2cdtime)
 !     write output
-      if ( ifbat ) then
+      if ( ifsrf ) then
         r2cwrtdia = .true.
       else
         r2cwrtdia = .false.
@@ -1031,12 +1031,12 @@
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
         else if ( (jyear==jyear0 .and. &
-                   dble(ktau*dtmin)<=batfrq*minph+0.01D0) ) then
-          mmpd = houpd/(batfrq-dtmin/minph)
-          wpm2 = d_one/((batfrq-dtmin/minph)*secph)
+                   dble(ktau*dtmin)<=srffrq*minph+0.01D0) ) then
+          mmpd = houpd/(srffrq-dtmin/minph)
+          wpm2 = d_one/((srffrq-dtmin/minph)*secph)
         else
-          mmpd = houpd/batfrq
-          wpm2 = d_one/(batfrq*secph)
+          mmpd = houpd/srffrq
+          wpm2 = d_one/(srffrq*secph)
         end if
  
         do j = jbegin , jendx
@@ -1314,7 +1314,7 @@
  
 !         Fill output arrays if needed
  
-          if ( mod(ntime+idnint(dtmin*minph),kbats)==0 .or. &
+          if ( mod(ntime+idnint(dtmin*minph),nsrffrq)==0 .or. &
                (jyear == jyear0 .and. ktau == 0) ) then
  
             do i = 2 , iym1

@@ -1,9 +1,6 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.F90 $(REGCM_ROOT)/Config:.
-vpath %.f90 $(REGCM_ROOT)/Config:.
-
 bin_PROGRAMS = aerosol sst icbc oxidant
 
 aerosol_SOURCES = mod_header.F90 aerosol.F90

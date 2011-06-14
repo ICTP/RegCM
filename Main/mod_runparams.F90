@@ -27,31 +27,18 @@ module mod_runparams
   implicit none
  
   type(rcm_time_and_date) :: idate0 , idate1 , idate2
+
   type(rcm_time_and_date) :: idatex
-  type(rcm_time_and_date) :: ndate0 , ndate1 , ldatez
-  type(rcm_time_and_date) :: mdate , mdate0
 
-  type(rcm_time_and_date) :: oatmtime
-  type(rcm_time_and_date) :: osrftime
-  type(rcm_time_and_date) :: olaktime
-  type(rcm_time_and_date) :: osubtime
-  type(rcm_time_and_date) :: ochetime
-  type(rcm_time_and_date) :: oradtime
-  type(rcm_time_and_date) :: odbgtime
-  type(rcm_time_and_date) :: osavtime
+  type(rcm_time_and_date) :: bdydate1 , bdydate2
 
-  type(rcm_time_interval) :: intatm
-  type(rcm_time_interval) :: intsrf
-  type(rcm_time_interval) :: intlak
-  type(rcm_time_interval) :: intsub
-  type(rcm_time_interval) :: intche
-  type(rcm_time_interval) :: intrad
-  type(rcm_time_interval) :: intdbg
-  type(rcm_time_interval) :: intsav
+  type(rcm_time_interval) :: intmdl
+  type(rcm_time_interval) :: intbdy
 
   integer :: julday , julian
 
-  integer :: nnnnnn , nnnend , nstart , nstrt0
+  integer :: nnnnnn , nnnend , nstart
+  integer :: ntime
 
   real(8) :: declin , dectim , deltmx , gmt , xdfbdy
   real(8) :: xtime
@@ -59,27 +46,24 @@ module mod_runparams
 
   real(8) :: calday , dtime , twodt
   logical :: doabsems , dolw , dosw
-  integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
-         msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
-         nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
 
   integer :: ifrabe , nbatst
 !
   real(8) :: dt , dt2 , dtbat , dtlake , dtmin
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(8) :: c200 , c203 , abatm , abemh
+  real(8) :: c200 , c203 , abatm , abemh , abrad
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
   integer :: ibltyp , iboudy , ichem , icup , idirect ,      &
-           & iemiss , igcc , iocnflx , ipgf , ipptls , kbats ,      &
-           & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
+           & iemiss , igcc , iocnflx , ipgf , ipptls , nsrffrq ,      &
+           & nchefreq , lakemod , nradfrq , ntrad , ntsave , nttape ,  &
            & idcsst , iseaice , idesseas , klak , iocnrough
 
   logical :: ifrest , rfstrt , done_restart
  
-  real(8) :: bdytim , prttim , radfrq , savtim , taptim , tbdybe
-  integer :: ndbgfrq , nsavfrq , ntapfrq
+  real(8) :: bdytim , prttim , radtim , savtim , taptim , tbdybe
+  integer :: ndbgfrq , nsavfrq , natmfrq
 
   integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !

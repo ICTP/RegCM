@@ -47,7 +47,7 @@ module mod_tstep
 !
     deltmn = d_zero
     tscale = d_zero
-    if ( jyear == jyear0 .and. ktau == 0 ) then
+    if ( ktau == 0 ) then
       idtmax = 1
       tscale = d_five*dt
       deltmn = 0.1D0*dt
@@ -60,7 +60,7 @@ module mod_tstep
       idtmax = 2
     end if
     dt2 = d_two*dt
-    if ( jyear /= jyear0 .or. ktau /= 0 ) then
+    if ( ktau /= 0 ) then
       dt = dt2
     end if
 !

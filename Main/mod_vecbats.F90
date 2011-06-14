@@ -569,19 +569,18 @@ module mod_vecbats
         psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
       end do
 
-      if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or.  &
-          ( jyear == jyear0 .and. ktau == 0 ) .or.         & 
+      if ( mod(ntime+idnint(dtmin*minph),nsrffrq) == 0 .or.  &
+          idatex == idate0 .or. &
           ( ifrest .and. .not. done_restart ) ) then
-        if ( jyear == jyear0 .and. ktau <= 1 ) then
+        if ( ktau <= 1 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
-        else if ( jyear == jyear0 .and. &
-                  dble(ktau*dtmin) <= batfrq*minph+0.01D0 ) then
-          mmpd = houpd/(batfrq-dtmin/minph)
-          wpm2 = d_one/((batfrq-dtmin/minph)*secph)
+        else if ( dble(ktau*dtmin) <= srffrq*minph+0.01D0 ) then
+          mmpd = houpd/(srffrq-dtmin/minph)
+          wpm2 = d_one/((srffrq-dtmin/minph)*secph)
         else
-          mmpd = houpd/batfrq
-          wpm2 = d_one/(batfrq*secph)
+          mmpd = houpd/srffrq
+          wpm2 = d_one/(srffrq*secph)
         end if
         do i = istart, iend
           drag_o(j,i-1) = 0.0
@@ -758,16 +757,16 @@ module mod_vecbats
 !   In souther emisphere only some points have this class
 !
     if ( idesseas == 1 ) then
-      if ( lmonth == 1 .or. lmonth == 2 .or. lmonth == 12 ) then
+      if ( idatex%month == 1 .or. idatex%month == 2 .or. idatex%month == 12 ) then
         solour(1) = 0.12D0
       endif        
-      if ( lmonth == 3 .or. lmonth == 4 .or. lmonth == 5 ) then
+      if ( idatex%month == 3 .or. idatex%month == 4 .or. idatex%month == 5 ) then
         solour(1) = 0.15D0
       endif        
-      if ( lmonth == 6 .or. lmonth == 7 .or. lmonth == 8) then
+      if ( idatex%month == 6 .or. idatex%month == 7 .or. idatex%month == 8) then
         solour(1) = 0.18D0
       endif        
-      if ( lmonth == 9 .or. lmonth == 10 .or. lmonth == 11) then
+      if ( idatex%month == 9 .or. idatex%month == 10 .or. idatex%month == 11) then
         solour(1) = 0.15D0
       endif
     end if

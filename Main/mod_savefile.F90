@@ -63,14 +63,14 @@
 
         subroutine read_savefile_part1(idate)
           implicit none
-          integer , intent(in) :: idate
+          type (rcm_time_and_date) , intent(in) :: idate
           character(256) :: ffin
           character(16) :: fbname
           logical :: existing
 
           if ( myid == 0 ) then
             iutrst = 14
-            write (fbname, '(a,i10)') 'SAV.', idate
+            write (fbname, '(a,i10)') 'SAV.', idate%toidate()
             ffin = trim(dirout)//pthsep//trim(domname)// &
                            '_'//trim(fbname)
             inquire (file=ffin,exist=existing)
@@ -83,11 +83,7 @@
               open (iutrst,file=ffin,form='unformatted',status='old')
             end if
 
-            read (iutrst) mdate0
-            jyear0 = mdate0/1000000
-            read (iutrst) ktau, xtime, ldatez, lyear, lmonth, lday, &
-                       & lhour, ntime
-            jyear = lyear
+            read (iutrst) ktau, xtime, idatex , ntime
             if ( ehso4 ) then
               read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, &
                          & ts0_io, so0_io
@@ -217,7 +213,7 @@
 
         subroutine write_savefile(idate,ltmp)
           implicit none
-          integer , intent(in) :: idate
+          type(rcm_time_and_date) , intent(in) :: idate
           logical , intent(in) :: ltmp
           integer , parameter :: iutsav = 52
           character(256) :: ffout
@@ -228,13 +224,12 @@
 #endif
           if ( myid == 0 ) then
             if (ltmp) then
-              write (fbname, '(a,i10)') 'TMPSAV.', idate
+              write (fbname, '(a,i10)') 'TMPSAV.', idate%toidate()
             else
-              write (fbname, '(a,i10)') 'SAV.', idate
+              write (fbname, '(a,i10)') 'SAV.', idate%toidate()
             end if
             ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
             open (iutsav,file=ffout,form='unformatted',status='replace')
-            write (iutsav) mdate0
 
             inquire (file=ffout,exist=existing)
             if ( .not.existing ) then
@@ -244,8 +239,7 @@
               call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
             end if
 
-            write (iutsav) ktau , xtime , ldatez , lyear , lmonth , &
-                       & lday , lhour , ntime
+            write (iutsav) ktau , xtime , idatex , ntime
             if ( ehso4 ) then
               write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
                        & ps0_io , ts0_io , so0_io
@@ -369,7 +363,7 @@
           thisclmrest = filer_rest(1:256)
 #endif
           if ( myid == 0 ) then
-            write (6,*) 'SAV variables written at ', idate, xtime
+            write (6,*) 'SAV variables written at ', idate%tostring(), xtime
 
             if (isavlast > 0) then
               write (fbname, '(a,i10)') 'TMPSAV.', isavlast
@@ -382,7 +376,7 @@
 #endif            
             end if
             if (ltmp) then
-              isavlast = idate
+              isavlast = idate%toidate()
             else
               isavlast = 0
             end if

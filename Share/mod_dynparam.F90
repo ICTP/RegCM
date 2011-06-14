@@ -17,35 +17,35 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      module mod_dynparam
+module mod_dynparam
 
-      use mod_constants
-      use mod_date
+  use mod_constants
+  use mod_date
 
-      public
+  public
 !
 ! PARAMETER definitions
 !
-      integer , parameter :: ipunit = 255
+  integer , parameter :: ipunit = 255
 !
 !################### GRID DIMENSION ####################################
 !
 
 ! Point in Y (latitude) direction
 
-      integer :: iy
+  integer :: iy
 
 ! Point in X (longitude) direction
 
-      integer :: jx
+  integer :: jx
 
 ! Point in vertical
 
-      integer :: kz
+  integer :: kz
 
 ! Sub grid decomposition
 
-      integer :: nsg
+  integer :: nsg
 
 ! Projection
 !
@@ -54,58 +54,58 @@
 !          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
 !          'ROTMER', Rotated Mercator
 !
-      character(6) :: iproj
+  character(6) :: iproj
  
 ! Control flag for tropical band option.
  
-      integer :: i_band
+  integer :: i_band
 
 ! Control flag for lake model (Hostetler, etal. 1991, 1993a,b, 1995)
  
-      logical :: lakedpth
+  logical :: lakedpth
 
 ! Grid point horizontal resolution in km
 
-      real(8) :: ds
+  real(8) :: ds
 
 ! Pressure of model top in cbar
 
-      real(8) :: ptop
+  real(8) :: ptop
 
 ! Central latitude  of model domain in degrees, north hem. is positive
 
-      real(8) :: clat
+  real(8) :: clat
 
 ! Central longitude of model domain in degrees, west is negative
 
-      real(8) :: clon
+  real(8) :: clon
 
 ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-      real(8) :: plat
+  real(8) :: plat
 
 ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-      real(8) :: plon
+  real(8) :: plon
 
 ! Lambert true latitude (low latitude side)
 
-      real(8) :: truelatl
+  real(8) :: truelatl
 
 ! Lambert true latitude (high latitude side)
 
-      real(8) :: truelath
+  real(8) :: truelath
 
 !###################### I/O control flag ###############################
 
 ! Number of bytes in reclen. Usually 4
 
-      integer :: ibyte
+  integer :: ibyte
 
 ! Set amount of printout (still unused, sorry)
 
-      integer :: debug_level
-      integer :: dbgfrq
+  integer :: debug_level
+  integer :: dbgfrq
 
 !###################### I/O control flag ###############################
 
@@ -113,39 +113,39 @@
 ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
 ! on the boundary sponge or relaxation boundary conditions.
 !
-      integer :: nspgx
-      integer :: nspgd
+  integer :: nspgx
+  integer :: nspgd
 
 ! Nudge control coefficients
-      real(8) :: high_nudge
-      real(8) :: medium_nudge
-      real(8) :: low_nudge
+  real(8) :: high_nudge
+  real(8) :: medium_nudge
+  real(8) :: low_nudge
 
 ! Number od split exp modes
 
-      integer :: nsplit
+  integer :: nsplit
 
 ! Type of global analysis datasets used in Pre processing
 !
 ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
 !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
-      character(5) :: dattyp
+  character(5) :: dattyp
 
 ! Type of Sea Surface Temperature used
 !
 ! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
 !         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
 !
-      character(5) :: ssttyp
+  character(5) :: ssttyp
 
 ! SO4 Control Flag
 
-      logical :: ehso4
+  logical :: ehso4
 
 ! Land Surface Legend number
 
-      integer :: nveg
+  integer :: nveg
 
 ! Aerosol dataset used
 !
@@ -158,57 +158,57 @@
 !          AER10D1 -> Anthropogenic, SO2 + BC + OC, with dust
 !          AER11D1 -> Anthropogenic+Biomass, SO2 + BC + OC, with dust
 
-      character(7) :: aertyp
+  character(7) :: aertyp
 
 ! Tracer parameters: number of tracers and bins number for dust
 
-      integer :: ntr
-      integer :: nbin
+  integer :: ntr
+  integer :: nbin
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
 !    calculated from above or should be considered as fixed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      integer :: iym1
-      integer :: iym2
-      integer :: iym3
-      integer :: jxp1
-      integer :: jxm1
-      integer :: jxm2
-      integer :: kzm1
-      integer :: kzm2
-      integer :: kzp1
-      integer :: kzp2
-      integer :: kzp3
-      integer :: kzp4
-      integer :: iysg
-      integer :: jxsg
-      integer :: iym1sg
-      integer :: jxm1sg
-      integer :: iym2sg
-      integer :: jxm2sg
-      integer :: nnsg
-      integer :: nspgv
-      integer :: nspgp
+  integer :: iym1
+  integer :: iym2
+  integer :: iym3
+  integer :: jxp1
+  integer :: jxm1
+  integer :: jxm2
+  integer :: kzm1
+  integer :: kzm2
+  integer :: kzp1
+  integer :: kzp2
+  integer :: kzp3
+  integer :: kzp4
+  integer :: iysg
+  integer :: jxsg
+  integer :: iym1sg
+  integer :: jxm1sg
+  integer :: iym2sg
+  integer :: jxm2sg
+  integer :: nnsg
+  integer :: nspgv
+  integer :: nspgp
 
 !####################### MPI parameters ################################
 
-      integer :: nproc
-      integer :: myid
-      integer :: jxp
-      integer :: jxpsg
-      integer :: iwest , ieast , isouth , inorth
-      integer :: jbegin , ibegin
-      integer :: jendl , iendl
-      integer :: jendx , iendx
-      integer :: jendm , iendm
+  integer :: nproc
+  integer :: myid
+  integer :: jxp
+  integer :: jxpsg
+  integer :: iwest , ieast , isouth , inorth
+  integer :: jbegin , ibegin
+  integer :: jendl , iendl
+  integer :: jendx , iendx
+  integer :: jendm , iendm
 
 !####################### MPI parameters ################################
 
 ! Surface minimum H2O percent to be considered water
 
-      real(8) :: h2opct
+  real(8) :: h2opct
 
 ! Resolution of the global terrain and landuse data be used
 !
@@ -219,360 +219,363 @@
 !          3, for  3 minutes resolution
 !          2, for  2 minutes resolution
 
-      integer :: ntypec
+  integer :: ntypec
 
 ! Same for subgrid (Used only if nsg > 1)
 
-      integer :: ntypec_s
+  integer :: ntypec_s
 
 ! Smoothing Control flag
 !
 !     true  -> Perform extra smoothing in boundaries
 
-      logical :: smthbdy
+  logical :: smthbdy
 
 ! Fudging for landuse and texture for grid and subgrid
 
-      logical :: fudge_lnd
-      logical :: fudge_lnd_s
-      logical :: fudge_tex
-      logical :: fudge_tex_s
-      logical :: fudge_lak
-      logical :: fudge_lak_s
+  logical :: fudge_lnd
+  logical :: fudge_lnd_s
+  logical :: fudge_tex
+  logical :: fudge_tex_s
+  logical :: fudge_lak
+  logical :: fudge_lak_s
 
 ! Terrain output files
 
-      character(64) :: domname
+  character(64) :: domname
 
 ! Global Begin and End date for Input Pre processing
 
-      type(rcm_time_and_date) :: globidate1 ! BEGIN
-      type(rcm_time_and_date) :: globidate2 ! END
+  type(rcm_time_and_date) :: globidate1 ! BEGIN
+  type(rcm_time_and_date) :: globidate2 ! END
 
 ! Days per year and degrees per day
 
-      character(12) :: calendar
-      real(8) :: dayspy
-      real(8) :: dpd
+  character(12) :: calendar
+  integer :: ical
+  real(8) :: dayspy
+  real(8) :: dpd
 
 ! Fixed dimensions
 
-      integer , parameter :: numbat = 23 + 6
-      integer , parameter :: numsub = 16
-      integer , parameter :: mpy = 12
+  integer , parameter :: numbat = 23 + 6
+  integer , parameter :: numsub = 16
+  integer , parameter :: mpy = 12
 
 ! Number of Soil texture categories, leave it to 17
 
-      integer , parameter :: ntex = 17 
-      integer , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
+  integer , parameter :: ntex = 17 
+  integer , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
 ! Maximum number of depths in lake model
 
-      integer , parameter :: ndpmax = 400 ! This means 400 m max depth
+  integer , parameter :: ndpmax = 400 ! This means 400 m max depth
 
-      character(1), parameter :: pthsep = '/'
+  character(1), parameter :: pthsep = '/'
 
 ! Paths
 
-      character(256) :: dirter , inpter
-      character(256) :: dirglob , inpglob
-      character(256) :: dirout
-      character(256) :: dirclm
+  character(256) :: dirter , inpter
+  character(256) :: dirglob , inpglob
+  character(256) :: dirout
+  character(256) :: dirclm
 
 ! Model output control parameters
 
-      logical :: ifsave
-      real(8) :: savfrq
+  logical :: ifsave
+  real(8) :: savfrq
 
-      logical :: iftape
-      real(8) :: tapfrq
+  logical :: ifatm
+  real(8) :: atmfrq
 
-      logical :: ifrad
-      real(8) :: radisp
+  logical :: ifrad
+  real(8) :: radfrq
 
-      logical :: ifbat
-      logical :: ifsub
-      logical :: iflak
-      real(8) :: lakfrq
-      real(8) :: batfrq
+  logical :: ifsrf
+  logical :: ifsub
+  logical :: iflak
+  real(8) :: lakfrq
+  real(8) :: srffrq
 
-      logical :: ifchem
-      real(8) :: chemfrq
+  logical :: ifchem
+  real(8) :: chemfrq
 
-      integer :: ibdyfrq
+  integer :: ibdyfrq
 
-      contains
+  contains
 
-      subroutine initparam(filename, ierr)
-        implicit none
-        character (len=*) , intent(in) :: filename
-        integer , intent(out) :: ierr
-        integer :: gdate1 , gdate2 , ical
+  subroutine initparam(filename, ierr)
+    implicit none
+    character (len=*) , intent(in) :: filename
+    integer , intent(out) :: ierr
+    integer :: gdate1 , gdate2
 
-        namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-                       plon , truelatl, truelath , i_band
-        namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
-                      smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
-                      fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
-                      h2opct , dirter , inpter
-        namelist /dimparam/ iy , jx , kz , nsg
-        namelist /ioparam/ ibyte
-        namelist /debugparam/ debug_level , dbgfrq
-        namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
-                       medium_nudge , low_nudge
-        namelist /modesparam/ nsplit
-        namelist /globdatparam/ dattyp , ssttyp , ehso4 , gdate1 , gdate2 , &
-                       dirglob , inpglob , calendar , ibdyfrq
-        namelist /aerosolparam/ aertyp , ntr, nbin
+    namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
+                   plon , truelatl, truelath , i_band
+    namelist /terrainparam/ domname , ntypec , ntypec_s ,           &
+                  smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
+                  fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
+                  h2opct , dirter , inpter
+    namelist /dimparam/ iy , jx , kz , nsg
+    namelist /ioparam/ ibyte
+    namelist /debugparam/ debug_level , dbgfrq
+    namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
+                   medium_nudge , low_nudge
+    namelist /modesparam/ nsplit
+    namelist /globdatparam/ dattyp , ssttyp , ehso4 , gdate1 , gdate2 , &
+                   dirglob , inpglob , calendar , ibdyfrq
+    namelist /aerosolparam/ aertyp , ntr, nbin
 
-        open(ipunit, file=filename, status='old', &
-                     action='read', err=100)
+    open(ipunit, file=filename, status='old', &
+                 action='read', err=100)
 !
-        read(ipunit, dimparam, err=101)
+    read(ipunit, dimparam, err=101)
 
 !       Setup all convenience dimensions
 
-        iym1 = iy - 1
-        iym2 = iy - 2
-        iym3 = iy - 3
-        jxp1 = jx + 1
-        jxm1 = jx - 1
-        jxm2 = jx - 2
-        kzm1 = kz - 1
-        kzm2 = kz - 2
-        kzp1 = kz + 1
-        kzp2 = kz + 2
-        kzp3 = kz + 3
-        kzp4 = kz + 4
-        iysg = iy * nsg
-        jxsg = jx * nsg
-        iym1sg = (iy-1) * nsg
-        jxm1sg = (jx-1) * nsg
-        iym2sg = (iy-2) * nsg
-        jxm2sg = (jx-2) * nsg
-        nnsg = nsg*nsg
-        nveg = 22
+    iym1 = iy - 1
+    iym2 = iy - 2
+    iym3 = iy - 3
+    jxp1 = jx + 1
+    jxm1 = jx - 1
+    jxm2 = jx - 2
+    kzm1 = kz - 1
+    kzm2 = kz - 2
+    kzp1 = kz + 1
+    kzp2 = kz + 2
+    kzp3 = kz + 3
+    kzp4 = kz + 4
+    iysg = iy * nsg
+    jxsg = jx * nsg
+    iym1sg = (iy-1) * nsg
+    jxm1sg = (jx-1) * nsg
+    iym2sg = (iy-2) * nsg
+    jxm2sg = (jx-2) * nsg
+    nnsg = nsg*nsg
+    nveg = 22
 
-        i_band = 0
+    i_band = 0
 
-        read(ipunit, geoparam, err=102)
+    read(ipunit, geoparam, err=102)
 
-        if ( i_band.eq.1 ) then
-          ds = (2.0D0*mathpi*erkm)/dble(jx)
-          iproj = 'NORMER'
-          clat  =   0.0D0
-          clon  = 180.0D0
-        end if
+    if ( i_band.eq.1 ) then
+      ds = (2.0D0*mathpi*erkm)/dble(jx)
+      iproj = 'NORMER'
+      clat  =   0.0D0
+      clon  = 180.0D0
+    end if
 
-        ! Defaults to have SAME behaviour of V3 if not specified
-        inpter  = '../DATA'
-        inpglob = '../DATA'
-        dirter  = '../../Input'
-        dirglob = '../../Input'
+    ! Defaults to have SAME behaviour of V3 if not specified
+    inpter  = '../DATA'
+    inpglob = '../DATA'
+    dirter  = '../../Input'
+    dirglob = '../../Input'
 
-        read(ipunit, terrainparam, err=103)
+    read(ipunit, terrainparam, err=103)
 
-        ! Set convenient defaults for I/O parameters
-        ibyte = 4
-        read(ipunit, ioparam, err=104)
-        dbgfrq = 3600
-        read(ipunit, debugparam, err=105)
+    ! Set convenient defaults for I/O parameters
+    ibyte = 4
+    read(ipunit, ioparam, err=104)
+    dbgfrq = 3600
+    read(ipunit, debugparam, err=105)
 
-        high_nudge = 3.0D0
-        medium_nudge = 2.0D0
-        low_nudge = 1.0D0
-        read(ipunit, boundaryparam, err=106)
+    high_nudge = 3.0D0
+    medium_nudge = 2.0D0
+    low_nudge = 1.0D0
+    read(ipunit, boundaryparam, err=106)
 
-        nspgv = (nspgd+nspgx)*8 + 8
-        nspgp = nspgx*4
+    nspgv = (nspgd+nspgx)*8 + 8
+    nspgp = nspgx*4
 
-        read(ipunit, modesparam, err=107)
+    read(ipunit, modesparam, err=107)
 
-        ibdyfrq = 6 ! Convenient default
-        read(ipunit, globdatparam, err=109)
-        if (calendar == 'gregorian') then
-          dayspy = 365.2422D+00
-          ical = gregorian
-        else if (calendar == 'noleap' .or. calendar == '365_day') then
-          dayspy = 365.0D+00
-          ical = noleap
-        else if (calendar == '360_day') then
-          dayspy = 365.0D+00
-          ical = y360
-        else
-          dayspy = 365.2422D+00
-          ical = gregorian
-        end if
-        dpd = 360.0D0/dayspy
-        globidate1 = gdate1
-        globidate2 = gdate2
-        call globidate1%setcal(ical)
-        call globidate2%setcal(ical)
+    ibdyfrq = 6 ! Convenient default
+    calendar = 'gregorian'
+    read(ipunit, globdatparam, err=109)
+    if (calendar == 'gregorian') then
+      dayspy = 365.2422D+00
+      ical = gregorian
+    else if (calendar == 'noleap' .or. calendar == '365_day') then
+      dayspy = 365.0D+00
+      ical = noleap
+    else if (calendar == '360_day') then
+      dayspy = 365.0D+00
+      ical = y360
+    else
+      dayspy = 365.2422D+00
+      ical = gregorian
+    end if
+    dpd = 360.0D0/dayspy
+    globidate1 = gdate1
+    globidate2 = gdate2
+    call globidate1%setcal(ical)
+    call globidate2%setcal(ical)
 
-        read(ipunit, aerosolparam, err=111)
+    read(ipunit, aerosolparam, err=111)
 
-        ierr = 0
-        return
+    ierr = 0
+    return
 
   100   write ( 6, * ) 'Cannot read namelist file ', trim(filename)
-        ierr = 1 
-        return 
+    ierr = 1 
+    return 
   101   write ( 6, * ) 'Cannot read namelist stanza: dimparam       ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   102   write ( 6, * ) 'Cannot read namelist stanza: geoparam       ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   103   write ( 6, * ) 'Cannot read namelist stanza: terrainparam   ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   104   write ( 6, * ) 'Cannot read namelist stanza: ioparam        ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   105   write ( 6, * ) 'Cannot read namelist stanza: debugparam     ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   106   write ( 6, * ) 'Cannot read namelist stanza: boundaryparam  ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   107   write ( 6, * ) 'Cannot read namelist stanza: modesparam     ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   109   write ( 6, * ) 'Cannot read namelist stanza: globdatparam   ',  &
-            & trim(filename)
-        ierr = 1
-        return
+        & trim(filename)
+    ierr = 1
+    return
   111   write ( 6, * ) 'Cannot read namelist stanza: aereosolparam  ',  &
-            & trim(filename)
-        ierr = 1
+        & trim(filename)
+    ierr = 1
 
-      end subroutine initparam
+  end subroutine initparam
 
-      subroutine init_globwindow(lat0,lon0,lat1,lon1)
-        implicit none
-        real(8) , intent(out) :: lat0 , lat1 , lon0 , lon1
-        namelist /globwindow/ lat0 , lat1 , lon0 , lon1
+  subroutine init_globwindow(lat0,lon0,lat1,lon1)
+    implicit none
+    real(8) , intent(out) :: lat0 , lat1 , lon0 , lon1
+    namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
-        lat0 = 0.0D0
-        lon0 = 0.0D0
-        lat1 = 0.0D0
-        lon1 = 0.0D0
+    lat0 = 0.0D0
+    lon0 = 0.0D0
+    lat1 = 0.0D0
+    lon1 = 0.0D0
 
-        rewind(ipunit)
-        read(ipunit, globwindow,err=101)
-        return
+    rewind(ipunit)
+    read(ipunit, globwindow,err=101)
+    return
   101   print *, 'Globwindow not present: Assuming Global data input'
-        return
-      end subroutine init_globwindow
+    return
+  end subroutine init_globwindow
 
-      subroutine init_outparam
-        implicit none
+  subroutine init_outparam
+    implicit none
 
-        namelist /outparam/ ifsave , savfrq , iftape , tapfrq ,         &
-        &     ifrad , radisp , ifbat , ifsub ,  iflak , batfrq ,        &
-        &     lakfrq , ifchem , chemfrq
+    namelist /outparam/ ifsave , savfrq , ifatm , atmfrq ,    &
+    &     ifrad , radfrq , ifsrf , ifsub ,  iflak , srffrq ,  &
+    &     lakfrq , ifchem , chemfrq
 
-        read(ipunit, outparam, err=100)
-        return
+    read(ipunit, outparam, err=100)
+    return
 
   100   write ( 6, * ) 'Cannot read namelist stanza: outparam'
 
-      end subroutine init_outparam
+  end subroutine init_outparam
 
-      subroutine set_nproc(ncpu)
-        implicit none
-        integer , intent(in) :: ncpu
-        nproc = ncpu 
-        jxp   =  jx/nproc
-        jxpsg  = jxp * nsg
-      end subroutine set_nproc
+  subroutine set_nproc(ncpu)
+    implicit none
+    integer , intent(in) :: ncpu
+    nproc = ncpu 
+    jxp   =  jx/nproc
+    jxpsg  = jxp * nsg
+  end subroutine set_nproc
 
-      subroutine broadcast_params
+  subroutine broadcast_params
 
-        use mpi
-        implicit none
+    use mpi
+    implicit none
 
-        integer :: ierr
+    integer :: ierr
 
-        call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_barrier(mpi_comm_world,ierr)
 
-        call mpi_bcast(iy,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(jx,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(kz,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nsg,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nveg,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(iy,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(jx,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(kz,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nsg,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nveg,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(iproj,6,mpi_character,0,mpi_comm_world,ierr)
-        call mpi_bcast(ds,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(clat,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(clon,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(plat,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(plon,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(truelatl,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(i_band,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(iproj,6,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(ds,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(clat,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(clon,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(plat,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(plon,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(truelatl,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(truelath,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(i_band,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(domname,64,mpi_character,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(ibyte,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(ibyte,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(debug_level,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(dbgfrq,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(debug_level,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(dbgfrq,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(nspgx,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nspgd,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(nspgx,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nspgd,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(high_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(medium_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(low_nudge,1,mpi_real8,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(calendar,12,mpi_character,0,mpi_comm_world,ierr)
-        call mpi_bcast(dayspy,1,mpi_real8,0,mpi_comm_world,ierr)
-        call mpi_bcast(dpd,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(calendar,12,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(ical,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(dayspy,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(dpd,1,mpi_real8,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nsplit,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
+    call mpi_bcast(ehso4,1,mpi_logical,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)
-        call mpi_bcast(ntr,1,mpi_integer,0,mpi_comm_world,ierr)
-        call mpi_bcast(nbin,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(ntr,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nbin,1,mpi_integer,0,mpi_comm_world,ierr)
 
-        call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
 
 !       Setup all convenience dimensions
 
-        if ( myid/= 0) then
-          iym1 = iy - 1
-          iym2 = iy - 2
-          iym3 = iy - 3
-          jxp1 = jx + 1
-          jxm1 = jx - 1
-          jxm2 = jx - 2
-          kzm1 = kz - 1
-          kzm2 = kz - 2
-          kzp1 = kz + 1
-          kzp2 = kz + 2
-          kzp3 = kz + 3
-          kzp4 = kz + 4
-          iysg = iy * nsg
-          jxsg = jx * nsg
-          iym1sg = (iy-1) * nsg
-          jxm1sg = (jx-1) * nsg
-          iym2sg = (iy-2) * nsg
-          jxm2sg = (jx-2) * nsg
-          nnsg = nsg*nsg
-        end if
+    if ( myid/= 0) then
+      iym1 = iy - 1
+      iym2 = iy - 2
+      iym3 = iy - 3
+      jxp1 = jx + 1
+      jxm1 = jx - 1
+      jxm2 = jx - 2
+      kzm1 = kz - 1
+      kzm2 = kz - 2
+      kzp1 = kz + 1
+      kzp2 = kz + 2
+      kzp3 = kz + 3
+      kzp4 = kz + 4
+      iysg = iy * nsg
+      jxsg = jx * nsg
+      iym1sg = (iy-1) * nsg
+      jxm1sg = (jx-1) * nsg
+      iym2sg = (iy-2) * nsg
+      jxm2sg = (jx-2) * nsg
+      nnsg = nsg*nsg
+    end if
 
-        call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_barrier(mpi_comm_world,ierr)
 
-      end subroutine broadcast_params
+  end subroutine broadcast_params
 
-      end module mod_dynparam
+end module mod_dynparam

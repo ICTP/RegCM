@@ -540,7 +540,7 @@ module mod_diagnosis
 !   print out the information:
 !
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. idatex == odbgtime ) then
+      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
         xh = xtime/minpd
         write(6,*)  '***** ' , idatex%tostring(), ' *****'
         write(6,99001) tdrym , error1
@@ -940,13 +940,13 @@ module mod_diagnosis
    
 !   print out the information:
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. idatex == odbgtime ) then
+      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
    
 !       tracers
    
         write(6,*)  '************************************************'
         write(6,*)  ' Budgets for tracers (intergrated quantitites)'
-        write(6,*)  ' day = ' , ldatez , ' *****'
+        write(6,*)  ' day = ' , idatex%tostring() , ' *****'
         write(6,*)  '************************************************'
    
         do itr = 1 , ntr

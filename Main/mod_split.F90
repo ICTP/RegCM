@@ -103,8 +103,9 @@ module mod_split
 !
     do ns = 1 , nsplit
       aam(ns) = dnint(dt/dtau(ns))
-      if ( jyear /= jyear0 .or. ktau /= 0 ) &
+      if ( ktau /= 0 ) then
         aam(ns) = dnint((dt*d_half)/dtau(ns))
+      end if
     end do
     if ( myid == 0 ) print * , 'dt, dtau = ' , dt , dtau
 !
@@ -139,7 +140,7 @@ module mod_split
 !   specified in namelist as array dtsplit
 !
     lstand = .true.
-    if ( jyear /= jyear0 .or. ktau /= 0 ) lstand = .true.
+    if ( ktau /= 0 ) lstand = .true.
     call vmodes(lstand)
 !
 !   compute am and an.
@@ -174,8 +175,9 @@ module mod_split
 !
     do l = 1 , nsplit
       fac = d_two*dt/(d_two*aam(l)+d_one)
-      if ( jyear /= jyear0 .or. ktau /= 0 ) &
+      if ( ktau /= 0 ) then
         fac = dt/(d_two*aam(l)+d_one)
+      end if
       if ( myid == 0 ) print * , 'aam, fac = ' , aam(l) , fac
       an(l) = an(l)*fac
       do k = 1 , kz

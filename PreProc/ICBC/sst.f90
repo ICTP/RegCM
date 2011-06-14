@@ -76,6 +76,10 @@ program sst
             ssttyp == 'FV_B2' ) then
     call sst_fvgcm
   else if ( ssttyp == 'CCSST' ) then
+    if (calendar /= 'noleap') then
+      write(stderr,*) 'CCSM calendar should be set to noleap'
+      call die('icbc','Calendar mismatch',1)
+    end if
     call sst_ccsm
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &

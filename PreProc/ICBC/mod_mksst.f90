@@ -39,6 +39,7 @@ module mod_mksst
   real(sp) , dimension(:,:) , allocatable , private :: work3 , work4
 
   data lopen/.false./
+  character(256) :: sstfile
 
   public :: readsst , closesst
 
@@ -53,10 +54,9 @@ module mod_mksst
     real(dp) , dimension(:) , allocatable :: xtime
     integer :: istatus , idimid , itvar
     integer , dimension(3) :: istart , icount
-    character(256) :: sstfile
     character(64) :: timeunits , timecal
     integer :: i , j , irec
-    type(rcm_time_interval) :: ks1 , ks2
+    type(rcm_time_interval) :: tdif , ks1 , ks2
     real(sp) :: wt
 
     call zeit_ci('readsst')
@@ -119,14 +119,14 @@ module mod_mksst
 
     if (idate > itime(ntime) .or. idate < itime(1)) then
       write (stderr,*) 'Cannot find ', idate%tostring(), ' in SST file'
-      write (stderr,*) 'Range is : ', itime(1)%tostring() , '-', &
+      write (stderr,*) 'Range is : ', itime(1)%tostring() , ' to ', &
                        itime(ntime)%tostring()
       call die('readsst')
     end if
 
-    irec = 0
+    irec = 1
     do i = 1 , ntime
-      if (idate <= itime(i)) then
+      if ( idate >= itime(i) ) then
         irec = i
         exit
       end if
@@ -161,7 +161,7 @@ module mod_mksst
         end do
       end do
     else
-      istart(3) = irec-1
+      istart(3) = irec+1
       istart(2) = 1
       istart(1) = 1
       icount(3) = 1
@@ -173,8 +173,8 @@ module mod_mksst
         istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
         call check_ok(istatus,'Error ice var read SST file'//trim(sstfile))
       end if
-      ks1 = itime(irec)-idate
-      ks2 = itime(irec)-itime(irec-1)
+      ks1 = itime(irec+1)-idate
+      ks2 = itime(irec+1)-itime(irec)
       wt = real(ks1%hours()/ks2%hours())
       do i = 1 , jx
         do j = 1 , iy

@@ -923,11 +923,11 @@ module mod_aerosol
     end do
 !
 !   CARE :Average the radiative forcing between chem output time
-!   steps (in hour) according to radfrq (in min), aertarf is reset to
+!   steps (in hour) according to abrad (in min), aertarf is reset to
 !   0 at each chem output (cf output.f)
 !   (care cgs to mks after radiation scheme !)
 !
-    rntim = d_one/(d_1000*minph*(chemfrq/radfrq))
+    rntim = d_one/(d_1000*minph*(chemfrq/abrad))
 !
 !   aersol radative forcing
 !

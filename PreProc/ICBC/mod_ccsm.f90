@@ -176,6 +176,8 @@ module mod_ccsm
 
   public :: get_ccsm , headccsm , footerccsm
 
+  character(256) :: pathaddname
+
   contains
 !
   subroutine headccsm
@@ -413,12 +415,12 @@ module mod_ccsm
     integer :: i , it , j , k , kkrec , timid
     integer :: inet , ivar
     character(25) :: inname
-    character(256) :: pathaddname
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
     character(3) , dimension(12) :: mname
     character(64) :: cunit , ccal
-    logical :: lfound , lfirst
+    type(rcm_time_interval) :: tdif
+    logical :: lfirst
 !
     data mname   /'JAN','FEB','MAR','APR','MAY','JUN', &
                   'JUL','AUG','SEP','OCT','NOV','DEC'/
@@ -483,22 +485,10 @@ module mod_ccsm
       if (lfirst) lfirst = .false.
     end if
 
-    do kkrec = 1 , 6
+    tdif = idate - itimes(1)
+    it = idnint(tdif%hours())/6 + 1
 
-      lfound = .false.
-      do it = 1 , timlen
-        if (itimes(it) == idate) then
-          lfound = .true.
-          exit
-        end if
-      end do
- 
-      if ( .not. lfound ) then
-        write (stderr,*) idate%tostring(), ' not found in ', trim(pathaddname)
-        write (stderr,*) 'Extremes are : ', itimes(1)%tostring(), &
-                         '-', itimes(timlen)%tostring()
-        call die('readccsm')
-      end if
+    do kkrec = 1 , 6
 
       inet = inet6(kkrec)
       ivar = ivar6(kkrec)

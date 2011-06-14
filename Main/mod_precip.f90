@@ -285,7 +285,7 @@
 !
       uconv = minph*dtmin
       aprdiv = d_one/dble(nbatst)
-      if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = uconv
+      if ( ktau == 0 ) aprdiv = uconv
       do i = istart , iend
         prainx = pptsum(i)*uconv
         if ( prainx > dlowval ) then

@@ -154,7 +154,7 @@
           end do
 !
           if ( ifrad ) then
-            if ( idatex == oradtime ) then
+            if ( mod(ntime,nradfrq) == 0 ) then
               do k = 1 , kz
                 do i = 2 , iym1
                   frad3d(j,i-1,k,1) = real(h2ommr(i,k))

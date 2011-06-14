@@ -213,11 +213,11 @@ module mod_bdycod
           end do
         end do
       end if
-      call addhours(ndate1, ibdyfrq)
-      write (6,'(a,i10)') 'SEARCH BC data for ',ndate1
-      mmrec = icbc_search(ndate1)
+      bdydate2 = bdydate2 + intbdy
+      write (6,'(a,i10)') 'SEARCH BC data for ', bdydate2%toidate()
+      mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then
-        call open_icbc(monfirst(ndate1))
+        call open_icbc(monfirst(bdydate2))
       end if
       call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
       ps1_io = ps1_io*d_r10
@@ -246,7 +246,7 @@ module mod_bdycod
       end if
     end if
 !
-    call mpi_bcast(ndate1,1,mpi_integer,0,mpi_comm_world,ierr)
+    call bdydate2%broadcast(0,mpi_comm_world,ierr)
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                      0,mpi_comm_world,ierr)
@@ -337,8 +337,6 @@ module mod_bdycod
         end do
       end do
     end do
-   
-    mdate = ndate0
 !
 !   compute boundary conditions for p*:
 !
@@ -517,10 +515,10 @@ module mod_bdycod
       end do
     end do
     if ( myid == 0 ) then
-      write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 , ' to ' , ndate1
+      write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
+            bdydate1%toidate() , ' to ' , bdydate2%toidate()
     end if
-    idatex = ndate0
-    ndate0 = ndate1
+    bdydate1 = bdydate2
     do j = 1 , jendx
       do i = 1 , iym1
         tdum(i,j) = ts1(i,j)
@@ -552,46 +550,43 @@ module mod_bdycod
       end do
     end if
    
-    if ( ldatez < ndate1 ) then
-      do j = 1 , jendx
-        do i = 1 , iym1
-          if ( iswater(mddom%lndcat(i,j)) ) then
-            if (idcsst == 1) then
-              sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-              sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
+    do j = 1 , jendx
+      do i = 1 , iym1
+        if ( iswater(mddom%lndcat(i,j)) ) then
+          if (idcsst == 1) then
+            sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
+            sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
+          else
+            sts1%tg(i,j) = tdum(i,j)
+            sts2%tg(i,j) = tdum(i,j)
+          end if
+          if ( iseaice == 1 ) then
+            if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
+!
+            if ( tdum(i,j) <= icetemp ) then
+              sts1%tg(i,j) = icetemp
+              sts2%tg(i,j) = icetemp
+              tdum(i,j) = icetemp
+              ldmsk(i,j) = 2
+              do n = 1, nnsg
+                ocld2d(n,i,j) = 2
+                sice2d(n,i,j) = d_1000
+                scv2d(n,i,j) = d_zero
+              end do
             else
               sts1%tg(i,j) = tdum(i,j)
               sts2%tg(i,j) = tdum(i,j)
-            end if
-            if ( iseaice == 1 ) then
-!
-              if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
-!
-              if ( tdum(i,j) <= icetemp ) then
-                sts1%tg(i,j) = icetemp
-                sts2%tg(i,j) = icetemp
-                tdum(i,j) = icetemp
-                ldmsk(i,j) = 2
-                do n = 1, nnsg
-                  ocld2d(n,i,j) = 2
-                  sice2d(n,i,j) = d_1000
-                  scv2d(n,i,j) = d_zero
-                end do
-              else
-                sts1%tg(i,j) = tdum(i,j)
-                sts2%tg(i,j) = tdum(i,j)
-                ldmsk(i,j) = 0
-                do n = 1, nnsg
-                  ocld2d(n,i,j) = 0
-                  sice2d(n,i,j) = d_zero
-                  scv2d(n,i,j)  = d_zero
-                end do
-              end if
+              ldmsk(i,j) = 0
+              do n = 1, nnsg
+                ocld2d(n,i,j) = 0
+                sice2d(n,i,j) = d_zero
+                scv2d(n,i,j)  = d_zero
+              end do
             end if
           end if
-        end do
+        end if
       end do
-    end if
+    end do
     call time_end(subroutine_name,idindx)
   end subroutine bdyin
 !
@@ -1020,7 +1015,7 @@ module mod_bdycod
 !   compute the time interval for boundary tendency:
 !
     dtb = xt*minph
-    if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
+    if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
       dtb = dble(ibdyfrq)*secph
     end if
 !

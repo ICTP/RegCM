@@ -147,10 +147,10 @@
 ! Model timing parameters
 !
  &timeparam
- dt      =   150.,   ! time step in seconds
- radfrq  =    30.,   ! time interval in min solar rad calculated
- abemh   =    18.,   ! time interval absorption-emission calculated (hours)
- abatm   =   600.,   ! time interval at which bats is called (secs)
+ dt     =   150.,   ! time step in seconds
+ abrad  =    30.,   ! time interval in min solar rad calculated
+ abemh  =    18.,   ! time interval absorption-emission calculated (hours)
+ abatm  =   600.,   ! time interval at which bats is called (secs)
  /
 !
 ! Model Output control
@@ -158,13 +158,13 @@
  &outparam
  ifsave  = .true. ,    ! Create SAV files for restart
  savfrq  =    48.,     ! Frequency in hours to create them
- iftape  = .true. ,    ! Output ATM ?
- tapfrq  =     6.,     ! Frequency in hours to write to ATM
+ ifatm   = .true. ,    ! Output ATM ?
+ atmfrq  =     6.,     ! Frequency in hours to write to ATM
  ifrad   = .true. ,    ! Output RAD ?
- radisp  =     6.,     ! Frequency in hours to write to RAD
- ifbat   = .true. ,    ! Output SRF ?
+ radfrq  =     6.,     ! Frequency in hours to write to RAD
+ ifsrf   = .true. ,    ! Output SRF ?
  ifsub   = .true. ,    ! Output SUB ?
- batfrq  =     3.,     ! Frequency in hours to write to SRF and SUB (and CLM)
+ srffrq  =     3.,     ! Frequency in hours to write to SRF and SUB (and CLM)
  iflak   = .true.,     ! Output LAK ?
  lakfrq  =     6.,     ! Frequency in hours to write to LAK if lakemod is 1
                        ! It must be an integer multiple of batfrq

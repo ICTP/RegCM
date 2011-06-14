@@ -26,9 +26,11 @@ program regcm
 !**********************************************************************
 !
   use mod_interface
+  use mod_date
   use mpi
 !
   real(8) :: timestr, timeend
+  type(rcm_time_interval) :: tdif
   integer :: ierr
   logical :: first
 !
@@ -50,7 +52,8 @@ program regcm
 !
   first = .TRUE.
   timestr = 0.0D0
-  timeend = idatediff(idate2,idate1)*3600.0D0
+  tdif = idate2 - idate1
+  timeend = tdif%hours() * 3600.0D0
 
   call RCM_run(timestr, timeend, first)
 !

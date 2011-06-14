@@ -23,6 +23,7 @@ module mod_sun
 !
   use mod_constants
   use mod_dynparam
+  use mod_runparams
   use mod_main
   use mod_message
   use mod_service
@@ -81,7 +82,7 @@ module mod_sun
     call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                       & r2clambm0,r2cmvelpp,log_print)
 !
-    calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
+    calday = dble(julday) + dble(nnnnnn)*xdfbdy + &
                            (xtime/minph+gmt)/houpd
 
 !   Get declin,eccf
@@ -92,7 +93,7 @@ module mod_sun
     declin = declin
     decdeg = declin/degrad
 #else
-    calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
+    calday = dble(julday) + dble(nnnnnn)*xdfbdy + &
                      (xtime/minph+gmt)/houpd
     theta = twopi*calday/dayspy
 !
@@ -150,7 +151,7 @@ module mod_sun
 !
 #ifdef CLM
     cldy = get_curr_calday()
-!   cldy = dble(julday) + (nnnnnn-nstrt0)/4. + (xtime/60.+gmt)/24.
+!   cldy = dble(julday) + (nnnnnn)/4. + (xtime/60.+gmt)/24.
     call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
          &            r2cobliqr,declinp1,r2ceccf)
     do i = 1 , ivmx
@@ -161,7 +162,7 @@ module mod_sun
       coszrs(i) = dmin1(1.0D0,coszrs(i))
     end do
 #else
-    xt24 = dmod(lhour*minph+xtime,minpd)
+    xt24 = dmod(idatex%hour*minph+xtime,minpd)
     do i = 1 , ivmx
       tlocap = xt24/minph + mddom%xlon(i,j)/15.0D0
       tlocap = dmod(tlocap+houpd,houpd)

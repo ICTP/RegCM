@@ -1069,8 +1069,7 @@ module mod_tendency
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( dabs(xtime) < 0.00001D0 .and. ldatez > idate0 ) &
-            xtm1 = -dtmin
+          if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtmin
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
 #ifndef BAND
@@ -1145,7 +1144,7 @@ module mod_tendency
 #else
       do j = 2 , jxm2
 #endif
-        if ( jyear /= jyear0 .or. ktau /= 0 ) then
+        if ( ktau /= 0 ) then
           do i = 2 , iym2
             iptn = iptn + 1
             ptntot = ptntot + dabs(ps_4(i,1,j))
@@ -1313,15 +1312,14 @@ module mod_tendency
  
  
 !     calculate solar zenith angle
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
+      if ( ktau == 0 .or. &
            mod(ktau+1,nbatst) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         call zenitm(coszrs,iy,j)
         call slice1D(j)
       end if
  
 !     calculate albedo
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-           mod(ktau+1,ntrad) == 0 ) then
+      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
         call albedoclm(j,iemiss)
 #else
@@ -1330,17 +1328,15 @@ module mod_tendency
       end if
  
 !     call ccm3 radiative transfer package
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-          mod(ktau+1,ntrad) == 0 ) then
+      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         call colmod3(j)
       end if
  
 #ifndef CLM
 !     call vector bats for surface physics calculations
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-            mod(ktau+1,nbatst) == 0 ) then
+      if ( ktau == 0 .or. mod(ktau+1,nbatst) == 0 ) then
         dtbat = dt*d_half*dble(nbatst)
-        if ( jyear == jyear0 .and. ktau == 0 ) dtbat = dt
+        if ( ktau == 0 ) dtbat = dt
         call vecbats(j)
       end if
 #endif
@@ -1348,16 +1344,14 @@ module mod_tendency
     end do
 
 #ifdef CLM
-    if ( ( jyear == jyear0 .and. ktau == 0 ) .or. &
-          mod(ktau+1,ntrad) == 0 ) then
+    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
     else
       r2cdoalb = .false.
     end if
-    if ( (jyear == jyear0 .and. ktau == 0 ) .or. &
-         mod(ktau+1,nbatst) == 0 ) then
+    if ( ktau == 0 .or. mod(ktau+1,nbatst) == 0 ) then
       ! Timestep used is the same as for bats
-      if ( jyear == jyear0 .and. ktau == 0 ) then
+      if ( ktau == 0 ) then
         r2cnstep = 0
       else
         r2cnstep = (ktau+1)/nbatst
@@ -1441,8 +1435,7 @@ module mod_tendency
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( dabs(xtime) < 0.00001D0 .and. ldatez > idate0 )  &
-            xtm1 = -dtmin
+          if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtmin
           call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
           call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
         end if
@@ -1870,18 +1863,15 @@ module mod_tendency
     ktau = ktau + 1
     xtime = xtime + dtmin
     ntime = ntime + idnint(dtmin*minph)
-    if ( dabs(xtime-ibdyfrq*minph) < 0.00001D0 ) then
-      call addhours(ldatez, ibdyfrq)
-      call split_idate(ldatez, lyear, lmonth, lday, lhour)
+    idatex = idatex + intmdl
+    if ( idatex == bdydate2 ) then
       nnnnnn = nnnnnn + 1
       xtime = d_zero
-      if ( lfirstjanatmidnight(ldatez) .and. xtime < 0.0001D0 ) then
-        jyear = lyear
-        ktau = 0
+      if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0
       end if
     end if
-    if ( jyear /= jyear0 .or. ktau /= 0 ) dt = dt2
+    if ( ktau /= 0 ) dt = dt2
 !
 !     compute the amounts advected through the lateral boundaries:
 !     *** note *** we must calculate the amounts advected through
@@ -1916,7 +1906,7 @@ module mod_tendency
 !
 !   print out noise parameter:
 !
-    if ( jyear /= jyear0 .or. ktau > 1 ) then
+    if ( ktau > 1 ) then
       ptnbar = ptntot/dble(iptn)
       pt2bar = pt2tot/dble(iptn)
       icons = 0
@@ -1927,7 +1917,7 @@ module mod_tendency
       icons_mpi = 0
       call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          mpi_comm_world,ierr)
-      xday = ((nnnnnn-nstrt0)*ibdyfrq*minph+xtime-dtmin)/minpd
+      xday = (dble(nnnnnn*ibdyfrq)*minph+xtime-dtmin)/minpd
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1956,7 +1946,7 @@ module mod_tendency
 !   recalculate solar declination angle if forecast time larger than
 !   24 hours:
 !
-    if ( dabs(xtime) < 0.00001D0 .and. ldatez /= idate1 ) then
+    if ( dabs(xtime) < 0.00001D0 .and. idatex /= idate1 ) then
       call solar1(xtime)
       dectim = dnint(minpd+dectim)
       if ( myid == 0 ) write (*,*) ' dectim = ' , dectim

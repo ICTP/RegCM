@@ -545,7 +545,7 @@ contains
 !
     r8pt = dble(ptsp)*d_r10
     rpt = ptop
-    tpd = houpd/tapfrq
+    tpd = houpd/atmfrq
     cfd = houpd/chemfrq
     dx = dble(dsx)
     istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
@@ -1422,8 +1422,8 @@ contains
             'model_timestep_in_seconds' , dt)
     call check_ok('Error adding global dt', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_timestep_in_minutes_solar_rad_calc' , radfrq)
-    call check_ok('Error adding global radfrq', fterr)
+            'model_timestep_in_minutes_solar_rad_calc' , abrad)
+    call check_ok('Error adding global abrad', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_seconds_bats_calc' , abatm)
     call check_ok('Error adding global abatm', fterr)
@@ -1795,10 +1795,8 @@ contains
       call addvara(ncid,ctype,'zpbl', &
           'atmosphere_boundary_layer_thickness', &
           'PBL layer thickness','m',tyx,.false.,isrfvar(22))
-      write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', &
-             idint(intsrf%hours()) , ' hours)'
-      write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', &
-             idint(intsrf%hours()) , ' hours)'
+      write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', srffrq , ' hours)'
+      write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', srffrq , ' hours)'
       call addvara(ncid,ctype,'tgmax','surface_temperature', &
           'Maximum surface temperature','K', tyx,.false.,isrfvar(23))
       istatus = nf90_put_att(ncid, isrfvar(23), 'cell_methods', cmethodmax)
@@ -2188,7 +2186,6 @@ contains
     integer , dimension(4) :: istart , icount
     real(8) , dimension(2) :: xtime
     type(rcm_time_interval) :: tdif
-    type(rcm_time_and_date) :: prev
     logical :: lskip
     character(len=36) :: ctime
 
@@ -2206,9 +2203,7 @@ contains
     icount(1) = 2
     tdif = idate-idate0
     xtime(2) = tdif%hours()
-    prev = idate-intsrf
-    tdif = prev-idate0
-    xtime(1) = tdif%hours()
+    xtime(1) = xtime(2) - srffrq
     istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
                            istart(2:2), icount(2:2))
     call check_ok('Error writing itime '//ctime, 'SRF FILE ERROR')

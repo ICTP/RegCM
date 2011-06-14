@@ -78,7 +78,7 @@
  nslice  =        120,
  /
  &timeparam
- radfrq  =    30.,
+ abrad   =    30.,
  abemh   =    18.,
  abatm   =   600.,
  dt      =   150.,
@@ -87,13 +87,13 @@
  &outparam
  ifsave  = .true. ,
    savfrq  =    48.,
- iftape  = .true. ,
-   tapfrq  =     6.,
+ ifatm  = .true. ,
+   atmfrq  =     6.,
  ifrad   = .true. ,
-   radisp  =     6.,
- ifbat   = .true. ,
+   radfrq  =     6.,
+ ifsrf   = .true. ,
  ifsub   = .true. ,
-   batfrq  =     3.,
+   srffrq  =     3.,
  ifprt   = .false.,
    prtfrq  =    12.,
    kxout   =          6,
