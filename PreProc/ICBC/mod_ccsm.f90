@@ -461,7 +461,6 @@ module mod_ccsm
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          cunit = '-'//trim(cunit)//' GMT-'
           istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
@@ -476,7 +475,7 @@ module mod_ccsm
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
-            itimes(it) = timeval2date(xtimes(it)*24.0,cunit,ccal)
+            itimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
           deallocate(xtimes)
           call mall_mco(xtimes,'mod_ccsm')
@@ -487,8 +486,6 @@ module mod_ccsm
 
     tdif = idate - itimes(1)
     it = idnint(tdif%hours())/6 + 1
-
-    print *, it , timlen, idate%tostring() , itimes(1)%toidate()
 
     do kkrec = 1 , 6
 

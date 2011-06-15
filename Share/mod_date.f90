@@ -179,19 +179,19 @@ module mod_date
     select case (c)
       case (noleap)
         do while (id > mlen(m))
-          m = m + 1
           id = id - mlen(m)
+          m = m + 1
         end do
       case (y360)
         do while (id > 30)
-          m  = m + 1
           id = id - 30
+          m  = m + 1
         end do
       case default
         md = mdays_leap(y,1)
         do while (id > md)
-          m = m + 1
           id = id - md
+          m = m + 1
           md = mdays_leap(y,m)
         end do
     end select
@@ -220,19 +220,20 @@ module mod_date
     integer :: ny , ipm , id , iy
     ny = x%year - reference_year
     ipm = isign(1,ny)
+    ny = ny*ipm
     iy = reference_year
     id = 0
     do while (ny > 0)
-      ny = ny - 1
-      id = id + yeardays(iy,x%calendar)
+      id = id + ipm*yeardays(iy,x%calendar)
       iy = iy + ipm
+      ny = ny - 1
     end do
-    x%days_from_reference = id + idayofyear(x) - 1
+    x%days_from_reference = id + ipm*idayofyear(x) - ipm
   end subroutine days_from_reference
 
   subroutine days_from_reference_to_date(x)
     class(rcm_time_and_date) , intent(inout) :: x
-    integer :: id , ipm , iy , ny
+    integer :: id , ipm , iy
     id = x%days_from_reference
     ipm = isign(1,id)
     x%year = reference_year
@@ -242,7 +243,13 @@ module mod_date
       iy = yeardays(x%year,x%calendar)
       id = id - ipm*iy
     end do
-    call idayofyear_to_monthdate(id*ipm+1,x%year,x%calendar,x%month,x%day)
+    if (id >= 0) then
+      call idayofyear_to_monthdate(id+1,x%year,x%calendar,x%month,x%day)
+    else
+      x%year = x%year - 1
+      id = yeardays(x%year,x%calendar)+id
+      call idayofyear_to_monthdate(id,x%year,x%calendar,x%month,x%day)
+    end if
   end subroutine days_from_reference_to_date
 
   subroutine seconds_from_midnight(x)
@@ -354,6 +361,7 @@ module mod_date
         write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
         x%calendar = gregorian
     end select
+    call x%setup()
   end subroutine set_calint
 
   subroutine set_calstring(x, c)
@@ -621,20 +629,17 @@ module mod_date
     select case (y%iunit)
       case (usec)
         z%second_of_day = z%second_of_day+tmp
-        z%days_from_reference = z%days_from_reference + &
-                               (z%second_of_day/86400)
+        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
         z%second_of_day = mod(z%second_of_day,86400)
         call z%recalculate()
       case (umin)
         z%second_of_day = z%second_of_day+tmp*60
-        z%days_from_reference = z%days_from_reference + &
-                               (z%second_of_day/86400)
+        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
         z%second_of_day = mod(z%second_of_day,86400)
         call z%recalculate()
       case (uhrs)
         z%second_of_day = z%second_of_day+tmp*3600
-        z%days_from_reference = z%days_from_reference + &
-                               (z%second_of_day/86400)
+        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
         z%second_of_day = mod(z%second_of_day,86400)
         call z%recalculate()
       case (uday)
@@ -736,7 +741,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: y
     type (rcm_time_interval) :: z
     call check_cal(x,y)
-    if ((x%year - y%year) < 64) then
+    if (abs(x%year - y%year) < 64) then
       z%iunit = usec
       z%ival = (x%second_of_day-y%second_of_day) +  &
                (x%days_from_reference-y%days_from_reference)*86400
@@ -750,7 +755,7 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
-    integer :: nye , nmo , nda , nho , nmi , nse , tmp
+    integer :: tmp
     z = x
     tmp = y%ival
     select case (y%iunit)
@@ -905,7 +910,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: mf
-    mf = rcm_time_and_date(x%calendar,x%year,x%month)
+    mf = rcm_time_and_date(x%calendar,x%year,x%month,1,0,0,0,0,0)
     call mf%setup( )
   end function monfirst
 
@@ -913,7 +918,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: yf
-    yf = rcm_time_and_date(x%calendar,x%year)
+    yf = rcm_time_and_date(x%calendar,x%year,1,1,0,0,0,0,0)
     call yf%setup( )
   end function yrfirst
 
@@ -924,11 +929,11 @@ module mod_date
     select case (x%calendar)
       case (gregorian)
         ml = rcm_time_and_date(x%calendar,x%year,x%month, &
-                               mdays_leap(x%year, x%month))
+                               mdays_leap(x%year, x%month),0,0,0,0,0)
       case (noleap)
-        ml = rcm_time_and_date(x%calendar,x%year,x%month,mlen(x%month))
+        ml = rcm_time_and_date(x%calendar,x%year,x%month,mlen(x%month),0,0,0,0,0)
       case (y360)
-        ml = rcm_time_and_date(x%calendar,x%year,x%month,30)
+        ml = rcm_time_and_date(x%calendar,x%year,x%month,30,0,0,0,0,0)
     end select
     call ml%setup( )
   end function monlast
@@ -944,13 +949,13 @@ module mod_date
         imom = mlen(x%month)/2
         rmom = dble(mdays_leap(x%year, x%month)) * 0.5D0
         mm = rcm_time_and_date(x%calendar,x%year,x%month, imom, &
-                               idint((rmom-dble(imom))*24.0D0))
+                               idint((rmom-dble(imom))*24.0D0),0,0,0,0)
       case (noleap)
         imom = mlen(x%month)/2
         mm = rcm_time_and_date(x%calendar,x%year,x%month,imom, &
-                               12*(mlen(x%month)-imom*2))
+                               12*(mlen(x%month)-imom*2),0,0,0,0)
       case (y360)
-        mm = rcm_time_and_date(x%calendar,x%year,x%month,15)
+        mm = rcm_time_and_date(x%calendar,x%year,x%month,15,0,0,0,0,0)
     end select
     call mm%setup( )
   end function monmiddle
@@ -998,35 +1003,56 @@ module mod_date
     character(*) , intent(in) :: ccal
 
     type (rcm_time_and_date) :: dd
-    type (rcm_time_interval) :: z
-    character(35) , save :: csave
+    type (rcm_time_interval) :: z , zz
+    character(64) , save :: csave
+    integer , save :: iunit
     integer :: year , month , day , hour , minute , second
     type (rcm_time_and_date) , save :: dref
     character(12) :: cdum
 
     data csave/'none'/
 
-    dd = dref
     if (csave == cunit) then
       z = idnint(xval)
+      z%iunit = iunit
       dd = dref + z
+      if (iunit == uday) then
+        zz%ival = idnint((xval-dble(z%ival))*24.0D0)
+        zz%iunit = uhrs
+        if ( zz%ival > 0 ) then
+          dd = dd + zz
+        end if
+      end if
     else
-      if (len_trim(cunit) < 35) then
-        dd = 0
-      else
-        csave = cunit
+      csave = cunit
+      z = idnint(xval)
+      if (cunit(1:5) == 'hours') then
+        ! Unit is hours since reference
         read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
           cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
-        if (ccal == 'noleap' .or. ccal == '365_day') then
-          dref = rcm_time_and_date(noleap,year,month,day,hour,minute,second)
-        else if (ccal == '360_day') then
-          dref = rcm_time_and_date(y360,year,month,day,hour,minute,second)
-        else
-          dref = rcm_time_and_date(gregorian,year,month,day,hour,minute,second)
+        iunit = uhrs
+      else if (cunit(1:4) == 'days') then
+        ! Unit is days since reference
+        read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
+          cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        iunit = uday
+      end if
+      if (ccal == 'noleap' .or. ccal == '365_day') then
+        dref = rcm_time_and_date(noleap,year,month,day,hour,minute,second,0,0)
+      else if (ccal == '360_day') then
+        dref = rcm_time_and_date(y360,year,month,day,hour,minute,second,0,0)
+      else
+        dref = rcm_time_and_date(gregorian,year,month,day,hour,minute,second,0,0)
+      end if
+      call dref%setup( )
+      z%iunit = iunit
+      dd = dref + z
+      if (iunit == uday) then
+        zz%ival = idnint((xval-dble(z%ival))*24.0D0)
+        zz%iunit = uhrs
+        if (zz%ival /= 0) then
+          dd = dd + zz
         end if
-        call dref%setup( )
-        z = idnint(xval)
-        dd = dref + z
       end if
     end if
   end function timeval2date

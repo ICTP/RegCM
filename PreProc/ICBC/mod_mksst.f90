@@ -56,7 +56,7 @@ module mod_mksst
     integer , dimension(3) :: istart , icount
     character(64) :: timeunits , timecal
     integer :: i , j , irec
-    type(rcm_time_interval) :: tdif , ks1 , ks2
+    type(rcm_time_interval) :: ks1 , ks2
     real(sp) :: wt
 
     call zeit_ci('readsst')

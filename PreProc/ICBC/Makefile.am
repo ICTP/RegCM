@@ -75,9 +75,9 @@ mod_write.o: mod_write.F90 mod_grid.o
 mod_wrtoxd.o : mod_wrtoxd.F90 mod_grid.o
 mod_oxidant.o : mod_oxidant.f90 mod_wrtoxd.o \
 	              mod_grid.o mod_interp.o
-oxidant.o : oxidant.f90 mod_grid.o mod_wrtoxd.o \
+oxidant.o : $(REGCM_ROOT)/Share/librcmlib.a oxidant.f90 mod_grid.o mod_wrtoxd.o \
             mod_header.o mod_oxidant.o
-aerosol.o: aerosol.F90
+aerosol.o: aerosol.F90 $(REGCM_ROOT)/Share/librcmlib.a
 mod_sst_grid.o: mod_sst_grid.F90
 mod_sst_1deg.o: mod_sst_1deg.f90 mod_interp.o mod_sst_grid.o
 mod_sst_ccsm.o: mod_sst_ccsm.f90 mod_interp.o mod_sst_grid.o
@@ -86,8 +86,9 @@ mod_sst_eh5om.o: mod_sst_eh5om.f90 mod_interp.o \
 mod_sst_ersst.o: mod_sst_ersst.f90 mod_interp.o \
 	               mod_sst_grid.o
 mod_sst_fvgcm.o: mod_sst_fvgcm.f90 mod_interp.o
-sst.o: sst.f90 mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o \
-       mod_sst_fvgcm.o mod_sst_ccsm.o mod_sst_grid.o mod_header.o
-icbc.o: icbc.f90 mod_grid.o mod_write.o \
+sst.o: sst.f90 $(REGCM_ROOT)/Share/librcmlib.a mod_sst_1deg.o \
+	     mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_ccsm.o \
+			 mod_sst_grid.o mod_header.o
+icbc.o: icbc.f90 $(REGCM_ROOT)/Share/librcmlib.a mod_grid.o mod_write.o \
         mod_ein.o mod_ccsm.o mod_cam2.o mod_ncep.o mod_interp.o mod_header.o \
 				mod_mksst.o

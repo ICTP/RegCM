@@ -264,14 +264,13 @@ module mod_sst_ccsm
       call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
               varname(1)//':units',1,nf90_strerror(istatus),istatus)
     end if
-    cunit = '-'//trim(cunit)//' GMT-'
     istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
     if ( istatus /= nf90_noerr ) then
       call die('ccsm_sst','Error '//trim(pathaddname)//':'// &
               varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
     end if
-    cssidate1 = timeval2date(work1(1)*24.0D0,cunit,ccal)
-  endif  
+    cssidate1 = timeval2date(work1(1),cunit,ccal)
+  endif
 
   it = imondiff(idate,cssidate1) + 1
   icount(1) = ilon
@@ -293,8 +292,8 @@ module mod_sst_ccsm
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
 
-  prev = timeval2date(work1(it-1)*24.0D0,cunit,ccal)
-  next = timeval2date(work1(it)*24.0D0,cunit,ccal)
+  prev = timeval2date(work1(it-1),cunit,ccal)
+  next = timeval2date(work1(it),cunit,ccal)
   tdiff1 = next-idate
   tdiff2 = next-prev
   wt1 = real(tdiff1%hours( )/tdiff2%hours())

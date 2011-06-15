@@ -459,7 +459,7 @@ module mod_cam2
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          cunit = '-'//trim(cunit)//' GMT-'
+          cunit = '-'//trim(cunit)//' UTC-'
           istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
