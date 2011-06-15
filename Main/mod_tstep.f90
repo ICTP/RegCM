@@ -32,13 +32,12 @@ module mod_tstep
 ! This subroutine makes a refined start to the model, i.e. the
 ! model is started with a series of small time steps.
 !
-  subroutine tstep(extime,dtinc,deltmx)
+  subroutine tstep(extime,dtinc)
 !
     implicit none
 !
     real(8) , intent (in) :: extime
     real(8) , intent (out) :: dtinc
-    real(8) , intent (inout) :: deltmx
 !
     real(8) :: deltmn , tscale
     integer :: idtmax
@@ -63,6 +62,7 @@ module mod_tstep
     if ( ktau /= 0 ) then
       dt = dt2
     end if
+    intmdl = rcm_time_interval(idnint(dt),usec)
 !
   end subroutine tstep
 !

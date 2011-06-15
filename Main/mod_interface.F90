@@ -56,6 +56,8 @@ module mod_interface
   public :: RCM_run
   public :: RCM_finalize
 
+  real(8) :: dtinc
+
   contains
  
   subroutine RCM_initialize(mpiCommunicator)
@@ -211,6 +213,7 @@ module mod_interface
 !**********************************************************************
 !
     call param
+    dtinc = dt
 !
 !**********************************************************************
 !
@@ -295,7 +298,7 @@ module mod_interface
 !
 !**********************************************************************
 !
-    real(8) :: dtinc, extime
+    real(8) :: extime
     integer :: iexec
 !
 !**********************************************************************
@@ -305,9 +308,8 @@ module mod_interface
 !**********************************************************************
 !
     if ( first ) then
-      extime = 0.0
+      extime = d_zero
       iexec  = 1
-      dtinc  = dt
     end if
 !
 !**********************************************************************
@@ -332,7 +334,7 @@ module mod_interface
       if ( .not.ifrest ) then
         if ( rfstrt ) then
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
-            call tstep(extime,dtinc,deltmx)
+            call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
                                & dtmin , ktau , idatex%year
             call say
@@ -393,7 +395,8 @@ module mod_interface
 !
 !**********************************************************************
 !
-    integer :: nhours , ierr
+    integer :: ierr
+    type(rcm_time_interval) :: tdif
 !
 !**********************************************************************
 !
@@ -412,9 +415,9 @@ module mod_interface
 !
 !**********************************************************************
 !
-    nhours = nnnend - nstart
+    tdif = idate2 - idate1
     idate1 = idate2
-    idate2 = idate1 + rcm_time_interval(nhours,uhrs)
+    idate2 = idate1 + tdif
     write (aline, *) ' *** new max DATE will be ' , idate2%tostring()
     call say
 !

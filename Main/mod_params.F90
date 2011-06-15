@@ -747,7 +747,7 @@ module mod_params
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
 !
 !.....calculate the time step in minutes.
-  dtmin = dt/60.0D0
+  dtmin = dt/secpm
   deltmx = dt
 !.....compute the time steps for radiation computation.
   ntrad = idnint(abrad/dtmin)
@@ -758,10 +758,8 @@ module mod_params
 !
   call set_scenario(scenario)
 !
-  bdif = idate1 - idate0
-  nstart = idnint(bdif%hours())/ibdyfrq
   if (myid == 0) then
-    if (ifrest .and. nstart == 0) then
+    if ( ifrest .and. idate0 == idate1 ) then
       write (6,*) 'Error in parameter set.'
       write (6,*) 'Cannot set idate0 == idate1 on restart run'
       write (6,*) 'Correct idate0.'
@@ -769,8 +767,7 @@ module mod_params
     end if
   end if
 !
-  bdif = idate2 - idate0
-  nnnend = idnint(bdif%hours())/ibdyfrq
+  bdif = idate2 - idate1
   xdfbdy = dble(ibdyfrq)/houpd
 ! 
   write (aline,*) 'param: initial date of this '// &
@@ -780,12 +777,11 @@ module mod_params
                   'simulation: ' , idate2%tostring()
   call say
   write (aline,'(a,i10,a)')  &
-       'param: total simulation lenght ' , (nnnend-nstart)*ibdyfrq , ' hours'
+       'param: total simulation lenght ' , idnint(bdif%hours()), ' hours'
   call say
   write (aline,'(a,f9.4)')  &
        'param: dtmin (timestep in minutes)' , dtmin
   call say
-  nnnnnn = nstart
   idatex = idate1
 !
 !-----specify the julian date and gmt of the initial data.

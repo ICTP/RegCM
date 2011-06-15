@@ -35,10 +35,7 @@ module mod_runparams
   type(rcm_time_interval) :: intmdl
   type(rcm_time_interval) :: intbdy
 
-  integer :: julday , julian
-
-  integer :: nnnnnn , nnnend , nstart
-  integer :: ntime
+  integer :: julday , julian , ntime
 
   real(8) :: declin , dectim , deltmx , gmt , xdfbdy
   real(8) :: xtime

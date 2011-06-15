@@ -724,8 +724,7 @@ module mod_colmod3
       end do
 !
       rlat(i) = mddom%xlat(i,j)
-      calday = dble(julday) + dble(nnnnnn)*xdfbdy + &
-                  (xtime/minph+gmt)/houpd
+      calday = yeardayfrac(idatex)
 !
       loctim(i) = (calday-dint(calday))*houpd
       alat(i) = rlat(i)*degrad

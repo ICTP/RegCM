@@ -72,6 +72,7 @@ module mod_sun
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+    calday = yeardayfrac(idatex)
 #ifdef CLM
     log_print = .false.
 
@@ -82,9 +83,6 @@ module mod_sun
     call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
                       & r2clambm0,r2cmvelpp,log_print)
 !
-    calday = dble(julday) + dble(nnnnnn)*xdfbdy + &
-                           (xtime/minph+gmt)/houpd
-
 !   Get declin,eccf
     call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
                     & declin,r2ceccf)
@@ -93,7 +91,6 @@ module mod_sun
     declin = declin
     decdeg = declin/degrad
 #else
-    calday = dble(julday) + dble(nnnnnn)*xdfbdy + (xtime/minph+gmt)/houpd
     theta = twopi*calday/dayspy
 !
 !   Solar declination in radians:
@@ -150,7 +147,6 @@ module mod_sun
 !
 #ifdef CLM
     cldy = get_curr_calday()
-!   cldy = dble(julday) + (nnnnnn)/4. + (xtime/60.+gmt)/24.
     call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0,              &
          &            r2cobliqr,declinp1,r2ceccf)
     do i = 1 , ivmx

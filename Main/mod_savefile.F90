@@ -363,7 +363,7 @@
           thisclmrest = filer_rest(1:256)
 #endif
           if ( myid == 0 ) then
-            write (6,*) 'SAV variables written at ', idate%tostring(), xtime
+            write (6,*) 'SAV variables written at ', idate%tostring()
 
             if (isavlast > 0) then
               write (fbname, '(a,i10)') 'TMPSAV.', isavlast

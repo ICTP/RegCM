@@ -95,10 +95,11 @@ module mod_output
 
   if ( mod(ntime,nsavfrq) == 0 .and. ktau > 0 ) then
     ldotmp = .true.
-    if ( nnnnnn == nnnend .or. (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
-      ldosav = .true.
-      ldotmp = .false.
-    end if
+  end if
+  if ( ktau > 0 .and. ( idatex == idate2 .or. &
+      (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
+    ldosav = .true.
+    ldotmp = .false.
   end if
   if ( ktau == 0 .or. mod(ntime,natmfrq) == 0) then
     ldoatm = .true.

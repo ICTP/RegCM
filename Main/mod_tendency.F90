@@ -1863,18 +1863,21 @@ module mod_tendency
     ktau = ktau + 1
     xtime = xtime + dtmin
     ntime = ntime + idnint(dtmin*minph)
+    if ( iexec == 3 ) then
+      intmdl = rcm_time_interval(idnint(dt),usec)
+    end if
     idatex = idatex + intmdl
 
     if ( idatex == bdydate1 ) then
-      nnnnnn = nnnnnn + 1
       xtime = d_zero
       if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0
       end if
     end if
 
-    if ( ktau /= 0 ) then
+    if ( iexec == 2 ) then
       dt = dt2
+      iexec = 3
     end if
 !
 !     compute the amounts advected through the lateral boundaries:
@@ -1919,9 +1922,8 @@ module mod_tendency
         icons = icons + icon(j)
       end do
       icons_mpi = 0
-      call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
-                         mpi_comm_world,ierr)
-      xday = (dble(nnnnnn*ibdyfrq)*minph+xtime-dtmin)/minpd
+      call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,mpi_comm_world,ierr)
+      xday = dble(idatex%second_of_day)/secpd
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
