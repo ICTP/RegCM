@@ -721,9 +721,15 @@ module mod_params
 !-----reset the options/calculate variables using namelist info:
 !
   bdydate1 = idate1
+
   nsavfrq = idnint(secph*savfrq)
   natmfrq = idnint(secph*atmfrq)
+  nradfrq = idnint(secph*radfrq)
   ndbgfrq = idnint(secph*dbgfrq)
+  nsrffrq = idnint(secph*srffrq)
+  nchefreq = idnint(secph*chemfrq)
+  klak = idnint(lakfrq/srffrq)
+
   ktau = 0
   xtime = d_zero
   ntime = 0
@@ -733,15 +739,9 @@ module mod_params
   end do
   write (aline, *) 'param: dtau = ' , dtau
   call say
-  nradfrq = idnint(abrad*secph)
-                            !convert abrad to time steps
-  ifrabe = idnint(secph*abemh/dt)
-                               !abemh is time interval abs./emis. calc.
-  nsrffrq = idnint(secph*srffrq)
-  klak = idnint(lakfrq/srffrq)
+  ifrabe = idnint(secph*abemh/dt) !abemh is time interval abs./emis. calc.
   nbatst = idnint(abatm/dt)
   dt2 = d_two*dt
-  nchefreq = idnint(secph*chemfrq)  ! convert chemfrq to time steps
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
@@ -774,13 +774,13 @@ module mod_params
   xdfbdy = dble(ibdyfrq)/houpd
 ! 
   write (aline,*) 'param: initial date of this '// &
-                  'simulation: IDATE1',idate1%tostring()
+                  'simulation: ' , idate1%tostring()
   call say
   write (aline,*) 'param:   final date of this '// &
-                  'simulation: IDATE2' , idate2%tostring()
+                  'simulation: ' , idate2%tostring()
   call say
   write (aline,'(a,i10,a)')  &
-       'param: total simulation lenght ' , nnnend-nstart , ' hours'
+       'param: total simulation lenght ' , (nnnend-nstart)*ibdyfrq , ' hours'
   call say
   write (aline,'(a,f9.4)')  &
        'param: dtmin (timestep in minutes)' , dtmin

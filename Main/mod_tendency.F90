@@ -1864,14 +1864,18 @@ module mod_tendency
     xtime = xtime + dtmin
     ntime = ntime + idnint(dtmin*minph)
     idatex = idatex + intmdl
-    if ( idatex == bdydate2 ) then
+
+    if ( idatex == bdydate1 ) then
       nnnnnn = nnnnnn + 1
       xtime = d_zero
       if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0
       end if
     end if
-    if ( ktau /= 0 ) dt = dt2
+
+    if ( ktau /= 0 ) then
+      dt = dt2
+    end if
 !
 !     compute the amounts advected through the lateral boundaries:
 !     *** note *** we must calculate the amounts advected through

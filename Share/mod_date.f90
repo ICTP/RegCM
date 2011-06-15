@@ -418,8 +418,7 @@ module mod_date
     x%hour = y%hour
     x%minute = y%minute
     x%second = y%second
-    x%days_from_reference = y%days_from_reference
-    x%second_of_day = y%second_of_day
+    call x%setup()
   end subroutine initfromtypedt
 
   subroutine initfromtypeit(x, y)
@@ -1375,6 +1374,10 @@ module mod_date
     call mpi_bcast(x%minute,1,mpi_integer,from,comm,lerr)
     ierr = ierr+lerr
     call mpi_bcast(x%second,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%days_from_reference,1,mpi_integer,from,comm,lerr)
+    ierr = ierr+lerr
+    call mpi_bcast(x%second_of_day,1,mpi_integer,from,comm,lerr)
     ierr = ierr+lerr
   end subroutine date_broadcast
 

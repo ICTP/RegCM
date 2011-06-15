@@ -373,13 +373,12 @@ module mod_output
           end do
         end do
       end do
-      call mpi_gather(rad0,iym2*(nrad3d*kz+nrad2d)*jxp,      &
-                    & mpi_real4,rad_0,(iym2)                 &
-                    & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,   &
-                    & mpi_comm_world,ierr)
-     call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8,     &
-                    & psa_io,iy*jxp,mpi_real8,               &
-                    & 0,mpi_comm_world,ierr)
+      call mpi_gather(rad0, iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
+                      rad_0,iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
+                      0,mpi_comm_world,ierr)
+      call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8, &
+                      psa_io,           iy*jxp,mpi_real8, &
+                      0,mpi_comm_world,ierr)
       if ( myid == 0 ) then
         do n = 1 , nrad2d
 #ifdef BAND
@@ -1309,7 +1308,7 @@ module mod_output
   if (myid /= 0) return
 
   print * , ' '
-  print * , '******* OPENING NEW OUTPUT FILES:' , idatex
+  print * , '******* OPENING NEW OUTPUT FILES : ' , idatex%tostring()
   print * , ' '
 
   if ( ifatm ) then
@@ -1363,7 +1362,7 @@ module mod_output
           rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io,        &
           ocld2d_io,idatex)
  
-  write (*,*) 'ATM variables written at ' , idatex , xtime
+  write (6,*) 'ATM variables written at ' , idatex%tostring()
  
   end subroutine outatm
 !
@@ -1382,12 +1381,12 @@ module mod_output
 #endif
 
   call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
-  write (*,*) 'SRF variables written at ' , idatex , xtime
+  write (6,*) 'SRF variables written at ' , idatex%tostring()
  
   if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
     call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                       hsnow2d_io,tlak3d_io,idatex)
-    write (*,*) 'LAK variables written at ' , idatex , xtime
+    write (6,*) 'LAK variables written at ' , idatex%tostring()
   end if
 
   end subroutine outsrf
@@ -1408,7 +1407,7 @@ module mod_output
 
   call writerec_sub(j,i,nsg,numsub,fsub_io,idatex)
 
-  write (*,*) 'SUB variables written at ' , idatex , xtime
+  write (6,*) 'SUB variables written at ' , idatex%tostring()
 
   end subroutine outsub
 !
@@ -1444,7 +1443,7 @@ module mod_output
                     frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
                     radpsa_io, idatex)
 
-  print * , 'RAD variables written at ' , idatex , xtime
+  print * , 'RAD variables written at ' , idatex%tostring()
  
 !      call time_end(subroutine_name,idindx)
   end subroutine outrad
@@ -1489,7 +1488,7 @@ module mod_output
             wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
             aertalwrf_io, aersrlwrf_io, psa_io, idatex)
 
-  write (*,*) 'CHE variables written at ' , idatex , xtime
+  write (6,*) 'CHE variables written at ' , idatex%tostring()
 
   end subroutine outche
 !

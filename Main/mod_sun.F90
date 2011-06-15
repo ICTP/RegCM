@@ -93,8 +93,7 @@ module mod_sun
     declin = declin
     decdeg = declin/degrad
 #else
-    calday = dble(julday) + dble(nnnnnn)*xdfbdy + &
-                     (xtime/minph+gmt)/houpd
+    calday = dble(julday) + dble(nnnnnn)*xdfbdy + (xtime/minph+gmt)/houpd
     theta = twopi*calday/dayspy
 !
 !   Solar declination in radians:

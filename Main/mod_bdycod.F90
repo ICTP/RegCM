@@ -247,6 +247,7 @@ module mod_bdycod
     end if
 !
     call bdydate2%broadcast(0,mpi_comm_world,ierr)
+!
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
                      0,mpi_comm_world,ierr)
@@ -514,11 +515,15 @@ module mod_bdycod
         end do
       end do
     end do
+
     if ( myid == 0 ) then
       write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
             bdydate1%toidate() , ' to ' , bdydate2%toidate()
     end if
+
     bdydate1 = bdydate2
+    call bdydate1%broadcast(0,mpi_comm_world,ierr)
+
     do j = 1 , jendx
       do i = 1 , iym1
         tdum(i,j) = ts1(i,j)

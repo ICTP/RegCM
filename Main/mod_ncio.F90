@@ -1795,8 +1795,10 @@ contains
       call addvara(ncid,ctype,'zpbl', &
           'atmosphere_boundary_layer_thickness', &
           'PBL layer thickness','m',tyx,.false.,isrfvar(22))
-      write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', srffrq , ' hours)'
-      write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', srffrq , ' hours)'
+      write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', &
+                     idnint(srffrq) , ' hours)'
+      write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', &
+                     idnint(srffrq) , ' hours)'
       call addvara(ncid,ctype,'tgmax','surface_temperature', &
           'Maximum surface temperature','K', tyx,.false.,isrfvar(23))
       istatus = nf90_put_att(ncid, isrfvar(23), 'cell_methods', cmethodmax)

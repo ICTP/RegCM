@@ -26,8 +26,11 @@ program regcm
 !**********************************************************************
 !
   use mod_interface
-  use mod_date
+  use mod_runparams
+  use mod_interface
   use mpi
+!
+  implicit none
 !
   real(8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
@@ -50,7 +53,7 @@ program regcm
 !
 !**********************************************************************
 !
-  first = .TRUE.
+  first = .true.
   timestr = 0.0D0
   tdif = idate2 - idate1
   timeend = tdif%hours() * 3600.0D0

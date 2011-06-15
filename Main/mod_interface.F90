@@ -318,7 +318,7 @@ module mod_interface
 !     
     do while ( extime >= timestr .and. extime < timeend)
 !
-!       Read in boundary conditions if needed
+!     Read in boundary conditions if needed
 !
       if ( idatex == bdydate1 .and. idatex < idate2 ) then
         call bdyin
@@ -327,39 +327,41 @@ module mod_interface
 #endif
       end if
 !
-!       Refined start
+!     Refined start
 !
       if ( .not.ifrest ) then
         if ( rfstrt ) then
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc,deltmx)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                                 & dtmin , ktau , idatex%tostring()
+                               & dtmin , ktau , idatex%year
             call say
           end if
         end if
       end if
 !
-!       Compute tendencies
+!     Compute tendencies
 !
       call tend(iexec)
 !
-!       Split modes
+!     Split modes
 !
       call splitf
 !
-!       Write output for this timestep if requested
+!     Write output for this timestep if requested
 !
       if (ifrest) done_restart = .true.
       call output
 !
-!       Increment time
+!     Increment time
 !
       extime = extime + dtinc
       if (debug_level > 3) then
-        if (myid == 0) write(6,'(a,i10,a,i10,a)') &
-           'Simulation time: ', idatex , '+', &
-           idint(dmod(extime,secph)), ' h'
+        if (myid == 0) then
+          write(6,'(a,a,f12.2)') 'Simulation time: ', idatex%tostring(), extime
+        else
+          write(6,'(a,a,f12.2)') 'Simulation time: ', idatex%tostring(), extime
+        end if
       end if
 !
     end do
@@ -391,7 +393,7 @@ module mod_interface
 !
 !**********************************************************************
 !
-    integer :: nhours, ierr
+    integer :: nhours , ierr
 !
 !**********************************************************************
 !
