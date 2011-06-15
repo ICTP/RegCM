@@ -958,9 +958,8 @@ contains
 
   end subroutine read_aerosol
 
-  function icbc_search(idate)
+  integer function icbc_search(idate)
     implicit none
-    integer :: icbc_search
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
     if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
@@ -974,6 +973,7 @@ contains
                      icbc_idate(ibcnrec)%tostring()
         call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
       end if
+      icbc_search = ibcrec
     end if 
   end function icbc_search
 

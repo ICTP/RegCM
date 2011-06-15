@@ -555,43 +555,45 @@ module mod_bdycod
       end do
     end if
    
-    do j = 1 , jendx
-      do i = 1 , iym1
-        if ( iswater(mddom%lndcat(i,j)) ) then
-          if (idcsst == 1) then
-            sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
-            sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
-          else
-            sts1%tg(i,j) = tdum(i,j)
-            sts2%tg(i,j) = tdum(i,j)
-          end if
-          if ( iseaice == 1 ) then
-            if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
-!
-            if ( tdum(i,j) <= icetemp ) then
-              sts1%tg(i,j) = icetemp
-              sts2%tg(i,j) = icetemp
-              tdum(i,j) = icetemp
-              ldmsk(i,j) = 2
-              do n = 1, nnsg
-                ocld2d(n,i,j) = 2
-                sice2d(n,i,j) = d_1000
-                scv2d(n,i,j) = d_zero
-              end do
+    if ( idatex < bdydate1 ) then
+      do j = 1 , jendx
+        do i = 1 , iym1
+          if ( iswater(mddom%lndcat(i,j)) ) then
+            if (idcsst == 1) then
+              sts1%tg(i,j) = tdum(i,j) + dtskin(i,j)
+              sts2%tg(i,j) = tdum(i,j) + dtskin(i,j)
             else
               sts1%tg(i,j) = tdum(i,j)
               sts2%tg(i,j) = tdum(i,j)
-              ldmsk(i,j) = 0
-              do n = 1, nnsg
-                ocld2d(n,i,j) = 0
-                sice2d(n,i,j) = d_zero
-                scv2d(n,i,j)  = d_zero
-              end do
+            end if
+            if ( iseaice == 1 ) then
+              if ( lakemod == 1 .and. islake(mddom%lndcat(i,j)) ) cycle
+!
+              if ( tdum(i,j) <= icetemp ) then
+                sts1%tg(i,j) = icetemp
+                sts2%tg(i,j) = icetemp
+                tdum(i,j) = icetemp
+                ldmsk(i,j) = 2
+                do n = 1, nnsg
+                  ocld2d(n,i,j) = 2
+                  sice2d(n,i,j) = d_1000
+                  scv2d(n,i,j) = d_zero
+                end do
+              else
+                sts1%tg(i,j) = tdum(i,j)
+                sts2%tg(i,j) = tdum(i,j)
+                ldmsk(i,j) = 0
+                do n = 1, nnsg
+                  ocld2d(n,i,j) = 0
+                  sice2d(n,i,j) = d_zero
+                  scv2d(n,i,j)  = d_zero
+                end do
+              end if
             end if
           end if
-        end if
+        end do
       end do
-    end do
+    end if
     call time_end(subroutine_name,idindx)
   end subroutine bdyin
 !

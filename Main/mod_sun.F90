@@ -57,7 +57,7 @@ module mod_sun
 !
     real(8) , intent(in) :: xtime
 !
-    real(8) :: calday , decdeg
+    real(8) :: decdeg
 #ifdef CLM
     real(8) :: mvelp , obliq
     integer :: iyear_ad

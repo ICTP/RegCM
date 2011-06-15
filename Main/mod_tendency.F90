@@ -1069,7 +1069,7 @@ module mod_tendency
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtmin
+          if ( idatex == bdydate1 ) xtm1 = -dtmin
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
 #ifndef BAND
@@ -1435,7 +1435,7 @@ module mod_tendency
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtmin
+          if ( idatex == bdydate1 ) xtm1 = -dtmin
           call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
           call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
         end if
@@ -1863,9 +1863,6 @@ module mod_tendency
     ktau = ktau + 1
     xtime = xtime + dtmin
     ntime = ntime + idnint(dtmin*minph)
-    if ( iexec == 3 ) then
-      intmdl = rcm_time_interval(idnint(dt),usec)
-    end if
     idatex = idatex + intmdl
 
     if ( idatex == bdydate1 ) then
@@ -1942,7 +1939,7 @@ module mod_tendency
         end if
       end if
 
-99001 format (5x,a,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
+99001 format (a23,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
              ',  no. of points w/convection = ',i7)
     end if
 !

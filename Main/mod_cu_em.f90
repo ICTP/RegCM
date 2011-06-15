@@ -69,7 +69,7 @@ module mod_cu_em
 !
     uconv = dt*d_half
     aprdiv = d_one/dble(nbatst)
-    if ( idatex == idate0 ) aprdiv = d_one
+    if ( ktau == 0 ) aprdiv = d_one
     iconj = 0
     do i = 2 , iym2
       if ( icup==99 .or. icup==98 ) then
@@ -306,7 +306,7 @@ module mod_cu_em
                b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
                cbmfold , chi , coeff , cpinv , cwat , damps , dbo ,   &
                dbosum , defrac , dei , delm , delp , delt0 , delti ,  &
-               denom , dhdp , dphinv , dpinv , dtma , dtmin , dtpbl , &
+               denom , dhdp , dphinv , dpinv , dtma , dtmnx , dtpbl , &
                elacrit , ents , epmax , fac , fqold , frac , ftold ,  &
                ftraold , fuold , fvold , plcl , qnew , qp1 , qsm ,    &
                qstm , qti , rat , rdcp , revap , rh , rm , scrit , sigt
@@ -679,8 +679,8 @@ module mod_cu_em
       dtpbl = dtpbl + (tvp(i)-tv(i))*(ph(i)-ph(i+1))
     end do
     dtpbl = dtpbl/(ph(nk)-ph(icb))
-    dtmin = tvpplcl - tvaplcl + dtmax + dtpbl
-    dtma = dtmin
+    dtmnx = tvpplcl - tvaplcl + dtmax + dtpbl
+    dtma = dtmnx
 !
 !   adjust cloud base mass flux
 !

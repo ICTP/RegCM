@@ -207,7 +207,7 @@ module mod_zengocn
           t2m1d(n,i) = t995 + tzero - dth*facttq
 !
           if ( mod(ntime+idnint(dtmin*minph),nsrffrq) == 0 .or. &
-              ( idatex == idate0 ) .or. ( ifrest .and. .not. done_restart ) ) then
+               ktau == 0 .or. ( ifrest .and. .not. done_restart ) ) then
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             q2m1d(n,i) = q995 - dqh*facttq
             tgb2d(n,i,j) = sts2%tg(i,j)

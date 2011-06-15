@@ -747,6 +747,7 @@ module mod_params
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
 !
 !.....calculate the time step in minutes.
+!
   dtmin = dt/secpm
   deltmx = dt
 !.....compute the time steps for radiation computation.
@@ -784,7 +785,6 @@ module mod_params
   call say
   idatex = idate1
 !
-!-----specify the julian date and gmt of the initial data.
 !     dectim : is the time in minutes after which the solar declination
 !     angle must be recalculated.
 !
@@ -801,12 +801,10 @@ module mod_params
   write (aline, *) 'param: initial date of the global '// &
                    'simulation: idate  = ' , idate0%tostring()
   call say
-  gmt = dble(idate0%hour)
 !
 !.....find the julian day of the year and calulate dectim
 !
-  julday = idayofyear(idate0)
-  dectim = (minpd-gmt*minph)
+  dectim = (minpd-dble(idate0%hour)*minph)
  
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
@@ -1542,7 +1540,7 @@ module mod_params
 !
   if ( myid == 0 ) then
     if ( ibltyp == 0 ) print 99002
-    print 99003 , julday , gmt , ntrad
+    print 99003 , ntrad
 !
     if ( iboudy == 0 ) print 99004
     if ( iboudy == 1 ) print 99005 , fnudge , gnudge
@@ -1570,8 +1568,7 @@ module mod_params
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                          &
      &'     the surface energy budget is used to calculate the ground te&
-     &mperature.   julday = ',i3,'   gmt = ',f4.1/10x,                  &
-     &'the radiation is computed every ',i4,' time steps.')
+     &mperature. the radiation is computed every ',i4,' time steps.')
 !1100 format('     heat and moisture fluxes from the ground are turned o
 !     1ff.')
 99004 format (/'   the lateral boundary conditions are fixed.')

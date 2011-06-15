@@ -361,8 +361,6 @@ module mod_interface
       if (debug_level > 3) then
         if (myid == 0) then
           write(6,'(a,a,f12.2)') 'Simulation time: ', idatex%tostring(), extime
-        else
-          write(6,'(a,a,f12.2)') 'Simulation time: ', idatex%tostring(), extime
         end if
       end if
 !
