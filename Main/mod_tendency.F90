@@ -1923,7 +1923,6 @@ module mod_tendency
       end do
       icons_mpi = 0
       call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,mpi_comm_world,ierr)
-      xday = dble(idatex%second_of_day)/secpd
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -1938,12 +1937,12 @@ module mod_tendency
         end if
       end if
       if ( myid == 0 ) then
-        if ( mod(ktau,50) == 0 ) print 99001 , xday , ktau , ptnbar , &
-             pt2bar , icons_mpi
+        if ( mod(ktau,50) == 0 ) then
+          write(6,99001) idatex%tostring() , ktau , ptnbar , pt2bar , icons_mpi
+        end if
       end if
 
-99001 format (5x,'at day = ',f9.4,', ktau = ',i10,        &
-             ' :  1st, 2nd time deriv of ps = ',2E12.5,    &
+99001 format (5x,a,', ktau = ',i10, ' :  1st, 2nd time deriv of ps = ',2E12.5, &
              ',  no. of points w/convection = ',i7)
     end if
 !
@@ -1952,7 +1951,7 @@ module mod_tendency
 !   recalculate solar declination angle if forecast time larger than
 !   24 hours:
 !
-    if ( dabs(xtime) < 0.00001D0 .and. idatex /= idate1 ) then
+    if ( idatex == bdydate1 ) then
       call solar1(xtime)
       dectim = dnint(minpd+dectim)
       if ( myid == 0 ) write (*,*) ' dectim = ' , dectim
