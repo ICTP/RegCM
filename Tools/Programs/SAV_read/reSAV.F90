@@ -8,9 +8,9 @@ program resav
 !
   character(256) :: namelistfile , prgname , savfile
   integer :: ierr
+  type (rcm_time_and_date) :: idatex
   real(8) :: xtime
-  integer :: mdate0 , ktau , ldatez , lyear , lmonth , lday , &
-             lhour , ntime
+  integer :: ktau , ntime
   real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
   real(8) , allocatable , dimension(:,:,:) :: ua , va , ta  , qva , qca
@@ -29,7 +29,7 @@ program resav
   real(8) , allocatable , dimension(:,:,:) :: fcc
 #ifdef CLM
   real(8) , allocatable , dimension(:,:) :: sols2d , soll2d , solsd2d , &
-        solld2d , aldirs2d , aldirl2d , aldifs2d , aldifl2d , satbrt2d
+        solld2d , aldirs2d , aldirl2d , aldifs2d , aldifl2d , lndcat2d
 #endif
   real(8) , allocatable , dimension(:,:) :: sol2d , solvd2d , solvs2d , &
         sabv2d , flw2d , flwd2d , fsw2d , sinc2d , pptc , pptnc , &
@@ -38,7 +38,7 @@ program resav
   real(8) , allocatable , dimension(:,:,:) :: tlef2d , ssw2d , srw2d , &
         tg2d , tgb2d , scv2d , gwet2d , sag2d , sice2d , dew2d , ircp2d , &
         col2d , taf2d , emiss2d
-  integer , allocatable , dimension(:,:) :: veg2d
+  integer , allocatable , dimension(:,:) :: veg2d , ldmsk
   integer , allocatable , dimension(:,:,:) :: veg2d1 , ocld2d
   real(8) , allocatable , dimension(:,:,:) :: heatrt , o3prof , swt2d
   real(8) , allocatable , dimension(:,:) :: tgbb , zpbl
@@ -160,7 +160,7 @@ program resav
   allocate(aldirl2d(iym1,jx))
   allocate(aldifs2d(iym1,jx))
   allocate(aldifl2d(iym1,jx))
-  allocate(satbrt2d(iym1,jx))
+  allocate(lndcat2d(iym1,jx))
 #else
   allocate(sols2d(iym1,jxm1))
   allocate(soll2d(iym1,jxm1))
@@ -170,7 +170,7 @@ program resav
   allocate(aldirl2d(iym1,jxm1))
   allocate(aldifs2d(iym1,jxm1))
   allocate(aldifl2d(iym1,jxm1))
-  allocate(satbrt2d(iym1,jxm1))
+  allocate(lndcat2d(iym1,jxm1))
 #endif
 #endif
 #ifdef BAND
@@ -191,6 +191,7 @@ program resav
   allocate(ircp2d(nnsg,iym1,jx))
   allocate(col2d(nnsg,iym1,jx))
   allocate(veg2d(iym1,jx))
+  allocate(ldmsk(iym1,jx))
   allocate(veg2d1(nnsg,iym1,jx))
   allocate(heatrt(ym1,kz,jx))
   allocate(o3prof(iym1,kzp1,jx))
@@ -233,6 +234,7 @@ program resav
   allocate(ircp2d(nnsg,iym1,jxm1))
   allocate(col2d(nnsg,iym1,jxm1))
   allocate(veg2d(iym1,jxm1))
+  allocate(ldmsk(iym1,jxm1))
   allocate(veg2d1(nnsg,iym1,jxm1))
   allocate(heatrt(iym1,kz,jxm1))
   allocate(o3prof(iym1,kzp1,jxm1))
@@ -292,9 +294,7 @@ program resav
   allocate(vilx(kz,jx))
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
-  read (iutrst) mdate0
-  read (iutrst) ktau, xtime, ldatez, lyear, lmonth, lday, &
-                lhour, ntime
+  read (iutrst) ktau, xtime, idatex, ntime
   if ( ehso4 ) then
     read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
   else
@@ -336,7 +336,7 @@ program resav
   read (iutrst) aldirl2d
   read (iutrst) aldifs2d
   read (iutrst) aldifl2d
-  read (iutrst) satbrt2d
+  read (iutrst) lndcat2d
 #endif
   read (iutrst) sol2d
   read (iutrst) solvd2d
@@ -355,6 +355,7 @@ program resav
   read (iutrst) ircp2d
   read (iutrst) col2d
   read (iutrst) veg2d
+  read (iutrst) ldmsk
   read (iutrst) veg2d1
   read (iutrst) heatrt
   read (iutrst) o3prof
