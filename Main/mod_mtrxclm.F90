@@ -156,7 +156,7 @@ module mod_mtrxclm
     r2cnsrest = 0
   end if
 !     land surface timestep
-  r2cdtime = idint(abatm)
+  r2cdtime = idint(dtsrf)
 !     start date and time
   r2cstart_ymd = idate1%year*10000+idate1%month*100+idate1%day
   r2cstart_tod = idate1%second_of_day
@@ -176,10 +176,10 @@ module mod_mtrxclm
 !     clm output frequency
   r2coutfrq = idint(clmfrq)
 !     radiation calculation frequency
-!     regcm: abrad is in minutes
+!     regcm: dtrad is in minutes
 !     clm: irad is (+) iterations or (-) hours
 !     clm: hours gets converted to seconds then divided by dtime
-  r2cirad = idint(abrad*minph/r2cdtime)
+  r2cirad = idint(dtrad*minph/r2cdtime)
 !     write output
   if ( ifsrf ) then
     r2cwrtdia = .true.

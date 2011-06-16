@@ -488,10 +488,10 @@ integration timestep and triggers for calling internal parametric schemes.
 {\footnotesize
 \begin{Verbatim}
  &timeparam
- dt    =   150.,   ! time step in seconds
- abrad =    30.,   ! time interval in min solar rad caluclated
- abemh =    18.,   ! time interval absorption-emission calculated (hours)
- abatm =   600.,   ! time interval at which bats is called (secs)
+ dt     =   150., ! time step in seconds
+ dtrad  =    30., ! time interval solar radiation calculated (minutes)
+ dtabem =    18., ! time interval absorption-emission calculated (hours)
+ dtsrf  =   600., ! time interval at which land model is called (seconds)
  /
 \end{Verbatim}
 }

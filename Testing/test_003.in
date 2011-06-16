@@ -73,9 +73,9 @@
  mdate2  = 1991010600,
  /
  &timeparam
- abrad   =    30.,
- abemh   =    18.,
- abatm   =   600.,
+ dtrad   =    30.,
+ dtabem  =    18.,
+ dtsrf   =   600.,
  dt      =   100.,
  /
  &outparam

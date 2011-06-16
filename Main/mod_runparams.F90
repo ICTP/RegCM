@@ -42,16 +42,17 @@ module mod_runparams
   real(8) :: xtime
   integer(8) :: ktau , mtau
 
-  real(8) :: calday , dtime , twodt
+  real(8) :: calday , twodt
+
   logical :: doabsems , dolw , dosw
 
-  integer :: ifrabe
+  integer :: ntabem
   integer :: ntbdy , ntsrf , ntrad
   integer :: klak
 !
   real(8) :: dt , dt2 , dtbat , dtlake , dtmin
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(8) :: c200 , c203 , abatm , abemh , abrad
+  real(8) :: c200 , c203 , dtsrf , dtabem , dtrad
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
@@ -59,7 +60,7 @@ module mod_runparams
              iocnflx , ipgf , ipptls , lakemod , idcsst , iseaice ,     &
              idesseas , iocnrough
 
-             logical :: ifrest , rfstrt , doing_restart
+  logical :: ifrest , rfstrt , doing_restart
 
   integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !

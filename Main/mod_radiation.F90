@@ -1814,7 +1814,7 @@ module mod_radiation
 !   do emissivity and absorptivity calculations
 !   only if abs/ems computation
 !
-    if ( ktau == 0 .or. (mod(ktau+1,ifrabe) == 0) ) then
+    if ( ktau == 0 .or. (mod(ktau+1,ntabem) == 0) ) then
  
 !
 !     Compute ozone path lengths at frequency of a/e calculation.

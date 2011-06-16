@@ -1422,17 +1422,17 @@ contains
             'model_timestep_in_seconds' , dt)
     call check_ok('Error adding global dt', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_timestep_in_minutes_solar_rad_calc' , abrad)
-    call check_ok('Error adding global abrad', fterr)
+            'model_timestep_in_minutes_solar_rad_calc' , dtrad)
+    call check_ok('Error adding global dtrad', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_timestep_in_seconds_bats_calc' , abatm)
-    call check_ok('Error adding global abatm', fterr)
+            'model_timestep_in_seconds_bats_calc' , dtsrf)
+    call check_ok('Error adding global dtsrf', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_timestep_in_hours_radiation_calc' , abemh)
-    call check_ok('Error adding global abemh', fterr)
+            'model_timestep_in_hours_radiation_calc' , dtabem)
+    call check_ok('Error adding global dtabem', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_hours_boundary_input' , ibdyfrq)
-    call check_ok('Error adding global abemh', fterr)
+    call check_ok('Error adding global dtabem', fterr)
 !
 !         ADD DIMENSIONS
 !

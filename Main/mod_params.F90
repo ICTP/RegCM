@@ -111,7 +111,7 @@ module mod_params
 !
   namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
  
-  namelist /timeparam/ abrad , abatm , abemh , dt
+  namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
   namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,   &
   & radfrq , ifsrf , ifsub , iflak , srffrq , lakfrq , ifchem ,     &
@@ -175,7 +175,7 @@ module mod_params
 !     = 0 ; frictionless
 !     = 1 ; holtslag pbl (holtslag, 1990)
 !
-!     abrad : specify the frequency in
+!     dtrad : specify the frequency in
 !     minutes, the solar radiation will be computed in
 !     subroutine "sfcrd". a typical value would be 30 minutes.
 !
@@ -253,9 +253,9 @@ module mod_params
  
 !------namelist timeparam:
 !
-  abrad = 30.0D0 ! time interval in min solar rad caluclated
-  abatm = 600.0D0 ! time interval at which bats is called (secs)
-  abemh = 12.0D0  ! time interval absorption-emission calculated (hours)
+  dtrad = 30.0D0 ! time interval in min solar rad caluclated
+  dtsrf = 600.0D0 ! time interval at which bats is called (secs)
+  dtabem = 12.0D0  ! time interval absorption-emission calculated (hours)
   dt = 200.0D0    ! time step in seconds
  
 !-----namelist out      note: * signifies currently not in namelist
@@ -491,9 +491,9 @@ module mod_params
   call idate1%broadcast(0,mpi_comm_world,ierr)
   call idate2%broadcast(0,mpi_comm_world,ierr)
  
-  call mpi_bcast(abrad,1,mpi_real8,0,mpi_comm_world,ierr)
-  call mpi_bcast(abemh,1,mpi_real8,0,mpi_comm_world,ierr)
-  call mpi_bcast(abatm,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(dtrad,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(dtabem,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(dtsrf,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(dt,1,mpi_real8,0,mpi_comm_world,ierr)
  
   call mpi_bcast(ifsave,1,mpi_logical,0,mpi_comm_world,ierr)
@@ -667,20 +667,20 @@ module mod_params
   if ( myid == 0 ) then
     write (aline,*) 'starting first checks' 
     call say
-    if ( mod(idnint(abrad*60.0D0),idnint(dt)) /= 0 ) then
-      write (aline,*) 'ABRAD=' , abrad , 'DT=' , dt
+    if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
+      write (aline,*) 'DTRAD=' , dtrad , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
     end if
-    if ( mod(idnint(abatm),idnint(dt)) /= 0 ) then
-      write (aline,*) 'ABATM=' , abatm , 'DT=' , dt
+    if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
+      write (aline,*) 'DTSRF=' , dtsrf , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
-    if ( mod(idnint(srffrq*secph),idnint(abatm)) /= 0 ) then
-      write (aline,*) 'BATFRQ=' , srffrq , 'ABATM=' , abatm
+    if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
+      write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
@@ -699,14 +699,14 @@ module mod_params
         end if
       end if
     end if
-    if ( mod(idnint(abemh*secph),idnint(dt)) /= 0 ) then
-      write (aline,*) 'ABEMH=' , abemh , 'DT=' , dt
+    if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
+      write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
-    if ( mod(idnint(abemh*60.0D0),idnint(abrad)) /= 0 ) then
-      write (aline,*) 'ABEMH=' , abemh , 'ABRAD=' , abrad
+    if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
+      write (aline,*) 'DTABEM=' , dtabem , 'DTRAD=' , dtrad
       call fatal(__FILE__,__LINE__,                                   &
                 &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                 &' TIMESTEPS SPECIFIED')
@@ -738,8 +738,8 @@ module mod_params
   nchefreq = idnint(secph*chemfrq)
   klak = idnint(lakfrq/srffrq)
 
-  ntsrf = idnint(abatm/dt)
-  ntrad = idnint(abrad/dtmin)
+  ntsrf = idnint(dtsrf/dt)
+  ntrad = idnint(dtrad/dtmin)
   ntbdy = idnint((dble(ibdyfrq)*secph)/dt)
 
   ktau = 0
@@ -754,7 +754,7 @@ module mod_params
   end do
   write (aline, *) 'dtau = ' , dtau
   call say
-  ifrabe = idnint(secph*abemh/dt) !abemh is time interval abs./emis. calc.
+  ntabem = idnint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
@@ -763,7 +763,7 @@ module mod_params
 !.....compute the time steps for radiation computation.
 !sb   lake model mods
 !.....compute the time steps for lake model call.
-  dtlake = abatm
+  dtlake = dtsrf
 !sb   end lake model mods
 !
   call set_scenario(scenario)
@@ -923,13 +923,13 @@ module mod_params
   write (aline, *) 'model parameters '
   call say
   write (aline,'(a,f12.6)')  ' time step for radiation '// &
-          'model in minutes:  abrad = ' , abrad 
+          'model in minutes:  dtrad = ' , dtrad 
   call say 
   write (aline,'(a,f12.6)')  ' time step for land surface '// &
-          'model in seconds:  abatm  = ' , abatm 
+          'model in seconds:  dtsrf  = ' , dtsrf 
   call say
   write (aline,'(a,f12.6)')  ' time step for LW absorption/'// &
-          'emissivity in hours:  abemh  = ' , abemh 
+          'emissivity in hours:  dtabem  = ' , dtabem 
   call say
   write (aline,'(a,f12.6)')  ' time step for atmosphere model '// &
           ' in seconds:  dt     = ' , dt

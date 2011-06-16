@@ -148,9 +148,9 @@
 !
  &timeparam
  dt     =   150.,   ! time step in seconds
- abrad  =    30.,   ! time interval in min solar rad calculated
- abemh  =    18.,   ! time interval absorption-emission calculated (hours)
- abatm  =   600.,   ! time interval at which bats is called (secs)
+ dtrad  =    30.,   ! time interval solar radiation calculated (minutes)
+ dtabem =    18.,   ! time interval absorption-emission calculated (hours)
+ dtsrf  =   600.,   ! time interval at which land model is called (seconds)
  /
 !
 ! Model Output control
