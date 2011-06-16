@@ -718,6 +718,10 @@ module mod_params
     end if
   end if
 !
+!.....calculate the time step in minutes.
+!
+  dtmin = dt/secpm
+!
 !-----reset the options/calculate variables using namelist info:
 !
   bdydate1 = idate1
@@ -730,9 +734,16 @@ module mod_params
   nchefreq = idnint(secph*chemfrq)
   klak = idnint(lakfrq/srffrq)
 
+  ntsrf = idnint(abatm/dt)
+  ntrad = idnint(abrad/dtmin)
+  ntbdy = idnint((dble(ibdyfrq)*secph)/dt)
+
   ktau = 0
+  bdif = idate2 - idate1
+  mtau = idnint((bdif%hours()*secph)/dt)
   xtime = d_zero
   ntime = 0
+
   do ns = 1 , nsplit
     dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
     dtau(ns) = dtsplit(ns)
@@ -740,18 +751,12 @@ module mod_params
   write (aline, *) 'param: dtau = ' , dtau
   call say
   ifrabe = idnint(secph*abemh/dt) !abemh is time interval abs./emis. calc.
-  ntsrf = idnint(abatm/dt)
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
-!
-!.....calculate the time step in minutes.
-!
-  dtmin = dt/secpm
   deltmx = dt
 !.....compute the time steps for radiation computation.
-  ntrad = idnint(abrad/dtmin)
 !sb   lake model mods
 !.....compute the time steps for lake model call.
   dtlake = abatm
@@ -768,9 +773,6 @@ module mod_params
     end if
   end if
 !
-  bdif = idate2 - idate1
-  xdfbdy = dble(ibdyfrq)/houpd
-! 
   write (aline,*) 'param: initial date of this '// &
                   'simulation: ' , idate1%tostring()
   call say

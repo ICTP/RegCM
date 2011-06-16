@@ -322,7 +322,7 @@ module mod_interface
 !
 !     Read in boundary conditions if needed
 !
-      if ( idatex == bdydate1 .and. idatex < idate2 ) then
+      if ( mod(ktau,ntbdy) == 0 .and. (ktau > 0 .and. ktau < mtau) ) then
         call bdyin
 #ifdef CHEMTEST
         if ( ichem == 1 ) call bdyin_chem

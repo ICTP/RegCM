@@ -76,7 +76,7 @@ module mod_chem
     existing = .false.
 
     if ( myid == 0 ) then
-      if ( idatex == globidate1 ) then
+      if ( mod(ktau+1,ntbdy) == 0 ) then
         write (finm,99001) trim(dirglob),pthsep,trim(domname), &
                '_OXBC',globidate1%toidate()
       else

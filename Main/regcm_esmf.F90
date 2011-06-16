@@ -198,9 +198,10 @@ program regcm
 !     &                          rc=status)
 !
 !
-!      first = .TRUE.
-!      timestr = 0.0D0
-!      timeend = idatediff(idate2,idate1)*3600.0
+!      first = .true.
+!      timestr = d_zero
+!      tdif = idate2 - idate1
+!      timeend = tdif%hours() * secph
 !      call RCM_run(timestr, timeend, first)
 !
 !**********************************************************************

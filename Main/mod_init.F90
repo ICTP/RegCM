@@ -441,6 +441,8 @@ module mod_init
 !
     call read_savefile_part1(bdydate1)
 !
+    mtau = mtau + ktau
+!
     if ( myid == 0 ) then
       print * , 'ozone profiles restart'
       do k = 1 , kzp1
@@ -1079,6 +1081,7 @@ module mod_init
                      0,mpi_comm_world,ierr)
 #endif
     call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,ierr)
     call idatex%broadcast(0,mpi_comm_world,ierr)
     call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)

@@ -1069,7 +1069,7 @@ module mod_tendency
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( idatex == bdydate1 ) xtm1 = -dtmin
+          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtmin
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
 #ifndef BAND
@@ -1435,7 +1435,7 @@ module mod_tendency
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xtime - dtmin
-          if ( idatex == bdydate1 ) xtm1 = -dtmin
+          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtmin
           call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
           call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
         end if
@@ -1865,7 +1865,7 @@ module mod_tendency
     ntime = ntime + idnint(dtmin*minph)
     idatex = idatex + intmdl
 
-    if ( idatex == bdydate1 ) then
+    if ( mod(ktau,ntbdy) == 0 ) then
       xtime = d_zero
       if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0
@@ -1948,7 +1948,7 @@ module mod_tendency
 !   recalculate solar declination angle if forecast time larger than
 !   24 hours:
 !
-    if ( idatex == bdydate1 ) then
+    if ( mod(ktau,ntbdy) == 0 ) then
       if (myid == 0) then
         write (6,*) 'Recalculate solar declination angle at ',idatex%toidate()
       end if
