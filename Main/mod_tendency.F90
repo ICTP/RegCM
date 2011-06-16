@@ -1313,7 +1313,7 @@ module mod_tendency
  
 !     calculate solar zenith angle
       if ( ktau == 0 .or. &
-           mod(ktau+1,nbatst) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+           mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         call zenitm(coszrs,iy,j)
         call slice1D(j)
       end if
@@ -1334,8 +1334,8 @@ module mod_tendency
  
 #ifndef CLM
 !     call vector bats for surface physics calculations
-      if ( ktau == 0 .or. mod(ktau+1,nbatst) == 0 ) then
-        dtbat = dt*d_half*dble(nbatst)
+      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+        dtbat = dt*d_half*dble(ntsrf)
         if ( ktau == 0 ) dtbat = dt
         call vecbats(j)
       end if
@@ -1349,14 +1349,14 @@ module mod_tendency
     else
       r2cdoalb = .false.
     end if
-    if ( ktau == 0 .or. mod(ktau+1,nbatst) == 0 ) then
+    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       ! Timestep used is the same as for bats
       if ( ktau == 0 ) then
         r2cnstep = 0
       else
-        r2cnstep = (ktau+1)/nbatst
+        r2cnstep = (ktau+1)/ntsrf
       end if
-      dtbat = dt*d_half*nbatst
+      dtbat = dt*d_half*ntsrf
       ! CLM j loop is in mtrxclm
       call mtrxclm
     end if
@@ -1949,9 +1949,10 @@ module mod_tendency
 !   24 hours:
 !
     if ( idatex == bdydate1 ) then
-      call solar1(xtime)
-      dectim = dnint(minpd+dectim)
-      if ( myid == 0 ) write (*,*) ' dectim = ' , dectim
+      if (myid == 0) then
+        write (6,*) 'Recalculate solar declination angle at ',idatex%toidate()
+      end if
+      call solar1
     end if
 !
     call time_end(subroutine_name,idindx)

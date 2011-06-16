@@ -38,14 +38,14 @@ module mod_runparams
   integer :: ntime
   integer :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefreq , nsrffrq
 
-  real(8) :: declin , dectim , deltmx , xdfbdy
+  real(8) :: declin , deltmx , xdfbdy
   real(8) :: xtime
   integer :: ktau
 
   real(8) :: calday , dtime , twodt
   logical :: doabsems , dolw , dosw
 
-  integer :: ifrabe , nbatst , ntrad
+  integer :: ifrabe , ntsrf , ntrad
   integer :: klak
 !
   real(8) :: dt , dt2 , dtbat , dtlake , dtmin

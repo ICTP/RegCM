@@ -284,7 +284,7 @@
 !--------------------------------------------------------------------
 !
       uconv = minph*dtmin
-      aprdiv = d_one/dble(nbatst)
+      aprdiv = d_one/dble(ntsrf)
       if ( ktau == 0 ) aprdiv = uconv
       do i = istart , iend
         prainx = pptsum(i)*uconv

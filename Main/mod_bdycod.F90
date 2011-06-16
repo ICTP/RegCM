@@ -218,6 +218,10 @@ module mod_bdycod
       mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then
         call open_icbc(monfirst(bdydate2))
+        mmrec = icbc_search(bdydate2)
+        if (mmrec < 0) then
+          call fatal(__FILE__,__LINE__,'ICBC for '//bdydate2%tostring()//' not found')
+        end if
       end if
       call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
       ps1_io = ps1_io*d_r10
@@ -1021,8 +1025,8 @@ module mod_bdycod
 !
 !   compute the time interval for boundary tendency:
 !
-    dtb = xt*minph
-    if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
+    dtb = xt*secpm
+    if ( dabs(xt) < 0.00001D0 .and. ktau > 0 ) then
       dtb = dble(ibdyfrq)*secph
     end if
 !

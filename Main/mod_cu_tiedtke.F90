@@ -254,7 +254,7 @@ module mod_cu_tiedtke
         icon(j) = icon(j) + 1
         ! total precip cumulative 
         sfsta%rainc(i,j) = sfsta%rainc(i,j) + paprc(ii)+paprs(ii)
-        pptc(i,j)= pptc(i,j) + (prsfc(ii)+pssfc(ii))/dble(nbatst)
+        pptc(i,j)= pptc(i,j) + (prsfc(ii)+pssfc(ii))/dble(ntsrf)
       end if
     end do
 

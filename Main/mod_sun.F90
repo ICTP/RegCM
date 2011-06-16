@@ -47,15 +47,11 @@ module mod_sun
 ! This subroutine computes the solar declination angle
 ! from the julian date.
 !
-! xtime  : forecast time in minutes.
-!
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine solar1(xtime)
+  subroutine solar1
 
     implicit none
-!
-    real(8) , intent(in) :: xtime
 !
     real(8) :: decdeg
 #ifdef CLM
@@ -157,9 +153,9 @@ module mod_sun
       coszrs(i) = dmin1(1.0D0,coszrs(i))
     end do
 #else
-    xt24 = dmod(idatex%hour*minph+xtime,minpd)
+    xt24 = dble(idatex%second_of_day)/secph
     do i = 1 , ivmx
-      tlocap = xt24/minph + mddom%xlon(i,j)/15.0D0
+      tlocap = xt24 + mddom%xlon(i,j)/15.0D0
       tlocap = dmod(tlocap+houpd,houpd)
       omga = 15.0D0*(tlocap-12.0D0)*degrad
       xxlat = mddom%xlat(i,j)*degrad

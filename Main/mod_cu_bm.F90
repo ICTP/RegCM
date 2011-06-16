@@ -633,7 +633,7 @@ module mod_cu_bm
       if ( prainx > dlowval ) then
         sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
 !       precipitation rate for bats (mm/s)
-        aprdiv = dble(nbatst)
+        aprdiv = dble(ntsrf)
         if ( ktau == 0 ) aprdiv = d_one
         pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
       end if

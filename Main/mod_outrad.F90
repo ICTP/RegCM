@@ -154,7 +154,8 @@
           end do
 !
           if ( ifrad ) then
-            if ( mod(ntime,nradfrq) == 0 ) then
+            if ( mod(ntime+idnint(dtmin*minph),nradfrq) == 0 .or.  &
+                ( ktau == 0 ) .or. ( ifrest .and. .not. done_restart) ) then
               do k = 1 , kz
                 do i = 2 , iym1
                   frad3d(j,i-1,k,1) = real(h2ommr(i,k))

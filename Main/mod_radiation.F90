@@ -396,7 +396,7 @@ module mod_radiation
       cfc110 = cgas(5,idatex%year)*1.0D-12*4.69548D0
       cfc120 = cgas(6,idatex%year)*1.0D-12*4.14307D0
     else
-      write (aline,*) '  Simulation date:  ' , idatex%tostring()
+      write (aline,*) '  Simulation year:  ' , idatex%year
       call say
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')

@@ -740,7 +740,7 @@ module mod_params
   write (aline, *) 'param: dtau = ' , dtau
   call say
   ifrabe = idnint(secph*abemh/dt) !abemh is time interval abs./emis. calc.
-  nbatst = idnint(abatm/dt)
+  ntsrf = idnint(abatm/dt)
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
@@ -785,9 +785,6 @@ module mod_params
   call say
   idatex = idate1
 !
-!     dectim : is the time in minutes after which the solar declination
-!     angle must be recalculated.
-!
   if ( myid == 0 ) then
     call open_domain(r8pt,dx,sigma)
   end if
@@ -802,10 +799,6 @@ module mod_params
                    'simulation: idate  = ' , idate0%tostring()
   call say
 !
-!.....find the julian day of the year and calulate dectim
-!
-  dectim = (minpd-dble(idate0%hour)*minph)
- 
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
 !     qcth   : threshold for the onset of autoconversion.

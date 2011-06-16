@@ -68,7 +68,7 @@ module mod_cu_em
     real(8) , dimension(kzp1) :: phcup
 !
     uconv = dt*d_half
-    aprdiv = d_one/dble(nbatst)
+    aprdiv = d_one/dble(ntsrf)
     if ( ktau == 0 ) aprdiv = d_one
     iconj = 0
     do i = 2 , iym2
