@@ -118,7 +118,7 @@ module mod_mtrxclm
   use shr_orb_mod
   use shr_kind_mod,  only : r8 => shr_kind_r8
   use clm_varpar,    only : lsmlon , lsmlat
-  use clm_varsur,    only : landmask , landfrac , lndcat_clm
+  use clm_varsur,    only : landmask , landfrac
   use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
   use clm_varsur,    only : clm2bats_veg , ht_rcm
   use clm_varsur,    only : clm_fracveg
@@ -158,13 +158,19 @@ module mod_mtrxclm
 !     land surface timestep
   r2cdtime = idint(abatm)
 !     start date and time
-  r2cstart_ymd = idate1/100
-  r2cstart_tod = mod(idate1,100)
+  r2cstart_ymd = idate1%year*10000+idate1%month*100+idate1%day
+  r2cstart_tod = idate1%second_of_day
 !     stop date and time
-  r2cstop_ymd = idate2/100
-  r2cstop_tod = mod(idate2,100)
+  r2cstop_ymd = idate2%year*10000+idate2%month*100+idate2%day
+  r2cstop_tod = idate2%second_of_day
 !     calendar type (GREGORIAN not available in regcm)
-  r2cclndr = 'NO_LEAP'
+  if ( ical == noleap ) then
+    r2cclndr = 'NO_LEAP'
+  else if ( ical == gregorian ) then
+    r2cclndr = 'GREGORIAN'
+  else
+    call fatal(__FILE__,__LINE__,'CLM supports only gregorian and noleap')
+  end if
 !     don't write to NCAR Mass Store
   r2cmss_irt = 0
 !     clm output frequency
@@ -188,7 +194,6 @@ module mod_mtrxclm
   r2cimask = imask
 !     Set elevation and BATS landuse type (abt added)
   if ( .not.allocated(ht_rcm) ) allocate(ht_rcm(iy,jx))
-  if ( .not.allocated(lndcat_clm) ) allocate(lndcat_clm(iy,jx))
   if ( .not.allocated(init_tgb) ) allocate(init_tgb(iy,jx))
   if ( .not.allocated(clm2bats_veg) ) allocate(clm2bats_veg(jx,iy))
   if ( .not.allocated(clm_fracveg) ) allocate(clm_fracveg(iy,jx))
@@ -196,11 +201,6 @@ module mod_mtrxclm
     do j = 1 , jx
       do i = 1 , iy
         ht_rcm(i,j)      = mddom_io%ht(i,j)
-        if ( ifrest ) then
-          lndcat_clm(i,j) = lndcat2d_io(i,j)
-        else
-          lndcat_clm(i,j) = mddom_io%lndcat(i,j)
-        end if
         init_tgb(i,j)  = ts0_io(i,j)
         clm_fracveg(i,j) = d_zero
       end do
@@ -755,7 +755,6 @@ module mod_mtrxclm
 
 !     deallocate some variables used in CLM initialization only
   if ( allocated(ht_rcm) )       deallocate(ht_rcm)
-  if ( allocated(lndcat_clm) )   deallocate(lndcat_clm)
   if ( allocated(init_tgb) )     deallocate(init_tgb)
   if ( allocated(clm2bats_veg) ) deallocate(clm2bats_veg)
   if ( allocated(clm_fracveg) )  deallocate(clm_fracveg)

@@ -113,7 +113,7 @@ mod_che_tend.o: mod_che_tend.F90 mod_bats.o mod_cvaria.o \
                 mod_advection.o mod_diagnosis.o mod_mppio.o mod_slice.o
 mod_cldfrac.o: mod_cldfrac.f90 mod_pmoist.o mod_rad.o \
                mod_slice.o
-mod_clm.o: mod_clm.F90
+mod_clm.o: mod_clm.F90 mod_memutil.o
 mod_colmod3.o: mod_colmod3.F90 mod_bats.o mod_runparams.o \
                mod_radiation.o mod_main.o mod_rad.o \
                mod_outrad.o

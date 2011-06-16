@@ -31,7 +31,6 @@ module mod_sun
 #ifdef CLM
   use mod_clm
   use clm_time_manager , only : get_curr_calday
-  use clm_varsur ,  only : numdays
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
                            shr_orb_params
 #endif
@@ -68,12 +67,12 @@ module mod_sun
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
+!
     calday = yeardayfrac(idatex)
+!
 #ifdef CLM
     log_print = .false.
-
-    iyear_ad = idate1/1000000
-    numdays = dayspy
+    iyear_ad = idatex%year
 
 !   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
     call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
@@ -84,7 +83,6 @@ module mod_sun
                     & declin,r2ceccf)
 
 !   convert declin to degrees
-    declin = declin
     decdeg = declin/degrad
 #else
     theta = twopi*calday/dayspy

@@ -159,6 +159,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_clm_void.o: mod_clm_void.F90
+mod_clm.o: mod_space.o mod_message.o mod_memutil.o
 
 accFldsMod.o: $(BSP)/accFldsMod.F90
 atmdrvMod.o: $(BSP)/atmdrvMod.F90

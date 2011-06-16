@@ -42,7 +42,7 @@ module mod_init
   use mod_mppio
 #ifdef CLM
   use mod_clm
-  use clm_varsur , only : init_tgb , init_grid
+  use clm_varsur , only : init_tgb , init_grid , numdays
 #endif
 !
   private
@@ -1165,6 +1165,9 @@ module mod_init
 !
 !-----compute the solar declination angle:
 !
+#ifdef CLM
+  numdays = dayspy
+#endif
   if (myid == 0) then
     write (6,*) 'Calculate solar declination angle at ',idatex%toidate()
   end if
