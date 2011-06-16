@@ -258,7 +258,7 @@ module mod_params
   abemh = 12.0D0  ! time interval absorption-emission calculated (hours)
   dt = 200.0D0    ! time step in seconds
  
-!-----namelist outparam:       note: * signifies currently not in namelist
+!-----namelist out      note: * signifies currently not in namelist
 !
   rfstrt = .false.      ! *
   ifsave = .false.
@@ -425,7 +425,7 @@ module mod_params
 !  
 !-----read in namelist variables:
     read (ipunit, restartparam)
-    print * , 'param: RESTARTPARAM namelist READ IN'
+    print * , 'RESTARTPARAM namelist READ IN'
 
     idate0 = mdate0
     idate1 = mdate1
@@ -435,33 +435,33 @@ module mod_params
     call idate2%setcal(ical)
 
     read (ipunit, timeparam)
-    print * , 'param: TIMEPARAM namelist READ IN'
+    print * , 'TIMEPARAM namelist READ IN'
     read (ipunit, outparam)
-    print * , 'param: OUTPARAM namelist READ IN'
+    print * , 'OUTPARAM namelist READ IN'
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
     if ( lakfrq < d_zero ) lakfrq = srffrq
     read (ipunit, physicsparam)
-    print * , 'param: PHYSICSPARAM namelist READ IN'
+    print * , 'PHYSICSPARAM namelist READ IN'
     if ( ipptls == 1 ) then
       read (ipunit, subexparam)
-      print * , 'param: SUBEXPARAM namelist READ IN'
+      print * , 'SUBEXPARAM namelist READ IN'
     end if
     if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
       read (ipunit, grellparam)
-      print * , 'param: GRELLPARAM namelist READ IN'
+      print * , 'GRELLPARAM namelist READ IN'
     end if
     if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
       read (ipunit, emanparam)
-      print * , 'param: EMANPARAM namelist READ IN'
+      print * , 'EMANPARAM namelist READ IN'
     end if
     if ( icup == 5 ) then
       read (ipunit, tiedtkeparam)
-      print * , 'param: TIEDTKEPARAM namelist READ IN'
+      print * , 'TIEDTKEPARAM namelist READ IN'
     end if
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
-      print * , 'param: CHEMPARAM namelist READ IN'
+      print * , 'CHEMPARAM namelist READ IN'
       if (ntr <= 0) then
         call fatal(__FILE__,__LINE__,                                 &
                 &'CHEMICAL SCHEME WITH 0 TRACERS?')
@@ -478,7 +478,7 @@ module mod_params
     end if
 #ifdef CLM
     read (ipunit , clmparam)
-    print * , 'param: CLMPARAM namelist READ IN'
+    print * , 'CLMPARAM namelist READ IN'
 #endif
   end if 
 
@@ -665,7 +665,7 @@ module mod_params
 !-----------------------------------------------------------------------
 ! 
   if ( myid == 0 ) then
-    write (aline,*) 'param: starting first checks' 
+    write (aline,*) 'starting first checks' 
     call say
     if ( mod(idnint(abrad*60.0D0),idnint(dt)) /= 0 ) then
       write (aline,*) 'ABRAD=' , abrad , 'DT=' , dt
@@ -718,6 +718,10 @@ module mod_params
     end if
   end if
 !
+  if ( ifrest ) then
+    doing_restart = .true.
+  end if
+!
 !.....calculate the time step in minutes.
 !
   dtmin = dt/secpm
@@ -748,7 +752,7 @@ module mod_params
     dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
     dtau(ns) = dtsplit(ns)
   end do
-  write (aline, *) 'param: dtau = ' , dtau
+  write (aline, *) 'dtau = ' , dtau
   call say
   ifrabe = idnint(secph*abemh/dt) !abemh is time interval abs./emis. calc.
   dt2 = d_two*dt
@@ -773,17 +777,17 @@ module mod_params
     end if
   end if
 !
-  write (aline,*) 'param: initial date of this '// &
+  write (aline,*) 'initial date of this '// &
                   'simulation: ' , idate1%tostring()
   call say
-  write (aline,*) 'param:   final date of this '// &
+  write (aline,*) '  final date of this '// &
                   'simulation: ' , idate2%tostring()
   call say
   write (aline,'(a,i10,a)')  &
-       'param: total simulation lenght ' , idnint(bdif%hours()), ' hours'
+       'total simulation lenght ' , idnint(bdif%hours()), ' hours'
   call say
   write (aline,'(a,f9.4)')  &
-       'param: dtmin (timestep in minutes)' , dtmin
+       'dtmin (timestep in minutes)' , dtmin
   call say
   idatex = idate1
 !
@@ -797,7 +801,7 @@ module mod_params
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
  
 !rst-fix
-  write (aline, *) 'param: initial date of the global '// &
+  write (aline, *) 'initial date of the global '// &
                    'simulation: idate  = ' , idate0%tostring()
   call say
 !
@@ -823,7 +827,7 @@ module mod_params
 !
   conf = d_one
  
-  write (aline, *) 'param: input/output parameters '
+  write (aline, *) 'input/output parameters '
   call say
   write (aline,*) 'if true(T) create SAV files for '// &
                   'restart: ifsave = ' , ifsave  
@@ -858,7 +862,7 @@ module mod_params
   call say
   write (aline,*) ' '
   call say
-  write (aline,*) 'param: physical parameterizations '
+  write (aline,*) 'physical parameterizations '
   call say
   write (aline,'(a,i2)') ' Lateral Boundary conditions '// &
                           'scheme: iboudy = ' , iboudy
@@ -916,7 +920,7 @@ module mod_params
 #endif
   write (aline, *) ' '
   call say
-  write (aline, *) 'param: model parameters '
+  write (aline, *) 'model parameters '
   call say
   write (aline,'(a,f12.6)')  ' time step for radiation '// &
           'model in minutes:  abrad = ' , abrad 
@@ -932,7 +936,7 @@ module mod_params
   call say
   write (aline, *) ' '
   call say
-  write (aline,'(a,i2)' ) 'param: # of bottom model levels '// &
+  write (aline,'(a,i2)' ) '# of bottom model levels '// &
                           'with no clouds:  ncld = ' , ncld
   call say
   write (aline, *) ' '
@@ -952,7 +956,7 @@ module mod_params
     call mpi_bcast(dustbsiz,nbin*2,mpi_real8,0,mpi_comm_world,ierr)
   end if
 
-  write (aline, *) 'param: Reading in DOMAIN data'
+  write (aline, *) 'Reading in DOMAIN data'
   call say
 
   if ( myid == 0 ) then
@@ -1191,7 +1195,7 @@ module mod_params
       exit
     end if
   end do
-  write (aline, '(a,i3)') 'param: Index of highest allowed pbl:'// &
+  write (aline, '(a,i3)') 'Index of highest allowed pbl:'// &
                           '  kt = ' , kt
   call say
   write (aline, *) ' '

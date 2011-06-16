@@ -322,7 +322,8 @@ module mod_interface
 !
 !     Read in boundary conditions if needed
 !
-      if ( mod(ktau,ntbdy) == 0 .and. (ktau > 0 .and. ktau < mtau) ) then
+      if ( mod(ktau,ntbdy) == 0 .and. &
+          (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
         call bdyin
 #ifdef CHEMTEST
         if ( ichem == 1 ) call bdyin_chem
@@ -352,7 +353,7 @@ module mod_interface
 !
 !     Write output for this timestep if requested
 !
-      if (ifrest) done_restart = .true.
+      if (ifrest) doing_restart = .false.
       call output
 !
 !     Increment time

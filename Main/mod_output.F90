@@ -80,7 +80,7 @@ module mod_output
 !
   lstartup = .false.
   if ( myid == 0 ) then
-    if ( ktau == 0 .or. (ifrest .and. .not. done_restart) ) then
+    if ( ktau == 0 .or. doing_restart ) then
       call mkfile
       lstartup = .true.
     end if
@@ -114,7 +114,7 @@ module mod_output
     ldoche = .true.
   end if
 
-  if ( ifrest .and. .not. done_restart ) then
+  if ( doing_restart ) then
     ldoatm = .false.
     ldosrf = .false.
     ldorad = .false.

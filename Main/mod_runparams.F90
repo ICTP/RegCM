@@ -59,7 +59,7 @@ module mod_runparams
              iocnflx , ipgf , ipptls , lakemod , idcsst , iseaice ,     &
              idesseas , iocnrough
 
-  logical :: ifrest , rfstrt , done_restart
+             logical :: ifrest , rfstrt , doing_restart
 
   integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !
@@ -78,7 +78,7 @@ module mod_runparams
   integer, private  :: ierr 
   real(8) , private :: total_allocation_size
   data total_allocation_size /d_zero/
-  data done_restart /.false./
+  data doing_restart /.false./
 
   contains
 

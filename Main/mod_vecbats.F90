@@ -570,7 +570,7 @@ module mod_vecbats
       end do
 
       if ( mod(ntime+idnint(dtmin*minph),nsrffrq) == 0 .or.  &
-          ktau == 0 .or. ( ifrest .and. .not. done_restart ) ) then
+          ktau == 0 .or. doing_restart ) then
         if ( ktau <= 1 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
