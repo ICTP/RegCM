@@ -34,7 +34,7 @@ else
   CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH)
 endif
 
-LDFLAGS += $(LCLMLIB) $(LNETLIB)
+LIBS += $(LCLMLIB) $(LNETLIB)
 
 bin_PROGRAMS = regcm
 
