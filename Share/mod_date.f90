@@ -67,8 +67,8 @@ module mod_date
   end type rcm_time_and_date
 
   type rcm_time_interval
-    integer :: ival
-    integer :: iunit
+    integer :: ival = 0
+    integer :: iunit = usec
     contains
       procedure , pass :: printint => print_rcm_time_interval
       procedure , pass(x) :: setunit => set_timeunit
@@ -81,7 +81,7 @@ module mod_date
   end interface assignment(=)
 
   interface operator(==)
-    module procedure isequaldt , isequalit
+    module procedure isequaldt , isequalidt , isequalit
   end interface operator(==)
 
   interface operator(+)
@@ -454,10 +454,20 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) , intent(in) :: y
-    isequaldt = ( x%calendar == y%calendar ) .and.                     &
-                ( x%days_from_reference == y%days_from_reference) .and. &
-                ( x%second_of_day == y%second_of_day)
+    call check_cal(x,y)
+    isequaldt = ( x%days_from_reference == y%days_from_reference) .and. &
+                ( x%second_of_day       == y%second_of_day)
   end function isequaldt
+
+  logical function isequalidt(x, y)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer , intent(in) :: y
+    type (rcm_time_and_date) :: yy
+    yy = y
+    call yy%setcal(x%calendar)
+    isequalidt = isequaldt(x,yy)
+  end function isequalidt
 
   logical function isequalit(x, y)
     implicit none
@@ -860,6 +870,7 @@ module mod_date
     mx%hour = 0
     mx%minute = 0
     mx%second = 0
+    call mx%setup()
   end function setmidnight
 
   logical function lsameweek(x,y) result(ls)
@@ -1250,7 +1261,11 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    gt = ((x-y) > rcm_time_interval(0,usec))
+    gt = (x%days_from_reference > y%days_from_reference)
+    if (gt) return
+    if (x%days_from_reference == y%days_from_reference) then
+      gt = (x%second_of_day > y%second_of_day)
+    end if
   end function date_greater
 
   logical function idate_greater(x,y) result(gt)
@@ -1259,15 +1274,19 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    yy%calendar = x%calendar
-    gt = ((x - yy) > rcm_time_interval(0,usec))
+    call yy%setcal(x%calendar)
+    gt = date_greater(x,yy)
   end function idate_greater
 
   logical function date_less(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    lt = ((x-y) < rcm_time_interval(0,usec))
+    lt = (x%days_from_reference < y%days_from_reference)
+    if (lt) return
+    if (x%days_from_reference == y%days_from_reference) then
+      lt = (x%second_of_day < y%second_of_day)
+    end if
   end function date_less
 
   logical function idate_less(x,y) result(lt)
@@ -1276,15 +1295,18 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    yy%calendar = x%calendar
-    lt = ((x - yy) < rcm_time_interval(0,usec))
+    call yy%setcal(x%calendar)
+    lt = date_less(x,yy)
   end function idate_less
 
   logical function date_ge(x,y) result(gt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    gt = (x == y) .or. ((x - y) > rcm_time_interval(0,usec))
+    gt = (x%days_from_reference == y%days_from_reference .and. &
+          x%second_of_day       == y%second_of_day)
+    if (gt) return
+    gt = date_greater(x,y)
   end function date_ge
 
   logical function idate_ge(x,y) result(gt)
@@ -1293,15 +1315,18 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    yy%calendar = x%calendar
-    gt = (x == yy) .or. ((x - yy) > rcm_time_interval(0,usec))
+    call yy%setcal(x%calendar)
+    gt = date_ge(x,yy)
   end function idate_ge
 
   logical function date_le(x,y) result(lt)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    lt = (x == y) .or. ((x - y) > rcm_time_interval(0,usec))
+    lt = (x%days_from_reference == y%days_from_reference .and. &
+          x%second_of_day       == y%second_of_day)
+    if (lt) return
+    lt = date_less(x,y)
   end function date_le
 
   logical function idate_le(x,y) result(lt)
@@ -1310,15 +1335,16 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    yy%calendar = x%calendar
-    lt = (x == yy) .or. ((x - yy) > rcm_time_interval(0,usec))
+    call yy%setcal(x%calendar)
+    lt = date_le(x,yy)
   end function idate_le
 
   logical function date_ne(x,y) result(ln)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    ln = .not. (x == y)
+    ln = (x%days_from_reference /= y%days_from_reference .or. &
+          x%second_of_day       /= y%second_of_day)
   end function date_ne
 
   logical function idate_ne(x,y) result(ln)
@@ -1327,8 +1353,8 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    yy%calendar = x%calendar
-    ln = .not. (x == yy)
+    call yy%setcal(x%calendar)
+    ln = date_ne(x,yy)
   end function idate_ne
 
   real(dp) function tohours(x) result(hs)
