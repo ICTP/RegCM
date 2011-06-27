@@ -134,6 +134,11 @@
         call init_globwindow(lat0,lon0,lat1,lon1)
       end if
 
+      if ( .not. (dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+                  dattyp == 'EH5B1' .or. dattyp == 'EHA1B') ) then
+        ehso4 = .false.
+      end if
+
       if ( ierr/=0 ) then
         write ( 6, * ) 'Parameter initialization not completed'
         write ( 6, * ) 'Usage : '

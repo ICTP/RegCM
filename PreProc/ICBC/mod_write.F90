@@ -51,7 +51,7 @@
         allocate(t4(jx,iy,kz))
         allocate(u4(jx,iy,kz))
         allocate(v4(jx,iy,kz))
-        if ( dattyp=='EH5OM' .and. ehso4) then
+        if ( ehso4) then
           allocate(sulfate4(jx,iy,kz))
         end if
       end subroutine init_output
@@ -67,7 +67,7 @@
         deallocate(t4)
         deallocate(u4)
         deallocate(v4)
-        if ( dattyp=='EH5OM' .and. ehso4) then
+        if ( ehso4) then
           deallocate(sulfate4)
         end if
         if (ncout > 0) then
@@ -400,7 +400,7 @@
         istatus = nf90_put_att(ncout, ivar(7), 'coordinates', &
                             &  'xlon xlat')
         call check_ok(istatus,'Error adding qv coordinates')
-        if ( dattyp=='EH5OM' .and. ehso4) then
+        if ( ehso4) then
           istatus = nf90_def_var(ncout, 'so4', nf90_float, x3ddim, &
                               &  ivar(8))
           call check_ok(istatus,'Error adding variable so4')
@@ -500,10 +500,14 @@
         call check_ok(istatus,'Error variable t write')
         istatus = nf90_put_var(ncout, ivar(7), q4, istart, icount)
         call check_ok(istatus,'Error variable qv write')
-        if ( dattyp=='EH5OM' .and. ehso4) then
+        if ( ehso4) then
           istatus = nf90_put_var(ncout, ivar(8), sulfate4,  &
                             &    istart, icount)
           call check_ok(istatus,'Error variable so4 write')
+        end if
+        if ( debug_level > 2 ) then
+          istatus = nf90_sync(ncout)
+          call check_ok(istatus,'Error sync output file')
         end if
         itime = itime + 1
 !

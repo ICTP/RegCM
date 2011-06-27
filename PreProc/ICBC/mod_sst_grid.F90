@@ -429,6 +429,10 @@
         istatus = nf90_put_var(ncid, ivar(4), transpose(lu), &
                                istart, icount)
         call check_ok(istatus,'Error variable landuse write')
+        if ( debug_level > 2 ) then
+          istatus = nf90_sync(ncid)
+          call check_ok(istatus,'Error sync output file')
+        end if
         itime = itime + 1
       end subroutine writerec
 
