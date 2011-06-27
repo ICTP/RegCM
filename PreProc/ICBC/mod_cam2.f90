@@ -21,103 +21,10 @@ module mod_cam2
 
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
-! This is a package of subroutines to read CCSM T85 and T42 L26 data in
-! NETCDF format and to prepare Initial and boundary conditions for RegCM3.
-! Both Global and Window of CCSM data are acceptable.
+! This is a package of subroutines to read CAM2 data in
+! NETCDF format and to prepare Initial and boundary conditions for RegCM.
+! Both Global and Window of CAM2 data are acceptable.
 ! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU
-!
-!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
-!
-!  SUBROUTINE CAM85
-!  Read unpacked CCSM NETCDF T85 L26 (six hourly) data and save into data
-!    arrays. Each varaible is read in seperate monthly data files.
-!
-!  SUBROUTINE CAM42
-!  Read unpacked CCSM NETCDF T42 L26 (six hourly) data and save into data
-!     arrays. Each varaible is read in seperate yearly data files.
-!
-!  SUBROUTINE HEADER_CAM85 & HEADER_CAM42
-!  Define pressure levels, Ak and Bk coeffcients and global grid dimensions
-!     In CCSM, the vertical coordinate is a hybrid sigma-pressure system
-!     The pressure is defined as:
-!     P = Ak*Po+Bk*PS(i,j)
-!     All 3D fields required for ICBC are at mid-points, so
-!     Ak refers to hyam, the hybrid A coefficient at midpoints, and
-!     Bk refers to hybm, the hybrid B coefficient at midpoints
-!     Po = 1000mb
-!
-!  SUBROUTINE GET_CAM85
-!  Main subroutine to read data arrays from CAM85 and prepare ICBCs at RCM Grid
-!
-!  SUBROUTINE GET_CAM42
-!  Main subroutine to read data arrays from CAM42 and prepare ICBCs at RCM Grid
-!
-!  SUBROUTINE INITDATE3
-!  Initialize CCSM 365 days calendar (No leap years)
-!
-!  SUBROUTINE CAMCLNDR
-!  Subroutine for SST preparation with No leap year
-!
-!  SUBROUTINE HANDLE_ERR
-!  Handle error for NETCDF calls
-!
-!  SUBROUTINES CALLED FROM ICBC.f
-!     1) INTLIN
-!     2) INTLOG
-!     3) HUMIF1FV
-!     3) BILINX2CR
-!     4) BILINX2DT
-!     5) TOP2BTM
-!     6) UVROT4
-!     7) INTGTB
-!     8) P1P2
-!     8) INTPSN
-!     9) INTV3
-!     10) MKSST
-!     10) HUMID2FV
-!     10) INTV1
-!     11) WRITEF
-!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
-!  DATA PREPARATION
-!  Dataset required to use this code can be preapred using NCO utilitiles
-!     such as NCKS, NCRCAT etc.
-!  Prepare:
-!     Monthly data files for CAM85
-!     Yearly data files for CAM42
-!  For example:
-!     To extract global data of CAM42 for Specific Humidity
-!     ncks -v Q input.nc cam2.shum.nyear.nc    ,and
-!     to extract a subset (window) of CAM85 data for Specific Humidity
-!     ncks -d lat,min,max -d lon,min,max -v Q input.nc cam2.shumJAN.nyear.nc
-!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
-!  NAMING CONVENTION (Global Data Files) CAM85
-!  (MONTH) = JAN/FEB/MAR/APR/MAY/JUN/JUL/AUG/SEP/OCT/NOV/DEC
-!
-!  cam2.air(MONTH).nyear.nc     for 'T'     (Temperature)
-!  cam2.hgt(MONTH).nyear.nc     for 'Z3'    (Geopotential Height)
-!  cam2.shum(MONTH).nyear.nc    for 'Q'     (Specific Humidity)
-!  cam2.uwnd(MONTH).nyear.nc    for 'U'     (Zonal Wind)
-!  cam2.vwnd(MONTH).nyear.nc    for 'V'     (Meridonial Wind)
-!  cam2.pres(MONTH).nyear.nc    for 'PS'    (Surface Pressure)
-!
-!  PATH /DATA/CAM85/NYEAR/
-!  cam2_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
-!
-!  PATH /DATA/CAM85/
-!
-!  NAMING CONVENTION (Global Data Files) CAM42
-!  cam2.air.nyear        for 'T'   (Temperature)
-!  cam2.hgt.nyear.nc     for 'Z3'  (Geopotential Height)
-!  cam2.shum.nyear.nc    for 'Q'   (Specific Humidity)
-!  cam2.uwnd.nyear.nc    for 'U'   (Zonal Wind)
-!  cam2.vwnd.nyear.nc    for 'V'   (Meridonial Wind)
-!  cam2.pres.nyear.nc    for 'PS'  (Surface Pressure)
-!
-!  PATH /DATA/CAM42/NYEAR/
-!  cam2_ht.nc      for 'PHIS'  (Surface Geopotential-static field)
-!
-!  PATH /DATA/CAM42/
-!
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
@@ -170,11 +77,20 @@ module mod_cam2
   real(sp) , dimension(npl) :: pplev , sigmar
 
   ! Shared by netcdf I/O routines
-  type(rcm_time_and_date) :: ilastdate
   integer , dimension(4) :: icount , istart
-  integer , dimension(6) :: inet6 , ivar6
+  integer :: inet
+  integer , dimension(6) :: ivar
 
   public :: get_cam2 , headcam2 , footercam2
+
+  character(256) :: pathaddname
+  type(rcm_time_and_date) :: refdate
+  type(rcm_time_and_date) :: filedate
+  logical :: ixfile
+
+  data inet /-1/
+  data ixfile /.false./
+  data refdate /rcm_time_and_date(noleap,1989,12,27,0,0,0,32845,0)/
 
   contains
 !
@@ -189,7 +105,7 @@ module mod_cam2
     real(8) :: dp0
 !
     call zeit_ci('headcam2')
-    pathaddname = trim(inpglob)//'/CCSM/cam2_ht.nc'
+    pathaddname = trim(inpglob)//'/CAM2/USGS-gtopo30_0.9x1.25_remap_c051027.nc'
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
@@ -410,135 +326,102 @@ module mod_cam2
     type(rcm_time_and_date) , intent(in) :: idate
 !
     integer :: istatus
-    integer :: i , it , j , k , kkrec , timid
-    integer :: inet , ivar
-    character(25) :: inname
-    character(256) :: pathaddname
+    integer :: i , it , j , k , timid
+    character(64) :: inname
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
-    character(3) , dimension(12) :: mname
+
+    integer :: nscur , kkrec
     character(64) :: cunit , ccal
-    logical :: lfound , lfirst
+    type(rcm_time_interval) :: tdif
 !
-    data mname   /'JAN','FEB','MAR','APR','MAY','JUN', &
-                  'JUL','AUG','SEP','OCT','NOV','DEC'/
     data varname /'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
-    data lfirst  /.true./
 !
     call zeit_ci('readcam2')
 !
-    if ( lfirst .or. .not. lsamemonth(idate,ilastdate) ) then
-      do kkrec = 1 , 6
-        if ( kkrec == 1 ) then
-          write (inname,99001) idate%year, 'air', mname(idate%month), idate%year
-        else if ( kkrec == 2 ) then
-          write (inname,99001) idate%year, 'hgt', mname(idate%month), idate%year
-        else if ( kkrec == 3 ) then
-          write (inname,99002) idate%year, 'shum', mname(idate%month), idate%year
-        else if ( kkrec == 4 ) then
-          write (inname,99002) idate%year, 'uwnd', mname(idate%month), idate%year
-        else if ( kkrec == 5 ) then
-          write (inname,99002) idate%year, 'vwnd', mname(idate%month), idate%year
-        else if ( kkrec == 6 ) then
-          write (inname,99002) idate%year, 'pres', mname(idate%month), idate%year
-        end if
- 
-        pathaddname = trim(inpglob)//'/CCSM/'//inname
- 
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
+    if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
+      tdif = rcm_time_interval(7,uday)
+      if (inet > 0) then
+        istatus = nf90_close(inet)
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec), ivar6(kkrec))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        write (stdout,*) inet6(kkrec), trim(pathaddname), ' : ', varname(kkrec)
-        if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          istatus = nf90_inquire_dimension(inet6(kkrec),timid, len=timlen)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          istatus = nf90_inq_varid(inet6(kkrec),'time',timid)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          cunit = '-'//trim(cunit)//' UTC-'
-          istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        filedate = filedate + tdif
+        ixfile = .not. ixfile
+      else
+        filedate = refdate
+        do while (idate <= filedate)
+          filedate = filedate + tdif
+          ixfile = .not. ixfile
+        end do
+      end if
 
-          if (allocated(itimes)) then
-            deallocate(itimes)
-          end if
-          allocate(xtimes(timlen),stat=istatus)
-          if (istatus /= 0) call die('mod_cam2','Allocation error on xtimes',1)
-          call mall_mci(xtimes,'mod_cam2')
-          allocate(itimes(timlen),stat=istatus)
-          if (istatus /= 0) call die('mod_cam2','Allocation error on itimes',1)
-          istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-          do it = 1 , timlen
-            itimes(it) = timeval2date(xtimes(it)*24.0,cunit,ccal)
-          end do
-          deallocate(xtimes)
-          call mall_mco(xtimes,'mod_cam2')
-        end if
+      nscur = 0
+      if (ixfile) nscur = 43200
+      write (inname,99001) filedate%year, filedate%month, filedate%day, nscur
+ 
+      pathaddname = trim(inpglob)//'/CAM2/'//inname
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      istatus = nf90_inq_dimid(inet,'time',timid)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      istatus = nf90_inquire_dimension(inet,timid, len=timlen)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      istatus = nf90_inq_varid(inet,'time',timid)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      istatus = nf90_get_att(inet,timid,'units',cunit)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      istatus = nf90_get_att(inet,timid,'calendar',ccal)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      if (allocated(itimes)) then
+        deallocate(itimes)
+      end if
+      allocate(xtimes(timlen),stat=istatus)
+      if (istatus /= 0) call die('mod_cam2','Allocation error on xtimes',1)
+      call mall_mci(xtimes,'mod_cam2')
+      allocate(itimes(timlen),stat=istatus)
+      if (istatus /= 0) call die('mod_cam2','Allocation error on itimes',1)
+      istatus = nf90_get_var(inet,timid,xtimes)
+      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      do it = 1 , timlen
+        itimes(it) = timeval2date(xtimes(it),cunit,ccal)
       end do
-      if (lfirst) lfirst = .false.
+      deallocate(xtimes)
+      call mall_mco(xtimes,'mod_cam2')
+      do kkrec = 1 , 6
+        istatus = nf90_inq_varid(inet,varname(kkrec), ivar(kkrec))
+        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        write (stdout,*) inet, trim(pathaddname), ' : ', varname(kkrec)
+      end do
     end if
 
-    do kkrec = 1 , 6
+    tdif = idate - itimes(1)
+    it = idnint(tdif%hours())/6 + 1
 
-      lfound = .false.
-      do it = 1 , timlen
-        if (itimes(it) == idate) then
-          lfound = .true.
-          exit
-        end if
-      end do
- 
-      if ( .not. lfound ) then
-        write (stderr,*) idate%tostring(), ' not found in ', trim(pathaddname)
-        write (stderr,*) 'Extremes are : ', itimes(1)%tostring(), &
-                         '-', itimes(timlen)%tostring()
-        call die('readcam2')
-      end if
-
-      inet = inet6(kkrec)
-      ivar = ivar6(kkrec)
-
-      if ( kkrec == 6 ) then
-        icount(1) = nlon
-        icount(2) = nlat
-        icount(3) = 1
-        istart(1) = 1
-        istart(2) = 1
-        istart(3) = it
-        istatus = nf90_get_var(inet,ivar,psvar,istart(1:3),icount(1:3))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
-      else
-        icount(1) = nlon
-        icount(2) = nlat
-        icount(3) = klev
-        icount(4) = 1
-        istart(1) = 1
-        istart(2) = 1
-        istart(3) = 1
-        istart(4) = it
-        if ( kkrec == 1 ) then
-          istatus = nf90_get_var(inet,ivar,tvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        else if ( kkrec == 2 ) then
-          istatus = nf90_get_var(inet,ivar,hvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        else if ( kkrec == 3 ) then
-          istatus = nf90_get_var(inet,ivar,qvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        else if ( kkrec == 4 ) then
-          istatus = nf90_get_var(inet,ivar,uvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        else if ( kkrec == 5 ) then
-          istatus = nf90_get_var(inet,ivar,vvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        end if
-      end if
-    end do
+    icount(1) = nlon
+    icount(2) = nlat
+    icount(3) = 1
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = it
+    istatus = nf90_get_var(inet,ivar(6),psvar,istart(1:3),icount(1:3))
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    icount(1) = nlon
+    icount(2) = nlat
+    icount(3) = klev
+    icount(4) = 1
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = 1
+    istart(4) = it
+    istatus = nf90_get_var(inet,ivar(1),tvar,istart,icount)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    istatus = nf90_get_var(inet,ivar(2),hvar,istart,icount)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    istatus = nf90_get_var(inet,ivar(3),qvar,istart,icount)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    istatus = nf90_get_var(inet,ivar(4),uvar,istart,icount)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    istatus = nf90_get_var(inet,ivar(5),vvar,istart,icount)
+    if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
     do k = 1 , klev
       do j = 1 , nlat
@@ -553,11 +436,9 @@ module mod_cam2
       end do
     end do
  
-    ilastdate = idate
     call zeit_co('readcam2')
 
-99001   format (i4,'/','cam2.',a3,a3,'.',i4,'.nc')
-99002   format (i4,'/','cam2.',a4,a3,'.',i4,'.nc')
+99001   format ('sococa.ts1.r1.cam2.h1.',i4,'-',i2,'-',i2,'-',i5,'.nc')
 
   end subroutine readcam2
 !
