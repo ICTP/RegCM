@@ -166,6 +166,10 @@ program icbc
     end if
   end if
 
+  if ( .not. (dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
+              dattyp == 'EH5B1' .or. dattyp == 'EHA1B') ) then
+    ehso4 = .false.
+  end if
   tdiff = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
   nsteps = idnint(tdiff%hours())/ibdyfrq + 1

@@ -74,7 +74,7 @@ module mod_write
     allocate(v4(jx,iy,kz), stat=ierr)
     if (ierr /= 0) call die('init_output','allocate v4',ierr)
     call mall_mci(v4,'mod_write')
-    if ( dattyp == 'EH5OM' .and. ehso4) then
+    if ( ehso4) then
       allocate(sulfate4(jx,iy,kz), stat=ierr)
       if (ierr /= 0) call die('init_output','allocate sulfate',ierr)
       call mall_mci(sulfate4,'mod_write')
@@ -104,7 +104,7 @@ module mod_write
     deallocate(u4)
     call mall_mco(v4,'mod_write')
     deallocate(v4)
-    if ( dattyp == 'EH5OM' .and. ehso4) then
+    if ( ehso4) then
       call mall_mco(sulfate4,'mod_write')
       deallocate(sulfate4)
     end if
@@ -203,15 +203,13 @@ module mod_write
     end if
     istatus = nf90_put_att(ncout, nf90_global, 'global_data_source', dattyp)
     call check_ok(istatus,'Error adding global data_source')
-    if (dattyp == 'EH5OM') then
-      if (ehso4) then
-        cdum = 'Yes'
-      else
-        cdum = 'No'
-      end if
-      istatus = nf90_put_att(ncout, nf90_global, 'sulfate_data_present', cdum)
-      call check_ok(istatus,'Error adding global sulfate_present')
+    if (ehso4) then
+      cdum = 'Yes'
+    else
+      cdum = 'No'
     end if
+    istatus = nf90_put_att(ncout, nf90_global, 'sulfate_data_present', cdum)
+    call check_ok(istatus,'Error adding global sulfate_present')
     istatus = nf90_def_dim(ncout, 'iy', iy, idims(2))
     call check_ok(istatus,'Error creating dimension iy')
     istatus = nf90_def_dim(ncout, 'jx', jx, idims(1))
@@ -398,7 +396,7 @@ module mod_write
     call check_ok(istatus,'Error adding qv units')
     istatus = nf90_put_att(ncout, ivar(7), 'coordinates', 'xlon xlat')
     call check_ok(istatus,'Error adding qv coordinates')
-    if ( dattyp == 'EH5OM' .and. ehso4) then
+    if ( ehso4) then
       istatus = nf90_def_var(ncout, 'so4', nf90_float, x3ddim, ivar(8))
       call check_ok(istatus,'Error adding variable so4')
 #ifdef NETCDF4_HDF5
@@ -496,9 +494,13 @@ module mod_write
     call check_ok(istatus,'Error variable t write')
     istatus = nf90_put_var(ncout, ivar(7), q4, istart, icount)
     call check_ok(istatus,'Error variable qv write')
-    if ( dattyp == 'EH5OM' .and. ehso4) then
+    if ( ehso4) then
       istatus = nf90_put_var(ncout, ivar(8), sulfate4,  istart, icount)
       call check_ok(istatus,'Error variable so4 write')
+    end if
+    if ( debug_level > 2 ) then
+      istatus = nf90_sync(ncout)
+      call check_ok(istatus,'Error sync output file')
     end if
     itime = itime + 1
 !
