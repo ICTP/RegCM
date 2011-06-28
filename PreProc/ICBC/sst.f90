@@ -27,6 +27,7 @@ program sst
   use mod_sst_ersst
   use mod_sst_fvgcm
   use mod_sst_ccsm
+  use mod_sst_cam2
   use m_die
   use m_stdio
   use m_mall
@@ -78,9 +79,15 @@ program sst
   else if ( ssttyp == 'CCSST' ) then
     if (ical /= noleap) then
       write(stderr,*) 'CCSM calendar should be set to noleap'
-      call die('icbc','Calendar mismatch',1)
+      call die('sst','Calendar mismatch',1)
     end if
     call sst_ccsm
+  else if ( ssttyp == 'CAMST' ) then
+    if (ical /= noleap) then
+      write(stderr,*) 'CAM2 calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_cam2
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
