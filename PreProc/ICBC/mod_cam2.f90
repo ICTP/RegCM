@@ -86,10 +86,8 @@ module mod_cam2
   character(256) :: pathaddname
   type(rcm_time_and_date) :: refdate
   type(rcm_time_and_date) :: filedate
-  logical :: ixfile
 
   data inet /-1/
-  data ixfile /.false./
   data refdate /rcm_time_and_date(noleap,1989,12,27,0,0,0,32845,0)/
 
   contains
@@ -198,7 +196,7 @@ module mod_cam2
     zsvar = zsvar/real(egrav)
     where (zsvar < 0.0) zsvar = 0.0
 
-    write (stdout,*) 'Read in Static fields from ',trim(pathaddname),' .'
+    write (stdout,*) 'Read in Static fields from ',trim(pathaddname)
 
     istatus = nf90_close(inet1)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
@@ -252,6 +250,11 @@ module mod_cam2
     t3 => b3(:,:,1:npl)
     h3 => b3(:,:,npl+1:2*npl)
     q3 => b3(:,:,2*npl+1:3*npl)
+
+    timlen = 1
+    allocate(itimes(1))
+    itimes(1) = 1870010100
+    call itimes(1)%setcal(noleap)
 
     call zeit_co('headcam2')
   end subroutine headcam2
@@ -327,35 +330,35 @@ module mod_cam2
 !
     integer :: istatus
     integer :: i , it , j , k , timid
-    character(64) :: inname
+    character(256) :: inname
     character(2) , dimension(6) :: varname
     real(dp) , allocatable , dimension(:) :: xtimes
 
     integer :: nscur , kkrec
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
+    type(rcm_time_and_date) :: pdate
 !
     data varname /'T' , 'Z3' , 'Q' , 'U' , 'V' , 'PS'/
 !
     call zeit_ci('readcam2')
 !
     if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
-      tdif = rcm_time_interval(7,uday)
+      tdif = rcm_time_interval(180,uhrs)
       if (inet > 0) then
         istatus = nf90_close(inet)
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
         filedate = filedate + tdif
-        ixfile = .not. ixfile
       else
+        pdate = refdate
         filedate = refdate
-        do while (idate <= filedate)
-          filedate = filedate + tdif
-          ixfile = .not. ixfile
+        do while (idate > pdate)
+          filedate = pdate
+          pdate = pdate + tdif
         end do
       end if
 
-      nscur = 0
-      if (ixfile) nscur = 43200
+      nscur = filedate%second_of_day
       write (inname,99001) filedate%year, filedate%month, filedate%day, nscur
  
       pathaddname = trim(inpglob)//'/CAM2/'//inname
@@ -389,8 +392,8 @@ module mod_cam2
       do kkrec = 1 , 6
         istatus = nf90_inq_varid(inet,varname(kkrec), ivar(kkrec))
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
-        write (stdout,*) inet, trim(pathaddname), ' : ', varname(kkrec)
       end do
+      write (stdout,*) inet, trim(pathaddname)
     end if
 
     tdif = idate - itimes(1)
@@ -438,7 +441,7 @@ module mod_cam2
  
     call zeit_co('readcam2')
 
-99001   format ('sococa.ts1.r1.cam2.h1.',i4,'-',i2,'-',i2,'-',i5,'.nc')
+99001   format ('sococa.ts1.r1.cam2.h1.',i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 
   end subroutine readcam2
 !

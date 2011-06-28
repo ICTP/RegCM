@@ -56,21 +56,21 @@ module mod_date
     integer :: days_from_reference = 0
     integer :: second_of_day = 0
     contains
-      procedure , pass :: printdate => print_rcm_time_and_date
-      procedure , pass :: toidate => toint
-      procedure , pass :: tostring => tochar
-      procedure , pass :: setup => internal_setup
-      procedure , pass :: recalculate => recalculate_from_internal
+      procedure , pass(x) :: printdate => print_rcm_time_and_date
+      procedure , pass(x) :: toidate => toint
+      procedure , pass(x) :: tostring => tochar
+      procedure , pass(x) :: setup => internal_setup
+      procedure , pass(x) :: recalculate => recalculate_from_internal
       procedure , pass(x) :: setcal => set_calint
       procedure , pass(x) :: setccal => set_calstring
-      procedure , pass(x) :: broadcast => date_broadcast
+      procedure , pass(x) :: broadcast => date_bcast
   end type rcm_time_and_date
 
   type rcm_time_interval
     integer :: ival = 0
     integer :: iunit = usec
     contains
-      procedure , pass :: printint => print_rcm_time_interval
+      procedure , pass(x) :: printint => print_rcm_time_interval
       procedure , pass(x) :: setunit => set_timeunit
       procedure , pass(x) :: hours => tohours
   end type rcm_time_interval
@@ -769,37 +769,30 @@ module mod_date
     tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day-tmp
-        z%days_from_reference = z%days_from_reference - &
-                               (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        z%days_from_reference = z%days_from_reference - (tmp/86400)
         call z%recalculate()
       case (umin)
-        z%second_of_day = z%second_of_day-tmp*60
-        z%days_from_reference = z%days_from_reference - &
-                               (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        z%second_of_day = z%second_of_day-mod(tmp*60,86400)
+        z%days_from_reference = z%days_from_reference - (tmp/1440)
         call z%recalculate()
       case (uhrs)
-        z%second_of_day = z%second_of_day-tmp*3600
-        z%days_from_reference = z%days_from_reference - &
-                               (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        z%second_of_day = z%second_of_day-mod(tmp*3600,86400)
+        z%days_from_reference = z%days_from_reference - (tmp/24)
         call z%recalculate()
       case (uday)
         z%days_from_reference = z%days_from_reference - tmp
         call z%recalculate()
       case (umnt)
-        z%month = z%month+mod(tmp,12)
+        z%month = z%month-mod(tmp,12)
         call adjustmp(z%month,z%year,12)
-        tmp = tmp/12
-        z%year = z%year+tmp
+        z%year = z%year-tmp/12
         call z%setup()
       case (uyrs)
-        z%year = z%year+tmp
+        z%year = z%year-tmp
         call z%setup()
       case (ucnt)
-        z%year = z%year+100*tmp
+        z%year = z%year-100*tmp
         call z%setup()
     end select
   end function sub_interval
@@ -1023,19 +1016,19 @@ module mod_date
     data csave/'none'/
 
     if (csave == cunit) then
-      z = idnint(xval)
+      z = idint(xval)
       z%iunit = iunit
       dd = dref + z
       if (iunit == uday) then
-        zz%ival = idnint((xval-dble(z%ival))*24.0D0)
+        zz%ival = idint((xval-dble(z%ival))*24.0D0)
         zz%iunit = uhrs
-        if ( zz%ival > 0 ) then
+        if ( zz%ival /= 0 ) then
           dd = dd + zz
         end if
       end if
     else
       csave = cunit
-      z = idnint(xval)
+      z = idint(xval)
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
         read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
@@ -1058,7 +1051,7 @@ module mod_date
       z%iunit = iunit
       dd = dref + z
       if (iunit == uday) then
-        zz%ival = idnint((xval-dble(z%ival))*24.0D0)
+        zz%ival = idint((xval-dble(z%ival))*24.0D0)
         zz%iunit = uhrs
         if (zz%ival /= 0) then
           dd = dd + zz
@@ -1381,7 +1374,7 @@ module mod_date
                   dble(x%minute/1440.0D0) + dble(x%second/86400.0D0)
   end function yeardayfrac
 
-  subroutine date_broadcast(x,from,comm,ierr)
+  subroutine date_bcast(x,from,comm,ierr)
     class (rcm_time_and_date) , intent(inout) :: x
     integer , intent(in) :: from , comm
     integer , intent(out) :: ierr
@@ -1405,6 +1398,6 @@ module mod_date
     ierr = ierr+lerr
     call mpi_bcast(x%second_of_day,1,mpi_integer,from,comm,lerr)
     ierr = ierr+lerr
-  end subroutine date_broadcast
+  end subroutine date_bcast
 
 end module mod_date
