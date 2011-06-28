@@ -82,7 +82,7 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_ccsm
-  else if ( ssttyp == 'CAMST' ) then
+  else if ( ssttyp == 'CAM2' ) then
     if (ical /= noleap) then
       write(stderr,*) 'CAM2 calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
