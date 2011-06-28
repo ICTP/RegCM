@@ -50,6 +50,7 @@ module mod_params
   use mod_scenarios
   use mod_diagnosis
   use mod_tendency
+  use mod_ncio
 #ifdef CHEMTEST
   use mod_chem 
 #endif
@@ -80,11 +81,11 @@ module mod_params
   implicit none
 !
   real(8) :: afracl , afracs , bb , cc , chibot , delsig , &
-           & dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
-           & qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
-           & wkp1 , xbot , xtop , xx , yy
+             dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
+             qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
+             wkp1 , xbot , xtop , xx , yy
   real(8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
-           & edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
+             edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
   real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
              edtmino , edtmaxx , edtminx
   real(8) , dimension(nsplit) :: dtsplit
@@ -114,34 +115,35 @@ module mod_params
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
  
   namelist /outparam/ ifsave , savfrq , ifatm , atmfrq , ifrad ,   &
-  & radfrq , ifsrf , ifsub , iflak , srffrq , lakfrq , ifchem ,     &
-  & chemfrq , dirout
+    radfrq , ifsrf , ifsub , iflak , srffrq , lakfrq , ifchem ,    &
+    chemfrq , atm_enablevar , srf_enablevar , rad_enablevar ,      &
+    sub_enablevar , lak_enablevar , che_enablevar , dirout
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-  & iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
-  & scenario , idcsst , iseaice , idesseas , iconvlwp
+    iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
+    scenario , idcsst , iseaice , idesseas , iconvlwp
 
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
-  & gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
-  & tc0 , cllwcv , clfrcvmax , cftotmax
+    gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
+    tc0 , cllwcv , clfrcvmax , cftotmax
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
-  & edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
-  & htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
-  & edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
-  & edtminx_ocn , edtmaxx_ocn 
+    edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
+    htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
+    edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
+    edtminx_ocn , edtmaxx_ocn 
  
   namelist /emanparam/ minsig , elcrit , tlcrit , entp , sigd ,     &
-  & sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
-  & dtmax , alphae , damp
+    sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
+    dtmax , alphae , damp
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,     &
     entrdd , cmfcmax , cmfcmin , cmfdeps , rhcdd ,       &
     cprcon , nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
-  & ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
-  & inpchtrdpv , inpdustbsiz
+    ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
+    inpchtrdpv , inpdustbsiz
 
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
@@ -272,6 +274,12 @@ module mod_params
   iflak = .true.
   srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
   lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
+  atm_enablevar = .true.
+  srf_enablevar = .true.
+  sub_enablevar = .true.
+  lak_enablevar = .true.
+  rad_enablevar = .true.
+  che_enablevar = .true.
   dirout = './output' 
 !chem2
   ifchem = .false.
@@ -408,7 +416,7 @@ module mod_params
     write (6,*) 'Model is compiled for BAND, ' , &
                 'but input is NOT for BAND or viceversa.'
     call fatal(__FILE__,__LINE__,  &
-              &'BAND Compile / i_band namelist mismatch')
+               'BAND Compile / i_band namelist mismatch')
   end if
 !
 #ifdef CLM
@@ -464,11 +472,11 @@ module mod_params
       print * , 'CHEMPARAM namelist READ IN'
       if (ntr <= 0) then
         call fatal(__FILE__,__LINE__,                                 &
-                &'CHEMICAL SCHEME WITH 0 TRACERS?')
+                 'CHEMICAL SCHEME WITH 0 TRACERS?')
       end if
       if (ntr < nbin) then
         call fatal(__FILE__,__LINE__,                                 &
-                &'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
+                 'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
       end if
     else
       ichem = 0
@@ -671,19 +679,19 @@ module mod_params
       write (aline,*) 'DTRAD=' , dtrad , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
-                &'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
+                 'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTSRF=' , dtsrf , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
-                &'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
+                 'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
       write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
       call say
       call fatal(__FILE__,__LINE__,                                   &
-                &'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
+                 'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( lakemod == 1 ) then
       if ( lakfrq < srffrq .or. &
@@ -695,7 +703,7 @@ module mod_params
         call say
         if (myid == 0) then
           call fatal(__FILE__,__LINE__, &
-                   &'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
+                    'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
         end if
       end if
     end if
@@ -703,13 +711,13 @@ module mod_params
       write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
       call say
       call fatal(__FILE__,__LINE__,                                   &
-                &'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
+                 'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
       write (aline,*) 'DTABEM=' , dtabem , 'DTRAD=' , dtrad
       call fatal(__FILE__,__LINE__,                                   &
-                &'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
-                &' TIMESTEPS SPECIFIED')
+                 'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
+                 ' TIMESTEPS SPECIFIED')
     end if
     if ( ichem == 1 .and. chemfrq <=  d_zero) then
       write (aline,*) 'CHEMFRQ=' ,chemfrq
@@ -720,6 +728,30 @@ module mod_params
 !
   if ( ifrest ) then
     doing_restart = .true.
+  end if
+
+  if ( myid == 0 ) then
+    do i = 1 , n_atmvar
+      atm_variables(i)%enabled = atm_enablevar(i)
+    end do
+    do i = 1 , n_srfvar
+      srf_variables(i)%enabled = srf_enablevar(i)
+    end do
+    do i = 1 , n_lakvar
+      lak_variables(i)%enabled = lak_enablevar(i)
+    end do
+    do i = 1 , n_subvar
+      sub_variables(i)%enabled = sub_enablevar(i)
+    end do
+    do i = 1 , n_radvar
+      rad_variables(i)%enabled = rad_enablevar(i)
+    end do
+    do i = 1 , n_chevar
+      che_variables(i)%enabled = che_enablevar(i)
+    end do
+    if ( lakemod /= 1 .and. iseaice /= 1 ) then
+      srf_variables(ivarname_lookup('SRF','seaice'))%enabled = .false.
+    end if
   end if
 !
 !.....calculate the time step in minutes.
@@ -949,7 +981,7 @@ module mod_params
     chtrsol = inpchtrsol(1:ntr)
     do n = 1 , ntr
       call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
-                   & ierr)
+                     ierr)
     end do
     call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)
@@ -1012,13 +1044,13 @@ module mod_params
 
   if ( lakemod == 1 ) then
     call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
-                 &   dhlake1,   iy*nnsg*jxp,mpi_real8,   &
-                 &   0,mpi_comm_world,ierr)
+                     dhlake1,   iy*nnsg*jxp,mpi_real8,   &
+                     0,mpi_comm_world,ierr)
   endif
  
   call mpi_scatter(inisrf_0,iy*(nnsg*4+7)*jxp,mpi_real8,   &
-                 & inisrf0, iy*(nnsg*4+7)*jxp,mpi_real8,   &
-                 & 0,mpi_comm_world,ierr)
+                   inisrf0, iy*(nnsg*4+7)*jxp,mpi_real8,   &
+                   0,mpi_comm_world,ierr)
 
   do j = 1 , jxp
     do i = 1 , iy
@@ -1043,45 +1075,45 @@ module mod_params
   if ( myid == 0 ) then
     print * , ' '
     print * ,                                                     &
-         &'***************************************************'
+          '***************************************************'
     print * ,                                                     &
-         &'***************************************************'
+          '***************************************************'
     print * ,                                                     &
-         &'**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
+          '**** RegCM IS BEING RUN ON THE FOLLOWING GRID: ****'
     print * , '****     Map Projection: ' , iproj ,               &
-         &'                ****'
+          '                ****'
     print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
-         &'             ****'
+          '             ****'
     print * , '****     PTOP=' , r8pt , ' DX=' , ds ,             &
-         &'       ****'
+          '       ****'
     print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
-         &'    ****'
+          '    ****'
     if ( iproj == 'ROTMER' ) print * , '****     PLAT= ' , plat , &
-                                 &' PLON=' , plon , '    ****'
+                                  ' PLON=' , plon , '    ****'
     print * ,                                                     &
-         &'***************************************************'
+          '***************************************************'
     print * , ' '
 
   end if
 
   call mpi_sendrecv(mddom%ht(1,jxp),  iy,mpi_real8,ieast,1,      &
-                  & mddom%ht(1,0),    iy,mpi_real8,iwest,1,      &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%ht(1,0),    iy,mpi_real8,iwest,1,      &
+                    mpi_comm_world,mpi_status_ignore,ierr)
   call mpi_sendrecv(mddom%ht(1,1),    iy,mpi_real8,iwest,2,      &
-                  & mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%ht(1,jxp+1),iy,mpi_real8,ieast,2,      &
+                    mpi_comm_world,mpi_status_ignore,ierr)
   call mpi_sendrecv(mddom%msfx(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
-                  & mddom%msfx(1,-1),   iy*2,mpi_real8,iwest,1,  &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%msfx(1,-1),   iy*2,mpi_real8,iwest,1,  &
+                    mpi_comm_world,mpi_status_ignore,ierr)
   call mpi_sendrecv(mddom%msfx(1,1),    iy*2,mpi_real8,iwest,2,  &
-                  & mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%msfx(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+                    mpi_comm_world,mpi_status_ignore,ierr)
   call mpi_sendrecv(mddom%msfd(1,jxp-1),iy*2,mpi_real8,ieast,1,  &
-                  & mddom%msfd(1,-1),   iy*2,mpi_real8,iwest,1,  &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%msfd(1,-1),   iy*2,mpi_real8,iwest,1,  &
+                    mpi_comm_world,mpi_status_ignore,ierr)
   call mpi_sendrecv(mddom%msfd(1,1),    iy*2,mpi_real8,iwest,2,  &
-                  & mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
-                  & mpi_comm_world,mpi_status_ignore,ierr)
+                    mddom%msfd(1,jxp+1),iy*2,mpi_real8,ieast,2,  &
+                    mpi_comm_world,mpi_status_ignore,ierr)
 
 !
 !-----compute land/water mask on subgrid space
@@ -1164,13 +1196,13 @@ module mod_params
       do k = ktop , kbase
         xx = dlog((d_100-r8pt)*sigma(k+1)+r8pt)
         yy = dlog((d_100-r8pt)                                    &
-           & *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
+             *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
         wkp1 = (xx*xx) - (bb*xx) + cc
         qkp1 = -((yy*yy)-(bb*yy)+cc)
         vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
         ssum = ssum + vqflx(k,kbase,ktop)
         if ( dabs(vqflx(k,kbase,ktop)) > vqmax )                   &
-           & vqmax = dabs(vqflx(k,kbase,ktop))
+             vqmax = dabs(vqflx(k,kbase,ktop))
         wk = wkp1
         qk = qkp1
       end do
@@ -1203,15 +1235,15 @@ module mod_params
 !
   if ( ipptls == 1 ) then
     write (aline, '(a,f11.6,a,f11.6)')                        &
-           & 'Auto-conversion rate:  Land = ' , qck1land ,    &
-           & '                      Ocean = ' , qck1oce
+             'Auto-conversion rate:  Land = ' , qck1land ,    &
+             '                      Ocean = ' , qck1oce
     call say
     write (aline, *) 'Relative humidity thresholds:  Land = ' ,   &
-           & rh0land , '                              Ocean = ' , &
-           & rh0oce
+             rh0land , '                              Ocean = ' , &
+             rh0oce
     call say
     write (aline, *) 'Gultepe factors:  Land=' , gulland ,   &
-           &'                 Ocean=' , guloce
+            '                 Ocean=' , guloce
     call say
     write (aline, *) 'Maximum cloud cover for radiation: ' , fcmax
     call say
@@ -1308,11 +1340,11 @@ module mod_params
     call say
     if ( igcc == 1 ) then
       write (aline, *)                                              &
-           &'   Arakawa-Schubert (1974) Closure Assumption'
+            '   Arakawa-Schubert (1974) Closure Assumption'
       call say
     else if ( igcc == 2 ) then
       write (aline, *)                                              &
-           &'   Fritsch-Chappell (1980) Closure Assumption'
+            '   Fritsch-Chappell (1980) Closure Assumption'
       call say
       write (aline, *) '     ABE removal timescale: dtauc=' , dtauc
       call say
@@ -1353,7 +1385,7 @@ module mod_params
   end if
   if ( icup == 3 ) then
     write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
-                   &' properly implemented'
+                    ' properly implemented'
     call say
     call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
     call allocate_mod_cu_bm
@@ -1453,7 +1485,7 @@ module mod_params
   dsmalc = 10.0D0
   dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
   clfrcv = afracl + (afracs-afracl)                                 &
-         & *((dlargc-dxtemc)/(dlargc-dsmalc))**d_two
+           *((dlargc-dxtemc)/(dlargc-dsmalc))**d_two
   clfrcv = dmin1(clfrcv,clfrcvmax)
   write (aline, *) ' '
   call say
@@ -1485,7 +1517,7 @@ module mod_params
   ptmb = d_10*r8pt
   pz = a(1)*(d_1000-ptmb) + ptmb
   if ( pz > chibot ) call fatal(__FILE__,__LINE__,                 &
-                                &'VERTICAL INTERPOLATION ERROR')
+                                 'VERTICAL INTERPOLATION ERROR')
   do k = 1 , kz
     pk = a(k)*(d_1000-ptmb) + ptmb
     if ( pk <= chibot ) kchi = k
@@ -1552,7 +1584,7 @@ module mod_params
 !
     do k = 1 , kz
       print 99011 , k , sigma(k) , a(k) , dsigma(k) , twt(k,1) ,    &
-          & twt(k,2) , qcon(k)
+            twt(k,2) , qcon(k)
     end do
     print 99012 , kzp1 , sigma(kzp1)
     print 99014 , dt
@@ -1566,20 +1598,20 @@ module mod_params
 !
 99002 format (/'   frictionless and insulated for the lower boundary.')
 99003 format (                                                          &
-     &'     the surface energy budget is used to calculate the ground te&
-     &mperature. the radiation is computed every ',i4,' time steps.')
+      '     the surface energy budget is used to calculate the ground te&
+      mperature. the radiation is computed every ',i4,' time steps.')
 !1100 format('     heat and moisture fluxes from the ground are turned o
 !     1ff.')
 99004 format (/'   the lateral boundary conditions are fixed.')
 99005 format (/'   relaxation boundary conditions (linear method)',     &
-         &' are used.  fnudge = ',e15.5,'  gnudge = ',e15.5)
+          ' are used.  fnudge = ',e15.5,'  gnudge = ',e15.5)
 99006 format (/'   relaxation boudnary conditions (exponential method)',&
-         &' are used. fnudge = ',e15.5,'  gnudge = ',e15.5)
+          ' are used. fnudge = ',e15.5,'  gnudge = ',e15.5)
 99007 format (/'   time dependent boundary conditions are used.')
 99008 format (/'   inflow/outflow boundary conditions are used.')
 99009 format (/'   sponge boundary conditions are used.')
 99010 format ('0 k',4x,'sigma(k)',3x,'  a(k)',5x,'dsigma(k)',4x,        &
-         &'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
+          'twt(k,1)',5x,'twt(k,2)',5x,'qcon(k)'/)
 99011 format (1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)
 99012 format (1x,i2,5x,f7.4)
 99014 format (' time step = ',f7.2,' seconds')

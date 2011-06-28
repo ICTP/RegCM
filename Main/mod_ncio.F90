@@ -26,6 +26,7 @@ module mod_ncio
 !
   private
 !
+  public :: ivarname_lookup
   public :: init_mod_ncio , release_mod_ncio
   public :: open_domain , read_domain , read_domain_lake, &
             read_subdomain , read_subdomain_lake,         &
@@ -36,13 +37,6 @@ module mod_ncio
   public :: writerec_atm , writerec_srf , writerec_sub , &
             writerec_rad , writerec_che , writerec_lak
 !
-  integer , parameter :: n_atmvar = 12
-  integer , parameter :: n_srfvar = 31
-  integer , parameter :: n_subvar = 16
-  integer , parameter :: n_radvar = 15
-  integer , parameter :: n_chevar = 17
-  integer , parameter :: n_lakvar = 16
-
   integer :: idmin , isdmin , ibcin , ncatm , ncsrf , &
              ncsub , ncrad , ncche , nclak
   integer :: istatus
@@ -99,13 +93,6 @@ module mod_ncio
   real(4) , dimension(:,:,:) , pointer :: atmsrfmask
   real(4) , dimension(:,:) , pointer :: atmsrfsum
 
-  character(len=8) , dimension(n_atmvar) :: atm_names
-  character(len=8) , dimension(n_srfvar) :: srf_names
-  character(len=8) , dimension(n_subvar) :: sub_names
-  character(len=8) , dimension(n_radvar) :: rad_names
-  character(len=8) , dimension(n_chevar) :: che_names
-  character(len=8) , dimension(n_lakvar) :: lak_names
-
   integer , dimension(numbat) :: lak_fbats
 
   character(64) :: cdum
@@ -129,28 +116,6 @@ module mod_ncio
   data icherec / 1/
   data nclak   /-1/
   data ilakrec / 1/
-  data atm_names / 'time', 'ps', 'u', 'v', 'omega', 't',         &
-                   'qv', 'qc', 'tpr', 'tgb', 'swt', 'rno' /
-  data srf_names / 'time', 'tbnds', 'ps', 'u10m', 'v10m',        &
-                   'uvdrag', 'tg', 'tlef', 't2m', 'q2m', 'smw',  &
-                   'tpr', 'evp', 'runoff', 'scv', 'sena', 'flw', &
-                   'fsw', 'flwd', 'sina', 'prcv', 'zpbl',        &
-                   'tgmax', 'tgmin', 't2max', 't2min', 'w10max', &
-                   'ps_min' , 'aldirs' , 'aldifs' , 'seaice' /
-  data sub_names / 'time', 'ps', 'u10m', 'v10m', 'uvdrag', 'tg', &
-                   'tlef', 't2m' , 'q2m' , 'smw', 'tpr' , 'evp', &
-                   'runoff', 'scv', 'sena', 'prcv' /
-  data rad_names / 'time', 'ps', 'cld', 'clwp', 'qrs', 'qrl',    &
-                   'frsa', 'frla', 'clrst', 'clrss', 'clrlt',    &
-                   'clrls', 'solin', 'sabtp', 'firtp' /
-  data che_names / 'time', 'ps', 'trac', 'aext8', 'assa8',       &
-                   'agfu8', 'colb', 'wdlsc', 'wdcvc', 'sdrdp',   &
-                   'xgasc', 'xaquc', 'emiss', 'acstoarf',        &
-                   'acstsrrf', 'acstalrf', 'acssrlrf' /
-  data lak_names / 'time', 'ps', 'tg' , 'tpr' , 'scv', 'sena' ,  &
-                   'flw', 'fsw', 'fld' , 'sina' , 'aldirs' ,     &
-                   'aldifs' , 'evl' , 'aveice' , 'hsnow',        &
-                   'tlake' /
 
   data lak_fbats / 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, &
                    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1 /
@@ -340,42 +305,42 @@ contains
 
     if (ctype == 'ATM') then
       do i = 1 , n_atmvar
-        if (sname == atm_names(i)) then
+        if (sname == atm_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
       end do
     else if (ctype == 'SRF') then
       do i = 1 , n_srfvar
-        if (sname == srf_names(i)) then
+        if (sname == srf_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
       end do
     else if (ctype == 'SUB') then
       do i = 1 , n_subvar
-        if (sname == sub_names(i)) then
+        if (sname == sub_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
       end do
     else if (ctype == 'RAD') then
       do i = 1 , n_radvar
-        if (sname == rad_names(i)) then
+        if (sname == rad_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
       end do
     else if (ctype == 'CHE') then
       do i = 1 , n_chevar
-        if (sname == che_names(i)) then
+        if (sname == che_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
       end do
     else if (ctype == 'LAK') then
       do i = 1 , n_lakvar
-        if (sname == lak_names(i)) then
+        if (sname == lak_variables(i)%vname) then
           ivarname_lookup = i
           exit
         end if
@@ -1714,30 +1679,16 @@ contains
       iatmvar = -1
       iatmvar(1) = itvar
       iatmvar(2) = illtpvar(5)
-      call addvara(ncid,ctype,'u','eastward_wind', &
-          'U component (westerly) of wind','m s-1', tzyx,.false.,iatmvar(3))
-      call addvara(ncid,ctype,'v','northward_wind', &
-          'V component (southerly) of wind','m s-1', tzyx,.false.,iatmvar(4))
-      call addvara(ncid,ctype,'omega', 'lagrangian_tendency_of_air_pressure', &
-          'Pressure velocity','hPa s-1',tzyx,.false.,iatmvar(5))
-      call addvara(ncid,ctype,'t','air_temperature', &
-          'Temperature','K',tzyx,.false.,iatmvar(6))
-      call addvara(ncid,ctype,'qv','humidity_mixing_ratio', &
-          'Water vapor mixing ratio','kg kg-1', &
-          tzyx,.false.,iatmvar(7))
-      call addvara(ncid,ctype,'qc', 'cloud_liquid_water_mixing_ratio', &
-          'Cloud water mixing ratio','kg kg-1', &
-          tzyx,.false.,iatmvar(8))
-      call addvara(ncid,ctype,'tpr','precipitation_flux', &
-          'Total daily precipitation rate','kg m-2 day-1', &
-          tyx,.false.,iatmvar(9))
-      call addvara(ncid,ctype,'tgb','soil_temperature', &
-          'Lower groud temperature','K', tyx,.false.,iatmvar(10))
-      call addvara(ncid,ctype,'swt', 'moisture_content_of_soil_layer', &
-          'Total soil water','kg m-2',tyx,.true.,iatmvar(11))
-      call addvara(ncid,ctype,'rno','runoff_flux', &
-          'Runoff accumulated infiltration','kg m-2 day-1', &
-          tyx,.true.,iatmvar(12))
+      call addvara(ncid,ctype,tzyx,.false.,3)
+      call addvara(ncid,ctype,tzyx,.false.,4)
+      call addvara(ncid,ctype,tzyx,.false.,5)
+      call addvara(ncid,ctype,tzyx,.false.,6)
+      call addvara(ncid,ctype,tzyx,.false.,7)
+      call addvara(ncid,ctype,tzyx,.false.,8)
+      call addvara(ncid,ctype,tyx,.false.,9)
+      call addvara(ncid,ctype,tyx,.false.,10)
+      call addvara(ncid,ctype,tyx,.true.,11)
+      call addvara(ncid,ctype,tyx,.true.,12)
     else if (ctype == 'SRF') then
       isrfvar = -1
       isrfvar(1) = itvar
@@ -1749,180 +1700,88 @@ contains
       istatus = nf90_put_att(ncid, isrfvar(2), 'units', 'hours since '//ctime)
       call check_ok('Error adding tbnds units', fterr)
       isrfvar(3) = illtpvar(5)
-      call addvara(ncid,ctype,'u10m','eastward_wind', &
-          '10 meters U component (westerly) of wind','m s-1', &
-          t10yx,.false.,isrfvar(4))
-      call addvara(ncid,ctype,'v10m','northward_wind', &
-          '10 meters V component (southerly) of wind','m s-1', &
-          t10yx,.false.,isrfvar(5))
-      call addvara(ncid,ctype,'uvdrag', 'surface_drag_coefficient_in_air', &
-          'Surface drag stress','1',tyx,.false.,isrfvar(6))
-      call addvara(ncid,ctype,'tg','surface_temperature', &
-          'Ground temperature','K',tyx,.false.,isrfvar(7))
-      call addvara(ncid,ctype,'tlef','canopy_temperature', &
-          'Foliage temperature','K',tyx,.true.,isrfvar(8))
-      call addvara(ncid,ctype,'t2m','air_temperature', &
-          '2 meters temperature','K',t2yx,.false.,isrfvar(9))
-      call addvara(ncid,ctype,'q2m','humidity_mixing_ratio', &
-          '2 meters vapour mixing ratio','kg kg-1', t2yx,.false.,isrfvar(10))
-      call addvara(ncid,ctype,'smw','soil_moisture_content', &
-          'Moisture content','kg kg-1',tlyx,.true.,isrfvar(11))
-      call addvara(ncid,ctype,'tpr','precipitation_flux', &
-          'Total precipitation','kg m-2 day -1',tyx, &
-          .false.,isrfvar(12))
-      call addvara(ncid,ctype,'evp','water_evaporation_flux', &
-          'Total evapotranspiration','kg m-2 day-1', &
-          tyx,.false.,isrfvar(13))
-      call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
-          'Surface runoff','kg m-2 day-1',tyx,.true.,isrfvar(14))
-      call addvara(ncid,ctype,'scv','snowfall_flux', &
-          'Snow precipitation','kg m-2 day-1',tyx,.true.,isrfvar(15))
-      call addvara(ncid,ctype,'sena', 'surface_downward_sensible_heat_flux', &
-          'Sensible heat flux','W m-2',tyx,.false.,isrfvar(16))
-      call addvara(ncid,ctype,'flw', 'net_upward_longwave_flux_in_air', &
-          'Net infrared energy flux','W m-2', tyx,.false.,isrfvar(17))
-      call addvara(ncid,ctype,'fsw', &
-          'net_downward_shortwave_flux_in_air', &
-          'Net solar absorbed energy flux','W m-2', tyx,.false.,isrfvar(18))
-      call addvara(ncid,ctype,'fld', &
-          'surface_downwelling_longwave_flux_in_air', &
-          'Downward LW flux','W m-2',tyx,.false.,isrfvar(19))
-      call addvara(ncid,ctype,'sina', &
-          'surface_downwelling_shortwave_flux_in_air', &
-          'Incident solar energy flux','W m-2', tyx,.false.,isrfvar(20))
-      call addvara(ncid,ctype,'prcv', 'convective_rainfall_flux', &
-          'Convective precipitation','kg m-2 day-1', tyx,.false.,isrfvar(21))
-      call addvara(ncid,ctype,'zpbl', &
-          'atmosphere_boundary_layer_thickness', &
-          'PBL layer thickness','m',tyx,.false.,isrfvar(22))
+      call addvara(ncid,ctype,t10yx,.false.,4)
+      call addvara(ncid,ctype,t10yx,.false.,5)
+      call addvara(ncid,ctype,tyx,.false.,6)
+      call addvara(ncid,ctype,tyx,.false.,7)
+      call addvara(ncid,ctype,tyx,.true.,8)
+      call addvara(ncid,ctype,t2yx,.false.,9)
+      call addvara(ncid,ctype,t2yx,.false.,10)
+      call addvara(ncid,ctype,tlyx,.true.,11)
+      call addvara(ncid,ctype,tyx,.false.,12)
+      call addvara(ncid,ctype,tyx,.false.,13)
+      call addvara(ncid,ctype,tyx,.true.,14)
+      call addvara(ncid,ctype,tyx,.true.,15)
+      call addvara(ncid,ctype,tyx,.false.,16)
+      call addvara(ncid,ctype,tyx,.false.,17)
+      call addvara(ncid,ctype,tyx,.false.,18)
+      call addvara(ncid,ctype,tyx,.false.,19)
+      call addvara(ncid,ctype,tyx,.false.,20)
+      call addvara(ncid,ctype,tyx,.false.,21)
+      call addvara(ncid,ctype,tyx,.false.,22)
       write (cmethodmax, '(a,i3,a)') 'time: maximum (interval: ', &
                      idnint(srffrq) , ' hours)'
       write (cmethodmin, '(a,i3,a)') 'time: minimum (interval: ', &
                      idnint(srffrq) , ' hours)'
-      call addvara(ncid,ctype,'tgmax','surface_temperature', &
-          'Maximum surface temperature','K', tyx,.false.,isrfvar(23))
+      call addvara(ncid,ctype,tyx,.false.,23)
       istatus = nf90_put_att(ncid, isrfvar(23), 'cell_methods', cmethodmax)
       call check_ok('Error adding tgmax cell_methods', fterr)
-      call addvara(ncid,ctype,'tgmin','surface_temperature', &
-          'Minimum surface temperature','K', tyx,.false.,isrfvar(24))
+      call addvara(ncid,ctype,tyx,.false.,24)
       istatus = nf90_put_att(ncid, isrfvar(24), 'cell_methods', cmethodmin)
       call check_ok('Error adding tgmin cell_methods', fterr)
-      call addvara(ncid,ctype,'t2max','air_temperature', &
-          'Maximum 2 meters temperature','K', t2yx,.false.,isrfvar(25))
+      call addvara(ncid,ctype,t2yx,.false.,25)
       istatus = nf90_put_att(ncid, isrfvar(25), 'cell_methods', cmethodmax)
       call check_ok('Error adding t2max cell_methods', fterr)
-      call addvara(ncid,ctype,'t2min','air_temperature', &
-          'Minimum 2 meters temperature','K', t2yx,.false.,isrfvar(26))
+      call addvara(ncid,ctype,t2yx,.false.,26)
       istatus = nf90_put_att(ncid, isrfvar(26), 'cell_methods', cmethodmin)
       call check_ok('Error adding t2min cell_methods', fterr)
-      call addvara(ncid,ctype,'w10max','wind_speed', &
-          'Maximum speed of 10m wind','m s-1', t10yx,.false.,isrfvar(27))
+      call addvara(ncid,ctype,t10yx,.false.,27)
       istatus = nf90_put_att(ncid, isrfvar(27), 'cell_methods', cmethodmax)
       call check_ok('Error adding w10max cell_methods', fterr)
-      call addvara(ncid,ctype,'ps_min','air_pressure', &
-          'Minimum of surface pressure','hPa', tyx,.false.,isrfvar(28))
+      call addvara(ncid,ctype,tyx,.false.,28)
       istatus = nf90_put_att(ncid, isrfvar(28), 'cell_methods', cmethodmin)
       call check_ok('Error adding ps_min cell_methods', fterr)
-      call addvara(ncid,ctype,'aldirs', 'surface_albedo_short_wave_direct', &
-          'Surface albedo to direct short wave radiation', &
-          '1',tyx,.false.,isrfvar(29))
-      call addvara(ncid,ctype,'aldifs', 'surface_albedo_short_wave_diffuse', &
-          'Surface albedo to diffuse short wave radiation', &
-          '1',tyx,.false.,isrfvar(30))
+      call addvara(ncid,ctype,tyx,.false.,29)
+      call addvara(ncid,ctype,tyx,.false.,30)
       if ( iseaice == 1 .or. lakemod == 1 ) then
-        call addvara(ncid,ctype,'seaice', 'seaice_binary_mask', &
-            'Sea ice mask', '1',tyx,.false.,isrfvar(31))
+        srf_variables(31)%enabled = .true.
+        call addvara(ncid,ctype,tyx,.false.,31)
       end if
     else if (ctype == 'SUB') then
       isubvar = -1
       isubvar(1) = itvar
       isubvar(2) = illtpvar(5)
-      call addvara(ncid,ctype,'u10m','eastward_wind', &
-          '10 meters U component (westerly) of wind','m s-1', &
-          t10yx,.false.,isubvar(3))
-      call addvara(ncid,ctype,'v10m','northward_wind', &
-          '10 meters V component (southerly) of wind','m s-1', &
-          t10yx,.false.,isubvar(4))
-      call addvara(ncid,ctype,'uvdrag', 'surface_drag_coefficient_in_air', &
-          'Surface drag stress','1', tyx, .false.,isubvar(5))
-      call addvara(ncid,ctype,'tg','surface_temperature', &
-          'Ground temperature','K', tyx, .false.,isubvar(6))
-      call addvara(ncid,ctype,'tlef','canopy_temperature', &
-          'Foliage temperature','K', tyx, .true.,isubvar(7))
-      call addvara(ncid,ctype,'t2m','air_temperature', &
-          '2 meters temperature','K', t2yx, .false.,isubvar(8))
-      call addvara(ncid,ctype,'q2m','humidity_mixing_ratio', &
-          '2 meters vapour mixing ratio','kg kg-1', &
-          t2yx,.false.,isubvar(9))
-      call addvara(ncid,ctype,'smw','soil_moisture_content', &
-          'Moisture content','kg kg-1', tlyx, .true.,isubvar(10))
-      call addvara(ncid,ctype,'tpr','precipitation_flux', &
-          'Total precipitation','kg m-2 day-1',tyx, &
-          .false.,isubvar(11))
-      call addvara(ncid,ctype,'evp','water_evaporation_flux', &
-          'Total evapotranspiration','kg m-2 day-1', &
-          tyx,.false.,isubvar(12))
-      call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
-          'Surface runoff','kg m-2 day-1',tyx,.true.,isubvar(13))
-      call addvara(ncid,ctype,'scv','snowfall_flux', &
-          'Snow precipitation','kg m-2 day-1',tyx,.true.,isubvar(14))
-      call addvara(ncid,ctype,'sena', 'surface_downward_sensible_heat_flux', &
-          'Sensible heat flux','W m-2',tyx,.false.,isubvar(15))
-      call addvara(ncid,ctype,'prcv', 'convective_rainfall_flux', &
-          'Convective precipitation','kg m-2 day-1', &
-          tyx,.false.,isubvar(16))
+      call addvara(ncid,ctype,t10yx,.false.,3)
+      call addvara(ncid,ctype,t10yx,.false.,4)
+      call addvara(ncid,ctype,tyx,.false.,5)
+      call addvara(ncid,ctype,tyx,.false.,6)
+      call addvara(ncid,ctype,tyx,.true.,7)
+      call addvara(ncid,ctype,t2yx,.false.,8)
+      call addvara(ncid,ctype,t2yx,.false.,9)
+      call addvara(ncid,ctype,tlyx,.true.,10)
+      call addvara(ncid,ctype,tyx,.false.,11)
+      call addvara(ncid,ctype,tyx,.false.,12)
+      call addvara(ncid,ctype,tyx,.true.,13)
+      call addvara(ncid,ctype,tyx,.true.,14)
+      call addvara(ncid,ctype,tyx,.false.,15)
+      call addvara(ncid,ctype,tyx,.false.,16)
     else if (ctype == 'RAD') then
       iradvar = -1
       iradvar(1) = itvar
       iradvar(2) = illtpvar(5)
-      call addvara(ncid,ctype,'cld', &
-          'cloud_area_fraction_in_atmosphere_layer', &
-          'Cloud fractional cover','1',tzyx,.false.,iradvar(3))
-      call addvara(ncid,ctype,'clwp', &
-          'atmosphere_cloud_liquid_water_content', &
-          'Cloud liquid water content','g m-2', &
-           tzyx,.false.,iradvar(4))
-      call addvara(ncid,ctype,'qrs', &
-          'tendency_of_air_temperature_due_to_shortwave_heating', &
-          'Solar heating rate','K s-1',tzyx,.false.,iradvar(5))
-      call addvara(ncid,ctype,'qrl', &
-          'tendency_of_air_temperature_due_to_longwave_heating', &
-          'Longwave cooling rate','K s-1',tzyx,.false.,iradvar(6))
-      call addvara(ncid,ctype,'frsa', &
-          'surface_downwelling_shortwave_flux_in_air', &
-          'Surface absorbed solar flux','W m-2', &
-          tyx,.false.,iradvar(7))
-      call addvara(ncid,ctype,'frla', 'downwelling_longwave_flux_in_air', &
-          'Longwave cooling of surface flux','W m-2', &
-          tyx,.false.,iradvar(8))
-      call addvara(ncid,ctype,'clrst', &
-          'downwelling_shortwave_flux_in_air_assuming_clear_sky', &
-          'clearsky total column absorbed solar flux','W m-2', &
-          tyx,.false.,iradvar(9))
-      call addvara(ncid,ctype,'clrss', &
-          'net_downward_shortwave_flux_in_air_assuming_clear_sky', &
-          'clearsky surface absorbed solar flux','W m-2', &
-          tyx,.false.,iradvar(10))
-      call addvara(ncid,ctype,'clrlt', &
-          'toa_net_upward_longwave_flux_assuming_clear_sky', &
-          'clearsky net upward LW flux at TOA','W m-2', &
-          tyx,.false.,iradvar(11))
-      call addvara(ncid,ctype,'clrls', &
-          'net_upward_longwave_flux_in_air_assuming_clear_sky', &
-          'clearsky LW cooling at surface','W m-2', &
-          tyx,.false.,iradvar(12))
-      call addvara(ncid,ctype,'solin', &
-          'toa_instantaneous_shortwave_forcing', &
-          'Instantaneous incident solar','W m-2', &
-          tyx,.false.,iradvar(13))
-      call addvara(ncid,ctype,'sabtp', &
-        'atmosphere_net_rate_of_absorption_of_shortwave_energy', &
-        'Total column absorbed solar flux','W m-2', &
-          tyx,.false.,iradvar(14))
-      call addvara(ncid,ctype,'firtp', &
-          'atmosphere_net_rate_of_absorption_of_longwave_energy', &
-          'net upward LW flux at TOA','W m-2', &
-          tyx,.false.,iradvar(15))
+      call addvara(ncid,ctype,tzyx,.false.,3)
+      call addvara(ncid,ctype,tzyx,.false.,4)
+      call addvara(ncid,ctype,tzyx,.false.,5)
+      call addvara(ncid,ctype,tzyx,.false.,6)
+      call addvara(ncid,ctype,tyx,.false.,7)
+      call addvara(ncid,ctype,tyx,.false.,8)
+      call addvara(ncid,ctype,tyx,.false.,9)
+      call addvara(ncid,ctype,tyx,.false.,10)
+      call addvara(ncid,ctype,tyx,.false.,11)
+      call addvara(ncid,ctype,tyx,.false.,12)
+      call addvara(ncid,ctype,tyx,.false.,13)
+      call addvara(ncid,ctype,tyx,.false.,14)
+      call addvara(ncid,ctype,tyx,.false.,15)
     else if (ctype == 'CHE') then
       istatus = nf90_def_var(ncid, 'chtrname', nf90_char, &
                              inmlen, ichname)
@@ -1939,93 +1798,39 @@ contains
       ichevar = -1
       ichevar(1) = itvar
       ichevar(2) = illtpvar(5)
-      call addvara(ncid,ctype,'trac', 'atmosphere_mixing_ratio_of_tracer', &
-          'Tracers mixing ratios','kg kg-1', &
-          tczyx,.false.,ichevar(3))
-      call addvara(ncid,ctype,'aext8', 'aerosol_optical_depth', &
-          'aer mix. aod.','1',tzyx,.false.,ichevar(4))
-      call addvara(ncid,ctype,'assa8', 'aerosol_single_scattering_albedo', &
-          'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(5))
-      call addvara(ncid,ctype,'agfu8', &
-          'aerosol_asymmetry_parameter', &
-          'aer mix. sin. scat. alb','1',tzyx,.false.,ichevar(6))
-      call addvara(ncid,ctype,'colb', 'instantaneous_column_burden', &
-          'columnburden inst','mg m-2',tcyx,.false.,ichevar(7))
-      call addvara(ncid,ctype,'wdlsc', &
-          'tendency_of_wet_deposition_of_tracer'// &
-          '_due_to_large_scale_precipitation', &
-          'wet dep lgscale','mg m-2 day-1', tcyx,.false.,ichevar(8))
-      call addvara(ncid,ctype,'wdcvc', &
-          'tendency_of_wet_deposition_of_tracer'// &
-          '_due_to_convective_precipitation', &
-          'wet dep convect','mg m-2 day-1', tcyx,.false.,ichevar(9))
-      call addvara(ncid,ctype,'sdrdp', &
-          'tendency_of_dry_deposition_of_tracer', &
-          'surf dry depos','mg m-2 day-1', tcyx,.false.,ichevar(10))
-      call addvara(ncid,ctype,'xgasc', &
-          'tendency_of_gas_conversion_of_tracer', &
-          'chem gas conv','mg m-2 day-1', tcyx,.false.,ichevar(11))
-      call addvara(ncid,ctype,'xaquc', &
-          'tendency_of_aqueous_conversion_of_tracer', &
-          'chem aqu conv','mg m-2 day-1', tcyx,.false.,ichevar(12))
-      call addvara(ncid,ctype,'emiss', &
-          'tendency_of_surface_emission_of_tracer', &
-          'surf emission','mg m-2 day-1', tcyx,.false.,ichevar(13))
-      call addvara(ncid,ctype,'acstoarf', &
-          'toa_instantaneous_shortwave_radiative_forcing', &
-          'TOArad SW forcing av.','W m-2', tyx,.false.,ichevar(14))
-      call addvara(ncid,ctype,'acstsrrf', &
-          'surface_shortwave_radiative_forcing', &
-          'SRFrad SW forcing av.','W m-2', tyx,.false.,ichevar(15))
-      call addvara(ncid,ctype,'acstalrf', &
-          'toa_longwave_radiative_forcing', &
-          'TOArad LW forcing av.','W m-2', tyx,.false.,ichevar(16))
-      call addvara(ncid,ctype,'acssrlrf', &
-          'surface_longwave_radiative_forcing', &
-          'SRFrad LW forcing av.','W m-2', tyx,.false.,ichevar(17))
+      call addvara(ncid,ctype,tczyx,.false.,3)
+      call addvara(ncid,ctype,tzyx,.false.,4)
+      call addvara(ncid,ctype,tzyx,.false.,5)
+      call addvara(ncid,ctype,tzyx,.false.,6)
+      call addvara(ncid,ctype,tcyx,.false.,7)
+      call addvara(ncid,ctype,tcyx,.false.,8)
+      call addvara(ncid,ctype,tcyx,.false.,9)
+      call addvara(ncid,ctype,tcyx,.false.,10)
+      call addvara(ncid,ctype,tcyx,.false.,11)
+      call addvara(ncid,ctype,tcyx,.false.,12)
+      call addvara(ncid,ctype,tcyx,.false.,13)
+      call addvara(ncid,ctype,tyx,.false.,14)
+      call addvara(ncid,ctype,tyx,.false.,15)
+      call addvara(ncid,ctype,tyx,.false.,16)
+      call addvara(ncid,ctype,tyx,.false.,17)
     else if (ctype == 'LAK') then
       ilakvar = -1
       ilakvar(1) = itvar
       ilakvar(2) = illtpvar(5)
-      call addvara(ncid,ctype,'tg','surface_temperature', &
-          'Ground temperature','K',tyx,.false.,ilakvar(3))
-      call addvara(ncid,ctype,'tpr','precipitation_flux', &
-          'Total precipitation','kg m-2 day-1',tyx,.false.,ilakvar(4))
-      call addvara(ncid,ctype,'scv','snowfall_flux', &
-          'Snow precipitation','kg m-2 day-1',tyx,.true.,ilakvar(5))
-      call addvara(ncid,ctype,'sena', &
-          'surface_downward_sensible_heat_flux', &
-          'Sensible heat flux','W m-2',tyx,.false.,ilakvar(6))
-      call addvara(ncid,ctype,'flw', &
-          'net_upward_longwave_flux_in_air', &
-          'Net infrared energy flux','W m-2',tyx,.false.,ilakvar(7))
-      call addvara(ncid,ctype,'fsw', &
-          'surface_downwelling_shortwave_flux_in_air', &
-          'Solar absorbed energy flux','W m-2',tyx,.false.,ilakvar(8))
-      call addvara(ncid,ctype,'fld', &
-          'surface_downwelling_longwave_flux_in_air', &
-          'Downward LW flux','W m-2',tyx,.false.,ilakvar(9))
-      call addvara(ncid,ctype,'sina', &
-        'net_downward_radiative_flux_at_top_of_atmosphere_model', &
-        'Incident solar energy flux','W m-2',tyx,.false.,ilakvar(10))
-      call addvara(ncid,ctype,'aldirs', &
-          'surface_albedo_short_wave_direct', &
-          'Surface albedo to direct short wave radiation', &
-          '1',tyx,.false.,ilakvar(11))
-      call addvara(ncid,ctype,'aldifs', &
-          'surface_albedo_short_wave_diffuse', &
-          'Surface albedo to diffuse short wave radiation', &
-          '1',tyx,.false.,ilakvar(12))
-      call addvara(ncid,ctype,'evl', &
-          'water_evaporation_flux_where_sea_ice', &
-          'Water evaporation','mm sec-1',tyx,.true.,ilakvar(13))
-      call addvara(ncid,ctype,'aveice', 'floating_ice_thickness', &
-          'Floating ice thickness','mm',tyx,.true.,ilakvar(14))
-      call addvara(ncid,ctype,'hsnow', &
-          'surface_snow_thickness_where_sea_ice', &
-          'Floating snow thickness','mm',tyx,.true.,ilakvar(15))
-      call addvara(ncid,ctype,'tlake','temperature', &
-          'Lake water temperature','K',tdyx,.true.,ilakvar(16))
+      call addvara(ncid,ctype,tyx,.false.,3)
+      call addvara(ncid,ctype,tyx,.false.,4)
+      call addvara(ncid,ctype,tyx,.true.,5)
+      call addvara(ncid,ctype,tyx,.false.,6)
+      call addvara(ncid,ctype,tyx,.false.,7)
+      call addvara(ncid,ctype,tyx,.false.,8)
+      call addvara(ncid,ctype,tyx,.false.,9)
+      call addvara(ncid,ctype,tyx,.false.,10)
+      call addvara(ncid,ctype,tyx,.false.,11)
+      call addvara(ncid,ctype,tyx,.false.,12)
+      call addvara(ncid,ctype,tyx,.true.,13)
+      call addvara(ncid,ctype,tyx,.true.,14)
+      call addvara(ncid,ctype,tyx,.true.,15)
+      call addvara(ncid,ctype,tdyx,.true.,16)
     end if
 
     istatus = nf90_enddef(ncid)
@@ -2129,16 +1934,20 @@ contains
     end if
   end subroutine prepare_common_out
 
-  subroutine addvara(ncid,ctype,vname,vst,vln,vuni,idims,lmiss,ivar)
+  subroutine addvara(ncid,ctype,idims,lmiss,nvar)
     use netcdf
     implicit none
     integer , intent(in) :: ncid
     character(3) , intent(in) :: ctype
-    character(len=*) , intent(in) :: vname
-    character(len=*) , intent(in) :: vst , vln , vuni
     integer , dimension(5) , intent(in) :: idims
     logical , intent(in) :: lmiss
-    integer , intent(out) :: ivar
+    integer , intent(in) :: nvar
+
+    character(len=8)   :: vname
+    character(len=128) :: vst , vln
+    character(len=16)  :: vuni
+    logical :: lreq
+    integer :: ivar
 
     integer :: i , ndims
 
@@ -2147,32 +1956,91 @@ contains
       if (idims(i) > 0) ndims = ndims+1
     end do
 
-    cdum = vname
-    istatus = nf90_def_var(ncid, cdum, nf90_float, idims(1:ndims), ivar)
-    call check_ok('Error adding variable '//vname, ctype//' FILE ERROR')
+    select case (ctype)
+      case ('ATM')
+        vname = atm_variables(nvar)%vname
+        vst   = atm_variables(nvar)%vstd_name
+        vln   = atm_variables(nvar)%vdesc
+        vuni  = atm_variables(nvar)%vunit
+        lreq  = atm_variables(nvar)%enabled
+      case ('SRF')
+        vname = srf_variables(nvar)%vname
+        vst   = srf_variables(nvar)%vstd_name
+        vln   = srf_variables(nvar)%vdesc
+        vuni  = srf_variables(nvar)%vunit
+        lreq  = srf_variables(nvar)%enabled
+      case ('SUB')
+        vname = sub_variables(nvar)%vname
+        vst   = sub_variables(nvar)%vstd_name
+        vln   = sub_variables(nvar)%vdesc
+        vuni  = sub_variables(nvar)%vunit
+        lreq  = sub_variables(nvar)%enabled
+      case ('LAK')
+        vname = lak_variables(nvar)%vname
+        vst   = lak_variables(nvar)%vstd_name
+        vln   = lak_variables(nvar)%vdesc
+        vuni  = lak_variables(nvar)%vunit
+        lreq  = lak_variables(nvar)%enabled
+      case ('RAD')
+        vname = rad_variables(nvar)%vname
+        vst   = rad_variables(nvar)%vstd_name
+        vln   = rad_variables(nvar)%vdesc
+        vuni  = rad_variables(nvar)%vunit
+        lreq  = rad_variables(nvar)%enabled
+      case ('CHE')
+        vname = che_variables(nvar)%vname
+        vst   = che_variables(nvar)%vstd_name
+        vln   = rad_variables(nvar)%vdesc
+        vuni  = che_variables(nvar)%vunit
+        lreq  = che_variables(nvar)%enabled
+      case default
+        call fatal(__FILE__,__LINE__,ctype//': Not defined output type')
+    end select
+
+    if (lreq) then
+      cdum = vname
+      istatus = nf90_def_var(ncid, cdum, nf90_float, idims(1:ndims), ivar)
+      call check_ok('Error adding variable '//vname, ctype//' FILE ERROR')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
-    call check_ok('Error setting deflate on variable '//vname, &
-                  ctype//' FILE ERROR')
-#endif
-    cdum = vst
-    istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
-    call check_ok('Error adding '//vname//' standard_name', &
-                  ctype//' FILE ERROR')
-    cdum = vln
-    istatus = nf90_put_att(ncid, ivar, 'long_name', cdum)
-    call check_ok('Error adding '//vname//' long_name', ctype//' FILE ERROR')
-    cdum = vuni
-    istatus = nf90_put_att(ncid, ivar, 'units', cdum)
-    call check_ok('Error adding '//vname//' units', ctype//' FILE ERROR')
-    istatus = nf90_put_att(ncid, ivar, 'coordinates', 'xlat xlon')
-    call check_ok('Error adding '//vname//' coordinates', ctype//' FILE ERROR')
-    istatus = nf90_put_att(ncid, ivar, 'grid_mapping', 'rcm_map')
-    call check_ok('Error adding '//vname//' grid_mapping', ctype//' FILE ERROR')
-    if (lmiss) then
-      istatus = nf90_put_att(ncid, ivar, '_FillValue', smissval)
-      call check_ok('Error adding '//vname//' coordinates', &
+      istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
+      call check_ok('Error setting deflate on variable '//vname, &
                     ctype//' FILE ERROR')
+#endif
+      cdum = vst
+      istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
+      call check_ok('Error adding '//vname//' standard_name', &
+                    ctype//' FILE ERROR')
+      cdum = vln
+      istatus = nf90_put_att(ncid, ivar, 'long_name', cdum)
+      call check_ok('Error adding '//vname//' long_name', ctype//' FILE ERROR')
+      cdum = vuni
+      istatus = nf90_put_att(ncid, ivar, 'units', cdum)
+      call check_ok('Error adding '//vname//' units', ctype//' FILE ERROR')
+      istatus = nf90_put_att(ncid, ivar, 'coordinates', 'xlat xlon')
+      call check_ok('Error adding '//vname//' coordinates', ctype//' FILE ERROR')
+      istatus = nf90_put_att(ncid, ivar, 'grid_mapping', 'rcm_map')
+      call check_ok('Error adding '//vname//' grid_mapping', ctype//' FILE ERROR')
+      if (lmiss) then
+        istatus = nf90_put_att(ncid, ivar, '_FillValue', smissval)
+        call check_ok('Error adding '//vname//' coordinates', &
+                      ctype//' FILE ERROR')
+      end if
+      select case (ctype)
+        case ('ATM')
+          iatmvar(nvar) = ivar
+        case ('SRF')
+          isrfvar(nvar) = ivar
+        case ('SUB')
+          isubvar(nvar) = ivar
+        case ('LAK')
+          ilakvar(nvar) = ivar
+        case ('RAD')
+          iradvar(nvar) = ivar
+        case ('CHE')
+          ichevar(nvar) = ivar
+        case default
+          call fatal(__FILE__,__LINE__,ctype//': Not defined output type')
+      end select
     end if
   end subroutine addvara
 
@@ -2220,55 +2088,59 @@ contains
         lskip = .false.
         cycle
       end if
-      if (ivar == ivarname_lookup('SRF', 'u10m')   .or. &
-          ivar == ivarname_lookup('SRF', 'v10m')   .or. &
-          ivar == ivarname_lookup('SRF', 'w10max') .or. &
-          ivar == ivarname_lookup('SRF', 't2m')    .or. &
-          ivar == ivarname_lookup('SRF', 'q2m')    .or. &
-          ivar == ivarname_lookup('SRF', 't2max')  .or. &
-          ivar == ivarname_lookup('SRF', 't2min')) then
-        istart(4) = isrfrec
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = 1
-        icount(2) = o_ni
-        icount(1) = o_nj
-        istatus = nf90_put_var(ncsrf, isrfvar(ivar), &
-                        fbat(:,:,n), istart, icount)
-        call check_ok('Error writing '//srf_names(ivar)// &
-                      ' at '//ctime, 'SRF FILE ERROR')
-      else if (ivar == ivarname_lookup('SRF', 'smw')) then
-        istart(4) = isrfrec
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = 1
-        icount(2) = o_ni
-        icount(1) = o_nj
-        istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
-                        fbat(:,:,n), istart, icount)
-        call check_ok('Error writing '//srf_names(ivar)// &
-                      ' at '//ctime, 'SRF FILE ERROR')
-        istart(3) = 2
-        istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
-                        fbat(:,:,n+1), istart, icount)
-        call check_ok('Error writing '//srf_names(ivar)// &
-                      ' at '//ctime, 'SRF FILE ERROR')
+      if ( srf_variables(ivar)%enabled ) then
+        if (ivar == ivarname_lookup('SRF', 'u10m')   .or. &
+            ivar == ivarname_lookup('SRF', 'v10m')   .or. &
+            ivar == ivarname_lookup('SRF', 'w10max') .or. &
+            ivar == ivarname_lookup('SRF', 't2m')    .or. &
+            ivar == ivarname_lookup('SRF', 'q2m')    .or. &
+            ivar == ivarname_lookup('SRF', 't2max')  .or. &
+            ivar == ivarname_lookup('SRF', 't2min')) then
+          istart(4) = isrfrec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_ni
+          icount(1) = o_nj
+          istatus = nf90_put_var(ncsrf, isrfvar(ivar), &
+                          fbat(:,:,n), istart, icount)
+          call check_ok('Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE ERROR')
+        else if (ivar == ivarname_lookup('SRF', 'smw')) then
+          istart(4) = isrfrec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_ni
+          icount(1) = o_nj
+          istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
+                          fbat(:,:,n), istart, icount)
+          call check_ok('Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE ERROR')
+          istart(3) = 2
+          istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
+                          fbat(:,:,n+1), istart, icount)
+          call check_ok('Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE ERROR')
+        else
+          istart(3) = isrfrec
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = o_ni
+          icount(1) = o_nj
+          istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
+                   fbat(:,:,n), istart(1:3), icount(1:3))
+          call check_ok('Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE ERROR')
+        end if
+      end if
+      if (ivar == ivarname_lookup('SRF', 'smw')) then
         lskip = .true.
-      else
-        istart(3) = isrfrec
-        istart(2) = 1
-        istart(1) = 1
-        icount(3) = 1
-        icount(2) = o_ni
-        icount(1) = o_nj
-        istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
-                 fbat(:,:,n), istart(1:3), icount(1:3))
-        call check_ok('Error writing '//srf_names(ivar)// &
-                      ' at '//ctime, 'SRF FILE ERROR')
       end if
       ivar = ivar + 1
     end do
@@ -2283,7 +2155,7 @@ contains
       icount(1) = o_nj
       istatus = nf90_put_var(ncsrf, isrfvar(31), & 
                dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//srf_names(31)// &
+      call check_ok('Error writing '//srf_variables(31)%vname// &
                     ' at '//ctime, 'SRF FILE ERROR')
     end if
 
@@ -2333,51 +2205,55 @@ contains
         lskip = .false.
         cycle
       end if
-      call reorder(fsub,subio,nxb,nyb,nsg,nsub,n)
-      if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
-          ivar == ivarname_lookup('SUB', 'v10m')   .or. &
-          ivar == ivarname_lookup('SUB', 't2m')    .or. &
-          ivar == ivarname_lookup('SUB', 'q2m') ) then
-        istart(4) = isubrec
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = 1
-        icount(2) = o_nig
-        icount(1) = o_njg
-        istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-        call check_ok('Error writing '//sub_names(ivar)// &
-                      ' at '//ctime, 'SUB FILE ERROR')
-      else if (ivar == ivarname_lookup('SUB', 'smw')) then
-        istart(4) = isubrec
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = 1
-        icount(2) = o_nig
-        icount(1) = o_njg
-        istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-        call check_ok('Error writing '//sub_names(ivar)// &
-                      ' at '//ctime, 'SUB FILE ERROR')
-        istart(3) = 2
-        call reorder(fsub,subio,nxb,nyb,nsg,nsub,n+1)
-        istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-        call check_ok('Error writing '//sub_names(ivar)// &
-                      ' at '//ctime, 'SUB FILE ERROR')
+      if ( sub_variables(ivar)%enabled ) then
+        call reorder(fsub,subio,nxb,nyb,nsg,nsub,n)
+        if (ivar == ivarname_lookup('SUB', 'u10m')   .or. &
+            ivar == ivarname_lookup('SUB', 'v10m')   .or. &
+            ivar == ivarname_lookup('SUB', 't2m')    .or. &
+            ivar == ivarname_lookup('SUB', 'q2m') ) then
+          istart(4) = isubrec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_nig
+          icount(1) = o_njg
+          istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
+          call check_ok('Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE ERROR')
+        else if (ivar == ivarname_lookup('SUB', 'smw')) then
+          istart(4) = isubrec
+          istart(3) = 1
+          istart(2) = 1
+          istart(1) = 1
+          icount(4) = 1
+          icount(3) = 1
+          icount(2) = o_nig
+          icount(1) = o_njg
+          istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
+          call check_ok('Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE ERROR')
+          istart(3) = 2
+          call reorder(fsub,subio,nxb,nyb,nsg,nsub,n+1)
+          istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
+          call check_ok('Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE ERROR')
+        else
+          istart(3) = isubrec
+          istart(2) = 1
+          istart(1) = 1
+          icount(3) = 1
+          icount(2) = o_nig
+          icount(1) = o_njg
+          istatus = nf90_put_var(ncsub, isubvar(ivar), & 
+                                 subio, istart(1:3), icount(1:3))
+          call check_ok('Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE ERROR')
+        end if
+      end if
+      if (ivar == ivarname_lookup('SUB', 'smw')) then
         lskip = .true.
-      else
-        istart(3) = isubrec
-        istart(2) = 1
-        istart(1) = 1
-        icount(3) = 1
-        icount(2) = o_nig
-        icount(1) = o_njg
-        istatus = nf90_put_var(ncsub, isubvar(ivar), & 
-                               subio, istart(1:3), icount(1:3))
-        call check_ok('Error writing '//sub_names(ivar)// &
-                      ' at '//ctime, 'SUB FILE ERROR')
       end if
       ivar = ivar + 1
     end do
@@ -2454,31 +2330,35 @@ contains
 
     ivar = 3
     do n = 1 , nrad3d
-      istart(4) = iradrec
-      istart(3) = 1
-      istart(2) = 1
-      istart(1) = 1
-      icount(4) = 1
-      icount(3) = o_nz
-      icount(2) = o_ni
-      icount(1) = o_nj
-      istatus = nf90_put_var(ncrad, iradvar(ivar), &
-                        frad3d(:,:,:,n), istart, icount)
-      call check_ok('Error writing '//rad_names(ivar)// &
-                    ' at '//ctime, 'RAD FILE ERROR')
+      if ( rad_variables(ivar)%enabled ) then
+        istart(4) = iradrec
+        istart(3) = 1
+        istart(2) = 1
+        istart(1) = 1
+        icount(4) = 1
+        icount(3) = o_nz
+        icount(2) = o_ni
+        icount(1) = o_nj
+        istatus = nf90_put_var(ncrad, iradvar(ivar), &
+                               frad3d(:,:,:,n), istart, icount)
+        call check_ok('Error writing '//rad_variables(ivar)%vname// &
+                      ' at '//ctime, 'RAD FILE ERROR')
+      end if
       ivar = ivar + 1
     end do
     do n = 1 , nrad2d
-      istart(3) = iradrec
-      istart(2) = 1
-      istart(1) = 1
-      icount(3) = 1
-      icount(2) = o_ni
-      icount(1) = o_nj
-      istatus = nf90_put_var(ncrad, iradvar(ivar), & 
-                       frad2d(:,:,n), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//rad_names(ivar)// &
-                    ' at '//ctime, 'RAD FILE ERROR')
+      if ( rad_variables(ivar)%enabled ) then
+        istart(3) = iradrec
+        istart(2) = 1
+        istart(1) = 1
+        icount(3) = 1
+        icount(2) = o_ni
+        icount(1) = o_nj
+        istatus = nf90_put_var(ncrad, iradvar(ivar), & 
+                               frad2d(:,:,n), istart(1:3), icount(1:3))
+        call check_ok('Error writing '//rad_variables(ivar)%vname// &
+                      ' at '//ctime, 'RAD FILE ERROR')
+      end if
       ivar = ivar + 1
     end do
 
@@ -2565,118 +2445,136 @@ contains
     icount(3) = o_nz
     icount(2) = o_ni
     icount(1) = o_nj
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        ip2 = i+2
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-            jp2 = j+2
-          else
-            jp1 = j
-            jp2 = j+1
-            if (j == o_nj) jp2 = 1
-          end if
-          dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
-              u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+
+    if ( atm_variables(3)%enabled ) then
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          ip2 = i+2
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+              jp2 = j+2
+            else
+              jp1 = j
+              jp2 = j+1
+              if (j == o_nj) jp2 = 1
+            end if
+            dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
+                                  u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(3), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(3)// &
-                  ' at '//ctime, 'ATM FILE ERROR')
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        ip2 = i+2
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-            jp2 = j+2
-          else
-            jp1 = j
-            jp2 = j+1
-            if (j == o_nj) jp2 = 1
-          end if
-          dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
-               v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+      istatus = nf90_put_var(ncatm, iatmvar(3), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(3)%vname// &
+                    ' at '//ctime, 'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(4)%enabled ) then
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          ip2 = i+2
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+              jp2 = j+2
+            else
+              jp1 = j
+              jp2 = j+1
+              if (j == o_nj) jp2 = 1
+            end if
+            dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
+                                  v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(4), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(4)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-          else
-            jp1 = j
-          end if
-          dumio(j,i,k) = real(omega(ip1,k,jp1)*d_10)
+      istatus = nf90_put_var(ncatm, iatmvar(4), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(4)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(5)%enabled ) then
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+            else
+              jp1 = j
+            end if
+            dumio(j,i,k) = real(omega(ip1,k,jp1)*d_10)
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(5), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(5)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-          else
-            jp1 = j
-          end if
-          dumio(j,i,k) = real(t(ip1,k,jp1)/ps(ip1,jp1))
+      istatus = nf90_put_var(ncatm, iatmvar(5), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(5)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(6)%enabled ) then
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+            else
+              jp1 = j
+            end if
+            dumio(j,i,k) = real(t(ip1,k,jp1)/ps(ip1,jp1))
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(6), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(6)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    dumio = 0.0
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-          else
-            jp1 = j
-          end if
-          if (qv(ip1,k,jp1) > dlowval) then
-            dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
-          end if
+      istatus = nf90_put_var(ncatm, iatmvar(6), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(6)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(7)%enabled ) then
+      dumio = 0.0
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+            else
+              jp1 = j
+            end if
+            if (qv(ip1,k,jp1) > dlowval) then
+              dumio(j,i,k) = real(qv(ip1,k,jp1)/ps(ip1,jp1))
+            end if
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(7), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(7)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    dumio = 0.0
-    do k = 1 , o_nz
-      do i = 1 , o_ni
-        ip1 = i+1
-        do j = 1 , o_nj
-          if (.not. lwrap) then
-            jp1 = j+1
-          else
-            jp1 = j
-          end if
-          if (qc(ip1,k,jp1) > dlowval) then
-            dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))
-          end if
+      istatus = nf90_put_var(ncatm, iatmvar(7), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(7)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(8)%enabled ) then
+      dumio = 0.0
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+            else
+              jp1 = j
+            end if
+            if (qc(ip1,k,jp1) > dlowval) then
+              dumio(j,i,k) = real(qc(ip1,k,jp1)/ps(ip1,jp1))
+            end if
+          end do
         end do
       end do
-    end do
-    istatus = nf90_put_var(ncatm, iatmvar(8), dumio, istart, icount)
-    call check_ok('Error writing '//atm_names(8)//' at '//ctime, &
-                  'ATM FILE ERROR')
+      istatus = nf90_put_var(ncatm, iatmvar(8), dumio, istart, icount)
+      call check_ok('Error writing '//atm_variables(8)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
 
     istart(3) = iatmrec
     istart(2) = 1
@@ -2685,55 +2583,64 @@ contains
     icount(2) = o_ni
     icount(1) = o_nj
 
-    dumio(:,:,1) = 0.0
-    where (transpose(rc(o_is:o_ie,o_js:o_je)) > dlowval)
-      dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
-    end where
-    where (transpose(rnc(o_is:o_ie,o_js:o_je)) > dlowval)
-      dumio(:,:,1) = dumio(:,:,1) + real(transpose(rnc(o_is:o_ie,o_js:o_je)))
-    end where
-    dumio(:,:,1) = dumio(:,:,1)*real(tpd)
-    istatus = nf90_put_var(ncatm, iatmvar(9), &
-               dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//atm_names(9)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
-    istatus = nf90_put_var(ncatm, iatmvar(10), & 
-               dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//atm_names(10)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    dumio(:,:,1) = 0.0
-    do n = 1 , ns
-      where (atmsrfmask(n,:,:) > 0)
-        dumio(:,:,1) = dumio(:,:,1) + &
-              real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
+    if ( atm_variables(9)%enabled ) then
+      dumio(:,:,1) = 0.0
+      where (transpose(rc(o_is:o_ie,o_js:o_je)) > dlowval)
+        dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
       end where
-    end do
-    where (atmsrfsum > 0)
-      dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
-    elsewhere
-      dumio(:,:,1) = -1.E34
-    end where
-    istatus = nf90_put_var(ncatm, iatmvar(11), & 
-               dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//atm_names(11)//' at '//ctime, &
-                  'ATM FILE ERROR')
-    dumio(:,:,1) = 0.0
-    do n = 1 , ns
-      where (atmsrfmask(n,:,:) > 0)
-        dumio(:,:,1) = dumio(:,:,1) + &
-              real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
+      where (transpose(rnc(o_is:o_ie,o_js:o_je)) > dlowval)
+        dumio(:,:,1) = dumio(:,:,1) + real(transpose(rnc(o_is:o_ie,o_js:o_je)))
       end where
-    end do
-    where (atmsrfsum > 0)
-      dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
-    elsewhere
-      dumio(:,:,1) = -1.E34
-    end where
-    istatus = nf90_put_var(ncatm, iatmvar(12), & 
-               dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//atm_names(12)//' at '//ctime, &
-                  'ATM FILE ERROR')
+      dumio(:,:,1) = dumio(:,:,1)*real(tpd)
+      istatus = nf90_put_var(ncatm, iatmvar(9), &
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//atm_variables(9)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(10)%enabled ) then
+      dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
+      istatus = nf90_put_var(ncatm, iatmvar(10), & 
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//atm_variables(10)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(11)%enabled ) then
+      dumio(:,:,1) = 0.0
+      do n = 1 , ns
+        where (atmsrfmask(n,:,:) > 0)
+          dumio(:,:,1) = dumio(:,:,1) + real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
+        end where
+      end do
+      where (atmsrfsum > 0)
+        dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
+      elsewhere
+        dumio(:,:,1) = -1.E34
+      end where
+      istatus = nf90_put_var(ncatm, iatmvar(11), & 
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//atm_variables(11)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
+
+    if ( atm_variables(12)%enabled ) then
+      dumio(:,:,1) = 0.0
+      do n = 1 , ns
+        where (atmsrfmask(n,:,:) > 0)
+          dumio(:,:,1) = dumio(:,:,1) + real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
+        end where
+      end do
+      where (atmsrfsum > 0)
+        dumio(:,:,1) = dumio(:,:,1)/amax1(atmsrfsum/2.0,1.0)
+      elsewhere
+        dumio(:,:,1) = -1.E34
+      end where
+      istatus = nf90_put_var(ncatm, iatmvar(12), & 
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//atm_variables(12)%vname//' at '//ctime, &
+                    'ATM FILE ERROR')
+    end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncatm)
@@ -2800,25 +2707,27 @@ contains
                            dumio(:,:,1), istart(1:3), icount(1:3))
     call check_ok('Error writing ps at '//ctime, 'CHE FILE ERROR')
 
-    do n =  1 , nt
-      istart(5) = icherec
-      istart(4) = n
-      istart(3) = 1
-      istart(2) = 1
-      istart(1) = 1
-      icount(5) = 1
-      icount(4) = 1
-      icount(3) = o_nz
-      icount(2) = o_ni
-      icount(1) = o_nj
-      do k = 1 , nz
-        dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
-                                 ps(o_is:o_ie,o_js:o_je)))
+    if ( che_variables(3)%enabled ) then
+      do n =  1 , nt
+        istart(5) = icherec
+        istart(4) = n
+        istart(3) = 1
+        istart(2) = 1
+        istart(1) = 1
+        icount(5) = 1
+        icount(4) = 1
+        icount(3) = o_nz
+        icount(2) = o_ni
+        icount(1) = o_nj
+        do k = 1 , nz
+          dumio(:,:,k) = real(transpose(chia(o_is:o_ie,k,o_js:o_je,n) / &
+                                     ps(o_is:o_ie,o_js:o_je)))
+        end do
+        istatus = nf90_put_var(ncche, ichevar(3), dumio, istart, icount)
+        call check_ok('Error writing '//che_variables(3)%vname//' at '//ctime, &
+                      'CHE FILE ERROR')
       end do
-      istatus = nf90_put_var(ncche, ichevar(3), dumio, istart, icount)
-      call check_ok('Error writing '//che_names(3)//' at '//ctime, &
-                    'CHE FILE ERROR')
-    end do
+    end if
 
     istart(4) = icherec
     istart(3) = 1
@@ -2828,24 +2737,34 @@ contains
     icount(3) = o_nz
     icount(2) = o_ni
     icount(1) = o_nj
-    do k = 1 , nz
-      dumio(:,:,k) = real(transpose(aerext(o_is:o_ie,k,o_js:o_je)))
-    end do
-    istatus = nf90_put_var(ncche, ichevar(4), dumio, istart(1:4), icount(1:4))
-    call check_ok('Error writing '//che_names(4)//' at '//ctime, &
-                  'CHE FILE ERROR')
-    do k = 1 , nz
-      dumio(:,:,k) = real(transpose(aerssa(o_is:o_ie,k,o_js:o_je)))
-    end do
-    istatus = nf90_put_var(ncche, ichevar(5), dumio, istart(1:4), icount(1:4))
-    call check_ok('Error writing '//che_names(5)//' at '//ctime, &
-                  'CHE FILE ERROR')
-    do k = 1 , nz
-      dumio(:,:,k) = real(transpose(aerasp(o_is:o_ie,k,o_js:o_je)))
-    end do
-    istatus = nf90_put_var(ncche, ichevar(6), dumio, istart(1:4), icount(1:4))
-    call check_ok('Error writing '//che_names(6)//' at '//ctime, &
-                  'CHE FILE ERROR')
+
+    if ( che_variables(4)%enabled ) then
+      do k = 1 , nz
+        dumio(:,:,k) = real(transpose(aerext(o_is:o_ie,k,o_js:o_je)))
+      end do
+      istatus = nf90_put_var(ncche, ichevar(4), dumio, istart(1:4), icount(1:4))
+      call check_ok('Error writing '//che_variables(4)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+
+    if ( che_variables(5)%enabled ) then
+      do k = 1 , nz
+        dumio(:,:,k) = real(transpose(aerssa(o_is:o_ie,k,o_js:o_je)))
+      end do
+      istatus = nf90_put_var(ncche, ichevar(5), dumio, istart(1:4), icount(1:4))
+      call check_ok('Error writing '//che_variables(5)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+
+    if ( che_variables(6)%enabled ) then
+      do k = 1 , nz
+        dumio(:,:,k) = real(transpose(aerasp(o_is:o_ie,k,o_js:o_je)))
+      end do
+      istatus = nf90_put_var(ncche, ichevar(6), dumio, istart(1:4), icount(1:4))
+      call check_ok('Error writing '//che_variables(6)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+
     do n = 1 , nt
       istart(4) = icherec
       istart(3) = n
@@ -2855,68 +2774,92 @@ contains
       icount(3) = 1
       icount(2) = o_ni
       icount(1) = o_nj
-      dumio(:,:,1) = real(transpose(dtrace(o_is:o_ie,o_js:o_je,n)))
-      istatus = nf90_put_var(ncche, ichevar(7), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(7)//' at '//ctime, &
-                    'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(8), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(8)//' at '//ctime, &
-                    'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(9), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(9)//' at '//ctime, &
-                    'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(10), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(10)// &
-                    ' at '//ctime, 'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(11), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(11)// &
-                    ' at '//ctime, 'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(12), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(12)// &
-                    ' at '//ctime, 'CHE FILE ERROR')
-      dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
-      istatus = nf90_put_var(ncche, ichevar(13), &
-                           dumio(:,:,1), istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_names(13)// &
-                    ' at '//ctime, 'CHE FILE ERROR')
+      if ( che_variables(7)%enabled ) then
+        dumio(:,:,1) = real(transpose(dtrace(o_is:o_ie,o_js:o_je,n)))
+        istatus = nf90_put_var(ncche, ichevar(7), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(7)%vname//' at '//ctime, &
+                      'CHE FILE ERROR')
+      end if
+      if ( che_variables(8)%enabled ) then
+        dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(8), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(8)%vname//' at '//ctime, &
+                      'CHE FILE ERROR')
+      end if
+      if ( che_variables(9)%enabled ) then
+        dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(9), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(9)%vname//' at '//ctime, &
+                      'CHE FILE ERROR')
+      end if
+      if ( che_variables(10)%enabled ) then
+        dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(10), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(10)%vname// &
+                      ' at '//ctime, 'CHE FILE ERROR')
+      end if
+      if ( che_variables(11)%enabled ) then
+        dumio(:,:,1) = real(transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(11), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(11)%vname// &
+                      ' at '//ctime, 'CHE FILE ERROR')
+      end if
+      if ( che_variables(12)%enabled ) then
+        dumio(:,:,1) = real(transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(12), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(12)%vname// &
+                      ' at '//ctime, 'CHE FILE ERROR')
+      end if
+      if ( che_variables(13)%enabled ) then
+        dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
+        istatus = nf90_put_var(ncche, ichevar(13), &
+                               dumio(:,:,1), istart(1:4), icount(1:4))
+        call check_ok('Error writing '//che_variables(13)%vname// &
+                      ' at '//ctime, 'CHE FILE ERROR')
+      end if
     end do
+
     istart(3) = icherec
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
     icount(2) = o_ni
     icount(1) = o_nj
-    dumio(:,:,1) = real(transpose(aertarf(o_is:o_ie,o_js:o_je)))
-    istatus = nf90_put_var(ncche, ichevar(14), &
-                         dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//che_names(14)//' at '//ctime, &
-                  'CHE FILE ERROR')
-    dumio(:,:,1) = real(transpose(aersrrf(o_is:o_ie,o_js:o_je)))
-    istatus = nf90_put_var(ncche, ichevar(15), &
-                         dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//che_names(15)//' at '//ctime, &
-                  'CHE FILE ERROR')
-    dumio(:,:,1) = real(transpose(aertalwrf(o_is:o_ie,o_js:o_je)))
-    istatus = nf90_put_var(ncche, ichevar(16), &
-                         dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//che_names(16)//' at '//ctime, &
-                  'CHE FILE ERROR')
-    dumio(:,:,1) = real(transpose(aersrlwrf(o_is:o_ie,o_js:o_je)))
-    istatus = nf90_put_var(ncche, ichevar(17), &
-                         dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//che_names(17)//' at '//ctime, &
-                  'CHE FILE ERROR')
+
+    if ( che_variables(14)%enabled ) then
+      dumio(:,:,1) = real(transpose(aertarf(o_is:o_ie,o_js:o_je)))
+      istatus = nf90_put_var(ncche, ichevar(14), &
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//che_variables(14)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+    if ( che_variables(15)%enabled ) then
+      dumio(:,:,1) = real(transpose(aersrrf(o_is:o_ie,o_js:o_je)))
+      istatus = nf90_put_var(ncche, ichevar(15), &
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//che_variables(15)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+    if ( che_variables(16)%enabled ) then
+      dumio(:,:,1) = real(transpose(aertalwrf(o_is:o_ie,o_js:o_je)))
+      istatus = nf90_put_var(ncche, ichevar(16), &
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//che_variables(16)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
+    if ( che_variables(17)%enabled ) then
+      dumio(:,:,1) = real(transpose(aersrlwrf(o_is:o_ie,o_js:o_je)))
+      istatus = nf90_put_var(ncche, ichevar(17), &
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok('Error writing '//che_variables(17)%vname//' at '//ctime, &
+                    'CHE FILE ERROR')
+    end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncche)
@@ -2969,7 +2912,7 @@ contains
       icount(1) = o_nj
       istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                       fbat(:,:,n), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//lak_names(ivar)// &
+      call check_ok('Error writing '//lak_variables(ivar)%vname// &
                     ' at '//ctime, 'LAK FILE ERROR')
       ivar = ivar + 1
     end do
@@ -2978,19 +2921,19 @@ contains
     dumio(:,:,1) =  real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_names(ivar)// &
+    call check_ok('Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE ERROR')
     ivar = ivar + 1
     dumio(:,:,1) = real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_names(ivar)// &
+    call check_ok('Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE ERROR')
     ivar = ivar + 1
     dumio(:,:,1) = real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
              dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_names(ivar)// &
+    call check_ok('Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE ERROR')
     ivar = ivar + 1
     do n = 1 , ndpmax
@@ -3008,7 +2951,7 @@ contains
         dumio(:,:,1) = dumio(:,:,1) + real(tzero)
       end where
       istatus = nf90_put_var(nclak, ilakvar(ivar), dumio(:,:,1), istart, icount)
-      call check_ok('Error writing '//lak_names(ivar)// &
+      call check_ok('Error writing '//lak_variables(ivar)%vname// &
                   ' at '//ctime, 'LAK FILE ERROR')
     end do
 

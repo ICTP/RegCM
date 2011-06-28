@@ -528,21 +528,27 @@ written in the files.
 {\footnotesize
 \begin{Verbatim}
  &outparam
- ifsave  = .true. ,    ! Create SAV files for restart
- savfrq  =    48.,     ! Frequency in hours to create them
- ifatm   = .true. ,    ! Output ATM ?
- atmfrq  =     6.,     ! Frequency in hours to write to ATM
- ifrad   = .true. ,    ! Output RAD ?
- radfrq  =     6.,     ! Frequency in hours to write to RAD
- ifsrf   = .true. ,    ! Output SRF ?
- ifsub   = .true. ,    ! Output SUB ?
- srffrq  =     3.,     ! Frequency in hours to write to SRF and SUB (and CLM)
- iflak   = .true.,     ! Output LAK ?
- lakfrq  =     6.,     ! Frequency in hours to write to LAK if lakemod is 1
-                       ! It must be an integer multiple of batfrq
- ifchem  = .true.,     ! Output CHE ?
- chemfrq =     6.,     ! Frequency in hours to write to CHE
- dirout  = './output', ! Path where all output will be placed
+ ifsave  = .true. ,         ! Create SAV files for restart
+ savfrq  =    48.,          ! Frequency in hours to create them
+ ifatm   = .true. ,         ! Output ATM ?
+ atmfrq  =     6.,          ! Frequency in hours to write to ATM
+ ifrad   = .true. ,         ! Output RAD ?
+ radfrq  =     6.,          ! Frequency in hours to write to RAD
+ ifsrf   = .true. ,         ! Output SRF ?
+ ifsub   = .true. ,         ! Output SUB ?
+ srffrq  =     3.,          ! Frequency in hours to write to SRF and SUB (and CLM)
+ iflak   = .true.,          ! Output LAK ?
+ lakfrq  =     6.,          ! Frequency in hours to write to LAK if lakemod is 1
+                            ! It must be an integer multiple of batfrq
+ ifchem  = .true.,          ! Output CHE ?
+ chemfrq =     6.,          ! Frequency in hours to write to CHE
+ atm_enablevar = 12*.true., ! Mask to eventually disable variables ATM
+ srf_enablevar = 31*.true., ! Mask to eventually disable variables SRF
+ lak_enablevar = 16*.true., ! Mask to eventually disable variables LAK
+ sub_enablevar = 16*.true., ! Mask to eventually disable variables SUB
+ rad_enablevar = 15*.true., ! Mask to eventually disable variables RAD
+ che_enablevar = 17*.true., ! Mask to eventually disable variables CHE
+ dirout  = './output',      ! Path where all output will be placed
  /
 \end{Verbatim}
 }
@@ -560,6 +566,9 @@ in dimparam at \ref{dimparam}, the \verb=ifsub= flag is not considered.
 \item For the output directory, the path variable has a limit of $256$
 characters. This path must be a local path on disk where the user running
 the model has write permissions granted.
+\item The enablevar logical arrays can be used to avoid saving one of the time
+dependent variables in the output file, in the order they are saved in the output
+file itself. Note that the variables time, tbnds and ps cannot be disabled.
 \end{enumerate}
 
 \subsection{physicsparam stanza}

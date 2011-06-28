@@ -202,7 +202,7 @@ mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
               mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_clm.o \
               mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
               mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o mod_tendency.o \
-              mod_cldfrac.o
+              mod_ncio.o mod_cldfrac.o
 else
 mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
               mod_main.o mod_message.o mod_runparams.o mod_o3blk.o \
@@ -210,8 +210,8 @@ mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
               mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
               mod_che_semdde.o mod_ncio.o mod_leaftemp.o mod_chem.o \
               mod_aerosol.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
-               mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o mod_tendency.o \
-              mod_cldfrac.o
+              mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o mod_tendency.o \
+              mod_ncio.o mod_cldfrac.o
 endif
 mod_pbldim.o: mod_pbldim.f90 mod_memutil.o
 mod_pmoist.o: mod_pmoist.f90
