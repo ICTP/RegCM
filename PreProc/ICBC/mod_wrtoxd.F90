@@ -332,8 +332,7 @@ module mod_wrtoxd
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
-              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
-              ncidox)
+              ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), ncidox)
 #else
     istatus = nf90_create(ofname, nf90_clobber, ncidox)
 #endif
@@ -470,14 +469,14 @@ module mod_wrtoxd
       call check_ok(istatus,'Error setting compression on '//oxspec(i))
 #endif
       buffer = 'mass_fraction_of_'//trim(oxspec(i))//'_in_air'
-      istatus = nf90_put_att(ncid, ioxvar(i+1), 'standard_name', buffer)
+      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'standard_name', buffer)
       call check_ok(istatus,'Error adding standard_name on '//trim(oxspec(i)))
       buffer = trim(oxspec(i))//' Volume Mixing Ratio'
-      istatus = nf90_put_att(ncid, ioxvar(i+1), 'long_name', buffer)
+      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'long_name', buffer)
       call check_ok(istatus,'Error adding long_name on '//trim(oxspec(i)))
-      istatus = nf90_put_att(ncid, ioxvar(i+1), 'units', 'kg kg-1')
+      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'units', 'kg kg-1')
       call check_ok(istatus,'Error adding units on '//trim(oxspec(i)))
-      istatus = nf90_put_att(ncid, ioxvar(i+1), 'coordinates', 'xlon xlat')
+      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'coordinates', 'xlon xlat')
       call check_ok(istatus,'Error adding coordinates on '//trim(oxspec(i)))
     end do
 
@@ -576,7 +575,7 @@ module mod_wrtoxd
     icount(1) = jx
 
     do i = 1 , noxsp
-      istatus = nf90_put_var(ncid, ioxvar(i+1), oxv4(:,:,:,i), istart, icount)
+      istatus = nf90_put_var(ncidox, ioxvar(i+1), oxv4(:,:,:,i), istart, icount)
       call check_ok(istatus,'Error variable '//oxspec(i)//' write')
     end do
 
