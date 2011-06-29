@@ -133,7 +133,7 @@ module mod_wrtoxd
     istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
     call check_ok(istatus,'Error adding global institution')
     istatus = nf90_put_att(ncid, nf90_global, 'source', &
-               'RegCM Model simulation SST output')
+               'RegCM Model simulation CHEM_ICBC output')
     call check_ok(istatus,'Error adding global source')
     istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
     call check_ok(istatus,'Error adding global Conventions')
