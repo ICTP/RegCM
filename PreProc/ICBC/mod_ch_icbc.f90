@@ -38,11 +38,11 @@ module mod_ch_icbc
   real(sp) , dimension(chilon) :: cht42lon
   real(sp) , dimension(chjlat) :: cht42lat
   real(sp) , dimension(chilev) :: cht42hyam , cht42hybm
-  real(sp) , dimension(chilon,chjlat) :: xps
 !
 ! Oxidant climatology variables
 !
   real(sp) :: p0
+  real(sp) , dimension(chilon,chjlat) :: xps
   real(sp) , dimension(chilon,chjlat) :: poxid_2
   real(sp) , allocatable, dimension(:,:) :: poxid_3
   real(sp) , allocatable, dimension(:,:,:,:) :: chv3

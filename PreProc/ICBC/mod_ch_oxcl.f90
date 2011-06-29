@@ -38,11 +38,11 @@ module mod_ch_oxcl
   real(sp) , dimension(oxilon) :: oxt42lon
   real(sp) , dimension(oxjlat) :: oxt42lat
   real(sp) , dimension(oxilev) :: oxt42hyam , oxt42hybm
-  real(sp) , dimension(oxilon,oxjlat) :: xps
 !
 ! Oxidant climatology variables
 !
   real(sp) :: p0
+  real(sp) , dimension(oxilon,oxjlat) :: xps
   real(sp) , dimension(oxilon,oxjlat) :: poxid_2
   real(sp) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
   real(sp) , dimension(oxilon,oxjlat,oxitime) :: xps2
@@ -153,10 +153,10 @@ module mod_ch_oxcl
     wt2 = t2%hours()/t3%hours()
 
     do is = 1 , noxsp
-      do i = 1 , iy
-        do j = 1 , jx
-          do l = 1 , kz
-            oxv3(j,i,l,is) = oxv2(j,l,i,m1,is)*wt1+oxv2(j,l,i,m2,is)*wt2
+      do i = 1 , oxjlat
+        do j = 1 , oxilon
+          do l = 1 , oxilev
+            xinp(j,i,l) = oxv2(j,l,i,m1,is)*wt1+oxv2(j,l,i,m2,is)*wt2
           end do
         end do
       end do
@@ -164,8 +164,8 @@ module mod_ch_oxcl
                    oxilon,oxjlat,iy,jx,oxilev) 
     end do
 
-    do i = 1 , iy
-      do j = 1 , jx
+    do i = 1 , oxjlat
+      do j = 1 , oxilon
         xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
       end do
     end do
