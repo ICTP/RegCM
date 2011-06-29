@@ -38,7 +38,7 @@ module mod_wrtoxd
   integer :: ncid , ncidox
   character(256) :: ofname
   type(rcm_time_and_date) :: irefdate
-  integer :: itime
+  integer :: itimech , itimeox
   integer , dimension(5) :: idims
   integer :: istatus
 
@@ -115,7 +115,7 @@ module mod_wrtoxd
                 '_CHBC.', idate1%toidate(), '.nc'
 
     irefdate = idate1
-    itime = 1
+    itimech = 1
 
     csdate = idate1%tostring()
 
@@ -326,7 +326,7 @@ module mod_wrtoxd
                 '_OXCL.', idate1%toidate(), '.nc'
 
     irefdate = idate1
-    itime = 1
+    itimeox = 1
 
     csdate = idate1%tostring()
 
@@ -522,14 +522,14 @@ module mod_wrtoxd
     real(dp) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdif
 !
-    istart1(1) = itime
+    istart1(1) = itimech
     icount1(1) = 1
     tdif = idate - irefdate
     xdate(1) = tdif%hours()
     istatus = nf90_put_var(ncid, ichvar(1), xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
 
-    istart(4) = itime
+    istart(4) = itimech
     istart(3) = 1
     istart(2) = 1
     istart(1) = 1
@@ -545,7 +545,7 @@ module mod_wrtoxd
 
     write (stdout ,*) 'Write ch_icbc : ', idate%tostring()
 
-    itime = itime + 1
+    itimech = itimech + 1
 !
   end subroutine write_ch_icbc
 
@@ -558,14 +558,14 @@ module mod_wrtoxd
     real(dp) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdif
 !
-    istart1(1) = itime
+    istart1(1) = itimeox
     icount1(1) = 1
     tdif = idate - irefdate
     xdate(1) = tdif%hours()
     istatus = nf90_put_var(ncidox, ioxvar(1), xdate, istart1, icount1)
     call check_ok(istatus,'Error variable time write')
 
-    istart(4) = itime
+    istart(4) = itimeox
     istart(3) = 1
     istart(2) = 1
     istart(1) = 1
@@ -581,7 +581,7 @@ module mod_wrtoxd
 
     write (stdout ,*) 'Write ch_oxcl : ', idate%tostring()
 
-    itime = itime + 1
+    itimeox = itimeox + 1
 !
   end subroutine write_ch_oxcl
 
