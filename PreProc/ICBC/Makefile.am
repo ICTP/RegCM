@@ -1,11 +1,11 @@
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = aerosol sst icbc oxidant
+bin_PROGRAMS = aerosol sst icbc chem_icbc
 
 aerosol_SOURCES = mod_header.F90 aerosol.F90
 sst_SOURCES = mod_sst_eh5om.f90 mod_sst_ersst.f90 mod_sst_fvgcm.f90 \
-              mod_sst_1deg.f90 mod_sst_ccsm.f90 mod_sst_cam2.f90 mod_interp.f90      \
+              mod_sst_1deg.f90 mod_sst_ccsm.f90 mod_sst_cam2.f90 mod_interp.f90 \
               mod_sst_grid.F90 mod_header.F90 sst.f90
 icbc_SOURCES = mod_ccsm.f90 mod_vectutil.f90 mod_ecwcp.f90      \
                mod_eh5om.f90 mod_ein.f90 mod_era40.f90 mod_erahi.f90 \
@@ -14,8 +14,8 @@ icbc_SOURCES = mod_ccsm.f90 mod_vectutil.f90 mod_ecwcp.f90      \
                mod_interp.f90 mod_vertint.f90 mod_header.F90    \
                mod_hgt.f90 mod_humid.f90 mod_mksst.f90          \
                mod_uvrot.f90 icbc.f90 mod_cam2.f90
-oxidant_SOURCES = mod_oxidant.f90 mod_wrtoxd.F90 mod_grid.f90      \
-                  mod_header.F90 mod_interp.f90 oxidant.f90
+chem_icbc_SOURCES = mod_ch_icbc.f90 mod_ch_oxcl.f90 mod_wrtoxd.F90 mod_grid.f90 \
+                    mod_header.F90 mod_interp.f90 chem_icbc.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -32,12 +32,14 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_ccsm.o:  mod_ccsm.f90  mod_grid.o mod_write.o mod_interp.o \
-             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
-             mod_vectutil.o
 mod_cam2.o:  mod_cam2.f90  mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o
+mod_ccsm.o:  mod_ccsm.f90  mod_grid.o mod_write.o mod_interp.o \
+             mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
+             mod_vectutil.o
+mod_ch_icbc.o: mod_ch_icbc.f90 mod_grid.o mod_wrtoxd.o mod_interp.o
+mod_ch_oxcl.o: mod_ch_oxcl.f90 mod_grid.o mod_wrtoxd.o mod_interp.o
 mod_ecwcp.o: mod_ecwcp.f90 mod_grid.o mod_write.o mod_interp.o \
              mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o \
              mod_vectutil.o
@@ -90,3 +92,5 @@ sst.o: sst.f90 $(REGCM_ROOT)/Share/librcmlib.a mod_sst_1deg.o \
 icbc.o: icbc.f90 $(REGCM_ROOT)/Share/librcmlib.a mod_grid.o mod_write.o \
         mod_ein.o mod_ccsm.o mod_cam2.o mod_ncep.o mod_interp.o mod_header.o \
         mod_mksst.o
+chem_icbc.o: chem_icbc.f90 $(REGCM_ROOT)/Share/librcmlib.a mod_ch_icbc.o \
+	           mod_ch_oxcl.o
