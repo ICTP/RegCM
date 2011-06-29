@@ -60,7 +60,7 @@ module mod_wrtoxd
   data chspec / 'O3' , 'NO' , 'NO2' , 'HNO3' , 'N2O5' , 'H2O2' , 'CH4' , &
                 'CO' , 'CH2O' , 'CH3OH' , 'C2H5OH' , 'C2H4' , 'C2H6' ,   &
                 'CH3CHO' , 'CH3COCH3' , 'BIGENE' , 'BIGALK' , 'C3H6' ,   &
-                'C3H8' , 'ISOP' , 'TOLUE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
+                'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
 
   data ncid   /-1/
   data ncidox /-1/
