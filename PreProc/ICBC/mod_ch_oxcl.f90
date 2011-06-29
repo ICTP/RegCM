@@ -34,7 +34,7 @@ module mod_ch_oxcl
   integer :: k , l
   integer :: k0
 
-  integer , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 28 , oxitime = 12
+  integer , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 26 , oxitime = 12
   real(sp) , dimension(oxilon) :: oxt42lon
   real(sp) , dimension(oxjlat) :: oxt42lat
   real(sp) , dimension(oxilev) :: oxt42hyam , oxt42hybm
@@ -110,7 +110,6 @@ module mod_ch_oxcl
     if ( istatus /= nf90_noerr ) then
       call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
-
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     if ( istatus /= nf90_noerr ) then
       call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
@@ -119,7 +118,6 @@ module mod_ch_oxcl
     if ( istatus /= nf90_noerr ) then
       call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
-
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
       if ( istatus /= nf90_noerr ) then
