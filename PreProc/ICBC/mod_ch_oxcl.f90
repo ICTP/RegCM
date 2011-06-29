@@ -150,7 +150,6 @@ module mod_ch_oxcl
     tt = d2-d1
     wt1 = t1%hours()/tt%hours()
     wt2 = 1.0 - wt1
-    print *, wt1 , wt2
 
     do is = 1 , noxsp
       do i = 1 , oxjlat
