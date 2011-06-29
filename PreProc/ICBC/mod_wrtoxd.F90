@@ -543,7 +543,7 @@ module mod_wrtoxd
       call check_ok(istatus,'Error variable '//chspec(i)//' write')
     end do
 
-    write (stdout ,*) 'Write ch_icbc', idate%tostring()
+    write (stdout ,*) 'Write ch_icbc : ', idate%tostring()
 
     itime = itime + 1
 !
@@ -579,7 +579,7 @@ module mod_wrtoxd
       call check_ok(istatus,'Error variable '//oxspec(i)//' write')
     end do
 
-    write (stdout ,*) 'Write ch_oxcl', idate%tostring()
+    write (stdout ,*) 'Write ch_oxcl : ', idate%tostring()
 
     itime = itime + 1
 !

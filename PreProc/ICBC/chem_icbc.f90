@@ -90,4 +90,7 @@ program chem_icbc
   call freemozart_ch_icbc
   call freemozart_ch_oxcl
 
+  call finaltime(0)
+  write(stdout,*) 'Successfully completed CHEM ICBC'
+
 end program chem_icbc

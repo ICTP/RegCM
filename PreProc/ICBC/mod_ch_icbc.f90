@@ -120,7 +120,6 @@ module mod_ch_icbc
     end if
 
     do is = 1 , nchsp
-      print *, trim(chspec(is))//'_VMR_avrg'
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
       if ( istatus /= nf90_noerr ) then
         call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
