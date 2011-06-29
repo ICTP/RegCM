@@ -139,7 +139,7 @@ module mod_ch_oxcl
     real(sp) , dimension(oxilon,oxjlat,oxilev) :: xinp
     real(sp) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
-    type(rcm_time_interval) :: t1 , t2 , t3
+    type(rcm_time_interval) :: t1 , tt
     integer :: m1 , m2
 
     d1 = monfirst(idate)
@@ -147,17 +147,16 @@ module mod_ch_oxcl
     m1 = d1%month
     m2 = d2%month
     t1 = idate-d1
-    t2 = d2-idate
-    t3 = d2-d1
-    wt1 = t1%hours()/t3%hours()
-    wt2 = t2%hours()/t3%hours()
+    tt = d2-d1
+    wt1 = t1%hours()/tt%hours()
+    wt2 = 1.0 - wt1
     print *, wt1 , wt2
 
     do is = 1 , noxsp
       do i = 1 , oxjlat
         do j = 1 , oxilon
           do l = 1 , oxilev
-            xinp(j,i,l) = oxv2(j,l,i,m1,is)*wt1+oxv2(j,l,i,m2,is)*wt2
+            xinp(j,i,l) = oxv2(j,l,i,m1,is)*wt2+oxv2(j,l,i,m2,is)*wt1
           end do
         end do
       end do
