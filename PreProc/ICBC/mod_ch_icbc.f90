@@ -46,6 +46,7 @@ module mod_ch_icbc
   real(sp) , dimension(chilon,chjlat) :: poxid_2
   real(sp) , allocatable, dimension(:,:) :: poxid_3
   real(sp) , allocatable, dimension(:,:,:,:) :: chv3
+  real(sp) , dimension(chilon,chjlat,chilev,nchsp) :: xinp
 
   real(sp) :: prcm , pmpi , pmpj
   integer :: ncid , istatus
@@ -56,7 +57,7 @@ module mod_ch_icbc
 
   subroutine headermozart_ch_icbc
     implicit none
-    integer :: ivarid , istatus
+    integer :: ivarid , is , istatus
 
     allocate(poxid_3(jx,iy))
     allocate(chv3(jx,iy,chilev,nchsp))
@@ -109,63 +110,49 @@ module mod_ch_icbc
       call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
     end if
 
+    istatus = nf90_inq_varid(ncid,'PS',ivarid)
+    if ( istatus /= nf90_noerr ) then
+      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_get_var(ncid,ivarid,xps)
+    if ( istatus /= nf90_noerr ) then
+      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+
+    do is = 1 , nchsp
+      print *, chspec(is)//'_VMR_avrg'
+      istatus = nf90_inq_varid(ncid,chspec(is)//'_VMR_avrg',ivarid)
+      if ( istatus /= nf90_noerr ) then
+        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      end if
+      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
+      if ( istatus /= nf90_noerr ) then
+        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      end if
+    end do
+
   end subroutine headermozart_ch_icbc
 
   subroutine getmozart_ch_icbc(idate)
     implicit none
 !
-    integer :: i , is , j , k , k0 , ivarid
+    integer :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , dimension(4) :: istart , icount
-    real(sp) , dimension(chilon,chjlat,chilev) :: xinp
-
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = 1
-    icount(1) = chilon
-    icount(2) = chjlat
-    icount(3) = 1
-    istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
-    istatus = nf90_get_var(ncid,ivarid,xps,istart(1:3),icount(1:3))
-    if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
-
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = 1
-    istart(4) = 1
-    icount(1) = chilon
-    icount(2) = chjlat
-    icount(3) = chilev
-    icount(4) = 1
 
     do is = 1 , nchsp
-      istatus = nf90_inq_varid(ncid,chspec(is)//'_VMR_avrg',ivarid)
-      if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
-      end if
-      istatus = nf90_get_var(ncid,ivarid,xinp,istart,icount)
-      if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
-      end if
-      call bilinx2(chv3(:,:,:,is),xinp,xlon,xlat,cht42lon,cht42lat, &
+      call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,iy,jx,chilev) 
     end do
 
     poxid_2 = xps*0.01
     p0 = p0*0.01
 
-    call bilinx2(poxid_3,poxid_2,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,iy,jx,1)
+    call bilinx2(poxid_3,poxid_2,xlon,xlat,cht42lon,cht42lat,chilon,chjlat,iy,jx,1)
 
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-ptop)*sigma2(l)+ptop)*10.
+          prcm=((poxid_3(j,i)*0.1-ptop)*sigma2(l)+ptop)*10.0
           k0 = -1
           do k = chilev , 1 , -1
             pmpi = poxid_3(j,i)*cht42hybm(k)+cht42hyam(k)*p0

@@ -133,7 +133,7 @@ module mod_ch_oxcl
   subroutine getmozart_ch_oxcl(idate)
     implicit none
 !
-    integer :: i , is , j , k , k0 , ivarid
+    integer :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
     integer , dimension(4) :: istart , icount
     real(sp) , dimension(oxilon,oxjlat,oxilev) :: xinp
