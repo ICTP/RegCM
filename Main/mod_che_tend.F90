@@ -174,7 +174,7 @@ module mod_che_tend
    
           if ( kdwd < kt ) then
             write (aline, *) 'Problem in tractend2 !'
-            call say
+            call say(myid)
           end if
           do k = kt , kdwd
             cutend_up(i,k) = mflx(i,1)*egrav*d_r1000*wk(i,kb)/(sigma(kdwd)-sigma(kt))

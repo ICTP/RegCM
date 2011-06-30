@@ -19,7 +19,6 @@
 
 module mod_message
 
-  use mod_dynparam , only : myid
   use m_die
   use m_stdio
 
@@ -32,18 +31,21 @@ module mod_message
 
   contains
 
-  subroutine say
+  subroutine say(myid)
     implicit none
+    integer , intent(in) :: myid
     if ( myid == 0 ) write (stdout,*) trim(aline)
   end subroutine say
  
-  subroutine note
+  subroutine note(myid)
     implicit none
+    integer , intent(in) :: myid
     write (stderr,*) ' Processor ' , myid , ' : ' , trim(aline)
   end subroutine note
  
-  subroutine cry
+  subroutine cry(myid)
     implicit none
+    integer , intent(in) :: myid
     if ( myid == 0 ) write (stderr,*) trim(aline)
   end subroutine cry
  
@@ -57,15 +59,15 @@ module mod_message
 !
     write (cline,'(i8)') line
     write (aline,*) '-------------- FATAL CALLED ---------------'
-    call cry
+    call cry(0)
     if ( line > 0 ) then
       write (aline,*) 'Fatal in file: '//filename//' at line: '//trim(cline)
-      call cry
+      call cry(0)
     end if
     write (aline,*) str
-    call cry
+    call cry(0)
     write (aline,*) '-------------------------------------------'
-    call cry
+    call cry(0)
     call die(filename,trim(cline),1)
   end subroutine fatal
 

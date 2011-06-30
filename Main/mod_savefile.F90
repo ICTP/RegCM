@@ -77,7 +77,7 @@
             if ( .not.existing ) then
               write (aline,*) 'The following SAV File does not exist: ',&
                   &            trim(ffin), ' please check location'
-              call say
+              call say(myid)
               call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
             else
               open (iutrst,file=ffin,form='unformatted',status='old')
@@ -235,7 +235,7 @@
             if ( .not.existing ) then
               write (aline,*) 'The SAV File cannot be created: ' , &
                   &            trim(ffout), ' please check directory'
-              call say
+              call say(myid)
               call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
             end if
 

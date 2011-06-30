@@ -427,13 +427,13 @@ contains
     real(4) , dimension(kzp1) :: rsdum
 
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
-    call say
+    call say(myid)
     istatus = nf90_open(dname, nf90_nowrite, idmin)
     call check_ok('Error Opening Domain file '//trim(dname), &
                   'CANNOT OPEN DOMAIN FILE')
     if ( nsg > 1 ) then
       write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
-      call say
+      call say(myid)
       istatus = nf90_open(sdname, nf90_nowrite, isdmin)
       call check_ok('Error Opening SubDomain file '//trim(sdname), &
                     'CANNOT OPEN SUBDOM FILE')
@@ -470,9 +470,9 @@ contains
     if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
       write (6,*) 'Error: dims from regcm.in and DOMAIN file differ.'
       write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
-      call say
+      call say(myid)
       write (aline,*) 'DOMAIN file    : IY=', iyy ,'  JX=', jxx, '  KZ=', kzz-1
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
     if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
@@ -812,7 +812,7 @@ contains
     do itr = 1 , ntr
       aerctl = chtrname(itr)
       write (aline, *) itr , aerctl
-      call say
+      call say(myid)
       if ( aerctl(1:4) /= 'DUST') then
         if ( aerctl(1:3) == 'SO2' ) then
           if ( aertyp(4:4) == '1' ) then
@@ -974,9 +974,9 @@ contains
     if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
       write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
       write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
-      call say
+      call say(myid)
       write (aline,*) 'ICBC file      : IY=', iyy, '  JX=',  jxx, '  KZ=', kzz
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
     istatus = nf90_inq_dimid(ibcin, 'time', idimid)
@@ -1211,9 +1211,9 @@ contains
       ilakrec = 1
     else
       write (aline,*) 'UNKNOWN IO TYPE : ', ctype
-      call say
+      call say(myid)
       write (aline,*) 'NOTHING TO DO'
-      call say
+      call say(myid)
       return
     end if
 
@@ -1225,7 +1225,7 @@ contains
              '_'//trim(fbname)//'.nc'
     ctime = idate%tostring()
     write (aline, *) 'Opening new output file ', trim(ofname)
-    call say
+    call say(myid)
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &

@@ -23,6 +23,7 @@
 !
 !     ftp://crgd.atmos.uiuc.edu/pub/post-sres
 !
+      use mod_dynparam
       use mod_message
 !
       private
@@ -203,7 +204,7 @@
         integer :: is
 !
         write (aline , *) 'Setting IPCC scenario to ', csc
-        call say
+        call say(myid)
 !
         is = 0
         do i = 1 , nsc

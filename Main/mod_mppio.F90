@@ -740,10 +740,10 @@
 #endif
 
         write(aline,*) 'allocate_mod_mppio'
-        call say
+        call say(myid)
         call report_alloc('allocate_mod_mppio')
         write(aline,*) 'allocate_mod_mppio'
-        call say
+        call say(myid)
       end subroutine allocate_mod_mppio
 !
       subroutine free_mpp_initspace

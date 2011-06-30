@@ -394,7 +394,7 @@ module mod_runparams
     character(len=*) ::  where
     write(aline,*) where, &
       ': total allocation (in Kbyte)=', total_allocation_size*8/1024
-    call say
+    call say(myid)
   end subroutine report_alloc
 !
   logical function iswater(a)

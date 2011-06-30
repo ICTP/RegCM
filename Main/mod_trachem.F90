@@ -60,12 +60,12 @@ module mod_trachem
     implicit none
     if ( ntr>maxntr ) then
       write (aline , *) 'In mod_trachem, resetting ntr to maxntr ', maxntr
-      call say
+      call say(myid)
       ntr = maxntr
     end if
     if ( nbin>maxnbin ) then
       write (aline , *) 'In mod_trachem, resetting nbin to maxbin ', maxnbin
-      call say
+      call say(myid)
       nbin = maxnbin
     end if
 

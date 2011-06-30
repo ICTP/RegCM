@@ -144,9 +144,9 @@ module mod_interface
 
     if ( ncpu /= nproc ) then
       write (aline,*) 'The number of CPU is not well set'
-      call say
+      call say(myid)
       write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,'CPU Count mismatch')
     end if
 !      print * , "process" , myid , "of" , nproc
@@ -172,16 +172,16 @@ module mod_interface
     end if
     if ( jxp < 3 ) then
       write (aline,*) 'The number of jxp must be greater than 2'
-      call say
+      call say(myid)
       write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,'Domain too small')
     end if
     if ( jxp*nproc /= jx ) then
       write (aline,*) 'jx should be divided by nproc'
-      call say
+      call say(myid)
       write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,                                   &
                & 'Domain dimension not multiple of' //                &
                & ' processor number')
@@ -338,7 +338,7 @@ module mod_interface
             call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
                                & dtmin , ktau , idatex%year
-            call say
+            call say(myid)
           end if
         end if
       end if
@@ -406,7 +406,7 @@ module mod_interface
     call release_mod_ncio
 !
     write (aline, 99002) xtime , ktau , idatex%year
-    call say
+    call say(myid)
 !
 !**********************************************************************
 !
@@ -418,7 +418,7 @@ module mod_interface
     idate1 = idate2
     idate2 = idate1 + tdif
     write (aline, *) ' *** new max DATE will be ' , idate2%tostring()
-    call say
+    call say(myid)
 !
 !**********************************************************************
 !

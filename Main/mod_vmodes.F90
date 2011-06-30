@@ -150,13 +150,13 @@ module mod_vmodes
     pd = xps - r8pt
 !
     write (aline,*) 'Calculating Vertical Modes'
-    call say
+    call say(myid)
     if ( lstand ) then
       write (aline,*) '- Linearization about standard atmosphere'
-      call say
+      call say(myid)
     else
       write (aline,*) '- Linearization about horizontal mean of data'
-      call say
+      call say(myid)
     end if
 !
     lsigma = .false.
@@ -166,7 +166,7 @@ module mod_vmodes
       if ( sigma(k+1) < sigma(k) ) then
         lsigma = .true.
         write (aline,99001) k , sigma(k+1) , sigma(k)
-        call say
+        call say(myid)
       end if
     end do
     if ( lsigma ) then
@@ -722,7 +722,7 @@ module mod_vmodes
     call sgefa(v,n,n,ip,ier)
     if ( ier /= 0 ) then
       write (aline,*) 'sgefa error info = ' , ier
-      call say
+      call say(myid)
       call fatal(__FILE__,__LINE__,'sgefa error')
     end if
     call sgedi(v,n,n,ip,d,work,11)

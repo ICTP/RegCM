@@ -582,7 +582,7 @@
  
           if ( soilw(i) < d_zero ) then
             write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
-            call say
+            call say(myid)
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
           else if ( soilw(i) < 0.03D0 ) then
             hc(i) = dexp(22.7D0*soilw(i))

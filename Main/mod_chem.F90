@@ -88,7 +88,7 @@ module mod_chem
       if (.not.existing) then
         write (aline,*) 'The following OXBC File does not exist:' ,  & 
                         trim(finm), 'please check location'
-        call say
+        call say(myid)
         call fatal(__FILE__,__LINE__, 'OXBC FILE NOT FOUND')
       else
         open (iutox,file=finm,form='unformatted',status='old', &
@@ -103,10 +103,10 @@ module mod_chem
       if ( nyyy /= iy .or. nxxx /= jx .or. kzzz /= kz ) then
         write (aline,*) 'SET IN regcm.param: IY=' , iy , ' JX=' , &
                            jx , ' KX=' , kz
-        call say
+        call say(myid)
         write (aline,*) 'SET IN OXBC: NY=' , nyyy , ' NX=' ,      &
                            nxx  , ' NZ=' , kzzz
-        call say
+        call say(myid)
         call fatal(__FILE__,__LINE__,                             &
                        'IMPROPER DIMENSION SPECIFICATION')
           end if
@@ -231,7 +231,7 @@ module mod_chem
             write (aline,*)                                      &
                  'The following OX IBC File does not exist: ' ,  &
                  trim(finm), 'please check location'
-            call say
+            call say(myid)
             call fatal(__FILE__,__LINE__,aline) 
           else 
             open (iutox,file=finm,form='unformatted',status='old', &

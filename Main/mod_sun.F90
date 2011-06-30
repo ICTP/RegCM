@@ -100,7 +100,7 @@ module mod_sun
 !
 #endif
     write (aline, 99001) calday, decdeg
-    call say
+    call say(myid)
 99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
         &   ' degrees.')
 !

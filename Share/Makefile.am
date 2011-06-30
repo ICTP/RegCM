@@ -1,7 +1,7 @@
 
 noinst_LIBRARIES = librcmlib.a
-librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 \
-											mod_projections.f90 mod_dynparam.F90
+librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 mod_space.f90 mod_message.f90 \
+											mod_memutil.F90 mod_projections.f90 mod_dynparam.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -20,5 +20,8 @@ clean-local:
 
 mod_constants.o: mod_constants.F90
 mod_date.o: mod_date.f90
+mod_message.o: mod_message.f90
+mod_space.o: mod_space.f90
+mod_memutil.o: mod_memutil.F90 mod_space.o mod_message.o
 mod_projections.o: mod_constants.o mod_projections.f90
 mod_dynparam.o: mod_constants.o mod_date.o mod_dynparam.F90

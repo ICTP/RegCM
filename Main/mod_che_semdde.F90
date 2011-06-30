@@ -88,7 +88,7 @@ module mod_che_semdde
 !   fisrt activate dust initialization
 
     write (aline, *) 'Calling inidust'
-    call say
+    call say(myid)
     call inidust
 
 !   read the monthly aerosol emission files
@@ -186,7 +186,7 @@ module mod_che_semdde
                          (dextmix(i,j,k,l,m,n) > 20.0D0) ) then
                       write (aline,*) 'problem in dextmix ' ,   &
                                       dextmix(i,j,k,l,m,n)
-                      call say
+                      call say(myid)
                       call fatal(__FILE__,__LINE__,'DETMIX ERROR')
                     end if
    
@@ -194,7 +194,7 @@ module mod_che_semdde
                          (dssamix(i,j,k,l,m,n) > d_one) ) then
                       write (aline,*) 'problem in dssamix ' ,   &
                                       dssamix(i,j,k,l,m,n)
-                      call say
+                      call say(myid)
                       call fatal(__FILE__,__LINE__,'DSSAMIX ERROR')
                     end if
    
@@ -202,7 +202,7 @@ module mod_che_semdde
                          (dgmix(i,j,k,l,m,n) > d_one) ) then
                       write (aline,*) 'problem in dgmix ' ,     &
                                       dgmix(i,j,k,l,m,n)
-                      call say
+                      call say(myid)
                       call fatal(__FILE__,__LINE__,'DGMIX ERROR')
                     end if
    
