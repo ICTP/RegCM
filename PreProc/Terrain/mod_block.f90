@@ -22,14 +22,12 @@ module mod_block
   use m_stdio
   use m_realkinds
   use m_die
-  use m_mall
   use mod_constants
 
-  real(DP) :: grdlnmn , grdltmn , grdlnma , grdltma
-  real(DP) :: xmaxlat , xmaxlon , xminlat , xminlon
+  real(dp) :: grdlnmn , grdltmn , grdlnma , grdltma
+  real(dp) :: xmaxlat , xmaxlon , xminlat , xminlon
   integer :: nlatin , nlonin
   logical :: lonwrap , lcrosstime
-  real(SP) , allocatable , dimension(:,:) :: values
 
   contains
 
@@ -37,9 +35,9 @@ module mod_block
   implicit none
 !
   integer :: iy , jx , iband
-  real(SP) , dimension(iy,jx) :: xlat , xlon
+  real(sp) , dimension(iy,jx) :: xlat , xlon
   intent (in) iy , jx , xlat , xlon , iband
-  real(DP) :: xtstlon1 , xtstlon2
+  real(dp) :: xtstlon1 , xtstlon2
 !
 !     PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
 !
@@ -93,34 +91,5 @@ module mod_block
   write(stdout,*) '         MAXLON = ', xmaxlon
 
   end subroutine mxmnll
-
-  subroutine getspace
-    implicit none
-    integer :: istatus
-    integer , dimension(2) :: idims
-    if (.not. allocated(values)) then
-      allocate(values(nlonin,nlatin), stat=istatus)
-    else
-      idims = shape(values)
-      if ( idims(1) /= nlonin .or. idims(2) /= nlatin ) then
-        call mall_mco(values,'mod_block')
-        deallocate(values)
-        allocate(values(nlonin,nlatin), stat=istatus)
-      else
-        return
-      end if
-    end if
-    if (istatus /= 0) then
-      write(stderr,*) 'Memory error on allocating ', &
-                      nlatin*nlonin*4,' bytes.'
-      call die('getspace')
-    end if
-    call mall_mci(values,'mod_block')
-  end subroutine getspace
-
-  subroutine freespace
-    call mall_mco(values,'mod_block')
-    deallocate(values)
-  end subroutine freespace
 
 end module mod_block

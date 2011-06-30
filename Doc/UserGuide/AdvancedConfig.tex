@@ -29,12 +29,14 @@ memory space to store the model internal variables.
 {\footnotesize
 \begin{Verbatim}
  &dimparam
- iy     = 34,  ! This is number of points in the N/S direction
- jx     = 48,  ! This is number of points in the E/W direction
- kz     = 18,  ! Number of vertical levels: supported are 14, 18 and 23
- nsg    = 1,   ! For subgridding, number of points to decompose. If nsg=1,
-               ! no subgridding is performed. CLM does NOT work as of now with
-               ! subgridding enabled.
+ iy     = 34,   ! This is number of points in the N/S direction
+ jx     = 48,   ! This is number of points in the E/W direction
+ kz     = 18,   ! Number of vertical levels
+ dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, or 23)
+ dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, or 23)
+ nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
+                ! no subgridding is performed. CLM does NOT work as of now with
+                ! subgridding enabled.
  /
 \end{Verbatim}
 }
@@ -48,9 +50,21 @@ minimum work per processor is 3 points along the jx dimension, so the maximum
 number of processors which can be used in a parallel run for the above
 configuration is just $16$. In future revision ICTP plans to introduce 2D
 decomposition.
-\item In the future model revision the kz (vertical) dimension will be
-more configurable, but for now you are limited to have 14, 18 and 23 levels.
-We at ICTP normally use 18 levels.
+\item If a custom number of sigma level is chosen (not 14, 18 or 23), the actual
+sigma values are calculated mimimizing the $a,b$ coefficients for the 
+equation:
+
+\begin{equation}
+  dsig(i) = dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)}
+\end{equation}
+
+derived from the recursive relation:
+
+\begin{equation}
+  dsig(i) = a(i)*dsig(i-1)
+\end{equation}
+
+where $a(i) = b*a(i-1)$. We at ICTP normally use 18 levels.
 \item Specifying an nsg number greater than one triggers the subgrid BATS model
 on. There is no plan to extend this feature to CLM model. This affects only
 surface variable calculations. All dynamical variables are calculated still

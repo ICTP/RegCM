@@ -468,13 +468,13 @@ module mod_wrtoxd
       istatus = nf90_def_var_deflate(ncidox, ioxvar(i+1), 1, 1, 9)
       call check_ok(istatus,'Error setting compression on '//oxspec(i))
 #endif
-      buffer = 'mass_fraction_of_'//trim(oxspec(i))//'_in_air'
+      buffer = 'mole_concentration_of_'//trim(oxspec(i))//'_in_air'
       istatus = nf90_put_att(ncidox, ioxvar(i+1), 'standard_name', buffer)
       call check_ok(istatus,'Error adding standard_name on '//trim(oxspec(i)))
-      buffer = trim(oxspec(i))//' Volume Mixing Ratio'
+      buffer = trim(oxspec(i))//' molarity'
       istatus = nf90_put_att(ncidox, ioxvar(i+1), 'long_name', buffer)
       call check_ok(istatus,'Error adding long_name on '//trim(oxspec(i)))
-      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'units', 'kg kg-1')
+      istatus = nf90_put_att(ncidox, ioxvar(i+1), 'units', 'mol cm-3')
       call check_ok(istatus,'Error adding units on '//trim(oxspec(i)))
       istatus = nf90_put_att(ncidox, ioxvar(i+1), 'coordinates', 'xlon xlat')
       call check_ok(istatus,'Error adding coordinates on '//trim(oxspec(i)))

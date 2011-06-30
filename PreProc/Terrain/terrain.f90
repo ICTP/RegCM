@@ -67,15 +67,22 @@ program terrain
   use m_stdio
   use m_die
   use m_zeit
+  use mod_memutil
   implicit none
 !
   character(256) :: char_lnd , char_tex , char_lak
   character(256) :: namelistfile , prgname
   integer :: i , j , k , ierr , i0 , j0 , m , n
   logical :: ibndry
-  real(DP) :: clong , hsum , have , dsinm
+  real(dp) :: clong , hsum , have , dsinm
 !
   data ibndry /.true./
+  real(dp) :: jumpsize , apara , bpara , func , funcprev
+  real(dp) , pointer , dimension(:) :: alph , dsig
+  real(dp) :: psig , zsig , pstar
+  integer :: icount
+  integer , parameter :: maxiter = 1000000
+  real(dp) , parameter :: conv_crit = 0.00001D0
 !
   call header(1)
 !
@@ -92,22 +99,23 @@ program terrain
     write (stderr,*) 'Check argument and namelist syntax'
     call die('terrain')
   end if
+
+  call memory_init
+
 !
-!     Preliminary consistency check to avoid I/O format errors
 !
   if (debug_level > 2) then
-    call mall_set()
     call zeit_ci('terrain')
   end if
 
-  call allocate_grid(iy,jx,kz,ntex)
+  call prepare_grid(iy,jx,kz,ntex)
 
   if ( nsg>1 ) then
-    call allocate_subgrid(iysg,jxsg,ntex)
+    call prepare_subgrid(iysg,jxsg,ntex)
   end if
 !
-!     Setup hardcoded sigma levels
-
+!  Setup hardcoded sigma levels
+!
   if ( kz==14 ) then                      ! RegCM2
     sigma(1) = 0.0
     sigma(2) = 0.04
@@ -170,9 +178,98 @@ program terrain
     sigma(23) = 0.99
     sigma(24) = 1.0
   else
-    write(stderr,*) 'You vertical level number is not 14, 18, or 23'
-    write(stderr,*) 'Please set your sigma parameters in OUTPUT'
-    call die('terrain')
+    call getmem1d(alph,1,kz,'terrain:alph')
+    call getmem1d(dsig,1,kz,'terrain:dsig')
+    write (stdout,*) 'Creating a custom set of sigma levels : '
+    if ( (dsmax*dble(kz)) < d_one ) then
+      write (stderr,*) 'dsmax must be greater than ', d_one/dble(kz)
+      write (stderr,*) 'or kz must be less than ', d_one/dsmax
+      call die('terrain','Maximum resolution, dsmax, is too low.',1)
+    end if
+    if ( (dsmin*dble(kz)) >= d_one ) then
+      write (stderr,*) 'dsmin must be less than ', d_one/dble(kz)
+      write (stderr,*) 'or kz must be greater than ', d_one/dsmax
+      call die('terrain','Minimum resolution, dsmin, is too large.',1)
+    end if
+    ! Do a function minimization to determine the a,b coefficients for the
+    ! following equation:
+    !
+    !        dsig(i) = dsmax*a^(i-1)*b^(0.5*(i-2)*(i-1))
+    !
+    ! which is derived from the recursive relation:
+    !
+    !        dsig(i) = a(i)*dsig(i-1) with a(i) = b*a(i-1)
+    !
+    ! The function provides level spacings between dsmin and dsmax such that
+    ! level thicknesses vary approximately exponentially up to the TOA and gives
+    ! more levels toward the surface.
+    !
+    ! Set the initial conditions for the function minimization
+    !
+    jumpsize = 0.0015D0
+    bpara = 0.99573D0
+    apara = ((dsmin/dsmax)**(d_one/dble(kz-1)))*(bpara**(-d_half*dble(kz-2)))
+    alph(1) = apara/bpara
+    dsig(1) = dsmax
+    do k = 2 , kz
+      alph(k) = bpara*alph(k-1)
+      dsig(k) = alph(k)*dsig(k-1)
+    end do
+    func = sum(dsig)-d_one
+
+    ! Loop through the minimization until the convergence criterion is satisfied
+    do icount = 1 , maxiter
+      funcprev = func
+      bpara = bpara + jumpsize
+      if ( bpara < d_zero ) bpara = 1D-10
+      apara = ((dsmin/dsmax)**(d_one/dble(kz-1)))*(bpara**(-d_half*dble(kz-2)))
+      alph(1) = apara/bpara
+      dsig(1) = dsmax
+      do k = 2 , kz
+        alph(k) = bpara*alph(k-1)
+        dsig(k) = alph(k)*dsig(k-1)
+      end do
+      func = sum(dsig)-d_one
+      ! If we overshot 0, then reduce the jump size and reverse course
+      if ( func*funcprev < d_zero ) then
+        jumpsize = -jumpsize/d_two
+      else if ( abs(func) > abs(funcprev) ) then
+        jumpsize = -jumpsize
+      end if
+      ! If we converged, then jump out of the loop
+      if ( abs(func) < conv_crit ) then
+        write (stdout,*) 'Convergence reached.'
+        write (stdout,*) '#', apara, bpara, icount
+        write (stdout,*) '#', dsmax, dsmin, sum(dsig)
+        exit
+      end if
+      if ( icount == maxiter-1 ) then
+        write (stderr,*) 'Failed to converge.'
+        write (stderr,*) 'b,a,jumpsize,func,funcprev:', bpara, apara, &
+                         jumpsize,func,funcprev
+        call die('terrain','Error setting up custom sigma levels')
+      end if
+    end do
+    sigma(1) = d_zero
+    pstar = stdpmb - d_10*ptop
+    do k = 1 , kz-1
+      sigma(k+1) = sigma(k)+dsig(k)
+    end do
+    sigma(kz+1) = d_one
+    ! Write the levels out to the screen
+    zsig = d_zero
+    psig = pstar*sigma(kz+1) + d_10*ptop
+    write (stdout,*) 'k        sigma       p(mb)           z(m)'
+    write (stdout,*) '-----------------------------------------'
+    write (stdout,5925) kz+1, sigma(kz+1), psig, zsig
+    do k = kz, 1, -1
+      psig = pstar*sigma(k) + d_10*ptop
+      zsig = zsig+rgas*stdt*pstar*dsig(k)/(psig*egrav)
+      write (stdout,5925) k, sigma(k), psig, zsig
+    end do
+5925  format(i3,5x,f8.3,5x,f8.2,5x,f10.2)
+    call relmem1d(dsig)
+    call relmem1d(alph)
   end if
 
 !---------------------------------------------------------------------
@@ -579,17 +676,14 @@ program terrain
 
     call write_domain(.true.)
     write(stdout,*) 'Subgrid data written to output file'
-    call free_subgrid
   end if
 
   call write_domain(.false.)
   write(stdout,*) 'Grid data written to output file'
-  call free_grid
-  call freespace
+
+  call memory_destroy
 
   if (debug_level > 2) then
-    call mall_flush(stdout)
-    call mall_set(.false.)
     call zeit_co('terrain')
     call zeit_flush(stdout)
   end if

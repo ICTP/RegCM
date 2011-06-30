@@ -20,8 +20,8 @@
 module mod_write
 
   use m_stdio
-  use m_mall
   use mod_constants
+  use mod_memutil
 
   contains
 !
@@ -45,22 +45,18 @@ module mod_write
     integer , dimension(8) :: tvals
     character(256) :: fname , history
     character(3) :: cnsg
-    real(SP) , dimension(2) :: trlat
-    real(SP) :: hptop , fillv
-    real(SP) , allocatable , dimension(:) :: yiy
-    real(SP) , allocatable , dimension(:) :: xjx
+    real(sp) , dimension(2) :: trlat
+    real(sp) :: hptop , fillv
+    real(sp) , pointer , dimension(:) :: yiy
+    real(sp) , pointer , dimension(:) :: xjx
 
     fillv = 0.0
     trlat(1) = real(truelatl)
     trlat(2) = real(truelath)
 
     if (lsub) then
-      allocate(yiy(iysg), stat=istatus)
-      if (istatus/=0) call die('write_domain', &
-                               'allocate yiy',istatus)
-      allocate(xjx(jxsg), stat=istatus)
-      if (istatus/=0) call die('write_domain', &
-                               'allocate xjx',istatus)
+      call getmem1d(yiy,1,iysg,'mod_write:yiy')
+      call getmem1d(xjx,1,jxsg,'mod_write:xjx')
       yiy(1) = -real((dble(iysg-1)*d_half) * ds)
       xjx(1) = -real((dble(jxsg-1)*d_half) * ds)
       do i = 2 , iysg
@@ -70,12 +66,8 @@ module mod_write
         xjx(j) = real(dble(xjx(j-1))+ds)
       end do
     else
-      allocate(yiy(iy), stat=istatus)
-      if (istatus/=0) call die('write_domain', &
-                               'allocate yiy',istatus)
-      allocate(xjx(jx), stat=istatus)
-      if (istatus/=0) call die('write_domain', &
-                               'allocate xjx',istatus)
+      call getmem1d(yiy,1,iy,'mod_write:yiy')
+      call getmem1d(xjx,1,jx,'mod_write:xjx')
       yiy(1) = -real((dble(iy-1)/d_two) * ds)
       xjx(1) = -real((dble(jx-1)/d_two) * ds)
       do i = 2 , iy
@@ -85,8 +77,6 @@ module mod_write
         xjx(j) = real(dble(xjx(j-1))+ds)
       end do
     end if
-    call mall_mci(yiy,'write_domain')
-    call mall_mci(xjx,'write_domain')
 
     if (lsub) then
       write (cnsg, '(i0.3)') nsg
@@ -722,11 +712,6 @@ module mod_write
     istatus = nf90_close(ncid)
     call check_ok(istatus, &
                ('Error closing NetCDF output '//trim(fname)))
-
-    call mall_mco(yiy,'write_domain')
-    call mall_mco(xjx,'write_domain')
-    deallocate(yiy)
-    deallocate(xjx)
 
   end subroutine write_domain
 

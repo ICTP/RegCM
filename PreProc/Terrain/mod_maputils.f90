@@ -29,14 +29,14 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(DP) :: clat , clon , ds , truelath , truelatl , xn
+  real(dp) :: clat , clon , ds , truelath , truelatl , xn
   integer :: idot , iy , jx
-  real(SP) , dimension(iy,jx) :: coriol , smap , xlat , xlon
+  real(sp) , dimension(iy,jx) :: coriol , smap , xlat , xlon
   intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
               truelatl
   intent (out) coriol , smap , xlat , xlon , xn
 !
-  real(DP) :: cntri , cntrj
+  real(dp) :: cntri , cntrj
   integer :: i , j
 !
   cntrj = dble(jx+idot)/d_two
@@ -64,13 +64,13 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(DP) :: clat , clon , delx
+  real(dp) :: clat , clon , delx
   integer :: idot , iy , jx
-  real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(DP) :: cntrj , cntri
+  real(dp) :: cntrj , cntri
   integer :: i , j
 !
   cntrj = dble(jx+idot)/d_two
@@ -98,13 +98,13 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(DP) :: clat , clon , delx
+  real(dp) :: clat , clon , delx
   integer :: idot , iy , jx
-  real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , delx , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(DP) :: cntri , cntrj
+  real(dp) :: cntri , cntrj
   integer :: i , j
 !
   cntrj = dble(jx+idot)/d_two
@@ -134,13 +134,13 @@ module mod_maputils
   use mod_projections
   implicit none
 !
-  real(DP) :: clat , clon , ds , pollat , pollon
+  real(dp) :: clat , clon , ds , pollat , pollon
   integer :: idot , iy , jx
-  real(SP) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
+  real(sp) , dimension(iy,jx) :: coriol , xlat , xlon , xmap
   intent (in) clat , clon , ds , idot , iy , jx
   intent (out) coriol , xlat , xlon , xmap
 !
-  real(DP) :: cntri , cntrj
+  real(dp) :: cntri , cntrj
   integer :: i , j
 !
   cntrj = dble(jx+idot)/d_two

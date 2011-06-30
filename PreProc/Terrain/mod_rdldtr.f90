@@ -22,8 +22,16 @@ module mod_rdldtr
   use mod_block
   use m_stdio
   use m_die
-  use m_mall
   use mod_constants
+  use mod_memutil
+
+  private
+
+  real(sp) , dimension(:,:) , pointer :: readbuf
+  real(sp) , dimension(:) , pointer :: copybuf
+  real(sp) , dimension(:,:) , pointer :: values
+
+  public :: values , read_ncglob
 
   contains
 !
@@ -53,12 +61,10 @@ module mod_rdldtr
     integer :: nlat , nlon , itl
     integer :: i , j , iosec , inpsec , iopsec , ifrac , ireg
     integer , dimension(2) :: istart, icount
-    real(SP) , dimension(:,:) , allocatable :: readbuf
-    real(SP) , dimension(:) , allocatable :: copybuf
     integer :: nlogb , nlagb , hnlogb , hnlagb , nfrac
     integer , parameter :: secpd = 3600
     integer , parameter :: secpm = 60
-    real(DP) :: delta
+    real(dp) :: delta
 
     iosec = iores*secpm
     inpsec = secpd/iires
@@ -108,15 +114,8 @@ module mod_rdldtr
       nlonin = nlonin + 1
     end if
 
-    call getspace
-
-    allocate(readbuf(nlon,nlat), stat=istatus)
-    if (istatus /= 0) then
-      write(stderr,*) 'Memory error on allocating ', &
-                      nlat*nlon*4,' bytes.'
-      call die('read_ncglob')
-    end if
-    call mall_mci(readbuf,'read_ncglob')
+    call getmem2d(values,1,nlonin,1,nlatin,'rdldtr:values')
+    call getmem2d(readbuf,1,nlon,1,nlat,'rdldtr:readbuf')
 
     write(stdout,*) 'Opening '//trim(cfile)
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
@@ -166,12 +165,7 @@ module mod_rdldtr
 
     write(stdout,'(a)',advance='no') ' Resampling'
     nfrac = ifrac*ifrac
-    allocate(copybuf(nfrac), stat=istatus)
-    if (istatus /= 0) then
-      write(stderr,*) 'Memory error on allocating ',nfrac*4,' bytes'
-      call die('read_ncglob')
-    end if
-    call mall_mci(copybuf,'read_ncglob')
+    call getmem1d(copybuf,1,nfrac,'rdldtr:copybuf')
     select case (imeth)
       case (1)
         do i = 1 , nlatin
@@ -210,10 +204,6 @@ module mod_rdldtr
         end do
     end select
     write(stdout,'(a)') 'Done.'
-    deallocate(readbuf)
-    call mall_mco(readbuf,'read_ncglob')
-    deallocate(copybuf)
-    call mall_mco(copybuf,'read_ncglob')
 
   end subroutine read_ncglob
 !
@@ -231,8 +221,8 @@ module mod_rdldtr
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
     integer , intent(in) :: ni , nj , isize 
-    real(SP) , dimension(isize*isize) , intent(out) :: copybuf
-    real(SP) , dimension(ni,nj) , intent(in) :: readbuf
+    real(sp) , dimension(isize*isize) , intent(out) :: copybuf
+    real(sp) , dimension(ni,nj) , intent(in) :: readbuf
     integer , intent(in) :: i , j
     logical , intent(in) :: lwrap
     integer :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
@@ -266,7 +256,7 @@ module mod_rdldtr
 !
   function mpindex(x)
     implicit none
-    real(SP) , dimension(:) , intent(in) :: x
+    real(sp) , dimension(:) , intent(in) :: x
     integer :: mpindex
     integer , dimension(32) :: cnt
     integer :: i
@@ -282,7 +272,7 @@ module mod_rdldtr
 !
   recursive subroutine qsort(a)
     implicit none 
-    real(SP) , dimension(:) , intent(in out) :: a
+    real(sp) , dimension(:) , intent(in out) :: a
     integer :: np , isplit
  
     np = size(a)
@@ -295,10 +285,10 @@ module mod_rdldtr
  
   subroutine partition(a, marker)
     implicit none 
-    real(SP) , dimension(:) , intent(inout) :: a
+    real(sp) , dimension(:) , intent(inout) :: a
     integer , intent(out) :: marker
     integer :: np , left , right
-    real(SP) :: temp , pivot
+    real(sp) :: temp , pivot
  
     np = size(a)
     pivot = (a(1) + a(np))/2.0E0

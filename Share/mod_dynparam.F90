@@ -43,6 +43,10 @@ module mod_dynparam
 
   integer :: kz
 
+! If not 14 , 18 or 23 (precalculated), hint for custom calculation
+
+  real(8) :: dsmax , dsmin
+
 ! Sub grid decomposition
 
   integer :: nsg
@@ -316,7 +320,7 @@ module mod_dynparam
                   smthbdy , lakedpth, fudge_lnd , fudge_lnd_s ,     &
                   fudge_tex , fudge_tex_s , fudge_lak, fudge_lak_s ,&
                   h2opct , dirter , inpter
-    namelist /dimparam/ iy , jx , kz , nsg
+    namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg
     namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
@@ -329,9 +333,12 @@ module mod_dynparam
     open(ipunit, file=filename, status='old', &
                  action='read', err=100)
 !
+    dsmax = d_zero
+    dsmin = d_zero
+
     read(ipunit, dimparam, err=101)
 
-!       Setup all convenience dimensions
+!   Setup all convenience dimensions
 
     iym1 = iy - 1
     iym2 = iy - 2

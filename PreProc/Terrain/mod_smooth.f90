@@ -27,12 +27,12 @@ module mod_smooth
   implicit none
 !
   integer :: iy , jx
-  real(SP) , dimension(iy,jx) :: htgrid
+  real(sp) , dimension(iy,jx) :: htgrid
   intent (in) iy , jx
   intent (inout) htgrid
 !
   integer :: i , j
-  real(SP) , dimension(iy,jx) :: hscr1
+  real(sp) , dimension(iy,jx) :: hscr1
 !
 !     PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
 !     2DX WAVES FROM THE FIELDS htgrid
@@ -62,13 +62,13 @@ module mod_smooth
 !
   integer :: iflg , is1 , is2 , npass
   character(5) :: point
-  real(SP) , dimension(is1,is2) :: slab
+  real(sp) , dimension(is1,is2) :: slab
   intent (in) iflg , is1 , is2 , npass , point
   intent (inout) slab
 !
-  real(SP) :: aplus , asv , cell
+  real(sp) :: aplus , asv , cell
   integer :: i , icross , ie , iem , j , je , jem , k , kp
-  real(SP) , dimension(2) :: xnu
+  real(sp) , dimension(2) :: xnu
 !
 !     purpose: spatially smooth data in slab to dampen short
 !     wavelength components
@@ -133,7 +133,7 @@ module mod_smooth
   integer , parameter :: nocean = 20000
 !
   integer :: is1 , is2
-  real(SP) , dimension(is1,is2) :: slab1
+  real(sp) , dimension(is1,is2) :: slab1
   intent (inout) slab1
 !
   integer :: i , iflg , j , k , n , n1 , npass

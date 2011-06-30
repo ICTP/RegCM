@@ -26,11 +26,11 @@ module mod_interp
 !
   public :: interp , filter1plakes
 !
-  real(DP) , dimension(4,4) :: c
-  real(DP) , dimension(16,16) :: wt
+  real(dp) , dimension(4,4) :: c
+  real(dp) , dimension(16,16) :: wt
   integer , parameter :: maxbins = 20
   integer , dimension(maxbins) :: bincnt
-  real(DP) , dimension(maxbins) :: bmindist
+  real(dp) , dimension(maxbins) :: bmindist
   logical , dimension(2,maxbins) :: lndwt
 !
   data wt/1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 4*0.0D0 , -3.0D0 ,   &
@@ -65,7 +65,7 @@ module mod_interp
   function inear(x,m,lwrap)
   implicit none
   integer :: inear
-  real(DP) , intent(in) :: x
+  real(dp) , intent(in) :: x
   integer , intent(in) :: m
   logical , intent(in) :: lwrap
   if (.not. lwrap) then
@@ -84,7 +84,7 @@ module mod_interp
   function jnear(y,n)
   implicit none
   integer :: jnear
-  real(DP) , intent(in) :: y
+  real(dp) , intent(in) :: y
   integer , intent(in) :: n
   jnear = min(max(nint(y),1),n)
   end function jnear
@@ -92,7 +92,7 @@ module mod_interp
   function ifloor(x,m,lwrap)
   implicit none
   integer :: ifloor
-  real(DP) , intent(in) :: x
+  real(dp) , intent(in) :: x
   integer , intent(in) :: m
   logical , intent(in) :: lwrap
   if (.not. lwrap) then
@@ -111,33 +111,33 @@ module mod_interp
   function jfloor(y,n)
   implicit none
   integer :: jfloor
-  real(DP) , intent(in) :: y
+  real(dp) , intent(in) :: y
   integer , intent(in) :: n
   jfloor = min(max(floor(y),1),n)
   end function jfloor
 !
   function nearpoint(x,y,m,n,grid,lwrap)
   implicit none
-  real(DP) :: nearpoint
+  real(dp) :: nearpoint
   integer :: m , n
-  real(DP) :: x , y
+  real(dp) :: x , y
   logical :: lwrap
-  real(SP) , dimension(m,n) :: grid
+  real(sp) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
   nearpoint = dble(grid(inear(x,m,lwrap),jnear(y,n)))
   end function nearpoint
 !
   function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
   implicit none
-  real(DP) :: mostaround
+  real(dp) :: mostaround
   integer , intent(in) :: m , n , nbox , ibnty
-  real(DP) , intent(in) :: x , y
+  real(dp) , intent(in) :: x , y
   logical , intent(in) :: lwrap
-  real(SP) , intent(in) , dimension(m,n) :: grid
-  real(DP) , intent(in) :: h2opct
+  real(sp) , intent(in) , dimension(m,n) :: grid
+  real(dp) , intent(in) :: h2opct
 !
-  real(DP) , dimension(nbox*nbox) :: binval , bindist
-  real(DP) :: dist , rx , ry , wtp
+  real(dp) , dimension(nbox*nbox) :: binval , bindist
+  real(dp) :: dist , rx , ry , wtp
   integer :: ii0 , jj0 , ii , jj
   integer :: totpoints , i , j , lastc , hbox
 
@@ -193,16 +193,16 @@ module mod_interp
 !
   function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
   implicit none
-  real(DP) :: pctaround
+  real(dp) :: pctaround
   integer :: m , n , ival , nbox
-  real(DP) :: x , y , rx , ry
+  real(dp) :: x , y , rx , ry
   logical :: lwrap
-  real(SP) , dimension(m,n) :: grid
+  real(sp) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y , ival
 !
   integer :: ii0 , jj0 , ii , jj
   integer :: i , j
-  real(DP) :: pc
+  real(dp) :: pc
 
   pctaround = d_zero
   pc = dble(nbox*nbox)
@@ -226,15 +226,15 @@ module mod_interp
 
   implicit none
 !
-  real(DP) :: bilinear
+  real(dp) :: bilinear
   integer :: m , n
-  real(DP) :: x , y
+  real(dp) :: x , y
   logical :: lwrap
-  real(SP) , dimension(m,n) :: grid
+  real(sp) , dimension(m,n) :: grid
   intent (in) lwrap , m , n , grid , x , y
 !
-  real(DP) :: dx, dy, p12, p03
-  real(DP) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
+  real(dp) :: dx, dy, p12, p03
+  real(dp) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
   integer :: i0, j0, i1, j1, i2, j2, i3, j3
 !
 !-----bilinear interpolation among four grid values
@@ -281,15 +281,15 @@ module mod_interp
  
   implicit none
 !
-  real(DP) :: bicubic
+  real(dp) :: bicubic
   integer :: m , n
-  real(DP) :: x , y
+  real(dp) :: x , y
   logical :: lwrap
-  real(SP) , dimension(m,n) :: grid
+  real(sp) , dimension(m,n) :: grid
   intent (in) grid , m , n , x , y , lwrap
 !
-  real(DP) , dimension(4) :: f , f1 , f12 , f2
-  real(DP) :: xl , xu , yl , yu
+  real(dp) , dimension(4) :: f , f1 , f12 , f2
+  real(dp) :: xl , xu , yl , yu
   integer :: i , ii , j , mm , nn , im , imp1 , imn1
 
   mm = int(x)
@@ -337,13 +337,13 @@ module mod_interp
   subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
   implicit none
 !
-  real(DP) :: a , x1 , x1l , x1u , x2 , x2l , x2u
-  real(DP) , dimension(4) :: y , y1 , y12 , y2
+  real(dp) :: a , x1 , x1l , x1u , x2 , x2l , x2u
+  real(dp) , dimension(4) :: y , y1 , y12 , y2
   intent (in) x1 , x1l , x1u , x2 , x2l , x2u , y , y1 , y12 , y2
   intent (out) a
 !
   integer :: i
-  real(DP) :: t , u
+  real(dp) :: t , u
 !
   call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
   t = (x1-x1l)/(x1u-x1l)
@@ -357,12 +357,12 @@ module mod_interp
   subroutine bcucof(y,y1,y2,y12,d1,d2)
   implicit none
 !
-  real(DP) :: d1 , d2
-  real(DP) , dimension(4) :: y , y1 , y12 , y2
+  real(dp) :: d1 , d2
+  real(dp) , dimension(4) :: y , y1 , y12 , y2
   intent (in) d1 , d2 , y , y1 , y12 , y2
 !
-  real(DP) , dimension(16) :: cl , x
-  real(DP) :: d1d2 , xx
+  real(dp) , dimension(16) :: cl , x
+  real(dp) :: d1d2 , xx
   integer :: i , j , k , l
 
   d1d2 = d1*d2
@@ -399,17 +399,17 @@ module mod_interp
   implicit none
 !
   integer , intent(in) :: iy , jx , iniy , injx , ntypec , itype
-  real(SP) , intent(in) , dimension(iy, jx) :: xlat , xlon
-  real(SP) , intent(in) , dimension(injx, iniy) :: imt
-  real(DP) , intent(in) :: milat , milon
+  real(sp) , intent(in) , dimension(iy, jx) :: xlat , xlon
+  real(sp) , intent(in) , dimension(injx, iniy) :: imt
+  real(dp) , intent(in) :: milat , milon
   logical , intent(in) :: lwrap , lcross
   integer , intent(in) , optional :: ival
   integer , intent(in) , optional :: ibnty
-  real(DP) , intent(in) , optional :: h2opct
-  real(SP) , intent(out) , dimension(iy, jx) :: omt
+  real(dp) , intent(in) , optional :: h2opct
+  real(sp) , intent(out) , dimension(iy, jx) :: omt
 !
   integer :: nbox , ii , jj
-  real(DP) :: xx , yy , rinc
+  real(dp) :: xx , yy , rinc
 !
   rinc = 60.0D0/dble(ntypec)
 !
@@ -497,7 +497,7 @@ module mod_interp
   subroutine filter1plakes(iy,jx,omt)
     implicit none
     integer , intent(in) :: iy , jx
-    real(SP) , intent(out) , dimension(iy, jx) :: omt
+    real(sp) , intent(out) , dimension(iy, jx) :: omt
     integer , dimension(maxbins) :: cnt
     integer , dimension(9) :: around
     integer , parameter :: ilake = 14
