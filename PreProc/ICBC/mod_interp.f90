@@ -19,6 +19,7 @@
 
 module mod_interp
  
+  use mod_memutil
   use m_realkinds
   use m_die
   use m_stdio
@@ -30,13 +31,13 @@ module mod_interp
   real(sp) :: dlatmax , dlonmax
   integer :: imxmn , lcross , ldot
 
-  real(sp) , allocatable , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
+  real(sp) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
                                             dc1xd , dc1xt
-  integer , allocatable, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
+  integer , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
                               ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
-  real(sp) , allocatable , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
+  real(sp) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
                                              dd1xd , dd1xt
-  integer , allocatable, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
+  integer , pointer, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
                               id1ur , jd1dl , jd1dr , jd1ul , jd1ur
 
   data imxmn /0/
@@ -355,19 +356,19 @@ module mod_interp
   end if
 
   if ( lcross == 0 ) then
-    if (.not. allocated(ic1dl)) allocate (ic1dl(jx,iy))
-    if (.not. allocated(ic1dr)) allocate (ic1dr(jx,iy))
-    if (.not. allocated(ic1ul)) allocate (ic1ul(jx,iy))
-    if (.not. allocated(ic1ur)) allocate (ic1ur(jx,iy))
-    if (.not. allocated(jc1dl)) allocate (jc1dl(jx,iy))
-    if (.not. allocated(jc1dr)) allocate (jc1dr(jx,iy))
-    if (.not. allocated(jc1ul)) allocate (jc1ul(jx,iy))
-    if (.not. allocated(jc1ur)) allocate (jc1ur(jx,iy))
-    if (.not. allocated(dc1xa)) allocate (dc1xa(jx,iy))
-    if (.not. allocated(dc1xb)) allocate (dc1xb(jx,iy))
-    if (.not. allocated(dc1xc)) allocate (dc1xc(jx,iy))
-    if (.not. allocated(dc1xd)) allocate (dc1xd(jx,iy))
-    if (.not. allocated(dc1xt)) allocate (dc1xt(jx,iy))
+    if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'mod_interp:ic1dl')
+    if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'mod_interp:ic1dr')
+    if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'mod_interp:ic1ul')
+    if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'mod_interp:ic1ur')
+    if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'mod_interp:jc1dl')
+    if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'mod_interp:jc1dr')
+    if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'mod_interp:jc1ul')
+    if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'mod_interp:jc1ur')
+    if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'mod_interp:dc1xa')
+    if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'mod_interp:dc1xb')
+    if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'mod_interp:dc1xc')
+    if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'mod_interp:dc1xd')
+    if (.not. associated(dc1xt)) call getmem2d(dc1xt,1,jx,1,iy,'mod_interp:dc1xt')
     write (stdout,*) 'FIRST TIME in CRESSMCR'
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do j = 1 , iy
@@ -588,19 +589,19 @@ module mod_interp
   end if
 
   if ( ldot == 0 ) then
-    if (.not. allocated(id1dl)) allocate (id1dl(jx,iy))
-    if (.not. allocated(id1dr)) allocate (id1dr(jx,iy))
-    if (.not. allocated(id1ul)) allocate (id1ul(jx,iy))
-    if (.not. allocated(id1ur)) allocate (id1ur(jx,iy))
-    if (.not. allocated(jd1dl)) allocate (jd1dl(jx,iy))
-    if (.not. allocated(jd1dr)) allocate (jd1dr(jx,iy))
-    if (.not. allocated(jd1ul)) allocate (jd1ul(jx,iy))
-    if (.not. allocated(jd1ur)) allocate (jd1ur(jx,iy))
-    if (.not. allocated(dd1xa)) allocate (dd1xa(jx,iy))
-    if (.not. allocated(dd1xb)) allocate (dd1xb(jx,iy))
-    if (.not. allocated(dd1xc)) allocate (dd1xc(jx,iy))
-    if (.not. allocated(dd1xd)) allocate (dd1xd(jx,iy))
-    if (.not. allocated(dd1xt)) allocate (dd1xt(jx,iy))
+    if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'mod_interp:id1dl')
+    if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'mod_interp:id1dr')
+    if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'mod_interp:id1ul')
+    if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'mod_interp:id1ur')
+    if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'mod_interp:jd1dl')
+    if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'mod_interp:jd1dr')
+    if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'mod_interp:jd1ul')
+    if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'mod_interp:jd1ur')
+    if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'mod_interp:dd1xa')
+    if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'mod_interp:dd1xb')
+    if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'mod_interp:dd1xc')
+    if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'mod_interp:dd1xd')
+    if (.not. associated(dd1xt)) call getmem2d(dd1xt,1,jx,1,iy,'mod_interp:dd1xt')
     write (stdout,*) 'FIRST TIME in CRESSMDT'
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do j = 1 , iy

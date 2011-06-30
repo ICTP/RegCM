@@ -255,30 +255,6 @@ program icbc
 
   end do
 
-  if ( dattyp == 'ECMWF' ) then
-    call footerec
-  else if ( dattyp == 'ERA40' ) then
-    call footerera
-  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
-            dattyp == 'EIN75' .or. dattyp == 'EIN25' ) then
-    call footerein
-  else if ( dattyp == 'GFS11' ) then
-    call footergfs
-  else if ( dattyp == 'ERAHI' ) then
-    call footerehi
-  else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
-            dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
-    call footermpi(ehso4)
-  else if ( dattyp == 'FVGCM' ) then
-    call footerfv
-  else if ( dattyp == 'CCSMN' ) then
-    call footerccsm
-  else if ( dattyp == 'CAM2N' ) then
-    call footercam2
-  else
-    call die('icbc','Unknown dattyp',1)
-  end if
- 
   call close_output
   call closesst
  

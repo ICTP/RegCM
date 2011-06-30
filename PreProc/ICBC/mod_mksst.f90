@@ -23,20 +23,21 @@ module mod_mksst
   use m_die
   use m_stdio
   use m_zeit
-  use m_mall
   use netcdf
+  use mod_memutil
   use mod_constants
   use mod_dynparam
 
   private
 
-  logical , private :: lopen , lhasice
-  integer , private :: ncst , ntime
-  integer , dimension(3) , private :: ivar
-  type(rcm_time_and_date) , dimension(:) , allocatable , private :: itime
-  real(sp) , dimension(:,:) , allocatable , private :: xlandu
-  real(sp) , dimension(:,:) , allocatable , private :: work1 , work2
-  real(sp) , dimension(:,:) , allocatable , private :: work3 , work4
+  logical :: lopen , lhasice
+  integer :: ncst , ntime
+  integer , dimension(3) :: ivar
+  type(rcm_time_and_date) , dimension(:) , pointer :: itime
+  real(sp) , dimension(:,:) , pointer :: xlandu
+  real(sp) , dimension(:,:) , pointer :: work1 , work2
+  real(sp) , dimension(:,:) , pointer :: work3 , work4
+  real(dp) , dimension(:) , pointer :: xtime
 
   data lopen/.false./
   character(256) :: sstfile
@@ -51,7 +52,6 @@ module mod_mksst
     implicit none
     real(sp) , dimension(jx,iy) , intent(inout) :: tsccm
     type(rcm_time_and_date) , intent(in) :: idate
-    real(dp) , dimension(:) , allocatable :: xtime
     integer :: istatus , idimid , itvar
     integer , dimension(3) :: istart , icount
     character(64) :: timeunits , timecal
@@ -84,36 +84,21 @@ module mod_mksst
       istatus = nf90_get_att(ncst, itvar, "calendar", timecal)
       call check_ok(istatus,'Error time var units SST file'//trim(sstfile))
 
-      allocate(xlandu(jx,iy), stat=istatus)
-      if (istatus /= 0) call die('readsst','allocate xlandu',istatus)
-      call mall_mci(xlandu,'readsst')
-      allocate(work1(jx,iy), stat=istatus)
-      if (istatus /= 0) call die('readsst','allocate work1',istatus)
-      call mall_mci(work1,'readsst')
-      allocate(work2(jx,iy), stat=istatus)
-      if (istatus /= 0) call die('readsst','allocate work2',istatus)
-      call mall_mci(work2,'readsst')
+      call getmem2d(xlandu,1,jx,1,iy,'mod_mksst:xlandu')
+      call getmem2d(work1,1,jx,1,iy,'mod_mksst:work1')
+      call getmem2d(work2,1,jx,1,iy,'mod_mksst:work2')
       if (lhasice) then
-        allocate(work3(jx,iy), stat=istatus)
-        if (istatus /= 0) call die('readsst','allocate work3',istatus)
-        call mall_mci(work3,'readsst')
-        allocate(work4(jx,iy), stat=istatus)
-        if (istatus /= 0) call die('readsst','allocate work4',istatus)
-        call mall_mci(work4,'readsst')
+        call getmem2d(work3,1,jx,1,iy,'mod_mksst:work3')
+        call getmem2d(work4,1,jx,1,iy,'mod_mksst:work4')
       end if
-      allocate(xtime(ntime), stat=istatus)
-      if (istatus /= 0) call die('readsst','allocate xtime',istatus)
-      call mall_mci(xtime,'readsst')
-      allocate(itime(ntime), stat=istatus)
-      if (istatus /= 0) call die('readsst','allocate itime',istatus)
+      call getmem1d(xtime,1,ntime,'mod_mksst:xtime')
+      call getmem1d(itime,1,ntime,'mod_mksst:itime')
 
       istatus = nf90_get_var(ncst, itvar, xtime)
       call check_ok(istatus,'Error time var read SST file'//trim(sstfile))
       do i = 1 , ntime
         itime(i) = timeval2date(xtime(i), timeunits, timecal)
       end do
-      deallocate(xtime)
-      call mall_mco(xtime,'readsst')
       lopen = .true.
     end if
 
@@ -199,29 +184,6 @@ module mod_mksst
     implicit none
     integer :: istatus
     istatus = nf90_close(ncst)
-    if (allocated(itime)) then
-      deallocate(itime)
-    end if
-    if (allocated(work1)) then
-      call mall_mco(work1,'readsst')
-      deallocate(work1)
-    end if
-    if (allocated(work2)) then
-      call mall_mco(work2,'readsst')
-      deallocate(work2)
-    end if
-    if (allocated(work3)) then
-      call mall_mco(work3,'readsst')
-      deallocate(work3)
-    end if
-    if (allocated(work4))then
-      call mall_mco(work4,'readsst')
-      deallocate(work4)
-    end if
-    if (allocated(xlandu))then
-      call mall_mco(xlandu,'readsst')
-      deallocate(xlandu)
-    end if
   end subroutine closesst
 !
   subroutine check_ok(ierr,message)
