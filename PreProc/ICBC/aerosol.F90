@@ -33,12 +33,12 @@ program aerosol
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
   use mod_dynparam
+  use mod_memutil
   use netcdf
   use m_realkinds
   use m_stdio
   use m_die
   use m_zeit
-  use m_mall
 
   implicit none
 !
@@ -51,9 +51,9 @@ program aerosol
   real(sp) , dimension(jlat) :: lati
   real(sp) , dimension(ilon) :: loni
   real(sp) , dimension(ilon,jlat) :: aer2
-  real(sp) , allocatable , dimension(:,:) :: aermm , xlat , xlon
-  real(sp) , allocatable , dimension(:,:) :: finmat
-  real(sp) , allocatable , dimension(:) :: sigma
+  real(sp) , pointer , dimension(:,:) :: aermm , xlat , xlon
+  real(sp) , pointer , dimension(:,:) :: finmat
+  real(sp) , pointer , dimension(:) :: sigma
   character(256) :: namelistfile, prgname , terfile , aerofile
   character(64) :: history , aerdesc
   integer , dimension(4) :: idims
@@ -63,8 +63,8 @@ program aerosol
   integer :: imon
   real(sp) , dimension(2) :: trlat
   real(sp) :: hptop
-  real(sp) , allocatable , dimension(:) :: yiy
-  real(sp) , allocatable , dimension(:) :: xjx
+  real(sp) , pointer , dimension(:) :: yiy
+  real(sp) , pointer , dimension(:) :: xjx
   integer , dimension(2) :: ivvar
   integer , dimension(2) :: illvar
   integer , dimension(2) :: izvar
@@ -86,23 +86,16 @@ program aerosol
     call die('aerosol','Check argument and namelist syntax',1)
   end if
 !
+  call memory_init
+!
   if (debug_level > 2) then
-    call mall_set()
     call zeit_ci('aerosol')
   end if
 
-  allocate(aermm(iy,jx), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate aermm',istatus)
-  call mall_mci(aermm,'aerosol')
-  allocate(xlat(iy,jx), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate xlat',istatus)
-  call mall_mci(xlat,'aerosol')
-  allocate(xlon(iy,jx), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate xlon',istatus)
-  call mall_mci(xlon,'aerosol')
-  allocate(finmat(jx,iy), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate finmat',istatus)
-  call mall_mci(finmat,'aerosol')
+  call getmem2d(aermm,1,iy,1,jx,'aerosol:aermm')
+  call getmem2d(xlat,1,iy,1,jx,'aerosol:xlat')
+  call getmem2d(xlon,1,iy,1,jx,'aerosol:xlon')
+  call getmem2d(finmat,1,jx,1,iy,'aerosol:finmat')
 
   inquire (file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',exist=there)
   if ( .not.there ) then
@@ -144,9 +137,7 @@ program aerosol
     write(stderr,*) '  DOMAIN     : ' , iyy , jxx , kzz-1
     call die('aerosol','Dimensions mismatch',1)
   end if
-  allocate(sigma(kzp1), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate sigma',istatus)
-  call mall_mci(sigma,'aerosol')
+  call getmem1d(sigma,1,kzp1,'aerosol:sigma')
   istatus = nf90_inq_varid(incin, "sigma", ivarid)
   call check_ok(istatus, 'Variable sigma missing')
   istatus = nf90_get_var(incin, ivarid, sigma)
@@ -163,8 +154,6 @@ program aerosol
   xlon = transpose(finmat)
   istatus = nf90_close(incin)
   call check_ok(istatus, ('Error closing Domain file '//trim(terfile)))
-  call mall_mco(finmat,'aerosol')
-  deallocate(finmat)
 !
   istatus = nf90_put_att(ncid, nf90_global, 'title',  &
          'ICTP Regional Climatic model V4 Aerosol program output')
@@ -388,17 +377,11 @@ program aerosol
 !
   istatus = nf90_put_var(ncid, izvar(1), sigma)
   call check_ok(istatus, 'Error variable sigma write')
-  call mall_mco(sigma,'aerosol')
-  deallocate(sigma)
   hptop = real(ptop * 10.0D0)
   istatus = nf90_put_var(ncid, izvar(2), hptop)
   call check_ok(istatus, 'Error variable ptop write')
-  allocate(yiy(iy), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate yiy',istatus)
-  call mall_mci(yiy,'aerosol')
-  allocate(xjx(jx), stat=istatus)
-  if (istatus /= 0) call die('aerosol','allocate xjx',istatus)
-  call mall_mci(xjx,'aerosol')
+  call getmem1d(yiy,1,iy,'aerosol:yiy')
+  call getmem1d(xjx,1,jx,'aerosol:xjx')
   yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
   xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
   do i = 2 , iy
@@ -411,10 +394,6 @@ program aerosol
   call check_ok(istatus, 'Error variable iy write')
   istatus = nf90_put_var(ncid, ivvar(2), xjx)
   call check_ok(istatus, 'Error variable jx write')
-  call mall_mco(yiy,'aerosol')
-  deallocate(yiy)
-  call mall_mco(xjx,'aerosol')
-  deallocate(xjx)
   istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
   call check_ok(istatus, 'Error variable xlat write')
   istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
@@ -466,24 +445,17 @@ program aerosol
     end do
   end do
  
-  call mall_mco(aermm,'aerosol')
-  deallocate(aermm)
-  call mall_mco(xlat,'aerosol')
-  deallocate(xlat)
-  call mall_mco(xlon,'aerosol')
-  deallocate(xlon)
-
   istatus = nf90_close(ncid)
   call check_ok(istatus, 'Error Closing output sst file')
 
+  call memory_destroy
+
   if (debug_level > 2) then
-    call mall_flush(stdout)
-    call mall_set(.false.)
     call zeit_co('aerosol')
     call zeit_flush(stdout)
   end if
 
-  write(stdout,*) 'Successfully built aerosol data for domain'
+  write(stdout,*) 'Successfully built aerosol data for domain ',trim(domname)
   stop
 
  100  continue

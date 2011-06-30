@@ -116,8 +116,8 @@ program icbc
   use mod_header
   use m_stdio
   use m_die
-  use m_mall
   use m_zeit
+  use mod_memutil
 
   implicit none
 !
@@ -152,9 +152,10 @@ program icbc
   end if
 !
   if (debug_level > 2) then
-    call mall_set()
     call zeit_ci('icbc')
   end if
+
+  call memory_init
 
   call init_grid(iy,jx,kz)
   call init_output
@@ -272,8 +273,6 @@ program icbc
     call footermpi(ehso4)
   else if ( dattyp == 'FVGCM' ) then
     call footerfv
-  else if ( dattyp == 'FNEST' ) then
-    call footernest
   else if ( dattyp == 'CCSMN' ) then
     call footerccsm
   else if ( dattyp == 'CAM2N' ) then
@@ -282,16 +281,15 @@ program icbc
     call die('icbc','Unknown dattyp',1)
   end if
  
-  call free_output
-  call free_grid
+  call close_output
   call closesst
  
   if (debug_level > 2) then
-    call mall_flush(stdout)
-    call mall_set(.false.)
     call zeit_co('icbc')
     call zeit_flush(stdout)
   end if
+
+  call memory_destroy
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed ICBC'

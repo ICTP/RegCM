@@ -20,11 +20,12 @@
 module mod_space
 
   use m_realkinds
+  use mod_date , only : rcm_time_and_date
 
   private
 
   public :: bounds
-  public :: iarr1d , larr1d , r4arr1d , r8arr1d
+  public :: iarr1d , larr1d , r4arr1d , r8arr1d , rtarr1d
   public :: iarr2d , larr2d , r4arr2d , r8arr2d
   public :: iarr3d , larr3d , r4arr3d , r8arr3d
   public :: iarr4d , larr4d , r4arr4d , r8arr4d
@@ -52,6 +53,10 @@ module mod_space
   type r8arr1d
     real(dp) , allocatable , dimension(:) :: space
   end type r8arr1d
+
+  type rtarr1d
+    type(rcm_time_and_date) , allocatable , dimension(:) :: space
+  end type rtarr1d
 
   type iarr2d
     integer , allocatable , dimension(:,:) :: space
@@ -122,6 +127,7 @@ module mod_space
     module procedure getspc1d_iarr
     module procedure getspc1d_r4arr
     module procedure getspc1d_r8arr
+    module procedure getspc1d_rtarr
   end interface getspc1d
 
   interface getspc2d
@@ -185,6 +191,14 @@ module mod_space
     if ( allocated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_r8arr
+
+  subroutine getspc1d_rtarr(a,b,istat)
+    type (rtarr1d) , intent(inout) :: a
+    type (bounds) , intent(in) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b%low:b%high), stat=istat)
+  end subroutine getspc1d_rtarr
 
   subroutine getspc2d_larr(a,b,istat)
     type (larr2d) , intent(inout) :: a

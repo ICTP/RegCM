@@ -25,6 +25,7 @@ module mod_sst_cam2
   use m_mall
   use m_zeit
   use mod_dynparam
+  use mod_memutil
   use mod_sst_grid
   use mod_interp
   use netcdf
@@ -39,9 +40,9 @@ module mod_sst_cam2
   integer :: timid
   integer :: istatus
   integer , dimension(3) :: istart , icount
-  real(dp) , allocatable ::  work1(:)
-  real(sp) , allocatable , dimension (:, :) :: work2 , work3
-  real(sp) , allocatable , dimension(:,:) :: sst
+  real(dp) , pointer ::  work1(:)
+  real(sp) , pointer , dimension (:, :) :: work2 , work3
+  real(sp) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) :: cssidate1
   character(64) :: cunit , ccal
   character(256) :: inpfile
@@ -80,8 +81,8 @@ module mod_sst_cam2
 
   implicit none
 !
-  real(sp) , allocatable , dimension(:) :: glat
-  real(sp) , allocatable , dimension(:) :: glon
+  real(sp) , pointer , dimension(:) :: glat
+  real(sp) , pointer , dimension(:) :: glon
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
@@ -130,24 +131,12 @@ module mod_sst_cam2
              nf90_strerror(istatus),istatus)
   end if
 
-  allocate(work1(timlen), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate work1',istatus)
-  call mall_mci(work1,'mod_sst_cam2')
-  allocate(glat(jlat), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate glat',istatus)
-  call mall_mci(glat,'mod_sst_cam2')
-  allocate(glon(ilon), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate glon',istatus)
-  call mall_mci(glon,'mod_sst_cam2')
-  allocate(work2(ilon,jlat), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate work2',istatus)
-  call mall_mci(work2,'mod_sst_cam2')
-  allocate(work3(ilon,jlat), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate work3',istatus)
-  call mall_mci(work3,'mod_sst_cam2')
-  allocate(sst(ilon,jlat), stat=istatus)
-  if (istatus /= 0) call die('cam2_sst','allocate sst',istatus)
-  call mall_mci(sst,'mod_sst_cam2')
+  call getmem1d(work1,1,timlen,'mod_cam2_sst:work1')
+  call getmem1d(glat,1,jlat,'mod_cam2_sst:glat')
+  call getmem1d(glon,1,ilon,'mod_cam2_sst:glon')
+  call getmem2d(work2,1,ilon,1,jlat,'mod_cam2_sst:work2')
+  call getmem2d(work3,1,ilon,1,jlat,'mod_cam2_sst:work3')
+  call getmem2d(sst,1,ilon,1,jlat,'mod_cam2_sst:sst')
   
 ! GET VARIABLE IDs
   istatus = nf90_inq_varid(inet1,'lat',latid)
@@ -260,19 +249,6 @@ module mod_sst_cam2
   end do
  
   call zeit_co('sst_cam2')
-
-  call mall_mco(work1,'mod_sst_cam2')
-  deallocate(work1)
-  call mall_mco(work2,'mod_sst_cam2')
-  deallocate(work2)
-  call mall_mco(work3,'mod_sst_cam2')
-  deallocate(work3)
-  call mall_mco(glat,'mod_sst_cam2')
-  deallocate(glat)
-  call mall_mco(glon,'mod_sst_cam2')
-  deallocate(glon)
-  call mall_mco(sst,'mod_sst_cam2')
-  deallocate(sst)
 
   end subroutine sst_cam2
 !

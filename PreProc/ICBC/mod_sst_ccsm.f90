@@ -22,8 +22,8 @@ module mod_sst_ccsm
   use m_realkinds
   use m_die
   use m_stdio
-  use m_mall
   use m_zeit
+  use mod_memutil
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
@@ -32,7 +32,7 @@ module mod_sst_ccsm
 
   integer , parameter :: ilon = 360 , jlat = 180
 !
-  real(dp) , allocatable ::  work1(:)
+  real(dp) , pointer ::  work1(:)
   real(sp) , dimension (ilon , jlat) :: work2 , work3
 
   public :: sst_ccsm
@@ -144,9 +144,6 @@ module mod_sst_ccsm
  
   call zeit_co('sst_ccsm')
 
-  call mall_mco(work1,'mod_sst_ccsm')
-  deallocate(work1)
-
   end subroutine sst_ccsm
 !
 !-----------------------------------------------------------------------
@@ -225,9 +222,7 @@ module mod_sst_ccsm
       call die('ccsm_sst','Error '//trim(pathaddname)//' dim time',1, &
                nf90_strerror(istatus),istatus)
     end if
-    allocate(work1(timlen), stat=istatus)
-    if (istatus /= 0) call die('ccsm_sst','allocate work1',istatus)
-    call mall_mci(work1,'mod_sst_ccsm')
+    call getmem1d(work1,1,timlen,'mod_sst_ccsm:work1')
     
 !     MAKE SURE THAT SST DATA IS AT 1X1 DEGREE
     if(latlen /= jlat .or. lonlen /= ilon) then

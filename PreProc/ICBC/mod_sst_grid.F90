@@ -23,9 +23,9 @@ module mod_sst_grid
   use m_stdio
   use m_die
   use m_zeit
-  use m_mall
   use netcdf
   use mod_dynparam
+  use mod_memutil
 
   private
 
@@ -35,11 +35,11 @@ module mod_sst_grid
   type (rcm_time_and_date) :: refdate
   integer :: itime
 
-  real(sp) , public , allocatable , dimension(:,:) :: lu , sstmm , icemm ,   &
+  real(sp) , public , pointer , dimension(:,:) :: lu , sstmm , icemm ,   &
                                             xlat , xlon , finmat
-  real(sp) , allocatable , dimension(:) :: sigma
-  real(sp) , allocatable , dimension(:) :: yiy
-  real(sp) , allocatable , dimension(:) :: xjx
+  real(sp) , pointer , dimension(:) :: sigma
+  real(sp) , pointer , dimension(:) :: yiy
+  real(sp) , pointer , dimension(:) :: xjx
 
   public :: init_grid , free_grid , read_domain , open_sstfile , &
             close_sstfile , writerec
@@ -48,57 +48,16 @@ module mod_sst_grid
 
   subroutine init_grid
     implicit none
-    integer :: ierr
-    allocate(lu(iy,jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate lu',ierr)
-    call mall_mci(lu,'mod_sst_grid')
-    allocate(sstmm(iy,jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate sstmm',ierr)
-    call mall_mci(sstmm,'mod_sst_grid')
-    allocate(icemm(iy,jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate icemm',ierr)
-    call mall_mci(icemm,'mod_sst_grid')
-    allocate(xlat(iy,jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xlat',ierr)
-    call mall_mci(xlat,'mod_sst_grid')
-    allocate(xlon(iy,jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xlon',ierr)
-    call mall_mci(xlon,'mod_sst_grid')
-    allocate(finmat(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate finmat',ierr)
-    call mall_mci(finmat,'mod_sst_grid')
-    allocate(sigma(kzp1), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate sigma',ierr)
-    call mall_mci(sigma,'mod_sst_grid')
-    allocate(yiy(iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate yiy',ierr)
-    call mall_mci(yiy,'mod_sst_grid')
-    allocate(xjx(jx), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xjx',ierr)
-    call mall_mci(xjx,'mod_sst_grid')
+    call getmem2d(lu,1,iy,1,jx,'mod_sst_grid:lu')
+    call getmem2d(sstmm,1,iy,1,jx,'mod_sst_grid:sstmm')
+    call getmem2d(icemm,1,iy,1,jx,'mod_sst_grid:icemm')
+    call getmem2d(xlat,1,iy,1,jx,'mod_sst_grid:xlat')
+    call getmem2d(xlon,1,iy,1,jx,'mod_sst_grid:xlon')
+    call getmem2d(finmat,1,jx,1,iy,'mod_sst_grid:finmat')
+    call getmem1d(sigma,1,kzp1,'mod_sst_grid:sigma')
+    call getmem1d(yiy,1,iy,'mod_sst_grid:yiy')
+    call getmem1d(xjx,1,jx,'mod_sst_grid:xjx')
   end subroutine init_grid
-
-  subroutine free_grid
-    implicit none
-    call mall_mco(lu,'mod_sst_grid')
-    deallocate(lu)
-    call mall_mco(sstmm,'mod_sst_grid')
-    deallocate(sstmm)
-    call mall_mco(icemm,'mod_sst_grid')
-    deallocate(icemm)
-    call mall_mco(xlat,'mod_sst_grid')
-    deallocate(xlat)
-    call mall_mco(xlon,'mod_sst_grid')
-    deallocate(xlon)
-    call mall_mco(finmat,'mod_sst_grid')
-    deallocate(finmat)
-    call mall_mco(sigma,'mod_sst_grid')
-    deallocate(sigma)
-    call mall_mco(yiy,'mod_sst_grid')
-    deallocate(yiy)
-    call mall_mco(xjx,'mod_sst_grid')
-    deallocate(xjx)
-  end subroutine free_grid
 
   subroutine read_domain(terfile)
     implicit none

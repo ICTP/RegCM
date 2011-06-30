@@ -26,7 +26,7 @@ program chem_icbc
   use mod_header
   use mod_ch_icbc
   use mod_ch_oxcl
-
+  use mod_memutil
 !
   implicit none
 !
@@ -54,6 +54,8 @@ program chem_icbc
     stop
   end if
 !      
+  call memory_init
+!  
   call init_grid(iy,jx,kz)
   call init_outoxd
 !
@@ -71,24 +73,25 @@ program chem_icbc
   call newfile_ch_oxcl(idate)
   call newfile_ch_icbc(idate)
 
-  call headermozart_ch_oxcl
-  call headermozart_ch_icbc
+  call header_ch_oxcl
+  call header_ch_icbc
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
      call newfile_ch_icbc(idate)
      call newfile_ch_oxcl(idate)
    end if
-   call getmozart_ch_icbc(idate)
-   call getmozart_ch_oxcl(idate)
+   call get_ch_icbc(idate)
+   call get_ch_oxcl(idate)
    iodate = idate
    idate = idate + tbdy
   end do
 
-  call free_grid
-  call free_outoxd
-  call freemozart_ch_icbc
-  call freemozart_ch_oxcl
+  call close_outoxd
+  call close_ch_oxcl
+  call close_ch_icbc
+
+  call memory_destroy
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'

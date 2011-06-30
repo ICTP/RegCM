@@ -25,6 +25,7 @@ module mod_wrtoxd
   use m_realkinds
   use m_die
   use netcdf
+  use mod_memutil
 
   private
 
@@ -32,7 +33,7 @@ module mod_wrtoxd
   public :: nchsp , noxsp
   public :: chspec , oxspec
 
-  public :: init_outoxd , free_outoxd , newfile_ch_icbc , &
+  public :: init_outoxd , close_outoxd , newfile_ch_icbc , &
             newfile_ch_oxcl , write_ch_icbc , write_ch_oxcl
 
   integer :: ncid , ncidox
@@ -51,8 +52,10 @@ module mod_wrtoxd
   character(len=8) , dimension(nchsp) :: chspec
   character(len=8) , dimension(noxsp) :: oxspec
 
-  real(sp) , allocatable , dimension(:,:,:,:) :: chv4
-  real(sp) , allocatable , dimension(:,:,:,:) :: oxv4
+  real(sp) , pointer , dimension(:,:,:,:) :: chv4
+  real(sp) , pointer , dimension(:,:,:,:) :: oxv4
+  real(sp) , pointer , dimension(:) :: yiy
+  real(sp) , pointer , dimension(:) :: xjx
   
   character(len=128) :: buffer
 
@@ -69,25 +72,28 @@ module mod_wrtoxd
 
   subroutine init_outoxd
     implicit none
-    integer :: ierr
-
-    allocate(chv4(jx,iy,kz,nchsp), stat=ierr)
-    if (ierr /= 0) call die('init_outoxd','allocate chv4',ierr)
-    allocate(oxv4(jx,iy,kz,noxsp), stat=ierr)
-    if (ierr /= 0) call die('init_outoxd','allocate oxv4',ierr)
+    integer :: i , j
+    call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
+    call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
+    call getmem1d(yiy,1,iy,'mod_wrtoxd:yiy')
+    call getmem1d(xjx,1,jx,'mod_wrtoxd:xjx')
+    yiy(1) = -(dble(iy-1)/2.0) * ds
+    xjx(1) = -(dble(jx-1)/2.0) * ds
+    do i = 2 , iy
+      yiy(i) = yiy(i-1)+ds
+    end do
+    do j = 2 , jx
+      xjx(j) = xjx(j-1)+ds
+    end do
   end subroutine init_outoxd
 
-  subroutine free_outoxd
+  subroutine close_outoxd
     implicit none
-
-    deallocate(chv4)
-    deallocate(oxv4)
-
     if (ncid > 0) then
       istatus = nf90_close(ncid)
       call check_ok(istatus,('Error closing file '//trim(ofname)))
     end if
-  end subroutine free_outoxd
+  end subroutine close_outoxd
 
   subroutine newfile_ch_icbc(idate1)
     implicit none
@@ -99,8 +105,6 @@ module mod_wrtoxd
     integer , dimension(2) :: ivvar
     integer , dimension(2) :: illvar
     integer , dimension(4) :: x3ddim
-    real(sp) , allocatable , dimension(:) :: yiy
-    real(sp) , allocatable , dimension(:) :: xjx
     character(64) :: csdate
     character(256) :: history
     real(sp) , dimension(2) :: trlat
@@ -275,22 +279,10 @@ module mod_wrtoxd
     hptop = ptop*10.0
     istatus = nf90_put_var(ncid, izvar(2), hptop)
     call check_ok(istatus,'Error variable ptop write')
-    allocate(yiy(iy))
-    allocate(xjx(jx))
-    yiy(1) = -(dble(iy-1)/2.0) * ds
-    xjx(1) = -(dble(jx-1)/2.0) * ds
-    do i = 2 , iy
-      yiy(i) = yiy(i-1)+ds
-    end do
-    do j = 2 , jx
-      xjx(j) = xjx(j-1)+ds
-    end do
     istatus = nf90_put_var(ncid, ivvar(1), yiy)
     call check_ok(istatus,'Error variable iy write')
     istatus = nf90_put_var(ncid, ivvar(2), xjx)
     call check_ok(istatus,'Error variable jx write')
-    deallocate(yiy)
-    deallocate(xjx)
     istatus = nf90_put_var(ncid, illvar(1), xlat)
     call check_ok(istatus,'Error variable xlat write')
     istatus = nf90_put_var(ncid, illvar(2), xlon)
@@ -310,8 +302,6 @@ module mod_wrtoxd
     integer , dimension(2) :: ivvar
     integer , dimension(2) :: illvar
     integer , dimension(4) :: x3ddim
-    real(sp) , allocatable , dimension(:) :: yiy
-    real(sp) , allocatable , dimension(:) :: xjx
     character(64) :: csdate
     character(256) :: history
     real(sp) , dimension(2) :: trlat
@@ -488,22 +478,10 @@ module mod_wrtoxd
     hptop = ptop*10.0
     istatus = nf90_put_var(ncidox, izvar(2), hptop)
     call check_ok(istatus,'Error variable ptop write')
-    allocate(yiy(iy))
-    allocate(xjx(jx))
-    yiy(1) = -(dble(iy-1)/2.0) * ds
-    xjx(1) = -(dble(jx-1)/2.0) * ds
-    do i = 2 , iy
-      yiy(i) = yiy(i-1)+ds
-    end do
-    do j = 2 , jx
-      xjx(j) = xjx(j-1)+ds
-    end do
     istatus = nf90_put_var(ncidox, ivvar(1), yiy)
     call check_ok(istatus,'Error variable iy write')
     istatus = nf90_put_var(ncidox, ivvar(2), xjx)
     call check_ok(istatus,'Error variable jx write')
-    deallocate(yiy)
-    deallocate(xjx)
     istatus = nf90_put_var(ncidox, illvar(1), xlat)
     call check_ok(istatus,'Error variable xlat write')
     istatus = nf90_put_var(ncidox, illvar(2), xlon)

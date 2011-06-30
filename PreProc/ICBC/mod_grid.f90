@@ -19,18 +19,18 @@
 
 module mod_grid
 
+  use mod_memutil
   use m_realkinds
   use m_die
   use m_stdio
-  use m_mall
   use m_zeit
 
-  real(sp) , allocatable , dimension(:,:) :: coriol , dlat , dlon , &
-         msfx , snowcv , topogm , xlandu , xlat , xlon
-  real(sp) , allocatable , dimension(:,:) :: pa , tlayer , za
-  real(sp) , allocatable , dimension(:,:) :: b3pd
-  real(sp) , allocatable , dimension(:) :: dsigma , sigma2
-  real(sp) , allocatable , dimension(:) :: sigmaf
+  real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon , &
+         msfx , topogm , xlandu , xlat , xlon
+  real(sp) , pointer , dimension(:,:) :: pa , tlayer , za
+  real(sp) , pointer , dimension(:,:) :: b3pd
+  real(sp) , pointer , dimension(:) :: dsigma , sigma2
+  real(sp) , pointer , dimension(:) :: sigmaf
   real(dp) :: delx , grdfac
   integer :: i0 , i1 , j0 , j1
   real(dp) :: lat0 , lat1 , lon0 , lon1
@@ -40,95 +40,25 @@ module mod_grid
   subroutine init_grid(iy,jx,kz)
     implicit none
     integer , intent(in) :: iy , jx , kz
-    integer :: ierr
-    allocate(coriol(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate coriol',ierr)
-    call mall_mci(coriol,'mod_grid')
-    allocate(dlat(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate dlat',ierr)
-    call mall_mci(dlat,'mod_grid')
-    allocate(dlon(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate dlon',ierr)
-    call mall_mci(dlon,'mod_grid')
-    allocate(msfx(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate msfx',ierr)
-    call mall_mci(msfx,'mod_grid')
-    allocate(snowcv(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate snowcv',ierr)
-    call mall_mci(snowcv,'mod_grid')
-    allocate(topogm(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate topogm',ierr)
-    call mall_mci(topogm,'mod_grid')
-    allocate(xlandu(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xlandu',ierr)
-    call mall_mci(xlandu,'mod_grid')
-    allocate(xlat(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xlat',ierr)
-    call mall_mci(xlat,'mod_grid')
-    allocate(xlon(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate xlon',ierr)
-    call mall_mci(xlon,'mod_grid')
-    allocate(pa(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate pa',ierr)
-    call mall_mci(pa,'mod_grid')
-    allocate(tlayer(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate tlayer',ierr)
-    call mall_mci(tlayer,'mod_grid')
-    allocate(za(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate za',ierr)
-    call mall_mci(za,'mod_grid')
-    allocate(b3pd(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate b3pd',ierr)
-    call mall_mci(b3pd,'mod_grid')
-    allocate(dsigma(kz), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate dsigma',ierr)
-    call mall_mci(dsigma,'mod_grid')
-    allocate(sigma2(kz), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate sigma2',ierr)
-    call mall_mci(sigma2,'mod_grid')
-    allocate(sigmaf(kz+1), stat=ierr)
-    if (ierr /= 0) call die('init_grid','allocate sigmaf',ierr)
-    call mall_mci(sigmaf,'mod_grid')
+    call getmem2d(coriol,1,jx,1,iy,'mod_grid:coriol')
+    call getmem2d(dlat,1,jx,1,iy,'mod_grid:dlat')
+    call getmem2d(dlon,1,jx,1,iy,'mod_grid:dlon')
+    call getmem2d(msfx,1,jx,1,iy,'mod_grid:msfx')
+    call getmem2d(topogm,1,jx,1,iy,'mod_grid:topogm')
+    call getmem2d(xlandu,1,jx,1,iy,'mod_grid:xlandu')
+    call getmem2d(xlat,1,jx,1,iy,'mod_grid:xlat')
+    call getmem2d(xlon,1,jx,1,iy,'mod_grid:xlon')
+    call getmem2d(pa,1,jx,1,iy,'mod_grid:pa')
+    call getmem2d(tlayer,1,jx,1,iy,'mod_grid:tlayer')
+    call getmem2d(za,1,jx,1,iy,'mod_grid:za')
+    call getmem2d(b3pd,1,jx,1,iy,'mod_grid:b3pd')
+    call getmem1d(dsigma,1,kz,'mod_grid:dsigma')
+    call getmem1d(sigma2,1,kz,'mod_grid:sigma2')
+    call getmem1d(sigmaf,1,kz+1,'mod_grid:sigmaf')
 
     call read_domain
 
   end subroutine init_grid
-
-  subroutine free_grid
-    implicit none
-    call mall_mco(coriol,'mod_grid')
-    deallocate(coriol)
-    call mall_mco(dlat,'mod_grid')
-    deallocate(dlat)
-    call mall_mco(dlon,'mod_grid')
-    deallocate(dlon)
-    call mall_mco(msfx,'mod_grid')
-    deallocate(msfx)
-    call mall_mco(snowcv,'mod_grid')
-    deallocate(snowcv)
-    call mall_mco(topogm,'mod_grid')
-    deallocate(topogm)
-    call mall_mco(xlandu,'mod_grid')
-    deallocate(xlandu)
-    call mall_mco(xlat,'mod_grid')
-    deallocate(xlat)
-    call mall_mco(xlon,'mod_grid')
-    deallocate(xlon)
-    call mall_mco(pa,'mod_grid')
-    deallocate(pa)
-    call mall_mco(tlayer,'mod_grid')
-    deallocate(tlayer)
-    call mall_mco(za,'mod_grid')
-    deallocate(za)
-    call mall_mco(b3pd,'mod_grid')
-    deallocate(b3pd)
-    call mall_mco(dsigma,'mod_grid')
-    deallocate(dsigma)
-    call mall_mco(sigma2,'mod_grid')
-    deallocate(sigma2)
-    call mall_mco(sigmaf,'mod_grid')
-    deallocate(sigmaf)
-  end subroutine free_grid
 
   subroutine read_domain
     use netcdf

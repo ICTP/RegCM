@@ -21,11 +21,11 @@ module mod_write
 
   use m_die
   use m_zeit
-  use m_mall
   use m_realkinds
   use netcdf
   use mod_dynparam
   use mod_grid
+  use mod_memutil
 
   private
 
@@ -36,15 +36,15 @@ module mod_write
   integer , dimension(5) :: idims
   integer , dimension(8) :: ivar
 
-  real(sp) , allocatable , dimension(:,:) :: ps4 , ts4
-  real(sp) , allocatable , dimension(:,:,:) :: h4 , q4
-  real(sp) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
-  real(sp) , allocatable , dimension(:,:,:) :: sulfate4
-  real(sp) , allocatable , dimension(:) :: yiy
-  real(sp) , allocatable , dimension(:) :: xjx
+  real(sp) , pointer , dimension(:,:) :: ps4 , ts4
+  real(sp) , pointer , dimension(:,:,:) :: h4 , q4
+  real(sp) , pointer , dimension(:,:,:) :: t4 , u4 , v4
+  real(sp) , pointer , dimension(:,:,:) :: sulfate4
+  real(sp) , pointer , dimension(:) :: yiy
+  real(sp) , pointer , dimension(:) :: xjx
 
   public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , sulfate4
-  public :: init_output , free_output , newfile , writef
+  public :: init_output , close_output , newfile , writef
 
   data ncout /-1/
 
@@ -52,71 +52,28 @@ module mod_write
 
   subroutine init_output
   implicit none
-    integer :: ierr
-    allocate(ps4(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate ps4',ierr)
-    call mall_mci(ps4,'mod_write')
-    allocate(ts4(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate ts4',ierr)
-    call mall_mci(ts4,'mod_write')
-    allocate(h4(jx,iy,kz), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate h4',ierr)
-    call mall_mci(h4,'mod_write')
-    allocate(q4(jx,iy,kz), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate q4',ierr)
-    call mall_mci(q4,'mod_write')
-    allocate(t4(jx,iy,kz), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate t4',ierr)
-    call mall_mci(t4,'mod_write')
-    allocate(u4(jx,iy,kz), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate u4',ierr)
-    call mall_mci(u4,'mod_write')
-    allocate(v4(jx,iy,kz), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate v4',ierr)
-    call mall_mci(v4,'mod_write')
+    call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
+    call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
+    call getmem3d(h4,1,jx,1,iy,1,kz,'mod_write:h4')
+    call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
+    call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
+    call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
+    call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
     if ( ehso4) then
-      allocate(sulfate4(jx,iy,kz), stat=ierr)
-      if (ierr /= 0) call die('init_output','allocate sulfate',ierr)
-      call mall_mci(sulfate4,'mod_write')
+      call getmem3d(sulfate4,1,jx,1,iy,1,kz,'mod_write:sulfate4')
     end if
-    allocate(yiy(iy), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate yiy',ierr)
-    call mall_mci(yiy,'mod_write')
-    allocate(xjx(jx), stat=ierr)
-    if (ierr /= 0) call die('init_output','allocate xjx',ierr)
-    call mall_mci(xjx,'mod_write')
+    call getmem1d(yiy,1,iy,'mod_write:yiy')
+    call getmem1d(xjx,1,jx,'mod_write:xjx')
   end subroutine init_output
 
-  subroutine free_output
+  subroutine close_output
     implicit none
     integer :: istatus
-    call mall_mco(ps4,'mod_write')
-    deallocate(ps4)
-    call mall_mco(ts4,'mod_write')
-    deallocate(ts4)
-    call mall_mco(h4,'mod_write')
-    deallocate(h4)
-    call mall_mco(q4,'mod_write')
-    deallocate(q4)
-    call mall_mco(t4,'mod_write')
-    deallocate(t4)
-    call mall_mco(u4,'mod_write')
-    deallocate(u4)
-    call mall_mco(v4,'mod_write')
-    deallocate(v4)
-    if ( ehso4) then
-      call mall_mco(sulfate4,'mod_write')
-      deallocate(sulfate4)
-    end if
-    deallocate(yiy)
-    call mall_mco(yiy,'mod_write')
-    deallocate(xjx)
-    call mall_mco(xjx,'mod_write')
     if (ncout > 0) then
       istatus = nf90_close(ncout)
       call check_ok(istatus,('Error closing file '//trim(ofname)))
     end if
-  end subroutine free_output
+  end subroutine close_output
 
   subroutine newfile(idate1)
     implicit none

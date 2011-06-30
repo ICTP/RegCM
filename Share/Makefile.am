@@ -21,7 +21,7 @@ clean-local:
 mod_constants.o: mod_constants.F90
 mod_date.o: mod_date.f90
 mod_message.o: mod_message.f90
-mod_space.o: mod_space.f90
-mod_memutil.o: mod_memutil.F90 mod_space.o mod_message.o
+mod_space.o: mod_space.f90 mod_date.o
+mod_memutil.o: mod_memutil.F90 mod_space.o mod_message.o mod_date.o
 mod_projections.o: mod_constants.o mod_projections.f90
 mod_dynparam.o: mod_constants.o mod_date.o mod_dynparam.F90

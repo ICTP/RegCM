@@ -26,116 +26,147 @@ module mod_ch_icbc
   use mod_date
   use m_die
   use m_realkinds
+  use mod_memutil
   use netcdf
 
   private
 !
-  integer :: nyear , month , nday , nhour
-  integer :: k , l
-  integer :: k0
+  integer :: chilon , chjlat , chilev
 
-  integer , parameter :: chilon = 128 , chjlat = 64 , chilev = 28
-  real(sp) , dimension(chilon) :: cht42lon
-  real(sp) , dimension(chjlat) :: cht42lat
-  real(sp) , dimension(chilev) :: cht42hyam , cht42hybm
+  real(sp) , pointer , dimension(:) :: cht42lon
+  real(sp) , pointer , dimension(:) :: cht42lat
+  real(sp) , pointer , dimension(:) :: cht42hyam , cht42hybm
 !
 ! Oxidant climatology variables
 !
   real(sp) :: p0
-  real(sp) , dimension(chilon,chjlat) :: xps
-  real(sp) , dimension(chilon,chjlat) :: poxid_2
-  real(sp) , allocatable, dimension(:,:) :: poxid_3
-  real(sp) , allocatable, dimension(:,:,:,:) :: chv3
-  real(sp) , dimension(chilon,chjlat,chilev,nchsp) :: xinp
+  real(sp) , pointer , dimension(:,:) :: poxid_3
+  real(sp) , pointer , dimension(:,:,:,:) :: chv3
+  real(sp) , pointer , dimension(:,:) :: xps
+  real(sp) , pointer , dimension(:,:) :: poxid_2
+  real(sp) , pointer , dimension(:,:,:,:) :: xinp
 
   real(sp) :: prcm , pmpi , pmpj
   integer :: ncid , istatus
 
-  public :: headermozart_ch_icbc , getmozart_ch_icbc , freemozart_ch_icbc
+  public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
   contains
 
-  subroutine headermozart_ch_icbc
+  subroutine header_ch_icbc
     implicit none
-    integer :: ivarid , is , istatus
+    integer :: ivarid , idimid , is , istatus
 
-    allocate(poxid_3(jx,iy))
-    allocate(chv3(jx,iy,chilev,nchsp))
+    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_icbc:poxid_3')
+    call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'mz4_avg_2000-2007_aug.nc', nf90_nowrite, ncid)
     if ( istatus /= nf90_noerr ) then
       write (stderr,*) 'Cannot open input file'
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
+
+    istatus = nf90_inq_dimid(ncid,'lon',idimid)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inquire_dimension(ncid,idimid,len=chilon)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inq_dimid(ncid,'lat',idimid)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inquire_dimension(ncid,idimid,len=chjlat)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inq_dimid(ncid,'lev',idimid)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+    istatus = nf90_inquire_dimension(ncid,idimid,len=chilev)
+    if ( istatus /= nf90_noerr ) then
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
+    end if
+
+    call getmem1d(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
+    call getmem1d(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
+    call getmem1d(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
+    call getmem1d(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
+    call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps')
+    call getmem2d(poxid_2,1,chilon,1,chjlat,'mod_ch_icbc:poxid_2')
+    call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,cht42lon)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,cht42lat)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,cht42hyam)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,cht42hybm)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,p0)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,xps)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
 
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
       if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+        call die('header_ch_icbc',nf90_strerror(istatus),istatus)
       end if
       istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
       if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+        call die('header_ch_icbc',nf90_strerror(istatus),istatus)
       end if
     end do
 
-  end subroutine headermozart_ch_icbc
+  end subroutine header_ch_icbc
 
-  subroutine getmozart_ch_icbc(idate)
+  subroutine get_ch_icbc(idate)
     implicit none
 !
-    integer :: i , is , j , k , k0
+    integer :: i , is , j , k , l , k0
     type(rcm_time_and_date) , intent(in) :: idate
 
     do is = 1 , nchsp
@@ -180,18 +211,16 @@ module mod_ch_icbc
 
     call write_ch_icbc(idate)
 
-  end subroutine getmozart_ch_icbc
+  end subroutine get_ch_icbc
 
-  subroutine freemozart_ch_icbc
+  subroutine close_ch_icbc
     use netcdf
     implicit none
     istatus=nf90_close(ncid)
     if ( istatus/=nf90_noerr ) then
       write (stderr,*) 'Cannot close input file'
-      call die('headermozart_ch_icbc',nf90_strerror(istatus),istatus)
+      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
     end if
-    deallocate(poxid_3)
-    deallocate(chv3)
-  end subroutine freemozart_ch_icbc
+  end subroutine close_ch_icbc
 
 end module mod_ch_icbc

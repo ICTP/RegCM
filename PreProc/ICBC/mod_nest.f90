@@ -43,18 +43,18 @@ module mod_nest
 
   integer :: nrec
 
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
-  real(sp) , allocatable , dimension(:,:,:) :: z1
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: z1
 
-  real(sp) , allocatable , target , dimension(:,:,:) :: b2
-  real(sp) , allocatable , target , dimension(:,:,:) :: d2
+  real(sp) , pointer , dimension(:,:,:) :: b2
+  real(sp) , pointer , dimension(:,:,:) :: d2
 
-  real(sp) , allocatable , dimension(:,:,:) :: q , t
-  real(sp) , allocatable , dimension(:,:,:) :: u , v
-  real(sp) , allocatable , dimension(:,:) :: ps
-  real(sp) , allocatable , dimension(:,:) :: ht_in
-  real(sp) , allocatable , dimension(:,:) :: xlat_in , xlon_in
+  real(sp) , pointer , dimension(:,:,:) :: q , t
+  real(sp) , pointer , dimension(:,:,:) :: u , v
+  real(sp) , pointer , dimension(:,:) :: ps
+  real(sp) , pointer , dimension(:,:) :: ht_in
+  real(sp) , pointer , dimension(:,:) :: xlat_in , xlon_in
 
   real(sp) , pointer , dimension(:,:,:) :: h3 , q3 , t3
   real(sp) , pointer , dimension(:,:,:) :: u3 , v3
@@ -63,7 +63,7 @@ module mod_nest
   real(sp) , pointer , dimension(:,:,:) :: up , vp
 
   real(sp) , dimension(np) :: plev , sigmar
-  real(sp) , allocatable , dimension(:) :: sig
+  real(sp) , pointer , dimension(:) :: sig
 
   integer :: iy_in , jx_in , kz_in
   character(6) :: iproj_in
@@ -73,7 +73,8 @@ module mod_nest
   character(256) :: inpfile
 !
   integer :: ncinp
-  type(rcm_time_and_date) , dimension(:) , allocatable :: itimes
+  type(rcm_time_and_date) , dimension(:) , pointer :: itimes
+  real(dp) , dimension(:) , pointer :: xtimes
   character(64) :: timeunits , timecal
 !
   contains
@@ -84,12 +85,11 @@ module mod_nest
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  real(dp) , dimension(:) , allocatable :: xtimes
   integer :: i , istatus , ivarid , idimid , irec
   integer , dimension(4) :: istart , icount
   type(rcm_time_and_date) :: imf
 !
-  if (.not. allocated(b2)) then
+  if (.not. associated(b2)) then
     call die('get_nest','Called get_nest before headernest !',1)
   end if
 !
@@ -107,19 +107,13 @@ module mod_nest
     call check_ok(istatus,'Dimension time read error')
     istatus = nf90_inq_varid(ncinp, 'time', ivarid)
     call check_ok(istatus,'variable time missing')
-    deallocate(itimes)
-    allocate(itimes(nrec), stat=istatus)
-    if (istatus /= 0) call die('mod_nest','allocate itimes',istatus)
-    allocate(xtimes(nrec), stat=istatus)
-    if (istatus /= 0) call die('mod_nest','allocate xtimes',istatus)
-    call mall_mci(xtimes,'mod_nest')
+    call getmem1d(itimes,1,nrec,'mod_nest:itimes')
+    call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
     istatus = nf90_get_var(ncinp, ivarid, xtimes)
     call check_ok(istatus,'variable time read error')
     do i = 1 , nrec
       itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
     end do
-    call mall_mco(xtimes,'mod_nest')
-    deallocate(xtimes)
   end if
 
   irec = -1
@@ -250,7 +244,6 @@ module mod_nest
   real(dp) :: xsign
   integer :: i , k , istatus , idimid , ivarid
   type(rcm_time_and_date) :: imf
-  real(dp) , dimension(:) , allocatable :: xtimes
   real(sp) , dimension(2) :: trlat
 !
 ! Setup interp
@@ -307,64 +300,30 @@ module mod_nest
   call check_ok(istatus,'variable time units missing')
   istatus = nf90_get_att(ncinp, ivarid, 'calendar', timecal)
   call check_ok(istatus,'variable time calendar missing')
-  allocate(itimes(nrec), stat=istatus)
-  if (istatus /= 0) call die('mod_nest','allocate itimes',istatus)
-  allocate(xtimes(nrec), stat=istatus)
-  if (istatus /= 0) call die('mod_nest','allocate xtimes',istatus)
-  call mall_mci(xtimes,'mod_nest')
+  call getmem1d(itimes,1,nrec,'mod:nest:itimes')
+  call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
   istatus = nf90_get_var(ncinp, ivarid, xtimes)
   call check_ok(istatus,'variable time read error')
   do i = 1 , nrec
     itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
   end do
-  call mall_mco(xtimes,'mod_nest')
-  deallocate(xtimes)
 
 !     Reserve space for I/O
 
-  allocate(sig(kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: sig')
-  call mall_mci(sig,'mod_nest')
-  allocate(b2(jx_in,iy_in,np*3), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: b2')
-  call mall_mci(b2,'mod_nest')
-  allocate(d2(jx_in,iy_in,np*2), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: d2')
-  call mall_mci(d2,'mod_nest')
-  allocate(q(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: q')
-  call mall_mci(q,'mod_nest')
-  allocate(t(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: t')
-  call mall_mci(t,'mod_nest')
-  allocate(u(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: u')
-  call mall_mci(u,'mod_nest')
-  allocate(v(jx_in,iy_in,kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: v')
-  call mall_mci(v,'mod_nest')
-  allocate(ps(jx_in,iy_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: ps')
-  call mall_mci(ps,'mod_nest')
-  allocate(xlat_in(jx_in,iy_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: xlat_in')
-  call mall_mci(xlat,'mod_nest')
-  allocate(xlon_in(jx_in,iy_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: xlon_in')
-  call mall_mci(xlon,'mod_nest')
-  allocate(ht_in(jx_in,iy_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: ht_in')
-  call mall_mci(ht_in,'mod_nest')
-  allocate(z1(iy_in,jx_in,kz_in), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: z1')
-  call mall_mci(z1,'mod_nest')
-  allocate(b3(iy,jx,np*3), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: b3')
-  call mall_mci(b3,'mod_nest')
-  allocate(d3(iy,jx,np*2), stat=istatus)
-  if (istatus /= 0) call die('Allocation Error in headernest: d3')
-  call mall_mci(d3,'mod_nest')
-
+  call getmem1d(sig,1,kz_in,'mod_nest:sig')
+  call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
+  call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
+  call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
+  call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
+  call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
+  call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
+  call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
+  call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+  call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
+  call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
+  call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
+  call getmem3d(b3,1,iy,1,jx,1,np*3,'mod_nest:b3')
+  call getmem3d(d3,1,iy,1,jx,1,np*2,'mod_nest:d3')
 
   istatus = nf90_inq_varid(ncinp, 'sigma', ivarid) 
   call check_ok(istatus,'variable sigma error')
@@ -451,36 +410,4 @@ module mod_nest
     end if
   end subroutine check_ok
 !
-  subroutine footernest
-    deallocate(itimes)
-    call mall_mco(sig,'mod_nest')
-    deallocate(sig)
-    call mall_mco(b2,'mod_nest')
-    deallocate(b2)
-    call mall_mco(d2,'mod_nest')
-    deallocate(d2)
-    call mall_mco(q,'mod_nest')
-    deallocate(q)
-    call mall_mco(t,'mod_nest')
-    deallocate(t)
-    call mall_mco(u,'mod_nest')
-    deallocate(u)
-    call mall_mco(v,'mod_nest')
-    deallocate(v)
-    call mall_mco(ps,'mod_nest')
-    deallocate(ps)
-    call mall_mco(xlat,'mod_nest')
-    deallocate(xlat)
-    call mall_mco(xlon,'mod_nest')
-    deallocate(xlon)
-    call mall_mco(ht_in,'mod_nest')
-    deallocate(ht_in)
-    call mall_mco(z1,'mod_nest')
-    deallocate(z1)
-    call mall_mco(b3,'mod_nest')
-    deallocate(b3)
-    call mall_mco(d3,'mod_nest')
-    deallocate(d3)
-  end subroutine footernest
-
 end module mod_nest

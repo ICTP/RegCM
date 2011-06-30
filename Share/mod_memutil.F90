@@ -23,6 +23,7 @@ module mod_memutil
   use mod_message
   use m_realkinds
   use mod_constants
+  use mod_date , only : rcm_time_and_date
 
   private
 
@@ -38,6 +39,7 @@ module mod_memutil
     module procedure getmem1d_i
     module procedure getmem1d_r
     module procedure getmem1d_d
+    module procedure getmem1d_t
   end interface getmem1d
 
   interface relmem1d
@@ -45,6 +47,7 @@ module mod_memutil
     module procedure relmem1d_i
     module procedure relmem1d_r
     module procedure relmem1d_d
+    module procedure relmem1d_t
   end interface relmem1d
 
   interface getmem2d
@@ -122,6 +125,11 @@ module mod_memutil
     type(pool1d_d) , pointer :: next => null()
     type(r8arr1d) :: a
   end type pool1d_d
+
+  type pool1d_t
+    type(pool1d_t) , pointer :: next => null()
+    type(rtarr1d) :: a
+  end type pool1d_t
 
   type pool2d_i
     type(pool2d_i) , pointer :: next => null()
@@ -207,6 +215,7 @@ module mod_memutil
   type (pool1d_l) , pointer :: r1dl , l1dl , c1dl , n1dl , p1dl
   type (pool1d_r) , pointer :: r1dr , l1dr , c1dr , n1dr , p1dr
   type (pool1d_d) , pointer :: r1dd , l1dd , c1dd , n1dd , p1dd
+  type (pool1d_t) , pointer :: r1dt , l1dt , c1dt , n1dt , p1dt
 
   type (pool2d_i) , pointer :: r2di , l2di , c2di , n2di , p2di
   type (pool2d_l) , pointer :: r2dl , l2dl , c2dl , n2dl , p2dl
@@ -233,6 +242,7 @@ module mod_memutil
   contains
 
   subroutine memory_init
+    implicit none
     allocate(r1di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1d1')
     allocate(r1dl, stat=ista)
@@ -241,10 +251,13 @@ module mod_memutil
     call checkalloc(ista,__FILE__,__LINE__,'r1dr')
     allocate(r1dd, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1dd')
+    allocate(r1dt, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1dt')
     l1di => r1di
     l1dl => r1dl
     l1dr => r1dr
     l1dd => r1dd
+    l1dt => r1dt
     allocate(r2di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r2d1')
     allocate(r2dl, stat=ista)
@@ -296,6 +309,7 @@ module mod_memutil
   end subroutine memory_init
 
   subroutine getmem1d_l(a,l,h,vn)
+    implicit none
     logical , pointer , dimension(:) , intent(out) :: a
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
@@ -312,6 +326,7 @@ module mod_memutil
   end subroutine getmem1d_l
 
   subroutine relmem1d_l(a)
+    implicit none
     logical , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p1dl => null()
@@ -339,7 +354,53 @@ module mod_memutil
     end do
   end subroutine relmem1d_l
 
+  subroutine getmem1d_t(a,l,h,vn)
+    implicit none
+    type(rcm_time_and_date) , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1dt => l1dt
+    call getspc1d(c1dt%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1dt%a%space
+    allocate(c1dt%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1dt%next')
+    l1dt => c1dt%next
+  end subroutine getmem1d_t
+
+  subroutine relmem1d_t(a)
+    implicit none
+    type(rcm_time_and_date) , pointer , dimension(:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p1dt => null()
+    c1dt => r1dt
+    do while ( associated(c1dt) )
+      n1dt => c1dt%next
+      if ( associated(a,c1dt%a%space) ) then
+        deallocate(c1dt%a%space)
+        a => null()
+        if ( associated(p1dt) ) then
+          if ( associated(n1dt) ) then
+            p1dt%next => n1dt
+          else
+            l1dt => p1dt
+            p1dt%next => null()
+          end if
+        else
+          r1dt => n1dt
+        end if
+        deallocate(c1dt)
+        exit
+      end if
+      p1dt => c1dt
+      c1dt => c1dt%next
+    end do
+  end subroutine relmem1d_t
+
   subroutine getmem1d_i(a,l,h,vn)
+    implicit none
     integer , pointer , dimension(:) , intent(out) :: a
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
@@ -356,6 +417,7 @@ module mod_memutil
   end subroutine getmem1d_i
 
   subroutine relmem1d_i(a)
+    implicit none
     integer , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p1di => null()
@@ -384,6 +446,7 @@ module mod_memutil
   end subroutine relmem1d_i
 
   subroutine getmem1d_r(a,l,h,vn)
+    implicit none
     real(sp) , pointer , dimension(:) , intent(out) :: a
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
@@ -400,6 +463,7 @@ module mod_memutil
   end subroutine getmem1d_r
 
   subroutine relmem1d_r(a)
+    implicit none
     real(sp) , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p1dr => null()
@@ -428,6 +492,7 @@ module mod_memutil
   end subroutine relmem1d_r
 
   subroutine getmem1d_d(a,l,h,vn)
+    implicit none
     real(dp) , pointer , dimension(:) , intent(out) :: a
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
@@ -444,6 +509,7 @@ module mod_memutil
   end subroutine getmem1d_d
 
   subroutine relmem1d_d(a)
+    implicit none
     real(dp) , pointer , dimension(:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p1dd => null()
@@ -472,6 +538,7 @@ module mod_memutil
   end subroutine relmem1d_d
 
   recursive subroutine finalize_pool1d_i(n)
+    implicit none
     type(pool1d_i) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -482,6 +549,7 @@ module mod_memutil
   end subroutine finalize_pool1d_i
 
   recursive subroutine finalize_pool1d_l(n)
+    implicit none
     type(pool1d_l) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -492,6 +560,7 @@ module mod_memutil
   end subroutine finalize_pool1d_l
 
   recursive subroutine finalize_pool1d_r(n)
+    implicit none
     type(pool1d_r) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -502,6 +571,7 @@ module mod_memutil
   end subroutine finalize_pool1d_r
 
   recursive subroutine finalize_pool1d_d(n)
+    implicit none
     type(pool1d_d) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -511,7 +581,19 @@ module mod_memutil
     end if
   end subroutine finalize_pool1d_d
 
+  recursive subroutine finalize_pool1d_t(n)
+    implicit none
+    type(pool1d_t) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_t(n%next)
+    end if
+  end subroutine finalize_pool1d_t
+
   subroutine getmem2d_l(a,l1,h1,l2,h2,vn)
+    implicit none
     logical , pointer , dimension(:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
@@ -529,6 +611,7 @@ module mod_memutil
   end subroutine getmem2d_l
 
   subroutine relmem2d_l(a)
+    implicit none
     logical , pointer , dimension(:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p2dl => null()
@@ -557,6 +640,7 @@ module mod_memutil
   end subroutine relmem2d_l
 
   subroutine getmem2d_i(a,l1,h1,l2,h2,vn)
+    implicit none
     integer , pointer , dimension(:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
@@ -574,6 +658,7 @@ module mod_memutil
   end subroutine getmem2d_i
 
   subroutine relmem2d_i(a)
+    implicit none
     integer , pointer , dimension(:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p2di => null()
@@ -602,6 +687,7 @@ module mod_memutil
   end subroutine relmem2d_i
 
   subroutine getmem2d_r(a,l1,h1,l2,h2,vn)
+    implicit none
     real(sp) , pointer , dimension(:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
@@ -619,6 +705,7 @@ module mod_memutil
   end subroutine getmem2d_r
 
   subroutine relmem2d_r(a)
+    implicit none
     real(sp) , pointer , dimension(:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p2dr => null()
@@ -647,6 +734,7 @@ module mod_memutil
   end subroutine relmem2d_r
 
   subroutine getmem2d_d(a,l1,h1,l2,h2,vn)
+    implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
@@ -664,6 +752,7 @@ module mod_memutil
   end subroutine getmem2d_d
 
   subroutine relmem2d_d(a)
+    implicit none
     real(dp) , pointer , dimension(:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p2dd => null()
@@ -692,6 +781,7 @@ module mod_memutil
   end subroutine relmem2d_d
 
   recursive subroutine finalize_pool2d_i(n)
+    implicit none
     type(pool2d_i) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -702,6 +792,7 @@ module mod_memutil
   end subroutine finalize_pool2d_i
 
   recursive subroutine finalize_pool2d_l(n)
+    implicit none
     type(pool2d_l) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -712,6 +803,7 @@ module mod_memutil
   end subroutine finalize_pool2d_l
 
   recursive subroutine finalize_pool2d_r(n)
+    implicit none
     type(pool2d_r) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -722,6 +814,7 @@ module mod_memutil
   end subroutine finalize_pool2d_r
 
   recursive subroutine finalize_pool2d_d(n)
+    implicit none
     type(pool2d_d) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -732,6 +825,7 @@ module mod_memutil
   end subroutine finalize_pool2d_d
 
   subroutine getmem3d_l(a,l1,h1,l2,h2,l3,h3,vn)
+    implicit none
     logical , pointer , dimension(:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
@@ -750,6 +844,7 @@ module mod_memutil
   end subroutine getmem3d_l
 
   subroutine relmem3d_l(a)
+    implicit none
     logical , pointer , dimension(:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p3dl => null()
@@ -778,6 +873,7 @@ module mod_memutil
   end subroutine relmem3d_l
 
   subroutine getmem3d_i(a,l1,h1,l2,h2,l3,h3,vn)
+    implicit none
     integer , pointer , dimension(:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
@@ -796,6 +892,7 @@ module mod_memutil
   end subroutine getmem3d_i
 
   subroutine relmem3d_i(a)
+    implicit none
     integer , pointer , dimension(:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p3di => null()
@@ -824,6 +921,7 @@ module mod_memutil
   end subroutine relmem3d_i
 
   subroutine getmem3d_r(a,l1,h1,l2,h2,l3,h3,vn)
+    implicit none
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
@@ -842,6 +940,7 @@ module mod_memutil
   end subroutine getmem3d_r
 
   subroutine relmem3d_r(a)
+    implicit none
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p3dr => null()
@@ -870,6 +969,7 @@ module mod_memutil
   end subroutine relmem3d_r
 
   subroutine getmem3d_d(a,l1,h1,l2,h2,l3,h3,vn)
+    implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
@@ -888,6 +988,7 @@ module mod_memutil
   end subroutine getmem3d_d
 
   subroutine relmem3d_d(a)
+    implicit none
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p3dd => null()
@@ -916,6 +1017,7 @@ module mod_memutil
   end subroutine relmem3d_d
 
   recursive subroutine finalize_pool3d_i(n)
+    implicit none
     type(pool3d_i) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -926,6 +1028,7 @@ module mod_memutil
   end subroutine finalize_pool3d_i
 
   recursive subroutine finalize_pool3d_l(n)
+    implicit none
     type(pool3d_l) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -936,6 +1039,7 @@ module mod_memutil
   end subroutine finalize_pool3d_l
 
   recursive subroutine finalize_pool3d_r(n)
+    implicit none
     type(pool3d_r) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -946,6 +1050,7 @@ module mod_memutil
   end subroutine finalize_pool3d_r
 
   recursive subroutine finalize_pool3d_d(n)
+    implicit none
     type(pool3d_d) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -956,6 +1061,7 @@ module mod_memutil
   end subroutine finalize_pool3d_d
 
   subroutine getmem4d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    implicit none
     logical , pointer , dimension(:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
@@ -975,6 +1081,7 @@ module mod_memutil
   end subroutine getmem4d_l
 
   subroutine relmem4d_l(a)
+    implicit none
     logical , pointer , dimension(:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p4dl => null()
@@ -1003,6 +1110,7 @@ module mod_memutil
   end subroutine relmem4d_l
 
   subroutine getmem4d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    implicit none
     integer , pointer , dimension(:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
@@ -1022,6 +1130,7 @@ module mod_memutil
   end subroutine getmem4d_i
 
   subroutine relmem4d_i(a)
+    implicit none
     integer , pointer , dimension(:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p4di => null()
@@ -1050,6 +1159,7 @@ module mod_memutil
   end subroutine relmem4d_i
 
   subroutine getmem4d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
@@ -1069,6 +1179,7 @@ module mod_memutil
   end subroutine getmem4d_r
 
   subroutine relmem4d_r(a)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p4dr => null()
@@ -1097,6 +1208,7 @@ module mod_memutil
   end subroutine relmem4d_r
 
   subroutine getmem4d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
@@ -1116,6 +1228,7 @@ module mod_memutil
   end subroutine getmem4d_d
 
   subroutine relmem4d_d(a)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p4dd => null()
@@ -1144,6 +1257,7 @@ module mod_memutil
   end subroutine relmem4d_d
 
   recursive subroutine finalize_pool4d_i(n)
+    implicit none
     type(pool4d_i) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1154,6 +1268,7 @@ module mod_memutil
   end subroutine finalize_pool4d_i
 
   recursive subroutine finalize_pool4d_l(n)
+    implicit none
     type(pool4d_l) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1164,6 +1279,7 @@ module mod_memutil
   end subroutine finalize_pool4d_l
 
   recursive subroutine finalize_pool4d_r(n)
+    implicit none
     type(pool4d_r) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1174,6 +1290,7 @@ module mod_memutil
   end subroutine finalize_pool4d_r
 
   recursive subroutine finalize_pool4d_d(n)
+    implicit none
     type(pool4d_d) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1184,6 +1301,7 @@ module mod_memutil
   end subroutine finalize_pool4d_d
 
   subroutine getmem5d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    implicit none
     logical , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
@@ -1204,6 +1322,7 @@ module mod_memutil
   end subroutine getmem5d_l
 
   subroutine relmem5d_l(a)
+    implicit none
     logical , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p5dl => null()
@@ -1232,6 +1351,7 @@ module mod_memutil
   end subroutine relmem5d_l
 
   subroutine getmem5d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    implicit none
     integer , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
@@ -1252,6 +1372,7 @@ module mod_memutil
   end subroutine getmem5d_i
 
   subroutine relmem5d_i(a)
+    implicit none
     integer , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p5di => null()
@@ -1280,6 +1401,7 @@ module mod_memutil
   end subroutine relmem5d_i
 
   subroutine getmem5d_r(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
@@ -1300,6 +1422,7 @@ module mod_memutil
   end subroutine getmem5d_r
 
   subroutine relmem5d_r(a)
+    implicit none
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p5dr => null()
@@ -1328,6 +1451,7 @@ module mod_memutil
   end subroutine relmem5d_r
 
   subroutine getmem5d_d(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
@@ -1348,6 +1472,7 @@ module mod_memutil
   end subroutine getmem5d_d
 
   subroutine relmem5d_d(a)
+    implicit none
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
     if ( .not. associated(a) ) return
     p5dd => null()
@@ -1376,6 +1501,7 @@ module mod_memutil
   end subroutine relmem5d_d
 
   recursive subroutine finalize_pool5d_i(n)
+    implicit none
     type(pool5d_i) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1386,6 +1512,7 @@ module mod_memutil
   end subroutine finalize_pool5d_i
 
   recursive subroutine finalize_pool5d_l(n)
+    implicit none
     type(pool5d_l) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1396,6 +1523,7 @@ module mod_memutil
   end subroutine finalize_pool5d_l
 
   recursive subroutine finalize_pool5d_r(n)
+    implicit none
     type(pool5d_r) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1406,6 +1534,7 @@ module mod_memutil
   end subroutine finalize_pool5d_r
 
   recursive subroutine finalize_pool5d_d(n)
+    implicit none
     type(pool5d_d) :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
@@ -1416,10 +1545,12 @@ module mod_memutil
   end subroutine finalize_pool5d_d
 
   subroutine memory_destroy
+    implicit none
     call finalize_pool1d_i(r1di)
     call finalize_pool1d_l(r1dl)
     call finalize_pool1d_r(r1dr)
     call finalize_pool1d_d(r1dd)
+    call finalize_pool1d_t(r1dt)
     call finalize_pool2d_i(r2di)
     call finalize_pool2d_l(r2dl)
     call finalize_pool2d_r(r2dr)

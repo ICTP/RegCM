@@ -28,9 +28,9 @@ program sst
   use mod_sst_fvgcm
   use mod_sst_ccsm
   use mod_sst_cam2
+  use mod_memutil
   use m_die
   use m_stdio
-  use m_mall
   use m_zeit
 
   implicit none
@@ -56,9 +56,10 @@ program sst
   end if
 
   if (debug_level > 2) then
-    call mall_set()
     call zeit_ci('sst')
   end if
+
+  call memory_init
 
   call init_grid
   terfile=trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
@@ -93,12 +94,11 @@ program sst
               trim(namelistfile)//'.',1)
   end if
 
-  call free_grid
   call close_sstfile
 
+  call memory_destroy
+
   if (debug_level > 2) then
-    call mall_flush(stdout)
-    call mall_set(.false.)
     call zeit_co('sst')
     call zeit_flush(stdout)
   end if

@@ -20,6 +20,7 @@
 module mod_ch_oxcl
 
   use mod_dynparam
+  use mod_memutil
   use mod_grid
   use mod_wrtoxd
   use mod_interp
@@ -46,91 +47,91 @@ module mod_ch_oxcl
   real(sp) , dimension(oxilon,oxjlat) :: poxid_2
   real(sp) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
   real(sp) , dimension(oxilon,oxjlat,oxitime) :: xps2
-  real(sp) , allocatable, dimension(:,:) :: poxid_3
-  real(sp) , allocatable, dimension(:,:,:,:) :: oxv3
+  real(sp) , pointer , dimension(:,:) :: poxid_3
+  real(sp) , pointer , dimension(:,:,:,:) :: oxv3
 
   real(sp) :: prcm , pmpi , pmpj
   integer :: ncid , istatus
 
-  public :: headermozart_ch_oxcl , getmozart_ch_oxcl , freemozart_ch_oxcl
+  public :: header_ch_oxcl , get_ch_oxcl , close_ch_oxcl
 
   contains
 
-  subroutine headermozart_ch_oxcl
+  subroutine header_ch_oxcl
     implicit none
     integer :: ivarid , istatus , im , is
 
-    allocate(poxid_3(jx,iy))
-    allocate(oxv3(jx,iy,oxilev,noxsp))
+    call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_oxcl:poxid_3')
+    call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ch_oxcl:oxv3')
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'oxid_3d_64x128_L26_c030722.nc', nf90_nowrite, ncid)
     if ( istatus /= nf90_noerr ) then
       write (stderr,*) 'Cannot open input file'
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,oxt42lon)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,oxt42lat)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,oxt42hyam)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,oxt42hybm)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,p0)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     istatus = nf90_get_var(ncid,ivarid,xps2)
     if ( istatus /= nf90_noerr ) then
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
       if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+        call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
       end if
       istatus = nf90_get_var(ncid,ivarid,oxv2(:,:,:,:,is))
       if ( istatus /= nf90_noerr ) then
-        call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+        call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
       end if
     end do
-  end subroutine headermozart_ch_oxcl
+  end subroutine header_ch_oxcl
 
-  subroutine getmozart_ch_oxcl(idate)
+  subroutine get_ch_oxcl(idate)
     implicit none
 !
     integer :: i , is , j , k , k0
@@ -207,18 +208,16 @@ module mod_ch_oxcl
 
     call write_ch_oxcl(idate)
 
-  end subroutine getmozart_ch_oxcl
+  end subroutine get_ch_oxcl
 
-  subroutine freemozart_ch_oxcl
+  subroutine close_ch_oxcl
     use netcdf
     implicit none
     istatus=nf90_close(ncid)
     if ( istatus/=nf90_noerr ) then
       write (stderr,*) 'Cannot close input file'
-      call die('headermozart_ch_oxcl',nf90_strerror(istatus),istatus)
+      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
     end if
-    deallocate(poxid_3)
-    deallocate(oxv3)
-  end subroutine freemozart_ch_oxcl
+  end subroutine close_ch_oxcl
 
 end module mod_ch_oxcl
