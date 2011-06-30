@@ -36,6 +36,7 @@ module mod_memutil
 
   interface getmem1d
     module procedure getmem1d_l
+    module procedure getmem1d_s
     module procedure getmem1d_i
     module procedure getmem1d_r
     module procedure getmem1d_d
@@ -44,6 +45,7 @@ module mod_memutil
 
   interface relmem1d
     module procedure relmem1d_l
+    module procedure relmem1d_s
     module procedure relmem1d_i
     module procedure relmem1d_r
     module procedure relmem1d_d
@@ -52,6 +54,7 @@ module mod_memutil
 
   interface getmem2d
     module procedure getmem2d_l
+    module procedure getmem2d_s
     module procedure getmem2d_i
     module procedure getmem2d_r
     module procedure getmem2d_d
@@ -59,6 +62,7 @@ module mod_memutil
 
   interface relmem2d
     module procedure relmem2d_l
+    module procedure relmem2d_s
     module procedure relmem2d_i
     module procedure relmem2d_r
     module procedure relmem2d_d
@@ -66,6 +70,7 @@ module mod_memutil
 
   interface getmem3d
     module procedure getmem3d_l
+    module procedure getmem3d_s
     module procedure getmem3d_i
     module procedure getmem3d_r
     module procedure getmem3d_d
@@ -73,6 +78,7 @@ module mod_memutil
 
   interface relmem3d
     module procedure relmem3d_l
+    module procedure relmem3d_s
     module procedure relmem3d_i
     module procedure relmem3d_r
     module procedure relmem3d_d
@@ -80,6 +86,7 @@ module mod_memutil
 
   interface getmem4d
     module procedure getmem4d_l
+    module procedure getmem4d_s
     module procedure getmem4d_i
     module procedure getmem4d_r
     module procedure getmem4d_d
@@ -87,6 +94,7 @@ module mod_memutil
 
   interface relmem4d
     module procedure relmem4d_l
+    module procedure relmem4d_s
     module procedure relmem4d_i
     module procedure relmem4d_r
     module procedure relmem4d_d
@@ -94,6 +102,7 @@ module mod_memutil
 
   interface getmem5d
     module procedure getmem5d_l
+    module procedure getmem5d_s
     module procedure getmem5d_i
     module procedure getmem5d_r
     module procedure getmem5d_d
@@ -101,6 +110,7 @@ module mod_memutil
 
   interface relmem5d
     module procedure relmem5d_l
+    module procedure relmem5d_s
     module procedure relmem5d_i
     module procedure relmem5d_r
     module procedure relmem5d_d
@@ -110,6 +120,11 @@ module mod_memutil
     type(pool1d_i) , pointer :: next => null()
     type(iarr1d) :: a
   end type pool1d_i
+
+  type pool1d_s
+    type(pool1d_s) , pointer :: next => null()
+    type(sarr1d) :: a
+  end type pool1d_s
 
   type pool1d_l
     type(pool1d_l) , pointer :: next => null()
@@ -136,6 +151,11 @@ module mod_memutil
     type(iarr2d) :: a
   end type pool2d_i
 
+  type pool2d_s
+    type(pool2d_s) , pointer :: next => null()
+    type(sarr2d) :: a
+  end type pool2d_s
+
   type pool2d_l
     type(pool2d_l) , pointer :: next => null()
     type(larr2d) :: a
@@ -150,6 +170,11 @@ module mod_memutil
     type(pool2d_d) , pointer :: next => null()
     type(r8arr2d) :: a
   end type pool2d_d
+
+  type pool3d_s
+    type(pool3d_s) , pointer :: next => null()
+    type(sarr3d) :: a
+  end type pool3d_s
 
   type pool3d_i
     type(pool3d_i) , pointer :: next => null()
@@ -171,6 +196,11 @@ module mod_memutil
     type(r8arr3d) :: a
   end type pool3d_d
 
+  type pool4d_s
+    type(pool4d_s) , pointer :: next => null()
+    type(sarr4d) :: a
+  end type pool4d_s
+
   type pool4d_i
     type(pool4d_i) , pointer :: next => null()
     type(iarr4d) :: a
@@ -190,6 +220,11 @@ module mod_memutil
     type(pool4d_d) , pointer :: next => null()
     type(r8arr4d) :: a
   end type pool4d_d
+
+  type pool5d_s
+    type(pool5d_s) , pointer :: next => null()
+    type(sarr5d) :: a
+  end type pool5d_s
 
   type pool5d_i
     type(pool5d_i) , pointer :: next => null()
@@ -212,27 +247,32 @@ module mod_memutil
   end type pool5d_d
 
   type (pool1d_i) , pointer :: r1di , l1di , c1di , n1di , p1di
+  type (pool1d_s) , pointer :: r1ds , l1ds , c1ds , n1ds , p1ds
   type (pool1d_l) , pointer :: r1dl , l1dl , c1dl , n1dl , p1dl
   type (pool1d_r) , pointer :: r1dr , l1dr , c1dr , n1dr , p1dr
   type (pool1d_d) , pointer :: r1dd , l1dd , c1dd , n1dd , p1dd
   type (pool1d_t) , pointer :: r1dt , l1dt , c1dt , n1dt , p1dt
 
   type (pool2d_i) , pointer :: r2di , l2di , c2di , n2di , p2di
+  type (pool2d_s) , pointer :: r2ds , l2ds , c2ds , n2ds , p2ds
   type (pool2d_l) , pointer :: r2dl , l2dl , c2dl , n2dl , p2dl
   type (pool2d_r) , pointer :: r2dr , l2dr , c2dr , n2dr , p2dr
   type (pool2d_d) , pointer :: r2dd , l2dd , c2dd , n2dd , p2dd
 
   type (pool3d_i) , pointer :: r3di , l3di , c3di , n3di , p3di
+  type (pool3d_s) , pointer :: r3ds , l3ds , c3ds , n3ds , p3ds
   type (pool3d_l) , pointer :: r3dl , l3dl , c3dl , n3dl , p3dl
   type (pool3d_r) , pointer :: r3dr , l3dr , c3dr , n3dr , p3dr
   type (pool3d_d) , pointer :: r3dd , l3dd , c3dd , n3dd , p3dd
 
   type (pool4d_i) , pointer :: r4di , l4di , c4di , n4di , p4di
+  type (pool4d_s) , pointer :: r4ds , l4ds , c4ds , n4ds , p4ds
   type (pool4d_l) , pointer :: r4dl , l4dl , c4dl , n4dl , p4dl
   type (pool4d_r) , pointer :: r4dr , l4dr , c4dr , n4dr , p4dr
   type (pool4d_d) , pointer :: r4dd , l4dd , c4dd , n4dd , p4dd
 
   type (pool5d_i) , pointer :: r5di , l5di , c5di , n5di , p5di
+  type (pool5d_s) , pointer :: r5ds , l5ds , c5ds , n5ds , p5ds
   type (pool5d_l) , pointer :: r5dl , l5dl , c5dl , n5dl , p5dl
   type (pool5d_r) , pointer :: r5dr , l5dr , c5dr , n5dr , p5dr
   type (pool5d_d) , pointer :: r5dd , l5dd , c5dd , n5dd , p5dd
@@ -245,6 +285,8 @@ module mod_memutil
     implicit none
     allocate(r1di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1d1')
+    allocate(r1ds, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r1ds')
     allocate(r1dl, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1dl')
     allocate(r1dr, stat=ista)
@@ -254,12 +296,15 @@ module mod_memutil
     allocate(r1dt, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1dt')
     l1di => r1di
+    l1ds => r1ds
     l1dl => r1dl
     l1dr => r1dr
     l1dd => r1dd
     l1dt => r1dt
     allocate(r2di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r2d1')
+    allocate(r2ds, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r2ds')
     allocate(r2dl, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r2dl')
     allocate(r2dr, stat=ista)
@@ -267,11 +312,14 @@ module mod_memutil
     allocate(r2dd, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r2dd')
     l2di => r2di
+    l2ds => r2ds
     l2dl => r2dl
     l2dr => r2dr
     l2dd => r2dd
     allocate(r3di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r3d1')
+    allocate(r3ds, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r3ds')
     allocate(r3dl, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r3dl')
     allocate(r3dr, stat=ista)
@@ -279,11 +327,14 @@ module mod_memutil
     allocate(r3dd, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r3dd')
     l3di => r3di
+    l3ds => r3ds
     l3dl => r3dl
     l3dr => r3dr
     l3dd => r3dd
     allocate(r4di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r4d1')
+    allocate(r4ds, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r4ds')
     allocate(r4dl, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r4dl')
     allocate(r4dr, stat=ista)
@@ -291,11 +342,14 @@ module mod_memutil
     allocate(r4dd, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r4dd')
     l4di => r4di
+    l4ds => r4ds
     l4dl => r4dl
     l4dr => r4dr
     l4dd => r4dd
     allocate(r5di, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r5d1')
+    allocate(r5ds, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'r5ds')
     allocate(r5dl, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r5dl')
     allocate(r5dr, stat=ista)
@@ -303,6 +357,7 @@ module mod_memutil
     allocate(r5dd, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r5dd')
     l5di => r5di
+    l5ds => r5ds
     l5dl => r5dl
     l5dr => r5dr
     l5dd => r5dd
@@ -398,6 +453,52 @@ module mod_memutil
       c1dt => c1dt%next
     end do
   end subroutine relmem1d_t
+
+  subroutine getmem1d_s(a,l,h,vn)
+    implicit none
+    integer(2) , pointer , dimension(:) , intent(out) :: a
+    integer , intent(in) :: l , h
+    character (len=*) , intent(in) :: vn
+    type (bounds) :: b
+    b = bounds(l,h)
+    c1ds => l1ds
+    call getspc1d(c1ds%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c1ds%a%space
+    a(:) = -1
+    allocate(c1ds%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c1ds%next')
+    l1ds => c1ds%next
+  end subroutine getmem1d_s
+
+  subroutine relmem1d_s(a)
+    implicit none
+    integer(2) , pointer , dimension(:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p1ds => null()
+    c1ds => r1ds
+    do while ( associated(c1ds) )
+      n1ds => c1ds%next
+      if ( associated(a,c1ds%a%space) ) then
+        deallocate(c1ds%a%space)
+        a => null()
+        if ( associated(p1ds) ) then
+          if ( associated(n1ds) ) then
+            p1ds%next => n1ds
+          else
+            l1ds => p1ds
+            p1ds%next => null()
+          end if
+        else
+          r1ds => n1ds
+        end if
+        deallocate(c1ds)
+        exit
+      end if
+      p1ds => c1ds
+      c1ds => c1ds%next
+    end do
+  end subroutine relmem1d_s
 
   subroutine getmem1d_i(a,l,h,vn)
     implicit none
@@ -548,6 +649,17 @@ module mod_memutil
     end if
   end subroutine finalize_pool1d_i
 
+  recursive subroutine finalize_pool1d_s(n)
+    implicit none
+    type(pool1d_s) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool1d_s(n%next)
+    end if
+  end subroutine finalize_pool1d_s
+
   recursive subroutine finalize_pool1d_l(n)
     implicit none
     type(pool1d_l) :: n
@@ -638,6 +750,53 @@ module mod_memutil
       c2dl => c2dl%next
     end do
   end subroutine relmem2d_l
+
+  subroutine getmem2d_s(a,l1,h1,l2,h2,vn)
+    implicit none
+    integer(2) , pointer , dimension(:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(2) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    c2ds => l2ds
+    call getspc2d(c2ds%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c2ds%a%space
+    a(:,:) = -1
+    allocate(c2ds%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c2ds%next')
+    l2ds => c2ds%next
+  end subroutine getmem2d_s
+
+  subroutine relmem2d_s(a)
+    implicit none
+    integer(2) , pointer , dimension(:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p2ds => null()
+    c2ds => r2ds
+    do while ( associated(c2ds) )
+      n2ds => c2ds%next
+      if ( associated(a,c2ds%a%space) ) then
+        deallocate(c2ds%a%space)
+        a => null()
+        if ( associated(p2ds) ) then
+          if ( associated(n2ds) ) then
+            p2ds%next => n2ds
+          else
+            l2ds => p2ds
+            p2ds%next => null()
+          end if
+        else
+          r2ds => n2ds
+        end if
+        deallocate(c2ds)
+        exit
+      end if
+      p2ds => c2ds
+      c2ds => c2ds%next
+    end do
+  end subroutine relmem2d_s
 
   subroutine getmem2d_i(a,l1,h1,l2,h2,vn)
     implicit none
@@ -791,6 +950,17 @@ module mod_memutil
     end if
   end subroutine finalize_pool2d_i
 
+  recursive subroutine finalize_pool2d_s(n)
+    implicit none
+    type(pool2d_s) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool2d_s(n%next)
+    end if
+  end subroutine finalize_pool2d_s
+
   recursive subroutine finalize_pool2d_l(n)
     implicit none
     type(pool2d_l) :: n
@@ -871,6 +1041,54 @@ module mod_memutil
       c3dl => c3dl%next
     end do
   end subroutine relmem3d_l
+
+  subroutine getmem3d_s(a,l1,h1,l2,h2,l3,h3,vn)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(3) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    c3ds => l3ds
+    call getspc3d(c3ds%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c3ds%a%space
+    a(:,:,:) = -1
+    allocate(c3ds%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c3ds%next')
+    l3ds => c3ds%next
+  end subroutine getmem3d_s
+
+  subroutine relmem3d_s(a)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p3ds => null()
+    c3ds => r3ds
+    do while ( associated(c3ds) )
+      n3ds => c3ds%next
+      if ( associated(a,c3ds%a%space) ) then
+        deallocate(c3ds%a%space)
+        a => null()
+        if ( associated(p3ds) ) then
+          if ( associated(n3ds) ) then
+            p3ds%next => n3ds
+          else
+            l3ds => p3ds
+            p3ds%next => null()
+          end if
+        else
+          r3ds => n3ds
+        end if
+        deallocate(c3ds)
+        exit
+      end if
+      p3ds => c3ds
+      c3ds => c3ds%next
+    end do
+  end subroutine relmem3d_s
 
   subroutine getmem3d_i(a,l1,h1,l2,h2,l3,h3,vn)
     implicit none
@@ -1016,6 +1234,17 @@ module mod_memutil
     end do
   end subroutine relmem3d_d
 
+  recursive subroutine finalize_pool3d_s(n)
+    implicit none
+    type(pool3d_s) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool3d_s(n%next)
+    end if
+  end subroutine finalize_pool3d_s
+
   recursive subroutine finalize_pool3d_i(n)
     implicit none
     type(pool3d_i) :: n
@@ -1108,6 +1337,55 @@ module mod_memutil
       c4dl => c4dl%next
     end do
   end subroutine relmem4d_l
+
+  subroutine getmem4d_s(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(4) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    c4ds => l4ds
+    call getspc4d(c4ds%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c4ds%a%space
+    a(:,:,:,:) = -1
+    allocate(c4ds%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c4ds%next')
+    l4ds => c4ds%next
+  end subroutine getmem4d_s
+
+  subroutine relmem4d_s(a)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p4ds => null()
+    c4ds => r4ds
+    do while ( associated(c4ds) )
+      n4ds => c4ds%next
+      if ( associated(a,c4ds%a%space) ) then
+        deallocate(c4ds%a%space)
+        a => null()
+        if ( associated(p4ds) ) then
+          if ( associated(n4ds) ) then
+            p4ds%next => n4ds
+          else
+            l4ds => p4ds
+            p4ds%next => null()
+          end if
+        else
+          r4ds => n4ds
+        end if
+        deallocate(c4ds)
+        exit
+      end if
+      p4ds => c4ds
+      c4ds => c4ds%next
+    end do
+  end subroutine relmem4d_s
 
   subroutine getmem4d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
     implicit none
@@ -1256,6 +1534,17 @@ module mod_memutil
     end do
   end subroutine relmem4d_d
 
+  recursive subroutine finalize_pool4d_s(n)
+    implicit none
+    type(pool4d_s) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool4d_s(n%next)
+    end if
+  end subroutine finalize_pool4d_s
+
   recursive subroutine finalize_pool4d_i(n)
     implicit none
     type(pool4d_i) :: n
@@ -1349,6 +1638,56 @@ module mod_memutil
       c5dl => c5dl%next
     end do
   end subroutine relmem5d_l
+
+  subroutine getmem5d_s(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
+    character (len=*) , intent(in) :: vn
+    type (bounds) , dimension(5) :: b
+    b(1) = bounds(l1,h1)
+    b(2) = bounds(l2,h2)
+    b(3) = bounds(l3,h3)
+    b(4) = bounds(l4,h4)
+    b(5) = bounds(l5,h5)
+    c5ds => l5ds
+    call getspc5d(c5ds%a,b,ista)
+    call checkalloc(ista,__FILE__,__LINE__,vn)
+    a => c5ds%a%space
+    a(:,:,:,:,:) = -1
+    allocate(c5ds%next, stat=ista)
+    call checkalloc(ista,__FILE__,__LINE__,'c5ds%next')
+    l5ds => c5ds%next
+  end subroutine getmem5d_s
+
+  subroutine relmem5d_s(a)
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:,:) , intent(out) :: a
+    if ( .not. associated(a) ) return
+    p5ds => null()
+    c5ds => r5ds
+    do while ( associated(c5ds) )
+      n5ds => c5ds%next
+      if ( associated(a,c5ds%a%space) ) then
+        deallocate(c5ds%a%space)
+        a => null()
+        if ( associated(p5ds) ) then
+          if ( associated(n5ds) ) then
+            p5ds%next => n5ds
+          else
+            l5ds => p5ds
+            p5ds%next => null()
+          end if
+        else
+          r5ds => n5ds
+        end if
+        deallocate(c5ds)
+        exit
+      end if
+      p5ds => c5ds
+      c5ds => c5ds%next
+    end do
+  end subroutine relmem5d_s
 
   subroutine getmem5d_i(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
     implicit none
@@ -1500,6 +1839,17 @@ module mod_memutil
     end do
   end subroutine relmem5d_d
 
+  recursive subroutine finalize_pool5d_s(n)
+    implicit none
+    type(pool5d_s) :: n
+    if ( allocated(n%a%space) ) then
+      deallocate(n%a%space)
+    end if
+    if ( associated(n%next) ) then
+      call finalize_pool5d_s(n%next)
+    end if
+  end subroutine finalize_pool5d_s
+
   recursive subroutine finalize_pool5d_i(n)
     implicit none
     type(pool5d_i) :: n
@@ -1547,23 +1897,28 @@ module mod_memutil
   subroutine memory_destroy
     implicit none
     call finalize_pool1d_i(r1di)
+    call finalize_pool1d_s(r1ds)
     call finalize_pool1d_l(r1dl)
     call finalize_pool1d_r(r1dr)
     call finalize_pool1d_d(r1dd)
     call finalize_pool1d_t(r1dt)
     call finalize_pool2d_i(r2di)
+    call finalize_pool2d_s(r2ds)
     call finalize_pool2d_l(r2dl)
     call finalize_pool2d_r(r2dr)
     call finalize_pool2d_d(r2dd)
     call finalize_pool3d_i(r3di)
+    call finalize_pool3d_s(r3ds)
     call finalize_pool3d_l(r3dl)
     call finalize_pool3d_r(r3dr)
     call finalize_pool3d_d(r3dd)
     call finalize_pool4d_i(r4di)
+    call finalize_pool4d_s(r4ds)
     call finalize_pool4d_l(r4dl)
     call finalize_pool4d_r(r4dr)
     call finalize_pool4d_d(r4dd)
     call finalize_pool5d_i(r5di)
+    call finalize_pool5d_s(r5ds)
     call finalize_pool5d_l(r5dl)
     call finalize_pool5d_r(r5dr)
     call finalize_pool5d_d(r5dd)

@@ -255,9 +255,7 @@ program icbc
 
   end do
 
-  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'NRP2W' ) then
-    call footernc
-  else if ( dattyp == 'ECMWF' ) then
+  if ( dattyp == 'ECMWF' ) then
     call footerec
   else if ( dattyp == 'ERA40' ) then
     call footerera

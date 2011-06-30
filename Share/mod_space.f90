@@ -25,11 +25,11 @@ module mod_space
   private
 
   public :: bounds
-  public :: iarr1d , larr1d , r4arr1d , r8arr1d , rtarr1d
-  public :: iarr2d , larr2d , r4arr2d , r8arr2d
-  public :: iarr3d , larr3d , r4arr3d , r8arr3d
-  public :: iarr4d , larr4d , r4arr4d , r8arr4d
-  public :: iarr5d , larr5d , r4arr5d , r8arr5d
+  public :: sarr1d , iarr1d , larr1d , r4arr1d , r8arr1d , rtarr1d
+  public :: sarr2d , iarr2d , larr2d , r4arr2d , r8arr2d
+  public :: sarr3d , iarr3d , larr3d , r4arr3d , r8arr3d
+  public :: sarr4d , iarr4d , larr4d , r4arr4d , r8arr4d
+  public :: sarr5d , iarr5d , larr5d , r4arr5d , r8arr5d
 
   public :: getspc1d , getspc2d , getspc3d , getspc4d , getspc5d
 
@@ -38,6 +38,10 @@ module mod_space
     integer :: high
   end type bounds
 
+  type sarr1d
+    integer(2) , allocatable , dimension(:) :: space
+  end type sarr1d
+ 
   type iarr1d
     integer , allocatable , dimension(:) :: space
   end type iarr1d
@@ -58,6 +62,10 @@ module mod_space
     type(rcm_time_and_date) , allocatable , dimension(:) :: space
   end type rtarr1d
 
+  type sarr2d
+    integer(2) , allocatable , dimension(:,:) :: space
+  end type sarr2d
+
   type iarr2d
     integer , allocatable , dimension(:,:) :: space
   end type iarr2d
@@ -74,6 +82,10 @@ module mod_space
     real(dp) , allocatable , dimension(:,:) :: space
   end type r8arr2d
 
+  type sarr3d
+    integer(2) , allocatable , dimension(:,:,:) :: space
+  end type sarr3d
+ 
   type iarr3d
     integer , allocatable , dimension(:,:,:) :: space
   end type iarr3d
@@ -90,6 +102,10 @@ module mod_space
     real(dp) , allocatable , dimension(:,:,:) :: space
   end type r8arr3d
 
+  type sarr4d
+    integer(2) , allocatable , dimension(:,:,:,:) :: space
+  end type sarr4d
+ 
   type iarr4d
     integer , allocatable , dimension(:,:,:,:) :: space
   end type iarr4d
@@ -106,6 +122,10 @@ module mod_space
     real(dp) , allocatable , dimension(:,:,:,:) :: space
   end type r8arr4d
 
+  type sarr5d
+    integer(2) , allocatable , dimension(:,:,:,:,:) :: space
+  end type sarr5d
+ 
   type iarr5d
     integer , allocatable , dimension(:,:,:,:,:) :: space
   end type iarr5d
@@ -124,6 +144,7 @@ module mod_space
 
   interface getspc1d
     module procedure getspc1d_larr
+    module procedure getspc1d_sarr
     module procedure getspc1d_iarr
     module procedure getspc1d_r4arr
     module procedure getspc1d_r8arr
@@ -132,6 +153,7 @@ module mod_space
 
   interface getspc2d
     module procedure getspc2d_larr
+    module procedure getspc2d_sarr
     module procedure getspc2d_iarr
     module procedure getspc2d_r4arr
     module procedure getspc2d_r8arr
@@ -139,6 +161,7 @@ module mod_space
 
   interface getspc3d
     module procedure getspc3d_larr
+    module procedure getspc3d_sarr
     module procedure getspc3d_iarr
     module procedure getspc3d_r4arr
     module procedure getspc3d_r8arr
@@ -146,6 +169,7 @@ module mod_space
 
   interface getspc4d
     module procedure getspc4d_larr
+    module procedure getspc4d_sarr
     module procedure getspc4d_iarr
     module procedure getspc4d_r4arr
     module procedure getspc4d_r8arr
@@ -153,6 +177,7 @@ module mod_space
 
   interface getspc5d
     module procedure getspc5d_larr
+    module procedure getspc5d_sarr
     module procedure getspc5d_iarr
     module procedure getspc5d_r4arr
     module procedure getspc5d_r8arr
@@ -167,6 +192,14 @@ module mod_space
     if ( allocated(a%space) ) deallocate(a%space)
     allocate(a%space(b%low:b%high), stat=istat)
   end subroutine getspc1d_larr
+
+  subroutine getspc1d_sarr(a,b,istat)
+    type (sarr1d) , intent(inout) :: a
+    type (bounds) , intent(in) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b%low:b%high), stat=istat)
+  end subroutine getspc1d_sarr
 
   subroutine getspc1d_iarr(a,b,istat)
     type (iarr1d) , intent(inout) :: a
@@ -208,6 +241,14 @@ module mod_space
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
   end subroutine getspc2d_larr
 
+  subroutine getspc2d_sarr(a,b,istat)
+    type (sarr2d) , intent(inout) :: a
+    type (bounds) , intent(in) , dimension(2) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high), stat=istat)
+  end subroutine getspc2d_sarr
+
   subroutine getspc2d_iarr(a,b,istat)
     type (iarr2d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(2) ::  b
@@ -240,6 +281,15 @@ module mod_space
     allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
                      b(3)%low:b(3)%high), stat=istat)
   end subroutine getspc3d_larr
+
+  subroutine getspc3d_sarr(a,b,istat)
+    type (sarr3d) , intent(inout) :: a
+    type (bounds) , intent(in) , dimension(3) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
+                     b(3)%low:b(3)%high), stat=istat)
+  end subroutine getspc3d_sarr
 
   subroutine getspc3d_iarr(a,b,istat)
     type (iarr3d) , intent(inout) :: a
@@ -277,6 +327,15 @@ module mod_space
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
   end subroutine getspc4d_larr
 
+  subroutine getspc4d_sarr(a,b,istat)
+    type (sarr4d) , intent(inout) :: a
+    type (bounds) , intent(in) , dimension(4) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
+                     b(3)%low:b(3)%high,b(4)%low:b(4)%high), stat=istat)
+  end subroutine getspc4d_sarr
+
   subroutine getspc4d_iarr(a,b,istat)
     type (iarr4d) , intent(inout) :: a
     type (bounds) , intent(in) , dimension(4) ::  b
@@ -313,6 +372,16 @@ module mod_space
                      b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
                      b(5)%low:b(5)%high), stat=istat)
   end subroutine getspc5d_larr
+
+  subroutine getspc5d_sarr(a,b,istat)
+    type (sarr5d) , intent(inout) :: a
+    type (bounds) , intent(in) , dimension(5) ::  b
+    integer , intent(out) :: istat
+    if ( allocated(a%space) ) deallocate(a%space)
+    allocate(a%space(b(1)%low:b(1)%high,b(2)%low:b(2)%high, &
+                     b(3)%low:b(3)%high,b(4)%low:b(4)%high, &
+                     b(5)%low:b(5)%high), stat=istat)
+  end subroutine getspc5d_sarr
 
   subroutine getspc5d_iarr(a,b,istat)
     type (iarr5d) , intent(inout) :: a

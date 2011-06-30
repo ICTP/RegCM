@@ -48,9 +48,9 @@ module mod_ncep
 
   real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
   real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
-  integer(2) , allocatable , dimension(:,:,:) :: work
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
+  integer(2) , pointer , dimension(:,:,:) :: work
   
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -669,14 +669,9 @@ module mod_ncep
     sigma1(k) = sigmar(kr)
   end do
  
-  allocate(work(ilon,jlat,klev), stat=ierr)
-  if (ierr /= 0) call die('headernc','allocate work',ierr)
-  allocate(b3(jx,iy,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headernc','allocate b3',ierr)
-  call mall_mci(b3,'mod_ncep')
-  allocate(d3(jx,iy,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headernc','allocate d3',ierr)
-  call mall_mci(d3,'mod_ncep')
+  call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
+  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
+  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
 
 !     Set up pointers
 
@@ -702,13 +697,5 @@ module mod_ncep
       call die('mod_ncep',message,1,nf90_strerror(ierr),ierr)
     end if
   end subroutine check_ok
-!
-  subroutine footernc
-    call mall_mco(b3,'mod_ncep')
-    deallocate(b3)
-    call mall_mco(d3,'mod_ncep')
-    deallocate(d3)
-    deallocate(work)
-  end subroutine footernc
 !
 end module mod_ncep
