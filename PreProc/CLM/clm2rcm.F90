@@ -26,6 +26,7 @@ program clm2rcm
   use mod_param_clm
   use mod_date
   use mod_clm3grid
+  use mod_memutil
   use m_realkinds
   use m_stdio
   use m_die
@@ -43,8 +44,8 @@ program clm2rcm
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(sp) , dimension(2) :: trlat
-  real(sp) , allocatable , dimension(:) :: yiy
-  real(sp) , allocatable , dimension(:) :: xjx
+  real(sp) , pointer , dimension(:) :: yiy
+  real(sp) , pointer , dimension(:) :: xjx
   integer , dimension(8) :: tvals
   real(sp) :: hptop , xmiss
   real(dp) , dimension(1) :: xdate
@@ -61,13 +62,12 @@ program clm2rcm
   real(dp) :: xhr
   real(sp) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
   real(sp) :: pxerr , pmax
-  real(sp) , allocatable , dimension(:) :: glat , glon , zlat ,      &
+  real(sp) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
-  real(sp) , allocatable , dimension(:,:) :: mpu
-  real(sp) , allocatable , dimension(:,:,:) :: regxyz
-  real(sp) , allocatable , dimension(:,:,:,:) :: regyxzt , zoom ,    &
-                                       dumw
-  real(sp) , allocatable , dimension(:,:) :: landmask , sandclay
+  real(sp) , pointer , dimension(:,:) :: mpu
+  real(sp) , pointer , dimension(:,:,:) :: regxyz
+  real(sp) , pointer , dimension(:,:,:,:) :: regyxzt , zoom , dumw
+  real(sp) , pointer , dimension(:,:) :: landmask , sandclay
   integer :: ipathdiv , ierr
   integer :: i , iz , it , j , k , l , kmax
   integer :: jotyp , idin , idout , ifield , ifld , imap
@@ -93,13 +93,15 @@ program clm2rcm
     call die('clm2rcm','Check argument and namelist syntax',1)
   end if
 !
+  call memory_init
+
   if ( nsg/=1 ) then
     write (stderr,*) 'CLM does not work with subgridding enable.'
     write (stderr,*) 'Please set nsg=1 in regcm.in'
     call die('clm2rcm','Check argument and namelist syntax',1)
   end if
 
-  call allocate_domain
+  call init_domain
 !
 !     ** Get latitudes and longitudes from DOMAIN file
 !
@@ -275,8 +277,8 @@ program clm2rcm
   hptop = real(ptop * 10.0D0)
   istatus = nf90_put_var(ncid, izvar(2), hptop)
   call check_ok(istatus,'Error variable ptop write')
-  allocate(yiy(iy))
-  allocate(xjx(jx))
+  call getmem1d(yiy,1,iy,'clm2rcm:yiy')
+  call getmem1d(xjx,1,jx,'clm2rcm:xjx')
   yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
   xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
   do i = 2 , iy
@@ -289,14 +291,11 @@ program clm2rcm
   call check_ok(istatus,'Error variable iy write')
   istatus = nf90_put_var(ncid, ivvar(2), xjx)
   call check_ok(istatus,'Error variable jx write')
-  deallocate(yiy)
-  deallocate(xjx)
   istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
   call check_ok(istatus,'Error variable xlat write')
   istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
   call check_ok(istatus,'Error variable xlon write')
 
-  ! Pre-allocate a twelve month for monthly vars
   imondate = irefdate
   do it = 1 , 12
     istart1(1) = it
@@ -342,14 +341,14 @@ program clm2rcm
       call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
     end if
  
-!       ** Setup RegCM3 grid variables
+!   ** Setup RegCM3 grid variables
     call param(jx,iy,nlev(ifld),xlat,xlon,varmin,varmax,        &
                xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,   &
                iadim,ndim)
  
-!       ** Setup CLM3 grid variables, including subgrid region
-    allocate(glon(nlon(ifld)))
-    allocate(glat(nlat(ifld)))
+!   ** Setup CLM3 grid variables, including subgrid region
+    call getmem1d(glon,1,nlon(ifld),'clm2rcm:glon')
+    call getmem1d(glat,1,nlat(ifld),'clm2rcm:glat')
  
     call clm3grid1(nlon(ifld),nlat(ifld),nlev(ifld),ntim(ifld),     &
                    glon1(ifld),glon2(ifld),glat1(ifld),glat2(ifld), &
@@ -361,14 +360,14 @@ program clm2rcm
       icount(4) = 1
     end if
  
-    allocate(zoom(icount(1),icount(2),icount(3),icount(4)))
-    allocate(zlon(icount(1)))
-    allocate(zlat(icount(2)))
-    allocate(zlev(icount(3)))
-    allocate(landmask(icount(1),icount(2)))
+    call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
+                  'clm2rcm:zoom')
+    call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
+    call getmem1d(zlat,1,icount(2),'clm2rcm:zlat')
+    call getmem1d(zlev,1,icount(3),'clm2rcm:zlev')
+    call getmem2d(landmask,1,icount(1),1,icount(2),'clm2rcm:landmask')
 !
-    call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,  &
-                   icount,zlon,zlat,zlev)
+    call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,icount,zlon,zlat,zlev)
 !
     write(stdout,*) 'Reading variables from input file'
 !
@@ -379,8 +378,8 @@ program clm2rcm
 !       180 degree longitiude shift.
 !       - Soil color and Orography do not have landmasks (must be made)
     if ( ifld==isnd .or. ifld==icly ) then
-      allocate(sandclay(ntim(ifld),nlev(ifld)))
-      allocate(mpu(icount(1),icount(2)))
+      call getmem2d(sandclay,1,ntim(ifld),1,nlev(ifld),'clm2rcm:sandclay')
+      call getmem2d(mpu,1,icount(1),1,icount(2),'clm2rcm:mpu')
       call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                      ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
       write(stdout,*) 'Read ', trim(lnam(ifld))
@@ -400,8 +399,6 @@ program clm2rcm
           end do
         end do
       end do
-      deallocate(mpu)
-      deallocate(sandclay)
       do k = 1 , icount(3)
         zlev(k) = glev_st(k)
       end do
@@ -451,8 +448,8 @@ program clm2rcm
  
 !       ** Interpolate data to RegCM3 grid
 
-    allocate(regyxzt(iy,jx,nlev(ifld),ntim(ifld)))
-    allocate(regxyz(jx,iy,nlev(ifld)))
+    call getmem4d(regyxzt,1,iy,1,jx,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
+    call getmem3d(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
 
     call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,iy,jx,icount(3),icount(4),vmin(ifld),vmisdat)
@@ -461,48 +458,48 @@ program clm2rcm
 
     do l = 1 , ntim(ifld)
       if ( ifld==ipft ) then
-        do j = 1 , iy
-          do i = 1 , jx
-            if ( regyxzt(j,i,1,l)>-99. ) then
+        do i = 1 , iy
+          do j = 1 , jx
+            if ( regyxzt(i,j,1,l)>-99. ) then
               do k = 1 , nlev(ifld)
-                regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
+                regyxzt(i,j,k,l) = aint(regyxzt(i,j,k,l))
               end do
               pxerr = 100.
               kmax = -1
               pmax = -99.
               do k = 1 , nlev(ifld)
-                pxerr = pxerr - regyxzt(j,i,k,l)
-                if ( regyxzt(j,i,k,l)>pmax ) then
-                  pmax = regyxzt(j,i,k,l)
+                pxerr = pxerr - regyxzt(i,j,k,l)
+                if ( regyxzt(i,j,k,l)>pmax ) then
+                  pmax = regyxzt(i,j,k,l)
                   kmax = k
                 end if
               end do
-              regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
-!                 write(stdout,*) j,pxerr,pmax,regyxzt(j,i,kmax,l)
+              regyxzt(i,j,kmax,l) = regyxzt(i,j,kmax,l) + pxerr
             end if
           end do
         end do
       end if
       do k = 1 , nlev(ifld)
-        do j = 1 , iy
-          do i = 1 , jx
+        do j = 1 , jx
+          do i = 1 , iy
             if ( ifld==icol ) then
-              regyxzt(j,i,k,l) = float(nint(regyxzt(j,i,k,l)))
+              regyxzt(i,j,k,l) = anint(regyxzt(i,j,k,l))
             end if
-            if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
-              regxyz(i,j,k) = regyxzt(j,i,k,l)
+            if ( regyxzt(i,j,k,l)>vmin(ifld) ) then
+              regxyz(j,i,k) = regyxzt(i,j,k,l)
             else
-              regxyz(i,j,k) = 0.0
+              regxyz(j,i,k) = 0.0
             end if
           end do
         end do
       end do
  
+      xhr = d_zero
       call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
                     xhr,lnam(ifld),units(ifld),xscale,offset,varmin,&
                     varmax,xlat1d,xlon1d,zlev,0,vmisdat,jotyp)
     end do
- 
+
     istatus = nf90_redef(ncid)
     call check_ok(istatus,('Error Redef in file '//trim(checkfile)))
 
@@ -524,8 +521,7 @@ program clm2rcm
         ilevs(ldim) = nlev(ifld)
         write (cldim,'(a,i0.3)') 'level_', nlev(ifld)
         istatus = nf90_def_dim(ncid, cldim, nlev(ifld), idum)
-        call check_ok(istatus, &
-                      ('Error creating dimension '//trim(cldim)))
+        call check_ok(istatus, ('Error creating dimension '//trim(cldim)))
       end if
     end if
 
@@ -585,30 +581,18 @@ program clm2rcm
     istatus = nf90_enddef(ncid)
     call check_ok(istatus,'Error End redef NetCDF output')
 
-    allocate(dumw(jx,iy,nlev(ifld),ntim(ifld)))
+    call getmem4d(dumw,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:dumw')
+
     do j = 1 , iy
       do i = 1 , jx
          dumw(i,j,:,:) = regyxzt(j,i,:,:)
       end do
     end do
+
     istatus = nf90_put_var(ncid, ivar, dumw)
     call check_ok(istatus,('Error '//trim(vnam(ifld))// ' write'))
-    deallocate(dumw)
 
-!       ** Deallocate variables for next CLM3 field
-    deallocate(glon)
-    deallocate(glat)
-    deallocate(zoom)
-    deallocate(zlon)
-    deallocate(zlat)
-    deallocate(zlev)
-    deallocate(landmask)
-    deallocate(regyxzt)
-    deallocate(regxyz)
- 
   end do  ! End nfld loop
-
-  call free_domain
 
 !     ** Close files
 
@@ -616,8 +600,9 @@ program clm2rcm
   call clscdf(idout,ierr)
 
   istatus = nf90_close(ncid)
-  call check_ok(istatus, &
-                ('Error Closing output file '//trim(checkfile)))
+  call check_ok(istatus, ('Error Closing output file '//trim(checkfile)))
+
+  call memory_destroy
 
   write(stdout,*) 'Successfully completed CLM preprocessing.'
  

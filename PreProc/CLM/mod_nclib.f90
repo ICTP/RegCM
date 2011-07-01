@@ -19,6 +19,8 @@
 
 module mod_nclib
 
+  use mod_memutil
+  use netcdf
   use m_stdio
   use m_die
   use m_realkinds
@@ -39,8 +41,6 @@ module mod_nclib
 !        Nov. 91  PPM  UW  Created.
 !-----------------------------------------------------------------------
   subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr) 
-
-  use netcdf
 
   implicit none
 
@@ -121,8 +121,6 @@ module mod_nclib
 
   subroutine clscdf (cdfid, ierr)
 
-  use netcdf
-
   implicit none
 
 !     Argument declarations.
@@ -157,7 +155,6 @@ module mod_nclib
        lname,vunit,factor,offset,vvarmin,vvarmax,xlat1d,xlon1d,sigh,&
        izstag,vmisdat,iotype)
 
-  use netcdf
   implicit none
 
   integer , intent(in) :: cdfid , ie , je , ke
@@ -207,6 +204,7 @@ module mod_nclib
   if ( izstag/=0 ) varstg(3) = 0.0
 
   it = nf90_inq_varid(cdfid,varnam,idtest)
+
   if ( it/=nf90_noerr ) then
     call putdefcdf(cdfid,varnam,ndims,vmisdat,lname,vunit,          &
                    offset,factor,vardim,varmin,varmax,iotype,it)
@@ -256,7 +254,6 @@ module mod_nclib
   subroutine putcoords(cdfid,ndim,vardim,ie,je,ke,xlat1d,xlon1d,    &
                        sigh,ierr)
 
-  use netcdf
   implicit none
 
   integer , intent(in) :: cdfid , ie , je , ke , ndim
@@ -349,8 +346,6 @@ module mod_nclib
   subroutine putdatcdfi2(cdfid, varnam, time, k, level,             &
                          ievar, jevar, arr, ie, je, ke,             &
                          vmisdat, rfac, offset, ierr)
-
-  use netcdf
 
   implicit none
 
@@ -499,7 +494,6 @@ module mod_nclib
                        clunits,offset,xscale,vardim,varmin,varmax,  &
                        iotype,ierr)
 
-  use netcdf
   implicit none
 
   integer , parameter :: maxdim = 4
@@ -730,8 +724,6 @@ module mod_nclib
   subroutine putdatcdfr4(cdfid, varnam, time, k, level, ievar,      &
                          jevar, arr, ie, je, ke, ierr)
 
-  use netcdf
-
   implicit none
 
   integer , intent(in) :: cdfid
@@ -867,7 +859,6 @@ module mod_nclib
 
   subroutine getdefi2 (cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  use netcdf
   implicit none
 
   integer , parameter :: maxdim = 4
@@ -976,7 +967,6 @@ module mod_nclib
 
   subroutine getdefcdfr4(cdfid, varnam, ndim, misdat, vardim, ierr)
 
-  use netcdf
   implicit none
 
   integer , intent(in) :: cdfid
@@ -1075,7 +1065,6 @@ module mod_nclib
   subroutine readcdfr4(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,nlat, &
                        nlev1,nlev,ntim1,ntim,vals)
  
-  use netcdf
   implicit none
 !
   integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
@@ -1123,7 +1112,6 @@ module mod_nclib
                            nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
                            nglev,ngtim,vals)
  
-  use netcdf
   implicit none
 !
   integer :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
@@ -1137,7 +1125,7 @@ module mod_nclib
   integer :: i , iflag , ii , ilon5 , invarid , j , jj , k , kk ,   &
              l , ll , nlat2 , nlev2 , nlon2 , ntim2
   integer , dimension(4) :: icount , istart
-  real(sp) , allocatable , dimension(:,:,:,:) :: vals1 , vals2
+  real(sp) , pointer , dimension(:,:,:,:) :: vals1 , vals2
 ! 
   istart(1) = 1
   icount(1) = nglon
@@ -1149,8 +1137,8 @@ module mod_nclib
   icount(4) = ngtim
 !     /*get variable and attributes*/
   ilon5 = nglon/2
-  allocate(vals1(nglon,nglat,nglev,ngtim))
-  allocate(vals2(nglon,nglat,nglev,ngtim))
+  call getmem4d(vals1,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals1')
+  call getmem4d(vals2,1,nglon,1,nglat,1,nglev,1,ngtim,'mod_nclib:vals2')
 
   iflag = nf90_inq_varid(idcdf,vnam,invarid)
   if (iflag /= nf90_noerr) go to 920
@@ -1197,9 +1185,6 @@ module mod_nclib
     end do
   end do
  
-  deallocate(vals1)
-  deallocate(vals2)
- 
   iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
   if (iflag /= nf90_noerr) go to 920
 
@@ -1219,7 +1204,6 @@ module mod_nclib
   subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
                            nlat,nlev1,nlev,ntim1,ntim,vals)
  
-  use netcdf
   implicit none
 !
   integer :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &

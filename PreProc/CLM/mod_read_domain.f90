@@ -22,40 +22,35 @@ module mod_read_domain
   use netcdf
   use m_realkinds
   use mod_dynparam
+  use mod_memutil
   use m_stdio
   use m_die
 
-  implicit none
+  private
 
-  real(sp) :: clatx , clonx , dsx , grdfacx , platx , plonx , ptopx
+  real(sp) , public :: clatx , clonx
+  real(sp) :: dsx , grdfacx , platx , plonx , ptopx
   integer :: iyy , jxx , kzz
 
-  character(6) :: iprojx
+  character(6) , public :: iprojx
 
-  real(sp) , allocatable , dimension(:,:) :: xlat, xlon
-  real(sp) , allocatable , dimension(:) :: xlat1d
-  real(sp) , allocatable , dimension(:) :: xlon1d
-  real(sp) , allocatable , dimension(:) :: sigx
+  real(sp) , public , pointer , dimension(:,:) :: xlat, xlon
+  real(sp) , public , pointer , dimension(:) :: xlat1d
+  real(sp) , public , pointer , dimension(:) :: xlon1d
+  real(sp) , public , pointer , dimension(:) :: sigx
+
+  public :: init_domain , read_domain
 
   contains
 
-  subroutine allocate_domain
+  subroutine init_domain
     implicit none
-    allocate(xlat(iy,jx))
-    allocate(xlon(iy,jx))
-    allocate(xlat1d(iy))
-    allocate(xlon1d(jx))
-    allocate(sigx(kz+1))
-  end subroutine allocate_domain
-
-  subroutine free_domain
-    implicit none
-    deallocate(xlat)
-    deallocate(xlon)
-    deallocate(xlat1d)
-    deallocate(xlon1d)
-    deallocate(sigx)
-  end subroutine free_domain
+    call getmem2d(xlat,1,iy,1,jx,'mod_read_domain:xlat')
+    call getmem2d(xlon,1,iy,1,jx,'mod_read_domain:xlon')
+    call getmem1d(xlat1d,1,iy,'mod_read_domain:xlat1d')
+    call getmem1d(xlon1d,1,jx,'mod_read_domain:xlon1d')
+    call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
+  end subroutine init_domain
 
   subroutine read_domain(terfile)
     implicit none
@@ -64,27 +59,21 @@ module mod_read_domain
     integer :: incin
     integer :: idimid
     integer :: ivarid
-    real(sp) , allocatable , dimension(:,:) :: xlat_dum, xlon_dum
+    real(sp) , pointer , dimension(:,:) :: xlat_dum, xlon_dum
 
     !Open the netcdf file
     call handle_nc_err( nf90_open(terfile, nf90_nowrite, incin),   &
       'Opening', trim(terfile))
 
     !Read the dimensions from the netcdf file
-    call handle_nc_err( nf90_inq_dimid(incin, 'iy', idimid),   &
-      'Finding','iy')
-    call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=iyy),    &
-      'Reading','iy')
+    call handle_nc_err( nf90_inq_dimid(incin,'iy',idimid),'Finding','iy')
+    call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=iyy),'Reading','iy')
 
-    call handle_nc_err( nf90_inq_dimid(incin, 'jx', idimid),   &
-      'Finding','jx')
-    call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=jxx),    &
-      'Reading','jx')
+    call handle_nc_err( nf90_inq_dimid(incin,'jx',idimid),'Finding','jx')
+    call handle_nc_err( nf90_inquire_dimension(incin,idimid,len=jxx),'Reading','jx')
 
-    call handle_nc_err( nf90_inq_dimid(incin, 'kz', idimid),   &
-      'Finding','kz')
-    call handle_nc_err( nf90_inquire_dimension(incin, idimid, len=kzz),    &
-      'Reading','kz')
+    call handle_nc_err( nf90_inq_dimid(incin,'kz',idimid),'Finding','kz')
+    call handle_nc_err( nf90_inquire_dimension(incin,idimid,len=kzz),'Reading','kz')
 
     !Check for consistency with regcm.in
     if ( iyy/=iy .or. jxx/=jx .or. kzz/=kz+1 ) then
@@ -94,8 +83,8 @@ module mod_read_domain
       call die('read_domain','Dimension mismatch',1)
     end if
 
-    allocate(xlat_dum(jx,iy))
-    allocate(xlon_dum(jx,iy))
+    call getmem2d(xlat_dum,1,jx,1,iy,'mod_read_domain:xlat_dum')
+    call getmem2d(xlon_dum,1,jx,1,iy,'mod_read_domain:xlon_dum')
 
     !Read ds
     call handle_nc_err(  &
@@ -186,9 +175,6 @@ module mod_read_domain
     !Set xlat and xlon, swapping the i/j indicies of what was read in
     xlat = transpose(xlat_dum)
     xlon = transpose(xlon_dum)
-
-    deallocate(xlat_dum)
-    deallocate(xlon_dum)
 
     !Close the netcdf flie
     istatus = nf90_close(incin)

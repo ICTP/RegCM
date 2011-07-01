@@ -369,6 +369,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1dl => l1dl
     call getspc1d(c1dl%a,b,ista)
@@ -415,6 +416,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1dt => l1dt
     call getspc1d(c1dt%a,b,ista)
@@ -460,6 +462,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1ds => l1ds
     call getspc1d(c1ds%a,b,ista)
@@ -506,6 +509,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1di => l1di
     call getspc1d(c1di%a,b,ista)
@@ -552,6 +556,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1dr => l1dr
     call getspc1d(c1dr%a,b,ista)
@@ -598,6 +603,7 @@ module mod_memutil
     integer , intent(in) :: l , h
     character (len=*) , intent(in) :: vn
     type (bounds) :: b
+    if ( associated(a) ) call relmem1d(a)
     b = bounds(l,h)
     c1dd => l1dd
     call getspc1d(c1dd%a,b,ista)
@@ -640,68 +646,80 @@ module mod_memutil
 
   recursive subroutine finalize_pool1d_i(n)
     implicit none
-    type(pool1d_i) :: n
+    type(pool1d_i) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_i(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_i
 
   recursive subroutine finalize_pool1d_s(n)
     implicit none
-    type(pool1d_s) :: n
+    type(pool1d_s) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_s(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_s
 
   recursive subroutine finalize_pool1d_l(n)
     implicit none
-    type(pool1d_l) :: n
+    type(pool1d_l) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_l(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_l
 
   recursive subroutine finalize_pool1d_r(n)
     implicit none
-    type(pool1d_r) :: n
+    type(pool1d_r) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_r(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_r
 
   recursive subroutine finalize_pool1d_d(n)
     implicit none
-    type(pool1d_d) :: n
+    type(pool1d_d) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_d(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_d
 
   recursive subroutine finalize_pool1d_t(n)
     implicit none
-    type(pool1d_t) :: n
+    type(pool1d_t) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool1d_t(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool1d_t
 
   subroutine getmem2d_l(a,l1,h1,l2,h2,vn)
@@ -710,6 +728,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(2) :: b
+    if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dl => l2dl
@@ -757,6 +776,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(2) :: b
+    if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2ds => l2ds
@@ -804,6 +824,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(2) :: b
+    if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2di => l2di
@@ -851,6 +872,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(2) :: b
+    if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dr => l2dr
@@ -898,6 +920,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(2) :: b
+    if ( associated(a) ) call relmem2d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     c2dd => l2dd
@@ -941,57 +964,67 @@ module mod_memutil
 
   recursive subroutine finalize_pool2d_i(n)
     implicit none
-    type(pool2d_i) :: n
+    type(pool2d_i) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool2d_i(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool2d_i
 
   recursive subroutine finalize_pool2d_s(n)
     implicit none
-    type(pool2d_s) :: n
+    type(pool2d_s) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool2d_s(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool2d_s
 
   recursive subroutine finalize_pool2d_l(n)
     implicit none
-    type(pool2d_l) :: n
+    type(pool2d_l) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool2d_l(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool2d_l
 
   recursive subroutine finalize_pool2d_r(n)
     implicit none
-    type(pool2d_r) :: n
+    type(pool2d_r) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool2d_r(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool2d_r
 
   recursive subroutine finalize_pool2d_d(n)
     implicit none
-    type(pool2d_d) :: n
+    type(pool2d_d) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool2d_d(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool2d_d
 
   subroutine getmem3d_l(a,l1,h1,l2,h2,l3,h3,vn)
@@ -1000,6 +1033,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(3) :: b
+    if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1048,6 +1082,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(3) :: b
+    if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1096,6 +1131,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(3) :: b
+    if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1144,6 +1180,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(3) :: b
+    if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1192,6 +1229,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(3) :: b
+    if ( associated(a) ) call relmem3d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1236,57 +1274,67 @@ module mod_memutil
 
   recursive subroutine finalize_pool3d_s(n)
     implicit none
-    type(pool3d_s) :: n
+    type(pool3d_s) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool3d_s(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool3d_s
 
   recursive subroutine finalize_pool3d_i(n)
     implicit none
-    type(pool3d_i) :: n
+    type(pool3d_i) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool3d_i(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool3d_i
 
   recursive subroutine finalize_pool3d_l(n)
     implicit none
-    type(pool3d_l) :: n
+    type(pool3d_l) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool3d_l(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool3d_l
 
   recursive subroutine finalize_pool3d_r(n)
     implicit none
-    type(pool3d_r) :: n
+    type(pool3d_r) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool3d_r(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool3d_r
 
   recursive subroutine finalize_pool3d_d(n)
     implicit none
-    type(pool3d_d) :: n
+    type(pool3d_d) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool3d_d(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool3d_d
 
   subroutine getmem4d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,vn)
@@ -1295,6 +1343,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(4) :: b
+    if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1344,6 +1393,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(4) :: b
+    if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1393,6 +1443,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(4) :: b
+    if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1442,6 +1493,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(4) :: b
+    if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1491,6 +1543,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(4) :: b
+    if ( associated(a) ) call relmem4d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1536,57 +1589,67 @@ module mod_memutil
 
   recursive subroutine finalize_pool4d_s(n)
     implicit none
-    type(pool4d_s) :: n
+    type(pool4d_s) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool4d_s(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool4d_s
 
   recursive subroutine finalize_pool4d_i(n)
     implicit none
-    type(pool4d_i) :: n
+    type(pool4d_i) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool4d_i(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool4d_i
 
   recursive subroutine finalize_pool4d_l(n)
     implicit none
-    type(pool4d_l) :: n
+    type(pool4d_l) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool4d_l(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool4d_l
 
   recursive subroutine finalize_pool4d_r(n)
     implicit none
-    type(pool4d_r) :: n
+    type(pool4d_r) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool4d_r(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool4d_r
 
   recursive subroutine finalize_pool4d_d(n)
     implicit none
-    type(pool4d_d) :: n
+    type(pool4d_d) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool4d_d(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool4d_d
 
   subroutine getmem5d_l(a,l1,h1,l2,h2,l3,h3,l4,h4,l5,h5,vn)
@@ -1595,6 +1658,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(5) :: b
+    if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1645,6 +1709,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(5) :: b
+    if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1695,6 +1760,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(5) :: b
+    if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1745,6 +1811,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(5) :: b
+    if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1795,6 +1862,7 @@ module mod_memutil
     integer , intent(in) :: l1 , h1 , l2 , h2 , l3 , h3 , l4 , h4 , l5 , h5
     character (len=*) , intent(in) :: vn
     type (bounds) , dimension(5) :: b
+    if ( associated(a) ) call relmem5d(a)
     b(1) = bounds(l1,h1)
     b(2) = bounds(l2,h2)
     b(3) = bounds(l3,h3)
@@ -1841,57 +1909,67 @@ module mod_memutil
 
   recursive subroutine finalize_pool5d_s(n)
     implicit none
-    type(pool5d_s) :: n
+    type(pool5d_s) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool5d_s(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool5d_s
 
   recursive subroutine finalize_pool5d_i(n)
     implicit none
-    type(pool5d_i) :: n
+    type(pool5d_i) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool5d_i(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool5d_i
 
   recursive subroutine finalize_pool5d_l(n)
     implicit none
-    type(pool5d_l) :: n
+    type(pool5d_l) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool5d_l(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool5d_l
 
   recursive subroutine finalize_pool5d_r(n)
     implicit none
-    type(pool5d_r) :: n
+    type(pool5d_r) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool5d_r(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool5d_r
 
   recursive subroutine finalize_pool5d_d(n)
     implicit none
-    type(pool5d_d) :: n
+    type(pool5d_d) , intent(inout) , pointer :: n
     if ( allocated(n%a%space) ) then
       deallocate(n%a%space)
     end if
     if ( associated(n%next) ) then
       call finalize_pool5d_d(n%next)
     end if
+    deallocate(n)
+    nullify(n)
   end subroutine finalize_pool5d_d
 
   subroutine memory_destroy
