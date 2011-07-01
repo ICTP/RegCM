@@ -24,7 +24,7 @@ module mod_ein
   use m_stdio
   use m_die
   use m_zeit
-  use m_mall
+  use mod_memutil
   use mod_grid
   use mod_write
   use mod_interp
@@ -39,8 +39,8 @@ module mod_ein
 
   integer :: inlev , klev , jlat , ilon , imindat , imaxdat
 
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -48,18 +48,18 @@ module mod_ein
   real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
   real(sp) :: xres
-  real(sp) , allocatable , target , dimension(:,:,:) :: b2
-  real(sp) , allocatable , target , dimension(:,:,:) :: d2
-  real(sp) , allocatable , dimension(:) :: glat
-  real(sp) , allocatable , dimension(:) :: glon
-  real(sp) , allocatable , dimension(:) :: sigma1 , sigmar
-  integer(2) , allocatable , dimension(:,:,:) :: work
+  real(sp) , pointer , dimension(:,:,:) :: b2
+  real(sp) , pointer , dimension(:,:,:) :: d2
+  real(sp) , pointer , dimension(:) :: glat
+  real(sp) , pointer , dimension(:) :: glon
+  real(sp) , pointer , dimension(:) :: sigma1 , sigmar
+  integer(2) , pointer , dimension(:,:,:) :: work
 
   integer , dimension(5,4) :: inet5
   integer , dimension(5,4) :: ivar5
   real(dp) , dimension(5,4) :: xoff , xscl
 
-  public :: getein , headerein , footerein
+  public :: getein , headerein
 
   contains
 
@@ -477,7 +477,7 @@ module mod_ein
   implicit none
 !
   integer , intent(in) :: ires
-  integer :: i , j , k , kr , ierr
+  integer :: i , j , k , kr
 
   klev = 23
   inlev = 37
@@ -506,33 +506,15 @@ module mod_ein
 !
 !     Allocate working space
 !
-  allocate(b2(ilon,jlat,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate b2',ierr)
-  call mall_mci(b2,'mod_ein')
-  allocate(d2(ilon,jlat,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate d2',ierr)
-  call mall_mci(d2,'mod_ein')
-  allocate(glat(jlat), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate glat',ierr)
-  call mall_mci(glat,'mod_ein')
-  allocate(glon(ilon), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate glon',ierr)
-  call mall_mci(glon,'mod_ein')
-  allocate(sigma1(klev), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate sigma1',ierr)
-  call mall_mci(sigma1,'mod_ein')
-  allocate(sigmar(klev), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate sigmar',ierr)
-  call mall_mci(sigmar,'mod_ein')
-  allocate(b3(jx,iy,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate b3',ierr)
-  call mall_mci(b3,'mod_ein')
-  allocate(d3(jx,iy,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate d3',ierr)
-  call mall_mci(d3,'mod_ein')
-
-  allocate(work(ilon,jlat,inlev), stat=ierr)
-  if (ierr /= 0) call die('headerein','allocate work',ierr)
+  call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
+  call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
+  call getmem1d(glat,1,jlat,'mod_ein:glat')
+  call getmem1d(glon,1,ilon,'mod_ein:glon')
+  call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
+  call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
+  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
+  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
+  call getmem3d(work,1,ilon,1,jlat,1,inlev,'mod_ein:work')
 
   sigmar(1) = .001
   sigmar(2) = .002
@@ -588,26 +570,5 @@ module mod_ein
   rhvar => b2(:,:,2*klev+1:3*klev)
 
   end subroutine headerein
-
-  subroutine footerein
-    call mall_mco(b2,'mod_ein')
-    deallocate(b2)
-    call mall_mco(d2,'mod_ein')
-    deallocate(d2)
-    call mall_mco(glat,'mod_ein')
-    deallocate(glat)
-    call mall_mco(glon,'mod_ein')
-    deallocate(glon)
-    call mall_mco(sigma1,'mod_ein')
-    deallocate(sigma1)
-    call mall_mco(sigmar,'mod_ein')
-    deallocate(sigmar)
-    call mall_mco(b3,'mod_ein')
-    deallocate(b3)
-    call mall_mco(d3,'mod_ein')
-    deallocate(d3)
-
-    deallocate(work)
-  end subroutine footerein
 
 end module mod_ein

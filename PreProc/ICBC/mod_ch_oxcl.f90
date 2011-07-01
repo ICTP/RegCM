@@ -59,7 +59,7 @@ module mod_ch_oxcl
 
   subroutine header_ch_oxcl
     implicit none
-    integer :: ivarid , istatus , im , is
+    integer :: ivarid , istatus , is
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ch_oxcl:poxid_3')
     call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ch_oxcl:oxv3')
@@ -136,9 +136,8 @@ module mod_ch_oxcl
 !
     integer :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    integer , dimension(4) :: istart , icount
     real(sp) , dimension(oxilon,oxjlat,oxilev) :: xinp
-    real(sp) :: wt1 , wt2
+    real(sp) :: wt1 , wt2 , r4pt
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer :: m1 , m2
@@ -149,7 +148,7 @@ module mod_ch_oxcl
     m2 = d2%month
     t1 = idate-d1
     tt = d2-d1
-    wt1 = t1%hours()/tt%hours()
+    wt1 = real(t1%hours()/tt%hours())
     wt2 = 1.0 - wt1
 
     do is = 1 , noxsp
@@ -172,6 +171,7 @@ module mod_ch_oxcl
 
     poxid_2 = xps*0.01
     p0 = p0*0.01
+    r4pt = real(ptop)
 
     call bilinx2(poxid_3,poxid_2,xlon,xlat,oxt42lon,oxt42lat, &
                  oxilon,oxjlat,iy,jx,1)
@@ -179,7 +179,7 @@ module mod_ch_oxcl
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-ptop)*sigma2(l)+ptop)*10.
+          prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
           k0 = -1
           do k = oxilev , 1 , -1
             pmpi = poxid_3(j,i)*oxt42hybm(k)+oxt42hyam(k)*p0

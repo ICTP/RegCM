@@ -33,7 +33,7 @@ module mod_maps
                       xlat_s , xlon_s , xmap_s
   real(sp) , pointer , dimension(:,:,:) :: frac_tex_s
 
-  real(sp) , pointer , dimension(:) :: sigma
+  real(dp) , pointer , dimension(:) :: sigma
   real(dp) :: xn
 
   contains
@@ -61,7 +61,6 @@ module mod_maps
   subroutine prepare_subgrid(iysg,jxsg,ntex)
     implicit none
     integer , intent(in) :: iysg , jxsg , ntex
-    integer :: ierr
     call getmem2d(coriol_s,1,iysg,1,jxsg,'maps:coriol_s')
     call getmem2d(xlat_s,1,iysg,1,jxsg,'maps:xlat_s')
     call getmem2d(xlon_s,1,iysg,1,jxsg,'maps:xlon_s')

@@ -24,7 +24,7 @@ module mod_era40
   use m_die
   use m_stdio
   use m_zeit
-  use m_mall
+  use mod_memutil
   use mod_grid
   use mod_write
   use mod_interp
@@ -42,9 +42,9 @@ module mod_era40
   real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
   real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
   real(sp) , target , dimension(ilon,jlat,4*3+1) :: s2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
-  real(sp) , allocatable , target , dimension(:,:,:) :: s3
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: s3
 
   real(sp) , dimension(ilon,jlat,klev) :: wvar
 
@@ -61,7 +61,7 @@ module mod_era40
   real(sp) , dimension(ilon) :: glon
   real(sp) , dimension(klev) :: sigma1 , sigmar
 
-  public :: getera40 , headerera , footerera
+  public :: getera40 , headerera
 
   contains
 
@@ -392,7 +392,7 @@ module mod_era40
   subroutine headerera
   implicit none
 !
-  integer :: i , j , k , kr , ierr
+  integer :: i , j , k , kr
 !
   sigmar(1) = .001
   sigmar(2) = .002
@@ -434,15 +434,9 @@ module mod_era40
     sigma1(k) = sigmar(kr)
   end do
  
-  allocate(b3(jx,iy,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headerera','allocate b3',ierr)
-  call mall_mci(b3,'mod_era40')
-  allocate(d3(jx,iy,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headerera','allocate d3',ierr)
-  call mall_mci(d3,'mod_era40')
-  allocate(s3(jx,iy,4*3+1), stat=ierr)
-  if (ierr /= 0) call die('headerera','allocate s3',ierr)
-  call mall_mci(s3,'mod_era40')
+  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era40:b3')
+  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era40:d3')
+  call getmem3d(s3,1,jx,1,iy,1,4*3+1,'mod_era40:s3')
 
 !     Set up pointers
 
@@ -466,15 +460,5 @@ module mod_era40
   snw => s2(:,:,13)
 
   end subroutine headerera
-
-  subroutine footerera
-    implicit none
-    call mall_mco(d3,'mod_era40')
-    deallocate(d3)
-    call mall_mco(b3,'mod_era40')
-    deallocate(b3)
-    call mall_mco(s3,'mod_era40')
-    deallocate(s3)
-  end subroutine footerera
 
 end module mod_era40

@@ -168,6 +168,7 @@ module mod_ch_icbc
 !
     integer :: i , is , j , k , l , k0
     type(rcm_time_and_date) , intent(in) :: idate
+    real(sp) :: r4pt
 
     do is = 1 , nchsp
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
@@ -176,13 +177,14 @@ module mod_ch_icbc
 
     poxid_2 = xps*0.01
     p0 = p0*0.01
+    r4pt = real(ptop)
 
     call bilinx2(poxid_3,poxid_2,xlon,xlat,cht42lon,cht42lat,chilon,chjlat,iy,jx,1)
 
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-ptop)*sigma2(l)+ptop)*10.0
+          prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.0
           k0 = -1
           do k = chilev , 1 , -1
             pmpi = poxid_3(j,i)*cht42hybm(k)+cht42hyam(k)*p0

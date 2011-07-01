@@ -24,9 +24,9 @@ module mod_eh5om
   use m_stdio
   use m_die
   use m_zeit
-  use m_mall
   use netcdf
   use mod_grid
+  use mod_memutil
   use mod_write
   use mod_interp
   use mod_vertint
@@ -43,10 +43,10 @@ module mod_eh5om
 
   real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
   real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
-  real(sp) , allocatable , dimension(:,:,:) :: sulfate3
-  real(sp) , allocatable , dimension(:,:) :: pso4_3
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: sulfate3
+  real(sp) , pointer , dimension(:,:) :: pso4_3
 
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -68,7 +68,7 @@ module mod_eh5om
 
   integer(4) , dimension(10) :: icount , istart
 
-  public :: geteh5om , headermpi , footermpi
+  public :: geteh5om , headermpi
 
   contains
 
@@ -1142,7 +1142,7 @@ module mod_eh5om
   logical :: ehso4
   intent (in) ehso4
 !
-  integer :: i , k , kr , ierr
+  integer :: i , k , kr
   logical :: there
 !
   glat(1) = -88.5719985961914
@@ -1436,19 +1436,11 @@ module mod_eh5om
     close (30)
   end if
  
-  allocate(b3(jx,iy,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headermpi','allocate b3',ierr)
-  call mall_mci(b3,'mod_eh5om')
-  allocate(d3(jx,iy,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headermpi','allocate d3',ierr)
-  call mall_mci(d3,'mod_eh5om')
+  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_eh5om:b3')
+  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_eh5om:d3')
   if ( ehso4 ) then
-    allocate(sulfate3(jx,iy,mlev), stat=ierr)
-    if (ierr /= 0) call die('headermpi','allocate sulfate3',ierr)
-    call mall_mci(sulfate3,'mod_eh5om')
-    allocate(pso4_3(jx,iy), stat=ierr)
-    if (ierr /= 0) call die('headermpi','allocate pso4_3',ierr)
-    call mall_mci(pso4_3,'mod_eh5om')
+    call getmem3d(sulfate3,1,jx,1,iy,1,mlev,'mod_eh5om:sulfate3')
+    call getmem2d(pso4_3,1,jx,1,iy,'mod_eh5om:pso4_3')
   end if
 
 !     Set up pointers
@@ -1465,20 +1457,5 @@ module mod_eh5om
   rhvar => b2(:,:,2*klev+1:3*klev)
 
   end subroutine headermpi
-
-  subroutine footermpi(ehso4)
-    implicit none
-    logical , intent(in) :: ehso4
-    call mall_mco(d3,'mod_eh5om')
-    deallocate(d3)
-    call mall_mco(b3,'mod_eh5om')
-    deallocate(b3)
-    if ( ehso4 ) then
-      call mall_mco(sulfate3,'mod_eh5om')
-      deallocate(sulfate3)
-      call mall_mco(pso4_3,'mod_eh5om')
-      deallocate(pso4_3)
-    end if
-  end subroutine footermpi
 
 end module mod_eh5om

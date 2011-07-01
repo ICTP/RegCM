@@ -31,9 +31,9 @@ module mod_cam2
   use m_realkinds
   use m_stdio
   use m_die
-  use m_mall
   use m_zeit
   use mod_dynparam
+  use mod_memutil
   use mod_constants
   use mod_grid
   use mod_write
@@ -54,10 +54,10 @@ module mod_cam2
   integer , parameter :: npl = 18
 
   ! Whole space
-  real(sp) , allocatable , target , dimension(:,:,:) :: b2
-  real(sp) , allocatable , target , dimension(:,:,:) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: b2
+  real(sp) , pointer , dimension(:,:,:) :: d2
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -66,14 +66,15 @@ module mod_cam2
 
   ! Input space
   real(sp) :: p0
-  real(sp) , allocatable , dimension(:,:) :: psvar , zsvar
-  real(sp) , allocatable , dimension(:) :: ak , bk
-  real(sp) , allocatable , dimension(:) :: glat
-  real(sp) , allocatable , dimension(:) :: glon
-  real(sp) , allocatable , dimension(:,:,:) :: hvar , qvar , tvar , &
-                                               uvar , vvar , pp3d
+  real(sp) , pointer , dimension(:,:) :: psvar , zsvar
+  real(sp) , pointer , dimension(:) :: ak , bk
+  real(sp) , pointer , dimension(:) :: glat
+  real(sp) , pointer , dimension(:) :: glon
+  real(sp) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
+                                           uvar , vvar , pp3d
   integer :: timlen
-  type(rcm_time_and_date) , allocatable , dimension(:) :: itimes
+  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
+  real(dp) , pointer , dimension(:) :: xtimes
   real(sp) , dimension(npl) :: pplev , sigmar
 
   ! Shared by netcdf I/O routines
@@ -81,14 +82,14 @@ module mod_cam2
   integer :: inet
   integer , dimension(6) :: ivar
 
-  public :: get_cam2 , headcam2 , footercam2
+  public :: get_cam2 , headcam2
 
   character(256) :: pathaddname
-  type(rcm_time_and_date) :: refdate
+  type(rcm_time_and_date) :: refdate =  &
+               rcm_time_and_date(noleap,1989,12,27,0,0,0,32845,0)
   type(rcm_time_and_date) :: filedate
 
   data inet /-1/
-  data refdate /rcm_time_and_date(noleap,1989,12,27,0,0,0,32845,0)/
 
   contains
 !
@@ -135,44 +136,19 @@ module mod_cam2
 
     ! Input layer and pressure interpolated values
 
-    allocate(glat(nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on glat',1)
-    call mall_mci(glat,'mod_cam2')
-    allocate(glon(nlon),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on glon',1)
-    call mall_mci(glon,'mod_cam2')
-    allocate(zsvar(nlon,nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on zsvar',1)
-    call mall_mci(zsvar,'mod_cam2')
-    allocate(psvar(nlon,nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on psvar',1)
-    call mall_mci(psvar,'mod_cam2')
-    allocate(qvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on qsvar',1)
-    call mall_mci(qvar,'mod_cam2')
-    allocate(tvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on tvar',1)
-    call mall_mci(tvar,'mod_cam2')
-    allocate(hvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on hvar',1)
-    call mall_mci(hvar,'mod_cam2')
-    allocate(uvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on uvar',1)
-    call mall_mci(uvar,'mod_cam2')
-    allocate(vvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on vvar',1)
-    call mall_mci(vvar,'mod_cam2')
-    allocate(pp3d(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on pp3d',1)
-    call mall_mci(pp3d,'mod_cam2')
+    call getmem1d(glat,1,nlat,'mod_cam2:glat')
+    call getmem1d(glon,1,nlon,'mod_cam2:glon')
+    call getmem2d(zsvar,1,nlon,1,nlat,'mod_cam2:zsvar')
+    call getmem2d(psvar,1,nlon,1,nlat,'mod_cam2:psvar')
+    call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_cam2:qvar')
+    call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_cam2:tvar')
+    call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_cam2:hvar')
+    call getmem3d(uvar,1,nlon,1,nlat,1,klev,'mod_cam2:uvar')
+    call getmem3d(vvar,1,nlon,1,nlat,1,klev,'mod_cam2:vvar')
+    call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_cam2:pp3d')
+    call getmem1d(ak,1,klev,'mod_cam2:ak')
+    call getmem1d(bk,1,klev,'mod_cam2:bk')
  
-    allocate(ak(klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on ak',1)
-    call mall_mci(ak,'mod_cam2')
-    allocate(bk(klev),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on bk',1)
-    call mall_mci(bk,'mod_cam2')
-
     istatus = nf90_get_var(inet1,ilat,glat)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_get_var(inet1,ilon,glon)
@@ -224,18 +200,10 @@ module mod_cam2
       sigmar(k) = pplev(k)*0.001
     end do
  
-    allocate(b3(jx,iy,npl*3),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on b3',1)
-    call mall_mci(b3,'mod_cam2')
-    allocate(d3(jx,iy,npl*2),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on d3',1)
-    call mall_mci(d3,'mod_cam2')
-    allocate(b2(nlon,nlat,npl*3),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on b2',1)
-    call mall_mci(b2,'mod_cam2')
-    allocate(d2(nlon,nlat,npl*2),stat=istatus)
-    if (istatus /= 0) call die('mod_cam2','Allocation error on d2',1)
-    call mall_mci(d2,'mod_cam2')
+    call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_cam2:b3')
+    call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_cam2:d3')
+    call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_cam2:b2')
+    call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_cam2:d2')
 
 !       Set up pointers
  
@@ -252,7 +220,7 @@ module mod_cam2
     q3 => b3(:,:,2*npl+1:3*npl)
 
     timlen = 1
-    allocate(itimes(1))
+    call getmem1d(itimes,1,1,'mod_cam2:itimes')
     itimes(1) = 1870010100
     call itimes(1)%setcal(noleap)
 
@@ -332,7 +300,6 @@ module mod_cam2
     integer :: i , it , j , k , timid
     character(256) :: inname
     character(2) , dimension(6) :: varname
-    real(dp) , allocatable , dimension(:) :: xtimes
 
     integer :: nscur , kkrec
     character(64) :: cunit , ccal
@@ -374,21 +341,14 @@ module mod_cam2
       if ( istatus /= nf90_noerr ) call handle_err(istatus)
       istatus = nf90_get_att(inet,timid,'calendar',ccal)
       if ( istatus /= nf90_noerr ) call handle_err(istatus)
-      if (allocated(itimes)) then
-        deallocate(itimes)
-      end if
-      allocate(xtimes(timlen),stat=istatus)
-      if (istatus /= 0) call die('mod_cam2','Allocation error on xtimes',1)
-      call mall_mci(xtimes,'mod_cam2')
-      allocate(itimes(timlen),stat=istatus)
+      call getmem1d(itimes,1,timlen,'mod_cam2:itimes')
+      call getmem1d(xtimes,1,timlen,'mod_cam2:xtimes')
       if (istatus /= 0) call die('mod_cam2','Allocation error on itimes',1)
       istatus = nf90_get_var(inet,timid,xtimes)
       if ( istatus /= nf90_noerr ) call handle_err(istatus)
       do it = 1 , timlen
         itimes(it) = timeval2date(xtimes(it),cunit,ccal)
       end do
-      deallocate(xtimes)
-      call mall_mco(xtimes,'mod_cam2')
       do kkrec = 1 , 6
         istatus = nf90_inq_varid(inet,varname(kkrec), ivar(kkrec))
         if ( istatus /= nf90_noerr ) call handle_err(istatus)
@@ -444,45 +404,6 @@ module mod_cam2
 99001   format ('sococa.ts1.r1.cam2.h1.',i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 
   end subroutine readcam2
-!
-!-----------------------------------------------------------------------
-!
-  subroutine footercam2
-    implicit none
-    call mall_mco(glat,'mod_cam2')
-    deallocate(glat)
-    call mall_mco(glon,'mod_cam2')
-    deallocate(glon)
-    call mall_mco(zsvar,'mod_cam2')
-    deallocate(zsvar)
-    call mall_mco(psvar,'mod_cam2')
-    deallocate(psvar)
-    call mall_mco(tvar,'mod_cam2')
-    deallocate(tvar)
-    call mall_mco(hvar,'mod_cam2')
-    deallocate(hvar)
-    call mall_mco(qvar,'mod_cam2')
-    deallocate(qvar)
-    call mall_mco(uvar,'mod_cam2')
-    deallocate(uvar)
-    call mall_mco(vvar,'mod_cam2')
-    deallocate(vvar)
-    call mall_mco(pp3d,'mod_cam2')
-    deallocate(pp3d)
-    call mall_mco(ak,'mod_cam2')
-    deallocate(ak)
-    call mall_mco(bk,'mod_cam2')
-    deallocate(bk)
-    call mall_mco(b3,'mod_cam2')
-    deallocate(b3)
-    call mall_mco(d3,'mod_cam2')
-    deallocate(d3)
-    call mall_mco(b2,'mod_cam2')
-    deallocate(b2)
-    call mall_mco(d2,'mod_cam2')
-    deallocate(d2)
-    deallocate(itimes)
-  end subroutine footercam2
 !
 !-----------------------------------------------------------------------
 !

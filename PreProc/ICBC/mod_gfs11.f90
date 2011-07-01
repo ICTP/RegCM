@@ -23,7 +23,6 @@ module mod_gfs11
   use m_realkinds
   use m_die
   use m_stdio
-  use m_mall
   use m_zeit
   use mod_grid
   use mod_write
@@ -31,6 +30,7 @@ module mod_gfs11
   use mod_vertint
   use mod_hgt
   use mod_humid
+  use mod_memutil
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
@@ -41,8 +41,8 @@ module mod_gfs11
 
   real(sp) , target , dimension(ilon,jlat,klev*3) :: b2
   real(sp) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -53,7 +53,7 @@ module mod_gfs11
   real(sp) , dimension(ilon) :: glon
   real(sp) , dimension(klev) :: sigma1 , sigmar
 
-  public :: getgfs11 , headergfs , footergfs
+  public :: getgfs11 , headergfs
 
   contains
 
@@ -314,7 +314,7 @@ module mod_gfs11
   subroutine headergfs
   implicit none
 !
-  integer :: i , j , k , kr , ierr
+  integer :: i , j , k , kr
 !
   sigmar(1) = .01
   sigmar(2) = .02
@@ -359,12 +359,8 @@ module mod_gfs11
     sigma1(k) = sigmar(kr)
   end do
  
-  allocate(b3(jx,iy,klev*3), stat=ierr)
-  if (ierr /= 0) call die('headergfs','allocate b3',ierr)
-  call mall_mci(b3,'mod_gfs11')
-  allocate(d3(jx,iy,klev*2), stat=ierr)
-  if (ierr /= 0) call die('headergfs','allocate d3',ierr)
-  call mall_mci(d3,'mod_gfs11')
+  call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_gfs11:b3')
+  call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_gfs11:b3')
 
 !     Set up pointers
 
@@ -380,13 +376,5 @@ module mod_gfs11
   rhvar => b2(:,:,2*klev+1:3*klev)
 !
   end subroutine headergfs
-
-  subroutine footergfs
-    implicit none
-    call mall_mco(d3,'mod_gfs11')
-    deallocate(d3)
-    call mall_mco(b3,'mod_gfs11')
-    deallocate(b3)
-  end subroutine footergfs
 
 end module mod_gfs11

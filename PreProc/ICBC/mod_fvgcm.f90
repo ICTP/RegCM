@@ -20,9 +20,9 @@
 module mod_fvgcm
 
   use mod_dynparam
+  use mod_memutil
   use m_realkinds
   use m_die
-  use m_mall
   use m_zeit
   use mod_grid
   use mod_write
@@ -36,21 +36,21 @@ module mod_fvgcm
 
   private
 
-  integer , parameter :: nlev2 = 18 , nlat2 = 181 , nlon2 = 288
+  integer , parameter :: nlev = 18 , nlat = 181 , nlon = 288
 
-  real(sp) , dimension(nlev2+1) :: ak , bk
-  real(sp) , dimension(nlev2) :: pplev , sigma1 , sigmar
-  real(sp) , dimension(nlat2) :: vlat
-  real(sp) , dimension(nlon2) :: vlon
+  real(sp) , dimension(nlev+1) :: ak , bk
+  real(sp) , dimension(nlev) :: pplev , sigma1 , sigmar
+  real(sp) , dimension(nlat) :: vlat
+  real(sp) , dimension(nlon) :: vlon
 
-  real(sp) , target , dimension(nlon2,nlat2,nlev2*4+1) :: bb
-  real(sp) , target , dimension(nlon2,nlat2,nlev2*3) :: b2
-  real(sp) , target , dimension(nlon2,nlat2,nlev2*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , target , dimension(nlon,nlat,nlev*4+1) :: bb
+  real(sp) , target , dimension(nlon,nlat,nlev*3) :: b2
+  real(sp) , target , dimension(nlon,nlat,nlev*2) :: d2
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
-  real(sp) , dimension(nlon2,nlat2) :: zs2
-  real(sp) , dimension(nlon2,nlat2,nlev2) :: pp3d , z1
+  real(sp) , dimension(nlon,nlat) :: zs2
+  real(sp) , dimension(nlon,nlat,nlev) :: pp3d , z1
 
   real(sp) , pointer , dimension(:,:) :: ps2
   real(sp) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
@@ -59,7 +59,7 @@ module mod_fvgcm
   real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-  public :: getfvgcm , headerfv , footerfv
+  public :: getfvgcm , headerfv
 
   contains
 
@@ -174,9 +174,9 @@ module mod_fvgcm
   end if
   numx = nint((lon1-lon0)/1.25) + 1
   numy = nint(lat1-lat0) + 1
-  do k = 1 , nlev2*4 + 1
-    do j = 1 , nlat2
-      do i = 1 , nlon2
+  do k = 1 , nlev*4 + 1
+    do j = 1 , nlat
+      do i = 1 , nlon
         bb(i,j,k) = -9999.
       end do
     end do
@@ -193,23 +193,23 @@ module mod_fvgcm
   open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
         recl=numx*numy*ibyte,access='direct')
   if ( idate%day /= 1 .or. idate%hour /= 0 ) then
-    nrec = ((idate%day-1)*4+idate%hour/6-1)*(nlev2*4)
+    nrec = ((idate%day-1)*4+idate%hour/6-1)*(nlev*4)
     mrec = (idate%day-1)*4 + idate%hour/6 - 1
   else if ( idate%month == 1 .or. idate%month == 2 .or. &
             idate%month == 4 .or. idate%month == 6 .or. &
             idate%month == 8 .or. idate%month == 9 .or. &
             idate%month == 11 ) then
-    nrec = (31*4-1)*(nlev2*4)
+    nrec = (31*4-1)*(nlev*4)
     mrec = 31*4 - 1
   else if ( idate%month == 5 .or. idate%month == 7 .or. &
             idate%month == 10 .or. idate%month == 12 ) then
-    nrec = (30*4-1)*(nlev2*4)
+    nrec = (30*4-1)*(nlev*4)
     mrec = 30*4 - 1
   else if ( mod(idate%year,4) == 0 .and. idate%year /= 2100 ) then
-    nrec = (29*4-1)*(nlev2*4)
+    nrec = (29*4-1)*(nlev*4)
     mrec = 29*4 - 1
   else
-    nrec = (28*4-1)*(nlev2*4)
+    nrec = (28*4-1)*(nlev*4)
     mrec = 28*4 - 1
   end if
   mrec = mrec + 1
@@ -224,7 +224,7 @@ module mod_fvgcm
       ps2(ii,j+91) = temp(i2,j2)*0.01
     end do
   end do
-  do k = 1 , nlev2
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
     do j = nint(lat0) , nint(lat1)
@@ -238,7 +238,7 @@ module mod_fvgcm
       end do
     end do
   end do
-  do k = 1 , nlev2
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
     do j = nint(lat0) , nint(lat1)
@@ -252,7 +252,7 @@ module mod_fvgcm
       end do
     end do
   end do
-  do k = 1 , nlev2
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
     do j = nint(lat0) , nint(lat1)
@@ -266,7 +266,7 @@ module mod_fvgcm
       end do
     end do
   end do
-  do k = 1 , nlev2
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
     do j = nint(lat0) , nint(lat1)
@@ -283,9 +283,9 @@ module mod_fvgcm
   close (63)
   close (62)
   write (stdout,*) 'READ IN fields at DATE:' , idate
-  do k = 1 , nlev2
-    do j = 1 , nlat2
-      do i = 1 , nlon2
+  do k = 1 , nlev
+    do j = 1 , nlat
+      do i = 1 , nlon
         if ( ps2(i,j) > -9995. ) then
           pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))    &
                         + 0.5*(ak(k)+ak(k+1))
@@ -297,28 +297,28 @@ module mod_fvgcm
   end do
 !
 !     to calculate Heights on sigma surfaces.
-  call htsig(t2,z1,pp3d,ps2,zs2,nlon2,nlat2,nlev2)
+  call htsig(t2,z1,pp3d,ps2,zs2,nlon,nlat,nlev)
 !
 !     to interpolate H,U,V,T,Q and QC
 !     1. For Heights
-  call height(hp,z1,t2,ps2,pp3d,zs2,nlon2,nlat2,nlev2,pplev,nlev2)
+  call height(hp,z1,t2,ps2,pp3d,zs2,nlon,nlat,nlev,pplev,nlev)
 !     2. For Zonal and Meridional Winds
-  call intlin(up,u2,ps2,pp3d,nlon2,nlat2,nlev2,pplev,nlev2)
-  call intlin(vp,v2,ps2,pp3d,nlon2,nlat2,nlev2,pplev,nlev2)
+  call intlin(up,u2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
+  call intlin(vp,v2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
 !     3. For Temperatures
-  call intlog(tp,t2,ps2,pp3d,nlon2,nlat2,nlev2,pplev,nlev2)
+  call intlog(tp,t2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
 !     4. For Moisture qva & qca
-  call humid1fv(t2,q2,pp3d,nlon2,nlat2,nlev2)
-  call intlin(qp,q2,ps2,pp3d,nlon2,nlat2,nlev2,pplev,nlev2)
+  call humid1fv(t2,q2,pp3d,nlon,nlat,nlev)
+  call intlin(qp,q2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-  call bilinx2(b3,b2,xlon,xlat,vlon,vlat,nlon2,nlat2,jx,iy,nlev2*3)
-  call bilinx2(d3,d2,dlon,dlat,vlon,vlat,nlon2,nlat2,jx,iy,nlev2*2)
+  call bilinx2(b3,b2,xlon,xlat,vlon,vlat,nlon,nlat,jx,iy,nlev*3)
+  call bilinx2(d3,d2,dlon,dlat,vlon,vlat,nlon,nlat,jx,iy,nlev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev2,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -327,15 +327,15 @@ module mod_fvgcm
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
 !HH:  CHANGE THE VERTICAL ORDER.
-  call top2btm(t3,jx,iy,nlev2)
-  call top2btm(q3,jx,iy,nlev2)
-  call top2btm(h3,jx,iy,nlev2)
-  call top2btm(u3,jx,iy,nlev2)
-  call top2btm(v3,jx,iy,nlev2)
+  call top2btm(t3,jx,iy,nlev)
+  call top2btm(q3,jx,iy,nlev)
+  call top2btm(h3,jx,iy,nlev)
+  call top2btm(u3,jx,iy,nlev)
+  call top2btm(v3,jx,iy,nlev)
 !HH:OVER
 !
 !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
-  call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev2)
+  call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
  
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band == 1) then
@@ -346,19 +346,19 @@ module mod_fvgcm
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-  call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev2)
+  call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev)
  
   call readsst(ts4,idate)
 
 !     F2     DETERMINE P* AND HEIGHT.
 !
 !     F3     INTERPOLATE U, V, T, AND Q.
-  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
-  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev)
+  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev)
 !
-  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
  
-  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4     DETERMINE H
@@ -372,13 +372,13 @@ module mod_fvgcm
 
   implicit none
 !
-  integer :: i , j , k , kr , ierr
+  integer :: i , j , k , kr
 !
-  do j = 1 , nlat2
+  do j = 1 , nlat
     vlat(j) = float(j-1) - 90.0
   end do
 !
-  do i = 1 , nlon2
+  do i = 1 , nlon
     vlon(i) = float(i-1)*1.25
   end do
  
@@ -401,14 +401,14 @@ module mod_fvgcm
   pplev(17) = 960.
   pplev(18) = 1000.
  
-  do k = 1 , nlev2
+  do k = 1 , nlev
     sigmar(k) = pplev(k)*0.001
   end do
 !HH:OVER
 !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
 !
-  do k = 1 , nlev2
-    kr = nlev2 - k + 1
+  do k = 1 , nlev
+    kr = nlev - k + 1
     sigma1(k) = sigmar(kr)
   end do
 !
@@ -452,39 +452,27 @@ module mod_fvgcm
   bk(18) = 0.9851222
   bk(19) = 1.0
  
-  allocate(b3(jx,iy,nlev2*3), stat=ierr)
-  if (ierr /= 0) call die('headerfv','allocate b3',ierr)
-  call mall_mci(b3,'mod_fvgcm')
-  allocate(d3(jx,iy,nlev2*2), stat=ierr)
-  if (ierr /= 0) call die('headerfv','allocate d3',ierr)
-  call mall_mci(d3,'mod_fvgcm')
+  call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
+  call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
 
 !     Set up pointers
 
   ps2 => bb(:,:,1)
-  t2 => bb(:,:,2:nlev2+1)
-  q2 => bb(:,:,nlev2+2:2*nlev2+1)
-  u2 => bb(:,:,2*nlev2+2:3*nlev2+1)
-  v2 => bb(:,:,3*nlev2+2:4*nlev2+1)
-  tp => b2(:,:,1:nlev2)
-  qp => b2(:,:,nlev2+1:2*nlev2)
-  hp => b2(:,:,2*nlev2+1:3*nlev2)
-  up => d2(:,:,1:nlev2)
-  vp => d2(:,:,nlev2+1:2*nlev2)
-  t3 => b3(:,:,1:nlev2)
-  q3 => b3(:,:,nlev2+1:2*nlev2)
-  h3 => b3(:,:,2*nlev2+1:3*nlev2)
-  u3 => d3(:,:,1:nlev2)
-  v3 => d3(:,:,nlev2+1:2*nlev2)
+  t2 => bb(:,:,2:nlev+1)
+  q2 => bb(:,:,nlev+2:2*nlev+1)
+  u2 => bb(:,:,2*nlev+2:3*nlev+1)
+  v2 => bb(:,:,3*nlev+2:4*nlev+1)
+  tp => b2(:,:,1:nlev)
+  qp => b2(:,:,nlev+1:2*nlev)
+  hp => b2(:,:,2*nlev+1:3*nlev)
+  up => d2(:,:,1:nlev)
+  vp => d2(:,:,nlev+1:2*nlev)
+  t3 => b3(:,:,1:nlev)
+  q3 => b3(:,:,nlev+1:2*nlev)
+  h3 => b3(:,:,2*nlev+1:3*nlev)
+  u3 => d3(:,:,1:nlev)
+  v3 => d3(:,:,nlev+1:2*nlev)
 
   end subroutine headerfv
-
-  subroutine footerfv
-    implicit none
-    call mall_mco(d3,'mod_fvgcm')
-    deallocate(d3)
-    call mall_mco(b3,'mod_fvgcm')
-    deallocate(b3)
-  end subroutine footerfv
 
 end module mod_fvgcm

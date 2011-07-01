@@ -21,13 +21,35 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_block.o: mod_block.f90
-mod_fudge.o: mod_fudge.f90
-mod_maps.o: mod_maps.f90
-mod_write.o: mod_write.F90 mod_block.o mod_maps.o
-mod_smooth.o: mod_smooth.f90
-mod_maputils.o: mod_maputils.f90 mod_block.o mod_maps.o
-mod_interp.o: mod_interp.f90 mod_block.o mod_maps.o
-mod_rdldtr.o: mod_rdldtr.f90 mod_block.o
-terrain.o: terrain.f90 mod_block.o mod_maps.o mod_interp.o \
-	         mod_rdldtr.o mod_write.o mod_header.o
+mod_block.o mod_block.mod: mod_block.f90 $(REGCM_ROOT)/external/m_stdio.mod \
+ $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
+ $(REGCM_ROOT)/Share/mod_constants.mod
+mod_fudge.o mod_fudge.mod: mod_fudge.f90 $(REGCM_ROOT)/external/m_stdio.mod \
+ $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
+ $(REGCM_ROOT)/external/m_ioutil.mod
+mod_header.o mod_header.mod: mod_header.F90 $(REGCM_ROOT)/external/m_stdio.mod
+mod_interp.o mod_interp.mod: mod_interp.f90 \
+ $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/Share/mod_constants.mod \
+ $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_die.mod
+mod_maps.o mod_maps.mod: mod_maps.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
+ $(REGCM_ROOT)/Share/mod_memutil.mod
+mod_maputils.o mod_maputils.mod: mod_maputils.f90 \
+ $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_projections.mod \
+ $(REGCM_ROOT)/Share/mod_projections.mod $(REGCM_ROOT)/Share/mod_projections.mod \
+ $(REGCM_ROOT)/Share/mod_projections.mod
+mod_rdldtr.o mod_rdldtr.mod: mod_rdldtr.f90 mod_block.mod \
+ $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_die.mod \
+ $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
+ $(REGCM_ROOT)/external/m_die.mod
+mod_smooth.o mod_smooth.mod: mod_smooth.f90 \
+ $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_stdio.mod
+mod_write.o mod_write.mod: mod_write.F90 $(REGCM_ROOT)/external/m_stdio.mod \
+ $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
+ $(REGCM_ROOT)/Share/mod_dynparam.mod mod_block.mod \
+ mod_maps.mod $(REGCM_ROOT)/external/m_die.mod
+terrain.o: terrain.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+ $(REGCM_ROOT)/Share/mod_constants.mod mod_maps.mod mod_block.mod mod_smooth.mod \
+ mod_maputils.mod mod_interp.mod mod_fudge.mod mod_rdldtr.mod \
+ mod_write.mod mod_header.mod $(REGCM_ROOT)/external/m_stdio.mod \
+ $(REGCM_ROOT)/external/m_die.mod $(REGCM_ROOT)/external/m_zeit.mod \
+ $(REGCM_ROOT)/Share/mod_memutil.mod

@@ -37,7 +37,7 @@ module mod_nest
 
   private
 
-  public :: get_nest , headernest , footernest
+  public :: get_nest , headernest
 
   integer , parameter :: np = 15
 

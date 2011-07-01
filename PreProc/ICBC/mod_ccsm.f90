@@ -147,10 +147,10 @@ module mod_ccsm
   integer , parameter :: npl = 18
 
   ! Whole space
-  real(sp) , allocatable , target , dimension(:,:,:) :: b2
-  real(sp) , allocatable , target , dimension(:,:,:) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: b2
+  real(sp) , pointer , dimension(:,:,:) :: d2
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(sp) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -159,14 +159,15 @@ module mod_ccsm
 
   ! Input space
   real(sp) :: p0
-  real(sp) , allocatable , dimension(:,:) :: psvar , zsvar
-  real(sp) , allocatable , dimension(:) :: ak , bk
-  real(sp) , allocatable , dimension(:) :: glat
-  real(sp) , allocatable , dimension(:) :: glon
-  real(sp) , allocatable , dimension(:,:,:) :: hvar , qvar , tvar , &
+  real(sp) , pointer , dimension(:,:) :: psvar , zsvar
+  real(sp) , pointer , dimension(:) :: ak , bk
+  real(sp) , pointer , dimension(:) :: glat
+  real(sp) , pointer , dimension(:) :: glon
+  real(sp) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                                uvar , vvar , pp3d
   integer :: timlen
-  type(rcm_time_and_date) , allocatable , dimension(:) :: itimes
+  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
+  real(dp) , pointer , dimension(:) :: xtimes
   real(sp) , dimension(npl) :: pplev , sigmar
 
   ! Shared by netcdf I/O routines
@@ -174,7 +175,7 @@ module mod_ccsm
   integer , dimension(4) :: icount , istart
   integer , dimension(6) :: inet6 , ivar6
 
-  public :: get_ccsm , headccsm , footerccsm
+  public :: get_ccsm , headccsm
 
   character(256) :: pathaddname
 
@@ -223,44 +224,19 @@ module mod_ccsm
 
     ! Input layer and pressure interpolated values
 
-    allocate(glat(nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on glat',1)
-    call mall_mci(glat,'mod_ccsm')
-    allocate(glon(nlon),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on glon',1)
-    call mall_mci(glon,'mod_ccsm')
-    allocate(zsvar(nlon,nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on zsvar',1)
-    call mall_mci(zsvar,'mod_ccsm')
-    allocate(psvar(nlon,nlat),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on psvar',1)
-    call mall_mci(psvar,'mod_ccsm')
-    allocate(qvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on qsvar',1)
-    call mall_mci(qvar,'mod_ccsm')
-    allocate(tvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on tvar',1)
-    call mall_mci(tvar,'mod_ccsm')
-    allocate(hvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on hvar',1)
-    call mall_mci(hvar,'mod_ccsm')
-    allocate(uvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on uvar',1)
-    call mall_mci(uvar,'mod_ccsm')
-    allocate(vvar(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on vvar',1)
-    call mall_mci(vvar,'mod_ccsm')
-    allocate(pp3d(nlon,nlat,klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on pp3d',1)
-    call mall_mci(pp3d,'mod_ccsm')
+    call getmem1d(glat,1,nlat,'mod_ccsm:glat')
+    call getmem1d(glon,1,nlon,'mod_ccsm:glon')
+    call getmem2d(zsvar,1,nlon,1,nlat,'mod_ccsm:zsvar')
+    call getmem2d(psvar,1,nlon,1,nlat,'mod_ccsm:psvar')
+    call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_ccsm:qvar')
+    call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_ccsm:tvar')
+    call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_ccsm:hvar')
+    call getmem3d(uvar,1,nlon,1,nlat,1,klev,'mod_ccsm:uvar')
+    call getmem3d(vvar,1,nlon,1,nlat,1,klev,'mod_ccsm:vvar')
+    call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_ccsm:pp3d')
+    call getmem1d(ak,1,klev,'mod_ccsm:ak')
+    call getmem1d(bk,1,klev,'mod_ccsm:bk')
  
-    allocate(ak(klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on ak',1)
-    call mall_mci(ak,'mod_ccsm')
-    allocate(bk(klev),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on bk',1)
-    call mall_mci(bk,'mod_ccsm')
-
     istatus = nf90_get_var(inet1,ilat,glat)
     if ( istatus /= nf90_noerr ) call handle_err(istatus)
     istatus = nf90_get_var(inet1,ilon,glon)
@@ -312,18 +288,10 @@ module mod_ccsm
       sigmar(k) = pplev(k)*0.001
     end do
  
-    allocate(b3(jx,iy,npl*3),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on b3',1)
-    call mall_mci(b3,'mod_ccsm')
-    allocate(d3(jx,iy,npl*2),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on d3',1)
-    call mall_mci(d3,'mod_ccsm')
-    allocate(b2(nlon,nlat,npl*3),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on b2',1)
-    call mall_mci(b2,'mod_ccsm')
-    allocate(d2(nlon,nlat,npl*2),stat=istatus)
-    if (istatus /= 0) call die('mod_ccsm','Allocation error on d2',1)
-    call mall_mci(d2,'mod_ccsm')
+    call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_ccsm:b3')
+    call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_ccsm:d3')
+    call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_ccsm:b2')
+    call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_ccsm:d2')
 
 !       Set up pointers
  
@@ -416,7 +384,6 @@ module mod_ccsm
     integer :: inet , ivar
     character(25) :: inname
     character(2) , dimension(6) :: varname
-    real(dp) , allocatable , dimension(:) :: xtimes
     character(3) , dimension(12) :: mname
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
@@ -464,21 +431,13 @@ module mod_ccsm
           istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
 
-          if (allocated(itimes)) then
-            deallocate(itimes)
-          end if
-          allocate(xtimes(timlen),stat=istatus)
-          if (istatus /= 0) call die('mod_ccsm','Allocation error on xtimes',1)
-          call mall_mci(xtimes,'mod_ccsm')
-          allocate(itimes(timlen),stat=istatus)
-          if (istatus /= 0) call die('mod_ccsm','Allocation error on itimes',1)
+          call getmem1d(xtimes,1,timlen,'mod_ccsm:xtimes')
+          call getmem1d(itimes,1,timlen,'mod_ccsm:itimes')
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
           if ( istatus /= nf90_noerr ) call handle_err(istatus)
           do it = 1 , timlen
             itimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
-          deallocate(xtimes)
-          call mall_mco(xtimes,'mod_ccsm')
         end if
       end do
       if (lfirst) lfirst = .false.
@@ -549,45 +508,6 @@ module mod_ccsm
 99002   format (i4,'/','ccsm.',a4,a3,'.',i4,'.nc')
 
   end subroutine readccsm
-!
-!-----------------------------------------------------------------------
-!
-  subroutine footerccsm
-    implicit none
-    call mall_mco(glat,'mod_ccsm')
-    deallocate(glat)
-    call mall_mco(glon,'mod_ccsm')
-    deallocate(glon)
-    call mall_mco(zsvar,'mod_ccsm')
-    deallocate(zsvar)
-    call mall_mco(psvar,'mod_ccsm')
-    deallocate(psvar)
-    call mall_mco(tvar,'mod_ccsm')
-    deallocate(tvar)
-    call mall_mco(hvar,'mod_ccsm')
-    deallocate(hvar)
-    call mall_mco(qvar,'mod_ccsm')
-    deallocate(qvar)
-    call mall_mco(uvar,'mod_ccsm')
-    deallocate(uvar)
-    call mall_mco(vvar,'mod_ccsm')
-    deallocate(vvar)
-    call mall_mco(pp3d,'mod_ccsm')
-    deallocate(pp3d)
-    call mall_mco(ak,'mod_ccsm')
-    deallocate(ak)
-    call mall_mco(bk,'mod_ccsm')
-    deallocate(bk)
-    call mall_mco(b3,'mod_ccsm')
-    deallocate(b3)
-    call mall_mco(d3,'mod_ccsm')
-    deallocate(d3)
-    call mall_mco(b2,'mod_ccsm')
-    deallocate(b2)
-    call mall_mco(d2,'mod_ccsm')
-    deallocate(d2)
-    deallocate(itimes)
-  end subroutine footerccsm
 !
 !-----------------------------------------------------------------------
 !

@@ -57,7 +57,7 @@ module mod_ncep
   real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  public :: getncep , headernc , footernc
+  public :: getncep , headernc
 
   contains
 
@@ -629,7 +629,7 @@ module mod_ncep
   subroutine headernc
   implicit none
 !
-  integer :: i , j , k , kr , ierr
+  integer :: i , j , k , kr
 !
 !     X X X X X   SET 1 :PARAMETERS FOR NCEP/NCAR REALALYSIS DATASET X
 !     X X A1

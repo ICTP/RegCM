@@ -20,10 +20,10 @@
 module mod_erahi
 
   use mod_dynparam
+  use mod_memutil
   use m_realkinds
   use m_stdio
   use m_die
-  use m_mall
   use m_zeit
   use mod_grid
   use mod_write
@@ -37,28 +37,28 @@ module mod_erahi
 
   private
 
-  integer , parameter :: nlevs = 60 , nlats = 160 , nlons = 320 , nlev2 = 18
+  integer , parameter :: nlev1 = 60 , nlats = 160 , nlons = 320 , nlev2 = 18
 
-  real(sp) , dimension(nlevs+1) :: ak , bk
+  real(sp) , dimension(nlev1+1) :: ak , bk
   real(sp) , dimension(nlev2) :: pplev , sigma1 , sigmar
   real(sp) , dimension(nlats) :: slat
   real(sp) , dimension(nlons) :: slon
 
   real(sp) , dimension(nlons,nlats) :: lsm , ps2 , zs2
-  real(sp) , dimension(nlons,nlats,nlevs) :: q2 , t2 , u2 , v2
-  real(sp) , dimension(nlons,nlats,nlevs) :: pp3d , z1
+  real(sp) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
+  real(sp) , dimension(nlons,nlats,nlev1) :: pp3d , z1
 
   real(sp) , target , dimension(nlons,nlats,nlev2*3) :: b2
   real(sp) , target , dimension(nlons,nlats,nlev2*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer , dimension(:,:,:) :: tp , qp , hp
   real(sp) , pointer , dimension(:,:,:) :: up , vp
   real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-  public :: geterahi , headerehi , footerehi
+  public :: geterahi , headerehi
 
   contains
 
@@ -106,25 +106,25 @@ module mod_erahi
       if ( lsm(i,j) < 0.5 ) zs2(i,j) = 0.000
     end do
   end do
-  do k = 1 , nlevs
+  do k = 1 , nlev1
     nrec = nrec + 1
     read (61,rec=nrec) ((t2(i,j,k),i=1,nlons),j=1,nlats)
   end do
-  do k = 1 , nlevs
+  do k = 1 , nlev1
     nrec = nrec + 1
     read (61,rec=nrec) ((q2(i,j,k),i=1,nlons),j=1,nlats)
   end do
-  do k = 1 , nlevs
+  do k = 1 , nlev1
     nrec = nrec + 1
     read (61,rec=nrec) ((u2(i,j,k),i=1,nlons),j=1,nlats)
   end do
-  do k = 1 , nlevs
+  do k = 1 , nlev1
     nrec = nrec + 1
     read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
   end do
  
   write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
-  do k = 1 , nlevs
+  do k = 1 , nlev1
     do j = 1 , nlats
       do i = 1 , nlons
         if ( ps2(i,j) > -9995. ) then
@@ -138,19 +138,19 @@ module mod_erahi
   end do
 !
 !     to calculate Heights on sigma surfaces.
-  call htsig(t2,z1,pp3d,ps2,zs2,nlons,nlats,nlevs)
+  call htsig(t2,z1,pp3d,ps2,zs2,nlons,nlats,nlev1)
 !
 !     to interpolate H,U,V,T,Q and QC
 !     1. For Heights
-  call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlevs,pplev,nlev2)
+  call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlev1,pplev,nlev2)
 !     2. For Zonal and Meridional Winds
-  call intlin(up,u2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
-  call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+  call intlin(up,u2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+  call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !     3. For Temperatures
-  call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+  call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !     4. For Moisture qva & qca
-  call humid1fv(t2,q2,pp3d,nlons,nlats,nlevs)
-  call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlevs,pplev,nlev2)
+  call humid1fv(t2,q2,pp3d,nlons,nlats,nlev1)
+  call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
@@ -213,7 +213,7 @@ module mod_erahi
   subroutine headerehi
   implicit none
 !
-  integer :: i , k , kr , ierr
+  integer :: i , k , kr
 !
   slat(1) = -89.142
   slat(2) = -88.029
@@ -534,12 +534,8 @@ module mod_erahi
   bk(60) = 0.99763012
   bk(61) = 1.00000000
  
-  allocate(b3(jx,iy,nlev2*3), stat=ierr)
-  if (ierr /= 0) call die('headerehi','allocate b3',ierr)
-  call mall_mci(b3,'mod_erahi')
-  allocate(d3(jx,iy,nlev2*2), stat=ierr)
-  if (ierr /= 0) call die('headerehi','allocate d3',ierr)
-  call mall_mci(d3,'mod_erahi')
+  call getmem3d(b3,1,jx,1,iy,1,nlev2*3,'mod_erahi:b3')
+  call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
 
 !     Set up pointers
 
@@ -555,13 +551,5 @@ module mod_erahi
   v3 => d3(:,:,nlev2+1:2*nlev2)
 
   end subroutine headerehi
-
-  subroutine footerehi
-    implicit none
-    call mall_mco(d3,'mod_erahi')
-    deallocate(d3)
-    call mall_mco(b3,'mod_erahi')
-    deallocate(b3)
-  end subroutine footerehi
 
 end module mod_erahi

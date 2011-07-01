@@ -20,33 +20,33 @@
 module mod_ecwcp
 
   use mod_dynparam
+  use mod_memutil
   use m_stdio
   use m_realkinds
-  use m_mall
   use m_die
   use m_zeit
 
   private
 
-  integer , parameter :: nlev1 = 15 , jlat = 64 , ilon = 128
+  integer , parameter :: nlev = 15 , jlat = 64 , ilon = 128
 
   real(sp) , dimension(jlat) :: hlat
   real(sp) , dimension(ilon) :: hlon
-  real(sp) , dimension(nlev1) :: sigma1 , sigmar
+  real(sp) , dimension(nlev) :: sigma1 , sigmar
 
-  real(sp) , dimension(ilon,jlat,nlev1) :: w1
+  real(sp) , dimension(ilon,jlat,nlev) :: w1
 
-  real(sp) , target , dimension(ilon,jlat,nlev1*3) :: b2
-  real(sp) , target , dimension(ilon,jlat,nlev1*2) :: d2
-  real(sp) , allocatable , target , dimension(:,:,:) :: b3
-  real(sp) , allocatable , target , dimension(:,:,:) :: d3
+  real(sp) , target , dimension(ilon,jlat,nlev*3) :: b2
+  real(sp) , target , dimension(ilon,jlat,nlev*2) :: d2
+  real(sp) , pointer , dimension(:,:,:) :: b3
+  real(sp) , pointer , dimension(:,:,:) :: d3
 
   real(sp) , pointer , dimension(:,:,:) :: t1 , q1 , h1
   real(sp) , pointer , dimension(:,:,:) :: u1 , v1
   real(sp) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(sp) , pointer , dimension(:,:,:) :: u3 , v3
 
-  public :: getecwcp , headerec , footerec
+  public :: getecwcp , headerec
 
   contains
 
@@ -99,29 +99,29 @@ module mod_ecwcp
   end if
   open (63,file=trim(inpglob)//'/ECWCRP/'//finm(idate%month,idate%year-1992),  &
         form='unformatted',recl=ilon*jlat*ibyte,access='direct')
-  nrec = ((idate%day-1)*4+idate%hour/6)*(nlev1*6+1)
+  nrec = ((idate%day-1)*4+idate%hour/6)*(nlev*6+1)
   nrec = nrec + 1
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((h1(i,j,k),i=1,ilon),j=1,jlat)
   end do
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((t1(i,j,k),i=1,ilon),j=1,jlat)
   end do
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((u1(i,j,k),i=1,ilon),j=1,jlat)
   end do
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((v1(i,j,k),i=1,ilon),j=1,jlat)
   end do
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((w1(i,j,k),i=1,ilon),j=1,jlat)
   end do
-  do k = 1 , nlev1
+  do k = 1 , nlev
     nrec = nrec + 1
     read (63,rec=nrec) ((q1(i,j,k),i=1,ilon),j=1,jlat)
   end do
@@ -131,12 +131,12 @@ module mod_ecwcp
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-  call bilinx2(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev1*3)
-  call bilinx2(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev1*2)
+  call bilinx2(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev*3)
+  call bilinx2(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
-  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev1,plon,plat,iproj)
+  call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,nlev,plon,plat,iproj)
 !
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
@@ -145,7 +145,7 @@ module mod_ecwcp
 !     X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
 !     X X
 !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
-  call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev1)
+  call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
  
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band == 1) then
@@ -157,18 +157,18 @@ module mod_ecwcp
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
-  call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev1)
+  call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev)
  
   call readsst(ts4,idate)
 
 !     F3     INTERPOLATE U, V, T, AND Q.
-  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev1)
-  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev1)
+  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev)
+  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev)
 !
-  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev1)
+  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
  
-  call humid1(t3,q3,100.0,0.0D0,sigma1,jx,iy,nlev1)
-  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev1)
+  call humid1(t3,q3,100.0,0.0D0,sigma1,jx,iy,nlev)
+  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
 !     F4     DETERMINE H
@@ -180,7 +180,7 @@ module mod_ecwcp
   subroutine headerec
   implicit none
 !
-  integer :: i , k , kr , ierr
+  integer :: i , k , kr
 !
   hlat(1) = -87.8638
   hlat(2) = -85.0965
@@ -268,39 +268,27 @@ module mod_ecwcp
 !
 !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
 !
-  do k = 1 , nlev1
-    kr = nlev1 - k + 1
+  do k = 1 , nlev
+    kr = nlev - k + 1
     sigma1(k) = sigmar(kr)
   end do
 
-  allocate(b3(jx,iy,nlev1*3), stat=ierr)
-  if (ierr /= 0) call die('headerec','allocate b3',ierr)
-  call mall_mci(b3,'mod_ecwcp')
-  allocate(d3(jx,iy,nlev1*2), stat=ierr)
-  if (ierr /= 0) call die('headerec','allocate d3',ierr)
-  call mall_mci(d3,'mod_ecwcp')
+  call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_ecwcp:b3')
+  call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_ecwcp:d3')
   
 !     Set up pointers
 
-  u3 => d3(:,:,1:nlev1)
-  v3 => d3(:,:,nlev1+1:2*nlev1)
-  t3 => b3(:,:,1:nlev1)
-  h3 => b3(:,:,nlev1+1:2*nlev1)
-  q3 => b3(:,:,2*nlev1+1:3*nlev1)
-  u1 => d2(:,:,1:nlev1)
-  v1 => d2(:,:,nlev1+1:2*nlev1)
-  t1 => b2(:,:,1:nlev1)
-  h1 => b2(:,:,nlev1+1:2*nlev1)
-  q1 => b2(:,:,2*nlev1+1:3*nlev1)
+  u3 => d3(:,:,1:nlev)
+  v3 => d3(:,:,nlev+1:2*nlev)
+  t3 => b3(:,:,1:nlev)
+  h3 => b3(:,:,nlev+1:2*nlev)
+  q3 => b3(:,:,2*nlev+1:3*nlev)
+  u1 => d2(:,:,1:nlev)
+  v1 => d2(:,:,nlev+1:2*nlev)
+  t1 => b2(:,:,1:nlev)
+  h1 => b2(:,:,nlev+1:2*nlev)
+  q1 => b2(:,:,2*nlev+1:3*nlev)
 
   end subroutine headerec
-
-  subroutine footerec
-    implicit none
-    call mall_mco(d3,'mod_ecwcp')
-    deallocate(d3)
-    call mall_mco(b3,'mod_ecwcp')
-    deallocate(b3)
-  end subroutine footerec
 
 end module mod_ecwcp

@@ -56,6 +56,7 @@ module mod_wrtoxd
   real(sp) , pointer , dimension(:,:,:,:) :: oxv4
   real(sp) , pointer , dimension(:) :: yiy
   real(sp) , pointer , dimension(:) :: xjx
+  real(sp) :: hptop
   
   character(len=128) :: buffer
 
@@ -77,14 +78,15 @@ module mod_wrtoxd
     call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
     call getmem1d(yiy,1,iy,'mod_wrtoxd:yiy')
     call getmem1d(xjx,1,jx,'mod_wrtoxd:xjx')
-    yiy(1) = -(dble(iy-1)/2.0) * ds
-    xjx(1) = -(dble(jx-1)/2.0) * ds
+    yiy(1) = -(real(iy-1)/2.0) * real(ds)
+    xjx(1) = -(real(jx-1)/2.0) * real(ds)
     do i = 2 , iy
-      yiy(i) = yiy(i-1)+ds
+      yiy(i) = yiy(i-1)+real(ds)
     end do
     do j = 2 , jx
-      xjx(j) = xjx(j-1)+ds
+      xjx(j) = xjx(j-1)+real(ds)
     end do
+    hptop = real(ptop)*10.0
   end subroutine init_outoxd
 
   subroutine close_outoxd
@@ -98,8 +100,7 @@ module mod_wrtoxd
   subroutine newfile_ch_icbc(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: istatus
-    integer :: i , j
+    integer :: i , istatus
     integer , dimension(8) :: tvals
     integer , dimension(2) :: izvar
     integer , dimension(2) :: ivvar
@@ -108,7 +109,6 @@ module mod_wrtoxd
     character(64) :: csdate
     character(256) :: history
     real(sp) , dimension(2) :: trlat
-    real(sp) :: hptop
 
     if (ncid > 0) then
       istatus = nf90_close(ncid)
@@ -276,7 +276,6 @@ module mod_wrtoxd
 !
     istatus = nf90_put_var(ncid, izvar(1), sigma2)
     call check_ok(istatus,'Error variable sigma write')
-    hptop = ptop*10.0
     istatus = nf90_put_var(ncid, izvar(2), hptop)
     call check_ok(istatus,'Error variable ptop write')
     istatus = nf90_put_var(ncid, ivvar(1), yiy)
@@ -295,8 +294,7 @@ module mod_wrtoxd
   subroutine newfile_ch_oxcl(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
-    integer :: istatus
-    integer :: i , j
+    integer :: i , istatus
     integer , dimension(8) :: tvals
     integer , dimension(2) :: izvar
     integer , dimension(2) :: ivvar
@@ -475,7 +473,6 @@ module mod_wrtoxd
 !
     istatus = nf90_put_var(ncidox, izvar(1), sigma2)
     call check_ok(istatus,'Error variable sigma write')
-    hptop = ptop*10.0
     istatus = nf90_put_var(ncidox, izvar(2), hptop)
     call check_ok(istatus,'Error variable ptop write')
     istatus = nf90_put_var(ncidox, ivvar(1), yiy)
