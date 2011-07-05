@@ -240,8 +240,8 @@ module mod_date
     iy = yeardays(x%year,x%calendar)
     do while ((id*ipm) >= iy)
       x%year = x%year + ipm
-      iy = yeardays(x%year,x%calendar)
       id = id - ipm*iy
+      iy = yeardays(x%year,x%calendar)
     end do
     if (id >= 0) then
       call idayofyear_to_monthdate(id+1,x%year,x%calendar,x%month,x%day)
