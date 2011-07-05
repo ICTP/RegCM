@@ -637,19 +637,30 @@ module mod_date
     tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day+tmp
-        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        if ( z%second_of_day > 86400 ) then
+          z%second_of_day = z%second_of_day - 86400
+          z%days_from_reference = z%days_from_reference + 1
+        end if
+        z%days_from_reference = z%days_from_reference + (tmp/86400)
         call z%recalculate()
       case (umin)
-        z%second_of_day = z%second_of_day+tmp*60
-        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        tmp = tmp*60
+        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        if ( z%second_of_day > 86400 ) then
+          z%second_of_day = z%second_of_day - 86400
+          z%days_from_reference = z%days_from_reference + 1
+        end if
+        z%days_from_reference = z%days_from_reference + (tmp/86400)
         call z%recalculate()
       case (uhrs)
-        z%second_of_day = z%second_of_day+tmp*3600
-        z%days_from_reference = z%days_from_reference + (z%second_of_day/86400)
-        z%second_of_day = mod(z%second_of_day,86400)
+        tmp = tmp*3600
+        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        if ( z%second_of_day > 86400 ) then
+          z%second_of_day = z%second_of_day - 86400
+          z%days_from_reference = z%days_from_reference + 1
+        end if
+        z%days_from_reference = z%days_from_reference + (tmp/86400)
         call z%recalculate()
       case (uday)
         z%days_from_reference = z%days_from_reference + tmp
@@ -770,15 +781,29 @@ module mod_date
     select case (y%iunit)
       case (usec)
         z%second_of_day = z%second_of_day-mod(tmp,86400)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = 86400 - z%second_of_day
+          z%days_from_reference = z%days_from_reference - 1
+        end if
         z%days_from_reference = z%days_from_reference - (tmp/86400)
         call z%recalculate()
       case (umin)
-        z%second_of_day = z%second_of_day-mod(tmp*60,86400)
-        z%days_from_reference = z%days_from_reference - (tmp/1440)
+        tmp = tmp * 60
+        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = 86400 - z%second_of_day
+          z%days_from_reference = z%days_from_reference - 1
+        end if
+        z%days_from_reference = z%days_from_reference - (tmp/86400)
         call z%recalculate()
       case (uhrs)
-        z%second_of_day = z%second_of_day-mod(tmp*3600,86400)
-        z%days_from_reference = z%days_from_reference - (tmp/24)
+        tmp = tmp * 3600
+        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        if ( z%second_of_day < 0 ) then
+          z%second_of_day = 86400 - z%second_of_day
+          z%days_from_reference = z%days_from_reference - 1
+        end if
+        z%days_from_reference = z%days_from_reference - (tmp/86400)
         call z%recalculate()
       case (uday)
         z%days_from_reference = z%days_from_reference - tmp
