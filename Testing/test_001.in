@@ -28,8 +28,8 @@
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
  h2opct = 75.,
- dirter = '/set/this/to/where/your/domain/file/is',
- inpter = '/set/this/to/where/your/surface/dataset/is',
+ dirter = 'input',
+ inpter = 'RCMDATA',
  /
  &ioparam
  ibyte = 4,
@@ -47,13 +47,14 @@
  /
  &globdatparam
  ibdyfrq = 6,
- ssttyp = 'OI_WK',
- dattyp = 'EIN15',
+ ssttyp = 'EHA1B',
+ dattyp = 'EHA1B',
  ehso4 = .false.,
- gdate1 = 1990060100,
- gdate2 = 1990070100,
- dirglob = '/set/this/to/where/your/icbc/for/model/is',
- inpglob = '/set/this/to/where/your/input/global/data/is',
+ gdate1 = 2001010100,
+ gdate2 = 2011010100,
+ dirglob = 'input',
+ inpglob = 'RCMDATA',
+ calendar = 'gregorian',
  /
  &globwindow
  lat0 = 0.0

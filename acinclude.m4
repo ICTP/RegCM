@@ -9,10 +9,7 @@ AC_DEFUN([AX_PROG_NC_CONFIG], [
   AS_IF([nc-config --version 2>/dev/null | egrep -q '^netCDF '],
         [ax_cv_prog_nc_config=yes], [ax_cv_prog_nc_config=no])
       ])
-  AS_IF([test "$ax_cv_prog_nc_config" = "yes"],
-    m4_ifnblank([$1], [[$1]]),
-    m4_ifnblank([$2], [[$2]])
-  )
+  AS_IF([test "$ax_cv_prog_nc_config" = "yes"], [[$1]], [[$2]])
 ])
 
 AC_DEFUN([RR_PATH_NETCDF],[

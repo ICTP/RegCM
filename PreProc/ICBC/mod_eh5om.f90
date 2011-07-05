@@ -538,7 +538,7 @@ module mod_eh5om
     end do
   end do
   close (63)
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
