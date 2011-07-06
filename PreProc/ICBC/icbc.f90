@@ -218,7 +218,7 @@ program icbc
   do nnn = 1 , nsteps
 
     if (.not. lsamemonth(idate, iodate) ) then
-      call newfile(idate)
+      call newfile(monfirst(idate))
     end if
 
     if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' ) then

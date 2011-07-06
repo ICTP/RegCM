@@ -78,8 +78,8 @@ program chem_icbc
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
-     call newfile_ch_icbc(idate)
-     call newfile_ch_oxcl(idate)
+     call newfile_ch_icbc(monfirst(idate))
+     call newfile_ch_oxcl(monfirst(idate))
    end if
    call get_ch_icbc(idate)
    call get_ch_oxcl(idate)
