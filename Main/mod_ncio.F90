@@ -56,6 +56,7 @@ module mod_ncio
   real(8) :: rpt, tpd, cfd
   real(8) :: xns2d
   real(4) :: xns2r
+  type(rcm_time_and_date) :: cordex_refdate
 
   ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
   ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv
@@ -360,6 +361,8 @@ contains
 
     xns2r = 1.0/real(nnsg)
     xns2d = 1.0D0/dble(nnsg)
+    cordex_refdate = 1949120100
+    call cordex_refdate%setcal(ical)
 
     if (lband) then
       o_is = 2
@@ -1223,7 +1226,7 @@ contains
     write (fbname,'(a,a,i10)') trim(ctype), '.', idate%toidate()
     ofname = trim(dirout)//pthsep//trim(domname)// &
              '_'//trim(fbname)//'.nc'
-    ctime = idate%tostring()
+    ctime = cordex_refdate%tostring()
     write (aline, *) 'Opening new output file ', trim(ofname)
     call say(myid)
 
@@ -2071,7 +2074,7 @@ contains
     istart(1) = 1
     icount(2) = 1
     icount(1) = 2
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(2) = tdif%hours()
     xtime(1) = xtime(2) - srffrq
     istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
@@ -2194,7 +2197,7 @@ contains
 
     istart(1) = isubrec
     icount(1) = 1
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncsub, isubvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
@@ -2314,7 +2317,7 @@ contains
 
     istart(1) = iradrec
     icount(1) = 1
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncrad, iradvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'RAD FILE ERROR')
@@ -2421,7 +2424,7 @@ contains
 
     istart(1) = iatmrec
     icount(1) = 1
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncatm, iatmvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
@@ -2691,7 +2694,7 @@ contains
 
     istart(1) = icherec
     icount(1) = 1
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncche, ichevar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
@@ -2896,7 +2899,7 @@ contains
 
     istart(1) = ilakrec
     icount(1) = 1
-    tdif = idate-idate0
+    tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(nclak, ilakvar(1), xtime, istart(1:1), icount(1:1))
     call check_ok('Error writing itime '//ctime, 'LAK FILE ERROR')
