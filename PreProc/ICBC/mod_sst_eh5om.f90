@@ -398,7 +398,7 @@ module mod_sst_eh5om
     do j = 1 , jlat
       do i = 1 , ilon
         sst(i,j) = real(dble(ivar(i,jlat+1-j))*xscale + offset)
-        if ( sst(i,j) < 273.16 ) sst(i,j) = -9999.
+!       if ( sst(i,j) < 273.16 ) sst(i,j) = -9999.
       end do
     end do
  

@@ -638,7 +638,7 @@ module mod_date
     select case (y%iunit)
       case (usec)
         z%second_of_day = z%second_of_day+mod(tmp,86400)
-        if ( z%second_of_day > 86400 ) then
+        if ( z%second_of_day >= 86400 ) then
           z%second_of_day = z%second_of_day - 86400
           z%days_from_reference = z%days_from_reference + 1
         end if
@@ -647,7 +647,7 @@ module mod_date
       case (umin)
         tmp = tmp*60
         z%second_of_day = z%second_of_day+mod(tmp,86400)
-        if ( z%second_of_day > 86400 ) then
+        if ( z%second_of_day >= 86400 ) then
           z%second_of_day = z%second_of_day - 86400
           z%days_from_reference = z%days_from_reference + 1
         end if
@@ -656,7 +656,7 @@ module mod_date
       case (uhrs)
         tmp = tmp*3600
         z%second_of_day = z%second_of_day+mod(tmp,86400)
-        if ( z%second_of_day > 86400 ) then
+        if ( z%second_of_day >= 86400 ) then
           z%second_of_day = z%second_of_day - 86400
           z%days_from_reference = z%days_from_reference + 1
         end if

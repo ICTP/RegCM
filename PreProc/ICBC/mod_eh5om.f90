@@ -125,7 +125,7 @@ module mod_eh5om
 !
   call zeit_ci('get_eh5om')
  
-  if ( ssttyp == 'EH5RF' ) then
+  if ( dattyp == 'EH5RF' ) then
     if ( idate < 1941010106 ) then
       call die('geteh5om','EH5RF dataset is only available from 1941010106',1)
     end if
@@ -139,7 +139,7 @@ module mod_eh5om
       call die('geteh5om','EH5RF dataset is only available up to 2001010100',1)
     end if
   end if
-  if ( ssttyp == 'EH5A2' ) then
+  if ( dattyp == 'EH5A2' ) then
     if ( idate < 2001010100 ) then
       call die('geteh5om','EH5A2 dataset is only available from 2001010100',1)
     end if
@@ -147,7 +147,7 @@ module mod_eh5om
       call die('geteh5om','EH5A2 dataset is only available up to 2100123118',1)
     end if
   end if
-  if ( ssttyp == 'EH5B1' ) then
+  if ( dattyp == 'EH5B1' ) then
     if ( idate < 2001010100 ) then
       call die('geteh5om','EH5B1 dataset is only available from 2001010100',1)
     end if
@@ -155,7 +155,7 @@ module mod_eh5om
       call die('geteh5om','EH5B1 dataset is only available up to 2100123118',1)
     end if
   end if
-  if ( ssttyp == 'EHA1B' ) then
+  if ( dattyp == 'EHA1B' ) then
     if ( idate < 2001010100 ) then
       call die('geteh5om','EHA1B dataset is only available from 2001010100',1)
     end if
@@ -174,22 +174,22 @@ module mod_eh5om
   numy = nint((lat1-lat0)/1.875) + 1
   if ( numx /= ilon .or. numy /= jlat ) then
     if ( idate%day /= 1 .or. idate%hour /= 0 ) then
-      if ( ssttyp == 'EH5RF' ) then
+      if ( dattyp == 'EH5RF' ) then
         finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_RF'//              &
                yr_rf(idate%year-1940)//chmon(idate%month)
         if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_PS'// &
                             yr_rf(idate%year-1940)//chmon(idate%month)
-      else if ( ssttyp == 'EH5A2' ) then
+      else if ( dattyp == 'EH5A2' ) then
         finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_A2'//              &
                yr_a2(idate%year-2000)//chmon(idate%month)
         if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2000)//chmon(idate%month)
-      else if ( ssttyp == 'EH5B1' ) then
+      else if ( dattyp == 'EH5B1' ) then
         finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_B1'//              &
                yr_a2(idate%year-2000)//chmon(idate%month)
         if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2000)//chmon(idate%month)
-      else if ( ssttyp == 'EHA1B' ) then
+      else if ( dattyp == 'EHA1B' ) then
         finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'E_A1B'//             &
                yr_a2(idate%year-2000)//chmon(idate%month)
         if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)                &
@@ -199,22 +199,22 @@ module mod_eh5om
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
     else if ( idate%month /= 1 ) then
-      if ( ssttyp == 'EH5RF' ) then
+      if ( dattyp == 'EH5RF' ) then
         finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_RF'//              &
                yr_rf(idate%year-1940)//chmon(idate%month-1)
         if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EH_PS'// &
                             yr_rf(idate%year-1940)//chmon(idate%month-1)
-      else if ( ssttyp == 'EH5A2' ) then
+      else if ( dattyp == 'EH5A2' ) then
         finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_A2'//              &
                yr_a2(idate%year-2000)//chmon(idate%month-1)
         if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2000)//chmon(idate%month-1)
-      else if ( ssttyp == 'EH5B1' ) then
+      else if ( dattyp == 'EH5B1' ) then
         finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_B1'//              &
                yr_a2(idate%year-2000)//chmon(idate%month-1)
         if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2000)//chmon(idate%month-1)
-      else if ( ssttyp == 'EHA1B' ) then
+      else if ( dattyp == 'EHA1B' ) then
         finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'E_A1B'//             &
                yr_a2(idate%year-2000)//chmon(idate%month-1)
         if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)                &
@@ -223,12 +223,12 @@ module mod_eh5om
       else
         call die('geteh5om','ERROR IN geteh5om',1)
       end if
-    else if ( ssttyp == 'EH5RF' ) then
+    else if ( dattyp == 'EH5RF' ) then
       finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//                &
              yr_rf(idate%year-1941)//chmon(12)
       if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_PS'//   &
                           yr_rf(idate%year-1941)//chmon(12)
-    else if ( ssttyp == 'EH5A2' ) then
+    else if ( dattyp == 'EH5A2' ) then
       if ( idate%year == 2001 ) then
         finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
                yr_rf(idate%year-1941)//chmon(12)
@@ -240,7 +240,7 @@ module mod_eh5om
         if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2001)//chmon(12)
       end if
-    else if ( ssttyp == 'EH5B1' ) then
+    else if ( dattyp == 'EH5B1' ) then
       if ( idate%year == 2001 ) then
         finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
                yr_rf(idate%year-1941)//chmon(12)
@@ -252,7 +252,7 @@ module mod_eh5om
         if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EH_PS'// &
                             yr_a2(idate%year-2001)//chmon(12)
       end if
-    else if ( ssttyp == 'EHA1B' ) then
+    else if ( dattyp == 'EHA1B' ) then
       if ( idate%year == 2001 ) then
         finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EH_RF'//              &
                yr_rf(idate%year-1941)//chmon(12)
@@ -269,22 +269,22 @@ module mod_eh5om
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
   else if ( idate%day /= 1 .or. idate%hour /= 0 ) then
-    if ( ssttyp == 'EH5RF' ) then
+    if ( dattyp == 'EH5RF' ) then
       finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgRF'//                &
              yr_rf(idate%year-1940)//chmon(idate%month)
       if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgPS'//   &
                           yr_rf(idate%year-1940)//chmon(idate%month)
-    else if ( ssttyp == 'EH5A2' ) then
+    else if ( dattyp == 'EH5A2' ) then
       finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgA2'//                &
              yr_a2(idate%year-2000)//chmon(idate%month)
       if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//   &
                           yr_a2(idate%year-2000)//chmon(idate%month)
-    else if ( ssttyp == 'EH5B1' ) then
+    else if ( dattyp == 'EH5B1' ) then
       finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgB1'//                &
              yr_a2(idate%year-2000)//chmon(idate%month)
       if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//   &
                           yr_a2(idate%year-2000)//chmon(idate%month)
-    else if ( ssttyp == 'EHA1B' ) then
+    else if ( dattyp == 'EHA1B' ) then
       finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EgA1B'//               &
              yr_a2(idate%year-2000)//chmon(idate%month)
       if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
@@ -293,22 +293,22 @@ module mod_eh5om
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
   else if ( idate%month /= 1 ) then
-    if ( ssttyp == 'EH5RF' ) then
+    if ( dattyp == 'EH5RF' ) then
       finm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgRF'//               &
              yr_rf(idate%year-1940)//chmon(idate%month-1)
       if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1940)//'/'//'EHgPS'//  &
                           yr_rf(idate%year-1940)//chmon(idate%month-1)
-    else if ( ssttyp == 'EH5A2' ) then
+    else if ( dattyp == 'EH5A2' ) then
       finm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgA2'//               &
              yr_a2(idate%year-2000)//chmon(idate%month-1)
       if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
                           yr_a2(idate%year-2000)//chmon(idate%month-1)
-    else if ( ssttyp == 'EH5B1' ) then
+    else if ( dattyp == 'EH5B1' ) then
       finm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgB1'//               &
              yr_a2(idate%year-2000)//chmon(idate%month-1)
       if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2000)//'/'//'EHgPS'//  &
                           yr_a2(idate%year-2000)//chmon(idate%month-1)
-    else if ( ssttyp == 'EHA1B' ) then
+    else if ( dattyp == 'EHA1B' ) then
       finm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EgA1B'//              &
              yr_a2(idate%year-2000)//chmon(idate%month-1)
       if ( ehso4 ) psnm = 'A1B/'//yr_a2(idate%year-2000)//'/'//'EHgPS'// &
@@ -316,12 +316,12 @@ module mod_eh5om
     else
       call die('geteh5om','ERROR IN geteh5om',1)
     end if
-  else if ( ssttyp == 'EH5RF' ) then
+  else if ( dattyp == 'EH5RF' ) then
     finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'// &
                   yr_rf(idate%year-1941)//chmon(12)
     if ( ehso4 ) psnm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgPS'//    &
                         yr_rf(idate%year-1941)//chmon(12)
-  else if ( ssttyp == 'EH5A2' ) then
+  else if ( dattyp == 'EH5A2' ) then
     if ( idate%year == 2001 ) then
       finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
              yr_rf(idate%year-1941)//chmon(12)
@@ -333,7 +333,7 @@ module mod_eh5om
       if ( ehso4 ) psnm = 'A2/'//yr_a2(idate%year-2001)//'/'//'EHgPS'//  &
                           yr_a2(idate%year-2001)//chmon(12)
     end if
-  else if ( ssttyp == 'EH5B1' ) then
+  else if ( dattyp == 'EH5B1' ) then
     if ( idate%year == 2001 ) then
       finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
              yr_rf(idate%year-1941)//chmon(12)
@@ -345,7 +345,7 @@ module mod_eh5om
       if ( ehso4 ) psnm = 'B1/'//yr_a2(idate%year-2001)//'/'//'EHgPS'//  &
                           yr_a2(idate%year-2001)//chmon(12)
     end if
-  else if ( ssttyp == 'EHA1B' ) then
+  else if ( dattyp == 'EHA1B' ) then
     if ( idate%year == 2001 ) then
       finm = 'RF/'//yr_rf(idate%year-1941)//'/'//'EHgRF'//               &
              yr_rf(idate%year-1941)//chmon(12)
@@ -592,7 +592,7 @@ module mod_eh5om
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
   if ( ehso4 ) then
-    if ( ssttyp == 'EH5RF' ) then
+    if ( dattyp == 'EH5RF' ) then
       fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                  yr_rf(idate%year-1940)//'.nc'
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
@@ -833,13 +833,13 @@ module mod_eh5om
       else
       end if
     else
-      if ( ssttyp == 'EH5A2' ) then
+      if ( dattyp == 'EH5A2' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'// &
                    yr_a2(idate%year-2000)//'.nc'
-      else if ( ssttyp == 'EHA1B' ) then
+      else if ( dattyp == 'EHA1B' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
                yr_a2(idate%year-2000)//'.nc'
-      else if ( ssttyp == 'EH5B1' ) then
+      else if ( dattyp == 'EH5B1' ) then
         fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'// &
                    yr_a2(idate%year-2000)//'.nc'
       end if
@@ -944,13 +944,13 @@ module mod_eh5om
             end do
           end do
         end do
-        if ( ssttyp == 'EH5A2' ) then
+        if ( dattyp == 'EH5A2' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//   &
                      yr_a2(idate%year-1999)//'.nc'
-        else if ( ssttyp == 'EHA1B' ) then
+        else if ( dattyp == 'EHA1B' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
                       yr_a2(idate%year-1999)//'.nc'
-        else if ( ssttyp == 'EH5B1' ) then
+        else if ( dattyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
                      yr_a2(idate%year-1999)//'.nc'
         end if
@@ -1058,13 +1058,13 @@ module mod_eh5om
             end do
           end do
         end do
-        if ( ssttyp == 'EH5A2' ) then
+        if ( dattyp == 'EH5A2' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A2/T63L31_skg_A2_'//   &
                      yr_a2(idate%year-2001)//'.nc'
-        else if ( ssttyp == 'EHA1B' ) then
+        else if ( dattyp == 'EHA1B' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/A1B/T63L31_skg_A1B_'// &
                       yr_a2(idate%year-2001)//'.nc'
-        else if ( ssttyp == 'EH5B1' ) then
+        else if ( dattyp == 'EH5B1' ) then
           fnso4 = trim(inpglob)//'/EH5OM/SO4/B1/T63L31_skg_B1_'//   &
                      yr_a2(idate%year-2001)//'.nc'
         end if
