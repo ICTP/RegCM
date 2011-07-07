@@ -58,7 +58,7 @@ regcm_SOURCES = mod_bats_param.f90 mod_cvaria.f90 mod_diagnosis.F90   \
                 mod_trachem.F90 mod_tstep.f90 mod_vecbats.F90         \
                 mod_vmodes.F90 mod_zengocn.F90 mod_cu_tiedtke.F90     \
                 mod_interface.F90 mod_ensemble.f90 mod_gridfuncs.f90  \
-		regcm.F90
+		mod_thetal.f90 regcm.F90
 
 if DO_COMPILE_LIBCLM
 regcm_SOURCES += mod_clm.F90 mod_mtrxclm.F90
@@ -266,6 +266,7 @@ mod_tendency.o: mod_tendency.F90 mod_aerosol.o mod_bats.o mod_bdycod.o \
                 mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
                 mod_cldfrac.o
 endif
+mod_thetal.o: mod_thetal.f90
 mod_tracer.o: mod_tracer.f90
 mod_trachem.o: mod_trachem.F90 mod_runparams.o
 mod_tstep.o: mod_tstep.f90 mod_runparams.o

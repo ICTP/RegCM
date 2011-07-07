@@ -121,6 +121,8 @@
       real(8) , parameter :: c5alscp = c5ies*wlhs*rcpd
       real(8) , parameter :: wlhvocp = wlhv*rcpd
       real(8) , parameter :: wlhsocp = wlhs*rcpd
+      real(8) , parameter :: cpowlhv = cpd/wlhv
+      real(8) , parameter :: cpowlhs = cpd/wlhs
       real(8) , parameter :: pq0 = 379.90516D+00
       ! value used for the latent heat term in the exponent for
       ! calculating equivalent potential temperature
