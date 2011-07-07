@@ -112,9 +112,9 @@ module mod_mksst
     irec = 1
     do i = 1 , ntime
       if ( idate < itime(i) ) then
-        irec = i
         exit
       end if
+      irec = irec + 1
     end do
     irec = irec - 1
 
