@@ -20,6 +20,16 @@
 module mod_tcm_interface
 
   use mod_memutil
+  use mod_constants
+  use mod_runparams
+  use mod_slice
+  use mod_rad
+  use mod_main
+  use mod_cvaria
+  use mod_gridfuncs
+  use mod_service
+  use mod_pbldim
+  use m_realkinds
 
   private
 
@@ -27,23 +37,23 @@ module mod_tcm_interface
     !
     ! TKE*ps (m^2/s^2 * cb)
     !
-    real(8) , pointer , dimension(:,:,:) :: tkeps
+    real(dp) , pointer , dimension(:,:,:) :: tkeps
     !
     ! Coupled TKE Advective Tendency (m^2/s^3 * cb) 
     !
-    real(8) , pointer , dimension(:,:,:) :: advtke
+    real(dp) , pointer , dimension(:,:,:) :: advtke
     !
     ! Vertical momentum diffusivity (m^2/s)
     !
-    real(8) , pointer , dimension(:,:,:) :: kzm
+    real(dp) , pointer , dimension(:,:,:) :: kzm
     !
     ! Vertical scalar diffusivity (m^2/s)
     !
-    real(8) , pointer , dimension(:,:,:) :: kth
+    real(dp) , pointer , dimension(:,:,:) :: kth
     !
     ! Boundary layer height (m)
     !
-    real(8) , pointer , dimension(:,:) :: zpbl
+    real(dp) , pointer , dimension(:,:) :: zpbl
     !
     ! Boundary layer level index
     !
@@ -51,7 +61,7 @@ module mod_tcm_interface
     !
     ! Surface layer TKE (m^2/s^2)
     !
-    real(8) , pointer , dimension(:,:) :: srftke
+    real(dp) , pointer , dimension(:,:) :: srftke
     !
   end type tcm_state
 
@@ -62,27 +72,27 @@ module mod_tcm_interface
     !
     ! Zonal Wind (m/s)
     !
-    real(8) , pointer , dimension(:,:,:) :: u
+    real(dp) , pointer , dimension(:,:,:) :: u
     !
     ! Meridional Wind (m/s)
     !
-    real(8) , pointer , dimension(:,:,:) :: v
+    real(dp) , pointer , dimension(:,:,:) :: v
     !
     ! Temperature (K)
     !
-    real(8) , pointer , dimension(:,:,:) :: t
+    real(dp) , pointer , dimension(:,:,:) :: t
     !
     ! Specific Humidity (kg/kg)
     !
-    real(8) , pointer , dimension(:,:,:) :: qv
+    real(dp) , pointer , dimension(:,:,:) :: qv
     !
     ! Specific cloud water ratio (kg/kg)
     !
-    real(8) , pointer , dimension(:,:,:) :: qc
+    real(dp) , pointer , dimension(:,:,:) :: qc
     !
     ! Turbulent Kinetic Energy (m^2/s^2)
     !
-    real(8) , pointer , dimension(:,:,:) :: tke 
+    real(dp) , pointer , dimension(:,:,:) :: tke 
     !
   end type host_atm_state
 
@@ -90,45 +100,45 @@ module mod_tcm_interface
     !
     ! Pressure (cb)
     !
-    real(8) , pointer , dimension(:,:) :: ps
+    real(dp) , pointer , dimension(:,:) :: ps
     !
     ! Ground temperature (K)
     !
-    real(8) , pointer , dimension(:,:) :: tg
+    real(dp) , pointer , dimension(:,:) :: tg
     !
     ! Surface Latent Enthalpy Flux (W/m^2)
     !
-    real(8) , pointer , dimension(:,:) :: qfx
+    real(dp) , pointer , dimension(:,:) :: qfx
     !
     ! Surface Sensible Enthalpy Flux (W/m^2)
     !
-    real(8) , pointer , dimension(:,:) :: hfx
+    real(dp) , pointer , dimension(:,:) :: hfx
     !
     ! Surface Drag (~momentum flux) (kg/m^2/s [?])
     !
-    real(8) , pointer , dimension(:,:) :: uvdrag
+    real(dp) , pointer , dimension(:,:) :: uvdrag
     !
   end type host_srf_state
 
   type , public :: host_rad_state
     !
     ! Radiative heating (cooling) rate
-    real(8) , pointer , dimension(:,:,:) :: heatrt
+    real(dp) , pointer , dimension(:,:,:) :: heatrt
   end type host_rad_state
 
   type,public :: host_domain
     !
     ! Sigma at full levels
     !
-    real(8) , pointer , dimension(:) :: sigma
+    real(dp) , pointer , dimension(:) :: sigma
     !
     ! Sigma at half levels
     !
-    real(8) , pointer , dimension(:) :: a
+    real(dp) , pointer , dimension(:) :: a
     !
     ! Pressure at top of model (cb)
     !
-    real(8) , pointer :: ptop
+    real(dp) :: ptop
     !
   end type host_domain
 
@@ -140,8 +150,8 @@ module mod_tcm_interface
   !
   type(tcm_state) , public , pointer :: tcmstatea , tcmstateb
 
-  real(8) , public :: dttke ! TKE time step
-  real(8) , public :: tkemin
+  real(dp) , public :: dttke ! TKE time step
+  real(dp) , public :: tkemin
 
   !
   ! Specific instances of the model's state variables (at the b time step)
@@ -162,11 +172,6 @@ module mod_tcm_interface
   contains
 
   subroutine init_tcm_interface
-    use mod_runparams , only : sigma , a , r8pt , dt
-    use mod_slice , only : ubx3d , vbx3d , tb3d , qvb3d , qcb3d
-    use mod_rad , only : heatrt
-    use mod_main , only: sps2 , sts2 , sfsta , atm2
-    use mod_dynparam , only: iy , jx , jxp , myid , nproc
     implicit none
 
     itcmstart = 2
@@ -200,7 +205,7 @@ module mod_tcm_interface
 
     hdomain%sigma => sigma
     hdomain%a => a
-    hdomain%ptop => r8pt 
+    hdomain%ptop = r8pt 
 
     dttke = dt
     tkemin = 1.0D-8
@@ -208,7 +213,6 @@ module mod_tcm_interface
   end subroutine init_tcm_interface
 
   subroutine allocate_tcm_state(tcmstate)
-    use mod_dynparam , only : iy , jx , kzp1 , jxp
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
     !
@@ -242,15 +246,9 @@ module mod_tcm_interface
 
     nullify(hdomain%sigma)
     nullify(hdomain%a)
-    nullify(hdomain%ptop)
   end subroutine end_tcm_interface
 
   subroutine get_data_from_tcm(tcmstate,tcmtend,bRegridWinds)
-    use mod_cvaria , only : aten , diffq , difft
-    use mod_main , only : atmstate , atm1 , atm2 , sfsta
-    use mod_gridfuncs , only : uvcross2dot
-    use mod_dynparam , only : kzp1 , kz
-    use mod_runparams , only : ibltyp
     implicit none 
     type(atmstate) , intent(inout) :: tcmtend
     type(tcm_state) , intent(inout) :: tcmstate
@@ -347,15 +345,9 @@ module mod_tcm_interface
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
   subroutine hadvTKE(tcmstate,dxx,j)
-
-    use mod_dynparam
-    use mod_cvaria
-    use mod_main
-    use mod_runparams
-    use mod_service
     implicit none
     integer , intent(in) :: j
-    real(8) , intent(in) :: dxx
+    real(dp) , intent(in) :: dxx
     type(tcm_state) , pointer :: tcmstate
     character (len=50) :: subroutine_name='hadvTKE'
     integer :: idindx = 0
@@ -410,15 +402,10 @@ module mod_tcm_interface
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
   subroutine vadvTKE(tcmstate,j,ind)
-    use mod_dynparam
-    use mod_service
-    use mod_runparams , only : dsigma , r8pt , qcon , twt , a , sigma
-    use mod_main
-    use mod_cvaria
     implicit none
     integer , intent(in) :: j , ind
     type(tcm_state) , pointer :: tcmstate
-    real(8) , dimension(iy,kz) :: dotqdot , ftmp
+    real(dp) , dimension(iy,kz) :: dotqdot , ftmp
     character (len=50) :: subroutine_name='vadvTKE'
     integer :: idindx = 0
 !
@@ -471,9 +458,6 @@ module mod_tcm_interface
   end subroutine vadvTKE
 
   subroutine set_tke_bc()
-    use mod_main , only : atm1 , atm2
-    use mod_runparams , only : iy , jx , jxp
-    use mod_dynparam , only : myid , nproc
     implicit none
     !
     ! Set TKE boundary conditions
@@ -497,20 +481,14 @@ module mod_tcm_interface
   end subroutine set_tke_bc
 
   subroutine check_conserve_qt(rcmqvten,rcmqcten,tcmtend,dom,tcmstate,kmax)
-    use mod_pbldim , only : dzq , za , rhox2d
-    use mod_main , only : atmstate , sfsta , sps2
-    use mod_slice , only : tb3d , qvb3d , qcb3d
-    use mod_dynparam , only : iy , jbegin , jendx , kzm1 , \kz
-    use mod_constants , only : rgas , ep1i , egrav
-    use mod_runparams , only : dt
     implicit none
     type(atmstate) , intent(in) :: tcmtend
     type(tcm_state) :: tcmstate
     type(host_domain) , intent(in) :: dom
-    real(8) , dimension(:,:,:) , intent(in) :: rcmqvten , rcmqcten
+    real(dp) , dimension(:,:,:) , intent(in) :: rcmqvten , rcmqcten
     integer , intent(in) :: kmax
-    real(8) , dimension(kmax) :: rho1d , rhobydpdz1d
-    real(8) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
+    real(dp) , dimension(kmax) :: rho1d , rhobydpdz1d
+    real(dp) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
     integer :: i , j , k
 
     do i = 2 , iym1

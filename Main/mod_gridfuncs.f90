@@ -26,6 +26,8 @@ module mod_gridfuncs
 
   private
 
+  public :: uvcross2dot
+
   contains
 !
 ! Takes an atmstate variable with u and v on the cross grid (the

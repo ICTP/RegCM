@@ -23,6 +23,7 @@ module mod_runparams
   use mod_dynparam
   use mod_message
   use mod_service 
+  use mod_memutil
 
   implicit none
  
@@ -67,12 +68,12 @@ module mod_runparams
   real(8) :: r8pt
   real(8) :: akht1 , akht2
 
-  real(8) , allocatable , dimension(:) :: dtau
-  real(8) , allocatable , dimension(:) :: a , anudg , dsigma , qcon
-  real(8) , allocatable , dimension(:) :: sigma
-  real(8) , allocatable , dimension(:,:) :: twt
-  real(8) , allocatable , dimension(:) :: wgtd
-  real(8) , allocatable , dimension(:) :: wgtx
+  real(8) , pointer , dimension(:) :: dtau
+  real(8) , pointer , dimension(:) :: a , anudg , dsigma , qcon
+  real(8) , pointer , dimension(:) :: sigma
+  real(8) , pointer , dimension(:,:) :: twt
+  real(8) , pointer , dimension(:) :: wgtd
+  real(8) , pointer , dimension(:) :: wgtx
 
   character(len=3) :: scenario
 
@@ -334,68 +335,16 @@ module mod_runparams
 
   subroutine allocate_mod_runparams
     implicit none
-    character (len=10) :: myname='run-params'
-    allocate(a(kz),stat=ierr)
-    call check_alloc(ierr,myname,'a',size(a)*kind(a))
-    allocate(anudg(kz),stat=ierr)
-    call check_alloc(ierr,myname,'anudg',size(anudg)*kind(anudg))
-    allocate(dsigma(kz),stat=ierr)
-    call check_alloc(ierr,myname,'dsigma',size(dsigma)*kind(dsigma))
-    allocate(qcon(kz),stat=ierr)
-    call check_alloc(ierr,myname,'qcon',size(qcon)*kind(dsigma))
-    allocate(sigma(kzp1),stat=ierr)
-    call check_alloc(ierr,myname,'sigma',size(sigma)*kind(sigma))
-    allocate(twt(kz,2),stat=ierr)
-    call check_alloc(ierr,myname,'twt',size(twt)*kind(twt))
-    allocate(wgtd(nspgd),stat=ierr)
-    call check_alloc(ierr,myname,'wgtd',size(wgtd)*kind(wgtd))
-    allocate(wgtx(nspgx),stat=ierr)
-    call check_alloc(ierr,myname,'wgtx',size(wgtx)*kind(wgtx))
-    allocate(dtau(nsplit),stat=ierr)
-    call check_alloc(ierr,myname,'dtau',size(dtau)*kind(dtau))
-
-    a = d_zero
-    anudg = d_zero
-    dsigma = d_zero
-    qcon = d_zero
-    sigma = d_zero
-    twt = d_zero
-    wgtd = d_zero
-    wgtx = d_zero
-    dtau = d_zero
-    
-  call report_alloc('allocate_mod_run_params') 
-
+    call getmem1d(a,1,kz,'mod_runparams:a')
+    call getmem1d(anudg,1,kz,'mod_runparams:anudg')
+    call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
+    call getmem1d(qcon,1,kz,'mod_runparams:qcon')
+    call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
+    call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
+    call getmem1d(wgtd,1,nspgd,'mod_runparams:wgtd')
+    call getmem1d(wgtx,1,nspgx,'mod_runparams:wgtx')
+    call getmem1d(dtau,1,nsplit,'mod_runparams:nsplit')
   end subroutine allocate_mod_runparams
-!
-  subroutine check_alloc(ierr,where,what,isize)
-    implicit none
-    integer , intent(in) :: ierr , isize
-    character(len=*) :: what , where
-#ifdef DEBUG
-    character(len=50) :: buffer
-#endif
-
-    if (ierr /= 0) then
-      call fatal(__FILE__,__LINE__,what//' CANNOT BE allocated')
-    end if
-#ifdef DEBUG 
-    if (debug_level > 3) then 
-       write (buffer,*)  what, &
-         '  allocated succesfully: global size is'
-       CALL write_info(where,buffer,isize)
-    end if 
-#endif           
-    total_allocation_size = total_allocation_size + isize
-  end subroutine check_alloc
-!
-  subroutine report_alloc(where)
-    implicit none
-    character(len=*) ::  where
-    write(aline,*) where, &
-      ': total allocation (in Kbyte)=', total_allocation_size*8/1024
-    call say(myid)
-  end subroutine report_alloc
 !
   logical function iswater(a)
     real(8) , intent(in) :: a

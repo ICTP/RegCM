@@ -63,13 +63,13 @@
 
 module mod_uwtcm
 
-  use mod_tcm_interface
-  use mod_main , only : atmstate , allocate_atmstate
-  use mod_constants
-  use mod_runparams , only : dt , ibltyp
-  use mod_mesasge , only : fatal
   use mod_memutil
   use m_realkinds
+  use mod_runparams
+  use mod_constants
+  use mod_tcm_interface
+  use mod_main , only : atmstate , allocate_atmstate
+  use mod_message , only : fatal
   use mod_thetal , only : solve_for_t
 
   private
@@ -80,7 +80,6 @@ module mod_uwtcm
   integer , public :: ktmin = 3
 
   ! Model constants
-  real(dp) ::  aone , czero , rcrit , etal
   ! fraction of turb layer to be considered in bbls
   real(dp) , parameter :: xfr = 0.1D0
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
@@ -98,11 +97,6 @@ module mod_uwtcm
         
   ! Variables that hold frequently-done calculations
   real(dp) :: rdt , rcp , rczero
-
-  ! Minimum TKE
-  ! real(dp) , parameter :: tkemin = d_zero
-  ! real(dp) , parameter :: tkemin = 1.0D-15
-  real(dp) , parameter :: tkemin = 1.0D-3
 
   ! local variables on full levels
   real(dp) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
@@ -487,7 +481,7 @@ module mod_uwtcm
         !************ Re-calculate thx, qx, and qcx ******************
         !*************************************************************
 
-        recalcscalar:
+        recalcscalar: &
         do k = 1 , kz
           ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
@@ -601,9 +595,10 @@ module mod_uwtcm
         radib:&
         do ilay = 1 , iconv
           k = ktop(ilay)
-          if ( qcx(k) > 1D-8 .and. k > 1 ) then
-            bouyan(k) = bouyan(k) - rttenx(k)*(presfl(k+1)-presfl(k))*1D3 * &
-                                    rrhoxfl(k) * rexnerfl(k) / thvx(k) 
+          if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
+            bouyan(k) = bouyan(k) - &
+                        rttenx(k)*(presfl(k+1)-presfl(k))*d_1000 * &
+                        rrhoxfl(k) * rexnerfl(k) / thvx(k) 
           end if
         end do radib
         ! tke at top is fixed
@@ -767,7 +762,6 @@ module mod_uwtcm
   end subroutine n2
 
   subroutine my(kmax,iconv)
-    use mod_runparams , only : dt
     ! see gb01 and mbg02
     implicit none
     integer , intent(in) :: kmax , iconv
@@ -793,8 +787,8 @@ module mod_uwtcm
 
     kloop: &
     do k = kmax - 1, 2, -1
-      gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1D-9)
-      ! gh = dmin1(gh,0.0233d0)
+      gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0D-9)
+      ! gh = dmin1(gh,0.0233D0)
       ! TAO: Added the -0.28 minimum for the G function, as stated
       ! in Galperin (1988), eq 30
       gh = dmax1(dmin1(gh,0.0233D0),-0.28D0)
@@ -803,11 +797,11 @@ module mod_uwtcm
               ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
                 d_three*c1 * (b2 + d_six*a1))) /                   &
               ((d_one - d_three*a2*gh * (d_six*a1 + b2)) *         &
-               (d_one - 9.0D0*a1*a2*gh))
+               (d_one - d_nine*a1*a2*gh))
       sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
 
-      ! kzm(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0d0)
-      ! kth(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sh(k),10000.0d0)
+      ! kzm(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0D0)
+      ! kth(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sh(k),10000.0D0)
 
       ! Limit the diffusivity to be the vertical grid spacing squared
       ! over the time step; this implies that the entrainment rate
@@ -815,7 +809,7 @@ module mod_uwtcm
       ! one grid level over one time step -- TAO
       ! kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.d4)
           
-      kthmax = 10000.0d0
+      kthmax = 10000.0D0
 
       ! Calculate the diffusion coefficients
       kzm(k) = bbls(k)*dsqrt(d_two*tke(k))*sm(k)
@@ -840,14 +834,14 @@ module mod_uwtcm
         bige = 0.8D0 * elambda
         biga = aone * (d_one + atwo * bige)
 
-        ! kth(k) = dmin1(10000.0d0, biga * dsqrt(tke(k)**3)/nsquar(k)/    &
+        ! kth(k) = dmin1(10000.0D0, biga * dsqrt(tke(k)**3)/nsquar(k)/    &
         !          dmax1(bbls(k),bbls(k+1)))
         ! Limit the diffusivity to be the vertical grid spacing squared
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by 
         ! one grid level over one time step -- TAO
         kthmax = dmin1((zax(k-1)-zax(k))**d_two/dt,1.D4)
-        ! kthmax = 10000.0d0
+        ! kthmax = 10000.0D0
         kth(k) = biga * dsqrt(TKE(k)**d_three)/nsquar(k) /    &
                  dmax1(bbls(k),bbls(k+1))
         ! Smoothly limit kth to a maximum value
@@ -890,7 +884,7 @@ module mod_uwtcm
         istabl = 1
         bbls(k) = dmin1(rstbl*dsqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
         ! bbls(k) = dmax1(dmin1(rstbl*dsqrt(tke(k)/nsquar(k)), &
-        !           vonkar*zqx(k)),1D-8)
+        !           vonkar*zqx(k)),1.0D-8)
       end if
     end do findconv
 
@@ -952,8 +946,8 @@ module mod_uwtcm
         ! add radiative/entrainment contribution to total
         k = ktop(ilay)
         radnnll = d_zero
-        if ( qcx(k) > 1d-8 ) then
-          radnnll = rttenx(k)*(presfl(k+1)-presfl(k))*1d3/    &
+        if ( qcx(k) > 1.0D-8 ) then
+          radnnll = rttenx(k)*(presfl(k+1)-presfl(k))*d_1000/    &
                     (rhoxfl(k)*thvx(k)*exnerfl(k))
         end if
         entnnll = d_zero
@@ -965,7 +959,7 @@ module mod_uwtcm
           biga = aone * (d_one + atwo * bige)
           entnnll = biga * dsqrt(tkeavg**d_three) / bbls(k)
         end if
-        rnnll = rnnll + dmin1(d_zero,bbls(k)/dsqrt(dmax1(tkeavg,1D-8)) * &
+        rnnll = rnnll + dmin1(d_zero,bbls(k)/dsqrt(dmax1(tkeavg,1.0D-8)) * &
                                             (radnnll + entnnll) )
         nlev = nlev + 1
         ! now extend down
@@ -1112,7 +1106,7 @@ module mod_uwtcm
     isBelow7001D = .false.
     foundlayer = .false.
 
-    where ( rcldb > 0.0 )
+    where ( rcldb > d_zero )
      isSaturated1D = .true.
     end where
 
@@ -1120,7 +1114,7 @@ module mod_uwtcm
       isStable1D = .true.
     end where
 
-    where ( presfl >= 70.0 )
+    where ( presfl >= 70.0D0 )
       isBelow7001D = .true.
     end where
 
@@ -1181,7 +1175,7 @@ module mod_uwtcm
     ! Otherwise use a Stability-related length scale
     do k = kmix2dx-1 , 1 , -1
       if ( nsquar(k) > d_zero ) then
-        bbls(k) = dmax1(dmin1(rstbl*dsqrt(tke(k)/nsquar(k)),ktimesz(k)),1D-8)
+        bbls(k) = dmax1(dmin1(rstbl*dsqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0D-8)
       else
         bbls(k) = ktimesz(k) - ktimesz(k+1)
       end if
