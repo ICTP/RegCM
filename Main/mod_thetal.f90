@@ -276,6 +276,7 @@ module mod_thetal
       !******* condense any water, if possible ***************
       !*******************************************************
 
+bigloop : &
       do
         if ( isice == 0 ) then
 
@@ -344,11 +345,11 @@ module mod_thetal
               write(*,*) '(mod_thetal) warning: non-convergence of ', &
                          'temperature solution'
             end if
-            continue
+            cycle bigloop
           end if
         end if
         exit
-      end do
+      end do bigloop
 
 
 !     ! check if the solution has converged properly
