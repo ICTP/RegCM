@@ -371,9 +371,11 @@ module mod_date
 
     if ( c == 'gregorian' ) then
       x%calendar = gregorian
-    else if ( c == 'noleap' .or. c == 'days_365' ) then
+    else if ( c(1:6) == 'noleap' .or.   &
+              c(1:8) == 'days_365' .or. &
+              c(1:7) == '365_day' ) then
       x%calendar = noleap
-    else if ( c == 'days_360' ) then
+    else if ( c(1:7) == 'days_360' ) then
       x%calendar = y360
     else
       write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
@@ -1061,13 +1063,27 @@ module mod_date
         iunit = uhrs
       else if (cunit(1:4) == 'days') then
         ! Unit is days since reference
-        read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
-          cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        if (len_trim(cunit) >= 30) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        else if (len_trim(cunit) >= 21) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2)') cdum, year, cdum, month, cdum, day
+          hour = 0
+          minute = 0
+          second = 0
+        else if (len_trim(cunit) >= 19) then
+          read(cunit,'(a11,i4,a1,i1,a1,i1)') cdum, year, cdum, month, cdum, day
+          hour = 0
+          minute = 0
+          second = 0
+        end if
         iunit = uday
       end if
-      if (ccal == 'noleap' .or. ccal == '365_day') then
+      if ( ccal(1:6) == 'noleap' .or.   &
+           ccal(1:8) == 'days_365' .or. &
+           ccal(1:7) == '365_day' ) then
         dref = rcm_time_and_date(noleap,year,month,day,hour,minute,second,0,0)
-      else if (ccal == '360_day') then
+      else if (ccal(1:7) == '360_day') then
         dref = rcm_time_and_date(y360,year,month,day,hour,minute,second,0,0)
       else
         dref = rcm_time_and_date(gregorian,year,month,day,hour,minute,second,0,0)

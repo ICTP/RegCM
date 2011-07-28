@@ -26,8 +26,7 @@ program sst
   use mod_sst_eh5om
   use mod_sst_ersst
   use mod_sst_fvgcm
-  use mod_sst_ccsm
-  use mod_sst_cam2
+  use mod_sst_gnmnc
   use mod_memutil
   use m_die
   use m_stdio
@@ -77,18 +76,21 @@ program sst
   else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
             ssttyp == 'FV_B2' ) then
     call sst_fvgcm
-  else if ( ssttyp == 'CCSST' ) then
+  else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM2N' .or. &
+            ssttyp == 'CA_RF' .or. ssttyp == 'CA_26' .or. &
+            ssttyp == 'CA_45' .or. ssttyp == 'CA_85') then
     if (ical /= noleap) then
-      write(stderr,*) 'CCSM calendar should be set to noleap'
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
-    call sst_ccsm
-  else if ( ssttyp == 'CAM2N' ) then
-    if (ical /= noleap) then
-      write(stderr,*) 'CAM2N calendar should be set to noleap'
+    call sst_gnmnc
+  else if ( ssttyp == 'HA_RF' .or. ssttyp == 'HA_26' .or. &
+            ssttyp == 'HA_45' .or. ssttyp == 'HA_85') then
+    if (ical /= y360 ) then
+      write(stderr,*) ssttyp//' calendar should be set to 360_day'
       call die('sst','Calendar mismatch',1)
     end if
-    call sst_cam2
+    call sst_gnmnc
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)

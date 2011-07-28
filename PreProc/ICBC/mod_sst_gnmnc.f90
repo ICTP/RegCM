@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_sst_cam2
+module mod_sst_gnmnc
 
   use m_realkinds
   use m_die
@@ -43,39 +43,30 @@ module mod_sst_cam2
   real(dp) , pointer ::  work1(:)
   real(sp) , pointer , dimension (:, :) :: work2 , work3
   real(sp) , pointer , dimension(:,:) :: sst
-  type(rcm_time_and_date) :: cssidate1
+  type(rcm_time_and_date) :: fidate1
   character(64) :: cunit , ccal
   character(256) :: inpfile
   character(len=8), dimension(2) :: varname
 !
-  data varname/'time','SST_cpl'/
+  data varname/'time', 'TOBESET'/
+!
 
-  public :: sst_cam2
+  public :: sst_gnmnc
 
   contains
 
-  subroutine sst_cam2
+  subroutine sst_gnmnc
 !
 !*******************************************************************************
 !
-! This is a package of subroutines to read CCSM SST 1x1 degree data in
-! NETCDF format and interpolate SST at RCM grid
-! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU
+! This is a package of subroutines to read SST data on regular latlon grid in
+! NETCDF format and interpolate on RCM grid.
+! Need to configure datapath and variable names.
 !
-!******************************************************************************
-!******************************************************************************
-!       DATA PREPARATION
-!       Dataset required to use this code can be preapred using NCO utilitiles
-!       such as NCKS, NCRCAT etc.
-!       We need top level of SST for SSTs which can be extarcted as following:
-!       ncks -v time,SST -d z_t,0 input.nc output.nc
-!       Files can be further concatenated using 'ncrcat'
-!       Finally, the POP grid can be converted into lat/lon grid at 1x1 degree
-!       resolution  using PopLatLon function in NCL
-!******************************************************************************
-!     NAMING CONVENTION (Global Data File)
-!       cam2_mn.sst.nc  for SST
-!     PATH /DATA/SST/
+! Written By Moetasim Ashfaq Dec-2005 @ PURDUE.EDU for POP dataset prepared
+! on the regular 1x1 degree resolution using NCL+NCO programs.
+!
+! Modified to be generic reader for monthly netCDF by Graziano Giuliani 2011
 !
 !******************************************************************************
 
@@ -87,87 +78,120 @@ module mod_sst_cam2
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
 !
-  call zeit_ci('sst_cam2')
+  call zeit_ci('sst_gnmnc')
 
-  inpfile = trim(inpglob)//'/CAM2/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
+  if ( ssttyp == "CAM2N" ) then
+    inpfile = trim(inpglob)//'/SST/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
+    varname(2) = 'SST_cpl'
+  else if ( ssttyp == "CCSST" ) then
+    inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
+    varname(2) = 'SST'
+  else if ( ssttyp == "CA_RF" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_historical_r1i1p1_185001-200512.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "CA_26" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp26_r1i1p1_200601-210012.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "CA_45" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp45_r1i1p1_200601-210012.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "CA_85" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp85_r1i1p1_200601-210012.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "HA_RF" ) then
+    inpfile = trim(inpglob)// &
+         '/SST/ts_Amon_HadGEM2-ES_historical_r1i1p1_193412-200511.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "HA_26" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp26_r1i1p1_200512-209911.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "HA_45" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp45_r1i1p1_200512-209911.nc'
+    varname(2) = 'ts'
+  else if ( ssttyp == "HA_85" ) then
+    inpfile = trim(inpglob)//'/SST/ts_Amon_HadGEM2-ES_rcp85_r1i1p1_200512-209911.nc'
+    varname(2) = 'ts'
+  else
+    call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
+  end if
 
   istatus = nf90_open(inpfile,nf90_nowrite,inet1)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error opening '//trim(inpfile),1, &
+    call die('gnmnc_sst','Error opening '//trim(inpfile),1, &
                nf90_strerror(istatus),istatus)
   end if
   write (stdout,*) inet1 , trim(inpfile)
 ! GET DIMENSION IDs
   istatus = nf90_inq_dimid(inet1,'lat',latid)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim lat',1,  &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim lat',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_dimid(inet1,'lon',lonid)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim lon',1,  &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim lon',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_dimid(inet1,'time',timid)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim time',1, &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim time',1, &
              nf90_strerror(istatus),istatus)
   end if
 
 ! GET DIMENSION LENGTHS
   istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim lat',1,  &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim lat',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim lon',1,  &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim lon',1,  &
              nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//' dim time',1, &
+    call die('gnmnc_sst','Error '//trim(inpfile)//' dim time',1, &
              nf90_strerror(istatus),istatus)
   end if
 
-  call getmem1d(work1,1,timlen,'mod_cam2_sst:work1')
-  call getmem1d(glat,1,jlat,'mod_cam2_sst:glat')
-  call getmem1d(glon,1,ilon,'mod_cam2_sst:glon')
-  call getmem2d(work2,1,ilon,1,jlat,'mod_cam2_sst:work2')
-  call getmem2d(work3,1,ilon,1,jlat,'mod_cam2_sst:work3')
-  call getmem2d(sst,1,ilon,1,jlat,'mod_cam2_sst:sst')
+  call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
+  call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
+  call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
+  call getmem2d(work2,1,ilon,1,jlat,'mod_gnmnc_sst:work2')
+  call getmem2d(work3,1,ilon,1,jlat,'mod_gnmnc_sst:work3')
+  call getmem2d(sst,1,ilon,1,jlat,'mod_gnmnc_sst:sst')
   
 ! GET VARIABLE IDs
   istatus = nf90_inq_varid(inet1,'lat',latid)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              'lat',1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_varid(inet1,'lon',lonid)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              'lon',1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              varname(1),1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              varname(2),1,nf90_strerror(istatus),istatus)
   end if
 ! GET LATITUDE AND LONGITUDE
   istatus = nf90_get_var(inet1,latid,glat)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              'lat read',1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_get_var(inet1,lonid,glon)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              'lon read',1,nf90_strerror(istatus),istatus)
   end if
 ! GET TIME VALUES
@@ -175,21 +199,21 @@ module mod_sst_cam2
   icount(1) = timlen
   istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
              varname(1)//' read',1,nf90_strerror(istatus),istatus)
   end if
 ! CHECK FOR THE REQUIRED RECORD IN DATA FILE  
   istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
             varname(1)//':units',1,nf90_strerror(istatus),istatus)
   end if
   istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
             varname(1)//':calendar',1,nf90_strerror(istatus),istatus)
   end if
-  cssidate1 = timeval2date(work1(1),cunit,ccal)
+  fidate1 = timeval2date(work1(1),cunit,ccal)
 
   idateo = monfirst(globidate1)
   idatef = monfirst(globidate2)
@@ -203,7 +227,7 @@ module mod_sst_cam2
   idate = idateo
   do k = 1 , nsteps
 
-    call cam2_sst(idate)
+    call gnmnc_sst(idate)
     call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,iy,jx,1)
 
     do j = 1 , jx
@@ -248,15 +272,15 @@ module mod_sst_cam2
 
   end do
  
-  call zeit_co('sst_cam2')
+  call zeit_co('sst_gnmnc')
 
-  end subroutine sst_cam2
+  end subroutine sst_gnmnc
 !
 !-----------------------------------------------------------------------
 !
 !     Subroutine to read required records from SST data file
 !
-  subroutine cam2_sst(idate)
+  subroutine gnmnc_sst(idate)
 
   implicit none
 
@@ -267,9 +291,9 @@ module mod_sst_cam2
   integer :: it , i , j
   type(rcm_time_interval) :: tdiff1 , tdiff2
 
-  call zeit_ci('read_cam2')
+  call zeit_ci('read_gnmnc')
 
-  it = imondiff(idate,cssidate1) + 1
+  it = imondiff(idate,fidate1) + 1
   icount(1) = ilon
   icount(2) = jlat
   icount(3) = 1
@@ -279,13 +303,13 @@ module mod_sst_cam2
   istart(3) = it-1
   istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
   istart(3) = it
   istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
   if ( istatus /= nf90_noerr ) then
-    call die('cam2_sst','Error '//trim(inpfile)//':'// &
+    call die('gnmnc_sst','Error '//trim(inpfile)//':'// &
               varname(2)//' read',1,nf90_strerror(istatus),istatus)
   end if
 
@@ -305,7 +329,7 @@ module mod_sst_cam2
     end do
   end do
 
-  call zeit_co('read_cam2')
-  end subroutine cam2_sst
+  call zeit_co('read_gnmnc')
+  end subroutine gnmnc_sst
 !
-end module mod_sst_cam2
+end module mod_sst_gnmnc

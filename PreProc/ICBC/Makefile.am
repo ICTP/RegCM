@@ -5,7 +5,7 @@ bin_PROGRAMS = aerosol sst icbc chem_icbc
 
 aerosol_SOURCES = mod_header.F90 aerosol.F90
 sst_SOURCES = mod_sst_eh5om.f90 mod_sst_ersst.f90 mod_sst_fvgcm.f90 \
-              mod_sst_1deg.f90 mod_sst_ccsm.f90 mod_sst_cam2.f90 mod_interp.f90 \
+              mod_sst_1deg.f90 mod_sst_gnmnc.f90 mod_interp.f90 \
               mod_sst_grid.F90 mod_header.F90 sst.f90
 icbc_SOURCES = mod_ccsm.f90 mod_vectutil.f90 mod_ecwcp.f90      \
                mod_eh5om.f90 mod_ein.f90 mod_era40.f90 mod_erahi.f90 \
@@ -143,16 +143,11 @@ mod_sst_1deg.o mod_sst_1deg.mod: mod_sst_1deg.f90 \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_sst_grid.o \
  mod_interp.o
-mod_sst_cam2.o mod_sst_cam2.mod: mod_sst_cam2.f90 \
+mod_sst_gnmnc.o mod_sst_gnmnc.mod: mod_sst_gnmnc.f90 \
  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_mall.mod \
  $(REGCM_ROOT)/external/m_zeit.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod mod_sst_grid.o mod_interp.o
-mod_sst_ccsm.o mod_sst_ccsm.mod: mod_sst_ccsm.f90 \
- $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
- $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod \
- $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
- mod_sst_grid.o mod_interp.o 
 mod_sst_eh5om.o mod_sst_eh5om.mod: mod_sst_eh5om.f90 \
  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod \
@@ -184,6 +179,6 @@ mod_wrtoxd.o mod_wrtoxd.mod: mod_wrtoxd.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod
  $(REGCM_ROOT)/external/m_die.mod $(REGCM_ROOT)/Share/mod_memutil.mod
 sst.o: sst.f90 mod_header.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
  mod_sst_grid.mod mod_sst_1deg.mod mod_sst_eh5om.mod mod_sst_ersst.mod \
- mod_sst_fvgcm.mod mod_sst_ccsm.mod mod_sst_cam2.mod \
+ mod_sst_fvgcm.mod mod_sst_gnmnc.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod
