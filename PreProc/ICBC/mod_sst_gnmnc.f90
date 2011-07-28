@@ -77,15 +77,19 @@ module mod_sst_gnmnc
   type(rcm_time_and_date) :: idate , idatef , idateo
   integer :: i , j , k , ludom , lumax , iv , nsteps , latid , lonid
   integer , dimension(20) :: lund
+  real(sp) :: ufac
 !
   call zeit_ci('sst_gnmnc')
 
+  ufac = 0.0
   if ( ssttyp == "CAM2N" ) then
     inpfile = trim(inpglob)//'/SST/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
     varname(2) = 'SST_cpl'
+    ufac = 273.15
   else if ( ssttyp == "CCSST" ) then
     inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
     varname(2) = 'SST'
+    ufac = 273.15
   else if ( ssttyp == "CA_RF" ) then
     inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_historical_r1i1p1_185001-200512.nc'
     varname(2) = 'ts'
@@ -257,11 +261,7 @@ module mod_sst_gnmnc
           end do
           lu(i,j) = float(ludom)
         end if
-        if ( sstmm(i,j) > -100. ) then
-          sstmm(i,j) = sstmm(i,j) + 273.15
-        else
-          sstmm(i,j) = -9999.
-        end if
+        sstmm(i,j) = sstmm(i,j) + ufac
       end do
     end do
 
@@ -321,11 +321,7 @@ module mod_sst_gnmnc
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon
-      if (work2(i,j) > -100.0 .and. work2(i,j) < 100.0) then
-        sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
-      else
-        sst(i,j) = -9999.0
-      end if
+      sst(i,j) = work2(i,j)*wt2+work3(i,j)*wt1
     end do
   end do
 
