@@ -35,6 +35,7 @@ module mod_eh5om
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   private
 
@@ -596,17 +597,11 @@ module mod_eh5om
       fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//       &
                  yr_rf(idate%year-1940)//'.nc'
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
       istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':getvar',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
       istatus = nf90_close(ncid)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
       if ( idate%year == 1950 .and. idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
@@ -699,17 +694,11 @@ module mod_eh5om
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//  &
                    yr_rf(idate%year-1939)//'.nc'
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
         istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':getvar',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
         istatus = nf90_close(ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -802,17 +791,11 @@ module mod_eh5om
         fnso4 = trim(inpglob)//'/EH5OM/SO4/RF/T63L31_skg_'//     &
                    yr_rf(idate%year-1941)//'.nc'
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
         istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':getvar',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
         istatus = nf90_close(ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -844,17 +827,11 @@ module mod_eh5om
                    yr_a2(idate%year-2000)//'.nc'
       end if
       istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':open',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
       istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':getvar',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
       istatus = nf90_close(ncid)
-      if (istatus /= nf90_noerr) then
-        call die('geteh5om',fnso4//':close',1,nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
       if ( idate%year == 2001 .and. idate%month == 1 .and. idate%day < 16 ) then
         do k = 1 , mlev
           do j = 1 , jlat
@@ -955,20 +932,11 @@ module mod_eh5om
                      yr_a2(idate%year-1999)//'.nc'
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':open',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
         istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':getvar',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
         istatus = nf90_close(ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':close',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon
@@ -1069,20 +1037,11 @@ module mod_eh5om
                      yr_a2(idate%year-2001)//'.nc'
         end if
         istatus = nf90_open(fnso4,nf90_nowrite,ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':open',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(fnso4))
         istatus = nf90_get_var(ncid,10,sulfate,istart,icount)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':getvar',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var 10')
         istatus = nf90_close(ncid)
-        if (istatus /= nf90_noerr) then
-          call die('geteh5om', fnso4//':close',1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(fnso4))
         do k = 1 , mlev
           do j = 1 , jlat
             do i = 1 , ilon

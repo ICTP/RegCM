@@ -34,6 +34,7 @@ module mod_ncep
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   private
 
@@ -206,17 +207,17 @@ module mod_ncep
       else
       end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-      call check_ok(istatus,'Error opening '//trim(pathaddname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(pathaddname))
       istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec),ivar7(kkrec))
-      call check_ok(istatus, &
+      call checkncerr(istatus,__FILE__,__LINE__, &
            'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
       istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                             'scale_factor',xscl(kkrec))
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     ':scale_factor in file'//trim(pathaddname))
       istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                              'add_offset',xoff(kkrec))
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     ':add_offset in file'//trim(pathaddname))
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
@@ -256,7 +257,7 @@ module mod_ncep
     if ( nlev > 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
@@ -304,7 +305,7 @@ module mod_ncep
     else if ( nlev == 0 ) then
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
       if ( kkrec == 7 ) then
         do j = 1 , jlat
@@ -413,17 +414,17 @@ module mod_ncep
  
       pathaddname = trim(inpglob)//'/NNRP2/'//inname
       istatus = nf90_open(pathaddname,nf90_nowrite,inet7(kkrec))
-      call check_ok(istatus,'Error opening '//trim(pathaddname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(pathaddname))
       istatus = nf90_inq_varid(inet7(kkrec),varname(kkrec),ivar7(kkrec))
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'error in file'//trim(pathaddname))
       istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                              'scale_factor',xscl(kkrec))
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     ':scale_factor in file'//trim(pathaddname))
       istatus = nf90_get_att(inet7(kkrec),ivar7(kkrec), &
                              'add_offset',xoff(kkrec))
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     ':add_offset in file'//trim(pathaddname))
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
@@ -463,7 +464,7 @@ module mod_ncep
     if ( nlev > 0 ) then
       icount(3) = nlev + 1
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
@@ -591,7 +592,7 @@ module mod_ncep
     else if ( nlev == 0 ) then
       icount(3) = nlev
       istatus = nf90_get_var(inet,ivar7(kkrec),work,istart,icount)
-      call check_ok(istatus,'Variable '//varname(kkrec)// &
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
       if ( kkrec == 7 ) then
         do j = 1 , jjj
@@ -687,15 +688,5 @@ module mod_ncep
   rhvar => b2(:,:,2*klev+1:3*klev)
 
   end subroutine headernc
-!
-  subroutine check_ok(ierr,message)
-    use netcdf
-    implicit none
-    integer , intent(in) :: ierr
-    character(*) :: message
-    if (ierr /= nf90_noerr) then
-      call die('mod_ncep',message,1,nf90_strerror(ierr),ierr)
-    end if
-  end subroutine check_ok
 !
 end module mod_ncep

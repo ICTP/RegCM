@@ -66,68 +66,37 @@ module mod_ch_oxcl
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'oxid_3d_64x128_L26_c030722.nc', nf90_nowrite, ncid)
-    if ( istatus /= nf90_noerr ) then
-      write (stderr,*) 'Cannot open input file'
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open oxid file')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
     istatus = nf90_get_var(ncid,ivarid,oxt42lon)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
     istatus = nf90_get_var(ncid,ivarid,oxt42lat)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
     istatus = nf90_get_var(ncid,ivarid,oxt42hyam)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
     istatus = nf90_get_var(ncid,ivarid,oxt42hybm)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
-      if ( istatus /= nf90_noerr ) then
-        call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//oxspec(is))
       istatus = nf90_get_var(ncid,ivarid,oxv2(:,:,:,:,is))
-      if ( istatus /= nf90_noerr ) then
-        call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//oxspec(is))
     end do
   end subroutine header_ch_oxcl
 
@@ -214,10 +183,7 @@ module mod_ch_oxcl
     use netcdf
     implicit none
     istatus=nf90_close(ncid)
-    if ( istatus/=nf90_noerr ) then
-      write (stderr,*) 'Cannot close input file'
-      call die('header_ch_oxcl',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close oxid file')
   end subroutine close_ch_oxcl
 
 end module mod_ch_oxcl

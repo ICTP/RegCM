@@ -24,6 +24,7 @@ module mod_rdldtr
   use m_die
   use mod_constants
   use mod_memutil
+  use mod_message
 
   private
 
@@ -119,9 +120,9 @@ module mod_rdldtr
 
     write(stdout,*) 'Opening '//trim(cfile)
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
-    call checkerr(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inq_varid(ncid, cvar, ivar)
-    call checkerr(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
     istart(2) = hnlagb+idnint(grdltmn*dble(inpsec))+1
     if (lonwrap) then
@@ -135,7 +136,7 @@ module mod_rdldtr
       if (icount(2)+istart(2) > nlagb) icount(2) = icount(2) - 1
       icount(1) = nlon
       istatus = nf90_get_var(ncid, ivar, readbuf, istart, icount)
-      call checkerr(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     else
       ! Crossing timeline
       itl = nlogb - istart(1)
@@ -143,16 +144,16 @@ module mod_rdldtr
       icount(1) = itl
       istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
                              istart, icount)
-      call checkerr(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
       istart(1) = 1
       icount(1) = nlon-itl
       istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
                              istart, icount)
-      call checkerr(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     end if
 
     istatus = nf90_close(ncid)
-    call checkerr(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
     ! Fix Poles for interpolations
     if (istart(2) == 1) then
@@ -206,17 +207,6 @@ module mod_rdldtr
     write(stdout,'(a)') 'Done.'
 
   end subroutine read_ncglob
-!
-  subroutine checkerr(ierr)
-    use netcdf
-    use m_die
-    implicit none
-    integer , intent(in) :: ierr
-    if ( ierr /= nf90_noerr ) then
-      call die('read_ncglob','NetCDF library error.', &
-               ierr,nf90_strerror(ierr),0)
-    end if
-  end subroutine checkerr
 !
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none

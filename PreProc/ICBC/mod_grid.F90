@@ -24,6 +24,7 @@ module mod_grid
   use m_die
   use m_stdio
   use m_zeit
+  use mod_message
 
   real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon , &
          msfx , topogm , xlandu , xlat , xlon
@@ -75,20 +76,20 @@ module mod_grid
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
 
     istatus = nf90_open(fname, nf90_nowrite, incin)
-    call check_ok('Error open domain file '//trim(fname))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open domain file '//trim(fname))
 
     istatus = nf90_inq_dimid(incin, "iy", idimid)
-    call check_ok('Error searching iy dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching iy dimension')
     istatus = nf90_inquire_dimension(incin, idimid, len=iy_in)
-    call check_ok('Error reading iy dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading iy dimension')
     istatus = nf90_inq_dimid(incin, "jx", idimid)
-    call check_ok('Error searching jx dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching jx dimension')
     istatus = nf90_inquire_dimension(incin, idimid, len=jx_in)
-    call check_ok('Error reading jx dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading jx dimension')
     istatus = nf90_inq_dimid(incin, "kz", idimid)
-    call check_ok('Error searching kz dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching kz dimension')
     istatus = nf90_inquire_dimension(incin, idimid, len=kz_in)
-    call check_ok('Error reading kz dimension')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading kz dimension')
 
     if ( iy_in /= iy .or. jx_in /= jx .or. kz_in /= kz+1 ) then
       write(stderr,*) 'IMPROPER DIMENSION SPECIFICATION'
@@ -98,43 +99,43 @@ module mod_grid
     end if
 
     istatus = nf90_get_att(incin, NF90_GLOBAL,"grid_factor",grdfac)
-    call check_ok('Error reading grid_factor attribute')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading grid_factor attribute')
 
     istatus = nf90_inq_varid(incin, "topo", ivarid)
-    call check_ok('Error searching topo variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching topo variable')
     istatus = nf90_get_var(incin, ivarid, topogm)
-    call check_ok('Error reading topo variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo variable')
     istatus = nf90_inq_varid(incin, "landuse", ivarid)
-    call check_ok('Error searching landuse variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching landuse variable')
     istatus = nf90_get_var(incin, ivarid, xlandu)
-    call check_ok('Error reading landuse variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading landuse variable')
     istatus = nf90_inq_varid(incin, "xlat", ivarid)
-    call check_ok('Error searching xlat variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching xlat variable')
     istatus = nf90_get_var(incin, ivarid, xlat)
-    call check_ok('Error reading xlat variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading xlat variable')
     istatus = nf90_inq_varid(incin, "xlon", ivarid)
-    call check_ok('Error searching xlon variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching xlon variable')
     istatus = nf90_get_var(incin, ivarid, xlon)
-    call check_ok('Error reading xlon variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading xlon variable')
     istatus = nf90_inq_varid(incin, "dlat", ivarid)
-    call check_ok('Error searchin dlat variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searchin dlat variable')
     istatus = nf90_get_var(incin, ivarid, dlat)
-    call check_ok('Error reading dlat variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading dlat variable')
     istatus = nf90_inq_varid(incin, "dlon", ivarid)
-    call check_ok('Error searching dlon variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching dlon variable')
     istatus = nf90_get_var(incin, ivarid, dlon)
-    call check_ok('Error reading dlon variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading dlon variable')
     istatus = nf90_inq_varid(incin, "xmap", ivarid)
-    call check_ok('Error searching xmap variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching xmap variable')
     istatus = nf90_get_var(incin, ivarid, msfx)
-    call check_ok('Error reading xmap variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading xmap variable')
     istatus = nf90_inq_varid(incin, "sigma", ivarid)
-    call check_ok('Error searching sigma variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error searching sigma variable')
     istatus = nf90_get_var(incin, ivarid, sigmaf)
-    call check_ok('Error reading sigma variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading sigma variable')
 
     istatus = nf90_close(incin)
-    call check_ok('Error closing Domain file '//trim(fname))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error closing Domain file '//trim(fname))
 !
     do k = 1 , kz
       sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
@@ -142,16 +143,6 @@ module mod_grid
     end do
 
     call zeit_co('readdom')
-  contains
-!
-    subroutine check_ok(message)
-      use netcdf
-      implicit none
-      character(*) :: message
-      if (istatus /= nf90_noerr) then
-        call die('read_domain',message,1,nf90_strerror(istatus),istatus)
-      end if
-    end subroutine check_ok
 !
   end subroutine read_domain
 !

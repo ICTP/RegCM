@@ -27,6 +27,7 @@ module mod_ch_icbc
   use m_die
   use m_realkinds
   use mod_memutil
+  use mod_message
   use netcdf
 
   private
@@ -62,35 +63,20 @@ module mod_ch_icbc
 
     istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
                       'mz4_avg_2000-2007_aug.nc', nf90_nowrite, ncid)
-    if ( istatus /= nf90_noerr ) then
-      write (stderr,*) 'Cannot open input file'
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
 
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilon)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
     istatus = nf90_inq_dimid(ncid,'lat',idimid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chjlat)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
     istatus = nf90_inq_dimid(ncid,'lev',idimid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilev)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lev')
 
     call getmem1d(cht42lon,1,chilon,'mod_ch_icbc:cht42lon')
     call getmem1d(cht42lat,1,chjlat,'mod_ch_icbc:cht42lat')
@@ -101,64 +87,36 @@ module mod_ch_icbc
     call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
     istatus = nf90_get_var(ncid,ivarid,cht42lon)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
     istatus = nf90_get_var(ncid,ivarid,cht42lat)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
     istatus = nf90_get_var(ncid,ivarid,cht42hyam)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
     istatus = nf90_get_var(ncid,ivarid,cht42hybm)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps)
-    if ( istatus /= nf90_noerr ) then
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
 
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_avrg',ivarid)
-      if ( istatus /= nf90_noerr ) then
-        call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//trim(chspec(is)))
       istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
-      if ( istatus /= nf90_noerr ) then
-        call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//trim(chspec(is)))
     end do
 
   end subroutine header_ch_icbc
@@ -219,10 +177,7 @@ module mod_ch_icbc
     use netcdf
     implicit none
     istatus=nf90_close(ncid)
-    if ( istatus/=nf90_noerr ) then
-      write (stderr,*) 'Cannot close input file'
-      call die('header_ch_icbc',nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close chemical file')
   end subroutine close_ch_icbc
 
 end module mod_ch_icbc

@@ -27,6 +27,7 @@ module mod_mksst
   use mod_memutil
   use mod_constants
   use mod_dynparam
+  use mod_message
 
   private
 
@@ -63,26 +64,26 @@ module mod_mksst
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
-      call check_ok(istatus,'Error Opening SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error Opening '//trim(sstfile))
       istatus = nf90_inq_dimid(ncst, 'time', idimid)
-      call check_ok(istatus,'Error time dimension SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time dimension '//trim(sstfile))
       istatus = nf90_inquire_dimension(ncst, idimid, len=ntime)
-      call check_ok(istatus,'Error time dimension SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time dimension '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "time", itvar)
-      call check_ok(istatus,'Error time variable SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time var '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "landuse", ivar(1))
-      call check_ok(istatus,'Error landuse variable SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error landuse var '//trim(sstfile))
       istatus = nf90_inq_varid(ncst, "sst", ivar(2))
-      call check_ok(istatus,'Error sst variable SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error sst var '//trim(sstfile))
       lhasice = .true.
       istatus = nf90_inq_varid(ncst, "ice", ivar(3))
       if ( istatus /= nf90_noerr) then
         lhasice = .false.
       end if
       istatus = nf90_get_att(ncst, itvar, "units", timeunits)
-      call check_ok(istatus,'Error time var units SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time var units '//trim(sstfile))
       istatus = nf90_get_att(ncst, itvar, "calendar", timecal)
-      call check_ok(istatus,'Error time var units SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time var units '//trim(sstfile))
 
       call getmem2d(xlandu,1,jx,1,iy,'mod_mksst:xlandu')
       call getmem2d(work1,1,jx,1,iy,'mod_mksst:work1')
@@ -95,7 +96,7 @@ module mod_mksst
       call getmem1d(itime,1,ntime,'mod_mksst:itime')
 
       istatus = nf90_get_var(ncst, itvar, xtime)
-      call check_ok(istatus,'Error time var read SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error time var read '//trim(sstfile))
       do i = 1 , ntime
         itime(i) = timeval2date(xtime(i), timeunits, timecal)
       end do
@@ -125,12 +126,12 @@ module mod_mksst
     icount(2) = iy
     icount(1) = jx
     istatus = nf90_get_var(ncst, ivar(1), xlandu, istart, icount)
-    call check_ok(istatus,'Error landuse var read SST file'//trim(sstfile))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error landuse var read '//trim(sstfile))
     istatus = nf90_get_var(ncst, ivar(2), work1, istart, icount)
-    call check_ok(istatus,'Error sst var read SST file'//trim(sstfile))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error sst var read '//trim(sstfile))
     if (lhasice) then
       istatus = nf90_get_var(ncst, ivar(3), work3, istart, icount)
-      call check_ok(istatus,'Error ice var read SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error ice var read '//trim(sstfile))
     end if
     if (idate == itime(irec)) then
       do i = 1 , jx
@@ -154,10 +155,10 @@ module mod_mksst
       icount(2) = iy
       icount(1) = jx
       istatus = nf90_get_var(ncst, ivar(2), work2, istart, icount)
-      call check_ok(istatus,'Error sst var read SST file'//trim(sstfile))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error sst var read '//trim(sstfile))
       if (lhasice) then
         istatus = nf90_get_var(ncst, ivar(3), work4, istart, icount)
-        call check_ok(istatus,'Error ice var read SST file'//trim(sstfile))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error ice var read '//trim(sstfile))
       end if
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
@@ -186,14 +187,5 @@ module mod_mksst
     integer :: istatus
     istatus = nf90_close(ncst)
   end subroutine closesst
-!
-  subroutine check_ok(ierr,message)
-    implicit none
-    integer , intent(in) :: ierr
-    character(*) :: message
-    if (ierr /= nf90_noerr) then
-      call die('mod_mksst',message,1,nf90_strerror(ierr),ierr)
-    end if
-  end subroutine check_ok
 !
 end module mod_mksst

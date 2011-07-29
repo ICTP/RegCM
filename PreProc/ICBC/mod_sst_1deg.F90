@@ -27,6 +27,7 @@ module mod_sst_1deg
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
+  use mod_message
 
   private
 
@@ -314,25 +315,13 @@ module mod_sst_1deg
   call zeit_ci('sst_mn')
   if ( idate == idate0 ) then
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_mn',trim(pathaddname)//' open error',1, &
-              nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
-               ' error',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find '//trim(varname))
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
-               ':scale_factor',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find attribute scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
-               ':add_offset',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find attribute add_offset')
     istart(1) = 1
     istart(2) = 1
     icount(1) = ilon
@@ -349,12 +338,7 @@ module mod_sst_1deg
   icount(3) = 1
 
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus /= nf90_noerr ) then
-    write (stderr,*) istart
-    write (stderr,*) icount
-    call die('sst_mn',trim(pathaddname)//':'//trim(varname)// &
-             ':read',1,nf90_strerror(istatus),istatus)
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read variable '//trim(varname))
 !
   do j = 1 , jlat
     do i = 1 , ilon
@@ -404,25 +388,13 @@ module mod_sst_1deg
   call zeit_ci('ice_mn')
   if ( idate == idate0 ) then
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_mn',trim(pathaddname)//' open error',1, &
-              nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
-               ' error',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
-               ':scale_factor',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
-               ':add_offset',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
     istart(1) = 1
     istart(2) = 1
     icount(1) = ilon
@@ -438,12 +410,7 @@ module mod_sst_1deg
   istart(3) = it
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus /= nf90_noerr ) then
-    write (stderr,*) istart
-    write (stderr,*) icount
-    call die('ice_mn',trim(pathaddname)//':'//trim(varname)// &
-             ':read',1,nf90_strerror(istatus),istatus)
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
 !
   do j = 1 , jlat
     do i = 1 , ilon
@@ -499,25 +466,13 @@ module mod_sst_1deg
       istatus = nf90_close(inet)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_wk',trim(pathaddname)//' open error',1, &
-              nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
-               ' error',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':scale_factor',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':add_offset',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
     istart(1) = 1
     istart(2) = 1
     icount(1) = ilon
@@ -532,22 +487,12 @@ module mod_sst_1deg
   istart(3) = kkk
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus /= nf90_noerr ) then
-    write (stderr,*) istart
-    write (stderr,*) icount
-    call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
-             ':read',1,nf90_strerror(istatus),istatus)
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
   if (idate < 1989123100) then
     istart(3) = kkk-1
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-    if ( istatus /= nf90_noerr ) then
-      write (stderr,*) istart
-      write (stderr,*) icount
-      call die('sst_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':read',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
   end if
 
   do j = 1 , jlat
@@ -617,25 +562,13 @@ module mod_sst_1deg
       istatus = nf90_close(inet)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_wk',trim(pathaddname)//' open error',1, &
-              nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname,ivar)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
-               ' error',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':scale_factor',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-    if ( istatus /= nf90_noerr ) then
-      call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':add_offset',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
     istart(1) = 1
     istart(2) = 1
     icount(1) = ilon
@@ -650,22 +583,12 @@ module mod_sst_1deg
   istart(3) = kkk
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus /= nf90_noerr ) then
-    write (stderr,*) istart
-    write (stderr,*) icount
-    call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
-             ':read',1,nf90_strerror(istatus),istatus)
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
   if (idate < 1989123100) then
     istart(3) = kkk-1
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-    if ( istatus /= nf90_noerr ) then
-      write (stderr,*) istart
-      write (stderr,*) icount
-      call die('ice_wk',trim(pathaddname)//':'//trim(varname)// &
-               ':read',1,nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
   end if
 
   do j = 1 , jlat

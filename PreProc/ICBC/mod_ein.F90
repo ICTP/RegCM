@@ -34,6 +34,7 @@ module mod_ein
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   private
 
@@ -221,29 +222,15 @@ module mod_ein
  
         pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
-        if ( istatus /= nf90_noerr) then
-          call die('ein6hour',trim(pathaddname)//':open',1, &
-                    nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
         istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec),ivar5(kkrec,k4))
-        if ( istatus /= nf90_noerr) then
-          call die('ein6hour',trim(pathaddname)//':'//varname(kkrec),1, &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(kkrec))
         istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4), &
                  'scale_factor',xscl(kkrec,k4))
-        if ( istatus /= nf90_noerr) then
-          call die('ein6hour',trim(pathaddname)//':'// &
-                   varname(kkrec)//':scale_factor',1,  &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
         istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),  &
                  'add_offset',xoff(kkrec,k4))
-        if ( istatus /= nf90_noerr) then
-          call die('ein6hour',trim(pathaddname)//':'// &
-                   varname(kkrec)//':add_offset',1,    &
-                   nf90_strerror(istatus),istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
         write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
                          xscl(kkrec,k4) , xoff(kkrec,k4)
       end do
@@ -288,11 +275,7 @@ module mod_ein
     inet = inet5(kkrec,k4)
     ivar = ivar5(kkrec,k4)
     istatus = nf90_get_var(inet,ivar,work,istart,icount)
-    if (istatus /= nf90_noerr) then
-      call die('ein6hour',trim(pathaddname)//':'// &
-               varname(kkrec)//':readvar',1,       &
-               nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(kkrec))
     xscale = xscl(kkrec,k4)
     xadd = xoff(kkrec,k4)
     if ( kkrec == 1 ) then

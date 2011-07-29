@@ -137,6 +137,7 @@ module mod_ccsm
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   implicit none
 
@@ -194,33 +195,33 @@ module mod_ccsm
     call zeit_ci('headccsm')
     pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
 
     istatus = nf90_inq_dimid(inet1,'lon',lonid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
     istatus = nf90_inquire_dimension(inet1,lonid,len=nlon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
     istatus = nf90_inq_dimid(inet1,'lat',latid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
     istatus = nf90_inquire_dimension(inet1,latid,len=nlat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
     istatus = nf90_inq_dimid(inet1,'lev',ilevid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
     istatus = nf90_inquire_dimension(inet1,ilevid,len=klev)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lev')
 
     istatus = nf90_inq_varid(inet1,'lat',ilat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
     istatus = nf90_inq_varid(inet1,'lon',ilon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
     istatus = nf90_inq_varid(inet1,'hyam',ihyam)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
     istatus = nf90_inq_varid(inet1,'hybm',ihybm)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
     istatus = nf90_inq_varid(inet1,'PHIS',ivar1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PHIS')
     istatus = nf90_inq_varid(inet1,'P0',ip0)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
 
     ! Input layer and pressure interpolated values
 
@@ -238,15 +239,15 @@ module mod_ccsm
     call getmem1d(bk,1,klev,'mod_ccsm:bk')
  
     istatus = nf90_get_var(inet1,ilat,glat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
     istatus = nf90_get_var(inet1,ilon,glon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
     istatus = nf90_get_var(inet1,ihyam,ak)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
     istatus = nf90_get_var(inet1,ihybm,bk)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
     istatus = nf90_get_var(inet1,ip0,dp0)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
     p0 = real(dp0)
 
     icount(1) = nlon
@@ -256,14 +257,14 @@ module mod_ccsm
     istart(2) = 1
     istart(3) = 1
     istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PHIS')
     zsvar = zsvar/real(egrav)
     where (zsvar < 0.0) zsvar = 0.0
 
     write (stdout,*) 'Read in Static fields from ',trim(pathaddname),' .'
 
     istatus = nf90_close(inet1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
 
     pplev(1) = 30.
     pplev(2) = 50.
@@ -415,26 +416,26 @@ module mod_ccsm
         pathaddname = trim(inpglob)//'/CCSM/'//inname
  
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
         istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec), ivar6(kkrec))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(kkrec))
         write (stdout,*) inet6(kkrec), trim(pathaddname), ' : ', varname(kkrec)
         if ( kkrec == 1 ) then
           istatus = nf90_inq_dimid(inet6(kkrec),'time',timid)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
           istatus = nf90_inquire_dimension(inet6(kkrec),timid, len=timlen)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
           istatus = nf90_inq_varid(inet6(kkrec),'time',timid)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
           istatus = nf90_get_att(inet6(kkrec),timid,'units',cunit)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find att units')
           istatus = nf90_get_att(inet6(kkrec),timid,'calendar',ccal)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find att calendar')
 
           call getmem1d(xtimes,1,timlen,'mod_ccsm:xtimes')
           call getmem1d(itimes,1,timlen,'mod_ccsm:itimes')
           istatus = nf90_get_var(inet6(kkrec),timid,xtimes)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var time')
           do it = 1 , timlen
             itimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
@@ -459,7 +460,7 @@ module mod_ccsm
         istart(2) = 1
         istart(3) = it
         istatus = nf90_get_var(inet,ivar,psvar,istart(1:3),icount(1:3))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var ps')
       else
         icount(1) = nlon
         icount(2) = nlat
@@ -471,19 +472,19 @@ module mod_ccsm
         istart(4) = it
         if ( kkrec == 1 ) then
           istatus = nf90_get_var(inet,ivar,tvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var t')
         else if ( kkrec == 2 ) then
           istatus = nf90_get_var(inet,ivar,hvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var h')
         else if ( kkrec == 3 ) then
           istatus = nf90_get_var(inet,ivar,qvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var q')
         else if ( kkrec == 4 ) then
           istatus = nf90_get_var(inet,ivar,uvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var u')
         else if ( kkrec == 5 ) then
           istatus = nf90_get_var(inet,ivar,vvar,istart,icount)
-          if ( istatus /= nf90_noerr ) call handle_err(istatus)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read var v')
         end if
       end if
     end do
@@ -508,21 +509,5 @@ module mod_ccsm
 99002   format (i4,'/','ccsm.',a4,a3,'.',i4,'.nc')
 
   end subroutine readccsm
-!
-!-----------------------------------------------------------------------
-!
-!     Error Handler for NETCDF Calls
-!
-  subroutine handle_err(istatus)
-    use netcdf
-    implicit none
-!
-    integer :: istatus
-    intent (in) :: istatus
-!
-    write(stderr,*) nf90_strerror(istatus)
-    call die('handle_err','Netcdf Error',1)
-
-  end subroutine handle_err
 !
 end module mod_ccsm

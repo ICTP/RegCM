@@ -44,6 +44,7 @@ module mod_cam2
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   implicit none
 
@@ -106,33 +107,33 @@ module mod_cam2
     call zeit_ci('headcam2')
     pathaddname = trim(inpglob)//'/CAM2/USGS-gtopo30_0.9x1.25_remap_c051027.nc'
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
 
     istatus = nf90_inq_dimid(inet1,'lon',lonid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
     istatus = nf90_inquire_dimension(inet1,lonid,len=nlon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
     istatus = nf90_inq_dimid(inet1,'lat',latid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
     istatus = nf90_inquire_dimension(inet1,latid,len=nlat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
     istatus = nf90_inq_dimid(inet1,'lev',ilevid)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find lev dim')
     istatus = nf90_inquire_dimension(inet1,ilevid,len=klev)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev dim')
 
     istatus = nf90_inq_varid(inet1,'lat',ilat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
     istatus = nf90_inq_varid(inet1,'lon',ilon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
     istatus = nf90_inq_varid(inet1,'hyam',ihyam)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
     istatus = nf90_inq_varid(inet1,'hybm',ihybm)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find hybm var')
     istatus = nf90_inq_varid(inet1,'PHIS',ivar1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find PHIS var')
     istatus = nf90_inq_varid(inet1,'P0',ip0)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find P0 var')
 
     ! Input layer and pressure interpolated values
 
@@ -150,15 +151,15 @@ module mod_cam2
     call getmem1d(bk,1,klev,'mod_cam2:bk')
  
     istatus = nf90_get_var(inet1,ilat,glat)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
     istatus = nf90_get_var(inet1,ilon,glon)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
     istatus = nf90_get_var(inet1,ihyam,ak)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read hyam var')
     istatus = nf90_get_var(inet1,ihybm,bk)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read hybm var')
     istatus = nf90_get_var(inet1,ip0,dp0)
-    if ( istatus/=nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read P0 var')
     p0 = real(dp0)
 
     icount(1) = nlon
@@ -168,14 +169,14 @@ module mod_cam2
     istart(2) = 1
     istart(3) = 1
     istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read PHYS var')
     zsvar = zsvar/real(egrav)
     where (zsvar < 0.0) zsvar = 0.0
 
     write (stdout,*) 'Read in Static fields from ',trim(pathaddname)
 
     istatus = nf90_close(inet1)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error close file '//trim(pathaddname))
 
     pplev(1) = 30.
     pplev(2) = 50.
@@ -314,7 +315,7 @@ module mod_cam2
       tdif = rcm_time_interval(180,uhrs)
       if (inet > 0) then
         istatus = nf90_close(inet)
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
         filedate = filedate + tdif
       else
         pdate = refdate
@@ -330,28 +331,28 @@ module mod_cam2
  
       pathaddname = trim(inpglob)//'/CAM2/'//inname
       istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
       istatus = nf90_inq_dimid(inet,'time',timid)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
       istatus = nf90_inquire_dimension(inet,timid, len=timlen)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
       istatus = nf90_inq_varid(inet,'time',timid)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
       istatus = nf90_get_att(inet,timid,'units',cunit)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
       istatus = nf90_get_att(inet,timid,'calendar',ccal)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
       call getmem1d(itimes,1,timlen,'mod_cam2:itimes')
       call getmem1d(xtimes,1,timlen,'mod_cam2:xtimes')
       if (istatus /= 0) call die('mod_cam2','Allocation error on itimes',1)
       istatus = nf90_get_var(inet,timid,xtimes)
-      if ( istatus /= nf90_noerr ) call handle_err(istatus)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
       do it = 1 , timlen
         itimes(it) = timeval2date(xtimes(it),cunit,ccal)
       end do
       do kkrec = 1 , 6
         istatus = nf90_inq_varid(inet,varname(kkrec), ivar(kkrec))
-        if ( istatus /= nf90_noerr ) call handle_err(istatus)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(kkrec))
       end do
       write (stdout,*) inet, trim(pathaddname)
     end if
@@ -366,7 +367,7 @@ module mod_cam2
     istart(2) = 1
     istart(3) = it
     istatus = nf90_get_var(inet,ivar(6),psvar,istart(1:3),icount(1:3))
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
     icount(1) = nlon
     icount(2) = nlat
     icount(3) = klev
@@ -376,15 +377,15 @@ module mod_cam2
     istart(3) = 1
     istart(4) = it
     istatus = nf90_get_var(inet,ivar(1),tvar,istart,icount)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
     istatus = nf90_get_var(inet,ivar(2),hvar,istart,icount)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
     istatus = nf90_get_var(inet,ivar(3),qvar,istart,icount)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
     istatus = nf90_get_var(inet,ivar(4),uvar,istart,icount)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
     istatus = nf90_get_var(inet,ivar(5),vvar,istart,icount)
-    if ( istatus /= nf90_noerr ) call handle_err(istatus)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
 
     do k = 1 , klev
       do j = 1 , nlat
@@ -404,21 +405,5 @@ module mod_cam2
 99001   format ('sococa.ts1.r1.cam2.h1.',i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 
   end subroutine readcam2
-!
-!-----------------------------------------------------------------------
-!
-!     Error Handler for NETCDF Calls
-!
-  subroutine handle_err(istatus)
-    use netcdf
-    implicit none
-!
-    integer :: istatus
-    intent (in) :: istatus
-!
-    write(stderr,*) nf90_strerror(istatus)
-    call die('handle_err','Netcdf Error',1)
-
-  end subroutine handle_err
 !
 end module mod_cam2

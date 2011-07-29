@@ -27,6 +27,7 @@ module mod_sst_ersst
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
+  use mod_message
 
   private
 
@@ -158,19 +159,16 @@ module mod_sst_ersst
   call zeit_ci('read_sst_era')
   if ( lfirst ) then
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_erain','Cannot open input file '// &
-               trim(pathaddname)//' : '//nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname(itype),ivar)
-    if ( istatus /= nf90_noerr ) then
-      call die('sst_erain','Cannot find variable '// &
-               trim(varname(itype))//' in file '//   &
-               trim(pathaddname)//' : '//nf90_strerror(istatus),istatus)
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Cannot find variable '//trim(varname(itype)))
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
+    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute scale_factor')
     istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
+    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute add_offset')
     istatus = nf90_get_att(inet,ivar,'_FillValue',xmiss)
+    call checkncerr(istatus,__FILE__,__LINE__,'Cannot get attribute _FillValue')
     istart(1) = 1
     istart(2) = 1
     icount(1) = 240
@@ -185,11 +183,7 @@ module mod_sst_ersst
   istart(3) = it
   icount(3) = 1
   istatus = nf90_get_var(inet,ivar,work,istart,icount)
-  if ( istatus /= nf90_noerr ) then
-    call die('sst_erain','Cannot read '//trim(varname(itype))// &
-             ' from file '//trim(pathaddname)//' : '//          &
-             nf90_strerror(istatus),istatus)
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Cannot read '//trim(varname(itype)))
 !
   do j = 1 , jlat
     do i = 1 , ilon

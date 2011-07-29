@@ -34,6 +34,7 @@ module mod_era40
   use mod_mksst
   use mod_uvrot
   use mod_vectutil
+  use mod_message
 
   private
 
@@ -140,18 +141,17 @@ module mod_era40
   character(5) , intent(in) :: dattyp
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
-  integer :: i , inet , it , j , k , k4 , kkrec , istatus
+  integer :: i , inet , ivar , it , j , k , k4 , kkrec , istatus
   character(24) :: inname
   character(256) :: pathaddname
-!     character(5) , dimension(3,4) :: sarname
-!     character(2) :: snownm
-!     character(5) , dimension(6) :: varname
   integer(2) , dimension(ilon,jlat,klev) :: work
   real(dp) :: xadd , xscale
 
   integer , dimension(10) , save :: icount , istart
-  real(dp) , dimension(5,4) , save :: xoff , xscl
-  integer , dimension(5,4) , save :: inet6
+  real(dp) , dimension(6,4) , save :: xoff , xscl
+  integer , dimension(6,4) , save :: inet6
+  integer , dimension(6,4) , save :: ivar6
+  character(5) , dimension(6) :: varname
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -163,11 +163,7 @@ module mod_era40
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-!     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
-!     data sarname/'swvl1' , 'istl1' , 'stl1' , 'swvl2' , 'istl2' ,  &
-!         &'stl2' , 'swvl3' , 'istl3' , 'stl3' , 'swvl4' , 'istl4' , &
-!         &'stl4'/
-!     data snownm/'sd'/
+  data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the
@@ -182,7 +178,7 @@ module mod_era40
  
   if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then 
     do k4 = 1 , 4
-      do kkrec = 1 , 5
+      do kkrec = 1 , 5 ! Just skip omega
         if ( kkrec == 1 ) then
           if ( k4 == 1 ) then
             write (inname,99001) idate%year , 'air.' , idate%year
@@ -254,20 +250,15 @@ module mod_era40
  
         pathaddname = trim(inpglob)//dattyp//'/'//inname
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec,k4))
-        if ( istatus /= nf90_noerr ) then
-          call die('getera40', trim(pathaddname), 1, &
-                   nf90_strerror(istatus), istatus)
-        end if
-        istatus = nf90_get_att(inet6(kkrec,k4),5,'scale_factor',xscl(kkrec,k4))
-        if ( istatus /= nf90_noerr ) then
-          call die('getera40', trim(pathaddname)//': scale_factor', 1, &
-                   nf90_strerror(istatus), istatus)
-        end if
-        istatus = nf90_get_att(inet6(kkrec,k4),5,'add_offset',xoff(kkrec,k4))
-        if ( istatus /= nf90_noerr ) then
-          call die('getera40', trim(pathaddname)//': add_offset', 1, &
-                   nf90_strerror(istatus), istatus)
-        end if
+        call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
+        istatus = nf90_inq_varid(inet6(kkrec,k4),varname(kkrec),ivar6(kkrec,k4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(kkrec))
+        istatus = nf90_get_att(inet6(kkrec,k4),ivar6(kkrec,k4), &
+                               'scale_factor',xscl(kkrec,k4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
+        istatus = nf90_get_att(inet6(kkrec,k4),ivar6(kkrec,k4), &
+                               'add_offset',xoff(kkrec,k4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
         write (stdout,*) inet6(kkrec,k4) , trim(pathaddname) ,  &
                     xscl(kkrec,k4) , xoff(kkrec,k4)
       end do
@@ -313,11 +304,9 @@ module mod_era40
 !bxq_
   do kkrec = 1 , 5
     inet = inet6(kkrec,k4)
-    istatus = nf90_get_var(inet,5,work,istart,icount)
-    if ( istatus /= nf90_noerr ) then
-      call die('getera40', trim(pathaddname)//': getvar', 1, &
-               nf90_strerror(istatus), istatus)
-    end if
+    ivar = ivar6(kkrec,k4)
+    istatus = nf90_get_var(inet,ivar,work,istart,icount)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(kkrec))
     xscale = xscl(kkrec,k4)
     xadd = xoff(kkrec,k4)
     if ( kkrec == 1 ) then

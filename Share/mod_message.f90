@@ -21,13 +21,14 @@ module mod_message
 
   use m_die
   use m_stdio
+  use netcdf
 
   private
 !
   character(512) :: aline
   character(8) :: cline
 
-  public :: aline , say , note , cry , fatal , checkalloc
+  public :: aline , say , note , cry , fatal , checkalloc , checkncerr
 
   contains
 
@@ -75,11 +76,22 @@ module mod_message
     implicit none
     integer , intent(in) :: ival , line
     character(*) , intent(in) :: filename , arg
-    write (cline,'(i8)') line
     if ( ival /= 0 ) then
+      write (cline,'(i8)') line
       write (stderr,*) 'Memory error in allocating ', arg
       call die(filename,trim(cline),ival)
     end if
   end subroutine checkalloc
+
+  subroutine checkncerr(ival,filename,line,arg)
+    implicit none
+    integer , intent(in) :: ival , line
+    character(*) , intent(in) :: filename , arg
+    if ( ival /= nf90_noerr ) then
+      write (cline,'(i8)') line
+      write (stderr,*) nf90_strerror(ival)
+      call die(filename,trim(cline)//':'//arg,ival)
+    end if
+  end subroutine checkncerr
 
 end module mod_message

@@ -22,6 +22,7 @@ program clm2rcm
   use netcdf
   use mod_nclib
   use mod_dynparam
+  use mod_message
   use mod_read_domain
   use mod_param_clm
   use mod_date
@@ -136,147 +137,146 @@ program clm2rcm
 #else
   istatus = nf90_create(checkfile, nf90_clobber, ncid)
 #endif
-  call check_ok(istatus, &
-        ('Error creating NetCDF output '//trim(checkfile)))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error create file '//trim(checkfile))
 
   istatus = nf90_put_att(ncid, nf90_global, 'title',  &
          'ICTP Regional Climatic model V4 clm2rcm program output')
-  call check_ok(istatus,'Error adding global title')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global title')
   istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
-  call check_ok(istatus,'Error adding global institution')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global institution')
   istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'None')
-  call check_ok(istatus,'Error adding global Conventions')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global Conventions')
   call date_and_time(values=tvals)
   write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
        tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
        tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
        ' : Created by RegCM aerosol program'
   istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-  call check_ok(istatus,'Error adding global history')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global history')
   istatus = nf90_put_att(ncid, nf90_global, 'references', &
              'http://eforge.escience-lab.org/gf/project/regcm')
-  call check_ok(istatus,'Error adding global references')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global references')
   istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
-  call check_ok(istatus,'Error adding global experiment')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global experiment')
   istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-  call check_ok(istatus,'Error adding global projection')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global projection')
   istatus = nf90_put_att(ncid, nf90_global, 'grid_size_in_meters', ds*1000.0)
-  call check_ok(istatus,'Error adding global gridsize')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global gridsize')
   istatus = nf90_put_att(ncid, nf90_global,   &
                'latitude_of_projection_origin', clat)
-  call check_ok(istatus,'Error adding global clat')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global clat')
   istatus = nf90_put_att(ncid, nf90_global,   &
                'longitude_of_projection_origin', clon)
-  call check_ok(istatus,'Error adding global clon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add global clon')
   if (iproj == 'ROTMER') then
     istatus = nf90_put_att(ncid, nf90_global, &
                  'grid_north_pole_latitude', plat)
-    call check_ok(istatus,'Error adding global plat')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add global plat')
     istatus = nf90_put_att(ncid, nf90_global, &
                  'grid_north_pole_longitude', plon)
-    call check_ok(istatus,'Error adding global plon')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add global plon')
   else if (iproj == 'LAMCON') then
     trlat(1) = real(truelatl)
     trlat(2) = real(truelath)
     istatus = nf90_put_att(ncid, nf90_global, &
                  'standard_parallel', trlat)
-    call check_ok(istatus,'Error adding global truelat')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add global truelat')
   end if
   istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
-  call check_ok(istatus,'Error creating dimension iy')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension iy')
   istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
-  call check_ok(istatus,'Error creating dimension jx')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension jx')
   istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-  call check_ok(istatus,'Error creating dimension time')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension time')
   istatus = nf90_def_dim(ncid, 'kz', kz+1, idims(4))
-  call check_ok(istatus,'Error creating dimension kz')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error creating dimension kz')
   istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4), izvar(1))
-  call check_ok(istatus,'Error adding variable sigma')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable sigma')
   istatus = nf90_put_att(ncid, izvar(1), 'standard_name',  &
                          'atmosphere_sigma_coordinate')      
-  call check_ok(istatus,'Error adding sigma standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma standard_name')
   istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
                          'Sigma at model layer midpoints')
-  call check_ok(istatus,'Error adding sigma long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma long_name')
   istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
-  call check_ok(istatus,'Error adding sigma units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma units')
   istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-  call check_ok(istatus,'Error adding sigma axis')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma axis')
   istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-  call check_ok(istatus,'Error adding sigma positive')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma positive')
   istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
                          'sigma: sigma ps: ps ptop: ptop')
-  call check_ok(istatus,'Error adding sigma formula_terms')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add sigma formula_terms')
   istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
                          varid=izvar(2))
-  call check_ok(istatus,'Error adding variable ptop')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable ptop')
   istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
                          'air_pressure')
-  call check_ok(istatus,'Error adding ptop standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop standard_name')
   istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
                          'Pressure at model top')
-  call check_ok(istatus,'Error adding ptop long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop long_name')
   istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-  call check_ok(istatus,'Error adding ptop units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ptop units')
   istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
                          ivvar(1))
-  call check_ok(istatus,'Error adding variable iy')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable iy')
   istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
                          'projection_y_coordinate')
-  call check_ok(istatus,'Error adding iy standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy standard_name')
   istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
                          'y-coordinate in Cartesian system')
-  call check_ok(istatus,'Error adding iy long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy long_name')
   istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-  call check_ok(istatus,'Error adding iy units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy units')
   istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
                          ivvar(2))
-  call check_ok(istatus,'Error adding variable jx')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable jx')
   istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                          'projection_x_coordinate')
-  call check_ok(istatus,'Error adding jx standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx standard_name')
   istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
                          'x-coordinate in Cartesian system')
-  call check_ok(istatus,'Error adding jx long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx long_name')
   istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-  call check_ok(istatus,'Error adding jx units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx units')
   istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), illvar(1))
-  call check_ok(istatus,'Error adding variable xlat')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable xlat')
   istatus = nf90_put_att(ncid, illvar(1), 'standard_name', 'latitude')
-  call check_ok(istatus,'Error adding xlat standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat standard_name')
   istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
                          'Latitude at cross points')
-  call check_ok(istatus,'Error adding xlat long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat long_name')
   istatus = nf90_put_att(ncid, illvar(1), 'units', 'degrees_north')
-  call check_ok(istatus,'Error adding xlat units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlat units')
   istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), illvar(2))
-  call check_ok(istatus,'Error adding variable xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable xlon')
   istatus = nf90_put_att(ncid, illvar(2), 'standard_name', 'longitude')
-  call check_ok(istatus,'Error adding xlon standard_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon standard_name')
   istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
                          'Longitude at cross points')
-  call check_ok(istatus,'Error adding xlon long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon long_name')
   istatus = nf90_put_att(ncid, illvar(2), 'units', 'degrees_east')
-  call check_ok(istatus,'Error adding xlon units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xlon units')
   istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), ivar)
-  call check_ok(istatus,'Error adding variable time')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add variable time')
 
   irefdate = rcm_time_and_date(globidate1%calendar,globidate1%year,1,1,0,0,0)
   irefdate = monmiddle(irefdate)
   csdate = irefdate%tostring()
   istatus = nf90_put_att(ncid, ivar, 'units', 'hours since '//csdate)
-  call check_ok(istatus,'Error adding time units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add time units')
   istatus = nf90_put_att(ncid, ivar, 'calendar', calendar)
-  call check_ok(istatus,'Error adding time calendar')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add time calendar')
 !
   istatus = nf90_enddef(ncid)
-  call check_ok(istatus,'Error End Definitions NetCDF output')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error End Definitions NetCDF output')
 !
   istatus = nf90_put_var(ncid, izvar(1), sigx)
-  call check_ok(istatus,'Error variable sigma write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable sigma write')
   hptop = real(ptop * 10.0D0)
   istatus = nf90_put_var(ncid, izvar(2), hptop)
-  call check_ok(istatus,'Error variable ptop write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable ptop write')
   call getmem1d(yiy,1,iy,'clm2rcm:yiy')
   call getmem1d(xjx,1,jx,'clm2rcm:xjx')
   yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
@@ -288,13 +288,13 @@ program clm2rcm
     xjx(j) = real(dble(xjx(j-1))+ds)
   end do
   istatus = nf90_put_var(ncid, ivvar(1), yiy)
-  call check_ok(istatus,'Error variable iy write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable iy write')
   istatus = nf90_put_var(ncid, ivvar(2), xjx)
-  call check_ok(istatus,'Error variable jx write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable jx write')
   istatus = nf90_put_var(ncid, illvar(1), transpose(xlat))
-  call check_ok(istatus,'Error variable xlat write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlat write')
   istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
-  call check_ok(istatus,'Error variable xlon write')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlon write')
 
   imondate = irefdate
   do it = 1 , 12
@@ -303,7 +303,7 @@ program clm2rcm
     tdif = imondate-irefdate 
     xdate(1) = tdif%hours()
     istatus = nf90_put_var(ncid, ivar, xdate, istart1, icount1)
-    call check_ok(istatus,'Error variable time write')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
     imondate = nextmon(imondate)
     imondate = monmiddle(imondate)
   end do
@@ -327,7 +327,7 @@ program clm2rcm
 !         ************************
       write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
       ierr = nf90_open(inpfile,nf90_nowrite,idin)
-      call check_ok(ierr,('Cannot open input file '//trim(inpfile)))
+      call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(inpfile))
       ipathdiv = scan(inpfile, pthsep, .true.)
       if ( ipathdiv/=0 ) then
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
@@ -501,7 +501,7 @@ program clm2rcm
     end do
 
     istatus = nf90_redef(ncid)
-    call check_ok(istatus,('Error Redef in file '//trim(checkfile)))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error in file '//trim(checkfile))
 
     ldim = 0
     if (nlev(ifld) > 1) then
@@ -521,7 +521,7 @@ program clm2rcm
         ilevs(ldim) = nlev(ifld)
         write (cldim,'(a,i0.3)') 'level_', nlev(ifld)
         istatus = nf90_def_dim(ncid, cldim, nlev(ifld), idum)
-        call check_ok(istatus, ('Error creating dimension '//trim(cldim)))
+        call checkncerr(istatus,__FILE__,__LINE__, 'Error create dim '//trim(cldim))
       end if
     end if
 
@@ -535,51 +535,43 @@ program clm2rcm
         ivdims(2) = idims(2)
         ivdims(3) = idims(4)+ldim
         ivdims(4) = idims(3)
-        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
-                               ivdims, ivar)
+        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims, ivar)
       else
         ivdims(1) = idims(1)
         ivdims(2) = idims(2)
         ivdims(3) = idims(3)
-        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
-                               ivdims(1:3), ivar)
+        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims(1:3), ivar)
       end if
     else
       if (nlev(ifld) > 1) then
         ivdims(1) = idims(1)
         ivdims(2) = idims(2)
         ivdims(3) = idims(4)+ldim
-        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
-                               ivdims(1:3), ivar)
+        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims(1:3), ivar)
       else
         ivdims(1) = idims(1)
         ivdims(2) = idims(2)
-        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, &
-                               ivdims(1:2), ivar)
+        istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims(1:2), ivar)
       end if
     end if
-    call check_ok(istatus, &
-                  ('Error adding variable '//trim(vnam(ifld))))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var '//trim(vnam(ifld)))
     idum = len_trim(lnam(ifld))
-    istatus = nf90_put_att(ncid, ivar, 'long_name', &
-                           lnam(ifld)(1:idum))
-    call check_ok(istatus, &
-                  ('Error adding '//trim(vnam(ifld))//' long_name'))
+    istatus = nf90_put_att(ncid, ivar, 'long_name', lnam(ifld)(1:idum))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error add '//trim(vnam(ifld))//' long_name')
     idum = len_trim(units(ifld))
-    istatus = nf90_put_att(ncid, ivar, 'units', & 
-                           units(ifld)(1:idum))
-    call check_ok(istatus, &
-                  ('Error adding '//trim(vnam(ifld))//' units'))
+    istatus = nf90_put_att(ncid, ivar, 'units', units(ifld)(1:idum))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                  ('Error add '//trim(vnam(ifld))//' units'))
     istatus = nf90_put_att(ncid, ivar, '_FillValue', xmiss)
-    call check_ok(istatus, &
-                  ('Error adding '//trim(vnam(ifld))//' xmiss'))
-    istatus = nf90_put_att(ncid, ivar, 'coordinates', &
-                           'xlon xlat')
-    call check_ok(istatus, &
-                  ('Error adding '//trim(vnam(ifld))//' coords'))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                  ('Error add '//trim(vnam(ifld))//' xmiss'))
+    istatus = nf90_put_att(ncid, ivar, 'coordinates', 'xlon xlat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                  ('Error add '//trim(vnam(ifld))//' coords'))
 
     istatus = nf90_enddef(ncid)
-    call check_ok(istatus,'Error End redef NetCDF output')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error End redef NetCDF output')
 
     call getmem4d(dumw,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:dumw')
 
@@ -590,7 +582,7 @@ program clm2rcm
     end do
 
     istatus = nf90_put_var(ncid, ivar, dumw)
-    call check_ok(istatus,('Error '//trim(vnam(ifld))// ' write'))
+    call checkncerr(istatus,__FILE__,__LINE__,('Error '//trim(vnam(ifld))// ' write'))
 
   end do  ! End nfld loop
 
@@ -600,24 +592,10 @@ program clm2rcm
   call clscdf(idout,ierr)
 
   istatus = nf90_close(ncid)
-  call check_ok(istatus, ('Error Closing output file '//trim(checkfile)))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error close file '//trim(checkfile))
 
   call memory_destroy
 
   write(stdout,*) 'Successfully completed CLM preprocessing.'
  
-  contains
-
-  subroutine check_ok(ierr,message)
-    use netcdf
-    implicit none
-    integer , intent(in) :: ierr
-    character(*) :: message
-    if (ierr /= nf90_noerr) then 
-      write (stderr,*) message
-      write (stderr,*) nf90_strerror(ierr)
-      call die('clm2rcm')
-    end if
-  end subroutine check_ok
-
 end program clm2rcm
