@@ -20,6 +20,7 @@
 program sigma2p
   use netcdf
   use mod_constants
+  use mod_message
 
   implicit none
 
@@ -77,7 +78,7 @@ program sigma2p
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
 
   istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
-  call check_ok('Error Opening Input file '//trim(ncsfile))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error Opening Input file '//trim(ncsfile))
 
   jxdimid = -1
   iydimid = -1
@@ -94,26 +95,26 @@ program sigma2p
 #else
   istatus = nf90_create(ncpfile, nf90_clobber, ncout)
 #endif
-  call check_ok('Error Opening Output file '//trim(ncpfile))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error Opening Output file '//trim(ncpfile))
 
   istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
-  call check_ok('Error Reading Netcdf file '//trim(ncsfile))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error Reading Netcdf file '//trim(ncsfile))
 
   do i = 1 , natts
     istatus = nf90_inq_attname(ncid, nf90_global, i, attname)
-    call check_ok('Error read global attribute')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read global attribute')
     istatus = nf90_copy_att(ncid, nf90_global, attname, ncout, nf90_global)
-    call check_ok('Error copy global attribute '//trim(attname))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error copy attribute '//trim(attname))
   end do
 
   allocate(dimlen(ndims), stat=istatus)
-  call check_alloc('Memory error allocating dimlen')
+  call checkalloc(istatus,__FILE__,__LINE__,'dimlen')
  
   kz = 0
   nt = 0
   do i = 1 , ndims
     istatus = nf90_inquire_dimension(ncid, i, dimname, dimlen(i))
-    call check_ok('Error reading dimension info')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading dimension info')
     if (dimname == 'iy' .or. dimname == 'y') then
       iy = dimlen(i)
       iydimid = i
@@ -133,7 +134,7 @@ program sigma2p
     else
       istatus = nf90_def_dim(ncout, dimname, dimlen(i), idimid)
     end if
-    call check_ok('Error define dimension '//trim(dimname))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define dimension '//trim(dimname))
   end do
 
   i3d = jx*iy*kz
@@ -147,33 +148,33 @@ program sigma2p
   end if
 
   allocate(dimids(ndims), stat=istatus)
-  call check_alloc('Memory error allocating dimids')
+  call checkalloc(istatus,__FILE__,__LINE__,'dimids')
   allocate(lkvarflag(nvars), stat=istatus)
-  call check_alloc('Memory error allocating lkvarflag')
+  call checkalloc(istatus,__FILE__,__LINE__,'lkvarflag')
   allocate(ltvarflag(nvars), stat=istatus)
-  call check_alloc('Memory error allocating ltvarflag')
+  call checkalloc(istatus,__FILE__,__LINE__,'ltvarflag')
   allocate(varsize(nvars), stat=istatus)
-  call check_alloc('Memory error allocating varsize')
+  call checkalloc(istatus,__FILE__,__LINE__,'varsize')
   allocate(intscheme(nvars), stat=istatus)
-  call check_alloc('Memory error allocating intscheme')
+  call checkalloc(istatus,__FILE__,__LINE__,'intscheme')
   allocate(nvdims(nvars), stat=istatus)
-  call check_alloc('Memory error allocating nvdims')
+  call checkalloc(istatus,__FILE__,__LINE__,'nvdims')
   allocate(dimsize(ndims,nvars), stat=istatus)
-  call check_alloc('Memory error allocating dimsize')
+  call checkalloc(istatus,__FILE__,__LINE__,'dimsize')
   allocate(istart(ndims), stat=istatus)
-  call check_alloc('Memory error allocating istart')
+  call checkalloc(istatus,__FILE__,__LINE__,'istart')
   allocate(icount(ndims), stat=istatus)
-  call check_alloc('Memory error allocating icount')
+  call checkalloc(istatus,__FILE__,__LINE__,'icount')
   allocate(ps(jx,iy), stat=istatus)
-  call check_alloc('Memory error allocating ps')
+  call checkalloc(istatus,__FILE__,__LINE__,'ps')
   allocate(xvar(jx,iy,kz), stat=istatus)
-  call check_alloc('Memory error allocating xvar')
+  call checkalloc(istatus,__FILE__,__LINE__,'xvar')
   allocate(pvar(jx,iy,np), stat=istatus)
-  call check_alloc('Memory error allocating pvar')
+  call checkalloc(istatus,__FILE__,__LINE__,'pvar')
   allocate(sigma(kz), stat=istatus)
-  call check_alloc('Memory error allocating sigma')
+  call checkalloc(istatus,__FILE__,__LINE__,'sigma')
   allocate(times(nt), stat=istatus)
-  call check_alloc('Memory error allocating times')
+  call checkalloc(istatus,__FILE__,__LINE__,'times')
 
   itvarid = 0
   do i = 1 , nvars
@@ -184,7 +185,7 @@ program sigma2p
     dimsize(:,i) = 1
     istatus = nf90_inquire_variable(ncid,i,varname,xtype,nvdims(i), &
                                     dimids,nvatts)
-    call check_ok('Error inquire variable')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire variable')
     if (varname == 'time') then
       itvarid = i
     else if (varname == 'sigma' .or. varname == 'lev') then
@@ -192,7 +193,7 @@ program sigma2p
       ikvarid = i
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
-      call check_ok('Error read variable ptop')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
     else if (varname == 'ps') then
       ipsvarid = i
     else if (varname == 't') then
@@ -212,51 +213,51 @@ program sigma2p
       varsize(i) = varsize(i) * dimlen(dimids(j))
     end do
     istatus = nf90_def_var(ncout, varname, xtype, dimids(1:nvdims(i)), ivarid)
-    call check_ok('Error define variable '//trim(varname))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable '//trim(varname))
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
       istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, 9)
-      call check_ok('Error setting compression for '//trim(varname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for '//trim(varname))
     end if
 #endif
     if (varname == 'plev') then
       istatus = nf90_put_att(ncout, ivarid, 'standard_name', 'pressure')
-      call check_ok('Error adding pressure standard name')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error adding pressure standard name')
       istatus = nf90_put_att(ncout, ivarid, 'long_name', &
                              'Interpolated pressure')
-      call check_ok('Error adding pressure long name')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error adding pressure long name')
       istatus = nf90_put_att(ncout, ivarid, 'units', 'hPa')
-      call check_ok('Error adding pressure units')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error adding pressure units')
       istatus = nf90_put_att(ncout, ivarid, 'axis', 'Z')
-      call check_ok('Error adding pressure axis')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error adding pressure axis')
       istatus = nf90_put_att(ncout, ivarid, 'positive', 'down')
-      call check_ok('Error adding pressure positive')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error adding pressure positive')
       cycle
     end if
     do j = 1 , nvatts
       istatus = nf90_inq_attname(ncid, i, j, attname)
-      call check_ok('Error read attribute for '//trim(varname))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read att for '//trim(varname))
       istatus = nf90_copy_att(ncid, i, attname, ncout, ivarid)
-      call check_ok('Error copy attribute '//trim(attname)//' for '// &
-                    trim(varname))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error copy att '//trim(attname)//' for '//trim(varname))
     end do
   end do
 
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lev", ivarid)
-    call check_ok('Error reading variable sigma.')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
   end if
   istatus = nf90_get_var(ncid, ivarid, sigma)
-  call check_ok('Error reading variable sigma.')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
-  call check_ok('Error reading variable time.')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable time.')
   istatus = nf90_get_var(ncid, ivarid, times)
-  call check_ok('Error reading variable time.')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable time.')
 
   istatus = nf90_enddef(ncout)
-  call check_ok('Error preparing for write on output')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error preparing for write on output')
 
 ! Write time independent variables
 
@@ -264,19 +265,19 @@ program sigma2p
     if (i == itvarid) cycle
     if (i == ikvarid) then
       istatus = nf90_put_var(ncout, i, plevs)
-      call check_ok('Error writing variable plev')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable plev')
       cycle
     end if
     if (.not. ltvarflag(i)) then
       allocate(avar(varsize(i)), stat=istatus)
-      call check_alloc('Memory error allocating avar')
+      call checkalloc(istatus,__FILE__,__LINE__,'avar')
       iv = nvdims(i)
       istart(:) = 1
       icount(1:iv) = dimsize(1:iv,i)
       istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
-      call check_ok('Error reading variable.')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable.')
       istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
-      call check_ok('Error writing variable.')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable.')
       deallocate(avar)
     end if
   end do
@@ -288,7 +289,7 @@ program sigma2p
     icount(1) = 1
     istatus = nf90_put_var(ncout, itvarid, times(it:it), &
                            istart(1:1), icount(1:1))
-    call check_ok('Error writing time.')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error writing time.')
     istart(1) = 1
     istart(2) = 1
     istart(3) = it
@@ -296,9 +297,9 @@ program sigma2p
     icount(2) = iy
     icount(3) = 1
     istatus = nf90_get_var(ncid, ipsvarid, ps, istart(1:3), icount(1:3))
-    call check_ok('Error reading ps.')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
-    call check_ok('Error writing ps.')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
     do i = 1 , nvars
       if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
@@ -314,15 +315,15 @@ program sigma2p
         istart(1:iv-1) = 1
         icount(1:iv-1) = dimsize(1:iv-1,i)
         allocate(avar(varsize(i)),stat=istatus)
-        call check_alloc('Memory error allocating avar')
+        call checkalloc(istatus,__FILE__,__LINE__,'avar')
         istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
-        call check_ok('Error reading variable to interpolate.')
+        call checkncerr(istatus,__FILE__,__LINE__,'Error reading var to interpolate.')
 
         n3d = varsize(i) / i3d
         ip3d = p3d*n3d
 
         allocate(apvar(ip3d),stat=istatus)
-        call check_alloc('Memory error allocating apvar')
+        call checkalloc(istatus,__FILE__,__LINE__,'apvar')
         do ii = 1 , n3d
           xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
           if (intscheme(i) == 1) then
@@ -335,7 +336,7 @@ program sigma2p
 
         icount(3) = np
         istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
-        call check_ok('Error writing interpolated variable.')
+        call checkncerr(istatus,__FILE__,__LINE__,'Error writing interp variable.')
 
         deallocate(avar)
         deallocate(apvar)
@@ -350,13 +351,11 @@ program sigma2p
         istart(1:iv-1) = 1
         icount(1:iv-1) = dimsize(1:iv-1,i)
         allocate(avar(varsize(i)),stat=istatus)
-        call check_alloc('Memory error allocating avar')
-        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), &
-                               icount(1:iv))
-        call check_ok('Error reading variable to passthrough')
-        istatus = nf90_put_var(ncout, i, avar, istart(1:iv), &
-                               icount(1:iv))
-        call check_ok('Error writing variable to passthrough')
+        call checkalloc(istatus,__FILE__,__LINE__,'avar')
+        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable to pass')
+        istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable to pass')
         deallocate(avar)
 
       end if
@@ -378,10 +377,10 @@ program sigma2p
   deallocate(pvar)
 
   istatus = nf90_close(ncid)
-  call check_ok('Error close input file '//trim(ncsfile))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error close input file '//trim(ncsfile))
 
   istatus = nf90_close(ncout)
-  call check_ok('Error close output file '//trim(ncpfile))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error close output file '//trim(ncpfile))
 
 contains
 !
@@ -475,25 +474,4 @@ contains
     end do
   end subroutine intlin
 !
-  subroutine check_ok(message)
-    use netcdf
-    implicit none
-    character(*) :: message
-    if (istatus /= nf90_noerr) then
-      write (6,*) message
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
-  end subroutine check_ok
-
-  subroutine check_alloc(message)
-    use netcdf
-    implicit none
-    character(*) :: message
-    if (istatus /= 0) then
-      write (6,*) message
-      stop
-    end if
-  end subroutine check_alloc
-
 end program sigma2p

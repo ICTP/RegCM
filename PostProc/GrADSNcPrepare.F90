@@ -21,6 +21,7 @@ program ncprepare
   use netcdf
   use mod_projections
   use mod_date
+  use mod_message
   implicit none
 
   character(256) :: prgname , ncfile , tmpctl , tmpcoord , experiment
@@ -84,21 +85,15 @@ program ncprepare
   tmpctl = trim(ncfile)//'.ctl'
 
   istatus = nf90_open(ncfile, nf90_nowrite, ncid)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error Opening NetCDF file ', trim(ncfile)
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error Open file '//trim(ncfile))
 
   istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error Reading NetCDF file ', trim(ncfile)
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire file '//trim(ncfile))
 
-  allocate(lvarflag(nvars))
-  allocate(dimids(ndims))
+  allocate(lvarflag(nvars), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'lvarflag')
+  allocate(dimids(ndims), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'dimids')
 
   open(11, file=tmpctl, form='formatted', status='replace')
   write(11, '(a)') 'dset ^'//trim(ncfile(iid+1:))
@@ -106,44 +101,24 @@ program ncprepare
   write(11, '(a)') 'undef -1e+34_FillValue'
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading title attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
 
   write(11, '(a)') 'title '//trim(charatt)
 
   istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
   if (istatus /= nf90_noerr) then
     istatus = nf90_inq_dimid(ncid, "x", jxdimid)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Dimension jx missing'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
   end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
   istatus = nf90_inquire_dimension(ncid, jxdimid, len=jx)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error dimension jx'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
   istatus = nf90_inq_dimid(ncid, "iy", iydimid)
   if (istatus /= nf90_noerr) then
     istatus = nf90_inq_dimid(ncid, "y", iydimid)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Dimension iy missing'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
   end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
   istatus = nf90_inquire_dimension(ncid, iydimid, len=iy)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error dimension iy'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
   istatus = nf90_inq_dimid(ncid, "kz", kzdimid)
   if (istatus /= nf90_noerr) then
     lsigma = .false.
@@ -154,11 +129,7 @@ program ncprepare
   end if
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, kzdimid, len=kz)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error dimension kz'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension z')
   else
     kz = 0
   end if
@@ -166,20 +137,12 @@ program ncprepare
   if (istatus == nf90_noerr) then
     ldepth = .true.
     istatus = nf90_inquire_dimension(ncid, dptdimid, len=nd)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error dimension depth'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
   end if
   istatus = nf90_inq_dimid(ncid, "time", itdimid)
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error dimension time'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
   else
     nt = 0
   end if
@@ -197,77 +160,36 @@ program ncprepare
 #endif
 
   allocate(xlat(jx,iy), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating xlat'
-    stop
-  end if
+  call checkalloc(istatus,__FILE__,__LINE__,'xlat')
   allocate(xlon(jx,iy), stat=istatus)
-  if (istatus /= 0) then
-    write (6,*) 'Memory error allocating xlon'
-    stop
-  end if
+  call checkalloc(istatus,__FILE__,__LINE__,'xlon')
 
   istatus = nf90_inq_varid(ncid, "xlat", ivarid)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error : xlat variable undefined'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlat')
   istatus = nf90_get_var(ncid, ivarid, xlat)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error reading xlat variable'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlat')
   istatus = nf90_inq_varid(ncid, "xlon", ivarid)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error : xlon variable undefined'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlon')
   istatus = nf90_get_var(ncid, ivarid, xlon)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error reading xlon variable'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlon')
 
   istatus = nf90_get_att(ncid, nf90_global, 'projection', iproj)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading projection attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute projection')
 
   istatus = nf90_get_att(ncid, nf90_global, 'experiment', experiment)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading experiment attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute experiment')
 
   istatus = nf90_get_att(ncid, nf90_global, 'latitude_of_projection_origin', &
                          clat)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading latitude_of_projection_origin attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
-
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute latitude_of_projection_origin')
   istatus = nf90_get_att(ncid, nf90_global, 'longitude_of_projection_origin', &
                          clon)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading longitude_of_projection_origin attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
-
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute longitude_of_projection_origin')
   istatus = nf90_get_att(ncid, nf90_global, 'grid_size_in_meters', ds)
-  if ( istatus /= nf90_noerr) then
-    write (6,*) 'Error reading grid_size_in_meters attribute'
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute grid_size_in_meters')
 
   minlat = rounder(minval(xlat),.false.)
   maxlat = rounder(maxval(xlat),.true.)
@@ -305,17 +227,17 @@ program ncprepare
   deallocate(xlat)
   deallocate(xlon)
 
-  allocate(rin(nlon,nlat))
-  allocate(rjn(nlon,nlat))
-  allocate(ruv(nlon,nlat))
+  allocate(rin(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'rin')
+  allocate(rjn(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'rjn')
+  allocate(ruv(nlon,nlat), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'ruv')
 
   if (iproj == 'LAMCON') then
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
-    if ( istatus /= nf90_noerr) then
-      write (6,*) 'Error reading standard_parallel attribute'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute standard_parallel')
     call setup_lcc(clat,clon,centerj,centeri,ds,clon,trlat(1),trlat(2))
     do ilon = 1 , nlon
       alon = minlon + (ilon-1) * rloninc
@@ -350,18 +272,12 @@ program ncprepare
   else if (iproj == 'ROTMER') then
     istatus = nf90_get_att(ncid, nf90_global, 'grid_north_pole_latitude', &
                            plat)
-    if ( istatus /= nf90_noerr) then
-      write (6,*) 'Error reading grid_north_pole_latitude attribute'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute grid_north_pole_latitude')
     istatus = nf90_get_att(ncid, nf90_global, 'grid_north_pole_longitude', &
                            plon)
-    if ( istatus /= nf90_noerr) then
-      write (6,*) 'Error reading grid_north_pole_longitude attribute'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute grid_north_pole_longitude')
     call setup_rmc(clat,clon,centerj,centeri,ds,plon,plat)
     do ilon = 1 , nlon
       alon = minlon + (ilon-1) * rloninc
@@ -398,10 +314,7 @@ program ncprepare
 
   if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)
-    if (istatus /= 0) then
-      write (6,*) 'Memory error allocating level'
-      stop
-    end if
+    call checkalloc(istatus,__FILE__,__LINE__,'level')
     if (lsigma) then
       istatus = nf90_inq_varid(ncid, "sigma", ivarid)
     else
@@ -410,17 +323,9 @@ program ncprepare
         istatus = nf90_inq_varid(ncid, "plev", ivarid)
       end if
     end if
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : level variable undefined'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Vertical var not present')
     istatus = nf90_get_var(ncid, ivarid, level)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading level variable'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Read Z var')
 
     if (lsigma) level = level * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f7.1)'
@@ -435,34 +340,15 @@ program ncprepare
 
   if (nt > 1) then
     allocate(times(nt), stat=istatus)
-    if (istatus /= 0) then
-      write (6,*) 'Memory error allocating times'
-      stop
-    end if
+    call checkalloc(istatus,__FILE__,__LINE__,'times')
     istatus = nf90_inq_varid(ncid, "time", ivarid)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : time variable undefined'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
     istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable units'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
     istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable calendar'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
     istatus = nf90_get_var(ncid, ivarid, times)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
     idate1 = timeval2date(times(1), timeunit, timecal)
     idate2 = timeval2date(times(2), timeunit, timecal)
     tdif = idate2-idate1
@@ -491,29 +377,13 @@ program ncprepare
     end if
   else if (nt == 1) then
     istatus = nf90_inq_varid(ncid, "time", ivarid)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : time variable undefined'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
     istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable units'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
     istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable calendar'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
     istatus = nf90_get_var(ncid, ivarid, time1)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading time variable'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
     idate1 = timeval2date(time1, timeunit, timecal)
     delta = 6
     write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
@@ -528,11 +398,7 @@ program ncprepare
     lvarflag(i) = .false.
     istatus = nf90_inquire_variable(ncid,i,xtype=xtype,ndims=idimid, &
                                     dimids=dimids)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error inquire variable ', i
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
     if (idimid > 1) then
       lvarflag(i) = .true.
       if (idimid == 2) then
@@ -549,11 +415,7 @@ program ncprepare
           totvars = totvars + 1
         else if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
           istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension splitting'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -564,11 +426,7 @@ program ncprepare
           totvars = totvars + 1
         else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
           istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension splitting'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -577,11 +435,7 @@ program ncprepare
         if (dimids(5) == itdimid .and. dimids(3) == kzdimid .and. &
             dimids(2) == iydimid) then
           istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
-          if (istatus /= nf90_noerr) then
-            write (6,*) 'Error dimension splitting'
-            write (6,*) nf90_strerror(istatus)
-            stop
-          end if
+          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -600,11 +454,7 @@ program ncprepare
     lvarsplit = .false.
     istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
                                     dimids=dimids)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error inquire variable ', i
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
     if (idimid == 2) then
       if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
         dimdesc = ' 0 y,x'
@@ -645,17 +495,9 @@ program ncprepare
       cycle
     end if
     istatus = nf90_get_att(ncid,i,'long_name', vardesc)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error variable ', i, ' : missing long_name attribute'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable long_name')
     istatus = nf90_get_att(ncid,i,'units', varunit)
-    if (istatus /= nf90_noerr) then
-      write (6,*) 'Error variable ', i, ' : missing units attribute'
-      write (6,*) nf90_strerror(istatus)
-      stop
-    end if
+    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable units')
 
     if (.not. lvarsplit) then
       write (11, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
@@ -663,11 +505,7 @@ program ncprepare
                               trim(varunit), ')'
     else if (idimid <= 4 .and. lvarsplit) then
       istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error dimension splitting'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
       if (idimid == 3) then
         do j = 1 , isplit
           write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
@@ -683,11 +521,7 @@ program ncprepare
       end if
     else if (idimid == 5 .and. lvarsplit) then
       istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
-      if (istatus /= nf90_noerr) then
-        write (6,*) 'Error dimension splitting'
-        write (6,*) nf90_strerror(istatus)
-        stop
-      end if
+      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
       do j = 1 , isplit
         if (ldepth) then
           write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
@@ -711,10 +545,6 @@ program ncprepare
   close(11)
 
   istatus = nf90_close(ncid)
-  if (istatus /= nf90_noerr) then
-    write (6,*) 'Error closing NetCDF file ', trim(ncfile)
-    write (6,*) nf90_strerror(istatus)
-    stop
-  end if
+  call checkncerr(istatus,__FILE__,__LINE__, 'Close file error')
 
 end program ncprepare
