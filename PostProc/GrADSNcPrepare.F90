@@ -573,6 +573,19 @@ program ncprepare
         else
           lvarflag(i) = .false.
         end if
+      else if (idimid == 5) then
+        if (dimids(5) == itdimid .and. dimids(3) == kzdimid .and. &
+            dimids(2) == iydimid) then
+          istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+          if (istatus /= nf90_noerr) then
+            write (6,*) 'Error dimension splitting'
+            write (6,*) nf90_strerror(istatus)
+            stop
+          end if
+          totvars = totvars + isplit
+        else
+          lvarflag(i) = .false.
+        end if
       else
         lvarflag(i) = .false.
       end if
@@ -626,6 +639,8 @@ program ncprepare
       else
         cycle
       end if
+    else if (idimid == 5) then
+      lvarsplit = .true.
     else
       cycle
     end if
@@ -666,6 +681,24 @@ program ncprepare
                                 trim(vardesc) , ' (', trim(varunit), ')'
         end do
       end if
+    else if (idimid == 5 .and. lvarsplit) then
+      istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+      if (istatus /= nf90_noerr) then
+        write (6,*) 'Error dimension splitting'
+        write (6,*) nf90_strerror(istatus)
+        stop
+      end if
+      do j = 1 , isplit
+        if (ldepth) then
+          write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+                    j, trim(varname)//' ', nd , ' t,', j-1, ',z,y,x ',   &
+                    trim(vardesc) , ' (', trim(varunit), ')'
+        else
+          write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+                    j, trim(varname)//' ', kz, ' t,', j-1, ',z,y,x ',   &
+                    trim(vardesc) , ' (', trim(varunit), ')'
+        end if
+      end do
     else
       cycle
     end if
