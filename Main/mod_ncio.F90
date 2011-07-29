@@ -432,41 +432,42 @@ contains
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
     call say(myid)
     istatus = nf90_open(dname, nf90_nowrite, idmin)
-    call check_ok('Error Opening Domain file '//trim(dname), &
-                  'CANNOT OPEN DOMAIN FILE')
+    call check_ok(__FILE__,__LINE__,'Error Opening Domain file '//trim(dname), &
+                  'DOMAIN FILE')
     if ( nsg > 1 ) then
       write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
       call say(myid)
       istatus = nf90_open(sdname, nf90_nowrite, isdmin)
-      call check_ok('Error Opening SubDomain file '//trim(sdname), &
-                    'CANNOT OPEN SUBDOM FILE')
+      call check_ok(__FILE__,__LINE__, &
+           'Error Opening SubDomain file '//trim(sdname), 'SUBDOM FILE')
     end if
     istatus = nf90_inq_dimid(idmin, 'iy', idimid)
-    call check_ok('Dimension iy missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'DOMAIN FILE')
     istatus = nf90_inquire_dimension(idmin, idimid, len=iyy)
-    call check_ok('Dimension iy read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension iy read error', 'DOMAIN FILE')
     istatus = nf90_inq_dimid(idmin, 'jx', idimid)
-    call check_ok('Dimension jx missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'DOMAIN FILE')
     istatus = nf90_inquire_dimension(idmin, idimid, len=jxx)
-    call check_ok('Dimension jx read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'DOMAIN FILE')
     istatus = nf90_inq_dimid(idmin, 'kz', idimid)
-    call check_ok('Dimension kz missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'DOMAIN FILE')
     istatus = nf90_inquire_dimension(idmin, idimid, len=kzz)
-    call check_ok('Dimension kz read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'DOMAIN FILE')
     istatus = nf90_inq_varid(idmin, 'ptop', ivarid)
-    call check_ok('Variable ptop missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable ptop miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, ptsp)
-    call check_ok('Variable ptop read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable ptop read error', 'DOMAIN FILE')
     istatus = nf90_get_att(idmin, nf90_global, 'projection', proj)
-    call check_ok('Attribute projection missing','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Attribute projection miss', &
+                  'DOMAIN FILE')
     istatus = nf90_get_att(idmin, nf90_global,'grid_size_in_meters', dsx)
-    call check_ok('Attribute gridsize missing','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Attribute gridsize miss','DOMAIN FILE')
     istatus = nf90_get_att(idmin, nf90_global, &
                            'latitude_of_projection_origin', iclat)
-    call check_ok('Attribute clat missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Attribute clat miss', 'DOMAIN FILE')
     istatus = nf90_get_att(idmin, nf90_global, &
                            'longitude_of_projection_origin', iclon)
-    call check_ok('Attribute clon missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Attribute clon miss', 'DOMAIN FILE')
 !
 !         Consistency Check
 !
@@ -482,31 +483,31 @@ contains
       write (6,*) 'Error: ptop from regcm.in and DOMAIN file differ.'
       write (6,*) 'Input namelist = ', ptop
       write (6,*) 'DOMAIN file    = ', ptsp*d_r10
-      call fatal(__FILE__,__LINE__, 'DOMAIN ptop ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN ptop')
     end if
     if (proj /= iproj) then
       write (6,*) 'Error: proj from regcm.in and DOMAIN file differ.'
       write (6,*) 'Input namelist = ', iproj
       write (6,*) 'DOMAIN file    = ', proj
-      call fatal(__FILE__,__LINE__, 'DOMAIN proj ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN proj')
     end if
     if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00) then
       write (6,*) 'Error: ds from regcm.in and DOMAIN file differ.'
       write (6,*) 'Input namelist = ', ds
       write (6,*) 'DOMAIN file    = ', dsx*d_r1000
-      call fatal(__FILE__,__LINE__, 'DOMAIN ds ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN ds')
     end if
     if (dabs(dble(iclat)-dble(clat)) > 0.001D+00) then
       write (6,*) 'Error: clat from regcm.in and DOMAIN file differ.'
       write (6,*) 'Input namelist = ', clat
       write (6,*) 'DOMAIN file    = ', iclat
-      call fatal(__FILE__,__LINE__, 'DOMAIN clat ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN clat')
     end if
     if (dabs(dble(iclon)-dble(clon)) > 0.001D+00) then
       write (6,*) 'Error: clon from regcm.in and DOMAIN file differ.'
       write (6,*) 'Input namelist = ', clon
       write (6,*) 'DOMAIN file    = ', iclon
-      call fatal(__FILE__,__LINE__, 'DOMAIN clon ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN clon')
     end if
 !
 !         Assign values in the top data modules
@@ -517,9 +518,9 @@ contains
     cfd = houpd/chemfrq
     dx = dble(dsx)
     istatus = nf90_inq_varid(idmin, 'sigma', ivarid)
-    call check_ok('Variable sigma missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable sigma miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, rsdum)
-    call check_ok('Variable sigma read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable sigma read error','DOMAIN FILE')
     sigma = dble(rsdum)
     do k = 1 , kz
       hsigma(k) = real((sigma(k)+sigma(k+1))/2.0D0)
@@ -543,52 +544,52 @@ contains
 
     if (idmin < 0) then
       write (6,*) 'Error : Domain file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+      call fatal(__FILE__,__LINE__, 'DOMAIN FILE')
     end if
 
     istatus = nf90_inq_varid(idmin, 'topo', ivarid)
-    call check_ok('Variable topo missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable topo read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable topo read error', 'DOMAIN FILE')
     ht = dble(transpose(sp2d))
     iotopo = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'landuse', ivarid)
-    call check_ok('Variable landuse missing','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable landuse miss','DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable landuse read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable landuse read error','DOMAIN FILE')
     lnd = dble(transpose(sp2d))
     iolnds = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xlat', ivarid)
-    call check_ok('Variable xlat missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlat miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable xlat read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlat read error', 'DOMAIN FILE')
     xlat = dble(transpose(sp2d))
     ioxlat = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xlon', ivarid)
-    call check_ok('Variable xlon missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlon miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable xlon read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlon read error', 'DOMAIN FILE')
     xlon = dble(transpose(sp2d))
     ioxlon = sp2d(o_js:o_je,o_is:o_ie)
     istatus = nf90_inq_varid(idmin, 'xmap', ivarid)
-    call check_ok('Variable xmap missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xmap miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable xmap read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xmap read error','DOMAIN FILE')
     xmap = dble(transpose(sp2d))
     istatus = nf90_inq_varid(idmin, 'dmap', ivarid)
-    call check_ok('Variable dmap missing','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dmap miss','DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable dmap read error', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dmap read error', 'DOMAIN FILE')
     dmap = dble(transpose(sp2d))
     istatus = nf90_inq_varid(idmin, 'coriol', ivarid)
-    call check_ok('Variable coriol missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable coriol miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable coriol read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable coriol read error','DOMAIN FILE')
     f = dble(transpose(sp2d))
     istatus = nf90_inq_varid(idmin, 'mask', ivarid)
-    call check_ok('Variable mask missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable mask miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable mask read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable mask read error','DOMAIN FILE')
     iomask = sp2d(o_js:o_je,o_is:o_ie)
   end subroutine read_domain
 
@@ -603,13 +604,13 @@ contains
 
     if (idmin < 0) then
       write (6,*) 'Error : Domain file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+      call fatal(__FILE__,__LINE__,'DOMAIN FILE')
     end if
 
     istatus = nf90_inq_varid(idmin, 'dhlake', ivarid)
-    call check_ok('Variable dhlake missing', 'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dhlake miss', 'DOMAIN FILE')
     istatus = nf90_get_var(idmin, ivarid, sp2d)
-    call check_ok('Variable dhlake read error','DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dhlake read error','DOMAIN FILE')
     hlake = dble(transpose(sp2d))
   end subroutine read_domain_lake
 
@@ -627,13 +628,13 @@ contains
     
     if (isdmin < 0) then
       write (6,*) 'Error : Subdom file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+      call fatal(__FILE__,__LINE__,'SUBDOMAIN FILE')
     end if
 
     istatus = nf90_inq_varid(isdmin, 'topo', ivarid)
-    call check_ok('Variable topo missing', 'SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable topo miss', 'SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable topo read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable topo read error','SUBDOMAIN FILE')
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -648,9 +649,10 @@ contains
     end do
     iotopo_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'landuse', ivarid)
-    call check_ok('Variable landuse missing','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable landuse miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable landuse read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable landuse read error', &
+                  'SUBDOMAIN FILE')
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -664,9 +666,9 @@ contains
       end do
     end do
     istatus = nf90_inq_varid(isdmin, 'xlat', ivarid)
-    call check_ok('Variable xlat missing','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlat miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable xlat read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlat read error','SUBDOMAIN FILE')
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -681,9 +683,9 @@ contains
     end do
     ioxlat_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'xlon', ivarid)
-    call check_ok('Variable xlon missing','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlon miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable xlon read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable xlon read error','SUBDOMAIN FILE')
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -698,9 +700,9 @@ contains
     end do
     ioxlon_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
     istatus = nf90_inq_varid(isdmin, 'mask', ivarid)
-    call check_ok('Variable mask missing','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable mask miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable mask read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable mask read error','SUBDOMAIN FILE')
     iomask_s = sp2d1(o_jsg:o_jeg,o_isg:o_ieg)
   end subroutine read_subdomain
 
@@ -716,13 +718,14 @@ contains
     
     if (isdmin < 0) then
       write (6,*) 'Error : Subdom file not in open state'
-      call fatal(__FILE__,__LINE__, 'DOMAIN FILE ERROR')
+      call fatal(__FILE__,__LINE__, 'SUBDOMAIN FILE')
     end if
 
     istatus = nf90_inq_varid(isdmin, 'dhlake', ivarid)
-    call check_ok('Variable dhlake missing','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dhlake miss','SUBDOMAIN FILE')
     istatus = nf90_get_var(isdmin, ivarid, sp2d1)
-    call check_ok('Variable dhlake read error','SUBDOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable dhlake read error', &
+                  'SUBDOMAIN FILE')
     do j = 1 , jxsg
       do i = 1 , iysg
         jj = mod(j,nsg)
@@ -743,12 +746,13 @@ contains
 
     if (idmin >= 0) then
       istatus = nf90_close(idmin)
-      call check_ok('Domain file close error','DOMAIN FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Domain file close error','DOMAIN FILE')
       idmin = -1
     end if
     if ( nsg>1 .and. isdmin >=0 ) then
       istatus = nf90_close(isdmin)
-      call check_ok('SubDomain file close error','SUBDOMAIN FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'SubDomain file close error', &
+                   'SUBDOMAIN FILE')
       isdmin = -1
     end if
 
@@ -768,12 +772,12 @@ contains
 
     if (idmin < 0) then
       istatus = nf90_open(dname, nf90_nowrite, idmin)
-      call check_ok('Error Opening Domain file '//trim(dname), &
-                    'DOMAIN FILE OPEN ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                  'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
     end if
     istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
-    call check_ok('Variable texture_fraction missing', &
-                  'DOMAIN FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Variable texture_fraction miss', &
+                  'DOMAIN FILE')
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
@@ -782,8 +786,8 @@ contains
     do n = 1 , nats
       istart(3) = n
       istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
-      call check_ok('Variable texture_frac read error', &
-                    'DOMAIN FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
+                    'DOMAIN FILE')
       do j = 1 , jx
         do i = 1 , iy
           texture(i,j,n) = dble(toto(j,i))*0.01D0
@@ -809,8 +813,8 @@ contains
     integer :: itr , i , j , m
 
     istatus = nf90_open(aername, nf90_nowrite, ncid)
-    call check_ok('Error Opening Aerosol file '//trim(aername), &
-                  'AEROSOL FILE OPEN ERROR')
+    call check_ok(__FILE__,__LINE__, &
+         'Error Opening Aerosol file '//trim(aername),'AEROSOL FILE OPEN')
 
     do itr = 1 , ntr
       aerctl = chtrname(itr)
@@ -820,9 +824,11 @@ contains
         if ( aerctl(1:3) == 'SO2' ) then
           if ( aertyp(4:4) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'so2', ivarid)
-            call check_ok('Variable so2 missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable so2 miss','AEROSOL FILE')
             istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok('Variable so2 read error','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable so2 read error','AEROSOL FILE')
             do m = 1 , 12
               do j = 1 , jx
                 do i = 1 , iy
@@ -833,7 +839,8 @@ contains
           end if
           if ( aertyp(5:5) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
-            call check_ok('Variable so2_mon missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable so2_mon miss','AEROSOL FILE')
             istart(1) = 1
             istart(2) = 1
             icount(1) = jx
@@ -842,7 +849,8 @@ contains
             do m = 1 , 12
               istart(3) = m
               istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok('Variable so2_mon read err','AEROSOL FILE ERROR')
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable so2_mon read err','AEROSOL FILE')
               do j = 1 , jx
                 do i = 1 , iy
                   chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
@@ -853,9 +861,11 @@ contains
         else if ( aerctl(1:2) == 'BC' ) then
           if ( aertyp(4:4) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'bc', ivarid)
-            call check_ok('Variable bc missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable bc miss','AEROSOL FILE')
             istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok('Variable bc read error','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable bc read error','AEROSOL FILE')
             do m = 1 , 12
               do j = 1 , jx
                 do i = 1 , iy
@@ -866,7 +876,8 @@ contains
           end if
           if ( aertyp(5:5) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
-            call check_ok('Variable bc_mon missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable bc_mon miss','AEROSOL FILE')
             istart(1) = 1
             istart(2) = 1
             icount(1) = jx
@@ -875,7 +886,8 @@ contains
             do m = 1 , 12
               istart(3) = m
               istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok('Variable bc_mon read err','AEROSOL FILE ERROR')
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable bc_mon read err','AEROSOL FILE')
               do j = 1 , jx
                 do i = 1 , iy
                   chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
@@ -886,9 +898,11 @@ contains
         else if ( aerctl(1:2) == 'OC' ) then
           if ( aertyp(4:4) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'oc', ivarid)
-            call check_ok('Variable oc missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable oc miss','AEROSOL FILE')
             istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok('Variable oc read error','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable oc read error','AEROSOL FILE')
             do m = 1 , 12
               do j = 1 , jx
                 do i = 1 , iy
@@ -899,7 +913,8 @@ contains
           end if
           if ( aertyp(5:5) == '1' ) then
             istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
-            call check_ok('Variable oc_mon missing','AEROSOL FILE ERROR')
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable oc_mon miss','AEROSOL FILE')
             istart(1) = 1
             istart(2) = 1
             icount(1) = jx
@@ -908,7 +923,8 @@ contains
             do m = 1 , 12
               istart(3) = m
               istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok('Variable oc_mon read err','AEROSOL FILE ERROR')
+              call check_ok(__FILE__,__LINE__, &
+                            'Variable oc_mon read err','AEROSOL FILE')
               do j = 1 , jx
                 do i = 1 , iy
                   chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
@@ -921,8 +937,9 @@ contains
     end do
 
     istatus = nf90_close(ncid)
-    call check_ok('Error Closing Aerosol file '//trim(aername), &
-                  'AEROSOL FILE CLOSE ERROR')
+    call check_ok(__FILE__,__LINE__, &
+                  'Error Close Aerosol file '//trim(aername), &
+                  'AEROSOL FILE CLOSE')
 
   end subroutine read_aerosol
 
@@ -939,7 +956,7 @@ contains
         write (6,*) 'Record is not found in ICBC file for ',idate%tostring()
         write (6,*) 'Range is : ', icbc_idate(1)%tostring() , '-', &
                      icbc_idate(ibcnrec)%tostring()
-        call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+        call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       icbc_search = ibcrec
     end if 
@@ -958,22 +975,22 @@ contains
     write (ctime, '(i10)') idate%toidate()
     icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
     istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
-    call check_ok('Error Opening ICBC file '//trim(icbcname), &
-                  'ICBC FILE OPEN ERROR')
+    call check_ok(__FILE__,__LINE__, &
+        'Error Opening ICBC file '//trim(icbcname),'ICBC FILE OPEN')
     ibcrec = 1
     ibcnrec = 0
     istatus = nf90_inq_dimid(ibcin, 'iy', idimid)
-    call check_ok('Dimension iy missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension iy miss', 'ICBC FILE')
     istatus = nf90_inquire_dimension(ibcin, idimid, len=iyy)
-    call check_ok('Dimension iy read error','ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension iy read error','ICBC FILE')
     istatus = nf90_inq_dimid(ibcin, 'jx', idimid)
-    call check_ok('Dimension jx missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension jx miss', 'ICBC FILE')
     istatus = nf90_inquire_dimension(ibcin, idimid, len=jxx)
-    call check_ok('Dimension jx read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension jx read error', 'ICBC FILE')
     istatus = nf90_inq_dimid(ibcin, 'kz', idimid)
-    call check_ok('Dimension kz missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension kz miss', 'ICBC FILE')
     istatus = nf90_inquire_dimension(ibcin, idimid, len=kzz)
-    call check_ok('Dimension kz read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension kz read error', 'ICBC FILE')
     if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
       write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
       write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
@@ -983,56 +1000,56 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
     istatus = nf90_inq_dimid(ibcin, 'time', idimid)
-    call check_ok('Dimension time missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
     istatus = nf90_inquire_dimension(ibcin, idimid, len=ibcnrec)
-    call check_ok('Dimension time read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
     if ( ibcnrec < 1 ) then
-      write (6,*) 'Time variable in ICBC has zero dim.'
-      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+      write (6,*) 'Time var in ICBC has zero dim.'
+      call fatal(__FILE__,__LINE__,'ICBC READ')
     end if
     istatus = nf90_inq_varid(ibcin, 'time', itvar)
-    call check_ok('variable time missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
     istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
-    call check_ok('variable time units missing','ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
     istatus = nf90_get_att(ibcin, itvar, 'calendar', icbc_timecal)
-    call check_ok('variable time calendar missing','ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
     allocate(icbc_xtime(ibcnrec), stat=istatus)
     if ( istatus /= 0 ) then
       write(6,*) 'Memory allocation error in ICBC for time real values'
-      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+      call fatal(__FILE__,__LINE__,'ICBC READ')
     end if
     allocate(icbc_idate(ibcnrec), stat=istatus)
     if ( istatus /= 0 ) then
       write(6,*) 'Memory allocation error in ICBC for time array'
-      call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+      call fatal(__FILE__,__LINE__,'ICBC READ')
     end if
     istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
-    call check_ok('variable time read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
     do i = 1 , ibcnrec
       icbc_idate(i) = timeval2date(icbc_xtime(i), icbc_timeunits, icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
       chkdiff = idnint(icbc_xtime(2) - icbc_xtime(1))
       if (chkdiff /= ibdyfrq) then
-        write (6,*) 'Time variable in ICBC inconsistency.'
+        write (6,*) 'Time var in ICBC inconsistency.'
         write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
         write (6,*) 'Found     ibdyfrq = ', chkdiff
-        call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
+        call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
     end if
     deallocate(icbc_xtime)
     istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
-    call check_ok('variable ps missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable ps miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
-    call check_ok('variable ts missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable ts miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'u', icbc_ivar(3))
-    call check_ok('variable u missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable u miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'v', icbc_ivar(4))
-    call check_ok('variable v missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable v miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 't', icbc_ivar(5))
-    call check_ok('variable t missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable t miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
-    call check_ok('variable qv missing', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable qv miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'so4', icbc_ivar(7))
     if ( istatus == nf90_noerr) then
       lso4p = .true.
@@ -1063,11 +1080,11 @@ contains
     icount(1) = jx
     istatus = nf90_get_var(ibcin, icbc_ivar(1), xread(:,:,1), & 
                            istart(1:3), icount(1:3))
-    call check_ok('variable ps read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
     ps = dble(transpose(xread(:,:,1)))
     istatus = nf90_get_var(ibcin, icbc_ivar(2), xread(:,:,1), & 
                            istart(1:3), icount(1:3))
-    call check_ok('variable ts read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
     ts = dble(transpose(xread(:,:,1)))
     istart(4) = ibcrec
     istart(3) = 1
@@ -1078,7 +1095,7 @@ contains
     icount(2) = iy
     icount(1) = jx
     istatus = nf90_get_var(ibcin, icbc_ivar(3), xread, istart, icount)
-    call check_ok('variable u read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
     do k = 1 , kz
       do j = 1 , jx
         do i = 1 , iy
@@ -1087,7 +1104,7 @@ contains
       end do
     end do
     istatus = nf90_get_var(ibcin, icbc_ivar(4), xread, istart, icount)
-    call check_ok('variable v read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
     do k = 1 , kz
       do j = 1 , jx
         do i = 1 , iy
@@ -1096,7 +1113,7 @@ contains
       end do
     end do
     istatus = nf90_get_var(ibcin, icbc_ivar(5), xread, istart, icount)
-    call check_ok('variable t read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
     do k = 1 , kz
       do j = 1 , jx
         do i = 1 , iy
@@ -1105,7 +1122,7 @@ contains
       end do
     end do
     istatus = nf90_get_var(ibcin, icbc_ivar(6), xread, istart, icount)
-    call check_ok('variable qv read error', 'ICBC FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'variable qv read error', 'ICBC FILE')
     do k = 1 , kz
       do j = 1 , jx
         do i = 1 , iy
@@ -1115,7 +1132,7 @@ contains
     end do
     if (lso4p) then
       istatus = nf90_get_var(ibcin, icbc_ivar(7), xread, istart, icount)
-      call check_ok('variable so4 read error', 'ICBC FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'variable so4 read error', 'ICBC FILE')
       do k = 1 , kz
         do j = 1 , jx
           do i = 1 , iy
@@ -1133,8 +1150,8 @@ contains
     implicit none
     if (ibcin >= 0) then
       istatus = nf90_close(ibcin)
-      call check_ok('Error Closing ICBC file '//trim(icbcname), &
-                    'ICBC FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+           'Error Close ICBC file '//trim(icbcname),'ICBC FILE')
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
@@ -1147,7 +1164,8 @@ contains
     character(3) , intent(in) :: ctype
     if (ncid >= 0) then
       istatus = nf90_close(ncid)
-      call check_ok('Error Closing '//ctype//' file', ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error Close '//ctype//' file', ctype//' FILE')
       ncid = -1
     end if
   end subroutine close_common
@@ -1222,7 +1240,7 @@ contains
 
     call close_common(ncid, ctype)
 
-    write (fterr, '(a3,a)') ctype, ' FILE ERROR'
+    write (fterr, '(a3,a)') ctype, ' FILE'
     write (fbname,'(a,a,i10)') trim(ctype), '.', idate%toidate()
     ofname = trim(dirout)//pthsep//trim(domname)// &
              '_'//trim(fbname)//'.nc'
@@ -1236,148 +1254,148 @@ contains
 #else
     istatus = nf90_create(ofname, nf90_clobber, ncid)
 #endif
-    call check_ok(('Error creating file '//trim(ofname)), fterr)
+    call check_ok(__FILE__,__LINE__,('Error create file '//trim(ofname)), fterr)
 
     istatus = nf90_put_att(ncid, nf90_global, 'title', title)
-    call check_ok('Error adding global title', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add title', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'institution', 'ICTP')
-    call check_ok('Error adding global institution', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add institution', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'source', &
                'RegCM Model '//'SVN_REV'//' simulation output')
-    call check_ok('Error adding global source', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add source', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'Conventions', 'CF-1.4')
-    call check_ok('Error adding global Conventions', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add Conventions', fterr)
     call date_and_time(values=tvals)
     write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &
          tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,       &
          tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,             &
          ' : Created by RegCM model'
     istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-    call check_ok('Error adding global history', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add history', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'references', &
                'http://eforge.escience-lab.org/gf/project/regcm')
-    call check_ok('Error adding global references', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add references', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'experiment', domname)
-    call check_ok('Error adding global experiment', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add experiment', fterr)
     istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-    call check_ok('Error adding global projection', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add projection', fterr)
     if (iproj == 'LAMCON') then
       istatus = nf90_put_att(ncid, nf90_global, &
                    'grid_mapping_name', 'lambert_conformal_conic')
-      call check_ok('Error adding global grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
     else if (iproj == 'POLSTR') then
       istatus = nf90_put_att(ncid, nf90_global, &
                    'grid_mapping_name', 'stereographic')
-      call check_ok('Error adding global grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
     else if (iproj == 'NORMER') then
       istatus = nf90_put_att(ncid, nf90_global, &
                    'grid_mapping_name', 'mercator')
-      call check_ok('Error adding global grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
     else if (iproj == 'ROTMER') then
       istatus = nf90_put_att(ncid, nf90_global, &
             'grid_mapping_name', 'rotated_latitude_longitude')
-      call check_ok('Error adding global grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__,'Error add grid_mapping_name',fterr)
     end if
     istatus = nf90_put_att(ncid, nf90_global, 'grid_size_in_meters', ds*d_1000)
-    call check_ok('Error adding global gridsize', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add gridsize', fterr)
     istatus = nf90_put_att(ncid, nf90_global, &
                            'latitude_of_projection_origin', clat)
-    call check_ok('Error adding global clat', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add clat', fterr)
     istatus = nf90_put_att(ncid, nf90_global,   &
                  'longitude_of_projection_origin', clon)
-    call check_ok('Error adding global clon', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add clon', fterr)
     istatus = nf90_put_att(ncid, nf90_global,   &
                  'longitude_of_central_meridian', clon)
-    call check_ok('Error adding global gmtllon', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add gmtllon', fterr)
     if (iproj == 'ROTMER') then
       istatus = nf90_put_att(ncid, nf90_global, &
                    'grid_north_pole_latitude', plat)
-      call check_ok('Error adding global plat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add plat', fterr)
       istatus = nf90_put_att(ncid, nf90_global, &
                    'grid_north_pole_longitude', plon)
-      call check_ok('Error adding global plon', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add plon', fterr)
     else if (iproj == 'LAMCON') then
       trlat(1) = real(truelatl)
       trlat(2) = real(truelath)
       istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', trlat)
-      call check_ok('Error adding global truelat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
     else if (iproj == 'NORMER') then
       istatus = nf90_put_att(ncid, nf90_global, 'standard_parallel', clat)
-      call check_ok('Error adding global truelat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add truelat', fterr)
     else if (iproj == 'POLSTR') then
       trlat(1) = 1.0
       istatus = nf90_put_att(ncid, nf90_global, &
                  'scale_factor_at_projection_origin', trlat(1:1))
-      call check_ok('Error adding global scfac', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add scfac', fterr)
     end if
 !
 !         ADD RUN PARAMETERS
 !
     istatus = nf90_put_att(ncid, nf90_global, 'model_IPCC_scenario', scenario)
-    call check_ok('Error adding global scenario', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add scenario', fterr)
     call cdumlbcs
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_boundary_conditions' , trim(cdum))
-    call check_ok('Error adding global lbcs', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add lbcs', fterr)
     call cdumcums
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_cumulous_convection_scheme' , trim(cdum))
-    call check_ok('Error adding global icup', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add icup', fterr)
     if (icup == 2 .or. icup == 99 .or. icup == 98) then
       call cdumcumcl
       istatus = nf90_put_att(ncid, nf90_global,  &
             'model_convective_closure_assumption' , trim(cdum))
-      call check_ok('Error adding global igcc', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add igcc', fterr)
     end if
     call cdumpbl
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_boundary_layer_scheme' , trim(cdum))
-    call check_ok('Error adding global ibltyp', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ibltyp', fterr)
     call cdummoist
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_moist_physics_scheme' , trim(cdum))
-    call check_ok('Error adding global ipptls', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ipptls', fterr)
     call cdumocnflx
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_ocean_flux_scheme' , trim(cdum))
-    call check_ok('Error adding global iocnflx', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add iocnflx', fterr)
     call cdumpgfs
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_pressure_gradient_force_scheme' , trim(cdum))
-    call check_ok('Error adding global ipgf', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ipgf', fterr)
     call cdumemiss
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_use_emission_factor' , trim(cdum))
-    call check_ok('Error adding global iemiss', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add iemiss', fterr)
     call cdumlakes
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_use_lake_model' , trim(cdum))
-    call check_ok('Error adding global lakemod', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add lakemod', fterr)
     call cdumchems
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_chemistry' , trim(cdum))
-    call check_ok('Error adding global ichem', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ichem', fterr)
     call cdumdcsst
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_diurnal_cycle_sst' , trim(cdum))
-    call check_ok('Error adding global dcsst', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dcsst', fterr)
     call cdumseaice
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_seaice_effect' , trim(cdum))
-    call check_ok('Error adding global seaice', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add seaice', fterr)
     call cdumdesseas
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_seasonal_desert_albedo_effect' , trim(cdum))
-    call check_ok('Error adding global desseas', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_simulation_initial_start' , globidate1%tostring())
-    call check_ok('Error adding global globidate1', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_simulation_start' , idate1%tostring())
-    call check_ok('Error adding global idate1', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add idate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_simulation_expected_end' , idate2%tostring())
-    call check_ok('Error adding global idate2', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add idate2', fterr)
     if (ifrest) then
       cdum = 'Yes'
     else
@@ -1385,98 +1403,98 @@ contains
     end if
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_simulation_is_a_restart' , trim(cdum))
-    call check_ok('Error adding global ifrest', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ifrest', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_seconds' , dt)
-    call check_ok('Error adding global dt', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dt', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_minutes_solar_rad_calc' , dtrad)
-    call check_ok('Error adding global dtrad', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dtrad', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_seconds_bats_calc' , dtsrf)
-    call check_ok('Error adding global dtsrf', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dtsrf', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_hours_radiation_calc' , dtabem)
-    call check_ok('Error adding global dtabem', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
             'model_timestep_in_hours_boundary_input' , ibdyfrq)
-    call check_ok('Error adding global dtabem', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add dtabem', fterr)
 !
 !         ADD DIMENSIONS
 !
     if (ctype == 'SUB') then
       istatus = nf90_def_dim(ncid, 'iy', o_nig, idims(2))
-      call check_ok('Error creating dimension iy', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim iy', fterr)
       istatus = nf90_def_dim(ncid, 'jx', o_njg, idims(1))
-      call check_ok('Error creating dimension jx', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim jx', fterr)
     else
       istatus = nf90_def_dim(ncid, 'iy', o_ni, idims(2))
-      call check_ok('Error creating dimension iy', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim iy', fterr)
       istatus = nf90_def_dim(ncid, 'jx', o_nj, idims(1))
-      call check_ok('Error creating dimension jx', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim jx', fterr)
     end if
     istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-    call check_ok('Error creating dimension time', fterr)
+    call check_ok(__FILE__,__LINE__,'Error create dim time', fterr)
     istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
-    call check_ok('Error creating dimension kz', fterr)
+    call check_ok(__FILE__,__LINE__,'Error create dim kz', fterr)
 !
 !         OUT TYPE DEPENDENT DIMENSIONS
 !
     if (ctype == 'SRF' .or. ctype == 'SUB') then
       istatus = nf90_def_dim(ncid, 'm10', 1, idims(5))
-      call check_ok('Error creating dimension m10', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim m10', fterr)
       istatus = nf90_def_dim(ncid, 'm2', 1, idims(6))
-      call check_ok('Error creating dimension m2', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim m2', fterr)
       istatus = nf90_def_dim(ncid, 'soil_layer', 2, idims(7))
-      call check_ok('Error creating dimension soil_layer', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim soil_layer', fterr)
       istatus = nf90_def_var(ncid, 'm10', nf90_float, idims(5), isrvvar(1))
-      call check_ok('Error adding variable m10', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var m10', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'standard_name', 'altitude')
-      call check_ok('Error adding m10 standard_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m10 standard_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'long_name', &
                          'Convenience 10 m elevation level')
-      call check_ok('Error adding m10 long_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m10 long_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'positive', 'up')
-      call check_ok('Error adding m10 positive', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m10 positive', fterr)
       istatus = nf90_put_att(ncid, isrvvar(1), 'units', 'm')
-      call check_ok('Error adding m10 units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m10 units', fterr)
       istatus = nf90_def_var(ncid, 'm2', nf90_float, idims(6), isrvvar(2))
-      call check_ok('Error adding variable m2', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var m2', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'standard_name', 'altitude')
-      call check_ok('Error adding m2 standard_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m2 standard_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'long_name', &
                          'Convenience 2 m elevation level')
-      call check_ok('Error adding m2 long_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add m2 long_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'positive', 'up')
-      call check_ok( 'Error adding m2 positive', fterr)
+      call check_ok(__FILE__,__LINE__, 'Error add m2 positive', fterr)
       istatus = nf90_put_att(ncid, isrvvar(2), 'units', 'm')
-      call check_ok( 'Error adding m2 units', fterr)
+      call check_ok(__FILE__,__LINE__, 'Error add m2 units', fterr)
       istatus = nf90_def_var(ncid, 'layer', nf90_float, idims(7), isrvvar(3))
-      call check_ok('Error adding variable layer', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var layer', fterr)
       istatus = nf90_put_att(ncid, isrvvar(3), 'standard_name', &
                          'model_level_number')
-      call check_ok('Error adding layer standard_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add layer standard_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(3), 'long_name', &
                          'Surface and root zone')
-      call check_ok('Error adding layer long_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add layer long_name', fterr)
       istatus = nf90_put_att(ncid, isrvvar(3), 'positive', 'down')
-      call check_ok('Error adding layer positive', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add layer positive', fterr)
       istatus = nf90_put_att(ncid, isrvvar(3), 'units', '1')
-      call check_ok('Error adding layer units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add layer units', fterr)
     end if
     if (ctype == 'SRF') then
       istatus = nf90_def_dim(ncid, 'nv', 2, idims(8))
-      call check_ok('Error creating dimension nv', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim nv', fterr)
     end  if
     if (ctype == 'CHE') then
       istatus = nf90_def_dim(ncid, 'tracer', ntr, idims(9))
-      call check_ok('Error creating dimension tracer', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim tracer', fterr)
       istatus = nf90_def_dim(ncid, 'dust', nbin, ibin)
-      call check_ok('Error creating dimension dust', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim dust', fterr)
       istatus = nf90_def_dim(ncid, 'bnd', 2, ibnd)
-      call check_ok('Error creating dimension dust', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim dust', fterr)
       istatus = nf90_def_dim(ncid, 'namelen', 6, inmlen(1))
-      call check_ok('Error creating dimension namelen', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim namelen', fterr)
       inmlen(2) = idims(9)
       idpv(1) = idims(9)
       idpv(2) = ibnd
@@ -1485,189 +1503,193 @@ contains
     end if
     if (ctype == 'LAK') then
       istatus = nf90_def_dim(ncid, 'depth', ndpmax, idims(10))
-      call check_ok('Error creating dimension depth', fterr)
+      call check_ok(__FILE__,__LINE__,'Error create dim depth', fterr)
     end if
     istatus = nf90_def_var(ncid, 'rcm_map', nf90_int, varid=imapvar)
-    call check_ok('Error adding variable rcm_map', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var rcm_map', fterr)
     if (iproj == 'LAMCON') then
       istatus = nf90_put_att(ncid, imapvar, &
                    'grid_mapping_name', 'lambert_conformal_conic')
-      call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error add rcm_map grid_mapping_name',fterr)
     else if (iproj == 'POLSTR') then
       istatus = nf90_put_att(ncid, imapvar, &
                    'grid_mapping_name', 'stereographic')
-      call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error add rcm_map grid_mapping_name',fterr)
     else if (iproj == 'NORMER') then
       istatus = nf90_put_att(ncid, imapvar, &
                    'grid_mapping_name', 'mercator')
-      call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error add rcm_map grid_mapping_name',fterr)
     else if (iproj == 'ROTMER') then
       istatus = nf90_put_att(ncid, imapvar, &
             'grid_mapping_name', 'rotated_latitude_longitude')
-      call check_ok('Error adding rcm_map grid_mapping_name',fterr)
+      call check_ok(__FILE__,__LINE__, &
+                    'Error add rcm_map grid_mapping_name',fterr)
     end if
     istatus = nf90_put_att(ncid, imapvar, 'grid_size_in_meters', ds*d_1000)
-    call check_ok('Error adding rcm_map gridsize', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add rcm_map gridsize', fterr)
     istatus = nf90_put_att(ncid, imapvar,   &
                  'latitude_of_projection_origin', clat)
-    call check_ok('Error adding rcm_map clat', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add rcm_map clat', fterr)
     istatus = nf90_put_att(ncid, imapvar,   &
                  'longitude_of_projection_origin', clon)
-    call check_ok('Error adding rcm_map clon', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add rcm_map clon', fterr)
     istatus = nf90_put_att(ncid, imapvar,   &
                  'longitude_of_central_meridian', clon)
-    call check_ok('Error adding rcm_map gmtllon', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add rcm_map gmtllon', fterr)
     if (iproj == 'ROTMER') then
       istatus = nf90_put_att(ncid, imapvar, 'grid_north_pole_latitude', plat)
-      call check_ok('Error adding rcm_map plat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add rcm_map plat', fterr)
       istatus = nf90_put_att(ncid, imapvar, 'grid_north_pole_longitude', plon)
-      call check_ok('Error adding rcm_map plon', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add rcm_map plon', fterr)
     else if (iproj == 'LAMCON') then
       trlat(1) = real(truelatl)
       trlat(2) = real(truelath)
       istatus = nf90_put_att(ncid, imapvar, 'standard_parallel', trlat)
-      call check_ok('Error adding rcm_map truelat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add rcm_map truelat', fterr)
     else if (iproj == 'NORMER') then
       istatus = nf90_put_att(ncid, imapvar, 'standard_parallel', clat)
-      call check_ok('Error adding rcm_map truelat', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add rcm_map truelat', fterr)
     else if (iproj == 'POLSTR') then
       trlat(1) = 1.0
       istatus = nf90_put_att(ncid, imapvar, &
                  'scale_factor_at_projection_origin', trlat(1:1))
-      call check_ok('Error adding rcm_map scfac', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add rcm_map scfac', fterr)
     end if
     istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4), izvar(1))
-    call check_ok('Error adding variable sigma', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var sigma', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'standard_name', &
                          'atmosphere_sigma_coordinate')
-    call check_ok('Error adding sigma standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma standard_name', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'long_name', &
                          'Sigma at model layers')
-    call check_ok('Error adding sigma long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma long_name', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
-    call check_ok('Error adding sigma units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma units', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-    call check_ok('Error adding sigma axis', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma axis', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-    call check_ok('Error adding sigma positive', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma positive', fterr)
     istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
                          'sigma: sigma ps: ps ptop: ptop')
-    call check_ok('Error adding sigma formula_terms', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add sigma formula_terms', fterr)
     if (ctype == 'LAK') then
       istatus = nf90_def_var(ncid, 'depth', nf90_float, idims(10), izvar(3))
-      call check_ok('Error adding variable depth', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var depth', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'standard_name', 'depth')
-      call check_ok('Error adding depth standard_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add depth standard_name', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'long_name', &
                            'Depth below surface')
-      call check_ok('Error adding depth long_name', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add depth long_name', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'units', 'm')
-      call check_ok('Error adding depth units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add depth units', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'axis', 'Z')
-      call check_ok('Error adding depth axis', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add depth axis', fterr)
       istatus = nf90_put_att(ncid, izvar(3), 'positive', 'down')
-      call check_ok('Error adding depth positive', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add depth positive', fterr)
     end if
     istatus = nf90_def_var(ncid, 'ptop', nf90_float, varid=izvar(2))
-    call check_ok('Error adding variable ptop', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var ptop', fterr)
     istatus = nf90_put_att(ncid, izvar(2), 'standard_name', 'air_pressure')
-    call check_ok('Error adding ptop standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ptop standard_name', fterr)
     istatus = nf90_put_att(ncid, izvar(2), 'long_name', 'Pressure at model top')
-    call check_ok('Error adding ptop long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ptop long_name', fterr)
     istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-    call check_ok('Error adding ptop units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ptop units', fterr)
     istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), ivvar(1))
-    call check_ok('Error adding variable iy', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var iy', fterr)
     istatus = nf90_put_att(ncid, ivvar(1), 'standard_name', &
                            'projection_y_coordinate')
-    call check_ok('Error adding iy standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add iy standard_name', fterr)
     istatus = nf90_put_att(ncid, ivvar(1), 'long_name', &
                            'y-coordinate in Cartesian system')
-    call check_ok('Error adding iy long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add iy long_name', fterr)
     istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-    call check_ok('Error adding iy units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add iy units', fterr)
     istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ivvar(2))
-    call check_ok('Error adding variable jx', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var jx', fterr)
     istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
                          'projection_x_coordinate')
-    call check_ok('Error adding jx standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add jx standard_name', fterr)
     istatus = nf90_put_att(ncid, ivvar(2), 'long_name', &
                          'x-coordinate in Cartesian system')
-    call check_ok('Error adding jx long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add jx long_name', fterr)
     istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-    call check_ok('Error adding jx units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add jx units', fterr)
     istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), illtpvar(1))
-    call check_ok('Error adding variable xlat', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var xlat', fterr)
     istatus = nf90_put_att(ncid, illtpvar(1), 'standard_name', 'latitude')
-    call check_ok('Error adding xlat standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlat standard_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(1), 'long_name', &
                          'Latitude at cross points')
-    call check_ok('Error adding xlat long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlat long_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(1), 'units', 'degrees_north')
-    call check_ok('Error adding xlat units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlat units', fterr)
     istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), illtpvar(2))
-    call check_ok('Error adding variable xlon', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var xlon', fterr)
     istatus = nf90_put_att(ncid, illtpvar(2), 'standard_name', 'longitude')
-    call check_ok('Error adding xlon standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlon standard_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(2), 'long_name', &
                          'Longitude at cross points')
-    call check_ok('Error adding xlon long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlon long_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(2), 'units', 'degrees_east')
-    call check_ok('Error adding xlon units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add xlon units', fterr)
     istatus = nf90_def_var(ncid, 'topo', nf90_float, idims(1:2), illtpvar(3))
-    call check_ok('Error adding variable topo', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var topo', fterr)
     istatus = nf90_put_att(ncid, illtpvar(3), 'standard_name', &
                          'surface_altitude')
-    call check_ok('Error adding topo standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add topo standard_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(3), 'long_name',     &
                          'Domain surface elevation')
-    call check_ok('Error adding topo long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add topo long_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(3), 'units', 'm')
-    call check_ok('Error adding topo units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add topo units', fterr)
     istatus = nf90_put_att(ncid, illtpvar(3), 'coordinates', 'xlat xlon')
-    call check_ok('Error adding topo coordinates', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add topo coord', fterr)
     istatus = nf90_put_att(ncid, illtpvar(3), 'grid_mapping', 'rcm_map')
-    call check_ok('Error adding topo grid_mapping', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add topo grid_mapping', fterr)
     istatus = nf90_def_var(ncid, 'mask', nf90_float, idims(1:2), illtpvar(4))
-    call check_ok('Error adding variable mask', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var mask', fterr)
     istatus = nf90_put_att(ncid, illtpvar(4), 'standard_name', 'landmask')
-    call check_ok('Error adding mask standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add mask standard_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(4), 'long_name',     &
                          'Domain land/ocean mask')
-    call check_ok('Error adding mask long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add mask long_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(4), 'units', '1')
-    call check_ok('Error adding mask units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add mask units', fterr)
     istatus = nf90_put_att(ncid, illtpvar(4), 'coordinates', 'xlat xlon')
-    call check_ok('Error adding mask coordinates', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add mask coord', fterr)
     istatus = nf90_put_att(ncid, illtpvar(4), 'grid_mapping', 'rcm_map')
-    call check_ok('Error adding mask grid_mapping', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add mask grid_mapping', fterr)
     istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), itvar)
-    call check_ok('Error adding variable time', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var time', fterr)
     istatus = nf90_put_att(ncid, itvar, 'standard_name', 'time')
-    call check_ok('Error adding time standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add time standard_name', fterr)
     istatus = nf90_put_att(ncid, itvar, 'long_name', 'time')
-    call check_ok('Error adding time long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add time long_name', fterr)
     istatus = nf90_put_att(ncid, itvar, 'calendar', calstr(idate%calendar))
-    call check_ok('Error adding time calendar', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add time calendar', fterr)
     istatus = nf90_put_att(ncid, itvar, 'units', 'hours since '//ctime)
-    call check_ok('Error adding time units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add time units', fterr)
     if (ctype == 'SRF') then
       istatus = nf90_put_att(ncid, itvar, 'bounds', 'tbnds')
-      call check_ok('Error adding time bounds', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add time bounds', fterr)
     end if
     istatus = nf90_def_var(ncid, 'ps', nf90_float, idims(1:3), illtpvar(5))
-    call check_ok('Error adding variable ps', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add var ps', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'standard_name', &
                          'surface_air_pressure')
-    call check_ok('Error adding ps standard_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ps standard_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'long_name', 'Surface pressure')
-    call check_ok('Error adding ps long_name', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ps long_name', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'units', 'hPa')
-    call check_ok('Error adding ps units', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ps units', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'coordinates', 'xlat xlon')
-    call check_ok('Error adding ps coordinates', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ps coord', fterr)
     istatus = nf90_put_att(ncid, illtpvar(5), 'grid_mapping', 'rcm_map')
-    call check_ok('Error adding ps grid_mapping', fterr)
+    call check_ok(__FILE__,__LINE__,'Error add ps grid_mapping', fterr)
 
     tyx = (/idims(1),idims(2),idims(3),-1,-1/)
     tzyx = (/idims(1),idims(2),idims(4),idims(3),-1/)
@@ -1697,11 +1719,12 @@ contains
       isrfvar(1) = itvar
       istatus = nf90_def_var(ncid, 'tbnds', nf90_double, &
                              (/idims(8),idims(3)/), isrfvar(2))
-      call check_ok('Error adding variable tbnds', fterr)
-      istatus = nf90_put_att(ncid, isrfvar(2), 'calendar', calstr(idate%calendar))
-      call check_ok('Error adding tbnds calendar', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var tbnds', fterr)
+      istatus = nf90_put_att(ncid, isrfvar(2), &
+                             'calendar', calstr(idate%calendar))
+      call check_ok(__FILE__,__LINE__,'Error add tbnds calendar', fterr)
       istatus = nf90_put_att(ncid, isrfvar(2), 'units', 'hours since '//ctime)
-      call check_ok('Error adding tbnds units', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add tbnds units', fterr)
       isrfvar(3) = illtpvar(5)
       call addvara(ncid,ctype,t10yx,.false.,4)
       call addvara(ncid,ctype,t10yx,.false.,5)
@@ -1728,22 +1751,22 @@ contains
                      idnint(srffrq) , ' hours)'
       call addvara(ncid,ctype,tyx,.false.,23)
       istatus = nf90_put_att(ncid, isrfvar(23), 'cell_methods', cmethodmax)
-      call check_ok('Error adding tgmax cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add tgmax cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,24)
       istatus = nf90_put_att(ncid, isrfvar(24), 'cell_methods', cmethodmin)
-      call check_ok('Error adding tgmin cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add tgmin cell_methods', fterr)
       call addvara(ncid,ctype,t2yx,.false.,25)
       istatus = nf90_put_att(ncid, isrfvar(25), 'cell_methods', cmethodmax)
-      call check_ok('Error adding t2max cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add t2max cell_methods', fterr)
       call addvara(ncid,ctype,t2yx,.false.,26)
       istatus = nf90_put_att(ncid, isrfvar(26), 'cell_methods', cmethodmin)
-      call check_ok('Error adding t2min cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add t2min cell_methods', fterr)
       call addvara(ncid,ctype,t10yx,.false.,27)
       istatus = nf90_put_att(ncid, isrfvar(27), 'cell_methods', cmethodmax)
-      call check_ok('Error adding w10max cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add w10max cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,28)
       istatus = nf90_put_att(ncid, isrfvar(28), 'cell_methods', cmethodmin)
-      call check_ok('Error adding ps_min cell_methods', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add ps_min cell_methods', fterr)
       call addvara(ncid,ctype,tyx,.false.,29)
       call addvara(ncid,ctype,tyx,.false.,30)
       if ( iseaice == 1 .or. lakemod == 1 ) then
@@ -1788,16 +1811,16 @@ contains
     else if (ctype == 'CHE') then
       istatus = nf90_def_var(ncid, 'chtrname', nf90_char, &
                              inmlen, ichname)
-      call check_ok('Error adding variable chtrname', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var chtrname', fterr)
       istatus = nf90_def_var(ncid, 'chtrsol', nf90_double, &
                              idims(9), ichtrsol)
-      call check_ok('Error adding variable chtrsol', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var chtrsol', fterr)
       istatus = nf90_def_var(ncid, 'chtrdpv', nf90_double, &
                              idpv, ichtrdpv)
-      call check_ok('Error adding variable chtrdpv', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var chtrdpv', fterr)
       istatus = nf90_def_var(ncid, 'dustbinsiz', nf90_double, &
                              ibinsiz, idubinsiz)
-      call check_ok('Error adding variable dustbinsiz', fterr)
+      call check_ok(__FILE__,__LINE__,'Error add var dustbinsiz', fterr)
       ichevar = -1
       ichevar(1) = itvar
       ichevar(2) = illtpvar(5)
@@ -1837,19 +1860,19 @@ contains
     end if
 
     istatus = nf90_enddef(ncid)
-    call check_ok('Error End Definitions NetCDF output', fterr)
+    call check_ok(__FILE__,__LINE__,'Error End Definitions NetCDF output',fterr)
 
     istatus = nf90_put_var(ncid, izvar(1), hsigma)
-    call check_ok('Error variable sigma write', fterr)
+    call check_ok(__FILE__,__LINE__,'Error var sigma write', fterr)
     hptop = real(ptop*d_10)
     istatus = nf90_put_var(ncid, izvar(2), hptop)
-    call check_ok('Error variable ptop write', fterr)
+    call check_ok(__FILE__,__LINE__,'Error var ptop write', fterr)
     if (ctype == 'LAK') then
       do i = 1 , ndpmax
         depth(i) = real(i)
       end do
       istatus = nf90_put_var(ncid, izvar(3), depth)
-      call check_ok('Error variable depth write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var depth write', fterr)
     end if
     if (ctype == 'SUB') then
       yiy(1) = -real((dble((o_nig-1)-1)/2.0D0)*ds)
@@ -1861,17 +1884,17 @@ contains
         xjx(j) = xjx(j-1)+real(ds)
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_nig))
-      call check_ok('Error variable iy write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var iy write', fterr)
       istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_njg))
-      call check_ok('Error variable jx write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var jx write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(1), ioxlat_s)
-      call check_ok('Error variable xlat write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var xlat write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(2), ioxlon_s)
-      call check_ok('Error variable xlon write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var xlon write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(3), iotopo_s)
-      call check_ok('Error variable topo write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var topo write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(4), iomask_s)
-      call check_ok('Error variable mask write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
     else
       yiy(1) = -real((dble(o_ni-1)/2.0D0)*ds)
       xjx(1) = -real((dble(o_nj-1)/2.0D0)*ds)
@@ -1882,44 +1905,44 @@ contains
         xjx(j) = xjx(j-1)+real(ds)
       end do
       istatus = nf90_put_var(ncid, ivvar(1), yiy(1:o_ni))
-      call check_ok('Error variable iy write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var iy write', fterr)
       istatus = nf90_put_var(ncid, ivvar(2), xjx(1:o_nj))
-      call check_ok('Error variable jx write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var jx write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(1), ioxlat)
-      call check_ok('Error variable xlat write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var xlat write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(2), ioxlon)
-      call check_ok('Error variable xlon write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var xlon write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(3), iotopo)
-      call check_ok('Error variable topo write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var topo write', fterr)
       istatus = nf90_put_var(ncid, illtpvar(4), iomask)
-      call check_ok('Error variable mask write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var mask write', fterr)
     end if
     if (ctype == 'SRF' .or. ctype == 'SUB') then
       rdum1 = 10.0
       istatus = nf90_put_var(ncid, isrvvar(1), rdum1)
-      call check_ok('Error variable m10 write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var m10 write', fterr)
       rdum1 = 2.0
       istatus = nf90_put_var(ncid, isrvvar(2), rdum1)
-      call check_ok('Error variable m2 write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var m2 write', fterr)
       rdum2(1) = 0.0
       rdum2(2) = 1.0
       istatus = nf90_put_var(ncid, isrvvar(3), rdum2)
-      call check_ok('Error variable layer write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var layer write', fterr)
     end if
     if (ctype == 'CHE') then
       istatus = nf90_put_var(ncid, ichname, chtrname)
-      call check_ok('Error variable chtrname write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var chtrname write', fterr)
       istatus = nf90_put_var(ncid, ichtrsol, chtrsol)
-      call check_ok('Error variable chtrsol write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var chtrsol write', fterr)
       istatus = nf90_put_var(ncid, ichtrdpv, chtrdpv)
-      call check_ok('Error variable chtrdpv write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var chtrdpv write', fterr)
       istatus = nf90_put_var(ncid, idubinsiz, dustbsiz)
-      call check_ok('Error variable dustbsiz write', fterr)
+      call check_ok(__FILE__,__LINE__,'Error var dustbsiz write', fterr)
     end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncid)
-      call check_ok('Error initial sync', fterr)
+      call check_ok(__FILE__,__LINE__,'Error initial sync', fterr)
     end if
 
     if (ctype == 'ATM') then
@@ -2003,30 +2026,34 @@ contains
     if (lreq) then
       cdum = vname
       istatus = nf90_def_var(ncid, cdum, nf90_float, idims(1:ndims), ivar)
-      call check_ok('Error adding variable '//vname, ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add var '//vname, ctype//' FILE')
 #ifdef NETCDF4_HDF5
       istatus = nf90_def_var_deflate(ncid, ivar, 1, 1, 9)
-      call check_ok('Error setting deflate on variable '//vname, &
-                    ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error setting deflate on var '//vname, &
+                    ctype//' FILE')
 #endif
       cdum = vst
       istatus = nf90_put_att(ncid, ivar, 'standard_name', cdum)
-      call check_ok('Error adding '//vname//' standard_name', &
-                    ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add '//vname//' standard_name', &
+                    ctype//' FILE')
       cdum = vln
       istatus = nf90_put_att(ncid, ivar, 'long_name', cdum)
-      call check_ok('Error adding '//vname//' long_name', ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add '//vname//' long_name', &
+                    ctype//' FILE')
       cdum = vuni
       istatus = nf90_put_att(ncid, ivar, 'units', cdum)
-      call check_ok('Error adding '//vname//' units', ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add '//vname//' units', &
+                    ctype//' FILE')
       istatus = nf90_put_att(ncid, ivar, 'coordinates', 'xlat xlon')
-      call check_ok('Error adding '//vname//' coordinates', ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add '//vname//' coord', &
+                    ctype//' FILE')
       istatus = nf90_put_att(ncid, ivar, 'grid_mapping', 'rcm_map')
-      call check_ok('Error adding '//vname//' grid_mapping', ctype//' FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error add '//vname//' grid_mapping', &
+                    ctype//' FILE')
       if (lmiss) then
         istatus = nf90_put_att(ncid, ivar, '_FillValue', smissval)
-        call check_ok('Error adding '//vname//' coordinates', &
-                      ctype//' FILE ERROR')
+        call check_ok(__FILE__,__LINE__,'Error add '//vname//' coord', &
+                      ctype//' FILE')
       end if
       select case (ctype)
         case ('ATM')
@@ -2079,10 +2106,10 @@ contains
     xtime(1) = xtime(2) - srffrq
     istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
                            istart(2:2), icount(2:2))
-    call check_ok('Error writing itime '//ctime, 'SRF FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SRF FILE')
     istatus = nf90_put_var(ncsrf, isrfvar(2), xtime, &
                            istart(1:2), icount(1:2))
-    call check_ok('Error writing tbnds '//ctime, 'SRF FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing tbnds '//ctime, 'SRF FILE')
 
     ivar = 3
     lskip = .false.
@@ -2109,8 +2136,9 @@ contains
           icount(1) = o_nj
           istatus = nf90_put_var(ncsrf, isrfvar(ivar), &
                           fbat(:,:,n), istart, icount)
-          call check_ok('Error writing '//srf_variables(ivar)%vname// &
-                        ' at '//ctime, 'SRF FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE')
         else if (ivar == ivarname_lookup('SRF', 'smw')) then
           istart(4) = isrfrec
           istart(3) = 1
@@ -2122,13 +2150,15 @@ contains
           icount(1) = o_nj
           istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
                           fbat(:,:,n), istart, icount)
-          call check_ok('Error writing '//srf_variables(ivar)%vname// &
-                        ' at '//ctime, 'SRF FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE')
           istart(3) = 2
           istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
                           fbat(:,:,n+1), istart, icount)
-          call check_ok('Error writing '//srf_variables(ivar)%vname// &
-                        ' at '//ctime, 'SRF FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE')
         else
           istart(3) = isrfrec
           istart(2) = 1
@@ -2138,8 +2168,9 @@ contains
           icount(1) = o_nj
           istatus = nf90_put_var(ncsrf, isrfvar(ivar), & 
                    fbat(:,:,n), istart(1:3), icount(1:3))
-          call check_ok('Error writing '//srf_variables(ivar)%vname// &
-                        ' at '//ctime, 'SRF FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//srf_variables(ivar)%vname// &
+                        ' at '//ctime, 'SRF FILE')
         end if
       end if
       if (ivar == ivarname_lookup('SRF', 'smw')) then
@@ -2158,13 +2189,14 @@ contains
       icount(1) = o_nj
       istatus = nf90_put_var(ncsrf, isrfvar(31), & 
                dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//srf_variables(31)%vname// &
-                    ' at '//ctime, 'SRF FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//srf_variables(31)%vname// &
+                    ' at '//ctime, 'SRF FILE')
     end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncsrf)
-      call check_ok('Error sync at '//ctime, 'SRF FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'SRF FILE')
     end if
     isrfrec = isrfrec + 1
   end subroutine writerec_srf
@@ -2200,7 +2232,7 @@ contains
     tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncsub, isubvar(1), xtime, istart(1:1), icount(1:1))
-    call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SUB FILE')
     ivar = 2
     lskip = .false.
     do n = 1 , nsub
@@ -2223,8 +2255,9 @@ contains
           icount(2) = o_nig
           icount(1) = o_njg
           istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-          call check_ok('Error writing '//sub_variables(ivar)%vname// &
-                        ' at '//ctime, 'SUB FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE')
         else if (ivar == ivarname_lookup('SUB', 'smw')) then
           istart(4) = isubrec
           istart(3) = 1
@@ -2235,13 +2268,15 @@ contains
           icount(2) = o_nig
           icount(1) = o_njg
           istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-          call check_ok('Error writing '//sub_variables(ivar)%vname// &
-                        ' at '//ctime, 'SUB FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE')
           istart(3) = 2
           call reorder(fsub,subio,nxb,nyb,nsg,nsub,n+1)
           istatus = nf90_put_var(ncsub, isubvar(ivar), subio, istart, icount)
-          call check_ok('Error writing '//sub_variables(ivar)%vname// &
-                        ' at '//ctime, 'SUB FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE')
         else
           istart(3) = isubrec
           istart(2) = 1
@@ -2251,8 +2286,9 @@ contains
           icount(1) = o_njg
           istatus = nf90_put_var(ncsub, isubvar(ivar), & 
                                  subio, istart(1:3), icount(1:3))
-          call check_ok('Error writing '//sub_variables(ivar)%vname// &
-                        ' at '//ctime, 'SUB FILE ERROR')
+          call check_ok(__FILE__,__LINE__, &
+                        'Error writing '//sub_variables(ivar)%vname// &
+                        ' at '//ctime, 'SUB FILE')
         end if
       end if
       if (ivar == ivarname_lookup('SUB', 'smw')) then
@@ -2262,7 +2298,7 @@ contains
     end do
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncsub)
-      call check_ok('Error sync at '//ctime, 'SUB FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'SUB FILE')
     end if
     isubrec = isubrec + 1
   end subroutine writerec_sub
@@ -2320,7 +2356,7 @@ contains
     tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncrad, iradvar(1), xtime, istart(1:1), icount(1:1))
-    call check_ok('Error writing itime '//ctime, 'RAD FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'RAD FILE')
 
     istart(3) = iradrec
     istart(2) = 1
@@ -2329,7 +2365,7 @@ contains
     icount(2) = o_ni
     icount(1) = o_nj
     istatus = nf90_put_var(ncrad, iradvar(2), ps, istart(1:3), icount(1:3))
-    call check_ok('Error writing ps at '//ctime, 'RAD FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'RAD FILE')
 
     ivar = 3
     do n = 1 , nrad3d
@@ -2344,8 +2380,9 @@ contains
         icount(1) = o_nj
         istatus = nf90_put_var(ncrad, iradvar(ivar), &
                                frad3d(:,:,:,n), istart, icount)
-        call check_ok('Error writing '//rad_variables(ivar)%vname// &
-                      ' at '//ctime, 'RAD FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//rad_variables(ivar)%vname// &
+                      ' at '//ctime, 'RAD FILE')
       end if
       ivar = ivar + 1
     end do
@@ -2359,15 +2396,16 @@ contains
         icount(1) = o_nj
         istatus = nf90_put_var(ncrad, iradvar(ivar), & 
                                frad2d(:,:,n), istart(1:3), icount(1:3))
-        call check_ok('Error writing '//rad_variables(ivar)%vname// &
-                      ' at '//ctime, 'RAD FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//rad_variables(ivar)%vname// &
+                      ' at '//ctime, 'RAD FILE')
       end if
       ivar = ivar + 1
     end do
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncrad)
-      call check_ok('Error sync at '//ctime, 'RAD FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'RAD FILE')
     end if
     iradrec = iradrec + 1
   end subroutine writerec_rad
@@ -2427,7 +2465,7 @@ contains
     tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncatm, iatmvar(1), xtime, istart(1:1), icount(1:1))
-    call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'ATM FILE')
 
     dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + rpt)*d_10)
     istart(3) = iatmrec
@@ -2438,7 +2476,7 @@ contains
     icount(1) = o_nj
     istatus = nf90_put_var(ncatm, iatmvar(2), &
                            dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing ps at '//ctime, 'ATM FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'ATM FILE')
 
     istart(4) = iatmrec
     istart(3) = 1
@@ -2464,13 +2502,15 @@ contains
               if (j == o_nj) jp2 = 1
             end if
             dumio(j,i,k) = real(((u(ip1,k,jp1)+u(ip1,k,jp2) + &
-                                  u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+                                  u(ip2,k,jp1)+u(ip2,k,jp2))*d_rfour) / &
+                                  ps(ip1,jp1))
           end do
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(3), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(3)%vname// &
-                    ' at '//ctime, 'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//atm_variables(3)%vname// &
+                    ' at '//ctime, 'ATM FILE')
     end if
 
     if ( atm_variables(4)%enabled ) then
@@ -2488,13 +2528,15 @@ contains
               if (j == o_nj) jp2 = 1
             end if
             dumio(j,i,k) = real(((v(ip1,k,jp1)+v(ip1,k,jp2) + &
-                                  v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / ps(ip1,jp1))
+                                  v(ip2,k,jp1)+v(ip2,k,jp2))*d_rfour) / &
+                                  ps(ip1,jp1))
           end do
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(4), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(4)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(4)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(5)%enabled ) then
@@ -2512,8 +2554,9 @@ contains
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(5), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(5)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(5)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(6)%enabled ) then
@@ -2531,8 +2574,9 @@ contains
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(6), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(6)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(6)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(7)%enabled ) then
@@ -2553,8 +2597,9 @@ contains
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(7), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(7)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(7)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(8)%enabled ) then
@@ -2575,8 +2620,9 @@ contains
         end do
       end do
       istatus = nf90_put_var(ncatm, iatmvar(8), dumio, istart, icount)
-      call check_ok('Error writing '//atm_variables(8)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(8)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     istart(3) = iatmrec
@@ -2597,23 +2643,26 @@ contains
       dumio(:,:,1) = dumio(:,:,1)*real(tpd)
       istatus = nf90_put_var(ncatm, iatmvar(9), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//atm_variables(9)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(9)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(10)%enabled ) then
       dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
       istatus = nf90_put_var(ncatm, iatmvar(10), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//atm_variables(10)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(10)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(11)%enabled ) then
       dumio(:,:,1) = 0.0
       do n = 1 , ns
         where (atmsrfmask(n,:,:) > 0)
-          dumio(:,:,1) = dumio(:,:,1) + real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = dumio(:,:,1) + &
+                           real(transpose(swt(n,o_is:o_ie,o_js:o_je)))
         end where
       end do
       where (atmsrfsum > 0)
@@ -2623,15 +2672,17 @@ contains
       end where
       istatus = nf90_put_var(ncatm, iatmvar(11), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//atm_variables(11)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//atm_variables(11)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( atm_variables(12)%enabled ) then
       dumio(:,:,1) = 0.0
       do n = 1 , ns
         where (atmsrfmask(n,:,:) > 0)
-          dumio(:,:,1) = dumio(:,:,1) + real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
+          dumio(:,:,1) = dumio(:,:,1) + &
+                           real(transpose(rno(n,o_is:o_ie,o_js:o_je)))
         end where
       end do
       where (atmsrfsum > 0)
@@ -2641,13 +2692,14 @@ contains
       end where
       istatus = nf90_put_var(ncatm, iatmvar(12), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//atm_variables(12)%vname//' at '//ctime, &
-                    'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//atm_variables(12)%vname//' at '//ctime, &
+                    'ATM FILE')
     end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncatm)
-      call check_ok('Error sync at '//ctime, 'ATM FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'ATM FILE')
     end if
     iatmrec = iatmrec + 1
   end subroutine writerec_atm
@@ -2697,7 +2749,7 @@ contains
     tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(ncche, ichevar(1), xtime, istart(1:1), icount(1:1))
-    call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE')
 
     dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*d_10)
     istart(3) = icherec
@@ -2708,7 +2760,7 @@ contains
     icount(1) = o_nj
     istatus = nf90_put_var(ncche, ichevar(2), &
                            dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing ps at '//ctime, 'CHE FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing ps at '//ctime, 'CHE FILE')
 
     if ( che_variables(3)%enabled ) then
       do n =  1 , nt
@@ -2727,8 +2779,9 @@ contains
                                      ps(o_is:o_ie,o_js:o_je)))
         end do
         istatus = nf90_put_var(ncche, ichevar(3), dumio, istart, icount)
-        call check_ok('Error writing '//che_variables(3)%vname//' at '//ctime, &
-                      'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(3)%vname//' at '//ctime, &
+                      'CHE FILE')
       end do
     end if
 
@@ -2746,8 +2799,9 @@ contains
         dumio(:,:,k) = real(transpose(aerext(o_is:o_ie,k,o_js:o_je)))
       end do
       istatus = nf90_put_var(ncche, ichevar(4), dumio, istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_variables(4)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(4)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
 
     if ( che_variables(5)%enabled ) then
@@ -2755,8 +2809,9 @@ contains
         dumio(:,:,k) = real(transpose(aerssa(o_is:o_ie,k,o_js:o_je)))
       end do
       istatus = nf90_put_var(ncche, ichevar(5), dumio, istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_variables(5)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(5)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
 
     if ( che_variables(6)%enabled ) then
@@ -2764,8 +2819,9 @@ contains
         dumio(:,:,k) = real(transpose(aerasp(o_is:o_ie,k,o_js:o_je)))
       end do
       istatus = nf90_put_var(ncche, ichevar(6), dumio, istart(1:4), icount(1:4))
-      call check_ok('Error writing '//che_variables(6)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(6)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
 
     do n = 1 , nt
@@ -2781,50 +2837,57 @@ contains
         dumio(:,:,1) = real(transpose(dtrace(o_is:o_ie,o_js:o_je,n)))
         istatus = nf90_put_var(ncche, ichevar(7), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(7)%vname//' at '//ctime, &
-                      'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(7)%vname//' at '//ctime, &
+                      'CHE FILE')
       end if
       if ( che_variables(8)%enabled ) then
         dumio(:,:,1) = real(transpose(wdlsc(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(8), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(8)%vname//' at '//ctime, &
-                      'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(8)%vname//' at '//ctime, &
+                      'CHE FILE')
       end if
       if ( che_variables(9)%enabled ) then
         dumio(:,:,1) = real(transpose(wdcvc(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(9), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(9)%vname//' at '//ctime, &
-                      'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(9)%vname//' at '//ctime, &
+                      'CHE FILE')
       end if
       if ( che_variables(10)%enabled ) then
         dumio(:,:,1) = real(transpose(ddsfc(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(10), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(10)%vname// &
-                      ' at '//ctime, 'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(10)%vname// &
+                      ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(11)%enabled ) then
         dumio(:,:,1) = real(transpose(wxsg(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(11), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(11)%vname// &
-                      ' at '//ctime, 'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(11)%vname// &
+                      ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(12)%enabled ) then
         dumio(:,:,1) = real(transpose(wxaq(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(12), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(12)%vname// &
-                      ' at '//ctime, 'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(12)%vname// &
+                      ' at '//ctime, 'CHE FILE')
       end if
       if ( che_variables(13)%enabled ) then
         dumio(:,:,1) = real(transpose(cemtrac(o_is:o_ie,o_js:o_je,n))*cfd)
         istatus = nf90_put_var(ncche, ichevar(13), &
                                dumio(:,:,1), istart(1:4), icount(1:4))
-        call check_ok('Error writing '//che_variables(13)%vname// &
-                      ' at '//ctime, 'CHE FILE ERROR')
+        call check_ok(__FILE__,__LINE__, &
+                      'Error writing '//che_variables(13)%vname// &
+                      ' at '//ctime, 'CHE FILE')
       end if
     end do
 
@@ -2839,34 +2902,38 @@ contains
       dumio(:,:,1) = real(transpose(aertarf(o_is:o_ie,o_js:o_je)))
       istatus = nf90_put_var(ncche, ichevar(14), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//che_variables(14)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(14)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
     if ( che_variables(15)%enabled ) then
       dumio(:,:,1) = real(transpose(aersrrf(o_is:o_ie,o_js:o_je)))
       istatus = nf90_put_var(ncche, ichevar(15), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//che_variables(15)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(15)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
     if ( che_variables(16)%enabled ) then
       dumio(:,:,1) = real(transpose(aertalwrf(o_is:o_ie,o_js:o_je)))
       istatus = nf90_put_var(ncche, ichevar(16), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//che_variables(16)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(16)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
     if ( che_variables(17)%enabled ) then
       dumio(:,:,1) = real(transpose(aersrlwrf(o_is:o_ie,o_js:o_je)))
       istatus = nf90_put_var(ncche, ichevar(17), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//che_variables(17)%vname//' at '//ctime, &
-                    'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//che_variables(17)%vname//' at '//ctime, &
+                    'CHE FILE')
     end if
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(ncche)
-      call check_ok('Error sync at '//ctime, 'CHE FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'CHE FILE')
     end if
     icherec = icherec + 1
   end subroutine writerec_che
@@ -2902,7 +2969,7 @@ contains
     tdif = idate-cordex_refdate
     xtime(1) = tdif%hours()
     istatus = nf90_put_var(nclak, ilakvar(1), xtime, istart(1:1), icount(1:1))
-    call check_ok('Error writing itime '//ctime, 'LAK FILE ERROR')
+    call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'LAK FILE')
 
     ivar = 2
     do n = 1 , numbat
@@ -2915,8 +2982,9 @@ contains
       icount(1) = o_nj
       istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                       fbat(:,:,n), istart(1:3), icount(1:3))
-      call check_ok('Error writing '//lak_variables(ivar)%vname// &
-                    ' at '//ctime, 'LAK FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//lak_variables(ivar)%vname// &
+                    ' at '//ctime, 'LAK FILE')
       ivar = ivar + 1
     end do
 
@@ -2924,20 +2992,23 @@ contains
     dumio(:,:,1) =  real(transpose(sum(evl(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_variables(ivar)%vname// &
-                  ' at '//ctime, 'LAK FILE ERROR')
+    call check_ok(__FILE__,__LINE__, &
+                  'Error writing '//lak_variables(ivar)%vname// &
+                  ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
     dumio(:,:,1) = real(transpose(sum(aveice(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
                     dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_variables(ivar)%vname// &
-                  ' at '//ctime, 'LAK FILE ERROR')
+    call check_ok(__FILE__,__LINE__, &
+                  'Error writing '//lak_variables(ivar)%vname// &
+                  ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
     dumio(:,:,1) = real(transpose(sum(hsnow(:,o_is:o_ie,o_js:o_je),1))*xns2d)
     istatus = nf90_put_var(nclak, ilakvar(ivar), & 
              dumio(:,:,1), istart(1:3), icount(1:3))
-    call check_ok('Error writing '//lak_variables(ivar)%vname// &
-                  ' at '//ctime, 'LAK FILE ERROR')
+    call check_ok(__FILE__,__LINE__, &
+                  'Error writing '//lak_variables(ivar)%vname// &
+                  ' at '//ctime, 'LAK FILE')
     ivar = ivar + 1
     do n = 1 , ndpmax
       istart(4) = ilakrec
@@ -2954,25 +3025,27 @@ contains
         dumio(:,:,1) = dumio(:,:,1) + real(tzero)
       end where
       istatus = nf90_put_var(nclak, ilakvar(ivar), dumio(:,:,1), istart, icount)
-      call check_ok('Error writing '//lak_variables(ivar)%vname// &
-                  ' at '//ctime, 'LAK FILE ERROR')
+      call check_ok(__FILE__,__LINE__, &
+                    'Error writing '//lak_variables(ivar)%vname// &
+                  ' at '//ctime, 'LAK FILE')
     end do
 
     if ( debug_level > 2 ) then
       istatus = nf90_sync(nclak)
-      call check_ok('Error sync at '//ctime, 'LAK FILE ERROR')
+      call check_ok(__FILE__,__LINE__,'Error sync at '//ctime, 'LAK FILE')
     end if
     ilakrec = ilakrec + 1
   end subroutine writerec_lak
 
-  subroutine check_ok(m1,mf)
+  subroutine check_ok(f,l,m1,mf)
     use netcdf
     implicit none
-    character(*) :: m1 , mf
+    character(*) , intent(in) :: f, m1 , mf
+    integer , intent(in) :: l
     if (istatus /= nf90_noerr) then 
       write (6,*) trim(m1)
       write (6,*) nf90_strerror(istatus)
-      call fatal(__FILE__,__LINE__,trim(mf))
+      call fatal(f,l,trim(mf))
     end if
   end subroutine check_ok
 
