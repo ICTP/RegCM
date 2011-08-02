@@ -612,6 +612,8 @@ sensitivity experiments to select the best scheme for your application.
  ibltyp  =          1,  ! Boundary layer scheme
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
+                        !   2 => UW PBL (Bretherton and McCaa, 2004)
+                        !  99 => Holtslag PBL, with UW in diag. mode
  icup    =          4,  ! Cumulus convection scheme
                         !   1 => Kuo
                         !   2 => Grell
@@ -747,6 +749,25 @@ efficiency: increasing their value generally decrease convective precipitation.
 \item Again, read carefully the Reference Manual before attempting any tuning,
 and report in any work modification of this parameters.
 \end{enumerate}
+
+\subsection{uwparam stanza}
+
+You are allowed here to tune the UW PBL scheme selected above in
+\ref{physicsparam} with the \verb=ibltyp= number if selected number is
+$2, 99$. 
+
+{\footnotesize
+\begin{Verbatim}
+ &uwparam
+ iuwvadv = 0,   ! ?????????????
+ ilenparam = 0, ! ?????????????
+ atwo = 15.0D0, ! ?????????????
+ rstbl = 1.5D0, ! ?????????????
+ /
+\end{Verbatim}
+}
+
+Travis need to add something here.
 
 \subsection{chemparam stanza}
 
