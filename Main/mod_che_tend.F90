@@ -37,6 +37,7 @@ module mod_che_tend
   use mod_advection
   use mod_diagnosis
   use mod_slice
+  use mod_tcm_interface
 #ifdef CHEMTEST
   use mod_chem
 #endif
@@ -96,7 +97,8 @@ module mod_che_tend
 !   the unit: rho - kg/m3, wl - g/m3
     do k = 1 , kz
       do i = 2 , iym2
-        rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)*d_1000/287.0D0/atm2%t(i,k,j)*sps2%ps(i,j)
+        rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)*d_1000 / &
+                    287.0D0/atm2%t(i,k,j)*sps2%ps(i,j)
         wl(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)*d_1000*rho(i,k)
       end do
     end do
@@ -137,12 +139,10 @@ module mod_che_tend
     do itr = 1 , ntr
 !
       call hadv_x(chiten(:,:,j,itr),chi(:,:,:,itr),dx,j,2)
-   
-      call vadv(chiten(:,:,j,itr),qdot,chia(:,:,j,itr),j,5)
-   
+      call vadv(chiten(:,:,j,itr),qdot,chia(:,:,j,itr),j,5,kpbl(:,j))
 !     horizontal diffusion: initialize scratch vars to 0.
 !     need to compute tracer tendencies due to diffusion
-      call diffu_x(chiten(:,:,j,itr),chib3d(:,:,:,itr),sps2%ps,xkc(:,:,j),j)
+      call diffu_x(chiten(:,:,j,itr),chib3d(:,:,:,itr),sps2%ps,xkc(:,:,j),j,kz)
    
     end do ! end tracer loop
    

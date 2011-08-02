@@ -77,7 +77,7 @@ module mod_runparams
 
   character(len=3) :: scenario
 
-  integer , parameter :: n_atmvar = 12
+  integer , parameter :: n_atmvar = 13
   integer , parameter :: n_srfvar = 31
   integer , parameter :: n_subvar = 16
   integer , parameter :: n_radvar = 15
@@ -126,6 +126,8 @@ module mod_runparams
                     'Water vapor mixing ratio','kg kg-1',.true.),             &
     output_variable('qc','cloud_liquid_water_mixing_ratio',                   &
                     'Cloud water mixing ratio','kg kg-1',.true.),             &
+    output_variable('tke','turbulent_kinetic_energy',                         &
+                    'Turbulent Kinetic Energy','m2 s2',.true.),               &
     output_variable('tpr','precipitation_flux',                               &
                     'Total daily precipitation rate','kg m-2 day-1',.true.),  &
     output_variable('tgb','soil_temperature',                                 &

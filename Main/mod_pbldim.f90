@@ -33,10 +33,12 @@
       real(8) , pointer ,  dimension(:,:) :: rhox2d
       real(8) , pointer , dimension(:,:,:) :: dzq , thvx , thx3d
       real(8) , pointer , dimension(:,:,:) :: za
+      integer , pointer , dimension(:,:) :: kpbl
 !
       public :: allocate_mod_pbldim
       public :: zq
       public :: za , dzq , thvx , thx3d
+      public :: kpbl
       public :: rhox2d
 !
       contains
@@ -50,6 +52,8 @@
         call getmem3d(thx3d,1,iy,1,kz,1,jxp,'pbldim:thx3d')
         call getmem3d(za,1,iy,1,kz,1,jxp,'pbldim:za')
         call getmem2d(rhox2d,1,iy,1,jxp,'pbldim:rhox2d')
+        call getmem2d(kpbl,1,iy,1,jxp,'pbldim:kpbl')
+
       end subroutine allocate_mod_pbldim
 !
       end module mod_pbldim

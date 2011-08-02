@@ -291,8 +291,28 @@ do while(bProcessingDates)
     imaxlat = ind(lat.eq.lat({maxlat}))
     iminlon = ind(lon.eq.lon({minlon}))
     imaxlon = ind(lon.eq.lon({maxlon}))
+    delete(lat)
+    delete(lon)
 
-    ;Create a super-variable for interpolating
+    ;Allow for different dimensionality in the SST data
+    lat = fsst->lat
+    lon = fsst->lon
+
+    iminlatsst = ind(lat.eq.lat({minlat}))
+    imaxlatsst = ind(lat.eq.lat({maxlat}))
+    iminlonsst = ind(lon.eq.lon({minlon}))
+    imaxlonsst = ind(lon.eq.lon({maxlon}))
+    delete(lat)
+    delete(lon)
+
+    ;Find the highest k that should be used for interpolation
+    plev = fu->plev
+    kmax = ind(plev.eq.50000)
+    ;Calculate a set of pressure levels to be used in vertical extrapolation
+    ;Make it a float here, since it'll make int2p return a double otherwise
+    plevflt = dble2flt(plev(0:kmax))
+
+    ;Create a super-variable for horizontally interpolating
     supervar = new((/2*kzgcm+1,iygcm,jxgcm/),float)
 
   end if
@@ -308,8 +328,9 @@ do while(bProcessingDates)
   u_gcm = fu->ua(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
   v_gcm = fv->va(itimegcm,:,iminlat:imaxlat,iminlon:imaxlon)
   ps_gcm = fps->ps(itimegcm,iminlat:imaxlat,iminlon:imaxlon)
-  sst_gcm = fsst->sst(itimegcm,iminlat:imaxlat,iminlon:imaxlon)
+  sst_gcm = fsst->sst(itimegcm,iminlatsst:imaxlatsst,iminlonsst:imaxlonsst)
   oro_gcm = foro->orog(iminlat:imaxlat,iminlon:imaxlon)
+
 
   ;Shift the longitudes (rgrid2rcm won't work with 0:360 longitudes; it needs 
   ; -180:180 longitudes)
@@ -320,7 +341,6 @@ do while(bProcessingDates)
   ps_gcm&lon = ps_gcm&lon - 360
   sst_gcm&lon = sst_gcm&lon - 360
   oro_gcm&lon = oro_gcm&lon - 360
-
 
   ;*****************************************************************************
   ;************************ Convert surface pressure to SLP ********************
@@ -338,7 +358,12 @@ do while(bProcessingDates)
   ;*****************************************************************************
   ;************************ Vertically interpolate to P-Levs *******************
   ;*****************************************************************************
-  ;TAO: GFDL data are already on pressure levels
+  ;Since the GFDL data are already on pressure levs, use this section to 
+  ;fill-in the areas with missing values instead
+  theta_gcm(0:kmax,:,:) = int2p_n(plevflt,theta_gcm(0:kmax,:,:),plevflt,-1,0)
+  qv_gcm(0:kmax,:,:) = int2p_n(plevflt,qv_gcm(0:kmax,:,:),plevflt,-1,0)
+  u_gcm(0:kmax,:,:) = int2p_n(plevflt,u_gcm(0:kmax,:,:),plevflt,-1,0)
+  v_gcm(0:kmax,:,:) = int2p_n(plevflt,v_gcm(0:kmax,:,:),plevflt,-1,0)
 
   ;*****************************************************************************
   ;********************** Horizontally interpolate to RCM grid *****************

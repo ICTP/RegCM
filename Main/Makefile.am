@@ -146,14 +146,14 @@ mod_holtbl.o: mod_holtbl.F90 mod_bats.o mod_cvaria.o \
           mod_pbldim.o mod_pmoist.o mod_slice.o \
           mod_trachem.o mod_mppio.o
 if DO_COMPILE_LIBCLM
-mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o \
-        mod_diagnosis.o mod_main.o mod_mainchem.o \
+mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_tcm_interface.o \
+        mod_diagnosis.o mod_main.o mod_mainchem.o mod_uwtcm.o \
         mod_runparams.o mod_pmoist.o mod_rad.o mod_vecbats.o mod_o3blk.o \
         mod_radiation.o mod_mppio.o mod_trachem.o mod_lake.o \
         mod_ncio.o mod_sun.o mod_savefile.o mod_cu_bm.o $(CLMLIB)
 else
-mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o \
-        mod_diagnosis.o mod_main.o mod_mainchem.o \
+mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_tcm_interface.o \
+        mod_diagnosis.o mod_main.o mod_mainchem.o mod_uwtcm.o \
         mod_runparams.o mod_pmoist.o mod_rad.o mod_vecbats.o mod_o3blk.o \
         mod_radiation.o mod_mppio.o mod_trachem.o mod_ncio.o \
         mod_lake.o mod_sun.o mod_savefile.o
@@ -163,7 +163,7 @@ mod_leaftemp.o: mod_leaftemp.f90 mod_bats.o \
                 mod_runparams.o
 mod_main.o: mod_main.f90 mod_runparams.o
 mod_mainchem.o: mod_mainchem.f90 mod_runparams.o
-mod_mppio.o: mod_mppio.F90 mod_runparams.o \
+mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_tcm_interface.o \
              mod_main.o mod_outrad.o
 mod_ncio.o: mod_ncio.F90 mod_runparams.o mod_trachem.o
 mod_nudge.o: mod_nudge.F90 mod_bdycod.o mod_main.o mod_runparams.o

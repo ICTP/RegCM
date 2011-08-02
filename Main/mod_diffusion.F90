@@ -202,15 +202,15 @@ module mod_diffusion
 
   end subroutine diffu_d
 !
-  subroutine diffu_x(ften,bc3d,press,xkc,j)
+  subroutine diffu_x(ften,bc3d,press,xkc,j,kmax)
 !
     implicit none
 !
-    integer :: j
+    integer :: j , kmax
     real(8) , dimension(iy,kz) :: ften , xkc
     real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bc3d
     real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
-    intent (in) j , xkc
+    intent (in) j , kmax , xkc
     intent (inout) ften
 !
     integer :: i , k
@@ -234,7 +234,7 @@ module mod_diffusion
 !
 !   fourth-order scheme for interior:
 !
-    do k = 1 , kz
+    do k = 1 , kmax
       do i = 3 , iym3
         ften(i,k) = ften(i,k) - xkc(i,k) *                 &
                     c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2) +    &
@@ -248,14 +248,14 @@ module mod_diffusion
 !   second-order scheme for north and south boundaries:
 !
     i = 2
-    do k = 1 , kz
+    do k = 1 , kmax
       ften(i,k) = ften(i,k) + xkc(i,k) *              &
                   c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1) + &
                         bc3d(i+1,k,j)+bc3d(i-1,k,j) - &
                   d_four*bc3d(i,k,j))*press(i,j)
     end do
     i = iym2
-    do k = 1 , kz
+    do k = 1 , kmax
       ften(i,k) = ften(i,k) + xkc(i,k) *              &
                   c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1) + &
                         bc3d(i+1,k,j)+bc3d(i-1,k,j) - &
@@ -272,7 +272,7 @@ module mod_diffusion
 !
 !     second-order scheme for east or west boundary:
 !
-      do k = 1 , kz
+      do k = 1 , kmax
         do i = 2 , iym2
           ften(i,k) = ften(i,k) + xkc(i,k) *              &
                       c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1) + &
@@ -285,7 +285,7 @@ module mod_diffusion
 !
 !     fourth-order scheme for interior:
 !
-      do k = 1 , kz
+      do k = 1 , kmax
         do i = 3 , iym3
           ften(i,k) = ften(i,k) - xkc(i,k) *                 &
                       c203*(bc3d(i,k,jp2)+bc3d(i,k,jm2) +    &
@@ -299,14 +299,14 @@ module mod_diffusion
 !     second-order scheme for north and south boundaries:
 !
       i = 2
-      do k = 1 , kz
+      do k = 1 , kmax
         ften(i,k) = ften(i,k) + xkc(i,k) *              &
                     c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1) + &
                           bc3d(i+1,k,j)+bc3d(i-1,k,j) - &
                     d_four*bc3d(i,k,j))*press(i,j)
       end do
       i = iym2
-      do k = 1 , kz
+      do k = 1 , kmax
         ften(i,k) = ften(i,k) + xkc(i,k) *              &
                     c203*(bc3d(i,k,jp1)+bc3d(i,k,jm1) + &
                           bc3d(i+1,k,j)+bc3d(i-1,k,j) - &

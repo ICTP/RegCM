@@ -67,6 +67,7 @@ module mod_uwtcm
   use m_realkinds
   use mod_runparams
   use mod_constants
+  use mod_pbldim
   use mod_tcm_interface
   use mod_main , only : atmstate , allocate_atmstate
   use mod_message , only : fatal
@@ -105,11 +106,11 @@ module mod_uwtcm
                  shear , rexnerfl , rcldb , epop , sm , sh
 
   ! local variables on half levels
-  real(dp) , pointer , dimension(:) :: ux , vx , thx , qx , thvx ,    &
-                 zax , kethl , thlx , thlxs, thxs , tx , tvx ,        &
-                 rttenx , preshl , qcx , qwx , qwxs , dzq , rrhoxhl , &
-                 uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,     &
-                 vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,    &
+  real(dp) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
+                 zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
+                 rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
+                 uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
+                 vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2
 
   integer , pointer , dimension(:) :: isice , ktop , kbot
@@ -180,7 +181,9 @@ module mod_uwtcm
     ! local variables on half levels
     call getmem1d(ux,1,kz,'mod_uwtcm:ux')
     call getmem1d(vx,1,kz,'mod_uwtcm:vx')
-    call getmem1d(thvx,1,kz,'mod_uwtcm:thvx')
+    call getmem1d(qx,1,kz,'mod_uwtcm:qx')
+    call getmem1d(thx,1,kz,'mod_uwtcm:thx')
+    call getmem1d(uthvx,1,kz,'mod_uwtcm:uthvx')
     call getmem1d(zax,1,kz,'mod_uwtcm:zax')
     call getmem1d(kethl,1,kz,'mod_uwtcm:kethl')
     call getmem1d(thlx,1,kz,'mod_uwtcm:thlx')
@@ -193,7 +196,7 @@ module mod_uwtcm
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
     call getmem1d(qwx,1,kz,'mod_uwtcm:qwx')
     call getmem1d(qwxs,1,kz,'mod_uwtcm:qwxs')
-    call getmem1d(dzq,1,kz,'mod_uwtcm:dzq')
+    call getmem1d(udzq,1,kz,'mod_uwtcm:udzq')
     call getmem1d(rrhoxhl,1,kz,'mod_uwtcm:rrhoxhl')
     call getmem1d(uxs,1,kz,'mod_uwtcm:uxs')
     call getmem1d(qxs,1,kz,'mod_uwtcm:qxs')
@@ -216,8 +219,8 @@ module mod_uwtcm
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
 
     ! Allocate the tcm state variables
-    call allocate_tcm_state(uwstatea)
-    call allocate_tcm_state(uwstateb)
+    call allocate_tcm_state(uwstatea,.true.)
+    call allocate_tcm_state(uwstateb,.true.)
 
     ! TODO: This is a bit of an odd call (from mod_main.F90) because the
     ! bounds of the uwtend variables are not guaranteed to be consistent with
@@ -296,8 +299,8 @@ module mod_uwtcm
           ! pressure at half levels
           preshl(k) = dom%a(k)*psbx + dom%ptop
           ! Level spacing
-          dzq(k) = zqx(k)-zqx(k+1)
-          rdzq(k) = d_one/dzq(k)
+          udzq(k) = zqx(k)-zqx(k+1)
+          rdzq(k) = d_one/udzq(k)
           ! Exner function
           exnerhl(k)=(preshl(k)/d_100)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
@@ -309,7 +312,7 @@ module mod_uwtcm
           ! Virtual temperature and potential temperature
           tvcon = (d_one + ep1*qx(k)-qcx(k))
           tvx(k) = tx(k)*tvcon ! virtual temperature
-          thvx(k) = thx(k)*tvcon
+          uthvx(k) = thx(k)*tvcon
           ! Liquid water potential temperature (accounting for ice)
           if ( isice(k) == 0 ) then
             thlx(k) = thx(k) - wlhvocp * rexnerhl(k) * qcx(k)
@@ -379,7 +382,7 @@ module mod_uwtcm
         thv0 = thgb*(d_one+ep1*q0s)
         ! Calculate the change in virtual potential temperature from
         ! the surface to the first interface
-        dthv = thvx(kz)-thv0
+        dthv = uthvx(kz)-thv0
         ! Calculate the change in potential temperature from the surface
         ! to the first interface
         dth = thx(kz) - thgb 
@@ -405,7 +408,7 @@ module mod_uwtcm
         ! Calculate nsquared Set N^2 based on the current potential
         ! temperature profile
         call n2(thlx,qwx,kz)
-        ! nsquar(kzp1) = egrav/thvx(kz) * dthv / zax(kz)
+        ! nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
         ! Estimate the surface N^2 from the surface virtual heat flux
         nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
@@ -502,7 +505,7 @@ module mod_uwtcm
           end if 
 
           thx(k) = temps*rexnerhl(k)
-          thvx(k)=thx(k)*(d_one + ep1*qx(k)-qcx(k))
+          uthvx(k)=thx(k)*(d_one + ep1*qx(k)-qcx(k))
         end do recalcscalar
 
         !*************************************************************
@@ -598,7 +601,7 @@ module mod_uwtcm
           if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
             bouyan(k) = bouyan(k) - &
                         rttenx(k)*(presfl(k+1)-presfl(k))*d_1000 * &
-                        rrhoxfl(k) * rexnerfl(k) / thvx(k) 
+                        rrhoxfl(k) * rexnerfl(k) / uthvx(k) 
           end if
         end do radib
         ! tke at top is fixed
@@ -679,8 +682,9 @@ module mod_uwtcm
         uwstatea%srftke(i,j) = tke(kzp1)
         uwstateb%srftke(i,j) = tke(kzp1)
         ! Output the PBL top index and height
-        uwstateb%kpbl(i,j) = kpbl2dx
         uwstateb%zpbl(i,j) = pblx
+
+        kpbl(i,j) = kpbl2dx
 
       end do jloop
     end do iloop
@@ -948,7 +952,7 @@ module mod_uwtcm
         radnnll = d_zero
         if ( qcx(k) > 1.0D-8 ) then
           radnnll = rttenx(k)*(presfl(k+1)-presfl(k))*d_1000/    &
-                    (rhoxfl(k)*thvx(k)*exnerfl(k))
+                    (rhoxfl(k)*uthvx(k)*exnerfl(k))
         end if
         entnnll = d_zero
         if ( k >= 3 ) then

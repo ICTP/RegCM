@@ -35,7 +35,7 @@ module mod_cvaria
   real(8) , pointer , dimension(:,:,:,:) :: chi
   real(8) , pointer , dimension(:,:,:,:) :: chic , chiten
 
-  type(atmstate) , public :: atmx , atmc , aten
+  type(atmstate) , public :: atmx , atmc , aten , holtten
 
   contains 
 
@@ -60,6 +60,9 @@ module mod_cvaria
         call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
         call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
         call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')
+      end if
+      if ( ibltyp == 99 ) then
+        call allocate_atmstate(holtten,.true.,0,0)
       end if
     end  subroutine allocate_mod_cvaria
 !

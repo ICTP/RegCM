@@ -55,10 +55,6 @@ module mod_tcm_interface
     !
     real(dp) , pointer , dimension(:,:) :: zpbl
     !
-    ! Boundary layer level index
-    !
-    integer , pointer , dimension(:,:) :: kpbl
-    !
     ! Surface layer TKE (m^2/s^2)
     !
     real(dp) , pointer , dimension(:,:) :: srftke
@@ -212,19 +208,29 @@ module mod_tcm_interface
 
   end subroutine init_tcm_interface
 
-  subroutine allocate_tcm_state(tcmstate)
+  subroutine allocate_tcm_state(tcmstate,lpar)
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
+    logical , intent(in) :: lpar
     !
     ! Allocate the tcm state variables
     !
-    call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:tkeps')
-    call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:advtke')
-    call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kzm')
-    call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kth')
-    call getmem2d(tcmstate%zpbl,1,iy,1,jxp,'mod_tcm_interface:zpbl')
-    call getmem2d(tcmstate%srftke,1,iy,1,jxp,'mod_tcm_interface:srftke')
-    call getmem2d(tcmstate%kpbl,1,iy,1,jxp,'mod_tcm_interface:kpbl')
+    if ( lpar ) then
+      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:tkeps')
+      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jxp, &
+                    'mod_tcm_interface:advtke')
+      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kzm')
+      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kth')
+      call getmem2d(tcmstate%zpbl,1,iy,1,jxp,'mod_tcm_interface:zpbl')
+      call getmem2d(tcmstate%srftke,1,iy,1,jxp,'mod_tcm_interface:srftke')
+    else
+      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jx,'mod_tcm_interface:tkeps')
+      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jx,'mod_tcm_interface:advtke')
+      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jx,'mod_tcm_interface:kzm')
+      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jx,'mod_tcm_interface:kth')
+      call getmem2d(tcmstate%zpbl,1,iy,1,jx,'mod_tcm_interface:zpbl')
+      call getmem2d(tcmstate%srftke,1,iy,1,jx,'mod_tcm_interface:srftke')
+    end if
   end subroutine allocate_tcm_state
 
   subroutine end_tcm_interface()

@@ -134,7 +134,7 @@ do
   #Concatenate files
   echo "Concatenating $filetype files..."
   FILEINNAME="${filetype}.all.nc"
-  $NCRCAT -O $PPDIR/*$filetype*.nc $FILEINNAME
+  $NCRCAT -O $PPDIR/*_$filetype*.nc $FILEINNAME
 
   #Average Files
   $REGCMSRCDIR/Tools/Scripts/write_averages $filetype

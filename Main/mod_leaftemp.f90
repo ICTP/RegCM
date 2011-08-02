@@ -17,89 +17,67 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-      module mod_leaftemp
+module mod_leaftemp
 !
 !     Calculate leaf temperature, leaf fluxes, and net transpiration.
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
-      use mod_runparams
-      use mod_bats
+  use mod_runparams
+  use mod_memutil
+  use mod_bats
 !
-      private
+  private
 !
-      public :: lfta , lftb , lftrs , lftra
-      public :: allocate_mod_leaftemp , lftemp , satur
+  public :: lfta , lftb , lftrs , lftra
+  public :: allocate_mod_leaftemp , lftemp , satur
 !
-      real(8) , allocatable , dimension(:,:) :: lfta , lftb
-      real(8) , allocatable , dimension(:,:) :: lftra , lftrs
+  real(8) , pointer , dimension(:,:) :: lfta , lftb
+  real(8) , pointer , dimension(:,:) :: lftra , lftrs
 !
-      real(8) , allocatable , dimension(:,:) :: cdrd , vpdc
-      real(8) , allocatable , dimension(:,:) :: rppq , efe
-      real(8) , allocatable , dimension(:,:) :: dcd , etrc
-      real(8) , allocatable , dimension(:,:) :: qsatld
-      real(8) , allocatable , dimension(:,:) :: dels
-      real(8) , allocatable , dimension(:,:) :: efpot , tbef
-      real(8) , allocatable , dimension(:,:) :: fsol0 , fsold
-      real(8) , allocatable , dimension(:,:) :: radf , rmini
-      real(8) , allocatable , dimension(:,:) :: trup , trupd
-      real(8) , allocatable , dimension(:,:) :: cdrmin , dlstaf
-      real(8) , allocatable , dimension(:,:) :: rib , rib1
+  real(8) , pointer , dimension(:,:) :: cdrd , vpdc
+  real(8) , pointer , dimension(:,:) :: rppq , efe
+  real(8) , pointer , dimension(:,:) :: dcd , etrc
+  real(8) , pointer , dimension(:,:) :: qsatld
+  real(8) , pointer , dimension(:,:) :: dels
+  real(8) , pointer , dimension(:,:) :: efpot , tbef
+  real(8) , pointer , dimension(:,:) :: fsol0 , fsold
+  real(8) , pointer , dimension(:,:) :: radf , rmini
+  real(8) , pointer , dimension(:,:) :: trup , trupd
+  real(8) , pointer , dimension(:,:) :: cdrmin , dlstaf
+  real(8) , pointer , dimension(:,:) :: rib , rib1
 !
-      contains
+  contains
 !
-      subroutine allocate_mod_leaftemp
-        implicit none
+  subroutine allocate_mod_leaftemp
+    implicit none
 
-        allocate(lfta(nnsg,iym1))
-        allocate(lftb(nnsg,iym1))
-        allocate(lftra(nnsg,iym1))
-        allocate(lftrs(nnsg,iym1))
-        allocate(cdrd(nnsg,iym1))
-        allocate(vpdc(nnsg,iym1))
-        allocate(rppq(nnsg,iym1))
-        allocate(efe(nnsg,iym1))
-        allocate(qsatld(nnsg,iym1))
-        allocate(dcd(nnsg,iym1))
-        allocate(etrc(nnsg,iym1))
-        allocate(dels(nnsg,iym1))
-        allocate(efpot(nnsg,iym1))
-        allocate(tbef(nnsg,iym1))
-        allocate(fsol0(nnsg,iym1))
-        allocate(fsold(nnsg,iym1))
-        allocate(radf(nnsg,iym1))
-        allocate(rmini(nnsg,iym1))
-        allocate(trup(nnsg,iym1))
-        allocate(trupd(nnsg,iym1))
-        allocate(cdrmin(nnsg,iym1))
-        allocate(dlstaf(nnsg,iym1))
-        allocate(rib(nnsg,iym1))
-        allocate(rib1(nnsg,iym1))
-        lfta = d_zero
-        lftb = d_zero
-        lftra = d_zero
-        lftrs = d_zero
-        cdrd = d_zero
-        vpdc = d_zero
-        rppq = d_zero
-        efe = d_zero
-        qsatld = d_zero
-        dcd = d_zero
-        etrc = d_zero
-        dels = d_zero
-        efpot = d_zero
-        tbef = d_zero
-        fsol0 = d_zero
-        fsold = d_zero
-        radf = d_zero
-        rmini = d_zero
-        trup = d_zero
-        trupd = d_zero
-        cdrmin = d_zero
-        dlstaf = d_zero
-        rib = d_zero
-        rib1 = d_zero
-      end subroutine allocate_mod_leaftemp
+    call getmem2d(lfta,1,nnsg,1,iym1,'mod_leaftemp:lfta')
+    call getmem2d(lftb,1,nnsg,1,iym1,'mod_leaftemp:lftb')
+    call getmem2d(lftra,1,nnsg,1,iym1,'mod_leaftemp:lftra')
+    call getmem2d(lftrs,1,nnsg,1,iym1,'mod_leaftemp:lftrs')
+    call getmem2d(cdrd,1,nnsg,1,iym1,'mod_leaftemp:cdrd')
+    call getmem2d(vpdc,1,nnsg,1,iym1,'mod_leaftemp:vpdc')
+    call getmem2d(rppq,1,nnsg,1,iym1,'mod_leaftemp:rppq')
+    call getmem2d(efe,1,nnsg,1,iym1,'mod_leaftemp:efe')
+    call getmem2d(qsatld,1,nnsg,1,iym1,'mod_leaftemp:qsatld')
+    call getmem2d(dcd,1,nnsg,1,iym1,'mod_leaftemp:dcd')
+    call getmem2d(etrc,1,nnsg,1,iym1,'mod_leaftemp:etrc')
+    call getmem2d(dels,1,nnsg,1,iym1,'mod_leaftemp:dels')
+    call getmem2d(efpot,1,nnsg,1,iym1,'mod_leaftemp:efpot')
+    call getmem2d(tbef,1,nnsg,1,iym1,'mod_leaftemp:tbef')
+    call getmem2d(fsol0,1,nnsg,1,iym1,'mod_leaftemp:fsol0')
+    call getmem2d(fsold,1,nnsg,1,iym1,'mod_leaftemp:fsold')
+    call getmem2d(radf,1,nnsg,1,iym1,'mod_leaftemp:radf')
+    call getmem2d(rmini,1,nnsg,1,iym1,'mod_leaftemp:rmini')
+    call getmem2d(trup,1,nnsg,1,iym1,'mod_leaftemp:trup')
+    call getmem2d(trupd,1,nnsg,1,iym1,'mod_leaftemp:trupd')
+    call getmem2d(cdrmin,1,nnsg,1,iym1,'mod_leaftemp:cdrmin')
+    call getmem2d(dlstaf,1,nnsg,1,iym1,'mod_leaftemp:dlstaf')
+    call getmem2d(rib,1,nnsg,1,iym1,'mod_leaftemp:rib')
+    call getmem2d(rib1,1,nnsg,1,iym1,'mod_leaftemp:rib1')
+
+  end subroutine allocate_mod_leaftemp
 !
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
@@ -152,16 +130,16 @@
 !
 !=======================================================================
 !
-      subroutine lftemp(iemiss)
+  subroutine lftemp(iemiss)
 !
-      implicit none
+  implicit none
 !
-      integer , intent(in) :: iemiss
+  integer , intent(in) :: iemiss
 !
-      real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
-               & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
-               & xxkb
-      integer :: iter , itfull , itmax , n , i
+  real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
+           & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
+           & xxkb
+  integer :: iter , itfull , itmax , n , i
 !
 !=======================================================================
 !l    1.   setup information
@@ -169,190 +147,190 @@
 !
 !l    1.1  get stress-free stomatal resistance
 !     (1st guess at vapor pressure deficit)
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              vpdc(n,i) = d_10
-              if ( iemiss == 1 ) then
-                sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
-              else
-                sgtg3 = sigm*tg1d(n,i)**d_three
-              end if
-              flneto(n,i) = d_four*sgtg3*(tlef1d(n,i)-tg1d(n,i))
-            end if
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          vpdc(n,i) = d_10
+          if ( iemiss == 1 ) then
+            sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
+          else
+            sgtg3 = sigm*tg1d(n,i)**d_three
           end if
-        end do
-      end do
-      call stomat
+          flneto(n,i) = d_four*sgtg3*(tlef1d(n,i)-tg1d(n,i))
+        end if
+      end if
+    end do
+  end do
+  call stomat
 !
 !l    1.3  determine fraction of total and green canopy surface
 !l    covered by water
-      call frawat
+  call frawat
 !
 !l    1.4  establish root function in terms of etrc = maximum
 !l    sustainable transpiration rate
 !     (routine also returns efpr, used in subr. water to
 !     define upper soil layer transpiration)
-      call root
+  call root
  
 !l    1.5  saturation specific humidity of leaf
-      call satur(qsatl,tlef1d,p1d)
+  call satur(qsatl,tlef1d,p1d)
  
 !=======================================================================
 !l    2.   begin iteration for leaf temperature calculation
 !=======================================================================
-      iter = 0
-      efeb = d_zero
-      delmax = d_one
-      itmax = 10
-      itfull = itmax
+  iter = 0
+  efeb = d_zero
+  delmax = d_one
+  itmax = 10
+  itfull = itmax
 !     itmax = 40
 !     itfull = 20
  
-      do iter = 0 , itmax
+  do iter = 0 , itmax
 !
 !l      2.1  recalc stability dependent canopy & leaf drag coeffs
-        if ( iter == 0 ) call condch
-        call lfdrag
-        call condch
+    if ( iter == 0 ) call condch
+    call lfdrag
+    call condch
  
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              if ( sigf(n,i) > 0.001D0 ) then
-                lftra(n,i) = d_one/(cf(n,i)*uaf(n,i))
-                cn1(n,i) = wtlh(n,i)*rhs1d(n,i)
-                df(n,i) = cn1(n,i)*cpd
+    do i = 2 , iym1
+      do n = 1 , nnsg
+        if ( ldoc1d(n,i) /= 0 ) then
+          if ( sigf(n,i) > 0.001D0 ) then
+            lftra(n,i) = d_one/(cf(n,i)*uaf(n,i))
+            cn1(n,i) = wtlh(n,i)*rhs1d(n,i)
+            df(n,i) = cn1(n,i)*cpd
  
 !l              2.2  decrease foliage conductance for stomatal
 !               resistance
-                rppdry = lftra(n,i)*fdry(n,i)/(lftrs(n,i)+lftra(n,i))
-                rpp(n,i) = rppdry + fwet(n,i)
+            rppdry = lftra(n,i)*fdry(n,i)/(lftrs(n,i)+lftra(n,i))
+            rpp(n,i) = rppdry + fwet(n,i)
  
 !l              2.3  recalculate saturation vapor pressure
-                eg1 = eg(n,i)
-                eg(n,i) = c1es*dexp(lfta(n,i)*(tlef1d(n,i)-tzero)/      &
-                         & (tlef1d(n,i)-lftb(n,i)))
-                qsatl(n,i) = qsatl(n,i)*eg(n,i)/eg1
-              end if
-            end if
-          end do
-        end do
+            eg1 = eg(n,i)
+            eg(n,i) = c1es*dexp(lfta(n,i)*(tlef1d(n,i)-tzero)/      &
+                     & (tlef1d(n,i)-lftb(n,i)))
+            qsatl(n,i) = qsatl(n,i)*eg(n,i)/eg1
+          end if
+        end if
+      end do
+    end do
  
 !l      2.4  canopy evapotranspiration
-        if ( iter == 0 ) call condcq
+    if ( iter == 0 ) call condcq
  
-        epss = 1.0D-10
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              if ( sigf(n,i) > 0.001D0 ) then
-                efpot(n,i) = cn1(n,i)*(wtgaq(n,i)*qsatl(n,i) - &
-                                          wtgq0(n,i)*qg1d(n,i) -  &
-                                          wtaq0(n,i)*qs1d(n,i))
+    epss = 1.0D-10
+    do i = 2 , iym1
+      do n = 1 , nnsg
+        if ( ldoc1d(n,i) /= 0 ) then
+          if ( sigf(n,i) > 0.001D0 ) then
+            efpot(n,i) = cn1(n,i)*(wtgaq(n,i)*qsatl(n,i) - &
+                                      wtgq0(n,i)*qg1d(n,i) -  &
+                                      wtaq0(n,i)*qs1d(n,i))
  
 !as             if (efpot(n,i) >= 0.) then     !if 0 rpp could have
 !               floating pt
-                if ( efpot(n,i) > d_zero ) then
-                  etr(n,i) = efpot(n,i)*lftra(n,i)*fdry(n,i) / &
-                             (lftrs(n,i)+lftra(n,i))
-                  rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
-                            & dtbat)/efpot(n,i)-epss)
-                else
-                  etr(n,i) = d_zero
-                  rpp(n,i) = d_one
-                end if
+            if ( efpot(n,i) > d_zero ) then
+              etr(n,i) = efpot(n,i)*lftra(n,i)*fdry(n,i) / &
+                         (lftrs(n,i)+lftra(n,i))
+              rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
+                        & dtbat)/efpot(n,i)-epss)
+            else
+              etr(n,i) = d_zero
+              rpp(n,i) = d_one
+            end if
  
-                if ( ( efpot(n,i) >= d_zero ) .and. &
-                     ( etr(n,i) >= etrc(n,i) ) )  then
+            if ( ( efpot(n,i) >= d_zero ) .and. &
+                 ( etr(n,i) >= etrc(n,i) ) )  then
 !*                transpiration demand exceeds supply, stomat adjust
 !                 demand
-                  rppdry = lftra(n,i)*fdry(n,i)/(lftrs(n,i)+lftra(n,i))
-                  rppdry = rppdry/(etr(n,i)/etrc(n,i))
-                  etr(n,i) = etrc(n,i)
+              rppdry = lftra(n,i)*fdry(n,i)/(lftrs(n,i)+lftra(n,i))
+              rppdry = rppdry/(etr(n,i)/etrc(n,i))
+              etr(n,i) = etrc(n,i)
 !*                recalculate stomatl resistance and rpp
-                  lftrs(n,i) = lftra(n,i)*(fdry(n,i)/rppdry-d_one)
-                  rpp(n,i) = rppdry + fwet(n,i)
-                  rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
-                            & dtbat)/efpot(n,i)-epss)
-                end if
- 
-                rppq(n,i) = wlhv*rpp(n,i)
-                efe(n,i) = rppq(n,i)*efpot(n,i)
-                if ( efe(n,i)*efeb < d_zero ) &
-                  efe(n,i) = 0.1D0*efe(n,i)
-              end if
+              lftrs(n,i) = lftra(n,i)*(fdry(n,i)/rppdry-d_one)
+              rpp(n,i) = rppdry + fwet(n,i)
+              rpp(n,i) = dmin1(rpp(n,i),(etr(n,i)+ldew1d(n,i)/      &
+                        & dtbat)/efpot(n,i)-epss)
             end if
-          end do
-        end do
+ 
+            rppq(n,i) = wlhv*rpp(n,i)
+            efe(n,i) = rppq(n,i)*efpot(n,i)
+            if ( efe(n,i)*efeb < d_zero ) &
+              efe(n,i) = 0.1D0*efe(n,i)
+          end if
+        end if
+      end do
+    end do
 !=======================================================================
 !l      3.   solve for leaf temperature
 !=======================================================================
 !l      3.1  update conductances for changes in rpp and cdr
-        call condcq
+    call condcq
 !
 !l      3.2  derivatives of energy fluxes with respect to leaf
 !l      temperature for newton-raphson calculation of
 !l      leaf temperature.
 !l      subr.  ii: rs,ra,cdrd,rppq,efe.
 !l      subr. output: qsatld,dcd.
-        if ( iter <= itfull ) call deriv
+    if ( iter <= itfull ) call deriv
 !
 !l      3.3  compute dcn from dcd, output from subr. deriv
-        do i = 2 , iym1
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              if ( sigf(n,i) > 0.001D0 ) then
-                dcn = dcd(n,i)*tlef1d(n,i)
+    do i = 2 , iym1
+      do n = 1 , nnsg
+        if ( ldoc1d(n,i) /= 0 ) then
+          if ( sigf(n,i) > 0.001D0 ) then
+            dcn = dcd(n,i)*tlef1d(n,i)
 !
 !l              1.2  radiative forcing for leaf temperature calculation
-                if ( iemiss == 1 ) then
-                  sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
-                else
-                  sgtg3 = sigm*tg1d(n,i)**d_three
-                end if
-                sf1 = sigf(n,i)*(sabveg(i)-flw1d(i)-(d_one-sigf(n,i))* &
-                      flneto(n,i)+d_four*sgtg3*tg1d(n,i))
-                sf2 = d_four*sigf(n,i)*sgtg3 + df(n,i)*wtga(n,i) + &
-                      dcd(n,i)
+            if ( iemiss == 1 ) then
+              sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
+            else
+              sgtg3 = sigm*tg1d(n,i)**d_three
+            end if
+            sf1 = sigf(n,i)*(sabveg(i)-flw1d(i)-(d_one-sigf(n,i))* &
+                  flneto(n,i)+d_four*sgtg3*tg1d(n,i))
+            sf2 = d_four*sigf(n,i)*sgtg3 + df(n,i)*wtga(n,i) + &
+                  dcd(n,i)
  
 !l              3.4  iterative leaf temperature calculation
-                tbef(n,i) = tlef1d(n,i)
-                tlef1d(n,i) = (sf1+df(n,i)*(wta0(n,i)*ts1d(n,i)+        &
-                       & wtg0(n,i)*tg1d(n,i))-efe(n,i)+dcn)/sf2
+            tbef(n,i) = tlef1d(n,i)
+            tlef1d(n,i) = (sf1+df(n,i)*(wta0(n,i)*ts1d(n,i)+        &
+                   & wtg0(n,i)*tg1d(n,i))-efe(n,i)+dcn)/sf2
 !
 !l              3.5  chk magnitude of change; limit to max allowed value
-                dels(n,i) = tlef1d(n,i) - tbef(n,i)
-                if ( dabs(dels(n,i)) > delmax )                     &
-                  &   tlef1d(n,i) = tbef(n,i) + delmax*dels(n,i)/ &
-                  &   dabs(dels(n,i))
+            dels(n,i) = tlef1d(n,i) - tbef(n,i)
+            if ( dabs(dels(n,i)) > delmax )                     &
+              &   tlef1d(n,i) = tbef(n,i) + delmax*dels(n,i)/ &
+              &   dabs(dels(n,i))
  
 !l              3.6  update dependence of stomatal resistance
 !l              on vapor pressure deficit
-                qcan = wtlq0(n,i)*qsatl(n,i) + qg1d(n,i)*wtgq0(n,i)     &
-                     & + qs1d(n,i)*wtaq0(n,i)
-                vpdc(n,i) = (d_one-rpp(n,i))*(qsatl(n,i)-qcan)*d_1000/ep2
-              end if
-            end if
-          end do
-        end do
+            qcan = wtlq0(n,i)*qsatl(n,i) + qg1d(n,i)*wtgq0(n,i)     &
+                 & + qs1d(n,i)*wtaq0(n,i)
+            vpdc(n,i) = (d_one-rpp(n,i))*(qsatl(n,i)-qcan)*d_1000/ep2
+          end if
+        end if
+      end do
+    end do
  
-        call stomat
+    call stomat
  
 !l      3.8  end iteration
  
-      end do
+  end do
  
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
 !=======================================================================
 !l            4.   update dew accumulation (kg/m**2/s)
 !=======================================================================
-              ldew1d(n,i) = ldew1d(n,i) + (etr(n,i) - &
-                            efe(n,i)/wlhv)*dtbat
+          ldew1d(n,i) = ldew1d(n,i) + (etr(n,i) - &
+                        efe(n,i)/wlhv)*dtbat
  
 !=======================================================================
 !l            5.   collect parameters needed to evaluate
@@ -360,58 +338,58 @@
 !=======================================================================
  
 !l            5.1  canopy properties
-              taf1d(n,i) = wtg0(n,i)*tg1d(n,i) + wta0(n,i)              &
-                          & *ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)
-              delt1d(n,i) = wtgl(n,i)*ts1d(n,i) - (wtl0(n,i)*           &
-                           & tlef1d(n,i)+wtg0(n,i)*tg1d(n,i))
-              delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
-                           & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
-              if ( iemiss == 1 ) then
-                sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
-              else
-                sgtg3 = sigm*tg1d(n,i)**d_three
-              end if
-              flnet(n,i) = sgtg3*(tlef1d(n,i)-tg1d(n,i))*d_four
-              xxkb = dmin1(rough(lveg(n,i)),d_one)
-              vakb = (d_one-sigf(n,i))*vspda(n,i) + sigf(n,i) &
-                   & *(xxkb*uaf(n,i)+(d_one-xxkb)*vspda(n,i))
-              wtg2(n,i) = (d_one-sigf(n,i))*cdr(n,i)*vakb
-              fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
-              qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
+          taf1d(n,i) = wtg0(n,i)*tg1d(n,i) + wta0(n,i)              &
+                      & *ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)
+          delt1d(n,i) = wtgl(n,i)*ts1d(n,i) - (wtl0(n,i)*           &
+                       & tlef1d(n,i)+wtg0(n,i)*tg1d(n,i))
+          delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
+                       & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
+          if ( iemiss == 1 ) then
+            sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
+          else
+            sgtg3 = sigm*tg1d(n,i)**d_three
+          end if
+          flnet(n,i) = sgtg3*(tlef1d(n,i)-tg1d(n,i))*d_four
+          xxkb = dmin1(rough(lveg(n,i)),d_one)
+          vakb = (d_one-sigf(n,i))*vspda(n,i) + sigf(n,i) &
+               & *(xxkb*uaf(n,i)+(d_one-xxkb)*vspda(n,i))
+          wtg2(n,i) = (d_one-sigf(n,i))*cdr(n,i)*vakb
+          fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
+          qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
  
 !l            5.2  fluxes from soil
-              fseng(n,i) = cpd*rhs1d(n,i)*(wtg(n,i)*((wta0(n,i)+        &
-                          & wtl0(n,i))*tg1d(n,i)-wta0(n,i)*ts1d(n,i)-   &
-                          & wtl0(n,i)*tlef1d(n,i))+fbare)
-              fevpg(n,i) = rhs1d(n,i)*rgr(n,i)*(wtg(n,i)*((wtaq0(n,i)+  &
-                          & wtlq0(n,i))*qg1d(n,i)-wtaq0(n,i)*qs1d(n,i)- &
-                          & wtlq0(n,i)*qsatl(n,i))+qbare)
+          fseng(n,i) = cpd*rhs1d(n,i)*(wtg(n,i)*((wta0(n,i)+        &
+                      & wtl0(n,i))*tg1d(n,i)-wta0(n,i)*ts1d(n,i)-   &
+                      & wtl0(n,i)*tlef1d(n,i))+fbare)
+          fevpg(n,i) = rhs1d(n,i)*rgr(n,i)*(wtg(n,i)*((wtaq0(n,i)+  &
+                      & wtlq0(n,i))*qg1d(n,i)-wtaq0(n,i)*qs1d(n,i)- &
+                      & wtlq0(n,i)*qsatl(n,i))+qbare)
  
 !l            5.3  deriv of soil energy flux with respect to soil temp
-              qsatdg = qg1d(n,i)*rgr(n,i)*lfta(n,i)*(tzero-lftb(n,i))   &
-                     & *(d_one/(tg1d(n,i)-lftb(n,i)))**d_two
-              cgrnds(n,i) = rhs1d(n,i)*cpd*(wtg(n,i)*(wta0(n,i)+        &
-                     & wtl0(n,i))+wtg2(n,i))
-              cgrndl(n,i) = rhs1d(n,i)*qsatdg*((wta(n,i)+wtlq(n,i))*    &
-                     & wtg(n,i)*wtsqi(n,i)+wtg2(n,i))
-              cgrnd(n,i) = cgrnds(n,i) + cgrndl(n,i)*htvp(n,i)
+          qsatdg = qg1d(n,i)*rgr(n,i)*lfta(n,i)*(tzero-lftb(n,i))   &
+                 & *(d_one/(tg1d(n,i)-lftb(n,i)))**d_two
+          cgrnds(n,i) = rhs1d(n,i)*cpd*(wtg(n,i)*(wta0(n,i)+        &
+                 & wtl0(n,i))+wtg2(n,i))
+          cgrndl(n,i) = rhs1d(n,i)*qsatdg*((wta(n,i)+wtlq(n,i))*    &
+                 & wtg(n,i)*wtsqi(n,i)+wtg2(n,i))
+          cgrnd(n,i) = cgrnds(n,i) + cgrndl(n,i)*htvp(n,i)
  
 !l            5.4  reinitialize cdrx
 !!!           shuttleworth mods #3 removed here !!!!!!
-              cdrx(n,i) = cdr(n,i)
+          cdrx(n,i) = cdr(n,i)
 !
 !l            5.5  fluxes from canopy and soil to overlying air
-              fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
-              qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
-              sent1d(n,i) = cpd*rhs1d(n,i)*(-wta(n,i)*delt1d(n,i)+fbare)
-              evpr1d(n,i) = rhs1d(n,i)*(-wta(n,i)*delq1d(n,i)+          &
-                     & rgr(n,i)*qbare)
-            end if
-          end if
-        end do
-      end do
+          fbare = wtg2(n,i)*(tg1d(n,i)-ts1d(n,i))
+          qbare = wtg2(n,i)*(qg1d(n,i)-qs1d(n,i))
+          sent1d(n,i) = cpd*rhs1d(n,i)*(-wta(n,i)*delt1d(n,i)+fbare)
+          evpr1d(n,i) = rhs1d(n,i)*(-wta(n,i)*delq1d(n,i)+          &
+                 & rgr(n,i)*qbare)
+        end if
+      end if
+    end do
+  end do
  
-      end subroutine lftemp
+  end subroutine lftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -440,13 +418,13 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine stomat
+  subroutine stomat
 !
-      implicit none
+  implicit none
 !
-      real(8) :: difzen , g , radfi , seas , vpdf , rilmax
-      integer :: il , ilmax , n , i
-      real(8) , dimension(10) :: rad , radd
+  real(8) :: difzen , g , radfi , seas , vpdf , rilmax
+  integer :: il , ilmax , n , i
+  real(8) , dimension(10) :: rad , radd
 !
 !     ***** seasonal temperature factor
 !     ***** g is average leaf crosssection per unit lai
@@ -457,81 +435,81 @@
 !     rad) ***** trup is transmission of direct beam light in one
 !     canopy layer ***** trupd is transmission of diffuse light in one
 !     canopy layer
-      g = d_half
-      difzen = d_two
-      ilmax = 4
-      rilmax = d_four
+  g = d_half
+  difzen = d_two
+  ilmax = 4
+  rilmax = d_four
 !*    delete fracd here to put in diffuse mod_radiation from ccm
 !cc   fracd = difrat         !  from shuttleworth mods #2
  
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
 !             **********            zenith angle set in zenitm
-              if ( (czen(i)/rilmax) > 0.001D0 ) then
-                trup(n,i) = dexp(-g*rlai(n,i)/(rilmax*czen(i)))
-                trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(rilmax))
-                fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
-                fsol0(n,i) = (d_one-fracd(i))*solis(i)*fc(lveg(n,i))
-                rmini(n,i) = rsmin(lveg(n,i))/rmax0
-              end if
-            end if
+          if ( (czen(i)/rilmax) > 0.001D0 ) then
+            trup(n,i) = dexp(-g*rlai(n,i)/(rilmax*czen(i)))
+            trupd(n,i) = dexp(-difzen*g*rlai(n,i)/(rilmax))
+            fsold(n,i) = fracd(i)*solis(i)*fc(lveg(n,i))
+            fsol0(n,i) = (d_one-fracd(i))*solis(i)*fc(lveg(n,i))
+            rmini(n,i) = rsmin(lveg(n,i))/rmax0
           end if
-        end do
-      end do
+        end if
+      end if
+    end do
+  end do
  
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              if ( czen(i)/rilmax > 0.001D0 ) then
-                rad(1) = (d_one-trup(n,i))*fsol0(n,i)*rilmax/rlai(n,i)
-                radd(1) = (d_one-trupd(n,i))*fsold(n,i) * &
-                          rilmax/rlai(n,i)
-                do il = 2 , ilmax
-                  rad(il) = trup(n,i)*rad(il-1)
-                  radd(il) = trupd(n,i)*radd(il-1)
-                end do
-                radfi = d_zero
-                do il = 1 , ilmax
-                  radfi = radfi + (rad(il)+radd(il)+rmini(n,i)) / &
-                          (d_one+rad(il)+radd(il))
-                end do
-                radf(n,i) = rilmax/radfi
-              end if
-            end if
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          if ( czen(i)/rilmax > 0.001D0 ) then
+            rad(1) = (d_one-trup(n,i))*fsol0(n,i)*rilmax/rlai(n,i)
+            radd(1) = (d_one-trupd(n,i))*fsold(n,i) * &
+                      rilmax/rlai(n,i)
+            do il = 2 , ilmax
+              rad(il) = trup(n,i)*rad(il-1)
+              radd(il) = trupd(n,i)*radd(il-1)
+            end do
+            radfi = d_zero
+            do il = 1 , ilmax
+              radfi = radfi + (rad(il)+radd(il)+rmini(n,i)) / &
+                      (d_one+rad(il)+radd(il))
+            end do
+            radf(n,i) = rilmax/radfi
           end if
-        end do
-      end do
+        end if
+      end if
+    end do
+  end do
  
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              if ( (czen(i)/rilmax) > 0.001D0 ) then
-                vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,i)*0.025D0)
-                seas = d_one/(rmini(n,i)+fseas(tlef1d(n,i)))
-                lftrs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
-                lftrs(n,i) = dmin1(lftrs(n,i),rmax0)
-              else
-                lftrs(n,i) = rmax0
-              end if
-            end if
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          if ( (czen(i)/rilmax) > 0.001D0 ) then
+            vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,i)*0.025D0)
+            seas = d_one/(rmini(n,i)+fseas(tlef1d(n,i)))
+            lftrs(n,i) = rsmin(lveg(n,i))*radf(n,i)*seas*vpdf
+            lftrs(n,i) = dmin1(lftrs(n,i),rmax0)
+          else
+            lftrs(n,i) = rmax0
           end if
-        end do
-      end do
+        end if
+      end if
+    end do
+  end do
 !
-      contains
+  contains
 
-      function fseas(x)
-        implicit none
-        real(8) :: fseas
-        real(8) , intent(in) :: x
-        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
-      end function fseas
+  function fseas(x)
+    implicit none
+    real(8) :: fseas
+    real(8) , intent(in) :: x
+    fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
+  end function fseas
  
-      end subroutine stomat
+  end subroutine stomat
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -549,28 +527,28 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine frawat
+  subroutine frawat
 
-      implicit none
+  implicit none
 !
-      integer :: n , i
+  integer :: n , i
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              fwet(n,i) = d_zero
-              if ( ldew1d(n,i) > d_zero ) then
-                fwet(n,i) = ((dewmaxi/vegt(n,i))*ldew1d(n,i))**twot
-                fwet(n,i) = dmin1(fwet(n,i),d_one)
-              end if
-              fdry(n,i) = (d_one-fwet(n,i))*xlai(n,i)/xlsai(n,i)
-            end if
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          fwet(n,i) = d_zero
+          if ( ldew1d(n,i) > d_zero ) then
+            fwet(n,i) = ((dewmaxi/vegt(n,i))*ldew1d(n,i))**twot
+            fwet(n,i) = dmin1(fwet(n,i),d_one)
           end if
-        end do
-      end do
+          fdry(n,i) = (d_one-fwet(n,i))*xlai(n,i)/xlsai(n,i)
+        end if
+      end if
+    end do
+  end do
  
-      end subroutine frawat
+  end subroutine frawat
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -599,39 +577,39 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine root
-      implicit none
+  subroutine root
+  implicit none
 !
-      real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
-      integer :: n , i
+  real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
+  integer :: n , i
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
 !             trsmx = trsmx0*sigf(n,i)*seasb(n,i)
-              trsmx = trsmx0*sigf(n,i)
-              rotf = rootf(lveg(n,i))
-              bneg = -bsw(n,i)
-              wmli = d_one/(wiltr(n,i)**bneg-d_one)
-              wlttb = (watr(n,i)**bneg-d_one)*wmli
-              wltub = (watu(n,i)**bneg-d_one)*wmli
-              wlttb = dmin1(wlttb,d_one)
-              wltub = dmin1(wltub,d_one)
-              etrc(n,i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
-              efpr(n,i) = trsmx*rotf*(d_one-wltub)
-              if ( etrc(n,i) < 1.0D-12 ) then
-                etrc(n,i) = 1.0D-12
-                efpr(n,i) = d_one
-              else
-                efpr(n,i) = efpr(n,i)/etrc(n,i)
-              end if
-            end if
+          trsmx = trsmx0*sigf(n,i)
+          rotf = rootf(lveg(n,i))
+          bneg = -bsw(n,i)
+          wmli = d_one/(wiltr(n,i)**bneg-d_one)
+          wlttb = (watr(n,i)**bneg-d_one)*wmli
+          wltub = (watu(n,i)**bneg-d_one)*wmli
+          wlttb = dmin1(wlttb,d_one)
+          wltub = dmin1(wltub,d_one)
+          etrc(n,i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
+          efpr(n,i) = trsmx*rotf*(d_one-wltub)
+          if ( etrc(n,i) < 1.0D-12 ) then
+            etrc(n,i) = 1.0D-12
+            efpr(n,i) = d_one
+          else
+            efpr(n,i) = efpr(n,i)/etrc(n,i)
           end if
-        end do
-      end do
+        end if
+      end if
+    end do
+  end do
 !
-      end subroutine root
+  end subroutine root
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****  calculates saturation vapor pressure (eg)
@@ -641,32 +619,32 @@
 !                                                 equation 1)
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine satur(qsat,t,p)
+  subroutine satur(qsat,t,p)
 !
-      implicit none
+  implicit none
 !
-      real(8) , dimension(nnsg,iym1) :: p , qsat , t
-      intent (in) p , t
-      intent (out) qsat
+  real(8) , dimension(nnsg,iym1) :: p , qsat , t
+  intent (in) p , t
+  intent (out) qsat
 !
-      integer :: n , i
+  integer :: n , i
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( t(n,i) <= tzero ) then
-            lfta(n,i) = c3ies
-            lftb(n,i) = c4ies
-          else
-            lfta(n,i) = c3les
-            lftb(n,i) = c4les
-          end if
-          eg(n,i) = c1es*dexp(lfta(n,i)*(t(n,i)-tzero) / &
-                                        (t(n,i)-lftb(n,i)))
-          qsat(n,i) = ep2*eg(n,i)/(p(n,i)-0.378D0*eg(n,i))
-        end do
-      end do
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( t(n,i) <= tzero ) then
+        lfta(n,i) = c3ies
+        lftb(n,i) = c4ies
+      else
+        lfta(n,i) = c3les
+        lftb(n,i) = c4les
+      end if
+      eg(n,i) = c1es*dexp(lfta(n,i)*(t(n,i)-tzero) / &
+                                    (t(n,i)-lftb(n,i)))
+      qsat(n,i) = ep2*eg(n,i)/(p(n,i)-0.378D0*eg(n,i))
+    end do
+  end do
  
-      end subroutine satur
+  end subroutine satur
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -675,64 +653,64 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine lfdrag
+  subroutine lfdrag
 !
-      implicit none
+  implicit none
 !
-      real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
-      integer :: n , i
+  real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
+  integer :: n , i
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
-                  & + wtg0(n,i)*tg1d(n,i)
-              dlstaf(n,i) = ts1d(n,i) - sigf(n,i)                       &
-                           & *tkb - (d_one-sigf(n,i))*tg1d(n,i)
-              if ( dlstaf(n,i) <= d_zero ) then
-                dthdz = (d_one-sigf(n,i))*tg1d(n,i) + sigf(n,i)         &
-                      & *tkb - ts1d(n,i)
-                u1 = wtur + d_two*dsqrt(dthdz)
-                ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
-              else
-                u2 = wtur
-                ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u2**d_two
-              end if
-              vspda(n,i) = dsqrt(ribd(n,i))
-              if ( vspda(n,i) < d_one ) then
-                vspda(n,i) = d_one
-                ribd(n,i) = d_one
-              end if
-              zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
-                     & + z1d(n,i)*(d_one-sigf(n,i))
-              rib1(n,i) = egrav*zatild/(ribd(n,i)*ts1d(n,i))
-              rib(n,i) = rib1(n,i)*dlstaf(n,i)
-              if ( rib(n,i) < d_zero ) then
-                cdr(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)*    &
-                      & rib(n,i)))
-                sqrtf = dmin1(dsqrt(-cdrn(n,i)/rib(n,i)),11.5D0/12.25D0)
-                cdrd(n,i) = cdrn(n,i)*12.25D0*wtl0(n,i)*rib1(n,i)      &
-                           & *sigf(n,i)*sqrtf
-              else
-                ribi = d_one/(d_one+11.5D0*rib(n,i))
-                cdr(n,i) = cdrn(n,i)*ribi
-                cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
-                           & *sigf(n,i)
-                cdrmin(n,i) = dmax1(cdrn(n,i)*d_rfour,6.0D-4)
-              end if
-              if ( (rib(n,i) >= d_zero) ) then
-                if ( (cdr(n,i) < cdrmin(n,i)) ) then
-                  cdr(n,i) = cdrmin(n,i)
-                  cdrd(n,i) = d_zero
-                end if
-              end if
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          tkb = wta0(n,i)*ts1d(n,i) + wtl0(n,i)*tlef1d(n,i)         &
+              & + wtg0(n,i)*tg1d(n,i)
+          dlstaf(n,i) = ts1d(n,i) - sigf(n,i)                       &
+                       & *tkb - (d_one-sigf(n,i))*tg1d(n,i)
+          if ( dlstaf(n,i) <= d_zero ) then
+            dthdz = (d_one-sigf(n,i))*tg1d(n,i) + sigf(n,i)         &
+                  & *tkb - ts1d(n,i)
+            u1 = wtur + d_two*dsqrt(dthdz)
+            ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u1**d_two
+          else
+            u2 = wtur
+            ribd(n,i) = us1d(i)**d_two + vs1d(i)**d_two + u2**d_two
+          end if
+          vspda(n,i) = dsqrt(ribd(n,i))
+          if ( vspda(n,i) < d_one ) then
+            vspda(n,i) = d_one
+            ribd(n,i) = d_one
+          end if
+          zatild = (z1d(n,i)-displa(lveg(n,i)))*sigf(n,i)            &
+                 & + z1d(n,i)*(d_one-sigf(n,i))
+          rib1(n,i) = egrav*zatild/(ribd(n,i)*ts1d(n,i))
+          rib(n,i) = rib1(n,i)*dlstaf(n,i)
+          if ( rib(n,i) < d_zero ) then
+            cdr(n,i) = cdrn(n,i)*(d_one+24.5D0*dsqrt(-cdrn(n,i)*    &
+                  & rib(n,i)))
+            sqrtf = dmin1(dsqrt(-cdrn(n,i)/rib(n,i)),11.5D0/12.25D0)
+            cdrd(n,i) = cdrn(n,i)*12.25D0*wtl0(n,i)*rib1(n,i)      &
+                       & *sigf(n,i)*sqrtf
+          else
+            ribi = d_one/(d_one+11.5D0*rib(n,i))
+            cdr(n,i) = cdrn(n,i)*ribi
+            cdrd(n,i) = cdr(n,i)*ribi*11.5D0*rib1(n,i)*wtl0(n,i)   &
+                       & *sigf(n,i)
+            cdrmin(n,i) = dmax1(cdrn(n,i)*d_rfour,6.0D-4)
+          end if
+          if ( (rib(n,i) >= d_zero) ) then
+            if ( (cdr(n,i) < cdrmin(n,i)) ) then
+              cdr(n,i) = cdrmin(n,i)
+              cdrd(n,i) = d_zero
             end if
           end if
-        end do
-      end do
+        end if
+      end if
+    end do
+  end do
  
-      end subroutine lfdrag
+  end subroutine lfdrag
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -741,11 +719,11 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine condch
+  subroutine condch
 !
-      implicit none
+  implicit none
 !
-      integer :: n , i
+  integer :: n , i
 !
 !     csoilc = constant drag coefficient for soil under canopy
 !     symbols used for weights are:   wt : weight
@@ -758,27 +736,27 @@
 !     0 : normalized (sums to one)
 !     g : ground
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
-              cf(n,i) = 0.01D0*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
-              wta(n,i) = sigf(n,i)*cdr(n,i)*vspda(n,i)
-              wtlh(n,i) = cf(n,i)*uaf(n,i)*vegt(n,i)
-              wtg(n,i) = csoilc*uaf(n,i)*sigf(n,i)
-              wtshi(n,i) = d_one/(wta(n,i)+wtlh(n,i)+wtg(n,i))
-              wtl0(n,i) = wtlh(n,i)*wtshi(n,i)
-              wtg0(n,i) = wtg(n,i)*wtshi(n,i)
-              wtgl(n,i) = wtl0(n,i) + wtg0(n,i)
-              wta0(n,i) = d_one - wtgl(n,i)
-              wtga(n,i) = wta0(n,i) + wtg0(n,i)
-            end if
-          end if
-        end do
-      end do
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          uaf(n,i) = vspda(n,i)*dsqrt(cdr(n,i))
+          cf(n,i) = 0.01D0*sqrtdi(lveg(n,i))/dsqrt(uaf(n,i))
+          wta(n,i) = sigf(n,i)*cdr(n,i)*vspda(n,i)
+          wtlh(n,i) = cf(n,i)*uaf(n,i)*vegt(n,i)
+          wtg(n,i) = csoilc*uaf(n,i)*sigf(n,i)
+          wtshi(n,i) = d_one/(wta(n,i)+wtlh(n,i)+wtg(n,i))
+          wtl0(n,i) = wtlh(n,i)*wtshi(n,i)
+          wtg0(n,i) = wtg(n,i)*wtshi(n,i)
+          wtgl(n,i) = wtl0(n,i) + wtg0(n,i)
+          wta0(n,i) = d_one - wtgl(n,i)
+          wtga(n,i) = wta0(n,i) + wtg0(n,i)
+        end if
+      end if
+    end do
+  end do
 !
-      end subroutine condch
+  end subroutine condch
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -789,11 +767,11 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine condcq
+  subroutine condcq
 !
-      implicit none
+  implicit none
 !
-      integer :: n , i
+  integer :: n , i
 !
 !     symbols used for weights are:   wt : weight
 !     a : air
@@ -805,25 +783,25 @@
 !     0 : normalized (sums to one)
 !     g : ground
 !
-      do i = 2 , iym1
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            if ( sigf(n,i) > 0.001D0 ) then
-              rgr(n,i) = gwet1d(n,i)
-              wtlq(n,i) = wtlh(n,i)*rpp(n,i)
-              wtgq(n,i) = wtg(n,i)*rgr(n,i)
-              wtsqi(n,i) = d_one/(wta(n,i)+wtlq(n,i)+wtgq(n,i))
-              wtgq0(n,i) = wtgq(n,i)*wtsqi(n,i)
-              wtlq0(n,i) = wtlq(n,i)*wtsqi(n,i)
-              wtglq(n,i) = wtgq0(n,i) + wtlq0(n,i)
-              wtaq0(n,i) = d_one - wtglq(n,i)
-              wtgaq(n,i) = wtaq0(n,i) + wtgq0(n,i)
-            end if
-          end if
-        end do
-      end do
+  do i = 2 , iym1
+    do n = 1 , nnsg
+      if ( ldoc1d(n,i) /= 0 ) then
+        if ( sigf(n,i) > 0.001D0 ) then
+          rgr(n,i) = gwet1d(n,i)
+          wtlq(n,i) = wtlh(n,i)*rpp(n,i)
+          wtgq(n,i) = wtg(n,i)*rgr(n,i)
+          wtsqi(n,i) = d_one/(wta(n,i)+wtlq(n,i)+wtgq(n,i))
+          wtgq0(n,i) = wtgq(n,i)*wtsqi(n,i)
+          wtlq0(n,i) = wtlq(n,i)*wtsqi(n,i)
+          wtglq(n,i) = wtgq0(n,i) + wtlq0(n,i)
+          wtaq0(n,i) = d_one - wtglq(n,i)
+          wtgaq(n,i) = wtaq0(n,i) + wtgq0(n,i)
+        end if
+      end if
+    end do
+  end do
  
-      end subroutine condcq
+  end subroutine condcq
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
@@ -837,35 +815,35 @@
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-      subroutine deriv
+  subroutine deriv
 !
-      implicit none
+  implicit none
 !
-        real(8) :: dne , hfl , xkb
-        integer :: n , i
+    real(8) :: dne , hfl , xkb
+    integer :: n , i
 !
-        do i = 1 , iym1
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              if ( sigf(n,i) > 0.001D0 ) then
-                dne = d_one/(tlef1d(n,i)-lftb(n,i))
-                qsatld(n,i) = qsatl(n,i)*lfta(n,i) * &
-                              (tzero-lftb(n,i))*dne**d_two
-                xkb = cdrd(n,i)/cdr(n,i)
-                hfl = df(n,i)*(wtga(n,i)*tlef1d(n,i) - &
-                               wtg0(n,i)*tg1d(n,i)   - &
-                               wta0(n,i)*ts1d(n,i))
-                dcd(n,i) = cn1(n,i)*rppq(n,i)*wtgaq(n,i) *   &
-                              qsatld(n,i) + (d_one-wtgaq(n,i)) *   &
-                              efe(n,i) * xkb + (d_one-wtga(n,i)) * &
-                              hfl * xkb
-                dcd(n,i) = dmax1(dcd(n,i),d_zero)
-                dcd(n,i) = dmin1(dcd(n,i),500.0D0)
-              end if
-            end if
-          end do
-        end do
+    do i = 1 , iym1
+      do n = 1 , nnsg
+        if ( ldoc1d(n,i) /= 0 ) then
+          if ( sigf(n,i) > 0.001D0 ) then
+            dne = d_one/(tlef1d(n,i)-lftb(n,i))
+            qsatld(n,i) = qsatl(n,i)*lfta(n,i) * &
+                          (tzero-lftb(n,i))*dne**d_two
+            xkb = cdrd(n,i)/cdr(n,i)
+            hfl = df(n,i)*(wtga(n,i)*tlef1d(n,i) - &
+                           wtg0(n,i)*tg1d(n,i)   - &
+                           wta0(n,i)*ts1d(n,i))
+            dcd(n,i) = cn1(n,i)*rppq(n,i)*wtgaq(n,i) *   &
+                          qsatld(n,i) + (d_one-wtgaq(n,i)) *   &
+                          efe(n,i) * xkb + (d_one-wtga(n,i)) * &
+                          hfl * xkb
+            dcd(n,i) = dmax1(dcd(n,i),d_zero)
+            dcd(n,i) = dmin1(dcd(n,i),500.0D0)
+          end if
+        end if
+      end do
+    end do
  
-      end subroutine deriv
+  end subroutine deriv
 !
-      end module mod_leaftemp
+end module mod_leaftemp

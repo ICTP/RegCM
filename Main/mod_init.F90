@@ -40,6 +40,9 @@ module mod_init
   use mod_diagnosis
   use mod_cu_bm
   use mod_mppio
+  use mod_pbldim
+  use mod_tcm_interface
+  use mod_uwtcm, only : init_mod_uwtcm
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays
@@ -434,6 +437,13 @@ module mod_init
       cbmf2d = d_zero
     end if
 !
+! Initialize the TCM
+!
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      call init_tcm_interface
+      call init_mod_uwtcm
+    end if
+!
   else ! ifrest=.true.
 !
 !-----when ifrest=.true., read in the data saved from previous run
@@ -623,6 +633,41 @@ module mod_init
         end do
       end do
     end do
+!
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+!    
+!     Begin scatter of the UW variables read in from the restart file
+!
+      if ( myid == 0 ) then
+        do j = 1 , jxm1
+          do k = 1 , kzp1
+            do i = 1 , iy
+               sav_0(i,k,j)      = atm1_io%tke(i,k,j)
+               sav_0(i,kzp1+k,j) = atm2_io%tke(i,k,j)
+            end do
+          end do
+          do i = 1 , iy
+            sav_0(i,kz*3+1,j) = kpbl_io(i,j)
+          end do
+        end do
+      end if
+      call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,   &
+                       sav0, iy*(kz*4+2)*jxp,mpi_real8,   &
+                       0,mpi_comm_world,ierr)
+      do j = 1 , jendx
+        do k = 1 , kzp1
+          do i = 1 , iy
+            atm1%tke(i,k,j) = sav0(i,k,j)
+            atm2%tke(i,k,j) = sav0(i,kzp1+k,j)
+          end do
+        end do
+        do i = 1 , iy
+          kpbl(i,j) =  sav0(i,kz*3+1,j)
+        end do
+      end do
+!
+    end if ! ibltyp == 2 .or. ibltyp == 99
+!
     if ( myid == 0 ) then
       do j = 1 , jx
         do i = 1 , iy

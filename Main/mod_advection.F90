@@ -274,17 +274,18 @@ module mod_advection
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine vadv(ften,qdot,fa,j,ind)
+  subroutine vadv(ften,qdot,fa,j,ind,kpbl1d)
 !
     implicit none
 !
     integer :: ind , j
+    integer , dimension(iy) :: kpbl1d
     real(8) , dimension(iy,kz) :: fa , ften
     real(8) , dimension(iy,kzp1,0:jxp+1) , intent(in) :: qdot
-    intent (in) fa , ind , j
+    intent (in) fa , ind , j , kpbl1d
     intent (inout) ften
 !
-    real(8) :: f1 , f2
+    real(8) :: f1 , f2 , slope
     real(8) , dimension(iy,kz) :: fg
     integer :: i , k
 !
@@ -643,7 +644,59 @@ module mod_advection
       do i = 2 , iym2
         ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
-   
+
+    else if ( ind == 6 ) then
+
+      do k = 2 , kz
+        do i = 2 , iym1
+          fg(i,k)= twt(k,1)*fa(i,k) + twt(k,2)*fa(i,k-1)
+        end do
+      end do
+
+      do i = 2 , iym1
+        if ( kpbl1d(i).gt.kz ) then
+          call fatal(__FILE__,__LINE__,'kpbl1d is greater than KZ')
+        end if
+        if ( kpbl1d(i).ge.4 ) then
+          ! Calculate slope of scalar in layer above ambiguous layer
+          k = kpbl1d(i)-2
+          if ( (fa(i,k+1)-fa(i,k)) > d_zero .and.   &
+               (fa(i,k)-fa(i,k-1)) > d_zero ) then
+            slope = min((fa(i,k+1)-fa(i,k))/(a(k+1)-a(k)),    &
+                        (fa(i,k)-fa(i,k-1))/(a(k)-a(k-1)))
+          else if ( (fa(i,k+1)-fa(i,k)) < d_zero .and.   &
+                    (fa(i,k)-fa(i,k-1)) < d_zero ) then
+            slope = max((fa(i,k+1)-fa(i,k))/(a(k+1)-a(k)),    &
+                        (fa(i,k)-fa(i,k-1))/(a(k)-a(k-1)))
+          else
+            slope = d_zero
+          end if
+          ! Now replace the values of scalar at top and bottom of ambiguous
+          ! layer as long as inversion is actually in the ambiguous layer
+          k = kpbl1d(i)
+          fg(i,k-1) = fa(i,k-2) + slope*(sigma(k-1)-a(k-2))
+          if (abs(fa(i,k-2) + slope*(a(k-1)-a(k-2))-fa(i,k)) > &
+              abs(fa(i,k-1)-fa(i,k)) ) then
+            fg(i,k) = fa(i,k)
+          else
+            fg(i,k) = fa(i,k-2) + slope*(sigma(k)-a(k-2))
+          end if
+        end if
+      end do
+
+      do i = 2 , iym1
+        ften(i,1) = ften(i,1)-qdot(i,2,j)*fg(i,2)/dsigma(1)
+      end do
+      do k = 2 , kzm1
+        do i = 2 , iym1
+          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*   &
+                      fg(i,k))/dsigma(k)
+        end do
+      end do
+      do i = 2 , iym1
+        ften(i,kz) = ften(i,kz)+qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+      end do
+
     end if
 !
 #endif

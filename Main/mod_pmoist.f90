@@ -17,90 +17,64 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_pmoist
+module mod_pmoist
 !
 ! Storage, parameters and constants related to
 !     moisture calculations.
 !
-      use mod_constants
-      use mod_dynparam
+  use mod_constants
+  use mod_dynparam
+  use mod_memutil
 
-      implicit none
+  implicit none
 !
-      real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
-               & dtauc , fcmax , gulland , guloce , htmax , htmin ,     &
-               & mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
-               & rh0land , rh0oce , rhmax , tc0 , skbmax
+  real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
+             dtauc , fcmax , gulland , guloce , htmax , htmin ,     &
+             mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
+             rh0land , rh0oce , rhmax , tc0 , skbmax
 
-      real(8) , allocatable , dimension(:,:) :: cbmf2d , cgul ,         &
-               & dtauc2d , edtmax2d , edtmaxo2d , edtmaxx2d ,           &
-                                   & edtmin2d , edtmino2d , edtminx2d , &
-                                   & htmax2d , htmin2d , mincld2d ,     &
-                                   & pbcmax2d , qck1 , rh0 , shrmax2d , &
-                                   & shrmin2d
-      real(8) , allocatable , dimension(:,:,:) :: fcc , rsheat , rswat
-      real(8) , allocatable , dimension(:) :: qwght
-      real(8) , allocatable , dimension(:,:,:) :: twght , vqflx
-      integer ,allocatable, dimension(:) :: icon
-      integer ,allocatable, dimension(:,:) :: kbmax2d
-      integer :: kbmax
+  real(8) , pointer , dimension(:,:) :: cbmf2d , cgul , dtauc2d , &
+        edtmax2d , edtmaxo2d , edtmaxx2d , edtmin2d , edtmino2d , &
+        edtminx2d , htmax2d , htmin2d , mincld2d , pbcmax2d ,     &
+        qck1 , rh0 , shrmax2d , shrmin2d
+  real(8) , pointer , dimension(:,:,:) :: fcc , rsheat , rswat
+  real(8) , pointer , dimension(:) :: qwght
+  real(8) , pointer , dimension(:,:,:) :: twght , vqflx
+  integer , pointer , dimension(:) :: icon
+  integer , pointer , dimension(:,:) :: kbmax2d
+  integer :: kbmax
 !
-      contains
+  contains
 !
-      subroutine allocate_mod_pmoist
-      implicit none
+  subroutine allocate_mod_pmoist
+  implicit none
 
-      allocate(cbmf2d(iy,jxp))
-      allocate(cgul(iy,jxp))
-      allocate(dtauc2d(iy,jxp))
-      allocate(edtmax2d(iy,jxp))
-      allocate(edtmaxo2d(iy,jxp))
-      allocate(edtmaxx2d(iy,jxp))
-      allocate(edtmin2d(iy,jxp))
-      allocate(edtmino2d(iy,jxp))
-      allocate(edtminx2d(iy,jxp))
-      allocate(htmax2d(iy,jxp))
-      allocate(htmin2d(iy,jxp))
-      allocate(mincld2d(iy,jxp))
-      allocate(pbcmax2d(iy,jxp))
-      allocate(qck1(iy,jxp))
-      allocate(rh0(iy,jxp))
-      allocate(shrmax2d(iy,jxp))
-      allocate(shrmin2d(iy,jxp))
-      allocate(fcc(iy,kz,jxp))
-      allocate(rsheat(iy,kz,jxp))
-      allocate(rswat(iy,kz,jxp))
-      cbmf2d = d_zero
-      cgul = d_zero
-      dtauc2d = d_zero
-      edtmax2d = d_zero
-      edtmaxo2d = d_zero
-      edtmaxx2d = d_zero
-      edtmin2d = d_zero
-      edtmino2d = d_zero
-      edtminx2d = d_zero
-      htmax2d = d_zero
-      htmin2d = d_zero
-      mincld2d = d_zero
-      pbcmax2d = d_zero
-      qck1 = d_zero
-      rh0 = d_zero
-      shrmax2d = d_zero
-      shrmin2d = d_zero
-      fcc = d_zero
-      rsheat = d_zero
-      rswat = d_zero
-      allocate(icon(jxp))
-      allocate(kbmax2d(iy,jxp))
-      icon = 0
-      kbmax2d = 0
-      allocate(qwght(kz))
-      allocate(twght(kz,5:kz,1:kz-3))
-      allocate(vqflx(kz,5:kz,1:kz-3))
-      qwght = d_zero
-      twght = d_zero
-      vqflx = d_zero
+  call getmem2d(cbmf2d,1,iy,1,jxp,'mod_pmoist:cbmf2d')
+  call getmem2d(cgul,1,iy,1,jxp,'mod_pmoist:cgul')
+  call getmem2d(dtauc2d,1,iy,1,jxp,'mod_pmoist:dtauc2d')
+  call getmem2d(edtmax2d,1,iy,1,jxp,'mod_pmoist:edtmax2d')
+  call getmem2d(edtmaxo2d,1,iy,1,jxp,'mod_pmoist:edtmaxo2d')
+  call getmem2d(edtmaxx2d,1,iy,1,jxp,'mod_pmoist:edtmaxx2d')
+  call getmem2d(edtmin2d,1,iy,1,jxp,'mod_pmoist:edtmin2d')
+  call getmem2d(edtmino2d,1,iy,1,jxp,'mod_pmoist:edtmino2d')
+  call getmem2d(edtminx2d,1,iy,1,jxp,'mod_pmoist:edtminx2d')
+  call getmem2d(htmax2d,1,iy,1,jxp,'mod_pmoist:htmax2d')
+  call getmem2d(htmin2d,1,iy,1,jxp,'mod_pmoist:htmin2d')
+  call getmem2d(mincld2d,1,iy,1,jxp,'mod_pmoist:mincld2d')
+  call getmem2d(pbcmax2d,1,iy,1,jxp,'mod_pmoist:pbcmax2d')
+  call getmem2d(qck1,1,iy,1,jxp,'mod_pmoist:qck1')
+  call getmem2d(rh0,1,iy,1,jxp,'mod_pmoist:rh0')
+  call getmem2d(shrmax2d,1,iy,1,jxp,'mod_pmoist:shrmax2d')
+  call getmem2d(shrmin2d,1,iy,1,jxp,'mod_pmoist:shrmin2d')
+  call getmem3d(fcc,1,iy,1,kz,1,jxp,'mod_pmoist:fcc')
+  call getmem3d(rsheat,1,iy,1,kz,1,jxp,'mod_pmoist:rsheat')
+  call getmem3d(rswat,1,iy,1,kz,1,jxp,'mod_pmoist:rswat')
+  call getmem1d(icon,1,jxp,'mod_pmoist:icon')
+  call getmem2d(kbmax2d,1,iy,1,jxp,'mod_pmoist:kbmax2d')
+  call getmem1d(qwght,1,kz,'mod_pmoist:qwght')
+  call getmem3d(twght,1,kz,5,kz,1,kz-3,'mod_pmoist:twght')
+  call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'mod_pmoist:vqflx')
 !
-      end subroutine allocate_mod_pmoist
+  end subroutine allocate_mod_pmoist
 !
-      end module mod_pmoist
+end module mod_pmoist

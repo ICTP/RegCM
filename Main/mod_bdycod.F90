@@ -32,6 +32,7 @@ module mod_bdycod
   use mod_ncio
   use mod_cvaria
   use mod_mppio
+  use mod_tcm_interface
 !
   private
 !
@@ -1387,7 +1388,12 @@ module mod_bdycod
       end do
     end if
 !
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      call set_tke_bc
+    end if
+!
     call time_end(subroutine_name,idindx)
+!
   end subroutine bdyval
 !
 end module mod_bdycod

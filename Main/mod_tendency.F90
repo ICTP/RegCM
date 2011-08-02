@@ -51,6 +51,9 @@ module mod_tendency
   use mod_diagnosis
   use mod_service
   use mod_memutil
+  use mod_uwtcm
+  use mod_tcm_interface
+  use mod_pbldim
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -62,7 +65,7 @@ module mod_tendency
   public :: allocate_mod_tend , tend
 
   real(8) , pointer , dimension(:,:) :: divl
-  real(8) , pointer , dimension(:,:,:) :: ttld , xkc , td
+  real(8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td
   real(8) , pointer , dimension(:,:) :: bdyewrcv , bdyewsnd
   real(8) , pointer , dimension(:,:) :: bdynsrcv , bdynssnd
   real(8) , pointer , dimension(:,:,:) :: ps4
@@ -76,10 +79,12 @@ module mod_tendency
   subroutine allocate_mod_tend(lband)
     implicit none
     logical , intent(in) :: lband
+    integer :: n1 , n2
 
     call getmem2d(divl,1,iy,1,kz,'tendency:divl')
     call getmem3d(ttld,1,iy,1,kz,1,jxp,'tendency:ttld')
     call getmem3d(xkc,1,iy,1,kz,1,jxp,'tendency:xkc')
+    call getmem3d(xkcf,1,iy,1,kzp1,1,jxp,'tendency:xkcf')
     call getmem3d(td,1,iy,1,kz,1,jxp,'tendency:td')
     if ( .not. lband ) then
       call getmem2d(bdyewrcv,1,iy,1,kz*16+4,'tendency:bdyewrcv')
@@ -89,10 +94,20 @@ module mod_tendency
     call getmem2d(bdynssnd,1,nspgx,1,kz*16+4,'tendency:bdynssnd')
     call getmem3d(ps4,1,iy,1,4,1,jxp,'tendency:ps4')
     call getmem3d(ps_4,1,iy,1,4,1,jx,'tendency:ps_4')
-    call getmem2d(var2rcv,1,iy,1,kz*(ntr+5)*2,'tendency:var2rcv')
-    call getmem2d(var2snd,1,iy,1,kz*(ntr+5)*2,'tendency:var2snd')
-    call getmem2d(tvar1rcv,1,iy,1,kz*11+1+ntr*kz*2,'tendency:tvar1rcv')
-    call getmem2d(tvar1snd,1,iy,1,kz*11+1+ntr*kz*2,'tendency:tvar1snd')
+    n1 = kz*11 + 1
+    n2 = kz*10
+    if ( ichem == 1 ) then
+      n1 = n1 + ntr*kz*2
+      n2 = n2 + ntr*kz*2
+    end if
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      n1 = n1 + kz
+      n2 = n2 + 2*kz
+    end if
+    call getmem2d(tvar1rcv,1,iy,1,n1,'tendency:tvar1rcv')
+    call getmem2d(tvar1snd,1,iy,1,n1,'tendency:tvar1snd')
+    call getmem2d(var2rcv,1,iy,1,n2,'tendency:var2rcv')
+    call getmem2d(var2snd,1,iy,1,n2,'tendency:var2snd')
     call getmem2d(qvcs,1,iy,1,kz,'tendency:qvcs')
   end subroutine allocate_mod_tend
 
@@ -356,34 +371,46 @@ module mod_tendency
       end do
       do k = 1 , kz
         do i = 1 , iy
-          tvar1snd(i,1+k) = atm2%t(i,k,jxp)
-          tvar1snd(i,1+kz+k) = atm2%qv(i,k,jxp)
-          tvar1snd(i,1+kz*2+k) = atm2%u(i,k,jxp)
-          tvar1snd(i,1+kz*3+k) = atm2%v(i,k,jxp)
-          tvar1snd(i,1+kz*4+k) = atmx%u(i,k,jxp)
-          tvar1snd(i,1+kz*5+k) = atmx%v(i,k,jxp)
-          tvar1snd(i,1+kz*6+k) = atmx%t(i,k,jxp)
-          tvar1snd(i,1+kz*7+k) = atmx%qv(i,k,jxp)
-          tvar1snd(i,1+kz*8+k) = atmx%qc(i,k,jxp)
-          tvar1snd(i,1+kz*9+k) = atm1%u(i,k,jxp)
+          tvar1snd(i,1+k)       = atm2%t(i,k,jxp)
+          tvar1snd(i,1+kz+k)    = atm2%qv(i,k,jxp)
+          tvar1snd(i,1+kz*2+k)  = atm2%u(i,k,jxp)
+          tvar1snd(i,1+kz*3+k)  = atm2%v(i,k,jxp)
+          tvar1snd(i,1+kz*4+k)  = atmx%u(i,k,jxp)
+          tvar1snd(i,1+kz*5+k)  = atmx%v(i,k,jxp)
+          tvar1snd(i,1+kz*6+k)  = atmx%t(i,k,jxp)
+          tvar1snd(i,1+kz*7+k)  = atmx%qv(i,k,jxp)
+          tvar1snd(i,1+kz*8+k)  = atmx%qc(i,k,jxp)
+          tvar1snd(i,1+kz*9+k)  = atm1%u(i,k,jxp)
           tvar1snd(i,1+kz*10+k) = atm1%v(i,k,jxp)
         end do
       end do
+      numrec = kz*11+1
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              tvar1snd(i,kz*11+1+(n-1)*2*kz+k) = chi(i,k,jxp,n)
-              tvar1snd(i,kz*11+1+(n-1)*2*kz+kz+k) = chib(i,k,jxp,n)
+              tvar1snd(i,numrec+(n-1)*2*kz+k)    = chi(i,k,jxp,n)
+              tvar1snd(i,numrec+(n-1)*2*kz+kz+k) = chib(i,k,jxp,n)
             end do
           end do
         end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            tvar1snd(i,numrec+k) = atm1%tke(i,k,jxp)
+          end do
+        end do
+        numrec = numrec + kz
       end if
 #ifndef BAND
+    else
+      numrec = kz*11+1
+      if ( ichem == 1 ) numrec = numrec + ntr*kz*2
+      if ( ibltyp == 2 .or. ibltyp == 99 ) numrec = numrec + kz
     end if
 #endif
-    numrec = kz*11 + 1
-    if ( ichem == 1 ) numrec = kz*11 + 1 + ntr*2 *kz
     call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,ieast,1, &
                       tvar1rcv,iy*numrec,mpi_real8,iwest,1, &
                       mpi_comm_world,mpi_status_ignore,ierr)
@@ -408,13 +435,22 @@ module mod_tendency
           atm1%v(i,k,0) = tvar1rcv(i,1+kz*10+k)
         end do
       end do
+      numrec = kz*11+1
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              chi(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*2*kz+k)
-              chib(i,k,0,n) = tvar1rcv(i,kz*11+1+(n-1)*2*kz+kz+k)
+              chi(i,k,0,n) = tvar1rcv(i,numrec+(n-1)*2*kz+k)
+              chib(i,k,0,n) = tvar1rcv(i,numrec+(n-1)*2*kz+kz+k)
             end do
+          end do
+        end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            atm2%tke(i,k,0) = tvar1rcv(i,numrec+k)
           end do
         end do
       end if
@@ -441,21 +477,33 @@ module mod_tendency
           tvar1snd(i,1+kz*10+k) = atm1%v(i,k,1)
         end do
       end do
+      numrec = kz*11+1
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              tvar1snd(i,kz*11+1+(n-1)*kz*2+k) = chi(i,k,1,n)
-              tvar1snd(i,kz*11+1+(n-1)*kz*2+kz+k) = chib(i,k,1,n)
+              tvar1snd(i,numrec+(n-1)*kz*2+k) = chi(i,k,1,n)
+              tvar1snd(i,numrec+(n-1)*kz*2+kz+k) = chib(i,k,1,n)
             end do
           end do
         end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            tvar1snd(i,numrec+k) = atm1%tke(i,k,1)
+          end do
+        end do
+        numrec = numrec + kz
       end if
 #ifndef BAND
+    else
+      numrec = kz*11+1
+      if ( ichem == 1 ) numrec = numrec + ntr*kz*2
+      if ( ibltyp == 2 .or. ibltyp == 99 ) numrec = numrec + kz
     end if
 #endif
-    numrec = kz*11 + 1
-    if ( ichem == 1 ) numrec = kz*11 + 1 + ntr*kz*2
     call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,iwest,2, &
                       tvar1rcv,iy*numrec,mpi_real8,ieast,2, &
                       mpi_comm_world,mpi_status_ignore,ierr)
@@ -480,13 +528,22 @@ module mod_tendency
           atm1%v(i,k,jxp+1) = tvar1rcv(i,1+kz*10+k)
         end do
       end do
+      numrec = kz*11+1
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              chi(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz*2+k)
-              chib(i,k,jxp+1,n) = tvar1rcv(i,kz*11+1+(n-1)*kz*2+kz+k)
+              chi(i,k,jxp+1,n) = tvar1rcv(i,numrec+(n-1)*kz*2+k)
+              chib(i,k,jxp+1,n) = tvar1rcv(i,numrec+(n-1)*kz*2+kz+k)
             end do
+          end do
+        end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            atm1%tke(i,k,jxp+1) = tvar1rcv(i,numrec+k)
           end do
         end do
       end if
@@ -557,8 +614,8 @@ module mod_tendency
 #endif
       do k = 1 , kz
         do i = 1 , iy
-          var2snd(i,+k) = ubd3d(i,k,jxp-1)
-          var2snd(i,kz+k) = ubd3d(i,k,jxp)
+          var2snd(i,+k)     = ubd3d(i,k,jxp-1)
+          var2snd(i,kz+k)   = ubd3d(i,k,jxp)
           var2snd(i,kz*2+k) = vbd3d(i,k,jxp-1)
           var2snd(i,kz*3+k) = vbd3d(i,k,jxp)
           var2snd(i,kz*4+k) = tb3d(i,k,jxp-1)
@@ -569,21 +626,34 @@ module mod_tendency
           var2snd(i,kz*9+k) = qcb3d(i,k,jxp)
         end do
       end do
+      numrec = kz*10
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              var2snd(i,kz*10+(n-1)*2*kz+k) = chib3d(i,k,jxp-1,n)
-              var2snd(i,kz*10+(n-1)*2*kz+kz+k) = chib3d(i,k,jxp,n)
+              var2snd(i,numrec+(n-1)*2*kz+k)    = chib3d(i,k,jxp-1,n)
+              var2snd(i,numrec+(n-1)*2*kz+kz+k) = chib3d(i,k,jxp,n)
             end do
           end do
         end do
+        numrec = numrec + kz*ntr*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            var2snd(i,numrec+k)    = atm2%tke(i,k,jxp-1)
+            var2snd(i,numrec+kz+k) = atm2%tke(i,k,jxp)
+          end do
+        end do
+        numrec = numrec + kz*2
       end if
 #ifndef BAND
+    else
+      numrec = kz*10
+      if ( ichem == 1 ) numrec = numrec + ntr*kz*2
+      if ( ibltyp == 2 .or. ibltyp == 99 ) numrec = numrec + kz*2
     end if
 #endif
-    numrec = kz*5*2
-    if ( ichem == 1 ) numrec = kz*(ntr+5)*2
     call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,ieast,1, &
                       var2rcv,iy*numrec,mpi_real8,iwest,1, &
                       mpi_comm_world,mpi_status_ignore,ierr)
@@ -604,6 +674,7 @@ module mod_tendency
           qcb3d(i,k,0) = var2rcv(i,kz*9+k)
         end do
       end do
+      numrec = kz*10
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
@@ -613,6 +684,11 @@ module mod_tendency
             end do
           end do
         end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        atm2%tke(i,k,-1) = var2rcv(i,numrec+k)
+        atm2%tke(i,k,0)  = var2rcv(i,numrec+kz+k)
       end if
 #ifndef BAND
     end if
@@ -633,21 +709,34 @@ module mod_tendency
           var2snd(i,kz*9+k) = qcb3d(i,k,2)
         end do
       end do
+      numrec = kz*10
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              var2snd(i,kz*10+(n-1)*2*kz+k) = chib3d(i,k,1,n)
-              var2snd(i,kz*10+(n-1)*2*kz+kz+k) = chib3d(i,k,2,n)
+              var2snd(i,numrec+(n-1)*2*kz+k) = chib3d(i,k,1,n)
+              var2snd(i,numrec+(n-1)*2*kz+kz+k) = chib3d(i,k,2,n)
             end do
           end do
         end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            var2snd(i,numrec+k)    = atm2%tke(i,k,1)
+            var2snd(i,numrec+kz+k) = atm2%tke(i,k,2)
+          end do
+        end do
+        numrec = numrec + kz*2
       end if
 #ifndef BAND
+    else
+      numrec = kz*10
+      if ( ichem == 1 ) numrec = numrec + ntr*kz*2
+      if ( ibltyp == 2 .or. ibltyp == 99 ) numrec = numrec + kz*2
     end if
 #endif
-    numrec = kz*5*2
-    if ( ichem == 1 ) numrec = kz*(ntr+5)*2
     call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,iwest,2, &
                       var2rcv,iy*numrec,mpi_real8,ieast,2, &
                       mpi_comm_world,mpi_status_ignore,ierr)
@@ -668,15 +757,21 @@ module mod_tendency
           qcb3d(i,k,jxp+2) = var2rcv(i,kz*9+k)
         end do
       end do
+      numrec = kz*10
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              chib3d(i,k,jxp+1,n) = var2rcv(i,kz*10+(n-1)*2*kz+k)
-              chib3d(i,k,jxp+2,n) = var2rcv(i,kz*10+(n-1)*2*kz+kz+k)
+              chib3d(i,k,jxp+1,n) = var2rcv(i,numrec+(n-1)*2*kz+k)
+              chib3d(i,k,jxp+2,n) = var2rcv(i,numrec+(n-1)*2*kz+kz+k)
             end do
           end do
         end do
+        numrec = numrec + ntr*kz*2
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        atm2%tke(i,k,jxp+1) = var2rcv(i,numrec+k)
+        atm2%tke(i,k,jxp+2) = var2rcv(i,numrec+kz+k)
       end if
 #ifndef BAND
     end if
@@ -1181,8 +1276,22 @@ module mod_tendency
                  +c200*dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy) &
                  *(dvdx+dudy)))
           xkc(i,k,j) = dmin1(cell,xkhmax)
- 
+          ! TAO: Interpolate the diffusion coefficients to full levels
+          ! for use in diffusion of TKE
+          if ( k /= 1 ) then
+            cell = twt(k,1)*xkc(i,k,j) + twt(k,2)*xkc(i,k-1,j)
+            ! TAO: Multiply the horizontal diffusion coefficient by
+            ! nuk for TKE.  Without this multiplication, it appears
+            ! that TKE does not diffuse fast enough, and stabilities
+            ! appear in the TKE field.  While this is different from
+            ! Bretherton's treatment, it is consistent with the
+            ! scaling of the vertical TKE diffusivity.
+            xkcf(i,k,j) = dmin1(nuk*cell,xkhmax)
+          end if
         end do
+        xkcf(i,1,j) = nuk*xkc(i,1,j)
+        ! No diffusion of TKE on lower boundary
+        xkcf(i,kzp1,j) = 0.0d0
       end do
     end do
 !
@@ -1211,7 +1320,15 @@ module mod_tendency
 !
 !       compute the vertical advection term:
 !
-        call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1)
+        if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+          call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,kpbl(:,j))
+        else
+          if ( iuwvadv == 1 ) then
+            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,6,kpbl(:,j))
+          else
+            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,kpbl(:,j))
+          end if
+        end if
 !
 !       compute the adiabatic term:
 !
@@ -1233,7 +1350,7 @@ module mod_tendency
           end do
         end do
 !
-        call diffu_x(difft(:,:,j),tb3d,sps2%ps,xkc(:,:,j),j)
+        call diffu_x(difft(:,:,j),tb3d,sps2%ps,xkc(:,:,j),j,kz)
 !
 !       compute the moisture tendencies:
 !
@@ -1247,7 +1364,15 @@ module mod_tendency
 !
         if ( icup /= 1 ) then
           call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
-          call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2)
+          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+            call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,kpbl(:,j))
+          else
+            if ( iuwvadv == 1 ) then
+              call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,6,kpbl(:,j))
+            else
+              call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,kpbl(:,j))
+            end if
+          end if
         end if
  
         if ( icup == 1 ) then
@@ -1268,7 +1393,15 @@ module mod_tendency
 
         if ( ipptls == 1 ) then
           call hadv_x(aten%qc(:,:,j),atmx%qc,dx4,j,1)
-          call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5)
+          if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+            call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,kpbl(:,j))
+          else
+            if ( iuwvadv == 1 ) then
+              call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,6,kpbl(:,j))
+            else
+              call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,kpbl(:,j))
+            end if
+          end if
           call pcp(j , 2 , iym2 , kz)
           call cldfrac(j)
 !
@@ -1285,8 +1418,8 @@ module mod_tendency
 !         completing aten%qv computation, do not use diffq for other
 !         purpose.
 !
-          call diffu_x(diffq(:,:,j),qvb3d,sps2%ps,xkc(:,:,j),j)
-          call diffu_x(aten%qc(:,:,j),qcb3d,sps2%ps,xkc(:,:,j),j)
+          call diffu_x(diffq(:,:,j),qvb3d,sps2%ps,xkc(:,:,j),j,kz)
+          call diffu_x(aten%qc(:,:,j),qcb3d,sps2%ps,xkc(:,:,j),j,kz)
         end if
 !
 !       compute the tracers tendencies
@@ -1365,8 +1498,24 @@ module mod_tendency
     if ( icup == 1 ) then
       call htdiff(dxsq,akht1)
     end if
-!   call medium resolution pbl
-    if ( ibltyp == 1 ) call holtbl
+!
+!   Call medium resolution PBL
+!
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
+      call uwtcm(atmstateb,srfstateb,radstateb,hdomain)
+      call get_data_from_tcm(uwstateb,uwtend,.true.)
+    end if
+    if ( ibltyp == 1 .or. ibltyp == 99 ) then
+      ! Call the Holtslag PBL
+      call holtbl
+    end if
+
+    if ( ibltyp == 99 ) then
+      call check_conserve_qt(holtten%qv,holtten%qc,uwtend,hdomain,uwstateb,kz)
+      diffq = diffq + holtten%qv
+      aten%qc = aten%qc + holtten%qc
+    end if
 !
     do j = jbegin , jendx
 !     add ccm radiative transfer package-calculated heating rates to
@@ -1746,10 +1895,10 @@ module mod_tendency
 !
     do j = jbegin , jendx
 !
-!     compute teh vertical advection terms:
+!     compute the vertical advection terms:
 !
-      call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4)
-      call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4)
+      call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4,kpbl(:,j))
+      call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4,kpbl(:,j))
 !
 !     apply the sponge boundary condition on u and v:
 !
@@ -1783,6 +1932,28 @@ module mod_tendency
         end do
       end do
 !
+      ! Couple TKE to ps for use in vertical advection
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do i = 1 , iym1
+          do k = 1 , kz
+            tcmstatea%tkeps(i,k,j) = atm1%tke(i,k,j)*sps1%ps(i,j)
+            tcmstatea%advtke(i,k,j) = d_zero
+          end do
+          tcmstatea%tkeps(i,kz+1,j) = atm1%tke(i,kz+1,j)*sps1%ps(i,j)
+        end do
+
+        ! Don't work with TKE on boundary grid-cells
+        if ( (.not.(myid == 0 .and. j == 1)) .and. &
+             (.not.(myid == (nproc-1) .and. j == jx)) ) then
+          ! Calculate the horizontal advective tendency for TKE
+          call hadvtke(tcmstatea,dx4,j)
+          ! Calculate the vertical advective tendency for TKE
+          call vadvtke(tcmstatea,j,2)
+          ! Calculate the horizontal, diffusive tendency for TKE
+          call diffu_x(tcmstatea%advtke(:,:,j), &
+                       atm2%tke,sps2%ps,xkcf(:,:,j),j,kzp1)
+        end if
+      end if
     end do ! end of j loop.
 !
 !**********************************************************************
@@ -1801,6 +1972,24 @@ module mod_tendency
                       + gnuhf*(atm2%v(i,k,j)+atmc%v(i,k,j))
           atm1%u(i,k,j) = atmc%u(i,k,j)
           atm1%v(i,k,j) = atmc%v(i,k,j)
+          ! TAO: Once the full loop above is completed, update the TKE
+          ! tendency if the UW PBL is running.  NOTE!!! Do not try to
+          ! combine these loops with the above loop Advection MUST be
+          ! done in a loop separate from the updates.  (I lost 3 days
+          ! of working to disocover that this is a problem because I
+          ! thought it would be clever to combine loops--TAO)
+          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+            ! Add the advective tendency to the TKE tendency calculated
+            ! by the UW TKE routine
+             aten%tke(i,k,j) = aten%tke(i,k,j) + &
+                               uwstatea%advtke(i,k,j)/sps1%ps(i,j)
+             ! Do a filtered time integration
+             atmc%tke(i,k,j) = max(TKEMIN,atm2%tke(i,k,j) + &
+                               dttke*aten%tke(i,k,j))
+             atm2%tke(i,k,j) = max(TKEMIN,omuhf*atm1%tke(i,k,j) + &
+                               gnuhf*(atm2%tke(i,k,j) + atmc%tke(i,k,j)))
+             atm1%tke(i,k,j) = atmc%tke(i,k,j)
+          end if ! TKE tendency update
         end do
       end do
     end do

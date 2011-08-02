@@ -51,6 +51,7 @@ module mod_params
   use mod_diagnosis
   use mod_tendency
   use mod_ncio
+  use mod_uwtcm
 #ifdef CHEMTEST
   use mod_chem 
 #endif
@@ -145,6 +146,8 @@ module mod_params
     ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
     inpchtrdpv , inpdustbsiz
 
+  namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
+
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
@@ -174,8 +177,10 @@ module mod_params
 !
 !     ibltyp : specify whether bats pbl or holtslag's pbl
 !     parameterization is to be used in the model.
-!     = 0 ; frictionless
-!     = 1 ; holtslag pbl (holtslag, 1990)
+!     = 0  ; frictionless
+!     = 1  ; Holtslag PBL (Holtslag, 1990)
+!     = 2  ; UW PBL (Bretherton and McCaa, 2004)
+!     = 99 ; Holtslag PBL, with UW in diag. mode
 !
 !     dtrad : specify the frequency in
 !     minutes, the solar radiation will be computed in
@@ -391,6 +396,12 @@ module mod_params
   lmfdd    = .true.
   lmfdudv  = .true.
 !
+!c------namelist uwparam ;
+  iuwvadv = 0
+  ilenparam = 0
+  atwo = 15.0D0
+  rstbl = 1.5D0
+
 !c------namelist chemparam ; ( 0= none, 1= activated)
   ichremlsc = 1     ! tracer removal by large scale clouds
   ichremcvc = 1     ! tracer removal by convective clouds
@@ -466,6 +477,10 @@ module mod_params
     if ( icup == 5 ) then
       read (ipunit, tiedtkeparam)
       print * , 'TIEDTKEPARAM namelist READ IN'
+    end if
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      read (ipunit, uwparam)
+      print * , 'param: UWPARAM namelist READ IN'
     end if
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
@@ -618,6 +633,13 @@ module mod_params
     call mpi_bcast(lmfmid,1,mpi_logical,0,mpi_comm_world,ierr)
     call mpi_bcast(lmfdd,1,mpi_logical,0,mpi_comm_world,ierr)
     call mpi_bcast(lmfdudv,1,mpi_logical,0,mpi_comm_world,ierr)
+  end if
+
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    call mpi_bcast(iuwvadv,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(ilenparam,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(atwo,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(rstbl,1,mpi_real8,0,mpi_comm_world,ierr)
   end if
 
   if ( ichem == 1 ) then

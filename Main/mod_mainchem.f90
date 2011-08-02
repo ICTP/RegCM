@@ -17,46 +17,35 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_mainchem
+module mod_mainchem
 
-      use mod_runparams
+  use mod_memutil
+  use mod_runparams
 
-      implicit none
+  implicit none
 !
-      real(8) , allocatable, dimension(:,:,:,:) :: chemsrc
-      real(8) , allocatable, dimension(:,:,:,:) :: chia , chib
-      real(8) , allocatable, dimension(:,:,:) :: srclp2
+  real(8) , pointer , dimension(:,:,:,:) :: chemsrc
+  real(8) , pointer , dimension(:,:,:,:) :: chia , chib
+  real(8) , pointer , dimension(:,:,:) :: srclp2
+  real(8) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
+                                          wdlsc , wxaq , wxsg
+  contains 
+
+    subroutine allocate_mod_mainchem
+    implicit none
+
+    if ( ichem == 1 ) then
+      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_mainchem:chemsrc')
+      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chia')
+      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chib')
+      call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_mainchem:srclp2')
+      call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_mainchem:ddsfc')
+      call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_mainchem:dtrace')
+      call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_mainchem:wdcvc')
+      call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_mainchem:wdlsc')
+      call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_mainchem:wxaq')
+      call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_mainchem:wxsg')
+    end if
+   end subroutine allocate_mod_mainchem
 !
-      real(8) , allocatable , dimension(:,:,:) :: ddsfc , dtrace ,      &
-                                       & wdcvc , wdlsc , wxaq , wxsg
-
-      contains 
-
-        subroutine allocate_mod_mainchem
-        implicit none
-
-        if ( ichem == 1 ) then
-          allocate(chemsrc(iy,jxp,mpy,ntr))
-          allocate(chia(iy,kz,-1:jxp+2,ntr))
-          allocate(chib(iy,kz,-1:jxp+2,ntr))
-          allocate(srclp2(iy,jxp,ntr))
-          allocate(ddsfc(iy,jxp,ntr)) 
-          allocate(dtrace(iy,jxp,ntr))
-          allocate(wdcvc(iy,jxp,ntr))
-          allocate(wdlsc(iy,jxp,ntr))
-          allocate(wxaq(iy,jxp,ntr))
-          allocate(wxsg(iy,jxp,ntr))
-          chemsrc = d_zero
-          chia = d_zero
-          chib = d_zero
-          srclp2 = d_zero
-          ddsfc = d_zero
-          dtrace = d_zero
-          wdcvc = d_zero
-          wdlsc = d_zero
-          wxaq = d_zero
-          wxsg = d_zero
-        end if
-       end subroutine allocate_mod_mainchem
-!
-      end module mod_mainchem
+end module mod_mainchem

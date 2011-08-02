@@ -157,11 +157,11 @@ contains
       case(5)
         write (cdum,'(a)') 'Tiedtke (1986)'
       case(98)
-       write (cdum,'(a)') 'Grell over ocean, Emanuel (1991) over land'
+        write (cdum,'(a)') 'Grell over ocean, Emanuel (1991) over land'
       case(99)
-       write (cdum,'(a)') 'Emanuel (1991) over ocean, Grell over land'
+        write (cdum,'(a)') 'Emanuel (1991) over ocean, Grell over land'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumcums
 
@@ -169,11 +169,11 @@ contains
     implicit none
     select case (igcc)
       case(1)
-       write (cdum,'(a)') 'Arakawa & Schubert (1974)'
+        write (cdum,'(a)') 'Arakawa & Schubert (1974)'
       case(2)
-       write (cdum,'(a)') 'Fritsch & Chappell (1980)'
+        write (cdum,'(a)') 'Fritsch & Chappell (1980)'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumcumcl
 
@@ -181,11 +181,15 @@ contains
     implicit none
     select case (ibltyp)
       case(0)
-       write (cdum,'(a)') 'Frictionless'
+        write (cdum,'(a)') 'Frictionless'
       case(1)
-       write (cdum,'(a)') 'Holtslag PBL (Holtslag, 1990)'
+        write (cdum,'(a)') 'Holtslag PBL (Holtslag, 1990)'
+      case(2)
+        write (cdum,'(a)') 'UW PBL (Bretherton and McCaa, 2004)'
+      case(99)
+        write (cdum,'(a)') 'Holtslag PBL, with UW in diag. mode'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumpbl
 
@@ -193,9 +197,9 @@ contains
     implicit none
     select case (ipptls)
       case(1)
-       write (cdum,'(a)') 'Explicit moisture (SUBEX; Pal et al 2000)'
+        write (cdum,'(a)') 'Explicit moisture (SUBEX; Pal et al 2000)'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdummoist
 
@@ -203,11 +207,11 @@ contains
     implicit none
     select case (iocnflx)
       case(1)
-       write (cdum,'(a)') 'Use BATS1e Monin-Obukhov'
+        write (cdum,'(a)') 'Use BATS1e Monin-Obukhov'
       case(2)
-       write (cdum,'(a)') 'Zeng et al (1998)'
+        write (cdum,'(a)') 'Zeng et al (1998)'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumocnflx
 
@@ -215,11 +219,11 @@ contains
     implicit none
     select case (ipgf)
       case(0)
-       write (cdum,'(a)') 'Use full fields'
+        write (cdum,'(a)') 'Use full fields'
       case(1)
-       write (cdum,'(a)') 'Hydrostatic deduction with perturbation temperature'
+        write (cdum,'(a)') 'Hydrostatic deduction with perturbation temperature'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumpgfs
 
@@ -227,11 +231,11 @@ contains
     implicit none
     select case (iemiss)
       case(0)
-       write (cdum,'(a)') 'No'
+        write (cdum,'(a)') 'No'
       case(1)
-       write (cdum,'(a)') 'Yes'
+        write (cdum,'(a)') 'Yes'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumemiss
 
@@ -239,11 +243,11 @@ contains
     implicit none
     select case (lakemod)
       case(0)
-       write (cdum,'(a)') 'No'
+        write (cdum,'(a)') 'No'
       case(1)
-       write (cdum,'(a)') 'Yes'
+        write (cdum,'(a)') 'Yes'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumlakes
 
@@ -251,11 +255,11 @@ contains
     implicit none
     select case (ichem)
       case(0)
-       write (cdum,'(a)') 'Not active'
+        write (cdum,'(a)') 'Not active'
       case(1)
-       write (cdum,'(a)') 'Active'
+        write (cdum,'(a)') 'Active'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumchems
 
@@ -263,11 +267,11 @@ contains
     implicit none
     select case (idcsst)
       case(0)
-       write (cdum,'(a)') 'Not active'
+        write (cdum,'(a)') 'Not active'
       case(1)
-       write (cdum,'(a)') 'Active'
+        write (cdum,'(a)') 'Active'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumdcsst
 
@@ -275,11 +279,11 @@ contains
     implicit none
     select case (iseaice)
       case(0)
-       write (cdum,'(a)') 'Not active'
+        write (cdum,'(a)') 'Not active'
       case(1)
-       write (cdum,'(a)') 'Active'
+        write (cdum,'(a)') 'Active'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumseaice
 
@@ -287,11 +291,11 @@ contains
     implicit none
     select case (idesseas)
       case(0)
-       write (cdum,'(a)') 'Not active'
+        write (cdum,'(a)') 'Not active'
       case(1)
-       write (cdum,'(a)') 'Active'
+        write (cdum,'(a)') 'Active'
       case default 
-       write (cdum,'(a)') 'Unknown or not specified'
+        write (cdum,'(a)') 'Unknown or not specified'
     end select
   end subroutine cdumdesseas
 
@@ -1710,10 +1714,13 @@ contains
       call addvara(ncid,ctype,tzyx,.false.,6)
       call addvara(ncid,ctype,tzyx,.false.,7)
       call addvara(ncid,ctype,tzyx,.false.,8)
-      call addvara(ncid,ctype,tyx,.false.,9)
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        call addvara(ncid,ctype,tzyx,.false.,9)
+      end if
       call addvara(ncid,ctype,tyx,.false.,10)
-      call addvara(ncid,ctype,tyx,.true.,11)
+      call addvara(ncid,ctype,tyx,.false.,11)
       call addvara(ncid,ctype,tyx,.true.,12)
+      call addvara(ncid,ctype,tyx,.true.,13)
     else if (ctype == 'SRF') then
       isrfvar = -1
       isrfvar(1) = itvar
@@ -2411,8 +2418,8 @@ contains
   end subroutine writerec_rad
 
   subroutine writerec_atm(nx, ny, nnx, nny, nz, ns, u, v, omega,  &
-                          t, qv, qc, ps, rc, rnc, tgb, swt, rno,  &
-                          mask, idate)
+                          t, qv, qc, tke , ps, rc, rnc, tgb, swt, &
+                          rno, mask, idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -2423,6 +2430,7 @@ contains
     real(8) , dimension(ny,nz,nx) , intent(in) :: t
     real(8) , dimension(ny,nz,nx) , intent(in) :: qv
     real(8) , dimension(ny,nz,nx) , intent(in) :: qc
+    real(8) , dimension(ny,nz,nx) , intent(in) :: tke
     real(8) , dimension(ny,nx) , intent(in) :: ps
     real(8) , dimension(ny,nx) , intent(in) :: rc
     real(8) , dimension(ny,nx) , intent(in) :: rnc
@@ -2625,6 +2633,29 @@ contains
                     'ATM FILE')
     end if
 
+    if ( atm_variables(9)%enabled .and. (ibltyp == 2 .or. ibltyp == 99) ) then
+      dumio = 0.0
+      do k = 1 , o_nz
+        do i = 1 , o_ni
+          ip1 = i+1
+          do j = 1 , o_nj
+            if (.not. lwrap) then
+              jp1 = j+1
+            else
+              jp1 = j
+            end if
+            if (qc(ip1,k,jp1) > dlowval) then
+              dumio(j,i,k) = real(tke(ip1,k,jp1)/ps(ip1,jp1))
+            end if
+          end do
+        end do
+      end do
+      istatus = nf90_put_var(ncatm, iatmvar(9), dumio, istart, icount)
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(9)%vname//' at '//ctime, &
+                    'ATM FILE')
+    end if
+
     istart(3) = iatmrec
     istart(2) = 1
     istart(1) = 1
@@ -2632,7 +2663,7 @@ contains
     icount(2) = o_ni
     icount(1) = o_nj
 
-    if ( atm_variables(9)%enabled ) then
+    if ( atm_variables(10)%enabled ) then
       dumio(:,:,1) = 0.0
       where (transpose(rc(o_is:o_ie,o_js:o_je)) > dlowval)
         dumio(:,:,1) = real(transpose(rc(o_is:o_ie,o_js:o_je)))
@@ -2641,16 +2672,7 @@ contains
         dumio(:,:,1) = dumio(:,:,1) + real(transpose(rnc(o_is:o_ie,o_js:o_je)))
       end where
       dumio(:,:,1) = dumio(:,:,1)*real(tpd)
-      istatus = nf90_put_var(ncatm, iatmvar(9), &
-                             dumio(:,:,1), istart(1:3), icount(1:3))
-      call check_ok(__FILE__,__LINE__,&
-                    'Error writing '//atm_variables(9)%vname//' at '//ctime, &
-                    'ATM FILE')
-    end if
-
-    if ( atm_variables(10)%enabled ) then
-      dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
-      istatus = nf90_put_var(ncatm, iatmvar(10), & 
+      istatus = nf90_put_var(ncatm, iatmvar(10), &
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__,&
                     'Error writing '//atm_variables(10)%vname//' at '//ctime, &
@@ -2658,6 +2680,15 @@ contains
     end if
 
     if ( atm_variables(11)%enabled ) then
+      dumio(:,:,1) = real(transpose(sum(tgb(:,o_is:o_ie,o_js:o_je), dim=1)*xns2d))
+      istatus = nf90_put_var(ncatm, iatmvar(11), & 
+                             dumio(:,:,1), istart(1:3), icount(1:3))
+      call check_ok(__FILE__,__LINE__,&
+                    'Error writing '//atm_variables(11)%vname//' at '//ctime, &
+                    'ATM FILE')
+    end if
+
+    if ( atm_variables(12)%enabled ) then
       dumio(:,:,1) = 0.0
       do n = 1 , ns
         where (atmsrfmask(n,:,:) > 0)
@@ -2670,14 +2701,14 @@ contains
       elsewhere
         dumio(:,:,1) = -1.E34
       end where
-      istatus = nf90_put_var(ncatm, iatmvar(11), & 
+      istatus = nf90_put_var(ncatm, iatmvar(12), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
-                    'Error writing '//atm_variables(11)%vname//' at '//ctime, &
+                    'Error writing '//atm_variables(12)%vname//' at '//ctime, &
                     'ATM FILE')
     end if
 
-    if ( atm_variables(12)%enabled ) then
+    if ( atm_variables(13)%enabled ) then
       dumio(:,:,1) = 0.0
       do n = 1 , ns
         where (atmsrfmask(n,:,:) > 0)
@@ -2690,10 +2721,10 @@ contains
       elsewhere
         dumio(:,:,1) = -1.E34
       end where
-      istatus = nf90_put_var(ncatm, iatmvar(12), & 
+      istatus = nf90_put_var(ncatm, iatmvar(13), & 
                              dumio(:,:,1), istart(1:3), icount(1:3))
       call check_ok(__FILE__,__LINE__, &
-                    'Error writing '//atm_variables(12)%vname//' at '//ctime, &
+                    'Error writing '//atm_variables(13)%vname//' at '//ctime, &
                     'ATM FILE')
     end if
 

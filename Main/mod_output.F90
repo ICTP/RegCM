@@ -38,6 +38,8 @@ module mod_output
   use mod_service
   use mod_cu_bm
   use mod_mppio
+  use mod_tcm_interface
+  use mod_pbldim
 #ifdef CLM
   use mod_clm
 #endif
@@ -148,7 +150,7 @@ module mod_output
   if ( ifatm ) then
     if ( ldoatm ) then
 !=======================================================================
-!         gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
+!     gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -210,6 +212,34 @@ module mod_output
           end do
         end do
       end if
+!=======================================================================
+!     gather UW Scheme variables
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do j = 1 , jendl
+          do k = 1 , kz
+            do i = 1 , iy
+              uw0(i,k,j)      = atm1%tke(i,k,j)
+              uw0(i,k+kz,j)   = tcmstateb%kth(i,k,j)
+              uw0(i,k+kz*2,j) = tcmstateb%kzm(i,k,j)
+            end do
+          end do
+        end do
+        call mpi_gather(uw0, iy*(kz*3)*jxp,mpi_real8,&
+                      & uw_0,iy*(kz*3)*jxp,mpi_real8,&
+                      & 0,mpi_comm_world,ierr)
+        if ( myid == 0 ) then
+          do j = 1 , jx
+            do k = 1 , kz
+              do i = 1 , iy
+                atm1_io%tke(i,k,j)     = uw_0(i,k,j)
+                tcmstate_io%kth(i,k,j) = uw_0(i,k+kz,j)
+                tcmstate_io%kzm(i,k,j) = uw_0(i,k+kz*2,j)
+              end do
+            end do
+          end do
+        end if
+      end if
+!
       do j = 1 , jendx
         do n = 1 , nnsg
           do i = 1 , iym1
@@ -233,6 +263,7 @@ module mod_output
           end do
         end do
       end if
+!
       if ( myid == 0 ) then
         call outatm
       end if
@@ -764,6 +795,46 @@ module mod_output
           end do
         end do
       end if
+
+!!!!!!!!!!!!!!!!!!!!
+!Begin UW variable gather
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        do j = 1 , jendx
+          do k = 1 , kzp1
+            do i = 1 , iy
+              sav0(i,k,j)      = atm1%tke(i,k,j)
+              sav0(i,kzp1+k,j) = atm2%tke(i,k,j)
+            end do
+          end do
+          do i = 1 , iy
+            sav0(i,kz*3+1,j) = kpbl(i,j)
+          end do
+        end do
+        allrec = kz*4+2
+        call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,    &
+                        sav_0,iy*allrec*jxp,mpi_real8,    &
+                        0,mpi_comm_world,ierr)
+        if ( myid == 0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do k = 1 , kzp1
+              do i = 1 , iy
+                atm1_io%tke(i,k,j) = sav_0(i,k,j)
+                atm2_io%tke(i,k,j) = sav_0(i,kzp1+k,j)
+              end do
+            end do
+            do i = 1 , iy
+              kpbl_io(i,j) = sav_0(i,kz*3+1,j)
+            end do
+          end do
+        end if
+      end if
+!end UW variable gather
+!!!!!!!!!!!!!!!!!!!!
+
       do j = 1 , jendl
         do i = 1 , iy
           sav0a(i,1,j) = sfsta%hfx(i,j)
@@ -1359,8 +1430,8 @@ module mod_output
 #endif
 
   call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
-          omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,      &
-          rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io,        &
+          omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1%tke,    &
+          psa_io,rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io, &
           ocld2d_io,idatex)
  
   write (6,*) 'ATM variables written at ' , idatex%tostring()

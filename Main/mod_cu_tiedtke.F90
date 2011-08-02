@@ -30,6 +30,7 @@ module mod_cu_tiedtke
   use mod_constants
   use mod_cu_tables
   use mod_message
+  use mod_memutil
 !
   private
 !
@@ -40,7 +41,7 @@ module mod_cu_tiedtke
             lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
 !
   ! evaporation coefficient for kuo0
-  real(dp) , allocatable , dimension(:) :: cevapcu
+  real(dp) , pointer , dimension(:) :: cevapcu
 
   real(dp) , parameter :: centrmax = 3.0D-4
 
@@ -63,21 +64,21 @@ module mod_cu_tiedtke
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
 
-  integer , allocatable , dimension(:,:) :: ilab
-  integer , allocatable , dimension(:) :: ktype
+  integer , pointer , dimension(:,:) :: ilab
+  integer , pointer , dimension(:) :: ktype
 
-  logical , allocatable , dimension(:) :: ldland
+  logical , pointer , dimension(:) :: ldland
 
   real(dp) :: ztmx
-  real(dp) , allocatable , dimension(:,:,:) :: pxtm1 , pxtte 
+  real(dp) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
 
-  real(dp) , allocatable , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
+  real(dp) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec
 
-  real(dp) , allocatable , dimension(:) :: prsfc , pssfc , paprc , &
+  real(dp) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx
 
-  real(dp) , allocatable , dimension(:,:) :: xpt , xpu , xpv , xpqv , &
+  real(dp) , pointer , dimension(:,:) :: xpt , xpu , xpv , xpqv , &
         xpqc , xpw , xpg
 
   contains
@@ -87,81 +88,37 @@ module mod_cu_tiedtke
   subroutine allocate_mod_cu_tiedtke
     implicit none
 
-    allocate(cevapcu(kz))
+    call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
+    call getmem2d(xpt,1,iym3,1,kz,'mod_cu_tiedtke:xpt')
+    call getmem2d(xpu,1,iym3,1,kz,'mod_cu_tiedtke:xpu')
+    call getmem2d(xpv,1,iym3,1,kz,'mod_cu_tiedtke:xpv')
+    call getmem2d(xpqv,1,iym3,1,kz,'mod_cu_tiedtke:xpqv')
+    call getmem2d(xpqc,1,iym3,1,kz,'mod_cu_tiedtke:xpqc')
+    call getmem2d(xpw,1,iym3,1,kz,'mod_cu_tiedtke:xpw')
+    call getmem2d(xpg,1,iym3,1,kz,'mod_cu_tiedtke:xpg')
+    call getmem3d(pxtm1,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
+    call getmem3d(pxtte,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
+    call getmem2d(ilab,1,iym3,1,kz,'mod_cu_tiedtke:ilab')
+    call getmem1d(ktype,1,iym3,'mod_cu_tiedtke:ktype')
+    call getmem2d(ptm1,1,iym3,1,kz,'mod_cu_tiedtke:ptm1')
+    call getmem2d(pqm1,1,iym3,1,kz,'mod_cu_tiedtke:pqm1')
+    call getmem2d(pum1,1,iym3,1,kz,'mod_cu_tiedtke:pum1')
+    call getmem2d(pvm1,1,iym3,1,kz,'mod_cu_tiedtke:pvm1')
+    call getmem2d(pxlm1,1,iym3,1,kz,'mod_cu_tiedtke:pxlm1')
+    call getmem2d(pxim1,1,iym3,1,kz,'mod_cu_tiedtke:pxim1')
+    call getmem2d(pxite,1,iym3,1,kz,'mod_cu_tiedtke:pxite')
+    call getmem2d(papp1,1,iym3,1,kz,'mod_cu_tiedtke:papp1')
+    call getmem2d(pxtec,1,iym3,1,kz,'mod_cu_tiedtke:pxtec')
+    call getmem2d(pqtec,1,iym3,1,kz,'mod_cu_tiedtke:pqtec')
+    call getmem2d(paphp1,1,iym3,1,kzp1,'mod_cu_tiedtke:paphp1')
+    call getmem1d(prsfc,1,iym3,'mod_cu_tiedtke:prsfc')
+    call getmem1d(pssfc,1,iym3,'mod_cu_tiedtke:pssfc')
+    call getmem1d(paprc,1,iym3,'mod_cu_tiedtke:paprc')
+    call getmem1d(paprs,1,iym3,'mod_cu_tiedtke:paprs')
+    call getmem1d(ptopmax,1,iym3,'mod_cu_tiedtke:ptopmax')
+    call getmem1d(xphfx,1,iym3,'mod_cu_tiedtke:xphfx')
+    call getmem1d(ldland,1,iym3,'mod_cu_tiedtke:ldland')
 
-    allocate(xpt(iym3,kz))
-    allocate(xpu(iym3,kz))
-    allocate(xpv(iym3,kz))
-    allocate(xpqv(iym3,kz))
-    allocate(xpqc(iym3,kz))
-    allocate(xpw(iym3,kz))
-    allocate(xpg(iym3,kz))
-
-    allocate(pxtm1(iym3,kz,ntr))
-    allocate(pxtte(iym3,kz,ntr))
-
-    allocate(ilab(iym3,kz))
-    allocate(ktype(iym3))
-
-    allocate(ptm1(iym3,kz))
-    allocate(pqm1(iym3,kz))
-    allocate(pum1(iym3,kz))
-    allocate(pvm1(iym3,kz))
-    allocate(pxlm1(iym3,kz))
-    allocate(pxim1(iym3,kz))
-    allocate(pxite(iym3,kz))
-    allocate(papp1(iym3,kz))
-
-    allocate(pxtec(iym3,kz))
-    allocate(pqtec(iym3,kz))
-
-    allocate(paphp1(iym3,kzp1))
-
-    allocate(prsfc(iym3))
-    allocate(pssfc(iym3))
-    allocate(paprc(iym3))
-    allocate(paprs(iym3))
-    allocate(ptopmax(iym3))
-    allocate(xphfx(iym3))
-    allocate(ldland(iym3))
-
-    cevapcu(:) = d_zero
-
-    xpt(:,:) = d_zero
-    xpu(:,:) = d_zero
-    xpv(:,:) = d_zero
-    xpqv(:,:) = d_zero
-    xpqc(:,:) = d_zero
-    xpw(:,:) = d_zero
-    xpg(:,:) = d_zero
-
-    pxtm1(:,:,:) = d_zero
-    pxtte(:,:,:) = d_zero
-
-    ilab(:,:) = 0
-    ktype(:) = 0
-
-    ptm1(:,:) = d_zero
-    pqm1(:,:) = d_zero
-    pum1(:,:) = d_zero
-    pvm1(:,:) = d_zero
-    pxlm1(:,:) = d_zero
-    pxim1(:,:) = d_zero
-    pxite(:,:) = d_zero
-    papp1(:,:) = d_zero
-
-    pxtec(:,:) = d_zero
-    pqtec(:,:) = d_zero
-
-    paphp1(:,:) = d_zero
-
-    prsfc(:) = d_zero
-    pssfc(:) = d_zero
-    paprc(:) = d_zero
-    paprs(:) = d_zero
-    ptopmax(:) = d_zero
-    xphfx(:) = d_zero
-    ldland(:) = .false.
   end subroutine allocate_mod_cu_tiedtke
 !
 ! This subroutines calls cucall
