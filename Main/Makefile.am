@@ -1,13 +1,15 @@
 
-SUBDIRS = netlib clmlib
+SUBDIRS = netlib clmlib chem
 
 include $(REGCM_ROOT)/makeinc
 
 CLMLIBPTH = ./clmlib
 NETLIBPTH = ./netlib
+KPPLIBPTH = chem/GAS_KPP_GEOS
 
 CLMLIB = $(CLMLIBPTH)/libclm.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
+KPPLIB = $(KPPLIBPTH)/libkpp.a
 
 if REGCM_PARALLEL
 rcsuffix = MPI
@@ -27,14 +29,15 @@ program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
+LKPPLIB = -L$(KPPLIBPTH) -lkpp
 
 if COMPILER_SUN
-  CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH)
+  CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(KPPLIBPTH)
 else
-  CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH)
+  CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(KPPLIBPTH)
 endif
 
-LIBS += $(LCLMLIB) $(LNETLIB)
+LIBS += $(LCLMLIB) $(LNETLIB) $(LKPPLIB)
 
 bin_PROGRAMS = regcm
 

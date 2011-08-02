@@ -1,0 +1,5 @@
+This version of GEOS SILLMAN chemical mechanism
+has the advantage of all reactions rate are function now
+no constant any more. I think this make this version KPP much
+like SILLMAN box model. and I do not know if it will stop the 
+over estimation 
