@@ -19,22 +19,23 @@
 
 module mod_mainchem
 
+  use m_realkinds
+  use mod_dynparam
   use mod_memutil
-  use mod_runparams
+  use mod_chem
 
-  implicit none
+  public
 !
-  real(8) , pointer , dimension(:,:,:,:) :: chemsrc
-  real(8) , pointer , dimension(:,:,:,:) :: chia , chib
-  real(8) , pointer , dimension(:,:,:) :: srclp2
-  real(8) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
-                                          wdlsc , wxaq , wxsg
+  real(dp) , pointer , dimension(:,:,:,:) :: chemsrc
+  real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
+  real(dp) , pointer , dimension(:,:,:) :: srclp2
+  real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
+                                           wdlsc , wxaq , wxsg
   contains 
 
-    subroutine allocate_mod_mainchem
+  subroutine allocate_mod_mainchem
     implicit none
-
-    if ( ichem == 1 ) then
+    if ( lch ) then
       call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_mainchem:chemsrc')
       call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chia')
       call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chib')
@@ -46,6 +47,7 @@ module mod_mainchem
       call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_mainchem:wxaq')
       call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_mainchem:wxsg')
     end if
-   end subroutine allocate_mod_mainchem
+
+  end subroutine allocate_mod_mainchem
 !
 end module mod_mainchem

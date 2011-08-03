@@ -21,21 +21,16 @@ module mod_che_semdde
 !
 ! Chemical and aerosol surface emission and dry deposition
 !
+  use m_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_bats_param
   use mod_mainchem
   use mod_trachem
   use mod_dust
   use mod_aerosol
   use mod_message
-  use mod_ncio
-  use mod_service 
-  use mod_mppio
-#ifdef CLM
-! use surfrdMod , only : clm_getsoitex
-! use clm_varsur, only : clm_soitex
-#endif
+  use mod_che_ncio
+  use mod_che_mppio
 !
   private
 !
@@ -43,22 +38,22 @@ module mod_che_semdde
 !
 ! Dynamic Viscosity Parameters
 !
-  real(8) , parameter :: a1 = 145.8D0
-  real(8) , parameter :: a2 = 1.5D0
-  real(8) , parameter :: a3 = 110.4D0
+  real(dp) , parameter :: a1 = 145.8D0
+  real(dp) , parameter :: a2 = 1.5D0
+  real(dp) , parameter :: a3 = 110.4D0
 !
 ! Molecular Free Path calculation parameters
 !
-  real(8) , parameter :: c1 = 6.54D-8
-  real(8) , parameter :: c2 = 1.818D-5
-  real(8) , parameter :: c3 = 1.013D5
-  real(8) , parameter :: c4 = 293.15D0
+  real(dp) , parameter :: c1 = 6.54D-8
+  real(dp) , parameter :: c2 = 1.818D-5
+  real(dp) , parameter :: c3 = 1.013D5
+  real(dp) , parameter :: c4 = 293.15D0
 !
 ! Cunningham slip correction factor parameters
 !
-  real(8) , parameter :: aa1 = 1.257D0
-  real(8) , parameter :: aa2 = 0.4D0
-  real(8) , parameter :: aa3 = 1.1D0
+  real(dp) , parameter :: aa1 = 1.257D0
+  real(dp) , parameter :: aa2 = 0.4D0
+  real(dp) , parameter :: aa3 = 1.1D0
 !
   contains
 !
@@ -79,14 +74,8 @@ module mod_che_semdde
     logical :: there
     integer :: itr , ierr
 !
-    character (len=50) :: subroutine_name='chsrfem'
-    integer :: idindx=0
-!
-    call time_begin(subroutine_name,idindx)
-
-
 !   fisrt activate dust initialization
-
+!
     write (aline, *) 'Calling inidust'
     call say(myid)
     call inidust
@@ -218,7 +207,6 @@ module mod_che_semdde
       if ( myid == 0 ) write (*,*) '! OPDATA CHECKED !'
 
     end if
-    call time_end(subroutine_name,idindx) 
 
   end subroutine chsrfem
 !
@@ -263,38 +251,34 @@ module mod_che_semdde
 !
     integer :: il1 , il2 , ilev , ilg , luc , nbin
     integer , dimension(ilg) :: ivegcov
-    real(8) , dimension(ilg,ilev,nbin) :: pdepv
-    real(8) , dimension(ilg) :: pressg , rh10 , srad , sutemp ,       &
+    real(dp) , dimension(ilg,ilev,nbin) :: pdepv
+    real(dp) , dimension(ilg) :: pressg , rh10 , srad , sutemp ,       &
                                 temp2 , wind10 , zeff
-    real(8) , dimension(ilg,ilev) :: roarow , throw
-    real(8) , dimension(ilev) :: shj
-    real(8) , dimension(nbin,2) :: trsize
+    real(dp) , dimension(ilg,ilev) :: roarow , throw
+    real(dp) , dimension(ilev) :: shj
+    real(dp) , dimension(nbin,2) :: trsize
     intent (in) il1 , il2 , ilev , ilg , ivegcov , luc , nbin ,       &
                 pressg , rh10 , roarow , shj , srad , sutemp , temp2 ,&
                 throw , trsize , wind10 , zeff
     intent (inout) pdepv
 !
-    real(8) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
+    real(dp) :: amfp , amob , asq , ch , cm , cun , dtemp , dthv , eb ,&
                eim , ein , es , fh , fm , frx1 , kui , logratio ,     &
                mol , pre , prii , priiv , psit , psiu , ptemp2 , qs , &
                r1 , ratioz , aa , rib , st , tbar , thstar , tsv ,    &
                tsw , ustarsq , utstar , vp , vptemp , wvpm , ww , x , &
                y , z , z0water , zdl , zl
-    real(8) , dimension(ilg,ilev) :: amu
-    real(8) , dimension(ilg) :: anu , schm , zz0
-    real(8) , dimension(ilg,ilev,isize) :: cfac , pdepvsub , pdiff ,  &
+    real(dp) , dimension(ilg,ilev) :: amu
+    real(dp) , dimension(ilg) :: anu , schm , zz0
+    real(dp) , dimension(ilg,ilev,isize) :: cfac , pdepvsub , pdiff ,  &
            rhsize , taurel
     integer :: i , j , jc , k , kcov , l , lev , n , tot
-    real(8) , dimension(ilg,luc) :: ra , ustar , vegcover
-    real(8) , dimension(ilg,luc,isize) :: rs
+    real(dp) , dimension(ilg,luc) :: ra , ustar , vegcover
+    real(dp) , dimension(ilg,luc,isize) :: rs
    
-    real(8) , parameter :: z10 = d_10
-    real(8) , dimension(isize) :: avesize
-    character (len=50) :: subroutine_name='chdrydep'
-    integer :: idindx=0
+    real(dp) , parameter :: z10 = d_10
+    real(dp) , dimension(isize) :: avesize
 !
-    call time_begin(subroutine_name,idindx)
-
     i = 0
     pdepvsub = d_zero
 
@@ -682,7 +666,6 @@ module mod_che_semdde
         end do
       end if
     end do
-    call time_end(subroutine_name,idindx)
 ! 
   end subroutine chdrydep
 !

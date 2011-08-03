@@ -25,7 +25,7 @@ module mod_bats_param
                            & deptv , depuv , displa , fc , freza ,  &
                            & frezu , rough , rsmin , sai , seasf ,  &
                            & sqrtdi , vegc , xla , xlai0 , rootf ,  &
-                           & aest , arye , slmo
+                           & slmo
   real(8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                            & xmosuc , xmowil
   integer , dimension(22) :: iexsol , kolsol
@@ -168,17 +168,5 @@ module mod_bats_param
   data rootf/0.30D0 , 0.80D0 , 0.67D0 , 0.67D0 , 0.50D0 , 0.80D0 , &
              0.80D0 , 0.90D0 , 0.90D0 , 0.30D0 , 0.80D0 , 9*0.50D0,&
              0.90D0 , 0.50D0/
-!
-! Stokes parameters
-!
-  data aest     /0.80D0 , 0.80D0 , 0.8D0 , 0.8D0 , 1.2D0 , 1.20D0 , &
-       2.0D0 , 1.5D0 ,  1.5D0 , 2.0D0 , 15.0D0 , 15.0D0 , 1.5D0 ,   &
-       1.5D0 , 1.5D0 , 15.0D0 , 1.2D0 , 1.2D0 , 1.2D0 , 1.2D0 ,     &
-       1.2D0 , 1.2D0 /
-!
-  data arye     /0.5D0 , 5.0D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 ,    &
-     0.0001D0 , 5.0D0 , 10.0D0 , 10.0D0 , 0.0001D0 , 0.0001D0 ,     &
-     0.56D0 , 0.56D0 , 0.56D0 , 0.56D0 ,  0.56D0 , 0.56D0 , 0.56D0 ,&
-     0.56D0 , 1.0D0 , 1.0D0 /
 !
 end module mod_bats_param

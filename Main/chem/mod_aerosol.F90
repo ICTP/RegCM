@@ -19,13 +19,14 @@
 
 module mod_aerosol
 !
-  use mod_runparams
-  use mod_message
-  use mod_trachem
-  use mod_slice
-  use mod_main
-  use mod_mainchem
+  use m_realkinds
+  use mod_dynparam
+  use mod_constants
   use mod_memutil
+  use mod_message
+  use mod_chem
+  use mod_mainchem
+  use mod_trachem
 !
   private
 !
@@ -46,14 +47,14 @@ module mod_aerosol
 !
   integer , parameter :: ncoefs = 5  ! Number of coefficients
 !
-  real(8) , parameter :: d10e5  = 1.0D+05
-  real(8) , parameter :: d10e4  = 1.0D+04
-  real(8) , parameter :: nearone  = 0.99D+00
-  real(8) , parameter :: minimum_aerosol = 1.0D-14
-  real(8) , parameter :: minimum_utaer   = 1.0D-10
-  real(8) , parameter :: minimum_waer   = 1.0D-30
-  real(8) , parameter :: minimum_gaer   = 1.0D-20
-  real(8) , parameter :: fiveothree  = d_five/d_three
+  real(dp) , parameter :: d10e5  = 1.0D+05
+  real(dp) , parameter :: d10e4  = 1.0D+04
+  real(dp) , parameter :: nearone  = 0.99D+00
+  real(dp) , parameter :: minimum_aerosol = 1.0D-14
+  real(dp) , parameter :: minimum_utaer   = 1.0D-10
+  real(dp) , parameter :: minimum_waer   = 1.0D-30
+  real(dp) , parameter :: minimum_gaer   = 1.0D-20
+  real(dp) , parameter :: fiveothree  = d_five/d_three
 !
 ! kscoef  - specific extinction (m2/g)
 ! wscoef  - single partical albedo
@@ -67,31 +68,31 @@ module mod_aerosol
 !
   integer , private :: ii , jj ! coefficient index
 !
-  real(8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
+  real(dp) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
            gsoc_hl , ksbase , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
            wsbase , wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl
-  real(8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
-  real(8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
-  real(4) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
+  real(dp) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
+  real(dp) , dimension(nspi,4) :: gsdust , ksdust , wsdust
+  real(sp) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
 !
 ! Aerosol mass mixing ratio
 !
-  real(8) , pointer , dimension(:,:,:) :: aermm
+  real(dp) , pointer , dimension(:,:,:) :: aermm
 !
 ! Background aerosol mass mixing ratio
 !
-  real(8) , pointer , dimension(:,:) :: aermmb
+  real(dp) , pointer , dimension(:,:) :: aermmb
 !
 ! Radiation level aerosol mass mixing ratio
 !
-  real(8) , pointer , dimension(:,:,:) :: aermmr
+  real(dp) , pointer , dimension(:,:,:) :: aermmr
 !
 ! Aerosol optical properties (for the mixing) 
 !
-  real(8) , pointer , dimension(:,:,:) :: ftota_mix ,   &
+  real(dp) , pointer , dimension(:,:,:) :: ftota_mix ,   &
                  gtota_mix , tauasc_mix , tauxar_mix
 !
-  real(8) , pointer , dimension(:,:) :: ftota_mix_cs ,  &
+  real(dp) , pointer , dimension(:,:) :: ftota_mix_cs ,  &
          gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
 !
 ! Work arrays for aeroppt (aerosol individual optical properties SW)
@@ -106,14 +107,14 @@ module mod_aerosol
 ! faer          - Aerosol forward scattered fraction
 !
 !
-  real(8) , pointer , dimension(:,:) :: aermtot , aervtot
-  real(8) , pointer , dimension(:,:,:) :: fa , ga , tauxar , uaer , wa
-  real(8) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
-  real(8) , dimension(4) :: prop
+  real(dp) , pointer , dimension(:,:) :: aermtot , aervtot
+  real(dp) , pointer , dimension(:,:,:) :: fa , ga , tauxar , uaer , wa
+  real(dp) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
+  real(dp) , dimension(4) :: prop
 !
 ! Aersol LW optical properties
 !
-  real(8) , pointer , dimension(:,:,:) ::  aerlwtr 
+  real(dp) , pointer , dimension(:,:,:) ::  aerlwtr 
 !
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -363,7 +364,7 @@ module mod_aerosol
     call getmem2d(aermtot,1,iym1,1,kz,'aerosol:aermtot')
     call getmem2d(aervtot,1,iym1,1,kz,'aerosol:aervtot')
     call getmem3d(aerlwtr,1,iym1,1,kzp1,1,kzp1,'aerosol:aerlwtr')
-    if ( ichem == 1 ) then
+    if ( lch ) then
       call getmem3d(aermmr,1,iym1,1,kz,1,ntr,'aerosol:aermmr')
       call getmem3d(fa,1,iym1,0,kz,1,ntr,'aerosol:fa')
       call getmem3d(ga,1,iym1,0,kz,1,ntr,'aerosol:ga')
@@ -414,9 +415,9 @@ module mod_aerosol
 !
     integer :: j , istart , iend , nx , nk , ntrac
 !   Radiation level interface pressures (dynes/cm2)
-    real(8) , dimension(nx,nk+1) :: pint
+    real(dp) , dimension(nx,nk+1) :: pint
 !   Radiation level relative humidity (fraction)
-    real(8) , dimension(nx,nk) :: rh
+    real(dp) , dimension(nx,nk) :: rh
 !
     intent (in) j , pint , istart , iend , nk , ntrac
     intent (out) rh
@@ -431,7 +432,7 @@ module mod_aerosol
 !
 !-----------------------------------------------------------------------
 ! 
-    real(8) :: gvis , kaervs , omgvis , rhfac , tauvis
+    real(dp) :: gvis , kaervs , omgvis , rhfac , tauvis
     integer :: i , itr , k , mxaerl
 !
     data kaervs /5.3012D0/        ! multiplication factor for kaer
@@ -452,7 +453,7 @@ module mod_aerosol
       do i = istart , iend
  
 !       July 13, 2000: needed for aerosols in radiation
-        rh(i,k) = dmin1(rhb3d(i,k,j),nearone)
+        rh(i,k) = dmin1(chrh(i,k,j),nearone)
 !EES:   do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
 !       divided by RH.  rh is limited to .99 to avoid dividing by zero added
 !
@@ -469,9 +470,9 @@ module mod_aerosol
           aermmb(i,k) = d_zero
         end if
 ! 
-        if ( ichem == 1 ) then
+        if ( lch ) then
           do itr = 1 , ntrac
-            aermmr(i,k,itr) = chia(i,k,j,itr)/sps1%ps(i,j)
+            aermmr(i,k,itr) = chia(i,k,j,itr)/chps1(i,j)
           end do
         end if
 
@@ -488,14 +489,14 @@ module mod_aerosol
 !
 !   Interface pressure, relative humidity
 !
-    real(8) , dimension(iym1,kzp1) :: pint
-    real(8) , dimension(iym1,kz) :: rh
+    real(dp) , dimension(iym1,kzp1) :: pint
+    real(dp) , dimension(iym1,kz) :: rh
     intent (in) pint , rh
 !
     integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , k1, k2 , ns
-    real(8) :: path , uaerdust , qabslw
+    real(dp) :: path , uaerdust , qabslw
 !
-    if ( ichem /= 1 ) then
+    if ( .not. lch ) then
       tauxar_mix_cs(:,:) = d_zero
       tauasc_mix_cs(:,:) = d_zero
       gtota_mix_cs(:,:) = d_zero
@@ -508,7 +509,7 @@ module mod_aerosol
       return
     end if
 !
-    if ( idirect >= 1 ) then
+    if ( iym1 >= 1 ) then
       tauxar = d_zero
       wa = d_zero
       ga = d_zero
@@ -675,7 +676,7 @@ module mod_aerosol
                                   tauxar(i,k,itr)*wa(i,k,itr)
             end do
 !
-!           Clear sky (always calcuated if idirect >=1 for
+!           Clear sky (always calcuated if ichdir >=1 for
 !           diagnostic radiative forcing)
 !
             tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns) + tauaer(i,itr)
@@ -874,7 +875,7 @@ module mod_aerosol
 !   initialisation à 1 = perfect transmittivity
     aerlwtr (:,:,:) = d_one
 !
-    if ( idirect >= 1 ) then
+    if ( iym1 >= 1 ) then
       do k1 = 1 , kzp1
         do k2 = 1 , kzp1
           do i = 1 , iym1
@@ -908,10 +909,10 @@ module mod_aerosol
     implicit none
 !
     integer :: jslc
-    real(8) , dimension(iym1) :: aeradfo , aeradfos, aerlwfo , aerlwfos
+    real(dp) , dimension(iym1) :: aeradfo , aeradfos, aerlwfo , aerlwfos
     intent (in) aeradfo , aeradfos, aerlwfo , aerlwfos
 !
-    real(8) :: rntim
+    real(dp) :: rntim
     integer :: i , k
 ! 
     do k = 1 , kz
@@ -923,11 +924,11 @@ module mod_aerosol
     end do
 !
 !   CARE :Average the radiative forcing between chem output time
-!   steps (in hour) according to dtrad (in min), aertarf is reset to
+!   steps (in hour) according to radfrq (in min), aertarf is reset to
 !   0 at each chem output (cf output.f)
 !   (care cgs to mks after radiation scheme !)
 !
-    rntim = d_one/(d_1000*minph*(chemfrq/dtrad))
+    rntim = d_one/(d_1000*minph*(chfrq/rafrq))
 !
 !   aersol radative forcing
 !

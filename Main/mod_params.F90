@@ -52,9 +52,7 @@ module mod_params
   use mod_tendency
   use mod_ncio
   use mod_uwtcm
-#ifdef CHEMTEST
   use mod_chem 
-#endif
 
   use mod_mppio
 #ifdef CLM
@@ -657,19 +655,13 @@ module mod_params
 !-----------------------------------------------------------------------
 !
   if ( lakemod == 1 ) call allocate_lake
-#ifdef CHEMTEST
-  if ( ichem == 1 ) call allocate_mod_chem
-#endif
   call allocate_mod_tend(lband)
-  call allocate_mod_aerosol
   call allocate_mod_bats
   call allocate_mod_bdycon
   call allocate_mod_holtbl
   call allocate_mod_cvaria
-  call allocate_mod_dust
   call allocate_mod_leaftemp
   call allocate_mod_main
-  call allocate_mod_mainchem
   call allocate_mod_outrad
   call allocate_mod_o3blk
   call allocate_mod_pbldim
@@ -678,7 +670,6 @@ module mod_params
   call allocate_mod_rad
   call allocate_mod_slice
   call allocate_mod_split
-  call allocate_mod_trachem
   call allocate_mod_runparams
   call allocate_mod_mppio(lband)
 #ifdef CLM
@@ -687,6 +678,14 @@ module mod_params
 #ifndef BAND
   call allocate_mod_diagnosis
 #endif
+
+  call init_chem(ichem,idirect,chemfrq,dtrad,sps1%ps,rhb3d)
+  call allocate_mod_che_mppio(lband)
+  call allocate_mod_mainchem
+  call allocate_mod_trachem
+  call allocate_mod_aerosol
+  call allocate_mod_dust
+
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

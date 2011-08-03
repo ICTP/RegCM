@@ -26,6 +26,7 @@ module mod_mppio
   use mod_tcm_interface , only : tcm_state , allocate_tcm_state
   use mod_memutil
   use mod_message
+  use mod_che_mppio
 !
   real(8) , pointer , dimension(:,:,:,:) :: spacesubm1
   real(8) , pointer , dimension(:,:,:,:) :: spacesub
@@ -67,10 +68,6 @@ module mod_mppio
                                    sinc2d_io , sol2d_io ,           &
                                    solvd2d_io , solvs2d_io
 !
-  real(8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,  &
-                         sdelqk2d_io , sfracv2d_io , sfracb2d_io , &
-                         sfracs2d_io , svegfrac2d_io
-!      
   real(4) , pointer , dimension(:,:,:) :: fbat_io
   real(4) , pointer , dimension(:,:,:,:) :: fsub_io
   real(4) , pointer , dimension(:,:,:) :: frad2d_io
@@ -94,14 +91,6 @@ module mod_mppio
                               aerext_io , aerssa_io
   real(8) , pointer , dimension(:,:) :: aersrrf_io , aertarf_io,&
                             aertalwrf_io , aersrlwrf_io
-  real(8) , pointer , dimension(:,:,:) :: cemtrac_io ,          &
-                              cemtr_io , wxaq_io , wxsg_io
-  real(8) , pointer , dimension(:,:,:,:) :: rxsaq1_io ,         &
-                              rxsaq2_io , rxsg_io
-
-  real(8) , pointer , dimension(:,:,:,:) :: remcvc_io
-  real(8) , pointer , dimension(:,:,:,:) :: remlsc_io
-  real(8) , pointer , dimension(:,:,:) :: remdrd_io
 
   real(8) , pointer , dimension(:,:) :: ps0_io , ps1_io , ts0_io ,  &
                            ts1_io
@@ -113,17 +102,12 @@ module mod_mppio
                                  uil_io , vi1_io , vi2_io ,         &
                                  vilx_io , vil_io
 
-  real(8) , pointer , dimension(:,:,:,:) :: chemsrc_io
-  real(8) , pointer , dimension(:,:,:) :: ddsfc_io , dtrace_io ,&
-                                 wdcvc_io , wdlsc_io
   real(8) , pointer , dimension(:,:) :: pptc_io , pptnc_io ,    &
                                  prca2d_io , prnca2d_io
 
-  real(8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
-
   real(8) , pointer , dimension(:,:) :: cldefi_io , hfx_io , &
-                                 psa_io , psb_io ,        &
-                                 qfx_io , rainc_io , rainnc_io ,    &
+                                 psa_io , psb_io , qfx_io ,  &
+                                 rainc_io , rainnc_io ,    &
                                  tga_io , tgbb_io ,     &
                                  tgb_io , uvdrag_io , &
                                  zpbl_io
@@ -152,19 +136,12 @@ module mod_mppio
   real(4) , pointer , dimension(:,:,:) :: rad_0
   real(4) , pointer , dimension(:,:,:,:) :: sub0
   real(4) , pointer , dimension(:,:,:,:) :: sub_0
-  real(8) , pointer , dimension(:,:,:) :: chem0
-  real(8) , pointer , dimension(:,:,:) :: chem_0
-  real(8) , pointer , dimension(:,:,:) :: dustsotex_io
 #ifdef CLM
   real(8) , pointer , dimension(:,:) :: sols2d_io , soll2d_io ,     &
                       solsd2d_io , solld2d_io , aldifl2d_io ,       &
                       aldirs2d_io , aldirl2d_io , aldifs2d_io
   real(8) , pointer , dimension(:,:) :: lndcat2d_io
 #endif
-  real(8) , pointer , dimension(:,:,:,:) :: src0
-  real(8) , pointer , dimension(:,:,:,:) :: src_0
-  real(8) , pointer , dimension(:,:,:) :: src1
-  real(8) , pointer , dimension(:,:,:) :: src_1
 !
   real(8) , pointer , dimension(:,:,:) :: sav0
   real(8) , pointer , dimension(:,:,:) :: sav_0
@@ -219,11 +196,6 @@ module mod_mppio
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call getmem3d(uw0,1,iy,1,kz*3,1,jxp,'mod_mppio:uw0')
     end if
-    if (ichem == 1) then
-      call getmem3d(chem0,1,iy,1,ntr*kz+kz*3+ntr*7+5,1,jxp,'mod_mppio:chem0')
-      call getmem4d(src0,1,iy,1,mpy,1,ntr,1,jxp,'mod_mppio:src0')
-      call getmem3d(src1,1,iy,1,nats,1,jxp,'mod_mppio:src1')
-    end if
 
     if (myid == 0) then
       call allocate_domain(mddom_io,.false.)
@@ -244,11 +216,6 @@ module mod_mppio
       call getmem4d(sub_0,1,iym2,1,nnsg,1,numsub,1,jx,'mod_mppio:sub_0')
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call getmem3d(uw_0,1,iy,1,kz*3,1,jx,'mod_mppio:uw_0')
-      end if
-      if (ichem == 1) then
-        call getmem3d(chem_0,1,iy,1,ntr*kz+kz*3+ntr*7+5,1,jx,'mod_mppio:chem_0')
-        call getmem4d(src_0,1,iy,1,mpy,1,ntr,1,jx,'mod_mppio:src_0')
-        call getmem3d(src_1,1,iy,1,nats,1,jx,'mod_mppio:src_1')
       end if
 
       if (lband) then
@@ -305,17 +272,9 @@ module mod_mppio
                                 1,iym1,1,jx,'mod_mppio:tlak3d_io')
       endif
       if (lband) then
-        if ( ichem == 1 ) then
-          call getmem3d(spacebat,1,iym1,1,jx,1,15,'mod_mppio:spacebat')
-        else
-          call getmem3d(spacebat,1,iym1,1,jx,1,8,'mod_mppio:spacebat')
-        end if
+        call getmem3d(spacebat,1,iym1,1,jx,1,8,'mod_mppio:spacebat')
       else
-        if ( ichem == 1 ) then
-          call getmem3d(spacebat,1,iym1,1,jxm1,1,15,'mod_mppio:spacebat')
-        else
-          call getmem3d(spacebat,1,iym1,1,jxm1,1,8,'mod_mppio:spacebat')
-        end if
+        call getmem3d(spacebat,1,iym1,1,jxm1,1,8,'mod_mppio:spacebat')
       end if
       flw2d_io      => spacebat(:,:,1)
       flwd2d_io     => spacebat(:,:,2)
@@ -325,15 +284,6 @@ module mod_mppio
       sol2d_io      => spacebat(:,:,6)
       solvd2d_io    => spacebat(:,:,7)
       solvs2d_io    => spacebat(:,:,8)
-      if ( ichem == 1 ) then
-        ssw2da_io     => spacebat(:,:,9)
-        sdelqk2d_io   => spacebat(:,:,10)
-        sdeltk2d_io   => spacebat(:,:,11)
-        sfracb2d_io   => spacebat(:,:,12)
-        sfracs2d_io   => spacebat(:,:,13)
-        sfracv2d_io   => spacebat(:,:,14)
-        svegfrac2d_io => spacebat(:,:,15)
-      end if
       if (lband) then
         call getmem3d(fbat_io,1,jx,1,iym2,1,numbat,'mod_mppio:fbat_io')
         call getmem4d(fsub_io,1,nnsg,1,jx,1,iym2,1,numsub,'mod_mppio:fsub_io')
@@ -381,18 +331,6 @@ module mod_mppio
         call getmem2d(aertarf_io,1,iym1,1,jxm1,'mod_mppio:aertarf_io')
         call getmem2d(aertalwrf_io,1,iym1,1,jxm1,'mod_mppio:aertalwrf_io')
       end if
-      if ( ichem == 1 ) then
-        call getmem3d(cemtrac_io,1,iy,1,jx,1,ntr,'mod_mppio:cemtrac_io')
-        call getmem3d(cemtr_io,1,iy,1,jx,1,ntr,'mod_mppio:cemtr_io')
-        call getmem3d(wxaq_io,1,iy,1,jx,1,ntr,'mod_mppio:wxaq_io')
-        call getmem3d(wxsg_io,1,iy,1,jx,1,ntr,'mod_mppio:wxsg_io')
-        call getmem4d(rxsaq1_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:rxsaq1_io')
-        call getmem4d(rxsaq2_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:rxsaq2_io')
-        call getmem4d(rxsg_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:rxsg_io')
-        call getmem4d(remcvc_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:remcvc_io')
-        call getmem4d(remlsc_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:remlsc_io')
-        call getmem3d(remdrd_io,1,iy,1,jx,1,ntr,'mod_mppio:remdrd_io')
-      end if
       call getmem3d(space2d,1,iy,1,jx,1,4,'mod_mppio:space2d')
       ps0_io => space2d(:,:,1)
       ps1_io => space2d(:,:,2)
@@ -418,14 +356,6 @@ module mod_mppio
       vi2_io  => spacev(:,:,6)
       vilx_io => spacev(:,:,7)
       vil_io  => spacev(:,:,8)
-      if ( ichem == 1 ) then
-        call getmem4d(chemsrc_io,1,iy,1,jx,1,mpy,1,ntr,'mod_mppio:chemsrc_io')
-        call getmem3d(ddsfc_io,1,iy,1,jx,1,ntr,'mod_mppio:ddsfc_io')
-        call getmem3d(dtrace_io,1,iy,1,jx,1,ntr,'mod_mppio:dtrace_io')
-        call getmem3d(wdcvc_io,1,iy,1,jx,1,ntr,'mod_mppio:wdcvc_io')
-        call getmem3d(wdlsc_io,1,iy,1,jx,1,ntr,'mod_mppio:wdlsc_io')
-      end if
-      call getmem3d(dustsotex_io,1,iy,1,jx,1,nats,'mod_mppio:dustsotex_io')
       if (lband) then
         call getmem2d(pptc_io,1,iym1,1,jx,'mod_mppio:pptc_io')
         call getmem2d(pptnc_io,1,iym1,1,jx,'mod_mppio:pptnc_io')
@@ -436,10 +366,6 @@ module mod_mppio
         call getmem2d(pptnc_io,1,iym1,1,jxm1,'mod_mppio:pptnc_io')
         call getmem2d(prca2d_io,1,iym1,1,jxm1,'mod_mppio:prca2d_io')
         call getmem2d(prnca2d_io,1,iym1,1,jxm1,'mod_mppio:prnca2d_io')
-      end if
-      if ( ichem == 1 ) then
-        call getmem4d(chia_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:chia_io')
-        call getmem4d(chib_io,1,iy,1,kz,1,jx,1,ntr,'mod_mppio:chib_io')
       end if
       if (icup == 3) then
         call getmem3d(spacesurf,1,iy,1,jx,1,11,'mod_mppio:spacesurf')

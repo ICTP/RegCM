@@ -30,9 +30,8 @@ module mod_ncio
   public :: init_mod_ncio , release_mod_ncio
   public :: open_domain , read_domain , read_domain_lake, &
             read_subdomain , read_subdomain_lake,         &
-            read_texture , close_domain
+            close_domain
   public :: open_icbc , read_icbc , icbc_search
-  public :: read_aerosol
   public :: prepare_common_out
   public :: writerec_atm , writerec_srf , writerec_sub , &
             writerec_rad , writerec_che , writerec_lak
@@ -48,7 +47,7 @@ module mod_ncio
   integer , dimension(n_radvar) :: iradvar
   integer , dimension(n_chevar) :: ichevar
   integer , dimension(n_lakvar) :: ilakvar
-  character(256) :: dname , sdname , aername , icbcname
+  character(256) :: dname , sdname , icbcname
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   real(4) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
@@ -360,7 +359,6 @@ contains
     dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     write (sbstring,'(i0.3)') nsg
     sdname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
-    aername = trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
     icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//'YYYYMMDDHH.nc'
 
     xns2r = 1.0/real(nnsg)
@@ -761,191 +759,6 @@ contains
     end if
 
   end subroutine close_domain
-
-  subroutine read_texture(nats,texture)
-    use netcdf
-    implicit none
-
-    integer , intent(in) :: nats
-    real(8) , dimension(iy,jx,nats) , intent(out) :: texture
-
-    integer :: ivarid
-    integer :: i , j , n
-    integer , dimension(3) :: istart , icount
-    real(4), dimension(jx,iy) ::  toto
-
-    if (idmin < 0) then
-      istatus = nf90_open(dname, nf90_nowrite, idmin)
-      call check_ok(__FILE__,__LINE__, &
-                  'Error Opening Domain file '//trim(dname),'DOMAIN FILE OPEN')
-    end if
-    istatus = nf90_inq_varid(idmin, 'texture_fraction', ivarid)
-    call check_ok(__FILE__,__LINE__,'Variable texture_fraction miss', &
-                  'DOMAIN FILE')
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = iy
-    icount(1) = jx
-    do n = 1 , nats
-      istart(3) = n
-      istatus = nf90_get_var(idmin, ivarid, toto, istart, icount)
-      call check_ok(__FILE__,__LINE__,'Variable texture_frac read error', &
-                    'DOMAIN FILE')
-      do j = 1 , jx
-        do i = 1 , iy
-          texture(i,j,n) = dble(toto(j,i))*0.01D0
-          if (texture(i,j,n)<d_zero) texture(i,j,n)=d_zero
-        end do
-      end do
-    end do
-    call close_domain
-
-  end subroutine read_texture
-
-  subroutine read_aerosol(chtrname,chemsrc)
-    use netcdf
-    implicit none
-
-    character(5) , dimension(ntr) , intent(in) :: chtrname
-    real(8) , dimension(iy,jx,12,ntr) , intent(out) :: chemsrc
-
-    integer :: ncid , ivarid
-    real(4) , dimension(jx,iy) :: toto
-    character(5) :: aerctl
-    integer , dimension(3) :: istart , icount
-    integer :: itr , i , j , m
-
-    istatus = nf90_open(aername, nf90_nowrite, ncid)
-    call check_ok(__FILE__,__LINE__, &
-         'Error Opening Aerosol file '//trim(aername),'AEROSOL FILE OPEN')
-
-    do itr = 1 , ntr
-      aerctl = chtrname(itr)
-      write (aline, *) itr , aerctl
-      call say(myid)
-      if ( aerctl(1:4) /= 'DUST') then
-        if ( aerctl(1:3) == 'SO2' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'so2', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2 miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2 read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'so2_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable so2_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable so2_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-        else if ( aerctl(1:2) == 'BC' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'bc', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'bc_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable bc_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable bc_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-        else if ( aerctl(1:2) == 'OC' ) then
-          if ( aertyp(4:4) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'oc', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc miss','AEROSOL FILE')
-            istatus = nf90_get_var(ncid, ivarid, toto)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc read error','AEROSOL FILE')
-            do m = 1 , 12
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-          if ( aertyp(5:5) == '1' ) then
-            istatus = nf90_inq_varid(ncid, 'oc_monthly', ivarid)
-            call check_ok(__FILE__,__LINE__, &
-                          'Variable oc_mon miss','AEROSOL FILE')
-            istart(1) = 1
-            istart(2) = 1
-            icount(1) = jx
-            icount(2) = iy
-            icount(3) = 1
-            do m = 1 , 12
-              istart(3) = m
-              istatus = nf90_get_var(ncid,ivarid,toto,istart,icount)
-              call check_ok(__FILE__,__LINE__, &
-                            'Variable oc_mon read err','AEROSOL FILE')
-              do j = 1 , jx
-                do i = 1 , iy
-                  chemsrc(i,j,m,itr) = chemsrc(i,j,m,itr) + dble(toto(j,i))
-                end do
-              end do
-            end do
-          end if
-        end if
-      end if
-    end do
-
-    istatus = nf90_close(ncid)
-    call check_ok(__FILE__,__LINE__, &
-                  'Error Close Aerosol file '//trim(aername), &
-                  'AEROSOL FILE CLOSE')
-
-  end subroutine read_aerosol
 
   integer function icbc_search(idate)
     implicit none
