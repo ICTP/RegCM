@@ -89,7 +89,7 @@ module mod_params
              edtmino , edtmaxx , edtminx
   real(8) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
-  character(5) , dimension(maxntr) :: inpchtrname
+  character(len=5) , dimension(maxntr) :: inpchtrname
   real(8) , dimension(maxntr) :: inpchtrsol
   real(8) , dimension(maxntr,2) :: inpchtrdpv
   real(8) , dimension(maxnbin,2) :: inpdustbsiz
@@ -407,6 +407,7 @@ module mod_params
   ichcumtra = 1     ! tracer convective transport
   idirect = 1       ! tracer direct effect
   mixtype = 1
+  inpchtrname(:) = "XXXXX"
 #ifdef CLM
 !c------CLM Specific
   imask = 1
@@ -481,8 +482,6 @@ module mod_params
       print * , 'param: UWPARAM namelist READ IN'
     end if
     if ( ichem == 1 ) then
-      read (ipunit, chemparam)
-      print * , 'CHEMPARAM namelist READ IN'
       if (ntr <= 0) then
         call fatal(__FILE__,__LINE__,                                 &
                  'CHEMICAL SCHEME WITH 0 TRACERS?')
@@ -491,6 +490,8 @@ module mod_params
         call fatal(__FILE__,__LINE__,                                 &
                  'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
       end if
+      read (ipunit, chemparam)
+      print * , 'CHEMPARAM namelist READ IN'
     else
       ichem = 0
       ntr = 0
@@ -996,13 +997,14 @@ module mod_params
   call say(myid)
 
   if ( ichem == 1 ) then
-    chtrname = inpchtrname(1:ntr)
-    chtrdpv = inpchtrdpv(1:ntr,:)
-    dustbsiz = inpdustbsiz(1:nbin,:)
-    chtrsol = inpchtrsol(1:ntr)
+    if ( myid == 0 ) then
+      chtrname(1:ntr)(1:5) = inpchtrname(1:ntr)(1:5)
+      chtrdpv(1:ntr,:) = inpchtrdpv(1:ntr,:)
+      dustbsiz(1:nbin,:) = inpdustbsiz(1:nbin,:)
+      chtrsol(1:ntr) = inpchtrsol(1:ntr)
+    end if
     do n = 1 , ntr
-      call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,  &
-                     ierr)
+      call mpi_bcast(chtrname(n),5,mpi_character,0,mpi_comm_world,ierr)
     end do
     call mpi_bcast(chtrsol,ntr,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(chtrdpv,ntr*2,mpi_real8,0,mpi_comm_world,ierr)

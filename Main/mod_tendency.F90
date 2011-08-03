@@ -687,8 +687,12 @@ module mod_tendency
         numrec = numrec + ntr*kz*2
       end if
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        atm2%tke(i,k,-1) = var2rcv(i,numrec+k)
-        atm2%tke(i,k,0)  = var2rcv(i,numrec+kz+k)
+        do k = 1 , kz
+          do i = 1 , iy
+            atm2%tke(i,k,-1) = var2rcv(i,numrec+k)
+            atm2%tke(i,k,0)  = var2rcv(i,numrec+kz+k)
+          end do
+        end do
       end if
 #ifndef BAND
     end if
@@ -770,8 +774,12 @@ module mod_tendency
         numrec = numrec + ntr*kz*2
       end if
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        atm2%tke(i,k,jxp+1) = var2rcv(i,numrec+k)
-        atm2%tke(i,k,jxp+2) = var2rcv(i,numrec+kz+k)
+        do k = 1 , kz
+          do i = 1 , iy
+            atm2%tke(i,k,jxp+1) = var2rcv(i,numrec+k)
+            atm2%tke(i,k,jxp+2) = var2rcv(i,numrec+kz+k)
+          end do
+        end do
       end if
 #ifndef BAND
     end if

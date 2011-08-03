@@ -30,7 +30,7 @@ module mod_trachem
   integer , public , parameter :: maxntr = 20
   integer , public , parameter :: maxnbin = 20
 !
-  character(5) , public , allocatable , dimension(:) :: chtrname
+  character(len=5) , public , allocatable , dimension(:) :: chtrname
 !
   real(dp) , public , pointer , dimension(:,:) :: chtrdpv
   real(dp) , public , pointer , dimension(:,:) :: chtrsize , dustbsiz
@@ -70,39 +70,39 @@ module mod_trachem
       nbin = maxnbin
     end if
 
-    call getmem2d(icumbot,1,iy,1,jxp,'trachem:icumbot')
-    call getmem2d(icumdwd,1,iy,1,jxp,'trachem:icumdwd')
-    call getmem2d(icumtop,1,iy,1,jxp,'trachem:icumtop')
-    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'trachem:aerasp')
-    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'trachem:aerext')
-    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'trachem:aerssa')
-    call getmem2d(aersrrf,1,iym1,1,jxp,'trachem:aersrrf')
-    call getmem2d(aertalwrf,1,iym1,1,jxp,'trachem:aertalwrf')
-    call getmem2d(aersrlwrf,1,iym1,1,jxp,'trachem:aersrlwrf')
-    call getmem2d(aertarf,1,iym1,1,jxp,'trachem:aertarf')
+    call getmem2d(icumbot,1,iy,1,jxp,'mod_trachem:icumbot')
+    call getmem2d(icumdwd,1,iy,1,jxp,'mod_trachem:icumdwd')
+    call getmem2d(icumtop,1,iy,1,jxp,'mod_trachem:icumtop')
+    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'mod_trachem:aerasp')
+    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'mod_trachem:aerext')
+    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'mod_trachem:aerssa')
+    call getmem2d(aersrrf,1,iym1,1,jxp,'mod_trachem:aersrrf')
+    call getmem2d(aertalwrf,1,iym1,1,jxp,'mod_trachem:aertalwrf')
+    call getmem2d(aersrlwrf,1,iym1,1,jxp,'mod_trachem:aersrlwrf')
+    call getmem2d(aertarf,1,iym1,1,jxp,'mod_trachem:aertarf')
 
     if ( lch ) then
-      call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'trachem:cemtr')
-      call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'trachem:cemtrac')
-      call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'trachem:remdrd')
-      call getmem4d(remcvc,1,iy,1,kz,1,jxp,1,ntr,'trachem:remcvc')
-      call getmem4d(remlsc,1,iy,1,kz,1,jxp,1,ntr,'trachem:remlsc')
-      call getmem4d(rxsaq1,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsaq1')
-      call getmem4d(rxsaq2,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsaq2')
-      call getmem4d(rxsg,1,iy,1,kz,1,jxp,1,ntr,'trachem:rxsg')
+      call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_trachem:cemtr')
+      call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'mod_trachem:cemtrac')
+      call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'mod_trachem:remdrd')
+      call getmem4d(remcvc,1,iy,1,kz,1,jxp,1,ntr,'mod_trachem:remcvc')
+      call getmem4d(remlsc,1,iy,1,kz,1,jxp,1,ntr,'mod_trachem:remlsc')
+      call getmem4d(rxsaq1,1,iy,1,kz,1,jxp,1,ntr,'mod_trachem:rxsaq1')
+      call getmem4d(rxsaq2,1,iy,1,kz,1,jxp,1,ntr,'mod_trachem:rxsaq2')
+      call getmem4d(rxsg,1,iy,1,kz,1,jxp,1,ntr,'mod_trachem:rxsg')
 
       allocate(chtrname(ntr))
       chtrname = ' '
 
-      call getmem2d(chtrdpv,1,ntr,1,2,'trachem:chtrdpv')
-      call getmem2d(chtrsize,1,nbin,1,2,'trachem:chtrdpv')
-      call getmem1d(chtrsol,1,nbin,'trachem:chtrsol')
-      call getmem2d(dustbsiz,1,nbin,1,2,'trachem:dustbsiz')
-      call getmem1d(idust,1,nbin,'trachem:idust')
+      call getmem1d(chtrsol,1,ntr,'mod_trachem:chtrsol')
+      call getmem2d(chtrdpv,1,ntr,1,2,'mod_trachem:chtrdpv')
+      call getmem1d(idust,1,nbin,'mod_trachem:idust')
+      call getmem2d(chtrsize,1,nbin,1,2,'mod_trachem:chtrsize')
+      call getmem2d(dustbsiz,1,nbin,1,2,'mod_trachem:dustbsiz')
     end if
-    call getmem2d(mflx,1,iy,1,2,'trachem:mflx')
-    call getmem2d(rembc,1,iy,1,kz,'trachem:rembc')
-    call getmem2d(remrat,1,iy,1,kz,'trachem:remrat')
+    call getmem2d(mflx,1,iy,1,2,'mod_trachem:mflx')
+    call getmem2d(rembc,1,iy,1,kz,'mod_trachem:rembc')
+    call getmem2d(remrat,1,iy,1,kz,'mod_trachem:remrat')
   end subroutine allocate_mod_trachem
 
 end module mod_trachem

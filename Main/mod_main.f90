@@ -99,14 +99,18 @@
             call getmem3d(atm%t,is,ie,1,kz,js,je,'atmstate:t')
             call getmem3d(atm%qv,is,ie,1,kz,js,je,'atmstate:qv')
             call getmem3d(atm%qc,is,ie,1,kz,js,je,'atmstate:qc')
-            call getmem3d(atm%tke,is,ie,1,kz,js,je,'atmstate:tke')
+            if ( ibltyp == 2 .or. ibltyp == 99 ) then
+              call getmem3d(atm%tke,is,ie,1,kzp1,js,je,'atmstate:tke')
+            end if
           else
             call getmem3d(atm%u,1,iy,1,kz,1,jx,'atmstate:u')
             call getmem3d(atm%v,1,iy,1,kz,1,jx,'atmstate:v')
             call getmem3d(atm%t,1,iy,1,kz,1,jx,'atmstate:t')
             call getmem3d(atm%qv,1,iy,1,kz,1,jx,'atmstate:qv')
             call getmem3d(atm%qc,1,iy,1,kz,1,jx,'atmstate:qc')
-            call getmem3d(atm%tke,1,iy,1,kz,1,jx,'atmstate:tke')
+            if ( ibltyp == 2 .or. ibltyp == 99 ) then
+              call getmem3d(atm%tke,1,iy,1,kzp1,1,jx,'atmstate:tke')
+            end if
           end if
         end subroutine allocate_atmstate
 !

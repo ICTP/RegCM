@@ -116,7 +116,7 @@ module mod_che_tend
         fracloud(i,k) = dmin1(fcc(i,k,j),fcmax)
         fracum(i,k) = d_zero
       end do
-      if ( icumtop(i,j) /= 0 ) then
+      if ( icumtop(i,j) > 0 ) then
         do k = icumtop(i,j) , kz
           fracum(i,k) = cldfra(i,k) - fracloud(i,k)
         end do
@@ -160,7 +160,7 @@ module mod_che_tend
    
       do i = 2 , iym2
    
-        if ( icumtop(i,j) /= 0 ) then
+        if ( icumtop(i,j) > 0 ) then
    
           kt = max0(icumtop(i,j),3)
           kb = icumbot(i,j)
@@ -331,7 +331,7 @@ module mod_che_tend
 !       fracum) assume the cloud water content = 2 g/m3  (ref.
 !       Kasibhatla )
         do i = 2 , iym2
-          if ( icumtop(i,j) /= 0 ) then
+          if ( icumtop(i,j) > 0 ) then
             do k = icumtop(i,j) , kz
               rxs2 = d_zero
               rxs21 = d_zero  ! fraction of conversion, not removed, as SO4 src
@@ -401,7 +401,7 @@ module mod_che_tend
 !         remcum = removal rate for cumulus cloud scavenging (s-1)
 !         remcum = 1.e-3
           do i = 2 , iym2
-            if ( icumtop(i,j) /= 0 ) then
+            if ( icumtop(i,j) > 0 ) then
               do k = icumtop(i,j) , kz
                 wetrem_cvc(itr) = fracum(i,k)*chtrsol(itr) * &
                                   chib(i,k,j,itr) * (dexp(-remcum*dt)-d_one)

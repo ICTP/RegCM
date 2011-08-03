@@ -207,8 +207,8 @@ module mod_diffusion
     implicit none
 !
     integer :: j , kmax
-    real(8) , dimension(iy,kz) :: ften , xkc
-    real(8) , dimension(iy,kz,-1:jxp+2) , intent(in) :: bc3d
+    real(8) , dimension(iy,kmax) :: ften , xkc
+    real(8) , dimension(iy,kmax,-1:jxp+2) , intent(in) :: bc3d
     real(8) , dimension(iy,-1:jxp+2) , intent(in) :: press
     intent (in) j , kmax , xkc
     intent (inout) ften

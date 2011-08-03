@@ -317,6 +317,7 @@ module mod_mppio
         call getmem2d(aersrrf_io,1,iym1,1,jx,'mod_mppio:aersrrf_io')
         call getmem2d(aertarf_io,1,iym1,1,jx,'mod_mppio:aertarf_io')
         call getmem2d(aertalwrf_io,1,iym1,1,jx,'mod_mppio:aertalwrf_io')
+        call getmem2d(aersrlwrf_io,1,iym1,1,jx,'mod_mppio:aersrlwrf_io')
       else
         call getmem4d(absnxt_io,1,iym1,1,kz,1,4,1,jxm1,'mod_mppio:absnxt_io')
         call getmem4d(abstot_io,1,iym1,1,kzp1, &
@@ -330,6 +331,7 @@ module mod_mppio
         call getmem2d(aersrrf_io,1,iym1,1,jxm1,'mod_mppio:aersrrf_io')
         call getmem2d(aertarf_io,1,iym1,1,jxm1,'mod_mppio:aertarf_io')
         call getmem2d(aertalwrf_io,1,iym1,1,jxm1,'mod_mppio:aertalwrf_io')
+        call getmem2d(aersrlwrf_io,1,iym1,1,jxm1,'mod_mppio:aersrlwrf_io')
       end if
       call getmem3d(space2d,1,iy,1,jx,1,4,'mod_mppio:space2d')
       ps0_io => space2d(:,:,1)

@@ -73,6 +73,7 @@ program aerosol
   integer , dimension(1) :: istart1 , icount1
   integer , dimension(3) :: istart , icount
   real(dp) , dimension(1) :: xdate
+  integer , parameter :: aerunit = 111
 !
 !     Read input global namelist
 !
@@ -103,8 +104,8 @@ program aerosol
     call die('aerosol','AEROSOL.dat is not available'// &
              ' under '//trim(inpglob)//'/AERGLOB/',1)
   end if
-  open (11,file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',            &
-        form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
+  open (aerunit,file=trim(inpglob)//'/AERGLOB/AEROSOL.dat',      &
+        form='unformatted',recl=ilon*jlat*ibyte,access='direct', &
         status='old',err=100)
 
   aerofile=trim(dirglob)//pthsep//trim(domname)//'_AERO.nc'
@@ -412,7 +413,7 @@ program aerosol
 !     ****** ALL AEROSOL DATA, 1 Deg data, Climate value
 ! 
   do nrec = 1 , 3
-    read (11,rec=nrec) aer2
+    read (aerunit,rec=nrec) aer2
     call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
     istatus = nf90_put_var(ncid, ivar(1+nrec), transpose(aermm))
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable write')
@@ -432,7 +433,7 @@ program aerosol
   nrec = 4
   do i = 1 , 3
     do imon = 1, 12
-      read (11,rec=nrec) aer2
+      read (aerunit,rec=nrec) aer2
       nrec = nrec + 1
       call bilinx(aer2,aermm,xlon,xlat,loni,lati,ilon,jlat,iy,jx,1)
       istart(3) = imon

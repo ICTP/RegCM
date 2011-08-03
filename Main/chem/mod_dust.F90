@@ -188,30 +188,12 @@ module mod_dust
   end if
   call mpi_bcast(rd_tex,1,mpi_logical,0,mpi_comm_world,ierr)
 
-#ifdef CLM
-!     if ( myid == 0 ) then
-!       if ( rd_tex ) then
-!         call clm_getsoitex()
-!         do j = 1 , jx
-!           do i = 1 , iy
-!             dustsotex_io(i,j) = clm_soitex(i,j)
-!           end do
-!         end do
-!       end if
-!     end if
-!     if ( allocated(clm_soitex) ) deallocate(clm_soitex)
   if ( myid == 0 ) then
     if ( rd_tex ) then
       call read_texture(nats,dustsotex_io)
     end if
   end if
-#else
-  if ( myid == 0 ) then
-    if ( rd_tex ) then
-      call read_texture(nats,dustsotex_io)
-    end if
-  end if
-#endif
+
   if (myid == 0 ) then
     do j=1,jx
       do n=1,nats

@@ -1430,9 +1430,9 @@ module mod_output
 #endif
 
   call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
-          omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1%tke,    &
-          psa_io,rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io, &
-          ocld2d_io,idatex)
+          omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,atm1_io%tke, &
+          tcmstate_io%kth,tcmstate_io%kzm,psa_io,rainc_io,      &
+          rainnc_io,tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
  
   write (6,*) 'ATM variables written at ' , idatex%tostring()
  
