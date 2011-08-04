@@ -34,6 +34,7 @@ module mod_che_trac
 !
   real(dp) , public , pointer , dimension(:,:) :: chtrdpv
   real(dp) , public , pointer , dimension(:,:) :: chtrsize , dustbsiz
+  real(dp) , public , pointer , dimension(:,:) :: ssltbsiz
   real(dp) , public , pointer , dimension(:) :: chtrsol
 !
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
@@ -102,6 +103,7 @@ module mod_che_trac
       call getmem1d(icarb,1,5,'mod_che_trac:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_trac:chtrsize')
       call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_trac:dustbsiz')
+      call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_trac:ssltbsiz')
     end if
     call getmem2d(mflx,1,iy,1,2,'mod_che_trac:mflx')
     call getmem2d(rembc,1,iy,1,kz,'mod_che_trac:rembc')

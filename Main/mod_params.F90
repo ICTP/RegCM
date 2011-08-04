@@ -681,7 +681,7 @@ module mod_params
   call allocate_mod_diagnosis
 #endif
 
-  call init_chem(ichem,idirect,dt,chemfrq,dtrad,sps1%ps,rhb3d)
+  call init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,sps1%ps,rhb3d)
   call allocate_mod_che_mppio(lband)
   call allocate_mod_che_main
   call allocate_mod_che_trac

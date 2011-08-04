@@ -28,6 +28,7 @@ module mod_chem
 
   real(dp) :: chfrq , rafrq , mdfrq
 
+  real(dp) , pointer , dimension(:) :: chlevs
   real(dp) , pointer , dimension(:,:) :: chps1
   real(dp) , pointer , dimension(:,:,:) :: chrh
 !
@@ -48,10 +49,11 @@ module mod_chem
 !
   contains 
 
-  subroutine init_chem(ichem,idirect,dt,chemfrq,dtrad,ps1,rh)
+  subroutine init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,ps1,rh)
     implicit none
     integer , intent(in) :: ichem , idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad
+    real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp) , pointer , dimension(:,:) , intent(in) :: ps1  ! sps1%ps
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: rh ! rhb3d
 
@@ -62,6 +64,7 @@ module mod_chem
     rafrq = dtrad
     mdfrq = dt
 
+    chlevs => dsigma
     chps1 => ps1
     chrh => rh
 

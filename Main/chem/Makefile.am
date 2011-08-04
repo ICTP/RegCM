@@ -24,7 +24,7 @@ libchem_a_SOURCES = mod_chem.f90 mod_che_main.f90 mod_che_trac.f90 \
 		    mod_che_mppio.F90 mod_che_ncio.F90 mod_che_dust.F90 \
 		    mod_che_aerosol.F90 mod_che_semdde.F90 \
                     mod_che_species.f90 mod_che_indices.f90 \
-                    mod_che_carbonaer.f90
+                    mod_che_carbonaer.f90 mod_che_seasalt.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -46,12 +46,17 @@ mod_che_indices.o: mod_che_indices.f90
 mod_che_species.o: mod_che_species.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
                    $(REGCM_ROOT)/Share/mod_dynparam.mod \
                    $(REGCM_ROOT)/Share/mod_memutil.mod
-mod_chem_carbonaer.o: mod_chem_carbonaer.f90 \
-                      $(REGCM_ROOT)/external/m_realkinds.mod \
-                      $(REGCM_ROOT)/Share/mod_dynparam.mod \
-                      $(REGCM_ROOT)/Share/mod_constants.mod \
-                      mod_che_main.o mod_che_trac.o mod_che_species.o \
-                      mod_che_indices.o
+mod_che_carbonaer.o: mod_che_carbonaer.f90 \
+                     $(REGCM_ROOT)/external/m_realkinds.mod \
+                     $(REGCM_ROOT)/Share/mod_dynparam.mod \
+                     $(REGCM_ROOT)/Share/mod_constants.mod \
+                     mod_che_main.o mod_che_trac.o mod_che_species.o \
+                     mod_che_indices.o
+mod_che_seasalt.o: mod_che_seasalt.f90 \
+                   $(REGCM_ROOT)/external/m_realkinds.mod \
+                   $(REGCM_ROOT)/Share/mod_dynparam.mod \
+                   $(REGCM_ROOT)/Share/mod_constants.mod \
+                   mod_che_main.o mod_che_trac.o
 mod_che_main.o: mod_che_main.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
                 mod_chem.o $(REGCM_ROOT)/Share/mod_dynparam.mod \
                 $(REGCM_ROOT)/Share/mod_memutil.mod
