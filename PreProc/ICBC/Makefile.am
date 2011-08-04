@@ -11,11 +11,11 @@ icbc_SOURCES = mod_ccsm.F90 mod_vectutil.f90 mod_ecwcp.f90      \
                mod_eh5om.F90 mod_ein.F90 mod_era40.F90 mod_erahi.f90 \
                mod_fvgcm.f90 mod_gfs11.f90 mod_grid.F90         \
                mod_ncep.F90 mod_nest.F90 mod_write.F90          \
-               mod_interp.f90 mod_vertint.f90 mod_header.F90    \
-               mod_hgt.f90 mod_humid.f90 mod_mksst.F90          \
-               mod_uvrot.f90 mod_cam2.F90 icbc.f90
-chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ch_oxcl.F90 mod_wrtoxd.F90 mod_grid.F90 \
-                    mod_header.F90 mod_interp.f90 chem_icbc.f90
+               mod_interp.f90 mod_vertint.F90 mod_header.F90    \
+               mod_hgt.F90 mod_humid.f90 mod_mksst.F90          \
+               mod_uvrot.f90 mod_cam2.F90 mod_ecens.F90 icbc.f90
+chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ch_oxcl.F90 mod_wrtoxd.F90 \
+                    mod_grid.F90 mod_header.F90 mod_interp.f90 chem_icbc.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -47,6 +47,14 @@ icbc.o: icbc.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod mod_mksst.o \
  $(REGCM_ROOT)/external/m_die.mod $(REGCM_ROOT)/external/m_zeit.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod
 mod_cam2.o mod_cam2.mod: mod_cam2.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
+ $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_die.mod \
+ $(REGCM_ROOT)/external/m_zeit.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
+ $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
+ $(REGCM_ROOT)/Share/mod_constants.mod mod_grid.o \
+ mod_write.o mod_interp.mod mod_vertint.o mod_hgt.o mod_humid.o \
+ mod_mksst.o mod_uvrot.o mod_vectutil.o
+mod_ecens.o mod_ecens.mod: mod_ecens.F90 \
+ $(REGCM_ROOT)/external/m_realkinds.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_zeit.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod $(REGCM_ROOT)/Share/mod_message.mod \
@@ -115,8 +123,8 @@ mod_grid.o mod_grid.mod: mod_grid.F90 $(REGCM_ROOT)/Share/mod_memutil.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod
 mod_header.o mod_header.mod: mod_header.F90 $(REGCM_ROOT)/external/m_stdio.mod
-mod_hgt.o mod_hgt.mod: mod_hgt.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
- $(REGCM_ROOT)/external/m_realkinds.mod
+mod_hgt.o mod_hgt.mod: mod_hgt.F90 $(REGCM_ROOT)/Share/mod_constants.mod \
+ $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod
 mod_humid.o mod_humid.mod: mod_humid.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
  $(REGCM_ROOT)/external/m_realkinds.mod
 mod_interp.o mod_interp.mod: mod_interp.f90 $(REGCM_ROOT)/Share/mod_memutil.mod \
@@ -171,9 +179,10 @@ mod_uvrot.o mod_uvrot.mod: mod_uvrot.f90 $(REGCM_ROOT)/Share/mod_constants.mod \
  $(REGCM_ROOT)/external/m_realkinds.mod
 mod_vectutil.o mod_vectutil.mod: mod_vectutil.f90 \
  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_stdio.mod
-mod_vertint.o mod_vertint.mod: mod_vertint.f90 \
+mod_vertint.o mod_vertint.mod: mod_vertint.F90 \
  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
- $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/Share/mod_constants.mod
+ $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/Share/mod_constants.mod \
+ $(REGCM_ROOT)/Share/mod_message.mod
 mod_write.o mod_write.mod: mod_write.F90 $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_zeit.mod $(REGCM_ROOT)/external/m_realkinds.mod \
  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_grid.o $(REGCM_ROOT)/Share/mod_memutil.mod \

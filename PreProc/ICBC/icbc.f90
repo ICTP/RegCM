@@ -32,8 +32,8 @@ program icbc
 !   and RegCM run (FNEST).                                             !
 !                                                                      !
 !   The present ICBC code could treat NNRP1, NNRP2, ECWCRP, ERA40,     !
-!   ERAIN, EIN75, EIN15, EIN25, GFS11, ERAHI, FVGCM, EH5OM, and RegCM  !
-!   datasets,  4 times daily.                                          !
+!   ERAIN, EIN75, EIN15, EIN25, GFS11, ERAHI, FVGCM, EH5OM, ECEXY,     !
+!   and RegCM datasets,  4 times daily.                                !
 !                                                                      !
 !                        Xunqiang Bi, ESP group, Abdus Salam ICTP      !
 !                                                October 07, 2009      !
@@ -81,6 +81,10 @@ program icbc
 !          fields: T, U, V and log(Ps) are in spectral coefficients    !
 !          Oro and Q are at the reduced Gaussian grids.                !
 !          T159L60 (N80L60), 01/09/1957 - 31/08/2002.                  !
+!   ECEXY: ECMWF Ensemble forecast model. The X stands for model       !
+!          version, the Y for the ensemble member number.              !
+!          For example, ECE21 stands for ECMWF Ensemble model 2,       !
+!          member number 1.                                            !
 !   FVGCM: FVGCM run by the PWC group of Abdus Salam ICTP.             !
 !          For present day run: 1960 - 1990;                           !
 !          For A2          run: 2070 - 2100.                           !
@@ -106,6 +110,7 @@ program icbc
   use mod_ein
   use mod_era40
   use mod_erahi
+  use mod_ecens
   use mod_fvgcm
   use mod_gfs11
   use mod_ncep
@@ -194,6 +199,8 @@ program icbc
     call headerein(75)
   else if ( dattyp == 'EIN25' ) then
     call headerein(25)
+  else if ( dattyp(1:3) == 'ECE' ) then
+    call headerecens
   else if ( dattyp == 'GFS11' ) then
     call headergfs
   else if ( dattyp == 'ERAHI' ) then
@@ -229,13 +236,14 @@ program icbc
       call getecwcp(idate)
     else if ( dattyp == 'ERA40' ) then
       call getera40(idate)
-    else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
-              dattyp == 'EIN75' .or. dattyp == 'EIN25' ) then
+    else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' ) then
       call getein(idate)
     else if ( dattyp == 'GFS11' ) then
       call getgfs11(idate)
     else if ( dattyp == 'ERAHI' ) then
       call geterahi(idate)
+    else if ( dattyp(1:3) == 'ECE' ) then
+      call getecens(idate)
     else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
               dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
       call geteh5om(idate)

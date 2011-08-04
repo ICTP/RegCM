@@ -1058,14 +1058,36 @@ module mod_date
       z = idint(xval)
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
-        read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
-          cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        if (len_trim(cunit) >= 30) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        else if (len_trim(cunit) >= 27) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour, cdum, minute
+          second = 0
+        else if (len_trim(cunit) >= 24) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour
+          minute = 0
+          second = 0
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
         iunit = uhrs
       else if (cunit(1:4) == 'days') then
         ! Unit is days since reference
         if (len_trim(cunit) >= 30) then
           read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
             cdum, month, cdum, day, cdum, hour, cdum, minute, cdum, second
+        else if (len_trim(cunit) >= 27) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour, cdum, minute
+          second = 0
+        else if (len_trim(cunit) >= 24) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') cdum, year, &
+            cdum, month, cdum, day, cdum, hour
+          minute = 0
+          second = 0
         else if (len_trim(cunit) >= 21) then
           read(cunit,'(a11,i4,a1,i2,a1,i2)') cdum, year, cdum, month, cdum, day
           hour = 0
@@ -1076,6 +1098,8 @@ module mod_date
           hour = 0
           minute = 0
           second = 0
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
         end if
         iunit = uday
       end if

@@ -23,12 +23,15 @@ module mod_vertint
   use m_die
   use m_stdio
   use mod_constants
+  use mod_message
 !
-  real(sp) , parameter :: rgas2 = real(rgas/2.0D0)
-  real(sp) , parameter :: rglr = real(rgas*lrate)
-  real(sp) , parameter :: b1 = -real(egrav/lrate)
-  real(sp) , parameter :: rbltop = real(bltop)
-  real(sp) , parameter :: psccm = 100.0
+  real(sp) , private , parameter :: rgas2 = real(rgas/2.0D0)
+  real(sp) , private , parameter :: rglr = real(rgas*lrate)
+  real(sp) , private , parameter :: b1 = -real(egrav/lrate)
+  real(sp) , private , parameter :: rbltop = real(bltop)
+  real(sp) , private , parameter :: psccm = 100.0
+!
+  integer , private , parameter :: maxnlev = 100
 !
   contains
 
@@ -44,13 +47,16 @@ module mod_vertint
   intent (out) fp
 !
   integer :: i , j , k , k1 , k1p , n
-  real(sp) , dimension(61) :: sig
+  real(sp) , dimension(maxnlev) :: sig
   real(sp) :: sigp , w1 , wp
 !
 !     INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
 !     HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
 !     IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
 !
+  if ( km > maxnlev ) then
+    call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
+  end if
   do j = 1 , jm
     do i = 1 , im
       if ( ps(i,j) > -9995.0 ) then
@@ -206,7 +212,7 @@ module mod_vertint
 !
   real(sp) :: sigp , w1 , wp
   integer :: i , j , k , k1 , k1p , kbc , n
-  real(sp) , dimension(61) :: sig
+  real(sp) , dimension(maxnlev) :: sig
 !
 !     INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
 !     LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -218,6 +224,9 @@ module mod_vertint
  
 !
 !**   FIND FIRST SIGMA LEVEL ABOVE BOUNDARY LAYER (LESS THAN SIG = BLTOP)
+  if ( km > maxnlev ) then
+    call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
+  end if
   do j = 1 , jm
     do i = 1 , im
       if ( ps(i,j) > -9995.0 ) then

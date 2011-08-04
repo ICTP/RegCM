@@ -20,11 +20,13 @@
 module mod_hgt
 
   use mod_constants
+  use mod_message
   use m_realkinds
 
-  real(sp) , parameter :: srovg = real(rovg)
-  real(sp) , parameter :: slrate = real(lrate)
+  real(sp) , private , parameter :: srovg = real(rovg)
+  real(sp) , private , parameter :: slrate = real(lrate)
 
+  integer , private , parameter :: maxnlev = 100
   contains
 
   subroutine hydrost(h,t,phis,ps,ptop,sigmaf,sigmah,dsigma,ni,nj,nk)
@@ -103,9 +105,12 @@ module mod_hgt
 !
   real(sp) :: psfc , temp , wb , wt
   integer :: i , j , k , kb , kbc , kt , n
-  real(sp) , dimension(61) :: psig
-  real(sp) , dimension(60) :: sig
+  real(sp) , dimension(maxnlev+1) :: psig
+  real(sp) , dimension(maxnlev) :: sig
 !
+  if ( km > maxnlev ) then
+    call fatal(__FILE__,__LINE__,'Unrecoverable error, increase maxnlev')
+  end if
   do j = 1 , jm
     do i = 1 , im
       psfc = ps(i,j)
