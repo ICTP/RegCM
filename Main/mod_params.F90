@@ -24,7 +24,7 @@ module mod_params
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
   use mod_main
-  use mod_trachem
+  use mod_che_trac
   use mod_message
   use mod_cu_bm
   use mod_cu_em
@@ -37,12 +37,12 @@ module mod_params
   use mod_pbldim
   use mod_outrad
   use mod_holtbl
-  use mod_aerosol
+  use mod_che_aerosol
   use mod_radiation
   use mod_cldfrac
-  use mod_dust
+  use mod_che_dust
   use mod_bdycod
-  use mod_mainchem
+  use mod_che_main
   use mod_cvaria
   use mod_leaftemp
   use mod_o3blk
@@ -486,9 +486,9 @@ module mod_params
         call fatal(__FILE__,__LINE__,                                 &
                  'CHEMICAL SCHEME WITH 0 TRACERS?')
       end if
-      if (ntr < nbin) then
+      if (ntr < nbin+sbin) then
         call fatal(__FILE__,__LINE__,                                 &
-                 'NUMBER OF DUST CLASSES GREATER THAN TRACERS?')
+                 'NUMBER OF DUST + SALT CLASSES GREATER THAN TRACERS?')
       end if
       read (ipunit, chemparam)
       print * , 'CHEMPARAM namelist READ IN'
@@ -496,6 +496,7 @@ module mod_params
       ichem = 0
       ntr = 0
       nbin = 0
+      sbin = 0
       ifchem = .false.
     end if
 #ifdef CLM
@@ -680,12 +681,12 @@ module mod_params
   call allocate_mod_diagnosis
 #endif
 
-  call init_chem(ichem,idirect,chemfrq,dtrad,sps1%ps,rhb3d)
+  call init_chem(ichem,idirect,dt,chemfrq,dtrad,sps1%ps,rhb3d)
   call allocate_mod_che_mppio(lband)
-  call allocate_mod_mainchem
-  call allocate_mod_trachem
-  call allocate_mod_aerosol
-  call allocate_mod_dust
+  call allocate_mod_che_main
+  call allocate_mod_che_trac
+  call allocate_mod_che_aerosol
+  call allocate_mod_che_dust
 
 !
 !-----------------------------------------------------------------------

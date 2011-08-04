@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_dust
+module mod_che_dust
 !
 ! DUST module
 !
@@ -26,7 +26,7 @@ module mod_dust
   use mod_dynparam
   use mod_message
   use mod_memutil
-  use mod_trachem
+  use mod_che_trac
   use mod_che_ncio
   use mod_che_mppio
 
@@ -82,22 +82,22 @@ module mod_dust
 !
   contains 
 !
-  subroutine allocate_mod_dust 
+  subroutine allocate_mod_che_dust 
 
     implicit none
 
-    call getmem1d(frac1,1,isize,'mod_dust:frac1')
-    call getmem1d(frac2,1,isize,'mod_dust:frac2')
-    call getmem1d(frac3,1,isize,'mod_dust:frac3')
-    call getmem3d(clay2row2,1,iy,1,nats,1,jxp,'mod_dust:clay2row2')
-    call getmem3d(sand2row2,1,iy,1,nats,1,jxp,'mod_dust:sand2row2')
-    call getmem3d(silt2row2,1,iy,1,nats,1,jxp,'mod_dust:silt2row2')
-    call getmem3d(dustsotex,1,iy,1,jxp,1,nats,'mod_dust:dustsotex')
-    call getmem2d(clayrow2,1,iy,1,jxp,'mod_dust:clayrow2')
-    call getmem2d(sandrow2,1,iy,1,jxp,'mod_dust:sandrow2')
-    call getmem4d(srel2d,1,iy,1,jxp,1,nsoil,1,nats,'mod_dust:srel2d')
+    call getmem1d(frac1,1,isize,'mod_che_dust:frac1')
+    call getmem1d(frac2,1,isize,'mod_che_dust:frac2')
+    call getmem1d(frac3,1,isize,'mod_che_dust:frac3')
+    call getmem3d(clay2row2,1,iy,1,nats,1,jxp,'mod_che_dust:clay2row2')
+    call getmem3d(sand2row2,1,iy,1,nats,1,jxp,'mod_che_dust:sand2row2')
+    call getmem3d(silt2row2,1,iy,1,nats,1,jxp,'mod_che_dust:silt2row2')
+    call getmem3d(dustsotex,1,iy,1,jxp,1,nats,'mod_che_dust:dustsotex')
+    call getmem2d(clayrow2,1,iy,1,jxp,'mod_che_dust:clayrow2')
+    call getmem2d(sandrow2,1,iy,1,jxp,'mod_che_dust:sandrow2')
+    call getmem4d(srel2d,1,iy,1,jxp,1,nsoil,1,nats,'mod_che_dust:srel2d')
 
-  end subroutine allocate_mod_dust
+  end subroutine allocate_mod_che_dust
 !
 !  ***********************************************************
 !  * description of 12- soil categories                  *****
@@ -775,4 +775,4 @@ module mod_dust
 !
   end subroutine emission
 !
-end module mod_dust
+end module mod_che_dust

@@ -24,7 +24,7 @@ module mod_slice
   use mod_runparams
   use mod_memutil
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_pbldim
   use mod_pmoist
 !

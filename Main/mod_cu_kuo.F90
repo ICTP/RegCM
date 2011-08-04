@@ -28,7 +28,7 @@ module mod_cu_kuo
   use mod_pmoist
   use mod_rad
   use mod_bats
-  use mod_trachem
+  use mod_che_trac
   use mod_advection
 
   private

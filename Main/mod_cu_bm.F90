@@ -54,7 +54,7 @@ module mod_cu_bm
   use mod_rad
   use mod_bats
   use mod_cvaria
-  use mod_trachem
+  use mod_che_trac
   use mod_memutil
 
   implicit none

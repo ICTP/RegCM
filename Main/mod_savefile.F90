@@ -25,10 +25,10 @@ module mod_savefile
   use mod_lake, only : lakesav_i, lakesav_o
   use mod_pmoist
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_bdycod
   use mod_rad
-  use mod_trachem
+  use mod_che_trac
   use mod_radiation
   use mod_cu_bm
   use mod_tcm_interface

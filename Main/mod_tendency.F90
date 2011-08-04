@@ -21,7 +21,7 @@ module mod_tendency
 
   use mod_runparams
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_bdycod
   use mod_cvaria
   use mod_pmoist
@@ -30,7 +30,7 @@ module mod_tendency
   use mod_bats
   use mod_vecbats
   use mod_holtbl
-  use mod_trachem
+  use mod_che_trac
   use mod_colmod3
   use mod_cu_grell
   use mod_cu_kuo
@@ -38,7 +38,7 @@ module mod_tendency
   use mod_cu_em
   use mod_cu_tiedtke
   use mod_message
-  use mod_aerosol
+  use mod_che_aerosol
   use mod_sun
   use mod_slice
   use mod_cldfrac

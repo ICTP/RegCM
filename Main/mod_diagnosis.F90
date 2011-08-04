@@ -25,8 +25,8 @@ module mod_diagnosis
 
   use mod_runparams
   use mod_main
-  use mod_mainchem
-  use mod_trachem
+  use mod_che_main
+  use mod_che_trac
   use mod_mppio
   use mod_memutil
 !

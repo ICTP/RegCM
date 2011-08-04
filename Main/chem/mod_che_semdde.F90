@@ -24,13 +24,14 @@ module mod_che_semdde
   use m_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_mainchem
-  use mod_trachem
-  use mod_dust
-  use mod_aerosol
+  use mod_che_main
+  use mod_che_trac
+  use mod_che_dust
+  use mod_che_aerosol
   use mod_message
   use mod_che_ncio
   use mod_che_mppio
+  use mod_che_indices
 !
   private
 !

@@ -20,9 +20,11 @@
 SUBDIRS = GAS_KPP_GEOS
 
 noinst_LIBRARIES = libchem.a
-libchem_a_SOURCES = mod_chem.f90 mod_mainchem.f90 mod_trachem.f90 \
-		    mod_che_mppio.F90 mod_che_ncio.F90 mod_dust.F90 \
-		    mod_aerosol.F90 mod_che_semdde.F90
+libchem_a_SOURCES = mod_chem.f90 mod_che_main.f90 mod_che_trac.f90 \
+		    mod_che_mppio.F90 mod_che_ncio.F90 mod_che_dust.F90 \
+		    mod_che_aerosol.F90 mod_che_semdde.F90 \
+                    mod_che_species.f90 mod_che_indices.f90 \
+                    mod_che_carbonaer.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -40,10 +42,20 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_chem.o: mod_chem.f90 $(REGCM_ROOT)/external/m_realkinds.mod
-mod_mainchem.o: mod_mainchem.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
+mod_che_indices.o: mod_che_indices.f90
+mod_che_species.o: mod_che_species.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
+                   $(REGCM_ROOT)/Share/mod_dynparam.mod \
+                   $(REGCM_ROOT)/Share/mod_memutil.mod
+mod_chem_carbonaer.o: mod_chem_carbonaer.f90 \
+                      $(REGCM_ROOT)/external/m_realkinds.mod \
+                      $(REGCM_ROOT)/Share/mod_dynparam.mod \
+                      $(REGCM_ROOT)/Share/mod_constants.mod \
+                      mod_che_main.o mod_che_trac.o mod_che_species.o \
+                      mod_che_indices.o
+mod_che_main.o: mod_che_main.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
                 mod_chem.o $(REGCM_ROOT)/Share/mod_dynparam.mod \
                 $(REGCM_ROOT)/Share/mod_memutil.mod
-mod_trachem.o: mod_trachem.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
+mod_che_trac.o: mod_che_trac.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
                mod_chem.o $(REGCM_ROOT)/Share/mod_dynparam.mod \
                $(REGCM_ROOT)/Share/mod_message.mod \
                $(REGCM_ROOT)/Share/mod_memutil.mod
@@ -54,20 +66,21 @@ mod_che_mppio.o: mod_che_mppio.f90 $(REGCM_ROOT)/external/m_realkinds.mod \
 mod_che_ncio.o: mod_che_ncio.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
                 $(REGCM_ROOT)/Share/mod_dynparam.mod \
                 $(REGCM_ROOT)/Share/mod_message.mod
-mod_dust.o: mod_dust.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
+mod_che_dust.o: mod_che_dust.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
             $(REGCM_ROOT)/Share/mod_dynparam.mod \
             $(REGCM_ROOT)/Share/mod_constants.mod \
             $(REGCM_ROOT)/Share/mod_message.mod \
             $(REGCM_ROOT)/Share/mod_memutil.mod \
-            mod_trachem.o mod_che_ncio.o mod_che_mppio.o
-mod_aerosol.o: mod_aerosol.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
+            mod_che_trac.o mod_che_ncio.o mod_che_mppio.o
+mod_che_aerosol.o: mod_che_aerosol.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
                $(REGCM_ROOT)/Share/mod_dynparam.mod \
                $(REGCM_ROOT)/Share/mod_constants.mod \
                $(REGCM_ROOT)/Share/mod_memutil.mod \
                $(REGCM_ROOT)/Share/mod_message.mod \
-               mod_chem.o mod_mainchem.o mod_trachem.o
+               mod_chem.o mod_che_main.o mod_che_trac.o mod_che_indices.o
 mod_che_semdde.o: mod_che_semdde.F90 $(REGCM_ROOT)/external/m_realkinds.mod \
                   $(REGCM_ROOT)/Share/mod_dynparam.mod \
                   $(REGCM_ROOT)/Share/mod_message.mod \
-                  mod_mainchem.o mod_trachem.o mod_dust.o mod_aerosol.o \
+                  mod_che_main.o mod_che_trac.o mod_che_dust.o \
+                  mod_che_aerosol.o mod_che_indices.o \
                   mod_che_ncio.o mod_che_mppio.o

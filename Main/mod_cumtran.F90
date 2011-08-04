@@ -22,8 +22,8 @@ module mod_cumtran
 ! Tracer convective transport
 !
   use mod_runparams
-  use mod_trachem
-  use mod_mainchem
+  use mod_che_trac
+  use mod_che_main
 !
   private
 !

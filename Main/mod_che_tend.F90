@@ -23,14 +23,14 @@ module mod_che_tend
 !
   use mod_runparams
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_cvaria
-  use mod_trachem
+  use mod_che_trac
   use mod_pbldim
   use mod_bats
   use mod_rad
   use mod_pmoist
-  use mod_dust
+  use mod_che_dust
   use mod_message
   use mod_che_semdde
   use mod_diffusion
@@ -38,9 +38,7 @@ module mod_che_tend
   use mod_diagnosis
   use mod_slice
   use mod_tcm_interface
-#ifdef CHEMTEST
-  use mod_chem
-#endif
+  use mod_che_indices
   use mod_mppio
   private
 

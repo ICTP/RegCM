@@ -28,10 +28,10 @@ module mod_init
   use mod_vecbats
   use mod_pmoist
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_bdycod
   use mod_rad
-  use mod_trachem
+  use mod_che_trac
   use mod_message
   use mod_radiation
   use mod_sun
@@ -43,6 +43,7 @@ module mod_init
   use mod_pbldim
   use mod_tcm_interface
   use mod_uwtcm, only : init_mod_uwtcm
+  use mod_che_indices
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays

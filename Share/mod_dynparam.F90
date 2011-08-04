@@ -164,10 +164,11 @@ module mod_dynparam
 
   character(7) :: aertyp
 
-! Tracer parameters: number of tracers and bins number for dust
+! Tracer parameters: number of tracers and bins number for dust and sea salt
 
-  integer :: ntr
-  integer :: nbin
+  integer :: ntr   ! Total number of chemical tracers
+  integer :: nbin  ! Number of bins for dust particles
+  integer :: sbin  ! Number of bins for sea salt particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! End of configureation. Below this point things are
@@ -328,7 +329,7 @@ module mod_dynparam
     namelist /modesparam/ nsplit
     namelist /globdatparam/ dattyp , ssttyp , ehso4 , gdate1 , gdate2 , &
                    dirglob , inpglob , calendar , ibdyfrq
-    namelist /aerosolparam/ aertyp , ntr, nbin
+    namelist /aerosolparam/ aertyp , ntr, nbin, sbin
 
     open(ipunit, file=filename, status='old', &
                  action='read', err=100)
@@ -418,6 +419,9 @@ module mod_dynparam
     call globidate1%setcal(ical)
     call globidate2%setcal(ical)
 
+    ntr  = 0
+    nbin = 0
+    sbin = 0
     read(ipunit, aerosolparam, err=111)
 
     ierr = 0
@@ -554,6 +558,7 @@ module mod_dynparam
     call mpi_bcast(aertyp,7,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(ntr,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(nbin,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(sbin,1,mpi_integer,0,mpi_comm_world,ierr)
 
     call mpi_bcast(ibdyfrq,1,mpi_integer,0,mpi_comm_world,ierr)
 

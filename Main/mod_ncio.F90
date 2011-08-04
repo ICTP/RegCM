@@ -21,7 +21,7 @@ module mod_ncio
 !
   use mod_runparams
   use mod_message
-  use mod_trachem
+  use mod_che_trac
   use mod_memutil
 !
   private

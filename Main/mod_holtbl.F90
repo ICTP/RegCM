@@ -24,13 +24,13 @@ module mod_holtbl
 !
   use mod_runparams
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_pbldim
   use mod_cvaria
   use mod_pmoist
   use mod_bats
   use mod_slice
-  use mod_trachem
+  use mod_che_trac
   use mod_diagnosis
   use mod_mppio
   use mod_message

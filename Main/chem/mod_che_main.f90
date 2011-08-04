@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_mainchem
+module mod_che_main
 
   use m_realkinds
   use mod_dynparam
@@ -26,6 +26,9 @@ module mod_mainchem
 
   public
 !
+  real(dp) , pointer , dimension(:,:,:,:) :: chi
+  real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten
+!
   real(dp) , pointer , dimension(:,:,:,:) :: chemsrc
   real(dp) , pointer , dimension(:,:,:,:) :: chia , chib
   real(dp) , pointer , dimension(:,:,:) :: srclp2
@@ -33,21 +36,24 @@ module mod_mainchem
                                            wdlsc , wxaq , wxsg
   contains 
 
-  subroutine allocate_mod_mainchem
+  subroutine allocate_mod_che_main
     implicit none
     if ( lch ) then
-      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_mainchem:chemsrc')
-      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chia')
-      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_mainchem:chib')
-      call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_mainchem:srclp2')
-      call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_mainchem:ddsfc')
-      call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_mainchem:dtrace')
-      call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_mainchem:wdcvc')
-      call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_mainchem:wdlsc')
-      call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_mainchem:wxaq')
-      call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_mainchem:wxsg')
+      call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
+      call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
+      call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')
+      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_main:chemsrc')
+      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_main:chia')
+      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_main:chib')
+      call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_main:srclp2')
+      call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_main:ddsfc')
+      call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_che_main:dtrace')
+      call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_che_main:wdcvc')
+      call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_main:wdlsc')
+      call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_main:wxaq')
+      call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_main:wxsg')
     end if
 
-  end subroutine allocate_mod_mainchem
+  end subroutine allocate_mod_che_main
 !
-end module mod_mainchem
+end module mod_che_main

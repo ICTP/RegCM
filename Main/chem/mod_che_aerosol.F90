@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_aerosol
+module mod_che_aerosol
 !
   use m_realkinds
   use mod_dynparam
@@ -25,8 +25,9 @@ module mod_aerosol
   use mod_memutil
   use mod_message
   use mod_chem
-  use mod_mainchem
-  use mod_trachem
+  use mod_che_indices
+  use mod_che_main
+  use mod_che_trac
 !
   private
 !
@@ -37,7 +38,7 @@ module mod_aerosol
   public :: gtota_mix , ftota_mix
   public :: tauxar_mix_cs , tauasc_mix_cs
   public :: gtota_mix_cs , ftota_mix_cs
-  public :: allocate_mod_aerosol , aermix , aeroppt , aerout
+  public :: allocate_mod_che_aerosol , aermix , aeroppt , aerout
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
 !
@@ -349,7 +350,7 @@ module mod_aerosol
 !
   contains
 ! 
-  subroutine allocate_mod_aerosol
+  subroutine allocate_mod_che_aerosol
     implicit none   
     call getmem3d(aermm,1,iym1,1,kz,1,jxp,'aerosol:aermm')
     call getmem2d(aermmb,1,iym1,1,kz,'aerosol:aermmb')
@@ -377,7 +378,7 @@ module mod_aerosol
       call getmem2d(utaer,1,iym1,1,ntr,'aerosol:utaer')
       call getmem2d(waer,1,iym1,1,ntr,'aerosol:waer')
     end if
-  end subroutine allocate_mod_aerosol
+  end subroutine allocate_mod_che_aerosol
 !
 !-----------------------------------------------------------------------
 !
@@ -941,4 +942,4 @@ module mod_aerosol
 ! 
   end subroutine aerout
 !
-end module mod_aerosol
+end module mod_che_aerosol

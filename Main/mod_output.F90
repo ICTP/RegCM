@@ -23,13 +23,13 @@ module mod_output
   use mod_ncio
   use mod_lake
   use mod_main
-  use mod_mainchem
+  use mod_che_main
   use mod_bats
   use mod_message
   use mod_bdycod
   use mod_pmoist
   use mod_rad
-  use mod_trachem
+  use mod_che_trac
   use mod_cvaria
   use mod_outrad
   use mod_radiation
