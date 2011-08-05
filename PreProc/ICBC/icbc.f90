@@ -115,8 +115,7 @@ program icbc
   use mod_gfs11
   use mod_ncep
   use mod_nest
-  use mod_ccsm
-  use mod_cam2
+  use mod_gn6hnc
   use mod_write
   use mod_header
   use m_stdio
@@ -165,9 +164,16 @@ program icbc
   call init_grid(iy,jx,kz)
   call init_output
 
-  if (dattyp == 'CCSMN' .or. dattyp == 'CAM2N') then
-    if (calendar /= 'noleap') then
-      write(stderr,*) 'CCSM calendar should be set to noleap'
+  if (dattyp == 'CCSMN' .or. dattyp == 'CAM2N' .or. &
+      dattyp(1:3) == 'CA_' ) then
+    if (ical /= noleap ) then
+      write(stderr,*) 'Calendar should be set to noleap'
+      call die('icbc','Calendar mismatch',1)
+    end if
+  end if
+  if (dattyp(1:3) == 'HA_' ) then
+    if ( ical /= y360 ) then
+      write(stderr,*) 'Calendar should be set to 360_day'
       call die('icbc','Calendar mismatch',1)
     end if
   end if
@@ -212,10 +218,9 @@ program icbc
     call headerfv
   else if ( dattyp == 'FNEST' ) then
     call headernest
-  else if ( dattyp == 'CCSMN' ) then
-    call headccsm
-  else if ( dattyp == 'CAM2N' ) then
-    call headcam2
+  else if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' .or. &
+            dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
+    call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)
   end if
@@ -251,10 +256,9 @@ program icbc
       call getfvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
-    else if ( dattyp == 'CCSMN' ) then
-      call get_ccsm(idate)
-    else if ( dattyp == 'CAM2N' ) then
-      call get_cam2(idate)
+    else if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' .or. &
+              dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
+      call get_gn6hnc(idate)
     end if
     call writef(idate)
 

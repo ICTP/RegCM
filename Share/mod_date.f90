@@ -123,7 +123,7 @@ module mod_date
   public :: julianday
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
-  data calstr /'gregorian','noleap','360_days'/
+  data calstr /'gregorian','noleap','360_day'/
   data cintstr /'seconds', 'minutes', 'hours', 'days', &
                 'months', 'years', 'centuries'/
 

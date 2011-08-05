@@ -23,8 +23,11 @@ module mod_hgt
   use mod_message
   use m_realkinds
 
+  real(sp) , private , parameter :: segrav = real(egrav)
+  real(sp) , private , parameter :: srgas = real(rgas)
   real(sp) , private , parameter :: srovg = real(rovg)
   real(sp) , private , parameter :: slrate = real(lrate)
+  real(sp) , private , parameter :: salam = real(alam)
 
   integer , private , parameter :: maxnlev = 100
   contains
@@ -308,5 +311,56 @@ module mod_hgt
     end do
   end do
   end subroutine htsig_o
+!
+  subroutine mslp2ps(h,t,lat,slp,ht,ps,im,jm,km)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(sp) , dimension(im,jm,km) , intent(in) :: h , t
+    real(sp) , dimension(jm) , intent(in) :: lat
+    real(sp) , dimension(im,jm) , intent(in) :: ht , slp
+    real(sp) , dimension(im,jm) , intent(out) :: ps
+    integer :: kbc , i , j  , k
+    real(sp) :: blhgt , tsfc
+
+    do j = 1 , jm
+      blhgt = 11.0E3 + 7.0E3*abs(90.0-lat(j)/90.0)
+      kbc = -1
+      do i = 1 , im
+        do k = 1 , km
+          if ( h(i,j,k) > blhgt ) kbc = k
+        end do
+        tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
+        ps(i,j) = slp(i,j) / exp(-segrav/(srgas*slrate)* &
+                                 log(1.0-ht(i,j)*slrate/tsfc))
+      end do
+    end do
+  end subroutine mslp2ps
+!
+  subroutine psig(t,h,p3d,ps,ht,im,jm,km)
+  implicit none
+!
+  integer :: im , jm , km
+  real(sp) , dimension(im,jm,km) :: h , p3d , t
+  real(sp) , dimension(im,jm) :: ht , ps
+  intent (in) ht , im , jm , km , h , t , ps
+  intent (inout) p3d
+!
+  real(sp) :: tbar
+  integer :: i , j , k
+!
+  do j = 1 , jm
+    do i = 1 , im
+      p3d(i,j,km) = ps(i,j)*exp(-(h(i,j,km)-ht(i,j))/srovg/t(i,j,km))
+    end do
+  end do
+  do k = km - 1 , 1 , -1
+    do j = 1 , jm
+      do i = 1 , im
+        tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
+        p3d(i,j,k) = p3d(i,j,k+1)*exp(-(h(i,j,k)-h(i,j,k+1))/srovg/tbar)
+      end do
+    end do
+  end do
+  end subroutine psig
 !
 end module mod_hgt
