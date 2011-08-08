@@ -327,12 +327,23 @@ module mod_gn6hnc
     if ( dattyp(1:3) == 'HA_' ) then
       call top2btm(tvar,nlon,nlat,klev)
       call top2btm(qvar,nlon,nlat,klev)
-      call top2btm(hvar,nlon,nlat,klev)
       call top2btm(uvar,nlon,nlat,klev)
       call top2btm(vvar,nlon,nlat,klev)
       call top2btm(pp3d,nlon,nlat,klev)
+      call top2btm(hvar,nlon,nlat,klev)
     end if
  
+    ! All processing assumes dataset in top -> bottom
+    ! CanESM is read bottom -> top
+    if ( dattyp(1:3) == 'CA_' ) then
+      call top2btm(tvar,nlon,nlat,klev)
+      call top2btm(qvar,nlon,nlat,klev)
+      call top2btm(uvar,nlon,nlat,klev)
+      call top2btm(vvar,nlon,nlat,klev)
+      call top2btm(pp3d,nlon,nlat,klev)
+      call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
+    end if
+
     call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 
     call intlin(up,uvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
@@ -625,12 +636,11 @@ module mod_gn6hnc
       call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
       call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     else if ( dattyp(1:3) == 'CA_' ) then
-      do k = 1 , klev
-        pp3d(:,:,k) = ak(k) + bk(k)*psvar(:,:)
+      do k = 1, klev
+        pp3d(:,:,k) = ak(k)*0.001 + bk(k)*psvar(:,:)
       end do
       psvar(:,:) = psvar(:,:)*0.01
       pp3d(:,:,:) = pp3d(:,:,:)*0.01
-      call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     end if
     istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
