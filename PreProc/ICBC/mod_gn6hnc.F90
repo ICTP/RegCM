@@ -139,7 +139,6 @@ module mod_gn6hnc
     if ( dattyp == 'CAM2N' ) then
       pathaddname = trim(inpglob)// &
             '/CAM2/USGS-gtopo30_0.9x1.25_remap_c051027.nc'
-      nfiles = 1
     else if ( dattyp == 'CCSMN' ) then
       pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
     else if ( dattyp(1:3) == 'HA_' ) then
@@ -459,16 +458,21 @@ module mod_gn6hnc
 
     if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
       if (inet(1) > 0) then
-        do i = 1 , nfiles
-          istatus = nf90_close(inet(i))
+        if ( dattyp == 'CAM2N' ) then
+          istatus = nf90_close(inet(1))
           call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
-        end do
-        if ( dattyp == 'CAM2N' ) filedate = filedate + tdif
+          filedate = filedate + tdif
+        else
+          do i = 1 , nfiles
+            istatus = nf90_close(inet(i))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          end do
+        end if
       else
         if ( dattyp == 'CAM2N' ) then
           pdate = refdate
           filedate = refdate
-          do while (idate > pdate)
+          do while (idate >= pdate)
             filedate = pdate
             pdate = pdate + tdif
           end do
