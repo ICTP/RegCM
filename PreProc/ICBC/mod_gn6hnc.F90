@@ -46,11 +46,10 @@ module mod_gn6hnc
 
   private
 
+  ! Dimension of input read from input files
   integer :: nlon , nlat , klev
 
-  ! Pressure levels to interpolate to if dataset is on model sigma
-  ! levels.
-
+  ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer , parameter :: npl = 18
   real(sp) , dimension(npl) :: pplev = &
    (/  30.0,   50.0,   70.0,  100.0,  150.0,  200.0,  250.0, &
@@ -85,9 +84,9 @@ module mod_gn6hnc
 
   ! Shared by netcdf I/O routines
   integer , dimension(4) :: icount , istart
-  ! We will need 6 files (can be just one, though)
+  ! We will need 6 files (is just one for CAM2)
   integer , parameter :: nvars = 6
-  integer :: nfiles = nvars
+  integer , parameter :: nfiles = nvars
   integer , dimension(nvars) :: inet
   integer , dimension(nvars) :: ivar
 
@@ -146,6 +145,8 @@ module mod_gn6hnc
             '/HadGEM2/RF/ta/ta_6hrLev_HadGEM2-ES_historical_'// &
             'r1i1p1_194912010600-195003010000.nc'
     else if ( dattyp(1:3) == 'CA_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
       pathaddname = trim(inpglob)// &
             '/CanESM2/RF/ta/ta_6hrLev_CanESM2_historical_'// &
             'r1i1p1_195001010000-195012311800.nc'
@@ -247,9 +248,13 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+
+      ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
+
+      ! This one contains just orography.
       pathaddname = trim(inpglob)// &
             '/CanESM2/fixed/orog_fx_CanESM2_historical_r0i0p0.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
@@ -286,11 +291,12 @@ module mod_gn6hnc
 
     timlen = 1
     call getmem1d(itimes,1,1,'mod_gn6hnc:itimes')
-    itimes(1) = 1870010100
+    itimes(1) = 1870010100 ! This set to a "Prehistorical" date
     if ( dattyp(1:3) == 'HA_' ) then
+      ! HadGEM datasets has different times for PS and vertical variables.
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1870010100
+      ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
       call itimes(1)%setcal(y360)
       call ipstimes(1)%setcal(y360)
     else
@@ -315,10 +321,9 @@ module mod_gn6hnc
 !
     type(rcm_time_and_date) , intent(in) :: idate
 !
-
     call zeit_ci('get_gn6hnc')
+!
     call readgn6hnc(idate)
-
     write (stdout,*) 'Read in fields at Date: ', idate%tostring()
  
     ! All processing assumes dataset in top -> bottom
@@ -343,24 +348,29 @@ module mod_gn6hnc
       call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     end if
 
+    ! Calculate HGT on Pressure levels
     call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 
+    ! Interpolate vertically on Pressure levels
     call intlin(up,uvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     call intlin(vp,vvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     call intlog(tp,tvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     call intlin(qp,qvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
  
+    ! Horizontal interpolation on RegCM grid
     call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
     call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
-
+    ! Rotate winds
     call uvrot4(u3,v3,dlon,dlat,clon,clat,grdfac,jx,iy,npl,plon,plat,iproj)
  
+    ! Go to bottom->top
     call top2btm(t3,jx,iy,npl)
     call top2btm(q3,jx,iy,npl)
     call top2btm(h3,jx,iy,npl)
     call top2btm(u3,jx,iy,npl)
     call top2btm(v3,jx,iy,npl)
  
+    ! Recalculate pressure on RegCM orography
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
  
@@ -370,15 +380,21 @@ module mod_gn6hnc
        call p1p2(b3pd,ps4,jx,iy)
     endif
  
+    ! Recalculate temperature on RegCM orography
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
+    ! Replace it with SST on water points
     call readsst(ts4,idate)
+
+    ! Vertically interpolate on RegCM sigma levels
     call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
     call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,npl)
     call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
- 
     call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,npl)
+
+    ! Get back to specific humidity
     call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
  
+    ! Calculate geopotential for RegCM using internal formula
     call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
     call zeit_co('get_gn6hnc')
@@ -407,6 +423,7 @@ module mod_gn6hnc
 !
     tdif = rcm_time_interval(180,uhrs)
 
+    ! HadGEM dataset has PS files with different times.
     if ( dattyp(1:3) == 'HA_' ) then
       if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
         if ( inet(6) > 0 ) then
@@ -480,6 +497,7 @@ module mod_gn6hnc
       end if
 
       if ( dattyp == 'CAM2N' ) then
+        ! All variables just in a single file. Simpler case.
         write (inname,99001) trim(cambase) , filedate%year, &
                   filedate%month, filedate%day, filedate%second_of_day
         pathaddname = trim(inpglob)//'/CAM2/'//trim(inname)
@@ -490,6 +508,7 @@ module mod_gn6hnc
         inet(2:nfiles) = inet(1)
         varname => cam2vars
       else if ( dattyp == 'CCSMN' ) then
+        ! Dataset prepared in mothly files, one for each variable
         do i = 1 , nfiles
           write (inname,99002) idate%year, trim(ccsmfname(i)), &
                     mname(idate%month), idate%year
@@ -501,6 +520,7 @@ module mod_gn6hnc
         end do
         varname => ccsmvars
       else if ( dattyp(1:3) == 'HA_' ) then
+        ! 3 months dataset per file.
         do i = 1 , nfiles-1
           if ( havars(i) /= 'XXX' ) then
             iyear1 = idate%year
@@ -540,6 +560,7 @@ module mod_gn6hnc
         end do
         varname => havars
       else if ( dattyp(1:3) == 'CA_' ) then
+        ! yearly files, one for each variable
         do i = 1 , nfiles
           if ( havars(i) /= 'XXX' ) then
             if ( dattyp(4:4) == 'R' ) then
@@ -622,6 +643,7 @@ module mod_gn6hnc
     istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
     if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' ) then
+      ! We have geopotential HGT in m, on hybrid sigma pressure levels
       istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
       do k = 1 , klev
@@ -634,12 +656,15 @@ module mod_gn6hnc
       psvar(:,:) = psvar(:,:)*0.01
       pp3d(:,:,:) = pp3d(:,:,:)*0.01
     else if ( dattyp(1:3) == 'HA_' ) then
+      ! Data are on sigma Z levels, and we have MSLP instead of PS
       do k = 1 , klev
         hvar(:,:,k) = ak(k) + bk(k)*zsvar(:,:)
       end do
       call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
       call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     else if ( dattyp(1:3) == 'CA_' ) then
+      ! Data on sigma P levels, the factor for ak is ipotized.
+      ! Units in file is Pa, but calculations suggest mPa
       do k = 1, klev
         pp3d(:,:,k) = ak(k)*0.001 + bk(k)*psvar(:,:)
       end do
@@ -649,7 +674,7 @@ module mod_gn6hnc
     istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
 
-    ! Replace with relative humidity
+    ! Replace with relative humidity for internal calculation
     call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
 
     istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
