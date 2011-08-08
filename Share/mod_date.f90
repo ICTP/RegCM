@@ -221,6 +221,7 @@ module mod_date
     ny = x%year - reference_year
     ipm = isign(1,ny)
     ny = ny*ipm
+    if ( ipm < 0 ) ny = ny-1
     iy = reference_year
     id = 0
     do while (ny > 0)
@@ -228,7 +229,11 @@ module mod_date
       iy = iy + ipm
       ny = ny - 1
     end do
-    x%days_from_reference = id + ipm*idayofyear(x) - ipm
+    if ( ipm > 0 ) then
+      x%days_from_reference = id + idayofyear(x) - 1
+    else
+      x%days_from_reference = id - (yeardays(iy,x%calendar)-idayofyear(x)) - 1
+    end if
   end subroutine days_from_reference
 
   subroutine days_from_reference_to_date(x)

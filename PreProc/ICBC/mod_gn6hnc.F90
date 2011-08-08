@@ -76,9 +76,11 @@ module mod_gn6hnc
   real(sp) , pointer , dimension(:) :: glat
   real(sp) , pointer , dimension(:) :: glon
   real(sp) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
-                                           uvar , vvar , pp3d
-  integer :: timlen
+                                           uvar , vvar , pp3d , &
+                                           vwork
+  integer :: timlen , pstimlen
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
+  type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
   real(dp) , pointer , dimension(:) :: xtimes
 
   ! Shared by netcdf I/O routines
@@ -118,6 +120,9 @@ module mod_gn6hnc
   character(3) , dimension(12) :: mname = &
                          (/'JAN','FEB','MAR','APR','MAY','JUN', &
                            'JUL','AUG','SEP','OCT','NOV','DEC'/)
+
+  character(3) , dimension(:) , pointer :: varname
+
   contains
 !
   subroutine headgn6hnc
@@ -178,6 +183,9 @@ module mod_gn6hnc
     call getmem3d(uvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:uvar')
     call getmem3d(vvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vvar')
     call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
+    if ( dattyp(1:3) == 'HA_' ) then
+      call getmem3d(vwork,1,nlon,1,nlat-1,1,klev,'mod_gn6hnc:vwork')
+    end if
     call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
     call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
  
@@ -281,7 +289,11 @@ module mod_gn6hnc
     call getmem1d(itimes,1,1,'mod_gn6hnc:itimes')
     itimes(1) = 1870010100
     if ( dattyp(1:3) == 'HA_' ) then
+      pstimlen = 1
+      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
+      ipstimes(1) = 1870010100
       call itimes(1)%setcal(y360)
+      call ipstimes(1)%setcal(y360)
     else
       call itimes(1)%setcal(noleap)
     end if
@@ -310,9 +322,18 @@ module mod_gn6hnc
 
     write (stdout,*) 'Read in fields at Date: ', idate%tostring()
  
-    call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
+    ! All processing assumes dataset in top -> bottom
+    ! HadGEM is read bottom -> top
+    if ( dattyp(1:3) == 'HA_' ) then
+      call top2btm(tvar,nlon,nlat,klev)
+      call top2btm(qvar,nlon,nlat,klev)
+      call top2btm(hvar,nlon,nlat,klev)
+      call top2btm(uvar,nlon,nlat,klev)
+      call top2btm(vvar,nlon,nlat,klev)
+      call top2btm(pp3d,nlon,nlat,klev)
+    end if
  
-    call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
+    call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 
     call intlin(up,uvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     call intlin(vp,vvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
@@ -364,19 +385,66 @@ module mod_gn6hnc
     type(rcm_time_and_date) , intent(in) :: idate
 !
     integer :: istatus
-    integer :: i , it , j , k , timid , imon1 , iyear1 , imon2 , iyear2
+    integer :: i , it , itps , j , k , timid , imon1 , iyear1 , imon2 , iyear2
     character(256) :: inname
-    character(3) , dimension(:) , pointer :: varname
 
     integer :: kkrec
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
 !
-!
     call zeit_ci('readgn6hnc')
 !
     tdif = rcm_time_interval(180,uhrs)
+
+    if ( dattyp(1:3) == 'HA_' ) then
+      if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
+        if ( inet(6) > 0 ) then
+          istatus = nf90_close(inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+        end if
+        iyear1 = idate%year
+        if ( idate%month == 12 .and. idate%day >= 1 .and. &
+             idate%hour > 0 ) then
+          iyear1 = iyear1 + 1
+        end if
+        if ( dattyp(4:4) == 'R' ) then
+          write (inname,99004) 'RF', pthsep, trim(havars(6)), pthsep, &
+               trim(havars(6)), trim(habase1), iyear1-1, '12010600-', &
+               iyear1, '12010000.nc'
+        else
+          write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
+            trim(havars(6)), pthsep, trim(havars(6)), trim(habase1), &
+            iyear1-1, '12010600-', iyear1+1, '12010000.nc'
+        end if
+        pathaddname = trim(inpglob)//'/HadGEM2/'//inname
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error open '//trim(pathaddname))
+        istatus = nf90_inq_dimid(inet(6),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        istatus = nf90_inq_varid(inet(6),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        istatus = nf90_get_att(inet(6),timid,'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+        call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+        if (istatus /= 0) call die('mod_gn6hnc','Allocation error on itimes',1)
+        istatus = nf90_get_var(inet(6),timid,xtimes)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        do it = 1 , pstimlen
+          ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
+        end do
+        istatus = nf90_inq_varid(inet(6), trim(havars(6)), ivar(6))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var '//trim(havars(6)))
+        write (stdout,*) inet(6), trim(pathaddname)
+      end if
+    end if
 
     if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
       if (inet(1) > 0) then
@@ -403,6 +471,7 @@ module mod_gn6hnc
         istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
         call checkncerr(istatus,__FILE__,__LINE__, &
                          'Error open '//trim(pathaddname))
+        write (stdout,*) inet(1), trim(pathaddname)
         inet(2:nfiles) = inet(1)
         varname => cam2vars
       else if ( dattyp == 'CCSMN' ) then
@@ -413,61 +482,46 @@ module mod_gn6hnc
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
+          write (stdout,*) inet(i), trim(pathaddname)
         end do
         varname => ccsmvars
       else if ( dattyp(1:3) == 'HA_' ) then
-        do i = 1 , nfiles
+        do i = 1 , nfiles-1
           if ( havars(i) /= 'XXX' ) then
-            if ( i == nfiles ) then
-              iyear1 = idate%year
-              if ( idate%month == 12 .and. idate%day >= 1 .and. &
-                   idate%hour > 0 ) then
-                iyear1 = iyear1 + 1
-              end if
-              if ( dattyp(4:4) == 'R' ) then
-                write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
-                  trim(havars(i)), trim(habase1), iyear1-1, '12010600-', &
-                  iyear1, '12010000.nc'
-              else
-                write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(havars(i)), pthsep, trim(havars(i)), trim(habase1), &
-                  iyear1-1, '12010600-', iyear1+1, '12010000.nc'
-              end if
-            else
-              iyear1 = idate%year
-              imon1 = idate%month
-              imon1 = imon1 / 3 * 3
-              if ( idate%day == 1 .and. idate%hour == 0 ) then
-                if ( mod(idate%month,3) == 0 ) then
-                  imon1 = imon1 - 3
-                end if
-              end if
-              if ( imon1 == 0 ) then
-                imon1 = 12
-                iyear1 = iyear1 - 1
-              end if
-              if ( imon1 == 12 ) then
-                iyear2 = iyear1 + 1
-                imon2  = 3
-              else
-                iyear2 = iyear1
-                imon2 = imon1 + 3
-              end if
-              if ( dattyp(4:4) == 'R' ) then
-                write (inname,99003) 'RF', pthsep, trim(havars(i)), pthsep, &
-                  trim(havars(i)), trim(habase), iyear1, imon1 , '010600-', &
-                  iyear2, imon2, '010000.nc'
-              else
-                write (inname,99003) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(havars(i)), pthsep, trim(havars(i)), trim(habase), &
-                  iyear1, imon1, '010600-', iyear2, imon2, '010000.nc.nc'
+            iyear1 = idate%year
+            imon1 = idate%month
+            imon1 = imon1 / 3 * 3
+            if ( idate%day == 1 .and. idate%hour == 0 ) then
+              if ( mod(idate%month,3) == 0 ) then
+                imon1 = imon1 - 3
               end if
             end if
-            pathaddname = trim(inpglob)//'/HadGEM2/'//inname
-            istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error open '//trim(pathaddname))
+            if ( imon1 == 0 ) then
+              imon1 = 12
+              iyear1 = iyear1 - 1
+            end if
+            if ( imon1 == 12 ) then
+              iyear2 = iyear1 + 1
+              imon2  = 3
+            else
+              iyear2 = iyear1
+              imon2 = imon1 + 3
+            end if
+            if ( dattyp(4:4) == 'R' ) then
+              write (inname,99003) 'RF', pthsep, trim(havars(i)), pthsep, &
+                trim(havars(i)), trim(habase), iyear1, imon1 , '010600-', &
+                iyear2, imon2, '010000.nc'
+            else
+              write (inname,99003) ('RCP'//dattyp(4:5)), pthsep, &
+                trim(havars(i)), pthsep, trim(havars(i)), trim(habase), &
+                iyear1, imon1, '010600-', iyear2, imon2, '010000.nc.nc'
+            end if
           end if
+          pathaddname = trim(inpglob)//'/HadGEM2/'//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          write (stdout,*) inet(i), trim(pathaddname)
         end do
         varname => havars
       else if ( dattyp(1:3) == 'CA_' ) then
@@ -487,6 +541,7 @@ module mod_gn6hnc
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error open '//trim(pathaddname))
           end if
+          write (stdout,*) inet(i), trim(pathaddname)
         end do
         varname => cavars
       else
@@ -519,7 +574,6 @@ module mod_gn6hnc
                           'Error find var '//trim(varname(kkrec)))
         end if
       end do
-      write (stdout,*) inet, trim(pathaddname)
     end if
 
     tdif = idate - itimes(1)
@@ -532,8 +586,12 @@ module mod_gn6hnc
     istart(2) = 1
     istart(3) = it
     if ( dattyp(1:3) == 'HA_' ) then
+      tdif = idate - ipstimes(1)
+      itps = idnint(tdif%hours())/6 + 1
+      istart(3) = itps
       istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
+      pmslvar(:,:) = pmslvar(:,:)*0.01
     else
       istatus = nf90_get_var(inet(6),ivar(6),psvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
@@ -564,7 +622,7 @@ module mod_gn6hnc
       do k = 1 , klev
         hvar(:,:,k) = ak(k) + bk(k)*zsvar(:,:)
       end do
-      call mslp2ps(hvar,tvar,glat,pmslvar,zsvar,psvar,nlon,nlat,klev)
+      call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
       call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     else if ( dattyp(1:3) == 'CA_' ) then
       do k = 1 , klev
@@ -576,10 +634,28 @@ module mod_gn6hnc
     end if
     istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+
+    ! Replace with relative humidity
+    call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
+
     istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
-    istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+    if ( dattyp(1:3) == 'HA_' ) then
+      ! Data is missing on poles.
+      icount(2) = nlat-1
+      istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      do k = 1 , klev
+        vvar(:,1,k) = vwork(:,1,k)
+        do j = 1 , nlat-2
+          vvar(:,j,k) = 0.5*(vwork(:,j,k)+vwork(:,j+1,k))
+        end do
+        vvar(:,nlat,k) = vwork(:,nlat-1,k)
+      end do
+    else
+      istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+    end if
  
     call zeit_co('readgn6hnc')
 

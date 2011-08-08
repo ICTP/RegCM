@@ -312,22 +312,24 @@ module mod_hgt
   end do
   end subroutine htsig_o
 !
-  subroutine mslp2ps(h,t,lat,slp,ht,ps,im,jm,km)
+  subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
     implicit none
     integer , intent(in) :: im , jm , km
     real(sp) , dimension(im,jm,km) , intent(in) :: h , t
-    real(sp) , dimension(jm) , intent(in) :: lat
     real(sp) , dimension(im,jm) , intent(in) :: ht , slp
     real(sp) , dimension(im,jm) , intent(out) :: ps
     integer :: kbc , i , j  , k
-    real(sp) :: blhgt , tsfc
+    real(sp) :: tsfc
+    real(sp) , parameter :: blhgt = 1000.0
 
     do j = 1 , jm
-      blhgt = 11.0E3 + 7.0E3*abs(90.0-lat(j)/90.0)
-      kbc = -1
+      kbc = km
       do i = 1 , im
         do k = 1 , km
-          if ( h(i,j,k) > blhgt ) kbc = k
+          if ( h(i,j,k) > blhgt ) then
+            kbc = k
+            exit
+          end if
         end do
         tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
         ps(i,j) = slp(i,j) / exp(-segrav/(srgas*slrate)* &
@@ -350,14 +352,14 @@ module mod_hgt
 !
   do j = 1 , jm
     do i = 1 , im
-      p3d(i,j,km) = ps(i,j)*exp(-(h(i,j,km)-ht(i,j))/srovg/t(i,j,km))
+      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/srovg/t(i,j,km))
     end do
   end do
-  do k = km - 1 , 1 , -1
+  do k = 2 , km
     do j = 1 , jm
       do i = 1 , im
-        tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
-        p3d(i,j,k) = p3d(i,j,k+1)*exp(-(h(i,j,k)-h(i,j,k+1))/srovg/tbar)
+        tbar = 0.5*(t(i,j,k)+t(i,j,k-1))
+        p3d(i,j,k) = p3d(i,j,k-1)*exp(-(h(i,j,k)-h(i,j,k-1))/srovg/tbar)
       end do
     end do
   end do
