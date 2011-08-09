@@ -31,37 +31,30 @@
 # for the RegCM ICBC to prepare input for the RegCM model.
 #
 
-listfirst()
-{
-  fnlsg=`ls -1 fnl_* | head -1`
-  fnlsnc=$fnlsg.nc
-}
-
-listall ()
-{
-  fnlsg=`ls -1 fnl_*`
-  fnlsnc=""
-  for file in $fnlsg
-  do
-    fnlsnc="$fnlsnc $file.nc"
-  done
-}
-
 transform ()
 {
-  echo "Doing ${2}"
-  $G2NC $fnlsg -u time -e grb -v lon_3,lat_3,lv_ISBL2,${1} > /dev/null 2>&1
-  for file in $fnlsnc
+  local GLIST=(TMP_3_SFC_10 PRES_3_SFC_10 HGT_3_ISBL_10 R_H_3_ISBL_10 \
+         TMP_3_ISBL_10 U_GRD_3_ISBL_10 V_GRD_3_ISBL_10)
+  local NLIST=(ts ps hga rha ta ua va)
+  local XVAR=`echo ${GLIST[@]} | sed -e 's/\([ ]\+\)/,/g'`
+  $G2NC $1 -u time -e grb -v lon_3,lat_3,lv_ISBL2,${XVAR} > /dev/null 2>&1
+  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,plev -v lat_3,lat \
+        -v lon_3,lon -v lv_ISBL2,plev ${1}.nc
+  for (( i = 0; i < ${#GLIST[@]}; i ++ ))
   do
-    mv $file ${2}_$file
-    $GRNM -v ${1},${2} ${2}_$file
-    $GRNM -d lat_3,lat ${2}_$file
-    $GRNM -d lon_3,lon ${2}_$file
-    $GRNM -d lv_ISBL2,plev ${2}_$file
-    $GRNM -v lat_3,lat ${2}_$file
-    $GRNM -v lon_3,lon ${2}_$file
-    $GRNM -v lv_ISBL2,plev ${2}_$file
+    $GRNM -v ${GLIST[$i]},${NLIST[$i]} ${1}.nc
   done
+}
+
+orog ()
+{
+  local GVAR=HGT_3_SFC_10
+  local NVAR=orog
+  $G2NC $1 -u time -e grb -v lon_3,lat_3,lv_ISBL2,${GVAR} > /dev/null 2>&1
+  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,plev -v lat_3,lat \
+        -v lon_3,lon -v lv_ISBL2,plev ${1}.nc
+  $GRNM -v $GVAR,$NVAR ${1}.nc
+  mv ${1}.nc fixed_orography.nc
 }
 
 echo
@@ -103,18 +96,16 @@ fi
 echo "Extracting..."
 tar xvf datafiles.tar > /dev/null
 
-listfirst
-transform HGT_3_SFC_10 orog
-mv *.nc fixed_orograpy.nc
+echo "Extracting fixed orography."
+orog `ls -1 fnl_* | head -1`
 
-listall
-transform TMP_3_SFC_10 ts
-transform PRES_3_SFC_10 ps
-transform HGT_3_ISBL_10 hga
-transform R_H_3_ISBL_10 rha
-transform TMP_3_ISBL_10 ta
-transform U_GRD_3_ISBL_10 ua
-transform V_GRD_3_ISBL_10 va
+echo "Converting to netCDF."
+fnlsg=`ls -1 fnl_*`
+for file in $fnlsg
+do
+  transform $file
+  rm -f $file
+done
 
-rm -f $fnlsg
+echo "Done"
 exit 0
