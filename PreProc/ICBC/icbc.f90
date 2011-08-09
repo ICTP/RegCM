@@ -112,7 +112,6 @@ program icbc
   use mod_erahi
   use mod_ecens
   use mod_fvgcm
-  use mod_gfs11
   use mod_ncep
   use mod_nest
   use mod_gn6hnc
@@ -140,9 +139,8 @@ program icbc
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
   if ( dattyp == 'FVGCM' .or. dattyp == 'NRP2W' .or.   &
-       dattyp == 'GFS11' .or. dattyp == 'EH5RF' .or.   &
-       dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or.   &
-       dattyp == 'EHA1B') then
+       dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or.   &
+       dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call init_globwindow(lat0,lon0,lat1,lon1)
   end if
 
@@ -208,7 +206,7 @@ program icbc
   else if ( dattyp(1:3) == 'ECE' ) then
     call headerecens
   else if ( dattyp == 'GFS11' ) then
-    call headergfs
+    call headgn6hnc
   else if ( dattyp == 'ERAHI' ) then
     call headerehi
   else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
@@ -244,7 +242,7 @@ program icbc
     else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' ) then
       call getein(idate)
     else if ( dattyp == 'GFS11' ) then
-      call getgfs11(idate)
+      call get_gn6hnc(idate)
     else if ( dattyp == 'ERAHI' ) then
       call geterahi(idate)
     else if ( dattyp(1:3) == 'ECE' ) then

@@ -37,24 +37,31 @@ transform ()
          TMP_3_ISBL_10 U_GRD_3_ISBL_10 V_GRD_3_ISBL_10)
   local NLIST=(ts ps hga rha ta ua va)
   local XVAR=`echo ${GLIST[@]} | sed -e 's/\([ ]\+\)/,/g'`
-  $G2NC $1 -u time -e grb -v lon_3,lat_3,lv_ISBL2,${XVAR} > /dev/null 2>&1
-  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,plev -v lat_3,lat \
-        -v lon_3,lon -v lv_ISBL2,plev ${1}.nc
+  local CVAR="lon_3,lat_3,lv_ISBL2,lv_ISBL6"
+  $G2NC $1 -u time -e grb -v ${CVAR},${XVAR} > /dev/null 2>&1
+  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,lev -d lv_ISBL6,rhlev  \
+        -v lat_3,lat -v lon_3,lon -v lv_ISBL2,lev -v lv_ISBL6,rhlev  ${1}.nc
   for (( i = 0; i < ${#GLIST[@]}; i ++ ))
   do
     $GRNM -v ${GLIST[$i]},${NLIST[$i]} ${1}.nc
   done
+  year=`echo $1 | cut -b 5-8` # fnl_YYYYMMDD_HH_MM
+  mkdir -p $year
+  mv ${1}.nc $year
 }
 
 orog ()
 {
+  [ -d fixed ] || mkdir fixed
+  [ -f fixed/fixed_orography.nc ] && return
   local GVAR=HGT_3_SFC_10
   local NVAR=orog
-  $G2NC $1 -u time -e grb -v lon_3,lat_3,lv_ISBL2,${GVAR} > /dev/null 2>&1
-  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,plev -v lat_3,lat \
-        -v lon_3,lon -v lv_ISBL2,plev ${1}.nc
+  local CVAR="lon_3,lat_3,lv_ISBL2,lv_ISBL6"
+  $G2NC $1 -u time -e grb -v ${CVAR},${GVAR} > /dev/null 2>&1
+  $GRNM -d lat_3,lat -d lon_3,lon -d lv_ISBL2,lev -d lv_ISBL6,rhlev \
+        -v lat_3,lat -v lon_3,lon -v lv_ISBL2,lev -v lv_ISBL6,rhlev ${1}.nc
   $GRNM -v $GVAR,$NVAR ${1}.nc
-  mv ${1}.nc fixed_orography.nc
+  mv ${1}.nc fixed/fixed_orography.nc
 }
 
 echo

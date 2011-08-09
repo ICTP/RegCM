@@ -7,12 +7,11 @@ aerosol_SOURCES = mod_header.F90 aerosol.F90
 sst_SOURCES = mod_sst_eh5om.f90 mod_sst_ersst.F90 mod_sst_fvgcm.f90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_interp.f90 \
               mod_sst_grid.F90 mod_header.F90 sst.f90
-icbc_SOURCES = mod_vectutil.f90 mod_ecwcp.f90      \
-               mod_eh5om.F90 mod_ein.F90 mod_era40.F90 mod_erahi.f90 \
-               mod_fvgcm.f90 mod_gfs11.f90 mod_grid.F90         \
-               mod_ncep.F90 mod_nest.F90 mod_write.F90          \
-               mod_interp.f90 mod_vertint.F90 mod_header.F90    \
-               mod_hgt.F90 mod_humid.f90 mod_mksst.F90          \
+icbc_SOURCES = mod_vectutil.f90 mod_ecwcp.f90 mod_eh5om.F90 mod_ein.F90 \
+	       mod_era40.F90 mod_erahi.f90 mod_fvgcm.f90 mod_grid.F90  \
+               mod_ncep.F90 mod_nest.F90 mod_write.F90 \
+               mod_interp.f90 mod_vertint.F90 mod_header.F90 \
+               mod_hgt.F90 mod_humid.f90 mod_mksst.F90 \
                mod_uvrot.f90 mod_ecens.F90 mod_gn6hnc.F90 icbc.f90
 chem_icbc_SOURCES = mod_ch_icbc.F90 mod_ch_oxcl.F90 mod_wrtoxd.F90 \
                     mod_grid.F90 mod_header.F90 mod_interp.f90 chem_icbc.f90
@@ -42,7 +41,7 @@ chem_icbc.o: chem_icbc.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
 icbc.o: icbc.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod mod_mksst.o \
  $(REGCM_ROOT)/Share/mod_date.mod mod_grid.o $(REGCM_ROOT)/Share/mod_date.mod \
  mod_ecwcp.mod mod_eh5om.mod mod_ein.mod mod_era40.mod mod_erahi.mod \
- mod_fvgcm.mod mod_gfs11.mod mod_ncep.mod mod_nest.mod mod_gn6hnc.mod \
+ mod_fvgcm.mod mod_ncep.mod mod_nest.mod mod_gn6hnc.mod \
  mod_write.o mod_header.mod $(REGCM_ROOT)/external/m_stdio.mod \
  $(REGCM_ROOT)/external/m_die.mod $(REGCM_ROOT)/external/m_zeit.mod \
  $(REGCM_ROOT)/Share/mod_memutil.mod
@@ -106,11 +105,6 @@ mod_fvgcm.o mod_fvgcm.mod: mod_fvgcm.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
  $(REGCM_ROOT)/external/m_die.mod $(REGCM_ROOT)/external/m_zeit.mod mod_grid.o \
  mod_write.o mod_interp.mod mod_vertint.o mod_hgt.o mod_humid.o \
  mod_mksst.o mod_uvrot.o mod_vectutil.o
-mod_gfs11.o mod_gfs11.mod: mod_gfs11.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
- $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
- $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod mod_grid.o \
- mod_write.o mod_interp.mod mod_vertint.o mod_hgt.o mod_humid.o \
- $(REGCM_ROOT)/Share/mod_memutil.mod mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_grid.o mod_grid.mod: mod_grid.F90 $(REGCM_ROOT)/Share/mod_memutil.mod \
  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/external/m_die.mod \
  $(REGCM_ROOT)/external/m_stdio.mod $(REGCM_ROOT)/external/m_zeit.mod \
