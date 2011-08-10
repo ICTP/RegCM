@@ -681,7 +681,6 @@
         write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
                              ' to ' , ndate1
       end if
-      idatex = ndate0
       ndate0 = ndate1
       do j = 1 , jendx
         do i = 1 , iym1
@@ -717,7 +716,7 @@
       call split_idate(mdate, nyear, nmonth, nday, nhour)
 
 !-----------------------------------------------------------------------
-      if ( ldatez < ndate1 ) then
+      if ( idatex < ndate1 ) then
  
         do j = 1 , jendx
           do i = 1 , iym1
@@ -969,7 +968,6 @@
         write (6,'(a,i10,a,i10)') 'READY  BC from     ' , ndate0 ,     &
                              ' to ' , ndate1
       end if
-      idatex = ndate0
       ndate0 = ndate1
 #ifdef BAND
       do j = 1 , jx
@@ -1009,7 +1007,7 @@
       call split_idate(mdate, nyear, nmonth, nday, nhour)
  
 !-----------------------------------------------------------------------
-      if ( ldatez < ndate1 ) then
+      if ( idatex < ndate1 ) then
  
 #ifdef BAND
         do j = 1 , jx
@@ -1645,7 +1643,7 @@
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt*minph
-      if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
+      if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
         dtb = dble(ibdyfrq)*secph
       end if
 !
@@ -2142,7 +2140,7 @@
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt*minph
-      if ( dabs(xt) < 0.00001D0 .and. ldatez > idate0 ) then
+      if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
         dtb = dble(ibdyfrq)*secph
       end if
 !

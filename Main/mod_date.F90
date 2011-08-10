@@ -21,7 +21,6 @@
       implicit none
  
       integer :: idate0 , idate1 , idate2
-      integer :: idatex
       integer :: ndate0 , ndate1
 
       integer :: lyear , lmonth , lday , lhour
@@ -29,7 +28,7 @@
       integer :: myear , mmonth , mday , mhour
       integer :: jyear0 , jyear
       integer :: julday , julian
-      integer :: ldatez
+      integer :: idatex
       integer :: ntime
 
       integer :: mdate , mdate0

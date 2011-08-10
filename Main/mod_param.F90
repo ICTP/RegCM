@@ -753,13 +753,12 @@
       write (aline,'(a,f9.4)')  &
            'param: dtmin (timestep in minutes)' , dtmin
       call say
-      ldatez = idate1
+      idatex = idate1
       nnnnnn = nstart
-      lyear = ldatez/1000000
-      lmonth = (ldatez-lyear*1000000)/10000
-      lday = (ldatez-lyear*1000000-lmonth*10000)/100
-      lhour = mod(ldatez,100)
-      idatex = ldatez
+      lyear = idatex/1000000
+      lmonth = (idatex-lyear*1000000)/10000
+      lday = (idatex-lyear*1000000-lmonth*10000)/100
+      lhour = mod(idatex,100)
       jyear = lyear
 !
 !-----specify the julian date and gmt of the initial data.

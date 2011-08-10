@@ -87,12 +87,6 @@
 !
 !----------------------------------------------------------------------
 !
-      if ( jyear /= jyear0 .or. ktau /= 0 ) then
-        if ( mod(idnint(xtime),60) < mod(idnint(xtime-dtmin),60) )   &
-           & idatex = idatex + 1
-        if ( dabs(xtime) < 0.00001D0 ) idatex = ldatez
-      end if
- 
       lstartup = .false.
 #ifdef MPP1
       if ( myid == 0 ) then
@@ -113,11 +107,11 @@
       ldosav = .false.
       ldotmp = .false.
 
-      if ( mod(ntime,nsavfrq) == 0 .and. ldatez /= idate1 ) then
+      if ( mod(ntime,nsavfrq) == 0 .and. idatex /= idate1 ) then
         ldotmp = .true.
       end if
       if ( ((lday==1 .and. lhour==0 .and. dabs(xtime)<0.00001D0) .and. &
-            ldatez /= idate1) .or. nnnnnn == nnnend ) then
+            idatex /= idate1) .or. nnnnnn == nnnend ) then
         ldosav = .true.
         ldotmp = .false.
       end if

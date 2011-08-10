@@ -313,6 +313,7 @@
 !
 !       Read in boundary conditions if needed
 !
+
         if ( idatex == ibcdate .and. idatex < idate2 ) then
           call bdyin
 #ifdef CHEMTEST
@@ -343,19 +344,22 @@
 !
         call splitf
 !
-!       Write output for this timestep if requested
-!
-        if (ifrest) done_restart = .true.
-        call output
-!
 !       Increment time
 !
         extime = extime + dtinc
+        if ( mod(extime,secph) < 0.1D0 ) then
+          call addhours(idatex, 1)
+        end if
         if (debug_level > 3) then
           if (myid == 0) write(6,'(a,i10,a,i10,a)') &
              'Simulation time: ', idatex , '+', &
              idint(dmod(extime,secph)), ' h'
         end if
+!
+!       Write output for this timestep if requested
+!
+        if (ifrest) done_restart = .true.
+        call output
 
       end do
 

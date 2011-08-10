@@ -767,7 +767,7 @@
 #endif
         if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
           xh = xtime/minpd
-          write(6,*)  '***** day = ' , ldatez + xh , ' *****'
+          write(6,*)  '***** day = ' , idatex + xh , ' *****'
           write(6,99001) tdrym , error1
           write(6,99002) tdadv
           write(6,99003) tqmass , error2
@@ -1403,7 +1403,7 @@
  
           write(6,*)  '************************************************'
           write(6,*)  ' Budgets for tracers (intergrated quantitites)'
-          write(6,*)  ' day = ' , ldatez , ' *****'
+          write(6,*)  ' day = ' , idatex , ' *****'
           write(6,*)  '************************************************'
  
           do itr = 1 , ntr

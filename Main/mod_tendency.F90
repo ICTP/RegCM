@@ -1218,7 +1218,7 @@
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
             xtm1 = xtime - dtmin
-            if ( dabs(xtime) < 0.00001D0 .and. ldatez > idate0 ) &
+            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) &
               xtm1 = -dtmin
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
@@ -1671,7 +1671,7 @@
 !
           if ( iboudy == 1 .or. iboudy == 5 ) then
             xtm1 = xtime - dtmin
-            if ( dabs(xtime) < 0.00001D0 .and. ldatez > idate0 )  &
+            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 )  &
               xtm1 = -dtmin
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
@@ -2205,12 +2205,11 @@
       ktau = ktau + 1
       xtime = xtime + dtmin
       ntime = ntime + idnint(dtmin*minph)
-      if ( dabs(xtime-ibdyfrq*minph) < 0.00001D0 ) then
-        call addhours(ldatez, ibdyfrq)
-        call split_idate(ldatez, lyear, lmonth, lday, lhour)
+      if ( dabs(xtime-(dble(ibdyfrq)*minph)) < 0.01D0 ) then
+        call split_idate(idatex, lyear, lmonth, lday, lhour)
         nnnnnn = nnnnnn + 1
         xtime = d_zero
-        if ( lfirstjanatmidnight(ldatez) .and. xtime < 0.0001D0 ) then
+        if ( lfirstjanatmidnight(idatex) .and. xtime < 0.0001D0 ) then
           jyear = lyear
           ktau = 0
           ntime = 0
@@ -2312,7 +2311,7 @@
 !-----recalculate solar declination angle if forecast time larger than
 !     24 hours:
 !
-      if ( dabs(xtime) < 0.00001D0 .and. ldatez /= idate1 ) then
+      if ( dabs(xtime) < 0.00001D0 .and. idatex /= idate1 ) then
         call solar1(xtime)
         dectim = dnint(minpd+dectim)
 #ifdef MPP1
