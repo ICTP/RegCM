@@ -18,12 +18,8 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
-# This scripts prepares a dataset downloaded from dss.ucar.edu, either
+# This scripts prepares a dataset downloaded from dss.ucar.edu
 #
-#  ds082.0 NCEP FNL Operational Model Global Tropospheric Analyses,
-#          July 1976 to April 1997
-#  ds083.0 NCEP FNL Operational Model Global Tropospheric Analyses,
-#          April 1997 to June 2007 
 #  ds083.2 NCEP FNL Operational Model Global Tropospheric Analyses,
 #          continuing from July 1999
 #
@@ -140,12 +136,8 @@ orog ()
 }
 
 echo
-echo "This scripts prepares a dataset downloaded from dss.ucar.edu, either"
+echo "This scripts prepares a dataset downloaded from dss.ucar.edu"
 echo
-echo  "ds082.0 NCEP FNL Operational Model Global Tropospheric Analyses,"
-echo  "        July 1976 to April 1997"
-echo  "ds083.0 NCEP FNL Operational Model Global Tropospheric Analyses,"
-echo  "        April 1997 to June 2007"
 echo  "ds083.2 NCEP FNL Operational Model Global Tropospheric Analyses,"
 echo  "        continuing from July 1999"
 echo
