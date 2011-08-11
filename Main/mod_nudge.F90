@@ -40,7 +40,7 @@
 !                                                                     c
 !     ip    : is the number of slices affected by nudging.            c
 !                                                                     c
-!     xt    : is the time in minutes for variable "psb".              c
+!     xt    : is the time in seconds for variable "psb".              c
 !                                                                     c
 !     fcoef : are the coefficients for the newtonian term.            c
 !                                                                     c
@@ -97,7 +97,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -216,7 +216,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -483,7 +483,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -609,7 +609,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -925,7 +925,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -1051,7 +1051,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jx - jsls
@@ -1374,7 +1374,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -1499,7 +1499,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls
@@ -1807,7 +1807,7 @@
 #ifdef BAND
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 !
 !-----determine which relaxation method to use:linear/expon.
 !
@@ -1932,7 +1932,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef MPP1
       jsls = j + myid*jxp
       jj = jxp1 - jsls

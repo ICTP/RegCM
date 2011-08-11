@@ -47,7 +47,7 @@
 !     this subroutine computes the solar declination angle from the   c
 !     julian date.                                                    c
 !                                                                     c
-!     xtime  : forecast time in minutes.                              c
+!     xtime  : forecast time in seconds.                              c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -83,7 +83,7 @@
                         & r2clambm0,r2cmvelpp,log_print)
 !
       calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
-                             (xtime/minph+gmt)/houpd
+                             (xtime/secph+gmt)/houpd
 
 !     Get declin,eccf
       call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
@@ -94,7 +94,7 @@
       decdeg = declin/degrad
 #else
       calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
-                       (xtime/minph+gmt)/houpd
+                       (xtime/secph+gmt)/houpd
       theta = twopi*calday/dayspy
 !
 !     Solar declination in radians:
@@ -161,7 +161,7 @@
         coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do
 #else
-      xt24 = dmod(lhour*minph+xtime,minpd)
+      xt24 = dmod(lhour*secph+xtime,secpd)
       do ill = 1 , ivmx
         tlocap = xt24/minph + mddom%xlong(ill,jslc)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)

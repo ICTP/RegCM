@@ -1488,7 +1488,7 @@
       end if
 #endif
 
-      dectim = dnint(xtime+dectim)
+      dectim = dnint(xtime*secpm+dectim)
       write (aline, *) 'dectim = ' , dectim
       call say
 

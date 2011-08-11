@@ -707,6 +707,7 @@
       kbats = idnint(secph*batfrq)
       klak = idnint(lakfrq/batfrq)
       nbatst = idnint(abatm/dt)
+      dtsec = dt
       dt2 = d_two*dt
 !chem2
       kchem = idnint(secph*chemfrq)  ! convert chemfrq to time steps

@@ -1217,9 +1217,9 @@
             call sponge_p(ispgx,wgtx,pten(:,j),j)
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dtmin
+            xtm1 = xtime - dt
             if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) &
-              xtm1 = -dtmin
+              xtm1 = -dt
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
@@ -1670,9 +1670,9 @@
 !..tq.apply the nudging boundary conditions:
 !
           if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dtmin
+            xtm1 = xtime - dt
             if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 )  &
-              xtm1 = -dtmin
+              xtm1 = -dt
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
             call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
@@ -2203,10 +2203,9 @@
 !-----increment elapsed forecast time:
 !
       ktau = ktau + 1
-      xtime = xtime + dtmin
-      ntime = ntime + idnint(dtmin*minph)
-      if ( dabs(xtime-(dble(ibdyfrq)*minph)) < 0.01D0 ) then
-        call split_idate(idatex, lyear, lmonth, lday, lhour)
+      xtime = xtime + dtsec
+      ntime = ntime + idnint(dtsec)
+      if ( dabs(xtime-(dble(ibdyfrq)*secph)) < 0.01D0 ) then
         nnnnnn = nnnnnn + 1
         xtime = d_zero
         if ( lfirstjanatmidnight(idatex) .and. xtime < 0.0001D0 ) then
@@ -2274,7 +2273,7 @@
         call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          & mpi_comm_world,ierr)
 #endif
-        xday = ((nnnnnn-nstrt0)*ibdyfrq*minph+xtime-dtmin)/minpd
+        xday = ((nnnnnn-nstrt0)*ibdyfrq*secph+xtime-dt)/secpd
         ! Added a check for nan... The following inequality is wanted.
         if ((ptnbar /= ptnbar) .or. &
            ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then

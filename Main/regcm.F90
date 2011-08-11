@@ -349,6 +349,7 @@
         extime = extime + dtinc
         if ( mod(extime,secph) < 0.1D0 ) then
           call addhours(idatex, 1)
+          call split_idate(idatex, lyear, lmonth, lday, lhour)
         end if
         if (debug_level > 3) then
           if (myid == 0) write(6,'(a,i10,a,i10,a)') &

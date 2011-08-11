@@ -766,7 +766,7 @@
       if ( myid == 0 ) then
 #endif
         if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
-          xh = xtime/minpd
+          xh = xtime/secpd
           write(6,*)  '***** day = ' , idatex + xh , ' *****'
           write(6,99001) tdrym , error1
           write(6,99002) tdadv

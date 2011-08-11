@@ -1488,7 +1488,7 @@
 !     ---the boundary values of p*qv, p*qc, and p*qr depend on        c
 !        inflow/outflow conditions, if iboudy = 3 or 4.               c
 !                                                                     c
-!     xt     : is the time in minutes the variables xxa represent.    c
+!     xt     : is the time in seconds the variables xxa represent.    c
 !                                                                     c
 !     iexec  : = 1 ; represents this subroutine is called for the     c
 !                    first time in this forecast run.                 c
@@ -1642,7 +1642,7 @@
 !
 !-----compute the time interval for boundary tendency:
 !
-      dtb = xt*minph
+      dtb = xt
       if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
         dtb = dble(ibdyfrq)*secph
       end if
@@ -2139,7 +2139,7 @@
 !
 !-----compute the time interval for boundary tendency:
 !
-      dtb = xt*minph
+      dtb = xt
       if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
         dtb = dble(ibdyfrq)*secph
       end if
