@@ -1217,9 +1217,8 @@
             call sponge_p(ispgx,wgtx,pten(:,j),j)
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dt
-            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) &
-              xtm1 = -dt
+            xtm1 = xtime - dtsec
+            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
@@ -1670,9 +1669,8 @@
 !..tq.apply the nudging boundary conditions:
 !
           if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dt
-            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 )  &
-              xtm1 = -dt
+            xtm1 = xtime - dtsec
+            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
             call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
