@@ -267,7 +267,7 @@ module mod_diagnosis
     call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
     do k = 1 , kz
       do i = 1 , iym1
-        tdadv = tdadv - dtmin*3.0D4*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
+        tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
@@ -286,7 +286,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
-          tdadv = tdadv - dtmin*3.0D4*dsigma(k)*dx*             &
+          tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*             &
                ((vaix_g(k,j+1)+vaix_g(k,j)) /                   &
                 (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) - &
                 (va01_g(k,j+1)+va01_g(k,j)) /                   &
@@ -324,7 +324,7 @@ module mod_diagnosis
     call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
     do k = 1 , kz
       do i = 1 , iym1
-        tqadv = tqadv - dtmin*3.0D4*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
+        tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
@@ -349,7 +349,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)*dx *                        &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
                  ((vaix_g(k,j+1)+vaix_g(k,j))*(qvailx_g(k,j)/psailx_g(j)) / &
                   (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) -           &
                   (va01_g(k,j+1)+va01_g(k,j))*(qva01_g(k,j)/psa01_g(j)) /   &
@@ -385,7 +385,7 @@ module mod_diagnosis
     call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
     do k = 1 , kz
       do i = 1 , iym1
-        tqadv = tqadv - dtmin*3.0D4*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
+        tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
       end do
     end do
 !
@@ -404,7 +404,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)*dx *                        &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx *                        &
                  ((vaix_g(k,j+1)+vaix_g(k,j))*(qcailx_g(k,j)/psailx_g(j)) / &
                   (mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) -           &
                   (va01_g(k,j+1)+va01_g(k,j))*(qca01_g(k,j)/psa01_g(j)) /   &
@@ -435,7 +435,7 @@ module mod_diagnosis
     implicit none
 !
     real(8) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
-               tqmass , tttmp , tvmass , xh
+               tqmass , tttmp , tvmass
     integer :: i , j , k
     integer :: ierr
 !
@@ -541,7 +541,6 @@ module mod_diagnosis
 !
     if ( myid == 0 ) then
       if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
-        xh = xtime/minpd
         write(6,*)  '***** ' , idatex%tostring(), ' *****'
         write(6,99001) tdrym , error1
         write(6,99002) tdadv
@@ -693,7 +692,7 @@ module mod_diagnosis
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx * &
+            tchiad(n) = tchiad(n) + dtsec*5.0D2*dsigma(k)*dx * &
                         (worka(i,k,n)-workb(i,k,n))*regrav
           end do
         end do
@@ -728,7 +727,7 @@ module mod_diagnosis
                      fact2*chia01_g(k,n,j)/psa01_g(j) /          &
                      (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
             end if
-            tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx*(fx2-fx1)*regrav
+            tchiad(n) = tchiad(n) + dtsec*5.0D2*dsigma(k)*dx*(fx2-fx1)*regrav
           end do
         end do
       end do
@@ -755,7 +754,7 @@ module mod_diagnosis
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k) * &
+            tchitb(n) = tchitb(n) - dtsec*5.0D2*dsigma(k) * &
                         (workb(i,k,n)+worka(i,k,n))*regrav
           end do
         end do
@@ -770,7 +769,7 @@ module mod_diagnosis
             chid2 = xkc02_g(k,j)*psa02_g(j)                           &
                     *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     /psa01_g(j))
-            tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)*(chid2+chid1)&
+            tchitb(n) = tchitb(n) - dtsec*5.0D2*dsigma(k)*(chid2+chid1)&
                         *regrav
           end do
         end do
@@ -911,7 +910,7 @@ module mod_diagnosis
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + chemsrc_io(i,j,idatex%month,itr)*dtmin*60.*dx*dx
+            tttmp = tttmp + chemsrc_io(i,j,idatex%month,itr)*dtsec*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp
@@ -998,7 +997,7 @@ module mod_diagnosis
     if ( myid == 0 ) then
       do j = 2 , jxm2
         do i = 2 , iym2
-          tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*minph
+          tqeva = tqeva + qfx_io(i,j)*dx*dx*dtsec
         end do
       end do
     end if

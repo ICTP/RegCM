@@ -1171,8 +1171,8 @@ module mod_tendency
           call sponge_p(ispgx,wgtx,pten(:,j),j)
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
-          xtm1 = xtime - dtmin
-          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtmin
+          xtm1 = xtime - dtsec
+          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
 #ifndef BAND
@@ -1591,8 +1591,8 @@ module mod_tendency
 !       apply the nudging boundary conditions:
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          xtm1 = xtime - dtmin
-          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtmin
+          xtm1 = xtime - dtsec
+          if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
           call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
         end if
@@ -2058,8 +2058,8 @@ module mod_tendency
 !   increment elapsed forecast time:
 !
     ktau = ktau + 1
-    xtime = xtime + dtmin
-    ntime = ntime + idnint(dtmin*minph)
+    xtime = xtime + dtsec
+    ntime = ntime + ntsec
     idatex = idatex + intmdl
 
     if ( mod(ktau,ntbdy) == 0 ) then

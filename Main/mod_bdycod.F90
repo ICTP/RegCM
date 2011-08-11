@@ -888,7 +888,7 @@ module mod_bdycod
 !     ---the boundary values of p*qv, p*qc, and p*qr depend on
 !        inflow/outflow conditions, if iboudy = 3 or 4.
 !
-!     xt     : is the time in minutes the variables xxa represent.
+!     xt     : is the time in seconds the variables xxa represent.
 !
 !     iexec  : = 1 ; represents this subroutine is called for the
 !                    first time in this forecast run.
@@ -1026,7 +1026,7 @@ module mod_bdycod
 !
 !   compute the time interval for boundary tendency:
 !
-    dtb = xt*secpm
+    dtb = xt
     if ( dabs(xt) < 0.00001D0 .and. ktau > 0 ) then
       dtb = dble(ibdyfrq)*secph
     end if

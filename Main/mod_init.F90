@@ -131,12 +131,12 @@ module mod_init
 
   bdydate1 = idate1
   bdydate2 = idate1
-  if ( bdydate1 == globidate1 ) then
-    icbc_date = bdydate1
-  else
-    icbc_date = monfirst(bdydate1)
-  end if
   if ( myid == 0 ) then
+    if ( bdydate1 == globidate1 ) then
+      icbc_date = bdydate1
+    else
+      icbc_date = monfirst(bdydate1)
+    end if
     call open_icbc(icbc_date)
   end if
 !
@@ -1275,7 +1275,7 @@ module mod_init
 #endif
 
 99001 format (' ***** restart file for large domain at time = ',f8.0,   &
-          ' minutes, ktau = ',i7,' date = ',a,' read in')
+          ' seconds, ktau = ',i7,' date = ',a,' read in')
 !
   end subroutine init
 !

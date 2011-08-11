@@ -40,7 +40,7 @@
 !                                                                     c
 !     ip    : is the number of slices affected by nudging.            c
 !                                                                     c
-!     xt    : is the time in minutes for variable "psb".              c
+!     xt    : is the time in seconds for variable "psb".              c
 !                                                                     c
 !     fcoef : are the coefficients for the newtonian term.            c
 !                                                                     c
@@ -87,7 +87,7 @@
 !
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef BAND
 !
 !-----determine which relaxation method to use:linear/expon.
@@ -368,7 +368,7 @@
 !
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef BAND
 !
 !-----determine which relaxation method to use:linear/expon.
@@ -686,7 +686,7 @@
 !
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef BAND
 !
 !-----determine which relaxation method to use:linear/expon.
@@ -1009,7 +1009,7 @@
 !
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef BAND
 !
 !-----determine which relaxation method to use:linear/expon.
@@ -1316,7 +1316,7 @@
 !
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
 #ifdef BAND
 !
 !-----determine which relaxation method to use:linear/expon.
@@ -1380,7 +1380,7 @@
 #else
 !----------------------------------------------------------------------
 !
-      dtb = xt*minph
+      dtb = xt
       jsls = j + myid*jxp
       jj = jxp1 - jsls
       if ( jj <= ip ) jsls = jj

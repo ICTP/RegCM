@@ -337,7 +337,7 @@ module mod_cu_grell
 !       precipitation rate for bats (mm/s)
         aprdiv = dble(ntsrf)
         if ( ktau == 0 ) aprdiv = d_one
-        pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+        pptc(i,j) = pptc(i,j) + prainx/dtsec/aprdiv
         iconj = iconj + 1
       end if
     end do

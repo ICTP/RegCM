@@ -569,14 +569,14 @@ module mod_vecbats
         psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
       end do
 
-      if ( mod(ntime+idnint(dtmin*minph),nsrffrq) == 0 .or.  &
+      if ( mod(ntime+ntsec,nsrffrq) == 0 .or.  &
           ktau == 0 .or. doing_restart ) then
         if ( ktau <= 1 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
-        else if ( dble(ktau*dtmin) <= srffrq*minph+0.01D0 ) then
-          mmpd = houpd/(srffrq-dtmin/minph)
-          wpm2 = d_one/((srffrq-dtmin/minph)*secph)
+        else if ( dble(ktau*dtsec) <= srffrq*secph+0.01D0 ) then
+          mmpd = houpd/(srffrq-dtsec/secph)
+          wpm2 = d_one/((srffrq-dtsec/secph)*secph)
         else
           mmpd = houpd/srffrq
           wpm2 = d_one/(srffrq*secph)

@@ -249,6 +249,7 @@ module mod_interface
     call spinit
 ! 
     if ( ichem == 1 ) call chsrfem
+
 !
 !**********************************************************************
 !
@@ -337,7 +338,7 @@ module mod_interface
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                               & dtmin , ktau , idatex%year
+                               & dtsec , ktau , idatex%year
             call say(myid)
           end if
         end if
@@ -380,7 +381,7 @@ module mod_interface
 !**********************************************************************
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
-        & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
+        & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
         & i7,' in year ',i4)
 
   end subroutine RCM_run

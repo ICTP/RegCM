@@ -55,7 +55,6 @@ module mod_tstep
     if ( idtmax == 1 ) then
       dt = deltmx*(d_one-dexp(-extime/tscale)) + deltmn
       dtinc = dt
-      dtmin = dt/secpm
       idtmax = 2
     end if
     dt2 = d_two*dt

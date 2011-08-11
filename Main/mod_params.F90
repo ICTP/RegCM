@@ -779,7 +779,8 @@ module mod_params
 !
 !.....calculate the time step in minutes.
 !
-  dtmin = dt/secpm
+  dtsec = dt
+  ntsec = idnint(dt)
 !
 !-----reset the options/calculate variables using namelist info:
 !
@@ -793,9 +794,9 @@ module mod_params
   nchefreq = idnint(secph*chemfrq)
   klak = idnint(lakfrq/srffrq)
 
-  ntsrf = idnint(dtsrf/dt)
-  ntrad = idnint(dtrad/dtmin)
-  ntbdy = idnint((dble(ibdyfrq)*secph)/dt)
+  ntsrf = idnint(dtsrf/dtsec)
+  ntrad = idnint(dtrad/(dtsec/secpm))
+  ntbdy = idnint((dble(ibdyfrq)*secph)/dtsec)
 
   ktau = 0
   bdif = idate2 - idate1
@@ -842,7 +843,7 @@ module mod_params
        'total simulation lenght ' , idnint(bdif%hours()), ' hours'
   call say(myid)
   write (aline,'(a,f9.4)')  &
-       'dtmin (timestep in minutes)' , dtmin
+       'dtsec (timestep in seconds)' , dtsec
   call say(myid)
   idatex = idate1
 !
@@ -1403,7 +1404,7 @@ module mod_params
         kbmax2d(i,j) = kbmax
         htmax2d(i,j) = htmax
         htmin2d(i,j) = htmin
-        dtauc2d(i,j) = dtauc*minph
+        dtauc2d(i,j) = dtauc*secpm
       end do
     end do
   end if

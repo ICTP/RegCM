@@ -206,7 +206,7 @@ module mod_zengocn
           v10m1d(n,i) = vbx3d(i,kz,j)*uv10/uv995
           t2m1d(n,i) = t995 + tzero - dth*facttq
 !
-          if ( mod(ntime+idnint(dtmin*minph),nsrffrq) == 0 .or. &
+          if ( mod(ntime+ntsec,nsrffrq) == 0 .or. &
                ktau == 0 .or. doing_restart ) then
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             q2m1d(n,i) = q995 - dqh*facttq
