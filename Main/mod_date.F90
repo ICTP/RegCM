@@ -27,7 +27,7 @@
       integer :: nyear , nmonth , nday , nhour
       integer :: myear , mmonth , mday , mhour
       integer :: jyear0 , jyear
-      integer :: julday , julian
+      integer :: julian
       integer :: idatex
       integer :: ntime
 
@@ -35,8 +35,8 @@
 
       integer :: nnnnnn , nnnend , nstart , nstrt0
 
-      real(8) :: declin , dectim , deltmx , gmt , xdfbdy
-      real(8) :: xtime
+      real(8) :: declin , dectim , deltmx , gmt
+      real(8) :: xtime , xbtime
       integer :: ktau
 
       real(8) :: calday , dtime , twodt

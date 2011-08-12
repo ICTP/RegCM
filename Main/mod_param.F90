@@ -96,7 +96,7 @@
       real(8) , dimension(maxntr) :: inpchtrsol
       real(8) , dimension(maxntr,2) :: inpchtrdpv
       real(8) , dimension(maxnbin,2) :: inpdustbsiz
-      integer :: n , len_path
+      integer :: julday , n , len_path
       logical :: lband , lmpi
 #ifdef MPP1
       integer :: ierr
@@ -692,8 +692,8 @@
       ntapfrq = idnint(secph*tapfrq)
       ndbgfrq = idnint(secph*dbgfrq)
       ktau = 0
-      xtime = d_zero
       ntime = 0
+      xbtime = d_zero
       do ns = 1 , nsplit
         dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
         dtau(ns) = dtsplit(ns)
@@ -724,7 +724,7 @@
       call set_scenario(scenario)
 !
       nstrt0 = 0
-      nstart = idatediff(idate1,idate0)/ibdyfrq
+      nstart = idatediff(idate1,idate0)
 #ifdef MPP1
       if (myid == 0) then
 #endif
@@ -737,8 +737,9 @@
 #ifdef MPP1
       end if
 #endif
-      nnnend = idatediff(idate2,idate0)/ibdyfrq
-      xdfbdy = dble(ibdyfrq)/houpd
+      nnnend = idatediff(idate2,idate0)
+      dtbdys = dble(ibdyfrq)*secph
+      ntbdy = idnint(dtbdys/dt)
 ! 
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1
@@ -782,6 +783,7 @@
       call say
       call split_idate(mdate0, myear, mmonth, mday, mhour)
       gmt = dble(mhour)
+      xtime = gmt*secph
       jyear0 = myear
 !
 !.....find the julian day of the year and calulate dectim

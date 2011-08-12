@@ -159,7 +159,7 @@
 !
 !     if (iexec == 1) then
       if ( .not. ifrest .and. iexec == 1 ) then
-        call bdyval(xtime,iexec)
+        call bdyval(xbtime,iexec)
         iexec = 2
       else
         iexec = 2
@@ -1217,8 +1217,8 @@
             call sponge_p(ispgx,wgtx,pten(:,j),j)
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dtsec
-            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtsec
+            xtm1 = xbtime - dtsec
+            if ( mod(ktau,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
@@ -1669,8 +1669,8 @@
 !..tq.apply the nudging boundary conditions:
 !
           if ( iboudy == 1 .or. iboudy == 5 ) then
-            xtm1 = xtime - dtsec
-            if ( dabs(xtime) < 0.00001D0 .and. idatex > idate0 ) xtm1 = -dtsec
+            xtm1 = xbtime - dtsec
+            if ( mod(ktau,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
             call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
@@ -2202,15 +2202,21 @@
 !
       ktau = ktau + 1
       xtime = xtime + dtsec
+      xbtime = xbtime + dtsec
       ntime = ntime + idnint(dtsec)
       if ( mod(ntime,3600) == 0 ) then
         call addhours(idatex,1)
       end if
-      if ( mod(ntime,ibdyfrq*3600) == 0 ) then
-        call split_idate(idatex, lyear, lmonth, lday, lhour)
-        xtime = d_zero
+      if ( mod(ntime,86400) == 0 ) then
         nnnnnn = nnnnnn + 1
-        if ( lfirstjanatmidnight(idatex) .and. xtime < 0.0001D0 ) then
+      end if
+      if ( mod(idnint(xtime),86400) == 0 ) then
+        xtime = d_zero
+      end if
+      if ( mod(ktau,ntbdy) == 0 ) then
+        call split_idate(idatex, lyear, lmonth, lday, lhour)
+        xbtime = d_zero
+        if ( lfirstjanatmidnight(idatex) ) then
           jyear = lyear
           ktau = 0
           ntime = 0
@@ -2232,7 +2238,7 @@
  
 !-----fill up the boundary values for xxb and xxa variables:
 !
-      call bdyval(xtime,iexec)
+      call bdyval(xbtime,iexec)
 !
 !-----compute the nonconvective precipitation:
 !
@@ -2275,7 +2281,7 @@
         call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          & mpi_comm_world,ierr)
 #endif
-        xday = ((nnnnnn-nstrt0)*ibdyfrq*secph+xtime-dtsec)/secpd
+        xday = dble(nnnnnn-nstrt0)+((xtime-gmt*secph)-dtsec)/secpd
         ! Added a check for nan... The following inequality is wanted.
         if ((ptnbar /= ptnbar) .or. &
            ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
@@ -2312,7 +2318,7 @@
 !-----recalculate solar declination angle if forecast time larger than
 !     24 hours:
 !
-      if ( dabs(xtime) < 0.00001D0 .and. idatex /= idate1 ) then
+      if ( mod(ktau,ntbdy) == 0 .and. idatex /= idate1 ) then
         call solar1(xtime)
         dectim = dnint(minpd+dectim)
 #ifdef MPP1

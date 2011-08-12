@@ -1028,7 +1028,7 @@
           integer , intent(in) :: idate
           character(10) :: cdate
           integer :: idimid , itvar , i , chkdiff
-          real(8) , dimension(:) , allocatable :: icbc_xtime
+          real(8) , dimension(:) , allocatable :: icbc_nctime
           character(64) :: icbc_timeunits
           integer :: iyy , jxx , kzz
 
@@ -1077,14 +1077,14 @@
           istatus = nf90_get_att(ibcin, itvar, 'units', icbc_timeunits)
           call check_ok('variable time units missing','ICBC FILE ERROR')
           allocate(icbc_idate(ibcnrec))
-          allocate(icbc_xtime(ibcnrec))
-          istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
+          allocate(icbc_nctime(ibcnrec))
+          istatus = nf90_get_var(ibcin, itvar, icbc_nctime)
           call check_ok('variable time read error', 'ICBC FILE ERROR')
           do i = 1 , ibcnrec
-            icbc_idate(i) = timeval2idate(icbc_xtime(i), icbc_timeunits)
+            icbc_idate(i) = timeval2idate(icbc_nctime(i), icbc_timeunits)
           end do
           if ( ibcnrec > 1 ) then
-            chkdiff = idnint(icbc_xtime(2) - icbc_xtime(1))
+            chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
             if (chkdiff /= ibdyfrq) then
               write (6,*) 'Time variable in ICBC inconsistency.'
               write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
@@ -1092,7 +1092,7 @@
               call fatal(__FILE__,__LINE__,'ICBC READ ERROR')
             end if
           end if
-          deallocate(icbc_xtime)
+          deallocate(icbc_nctime)
           istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
           call check_ok('variable ps missing', 'ICBC FILE ERROR')
           istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
@@ -2364,7 +2364,7 @@
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
-          real(8) , dimension(2) :: xtime
+          real(8) , dimension(2) :: nctime
           character(len=10) :: ctime
           logical :: lskip
 
@@ -2381,13 +2381,13 @@
           istart(1) = 1
           icount(2) = 1
           icount(1) = 2
-          xtime(2) = dble(idatediff(idate,idate0))
-          xtime(1) = xtime(2) - batfrq
-          istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
+          nctime(2) = dble(idatediff(idate,idate0))
+          nctime(1) = nctime(2) - batfrq
+          istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(2:2), &
                                  istart(2:2), icount(2:2))
           call check_ok('Error writing itime '//ctime, &
                       'SRF FILE ERROR')
-          istatus = nf90_put_var(ncsrf, isrfvar(2), xtime, &
+          istatus = nf90_put_var(ncsrf, isrfvar(2), nctime, &
                                  istart(1:2), icount(1:2))
           call check_ok('Error writing tbnds '//ctime, &
                       'SRF FILE ERROR')
@@ -2487,7 +2487,7 @@
           integer :: ivar
           integer :: n , nxb , nyb
           integer , dimension(4) :: istart , icount
-          real(8) , dimension(1) :: xtime
+          real(8) , dimension(1) :: nctime
           character(len=10) :: ctime
           logical :: lskip
 
@@ -2505,8 +2505,8 @@
 
           istart(1) = isubrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,idate0))
-          istatus = nf90_put_var(ncsub, isubvar(1), xtime, &
+          nctime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(ncsub, isubvar(1), nctime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'SUB FILE ERROR')
           ivar = 2
@@ -2609,7 +2609,7 @@
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
-          real(8) , dimension(1) :: xtime
+          real(8) , dimension(1) :: nctime
           character(len=10) :: ctime
 
           if (nx /= o_nj .or. ny /= o_ni .or. nz /= o_nz) then
@@ -2623,8 +2623,8 @@
 
           istart(1) = iradrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,idate0))
-          istatus = nf90_put_var(ncrad, iradvar(1), xtime, &
+          nctime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(ncrad, iradvar(1), nctime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'RAD FILE ERROR')
 
@@ -2696,7 +2696,7 @@
           integer , dimension(ns,nny,nnx) , intent(in) :: mask
           integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
           integer , dimension(4) :: istart , icount
-          real(8) , dimension(1) :: xtime
+          real(8) , dimension(1) :: nctime
           character(len=10) :: ctime
 
           if (nx < o_nj .or. ny < o_ni .or. nz > o_nz .or. &
@@ -2726,8 +2726,8 @@
 
           istart(1) = iatmrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,idate0))
-          istatus = nf90_put_var(ncatm, iatmvar(1), xtime, &
+          nctime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(ncatm, iatmvar(1), nctime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'ATM FILE ERROR')
 
@@ -2964,7 +2964,7 @@
           real(8) , dimension(nny,nnx) , intent(in) :: aersrlwrf
           integer :: n , k
           integer , dimension(5) :: istart , icount
-          real(8) , dimension(1) :: xtime
+          real(8) , dimension(1) :: nctime
           character(len=10) :: ctime
 
           if (nx < o_nj .or. ny < o_ni .or. nz > o_nz) then
@@ -2978,8 +2978,8 @@
 
           istart(1) = icherec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,idate0))
-          istatus = nf90_put_var(ncche, ichevar(1), xtime, &
+          nctime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(ncche, ichevar(1), nctime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, 'CHE FILE ERROR')
 
@@ -3136,7 +3136,7 @@
           integer :: ivar
           integer :: n
           integer , dimension(4) :: istart , icount
-          real(8) , dimension(1) :: xtime
+          real(8) , dimension(1) :: nctime
           character(len=10) :: ctime
 
           if (nx /= o_nj .or. ny /= o_ni) then
@@ -3150,8 +3150,8 @@
 
           istart(1) = ilakrec
           icount(1) = 1
-          xtime(1) = dble(idatediff(idate,idate0))
-          istatus = nf90_put_var(nclak, ilakvar(1), xtime, &
+          nctime(1) = dble(idatediff(idate,idate0))
+          istatus = nf90_put_var(nclak, ilakvar(1), nctime, &
                                  istart(1:1), icount(1:1))
           call check_ok('Error writing itime '//ctime, &
                       'LAK FILE ERROR')

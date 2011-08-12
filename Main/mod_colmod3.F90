@@ -741,8 +741,7 @@
         end do
 !
         rlat(i) = mddom%xlat(i,jslc)
-        calday = dble(julday) + dble(nnnnnn-nstrt0)*xdfbdy + &
-                    (xtime/secph+gmt)/houpd
+        calday = idayofyear(idatex) + xtime/secpd
 !
         loctim(i) = (calday-dint(calday))*houpd
         alat(i) = rlat(i)*degrad

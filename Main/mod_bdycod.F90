@@ -339,7 +339,6 @@
 #endif
       implicit none
 !
-      real(8) :: dtbdys
       integer :: i , j , k , nn , nnb , mmrec
 #ifdef MPP1
       integer :: ierr , ndeb , ndwb , nxeb , nxwb
@@ -356,10 +355,9 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-      if ( dabs(xtime) > 0.0001D0 ) return
+      if ( mod(ntime,ibdyfrq*3600) /= 0 ) return
 !
 #ifdef MPP1
-      dtbdys = dble(ibdyfrq)*secph
       if ( myid == 0 ) then
         if ( ehso4 ) then
           do k = 1 , kz
@@ -755,7 +753,6 @@
         end do
       end if
 #else
-      dtbdys = dble(ibdyfrq)*secph
       if ( ehso4 ) then
         do k = 1 , kz
           do j = 1 , jx
@@ -1643,8 +1640,8 @@
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt
-      if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
-        dtb = dble(ibdyfrq)*secph
+      if ( dabs(dtb) < 0.01 .and. idatex > idate0 ) then
+        dtb = dtbdys
       end if
 !
 !-----set boundary values for p*:
@@ -2140,8 +2137,8 @@
 !-----compute the time interval for boundary tendency:
 !
       dtb = xt
-      if ( dabs(xt) < 0.00001D0 .and. idatex > idate0 ) then
-        dtb = dble(ibdyfrq)*secph
+      if ( dabs(dtb) < 0.01 .and. idatex > idate0 ) then
+        dtb = dtbdys
       end if
 !
 !-----set boundary values for p*:

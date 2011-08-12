@@ -28,7 +28,7 @@
  
       integer :: ifrabe , nbatst
 !
-      real(8) :: dt , dtsec , dt2 , dtbat , dtlake
+      real(8) :: dt , dtsec , dt2 , dtbdys , dtbat , dtlake
       real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
       real(8) :: abatm , abemh
       real(8) :: c200 , c203 
@@ -43,7 +43,7 @@
       logical :: ifrest , rfstrt , done_restart
  
       real(8) :: bdytim , prttim , radfrq , savtim , taptim , tbdybe
-      integer :: ndbgfrq , nsavfrq , ntapfrq
+      integer :: ndbgfrq , nsavfrq , ntapfrq , ntbdy
 
       integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !
