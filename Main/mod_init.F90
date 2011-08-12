@@ -459,7 +459,7 @@ module mod_init
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
       end do
-      print 99001 , xtime , ktau , idatex%tostring()
+      print 99001 , xbctime , ktau , idatex%tostring()
     end if
 !
     if ( lakemod == 1 ) then
@@ -1128,7 +1128,7 @@ module mod_init
 #endif
     call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(xbctime,1,mpi_real8,0,mpi_comm_world,ierr)
     call idatex%broadcast(0,mpi_comm_world,ierr)
     call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
 #ifndef BAND

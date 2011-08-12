@@ -200,7 +200,7 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 !
-    if ( dabs(xtime) > 0.0001D0 ) return
+    if ( mod(ktau,ntbdy) /= 0 ) return
 !
     if ( myid == 0 ) then
       if ( ehso4 ) then
@@ -1026,7 +1026,7 @@ module mod_bdycod
 !   compute the time interval for boundary tendency:
 !
     dtb = xt
-    if ( dabs(xt) < 0.00001D0 .and. ktau > 0 ) then
+    if ( mod(ktau,ntbdy) == 0 .and. ktau > 0 ) then
       dtb = dtbdys
     end if
 !

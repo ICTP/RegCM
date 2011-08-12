@@ -406,7 +406,7 @@ module mod_interface
 !
     call release_mod_ncio
 !
-    write (aline, 99002) xtime , ktau , idatex%year
+    write (aline, 99002) xbctime , ktau , idatex%year
     call say(myid)
 !
 !**********************************************************************

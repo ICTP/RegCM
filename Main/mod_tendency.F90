@@ -164,7 +164,7 @@ module mod_tendency
 !   fill up the boundary slices:
 !
     if ( .not. ifrest .and. iexec == 1 ) then
-      call bdyval(xtime,iexec)
+      call bdyval(xbctime,iexec)
       iexec = 2
     else
       iexec = 2
@@ -1171,7 +1171,7 @@ module mod_tendency
           call sponge_p(ispgx,wgtx,pten(:,j),j)
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
-          xtm1 = xtime - dtsec
+          xtm1 = xbctime - dtsec
           if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
@@ -1591,7 +1591,7 @@ module mod_tendency
 !       apply the nudging boundary conditions:
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          xtm1 = xtime - dtsec
+          xtm1 = xbctime - dtsec
           if ( mod(ktau,ntbdy) == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
           call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
@@ -2058,12 +2058,12 @@ module mod_tendency
 !   increment elapsed forecast time:
 !
     ktau = ktau + 1
-    xtime = xtime + dtsec
+    xbctime = xbctime + dtsec
     ntime = ntime + ntsec
     idatex = idatex + intmdl
 
     if ( mod(ktau,ntbdy) == 0 ) then
-      xtime = d_zero
+      xbctime = d_zero
       if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0
       end if
@@ -2088,7 +2088,7 @@ module mod_tendency
 ! 
 !   fill up the boundary values for xxb and xxa variables:
 !
-    call bdyval(xtime,iexec)
+    call bdyval(xbctime,iexec)
 !
 !   compute the nonconvective precipitation:
 !

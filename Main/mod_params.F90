@@ -802,7 +802,7 @@ module mod_params
   ktau = 0
   bdif = idate2 - idate1
   mtau = idnint((bdif%hours()*secph)/dt)
-  xtime = d_zero
+  xbctime = d_zero
   ntime = 0
 
   do ns = 1 , nsplit

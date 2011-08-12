@@ -784,7 +784,7 @@ contains
     type(rcm_time_and_date) , intent(in) :: idate
     character(10) :: ctime
     integer :: idimid , itvar , i , chkdiff
-    real(8) , dimension(:) , allocatable :: icbc_xtime
+    real(8) , dimension(:) , allocatable :: icbc_nctime
     character(64) :: icbc_timeunits , icbc_timecal
     integer :: iyy , jxx , kzz
 
@@ -830,7 +830,7 @@ contains
     call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
     istatus = nf90_get_att(ibcin, itvar, 'calendar', icbc_timecal)
     call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
-    allocate(icbc_xtime(ibcnrec), stat=istatus)
+    allocate(icbc_nctime(ibcnrec), stat=istatus)
     if ( istatus /= 0 ) then
       write(6,*) 'Memory allocation error in ICBC for time real values'
       call fatal(__FILE__,__LINE__,'ICBC READ')
@@ -840,13 +840,13 @@ contains
       write(6,*) 'Memory allocation error in ICBC for time array'
       call fatal(__FILE__,__LINE__,'ICBC READ')
     end if
-    istatus = nf90_get_var(ibcin, itvar, icbc_xtime)
+    istatus = nf90_get_var(ibcin, itvar, icbc_nctime)
     call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
     do i = 1 , ibcnrec
-      icbc_idate(i) = timeval2date(icbc_xtime(i), icbc_timeunits, icbc_timecal)
+      icbc_idate(i) = timeval2date(icbc_nctime(i), icbc_timeunits, icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
-      chkdiff = idnint(icbc_xtime(2) - icbc_xtime(1))
+      chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
       if (chkdiff /= ibdyfrq) then
         write (6,*) 'Time var in ICBC inconsistency.'
         write (6,*) 'Expecting ibdyfrq = ', ibdyfrq
@@ -854,7 +854,7 @@ contains
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
     end if
-    deallocate(icbc_xtime)
+    deallocate(icbc_nctime)
     istatus = nf90_inq_varid(ibcin, 'ps', icbc_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable ps miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'ts', icbc_ivar(2))
@@ -1906,7 +1906,7 @@ contains
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(2) :: xtime
+    real(8) , dimension(2) :: nctime
     type(rcm_time_interval) :: tdif
     logical :: lskip
     character(len=36) :: ctime
@@ -1924,12 +1924,12 @@ contains
     icount(2) = 1
     icount(1) = 2
     tdif = idate-cordex_refdate
-    xtime(2) = tdif%hours()
-    xtime(1) = xtime(2) - srffrq
-    istatus = nf90_put_var(ncsrf, isrfvar(1), xtime(2:2), &
+    nctime(2) = tdif%hours()
+    nctime(1) = nctime(2) - srffrq
+    istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(2:2), &
                            istart(2:2), icount(2:2))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SRF FILE')
-    istatus = nf90_put_var(ncsrf, isrfvar(2), xtime, &
+    istatus = nf90_put_var(ncsrf, isrfvar(2), nctime, &
                            istart(1:2), icount(1:2))
     call check_ok(__FILE__,__LINE__,'Error writing tbnds '//ctime, 'SRF FILE')
 
@@ -2032,7 +2032,7 @@ contains
     integer :: ivar
     integer :: n , nxb , nyb
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: xtime
+    real(8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
     logical :: lskip
@@ -2052,8 +2052,8 @@ contains
     istart(1) = isubrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    xtime(1) = tdif%hours()
-    istatus = nf90_put_var(ncsub, isubvar(1), xtime, istart(1:1), icount(1:1))
+    nctime(1) = tdif%hours()
+    istatus = nf90_put_var(ncsub, isubvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SUB FILE')
     ivar = 2
     lskip = .false.
@@ -2160,7 +2160,7 @@ contains
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: xtime
+    real(8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2176,8 +2176,8 @@ contains
     istart(1) = iradrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    xtime(1) = tdif%hours()
-    istatus = nf90_put_var(ncrad, iradvar(1), xtime, istart(1:1), icount(1:1))
+    nctime(1) = tdif%hours()
+    istatus = nf90_put_var(ncrad, iradvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'RAD FILE')
 
     istart(3) = iradrec
@@ -2257,7 +2257,7 @@ contains
     integer , dimension(ns,nny,nnx) , intent(in) :: mask
     integer :: i , j , n , ip1 , ip2 , jp1 , jp2 , k
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: xtime
+    real(8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2288,8 +2288,8 @@ contains
     istart(1) = iatmrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    xtime(1) = tdif%hours()
-    istatus = nf90_put_var(ncatm, iatmvar(1), xtime, istart(1:1), icount(1:1))
+    nctime(1) = tdif%hours()
+    istatus = nf90_put_var(ncatm, iatmvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'ATM FILE')
 
     dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + rpt)*d_10)
@@ -2625,7 +2625,7 @@ contains
     real(8) , dimension(nny,nnx) , intent(in) :: aersrlwrf
     integer :: n , k
     integer , dimension(5) :: istart , icount
-    real(8) , dimension(1) :: xtime
+    real(8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2641,8 +2641,8 @@ contains
     istart(1) = icherec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    xtime(1) = tdif%hours()
-    istatus = nf90_put_var(ncche, ichevar(1), xtime, istart(1:1), icount(1:1))
+    nctime(1) = tdif%hours()
+    istatus = nf90_put_var(ncche, ichevar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE')
 
     dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*d_10)
@@ -2845,7 +2845,7 @@ contains
     integer :: ivar
     integer :: n
     integer , dimension(4) :: istart , icount
-    real(8) , dimension(1) :: xtime
+    real(8) , dimension(1) :: nctime
     type(rcm_time_interval) :: tdif
     character(len=36) :: ctime
 
@@ -2861,8 +2861,8 @@ contains
     istart(1) = ilakrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    xtime(1) = tdif%hours()
-    istatus = nf90_put_var(nclak, ilakvar(1), xtime, istart(1:1), icount(1:1))
+    nctime(1) = tdif%hours()
+    istatus = nf90_put_var(nclak, ilakvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'LAK FILE')
 
     ivar = 2
