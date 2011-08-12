@@ -1288,6 +1288,7 @@
         call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(jyear,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(xtime,1,mpi_real8,0,mpi_comm_world,ierr)
+        call mpi_bcast(xbtime,1,mpi_real8,0,mpi_comm_world,ierr)
         call mpi_bcast(idatex,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(lyear,1,mpi_integer,0,mpi_comm_world,ierr)
         call mpi_bcast(lmonth,1,mpi_integer,0,mpi_comm_world,ierr)

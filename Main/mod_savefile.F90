@@ -90,8 +90,8 @@
 
             read (iutrst) mdate0
             jyear0 = mdate0/1000000
-            read (iutrst) ktau, xtime, idatex, lyear, lmonth, lday, &
-                       & lhour, ntime
+            read (iutrst) ktau, xtime, xbtime , idatex, &
+                          lyear, lmonth, lday, lhour, ntime
             jyear = lyear
 #ifdef MPP1
             if ( ehso4 ) then
@@ -354,8 +354,8 @@
               call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
             end if
 
-            write (iutsav) ktau , xtime , idatex , lyear , lmonth , &
-                       & lday , lhour , ntime
+            write (iutsav) ktau , xtime , xbtime , idatex , &
+                       lyear , lmonth , lday , lhour , ntime
 #ifdef MPP1
             if ( ehso4 ) then
               write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
