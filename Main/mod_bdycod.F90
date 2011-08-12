@@ -180,15 +180,14 @@ module mod_bdycod
 !
   subroutine bdyin
 !
-    use mod_mppio
 #ifndef IBM
     use mpi
-#else
-    include 'mpif.h'
 #endif
     implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
 !
-    real(8) :: dtbdys
     integer :: i , j , k , nn , nnb , mmrec
     integer :: ierr , ndeb , ndwb , nxeb , nxwb
 #ifndef BAND
@@ -203,7 +202,6 @@ module mod_bdycod
 !
     if ( dabs(xtime) > 0.0001D0 ) return
 !
-    dtbdys = dble(ibdyfrq)*secph
     if ( myid == 0 ) then
       if ( ehso4 ) then
         do k = 1 , kz
@@ -618,10 +616,11 @@ module mod_bdycod
 !
 #ifndef IBM
     use mpi
-#else 
-    include 'mpif.h'
-#endif 
+#endif
     implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif
 !
     real(8) :: dtb
     integer :: ib
@@ -1028,7 +1027,7 @@ module mod_bdycod
 !
     dtb = xt
     if ( dabs(xt) < 0.00001D0 .and. ktau > 0 ) then
-      dtb = dble(ibdyfrq)*secph
+      dtb = dtbdys
     end if
 !
 !   set boundary values for p*:

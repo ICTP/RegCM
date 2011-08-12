@@ -1029,7 +1029,7 @@ module mod_mtrxclm
     if ( ktau==0 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
-    else if ( dble(ktau*dtsec) <= srffrq*secph+0.01D0 ) then
+    else if ( ntime+ntsec == nsrffrq ) then
       mmpd = houpd/(srffrq-dtsec/secph)
       wpm2 = d_one/((srffrq-dtsec/secph)*secph)
     else

@@ -31,6 +31,7 @@
 !
       private
 !
+      real(8) , parameter :: uch = d_1000*regrav*secph
       public :: pcp
 !
       contains
@@ -59,7 +60,7 @@
       real(8) :: aprdiv , dpovg , es , afc , p , pptacc ,       &
                & pptkm1 , pptmax , pptnew , q , qcincld , qcleft , qcw ,&
                & qs , rdevap , rh , rhcs , rho , tcel , thog , tk ,     &
-               & uch , uconv , prainx
+               & uconv , prainx
       integer :: i , k , kk
       real(8) , dimension(istart:iend) :: pptsum
 !
@@ -260,7 +261,6 @@
 !     - Levin & Schwatz
 !--------------------------------------------------------------------
       if ( ichem == 1 ) then
-        uch = d_1000*regrav*secph
         do i = istart , iend
           rembc(i,1) = d_zero
           do k = 2 , nk

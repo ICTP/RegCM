@@ -780,6 +780,7 @@ module mod_params
 !.....calculate the time step in minutes.
 !
   dtsec = dt
+  dtbdys = dble(ibdyfrq)*secph
   ntsec = idnint(dt)
 !
 !-----reset the options/calculate variables using namelist info:
@@ -796,7 +797,7 @@ module mod_params
 
   ntsrf = idnint(dtsrf/dtsec)
   ntrad = idnint(dtrad/(dtsec/secpm))
-  ntbdy = idnint((dble(ibdyfrq)*secph)/dtsec)
+  ntbdy = idnint(dtbdys/dtsec)
 
   ktau = 0
   bdif = idate2 - idate1

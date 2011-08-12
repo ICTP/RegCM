@@ -51,7 +51,7 @@ module mod_runparams
   integer :: ntbdy , ntsrf , ntrad , ntsec
   integer :: klak
 !
-  real(8) :: dt , dt2 , dtbat , dtlake , dtsec
+  real(8) :: dt , dt2 , dtbdys , dtbat , dtlake , dtsec
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(8) :: c200 , c203 , dtsrf , dtabem , dtrad
   real(8) :: fnudge , gnudge

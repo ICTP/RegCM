@@ -692,7 +692,7 @@ module mod_diagnosis
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchiad(n) = tchiad(n) + dtsec*5.0D2*dsigma(k)*dx * &
+            tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx * &
                         (worka(i,k,n)-workb(i,k,n))*regrav
           end do
         end do
@@ -727,7 +727,7 @@ module mod_diagnosis
                      fact2*chia01_g(k,n,j)/psa01_g(j) /          &
                      (mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
             end if
-            tchiad(n) = tchiad(n) + dtsec*5.0D2*dsigma(k)*dx*(fx2-fx1)*regrav
+            tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx*(fx2-fx1)*regrav
           end do
         end do
       end do
@@ -754,7 +754,7 @@ module mod_diagnosis
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchitb(n) = tchitb(n) - dtsec*5.0D2*dsigma(k) * &
+            tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k) * &
                         (workb(i,k,n)+worka(i,k,n))*regrav
           end do
         end do
@@ -769,7 +769,7 @@ module mod_diagnosis
             chid2 = xkc02_g(k,j)*psa02_g(j)                           &
                     *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     /psa01_g(j))
-            tchitb(n) = tchitb(n) - dtsec*5.0D2*dsigma(k)*(chid2+chid1)&
+            tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k)*(chid2+chid1)&
                         *regrav
           end do
         end do
