@@ -167,10 +167,10 @@ module mod_mksst
         do j = 1 , iy
           if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &
                (work1(i,j) > -900.0 .and. work2(i,j) > -900.0) ) then
-            tsccm(i,j) = (1.0-wt)*work1(i,j) + wt*work2(i,j)
+            tsccm(i,j) = wt*work1(i,j) + (1.0-wt)*work2(i,j)
             if (lhasice) then
               if ( work3(i,j) > -900.0 .and. work4(i,j) > -900.0 ) then
-                if ( (1.-wt)*work3(i,j)+wt*work4(i,j) > 35. ) then
+                if ( wt*work3(i,j)+(1-wt)*work4(i,j) > 35. ) then
                   tsccm(i,j) = 271.0
                 endif
               end if
