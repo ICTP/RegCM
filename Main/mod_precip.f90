@@ -284,7 +284,7 @@
 !     the surface physics and the output
 !--------------------------------------------------------------------
 !
-      uconv = minph*dtmin
+      uconv = dtsec
       aprdiv = d_one/dble(nbatst)
       if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = uconv
       do i = istart , iend

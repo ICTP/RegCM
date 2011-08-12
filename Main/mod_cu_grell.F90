@@ -339,7 +339,7 @@ contains
 !.....................precipitation rate for bats (mm/s)
         aprdiv = dble(nbatst)
         if ( jyear == jyear0 .and. ktau == 0 ) aprdiv = d_one
-        pptc(i,j) = pptc(i,j) + prainx/(dtmin*minph)/aprdiv
+        pptc(i,j) = pptc(i,j) + prainx/dtsec/aprdiv
 !.......................................................
         iconj = iconj + 1
       end if

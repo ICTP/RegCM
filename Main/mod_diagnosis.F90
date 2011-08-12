@@ -349,7 +349,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tdadv = tdadv - dtmin*3.0D4*dsigma(k)                          &
+          tdadv = tdadv - dtsec*5.0D2*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
@@ -372,7 +372,7 @@
       if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tdadv = tdadv - dtmin*3.0D4*dsigma(k)                   &
+            tdadv = tdadv - dtsec*5.0D2*dsigma(k)                   &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))               &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j)) &
                   & -(va01_g(k,j+1)+va01_g(k,j))                   &
@@ -384,7 +384,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tdadv = tdadv - dtmin*3.0D4*dsigma(k)                &
+          tdadv = tdadv - dtsec*5.0D2*dsigma(k)                &
                   *dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j)) /    &
                   (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
                   (atm1%v(1,k,j+1)+atm1%v(1,k,j)) /           &
@@ -434,7 +434,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)                          &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
@@ -463,7 +463,7 @@
       if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tqadv = tqadv - dtmin*3.0D4*dsigma(k)                        &
+            tqadv = tqadv - dtsec*5.0D2*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qvailx_g(k,j)/psailx_g(j))                        &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
@@ -477,7 +477,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)*            &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)*            &
                dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*      &
                (atm1%qv(iym1,k,j)/sps1%ps(iym1,j)) /       &
                (mddom%msfx(iym1,j)*mddom%msfx(iym1,j)) -   &
@@ -527,7 +527,7 @@
 #endif
       do k = 1 , kz
         do i = 1 , iym1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)                          &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)                          &
                 & *dx*(worka(i,k)-workb(i,k))*regrav
         end do
       end do
@@ -550,7 +550,7 @@
       if ( myid == 0 ) then
         do k = 1 , kz
           do j = 1 , jxm1
-            tqadv = tqadv - dtmin*3.0D4*dsigma(k)                        &
+            tqadv = tqadv - dtsec*5.0D2*dsigma(k)                        &
                   & *dx*((vaix_g(k,j+1)+vaix_g(k,j))                    &
                   & *(qcailx_g(k,j)/psailx_g(j))                        &
                   & /(mddom_io%msfx(iym1,j)*mddom_io%msfx(iym1,j))      &
@@ -564,7 +564,7 @@
 #else
       do k = 1 , kz
         do j = 1 , jxm1
-          tqadv = tqadv - dtmin*3.0D4*dsigma(k)*            &
+          tqadv = tqadv - dtsec*5.0D2*dsigma(k)*            &
                 dx*((atm1%v(iy,k,j+1)+atm1%v(iy,k,j))*     &
                 (atm1%qc(iym1,k,j)/sps1%ps(iym1,j)) /      &
                 (mddom%msfx(iym1,j)*mddom%msfx(iym1,j))-   &
@@ -986,7 +986,7 @@
         do n = 1 , ntr
           do k = 1 , kz
             do i = 2 , iym2
-              tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)     &
+              tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)     &
                         & *dx*(worka(i,k,n)-workb(i,k,n))*regrav
             end do
           end do
@@ -1021,7 +1021,7 @@
                     & fact2*chia01_g(k,n,j)/psa01_g(j)             &
                     & /(mddom_io%msfx(1,j)*mddom_io%msfx(1,j)))
               end if
-              tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx*(fx2-fx1) &
+              tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx*(fx2-fx1) &
                         & *regrav
             end do
           end do
@@ -1032,7 +1032,7 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)                &
+            tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)                &
                       & *dx*(worka(i,k,n)-workb(i,k,n))*regrav
           end do
         end do
@@ -1070,7 +1070,7 @@
                        (mddom%msfx(1,j)*mddom%msfx(1,j)))
             end if
  
-            tchiad(n) = tchiad(n) + dtmin*6.0D4*dsigma(k)*dx*            &
+            tchiad(n) = tchiad(n) + dtsec*d_1000*dsigma(k)*dx*            &
                   & (fx2-fx1)*regrav
  
           end do
@@ -1118,7 +1118,7 @@
         do n = 1 , ntr
           do k = 1 , kz
             do i = 2 , iym2
-              tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)              &
+              tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k)              &
                         & *(workb(i,k,n)+worka(i,k,n))*regrav
             end do
           end do
@@ -1133,7 +1133,7 @@
               chid2 = xkc02_g(k,j)*psa02_g(j)                           &
                     & *(chia02_g(k,n,j)/psa02_g(j)-chia01_g(k,n,j)      &
                     & /psa01_g(j))
-              tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)*(chid2+chid1)&
+              tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k)*(chid2+chid1)&
                         & *regrav
             end do
           end do
@@ -1144,7 +1144,7 @@
       do n = 1 , ntr
         do k = 1 , kz
           do i = 2 , iym2
-            tchitb(n) = tchitb(n) - dtmin*6.0D4*dsigma(k)                &
+            tchitb(n) = tchitb(n) - dtsec*d_1000*dsigma(k)                &
                       & *(workb(i,k,n)+worka(i,k,n))*regrav
           end do
         end do
@@ -1289,7 +1289,7 @@
           tttmp = d_zero
           do j = 2 , jxm2
             do i = 2 , iym2
-              tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtmin*60.*dx*dx
+              tttmp = tttmp + chemsrc_io(i,j,lmonth,itr)*dtsec*dx*dx
             end do
           end do
           tchie(itr) = tchie(itr) + tttmp
@@ -1374,7 +1374,7 @@
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + chemsrc(i,j,lmonth,itr)*dtmin*60.*dx*dx
+            tttmp = tttmp + chemsrc(i,j,lmonth,itr)*dtsec*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp
@@ -1461,7 +1461,7 @@
       if ( myid == 0 ) then
         do j = 2 , jxm2
           do i = 2 , iym2
-            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtmin*minph
+            tqeva = tqeva + qfx_io(i,j)*dx*dx*dtsec
           end do
         end do
       end if
@@ -1469,7 +1469,7 @@
 #else
       do j = 2 , jxm2
         do i = 2 , iym2
-          tqeva = tqeva + sfsta%qfx(i,j)*dx*dx*dtmin*minph
+          tqeva = tqeva + sfsta%qfx(i,j)*dx*dx*dtsec
         end do
       end do
 #endif

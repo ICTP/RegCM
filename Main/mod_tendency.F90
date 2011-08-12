@@ -2203,9 +2203,13 @@
       ktau = ktau + 1
       xtime = xtime + dtsec
       ntime = ntime + idnint(dtsec)
-      if ( dabs(xtime-(dble(ibdyfrq)*secph)) < 0.01D0 ) then
-        nnnnnn = nnnnnn + 1
+      if ( mod(ntime,3600) == 0 ) then
+        call addhours(idatex,1)
+      end if
+      if ( mod(ntime,ibdyfrq*3600) == 0 ) then
+        call split_idate(idatex, lyear, lmonth, lday, lhour)
         xtime = d_zero
+        nnnnnn = nnnnnn + 1
         if ( lfirstjanatmidnight(idatex) .and. xtime < 0.0001D0 ) then
           jyear = lyear
           ktau = 0
@@ -2271,7 +2275,7 @@
         call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,       &
                          & mpi_comm_world,ierr)
 #endif
-        xday = ((nnnnnn-nstrt0)*ibdyfrq*secph+xtime-dt)/secpd
+        xday = ((nnnnnn-nstrt0)*ibdyfrq*secph+xtime-dtsec)/secpd
         ! Added a check for nan... The following inequality is wanted.
         if ((ptnbar /= ptnbar) .or. &
            ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then

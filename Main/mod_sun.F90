@@ -161,9 +161,9 @@
         coszrs(ill) = dmin1(1.0D0,coszrs(ill))
       end do
 #else
-      xt24 = dmod(lhour*secph+xtime,secpd)
+      xt24 = dmod(xtime,secpd)
       do ill = 1 , ivmx
-        tlocap = xt24/minph + mddom%xlong(ill,jslc)/15.0D0
+        tlocap = xt24 + mddom%xlong(ill,jslc)/15.0D0
         tlocap = dmod(tlocap+houpd,houpd)
         omga = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = mddom%xlat(ill,jslc)*degrad

@@ -751,16 +751,16 @@
 #endif
         end do
 
-        if ( mod(ntime+idnint(dtmin*minph),kbats) == 0 .or.    &
+        if ( mod(ntime+idnint(dtsec),kbats) == 0 .or.    &
             ( jyear == jyear0 .and. ktau == 0 ) .or.       & 
             ( ifrest .and. .not. done_restart ) ) then
           if ( jyear == jyear0 .and. ktau <= 1 ) then
             mmpd = secpd/dtbat
             wpm2 = d_one/dtbat
-          else if ( jyear == jyear0 .and. dble(ktau*dtmin)              &
-                  &  <= batfrq*minph+0.01D0 ) then
-            mmpd = houpd/(batfrq-dtmin/minph)
-            wpm2 = d_one/((batfrq-dtmin/minph)*secph)
+          else if ( jyear == jyear0 .and. dble(ktau*dtsec)              &
+                  &  <= batfrq*secph+0.01D0 ) then
+            mmpd = houpd/(batfrq-dtsec/secph)
+            wpm2 = d_one/((batfrq-dtsec/secph)*secph)
           else
             mmpd = houpd/batfrq
             wpm2 = d_one/(batfrq*secph)

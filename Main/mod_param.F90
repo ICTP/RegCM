@@ -713,10 +713,9 @@
       kchem = idnint(secph*chemfrq)  ! convert chemfrq to time steps
 !chem2_
 !.....calculate the time step in minutes.
-      dtmin = dt/60.0D0
       deltmx = dt
 !.....compute the time steps for radiation computation.
-      ntrad = idnint(radfrq/dtmin)
+      ntrad = idnint(radfrq/(dtsec/secpm))
 !sb   lake model mods
 !.....compute the time steps for lake model call.
       dtlake = abatm
@@ -750,9 +749,6 @@
       write (aline,'(a,i10,a)')  &
            'param: total simulation lenght ' ,  &
             idatediff(idate2,idate1) , ' hours'
-      call say
-      write (aline,'(a,f9.4)')  &
-           'param: dtmin (timestep in minutes)' , dtmin
       call say
       idatex = idate1
       nnnnnn = nstart
@@ -1398,7 +1394,7 @@
             kbmax2d(i,j) = kbmax
             htmax2d(i,j) = htmax
             htmin2d(i,j) = htmin
-            dtauc2d(i,j) = dtauc*minph
+            dtauc2d(i,j) = dtauc*secpm
           end do
         end do
       end if

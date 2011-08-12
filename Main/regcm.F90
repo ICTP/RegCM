@@ -330,7 +330,7 @@
                & dtinc /= deltmx ) then
               call tstep(extime,dtinc,deltmx)
               write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                                   & dtmin , ktau , jyear
+                                   & dtsec , ktau , jyear
               call say
             end if
           end if
@@ -344,23 +344,19 @@
 !
         call splitf
 !
+!       Write output for this timestep if requested
+!
+        if (ifrest) done_restart = .true.
+        call output
+!
 !       Increment time
 !
         extime = extime + dtinc
-        if ( mod(extime,secph) < 0.1D0 ) then
-          call addhours(idatex, 1)
-          call split_idate(idatex, lyear, lmonth, lday, lhour)
-        end if
         if (debug_level > 3) then
           if (myid == 0) write(6,'(a,i10,a,i10,a)') &
              'Simulation time: ', idatex , '+', &
              idint(dmod(extime,secph)), ' h'
         end if
-!
-!       Write output for this timestep if requested
-!
-        if (ifrest) done_restart = .true.
-        call output
 
       end do
 
@@ -417,7 +413,7 @@
 ! Formats
 !
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
-            & ' dt = ',f7.1,' dt2 = ',f7.1,' dtmin = ',f6.1,' ktau = ', &
+            & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
             & i7,' in year ',i4)
 99002 format (                                                          &
          & ' ***** restart file for next run is written at time     = ',&
