@@ -230,11 +230,11 @@ module mod_sst_1deg
       if ( idate < 1989123100 ) then
         irefd = 1981110100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
-        iwk = iwkdiff(idate,irefd) + 1
+        iwk = iwkdiff(idate,irefd)
       else
         irefd = 1989123100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
-        iwk = iwkdiff(idate,irefd) + 1
+        iwk = iwkdiff(idate,irefd)
       end if
 
       call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
@@ -466,7 +466,8 @@ module mod_sst_1deg
       istatus = nf90_close(inet)
     end if
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open file '//trim(pathaddname))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open file '//trim(pathaddname))
     istatus = nf90_inq_varid(inet,varname,ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
     istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
