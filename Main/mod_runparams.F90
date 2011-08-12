@@ -40,7 +40,7 @@ module mod_runparams
   integer :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefreq , nsrffrq
 
   real(8) :: declin , deltmx
-    real(8) :: xbctime
+  real(8) :: xbctime
   integer(8) :: ktau , mtau
 
   real(8) :: calday , twodt
