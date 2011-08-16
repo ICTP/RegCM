@@ -329,7 +329,7 @@ module mod_radiation
 
   subroutine allocate_mod_radiation 
     implicit none        
-    character (len=50) :: subroutine_name='allocate_mod_radiation'
+    character (len=64) :: subroutine_name='allocate_mod_radiation'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -367,7 +367,7 @@ module mod_radiation
 !
     integer :: iband
 
-    character (len=50) :: subroutine_name='radini'
+    character (len=64) :: subroutine_name='radini'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -578,7 +578,7 @@ module mod_radiation
     integer :: i , k
     real(8) , dimension(iym1,kz) :: o3mmr , pbr , rh
     real(8) , dimension(iym1,kzp1) :: plco2 , plh2o , pnm , tclrsf
-    character (len=50) :: subroutine_name='radctl'
+    character (len=64) :: subroutine_name='radctl'
     integer :: indx = 0
     real(8) , dimension(iym1) :: totcf
 !
@@ -976,7 +976,7 @@ module mod_radiation
     real(8) , dimension(iym1,0:kz,4) :: wkaer
     real(8) , dimension(iym1,4) :: zero
 !
-    character (len=50) :: subroutine_name='radcsw'
+    character (len=64) :: subroutine_name='radcsw'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -1787,7 +1787,7 @@ module mod_radiation
     real(8) , dimension(iym1,kzp1,kzp1) :: s , s0
 !
 !
-    character (len=50) :: subroutine_name='radclw'
+    character (len=64) :: subroutine_name='radclw'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -2326,7 +2326,7 @@ module mod_radiation
     integer , dimension(iym1) :: indx
     real(8) , dimension(iym1) :: taugab , tauray
 !
-    character (len=50) :: subroutine_name='radclw'
+    character (len=64) :: subroutine_name='radclw'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -2652,7 +2652,7 @@ module mod_radiation
     integer , dimension(iym1) :: indx
     real(8) , dimension(iym1) :: taugab , tauray
 !
-    character (len=50) :: subroutine_name='radded'
+    character (len=64) :: subroutine_name='radded'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -3140,7 +3140,7 @@ module mod_radiation
     real(8) , dimension(iym1,2) :: term7 , term8 , trline
 !
 !
-    character (len=50) :: subroutine_name='radabs'
+    character (len=64) :: subroutine_name='radabs'
     integer :: indx = 0
 !
 !-----------------------------------------------------------------------
@@ -3930,7 +3930,7 @@ module mod_radiation
     real(8) , dimension(iym1,2) :: term6 , term7 , term8 , term9 ,   &
                                     trline
 !
-    character (len=50) :: subroutine_name='radems'
+    character (len=64) :: subroutine_name='radems'
     integer :: indx = 0
 !
 !-----------------------------------------------------------------------
@@ -4221,7 +4221,7 @@ module mod_radiation
 !-----------------------------------------------------------------------
 !
     integer :: i , k
-    character (len=50) :: subroutine_name='radoz2'
+    character (len=64) :: subroutine_name='radoz2'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -4307,7 +4307,7 @@ module mod_radiation
 !
     real(8) :: dpnm , dpnmsq , dy , rtnm
     integer :: i , k
-    character (len=50) :: subroutine_name='radtpl'
+    character (len=64) :: subroutine_name='radtpl'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -4464,7 +4464,7 @@ module mod_radiation
 !
 !   Compute eccentricity factor (sun-earth distance factor)
 !
-    character (len=50) :: subroutine_name='radinp'
+    character (len=64) :: subroutine_name='radinp'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)

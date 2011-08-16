@@ -168,7 +168,7 @@ module mod_cu_grell
     real(8) :: aprdiv , calc , pkdcut , pkk , prainx , us , vs
     integer :: i , jp1 , iconj , iend , istart , k , kk
 !
-    character (len=50) :: subroutine_name='cuparan'
+    character (len=64) :: subroutine_name='cuparan'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -364,7 +364,7 @@ module mod_cu_grell
                tvbar , tvbaro , xk
     integer :: i , iph , ipho , k , kbcono , kclth , kk , lpt
 !
-    character (len=50) :: subroutine_name='cup'
+    character (len=64) :: subroutine_name='cup'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -1045,7 +1045,7 @@ module mod_cu_grell
 !
        integer :: i , k
        real(8) :: x
-       character (len=50) :: subroutine_name='minimi'
+       character (len=64) :: subroutine_name='minimi'
        integer :: idindx=0
 !
        call time_begin(subroutine_name,idindx)
@@ -1077,7 +1077,7 @@ module mod_cu_grell
       integer :: i , k
       real(8) :: x , xar
 !
-      character (len=50) :: subroutine_name='maximi'
+      character (len=64) :: subroutine_name='maximi'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)

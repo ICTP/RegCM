@@ -134,7 +134,7 @@ module mod_gn6hnc
 !
     implicit none
 !
-    integer :: istatus , ivar1 , inet1 , jdim, ip0 , j
+    integer :: istatus , ivar1 , inet1 , jdim, j
     character(256) :: pathaddname
     real(8) :: dp0
 !

@@ -103,7 +103,7 @@ module mod_vmodes
     real(8) , dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
 !
-    character (len=50) :: subroutine_name='vmodes'
+    character (len=64) :: subroutine_name='vmodes'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -520,7 +520,7 @@ module mod_vmodes
       integer :: k
       logical :: lstab
 !
-      character (len=50) :: subroutine_name='vchekt'
+      character (len=64) :: subroutine_name='vchekt'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -706,7 +706,7 @@ module mod_vmodes
 !   Note: different from cray routine invmtx
 !   Uses subroutines sgefa/sgedi from library linpack
 !
-    character (len=50) :: subroutine_name='invmtrx'
+    character (len=64) :: subroutine_name='invmtrx'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

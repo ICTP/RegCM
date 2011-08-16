@@ -57,9 +57,9 @@ module mod_ensemble
 !
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
+    integer , intent(in) :: imax , jmax , kmax
     real(dp) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
     real(dp) , intent(in) :: dFrac
-    integer , intent(in) :: imax , jmax , kmax
 
     real(dp) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
     integer :: i
@@ -120,9 +120,9 @@ module mod_ensemble
 !
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
+    integer , intent(in) :: imax , jmax
     real(dp) , dimension(imax,jmax) , intent(inout) :: dVariable2D
     real(dp) , intent(in) :: dFrac
-    integer , intent(in) :: imax,jmax
 
     real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
     integer :: i

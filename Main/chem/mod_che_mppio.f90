@@ -64,8 +64,6 @@ module mod_che_mppio
   subroutine allocate_mod_che_mppio(lband)
     implicit none
     logical , intent(in) :: lband
-    integer :: ierr            ! control variable for allocation
-    character(len=50) :: myname = 'allocate_mod_che_mppio'
 
     if ( lch ) then
 
@@ -114,8 +112,6 @@ module mod_che_mppio
       call getmem3d(dustsotex_io,1,iy,1,jx,1,nats,'mod_che_mppio:dustsotex_io')
     end if
 
-    write(aline,*) 'allocate_mod_che_mppio'
-    call say(myid)
   end subroutine allocate_mod_che_mppio
 !
 end module mod_che_mppio

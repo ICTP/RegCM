@@ -17,7 +17,7 @@
 !! 2) The timer is activated when in each subroutine is inserted 
 !!        use mod_service 
 !!    and having declared the two following local variables: 
-!!        character (len=50) :: sub='name_of_your_subroutine' 
+!!        character (len=64) :: sub='name_of_your_subroutine' 
 !!        integer :: indx=0
 !!    and as a first instruction
 !!        call time_begin(subroutine_name,indx)
@@ -74,7 +74,7 @@ MODULE mod_service
 
   TYPE timing_info
      INTEGER :: n_of_time
-     CHARACTER (len=50) :: name_of_section
+     CHARACTER (len=64) :: name_of_section
      REAL (kind=8) :: total_time
      INTEGER :: total_size
   END TYPE timing_info
@@ -137,7 +137,7 @@ CONTAINS
     CHARACTER(len=3) ::  np='   '
     CHARACTER(len=9) ::  string
     CHARACTER (len=100) :: record
-    CHARACTER (len=50) :: sub='activate_debug'
+    CHARACTER (len=64) :: sub='activate_debug'
     LOGICAL :: safe=.TRUE.
     INTEGER :: ierr1,idum
     INTEGER,EXTERNAL :: intstr
@@ -202,7 +202,7 @@ CONTAINS
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
     INTEGER, OPTIONAL, INTENT(in) :: line
     CHARACTER(len=80) :: string='   '
-    CHARACTER(len=50) :: substr='not specified'
+    CHARACTER(len=64) :: substr='not specified'
     CHARACTER(len=8)  :: sline =' no spec'
 
     string=' '
@@ -241,7 +241,7 @@ CONTAINS
     CHARACTER*(*), OPTIONAL, INTENT(in) :: sub
     INTEGER, OPTIONAL, INTENT(in) :: line
     CHARACTER(len=80) :: string=' '
-    CHARACTER(len=50) :: substr=' not specified'
+    CHARACTER(len=64) :: substr=' not specified'
     CHARACTER(len=8)  :: sline =' no spec'
 
     string=' '
@@ -270,8 +270,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER :: i
     INTEGER, INTENT(INOUT) :: indx
-    CHARACTER (len=50) :: name
-    CHARACTER (len=50) :: stringa='                                      '
+    CHARACTER (len=64) :: name
+    CHARACTER (len=64) :: stringa='                                      '
 
     IF (indx==0) THEN 
        n_of_ENTRY=n_of_ENTRY+1
@@ -299,12 +299,12 @@ CONTAINS
   !!<
   SUBROUTINE time_end(name_of_section,indx,isize)
     IMPLICIT NONE
-    CHARACTER (len=50) ::  name_of_section
+    CHARACTER (len=64) ::  name_of_section
     INTEGER, INTENT(IN) :: indx
     INTEGER, OPTIONAL :: isize
     REAL (Kind=8)  :: time_CALL
-    CHARACTER (len=50) :: name
-    CHARACTER (len=50)  :: stringa=' '
+    CHARACTER (len=64) :: name
+    CHARACTER (len=64)  :: stringa=' '
 
 
     ! check for indx: should not be less than zero
@@ -370,8 +370,8 @@ CONTAINS
     INTEGER :: nwords,ierr,nword_send,nword_receive,ierr1
     REAL    :: total_comm_time=0.0
     REAL    :: avg_value
-    CHARACTER (len=50) :: name
-    CHARACTER (len=50) :: sub='time_print'
+    CHARACTER (len=64) :: name
+    CHARACTER (len=64) :: sub='time_print'
 
     CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
 
@@ -880,13 +880,13 @@ CONTAINS
 
   SUBROUTINE time_begin(sname,indx)
     IMPLICIT NONE
-    CHARACTER (len=50), INTENT(IN) :: sname
+    CHARACTER (len=64), INTENT(IN) :: sname
     INTEGER, INTENT(IN) :: indx
   END SUBROUTINE time_begin
 
   SUBROUTINE time_end(sname,indx,isize)
     IMPLICIT NONE
-    CHARACTER (len=50), INTENT(IN) :: sname
+    CHARACTER (len=64), INTENT(IN) :: sname
     INTEGER, INTENT(IN) :: indx
     INTEGER, INTENT(IN),  OPTIONAL :: isize
   END SUBROUTINE time_end

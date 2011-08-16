@@ -36,19 +36,16 @@ module mod_runparams
   type(rcm_time_interval) :: intmdl
   type(rcm_time_interval) :: intbdy
 
-  integer :: ntime
-  integer :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefreq , nsrffrq
-
   real(8) :: declin , deltmx
   real(8) :: xbctime
-  integer(8) :: ktau , mtau
-
   real(8) :: calday , twodt
 
   logical :: doabsems , dolw , dosw
 
-  integer :: ntabem
-  integer :: ntbdy , ntsrf , ntrad , ntsec
+  integer(8) :: ktau , mtau
+  integer(8) :: ntime
+  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefreq , nsrffrq
+  integer(8) :: ntbdy , ntsrf , ntrad , ntabem , ntsec
   integer :: klak
 !
   real(8) :: dt , dt2 , dtbdys , dtbat , dtlake , dtsec

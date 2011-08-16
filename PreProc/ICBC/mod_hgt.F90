@@ -331,7 +331,7 @@ module mod_hgt
             exit
           end if
         end do
-        tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
+        tsfc = t(i,j,kbc)-slrate*(h(i,j,kbc)-ht(i,j))
         ps(i,j) = slp(i,j) / exp(-segrav/(srgas*slrate)* &
                                  log(1.0-ht(i,j)*slrate/tsfc))
       end do

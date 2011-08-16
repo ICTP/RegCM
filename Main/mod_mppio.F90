@@ -43,7 +43,7 @@ module mod_mppio
 #endif
   integer , pointer , dimension(:,:,:) :: ocld2d_io , veg2d1_io
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
-  integer , pointer , dimension(:,:) :: kpbl_io
+  real(8) , pointer , dimension(:,:) :: kpbl_io
 
   real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
          evpa2d_io , gwet2d_io , ircp2d_io , rno2d_io , &
@@ -181,8 +181,6 @@ module mod_mppio
   subroutine allocate_mod_mppio(lband)
     implicit none
     logical , intent(in) :: lband
-    integer :: ierr            ! control variable for allocation
-    character(len=50) :: myname = 'allocate_mod_mppio'
 
     call getmem2d(var1snd,1,kz,1,8,'mod_mppio:var1snd')
     call getmem2d(var1rcv,1,kz,1,8,'mod_mppio:var1rcv')
@@ -445,8 +443,6 @@ module mod_mppio
     call getmem3d(sav_clmin,1,iym1,1,8,1,jxp,'mod_mppio:sav_clmin')
 #endif
 
-    write(aline,*) 'allocate_mod_mppio'
-    call say(myid)
   end subroutine allocate_mod_mppio
 !
   subroutine free_mpp_initspace

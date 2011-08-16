@@ -63,7 +63,7 @@ module mod_sun
 !
 !----------------------------------------------------------------------
 !
-    character (len=50) :: subroutine_name='solar1'
+    character (len=64) :: subroutine_name='solar1'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -131,7 +131,7 @@ module mod_sun
 #else
     real(8) :: omga , tlocap , xt24
 #endif
-    character (len=50) :: subroutine_name='zenitm'
+    character (len=64) :: subroutine_name='zenitm'
     real(8) :: xxlat
     integer :: idindx=0
 !

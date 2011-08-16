@@ -53,7 +53,7 @@ module mod_split
 !
   subroutine allocate_mod_split
     implicit none
-    character (len=50) :: subroutine_name='allocate_mod_split'
+    character (len=64) :: subroutine_name='allocate_mod_split'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -89,7 +89,7 @@ module mod_split
     logical :: lstand
     integer :: ierr
     integer :: jp1
-    character (len=50) :: subroutine_name='spinit'
+    character (len=64) :: subroutine_name='spinit'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -409,7 +409,7 @@ module mod_split
     integer :: jm1, jp1
     integer :: ierr , ii
     real(8) , dimension(iy*nsplit) :: wkrecv , wksend
-    character (len=50) :: subroutine_name='splitf'
+    character (len=64) :: subroutine_name='splitf'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -748,7 +748,7 @@ module mod_split
     integer :: jm1, jp1
     integer :: ierr
     real(8) , dimension(iy*2) :: wkrecv , wksend
-    character (len=50) :: subroutine_name='spstep'
+    character (len=64) :: subroutine_name='spstep'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

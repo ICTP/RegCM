@@ -60,7 +60,7 @@ module mod_diffusion
     integer :: i , k
     integer :: jm1 , jm2 , jp1, jp2
 !
-    character (len=50) :: subroutine_name='diffu_d'
+    character (len=64) :: subroutine_name='diffu_d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -216,7 +216,7 @@ module mod_diffusion
     integer :: i , k
     integer :: jm1 , jm2 , jp1, jp2
 !
-    character (len=50) :: subroutine_name='diffu_x'
+    character (len=64) :: subroutine_name='diffu_x'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

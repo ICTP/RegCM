@@ -71,7 +71,7 @@ module mod_output
   integer :: allrec , ierr , l , k , n
   logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
   logical :: lstartup
-  character (len=50) :: subroutine_name='output'
+  character (len=64) :: subroutine_name='output'
   integer :: idindx=0
 !
 !
@@ -1488,7 +1488,7 @@ module mod_output
 !
   integer :: i , j , imax , jmax , istart, jstart
 !
-!      character (len=50) :: subroutine_name='outrad'
+!      character (len=64) :: subroutine_name='outrad'
 !      integer :: idindx=0
 !
 !      call time_begin(subroutine_name,idindx)
@@ -1533,7 +1533,7 @@ module mod_output
 !
   integer :: ni , itr , nj , nk , ie , je
 
-!      character (len=50) :: subroutine_name='outche'
+!      character (len=64) :: subroutine_name='outche'
 !      integer :: idindx=0
 !
 !      call time_begin(subroutine_name,idindx)

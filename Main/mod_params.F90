@@ -1620,9 +1620,9 @@ module mod_params
   call mpi_barrier(mpi_comm_world,ierr) 
 !
 99002 format (/'   frictionless and insulated for the lower boundary.')
-99003 format (                                                          &
-      '     the surface energy budget is used to calculate the ground te&
-      mperature. the radiation is computed every ',i4,' time steps.')
+99003 format (                                                            &
+      '     the surface energy budget is used to calculate the ground '// &
+      'temperature. the radiation is computed every ',i4,' time steps.')
 !1100 format('     heat and moisture fluxes from the ground are turned o
 !     1ff.')
 99004 format (/'   the lateral boundary conditions are fixed.')

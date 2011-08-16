@@ -83,7 +83,7 @@ module mod_zengocn
     real(8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
     real(8) :: dtstend , dts , fs , tskin , dtsst
 !
-    character (len=50) :: subroutine_name='zengocndrv'
+    character (len=64) :: subroutine_name='zengocndrv'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -274,7 +274,7 @@ module mod_zengocn
                xlv , zeta , zoq
     integer :: i
 !
-    character (len=50) :: subroutine_name='zengocn'
+    character (len=64) :: subroutine_name='zengocn'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

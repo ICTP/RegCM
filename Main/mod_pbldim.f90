@@ -33,7 +33,7 @@
       real(8) , pointer ,  dimension(:,:) :: rhox2d
       real(8) , pointer , dimension(:,:,:) :: dzq , thvx
       real(8) , pointer , dimension(:,:,:) :: za
-      integer , pointer , dimension(:,:) :: kpbl
+      real(8) , pointer , dimension(:,:) :: kpbl
 !
       public :: allocate_mod_pbldim
       public :: zq

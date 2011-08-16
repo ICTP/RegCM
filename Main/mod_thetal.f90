@@ -488,7 +488,6 @@ bigloop : &
     real(dp) , intent(in) :: t
     real(dp) , intent(out) :: es , qv , qc
     integer , intent(in) :: isice
-    real(dp) :: dum
     if ( isice == 0 ) then
       es = esatw(myp,t)
       mylovcp = wlhvocp

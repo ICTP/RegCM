@@ -73,6 +73,8 @@ module mod_tendency
   real(8) , pointer , dimension(:,:) :: tvar1rcv , tvar1snd
   real(8) , pointer , dimension(:,:) :: qvcs
 
+  integer(8) , parameter :: irep = 50
+
   contains
 
   subroutine allocate_mod_tend(lband)
@@ -150,11 +152,11 @@ module mod_tendency
                psabar , psasum , pt2bar , pt2tot , ptnbar ,        &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
-               tvavg , tvb , tvc , xday , xmsf , xtm1
+               tvavg , tvb , tvc , xmsf , xtm1
     integer :: i , icons , iptn , itr , j , k , lev , n
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
-    character (len=50) :: subroutine_name='tend'
+    character (len=64) :: subroutine_name='tend'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -1328,12 +1330,12 @@ module mod_tendency
 !       compute the vertical advection term:
 !
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,kpbl(:,j))
+          call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,idnint(kpbl(:,j)))
         else
           if ( iuwvadv == 1 ) then
-            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,6,kpbl(:,j))
+            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,6,idnint(kpbl(:,j)))
           else
-            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,kpbl(:,j))
+            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,idnint(kpbl(:,j)))
           end if
         end if
 !
@@ -1372,12 +1374,14 @@ module mod_tendency
         if ( icup /= 1 ) then
           call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,kpbl(:,j))
+            call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,idnint(kpbl(:,j)))
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,6,kpbl(:,j))
+              call vadv(aten%qv(:,:,j),qdot, &
+                        atm1%qv(:,:,j),j,6,idnint(kpbl(:,j)))
             else
-              call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,kpbl(:,j))
+              call vadv(aten%qv(:,:,j),qdot, &
+                        atm1%qv(:,:,j),j,2,idnint(kpbl(:,j)))
             end if
           end if
         end if
@@ -1401,12 +1405,14 @@ module mod_tendency
         if ( ipptls == 1 ) then
           call hadv_x(aten%qc(:,:,j),atmx%qc,dx4,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,kpbl(:,j))
+            call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,idnint(kpbl(:,j)))
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,6,kpbl(:,j))
+              call vadv(aten%qc(:,:,j),qdot, &
+                        atm1%qc(:,:,j),j,6,idnint(kpbl(:,j)))
             else
-              call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,kpbl(:,j))
+              call vadv(aten%qc(:,:,j),qdot, &
+                        atm1%qc(:,:,j),j,5,idnint(kpbl(:,j)))
             end if
           end if
           call pcp(j , 2 , iym2 , kz)
@@ -1904,8 +1910,8 @@ module mod_tendency
 !
 !     compute the vertical advection terms:
 !
-      call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4,kpbl(:,j))
-      call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4,kpbl(:,j))
+      call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4,idnint(kpbl(:,j)))
+      call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4,idnint(kpbl(:,j)))
 !
 !     apply the sponge boundary condition on u and v:
 !
@@ -2130,7 +2136,7 @@ module mod_tendency
         end if
       end if
       if ( myid == 0 ) then
-        if ( mod(ktau,50) == 0 ) then
+        if ( mod(ktau,irep) == 0 ) then
           write(6,99001) tochar(idatex) , ktau , ptnbar , pt2bar , icons_mpi
         end if
       end if

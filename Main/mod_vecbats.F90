@@ -158,7 +158,7 @@ module mod_vecbats
     implicit none
 !
     integer , intent(in) :: j
-    character (len=50) :: subroutine_name='vecbats'
+    character (len=64) :: subroutine_name='vecbats'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -209,7 +209,7 @@ module mod_vecbats
 ! 
     integer :: ill , is , itex , jll , k , nlveg
 !
-    character (len=50) :: subroutine_name='initb'
+    character (len=64) :: subroutine_name='initb'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -312,7 +312,7 @@ module mod_vecbats
     integer :: i , n , nnn
     real(4) :: real_4
 !
-    character (len=50) :: subroutine_name='interf'
+    character (len=64) :: subroutine_name='interf'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -730,7 +730,7 @@ module mod_vecbats
     real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer :: kolour , n , i
-    character (len=50) :: subroutine_name='albedov'
+    character (len=64) :: subroutine_name='albedov'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -1007,7 +1007,7 @@ module mod_vecbats
 !   capacity is assumed to be 2 mm/day (baver et al., 1972)
 !   ===============================================================
 !
-    character (len=50) :: subroutine_name='soilbc'
+    character (len=64) :: subroutine_name='soilbc'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -1084,7 +1084,7 @@ module mod_vecbats
     real(8) :: cc , cosz , dlon , ha , ss , tpifjd
     integer :: i
 !
-    character (len=50) :: subroutine_name='zenith'
+    character (len=64) :: subroutine_name='zenith'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

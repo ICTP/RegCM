@@ -62,22 +62,16 @@ module mod_che_sea_salt
     real(dp) :: qflxm(iy,2) , qflxn(iy,2)
     real(dp) :: seasalt_emfac_mascor , seasalt_emfac_numcor
     real(dp) :: seasalt_emfac_masacc , seasalt_emfac_numacc
-    integer :: lmascor , lnumcor  
-    integer :: lmasacc , lnumacc   
     integer :: modeptr_coarseas
     integer :: modeptr_accum 
     integer :: i , iflg , ib
-    integer , parameter :: maxd_amode = 4
-
-    integer , dimension(maxd_amode) :: numptr_amode
 
     real(dp) :: specmw_seasalt_amode
-    real(dp) , dimension(iy,sbin) :: seasalt
     real(dp) :: dum_mw
 
     specmw_seasalt_amode = 1.0D0
-    modeptr_coarseas = 1.0D0
-    modeptr_accum = 1.0D0
+    modeptr_coarseas = 1
+    modeptr_accum = 1
 
     ssltbsiz(1,1) = 0.05D0
     ssltbsiz(1,2) = 1.0D0 

@@ -84,7 +84,7 @@ module mod_bdycod
 !
   subroutine allocate_mod_bdycon
     implicit none
-    character (len=50) :: subroutine_name='allocate_mod_bdycon'
+    character (len=64) :: subroutine_name='allocate_mod_bdycon'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -194,7 +194,7 @@ module mod_bdycod
 #endif
     real(8) , dimension(iy,jxp) :: psdot , tdum
     integer :: n
-    character (len=50) :: subroutine_name='bdyin'
+    character (len=64) :: subroutine_name='bdyin'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -627,7 +627,7 @@ module mod_bdycod
 !
     integer :: i , j , k
     integer :: ierr
-    character (len=50) :: subroutine_name='bdyuv'
+    character (len=64) :: subroutine_name='bdyuv'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -906,7 +906,7 @@ module mod_bdycod
     integer :: i
     real(8) :: uavg
 #endif
-    character (len=50) :: subroutine_name='bdyval'
+    character (len=64) :: subroutine_name='bdyval'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)

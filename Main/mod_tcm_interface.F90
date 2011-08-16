@@ -258,7 +258,6 @@ module mod_tcm_interface
     type(atmstate) , intent(inout) :: tcmtend
     type(tcm_state) , intent(inout) :: tcmstate
     logical , intent(in) :: bRegridWinds
-    integer :: k
 
     ! Don't update the model variables if we are the diagnostic mode
     ! (Holtslag running, and UW updating TKE)
@@ -354,7 +353,7 @@ module mod_tcm_interface
     integer , intent(in) :: j
     real(dp) , intent(in) :: dxx
     type(tcm_state) , pointer :: tcmstate
-    character (len=50) :: subroutine_name='hadvTKE'
+    character (len=64) :: subroutine_name='hadvTKE'
     integer :: idindx = 0
     integer :: i , k , jm1 , jp1
 !
@@ -411,7 +410,7 @@ module mod_tcm_interface
     integer , intent(in) :: j , ind
     type(tcm_state) , pointer :: tcmstate
     real(dp) , dimension(iy,kz) :: dotqdot , ftmp
-    character (len=50) :: subroutine_name='vadvTKE'
+    character (len=64) :: subroutine_name='vadvTKE'
     integer :: idindx = 0
 !
     integer :: i , k

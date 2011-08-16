@@ -80,7 +80,7 @@
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls , jwb , jeb
 #endif
-      character (len=50) :: subroutine_name='nudge_p'
+      character (len=64) :: subroutine_name='nudge_p'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -361,7 +361,7 @@
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls , jwb , jeb
 #endif
-      character (len=50) :: subroutine_name='nudge_t'
+      character (len=64) :: subroutine_name='nudge_t'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -679,7 +679,7 @@
       integer :: ibeg , iend , jj , jsls , jwb , jeb
 #endif
 !
-      cHARACTER (len=50) :: subroutine_name='nudgeqv'
+      cHARACTER (len=64) :: subroutine_name='nudgeqv'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1002,7 +1002,7 @@
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls , jew
 #endif
-      character (len=50) :: subroutine_name='nudge_u'
+      character (len=64) :: subroutine_name='nudge_u'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1309,7 +1309,7 @@
 #ifndef BAND
       integer :: ibeg , iend , jj , jsls , jew
 #endif
-      character (len=50) :: subroutine_name='nudge_v'
+      character (len=64) :: subroutine_name='nudge_v'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1640,7 +1640,7 @@
       integer :: jwb , jeb
 #endif
 !
-      character (len=50) :: subroutine_name='sponge_p'
+      character (len=64) :: subroutine_name='sponge_p'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1739,7 +1739,7 @@
 #ifndef BAND
       integer :: jwb , jeb
 #endif
-      character (len=50) :: subroutine_name='sponge_t'
+      character (len=64) :: subroutine_name='sponge_t'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1847,7 +1847,7 @@
       integer :: ibeg , iend , jj , jsls
       integer :: jwb , jeb
 #endif
-      character (len=50) :: subroutine_name='spongeqv'
+      character (len=64) :: subroutine_name='spongeqv'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -1953,7 +1953,7 @@
       integer :: ibeg , iend , jj , jsls
       integer :: jew
 #endif
-      character (len=50) :: subroutine_name='sponge_u'
+      character (len=64) :: subroutine_name='sponge_u'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)
@@ -2052,7 +2052,7 @@
       integer :: ibeg , iend , jj , jsls
       integer :: jew
 #endif
-      character (len=50) :: subroutine_name='sponge_v'
+      character (len=64) :: subroutine_name='sponge_v'
       integer :: idindx=0
 !
       call time_begin(subroutine_name,idindx)

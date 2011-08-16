@@ -83,7 +83,7 @@ module mod_bndry
 !
     real(8) :: fact , qsatd , rai
     integer :: n , i
-    character (len=50) :: subroutine_name='bndry'
+    character (len=64) :: subroutine_name='bndry'
     integer :: idindx = 0
     real(8) , parameter :: minwrat = 1.0D-04
 !
@@ -278,7 +278,7 @@ module mod_bndry
     implicit none
 !
     integer :: n , i
-    character (len=50) :: subroutine_name='vcover'
+    character (len=64) :: subroutine_name='vcover'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -322,7 +322,7 @@ module mod_bndry
     implicit none
 !
     integer :: n , i
-    character (len=50) :: subroutine_name='drip'
+    character (len=64) :: subroutine_name='drip'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -375,7 +375,7 @@ module mod_bndry
                rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss ,  &
                wtt
     integer :: n , i
-    character (len=50) :: subroutine_name='tseaice'
+    character (len=64) :: subroutine_name='tseaice'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -512,7 +512,7 @@ module mod_bndry
            rsubss , rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 ,&
            xkmx2 , xkmxr
     integer :: n , i
-    character (len=50) :: subroutine_name='water'
+    character (len=64) :: subroutine_name='water'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -754,7 +754,7 @@ module mod_bndry
     integer :: n , i
     real(8) , dimension(nnsg,iym1) :: sold
 !
-    character (len=50) :: subroutine_name='snow'
+    character (len=64) :: subroutine_name='snow'
     integer :: idindx = 0
 !
     call time_begin(subroutine_name,idindx)
@@ -872,7 +872,7 @@ module mod_bndry
              t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds
     real(8) :: dtbat2 , rdtbat2 , xlexp
     integer :: n , i
-    character (len=50) :: subroutine_name='tgrund'
+    character (len=64) :: subroutine_name='tgrund'
     integer :: idindx = 0
 !
     real(8) , parameter :: xnu = twopi/secpd

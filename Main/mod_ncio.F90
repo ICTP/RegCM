@@ -95,7 +95,7 @@ module mod_ncio
 
   integer , dimension(numbat) :: lak_fbats
 
-  character(64) :: cdum
+  character(128) :: cdum
 
   data lso4p   /.false./
   data lmaskfill /.false./
@@ -884,7 +884,6 @@ contains
     real(8) , dimension(iy,jx) , intent(out) :: ps
     real(8) , dimension(iy,jx) , intent(out) :: ts
 
-    type(rcm_time_interval) :: tdif
     integer , dimension(4) :: istart , icount
     real(4) , dimension(jx,iy,kz) :: xread
     integer :: i , j , k
@@ -1008,7 +1007,7 @@ contains
     integer , dimension(2) :: ivvar
     integer , dimension(4) :: isrvvar
     integer , dimension(5) :: illtpvar
-    integer :: itvar , imapvar , iyy , im , id , ih , i , j , ibnd
+    integer :: itvar , imapvar , i , j , ibnd
     integer :: ichname , ibin , ichtrsol , ichtrdpv , idubinsiz
     integer , dimension(2) :: inmlen
     integer , dimension(2) :: idpv

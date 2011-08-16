@@ -74,7 +74,7 @@ module mod_advection
     integer :: jm1 , jp1
     real(8) :: fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 , vavg1 , vavg2
     integer :: i , k
-    character (len=50) :: subroutine_name='hadv_x'
+    character (len=64) :: subroutine_name='hadv_x'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -169,7 +169,7 @@ module mod_advection
     integer :: i , k , idx , idxm1 , idxp1
     real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
 !
-    character (len=50) :: subroutine_name='hadv_d'
+    character (len=64) :: subroutine_name='hadv_d'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -289,7 +289,7 @@ module mod_advection
     real(8) , dimension(iy,kz) :: fg
     integer :: i , k
 !
-    character (len=50) :: subroutine_name='vadv'
+    character (len=64) :: subroutine_name='vadv'
     integer :: idindx=0
 !
 #ifdef BAND
