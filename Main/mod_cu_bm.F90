@@ -49,11 +49,10 @@ module mod_cu_bm
 !*****************************************************************
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_pmoist
   use mod_rad
   use mod_bats
-  use mod_cvaria
   use mod_che_trac
   use mod_memutil
 

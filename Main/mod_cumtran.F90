@@ -23,7 +23,7 @@ module mod_cumtran
 !
   use mod_runparams
   use mod_che_trac
-  use mod_che_main
+  use mod_che_interface
 !
   private
 !

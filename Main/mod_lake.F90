@@ -23,7 +23,7 @@
 module mod_lake
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_bats
   use mod_mppio
 !

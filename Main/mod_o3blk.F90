@@ -75,7 +75,7 @@ module mod_o3blk
 !
   use mod_dynparam
   use mod_runparams , only : r8pt , sigma
-  use mod_main
+  use mod_atm_interface
   use mod_rad
   implicit none
 !

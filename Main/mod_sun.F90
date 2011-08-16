@@ -24,7 +24,7 @@ module mod_sun
   use mod_constants
   use mod_dynparam
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_message
   use mod_service
 !

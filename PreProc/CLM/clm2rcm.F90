@@ -261,7 +261,7 @@ program clm2rcm
   istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3), ivar)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add variable time')
 
-  irefdate = rcm_time_and_date(globidate1%calendar,globidate1%year,1,1,0,0,0)
+  irefdate = yrfirst(globidate1)
   irefdate = monmiddle(irefdate)
   csdate = tochar(irefdate)
   istatus = nf90_put_att(ncid, ivar, 'units', 'hours since '//csdate)

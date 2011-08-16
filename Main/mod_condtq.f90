@@ -22,8 +22,7 @@ module mod_condtq
 ! Heating term for explicit moisture
 !
   use mod_runparams
-  use mod_main
-  use mod_cvaria
+  use mod_atm_interface
   use mod_pmoist
   use mod_slice
 !
@@ -113,7 +112,7 @@ module mod_condtq
         else                                     ! Partial cloud cover
           fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
           fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-          qvc_cld = dmax1((qsb3d(i,k,j)+dt*aten%qv(i,k,j)/psc(i,j)),d_zero)
+          qvc_cld = dmax1((atms%qsb3d(i,k,j)+dt*aten%qv(i,k,j)/psc(i,j)),d_zero)
           dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
           tmp1(i,k) = r1*dqv*fccc        ! grid cell average
         end if

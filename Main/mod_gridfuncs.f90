@@ -20,7 +20,7 @@
 module mod_gridfuncs
 
   use mod_runparams
-  use mod_main , only : atmstate
+  use mod_atm_interface , only : atmstate
   use mod_constants , only : d_rfour
   use mpi
 
@@ -39,14 +39,14 @@ module mod_gridfuncs
 ! Written by Travis A. O'Brien 01/04/11.
 !
 ! type(atmstate),intent(in) :: invar 
-!                              An atmstate variable (see mod_main)
+!                              An atmstate variable (see mod_atm_interface)
 !                              that contains the u and v variables
 !                              that need to be interpolated.  This
 !                              variable is not modified by this
 !                              routine.
 !
 ! type(atmstate),intent(inout) :: outvar 
-!                              An atmstate variable (see mod_main)
+!                              An atmstate variable (see mod_atm_interface)
 !                              that contains the u and v variables
 !                              that will be overwritten by the
 !                              interpolation of invar%u and invar%v.

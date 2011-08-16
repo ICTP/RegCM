@@ -26,7 +26,7 @@ module mod_che_aerosol
   use mod_message
   use mod_chem
   use mod_che_indices
-  use mod_che_main
+  use mod_che_interface
   use mod_che_trac
 !
   private

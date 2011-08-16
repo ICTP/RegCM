@@ -22,9 +22,8 @@ module mod_cu_em
 ! Kerry Emanuel Convective scheme
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_pmoist
-  use mod_cvaria
   use mod_slice
   use mod_rad
   use mod_bats
@@ -79,12 +78,12 @@ module mod_cu_em
         kk = kzp1 - k
         cldlwc(i,k) = d_zero       ! Zero out cloud water content
         cldfra(i,k) = d_zero       ! Zero out cloud fraction coverage
-        tcup(k) = tb3d(i,kk,j)                          ! [k]
-        qcup(k) = qvb3d(i,kk,j)/(d_one+qvb3d(i,kk,j))   ! [kg/kg]
-        qscup(k) = qsb3d(i,kk,j)/(d_one+qsb3d(i,kk,j))  ! [kg/kg]
-        ucup(k) = ubx3d(i,kk,j)                         ! [m/s]
-        vcup(k) = vbx3d(i,kk,j)                         ! [m/s]
-        pcup(k) = pb3d(i,kk,j)*d_10                     ! [hPa]
+        tcup(k) = atms%tb3d(i,kk,j)                          ! [k]
+        qcup(k) = atms%qvb3d(i,kk,j)/(d_one+atms%qvb3d(i,kk,j))   ! [kg/kg]
+        qscup(k) = atms%qsb3d(i,kk,j)/(d_one+atms%qsb3d(i,kk,j))  ! [kg/kg]
+        ucup(k) = atms%ubx3d(i,kk,j)                         ! [m/s]
+        vcup(k) = atms%vbx3d(i,kk,j)                         ! [m/s]
+        pcup(k) = atms%pb3d(i,kk,j)*d_10                     ! [hPa]
       end do
       do k = 1 , kzp1
         kk = kzp1 - k + 1

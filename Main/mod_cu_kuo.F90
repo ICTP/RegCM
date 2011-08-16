@@ -23,8 +23,7 @@ module mod_cu_kuo
 ! The basic method follows Anthes and Keyser (1979) and Kuo (1983).
 !
   use mod_runparams
-  use mod_main
-  use mod_cvaria
+  use mod_atm_interface
   use mod_pmoist
   use mod_rad
   use mod_bats

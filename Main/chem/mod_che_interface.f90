@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_che_main
+module mod_che_interface
 
   use m_realkinds
   use mod_dynparam
@@ -36,24 +36,24 @@ module mod_che_main
                                            wdlsc , wxaq , wxsg
   contains 
 
-  subroutine allocate_mod_che_main
+  subroutine allocate_mod_che_interface
     implicit none
     if ( lch ) then
       call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
       call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
       call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')
-      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_main:chemsrc')
-      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_main:chia')
-      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_main:chib')
-      call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_main:srclp2')
-      call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_main:ddsfc')
-      call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_che_main:dtrace')
-      call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_che_main:wdcvc')
-      call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_main:wdlsc')
-      call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_main:wxaq')
-      call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_main:wxsg')
+      call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_interface:chemsrc')
+      call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_interface:chia')
+      call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_interface:chib')
+      call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_interface:srclp2')
+      call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_interface:ddsfc')
+      call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_che_interface:dtrace')
+      call getmem3d(wdcvc,1,iy,1,jxp,1,ntr,'mod_che_interface:wdcvc')
+      call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_interface:wdlsc')
+      call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_interface:wxaq')
+      call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_interface:wxsg')
     end if
 
-  end subroutine allocate_mod_che_main
+  end subroutine allocate_mod_che_interface
 !
-end module mod_che_main
+end module mod_che_interface

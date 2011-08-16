@@ -23,7 +23,7 @@ module mod_params
   use mod_pmoist
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
-  use mod_main
+  use mod_atm_interface
   use mod_che_trac
   use mod_message
   use mod_cu_bm
@@ -42,8 +42,7 @@ module mod_params
   use mod_cldfrac
   use mod_che_dust
   use mod_bdycod
-  use mod_che_main
-  use mod_cvaria
+  use mod_che_interface
   use mod_leaftemp
   use mod_o3blk
   use mod_ncio
@@ -658,19 +657,17 @@ module mod_params
 !
   if ( lakemod == 1 ) call allocate_lake
   call allocate_mod_tend(lband)
+  call allocate_mod_atm_interface
   call allocate_mod_bats
   call allocate_mod_bdycon
   call allocate_mod_holtbl
-  call allocate_mod_cvaria
   call allocate_mod_leaftemp
-  call allocate_mod_main
   call allocate_mod_outrad
   call allocate_mod_o3blk
   call allocate_mod_pbldim
   call allocate_mod_pmoist
   call allocate_mod_radiation 
   call allocate_mod_rad
-  call allocate_mod_slice
   call allocate_mod_split
   call allocate_mod_runparams
   call allocate_mod_mppio(lband)
@@ -681,9 +678,9 @@ module mod_params
   call allocate_mod_diagnosis
 #endif
 
-  call init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,sps1%ps,rhb3d)
+  call init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,sps1%ps,atms%rhb3d)
   call allocate_mod_che_mppio(lband)
-  call allocate_mod_che_main
+  call allocate_mod_che_interface
   call allocate_mod_che_trac
   call allocate_mod_che_aerosol
   call allocate_mod_che_dust

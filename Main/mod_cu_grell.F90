@@ -20,8 +20,7 @@
 module mod_cu_grell
 
   use mod_runparams
-  use mod_main
-  use mod_cvaria
+  use mod_atm_interface
   use mod_bats
   use mod_pmoist
   use mod_rad

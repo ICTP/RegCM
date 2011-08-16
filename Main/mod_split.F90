@@ -22,10 +22,10 @@ module mod_split
 ! Split explicit time integration
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_vmodes
   use mod_bdycod
-  use mod_main
+  use mod_atm_interface
   use mod_savefile
   use mod_memutil
   use mod_service

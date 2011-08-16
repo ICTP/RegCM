@@ -22,9 +22,8 @@ module mod_cu_tiedtke
   use m_realkinds
   use mod_dynparam
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_pbldim
-  use mod_cvaria
   use mod_bats
   use mod_pmoist
   use mod_constants

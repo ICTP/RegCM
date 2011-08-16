@@ -69,7 +69,7 @@ module mod_uwtcm
   use mod_constants
   use mod_pbldim
   use mod_tcm_interface
-  use mod_main , only : atmstate , allocate_atmstate
+  use mod_atm_interface , only : atmstate , allocate_atmstate
   use mod_message , only : fatal
   use mod_thetal , only : solve_for_t
 
@@ -222,7 +222,7 @@ module mod_uwtcm
     call allocate_tcm_state(uwstatea,.true.)
     call allocate_tcm_state(uwstateb,.true.)
 
-    ! TODO: This is a bit of an odd call (from mod_main.F90) because the
+    ! TODO: This is a bit of an odd call (from mod_atm_interface.F90) because the
     ! bounds of the uwtend variables are not guaranteed to be consistent with
     ! the i and j tcmend variables
     ! The 1 is necessary in the 3rd index to have j go from 0:jxp becuase the

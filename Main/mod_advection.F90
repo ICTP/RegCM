@@ -22,7 +22,7 @@ module mod_advection
 ! Horizontal and vertical advection.
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_service
   private
  

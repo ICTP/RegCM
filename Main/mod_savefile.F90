@@ -24,8 +24,8 @@ module mod_savefile
   use mod_bats
   use mod_lake, only : lakesav_i, lakesav_o
   use mod_pmoist
-  use mod_main
-  use mod_che_main
+  use mod_atm_interface
+  use mod_che_interface
   use mod_bdycod
   use mod_rad
   use mod_che_trac

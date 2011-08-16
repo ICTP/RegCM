@@ -24,7 +24,7 @@ module mod_che_semdde
   use m_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_che_main
+  use mod_che_interface
   use mod_che_trac
   use mod_che_dust
   use mod_che_aerosol

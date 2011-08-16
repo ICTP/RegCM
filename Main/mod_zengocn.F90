@@ -23,7 +23,7 @@ module mod_zengocn
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
   use mod_runparams
-  use mod_main
+  use mod_atm_interface
   use mod_pbldim
   use mod_slice
   use mod_bats
@@ -97,10 +97,10 @@ module mod_zengocn
 #else
         if ( ocld2d(n,i,j) == 0 ) then
 #endif
-          uv995 = dsqrt(ubx3d(i,kz,j)**d_two+vbx3d(i,kz,j)**d_two)
+          uv995 = dsqrt(atms%ubx3d(i,kz,j)**d_two+atms%vbx3d(i,kz,j)**d_two)
           tsurf = sts2%tg(i,j) - tzero
-          t995 = tb3d(i,kz,j) - tzero
-          q995 = qvb3d(i,kz,j)/(d_one+qvb3d(i,kz,j))
+          t995 = atms%tb3d(i,kz,j) - tzero
+          q995 = atms%qvb3d(i,kz,j)/(d_one+atms%qvb3d(i,kz,j))
           z995 = za(i,kz,j)
           zi = sfsta%zpbl(i,j)
           psurf = (sps2%ps(i,j)+r8pt)*d_10
@@ -202,8 +202,8 @@ module mod_zengocn
 !         Back out Drag Coefficient
           drag1d(n,i) = ustar**d_two*rhox2d(i,j)/uv995
           facttq = dlog(z995*d_half)/dlog(z995/zo)
-          u10m1d(n,i) = ubx3d(i,kz,j)*uv10/uv995
-          v10m1d(n,i) = vbx3d(i,kz,j)*uv10/uv995
+          u10m1d(n,i) = atms%ubx3d(i,kz,j)*uv10/uv995
+          v10m1d(n,i) = atms%vbx3d(i,kz,j)*uv10/uv995
           t2m1d(n,i) = t995 + tzero - dth*facttq
 !
           if ( mod(ntime+ntsec,nsrffrq) == 0 .or. &

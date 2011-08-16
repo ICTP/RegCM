@@ -19,49 +19,21 @@
 
 module mod_slice
 !
-! Prepare and fill 3D spaces for calculations
+! Fill 3D spaces for calculations
 !
   use mod_runparams
-  use mod_memutil
-  use mod_main
-  use mod_che_main
+  use mod_atm_interface
+  use mod_che_interface
   use mod_pbldim
   use mod_pmoist
 !
   private
 !
-  public :: chib3d , pb3d , qsb3d , rhb3d , rhob3d , ubx3d , vbx3d
-  public :: qcb3d , qvb3d , tb3d , ubd3d , vbd3d
-!
-  public :: allocate_mod_slice , slice
-!
-  real(8) , pointer , dimension(:,:,:,:) :: chib3d
-  real(8) , pointer , dimension(:,:,:) :: pb3d , qsb3d , rhb3d ,  &
-                                   rhob3d , ubx3d , vbx3d
-  real(8)  , pointer , dimension(:,:,:) :: qcb3d , qvb3d , tb3d ,  &
-                                   ubd3d , vbd3d
+  public :: mkslice
 !
   contains 
 !
-  subroutine allocate_mod_slice
-    implicit none
-    call getmem3d(pb3d,1,iy,1,kz,1,jxp,'mod_slice:pb3d')
-    call getmem3d(qsb3d,1,iy,1,kz,1,jxp,'mod_slice:qsb3d')
-    call getmem3d(rhb3d,1,iy,1,kz,1,jxp,'mod_slice:rhb3d')
-    call getmem3d(rhob3d,1,iy,1,kz,1,jxp,'mod_slice:rhob3d')
-    call getmem3d(ubx3d,1,iy,1,kz,1,jxp,'mod_slice:ubx3d')
-    call getmem3d(vbx3d,1,iy,1,kz,1,jxp,'mod_slice:vbx3d')
-    call getmem3d(qcb3d,1,iy,1,kz,-1,jxp+2,'mod_slice:qcb3d')
-    call getmem3d(qvb3d,1,iy,1,kz,-1,jxp+2,'mod_slice:qvb3d')
-    call getmem3d(tb3d,1,iy,1,kz,-1,jxp+2,'mod_slice:tb3d')
-    call getmem3d(ubd3d,1,iy,1,kz,-1,jxp+2,'mod_slice:ubd3d')
-    call getmem3d(vbd3d,1,iy,1,kz,-1,jxp+2,'mod_slice:vbd3d')
-    if ( ichem == 1 ) then
-      call getmem4d(chib3d,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_slice:chib3d')
-    end if
-  end subroutine allocate_mod_slice
-!
-  subroutine slice
+  subroutine mkslice
  
   implicit none
 !
@@ -71,12 +43,12 @@ module mod_slice
   do j = 1 , jendx
     do k = 1 , kz
       do i = 1 , iym1
-        tb3d(i,k,j) = atm2%t(i,k,j)/sps2%ps(i,j)
-        qvb3d(i,k,j) = atm2%qv(i,k,j)/sps2%ps(i,j)
-        qcb3d(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
+        atms%tb3d(i,k,j) = atm2%t(i,k,j)/sps2%ps(i,j)
+        atms%qvb3d(i,k,j) = atm2%qv(i,k,j)/sps2%ps(i,j)
+        atms%qcb3d(i,k,j) = atm2%qc(i,k,j)/sps2%ps(i,j)
         if ( ichem == 1 ) then
           do n = 1 , ntr
-            chib3d(i,k,j,n) = chib(i,k,j,n)/sps2%ps(i,j)
+            atms%chib3d(i,k,j,n) = chib(i,k,j,n)/sps2%ps(i,j)
           end do
         end if
       end do
@@ -93,10 +65,10 @@ module mod_slice
       do i = 1 , iym1
         idx = max0(i,2)
         idxp1 = min0(i+1,iym1)
-        ubx3d(i,k,j) = d_rfour* & 
+        atms%ubx3d(i,k,j) = d_rfour* & 
             (atm2%u(idx,k,jdx)+atm2%u(idxp1,k,jdx)+ &
              atm2%u(idx,k,jdxp1)+atm2%u(idxp1,k,jdxp1))/sps2%ps(i,j)
-        vbx3d(i,k,j) = d_rfour* &
+        atms%vbx3d(i,k,j) = d_rfour* &
             (atm2%v(idx,k,jdx)+atm2%v(idxp1,k,jdx)+ &
              atm2%v(idx,k,jdxp1)+atm2%v(idxp1,k,jdxp1))/sps2%ps(i,j)
       end do
@@ -106,8 +78,8 @@ module mod_slice
   do j = 1 , jendl
     do k = 1 , kz
       do i = 1 , iy
-        ubd3d(i,k,j) = atm2%u(i,k,j)/sps2%pdot(i,j)
-        vbd3d(i,k,j) = atm2%v(i,k,j)/sps2%pdot(i,j)
+        atms%ubd3d(i,k,j) = atm2%u(i,k,j)/sps2%pdot(i,j)
+        atms%vbd3d(i,k,j) = atm2%v(i,k,j)/sps2%pdot(i,j)
       end do
     end do
   end do
@@ -117,8 +89,8 @@ module mod_slice
       do i = 2 , iym1
         pl = a(k)*sps2%ps(i,j) + r8pt
         thcon = ((sps2%ps(i,j)+r8pt)/pl)**rovcp
-        pb3d(i,k,j) = pl
-        thx3d(i,k,j) = tb3d(i,k,j)*thcon
+        atms%pb3d(i,k,j) = pl
+        atms%thx3d(i,k,j) = atms%tb3d(i,k,j)*thcon
       end do
     end do
   end do
@@ -132,7 +104,7 @@ module mod_slice
       k = kzp1 - kk
       do i = 2 , iym1
         cell = r8pt/sps2%ps(i,j)
-        zq(i,k) = zq(i,k+1) + rovg*tb3d(i,k,j) *  &
+        zq(i,k) = zq(i,k+1) + rovg*atms%tb3d(i,k,j) *  &
                   dlog((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
     end do
@@ -148,27 +120,29 @@ module mod_slice
 
     do i = 2 , iym1
       psrf = (sps2%ps(i,j)+r8pt)*d_1000
-      tv = tb3d(i,kz,j)
+      tv = atms%tb3d(i,kz,j)
       rhox2d(i,j) = psrf/(rgas*tv)
     end do
     do k = 1 , kz
       do i = 2 , iym2
         pres = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
-        rhob3d(i,k,j) = pres/(rgas*tb3d(i,k,j)) !air density
-        if ( tb3d(i,k,j) > tzero ) then
-          satvp = svp1*d_1000*dexp(svp2*(tb3d(i,k,j)-tzero)           &
-                & /(tb3d(i,k,j)-svp3))
+        atms%rhob3d(i,k,j) = pres/(rgas*atms%tb3d(i,k,j)) !air density
+        if ( atms%tb3d(i,k,j) > tzero ) then
+          satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(i,k,j)-tzero)           &
+                & /(atms%tb3d(i,k,j)-svp3))
         else
-          satvp = svp4*d_1000*dexp(svp5-svp6/tb3d(i,k,j))
+          satvp = svp4*d_1000*dexp(svp5-svp6/atms%tb3d(i,k,j))
         end if
-        qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
+        atms%qsb3d(i,k,j) = ep2*satvp/(pres-satvp)
         rh = d_zero
-        if ( qsb3d(i,k,j) > d_zero ) rh = qvb3d(i,k,j)/qsb3d(i,k,j)
-        rhb3d(i,k,j) = rh
+        if ( atms%qsb3d(i,k,j) > d_zero ) then
+          rh = atms%qvb3d(i,k,j)/atms%qsb3d(i,k,j)
+        end if
+        atms%rhb3d(i,k,j) = rh
       end do
     end do
   end do
  
-  end subroutine slice
+  end subroutine mkslice
 !
 end module mod_slice

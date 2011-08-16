@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_clm
   use mod_bats
   use mod_mppio
-  use mod_main
+  use mod_atm_interface
   use mod_pbldim
   use mod_slice
   use mod_bats

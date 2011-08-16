@@ -28,7 +28,7 @@ module mod_vecbats
   use mod_pbldim
   use mod_bndry
   use mod_drag
-  use mod_main
+  use mod_atm_interface
   use mod_service
   use mod_mppio
 
@@ -322,8 +322,8 @@ module mod_vecbats
       do i = istart, iend
         do n = 1 , nnsg
           p1d0(n,i) = (sps2%ps(i,j)+r8pt)*d_1000
-          ts1d0(n,i) = thx3d(i,kz,j)
-          qs1d0(n,i) = qvb3d(i,kz,j)/(d_one+qvb3d(i,kz,j))
+          ts1d0(n,i) = atms%thx3d(i,kz,j)
+          qs1d0(n,i) = atms%qvb3d(i,kz,j)/(d_one+atms%qvb3d(i,kz,j))
           qs1d(n,i) = qs1d0(n,i)
  
           hl = lh0 - lh1*(ts1d0(n,i)-tzero)
@@ -385,8 +385,8 @@ module mod_vecbats
           qs1d(n,i) = dmax1(qs1d(n,i)-rh0,d_zero)
         end do
  
-        us1d(i) = ubx3d(i,kz,j)
-        vs1d(i) = vbx3d(i,kz,j)
+        us1d(i) = atms%ubx3d(i,kz,j)
+        vs1d(i) = atms%vbx3d(i,kz,j)
         fsw1d(i) = fsw2d(i,j)
         flw1d(i) = flw2d(i,j)
         solis(i) = sol2d(i,j)
@@ -1131,7 +1131,7 @@ module mod_vecbats
         amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
         sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
         veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-        ts1d(n,i) = thx3d(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-mddom%ht(i,j))
+        ts1d(n,i) = atms%thx3d(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-mddom%ht(i,j))
         scv1d(n,i) = scv2d(n,i,j)
         sag1d(n,i) = sag2d(n,i,j)
       end do

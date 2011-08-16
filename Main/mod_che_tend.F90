@@ -22,9 +22,8 @@ module mod_che_tend
 ! Tendency and budget for tracer transport and chemicals
 !
   use mod_runparams
-  use mod_main
-  use mod_che_main
-  use mod_cvaria
+  use mod_atm_interface
+  use mod_che_interface
   use mod_che_trac
   use mod_pbldim
   use mod_bats
@@ -140,7 +139,8 @@ module mod_che_tend
       call vadv(chiten(:,:,j,itr),qdot,chia(:,:,j,itr),j,5,kpbl(:,j))
 !     horizontal diffusion: initialize scratch vars to 0.
 !     need to compute tracer tendencies due to diffusion
-      call diffu_x(chiten(:,:,j,itr),chib3d(:,:,:,itr),sps2%ps,xkc(:,:,j),j,kz)
+      call diffu_x(chiten(:,:,j,itr),atms%chib3d(:,:,:,itr), &
+                   sps2%ps,xkc(:,:,j),j,kz)
    
     end do ! end tracer loop
    

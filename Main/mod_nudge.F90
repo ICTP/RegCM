@@ -23,7 +23,7 @@
 !
       use mod_runparams
       use mod_bdycod
-      use mod_main
+      use mod_atm_interface
       use mod_service
 !
       private

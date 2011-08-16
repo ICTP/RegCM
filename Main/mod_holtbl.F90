@@ -23,10 +23,9 @@ module mod_holtbl
 ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
 !
   use mod_runparams
-  use mod_main
-  use mod_che_main
+  use mod_atm_interface
+  use mod_che_interface
   use mod_pbldim
-  use mod_cvaria
   use mod_pmoist
   use mod_bats
   use mod_slice
@@ -192,7 +191,7 @@ module mod_holtbl
   do j = jbegin , jendx
     do k = 1 , kz
       do i = 2 , iym1
-        thvx(i,k,j) = thx3d(i,k,j)*(d_one+ep1*qvb3d(i,k,j))
+        thvx(i,k,j) = atms%thx3d(i,k,j)*(d_one+ep1*atms%qvb3d(i,k,j))
         qcx(i,k,j)  = atm2%qc(i,k,j)/sps2%ps(i,j)
       end do
     end do
@@ -210,7 +209,7 @@ module mod_holtbl
     end do
 !
     do i = 2 , iym1
-      govrth(i) = egrav/thx3d(i,kz,j)
+      govrth(i) = egrav/atms%thx3d(i,kz,j)
     end do
 !
 ! *********************************************************************
@@ -230,10 +229,10 @@ module mod_holtbl
     do k = 2 , kz
       do i = 2 , iym1
         kzmax = 0.8D0*dza(i,k-1,j)*dzq(i,k,j)/dt
-        ss = ((ubx3d(i,k-1,j)-ubx3d(i,k,j))*   &
-              (ubx3d(i,k-1,j)-ubx3d(i,k,j))+   &
-              (vbx3d(i,k-1,j)-vbx3d(i,k,j))*   &
-              (vbx3d(i,k-1,j)-vbx3d(i,k,j)))/  &
+        ss = ((atms%ubx3d(i,k-1,j)-atms%ubx3d(i,k,j))*   &
+              (atms%ubx3d(i,k-1,j)-atms%ubx3d(i,k,j))+   &
+              (atms%vbx3d(i,k-1,j)-atms%vbx3d(i,k,j))*   &
+              (atms%vbx3d(i,k-1,j)-atms%vbx3d(i,k,j)))/  &
               (dza(i,k-1,j)*dza(i,k-1,j)) + 1.0D-9
         ri = govrth(i)*(thvx(i,k-1,j)-thvx(i,k,j))/(ss*dza(i,k-1,j))
         if ( (ri-rc(i,k)) >= d_zero ) then
@@ -280,8 +279,8 @@ module mod_holtbl
       if ( myid == nproc-1 ) jdx = min0(jdx,jendx)
       if ( myid == 0 ) jdxm1 = max0(jdxm1,2)
 #endif
-      uflxsfx = sfsta%uvdrag(idx,jdx)*ubx3d(i,kz,j)
-      vflxsfx = sfsta%uvdrag(idx,jdx)*vbx3d(i,kz,j)
+      uflxsfx = sfsta%uvdrag(idx,jdx)*atms%ubx3d(i,kz,j)
+      vflxsfx = sfsta%uvdrag(idx,jdx)*atms%vbx3d(i,kz,j)
 
       ustr(i,j) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx) / &
                          rhox2d(i,j))
@@ -290,7 +289,7 @@ module mod_holtbl
       xhfx(i,j) = sfsta%hfx(i,j)/(cpd*rhox2d(i,j))
       xqfx(i,j) = sfsta%qfx(i,j)/rhox2d(i,j)
 !         compute virtual heat flux at surface
-      hfxv(i,j) = xhfx(i,j) + mult*thx3d(i,kz,j)*xqfx(i,j)
+      hfxv(i,j) = xhfx(i,j) + mult*atms%thx3d(i,kz,j)*xqfx(i,j)
     end do
 !
 !       estimate potential temperature at 10m via log temperature
@@ -300,19 +299,19 @@ module mod_holtbl
 !
  
     do i = 2 , iym1
-      sh10 = qvb3d(i,kz,j)/(qvb3d(i,kz,j)+d_one)
-!         th10(i,j) = ((thx3d(i,kz,j)+sts2%tg(i,j))*d_half)*(d_one+mult*sh10)
-!         th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)* &
-!                     dlog(za(i,kz,j)*d_r10)
+      sh10 = atms%qvb3d(i,kz,j)/(atms%qvb3d(i,kz,j)+d_one)
+!     th10(i,j) = ((atms%thx3d(i,kz,j)+sts2%tg(i,j))*d_half)*(d_one+mult*sh10)
+!     th10(i,j) = thvx(i,kz,j) + hfxv(i,j)/(vonkar*ustr(i,j)* &
+!                 dlog(za(i,kz,j)*d_r10)
  
-!         "virtual" potential temperature
+!     "virtual" potential temperature
       if ( hfxv(i,j) >= d_zero ) then
         th10(i,j) = thvx(i,kz,j)
       else
-!           th10(i,j) =
-!----       (0.25*thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+mult*sh10) first
-!           approximation for obhukov length
-        oblen = -d_half*(thx3d(i,kz,j)+sts2%tg(i,j)) *  &
+!       th10(i,j) =
+!----    (0.25*atms%thx3d(i,kz,j)+0.75*sts2%tg(i,j))*(d_one+mult*sh10) first
+!       approximation for obhukov length
+        oblen = -d_half*(atms%thx3d(i,kz,j)+sts2%tg(i,j)) *  &
                 (d_one+mult*sh10)*ustr(i,j)**d_three /  &
                 (egrav*vonkar*(hfxv(i,j)+dsign(1.0D-10,hfxv(i,j))))
         if ( oblen >= za(i,kz,j) ) then
@@ -580,20 +579,20 @@ module mod_holtbl
  
     do i = 2 , iym1
       coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = thx3d(i,1,j)/coef2(i,1)
+      coeff1(i,1) = atms%thx3d(i,1,j)/coef2(i,1)
     end do
  
     do k = 2 , kz - 1
       do i = 2 , iym1
         coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
+        coeff1(i,k) = (atms%thx3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
                       (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
       end do
     end do
  
     do i = 2 , iym1
       coefe(i,kz) = d_zero
-      coeff1(i,kz) = (thx3d(i,kz,j) + &
+      coeff1(i,kz) = (atms%thx3d(i,kz,j) + &
              dt*alphak(i,kz)*sfsta%hfx(i,j)*rcpd + &
                coef3(i,kz)*coeff1(i,kz-1)) /       &
                (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
@@ -620,9 +619,9 @@ module mod_holtbl
 !
     do k = 1 , kz
       do i = 2 , iym1
-        sf = atm2%t(i,k,j)/thx3d(i,k,j)
+        sf = atm2%t(i,k,j)/atms%thx3d(i,k,j)
         difft(i,k,j) = difft(i,k,j) + &
-                       (tpred1(i,k)-thx3d(i,k,j))/dt*sf
+                       (tpred1(i,k)-atms%thx3d(i,k,j))/dt*sf
       end do
     end do
 !
@@ -659,20 +658,20 @@ module mod_holtbl
  
     do i = 2 , iym1
       coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = qvb3d(i,1,j)/coef2(i,1)
+      coeff1(i,1) = atms%qvb3d(i,1,j)/coef2(i,1)
     end do
  
     do k = 2 , kz - 1
       do i = 2 , iym1
         coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
+        coeff1(i,k) = (atms%qvb3d(i,k,j)+coef3(i,k)*coeff1(i,k-1)) / &
                        (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
       end do
     end do
  
     do i = 2 , iym1
       coefe(i,kz) = d_zero
-      coeff1(i,kz) = (qvb3d(i,kz,j) + &
+      coeff1(i,kz) = (atms%qvb3d(i,kz,j) + &
                dt*alphak(i,kz)*sfsta%qfx(i,j) + &
                coef3(i,kz)*coeff1(i,kz-1)) /    &
                (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
@@ -808,7 +807,7 @@ module mod_holtbl
 !trapuv_
     do k = 2 , kz
       do i = 2 , iym1
-        sf = atm2%t(i,k,j)/(sps2%ps(i,j)*thx3d(i,k,j))
+        sf = atm2%t(i,k,j)/(sps2%ps(i,j)*atms%thx3d(i,k,j))
         ttnp(i,k) = sf*cpd*rhohf(i,k-1,j)*kvh(i,k,j)*cgh(i,k,j)
       end do
     end do
@@ -1010,7 +1009,8 @@ module mod_holtbl
  
     do k = kz , kt , -1
       do i = 2 , iym1
-        vv = ubx3d(i,k,j)*ubx3d(i,k,j) + vbx3d(i,k,j)*vbx3d(i,k,j)
+        vv = atms%ubx3d(i,k,j)*atms%ubx3d(i,k,j) + &
+             atms%vbx3d(i,k,j)*atms%vbx3d(i,k,j)
         ri(i,k) = egrav*(thvx(i,k,j)-th10(i,j))*za(i,k,j)/ &
                         (th10(i,j)*vv)
       end do
@@ -1049,9 +1049,9 @@ module mod_holtbl
         xfmt = (d_one-(binm*sfsta%zpbl(i,j)/obklen(i,j)))**onet
         wsc = ustr(i,j)*xfmt
 !           ******   thermal temperature excess
-        therm(i) = (xhfx(i,j)+mult*thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
-        vvl = ubx3d(i,kz,j)*ubx3d(i,kz,j) + &
-              vbx3d(i,kz,j)*vbx3d(i,kz,j)
+        therm(i) = (xhfx(i,j)+mult*atms%thx3d(i,kz,j)*xqfx(i,j))*fak/wsc
+        vvl = atms%ubx3d(i,kz,j)*atms%ubx3d(i,kz,j) + &
+              atms%vbx3d(i,kz,j)*atms%vbx3d(i,kz,j)
         ri(i,kz) = -egrav*therm(i)*za(i,kz,j)/(th10(i,j)*vvl)
       end if
     end do
@@ -1061,9 +1061,10 @@ module mod_holtbl
       do i = 2 , iym1
         if ( hfxv(i,j) > d_zero ) then
           tlv = th10(i,j) + therm(i)
-          tkv = thx3d(i,k,j) * &
-                (d_one+mult*(qvb3d(i,k,j)/(qvb3d(i,k,j)+d_one)))
-          vv = ubx3d(i,k,j)*ubx3d(i,k,j)+vbx3d(i,k,j)*vbx3d(i,k,j)
+          tkv = atms%thx3d(i,k,j) * &
+                (d_one+mult*(atms%qvb3d(i,k,j)/(atms%qvb3d(i,k,j)+d_one)))
+          vv = atms%ubx3d(i,k,j)*atms%ubx3d(i,k,j)+ &
+               atms%vbx3d(i,k,j)*atms%vbx3d(i,k,j)
           ri(i,k) = egrav*(tkv-tlv)*za(i,k,j)/(th10(i,j)*vv)
         end if
       end do

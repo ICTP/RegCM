@@ -24,8 +24,8 @@ module mod_diagnosis
 #ifndef BAND
 
   use mod_runparams
-  use mod_main
-  use mod_che_main
+  use mod_atm_interface
+  use mod_che_interface
   use mod_che_trac
   use mod_mppio
   use mod_memutil

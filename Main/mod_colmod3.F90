@@ -89,7 +89,7 @@ module mod_colmod3
   use mod_runparams
   use mod_bats
   use mod_radiation
-  use mod_main
+  use mod_atm_interface
   use mod_rad
   use mod_outrad
 !

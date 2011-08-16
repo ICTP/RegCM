@@ -20,10 +20,9 @@
 module mod_tendency
 
   use mod_runparams
-  use mod_main
-  use mod_che_main
+  use mod_atm_interface
+  use mod_che_interface
   use mod_bdycod
-  use mod_cvaria
   use mod_pmoist
   use mod_precip
   use mod_rad
@@ -598,7 +597,7 @@ module mod_tendency
 !
 !=======================================================================
 !
-    call slice
+    call mkslice
 
 #ifdef CLM
     if ( init_grid ) then
@@ -614,16 +613,16 @@ module mod_tendency
 #endif
       do k = 1 , kz
         do i = 1 , iy
-          var2snd(i,+k)     = ubd3d(i,k,jxp-1)
-          var2snd(i,kz+k)   = ubd3d(i,k,jxp)
-          var2snd(i,kz*2+k) = vbd3d(i,k,jxp-1)
-          var2snd(i,kz*3+k) = vbd3d(i,k,jxp)
-          var2snd(i,kz*4+k) = tb3d(i,k,jxp-1)
-          var2snd(i,kz*5+k) = tb3d(i,k,jxp)
-          var2snd(i,kz*6+k) = qvb3d(i,k,jxp-1)
-          var2snd(i,kz*7+k) = qvb3d(i,k,jxp)
-          var2snd(i,kz*8+k) = qcb3d(i,k,jxp-1)
-          var2snd(i,kz*9+k) = qcb3d(i,k,jxp)
+          var2snd(i,+k)     = atms%ubd3d(i,k,jxp-1)
+          var2snd(i,kz+k)   = atms%ubd3d(i,k,jxp)
+          var2snd(i,kz*2+k) = atms%vbd3d(i,k,jxp-1)
+          var2snd(i,kz*3+k) = atms%vbd3d(i,k,jxp)
+          var2snd(i,kz*4+k) = atms%tb3d(i,k,jxp-1)
+          var2snd(i,kz*5+k) = atms%tb3d(i,k,jxp)
+          var2snd(i,kz*6+k) = atms%qvb3d(i,k,jxp-1)
+          var2snd(i,kz*7+k) = atms%qvb3d(i,k,jxp)
+          var2snd(i,kz*8+k) = atms%qcb3d(i,k,jxp-1)
+          var2snd(i,kz*9+k) = atms%qcb3d(i,k,jxp)
         end do
       end do
       numrec = kz*10
@@ -631,8 +630,8 @@ module mod_tendency
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              var2snd(i,numrec+(n-1)*2*kz+k)    = chib3d(i,k,jxp-1,n)
-              var2snd(i,numrec+(n-1)*2*kz+kz+k) = chib3d(i,k,jxp,n)
+              var2snd(i,numrec+(n-1)*2*kz+k)    = atms%chib3d(i,k,jxp-1,n)
+              var2snd(i,numrec+(n-1)*2*kz+kz+k) = atms%chib3d(i,k,jxp,n)
             end do
           end do
         end do
@@ -662,16 +661,16 @@ module mod_tendency
 #endif
       do k = 1 , kz
         do i = 1 , iy
-          ubd3d(i,k,-1) = var2rcv(i,+k)
-          ubd3d(i,k,0) = var2rcv(i,kz+k)
-          vbd3d(i,k,-1) = var2rcv(i,kz*2+k)
-          vbd3d(i,k,0) = var2rcv(i,kz*3+k)
-          tb3d(i,k,-1) = var2rcv(i,kz*4+k)
-          tb3d(i,k,0) = var2rcv(i,kz*5+k)
-          qvb3d(i,k,-1) = var2rcv(i,kz*6+k)
-          qvb3d(i,k,0) = var2rcv(i,kz*7+k)
-          qcb3d(i,k,-1) = var2rcv(i,kz*8+k)
-          qcb3d(i,k,0) = var2rcv(i,kz*9+k)
+          atms%ubd3d(i,k,-1) = var2rcv(i,+k)
+          atms%ubd3d(i,k,0) = var2rcv(i,kz+k)
+          atms%vbd3d(i,k,-1) = var2rcv(i,kz*2+k)
+          atms%vbd3d(i,k,0) = var2rcv(i,kz*3+k)
+          atms%tb3d(i,k,-1) = var2rcv(i,kz*4+k)
+          atms%tb3d(i,k,0) = var2rcv(i,kz*5+k)
+          atms%qvb3d(i,k,-1) = var2rcv(i,kz*6+k)
+          atms%qvb3d(i,k,0) = var2rcv(i,kz*7+k)
+          atms%qcb3d(i,k,-1) = var2rcv(i,kz*8+k)
+          atms%qcb3d(i,k,0) = var2rcv(i,kz*9+k)
         end do
       end do
       numrec = kz*10
@@ -679,8 +678,8 @@ module mod_tendency
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              chib3d(i,k,-1,n) = var2rcv(i,kz*10+(n-1)*2*kz+k)
-              chib3d(i,k,0,n) = var2rcv(i,kz*10+(n-1)*2*kz+kz+k)
+              atms%chib3d(i,k,-1,n) = var2rcv(i,kz*10+(n-1)*2*kz+k)
+              atms%chib3d(i,k,0,n) = var2rcv(i,kz*10+(n-1)*2*kz+kz+k)
             end do
           end do
         end do
@@ -701,16 +700,16 @@ module mod_tendency
 #endif
       do k = 1 , kz
         do i = 1 , iy
-          var2snd(i,+k) = ubd3d(i,k,1)
-          var2snd(i,kz+k) = ubd3d(i,k,2)
-          var2snd(i,kz*2+k) = vbd3d(i,k,1)
-          var2snd(i,kz*3+k) = vbd3d(i,k,2)
-          var2snd(i,kz*4+k) = tb3d(i,k,1)
-          var2snd(i,kz*5+k) = tb3d(i,k,2)
-          var2snd(i,kz*6+k) = qvb3d(i,k,1)
-          var2snd(i,kz*7+k) = qvb3d(i,k,2)
-          var2snd(i,kz*8+k) = qcb3d(i,k,1)
-          var2snd(i,kz*9+k) = qcb3d(i,k,2)
+          var2snd(i,+k) = atms%ubd3d(i,k,1)
+          var2snd(i,kz+k) = atms%ubd3d(i,k,2)
+          var2snd(i,kz*2+k) = atms%vbd3d(i,k,1)
+          var2snd(i,kz*3+k) = atms%vbd3d(i,k,2)
+          var2snd(i,kz*4+k) = atms%tb3d(i,k,1)
+          var2snd(i,kz*5+k) = atms%tb3d(i,k,2)
+          var2snd(i,kz*6+k) = atms%qvb3d(i,k,1)
+          var2snd(i,kz*7+k) = atms%qvb3d(i,k,2)
+          var2snd(i,kz*8+k) = atms%qcb3d(i,k,1)
+          var2snd(i,kz*9+k) = atms%qcb3d(i,k,2)
         end do
       end do
       numrec = kz*10
@@ -718,8 +717,8 @@ module mod_tendency
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              var2snd(i,numrec+(n-1)*2*kz+k) = chib3d(i,k,1,n)
-              var2snd(i,numrec+(n-1)*2*kz+kz+k) = chib3d(i,k,2,n)
+              var2snd(i,numrec+(n-1)*2*kz+k) = atms%chib3d(i,k,1,n)
+              var2snd(i,numrec+(n-1)*2*kz+kz+k) = atms%chib3d(i,k,2,n)
             end do
           end do
         end do
@@ -749,16 +748,16 @@ module mod_tendency
 #endif
       do k = 1 , kz
         do i = 1 , iy
-          ubd3d(i,k,jxp+1) = var2rcv(i,+k)
-          ubd3d(i,k,jxp+2) = var2rcv(i,kz+k)
-          vbd3d(i,k,jxp+1) = var2rcv(i,kz*2+k)
-          vbd3d(i,k,jxp+2) = var2rcv(i,kz*3+k)
-          tb3d(i,k,jxp+1) = var2rcv(i,kz*4+k)
-          tb3d(i,k,jxp+2) = var2rcv(i,kz*5+k)
-          qvb3d(i,k,jxp+1) = var2rcv(i,kz*6+k)
-          qvb3d(i,k,jxp+2) = var2rcv(i,kz*7+k)
-          qcb3d(i,k,jxp+1) = var2rcv(i,kz*8+k)
-          qcb3d(i,k,jxp+2) = var2rcv(i,kz*9+k)
+          atms%ubd3d(i,k,jxp+1) = var2rcv(i,+k)
+          atms%ubd3d(i,k,jxp+2) = var2rcv(i,kz+k)
+          atms%vbd3d(i,k,jxp+1) = var2rcv(i,kz*2+k)
+          atms%vbd3d(i,k,jxp+2) = var2rcv(i,kz*3+k)
+          atms%tb3d(i,k,jxp+1) = var2rcv(i,kz*4+k)
+          atms%tb3d(i,k,jxp+2) = var2rcv(i,kz*5+k)
+          atms%qvb3d(i,k,jxp+1) = var2rcv(i,kz*6+k)
+          atms%qvb3d(i,k,jxp+2) = var2rcv(i,kz*7+k)
+          atms%qcb3d(i,k,jxp+1) = var2rcv(i,kz*8+k)
+          atms%qcb3d(i,k,jxp+2) = var2rcv(i,kz*9+k)
         end do
       end do
       numrec = kz*10
@@ -766,8 +765,8 @@ module mod_tendency
         do n = 1 , ntr
           do k = 1 , kz
             do i = 1 , iy
-              chib3d(i,k,jxp+1,n) = var2rcv(i,numrec+(n-1)*2*kz+k)
-              chib3d(i,k,jxp+2,n) = var2rcv(i,numrec+(n-1)*2*kz+kz+k)
+              atms%chib3d(i,k,jxp+1,n) = var2rcv(i,numrec+(n-1)*2*kz+k)
+              atms%chib3d(i,k,jxp+2,n) = var2rcv(i,numrec+(n-1)*2*kz+kz+k)
             end do
           end do
         end do
@@ -1358,7 +1357,7 @@ module mod_tendency
           end do
         end do
 !
-        call diffu_x(difft(:,:,j),tb3d,sps2%ps,xkc(:,:,j),j,kz)
+        call diffu_x(difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
 !
 !       compute the moisture tendencies:
 !
@@ -1426,8 +1425,8 @@ module mod_tendency
 !         completing aten%qv computation, do not use diffq for other
 !         purpose.
 !
-          call diffu_x(diffq(:,:,j),qvb3d,sps2%ps,xkc(:,:,j),j,kz)
-          call diffu_x(aten%qc(:,:,j),qcb3d,sps2%ps,xkc(:,:,j),j,kz)
+          call diffu_x(diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
+          call diffu_x(aten%qc(:,:,j),atms%qcb3d,sps2%ps,xkc(:,:,j),j,kz)
         end if
 !
 !       compute the tracers tendencies
@@ -1746,9 +1745,9 @@ module mod_tendency
         end do
       end do
 !
-      call diffu_d(difuu(:,:,j),ubd3d,sps2%pdot,mddom%msfd, &
+      call diffu_d(difuu(:,:,j),atms%ubd3d,sps2%pdot,mddom%msfd, &
                    xkc(:,:,j),j,1)
-      call diffu_d(difuv(:,:,j),vbd3d,sps2%pdot,mddom%msfd, &
+      call diffu_d(difuv(:,:,j),atms%vbd3d,sps2%pdot,mddom%msfd, &
                    xkc(:,:,j),j,1)
 !
 !     compute the horizontal advection terms for u and v:

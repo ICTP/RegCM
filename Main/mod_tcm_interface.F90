@@ -24,8 +24,7 @@ module mod_tcm_interface
   use mod_runparams
   use mod_slice
   use mod_rad
-  use mod_main
-  use mod_cvaria
+  use mod_atm_interface
   use mod_gridfuncs
   use mod_service
   use mod_pbldim
@@ -184,11 +183,11 @@ module mod_tcm_interface
       jtcmend = jxp 
     end if
 
-    atmstateb%u => ubx3d
-    atmstateb%v => vbx3d
-    atmstateb%t => tb3d
-    atmstateb%qv => qvb3d
-    atmstateb%qc => qcb3d
+    atmstateb%u => atms%ubx3d
+    atmstateb%v => atms%vbx3d
+    atmstateb%t => atms%tb3d
+    atmstateb%qv => atms%qvb3d
+    atmstateb%qc => atms%qcb3d
     atmstateb%tke => atm2%tke
 
     srfstateb%ps => sps2%ps
@@ -511,8 +510,8 @@ module mod_tcm_interface
         dtops = dt/sps2%ps(i,j)
 
         rho1d = d_1000*(dom%a*sps2%ps(i,j) + dom%ptop) / &
-                    ( rgas * tb3d(i,:,j) *  &
-                    (d_one + ep1* qvb3d(i,:,j) - qcb3d(i,:,j))  )
+                    ( rgas * atms%tb3d(i,:,j) *  &
+                    (d_one + ep1* atms%qvb3d(i,:,j) - atms%qcb3d(i,:,j))  )
 
 
         qwtcm = sum((tcmtend%qv(i,:,j) + tcmtend%qc(i,:,j))  &

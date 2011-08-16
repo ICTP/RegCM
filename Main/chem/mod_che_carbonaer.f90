@@ -22,7 +22,7 @@ module mod_che_carbonaer
   use m_realkinds
   use mod_dynparam
   use mod_constants
-  use mod_che_main
+  use mod_che_interface
   use mod_che_trac
   use mod_che_species
   use mod_che_indices
