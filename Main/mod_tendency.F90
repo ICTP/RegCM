@@ -1354,12 +1354,12 @@ module mod_tendency
 !
         do k = 1 , kz
           do i = 1 , iym1
-            difft(i,k,j) = d_zero
-            diffq(i,k,j) = d_zero
+            adf%difft(i,k,j) = d_zero
+            adf%diffq(i,k,j) = d_zero
           end do
         end do
 !
-        call diffu_x(difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
+        call diffu_x(adf%difft(:,:,j),atms%tb3d,sps2%ps,xkc(:,:,j),j,kz)
 !
 !       compute the moisture tendencies:
 !
@@ -1422,7 +1422,7 @@ module mod_tendency
 !
           do k = 1 , kz
             do i = 1 , iym1
-              diffq(i,k,j) = d_zero
+              adf%diffq(i,k,j) = d_zero
             end do
           end do
  
@@ -1431,7 +1431,7 @@ module mod_tendency
 !         completing aten%qv computation, do not use diffq for other
 !         purpose.
 !
-          call diffu_x(diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
+          call diffu_x(adf%diffq(:,:,j),atms%qvb3d,sps2%ps,xkc(:,:,j),j,kz)
           call diffu_x(aten%qc(:,:,j),atms%qcb3d,sps2%ps,xkc(:,:,j),j,kz)
         end if
 !
@@ -1526,7 +1526,7 @@ module mod_tendency
 
     if ( ibltyp == 99 ) then
       call check_conserve_qt(holtten%qv,holtten%qc,uwtend,hdomain,uwstateb,kz)
-      diffq = diffq + holtten%qv
+      adf%diffq = adf%diffq + holtten%qv
       aten%qc = aten%qc + holtten%qc
     end if
 !
@@ -1550,13 +1550,13 @@ module mod_tendency
 !
         do k = 1 , kz
           do i = 2 , iym2
-            aten%t(i,k,j) = aten%t(i,k,j) + difft(i,k,j)
+            aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
           end do
         end do
 !
         do k = 1 , kz
           do i = 2 , iym2
-            aten%qv(i,k,j) = aten%qv(i,k,j) + diffq(i,k,j)
+            aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
           end do
         end do
 !
@@ -1571,24 +1571,24 @@ module mod_tendency
         if ( iboudy == 4 ) then
           do k = 1 , kz
             do i = 2 , iym2
-              aten%t(i,k,j) = aten%t(i,k,j) - difft(i,k,j)
+              aten%t(i,k,j) = aten%t(i,k,j) - adf%difft(i,k,j)
             end do
           end do
           call sponge_t(ispgx,wgtx,aten%t(:,:,j),j)
           do k = 1 , kz
             do i = 2 , iym2
-              aten%t(i,k,j) = aten%t(i,k,j) + difft(i,k,j)
+              aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
             end do
           end do
           do k = 1 , kz
             do i = 2 , iym2
-              aten%qv(i,k,j) = aten%qv(i,k,j) - diffq(i,k,j)
+              aten%qv(i,k,j) = aten%qv(i,k,j) - adf%diffq(i,k,j)
             end do
           end do
           call spongeqv(ispgx,wgtx,aten%qv(:,:,j),j)
           do k = 1 , kz
             do i = 2 , iym2
-              aten%qv(i,k,j) = aten%qv(i,k,j) + diffq(i,k,j)
+              aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
             end do
           end do
         end if
@@ -1746,14 +1746,14 @@ module mod_tendency
 !
       do k = 1 , kz
         do i = 2 , iym1
-          difuu(i,k,j) = aten%u(i,k,j)
-          difuv(i,k,j) = aten%v(i,k,j)
+          adf%difuu(i,k,j) = aten%u(i,k,j)
+          adf%difuv(i,k,j) = aten%v(i,k,j)
         end do
       end do
 !
-      call diffu_d(difuu(:,:,j),atms%ubd3d,sps2%pdot,mddom%msfd, &
+      call diffu_d(adf%difuu(:,:,j),atms%ubd3d,sps2%pdot,mddom%msfd, &
                    xkc(:,:,j),j,1)
-      call diffu_d(difuv(:,:,j),atms%vbd3d,sps2%pdot,mddom%msfd, &
+      call diffu_d(adf%difuv(:,:,j),atms%vbd3d,sps2%pdot,mddom%msfd, &
                    xkc(:,:,j),j,1)
 !
 !     compute the horizontal advection terms for u and v:
@@ -1931,8 +1931,8 @@ module mod_tendency
 !
       do k = 1 , kz
         do i = 2 , iym1
-          aten%u(i,k,j) = aten%u(i,k,j) + difuu(i,k,j)
-          aten%v(i,k,j) = aten%v(i,k,j) + difuv(i,k,j)
+          aten%u(i,k,j) = aten%u(i,k,j) + adf%difuu(i,k,j)
+          aten%v(i,k,j) = aten%v(i,k,j) + adf%difuv(i,k,j)
         end do
       end do
 !

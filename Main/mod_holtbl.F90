@@ -620,7 +620,7 @@ module mod_holtbl
     do k = 1 , kz
       do i = 2 , iym1
         sf = atm2%t(i,k,j)/atms%thx3d(i,k,j)
-        difft(i,k,j) = difft(i,k,j) + &
+        adf%difft(i,k,j) = adf%difft(i,k,j) + &
                        (tpred1(i,k)-atms%thx3d(i,k,j))/dt*sf
       end do
     end do
@@ -705,7 +705,7 @@ module mod_holtbl
     else
       do k = 1 , kz
         do i = 2 , iym1
-          diffq(i,k,j) = diffq(i,k,j) + &
+          adf%diffq(i,k,j) = adf%diffq(i,k,j) + &
                          (tpred1(i,k)-atm2%qv(i,k,j) / &
                          sps2%ps(i,j))/dt*sps2%ps(i,j)
         end do
@@ -815,13 +815,13 @@ module mod_holtbl
 !-----compute the tendencies:
 !
     do i = 2 , iym1
-      difft(i,kz,j) = difft(i,kz,j) - &
+      adf%difft(i,kz,j) = adf%difft(i,kz,j) - &
               egrav*ttnp(i,kz)/(d_1000*cpd*dsigma(kz))
     end do
 !
     do k = 1 , kzm1
       do i = 2 , iym1
-        difft(i,k,j) = difft(i,k,j) + &
+        adf%difft(i,k,j) = adf%difft(i,k,j) + &
               egrav*(ttnp(i,k+1)-ttnp(i,k))/(d_1000*cpd*dsigma(k))
       end do
     end do

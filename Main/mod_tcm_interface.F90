@@ -266,11 +266,11 @@ module mod_tcm_interface
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
+      adf%diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
+                  adf%diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
                   tcmtend%qv(itcmstart:itcmend,:,jtcmstart:jtcmend)
-      difft(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  difft(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
+      adf%difft(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
+                  adf%difft(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
                   tcmtend%t(itcmstart:itcmend,:,jtcmstart:jtcmend)
 
       ! Put the cloud water tendency in aten

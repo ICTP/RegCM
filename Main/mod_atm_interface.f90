@@ -82,6 +82,13 @@ module mod_atm_interface
     real(8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
 
+  type diffx
+    real(8) , pointer , dimension(:,:,:) :: difft
+    real(8) , pointer , dimension(:,:,:) :: difuu
+    real(8) , pointer , dimension(:,:,:) :: difuv
+    real(8) , pointer , dimension(:,:,:) :: diffq
+  end type diffx
+
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten
@@ -89,8 +96,10 @@ module mod_atm_interface
   type(surftstate) , public :: sts1 , sts2
   type(surfstate) , public :: sfsta
   type(slice) , public :: atms
+  type(diffx) , public :: adf
 
   public :: atmstate , domain , surfpstate , surftstate , surfstate , slice
+  public :: diffx
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
 
   real(8) , public , pointer , dimension(:,:) :: hgfact
@@ -99,8 +108,6 @@ module mod_atm_interface
   real(8) , public , pointer, dimension(:,:,:) :: dstor
   real(8) , public , pointer, dimension(:,:,:) :: hstor
 !
-  real(8) , public , pointer , dimension(:,:,:) :: diffq , difft , &
-                                                   difuu , difuv
   real(8) , public , pointer , dimension(:,:) :: psc , pten , psd
   real(8) , public , pointer , dimension(:,:,:) :: phi , qdot , omega
 !
@@ -206,6 +213,15 @@ module mod_atm_interface
       end if
     end subroutine allocate_slice
 !
+    subroutine allocate_diffx(dx)
+      implicit none
+      type(diffx) , intent(out) :: dx
+      call getmem3d(dx%difft,1,iy,1,kz,1,jxp,'diffx:difft')
+      call getmem3d(dx%difuu,1,iy,1,kz,1,jxp,'diffx:difuu')
+      call getmem3d(dx%difuv,1,iy,1,kz,1,jxp,'diffx:difuv')
+      call getmem3d(dx%diffq,1,iy,1,kz,1,jxp,'diffx:diffq')
+    end subroutine allocate_diffx
+!
     subroutine allocate_mod_atm_interface
       implicit none
 
@@ -230,6 +246,8 @@ module mod_atm_interface
 
       call allocate_slice(atms)
 
+      call allocate_diffx(adf)
+
       if (icup == 99 .or. icup == 98) then
         call getmem2d(cucontrol,1,iy,1,jxp,'mod_atm_interface:cucontrol')
       end if
@@ -242,10 +260,6 @@ module mod_atm_interface
       call getmem3d(hstor,1,iy,0,jxp+1,1,nsplit,'mod_atm_interface:hstor')
 !
       call getmem2d(hgfact,1,iy,1,jxp,'mod_atm_interface:hgfact')
-      call getmem3d(diffq,1,iy,1,kz,1,jxp,'mod_atm_interface:diffq')
-      call getmem3d(difft,1,iy,1,kz,1,jxp,'mod_atm_interface:difft')
-      call getmem3d(difuu,1,iy,1,kz,1,jxp,'mod_atm_interface:difuu')
-      call getmem3d(difuv,1,iy,1,kz,1,jxp,'mod_atm_interface:difuv')
       call getmem3d(omega,1,iy,1,kz,1,jxp,'mod_atm_interface:omega')
       call getmem2d(psc,1,iy,1,jxp,'mod_atm_interface:psc')
       call getmem2d(pten,1,iy,1,jxp,'mod_atm_interface:pten')

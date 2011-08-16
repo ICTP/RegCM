@@ -64,8 +64,8 @@ regcm_SOURCES = mod_bats_param.f90 mod_diagnosis.F90   \
                 mod_tstep.f90 mod_vecbats.F90         \
                 mod_vmodes.F90 mod_zengocn.F90 mod_cu_tiedtke.F90     \
                 mod_interface.F90 mod_ensemble.f90 mod_gridfuncs.f90  \
-		mod_thetal.f90 mod_tcm_interface.F90 mod_uwtcm.F90    \
-		regcm.F90
+                mod_thetal.f90 mod_tcm_interface.F90 mod_uwtcm.F90    \
+                regcm.F90
 
 if DO_COMPILE_LIBCLM
 regcm_SOURCES += mod_clm.F90 mod_mtrxclm.F90
@@ -260,8 +260,8 @@ endif
 mod_thetal.o: mod_thetal.f90
 mod_tracer.o: mod_tracer.f90
 mod_tstep.o: mod_tstep.f90 mod_runparams.o
-mod_uwtcm.o: mod_uwtcm.F90 mod_tcm_interface.o mod_atm_interface.o mod_runparams.o \
-             mod_thetal.o
+mod_uwtcm.o: mod_uwtcm.F90 mod_tcm_interface.o mod_atm_interface.o \
+	           mod_runparams.o mod_thetal.o
 mod_vecbats.o: mod_vecbats.F90 \
                mod_runparams.o mod_bats.o mod_slice.o mod_pbldim.o \
                mod_lake.o mod_atm_interface.o mod_bndry.o mod_drag.o mod_mppio.o \

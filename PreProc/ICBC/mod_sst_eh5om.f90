@@ -82,7 +82,7 @@ module mod_sst_eh5om
   a6  = 2001010100
   a7  = 2001010100
   a8  = 2029123118
-  a9  = 2030101000
+  a9  = 2030010100
   a10 = 2061123118
   a11 = 2062010100
   a12 = 2093123118
@@ -286,9 +286,10 @@ module mod_sst_eh5om
     ieh5ostart = 2001010100
   end if
 
-  i1 = toint10(idate)
   do it = 1 , nsteps
     
+    i1 = toint10(idate)
+
     if ( ssttyp == 'EH5RF' ) then
       if ( i1 >= a1 .and. i1 <= a2 ) then
         open (11,file=trim(inpglob)//                           &
@@ -408,6 +409,7 @@ module mod_sst_eh5om
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
     write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
+    close(11)
 
     idate = idate + itbc
 
