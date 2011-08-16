@@ -56,7 +56,7 @@ program regcm
   first = .true.
   timestr = d_zero
   tdif = idate2 - idate1
-  timeend = tdif%hours() * secph
+  timeend = tohours(tdif) * secph
 
   call RCM_run(timestr, timeend, first)
 !

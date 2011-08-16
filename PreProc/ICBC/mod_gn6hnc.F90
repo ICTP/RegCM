@@ -344,10 +344,10 @@ module mod_gn6hnc
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
       ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
-      call itimes(1)%setcal(y360)
-      call ipstimes(1)%setcal(y360)
+      call setcal(itimes(1), y360)
+      call setcal(ipstimes(1), y360)
     else
-      call itimes(1)%setcal(noleap)
+      call setcal(itimes(1), noleap)
     end if
 
     sigmar(:) = pplev(:)*0.001
@@ -371,7 +371,7 @@ module mod_gn6hnc
     call zeit_ci('get_gn6hnc')
 !
     call readgn6hnc(idate)
-    write (stdout,*) 'Read in fields at Date: ', idate%tostring()
+    write (stdout,*) 'Read in fields at Date: ', tochar(idate)
  
     ! GFS grid is already on pressure levels.
     if ( dattyp /= 'GFS11' ) then
@@ -720,7 +720,7 @@ module mod_gn6hnc
       end do
 
       tdif = idate - itimes(1)
-      it = idnint(tdif%hours())/6 + 1
+      it = idnint(tohours(tdif))/6 + 1
 
       icount(1) = nlon
       icount(2) = nlat
@@ -730,7 +730,7 @@ module mod_gn6hnc
       istart(3) = it
       if ( dattyp(1:3) == 'HA_' ) then
         tdif = idate - ipstimes(1)
-        itps = idnint(tdif%hours())/6 + 1
+        itps = idnint(tohours(tdif))/6 + 1
         istart(3) = itps
         istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))

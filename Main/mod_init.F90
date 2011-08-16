@@ -183,10 +183,10 @@ module mod_init
       mmrec = icbc_search(bdydate1)
       if (mmrec < 0) then
         call fatal(__FILE__,__LINE__, &
-                   'ICBC for '//bdydate2%tostring()//' not found')
+                   'ICBC for '//tochar(bdydate2)//' not found')
       end if
       call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io,so0_io)
-      write (6,*) 'READY IC DATA for ', bdydate1%tostring()
+      write (6,*) 'READY IC DATA for ', tochar(bdydate1)
       ps0_io = ps0_io*d_r10
       do j = 1 , jx
         do k = 1 , kz
@@ -459,7 +459,7 @@ module mod_init
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
       end do
-      print 99001 , xbctime , ktau , idatex%tostring()
+      print 99001 , xbctime , ktau , tochar(idatex)
     end if
 !
     if ( lakemod == 1 ) then
@@ -1129,7 +1129,7 @@ module mod_init
     call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(xbctime,1,mpi_real8,0,mpi_comm_world,ierr)
-    call idatex%broadcast(0,mpi_comm_world,ierr)
+    call date_bcast(idatex,0,mpi_comm_world,ierr)
     call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
 #ifndef BAND
     if (debug_level > 2) call mpidiag
@@ -1218,7 +1218,7 @@ module mod_init
   numdays = dayspy
 #endif
   if (myid == 0) then
-    write (6,*) 'Calculate solar declination angle at ',idatex%toidate()
+    write (6,*) 'Calculate solar declination angle at ',toint10(idatex)
   end if
   call solar1
 #ifdef CLM

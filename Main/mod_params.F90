@@ -448,9 +448,9 @@ module mod_params
     idate0 = mdate0
     idate1 = mdate1
     idate2 = mdate2
-    call idate0%setcal(ical)
-    call idate1%setcal(ical)
-    call idate2%setcal(ical)
+    call setcal(idate0,ical)
+    call setcal(idate1,ical)
+    call setcal(idate2,ical)
 
     read (ipunit, timeparam)
     print * , 'TIMEPARAM namelist READ IN'
@@ -510,9 +510,9 @@ module mod_params
 !  communicate to all processors 
 !
   call mpi_bcast(ifrest,1,mpi_logical,0,mpi_comm_world,ierr)
-  call idate0%broadcast(0,mpi_comm_world,ierr)
-  call idate1%broadcast(0,mpi_comm_world,ierr)
-  call idate2%broadcast(0,mpi_comm_world,ierr)
+  call date_bcast(idate0,0,mpi_comm_world,ierr)
+  call date_bcast(idate1,0,mpi_comm_world,ierr)
+  call date_bcast(idate2,0,mpi_comm_world,ierr)
  
   call mpi_bcast(dtrad,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(dtabem,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -801,7 +801,7 @@ module mod_params
 
   ktau = 0
   bdif = idate2 - idate1
-  mtau = idnint((bdif%hours()*secph)/dt)
+  mtau = idnint((tohours(bdif)*secph)/dt)
   xbctime = d_zero
   ntime = 0
 
@@ -835,13 +835,13 @@ module mod_params
   end if
 !
   write (aline,*) 'initial date of this '// &
-                  'simulation: ' , idate1%tostring()
+                  'simulation: ' , tochar(idate1)
   call say(myid)
   write (aline,*) '  final date of this '// &
-                  'simulation: ' , idate2%tostring()
+                  'simulation: ' , tochar(idate2)
   call say(myid)
   write (aline,'(a,i10,a)')  &
-       'total simulation lenght ' , idnint(bdif%hours()), ' hours'
+       'total simulation lenght ' , idnint(tohours(bdif)), ' hours'
   call say(myid)
   write (aline,'(a,f9.4)')  &
        'dtsec (timestep in seconds)' , dtsec
@@ -859,7 +859,7 @@ module mod_params
  
 !rst-fix
   write (aline, *) 'initial date of the global '// &
-                   'simulation: idate  = ' , idate0%tostring()
+                   'simulation: idate  = ' , tochar(idate0)
   call say(myid)
 !
 !-----specify the constants used in the model.

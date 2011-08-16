@@ -9,7 +9,7 @@ program resav
   character(256) :: namelistfile , prgname , savfile
   integer :: ierr
   type (rcm_time_and_date) :: idatex
-  real(8) :: xtime
+  real(8) :: xbctime
   integer :: ktau , ntime
   real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
@@ -294,7 +294,7 @@ program resav
   allocate(vilx(kz,jx))
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
-  read (iutrst) ktau, xtime, idatex, ntime
+  read (iutrst) ktau, xbctime, idatex, ntime
   if ( ehso4 ) then
     read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
   else

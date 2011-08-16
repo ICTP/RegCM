@@ -91,7 +91,7 @@ module mod_erahi
     end do
     write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
   end if
-  write (finame,99001) idate%toidate()
+  write (finame,99001) toint10(idate)
   open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte, &
         access='direct')
   nrec = 0
@@ -123,7 +123,7 @@ module mod_erahi
     read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
   end do
  
-  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
+  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
   do k = 1 , nlev1
     do j = 1 , nlats
       do i = 1 , nlons

@@ -128,7 +128,7 @@ module mod_sst_grid
 
     call zeit_ci('newfile')
     refdate = idate1
-    csdate = refdate%tostring( )
+    csdate = tochar(refdate)
     itime = 1
 
     sstname = trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
@@ -388,7 +388,7 @@ module mod_sst_grid
     icount(1) = jx
     icount1(1) = 1
     tdiff = idate - refdate
-    xdate(1) = tdiff%hours( )
+    xdate(1) = tohours(tdiff)
     istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
     istatus = nf90_put_var(ncid, ivar(2), transpose(sstmm), istart, icount)

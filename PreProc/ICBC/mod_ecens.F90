@@ -90,7 +90,7 @@ module mod_ecens
 !
   call ecens_6hour(idate)
 
-  write (*,*) 'READ IN fields at DATE:' , idate%tostring()
+  write (*,*) 'READ IN fields at DATE:' , tochar(idate)
 
   do k = 1 , mlev
     do j = 1 , nlat
@@ -197,7 +197,7 @@ module mod_ecens
   if ( lfirst .or. (idate > ilastdate) ) then
     do kkrec = 1 , 5
       fmon = monfirst(idate)
-      ifmon = fmon%toidate()/100
+      ifmon = toint10(fmon)/100
       write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
          'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', &
          trim(vfname(kkrec)), '.', ensnum, '.', ifmon, '.', 0, '.nc'
@@ -232,7 +232,7 @@ module mod_ecens
   endif
 
   tdif = idate - enstime(1)
-  it = idnint(tdif%hours())/ibctime+1
+  it = idnint(tohours(tdif))/ibctime+1
 
   do kkrec = 1 , 5
 
@@ -292,7 +292,7 @@ module mod_ecens
   read (dattyp(4:4),'(i1)') mdlver
   read (dattyp(5:5),'(i1)') ensnum
   fmon = monfirst(globidate1)
-  ifmon = fmon%toidate()/100
+  ifmon = toint10(fmon)/100
   write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
   'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', 'hgt', &
                 '.', ensnum, '.', ifmon, '.', 0, '.nc'

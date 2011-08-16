@@ -117,12 +117,12 @@ module mod_wrtoxd
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
-                '_CHBC.', idate1%toidate(), '.nc'
+                '_CHBC.', toint10(idate1), '.nc'
 
     irefdate = idate1
     itimech = 1
 
-    csdate = idate1%tostring()
+    csdate = tochar(idate1)
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
@@ -318,12 +318,12 @@ module mod_wrtoxd
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
-                '_OXCL.', idate1%toidate(), '.nc'
+                '_OXCL.', toint10(idate1), '.nc'
 
     irefdate = idate1
     itimeox = 1
 
-    csdate = idate1%tostring()
+    csdate = tochar(idate1)
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
@@ -512,7 +512,7 @@ module mod_wrtoxd
     istart1(1) = itimech
     icount1(1) = 1
     tdif = idate - irefdate
-    xdate(1) = tdif%hours()
+    xdate(1) = tohours(tdif)
     istatus = nf90_put_var(ncid, ichvar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
 
@@ -530,7 +530,7 @@ module mod_wrtoxd
       call checkncerr(istatus,__FILE__,__LINE__,'Error variable '//chspec(i)//' write')
     end do
 
-    write (stdout ,*) 'Write ch_icbc : ', idate%tostring()
+    write (stdout ,*) 'Write ch_icbc : ', tochar(idate)
 
     itimech = itimech + 1
 !
@@ -548,7 +548,7 @@ module mod_wrtoxd
     istart1(1) = itimeox
     icount1(1) = 1
     tdif = idate - irefdate
-    xdate(1) = tdif%hours()
+    xdate(1) = tohours(tdif)
     istatus = nf90_put_var(ncidox, ioxvar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
 
@@ -566,7 +566,7 @@ module mod_wrtoxd
       call checkncerr(istatus,__FILE__,__LINE__,'Error variable '//oxspec(i)//' write')
     end do
 
-    write (stdout ,*) 'Write ch_oxcl : ', idate%tostring()
+    write (stdout ,*) 'Write ch_oxcl : ', tochar(idate)
 
     itimeox = itimeox + 1
 !

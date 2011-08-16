@@ -88,8 +88,8 @@ module mod_sst_eh5om
   a12 = 2093123118
   a13 = 2094010100
   a14 = 2100123118
-  g1  = globidate1%toidate()
-  g2  = globidate2%toidate()
+  g1  = toint10(globidate1)
+  g2  = toint10(globidate2)
 
   if ( ssttyp == 'EH5RF' ) then
     there = .false.
@@ -261,9 +261,9 @@ module mod_sst_eh5om
   end if
 
   tdiff = globidate2 - globidate1
-  nsteps = idnint(tdiff%hours())/idtbc + 1
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  nsteps = idnint(tohours(tdiff))/idtbc + 1
+  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   call open_sstfile(globidate1)
@@ -286,7 +286,7 @@ module mod_sst_eh5om
     ieh5ostart = 2001010100
   end if
 
-  i1 = idate%toidate()
+  i1 = toint10(idate)
   do it = 1 , nsteps
     
     if ( ssttyp == 'EH5RF' ) then
@@ -393,7 +393,7 @@ module mod_sst_eh5om
     end if
 
     tdiff = idate-ieh5ostart
-    ieh5orec = idnint(tdiff%hours())/ibdyfrq+1
+    ieh5orec = idnint(tohours(tdiff))/ibdyfrq+1
     read (11,rec=ieh5orec-it_base) offset , xscale , ivar
     do j = 1 , jlat
       do i = 1 , ilon
@@ -407,7 +407,7 @@ module mod_sst_eh5om
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
-    write (stdout,*) 'WRITING OUT SST DATA:' , idate%tostring()
+    write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
 
     idate = idate + itbc
 

@@ -222,7 +222,7 @@ module mod_sst_gnmnc
     end do
 
     call writerec(idate,.false.)
-    write (stdout,*) 'WRITEN OUT SST DATA : ' , idate%tostring()
+    write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
 
     idate = nextmon(idate)
 
@@ -267,7 +267,7 @@ module mod_sst_gnmnc
   next = timeval2date(work1(it),cunit,ccal)
   tdiff1 = next-idate
   tdiff2 = next-prev
-  wt1 = real(tdiff1%hours( )/tdiff2%hours())
+  wt1 = real(tohours(tdiff1)/tohours(tdiff2))
   wt2 = 1.0 - wt1
   do j = 1 , jlat
     do i = 1 , ilon

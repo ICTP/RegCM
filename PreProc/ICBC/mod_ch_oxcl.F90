@@ -117,7 +117,7 @@ module mod_ch_oxcl
     m2 = d2%month
     t1 = idate-d1
     tt = d2-d1
-    wt1 = real(t1%hours()/tt%hours())
+    wt1 = real(tohours(t1)/tohours(tt))
     wt2 = 1.0 - wt1
 
     do is = 1 , noxsp

@@ -182,10 +182,10 @@ program icbc
   end if
   tdiff = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
-  nsteps = idnint(tdiff%hours())/ibdyfrq + 1
+  nsteps = idnint(tohours(tdiff))/ibdyfrq + 1
 
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (stdout,*) 'NSTEPS     : ' , nsteps
  
   idate = globidate1

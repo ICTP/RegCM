@@ -263,7 +263,7 @@ program clm2rcm
 
   irefdate = rcm_time_and_date(globidate1%calendar,globidate1%year,1,1,0,0,0)
   irefdate = monmiddle(irefdate)
-  csdate = irefdate%tostring()
+  csdate = tochar(irefdate)
   istatus = nf90_put_att(ncid, ivar, 'units', 'hours since '//csdate)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time units')
   istatus = nf90_put_att(ncid, ivar, 'calendar', calendar)
@@ -301,7 +301,7 @@ program clm2rcm
     istart1(1) = it
     icount1(1) = 1
     tdif = imondate-irefdate 
-    xdate(1) = tdif%hours()
+    xdate(1) = tohours(tdif)
     istatus = nf90_put_var(ncid, ivar, xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
     imondate = nextmon(imondate)

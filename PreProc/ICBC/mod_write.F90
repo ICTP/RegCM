@@ -99,12 +99,12 @@ module mod_write
     end if
 
     write (ofname,99001) trim(dirglob), pthsep, &
-           trim(domname), '_ICBC.', idate1%toidate(), '.nc'
+           trim(domname), '_ICBC.', toint10(idate1), '.nc'
 
     irefdate = idate1
     itime = 1
 
-    csdate = idate1%tostring()
+    csdate = tochar(idate1)
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &
@@ -422,7 +422,7 @@ module mod_write
     istart1(1) = itime
     icount1(1) = 1
     tdiff = idate - irefdate
-    xdate(1) = tdiff%hours()
+    xdate(1) = tohours(tdiff)
     istatus = nf90_put_var(ncout, ivar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
     istart(3) = itime

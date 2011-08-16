@@ -78,7 +78,7 @@ module mod_ncep
     call cdc6hour2(idate,globidate1)
   end if
 
-  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
+  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !

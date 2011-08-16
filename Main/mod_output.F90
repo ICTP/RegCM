@@ -1380,7 +1380,7 @@ module mod_output
   if (myid /= 0) return
 
   print * , ' '
-  print * , '******* OPENING NEW OUTPUT FILES : ' , idatex%tostring()
+  print * , '******* OPENING NEW OUTPUT FILES : ' , tochar(idatex)
   print * , ' '
 
   if ( ifatm ) then
@@ -1434,7 +1434,7 @@ module mod_output
           tcmstate_io%kth,tcmstate_io%kzm,psa_io,rainc_io,      &
           rainnc_io,tgb2d_io,swt2d_io,rno2d_io,ocld2d_io,idatex)
  
-  write (6,*) 'ATM variables written at ' , idatex%tostring()
+  write (6,*) 'ATM variables written at ' , tochar(idatex)
  
   end subroutine outatm
 !
@@ -1453,12 +1453,12 @@ module mod_output
 #endif
 
   call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
-  write (6,*) 'SRF variables written at ' , idatex%tostring()
+  write (6,*) 'SRF variables written at ' , tochar(idatex)
  
   if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
     call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                       hsnow2d_io,tlak3d_io,idatex)
-    write (6,*) 'LAK variables written at ' , idatex%tostring()
+    write (6,*) 'LAK variables written at ' , tochar(idatex)
   end if
 
   end subroutine outsrf
@@ -1479,7 +1479,7 @@ module mod_output
 
   call writerec_sub(j,i,nsg,numsub,fsub_io,idatex)
 
-  write (6,*) 'SUB variables written at ' , idatex%tostring()
+  write (6,*) 'SUB variables written at ' , tochar(idatex)
 
   end subroutine outsub
 !
@@ -1515,7 +1515,7 @@ module mod_output
                     frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
                     radpsa_io, idatex)
 
-  print * , 'RAD variables written at ' , idatex%tostring()
+  print * , 'RAD variables written at ' , tochar(idatex)
  
 !      call time_end(subroutine_name,idindx)
   end subroutine outrad
@@ -1560,7 +1560,7 @@ module mod_output
             wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
             aertalwrf_io, aersrlwrf_io, psa_io, idatex)
 
-  write (6,*) 'CHE variables written at ' , idatex%tostring()
+  write (6,*) 'CHE variables written at ' , tochar(idatex)
 
   end subroutine outche
 !

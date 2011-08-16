@@ -416,8 +416,8 @@ module mod_dynparam
     dpd = 360.0D0/dayspy
     globidate1 = gdate1
     globidate2 = gdate2
-    call globidate1%setcal(ical)
-    call globidate2%setcal(ical)
+    call setcal(globidate1,ical)
+    call setcal(globidate2,ical)
 
     ntr  = 0
     nbin = 0

@@ -24,7 +24,7 @@ program readregcm
 
   character(256) :: prgname , ncfile
   character(32) :: varname
-  character(64) :: vardesc , timeunit
+  character(64) :: vardesc , timeunit , timecal
   character(16) :: varunit
   integer :: numarg , istatus , ncid
 
@@ -331,6 +331,12 @@ program readregcm
       write (6,*) nf90_strerror(istatus)
       stop
     end if
+    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
     istatus = nf90_get_var(ncid, ivarid, times)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error reading time variable'
@@ -340,7 +346,7 @@ program readregcm
     print *, 'Time units                    : ', trim(timeunit)
     do i = 1 , nt
       print *, '    Time                      : ', &
-                timeval2idate(times(i),timeunit)
+             tochar(timeval2date(times(i),timeunit,timecal))
     end do
 
     deallocate(times)

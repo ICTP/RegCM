@@ -75,10 +75,10 @@ module mod_sst_ersst
 
   itbc = rcm_time_interval(idtbc,uhrs)
   tdiff = globidate2-globidate1
-  nsteps = idnint(tdiff%hours())/idtbc + 1
+  nsteps = idnint(tohours(tdiff))/idtbc + 1
 
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   call open_sstfile(globidate1)
@@ -96,7 +96,7 @@ module mod_sst_ersst
   do it = 1 , nsteps
 
     tdiff = idate-ierastart
-    ierrec = idnint(tdiff%hours())/idtbc+1
+    ierrec = idnint(tohours(tdiff))/idtbc+1
 
     if ( ssttyp == 'ERSST' ) then
       inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
@@ -111,7 +111,7 @@ module mod_sst_ersst
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
     call writerec(idate,.false.)
-    write(stdout,*) 'WRITING OUT MM4 SST DATA:' , idate%tostring()
+    write(stdout,*) 'WRITING OUT MM4 SST DATA:' , tochar(idate)
 
     idate = idate + itbc
 

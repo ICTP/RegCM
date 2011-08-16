@@ -61,10 +61,10 @@ program chem_icbc
 !
   tdif = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
-  nsteps = idnint(tdif%hours())/ibdyfrq + 1
+  nsteps = idnint(tohours(tdif))/ibdyfrq + 1
 !
-  write (*,*) 'GLOBIDATE1 : ' , globidate1%tostring()
-  write (*,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  write (*,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (*,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (*,*) 'NSTEPS     : ' , nsteps
 
   idate = globidate1

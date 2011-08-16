@@ -344,7 +344,7 @@ program ncplot
     idate1 = timeval2date(times(1),timeunit,timecal)
     idate2 = timeval2date(times(2),timeunit,timecal)
     tdif = idate2 - idate1
-    delta = idnint(tdif%hours())
+    delta = idnint(tohours(tdif))
     deallocate(times)
     if (delta == 24) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &

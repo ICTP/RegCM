@@ -541,7 +541,7 @@ module mod_diagnosis
 !
     if ( myid == 0 ) then
       if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
-        write(6,*)  '***** ' , idatex%tostring(), ' *****'
+        write(6,*)  '***** ' , tochar(idatex), ' *****'
         write(6,99001) tdrym , error1
         write(6,99002) tdadv
         write(6,99003) tqmass , error2
@@ -945,7 +945,7 @@ module mod_diagnosis
    
         write(6,*)  '************************************************'
         write(6,*)  ' Budgets for tracers (intergrated quantitites)'
-        write(6,*)  ' day = ' , idatex%tostring() , ' *****'
+        write(6,*)  ' day = ' , tochar(idatex) , ' *****'
         write(6,*)  '************************************************'
    
         do itr = 1 , ntr

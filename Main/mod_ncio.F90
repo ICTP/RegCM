@@ -364,7 +364,7 @@ contains
     xns2r = 1.0/real(nnsg)
     xns2d = 1.0D0/dble(nnsg)
     cordex_refdate = 1949120100
-    call cordex_refdate%setcal(ical)
+    call setcal(cordex_refdate,ical)
 
     if (lband) then
       o_is = 2
@@ -768,11 +768,11 @@ contains
       icbc_search = -1
     else
       tdif = idate-icbc_idate(1)
-      ibcrec = (idnint(tdif%hours())/ibdyfrq)+1
+      ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1
       if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
-        write (6,*) 'Record is not found in ICBC file for ',idate%tostring()
-        write (6,*) 'Range is : ', icbc_idate(1)%tostring() , '-', &
-                     icbc_idate(ibcnrec)%tostring()
+        write (6,*) 'Record is not found in ICBC file for ',tochar(idate)
+        write (6,*) 'Range is : ', tochar(icbc_idate(1)) , '-', &
+                     tochar(icbc_idate(ibcnrec))
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       icbc_search = ibcrec
@@ -789,7 +789,7 @@ contains
     integer :: iyy , jxx , kzz
 
     call close_icbc
-    write (ctime, '(i10)') idate%toidate()
+    write (ctime, '(i10)') toint10(idate)
     icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
     istatus = nf90_open(icbcname, nf90_nowrite, ibcin)
     call check_ok(__FILE__,__LINE__, &
@@ -1058,10 +1058,10 @@ contains
     call close_common(ncid, ctype)
 
     write (fterr, '(a3,a)') ctype, ' FILE'
-    write (fbname,'(a,a,i10)') trim(ctype), '.', idate%toidate()
+    write (fbname,'(a,a,i10)') trim(ctype), '.', toint10(idate)
     ofname = trim(dirout)//pthsep//trim(domname)// &
              '_'//trim(fbname)//'.nc'
-    ctime = cordex_refdate%tostring()
+    ctime = tochar(cordex_refdate)
     write (aline, *) 'Opening new output file ', trim(ofname)
     call say(myid)
 
@@ -1205,13 +1205,13 @@ contains
             'model_seasonal_desert_albedo_effect' , trim(cdum))
     call check_ok(__FILE__,__LINE__,'Error add desseas', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_initial_start' , globidate1%tostring())
+            'model_simulation_initial_start' , tochar(globidate1))
     call check_ok(__FILE__,__LINE__,'Error add globidate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_start' , idate1%tostring())
+            'model_simulation_start' , tochar(idate1))
     call check_ok(__FILE__,__LINE__,'Error add idate1', fterr)
     istatus = nf90_put_att(ncid, nf90_global,  &
-            'model_simulation_expected_end' , idate2%tostring())
+            'model_simulation_expected_end' , tochar(idate2))
     call check_ok(__FILE__,__LINE__,'Error add idate2', fterr)
     if (ifrest) then
       cdum = 'Yes'
@@ -1917,14 +1917,14 @@ contains
       write (6,*) 'Got layers       ', nx, 'x', ny
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     istart(2) = isrfrec
     istart(1) = 1
     icount(2) = 1
     icount(1) = 2
     tdif = idate-cordex_refdate
-    nctime(2) = tdif%hours()
+    nctime(2) = tohours(tdif)
     nctime(1) = nctime(2) - srffrq
     istatus = nf90_put_var(ncsrf, isrfvar(1), nctime(2:2), &
                            istart(2:2), icount(2:2))
@@ -2047,12 +2047,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     istart(1) = isubrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    nctime(1) = tdif%hours()
+    nctime(1) = tohours(tdif)
     istatus = nf90_put_var(ncsub, isubvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'SUB FILE')
     ivar = 2
@@ -2171,12 +2171,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     istart(1) = iradrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    nctime(1) = tdif%hours()
+    nctime(1) = tohours(tdif)
     istatus = nf90_put_var(ncrad, iradvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'RAD FILE')
 
@@ -2270,7 +2270,7 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     if (.not. lmaskfill) then
       do n = 1 , ns
@@ -2288,7 +2288,7 @@ contains
     istart(1) = iatmrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    nctime(1) = tdif%hours()
+    nctime(1) = tohours(tdif)
     istatus = nf90_put_var(ncatm, iatmvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'ATM FILE')
 
@@ -2636,12 +2636,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     istart(1) = icherec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    nctime(1) = tdif%hours()
+    nctime(1) = tohours(tdif)
     istatus = nf90_put_var(ncche, ichevar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE')
 
@@ -2856,12 +2856,12 @@ contains
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
 
-    ctime = idate%tostring()
+    ctime = tochar(idate)
 
     istart(1) = ilakrec
     icount(1) = 1
     tdif = idate-cordex_refdate
-    nctime(1) = tdif%hours()
+    nctime(1) = tohours(tdif)
     istatus = nf90_put_var(nclak, ilakvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'LAK FILE')
 

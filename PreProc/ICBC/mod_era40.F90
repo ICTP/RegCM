@@ -75,7 +75,7 @@ module mod_era40
 !
   call zeit_ci('getera40')
   call era6hour(dattyp,idate,globidate1)
-  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
+  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !

@@ -55,24 +55,11 @@ module mod_date
     integer :: second = 0
     integer :: days_from_reference = 0
     integer :: second_of_day = 0
-    contains
-      procedure , pass(x) :: printdate => print_rcm_time_and_date
-      procedure , pass(x) :: toidate => toint
-      procedure , pass(x) :: tostring => tochar
-      procedure , pass(x) :: setup => internal_setup
-      procedure , pass(x) :: recalculate => recalculate_from_internal
-      procedure , pass(x) :: setcal => set_calint
-      procedure , pass(x) :: setccal => set_calstring
-      procedure , pass(x) :: broadcast => date_bcast
   end type rcm_time_and_date
 
   type rcm_time_interval
     integer :: ival = 0
     integer :: iunit = usec
-    contains
-      procedure , pass(x) :: printint => print_rcm_time_interval
-      procedure , pass(x) :: setunit => set_timeunit
-      procedure , pass(x) :: hours => tohours
   end type rcm_time_interval
 
   interface assignment(=) 
@@ -112,10 +99,18 @@ module mod_date
     module procedure date_ne , idate_ne
   end interface
 
+  interface setcal
+    module procedure set_calint , set_calstring
+  end interface
+
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
   public :: operator(>) , operator(<) , operator(>=) , &
             operator(<=) , operator(/=)
+  public :: print_rcm_time_and_date , print_rcm_time_interval
+  public :: setcal , date_to_internal , internal_to_date
+  public :: tochar , toint10 , tohours
+  public :: date_bcast
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
@@ -215,7 +210,7 @@ module mod_date
     end select
   end function idayofyear
 
-  subroutine days_from_reference(x)
+  subroutine date_to_days_from_reference(x)
     class(rcm_time_and_date) , intent(inout) :: x
     integer :: ny , ipm , id , iy
     ny = x%year - reference_year
@@ -234,7 +229,7 @@ module mod_date
     else
       x%days_from_reference = id - (yeardays(iy,x%calendar)-idayofyear(x)) - 1
     end if
-  end subroutine days_from_reference
+  end subroutine date_to_days_from_reference
 
   subroutine days_from_reference_to_date(x)
     class(rcm_time_and_date) , intent(inout) :: x
@@ -257,12 +252,12 @@ module mod_date
     end if
   end subroutine days_from_reference_to_date
 
-  subroutine seconds_from_midnight(x)
+  subroutine time_to_second_of_day(x)
     class(rcm_time_and_date) , intent(inout) :: x
     x%second_of_day = x%hour*3600+x%minute*60+x%second
-  end subroutine seconds_from_midnight
+  end subroutine time_to_second_of_day
 
-  subroutine seconds_from_midnight_to_time(x)
+  subroutine second_of_day_to_time(x)
     class(rcm_time_and_date) , intent(inout) :: x
     integer :: i1 , i2
     i1 = x%second_of_day
@@ -273,19 +268,19 @@ module mod_date
     x%minute = i2
     i1 = i1-i2*60
     x%second = i1
-  end subroutine seconds_from_midnight_to_time
+  end subroutine second_of_day_to_time
 
-  subroutine internal_setup(x)
+  subroutine date_to_internal(x)
     class(rcm_time_and_date) , intent(inout) :: x
-    call days_from_reference(x)
-    call seconds_from_midnight(x)
-  end subroutine internal_setup
+    call date_to_days_from_reference(x)
+    call time_to_second_of_day(x)
+  end subroutine date_to_internal
 
-  subroutine recalculate_from_internal(x)
+  subroutine internal_to_date(x)
     class(rcm_time_and_date) , intent(inout) :: x
     call days_from_reference_to_date(x)
-    call seconds_from_midnight_to_time(x)
-  end subroutine recalculate_from_internal
+    call second_of_day_to_time(x)
+  end subroutine internal_to_date
 
   subroutine adjustpm(a,b,i)
     implicit none
@@ -340,7 +335,8 @@ module mod_date
     x%minute = 0
     x%second = 0
     x%calendar = gregorian
-    call x%setup( )
+    call time_to_second_of_day(x)
+    call date_to_days_from_reference(x)
   end subroutine initfromintdt
 
   subroutine initfromintit(x, i)
@@ -366,7 +362,7 @@ module mod_date
         write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
         x%calendar = gregorian
     end select
-    call x%setup()
+    call date_to_days_from_reference(x)
   end subroutine set_calint
 
   subroutine set_calstring(x, c)
@@ -386,7 +382,7 @@ module mod_date
       write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
       x%calendar = gregorian
     end if
-    call x%setup( )
+    call date_to_days_from_reference(x)
   end subroutine set_calstring
 
   subroutine set_timeunit(x, u)
@@ -425,7 +421,8 @@ module mod_date
     x%hour = y%hour
     x%minute = y%minute
     x%second = y%second
-    call x%setup()
+    call time_to_second_of_day(x)
+    call date_to_days_from_reference(x)
   end subroutine initfromtypedt
 
   subroutine initfromtypeit(x, y)
@@ -472,7 +469,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     isequalidt = isequaldt(x,yy)
   end function isequalidt
 
@@ -644,46 +641,47 @@ module mod_date
     tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        z%second_of_day = z%second_of_day+tmp
         if ( z%second_of_day >= 86400 ) then
-          z%second_of_day = z%second_of_day - 86400
-          z%days_from_reference = z%days_from_reference + 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = mod(z%second_of_day, 86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference + (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (umin)
-        tmp = tmp*60
-        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        z%second_of_day = z%second_of_day+(tmp*60)
         if ( z%second_of_day >= 86400 ) then
-          z%second_of_day = z%second_of_day - 86400
-          z%days_from_reference = z%days_from_reference + 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = mod(z%second_of_day, 86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference + (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (uhrs)
-        tmp = tmp*3600
-        z%second_of_day = z%second_of_day+mod(tmp,86400)
+        z%second_of_day = z%second_of_day+(tmp*3600)
         if ( z%second_of_day >= 86400 ) then
-          z%second_of_day = z%second_of_day - 86400
-          z%days_from_reference = z%days_from_reference + 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = mod(z%second_of_day, 86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference + (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (uday)
         z%days_from_reference = z%days_from_reference + tmp
-        call z%recalculate()
+        call days_from_reference_to_date(z)
       case (umnt)
         z%month = z%month+mod(tmp,12)
         call adjustpm(z%month,z%year,12)
         tmp = tmp/12
         z%year = z%year+tmp
-        call z%setup()
+        call date_to_days_from_reference(z)
       case (uyrs)
         z%year = z%year+tmp
-        call z%setup()
+        call date_to_days_from_reference(z)
       case (ucnt)
         z%year = z%year+100*tmp
-        call z%setup()
+        call date_to_days_from_reference(z)
     end select
   end function add_interval
 
@@ -787,53 +785,54 @@ module mod_date
     tmp = y%ival
     select case (y%iunit)
       case (usec)
-        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        z%second_of_day = z%second_of_day-tmp
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = 86400 - z%second_of_day
-          z%days_from_reference = z%days_from_reference - 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = 86400-mod(z%second_of_day,86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference - (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (umin)
-        tmp = tmp * 60
-        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        z%second_of_day = z%second_of_day-(tmp*60)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = 86400 - z%second_of_day
-          z%days_from_reference = z%days_from_reference - 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = 86400-mod(z%second_of_day,86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference - (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (uhrs)
-        tmp = tmp * 3600
-        z%second_of_day = z%second_of_day-mod(tmp,86400)
+        z%second_of_day = z%second_of_day-(tmp*3600)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = 86400 - z%second_of_day
-          z%days_from_reference = z%days_from_reference - 1
+          tmp = z%second_of_day/86400
+          z%second_of_day = 86400-mod(z%second_of_day,86400)
+          z%days_from_reference = z%days_from_reference + tmp
+          call days_from_reference_to_date(z)
         end if
-        z%days_from_reference = z%days_from_reference - (tmp/86400)
-        call z%recalculate()
+        call second_of_day_to_time(z)
       case (uday)
         z%days_from_reference = z%days_from_reference - tmp
-        call z%recalculate()
+        call days_from_reference_to_date(z)
       case (umnt)
         z%month = z%month-mod(tmp,12)
         call adjustmp(z%month,z%year,12)
         z%year = z%year-tmp/12
-        call z%setup()
+        call date_to_days_from_reference(z)
       case (uyrs)
         z%year = z%year-tmp
-        call z%setup()
+        call date_to_days_from_reference(z)
       case (ucnt)
         z%year = z%year-100*tmp
-        call z%setup()
+        call date_to_days_from_reference(z)
     end select
   end function sub_interval
 
-  integer function toint(x) result(z)
+  integer function toint10(x) result(z)
     implicit none
     class (rcm_time_and_date) , intent(in) :: x
     z = x%year*1000000+x%month*10000+x%day*100+x%hour;
-  end function toint
+  end function toint10
 
   logical function lfdoyear(x) result(l11)
     implicit none
@@ -895,7 +894,8 @@ module mod_date
     mx%hour = 0
     mx%minute = 0
     mx%second = 0
-    call mx%setup()
+    mx%second_of_day = 0
+    call date_to_days_from_reference(mx)
   end function setmidnight
 
   logical function lsameweek(x,y) result(ls)
@@ -946,7 +946,8 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: mf
     mf = rcm_time_and_date(x%calendar,x%year,x%month,1,0,0,0,0,0)
-    call mf%setup( )
+    mf%second_of_day = 0
+    call date_to_days_from_reference(mf)
   end function monfirst
 
   function yrfirst(x) result(yf)
@@ -954,7 +955,8 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     type (rcm_time_and_date) :: yf
     yf = rcm_time_and_date(x%calendar,x%year,1,1,0,0,0,0,0)
-    call yf%setup( )
+    yf%second_of_day = 0
+    call date_to_days_from_reference(yf)
   end function yrfirst
 
   function monlast(x) result(ml)
@@ -970,7 +972,8 @@ module mod_date
       case (y360)
         ml = rcm_time_and_date(x%calendar,x%year,x%month,30,0,0,0,0,0)
     end select
-    call ml%setup( )
+    ml%second_of_day = 0
+    call date_to_days_from_reference(ml)
   end function monlast
 
   function monmiddle(x) result(mm)
@@ -992,7 +995,8 @@ module mod_date
       case (y360)
         mm = rcm_time_and_date(x%calendar,x%year,x%month,15,0,0,0,0,0)
     end select
-    call mm%setup( )
+    call time_to_second_of_day(mm)
+    call date_to_days_from_reference(mm)
   end function monmiddle
 
   function nextmon(x) result(nm)
@@ -1117,7 +1121,8 @@ module mod_date
       else
         dref = rcm_time_and_date(gregorian,year,month,day,hour,minute,second,0,0)
       end if
-      call dref%setup( )
+      call time_to_second_of_day(dref)
+      call date_to_days_from_reference(dref)
       z%iunit = iunit
       dd = dref + z
       if (iunit == uday) then
@@ -1337,7 +1342,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     gt = date_greater(x,yy)
   end function idate_greater
 
@@ -1358,7 +1363,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     lt = date_less(x,yy)
   end function idate_less
 
@@ -1378,7 +1383,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     gt = date_ge(x,yy)
   end function idate_ge
 
@@ -1398,7 +1403,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     lt = date_le(x,yy)
   end function idate_le
 
@@ -1416,7 +1421,7 @@ module mod_date
     integer , intent(in) :: y
     type (rcm_time_and_date) :: yy
     yy = y
-    call yy%setcal(x%calendar)
+    call set_calint(yy,x%calendar)
     ln = date_ne(x,yy)
   end function idate_ne
 

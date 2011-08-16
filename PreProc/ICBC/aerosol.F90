@@ -297,7 +297,7 @@ program aerosol
   call checkncerr(istatus,__FILE__,__LINE__,'Error adding variable time')
   refdate = globidate1
   refdate = monmiddle(yrfirst(refdate))
-  istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//refdate%tostring())
+  istatus = nf90_put_att(ncid, ivar(1), 'units', 'hours since '//tochar(refdate))
   call checkncerr(istatus,__FILE__,__LINE__,'Error adding time units')
   istatus = nf90_put_att(ncid, ivar(1), 'calendar', 'gregorian')
   call checkncerr(istatus,__FILE__,__LINE__,'Error adding time calendar')
@@ -424,7 +424,7 @@ program aerosol
     istart1(1) = imon
     icount1(1) = 1
     tdiff = mondate-refdate
-    xdate(1) = tdiff%hours( )
+    xdate(1) = tohours(tdiff)
     istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
     mondate = nextmon(mondate)

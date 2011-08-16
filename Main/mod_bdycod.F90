@@ -213,13 +213,13 @@ module mod_bdycod
         end do
       end if
       bdydate2 = bdydate2 + intbdy
-      write (6,'(a,i10)') 'SEARCH BC data for ', bdydate2%toidate()
+      write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
       mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then
         call open_icbc(monfirst(bdydate2))
         mmrec = icbc_search(bdydate2)
         if (mmrec < 0) then
-          call fatal(__FILE__,__LINE__,'ICBC for '//bdydate2%tostring()//' not found')
+          call fatal(__FILE__,__LINE__,'ICBC for '//tochar(bdydate2)//' not found')
         end if
       end if
       call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)
@@ -249,7 +249,7 @@ module mod_bdycod
       end if
     end if
 !
-    call bdydate2%broadcast(0,mpi_comm_world,ierr)
+    call date_bcast(bdydate2,0,mpi_comm_world,ierr)
 !
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
@@ -521,11 +521,11 @@ module mod_bdycod
 
     if ( myid == 0 ) then
       write (6,'(a,i10,a,i10)') 'READY  BC from     ' , &
-            bdydate1%toidate() , ' to ' , bdydate2%toidate()
+            toint10(bdydate1) , ' to ' , toint10(bdydate2)
     end if
 
     bdydate1 = bdydate2
-    call bdydate1%broadcast(0,mpi_comm_world,ierr)
+    call date_bcast(bdydate1,0,mpi_comm_world,ierr)
 
     do j = 1 , jendx
       do i = 1 , iym1

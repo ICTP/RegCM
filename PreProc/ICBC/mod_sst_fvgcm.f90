@@ -178,7 +178,7 @@ module mod_sst_fvgcm
  
     call writerec(idate,.false.)
 
-    write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
+    write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
     idate = nextmon(idate)
 
   end do

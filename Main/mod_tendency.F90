@@ -2132,7 +2132,7 @@ module mod_tendency
       end if
       if ( myid == 0 ) then
         if ( mod(ktau,50) == 0 ) then
-          write(6,99001) idatex%tostring() , ktau , ptnbar , pt2bar , icons_mpi
+          write(6,99001) tochar(idatex) , ktau , ptnbar , pt2bar , icons_mpi
         end if
       end if
 
@@ -2147,7 +2147,7 @@ module mod_tendency
 !
     if ( mod(ktau,ntbdy) == 0 ) then
       if (myid == 0) then
-        write (6,*) 'Recalculate solar declination angle at ',idatex%toidate()
+        write (6,*) 'Recalculate solar declination angle at ',toint10(idatex)
       end if
       call solar1
     end if

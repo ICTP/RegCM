@@ -362,7 +362,7 @@ module mod_interface
       extime = extime + dtinc
       if (debug_level > 3) then
         if (myid == 0) then
-          write(6,'(a,a,f12.2)') 'Simulation time: ', idatex%tostring(), extime
+          write(6,'(a,a,f12.2)') 'Simulation time: ', tochar(idatex), extime
         end if
       end if
 !
@@ -418,7 +418,7 @@ module mod_interface
     tdif = idate2 - idate1
     idate1 = idate2
     idate2 = idate1 + tdif
-    write (aline, *) ' *** new max DATE will be ' , idate2%tostring()
+    write (aline, *) ' *** new max DATE will be ' , tochar(idate2)
     call say(myid)
 !
 !**********************************************************************
@@ -478,9 +478,9 @@ module mod_interface
       else
         write (99,99001) 'ifrest  = .false.'
       end if
-      write (99,99002) 'idate0  = ' , idate0%toidate()
-      write (99,99002) 'idate1  = ' , idate1%toidate()
-      write (99,99002) 'idate2  = ' , globidate2%toidate()
+      write (99,99002) 'idate0  = ' , toint10(idate0)
+      write (99,99002) 'idate1  = ' , toint10(idate1)
+      write (99,99002) 'idate2  = ' , toint10(globidate2)
       write (99,99002) '/'
 ! 
 !**********************************************************************

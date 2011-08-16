@@ -29,12 +29,13 @@ program checksun
   integer , dimension(3) :: idims , istart , icount
   integer , dimension(1) :: ixtime
   integer :: ivarid , itimid , ilonid , ilatid
-  integer :: idate0 , idate1 , idate2 , idate , ifrq
+  integer :: idate0 , idate1 , idate2 , ifrq
+  type(rcm_time_and_date) :: xidate0 , xidate1 , xidate2 , xidate
+  type(rcm_time_interval) :: tdif
   integer :: jxdimid , iydimid
   integer :: jx , iy
   integer :: it , nt , julday , ibase
   real(8) :: xtime , gmt
-  integer :: iyear , imonth , iday , ihour
   character(32) :: csdate
   character(256) :: ofname
 #ifdef IBM
@@ -68,18 +69,21 @@ program checksun
     print *, 'Cannot parse idate0'
     stop
   end if
+  xidate0 = idate0
   call getarg(3, chararg)
   read(chararg, '(i10)',iostat=istatus) idate1
   if (istatus /= 0) then
     print *, 'Cannot parse idate1'
     stop
   end if
+  xidate1 = idate1
   call getarg(4, chararg)
   read(chararg, '(i10)',iostat=istatus) idate2
   if (istatus /= 0) then
     print *, 'Cannot parse idate2'
     stop
   end if
+  xidate2 = idate2
   call getarg(5, chararg)
   read(chararg, '(i5)',iostat=istatus) ifrq
   if (istatus /= 0) then
@@ -87,9 +91,7 @@ program checksun
     stop
   end if
 
-  call split_idate(idate0,iyear,imonth,iday,ihour)
-  gmt = dble(ihour)
-  call split_idate(idate1,iyear,imonth,iday,ihour)
+  gmt = dble(xidate0%hour)
 
 ! Open the file
 
@@ -177,8 +179,7 @@ program checksun
     stop
   end if
 
-  call normidate(idate0)
-  write (ofname,'(a,i10,a)') 'solin_',idate0,'.nc'
+  write (ofname,'(a,i10,a)') 'solin_',toint10(xidate0),'.nc'
   istatus = nf90_create(ofname, nf90_clobber, ncid)
   if (istatus /= nf90_noerr) then
     write (6,*) 'Error create NetCDF file '//ofname
@@ -211,10 +212,8 @@ program checksun
     write (6,*) nf90_strerror(istatus)
     stop
   end if
-  write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-         iyear,'-',imonth,'-',iday,' ',ihour,':00:00 UTC'
   istatus = nf90_put_att(ncid, itimid, 'units', &
-                         'hours since '//csdate)
+                         'hours since '//tochar(xidate0))
   if (istatus /= nf90_noerr) then
     write (6,*) 'Error adding time units'
     write (6,*) nf90_strerror(istatus)
@@ -265,10 +264,13 @@ program checksun
   end if
 
   xtime = 0.0D0
-  idate = idate1
-  nt = idatediff(idate2,idate1)/ifrq+1
-  julday = idayofyear(idate0)
-  ibase = idatediff(idate1,idate0)/ifrq
+  xidate = xidate1
+
+  tdif = xidate2-xidate1
+  nt = tohours(tdif)/ifrq+1
+  julday = idayofyear(xidate0)
+  tdif = xidate1-xidate0
+  ibase =tohours(tdif)/ifrq
 
   istatus = nf90_put_var(ncid,ilatid,xlat)
   if (istatus /= nf90_noerr) then
@@ -291,7 +293,7 @@ program checksun
   do it = 1 , nt
     call calcsolin
     istart(3) = it
-    print *, 'Doing ', idate
+    print *, 'Doing ', tochar(xidate)
     ixtime(1) = (it-1)*ifrq
     istatus = nf90_put_var(ncid,itimid,ixtime,istart(3:3),icount(3:3))
     if (istatus /= nf90_noerr) then
@@ -305,7 +307,8 @@ program checksun
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    call addhours(idate,ifrq)
+    tdif = rcm_time_interval(ifrq,uhrs)
+    xidate = xidate + tdif
   end do
 
   istatus = nf90_close(ncid)
@@ -321,10 +324,10 @@ program checksun
     implicit none
     integer :: i , j , idiff
     real(8) :: eccf , theta , calday , xt24 , tlocap , omga , xxlat , coszrs
-    real(8) :: delta , decdeg, lhour , xday
-    call split_idate(idate,iyear,imonth,iday,ihour)
-    lhour = dble(ihour)
-    idiff = (idatediff(idate,idate0)/ifrq)-ibase
+    real(8) :: delta , decdeg, xday , lhour
+    lhour = dble(xidate%hour)
+    tdif = xidate-xidate0
+    idiff = (tohours(tdif)/ifrq)-ibase
     xday = dble(idiff)/24.0D0
     calday = dble(julday) + xday + gmt/24.0D0 + xtime/24.0D0
     theta = twopi*calday/dayspy

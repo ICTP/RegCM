@@ -130,8 +130,8 @@ module mod_sst_1deg
     call open_sstfile(idateo)
   end if
 
-  write (stdout,*) 'GLOBIDATE1 : ' , globidate1%tostring()
-  write (stdout,*) 'GLOBIDATE2 : ' , globidate2%tostring()
+  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (stdout,*) 'NSTEPS     : ' , nsteps
 
   ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
@@ -215,7 +215,7 @@ module mod_sst_1deg
         call writerec(idatem,.true.)
       end if
 
-      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
+      write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
 
       idate = nextmon(idate)
       idatem = monmiddle(idate)
@@ -269,7 +269,7 @@ module mod_sst_1deg
         call writerec(idate,.true.)
       endif
 
-      write (stdout,*) 'WRITTEN OUT SST DATA : ' , idate%tostring()
+      write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
 
       idate = nextwk(idate)
 

@@ -71,7 +71,7 @@ module mod_savefile
 
     if ( myid == 0 ) then
       iutrst = 14
-      write (fbname, '(a,i10)') 'SAV.', idate%toidate()
+      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
       ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
       inquire (file=ffin,exist=existing)
       if ( .not.existing ) then
@@ -227,9 +227,9 @@ module mod_savefile
 #endif
     if ( myid == 0 ) then
       if (ltmp) then
-        write (fbname, '(a,i10)') 'TMPSAV.', idate%toidate()
+        write (fbname, '(a,i10)') 'TMPSAV.', toint10(idate)
       else
-        write (fbname, '(a,i10)') 'SAV.', idate%toidate()
+        write (fbname, '(a,i10)') 'SAV.', toint10(idate)
       end if
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
       open (iutsav,file=ffout,form='unformatted',status='replace')
@@ -369,7 +369,7 @@ module mod_savefile
     thisclmrest = filer_rest(1:256)
 #endif
     if ( myid == 0 ) then
-      write (6,*) 'SAV variables written at ', idate%tostring()
+      write (6,*) 'SAV variables written at ', tochar(idate)
 
       if (isavlast > 0) then
         write (fbname, '(a,i10)') 'TMPSAV.', isavlast
@@ -381,7 +381,7 @@ module mod_savefile
 #endif            
       end if
       if (ltmp) then
-        isavlast = idate%toidate()
+        isavlast = toint10(idate)
       else
         isavlast = 0
       end if

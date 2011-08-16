@@ -104,9 +104,9 @@ module mod_mksst
     end if
 
     if (idate > itime(ntime) .or. idate < itime(1)) then
-      write (stderr,*) 'Cannot find ', idate%tostring(), ' in SST file'
-      write (stderr,*) 'Range is : ', itime(1)%tostring() , ' to ', &
-                       itime(ntime)%tostring()
+      write (stderr,*) 'Cannot find ', tochar(idate), ' in SST file'
+      write (stderr,*) 'Range is : ', tochar(itime(1)) , ' to ', &
+                       tochar(itime(ntime))
       call die('readsst')
     end if
 
@@ -162,7 +162,7 @@ module mod_mksst
       end if
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
-      wt = real(ks1%hours()/ks2%hours())
+      wt = real(tohours(ks1)/tohours(ks2))
       do i = 1 , jx
         do j = 1 , iy
           if ( (xlandu(i,j) > 13.9 .and. xlandu(i,j) < 15.1) .and.  &

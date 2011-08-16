@@ -98,7 +98,7 @@ module mod_nest
     istatus = nf90_close(ncinp)
     call checkncerr(istatus,__FILE__,__LINE__, 'Error close')
     imf = monfirst(idate)
-    write (fillin,'(a,i10)') 'ATM.', imf%toidate()
+    write (fillin,'(a,i10)') 'ATM.', toint10(imf)
     inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
     istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
     call checkncerr(istatus,__FILE__,__LINE__, 'Error opening '//trim(inpfile))
@@ -125,7 +125,7 @@ module mod_nest
     end if
   end do
   if (irec < 0) then
-    write (stderr,*) 'Error : time ', idate%tostring(), ' not in file'
+    write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
     call die('get_nest')
   end if
 
@@ -164,7 +164,7 @@ module mod_nest
   istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
   call checkncerr(istatus,__FILE__,__LINE__,'variable ps read error')
 
-  write (stdout,*) 'READ IN fields at DATE:' , idate%tostring()
+  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
 
 !     to calculate Heights on sigma surfaces.
   call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in)
@@ -274,7 +274,7 @@ module mod_nest
   end do
  
   imf = monfirst(globidate1)
-  write (fillin,'(a,i10)') 'ATM.', imf%toidate()
+  write (fillin,'(a,i10)') 'ATM.', toint10(imf)
   inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
   istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error opening '//trim(inpfile))

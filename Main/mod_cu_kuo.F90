@@ -207,7 +207,7 @@ module mod_cu_kuo
 !           kbase/ktop, then flag it, and set kbase/ktop to standard
 !
             if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-              print 99001 , idatex%tostring() , i , j , kbase , ktop
+              print 99001 , tochar(idatex) , i , j , kbase , ktop
               if ( kbase < 5 ) kbase = 5
               if ( ktop > kbase-3 ) ktop = kbase - 3
             end if
