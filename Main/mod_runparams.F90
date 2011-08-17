@@ -82,13 +82,6 @@ module mod_runparams
   integer , parameter :: n_chevar = 17
   integer , parameter :: n_lakvar = 16
 
-  logical , dimension(n_atmvar) :: atm_enablevar
-  logical , dimension(n_srfvar) :: srf_enablevar
-  logical , dimension(n_subvar) :: sub_enablevar
-  logical , dimension(n_radvar) :: rad_enablevar
-  logical , dimension(n_chevar) :: che_enablevar
-  logical , dimension(n_lakvar) :: lak_enablevar
-
   integer, private  :: ierr 
   real(8) , private :: total_allocation_size
 
@@ -327,13 +320,6 @@ module mod_runparams
                     'Floating snow thickness','mm',.true.),                       &
     output_variable('tlake','water_temperature',                                  &
                     'Lake water temperature','K',.true.) /
-
-  data atm_enablevar /n_atmvar*.true./
-  data srf_enablevar /n_srfvar*.true./
-  data sub_enablevar /n_subvar*.true./
-  data rad_enablevar /n_radvar*.true./
-  data che_enablevar /n_chevar*.true./
-  data lak_enablevar /n_lakvar*.true./
 
   contains
 

@@ -92,6 +92,12 @@ module mod_params
   real(8) , dimension(maxntr) :: inpchtrsol
   real(8) , dimension(maxntr,2) :: inpchtrdpv
   real(8) , dimension(maxnbin,2) :: inpdustbsiz
+  logical , dimension(n_atmvar) :: atm_enablevar
+  logical , dimension(n_srfvar) :: srf_enablevar
+  logical , dimension(n_subvar) :: sub_enablevar
+  logical , dimension(n_radvar) :: rad_enablevar
+  logical , dimension(n_chevar) :: che_enablevar
+  logical , dimension(n_lakvar) :: lak_enablevar
   integer :: n , len_path
   logical :: lband
   integer :: ierr
@@ -276,12 +282,12 @@ module mod_params
   iflak = .true.
   srffrq = 1.0D0    ! time interval for disposing bats output (hrs)
   lakfrq = -1.0D0   ! time interval for disposing lake output (hrs)
-  atm_enablevar = .true.
-  srf_enablevar = .true.
-  sub_enablevar = .true.
-  lak_enablevar = .true.
-  rad_enablevar = .true.
-  che_enablevar = .true.
+  atm_enablevar(:) = .true.
+  srf_enablevar(:) = .true.
+  sub_enablevar(:) = .true.
+  lak_enablevar(:) = .true.
+  rad_enablevar(:) = .true.
+  che_enablevar(:) = .true.
   dirout = './output' 
 !chem2
   ifchem = .false.
