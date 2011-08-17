@@ -844,6 +844,7 @@ module mod_params
        'dtsec (timestep in seconds)' , dtsec
   call say(myid)
   idatex = idate1
+  call split_idate(idatex,xyear,xmonth,xday,xhour)
 !
   if ( myid == 0 ) then
     call open_domain(r8pt,dx,sigma)
