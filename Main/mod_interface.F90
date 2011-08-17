@@ -323,7 +323,7 @@ module mod_interface
 !
 !     Read in boundary conditions if needed
 !
-      if ( mod(ktau,ntbdy) == 0 .and. &
+      if ( ntime == 0 .and. &
           (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
         call bdyin
 #ifdef CHEMTEST
@@ -338,7 +338,7 @@ module mod_interface
           if ( (ktau == 0) .or. dtinc /= deltmx ) then
             call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
-                               & dtsec , ktau , idatex%year
+                               & dtsec , ktau , xyear
             call say(myid)
           end if
         end if
@@ -406,7 +406,7 @@ module mod_interface
 !
     call release_mod_ncio
 !
-    write (aline, 99002) xbctime , ktau , idatex%year
+    write (aline, 99002) xbctime , ktau , xyear
     call say(myid)
 !
 !**********************************************************************

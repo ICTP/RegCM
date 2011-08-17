@@ -142,6 +142,7 @@ module mod_era40
   type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
   integer :: i , inet , ivar , it , j , k , k4 , kkrec , istatus
+  integer :: year , month , day , hour
   character(24) :: inname
   character(256) :: pathaddname
   integer(2) , dimension(ilon,jlat,klev) :: work
@@ -170,7 +171,8 @@ module mod_era40
 !     variable name.
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
-!bxq
+  call split_idate(idate,year,month,day,hour)
+!
   if ( idate < 1957090100 .or. idate > 2002083118 ) then
     call die('getera40', 'ERA40 datasets is just available from'// &
              ' 1957090100 to 2002083118', 1)
@@ -181,68 +183,68 @@ module mod_era40
       do kkrec = 1 , 5 ! Just skip omega
         if ( kkrec == 1 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) idate%year , 'air.' , idate%year
+            write (inname,99001) year , 'air.' , year
           else if ( k4 == 2 ) then
-            write (inname,99002) idate%year , 'air.' , idate%year
+            write (inname,99002) year , 'air.' , year
           else if ( k4 == 3 ) then
-            write (inname,99003) idate%year , 'air.' , idate%year
+            write (inname,99003) year , 'air.' , year
           else if ( k4 == 4 ) then
-            write (inname,99004) idate%year , 'air.' , idate%year
+            write (inname,99004) year , 'air.' , year
           else
           end if
         else if ( kkrec == 2 ) then
           if ( k4 == 1 ) then
-            write (inname,99001) idate%year , 'hgt.' , idate%year
+            write (inname,99001) year , 'hgt.' , year
           else if ( k4 == 2 ) then
-            write (inname,99002) idate%year , 'hgt.' , idate%year
+            write (inname,99002) year , 'hgt.' , year
           else if ( k4 == 3 ) then
-            write (inname,99003) idate%year , 'hgt.' , idate%year
+            write (inname,99003) year , 'hgt.' , year
           else if ( k4 == 4 ) then
-            write (inname,99004) idate%year , 'hgt.' , idate%year
+            write (inname,99004) year , 'hgt.' , year
           else
           end if
         else if ( kkrec == 3 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) idate%year , 'rhum.' , idate%year
+            write (inname,99005) year , 'rhum.' , year
           else if ( k4 == 2 ) then
-            write (inname,99006) idate%year , 'rhum.' , idate%year
+            write (inname,99006) year , 'rhum.' , year
           else if ( k4 == 3 ) then
-            write (inname,99007) idate%year , 'rhum.' , idate%year
+            write (inname,99007) year , 'rhum.' , year
           else if ( k4 == 4 ) then
-            write (inname,99008) idate%year , 'rhum.' , idate%year
+            write (inname,99008) year , 'rhum.' , year
           else
           end if
         else if ( kkrec == 4 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) idate%year , 'uwnd.' , idate%year
+            write (inname,99005) year , 'uwnd.' , year
           else if ( k4 == 2 ) then
-            write (inname,99006) idate%year , 'uwnd.' , idate%year
+            write (inname,99006) year , 'uwnd.' , year
           else if ( k4 == 3 ) then
-            write (inname,99007) idate%year , 'uwnd.' , idate%year
+            write (inname,99007) year , 'uwnd.' , year
           else if ( k4 == 4 ) then
-            write (inname,99008) idate%year , 'uwnd.' , idate%year
+            write (inname,99008) year , 'uwnd.' , year
           else
           end if
         else if ( kkrec == 5 ) then
           if ( k4 == 1 ) then
-            write (inname,99005) idate%year , 'vwnd.' , idate%year
+            write (inname,99005) year , 'vwnd.' , year
           else if ( k4 == 2 ) then
-            write (inname,99006) idate%year , 'vwnd.' , idate%year
+            write (inname,99006) year , 'vwnd.' , year
           else if ( k4 == 3 ) then
-            write (inname,99007) idate%year , 'vwnd.' , idate%year
+            write (inname,99007) year , 'vwnd.' , year
           else if ( k4 == 4 ) then
-            write (inname,99008) idate%year , 'vwnd.' , idate%year
+            write (inname,99008) year , 'vwnd.' , year
           else
           end if
         else if ( kkrec == 6 ) then
           if ( k4 == 1 ) then
-            write (inname,99009) idate%year , 'omega.' , idate%year
+            write (inname,99009) year , 'omega.' , year
           else if ( k4 == 2 ) then
-            write (inname,99010) idate%year , 'omega.' , idate%year
+            write (inname,99010) year , 'omega.' , year
           else if ( k4 == 3 ) then
-            write (inname,99011) idate%year , 'omega.' , idate%year
+            write (inname,99011) year , 'omega.' , year
           else if ( k4 == 4 ) then
-            write (inname,99012) idate%year , 'omega.' , idate%year
+            write (inname,99012) year , 'omega.' , year
           else
           end if
         else
@@ -266,22 +268,22 @@ module mod_era40
  
   end if
  
-  k4 = idate%hour/6 + 1
-  it = idate%day
-  if ( idate%month == 2 ) it = it + 31
-  if ( idate%month == 3 ) it = it + 59
-  if ( idate%month == 4 ) it = it + 90
-  if ( idate%month == 5 ) it = it + 120
-  if ( idate%month == 6 ) it = it + 151
-  if ( idate%month == 7 ) it = it + 181
-  if ( idate%month == 8 ) it = it + 212
-  if ( idate%month == 9 ) it = it + 243
-  if ( idate%month == 10 ) it = it + 273
-  if ( idate%month == 11 ) it = it + 304
-  if ( idate%month == 12 ) it = it + 334
-  if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 1
-  if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 1
-  if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 1
+  k4 = hour/6 + 1
+  it = day
+  if ( month == 2 ) it = it + 31
+  if ( month == 3 ) it = it + 59
+  if ( month == 4 ) it = it + 90
+  if ( month == 5 ) it = it + 120
+  if ( month == 6 ) it = it + 151
+  if ( month == 7 ) it = it + 181
+  if ( month == 8 ) it = it + 212
+  if ( month == 9 ) it = it + 243
+  if ( month == 10 ) it = it + 273
+  if ( month == 11 ) it = it + 304
+  if ( month == 12 ) it = it + 334
+  if ( mod(year,4) == 0 .and. month > 2 ) it = it + 1
+  if ( mod(year,100) == 0 .and. month > 2 ) it = it - 1
+  if ( mod(year,400) == 0 .and. month > 2 ) it = it + 1
   do k = 1 , 4
     istart(k) = 1
   end do
@@ -293,12 +295,12 @@ module mod_era40
   icount(2) = jlat
   icount(3) = klev
   icount(4) = 365
-  if ( mod(idate%year,4) == 0 ) icount(4) = 366
-  if ( mod(idate%year,100) == 0 ) icount(4) = 365
-  if ( mod(idate%year,400) == 0 ) icount(4) = 366
-  if ( idate%year == 2002 ) icount(4) = 243
-  if ( idate%year == 1957 ) icount(4) = 122
-  if ( idate%year == 1957 ) it = it - 243
+  if ( mod(year,4) == 0 ) icount(4) = 366
+  if ( mod(year,100) == 0 ) icount(4) = 365
+  if ( mod(year,400) == 0 ) icount(4) = 366
+  if ( year == 2002 ) icount(4) = 243
+  if ( year == 1957 ) icount(4) = 122
+  if ( year == 1957 ) it = it - 243
   istart(4) = it
   icount(4) = 1
 !bxq_

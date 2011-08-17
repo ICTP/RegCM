@@ -96,8 +96,7 @@ module mod_gn6hnc
   public :: get_gn6hnc , headgn6hnc
 
   character(256) :: pathaddname
-  type(rcm_time_and_date) :: refdate =  &
-               rcm_time_and_date(noleap,1989,12,27,0,0,0,32845,0)
+  type(rcm_time_and_date) :: refdate
   type(rcm_time_and_date) :: filedate
 
   data inet /nvars*-1/
@@ -336,6 +335,10 @@ module mod_gn6hnc
     h3 => b3(:,:,npl+1:2*npl)
     q3 => b3(:,:,2*npl+1:3*npl)
 
+    if ( dattyp == 'CAM2N' ) then
+      refdate = 1989122700
+      call setcal(refdate,noleap)
+    end if
     timlen = 1
     call getmem1d(itimes,1,1,'mod_gn6hnc:itimes')
     itimes(1) = 1870010100 ! This set to a "Prehistorical" date
@@ -469,8 +472,12 @@ module mod_gn6hnc
     character(64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
+    integer :: year , month , day , hour
+    integer :: fyear , fmonth , fday , fhour
 !
     call zeit_ci('readgn6hnc')
+!
+    call split_idate(idate,year,month,day,hour)
 !
 !   This is simpler case: just one file for each timestep with
 !   all variables already on pressure levels.
@@ -481,8 +488,8 @@ module mod_gn6hnc
         istatus = nf90_close(inet(1))
         call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
       end if
-      write (inname,99001) idate%year, pthsep, 'fnl_', &
-           idate%year, idate%month, idate%day, '_', idate%hour, '_00.nc'
+      write (inname,99001) year, pthsep, 'fnl_', &
+           year, month, day, '_', hour, '_00.nc'
       pathaddname = trim(inpglob)//'/GFS11/'//inname
       istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -539,9 +546,9 @@ module mod_gn6hnc
             istatus = nf90_close(inet(6))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
           end if
-          iyear1 = idate%year
-          if ( idate%month == 12 .and. idate%day >= 1 .and. &
-               idate%hour > 0 ) then
+          iyear1 = year
+          if ( month == 12 .and. day >= 1 .and. &
+               hour > 0 ) then
             iyear1 = iyear1 + 1
           end if
           if ( dattyp(4:4) == 'R' ) then
@@ -606,9 +613,10 @@ module mod_gn6hnc
         end if
 
         if ( dattyp == 'CAM2N' ) then
+          call split_idate(filedate,fyear,fmonth,fday,fhour)
           ! All variables just in a single file. Simpler case.
-          write (inname,99002) trim(cambase) , filedate%year, &
-                    filedate%month, filedate%day, filedate%second_of_day
+          write (inname,99002) trim(cambase) , fyear, &
+                    fmonth, fday, filedate%second_of_day
           pathaddname = trim(inpglob)//'/CAM2/'//trim(inname)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
           call checkncerr(istatus,__FILE__,__LINE__, &
@@ -619,8 +627,8 @@ module mod_gn6hnc
         else if ( dattyp == 'CCSMN' ) then
           ! Dataset prepared in mothly files, one for each variable
           do i = 1 , nfiles
-            write (inname,99003) idate%year, trim(ccsmfname(i)), &
-                      mname(idate%month), idate%year
+            write (inname,99003) year, trim(ccsmfname(i)), &
+                      mname(month), year
             pathaddname = trim(inpglob)//'/CCSM/'//trim(inname)
             istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -632,11 +640,11 @@ module mod_gn6hnc
           ! 3 months dataset per file.
           do i = 1 , nfiles-1
             if ( havars(i) /= 'XXX' ) then
-              iyear1 = idate%year
-              imon1 = idate%month
+              iyear1 = year
+              imon1 = month
               imon1 = imon1 / 3 * 3
-              if ( idate%day == 1 .and. idate%hour == 0 ) then
-                if ( mod(idate%month,3) == 0 ) then
+              if ( day == 1 .and. hour == 0 ) then
+                if ( mod(month,3) == 0 ) then
                   imon1 = imon1 - 3
                 end if
               end if
@@ -674,12 +682,12 @@ module mod_gn6hnc
             if ( havars(i) /= 'XXX' ) then
               if ( dattyp(4:4) == 'R' ) then
                 write (inname,99005) 'RF', pthsep, trim(cavars(i)), pthsep, &
-                  trim(cavars(i)), trim(cabase), idate%year, '01010000-', &
-                  idate%year, '12311800.nc'
+                  trim(cavars(i)), trim(cabase), year, '01010000-', &
+                  year, '12311800.nc'
               else
                 write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                   trim(cavars(i)), pthsep, trim(cavars(i)), trim(cabase), &
-                  idate%year, '01010000-', idate%year, '12311800.nc'
+                  year, '01010000-', year, '12311800.nc'
               end if
               pathaddname = trim(inpglob)//'/CanESM2/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))

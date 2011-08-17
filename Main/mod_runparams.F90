@@ -30,6 +30,7 @@ module mod_runparams
   type(rcm_time_and_date) :: idate0 , idate1 , idate2
 
   type(rcm_time_and_date) :: idatex
+  integer :: xyear , xmonth , xday , xhour
 
   type(rcm_time_and_date) :: bdydate1 , bdydate2
 

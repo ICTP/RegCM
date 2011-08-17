@@ -113,8 +113,8 @@ module mod_ch_oxcl
 
     d1 = monfirst(idate)
     d2 = nextmon(d1)
-    m1 = d1%month
-    m2 = d2%month
+    m1 = getmonth(d1)
+    m2 = getmonth(d2)
     t1 = idate-d1
     tt = d2-d1
     wt1 = real(tohours(t1)/tohours(tt))

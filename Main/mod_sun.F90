@@ -72,7 +72,7 @@ module mod_sun
 !
 #ifdef CLM
     log_print = .false.
-    iyear_ad = idatex%year
+    iyear_ad = xyear
 
 !   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
     call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &

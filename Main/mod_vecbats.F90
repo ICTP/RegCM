@@ -756,16 +756,16 @@ module mod_vecbats
 !   In souther emisphere only some points have this class
 !
     if ( idesseas == 1 ) then
-      if ( idatex%month == 1 .or. idatex%month == 2 .or. idatex%month == 12 ) then
+      if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
         solour(1) = 0.12D0
       endif        
-      if ( idatex%month == 3 .or. idatex%month == 4 .or. idatex%month == 5 ) then
+      if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
         solour(1) = 0.15D0
       endif        
-      if ( idatex%month == 6 .or. idatex%month == 7 .or. idatex%month == 8) then
+      if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
         solour(1) = 0.18D0
       endif        
-      if ( idatex%month == 9 .or. idatex%month == 10 .or. idatex%month == 11) then
+      if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
         solour(1) = 0.15D0
       endif
     end if

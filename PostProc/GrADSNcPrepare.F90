@@ -54,6 +54,7 @@ program ncprepare
   integer :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
   real(4) :: alat , alon , angle
   integer :: i , j , iid
+  integer :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth
 #ifdef __PGI
   integer , external :: iargc
@@ -354,26 +355,23 @@ program ncprepare
     tdif = idate2-idate1
     delta = idnint(tohours(tdif))
     deallocate(times)
+    call split_idate(idate1,year,month,day,hour)
     if (delta == 24) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-             cmon(idate1%month), idate1%year , ' 1dy'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 1dy'
     else if (delta == 168) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-             cmon(idate1%month), idate1%year , ' 7dy'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 7dy'
     else if (delta >= 672 .and. delta <= 744) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-             cmon(idate1%month), idate1%year , ' 1mo'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 1mo'
     else if (delta > 8640) then
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-             cmon(idate1%month), idate1%year , ' 1yr'
+             'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 1yr'
     else
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
-             'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-             cmon(idate1%month), idate1%year , delta, 'hr'
+             'tdef ', nt, ' linear ', hour, 'Z', day,  &
+             cmon(month), year , delta, 'hr'
     end if
   else if (nt == 1) then
     istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -386,9 +384,10 @@ program ncprepare
     call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
     idate1 = timeval2date(time1, timeunit, timecal)
     delta = 6
+    call split_idate(idate1,year,month,day,hour)
     write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
-           'tdef ', nt, ' linear ', idate1%hour, 'Z', idate1%day, &
-           cmon(idate1%month), idate1%year , delta, 'hr'
+           'tdef ', nt, ' linear ', hour, 'Z', day,  &
+           cmon(month), year , delta, 'hr'
   else
     write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
   end if

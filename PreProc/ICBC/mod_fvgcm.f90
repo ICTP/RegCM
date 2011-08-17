@@ -77,6 +77,7 @@ module mod_fvgcm
   real(sp) , dimension(288,181) :: temp
   logical :: there
   character(4) , dimension(30) :: yr_a2 , yr_rf
+  integer :: year , month , day , hour
 !
   data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/
   data pn_rf/'PS_RF'/ , pn_a2/'PS_A2'/
@@ -94,6 +95,9 @@ module mod_fvgcm
              'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
   call zeit_ci('getfvgcm')
+
+  call split_idate(idate,year,month,day,hour)
+
   if ( idate == globidate1 ) then
     numx = nint((lon1-lon0)/1.25) + 1
     numy = nint(lat1-lat0) + 1
@@ -118,55 +122,55 @@ module mod_fvgcm
     close (61)
   end if
  
-  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
+  if ( day /= 1 .or. hour /= 0 ) then
     if ( ssttyp == 'FV_RF' ) then
-      finm = 'RF/'//yr_rf(idate%year-1960)//'/'//fn_rf//yr_rf(idate%year-1960) &
-             //chmon(idate%month)
-      fips = 'RF/'//yr_rf(idate%year-1960)//'/'//pn_rf//yr_rf(idate%year-1960) &
-             //chmon(idate%month)
+      finm = 'RF/'//yr_rf(year-1960)//'/'//fn_rf//yr_rf(year-1960) &
+             //chmon(month)
+      fips = 'RF/'//yr_rf(year-1960)//'/'//pn_rf//yr_rf(year-1960) &
+             //chmon(month)
     else if ( ssttyp == 'FV_A2' ) then
-      finm = 'A2/'//yr_a2(idate%year-2070)//'/'//fn_a2//yr_a2(idate%year-2070) &
-             //chmon(idate%month)
-      fips = 'A2/'//yr_a2(idate%year-2070)//'/'//pn_a2//yr_a2(idate%year-2070) &
-             //chmon(idate%month)
+      finm = 'A2/'//yr_a2(year-2070)//'/'//fn_a2//yr_a2(year-2070) &
+             //chmon(month)
+      fips = 'A2/'//yr_a2(year-2070)//'/'//pn_a2//yr_a2(year-2070) &
+             //chmon(month)
     else
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
-  else if ( idate%month /= 1 ) then
+  else if ( month /= 1 ) then
     if ( ssttyp == 'FV_RF' ) then
-      finm = 'RF/'//yr_rf(idate%year-1960)//'/'//fn_rf//yr_rf(idate%year-1960) &
-             //chmon(idate%month-1)
-      fips = 'RF/'//yr_rf(idate%year-1960)//'/'//pn_rf//yr_rf(idate%year-1960) &
-             //chmon(idate%month-1)
+      finm = 'RF/'//yr_rf(year-1960)//'/'//fn_rf//yr_rf(year-1960) &
+             //chmon(month-1)
+      fips = 'RF/'//yr_rf(year-1960)//'/'//pn_rf//yr_rf(year-1960) &
+             //chmon(month-1)
     else if ( ssttyp == 'FV_A2' ) then
-      finm = 'A2/'//yr_a2(idate%year-2070)//'/'//fn_a2//yr_a2(idate%year-2070) &
-             //chmon(idate%month-1)
-      fips = 'A2/'//yr_a2(idate%year-2070)//'/'//pn_a2//yr_a2(idate%year-2070) &
-             //chmon(idate%month-1)
+      finm = 'A2/'//yr_a2(year-2070)//'/'//fn_a2//yr_a2(year-2070) &
+             //chmon(month-1)
+      fips = 'A2/'//yr_a2(year-2070)//'/'//pn_a2//yr_a2(year-2070) &
+             //chmon(month-1)
     else
       write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
       call die('getfvgcm')
     end if
   else if ( ssttyp == 'FV_RF' ) then
-    if ( idate%year == 1961 ) then
+    if ( year == 1961 ) then
       write (stderr,*) 'Fields on 00z01jan1961 is not saved'
       write (stderr,*) 'Please run from 00z02jan1961'
       call die('getfvgcm')
     end if
-    finm = 'RF/'//yr_rf(idate%year-1961)//'/'//fn_rf//yr_rf(idate%year-1961)  &
+    finm = 'RF/'//yr_rf(year-1961)//'/'//fn_rf//yr_rf(year-1961)  &
            //chmon(12)
-    fips = 'RF/'//yr_rf(idate%year-1961)//'/'//pn_rf//yr_rf(idate%year-1961)  &
+    fips = 'RF/'//yr_rf(year-1961)//'/'//pn_rf//yr_rf(year-1961)  &
            //chmon(12)
   else if ( ssttyp == 'FV_A2' ) then
-    if ( idate%year == 2071 ) then
+    if ( year == 2071 ) then
       write (stderr,*) 'Fields on 00z01jan2071 is not saved'
       write (stderr,*) 'Please run from 00z02jan2071'
       call die('getfvgcm')
     end if
-    finm = 'A2/'//yr_a2(idate%year-2071)//'/'//fn_a2//yr_a2(idate%year-2071)  &
+    finm = 'A2/'//yr_a2(year-2071)//'/'//fn_a2//yr_a2(year-2071)  &
            //chmon(12)
-    fips = 'A2/'//yr_a2(idate%year-2071)//'/'//pn_a2//yr_a2(idate%year-2071)  &
+    fips = 'A2/'//yr_a2(year-2071)//'/'//pn_a2//yr_a2(year-2071)  &
            //chmon(12)
   else
     write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
@@ -192,20 +196,20 @@ module mod_fvgcm
         recl=(numx*numy*2+16)/4*ibyte,access='direct')
   open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
         recl=numx*numy*ibyte,access='direct')
-  if ( idate%day /= 1 .or. idate%hour /= 0 ) then
-    nrec = ((idate%day-1)*4+idate%hour/6-1)*(nlev*4)
-    mrec = (idate%day-1)*4 + idate%hour/6 - 1
-  else if ( idate%month == 1 .or. idate%month == 2 .or. &
-            idate%month == 4 .or. idate%month == 6 .or. &
-            idate%month == 8 .or. idate%month == 9 .or. &
-            idate%month == 11 ) then
+  if ( day /= 1 .or. hour /= 0 ) then
+    nrec = ((day-1)*4+hour/6-1)*(nlev*4)
+    mrec = (day-1)*4 + hour/6 - 1
+  else if ( month == 1 .or. month == 2 .or. &
+            month == 4 .or. month == 6 .or. &
+            month == 8 .or. month == 9 .or. &
+            month == 11 ) then
     nrec = (31*4-1)*(nlev*4)
     mrec = 31*4 - 1
-  else if ( idate%month == 5 .or. idate%month == 7 .or. &
-            idate%month == 10 .or. idate%month == 12 ) then
+  else if ( month == 5 .or. month == 7 .or. &
+            month == 10 .or. month == 12 ) then
     nrec = (30*4-1)*(nlev*4)
     mrec = 30*4 - 1
-  else if ( mod(idate%year,4) == 0 .and. idate%year /= 2100 ) then
+  else if ( mod(year,4) == 0 .and. year /= 2100 ) then
     nrec = (29*4-1)*(nlev*4)
     mrec = 29*4 - 1
   else

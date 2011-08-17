@@ -33,6 +33,8 @@ module mod_sst_1deg
 
   public :: sst_1deg
 
+  integer :: year , month , day , hour
+
   contains
 
   subroutine sst_1deg
@@ -76,6 +78,9 @@ module mod_sst_1deg
   logical :: there
 !
   call zeit_ci('sst_1deg')
+
+  call split_idate(idate,year,month,day,hour)
+
   if ( ssttyp == 'GISST' ) then
     if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
       write (stderr,*) 'GISST data required are not available'
@@ -153,7 +158,7 @@ module mod_sst_1deg
     do k = 1 , nsteps
 
       if ( ssttyp == 'GISST' ) then
-        nrec = (idate%year-1947)*12 + idate%month - 11
+        nrec = (year-1947)*12 + month - 11
         read (11,rec=nrec) sst
       else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
                 ssttyp == 'OI2ST') then
@@ -332,7 +337,7 @@ module mod_sst_1deg
     end do
   end if
  
-  it = (idate%year-1981)*12 + idate%month - 11
+  it = (year-1981)*12 + month - 11
  
   istart(3) = it
   icount(3) = 1
@@ -405,7 +410,7 @@ module mod_sst_1deg
     end do
   end if
  
-  it = (idate%year-1981)*12 + idate%month - 11
+  it = (year-1981)*12 + month - 11
  
   istart(3) = it
   icount(3) = 1

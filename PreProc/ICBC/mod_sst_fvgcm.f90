@@ -58,9 +58,13 @@ module mod_sst_fvgcm
   real(sp) , dimension(ilon,jlat) :: temp
   real(sp) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , idateo , idatef
+  integer :: year , month , day , hour
   logical :: there
 !
   call zeit_ci('sst_fvgcm')
+
+  call split_idate(idate,year,month,day,hour)
+
   if ( ssttyp == 'FV_RF' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',exist=there)
     if ( .not.there ) then
@@ -120,9 +124,9 @@ module mod_sst_fvgcm
   do k = 1 , nsteps
 
     if ( ssttyp == 'FV_RF' ) then
-      it = (idate%year-1959)*12 + idate%month
+      it = (year-1959)*12 + month
     else
-      it = (idate%year-2069)*12 + idate%month
+      it = (year-2069)*12 + month
     end if
 
     read (11,rec=it) temp

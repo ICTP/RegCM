@@ -2067,7 +2067,10 @@ module mod_tendency
     ntime = ntime + ntsec
     idatex = idatex + intmdl
 
-    if ( mod(ktau,ntbdy) == 0 ) then
+    if ( mod(ntime,3600) == 0 ) then
+      call split_idate(idatex,xyear,xmonth,xday,xhour)
+    end if
+    if ( mod(ntime,ntbdy) == 0 ) then
       xbctime = d_zero
       if ( lfdoyear(idatex) .and. lmidnight(idatex) ) then
         ntime = 0

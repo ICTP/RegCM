@@ -139,6 +139,7 @@ module mod_mtrxclm
             & r2cxlatd , r2cxlon , r2cxlond , r2czga
   real(r8) , dimension(jxp*iy) :: work_in
   real(r8) , dimension(jx*iy) :: work_out
+  integer :: year , month , day , hour
 !
 !----------------------------------------------------------------------
 !     About the dimension ordering:
@@ -158,10 +159,12 @@ module mod_mtrxclm
 !     land surface timestep
   r2cdtime = idint(dtsrf)
 !     start date and time
-  r2cstart_ymd = idate1%year*10000+idate1%month*100+idate1%day
+  call split_idate(idate1,year,month,day,hour)
+  r2cstart_ymd = year*10000+month*100+day
   r2cstart_tod = idate1%second_of_day
 !     stop date and time
-  r2cstop_ymd = idate2%year*10000+idate2%month*100+idate2%day
+  call split_idate(idate2,year,month,day,hour)
+  r2cstop_ymd = iyear*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
 !     calendar type (GREGORIAN not available in regcm)
   if ( ical == noleap ) then

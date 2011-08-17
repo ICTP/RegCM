@@ -794,7 +794,7 @@ module mod_params
 
   ntsrf = idnint(dtsrf/dtsec)
   ntrad = idnint(dtrad/(dtsec/secpm))
-  ntbdy = idnint(dtbdys/dtsec)
+  ntbdy = idnint(dtbdys)
 
   ktau = 0
   bdif = idate2 - idate1

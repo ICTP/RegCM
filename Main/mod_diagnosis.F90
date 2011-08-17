@@ -910,7 +910,7 @@ module mod_diagnosis
         tttmp = d_zero
         do j = 2 , jxm2
           do i = 2 , iym2
-            tttmp = tttmp + chemsrc_io(i,j,idatex%month,itr)*dtsec*dx*dx
+            tttmp = tttmp + chemsrc_io(i,j,xmonth,itr)*dtsec*dx*dx
           end do
         end do
         tchie(itr) = tchie(itr) + tttmp

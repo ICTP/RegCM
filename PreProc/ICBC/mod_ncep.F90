@@ -58,6 +58,8 @@ module mod_ncep
   real(sp) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(sp) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
+  integer :: year , month , day , hour
+
   public :: getncep , headernc
 
   contains
@@ -71,6 +73,8 @@ module mod_ncep
 !     D      BEGIN LOOP OVER NTIMES
 !
   call zeit_ci('getncep')
+!
+  call split_idate(idate,year,month,day,hour)
 !
   if ( itype == 1 ) then
     call cdc6hour(idate,globidate1)
@@ -184,19 +188,19 @@ module mod_ncep
     end if
     if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
       if ( kkrec == 1 ) then
-        write (inname,99001) idate%year , 'air.' , idate%year
+        write (inname,99001) year , 'air.' , year
       else if ( kkrec == 2 ) then
-        write (inname,99001) idate%year , 'hgt.' , idate%year
+        write (inname,99001) year , 'hgt.' , year
       else if ( kkrec == 3 ) then
-        write (inname,99002) idate%year , 'rhum.' , idate%year
+        write (inname,99002) year , 'rhum.' , year
       else if ( kkrec == 4 ) then
-        write (inname,99002) idate%year , 'uwnd.' , idate%year
+        write (inname,99002) year , 'uwnd.' , year
       else if ( kkrec == 5 ) then
-        write (inname,99002) idate%year , 'vwnd.' , idate%year
+        write (inname,99002) year , 'vwnd.' , year
       else if ( kkrec == 6 ) then
-        write (inname,99003) idate%year , 'omega.' , idate%year
+        write (inname,99003) year , 'omega.' , year
       else if ( kkrec == 7 ) then
-        write (inname,99004) idate%year , 'pres.sfc.' , idate%year
+        write (inname,99004) year , 'pres.sfc.' , year
       else
       end if
  
@@ -222,21 +226,21 @@ module mod_ncep
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
  
-    it = (idate%day-1)*4 + idate%hour/6 + 1
-    if ( idate%month == 2 ) it = it + 31*4
-    if ( idate%month == 3 ) it = it + 59*4
-    if ( idate%month == 4 ) it = it + 90*4
-    if ( idate%month == 5 ) it = it + 120*4
-    if ( idate%month == 6 ) it = it + 151*4
-    if ( idate%month == 7 ) it = it + 181*4
-    if ( idate%month == 8 ) it = it + 212*4
-    if ( idate%month == 9 ) it = it + 243*4
-    if ( idate%month == 10 ) it = it + 273*4
-    if ( idate%month == 11 ) it = it + 304*4
-    if ( idate%month == 12 ) it = it + 334*4
-    if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 4
-    if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 4
-    if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 4
+    it = (day-1)*4 + hour/6 + 1
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
+    if ( mod(day,4) == 0 .and. month > 2 ) it = it + 4
+    if ( mod(day,100) == 0 .and. month > 2 ) it = it - 4
+    if ( mod(day,400) == 0 .and. month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -248,9 +252,9 @@ module mod_ncep
     icount(1) = ilon
     icount(2) = jlat
     icount(4) = 1460
-    if ( mod(idate%year,4) == 0 ) icount(4) = 1464
-    if ( mod(idate%year,100) == 0 ) icount(4) = 1460
-    if ( mod(idate%year,400) == 0 ) icount(4) = 1464
+    if ( mod(day,4) == 0 ) icount(4) = 1464
+    if ( mod(day,100) == 0 ) icount(4) = 1460
+    if ( mod(day,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)
@@ -396,19 +400,19 @@ module mod_ncep
     if ( kkrec == 7 ) nlev = 0
     if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
       if ( kkrec == 1 ) then
-        write (inname,99001) idate%year , 'air.WIN.' , idate%year
+        write (inname,99001) year , 'air.WIN.' , year
       else if ( kkrec == 2 ) then
-        write (inname,99001) idate%year , 'hgt.WIN.' , idate%year
+        write (inname,99001) year , 'hgt.WIN.' , year
       else if ( kkrec == 3 ) then
-        write (inname,99002) idate%year , 'rhum.WIN.' , idate%year
+        write (inname,99002) year , 'rhum.WIN.' , year
       else if ( kkrec == 4 ) then
-        write (inname,99002) idate%year , 'uwnd.WIN.' , idate%year
+        write (inname,99002) year , 'uwnd.WIN.' , year
       else if ( kkrec == 5 ) then
-        write (inname,99002) idate%year , 'vwnd.WIN.' , idate%year
+        write (inname,99002) year , 'vwnd.WIN.' , year
       else if ( kkrec == 6 ) then
-        write (inname,99003) idate%year , 'omega.WIN.' , idate%year
+        write (inname,99003) year , 'omega.WIN.' , year
       else if ( kkrec == 7 ) then
-        write (inname,99004) idate%year , 'pres.sfc.WIN.' , idate%year
+        write (inname,99004) year , 'pres.sfc.WIN.' , year
       else
       end if
  
@@ -429,21 +433,21 @@ module mod_ncep
       write (stdout,*) inet7(kkrec) , pathaddname , xscl(kkrec) , xoff(kkrec)
     end if
  
-    it = (idate%day-1)*4 + idate%hour/6 + 1
-    if ( idate%month == 2 ) it = it + 31*4
-    if ( idate%month == 3 ) it = it + 59*4
-    if ( idate%month == 4 ) it = it + 90*4
-    if ( idate%month == 5 ) it = it + 120*4
-    if ( idate%month == 6 ) it = it + 151*4
-    if ( idate%month == 7 ) it = it + 181*4
-    if ( idate%month == 8 ) it = it + 212*4
-    if ( idate%month == 9 ) it = it + 243*4
-    if ( idate%month == 10 ) it = it + 273*4
-    if ( idate%month == 11 ) it = it + 304*4
-    if ( idate%month == 12 ) it = it + 334*4
-    if ( mod(idate%year,4) == 0 .and. idate%month > 2 ) it = it + 4
-    if ( mod(idate%year,100) == 0 .and. idate%month > 2 ) it = it - 4
-    if ( mod(idate%year,400) == 0 .and. idate%month > 2 ) it = it + 4
+    it = (day-1)*4 + hour/6 + 1
+    if ( month == 2 ) it = it + 31*4
+    if ( month == 3 ) it = it + 59*4
+    if ( month == 4 ) it = it + 90*4
+    if ( month == 5 ) it = it + 120*4
+    if ( month == 6 ) it = it + 151*4
+    if ( month == 7 ) it = it + 181*4
+    if ( month == 8 ) it = it + 212*4
+    if ( month == 9 ) it = it + 243*4
+    if ( month == 10 ) it = it + 273*4
+    if ( month == 11 ) it = it + 304*4
+    if ( month == 12 ) it = it + 334*4
+    if ( mod(day,4) == 0 .and. month > 2 ) it = it + 4
+    if ( mod(day,100) == 0 .and. month > 2 ) it = it - 4
+    if ( mod(day,400) == 0 .and. month > 2 ) it = it + 4
 !bxq_
     do m = 1 , 4
       istart(m) = 1
@@ -455,9 +459,9 @@ module mod_ncep
     icount(1) = iii
     icount(2) = jjj
     icount(4) = 1460
-    if ( mod(idate%year,4) == 0 ) icount(4) = 1464
-    if ( mod(idate%year,100) == 0 ) icount(4) = 1460
-    if ( mod(idate%year,400) == 0 ) icount(4) = 1464
+    if ( mod(day,4) == 0 ) icount(4) = 1464
+    if ( mod(day,100) == 0 ) icount(4) = 1460
+    if ( mod(day,400) == 0 ) icount(4) = 1464
     istart(4) = it
     icount(4) = 1
     inet = inet7(kkrec)

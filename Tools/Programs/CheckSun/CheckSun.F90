@@ -30,11 +30,12 @@ program checksun
   integer , dimension(1) :: ixtime
   integer :: ivarid , itimid , ilonid , ilatid
   integer :: idate0 , idate1 , idate2 , ifrq
+  integer :: year , month , day , hour
   type(rcm_time_and_date) :: xidate0 , xidate1 , xidate2 , xidate
   type(rcm_time_interval) :: tdif
   integer :: jxdimid , iydimid
   integer :: jx , iy
-  integer :: it , nt , julday , ibase
+  integer :: it , nt , ibase
   real(8) :: xtime , gmt
   character(32) :: csdate
   character(256) :: ofname
@@ -91,7 +92,8 @@ program checksun
     stop
   end if
 
-  gmt = dble(xidate0%hour)
+  call split_idate(xidate0,year,month,day,hour)
+  gmt = dble(hour)
 
 ! Open the file
 
@@ -268,7 +270,6 @@ program checksun
 
   tdif = xidate2-xidate1
   nt = tohours(tdif)/ifrq+1
-  julday = idayofyear(xidate0)
   tdif = xidate1-xidate0
   ibase =tohours(tdif)/ifrq
 
@@ -325,11 +326,12 @@ program checksun
     integer :: i , j , idiff
     real(8) :: eccf , theta , calday , xt24 , tlocap , omga , xxlat , coszrs
     real(8) :: delta , decdeg, xday , lhour
-    lhour = dble(xidate%hour)
+    call split_idate(xidate,year,month,day,hour)
+    lhour = dble(hour)
     tdif = xidate-xidate0
     idiff = (tohours(tdif)/ifrq)-ibase
     xday = dble(idiff)/24.0D0
-    calday = dble(julday) + xday + gmt/24.0D0 + xtime/24.0D0
+    calday = yeardayfrac(xidate)
     theta = twopi*calday/dayspy
     delta = 0.006918D0 - 0.399912D0*dcos(theta) + &
             0.070257D0*dsin(theta) -              &
