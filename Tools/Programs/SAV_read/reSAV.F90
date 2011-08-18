@@ -8,8 +8,8 @@ program resav
 !
   character(256) :: namelistfile , prgname , savfile
   integer :: ierr
-  real(8) :: xtime
-  integer :: mdate0 , ktau , ldatez , lyear , lmonth , lday , &
+  real(8) :: xtime , xbtime
+  integer :: mdate0 , ktau , idatex , lyear , lmonth , lday , &
              lhour , ntime
   real(8) , allocatable , dimension(:,:,:) :: ub0 , vb0 , qb0 , tb0 , so0
   real(8) , allocatable , dimension(:,:) :: ps0 , ts0
@@ -293,7 +293,7 @@ program resav
 !
   open (iutrst, file=savfile, form='unformatted',status='old')
   read (iutrst) mdate0
-  read (iutrst) ktau, xtime, ldatez, lyear, lmonth, lday, &
+  read (iutrst) ktau, xtime, xbtime, idatex, lyear, lmonth, lday, &
                 lhour, ntime
   if ( ehso4 ) then
     read (iutrst) ub0, vb0, qb0, tb0, ps0, ts0, so0
