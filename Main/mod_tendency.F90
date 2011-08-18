@@ -1598,8 +1598,10 @@ module mod_tendency
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
           if ( ntime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
-          call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,iboudy)
-          call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,iboudy)
+          call nudge_x(ispgx,fnudge,gnudge,xtm1,atm2%t,aten%t,j,iboudy, &
+                       tnb,tnbt,tsb,tsbt,teb,tebt,twb,twbt)
+          call nudge_x(ispgx,fnudge,gnudge,xtm1,atm2%qv,aten%qv,j,iboudy, &
+                       qnb,qnbt,qsb,qsbt,qeb,qebt,qwb,qwbt)
         end if
 !
 !       forecast t, qv, and qc at tau+1:

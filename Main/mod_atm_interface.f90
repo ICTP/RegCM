@@ -89,6 +89,18 @@ module mod_atm_interface
     real(8) , pointer , dimension(:,:,:) :: diffq
   end type diffx
 
+  type vbound
+    real(8) , pointer , dimension(:,:,:) :: b0
+    real(8) , pointer , dimension(:,:,:) :: b1
+    real(8) , pointer , dimension(:,:,:) :: nb , sb
+    real(8) , pointer , dimension(:,:,:) :: eb , wb
+    real(8) , pointer , dimension(:,:,:) :: nbt , sbt
+    real(8) , pointer , dimension(:,:,:) :: ebt , wbt
+  end type vbound
+
+  public :: atmstate , domain , surfpstate , surftstate , surfstate , slice
+  public :: diffx , vbound
+
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten
@@ -97,9 +109,8 @@ module mod_atm_interface
   type(surfstate) , public :: sfsta
   type(slice) , public :: atms
   type(diffx) , public :: adf
+  type(vbound) , public :: xtb , xqb , xub , xvb , xpsb
 
-  public :: atmstate , domain , surfpstate , surftstate , surfstate , slice
-  public :: diffx
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
 
   real(8) , public , pointer , dimension(:,:) :: hgfact
@@ -112,6 +123,20 @@ module mod_atm_interface
   real(8) , public , pointer , dimension(:,:,:) :: phi , qdot , omega
 !
   contains 
+!
+    subroutine allocate_vbound(xb,lband,is,ie,js,je,ks,ke,nsp)
+      type(vbound) , intent(out) :: xb
+      logical , intent(in) :: lband
+      integer , intent(in) :: is , ie , js , je , ks, ke , nsp
+      call getmem3d(xb%b0,is,ie,ks,ke,js,je,'vbound:b0')
+      call getmem3d(xb%b1,is,ie,ks,ke,js,je,'vbound:b1')
+      call getmem3d(xb%nb,1,nsp,ks,ke,js,je,'vbound:nb')
+      call getmem3d(xb%sb,1,nsp,ks,ke,js,je,'vbound:sb')
+      if ( .not. lband ) then
+        call getmem3d(xb%eb,ie,ie,ks,ke,js,je,'vbound:eb')
+        call getmem3d(xb%wb,ie,ie,ks,ke,js,je,'vbound:wb')
+      end if
+    end subroutine allocate_vbound
 !
     subroutine allocate_atmstate(atm,lpar,ib,jb)
       implicit none
@@ -222,9 +247,11 @@ module mod_atm_interface
       call getmem3d(dx%diffq,1,iy,1,kz,1,jxp,'diffx:diffq')
     end subroutine allocate_diffx
 !
-    subroutine allocate_mod_atm_interface
+    subroutine allocate_mod_atm_interface(lband)
+!
       implicit none
-
+      logical , intent(in) :: lband
+!
       call allocate_domain(mddom,.true.)
 
       call allocate_atmstate(atm1,.true.,0,2)
@@ -247,6 +274,12 @@ module mod_atm_interface
       call allocate_slice(atms)
 
       call allocate_diffx(adf)
+
+      call allocate_vbound(xtb,lband,1,iy,0,jxp+1,1,kz,nspgx)
+      call allocate_vbound(xqb,lband,1,iy,0,jxp+1,1,kz,nspgx)
+      call allocate_vbound(xub,lband,1,iy,0,jxp+1,1,kz,nspgd)
+      call allocate_vbound(xvb,lband,1,iy,0,jxp+1,1,kz,nspgd)
+      call allocate_vbound(xpsb,lband,1,iy,0,jxp+1,1,1,nspgx)
 
       if (icup == 99 .or. icup == 98) then
         call getmem2d(cucontrol,1,iy,1,jxp,'mod_atm_interface:cucontrol')

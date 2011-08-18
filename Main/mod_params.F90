@@ -662,8 +662,8 @@ module mod_params
 !-----------------------------------------------------------------------
 !
   if ( lakemod == 1 ) call allocate_lake
+  call allocate_mod_atm_interface(lband)
   call allocate_mod_tend(lband)
-  call allocate_mod_atm_interface
   call allocate_mod_bats
   call allocate_mod_bdycon
   call allocate_mod_holtbl
@@ -881,7 +881,7 @@ module mod_params
   dx16 = 16.0D0*dx
   dxsq = dx*dx
   c200 = vonkar*vonkar*dx/(d_four*(d_100-r8pt))
-  c203 = 1.0D0/dxsq
+  rdxsq = 1.0D0/dxsq
   xkhz = 1.5D-3*dxsq/dt
   xkhmax = dxsq/(64.0D0*dt)
   akht1 = dxsq/tauht
