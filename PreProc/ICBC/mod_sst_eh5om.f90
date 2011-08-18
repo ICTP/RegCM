@@ -262,7 +262,7 @@
 !     16/1/2069 TO 16/1/2101
       idate = globidate1
       if ( ssttyp=='EH5RF' ) then
-        ieh5ostart = 1989010100
+        ieh5ostart = 1941010106
       else
         ieh5ostart = 2001010100
       end if
