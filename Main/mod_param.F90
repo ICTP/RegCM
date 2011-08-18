@@ -723,7 +723,6 @@
 !
       call set_scenario(scenario)
 !
-      nstrt0 = 0
       nstart = idatediff(idate1,idate0)
 #ifdef MPP1
       if (myid == 0) then
@@ -737,9 +736,9 @@
 #ifdef MPP1
       end if
 #endif
-      nnnend = idatediff(idate2,idate0)
       dtbdys = dble(ibdyfrq)*secph
-      ntbdy = idnint(dtbdys/dt)
+      ntbdy = idnint(dtbdys)
+      print *, ntbdy
 ! 
       write (aline,*) 'param: initial date of this '// &
                       'simulation: IDATE1',idate1

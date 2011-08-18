@@ -33,7 +33,7 @@
 
       integer :: mdate , mdate0
 
-      integer :: nnnnnn , nnnend , nstart , nstrt0
+      integer :: nnnnnn , nstart
 
       real(8) :: declin , dectim , deltmx , gmt
       real(8) :: xtime , xbtime
@@ -43,7 +43,7 @@
       logical :: doabsems , dolw , dosw
       integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
                & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
-               & nndbas , nnsbas , nrstrt , nstep , nstepr , nstop
+               & nndbas , nnsbas , nrstrt , nstep , nstepr
 
       integer , dimension(12) :: mlen
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/

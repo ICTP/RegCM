@@ -355,7 +355,7 @@
 !
       call time_begin(subroutine_name,idindx)
 !
-      if ( mod(ntime,ibdyfrq*3600) /= 0 ) return
+      if ( mod(ntime,ntbdy) /= 0 ) return
 !
 #ifdef MPP1
       if ( myid == 0 ) then

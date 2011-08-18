@@ -110,8 +110,8 @@
       if ( mod(ntime,nsavfrq) == 0 .and. idatex /= idate1 ) then
         ldotmp = .true.
       end if
-      if ( ((lday==1 .and. lhour==0 .and. dabs(xtime)<0.00001D0) .and. &
-            idatex /= idate1) .or. nnnnnn == nnnend ) then
+      if ( ((lday==1 .and. lhour==0 .and. ntime == 0) .and. &
+            idatex /= idate1) .or. idatex == idate2 ) then
         ldosav = .true.
         ldotmp = .false.
       end if
@@ -1398,7 +1398,7 @@
 #ifdef MPP1
       if ( myid == 0 ) then
 #endif        
-        if ( lday == 1 .and. lhour == 0 .and. dabs(xtime)<0.00001D0 ) then
+        if ( lday == 1 .and. lhour == 0 .and. ntime == 0 ) then
           if ( .not. lstartup .and. idatex /= idate2 ) then
             call mkfile
           end if
