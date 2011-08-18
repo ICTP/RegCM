@@ -235,11 +235,11 @@ module mod_sst_1deg
       if ( idate < 1989123100 ) then
         irefd = 1981110100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1981-1989.nc'
-        iwk = iwkdiff(idate,irefd)
+        iwk = iwkdiff(idate,irefd) + 1
       else
         irefd = 1989123100
         inpfile=trim(inpglob)//'/SST/sst.wkmean.1990-present.nc'
-        iwk = iwkdiff(idate,irefd)
+        iwk = iwkdiff(idate,irefd) + 1
       end if
 
       call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)

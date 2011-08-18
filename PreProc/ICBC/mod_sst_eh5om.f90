@@ -281,7 +281,7 @@ module mod_sst_eh5om
 !     16/1/2069 TO 16/1/2101
   idate = globidate1
   if ( ssttyp == 'EH5RF' ) then
-    ieh5ostart = 1989010100
+    ieh5ostart = 1941010106
   else
     ieh5ostart = 2001010100
   end if
@@ -296,19 +296,19 @@ module mod_sst_eh5om
               '/SST/SST_20C_3_1941010106_1961123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
-        it_base = 1
+        it_base = 0
       else if ( i1 >= a3 .and. i1 <= a4 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_20C_3_1962010100_1993123118',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
-        it_base = 30680
+        it_base = 30679
       else if ( i1 >= a5 .and. i1 <= a6 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_20C_3_1994010100_2001010100',           &
               form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
               access='direct')
-        it_base = 30680 + 46752
+        it_base = 30679 + 46752
       else
       end if
     else if ( ssttyp == 'EH5A2' ) then
