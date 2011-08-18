@@ -120,7 +120,7 @@
         ldoatm = .true.
       end if
       if ( (jyear == jyear0 .and. ktau == 0) .or. & 
-           mod(ntime,kbats) == 0) then
+           mod(ntime,nbatfrq) == 0) then
         ldosrf = .true.
       end if
       if ( (jyear == jyear0 .and. ktau == 0) .or. &
@@ -128,7 +128,7 @@
         ldorad = .true.
       end if
       if ( (jyear == jyear0 .and. ktau == 0) .or. &
-           mod(ntime,kchem) == 0) then
+           mod(ntime,nchefrq) == 0) then
         ldoche = .true.
       end if
 

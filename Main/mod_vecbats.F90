@@ -751,7 +751,7 @@
 #endif
         end do
 
-        if ( mod(ntime+idnint(dtsec),kbats) == 0 .or.    &
+        if ( mod(ntime+idnint(dtsec),nbatfrq) == 0 .or.    &
             ( jyear == jyear0 .and. ktau == 0 ) .or.       & 
             ( ifrest .and. .not. done_restart ) ) then
           if ( jyear == jyear0 .and. ktau <= 1 ) then

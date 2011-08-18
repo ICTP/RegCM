@@ -36,8 +36,8 @@
       real(8) :: xkhmax , xkhz
 
       integer :: ibltyp , iboudy , ichem , icup , idirect ,      &
-               & iemiss , igcc , iocnflx , ipgf , ipptls , kbats ,      &
-               & kchem , lakemod , nradisp , ntrad , ntsave , nttape ,  &
+               & iemiss , igcc , iocnflx , ipgf , ipptls , nbatfrq ,      &
+               & nchefrq , lakemod , nradisp , ntrad , ntsave , nttape ,  &
                & idcsst , iseaice , idesseas , klak , iocnrough
 
       logical :: ifrest , rfstrt , done_restart

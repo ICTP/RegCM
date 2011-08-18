@@ -27,7 +27,6 @@
       integer :: nyear , nmonth , nday , nhour
       integer :: myear , mmonth , mday , mhour
       integer :: jyear0 , jyear
-      integer :: julian
       integer :: idatex
       integer :: ntime
 

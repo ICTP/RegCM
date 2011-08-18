@@ -704,13 +704,13 @@
                                 !convert radisp to time steps
       ifrabe = idnint(secph*abemh/dt)
                                    !abemh is time interval abs./emis. calc.
-      kbats = idnint(secph*batfrq)
+      nbatfrq = idnint(secph*batfrq)
       klak = idnint(lakfrq/batfrq)
       nbatst = idnint(abatm/dt)
       dtsec = dt
       dt2 = d_two*dt
 !chem2
-      kchem = idnint(secph*chemfrq)  ! convert chemfrq to time steps
+      nchefrq = idnint(secph*chemfrq)  ! convert chemfrq to time steps
 !chem2_
 !.....calculate the time step in minutes.
       deltmx = dt
@@ -752,10 +752,7 @@
       call say
       idatex = idate1
       nnnnnn = nstart
-      lyear = idatex/1000000
-      lmonth = (idatex-lyear*1000000)/10000
-      lday = (idatex-lyear*1000000-lmonth*10000)/100
-      lhour = mod(idatex,100)
+      call split_idate(idatex, lyear, lmonth, lday, lhour)
       jyear = lyear
 !
 !-----specify the julian date and gmt of the initial data.

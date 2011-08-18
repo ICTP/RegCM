@@ -1218,7 +1218,7 @@
 !....apply  the nudging boundary conditions:
           else if ( iboudy == 1 .or. iboudy == 5 ) then
             xtm1 = xbtime - dtsec
-            if ( mod(ktau,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
+            if ( mod(ntime,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
           end if
 #ifndef BAND
@@ -1670,7 +1670,7 @@
 !
           if ( iboudy == 1 .or. iboudy == 5 ) then
             xtm1 = xbtime - dtsec
-            if ( mod(ktau,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
+            if ( mod(ntime,ntbdy) == 0 .and. idatex > idate0 ) xtm1 = -dtsec
             call nudge_t(ispgx,fnudge,gnudge,xtm1,aten%t(:,:,j),j,   &
                        & iboudy)
             call nudgeqv(ispgx,fnudge,gnudge,xtm1,aten%qv(:,:,j),j,  &
@@ -2316,7 +2316,7 @@
 !-----recalculate solar declination angle if forecast time larger than
 !     24 hours:
 !
-      if ( mod(ktau,ntbdy) == 0 .and. idatex /= idate1 ) then
+      if ( mod(ntime,ntbdy) == 0 .and. idatex /= idate1 ) then
         call solar1(xtime)
         dectim = dnint(minpd+dectim)
 #ifdef MPP1
