@@ -56,8 +56,6 @@
       real(4) , dimension(ilon) :: loni
       logical :: there
 !
-      it_base = 0
-
       if ( ssttyp=='EH5RF' ) then
         there = .false.
         if ( (globidate1>=1941010106 .and. globidate1<=1961123118) .or. &
@@ -274,20 +272,19 @@
              &    '/SST/SST_20C_3_1941010106_1961123118',               &
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
-            it_base = 1
+            it_base = 0
           else if ( idate>=1962010100 .and. idate<=1993123118 ) then
             open (11,file=trim(inpglob)//                               &
              &    '/SST/SST_20C_3_1962010100_1993123118',               &
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
-            it_base = 30680
+            it_base = 30679
           else if ( idate>=1994010100 .and. idate<=2001010100 ) then
             open (11,file=trim(inpglob)//                               &
              &    '/SST/SST_20C_3_1994010100_2001010100',               &
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
-            it_base = 30680 + 46752
-          else
+            it_base = 30679 + 46752
           end if
         else if ( ssttyp=='EH5A2' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
@@ -314,7 +311,6 @@
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
             it_base = 42368 + 46752*2
-          else
           end if
         else if ( ssttyp=='EH5B1' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
@@ -341,7 +337,6 @@
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
             it_base = 42368 + 46752*2
-          else
           end if
         else if ( ssttyp=='EHA1B' ) then
           if ( idate>=2001010100 .and. idate<=2029123118 ) then
@@ -368,9 +363,7 @@
              &    form='unformatted',recl=(ilon*jlat/2+4)*ibyte,        &
              &    access='direct')
             it_base = 42368 + 46752*2
-          else
           end if
-        else
         end if
         call split_idate(idate, nyear, nmo, nday, nhour)
         ieh5orec = idatediff(idate, ieh5ostart)/ibdyfrq+1
@@ -387,7 +380,7 @@
  
 !       ******           WRITE OUT SST DATA ON MM4 GRID
         call writerec(idate,.false.)
-        print * , 'WRITING OUT MM4 SST DATA:' , nmo , nyear
+        print * , 'WRITING OUT MM4 SST DATA:' , idate
 
         call addhours(idate, idtbc)
 
