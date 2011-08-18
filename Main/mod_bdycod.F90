@@ -209,7 +209,7 @@ module mod_bdycod
           end do
         end do
       end if
-      bdydate2 = bdydate2 + inbdyfrq
+      bdydate2 = bdydate2 + intbdy
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
       mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then

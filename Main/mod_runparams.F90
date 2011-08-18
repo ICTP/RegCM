@@ -35,7 +35,7 @@ module mod_runparams
   type(rcm_time_and_date) :: bdydate1 , bdydate2
 
   type(rcm_time_interval) :: intmdl
-  type(rcm_time_interval) :: inbdyfrq
+  type(rcm_time_interval) :: intbdy
 
   real(8) :: declin , deltmx
   real(8) :: xbctime

@@ -819,7 +819,7 @@ module mod_params
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
-  inbdyfrq = rcm_time_interval(ibdyfrq,uhrs)
+  intbdy = rcm_time_interval(ibdyfrq,uhrs)
   deltmx = dt
 !.....compute the time steps for radiation computation.
 !sb   lake model mods
