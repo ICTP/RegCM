@@ -459,7 +459,7 @@ module mod_init
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
       end do
-      print 99001 , xbctime , ktau , tochar(idatex)
+      print 99001 , ntime, ktau , tochar(idatex)
     end if
 !
     if ( lakemod == 1 ) then
@@ -1128,9 +1128,9 @@ module mod_init
 #endif
     call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(xbctime,1,mpi_real8,0,mpi_comm_world,ierr)
-    call date_bcast(idatex,0,mpi_comm_world,ierr)
     call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
+    call date_bcast(idatex,0,mpi_comm_world,ierr)
+    xbctime = dble(ntime)
 #ifndef BAND
     if (debug_level > 2) call mpidiag
 #endif
@@ -1274,7 +1274,7 @@ module mod_init
   end if
 #endif
 
-99001 format (' ***** restart file for large domain at time = ',f8.0,   &
+99001 format (' ***** restart file for large domain at time = ', i8,   &
           ' seconds, ktau = ',i7,' date = ',a,' read in')
 !
   end subroutine init

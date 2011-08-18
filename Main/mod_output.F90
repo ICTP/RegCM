@@ -111,7 +111,7 @@ module mod_output
   if ( ktau == 0 .or. mod(ntime,nradfrq) == 0) then
     ldorad = .true.
   end if
-  if ( ktau == 0 .or. mod(ntime,nchefreq) == 0) then
+  if ( ktau == 0 .or. mod(ntime,nchefrq) == 0) then
     ldoche = .true.
   end if
 

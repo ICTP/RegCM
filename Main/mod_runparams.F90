@@ -35,7 +35,7 @@ module mod_runparams
   type(rcm_time_and_date) :: bdydate1 , bdydate2
 
   type(rcm_time_interval) :: intmdl
-  type(rcm_time_interval) :: intbdy
+  type(rcm_time_interval) :: inbdyfrq
 
   real(8) :: declin , deltmx
   real(8) :: xbctime
@@ -45,8 +45,8 @@ module mod_runparams
 
   integer(8) :: ktau , mtau
   integer(8) :: ntime
-  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefreq , nsrffrq
-  integer(8) :: ntbdy , ntsrf , ntrad , ntabem , ntsec
+  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
+  integer(8) :: nbdyfrq , ntsrf , ntrad , ntabem , ntsec
   integer :: klak
 !
   real(8) :: dt , dt2 , dtbdys , dtbat , dtlake , dtsec

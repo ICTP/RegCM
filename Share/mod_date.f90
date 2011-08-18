@@ -961,7 +961,7 @@ module mod_date
     type (rcm_time_interval) :: z
     call check_cal(x,y)
     z = x - y
-    iwk = z%ival/604800 + 1
+    iwk = z%ival/604800
   end function iwkdiff
 
   function monfirst(x) result(mf)

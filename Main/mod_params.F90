@@ -795,18 +795,19 @@ module mod_params
   nradfrq = idnint(secph*radfrq)
   ndbgfrq = idnint(secph*dbgfrq)
   nsrffrq = idnint(secph*srffrq)
-  nchefreq = idnint(secph*chemfrq)
+  nchefrq = idnint(secph*chemfrq)
+  nbdyfrq = idnint(dtbdys)
   klak = idnint(lakfrq/srffrq)
 
   ntsrf = idnint(dtsrf/dtsec)
   ntrad = idnint(dtrad/(dtsec/secpm))
-  ntbdy = idnint(dtbdys)
 
   ktau = 0
   bdif = idate2 - idate1
   mtau = idnint((tohours(bdif)*secph)/dt)
-  xbctime = d_zero
+
   ntime = 0
+  xbctime = d_zero
 
   do ns = 1 , nsplit
     dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
@@ -818,7 +819,7 @@ module mod_params
   dt2 = d_two*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
-  intbdy = rcm_time_interval(ibdyfrq,uhrs)
+  inbdyfrq = rcm_time_interval(ibdyfrq,uhrs)
   deltmx = dt
 !.....compute the time steps for radiation computation.
 !sb   lake model mods

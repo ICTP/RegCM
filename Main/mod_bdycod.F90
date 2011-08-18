@@ -199,8 +199,6 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 !
-    if ( mod(ktau,ntbdy) /= 0 ) return
-!
     if ( myid == 0 ) then
       if ( ehso4 ) then
         do k = 1 , kz
@@ -211,7 +209,7 @@ module mod_bdycod
           end do
         end do
       end if
-      bdydate2 = bdydate2 + intbdy
+      bdydate2 = bdydate2 + inbdyfrq
       write (6,'(a,i10)') 'SEARCH BC data for ', toint10(bdydate2)
       mmrec = icbc_search(bdydate2)
       if (mmrec < 0) then
@@ -1025,7 +1023,7 @@ module mod_bdycod
 !   compute the time interval for boundary tendency:
 !
     dtb = xt
-    if ( mod(ktau,ntbdy) == 0 .and. ktau > 0 ) then
+    if ( ntime == 0 .and. ktau > 0 ) then
       dtb = dtbdys
     end if
 !
