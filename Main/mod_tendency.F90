@@ -45,7 +45,6 @@ module mod_tendency
   use mod_condtq
   use mod_diffusion
   use mod_advection
-  use mod_nudge
   use mod_che_tend
   use mod_diagnosis
   use mod_service

@@ -55,7 +55,7 @@ regcm_SOURCES = mod_bats_param.f90 mod_diagnosis.F90   \
                 mod_holtbl.F90 mod_init.F90 mod_lake.F90              \
                 mod_leaftemp.f90 mod_atm_interface.f90        \
                 mod_mppio.F90 mod_ncio.F90 mod_cu_tables.f90          \
-                mod_nudge.F90 mod_o3blk.F90 mod_output.F90            \
+                mod_o3blk.F90 mod_output.F90            \
                 mod_outrad.F90 mod_params.F90 mod_pbldim.f90          \
                 mod_pmoist.f90 mod_precip.f90 mod_rad.f90             \
                 mod_radiation.F90 mod_runparams.F90 mod_savefile.F90  \
@@ -154,7 +154,6 @@ mod_atm_interface.o: mod_atm_interface.f90 mod_runparams.o
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_tcm_interface.o \
              mod_atm_interface.o mod_outrad.o
 mod_ncio.o: mod_ncio.F90 mod_runparams.o
-mod_nudge.o: mod_nudge.F90 mod_bdycod.o mod_atm_interface.o mod_runparams.o
 mod_o3blk.o: mod_o3blk.F90 mod_atm_interface.o mod_runparams.o mod_rad.o
 if DO_COMPILE_LIBCLM
 mod_output.o: mod_output.F90 mod_bats.o mod_bdycod.o \
@@ -245,7 +244,7 @@ mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
                 mod_slice.o mod_cu_grell.o mod_cu_kuo.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
-                mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
+                mod_diffusion.o mod_advection.o mod_che_tend.o \
                 mod_clm.o mod_mtrxclm.o mod_cldfrac.o $(CLMLIB)
 else
 mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
@@ -254,7 +253,7 @@ mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
                 mod_slice.o mod_cu_grell.o mod_cu_kuo.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
-                mod_diffusion.o mod_advection.o mod_nudge.o mod_che_tend.o \
+                mod_diffusion.o mod_advection.o mod_che_tend.o \
                 mod_cldfrac.o
 endif
 mod_thetal.o: mod_thetal.f90
