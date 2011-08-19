@@ -24,326 +24,14 @@ module mod_nudge
   private
 !
   public :: sponge_p , sponge_t , spongeqv , sponge_u , sponge_v
-  public :: nudge_p
+
+  interface nudge
+    module procedure nudge3d , nudge2d
+  end interface nudge
+!
   public :: nudge
 !
   contains
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     these subroutines apply relaxation boundary conditions to the   c
-!     tendency term - xpten.                                          c
-!                                                                     c
-!     ip    : is the number of slices affected by nudging.            c
-!                                                                     c
-!     xt    : is the time in seconds for variable "psb".              c
-!                                                                     c
-!     fcoef : are the coefficients for the newtonian term.            c
-!                                                                     c
-!     gcoef : are the coefficients for the diffusion term.            c
-!                                                                     c
-!     xpten : is the tendency calculated from the model.              c
-!                                                                     c
-!     peb, pwb, psb, pnb : are the observed boundary values           c
-!                   on east, west, south, and north boundaries.       c
-!                                                                     c
-!     pebt, pwbt, psbt, pnbt : are the large-scale or observed        c
-!             tendencies at east, west, south, and north boundaries.  c
-!                                                                     c
-!     psb    : is the variable at tau-1.                               c
-!                                                                     c
-!     ie = iy, je = jx for dot-point variables.                       c
-!     ie = iym1, je = jxm1 for cross-point variables.                 c
-!                                                                     c
-!     j    : is the j'th slice of the tendency to be adjusted.        c
-!     ibdy : type of boundary condition relaxation, 1=linear        c
-!              5 = exponential                                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-  subroutine nudge_p(ip,fcoef,gcoef,xt,xpten,j,ibdy)
-!
-  use mod_bdycod
-  use mod_atm_interface
-  use mod_runparams
-  use mod_service
-  implicit none
-!
-  real(8) :: fcoef , gcoef , xt
-  integer :: ibdy , ip , j
-  real(8) , dimension(iy) :: xpten
-  intent (in) fcoef , gcoef , ibdy , ip , j , xt
-  intent (inout) xpten
-!
-  real(8) :: dtb , fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-  integer :: i , ii
-#ifndef BAND
-  integer :: ibeg , iend , jj , jsls , jwb , jeb
-#endif
-  character (len=64) :: subroutine_name='nudge_p'
-  integer :: idindx=0
-!
-  call time_begin(subroutine_name,idindx)
-!
-!----------------------------------------------------------------------
-!
-  dtb = xt
-#ifdef BAND
-!
-!-----determine which relaxation method to use:linear/expon.
-!
-  if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-!------interior j slices:
-     do i = 2 , ip
-        ii = iym1 - i + 1
-        fcx = fcoef*xfun(i)
-        gcx = gcoef*xfun(i)
-!.......south boundary:
-        fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-        fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-        fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-        fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-        fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-        xpten(i) = xpten(i) + fcx*fls0 -                            &
-                & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-        fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-        fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-        fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-        fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-        fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-        xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                 & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-     end do
-!
-  else if ( ibdy == 5 ) then
- 
-!----------use exponential method
- 
-!------interior j slices:
-     do i = 2 , ip
-        ii = iym1 - i + 1
-        fcx = fcoef*xfune(i,kz)
-        gcx = gcoef*xfune(i,kz)
-!........south boundary:
-        fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-        fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-        fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-        fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-        fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-        xpten(i) = xpten(i) + fcx*fls0 -                            &
-                & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-        fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-        fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-        fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-        fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-        fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-        xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                 & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-     end do
-  end if
-#else
-!----------------------------------------------------------------------
-!
-  jsls = j + myid*jxp
-  jj = jx - jsls
-  if ( jj <= ip ) jsls = jj
-  jwb = jsls
-  if ( jwb > jxp ) jwb = mod(jwb,jxp)
-  if ( jwb == 0 ) jwb = jxp
-  if ( myid == nproc-1 ) then
-    jeb = jsls
-  else
-    jeb = jsls + 1
-  end if
-  if ( jeb > jxp ) jeb = mod(jeb,jxp)
-  if ( jeb == 0 ) jeb = jxp
-!
-!-----determine which relaxation method to use:linear/expon.
-!
-  if ( ibdy == 1 ) then
-!
-!---------use linear method
-!
-    if ( jsls > ip ) then
-!------interior j slices:
-      do i = 2 , ip
-        ii = iym1 - i + 1
-        fcx = fcoef*xfun(i)
-        gcx = gcoef*xfun(i)
-!.......south boundary:
-        fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-        fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-        fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-        fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-        fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-        xpten(i) = xpten(i) + fcx*fls0 -                            &
-                & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-        fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-        fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-        fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-        fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-        fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-        xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                 & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-      end do
-!
-    else if ( jsls <= ip ) then
-!------east or west boundary slices:
-      ibeg = 2
-      iend = iym1 - 1
-      if ( jsls > 2 ) then
-        do i = 2 , jsls - 1
-          ii = iym1 - i + 1
-          fcx = fcoef*xfun(i)
-          gcx = gcoef*xfun(i)
-!........south boundary:
-          fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-          fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-          fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-          fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-          fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-          fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-          fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-          fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-          fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-          fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-          xpten(ii) = xpten(ii) + fcx*fls0 -                        &
-                   & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-        ibeg = jsls
-        iend = iym1 - jsls + 1
-      end if
-!
-      if ( jj > ip ) then
-!-------west-boundary slice:
-        fcx = fcoef*xfun(jsls)
-        gcx = gcoef*xfun(jsls)
-        do i = ibeg , iend
-          fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - sps2%ps(i,j)
-          fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - sps2%ps(i-1,j)
-          fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - sps2%ps(i+1,j)
-          fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - sps2%ps(i,j-1)
-          fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - sps2%ps(i,j+1)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-      else if ( jj <= ip ) then
-!-------east-boundary slice:
-        fcx = fcoef*xfun(jsls)
-        gcx = gcoef*xfun(jsls)
-        do i = ibeg , iend
-          fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - sps2%ps(i,j)
-          fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - sps2%ps(i-1,j)
-          fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - sps2%ps(i+1,j)
-          fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - sps2%ps(i,j-1)
-          fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - sps2%ps(i,j+1)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-      end if
-    end if
-!
-  else if ( ibdy == 5 ) then
- 
-!----------use exponential method
- 
-    if ( jsls > ip ) then
-!------interior j slices:
-      do i = 2 , ip
-        ii = iym1 - i + 1
-        fcx = fcoef*xfune(i,kz)
-        gcx = gcoef*xfune(i,kz)
-!........south boundary:
-        fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-        fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-        fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-        fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-        fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-        xpten(i) = xpten(i) + fcx*fls0 -                            &
-                & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!........north boundary:
-        fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-        fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-        fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-        fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-        fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-        xpten(ii) = xpten(ii) + fcx*fls0 -                          &
-                 & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-      end do
-!
-    else if ( jsls <= ip ) then
-!------east or west boundary slices:
-      ibeg = 2
-      iend = iym1 - 1
-      if ( jsls > 2 ) then
-        do i = 2 , jsls - 1
-          ii = iym1 - i + 1
-          fcx = fcoef*xfune(i,kz)
-          gcx = gcoef*xfune(i,kz)
-!.........south boundary:
-          fls0 = (psb(i,j)+dtb*psbt(i,j)) - sps2%ps(i,j)
-          fls1 = (psb(i,j-1)+dtb*psbt(i,j-1)) - sps2%ps(i,j-1)
-          fls2 = (psb(i,j+1)+dtb*psbt(i,j+1)) - sps2%ps(i,j+1)
-          fls3 = (psb(i-1,j)+dtb*psbt(i-1,j)) - sps2%ps(i-1,j)
-          fls4 = (psb(i+1,j)+dtb*psbt(i+1,j)) - sps2%ps(i+1,j)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-!.........north boundary:
-          fls0 = (pnb(i,j)+dtb*pnbt(i,j)) - sps2%ps(ii,j)
-          fls1 = (pnb(i,j-1)+dtb*pnbt(i,j-1)) - sps2%ps(ii,j-1)
-          fls2 = (pnb(i,j+1)+dtb*pnbt(i,j+1)) - sps2%ps(ii,j+1)
-          fls3 = (pnb(i-1,j)+dtb*pnbt(i-1,j)) - sps2%ps(ii-1,j)
-          fls4 = (pnb(i+1,j)+dtb*pnbt(i+1,j)) - sps2%ps(ii+1,j)
-          xpten(ii) = xpten(ii) + fcx*fls0 -                        &
-                   & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-        ibeg = jsls
-        iend = iym1 - jsls + 1
-      end if
-!
-      if ( jj > ip ) then
-!-------west-boundary slice:
-        fcx = fcoef*xfune(jsls,kz)
-        gcx = gcoef*xfune(jsls,kz)
-        do i = ibeg , iend
-          fls0 = (pwb(i,jwb)+dtb*pwbt(i,jwb)) - sps2%ps(i,j)
-          fls1 = (pwb(i-1,jwb)+dtb*pwbt(i-1,jwb)) - sps2%ps(i-1,j)
-          fls2 = (pwb(i+1,jwb)+dtb*pwbt(i+1,jwb)) - sps2%ps(i+1,j)
-          fls3 = (pwb(i,jwb-1)+dtb*pwbt(i,jwb-1)) - sps2%ps(i,j-1)
-          fls4 = (pwb(i,jwb+1)+dtb*pwbt(i,jwb+1)) - sps2%ps(i,j+1)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-      else if ( jj <= ip ) then
-!-------east-boundary slice:
-        fcx = fcoef*xfune(jsls,kz)
-        gcx = gcoef*xfune(jsls,kz)
-        do i = ibeg , iend
-          fls0 = (peb(i,jeb)+dtb*pebt(i,jeb)) - sps2%ps(i,j)
-          fls1 = (peb(i-1,jeb)+dtb*pebt(i-1,jeb)) - sps2%ps(i-1,j)
-          fls2 = (peb(i+1,jeb)+dtb*pebt(i+1,jeb)) - sps2%ps(i+1,j)
-          fls3 = (peb(i,jeb-1)+dtb*pebt(i,jeb-1)) - sps2%ps(i,j-1)
-          fls4 = (peb(i,jeb+1)+dtb*pebt(i,jeb+1)) - sps2%ps(i,j+1)
-          xpten(i) = xpten(i) + fcx*fls0 -                          &
-                  & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-        end do
-      end if
-    end if
-!
-  end if
-#endif
-  call time_end(subroutine_name,idindx)
-  end subroutine nudge_p
-!
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -399,9 +87,9 @@ module mod_nudge
   do i = 2 , ip
      ii = iy - i
 !.......south boundary:
-     ften(i) = wg(i)*ften(i) + (d_one-wg(i))*psbt(i,j)
+     ften(i) = wg(i)*ften(i) + (d_one-wg(i))*xpsb%sbt(i,j)
 !.......north boundary:
-     ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*pnbt(i,j)
+     ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*xpsb%nbt(i,j)
   end do
 
 #else
@@ -426,9 +114,9 @@ module mod_nudge
     do i = 2 , ip
       ii = iy - i
 !.......south boundary:
-      ften(i) = wg(i)*ften(i) + (d_one-wg(i))*psbt(i,j)
+      ften(i) = wg(i)*ften(i) + (d_one-wg(i))*xpsb%sbt(i,j)
 !.......north boundary:
-      ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*pnbt(i,j)
+      ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*xpsb%nbt(i,j)
     end do
 !
   else if ( jsls <= ip ) then
@@ -438,9 +126,9 @@ module mod_nudge
       do i = 2 , jsls - 1
         ii = iy - i
 !........south boundary:
-        ften(i) = wg(i)*ften(i) + (d_one-wg(i))*psbt(i,j)
+        ften(i) = wg(i)*ften(i) + (d_one-wg(i))*xpsb%sbt(i,j)
 !........north boundary:
-        ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*pnbt(i,j)
+        ften(ii) = wg(i)*ften(ii) + (d_one-wg(i))*xpsb%nbt(i,j)
       end do
       ibeg = jsls
       iend = iy - jsls
@@ -450,14 +138,14 @@ module mod_nudge
 !------west-boundary slice:
       do i = ibeg , iend
         if ( jsls <= ip ) then
-          ften(i) = wg(jsls)*ften(i) + (d_one-wg(jsls))*pwbt(i,jwb)
+          ften(i) = wg(jsls)*ften(i) + (d_one-wg(jsls))*xpsb%wbt(i,jwb)
         end if
       end do
     else if ( jj <= ip ) then
 !------east-boundary slice:
       do i = ibeg , iend
         if ( jsls <= ip ) then
-          ften(i) = wg(jsls)*ften(i) + (d_one-wg(jsls))*pebt(i,jeb)
+          ften(i) = wg(jsls)*ften(i) + (d_one-wg(jsls))*xpsb%ebt(i,jeb)
         end if
       end do
     end if
@@ -915,18 +603,47 @@ module mod_nudge
     xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
 !
-  subroutine nudge(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                     c
+!     these subroutines apply relaxation boundary conditions to the   c
+!     tendency term - ften - of variable f                            c
+!                                                                     c
+!     ldot  : logical dot (u,v) / cross (t,q,p) flag                  c
+!                                                                     c
+!     ip    : is the number of slices affected by nudging.            c
+!                                                                     c
+!     xt    : is the time in seconds for variable f                   c
+!                                                                     c
+!     fcoef : are the coefficients for the newtonian term.            c
+!                                                                     c
+!     gcoef : are the coefficients for the diffusion term.            c
+!                                                                     c
+!     ften  : is the tendency calculated from the model.              c
+!                                                                     c
+!     j     : is the j'th slice of the tendency to be adjusted.       c
+!                                                                     c
+!     nk    : is the number of vertical level to be adjusted.         c
+!                                                                     c
+!     ibdy  : type of boundary condition relaxation, 1=linear         c
+!              5 = exponential                                        c
+!                                                                     c
+!     bnd   : Boundary condition data structure                       c
+!             2D or 3D (managed by interface declaration)             c
+!                                                                     c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+  subroutine nudge3d(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
 !
   use mod_runparams
   use mod_service
-  use mod_atm_interface , only : vbound
+  use mod_atm_interface , only : v3dbound
   implicit none
 !
   logical , intent(in) :: ldot ! Dot flag
   integer , intent(in) :: ibdy , nk , ip , j
   real(8) , intent(in) :: fcoef , gcoef , xt
   real(8) , intent(in) , dimension(iy,nk,-1:jxp+2) :: f
-  type(vbound) , intent(in) :: bnd
+  type(v3dbound) , intent(in) :: bnd
   real(8) , intent(inout) , dimension(iy,nk,jxp) :: ften
 !
   real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
@@ -934,7 +651,7 @@ module mod_nudge
 #ifndef BAND
   integer :: ibeg , iend , jj , jsls , jwb , jeb , jew
 #endif
-  character (len=64) :: subroutine_name='nudge'
+  character (len=64) :: subroutine_name='nudge3d'
   integer :: idindx=0
 !
   call time_begin(subroutine_name,idindx)
@@ -1231,6 +948,306 @@ module mod_nudge
 #endif
   call time_end(subroutine_name,idindx)
 
-  end subroutine nudge
+  end subroutine nudge3d
+!
+! ###################################################################
+!
+  subroutine nudge2d(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
+!
+  use mod_runparams
+  use mod_service
+  use mod_atm_interface , only : v2dbound
+  implicit none
+!
+  logical , intent(in) :: ldot ! Dot flag
+  integer , intent(in) :: ibdy , nk , ip , j
+  real(8) , intent(in) :: fcoef , gcoef , xt
+  real(8) , intent(in) , dimension(iy,-1:jxp+2) :: f
+  type(v2dbound) , intent(in) :: bnd
+  real(8) , intent(inout) , dimension(iy,jxp) :: ften
+!
+  real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
+  integer :: i , ido , ii , k
+#ifndef BAND
+  integer :: ibeg , iend , jj , jsls , jwb , jeb , jew
+#endif
+  character (len=64) :: subroutine_name='nudge2d'
+  integer :: idindx=0
+!
+  call time_begin(subroutine_name,idindx)
+!
+!----------------------------------------------------------------------
+!
+  ido = 0
+  if ( ldot ) then
+    ido = 1
+  end if
+
+#ifdef BAND
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+  if ( ibdy == 1 ) then
+!
+!---------use linear method
+!
+!------interior j slices:
+     do i = 2 , ip
+        ii = iym1 + ido - i + 1
+        fcx = fcoef*xfun(i)
+        gcx = gcoef*xfun(i)
+!.......south boundary:
+        fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+        fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+        fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+        fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+        fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+        ften(i,j) = ften(i,j) + fcx*fls0 - &
+                      gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!........north boundary:
+        fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+        fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+        fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+        fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+        fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+        ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                       gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+     end do
+
+  else if ( ibdy == 5 ) then
+ 
+!----------use exponential method
+ 
+!------interior j slices:
+     do i = 2 , ip
+        ii = iym1 + ido - i + 1
+        fcx = fcoef*xfune(i,kz)
+        gcx = gcoef*xfune(i,kz)
+!........south boundary:
+        fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+        fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+        fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+        fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+        fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+        ften(i,j) = ften(i,j) + fcx*fls0 - &
+                      gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!........north boundary:
+        fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+        fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+        fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+        fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+        fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+        ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                       gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+     end do
+  end if
+#else
+!----------------------------------------------------------------------
+!
+  jsls = j + myid*jxp
+  if ( ldot ) then
+    jj = jxp1 - jsls
+    if ( jj <= ip ) jsls = jj
+    jew = jsls
+    if ( jew > jxp ) jew = mod(jsls,jxp)
+    if ( jew == 0 ) jew = jxp
+    jwb = jew
+    jeb = jew
+  else
+    jj = jx - jsls
+    if ( jj <= ip ) jsls = jj
+    jwb = jsls
+    if ( jwb > jxp ) jwb = mod(jwb,jxp)
+    if ( jwb == 0 ) jwb = jxp
+    if ( myid == nproc-1 ) then
+      jeb = jsls
+    else
+      jeb = jsls + 1
+    end if
+    if ( jeb > jxp ) jeb = mod(jeb,jxp)
+    if ( jeb == 0 ) jeb = jxp
+  end if
+!
+!-----determine which relaxation method to use:linear/expon.
+!
+  if ( ibdy == 1 ) then
+!
+!---------use linear method
+!
+    if ( jsls > ip ) then
+!------interior j slices:
+      do i = 2 , ip
+        ii = iym1 + ido - i + 1
+        fcx = fcoef*xfun(i)
+        gcx = gcoef*xfun(i)
+!.......south boundary:
+        fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+        fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+        fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+        fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+        fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+        ften(i,j) = ften(i,j) + fcx*fls0 - &
+                      gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!........north boundary:
+        fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+        fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+        fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+        fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+        fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+        ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                       gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+      end do
+!
+    else if ( jsls <= ip ) then
+!------east or west boundary slices:
+      ibeg = 2
+      iend = iym1 + ido - 1
+      if ( jsls > 2 ) then
+        do i = 2 , jsls - 1
+          ii = iym1 + ido - i + 1
+          fcx = fcoef*xfun(i)
+          gcx = gcoef*xfun(i)
+!........south  boundary:
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          ften(i,j) = ften(i,j) + fcx*fls0 - &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!.........north boundary:
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+        ibeg = jsls
+        iend = iym1 + ido - jsls + 1
+      end if
+!
+      if ( jj > ip ) then
+!-------west-boundary slice:
+        fcx = fcoef*xfun(jsls)
+        gcx = gcoef*xfun(jsls)
+        do i = ibeg , iend
+          fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(i,j)
+          fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(i-1,j)
+          fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(i+1,j)
+          fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(i,j-1)
+          fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(i,j+1)
+          ften(i,j) = ften(i,j) + fcx*fls0 - &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      else if ( jj <= ip ) then
+!-------east-boundary slice:
+        fcx = fcoef*xfun(jsls)
+        gcx = gcoef*xfun(jsls)
+        do i = ibeg , iend
+          fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(i,j)
+          fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(i-1,j)
+          fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(i+1,j)
+          fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(i,j-1)
+          fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(i,j+1)
+          ften(i,j) = ften(i,j) + fcx*fls0 -  &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      end if
+    end if
+!
+  else if ( ibdy == 5 ) then
+ 
+!----------use exponential method
+ 
+    if ( jsls > ip ) then
+!------interior j slices:
+      do i = 2 , ip
+        ii = iym1 + ido - i + 1
+        fcx = fcoef*xfune(i,kz)
+        gcx = gcoef*xfune(i,kz)
+!........south boundary:
+        fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+        fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+        fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+        fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+        fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+        ften(i,j) = ften(i,j) + fcx*fls0 - &
+                      gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!........north boundary:
+        fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+        fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+        fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+        fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+        fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+        ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                       gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+      end do
+!
+    else if ( jsls <= ip ) then
+!------east or west boundary slices:
+      ibeg = 2
+      iend = iym1 + ido - 1
+      if ( jsls > 2 ) then
+        do i = 2 , jsls - 1
+          ii = iym1 + ido - i + 1
+          fcx = fcoef*xfune(i,kz)
+          gcx = gcoef*xfune(i,kz)
+!.........south boundary:
+          fls0 = (bnd%sb(i,j)+xt*bnd%sbt(i,j)) - f(i,j)
+          fls1 = (bnd%sb(i,j-1)+xt*bnd%sbt(i,j-1)) - f(i,j-1)
+          fls2 = (bnd%sb(i,j+1)+xt*bnd%sbt(i,j+1)) - f(i,j+1)
+          fls3 = (bnd%sb(i-1,j)+xt*bnd%sbt(i-1,j)) - f(i-1,j)
+          fls4 = (bnd%sb(i+1,j)+xt*bnd%sbt(i+1,j)) - f(i+1,j)
+          ften(i,j) = ften(i,j) + fcx*fls0 - &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+!.........north boundary:
+          fls0 = (bnd%nb(i,j)+xt*bnd%nbt(i,j)) - f(ii,j)
+          fls1 = (bnd%nb(i,j-1)+xt*bnd%nbt(i,j-1)) - f(ii,j-1)
+          fls2 = (bnd%nb(i,j+1)+xt*bnd%nbt(i,j+1)) - f(ii,j+1)
+          fls3 = (bnd%nb(i-1,j)+xt*bnd%nbt(i-1,j)) - f(ii-1,j)
+          fls4 = (bnd%nb(i+1,j)+xt*bnd%nbt(i+1,j)) - f(ii+1,j)
+          ften(ii,j) = ften(ii,j) + fcx*fls0 - &
+                         gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+        ibeg = jsls
+        iend = iym1 + ido - jsls + 1
+      end if
+!
+      if ( jj > ip ) then
+!-------west-boundary slice:
+        fcx = fcoef*xfune(jsls,kz)
+        gcx = gcoef*xfune(jsls,kz)
+        do i = ibeg , iend
+          fls0 = (bnd%wb(i,jwb)+xt*bnd%wbt(i,jwb)) - f(i,j)
+          fls1 = (bnd%wb(i-1,jwb)+xt*bnd%wbt(i-1,jwb)) - f(i-1,j)
+          fls2 = (bnd%wb(i+1,jwb)+xt*bnd%wbt(i+1,jwb)) - f(i+1,j)
+          fls3 = (bnd%wb(i,jwb-1)+xt*bnd%wbt(i,jwb-1)) - f(i,j-1)
+          fls4 = (bnd%wb(i,jwb+1)+xt*bnd%wbt(i,jwb+1)) - f(i,j+1)
+          ften(i,j) = ften(i,j) + fcx*fls0 - &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      else if ( jj <= ip ) then
+!-------east-boundary slice:
+        fcx = fcoef*xfune(jsls,kz)
+        gcx = gcoef*xfune(jsls,kz)
+        do i = ibeg , iend
+          fls0 = (bnd%eb(i,jeb)+xt*bnd%ebt(i,jeb)) - f(i,j)
+          fls1 = (bnd%eb(i-1,jeb)+xt*bnd%ebt(i-1,jeb)) - f(i-1,j)
+          fls2 = (bnd%eb(i+1,jeb)+xt*bnd%ebt(i+1,jeb)) - f(i+1,j)
+          fls3 = (bnd%eb(i,jeb-1)+xt*bnd%ebt(i,jeb-1)) - f(i,j-1)
+          fls4 = (bnd%eb(i,jeb+1)+xt*bnd%ebt(i,jeb+1)) - f(i,j+1)
+          ften(i,j) = ften(i,j) + fcx*fls0 - &
+                        gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+        end do
+      end if
+    end if
+!
+  end if
+#endif
+  call time_end(subroutine_name,idindx)
+
+  end subroutine nudge2d
 !
 end module mod_nudge

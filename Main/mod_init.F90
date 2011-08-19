@@ -79,16 +79,6 @@ module mod_init
   integer :: jp1 , jm1
   real(8) , dimension(iy,jxp) :: psdot
   integer :: mmrec , allrec , ierr , l
-#ifndef BAND
-  peb  = d_zero
-  pwb  = d_zero
-  pebt = d_zero
-  pwbt = d_zero
-#endif
-  pnb  = d_zero
-  psb  = d_zero
-  pnbt = d_zero
-  psbt = d_zero
 
   tgmx_o = -1.E30
   t2mx_o = -1.E30
@@ -200,7 +190,7 @@ module mod_init
         end do
       end do
       do i = 1 , iy
-        ps0(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b0(i,j) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
       if ( ehso4 ) then
@@ -216,7 +206,7 @@ module mod_init
 !
     do j = 1 , jendl
       do i = 1 , iy
-        ps0(i,j) = ps0(i,j) - r8pt
+        xpsb%b0(i,j) = xpsb%b0(i,j) - r8pt
       end do
     end do
 !=======================================================================
@@ -226,38 +216,38 @@ module mod_init
 !       domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !       and similarly for the i's.
 !
-    call mpi_sendrecv(ps0(1,jxp),iy,mpi_real8,ieast,1,              &
-                      ps0(1,0),iy,mpi_real8,iwest,1,                &
+    call mpi_sendrecv(xpsb%b0(:,jxp),iy,mpi_real8,ieast,1,              &
+                      xpsb%b0(:,0),iy,mpi_real8,iwest,1,                &
                       mpi_comm_world,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       do i = 2 , iym1
-        psdot(i,j) = (ps0(i,j)   + ps0(i-1,j) +   &
-                      ps0(i,j-1) + ps0(i-1,j-1))*d_rfour
+        psdot(i,j) = (xpsb%b0(i,j)   + xpsb%b0(i-1,j) +   &
+                      xpsb%b0(i,j-1) + xpsb%b0(i-1,j-1))*d_rfour
       end do
     end do
 !
 #ifndef BAND
     do i = 2 , iym1
-      if ( myid == 0 ) psdot(i,1) = (ps0(i,1)+ps0(i-1,1))*d_half
+      if ( myid == 0 ) psdot(i,1) = (xpsb%b0(i,1)+xpsb%b0(i-1,1))*d_half
       if ( myid == nproc-1 ) then
-        psdot(i,jendl) = (ps0(i,jendx)+ps0(i-1,jendx))*d_half
+        psdot(i,jendl) = (xpsb%b0(i,jendx)+xpsb%b0(i-1,jendx))*d_half
       end if
     end do
 #endif
 !
     do j = jbegin , jendx
-      psdot(1,j) = (ps0(1,j)+ps0(1,j-1))*d_half
-      psdot(iy,j) = (ps0(iym1,j)+ps0(iym1,j-1))*d_half
+      psdot(1,j) = (xpsb%b0(1,j)+xpsb%b0(1,j-1))*d_half
+      psdot(iy,j) = (xpsb%b0(iym1,j)+xpsb%b0(iym1,j-1))*d_half
     end do
 !
 #ifndef BAND
     if ( myid == 0 ) then
-      psdot(1,1) = ps0(1,1)
-      psdot(iy,1) = ps0(iym1,1)
+      psdot(1,1) = xpsb%b0(1,1)
+      psdot(iy,1) = xpsb%b0(iym1,1)
     end if
     if ( myid == nproc-1 ) then
-      psdot(1,jendl) = ps0(1,jendx)
-      psdot(iy,jendl) = ps0(iym1,jendx)
+      psdot(1,jendl) = xpsb%b0(1,jendx)
+      psdot(iy,jendl) = xpsb%b0(iym1,jendx)
     end if
 #endif
 !
@@ -268,8 +258,8 @@ module mod_init
         do i = 1 , iy
           xub%b0(i,k,j) = xub%b0(i,k,j)*psdot(i,j)
           xvb%b0(i,k,j) = xvb%b0(i,k,j)*psdot(i,j)
-          xqb%b0(i,k,j) = xqb%b0(i,k,j)*ps0(i,j)
-          xtb%b0(i,k,j) = xtb%b0(i,k,j)*ps0(i,j)
+          xqb%b0(i,k,j) = xqb%b0(i,k,j)*xpsb%b0(i,j)
+          xtb%b0(i,k,j) = xtb%b0(i,k,j)*xpsb%b0(i,j)
         end do
      end do
     end do
@@ -292,8 +282,8 @@ module mod_init
     end do
     do j = 1 , jendl
       do i = 1 , iy
-        sps1%ps(i,j) = ps0(i,j)
-        sps2%ps(i,j) = ps0(i,j)
+        sps1%ps(i,j) = xpsb%b0(i,j)
+        sps2%ps(i,j) = xpsb%b0(i,j)
         sts1%tg(i,j) = ts0(i,j)
         sts2%tg(i,j) = ts0(i,j)
       end do
@@ -475,7 +465,7 @@ module mod_init
         end do
       end do
       do i = 1 , iy
-        ps0(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b0(i,j) = sav0(i,kz*4+1,j)
         ts0(i,j) = sav0(i,kz*4+2,j)
       end do
       if ( ehso4 ) then

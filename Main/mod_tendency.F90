@@ -893,10 +893,10 @@ module mod_tendency
 #ifndef BAND
     if ( nspgx >= jxp ) then
       do i = 1 , iy
-        bdyewsnd(i,1) = peb(i,1)
-        bdyewsnd(i,2) = pwb(i,jxp)
-        bdyewsnd(i,3) = pebt(i,1)
-        bdyewsnd(i,4) = pwbt(i,jxp)
+        bdyewsnd(i,1) = xpsb%eb(i,1)
+        bdyewsnd(i,2) = xpsb%wb(i,jxp)
+        bdyewsnd(i,3) = xpsb%ebt(i,1)
+        bdyewsnd(i,4) = xpsb%wbt(i,jxp)
       end do
       do k = 1 , kz
         do i = 1 , iy
@@ -923,14 +923,14 @@ module mod_tendency
                         mpi_comm_world,mpi_status_ignore,ierr)
       do i = 1 , iy
         if ( myid == nproc-1 ) then
-          peb(i,jendl) = bdyewrcv(i,1)
-          pebt(i,jendl) = bdyewrcv(i,3)
+          xpsb%eb(i,jendl) = bdyewrcv(i,1)
+          xpsb%ebt(i,jendl) = bdyewrcv(i,3)
         else
-          peb(i,jxp+1) = bdyewrcv(i,1)
-          pebt(i,jxp+1) = bdyewrcv(i,3)
+          xpsb%eb(i,jxp+1) = bdyewrcv(i,1)
+          xpsb%ebt(i,jxp+1) = bdyewrcv(i,3)
         end if
-        pwb(i,0) = bdyewrcv(i,2)
-        pwbt(i,0) = bdyewrcv(i,4)
+        xpsb%wb(i,0) = bdyewrcv(i,2)
+        xpsb%wbt(i,0) = bdyewrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , iy
@@ -961,14 +961,14 @@ module mod_tendency
       end do
       do i = 1 , iy
         if ( myid == nproc-1 ) then
-          bdyewsnd(i,1) = peb(i,jendx)
-          bdyewsnd(i,3) = pebt(i,jendx)
+          bdyewsnd(i,1) = xpsb%eb(i,jendx)
+          bdyewsnd(i,3) = xpsb%ebt(i,jendx)
         else
-          bdyewsnd(i,1) = peb(i,jxp)
-          bdyewsnd(i,3) = pebt(i,jxp)
+          bdyewsnd(i,1) = xpsb%eb(i,jxp)
+          bdyewsnd(i,3) = xpsb%ebt(i,jxp)
         end if
-        bdyewsnd(i,2) = pwb(i,1)
-        bdyewsnd(i,4) = pwbt(i,1)
+        bdyewsnd(i,2) = xpsb%wb(i,1)
+        bdyewsnd(i,4) = xpsb%wbt(i,1)
       end do
       do k = 1 , kz
         do i = 1 , iy
@@ -1001,10 +1001,10 @@ module mod_tendency
                         bdyewrcv,iy*(kz*16+4),mpi_real8,ieast,2, &
                         mpi_comm_world,mpi_status_ignore,ierr)
       do i = 1 , iy
-        peb(i,0) = bdyewrcv(i,1)
-        pebt(i,0) = bdyewrcv(i,3)
-        pwb(i,jxp+1) = bdyewrcv(i,2)
-        pwbt(i,jxp+1) = bdyewrcv(i,4)
+        xpsb%eb(i,0) = bdyewrcv(i,1)
+        xpsb%ebt(i,0) = bdyewrcv(i,3)
+        xpsb%wb(i,jxp+1) = bdyewrcv(i,2)
+        xpsb%wbt(i,jxp+1) = bdyewrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , iy
@@ -1033,10 +1033,10 @@ module mod_tendency
     if ( myid /= nproc-1 ) then
 #endif
       do i = 1 , nspgx
-        bdynssnd(i,1) = pnb(i,jxp)
-        bdynssnd(i,2) = pnbt(i,jxp)
-        bdynssnd(i,3) = psb(i,jxp)
-        bdynssnd(i,4) = psbt(i,jxp)
+        bdynssnd(i,1) = xpsb%nb(i,jxp)
+        bdynssnd(i,2) = xpsb%nbt(i,jxp)
+        bdynssnd(i,3) = xpsb%sb(i,jxp)
+        bdynssnd(i,4) = xpsb%sbt(i,jxp)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
@@ -1068,10 +1068,10 @@ module mod_tendency
     if ( myid /= 0 ) then
 #endif
       do i = 1 , nspgx
-        pnb(i,0) = bdynsrcv(i,1)
-        pnbt(i,0) = bdynsrcv(i,2)
-        psb(i,0) = bdynsrcv(i,3)
-        psbt(i,0) = bdynsrcv(i,4)
+        xpsb%nb(i,0) = bdynsrcv(i,1)
+        xpsb%nbt(i,0) = bdynsrcv(i,2)
+        xpsb%sb(i,0) = bdynsrcv(i,3)
+        xpsb%sbt(i,0) = bdynsrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
@@ -1098,10 +1098,10 @@ module mod_tendency
     if ( myid /= 0 ) then
 #endif
       do i = 1 , nspgx
-        bdynssnd(i,1) = pnb(i,1)
-        bdynssnd(i,2) = pnbt(i,1)
-        bdynssnd(i,3) = psb(i,1)
-        bdynssnd(i,4) = psbt(i,1)
+        bdynssnd(i,1) = xpsb%nb(i,1)
+        bdynssnd(i,2) = xpsb%nbt(i,1)
+        bdynssnd(i,3) = xpsb%sb(i,1)
+        bdynssnd(i,4) = xpsb%sbt(i,1)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
@@ -1133,10 +1133,10 @@ module mod_tendency
     if ( myid /= nproc-1 ) then
 #endif
       do i = 1 , nspgx
-        pnb(i,jxp+1) = bdynsrcv(i,1)
-        pnbt(i,jxp+1) = bdynsrcv(i,2)
-        psb(i,jxp+1) = bdynsrcv(i,3)
-        psbt(i,jxp+1) = bdynsrcv(i,4)
+        xpsb%nb(i,jxp+1) = bdynsrcv(i,1)
+        xpsb%nbt(i,jxp+1) = bdynsrcv(i,2)
+        xpsb%sb(i,jxp+1) = bdynsrcv(i,3)
+        xpsb%sbt(i,jxp+1) = bdynsrcv(i,4)
       end do
       do k = 1 , kz
         do i = 1 , nspgx
@@ -1174,7 +1174,8 @@ module mod_tendency
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
           if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
-          call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
+          call nudge(.false.,ispgx,fnudge,gnudge, &
+                     xtm1,sps2%ps,pten,j,1,iboudy,xpsb)
         end if
 #ifndef BAND
       end if !end if (j /= jxm1) test
@@ -1185,7 +1186,7 @@ module mod_tendency
     do j = 1 , jendx
       if ( myid == 0 .and. j == 1 ) then
         do i = 1 , iym1
-          psc(i,j) = sps2%ps(i,j) + dt*pwbt(i,j)
+          psc(i,j) = sps2%ps(i,j) + dt*xpsb%wbt(i,j)
           psd(i,j) = sps1%ps(i,j)
         end do
       else if ( myid == nproc-1 .and. j == jendx ) then
@@ -1214,8 +1215,8 @@ module mod_tendency
          psd(i,j) = sps1%ps(i,j)
        end do
 !
-       psc(1,j) = sps2%ps(1,j) + dt*psbt(1,j)
-       psc(iym1,j) = sps2%ps(iym1,j) + dt*pnbt(1,j)
+       psc(1,j) = sps2%ps(1,j) + dt*xpsb%sbt(1,j)
+       psc(iym1,j) = sps2%ps(iym1,j) + dt*xpsb%nbt(1,j)
        psd(1,j) = sps1%ps(1,j)
        psd(iym1,j) = sps1%ps(iym1,j)
 #ifndef BAND

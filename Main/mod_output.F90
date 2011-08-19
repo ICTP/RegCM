@@ -631,7 +631,7 @@ module mod_output
           end do
         end do
         do i = 1 , iy
-          sav0(i,kz*4+1,j) = ps0(i,j)
+          sav0(i,kz*4+1,j) = xpsb%b0(i,j)
           sav0(i,kz*4+2,j) = ts0(i,j)
         end do
       end do

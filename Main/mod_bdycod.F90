@@ -42,25 +42,16 @@ module mod_bdycod
 #endif
   public :: ui1 , ui2 , uilx , uil
   public :: vi1 , vi2 , vilx , vil
-  public :: ps0 , ts0 , so0
-#ifndef BAND
-  public :: peb , pebt , pwb , pwbt
-#endif
-  public :: pnb , pnbt , psb , psbt
+  public :: ts0 , so0
   public :: ts1 ! FOR DCSST
 !
 #ifndef BAND
   real(8) , pointer , dimension(:,:) :: uj1 , uj2 , ujl , ujlx ,  &
          vj1 , vj2 , vjl , vjlx
 #endif
-  real(8) , pointer , dimension(:,:) :: ps0 , ps1
   real(8) , pointer , dimension(:,:,:) :: so0 , so1
   real(8) , pointer , dimension(:,:) :: ts0 , ts1
 !
-#ifndef BAND
-  real(8) , pointer , dimension(:,:) :: peb , pebt , pwb , pwbt
-#endif
-  real(8) , pointer , dimension(:,:) :: pnb , pnbt , psbt , psb
   real(8) , pointer , dimension(:,:) :: ui1 , ui2 , uil , uilx ,&
         vi1 , vi2 , vil , vilx
 !
@@ -73,23 +64,11 @@ module mod_bdycod
 !
     call time_begin(subroutine_name,idindx)
 
-    call getmem2d(ps0,1,iy,0,jxp+1,'bdycon:ps0')
-    call getmem2d(ps1,1,iy,0,jxp+1,'bdycon:ps1')
     call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
     call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
 !
     call getmem3d(so0,1,iy,1,kz,1,jxp,'bdycon:so0')
     call getmem3d(so1,1,iy,1,kz,1,jxp,'bdycon:so1')
-#ifndef BAND
-    call getmem2d(peb,1,iy,0,jxp+1,'bdycon:peb')
-    call getmem2d(pebt,1,iy,0,jxp+1,'bdycon:pebt')
-    call getmem2d(pwb,1,iy,0,jxp+1,'bdycon:pwb')
-    call getmem2d(pwbt,1,iy,0,jxp+1,'bdycon:pwbt')
-#endif
-    call getmem2d(pnb,1,nspgx,0,jxp+1,'bdycon:pnb')
-    call getmem2d(pnbt,1,nspgx,0,jxp+1,'bdycon:pnbt')
-    call getmem2d(psb,1,nspgx,0,jxp+1,'bdycon:psb')
-    call getmem2d(psbt,1,nspgx,0,jxp+1,'bdycon:psbt')
     call getmem2d(ui1,1,kz,0,jxp+1,'bdycon:ui1')
     call getmem2d(ui2,1,kz,0,jxp+1,'bdycon:ui2')
     call getmem2d(uil,1,kz,0,jxp+1,'bdycon:uil')
@@ -202,7 +181,7 @@ module mod_bdycod
         end do
       end do
       do i = 1 , iy
-        ps1(i,j) = sav0(i,kz*4+1,j)
+        xpsb%b1(i,j) = sav0(i,kz*4+1,j)
         ts1(i,j) = sav0(i,kz*4+2,j)
       end do
     end do
@@ -223,7 +202,7 @@ module mod_bdycod
 !
     do j = 1 , jendl
       do i = 1 , iy
-        ps1(i,j) = ps1(i,j) - r8pt
+        xpsb%b1(i,j) = xpsb%b1(i,j) - r8pt
       end do
     end do
 !
@@ -232,38 +211,43 @@ module mod_bdycod
 !  domain is assumed to satisfy p(0,j)=p(1,j); p(iy,j)=p(iym1,j);
 !  and similarly for the i's.
 !
-    call mpi_sendrecv(ps1(1,jxp),iy,mpi_real8,ieast,1,   &
-                      ps1(1,0),  iy,mpi_real8,iwest,1,   &
+    call mpi_sendrecv(xpsb%b1(:,jxp),iy,mpi_real8,ieast,1,   &
+                      xpsb%b1(:,0),  iy,mpi_real8,iwest,1,   &
                       mpi_comm_world,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       do i = 2 , iym1
-        psdot(i,j) = d_rfour*(ps1(i,j)+ps1(i-1,j)+ps1(i,j-1)+ps1(i-1,j-1))
+        psdot(i,j) = d_rfour*(xpsb%b1(i,j)+xpsb%b1(i-1,j) + &
+                              xpsb%b1(i,j-1)+xpsb%b1(i-1,j-1))
       end do
     end do
 #ifdef BAND
     do j = jbegin , jendx
-      psdot(1,j)  = d_half*(ps1(1,j)+ps1(1,j-1))
-      psdot(iy,j) = d_half*(ps1(iym1,j)+ps1(iym1,j-1))
+      psdot(1,j)  = d_half*(xpsb%b1(1,j)+xpsb%b1(1,j-1))
+      psdot(iy,j) = d_half*(xpsb%b1(iym1,j)+xpsb%b1(iym1,j-1))
     end do
 #else
 !
     do i = 2 , iym1
-      if ( myid == 0 )       psdot(i,1)     = d_half*(ps1(i,1)+ps1(i-1,1))
-      if ( myid == nproc-1 ) psdot(i,jendl) = d_half*(ps1(i,jendx)+ps1(i-1,jendx))
+      if ( myid == 0 ) then
+        psdot(i,1) = d_half*(xpsb%b1(i,1)+xpsb%b1(i-1,1))
+      end if
+      if ( myid == nproc-1 ) then
+        psdot(i,jendl) = d_half*(xpsb%b1(i,jendx)+xpsb%b1(i-1,jendx))
+      end if
     end do
 !
     do j = jbegin , jendx
-      psdot(1,j)  = d_half*(ps1(1,j)+ps1(1,j-1))
-      psdot(iy,j) = d_half*(ps1(iym1,j)+ps1(iym1,j-1))
+      psdot(1,j)  = d_half*(xpsb%b1(1,j)+xpsb%b1(1,j-1))
+      psdot(iy,j) = d_half*(xpsb%b1(iym1,j)+xpsb%b1(iym1,j-1))
     end do
 !
     if ( myid == 0 ) then
-      psdot(1,1)  = ps1(1,1)
-      psdot(iy,1) = ps1(iym1,1)
+      psdot(1,1)  = xpsb%b1(1,1)
+      psdot(iy,1) = xpsb%b1(iym1,1)
     end if
     if ( myid == nproc-1 ) then
-      psdot(1,jendl)  = ps1(1,jendx)
-      psdot(iy,jendl) = ps1(iym1,jendx)
+      psdot(1,jendl)  = xpsb%b1(1,jendx)
+      psdot(iy,jendl) = xpsb%b1(iym1,jendx)
     end if
 #endif
 !
@@ -274,8 +258,8 @@ module mod_bdycod
         do i = 1 , iy
           xub%b1(i,k,j) = xub%b1(i,k,j)*psdot(i,j)
           xvb%b1(i,k,j) = xvb%b1(i,k,j)*psdot(i,j)
-          xtb%b1(i,k,j) = xtb%b1(i,k,j)*ps1(i,j)
-          xqb%b1(i,k,j) = xqb%b1(i,k,j)*ps1(i,j)
+          xtb%b1(i,k,j) = xtb%b1(i,k,j)*xpsb%b1(i,j)
+          xqb%b1(i,k,j) = xqb%b1(i,k,j)*xpsb%b1(i,j)
         end do
       end do
     end do
@@ -319,25 +303,25 @@ module mod_bdycod
     end if
     do nn = 1 , nxwb
       do i = 1 , iym1
-        pwb(i,nn) = ps0(i,nn)
-        pwbt(i,nn) = (ps1(i,nn)-ps0(i,nn))/dtbdys
+        xpsb%wb(i,nn) = xpsb%b0(i,nn)
+        xpsb%wbt(i,nn) = (xpsb%b1(i,nn)-xpsb%b0(i,nn))/dtbdys
       end do
     end do
     do nn = 1 , nxeb
       nnb = min0(jendx,jxp) - nn + 1
       do i = 1 , iym1
-        peb(i,nn) = ps0(i,nnb)
-        pebt(i,nn) = (ps1(i,nnb)-ps0(i,nnb))/dtbdys
+        xpsb%eb(i,nn) = xpsb%b0(i,nnb)
+        xpsb%ebt(i,nn) = (xpsb%b1(i,nnb)-xpsb%b0(i,nnb))/dtbdys
       end do
     end do
 #endif
     do nn = 1 , nspgx
       nnb = iym1 - nn + 1
       do j = 1 , jendx
-        pnb(nn,j) = ps0(nnb,j)
-        psb(nn,j) = ps0(nn,j)
-        pnbt(nn,j) = (ps1(nnb,j)-ps0(nnb,j))/dtbdys
-        psbt(nn,j) = (ps1(nn,j)-ps0(nn,j))/dtbdys
+        xpsb%nb(nn,j) = xpsb%b0(nnb,j)
+        xpsb%sb(nn,j) = xpsb%b0(nn,j)
+        xpsb%nbt(nn,j) = (xpsb%b1(nnb,j)-xpsb%b0(nnb,j))/dtbdys
+        xpsb%sbt(nn,j) = (xpsb%b1(nn,j)-xpsb%b0(nn,j))/dtbdys
       end do
     end do
 !
@@ -482,7 +466,7 @@ module mod_bdycod
     end do
     do j = 1 , jendl
       do i = 1 , iy
-        ps0(i,j) = ps1(i,j)
+        xpsb%b0(i,j) = xpsb%b1(i,j)
         ts0(i,j) = ts1(i,j)
       end do
     end do
@@ -979,13 +963,13 @@ module mod_bdycod
 !
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid == 0 )       sps1%ps(i,1)     = pwb(i,1)
-          if ( myid == nproc-1 ) sps1%ps(i,jendx) = peb(i,1)
+          if ( myid == 0 )       sps1%ps(i,1)     = xpsb%wb(i,1)
+          if ( myid == nproc-1 ) sps1%ps(i,jendx) = xpsb%eb(i,1)
         end do
 #endif
         do j = jbegin , jendm
-          sps1%ps(1,j)    = psb(1,j)
-          sps1%ps(iym1,j) = pnb(1,j)
+          sps1%ps(1,j)    = xpsb%sb(1,j)
+          sps1%ps(iym1,j) = xpsb%nb(1,j)
         end do
 !
         do k = 1 , kz
@@ -1014,13 +998,17 @@ module mod_bdycod
 !
 #ifndef BAND
       do i = 1 , iym1
-        if ( myid == 0 )       sps1%ps(i,1)     = pwb(i,1) + dtb*pwbt(i,1)
-        if ( myid == nproc-1 ) sps1%ps(i,jendx) = peb(i,1) + dtb*pebt(i,1)
+        if ( myid == 0 ) then
+          sps1%ps(i,1) = xpsb%wb(i,1) + dtb*xpsb%wbt(i,1)
+        end if
+        if ( myid == nproc-1 ) then
+          sps1%ps(i,jendx) = xpsb%eb(i,1) + dtb*xpsb%ebt(i,1)
+        end if
       end do
 #endif
       do j = jbegin , jendm
-        sps1%ps(1,j)    = psb(1,j) + dtb*psbt(1,j)
-        sps1%ps(iym1,j) = pnb(1,j) + dtb*pnbt(1,j)
+        sps1%ps(1,j)    = xpsb%sb(1,j) + dtb*xpsb%sbt(1,j)
+        sps1%ps(iym1,j) = xpsb%nb(1,j) + dtb*xpsb%nbt(1,j)
       end do
 !
       do k = 1 , kz

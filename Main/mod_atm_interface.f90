@@ -89,17 +89,26 @@ module mod_atm_interface
     real(8) , pointer , dimension(:,:,:) :: diffq
   end type diffx
 
-  type vbound
+  type v3dbound
     real(8) , pointer , dimension(:,:,:) :: b0
     real(8) , pointer , dimension(:,:,:) :: b1
     real(8) , pointer , dimension(:,:,:) :: nb , sb
     real(8) , pointer , dimension(:,:,:) :: eb , wb
     real(8) , pointer , dimension(:,:,:) :: nbt , sbt
     real(8) , pointer , dimension(:,:,:) :: ebt , wbt
-  end type vbound
+  end type v3dbound
+
+  type v2dbound
+    real(8) , pointer , dimension(:,:) :: b0
+    real(8) , pointer , dimension(:,:) :: b1
+    real(8) , pointer , dimension(:,:) :: nb , sb
+    real(8) , pointer , dimension(:,:) :: eb , wb
+    real(8) , pointer , dimension(:,:) :: nbt , sbt
+    real(8) , pointer , dimension(:,:) :: ebt , wbt
+  end type v2dbound
 
   public :: atmstate , domain , surfpstate , surftstate , surfstate , slice
-  public :: diffx , vbound
+  public :: diffx , v2dbound , v3dbound
 
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
@@ -109,7 +118,8 @@ module mod_atm_interface
   type(surfstate) , public :: sfsta
   type(slice) , public :: atms
   type(diffx) , public :: adf
-  type(vbound) , public :: xtb , xqb , xub , xvb , xpsb
+  type(v3dbound) , public :: xtb , xqb , xub , xvb
+  type(v2dbound) , public :: xpsb
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
 
@@ -124,23 +134,41 @@ module mod_atm_interface
 !
   contains 
 !
-    subroutine allocate_vbound(xb,lband,ke,nsp)
-      type(vbound) , intent(out) :: xb
+    subroutine allocate_v3dbound(xb,lband,ke,nsp)
+      type(v3dbound) , intent(out) :: xb
       logical , intent(in) :: lband
       integer , intent(in) :: ke , nsp
-      call getmem3d(xb%b0,1,iy,1,ke,1,jxp,'vbound:b0')
-      call getmem3d(xb%b1,1,iy,1,ke,1,jxp,'vbound:b1')
-      call getmem3d(xb%nb,1,nsp,1,ke,0,jxp+1,'vbound:nb')
-      call getmem3d(xb%sb,1,nsp,1,ke,0,jxp+1,'vbound:sb')
-      call getmem3d(xb%nbt,1,nsp,1,ke,0,jxp+1,'vbound:nbt')
-      call getmem3d(xb%sbt,1,nsp,1,ke,0,jxp+1,'vbound:sbt')
+      call getmem3d(xb%b0,1,iy,1,ke,1,jxp,'v3dbound:b0')
+      call getmem3d(xb%b1,1,iy,1,ke,1,jxp,'v3dbound:b1')
+      call getmem3d(xb%nb,1,nsp,1,ke,0,jxp+1,'v3dbound:nb')
+      call getmem3d(xb%sb,1,nsp,1,ke,0,jxp+1,'v3dbound:sb')
+      call getmem3d(xb%nbt,1,nsp,1,ke,0,jxp+1,'v3dbound:nbt')
+      call getmem3d(xb%sbt,1,nsp,1,ke,0,jxp+1,'v3dbound:sbt')
       if ( .not. lband ) then
-        call getmem3d(xb%eb,1,iy,1,ke,0,jxp+1,'vbound:eb')
-        call getmem3d(xb%wb,1,iy,1,ke,0,jxp+1,'vbound:wb')
-        call getmem3d(xb%ebt,1,iy,1,ke,0,jxp+1,'vbound:ebt')
-        call getmem3d(xb%wbt,1,iy,1,ke,0,jxp+1,'vbound:wbt')
+        call getmem3d(xb%eb,1,iy,1,ke,0,jxp+1,'v3dbound:eb')
+        call getmem3d(xb%wb,1,iy,1,ke,0,jxp+1,'v3dbound:wb')
+        call getmem3d(xb%ebt,1,iy,1,ke,0,jxp+1,'v3dbound:ebt')
+        call getmem3d(xb%wbt,1,iy,1,ke,0,jxp+1,'v3dbound:wbt')
       end if
-    end subroutine allocate_vbound
+    end subroutine allocate_v3dbound
+!
+    subroutine allocate_v2dbound(xb,lband,nsp)
+      type(v2dbound) , intent(out) :: xb
+      logical , intent(in) :: lband
+      integer , intent(in) :: nsp
+      call getmem2d(xb%b0,1,iy,0,jxp+1,'v2dbound:b0')
+      call getmem2d(xb%b1,1,iy,0,jxp+1,'v2dbound:b1')
+      call getmem2d(xb%nb,1,nsp,0,jxp+1,'v2dbound:nb')
+      call getmem2d(xb%sb,1,nsp,0,jxp+1,'v2dbound:sb')
+      call getmem2d(xb%nbt,1,nsp,0,jxp+1,'v2dbound:nbt')
+      call getmem2d(xb%sbt,1,nsp,0,jxp+1,'v2dbound:sbt')
+      if ( .not. lband ) then
+        call getmem2d(xb%eb,1,iy,0,jxp+1,'v2dbound:eb')
+        call getmem2d(xb%wb,1,iy,0,jxp+1,'v2dbound:wb')
+        call getmem2d(xb%ebt,1,iy,0,jxp+1,'v2dbound:ebt')
+        call getmem2d(xb%wbt,1,iy,0,jxp+1,'v2dbound:wbt')
+      end if
+    end subroutine allocate_v2dbound
 !
     subroutine allocate_atmstate(atm,lpar,ib,jb)
       implicit none
@@ -279,11 +307,11 @@ module mod_atm_interface
 
       call allocate_diffx(adf)
 
-      call allocate_vbound(xtb,lband,kz,nspgx)
-      call allocate_vbound(xqb,lband,kz,nspgx)
-      call allocate_vbound(xub,lband,kz,nspgd)
-      call allocate_vbound(xvb,lband,kz,nspgd)
-      call allocate_vbound(xpsb,lband,1,nspgx)
+      call allocate_v3dbound(xtb,lband,kz,nspgx)
+      call allocate_v3dbound(xqb,lband,kz,nspgx)
+      call allocate_v3dbound(xub,lband,kz,nspgd)
+      call allocate_v3dbound(xvb,lband,kz,nspgd)
+      call allocate_v2dbound(xpsb,lband,nspgx)
 
       if (icup == 99 .or. icup == 98) then
         call getmem2d(cucontrol,1,iy,1,jxp,'mod_atm_interface:cucontrol')
