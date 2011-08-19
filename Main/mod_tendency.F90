@@ -2208,7 +2208,7 @@
         call addhours(idatex,1)
         call split_idate(idatex, lyear, lmonth, lday, lhour)
       end if
-      if ( mod(ntime,86400) == 0 ) then
+      if ( mod(idnint(xtime),86400) == 0 ) then
         nnnnnn = nnnnnn + 1
         xtime = d_zero
       end if

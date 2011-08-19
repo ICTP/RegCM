@@ -107,7 +107,7 @@
       ldosav = .false.
       ldotmp = .false.
 
-      if ( mod(ntime,nsavfrq) == 0 .and. idatex /= idate1 ) then
+      if ( mod(ktau,ksav) == 0 .and. idatex /= idate1 ) then
         ldotmp = .true.
       end if
       if ( ((lday==1 .and. lhour==0 .and. ntime == 0) .and. &
@@ -115,20 +115,16 @@
         ldosav = .true.
         ldotmp = .false.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-           mod(ntime,ntapfrq) == 0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,ktap) == 0) then
         ldoatm = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. & 
-           mod(ntime,nbatfrq) == 0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,ksrf) == 0) then
         ldosrf = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-           mod(ntime,nradisp) == 0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,krad) == 0) then
         ldorad = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. &
-           mod(ntime,nchefrq) == 0) then
+      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,kche) == 0) then
         ldoche = .true.
       end if
 
@@ -152,7 +148,7 @@
         ldoche = .true.
       end if
 !
-      if ( jyear == jyear0.and.ktau == 0 ) then
+      if ( jyear == jyear0 .and. ktau == 0 ) then
         ldosrf = .false.
         ldorad = .false.
         ldoche = .false.

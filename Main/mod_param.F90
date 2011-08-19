@@ -691,6 +691,7 @@
       nsavfrq = idnint(secph*savfrq)
       ntapfrq = idnint(secph*tapfrq)
       ndbgfrq = idnint(secph*dbgfrq)
+      nchefrq = idnint(secph*chemfrq)
       ktau = 0
       ntime = 0
       xbtime = d_zero
@@ -709,9 +710,14 @@
       nbatst = idnint(abatm/dt)
       dtsec = dt
       dt2 = d_two*dt
-!chem2
-      nchefrq = idnint(secph*chemfrq)  ! convert chemfrq to time steps
-!chem2_
+!
+      ktap = ntapfrq/idnint(dtsec)
+      ksrf = nbatfrq/idnint(dtsec)
+      kche = nchefrq/idnint(dtsec)
+      krad = nradisp/idnint(dtsec)
+      ksav = nsavfrq/idnint(dtsec)
+      kdbg = ndbgfrq/idnint(dtsec)
+!
 !.....calculate the time step in minutes.
       deltmx = dt
 !.....compute the time steps for radiation computation.

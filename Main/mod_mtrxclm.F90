@@ -1317,7 +1317,7 @@
  
 !         Fill output arrays if needed
  
-          if ( mod(ntime+idnint(dtsec),nbatfrq)==0 .or. &
+          if ( mod(ktau+1),ksrf)==0 .or. &
                (jyear == jyear0 .and. ktau == 0) ) then
  
             do i = 2 , iym1

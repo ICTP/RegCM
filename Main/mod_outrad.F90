@@ -190,7 +190,7 @@
           end do
 !
           if ( ifrad ) then
-            if ( mod(ntime+idnint(dtsec),nradisp) == 0 .or.  &
+            if ( mod(ktau+1,krad) == 0 .or.  &
                 ( jyear == jyear0 .and. ktau == 0 ) .or.         &
                 ( ifrest .and. .not. done_restart) ) then
               do k = 1 , kz

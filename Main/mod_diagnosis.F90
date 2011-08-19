@@ -765,7 +765,7 @@
 #ifdef MPP1
       if ( myid == 0 ) then
 #endif
-        if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+        if ( debug_level > 3 .and. mod(ktau,kdbg) == 0 ) then
           xh = xtime/secpd
           write(6,*)  '***** day = ' , idatex + xh , ' *****'
           write(6,99001) tdrym , error1
@@ -1397,7 +1397,7 @@
       if ( myid == 0 ) then
 #endif
  
-        if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+        if ( debug_level > 3 .and. mod(ktau,kdbg) == 0 ) then
  
 !----     tracers
  

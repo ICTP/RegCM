@@ -36,13 +36,10 @@
 
       real(8) :: declin , dectim , deltmx , gmt
       real(8) :: xtime , xbtime
-      integer :: ktau
+      integer :: ktau , ktap , ksrf , krad , kche , ksav , kdbg
 
       real(8) :: calday , dtime , twodt
       logical :: doabsems , dolw , dosw
-      integer :: mbdate , mbsec , mcdate , mcsec , mdbase , mdcur ,     &
-               & msbase , mscur , nelapse , nestep , nnbdat , nnbsec ,  &
-               & nndbas , nnsbas , nrstrt , nstep , nstepr
 
       integer , dimension(12) :: mlen
       data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
