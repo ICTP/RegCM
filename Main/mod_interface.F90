@@ -323,7 +323,7 @@ module mod_interface
 !
 !     Read in boundary conditions if needed
 !
-      if ( ntime == 0 .and. &
+      if ( nbdytime == 0 .and. &
           (ktau > 0 .and. ktau < mtau .and. .not. doing_restart) ) then
         call bdyin
 #ifdef CHEMTEST

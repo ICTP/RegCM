@@ -964,7 +964,7 @@ module mod_bdycod
 !   compute the time interval for boundary tendency:
 !
     dtb = xt
-    if ( ntime == 0 .and. ktau > 0 ) then
+    if ( nbdytime == 0 .and. ktau > 0 ) then
       dtb = dtbdys
     end if
 !

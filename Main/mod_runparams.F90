@@ -44,7 +44,8 @@ module mod_runparams
   logical :: doabsems , dolw , dosw
 
   integer(8) :: ktau , mtau
-  integer(8) :: ntime
+  integer(8) :: katm , ksrf , krad , kche , ksav , kdbg
+  integer(8) :: nbdytime
   integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(8) :: nbdyfrq , ntsrf , ntrad , ntabem , ntsec
   integer :: klak

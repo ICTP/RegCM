@@ -427,7 +427,7 @@ module mod_init
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
       end do
-      print 99001 , ntime, ktau , tochar(idatex)
+      print 99001 , nbdytime, ktau , tochar(idatex)
     end if
 !
     if ( lakemod == 1 ) then
@@ -1096,9 +1096,9 @@ module mod_init
 #endif
     call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ntime,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(nbdytime,1,mpi_integer,0,mpi_comm_world,ierr)
     call date_bcast(idatex,0,mpi_comm_world,ierr)
-    xbctime = dble(ntime)
+    xbctime = dble(nbdytime)
 #ifndef BAND
     if (debug_level > 2) call mpidiag
 #endif

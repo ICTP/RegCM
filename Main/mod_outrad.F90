@@ -151,7 +151,7 @@ module mod_outrad
     end do
 !
     if ( ifrad ) then
-      if ( mod(ntime+ntsec,nradfrq) == 0 .or.  &
+      if ( mod(nbdytime+ntsec,nradfrq) == 0 .or.  &
           ktau == 0 .or. doing_restart ) then
         do k = 1 , kz
           do i = 2 , iym1

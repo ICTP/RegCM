@@ -803,10 +803,18 @@ module mod_params
   ntrad = idnint(dtrad/(dtsec/secpm))
 
   ktau = 0
+
+  katm = natmfrq/idnint(dtsec)
+  ksrf = nsrffrq/idnint(dtsec)
+  krad = nradfrq/idnint(dtsec)
+  kche = nchefrq/idnint(dtsec)
+  kdbg = ndbgfrq/idnint(dtsec)
+  ksav = nsavfrq/idnint(dtsec)
+
   bdif = idate2 - idate1
   mtau = idnint((tohours(bdif)*secph)/dt)
 
-  ntime = 0
+  nbdytime = 0
   xbctime = d_zero
 
   do ns = 1 , nsplit

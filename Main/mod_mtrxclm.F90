@@ -1032,7 +1032,7 @@ module mod_mtrxclm
     if ( ktau==0 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
-    else if ( ntime+ntsec == nsrffrq ) then
+    else if ( ktau+1 == ksrf ) then
       mmpd = houpd/(srffrq-dtsec/secph)
       wpm2 = d_one/((srffrq-dtsec/secph)*secph)
     else
@@ -1315,7 +1315,7 @@ module mod_mtrxclm
  
 !         Fill output arrays if needed
  
-      if ( mod(ntime+ntsec,nsrffrq) == 0 .or. ktau == 0 ) then
+      if ( mod(ktau+1,ksrf) == 0 .or. ktau == 0 ) then
  
         do i = 2 , iym1
           ci = i

@@ -915,7 +915,7 @@ module mod_nudge
     xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
 !
-  subroutine nudge(ldot,ip,fcoef,gcoef,xt,f,ften,j,ibdy,bnd)
+  subroutine nudge(ldot,ip,fcoef,gcoef,xt,f,ften,j,nk,ibdy,bnd)
 !
   use mod_runparams
   use mod_service
@@ -923,11 +923,11 @@ module mod_nudge
   implicit none
 !
   logical , intent(in) :: ldot ! Dot flag
-  integer , intent(in) :: ibdy , ip , j
+  integer , intent(in) :: ibdy , nk , ip , j
   real(8) , intent(in) :: fcoef , gcoef , xt
-  real(8) , intent(in) , dimension(iy,kz,-1:jxp+2) :: f
+  real(8) , intent(in) , dimension(iy,nk,-1:jxp+2) :: f
   type(vbound) , intent(in) :: bnd
-  real(8) , intent(inout) , dimension(iy,kz,jxp) :: ften
+  real(8) , intent(inout) , dimension(iy,nk,jxp) :: ften
 !
   real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
   integer :: i , ido , ii , k
@@ -959,7 +959,7 @@ module mod_nudge
         ii = iym1 + ido - i + 1
         fcx = fcoef*xfun(i)
         gcx = gcoef*xfun(i)
-        do k = 1 , kz
+        do k = 1 , nk
 !.......south boundary:
           fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
           fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
@@ -986,7 +986,7 @@ module mod_nudge
 !------interior j slices:
      do i = 2 , ip
         ii = iym1 + ido - i + 1
-        do k = 1 , kz
+        do k = 1 , nk
           fcx = fcoef*xfune(i,k)
           gcx = gcoef*xfune(i,k)
 !........south boundary:
@@ -1047,7 +1047,7 @@ module mod_nudge
         ii = iym1 + ido - i + 1
         fcx = fcoef*xfun(i)
         gcx = gcoef*xfun(i)
-        do k = 1 , kz
+        do k = 1 , nk
 !.......south boundary:
           fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
           fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
@@ -1076,7 +1076,7 @@ module mod_nudge
           ii = iym1 + ido - i + 1
           fcx = fcoef*xfun(i)
           gcx = gcoef*xfun(i)
-          do k = 1 , kz
+          do k = 1 , nk
 !........south  boundary:
             fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
             fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
@@ -1103,7 +1103,7 @@ module mod_nudge
 !-------west-boundary slice:
         fcx = fcoef*xfun(jsls)
         gcx = gcoef*xfun(jsls)
-        do k = 1 , kz
+        do k = 1 , nk
           do i = ibeg , iend
             fls0 = (bnd%wb(i,k,jwb)+xt*bnd%wbt(i,k,jwb)) - f(i,k,j)
             fls1 = (bnd%wb(i-1,k,jwb)+xt*bnd%wbt(i-1,k,jwb)) - f(i-1,k,j)
@@ -1118,7 +1118,7 @@ module mod_nudge
 !-------east-boundary slice:
         fcx = fcoef*xfun(jsls)
         gcx = gcoef*xfun(jsls)
-        do k = 1 , kz
+        do k = 1 , nk
           do i = ibeg , iend
             fls0 = (bnd%eb(i,k,jeb)+xt*bnd%ebt(i,k,jeb)) - f(i,k,j)
             fls1 = (bnd%eb(i-1,k,jeb)+xt*bnd%ebt(i-1,k,jeb)) - f(i-1,k,j)
@@ -1140,7 +1140,7 @@ module mod_nudge
 !------interior j slices:
       do i = 2 , ip
         ii = iym1 + ido - i + 1
-        do k = 1 , kz
+        do k = 1 , nk
           fcx = fcoef*xfune(i,k)
           gcx = gcoef*xfune(i,k)
 !........south boundary:
@@ -1169,7 +1169,7 @@ module mod_nudge
       if ( jsls > 2 ) then
         do i = 2 , jsls - 1
           ii = iym1 + ido - i + 1
-          do k = 1 , kz
+          do k = 1 , nk
             fcx = fcoef*xfune(i,k)
             gcx = gcoef*xfune(i,k)
 !.........south boundary:
@@ -1196,7 +1196,7 @@ module mod_nudge
 !
       if ( jj > ip ) then
 !-------west-boundary slice:
-        do k = 1 , kz
+        do k = 1 , nk
           fcx = fcoef*xfune(jsls,k)
           gcx = gcoef*xfune(jsls,k)
           do i = ibeg , iend
@@ -1211,7 +1211,7 @@ module mod_nudge
         end do
       else if ( jj <= ip ) then
 !-------east-boundary slice:
-        do k = 1 , kz
+        do k = 1 , nk
           fcx = fcoef*xfune(jsls,k)
           gcx = gcoef*xfune(jsls,k)
           do i = ibeg , iend

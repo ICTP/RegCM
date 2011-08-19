@@ -1173,7 +1173,7 @@ module mod_tendency
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
-          if ( ntime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
+          if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge_p(ispgx,fnudge,gnudge,xtm1,pten(:,j),j,iboudy)
         end if
 #ifndef BAND
@@ -1597,11 +1597,11 @@ module mod_tendency
 !
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
-          if ( ntime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
+          if ( nbdytime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
           call nudge(.false.,ispgx,fnudge,gnudge, &
-                     xtm1,atm2%t,aten%t,j,iboudy,xtb)
+                     xtm1,atm2%t,aten%t,j,kz,iboudy,xtb)
           call nudge(.false.,ispgx,fnudge,gnudge, &
-                     xtm1,atm2%qv,aten%qv,j,iboudy,xqb)
+                     xtm1,atm2%qv,aten%qv,j,kz,iboudy,xqb)
         end if
 !
 !       forecast t, qv, and qc at tau+1:
@@ -1925,8 +1925,10 @@ module mod_tendency
 !     apply the nudging boundary conditions:
 !
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(.true.,ispgd,fnudge,gnudge,xtm1,atm2%u,aten%u,j,iboudy,xub)
-        call nudge(.true.,ispgd,fnudge,gnudge,xtm1,atm2%v,aten%v,j,iboudy,xvb)
+        call nudge(.true.,ispgd,fnudge,gnudge,xtm1, &
+                   atm2%u,aten%u,j,kz,iboudy,xub)
+        call nudge(.true.,ispgd,fnudge,gnudge,xtm1, &
+                   atm2%v,aten%v,j,kz,iboudy,xvb)
       end if
 !
 !     add the diffusion and pbl tendencies to aten%u and aten%v:
@@ -2066,14 +2068,14 @@ module mod_tendency
 !
     ktau = ktau + 1
     xbctime = xbctime + dtsec
-    ntime = ntime + ntsec
+    nbdytime = nbdytime + ntsec
     idatex = idatex + intmdl
 
-    if ( mod(ntime,3600) == 0 ) then
+    if ( mod(nbdytime,3600) == 0 ) then
       call split_idate(idatex,xyear,xmonth,xday,xhour)
     end if
-    if ( mod(ntime,nbdyfrq) == 0 ) then
-      ntime = 0
+    if ( mod(nbdytime,nbdyfrq) == 0 ) then
+      nbdytime = 0
       xbctime = d_zero
     end if
 
@@ -2153,7 +2155,7 @@ module mod_tendency
 !   recalculate solar declination angle if forecast time larger than
 !   24 hours:
 !
-    if ( ntime == 0 ) then
+    if ( nbdytime == 0 ) then
       if (myid == 0) then
         write (6,*) 'Recalculate solar declination angle at ',toint10(idatex)
       end if

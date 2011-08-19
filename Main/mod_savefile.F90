@@ -83,7 +83,7 @@ module mod_savefile
         open (iutrst,file=ffin,form='unformatted',status='old')
       end if
 
-      read (iutrst) ktau, idatex, ntime
+      read (iutrst) ktau, idatex, nbdytime
       if ( ehso4 ) then
         read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, ts0_io, so0_io
       else
@@ -242,7 +242,7 @@ module mod_savefile
         call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
       end if
 
-      write (iutsav) ktau , idatex , ntime
+      write (iutsav) ktau , idatex , nbdytime
       if ( ehso4 ) then
         write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
                        ps0_io , ts0_io , so0_io

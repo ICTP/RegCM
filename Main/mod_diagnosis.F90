@@ -540,7 +540,7 @@ module mod_diagnosis
 !   print out the information:
 !
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+      if ( debug_level > 3 .and. mod(ktau,kdbg) == 0 ) then
         write(6,*)  '***** ' , tochar(idatex), ' *****'
         write(6,99001) tdrym , error1
         write(6,99002) tdadv
@@ -939,7 +939,7 @@ module mod_diagnosis
    
 !   print out the information:
     if ( myid == 0 ) then
-      if ( debug_level > 3 .and. mod(ntime,ndbgfrq) == 0 ) then
+      if ( debug_level > 3 .and. mod(ktau,kdbg) == 0 ) then
    
 !       tracers
    
