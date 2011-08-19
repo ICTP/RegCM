@@ -1169,7 +1169,7 @@ module mod_tendency
 !
         if ( iboudy == 4 ) then
 !         apply sponge boundary conditions to pten:
-          call sponge_p(ispgx,wgtx,pten(:,j),j)
+          call sponge(.false.,ispgx,wgtx,pten,j,1,xpsb)
 !       apply the nudging boundary conditions:
         else if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
@@ -1575,7 +1575,7 @@ module mod_tendency
               aten%t(i,k,j) = aten%t(i,k,j) - adf%difft(i,k,j)
             end do
           end do
-          call sponge_t(ispgx,wgtx,aten%t(:,:,j),j)
+          call sponge(.false.,ispgx,wgtx,aten%t,j,kz,xtb)
           do k = 1 , kz
             do i = 2 , iym2
               aten%t(i,k,j) = aten%t(i,k,j) + adf%difft(i,k,j)
@@ -1586,7 +1586,7 @@ module mod_tendency
               aten%qv(i,k,j) = aten%qv(i,k,j) - adf%diffq(i,k,j)
             end do
           end do
-          call spongeqv(ispgx,wgtx,aten%qv(:,:,j),j)
+          call sponge(.false.,ispgx,wgtx,aten%qv,j,kz,xqb)
           do k = 1 , kz
             do i = 2 , iym2
               aten%qv(i,k,j) = aten%qv(i,k,j) + adf%diffq(i,k,j)
@@ -1919,8 +1919,8 @@ module mod_tendency
 !     apply the sponge boundary condition on u and v:
 !
       if ( iboudy == 4 ) then
-        call sponge_u(ispgd,wgtd,aten%u(:,:,j),j)
-        call sponge_v(ispgd,wgtd,aten%v(:,:,j),j)
+        call sponge(.true.,ispgd,wgtd,aten%u,j,kz,xub)
+        call sponge(.true.,ispgd,wgtd,aten%v,j,kz,xvb)
       end if
 !
 !     apply the nudging boundary conditions:
