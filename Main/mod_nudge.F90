@@ -1127,9 +1127,9 @@ module mod_nudge
      ii = iy - i
      do k = 1 , kz
 !.......south boundary:
-        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*tsbt(i,k,j)
+        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xtb%sbt(i,k,j)
 !.......north boundary:
-        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*tnbt(i,k,j)
+        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xtb%nbt(i,k,j)
      end do
   end do
 
@@ -1156,9 +1156,9 @@ module mod_nudge
       ii = iy - i
       do k = 1 , kz
 !.......south boundary:
-        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*tsbt(i,k,j)
+        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xtb%sbt(i,k,j)
 !.......north boundary:
-        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*tnbt(i,k,j)
+        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xtb%nbt(i,k,j)
       end do
     end do
 !
@@ -1170,9 +1170,9 @@ module mod_nudge
         ii = iy - i
         do k = 1 , kz
 !........south boundary:
-          ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*tsbt(i,k,j)
+          ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xtb%sbt(i,k,j)
 !........north boundary:
-          ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*tnbt(i,k,j)
+          ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xtb%nbt(i,k,j)
         end do
       end do
       ibeg = jsls
@@ -1184,7 +1184,7 @@ module mod_nudge
       do k = 1 , kz
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*twbt(i,k,jwb)
+            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*xtb%wbt(i,k,jwb)
           end if
         end do
       end do
@@ -1193,7 +1193,7 @@ module mod_nudge
       do k = 1 , kz
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*tebt(i,k,jeb)
+            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*xtb%ebt(i,k,jeb)
           end if
         end do
       end do
@@ -1239,9 +1239,9 @@ module mod_nudge
      ii = iy - i
      do k = 1 , kz
 !.......south boundary:
-        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*qsbt(i,k,j)
+        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xqb%sbt(i,k,j)
 !.......north boundary:
-        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*qnbt(i,k,j)
+        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xqb%nbt(i,k,j)
      end do
   end do
 #else
@@ -1267,9 +1267,9 @@ module mod_nudge
       ii = iy - i
       do k = 1 , kz
 !.......south boundary:
-        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*qsbt(i,k,j)
+        ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xqb%sbt(i,k,j)
 !.......north boundary:
-        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*qnbt(i,k,j)
+        ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xqb%nbt(i,k,j)
       end do
     end do
 !
@@ -1281,9 +1281,9 @@ module mod_nudge
         ii = iy - i
         do k = 1 , kz
 !........south boundary:
-          ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*qsbt(i,k,j)
+          ften(i,k) = wg(i)*ften(i,k) + (d_one-wg(i))*xqb%sbt(i,k,j)
 !........north boundary:
-          ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*qnbt(i,k,j)
+          ften(ii,k) = wg(i)*ften(ii,k) + (d_one-wg(i))*xqb%nbt(i,k,j)
         end do
       end do
       ibeg = jsls
@@ -1295,7 +1295,7 @@ module mod_nudge
       do k = 1 , kz
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*qwbt(i,k,jwb)
+            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*xqb%wbt(i,k,jwb)
           end if
         end do
       end do
@@ -1304,7 +1304,7 @@ module mod_nudge
       do k = 1 , kz
         do i = ibeg , iend
           if ( jsls <= ip ) then
-            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*qebt(i,k,jeb)
+            ften(i,k) = wg(jsls)*ften(i,k)+(d_one-wg(jsls))*xqb%ebt(i,k,jeb)
           end if
         end do
       end do
@@ -1538,20 +1538,17 @@ module mod_nudge
     xfune = dexp(-dble(mm-2)/anudg(kk))
   end function xfune
 !
-  subroutine nudge_x(ip,fcoef,gcoef,xt,f,ften,j,ibdy, &
-                     nb,tnb,sb,tsb,eb,teb,wb,twb)
+  subroutine nudge_x(ip,fcoef,gcoef,xt,f,ften,j,ibdy,bnd)
 !
   use mod_runparams
   use mod_service
+  use mod_atm_interface , only : vbound
   implicit none
 !
   integer , intent(in) :: ibdy , ip , j
   real(8) , intent(in) :: fcoef , gcoef , xt
   real(8) , intent(in) , dimension(iy,kz,-1:jxp+2) :: f
-  real(8) , intent(in) , dimension(nspgx,kz,0:jxp+1) :: nb , sb
-  real(8) , intent(in) , dimension(nspgx,kz,0:jxp+1) :: tnb , tsb
-  real(8) , intent(in) , dimension(iy,kz,0:jxp+1) :: eb , wb
-  real(8) , intent(in) , dimension(iy,kz,0:jxp+1) :: teb , twb
+  type(vbound) , intent(in) :: bnd
   real(8) , intent(inout) , dimension(iy,kz,jxp) :: ften
 !
   real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
@@ -1581,19 +1578,19 @@ module mod_nudge
         gcx = gcoef*xfun(i)
         do k = 1 , kz
 !.......south boundary:
-          fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-          fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-          fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-          fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-          fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+          fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+          fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+          fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+          fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+          fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
           ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                     & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-          fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-          fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-          fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-          fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+          fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+          fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+          fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+          fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+          fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
           ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -1610,19 +1607,19 @@ module mod_nudge
           fcx = fcoef*xfune(i,k)
           gcx = gcoef*xfune(i,k)
 !........south boundary:
-          fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-          fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-          fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-          fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-          fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+          fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+          fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+          fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+          fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+          fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
           ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                     & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-          fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-          fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-          fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-          fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+          fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+          fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+          fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+          fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+          fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
           ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -1659,19 +1656,19 @@ module mod_nudge
         gcx = gcoef*xfun(i)
         do k = 1 , kz
 !.......south boundary:
-          fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-          fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-          fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-          fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-          fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+          fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+          fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+          fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+          fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+          fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
           ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                     & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-          fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-          fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-          fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-          fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+          fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+          fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+          fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+          fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+          fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
           ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -1688,19 +1685,19 @@ module mod_nudge
           gcx = gcoef*xfun(i)
           do k = 1 , kz
 !........south  boundary:
-            fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-            fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-            fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-            fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-            fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+            fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+            fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+            fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+            fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+            fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
-            fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-            fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-            fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-            fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-            fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+            fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+            fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+            fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+            fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+            fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
             ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -1715,11 +1712,11 @@ module mod_nudge
         gcx = gcoef*xfun(jsls)
         do k = 1 , kz
           do i = ibeg , iend
-            fls0 = (wb(i,k,jwb)+xt*twb(i,k,jwb)) - f(i,k,j)
-            fls1 = (wb(i-1,k,jwb)+xt*twb(i-1,k,jwb)) - f(i-1,k,j)
-            fls2 = (wb(i+1,k,jwb)+xt*twb(i+1,k,jwb)) - f(i+1,k,j)
-            fls3 = (wb(i,k,jwb-1)+xt*twb(i,k,jwb-1)) - f(i,k,j-1)
-            fls4 = (wb(i,k,jwb+1)+xt*twb(i,k,jwb+1)) - f(i,k,j+1)
+            fls0 = (bnd%wb(i,k,jwb)+xt*bnd%wbt(i,k,jwb)) - f(i,k,j)
+            fls1 = (bnd%wb(i-1,k,jwb)+xt*bnd%wbt(i-1,k,jwb)) - f(i-1,k,j)
+            fls2 = (bnd%wb(i+1,k,jwb)+xt*bnd%wbt(i+1,k,jwb)) - f(i+1,k,j)
+            fls3 = (bnd%wb(i,k,jwb-1)+xt*bnd%wbt(i,k,jwb-1)) - f(i,k,j-1)
+            fls4 = (bnd%wb(i,k,jwb+1)+xt*bnd%wbt(i,k,jwb+1)) - f(i,k,j+1)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -1730,11 +1727,11 @@ module mod_nudge
         gcx = gcoef*xfun(jsls)
         do k = 1 , kz
           do i = ibeg , iend
-            fls0 = (eb(i,k,jeb)+xt*teb(i,k,jeb)) - f(i,k,j)
-            fls1 = (eb(i-1,k,jeb)+xt*teb(i-1,k,jeb)) - f(i-1,k,j)
-            fls2 = (eb(i+1,k,jeb)+xt*teb(i+1,k,jeb)) - f(i+1,k,j)
-            fls3 = (eb(i,k,jeb-1)+xt*teb(i,k,jeb-1)) - f(i,k,j-1)
-            fls4 = (eb(i,k,jeb+1)+xt*teb(i,k,jeb+1)) - f(i,k,j+1)
+            fls0 = (bnd%eb(i,k,jeb)+xt*bnd%ebt(i,k,jeb)) - f(i,k,j)
+            fls1 = (bnd%eb(i-1,k,jeb)+xt*bnd%ebt(i-1,k,jeb)) - f(i-1,k,j)
+            fls2 = (bnd%eb(i+1,k,jeb)+xt*bnd%ebt(i+1,k,jeb)) - f(i+1,k,j)
+            fls3 = (bnd%eb(i,k,jeb-1)+xt*bnd%ebt(i,k,jeb-1)) - f(i,k,j-1)
+            fls4 = (bnd%eb(i,k,jeb+1)+xt*bnd%ebt(i,k,jeb+1)) - f(i,k,j+1)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 -  &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -1754,19 +1751,19 @@ module mod_nudge
           fcx = fcoef*xfune(i,k)
           gcx = gcoef*xfune(i,k)
 !........south boundary:
-          fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-          fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-          fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-          fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-          fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+          fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+          fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+          fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+          fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+          fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
           ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                     & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !........north boundary:
-          fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-          fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-          fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-          fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-          fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+          fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+          fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+          fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+          fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+          fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
           ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                      & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
@@ -1783,19 +1780,19 @@ module mod_nudge
             fcx = fcoef*xfune(i,k)
             gcx = gcoef*xfune(i,k)
 !.........south boundary:
-            fls0 = (sb(i,k,j)+xt*tsb(i,k,j)) - f(i,k,j)
-            fls1 = (sb(i,k,j-1)+xt*tsb(i,k,j-1)) - f(i,k,j-1)
-            fls2 = (sb(i,k,j+1)+xt*tsb(i,k,j+1)) - f(i,k,j+1)
-            fls3 = (sb(i-1,k,j)+xt*tsb(i-1,k,j)) - f(i-1,k,j)
-            fls4 = (sb(i+1,k,j)+xt*tsb(i+1,k,j)) - f(i+1,k,j)
+            fls0 = (bnd%sb(i,k,j)+xt*bnd%sbt(i,k,j)) - f(i,k,j)
+            fls1 = (bnd%sb(i,k,j-1)+xt*bnd%sbt(i,k,j-1)) - f(i,k,j-1)
+            fls2 = (bnd%sb(i,k,j+1)+xt*bnd%sbt(i,k,j+1)) - f(i,k,j+1)
+            fls3 = (bnd%sb(i-1,k,j)+xt*bnd%sbt(i-1,k,j)) - f(i-1,k,j)
+            fls4 = (bnd%sb(i+1,k,j)+xt*bnd%sbt(i+1,k,j)) - f(i+1,k,j)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
 !.........north boundary:
-            fls0 = (nb(i,k,j)+xt*tnb(i,k,j)) - f(ii,k,j)
-            fls1 = (nb(i,k,j-1)+xt*tnb(i,k,j-1)) - f(ii,k,j-1)
-            fls2 = (nb(i,k,j+1)+xt*tnb(i,k,j+1)) - f(ii,k,j+1)
-            fls3 = (nb(i-1,k,j)+xt*tnb(i-1,k,j)) - f(ii-1,k,j)
-            fls4 = (nb(i+1,k,j)+xt*tnb(i+1,k,j)) - f(ii+1,k,j)
+            fls0 = (bnd%nb(i,k,j)+xt*bnd%nbt(i,k,j)) - f(ii,k,j)
+            fls1 = (bnd%nb(i,k,j-1)+xt*bnd%nbt(i,k,j-1)) - f(ii,k,j-1)
+            fls2 = (bnd%nb(i,k,j+1)+xt*bnd%nbt(i,k,j+1)) - f(ii,k,j+1)
+            fls3 = (bnd%nb(i-1,k,j)+xt*bnd%nbt(i-1,k,j)) - f(ii-1,k,j)
+            fls4 = (bnd%nb(i+1,k,j)+xt*bnd%nbt(i+1,k,j)) - f(ii+1,k,j)
             ften(ii,k,j) = ften(ii,k,j) + fcx*fls0 - &
                        & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -1810,11 +1807,11 @@ module mod_nudge
           fcx = fcoef*xfune(jsls,k)
           gcx = gcoef*xfune(jsls,k)
           do i = ibeg , iend
-            fls0 = (wb(i,k,jwb)+xt*twb(i,k,jwb)) - f(i,k,j)
-            fls1 = (wb(i-1,k,jwb)+xt*twb(i-1,k,jwb)) - f(i-1,k,j)
-            fls2 = (wb(i+1,k,jwb)+xt*twb(i+1,k,jwb)) - f(i+1,k,j)
-            fls3 = (wb(i,k,jwb-1)+xt*twb(i,k,jwb-1)) - f(i,k,j-1)
-            fls4 = (wb(i,k,jwb+1)+xt*twb(i,k,jwb+1)) - f(i,k,j+1)
+            fls0 = (bnd%wb(i,k,jwb)+xt*bnd%wbt(i,k,jwb)) - f(i,k,j)
+            fls1 = (bnd%wb(i-1,k,jwb)+xt*bnd%wbt(i-1,k,jwb)) - f(i-1,k,j)
+            fls2 = (bnd%wb(i+1,k,jwb)+xt*bnd%wbt(i+1,k,jwb)) - f(i+1,k,j)
+            fls3 = (bnd%wb(i,k,jwb-1)+xt*bnd%wbt(i,k,jwb-1)) - f(i,k,j-1)
+            fls4 = (bnd%wb(i,k,jwb+1)+xt*bnd%wbt(i,k,jwb+1)) - f(i,k,j+1)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
@@ -1825,11 +1822,11 @@ module mod_nudge
           fcx = fcoef*xfune(jsls,k)
           gcx = gcoef*xfune(jsls,k)
           do i = ibeg , iend
-            fls0 = (eb(i,k,jeb)+xt*teb(i,k,jeb)) - f(i,k,j)
-            fls1 = (eb(i-1,k,jeb)+xt*teb(i-1,k,jeb)) - f(i-1,k,j)
-            fls2 = (eb(i+1,k,jeb)+xt*teb(i+1,k,jeb)) - f(i+1,k,j)
-            fls3 = (eb(i,k,jeb-1)+xt*teb(i,k,jeb-1)) - f(i,k,j-1)
-            fls4 = (eb(i,k,jeb+1)+xt*teb(i,k,jeb+1)) - f(i,k,j+1)
+            fls0 = (bnd%eb(i,k,jeb)+xt*bnd%ebt(i,k,jeb)) - f(i,k,j)
+            fls1 = (bnd%eb(i-1,k,jeb)+xt*bnd%ebt(i-1,k,jeb)) - f(i-1,k,j)
+            fls2 = (bnd%eb(i+1,k,jeb)+xt*bnd%ebt(i+1,k,jeb)) - f(i+1,k,j)
+            fls3 = (bnd%eb(i,k,jeb-1)+xt*bnd%ebt(i,k,jeb-1)) - f(i,k,j-1)
+            fls4 = (bnd%eb(i,k,jeb+1)+xt*bnd%ebt(i,k,jeb+1)) - f(i,k,j+1)
             ften(i,k,j) = ften(i,k,j) + fcx*fls0 - &
                       & gcx*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do

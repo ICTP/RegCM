@@ -42,17 +42,13 @@ module mod_bdycod
 #endif
   public :: ui1 , ui2 , uilx , uil
   public :: vi1 , vi2 , vilx , vil
-  public :: ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
+  public :: ub0 , vb0 , ps0 , ts0 , so0
 #ifndef BAND
   public :: peb , pebt , pwb , pwbt
   public :: ueb , uebt , veb , vebt , uwb , uwbt , vwb , vwbt
 #endif
   public :: pnb , pnbt , psb , psbt
   public :: unb , unbt , vnb , vnbt , usb , usbt , vsb , vsbt
-#ifndef BAND
-  public :: teb , tebt , qeb , qebt , twb , twbt , qwb , qwbt
-#endif
-  public :: tnb , tnbt , qnb , qnbt , tsb , tsbt , qsb , qsbt
   public :: ts1 ! FOR DCSST
 !
 #ifndef BAND
@@ -60,8 +56,8 @@ module mod_bdycod
          vj1 , vj2 , vjl , vjlx
 #endif
   real(8) , pointer , dimension(:,:) :: ps0 , ps1
-  real(8) , pointer , dimension(:,:,:) :: qb0 , qb1 , so0 , so1 , &
-         tb0 , tb1 , ub0 , ub1 , vb0 , vb1
+  real(8) , pointer , dimension(:,:,:) :: so0 , so1 , &
+         ub0 , ub1 , vb0 , vb1
   real(8) , pointer , dimension(:,:) :: ts0 , ts1
 !
 #ifndef BAND
@@ -69,12 +65,10 @@ module mod_bdycod
 #endif
   real(8) , pointer , dimension(:,:) :: pnb , pnbt , psbt , psb
 #ifndef BAND
-  real(8) , pointer , dimension(:,:,:) :: qeb , qebt , qwb , qwbt , &
-        teb , tebt , twb , twbt , ueb , uebt , uwb , uwbt , veb ,   &
+  real(8) , pointer , dimension(:,:,:) :: &
+        ueb , uebt , uwb , uwbt , veb ,   &
         vebt , vwb , vwbt
 #endif
-  real(8) , pointer , dimension(:,:,:) :: qnb , qnbt , qsb ,    &
-        qsbt , tnb , tnbt , tsb , tsbt
   real(8) , pointer , dimension(:,:) :: ui1 , ui2 , uil , uilx ,&
         vi1 , vi2 , vil , vilx
   real(8) , pointer , dimension(:,:,:) :: unb , unbt , usb ,    &
@@ -94,12 +88,8 @@ module mod_bdycod
     call getmem2d(ts0,1,iy,1,jxp,'bdycon:ts0')
     call getmem2d(ts1,1,iy,1,jxp,'bdycon:ts1')
 !
-    call getmem3d(qb0,1,iy,1,kz,1,jxp,'bdycon:qb0')
-    call getmem3d(qb1,1,iy,1,kz,1,jxp,'bdycon:qb1')
     call getmem3d(so0,1,iy,1,kz,1,jxp,'bdycon:so0')
     call getmem3d(so1,1,iy,1,kz,1,jxp,'bdycon:so1')
-    call getmem3d(tb0,1,iy,1,kz,1,jxp,'bdycon:tb0')
-    call getmem3d(tb1,1,iy,1,kz,1,jxp,'bdycon:tb1')
     call getmem3d(ub0,1,iy,1,kz,1,jxp,'bdycon:ub0')
     call getmem3d(ub1,1,iy,1,kz,1,jxp,'bdycon:ub1')
     call getmem3d(vb0,1,iy,1,kz,1,jxp,'bdycon:vb0')
@@ -115,14 +105,6 @@ module mod_bdycod
     call getmem2d(psb,1,nspgx,0,jxp+1,'bdycon:psb')
     call getmem2d(psbt,1,nspgx,0,jxp+1,'bdycon:psbt')
 #ifndef BAND
-    call getmem3d(qeb,1,iy,1,kz,0,jxp+1,'bdycon:qeb')
-    call getmem3d(qebt,1,iy,1,kz,0,jxp+1,'bdycon:qebt')
-    call getmem3d(qwb,1,iy,1,kz,0,jxp+1,'bdycon:qwb')
-    call getmem3d(qwbt,1,iy,1,kz,0,jxp+1,'bdycon:qwbt')
-    call getmem3d(teb,1,iy,1,kz,0,jxp+1,'bdycon:teb')
-    call getmem3d(tebt,1,iy,1,kz,0,jxp+1,'bdycon:tebt')
-    call getmem3d(twb,1,iy,1,kz,0,jxp+1,'bdycon:twb')
-    call getmem3d(twbt,1,iy,1,kz,0,jxp+1,'bdycon:twbt')
     call getmem3d(ueb,1,iy,1,kz,0,jxp+1,'bdycon:ueb')
     call getmem3d(uebt,1,iy,1,kz,0,jxp+1,'bdycon:uebt')
     call getmem3d(uwb,1,iy,1,kz,0,jxp+1,'bdycon:uwb')
@@ -132,15 +114,6 @@ module mod_bdycod
     call getmem3d(vwb,1,iy,1,kz,0,jxp+1,'bdycon:vwb')
     call getmem3d(vwbt,1,iy,1,kz,0,jxp+1,'bdycon:vwbt')
 #endif
-    call getmem3d(qnb,1,nspgx,1,kz,0,jxp+1,'bdycon:qnb')
-    call getmem3d(qnbt,1,nspgx,1,kz,0,jxp+1,'bdycon:qnbt')
-    call getmem3d(qsb,1,nspgx,1,kz,0,jxp+1,'bdycon:qsb')
-    call getmem3d(qsbt,1,nspgx,1,kz,0,jxp+1,'bdycon:qsbt')
-    call getmem3d(tnb,1,nspgx,1,kz,0,jxp+1,'bdycon:tnb')
-    call getmem3d(tnbt,1,nspgx,1,kz,0,jxp+1,'bdycon:tnbt')
-    call getmem3d(tsb,1,nspgx,1,kz,0,jxp+1,'bdycon:tsb')
-    call getmem3d(tsbt,1,nspgx,1,kz,0,jxp+1,'bdycon:tsbt')
-!
     call getmem2d(ui1,1,kz,0,jxp+1,'bdycon:ui1')
     call getmem2d(ui2,1,kz,0,jxp+1,'bdycon:ui2')
     call getmem2d(uil,1,kz,0,jxp+1,'bdycon:uil')
@@ -256,8 +229,8 @@ module mod_bdycod
         do i = 1 , iy
           ub1(i,k,j) = sav0(i,k,j)
           vb1(i,k,j) = sav0(i,kz+k,j)
-          qb1(i,k,j) = sav0(i,kz*2+k,j)
-          tb1(i,k,j) = sav0(i,kz*3+k,j)
+          xqb%b1(i,k,j) = sav0(i,kz*2+k,j)
+          xtb%b1(i,k,j) = sav0(i,kz*3+k,j)
         end do
       end do
       do i = 1 , iy
@@ -333,8 +306,8 @@ module mod_bdycod
         do i = 1 , iy
           ub1(i,k,j) = ub1(i,k,j)*psdot(i,j)
           vb1(i,k,j) = vb1(i,k,j)*psdot(i,j)
-          tb1(i,k,j) = tb1(i,k,j)*ps1(i,j)
-          qb1(i,k,j) = qb1(i,k,j)*ps1(i,j)
+          xtb%b1(i,k,j) = xtb%b1(i,k,j)*ps1(i,j)
+          xqb%b1(i,k,j) = xqb%b1(i,k,j)*ps1(i,j)
         end do
       end do
     end do
@@ -481,10 +454,10 @@ module mod_bdycod
     do nn = 1 , nxwb
       do k = 1 , kz
         do i = 1 , iym1
-          twb(i,k,nn)  = tb0(i,k,nn)
-          qwb(i,k,nn)  = qb0(i,k,nn)
-          twbt(i,k,nn) = (tb1(i,k,nn)-tb0(i,k,nn))/dtbdys
-          qwbt(i,k,nn) = (qb1(i,k,nn)-qb0(i,k,nn))/dtbdys
+          xtb%wb(i,k,nn)  = xtb%b0(i,k,nn)
+          xqb%wb(i,k,nn)  = xqb%b0(i,k,nn)
+          xtb%wbt(i,k,nn) = (xtb%b1(i,k,nn)-xtb%b0(i,k,nn))/dtbdys
+          xqb%wbt(i,k,nn) = (xqb%b1(i,k,nn)-xqb%b0(i,k,nn))/dtbdys
         end do
       end do
     end do
@@ -492,10 +465,10 @@ module mod_bdycod
       nnb = min0(jendx,jxp) - nn + 1
       do k = 1 , kz
         do i = 1 , iym1
-          teb(i,k,nn)  = tb0(i,k,nnb)
-          qeb(i,k,nn)  = qb0(i,k,nnb)
-          tebt(i,k,nn) = (tb1(i,k,nnb)-tb0(i,k,nnb))/dtbdys
-          qebt(i,k,nn) = (qb1(i,k,nnb)-qb0(i,k,nnb))/dtbdys
+          xtb%eb(i,k,nn)  = xtb%b0(i,k,nnb)
+          xqb%eb(i,k,nn)  = xqb%b0(i,k,nnb)
+          xtb%ebt(i,k,nn) = (xtb%b1(i,k,nnb)-xtb%b0(i,k,nnb))/dtbdys
+          xqb%ebt(i,k,nn) = (xqb%b1(i,k,nnb)-xqb%b0(i,k,nnb))/dtbdys
         end do
       end do
     end do
@@ -504,14 +477,14 @@ module mod_bdycod
       nnb = iym1 - nn + 1
       do k = 1 , kz
         do j = 1 , jendx
-          tnb(nn,k,j)  = tb0(nnb,k,j)
-          tsb(nn,k,j)  = tb0(nn,k,j)
-          qnb(nn,k,j)  = qb0(nnb,k,j)
-          qsb(nn,k,j)  = qb0(nn,k,j)
-          tnbt(nn,k,j) = (tb1(nnb,k,j)-tb0(nnb,k,j))/dtbdys
-          tsbt(nn,k,j) = (tb1(nn,k,j)-tb0(nn,k,j))/dtbdys
-          qnbt(nn,k,j) = (qb1(nnb,k,j)-qb0(nnb,k,j))/dtbdys
-          qsbt(nn,k,j) = (qb1(nn,k,j)-qb0(nn,k,j))/dtbdys
+          xtb%nb(nn,k,j)  = xtb%b0(nnb,k,j)
+          xtb%sb(nn,k,j)  = xtb%b0(nn,k,j)
+          xqb%nb(nn,k,j)  = xqb%b0(nnb,k,j)
+          xqb%sb(nn,k,j)  = xqb%b0(nn,k,j)
+          xtb%nbt(nn,k,j) = (xtb%b1(nnb,k,j)-xtb%b0(nnb,k,j))/dtbdys
+          xtb%sbt(nn,k,j) = (xtb%b1(nn,k,j)-xtb%b0(nn,k,j))/dtbdys
+          xqb%nbt(nn,k,j) = (xqb%b1(nnb,k,j)-xqb%b0(nnb,k,j))/dtbdys
+          xqb%sbt(nn,k,j) = (xqb%b1(nn,k,j)-xqb%b0(nn,k,j))/dtbdys
         end do
       end do
     end do
@@ -534,8 +507,8 @@ module mod_bdycod
         do i = 1 , iy
           ub0(i,k,j) = ub1(i,k,j)
           vb0(i,k,j) = vb1(i,k,j)
-          qb0(i,k,j) = qb1(i,k,j)
-          tb0(i,k,j) = tb1(i,k,j)
+          xqb%b0(i,k,j) = xqb%b1(i,k,j)
+          xtb%b0(i,k,j) = xtb%b1(i,k,j)
         end do
       end do
     end do
@@ -1120,25 +1093,25 @@ module mod_bdycod
       do k = 1 , kz
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid == 0 )       atm1%t(i,k,1)     = twb(i,k,1)
-          if ( myid == nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1)
+          if ( myid == 0 )       atm1%t(i,k,1)     = xtb%wb(i,k,1)
+          if ( myid == nproc-1 ) atm1%t(i,k,jendx) = xtb%eb(i,k,1)
         end do
 #endif
         do j = jbegin , jendm
-          atm1%t(1,k,j)    = tsb(1,k,j)
-          atm1%t(iym1,k,j) = tnb(1,k,j)
+          atm1%t(1,k,j)    = xtb%sb(1,k,j)
+          atm1%t(iym1,k,j) = xtb%nb(1,k,j)
         end do
       end do
       do k = 1 , kz
 #ifndef BAND
         do i = 1 , iym1
-          if ( myid == 0 )       atm1%qv(i,k,1)     = qwb(i,k,1)
-          if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1)
+          if ( myid == 0 )       atm1%qv(i,k,1)     = xqb%wb(i,k,1)
+          if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = xqb%eb(i,k,1)
         end do
 #endif
         do j = jbegin , jendm
-          atm1%qv(1,k,j)    = qsb(1,k,j)
-          atm1%qv(iym1,k,j) = qnb(1,k,j)
+          atm1%qv(1,k,j)    = xqb%sb(1,k,j)
+          atm1%qv(iym1,k,j) = xqb%nb(1,k,j)
         end do
       end do
     end if
@@ -1148,25 +1121,33 @@ module mod_bdycod
     do k = 1 , kz
 #ifndef BAND
       do i = 1 , iym1
-        if ( myid == 0 )       atm1%t(i,k,1)     = twb(i,k,1) + dtb*twbt(i,k,1)
-        if ( myid == nproc-1 ) atm1%t(i,k,jendx) = teb(i,k,1) + dtb*tebt(i,k,1)
+        if ( myid == 0 ) then
+          atm1%t(i,k,1) = xtb%wb(i,k,1) + dtb*xtb%wbt(i,k,1)
+        end if
+        if ( myid == nproc-1 ) then
+          atm1%t(i,k,jendx) = xtb%eb(i,k,1) + dtb*xtb%ebt(i,k,1)
+        end if
       end do
 #endif
       do j = jbegin , jendm
-        atm1%t(1,k,j)    = tsb(1,k,j) + dtb*tsbt(1,k,j)
-        atm1%t(iym1,k,j) = tnb(1,k,j) + dtb*tnbt(1,k,j)
+        atm1%t(1,k,j)    = xtb%sb(1,k,j) + dtb*xtb%sbt(1,k,j)
+        atm1%t(iym1,k,j) = xtb%nb(1,k,j) + dtb*xtb%nbt(1,k,j)
       end do
     end do
     do k = 1 , kz
 #ifndef BAND
       do i = 1 , iym1
-        if ( myid == 0 )       atm1%qv(i,k,1)     = qwb(i,k,1) + dtb*qwbt(i,k,1)
-        if ( myid == nproc-1 ) atm1%qv(i,k,jendx) = qeb(i,k,1) + dtb*qebt(i,k,1)
+        if ( myid == 0 ) then
+          atm1%qv(i,k,1) = xqb%wb(i,k,1) + dtb*xqb%wbt(i,k,1)
+        end if
+        if ( myid == nproc-1 ) then
+          atm1%qv(i,k,jendx) = xqb%eb(i,k,1) + dtb*xqb%ebt(i,k,1)
+        end if
       end do
 #endif
       do j = jbegin , jendm
-        atm1%qv(1,k,j)    = qsb(1,k,j) + dtb*qsbt(1,k,j)
-        atm1%qv(iym1,k,j) = qnb(1,k,j) + dtb*qnbt(1,k,j)
+        atm1%qv(1,k,j)    = xqb%sb(1,k,j) + dtb*xqb%sbt(1,k,j)
+        atm1%qv(iym1,k,j) = xqb%nb(1,k,j) + dtb*xqb%nbt(1,k,j)
       end do
     end do
 !

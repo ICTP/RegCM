@@ -124,17 +124,21 @@ module mod_atm_interface
 !
   contains 
 !
-    subroutine allocate_vbound(xb,lband,is,ie,js,je,ks,ke,nsp)
+    subroutine allocate_vbound(xb,lband,ke,nsp)
       type(vbound) , intent(out) :: xb
       logical , intent(in) :: lband
-      integer , intent(in) :: is , ie , js , je , ks, ke , nsp
-      call getmem3d(xb%b0,is,ie,ks,ke,js,je,'vbound:b0')
-      call getmem3d(xb%b1,is,ie,ks,ke,js,je,'vbound:b1')
-      call getmem3d(xb%nb,1,nsp,ks,ke,js,je,'vbound:nb')
-      call getmem3d(xb%sb,1,nsp,ks,ke,js,je,'vbound:sb')
+      integer , intent(in) :: ke , nsp
+      call getmem3d(xb%b0,1,iy,1,ke,1,jxp,'vbound:b0')
+      call getmem3d(xb%b1,1,iy,1,ke,1,jxp,'vbound:b1')
+      call getmem3d(xb%nb,1,nsp,1,ke,0,jxp+1,'vbound:nb')
+      call getmem3d(xb%sb,1,nsp,1,ke,0,jxp+1,'vbound:sb')
+      call getmem3d(xb%nbt,1,nsp,1,ke,0,jxp+1,'vbound:nbt')
+      call getmem3d(xb%sbt,1,nsp,1,ke,0,jxp+1,'vbound:sbt')
       if ( .not. lband ) then
-        call getmem3d(xb%eb,ie,ie,ks,ke,js,je,'vbound:eb')
-        call getmem3d(xb%wb,ie,ie,ks,ke,js,je,'vbound:wb')
+        call getmem3d(xb%eb,1,iy,1,ke,0,jxp+1,'vbound:eb')
+        call getmem3d(xb%wb,1,iy,1,ke,0,jxp+1,'vbound:wb')
+        call getmem3d(xb%ebt,1,iy,1,ke,0,jxp+1,'vbound:ebt')
+        call getmem3d(xb%wbt,1,iy,1,ke,0,jxp+1,'vbound:wbt')
       end if
     end subroutine allocate_vbound
 !
@@ -275,11 +279,11 @@ module mod_atm_interface
 
       call allocate_diffx(adf)
 
-      call allocate_vbound(xtb,lband,1,iy,0,jxp+1,1,kz,nspgx)
-      call allocate_vbound(xqb,lband,1,iy,0,jxp+1,1,kz,nspgx)
-      call allocate_vbound(xub,lband,1,iy,0,jxp+1,1,kz,nspgd)
-      call allocate_vbound(xvb,lband,1,iy,0,jxp+1,1,kz,nspgd)
-      call allocate_vbound(xpsb,lband,1,iy,0,jxp+1,1,1,nspgx)
+      call allocate_vbound(xtb,lband,kz,nspgx)
+      call allocate_vbound(xqb,lband,kz,nspgx)
+      call allocate_vbound(xub,lband,kz,nspgd)
+      call allocate_vbound(xvb,lband,kz,nspgd)
+      call allocate_vbound(xpsb,lband,1,nspgx)
 
       if (icup == 99 .or. icup == 98) then
         call getmem2d(cucontrol,1,iy,1,jxp,'mod_atm_interface:cucontrol')
