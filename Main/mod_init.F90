@@ -84,27 +84,11 @@ module mod_init
   pwb  = d_zero
   pebt = d_zero
   pwbt = d_zero
-  ueb  = d_zero
-  uwb  = d_zero
-  uebt = d_zero
-  uwbt = d_zero
-  veb  = d_zero
-  vwb  = d_zero
-  vebt = d_zero
-  vwbt = d_zero
 #endif
   pnb  = d_zero
   psb  = d_zero
   pnbt = d_zero
   psbt = d_zero
-  unb  = d_zero
-  usb  = d_zero
-  unbt = d_zero
-  usbt = d_zero
-  vnb  = d_zero
-  vsb  = d_zero
-  vnbt = d_zero
-  vsbt = d_zero
 
   tgmx_o = -1.E30
   t2mx_o = -1.E30
@@ -209,8 +193,8 @@ module mod_init
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          ub0(i,k,j) = sav0(i,k,j)
-          vb0(i,k,j) = sav0(i,kz+k,j)
+          xub%b0(i,k,j) = sav0(i,k,j)
+          xvb%b0(i,k,j) = sav0(i,kz+k,j)
           xqb%b0(i,k,j) = sav0(i,kz*2+k,j)
           xtb%b0(i,k,j) = sav0(i,kz*3+k,j)
         end do
@@ -282,8 +266,8 @@ module mod_init
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          ub0(i,k,j) = ub0(i,k,j)*psdot(i,j)
-          vb0(i,k,j) = vb0(i,k,j)*psdot(i,j)
+          xub%b0(i,k,j) = xub%b0(i,k,j)*psdot(i,j)
+          xvb%b0(i,k,j) = xvb%b0(i,k,j)*psdot(i,j)
           xqb%b0(i,k,j) = xqb%b0(i,k,j)*ps0(i,j)
           xtb%b0(i,k,j) = xtb%b0(i,k,j)*ps0(i,j)
         end do
@@ -295,10 +279,10 @@ module mod_init
     do k = 1 , kz
       do j = 1 , jendl
         do i = 1 , iy
-          atm1%u(i,k,j) = ub0(i,k,j)
-          atm2%u(i,k,j) = ub0(i,k,j)
-          atm1%v(i,k,j) = vb0(i,k,j)
-          atm2%v(i,k,j) = vb0(i,k,j)
+          atm1%u(i,k,j) = xub%b0(i,k,j)
+          atm2%u(i,k,j) = xub%b0(i,k,j)
+          atm1%v(i,k,j) = xvb%b0(i,k,j)
+          atm2%v(i,k,j) = xvb%b0(i,k,j)
           atm1%qv(i,k,j) = xqb%b0(i,k,j)
           atm2%qv(i,k,j) = xqb%b0(i,k,j)
           atm1%t(i,k,j) = xtb%b0(i,k,j)
@@ -484,8 +468,8 @@ module mod_init
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
-          ub0(i,k,j) = sav0(i,k,j)
-          vb0(i,k,j) = sav0(i,kz+k,j)
+          xub%b0(i,k,j) = sav0(i,k,j)
+          xvb%b0(i,k,j) = sav0(i,kz+k,j)
           xqb%b0(i,k,j) = sav0(i,kz*2+k,j)
           xtb%b0(i,k,j) = sav0(i,kz*3+k,j)
         end do

@@ -624,8 +624,8 @@ module mod_output
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
-            sav0(i,k,j) = ub0(i,k,j)
-            sav0(i,kz+k,j) = vb0(i,k,j)
+            sav0(i,k,j) = xub%b0(i,k,j)
+            sav0(i,kz+k,j) = xvb%b0(i,k,j)
             sav0(i,kz*2+k,j) = xqb%b0(i,k,j)
             sav0(i,kz*3+k,j) = xtb%b0(i,k,j)
           end do

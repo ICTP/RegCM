@@ -908,14 +908,14 @@ module mod_tendency
           bdyewsnd(i,4+kz*5+k) = xqb%wb(i,k,jxp)
           bdyewsnd(i,4+kz*6+k) = xqb%ebt(i,k,1)
           bdyewsnd(i,4+kz*7+k) = xqb%wbt(i,k,jxp)
-          bdyewsnd(i,4+kz*8+k) = ueb(i,k,1)
-          bdyewsnd(i,4+kz*9+k) = uwb(i,k,jxp)
-          bdyewsnd(i,4+kz*10+k) = uebt(i,k,1)
-          bdyewsnd(i,4+kz*11+k) = uwbt(i,k,jxp)
-          bdyewsnd(i,4+kz*12+k) = veb(i,k,1)
-          bdyewsnd(i,4+kz*13+k) = vwb(i,k,jxp)
-          bdyewsnd(i,4+kz*14+k) = vebt(i,k,1)
-          bdyewsnd(i,4+kz*15+k) = vwbt(i,k,jxp)
+          bdyewsnd(i,4+kz*8+k) = xub%eb(i,k,1)
+          bdyewsnd(i,4+kz*9+k) = xub%wb(i,k,jxp)
+          bdyewsnd(i,4+kz*10+k) = xub%ebt(i,k,1)
+          bdyewsnd(i,4+kz*11+k) = xub%wbt(i,k,jxp)
+          bdyewsnd(i,4+kz*12+k) = xvb%eb(i,k,1)
+          bdyewsnd(i,4+kz*13+k) = xvb%wb(i,k,jxp)
+          bdyewsnd(i,4+kz*14+k) = xvb%ebt(i,k,1)
+          bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,jxp)
         end do
       end do
       call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,ieast,1, &
@@ -945,18 +945,18 @@ module mod_tendency
             xqb%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*4+k)
             xqb%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*6+k)
           end if
-          ueb(i,k,jxp+1) = bdyewrcv(i,4+kz*8+k)
-          uebt(i,k,jxp+1) = bdyewrcv(i,4+kz*10+k)
-          veb(i,k,jxp+1) = bdyewrcv(i,4+kz*12+k)
-          vebt(i,k,jxp+1) = bdyewrcv(i,4+kz*14+k)
+          xub%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*8+k)
+          xub%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*10+k)
+          xvb%eb(i,k,jxp+1) = bdyewrcv(i,4+kz*12+k)
+          xvb%ebt(i,k,jxp+1) = bdyewrcv(i,4+kz*14+k)
           xtb%wb(i,k,0) = bdyewrcv(i,4+kz+k)
           xtb%wbt(i,k,0) = bdyewrcv(i,4+kz*3+k)
           xqb%wb(i,k,0) = bdyewrcv(i,4+kz*5+k)
           xqb%wbt(i,k,0) = bdyewrcv(i,4+kz*7+k)
-          uwb(i,k,0) = bdyewrcv(i,4+kz*9+k)
-          uwbt(i,k,0) = bdyewrcv(i,4+kz*11+k)
-          vwb(i,k,0) = bdyewrcv(i,4+kz*13+k)
-          vwbt(i,k,0) = bdyewrcv(i,4+kz*15+k)
+          xub%wb(i,k,0) = bdyewrcv(i,4+kz*9+k)
+          xub%wbt(i,k,0) = bdyewrcv(i,4+kz*11+k)
+          xvb%wb(i,k,0) = bdyewrcv(i,4+kz*13+k)
+          xvb%wbt(i,k,0) = bdyewrcv(i,4+kz*15+k)
         end do
       end do
       do i = 1 , iy
@@ -983,18 +983,18 @@ module mod_tendency
             bdyewsnd(i,4+kz*4+k) = xqb%eb(i,k,jxp)
             bdyewsnd(i,4+kz*6+k) = xqb%ebt(i,k,jxp)
           end if
-          bdyewsnd(i,4+kz*8+k) = ueb(i,k,jxp)
-          bdyewsnd(i,4+kz*10+k) = uebt(i,k,jxp)
-          bdyewsnd(i,4+kz*12+k) = veb(i,k,jxp)
-          bdyewsnd(i,4+kz*14+k) = vebt(i,k,jxp)
+          bdyewsnd(i,4+kz*8+k) = xub%eb(i,k,jxp)
+          bdyewsnd(i,4+kz*10+k) = xub%ebt(i,k,jxp)
+          bdyewsnd(i,4+kz*12+k) = xvb%eb(i,k,jxp)
+          bdyewsnd(i,4+kz*14+k) = xvb%ebt(i,k,jxp)
           bdyewsnd(i,4+kz+k) = xtb%wb(i,k,1)
           bdyewsnd(i,4+kz*3+k) = xtb%wbt(i,k,1)
           bdyewsnd(i,4+kz*5+k) = xqb%wb(i,k,1)
           bdyewsnd(i,4+kz*7+k) = xqb%wbt(i,k,1)
-          bdyewsnd(i,4+kz*9+k) = uwb(i,k,1)
-          bdyewsnd(i,4+kz*11+k) = uwbt(i,k,1)
-          bdyewsnd(i,4+kz*13+k) = vwb(i,k,1)
-          bdyewsnd(i,4+kz*15+k) = vwbt(i,k,1)
+          bdyewsnd(i,4+kz*9+k) = xub%wb(i,k,1)
+          bdyewsnd(i,4+kz*11+k) = xub%wbt(i,k,1)
+          bdyewsnd(i,4+kz*13+k) = xvb%wb(i,k,1)
+          bdyewsnd(i,4+kz*15+k) = xvb%wbt(i,k,1)
         end do
       end do
       call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,iwest,2, &
@@ -1016,14 +1016,14 @@ module mod_tendency
           xqb%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*5+k)
           xqb%ebt(i,k,0) = bdyewrcv(i,4+kz*6+k)
           xqb%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*7+k)
-          ueb(i,k,0) = bdyewrcv(i,4+kz*8+k)
-          uwb(i,k,jxp+1) = bdyewrcv(i,4+kz*9+k)
-          uebt(i,k,0) = bdyewrcv(i,4+kz*10+k)
-          uwbt(i,k,jxp+1) = bdyewrcv(i,4+kz*11+k)
-          veb(i,k,0) = bdyewrcv(i,4+kz*12+k)
-          vwb(i,k,jxp+1) = bdyewrcv(i,4+kz*13+k)
-          vebt(i,k,0) = bdyewrcv(i,4+kz*14+k)
-          vwbt(i,k,jxp+1) = bdyewrcv(i,4+kz*15+k)
+          xub%eb(i,k,0) = bdyewrcv(i,4+kz*8+k)
+          xub%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*9+k)
+          xub%ebt(i,k,0) = bdyewrcv(i,4+kz*10+k)
+          xub%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*11+k)
+          xvb%eb(i,k,0) = bdyewrcv(i,4+kz*12+k)
+          xvb%wb(i,k,jxp+1) = bdyewrcv(i,4+kz*13+k)
+          xvb%ebt(i,k,0) = bdyewrcv(i,4+kz*14+k)
+          xvb%wbt(i,k,jxp+1) = bdyewrcv(i,4+kz*15+k)
         end do
       end do
     end if
@@ -1048,14 +1048,14 @@ module mod_tendency
           bdynssnd(i,4+kz*5+k) = xqb%nbt(i,k,jxp)
           bdynssnd(i,4+kz*6+k) = xqb%sb(i,k,jxp)
           bdynssnd(i,4+kz*7+k) = xqb%sbt(i,k,jxp)
-          bdynssnd(i,4+kz*8+k) = unb(i,k,jxp)
-          bdynssnd(i,4+kz*9+k) = unbt(i,k,jxp)
-          bdynssnd(i,4+kz*10+k) = usb(i,k,jxp)
-          bdynssnd(i,4+kz*11+k) = usbt(i,k,jxp)
-          bdynssnd(i,4+kz*12+k) = vnb(i,k,jxp)
-          bdynssnd(i,4+kz*13+k) = vnbt(i,k,jxp)
-          bdynssnd(i,4+kz*14+k) = vsb(i,k,jxp)
-          bdynssnd(i,4+kz*15+k) = vsbt(i,k,jxp)
+          bdynssnd(i,4+kz*8+k) = xub%nb(i,k,jxp)
+          bdynssnd(i,4+kz*9+k) = xub%nbt(i,k,jxp)
+          bdynssnd(i,4+kz*10+k) = xub%sb(i,k,jxp)
+          bdynssnd(i,4+kz*11+k) = xub%sbt(i,k,jxp)
+          bdynssnd(i,4+kz*12+k) = xvb%nb(i,k,jxp)
+          bdynssnd(i,4+kz*13+k) = xvb%nbt(i,k,jxp)
+          bdynssnd(i,4+kz*14+k) = xvb%sb(i,k,jxp)
+          bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,jxp)
         end do
       end do
 #ifndef BAND
@@ -1083,14 +1083,14 @@ module mod_tendency
           xqb%nbt(i,k,0) = bdynsrcv(i,4+kz*5+k)
           xqb%sb(i,k,0) = bdynsrcv(i,4+kz*6+k)
           xqb%sbt(i,k,0) = bdynsrcv(i,4+kz*7+k)
-          unb(i,k,0) = bdynsrcv(i,4+kz*8+k)
-          unbt(i,k,0) = bdynsrcv(i,4+kz*9+k)
-          usb(i,k,0) = bdynsrcv(i,4+kz*10+k)
-          usbt(i,k,0) = bdynsrcv(i,4+kz*11+k)
-          vnb(i,k,0) = bdynsrcv(i,4+kz*12+k)
-          vnbt(i,k,0) = bdynsrcv(i,4+kz*13+k)
-          vsb(i,k,0) = bdynsrcv(i,4+kz*14+k)
-          vsbt(i,k,0) = bdynsrcv(i,4+kz*15+k)
+          xub%nb(i,k,0) = bdynsrcv(i,4+kz*8+k)
+          xub%nbt(i,k,0) = bdynsrcv(i,4+kz*9+k)
+          xub%sb(i,k,0) = bdynsrcv(i,4+kz*10+k)
+          xub%sbt(i,k,0) = bdynsrcv(i,4+kz*11+k)
+          xvb%nb(i,k,0) = bdynsrcv(i,4+kz*12+k)
+          xvb%nbt(i,k,0) = bdynsrcv(i,4+kz*13+k)
+          xvb%sb(i,k,0) = bdynsrcv(i,4+kz*14+k)
+          xvb%sbt(i,k,0) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
 #ifndef BAND
@@ -1113,14 +1113,14 @@ module mod_tendency
           bdynssnd(i,4+kz*5+k) = xqb%nbt(i,k,1)
           bdynssnd(i,4+kz*6+k) = xqb%sb(i,k,1)
           bdynssnd(i,4+kz*7+k) = xqb%sbt(i,k,1)
-          bdynssnd(i,4+kz*8+k) = unb(i,k,1)
-          bdynssnd(i,4+kz*9+k) = unbt(i,k,1)
-          bdynssnd(i,4+kz*10+k) = usb(i,k,1)
-          bdynssnd(i,4+kz*11+k) = usbt(i,k,1)
-          bdynssnd(i,4+kz*12+k) = vnb(i,k,1)
-          bdynssnd(i,4+kz*13+k) = vnbt(i,k,1)
-          bdynssnd(i,4+kz*14+k) = vsb(i,k,1)
-          bdynssnd(i,4+kz*15+k) = vsbt(i,k,1)
+          bdynssnd(i,4+kz*8+k) = xub%nb(i,k,1)
+          bdynssnd(i,4+kz*9+k) = xub%nbt(i,k,1)
+          bdynssnd(i,4+kz*10+k) = xub%sb(i,k,1)
+          bdynssnd(i,4+kz*11+k) = xub%sbt(i,k,1)
+          bdynssnd(i,4+kz*12+k) = xvb%nb(i,k,1)
+          bdynssnd(i,4+kz*13+k) = xvb%nbt(i,k,1)
+          bdynssnd(i,4+kz*14+k) = xvb%sb(i,k,1)
+          bdynssnd(i,4+kz*15+k) = xvb%sbt(i,k,1)
         end do
       end do
 #ifndef BAND
@@ -1148,14 +1148,14 @@ module mod_tendency
           xqb%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*5+k)
           xqb%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*6+k)
           xqb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*7+k)
-          unb(i,k,jxp+1) = bdynsrcv(i,4+kz*8+k)
-          unbt(i,k,jxp+1) = bdynsrcv(i,4+kz*9+k)
-          usb(i,k,jxp+1) = bdynsrcv(i,4+kz*10+k)
-          usbt(i,k,jxp+1) = bdynsrcv(i,4+kz*11+k)
-          vnb(i,k,jxp+1) = bdynsrcv(i,4+kz*12+k)
-          vnbt(i,k,jxp+1) = bdynsrcv(i,4+kz*13+k)
-          vsb(i,k,jxp+1) = bdynsrcv(i,4+kz*14+k)
-          vsbt(i,k,jxp+1) = bdynsrcv(i,4+kz*15+k)
+          xub%nb(i,k,jxp+1) = bdynsrcv(i,4+kz*8+k)
+          xub%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*9+k)
+          xub%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*10+k)
+          xub%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*11+k)
+          xvb%nb(i,k,jxp+1) = bdynsrcv(i,4+kz*12+k)
+          xvb%nbt(i,k,jxp+1) = bdynsrcv(i,4+kz*13+k)
+          xvb%sb(i,k,jxp+1) = bdynsrcv(i,4+kz*14+k)
+          xvb%sbt(i,k,jxp+1) = bdynsrcv(i,4+kz*15+k)
         end do
       end do
 #ifndef BAND
@@ -1598,8 +1598,10 @@ module mod_tendency
         if ( iboudy == 1 .or. iboudy == 5 ) then
           xtm1 = xbctime - dtsec
           if ( ntime == 0 .and. ktau /= 0 ) xtm1 = -dtsec
-          call nudge_x(ispgx,fnudge,gnudge,xtm1,atm2%t,aten%t,j,iboudy,xtb)
-          call nudge_x(ispgx,fnudge,gnudge,xtm1,atm2%qv,aten%qv,j,iboudy,xqb)
+          call nudge(.false.,ispgx,fnudge,gnudge, &
+                     xtm1,atm2%t,aten%t,j,iboudy,xtb)
+          call nudge(.false.,ispgx,fnudge,gnudge, &
+                     xtm1,atm2%qv,aten%qv,j,iboudy,xqb)
         end if
 !
 !       forecast t, qv, and qc at tau+1:
@@ -1923,8 +1925,8 @@ module mod_tendency
 !     apply the nudging boundary conditions:
 !
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge_u(ispgd,fnudge,gnudge,xtm1,aten%u(:,:,j),j,iboudy)
-        call nudge_v(ispgd,fnudge,gnudge,xtm1,aten%v(:,:,j),j,iboudy)
+        call nudge(.true.,ispgd,fnudge,gnudge,xtm1,atm2%u,aten%u,j,iboudy,xub)
+        call nudge(.true.,ispgd,fnudge,gnudge,xtm1,atm2%v,aten%v,j,iboudy,xvb)
       end if
 !
 !     add the diffusion and pbl tendencies to aten%u and aten%v:
