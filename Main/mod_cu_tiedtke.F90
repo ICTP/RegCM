@@ -183,7 +183,7 @@ module mod_cu_tiedtke
       end do
     end do
     do k = 1 , kzp1
-      do i = 2 , iy 
+      do i = 2 , iym2
         ii = i - 1
         paphp1(ii,k) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_1000
       end do

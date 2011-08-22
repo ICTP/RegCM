@@ -160,7 +160,7 @@ module mod_tcm_interface
   type(host_domain) , public :: hdomain
 
   public :: init_tcm_interface , end_tcm_interface
-  public :: allocate_tcm_state , deallocate_tcm_state
+  public :: allocate_tcm_state
   public :: get_data_from_tcm
   public :: hadvTKE , vadvTKE , set_tke_bc , check_conserve_qt
 
