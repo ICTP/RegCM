@@ -162,13 +162,14 @@ module mod_cu_tiedtke
         pum1(ii,k)  = atm2%u(i,k,j)/sps2%ps(i,j)  ! u (guessing!)
         pvm1(ii,k)  = atm2%v(i,k,j)/sps2%ps(i,j)  ! v     "
         pqm1(ii,k)  = atm2%qv(i,k,j)/sps2%ps(i,j) ! humidity
-        pxlm1(ii,k) = atm2%qc(i,k,j)/sps2%ps(i,j)! cloud liquid water
+        pxlm1(ii,k) = atm2%qc(i,k,j)/sps2%ps(i,j) ! cloud liquid water
 
-        xpt(ii,k)  = aten%t(i,k,j)
-        xpu(ii,k)  = aten%u(i,k,j)
-        xpv(ii,k)  = aten%v(i,k,j)
-        xpqv(ii,k) = aten%qv(i,k,j)
-        xpqc(ii,k) = aten%qc(i,k,j)
+        xpt(ii,k)  = aten%t(i,k,j)/sps2%ps(i,j)
+        xpu(ii,k)  = aten%u(i,k,j)/sps2%ps(i,j)
+        xpv(ii,k)  = aten%v(i,k,j)/sps2%ps(i,j)
+        xpqv(ii,k) = aten%qv(i,k,j)/sps2%ps(i,j)
+        xpqc(ii,k) = aten%qc(i,k,j)/sps2%ps(i,j)
+
         ! IS vertical velocity in Pa/s or in m/s?
         xpw(ii,k)  = omega(i,k,j)
 
@@ -179,7 +180,7 @@ module mod_cu_tiedtke
         pxtec(ii,k) = d_zero  ! detrained cloud water tendancy
         pqtec(ii,k) = d_zero  ! detrained humidity tendancy
 ! 1st guess pressure at full levels
-        xpg(ii,k) = za(i,k,j)  !   geopotential
+        xpg(ii,k) = za(i,k,j)*egrav  !   geopotential
       end do
     end do
     do k = 1 , kzp1
@@ -219,8 +220,8 @@ module mod_cu_tiedtke
         ii = i - 1
 !       NOTE: there is an iconsistency here for the latent heating,
 !       as heat of fusion used inside the convection scheme - please correct!
-        aten%qc(i,k,j) = aten%qc(i,k,j)+pxtec(ii,k)
-        aten%qv(i,k,j) = aten%qv(i,k,j)+pqtec(ii,k)
+        aten%qc(i,k,j) = aten%qc(i,k,j)+pxtec(ii,k)*sps2%ps(i,j)
+        aten%qv(i,k,j) = aten%qv(i,k,j)+pqtec(ii,k)*sps2%ps(i,j)
       end do
     end do
 
