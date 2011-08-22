@@ -1317,8 +1317,8 @@
  
 !         Fill output arrays if needed
  
-          if ( mod(ktau+1),ksrf) == 0 .or. &
-               (jyear == jyear0 .and. ktau == 0) then
+          if ( mod(ktau+1,ksrf) == 0 .or. &
+               (jyear == jyear0 .and. ktau == 0) ) then
  
             do i = 2 , iym1
               ci = i
