@@ -44,7 +44,7 @@ module mod_tendency
   use mod_cumtran
   use mod_condtq
   use mod_diffusion
-  use mod_advection
+  use mod_advection , only : hadv , vadv
   use mod_che_tend
   use mod_diagnosis
   use mod_service
@@ -1325,17 +1325,17 @@ module mod_tendency
 !
 !       compute the horizontal advection term:
 !
-        call hadv_x(aten%t(:,:,j),atmx%t,dx4,j,1)
+        call hadv(.false.,aten%t,atmx%t,j,1)
 !
 !       compute the vertical advection term:
 !
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,idnint(kpbl(:,j)))
+          call vadv(aten%t,atm1%t,j,1,idnint(kpbl(:,j)))
         else
           if ( iuwvadv == 1 ) then
-            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,6,idnint(kpbl(:,j)))
+            call vadv(aten%t,atm1%t,j,6,idnint(kpbl(:,j)))
           else
-            call vadv(aten%t(:,:,j),qdot,atm1%t(:,:,j),j,1,idnint(kpbl(:,j)))
+            call vadv(aten%t,atm1%t,j,1,idnint(kpbl(:,j)))
           end if
         end if
 !
@@ -1372,16 +1372,14 @@ module mod_tendency
 !       icup = 98: emanuel over land, grell over ocean
 !
         if ( icup /= 1 ) then
-          call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
+          call hadv(.false.,aten%qv,atmx%qv,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qv(:,:,j),qdot,atm1%qv(:,:,j),j,2,idnint(kpbl(:,j)))
+            call vadv(aten%qv,atm1%qv,j,2,idnint(kpbl(:,j)))
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qv(:,:,j),qdot, &
-                        atm1%qv(:,:,j),j,6,idnint(kpbl(:,j)))
+              call vadv(aten%qv,atm1%qv,j,6,idnint(kpbl(:,j)))
             else
-              call vadv(aten%qv(:,:,j),qdot, &
-                        atm1%qv(:,:,j),j,2,idnint(kpbl(:,j)))
+              call vadv(aten%qv,atm1%qv,j,2,idnint(kpbl(:,j)))
             end if
           end if
         end if
@@ -1403,16 +1401,14 @@ module mod_tendency
         end if
 
         if ( ipptls == 1 ) then
-          call hadv_x(aten%qc(:,:,j),atmx%qc,dx4,j,1)
+          call hadv(.false.,aten%qc,atmx%qc,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qc(:,:,j),qdot,atm1%qc(:,:,j),j,5,idnint(kpbl(:,j)))
+            call vadv(aten%qc,atm1%qc,j,5,idnint(kpbl(:,j)))
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qc(:,:,j),qdot, &
-                        atm1%qc(:,:,j),j,6,idnint(kpbl(:,j)))
+              call vadv(aten%qc,atm1%qc,j,6,idnint(kpbl(:,j)))
             else
-              call vadv(aten%qc(:,:,j),qdot, &
-                        atm1%qc(:,:,j),j,5,idnint(kpbl(:,j)))
+              call vadv(aten%qc,atm1%qc,j,5,idnint(kpbl(:,j)))
             end if
           end if
           call pcp(j , 2 , iym2 , kz)
@@ -1767,8 +1763,8 @@ module mod_tendency
         end do
       end do
 !
-      call hadv_d(aten%u(:,:,j),atmx%u,dx16,j,3)
-      call hadv_d(aten%v(:,:,j),atmx%v,dx16,j,3)
+      call hadv(.true.,aten%u,atmx%u,j,3)
+      call hadv(.true.,aten%v,atmx%v,j,3)
 !
 !     compute coriolis terms:
 !
@@ -1912,8 +1908,8 @@ module mod_tendency
 !
 !     compute the vertical advection terms:
 !
-      call vadv(aten%u(:,:,j),qdot,atm1%u(:,:,j),j,4,idnint(kpbl(:,j)))
-      call vadv(aten%v(:,:,j),qdot,atm1%v(:,:,j),j,4,idnint(kpbl(:,j)))
+      call vadv(aten%u,atm1%u,j,4,idnint(kpbl(:,j)))
+      call vadv(aten%v,atm1%v,j,4,idnint(kpbl(:,j)))
 !
 !     apply the sponge boundary condition on u and v:
 !

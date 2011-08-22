@@ -22,37 +22,57 @@ module mod_advection
 ! Horizontal and vertical advection.
 !
   use mod_runparams
-  use mod_atm_interface
   use mod_service
+
   private
  
-  public :: hadv_x , hadv_d
-  public :: vadv
+  real(8) , pointer , dimension(:,:,:) :: u    ! U wind * ps
+  real(8) , pointer , dimension(:,:,:) :: v    ! V wind * ps
+  real(8) , pointer , dimension(:,:) :: ps     ! Surface pressure
+  real(8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
+  real(8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
+  real(8) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
+
+  public :: init_advection, hadv , vadv
 
   real(8) , parameter :: c287 = 0.287D+00
 !
-!     "relaxed" upstream scheme factors
+! relaxed upstream scheme factors
 !
   real(8) , parameter :: fact1 = 0.60D0
-!hy   real(8) , parameter :: fact1 = 0.75D0
+!hy
+! real(8) , parameter :: fact1 = 0.75D0
+!hy
   real(8) , parameter :: fact2 = d_one - fact1
   real(8) , parameter :: falow = 1.0D-15
 !
   contains
+
+    subroutine init_advection(dom,sps,atm,vertvel)
+      use mod_atm_interface , only : atmstate , domain , surfpstate
+      implicit none
+      type(domain) , intent(in) :: dom
+      type(surfpstate), intent(in) :: sps
+      type(atmstate) , intent(in) :: atm
+      real(8) , pointer , dimension(:,:,:) :: vertvel
+      u     => atm%u
+      v     => atm%v
+      ps    => sps%ps
+      mapfx => dom%msfx
+      mapfd => dom%msfd
+      vsv   => vertvel
+    end subroutine init_advection
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
-!  HADV_X                                                             c
+!  HADV                                                               c
 !                                                                     c
 !     This subroutines computes the horizontal flux-divergence terms. c
 !     second-order difference is used.                                c
 !                                                                     c
-!     ften   : is the tendency for variable 'f'.                      c
+!     ldot   : cross/dot variable flagg                               c
 !                                                                     c
-!     dxx    : is the horizontal distance.                            c
-!              = dx4  for ind=1.                                      c
-!              = dx   for ind=2.                                      c
-!              = dx16 for ind=3.                                      c
+!     ften   : is the tendency for variable 'f'.                      c
 !                                                                     c
 !     j      : is the j'th slice of f anf ften.                       c
 !                                                                     c
@@ -62,19 +82,21 @@ module mod_advection
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine hadv_x(ften,var,dxx,j,ind)
+    subroutine hadv(ldot,ften,f,j,ind)
 !
     implicit none
 !
-    real(8) ,intent (in) :: dxx
-    integer ,intent (in) :: ind , j
-    real(8) ,intent (inout), dimension(iy,kz) :: ften
-    real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
+    logical , intent(in) :: ldot ! Cross/dot flag
+    integer , intent (in) :: ind , j
+    real(8) , intent (in) , dimension(iy,kz,0:jxp+1) :: f
+    real(8) , intent (inout), dimension(iy,kz,jxp) :: ften
 !
     integer :: jm1 , jp1
-    real(8) :: fx1 , fx2 , fy1 , fy2 , uavg1 , uavg2 , vavg1 , vavg2
+    real(8) :: dxx , fx1 , fx2 , fy1 , fy2
+    real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+    integer :: idx , idxm1 , idxp1 , jdm1 , jdp1
     integer :: i , k
-    character (len=64) :: subroutine_name='hadv_x'
+    character (len=64) :: subroutine_name='hadv'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
@@ -89,171 +111,134 @@ module mod_advection
 !
 !----------------------------------------------------------------------
 !
-    if ( ind == 1 ) then
-!
-!-----for t and qv:
-!
-      do k = 1 , kz
-        do i = 2 , iym2
-          ften(i,k) = ften(i,k) -                    &
-              ((atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1)) * &
-               (var(i,k,jp1)+var(i,k,j)) -           &
-               (atm1%u(i+1,k,j)+atm1%u(i,k,j)) *     &
-               (var(i,k,j)+var(i,k,jm1)) +           &
-               (atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j)) * &
-               (var(i+1,k,j)+var(i,k,j)) -           &
-               (atm1%v(i,k,jp1)+atm1%v(i,k,j)) *     &
-               (var(i-1,k,j)+var(i,k,j))) /          &
-               (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-        end do
-      end do
-!
-    else if ( ind == 2 ) then
-!
-!-----for qc and qr:
-!       up-wind values of qc and qr are used.
-!
-      do k = 1 , kz
-        do i = 2 , iym2
-          uavg2 = d_half*(atm1%u(i+1,k,jp1)+atm1%u(i,k,jp1))
-          uavg1 = d_half*(atm1%u(i+1,k,j)+atm1%u(i,k,j))
-          if ( uavg2 >= d_zero ) then
-            fx2 = fact1*var(i,k,j) + fact2*var(i,k,jp1)
-          else
-            fx2 = fact1*var(i,k,jp1) + fact2*var(i,k,j)
-          end if
-          if ( uavg1 >= d_zero ) then
-            fx1 = fact1*var(i,k,jm1) + fact2*var(i,k,j)
-          else
-            fx1 = fact1*var(i,k,j) + fact2*var(i,k,jm1)
-          end if
-          vavg2 = d_half*(atm1%v(i+1,k,jp1)+atm1%v(i+1,k,j))
-          vavg1 = d_half*(atm1%v(i,k,jp1)+atm1%v(i,k,j))
-          if ( vavg2 >= d_zero ) then
-            fy2 = fact1*var(i,k,j) + fact2*var(i+1,k,j)
-          else
-            fy2 = fact1*var(i+1,k,j) + fact2*var(i,k,j)
-          end if
-          if ( vavg1 >= d_zero ) then
-            fy1 = fact1*var(i-1,k,j) + fact2*var(i,k,j)
-          else
-            fy1 = fact1*var(i,k,j) + fact2*var(i-1,k,j)
-          end if
-          ften(i,k) = ften(i,k) -                          &
-               (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1) / &
-               (dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
-        end do
-      end do
-    else
-      write(*,*) 'The advection scheme ',ind,' you required is not available.'
-      stop
-    end if
-    call time_end(subroutine_name,idindx)
-  end subroutine hadv_x
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-  subroutine hadv_d(ften,var,dxx,j,ind)
-!
-    implicit none
-!
-    real(8) ,intent (in) :: dxx
-    integer ,intent (in) :: ind , j
-    real(8) ,intent (inout), dimension(iy,kz) :: ften
-    real(8) ,intent (in) , dimension(iy,kz,0:jxp+1) :: var
-!
-    integer :: jm1 , jp1
-#ifndef BAND
-    integer :: jdm1 , jdp1
-#endif
-    integer :: i , k , idx , idxm1 , idxp1
-    real(8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-!
-    character (len=64) :: subroutine_name='hadv_d'
-    integer :: idindx=0
-!
-    call time_begin(subroutine_name,idindx)
-    jm1 = j - 1
-    jp1 = j + 1
-!
-!----------------------------------------------------------------------
-!
-! ua, va : are p*u and p*v.
-! msfd   : is the map scale factor at dot points.
-!
-!----------------------------------------------------------------------
-!
-    if ( ind == 3 ) then
+    if ( ldot ) then
+      if ( ind == 3 ) then
+        dxx = dx16
 !
 !-----for u and v:
 !
 #ifdef BAND
-      do k = 1 , kz
-        do i = 2 , iym1
-          idx = i
-          idxp1 = i + 1
-          idxp1 = min0(idxp1,iym1)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          ucmona = atm1%u(idxp1,k,j) +  d_two*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
-          vcmona = atm1%v(idx,k,jp1) +  d_two*atm1%v(idx,k,j) + atm1%v(idx,k,jm1)
-          ucmonb = atm1%u(idxp1,k,jp1) + d_two*atm1%u(idx,k,jp1) + &
-                   atm1%u(idxm1,k,jp1) + ucmona
-          vcmonb = atm1%v(idxp1,k,jp1) + d_two*atm1%v(idxp1,k,j) + &
-                   atm1%v(idxp1,k,jm1) + vcmona
-          ucmonc = atm1%u(idxp1,k,jm1) + d_two*atm1%u(idx,k,jm1) + &
-                   atm1%u(idxm1,k,jm1) + ucmona
-          vcmonc = atm1%v(idxm1,k,jp1) + d_two*atm1%v(idxm1,k,j) + &
-                   atm1%v(idxm1,k,jm1) + vcmona
-          ften(i,k) = ften(i,k) -                          &
-                      ((var(i,k,jp1)+var(i,k,j))*ucmonb -  &
-                       (var(i,k,j)+var(i,k,jm1))*ucmonc +  &
-                       (var(i+1,k,j)+var(i,k,j))*vcmonb -  &
-                       (var(i,k,j)+var(i-1,k,j))*vcmonc) / &
-                      (dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
+        do k = 1 , kz
+          do i = 2 , iym1
+            idx = i
+            idxp1 = i + 1
+            idxp1 = min0(idxp1,iym1)
+            idxm1 = i - 1
+            idxm1 = max0(idxm1,2)
+            ucmona = u(idxp1,k,j)+d_two*u(idx,k,j)+u(idxm1,k,j)
+            vcmona = v(idx,k,jp1)+d_two*v(idx,k,j)+v(idx,k,jm1)
+            ucmonb = u(idxp1,k,jp1)+d_two*u(idx,k,jp1)+u(idxm1,k,jp1) + ucmona
+            vcmonb = v(idxp1,k,jp1)+d_two*v(idxp1,k,j)+v(idxp1,k,jm1) + vcmona
+            ucmonc = u(idxp1,k,jm1)+d_two*u(idx,k,jm1)+u(idxm1,k,jm1) + ucmona
+            vcmonc = v(idxm1,k,jp1)+d_two*v(idxm1,k,j)+v(idxm1,k,jm1) + vcmona
+            ften(i,k,j) = ften(i,k,j) -                  &
+                        ((f(i,k,jp1)+f(i,k,j))*ucmonb -  &
+                         (f(i,k,j)+f(i,k,jm1))*ucmonc +  &
+                         (f(i+1,k,j)+f(i,k,j))*vcmonb -  &
+                         (f(i,k,j)+f(i-1,k,j))*vcmonc) / &
+                         (dxx*mapfd(i,j)*mapfd(i,j))
+          end do
         end do
-      end do
 !
 !----------------------------------------------------------------------
 #else
-      jdp1 = j + 1
-      jdm1 = j - 1
-      if ( myid == 0 ) jdm1 = max0(jdm1,2)
-      if ( myid == nproc-1 ) jdp1 = min0(jdp1,jendl-1)
+        jdp1 = j + 1
+        jdm1 = j - 1
+        if ( myid == 0 ) jdm1 = max0(jdm1,2)
+        if ( myid == nproc-1 ) jdp1 = min0(jdp1,jendl-1)
 !
-      do k = 1 , kz
-        do i = 2 , iym1
-          idx = i
-          idxp1 = i + 1
-          idxp1 = min0(idxp1,iym1)
-          idxm1 = i - 1
-          idxm1 = max0(idxm1,2)
-          ucmona = atm1%u(idxp1,k,j) + d_two*atm1%u(idx,k,j) + atm1%u(idxm1,k,j)
-          vcmona = atm1%v(idx,k,jdp1) + d_two*atm1%v(idx,k,j) + atm1%v(idx,k,jdm1)
-          ucmonb = atm1%u(idxp1,k,jdp1) + d_two*atm1%u(idx,k,jdp1) + &
-                   atm1%u(idxm1,k,jdp1) + ucmona
-          vcmonb = atm1%v(idxp1,k,jdp1) + d_two*atm1%v(idxp1,k,j) +  &
-                   atm1%v(idxp1,k,jdm1) + vcmona
-          ucmonc = atm1%u(idxp1,k,jdm1) + d_two*atm1%u(idx,k,jdm1) + &
-                   atm1%u(idxm1,k,jdm1) + ucmona
-          vcmonc = atm1%v(idxm1,k,jdp1) + d_two*atm1%v(idxm1,k,j) +  &
-                   atm1%v(idxm1,k,jdm1) + vcmona
-          ften(i,k) = ften(i,k) -                          &
-                      ((var(i,k,jp1)+var(i,k,j))*ucmonb -  &
-                       (var(i,k,j)+var(i,k,jm1))*ucmonc +  &
-                       (var(i+1,k,j)+var(i,k,j))*vcmonb -  &
-                       (var(i,k,j)+var(i-1,k,j))*vcmonc) / &
-                       (dxx*mddom%msfd(i,j)*mddom%msfd(i,j))
+        do k = 1 , kz
+          do i = 2 , iym1
+            idx = i
+            idxp1 = i + 1
+            idxp1 = min0(idxp1,iym1)
+            idxm1 = i - 1
+            idxm1 = max0(idxm1,2)
+            ucmona = u(idxp1,k,j)+d_two*u(idx,k,j)+u(idxm1,k,j)
+            vcmona = v(idx,k,jdp1)+d_two*v(idx,k,j)+v(idx,k,jdm1)
+            ucmonb = u(idxp1,k,jdp1) + d_two*u(idx,k,jdp1) + &
+                     u(idxm1,k,jdp1) + ucmona
+            vcmonb = v(idxp1,k,jdp1) + d_two*v(idxp1,k,j) +  &
+                     v(idxp1,k,jdm1) + vcmona
+            ucmonc = u(idxp1,k,jdm1) + d_two*u(idx,k,jdm1) + &
+                     u(idxm1,k,jdm1) + ucmona
+            vcmonc = v(idxm1,k,jdp1) + d_two*v(idxm1,k,j) +  &
+                     v(idxm1,k,jdm1) + vcmona
+            ften(i,k,j) = ften(i,k,j) -                  &
+                        ((f(i,k,jp1)+f(i,k,j))*ucmonb -  &
+                         (f(i,k,j)+f(i,k,jm1))*ucmonc +  &
+                         (f(i+1,k,j)+f(i,k,j))*vcmonb -  &
+                         (f(i,k,j)+f(i-1,k,j))*vcmonc) / &
+                         (dxx*mapfd(i,j)*mapfd(i,j))
+          end do
         end do
-      end do
 #endif
 !
+      else
+        call fatal(__FILE__,__LINE__, &
+             'The advection scheme you required is not available.')
+      end if
     else
-      write(*,*) 'The advection scheme ',ind,' you required is not available.'
-      stop
+      if ( ind == 1 ) then
+        dxx = dx4
+!
+!-----for t and qv:
+!
+        do k = 1 , kz
+          do i = 2 , iym2
+            ften(i,k,j) = ften(i,k,j) -                             &
+                ((u(i+1,k,jp1)+u(i,k,jp1))*(f(i,k,jp1)+f(i,k,j)) -  &
+                 (u(i+1,k,j)+u(i,k,j)) *   (f(i,k,j)+f(i,k,jm1)) +  &
+                 (v(i+1,k,jp1)+v(i+1,k,j))*(f(i+1,k,j)+f(i,k,j)) -  &
+                 (v(i,k,jp1)+v(i,k,j)) *   (f(i-1,k,j)+f(i,k,j))) / &
+                 (dxx*mapfx(i,j)*mapfx(i,j))
+          end do
+        end do
+!
+      else if ( ind == 2 ) then
+        dxx = dx
+!
+!-----for qc and qr:
+!       up-wind values of qc and qr are used.
+!
+        do k = 1 , kz
+          do i = 2 , iym2
+            ucmonb = d_half*(u(i+1,k,jp1)+u(i,k,jp1))
+            ucmona = d_half*(u(i+1,k,j)+u(i,k,j))
+            if ( ucmonb >= d_zero ) then
+              fx2 = fact1*f(i,k,j) + fact2*f(i,k,jp1)
+            else
+              fx2 = fact1*f(i,k,jp1) + fact2*f(i,k,j)
+            end if
+            if ( ucmona >= d_zero ) then
+              fx1 = fact1*f(i,k,jm1) + fact2*f(i,k,j)
+            else
+              fx1 = fact1*f(i,k,j) + fact2*f(i,k,jm1)
+            end if
+            vcmonb = d_half*(v(i+1,k,jp1)+v(i+1,k,j))
+            vcmona = d_half*(v(i,k,jp1)+v(i,k,j))
+            if ( vcmonb >= d_zero ) then
+              fy2 = fact1*f(i,k,j) + fact2*f(i+1,k,j)
+            else
+              fy2 = fact1*f(i+1,k,j) + fact2*f(i,k,j)
+            end if
+            if ( vcmona >= d_zero ) then
+              fy1 = fact1*f(i-1,k,j) + fact2*f(i,k,j)
+            else
+              fy1 = fact1*f(i,k,j) + fact2*f(i-1,k,j)
+            end if
+            ften(i,k,j) = ften(i,k,j) -                          &
+                 (ucmonb*fx2-ucmona*fx1+vcmonb*fy2-vcmona*fy1) / &
+                 (dxx*mapfx(i,j)*mapfx(i,j))
+          end do
+        end do
+      else
+        call fatal(__FILE__,__LINE__, &
+             'The advection scheme you required is not available.')
+      end if
     end if
     call time_end(subroutine_name,idindx)
-  end subroutine hadv_d
+  end subroutine hadv
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -274,18 +259,17 @@ module mod_advection
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine vadv(ften,qdot,fa,j,ind,kpbl1d)
+subroutine vadv(ften,f,j,ind,kpbl1d)
 !
     implicit none
 !
-    integer :: ind , j
-    integer , dimension(iy) :: kpbl1d
-    real(8) , dimension(iy,kz) :: fa , ften
-    real(8) , dimension(iy,kzp1,0:jxp+1) , intent(in) :: qdot
-    intent (in) fa , ind , j , kpbl1d
-    intent (inout) ften
+    integer , intent(in) :: ind , j
+    integer , intent(in) , dimension(iy) :: kpbl1d
+    real(8) , intent (in) , dimension(iy,kz,-1:jxp+2) :: f
+    real(8) , intent (inout), dimension(iy,kz,jxp) :: ften
 !
     real(8) :: f1 , f2 , slope
+!   fg is the working space used to store the interlated values.
     real(8) , dimension(iy,kz) :: fg
     integer :: i , k
 !
@@ -299,11 +283,6 @@ module mod_advection
     call time_begin(subroutine_name,idindx)
     jm1 = j-1
 !
-!     qdot   : is the vertical sigma-velocity
-!     fg     : is the working space used to store the interlated
-!              values.
-!     psa    : is p* used to interpolate the temperature.
-!
     if ( ind == 1 ) then
 !
 !-----vertical advection terms for:
@@ -314,25 +293,26 @@ module mod_advection
       end do
       do k = 2 , kz
         do i = 2 , iym2
-          fg(i,k) = twt(k,1)*fa(i,k)   * ((sps1%ps(i,j)*sigma(k)+r8pt)/  &
-                     (sps1%ps(i,j)*a(k)+r8pt))**c287 +                   &
-                    twt(k,2)*fa(i,k-1) * ((sps1%ps(i,j)*sigma(k)+r8pt) / &
-                     (sps1%ps(i,j)*a(k-1)+r8pt))**c287
+          fg(i,k) = twt(k,1)*f(i,k,j)   * ((ps(i,j)*sigma(k)+r8pt)/  &
+                     (ps(i,j)*a(k)+r8pt))**c287 +                   &
+                    twt(k,2)*f(i,k-1,j) * ((ps(i,j)*sigma(k)+r8pt) / &
+                     (ps(i,j)*a(k-1)+r8pt))**c287
         end do
       end do
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j)- &
+                (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 !
     else if ( ind == 2 ) then
@@ -346,8 +326,8 @@ module mod_advection
       do k = 2 , kz
         do i = 2 , iym2
 ! modif !!
-          if ( fa(i,k) > falow .and. fa(i,k-1) > falow ) then
-            fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
+          if ( f(i,k,j) > falow .and. f(i,k-1,j) > falow ) then
+            fg(i,k) = f(i,k,j)*(f(i,k-1,j)/f(i,k,j))**qcon(k)
           else
             fg(i,k) = d_zero
           end if
@@ -355,17 +335,18 @@ module mod_advection
       end do
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j)- &
+                (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 !
     else if ( ind == 3 ) then
@@ -374,37 +355,38 @@ module mod_advection
 !
 !......k = 1
       do i = 2 , iym2
-        if ( qdot(i,2,j) >= d_zero ) then
-          f2 = fa(i,1)
+        if ( vsv(i,2,j) >= d_zero ) then
+          f2 = f(i,1,j)
         else
-          f2 = fa(i,2)
+          f2 = f(i,2,j)
         end if
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*f2/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*f2/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          if ( qdot(i,k+1,j) >= d_zero ) then
-            f2 = fa(i,k)
+          if ( vsv(i,k+1,j) >= d_zero ) then
+            f2 = f(i,k,j)
           else
-            f2 = fa(i,k+1)
+            f2 = f(i,k+1,j)
           end if
-          if ( qdot(i,k,j) >= d_zero ) then
-            f1 = fa(i,k-1)
+          if ( vsv(i,k,j) >= d_zero ) then
+            f1 = f(i,k-1,j)
           else
-            f1 = fa(i,k)
+            f1 = f(i,k,j)
           end if
-          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*f2-qdot(i,k,j)*f1)/dsigma(k)
+          ften(i,k,j) = ften(i,k,j)- &
+                 (vsv(i,k+1,j)*f2-vsv(i,k,j)*f1)/dsigma(k)
         end do
       end do
 !......k = kz
       do i = 2 , iym2
-        if ( qdot(i,kz,j) >= d_zero ) then
-          f1 = fa(i,kzm1)
+        if ( vsv(i,kz,j) >= d_zero ) then
+          f1 = f(i,kzm1,j)
         else
-          f1 = fa(i,kz)
+          f1 = f(i,kz,j)
         end if
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*f1/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*f1/dsigma(kz)
       end do
 !
     else if ( ind == 4 ) then
@@ -417,31 +399,31 @@ module mod_advection
       end do
       do k = 2 , kz
         do i = 2 , iym1
-          fg(i,k) = d_half*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
+          fg(i,k) = d_half*(f(i,k,j)+f(i,k-1,j))/mapfd(i,j)
         end do
       end do
 !......k = 1
       do i = 2 , iym1
-        ften(i,1) = ften(i,1) -                                 &
-                   (qdot(i-1,2,jm1)+qdot(i,2,jm1)+qdot(i,2,j) + &
-                    qdot(i-1,2,j))*fg(i,2)/(d_four*dsigma(1))
+        ften(i,1,j) = ften(i,1,j) -                                 &
+                   (vsv(i-1,2,jm1)+vsv(i,2,jm1)+vsv(i,2,j) + &
+                    vsv(i-1,2,j))*fg(i,2)/(d_four*dsigma(1))
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym1
-          ften(i,k) = ften(i,k) -                                     &
-                      ((qdot(i,k+1,jm1)+qdot(i-1,k+1,jm1)+            &
-                        qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1) -  &
-                       (qdot(i,k,jm1)  +qdot(i-1,k,jm1)+              &
-                        qdot(i,k,j)    +qdot(i-1,k,j))*fg(i,k)) /     &
+          ften(i,k,j) = ften(i,k,j) -                                     &
+                      ((vsv(i,k+1,jm1)+vsv(i-1,k+1,jm1)+            &
+                        vsv(i,k+1,j)  +vsv(i-1,k+1,j))*fg(i,k+1) -  &
+                       (vsv(i,k,jm1)  +vsv(i-1,k,jm1)+              &
+                        vsv(i,k,j)    +vsv(i-1,k,j))*fg(i,k)) /     &
                       (d_four*dsigma(k))
         end do
       end do
 !......k = kz
       do i = 2 , iym1
-        ften(i,kz) = ften(i,kz) +                                   &
-                    (qdot(i,kz,jm1)+qdot(i-1,kz,jm1)+qdot(i,kz,j) + &
-                     qdot(i-1,kz,j))*fg(i,kz)/(d_four*dsigma(kz))
+        ften(i,kz,j) = ften(i,kz,j) +                                   &
+                    (vsv(i,kz,jm1)+vsv(i-1,kz,jm1)+vsv(i,kz,j) + &
+                     vsv(i-1,kz,j))*fg(i,kz)/(d_four*dsigma(kz))
       end do
 !
    
@@ -450,23 +432,24 @@ module mod_advection
    
       do k = 2 , kz
         do i = 2 , iym2
-          fg(i,k) = twt(k,1)*fa(i,k) + twt(k,2)*fa(i,k-1)
+          fg(i,k) = twt(k,1)*f(i,k,j) + twt(k,2)*f(i,k-1,j)
         end do
       end do
    
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j)- &
+             (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
    
     end if
@@ -485,28 +468,28 @@ module mod_advection
       end do
       do k = 2 , kz
         do i = 2 , iym2
-          fg(i,k) = twt(k,1)*fa(i,k) *                 &
-                    ((sps1%ps(i,j)*sigma(k)+r8pt)/     &
-                     (sps1%ps(i,j)*a(k)+r8pt))**c287 + &
-                    twt(k,2)*fa(i,k-1) *               &
-                    ((sps1%ps(i,j)*sigma(k)+r8pt)/     &
-                     (sps1%ps(i,j)*a(k-1)+r8pt))**c287
+          fg(i,k) = twt(k,1)*f(i,k,j) *                 &
+                    ((ps(i,j)*sigma(k)+r8pt)/     &
+                     (ps(i,j)*a(k)+r8pt))**c287 + &
+                    twt(k,2)*f(i,k-1,j) *               &
+                    ((ps(i,j)*sigma(k)+r8pt)/     &
+                     (ps(i,j)*a(k-1)+r8pt))**c287
         end do
       end do
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k) - &
-               (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j) - &
+               (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 !
     else if ( ind == 2 ) then
@@ -520,8 +503,8 @@ module mod_advection
       do k = 2 , kz
         do i = 2 , iym2
 ! modif !!
-          if ( fa(i,k) > falow .and. fa(i,k-1) > falow ) then
-            fg(i,k) = fa(i,k)*(fa(i,k-1)/fa(i,k))**qcon(k)
+          if ( f(i,k,j) > falow .and. f(i,k-1,j) > falow ) then
+            fg(i,k) = f(i,k,j)*(f(i,k-1,j)/f(i,k,j))**qcon(k)
           else
             fg(i,k) = d_zero
           end if
@@ -529,18 +512,18 @@ module mod_advection
       end do
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k) - &
-                   (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j) - &
+                   (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 !
     else if ( ind == 3 ) then
@@ -549,37 +532,38 @@ module mod_advection
 !
 !......k = 1
       do i = 2 , iym2
-        if ( qdot(i,2,j) >= d_zero ) then
-          f2 = fa(i,1)
+        if ( vsv(i,2,j) >= d_zero ) then
+          f2 = f(i,1,j)
         else
-          f2 = fa(i,2)
+          f2 = f(i,2,j)
         end if
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*f2/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*f2/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          if ( qdot(i,k+1,j) >= d_zero ) then
-            f2 = fa(i,k)
+          if ( vsv(i,k+1,j) >= d_zero ) then
+            f2 = f(i,k,j)
           else
-            f2 = fa(i,k+1)
+            f2 = f(i,k+1,j)
           end if
-          if ( qdot(i,k,j) >= d_zero ) then
-            f1 = fa(i,k-1)
+          if ( vsv(i,k,j) >= d_zero ) then
+            f1 = f(i,k-1,j)
           else
-            f1 = fa(i,k)
+            f1 = f(i,k,j)
           end if
-          ften(i,k) = ften(i,k) - (qdot(i,k+1,j)*f2-qdot(i,k,j)*f1)/dsigma(k)
+          ften(i,k,j) = ften(i,k,j) - &
+                (vsv(i,k+1,j)*f2-vsv(i,k,j)*f1)/dsigma(k)
         end do
       end do
 !......k = kz
       do i = 2 , iym2
-        if ( qdot(i,kz,j) >= d_zero ) then
-          f1 = fa(i,kzm1)
+        if ( vsv(i,kz,j) >= d_zero ) then
+          f1 = f(i,kzm1,j)
         else
-          f1 = fa(i,kz)
+          f1 = f(i,kz,j)
         end if
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*f1/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*f1/dsigma(kz)
       end do
 !
     else if ( ind == 4 ) then
@@ -592,64 +576,62 @@ module mod_advection
       end do
       do k = 2 , kz
         do i = 2 , iym1
-          fg(i,k) = d_half*(fa(i,k)+fa(i,k-1))/mddom%msfd(i,j)
+          fg(i,k) = d_half*(f(i,k,j)+f(i,k-1,j))/mapfd(i,j)
         end do
       end do
 !......k = 1
       do i = 2 , iym1
-        ften(i,1) = ften(i,1) -                                  &
-                    (qdot(i-1,2,j-1)+qdot(i,2,j-1)+qdot(i,2,j) + &
-                     qdot(i-1,2,j))*fg(i,2)/(d_four*dsigma(1))
+        ften(i,1,j) = ften(i,1,j) -                                  &
+                    (vsv(i-1,2,j-1)+vsv(i,2,j-1)+vsv(i,2,j) + &
+                     vsv(i-1,2,j))*fg(i,2)/(d_four*dsigma(1))
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym1
-          ften(i,k) = ften(i,k) -                                     &
-                      ((qdot(i,k+1,j-1)+qdot(i-1,k+1,j-1)+            &
-                        qdot(i,k+1,j)  +qdot(i-1,k+1,j))*fg(i,k+1) -  &
-                       (qdot(i,k,j-1)  +qdot(i-1,k,j-1)+              &
-                        qdot(i,k,j)    +qdot(i-1,k,j))*fg(i,k)) /     &
+          ften(i,k,j) = ften(i,k,j) -                                     &
+                      ((vsv(i,k+1,j-1)+vsv(i-1,k+1,j-1)+            &
+                        vsv(i,k+1,j)  +vsv(i-1,k+1,j))*fg(i,k+1) -  &
+                       (vsv(i,k,j-1)  +vsv(i-1,k,j-1)+              &
+                        vsv(i,k,j)    +vsv(i-1,k,j))*fg(i,k)) /     &
                       (d_four*dsigma(k))
         end do
       end do
 !......k = kz
       do i = 2 , iym1
-        ften(i,kz) = ften(i,kz) +                                    &
-                     (qdot(i,kz,j-1)+qdot(i-1,kz,j-1)+qdot(i,kz,j) + &
-                      qdot(i-1,kz,j))*fg(i,kz)/(d_four*dsigma(kz))
+        ften(i,kz,j) = ften(i,kz,j) +                                    &
+                     (vsv(i,kz,j-1)+vsv(i-1,kz,j-1)+vsv(i,kz,j) + &
+                      vsv(i-1,kz,j))*fg(i,kz)/(d_four*dsigma(kz))
       end do
 !
-   
-   
     else if ( ind == 5 ) then
    
       do k = 2 , kz
         do i = 2 , iym2
-          fg(i,k) = twt(k,1)*fa(i,k) + twt(k,2)*fa(i,k-1)
+          fg(i,k) = twt(k,1)*f(i,k,j) + twt(k,2)*f(i,k-1,j)
         end do
       end do
    
 !......k = 1
       do i = 2 , iym2
-        ften(i,1) = ften(i,1) - qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j) - vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
 !......k = 2,kzm1
       do k = 2 , kzm1
         do i = 2 , iym2
-          ften(i,k) = ften(i,k) - &
-                  (qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*fg(i,k))/dsigma(k)
+          ften(i,k,j) = ften(i,k,j) - &
+                  (vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*fg(i,k))/dsigma(k)
         end do
       end do
 !,.....k = kz
       do i = 2 , iym2
-        ften(i,kz) = ften(i,kz) + qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j) + vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 
     else if ( ind == 6 ) then
 
       do k = 2 , kz
         do i = 2 , iym1
-          fg(i,k)= twt(k,1)*fa(i,k) + twt(k,2)*fa(i,k-1)
+          fg(i,k)= twt(k,1)*f(i,k,j) + twt(k,2)*f(i,k-1,j)
         end do
       end do
 
@@ -660,41 +642,41 @@ module mod_advection
         if ( kpbl1d(i).ge.4 ) then
           ! Calculate slope of scalar in layer above ambiguous layer
           k = kpbl1d(i)-2
-          if ( (fa(i,k+1)-fa(i,k)) > d_zero .and.   &
-               (fa(i,k)-fa(i,k-1)) > d_zero ) then
-            slope = min((fa(i,k+1)-fa(i,k))/(a(k+1)-a(k)),    &
-                        (fa(i,k)-fa(i,k-1))/(a(k)-a(k-1)))
-          else if ( (fa(i,k+1)-fa(i,k)) < d_zero .and.   &
-                    (fa(i,k)-fa(i,k-1)) < d_zero ) then
-            slope = max((fa(i,k+1)-fa(i,k))/(a(k+1)-a(k)),    &
-                        (fa(i,k)-fa(i,k-1))/(a(k)-a(k-1)))
+          if ( (f(i,k+1,j)-f(i,k,j)) > d_zero .and.   &
+               (f(i,k,j)-f(i,k-1,j)) > d_zero ) then
+            slope = min((f(i,k+1,j)-f(i,k,j))/(a(k+1)-a(k)),    &
+                        (f(i,k,j)-f(i,k-1,j))/(a(k)-a(k-1)))
+          else if ( (f(i,k+1,j)-f(i,k,j)) < d_zero .and.   &
+                    (f(i,k,j)-f(i,k-1,j)) < d_zero ) then
+            slope = max((f(i,k+1,j)-f(i,k,j))/(a(k+1)-a(k)),    &
+                        (f(i,k,j)-f(i,k-1,j))/(a(k)-a(k-1)))
           else
             slope = d_zero
           end if
           ! Now replace the values of scalar at top and bottom of ambiguous
           ! layer as long as inversion is actually in the ambiguous layer
           k = kpbl1d(i)
-          fg(i,k-1) = fa(i,k-2) + slope*(sigma(k-1)-a(k-2))
-          if (abs(fa(i,k-2) + slope*(a(k-1)-a(k-2))-fa(i,k)) > &
-              abs(fa(i,k-1)-fa(i,k)) ) then
-            fg(i,k) = fa(i,k)
+          fg(i,k-1) = f(i,k-2,j) + slope*(sigma(k-1)-a(k-2))
+          if (abs(f(i,k-2,j) + slope*(a(k-1)-a(k-2))-f(i,k,j)) > &
+              abs(f(i,k-1,j)-f(i,k,j)) ) then
+            fg(i,k) = f(i,k,j)
           else
-            fg(i,k) = fa(i,k-2) + slope*(sigma(k)-a(k-2))
+            fg(i,k) = f(i,k-2,j) + slope*(sigma(k)-a(k-2))
           end if
         end if
       end do
 
       do i = 2 , iym1
-        ften(i,1) = ften(i,1)-qdot(i,2,j)*fg(i,2)/dsigma(1)
+        ften(i,1,j) = ften(i,1,j)-vsv(i,2,j)*fg(i,2)/dsigma(1)
       end do
       do k = 2 , kzm1
         do i = 2 , iym1
-          ften(i,k) = ften(i,k)-(qdot(i,k+1,j)*fg(i,k+1)-qdot(i,k,j)*   &
+          ften(i,k,j) = ften(i,k,j)-(vsv(i,k+1,j)*fg(i,k+1)-vsv(i,k,j)*   &
                       fg(i,k))/dsigma(k)
         end do
       end do
       do i = 2 , iym1
-        ften(i,kz) = ften(i,kz)+qdot(i,kz,j)*fg(i,kz)/dsigma(kz)
+        ften(i,kz,j) = ften(i,kz,j)+vsv(i,kz,j)*fg(i,kz)/dsigma(kz)
       end do
 
     end if

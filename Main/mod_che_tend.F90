@@ -135,8 +135,8 @@ module mod_che_tend
    
     do itr = 1 , ntr
 !
-      call hadv_x(chiten(:,:,j,itr),chi(:,:,:,itr),dx,j,2)
-      call vadv(chiten(:,:,j,itr),qdot,chia(:,:,j,itr),j,5,idnint(kpbl(:,j)))
+      call hadv(.false.,chiten(:,:,:,itr),chi(:,:,:,itr),j,2)
+      call vadv(chiten(:,:,:,itr),chia(:,:,:,itr),j,5,idnint(kpbl(:,j)))
 !     horizontal diffusion: initialize scratch vars to 0.
 !     need to compute tracer tendencies due to diffusion
       call diffu_x(chiten(:,:,j,itr),atms%chib3d(:,:,:,itr), &

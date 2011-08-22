@@ -87,7 +87,7 @@ module mod_cu_kuo
 !
 !   compute the horizontal advection terms:
 !
-    call hadv_x(aten%qv(:,:,j),atmx%qv,dx4,j,1)
+    call hadv(.false.,aten%qv,atmx%qv,j,1)
 !
     if ( ichem == 1 ) then
 !

@@ -52,7 +52,7 @@ module mod_params
   use mod_ncio
   use mod_uwtcm
   use mod_chem 
-
+  use mod_advection , only : init_advection
   use mod_mppio
 #ifdef CLM
   use mod_clm
@@ -691,6 +691,7 @@ module mod_params
   call allocate_mod_che_aerosol
   call allocate_mod_che_dust
 
+  call init_advection(mddom,sps1,atm1,qdot)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
