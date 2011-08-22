@@ -22,18 +22,23 @@ module mod_advection
 ! Horizontal and vertical advection.
 !
   use mod_runparams
+  use mod_memutil
   use mod_service
 
   private
  
+  public :: init_advection, hadv , vadv
+
   real(8) , pointer , dimension(:,:,:) :: u    ! U wind * ps
   real(8) , pointer , dimension(:,:,:) :: v    ! V wind * ps
   real(8) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
   real(8) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
-
-  public :: init_advection, hadv , vadv
+!
+! working space used to store the interlated values in vadv.
+!
+  real(8) , pointer , dimension(:,:) :: fg
 
   real(8) , parameter :: c287 = 0.287D+00
 !
@@ -61,6 +66,7 @@ module mod_advection
       mapfx => dom%msfx
       mapfd => dom%msfd
       vsv   => vertvel
+      call getmem2d(fg,1,iy,1,kz,'mod_advection:fg')
     end subroutine init_advection
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -269,8 +275,6 @@ subroutine vadv(ften,f,j,ind,kpbl1d)
     real(8) , intent (inout), dimension(iy,kz,jxp) :: ften
 !
     real(8) :: f1 , f2 , slope
-!   fg is the working space used to store the interlated values.
-    real(8) , dimension(iy,kz) :: fg
     integer :: i , k
 !
     character (len=64) :: subroutine_name='vadv'
