@@ -69,7 +69,8 @@ module mod_advection
       mapfd => dom%msfd
       vsv   => vertvel
       kpbl  => kpbltop
-      call getmem2d(fg,1,iy,1,kz,'mod_advection:fg')
+      call getmem2d(fg,lbound(atm%t,1),ubound(atm%t,1), &
+                       lbound(atm%t,1),ubound(atm%t,2),'mod_advection:fg')
     end subroutine init_advection
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -447,7 +448,7 @@ module mod_advection
 
         else if ( ind == 6 ) then
 
-          do k = kstart+1 , kz
+          do k = kstart+1 , kstop
             do i = istart , istopd
               fg(i,k)= twt(k,1)*f(i,k,j) + twt(k,2)*f(i,k-1,j)
             end do
