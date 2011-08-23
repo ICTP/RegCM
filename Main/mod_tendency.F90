@@ -1330,12 +1330,12 @@ module mod_tendency
 !       compute the vertical advection term:
 !
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(aten%t,atm1%t,j,j,1,idnint(kpbl(:,j)))
+          call vadv(aten%t,atm1%t,j,j,1)
         else
           if ( iuwvadv == 1 ) then
-            call vadv(aten%t,atm1%t,j,j,6,idnint(kpbl(:,j)))
+            call vadv(aten%t,atm1%t,j,j,6)
           else
-            call vadv(aten%t,atm1%t,j,j,1,idnint(kpbl(:,j)))
+            call vadv(aten%t,atm1%t,j,j,1)
           end if
         end if
 !
@@ -1374,12 +1374,12 @@ module mod_tendency
         if ( icup /= 1 ) then
           call hadv(.false.,aten%qv,atmx%qv,j,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qv,atm1%qv,j,j,2,idnint(kpbl(:,j)))
+            call vadv(aten%qv,atm1%qv,j,j,2)
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qv,atm1%qv,j,j,6,idnint(kpbl(:,j)))
+              call vadv(aten%qv,atm1%qv,j,j,6)
             else
-              call vadv(aten%qv,atm1%qv,j,j,2,idnint(kpbl(:,j)))
+              call vadv(aten%qv,atm1%qv,j,j,2)
             end if
           end if
         end if
@@ -1403,12 +1403,12 @@ module mod_tendency
         if ( ipptls == 1 ) then
           call hadv(.false.,aten%qc,atmx%qc,j,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-            call vadv(aten%qc,atm1%qc,j,j,5,idnint(kpbl(:,j)))
+            call vadv(aten%qc,atm1%qc,j,j,5)
           else
             if ( iuwvadv == 1 ) then
-              call vadv(aten%qc,atm1%qc,j,j,6,idnint(kpbl(:,j)))
+              call vadv(aten%qc,atm1%qc,j,j,6)
             else
-              call vadv(aten%qc,atm1%qc,j,j,5,idnint(kpbl(:,j)))
+              call vadv(aten%qc,atm1%qc,j,j,5)
             end if
           end if
           call pcp(j , 2 , iym2 , kz)
@@ -1908,8 +1908,8 @@ module mod_tendency
 !
 !     compute the vertical advection terms:
 !
-      call vadv(aten%u,atm1%u,j,j,4,idnint(kpbl(:,j)))
-      call vadv(aten%v,atm1%v,j,j,4,idnint(kpbl(:,j)))
+      call vadv(aten%u,atm1%u,j,j,4)
+      call vadv(aten%v,atm1%v,j,j,4)
 !
 !     apply the sponge boundary condition on u and v:
 !

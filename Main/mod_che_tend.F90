@@ -80,6 +80,7 @@ module mod_che_tend
     real(8) , dimension(iy) :: psurf , rh10 , soilw , srad , temp10 , &
                                tsurf , vegfrac , wid10 , zeff , ustar
     real(8) , dimension(iy,nbin) :: rsfrow
+    real(8) , pointer , dimension(:,:,:) :: spchiten , spchi , spchia
 !
 !   real(kind=8) :: ustar(iy)
 !   real(kind=8) :: zza(iy,kz)
@@ -134,14 +135,17 @@ module mod_che_tend
 !   horizontal and vertical advection
    
     do itr = 1 , ntr
+
+      spchiten => chiten(:,:,:,itr)
+      spchi    => chi(:,:,:,itr)
+      spchia   => chia(:,:,:,itr)
 !
-      call hadv(.false.,chiten(:,:,:,itr),chi(:,:,:,itr),j,j,2)
-      call vadv(chiten(:,:,:,itr),chia(:,:,:,itr),j,j,5,idnint(kpbl(:,j)))
+      call hadv(.false.,spchiten,spchi,j,j,2)
+      call vadv(spchiten,spchia,j,j,5)
 !     horizontal diffusion: initialize scratch vars to 0.
 !     need to compute tracer tendencies due to diffusion
       call diffu_x(chiten(:,:,j,itr),atms%chib3d(:,:,:,itr), &
                    sps2%ps,xkc(:,:,j),j,kz)
-   
     end do ! end tracer loop
    
 !   subgrid vertical transport by convective mass flux : a modifier !

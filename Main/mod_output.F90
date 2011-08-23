@@ -801,17 +801,13 @@ module mod_output
         do j = 1 , jendx
           do k = 1 , kzp1
             do i = 1 , iy
-              sav0(i,k,j)      = atm1%tke(i,k,j)
-              sav0(i,kzp1+k,j) = atm2%tke(i,k,j)
+              sav0b(i,k,j) = atm1%tke(i,k,j)
             end do
           end do
-          do i = 1 , iy
-            sav0(i,kz*3+1,j) = kpbl(i,j)
-          end do
         end do
-        allrec = kz*4+2
-        call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,    &
-                        sav_0,iy*allrec*jxp,mpi_real8,    &
+        allrec = kzp1
+        call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,    &
+                        sav_0b,iy*allrec*jxp,mpi_real8,    &
                         0,mpi_comm_world,ierr)
         if ( myid == 0 ) then
 #ifdef BAND
@@ -821,12 +817,51 @@ module mod_output
 #endif
             do k = 1 , kzp1
               do i = 1 , iy
-                atm1_io%tke(i,k,j) = sav_0(i,k,j)
-                atm2_io%tke(i,k,j) = sav_0(i,kzp1+k,j)
+                atm1_io%tke(i,k,j) = sav_0b(i,k,j)
               end do
             end do
+          end do
+        end if
+        do j = 1 , jendx
+          do k = 1 , kzp1
             do i = 1 , iy
-              kpbl_io(i,j) = sav_0(i,kz*3+1,j)
+              sav0b(i,k,j) = atm2%tke(i,k,j)
+            end do
+          end do
+        end do
+        allrec = kzp1
+        call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,    &
+                        sav_0b,iy*allrec*jxp,mpi_real8,    &
+                        0,mpi_comm_world,ierr)
+        if ( myid == 0 ) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do k = 1 , kzp1
+              do i = 1 , iy
+                atm2_io%tke(i,k,j) = sav_0b(i,k,j)
+              end do
+            end do
+          end do
+        end if
+        do j = 1 , jendx
+          do i = 1 , iym1
+            var2d0(i,j) = kpbl(i,j)
+          end do
+        end do
+        call mpi_gather(var2d0, iy*jxp,mpi_integer, &
+                      & var2d_0,iy*jxp,mpi_integer, &
+                      & 0,mpi_comm_world,ierr)
+        if (myid == 0) then
+#ifdef BAND
+          do j = 1 , jx
+#else
+          do j = 1 , jxm1
+#endif
+            do i = 1 , iym1
+              kpbl_io(i,j) = var2d_0(i,j)
             end do
           end do
         end if

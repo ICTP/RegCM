@@ -691,7 +691,7 @@ module mod_params
   call allocate_mod_che_aerosol
   call allocate_mod_che_dust
 
-  call init_advection(mddom,sps1,atm1,qdot)
+  call init_advection(mddom,sps1,atm1,qdot,kpbl)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

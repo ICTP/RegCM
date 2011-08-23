@@ -43,7 +43,7 @@ module mod_mppio
 #endif
   integer , pointer , dimension(:,:,:) :: ocld2d_io , veg2d1_io
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
-  real(8) , pointer , dimension(:,:) :: kpbl_io
+  integer , pointer , dimension(:,:) :: kpbl_io
 
   real(8) , pointer , dimension(:,:,:) :: col2d_io , dew2d_io ,     &
          evpa2d_io , gwet2d_io , ircp2d_io , rno2d_io , &

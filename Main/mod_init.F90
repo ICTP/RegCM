@@ -601,29 +601,55 @@ module mod_init
         do j = 1 , jxm1
           do k = 1 , kzp1
             do i = 1 , iy
-               sav_0(i,k,j)      = atm1_io%tke(i,k,j)
-               sav_0(i,kzp1+k,j) = atm2_io%tke(i,k,j)
+               sav_0b(i,k,j) = atm1_io%tke(i,k,j)
             end do
-          end do
-          do i = 1 , iy
-            sav_0(i,kz*3+1,j) = kpbl_io(i,j)
           end do
         end do
       end if
-      call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,   &
-                       sav0, iy*(kz*4+2)*jxp,mpi_real8,   &
+      call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
+                       sav0, iy*kzp1*jxp,mpi_real8,   &
                        0,mpi_comm_world,ierr)
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iy
-            atm1%tke(i,k,j) = sav0(i,k,j)
-            atm2%tke(i,k,j) = sav0(i,kzp1+k,j)
+            atm1%tke(i,k,j) = sav0b(i,k,j)
           end do
         end do
-        do i = 1 , iy
-          kpbl(i,j) =  sav0(i,kz*3+1,j)
+      end do
+      if ( myid == 0 ) then
+        do j = 1 , jxm1
+          do k = 1 , kzp1
+            do i = 1 , iy
+               sav_0b(i,k,j) = atm2_io%tke(i,k,j)
+            end do
+          end do
+        end do
+      end if
+      call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
+                       sav0, iy*kzp1*jxp,mpi_real8,   &
+                       0,mpi_comm_world,ierr)
+      do j = 1 , jendx
+        do k = 1 , kzp1
+          do i = 1 , iy
+            atm2%tke(i,k,j) = sav0b(i,k,j)
+          end do
         end do
       end do
+      do j = 1 , jxm1
+        do i = 1 , iy
+          var2d_0(i,j) = kpbl_io(i,j)
+        end do
+      end do
+      call mpi_scatter(var2d_0,iy*jxp,mpi_integer, &
+                       var2d0, iy*jxp,mpi_integer, &
+                       0,mpi_comm_world,ierr)
+      if (myid == 0) then
+        do j = 1 , jendx
+          do i = 1 , iy
+            kpbl(i,j) = var2d_0(i,j)
+          end do
+        end do
+      end if
 !
     end if ! ibltyp == 2 .or. ibltyp == 99
 !

@@ -684,7 +684,7 @@ module mod_uwtcm
         ! Output the PBL top index and height
         uwstateb%zpbl(i,j) = pblx
 
-        kpbl(i,j) = dble(kpbl2dx)
+        kpbl(i,j) = kpbl2dx
 
       end do jloop
     end do iloop
