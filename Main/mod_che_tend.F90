@@ -29,6 +29,7 @@ module mod_che_tend
   use mod_bats
   use mod_rad
   use mod_pmoist
+  use mod_precip
   use mod_che_dust
   use mod_message
   use mod_che_semdde

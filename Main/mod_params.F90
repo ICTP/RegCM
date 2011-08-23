@@ -31,6 +31,7 @@ module mod_params
   use mod_cu_tables
   use mod_cu_tiedtke
   use mod_cu_grell
+  use mod_precip
   use mod_rad
   use mod_split
   use mod_slice
@@ -672,6 +673,7 @@ module mod_params
   call allocate_mod_o3blk
   call allocate_mod_pbldim
   call allocate_mod_pmoist
+  call allocate_mod_precip
   call allocate_mod_radiation 
   call allocate_mod_rad
   call allocate_mod_split
@@ -692,6 +694,7 @@ module mod_params
   call allocate_mod_che_dust
 
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
+  call init_precip(atms,aten,sps2,sfsta,pptnc,remrat,rembc)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

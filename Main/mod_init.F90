@@ -26,6 +26,7 @@ module mod_init
   use mod_bats
   use mod_lake
   use mod_vecbats
+  use mod_precip
   use mod_pmoist
   use mod_atm_interface
   use mod_che_interface

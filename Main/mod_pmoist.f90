@@ -28,16 +28,16 @@ module mod_pmoist
 
   implicit none
 !
-  real(8) :: caccr , cevap , clfrcv , clfrcvmax , cllwcv , conf ,   &
+  real(8) :: clfrcv , clfrcvmax , cllwcv , conf ,   &
              dtauc , fcmax , gulland , guloce , htmax , htmin ,     &
-             mincld , pbcmax , qck10 , qck1land , qck1oce , qcth ,  &
-             rh0land , rh0oce , rhmax , tc0 , skbmax
+             mincld , pbcmax , qck10 , qck1land , qck1oce ,         &
+             rh0land , rh0oce , tc0 , skbmax
 
-  real(8) , pointer , dimension(:,:) :: cbmf2d , cgul , dtauc2d , &
+  real(8) , pointer , dimension(:,:) :: cbmf2d , dtauc2d ,        &
         edtmax2d , edtmaxo2d , edtmaxx2d , edtmin2d , edtmino2d , &
         edtminx2d , htmax2d , htmin2d , mincld2d , pbcmax2d ,     &
-        qck1 , rh0 , shrmax2d , shrmin2d
-  real(8) , pointer , dimension(:,:,:) :: fcc , rsheat , rswat
+        rh0 , shrmax2d , shrmin2d
+  real(8) , pointer , dimension(:,:,:) :: rsheat , rswat
   real(8) , pointer , dimension(:) :: qwght
   real(8) , pointer , dimension(:,:,:) :: twght , vqflx
   integer , pointer , dimension(:) :: icon
@@ -50,7 +50,6 @@ module mod_pmoist
   implicit none
 
   call getmem2d(cbmf2d,1,iy,1,jxp,'mod_pmoist:cbmf2d')
-  call getmem2d(cgul,1,iy,1,jxp,'mod_pmoist:cgul')
   call getmem2d(dtauc2d,1,iy,1,jxp,'mod_pmoist:dtauc2d')
   call getmem2d(edtmax2d,1,iy,1,jxp,'mod_pmoist:edtmax2d')
   call getmem2d(edtmaxo2d,1,iy,1,jxp,'mod_pmoist:edtmaxo2d')
@@ -62,11 +61,9 @@ module mod_pmoist
   call getmem2d(htmin2d,1,iy,1,jxp,'mod_pmoist:htmin2d')
   call getmem2d(mincld2d,1,iy,1,jxp,'mod_pmoist:mincld2d')
   call getmem2d(pbcmax2d,1,iy,1,jxp,'mod_pmoist:pbcmax2d')
-  call getmem2d(qck1,1,iy,1,jxp,'mod_pmoist:qck1')
   call getmem2d(rh0,1,iy,1,jxp,'mod_pmoist:rh0')
   call getmem2d(shrmax2d,1,iy,1,jxp,'mod_pmoist:shrmax2d')
   call getmem2d(shrmin2d,1,iy,1,jxp,'mod_pmoist:shrmin2d')
-  call getmem3d(fcc,1,iy,1,kz,1,jxp,'mod_pmoist:fcc')
   call getmem3d(rsheat,1,iy,1,kz,1,jxp,'mod_pmoist:rsheat')
   call getmem3d(rswat,1,iy,1,kz,1,jxp,'mod_pmoist:rswat')
   call getmem1d(icon,1,jxp,'mod_pmoist:icon')

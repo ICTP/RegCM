@@ -20,6 +20,7 @@
 module mod_cu_tiedtke
 !
   use m_realkinds
+  use mod_precip , only : cevap
   use mod_dynparam
   use mod_runparams
   use mod_atm_interface

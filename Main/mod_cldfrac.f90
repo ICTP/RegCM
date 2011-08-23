@@ -24,6 +24,7 @@ module mod_cldfrac
   use mod_constants
   use mod_dynparam
   use mod_atm_interface
+  use mod_precip
   use mod_pmoist
   use mod_rad
 !

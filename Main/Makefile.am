@@ -100,15 +100,14 @@ mod_bndry.o: mod_bndry.F90 mod_bats.o mod_leaftemp.o \
              mod_runparams.o mod_drag.o
 mod_che_tend.o: mod_che_tend.F90 mod_bats.o mod_atm_interface.o \
                 mod_runparams.o mod_pbldim.o mod_pmoist.o mod_rad.o \
-                mod_diffusion.o \
+                mod_diffusion.o mod_precip.o \
                 mod_advection.o mod_diagnosis.o mod_mppio.o mod_slice.o
-mod_cldfrac.o: mod_cldfrac.f90 mod_pmoist.o mod_rad.o \
-               mod_slice.o
+mod_cldfrac.o: mod_cldfrac.f90 mod_pmoist.o mod_rad.o mod_precip.o mod_slice.o
 mod_clm.o: mod_clm.F90
 mod_colmod3.o: mod_colmod3.F90 mod_bats.o mod_runparams.o \
                mod_radiation.o mod_atm_interface.o mod_rad.o \
                mod_outrad.o
-mod_condtq.o: mod_condtq.f90 mod_atm_interface.o \
+mod_condtq.o: mod_condtq.f90 mod_atm_interface.o mod_precip.o \
               mod_runparams.o mod_pmoist.o mod_slice.o
 mod_cumtran.o: mod_cumtran.F90 mod_runparams.o
 mod_cu_bm.o: mod_cu_bm.F90 mod_bats.o mod_atm_interface.o \
@@ -121,7 +120,7 @@ mod_cu_kuo.o: mod_cu_kuo.F90 mod_bats.o \
               mod_atm_interface.o mod_runparams.o mod_pmoist.o mod_rad.o \
               mod_advection.o
 mod_cu_tables.o: mod_cu_tables.f90
-mod_cu_tiedke.o: mod_cu_tiedtke.F90 mod_runparams.o \
+mod_cu_tiedke.o: mod_cu_tiedtke.F90 mod_runparams.o mod_precip.o \
                  mod_cu_tables.o
 mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.o mod_atm_interface.o mod_mppio.o
 mod_diffusion.o: mod_diffusion.F90 mod_runparams.o
@@ -136,13 +135,13 @@ mod_holtbl.o: mod_holtbl.F90 mod_bats.o \
           mod_mppio.o
 if DO_COMPILE_LIBCLM
 mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_tcm_interface.o \
-        mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o \
+        mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o mod_precip.o \
         mod_runparams.o mod_pmoist.o mod_rad.o mod_vecbats.o mod_o3blk.o \
         mod_radiation.o mod_mppio.o mod_lake.o \
         mod_ncio.o mod_sun.o mod_savefile.o mod_cu_bm.o $(CLMLIB)
 else
 mod_init.o: mod_init.F90 mod_bats.o mod_bdycod.o mod_tcm_interface.o \
-        mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o \
+        mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o mod_precip.o \
         mod_runparams.o mod_pmoist.o mod_rad.o mod_vecbats.o mod_o3blk.o \
         mod_radiation.o mod_mppio.o mod_ncio.o \
         mod_lake.o mod_sun.o mod_savefile.o
@@ -157,14 +156,14 @@ mod_ncio.o: mod_ncio.F90 mod_runparams.o
 mod_o3blk.o: mod_o3blk.F90 mod_atm_interface.o mod_runparams.o mod_rad.o
 if DO_COMPILE_LIBCLM
 mod_output.o: mod_output.F90 mod_bats.o mod_bdycod.o \
-          mod_atm_interface.o mod_outrad.o \
+          mod_atm_interface.o mod_outrad.o mod_precip.o \
           mod_runparams.o mod_pmoist.o mod_rad.o mod_diagnosis.o \
           mod_radiation.o mod_split.o mod_clm.o \
           mod_mppio.o mod_ncio.o mod_lake.o mod_savefile.o \
           mod_cu_bm.o $(CLMLIB)
 else
 mod_output.o: mod_output.F90 mod_bats.o mod_bdycod.o \
-          mod_atm_interface.o mod_outrad.o \
+          mod_atm_interface.o mod_outrad.o mod_precip.o \
           mod_runparams.o mod_pmoist.o mod_rad.o mod_diagnosis.o \
           mod_radiation.o mod_split.o mod_cu_bm.o \
           mod_mppio.o mod_lake.o mod_ncio.o mod_savefile.o
@@ -179,7 +178,7 @@ endif
 if DO_COMPILE_LIBCLM
 mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
               mod_atm_interface.o mod_runparams.o mod_o3blk.o \
-              mod_pmoist.o mod_mppio.o \
+              mod_pmoist.o mod_mppio.o mod_precip.o \
               mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
               mod_ncio.o mod_leaftemp.o mod_clm.o \
               mod_radiation.o mod_bdycod.o mod_scenarios.o \
@@ -188,7 +187,7 @@ mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
 else
 mod_params.o: mod_params.F90 mod_bats.o mod_cu_em.o \
               mod_atm_interface.o mod_runparams.o mod_o3blk.o \
-              mod_pmoist.o mod_mppio.o \
+              mod_pmoist.o mod_mppio.o mod_precip.o \
               mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
               mod_ncio.o mod_leaftemp.o \
               mod_radiation.o mod_bdycod.o mod_scenarios.o \
@@ -238,8 +237,7 @@ mod_tcm_interface.o: mod_tcm_interface.F90 mod_atm_interface.o mod_runparams.o \
                      mod_service.o mod_pbldim.o
 if DO_COMPILE_LIBCLM
 mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
-                mod_atm_interface.o \
-                mod_runparams.o mod_pmoist.o \
+                mod_atm_interface.o mod_precip.o mod_runparams.o mod_pmoist.o \
                 mod_rad.o mod_vecbats.o mod_holtbl.o \
                 mod_slice.o mod_cu_grell.o mod_cu_kuo.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
@@ -248,7 +246,7 @@ mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
                 mod_clm.o mod_mtrxclm.o mod_cldfrac.o $(CLMLIB)
 else
 mod_tendency.o: mod_tendency.F90 mod_bats.o mod_bdycod.o \
-                mod_atm_interface.o mod_runparams.o mod_pmoist.o \
+                mod_atm_interface.o mod_precip.o mod_runparams.o mod_pmoist.o \
                 mod_rad.o mod_vecbats.o mod_holtbl.o \
                 mod_slice.o mod_cu_grell.o mod_cu_kuo.o \
                 mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \

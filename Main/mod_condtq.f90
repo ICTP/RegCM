@@ -23,6 +23,7 @@ module mod_condtq
 !
   use mod_runparams
   use mod_atm_interface
+  use mod_precip , only : rhmax
   use mod_pmoist
   use mod_slice
 !

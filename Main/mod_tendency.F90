@@ -1411,7 +1411,7 @@ module mod_tendency
               call vadv(aten%qc,atm1%qc,j,j,5)
             end if
           end if
-          call pcp(j , 2 , iym2 , kz)
+          call pcp(j,j)
           call cldfrac(j)
 !
 !         need also to set diffq to 0 here before calling diffut

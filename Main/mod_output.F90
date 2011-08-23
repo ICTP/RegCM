@@ -28,6 +28,7 @@ module mod_output
   use mod_message
   use mod_bdycod
   use mod_pmoist
+  use mod_precip
   use mod_rad
   use mod_che_trac
   use mod_outrad
