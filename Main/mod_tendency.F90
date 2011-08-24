@@ -40,9 +40,7 @@ module mod_tendency
   use mod_che_aerosol
   use mod_sun
   use mod_slice
-  use mod_cldfrac
   use mod_cumtran
-  use mod_condtq
   use mod_diffusion
   use mod_advection , only : hadv , vadv
   use mod_che_tend
@@ -1412,7 +1410,7 @@ module mod_tendency
             end if
           end if
           call pcp(j,j)
-          call cldfrac(j)
+          call cldfrac(j,j)
 !
 !         need also to set diffq to 0 here before calling diffut
 !
@@ -1559,7 +1557,7 @@ module mod_tendency
 !       compute the condensation and precipitation terms for explicit
 !       moisture scheme:
 !
-        call condtq(j,qvcs)
+        call condtq(j,j,psc,qvcs)
 !
 !       subtract horizontal diffusion and pbl tendencies from aten%t and
 !       aten%qv for appling the sponge boundary conditions on t and qv:

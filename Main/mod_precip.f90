@@ -29,21 +29,28 @@ module mod_precip
 ! Precip sum beginning from top
   real(8) , pointer , dimension(:) :: pptsum
   real(8) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
-  real(8) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3
+  real(8) , pointer , dimension(:,:,:) :: t3 , p3 , qv3 , qc3 , qs3 , rh3 , rho3
+  real(8) , pointer , dimension(:,:,:) :: t2 , qc2 , qv2
   real(8) , pointer , dimension(:,:,:) :: tten , qvten , qcten
+  real(8) , pointer , dimension(:,:) :: cldfra , cldlwc
   real(8) , pointer , dimension(:,:) :: chrmrat , chrmbc
 
   real(8) :: qcth
-
   integer :: istart , istopx
+  real(8) , pointer , dimension(:,:) :: qccs , tmp1 , tmp2 , tmp3
 !
   real(8) , parameter :: uch = d_1000*regrav*secph
+  real(8) , parameter :: lowq = 1.0D-30
 !
   real(8) , public , pointer , dimension(:,:,:) :: fcc
-  real(8) , public , pointer , dimension(:,:) :: qck1 , cgul
-  real(8) , public :: caccr , cevap , rhmax
+  real(8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
+  real(8) , public :: caccr , cevap , rhmax , tc0 , fcmax , conf
+  ! TAO 2/8/11:
+  ! Flag for using convective liquid water path as the large-scale
+  ! liquid water path (iconvlwp=1)
+  integer , public :: iconvlwp
 !
-  public :: allocate_mod_precip , init_precip , pcp
+  public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 !
   contains
 !
@@ -52,22 +59,31 @@ module mod_precip
       call getmem3d(fcc,1,iy,1,kz,1,jxp,'pcp:fcc')
       call getmem2d(qck1,1,iy,1,jxp,'pcp:qck1')
       call getmem2d(cgul,1,iy,1,jxp,'pcp:cgul')
+      call getmem2d(rh0,1,iy,1,jxp,'pcp:rh0')
     end subroutine allocate_mod_precip
 !
-    subroutine init_precip(atmslice,tendency,sps,surface,lsmrainnc, &
-                           chremrat,chrembc)
+    subroutine init_precip(atmslice,atm,tendency,sps,surface,lsmrainnc, &
+                           chremrat,chrembc,radcldf,radlqwc)
       implicit none
       type(slice) , intent(in) :: atmslice
+      type(atmstate) , intent(in) :: atm
       type(atmstate) , intent(in) :: tendency
       type(surfpstate) , intent(in) :: sps
       type(surfstate) , intent(in) :: surface
       real(8) , pointer , dimension(:,:) :: lsmrainnc
       real(8) , pointer , dimension(:,:) :: chremrat , chrembc
+      real(8) , pointer , dimension(:,:) :: radcldf , radlqwc
 
       t3      => atmslice%tb3d
       p3      => atmslice%pb3d
       qv3     => atmslice%qvb3d
       qc3     => atmslice%qcb3d
+      qs3     => atmslice%qsb3d
+      rh3     => atmslice%rhb3d
+      rho3    => atmslice%rhob3d
+      t2      => atm%t
+      qv2     => atm%qv
+      qc2     => atm%qc
       tten    => tendency%t
       qcten   => tendency%qc
       qvten   => tendency%qv
@@ -76,11 +92,17 @@ module mod_precip
       lsmrnc  => lsmrainnc
       chrmrat => chremrat
       chrmbc  => chrembc
+      cldfra  => radcldf
+      cldlwc  => radlqwc
 
       istart = lbound(rainnc,1) + 1
       istopx = ubound(rainnc,1) - 2
 
       call getmem1d(pptsum,istart,istopx,'pcp:pptsum')
+      call getmem2d(qccs,istart,istopx,1,kz,'pcp:qccs')
+      call getmem2d(tmp1,istart,istopx,1,kz,'pcp:tmp1')
+      call getmem2d(tmp2,istart,istopx,1,kz,'pcp:tmp2')
+      call getmem2d(tmp3,istart,istopx,1,kz,'pcp:tmp3')
     end subroutine init_precip
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -327,5 +349,229 @@ module mod_precip
     end do
    
     end subroutine pcp
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                 c
+! This subroutine computes the fractional cloud coverage and      c
+! liquid water content (in cloud value).  Both are use in         c
+! radiation.                                                      c
+!                                                                 c
+! The fractional coverage of large scale clouds is a function of  c
+! relative humidity, using the relationship of sundqvist et       c
+! al., 1989.  The relative humidity at which clouds begin to      c
+! form is lower over land than ocean, due to the greater number   c
+! of cloud condensation nucleii.                                  c
+!                                                                 c
+! The fracional coverage of convective clouds is passed in from   c
+! the convection scheme.                                          c
+!                                                                 c
+! The large-scale and convective clouds are combined as follows:  c
+! 1) If the convective cloud fraction > large scale fraction, the c
+! convective fraction and water content are used (this occurs     c
+! infrequently).                                                  c
+! 2) Otherwise, the cloud fraction equals the large-scale         c
+! fraction AND the water content is a weighted average of both    c
+! types.                                                          c
+!                                                                 c
+! Note: the incloud water content (g/m3) is passed to radiation   c
+!                                                                 c
+! See Pal et al (2000) for more info.                             c
+!                                                                 c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!
+    subroutine cldfrac(jstart,jstop)
+!
+    implicit none
+!
+    integer , intent(in) :: jstart , jstop
+!
+    real(8) :: exlwc , rh0adj
+    integer :: i , j , k
+!
+!--------------------------------------------------------------------
+!   1.  Determine large-scale cloud fraction
+!--------------------------------------------------------------------
+    do j = jstart , jstop
+      do k = 1 , kz
+        ! Adjusted relative humidity threshold
+        do i = 2 , iym2
+          if ( t3(i,k,j) > tc0 ) then
+            rh0adj = rh0(i,j)
+          else ! high cloud (less subgrid variability)
+            rh0adj = rhmax-(rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-t3(i,k,j)))
+          end if
+          if ( rh3(i,k,j) >= rhmax ) then        ! full cloud cover
+            fcc(i,k,j) = d_one
+          else if ( rh3(i,k,j) <= rh0adj ) then  ! no cloud cover
+            fcc(i,k,j) = d_zero
+          else                                     ! partial cloud cover
+            fcc(i,k,j) = d_one-dsqrt(d_one-(rh3(i,k,j)-rh0adj) / &
+                          (rhmax-rh0adj))
+            fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
+          end if !  rh0 threshold
+!---------------------------------------------------------------------
+! Correction:
+! Ivan Guettler, 14.10.2010.
+! Based on: Vavrus, S. and Waliser D., 2008, 
+! An Improved Parameterization for Simulating Arctic Cloud Amount
+!    in the CCSM3 Climate Model, J. Climate 
+!---------------------------------------------------------------------
+          if ( p3(i,k,j) >= 75.0D0 ) then
+            ! Clouds below 750hPa
+            if ( qv3(i,k,j) <= 0.003D0 ) then
+              fcc(i,k,j) = fcc(i,k,j) * &
+                     dmax1(0.15D0,dmin1(d_one,qv3(i,k,j)/0.003D0))
+            end if
+          end if
+        end do
+      end do
+
+!---------------------------------------------------------------------
+!   End of the correction.
+!---------------------------------------------------------------------
+!--------------------------------------------------------------------
+!   2.  Combine large-scale and convective fraction and liquid water
+!       to be passed into radiation.
+!--------------------------------------------------------------------
+      do k = 1 , kz
+        do i = 2 , iym2
+          ! Cloud Water Volume
+          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+          exlwc = qc3(i,k,j)*rho3(i,k,j)*d_1000
+
+          ! temperature dependance for convective cloud water content
+          ! in g/m3 (Lemus et al., 1997)
+          cldlwc(i,k)  = 0.127D+00 + 6.78D-03*(t3(i,k,j)-tzero) + &
+                         1.29D-04* (t3(i,k,j)-tzero)**d_two  +    &
+                         8.36D-07*(t3(i,k,j)-tzero)**d_three
+
+          if ( cldlwc(i,k) > 0.3D+00 ) cldlwc(i,k) = 0.3D+00
+          if ( (t3(i,k,j)-tzero) < -50D+00 ) cldlwc(i,k) = 0.001D+00
+          ! Apply the parameterisation based on temperature to the
+          ! convective fraction AND the large scale clouds :
+          ! the large scale cloud water content is not really used by
+          ! current radiation code, needs further evaluation.
+          !TAO: but only apply this parameterization to large scale LWC 
+          !if the user specifies it
+          if (iconvlwp == 1) exlwc = cldlwc(i,k)
+          cldlwc(i,k) = (cldfra(i,k)*cldlwc(i,k)+fcc(i,k,j)*exlwc) / &
+                        dmax1(cldfra(i,k)+fcc(i,k,j),0.01D0)
+          cldfra(i,k) = dmin1(dmax1(cldfra(i,k),fcc(i,k,j)),fcmax)
+        end do
+      end do
+    end do
+   
+    end subroutine cldfrac
+!
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!                                                                 c
+! This subroutine computes the condensational or evaporational    c
+! heating term and the fallout term of precipitation from the     c
+! explicit moisture scheme.                                       c
+!                                                                 c
+! ---the condensational or evaporational term are one step        c
+!    adjustment based on asai (1965, j. meteo. soc. japan).       c
+!                                                                 c
+! ---modified to include the effects of partial cloud cover       c
+!    (see Pal et al 2000).  When partial clouds exist, the qvten  c
+!    in/out of the clear and cloudy portions of the grid cell is  c
+!    assumed to be at the same rate (i.e., if there is 80% cloud  c
+!    cover, .2 of qvten goes to raising qv in the clear region    c
+!    and .8 goes to condensation or evaporation of qc in the      c
+!    cloudy portion).                                             c
+!                                                                 c
+!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+! 
+  subroutine condtq(jstart,jstop,psc,qvcs)
+! 
+    implicit none
+!
+    integer , intent(in) :: jstart , jstop
+    real(8) , dimension(iy,jxp) , intent(in) :: psc
+    real(8) , dimension(iy,kz) , intent(inout) :: qvcs
+!
+!   rhc    - Relative humidity at ktau+1
+!   rh0adj - Adjusted relative humidity threshold at ktau+1
+!   fccc   - Cloud fraction at ktau+1
+!
+    real(8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
+               r1 , rh0adj , rhc , satvp
+    integer :: i , j , k
+
+    do j = jstart , jstop
+!---------------------------------------------------------------------
+!     1.  Compute t, qv, and qc at tau+1 without condensational term
+!---------------------------------------------------------------------
+      do k = 1 , kz
+        do i = 2 , iym2
+          tmp3(i,k) = (t2(i,k,j)+dt*tten(i,k,j))/psc(i,j)
+          qvcs(i,k) = dmax1((qv2(i,k,j)+dt*qvten(i,k,j))/psc(i,j),lowq)
+          qccs(i,k) = dmax1((qc2(i,k,j)+dt*qcten(i,k,j))/psc(i,j),lowq)
+        end do
+      end do
+     
+!---------------------------------------------------------------------
+!     2.  Compute the cloud condensation/evaporation term.
+!---------------------------------------------------------------------
+      do k = 1 , kz
+        do i = 2 , iym2
+     
+!         2a. Calculate the saturation mixing ratio and relative humidity
+          pres = (a(k)*psc(i,j)+r8pt)*d_1000
+          if ( tmp3(i,k) > tzero ) then
+            satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero)/(tmp3(i,k)-svp3))
+          else
+            satvp = svp4*d_1000*dexp(svp5-svp6/tmp3(i,k))
+          end if
+          qvs = dmax1(ep2*satvp/(pres-satvp),lowq)
+          rhc = dmax1(qvcs(i,k)/qvs,lowq)
+
+          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3(i,k)*tmp3(i,k)))
+     
+!         2b. Compute the relative humidity threshold at ktau+1
+          if ( tmp3(i,k) > tc0 ) then
+            rh0adj = rh0(i,j)
+          else ! high cloud (less subgrid variability)
+            rh0adj = rhmax - (rhmax-rh0(i,j))/(d_one+0.15D0*(tc0-tmp3(i,k)))
+          end if
+     
+!         2c. Compute the water vapor in excess of saturation
+          if ( rhc >= rhmax .or. rhc < rh0adj ) then
+                                                   ! Full or no cloud cover
+            dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
+            tmp1(i,k) = r1*dqv
+          else                                     ! Partial cloud cover
+            fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = dmin1(dmax1(fccc,0.01D0),d_one)
+            qvc_cld = dmax1((qs3(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
+            dqv = qvc_cld - qvs*conf       ! qv diff between predicted qv_c
+            tmp1(i,k) = r1*dqv*fccc        ! grid cell average
+          end if
+     
+!         2d. Compute the new cloud water + old cloud water
+          exces = qccs(i,k) + tmp1(i,k)
+          if ( exces >= d_zero ) then
+                              ! Some cloud is left
+            tmp2(i,k) = tmp1(i,k)/dt
+          else                ! The cloud evaporates
+            tmp2(i,k) = -qccs(i,k)/dt
+          end if
+     
+        end do
+      end do
+     
+!---------------------------------------------------------------------
+!     3.  Compute the tendencies.
+!---------------------------------------------------------------------
+      do k = 1 , kz
+        do i = 2 , iym2
+          qvten(i,k,j) = qvten(i,k,j) - psc(i,j)*tmp2(i,k)
+          qcten(i,k,j) = qcten(i,k,j) + psc(i,j)*tmp2(i,k)
+          tten(i,k,j) = tten(i,k,j) + psc(i,j)*tmp2(i,k)*wlhvocp
+        end do
+      end do
+    end do
+   
+  end subroutine condtq
 !
 end module mod_precip

@@ -51,9 +51,8 @@ bin_PROGRAMS = regcm
 
 regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 \
 								mod_advection.F90 mod_bdycod.F90 mod_che_tend.F90 \
-								mod_cldfrac.f90 mod_colmod3.F90 mod_condtq.f90 \
+								mod_colmod3.F90 mod_cu_kuo.F90 mod_diffusion.F90 \
 								mod_cu_bm.F90 mod_cu_em.f90 mod_cu_grell.F90 \
-								mod_cu_kuo.F90 mod_cumtran.F90 mod_diffusion.F90 \
                 mod_holtbl.F90 mod_init.F90 mod_atm_interface.f90        \
                 mod_mppio.F90 mod_ncio.F90 mod_cu_tables.f90          \
                 mod_o3blk.F90 mod_output.F90 mod_outrad.F90 \
@@ -93,13 +92,9 @@ mod_che_tend.o: mod_che_tend.F90 mod_atm_interface.o \
                 mod_runparams.o mod_pbldim.o mod_pmoist.o mod_rad.o \
                 mod_diffusion.o mod_precip.o \
                 mod_advection.o mod_diagnosis.o mod_mppio.o mod_slice.o
-mod_cldfrac.o: mod_cldfrac.f90 mod_pmoist.o mod_rad.o mod_precip.o mod_slice.o
 mod_colmod3.o: mod_colmod3.F90 mod_runparams.o \
                mod_radiation.o mod_atm_interface.o mod_rad.o \
                mod_outrad.o
-mod_condtq.o: mod_condtq.f90 mod_atm_interface.o mod_precip.o \
-              mod_runparams.o mod_pmoist.o mod_slice.o
-mod_cumtran.o: mod_cumtran.F90 mod_runparams.o
 mod_cu_bm.o: mod_cu_bm.F90 mod_atm_interface.o \
              mod_runparams.o mod_pmoist.o mod_rad.o
 mod_cu_em.o: mod_cu_em.f90 mod_atm_interface.o \
@@ -142,7 +137,7 @@ mod_params.o: mod_params.F90 mod_cu_em.o mod_lm_interface.o \
               mod_cu_bm.o mod_split.o mod_outrad.o mod_holtbl.o \
               mod_ncio.o mod_radiation.o mod_bdycod.o mod_scenarios.o \
               mod_cu_tables.o mod_cu_tiedtke.o mod_cu_grell.o mod_tendency.o \
-              mod_ncio.o mod_cldfrac.o
+              mod_ncio.o
 mod_pbldim.o: mod_pbldim.f90
 mod_pmoist.o: mod_pmoist.f90
 mod_precip.o: mod_precip.f90 mod_slice.o \
@@ -168,10 +163,9 @@ mod_tendency.o: mod_tendency.F90 mod_bdycod.o \
                 mod_atm_interface.o mod_precip.o mod_runparams.o mod_pmoist.o \
                 mod_rad.o mod_holtbl.o \
                 mod_slice.o mod_cu_grell.o mod_cu_kuo.o \
-                mod_cu_bm.o mod_cu_em.o mod_sun.o mod_cumtran.o \
-                mod_precip.o mod_colmod3.o mod_diagnosis.o mod_condtq.o \
-                mod_diffusion.o mod_advection.o mod_che_tend.o \
-                mod_cldfrac.o
+                mod_cu_bm.o mod_cu_em.o mod_sun.o \
+                mod_precip.o mod_colmod3.o mod_diagnosis.o \
+                mod_diffusion.o mod_advection.o mod_che_tend.o
 mod_thetal.o: mod_thetal.f90
 mod_tracer.o: mod_tracer.f90
 mod_tstep.o: mod_tstep.f90 mod_runparams.o

@@ -22,6 +22,9 @@ module mod_o3blk
   use mod_constants
   use mod_dynparam
   use mod_memutil
+  use mod_runparams , only : r8pt , sigma
+  use mod_atm_interface
+  use mod_rad
 
   implicit none
 
@@ -73,10 +76,6 @@ module mod_o3blk
 !
   subroutine o3data
 !
-  use mod_dynparam
-  use mod_runparams , only : r8pt , sigma
-  use mod_atm_interface
-  use mod_rad
   implicit none
 !
   integer :: i , j , jj , k , kj

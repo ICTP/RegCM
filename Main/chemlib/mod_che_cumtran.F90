@@ -21,7 +21,7 @@ module mod_cumtran
 !
 ! Tracer convective transport
 !
-  use mod_runparams
+  use mod_dynparam
   use mod_che_trac
   use mod_che_interface
 !
@@ -53,9 +53,9 @@ module mod_cumtran
           chibbar = d_zero
           kcumtop = max0(icumtop(i,j),4)
           do k = kcumtop , kz
-            deltas = deltas + dsigma(k)
-            chiabar = chiabar + chia(i,k,j,n)*dsigma(k)
-            chibbar = chibbar + chib(i,k,j,n)*dsigma(k)
+            deltas = deltas + chlevs(k)
+            chiabar = chiabar + chia(i,k,j,n)*chlevs(k)
+            chibbar = chibbar + chib(i,k,j,n)*chlevs(k)
           end do
           do k = kcumtop , kz
             chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc) + cumfrc*chiabar/deltas

@@ -41,7 +41,6 @@ module mod_params
   use mod_holtbl
   use mod_che_aerosol
   use mod_radiation
-  use mod_cldfrac
   use mod_che_dust
   use mod_bdycod
   use mod_che_interface
@@ -697,7 +696,7 @@ module mod_params
   call allocate_mod_che_dust
 
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
-  call init_precip(atms,aten,sps2,sfsta,pptnc,remrat,rembc)
+  call init_precip(atms,atm2,aten,sps2,sfsta,pptnc,remrat,rembc,cldfra,cldlwc)
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

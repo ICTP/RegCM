@@ -28,15 +28,15 @@ module mod_pmoist
 
   implicit none
 !
-  real(8) :: clfrcv , clfrcvmax , cllwcv , conf ,   &
-             dtauc , fcmax , gulland , guloce , htmax , htmin ,     &
+  real(8) :: clfrcv , clfrcvmax , cllwcv , &
+             dtauc , gulland , guloce , htmax , htmin ,     &
              mincld , pbcmax , qck10 , qck1land , qck1oce ,         &
-             rh0land , rh0oce , tc0 , skbmax
+             rh0land , rh0oce , skbmax
 
   real(8) , pointer , dimension(:,:) :: cbmf2d , dtauc2d ,        &
         edtmax2d , edtmaxo2d , edtmaxx2d , edtmin2d , edtmino2d , &
         edtminx2d , htmax2d , htmin2d , mincld2d , pbcmax2d ,     &
-        rh0 , shrmax2d , shrmin2d
+        shrmax2d , shrmin2d
   real(8) , pointer , dimension(:,:,:) :: rsheat , rswat
   real(8) , pointer , dimension(:) :: qwght
   real(8) , pointer , dimension(:,:,:) :: twght , vqflx
@@ -61,7 +61,6 @@ module mod_pmoist
   call getmem2d(htmin2d,1,iy,1,jxp,'mod_pmoist:htmin2d')
   call getmem2d(mincld2d,1,iy,1,jxp,'mod_pmoist:mincld2d')
   call getmem2d(pbcmax2d,1,iy,1,jxp,'mod_pmoist:pbcmax2d')
-  call getmem2d(rh0,1,iy,1,jxp,'mod_pmoist:rh0')
   call getmem2d(shrmax2d,1,iy,1,jxp,'mod_pmoist:shrmax2d')
   call getmem2d(shrmin2d,1,iy,1,jxp,'mod_pmoist:shrmin2d')
   call getmem3d(rsheat,1,iy,1,kz,1,jxp,'mod_pmoist:rsheat')
