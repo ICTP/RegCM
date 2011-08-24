@@ -400,8 +400,9 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile Share/Makefile PreProc/Makefile \
                  PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
-                 Main/clmlib/Makefile Main/Makefile external/Makefile \
-		 Main/chem/Makefile Main/chem/GAS_KPP_GEOS/Makefile \
+                 Main/batslib/Makefile Main/clmlib/Makefile Main/Makefile \
+                 Main/chemlib/Makefile Main/chemlib/GAS_KPP_GEOS/Makefile \
+                 external/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/SAV_read/Makefile])

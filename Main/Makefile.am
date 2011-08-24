@@ -1,13 +1,13 @@
 
-SUBDIRS = netlib batslib chem clmlib
+SUBDIRS = netlib batslib chemlib clmlib
 
 include $(REGCM_ROOT)/makeinc
 
 CLMLIBPTH = ./clmlib
 BATLIBPTH = ./batslib
 NETLIBPTH = ./netlib
-CHELIBPTH = ./chem
-KPPLIBPTH = chem/GAS_KPP_GEOS
+CHELIBPTH = ./chemlib
+KPPLIBPTH = chemlib/GAS_KPP_GEOS
 
 CLMLIB = $(CLMLIBPTH)/libclm.a
 BATLIB = $(BATLIBPTH)/libbats.a
@@ -31,6 +31,7 @@ endif
 
 program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
+LBATLIB = -L$(BATLIBPTH) -lbats
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
@@ -44,7 +45,7 @@ else
 							-I$(BATLIBPTH)
 endif
 
-LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LKPPLIB) $(BATLIB)
+LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LKPPLIB) $(LBATLIB)
 
 bin_PROGRAMS = regcm
 
