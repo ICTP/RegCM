@@ -58,6 +58,7 @@ module mod_params
   use mod_mppio
 #ifdef CLM
   use mod_clm
+  use clm_varsur , only : landmask
 #endif
 
   private
@@ -842,8 +843,13 @@ module mod_params
 !sb   end lake model mods
 !
   call set_scenario(scenario)
+#ifdef CLM
+  call init_clm(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
+                iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d,landmask)
+#else
   call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                  iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)
+#endif
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then

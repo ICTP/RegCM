@@ -119,24 +119,25 @@ module mod_bats
   data llake  /.false./
   data ldesseas /.false./
 
-  real(8) , pointer , dimension(:,:) :: xlat    ! mddom%xlat
-  real(8) , pointer , dimension(:,:) :: lndcat  ! mddom%lndcat
-  real(8) , pointer , dimension(:,:) :: ht      ! mddom%ht
-  real(8) , pointer , dimension(:,:) :: tground1 ! sts1%tg
-  real(8) , pointer , dimension(:,:) :: tground2 ! sts2%tg
+  real(8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
+  real(8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
+  real(8) , pointer , dimension(:,:) :: ht            ! mddom%ht
+  real(8) , pointer , dimension(:,:) :: tground1      ! sts1%tg
+  real(8) , pointer , dimension(:,:) :: tground2      ! sts2%tg
   real(8) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
-  real(8) , pointer , dimension(:,:,:) :: tatm ! atms%tb3d
-  real(8) , pointer , dimension(:,:,:) :: thatm ! atms%thx3d
-  real(8) , pointer , dimension(:,:,:) :: qvatm ! atms%qvb3d
-  real(8) , pointer , dimension(:,:) :: zpbl ! sfsta%zpbl
-  real(8) , pointer , dimension(:,:) :: hfx  ! sfsta%hfx
-  real(8) , pointer , dimension(:,:) :: qfx  ! sfsta%qfx
-  real(8) , pointer , dimension(:,:) :: uvdrag ! sfsta%uvdrag
-  real(8) , pointer , dimension(:,:) :: tgbb ! sfsta%tgbb
-  real(8) , pointer , dimension(:,:) :: sfps ! sps2%ps
-  real(8) , pointer , dimension(:,:,:) :: hgt ! za
-  real(8) , pointer , dimension(:,:) :: ts    ! ts1
-  real(8) , pointer , dimension(:,:) :: rho   ! rhox2d
+  real(8) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
+  real(8) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
+  real(8) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
+  real(8) , pointer , dimension(:,:) :: zpbl          ! sfsta%zpbl
+  real(8) , pointer , dimension(:,:) :: hfx           ! sfsta%hfx
+  real(8) , pointer , dimension(:,:) :: qfx           ! sfsta%qfx
+  real(8) , pointer , dimension(:,:) :: uvdrag        ! sfsta%uvdrag
+  real(8) , pointer , dimension(:,:) :: tgbb          ! sfsta%tgbb
+  real(8) , pointer , dimension(:,:) :: sfps          ! sps2%ps
+  real(8) , pointer , dimension(:,:,:) :: hgt         ! za
+  real(8) , pointer , dimension(:,:) :: ts            ! ts1
+  real(8) , pointer , dimension(:,:) :: rho           ! rhox2d
+  integer , pointer , dimension(:,:) :: lmask         ! CLM landmask
 
   contains
 

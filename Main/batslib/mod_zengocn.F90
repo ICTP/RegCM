@@ -25,9 +25,6 @@ module mod_zengocn
   use mod_dynparam
   use mod_service
   use mod_bats
-#ifdef CLM
-  use clm_varsur , only : landmask
-#endif
 !
   private
 !
@@ -94,7 +91,7 @@ module mod_zengocn
     do i = istart , iend
       do n = 1 , nnsg
 #ifdef CLM
-        if ( ocld2d(n,i,j) == 0 .or. landmask(jj,i) == 3 ) then
+        if ( ocld2d(n,i,j) == 0 .or. lmask(jj,i) == 3 ) then
 #else
         if ( ocld2d(n,i,j) == 0 ) then
 #endif

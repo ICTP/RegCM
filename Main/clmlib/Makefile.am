@@ -1,7 +1,9 @@
 REGCMSRC = $(REGCM_ROOT)/Main
+BATS     = $(REGCMSRC)/libbats
 BSP      = $(REGCMSRC)/clmlib
 CLMSRC   = $(REGCMSRC)/clm3.5
 
+BATS_INCLUDE = $(BATS)
 ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
 UTIL_INCLUDE = $(CLMSRC)/src/utils/timing/
 GLOB_INCLUDE = .
@@ -54,7 +56,7 @@ PATCHSRC = $(BSP)/accFldsMod.F90 $(BSP)/atmdrvMod.F90 \
 noinst_LIBRARIES = libclm.a
 
 if DO_COMPILE_LIBCLM
-libclm_a_SOURCES =  BalanceCheckMod.F90 BiogeophysRestMod.F90 \
+libclm_a_SOURCES =  mod_clm.F90 BalanceCheckMod.F90 BiogeophysRestMod.F90 \
 Biogeophysics1Mod.F90 Biogeophysics2Mod.F90 \
 C13SummaryMod.F90 CASAMod.F90 CASAPhenologyMod.F90 CNAllocationMod.F90 \
 CNAnnualUpdateMod.F90 CNBalanceCheckMod.F90 CNC13FluxMod.F90 \
@@ -111,7 +113,7 @@ BalanceCheckMod.F90 initGridCellsMod.F90 clm_time_manager.F90 \
 abortutils.F90 Meat.F90 wrf_error_fatal.F90 wrf_message.F90 \
 scam_setlatlonidx.F90 gptl.c gptl_papi.c gptlutil.c f_wrappers.c \
 threadutil.c getdatetime.F90 snowdp2lev.F90 \
-do_close_dispose.F90 $(PATCHSRC)
+do_close_dispose.F90 $(PATCHSRC) mod_mtrxclm.F90
 else
 libclm_a_SOURCES = mod_clm_void.F90
 endif
@@ -137,8 +139,13 @@ FCFLAGS += -fno-range-check
 CPPFLAGS += -DG95
 endif
 
-FCFLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
-           -I$(REGCMSRC) $(NETCDFINC)
+if COMPILER_SUN
+  FCFLAGS += -M$(ESMF_INCLUDE) -M$(UTIL_INCLUDE) -M$(GLOB_INCLUDE) \
+             -M$(BATS_INCLUDE) $(NETCDFINC)
+else
+  FCFLAGS += -I$(ESMF_INCLUDE) -I$(UTIL_INCLUDE) -I$(GLOB_INCLUDE) \
+             -I$(BATS_INCLUDE) $(NETCDFINC)
+endif
 
 %.o: %.f90
 	$(FC) $(FPPFLAGS) $(FCFLAGS) -c $<
@@ -159,7 +166,12 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_clm_void.o: mod_clm_void.F90
-mod_clm.o: mod_space.o mod_message.o mod_memutil.o
+mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+           $(REGCM_ROOT)/Share/mod_memutil.mod \
+           $(REGCM_ROOT)/Share/mod_constants.mod
+mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+           mod_clm.o $(BATS)/mod_bats.mod $(BATS)/mod_vecbats.o \
+					 $(BATS)/mod_drag.o
 
 accFldsMod.o: $(BSP)/accFldsMod.F90
 atmdrvMod.o: $(BSP)/atmdrvMod.F90
