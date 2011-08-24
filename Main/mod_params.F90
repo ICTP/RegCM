@@ -845,7 +845,8 @@ module mod_params
   call set_scenario(scenario)
 #ifdef CLM
   call init_clm(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d,landmask)
+                iseaice,mddom,mddom_io,atms,sfsta,sps2,sts1,sts2,&
+                za,ts1,ts0_io,rhox2d,landmask)
 #else
   call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                  iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)

@@ -72,23 +72,27 @@ module mod_lm_interface
 !
 #ifdef CLM
   subroutine init_clm(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                      iseaice,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d,lm)
+                      iseaice,dom,dom1,atm,sfs,sps,st1,st2,za,ts1,  &
+                      ts0,rhox2d,lm)
     implicit none
     real(8) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
     integer , intent(in) :: ichem , iemiss , idcsst , &
                             lakemod , idesseas , iseaice
-    type(domain) , intent(in) :: dom
+    type(domain) , intent(in) :: dom , dom1
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     type(surfpstate) , intent(in) :: sps
     type(surftstate) , intent(in) :: st1 , st2
     real(8) , pointer , intent(in) , dimension(:,:,:) :: za
-    real(8) , pointer , intent(in) , dimension(:,:) :: ts1 , rhox2d
-    integer , pointer , intent(in) , dimension(:,:) :: lm
+    real(8) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d
+    integer , target , intent(in) , dimension(:,:) :: lm
 
     call init_bats(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                    iseaice,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
+    tsf   => ts0
+    htf   => dom1%ht
+    xlon  => dom%xlon
     lmask => lm
   end subroutine init_clm
 #endif

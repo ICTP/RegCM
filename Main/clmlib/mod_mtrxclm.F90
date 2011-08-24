@@ -22,6 +22,7 @@
 module mod_mtrxclm
 
   use mod_dynparam
+  use mod_message
   use mod_clm
   use mod_bats
   use mod_vecbats
@@ -56,18 +57,19 @@ module mod_mtrxclm
 !                            in mm/s.
 !=======================================================================
 !
-  subroutine mtrxclm
+  subroutine mtrxclm(ktau)
 !
     use atmdrvMod , only : rcmdrv
     use clm_comp , only : clm_run1 , clm_run2
 !
     implicit none
+    integer(8) , intent(in) :: ktau
 
-    call interfclm(1)
+    call interfclm(1,ktau)
     call rcmdrv()
     call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
-    call interfclm(2)
+    call interfclm(1,ktau)
 !
   end subroutine mtrxclm
 !
@@ -107,7 +109,7 @@ module mod_mtrxclm
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine initclm
+subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
 !
   use initializeMod
   use shr_orb_mod
@@ -127,11 +129,15 @@ module mod_mtrxclm
 ! 
   implicit none
 !
+  logical , intent(in) :: ifrest
+  type(rcm_time_and_date) , intent(in) :: idate1 , idate2
+  real(8) , intent(in) :: dtrad , dtsrf , dx
+!
   integer :: ci , cj , i , ii , j , jj , n , ierr
   real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,         &
-            & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
-            & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &
-            & r2cxlatd , r2cxlon , r2cxlond , r2czga
+              r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
+              r2csolsd , r2ctb , r2cuxb , r2cvxb , r2cxlat ,        &
+              r2cxlatd , r2cxlon , r2cxlond , r2czga
   real(r8) , dimension(jxp*iy) :: work_in
   real(r8) , dimension(jx*iy) :: work_out
   integer :: year , month , day , hour
@@ -159,7 +165,7 @@ module mod_mtrxclm
   r2cstart_tod = idate1%second_of_day
 !     stop date and time
   call split_idate(idate2,year,month,day,hour)
-  r2cstop_ymd = iyear*10000+month*100+day
+  r2cstop_ymd = year*10000+month*100+day
   r2cstop_tod = idate2%second_of_day
 !     calendar type (GREGORIAN not available in regcm)
   if ( ical == noleap ) then
@@ -198,8 +204,8 @@ module mod_mtrxclm
   if ( myid==0 ) then
     do j = 1 , jx
       do i = 1 , iy
-        ht_rcm(i,j)      = mddom_io%ht(i,j)
-        init_tgb(i,j)  = ts0_io(i,j)
+        ht_rcm(i,j)    = htf(i,j)
+        init_tgb(i,j)  = tsf(i,j)
         clm_fracveg(i,j) = d_zero
       end do
     end do
@@ -268,24 +274,24 @@ module mod_mtrxclm
       end if
  
 !         xlat,xlon in degrees
-      r2cxlatd(j,i) = mddom%xlat(ci,cj)
-      r2cxlond(j,i) = mddom%xlon(ci,cj)
+      r2cxlatd(j,i) = xlat(ci,cj)
+      r2cxlond(j,i) = xlon(ci,cj)
 !         xlat,xlon in radians
-      r2cxlat(j,i) = mddom%xlat(ci,cj)*degrad
-      r2cxlon(j,i) = mddom%xlon(ci,cj)*degrad
+      r2cxlat(j,i) = xlat(ci,cj)*degrad
+      r2cxlon(j,i) = xlon(ci,cj)*degrad
  
       if ( .not.ifrest ) then
 !           T(K) at bottom layer
-        r2ctb(j,i) = tb3d(ci,kz,cj)
+        r2ctb(j,i) = tatm(ci,kz,cj)
 !           Specific Humidity
-        r2cqb(j,i) = qvb3d(ci,kz,cj)/(d_one+qvb3d(ci,kz,cj))
+        r2cqb(j,i) = qvatm(ci,kz,cj)/(d_one+qvatm(ci,kz,cj))
 !           Reference Height (m)
-        r2czga(j,i) = za(ci,kz,cj)
+        r2czga(j,i) = hgt(ci,kz,cj)
 !           Surface winds
-        r2cuxb(j,i) = ubx3d(ci,kz,cj)
-        r2cvxb(j,i) = vbx3d(ci,kz,cj)
+        r2cuxb(j,i) = uatm(ci,kz,cj)
+        r2cvxb(j,i) = vatm(ci,kz,cj)
 !           Surface Pressure in Pa from hPa
-        r2cpsb(j,i)   = (sps2%ps(ci,cj)+r8pt)*d_1000
+        r2cpsb(j,i)   = (sfps(ci,cj)+ptop)*d_1000
         r2crnc(j,i)   = pptc(ci,cj)
         r2crnnc(j,i)  = pptnc(ci,cj)
         r2csols(j,i)  = sols2d(ci,cj)
@@ -317,8 +323,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -335,8 +341,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -353,8 +359,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -371,8 +377,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -389,8 +395,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -407,8 +413,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -426,8 +432,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -444,8 +450,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -462,8 +468,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -480,8 +486,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -498,8 +504,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -516,8 +522,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -534,8 +540,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                     & jxp*iy,mpi_double_precision,mpi_comm_world,  &
-                     & ierr)
+                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       ierr)
     ii = 1
     do j = 1 , jx
       do i = 1 , iy
@@ -554,8 +560,8 @@ module mod_mtrxclm
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                   & jxp*iy,mpi_double_precision,mpi_comm_world,    &
-                   & ierr)
+                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     ierr)
   ii = 1
   do j = 1 , jx
     do i = 1 , iy
@@ -572,8 +578,8 @@ module mod_mtrxclm
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                   & jxp*iy,mpi_double_precision,mpi_comm_world,    &
-                   & ierr)
+                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     ierr)
   ii = 1
   do j = 1 , jx
     do i = 1 , iy
@@ -590,8 +596,8 @@ module mod_mtrxclm
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                   & jxp*iy,mpi_double_precision,mpi_comm_world,    &
-                   & ierr)
+                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     ierr)
   ii = 1
   do j = 1 , jx
     do i = 1 , iy
@@ -608,8 +614,8 @@ module mod_mtrxclm
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                   & jxp*iy,mpi_double_precision,mpi_comm_world,    &
-                   & ierr)
+                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     ierr)
   ii = 1
   do j = 1 , jx
     do i = 1 , iy
@@ -693,9 +699,9 @@ module mod_mtrxclm
       do i = 1 , iym1
         do n = 1 , nnsg
           ocld2d(n,i,j) = landmask(jj,i)
-          tgb2d(n,i,j) = sts2%tg(i,j)
-          taf2d(n,i,j) = sts2%tg(i,j)
-          tlef2d(n,i,j) = sts2%tg(i,j)
+          tgb2d(n,i,j) = tground2(i,j)
+          taf2d(n,i,j) = tground2(i,j)
+          tlef2d(n,i,j) = tground2(i,j)
           dew2d(n,i,j) = d_zero
           sag2d(n,i,j) = d_zero
           scv2d(n,i,j) = dmax1(scv2d(n,i,j),d_zero)
@@ -721,14 +727,14 @@ module mod_mtrxclm
         ! Set some clm land surface/vegetation variables to the ones
         ! used in RegCM.  Make sure all are consistent  
 
-        mddom%lndcat(i,j) = clm2bats_veg(jj,i)
-        if ( clm2bats_veg(jj,i) < 0.1D0 ) mddom%lndcat(i,j) = 15.0D0
+        lndcat(i,j) = clm2bats_veg(jj,i)
+        if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat(i,j) = 15.0D0
         do n = 1 , nnsg
           lndcat1(n,i,j) = clm2bats_veg(jj,i)
           if ( clm2bats_veg(jj,i) < 0.1D0 ) lndcat1(n,i,j) = 15.0D0
         end do
 
-        veg2d(i,j) = idnint(mddom%lndcat(i,j))
+        veg2d(i,j) = idnint(lndcat(i,j))
         do n = 1 , nnsg
           veg2d1(n,i,j)  = idnint(lndcat1(n,i,j))
         end do
@@ -736,7 +742,7 @@ module mod_mtrxclm
         if ( ( veg2d(i,j) == 14 .or. veg2d(i,j) == 15 ) .and. &
                ldmsk(i,j) /= 0 ) then
           veg2d(i,j)        =  2
-          mddom%lndcat(i,j) =  d_two
+          lndcat(i,j) =  d_two
         end if
         do n = 1 , nnsg
           if ( ( veg2d1(n,i,j) == 14 .or. veg2d1(n,i,j) == 15 ) .and. &
@@ -748,7 +754,7 @@ module mod_mtrxclm
       end do
     end do
     ! Save CLM modified landuse for restart
-    lndcat2d(:,:) = mddom%lndcat(:,:)
+    lndcat2d(:,:) = lndcat(:,:)
   end if !end ifrest test
 
 !     deallocate some variables used in CLM initialization only
@@ -798,7 +804,7 @@ module mod_mtrxclm
  
   end subroutine albedoclm
 !
-  subroutine interfclm(ivers)
+  subroutine interfclm(ivers,ktau)
 
 !=======================================================================
 !l  built for clm version 3.0
@@ -813,13 +819,14 @@ module mod_mtrxclm
   implicit none
 !
   integer , intent(in) :: ivers
+  integer(8) , intent(in) :: ktau
 !
   real(8) :: mmpd , wpm2
   integer :: ci , cj , counter , i , ii , iii , j , jj , kk ,       &
-            & n , nn1 , nnn , nout
+              n , nn1 , nnn , nout
   real(8) , dimension(jxp,iy) :: r2cflwd , r2cpsb , r2cqb ,    &
-            & r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
-            & r2csolsd , r2ctb , r2cuxb , r2cvxb , r2czga
+              r2crnc , r2crnnc , r2csoll , r2csolld , r2csols ,     &
+              r2csolsd , r2ctb , r2cuxb , r2cvxb , r2czga
   real(4) :: real_4
   real(8) , dimension(jxp*iy*13) :: workin
   real(8) , dimension(jx*iy*13) :: workout
@@ -861,16 +868,16 @@ module mod_mtrxclm
         end if
  
 !           T(K) at bottom layer
-        r2ctb(j,i) = tb3d(ci,kz,cj)
+        r2ctb(j,i) = tatm(ci,kz,cj)
 !           Specific Humidity ?
-        r2cqb(j,i) = qvb3d(ci,kz,cj)/(d_one+qvb3d(ci,kz,cj))
+        r2cqb(j,i) = qvatm(ci,kz,cj)/(d_one+qvatm(ci,kz,cj))
 !           Reference Height (m)
-        r2czga(j,i) = za(ci,kz,cj)
+        r2czga(j,i) = hgt(ci,kz,cj)
 !           Surface winds
-        r2cuxb(j,i) = ubx3d(ci,kz,cj)
-        r2cvxb(j,i) = vbx3d(ci,kz,cj)
+        r2cuxb(j,i) = uatm(ci,kz,cj)
+        r2cvxb(j,i) = vatm(ci,kz,cj)
 !           Surface Pressure in Pa from cbar
-        r2cpsb(j,i) = (sps2%ps(ci,cj)+r8pt)*d_1000
+        r2cpsb(j,i) = (sfps(ci,cj)+ptop)*d_1000
 !           Rainfall
         r2crnc(j,i) = pptc(ci,cj)
         r2crnnc(j,i) = pptnc(ci,cj)
@@ -916,8 +923,8 @@ module mod_mtrxclm
       end do
     end do
     call mpi_allgather(workin,13*jxp*iy,mpi_double_precision,       &
-                     & workout,13*jxp*iy,mpi_double_precision,      &
-                     & mpi_comm_world,ierr)
+                       workout,13*jxp*iy,mpi_double_precision,      &
+                       mpi_comm_world,ierr)
  
     ii = 1
     kk = 1
@@ -1027,9 +1034,9 @@ module mod_mtrxclm
     if ( ktau==0 ) then
       mmpd = secpd/dtbat
       wpm2 = d_one/dtbat
-    else if ( ktau+1 == ksrf ) then
-      mmpd = houpd/(srffrq-dtsec/secph)
-      wpm2 = d_one/((srffrq-dtsec/secph)*secph)
+    else if ( ktau+1 == kbats ) then
+      mmpd = houpd/(srffrq-xdtsec/secph)
+      wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
     else
       mmpd = houpd/srffrq
       wpm2 = d_one/(srffrq*secph)
@@ -1038,22 +1045,22 @@ module mod_mtrxclm
     do j = jbegin , jendx
       jj = (jxp*myid) + j
  
-      call interf(1,j,2,iym1)
+      call interf(1,j,2,iym1,ktau)
 
       if ( iocnflx==2 ) then
-        call zengocndrv(j,2,iym1)
+        call zengocndrv(j,2,iym1,ktau)
       end if
  
       do i = 2 , iym1
         ci = i
-        sfsta%uvdrag(i,j) = d_zero
-        sfsta%hfx(i,j) = d_zero
-        sfsta%qfx(i,j) = d_zero
-        sts2%tg(i,j) = d_zero
-        sts1%tg(i,j) = d_zero
-        sfsta%tgbb(i,j) = d_zero
+        uvdrag(i,j) = d_zero
+        hfx(i,j) = d_zero
+        qfx(i,j) = d_zero
+        tground2(i,j) = d_zero
+        tground1(i,j) = d_zero
+        tgbb(i,j) = d_zero
 
-        if ( ichem == 1) then
+        if ( lchem ) then
           ssw2da(i,j) = d_zero
           sdeltk2d(i,j) = d_zero
           sdelqk2d(i,j) = d_zero
@@ -1063,12 +1070,12 @@ module mod_mtrxclm
         end if
 
         if ( landmask(jj,ci)==1 ) then
-          sts2%tg(i,j) = c2rtgb(jj,ci)
-          sts1%tg(i,j) = c2rtgb(jj,ci)
-          sfsta%hfx(i,j) = c2rsenht(jj,ci)
-          sfsta%qfx(i,j) = c2rlatht(jj,ci)
-          sfsta%uvdrag(i,j) = c2ruvdrag(jj,ci)
-          sfsta%tgbb(i,j) = c2rtgbb(jj,ci)
+          tground2(i,j) = c2rtgb(jj,ci)
+          tground1(i,j) = c2rtgb(jj,ci)
+          hfx(i,j) = c2rsenht(jj,ci)
+          qfx(i,j) = c2rlatht(jj,ci)
+          uvdrag(i,j) = c2ruvdrag(jj,ci)
+          tgbb(i,j) = c2rtgbb(jj,ci)
  
           if ( i<=iym1 ) then
             aldirs2d(i,j) = c2ralbdirs(jj,ci)
@@ -1092,18 +1099,18 @@ module mod_mtrxclm
             sice2d(n,i,j) = sice1d(n,i)  ! sea ice
             gwet2d(n,i,j) = gwet1d(n,i)
             ircp2d(n,i,j) = ircp1d(n,i)
-            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*sfsta%qfx(i,j)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sfsta%hfx(i,j)
+            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*qfx(i,j)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
             rnos2d(n,i,j) = c2rro_sur(jj,ci)*dtbat
             rno2d(n,i,j) = (c2rro_sub(jj,ci)+c2rro_sur(jj,ci))*dtbat
  
-            if ( ichem == 1 ) then
+            if ( lchem ) then
               ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
               sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
               sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
               sfracv2d(i,j) = sfracv2d(i,j) + c2rfvegnosno(jj,ci)
               sfracb2d(i,j) = sfracb2d(i,j) + d_one -               &
-                           & (c2rfvegnosno(jj,ci)+c2rfracsno(jj,ci))
+                             (c2rfvegnosno(jj,ci)+c2rfracsno(jj,ci))
               sfracs2d(i,j) = sfracs2d(i,j) + c2rfracsno(jj,ci)
             end if
           end do
@@ -1125,30 +1132,30 @@ module mod_mtrxclm
         else if ( landmask(jj,ci)==0 ) then !ocean
  
           do n = 1 , nnsg
-            sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
-            sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
-            sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-            sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
-            sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
+            uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
+            hfx(i,j) = hfx(i,j) + sent1d(n,i)
+            qfx(i,j) = qfx(i,j) + evpr1d(n,i)
+            tground2(i,j) = tground2(i,j) + tg1d(n,i)
+            tground1(i,j) = tground1(i,j) + tg1d(n,i)
 
-            if ( ichem == 1 ) then
+            if ( lchem  ) then
               ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
               sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
               sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
               sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,i)
               sfracb2d(i,j) = sfracb2d(i,j) + (d_one-sigf(n,i))    &
-                            & *(d_one-scvk(n,i))
+                              *(d_one-scvk(n,i))
               sfracs2d(i,j) = sfracs2d(i,j) + sigf(n,i)*wt(n,i) &
-                            & + (d_one-sigf(n,i))*scvk(n,i)
+                              + (d_one-sigf(n,i))*scvk(n,i)
             end if
  
             if ( iocnflx==1 .or.                                    &
-               & (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
-                        & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
-                        & veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
+                 (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
+              tgbb(i,j) = tgbb(i,j)                     &
+                          + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
+                          veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
             else
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
+              tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
             end if
             ssw1d(n,i)  = dmissval
             rsw1d(n,i)  = dmissval
@@ -1179,7 +1186,7 @@ module mod_mtrxclm
                               rnos1d(n,i)/secpd*dtbat
             end if
             if ( dabs(rnos1d(n,i)) > 1.0D-10 .and. &
-               & dabs(rno1d(n,i))  > 1.0D-10 ) then
+                 dabs(rno1d(n,i))  > 1.0D-10 ) then
               rno2d(n,i,j) = rno2d(n,i,j) + &
                       (rno1d(n,i)-rnos1d(n,i))/secpd*dtbat
             end if
@@ -1201,61 +1208,59 @@ module mod_mtrxclm
         !gridcell with some % land and ocean
  
           do n = 1 , nnsg
-            sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
-            sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
-            sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-            sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
-            sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
+            uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
+            hfx(i,j) = hfx(i,j) + sent1d(n,i)
+            qfx(i,j) = qfx(i,j) + evpr1d(n,i)
+            tground2(i,j) = tground2(i,j) + tg1d(n,i)
+            tground1(i,j) = tground1(i,j) + tg1d(n,i)
 
-            if ( ichem == 1 ) then
+            if ( lchem ) then
               ssw2da(i,j) = ssw2da(i,j) + ssw2d(n,i,j)
               sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
               sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
               sfracv2d(i,j) = sfracv2d(i,j) + c2rfvegnosno(jj,ci)
               sfracb2d(i,j) = sfracb2d(i,j)                         &
-                            & + d_one - (c2rfvegnosno(jj,ci)+       &
-                            & c2rfracsno(jj,ci))
+                              + d_one - (c2rfvegnosno(jj,ci)+       &
+                              c2rfracsno(jj,ci))
               sfracs2d(i,j) = sfracs2d(i,j) + c2rfracsno(jj,ci)
               ssw2da(i,j) = ssw2da(i,j)*landfrac(jj,ci)             &
-                          & + (d_one-landfrac(jj,ci))*ssw1d(n,i)
+                            + (d_one-landfrac(jj,ci))*ssw1d(n,i)
               sdeltk2d(i,j) = sdeltk2d(i,j)*landfrac(jj,ci)         &
-                            & + (d_one-landfrac(jj,ci))*delt1d(n,i)
+                              + (d_one-landfrac(jj,ci))*delt1d(n,i)
               sdelqk2d(i,j) = sdelqk2d(i,j)*landfrac(jj,ci)         &
-                            & + (d_one-landfrac(jj,ci))*delq1d(n,i)
+                              + (d_one-landfrac(jj,ci))*delq1d(n,i)
               sfracv2d(i,j) = sfracv2d(i,j)*landfrac(jj,ci)         &
-                            & + (d_one-landfrac(jj,ci))*sigf(n,i)
+                              + (d_one-landfrac(jj,ci))*sigf(n,i)
               sfracb2d(i,j) = sfracb2d(i,j)*landfrac(jj,ci)         &
-                            & + (d_one-landfrac(jj,ci))*            &
-                            & (d_one-sigf(n,i))*(d_one-scvk(n,i))
+                              + (d_one-landfrac(jj,ci))*            &
+                              (d_one-sigf(n,i))*(d_one-scvk(n,i))
               sfracs2d(i,j) = sfracs2d(i,j)*landfrac(jj,ci)         &
-                            & + (d_one-landfrac(jj,ci))             &
-                            & *(sigf(n,i)*wt(n,i)+(d_one-sigf(n,i)) &
-                            & *scvk(n,i))
+                              + (d_one-landfrac(jj,ci))             &
+                              *(sigf(n,i)*wt(n,i)+(d_one-sigf(n,i)) &
+                              *scvk(n,i))
             end if
  
             if ( iocnflx==1 .or.                                    &
-               & (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j)                     &
-                        & + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+   &
-                        &   veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
+                 (iocnflx==2 .and. ocld2d(n,i,j) /= 0) ) then
+              tgbb(i,j) = tgbb(i,j) + ((d_one-veg1d(n,i))*tg1d(n,i)**d_four+ &
+                            veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
             else
-              sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
+              tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
             end if
           end do
  
-          sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)* &
+          uvdrag(i,j) = uvdrag(i,j)* &
                         (d_one-landfrac(jj,ci))+ &
                         c2ruvdrag(jj,ci)*landfrac(jj,ci)
-          sfsta%hfx(i,j) = sfsta%hfx(i,j)*(d_one-landfrac(jj,ci)) + &
+          hfx(i,j) = hfx(i,j)*(d_one-landfrac(jj,ci)) + &
                            c2rsenht(jj,ci)*landfrac(jj,ci)
-          sfsta%qfx(i,j) = sfsta%qfx(i,j)*(d_one-landfrac(jj,ci)) + &
+          qfx(i,j) = qfx(i,j)*(d_one-landfrac(jj,ci)) + &
                            c2rlatht(jj,ci)*landfrac(jj,ci)
-          sts2%tg(i,j) = sts2%tg(i,j)*(d_one-landfrac(jj,ci)) +     &
+          tground2(i,j) = tground2(i,j)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
-          sfsta%tgbb(i,j) = sfsta%tgbb(i,j)* &
-                            (d_one-landfrac(jj,ci)) +   &
+          tgbb(i,j) = tgbb(i,j)* (d_one-landfrac(jj,ci)) +   &
                             c2rtgbb(jj,ci)*landfrac(jj,ci)
-          sts1%tg(i,j) = sts1%tg(i,j)*(d_one-landfrac(jj,ci)) +     &
+          tground1(i,j) = tground1(i,j)*(d_one-landfrac(jj,ci)) +     &
                          c2rtgb(jj,ci)*landfrac(jj,ci)
  
           do n = 1 , nnsg
@@ -1267,30 +1272,29 @@ module mod_mtrxclm
             ircp2d(n,i,j) = ircp1d(n,i)
 !abt            added below for the landfraction method
             scv2d(n,i,j) = c2rsnowc(jj,ci)*landfrac(jj,ci)          &
-                         & + scv1d(n,i)*(d_one-landfrac(jj,ci))
+                           + scv1d(n,i)*(d_one-landfrac(jj,ci))
             tg2d(n,i,j) = c2rtgb(jj,ci)*landfrac(jj,ci) + tg1d(n,i) &
-                        & *(d_one-landfrac(jj,ci))
+                          *(d_one-landfrac(jj,ci))
             tgb2d(n,i,j) = c2rtgb(jj,ci)*landfrac(jj,ci)            &
-                         & + tgb1d(n,i)*(d_one-landfrac(jj,ci))
+                           + tgb1d(n,i)*(d_one-landfrac(jj,ci))
             taf2d(n,i,j) = c2r2mt(jj,ci)*landfrac(jj,ci)            &
-                         & + t2m1d(n,i)*(d_one-landfrac(jj,ci))
+                           + t2m1d(n,i)*(d_one-landfrac(jj,ci))
             !note taf2d is 2m temp not temp in foilage
             tlef2d(n,i,j) = c2rtlef(jj,ci)*landfrac(jj,ci)          &
-                          & + tlef1d(n,i)*(d_one-landfrac(jj,ci))
+                            + tlef1d(n,i)*(d_one-landfrac(jj,ci))
             swt2d(n,i,j) = c2rsmtot(jj,ci)*landfrac(jj,ci)          &
-                         & + tsw1d(n,i)*(d_one-landfrac(jj,ci))
+                           + tsw1d(n,i)*(d_one-landfrac(jj,ci))
             srw2d(n,i,j) = c2rsm1m(jj,ci)*landfrac(jj,ci)           &
-                         & + rsw1d(n,i)*(d_one-landfrac(jj,ci))
+                           + rsw1d(n,i)*(d_one-landfrac(jj,ci))
             ssw2d(n,i,j) = c2rsm10cm(jj,ci)*landfrac(jj,ci)         &
-                         & + ssw1d(n,i)*(d_one-landfrac(jj,ci))
+                           + ssw1d(n,i)*(d_one-landfrac(jj,ci))
             q2d(i,j) = c2r2mq(jj,ci)*landfrac(jj,ci) + q2m1d(n,i)  &
-                     & *(d_one-landfrac(jj,ci))
+                       *(d_one-landfrac(jj,ci))
  
-            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*sfsta%qfx(i,j)
-            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sfsta%hfx(i,j)
+            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*qfx(i,j)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*hfx(i,j)
             rnos2d(n,i,j) = c2rro_sur(jj,ci)*dtbat
-            rno2d(n,i,j) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)&
-                         & *dtbat
+            rno2d(n,i,j) = c2rro_sub(jj,ci)*dtbat + c2rro_sur(jj,ci)*dtbat
           end do
 !
 !             quantities stored on 2d surface array for bats use only
@@ -1310,7 +1314,7 @@ module mod_mtrxclm
  
 !         Fill output arrays if needed
  
-      if ( mod(ktau+1,ksrf) == 0 .or. ktau == 0 ) then
+      if ( mod(ktau+1,kbats) == 0 .or. ktau == 0 ) then
  
         do i = 2 , iym1
           ci = i
@@ -1322,12 +1326,12 @@ module mod_mtrxclm
  
           do n = 1 , nnsg
             if ( ocld2d(n,i,j) /= 0 ) then
-              u10m_s(n,j,i-1) = real(ubx3d(i,kz,j))
-              v10m_s(n,j,i-1) = real(vbx3d(i,kz,j))
+              u10m_s(n,j,i-1) = real(uatm(i,kz,j))
+              v10m_s(n,j,i-1) = real(vatm(i,kz,j))
               tg_s(n,j,i-1) = real(tg2d(n,i,j))
               t2m_s(n,j,i-1) = real(taf2d(n,i,j))
-              u10m_o(j,i-1) = u10m_o(j,i-1) + real(ubx3d(i,kz,j))
-              v10m_o(j,i-1) = v10m_o(j,i-1) + real(vbx3d(i,kz,j))
+              u10m_o(j,i-1) = u10m_o(j,i-1) + real(uatm(i,kz,j))
+              v10m_o(j,i-1) = v10m_o(j,i-1) + real(vatm(i,kz,j))
               t2m_o(j,i-1) = t2m_o(j,i-1) + real(taf2d(n,i,j))
               tg_o(j,i-1) = tg_o(j,i-1) + real(tg2d(n,i,j))
             else if ( ocld2d(n,i,j) == 0 ) then
@@ -1348,7 +1352,7 @@ module mod_mtrxclm
           t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
           w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                    sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-          real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
+          real_4 = real((sfps(i,j)+ptop)*d_10)
           psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
  
           drag_o(j,i-1) = 0.0
@@ -1358,7 +1362,7 @@ module mod_mtrxclm
           do n = 1 , nnsg
             if ( ocld2d(n,i,j) /= 0 ) then
               q2m_s(n,j,i-1) = real(q2d(i,j))
-              drag_s(n,j,i-1) = real(sfsta%uvdrag(i,j))
+              drag_s(n,j,i-1) = real(uvdrag(i,j))
               evpa_s(n,j,i-1) = real(evpa2d(n,ci,j)*mmpd)
               sena_s(n,j,i-1) = real(sena2d(n,ci,j)*wpm2)
               tpr_s(n,j,i-1) = real((prnca2d(ci,j)+prca2d(ci,j))*mmpd)
@@ -1366,7 +1370,7 @@ module mod_mtrxclm
               ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
               q2m_o(j,i-1) = q2m_o(j,i-1) + real(q2d(i,j))
-              drag_o(j,i-1) = drag_o(j,i-1) + real(sfsta%uvdrag(i,j))
+              drag_o(j,i-1) = drag_o(j,i-1) + real(uvdrag(i,j))
               evpa_o(j,i-1) = evpa_o(j,i-1) + real(evpa2d(n,ci,j))
               sena_o(j,i-1) = sena_o(j,i-1) + real(sena2d(n,ci,j))
             else if ( ocld2d(n,i,j) == 0 ) then
@@ -1392,8 +1396,8 @@ module mod_mtrxclm
           flwd_o(j,i-1) = real(flwda2d(ci,j)*wpm2)
           sina_o(j,i-1) = real(sina2d(ci,j)*wpm2)
           prcv_o(j,i-1) = real(prca2d(ci,j)*mmpd)
-          ps_o(j,i-1) = real((sps2%ps(i,j)+r8pt)*d_10)
-          zpbl_o(j,i-1) = real(sfsta%zpbl(i,j))
+          ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
+          zpbl_o(j,i-1) = real(zpbl(i,j))
  
           tlef_o(j,i-1) = 0.0
           ssw_o(j,i-1) = 0.0

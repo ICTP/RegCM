@@ -120,8 +120,10 @@ module mod_bats
   data ldesseas /.false./
 
   real(8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
+  real(8) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
   real(8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(8) , pointer , dimension(:,:) :: ht            ! mddom%ht
+  real(8) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
   real(8) , pointer , dimension(:,:) :: tground1      ! sts1%tg
   real(8) , pointer , dimension(:,:) :: tground2      ! sts2%tg
   real(8) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
@@ -136,6 +138,7 @@ module mod_bats
   real(8) , pointer , dimension(:,:) :: sfps          ! sps2%ps
   real(8) , pointer , dimension(:,:,:) :: hgt         ! za
   real(8) , pointer , dimension(:,:) :: ts            ! ts1
+  real(8) , pointer , dimension(:,:) :: tsf           ! ts0_io
   real(8) , pointer , dimension(:,:) :: rho           ! rhox2d
   integer , pointer , dimension(:,:) :: lmask         ! CLM landmask
 

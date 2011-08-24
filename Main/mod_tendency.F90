@@ -602,7 +602,7 @@ module mod_tendency
 
 #ifdef CLM
     if ( init_grid ) then
-      call initclm
+      call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       init_grid = .false.
     end if
 #endif
@@ -1500,7 +1500,7 @@ module mod_tendency
       end if
       dtbat = dt*d_half*ntsrf
       ! CLM j loop is in mtrxclm
-      call mtrxclm
+      call mtrxclm(ktau)
     end if
 #endif
 

@@ -1,5 +1,5 @@
 REGCMSRC = $(REGCM_ROOT)/Main
-BATS     = $(REGCMSRC)/libbats
+BATS     = $(REGCMSRC)/batslib
 BSP      = $(REGCMSRC)/clmlib
 CLMSRC   = $(REGCMSRC)/clm3.5
 
@@ -170,8 +170,9 @@ mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_memutil.mod \
            $(REGCM_ROOT)/Share/mod_constants.mod
 mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-           mod_clm.o $(BATS)/mod_bats.mod $(BATS)/mod_vecbats.o \
-					 $(BATS)/mod_drag.o
+           $(REGCM_ROOT)/Share/mod_message.mod mod_clm.o \
+           $(BATS)/mod_bats.mod $(BATS)/mod_vecbats.o \
+           $(BATS)/mod_drag.o
 
 accFldsMod.o: $(BSP)/accFldsMod.F90
 atmdrvMod.o: $(BSP)/atmdrvMod.F90
