@@ -1,0 +1,63 @@
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+noinst_LIBRARIES = libbats.a
+libbats_a_SOURCES = mod_bats.F90 mod_bats_param.f90 mod_bndry.F90 \
+                    mod_co2.f90 mod_drag.F90 mod_lake.F90 mod_leaftemp.f90 \
+                    mod_vecbats.F90 mod_bats_mppio.F90 mod_zengocn.F90
+
+%.o: %.f90
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
+
+%.o: %.F90
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+
+distclean-local:
+	rm -f *.mod
+
+clean-local:
+	rm -f *.mod
+
+# --------------------------------------------------------------------
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+mod_bats_mppio.o mod_bats_mppio.mod : mod_bats_mppio.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod
+mod_bats_param.o mod_bats_param.mod : mod_bats_param.f90
+mod_bats.o mod_bats.mod : mod_bats.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+  $(REGCM_ROOT)/Share/mod_memutil.mod mod_bats_param.o
+mod_bndry.o mod_bndry.mod : mod_bndry.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+	$(REGCM_ROOT)/Share/mod_service.mod mod_bats.o mod_leaftemp.o mod_drag.o
+mod_co2.o mod_co2.mod : mod_co2.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+  mod_bats.o mod_leaftemp.o
+mod_drag.o mod_drag.mod : mod_drag.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+  mod_bats.o
+mod_lake.o mod_lake.mod : mod_lake.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
+  mod_bats.o mod_bats_mppio.o
+mod_leaftemp.o mod_leaftemp.mod : mod_leaftemp.f90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
+  mod_bats.o
+mod_vecbats.o mod_vecbats.mod : mod_vecbats.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
+  $(REGCM_ROOT)/Share/mod_service.mod $(REGCM_ROOT)/Share/mod_constants.o \
+  mod_bats.o mod_lake.o mod_bndry.o mod_drag.o mod_bats_mppio.o mod_zengocn.o
+mod_zengocn.o mod_zengocn.mod : mod_zengocn.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
+	mod_bats.o
+
