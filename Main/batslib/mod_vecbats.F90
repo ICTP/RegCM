@@ -19,18 +19,16 @@
  
 module mod_vecbats
 
-  use mod_runparams
-  use mod_zengocn
-  use mod_lake
+  use mod_dynparam
   use mod_message
+  use mod_constants
+  use mod_service
   use mod_bats
-  use mod_slice
-  use mod_pbldim
+  use mod_lake
   use mod_bndry
   use mod_drag
-  use mod_atm_interface
-  use mod_service
-  use mod_mppio
+  use mod_bats_mppio
+  use mod_zengocn
 
   private
 
@@ -153,11 +151,12 @@ module mod_vecbats
 !                            in mm/s.
 !=======================================================================
 ! 
-  subroutine vecbats(j)
+  subroutine vecbats(j,ktau)
 !
     implicit none
 !
     integer , intent(in) :: j
+    integer(8) , intent(in) :: ktau
     character (len=64) :: subroutine_name='vecbats'
     integer :: idindx=0
 !
@@ -167,7 +166,7 @@ module mod_vecbats
 !
 !   Excange from model to BATS
 
-    call interf(1,j,2,iym1)
+    call interf(1,j,2,iym1,ktau)
 
 !   Calculate surface fluxes and hydrology budgets
 
@@ -178,16 +177,16 @@ module mod_vecbats
     call bndry
 
 !   Zeng ocean flux model
-    if ( iocnflx == 2 ) call zengocndrv(j,2,iym1)
+    if ( iocnflx == 2 ) call zengocndrv(j,2,iym1,ktau)
 
 !   Hostetler lake model for every BATS timestep at lake points
-    if ( lakemod == 1 ) then
+    if ( llake ) then
       call lakedrv(j)
     endif
 
 !   Accumulate quantities for energy and moisture budgets
 
-    call interf(2,j,2,iym1)
+    call interf(2,j,2,iym1,ktau)
 ! 
     call time_end(subroutine_name,idindx)
 !
@@ -218,7 +217,7 @@ module mod_vecbats
       do ill = 1 , iym1
         pptnc(ill,jll) = d_zero
         pptc(ill,jll) = d_zero
-        veg2d(ill,jll) = idnint(mddom%lndcat(ill,jll)+0.1D0)
+        veg2d(ill,jll) = idnint(lndcat(ill,jll)+0.1D0)
       end do
       do ill = 1 , iym1
         do k = 1 , nnsg
@@ -228,18 +227,18 @@ module mod_vecbats
     end do
 
 !   initialize hostetler lake model
-    if (lakemod == 1) call initlake
+    if ( llake ) call initlake
  
     do jll = 1 , jendx
       do ill = 1 , iym1
         do k = 1 , nnsg
-          tg2d(k,ill,jll) = sts2%tg(ill,jll)
-          tgb2d(k,ill,jll) = sts2%tg(ill,jll)
-          taf2d(k,ill,jll) = sts2%tg(ill,jll)
-          tlef2d(k,ill,jll) = sts2%tg(ill,jll)
+          tg2d(k,ill,jll) = tground2(ill,jll)
+          tgb2d(k,ill,jll) = tground2(ill,jll)
+          taf2d(k,ill,jll) = tground2(ill,jll)
+          tlef2d(k,ill,jll) = tground2(ill,jll)
 
           if ( ocld2d(k,ill,jll) == 2 ) then
-            if ( iseaice == 1 .or. lakemod == 1 ) then
+            if ( lseaice .or. llake ) then
               sice2d(k,ill,jll) = d_1000
               scv2d(k,ill,jll) = d_zero
             end if
@@ -300,20 +299,24 @@ module mod_vecbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine interf(ivers,j,istart,iend)
+  subroutine interf(ivers,j,istart,iend,ktau)
 !
     implicit none
 !
     integer , intent (in) :: ivers , j , istart , iend
+    integer(8) , intent(in) :: ktau
 !
     real(8) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
                fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
                solvt , wpm2
     integer :: i , n , nnn
     real(4) :: real_4
+    logical , save :: first_pass
 !
     character (len=64) :: subroutine_name='interf'
     integer :: idindx=0
+!
+    data first_pass /.true./
 !
     call time_begin(subroutine_name,idindx)
  
@@ -321,16 +324,16 @@ module mod_vecbats
 
       do i = istart, iend
         do n = 1 , nnsg
-          p1d0(n,i) = (sps2%ps(i,j)+r8pt)*d_1000
-          ts1d0(n,i) = atms%thx3d(i,kz,j)
-          qs1d0(n,i) = atms%qvb3d(i,kz,j)/(d_one+atms%qvb3d(i,kz,j))
+          p1d0(n,i) = (sfps(i,j)+ptop)*d_1000
+          ts1d0(n,i) = thatm(i,kz,j)
+          qs1d0(n,i) = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
           qs1d(n,i) = qs1d0(n,i)
  
           hl = lh0 - lh1*(ts1d0(n,i)-tzero)
           satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts1d0(n,i)))
           rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01D0-satvp)),d_zero)
  
-          ts1d(n,i) = ts1d0(n,i)-lrate*regrav*(ht1(n,i,j)-mddom%ht(i,j))
+          ts1d(n,i) = ts1d0(n,i)-lrate*regrav*(ht1(n,i,j)-ht(i,j))
           p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
           hl = lh0 - lh1*(ts1d(n,i)-tzero)
@@ -354,8 +357,8 @@ module mod_vecbats
           scv1d(n,i) = scv2d(n,i,j)
           sice1d(n,i) = sice2d(n,i,j)
           gwet1d(n,i) = gwet2d(n,i,j)
-          sent1d(n,i) = sfsta%hfx(i,j)
-          evpr1d(n,i) = sfsta%qfx(i,j)
+          sent1d(n,i) = hfx(i,j)
+          evpr1d(n,i) = qfx(i,j)
           ldoc1d(n,i) = ocld2d(n,i,j)
           ircp1d(n,i) = ircp2d(n,i,j)
           lveg(n,i) = veg2d1(n,i,j)
@@ -365,7 +368,7 @@ module mod_vecbats
           sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
           veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
           emiss1d(n,i) = emiss2d(n,i,j)
-          z1d(n,i) = za(i,kz,j)
+          z1d(n,i) = hgt(i,kz,j)
           z1log(n,i)  = dlog(z1d(n,i))
           z2fra(n,i)  = dlog(z1d(n,i)*d_half)
           z10fra(n,i) = dlog(z1d(n,i)*d_r10)
@@ -385,8 +388,8 @@ module mod_vecbats
           qs1d(n,i) = dmax1(qs1d(n,i)-rh0,d_zero)
         end do
  
-        us1d(i) = atms%ubx3d(i,kz,j)
-        vs1d(i) = atms%vbx3d(i,kz,j)
+        us1d(i) = uatm(i,kz,j)
+        vs1d(i) = vatm(i,kz,j)
         fsw1d(i) = fsw2d(i,j)
         flw1d(i) = flw2d(i,j)
         solis(i) = sol2d(i,j)
@@ -403,13 +406,13 @@ module mod_vecbats
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
       do i = istart, iend
-        sfsta%uvdrag(i,j) = d_zero
-        sfsta%hfx(i,j) = d_zero
-        sfsta%qfx(i,j) = d_zero
-        sts2%tg(i,j) = d_zero
-        sts1%tg(i,j) = d_zero
-        sfsta%tgbb(i,j) = d_zero
-        if ( ichem == 1 ) then
+        uvdrag(i,j) = d_zero
+        hfx(i,j) = d_zero
+        qfx(i,j) = d_zero
+        tground2(i,j) = d_zero
+        tground1(i,j) = d_zero
+        tgbb(i,j) = d_zero
+        if ( lchem ) then
           ssw2da(i,j) = d_zero
           sdeltk2d(i,j) = d_zero
           sdelqk2d(i,j) = d_zero
@@ -420,12 +423,12 @@ module mod_vecbats
         end if
 
         do n = 1 , nnsg
-          sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j) + drag1d(n,i)
-          sfsta%hfx(i,j) = sfsta%hfx(i,j) + sent1d(n,i)
-          sfsta%qfx(i,j) = sfsta%qfx(i,j) + evpr1d(n,i)
-          sts2%tg(i,j) = sts2%tg(i,j) + tg1d(n,i)
-          sts1%tg(i,j) = sts1%tg(i,j) + tg1d(n,i)
-          if ( ichem == 1 ) then
+          uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
+          hfx(i,j) = hfx(i,j) + sent1d(n,i)
+          qfx(i,j) = qfx(i,j) + evpr1d(n,i)
+          tground2(i,j) = tground2(i,j) + tg1d(n,i)
+          tground1(i,j) = tground1(i,j) + tg1d(n,i)
+          if ( lchem ) then
             ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
             sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
             sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
@@ -437,11 +440,11 @@ module mod_vecbats
           end if
           if ( iocnflx == 1 .or. &
               (iocnflx == 2 .and. ldoc1d(n,i) /= 0 ) ) then
-            sfsta%tgbb(i,j) = sfsta%tgbb(i,j) +                 &
+            tgbb(i,j) = tgbb(i,j) +                 &
                        ((d_one-veg1d(n,i))*tg1d(n,i)**d_four +  &
                        veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
           else
-            sfsta%tgbb(i,j) = sfsta%tgbb(i,j) + tg1d(n,i)
+            tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
           end if
           if ( ldoc1d(n,i) == 0 ) then
             ssw1d(n,i)  = dmissval
@@ -452,14 +455,14 @@ module mod_vecbats
             scv1d(n,i)  = dmissval
           end if
         end do
-        sfsta%uvdrag(i,j) = sfsta%uvdrag(i,j)*rdnnsg
-        sfsta%hfx(i,j) = sfsta%hfx(i,j)*rdnnsg
-        sfsta%qfx(i,j) = sfsta%qfx(i,j)*rdnnsg
-        sts2%tg(i,j) = sts2%tg(i,j)*rdnnsg
-        sts1%tg(i,j) = sts1%tg(i,j)*rdnnsg
-        sfsta%tgbb(i,j) = sfsta%tgbb(i,j)*rdnnsg
+        uvdrag(i,j) = uvdrag(i,j)*rdnnsg
+        hfx(i,j) = hfx(i,j)*rdnnsg
+        qfx(i,j) = qfx(i,j)*rdnnsg
+        tground2(i,j) = tground2(i,j)*rdnnsg
+        tground1(i,j) = tground1(i,j)*rdnnsg
+        tgbb(i,j) = tgbb(i,j)*rdnnsg
 
-        if ( ichem == 1 ) then
+        if ( lchem ) then
           ssw2da(i,j) = ssw2da(i,j)*rdnnsg
           sdeltk2d(i,j) = sdeltk2d(i,j)*rdnnsg
           sdelqk2d(i,j) = sdelqk2d(i,j)*rdnnsg
@@ -565,18 +568,17 @@ module mod_vecbats
         t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
         w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
                         sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-        real_4 = real((sps2%ps(i,j)+r8pt)*d_10)
+        real_4 = real((sfps(i,j)+ptop)*d_10)
         psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
       end do
 
-      if ( mod(ktau+1,ksrf) == 0 .or.  &
-          ktau == 0 .or. doing_restart ) then
+      if ( mod(ktau+1,kbats) == 0 .or. first_pass ) then
         if ( ktau <= 1 ) then
           mmpd = secpd/dtbat
           wpm2 = d_one/dtbat
-        else if ( ktau+1 == ksrf ) then
-          mmpd = houpd/(srffrq-dtsec/secph)
-          wpm2 = d_one/((srffrq-dtsec/secph)*secph)
+        else if ( ktau+1 == kbats ) then
+          mmpd = houpd/(srffrq-xdtsec/secph)
+          wpm2 = d_one/((srffrq-xdtsec/secph)*secph)
         else
           mmpd = houpd/srffrq
           wpm2 = d_one/(srffrq*secph)
@@ -625,8 +627,8 @@ module mod_vecbats
           flwd_o(j,i-1) = real(flwda2d(i,j)*wpm2)
           sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
           prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
-          ps_o(j,i-1) = real((sps2%ps(i,j)+r8pt)*d_10)
-          zpbl_o(j,i-1) = real(sfsta%zpbl(i,j))
+          ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
+          zpbl_o(j,i-1) = real(zpbl(i,j))
  
           tlef_o(j,i-1) = 0.0
           ssw_o(j,i-1) = 0.0
@@ -688,6 +690,8 @@ module mod_vecbats
 !
     end if
 !
+    first_pass = .false.
+!
     call time_end(subroutine_name,idindx)
 !
   end subroutine interf
@@ -715,12 +719,11 @@ module mod_vecbats
 ! (depuv/10.0)= the ratio of upper soil layer to total root depth
 ! Used to compute "wet" for soil albedo
 !
-  subroutine albedov(j,iemiss)
+  subroutine albedov(imon,j)
 ! 
     implicit none
 !
-    integer :: iemiss , j
-    intent (in) iemiss , j
+    integer , intent (in) :: imon , j
 !
     real(8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
@@ -755,17 +758,17 @@ module mod_vecbats
 !   Works for Sahara desert and generally northern emisphere
 !   In souther emisphere only some points have this class
 !
-    if ( idesseas == 1 ) then
-      if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
+    if ( ldesseas ) then
+      if ( imon == 1 .or. imon == 2 .or. imon == 12 ) then
         solour(1) = 0.12D0
       endif        
-      if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
+      if ( imon == 3 .or. imon == 4 .or. imon == 5 ) then
         solour(1) = 0.15D0
       endif        
-      if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
+      if ( imon == 6 .or. imon == 7 .or. imon == 8) then
         solour(1) = 0.18D0
       endif        
-      if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
+      if ( imon == 9 .or. imon == 10 .or. imon == 11) then
         solour(1) = 0.15D0
       endif
     end if
@@ -946,7 +949,7 @@ module mod_vecbats
       aldirl(i) = aldirl_s(1)
       aldifs(i) = aldifs_s(1)
       aldifl(i) = aldifl_s(1)
-      if ( iemiss == 1 ) emiss(i) = emiss2d(1,i,j)
+      if ( lemiss ) emiss(i) = emiss2d(1,i,j)
       aldirs1d(1,i) = aldirs_s(1)
       aldifs1d(1,i) = aldifs_s(1)
       do n = 2 , nnsg
@@ -956,7 +959,7 @@ module mod_vecbats
         aldirl(i) = aldirl(i) + aldirl_s(n)
         aldifs(i) = aldifs(i) + aldifs_s(n)
         aldifl(i) = aldifl(i) + aldifl_s(n)
-        if ( iemiss == 1 ) emiss(i) = emiss(i) + emiss2d(n,i,j)
+        if ( lemiss ) emiss(i) = emiss(i) + emiss2d(n,i,j)
         aldirs1d(n,i) = aldirs_s(n)
         aldifs1d(n,i) = aldifs_s(n)
       end do
@@ -966,7 +969,7 @@ module mod_vecbats
       aldirl(i) = aldirl(i)*rdnnsg
       aldifs(i) = aldifs(i)*rdnnsg
       aldifl(i) = aldifl(i)*rdnnsg
-      if ( iemiss == 1 ) emiss(i) = emiss(i)*rdnnsg
+      if ( lemiss ) emiss(i) = emiss(i)*rdnnsg
  
 !     fsw1d(i),sabveg(i),solis(i) computed in colrad
  
@@ -1131,7 +1134,7 @@ module mod_vecbats
         amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
         sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
         veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-        ts1d(n,i) = atms%thx3d(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-mddom%ht(i,j))
+        ts1d(n,i) = thatm(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-ht(i,j))
         scv1d(n,i) = scv2d(n,i,j)
         sag1d(n,i) = sag2d(n,i,j)
       end do

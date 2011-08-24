@@ -50,15 +50,15 @@ module mod_runparams
   integer(8) :: nbdyfrq , ntsrf , ntrad , ntabem , ntsec
   integer :: klak
 !
-  real(8) :: dt , dt2 , dtbdys , dtbat , dtlake , dtsec
+  real(8) :: dt , dt2 , dtbdys , dtsec
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(8) :: c200 , rdxsq , dtsrf , dtabem , dtrad
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
   integer :: ibltyp , iboudy , ichem , icup , idirect , iemiss , igcc , &
-             iocnflx , ipgf , ipptls , lakemod , idcsst , iseaice ,     &
-             idesseas , iocnrough
+             ipgf , ipptls , idcsst , iseaice , lakemod , &
+             idesseas
 
   logical :: ifrest , rfstrt , doing_restart
 

@@ -23,7 +23,7 @@ module mod_leaftemp
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
-  use mod_runparams
+  use mod_dynparam
   use mod_memutil
   use mod_bats
 !
@@ -130,11 +130,9 @@ module mod_leaftemp
 !
 !=======================================================================
 !
-  subroutine lftemp(iemiss)
+  subroutine lftemp
 !
   implicit none
-!
-  integer , intent(in) :: iemiss
 !
   real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
            & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
@@ -152,7 +150,7 @@ module mod_leaftemp
       if ( ldoc1d(n,i) /= 0 ) then
         if ( sigf(n,i) > 0.001D0 ) then
           vpdc(n,i) = d_10
-          if ( iemiss == 1 ) then
+          if ( lemiss ) then
             sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
           else
             sgtg3 = sigm*tg1d(n,i)**d_three
@@ -285,7 +283,7 @@ module mod_leaftemp
             dcn = dcd(n,i)*tlef1d(n,i)
 !
 !l              1.2  radiative forcing for leaf temperature calculation
-            if ( iemiss == 1 ) then
+            if ( lemiss ) then
               sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
             else
               sgtg3 = sigm*tg1d(n,i)**d_three
@@ -344,7 +342,7 @@ module mod_leaftemp
                        & tlef1d(n,i)+wtg0(n,i)*tg1d(n,i))
           delq1d(n,i) = wtglq(n,i)*qs1d(n,i) - (wtlq0(n,i)*         &
                        & qsatl(n,i)+wtgq0(n,i)*qg1d(n,i))
-          if ( iemiss == 1 ) then
+          if ( lemiss ) then
             sgtg3 = emiss1d(n,i)*(sigm*tg1d(n,i)**d_three)
           else
             sgtg3 = sigm*tg1d(n,i)**d_three

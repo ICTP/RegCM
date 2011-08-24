@@ -27,6 +27,7 @@ module mod_mppio
   use mod_memutil
   use mod_message
   use mod_che_mppio
+  use mod_bats_mppio
 !
   real(8) , pointer , dimension(:,:,:,:) :: spacesubm1
   real(8) , pointer , dimension(:,:,:,:) :: spacesub
@@ -50,15 +51,6 @@ module mod_mppio
          rnos2d_io , sag2d_io , scv2d_io , sena2d_io , sice2d_io ,  &
          srw2d_io , ssw2d_io , swt2d_io , taf2d_io , text2d_io ,    &
          tg2d_io , tgb2d_io , tlef2d_io , emiss2d_io
-
-  integer , pointer , dimension(:,:,:) :: idep2d_io
-  real(8) , pointer , dimension(:,:,:) :: dhlake1_io
-  real(8) , pointer , dimension(:,:,:) :: eta2d_io
-  real(8) , pointer , dimension(:,:,:) :: hi2d_io
-  real(8) , pointer , dimension(:,:,:) :: aveice2d_io
-  real(8) , pointer , dimension(:,:,:) :: hsnow2d_io
-  real(8) , pointer , dimension(:,:,:) :: evl2d_io
-  real(8) , pointer , dimension(:,:,:,:) :: tlak3d_io
 
   real(8) , pointer , dimension(:,:,:) :: ht1_io , lndcat1_io ,     &
                                           xlat1_io , xlon1_io
@@ -258,17 +250,6 @@ module mod_mppio
       lndcat1_io => spacesub(:,:,:,2)
       xlat1_io   => spacesub(:,:,:,3)
       xlon1_io   => spacesub(:,:,:,4)
-      if (lakemod == 1) then
-        call getmem3d(dhlake1_io,1,nnsg,1,iy,1,jx,'mod_mppio:dhlake1_io')
-        call getmem3d(idep2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:idep2d_io')
-        call getmem3d(eta2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:eta2d_io')
-        call getmem3d(hi2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:hi2d_io')
-        call getmem3d(aveice2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:aveice2d_io')
-        call getmem3d(hsnow2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:hsnow2d_io')
-        call getmem3d(evl2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:evl2d_io')
-        call getmem4d(tlak3d_io,1,ndpmax,1,nnsg, &
-                                1,iym1,1,jx,'mod_mppio:tlak3d_io')
-      endif
       if (lband) then
         call getmem3d(spacebat,1,iym1,1,jx,1,8,'mod_mppio:spacebat')
       else

@@ -18,7 +18,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 module mod_bats_param
-  implicit none
+!
+  public
 !
   real(8) , dimension(8) :: solour
   real(8) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &

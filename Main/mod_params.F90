@@ -24,6 +24,7 @@ module mod_params
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
   use mod_atm_interface
+  use mod_lm_interface
   use mod_che_trac
   use mod_message
   use mod_cu_bm
@@ -665,7 +666,7 @@ module mod_params
   if ( lakemod == 1 ) call allocate_lake
   call allocate_mod_atm_interface(lband)
   call allocate_mod_tend(lband)
-  call allocate_mod_bats
+  call allocate_mod_bats(ichem,idcsst)
   call allocate_mod_bdycon
   call allocate_mod_holtbl
   call allocate_mod_leaftemp
@@ -688,6 +689,7 @@ module mod_params
 
   call init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,sps1%ps,atms%rhb3d)
   call allocate_mod_che_mppio(lband)
+  call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_che_interface
   call allocate_mod_che_trac
   call allocate_mod_che_aerosol
@@ -840,6 +842,8 @@ module mod_params
 !sb   end lake model mods
 !
   call set_scenario(scenario)
+  call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
+                 iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then

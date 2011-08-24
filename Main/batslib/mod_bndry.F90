@@ -19,7 +19,7 @@
  
 module mod_bndry
 !
-  use mod_runparams
+  use mod_dynparam
   use mod_bats
   use mod_leaftemp
   use mod_drag
@@ -196,7 +196,7 @@ module mod_bndry
 !
 !   4.3  calculate canopy temperature, soil and total fluxes,
 !   and leaf water change by evapotranspiration
-    call lftemp(iemiss)
+    call lftemp
 !
 !   4.4  calculate carbon sources and sinks
 !   call co2
@@ -384,7 +384,7 @@ module mod_bndry
       do n = 1 , nnsg
    
         ! lake model handles this case
-        if ( lakemod == 1 .and. oveg(n,i) == 14 ) exit
+        if ( llake .and. oveg(n,i) == 14 ) exit
    
         if ( ldoc1d(n,i) == 2 ) then
 !         rhosw = density of snow relative to water

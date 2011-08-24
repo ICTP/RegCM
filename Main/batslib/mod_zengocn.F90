@@ -22,13 +22,9 @@ module mod_zengocn
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
-  use mod_runparams
-  use mod_atm_interface
-  use mod_pbldim
-  use mod_slice
-  use mod_bats
-  use mod_bdycod
+  use mod_dynparam
   use mod_service
+  use mod_bats
 #ifdef CLM
   use clm_varsur , only : landmask
 #endif
@@ -61,16 +57,21 @@ module mod_zengocn
   real(8) , parameter :: zetat = 0.465D0
   real(8) , parameter :: zetam = 1.574D0
 !
+  logical :: lfirst_call
+!
+  data lfirst_call /.true./
+!
   contains
 !
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
 !
-  subroutine zengocndrv(j,istart,iend)
+  subroutine zengocndrv(j,istart,iend,ktau)
 !
     implicit none
 !
-    integer , intent (in) :: j , istart , iend
+    integer , intent(in) :: j , istart , iend
+    integer(8) , intent(in) :: ktau
 !
     real(8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
@@ -97,23 +98,23 @@ module mod_zengocn
 #else
         if ( ocld2d(n,i,j) == 0 ) then
 #endif
-          uv995 = dsqrt(atms%ubx3d(i,kz,j)**d_two+atms%vbx3d(i,kz,j)**d_two)
-          tsurf = sts2%tg(i,j) - tzero
-          t995 = atms%tb3d(i,kz,j) - tzero
-          q995 = atms%qvb3d(i,kz,j)/(d_one+atms%qvb3d(i,kz,j))
-          z995 = za(i,kz,j)
-          zi = sfsta%zpbl(i,j)
-          psurf = (sps2%ps(i,j)+r8pt)*d_10
+          uv995 = dsqrt(uatm(i,kz,j)**d_two+vatm(i,kz,j)**d_two)
+          tsurf = tground2(i,j) - tzero
+          t995 = tatm(i,kz,j) - tzero
+          q995 = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
+          z995 = hgt(i,kz,j)
+          zi = zpbl(i,j)
+          psurf = (sfps(i,j)+ptop)*d_10
           call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
                        uv10,tau,lh,sh,dth,dqh,ustar,zo)
-          if (idcsst == 1) then
+          if ( ldcsst ) then
 !           time step considered for the integration of prognostic skin
 !           temperature , equal to BATS time step
             dtsst = dtbat
 !           handle the first call of the scheme
             if ( .not.firstcall(i,j) ) then
               deltas(i,j) = 0.001D0
-              tdeltas(i,j) = sts2%tg(i,j) - 0.001D0
+              tdeltas(i,j) = tground2(i,j) - 0.001D0
               firstcall(i,j) = .true.
               td = tdeltas(i,j)
             end if
@@ -121,13 +122,13 @@ module mod_zengocn
             delta = deltas(i,j)
             tdelta = tdeltas(i,j)
 !           td is now the 3m bulk SST from the forcing variable
-            td = ts1(i,j)
+            td = ts(i,j)
 !
 !           deep impact of aod on sst
 !           if ( sum(aerext(i,:,j)) <= 1 ) then
-!             td = ts1(i,j) - sum(aerext(i,:,j))*0.8D0
+!             td = ts(i,j) - sum(aerext(i,:,j))*0.8D0
 !           else if ( sum(aerext(i,:,j)) > 1 ) then
-!             td = ts1(i,j)- d_one*0.8D0
+!             td = ts(i,j)- d_one*0.8D0
 !           end if
 !
 !           rs is the net surface sw flux (sw energy absorbed)
@@ -135,7 +136,7 @@ module mod_zengocn
 !           rd is sw flux at 3m
             rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
 !           ustar water (with air density ==1)
-            ustarw = d_half*ustar*(rhox2d(i,j)/rhoh2o)**d_half
+            ustarw = d_half*ustar*(rho(i,j)/rhoh2o)**d_half
 !           lwds =  flwd2d(i,j)
 !           lwus =  emsw*sigm*(tsurf+273.16)**4
 !           q is the skin cooling term inckude net lw flux from
@@ -192,29 +193,30 @@ module mod_zengocn
             tdeltas(i,j) = tdelta
             dtskin(i,j) = tskin-td
 !           now feedback tskin in surface variable
-            sts2%tg(i,j) = tskin
+            tground2(i,j) = tskin
           end if ! dcsst
 
-          tg1d(n,i) = sts2%tg(i,j)
-          tgb1d(n,i) = sts2%tg(i,j)
+          tg1d(n,i) = tground2(i,j)
+          tgb1d(n,i) = tground2(i,j)
           sent1d(n,i) = sh
           evpr1d(n,i) = lh/wlhv
 !         Back out Drag Coefficient
-          drag1d(n,i) = ustar**d_two*rhox2d(i,j)/uv995
+          drag1d(n,i) = ustar**d_two*rho(i,j)/uv995
           facttq = dlog(z995*d_half)/dlog(z995/zo)
-          u10m1d(n,i) = atms%ubx3d(i,kz,j)*uv10/uv995
-          v10m1d(n,i) = atms%vbx3d(i,kz,j)*uv10/uv995
+          u10m1d(n,i) = uatm(i,kz,j)*uv10/uv995
+          v10m1d(n,i) = vatm(i,kz,j)*uv10/uv995
           t2m1d(n,i) = t995 + tzero - dth*facttq
 !
-          if ( mod(nbdytime+ntsec,nsrffrq) == 0 .or. &
-               ktau == 0 .or. doing_restart ) then
+          if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             q2m1d(n,i) = q995 - dqh*facttq
-            tgb2d(n,i,j) = sts2%tg(i,j)
+            tgb2d(n,i,j) = tground2(i,j)
           end if
         end if
       end do
     end do
+
+    lfirst_call = .false.
 !
     call time_end(subroutine_name,idindx)
   end subroutine zengocndrv

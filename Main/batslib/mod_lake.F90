@@ -22,10 +22,9 @@
 !
 module mod_lake
 !
-  use mod_runparams
-  use mod_atm_interface
+  use mod_dynparam
   use mod_bats
-  use mod_mppio
+  use mod_bats_mppio
 !
   private
 !
@@ -157,7 +156,7 @@ module mod_lake
         hsen = -d_one*sent1d(n,i)
         evp = evpr1d(n,i)
         if (nnsg == 1) then
-          xl = mddom%xlat(i,jslc)
+          xl = xlat(i,jslc)
         else
           xl = xlat1(n,i,jslc)
         end if

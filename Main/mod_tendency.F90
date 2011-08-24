@@ -1465,7 +1465,7 @@ module mod_tendency
 #ifdef CLM
         call albedoclm(j,iemiss)
 #else
-        call albedov(j,iemiss)
+        call albedov(xmonth,j)
 #endif
       end if
  
@@ -1479,7 +1479,7 @@ module mod_tendency
       if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
         dtbat = dt*d_half*dble(ntsrf)
         if ( ktau == 0 ) dtbat = dt
-        call vecbats(j)
+        call vecbats(j,ktau)
       end if
 #endif
  

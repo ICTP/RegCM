@@ -19,7 +19,7 @@
  
 module mod_co2
 !
-  use mod_runparams
+  use mod_dynparam
   use mod_bats
   use mod_leaftemp
 !

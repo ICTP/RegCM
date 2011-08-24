@@ -22,9 +22,19 @@ module mod_bats
 ! Storage for Surface (BATS and shared by CLM) variables
 !
   use mod_memutil
-  use mod_runparams
+  use mod_dynparam
   use mod_bats_param
 !
+  real(8) :: xdtsec ! Atmosferic Model dt in seconds
+  real(8) :: dtbat  ! BATS1e internal timestep
+  real(8) :: dtlake ! Lake model internal timestep
+
+  integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
+
+  logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
+
+  integer :: iocnrough , iocnflx
+
   real(8) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
 !
   integer , pointer , dimension(:,:) :: ldoc1d
@@ -102,11 +112,37 @@ module mod_bats
   ! dtskin is difference between skin temp and bulk sst
   real(8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   logical , pointer , dimension(:,:) :: firstcall
+!
+  data lchem  /.false./
+  data lemiss /.false./
+  data ldcsst /.false./
+  data llake  /.false./
+  data ldesseas /.false./
+
+  real(8) , pointer , dimension(:,:) :: xlat    ! mddom%xlat
+  real(8) , pointer , dimension(:,:) :: lndcat  ! mddom%lndcat
+  real(8) , pointer , dimension(:,:) :: ht      ! mddom%ht
+  real(8) , pointer , dimension(:,:) :: tground1 ! sts1%tg
+  real(8) , pointer , dimension(:,:) :: tground2 ! sts2%tg
+  real(8) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
+  real(8) , pointer , dimension(:,:,:) :: tatm ! atms%tb3d
+  real(8) , pointer , dimension(:,:,:) :: thatm ! atms%thx3d
+  real(8) , pointer , dimension(:,:,:) :: qvatm ! atms%qvb3d
+  real(8) , pointer , dimension(:,:) :: zpbl ! sfsta%zpbl
+  real(8) , pointer , dimension(:,:) :: hfx  ! sfsta%hfx
+  real(8) , pointer , dimension(:,:) :: qfx  ! sfsta%qfx
+  real(8) , pointer , dimension(:,:) :: uvdrag ! sfsta%uvdrag
+  real(8) , pointer , dimension(:,:) :: tgbb ! sfsta%tgbb
+  real(8) , pointer , dimension(:,:) :: sfps ! sps2%ps
+  real(8) , pointer , dimension(:,:,:) :: hgt ! za
+  real(8) , pointer , dimension(:,:) :: ts    ! ts1
+  real(8) , pointer , dimension(:,:) :: rho   ! rhox2d
 
   contains
 
-    subroutine allocate_mod_bats
+    subroutine allocate_mod_bats(ichem,idcsst)
     implicit none
+    integer , intent(in) :: ichem , idcsst
 
     rrnnsg = 1.0/real(nnsg)
     rdnnsg = d_one/dble(nnsg)
