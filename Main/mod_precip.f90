@@ -19,7 +19,11 @@
  
 module mod_precip
 !
-! Large Scale Precipitation -- Pal et al. 2000 JGR-Atmos
+! Large Scale Precipitation computation 
+! Fractional cloud coverage and liquid water content calculation
+! Heating term for explicit moisture scheme
+!
+! -- Pal et al. 2000 JGR-Atmos
 !
   use mod_runparams
   use mod_atm_interface , only : atmstate , slice , surfpstate , surfstate
@@ -308,12 +312,13 @@ module mod_precip
      
         end do
       end do
-     
+!     
 !--------------------------------------------------------------------
 !     2. Perform aerosol removal computations
 !       - swith do i,k loop, add chrmbc (the below cloud scavenging rate, s^-1)
 !       - Levin & Schwatz
 !--------------------------------------------------------------------
+!
       if ( ichem == 1 ) then
         do i = istart , istopx
           chrmbc(i,1) = d_zero
@@ -388,10 +393,10 @@ module mod_precip
     real(8) :: exlwc , rh0adj
     integer :: i , j , k
 !
-!--------------------------------------------------------------------
-!   1.  Determine large-scale cloud fraction
-!--------------------------------------------------------------------
     do j = jstart , jstop
+!--------------------------------------------------------------------
+!     1.  Determine large-scale cloud fraction
+!--------------------------------------------------------------------
       do k = 1 , kz
         ! Adjusted relative humidity threshold
         do i = 2 , iym2
@@ -404,17 +409,17 @@ module mod_precip
             fcc(i,k,j) = d_one
           else if ( rh3(i,k,j) <= rh0adj ) then  ! no cloud cover
             fcc(i,k,j) = d_zero
-          else                                     ! partial cloud cover
+          else                                   ! partial cloud cover
             fcc(i,k,j) = d_one-dsqrt(d_one-(rh3(i,k,j)-rh0adj) / &
                           (rhmax-rh0adj))
             fcc(i,k,j) = dmin1(dmax1(fcc(i,k,j),0.01D0),0.99D0)
           end if !  rh0 threshold
 !---------------------------------------------------------------------
-! Correction:
-! Ivan Guettler, 14.10.2010.
-! Based on: Vavrus, S. and Waliser D., 2008, 
-! An Improved Parameterization for Simulating Arctic Cloud Amount
-!    in the CCSM3 Climate Model, J. Climate 
+!         Correction:
+!         Ivan Guettler, 14.10.2010.
+!         Based on: Vavrus, S. and Waliser D., 2008, 
+!         An Improved Parameterization for Simulating Arctic Cloud Amount
+!         in the CCSM3 Climate Model, J. Climate 
 !---------------------------------------------------------------------
           if ( p3(i,k,j) >= 75.0D0 ) then
             ! Clouds below 750hPa
@@ -423,15 +428,15 @@ module mod_precip
                      dmax1(0.15D0,dmin1(d_one,qv3(i,k,j)/0.003D0))
             end if
           end if
+!---------------------------------------------------------------------
+!         End of the correction.
+!---------------------------------------------------------------------
         end do
       end do
 
-!---------------------------------------------------------------------
-!   End of the correction.
-!---------------------------------------------------------------------
 !--------------------------------------------------------------------
-!   2.  Combine large-scale and convective fraction and liquid water
-!       to be passed into radiation.
+!     2.  Combine large-scale and convective fraction and liquid water
+!         to be passed into radiation.
 !--------------------------------------------------------------------
       do k = 1 , kz
         do i = 2 , iym2
@@ -482,7 +487,7 @@ module mod_precip
 !                                                                 c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! 
-  subroutine condtq(jstart,jstop,psc,qvcs)
+    subroutine condtq(jstart,jstop,psc,qvcs)
 ! 
     implicit none
 !
@@ -499,6 +504,7 @@ module mod_precip
     integer :: i , j , k
 
     do j = jstart , jstop
+
 !---------------------------------------------------------------------
 !     1.  Compute t, qv, and qc at tau+1 without condensational term
 !---------------------------------------------------------------------
@@ -536,11 +542,10 @@ module mod_precip
           end if
      
 !         2c. Compute the water vapor in excess of saturation
-          if ( rhc >= rhmax .or. rhc < rh0adj ) then
-                                                   ! Full or no cloud cover
+          if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
             dqv = qvcs(i,k) - qvs*conf ! Water vapor in excess of sat
             tmp1(i,k) = r1*dqv
-          else                                     ! Partial cloud cover
+          else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             qvc_cld = dmax1((qs3(i,k,j)+dt*qvten(i,k,j)/psc(i,j)),d_zero)
@@ -550,10 +555,9 @@ module mod_precip
      
 !         2d. Compute the new cloud water + old cloud water
           exces = qccs(i,k) + tmp1(i,k)
-          if ( exces >= d_zero ) then
-                              ! Some cloud is left
+          if ( exces >= d_zero ) then ! Some cloud is left
             tmp2(i,k) = tmp1(i,k)/dt
-          else                ! The cloud evaporates
+          else                        ! The cloud evaporates
             tmp2(i,k) = -qccs(i,k)/dt
           end if
      
@@ -572,6 +576,6 @@ module mod_precip
       end do
     end do
    
-  end subroutine condtq
+    end subroutine condtq
 !
 end module mod_precip
