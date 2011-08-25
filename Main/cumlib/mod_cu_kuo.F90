@@ -22,13 +22,9 @@ module mod_cu_kuo
 ! This module implements Kuo cumulus parameterization scheme.
 ! The basic method follows Anthes and Keyser (1979) and Kuo (1983).
 !
-  use mod_runparams
-  use mod_atm_interface
-  use mod_rad
-  use mod_bats
+  use mod_dynparam
+  use mod_memutil
   use mod_cu_common
-  use mod_che_trac
-  use mod_advection
 
   private
 
@@ -49,6 +45,9 @@ module mod_cu_kuo
   real(8) , public , pointer , dimension(:,:,:) :: rsheat , rswat
   real(8) , public , pointer , dimension(:) :: qwght
   real(8) , public , pointer , dimension(:,:,:) :: twght , vqflx
+
+  integer , public :: k700
+
   contains
 !
   subroutine allocate_mod_cu_kuo
@@ -60,7 +59,7 @@ module mod_cu_kuo
     call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
   end subroutine allocate_mod_cu_kuo
 !
-  subroutine cupara(j)
+  subroutine cupara(j,ktau)
 !
 !   All the other arguments are passed from subroutine "tend" and
 !   explained in "tend".
@@ -68,6 +67,7 @@ module mod_cu_kuo
     implicit none
 !
     integer , intent(in) :: j
+    integer(8) , intent(in) :: ktau
 !
     real(8) :: akclth , apcnt , aprdiv , arh , c301 , dalr ,    &
                deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
@@ -87,21 +87,12 @@ module mod_cu_kuo
     tmax = d_zero
     do k = 1 , kz
       do i = 1 , iym1
-        cldlwc(i,k) = d_zero
-        cldfra(i,k) = d_zero
-      end do
-    end do
-    do k = 1 , kz
-      do i = 1 , iym1
-        aten%qv(i,k,j) = d_zero
+        rcldlwc(i,k) = d_zero
+        rcldfra(i,k) = d_zero
       end do
     end do
 !
-!   compute the horizontal advection terms:
-!
-    call hadv(.false.,aten%qv,atmx%qv,j,j,1)
-!
-    if ( ichem == 1 ) then
+    if ( lchem ) then
 !
 !     icumtop = top level of cumulus clouds
 !     icumbot = bottom level of cumulus clouds
@@ -113,14 +104,14 @@ module mod_cu_kuo
     end if
 !
 !   compute the moisture convergence in a column:
-!   at this stage, aten%qv(i,k,j) only includes horizontal advection.
+!   at this stage, qvten(i,k,j) only includes horizontal advection.
 !   sca: is the amount of total moisture convergence
 !
     do i = 2 , iym2
 !
       sca = d_zero
       do k = 1 , kz
-        sca = sca + aten%qv(i,k,j)*dsigma(k)
+        sca = sca + qvten(i,k,j)*dflev(k)
       end do
 !
 !     determine if moist convection exists:
@@ -136,9 +127,9 @@ module mod_cu_kuo
 !
         eqtm = d_zero
         do k = k700 , kz
-          ttp = atm1%t(i,k,j)/sps1%ps(i,j) + pert
-          q = atm1%qv(i,k,j)/sps1%ps(i,j) + perq
-          psg = sps1%ps(i,j)*a(k) + ptop
+          ttp = ptatm(i,k,j)/psfcps(i,j) + pert
+          q = pvqvtm(i,k,j)/psfcps(i,j) + perq
+          psg = psfcps(i,j)*hlev(k) + ptop
           t1 = ttp*(d_100/psg)**rovcp
           eqt = t1*dexp(wlhvocp*q/ttp)
           if ( eqt > eqtm ) then
@@ -160,13 +151,13 @@ module mod_cu_kuo
         tmean = (tmax+tlcl)*d_half
         dlnp = (egrav*zlcl)/(rgas*tmean)
         plcl = pmax*dexp(-dlnp)
-        siglcl = (plcl-ptop)/sps1%ps(i,j)
+        siglcl = (plcl-ptop)/psfcps(i,j)
 !
 !       3) compute seqt (saturation equivalent potential temperature)
 !       of all the levels that are above the lcl
 !
         do k = 1 , kz
-          if ( a(k) >= siglcl ) exit
+          if ( hlev(k) >= siglcl ) exit
         end do
         kbase = k
         if ( kbase > kz ) kbase = kz
@@ -174,8 +165,8 @@ module mod_cu_kuo
 !       kbase is the layer where lcl is located.
 !
         do k = 1 , kbase
-          ttp = atm1%t(i,k,j)/sps1%ps(i,j)
-          psg = sps1%ps(i,j)*a(k) + ptop
+          ttp = ptatm(i,k,j)/psfcps(i,j)
+          psg = psfcps(i,j)*hlev(k) + ptop
           es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
           qs = ep2*es/(psg-es)
           t1 = ttp*(d_100/psg)**rovcp
@@ -199,7 +190,7 @@ module mod_cu_kuo
 !       if cloud depth is less than critical depth (cdscld = 0.3),
 !       the convection is killed
 !
-        dsc = (siglcl-a(ktop))
+        dsc = (siglcl-hlev(ktop))
         if ( dsc >= cdscld ) then
 !
 !         6) check negative area
@@ -208,7 +199,7 @@ module mod_cu_kuo
 !
           ttsum = d_zero
           do k = ktop , kbase
-            ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
+            ttsum = (eqtm-seqt(k))*dflev(k) + ttsum
           end do
           if ( ttsum >= d_zero ) then
 !
@@ -218,7 +209,7 @@ module mod_cu_kuo
 !           kbase/ktop, then flag it, and set kbase/ktop to standard
 !
             if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-              print 99001 , tochar(idatex) , i , j , kbase , ktop
+              print 99001 , ktau , i , j , kbase , ktop
               if ( kbase < 5 ) kbase = 5
               if ( ktop > kbase-3 ) ktop = kbase - 3
             end if
@@ -233,21 +224,21 @@ module mod_cu_kuo
             suma = d_zero
             sumb = d_zero
             arh = d_zero
-            psx = sps1%ps(i,j)
+            psx = psfcps(i,j)
             do k = 1 , kz
               qwght(k) = d_zero
             end do
             do k = ktop , kz
-              pux = psx*a(k) + ptop
-              e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(atm1%t(i,k,j)/psx))
+              pux = psx*hlev(k) + ptop
+              e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(i,k,j)/psx))
               qs = ep2*e1/(pux-e1)
-              rh = atm1%qv(i,k,j)/(qs*psx)
+              rh = pvqvtm(i,k,j)/(qs*psx)
               rh = dmin1(rh,d_one)
               xsav = (d_one-rh)*qs
               qwght(k) = xsav
-              sumb = sumb + qs*dsigma(k)
-              arh = arh + rh*qs*dsigma(k)
-              suma = suma + xsav*dsigma(k)
+              sumb = sumb + qs*dflev(k)
+              arh = arh + rh*qs*dflev(k)
+              suma = suma + xsav*dflev(k)
             end do
             arh = arh/sumb
             c301 = d_two*(d_one-arh)
@@ -262,11 +253,11 @@ module mod_cu_kuo
             end do
             do k = 1 , kz
               ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-              rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dt*d_half
+              rsheat(i,k,j) = rsheat(i,k,j) + ttconv*dtcum*d_half
               apcnt = (d_one-c301)*sca/4.3D-3
               eddyf = apcnt*vqflx(k,kbase,ktop)
-              aten%qv(i,k,j) = eddyf
-              rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dt*d_half
+              qvten(i,k,j) = eddyf
+              rswat(i,k,j) = rswat(i,k,j) + c301*qwght(k)*sca*dtcum*d_half
             end do
 !
 !           find cloud fractional cover and liquid water content
@@ -276,21 +267,23 @@ module mod_cu_kuo
               kclth = kbaseb - ktop + 1
               akclth = d_one/dble(kclth)
               do k = ktop , kbaseb
-                cldlwc(i,k) = cllwcv
-                cldfra(i,k) = d_one - (d_one-clfrcv)**akclth
+                rcldlwc(i,k) = cllwcv
+                rcldfra(i,k) = d_one - (d_one-clfrcv)**akclth
               end do
             end if
 !           the unit for rainfall is mm.
-            prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
+            prainx = (d_one-c301)*sca*dtmdl*d_1000*regrav
             if ( prainx > dlowval ) then
-              sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
+              rainc(i,j) = rainc(i,j) + prainx
 !             instantaneous precipitation rate for use in bats (mm/s)
-              aprdiv = dble(ntsrf)
-              if ( ktau == 0 ) aprdiv = d_one
-              pptc(i,j) = pptc(i,j) + prainx/dtsec/aprdiv
+              if ( ktau == 0 ) then
+                lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl
+              else
+                lmpcpc(i,j) = lmpcpc(i,j) + prainx/dtmdl*aprdiv
+              end if
             end if
 !
-            if ( ichem == 1 ) then
+            if ( lchem ) then
               icumtop(i,j) = ktop
               icumbot(i,j) = kbaseb
             end if
@@ -303,18 +296,18 @@ module mod_cu_kuo
 !
       tmp3(i,1) = d_zero
       do k = 2 , kz
-        if ( atm1%qv(i,k,j) < 1.0D-15 ) then
+        if ( pvqvtm(i,k,j) < 1.0D-15 ) then
           tmp3(i,k) = d_zero
         else
-          tmp3(i,k) = atm1%qv(i,k,j)*(atm1%qv(i,k-1,j)/atm1%qv(i,k,j))**qcon(k)
+          tmp3(i,k) = pvqvtm(i,k,j)*(pvqvtm(i,k-1,j)/pvqvtm(i,k,j))**wlev(k)
         end if
       end do
-      aten%qv(i,1,j) = aten%qv(i,1,j)-qdot(i,2,j)*tmp3(i,2)/dsigma(1)
+      qvten(i,1,j) = qvten(i,1,j)-svv(i,2,j)*tmp3(i,2)/dflev(1)
       do k = 2 , kzm1
-        aten%qv(i,k,j) = aten%qv(i,k,j)-(qdot(i,k+1,j)*tmp3(i,k+1) - &
-                                         qdot(i,k,j)*tmp3(i,k))/dsigma(k)
+        qvten(i,k,j) = qvten(i,k,j)-(svv(i,k+1,j)*tmp3(i,k+1) - &
+                                     svv(i,k,j)*tmp3(i,k))/dflev(k)
       end do
-      aten%qv(i,kz,j) = aten%qv(i,kz,j) + qdot(i,kz,j)*tmp3(i,kz)/dsigma(kz)
+      qvten(i,kz,j) = qvten(i,kz,j) + svv(i,kz,j)*tmp3(i,kz)/dflev(kz)
 !
     end do
 !
@@ -324,14 +317,14 @@ module mod_cu_kuo
         rswat(i,k,j) = dmax1(rswat(i,k,j),d_zero)
         rsht = rsheat(i,k,j)/tauht
         rswt = rswat(i,k,j)/tauht
-        aten%t(i,k,j) = aten%t(i,k,j) + rsht
-        aten%qv(i,k,j) = aten%qv(i,k,j) + rswt
-        rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dt/(d_two*tauht))
-        rswat(i,k,j) = rswat(i,k,j)*(d_one-dt/(d_two*tauht))
+        tten(i,k,j) = tten(i,k,j) + rsht
+        qvten(i,k,j) = qvten(i,k,j) + rswt
+        rsheat(i,k,j) = rsheat(i,k,j)*(d_one-dtcum/(d_two*tauht))
+        rswat(i,k,j) = rswat(i,k,j)*(d_one-dtcum/(d_two*tauht))
       end do
     end do
 
-99001 format (/,' >>in **cupara**: at ktau=',i8,' in year=',i5,             &
+99001 format (/,' >>in **cupara**: at ktau=',i8,  &
           ' (i,j)=(',i2,',',i2,'),   ',' kbase/ktop are non-standard:',2I3, &
           ' will be set to closest standard.')
 !
@@ -384,7 +377,7 @@ module mod_cu_kuo
         do i = 2 , iym2
           im1 = max0(i-1,2)
           ip1 = min0(i+1,iym2)
-          rsheat(i,k,j) = rsheat(i,k,j)+akht1*dt*d_half/dxsq * &
+          rsheat(i,k,j) = rsheat(i,k,j)+akht1*dtmdl/dxsq * &
                    (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
         end do
       end do
@@ -421,7 +414,7 @@ module mod_cu_kuo
         do i = 2 , iym2
           im1 = max0(i-1,2)
           ip1 = min0(i+1,iym2)
-          rswat(i,k,j) = rswat(i,k,j)+akht1*dt*d_half/dxsq * &
+          rswat(i,k,j) = rswat(i,k,j)+akht1*dtmdl/dxsq * &
                 (wr(im1,j)+wr(ip1,j)+wr(i,jm1)+wr(i,jp1)-d_four*wr(i,j))
         end do
       end do

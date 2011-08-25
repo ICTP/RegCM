@@ -20,17 +20,12 @@
 module mod_cu_tiedtke
 !
   use m_realkinds
-  use mod_precip , only : cevap
   use mod_dynparam
-  use mod_runparams
-  use mod_atm_interface
-  use mod_pbldim
-  use mod_bats
-  use mod_cu_common
-  use mod_constants
-  use mod_cu_tables
   use mod_message
   use mod_memutil
+  use mod_constants
+  use mod_cu_common
+  use mod_cu_tables
 !
   private
 !
@@ -123,20 +118,22 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv(j)
+  subroutine tiedtkedrv(j,ktau)
     implicit none
+!
     integer , intent(in) :: j
+    integer(8) , intent(in) :: ktau
 
 !   local variables
     integer :: i , k , ii
 
 !   need to translate REGCM to TIEDTKE vars...
 
-    ztmx = dt*d_half
+    ztmx = dtmdl
     ilab(:,:) = 2
 
 !   evaporation coefficient for kuo0 
-    cevapcu = cevap
+    cevapcu(:) = cevapu
 
 !   tracers to be added here:
     pxtm1(:,:,:) = d_zero ! tracers input profiles
@@ -148,31 +145,31 @@ module mod_cu_tiedtke
 !     The simpler switch on pressure difference still used in ECMWF 
 !     is commented out - possibly tests should be made to reinstate 
 !     the ECMWF version of this - this array will then be obsolete 
-      xphfx(ii) = sfsta%qfx(i,j)
+      xphfx(ii) = qfx(i,j)
       ! Land/water flag - is correctly set?
-      ldland(ii) = (ldmsk(i,j) == 0)
+      ldland(ii) = (lmask(i,j) == 0)
     end do
 
     do k = 1 , kz
       do i = 2 , iym2
         ii = i - 1
         ! Pascal
-        papp1(ii,k) = (a(k)*sps2%ps(i,j)+ptop)*d_1000
+        papp1(ii,k) = (hlev(k)*sfcps(i,j)+ptop)*d_1000
 
-        ptm1(ii,k)  = atm2%t(i,k,j)/sps2%ps(i,j)  ! temperature
-        pum1(ii,k)  = atm2%u(i,k,j)/sps2%ps(i,j)  ! u (guessing!)
-        pvm1(ii,k)  = atm2%v(i,k,j)/sps2%ps(i,j)  ! v     "
-        pqm1(ii,k)  = atm2%qv(i,k,j)/sps2%ps(i,j) ! humidity
-        pxlm1(ii,k) = atm2%qc(i,k,j)/sps2%ps(i,j) ! cloud liquid water
+        ptm1(ii,k)  = tatm(i,k,j)/sfcps(i,j)  ! temperature
+        pum1(ii,k)  = uatm(i,k,j)/sfcps(i,j)  ! u (guessing!)
+        pvm1(ii,k)  = vatm(i,k,j)/sfcps(i,j)  ! v     "
+        pqm1(ii,k)  = qvatm(i,k,j)/sfcps(i,j) ! humidity
+        pxlm1(ii,k) = qcatm(i,k,j)/sfcps(i,j) ! cloud liquid water
 
-        xpt(ii,k)  = aten%t(i,k,j)/sps2%ps(i,j)
-        xpu(ii,k)  = aten%u(i,k,j)/sps2%ps(i,j)
-        xpv(ii,k)  = aten%v(i,k,j)/sps2%ps(i,j)
-        xpqv(ii,k) = aten%qv(i,k,j)/sps2%ps(i,j)
-        xpqc(ii,k) = aten%qc(i,k,j)/sps2%ps(i,j)
+        xpt(ii,k)  = tten(i,k,j)/sfcps(i,j)
+        xpu(ii,k)  = uten(i,k,j)/sfcps(i,j)
+        xpv(ii,k)  = vten(i,k,j)/sfcps(i,j)
+        xpqv(ii,k) = qvten(i,k,j)/sfcps(i,j)
+        xpqc(ii,k) = qcten(i,k,j)/sfcps(i,j)
 
         ! IS vertical velocity in Pa/s or in m/s?
-        xpw(ii,k)  = omega(i,k,j)
+        xpw(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
 
         pxim1(ii,k) = d_zero                      ! cloud ice water
         pxite(ii,k) = d_zero                      ! ice tend
@@ -181,13 +178,13 @@ module mod_cu_tiedtke
         pxtec(ii,k) = d_zero  ! detrained cloud water tendancy
         pqtec(ii,k) = d_zero  ! detrained humidity tendancy
 ! 1st guess pressure at full levels
-        xpg(ii,k) = za(i,k,j)*egrav  !   geopotential
+        xpg(ii,k) = hgt(i,k,j)*egrav  !   geopotential
       end do
     end do
     do k = 1 , kzp1
       do i = 2 , iym2
         ii = i - 1
-        paphp1(ii,k) = (sigma(k)*sps2%ps(i,j)+ptop)*d_1000
+        paphp1(ii,k) = (flev(k)*sfcps(i,j)+ptop)*d_1000
       end do
     end do
 
@@ -211,8 +208,12 @@ module mod_cu_tiedtke
       if (ktype(ii) > 0) then
         icon(j) = icon(j) + 1
         ! total precip cumulative 
-        sfsta%rainc(i,j) = sfsta%rainc(i,j) + paprc(ii)+paprs(ii)
-        pptc(i,j)= pptc(i,j) + (prsfc(ii)+pssfc(ii))/dble(ntsrf)
+        rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
+        if ( ktau == 0 ) then
+          lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
+        else
+          lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+        end if
       end if
     end do
 
@@ -221,8 +222,8 @@ module mod_cu_tiedtke
         ii = i - 1
 !       NOTE: there is an iconsistency here for the latent heating,
 !       as heat of fusion used inside the convection scheme - please correct!
-        aten%qc(i,k,j) = aten%qc(i,k,j)+pxtec(ii,k)*sps2%ps(i,j)
-        aten%qv(i,k,j) = aten%qv(i,k,j)+pqtec(ii,k)*sps2%ps(i,j)
+        qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
+        qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
       end do
     end do
 
@@ -523,7 +524,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1012,7 +1013,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
 ! was a function of horizontal resolution (nn wavenumber of a spectral model)
@@ -1452,7 +1453,7 @@ module mod_cu_tiedtke
 !     --------------------------------
 !
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 !
 !---------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1995,7 +1996,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
   ztglace = tzero - 13.0D0
   zqold(1:kproma) = d_zero
 
@@ -2496,7 +2497,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
   ztglace = tzero - 13.0D0
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
@@ -3866,8 +3867,8 @@ module mod_cu_tiedtke
 !
 !*    SPECIFY CONSTANTS
 !
-  zcons1 = cpd/(wlhf*egrav*dt)
-  zcons2 = d_one/(egrav*dt)
+  zcons1 = cpd/(wlhf*egrav*dtcum)
+  zcons2 = d_one/(egrav*dtcum)
   zcucov = 0.050D0
   ztmelp2 = tzero + 2.0D0
 !

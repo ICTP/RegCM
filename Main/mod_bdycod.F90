@@ -28,7 +28,7 @@ module mod_bdycod
   use mod_memutil
   use mod_atm_interface
   use mod_tcm_interface
-  use mod_che_interface
+  use mod_che_common
   use mod_bats
   use mod_message 
   use mod_ncio

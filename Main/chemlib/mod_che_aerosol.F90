@@ -24,9 +24,9 @@ module mod_che_aerosol
   use mod_constants
   use mod_memutil
   use mod_message
-  use mod_chem
+  use mod_che_param
   use mod_che_indices
-  use mod_che_interface
+  use mod_che_common
   use mod_che_trac
 !
   private

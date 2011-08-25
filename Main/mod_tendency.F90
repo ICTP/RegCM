@@ -21,7 +21,7 @@ module mod_tendency
 
   use mod_runparams
   use mod_atm_interface
-  use mod_che_interface
+  use mod_che_common
   use mod_bdycod
   use mod_cu_common
   use mod_precip
@@ -1369,8 +1369,9 @@ module mod_tendency
 !       icup = 99: grell over land, emanuel over ocean
 !       icup = 98: emanuel over land, grell over ocean
 !
+        call hadv(.false.,aten%qv,atmx%qv,j,j,1)
+!
         if ( icup /= 1 ) then
-          call hadv(.false.,aten%qv,atmx%qv,j,j,1)
           if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
             call vadv(aten%qv,atm1%qv,j,j,2)
           else
@@ -1383,19 +1384,19 @@ module mod_tendency
         end if
  
         if ( icup == 1 ) then
-          call cupara(j)
+          call cupara(j,ktau)
         end if
         if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-          call cuparan(j)
+          call cuparan(j,ktau)
         end if
         if ( icup == 3 ) then
-          call bmpara(j)
+          call bmpara(j,ktau)
         end if
         if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-          call cupemandrv(j)
+          call cupemandrv(j,ktau)
         end if
         if ( icup == 5 ) then
-          call tiedtkedrv(j)
+          call tiedtkedrv(j,ktau)
         end if
 
         if ( ipptls == 1 ) then
@@ -2074,6 +2075,7 @@ module mod_tendency
 
     if ( iexec == 2 ) then
       dt = dt2
+      dtcum = dtcum2
       iexec = 3
     end if
 !

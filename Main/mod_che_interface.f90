@@ -17,45 +17,24 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_chem
+module mod_che_interface
 
   use m_realkinds
+  use mod_che_common
 
   public
 !
-  logical :: lch
-  integer :: ichdir
-
-  real(dp) :: chfrq , rafrq , mdfrq
-
-  real(dp) , pointer , dimension(:) :: chlevs
-  real(dp) , pointer , dimension(:,:) :: chps1
-  real(dp) , pointer , dimension(:,:,:) :: chrh
-!
-  real(8) , dimension(22) :: aest , arye
-!
-!
-! Stokes parameters
-!
-  data aest     /0.80D0 , 0.80D0 , 0.8D0 , 0.8D0 , 1.2D0 , 1.20D0 , &
-       2.0D0 , 1.5D0 ,  1.5D0 , 2.0D0 , 15.0D0 , 15.0D0 , 1.5D0 ,   &
-       1.5D0 , 1.5D0 , 15.0D0 , 1.2D0 , 1.2D0 , 1.2D0 , 1.2D0 ,     &
-       1.2D0 , 1.2D0 /
-!
-  data arye     /0.5D0 , 5.0D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 ,    &
-     0.0001D0 , 5.0D0 , 10.0D0 , 10.0D0 , 0.0001D0 , 0.0001D0 ,     &
-     0.56D0 , 0.56D0 , 0.56D0 , 0.56D0 ,  0.56D0 , 0.56D0 , 0.56D0 ,&
-     0.56D0 , 1.0D0 , 1.0D0 /
-!
   contains 
 
-  subroutine init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,ps1,rh)
+  subroutine init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,ps1,rh, &
+                       icutop,icubot)
     implicit none
     integer , intent(in) :: ichem , idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp) , pointer , dimension(:,:) , intent(in) :: ps1  ! sps1%ps
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: rh ! rhb3d
+    integer , pointer , dimension(:,:) :: icutop , icubot
 
     if ( ichem == 1 ) lch = .true.
     ichdir = idirect
@@ -67,7 +46,9 @@ module mod_chem
     chlevs => dsigma
     chps1 => ps1
     chrh => rh
+    kcumtop => icutop
+    kcumbot => icubot
 
   end subroutine init_chem
 !
-end module mod_chem
+end module mod_che_interface

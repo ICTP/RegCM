@@ -23,9 +23,9 @@ module mod_che_tend
 !
   use mod_message
   use mod_runparams
+  use mod_che_common
   use mod_che_semdde
   use mod_che_indices
-  use mod_che_interface
   use mod_che_trac
   use mod_che_dust
   use mod_atm_interface
@@ -39,6 +39,8 @@ module mod_che_tend
   use mod_slice
   use mod_tcm_interface
   use mod_mppio
+  use mod_cu_common
+  use mod_cu_grell
   private
 
   public :: tractend2 , tracbud
@@ -161,35 +163,36 @@ module mod_che_tend
       end do
    
       do i = 2 , iym2
-   
         if ( icumtop(i,j) > 0 ) then
-   
-          kt = max0(icumtop(i,j),3)
-          kb = icumbot(i,j)
-          kdwd = icumdwd(i,j)
-   
-!         cutend(i,kt) =  mflx(i) * g * 1.e-3*
-!                         (wk(i,kb)-wk(i,kt))/(sigma(kb)-sigma(kt))
-   
-!         transport linked to updraft
-!         betwwen kt et kdwd , the tendancy is averaged (mixing)
-   
-          if ( kdwd < kt ) then
-            write (aline, *) 'Problem in tractend2 !'
-            call say(myid)
-          end if
-          do k = kt , kdwd
-            cutend_up(i,k) = mflx(i,1)*egrav*d_r1000*wk(i,kb)/(sigma(kdwd)-sigma(kt))
-          end do
-          cutend_up(i,kb) = -mflx(i,1)*egrav*d_r1000*wk(i,kb)/(dsigma(kb))
+          if ( icup == 2 ) then
+            kt = max0(icumtop(i,j),3)
+            kb = icumbot(i,j)
+            kdwd = icumdwd(i,j)
 
-!         transport linked to downdraft
+            ! transport linked to updraft
+            ! betwwen kt et kdwd , the tendancy is averaged (mixing)
+
+            if ( kdwd < kt ) then
+              write (aline, *) 'Problem in tractend2 !'
+              call say(myid)
+            end if
+            do k = kt , kdwd
+              cutend_up(i,k) = mflx(i,1)*egrav*d_r1000 * &
+                               wk(i,kb)/(sigma(kdwd)-sigma(kt))
+            end do
+            cutend_up(i,kb) = -mflx(i,1)*egrav*d_r1000*wk(i,kb)/(dsigma(kb))
+
+            ! transport linked to downdraft
    
-          cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*d_r1000*wk(i,kdwd)/(dsigma(kdwd))
-          cutend_dwd(i,kz) = +mflx(i,2)*egrav*d_r1000*wk(i,kdwd)/(dsigma(kz))
-          do k = kt , kz
-            chiten(i,k,j,itr) = chiten(i,k,j,itr) + cutend_up(i,k)+cutend_dwd(i,k)
-          end do
+            cutend_dwd(i,kdwd) = -mflx(i,2)*egrav*d_r1000 * &
+                                  wk(i,kdwd)/(dsigma(kdwd))
+            cutend_dwd(i,kz) = +mflx(i,2)*egrav*d_r1000 * &
+                                  wk(i,kdwd)/(dsigma(kz))
+            do k = kt , kz
+              chiten(i,k,j,itr) = chiten(i,k,j,itr) + &
+                                  cutend_up(i,k)+cutend_dwd(i,k)
+            end do
+          end if
         end if
       end do
     end if

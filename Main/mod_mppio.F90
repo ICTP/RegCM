@@ -28,6 +28,7 @@ module mod_mppio
   use mod_message
   use mod_che_mppio
   use mod_bats_mppio
+  use mod_cu_common
 !
   real(8) , pointer , dimension(:,:,:,:) :: spacesubm1
   real(8) , pointer , dimension(:,:,:,:) :: spacesub

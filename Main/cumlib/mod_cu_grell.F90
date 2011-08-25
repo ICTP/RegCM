@@ -19,14 +19,10 @@
 
 module mod_cu_grell
 
-  use mod_runparams
-  use mod_atm_interface
-  use mod_cu_common
-  use mod_bats
-  use mod_rad
-  use mod_che_trac
-  use mod_service 
+  use mod_dynparam
   use mod_memutil
+  use mod_service 
+  use mod_cu_common
  
   private
 
@@ -52,6 +48,9 @@ module mod_cu_grell
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 !
+  real(8) , public , pointer , dimension(:,:) :: mflx
+  integer , public , pointer, dimension(:,:) :: icumdwd
+!
   real(8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
               edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
@@ -64,6 +63,9 @@ module mod_cu_grell
 
   subroutine allocate_mod_cu_grell
     implicit none
+
+    call getmem2d(mflx,1,iy,1,2,'cu_grell:mflx')
+    call getmem2d(icumdwd,1,iy,1,jxp,'cu_grell:icumdwd')
 
     call getmem2d(dtauc2d,1,iy,1,jxp,'cu_grell:dtauc2d')
     call getmem2d(pbcmax2d,1,iy,1,jxp,'cu_grell:pbcmax2d')
@@ -179,15 +181,16 @@ module mod_cu_grell
     ae(2) = be(2)*rtzero + alsixt
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan(j)
+  subroutine cuparan(j,ktau)
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
     implicit none
 !
     integer , intent(in) :: j
+    integer(8) , intent(in) :: ktau
 !
-    real(8) :: aprdiv , calc , pkdcut , pkk , prainx , us , vs
+    real(8) :: pkdcut , pkk , prainx , us , vs
     integer :: i , jp1 , iconj , iend , istart , k , kk
 !
     character (len=64) :: subroutine_name='cuparan'
@@ -197,8 +200,8 @@ module mod_cu_grell
 !
 !   zero out radiative clouds
 !
-    cldlwc = d_zero
-    cldfra = d_zero
+    rcldlwc = d_zero
+    rcldfra = d_zero
 
     pkdcut = 75.0D0
     istart = 2 + icut
@@ -302,32 +305,32 @@ module mod_cu_grell
       do i = istart , iend
         kk = kz - k + 1
         jp1 = j + 1
-        us = (atm1%u(i,kk,j)/sps2%ps(i,j)+       &
-              atm1%u(i+1,kk,j)/sps2%ps(i+1,j)+   &
-              atm1%u(i,kk,jp1)/sps2%ps(i,jp1)+   &
-              atm1%u(i+1,kk,jp1)/sps2%ps(i+1,jp1))*d_rfour
-        vs = (atm1%v(i,kk,j)/sps2%ps(i,j)+       &
-              atm1%v(i+1,kk,j)/sps2%ps(i+1,j)+   &
-              atm1%v(i,kk,jp1)/sps2%ps(i,jp1)+   &
-              atm1%v(i+1,kk,jp1)/sps2%ps(i+1,jp1))*d_rfour
-        t(i,k) = atm2%t(i,kk,j)/sps2%ps(i,j)
-        q(i,k) = atm2%qv(i,kk,j)/sps2%ps(i,j)
+        us = (puatm(i,kk,j)/sfcps(i,j)+       &
+              puatm(i+1,kk,j)/sfcps(i+1,j)+   &
+              puatm(i,kk,jp1)/sfcps(i,jp1)+   &
+              puatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
+        vs = (pvatm(i,kk,j)/sfcps(i,j)+       &
+              pvatm(i+1,kk,j)/sfcps(i+1,j)+   &
+              pvatm(i,kk,jp1)/sfcps(i,jp1)+   &
+              pvatm(i+1,kk,jp1)/sfcps(i+1,jp1))*d_rfour
+        t(i,k) = tatm(i,kk,j)/sfcps(i,j)
+        q(i,k) = qvatm(i,kk,j)/sfcps(i,j)
         if ( q(i,k) < 1.0D-08 ) q(i,k) = 1.0D-08
-        tn(i,k) = t(i,k) + (aten%t(i,kk,j))/sps2%ps(i,j)*dt
-        qo(i,k) = q(i,k) + (aten%qv(i,kk,j))/sps2%ps(i,j)*dt
-        p(i,k) = d_10*sps2%ps(i,j)*a(kk) + d_10*ptop
+        tn(i,k) = t(i,k) + (tten(i,kk,j))/sfcps(i,j)*dtcum
+        qo(i,k) = q(i,k) + (qvten(i,kk,j))/sfcps(i,j)*dtcum
+        p(i,k) = d_10*sfcps(i,j)*hlev(kk) + d_10*ptop
         vsp(i,k) = dsqrt(us**d_two+vs**d_two)
         if ( qo(i,k) < 1.0D-08 ) qo(i,k) = 1.0D-08
 !
         po(i,k) = p(i,k)
-        psur(i) = d_10*sps2%ps(i,j) + d_10*ptop
+        psur(i) = d_10*sfcps(i,j) + d_10*ptop
         outt(i,k) = d_zero
         pkk = psur(i) - po(i,k)
         if ( pkk <= pkdcut ) kdet(i) = kdet(i) + 1
         outq(i,k) = d_zero
-        ter11(i) = mddom%ht(i,j)*regrav
+        ter11(i) = sfhgt(i,j)*regrav
         if ( ter11(i) <= d_zero ) ter11(i) = 1.0D-05
-        qcrit(i) = qcrit(i) + aten%qv(i,kk,j)
+        qcrit(i) = qcrit(i) + qvten(i,kk,j)
       end do
     end do
 !
@@ -341,24 +344,26 @@ module mod_cu_grell
       do i = istart , iend
         if ( pret(i) > d_zero ) then
           kk = kz - k + 1
-          aten%t(i,kk,j) = sps2%ps(i,j)*outt(i,k) + aten%t(i,kk,j)
-          aten%qv(i,kk,j) = sps2%ps(i,j)*outq(i,k) + aten%qv(i,kk,j)
+          tten(i,kk,j) = sfcps(i,j)*outt(i,k) + tten(i,kk,j)
+          qvten(i,kk,j) = sfcps(i,j)*outq(i,k) + qvten(i,kk,j)
         end if
       end do
     end do
 !
 !   rain in cm.
 !
-    calc = d_half
     iconj = 0
     do i = istart , iend
-      prainx = pret(i)*calc*dt
+      prainx = pret(i)*dtmdl
+      if ( ktau == 0 ) prainx = prainx*d_half
       if ( prainx > dlowval ) then
-        sfsta%rainc(i,j) = sfsta%rainc(i,j) + prainx
+        rainc(i,j) = rainc(i,j) + prainx
 !       precipitation rate for bats (mm/s)
-        aprdiv = dble(ntsrf)
-        if ( ktau == 0 ) aprdiv = d_one
-        pptc(i,j) = pptc(i,j) + prainx/dtsec/aprdiv
+        if ( ktau == 0 ) then
+          lmpcpc(i,j) = lmpcpc(i,j) + pret(i)*d_half
+        else
+          lmpcpc(i,j) = lmpcpc(i,j) + pret(i)*aprdiv
+        end if
         iconj = iconj + 1
       end if
     end do
@@ -391,7 +396,7 @@ module mod_cu_grell
 !
     call time_begin(subroutine_name,idindx)
 
-    mbdt = dt*5.0D-03
+    mbdt = dtcum*5.0D-03
     f  = -d_one
     xk = -d_one
 !
@@ -986,9 +991,9 @@ module mod_cu_grell
     do i = istart , iend
       if ( xac(i) >= d_zero ) then
         if ( igcc == 1 ) then
-          f = (xao(i)-xac(i))/dt   ! Arakawa-Schubert closure
+          f = (xao(i)-xac(i))/dtcum ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(i)/dtauc2d(i,j)  ! Fritsch-Chappell closure
+          f = xac(i)/dtauc2d(i,j)    ! Fritsch-Chappell closure
         end if
         xk = (xxac(i)-xac(i))/mbdt
         xmb(i) = -f/xk
@@ -1034,13 +1039,13 @@ module mod_cu_grell
           akclth = d_one/dble(kclth)
           do k = kbcon(i) , ktop(i)
             kk = kz - k + 1
-            cldlwc(i,kk) = cllwcv
-            cldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
+            rcldlwc(i,kk) = cllwcv
+            rcldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
           end do
 !
 !         define convection  base and top for tracers
 !
-          if ( ichem == 1 ) then
+          if ( lchem ) then
             if ( ktop(i) > 1 .and. k22(i) >= 1 ) then
               icumtop(i,j) = kzp1 - ktop(i)
               icumbot(i,j) = kzp1 - k22(i)

@@ -40,9 +40,6 @@ module mod_interface
   use mod_tendency
   use mod_tstep
   use mod_service
-#ifdef CHEMTEST
-  use mod_chem
-#endif
   use mod_mppio
   use mpi
 #ifdef CLM

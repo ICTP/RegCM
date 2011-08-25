@@ -17,25 +17,33 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cu_common
-!
-! Storage and constants related to cumulus convection schemes.
-!
-  use mod_dynparam
-  use mod_memutil
+module mod_che_param
 
-  implicit none
-!
-  real(8) :: clfrcv ! Cloud fractional cover for convective precip
-  real(8) :: cllwcv ! Cloud liquid water content for convective precip.
+  use m_realkinds
 
-  integer , pointer , dimension(:) :: icon ! Precip points counter
+  public
 !
-  contains
+  logical :: lch
+  integer :: ichdir
+
+  real(dp) :: chfrq , rafrq , mdfrq
+
+  real(dp) , pointer , dimension(:) :: chlevs
+  real(dp) , pointer , dimension(:,:) :: chps1
+  real(dp) , pointer , dimension(:,:,:) :: chrh
 !
-  subroutine allocate_mod_cu_common
-  implicit none
-  call getmem1d(icon,1,jxp,'mod_cu_common:icon')
-  end subroutine allocate_mod_cu_common
+  real(8) , dimension(22) :: aest , arye
 !
-end module mod_cu_common
+! Stokes parameters
+!
+  data aest     /0.80D0 , 0.80D0 , 0.8D0 , 0.8D0 , 1.2D0 , 1.20D0 , &
+       2.0D0 , 1.5D0 ,  1.5D0 , 2.0D0 , 15.0D0 , 15.0D0 , 1.5D0 ,   &
+       1.5D0 , 1.5D0 , 15.0D0 , 1.2D0 , 1.2D0 , 1.2D0 , 1.2D0 ,     &
+       1.2D0 , 1.2D0 /
+!
+  data arye     /0.5D0 , 5.0D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 ,    &
+     0.0001D0 , 5.0D0 , 10.0D0 , 10.0D0 , 0.0001D0 , 0.0001D0 ,     &
+     0.56D0 , 0.56D0 , 0.56D0 , 0.56D0 ,  0.56D0 , 0.56D0 , 0.56D0 ,&
+     0.56D0 , 1.0D0 , 1.0D0 /
+!
+end module mod_che_param

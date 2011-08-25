@@ -21,6 +21,7 @@ module mod_params
 
   use mod_runparams
   use mod_cu_common
+  use mod_cu_interface
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
   use mod_atm_interface
@@ -45,6 +46,7 @@ module mod_params
   use mod_che_dust
   use mod_bdycod
   use mod_che_interface
+  use mod_che_common
   use mod_leaftemp
   use mod_o3blk
   use mod_ncio
@@ -53,7 +55,6 @@ module mod_params
   use mod_tendency
   use mod_ncio
   use mod_uwtcm
-  use mod_chem 
   use mod_advection , only : init_advection
   use mod_mppio
 #ifdef CLM
@@ -335,9 +336,9 @@ module mod_params
   rh0oce = 0.90D0      ! Relative humidity threshold for ocean
   rh0land = 0.80D0     ! Relative humidity threshold for land
   tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
-!     cevap    = 0.2D-4    ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+! cevap    = 0.2D-4    ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
   cevap = 1.0D-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-!     caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
+! caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
   cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
   clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
@@ -691,10 +692,9 @@ module mod_params
   call allocate_mod_diagnosis
 #endif
 
-  call init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,sps1%ps,atms%rhb3d)
   call allocate_mod_che_mppio(lband)
   call allocate_mod_bats_mppio(lakemod)
-  call allocate_mod_che_interface
+  call allocate_mod_che_common
   call allocate_mod_che_trac
   call allocate_mod_che_aerosol
   call allocate_mod_che_dust
@@ -854,6 +854,11 @@ module mod_params
   call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                  iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)
 #endif
+  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,atm2,aten,atms, &
+                     sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,  &
+                     dsigma,qcon,cldfra,cldlwc)
+  call init_chem(ichem,idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
+                 atms%rhb3d,icumtop,icumbot)
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then
@@ -1014,7 +1019,7 @@ module mod_params
           'model in minutes:  dtrad = ' , dtrad 
   call say(myid) 
   write (aline,'(a,f12.6)')  ' time step for land surface '// &
-          'model in seconds:  dtsrf  = ' , dtsrf 
+          'model in seconds :  dtsrf  = ' , dtsrf 
   call say(myid)
   write (aline,'(a,f12.6)')  ' time step for LW absorption/'// &
           'emissivity in hours:  dtabem  = ' , dtabem 
@@ -1251,7 +1256,9 @@ module mod_params
     if ( cevap <= d_zero ) then
       write (aline, *) 'Raindrop evaporation not included'
       call say(myid)
+      cevap = d_zero
     end if
+    cevapu = cevap
     if ( caccr <= d_zero ) then
       write (aline, *) 'Raindrop accretion not included'
       call say(myid)

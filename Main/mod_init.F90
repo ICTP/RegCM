@@ -28,7 +28,7 @@ module mod_init
   use mod_vecbats
   use mod_precip
   use mod_atm_interface
-  use mod_che_interface
+  use mod_che_common
   use mod_bdycod
   use mod_rad
   use mod_che_trac
@@ -1120,7 +1120,8 @@ module mod_init
 #ifndef BAND
     if (debug_level > 2) call mpidiag
 #endif
-    dt = dt2 ! First timestep successfully read in
+    dt = dt2       ! First timestep successfully read in
+    dtcum = dtcum2 ! First timestep successfully read in
 !
 !-----end of initial/restart if test
 !

@@ -21,12 +21,9 @@ module mod_cu_em
 !
 ! Kerry Emanuel Convective scheme
 !
-  use mod_runparams
-  use mod_atm_interface
+  use mod_dynparam
+  use mod_memutil
   use mod_cu_common
-  use mod_slice
-  use mod_rad
-  use mod_bats
 !
   private
 !
@@ -58,49 +55,46 @@ module mod_cu_em
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
 !
-  subroutine cupemandrv(j)
+  subroutine cupemandrv(j,ktau)
 ! 
     implicit none
 !
-    integer :: j
-    intent (in) j
+    integer , intent(in) :: j
+    integer(8) , intent(in) :: ktau
 !
     integer , parameter :: ntra = 0
 !
-    real(8) :: akclth , aprdiv , cbmf , fppt , qprime , tprime , uconv , wd
+    real(8) :: akclth , cbmf , pret , qprime , tprime , uconv , wd , prainx
     real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                qscup , tcup , ucup , vcup
     real(8) , dimension(kz,1) :: ftra , tra
     integer :: i , iconj , iflag , k , kbase , kclth , kk , ktop
     real(8) , dimension(kzp1) :: phcup
 !
-    uconv = dt*d_half
-    aprdiv = d_one/dble(ntsrf)
-    if ( ktau == 0 ) aprdiv = d_one
     iconj = 0
     do i = 2 , iym2
-      if ( icup==99 .or. icup==98 ) then
+      if ( icup /= 4 ) then
         if ( cucontrol(i,j) /= 4 ) cycle
       end if
       do k = 1 , kz
         kk = kzp1 - k
-        cldlwc(i,k) = d_zero       ! Zero out cloud water content
-        cldfra(i,k) = d_zero       ! Zero out cloud fraction coverage
-        tcup(k) = atms%tb3d(i,kk,j)                          ! [k]
-        qcup(k) = atms%qvb3d(i,kk,j)/(d_one+atms%qvb3d(i,kk,j))   ! [kg/kg]
-        qscup(k) = atms%qsb3d(i,kk,j)/(d_one+atms%qsb3d(i,kk,j))  ! [kg/kg]
-        ucup(k) = atms%ubx3d(i,kk,j)                         ! [m/s]
-        vcup(k) = atms%vbx3d(i,kk,j)                         ! [m/s]
-        pcup(k) = atms%pb3d(i,kk,j)*d_10                     ! [hPa]
+        rcldlwc(i,k) = d_zero       ! Zero out cloud water content
+        rcldfra(i,k) = d_zero       ! Zero out cloud fraction coverage
+        tcup(k) = tas(i,kk,j)                          ! [k]
+        qcup(k) = qvas(i,kk,j)/(d_one+qvas(i,kk,j))   ! [kg/kg]
+        qscup(k) = qsas(i,kk,j)/(d_one+qsas(i,kk,j))  ! [kg/kg]
+        ucup(k) = uas(i,kk,j)                         ! [m/s]
+        vcup(k) = vas(i,kk,j)                         ! [m/s]
+        pcup(k) = pas(i,kk,j)*d_10                     ! [hPa]
       end do
       do k = 1 , kzp1
         kk = kzp1 - k + 1
-        phcup(k) = (sigma(kk)*sps2%ps(i,j)+ptop)*d_10 ! [hPa]
+        phcup(k) = (flev(kk)*sfcps(i,j)+ptop)*d_10 ! [hPa]
       end do
       cbmf = cbmf2d(i,j)                              ! [(kg/m**2)/s]
    
       call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
-                   kzm1,ntra,iflag,ft,fq,fu,fv,ftra,fppt,wd,    &
+                   kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,    &
                    tprime,qprime,cbmf,kbase,ktop)
    
       cbmf2d(i,j) = cbmf
@@ -121,14 +115,14 @@ module mod_cu_em
 !       Tendencies
         do k = 1 , kz
           kk = kzp1 - k
-          aten%t(i,kk,j) = ft(k)*sps2%ps(i,j) + aten%t(i,kk,j)
-          aten%qv(i,kk,j) = fq(k)/(d_one-fq(k))* &
-                            sps2%ps(i,j)+aten%qv(i,kk,j)
+          tten(i,kk,j) = ft(k)*sfcps(i,j) + tten(i,kk,j)
+          qvten(i,kk,j) = fq(k)/(d_one-fq(k))* &
+                            sfcps(i,j)+qvten(i,kk,j)
 !         There is a bit of an inconsistency here...  The wind
 !         tendencies from convection are on cross points, but the
 !         model wants them on dot points.
-          aten%u(i,kk,j) = fu(k)*sps2%ps(i,j) + aten%u(i,kk,j)
-          aten%v(i,kk,j) = fv(k)*sps2%ps(i,j) + aten%v(i,kk,j)
+          uten(i,kk,j) = fu(k)*sfcps(i,j) + uten(i,kk,j)
+          vten(i,kk,j) = fv(k)*sfcps(i,j) + vten(i,kk,j)
         end do
    
 !       Cloud fraction and cloud water
@@ -136,14 +130,19 @@ module mod_cu_em
         akclth = d_one/dble(kclth)
         do k = kbase , ktop
           kk = kzp1 - k
-          cldlwc(i,kk) = cllwcv
-          cldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
+          rcldlwc(i,kk) = cllwcv
+          rcldfra(i,kk) = d_one - (d_one-clfrcv)**akclth
         end do
    
 !       Precipitation
-        if ( fppt > dlowval ) then
-          sfsta%rainc(i,j) = sfsta%rainc(i,j) + fppt*uconv ! mm
-          pptc(i,j)        = pptc(i,j) + fppt*aprdiv       ! mm/s
+        prainx = pret*dtmdl
+        if ( prainx > dlowval ) then
+          rainc(i,j)  = rainc(i,j)  + prainx  ! mm
+          if ( ktau == 0 ) then
+            lmpcpc(i,j) = lmpcpc(i,j) + pret
+          else
+            lmpcpc(i,j) = lmpcpc(i,j) + pret*aprdiv
+          end if
           iconj = iconj + 1
         end if
       end if
@@ -349,7 +348,7 @@ module mod_cu_em
 !   calling program
 !   note: these are also specified in subroutine tlift
 !
-    delti = d_one/dt
+    delti = d_one/dtcum
 !
 !   initialize output arrays and parameters
 !
@@ -456,7 +455,7 @@ module mod_cu_em
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
-                       (q(j)-qnew)*regrav/(dt*d_1000)  ! mm/s
+                       (q(j)-qnew)*regrav/(dtcum*d_1000)  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
@@ -693,7 +692,7 @@ module mod_cu_em
 !
     cbmfold = cbmf
     delt0 = 300.0D0
-    damps = damp*dt/delt0
+    damps = damp*dtcum/delt0
     cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
     cbmf = dmax1(cbmf,d_zero)
 !

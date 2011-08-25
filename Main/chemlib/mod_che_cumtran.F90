@@ -23,7 +23,7 @@ module mod_cumtran
 !
   use mod_dynparam
   use mod_che_trac
-  use mod_che_interface
+  use mod_che_common
 !
   private
 !
@@ -42,22 +42,22 @@ module mod_cumtran
   implicit none
 !
   real(8) :: chiabar , chibbar , deltas
-  integer :: i , j , k , kcumtop , n
+  integer :: i , j , k , kctop , n
 !
   do n = 1 , ntr
     do j = jbegin , jendx
       do i = 2 , iym1
-        if ( icumtop(i,j) > 0 ) then
+        if ( kcumtop(i,j) > 0 ) then
           deltas = d_zero
           chiabar = d_zero
           chibbar = d_zero
-          kcumtop = max0(icumtop(i,j),4)
-          do k = kcumtop , kz
+          kctop = max0(kcumtop(i,j),4)
+          do k = kctop , kz
             deltas = deltas + chlevs(k)
             chiabar = chiabar + chia(i,k,j,n)*chlevs(k)
             chibbar = chibbar + chib(i,k,j,n)*chlevs(k)
           end do
-          do k = kcumtop , kz
+          do k = kctop , kz
             chia(i,k,j,n) = chia(i,k,j,n)*(d_one-cumfrc) + cumfrc*chiabar/deltas
             chib(i,k,j,n) = chib(i,k,j,n)*(d_one-cumfrc) + cumfrc*chibbar/deltas
           end do

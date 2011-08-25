@@ -124,7 +124,6 @@ module mod_atm_interface
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
 
   real(8) , public , pointer , dimension(:,:) :: hgfact
-  integer , public , pointer , dimension(:,:) :: cucontrol
   real(8) , public , pointer , dimension(:,:,:) :: sulfate
   real(8) , public , pointer, dimension(:,:,:) :: dstor
   real(8) , public , pointer, dimension(:,:,:) :: hstor
@@ -312,10 +311,6 @@ module mod_atm_interface
       call allocate_v3dbound(xub,lband,kz,nspgd)
       call allocate_v3dbound(xvb,lband,kz,nspgd)
       call allocate_v2dbound(xpsb,lband,nspgx)
-
-      if (icup == 99 .or. icup == 98) then
-        call getmem2d(cucontrol,1,iy,1,jxp,'mod_atm_interface:cucontrol')
-      end if
 
       if ( ehso4 ) then
         call getmem3d(sulfate,1,iy,1,kz,1,jxp,'mod_atm_interface:sulfate')

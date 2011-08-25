@@ -23,7 +23,7 @@ module mod_che_trac
   use mod_dynparam
   use mod_memutil
   use mod_message
-  use mod_chem
+  use mod_che_param
 !
   private
 !
@@ -38,11 +38,8 @@ module mod_che_trac
   real(dp) , public , pointer , dimension(:) :: chtrsol
 !
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
-  integer , public , pointer, dimension(:,:) :: icumbot , icumdwd , icumtop
 !
   integer , public , pointer , dimension(:) :: idust , isslt , icarb
-!
-  real(dp) , public , pointer , dimension(:,:) :: mflx
 !
   real(dp) , public , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
   real(dp) , public , pointer , dimension(:,:) :: aersrrf , aertarf
@@ -72,9 +69,6 @@ module mod_che_trac
       nbin = maxnbin
     end if
 
-    call getmem2d(icumbot,1,iy,1,jxp,'mod_che_trac:icumbot')
-    call getmem2d(icumdwd,1,iy,1,jxp,'mod_che_trac:icumdwd')
-    call getmem2d(icumtop,1,iy,1,jxp,'mod_che_trac:icumtop')
     call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'mod_che_trac:aerasp')
     call getmem3d(aerext,1,iym1,1,kz,1,jxp,'mod_che_trac:aerext')
     call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'mod_che_trac:aerssa')
@@ -105,7 +99,6 @@ module mod_che_trac
       call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_trac:dustbsiz')
       call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_trac:ssltbsiz')
     end if
-    call getmem2d(mflx,1,iy,1,2,'mod_che_trac:mflx')
     call getmem2d(rembc,1,iy,1,kz,'mod_che_trac:rembc')
     call getmem2d(remrat,1,iy,1,kz,'mod_che_trac:remrat')
   end subroutine allocate_mod_che_trac

@@ -56,13 +56,13 @@ module mod_runparams
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
-  integer :: ibltyp , iboudy , ichem , icup , idirect , iemiss , igcc , &
+  integer :: ibltyp , iboudy , ichem , idirect , iemiss , &
              ipgf , ipptls , idcsst , iseaice , lakemod , &
              idesseas
 
   logical :: ifrest , rfstrt , doing_restart
 
-  integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
+  integer :: ispgd , ispgx , kchi , kclo , kcmd , kt , ncld
 !
   real(8) :: akht1 , akht2
 

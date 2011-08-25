@@ -23,7 +23,7 @@ module mod_che_mppio
   use mod_dynparam
   use mod_memutil
   use mod_message
-  use mod_chem
+  use mod_che_param
 !
   real(dp) , pointer , dimension(:,:,:) :: cemtrac_io , cemtr_io , &
                                           wxaq_io , wxsg_io
