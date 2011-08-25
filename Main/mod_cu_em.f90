@@ -23,14 +23,14 @@ module mod_cu_em
 !
   use mod_runparams
   use mod_atm_interface
-  use mod_pmoist
+  use mod_cu_common
   use mod_slice
   use mod_rad
   use mod_bats
 !
   private
 !
-  public :: cupemandrv
+  public :: allocate_mod_cu_em , cupemandrv
   public :: minsig , elcrit , tlcrit , entp , sigd , sigs ,    &
             omtrain , omtsnow , coeffr , coeffs , cu , betae , &
             dtmax , alphae , damp , minorig
@@ -44,7 +44,15 @@ module mod_cu_em
   real(8) , parameter :: cpvmcl = cl - cpv
   real(8) , parameter :: mincbmf = 1.0D-30
 !
+  real(8) , public , pointer , dimension(:,:) :: cbmf2d
+!
   contains
+!
+  subroutine allocate_mod_cu_em
+    implicit none
+    call getmem2d(cbmf2d,1,iy,1,jxp,'mod_cu_em:cbmf2d')
+  end subroutine allocate_mod_cu_em
+!
 !
 ! **********************************************
 ! **** Driver for Emanuel Convection Scheme ****
@@ -87,7 +95,7 @@ module mod_cu_em
       end do
       do k = 1 , kzp1
         kk = kzp1 - k + 1
-        phcup(k) = (sigma(kk)*sps2%ps(i,j)+r8pt)*d_10 ! [hPa]
+        phcup(k) = (sigma(kk)*sps2%ps(i,j)+ptop)*d_10 ! [hPa]
       end do
       cbmf = cbmf2d(i,j)                              ! [(kg/m**2)/s]
    

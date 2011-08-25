@@ -214,7 +214,7 @@ module mod_bdycod
 !
     do j = 1 , jendl
       do i = 1 , iy
-        xpsb%b1(i,j) = xpsb%b1(i,j) - r8pt
+        xpsb%b1(i,j) = xpsb%b1(i,j) - ptop
       end do
     end do
 !

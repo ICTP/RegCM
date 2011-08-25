@@ -27,7 +27,6 @@ module mod_output
   use mod_bats
   use mod_message
   use mod_bdycod
-  use mod_pmoist
   use mod_precip
   use mod_rad
   use mod_che_trac
@@ -37,6 +36,8 @@ module mod_output
   use mod_savefile
   use mod_service
   use mod_cu_bm
+  use mod_cu_em
+  use mod_cu_kuo
   use mod_mppio
   use mod_tcm_interface
   use mod_pbldim
@@ -1542,7 +1543,7 @@ module mod_output
 
   do i = 1 , imax
     do j = 1 , jmax
-      radpsa_io(j,i) = real((psa_io(i+istart,j+jstart)+r8pt)*d_10)
+      radpsa_io(j,i) = real((psa_io(i+istart,j+jstart)+ptop)*d_10)
     end do
   end do
 

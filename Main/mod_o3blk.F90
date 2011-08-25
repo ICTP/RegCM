@@ -22,7 +22,7 @@ module mod_o3blk
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : r8pt , sigma
+  use mod_runparams , only : ptop , sigma
   use mod_atm_interface
   use mod_rad
 
@@ -104,7 +104,7 @@ module mod_o3blk
     do i = 1 , iym1
       do k = kzp1 , 1 , -1
         kj = kzp1 - k + 1
-        prlevh(kj) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_10
+        prlevh(kj) = (sigma(k)*sps2%ps(i,j)+ptop)*d_10
       end do
       ppwrkh(1) = 1100.0D0
       do k = 2 , 31

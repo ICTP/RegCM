@@ -64,7 +64,6 @@ module mod_runparams
 
   integer :: ispgd , ispgx , k700 , kchi , kclo , kcmd , kt , ncld
 !
-  real(8) :: r8pt
   real(8) :: akht1 , akht2
 
   real(8) , pointer , dimension(:) :: dtau

@@ -26,7 +26,7 @@ module mod_cu_tiedtke
   use mod_atm_interface
   use mod_pbldim
   use mod_bats
-  use mod_pmoist
+  use mod_cu_common
   use mod_constants
   use mod_cu_tables
   use mod_message
@@ -157,7 +157,7 @@ module mod_cu_tiedtke
       do i = 2 , iym2
         ii = i - 1
         ! Pascal
-        papp1(ii,k) = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+        papp1(ii,k) = (a(k)*sps2%ps(i,j)+ptop)*d_1000
 
         ptm1(ii,k)  = atm2%t(i,k,j)/sps2%ps(i,j)  ! temperature
         pum1(ii,k)  = atm2%u(i,k,j)/sps2%ps(i,j)  ! u (guessing!)
@@ -187,7 +187,7 @@ module mod_cu_tiedtke
     do k = 1 , kzp1
       do i = 2 , iym2
         ii = i - 1
-        paphp1(ii,k) = (sigma(k)*sps2%ps(i,j)+r8pt)*d_1000
+        paphp1(ii,k) = (sigma(k)*sps2%ps(i,j)+ptop)*d_1000
       end do
     end do
 
@@ -197,7 +197,7 @@ module mod_cu_tiedtke
     paprc(:) = d_zero ! total precip cumulative 
     paprs(:) = d_zero ! total snow cumulative 
 
-    ptopmax(:) = r8pt*d_1000  ! pressure top limit for convection 
+    ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
 
     call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,xpt,xpqv,xpu,xpv,xpqc,   &

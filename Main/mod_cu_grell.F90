@@ -21,7 +21,7 @@ module mod_cu_grell
 
   use mod_runparams
   use mod_atm_interface
-  use mod_pmoist
+  use mod_cu_common
   use mod_bats
   use mod_rad
   use mod_che_trac
@@ -315,12 +315,12 @@ module mod_cu_grell
         if ( q(i,k) < 1.0D-08 ) q(i,k) = 1.0D-08
         tn(i,k) = t(i,k) + (aten%t(i,kk,j))/sps2%ps(i,j)*dt
         qo(i,k) = q(i,k) + (aten%qv(i,kk,j))/sps2%ps(i,j)*dt
-        p(i,k) = d_10*sps2%ps(i,j)*a(kk) + d_10*r8pt
+        p(i,k) = d_10*sps2%ps(i,j)*a(kk) + d_10*ptop
         vsp(i,k) = dsqrt(us**d_two+vs**d_two)
         if ( qo(i,k) < 1.0D-08 ) qo(i,k) = 1.0D-08
 !
         po(i,k) = p(i,k)
-        psur(i) = d_10*sps2%ps(i,j) + d_10*r8pt
+        psur(i) = d_10*sps2%ps(i,j) + d_10*ptop
         outt(i,k) = d_zero
         pkk = psur(i) - po(i,k)
         if ( pkk <= pkdcut ) kdet(i) = kdet(i) + 1

@@ -23,7 +23,7 @@ module mod_tendency
   use mod_atm_interface
   use mod_che_interface
   use mod_bdycod
-  use mod_pmoist
+  use mod_cu_common
   use mod_precip
   use mod_rad
   use mod_bats
@@ -1344,7 +1344,7 @@ module mod_tendency
             rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qv(i,k,j))))
             tv = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
             aten%t(i,k,j) = aten%t(i,k,j) + (omega(i,k,j)*rovcpm*tv) &
-                          /(r8pt/sps1%ps(i,j)+a(k))
+                          /(ptop/sps1%ps(i,j)+a(k))
           end do
         end do
 !
@@ -1642,7 +1642,7 @@ module mod_tendency
             do i = 1 , iym1
               td(i,k,j) = atm1%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j) * &
-                        t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)**pgfaa1
+                        t00pg*((a(k)*sps1%ps(i,j)+ptop)/p00pg)**pgfaa1
             end do
           end do
         else if ( ipgf == 0 ) then
@@ -1662,7 +1662,7 @@ module mod_tendency
             do i = 1 , iym1
               td(i,k,j) = atm1%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
               ttld(i,k,j) = td(i,k,j) - sps1%ps(i,j) * &
-                     t00pg*((a(k)*sps1%ps(i,j)+r8pt)/p00pg)**pgfaa1
+                     t00pg*((a(k)*sps1%ps(i,j)+ptop)/p00pg)**pgfaa1
             end do
           end do
         else if ( ipgf == 0 ) then
@@ -1696,17 +1696,17 @@ module mod_tendency
                                  (atm2%qv(i,k,j))/sps2%ps(i,j))
             td(i,k,j) = alpha*(tvc+tvb) + beta*tva
             ttld(i,k,j) = td(i,k,j) - psd(i,j) * &
-                      t00pg*((a(k)*psd(i,j)+r8pt)/p00pg)**pgfaa1
+                      t00pg*((a(k)*psd(i,j)+ptop)/p00pg)**pgfaa1
           end do
         end do
         do k = 1 , kz
           td(1,k,j) = atm1%t(1,k,j)*(d_one+ep1*(atmx%qv(1,k,j)))
           ttld(1,k,j) = td(1,k,j) - sps1%ps(1,j) * &
-                   t00pg*((a(k)*sps1%ps(1,j)+r8pt)/p00pg)**pgfaa1
+                   t00pg*((a(k)*sps1%ps(1,j)+ptop)/p00pg)**pgfaa1
           td(iym1,k,j) = atm1%t(iym1,k,j)* &
                         (d_one+ep1*(atmx%qv(iym1,k,j)))
           ttld(iym1,k,j) = td(iym1,k,j) - sps1%ps(iym1,j) *           &
-                   t00pg*((a(k)*sps1%ps(iym1,j)+r8pt)/p00pg)**pgfaa1
+                   t00pg*((a(k)*sps1%ps(iym1,j)+ptop)/p00pg)**pgfaa1
         end do
 !
       else if ( ipgf == 0 ) then
@@ -1791,15 +1791,15 @@ module mod_tendency
             tv3 = atmx%t(i-1,k,j)*(d_one+ep1*(atmx%qv(i-1,k,j)))
             tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
             rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
-                    ((a(k)*psasum*d_rfour+r8pt)/p00pg)**pgfaa1
+                    ((a(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
             rtbar = rgas*rtbar*sigpsa/16.0D0
             aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                  (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -     &
-                   dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/ &
+                  (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+ptop) -     &
+                   dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+ptop))/ &
                    (dx*mddom%msfd(i,j))
             aten%v(i,k,j) = aten%v(i,k,j) - rtbar * &
-                  (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -     &
-                   dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/ &
+                  (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+ptop) -     &
+                   dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+ptop))/ &
                    (dx*mddom%msfd(i,j))
           end do
         end do
@@ -1814,12 +1814,12 @@ module mod_tendency
             tv4 = atmx%t(i,k,j)*(d_one+ep1*(atmx%qv(i,k,j)))
             rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
             aten%u(i,k,j) = aten%u(i,k,j) - rtbar * &
-                   (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+r8pt) -    &
-                    dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+r8pt))/&
+                   (dlog(d_half*(psd(i,j)+psd(i-1,j))*a(k)+ptop) -    &
+                    dlog(d_half*(psd(i,jm1)+psd(i-1,jm1))*a(k)+ptop))/&
                     (dx*mddom%msfd(i,j))
             aten%v(i,k,j) = aten%v(i,k,j) - rtbar *                   &
-                   (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+r8pt) -    &
-                    dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+r8pt))/&
+                   (dlog(d_half*(psd(i,j)+psd(i,jm1))*a(k)+ptop) -    &
+                    dlog(d_half*(psd(i-1,jm1)+psd(i-1,j))*a(k)+ptop))/&
                     (dx*mddom%msfd(i,j))
           end do
         end do
@@ -1837,9 +1837,9 @@ module mod_tendency
           tv = (ttld(i,kz,j)/psd(i,j))/(d_one+atmx%qc(i,kz,j)/ &
                                        (d_one+atmx%qv(i,kz,j)))
           phi(i,kz,j) = mddom%ht(i,j) + &
-                   rgas*t00pg/pgfaa1*((psd(i,j)+r8pt)/p00pg)**pgfaa1
+                   rgas*t00pg/pgfaa1*((psd(i,j)+ptop)/p00pg)**pgfaa1
           phi(i,kz,j) = phi(i,kz,j) - rgas * &
-                  tv*dlog((a(kz)+r8pt/psd(i,j))/(d_one+r8pt/psd(i,j)))
+                  tv*dlog((a(kz)+ptop/psd(i,j))/(d_one+ptop/psd(i,j)))
         end do
  
         do k = 1 , kzm1
@@ -1850,8 +1850,8 @@ module mod_tendency
                     dsigma(lev+1))))/(d_one+atmx%qc(i,lev,j)/    &
                     (d_one+atmx%qv(i,lev,j)))
             phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
-                   tvavg*dlog((a(lev)+r8pt/psd(i,j))/ &
-                             (a(lev+1)+r8pt/psd(i,j)))
+                   tvavg*dlog((a(lev)+ptop/psd(i,j))/ &
+                             (a(lev+1)+ptop/psd(i,j)))
           end do
         end do
  
@@ -1861,7 +1861,7 @@ module mod_tendency
           tv = (td(i,kz,j)/psd(i,j))/(d_one+atmx%qc(i,kz,j)/  &
                (d_one+atmx%qv(i,kz,j)))
           phi(i,kz,j) = mddom%ht(i,j) - rgas * &
-               tv*dlog((a(kz)+r8pt/psd(i,j))/(d_one+r8pt/psd(i,j)))
+               tv*dlog((a(kz)+ptop/psd(i,j))/(d_one+ptop/psd(i,j)))
         end do
  
         do k = 1 , kzm1
@@ -1872,8 +1872,8 @@ module mod_tendency
                     dsigma(lev+1))))/(d_one+atmx%qc(i,lev,j)/  &
                     (d_one+atmx%qv(i,lev,j)))
             phi(i,lev,j) = phi(i,lev+1,j) - rgas *    &
-                   tvavg*dlog((a(lev)+r8pt/psd(i,j))  &
-                           /(a(lev+1)+r8pt/psd(i,j)))
+                   tvavg*dlog((a(lev)+ptop/psd(i,j))  &
+                           /(a(lev+1)+ptop/psd(i,j)))
           end do
         end do
  

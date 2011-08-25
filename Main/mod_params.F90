@@ -20,7 +20,7 @@
 module mod_params
 
   use mod_runparams
-  use mod_pmoist
+  use mod_cu_common
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
   use mod_atm_interface
@@ -32,6 +32,7 @@ module mod_params
   use mod_cu_tables
   use mod_cu_tiedtke
   use mod_cu_grell
+  use mod_cu_kuo
   use mod_precip
   use mod_rad
   use mod_split
@@ -84,6 +85,8 @@ module mod_params
              dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
              qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
              wkp1 , xbot , xtop , xx , yy
+  real(8) :: gulland , guloce , mincld , qck1land , qck1oce , &
+             rh0land , rh0oce , skbmax , clfrcvmax
   real(8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
              edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
   real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
@@ -674,7 +677,7 @@ module mod_params
   call allocate_mod_outrad
   call allocate_mod_o3blk
   call allocate_mod_pbldim
-  call allocate_mod_pmoist
+  call allocate_mod_cu_common
   call allocate_mod_precip
   call allocate_mod_radiation 
   call allocate_mod_rad
@@ -877,11 +880,11 @@ module mod_params
   call split_idate(idatex,xyear,xmonth,xday,xhour)
 !
   if ( myid == 0 ) then
-    call open_domain(r8pt,dx,sigma)
+    call open_domain(ptop,dx,sigma)
   end if
   call mpi_bcast(clat,1,mpi_real,0,mpi_comm_world,ierr)
   call mpi_bcast(plon,1,mpi_real,0,mpi_comm_world,ierr)
-  call mpi_bcast(r8pt,1,mpi_real8,0,mpi_comm_world,ierr)
+  call mpi_bcast(ptop,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(dx,1,mpi_real8,0,mpi_comm_world,ierr)
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mpi_comm_world,ierr)
  
@@ -903,7 +906,7 @@ module mod_params
   dx8 = 8.0D0*dx
   dx16 = 16.0D0*dx
   dxsq = dx*dx
-  c200 = vonkar*vonkar*dx/(d_four*(d_100-r8pt))
+  c200 = vonkar*vonkar*dx/(d_four*(d_100-ptop))
   rdxsq = 1.0D0/dxsq
   xkhz = 1.5D-3*dxsq/dt
   xkhmax = dxsq/(64.0D0*dt)
@@ -1138,7 +1141,7 @@ module mod_params
           '                ****'
     print * , '****     IY=' , iy , ' JX=' , jx , ' KX=' , kz ,   &
           '             ****'
-    print * , '****     PTOP=' , r8pt , ' DX=' , ds ,             &
+    print * , '****     PTOP=' , ptop , ' DX=' , ds ,             &
           '       ****'
     print * , '****     CLAT= ' , clat , ' CLON=' , clon ,        &
           '    ****'
@@ -1206,73 +1209,13 @@ module mod_params
     end if
   end do
 !
-!-----specify heating profile (twght) and weighted function
-!     for moisture fluxes due to convection (vqflx)
-!     assume base of cloud varies as  < kbase = 5,kz >
-!     top  of cloud varies as  < ktop  = 1,kbase-3 >
-!     exceptions to this are treated explicitly in subroutine
-!     "cupara".
-!
-  do kbase = 5 , kz
-    do ktop = 1 , kbase - 3
-      do k = 1 , kz
-        twght(k,kbase,ktop) = d_zero
-        vqflx(k,kbase,ktop) = d_zero
-      end do
-!
-!......get twght from 1/2 level sigma values
-!
-      bb = dlog(a(ktop)) + dlog(a(kbase))
-      cc = dlog(a(ktop))*dlog(a(kbase))
-      ssum = d_zero
-      do k = ktop , kbase
-        xx = dlog(a(k))
-        twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
-        ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
-      end do
-      do k = ktop , kbase
-        twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
-      end do
-!
-!......get vqflx from  d(w*q) / dsigma on full levels
-!         do computations in p to avoid sigma=0. discontinuity
-!
-      xtop = dlog((d_100-r8pt)*sigma(ktop)+r8pt)
-      xbot = dlog((d_100-r8pt)*sigma(kbase+1)+r8pt)
-      bb = xtop + xbot
-      cc = xtop*xbot
-      vqmax = d_zero
-      ssum = d_zero
-      xx = xtop
-      yy = xbot
-      wk = (xx*xx) - (bb*xx) + cc
-      qk = -((yy*yy)-(bb*yy)+cc)
-      do k = ktop , kbase
-        xx = dlog((d_100-r8pt)*sigma(k+1)+r8pt)
-        yy = dlog((d_100-r8pt)                                    &
-             *(sigma(ktop)+sigma(kbase+1)-sigma(k+1))+r8pt)
-        wkp1 = (xx*xx) - (bb*xx) + cc
-        qkp1 = -((yy*yy)-(bb*yy)+cc)
-        vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
-        ssum = ssum + vqflx(k,kbase,ktop)
-        if ( dabs(vqflx(k,kbase,ktop)) > vqmax )                   &
-             vqmax = dabs(vqflx(k,kbase,ktop))
-        wk = wkp1
-        qk = qkp1
-      end do
-      do k = ktop , kbase
-        vqflx(k,kbase,ktop) = vqflx(k,kbase,ktop)*vqrang/vqmax
-      end do
-!
-    end do
-  end do
 !
 !----calculate max no of pbl levels: kt=k at highest allowed pbl level
 !-----1. caluclate sigma level at 700mb, assuming 600mb highest
 !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
 !-----2. find first model sigma level above sigtbl.
 !
-  sigtbl = (70.0D0-r8pt)/(101.3D0-r8pt)
+  sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
   kt = 1
   do k = kz , 1 , -1
     delsig = a(k) - sigtbl
@@ -1347,12 +1290,73 @@ module mod_params
   end if
 
   if ( icup == 1 ) then
+    call allocate_mod_cu_kuo
     write (aline, *) '*********************************'
     call say(myid)
     write (aline, *) '***** Anthes-Kuo Convection *****'
     call say(myid)
     write (aline, *) '*********************************'
     call say(myid)
+!
+!   specify heating profile (twght) and weighted function
+!   for moisture fluxes due to convection (vqflx)
+!   assume base of cloud varies as  < kbase = 5,kz >
+!   top  of cloud varies as  < ktop  = 1,kbase-3 >
+!   exceptions to this are treated explicitly in subroutine
+!   "cupara".
+!
+    do kbase = 5 , kz
+      do ktop = 1 , kbase - 3
+        do k = 1 , kz
+          twght(k,kbase,ktop) = d_zero
+          vqflx(k,kbase,ktop) = d_zero
+        end do
+!
+!       get twght from 1/2 level sigma values
+!
+        bb = dlog(a(ktop)) + dlog(a(kbase))
+        cc = dlog(a(ktop))*dlog(a(kbase))
+        ssum = d_zero
+        do k = ktop , kbase
+          xx = dlog(a(k))
+          twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
+          ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
+        end do
+        do k = ktop , kbase
+          twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
+        end do
+!
+!       get vqflx from  d(w*q) / dsigma on full levels
+!       do computations in p to avoid sigma=0. discontinuity
+!
+        xtop = dlog((d_100-ptop)*sigma(ktop)+ptop)
+        xbot = dlog((d_100-ptop)*sigma(kbase+1)+ptop)
+        bb = xtop + xbot
+        cc = xtop*xbot
+        vqmax = d_zero
+        ssum = d_zero
+        xx = xtop
+        yy = xbot
+        wk = (xx*xx) - (bb*xx) + cc
+        qk = -((yy*yy)-(bb*yy)+cc)
+        do k = ktop , kbase
+          xx = dlog((d_100-ptop)*sigma(k+1)+ptop)
+          yy = dlog((d_100-ptop) * &
+               (sigma(ktop)+sigma(kbase+1)-sigma(k+1))+ptop)
+          wkp1 = (xx*xx) - (bb*xx) + cc
+          qkp1 = -((yy*yy)-(bb*yy)+cc)
+          vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
+          ssum = ssum + vqflx(k,kbase,ktop)
+          if ( dabs(vqflx(k,kbase,ktop)) > vqmax ) &
+               vqmax = dabs(vqflx(k,kbase,ktop))
+          wk = wkp1
+          qk = qkp1
+        end do
+        do k = ktop , kbase
+          vqflx(k,kbase,ktop) = vqflx(k,kbase,ktop)*vqrang/vqmax
+        end do
+      end do
+    end do
   end if
   if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
     call allocate_mod_cu_grell
@@ -1438,13 +1442,14 @@ module mod_params
     end do
   end if
   if ( icup == 3 ) then
+    call allocate_mod_cu_bm
     write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                     ' properly implemented'
     call say(myid)
     call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
-    call allocate_mod_cu_bm
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+    call allocate_mod_cu_em
     cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
     minorig = kz
@@ -1568,7 +1573,7 @@ module mod_params
   end do
  
   chibot = 450.0D0
-  ptmb = d_10*r8pt
+  ptmb = d_10*ptop
   pz = a(1)*(d_1000-ptmb) + ptmb
   if ( pz > chibot ) call fatal(__FILE__,__LINE__,                 &
                                  'VERTICAL INTERPOLATION ERROR')
@@ -1582,7 +1587,7 @@ module mod_params
 !     temperature will be regarded as the origin of air parcel that
 !     produces cloud (used in the cumulus parameterization scheme).
 !
-  sig700 = (70.0D0-r8pt)/(d_100-r8pt)
+  sig700 = (70.0D0-ptop)/(d_100-ptop)
   do k = 1 , kz
     k700 = k
     if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
@@ -1612,6 +1617,26 @@ module mod_params
     end do
   end if
 !
+! Move back form init : the land categories are read just here,
+! they are no more in the restart file.
+!
+  if ( ipptls == 1 ) then
+    do j = 1 , jendx
+      do i = 1 , iym1
+        if ( mddom%lndcat(i,j) > 14.5D0 .and. &
+             mddom%lndcat(i,j) < 15.5D0) then
+          qck1(i,j) = qck1oce  ! OCEAN
+          cgul(i,j) = guloce   ! OCEAN
+          rh0(i,j) = rh0oce    ! OCEAN
+        else
+          qck1(i,j) = qck1land ! LAND
+          cgul(i,j) = gulland  ! LAND
+          rh0(i,j) = rh0land   ! LAND
+        end if
+      end do
+    end do
+  end if
+!
 !-----specify the coefficients for nudging boundary conditions:
 !
 !.....for large domain:
@@ -1619,7 +1644,7 @@ module mod_params
     fnudge = 0.1D0/dt2
     gnudge = (dxsq/dt)/50.0D0
   end if
-  if ( icup == 3 ) call lutbl(r8pt)
+  if ( icup == 3 ) call lutbl(ptop)
 !
 !-----print out the parameters specified in the model.
 !

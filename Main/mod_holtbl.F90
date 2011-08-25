@@ -26,7 +26,6 @@ module mod_holtbl
   use mod_atm_interface
   use mod_che_interface
   use mod_pbldim
-  use mod_pmoist
   use mod_bats
   use mod_slice
   use mod_che_trac
@@ -202,8 +201,8 @@ module mod_holtbl
     do k = 1 , kzm1
       do i = 2 , iym1
         dza(i,k,j) = za(i,k,j) - za(i,k+1,j)
-        xps = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
-        ps2 = (a(k+1)*sps2%ps(i,j)+r8pt)*d_1000
+        xps = (a(k)*sps2%ps(i,j)+ptop)*d_1000
+        ps2 = (a(k+1)*sps2%ps(i,j)+ptop)*d_1000
         rhohf(i,k,j) = (ps2-xps)/(egrav*dza(i,k,j))
       end do
     end do

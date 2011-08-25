@@ -575,9 +575,9 @@ module mod_colmod3
 !
 !   surface pressure and scaled pressure, from which level pressures are computed
     do i = 1 , iym1
-      ps(i) = (sps2%ps(i,j)+r8pt)*d_10
+      ps(i) = (sps2%ps(i,j)+ptop)*d_10
       do k = 1 , kz
-        pmidm1(i,k) = (sps2%ps(i,j)*a(k)+r8pt)*d_10
+        pmidm1(i,k) = (sps2%ps(i,j)*a(k)+ptop)*d_10
 !KN     sclpr(k) = pmidm1(i,k)/ps(i)
       end do
     end do
@@ -593,7 +593,7 @@ module mod_colmod3
     end do
     do k = 1 , kzp1
       do i = 1 , iym1
-        pintm1(i,k) = (sps2%ps(i,j)*sigma(k)+r8pt)*d_1000
+        pintm1(i,k) = (sps2%ps(i,j)*sigma(k)+ptop)*d_1000
         pilnm1(i,k) = dlog(pintm1(i,k))
       end do
     end do

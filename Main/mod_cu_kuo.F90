@@ -24,15 +24,15 @@ module mod_cu_kuo
 !
   use mod_runparams
   use mod_atm_interface
-  use mod_pmoist
   use mod_rad
   use mod_bats
+  use mod_cu_common
   use mod_che_trac
   use mod_advection
 
   private
 
-  public :: cupara , htdiff
+  public :: allocate_mod_cu_kuo , cupara , htdiff
 !
 ! qdcrit : the precipitation threshold for moisture convergence.
 ! pert   : perturbation temperature
@@ -46,7 +46,19 @@ module mod_cu_kuo
   real(8) , parameter :: dlt    = 3.0D0
   real(8) , parameter :: cdscld = 0.3D0
 !
+  real(8) , public , pointer , dimension(:,:,:) :: rsheat , rswat
+  real(8) , public , pointer , dimension(:) :: qwght
+  real(8) , public , pointer , dimension(:,:,:) :: twght , vqflx
   contains
+!
+  subroutine allocate_mod_cu_kuo
+    implicit none
+    call getmem3d(rsheat,1,iy,1,kz,1,jxp,'cu_kuo:rsheat')
+    call getmem3d(rswat,1,iy,1,kz,1,jxp,'cu_kuo:rswat')
+    call getmem1d(qwght,1,kz,'cu_kuo:qwght')
+    call getmem3d(twght,1,kz,5,kz,1,kz-3,'cu_kuo:twght')
+    call getmem3d(vqflx,1,kz,5,kz,1,kz-3,'cu_kuo:vqflx')
+  end subroutine allocate_mod_cu_kuo
 !
   subroutine cupara(j)
 !
@@ -126,7 +138,7 @@ module mod_cu_kuo
         do k = k700 , kz
           ttp = atm1%t(i,k,j)/sps1%ps(i,j) + pert
           q = atm1%qv(i,k,j)/sps1%ps(i,j) + perq
-          psg = sps1%ps(i,j)*a(k) + r8pt
+          psg = sps1%ps(i,j)*a(k) + ptop
           t1 = ttp*(d_100/psg)**rovcp
           eqt = t1*dexp(wlhvocp*q/ttp)
           if ( eqt > eqtm ) then
@@ -148,7 +160,7 @@ module mod_cu_kuo
         tmean = (tmax+tlcl)*d_half
         dlnp = (egrav*zlcl)/(rgas*tmean)
         plcl = pmax*dexp(-dlnp)
-        siglcl = (plcl-r8pt)/sps1%ps(i,j)
+        siglcl = (plcl-ptop)/sps1%ps(i,j)
 !
 !       3) compute seqt (saturation equivalent potential temperature)
 !       of all the levels that are above the lcl
@@ -163,7 +175,7 @@ module mod_cu_kuo
 !
         do k = 1 , kbase
           ttp = atm1%t(i,k,j)/sps1%ps(i,j)
-          psg = sps1%ps(i,j)*a(k) + r8pt
+          psg = sps1%ps(i,j)*a(k) + ptop
           es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
           qs = ep2*es/(psg-es)
           t1 = ttp*(d_100/psg)**rovcp
@@ -226,7 +238,7 @@ module mod_cu_kuo
               qwght(k) = d_zero
             end do
             do k = ktop , kz
-              pux = psx*a(k) + r8pt
+              pux = psx*a(k) + ptop
               e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(atm1%t(i,k,j)/psx))
               qs = ep2*e1/(pux-e1)
               rh = atm1%qv(i,k,j)/(qs*psx)

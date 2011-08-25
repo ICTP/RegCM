@@ -25,7 +25,6 @@ module mod_slice
   use mod_atm_interface
   use mod_che_interface
   use mod_pbldim
-  use mod_pmoist
 !
   private
 !
@@ -87,8 +86,8 @@ module mod_slice
   do j = jbegin , jendx
     do k = 1 , kz
       do i = 2 , iym1
-        pl = a(k)*sps2%ps(i,j) + r8pt
-        thcon = ((sps2%ps(i,j)+r8pt)/pl)**rovcp
+        pl = a(k)*sps2%ps(i,j) + ptop
+        thcon = ((sps2%ps(i,j)+ptop)/pl)**rovcp
         atms%pb3d(i,k,j) = pl
         atms%thx3d(i,k,j) = atms%tb3d(i,k,j)*thcon
       end do
@@ -103,7 +102,7 @@ module mod_slice
     do kk = 1 , kz
       k = kzp1 - kk
       do i = 2 , iym1
-        cell = r8pt/sps2%ps(i,j)
+        cell = ptop/sps2%ps(i,j)
         zq(i,k) = zq(i,k+1) + rovg*atms%tb3d(i,k,j) *  &
                   dlog((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
@@ -119,13 +118,13 @@ module mod_slice
 !-----Calculate the relative humidity and air density
 
     do i = 2 , iym1
-      psrf = (sps2%ps(i,j)+r8pt)*d_1000
+      psrf = (sps2%ps(i,j)+ptop)*d_1000
       tv = atms%tb3d(i,kz,j)
       rhox2d(i,j) = psrf/(rgas*tv)
     end do
     do k = 1 , kz
       do i = 2 , iym2
-        pres = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+        pres = (a(k)*sps2%ps(i,j)+ptop)*d_1000
         atms%rhob3d(i,k,j) = pres/(rgas*atms%tb3d(i,k,j)) !air density
         if ( atms%tb3d(i,k,j) > tzero ) then
           satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(i,k,j)-tzero)           &

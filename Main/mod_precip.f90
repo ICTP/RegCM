@@ -523,7 +523,7 @@ module mod_precip
         do i = 2 , iym2
      
 !         2a. Calculate the saturation mixing ratio and relative humidity
-          pres = (a(k)*psc(i,j)+r8pt)*d_1000
+          pres = (a(k)*psc(i,j)+ptop)*d_1000
           if ( tmp3(i,k) > tzero ) then
             satvp = svp1*d_1000*dexp(svp2*(tmp3(i,k)-tzero)/(tmp3(i,k)-svp3))
           else

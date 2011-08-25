@@ -147,7 +147,7 @@ module mod_vmodes
 !  set reference pressures
     if ( lstand ) xps = d_100
                           ! standard xps in cb; otherwise xps set in tav
-    pd = xps - r8pt
+    pd = xps - ptop
 !
     write (aline,*) 'Calculating Vertical Modes'
     call say(myid)
@@ -194,7 +194,7 @@ module mod_vmodes
 !  because it uses F90 syntax arrays with different sizes  
 !  S.C. 21/05/2010
 !  I therefore decided to comment out this line 
-!      thetah = tbarh*((sigmah+r8pt/pd)**(-rovcp))
+!      thetah = tbarh*((sigmah+ptop/pd)**(-rovcp))
 
 !
 !  compute tbarf and thetaf
@@ -211,7 +211,7 @@ module mod_vmodes
       if ( sigma(k) < dlowval ) then
         thetaf(k) = tbarf(k)
       else
-        thetaf(k) = tbarf(k)*((sigma(k)+r8pt/pd)**(-rovcp))
+        thetaf(k) = tbarf(k)*((sigma(k)+ptop/pd)**(-rovcp))
       end if
     end do
 !
@@ -228,7 +228,7 @@ module mod_vmodes
     do k = 1 , kz
       a3(k,k) = -tbarh(k)
       d1(k,k) = sigma(k+1) - sigma(k)
-      d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+r8pt/pd)
+      d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+ptop/pd)
       s1(k,k) = sigma(k)
       s2(k,k) = sigmah(k)
       x1(k,k) = d_one
@@ -287,7 +287,7 @@ module mod_vmodes
 !
 !  compute delta log p
     do k = 2 , kz
-      w1(k,1) = dlog((sigmah(k)+r8pt/pd)/(sigmah(k-1)+r8pt/pd))
+      w1(k,1) = dlog((sigmah(k)+ptop/pd)/(sigmah(k-1)+ptop/pd))
     end do
 !
 !  compute matrix which multiples t vector
@@ -304,10 +304,10 @@ module mod_vmodes
     end do
 !
     do k = 1 , kz
-      hydros(k,kz) = hydros(k,kz) + dlog((d_one+r8pt/pd)/(sigmah(kz)+r8pt/pd))
+      hydros(k,kz) = hydros(k,kz) + dlog((d_one+ptop/pd)/(sigmah(kz)+ptop/pd))
     end do
 !
-!  compute matirx which multiplies log(sigma*p+r8pt) vector
+!  compute matirx which multiplies log(sigma*p+ptop) vector
 !
     hydroc = d_zero
 !
@@ -343,9 +343,9 @@ module mod_vmodes
       do l = 1 , kz
         w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
       end do
-      w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+r8pt)
+      w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+ptop)
       do l = 1 , kzp1
-        w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+r8pt)
+        w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+ptop)
       end do
       x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
       if ( x > 1.0D-8 ) lhydro = .true.
@@ -364,7 +364,7 @@ module mod_vmodes
 !
     do l = 1 , kz
       do k = 1 , kzp1
-        w3(k,l) = sdsigma(l)/(d_one+r8pt/(pd*sigmah(k)))
+        w3(k,l) = sdsigma(l)/(d_one+ptop/(pd*sigmah(k)))
       end do
     end do
 !
@@ -529,7 +529,7 @@ module mod_vmodes
         ds1 = sigma(k+1) - sigma(k)
         ds2 = sigma(k+2) - sigma(k+1)
         tb = (ds1*tbarh(k)+ds2*tbarh(k+1))/(ds1+ds2)
-        g1 = rovcp*tb/(sigma(k+1)+r8pt/pd)
+        g1 = rovcp*tb/(sigma(k+1)+ptop/pd)
         g2 = (tbarh(k+1)-tbarh(k))/(sigmah(k+1)-sigmah(k))
         if ( g1-g2 < d_zero ) lstab = .false.
       end do
@@ -559,7 +559,7 @@ module mod_vmodes
       p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
       do k = 1 , kz
-        p = sigmah(k)*pd + r8pt
+        p = sigmah(k)*pd + ptop
         tbarh(k) = stdt*((p/p0)**fac)
         z = (stdt-tbarh(k))/lrate
         if ( z > zstrat ) tbarh(k) = tstrat

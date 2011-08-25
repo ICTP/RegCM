@@ -32,7 +32,6 @@ module mod_che_tend
   use mod_pbldim
   use mod_bats
   use mod_rad
-  use mod_pmoist
   use mod_precip
   use mod_diffusion
   use mod_advection
@@ -96,7 +95,7 @@ module mod_che_tend
 !   the unit: rho - kg/m3, wl - g/m3
     do k = 1 , kz
       do i = 2 , iym2
-        rho(i,k) = (sps2%ps(i,j)*a(k)+r8pt)*d_1000 / &
+        rho(i,k) = (sps2%ps(i,j)*a(k)+ptop)*d_1000 / &
                     287.0D0/atm2%t(i,k,j)*sps2%ps(i,j)
         wl(i,k) = atm2%qc(i,k,j)/sps2%ps(i,j)*d_1000*rho(i,k)
       end do
@@ -483,7 +482,7 @@ module mod_che_tend
           if ( ivegcov(i) == 14 .or. ivegcov(i) == 15 ) then
             ivegcov(i) = 0
           end if
-          psurf(i) = sps2%ps(i,j)*d_1000 + r8pt
+          psurf(i) = sps2%ps(i,j)*d_1000 + ptop
    
           do k = 1 , kz
             ttb(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)

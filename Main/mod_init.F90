@@ -27,7 +27,6 @@ module mod_init
   use mod_lake
   use mod_vecbats
   use mod_precip
-  use mod_pmoist
   use mod_atm_interface
   use mod_che_interface
   use mod_bdycod
@@ -45,6 +44,8 @@ module mod_init
   use mod_tcm_interface
   use mod_uwtcm, only : init_mod_uwtcm
   use mod_che_indices
+  use mod_cu_em
+  use mod_cu_kuo
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays
@@ -207,7 +208,7 @@ module mod_init
 !
     do j = 1 , jendl
       do i = 1 , iy
-        xpsb%b0(i,j) = xpsb%b0(i,j) - r8pt
+        xpsb%b0(i,j) = xpsb%b0(i,j) - ptop
       end do
     end do
 !=======================================================================
@@ -328,7 +329,7 @@ module mod_init
         do j = 1 , jendl
           do i = 1 , iy
             tbase(i,k,j) = ts00 + &
-                      tlp*dlog((sps1%ps(i,j)*a(k)+r8pt)*d_r100)
+                      tlp*dlog((sps1%ps(i,j)*a(k)+ptop)*d_r100)
           end do
         end do
       end do
@@ -1123,25 +1124,6 @@ module mod_init
 !
 !-----end of initial/restart if test
 !
-  end if
-!
-!     Move from param.F to fix the reatart problem found by
-!     Zhang DongFeng
-!
-  if ( ipptls == 1 ) then
-    do j = 1 , jendx
-      do i = 1 , iym1
-        if ( isocean(mddom%lndcat(i,j)) ) then
-          qck1(i,j) = qck1oce  ! OCEAN
-          cgul(i,j) = guloce   ! OCEAN
-          rh0(i,j) = rh0oce    ! OCEAN
-        else
-          qck1(i,j) = qck1land ! LAND
-          cgul(i,j) = gulland  ! LAND
-          rh0(i,j) = rh0land   ! LAND
-        end if
-      end do
-    end do
   end if
 !chem2
   if ( ichem == 1 ) then

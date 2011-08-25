@@ -53,7 +53,7 @@ module mod_ncio
   real(4) , dimension(:) , pointer :: hsigma
   integer , dimension(7) :: icbc_ivar
   logical :: lso4p
-  real(8) :: rpt, tpd, cfd
+  real(8) :: tpd, cfd
   real(8) :: xns2d
   real(4) :: xns2r
   type(rcm_time_and_date) :: cordex_refdate
@@ -418,12 +418,12 @@ contains
     end if
   end subroutine init_mod_ncio
 
-  subroutine open_domain(r8pt , dx , sigma)
+  subroutine open_domain(ptop , dx , sigma)
     use netcdf
     implicit none
 
     real(8) , intent(out) :: dx
-    real(8) , intent(out) :: r8pt
+    real(8) , intent(out) :: ptop
     real(8) , dimension(kzp1) :: sigma
 
     integer :: ivarid , idimid
@@ -515,8 +515,6 @@ contains
 !
 !         Assign values in the top data modules
 !
-    r8pt = dble(ptsp)*d_r10
-    rpt = ptop
     tpd = houpd/atmfrq
     cfd = houpd/chemfrq
     dx = dble(dsx)
@@ -2292,7 +2290,7 @@ contains
     istatus = nf90_put_var(ncatm, iatmvar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'ATM FILE')
 
-    dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + rpt)*d_10)
+    dumio(:,:,1) = real((transpose(ps(o_is:o_ie,o_js:o_je)) + ptop)*d_10)
     istart(3) = iatmrec
     istart(2) = 1
     istart(1) = 1
@@ -2645,7 +2643,7 @@ contains
     istatus = nf90_put_var(ncche, ichevar(1), nctime, istart(1:1), icount(1:1))
     call check_ok(__FILE__,__LINE__,'Error writing itime '//ctime, 'CHE FILE')
 
-    dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+rpt)*d_10)
+    dumio(:,:,1) = real(transpose(ps(o_is:o_ie,o_js:o_je)+ptop)*d_10)
     istart(3) = icherec
     istart(2) = 1
     istart(1) = 1

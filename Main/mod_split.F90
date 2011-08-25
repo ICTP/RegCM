@@ -364,8 +364,8 @@ module mod_split
 !     Geopotential manipulations
 !
       do l = 1 , nsplit
-        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
-        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+        pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+        eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
             eps = eps1*(sps2%ps(i,j)-pd)
@@ -374,8 +374,8 @@ module mod_split
         end do
 
         do k = 1 , kz
-          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
-          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+          pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+          eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
           do j = 1 , jendx
             do i = 1 , iym1
               eps = eps1*(sps2%ps(i,j)-pd)
@@ -584,8 +584,8 @@ module mod_split
 !   Geopotential manipulations (f)
 !
     do l = 1 , nsplit
-      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
-      eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do j = 1 , jendx
         do i = 1 , iym1
           eps = eps1*(sps1%ps(i,j)-pd)
@@ -593,8 +593,8 @@ module mod_split
         end do
       end do
       do k = 1 , kz
-        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
-        eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
             eps = eps1*(sps1%ps(i,j)-pd)
@@ -620,8 +620,8 @@ module mod_split
 !   Geopotential manipulations (0)
 !
     do l = 1 , nsplit
-      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+r8pt)
-      eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+r8pt)
+      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do j = 1 , jendx
         do i = 1 , iym1
           eps = eps1*(sps2%ps(i,j)-pd)
@@ -629,8 +629,8 @@ module mod_split
         end do
       end do
       do k = 1 , kz
-        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+r8pt)
-        eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+r8pt)
+        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do j = 1 , jendx
           do i = 1 , iym1
             eps = eps1*(sps2%ps(i,j)-pd)

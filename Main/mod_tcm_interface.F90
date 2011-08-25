@@ -200,7 +200,7 @@ module mod_tcm_interface
 
     hdomain%sigma => sigma
     hdomain%a => a
-    hdomain%ptop = r8pt 
+    hdomain%ptop = ptop 
 
     dttke = dt
     tkemin = 1.0D-8

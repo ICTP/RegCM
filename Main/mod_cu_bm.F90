@@ -50,7 +50,7 @@ module mod_cu_bm
 !
   use mod_runparams
   use mod_atm_interface
-  use mod_pmoist
+  use mod_cu_common
   use mod_rad
   use mod_bats
   use mod_che_trac
@@ -240,7 +240,7 @@ module mod_cu_bm
         t(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
         if ( t(i,k) > tzero .and. ml(i) == kzp1 ) ml(i) = k
         q(i,k) = atm2%qv(i,k,j)/sps2%ps(i,j)
-        pppk = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+        pppk = (a(k)*sps2%ps(i,j)+ptop)*d_1000
         ape(i,k) = (pppk/h10e5)**dm2859
       end do
       lbot(i) = kz
@@ -252,7 +252,7 @@ module mod_cu_bm
 !     p300 is the highest model level in the lowest 300 mb...
       ifbuoy(i) = 0
       ip300(i) = 0
-      cell = r8pt/sps2%ps(i,j)
+      cell = ptop/sps2%ps(i,j)
       do k = 1 , kz
         ddzq(k) = rovg*tbase(i,k,j)*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
@@ -276,8 +276,8 @@ module mod_cu_bm
 !
     do kb = 1 , kz
       do i = 2 , iym2
-        pkl = (a(kb)*sps2%ps(i,j)+r8pt)*d_1000
-        psfck = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
+        pkl = (a(kb)*sps2%ps(i,j)+ptop)*d_1000
+        psfck = (a(kz)*sps2%ps(i,j)+ptop)*d_1000
         if ( pkl >= psfck-pbm ) then
           tthbt(i) = t(i,kb)*ape(i,kb)
           ee = pkl*q(i,kb)/(ep2+q(i,kb))
@@ -301,7 +301,7 @@ module mod_cu_bm
     do k = 1 , kzm1
       ak = a(k)
       do i = 2 , iym2
-        p(i) = (ak*sps2%ps(i,j)+r8pt)*d_1000
+        p(i) = (ak*sps2%ps(i,j)+ptop)*d_1000
 !       cloud bottom cannot be above 200 mb
         if ( p(i) < psp(i) .and. p(i) >= pqm ) lbot(i) = k + 1
       end do
@@ -311,15 +311,15 @@ module mod_cu_bm
 !   make sure the cloud base is at least 25 mb above the surface
 !
     do i = 2 , iym2
-      pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*d_1000
-      psfck = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
+      pbot(i) = (a(lbot(i))*sps2%ps(i,j)+ptop)*d_1000
+      psfck = (a(kz)*sps2%ps(i,j)+ptop)*d_1000
       if ( pbot(i) >= psfck-pone .or. lbot(i) >= kz ) then
 !       cloud bottom is at the surface so recalculate cloud bottom
         do k = 1 , kzm1
-          p(i) = (a(kz)*sps2%ps(i,j)+r8pt)*d_1000
+          p(i) = (a(kz)*sps2%ps(i,j)+ptop)*d_1000
           if ( p(i) < psfck-pone ) lbot(i) = k
         end do
-        pbot(i) = (a(lbot(i))*sps2%ps(i,j)+r8pt)*d_1000
+        pbot(i) = (a(lbot(i))*sps2%ps(i,j)+ptop)*d_1000
       end if
     end do
 !    
@@ -333,7 +333,7 @@ module mod_cu_bm
       l = kzp1 - ivi
 !     find environmental saturation equiv pot temp...
       do i = 2 , iym2
-        p(i) = (a(l)*sps2%ps(i,j)+r8pt)*d_1000
+        p(i) = (a(l)*sps2%ps(i,j)+ptop)*d_1000
         es = aliq*dexp((bliq*t(i,l)-cliq)/(t(i,l)-dliq))
         qs = ep2*es/(p(i)-es)
         ths(i) = t(i,l)*ape(i,l)*dexp(elocp*qs/t(i,l))
@@ -351,7 +351,7 @@ module mod_cu_bm
 !    
     do i = 2 , iym2
 !     if ( kf(i) == 1 ) goto 275
-      prtop(i) = (a(ltop(i))*sps2%ps(i,j)+r8pt)*d_1000
+      prtop(i) = (a(ltop(i))*sps2%ps(i,j)+ptop)*d_1000
     end do
 !
 !-----------------------------------------------------------------------
@@ -443,7 +443,7 @@ module mod_cu_bm
         qkl = q(i,k)
         qk(k) = qkl
         qrefk(k) = qkl
-        pkl = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+        pkl = (a(k)*sps2%ps(i,j)+ptop)*d_1000
         tref(i,k) = tpfc(pkl,thesp(i),t(i,k),wlhv,qu,ape(i,k))
         pk(k) = pkl
         psk(k) = pkl
@@ -688,7 +688,7 @@ module mod_cu_bm
         qk(k) = qkl
         qrefk(k) = qkl
         qsatk(k) = qkl
-        pkl = (a(k)*sps2%ps(i,j)+r8pt)*d_1000
+        pkl = (a(k)*sps2%ps(i,j)+ptop)*d_1000
         pk(k) = pkl
         apekl = ape(i,k)
         apek(k) = apekl
@@ -768,7 +768,7 @@ module mod_cu_bm
       end if
 !     scaling potential temperature & table index at top
       thtpk = t(i,ltp1)*ape(i,ltp1)
-      pkl = (a(ltp1)*sps2%ps(i,j)+r8pt)*d_1000
+      pkl = (a(ltp1)*sps2%ps(i,j)+ptop)*d_1000
       ee = pkl*q(i,ltp1)/(ep2+q(i,ltp1))
       tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
       tdpt = dmin1(tdpt,t(i,ltp1))
