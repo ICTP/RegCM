@@ -1450,7 +1450,6 @@ module mod_tendency
         end do
       end do
  
- 
 !     calculate solar zenith angle
       if ( ktau == 0 .or. &
            mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
@@ -1461,7 +1460,7 @@ module mod_tendency
 !     calculate albedo
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
-        call albedoclm(j,iemiss)
+        call albedoclm(xmonth,j)
 #else
         call albedov(xmonth,j)
 #endif

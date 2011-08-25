@@ -765,16 +765,16 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
   end subroutine initclm
 !
-  subroutine albedoclm(j,iemiss)
+  subroutine albedoclm(imon,j)
  
   use clm_varsur , only : landfrac
   implicit none
 !
-  integer , intent(in) :: iemiss , j
+  integer , intent(in) :: imon , j
 !
   integer :: i , jj
 !
-  call albedov(j,iemiss)
+  call albedov(imon,j)
 ! 
 !     ****** Section Below added for albedo to be corrected by CLM
 !     ****** calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
