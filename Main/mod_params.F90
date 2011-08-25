@@ -87,7 +87,8 @@ module mod_params
   real(8) :: shrmax_ocn , shrmin_ocn , edtmax_ocn , edtmin_ocn , &
              edtmaxo_ocn , edtmino_ocn , edtmaxx_ocn , edtminx_ocn
   real(8) :: shrmax , shrmin , edtmax , edtmin , edtmaxo , &
-             edtmino , edtmaxx , edtminx
+             edtmino , edtmaxx , edtminx , dtauc , pbcmax , htmax , htmin
+  integer :: kbmax
   real(8) , dimension(nsplit) :: dtsplit
   integer :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   character(len=5) , dimension(maxntr) :: inpchtrname

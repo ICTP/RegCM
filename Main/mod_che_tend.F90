@@ -21,24 +21,24 @@ module mod_che_tend
 !
 ! Tendency and budget for tracer transport and chemicals
 !
+  use mod_message
   use mod_runparams
-  use mod_atm_interface
+  use mod_che_semdde
+  use mod_che_indices
   use mod_che_interface
   use mod_che_trac
+  use mod_che_dust
+  use mod_atm_interface
   use mod_pbldim
   use mod_bats
   use mod_rad
   use mod_pmoist
   use mod_precip
-  use mod_che_dust
-  use mod_message
-  use mod_che_semdde
   use mod_diffusion
   use mod_advection
   use mod_diagnosis
   use mod_slice
   use mod_tcm_interface
-  use mod_che_indices
   use mod_mppio
   private
 

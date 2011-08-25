@@ -21,8 +21,8 @@ module mod_cu_grell
 
   use mod_runparams
   use mod_atm_interface
-  use mod_bats
   use mod_pmoist
+  use mod_bats
   use mod_rad
   use mod_che_trac
   use mod_service 
@@ -52,11 +52,33 @@ module mod_cu_grell
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 !
+  real(8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
+              mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
+              edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
+              htmin2d
+  integer , public , pointer , dimension(:,:) :: kbmax2d
+!
   public :: allocate_mod_cu_grell , cuparan
 !
   contains
 
   subroutine allocate_mod_cu_grell
+    implicit none
+
+    call getmem2d(dtauc2d,1,iy,1,jxp,'cu_grell:dtauc2d')
+    call getmem2d(pbcmax2d,1,iy,1,jxp,'cu_grell:pbcmax2d')
+    call getmem2d(mincld2d,1,iy,1,jxp,'cu_grell:mincld2d')
+    call getmem2d(shrmax2d,1,iy,1,jxp,'cu_grell:shrmax2d')
+    call getmem2d(shrmin2d,1,iy,1,jxp,'cu_grell:shrmin2d')
+    call getmem2d(edtmax2d,1,iy,1,jxp,'cu_grell:edtmax2d')
+    call getmem2d(edtmin2d,1,iy,1,jxp,'cu_grell:edtmin2d')
+    call getmem2d(edtmaxo2d,1,iy,1,jxp,'cu_grell:edtmaxo2d')
+    call getmem2d(edtmino2d,1,iy,1,jxp,'cu_grell:edtmino2d')
+    call getmem2d(edtmaxx2d,1,iy,1,jxp,'cu_grell:edtmaxx2d')
+    call getmem2d(edtminx2d,1,iy,1,jxp,'cu_grell:edtminx2d')
+    call getmem2d(htmax2d,1,iy,1,jxp,'cu_grell:htmax2d')
+    call getmem2d(htmin2d,1,iy,1,jxp,'cu_grell:htmin2d')
+    call getmem2d(kbmax2d,1,iy,1,jxp,'cu_grell:kbmax2d')
 
     call getmem2d(outq,1,iy,1,kz,'cu_grell:outq')
     call getmem2d(outt,1,iy,1,kz,'cu_grell:outt')
