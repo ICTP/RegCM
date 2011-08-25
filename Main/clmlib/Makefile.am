@@ -1,7 +1,7 @@
 REGCMSRC = $(REGCM_ROOT)/Main
 BATS     = $(REGCMSRC)/batslib
 BSP      = $(REGCMSRC)/clmlib
-CLMSRC   = $(REGCMSRC)/clm3.5
+CLMSRC   = $(BSP)/clm3.5
 
 BATS_INCLUDE = $(BATS)
 ESMF_INCLUDE = $(CLMSRC)/src/utils/esmf_wrf_timemgr
