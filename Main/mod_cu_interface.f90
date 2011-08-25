@@ -29,7 +29,7 @@ module mod_cu_interface
   contains
 
   subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,atm2,aten,atms, &
-                           sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,    &
+                           sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,  &
                            dsigma,qcon,cldfra,cldlwc)
     implicit none
     real(8) , intent(in) :: dtsec

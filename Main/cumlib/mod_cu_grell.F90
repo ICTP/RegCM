@@ -352,15 +352,26 @@ module mod_cu_grell
 !
 !   rain in cm.
 !
+! GRAZIANO
+! NOTE: The first timestep calculation is wrong. Keeping like this until
+! non-regression tests need to be performed (want binary equal to 4.1.1
+! for now). For release, the marked lines are to be replaced.
     iconj = 0
     do i = istart , iend
       prainx = pret(i)*dtmdl
+
+!     REMOVE ME
       if ( ktau == 0 ) prainx = prainx*d_half
+!     END REMOVE ME
+      
       if ( prainx > dlowval ) then
         rainc(i,j) = rainc(i,j) + prainx
 !       precipitation rate for bats (mm/s)
         if ( ktau == 0 ) then
+!         CHANGE ME TO COMMENTED
           lmpcpc(i,j) = lmpcpc(i,j) + pret(i)*d_half
+!         lmpcpc(i,j) = lmpcpc(i,j) + pret(i)
+!         CHANGE ME TO COMMENTED
         else
           lmpcpc(i,j) = lmpcpc(i,j) + pret(i)*aprdiv
         end if
@@ -368,6 +379,7 @@ module mod_cu_grell
       end if
     end do
     icon(j) = iconj
+! GRAZIANO
 !
     call time_end(subroutine_name,idindx)
   end subroutine cuparan
