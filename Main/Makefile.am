@@ -98,7 +98,7 @@ mod_che_tend.o: mod_che_tend.F90 mod_atm_interface.o \
 mod_colmod3.o: mod_colmod3.F90 mod_runparams.o \
                mod_radiation.o mod_atm_interface.o mod_rad.o \
                mod_outrad.o
-mod_cu_interface.o: mod_cu_interface.f90 mod_atm_interface.o
+mod_cu_interface.o: mod_cu_interface.f90 mod_atm_interface.o $(CUMLIB)
 mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.o mod_atm_interface.o \
 	               mod_mppio.o
 mod_diffusion.o: mod_diffusion.F90 mod_runparams.o
@@ -110,7 +110,7 @@ mod_holtbl.o: mod_holtbl.F90 mod_diagnosis.o mod_atm_interface.o \
           mod_mppio.o
 mod_init.o: mod_init.F90 mod_bdycod.o mod_tcm_interface.o \
         mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o mod_precip.o \
-        mod_runparams.o mod_rad.o mod_o3blk.o \
+        mod_runparams.o mod_rad.o mod_o3blk.o mod_cu_interface.o \
         mod_radiation.o mod_mppio.o mod_ncio.o \
         mod_sun.o mod_savefile.o
 mod_lm_interface.o: mod_lm_interface.F90 mod_atm_interface.o
@@ -118,12 +118,12 @@ mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_tcm_interface.o \
              mod_che_interface.o mod_atm_interface.o mod_outrad.o
 mod_ncio.o: mod_ncio.F90 mod_runparams.o
 mod_o3blk.o: mod_o3blk.F90 mod_atm_interface.o mod_runparams.o mod_rad.o
-mod_output.o: mod_output.F90 mod_bdycod.o \
+mod_output.o: mod_output.F90 mod_bdycod.o mod_cu_interface.o \
           mod_atm_interface.o mod_outrad.o mod_precip.o \
           mod_runparams.o mod_rad.o mod_diagnosis.o \
           mod_radiation.o mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o
 mod_outrad.o: mod_outrad.F90 mod_runparams.o mod_rad.o
-mod_params.o: mod_params.F90 mod_lm_interface.o \
+mod_params.o: mod_params.F90 mod_lm_interface.o mod_cu_interface.o \
               mod_atm_interface.o mod_runparams.o mod_o3blk.o \
               mod_mppio.o mod_precip.o \
               mod_split.o mod_outrad.o mod_holtbl.o \
@@ -147,7 +147,7 @@ mod_sun.o: mod_sun.F90 mod_atm_interface.o
 mod_tcm_interface.o: mod_tcm_interface.F90 mod_atm_interface.o mod_runparams.o \
                      mod_slice.o mod_rad.o mod_gridfuncs.o \
                      mod_pbldim.o
-mod_tendency.o: mod_tendency.F90 mod_bdycod.o \
+mod_tendency.o: mod_tendency.F90 mod_bdycod.o mod_cu_interface.o \
                 mod_atm_interface.o mod_precip.o mod_runparams.o \
                 mod_rad.o mod_holtbl.o mod_slice.o mod_sun.o \
                 mod_precip.o mod_colmod3.o mod_diagnosis.o \

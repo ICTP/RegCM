@@ -43,16 +43,12 @@ module mod_cu_common
   real(8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
   real(8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
   real(8) , pointer , dimension(:,:,:) :: pvqvtm ! atm1%qv
-  real(8) , pointer , dimension(:,:,:) :: tatm   ! atm2%t
-  real(8) , pointer , dimension(:,:,:) :: uatm   ! atm2%u
-  real(8) , pointer , dimension(:,:,:) :: vatm   ! atm2%v
-  real(8) , pointer , dimension(:,:,:) :: qvatm  ! atm2%qv
-  real(8) , pointer , dimension(:,:,:) :: qcatm  ! atm2%qc
   real(8) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
   real(8) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
   real(8) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
   real(8) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
   real(8) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
+  real(8) , pointer , dimension(:,:,:) :: qcas   ! atms%qcb3d
   real(8) , pointer , dimension(:,:,:) :: qvas   ! atms%qvb3d
   real(8) , pointer , dimension(:,:,:) :: tten   ! aten%t
   real(8) , pointer , dimension(:,:,:) :: uten   ! aten%u

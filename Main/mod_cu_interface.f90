@@ -34,7 +34,7 @@ module mod_cu_interface
 !
   contains
 
-  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,atm2,aten,atms, &
+  subroutine init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms, &
                            sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,  &
                            dsigma,qcon,cldfra,cldlwc)
     implicit none
@@ -42,7 +42,7 @@ module mod_cu_interface
     integer(8) , intent(in) :: ntsrf
     integer , intent(in) :: ichem
     type(domain) , intent(in) :: mddom
-    type(atmstate) , intent(in) :: atm1 , atm2 , aten
+    type(atmstate) , intent(in) :: atm1 , aten
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfsta
     type(surfpstate) , intent(in) :: sps1 , sps2
@@ -66,16 +66,12 @@ module mod_cu_interface
     puatm   => atm1%u
     pvatm   => atm1%v
     pvqvtm  => atm1%qv
-    tatm    => atm2%t
-    uatm    => atm2%u
-    vatm    => atm2%v
-    qvatm   => atm2%qv
-    qcatm   => atm2%qc
     tas     => atms%tb3d
     uas     => atms%ubx3d
     vas     => atms%vbx3d
     pas     => atms%pb3d
     qsas    => atms%qsb3d
+    qcas    => atms%qcb3d
     qvas    => atms%qvb3d
     tten    => aten%t
     uten    => aten%u

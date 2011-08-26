@@ -234,9 +234,9 @@ module mod_cu_bm
     end do
     do i = 2 , iym2
       do k = 1 , kz
-        t(i,k) = tatm(i,k,j)/sfcps(i,j)
+        t(i,k) = tas(i,k,j)
         if ( t(i,k) > tzero .and. ml(i) == kzp1 ) ml(i) = k
-        q(i,k) = qvatm(i,k,j)/sfcps(i,j)
+        q(i,k) = qvas(i,k,j)
         pppk = (hlev(k)*sfcps(i,j)+ptop)*d_1000
         ape(i,k) = (pppk/h10e5)**dm2859
       end do

@@ -843,8 +843,8 @@ module mod_params
   call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                  iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)
 #endif
-  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,atm2,aten,atms, &
-                     sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a,  &
+  call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
+                     sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   call init_chem(ichem,idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
                  atms%rhb3d,icumtop,icumbot)
