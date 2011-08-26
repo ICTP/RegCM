@@ -2952,22 +2952,6 @@ contains
     call close_common(ncrad,'RAD')
     call close_common(ncche,'CHE')
     call close_common(nclak,'LAK')
-    call relmem2d(ioxlat)
-    call relmem2d(ioxlon)
-    call relmem2d(iotopo)
-    call relmem2d(iomask)
-    call relmem2d(iolnds)
-    call relmem1d(hsigma)
-    call relmem2d(ioxlat_s)
-    call relmem2d(ioxlon_s)
-    call relmem2d(iotopo_s)
-    call relmem2d(iomask_s)
-    call relmem3d(atmsrfmask)
-    call relmem2d(atmsrfsum)
-    call relmem3d(dumio)
-    call relmem2d(sp2d)
-    call relmem2d(subio)
-    call relmem2d(sp2d1)
   end subroutine release_mod_ncio
 
 end module mod_ncio
