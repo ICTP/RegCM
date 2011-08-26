@@ -21,7 +21,7 @@ module mod_radiation
 
   use mod_runparams
   use mod_bats
-  use mod_che_aerosol
+  use mod_che_interface
   use mod_message
   use mod_service
   use mod_memutil

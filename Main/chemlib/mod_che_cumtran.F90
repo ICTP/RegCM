@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_cumtran
+module mod_che_cumtran
 !
 ! Tracer convective transport
 !
@@ -68,4 +68,4 @@ module mod_cumtran
 !
   end subroutine cumtran
 !
-end module mod_cumtran
+end module mod_che_cumtran

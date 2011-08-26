@@ -23,11 +23,7 @@ module mod_che_tend
 !
   use mod_message
   use mod_runparams
-  use mod_che_common
-  use mod_che_semdde
-  use mod_che_indices
-  use mod_che_trac
-  use mod_che_dust
+  use mod_che_interface
   use mod_atm_interface
   use mod_pbldim
   use mod_bats

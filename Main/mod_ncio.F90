@@ -23,7 +23,7 @@ module mod_ncio
   use mod_cu_common
   use mod_bats , only : iocnflx
   use mod_message
-  use mod_che_trac
+  use mod_che_interface
   use mod_memutil
 !
   private

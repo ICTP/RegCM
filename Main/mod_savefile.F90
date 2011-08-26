@@ -24,12 +24,11 @@ module mod_savefile
   use mod_bats
   use mod_lake, only : lakesav_i, lakesav_o
   use mod_atm_interface
-  use mod_che_common
+  use mod_che_interface
   use mod_bdycod
   use mod_rad
-  use mod_che_trac
   use mod_radiation
-  use mod_cu_bm
+  use mod_cu_interface
   use mod_tcm_interface
 #ifndef BAND
   use mod_diagnosis

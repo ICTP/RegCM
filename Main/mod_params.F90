@@ -20,20 +20,13 @@
 module mod_params
 
   use mod_runparams
-  use mod_cu_common
   use mod_cu_interface
   use mod_bats
   use mod_lake , only: allocate_lake, dhlake1
   use mod_atm_interface
   use mod_lm_interface
-  use mod_che_trac
+  use mod_che_interface
   use mod_message
-  use mod_cu_bm
-  use mod_cu_em
-  use mod_cu_tables
-  use mod_cu_tiedtke
-  use mod_cu_grell
-  use mod_cu_kuo
   use mod_precip
   use mod_rad
   use mod_split
@@ -41,12 +34,8 @@ module mod_params
   use mod_pbldim
   use mod_outrad
   use mod_holtbl
-  use mod_che_aerosol
   use mod_radiation
-  use mod_che_dust
   use mod_bdycod
-  use mod_che_interface
-  use mod_che_common
   use mod_leaftemp
   use mod_o3blk
   use mod_ncio

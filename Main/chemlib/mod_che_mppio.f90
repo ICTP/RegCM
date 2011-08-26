@@ -18,13 +18,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_mppio
-
+!
   use m_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_message
   use mod_che_param
 !
+  public
+
   real(dp) , pointer , dimension(:,:,:) :: cemtrac_io , cemtr_io , &
                                           wxaq_io , wxsg_io
   real(dp) , pointer , dimension(:,:,:,:) :: rxsaq1_io , rxsaq2_io , rxsg_io

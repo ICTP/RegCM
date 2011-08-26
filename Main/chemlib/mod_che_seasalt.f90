@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_che_sea_salt
+module mod_che_seasalt
 
   use m_realkinds
   use mod_dynparam
@@ -427,4 +427,4 @@ module mod_che_sea_salt
  
   end subroutine seasalt_emit
 
-end module mod_che_sea_salt
+end module mod_che_seasalt

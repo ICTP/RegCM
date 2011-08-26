@@ -24,11 +24,10 @@ module mod_holtbl
 !
   use mod_runparams
   use mod_atm_interface
-  use mod_che_common
+  use mod_che_interface
   use mod_pbldim
   use mod_bats
   use mod_slice
-  use mod_che_trac
   use mod_diagnosis
   use mod_mppio
   use mod_message

@@ -22,11 +22,11 @@ module mod_mppio
   use mod_runparams
   use mod_atm_interface , only : atmstate , allocate_atmstate
   use mod_atm_interface , only : domain , allocate_domain
+  use mod_che_interface
   use mod_outrad , only : nrad2d , nrad3d
   use mod_tcm_interface , only : tcm_state , allocate_tcm_state
   use mod_memutil
   use mod_message
-  use mod_che_mppio
   use mod_bats_mppio
   use mod_cu_common
 !

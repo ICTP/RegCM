@@ -28,24 +28,20 @@ module mod_init
   use mod_vecbats
   use mod_precip
   use mod_atm_interface
-  use mod_che_common
+  use mod_che_interface
   use mod_bdycod
   use mod_rad
-  use mod_che_trac
   use mod_message
   use mod_radiation
   use mod_sun
   use mod_ncio
   use mod_savefile
   use mod_diagnosis
-  use mod_cu_bm
   use mod_mppio
   use mod_pbldim
   use mod_tcm_interface
   use mod_uwtcm, only : init_mod_uwtcm
-  use mod_che_indices
-  use mod_cu_em
-  use mod_cu_kuo
+  use mod_cu_interface
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays

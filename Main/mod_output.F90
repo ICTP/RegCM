@@ -23,21 +23,18 @@ module mod_output
   use mod_ncio
   use mod_lake
   use mod_atm_interface
-  use mod_che_common
+  use mod_che_interface
   use mod_bats
   use mod_message
   use mod_bdycod
   use mod_precip
   use mod_rad
-  use mod_che_trac
   use mod_outrad
   use mod_radiation
   use mod_split
   use mod_savefile
   use mod_service
-  use mod_cu_bm
-  use mod_cu_em
-  use mod_cu_kuo
+  use mod_cu_interface
   use mod_mppio
   use mod_tcm_interface
   use mod_pbldim

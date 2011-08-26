@@ -23,6 +23,12 @@ module mod_cu_interface
 !
   use mod_constants
   use mod_cu_common
+  use mod_cu_tiedtke
+  use mod_cu_tables
+  use mod_cu_bm
+  use mod_cu_em
+  use mod_cu_kuo
+  use mod_cu_grell
   use mod_atm_interface , only : atmstate , slice , surfstate , &
                                  surfpstate , domain
 !

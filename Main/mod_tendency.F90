@@ -21,29 +21,21 @@ module mod_tendency
 
   use mod_runparams
   use mod_atm_interface
-  use mod_che_common
+  use mod_che_interface
+  use mod_che_tend
   use mod_bdycod
-  use mod_cu_common
+  use mod_cu_interface
   use mod_precip
   use mod_rad
   use mod_bats
   use mod_vecbats
   use mod_holtbl
-  use mod_che_trac
   use mod_colmod3
-  use mod_cu_grell
-  use mod_cu_kuo
-  use mod_cu_bm
-  use mod_cu_em
-  use mod_cu_tiedtke
   use mod_message
-  use mod_che_aerosol
   use mod_sun
   use mod_slice
-  use mod_cumtran
   use mod_diffusion
   use mod_advection , only : hadv , vadv
-  use mod_che_tend
   use mod_diagnosis
   use mod_service
   use mod_memutil
