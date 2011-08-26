@@ -20,7 +20,7 @@
 module mod_ncio
 !
   use mod_runparams
-  use mod_cu_common
+  use mod_cu_interface
   use mod_bats , only : iocnflx
   use mod_message
   use mod_che_interface

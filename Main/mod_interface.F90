@@ -27,13 +27,13 @@ module mod_interface
 !**********************************************************************
 !
   use mod_memutil
+  use mod_che_interface
   use mod_runparams
   use mod_message
   use mod_ncio
   use mod_output
   use mod_split
   use mod_bdycod
-  use mod_che_semdde
   use mod_init
   use mod_header
   use mod_params

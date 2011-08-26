@@ -23,6 +23,7 @@ module mod_che_tend
 !
   use mod_message
   use mod_runparams
+  use mod_cu_interface
   use mod_che_interface
   use mod_atm_interface
   use mod_pbldim
@@ -35,8 +36,6 @@ module mod_che_tend
   use mod_slice
   use mod_tcm_interface
   use mod_mppio
-  use mod_cu_common
-  use mod_cu_grell
   private
 
   public :: tractend2 , tracbud
