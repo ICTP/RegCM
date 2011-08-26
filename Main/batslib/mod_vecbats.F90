@@ -19,11 +19,12 @@
  
 module mod_vecbats
 
+  use m_realkinds
   use mod_dynparam
   use mod_message
   use mod_constants
   use mod_service
-  use mod_bats
+  use mod_bats_common
   use mod_lake
   use mod_bndry
   use mod_drag
@@ -306,11 +307,11 @@ module mod_vecbats
     integer , intent (in) :: ivers , j , istart , iend
     integer(8) , intent(in) :: ktau
 !
-    real(8) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
+    real(dp) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
                fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
                solvt , wpm2
     integer :: i , n , nnn
-    real(4) :: real_4
+    real(sp) :: real_4
     logical , save :: first_pass
 !
     character (len=64) :: subroutine_name='interf'
@@ -725,12 +726,12 @@ module mod_vecbats
 !
     integer , intent (in) :: imon , j
 !
-    real(8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
+    real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                dralbs , fsol1 , fsol2 , sfac , sical0 , sical1 , sl , &
                sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet
-    real(8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
+    real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
     integer :: kolour , n , i
     character (len=64) :: subroutine_name='albedov'
@@ -981,8 +982,8 @@ module mod_vecbats
 
       function fseas(x)
         implicit none
-        real(8) :: fseas
-        real(8) , intent(in) :: x
+        real(dp) :: fseas
+        real(dp) , intent(in) :: x
         fseas = dmax1(d_zero,(d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two))
       end function fseas
 
@@ -999,7 +1000,7 @@ module mod_vecbats
 !
     implicit none
 !
-    real(8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+    real(dp) :: ck , dmax , dmin , dmnor , phi0 , tweak1
     integer :: itex , n , i
 !
 !   ================================================================
@@ -1084,7 +1085,7 @@ module mod_vecbats
     real(kind=8) , intent (in) :: alat , dec , fjd
     real(kind=8) , intent (out) , dimension(iy) :: coszrs , frac
 !
-    real(8) :: cc , cosz , dlon , ha , ss , tpifjd
+    real(dp) :: cc , cosz , dlon , ha , ss , tpifjd
     integer :: i
 !
     character (len=64) :: subroutine_name='zenith'
@@ -1120,7 +1121,7 @@ module mod_vecbats
 !
     integer , intent(in) :: j
 !
-    real(8) :: amxtem , sfac
+    real(dp) :: amxtem , sfac
     integer :: n , i
     do i = 2 , iym1
       do n = 1 , nnsg

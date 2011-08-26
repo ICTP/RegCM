@@ -17,17 +17,18 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_bats
+module mod_bats_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
+  use m_realkinds
   use mod_memutil
   use mod_dynparam
   use mod_bats_param
 !
-  real(8) :: xdtsec ! Atmosferic Model dt in seconds
-  real(8) :: dtbat  ! BATS1e internal timestep
-  real(8) :: dtlake ! Lake model internal timestep
+  real(dp) :: xdtsec ! Atmosferic Model dt in seconds
+  real(dp) :: dtbat  ! BATS1e internal timestep
+  real(dp) :: dtlake ! Lake model internal timestep
 
   integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
 
@@ -35,21 +36,21 @@ module mod_bats
 
   integer :: iocnrough , iocnflx
 
-  real(8) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
+  real(dp) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
 !
   integer , pointer , dimension(:,:) :: ldoc1d
-  real(8) , pointer , dimension(:,:) :: delq1d , delt1d , aldifs1d , &
+  real(dp) , pointer , dimension(:,:) :: delq1d , delt1d , aldifs1d , &
          drag1d , emiss1d , evpr1d , gwet1d , ircp1d , ldew1d ,      &
          p1d , pbp1d , prcp1d , q2m1d , qg1d , qs1d , resp1d ,       &
          rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,   &
          sice1d , ssw1d , t2m1d , taf1d , tg1d , tgb1d , tlef1d ,    &
          ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d , aldirs1d
 !
-  real(8) , pointer , dimension(:,:) :: bfc , bsw , evmx0 , fdry ,   &
+  real(dp) , pointer , dimension(:,:) :: bfc , bsw , evmx0 , fdry ,   &
          fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,       &
          texrat , vegt , wiltr , wt , xkmx
 !
-  real(8) , pointer , dimension(:,:) :: cdr , cdrn , cdrx , cf ,     &
+  real(dp) , pointer , dimension(:,:) :: cdr , cdrn , cdrx , cf ,     &
          cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,       &
          etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,     &
          fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,      &
@@ -58,59 +59,59 @@ module mod_bats
          xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,   &
          zlgsno , zlgveg , zlgdis
 !
-  real(8) , pointer , dimension(:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
+  real(dp) , pointer , dimension(:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
          wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
          wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
 !
   integer , pointer , dimension(:,:) :: lveg , oveg
 !
-  real(8) :: difrat , rdnnsg
-  real(4) :: rrnnsg
+  real(dp) :: difrat , rdnnsg
+  real(sp) :: rrnnsg
 !
   integer :: ilat , ihis , mhis , ncase
 !
-  real(8) , pointer , dimension(:) :: flw1d , fsw1d
-  real(8) , pointer , dimension(:) :: czen , sola , vpdd
-  real(8) , pointer , dimension(:) :: ems , us1d , vs1d
-  real(8) , pointer , dimension(:) :: albdif , albdir , albvl ,      &
+  real(dp) , pointer , dimension(:) :: flw1d , fsw1d
+  real(dp) , pointer , dimension(:) :: czen , sola , vpdd
+  real(dp) , pointer , dimension(:) :: ems , us1d , vs1d
+  real(dp) , pointer , dimension(:) :: albdif , albdir , albvl ,      &
          albvs , albvsd , aldifl , aldifs , aldirl , aldirs , emiss ,&
          fracd , sabveg , solis , solvd , solvs , albvld
 !
-  real(8) , pointer , dimension(:) :: coszrs
+  real(dp) , pointer , dimension(:) :: coszrs
 !
-  real(8) , pointer , dimension(:,:) :: flw2d , flwa2d , flwd2d ,     &
+  real(dp) , pointer , dimension(:,:) :: flw2d , flwa2d , flwd2d ,     &
          flwda2d , fsw2d , fswa2d , pptc , pptnc , prca2d , prnca2d , &
          sabv2d , sina2d , sinc2d , sol2d , solvd2d , solvs2d , svga2d
 !
-  real(8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
+  real(dp) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer , pointer , dimension(:,:,:) :: ocld2d , veg2d1
   integer , pointer , dimension(:,:) :: veg2d , ldmsk
 !
-  real(8) , pointer , dimension(:,:,:) :: col2d , dew2d ,        &
+  real(dp) , pointer , dimension(:,:,:) :: col2d , dew2d ,        &
        emiss2d , evpa2d , gwet2d , ircp2d , rno2d , rnos2d ,     &
        sag2d , scv2d , sena2d , sice2d , srw2d , ssw2d , swt2d , &
        taf2d , tg2d , tgb2d , tlef2d
 !
-  real(8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
+  real(dp) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , xlat1 , xlon1
 !
-  real(4) , pointer , dimension(:,:,:) :: fbat
+  real(sp) , pointer , dimension(:,:,:) :: fbat
 !
-  real(4) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
+  real(sp) , pointer , dimension(:,:) :: drag_o , evpa_o , flwa_o ,  &
         flwd_o , fswa_o , prcv_o , psmn_o , ps_o , q2m_o , rnos_o , &
         rsw_o , scv_o , sena_o , sina_o , ssw_o , t2mn_o , t2mx_o , &
         t2m_o , tgmn_o , tgmx_o , tg_o , tlef_o , tpr_o , u10m_o ,  &
         v10m_o , w10x_o , zpbl_o , aldirs_o , aldifs_o
 !
-  real(4) , pointer , dimension(:,:,:,:) :: fsub
+  real(sp) , pointer , dimension(:,:,:,:) :: fsub
 !
-  real(4) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
+  real(sp) , pointer , dimension(:,:,:) :: drag_s , evpa_s , prcv_s ,&
          ps_s , q2m_s , rnos_s , rsw_s , scv_s , sena_s , ssw_s ,   &
          t2m_s , tg_s , tlef_s , tpr_s , u10m_s , v10m_s
 !
   ! dtskin is difference between skin temp and bulk sst
-  real(8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
+  real(dp) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   logical , pointer , dimension(:,:) :: firstcall
 !
   data lchem  /.false./
@@ -119,27 +120,27 @@ module mod_bats
   data llake  /.false./
   data ldesseas /.false./
 
-  real(8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
-  real(8) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
-  real(8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
-  real(8) , pointer , dimension(:,:) :: ht            ! mddom%ht
-  real(8) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
-  real(8) , pointer , dimension(:,:) :: tground1      ! sts1%tg
-  real(8) , pointer , dimension(:,:) :: tground2      ! sts2%tg
-  real(8) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
-  real(8) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
-  real(8) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
-  real(8) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
-  real(8) , pointer , dimension(:,:) :: zpbl          ! sfsta%zpbl
-  real(8) , pointer , dimension(:,:) :: hfx           ! sfsta%hfx
-  real(8) , pointer , dimension(:,:) :: qfx           ! sfsta%qfx
-  real(8) , pointer , dimension(:,:) :: uvdrag        ! sfsta%uvdrag
-  real(8) , pointer , dimension(:,:) :: tgbb          ! sfsta%tgbb
-  real(8) , pointer , dimension(:,:) :: sfps          ! sps2%ps
-  real(8) , pointer , dimension(:,:,:) :: hgt         ! za
-  real(8) , pointer , dimension(:,:) :: ts            ! ts1
-  real(8) , pointer , dimension(:,:) :: tsf           ! ts0_io
-  real(8) , pointer , dimension(:,:) :: rho           ! rhox2d
+  real(dp) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
+  real(dp) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
+  real(dp) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
+  real(dp) , pointer , dimension(:,:) :: ht            ! mddom%ht
+  real(dp) , pointer , dimension(:,:) :: htf           ! mddom_io%ht
+  real(dp) , pointer , dimension(:,:) :: tground1      ! sts1%tg
+  real(dp) , pointer , dimension(:,:) :: tground2      ! sts2%tg
+  real(dp) , pointer , dimension(:,:,:) :: uatm , vatm ! atms%ubx3d , atms%vbx3d
+  real(dp) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
+  real(dp) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
+  real(dp) , pointer , dimension(:,:,:) :: qvatm       ! atms%qvb3d
+  real(dp) , pointer , dimension(:,:) :: zpbl          ! sfsta%zpbl
+  real(dp) , pointer , dimension(:,:) :: hfx           ! sfsta%hfx
+  real(dp) , pointer , dimension(:,:) :: qfx           ! sfsta%qfx
+  real(dp) , pointer , dimension(:,:) :: uvdrag        ! sfsta%uvdrag
+  real(dp) , pointer , dimension(:,:) :: tgbb          ! sfsta%tgbb
+  real(dp) , pointer , dimension(:,:) :: sfps          ! sps2%ps
+  real(dp) , pointer , dimension(:,:,:) :: hgt         ! za
+  real(dp) , pointer , dimension(:,:) :: ts            ! ts1
+  real(dp) , pointer , dimension(:,:) :: tsf           ! ts0_io
+  real(dp) , pointer , dimension(:,:) :: rho           ! rhox2d
   integer , pointer , dimension(:,:) :: lmask         ! CLM landmask
 
   contains
@@ -423,4 +424,4 @@ module mod_bats
 !
   end subroutine allocate_mod_bats 
 !
-end module mod_bats
+end module mod_bats_common

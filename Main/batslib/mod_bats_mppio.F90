@@ -19,19 +19,20 @@
 
 module mod_bats_mppio
 
+  use m_realkinds
   use mod_dynparam
-  use mod_bats
+  use mod_bats_common
 
   public
 
   integer , pointer , dimension(:,:,:) :: idep2d_io
-  real(8) , pointer , dimension(:,:,:) :: dhlake1_io
-  real(8) , pointer , dimension(:,:,:) :: eta2d_io
-  real(8) , pointer , dimension(:,:,:) :: hi2d_io
-  real(8) , pointer , dimension(:,:,:) :: aveice2d_io
-  real(8) , pointer , dimension(:,:,:) :: hsnow2d_io
-  real(8) , pointer , dimension(:,:,:) :: evl2d_io
-  real(8) , pointer , dimension(:,:,:,:) :: tlak3d_io
+  real(dp) , pointer , dimension(:,:,:) :: dhlake1_io
+  real(dp) , pointer , dimension(:,:,:) :: eta2d_io
+  real(dp) , pointer , dimension(:,:,:) :: hi2d_io
+  real(dp) , pointer , dimension(:,:,:) :: aveice2d_io
+  real(dp) , pointer , dimension(:,:,:) :: hsnow2d_io
+  real(dp) , pointer , dimension(:,:,:) :: evl2d_io
+  real(dp) , pointer , dimension(:,:,:,:) :: tlak3d_io
 
   contains
 

@@ -87,7 +87,7 @@ module mod_colmod3
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
   use mod_runparams
-  use mod_bats
+  use mod_lm_interface
   use mod_radiation
   use mod_atm_interface
   use mod_rad

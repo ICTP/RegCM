@@ -23,12 +23,10 @@ module mod_init
 !
   use mod_runparams
   use mod_o3blk
-  use mod_bats
-  use mod_lake
-  use mod_vecbats
-  use mod_precip
+  use mod_lm_interface
   use mod_atm_interface
   use mod_che_interface
+  use mod_precip
   use mod_bdycod
   use mod_rad
   use mod_message

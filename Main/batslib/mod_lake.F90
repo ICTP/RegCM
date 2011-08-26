@@ -22,8 +22,9 @@
 !
 module mod_lake
 !
+  use m_realkinds
   use mod_dynparam
-  use mod_bats
+  use mod_bats_common
   use mod_bats_mppio
 !
   private
@@ -32,26 +33,26 @@ module mod_lake
   public :: initlake , lakescatter , lakegather , lakedrv
   public :: dhlake1
 !
-  real(8) , pointer , dimension(:,:,:) :: dhlake1
+  real(dp) , pointer , dimension(:,:,:) :: dhlake1
   integer , pointer , dimension(:,:,:) :: idep2d
-  real(8) , pointer , dimension(:,:,:) :: eta2d
-  real(8) , pointer , dimension(:,:,:) :: hi2d
-  real(8) , pointer , dimension(:,:,:) :: aveice2d
-  real(8) , pointer , dimension(:,:,:) :: hsnow2d
-  real(8) , pointer , dimension(:,:,:,:) :: tlak3d
+  real(dp) , pointer , dimension(:,:,:) :: eta2d
+  real(dp) , pointer , dimension(:,:,:) :: hi2d
+  real(dp) , pointer , dimension(:,:,:) :: aveice2d
+  real(dp) , pointer , dimension(:,:,:) :: hsnow2d
+  real(dp) , pointer , dimension(:,:,:,:) :: tlak3d
 !
-  real(8) , dimension(ndpmax) :: de , dnsty , tt
+  real(dp) , dimension(ndpmax) :: de , dnsty , tt
 !
 !     surface thickness
-  real(8) , parameter :: surf = d_one
+  real(dp) , parameter :: surf = d_one
 !     vertical grid spacing in m
-  real(8) , parameter :: dz = surf
+  real(dp) , parameter :: dz = surf
 !     minimum ice depth in mm: less that this is removed
-  real(8) , parameter :: iceminh = d_10
+  real(dp) , parameter :: iceminh = d_10
 !     reference hgt in mm for latent heat removal from ice
-  real(8) , parameter :: href = d_two * iceminh
+  real(dp) , parameter :: href = d_two * iceminh
 !     steepness factor of latent heat removal
-  real(8) , parameter :: steepf = 1.0D0  ! Tuning needed !
+  real(dp) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
   contains
 !
@@ -139,7 +140,7 @@ module mod_lake
 !
   integer , intent(in) :: jslc
 !
-  real(8) :: flw , fsw , hsen , prec , &
+  real(dp) :: flw , fsw , hsen , prec , &
            & ql , tgl , tl , vl , zl , xl , evp , toth
   integer :: i , n
 !
@@ -203,9 +204,9 @@ module mod_lake
  
   implicit none
 !
-  real(8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
+  real(dp) :: dtlake , evl , aveice , hsen , hsnow , flw , &
            & prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
-  real(8) , dimension(ndpmax) :: tprof
+  real(dp) , dimension(ndpmax) :: tprof
   integer :: ndpt
   intent (in) hsen , ql , tl , vl , zl
   intent (in) ndpt , eta
@@ -213,15 +214,15 @@ module mod_lake
   intent (inout) evl , aveice , hsnow
   intent (inout) tprof
 !
-  real(8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
+  real(dp) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
 !
 !***  dtlake:  time step in seconds
 !***  zo:      surface roughness length
 !
-  real(8) , parameter :: zo = 0.001D0
-  real(8) , parameter :: z2 = d_two
-  real(8) , parameter :: tcutoff = -0.001D0
-  real(8) , parameter :: twatui = 1.78D0
+  real(dp) , parameter :: zo = 0.001D0
+  real(dp) , parameter :: z2 = d_two
+  real(dp) , parameter :: tcutoff = -0.001D0
+  real(dp) , parameter :: twatui = 1.78D0
   logical , parameter :: lfreeze = .false.
   integer , parameter :: kmin = 1
 !
@@ -286,11 +287,11 @@ module mod_lake
   implicit none
 !
   integer , intent (in) :: ndpt
-  real(8) , intent (in) :: dtlake , u2 , xl
-  real(8) , dimension(ndpmax) , intent (in) :: tprof
+  real(dp) , intent (in) :: dtlake , u2 , xl
+  real(dp) , dimension(ndpmax) , intent (in) :: tprof
 !
-  real(8) :: demax , demin , dpdz , ks , n2 , po
-  real(8) :: zmax , rad , ri , ws , z
+  real(dp) :: demax , demin , dpdz , ks , n2 , po
+  real(dp) :: zmax , rad , ri , ws , z
   integer :: k
 !
 !     demin molecular diffusion of heat in water
@@ -377,10 +378,10 @@ module mod_lake
   implicit none
 !
   integer , intent(in) :: ndpt
-  real(8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
-  real(8) , dimension(ndpmax) , intent(inout) :: tprof
+  real(dp) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
+  real(dp) , dimension(ndpmax) , intent(inout) :: tprof
 !
-  real(8) :: bot , dt1 , dt2 , top
+  real(dp) :: bot , dt1 , dt2 , top
   integer :: k
  
 !******    solve differential equations of heat transfer
@@ -423,9 +424,9 @@ module mod_lake
   implicit none
 !
   integer , intent(in) :: ndpt , kmin
-  real(8) , intent(inout) , dimension(ndpmax) :: tprof
+  real(dp) , intent(inout) , dimension(ndpmax) :: tprof
 !
-  real(8) :: avet , avev , tav , vol
+  real(dp) :: avet , avev , tav , vol
   integer :: k , k2
 ! 
   tt(kmin:ndpt) = tprof(kmin:ndpt)
@@ -466,41 +467,41 @@ module mod_lake
   subroutine ice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
 
   implicit none
-  real(8) :: ea , evl , hi , aveice , hs , fsw , &
+  real(dp) :: ea , evl , hi , aveice , hs , fsw , &
              ld , prec , tac , u2 , dtx
-  real(8) , dimension(ndpmax) :: tprof
+  real(dp) , dimension(ndpmax) :: tprof
   intent (in) dtx , ea , ld , prec , tac , u2
   intent (out) evl
   intent (inout) hi , aveice , hs , fsw , tprof
 !
-  real(8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
+  real(dp) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
            & t2 , tf , theta , rho , xlexpc
-  real(8) :: xea , xeb , xec
+  real(dp) :: xea , xeb , xec
   integer :: nits
 !
-  real(8) , parameter :: isurf = 0.6D0
+  real(dp) , parameter :: isurf = 0.6D0
   ! attenuation coeff for ice in visible band (m-1)
-  real(8) , parameter :: lami1 = 1.5D0
+  real(dp) , parameter :: lami1 = 1.5D0
   ! attenuation coeff for ice in infrared band (m-1)
-  real(8) , parameter :: lami2 = 20.0D0
+  real(dp) , parameter :: lami2 = 20.0D0
   ! attenuation coeff for snow in visible band (m-1)
-  real(8) , parameter :: lams1 = 6.0D0
+  real(dp) , parameter :: lams1 = 6.0D0
   ! attenuation coeff for snow in infrared band (m-1)
-  real(8) , parameter :: lams2 = 20.0D0
+  real(dp) , parameter :: lams2 = 20.0D0
   ! thermal conductivity of ice (W/m/C)
-  real(8) , parameter :: ki = 2.3D0
+  real(dp) , parameter :: ki = 2.3D0
   ! thermal conductivity of snow (W/m/C)
-  real(8) , parameter :: ks = 0.31D0
+  real(dp) , parameter :: ks = 0.31D0
   ! standard atmospheric pressure (hPa) ????
-  real(8) , parameter :: atm = 950.0D0
+  real(dp) , parameter :: atm = 950.0D0
   ! heat flux from water to ice (w/m2) ???
-  real(8) , parameter :: qw = 1.389D0
+  real(dp) , parameter :: qw = 1.389D0
   ! latent heat of fusion (J/kg)
-  real(8) , parameter :: li = 334.0D03
+  real(dp) , parameter :: li = 334.0D03
   ! drag coefficient for the turbulent momentum flux.
-  real(8) , parameter :: cd = 0.001D0
+  real(dp) , parameter :: cd = 0.001D0
   ! Maximum exponent
-  real(8) , parameter :: minexp = -25.0D0
+  real(dp) , parameter :: minexp = -25.0D0
 !
 !
 !****************************SUBROUINE ICE*****************************
@@ -624,28 +625,28 @@ module mod_lake
 
   function t4(x)
     implicit none
-    real(8) :: t4
-    real(8) , intent(in) :: x
+    real(dp) :: t4
+    real(dp) , intent(in) :: x
     t4 = (x+tzero)**d_four
   end function t4
   ! Computes air vapor pressure as a function of temp (in K)
   function tr1(x)
     implicit none
-    real(8) :: tr1
-    real(8) , intent(in) :: x
+    real(dp) :: tr1
+    real(dp) , intent(in) :: x
     tr1 = d_one - (tboil/(x+tzero))
   end function tr1
   function eomb(x)
     implicit none
-    real(8) :: eomb
-    real(8) , intent(in) :: x
+    real(dp) :: eomb
+    real(dp) , intent(in) :: x
     eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
        &   -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
    end function eomb
   function f(x)
     implicit none
-    real(8) :: f
-    real(8) , intent(in) :: x
+    real(dp) :: f
+    real(dp) , intent(in) :: x
     f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
         - d_one/khat*(qpen+tf-x)
   end function f

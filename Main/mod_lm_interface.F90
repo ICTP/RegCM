@@ -21,9 +21,23 @@ module mod_lm_interface
 !
 ! Link surface and atmospheric models
 !
-  use mod_bats
+  use mod_bats_common
   use mod_atm_interface , only : slice , surfstate , surfpstate , &
                                  surftstate , domain
+#ifdef CLM
+  use mod_mtrxclm
+  use mod_clm
+#else
+  use mod_bats_param
+  use mod_bats_mppio
+  use mod_bndry
+  use mod_co2
+  use mod_drag
+  use mod_lake
+  use mod_leaftemp
+  use mod_vecbats
+  use mod_zengocn
+#endif
 !
   contains
 

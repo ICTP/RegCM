@@ -27,7 +27,7 @@ module mod_che_tend
   use mod_che_interface
   use mod_atm_interface
   use mod_pbldim
-  use mod_bats
+  use mod_lm_interface
   use mod_rad
   use mod_precip
   use mod_diffusion

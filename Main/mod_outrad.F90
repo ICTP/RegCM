@@ -20,7 +20,7 @@
 module mod_outrad
 
   use mod_runparams
-  use mod_bats
+  use mod_lm_interface
   use mod_rad
 #ifdef CLM
   use mod_clm

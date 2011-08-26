@@ -22,9 +22,10 @@ module mod_zengocn
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
+  use m_realkinds
   use mod_dynparam
   use mod_service
-  use mod_bats
+  use mod_bats_common
 !
   private
 !
@@ -32,27 +33,27 @@ module mod_zengocn
 !
 ! Module Constants
 !
-  real(8) , parameter :: r1e6 = 1.0D-6
-  real(8) , parameter :: a1 = 0.28D+00
-  real(8) , parameter :: a2 = 0.27D+00
-  real(8) , parameter :: a3 = 0.45D+00
-  real(8) , parameter :: b1 = 71.5D+00
-  real(8) , parameter :: b2 = 2.8D+00
-  real(8) , parameter :: b3 = 0.07D+00
-  real(8) , parameter :: alphaw = 0.207D-06
-  real(8) , parameter :: nuw = 1.004D-06
-  real(8) , parameter :: kw = 0.60D0
-  real(8) , parameter :: nu = 0.3D0
-  real(8) , parameter :: d = 3.0D0 ! reference depth for bulk SST
+  real(dp) , parameter :: r1e6 = 1.0D-6
+  real(dp) , parameter :: a1 = 0.28D+00
+  real(dp) , parameter :: a2 = 0.27D+00
+  real(dp) , parameter :: a3 = 0.45D+00
+  real(dp) , parameter :: b1 = 71.5D+00
+  real(dp) , parameter :: b2 = 2.8D+00
+  real(dp) , parameter :: b3 = 0.07D+00
+  real(dp) , parameter :: alphaw = 0.207D-06
+  real(dp) , parameter :: nuw = 1.004D-06
+  real(dp) , parameter :: kw = 0.60D0
+  real(dp) , parameter :: nu = 0.3D0
+  real(dp) , parameter :: d = 3.0D0 ! reference depth for bulk SST
 !
   ! nu / thermal diffusivity
-  real(8) , parameter :: pr = 0.71D0   ! Prandtl number
+  real(dp) , parameter :: pr = 0.71D0   ! Prandtl number
 !
-  real(8) , parameter :: z10 = d_10    ! m  (reference height)
-  real(8) , parameter :: zbeta = d_one ! -  (in computing W_*)
+  real(dp) , parameter :: z10 = d_10    ! m  (reference height)
+  real(dp) , parameter :: zbeta = d_one ! -  (in computing W_*)
 !
-  real(8) , parameter :: zetat = 0.465D0
-  real(8) , parameter :: zetam = 1.574D0
+  real(dp) , parameter :: zetat = 0.465D0
+  real(dp) , parameter :: zetam = 1.574D0
 !
   logical :: lfirst_call
 !
@@ -70,16 +71,16 @@ module mod_zengocn
     integer , intent(in) :: j , istart , iend
     integer(8) , intent(in) :: ktau
 !
-    real(8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
+    real(dp) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
     integer :: i , n
 #ifdef CLM
     integer :: jj
 #endif
-!   real(8) :: lwds , lwus
-    real(8) :: rs , rd , td , tdelta , delta
-    real(8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
-    real(8) :: dtstend , dts , fs , tskin , dtsst
+!   real(dp) :: lwds , lwus
+    real(dp) :: rs , rd , td , tdelta , delta
+    real(dp) :: q , ustarw , fd , l , phidl , aa , bb , lamb
+    real(dp) :: dtstend , dts , fs , tskin , dtsst
 !
     character (len=64) :: subroutine_name='zengocndrv'
     integer :: idindx=0

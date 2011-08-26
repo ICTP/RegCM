@@ -21,10 +21,8 @@ module mod_params
 
   use mod_runparams
   use mod_cu_interface
-  use mod_bats
-  use mod_lake , only: allocate_lake, dhlake1
-  use mod_atm_interface
   use mod_lm_interface
+  use mod_atm_interface
   use mod_che_interface
   use mod_message
   use mod_precip
@@ -36,7 +34,6 @@ module mod_params
   use mod_holtbl
   use mod_radiation
   use mod_bdycod
-  use mod_leaftemp
   use mod_o3blk
   use mod_ncio
   use mod_scenarios

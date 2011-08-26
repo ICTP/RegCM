@@ -19,8 +19,9 @@
  
 module mod_bndry
 !
+  use m_realkinds
   use mod_dynparam
-  use mod_bats
+  use mod_bats_common
   use mod_leaftemp
   use mod_drag
   use mod_service
@@ -29,9 +30,9 @@ module mod_bndry
 !
   public :: bndry
 !
-  real(8) , parameter :: minsigf = 0.001D+00
-  real(8) , parameter :: lowsice = 1.0D-22
-  real(8) , parameter :: rainsnowtemp = 2.2D0
+  real(dp) , parameter :: minsigf = 0.001D+00
+  real(dp) , parameter :: lowsice = 1.0D-22
+  real(dp) , parameter :: rainsnowtemp = 2.2D0
 !
   contains
 !
@@ -81,11 +82,11 @@ module mod_bndry
 !
     implicit none
 !
-    real(8) :: fact , qsatd , rai
+    real(dp) :: fact , qsatd , rai
     integer :: n , i
     character (len=64) :: subroutine_name='bndry'
     integer :: idindx = 0
-    real(8) , parameter :: minwrat = 1.0D-04
+    real(dp) , parameter :: minwrat = 1.0D-04
 !
     call time_begin(subroutine_name,idindx)
    
@@ -371,7 +372,7 @@ module mod_bndry
 !
     implicit none
 !
-    real(8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
+    real(dp) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
                rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss ,  &
                wtt
     integer :: n , i
@@ -506,9 +507,9 @@ module mod_bndry
 !
     implicit none
 !
-    real(8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
+    real(dp) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr ,     &
                evmxt , rap , vakb , wtg2c , xxkb
-    real(8) , dimension(nnsg,iym1) :: gwatr , rnof , rsubsr ,         &
+    real(dp) , dimension(nnsg,iym1) :: gwatr , rnof , rsubsr ,         &
            rsubss , rsubst , rsur , wflux1 , wflux2 , wfluxc , xkmx1 ,&
            xkmx2 , xkmxr
     integer :: n , i
@@ -750,9 +751,9 @@ module mod_bndry
 !
     implicit none
 !
-    real(8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
+    real(dp) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
     integer :: n , i
-    real(8) , dimension(nnsg,iym1) :: sold
+    real(dp) , dimension(nnsg,iym1) :: sold
 !
     character (len=64) :: subroutine_name='snow'
     integer :: idindx = 0
@@ -864,20 +865,20 @@ module mod_bndry
 !
     implicit none
 !
-    real(8) , dimension(nnsg,iym1) :: bb , bcoef , cc , depann ,      &
+    real(dp) , dimension(nnsg,iym1) :: bb , bcoef , cc , depann ,      &
            depdiu , deprat , fct2 , hs , rscsa , rscsd , ska , skd ,  &
            sks , swtrta , swtrtd
-    real(8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
+    real(dp) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr ,&
              depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,&
              t3 , tbef , tg , tinc , wtas , wtax , wtd , wtds
-    real(8) :: dtbat2 , rdtbat2 , xlexp
+    real(dp) :: dtbat2 , rdtbat2 , xlexp
     integer :: n , i
     character (len=64) :: subroutine_name='tgrund'
     integer :: idindx = 0
 !
-    real(8) , parameter :: xnu = twopi/secpd
-    real(8) , parameter :: xnua = xnu/365.0D0
-    real(8) , parameter :: xkperi = 1.4D-6
+    real(dp) , parameter :: xnu = twopi/secpd
+    real(dp) , parameter :: xnua = xnu/365.0D0
+    real(dp) , parameter :: xkperi = 1.4D-6
 !
     call time_begin(subroutine_name,idindx)
 ! 
@@ -1045,20 +1046,20 @@ module mod_bndry
 
     function fsk(x)
       implicit none
-      real(8) :: fsk
-      real(8) , intent(in) :: x
+      real(dp) :: fsk
+      real(dp) , intent(in) :: x
       fsk = (2.9D-7*x+4.0D-9)/(((d_one-0.6D0*x)*x+0.09D0)*(0.23D0+x))
     end function fsk
     function fsc(x)
       implicit none
-      real(8) :: fsc
-      real(8) , intent(in) :: x
+      real(dp) :: fsc
+      real(dp) , intent(in) :: x
       fsc = (0.23D0+x)*4.186D6
     end function fsc
     function fct1(x)
       implicit none
-      real(8) :: fct1
-      real(8) , intent(in) :: x
+      real(dp) :: fct1
+      real(dp) , intent(in) :: x
       fct1 = wlhf*d_rfour*1.414D0/x
     end function fct1
 ! 

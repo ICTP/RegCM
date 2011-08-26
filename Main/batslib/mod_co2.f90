@@ -19,8 +19,9 @@
  
 module mod_co2
 !
+  use m_realkinds
   use mod_dynparam
-  use mod_bats
+  use mod_bats_common
   use mod_leaftemp
 !
   private
@@ -62,10 +63,10 @@ module mod_co2
 !
     implicit none
 !
-    real(8) , dimension(nnsg,iym1) :: cari
+    real(dp) , dimension(nnsg,iym1) :: cari
     integer :: n , i
-    real(8) :: rap , resps , rsp , rt , rcar
-    real(8) , parameter :: rmp = 800.0D0
+    real(dp) :: rap , resps , rsp , rt , rcar
+    real(dp) , parameter :: rmp = 800.0D0
 !
     do i = 2 , iym1
       do n = 1 , nnsg
@@ -116,14 +117,14 @@ module mod_co2
   function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
 !
-    real(8) :: rm , t , tg , vf , xlai , xlsai
-    real(8) :: carbon
+    real(dp) :: rm , t , tg , vf , xlai , xlsai
+    real(dp) :: carbon
     intent (in) rm , tg , vf , xlai , xlsai
 !
-    real(8) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+    real(dp) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
                cco2i , ccold , gt , p , pm , pml , rt , sl , tmx , w ,&
                wd , wp , xk , xkb , xl
-    real(8) :: e , g , r
+    real(dp) :: e , g , r
     integer :: it
 !
 !====================================================================

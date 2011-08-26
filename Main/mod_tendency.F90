@@ -27,8 +27,7 @@ module mod_tendency
   use mod_cu_interface
   use mod_precip
   use mod_rad
-  use mod_bats
-  use mod_vecbats
+  use mod_lm_interface
   use mod_holtbl
   use mod_colmod3
   use mod_message

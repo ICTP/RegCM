@@ -19,8 +19,9 @@
  
 module mod_drag
 !
+  use m_realkinds
   use mod_dynparam
-  use mod_bats
+  use mod_bats_common
 !
   private
 !
@@ -47,8 +48,8 @@ module mod_drag
 ! 
   implicit none
 !
-  real(8) , dimension(nnsg,iym1) :: cdrmin , rib , ribl , ribn
-  real(8) :: dthdz , u1 , u2 , zatild
+  real(dp) , dimension(nnsg,iym1) :: cdrmin , rib , ribl , ribn
+  real(dp) :: dthdz , u1 , u2 , zatild
   integer :: n , i
 !
 !=======================================================================
@@ -164,7 +165,7 @@ module mod_drag
 !
   implicit none
 !
-  real(8) :: asigf , cdb , cds , cdv , frab , fras , frav
+  real(dp) :: asigf , cdb , cds , cdv , frab , fras , frav
   integer :: n , i
 !
   call depth
@@ -217,7 +218,7 @@ module mod_drag
 !
   implicit none
 !
-  real(8) :: age
+  real(dp) :: age
   integer :: n , i
 ! 
   do i = 2 , iym1

@@ -23,29 +23,30 @@ module mod_leaftemp
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
+  use m_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_bats
+  use mod_bats_common
 !
   private
 !
   public :: lfta , lftb , lftrs , lftra
   public :: allocate_mod_leaftemp , lftemp , satur
 !
-  real(8) , pointer , dimension(:,:) :: lfta , lftb
-  real(8) , pointer , dimension(:,:) :: lftra , lftrs
+  real(dp) , pointer , dimension(:,:) :: lfta , lftb
+  real(dp) , pointer , dimension(:,:) :: lftra , lftrs
 !
-  real(8) , pointer , dimension(:,:) :: cdrd , vpdc
-  real(8) , pointer , dimension(:,:) :: rppq , efe
-  real(8) , pointer , dimension(:,:) :: dcd , etrc
-  real(8) , pointer , dimension(:,:) :: qsatld
-  real(8) , pointer , dimension(:,:) :: dels
-  real(8) , pointer , dimension(:,:) :: efpot , tbef
-  real(8) , pointer , dimension(:,:) :: fsol0 , fsold
-  real(8) , pointer , dimension(:,:) :: radf , rmini
-  real(8) , pointer , dimension(:,:) :: trup , trupd
-  real(8) , pointer , dimension(:,:) :: cdrmin , dlstaf
-  real(8) , pointer , dimension(:,:) :: rib , rib1
+  real(dp) , pointer , dimension(:,:) :: cdrd , vpdc
+  real(dp) , pointer , dimension(:,:) :: rppq , efe
+  real(dp) , pointer , dimension(:,:) :: dcd , etrc
+  real(dp) , pointer , dimension(:,:) :: qsatld
+  real(dp) , pointer , dimension(:,:) :: dels
+  real(dp) , pointer , dimension(:,:) :: efpot , tbef
+  real(dp) , pointer , dimension(:,:) :: fsol0 , fsold
+  real(dp) , pointer , dimension(:,:) :: radf , rmini
+  real(dp) , pointer , dimension(:,:) :: trup , trupd
+  real(dp) , pointer , dimension(:,:) :: cdrmin , dlstaf
+  real(dp) , pointer , dimension(:,:) :: rib , rib1
 !
   contains
 !
@@ -134,7 +135,7 @@ module mod_leaftemp
 !
   implicit none
 !
-  real(8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
+  real(dp) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
            & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
            & xxkb
   integer :: iter , itfull , itmax , n , i
@@ -420,9 +421,9 @@ module mod_leaftemp
 !
   implicit none
 !
-  real(8) :: difzen , g , radfi , seas , vpdf , rilmax
+  real(dp) :: difzen , g , radfi , seas , vpdf , rilmax
   integer :: il , ilmax , n , i
-  real(8) , dimension(10) :: rad , radd
+  real(dp) , dimension(10) :: rad , radd
 !
 !     ***** seasonal temperature factor
 !     ***** g is average leaf crosssection per unit lai
@@ -502,8 +503,8 @@ module mod_leaftemp
 
   function fseas(x)
     implicit none
-    real(8) :: fseas
-    real(8) , intent(in) :: x
+    real(dp) :: fseas
+    real(dp) , intent(in) :: x
     fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**d_two)
   end function fseas
  
@@ -578,7 +579,7 @@ module mod_leaftemp
   subroutine root
   implicit none
 !
-  real(8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
+  real(dp) :: bneg , rotf , trsmx , wlttb , wltub , wmli
   integer :: n , i
 !
   do i = 2 , iym1
@@ -621,7 +622,7 @@ module mod_leaftemp
 !
   implicit none
 !
-  real(8) , dimension(nnsg,iym1) :: p , qsat , t
+  real(dp) , dimension(nnsg,iym1) :: p , qsat , t
   intent (in) p , t
   intent (out) qsat
 !
@@ -655,7 +656,7 @@ module mod_leaftemp
 !
   implicit none
 !
-  real(8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
+  real(dp) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild
   integer :: n , i
 !
   do i = 2 , iym1
@@ -817,7 +818,7 @@ module mod_leaftemp
 !
   implicit none
 !
-    real(8) :: dne , hfl , xkb
+    real(dp) :: dne , hfl , xkb
     integer :: n , i
 !
     do i = 1 , iym1

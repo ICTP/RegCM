@@ -21,10 +21,9 @@ module mod_output
 
   use mod_runparams
   use mod_ncio
-  use mod_lake
   use mod_atm_interface
   use mod_che_interface
-  use mod_bats
+  use mod_lm_interface
   use mod_message
   use mod_bdycod
   use mod_precip
