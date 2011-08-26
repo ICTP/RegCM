@@ -113,9 +113,9 @@ module mod_che_common
       call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_common:dustbsiz')
       call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_common:ssltbsiz')
 
-      call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
-      call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
-      call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')
+      call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_common:chi')
+      call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chic')
+      call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chiten')
       call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
       call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chia')
       call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chib')

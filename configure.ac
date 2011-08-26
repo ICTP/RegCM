@@ -284,7 +284,7 @@ if eval "test x$DEBUG = x1"; then
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
-            -Wunused-parameter -Wno-align-commons $FCFLAGS"
+            -Wunused-parameter -Wno-align-commons $FCFLAGS -fbounds-check"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xifort"; then

@@ -133,9 +133,9 @@ module mod_che_tend
    
     do itr = 1 , ntr
 
-      spchiten => chiten(:,:,:,itr)
-      spchi    => chi(:,:,:,itr)
-      spchia   => chia(:,:,:,itr)
+      spchiten        => chiten(:,:,:,itr)
+      spchi(1:,1:,0:)   => chi(:,:,:,itr)
+      spchia(1:,1:,-1:) => chia(:,:,:,itr)
 !
       call hadv(.false.,spchiten,spchi,j,j,2)
       call vadv(spchiten,spchia,j,j,5)
