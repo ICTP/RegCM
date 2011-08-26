@@ -20,7 +20,7 @@
 !
 !     LAKE MODEL
 !
-module mod_lake
+module mod_bats_lake
 !
   use m_realkinds
   use mod_dynparam
@@ -813,4 +813,4 @@ module mod_lake
 
   end subroutine lakesav_i
 !
-end module mod_lake
+end module mod_bats_lake

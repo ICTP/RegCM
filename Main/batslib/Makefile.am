@@ -18,9 +18,10 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 noinst_LIBRARIES = libbats.a
-libbats_a_SOURCES = mod_bats_common.F90 mod_bats_param.f90 mod_bndry.F90 \
-                    mod_co2.f90 mod_drag.F90 mod_lake.F90 mod_leaftemp.f90 \
-                    mod_vecbats.F90 mod_bats_mppio.F90 mod_zengocn.F90
+libbats_a_SOURCES = mod_bats_common.F90 mod_bats_param.f90 mod_bats_bndry.F90 \
+                    mod_bats_co2.f90 mod_bats_drag.F90 mod_bats_lake.F90 \
+                    mod_bats_leaftemp.f90 mod_bats_vecbats.F90 \
+                    mod_bats_mppio.F90 mod_bats_zengocn.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -43,23 +44,24 @@ mod_bats_param.o mod_bats_param.mod : mod_bats_param.f90
 mod_bats_common.o mod_bats_common.mod : mod_bats_common.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod \
   $(REGCM_ROOT)/Share/mod_memutil.mod mod_bats_param.o
-mod_bndry.o mod_bndry.mod : mod_bndry.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-	$(REGCM_ROOT)/Share/mod_service.mod mod_bats_common.o mod_leaftemp.o \
-  mod_drag.o
-mod_co2.o mod_co2.mod : mod_co2.f90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  mod_bats_common.o mod_leaftemp.o
-mod_drag.o mod_drag.mod : mod_drag.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  mod_bats_common.o
-mod_lake.o mod_lake.mod : mod_lake.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  mod_bats_common.o mod_bats_mppio.o
-mod_leaftemp.o mod_leaftemp.mod : mod_leaftemp.f90 \
+mod_bats_bndry.o mod_bats_bndry.mod : mod_bats_bndry.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod \
+	$(REGCM_ROOT)/Share/mod_service.mod mod_bats_common.o mod_bats_leaftemp.o \
+  mod_bats_drag.o
+mod_bats_co2.o mod_bats_co2.mod : mod_bats_co2.f90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_bats_common.o mod_bats_leaftemp.o
+mod_bats_drag.o mod_bats_drag.mod : mod_bats_drag.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_bats_common.o
+mod_bats_lake.o mod_bats_lake.mod : mod_bats_lake.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod mod_bats_common.o mod_bats_mppio.o
+mod_bats_leaftemp.o mod_bats_leaftemp.mod : mod_bats_leaftemp.f90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   mod_bats_common.o
-mod_vecbats.o mod_vecbats.mod : mod_vecbats.F90 \
+mod_bats_vecbats.o mod_bats_vecbats.mod : mod_bats_vecbats.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
   $(REGCM_ROOT)/Share/mod_service.mod $(REGCM_ROOT)/Share/mod_constants.o \
-  mod_bats_common.o mod_lake.o mod_bndry.o mod_drag.o mod_bats_mppio.o \
-  mod_zengocn.o
-mod_zengocn.o mod_zengocn.mod : mod_zengocn.F90 \
+  mod_bats_common.o mod_bats_lake.o mod_bats_bndry.o mod_bats_drag.o \
+  mod_bats_mppio.o mod_bats_zengocn.o
+mod_bats_zengocn.o mod_bats_zengocn.mod : mod_bats_zengocn.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
 	mod_bats_common.o

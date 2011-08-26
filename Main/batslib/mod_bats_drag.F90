@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_drag
+module mod_bats_drag
 !
   use m_realkinds
   use mod_dynparam
@@ -241,4 +241,4 @@ module mod_drag
 ! 
   end subroutine depth
 !
-end module mod_drag
+end module mod_bats_drag

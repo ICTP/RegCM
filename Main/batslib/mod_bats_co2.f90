@@ -17,12 +17,12 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_co2
+module mod_bats_co2
 !
   use m_realkinds
   use mod_dynparam
   use mod_bats_common
-  use mod_leaftemp
+  use mod_bats_leaftemp
 !
   private
 !
@@ -196,4 +196,4 @@ module mod_co2
 ! 
   end function carbon
 !
-end module mod_co2
+end module mod_bats_co2

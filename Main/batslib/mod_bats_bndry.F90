@@ -17,14 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_bndry
+module mod_bats_bndry
 !
   use m_realkinds
   use mod_dynparam
-  use mod_bats_common
-  use mod_leaftemp
-  use mod_drag
   use mod_service
+  use mod_bats_common
+  use mod_bats_leaftemp
+  use mod_bats_drag
 !
   private
 !
@@ -1065,4 +1065,4 @@ module mod_bndry
 ! 
   end subroutine tgrund
 !
-end module mod_bndry
+end module mod_bats_bndry

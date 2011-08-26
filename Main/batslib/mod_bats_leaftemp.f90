@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_leaftemp
+module mod_bats_leaftemp
 !
 !     Calculate leaf temperature, leaf fluxes, and net transpiration.
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
@@ -845,4 +845,4 @@ module mod_leaftemp
  
   end subroutine deriv
 !
-end module mod_leaftemp
+end module mod_bats_leaftemp

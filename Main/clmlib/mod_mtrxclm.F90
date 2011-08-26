@@ -25,9 +25,9 @@ module mod_mtrxclm
   use mod_message
   use mod_clm
   use mod_bats_common
-  use mod_vecbats
-  use mod_drag
-  use mod_zengocn
+  use mod_bats_vecbats
+  use mod_bats_drag
+  use mod_bats_zengocn
 
   private
 

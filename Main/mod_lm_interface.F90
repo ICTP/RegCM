@@ -30,13 +30,13 @@ module mod_lm_interface
 #else
   use mod_bats_param
   use mod_bats_mppio
-  use mod_bndry
-  use mod_co2
-  use mod_drag
-  use mod_lake
-  use mod_leaftemp
-  use mod_vecbats
-  use mod_zengocn
+  use mod_bats_bndry
+  use mod_bats_co2
+  use mod_bats_drag
+  use mod_bats_lake
+  use mod_bats_leaftemp
+  use mod_bats_vecbats
+  use mod_bats_zengocn
 #endif
 !
   contains

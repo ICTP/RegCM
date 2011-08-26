@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_zengocn
+module mod_bats_zengocn
 !
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
@@ -491,4 +491,4 @@ module mod_zengocn
 !
   end subroutine ocnrough
 !
-end module mod_zengocn
+end module mod_bats_zengocn

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_vecbats
+module mod_bats_vecbats
 
   use m_realkinds
   use mod_dynparam
@@ -25,11 +25,11 @@ module mod_vecbats
   use mod_constants
   use mod_service
   use mod_bats_common
-  use mod_lake
-  use mod_bndry
-  use mod_drag
+  use mod_bats_lake
+  use mod_bats_bndry
+  use mod_bats_drag
   use mod_bats_mppio
-  use mod_zengocn
+  use mod_bats_zengocn
 
   private
 
@@ -1143,4 +1143,4 @@ module mod_vecbats
 !
   end subroutine slice1D
 !
-end module mod_vecbats
+end module mod_bats_vecbats
