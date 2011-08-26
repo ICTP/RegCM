@@ -27,6 +27,7 @@ module mod_interface
 !**********************************************************************
 !
   use mod_memutil
+  use mod_service
   use mod_che_interface
   use mod_runparams
   use mod_message

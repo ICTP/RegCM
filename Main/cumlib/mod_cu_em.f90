@@ -64,7 +64,7 @@ module mod_cu_em
 !
     integer , parameter :: ntra = 0
 !
-    real(8) :: akclth , cbmf , pret , qprime , tprime , uconv , wd , prainx
+    real(8) :: akclth , cbmf , pret , qprime , tprime , wd , prainx
     real(8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                qscup , tcup , ucup , vcup
     real(8) , dimension(kz,1) :: ftra , tra

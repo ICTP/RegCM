@@ -2056,7 +2056,7 @@ module mod_tendency
     nbdytime = nbdytime + ntsec
     idatex = idatex + intmdl
 
-    if ( mod(nbdytime,3600) == 0 ) then
+    if ( mod(nbdytime,3600_8) == 0 ) then
       call split_idate(idatex,xyear,xmonth,xday,xhour)
     end if
     if ( mod(nbdytime,nbdyfrq) == 0 ) then

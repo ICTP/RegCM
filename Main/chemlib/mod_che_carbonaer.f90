@@ -23,7 +23,6 @@ module mod_che_carbonaer
   use mod_dynparam
   use mod_constants
   use mod_che_common
-  use mod_che_trac
   use mod_che_species
   use mod_che_indices
 

@@ -26,7 +26,7 @@ module mod_che_dust
   use mod_dynparam
   use mod_message
   use mod_memutil
-  use mod_che_trac
+  use mod_che_common
   use mod_che_ncio
   use mod_che_mppio
 

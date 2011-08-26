@@ -22,9 +22,13 @@ module mod_che_common
   use m_realkinds
   use mod_dynparam
   use mod_memutil
+  use mod_message
   use mod_che_param
 
   public
+!
+  integer , parameter :: maxntr = 20
+  integer , parameter :: maxnbin = 20
 !
   real(dp) , pointer , dimension(:,:,:,:) :: chi
   real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten
@@ -35,12 +39,80 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot
+!
+  character(len=5) , allocatable , dimension(:) :: chtrname
+!
+  real(dp) , pointer , dimension(:,:) :: chtrdpv
+  real(dp) , pointer , dimension(:,:) :: chtrsize , dustbsiz
+  real(dp) , pointer , dimension(:,:) :: ssltbsiz
+  real(dp) , pointer , dimension(:) :: chtrsol
+!
+  integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
+!
+  integer , pointer , dimension(:) :: idust , isslt , icarb
+!
+  real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
+  real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
+  real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf 
+!
+  real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
+  real(dp) , pointer , dimension(:,:) :: rembc , remrat
+  real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
+                                            rxsaq1 , rxsaq2 , rxsg
+  integer :: mixtype
 
-  contains 
+  contains
 
-  subroutine allocate_mod_che_common
+  subroutine allocate_mod_che_common(ichem)
     implicit none
+
+    integer , intent(in) :: ichem
+
+    if ( ichem == 1 ) lch = .true.
+
+    if ( ntr>maxntr ) then
+      write (aline , *) 'In mod_che_common, resetting ntr to maxntr ', maxntr
+      call say(myid)
+      ntr = maxntr
+    end if
+    if ( nbin>maxnbin ) then
+      write (aline , *) 'In mod_che_common, resetting nbin to maxnbin ', maxnbin
+      call say(myid)
+      nbin = maxnbin
+    end if
+
+    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'mod_che_common:aerasp')
+    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'mod_che_common:aerext')
+    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'mod_che_common:aerssa')
+    call getmem2d(aersrrf,1,iym1,1,jxp,'mod_che_common:aersrrf')
+    call getmem2d(aertalwrf,1,iym1,1,jxp,'mod_che_common:aertalwrf')
+    call getmem2d(aersrlwrf,1,iym1,1,jxp,'mod_che_common:aersrlwrf')
+    call getmem2d(aertarf,1,iym1,1,jxp,'mod_che_common:aertarf')
+    call getmem2d(rembc,1,iy,1,kz,'mod_che_common:rembc')
+    call getmem2d(remrat,1,iy,1,kz,'mod_che_common:remrat')
+
     if ( lch ) then
+      call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
+      call getmem3d(cemtrac,1,iy,1,jxp,1,ntr,'mod_che_common:cemtrac')
+      call getmem3d(remdrd,1,iy,1,jxp,1,ntr,'mod_che_common:remdrd')
+      call getmem4d(remcvc,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:remcvc')
+      call getmem4d(remlsc,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:remlsc')
+      call getmem4d(rxsaq1,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:rxsaq1')
+      call getmem4d(rxsaq2,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:rxsaq2')
+      call getmem4d(rxsg,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:rxsg')
+
+      allocate(chtrname(ntr))
+      chtrname = ' '
+
+      call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
+      call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
+      call getmem1d(idust,1,nbin,'mod_che_common:idust')
+      call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
+      call getmem1d(icarb,1,5,'mod_che_common:icarb')
+      call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
+      call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_common:dustbsiz')
+      call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_common:ssltbsiz')
+
       call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'cvaria:chi')
       call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chic')
       call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'cvaria:chiten')

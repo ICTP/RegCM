@@ -32,23 +32,20 @@ module mod_che_interface
   use mod_che_seasalt
   use mod_che_semdde
   use mod_che_species
-  use mod_che_trac
 !
   public
 !
   contains 
 !
-  subroutine init_chem(ichem,idirect,dt,chemfrq,dtrad,dsigma,ps1,rh, &
-                       icutop,icubot)
+  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,ps1,rh,icutop,icubot)
     implicit none
-    integer , intent(in) :: ichem , idirect
+    integer , intent(in) :: idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(dp) , pointer , dimension(:,:) , intent(in) :: ps1  ! sps1%ps
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: rh ! rhb3d
     integer , pointer , dimension(:,:) :: icutop , icubot
 
-    if ( ichem == 1 ) lch = .true.
     ichdir = idirect
 
     chfrq = chemfrq

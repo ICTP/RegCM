@@ -23,7 +23,6 @@ module mod_che_seasalt
   use mod_dynparam
   use mod_constants
   use mod_che_common
-  use mod_che_trac
 
   private
 

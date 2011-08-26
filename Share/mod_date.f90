@@ -661,7 +661,7 @@ module mod_date
     type (iadate) :: d
     integer :: tmp
     z = x
-    tmp = y%ival
+    tmp = int(y%ival)
     select case (y%iunit)
       case (usec)
         z%second_of_day = z%second_of_day+tmp
@@ -797,7 +797,7 @@ module mod_date
     type (iadate) :: d
     integer :: tmp
     z = x
-    tmp = y%ival
+    tmp = int(y%ival)
     select case (y%iunit)
       case (usec)
         z%second_of_day = z%second_of_day-tmp
@@ -961,7 +961,7 @@ module mod_date
     type (rcm_time_interval) :: z
     call check_cal(x,y)
     z = x - y
-    iwk = z%ival/604800
+    iwk = int(z%ival/604800)
   end function iwkdiff
 
   function monfirst(x) result(mf)

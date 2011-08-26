@@ -1512,6 +1512,7 @@ module mod_bdycod
 !
 !----------------------------------------------------------------------
 !
+    k = nk ! not to have warnings
     ido = 0
     if ( ldot ) then
       ido = 1
@@ -1985,7 +1986,7 @@ module mod_bdycod
     real(8) , intent(inout) , dimension(iy,jxp) :: ften
 !
     real(8) :: fcx , fls0 , fls1 , fls2 , fls3 , fls4 , gcx
-    integer :: i , ido , ii
+    integer :: i , ido , ii , k
 #ifndef BAND
     integer :: ibeg , iend , jj , jsls , jwb , jeb , jew
 #endif
@@ -1996,6 +1997,7 @@ module mod_bdycod
 !
 !----------------------------------------------------------------------
 !
+    k = nk ! not to have warnings
     ido = 0
     if ( ldot ) then
       ido = 1

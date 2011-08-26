@@ -114,7 +114,8 @@ mod_init.o: mod_init.F90 mod_bdycod.o mod_tcm_interface.o \
   mod_lm_interface.o mod_sun.o mod_savefile.o
 mod_lm_interface.o: mod_lm_interface.F90 mod_atm_interface.o $(BATLIB) $(CLMLIB)
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_tcm_interface.o \
-  mod_lm_interface.o mod_che_interface.o mod_atm_interface.o mod_outrad.o
+  mod_lm_interface.o mod_che_interface.o mod_atm_interface.o \
+  mod_cu_interface.o mod_outrad.o
 mod_ncio.o: mod_ncio.F90 mod_che_interface.o mod_cu_interface.o \
   mod_lm_interface.o mod_runparams.o
 mod_o3blk.o: mod_o3blk.F90 mod_atm_interface.o mod_runparams.o mod_rad.o

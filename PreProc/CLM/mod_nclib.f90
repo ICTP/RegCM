@@ -367,7 +367,7 @@ module mod_nclib
   integer :: i , j , ik , ij
   integer , dimension(1) :: istart
  
-  integer(2) , parameter :: shfill = -32767
+  integer(2) , parameter :: shfill = -32767_2
   ierr = 0
 
   ij = 0

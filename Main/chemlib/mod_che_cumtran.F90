@@ -22,7 +22,6 @@ module mod_che_cumtran
 ! Tracer convective transport
 !
   use mod_dynparam
-  use mod_che_trac
   use mod_che_common
 !
   private

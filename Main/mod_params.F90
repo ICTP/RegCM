@@ -678,10 +678,9 @@ module mod_params
   call allocate_mod_diagnosis
 #endif
 
-  call allocate_mod_che_mppio(lband)
   call allocate_mod_bats_mppio(lakemod)
-  call allocate_mod_che_common
-  call allocate_mod_che_trac
+  call allocate_mod_che_common(ichem)
+  call allocate_mod_che_mppio(lband)
   call allocate_mod_che_aerosol
   call allocate_mod_che_dust
 
@@ -843,8 +842,10 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
-  call init_chem(ichem,idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
-                 atms%rhb3d,icumtop,icumbot)
+  if ( ichem == 1 ) then
+    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
+                   atms%rhb3d,icumtop,icumbot)
+  end if
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then

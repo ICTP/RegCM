@@ -25,7 +25,6 @@ module mod_che_semdde
   use mod_constants
   use mod_dynparam
   use mod_che_common
-  use mod_che_trac
   use mod_che_dust
   use mod_che_aerosol
   use mod_message
