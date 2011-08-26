@@ -33,6 +33,36 @@ module mod_memutil
   public :: getmem3d , relmem3d
   public :: getmem4d , relmem4d
   public :: getmem5d , relmem5d
+  public :: assignpnt
+
+  interface assignpnt
+    module procedure assignp1d_l
+    module procedure assignp1d_s
+    module procedure assignp1d_i
+    module procedure assignp1d_r
+    module procedure assignp1d_d
+    module procedure assignp1d_t
+    module procedure assignp2d_l
+    module procedure assignp2d_s
+    module procedure assignp2d_i
+    module procedure assignp2d_r
+    module procedure assignp2d_d
+    module procedure assignp3d_l
+    module procedure assignp3d_s
+    module procedure assignp3d_i
+    module procedure assignp3d_r
+    module procedure assignp3d_d
+    module procedure assignp4d_l
+    module procedure assignp4d_s
+    module procedure assignp4d_i
+    module procedure assignp4d_r
+    module procedure assignp4d_d
+    module procedure assignp5d_l
+    module procedure assignp5d_s
+    module procedure assignp5d_i
+    module procedure assignp5d_r
+    module procedure assignp5d_d
+  end interface assignpnt
 
   interface getmem1d
     module procedure getmem1d_l
@@ -2001,5 +2031,161 @@ module mod_memutil
     call finalize_pool5d_r(r5dr)
     call finalize_pool5d_d(r5dd)
   end subroutine memory_destroy
+
+  subroutine assignp1d_l(a,b)
+    logical , pointer , dimension(:) , intent(in) :: a
+    logical , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_l
+
+  subroutine assignp1d_s(a,b)
+    integer(2) , pointer , dimension(:) , intent(in) :: a
+    integer(2) , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_s
+
+  subroutine assignp1d_i(a,b)
+    integer , pointer , dimension(:) , intent(in) :: a
+    integer , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_i
+
+  subroutine assignp1d_r(a,b)
+    real(sp) , pointer , dimension(:) , intent(in) :: a
+    real(sp) , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_r
+
+  subroutine assignp1d_d(a,b)
+    real(dp) , pointer , dimension(:) , intent(in) :: a
+    real(dp) , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_d
+
+  subroutine assignp1d_t(a,b)
+    type(rcm_time_and_date) , pointer , dimension(:) , intent(in) :: a
+    type(rcm_time_and_date) , pointer , dimension(:) , intent(out) :: b
+    b(lbound(a,1):) => a
+  end subroutine assignp1d_t
+
+  subroutine assignp2d_l(a,b)
+    logical , pointer , dimension(:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):) => a
+  end subroutine assignp2d_l
+
+  subroutine assignp2d_s(a,b)
+    integer(2) , pointer , dimension(:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):) => a
+  end subroutine assignp2d_s
+
+  subroutine assignp2d_i(a,b)
+    integer , pointer , dimension(:,:) , intent(in) :: a
+    integer , pointer , dimension(:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):) => a
+  end subroutine assignp2d_i
+
+  subroutine assignp2d_r(a,b)
+    real(sp) , pointer , dimension(:,:) , intent(in) :: a
+    real(sp) , pointer , dimension(:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):) => a
+  end subroutine assignp2d_r
+
+  subroutine assignp2d_d(a,b)
+    real(dp) , pointer , dimension(:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):) => a
+  end subroutine assignp2d_d
+
+  subroutine assignp3d_l(a,b)
+    logical , pointer , dimension(:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+  end subroutine assignp3d_l
+
+  subroutine assignp3d_s(a,b)
+    integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+  end subroutine assignp3d_s
+
+  subroutine assignp3d_i(a,b)
+    integer , pointer , dimension(:,:,:) , intent(in) :: a
+    integer , pointer , dimension(:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+  end subroutine assignp3d_i
+
+  subroutine assignp3d_r(a,b)
+    real(sp) , pointer , dimension(:,:,:) , intent(in) :: a
+    real(sp) , pointer , dimension(:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+  end subroutine assignp3d_r
+
+  subroutine assignp3d_d(a,b)
+    real(dp) , pointer , dimension(:,:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+  end subroutine assignp3d_d
+
+  subroutine assignp4d_l(a,b)
+    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+  end subroutine assignp4d_l
+
+  subroutine assignp4d_s(a,b)
+    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+  end subroutine assignp4d_s
+
+  subroutine assignp4d_i(a,b)
+    integer , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer , pointer , dimension(:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+  end subroutine assignp4d_i
+
+  subroutine assignp4d_r(a,b)
+    real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+  end subroutine assignp4d_r
+
+  subroutine assignp4d_d(a,b)
+    real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+  end subroutine assignp4d_d
+
+  subroutine assignp5d_l(a,b)
+    logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+  end subroutine assignp5d_l
+
+  subroutine assignp5d_s(a,b)
+    integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+  end subroutine assignp5d_s
+
+  subroutine assignp5d_i(a,b)
+    integer , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    integer , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+  end subroutine assignp5d_i
+
+  subroutine assignp5d_r(a,b)
+    real(sp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+  end subroutine assignp5d_r
+
+  subroutine assignp5d_d(a,b)
+    real(dp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+  end subroutine assignp5d_d
 
 end module mod_memutil

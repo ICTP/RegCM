@@ -133,9 +133,11 @@ module mod_che_tend
    
     do itr = 1 , ntr
 
-      spchiten        => chiten(:,:,:,itr)
-      spchi(1:,1:,0:)   => chi(:,:,:,itr)
-      spchia(1:,1:,-1:) => chia(:,:,:,itr)
+      ! Here assignpnt does not work with gfortran with a sliced array.
+      ! Doing explicit work on bounds.
+      spchiten                      => chiten(:,:,:,itr)
+      spchi(1:,1:,lbound(chi,3):)   => chi(:,:,:,itr)
+      spchia(1:,1:,lbound(chia,3):) => chia(:,:,:,itr)
 !
       call hadv(.false.,spchiten,spchi,j,j,2)
       call vadv(spchiten,spchia,j,j,5)

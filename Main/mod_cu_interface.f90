@@ -58,37 +58,37 @@ module mod_cu_interface
     dtcum2 = dtsec*d_two
     aprdiv = d_one/dble(ntsrf)
 
-    sfhgt   => mddom%ht
-    psfcps  => sps1%ps
-    sfcps   => sps2%ps
-    hgt     => za
-    ptatm   => atm1%t
-    puatm   => atm1%u
-    pvatm   => atm1%v
-    pvqvtm  => atm1%qv
-    tas     => atms%tb3d
-    uas     => atms%ubx3d
-    vas     => atms%vbx3d
-    pas     => atms%pb3d
-    qsas    => atms%qsb3d
-    qcas    => atms%qcb3d
-    qvas    => atms%qvb3d
-    tten    => aten%t
-    uten    => aten%u
-    vten    => aten%v
-    qvten   => aten%qv
-    qcten   => aten%qc
-    rainc   => sfsta%rainc
-    qfx     => sfsta%qfx
-    svv     => qdot
-    lmpcpc  => pptc
-    lmask   => ldmsk
-    flev    => sigma
-    hlev    => a
-    dflev   => dsigma
-    wlev    => qcon
-    rcldfra => cldfra
-    rcldlwc => cldlwc
+    call assignpnt(mddom%ht,sfhgt)
+    call assignpnt(sps1%ps,psfcps)
+    call assignpnt(sps2%ps,sfcps)
+    call assignpnt(za,hgt)
+    call assignpnt(atm1%t,ptatm)
+    call assignpnt(atm1%u,puatm)
+    call assignpnt(atm1%v,pvatm)
+    call assignpnt(atm1%qv,pvqvtm)
+    call assignpnt(atms%tb3d,tas)
+    call assignpnt(atms%ubx3d,uas)
+    call assignpnt(atms%vbx3d,vas)
+    call assignpnt(atms%pb3d,pas)
+    call assignpnt(atms%qsb3d,qsas)
+    call assignpnt(atms%qcb3d,qcas)
+    call assignpnt(atms%qvb3d,qvas)
+    call assignpnt(aten%t,tten)
+    call assignpnt(aten%u,uten)
+    call assignpnt(aten%v,vten)
+    call assignpnt(aten%qv,qvten)
+    call assignpnt(aten%qc,qcten)
+    call assignpnt(sfsta%rainc,rainc)
+    call assignpnt(sfsta%qfx,qfx)
+    call assignpnt(qdot,svv)
+    call assignpnt(pptc,lmpcpc)
+    call assignpnt(ldmsk,lmask)
+    call assignpnt(sigma,flev)
+    call assignpnt(a,hlev)
+    call assignpnt(dsigma,dflev)
+    call assignpnt(qcon,wlev)
+    call assignpnt(cldfra,rcldfra)
+    call assignpnt(cldlwc,rcldlwc)
 
   end subroutine init_cuscheme
 !

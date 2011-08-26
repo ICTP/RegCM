@@ -63,25 +63,25 @@ module mod_lm_interface
     if ( lakemod  == 1 ) llake     = .true.
     if ( idesseas == 1 ) ldesseas  = .true.
     if ( iseaice  == 1 ) lseaice   = .true.
-    xlat     => dom%xlat
-    lndcat   => dom%lndcat
-    ht       => dom%ht
-    uatm     => atm%ubx3d
-    vatm     => atm%vbx3d
-    tatm     => atm%tb3d
-    qvatm    => atm%qvb3d
-    thatm    => atm%thx3d
-    zpbl     => sfs%zpbl
-    hfx      => sfs%hfx
-    qfx      => sfs%qfx
-    uvdrag   => sfs%uvdrag
-    tgbb     => sfs%tgbb
-    sfps     => sps%ps
-    tground1 => st1%tg
-    tground2 => st2%tg
-    hgt      => za
-    ts       => ts1
-    rho      => rhox2d
+    call assignpnt(dom%xlat,xlat)
+    call assignpnt(dom%lndcat,lndcat)
+    call assignpnt(dom%ht,ht)
+    call assignpnt(atm%ubx3d,uatm)
+    call assignpnt(atm%vbx3d,vatm)
+    call assignpnt(atm%tb3d,tatm)
+    call assignpnt(atm%qvb3d,qvatm)
+    call assignpnt(atm%thx3d,thatm)
+    call assignpnt(sfs%zpbl,zpbl)
+    call assignpnt(sfs%hfx,hfx)
+    call assignpnt(sfs%qfx,qfx)
+    call assignpnt(sfs%uvdrag,uvdrag)
+    call assignpnt(sfs%tgbb,tgbb)
+    call assignpnt(sps%ps,sfps)
+    call assignpnt(st1%tg,tground1)
+    call assignpnt(st2%tg,tground2)
+    call assignpnt(za,hgt)
+    call assignpnt(ts1,ts)
+    call assignpnt(rhox2d,rho)
   end subroutine init_bats
 !
 #ifdef CLM
@@ -104,10 +104,10 @@ module mod_lm_interface
 
     call init_bats(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
                    iseaice,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
-    tsf   => ts0
-    htf   => dom1%ht
-    xlon  => dom%xlon
-    lmask => lm
+    call assignpnt(ts0,tsf)
+    call assignpnt(dom1%ht,htf)
+    call assignpnt(dom%xlon,xlon)
+    call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif
 !

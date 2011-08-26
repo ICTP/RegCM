@@ -26,6 +26,7 @@ module mod_precip
 ! -- Pal et al. 2000 JGR-Atmos
 !
   use mod_runparams
+  use mod_memutil
   use mod_atm_interface , only : atmstate , slice , surfpstate , surfstate
 !
   private
@@ -78,26 +79,26 @@ module mod_precip
       real(8) , pointer , dimension(:,:) :: chremrat , chrembc
       real(8) , pointer , dimension(:,:) :: radcldf , radlqwc
 
-      t3      => atmslice%tb3d
-      p3      => atmslice%pb3d
-      qv3     => atmslice%qvb3d
-      qc3     => atmslice%qcb3d
-      qs3     => atmslice%qsb3d
-      rh3     => atmslice%rhb3d
-      rho3    => atmslice%rhob3d
-      t2      => atm%t
-      qv2     => atm%qv
-      qc2     => atm%qc
-      tten    => tendency%t
-      qcten   => tendency%qc
-      qvten   => tendency%qv
-      psf     => sps%ps
-      rainnc  => surface%rainnc
-      lsmrnc  => lsmrainnc
-      chrmrat => chremrat
-      chrmbc  => chrembc
-      cldfra  => radcldf
-      cldlwc  => radlqwc
+      call assignpnt(atmslice%tb3d,t3)
+      call assignpnt(atmslice%pb3d,p3)
+      call assignpnt(atmslice%qvb3d,qv3)
+      call assignpnt(atmslice%qcb3d,qc3)
+      call assignpnt(atmslice%qsb3d,qs3)
+      call assignpnt(atmslice%rhb3d,rh3)
+      call assignpnt(atmslice%rhob3d,rho3)
+      call assignpnt(atm%t,t2)
+      call assignpnt(atm%qv,qv2)
+      call assignpnt(atm%qc,qc2)
+      call assignpnt(tendency%t,tten)
+      call assignpnt(tendency%qc,qcten)
+      call assignpnt(tendency%qv,qvten)
+      call assignpnt(sps%ps,psf)
+      call assignpnt(surface%rainnc,rainnc)
+      call assignpnt(lsmrainnc,lsmrnc)
+      call assignpnt(chremrat,chrmrat)
+      call assignpnt(chrembc,chrmbc)
+      call assignpnt(radcldf,cldfra)
+      call assignpnt(radlqwc,cldlwc)
 
       istart = lbound(rainnc,1) + 1
       istopx = ubound(rainnc,1) - 2

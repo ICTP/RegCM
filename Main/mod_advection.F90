@@ -62,13 +62,15 @@ module mod_advection
       type(atmstate) , intent(in) :: atm
       real(8) , pointer , dimension(:,:,:) :: vertvel
       integer , pointer , dimension(:,:) :: kpbltop
-      u     => atm%u
-      v     => atm%v
-      ps    => sps%ps
-      mapfx => dom%msfx
-      mapfd => dom%msfd
-      vsv   => vertvel
-      kpbl  => kpbltop
+
+      call assignpnt(atm%u,u)
+      call assignpnt(atm%v,v)
+      call assignpnt(sps%ps,ps)
+      call assignpnt(dom%msfx,mapfx)
+      call assignpnt(dom%msfd,mapfd)
+      call assignpnt(vertvel,vsv)
+      call assignpnt(kpbltop,kpbl)
+
       call getmem2d(fg,lbound(atm%t,1),ubound(atm%t,1), &
                        lbound(atm%t,1),ubound(atm%t,2),'mod_advection:fg')
     end subroutine init_advection

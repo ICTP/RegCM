@@ -183,23 +183,23 @@ module mod_tcm_interface
       jtcmend = jxp 
     end if
 
-    atmstateb%u => atms%ubx3d
-    atmstateb%v => atms%vbx3d
-    atmstateb%t => atms%tb3d
-    atmstateb%qv => atms%qvb3d
-    atmstateb%qc => atms%qcb3d
-    atmstateb%tke => atm2%tke
+    call assignpnt(atms%ubx3d,atmstateb%u)
+    call assignpnt(atms%vbx3d,atmstateb%v)
+    call assignpnt(atms%tb3d,atmstateb%t)
+    call assignpnt(atms%qvb3d,atmstateb%qv)
+    call assignpnt(atms%qcb3d,atmstateb%qc)
+    call assignpnt(atm2%tke,atmstateb%tke)
 
-    srfstateb%ps => sps2%ps
-    srfstateb%tg => sts2%tg
-    srfstateb%qfx => sfsta%qfx
-    srfstateb%hfx => sfsta%hfx
-    srfstateb%uvdrag => sfsta%uvdrag
+    call assignpnt(sps2%ps,srfstateb%ps)
+    call assignpnt(sts2%tg,srfstateb%tg)
+    call assignpnt(sfsta%qfx,srfstateb%qfx)
+    call assignpnt(sfsta%hfx,srfstateb%hfx)
+    call assignpnt(sfsta%uvdrag,srfstateb%uvdrag)
 
-    radstateb%heatrt => heatrt
+    call assignpnt(heatrt,radstateb%heatrt)
 
-    hdomain%sigma => sigma
-    hdomain%a => a
+    call assignpnt(sigma,hdomain%sigma)
+    call assignpnt(a,hdomain%a)
     hdomain%ptop = ptop 
 
     dttke = dt

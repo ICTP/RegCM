@@ -842,10 +842,8 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
-  if ( ichem == 1 ) then
-    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
-                   atms%rhb3d,icumtop,icumbot)
-  end if
+  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
+                 atms%rhb3d,icumtop,icumbot)
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then

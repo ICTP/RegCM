@@ -52,11 +52,11 @@ module mod_che_interface
     rafrq = dtrad
     mdfrq = dt
 
-    chlevs => dsigma
-    chps1 => ps1
-    chrh => rh
-    kcumtop => icutop
-    kcumbot => icubot
+    call assignpnt(dsigma,chlevs)
+    call assignpnt(ps1,chps1)
+    call assignpnt(rh,chrh)
+    call assignpnt(icutop,kcumtop)
+    call assignpnt(icubot,kcumbot)
 
   end subroutine init_chem
 !

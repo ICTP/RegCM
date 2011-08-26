@@ -86,13 +86,13 @@ module mod_che_mppio
       else
         call getmem3d(chebat,1,iym1,1,jxm1,1,7,'mod_che_mppio:chebat')
       end if
-      ssw2da_io     => chebat(:,:,1)
-      sdelqk2d_io   => chebat(:,:,2)
-      sdeltk2d_io   => chebat(:,:,3)
-      sfracb2d_io   => chebat(:,:,4)
-      sfracs2d_io   => chebat(:,:,5)
-      sfracv2d_io   => chebat(:,:,6)
-      svegfrac2d_io => chebat(:,:,7)
+      call assignpnt(chebat(:,:,1),ssw2da_io)
+      call assignpnt(chebat(:,:,2),sdelqk2d_io)
+      call assignpnt(chebat(:,:,3),sdeltk2d_io)
+      call assignpnt(chebat(:,:,4),sfracb2d_io)
+      call assignpnt(chebat(:,:,5),sfracs2d_io)
+      call assignpnt(chebat(:,:,6),sfracv2d_io)
+      call assignpnt(chebat(:,:,7),svegfrac2d_io)
 
       call getmem3d(cemtrac_io,1,iy,1,jx,1,ntr,'mod_che_mppio:cemtrac_io')
       call getmem3d(cemtr_io,1,iy,1,jx,1,ntr,'mod_che_mppio:cemtr_io')
