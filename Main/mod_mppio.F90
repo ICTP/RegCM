@@ -25,8 +25,8 @@ module mod_mppio
   use mod_lm_interface
   use mod_cu_interface
   use mod_che_interface
+  use mod_rad_interface
   use mod_tcm_interface , only : tcm_state , allocate_tcm_state
-  use mod_outrad , only : nrad2d , nrad3d
   use mod_memutil
   use mod_message
 !

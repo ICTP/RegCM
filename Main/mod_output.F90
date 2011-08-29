@@ -20,20 +20,18 @@
 module mod_output
 
   use mod_runparams
-  use mod_ncio
+  use mod_message
+  use mod_service
   use mod_atm_interface
   use mod_che_interface
   use mod_lm_interface
-  use mod_message
+  use mod_rad_interface
+  use mod_cu_interface
+  use mod_ncio
   use mod_bdycod
   use mod_precip
-  use mod_rad
-  use mod_outrad
-  use mod_radiation
   use mod_split
   use mod_savefile
-  use mod_service
-  use mod_cu_interface
   use mod_mppio
   use mod_tcm_interface
   use mod_pbldim
@@ -100,16 +98,16 @@ module mod_output
     ldosav = .true.
     ldotmp = .false.
   end if
-  if ( ktau == 0 .or. mod(ktau,katm) == 0) then
+  if ( ktau == 0 .or. mod(ktau,katm) == 0 ) then
     ldoatm = .true.
   end if
-  if ( ktau == 0 .or. mod(ktau,ksrf) == 0) then
+  if ( ktau == 0 .or. mod(ktau,ksrf) == 0 ) then
     ldosrf = .true.
   end if
-  if ( ktau == 0 .or. mod(ktau,krad) == 0) then
+  if ( ktau == 0 .or. mod(ktau,krad) == 0 ) then
     ldorad = .true.
   end if
-  if ( ktau == 0 .or. mod(ktau,kche) == 0) then
+  if ( ktau == 0 .or. mod(ktau,kche) == 0 ) then
     ldoche = .true.
   end if
 

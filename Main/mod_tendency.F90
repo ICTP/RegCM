@@ -20,24 +20,23 @@
 module mod_tendency
 
   use mod_runparams
+  use mod_message
+  use mod_service
+  use mod_memutil
   use mod_atm_interface
   use mod_che_interface
+  use mod_cu_interface
+  use mod_lm_interface
+  use mod_rad_interface
   use mod_che_tend
   use mod_bdycod
-  use mod_cu_interface
   use mod_precip
-  use mod_rad
-  use mod_lm_interface
   use mod_holtbl
-  use mod_colmod3
-  use mod_message
   use mod_sun
   use mod_slice
   use mod_diffusion
   use mod_advection , only : hadv , vadv
   use mod_diagnosis
-  use mod_service
-  use mod_memutil
   use mod_uwtcm
   use mod_tcm_interface
   use mod_pbldim
@@ -140,10 +139,11 @@ module mod_tendency
                psabar , psasum , pt2bar , pt2tot , ptnbar ,        &
                ptntot , qcas , qcbs , qvas , qvbs , rovcpm ,       &
                rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , tva , &
-               tvavg , tvb , tvc , xmsf , xtm1
+               tvavg , tvb , tvc , xmsf , xtm1 , theta , eccf
     integer :: i , icons , iptn , itr , j , k , lev , n
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
+    logical :: loutrad
     character (len=64) :: subroutine_name='tend'
     integer :: idindx=0
 !
@@ -158,6 +158,19 @@ module mod_tendency
     else
       iexec = 2
     end if
+!
+!   Calculate eccentricity factor for radiation calculations
+!
+#ifdef CLM
+    eccf  = r2ceccf
+#else
+    calday = yeardayfrac(idatex)
+    theta = twopi*calday/dayspy
+    eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
+           0.001280D0 * dsin(theta) + &
+           0.000719D0 * dcos(d_two*theta) + &
+           0.000077D0 * dsin(d_two*theta)
+#endif
 !
 !----------------------------------------------------------------------
 !   multiply ua and va by inverse of mapscale factor at dot point:
@@ -1460,7 +1473,8 @@ module mod_tendency
  
 !     call ccm3 radiative transfer package
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        call colmod3(j)
+        loutrad = (ktau == 0 .or. mod(ktau,krad) == 0)
+        call colmod3(ktau,xyear,eccf,loutrad,j)
       end if
  
 #ifndef CLM

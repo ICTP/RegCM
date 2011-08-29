@@ -21,14 +21,13 @@ module mod_savefile
 
   use mod_runparams
   use mod_message
-  use mod_lm_interface
   use mod_atm_interface
+  use mod_lm_interface
   use mod_che_interface
-  use mod_bdycod
-  use mod_rad
-  use mod_radiation
+  use mod_rad_interface
   use mod_cu_interface
   use mod_tcm_interface
+  use mod_bdycod
 #ifndef BAND
   use mod_diagnosis
 #endif

@@ -22,15 +22,14 @@ module mod_init
 ! RegCM Init module
 !
   use mod_runparams
-  use mod_o3blk
   use mod_lm_interface
   use mod_atm_interface
   use mod_che_interface
+  use mod_cu_interface
+  use mod_rad_interface
   use mod_precip
   use mod_bdycod
-  use mod_rad
   use mod_message
-  use mod_radiation
   use mod_sun
   use mod_ncio
   use mod_savefile
@@ -39,7 +38,6 @@ module mod_init
   use mod_pbldim
   use mod_tcm_interface
   use mod_uwtcm, only : init_mod_uwtcm
-  use mod_cu_interface
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays
@@ -1131,9 +1129,18 @@ module mod_init
     ibin  = 0
     do itr = 1 , ntr
       if ( chtrname(itr) == 'SO2' ) iso2 = itr
-      if ( chtrname(itr) == 'SO4' ) iso4 = itr
-      if ( chtrname(itr) == 'BC_HL' ) ibchl = itr
-      if ( chtrname(itr) == 'BC_HB' ) ibchb = itr
+      if ( chtrname(itr) == 'SO4' ) then
+        iso4 = itr
+        ichso4 = itr
+      end if
+      if ( chtrname(itr) == 'BC_HL' ) then
+        ibchl = itr
+        ichbc = itr
+      end if
+      if ( chtrname(itr) == 'BC_HB' ) then
+        ibchb = itr
+        ichoc = itr
+      end if
       if ( chtrname(itr) == 'OC_HL' ) iochl = itr
       if ( chtrname(itr) == 'OC_HB' ) iochb = itr
       if ( chtrname(itr) == 'DUST' ) then

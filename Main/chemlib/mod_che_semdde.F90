@@ -26,7 +26,6 @@ module mod_che_semdde
   use mod_dynparam
   use mod_che_common
   use mod_che_dust
-  use mod_che_aerosol
   use mod_message
   use mod_che_ncio
   use mod_che_mppio

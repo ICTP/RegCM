@@ -65,10 +65,8 @@ module mod_bats_common
 !
   integer , pointer , dimension(:,:) :: lveg , oveg
 !
-  real(dp) :: difrat , rdnnsg
+  real(dp) :: rdnnsg
   real(sp) :: rrnnsg
-!
-  integer :: ilat , ihis , mhis , ncase
 !
   real(dp) , pointer , dimension(:) :: flw1d , fsw1d
   real(dp) , pointer , dimension(:) :: czen , sola , vpdd

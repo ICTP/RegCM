@@ -17,19 +17,15 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_outrad
+module mod_rad_outrad
 
-  use mod_runparams
-  use mod_lm_interface
-  use mod_rad
-#ifdef CLM
-  use mod_clm
-#endif
+  use mod_dynparam
+  use mod_rad_common
 
   private
 
   public :: frad2d , frad3d
-  public :: allocate_mod_outrad , radout
+  public :: allocate_mod_rad_outrad , radout
   public :: nrad2d , nrad3d
 
   integer , parameter :: nrad2d = 21
@@ -40,16 +36,15 @@ module mod_outrad
 
   contains
 
-  subroutine allocate_mod_outrad
+  subroutine allocate_mod_rad_outrad
     implicit none
     call getmem3d(frad2d,1,jxp,1,iym2,1,nrad2d,'mod_outrad:frad2d')
     call getmem4d(frad3d,1,jxp,1,iym2,1,kz,1,nrad3d,'mod_outrad:frad3d')
-  end subroutine allocate_mod_outrad
+  end subroutine allocate_mod_rad_outrad
 ! 
-  subroutine radout(solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla, &
-                        clrlt,clrls,qrl,slwd,srfrad,sols,soll,     &
-                        solsd,solld,alb,albc,fsds,fsnirt,fsnrtc,   &
-                        fsnirtsq,j,h2ommr,cld,clwp)
+  subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla,  &
+                    clrlt,clrls,qrl,slwd,srfrad,sols,soll,solsd,solld, &
+                    alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,j,h2ommr,cld,clwp)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -89,6 +84,7 @@ module mod_outrad
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
 ! fsds     - Flux Shortwave Downwelling Surface
 !
+    logical , intent(in) :: lout ! Preapre data for outfile
     integer :: j
     real(8) , dimension(iym1) :: alb , albc , clrls , clrlt , &
                 clrss , clrst , firtp , frla , frsa , fsds ,  &
@@ -102,6 +98,9 @@ module mod_outrad
     intent (out) srfrad
 !
     integer :: i , k
+    logical , save :: firstin
+!
+    data firstin /.true./
 !
 !     compute total radiative heating flux for the surface
 !
@@ -120,39 +119,38 @@ module mod_outrad
 !------surface absorbed solar flux in watts/m2
 !------
     do i = 1 , iym1
-      fsw2d(i,j) = frsa(i)
+      srfabswflx(i,j) = frsa(i)
     end do
 !------
 !------net up longwave flux at the surface
 !------
     do i = 1 , iym1
-      flw2d(i,j) = frla(i)
-      flwd2d(i,j) = slwd(i)  ! BATS Output
+      srflwflxup(i,j) = frla(i)
+      srflwflxdw(i,j) = slwd(i)  ! BATS Output
     end do
 !------
 !------for coupling with bats
 !------
-!     for now assume sabveg (solar absorbed by vegetation) is equal
+!     for now assume abveg (solar absorbed by vegetation) is equal
 !     to frsa (solar absorbed by surface). possible problems are
 !     over sparsely vegetated areas in which vegetation and ground
 !     albedo are significantly different
     do i = 1 , iym1
-      sabv2d(i,j) = sabveg(i)
-      sol2d(i,j) = solis(i)
-      sinc2d(i,j) = soll(i) + sols(i) + solsd(i) + solld(i)
-      solvs2d(i,j) = solvs(i)
-      solvd2d(i,j) = solvd(i)
+      abveg2d(i,j) = abveg(i)
+      solar2d(i,j) = solar(i)
+      totsol2d(i,j) = soll(i) + sols(i) + solsd(i) + solld(i)
+      soldir2d(i,j) = soldir(i)
+      soldif2d(i,j) = soldif(i)
 #ifdef CLM
-      sols2d(i,j) = sols(i)
-      soll2d(i,j) = soll(i)
-      solsd2d(i,j) = solsd(i)
-      solld2d(i,j) = solld(i)
+      solswdir(i,j) = sols(i)
+      sollwdir(i,j) = soll(i)
+      solswdif(i,j) = solsd(i)
+      sollwdif(i,j) = solld(i)
 #endif
     end do
 !
     if ( ifrad ) then
-      if ( mod(nbdytime+ntsec,nradfrq) == 0 .or.  &
-          ktau == 0 .or. doing_restart ) then
+      if ( lout .or. firstin ) then
         do k = 1 , kz
           do i = 2 , iym1
             frad3d(j,i-1,k,1) = real(h2ommr(i,k))
@@ -203,11 +201,12 @@ module mod_outrad
           else
             frad2d(j,i-1,19) = real(solld(i))  ! skip
           end if
-          frad2d(j,i-1,20) = real(solis(i))    ! skip
-          frad2d(j,i-1,21) = real(sabveg(i))   ! skip
+          frad2d(j,i-1,20) = real(solar(i))    ! skip
+          frad2d(j,i-1,21) = real(abveg(i))   ! skip
         end do
       end if
     end if
+    firstin = .false.
   end subroutine radout
 
-end module mod_outrad
+end module mod_rad_outrad

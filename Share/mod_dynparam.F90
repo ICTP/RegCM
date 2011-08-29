@@ -265,7 +265,7 @@ module mod_dynparam
 
   integer , parameter :: numbat = 23 + 6
   integer , parameter :: numsub = 16
-  integer , parameter :: mpy = 12
+  integer , parameter :: mpy = 12         ! Months per Year
 
 ! Number of Soil texture categories, leave it to 17
 
@@ -275,6 +275,12 @@ module mod_dynparam
 ! Maximum number of depths in lake model
 
   integer , parameter :: ndpmax = 400 ! This means 400 m max depth
+
+! Number of bins in solar spectra
+
+  integer , parameter :: nspi = 19
+
+! Shall we use this to port?
 
   character(1), parameter :: pthsep = '/'
 

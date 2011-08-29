@@ -40,7 +40,7 @@ module mod_che_common
                                            wdlsc , wxaq , wxsg
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot
 !
-  character(len=5) , allocatable , dimension(:) :: chtrname
+  character(len=5) , pointer , dimension(:) :: chtrname
 !
   real(dp) , pointer , dimension(:,:) :: chtrdpv
   real(dp) , pointer , dimension(:,:) :: chtrsize , dustbsiz
@@ -49,16 +49,13 @@ module mod_che_common
 !
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
 !
-  integer , pointer , dimension(:) :: idust , isslt , icarb
-!
-  real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
-  real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
-  real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf 
+  integer , pointer , dimension(:) :: isslt , icarb
 !
   real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
   real(dp) , pointer , dimension(:,:) :: rembc , remrat
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
-                                            rxsaq1 , rxsaq2 , rxsg
+                                             rxsaq1 , rxsaq2 , rxsg
+  real(sp) , target , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
   integer :: mixtype
 
   contains
@@ -81,13 +78,6 @@ module mod_che_common
       nbin = maxnbin
     end if
 
-    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'mod_che_common:aerasp')
-    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'mod_che_common:aerext')
-    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'mod_che_common:aerssa')
-    call getmem2d(aersrrf,1,iym1,1,jxp,'mod_che_common:aersrrf')
-    call getmem2d(aertalwrf,1,iym1,1,jxp,'mod_che_common:aertalwrf')
-    call getmem2d(aersrlwrf,1,iym1,1,jxp,'mod_che_common:aersrlwrf')
-    call getmem2d(aertarf,1,iym1,1,jxp,'mod_che_common:aertarf')
     call getmem2d(rembc,1,iy,1,kz,'mod_che_common:rembc')
     call getmem2d(remrat,1,iy,1,kz,'mod_che_common:remrat')
 
@@ -106,7 +96,6 @@ module mod_che_common
 
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
       call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
-      call getmem1d(idust,1,nbin,'mod_che_common:idust')
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
       call getmem1d(icarb,1,5,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')

@@ -20,13 +20,13 @@
 module mod_tcm_interface
 
   use mod_memutil
+  use mod_service
   use mod_constants
   use mod_runparams
-  use mod_slice
-  use mod_rad
+  use mod_rad_interface
   use mod_atm_interface
+  use mod_slice
   use mod_gridfuncs
-  use mod_service
   use mod_pbldim
   use m_realkinds
 

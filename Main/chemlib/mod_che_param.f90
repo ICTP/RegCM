@@ -29,8 +29,6 @@ module mod_che_param
   real(dp) :: chfrq , rafrq , mdfrq
 
   real(dp) , pointer , dimension(:) :: chlevs
-  real(dp) , pointer , dimension(:,:) :: chps1
-  real(dp) , pointer , dimension(:,:,:) :: chrh
 !
   real(8) , dimension(22) :: aest , arye
 !

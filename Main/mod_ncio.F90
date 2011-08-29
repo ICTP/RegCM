@@ -22,6 +22,7 @@ module mod_ncio
   use mod_runparams
   use mod_cu_interface
   use mod_lm_interface , only : iocnflx
+  use mod_rad_interface , only : iemiss
   use mod_message
   use mod_che_interface
   use mod_memutil

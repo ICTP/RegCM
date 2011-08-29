@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-module mod_colmod3
+module mod_rad_colmod3
 !
 !-----------------------------NOTICE------------------------------------
 !
@@ -86,12 +86,10 @@ module mod_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  use mod_runparams
-  use mod_lm_interface
-  use mod_radiation
-  use mod_atm_interface
-  use mod_rad
-  use mod_outrad
+  use mod_dynparam
+  use mod_rad_radiation
+  use mod_rad_common
+  use mod_rad_outrad
 !
   private
 !
@@ -100,25 +98,28 @@ module mod_colmod3
 !
   contains
 !
-  subroutine colmod3(j)
+  subroutine colmod3(ktau,iyear,eccf,lout,j)
 !
     implicit none
 !
-    integer :: j
+    integer(8) , intent(in) :: ktau
+    integer , intent(in) :: iyear
+    logical , intent(in) :: lout
+    integer , intent(in) :: j
+    real(8) , intent(in) :: eccf
 !
     real(8) , dimension(iym1) :: alb , albc , aldif , aldir , asdif , &
-                                  asdir , alat , coslat , flns ,      &
-                                  flnsc , flnt , flntc , flwds ,      &
-                                  fsds , fsnirt , fsnirtsq , fsnrtc , &
-                                  fsns , fsnsc , fsnt , fsntc ,       &
-                                  loctim , solin , soll , solld ,     &
-                                  sols , solsd , srfrad , ts
+                                 asdir , alat , coslat , flns ,      &
+                                 flnsc , flnt , flntc , flwds ,      &
+                                 fsds , fsnirt , fsnirtsq , fsnrtc , &
+                                 fsns , fsnsc , fsnt , fsntc ,       &
+                                 solin , soll , solld ,     &
+                                 sols , solsd , srfrad , ps , ts
     real(8) , dimension(iym1,kzp1) :: cld , effcld , pilnm1 , pintm1
     real(8) , dimension(iym1,kz) :: clwp , emis , fice , h2ommr ,  &
            o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
            rel , tm1
     integer , dimension(iym1) :: ioro
-    real(8) :: eccf
     integer :: i , ii0 , ii1 , ii2 , k , n
 !
 !   Fields specified by the user in getdat()
@@ -221,7 +222,6 @@ module mod_colmod3
     fsnsc(:) = d_zero
     fsnt(:) = d_zero
     fsntc(:) = d_zero
-    loctim(:) = d_zero
     solin(:) = d_zero
     soll(:) = d_zero
     solld(:) = d_zero
@@ -249,10 +249,6 @@ module mod_colmod3
     tm1(:,:) = d_zero
     ioro(:) = 0
 !
-!   Set latitude index to j
-!
-    ilat = j
-!
 !   Set parameters in common block comtim : dosw,dolw,doabsems
 !
     dosw = .true.
@@ -264,7 +260,7 @@ module mod_colmod3
 !   the co2 mixing ratio set (by the user) in getdat() should
 !   overwrite the default CCM3 co2 mixing ratio set by radini().
 !
-    call radini
+    call radini(iyear)
 !
 !   NB: orography types are specified in the following
 !
@@ -273,9 +269,9 @@ module mod_colmod3
       ii1 = 0
       ii2 = 0
       do n = 1 , nnsg
-        if ( ocld2d(n,i,j) == 2 ) then
+        if ( lndocnicemsk(n,i,j) == 2 ) then
           ii2 = ii2 + 1
-        else if ( ocld2d(n,i,j) == 1 ) then
+        else if ( lndocnicemsk(n,i,j) == 1 ) then
           ii1 = ii1 + 1
         else
           ii0 = ii0 + 1
@@ -288,7 +284,7 @@ module mod_colmod3
 !
 !   getdat() also sets calday (used in zenith() and radinp()).
 !
-    call getdat(j,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,o3vmr,  &
+    call getdat(j,h2ommr,alat,cld,clwp,coslat,o3mmr,o3vmr,  &
                 pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
 !
 !   NB:
@@ -307,10 +303,10 @@ module mod_colmod3
 !   because variable names for albedos are somewhat different
 !
     do i = 1 , iym1
-      asdir(i) = aldirs(i)
-      asdif(i) = aldifs(i)
-      aldir(i) = aldirl(i)
-      aldif(i) = aldifl(i)
+      asdir(i) = swdiralb(i)
+      asdif(i) = swdifalb(i)
+      aldir(i) = lwdiralb(i)
+      aldif(i) = lwdifalb(i)
     end do
 !
 !   Cloud particle size and fraction of ice
@@ -340,10 +336,10 @@ module mod_colmod3
 !   NB: All fluxes returned from radctl() have already been converted
 !   to MKS.
 !
-    call radctl(j,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
-                qm1,cld,effcld,clwp,asdir,asdif,aldir,aldif,fsns,qrs, &
-                qrl,flwds,rel,rei,fice,sols,soll,solsd,solld,emiss1d, &
-                fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,&
+    call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1, &
+                qm1,cld,effcld,clwp,asdir,asdif,aldir,aldif,fsns,qrs,  &
+                qrl,flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
+                fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc, &
                 fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr)
 !
 !   subroutine radout() is not included in the ccm3 crm itself
@@ -355,7 +351,7 @@ module mod_colmod3
 !   Names of some output variables (in MKS) have been changed
 !   from those in the CCM2 radiation package.
 !
-    call radout(solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,&
+    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,&
                 qrl,flwds,srfrad,sols,soll,solsd,solld,alb,albc,fsds, &
                 fsnirt,fsnrtc,fsnirtsq,j,h2ommr,cld,clwp)
 !
@@ -549,18 +545,18 @@ module mod_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine getdat(j,h2ommr,alat,cld,clwp,coslat,loctim,o3mmr,  &
+  subroutine getdat(j,h2ommr,alat,cld,clwp,coslat,o3mmr,  &
                     o3vmr,pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
 !
     implicit none
 !
     integer :: j
-    real(8) , dimension(iym1) :: alat , coslat , loctim , ps , ts
+    real(8) , dimension(iym1) :: alat , coslat ,  ps , ts
     real(8) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
     real(8) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr , &
                                     pmidm1 , pmlnm1 , qm1 , tm1
     intent (in) j
-    intent (out) clwp , coslat , loctim , o3vmr , pilnm1 , pmlnm1 , qm1 , ts
+    intent (out) clwp , coslat , o3vmr , pilnm1 , pmlnm1 , qm1 , ts
     intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 , ps , tm1
 !
     real(8) :: ccvtem , clwtem , vmmr
@@ -575,10 +571,9 @@ module mod_colmod3
 !
 !   surface pressure and scaled pressure, from which level pressures are computed
     do i = 1 , iym1
-      ps(i) = (sps2%ps(i,j)+ptop)*d_10
+      ps(i) = (sfps(i,j)+ptp)*d_10
       do k = 1 , kz
-        pmidm1(i,k) = (sps2%ps(i,j)*a(k)+ptop)*d_10
-!KN     sclpr(k) = pmidm1(i,k)/ps(i)
+        pmidm1(i,k) = (sfps(i,j)*hlev(k)+ptp)*d_10
       end do
     end do
 !
@@ -593,7 +588,7 @@ module mod_colmod3
     end do
     do k = 1 , kzp1
       do i = 1 , iym1
-        pintm1(i,k) = (sps2%ps(i,j)*sigma(k)+ptop)*d_1000
+        pintm1(i,k) = (sfps(i,j)*flev(k)+ptp)*d_1000
         pilnm1(i,k) = dlog(pintm1(i,k))
       end do
     end do
@@ -602,7 +597,7 @@ module mod_colmod3
 !
     do k = 1 , kz
       do i = 1 , iym1
-        tm1(i,k) = atm2%t(i,k,j)/sps2%ps(i,j)
+        tm1(i,k) = tatms(i,k,j)
       end do
     end do
 !
@@ -613,7 +608,7 @@ module mod_colmod3
 !
     do k = 1 , kz
       do i = 1 , iym1
-        h2ommr(i,k) = dmax1(1.0D-7,atm2%qv(i,k,j)/sps2%ps(i,j))
+        h2ommr(i,k) = dmax1(1.0D-7,qvatms(i,k,j))
         qm1(i,k) = h2ommr(i,k)
       end do
     end do
@@ -701,8 +696,7 @@ module mod_colmod3
 !     when using bats calculate an equivalent ground (skin)
 !     temperature by averaging over vegetated and non-vegetated areas
 !jsp  tg(i)=((d_one-vgfrac(i))*tgb(i,j)**4.+vgfrac(i)*tlef2d(i,j)**4.)**0.25
-!jsp  tg(i)=sfsta%tgbb(i,j)
-      ts(i) = sfsta%tgbb(i,j)
+      ts(i) = tground(i,j)
     end do
 !
 !   cloud cover at surface interface always zero
@@ -723,10 +717,8 @@ module mod_colmod3
         if ( cld(i,k) > 0.999D0 ) cld(i,k) = 0.999D0
       end do
 !
-      rlat(i) = mddom%xlat(i,j)
-      calday = yeardayfrac(idatex)
+      rlat(i) = xlat(i,j)
 !
-      loctim(i) = (calday-dint(calday))*houpd
       alat(i) = rlat(i)*degrad
       coslat(i) = dcos(alat(i))
 !
@@ -744,4 +736,4 @@ module mod_colmod3
 !
   end subroutine getdat
 !
-end module mod_colmod3
+end module mod_rad_colmod3

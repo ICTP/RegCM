@@ -17,16 +17,14 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_o3blk
+module mod_rad_o3blk
 
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : ptop , sigma
-  use mod_atm_interface
-  use mod_rad
+  use mod_rad_common
 
-  implicit none
+  public
 
   real(8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                              ppsum , ppwin , ppwrk
@@ -67,10 +65,10 @@ module mod_o3blk
 
   contains
 
-  subroutine allocate_mod_o3blk
+  subroutine allocate_mod_rad_o3blk
     implicit none
     call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
-  end subroutine allocate_mod_o3blk
+  end subroutine allocate_mod_rad_o3blk
 !
 !----------------------------------------------------------------------
 !
@@ -104,7 +102,7 @@ module mod_o3blk
     do i = 1 , iym1
       do k = kzp1 , 1 , -1
         kj = kzp1 - k + 1
-        prlevh(kj) = (sigma(k)*sps2%ps(i,j)+ptop)*d_10
+        prlevh(kj) = (flev(k)*sfps(i,j)+ptp)*d_10
       end do
       ppwrkh(1) = 1100.0D0
       do k = 2 , 31
@@ -143,4 +141,4 @@ module mod_o3blk
 !
   end subroutine o3data
 !
-end module mod_o3blk
+end module mod_rad_o3blk

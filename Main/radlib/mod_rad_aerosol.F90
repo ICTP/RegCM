@@ -17,33 +17,29 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_che_aerosol
+module mod_rad_aerosol
 !
   use m_realkinds
   use mod_dynparam
   use mod_constants
   use mod_memutil
   use mod_message
-  use mod_che_param
-  use mod_che_indices
-  use mod_che_common
+  use mod_rad_common
 !
   private
 !
-  public :: nspi
-  public :: aermm , aerlwtr
-  public :: dgmix , dssamix , dextmix
-  public :: tauxar_mix , tauasc_mix
-  public :: gtota_mix , ftota_mix
-  public :: tauxar_mix_cs , tauasc_mix_cs
-  public :: gtota_mix_cs , ftota_mix_cs
-  public :: allocate_mod_che_aerosol , aermix , aeroppt , aerout
+  public :: aermm , aertrlw
+  public :: tauxar3d , tauasc3d
+  public :: gtota3d , ftota3d
+  public :: tauxar , tauasc
+  public :: gtota , ftota
+  public :: idust
+  public :: allocate_mod_rad_aerosol , aermix , aeroppt , aerout
+  public :: aerasp , aerext , aerssa
+  public :: aersrrf , aertarf
+  public :: aertalwrf , aersrlwrf
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
-!
-! Num of spctrl intervals across solar spectrum
-!
-  integer , parameter :: nspi = 19   ! Spectral index
 !
   integer , parameter :: ncoefs = 5  ! Number of coefficients
 !
@@ -69,11 +65,15 @@ module mod_che_aerosol
   integer , private :: ii , jj ! coefficient index
 !
   real(dp) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
-           gsoc_hl , ksbase , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
-           wsbase , wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl
+            gsoc_hl , ksbase , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
+            wsbase , wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl
   real(dp) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
   real(dp) , dimension(nspi,4) :: gsdust , ksdust , wsdust
-  real(sp) , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
+  !
+  real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
+  real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
+  real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
+  integer , pointer , dimension(:) :: idust
 !
 ! Aerosol mass mixing ratio
 !
@@ -89,11 +89,11 @@ module mod_che_aerosol
 !
 ! Aerosol optical properties (for the mixing) 
 !
-  real(dp) , pointer , dimension(:,:,:) :: ftota_mix ,   &
-                 gtota_mix , tauasc_mix , tauxar_mix
+  real(dp) , pointer , dimension(:,:,:) :: ftota3d ,   &
+                 gtota3d , tauasc3d , tauxar3d
 !
-  real(dp) , pointer , dimension(:,:) :: ftota_mix_cs ,  &
-         gtota_mix_cs , tauasc_mix_cs , tauxar_mix_cs
+  real(dp) , pointer , dimension(:,:) :: ftota ,  &
+         gtota , tauasc , tauxar
 !
 ! Work arrays for aeroppt (aerosol individual optical properties SW)
 !
@@ -108,13 +108,13 @@ module mod_che_aerosol
 !
 !
   real(dp) , pointer , dimension(:,:) :: aermtot , aervtot
-  real(dp) , pointer , dimension(:,:,:) :: fa , ga , tauxar , uaer , wa
+  real(dp) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
   real(dp) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
   real(dp) , dimension(4) :: prop
 !
 ! Aersol LW optical properties
 !
-  real(dp) , pointer , dimension(:,:,:) ::  aerlwtr 
+  real(dp) , pointer , dimension(:,:,:) ::  aertrlw 
 !
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -349,26 +349,34 @@ module mod_che_aerosol
 !
   contains
 ! 
-  subroutine allocate_mod_che_aerosol
+  subroutine allocate_mod_rad_aerosol
     implicit none   
+    call getmem1d(idust,1,nbin,'aerosol:idust')
     call getmem3d(aermm,1,iym1,1,kz,1,jxp,'aerosol:aermm')
     call getmem2d(aermmb,1,iym1,1,kz,'aerosol:aermmb')
-    call getmem3d(ftota_mix,1,iym1,0,kz,1,nspi,'aerosol:ftota_mix')
-    call getmem3d(gtota_mix,1,iym1,0,kz,1,nspi,'aerosol:gtota_mix')
-    call getmem3d(tauasc_mix,1,iym1,0,kz,1,nspi,'aerosol:tauasc_mix')
-    call getmem3d(tauxar_mix,1,iym1,0,kz,1,nspi,'aerosol:tauxar_mix')
-    call getmem2d(ftota_mix_cs,1,iym1,1,nspi,'aerosol:ftota_mix_cs')
-    call getmem2d(gtota_mix_cs,1,iym1,1,nspi,'aerosol:gtota_mix_cs')
-    call getmem2d(tauasc_mix_cs,1,iym1,1,nspi,'aerosol:tauasc_mix_cs')
-    call getmem2d(tauxar_mix_cs,1,iym1,1,nspi,'aerosol:tauxar_mix_cs')
+    call getmem3d(ftota3d,1,iym1,0,kz,1,nspi,'aerosol:ftota3d')
+    call getmem3d(gtota3d,1,iym1,0,kz,1,nspi,'aerosol:gtota3d')
+    call getmem3d(tauasc3d,1,iym1,0,kz,1,nspi,'aerosol:tauasc3d')
+    call getmem3d(tauxar3d,1,iym1,0,kz,1,nspi,'aerosol:tauxar3d')
+    call getmem2d(ftota,1,iym1,1,nspi,'aerosol:ftota')
+    call getmem2d(gtota,1,iym1,1,nspi,'aerosol:gtota')
+    call getmem2d(tauasc,1,iym1,1,nspi,'aerosol:tauasc')
+    call getmem2d(tauxar,1,iym1,1,nspi,'aerosol:tauxar')
     call getmem2d(aermtot,1,iym1,1,kz,'aerosol:aermtot')
     call getmem2d(aervtot,1,iym1,1,kz,'aerosol:aervtot')
-    call getmem3d(aerlwtr,1,iym1,1,kzp1,1,kzp1,'aerosol:aerlwtr')
-    if ( lch ) then
+    call getmem3d(aertrlw,1,iym1,1,kzp1,1,kzp1,'aerosol:aertrlw')
+    call getmem3d(aerasp,1,iym1,1,kz,1,jxp,'mod_che_common:aerasp')
+    call getmem3d(aerext,1,iym1,1,kz,1,jxp,'mod_che_common:aerext')
+    call getmem3d(aerssa,1,iym1,1,kz,1,jxp,'mod_che_common:aerssa')
+    call getmem2d(aersrrf,1,iym1,1,jxp,'mod_che_common:aersrrf')
+    call getmem2d(aertalwrf,1,iym1,1,jxp,'mod_che_common:aertalwrf')
+    call getmem2d(aersrlwrf,1,iym1,1,jxp,'mod_che_common:aersrlwrf')
+    call getmem2d(aertarf,1,iym1,1,jxp,'mod_che_common:aertarf')
+    if ( lchem ) then
       call getmem3d(aermmr,1,iym1,1,kz,1,ntr,'aerosol:aermmr')
       call getmem3d(fa,1,iym1,0,kz,1,ntr,'aerosol:fa')
       call getmem3d(ga,1,iym1,0,kz,1,ntr,'aerosol:ga')
-      call getmem3d(tauxar,1,iym1,0,kz,1,ntr,'aerosol:tauxar')
+      call getmem3d(tx,1,iym1,0,kz,1,ntr,'aerosol:tx')
       call getmem3d(uaer,1,iym1,0,kz,1,ntr,'aerosol:uaer')
       call getmem3d(wa,1,iym1,0,kz,1,ntr,'aerosol:wa')
       call getmem2d(faer,1,iym1,1,ntr,'aerosol:faer')
@@ -377,7 +385,7 @@ module mod_che_aerosol
       call getmem2d(utaer,1,iym1,1,ntr,'aerosol:utaer')
       call getmem2d(waer,1,iym1,1,ntr,'aerosol:waer')
     end if
-  end subroutine allocate_mod_che_aerosol
+  end subroutine allocate_mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 !
@@ -453,7 +461,7 @@ module mod_che_aerosol
       do i = istart , iend
  
 !       July 13, 2000: needed for aerosols in radiation
-        rh(i,k) = dmin1(chrh(i,k,j),nearone)
+        rh(i,k) = dmin1(rhatms(i,k,j),nearone)
 !EES:   do not change to 1.00:  wscoef(3,10) in radcsw = .9924 and is
 !       divided by RH.  rh is limited to .99 to avoid dividing by zero added
 !
@@ -470,9 +478,9 @@ module mod_che_aerosol
           aermmb(i,k) = d_zero
         end if
 ! 
-        if ( lch ) then
+        if ( lchem ) then
           do itr = 1 , ntrac
-            aermmr(i,k,itr) = chia(i,k,j,itr)/chps1(i,j)
+            aermmr(i,k,itr) = chspmix(i,k,j,itr)/psfps(i,j)
           end do
         end if
 
@@ -496,21 +504,21 @@ module mod_che_aerosol
     integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , k1, k2 , ns
     real(dp) :: path , uaerdust , qabslw
 !
-    if ( .not. lch ) then
-      tauxar_mix_cs(:,:) = d_zero
-      tauasc_mix_cs(:,:) = d_zero
-      gtota_mix_cs(:,:) = d_zero
-      ftota_mix_cs(:,:) = d_zero
-      tauxar_mix(:,:,:) = d_zero
-      tauasc_mix(:,:,:) = d_zero
-      gtota_mix(:,:,:) = d_zero
-      ftota_mix(:,:,:) = d_zero
-      aerlwtr (:,:,:) = d_one
+    if ( .not. lchem ) then
+      tauxar(:,:) = d_zero
+      tauasc(:,:) = d_zero
+      gtota(:,:) = d_zero
+      ftota(:,:) = d_zero
+      tauxar3d(:,:,:) = d_zero
+      tauasc3d(:,:,:) = d_zero
+      gtota3d(:,:,:) = d_zero
+      ftota3d(:,:,:) = d_zero
+      aertrlw (:,:,:) = d_one
       return
     end if
 !
     if ( iym1 >= 1 ) then
-      tauxar = d_zero
+      tx = d_zero
       wa = d_zero
       ga = d_zero
       fa = d_zero
@@ -518,15 +526,15 @@ module mod_che_aerosol
 !
 !   Nothing to do for this
 !
-      tauxar_mix_cs(:,:) = d_zero
-      tauasc_mix_cs(:,:) = d_zero
-      gtota_mix_cs(:,:) = d_zero
-      ftota_mix_cs(:,:) = d_zero
-      tauxar_mix(:,:,:) = d_zero
-      tauasc_mix(:,:,:) = d_zero
-      gtota_mix(:,:,:) = d_zero
-      ftota_mix(:,:,:) = d_zero
-      aerlwtr (:,:,:) = d_one
+      tauxar(:,:) = d_zero
+      tauasc(:,:) = d_zero
+      gtota(:,:) = d_zero
+      ftota(:,:) = d_zero
+      tauxar3d(:,:,:) = d_zero
+      tauasc3d(:,:,:) = d_zero
+      gtota3d(:,:,:) = d_zero
+      ftota3d(:,:,:) = d_zero
+      aertrlw (:,:,:) = d_one
       return
     end if
    
@@ -536,24 +544,24 @@ module mod_che_aerosol
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-    if ( mixtype == 1 ) then
+    if ( chmixtyp == 1 ) then
 !
 !     Spectral loop
 !
       do ns = 1 , nspi
 
-        tauxar_mix_cs(:,ns) = d_zero
-        tauasc_mix_cs(:,ns) = d_zero
-        gtota_mix_cs(:,ns) = d_zero
-        ftota_mix_cs(:,ns) = d_zero
+        tauxar(:,ns) = d_zero
+        tauasc(:,ns) = d_zero
+        gtota(:,ns) = d_zero
+        ftota(:,ns) = d_zero
 !
-        tauxar_mix(:,:,ns) = d_zero
-        tauasc_mix(:,:,ns) = d_zero
-        gtota_mix(:,:,ns) = d_zero
-        ftota_mix(:,:,ns) = d_zero
+        tauxar3d(:,:,ns) = d_zero
+        tauasc3d(:,:,ns) = d_zero
+        gtota3d(:,:,ns) = d_zero
+        ftota3d(:,:,ns) = d_zero
 !
         uaer(:,0,:) = d_zero
-        tauxar(:,0,:) = d_zero
+        tx(:,0,:) = d_zero
         wa(:,0,:) = d_zero
         ga(:,0,:) = d_zero
         fa(:,0,:) = d_zero
@@ -579,25 +587,25 @@ module mod_che_aerosol
                 print * , i , k , rh(i,k) , '  RH WARNING !!!!!'
               end if
 !
-              if ( chtrname(itr) == 'XXXXX') then
+              if ( tracname(itr) == 'XXXXX') then
                 continue
               end if
 !
-              if ( chtrname(itr) == 'DUST' ) then
+              if ( tracname(itr) == 'DUST' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
 !               gaffe au facteur !!
 !               gaffe au ntr/bins
                 ibin = ibin + 1
                 if ( ibin > 4 ) print * , 'DUST OP PBLEME !!!!'
 !
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
                 wa(i,k,itr) = wsdust(ns,ibin)
                 ga(i,k,itr) = gsdust(ns,ibin)
                 fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
 ! 
-              else if ( chtrname(itr) == 'SO4' ) then
+              else if ( tracname(itr) == 'SO4' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbase(ns) *               &
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbase(ns) *               &
                          dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(i,k)+kscoef(ns,3)) + &
                               kscoef(ns,4)/(rh(i,k)+kscoef(ns,5)))
 !
@@ -609,32 +617,32 @@ module mod_che_aerosol
 !
                 fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
 ! 
-              else if ( chtrname(itr) == 'OC_HL' ) then
+              else if ( tracname(itr) == 'OC_HL' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
 !               Humidity effect !
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hl(ns) *    &
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hl(ns) *    &
                                   (d_one-rh(i,k))**(-0.2D0)
                 wa(i,k,itr) = wsoc_hl(ns)
                 ga(i,k,itr) = gsoc_hl(ns)
                 fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-              else if ( chtrname(itr) == 'BC_HL' ) then
+              else if ( tracname(itr) == 'BC_HL' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
 !               Humidity effect !
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hl(ns) *    &
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hl(ns) *    &
                                   (d_one-rh(i,k))**(-0.25D0)
                 wa(i,k,itr) = wsbc_hl(ns)
                 ga(i,k,itr) = gsbc_hl(ns)
                 fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-              else if ( chtrname(itr) == 'OC_HB' ) then
+              else if ( tracname(itr) == 'OC_HB' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hb(ns)
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hb(ns)
                 wa(i,k,itr) = wsoc_hb(ns)
                 ga(i,k,itr) = gsoc_hb(ns)
                 fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
-              else if ( chtrname(itr) == 'BC_HB' ) then
+              else if ( tracname(itr) == 'BC_HB' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
 !               Absorbing aerosols (soot type)
-                tauxar(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hb(ns)
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hb(ns)
                 wa(i,k,itr) = wsbc_hb(ns)
                 ga(i,k,itr) = gsbc_hb(ns)
                 fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
@@ -649,7 +657,7 @@ module mod_che_aerosol
           do itr = 1 , ntr
             do k = 1 , kz
               utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
-              tauaer(i,itr) = tauaer(i,itr) + tauxar(i,k,itr)
+              tauaer(i,itr) = tauaer(i,itr) + tx(i,k,itr)
               waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
               gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
               faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
@@ -668,26 +676,26 @@ module mod_che_aerosol
           do itr = 1 , ntr
 !           only for climatic feedback allowed
             do k = 0 , kz
-              tauxar_mix(i,k,ns) = tauxar_mix(i,k,ns) + tauxar(i,k,itr)
-              tauasc_mix(i,k,ns) = tauasc_mix(i,k,ns) + tauxar(i,k,itr)*wa(i,k,itr)
-              gtota_mix(i,k,ns) = gtota_mix(i,k,ns) + ga(i,k,itr) * &
-                                  tauxar(i,k,itr)*wa(i,k,itr)
-              ftota_mix(i,k,ns) = ftota_mix(i,k,ns) + fa(i,k,itr) * &
-                                  tauxar(i,k,itr)*wa(i,k,itr)
+              tauxar3d(i,k,ns) = tauxar3d(i,k,ns) + tx(i,k,itr)
+              tauasc3d(i,k,ns) = tauasc3d(i,k,ns) + tx(i,k,itr)*wa(i,k,itr)
+              gtota3d(i,k,ns) = gtota3d(i,k,ns) + ga(i,k,itr) * &
+                                  tx(i,k,itr)*wa(i,k,itr)
+              ftota3d(i,k,ns) = ftota3d(i,k,ns) + fa(i,k,itr) * &
+                                  tx(i,k,itr)*wa(i,k,itr)
             end do
 !
 !           Clear sky (always calcuated if ichdir >=1 for
 !           diagnostic radiative forcing)
 !
-            tauxar_mix_cs(i,ns) = tauxar_mix_cs(i,ns) + tauaer(i,itr)
+            tauxar(i,ns) = tauxar(i,ns) + tauaer(i,itr)
             if (waer(i,itr) > minimum_waer) then
-              tauasc_mix_cs(i,ns) = tauasc_mix_cs(i,ns) + tauaer(i,itr)*waer(i,itr)
+              tauasc(i,ns) = tauasc(i,ns) + tauaer(i,itr)*waer(i,itr)
             end if
             if (gaer(i,itr) > minimum_gaer .and.  &
                 waer(i,itr) > minimum_gaer) then
-              gtota_mix_cs(i,ns) = gtota_mix_cs(i,ns) + gaer(i,itr) * &
+              gtota(i,ns) = gtota(i,ns) + gaer(i,itr) * &
                                 tauaer(i,itr)*waer(i,itr)
-              ftota_mix_cs(i,ns) = ftota_mix_cs(i,ns) + faer(i,itr) * &
+              ftota(i,ns) = ftota(i,ns) + faer(i,itr) * &
                                 tauaer(i,itr)*waer(i,itr)
             end if
           end do
@@ -701,7 +709,7 @@ module mod_che_aerosol
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
-    else if ( mixtype == 2 ) then
+    else if ( chmixtyp == 2 ) then
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
@@ -709,17 +717,17 @@ module mod_che_aerosol
 !
       do ns = 1 , nspi
 
-        tauxar_mix_cs(:,ns) = d_zero
-        tauasc_mix_cs(:,ns) = d_zero
-        gtota_mix_cs(:,ns)  = d_zero
-        ftota_mix_cs(:,ns)  = d_zero
-        tauxar_mix(:,:,ns)  = d_zero
-        tauasc_mix(:,:,ns)  = d_zero
-        gtota_mix(:,:,ns)   = d_zero
-        ftota_mix(:,:,ns)   = d_zero
+        tauxar(:,ns) = d_zero
+        tauasc(:,ns) = d_zero
+        gtota(:,ns)  = d_zero
+        ftota(:,ns)  = d_zero
+        tauxar3d(:,:,ns)  = d_zero
+        tauasc3d(:,:,ns)  = d_zero
+        gtota3d(:,:,ns)   = d_zero
+        ftota3d(:,:,ns)   = d_zero
 ! 
         uaer(:,0,:)   = d_zero
-        tauxar(:,0,:) = d_zero
+        tx(:,0,:) = d_zero
         wa(:,0,:)     = d_zero
         ga(:,0,:)     = d_zero
         fa(:,0,:)     = d_zero
@@ -741,19 +749,19 @@ module mod_che_aerosol
             aervtot(i,k) = d_zero
             aermtot(i,k) = d_zero
 !
-            if ( iso4 /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iso4)/rhoso4
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iso4)
+            if ( ichso4 /= 0 ) then
+              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichso4)/rhoso4
+              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichso4)
             end if
 ! 
-            if ( ibchl /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ibchl)/rhobc
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ibchl)
+            if ( ichbc /= 0 ) then
+              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichbc)/rhobc
+              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichbc)
             end if
 !
-            if ( iochl /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,iochl)/rhooc
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,iochl)
+            if ( ichoc /= 0 ) then
+              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichoc)/rhooc
+              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichoc)
             end if
 ! 
             if ( idust(1) /= 0 ) then
@@ -764,22 +772,22 @@ module mod_che_aerosol
 !           minimum quantity of total aerosol
             if ( aermtot(i,k) > minimum_aerosol ) then
 !             indexes in the internal mixing table
-              prop(1) = (aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
-              prop(2) = (aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
-              prop(3) = (aermmr(i,k,iochl)/rhooc)/aervtot(i,k)
+              prop(1) = (aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k)
+              prop(2) = (aermmr(i,k,ichbc)/rhobc)/aervtot(i,k)
+              prop(3) = (aermmr(i,k,ichoc)/rhooc)/aervtot(i,k)
               prop(4) = (aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
 !             FIND THE GREATEST FRACTIONAL PART
-              if ( iso4 /= 0 ) then
+              if ( ichso4 /= 0 ) then
                 i1 = idnint(d_10*prop(1)) + 1
               else
                 i1 = 0 + 1
               end if
-              if ( ibchl /= 0 ) then
+              if ( ichbc /= 0 ) then
                 i2 = idnint(d_10*prop(2)) + 1
               else
                 i2 = 0 + 1
               end if
-              if ( iochl /= 0 ) then
+              if ( ichoc /= 0 ) then
                 i3 = idnint(d_10*prop(3)) + 1
               else
                 i3 = 0 + 1
@@ -811,41 +819,43 @@ module mod_che_aerosol
 ! 
               if ( i1+i2+i3+i4 /= 14 ) then
                 print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
-                print * , idust(1) , iochl , ibchl , iso4
-                print * , 'OC HL' , aermmr(i,k,iochl)/rhooc
-                print * , 'BC HL' , aermmr(i,k,ibchl)/rhobc
-                print * , 'SO4' , aermmr(i,k,iso4)/rhoso4
+                print * , idust(1) , ichoc , ichbc , ichso4
+                print * , 'OC HL' , aermmr(i,k,ichoc)/rhooc
+                print * , 'BC HL' , aermmr(i,k,ichbc)/rhobc
+                print * , 'SO4' , aermmr(i,k,ichso4)/rhoso4
                 print * , 'DUST' , aermmr(i,k,idust(1))/rhodust
                 print * , 'VOL TOT' , aervtot(i,k)
-                print * , 'OC HL%' , d_10*(aermmr(i,k,iochl)/rhooc)/aervtot(i,k)
-                print * , 'BC HL%' , d_10*(aermmr(i,k,ibchl)/rhobc)/aervtot(i,k)
-                print * , 'SO4 %' , d_10*(aermmr(i,k,iso4)/rhoso4)/aervtot(i,k)
-                print * , 'SO4 %' ,idnint(d_10*(aermmr(i,k,iso4)/rhoso4)/aervtot(i,k))
+                print * , 'OC HL%' , d_10*(aermmr(i,k,ichoc)/rhooc)/aervtot(i,k)
+                print * , 'BC HL%' , d_10*(aermmr(i,k,ichbc)/rhobc)/aervtot(i,k)
+                print * , 'SO4 %' , d_10*(aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k)
+                print * , 'SO4 %' ,idnint(d_10*(aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k))
                 print * , 'DUST %',d_10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
                 print * , 'DUST %',                             &
                      idnint(d_10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k))
                 call fatal(__FILE__,__LINE__,'SOMETHING WRONG ON SPECIES ABUNDANCE')
               end if
 !
-              tauxar_mix(i,k,ns) = dextmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path*d10e5
-              tauasc_mix(i,k,ns) = dssamix(1,ns,i4,i2,i3,i1)*tauxar_mix(i,k,ns)
-              gtota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1) * &
-                                  tauasc_mix(i,k,ns)*tauxar_mix(i,k,ns)
-              ftota_mix(i,k,ns) = dgmix(1,ns,i4,i2,i3,i1)*dgmix(1,ns,i4,i2,i3,i1) * &
-                                  tauasc_mix(i,k,ns)*tauxar_mix(i,k,ns)
+              tauxar3d(i,k,ns) = chdextmix(1,ns,i4,i2,i3,i1)* &
+                                   aermtot(i,k)*path*d10e5
+              tauasc3d(i,k,ns) = chdssamix(1,ns,i4,i2,i3,i1)*tauxar3d(i,k,ns)
+              gtota3d(i,k,ns) = chdgmix(1,ns,i4,i2,i3,i1) * &
+                                tauasc3d(i,k,ns)*tauxar3d(i,k,ns)
+              ftota3d(i,k,ns) = chdgmix(1,ns,i4,i2,i3,i1) * &
+                                chdgmix(1,ns,i4,i2,i3,i1) * &
+                                tauasc3d(i,k,ns)*tauxar3d(i,k,ns)
 ! 
 !             clear sky dignostic
 !
               utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
    
-              tauaer(i,1) = tauaer(i,1) + dextmix(1,ns,i4,i2,i3,i1) * &
+              tauaer(i,1) = tauaer(i,1) + chdextmix(1,ns,i4,i2,i3,i1) * &
                             aermtot(i,k)*path*d10e5
-              waer(i,1) = waer(i,1) + dssamix(1,ns,i4,i2,i3,i1) *     &
+              waer(i,1) = waer(i,1) + chdssamix(1,ns,i4,i2,i3,i1) *     &
                           aermtot(i,k)*path
-              gaer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1) *       &
+              gaer(i,1) = gaer(i,1) + chdgmix(1,ns,i4,i2,i3,i1) *       &
                           aermtot(i,k)*path
-              faer(i,1) = gaer(i,1) + dgmix(1,ns,i4,i2,i3,i1) *       &
-                          dgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
+              faer(i,1) = gaer(i,1) + chdgmix(1,ns,i4,i2,i3,i1) *       &
+                          chdgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
 ! 
             end if ! end minimum concentration conditions
           end do ! end k loop
@@ -856,15 +866,15 @@ module mod_che_aerosol
             faer(i,1) = faer(i,1)/utaer(i,1)
           end if
 !           clear sky final effective optical properties
-          tauxar_mix_cs(i,ns) = tauaer(i,1)
-          tauasc_mix_cs(i,ns) = waer(i,1)*tauaer(i,1)
-          gtota_mix_cs(i,ns) = gaer(i,1)*waer(i,1)*tauaer(i,1)
-          ftota_mix_cs(i,ns) = faer(i,1)*waer(i,1)*tauaer(i,1)
+          tauxar(i,ns) = tauaer(i,1)
+          tauasc(i,ns) = waer(i,1)*tauaer(i,1)
+          gtota(i,ns) = gaer(i,1)*waer(i,1)*tauaer(i,1)
+          ftota(i,ns) = faer(i,1)*waer(i,1)*tauaer(i,1)
         end do ! end i loop
       end do ! end spectral loop
 !
     else
-      write ( 6,* ) 'MIXTYPE = ', mixtype
+      write ( 6,* ) 'MIXTYPE = ', chmixtyp
       call fatal(__FILE__,__LINE__,'UNSUPPORTED MIXTYPE IN AEROPPT')
     end if
 !
@@ -873,25 +883,25 @@ module mod_che_aerosol
 !   qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
     qabslw = d_r10
 !   initialisation à 1 = perfect transmittivity
-    aerlwtr (:,:,:) = d_one
+    aertrlw (:,:,:) = d_one
 !
     if ( iym1 >= 1 ) then
       do k1 = 1 , kzp1
         do k2 = 1 , kzp1
           do i = 1 , iym1
-            if ( k1==k2 ) aerlwtr(i,k1,k2) = d_one
+            if ( k1==k2 ) aertrlw(i,k1,k2) = d_one
 !           aerosol path btw k1 and k2 flux level
             ibin = 0
             uaerdust = d_zero
             do itr = 1 , ntr     
-              if ( chtrname(itr) == 'DUST' ) then
+              if ( tracname(itr) == 'DUST' ) then
                 ibin = ibin+1
                 if ( k1<k2 ) then
                   uaerdust =  uaerdust + d10e5 * (sum(uaer(i,k1:k2-1,itr)))
-                  aerlwtr(i,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
+                  aertrlw(i,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
                 else if ( k1>k2 ) then
                   uaerdust =  uaerdust + d10e5 * (sum(uaer(i,k2:k1-1,itr)))
-                  aerlwtr(i,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
+                  aertrlw(i,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
                 end if
               end if
             end do
@@ -917,9 +927,9 @@ module mod_che_aerosol
 ! 
     do k = 1 , kz
       do i = 2 , iym1
-        aerext(i-1,k,jslc) = tauxar_mix(i,k,8)
-        aerssa(i-1,k,jslc) = tauasc_mix(i,k,8)
-        aerasp(i-1,k,jslc) = gtota_mix(i,k,8)
+        aerext(i-1,k,jslc) = tauxar3d(i,k,8)
+        aerssa(i-1,k,jslc) = tauasc3d(i,k,8)
+        aerasp(i-1,k,jslc) = gtota3d(i,k,8)
       end do
     end do
 !
@@ -928,7 +938,7 @@ module mod_che_aerosol
 !   0 at each chem output (cf output.f)
 !   (care cgs to mks after radiation scheme !)
 !
-    rntim = d_one/(d_1000*minph*(chfrq/rafrq))
+    rntim = d_one/(d_1000*minph*chfrovrradfr)
 !
 !   aersol radative forcing
 !
@@ -941,4 +951,4 @@ module mod_che_aerosol
 ! 
   end subroutine aerout
 !
-end module mod_che_aerosol
+end module mod_rad_aerosol

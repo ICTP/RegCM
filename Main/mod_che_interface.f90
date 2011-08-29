@@ -21,7 +21,6 @@ module mod_che_interface
 !
   use m_realkinds
   use mod_che_common
-  use mod_che_aerosol
   use mod_che_carbonaer
   use mod_che_cumtran
   use mod_che_dust
@@ -37,13 +36,11 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,ps1,rh,icutop,icubot)
+  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,icutop,icubot)
     implicit none
     integer , intent(in) :: idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
-    real(dp) , pointer , dimension(:,:) , intent(in) :: ps1  ! sps1%ps
-    real(dp) , pointer , dimension(:,:,:) , intent(in) :: rh ! rhb3d
     integer , pointer , dimension(:,:) :: icutop , icubot
 
     ichdir = idirect
@@ -53,8 +50,6 @@ module mod_che_interface
     mdfrq = dt
 
     call assignpnt(dsigma,chlevs)
-    call assignpnt(ps1,chps1)
-    call assignpnt(rh,chrh)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
 

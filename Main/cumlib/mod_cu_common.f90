@@ -74,6 +74,8 @@ module mod_cu_common
   integer :: icup
   integer :: igcc
 
+  data lchem /.false./
+
   contains
 !
   subroutine allocate_mod_cu_common

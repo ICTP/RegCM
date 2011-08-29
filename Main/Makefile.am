@@ -1,5 +1,5 @@
 
-SUBDIRS = netlib batslib chemlib clmlib cumlib
+SUBDIRS = netlib batslib chemlib clmlib cumlib radlib
 
 include $(REGCM_ROOT)/makeinc
 
@@ -8,6 +8,7 @@ BATLIBPTH = ./batslib
 NETLIBPTH = ./netlib
 CHELIBPTH = ./chemlib
 CUMLIBPTH = ./cumlib
+RADLIBPTH = ./radlib
 KPPLIBPTH = chemlib/GAS_KPP_GEOS
 
 CLMLIB = $(CLMLIBPTH)/libclm.a
@@ -15,6 +16,7 @@ BATLIB = $(BATLIBPTH)/libbats.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
 CHELIB = $(CHELIBPTH)/libchem.a
 CUMLIB = $(CUMLIBPTH)/libcum.a
+RADLIB = $(RADLIBPTH)/librad.a
 KPPLIB = $(KPPLIBPTH)/libkpp.a
 
 if REGCM_PARALLEL
@@ -38,30 +40,30 @@ LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
 LCUMLIB = -L$(CUMLIBPTH) -lcum
+LRADLIB = -L$(RADLIBPTH) -lrad
 LKPPLIB = -L$(KPPLIBPTH) -lkpp
 
 if COMPILER_SUN
   CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(KPPLIBPTH) -M$(CHELIBPTH) \
-              -M$(BATLIBPTH) -M$(CUMLIBPTH)
+              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH)
 else
   CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(KPPLIBPTH) -I$(CHELIBPTH) \
-              -I$(BATLIBPTH) -I$(CUMLIBPTH)
+              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH)
 endif
 
-LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LKPPLIB) $(LBATLIB) $(LCUMLIB)
+LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LKPPLIB) $(LBATLIB) $(LCUMLIB) \
+        $(LRADLIB)
 
 bin_PROGRAMS = regcm
 
 regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
                 mod_advection.F90 mod_bdycod.F90 mod_che_tend.F90 \
-                mod_colmod3.F90 mod_diffusion.F90 mod_che_interface.f90 \
+                mod_diffusion.F90 mod_che_interface.f90 mod_rad_interface.f90 \
                 mod_holtbl.F90 mod_init.F90 mod_atm_interface.f90        \
-                mod_mppio.F90 mod_ncio.F90 \
-                mod_o3blk.F90 mod_output.F90 mod_outrad.F90 \
+                mod_precip.f90 mod_mppio.F90 mod_ncio.F90 mod_output.F90 \
                 mod_params.F90 mod_pbldim.f90 \
-                mod_precip.f90 mod_rad.f90 mod_radiation.F90 \
-                mod_runparams.F90 mod_savefile.F90 mod_scenarios.F90 \
-                mod_slice.F90 mod_sun.F90 mod_tendency.F90 mod_tracer.f90 \
+                mod_runparams.F90 mod_savefile.F90 \
+                mod_slice.F90 mod_sun.F90 mod_tendency.F90 \
                 mod_tstep.f90 mod_vmodes.F90 \
                 mod_interface.F90 mod_ensemble.f90 \
                 mod_gridfuncs.f90 mod_thetal.f90 mod_tcm_interface.F90 \
@@ -98,11 +100,11 @@ mod_bdycod.o: mod_bdycod.F90 mod_runparams.o mod_atm_interface.o \
   mod_lm_interface.o mod_che_interface.o mod_ncio.o mod_mppio.o
 mod_che_interface.o: mod_che_interface.f90 $(CHELIB)
 mod_che_tend.o: mod_che_tend.F90 mod_atm_interface.o mod_che_interface.o \
-  mod_lm_interface.o mod_runparams.o mod_pbldim.o mod_rad.o \
+  mod_lm_interface.o mod_runparams.o mod_pbldim.o mod_rad_interface.o \
   mod_diffusion.o mod_precip.o mod_advection.o mod_diagnosis.o \
   mod_mppio.o mod_slice.o
-mod_colmod3.o: mod_colmod3.F90 mod_runparams.o mod_lm_interface.o \
-  mod_radiation.o mod_atm_interface.o mod_rad.o mod_outrad.o
+mod_rad_interface.o: mod_rad_interface.f90 mod_lm_interface.o \
+  mod_atm_interface.o mod_che_interface.o $(RADLIB)
 mod_cu_interface.o: mod_cu_interface.f90 mod_atm_interface.o $(CUMLIB)
 mod_diagnosis.o: mod_diagnosis.F90 mod_runparams.o mod_atm_interface.o \
   mod_che_interface.o mod_mppio.o
@@ -115,50 +117,42 @@ mod_holtbl.o: mod_holtbl.F90 mod_diagnosis.o mod_atm_interface.o \
   mod_lm_interface.o mod_mppio.o
 mod_init.o: mod_init.F90 mod_bdycod.o mod_tcm_interface.o \
   mod_diagnosis.o mod_atm_interface.o mod_uwtcm.o mod_precip.o \
-  mod_runparams.o mod_rad.o mod_o3blk.o mod_cu_interface.o \
-  mod_radiation.o mod_mppio.o mod_ncio.o mod_che_interface.o \
+  mod_runparams.o mod_cu_interface.o mod_rad_interface.o \
+  mod_mppio.o mod_ncio.o mod_che_interface.o \
   mod_lm_interface.o mod_sun.o mod_savefile.o
 mod_lm_interface.o: mod_lm_interface.F90 mod_atm_interface.o $(BATLIB) $(CLMLIB)
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_tcm_interface.o \
   mod_lm_interface.o mod_che_interface.o mod_atm_interface.o \
-  mod_cu_interface.o mod_outrad.o
+  mod_rad_interface.o mod_cu_interface.o
 mod_ncio.o: mod_ncio.F90 mod_che_interface.o mod_cu_interface.o \
-  mod_lm_interface.o mod_runparams.o
-mod_o3blk.o: mod_o3blk.F90 mod_atm_interface.o mod_runparams.o mod_rad.o
+  mod_lm_interface.o mod_runparams.o mod_rad_interface.o
 mod_output.o: mod_output.F90 mod_bdycod.o mod_cu_interface.o \
-  mod_che_interface.o mod_atm_interface.o mod_outrad.o mod_precip.o \
-  mod_runparams.o mod_rad.o mod_diagnosis.o mod_lm_interface.o \
-  mod_radiation.o mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o
-mod_outrad.o: mod_outrad.F90 mod_runparams.o mod_rad.o mod_lm_interface.o
+  mod_rad_interface.o mod_che_interface.o mod_atm_interface.o mod_precip.o \
+  mod_runparams.o mod_diagnosis.o mod_lm_interface.o \
+  mod_split.o mod_mppio.o mod_ncio.o mod_savefile.o
 mod_params.o: mod_params.F90 mod_lm_interface.o mod_cu_interface.o \
-  mod_atm_interface.o mod_runparams.o mod_o3blk.o mod_mppio.o mod_precip.o \
-  mod_che_interface.o mod_split.o mod_outrad.o mod_holtbl.o mod_ncio.o \
-  mod_radiation.o mod_bdycod.o mod_scenarios.o mod_tendency.o \
-  mod_che_interface.o mod_ncio.o
+  mod_atm_interface.o mod_runparams.o mod_mppio.o mod_precip.o \
+  mod_che_interface.o mod_split.o mod_holtbl.o mod_ncio.o mod_rad_interface.o \
+  mod_bdycod.o mod_tendency.o mod_che_interface.o mod_ncio.o
 mod_pbldim.o: mod_pbldim.f90
 mod_precip.o: mod_precip.f90 mod_slice.o mod_atm_interface.o mod_runparams.o
-mod_rad.o: mod_rad.f90
-mod_radiation.o: mod_radiation.F90 mod_tracer.o mod_scenarios.o \
-  mod_che_interface.o mod_lm_interface.o mod_runparams.o
 mod_runparams.o: mod_runparams.F90
 mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_che_interface.o \
-  mod_atm_interface.o mod_bdycod.o mod_rad.o mod_radiation.o \
-  mod_diagnosis.o mod_mppio.o mod_lm_interface.o
-mod_scenarios.o: mod_scenarios.F90
+  mod_atm_interface.o mod_bdycod.o mod_diagnosis.o mod_mppio.o \
+  mod_lm_interface.o mod_rad_interface.o
 mod_slice.o: mod_slice.F90 mod_atm_interface.o mod_che_interface.o \
   mod_runparams.o mod_pbldim.o
 mod_split.o: mod_split.F90 mod_atm_interface.o mod_runparams.o \
   mod_vmodes.o mod_savefile.o
 mod_sun.o: mod_sun.F90 mod_atm_interface.o
 mod_tcm_interface.o: mod_tcm_interface.F90 mod_atm_interface.o mod_runparams.o \
-  mod_slice.o mod_rad.o mod_gridfuncs.o mod_pbldim.o
+  mod_slice.o mod_gridfuncs.o mod_pbldim.o mod_rad_interface.o
 mod_tendency.o: mod_tendency.F90 mod_bdycod.o mod_cu_interface.o \
-  mod_atm_interface.o mod_precip.o mod_runparams.o mod_rad.o \
-  mod_holtbl.o mod_slice.o mod_sun.o mod_precip.o mod_colmod3.o \
+  mod_atm_interface.o mod_precip.o mod_runparams.o mod_rad_interface.o \
+  mod_holtbl.o mod_slice.o mod_sun.o mod_precip.o \
   mod_diagnosis.o mod_diffusion.o mod_advection.o mod_che_interface.o \
   mod_che_tend.o mod_lm_interface.o
 mod_thetal.o: mod_thetal.f90
-mod_tracer.o: mod_tracer.f90
 mod_tstep.o: mod_tstep.f90 mod_runparams.o
 mod_uwtcm.o: mod_uwtcm.F90 mod_tcm_interface.o mod_atm_interface.o \
   mod_runparams.o mod_thetal.o

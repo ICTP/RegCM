@@ -20,23 +20,19 @@
 module mod_params
 
   use mod_runparams
+  use mod_message
   use mod_cu_interface
   use mod_lm_interface
   use mod_atm_interface
   use mod_che_interface
-  use mod_message
+  use mod_rad_interface
   use mod_precip
-  use mod_rad
   use mod_split
   use mod_slice
   use mod_pbldim
-  use mod_outrad
   use mod_holtbl
-  use mod_radiation
   use mod_bdycod
-  use mod_o3blk
   use mod_ncio
-  use mod_scenarios
   use mod_diagnosis
   use mod_tendency
   use mod_ncio
@@ -654,6 +650,7 @@ module mod_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !
+  call allocate_mod_runparams
   if ( lakemod == 1 ) call allocate_lake
   call allocate_mod_atm_interface(lband)
   call allocate_mod_tend(lband)
@@ -661,15 +658,15 @@ module mod_params
   call allocate_mod_bdycon
   call allocate_mod_holtbl
   call allocate_mod_leaftemp
-  call allocate_mod_outrad
-  call allocate_mod_o3blk
   call allocate_mod_pbldim
   call allocate_mod_cu_common
   call allocate_mod_precip
-  call allocate_mod_radiation 
-  call allocate_mod_rad
+  call allocate_mod_rad_common
+  call allocate_mod_rad_radiation 
+  call allocate_mod_rad_o3blk
+  call allocate_mod_rad_aerosol
+  call allocate_mod_rad_outrad
   call allocate_mod_split
-  call allocate_mod_runparams
   call allocate_mod_mppio(lband)
 #ifdef CLM
   call allocate_mod_clm(lband)
@@ -681,7 +678,6 @@ module mod_params
   call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)
-  call allocate_mod_che_aerosol
   call allocate_mod_che_dust
 
   call init_advection(mddom,sps1,atm1,qdot,kpbl)
@@ -842,8 +838,16 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
-  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps1%ps, &
-                 atms%rhb3d,icumtop,icumbot)
+  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,icumtop,icumbot)
+  call init_rad(ichem,mixtype,ptop,a,sigma,sps1,sps2,atms,sfsta, &
+                mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
+                aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &
+                emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,       &
+                fsw2d,flw2d,flwd2d,ocld2d,chia,dextmix,dssamix,  &
+                dgmix,chtrname)
+#ifdef CLM
+  call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
+#endif
 !
   if (myid == 0) then
     if ( ifrest .and. idate0 == idate1 ) then

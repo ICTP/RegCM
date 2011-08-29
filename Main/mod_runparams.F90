@@ -41,13 +41,11 @@ module mod_runparams
   real(8) :: xbctime
   real(8) :: calday , twodt
 
-  logical :: doabsems , dolw , dosw
-
   integer(8) :: ktau , mtau
   integer(8) :: katm , ksrf , krad , kche , ksav , kdbg
   integer(8) :: nbdytime
   integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
-  integer(8) :: nbdyfrq , ntsrf , ntrad , ntabem , ntsec
+  integer(8) :: nbdyfrq , ntsrf , ntrad , ntsec
   integer :: klak
 !
   real(8) :: dt , dt2 , dtbdys , dtsec
@@ -56,13 +54,12 @@ module mod_runparams
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
-  integer :: ibltyp , iboudy , ichem , idirect , iemiss , &
-             ipgf , ipptls , idcsst , iseaice , lakemod , &
-             idesseas
+  integer :: ibltyp , iboudy , ichem , idesseas , &
+             ipgf , ipptls , idcsst , iseaice , lakemod
 
   logical :: ifrest , rfstrt , doing_restart
 
-  integer :: ispgd , ispgx , kchi , kclo , kcmd , kt , ncld
+  integer :: ispgd , ispgx , kchi , kclo , kcmd , kt
 !
   real(8) :: akht1 , akht2
 

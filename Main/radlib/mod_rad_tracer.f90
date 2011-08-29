@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_tracer
+module mod_rad_tracer
 
   use mod_constants
   use mod_dynparam
@@ -1061,4 +1061,4 @@ module mod_tracer
     func = u/dsqrt(d_four+u*(d_one+d_one/b))
   end function func
 !
-end module mod_tracer
+end module mod_rad_tracer

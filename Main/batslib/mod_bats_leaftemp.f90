@@ -438,8 +438,6 @@ module mod_bats_leaftemp
   difzen = d_two
   ilmax = 4
   rilmax = d_four
-!*    delete fracd here to put in diffuse mod_radiation from ccm
-!cc   fracd = difrat         !  from shuttleworth mods #2
  
   do i = 2 , iym1
     do n = 1 , nnsg

@@ -26,9 +26,9 @@ module mod_che_tend
   use mod_cu_interface
   use mod_che_interface
   use mod_atm_interface
-  use mod_pbldim
   use mod_lm_interface
-  use mod_rad
+  use mod_rad_interface
+  use mod_pbldim
   use mod_precip
   use mod_diffusion
   use mod_advection

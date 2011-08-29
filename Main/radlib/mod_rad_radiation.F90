@@ -17,29 +17,26 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_radiation
+module mod_rad_radiation
 
-  use mod_runparams
-  use mod_lm_interface
-  use mod_che_interface
+  use mod_dynparam
   use mod_message
   use mod_service
   use mod_memutil
-#ifdef CLM
-  use mod_clm
-#endif
 
 ! Used by this module only
 
-  use mod_tracer
-  use mod_scenarios
+  use mod_rad_common
+  use mod_rad_tracer
+  use mod_rad_scenarios
+  use mod_rad_aerosol
 
   private
 
 ! Maximum total cloud fraction for radiation model
   real(8) :: cftotmax
 
-  public :: allocate_mod_radiation , radini , radctl
+  public :: allocate_mod_rad_radiation , radini , radctl
   public :: absnxt , abstot , emstot
   public :: cftotmax
 
@@ -327,7 +324,7 @@ module mod_radiation
 !
   contains 
 
-  subroutine allocate_mod_radiation 
+  subroutine allocate_mod_rad_radiation 
     implicit none        
     character (len=64) :: subroutine_name='allocate_mod_radiation'
     integer :: indx = 0
@@ -344,7 +341,7 @@ module mod_radiation
 
     call time_end(subroutine_name,indx)
 
-  end subroutine allocate_mod_radiation 
+  end subroutine allocate_mod_rad_radiation 
 !
 !-----------------------------------------------------------------------
 !
@@ -359,9 +356,10 @@ module mod_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radini
+  subroutine radini(iyear)
 !
     implicit none
+    integer , intent(in) :: iyear
 !
 !   iband  - H2O band index
 !
@@ -388,15 +386,15 @@ module mod_radiation
 !   cfc110 = 4.69548 * 0.280e-9
 !   cfc120 = 4.14307 * 0.503e-9
 !   co2mmr = 1.51913 * co2vmr
-    if ( xyear >= 1750 .and. xyear <= 2100 ) then
-      co2vmr = cgas(2,xyear)*1.0D-6
+    if ( iyear >= 1750 .and. iyear <= 2100 ) then
+      co2vmr = cgas(2,iyear)*1.0D-6
       co2mmr = co2vmr*44.0D0/28.9644D0
-      ch40 = cgas(3,xyear)*1.0D-9*0.55241D0
-      n2o0 = cgas(4,xyear)*1.0D-9*1.51913D0
-      cfc110 = cgas(5,xyear)*1.0D-12*4.69548D0
-      cfc120 = cgas(6,xyear)*1.0D-12*4.14307D0
+      ch40 = cgas(3,iyear)*1.0D-9*0.55241D0
+      n2o0 = cgas(4,iyear)*1.0D-9*1.51913D0
+      cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
+      cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
     else
-      write (aline,*) '  Simulation year:  ' , xyear
+      write (aline,*) '  Simulation year:  ' , iyear
       call say(myid)
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
@@ -483,10 +481,10 @@ module mod_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radctl(jslc,alat,coslat,ts,pmid,pint,pmln,piln,t,       &
+  subroutine radctl(jslc,ktau,alat,coslat,ts,pmid,pint,pmln,piln,t,  &
                     h2ommr,cld,effcld,clwp,albs,albsd,albl,albld,    &
                     fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd, &
-                    solld,emiss,fsnt,fsntc,fsnsc,flnt,flns,flntc,    &
+                    solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns,flntc,    &
                     flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,         &
                     fsnirtsq,eccf,o3vmr)
 !
@@ -524,10 +522,11 @@ module mod_radiation
 !   qrl     - Longwave cooling rate
 !   flwds   - Surface down longwave flux
 !
-    real(8) :: eccf
+    integer(8) , intent(in) :: ktau
+    real(8) , intent(in) :: eccf
     integer :: jslc
     real(8) , dimension(iym1) :: alb , albc , albl , albld , albs ,  &
-                                 albsd , alat , coslat , emiss ,     &
+                                 albsd , alat , coslat , emsvt ,     &
                                  flns , flnsc , flnt , flntc ,       &
                                  flwds , fsds , fsnirt , fsnirtsq ,  &
                                  fsnrtc , fsns , fsnsc , fsnt ,      &
@@ -590,7 +589,7 @@ module mod_radiation
 !
 !   Set latitude dependent radiation input
 !
-    call radinp(pmid,pint,h2ommr,cld,o3vmr,pbr,pnm,plco2,plh2o,tclrsf,eccf,o3mmr)
+    call radinp(pmid,pint,h2ommr,cld,o3vmr,pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
 !
 !   Solar radiation computation
 !
@@ -675,9 +674,9 @@ module mod_radiation
 !
       call trcmix(pmid,alat,coslat,n2o,ch4,cfc11,cfc12)
 !
-      call radclw(jslc,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
+      call radclw(jslc,ktau,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,plco2,     &
                   plh2o,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  flnt,flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,       &
+                  flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,       &
                   aerlwfos)
 !
 !     Convert units of longwave fields needed by rest of model from CGS to MKS
@@ -707,7 +706,7 @@ module mod_radiation
       end do
     end if
 
-    if ( ichem==1 ) then
+    if ( lchem ) then
       call aerout(jslc,aeradfo,aeradfos,aerlwfo,aerlwfos)
     end if   
 
@@ -743,7 +742,7 @@ module mod_radiation
 ! direct solar beam from scattered radiation.
 !
 ! Longitude loops are broken into 1 or 2 sections, so that only daylight
-! (i.e. coszrs > 0) computations are done.
+! (i.e. coszen > 0) computations are done.
 !
 ! Note that an extra layer above the model top layer is added.
 !
@@ -953,7 +952,6 @@ module mod_radiation
 ! fluxup   - Up   flux at model interface
 ! fluxdn   - Down flux at model interface
 !
-! wkaer    - works table
 ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
 !-----------------------------------------------------------------------
 !
@@ -973,10 +971,9 @@ module mod_radiation
     real(8) , dimension(iym1) :: sfltot , solflx , utco2 , uth2o ,   &
                                   uto2 , uto3 , x0fsnrtc , x0fsnsc ,  &
                                   x0fsntc , zenfac
-    real(8) , dimension(iym1,0:kz,4) :: wkaer
-    real(8) , dimension(iym1,4) :: zero
 !
     character (len=64) :: subroutine_name='radcsw'
+    logical :: lzero
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
@@ -995,10 +992,10 @@ module mod_radiation
     soll(:) = d_zero
     solsd(:) = d_zero
     solld(:) = d_zero
-    sabveg(:) = d_zero
-    solis(:) = d_zero
-    solvs(:) = d_zero
-    solvd(:) = d_zero
+    abveg(:) = d_zero
+    solar(:) = d_zero
+    soldir(:) = d_zero
+    soldif(:) = d_zero
 !
     aeradfo(:) = d_zero
     aeradfos(:) = d_zero
@@ -1020,7 +1017,7 @@ module mod_radiation
 !
 !   Compute starting daytime loop index
 !
-    is(1) = isrchfgt(iym1,coszrs,1,d_zero)
+    is(1) = isrchfgt(iym1,coszen,1,d_zero)
 !
 !   If night everywhere, return
 !
@@ -1028,15 +1025,15 @@ module mod_radiation
 !
 !   Compute ending daytime loop index
 !
-    ie(1) = isrchfle(iym1-is(1),coszrs(is(1)+1:iy),1,d_zero) + is(1)-1
+    ie(1) = isrchfle(iym1-is(1),coszen(is(1)+1:iy),1,d_zero) + is(1)-1
     nloop = 1
 !
 !   Possibly 2 daytime loops needed
 !
     if ( ie(1) /= iym1 ) then
-      is(2) = isrchfgt(iym1-ie(1),coszrs(ie(1)+1:iy),1,d_zero) + ie(1)
+      is(2) = isrchfgt(iym1-ie(1),coszen(ie(1)+1:iy),1,d_zero) + ie(1)
       if ( is(2) < iym1 ) then
-        ie(2) = isrchfle(iym1-is(2),coszrs(is(2)+1:iy),1,d_zero) + is(2)-1
+        ie(2) = isrchfle(iym1-is(2),coszen(is(2)+1:iy),1,d_zero) + is(2)-1
         if ( ie(2) > is(2) ) then
           nloop = 2
         end if
@@ -1047,7 +1044,7 @@ module mod_radiation
 !
     do n = 1 , nloop
       do i = is(n) , ie(n)
-        solin(i) = scon*eccf*coszrs(i)
+        solin(i) = scon*eccf*coszen(i)
         pflx(i,0) = d_zero
       end do
     end do
@@ -1073,7 +1070,7 @@ module mod_radiation
         ptho3 = o3mmr(i,1)*xptop*regravgts
         pthco2 = sqrco2*(xptop*regravgts)
         h2ostr = dsqrt(d_one/h2ommr(i,1))
-        zenfac(i) = dsqrt(coszrs(i))
+        zenfac(i) = dsqrt(coszen(i))
         pthh2o = xptop**d_two*tmp1+(xptop*regravgts)*(h2ostr*zenfac(i)*delta)
         uh2o(i,0) = h2ommr(i,1)*pthh2o
         uco2(i,0) = zenfac(i)*pthco2
@@ -1265,8 +1262,8 @@ module mod_radiation
       if ( wavmid < 0.7D0 ) then
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            albdir(i) = asdir(i)
-            albdif(i) = asdif(i)
+            diralb(i) = asdir(i)
+            difalb(i) = asdif(i)
           end do
         end do
 !
@@ -1275,8 +1272,8 @@ module mod_radiation
       else
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            albdir(i) = aldir(i)
-            albdif(i) = aldif(i)
+            diralb(i) = aldir(i)
+            difalb(i) = aldif(i)
           end do
         end do
       end if
@@ -1289,40 +1286,15 @@ module mod_radiation
 !     options for aerosol: no climatic feedback if idirect == 1
 !     should be consistent with aeroppt routine
 
-      if (ichem==1 ) then
+      lzero = .true.
+      if ( lchem ) then
         if ( idirect == 2 ) then
-          do k = 0 , kz
-            do i = 1 , iym1
-              wkaer(i,k,1) = tauxar_mix(i,k,ns)
-              wkaer(i,k,2) = tauasc_mix(i,k,ns)
-              wkaer(i,k,3) = gtota_mix(i,k,ns)
-              wkaer(i,k,4) = ftota_mix(i,k,ns)
-            end do
-          end do
-        else if ( idirect == 1 ) then
-          do k = 0 , kz
-            do i = 1 , iym1
-              wkaer(i,k,1) = d_zero
-              wkaer(i,k,2) = d_zero
-              wkaer(i,k,3) = d_zero
-              wkaer(i,k,4) = d_zero
-            end do
-          end do
+          lzero = .false.
         end if
-      else
-        do k = 0 , kz
-          do i = 1 , iym1
-            wkaer(i,k,1) = d_zero
-            wkaer(i,k,2) = d_zero
-            wkaer(i,k,3) = d_zero
-            wkaer(i,k,4) = d_zero
-          end do
-        end do
       end if
    
-      call radded(coszrs,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
-                  wcl,gcl,fcl,tauxci,wci,gci,fci,wkaer(1,0,1),      &
-                  wkaer(1,0,2),wkaer(1,0,3),wkaer(1,0,4),nloop,     &
+      call radded(coszen,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
+                  wcl,gcl,fcl,tauxci,wci,gci,fci,lzero,nloop,       &
                   is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,tottrn)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for layers
@@ -1331,8 +1303,8 @@ module mod_radiation
 !
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          rupdir(i,kzp1) = albdir(i)
-          rupdif(i,kzp1) = albdif(i)
+          rupdir(i,kzp1) = diralb(i)
+          rupdif(i,kzp1) = difalb(i)
         end do
       end do
       do k = kz , 0 , -1
@@ -1399,17 +1371,17 @@ module mod_radiation
             sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
             solsd(i) = solsd(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
 !KN         added below
-            sabveg(i) = sabveg(i) + (solflx(i) *            &
+            abveg(i) = abveg(i) + (solflx(i) *            &
                        (fluxdn(i,kzp1)-fluxup(i,kz + 1)))*  &
-                       (d_one-albvs(i))/(d_one-albdir(i))*d_r1000
+                       (d_one-swalb(i))/(d_one-diralb(i))*d_r1000
 !KN         added above
           else
             soll(i) = soll(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
             solld(i) = solld(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
             fsnirtsq(i) = fsnirtsq(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
 !KN         added below
-            sabveg(i) = sabveg(i)+(solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))* &
-                        (d_one-albvl(i))/(d_one-albdir(i))*d_r1000
+            abveg(i) = abveg(i)+(solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))* &
+                        (d_one-lwalb(i))/(d_one-diralb(i))*d_r1000
 !KN         added above
           end if
           fsnirt(i) = fsnirt(i) + wgtint*solflx(i) * (fluxdn(i,0)-fluxup(i,0))
@@ -1427,18 +1399,18 @@ module mod_radiation
         end do
       end do
    
-!     solis is incident visible solar radiation
+!     solar is incident visible solar radiation
       if ( ns == 8 ) then
 !       -trapuv
 !       do i=1,iym1
-!         solis(i) = solflx(i)*0.001D0*fluxdn(i,kzp1)
+!         solar(i) = solflx(i)*0.001D0*fluxdn(i,kzp1)
 !       end do
 !       -trapuv_
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            solvs(i) = exptdn(i,kzp1)*solflx(i)*d_r1000
-            solvd(i) = (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
-            solis(i) = solflx(i)*d_r1000*fluxdn(i,kzp1)
+            soldir(i) = exptdn(i,kzp1)*solflx(i)*d_r1000
+            soldif(i) = (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
+            solar(i) = solflx(i)*d_r1000*fluxdn(i,kzp1)
           end do
         end do
       end if
@@ -1450,14 +1422,7 @@ module mod_radiation
 !     one with actual aerosol. DIFFERENCE  in net TOA SW for the two
 !     case is saved as one more variable in the rad file. The
 !     outputed TOASW ( fsntc, clrst) is accounting for aerosol.
-      if ( ichem == 1 .and. idirect >= 1 ) then
-   
-        do i = 1 , iym1
-          zero(i,1) = d_zero
-          zero(i,2) = d_zero
-          zero(i,3) = d_zero
-          zero(i,4) = d_zero
-        end do
+      if ( lchem .and. idirect >= 1 ) then
    
 !       Following code is the diagnostic clear sky computation:
 !
@@ -1469,9 +1434,9 @@ module mod_radiation
 !       0 for interface quantities refers to top of atmos- phere,
 !       while 1 refers to the surface:
 !
-        call radclr(coszrs,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
-                    zero(1,1),zero(1,2),zero(1,3),zero(1,4),nloop, &
-                    is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,tottrn)
+        call radclr(coszen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
+                    .true.,nloop,is,ie,rdir,rdif,tdir,tdif,explay,  &
+                    exptdn,rdndif,tottrn)
 !
 !       Compute reflectivity to direct and diffuse mod_radiation for
 !       entire column; 0,1 on layer quantities refers to two
@@ -1480,8 +1445,8 @@ module mod_radiation
 !       the surface:
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            rupdir(i,2) = albdir(i)
-            rupdif(i,2) = albdif(i)
+            rupdir(i,2) = diralb(i)
+            rupdif(i,2) = difalb(i)
           end do
         end do
 !
@@ -1537,10 +1502,8 @@ module mod_radiation
 !     quantities refers to top of atmos- phere, while 1 refers to the
 !     surface:
 !
-      call radclr(coszrs,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
-                  tauxar_mix_cs(:,ns),tauasc_mix_cs(:,ns),       &
-                  gtota_mix_cs(:,ns),ftota_mix_cs(:,ns),nloop,   &
-                  is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,&
+      call radclr(coszen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2,.false., &
+                  nloop,is,ie,rdir,rdif,tdir,tdif,explay,exptdn,rdndif,  &
                   tottrn)
 !
 !     Compute reflectivity to direct and diffuse mod_radiation for entire
@@ -1550,8 +1513,8 @@ module mod_radiation
 !
       do n = 1 , nloop
         do i = is(n) , ie(n)
-          rupdir(i,2) = albdir(i)
-          rupdif(i,2) = albdif(i)
+          rupdir(i,2) = diralb(i)
+          rupdif(i,2) = difalb(i)
         end do
       end do
 !
@@ -1597,7 +1560,7 @@ module mod_radiation
     end do  ! End of spectral interval loop
    
 !   FAB calculation of TOA aerosol radiative forcing
-    if ( ichem==1 .and. idirect >= 1 ) then
+    if ( lchem .and. idirect >= 1 ) then
       do n = 1 , nloop
         do i = is(n) , ie(n)
           aeradfo(i) = -(x0fsntc(i)-fsntc(i))
@@ -1649,9 +1612,9 @@ module mod_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radclw(jslc,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
+  subroutine radclw(jslc,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
                     plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
-                    flnt,flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,   &
+                    flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,   &
                     aerlwfos)
 !
     implicit none
@@ -1659,7 +1622,7 @@ module mod_radiation
 !     Input arguments
 !
 ! ts      - Ground (skin) temperature
-! emiss   - Emissivity of surface
+! emsvt   - Emissivity of surface
 !
 !     Input arguments which are only passed to other routines
 !
@@ -1692,14 +1655,15 @@ module mod_radiation
 ! flwds   - Down longwave flux at surface
 !
     integer :: jslc
+    integer(8) , intent(in) :: ktau
     real(8) , dimension(iym1,kz) :: cfc11 , cfc12 , ch4 , n2o ,    &
            o3vmr , pmid , pmln , qnm , qrl , tnm
     real(8) , dimension(iym1,kzp1) :: cld , piln , pint , plco2 , plh2o , tclrsf
-    real(8) , dimension(iym1) :: emiss , flns , flnsc , flnt ,   &
+    real(8) , dimension(iym1) :: emsvt , flns , flnsc , flnt ,   &
                                   flntc , flwds , fslwdcs , ts
     real(8), dimension(iym1) :: aerlwfo , aerlwfos
 
-    intent (in) cld , emiss
+    intent (in) cld , emsvt
     intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo , aerlwfos
 
     intent (inout) tclrsf
@@ -1844,7 +1808,7 @@ module mod_radiation
                   uco222,uco223,uptype,bn2o0,bn2o1,bch4,abplnk1,      &
                   abplnk2,jslc)
 
-       if (ichem /= 0 .and. idirect > 0) then
+       if ( .not. lchem .and. idirect > 0) then
          abstot0(:,:,:,jslc) = abstot(:,:,:,jslc)
          emstot0(:,:,jslc) = emstot(:,:,jslc)
          absnxt0(:,:,:,jslc) = absnxt(:,:,:,jslc)   
@@ -1898,7 +1862,7 @@ module mod_radiation
 !   option to calculate LW aerosol radiative forcing
 !
 !   FAB LW radiative forcing ( rad=1 : avec dust)
-    if (ichem /= 0 .and. idirect > 0) then
+    if ( .not. lchem .and. idirect > 0) then
       nradaer = 2
       fsul0(:,:) = d_zero
       fsdl0(:,:) = d_zero
@@ -1911,13 +1875,13 @@ module mod_radiation
 
     do irad = 1 , nradaer
 
-      if (ichem==1 .and. idirect > 0 .and. irad==2 ) then
-        abstot(:,:,:,jslc) = d_one-(d_one-abstot0(:,:,:,jslc))*aerlwtr(:,:,:)
-        emstot(:,:,jslc) = d_one-(d_one-emstot0(:,:,jslc))*aerlwtr(:,:,1)
-        do k = 1 , kz  ! aerlwtr defined on plev levels
+      if ( lchem .and. idirect > 0 .and. irad==2 ) then
+        abstot(:,:,:,jslc) = d_one-(d_one-abstot0(:,:,:,jslc))*aertrlw(:,:,:)
+        emstot(:,:,jslc) = d_one-(d_one-emstot0(:,:,jslc))*aertrlw(:,:,1)
+        do k = 1 , kz  ! aertrlw defined on plev levels
           do n = 1 , 4
             absnxt(:,k,n,jslc) = d_one-(d_one-absnxt0(:,k,n,jslc)) *   &
-                                (aerlwtr(:,k,k+1)**xuinpl(:,k,n,jslc))
+                                (aertrlw(:,k,k+1)**xuinpl(:,k,n,jslc))
           end do
         end do
       end if
@@ -1982,7 +1946,7 @@ module mod_radiation
 !
       do i = 1 , iym1
         if ( iemiss == 1 ) then
-          fsul(i,kzp1) = emiss(i)*(stebol*(ts(i)**d_four))
+          fsul(i,kzp1) = emsvt(i)*(stebol*(ts(i)**d_four))
         else
           fsul(i,kzp1) = stebol*(ts(i)**d_four)
         end if
@@ -2023,7 +1987,7 @@ module mod_radiation
 
 !     FAB radiative forcing sur fsul
 
-      if (ichem==1 .and. idirect > 0 .and. irad==1 ) then
+      if ( lchem .and. idirect > 0 .and. irad==1 ) then
         fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
         fsdl0(:,:) = fsdl(:,:)!
         ful0(:,:) = ful(:,:)
@@ -2036,7 +2000,7 @@ module mod_radiation
 !   FAB after this DO loop fsul account for dust LW effect
 !   which is OK in case of idirect=2
 
-    if (ichem ==1 .and. idirect > 0 ) then
+    if ( lchem .and. idirect > 0 ) then
 
       aerlwfo(:) = fsul0(:,1) - fsul(:,1)
 
@@ -2237,10 +2201,9 @@ module mod_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radclr(coszrs,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2, &
-                    tauxar_mix_css,tauasc_mix_css,gtota_mix_css,   &
-                    ftota_mix_css,nloop,is,ie,rdir,rdif,tdir,tdif, &
-                    explay,exptdn,rdndif,tottrn)
+  subroutine radclr(coszen,trayoslp,pflx,ns,uth2o,uto3,utco2,uto2,lzero, &
+                    nloop,is,ie,rdir,rdif,tdir,tdif,explay,exptdn, &
+                    rdndif,tottrn)
 !
     implicit none
 !
@@ -2248,7 +2211,7 @@ module mod_radiation
 !
 !     Input arguments
 !
-! coszrs   - Cosine zenith angle
+! coszen   - Cosine zenith angle
 ! trayoslp - Tray/sslp
 ! pflx     - Interface pressure
 ! uth2o    - Total column absorber amount of h2o
@@ -2282,18 +2245,14 @@ module mod_radiation
 !
     real(8) :: trayoslp
     integer :: nloop , ns
-    real(8) , dimension(iym1) :: coszrs , ftota_mix_css ,            &
-                                  gtota_mix_css , tauasc_mix_css ,    &
-                                  tauxar_mix_css , utco2 , uth2o ,    &
-                                  uto2 , uto3
+    logical , intent(in) :: lzero
+    real(8) , dimension(iym1) :: coszen , utco2 , uth2o , uto2 , uto3
     real(8) , dimension(iym1,0:kz) :: explay , rdif , rdir , tdif ,&
            tdir
     real(8) , dimension(iym1,0:kzp1) :: exptdn , pflx , rdndif ,    &
            tottrn
     integer , dimension(2) :: ie , is
-    intent (in) coszrs , ftota_mix_css ,&
-                gtota_mix_css , ie , is , nloop , pflx ,              &
-                tauasc_mix_css , tauxar_mix_css , trayoslp , utco2 ,  &
+    intent (in) coszen , ie , is , nloop , pflx , trayoslp , utco2 ,  &
                 uth2o , uto2 , uto3 , ns
     intent (inout) explay , exptdn , rdif , rdir , rdndif , tdif ,    &
                    tdir , tottrn
@@ -2355,8 +2314,8 @@ module mod_radiation
 !
         taugab(i) = abo3(ns)*uto3(i)
 !
-!       Limit argument of exponential to 25, in case coszrs is very small:
-        arg = dmin1(taugab(i)/coszrs(i),25.0D0)
+!       Limit argument of exponential to 25, in case coszen is very small:
+        arg = dmin1(taugab(i)/coszen(i),25.0D0)
         explay(i,0) = dexp(-arg)
         tdir(i,0) = explay(i,0)
 !
@@ -2428,21 +2387,24 @@ module mod_radiation
 !
           tauray(i) = trayoslp*pflx(i,kzp1)
           taugab(i) = abh2o(ns)*uth2o(i) + abco2(ns)*utco2(i) + abo2(ns)*uto2(i)
-!
-          tautot = tauray(i) + taugab(i) + tauxar_mix_css(i)
-!
-          wtot = (wray*tauray(i)+tauasc_mix_css(i))/tautot
-!
-          gtot = (gray*wray*tauray(i)+gtota_mix_css(i))/(wtot*tautot)
-!
-          ftot = (fray*wray*tauray(i)+ftota_mix_css(i))/(wtot*tautot)
+          if ( lzero ) then
+            tautot = tauray(i) + taugab(i)
+            wtot = wray*tauray(i)
+            gtot = gray*wray*tauray(i)
+            ftot = fray*wray*tauray(i)
+          else
+            tautot = tauray(i) + taugab(i) + tauxar(i,ns)
+            wtot = (wray*tauray(i)+tauasc(i,ns))/tautot
+            gtot = (gray*wray*tauray(i)+gtota(i,ns))/(wtot*tautot)
+            ftot = (fray*wray*tauray(i)+ftota(i,ns))/(wtot*tautot)
+          end if
 !
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
           gs = asys(gtot,ftot)
           lm = el(ws,gs)
-          alp = xalpha(ws,coszrs(i),gs,lm)
-          gam = xgamma(ws,coszrs(i),gs,lm)
+          alp = xalpha(ws,coszen(i),gs,lm)
+          gam = xgamma(ws,coszen(i),gs,lm)
           ue = u(ws,gs,lm)
 !
 !         Limit argument of exponential to 25, in case lm very large:
@@ -2454,8 +2416,8 @@ module mod_radiation
           rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
           tdif(i,k) = d_four*ue/ne
 !
-!         Limit argument of exponential to 25, in case coszrs is very small:
-          arg = dmin1(ts/coszrs(i),25.0D0)
+!         Limit argument of exponential to 25, in case coszen is very small:
+          arg = dmin1(ts/coszen(i),25.0D0)
           explay(i,k) = dexp(-arg)
 !
           apg = alp + gam
@@ -2519,9 +2481,8 @@ module mod_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radded(coszrs,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
-                    wcl,gcl,fcl,tauxci,wci,gci,fci,tauxar_mixs,       &
-                    tauasc_mixs,gtota_mixs,ftota_mixs,nloop,is,ie,    &
+  subroutine radded(coszen,trayoslp,pflx,ns,uh2o,uo3,uco2,uo2,tauxcl, &
+                    wcl,gcl,fcl,tauxci,wci,gci,fci,lzero,nloop,is,ie, &
                     rdir,rdif,tdir,tdif,explay,exptdn,rdndif,tottrn)
 !
     implicit none
@@ -2530,7 +2491,7 @@ module mod_radiation
 !
 !     Input arguments
 !
-! coszrs   - Cosine zenith angle
+! coszen   - Cosine zenith angle
 ! trayoslp - Tray/sslp
 ! pflx     - Interface pressure
 ! uh2o     - Layer absorber amount of h2o
@@ -2572,19 +2533,17 @@ module mod_radiation
 !
 !
     real(8) :: trayoslp
+    logical , intent(in) :: lzero
     integer :: nloop , ns
-    real(8) , dimension(iym1) :: coszrs
-    real(8) , dimension(iym1,0:kz) :: explay , fci , fcl ,             &
-           ftota_mixs , gci , gcl , gtota_mixs , rdif , rdir ,         &
-           tauasc_mixs , tauxar_mixs , tauxci , tauxcl , tdif , tdir , &
+    real(8) , dimension(iym1) :: coszen
+    real(8) , dimension(iym1,0:kz) :: explay , fci , fcl ,           &
+           gci , gcl , rdif , rdir , tauxci , tauxcl , tdif , tdir , &
            uco2 , uh2o , uo2 , uo3 , wci , wcl
     real(8) , dimension(iym1,0:kzp1) :: exptdn , pflx , rdndif , tottrn
     integer , dimension(2) :: ie , is
-    intent (in) coszrs , fci , fcl ,    &
-                ftota_mixs , gci , gcl , gtota_mixs , ie , is ,       &
-                nloop , pflx , tauasc_mixs , tauxar_mixs , tauxci ,   &
-                tauxcl , trayoslp , uco2 , uh2o , uo2 , uo3 , wci ,   &
-                wcl , ns
+    intent (in) coszen , fci , fcl , gci , gcl , ie , is ,       &
+                nloop , pflx , tauxci , tauxcl , trayoslp ,      &
+                uco2 , uh2o , uo2 , uo3 , wci , wcl , ns
     intent (inout) explay , exptdn , rdif , rdir , rdndif , tdif ,    &
                    tdir , tottrn
 !
@@ -2675,22 +2634,34 @@ module mod_radiation
         taugab(i) = abh2o(ns)*uh2o(i,0) + abo3(ns)*uo3(i,0) + &
                     abco2(ns)*uco2(i,0) + abo2(ns)*uo2(i,0)
 !
-        tautot = tauxcl(i,0)+tauxci(i,0)+tauray(i)+taugab(i)+tauxar_mixs(i,0)
-        taucsc = tauxcl(i,0)*wcl(i,0) + tauxci(i,0)*wci(i,0)+tauasc_mixs(i,0)
-        wtau = wray*tauray(i)
-        wt = wtau + taucsc
-        wtot = wt/tautot
-        gtot = (wtau*gray+gcl(i,0)*tauxcl(i,0)*wcl(i,0)+gci(i,0) *    &
-                tauxci(i,0)*wci(i,0)+gtota_mixs(i,0))/wt
-        ftot = (wtau*fray+fcl(i,0)*tauxcl(i,0)*wcl(i,0)+fci(i,0) *    &
-                tauxci(i,0)*wci(i,0)+ftota_mixs(i,0))/wt
+        if ( lzero ) then
+          tautot = tauxcl(i,0)+tauxci(i,0)+tauray(i)+taugab(i)
+          taucsc = tauxcl(i,0)*wcl(i,0) + tauxci(i,0)*wci(i,0)
+          wtau = wray*tauray(i)
+          wt = wtau + taucsc
+          wtot = wt/tautot
+          gtot = (wtau*gray+gcl(i,0)*tauxcl(i,0)*wcl(i,0)+gci(i,0) *    &
+                  tauxci(i,0)*wci(i,0))/wt
+          ftot = (wtau*fray+fcl(i,0)*tauxcl(i,0)*wcl(i,0)+fci(i,0) *    &
+                  tauxci(i,0)*wci(i,0))/wt
+        else
+          tautot = tauxcl(i,0)+tauxci(i,0)+tauray(i)+taugab(i)+tauxar3d(i,0,ns)
+          taucsc = tauxcl(i,0)*wcl(i,0) + tauxci(i,0)*wci(i,0)+tauasc3d(i,0,ns)
+          wtau = wray*tauray(i)
+          wt = wtau + taucsc
+          wtot = wt/tautot
+          gtot = (wtau*gray+gcl(i,0)*tauxcl(i,0)*wcl(i,0)+gci(i,0) *    &
+                  tauxci(i,0)*wci(i,0)+gtota3d(i,0,ns))/wt
+          ftot = (wtau*fray+fcl(i,0)*tauxcl(i,0)*wcl(i,0)+fci(i,0) *    &
+                  tauxci(i,0)*wci(i,0)+ftota3d(i,0,ns))/wt
+        end if
 !
         ts = taus(wtot,ftot,tautot)
         ws = omgs(wtot,ftot)
         gs = asys(gtot,ftot)
         lm = el(ws,gs)
-        alp = xalpha(ws,coszrs(i),gs,lm)
-        gam = xgamma(ws,coszrs(i),gs,lm)
+        alp = xalpha(ws,coszen(i),gs,lm)
+        gam = xgamma(ws,coszen(i),gs,lm)
         ue = u(ws,gs,lm)
 !
 !       Limit argument of exponential to 25, in case lm*ts very large:
@@ -2702,8 +2673,8 @@ module mod_radiation
         rdif(i,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
         tdif(i,0) = d_four*ue/ne
 !
-!       Limit argument of exponential to 25, in case coszrs is very small:
-        arg = dmin1(ts/coszrs(i),25.0D0)
+!       Limit argument of exponential to 25, in case coszen is very small:
+        arg = dmin1(ts/coszen(i),25.0D0)
         explay(i,0) = dexp(-arg)
 !
         apg = alp + gam
@@ -2782,22 +2753,36 @@ module mod_radiation
           taugab(i) = abh2o(ns)*uh2o(i,k) + abo3(ns)*uo3(i,k) +  &
                       abco2(ns)*uco2(i,k) + abo2(ns)*uo2(i,k)
 !
-          tautot = tauxcl(i,k)+tauxci(i,k)+tauray(i)+taugab(i)+tauxar_mixs(i,k)
-          taucsc = tauxcl(i,k)*wcl(i,k)+tauxci(i,k)*wci(i,k)+tauasc_mixs(i,k)
-          wtau = wray*tauray(i)
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray+gcl(i,k)*wcl(i,k)*tauxcl(i,k)+gci(i,k) *  &
-                  wci(i,k)*tauxci(i,k)+gtota_mixs(i,k))/wt
-          ftot = (wtau*fray+fcl(i,k)*wcl(i,k)*tauxcl(i,k)+fci(i,k) *  &
-                  wci(i,k)*tauxci(i,k)+ftota_mixs(i,k))/wt
+          if ( lzero ) then
+            tautot = tauxcl(i,k)+tauxci(i,k)+tauray(i)+taugab(i)
+            taucsc = tauxcl(i,k)*wcl(i,k)+tauxci(i,k)*wci(i,k)
+            wtau = wray*tauray(i)
+            wt = wtau + taucsc
+            wtot = wt/tautot
+            gtot = (wtau*gray+gcl(i,k)*wcl(i,k)*tauxcl(i,k)+gci(i,k) *  &
+                    wci(i,k)*tauxci(i,k))/wt
+            ftot = (wtau*fray+fcl(i,k)*wcl(i,k)*tauxcl(i,k)+fci(i,k) *  &
+                    wci(i,k)*tauxci(i,k))/wt
+          else
+            tautot = tauxcl(i,k) + tauxci(i,k) + tauray(i) + &
+                     taugab(i) + tauxar3d(i,k,ns)
+            taucsc = tauxcl(i,k)*wcl(i,k) + tauxci(i,k)*wci(i,k) + &
+                     tauasc3d(i,k,ns)
+            wtau = wray*tauray(i)
+            wt = wtau + taucsc
+            wtot = wt/tautot
+            gtot = (wtau*gray+gcl(i,k)*wcl(i,k)*tauxcl(i,k)+gci(i,k) *  &
+                    wci(i,k)*tauxci(i,k)+gtota3d(i,k,ns))/wt
+            ftot = (wtau*fray+fcl(i,k)*wcl(i,k)*tauxcl(i,k)+fci(i,k) *  &
+                    wci(i,k)*tauxci(i,k)+ftota3d(i,k,ns))/wt
+          end if
 !
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
           gs = asys(gtot,ftot)
           lm = el(ws,gs)
-          alp = xalpha(ws,coszrs(i),gs,lm)
-          gam = xgamma(ws,coszrs(i),gs,lm)
+          alp = xalpha(ws,coszen(i),gs,lm)
+          gam = xgamma(ws,coszen(i),gs,lm)
           ue = u(ws,gs,lm)
 !
 !         Limit argument of exponential to 25, in case lm very large:
@@ -2809,8 +2794,8 @@ module mod_radiation
           rdif(i,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
           tdif(i,k) = d_four*ue/ne
 !
-!         Limit argument of exponential to 25, in case coszrs is very small:
-          arg = dmin1(ts/coszrs(i),25.0D0)
+!         Limit argument of exponential to 25, in case coszen is very small:
+          arg = dmin1(ts/coszen(i),25.0D0)
           explay(i,k) = dexp(-arg)
 !
           apg = alp + gam
@@ -4405,22 +4390,18 @@ module mod_radiation
 !-----------------------------------------------------------------------
 !
   subroutine radinp(pmid,pint,h2ommr,cld,o3vmr,pmidrd,pintrd,plco2, &
-                    plh2o,tclrsf,eccf,o3mmr)
+                    plh2o,tclrsf,o3mmr)
 !
     implicit none
 !
-    real(8) :: eccf
     real(8) , dimension(iym1,kzp1) :: cld , pint , pintrd , plco2 ,   &
            plh2o , tclrsf
     real(8) , dimension(iym1,kz) :: h2ommr , o3mmr , o3vmr , pmid ,   &
            pmidrd
     intent (in) cld , h2ommr , o3vmr , pint , pmid
-    intent (out) eccf , o3mmr , plco2 , pmidrd
+    intent (out) o3mmr , plco2 , pmidrd
     intent (inout) pintrd , plh2o , tclrsf
 !
-#ifndef CLM
-    real(8) :: theta
-#endif
     real(8) :: cpwpl , vmmr
     integer :: i , k
 !
@@ -4441,14 +4422,12 @@ module mod_radiation
 ! plco2   - Vert. pth lngth of co2 (prs-weighted)
 ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
 ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
-! eccf    - Earth-sun distance factor
 ! o3mmr   - Ozone mass mixing ratio
 !
 !---------------------------Local variables-----------------------------
 !
 ! i       - Longitude loop index
 ! k       - Vertical loop index
-! theta   - Earth orbit seasonal angle in radians
 ! cpwpl   - Const in co2 mixing ratio to path length conversn
 ! vmmr    - Ozone volume mixing ratio
 !
@@ -4462,21 +4441,10 @@ module mod_radiation
 !   Processes in Meterology and Climatology, Elsevier Scientific
 !   Publishing Company, New York  p. 57, p. 62,63.
 !
-!   Compute eccentricity factor (sun-earth distance factor)
-!
     character (len=64) :: subroutine_name='radinp'
     integer :: indx = 0
 !
     call time_begin(subroutine_name,indx)
-#ifdef CLM
-    eccf  = r2ceccf
-#else
-    theta = twopi*calday/dayspy
-    eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
-           0.001280D0 * dsin(theta) + &
-           0.000719D0 * dcos(d_two*theta) + &
-           0.000077D0 * dsin(d_two*theta)
-#endif
 !
 !   Convert pressure from pascals to dynes/cm2
 !
@@ -4756,4 +4724,4 @@ module mod_radiation
     fo3 = ux/dsqrt(d_four+ux*(d_one+vx))
   end function fo3
 !
-end module mod_radiation
+end module mod_rad_radiation
