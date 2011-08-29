@@ -66,7 +66,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#ifdef ESMF
+#ifdef ESMFCPL
 #include "regcm_esmf.F90"
 #else
 #include "regcm_nonesmf.F90"
