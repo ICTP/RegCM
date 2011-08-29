@@ -18,6 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 program regcm
+#define ESMF_METHOD "program regcm"
 
 !
 !**********************************************************************
@@ -47,7 +48,7 @@ program regcm
   type(ESMF_TimeInterval) :: timeInt 
 !
   integer :: i, j, rc, localPet, petCount, comm
-  character (len=80) :: name, importName, exportName
+  character (len=80) :: name, istr, estr
 !
 !***********************************************************************
 !
@@ -60,31 +61,99 @@ program regcm
 !-----------------------------------------------------------------------
 !
   call ESMF_Initialize(vm=vm, rc=rc)
-  call CheckError("calling ESMF_Initialize", rc)
+  call check_err("calling ESMF_Initialize", "", ESMF_METHOD, rc)
 !
 !-----------------------------------------------------------------------
 ! Get the VM
 !-----------------------------------------------------------------------
 !
   call ESMF_VMGet(vm, petCount=petCount, localPet=localPet, rc=rc)
-  if (localPet .eq. 0) then
-    call ESMF_VMPrint(vm, rc=rc)
-  end if
-  call CheckError("calling ESMF_VMGet", rc)
+  call check_err("calling ESMF_VMGet", "", ESMF_METHOD, rc)
 !
 !-----------------------------------------------------------------------
 ! Allocate coupler variables
 !-----------------------------------------------------------------------
 !
-!  call allocate_cplvars(petCount, rc)
+  call allocate_cpl(petCount, rc)
+!
+!***********************************************************************
+!
+! Create gridded components
+!
+!***********************************************************************
+!
+  do i = 1, nModels 
+    if (i == Iatmos) then
+      name = 'Gridded Component I - Atmosphere' 
+    else if (i == Iocean) then
+      name = 'Gridded Component II - Ocean' 
+    end if
+!
+    models(i)%comp = ESMF_GridCompCreate(name=TRIM(name),               &
+                                         petList=models(i)%petList,     &
+                                         rc=rc)
+    call check_err("calling ESMF_GridCompCreate for "//trim(name),      &
+                   "", ESMF_METHOD, rc)
+  end do
+!**********************************************************************
+!
+! Register gridded components
 !
 !**********************************************************************
 !
-! Model Finalize 
+  call ESMF_GridCompSetServices(models(Iatmos)%comp,                    &
+                                RCM_SetServices,                        &
+                                rc=rc)
+  call check_err("ESMF_GridCompSetServices", "", ESMF_METHOD, rc)
+!
+  call ESMF_GridCompSetServices(models(Iocean)%comp,                    &
+                                ROMS_SetServices,                       &
+                                rc=rc)
+  call check_err("ESMF_GridCompSetServices", "", ESMF_METHOD, rc)
 !
 !**********************************************************************
 !
-!       call RCM_finalize()
+! Create gridded components export/import state objects 
 !
+!**********************************************************************
+!
+  do i = 1, nModels
+    if (i == Iatmos) then
+      istr = 'Import state (Atmosphere)'
+      estr = 'Export state (Atmosphere)'
+    else if (i == Iocean) then
+      istr = 'Import state (Ocean)' 
+      estr = 'Export state (Ocean)'
+    end if
+!
+    models(i)%stateExport = ESMF_StateCreate(name=trim(istr), rc=rc)
+    call check_err("ESMF_StateCreate", "", ESMF_METHOD, rc)
+    models(i)%stateImport = ESMF_StateCreate(name=trim(estr), rc=rc)
+    call check_err("ESMF_StateCreate", "", ESMF_METHOD, rc)
+  end do
+!
+!**********************************************************************
+!
+! Initialize gridded components 
+!
+!**********************************************************************
+!
+  do i = 1, nModels
+    call ESMF_GridCompInitialize(models(i)%comp,                       &
+                                importState=models(i)%stateImport,     &
+                                exportState=models(i)%stateExport,     &
+                                rc=rc)  
+   end do
+!
+!-----------------------------------------------------------------------
+!     Finalize gridded components.
+!-----------------------------------------------------------------------
+!
+      do i = 1, nModels
+        call ESMF_GridCompFinalize (models(i)%comp,                     &
+                                    exportState=models(i)%stateExport,  &
+                                    importState=models(i)%stateImport,  &
+                                    rc=rc)
+      end do 
 
 end program regcm

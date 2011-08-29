@@ -173,7 +173,7 @@ mod_interface.o: mod_interface.F90 mod_runparams.o mod_init.o mod_ncio.o \
   mod_tstep.o mod_mppio.o
 if DO_COMPILE_LIBESMF
 regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90 \
-         mod_couplerr.F90 mod_esmf_atm.F90 mod_esmf_ocn.F90
+         mod_couplerr.o mod_esmf_atm.o mod_esmf_ocn.o
 else
 regcm.o: regcm.F90 regcm_nonesmf.F90 regcm_esmf.F90
 endif

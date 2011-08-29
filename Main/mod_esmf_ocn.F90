@@ -28,6 +28,12 @@
       use ESMF
       use mod_interface
       use mod_couplerr
+!
+!  ROMS Component routines.
+!
+      USE ocean_control_mod, ONLY : ROMS_initialize
+      USE ocean_control_mod, ONLY : ROMS_run
+      USE ocean_control_mod, ONLY : ROMS_finalize
 ! 
       implicit none
       private
@@ -196,26 +202,17 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
-!     Local variable declarations 
-!
-!***********************************************************************
-!
-!     
-!
-!***********************************************************************
-!
-!     Call ROMS initialization routines
-!
-!***********************************************************************
-!
-!
 !-----------------------------------------------------------------------
-!     Set return flag to success.
+!     Initialize return flag to success.
 !-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
+!
+!-----------------------------------------------------------------------
+!     Terminate ROMS execution.  Close all NetCDF files.
+!-----------------------------------------------------------------------
+!
+      call ROMS_finalize()
 !
       end subroutine ROMS_SetFinalize
 !    

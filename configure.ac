@@ -405,6 +405,12 @@ if eval "test x$USECPL = x1"; then
   LIBS="$LIBS $tmp_lib"
 fi
 
+if eval "test x$USEROMS = x1"; then
+  FCFLAGS="$FCFLAGS -I$ROMS_PREFIX"
+  CPPFLAGS="$CPPFLAGS -I$ROMS_PREFIX"
+  LIBS="$LIBS -L$ROMS_PREFIX -lUTIL"
+fi
+
 REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 bindir=${REGCM_ROOT}/Bin

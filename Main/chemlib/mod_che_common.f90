@@ -55,7 +55,7 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:) :: rembc , remrat
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(sp) , target , dimension(4,19,11,11,11,11) :: dextmix , dgmix , dssamix
+  real(sp) , pointer , dimension(:,:,:,:,:,:) :: dextmix , dgmix , dssamix
   integer :: mixtype
 
   contains
@@ -80,6 +80,10 @@ module mod_che_common
 
     call getmem2d(rembc,1,iy,1,kz,'mod_che_common:rembc')
     call getmem2d(remrat,1,iy,1,kz,'mod_che_common:remrat')
+
+    allocate(dextmix(4,19,11,11,11,11))
+    allocate(dgmix(4,19,11,11,11,11))
+    allocate(dssamix(4,19,11,11,11,11))
 
     if ( lch ) then
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
