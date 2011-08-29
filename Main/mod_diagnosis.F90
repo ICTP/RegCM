@@ -812,30 +812,30 @@ module mod_diagnosis
     end do
 !
     do itr = 1 , ntr
-      call mpi_gather(chia(1,1,1,itr),   iy*kz*jxp,mpi_real8,         &
-                      chia_io(1,1,1,itr),iy*kz*jxp,mpi_real8,         &
+      call mpi_gather(chia(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
+                      chia_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(remlsc(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
-                      remlsc_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
+      call mpi_gather(remlsc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
+                      remlsc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(remcvc(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
-                      remcvc_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
+      call mpi_gather(remcvc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
+                      remcvc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(rxsg(1,1,1,itr),   iy*kz*jxp,mpi_real8,         &
-                      rxsg_io(1,1,1,itr),iy*kz*jxp,mpi_real8,         &
+      call mpi_gather(rxsg(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
+                      rxsg_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(rxsaq1(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
-                      rxsaq1_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
+      call mpi_gather(rxsaq1(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
+                      rxsaq1_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(rxsaq2(1,1,1,itr),   iy*kz*jxp,mpi_real8,       &
-                      rxsaq2_io(1,1,1,itr),iy*kz*jxp,mpi_real8,       &
+      call mpi_gather(rxsaq2(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
+                      rxsaq2_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
                       0,mpi_comm_world,ierr)
-      call mpi_gather(remdrd(1,1,itr),   iy*jxp,mpi_real8,            &
-                      remdrd_io(1,1,itr),iy*jxp,mpi_real8,            &
+      call mpi_gather(remdrd(:,:,itr),   iy*jxp,mpi_real8,            &
+                      remdrd_io(:,:,itr),iy*jxp,mpi_real8,            &
                       0,mpi_comm_world,ierr)
       do l = 1 , mpy
-        call mpi_gather(chemsrc(1,1,l,itr),   iy*jxp,mpi_real8,       &
-                        chemsrc_io(1,1,l,itr),iy*jxp,mpi_real8,       &
+        call mpi_gather(chemsrc(:,:,l,itr),   iy*jxp,mpi_real8,       &
+                        chemsrc_io(:,:,l,itr),iy*jxp,mpi_real8,       &
                         0,mpi_comm_world,ierr)
       end do
     end do
