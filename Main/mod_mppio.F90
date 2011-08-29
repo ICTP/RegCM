@@ -30,19 +30,6 @@ module mod_mppio
   use mod_memutil
   use mod_message
 !
-  real(8) , pointer , dimension(:,:,:,:) :: spacesubm1
-  real(8) , pointer , dimension(:,:,:,:) :: spacesub
-  real(8) , pointer , dimension(:,:,:) :: spacebat
-  real(8) , pointer , dimension(:,:,:) :: space2d
-  real(8) , pointer , dimension(:,:,:,:) :: space3d
-  real(8) , pointer , dimension(:,:,:) :: spacev
-  real(8) , pointer , dimension(:,:,:) :: spacesurf
-  private :: spacesubm1 , spacesub , spacebat
-  private :: space2d , space3d , spacev , spacesurf
-#ifdef CLM
-  real(8) , pointer , dimension(:,:,:) :: spaceclm
-  private :: spaceclm
-#endif
   integer , pointer , dimension(:,:,:) :: ocld2d_io , veg2d1_io
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io
   integer , pointer , dimension(:,:) :: kpbl_io
@@ -174,6 +161,15 @@ module mod_mppio
   subroutine allocate_mod_mppio(lband)
     implicit none
     logical , intent(in) :: lband
+    integer :: mjj , mojj
+
+    if ( lband ) then
+      mjj = jx
+      mojj = jx
+    else
+      mjj = jxm1
+      mojj = jxm2
+    end if
 
     call getmem2d(var1snd,1,kz,1,8,'mod_mppio:var1snd')
     call getmem2d(var1rcv,1,kz,1,8,'mod_mppio:var1rcv')
@@ -209,75 +205,48 @@ module mod_mppio
         call getmem3d(uw_0,1,iy,1,kz*3,1,jx,'mod_mppio:uw_0')
       end if
 
-      if (lband) then
-        call getmem4d(spacesubm1,1,nnsg,1,iym1,1,jx,1,20,'mod_mppio:spacesubm1')
-      else
-        call getmem4d(spacesubm1,1,nnsg,1,iym1, &
-                                 1,jxm1,1,20,'mod_mppio:spacesubm1')
-      end if
-      col2d_io  => spacesubm1(:,:,:,1)
-      dew2d_io  => spacesubm1(:,:,:,2)
-      evpa2d_io => spacesubm1(:,:,:,3)
-      gwet2d_io => spacesubm1(:,:,:,4)
-      ircp2d_io => spacesubm1(:,:,:,5)
-      rno2d_io  => spacesubm1(:,:,:,6)
-      rnos2d_io => spacesubm1(:,:,:,7)
-      sag2d_io  => spacesubm1(:,:,:,8)
-      scv2d_io  => spacesubm1(:,:,:,9)
-      sena2d_io => spacesubm1(:,:,:,10)
-      sice2d_io => spacesubm1(:,:,:,11)
-      srw2d_io  => spacesubm1(:,:,:,12)
-      ssw2d_io  => spacesubm1(:,:,:,13)
-      swt2d_io  => spacesubm1(:,:,:,14)
-      taf2d_io  => spacesubm1(:,:,:,15)
-      text2d_io => spacesubm1(:,:,:,16)
-      tg2d_io   => spacesubm1(:,:,:,17)
-      tgb2d_io  => spacesubm1(:,:,:,18)
-      tlef2d_io => spacesubm1(:,:,:,19)
-      emiss2d_io => spacesubm1(:,:,:,20)
-      if (lband) then
-        call getmem3d(veg2d1_io,1,nnsg,1,iym1,1,jx,'mod_mppio:veg2d1_io')
-        call getmem3d(ocld2d_io,1,nnsg,1,iym1,1,jx,'mod_mppio:ocld2d_io')
-        call getmem2d(veg2d_io,1,iym1,1,jx,'mod_mppio:veg2d_io')
-        call getmem2d(ldmsk_io,1,iym1,1,jx,'mod_mppio:ldmsk_io')
-      else
-        call getmem3d(veg2d1_io,1,nnsg,1,iym1,1,jxm1,'mod_mppio:veg2d1_io')
-        call getmem3d(ocld2d_io,1,nnsg,1,iym1,1,jxm1,'mod_mppio:ocld2d_io')
-        call getmem2d(veg2d_io,1,iym1,1,jxm1,'mod_mppio:veg2d_io')
-        call getmem2d(ldmsk_io,1,iym1,1,jxm1,'mod_mppio:ldmsk_io')
-      end if
-      call getmem4d(spacesub,1,nnsg,1,iy,1,jx,1,4,'mod_mppio:spacesub')
-      ht1_io     => spacesub(:,:,:,1)
-      lndcat1_io => spacesub(:,:,:,2)
-      xlat1_io   => spacesub(:,:,:,3)
-      xlon1_io   => spacesub(:,:,:,4)
-      if (lband) then
-        call getmem3d(spacebat,1,iym1,1,jx,1,8,'mod_mppio:spacebat')
-      else
-        call getmem3d(spacebat,1,iym1,1,jxm1,1,8,'mod_mppio:spacebat')
-      end if
-      flw2d_io      => spacebat(:,:,1)
-      flwd2d_io     => spacebat(:,:,2)
-      fsw2d_io      => spacebat(:,:,3)
-      sabv2d_io     => spacebat(:,:,4)
-      sinc2d_io     => spacebat(:,:,5)
-      sol2d_io      => spacebat(:,:,6)
-      solvd2d_io    => spacebat(:,:,7)
-      solvs2d_io    => spacebat(:,:,8)
-      if (lband) then
-        call getmem3d(fbat_io,1,jx,1,iym2,1,numbat,'mod_mppio:fbat_io')
-        call getmem4d(fsub_io,1,nnsg,1,jx,1,iym2,1,numsub,'mod_mppio:fsub_io')
-        call getmem3d(frad2d_io,1,jx,1,iym2,1,nrad2d,'mod_mppio:frad2d_io')
-        call getmem4d(frad3d_io,1,jx,1,iym2,1,kz,1,nrad3d,'mod_mppio:frad3d_io')
-        call getmem2d(radpsa_io,1,jx,1,iym2,'mod_mppio:radpsa_io')
-      else
-        call getmem3d(fbat_io,1,jxm2,1,iym2,1,numbat,'mod_mppio:fbat_io')
-        call getmem4d(fsub_io,1,nnsg,1,jxm2,1,iym2,1,numsub,'mod_mppio:fsub_io')
-        call getmem3d(frad2d_io,1,jxm2,1,iym2,1,nrad2d,'mod_mppio:frad2d_io')
-        call getmem4d(frad3d_io,1,jxm2,1,iym2, &
-                                1,kz,1,nrad3d,'mod_mppio:frad3d_io')
-        call getmem2d(radpsa_io,1,jxm2,1,iym2,'mod_mppio:radpsa_io')
-      end if
+      call getmem3d(col2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:col2d_io')
+      call getmem3d(dew2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:dew2d_io')
+      call getmem3d(evpa2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:evpa2d_io')
+      call getmem3d(gwet2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:gwet2d_io')
+      call getmem3d(ircp2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ircp2d_io')
+      call getmem3d(rno2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rno2d_io')
+      call getmem3d(rnos2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:rnos2d_io')
+      call getmem3d(sag2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sag2d_io')
+      call getmem3d(scv2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:scv2d_io')
+      call getmem3d(sena2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sena2d_io')
+      call getmem3d(sice2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:sice2d_io')
+      call getmem3d(srw2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:srw2d_io')
+      call getmem3d(ssw2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ssw2d_io')
+      call getmem3d(swt2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:swt2d_io')
+      call getmem3d(taf2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:taf2d_io')
+      call getmem3d(text2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:text2d_io')
+      call getmem3d(tg2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:tg2d_io')
+      call getmem3d(tgb2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:tgb2d_io')
+      call getmem3d(tlef2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:tlef2d_io')
+      call getmem3d(emiss2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:emiss2d_io')
+      call getmem3d(veg2d1_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:veg2d1_io')
+      call getmem3d(ocld2d_io,1,nnsg,1,iym1,1,mjj,'mod_mppio:ocld2d_io')
+      call getmem2d(veg2d_io,1,iym1,1,mjj,'mod_mppio:veg2d_io')
+      call getmem2d(ldmsk_io,1,iym1,1,mjj,'mod_mppio:ldmsk_io')
+      call getmem3d(ht1_io,1,nnsg,1,iy,1,jx,'mod_mppio:ht1_io')
+      call getmem3d(lndcat1_io,1,nnsg,1,iy,1,jx,'mod_mppio:lndcat1_io')
+      call getmem3d(xlat1_io,1,nnsg,1,iy,1,jx,'mod_mppio:xlat1_io')
+      call getmem3d(xlon1_io,1,nnsg,1,iy,1,jx,'mod_mppio:xlon1_io')
+      call getmem2d(flw2d_io,1,iym1,1,mjj,'mod_mppio:flw2d_io')
+      call getmem2d(flwd2d_io,1,iym1,1,mjj,'mod_mppio:flwd2d_io')
+      call getmem2d(fsw2d_io,1,iym1,1,mjj,'mod_mppio:fsw2d_io')
+      call getmem2d(sabv2d_io,1,iym1,1,mjj,'mod_mppio:sabv2d_io')
+      call getmem2d(sinc2d_io,1,iym1,1,mjj,'mod_mppio:sinc2d_io')
+      call getmem2d(sol2d_io,1,iym1,1,mjj,'mod_mppio:sol2d_io')
+      call getmem2d(solvd2d_io,1,iym1,1,mjj,'mod_mppio:solvd2d_io')
+      call getmem2d(solvs2d_io,1,iym1,1,mjj,'mod_mppio:solvs2d_io')
+
+      call getmem3d(fbat_io,1,mojj,1,iym2,1,numbat,'mod_mppio:fbat_io')
+      call getmem4d(fsub_io,1,nnsg,1,mojj,1,iym2,1,numsub,'mod_mppio:fsub_io')
+      call getmem3d(frad2d_io,1,mojj,1,iym2,1,nrad2d,'mod_mppio:frad2d_io')
+      call getmem4d(frad3d_io,1,mojj,1,iym2,1,kz,1,nrad3d,'mod_mppio:frad3d_io')
+      call getmem2d(radpsa_io,1,mojj,1,iym2,'mod_mppio:radpsa_io')
 
       call getmem2d(cbmf2d_io,1,iy,1,jx,'mod_mppio:cbmf2d_io')
       call getmem3d(fcc_io,1,iy,1,kz,1,jx,'mod_mppio:fcc_io')
@@ -285,105 +254,71 @@ module mod_mppio
       call getmem3d(rswat_io,1,iy,1,kz,1,jx,'mod_mppio:rswat_io')
       call getmem3d(dstor_io,1,iy,1,jx,1,nsplit,'mod_mppio:dstor_io')
       call getmem3d(hstor_io,1,iy,1,jx,1,nsplit,'mod_mppio:hstor_io')
-      if (lband) then
-        call getmem4d(absnxt_io,1,iym1,1,kz,1,4,1,jx,'mod_mppio:absnxt_io')
-        call getmem4d(abstot_io,1,iym1,1,kzp1,1,kzp1,1,jx,'mod_mppio:abstot_io')
-        call getmem3d(emstot_io,1,iym1,1,kzp1,1,jx,'mod_mppio:emstot_io')
-        call getmem3d(heatrt_io,1,iym1,1,kz,1,jx,'mod_mppio:heatrt_io')
-        call getmem3d(o3prof_io,1,iym1,1,kzp1,1,jx,'mod_mppio:o3prof_io')
-        call getmem3d(aerasp_io,1,iym1,1,kz,1,jx,'mod_mppio:aerasp_io')
-        call getmem3d(aerext_io,1,iym1,1,kz,1,jx,'mod_mppio:aerext_io')
-        call getmem3d(aerssa_io,1,iym1,1,kz,1,jx,'mod_mppio:aerssa_io')
-        call getmem2d(aersrrf_io,1,iym1,1,jx,'mod_mppio:aersrrf_io')
-        call getmem2d(aertarf_io,1,iym1,1,jx,'mod_mppio:aertarf_io')
-        call getmem2d(aertalwrf_io,1,iym1,1,jx,'mod_mppio:aertalwrf_io')
-        call getmem2d(aersrlwrf_io,1,iym1,1,jx,'mod_mppio:aersrlwrf_io')
-      else
-        call getmem4d(absnxt_io,1,iym1,1,kz,1,4,1,jxm1,'mod_mppio:absnxt_io')
-        call getmem4d(abstot_io,1,iym1,1,kzp1, &
-                                1,kzp1,1,jxm1,'mod_mppio:abstot_io')
-        call getmem3d(emstot_io,1,iym1,1,kzp1,1,jxm1,'mod_mppio:emstot_io')
-        call getmem3d(heatrt_io,1,iym1,1,kz,1,jxm1,'mod_mppio:heatrt_io')
-        call getmem3d(o3prof_io,1,iym1,1,kzp1,1,jxm1,'mod_mppio:o3prof_io')
-        call getmem3d(aerasp_io,1,iym1,1,kz,1,jxm1,'mod_mppio:aerasp_io')
-        call getmem3d(aerext_io,1,iym1,1,kz,1,jxm1,'mod_mppio:aerext_io')
-        call getmem3d(aerssa_io,1,iym1,1,kz,1,jxm1,'mod_mppio:aerssa_io')
-        call getmem2d(aersrrf_io,1,iym1,1,jxm1,'mod_mppio:aersrrf_io')
-        call getmem2d(aertarf_io,1,iym1,1,jxm1,'mod_mppio:aertarf_io')
-        call getmem2d(aertalwrf_io,1,iym1,1,jxm1,'mod_mppio:aertalwrf_io')
-        call getmem2d(aersrlwrf_io,1,iym1,1,jxm1,'mod_mppio:aersrlwrf_io')
-      end if
-      call getmem3d(space2d,1,iy,1,jx,1,4,'mod_mppio:space2d')
-      ps0_io => space2d(:,:,1)
-      ps1_io => space2d(:,:,2)
-      ts0_io => space2d(:,:,3)
-      ts1_io => space2d(:,:,4)
-      call getmem4d(space3d,1,iy,1,kz,1,jx,1,10,'mod_mppio:space3d')
-      qb0_io => space3d(:,:,:,1)
-      qb1_io => space3d(:,:,:,2)
-      so0_io => space3d(:,:,:,3)
-      so1_io => space3d(:,:,:,4)
-      tb0_io => space3d(:,:,:,5)
-      tb1_io => space3d(:,:,:,6)
-      ub0_io => space3d(:,:,:,7)
-      ub1_io => space3d(:,:,:,8)
-      vb0_io => space3d(:,:,:,9)
-      vb1_io => space3d(:,:,:,10)
-      call getmem3d(spacev,1,kz,1,jx,1,8,'mod_mppio:spacev')
-      ui1_io  => spacev(:,:,1)
-      ui2_io  => spacev(:,:,2)
-      uilx_io => spacev(:,:,3)
-      uil_io  => spacev(:,:,4)
-      vi1_io  => spacev(:,:,5)
-      vi2_io  => spacev(:,:,6)
-      vilx_io => spacev(:,:,7)
-      vil_io  => spacev(:,:,8)
-      if (lband) then
-        call getmem2d(pptc_io,1,iym1,1,jx,'mod_mppio:pptc_io')
-        call getmem2d(pptnc_io,1,iym1,1,jx,'mod_mppio:pptnc_io')
-        call getmem2d(prca2d_io,1,iym1,1,jx,'mod_mppio:prca2d_io')
-        call getmem2d(prnca2d_io,1,iym1,1,jx,'mod_mppio:prnca2d_io')
-      else
-        call getmem2d(pptc_io,1,iym1,1,jxm1,'mod_mppio:pptc_io')
-        call getmem2d(pptnc_io,1,iym1,1,jxm1,'mod_mppio:pptnc_io')
-        call getmem2d(prca2d_io,1,iym1,1,jxm1,'mod_mppio:prca2d_io')
-        call getmem2d(prnca2d_io,1,iym1,1,jxm1,'mod_mppio:prnca2d_io')
-      end if
-      if (icup == 3) then
-        call getmem3d(spacesurf,1,iy,1,jx,1,11,'mod_mppio:spacesurf')
-      else
-        call getmem3d(spacesurf,1,iy,1,jx,1,12,'mod_mppio:spacesurf')
-      end if
-      hfx_io    => spacesurf(:,:,1)
-      psa_io    => spacesurf(:,:,2)
-      psb_io    => spacesurf(:,:,3)
-      qfx_io    => spacesurf(:,:,4)
-      rainc_io  => spacesurf(:,:,5)
-      rainnc_io => spacesurf(:,:,6)
-      tga_io    => spacesurf(:,:,7)
-      tgbb_io   => spacesurf(:,:,8)
-      tgb_io    => spacesurf(:,:,9)
-      uvdrag_io => spacesurf(:,:,10)
-      zpbl_io   => spacesurf(:,:,11)
-      if (icup == 3) cldefi_io => spacesurf(:,:,12)
+
+      call getmem4d(absnxt_io,1,iym1,1,kz,1,4,1,mjj,'mod_mppio:absnxt_io')
+      call getmem4d(abstot_io,1,iym1,1,kzp1,1,kzp1,1,mjj,'mod_mppio:abstot_io')
+      call getmem3d(emstot_io,1,iym1,1,kzp1,1,mjj,'mod_mppio:emstot_io')
+      call getmem3d(heatrt_io,1,iym1,1,kz,1,mjj,'mod_mppio:heatrt_io')
+      call getmem3d(o3prof_io,1,iym1,1,kzp1,1,mjj,'mod_mppio:o3prof_io')
+      call getmem3d(aerasp_io,1,iym1,1,kz,1,mjj,'mod_mppio:aerasp_io')
+      call getmem3d(aerext_io,1,iym1,1,kz,1,mjj,'mod_mppio:aerext_io')
+      call getmem3d(aerssa_io,1,iym1,1,kz,1,mjj,'mod_mppio:aerssa_io')
+      call getmem2d(aersrrf_io,1,iym1,1,mjj,'mod_mppio:aersrrf_io')
+      call getmem2d(aertarf_io,1,iym1,1,mjj,'mod_mppio:aertarf_io')
+      call getmem2d(aertalwrf_io,1,iym1,1,mjj,'mod_mppio:aertalwrf_io')
+      call getmem2d(aersrlwrf_io,1,iym1,1,mjj,'mod_mppio:aersrlwrf_io')
+
+      call getmem2d(ps0_io,1,iy,1,jx,'mod_mppio:ps0_io')
+      call getmem2d(ps1_io,1,iy,1,jx,'mod_mppio:ps1_io')
+      call getmem2d(ts0_io,1,iy,1,jx,'mod_mppio:ts0_io')
+      call getmem2d(ts1_io,1,iy,1,jx,'mod_mppio:ts1_io')
+      call getmem3d(qb0_io,1,iy,1,kz,1,jx,'mod_mppio:qb0_io')
+      call getmem3d(qb1_io,1,iy,1,kz,1,jx,'mod_mppio:qb1_io')
+      call getmem3d(so0_io,1,iy,1,kz,1,jx,'mod_mppio:so0_io')
+      call getmem3d(so1_io,1,iy,1,kz,1,jx,'mod_mppio:so1_io')
+      call getmem3d(tb0_io,1,iy,1,kz,1,jx,'mod_mppio:tb0_io')
+      call getmem3d(tb1_io,1,iy,1,kz,1,jx,'mod_mppio:tb1_io')
+      call getmem3d(ub0_io,1,iy,1,kz,1,jx,'mod_mppio:ub0_io')
+      call getmem3d(ub1_io,1,iy,1,kz,1,jx,'mod_mppio:ub1_io')
+      call getmem3d(vb0_io,1,iy,1,kz,1,jx,'mod_mppio:vb0_io')
+      call getmem3d(vb1_io,1,iy,1,kz,1,jx,'mod_mppio:vb1_io')
+      call getmem2d(ui1_io,1,kz,1,jx,'mod_mppio:ui1_io')
+      call getmem2d(ui2_io,1,kz,1,jx,'mod_mppio:ui2_io')
+      call getmem2d(uilx_io,1,kz,1,jx,'mod_mppio:uilx_io')
+      call getmem2d(uil_io,1,kz,1,jx,'mod_mppio:uil_io')
+      call getmem2d(vi1_io,1,kz,1,jx,'mod_mppio:vi1_io')
+      call getmem2d(vi2_io,1,kz,1,jx,'mod_mppio:vi2_io')
+      call getmem2d(vilx_io,1,kz,1,jx,'mod_mppio:vilx_io')
+      call getmem2d(vil_io,1,kz,1,jx,'mod_mppio:vil_io')
+      call getmem2d(pptc_io,1,iym1,1,mjj,'mod_mppio:pptc_io')
+      call getmem2d(pptnc_io,1,iym1,1,mjj,'mod_mppio:pptnc_io')
+      call getmem2d(prca2d_io,1,iym1,1,mjj,'mod_mppio:prca2d_io')
+      call getmem2d(prnca2d_io,1,iym1,1,mjj,'mod_mppio:prnca2d_io')
+      call getmem2d(hfx_io,1,iy,1,jx,'mod_mppio:hfx_io')
+      call getmem2d(psa_io,1,iy,1,jx,'mod_mppio:psa_io')
+      call getmem2d(psb_io,1,iy,1,jx,'mod_mppio:psb_io')
+      call getmem2d(qfx_io,1,iy,1,jx,'mod_mppio:qfx_io')
+      call getmem2d(rainc_io,1,iy,1,jx,'mod_mppio:rainc_io')
+      call getmem2d(rainnc_io,1,iy,1,jx,'mod_mppio:rainnc_io')
+      call getmem2d(tga_io,1,iy,1,jx,'mod_mppio:tga_io')
+      call getmem2d(tgbb_io,1,iy,1,jx,'mod_mppio:tgbb_io')
+      call getmem2d(tgb_io,1,iy,1,jx,'mod_mppio:tgb_io')
+      call getmem2d(uvdrag_io,1,iy,1,jx,'mod_mppio:uvdrag_io')
+      call getmem2d(zpbl_io,1,iy,1,jx,'mod_mppio:zpbl_io')
       call getmem3d(omega_io,1,iy,1,kz,1,jx,'mod_mppio:omega_io')
       if (icup == 3) then
+        call getmem2d(cldefi_io,1,iy,1,jx,'mod_mppio:cldefi_io')
         call getmem3d(tbase_io,1,iy,1,kz,1,jx,'mod_mppio:tbase_io')
       end if
 #ifdef CLM
-      if (lband) then
-        call getmem3d(spaceclm,1,iym1,1,jx,1,8,'mod_mppio:spaceclm')
-      else
-        call getmem3d(spaceclm,1,iym1,1,jxm1,1,8,'mod_mppio:spaceclm')
-      end if
-      sols2d_io   => spaceclm(:,:,1)
-      soll2d_io   => spaceclm(:,:,2)
-      solsd2d_io  => spaceclm(:,:,3)
-      solld2d_io  => spaceclm(:,:,4)
-      aldifl2d_io => spaceclm(:,:,5)
-      aldirs2d_io => spaceclm(:,:,6)
-      aldirl2d_io => spaceclm(:,:,7)
-      aldifs2d_io => spaceclm(:,:,8)
+      call getmem2d(sols2d_io,1,iym1,1,mjj,'mod_mppio:sols2d_io')
+      call getmem2d(soll2d_io,1,iym1,1,mjj,'mod_mppio:soll2d_io')
+      call getmem2d(solsd2d_io,1,iym1,1,mjj,'mod_mppio:solsd2d_io')
+      call getmem2d(solld2d_io,1,iym1,1,mjj,'mod_mppio:solld2d_io')
+      call getmem2d(aldifl2d_io,1,iym1,1,mjj,'mod_mppio:aldifl2d_io')
+      call getmem2d(aldifs2d_io,1,iym1,1,mjj,'mod_mppio:aldifs2d_io')
+      call getmem2d(aldirl2d_io,1,iym1,1,mjj,'mod_mppio:aldirl2d_io')
+      call getmem2d(aldirs2d_io,1,iym1,1,mjj,'mod_mppio:aldirs2d_io')
       call getmem2d(lndcat2d_io,1,iy,1,jx,'mod_mppio:lndcat2d_io')
 #endif
     endif
