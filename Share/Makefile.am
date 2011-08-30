@@ -2,7 +2,7 @@
 noinst_LIBRARIES = librcmlib.a
 librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 mod_space.f90 \
                       mod_message.f90 mod_memutil.F90 mod_projections.f90 \
-                      mod_dynparam.F90 mod_service.F90
+                      mod_dynparam.F90 mod_service.F90 mod_ensemble.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -36,3 +36,5 @@ mod_space.o mod_space.mod: mod_space.f90 \
 testdate.o: testdate.f90 mod_date.mod
 mod_service.o mod_service.mod : mod_service.F90 \
   $(REGCM_ROOT)/external/m_realkinds.mod mod_dynparam.mod
+mod_ensemble.o mod_ensemble.mod: mod_ensemble.f90 \
+  mod_memutil.mod $(REGCM_ROOT)/external/m_realkinds.mod mod_constants.mod

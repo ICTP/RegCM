@@ -426,13 +426,13 @@ fi
 LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile Share/Makefile PreProc/Makefile \
+AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/Terrain/Makefile PreProc/ICBC/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
-                 Main/batslib/Makefile Main/clmlib/Makefile Main/Makefile \
+                 Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_KPP_GEOS/Makefile \
-                 Main/cumlib/Makefile Main/radlib/Makefile external/Makefile \
-                 Tools/Programs/CheckSun/Makefile \
+                 Main/cumlib/Makefile Main/radlib/Makefile \
+                 Main/pbllib/Makefile Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/SAV_read/Makefile])
 
