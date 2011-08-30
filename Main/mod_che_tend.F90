@@ -28,13 +28,12 @@ module mod_che_tend
   use mod_atm_interface
   use mod_lm_interface
   use mod_rad_interface
-  use mod_pbldim
+  use mod_pbl_interface
   use mod_precip
   use mod_diffusion
   use mod_advection
   use mod_diagnosis
   use mod_slice
-  use mod_tcm_interface
   use mod_mppio
   private
 
@@ -71,7 +70,7 @@ module mod_che_tend
                                   fracloud , fracum , rho , settend , &
                                   ttb , wk , wl
     logical :: gfcall , gfcall2 , gfcall3 , gfcall4
-    integer :: i , ibin , itr , k , kb , kdwd
+    integer :: i , ibin , itr , k , kt , kb , kdwd
     integer , dimension(iy) :: ivegcov
     real(8) , dimension(iy,kz,nbin) :: pdepv
     real(8) , dimension(iy) :: psurf , rh10 , soilw , srad , temp10 , &

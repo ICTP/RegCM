@@ -26,17 +26,15 @@ module mod_params
   use mod_atm_interface
   use mod_che_interface
   use mod_rad_interface
+  use mod_pbl_interface
   use mod_precip
   use mod_split
   use mod_slice
-  use mod_pbldim
-  use mod_holtbl
   use mod_bdycod
   use mod_ncio
   use mod_diagnosis
   use mod_tendency
   use mod_ncio
-  use mod_uwtcm
   use mod_advection , only : init_advection
   use mod_mppio
 #ifdef CLM
@@ -653,11 +651,10 @@ module mod_params
 !-----------------------------------------------------------------------
 !
   call allocate_mod_runparams
-  call allocate_mod_atm_interface(lband)
+  call allocate_mod_atm_interface(lband,ibltyp)
   call allocate_mod_tend(lband)
   call allocate_mod_bdycon
-  call allocate_mod_holtbl
-  call allocate_mod_pbldim
+  call allocate_mod_pbl_common(ibltyp)
   call allocate_mod_cu_common
   call allocate_mod_precip
   call allocate_mod_split
@@ -1210,22 +1207,22 @@ module mod_params
   end do
 !
 !
-!----calculate max no of pbl levels: kt=k at highest allowed pbl level
+!----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
 !-----1. caluclate sigma level at 700mb, assuming 600mb highest
 !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
 !-----2. find first model sigma level above sigtbl.
 !
   sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
-  kt = 1
+  kmxpbl = 1
   do k = kz , 1 , -1
     delsig = a(k) - sigtbl
     if ( delsig <= d_zero ) then
-      kt = k
+      kmxpbl = k
       exit
     end if
   end do
   write (aline, '(a,i3)') 'Index of highest allowed pbl:'// &
-                          '  kt = ' , kt
+                          '  kmxpbl = ' , kmxpbl
   call say(myid)
   write (aline, *) ' '
   call say(myid)
@@ -1538,6 +1535,17 @@ module mod_params
     write (aline, *) '  CUMULUS FRICTON IS SWITCHED ON: ', lmfdudv
     call say(myid)
   end if
+
+  if ( ibltyp == 1 .or. ibltyp == 99 ) then
+    call allocate_mod_pbl_holtbl(ichem,ichdrdepo)
+  end if
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    call init_mod_pbl_uwtcm
+  end if
+
+  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chib,chiten,remdrd, &
+                sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
+                depvel,chname,ichem,ichdrdepo,dt)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg

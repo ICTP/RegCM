@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_thetal
+module mod_pbl_thetal
 
   use mod_constants
   use m_realkinds
@@ -504,4 +504,4 @@ bigloop : &
     end if
   end subroutine getqvqc
 
-end module mod_thetal
+end module mod_pbl_thetal

@@ -25,9 +25,8 @@ program regcm
 !
 !**********************************************************************
 !
-  use mod_interface
+  use mod_regcm_interface
   use mod_runparams
-  use mod_interface
   use mpi
 !
   implicit none

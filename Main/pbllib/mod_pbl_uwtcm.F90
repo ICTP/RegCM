@@ -61,22 +61,18 @@
 !   07/2011 Graziano Giuliani
 !     * Moved in RegCM core devel
 
-module mod_uwtcm
+module mod_pbl_uwtcm
 
-  use mod_memutil
   use m_realkinds
-  use mod_runparams
+  use mod_memutil
+  use mod_dynparam
   use mod_constants
-  use mod_pbldim
-  use mod_tcm_interface
-  use mod_atm_interface , only : atmstate , allocate_atmstate
-  use mod_message , only : fatal
-  use mod_thetal , only : solve_for_t
+  use mod_message
+  use mod_pbl_common
+  use mod_pbl_thetal
 
   private
 
-  type(tcm_state) , target , public :: uwstatea , uwstateb
-  type(atmstate) , public  :: uwtend
   real(dp) , parameter , public :: nuk = 5.0D0 ! multiplier for kethl
   integer , public :: ktmin = 3
 
@@ -126,11 +122,11 @@ module mod_uwtcm
 
   integer :: imethod , itbound , ilenparam , iuwvadv
 
-  public :: init_mod_uwtcm , uwtcm , rstbl , atwo , ilenparam , iuwvadv
+  public :: init_mod_pbl_uwtcm , uwtcm , rstbl , atwo , ilenparam , iuwvadv
 
   contains
 
-  subroutine init_mod_uwtcm
+  subroutine init_mod_pbl_uwtcm
     implicit none
 
     ! If we are the head processor, output the various parameters
@@ -148,7 +144,7 @@ module mod_uwtcm
 
     ! Variables that hold frequently-done calculations
 
-    rdt = d_one/dt
+    rdt = d_one/dtpbl
     rcp = d_one/cpd
     rczero = d_one/czero
 
@@ -218,29 +214,10 @@ module mod_uwtcm
     call getmem1d(ktop,1,kz,'mod_uwtcm:ktop')
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
 
-    ! Allocate the tcm state variables
-    call allocate_tcm_state(uwstatea,.true.)
-    call allocate_tcm_state(uwstateb,.true.)
+  end subroutine init_mod_pbl_uwtcm
 
-    ! TODO: This is a bit of an odd call (from mod_atm_interface.F90) because the
-    ! bounds of the uwtend variables are not guaranteed to be consistent with
-    ! the i and j tcmend variables
-    ! The 1 is necessary in the 3rd index to have j go from 0:jxp becuase the
-    ! winds need to be interpolated to the dot grid once the routine is
-    ! finished, and with MPI, that requires sending left and right.
-    call allocate_atmstate(uwtend,.true.,0,1)
- 
-    tcmstatea => uwstatea
-    tcmstateb => uwstateb
-
-  end subroutine init_mod_uwtcm
-
-  subroutine uwtcm(atmb,srfb,radb,dom)
+  subroutine uwtcm
     implicit none
-    type(host_atm_state) , intent(in) :: atmb
-    type(host_srf_state) , intent(in) :: srfb
-    type(host_rad_state) , intent(in) :: radb
-    type(host_domain) , intent(in) :: dom
 
     integer ::  i , j , k
     integer :: ilay ! layer index
@@ -259,30 +236,30 @@ module mod_uwtcm
 !*******************************************************************************
 
         ! Copy in local versions of necessary variables
-        psbx = srfb%ps(i,j)
-        tgbx = srfb%tg(i,j)
-        qfxx = srfb%qfx(i,j)
-        hfxx = srfb%hfx(i,j)
-        uvdragx = srfb%uvdrag(i,j)
+        psbx = sfcps(i,j)
+        tgbx = tg(i,j)
+        qfxx = qfx(i,j)
+        hfxx = hfx(i,j)
+        uvdragx = uvdrag(i,j)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
         zqx(kzp1+1) = d_zero
-        tke(kzp1) = atmb%tke(i,kzp1,j)
+        tke(kzp1) = tkeatm(i,kzp1,j)
 
         kinitloop: &
         do k = kz , 1 , -1
-          rttenx(k) = radb%heatrt(i,k,j)
+          rttenx(k) = radheatrt(i,k,j)
           cell = ptop/psbx
-          zqx(k) = zqx(k+1) + rgas/egrav*atmb%t(i,k,j)*   &
-                   log((dom%sigma(k+1)+cell)/(dom%sigma(k)+cell))
+          zqx(k) = zqx(k+1) + rgas/egrav*tatm(i,k,j)*   &
+                   log((flev(k+1)+cell)/(flev(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
-          tke(k) = atmb%tke(i,k,j)
-          tx(k)  = atmb%t(i,k,j)
-          qx(k)  = atmb%qv(i,k,j)
-          qcx(k) = atmb%qc(i,k,j)
-          ux(k)  = atmb%u(i,k,j)
-          vx(k)  = atmb%v(i,k,j)
+          tke(k) = tkeatm(i,k,j)
+          tx(k)  = tatm(i,k,j)
+          qx(k)  = qvatm(i,k,j)
+          qcx(k) = qcatm(i,k,j)
+          ux(k)  = uatm(i,k,j)
+          vx(k)  = vatm(i,k,j)
           ! if ( tx(k) > tzero ) then
 !         if ( tx(k) > tzero ) then
 !           isice(k) = 0
@@ -297,7 +274,7 @@ module mod_uwtcm
         khalfloop: &
         do k = 1 , kz
           ! pressure at half levels
-          preshl(k) = dom%a(k)*psbx + dom%ptop
+          preshl(k) = hlev(k)*psbx + ptp
           ! Level spacing
           udzq(k) = zqx(k)-zqx(k+1)
           rdzq(k) = d_one/udzq(k)
@@ -337,7 +314,7 @@ module mod_uwtcm
         kfullloop: &
         do k = 2 , kz
           ! pressure at full levels
-          presfl(k) = dom%sigma(k)*psbx + dom%ptop
+          presfl(k) = flev(k)*psbx + ptp
           epop(k) = ep2/presfl(k)
           ! Level spacing
           dza(k) = zax(k-1)-zax(k)
@@ -356,7 +333,7 @@ module mod_uwtcm
         end do kfullloop
 
         ! pressure at the surface (in centibars)
-        presfl(kzp1) = psbx + dom%ptop
+        presfl(kzp1) = psbx + ptp
         ! Surface exner function
         rexnerfl(kzp1) = (d_100/presfl(kzp1))**rovcp
         exnerfl(kzp1) = d_one/rexnerfl(kzp1)
@@ -447,23 +424,23 @@ module mod_uwtcm
               aimp(k) = d_zero
             else
               aimp(k) = -(rhoxfl(k)*rrhoxhl(k))* &
-                          kth(k) * dt *rdzq(k)*rdza(k)
+                          kth(k) * dtpbl *rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))* &
-                          kth(k+1) * dt *rdzq(k)*rdza(k+1)
+                          kth(k+1) * dtpbl *rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
             ! now find right side for various scalars:
             ! no flux out top, so no (k == 1)
             if ( k == kz ) then ! at surface
               ! include surface latent heat flux
-              rimp2(k) = qwx(k) + dt * qfxx*rrhoxhl(k)*rdzq(kz)
+              rimp2(k) = qwx(k) + dtpbl * qfxx*rrhoxhl(k)*rdzq(kz)
               ! include surface sensible heat flux
               rimp1(k) = thlx(k) + &
-                     dt * hfxx*rrhoxhl(k)*rcp*rdzq(kz)*rexnerhl(kz)
+                     dtpbl * hfxx*rrhoxhl(k)*rcp*rdzq(kz)*rexnerhl(kz)
             else
               rimp2(k) = qwx(k)
               rimp1(k) = thlx(k)
@@ -517,13 +494,13 @@ module mod_uwtcm
             aimp(k) = d_zero
           else
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                        kzm(k) * dt *rdzq(k)*rdza(k)
+                        kzm(k) * dtpbl *rdzq(k)*rdza(k)
           end if
           if ( k == kz ) then
             cimp(k) = d_zero
           else
             cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                        kzm(k+1) * dt *rdzq(k)*rdza(k+1)
+                        kzm(k+1) * dtpbl *rdzq(k)*rdza(k+1)
           end if
           bimp(k) = d_one - aimp(k) - cimp(k)
           ! now find right side 
@@ -531,9 +508,9 @@ module mod_uwtcm
           if ( k == kz ) then
             ! at surface
             ! include surface momentum fluxes
-            rimp1(k) = ux(k) + dt *              &
+            rimp1(k) = ux(k) + dtpbl *              &
                        uflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
-            rimp2(k) = vx(k) + dt *              &
+            rimp2(k) = vx(k) + dtpbl *              &
                        vflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
           else
             rimp1(k) = ux(k)
@@ -618,28 +595,28 @@ module mod_uwtcm
             aimp(k-1) = d_zero
           else
             aimp(k-1) = -(rhoxhl(k-1)*rrhoxfl(k))*    &
-                          kethl(k-1)*dt*rdzq(k-1)*rdza(k)
+                          kethl(k-1)*dtpbl*rdzq(k-1)*rdza(k)
           end if
           if ( k == kz ) then
             cimp(k-1) = d_zero
             ! account for implicit part of flux between level kz and surface
-            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dtpbl *    &
                         ( dsqrt(tke(k))*rczero/bbls(k) +        &
                         (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
           else
             cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*    &
-                          kethl(k)*dt*rdzq(k)*rdza(k)
-            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *   &
+                          kethl(k)*dtpbl*rdzq(k)*rdza(k)
+            bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dtpbl *   &
                         dsqrt(tke(k))*rczero/dmax1(bbls(k),bbls(k+1))
           end if
           ! now find right side 
           if ( k == kz ) then
             ! account for fixed part of flux between level kz and surface
-            rimp1(k-1) = tke(k) + dt * ( shear(k)+bouyan(k) +   &
+            rimp1(k-1) = tke(k) + dtpbl * ( shear(k)+bouyan(k) +   &
                            tke(kzp1)*(rhoxhl(k)*rrhoxfl(k))*    &
                            kethl(k)*rdzq(k)*rdza(k) )
           else
-            rimp1(k-1) = tke(k) + dt * (shear(k)+bouyan(k))
+            rimp1(k-1) = tke(k) + dtpbl * (shear(k)+bouyan(k))
           end if
         end do imptkeflux
         call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
@@ -660,17 +637,17 @@ module mod_uwtcm
         tcmtend: &
         do k = 1 , kz
           ! Zonal wind tendency
-          uwtend%u(i,k,j)= psbx*(ux(k)-uxs(k))*rdt
+          uuwten(i,k,j)= psbx*(ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
-          uwtend%v(i,k,j)= psbx*(vx(k)-vxs(k))*rdt
+          vuwten(i,k,j)= psbx*(vx(k)-vxs(k))*rdt
           ! TKE tendency
-          uwtend%tke(i,k,j) = (tke(k)-tkes(k))*rdt
+          tkeuwten(i,k,j) = (tke(k)-tkes(k))*rdt
           ! Temperature tendency
-          uwtend%t(i,k,j)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
+          tuwten(i,k,j)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
           ! Water vapor tendency
-          uwtend%qv(i,k,j) = psbx*(qx(k)-qxs(k))*rdt
+          qvuwten(i,k,j) = psbx*(qx(k)-qxs(k))*rdt
           ! Cloud water tendency
-          uwtend%qc(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdt
+          qcuwten(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdt
 
           ! Momentum diffusivity
           uwstateb%kzm(i,k,j) = kzm(k)
@@ -844,7 +821,7 @@ module mod_uwtcm
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by 
         ! one grid level over one time step -- TAO
-        kthmax = dmin1((zax(k-1)-zax(k))**d_two/dt,1.D4)
+        kthmax = dmin1((zax(k-1)-zax(k))**d_two/dtpbl,1.D4)
         ! kthmax = 10000.0D0
         kth(k) = biga * dsqrt(TKE(k)**d_three)/nsquar(k) /    &
                  dmax1(bbls(k),bbls(k+1))
@@ -1186,4 +1163,4 @@ module mod_uwtcm
     end do
   end subroutine pblhgt_tao
 
-end module mod_uwtcm
+end module mod_pbl_uwtcm

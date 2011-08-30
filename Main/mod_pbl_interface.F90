@@ -17,157 +17,48 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_tcm_interface
+module mod_pbl_interface
 
-  use mod_memutil
+  use m_realkinds
   use mod_service
   use mod_constants
-  use mod_runparams
-  use mod_rad_interface
-  use mod_atm_interface
-  use mod_slice
-  use mod_gridfuncs
-  use mod_pbldim
-  use m_realkinds
+  use mod_atm_interface , only : atmstate , diffx , slice , surfstate , &
+                   surfpstate , surftstate , domain , uvcross2dot
+  use mod_pbl_common
+  use mod_pbl_holtbl
+  use mod_pbl_uwtcm
 
-  private
-
-  type , public :: tcm_state
-    !
-    ! TKE*ps (m^2/s^2 * cb)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: tkeps
-    !
-    ! Coupled TKE Advective Tendency (m^2/s^3 * cb) 
-    !
-    real(dp) , pointer , dimension(:,:,:) :: advtke
-    !
-    ! Vertical momentum diffusivity (m^2/s)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: kzm
-    !
-    ! Vertical scalar diffusivity (m^2/s)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: kth
-    !
-    ! Boundary layer height (m)
-    !
-    real(dp) , pointer , dimension(:,:) :: zpbl
-    !
-    ! Surface layer TKE (m^2/s^2)
-    !
-    real(dp) , pointer , dimension(:,:) :: srftke
-    !
-  end type tcm_state
-
-  !
-  ! Custom types that hold the state of the host model
-  !
-  type , public :: host_atm_state
-    !
-    ! Zonal Wind (m/s)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: u
-    !
-    ! Meridional Wind (m/s)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: v
-    !
-    ! Temperature (K)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: t
-    !
-    ! Specific Humidity (kg/kg)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: qv
-    !
-    ! Specific cloud water ratio (kg/kg)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: qc
-    !
-    ! Turbulent Kinetic Energy (m^2/s^2)
-    !
-    real(dp) , pointer , dimension(:,:,:) :: tke 
-    !
-  end type host_atm_state
-
-  type , public :: host_srf_state
-    !
-    ! Pressure (cb)
-    !
-    real(dp) , pointer , dimension(:,:) :: ps
-    !
-    ! Ground temperature (K)
-    !
-    real(dp) , pointer , dimension(:,:) :: tg
-    !
-    ! Surface Latent Enthalpy Flux (W/m^2)
-    !
-    real(dp) , pointer , dimension(:,:) :: qfx
-    !
-    ! Surface Sensible Enthalpy Flux (W/m^2)
-    !
-    real(dp) , pointer , dimension(:,:) :: hfx
-    !
-    ! Surface Drag (~momentum flux) (kg/m^2/s [?])
-    !
-    real(dp) , pointer , dimension(:,:) :: uvdrag
-    !
-  end type host_srf_state
-
-  type , public :: host_rad_state
-    !
-    ! Radiative heating (cooling) rate
-    real(dp) , pointer , dimension(:,:,:) :: heatrt
-  end type host_rad_state
-
-  type,public :: host_domain
-    !
-    ! Sigma at full levels
-    !
-    real(dp) , pointer , dimension(:) :: sigma
-    !
-    ! Sigma at half levels
-    !
-    real(dp) , pointer , dimension(:) :: a
-    !
-    ! Pressure at top of model (cb)
-    !
-    real(dp) :: ptop
-    !
-  end type host_domain
-
-  integer , public :: itcmstart , itcmend
-  integer , public :: jtcmstart , jtcmend
-
-  !
-  ! Pointers to point to the TCM's state variable
-  !
-  type(tcm_state) , public , pointer :: tcmstatea , tcmstateb
-
-  real(dp) , public :: dttke ! TKE time step
-  real(dp) , public :: tkemin
-
-  !
-  ! Specific instances of the model's state variables (at the b time step)
-  !
-  type(host_atm_state) , public :: atmstateb
-  type(host_srf_state) , public :: srfstateb
-  type(host_rad_state) , public :: radstateb
-  !
-  ! Parameters for the host model's domain
-  !
-  type(host_domain) , public :: hdomain
-
-  public :: init_tcm_interface , end_tcm_interface
-  public :: allocate_tcm_state
-  public :: get_data_from_tcm
-  public :: hadvTKE , vadvTKE , set_tke_bc , check_conserve_qt
+  public
 
   contains
 
-  subroutine init_tcm_interface
+  subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chib,chiten,    &
+                      remdrd,sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
+                      chtrdpv,chtrname,ichem,ichdrydepo,dt)
     implicit none
+    integer , intent(in) :: ichem , ichdrydepo
+    type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
+    type (slice) , intent(in) :: atms
+    type (diffx) , intent(in) :: adf
+    type (domain) , intent(in) :: mddom
+    type (surfstate) , intent(in) :: sfsta
+    type (surftstate) , intent(in) :: sts2
+    type (surfpstate) , intent(in) :: sps2
+    real(dp) , pointer , dimension(:,:,:) :: heatrt
+    real(dp) , pointer , dimension(:,:,:,:) :: chib
+    real(dp) , pointer , dimension(:,:,:,:) :: chiten
+    real(dp) , pointer , dimension(:,:,:) :: remdrd
+    integer , pointer , dimension(:,:) :: ldmsk
+    real(dp) , pointer , dimension(:) :: a
+    real(dp) , pointer , dimension(:) :: sigma
+    real(dp) , pointer , dimension(:) :: dsigma
+    real(dp) :: dt , ptop
+    real(dp) , pointer , dimension(:,:) :: chtrdpv
+    character(len=5) , pointer , dimension(:) :: chtrname
+
+    ptp = ptop
+    if ( ichem == 1 )      lchem = .true.
+    if ( ichdrydepo == 1 ) lchdrydepo = .true.
 
     itcmstart = 2
     itcmend = iy-1 
@@ -183,94 +74,72 @@ module mod_tcm_interface
       jtcmend = jxp 
     end if
 
-    call assignpnt(atms%ubx3d,atmstateb%u)
-    call assignpnt(atms%vbx3d,atmstateb%v)
-    call assignpnt(atms%tb3d,atmstateb%t)
-    call assignpnt(atms%qvb3d,atmstateb%qv)
-    call assignpnt(atms%qcb3d,atmstateb%qc)
-    call assignpnt(atm2%tke,atmstateb%tke)
-
-    call assignpnt(sps2%ps,srfstateb%ps)
-    call assignpnt(sts2%tg,srfstateb%tg)
-    call assignpnt(sfsta%qfx,srfstateb%qfx)
-    call assignpnt(sfsta%hfx,srfstateb%hfx)
-    call assignpnt(sfsta%uvdrag,srfstateb%uvdrag)
-
-    call assignpnt(heatrt,radstateb%heatrt)
-
-    call assignpnt(sigma,hdomain%sigma)
-    call assignpnt(a,hdomain%a)
-    hdomain%ptop = ptop 
-
     dttke = dt
+    dtpbl = dt
     tkemin = 1.0D-8
 
-  end subroutine init_tcm_interface
+    call assignpnt(aten%u,uten)
+    call assignpnt(aten%v,vten)
+    call assignpnt(aten%t,tten)
+    call assignpnt(aten%tke,tketen)
+    call assignpnt(aten%qv,qvten)
+    call assignpnt(aten%qc,qcten)
+    call assignpnt(uwten%u,uuwten)
+    call assignpnt(uwten%v,vuwten)
+    call assignpnt(uwten%t,tuwten)
+    call assignpnt(uwten%tke,tkeuwten)
+    call assignpnt(uwten%qv,qvuwten)
+    call assignpnt(uwten%qc,qcuwten)
+    call assignpnt(atms%ubx3d,uatm)
+    call assignpnt(atms%vbx3d,vatm)
+    call assignpnt(atms%tb3d,tatm)
+    call assignpnt(atms%qvb3d,qvatm)
+    call assignpnt(atms%qcb3d,qcatm)
+    call assignpnt(atm2%tke,tkeatm)
+    call assignpnt(atms%thx3d,thxatm)
+    call assignpnt(adf%difft,difft)
+    call assignpnt(adf%diffq,diffq)
+    call assignpnt(heatrt,radheatrt)
+    call assignpnt(holtten%qv,diagqv)
+    call assignpnt(holtten%qc,diagqc)
+    call assignpnt(chib,chmx)
+    call assignpnt(chiten,chten)
+    call assignpnt(remdrd,drmr)
+    call assignpnt(sps2%ps,sfcps)
+    call assignpnt(sts2%tg,tg)
+    call assignpnt(sfsta%qfx,qfx)
+    call assignpnt(sfsta%hfx,hfx)
+    call assignpnt(sfsta%zpbl,zpbl)
+    call assignpnt(sfsta%uvdrag,uvdrag)
+    call assignpnt(mddom%coriol,coriolis)
+    call assignpnt(mddom%msfx,mapfcx)
+    call assignpnt(ldmsk,landmsk)
+    call assignpnt(a,hlev)
+    call assignpnt(sigma,flev)
+    call assignpnt(dsigma,dlev)
+    call assignpnt(chtrdpv,depvel)
+    chname => chtrname
 
-  subroutine allocate_tcm_state(tcmstate,lpar)
-    implicit none
-    type(tcm_state) , intent(out) :: tcmstate
-    logical , intent(in) :: lpar
-    !
-    ! Allocate the tcm state variables
-    !
-    if ( lpar ) then
-      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:tkeps')
-      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jxp, &
-                    'mod_tcm_interface:advtke')
-      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kzm')
-      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jxp,'mod_tcm_interface:kth')
-      call getmem2d(tcmstate%zpbl,1,iy,1,jxp,'mod_tcm_interface:zpbl')
-      call getmem2d(tcmstate%srftke,1,iy,1,jxp,'mod_tcm_interface:srftke')
-    else
-      call getmem3d(tcmstate%tkeps,1,iy,1,kzp1,1,jx,'mod_tcm_interface:tkeps')
-      call getmem3d(tcmstate%advtke,1,iy,1,kzp1,1,jx,'mod_tcm_interface:advtke')
-      call getmem3d(tcmstate%kzm,1,iy,1,kzp1,1,jx,'mod_tcm_interface:kzm')
-      call getmem3d(tcmstate%kth,1,iy,1,kzp1,1,jx,'mod_tcm_interface:kth')
-      call getmem2d(tcmstate%zpbl,1,iy,1,jx,'mod_tcm_interface:zpbl')
-      call getmem2d(tcmstate%srftke,1,iy,1,jx,'mod_tcm_interface:srftke')
-    end if
-  end subroutine allocate_tcm_state
+  end subroutine init_pbl
 
-  subroutine end_tcm_interface()
-    implicit none
-    nullify(atmstateb%u)
-    nullify(atmstateb%v)
-    nullify(atmstateb%t)
-    nullify(atmstateb%qv)
-    nullify(atmstateb%qc)
-    nullify(atmstateb%tke)
-
-    nullify(srfstateb%ps)
-    nullify(srfstateb%tg)
-    nullify(srfstateb%qfx)
-    nullify(srfstateb%hfx)
-    nullify(srfstateb%uvdrag)
-
-    nullify(radstateb%heatrt)
-
-    nullify(hdomain%sigma)
-    nullify(hdomain%a)
-  end subroutine end_tcm_interface
-
-  subroutine get_data_from_tcm(tcmstate,tcmtend,bRegridWinds)
+  subroutine get_data_from_tcm(tcmstate,tcmtend,aten,atm1,atm2,bRegridWinds)
     implicit none 
-    type(atmstate) , intent(inout) :: tcmtend
+    type(atmstate) , intent(inout) :: tcmtend , aten , atm1 , atm2
     type(tcm_state) , intent(inout) :: tcmstate
     logical , intent(in) :: bRegridWinds
 
     ! Don't update the model variables if we are the diagnostic mode
-    ! (Holtslag running, and UW updating TKE)
+    ! (Holtslag running, and UW updating tke)
     if ( ibltyp /= 99 ) then
       !
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      adf%diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  adf%diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
+      diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
+                  diffq(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
                   tcmtend%qv(itcmstart:itcmend,:,jtcmstart:jtcmend)
-      adf%difft(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
-                  adf%difft(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
+      difft(itcmstart:itcmend,:,jtcmstart:jtcmend) =  &
+                  difft(itcmstart:itcmend,:,jtcmstart:jtcmend) +  &
                   tcmtend%t(itcmstart:itcmend,:,jtcmstart:jtcmend)
 
       ! Put the cloud water tendency in aten
@@ -294,7 +163,7 @@ module mod_tcm_interface
                  tcmtend%v(itcmstart:itcmend,:,jtcmstart:jtcmend)
       end if
 
-      sfsta%zpbl(itcmstart:itcmend,jtcmstart:jtcmend) = &
+      zpbl(itcmstart:itcmend,jtcmstart:jtcmend) = &
                 tcmstate%zpbl(itcmstart:itcmend,jtcmstart:jtcmend)
     end if
 
@@ -321,7 +190,7 @@ module mod_tcm_interface
     aten%tke(itcmstart:itcmend,:,jtcmstart:jtcmend) = &
                 tcmtend%tke(itcmstart:itcmend,:,jtcmstart:jtcmend)
     !
-    ! Set the surface TKE (diagnosed)
+    ! Set the surface tke (diagnosed)
     !
     atm1%tke(itcmstart:itcmend,kzp1,jtcmstart:jtcmend) =  &
                tcmstate%srftke(itcmstart:itcmend,jtcmstart:jtcmend)
@@ -341,19 +210,21 @@ module mod_tcm_interface
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
 !     This subroutine computes the horizontal flux-divergence terms   c
-!     for TKE.  Second-order difference is used.                      c
+!     for tke.  Second-order difference is used.                      c
 !                                                                     c
 !     dxx    : is the horizontal distance.                            c
 !     j      : is the j'th slice of f anf ften.                       c
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  subroutine hadvTKE(tcmstate,dxx,j)
+  subroutine hadvtke(tcmstate,atm,twt,dxx,j)
     implicit none
     integer , intent(in) :: j
     real(dp) , intent(in) :: dxx
-    type(tcm_state) , pointer :: tcmstate
-    character (len=64) :: subroutine_name='hadvTKE'
+    type(atmstate) , intent(in) :: atm
+    type(tcm_state) , intent(inout) :: tcmstate
+    real(dp) , pointer , dimension(:,:) :: twt
+    character (len=64) :: subroutine_name='hadvtke'
     integer :: idindx = 0
     integer :: i , k , jm1 , jp1
 !
@@ -370,29 +241,29 @@ module mod_tcm_interface
         ! while the advection term is calculated
         !
         tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j)  &
-           -(((atm1%u(i+1,k-1,jp1)+atm1%u(i,k-1,jp1))*twt(k,2)  &
-             +(atm1%u(i+1,k,jp1)  +atm1%u(i,k,jp1))*twt(k,1)) &
-             *( atm1%tke(i,k,j)+atm1%tke(i,k,jp1))  &
-            -((atm1%u(i+1,k-1,j)+atm1%u(i,k-1,j))*twt(k,2)  &
-             +(atm1%u(i+1,k,j)  +atm1%u(i,k,j))*twt(k,1)) &
-             *( atm1%tke(i,k,j)+atm1%tke(i,k,jm1))  &
-            +((atm1%v(i+1,k-1,j)+atm1%v(i+1,k-1,jp1))*twt(k,2)  &
-             +(atm1%v(i+1,k,j)  +atm1%v(i+1,k,jp1))*twt(k,1)) &
-             *( atm1%tke(i,k,j)+atm1%tke(i+1,k,j))  &
-            -((atm1%v(i,k-1,j)+atm1%v(i,k-1,jp1))*twt(k,2)  &
-             +(atm1%v(i,k,j)  +atm1%v(i,k,jp1))*twt(k,1)) &
-             *( atm1%tke(i,k,j)+atm1%tke(i-1,k,j))) &
-             /(dxx*mddom%msfx(i,j)*mddom%msfx(i,j))
+           -(((atm%u(i+1,k-1,jp1)+atm%u(i,k-1,jp1))*twt(k,2)  &
+             +(atm%u(i+1,k,jp1)  +atm%u(i,k,jp1))*twt(k,1)) &
+             *( atm%tke(i,k,j)+atm%tke(i,k,jp1))  &
+            -((atm%u(i+1,k-1,j)+atm%u(i,k-1,j))*twt(k,2)  &
+             +(atm%u(i+1,k,j)  +atm%u(i,k,j))*twt(k,1)) &
+             *( atm%tke(i,k,j)+atm%tke(i,k,jm1))  &
+            +((atm%v(i+1,k-1,j)+atm%v(i+1,k-1,jp1))*twt(k,2)  &
+             +(atm%v(i+1,k,j)  +atm%v(i+1,k,jp1))*twt(k,1)) &
+             *( atm%tke(i,k,j)+atm%tke(i+1,k,j))  &
+            -((atm%v(i,k-1,j)+atm%v(i,k-1,jp1))*twt(k,2)  &
+             +(atm%v(i,k,j)  +atm%v(i,k,jp1))*twt(k,1)) &
+             *( atm%tke(i,k,j)+atm%tke(i-1,k,j))) &
+             /(dxx*mapfcx(i,j)*mapfcx(i,j))
 
 !TAO Debug:
-!       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j)  + 1d-8*atm1%tke(i,k,jp1)
+!       tcmstate%advtke(i,k,j)= tcmstate%advtke(i,k,j)  + 1d-8*atm%tke(i,k,jp1)
 
       end do
     end do
 
     call time_end(subroutine_name,idindx)
 
-  end subroutine hadvTKE
+  end subroutine hadvtke
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !                                                                     c
@@ -405,12 +276,13 @@ module mod_tcm_interface
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  subroutine vadvTKE(tcmstate,j,ind)
+  subroutine vadvtke(tcmstate,qdot,j,ind)
     implicit none
     integer , intent(in) :: j , ind
-    type(tcm_state) , pointer :: tcmstate
+    type(tcm_state) :: tcmstate
+    real(dp) , dimension(:,:,:) , intent(in) :: qdot
     real(dp) , dimension(iy,kz) :: dotqdot , ftmp
-    character (len=64) :: subroutine_name='vadvTKE'
+    character (len=64) :: subroutine_name='vadvtke'
     integer :: idindx = 0
 !
     integer :: i , k
@@ -418,7 +290,7 @@ module mod_tcm_interface
     call time_begin(subroutine_name,idindx)
         
     !
-    ! Use Bretherton's method for TKE advection
+    ! Use Bretherton's method for tke advection
     !
     if ( ind == 1 ) then
       do k = 1 , kz
@@ -433,7 +305,7 @@ module mod_tcm_interface
           tcmstate%advtke(i,k,j) = tcmstate%advtke(i,k,j) - &
                                     (dotqdot(i,k)*ftmp(i,k) -  &
                                     dotqdot(i,k-1)*ftmp(i,k-1))/ &
-                                    (dsigma(k)+dsigma(k-1))
+                                    (dlev(k)+dlev(k-1))
         end do
       end do
     !
@@ -442,29 +314,30 @@ module mod_tcm_interface
     else
       do i = 2 , iym1
         tcmstate%advtke(i,1,j)=tcmstate%advtke(i,1,j)-  &
-                              qdot(i,2,j)*tcmstate%tkeps(i,2,j)/dsigma(1)
+                              qdot(i,2,j)*tcmstate%tkeps(i,2,j)/dlev(1)
       end do
       do k = 2 , kzm1
         do i = 2 , iym1
           tcmstate%advtke(i,k,j)=tcmstate%advtke(i,k,j) &
                               -(qdot(i,k+1,j)*tcmstate%tkeps(i,k+1,j)   &
-                                -qdot(i,k,j)*tcmstate%tkeps(i,k,j))/dsigma(k)
+                                -qdot(i,k,j)*tcmstate%tkeps(i,k,j))/dlev(k)
         end do
       end do
       do i = 2 , iym1
         tcmstate%advtke(i,kz,j)=tcmstate%advtke(i,kz,j)+  &
-                              qdot(i,kz,j)*tcmstate%tkeps(i,kz,j)/dsigma(kz)
+                              qdot(i,kz,j)*tcmstate%tkeps(i,kz,j)/dlev(kz)
       end do
     end if
 
     call time_end(subroutine_name,idindx)
 
-  end subroutine vadvTKE
+  end subroutine vadvtke
 
-  subroutine set_tke_bc()
+  subroutine set_tke_bc(atm1,atm2)
     implicit none
+    type(atmstate) , intent(inout) :: atm1 , atm2
     !
-    ! Set TKE boundary conditions
+    ! Set tke boundary conditions
     !
     if ( myid == 0 ) then
       atm1%tke(:,:,0:1) = tkemin ! East boundary
@@ -480,15 +353,14 @@ module mod_tcm_interface
     atm1%tke(iy,:,:) = tkemin  !South boundary
     atm2%tke(iy,:,:) = tkemin  !South boundary
     !
-    ! End set TKE boundary conditions
+    ! End set tke boundary conditions
     !
   end subroutine set_tke_bc
 
-  subroutine check_conserve_qt(rcmqvten,rcmqcten,tcmtend,dom,tcmstate,kmax)
+  subroutine check_conserve_qt(rcmqvten,rcmqcten,tcmtend,tcmstate,kmax)
     implicit none
     type(atmstate) , intent(in) :: tcmtend
     type(tcm_state) :: tcmstate
-    type(host_domain) , intent(in) :: dom
     real(dp) , dimension(:,:,:) , intent(in) :: rcmqvten , rcmqcten
     integer , intent(in) :: kmax
     real(dp) , dimension(kmax) :: rho1d , rhobydpdz1d
@@ -499,18 +371,18 @@ module mod_tcm_interface
       do j = jbegin , jendx
 
         do k = 1 , kzm1
-          xps = (dom%a(k)*sps2%ps(i,j)+dom%ptop)
-          ps2 = (dom%a(k+1)*sps2%ps(i,j)+dom%ptop)
+          xps = (hlev(k)*sfcps(i,j)+ptp)
+          ps2 = (hlev(k+1)*sfcps(i,j)+ptp)
           dza = za(i,k,j) - za(i,k+1,j)
           rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
 
         end do
         rhobydpdz1d(kz) = rhox2d(i,j)
-        dtops = dt/sps2%ps(i,j)
+        dtops = dtpbl/sfcps(i,j)
 
-        rho1d = d_1000*(dom%a*sps2%ps(i,j) + dom%ptop) / &
-                    ( rgas * atms%tb3d(i,:,j) *  &
-                    (d_one + ep1* atms%qvb3d(i,:,j) - atms%qcb3d(i,:,j))  )
+        rho1d = d_1000*(hlev*sfcps(i,j) + ptp) / &
+                    ( rgas * tatm(i,:,j) *  &
+                    (d_one + ep1* qvatm(i,:,j) - qcatm(i,:,j))  )
 
 
         qwtcm = sum((tcmtend%qv(i,:,j) + tcmtend%qc(i,:,j))  &
@@ -520,12 +392,12 @@ module mod_tcm_interface
 !                     *rhobydpdz1d*dzq(i,:,j))*dtops
 
 !       qwanom = qwtcm - qwrcm
-!       qwanom = qwrcm-sfsta%qfx(i,j)*dt
-        qwanom = qwtcm - dt*sfsta%qfx(i,j)
+!       qwanom = qwrcm-qfx(i,j)*dt
+        qwanom = qwtcm - dtpbl*qfx(i,j)
         tcmstate%kzm(i,1,j) = qwanom
 
       end do
     end do
   end subroutine check_conserve_qt
 
-end module mod_tcm_interface
+end module mod_pbl_interface

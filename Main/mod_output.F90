@@ -27,14 +27,13 @@ module mod_output
   use mod_lm_interface
   use mod_rad_interface
   use mod_cu_interface
+  use mod_pbl_interface
   use mod_ncio
   use mod_bdycod
   use mod_precip
   use mod_split
   use mod_savefile
   use mod_mppio
-  use mod_tcm_interface
-  use mod_pbldim
 #ifdef CLM
   use mod_clm
 #endif
@@ -214,8 +213,8 @@ module mod_output
           do k = 1 , kz
             do i = 1 , iy
               uw0(i,k,j)      = atm1%tke(i,k,j)
-              uw0(i,k+kz,j)   = tcmstateb%kth(i,k,j)
-              uw0(i,k+kz*2,j) = tcmstateb%kzm(i,k,j)
+              uw0(i,k+kz,j)   = uwstateb%kth(i,k,j)
+              uw0(i,k+kz*2,j) = uwstateb%kzm(i,k,j)
             end do
           end do
         end do

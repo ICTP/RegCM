@@ -27,8 +27,8 @@ module mod_bdycod
   use mod_runparams
   use mod_memutil
   use mod_atm_interface
-  use mod_tcm_interface
   use mod_che_interface
+  use mod_pbl_interface , only : set_tke_bc
   use mod_lm_interface
   use mod_message 
   use mod_ncio
@@ -1334,7 +1334,7 @@ module mod_bdycod
     end if
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call set_tke_bc
+      call set_tke_bc(atm1,atm2)
     end if
 !
     call time_end(subroutine_name,idindx)

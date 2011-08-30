@@ -65,11 +65,11 @@ module mod_runparams
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
-  integer :: ibltyp , iboudy , ichem , ipgf , ipptls
+  integer :: iboudy , ichem , ipgf , ipptls
 
   logical :: ifrest , rfstrt , doing_restart
 
-  integer :: ispgd , ispgx , kchi , kclo , kcmd , kt
+  integer :: ispgd , ispgx , kchi , kclo , kcmd
 !
   real(8) :: akht1 , akht2
 

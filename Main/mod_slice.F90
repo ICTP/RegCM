@@ -24,7 +24,7 @@ module mod_slice
   use mod_runparams
   use mod_atm_interface
   use mod_che_interface
-  use mod_pbldim
+  use mod_pbl_interface
 !
   private
 !

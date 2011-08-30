@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 
-module mod_interface
+module mod_regcm_interface
 
 !**********************************************************************
 !
@@ -502,4 +502,4 @@ module mod_interface
 !
   end subroutine RCM_finalize
 !
-end module mod_interface
+end module mod_regcm_interface

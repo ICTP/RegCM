@@ -26,7 +26,7 @@ module mod_mppio
   use mod_cu_interface
   use mod_che_interface
   use mod_rad_interface
-  use mod_tcm_interface , only : tcm_state , allocate_tcm_state
+  use mod_pbl_interface , only : ibltyp , tcm_state , allocate_tcm_state
   use mod_memutil
   use mod_message
 !
@@ -186,8 +186,8 @@ module mod_mppio
 
     if (myid == 0) then
       call allocate_domain(mddom_io,.false.)
-      call allocate_atmstate(atm1_io,.false.,0,0)
-      call allocate_atmstate(atm2_io,.false.,0,0)
+      call allocate_atmstate(atm1_io,ibltyp,.false.,0,0)
+      call allocate_atmstate(atm2_io,ibltyp,.false.,0,0)
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call allocate_tcm_state(tcmstate_io,.false.)
       end if

@@ -26,7 +26,7 @@
 !***********************************************************************
 !
       use ESMF
-      use mod_interface
+      use mod_regcm_interface
       use mod_couplerr
 !
 !  ROMS Component routines.

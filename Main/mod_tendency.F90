@@ -28,18 +28,15 @@ module mod_tendency
   use mod_cu_interface
   use mod_lm_interface
   use mod_rad_interface
+  use mod_pbl_interface
   use mod_che_tend
   use mod_bdycod
   use mod_precip
-  use mod_holtbl
   use mod_sun
   use mod_slice
   use mod_diffusion
   use mod_advection , only : hadv , vadv
   use mod_diagnosis
-  use mod_uwtcm
-  use mod_tcm_interface
-  use mod_pbldim
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -1515,16 +1512,22 @@ module mod_tendency
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
-      call uwtcm(atmstateb,srfstateb,radstateb,hdomain)
-      call get_data_from_tcm(uwstateb,uwtend,.true.)
+#ifndef BAND
+      if (debug_level > 2) call conqeva
+#endif
+      call uwtcm
+      call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
+#ifndef BAND
+      if (debug_level > 2) call conqeva
+#endif
       call holtbl
     end if
 
     if ( ibltyp == 99 ) then
-      call check_conserve_qt(holtten%qv,holtten%qc,uwtend,hdomain,uwstateb,kz)
+      call check_conserve_qt(holtten%qv,holtten%qc,uwten,uwstateb,kz)
       adf%diffq = adf%diffq + holtten%qv
       aten%qc = aten%qc + holtten%qc
     end if
@@ -1952,21 +1955,21 @@ module mod_tendency
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         do i = 1 , iym1
           do k = 1 , kz
-            tcmstatea%tkeps(i,k,j) = atm1%tke(i,k,j)*sps1%ps(i,j)
-            tcmstatea%advtke(i,k,j) = d_zero
+            uwstatea%tkeps(i,k,j) = atm1%tke(i,k,j)*sps1%ps(i,j)
+            uwstatea%advtke(i,k,j) = d_zero
           end do
-          tcmstatea%tkeps(i,kz+1,j) = atm1%tke(i,kz+1,j)*sps1%ps(i,j)
+          uwstatea%tkeps(i,kz+1,j) = atm1%tke(i,kz+1,j)*sps1%ps(i,j)
         end do
 
         ! Don't work with TKE on boundary grid-cells
         if ( (.not.(myid == 0 .and. j == 1)) .and. &
              (.not.(myid == (nproc-1) .and. j == jx)) ) then
           ! Calculate the horizontal advective tendency for TKE
-          call hadvtke(tcmstatea,dx4,j)
+          call hadvtke(uwstatea,atm1,twt,dx4,j)
           ! Calculate the vertical advective tendency for TKE
-          call vadvtke(tcmstatea,j,2)
+          call vadvtke(uwstatea,qdot,j,2)
           ! Calculate the horizontal, diffusive tendency for TKE
-          call diffu_x(tcmstatea%advtke(:,:,j), &
+          call diffu_x(uwstatea%advtke(:,:,j), &
                        atm2%tke,sps2%ps,xkcf(:,:,j),j,kzp1)
         end if
       end if
@@ -2080,7 +2083,9 @@ module mod_tendency
 
     if ( iexec == 2 ) then
       dt = dt2
-      dtcum = dtcum2
+      dtcum = dt2
+      dtpbl = dt2
+      dttke = dt2
       iexec = 3
     end if
 !

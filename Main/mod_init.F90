@@ -27,6 +27,7 @@ module mod_init
   use mod_che_interface
   use mod_cu_interface
   use mod_rad_interface
+  use mod_pbl_interface
   use mod_precip
   use mod_bdycod
   use mod_message
@@ -35,9 +36,6 @@ module mod_init
   use mod_savefile
   use mod_diagnosis
   use mod_mppio
-  use mod_pbldim
-  use mod_tcm_interface
-  use mod_uwtcm, only : init_mod_uwtcm
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays
@@ -388,13 +386,6 @@ module mod_init
  
     if ( icup==4 .or. icup==99 .or. icup==98) then
       cbmf2d = d_zero
-    end if
-!
-! Initialize the TCM
-!
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call init_tcm_interface
-      call init_mod_uwtcm
     end if
 !
   else ! ifrest=.true.
@@ -1112,8 +1103,10 @@ module mod_init
 #ifndef BAND
     if (debug_level > 2) call mpidiag
 #endif
-    dt = dt2       ! First timestep successfully read in
-    dtcum = dtcum2 ! First timestep successfully read in
+    dt = dt2    ! First timestep successfully read in
+    dtcum = dt2
+    dtpbl = dt2
+    dttke = dt2
 !
 !-----end of initial/restart if test
 !

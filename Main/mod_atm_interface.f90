@@ -19,8 +19,10 @@
 
 module mod_atm_interface
 !
+  use mod_constants , only : d_rfour
   use mod_runparams
   use mod_memutil
+  use mpi
 
   private
 
@@ -112,7 +114,7 @@ module mod_atm_interface
 
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
-  type(atmstate) , public :: atmx , atmc , aten , holtten
+  type(atmstate) , public :: atmx , atmc , aten , holtten , uwten
   type(surfpstate) , public :: sps1 , sps2
   type(surftstate) , public :: sts1 , sts2
   type(surfstate) , public :: sfsta
@@ -122,6 +124,7 @@ module mod_atm_interface
   type(v2dbound) , public :: xpsb
 
   public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
+  public :: uvcross2dot
 
   real(8) , public , pointer , dimension(:,:) :: hgfact
   real(8) , public , pointer , dimension(:,:,:) :: sulfate
@@ -169,9 +172,10 @@ module mod_atm_interface
       end if
     end subroutine allocate_v2dbound
 !
-    subroutine allocate_atmstate(atm,lpar,ib,jb)
+    subroutine allocate_atmstate(atm,ibltyp,lpar,ib,jb)
       implicit none
       logical , intent(in) :: lpar
+      integer , intent(in) :: ibltyp
       integer , intent(in) :: ib , jb
       type(atmstate) , intent(out) :: atm
       integer :: is , ie , js , je
@@ -278,20 +282,22 @@ module mod_atm_interface
       call getmem3d(dx%diffq,1,iy,1,kz,1,jxp,'diffx:diffq')
     end subroutine allocate_diffx
 !
-    subroutine allocate_mod_atm_interface(lband)
+    subroutine allocate_mod_atm_interface(lband,ibltyp)
 !
       implicit none
       logical , intent(in) :: lband
+      integer , intent(in) :: ibltyp
 !
       call allocate_domain(mddom,.true.)
 
-      call allocate_atmstate(atm1,.true.,0,2)
-      call allocate_atmstate(atm2,.true.,0,2)
-      call allocate_atmstate(atmx,.true.,0,1)
-      call allocate_atmstate(atmc,.true.,0,0)
-      call allocate_atmstate(aten,.true.,0,0)
+      call allocate_atmstate(atm1,ibltyp,.true.,0,2)
+      call allocate_atmstate(atm2,ibltyp,.true.,0,2)
+      call allocate_atmstate(atmx,ibltyp,.true.,0,1)
+      call allocate_atmstate(atmc,ibltyp,.true.,0,0)
+      call allocate_atmstate(aten,ibltyp,.true.,0,0)
       if ( ibltyp == 99 ) then
-        call allocate_atmstate(holtten,.true.,0,0)
+        call allocate_atmstate(holtten,ibltyp,.true.,0,0)
+        call allocate_atmstate(uwten,ibltyp,.true.,0,1)
       end if
 
       call allocate_surfpstate(sps1)
@@ -328,5 +334,93 @@ module mod_atm_interface
       call getmem3d(qdot,1,iy,1,kzp1,0,jxp+1,'mod_atm_interface:qdot')
 
     end subroutine allocate_mod_atm_interface 
+!
+! Takes an atmstate variable with u and v on the cross grid (the
+! same grid as t, qv, qc, etc.) and interpolates the u and v to
+! the dot grid.  This routine sheilds the user of the function
+! from the need to worry about the details of the domain
+! decomposition.  
+!
+! Written by Travis A. O'Brien 01/04/11.
+!
+! type(atmstate),intent(in) :: invar 
+!                              An atmstate variable (see mod_atm_interface)
+!                              that contains the u and v variables
+!                              that need to be interpolated.  This
+!                              variable is not modified by this
+!                              routine.
+!
+! type(atmstate),intent(inout) :: outvar 
+!                              An atmstate variable (see mod_atm_interface)
+!                              that contains the u and v variables
+!                              that will be overwritten by the
+!                              interpolation of invar%u and invar%v.
+!                              Only u and v are modified in this
+!                              routine (t, qv, qc, and tke should
+!                              remain unchanged).
+!
+    subroutine uvcross2dot(invar,outvar)
+      implicit none
+      type(atmstate) , intent(inout) :: invar
+      type(atmstate) , intent(inout) :: outvar
+      integer :: ib , ie , jb , je , i , j
+      integer :: isendcount , ierr
+
+      ! TODO:  It might make sense to encapsulate the following code
+      ! in to a standard routine, since this boundary sending code is
+      ! ubiquitous throughout the RegCM code and it is domain
+      ! decomposition-dependent.
+
+      ! Send the right-edge of the u/v tendencies to the left
+      ! edge of the next process's u/v tendencies (so that
+      ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
+      ! chunk next door)
+
+      isendcount = iy*kz
+      call mpi_sendrecv(invar%u(:,:,jxp),isendcount,mpi_real8,ieast,30, &
+                        invar%u(:,:,0),isendcount,mpi_real8,iwest,30,   &
+                        mpi_comm_world,mpi_status_ignore,ierr)
+      call mpi_sendrecv(invar%v(:,:,jxp),isendcount,mpi_real8,ieast,31, &
+                        invar%v(:,:,0),isendcount,mpi_real8,iwest,31,   &
+                        mpi_comm_world,mpi_status_ignore,ierr)
+
+      ! Set j-loop boundaries
+      jb = jbegin
+      je = jendx
+      ! Set i-loop boundaries
+      ib = 2
+      ie = iym1
+
+      !
+      !     x     x     x     x     x     x
+      !
+      !        o     o     o     o     o 
+      !         (i-1,j-1)     (i,j-1)            
+      !     x     x     x-----x     x     x
+      !                 |(i,j)|
+      !        o     o  |  o  |  o     o 
+      !                 |     |
+      !     x     x     x-----x     x     x
+      !           (i-1,j)     (i,j)
+      !
+      !        o     o     o     o     o 
+      !
+      !     x     x     x     x     x     x
+      !
+
+      ! Perform the bilinear interpolation necessary
+      ! to put the u and v variables on the dot grid.
+
+      do j = jb , je
+        do i = ib , ie
+          outvar%u(i,:,j) =  outvar%u(i,:,j) +             &
+            d_rfour*(invar%u(i,:,j) + invar%u(i,:,j-1) +   &
+                     invar%u(i-1,:,j) + invar%u(i-1,:,j-1))
+          outvar%v(i,:,j) =  outvar%v(i,:,j) +             &
+            d_rfour*(invar%v(i,:,j) + invar%v(i,:,j-1) +   &
+                     invar%v(i-1,:,j) + invar%v(i-1,:,j-1))
+        end do
+      end do
+    end subroutine uvcross2dot
 !
 end module mod_atm_interface
