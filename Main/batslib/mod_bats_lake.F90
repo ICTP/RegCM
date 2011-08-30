@@ -29,7 +29,7 @@ module mod_bats_lake
 !
   private
 !
-  public :: allocate_lake , lakesav_i, lakesav_o
+  public :: allocate_mod_bats_lake , lakesav_i, lakesav_o
   public :: initlake , lakescatter , lakegather , lakedrv
   public :: dhlake1
 !
@@ -58,16 +58,19 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine allocate_lake
-  implicit none
-  call getmem3d(dhlake1,1,nnsg,1,iy,1,jxp,'mod_lake:dhlake1')
-  call getmem3d(idep2d,1,nnsg,1,iy,1,jxp,'mod_lake:idep2d')
-  call getmem3d(eta2d,1,nnsg,1,iy,1,jxp,'mod_lake:eta2d')
-  call getmem3d(hi2d,1,nnsg,1,iy,1,jxp,'mod_lake:hi2d')
-  call getmem3d(aveice2d,1,nnsg,1,iy,1,jxp,'mod_lake:aveice2d')
-  call getmem3d(hsnow2d,1,nnsg,1,iy,1,jxp,'mod_lake:hsnow2d')
-  call getmem4d(tlak3d,1,ndpmax,1,nnsg,1,iy,1,jxp,'mod_lake:tlak3d')
-  end subroutine allocate_lake
+  subroutine allocate_mod_bats_lake(ilake)
+    implicit none
+    integer , intent(in) :: ilake
+    if ( ilake == 1 ) then
+      call getmem3d(dhlake1,1,nnsg,1,iy,1,jxp,'mod_lake:dhlake1')
+      call getmem3d(idep2d,1,nnsg,1,iy,1,jxp,'mod_lake:idep2d')
+      call getmem3d(eta2d,1,nnsg,1,iy,1,jxp,'mod_lake:eta2d')
+      call getmem3d(hi2d,1,nnsg,1,iy,1,jxp,'mod_lake:hi2d')
+      call getmem3d(aveice2d,1,nnsg,1,iy,1,jxp,'mod_lake:aveice2d')
+      call getmem3d(hsnow2d,1,nnsg,1,iy,1,jxp,'mod_lake:hsnow2d')
+      call getmem4d(tlak3d,1,ndpmax,1,nnsg,1,iy,1,jxp,'mod_lake:tlak3d')
+    end if
+  end subroutine allocate_mod_bats_lake
 
   subroutine initlake
 #ifndef IBM

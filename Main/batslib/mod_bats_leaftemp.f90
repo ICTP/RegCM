@@ -31,7 +31,7 @@ module mod_bats_leaftemp
   private
 !
   public :: lfta , lftb , lftrs , lftra
-  public :: allocate_mod_leaftemp , lftemp , satur
+  public :: allocate_mod_bats_leaftemp , lftemp , satur
 !
   real(dp) , pointer , dimension(:,:) :: lfta , lftb
   real(dp) , pointer , dimension(:,:) :: lftra , lftrs
@@ -50,7 +50,7 @@ module mod_bats_leaftemp
 !
   contains
 !
-  subroutine allocate_mod_leaftemp
+  subroutine allocate_mod_bats_leaftemp
     implicit none
 
     call getmem2d(lfta,1,nnsg,1,iym1,'mod_leaftemp:lfta')
@@ -78,7 +78,7 @@ module mod_bats_leaftemp
     call getmem2d(rib,1,nnsg,1,iym1,'mod_leaftemp:rib')
     call getmem2d(rib1,1,nnsg,1,iym1,'mod_leaftemp:rib1')
 
-  end subroutine allocate_mod_leaftemp
+  end subroutine allocate_mod_bats_leaftemp
 !
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989

@@ -87,6 +87,8 @@ module mod_params
   logical , dimension(n_radvar) :: rad_enablevar
   logical , dimension(n_chevar) :: che_enablevar
   logical , dimension(n_lakvar) :: lak_enablevar
+  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
+  integer(8) :: nbdyfrq
   integer :: n , len_path
   logical :: lband
   integer :: ierr
@@ -651,31 +653,34 @@ module mod_params
 !-----------------------------------------------------------------------
 !
   call allocate_mod_runparams
-  if ( lakemod == 1 ) call allocate_lake
   call allocate_mod_atm_interface(lband)
   call allocate_mod_tend(lband)
-  call allocate_mod_bats(ichem,idcsst)
   call allocate_mod_bdycon
   call allocate_mod_holtbl
-  call allocate_mod_leaftemp
   call allocate_mod_pbldim
   call allocate_mod_cu_common
   call allocate_mod_precip
+  call allocate_mod_split
+  call allocate_mod_mppio(lband)
+
+  call allocate_mod_bats_common(ichem,idcsst)
+  call allocate_mod_bats_leaftemp
+  call allocate_mod_bats_mppio(lakemod)
+  call allocate_mod_bats_lake(lakemod)
+#ifdef CLM
+  call allocate_mod_clm(lband)
+#endif
+
   call allocate_mod_rad_common
   call allocate_mod_rad_radiation 
   call allocate_mod_rad_o3blk
   call allocate_mod_rad_aerosol
   call allocate_mod_rad_outrad
-  call allocate_mod_split
-  call allocate_mod_mppio(lband)
-#ifdef CLM
-  call allocate_mod_clm(lband)
-#endif
+
 #ifndef BAND
   call allocate_mod_diagnosis
 #endif
 
-  call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_che_common(ichem)
   call allocate_mod_che_mppio(lband)
   call allocate_mod_che_dust
@@ -795,6 +800,8 @@ module mod_params
 
   ktau = 0
 
+  khour = 3600_8/idnint(dtsec)
+  kbdy = nbdyfrq/idnint(dtsec)
   katm = natmfrq/idnint(dtsec)
   ksrf = nsrffrq/idnint(dtsec)
   krad = nradfrq/idnint(dtsec)
@@ -828,12 +835,11 @@ module mod_params
 !
   call set_scenario(scenario)
 #ifdef CLM
-  call init_clm(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                iseaice,mddom,mddom_io,atms,sfsta,sps2,sts1,sts2,&
-                za,ts1,ts0_io,rhox2d,landmask)
+  call init_clm(dtsec,ksrf,ichem,iemiss,mddom,mddom_io,atms,sfsta,sps2, &
+                sts1,sts2,za,ts1,ts0_io,rhox2d,landmask)
 #else
-  call init_bats(dtsec,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                 iseaice,mddom,atms,sfsta,sps2,sts1,sts2,za,ts1,rhox2d)
+  call init_bats(dtsec,ksrf,ichem,iemiss,mddom,atms,sfsta,sps2,sts1,sts2, &
+                 za,ts1,rhox2d)
 #endif
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &

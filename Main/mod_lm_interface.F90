@@ -39,15 +39,18 @@ module mod_lm_interface
   use mod_bats_zengocn
 #endif
 !
+  public
+
+  integer :: idcsst , lakemod , idesseas , iseaice
+
   contains
 
-  subroutine init_bats(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                       iseaice,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
+  subroutine init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs, &
+                       sps,st1,st2,za,ts1,rhox2d)
     implicit none
     real(8) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
-    integer , intent(in) :: ichem , iemiss , idcsst , &
-                            lakemod , idesseas , iseaice
+    integer , intent(in) :: ichem , iemiss
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
@@ -85,14 +88,12 @@ module mod_lm_interface
   end subroutine init_bats
 !
 #ifdef CLM
-  subroutine init_clm(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                      iseaice,dom,dom1,atm,sfs,sps,st1,st2,za,ts1,  &
-                      ts0,rhox2d,lm)
+  subroutine init_clm(dt,ksrf,ichem,iemiss,dom,dom1,atm,sfs,&
+                      sps,st1,st2,za,ts1,ts0,rhox2d,lm)
     implicit none
     real(8) , intent(in) :: dt
     integer(8) , intent(in) :: ksrf
-    integer , intent(in) :: ichem , iemiss , idcsst , &
-                            lakemod , idesseas , iseaice
+    integer , intent(in) :: ichem , iemiss
     type(domain) , intent(in) :: dom , dom1
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
@@ -102,8 +103,7 @@ module mod_lm_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: ts0 , ts1 , rhox2d
     integer , target , intent(in) , dimension(:,:) :: lm
 
-    call init_bats(dt,ksrf,ichem,iemiss,idcsst,lakemod,idesseas, &
-                   iseaice,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
+    call init_bats(dt,ksrf,ichem,iemiss,dom,atm,sfs,sps,st1,st2,za,ts1,rhox2d)
     call assignpnt(ts0,tsf)
     call assignpnt(dom1%ht,htf)
     call assignpnt(dom%xlon,xlon)

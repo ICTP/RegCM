@@ -41,21 +41,31 @@ module mod_runparams
   real(8) :: xbctime
   real(8) :: calday , twodt
 
-  integer(8) :: ktau , mtau
-  integer(8) :: katm , ksrf , krad , kche , ksav , kdbg
+  ! Step counter. Is zero at idate0, always increasing, never reset.
+  integer(8) :: ktau
+  ! Final number of step for THIS run
+  integer(8) :: mtau
+  ! How many steps for an hour (updates date fields Y m d H)
+  integer(8) :: khour
+  ! Output k values for I/O operations.
+  integer(8) :: katm , krad , kche , ksav , kdbg , kbdy , ksrf
+  ! Seconds counter in between boundary conditions read
   integer(8) :: nbdytime
-  integer(8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
-  integer(8) :: nbdyfrq , ntsrf , ntrad , ntsec
+  ! Step counters to activate surface and radiation schemes
+  integer(8) :: ntsrf , ntrad
+  ! Model timestep in seconds (real and integer)
+  integer(8) :: ntsec
+  real(8) :: dtsec
+  ! Internal count for how many SRF outputs every LAK output
   integer :: klak
 !
-  real(8) :: dt , dt2 , dtbdys , dtsec
+  real(8) :: dt , dt2 , dtbdys
   real(8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(8) :: c200 , rdxsq , dtsrf , dtabem , dtrad
   real(8) :: fnudge , gnudge
   real(8) :: xkhmax , xkhz
 
-  integer :: ibltyp , iboudy , ichem , idesseas , &
-             ipgf , ipptls , idcsst , iseaice , lakemod
+  integer :: ibltyp , iboudy , ichem , ipgf , ipptls
 
   logical :: ifrest , rfstrt , doing_restart
 

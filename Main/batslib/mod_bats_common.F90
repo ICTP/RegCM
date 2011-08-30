@@ -30,9 +30,9 @@ module mod_bats_common
   real(dp) :: dtbat  ! BATS1e internal timestep
   real(dp) :: dtlake ! Lake model internal timestep
 
-  integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
-
   logical :: lemiss , lchem , ldcsst , llake , lseaice , ldesseas
+
+  integer(8) :: kbats  ! Step frequency in calling BATS1e LSM
 
   integer :: iocnrough , iocnflx
 
@@ -143,7 +143,7 @@ module mod_bats_common
 
   contains
 
-    subroutine allocate_mod_bats(ichem,idcsst)
+    subroutine allocate_mod_bats_common(ichem,idcsst)
     implicit none
     integer , intent(in) :: ichem , idcsst
 
@@ -420,6 +420,6 @@ module mod_bats_common
     sena_s => fsub(:,:,:,15)
     prcv_s => fsub(:,:,:,16)
 !
-  end subroutine allocate_mod_bats 
+  end subroutine allocate_mod_bats_common
 !
 end module mod_bats_common
