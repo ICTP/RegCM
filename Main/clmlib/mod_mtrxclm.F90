@@ -323,7 +323,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -341,7 +341,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -359,7 +359,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -377,7 +377,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -395,7 +395,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -413,7 +413,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -432,7 +432,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -450,7 +450,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -468,7 +468,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -486,7 +486,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -504,7 +504,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -522,7 +522,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -540,7 +540,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
       end do
     end do
     call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,&
-                       jxp*iy,mpi_double_precision,mpi_comm_world,  &
+                       jxp*iy,mpi_double_precision,mycomm,  &
                        ierr)
     ii = 1
     do j = 1 , jx
@@ -560,7 +560,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     jxp*iy,mpi_double_precision,mycomm,    &
                      ierr)
   ii = 1
   do j = 1 , jx
@@ -578,7 +578,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     jxp*iy,mpi_double_precision,mycomm,    &
                      ierr)
   ii = 1
   do j = 1 , jx
@@ -596,7 +596,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     jxp*iy,mpi_double_precision,mycomm,    &
                      ierr)
   ii = 1
   do j = 1 , jx
@@ -614,7 +614,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
   end do
   call mpi_allgather(work_in,jxp*iy,mpi_double_precision,work_out,  &
-                     jxp*iy,mpi_double_precision,mpi_comm_world,    &
+                     jxp*iy,mpi_double_precision,mycomm,    &
                      ierr)
   ii = 1
   do j = 1 , jx
@@ -924,7 +924,7 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     end do
     call mpi_allgather(workin,13*jxp*iy,mpi_double_precision,       &
                        workout,13*jxp*iy,mpi_double_precision,      &
-                       mpi_comm_world,ierr)
+                       mycomm,ierr)
  
     ii = 1
     kk = 1

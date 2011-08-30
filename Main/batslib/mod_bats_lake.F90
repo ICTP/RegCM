@@ -135,7 +135,7 @@ module mod_bats_lake
 
   call mpi_gather(idep2d,   nnsg*iym1*jxp,mpi_integer, &
                 & idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
   end subroutine initlake
 !
   subroutine lakedrv(jslc)
@@ -672,19 +672,19 @@ module mod_bats_lake
 !
   call mpi_gather(eta2d,   nnsg*iym1*jxp,mpi_real8, &
                 & eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
   call mpi_gather(hi2d,   nnsg*iym1*jxp,mpi_real8, &
                 & hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
   call mpi_gather(aveice2d,   nnsg*iym1*jxp,mpi_real8, &
                 & aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
   call mpi_gather(hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
                 & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
   call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
                 & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                & 0, mpi_comm_world,ierr)
+                & 0, mycomm,ierr)
 
   end subroutine lakegather
 !
@@ -704,22 +704,22 @@ module mod_bats_lake
 !
   call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
                  & idep2d,   nnsg*iym1*jxp,mpi_integer, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
   call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
                  & eta2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
   call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
                  & hi2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
   call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
                  & aveice2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
   call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
                  & hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
   call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
                  & tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mpi_comm_world,ierr)
+                 & 0, mycomm,ierr)
 
   end subroutine lakescatter
 !

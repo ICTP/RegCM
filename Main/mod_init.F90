@@ -167,11 +167,11 @@ module mod_init
 !
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     if ( ehso4 )                                                    &
         call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,         &
                          sav0s, iy*kz*jxp,mpi_real8,         &
-                         0,mpi_comm_world,ierr)
+                         0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -210,7 +210,7 @@ module mod_init
 !
     call mpi_sendrecv(xpsb%b0(:,jxp),iy,mpi_real8,ieast,1,              &
                       xpsb%b0(:,0),iy,mpi_real8,iwest,1,                &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       do i = 2 , iym1
         psdot(i,j) = (xpsb%b0(i,j)   + xpsb%b0(i-1,j) +   &
@@ -434,11 +434,11 @@ module mod_init
     end if
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     if ( ehso4 ) then
       call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,  &
                        sav0s, iy*kz*jxp,mpi_real8,  &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
     end if
     do j = 1 , jendl
       do k = 1 , kz
@@ -480,7 +480,7 @@ module mod_init
     end if
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -513,7 +513,7 @@ module mod_init
     end if
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,   &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -556,7 +556,7 @@ module mod_init
     end if
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,  &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,  &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -593,7 +593,7 @@ module mod_init
       end if
       call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
                        sav0, iy*kzp1*jxp,mpi_real8,   &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iy
@@ -612,7 +612,7 @@ module mod_init
       end if
       call mpi_scatter(sav_0,iy*kzp1*jxp,mpi_real8,   &
                        sav0, iy*kzp1*jxp,mpi_real8,   &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendx
         do k = 1 , kzp1
           do i = 1 , iy
@@ -627,7 +627,7 @@ module mod_init
       end do
       call mpi_scatter(var2d_0,iy*jxp,mpi_integer, &
                        var2d0, iy*jxp,mpi_integer, &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       if (myid == 0) then
         do j = 1 , jendx
           do i = 1 , iy
@@ -662,7 +662,7 @@ module mod_init
     allrec = 4 + kzp1
     call mpi_scatter(sav_0a,iy*allrec*jxp,mpi_real8,  &
                      sav0a, iy*allrec*jxp,mpi_real8,  &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do i = 1 , iy
         sfsta%hfx(i,j)    = sav0a(i,1,j)
@@ -681,7 +681,7 @@ module mod_init
     if ( iocnflx == 2 ) then
       call mpi_scatter(zpbl_io,    iy*jxp,mpi_real8,         &
                        sfsta%zpbl, iy*jxp,mpi_real8,   &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
     end if
     if ( icup == 1 ) then
       if ( myid == 0 ) then
@@ -696,7 +696,7 @@ module mod_init
       end if
       call mpi_scatter(sav_0c,iy*kz*2*jxp,mpi_real8,  &
                        sav0c, iy*kz*2*jxp,mpi_real8,  &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -721,7 +721,7 @@ module mod_init
       end if
       call mpi_scatter(sav_0b,iy*(kzp1)*jxp,mpi_real8,  &
                        sav0b, iy*(kzp1)*jxp,mpi_real8,  &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -736,7 +736,7 @@ module mod_init
     if ( icup==4 .or. icup==99 .or. icup==98 ) then
       call mpi_scatter(cbmf2d_io,iy*jxp,mpi_real8,  &
                        cbmf2d,   iy*jxp,mpi_real8,  &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
     end if
     if ( myid == 0 ) then
 #ifdef BAND
@@ -783,7 +783,7 @@ module mod_init
     allrec = kz*4 + (kzp1*kzp2)
     call mpi_scatter(sav_1,iym1*allrec*jxp,mpi_real8,   &
                      sav1, iym1*allrec*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do l = 1 , 4
         do k = 1 , kz
@@ -837,7 +837,7 @@ module mod_init
     allrec = nnsg*5 + 4
     call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
                      sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
@@ -881,7 +881,7 @@ module mod_init
     allrec = nnsg*5 + 4
     call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
                      sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
@@ -925,7 +925,7 @@ module mod_init
     allrec = nnsg*5 + 4
     call mpi_scatter(sav_2,iym1*allrec*jxp,mpi_real8,   &
                      sav2, iym1*allrec*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
@@ -964,7 +964,7 @@ module mod_init
     allrec = nnsg*2 + 2
     call mpi_scatter(sav_2a,iym1*allrec*jxp,mpi_integer,  &
                      sav2a, iym1*allrec*jxp,mpi_integer,  &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do n = 1 , nnsg
         do i = 1 , iym1
@@ -1004,7 +1004,7 @@ module mod_init
       allrec = ntr*(kz*4+1)
       call mpi_scatter(sav_4,iy*allrec*jxp,mpi_real8,   &
                        sav4, iy*allrec*jxp,mpi_real8,   &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendl
         do n = 1 , ntr
           do k = 1 , kz
@@ -1044,7 +1044,7 @@ module mod_init
       end if
       call mpi_scatter(sav_4a,iym1*7*jxp,mpi_real8,   &
                        sav4a, iym1*7*jxp,mpi_real8,   &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendx
         do i = 1 , iym1
           ssw2da(i,j) = sav4a(i,1,j)
@@ -1078,7 +1078,7 @@ module mod_init
     end if
     call mpi_scatter(sav_clmout,iym1*8*jxp,mpi_real8,   &
                      sav_clmin, iym1*8*jxp,mpi_real8,   &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendx
       do i = 1 , iym1
         sols2d(i,j)   = sav_clmin(i,1,j)
@@ -1093,12 +1093,12 @@ module mod_init
     end do
     call mpi_scatter(lndcat2d_io,iy*jxp,mpi_real8, &
                      lndcat2d,   iy*jxp,mpi_real8, &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
 #endif
-    call mpi_bcast(ktau,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(mtau,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nbdytime,1,mpi_integer,0,mpi_comm_world,ierr)
-    call date_bcast(idatex,0,mpi_comm_world,ierr)
+    call mpi_bcast(ktau,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(mtau,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(nbdytime,1,mpi_integer,0,mycomm,ierr)
+    call date_bcast(idatex,0,mycomm,ierr)
     xbctime = dble(nbdytime)
 #ifndef BAND
     if (debug_level > 2) call mpidiag

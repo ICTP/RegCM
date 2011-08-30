@@ -213,7 +213,7 @@ module mod_split
       end if
       call mpi_scatter(sav_0d,iy*nsplit*2*jxp,mpi_real8,       &
                      & sav0d, iy*nsplit*2*jxp,mpi_real8,       &
-                     & 0,mpi_comm_world,ierr)
+                     & 0,mycomm,ierr)
       do j = 1 , jendl
         do n = 1 , nsplit
           do i = 1 , iy
@@ -224,7 +224,7 @@ module mod_split
       end do
       call mpi_scatter(sav_6,kz*8*jxp,mpi_real8,   &
                      & sav6, kz*8*jxp,mpi_real8,0, &
-                     & mpi_comm_world,ierr)
+                     & mycomm,ierr)
       do j = 1 , jendl
         do k = 1 , kz
           ui1(k,j) = sav6(k,1,j)
@@ -238,14 +238,14 @@ module mod_split
         end do
       end do
 #ifndef BAND
-      call mpi_bcast(uj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(uj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(vj1,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(vj2,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(ujlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(ujl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(vjl,iy*kz,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(uj1,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(uj2,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(vj1,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(vj2,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(ujlx,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(ujl,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(vjlx,iy*kz,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(vjl,iy*kz,mpi_real8,0,mycomm,ierr)
       if ( myid /= nproc-1 ) then
 #endif
         do k = 1 , kz
@@ -263,7 +263,7 @@ module mod_split
 #endif
       call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,            &
                       & 1,var1rcv(1,1),kz*8,mpi_real8,                &
-                      & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
+                      & iwest,1,mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= 0 ) then
 #endif
@@ -296,7 +296,7 @@ module mod_split
 #endif
       call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,            &
                       & 2,var1rcv(1,1),kz*8,mpi_real8,                &
-                      & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+                      & ieast,2,mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
       if ( myid /= nproc-1 ) then
 #endif
@@ -332,10 +332,10 @@ module mod_split
       end do
       call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,           &
                       & uuu(1,1,jxp+1),iy*kz,mpi_real8,               &
-                      & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+                      & ieast,2,mycomm,mpi_status_ignore,ierr)
       call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,           &
                       & vvv(1,1,jxp+1),iy*kz,mpi_real8,               &
-                      & ieast,2,mpi_comm_world,mpi_status_ignore,ierr)
+                      & ieast,2,mycomm,mpi_status_ignore,ierr)
 !
       do l = 1 , nsplit
         do j = 1 , jendl
@@ -434,7 +434,7 @@ module mod_split
 !
     call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,      &
                     & sps1%ps(1,0),iy,mpi_real8,iwest,1,        &
-                    & mpi_comm_world,mpi_status_ignore,ierr)
+                    & mycomm,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       jm1 = j-1
       do i = 2 , iym1
@@ -496,10 +496,10 @@ module mod_split
     end do
     call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                     & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
-                    & 2,mpi_comm_world,mpi_status_ignore,ierr)
+                    & 2,mycomm,mpi_status_ignore,ierr)
     call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                     & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
-                    & 2,mpi_comm_world,mpi_status_ignore,ierr)
+                    & 2,mycomm,mpi_status_ignore,ierr)
     do l = 1 , nsplit
       do j = 1 , jendl
         do i = 1 , iy
@@ -545,10 +545,10 @@ module mod_split
     end do
     call mpi_sendrecv(uuu(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                     & uuu(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
-                    & 2,mpi_comm_world,mpi_status_ignore,ierr)
+                    & 2,mycomm,mpi_status_ignore,ierr)
     call mpi_sendrecv(vvv(1,1,1),iy*kz,mpi_real8,iwest,2,             &
                     & vvv(1,1,jxp+1),iy*kz,mpi_real8,ieast,           &
-                    & 2,mpi_comm_world,mpi_status_ignore,ierr)
+                    & 2,mycomm,mpi_status_ignore,ierr)
     do l = 1 , nsplit
       do j = 1 , jendl
         do i = 1 , iy
@@ -699,7 +699,7 @@ module mod_split
     end do
     call mpi_sendrecv(wksend(1),iy*nsplit,mpi_real8,ieast,            &
                     & 1,wkrecv(1),iy*nsplit,mpi_real8,                &
-                    & iwest,1,mpi_comm_world,mpi_status_ignore,ierr)
+                    & iwest,1,mycomm,mpi_status_ignore,ierr)
     ii = 0
     do l = 1 , nsplit
       do i = 1 , iy
@@ -789,7 +789,7 @@ module mod_split
 !
       call mpi_sendrecv(delh(1,jxp,ns,n0),iy,mpi_real8,               &
                       & ieast,1,delh(1,0,ns,n0),iy,                   &
-                      & mpi_real8,iwest,1,mpi_comm_world,             &
+                      & mpi_real8,iwest,1,mycomm,             &
                       & mpi_status_ignore,ierr)
       do j = jbegin , jendx
         jm1 = j-1
@@ -832,7 +832,7 @@ module mod_split
       end do
       call mpi_sendrecv(wksend(1),2*iy,mpi_real8,iwest,2,             &
                       & wkrecv(1),2*iy,mpi_real8,ieast,2,             &
-                      & mpi_comm_world,mpi_status_ignore,ierr)
+                      & mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         uu(i,jxp+1) = wkrecv(i)
         vv(i,jxp+1) = wkrecv(i+iy)
@@ -892,7 +892,7 @@ module mod_split
 !
         call mpi_sendrecv(delh(1,jxp,ns,n1),iy,mpi_real8,             &
                         & ieast,1,delh(1,0,ns,n1),iy,                 &
-                        & mpi_real8,iwest,1,mpi_comm_world,           &
+                        & mpi_real8,iwest,1,mycomm,           &
                         & mpi_status_ignore,ierr)
         do j = jbegin , jendx
           jm1 = j-1
@@ -934,7 +934,7 @@ module mod_split
         end do
         call mpi_sendrecv(wksend(1),2*iy,mpi_real8,iwest,2,           &
                         & wkrecv(1),2*iy,mpi_real8,ieast,2,           &
-                        & mpi_comm_world,mpi_status_ignore,ierr)
+                        & mycomm,mpi_status_ignore,ierr)
         do i = 1 , iy
           uu(i,jxp+1) = wkrecv(i)
           vv(i,jxp+1) = wkrecv(i+iy)

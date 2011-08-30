@@ -186,7 +186,7 @@ module mod_che_dust
       end if
     end do
   end if
-  call mpi_bcast(rd_tex,1,mpi_logical,0,mpi_comm_world,ierr)
+  call mpi_bcast(rd_tex,1,mpi_logical,0,mycomm,ierr)
 
   if ( myid == 0 ) then
     if ( rd_tex ) then
@@ -206,7 +206,7 @@ module mod_che_dust
 
   call mpi_scatter(src_1,iy*jxp*nats,mpi_real8, &
                    src1,iy*jxp*nats,mpi_real8,0,  &
-                   mpi_comm_world,ierr)
+                   mycomm,ierr)
 
 
     do j=1,jendl

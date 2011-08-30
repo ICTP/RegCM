@@ -29,11 +29,11 @@
       use mod_regcm_interface
       use mod_couplerr
 !
-!  ROMS Component routines.
+!     ROMS Component routines.
 !
-      USE ocean_control_mod, ONLY : ROMS_initialize
-      USE ocean_control_mod, ONLY : ROMS_run
-      USE ocean_control_mod, ONLY : ROMS_finalize
+      use ocean_control_mod, only : ROMS_initialize
+      use ocean_control_mod, only : ROMS_run
+      use ocean_control_mod, only : ROMS_finalize
 ! 
       implicit none
       private
@@ -132,7 +132,9 @@
 !
 !***********************************************************************
 !
-!
+      logical :: flag
+      type(ESMF_Config) :: config
+      integer :: MyRank, Nnodes, comm, ierr 
 !
 !***********************************************************************
 !
@@ -140,6 +142,28 @@
 !
 !***********************************************************************
 !
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+!     
+      call ESMF_GridCompGet(comp,                                       &
+                            vm=models(Iocean)%vm,                       &
+                            rc=rc)
+
+      call ESMF_VMGet(models(Iocean)%vm,                                &
+                      localPet=MyRank,                                  &
+                      petCount=Nnodes,                                  &
+                      mpiCommunicator=comm,                             &
+                      rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Initialize the gridded component
+!-----------------------------------------------------------------------
+!
+      flag = .TRUE.
+      call MPI_Comm_dup(comm, models(Iocean)%comm, ierr)
+      call ROMS_initialize(flag, MyCOMM=models(Iocean)%comm)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

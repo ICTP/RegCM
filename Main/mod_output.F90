@@ -173,7 +173,7 @@ module mod_output
       end do
       call mpi_gather(atm0, iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
                     & atm_0,iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -220,7 +220,7 @@ module mod_output
         end do
         call mpi_gather(uw0, iy*(kz*3)*jxp,mpi_real8,&
                       & uw_0,iy*(kz*3)*jxp,mpi_real8,&
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
@@ -243,7 +243,7 @@ module mod_output
       end do
       call mpi_gather(var2d1, iy*nnsg*jxp,mpi_integer, &
                     & var2d_1,iy*nnsg*jxp,mpi_integer, &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if (myid == 0) then
 #ifdef BAND
         do j = 1 , jx
@@ -288,7 +288,7 @@ module mod_output
         end do
         call mpi_gather(var2d0, iy*jxp,mpi_integer, &
                       & var2d_0,iy*jxp,mpi_integer, &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if (myid == 0) then
 #ifdef BAND
           do j = 1 , jx
@@ -310,7 +310,7 @@ module mod_output
       end do
       call mpi_gather(bat0, iym2*numbat*jxp,mpi_real4,       &
                     & bat_0,iym2*numbat*jxp,mpi_real4,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do l = 1 , numbat
           do i = 1 , iym2
@@ -352,7 +352,7 @@ module mod_output
         end do
         call mpi_gather(sub0, iym2*nnsg*numsub*jxp,mpi_real4, &
                       & sub_0,iym2*nnsg*numsub*jxp,mpi_real4, &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
 
         if ( myid == 0 ) then
           do l = 1 , numsub
@@ -401,10 +401,10 @@ module mod_output
       end do
       call mpi_gather(rad0, iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
                       rad_0,iym2*(nrad3d*kz+nrad2d)*jxp,mpi_real4, &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8, &
                       psa_io,           iy*jxp,mpi_real8, &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       if ( myid == 0 ) then
         do n = 1 , nrad2d
 #ifdef BAND
@@ -490,7 +490,7 @@ module mod_output
       end do
       call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*7+5)*jxp,            &
                     & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*7+5)*jxp, &
-                    & mpi_real8,0,mpi_comm_world,ierr)
+                    & mpi_real8,0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do n = 1 , ntr
@@ -633,7 +633,7 @@ module mod_output
       allrec = kz*4 + 2
       call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                     & sav_0,iy*allrec*jxp,mpi_real8,         &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -660,7 +660,7 @@ module mod_output
         end do
         call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
                       & sav_0s,iy*kz*jxp,mpi_real8,          &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
@@ -688,7 +688,7 @@ module mod_output
       allrec = kz*4 + 2
       call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                     & sav_0,iy*allrec*jxp,mpi_real8,         &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -722,7 +722,7 @@ module mod_output
       allrec = kz*4 + 2
       call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                     & sav_0,iy*allrec*jxp,mpi_real8,         &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -762,7 +762,7 @@ module mod_output
       allrec = kz*4 + 2
       call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
                     & sav_0,iy*allrec*jxp,mpi_real8,         &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -803,7 +803,7 @@ module mod_output
         allrec = kzp1
         call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,    &
                         sav_0b,iy*allrec*jxp,mpi_real8,    &
-                        0,mpi_comm_world,ierr)
+                        0,mycomm,ierr)
         if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
@@ -827,7 +827,7 @@ module mod_output
         allrec = kzp1
         call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,    &
                         sav_0b,iy*allrec*jxp,mpi_real8,    &
-                        0,mpi_comm_world,ierr)
+                        0,mycomm,ierr)
         if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
@@ -848,7 +848,7 @@ module mod_output
         end do
         call mpi_gather(var2d0, iy*jxp,mpi_integer, &
                       & var2d_0,iy*jxp,mpi_integer, &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if (myid == 0) then
 #ifdef BAND
           do j = 1 , jx
@@ -882,7 +882,7 @@ module mod_output
       allrec = 4 + kzp1
       call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
                     & sav_0a,iy*allrec*jxp,mpi_real8,        &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do i = 1 , iy
@@ -907,7 +907,7 @@ module mod_output
       if ( iocnflx == 2 )                                      &
          & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
          &                 zpbl_io,iy*jxp,mpi_real8,           &
-         &                 0,mpi_comm_world,ierr)
+         &                 0,mycomm,ierr)
       if ( icup == 1 ) then
         do j = 1 , jendl
           do k = 1 , kz
@@ -920,7 +920,7 @@ module mod_output
         allrec = kz*2
         call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
                       & sav_0c,iy*allrec*jxp,mpi_real8,      &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
@@ -946,7 +946,7 @@ module mod_output
         allrec = kzp1
         call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
                       & sav_0b,iy*allrec*jxp,mpi_real8,      &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
           do j = 1 , jx
             do k = 1 , kz
@@ -963,7 +963,7 @@ module mod_output
       if ( icup==4 .or. icup==99 .or. icup==98 ) then
         call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
                       & cbmf2d_io,iy*jxp,mpi_real8,            &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
       end if
       do j = 1 , jendx
         do l = 1 , 4
@@ -995,7 +995,7 @@ module mod_output
       allrec = kz*4+(kzp1*kzp2)
       call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
                     & sav_1,iym1*allrec*jxp,mpi_real8,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1058,7 +1058,7 @@ module mod_output
       allrec = nnsg*5 + 4
       call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                     & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1097,7 +1097,7 @@ module mod_output
       end do
       call mpi_gather(sav_clmin, iym1*8*jxp,mpi_real8,       &
                     & sav_clmout,iym1*8*jxp,mpi_real8,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1118,7 +1118,7 @@ module mod_output
       end if
       call mpi_gather(lndcat2d,   iy*jxp,mpi_real8, &
                     & lndcat2d_io,iy*jxp,mpi_real8, &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
 #endif
       do j = 1 , jendx
         do n = 1 , nnsg
@@ -1140,7 +1140,7 @@ module mod_output
       allrec = nnsg*5 + 4
       call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                     & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1184,7 +1184,7 @@ module mod_output
       allrec = nnsg*5 + 4
       call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
                     & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1223,7 +1223,7 @@ module mod_output
       allrec = nnsg*2 + 2
       call mpi_gather(sav2a, iym1*allrec*jxp,mpi_integer, &
                     & sav_2a,iym1*allrec*jxp,mpi_integer, &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
 #ifdef BAND
         do j = 1 , jx
@@ -1267,7 +1267,7 @@ module mod_output
         allrec = ntr*(kz*4+1)
         call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
                       & sav_4,iy*allrec*jxp,mpi_real8,       &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
           do j = 1 , jx
             do n = 1 , ntr
@@ -1303,7 +1303,7 @@ module mod_output
         end do
         call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
                       & sav_4a,iym1*7*jxp,mpi_real8,                &
-                      & 0,mpi_comm_world,ierr)
+                      & 0,mycomm,ierr)
         if ( myid == 0 ) then
 #ifdef BAND
           do j = 1 , jx
@@ -1332,7 +1332,7 @@ module mod_output
       end do
       call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
                     & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do n = 1 , nsplit
@@ -1357,7 +1357,7 @@ module mod_output
       end do
       call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
                     & sav_6,kz*8*jxp,mpi_real8,              &
-                    & 0,mpi_comm_world,ierr)
+                    & 0,mycomm,ierr)
       if ( myid == 0 ) then
         do j = 1 , jx
           do k = 1 , kz
@@ -1374,13 +1374,13 @@ module mod_output
       end if
 #ifndef BAND
       call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                   & mpi_comm_world,ierr)
+                   & mycomm,ierr)
       call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                   & mpi_comm_world,ierr)
+                   & mycomm,ierr)
       call mpi_bcast(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                   & mpi_comm_world,ierr)
+                   & mycomm,ierr)
       call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                   & mpi_comm_world,ierr)
+                   & mycomm,ierr)
 #endif
       if ( ldosav ) then
         call write_savefile(idatex, .false.)

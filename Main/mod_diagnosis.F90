@@ -92,7 +92,7 @@ module mod_diagnosis
 !
     call mpi_gather(sps1%ps, iy*jxp,mpi_real8, &
                     psa_io,  iy*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -106,13 +106,13 @@ module mod_diagnosis
       tdini = tdini*dx*dx*d_1000*regrav
     end if
 
-    call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tdini,1,mpi_real8,0,mycomm,ierr)
 !
 !   water substance (unit = kg):
 !
     call mpi_gather(atm1%qv,   iy*kz*jxp,mpi_real8, &
                     atm1_io%qv,iy*kz*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -126,11 +126,11 @@ module mod_diagnosis
       tvmass = tvmass*dx*dx*d_1000*regrav
     end if
 
-    call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
     call mpi_gather(atm1%qc,   iy*kz*jxp,mpi_real8,              &
                     atm1_io%qc,iy*kz*jxp,mpi_real8,              &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -144,7 +144,7 @@ module mod_diagnosis
       tcmass = tcmass*dx*dx*d_1000*regrav
     end if
 
-    call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tcmass,1,mpi_real8,0,mycomm,ierr)
 
     tqini = tvmass + tcmass
 !
@@ -165,16 +165,16 @@ module mod_diagnosis
 #endif 
     implicit none
     integer :: ierr
-    call mpi_bcast(tdini,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tqini,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tdini,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tdadv,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tqini,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tqadv,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tqeva,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tqrai,1,mpi_real8,0,mycomm,ierr)
     if ( ichem == 1 ) then
-      call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
-      call mpi_bcast(tchie,ntr,mpi_real8,0,mpi_comm_world,ierr)
+      call mpi_bcast(tchiad,ntr,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(tchitb,ntr,mpi_real8,0,mycomm,ierr)
+      call mpi_bcast(tchie,ntr,mpi_real8,0,mycomm,ierr)
     end if
   end subroutine mpidiag
 !
@@ -262,8 +262,8 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mpi_comm_world,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
       do i = 1 , iym1
         tdadv = tdadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
@@ -279,9 +279,9 @@ module mod_diagnosis
       end do
     end do
     call mpi_gather(vaix,  kz*jxp,mpi_real8,vaix_g,kz*jxp,mpi_real8,  &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(va01,  kz*jxp,mpi_real8,va01_g,kz*jxp,mpi_real8,  &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
@@ -293,7 +293,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tdadv,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tdadv,1,mpi_real8,0,mycomm,ierr)
 !
 !----------------------------------------------------------------------
 !
@@ -319,8 +319,8 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mpi_comm_world,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
       do i = 1 , iym1
         tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
@@ -338,13 +338,13 @@ module mod_diagnosis
       psa01(j) = sps1%ps(1,j)
     end do
     call mpi_gather(qvailx,kz*jxp,mpi_real8,qvailx_g,kz*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(qva01,kz*jxp,mpi_real8,qva01_g,kz*jxp,mpi_real8,   &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(psailx,jxp,mpi_real8,psailx_g,jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(psa01,jxp,mpi_real8,psa01_g,jxp,mpi_real8,   &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
@@ -356,7 +356,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tqadv,1,mpi_real8,0,mycomm,ierr)
 !
 !   advection of cloud water and rainwater through lateral boundaries:
 !
@@ -380,8 +380,8 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mpi_comm_world,ierr)
-    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(worka,iym1*kz,mpi_real8,nproc-1,mycomm,ierr)
+    call mpi_bcast(workb,iym1*kz,mpi_real8,0,mycomm,ierr)
     do k = 1 , kz
       do i = 1 , iym1
         tqadv = tqadv - dtsec*5.0D2*dsigma(k)*dx*(worka(i,k)-workb(i,k))*regrav
@@ -397,9 +397,9 @@ module mod_diagnosis
       end do
     end do
     call mpi_gather(qcailx,kz*jxp,mpi_real8,qcailx_g,kz*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(qca01,kz*jxp,mpi_real8,qca01_g,kz*jxp,mpi_real8,   &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         do j = 1 , jxm1
@@ -411,7 +411,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tqadv,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tqadv,1,mpi_real8,0,mycomm,ierr)
 !
   end subroutine conadv
 !
@@ -452,7 +452,7 @@ module mod_diagnosis
 !
     tdrym = d_zero
     call mpi_gather(sps1%ps,iy*jxp,mpi_real8,psa_io,iy*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -465,13 +465,13 @@ module mod_diagnosis
       end do
       tdrym = tdrym*dx*dx*d_1000*regrav
     end if
-    call mpi_bcast(tdrym,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tdrym,1,mpi_real8,0,mycomm,ierr)
 !
 !-----water substance (unit = kg):
 !
     tvmass = d_zero
     call mpi_gather(atm1%qv,iy*kz*jxp,mpi_real8,atm1_io%qv,iy*kz*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -484,11 +484,11 @@ module mod_diagnosis
       end do
       tvmass = tvmass*dx*dx*d_1000*regrav
     end if
-    call mpi_bcast(tvmass,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tvmass,1,mpi_real8,0,mycomm,ierr)
 !
     tcmass = d_zero
     call mpi_gather(atm1%qc,iy*kz*jxp,mpi_real8,atm1_io%qc,iy*kz*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do k = 1 , kz
         tttmp = d_zero
@@ -501,7 +501,7 @@ module mod_diagnosis
       end do
       tcmass = tcmass*dx*dx*d_1000*regrav
     end if
-    call mpi_bcast(tcmass,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tcmass,1,mpi_real8,0,mycomm,ierr)
 
     tqmass = tvmass + tcmass
 
@@ -517,9 +517,9 @@ module mod_diagnosis
 !   total raifall at this time:
 !
     call mpi_gather(sfsta%rainc,iy*jxp,mpi_real8,rainc_io,iy*jxp,mpi_real8,   &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     call mpi_gather(sfsta%rainnc,iy*jxp,mpi_real8,rainnc_io,iy*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       tcrai = d_zero
       tncrai = d_zero
@@ -531,7 +531,7 @@ module mod_diagnosis
       end do
       tqrai = tcrai + tncrai
     end if
-    call mpi_bcast(tqrai,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tqrai,1,mpi_real8,0,mycomm,ierr)
 !
     tqmass = tqmass + tqrai - tqeva - tqadv
     error2 = (tqmass-tqini)/tqini*d_100
@@ -643,7 +643,7 @@ module mod_diagnosis
         end do
       end do
     end do
-    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mpi_comm_world,ierr)
+    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
 
     do j = 1 , jendl
       do k = 1 , kz
@@ -664,29 +664,29 @@ module mod_diagnosis
       psa02(j) = sps1%ps(2,j)
     end do
     call mpi_gather(vaill,  kz*jxp,mpi_real8,                      &
-                    vaill_g,kz*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    vaill_g,kz*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(va02,  kz*jxp,mpi_real8,                       &
-                    va02_g,kz*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    va02_g,kz*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(xkcill1,  kz*jxp,mpi_real8,                    &
-                    xkcill1_g,kz*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    xkcill1_g,kz*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(xkc02,  kz*jxp,mpi_real8,                      &
-                    xkc02_g,kz*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    xkc02_g,kz*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(chiaill,  kz*ntr*jxp,mpi_real8,                &
-                    chiaill_g,kz*ntr*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    chiaill_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(chiaill1,  kz*ntr*jxp,mpi_real8,               &
-                    chiaill1_g,kz*ntr*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    chiaill1_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(chia01,  kz*ntr*jxp,mpi_real8,                 &
-                    chia01_g,kz*ntr*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    chia01_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(chia02,  kz*ntr*jxp,mpi_real8,                 &
-                    chia02_g,kz*ntr*jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    chia02_g,kz*ntr*jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(psaill,  jxp,mpi_real8,                        &
-                    psaill_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    psaill_g,jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(psaill1,  jxp,mpi_real8,                       &
-                    psaill1_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    psaill1_g,jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(psa01,  jxp,mpi_real8,                         &
-                    psa01_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    psa01_g,jxp,mpi_real8,0,mycomm,ierr)
     call mpi_gather(psa02,  jxp,mpi_real8,                         &
-                    psa02_g,jxp,mpi_real8,0,mpi_comm_world,ierr)
+                    psa02_g,jxp,mpi_real8,0,mycomm,ierr)
     if ( myid == 0 ) then
       do n = 1 , ntr
         do k = 1 , kz
@@ -731,7 +731,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tchiad,ntr,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tchiad,ntr,mpi_real8,0,mycomm,ierr)
 !
 !   diffusion through east-west boundaries:
 !
@@ -747,7 +747,7 @@ module mod_diagnosis
         end do
       end do
     end do
-    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mpi_comm_world,ierr)
+    call mpi_bcast(worka,iym1*kz*ntr,mpi_real8,nproc-1,mycomm,ierr)
 
     if ( myid == 0 ) then
       do n = 1 , ntr
@@ -774,7 +774,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tchitb,ntr,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tchitb,ntr,mpi_real8,0,mycomm,ierr)
 
   end subroutine tracdiag
 !
@@ -814,29 +814,29 @@ module mod_diagnosis
     do itr = 1 , ntr
       call mpi_gather(chia(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
                       chia_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(remlsc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
                       remlsc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(remcvc(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
                       remcvc_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(rxsg(:,:,:,itr),   iy*kz*jxp,mpi_real8,         &
                       rxsg_io(:,:,:,itr),iy*kz*jxp,mpi_real8,         &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(rxsaq1(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
                       rxsaq1_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(rxsaq2(:,:,:,itr),   iy*kz*jxp,mpi_real8,       &
                       rxsaq2_io(:,:,:,itr),iy*kz*jxp,mpi_real8,       &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       call mpi_gather(remdrd(:,:,itr),   iy*jxp,mpi_real8,            &
                       remdrd_io(:,:,itr),iy*jxp,mpi_real8,            &
-                      0,mpi_comm_world,ierr)
+                      0,mycomm,ierr)
       do l = 1 , mpy
         call mpi_gather(chemsrc(:,:,l,itr),   iy*jxp,mpi_real8,       &
                         chemsrc_io(:,:,l,itr),iy*jxp,mpi_real8,       &
-                        0,mpi_comm_world,ierr)
+                        0,mycomm,ierr)
       end do
     end do
     if ( myid == 0 ) then
@@ -916,14 +916,14 @@ module mod_diagnosis
       end do
     end if
 
-    call mpi_bcast(ttrace(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tremlsc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tremcvc(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(trxsg(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(trxsaq1(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(trxsaq2(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tremdrd(1,1),ntr,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(tchie(1),ntr,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(ttrace(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremlsc(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremcvc(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsg(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsaq1(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(trxsaq2(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tremdrd(1,1),ntr,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(tchie(1),ntr,mpi_real8,0,mycomm,ierr)
    
     do itr = 1 , ntr
       ttrace(itr,1) = ttrace(itr,1)*d_1000*regrav
@@ -992,7 +992,7 @@ module mod_diagnosis
 !
     call mpi_gather(sfsta%qfx,iy*jxp,mpi_real8,  &
                     qfx_io,   iy*jxp,mpi_real8,  &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     if ( myid == 0 ) then
       do j = 2 , jxm2
         do i = 2 , iym2
@@ -1000,7 +1000,7 @@ module mod_diagnosis
         end do
       end do
     end if
-    call mpi_bcast(tqeva,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(tqeva,1,mpi_real8,0,mycomm,ierr)
   end subroutine conqeva
 !
 #endif

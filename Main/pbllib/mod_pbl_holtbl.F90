@@ -152,7 +152,7 @@ module mod_pbl_holtbl
 !
   call mpi_sendrecv(uvdrag(1,jxp),iy,mpi_real8,ieast,1,  &
                     uvdrag(1,0),  iy,mpi_real8,iwest,1,  &
-                    mpi_comm_world,mpi_status_ignore,ierr)
+                    mycomm,mpi_status_ignore,ierr)
 !
   do j = jbegin , jendx
     do k = 1 , kz
@@ -336,7 +336,7 @@ module mod_pbl_holtbl
   end do
   call mpi_sendrecv(wksend,iym2*kz*2,mpi_real8,ieast,1, &
                     wkrecv,iym2*kz*2,mpi_real8,iwest,1, &
-                    mpi_comm_world,mpi_status_ignore,ierr)
+                    mycomm,mpi_status_ignore,ierr)
   ii = 0
   do k = 1 , kz
     do i = 2 , iym1

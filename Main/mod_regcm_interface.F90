@@ -74,7 +74,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    integer :: MyComm, ncpu, ierr
+    integer :: ncpu, ierr
     character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
@@ -86,12 +86,12 @@ module mod_regcm_interface
 !**********************************************************************
 !
     if (present(mpiCommunicator)) then
-      MyComm = mpiCommunicator
+      mycomm = mpiCommunicator
     else
-      MyComm = MPI_COMM_WORLD
+      mycomm = MPI_COMM_WORLD
     end if
-    call mpi_comm_rank(MyComm, myid, ierr)
-    call mpi_comm_size(MyComm, ncpu, ierr)
+    call mpi_comm_rank(mycomm, myid, ierr)
+    call mpi_comm_size(mycomm, ncpu, ierr)
 !
     call whoami(myid)
 !
@@ -148,7 +148,7 @@ module mod_regcm_interface
       call fatal(__FILE__,__LINE__,'CPU Count mismatch')
     end if
 !      print * , "process" , myid , "of" , nproc
-    call mpi_barrier(mpi_comm_world,ierr)
+    call mpi_barrier(mycomm,ierr)
 !     starttime= MPI_WTIME()
     if ( myid > 0 ) then
       iwest = myid - 1

@@ -126,7 +126,7 @@
 !
 !***********************************************************************
 !
-      integer :: localPet, petCount, comm
+      integer :: localPet, petCount, comm, ierr
 !
 !***********************************************************************
 !
@@ -151,25 +151,26 @@
 !     Initialize the gridded component 
 !-----------------------------------------------------------------------
 !
-      call RCM_initialize(mpiCommunicator=comm)
+      call MPI_Comm_dup(comm, models(Iatmos)%comm, ierr)
+      call RCM_initialize(mpiCommunicator=models(Iatmos)%comm)
 !
 !-----------------------------------------------------------------------
 !     Set-up ESMF internal clock for gridded component
 !-----------------------------------------------------------------------
 !
-      call RCM_SetClock(clock, rc)
+!      call RCM_SetClock(clock, rc)
 !
 !-----------------------------------------------------------------------
 !     Set-up excgange grid for gridded component 
 !-----------------------------------------------------------------------
 !
-      call RCM_SetGridArrays(comp, rc)
+!      call RCM_SetGridArrays(comp, rc)
 !
 !-----------------------------------------------------------------------
 !     Load ROMS exchange grid arrays
 !-----------------------------------------------------------------------
 !
-      call RCM_PutGridData(localPet, rc)
+!      call RCM_PutGridData(localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states
@@ -373,7 +374,7 @@
 !     Set time interval
 !-----------------------------------------------------------------------
 !
-      call ESMF_TimeIntervalSet (models(Iatmos)%dt,                     &
+      call ESMF_TimeIntervalSet (models(Iatmos)%dtsec,                  &
                                  s_r8=dtsec,                            &
                                  rc=rc)  
 !
@@ -384,7 +385,7 @@
       str = 'Model clock (Atmosphere)'
       models(Iatmos)%clock = ESMF_ClockCreate (name=TRIM(str),          &
                                   refTime=models(Iatmos)%refTime,       &
-                                  timeStep=models(Iatmos)%dt,           &
+                                  timeStep=models(Iatmos)%dtsec,        &
                                   startTime=models(Iatmos)%strTime,     &
                                   stopTime=models(Iatmos)%endTime,      &
                                   rc=rc)
@@ -458,14 +459,14 @@
 !
 !***********************************************************************
 !
-      integer :: tile, i, j
+      integer :: ng, tile, i, j, n
       integer :: localPet, petCount, comm
       integer, allocatable :: deBlockList(:,:,:)
       integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
       integer, allocatable :: CLW_c(:,:), CUW_c(:,:)
       integer, allocatable :: CLW_d(:,:), CUW_d(:,:)
       integer, dimension(2) :: CLW, CUW, TLW, TUW
-      integer, dimension(2) :: deCount, minCorner, maxCorner
+      integer, dimension(2) :: deCount, minIndex, maxIndex
       TYPE (ESMF_ARRAY) :: GrdArray
 !
 !-----------------------------------------------------------------------
@@ -480,21 +481,29 @@
                        rc=rc)
 !
 !-----------------------------------------------------------------------
+!     Set RCM domain decomposition variables
+!-----------------------------------------------------------------------
+!
+!     Loop over number of nested/composed grids.
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
 !     Set ESMF Layout and distribution objects
 !-----------------------------------------------------------------------
 !
       deCount = (/ 1, nproc /)       
-      models(Iatmos)%deLayout = ESMF_DELayoutCreate (models(Iatmos)%vm, &
-                                         deCountList=deCount,           &
-                                         petList=models(Iatmos)%petList,&
-                                         rc=rc)
+      models(Iatmos)%deLayout(n) = ESMF_DELayoutCreate (                &
+                                        models(Iatmos)%vm,              &
+                                        deCountList=deCount,            &
+                                        petList=models(Iatmos)%petList, &
+                                        rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Validate and print DELayout
 !-----------------------------------------------------------------------
 !
-!      call ESMF_DELayoutValidate(models(Iatmos)%deLayout, rc=status)
-!      call ESMF_DELayoutPrint(models(Iatmos)%deLayout, rc=status)
+      call ESMF_DELayoutValidate(models(Iatmos)%deLayout(n), rc=rc)
+      call ESMF_DELayoutPrint(models(Iatmos)%deLayout(n), rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
@@ -520,28 +529,28 @@
 !
 !     Cordinates of the lower and upper corner of the patch
 !
-      minCorner = (/ 1, 1 /)
-      maxCorner = (/ iym2, jx /)
+      minIndex = (/ 1, 1 /)
+      maxIndex = (/ iym2, jx /)
 !
-      models(Iatmos)%distGrid = ESMF_DistGridCreate (minCorner,         &
-                                     maxCorner,                         &
-                                     deBlockList=deBlockList,           &
-                                     deLayout=models(Iatmos)%deLayout,  &
-                                     vm=models(Iatmos)%vm,              &
-                                     rc=rc)
+      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex,       &
+                                   maxIndex,                            &
+                                   deBlockList=deBlockList,             &
+                                   deLayout=models(Iatmos)%deLayout(n), &
+                                   vm=models(Iatmos)%vm,                &
+                                   rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-!      call ESMF_DistGridValidate(models(Iatmos)%distGrid, rc=rc)
-!      call ESMF_DistGridPrint(models(Iatmos)%distGrid, rc=rc)
+      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Set array descriptor
 !-----------------------------------------------------------------------
 !
-      call ESMF_ArraySpecSet (models(Iatmos)%arrSpec,                   &
+      call ESMF_ArraySpecSet (models(Iatmos)%arrSpec(n),                &
                               rank=2,                                   &
                               typekind=ESMF_TYPEKIND_R8,                &
                               rc=rc)
@@ -550,49 +559,50 @@
 !     Create exchange arrays
 !-----------------------------------------------------------------------    
 !
-      do i = 1, models(Iatmos)%nGrid
-        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec,  &
-                               distgrid=models(Iatmos)%distGrid,        &
+      do i = 1, ubound(models(Iatmos)%mesh, dim=1)
+        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec(n),&
+                               distgrid=models(Iatmos)%distGrid(n),     &
                                indexflag=ESMF_INDEX_GLOBAL,             &
                                rc=rc)
-        models(Iatmos)%grid(i)%lat%array = grdArray
+        models(Iatmos)%mesh(i,n)%lat%array = grdArray
 !
-        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec,  &
-                               distgrid=models(Iatmos)%distGrid,        &
+        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec(n),& 
+                               distgrid=models(Iatmos)%distGrid(n),     &
                                indexflag=ESMF_INDEX_GLOBAL,             &
                                rc=rc)
-        models(Iatmos)%grid(i)%lon%array = grdArray
+        models(Iatmos)%mesh(i,n)%lon%array = grdArray
 !
 !       Get array pointer
 !
-        call ESMF_ArrayGet (models(Iatmos)%grid(i)%lat%array,           &
-                        farrayPtr=models(Iatmos)%grid(i)%lat%data%field,&
+        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lat%array,           &
+                        farrayPtr=models(Iatmos)%mesh(i,n)%lat%field,&
                         rc=rc)          
-        call ESMF_ArrayGet (models(Iatmos)%grid(i)%lon%array,           &
-                        farrayPtr=models(Iatmos)%grid(i)%lon%data%field,&
+        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lon%array,           &
+                        farrayPtr=models(Iatmos)%mesh(i,n)%lon%field,&
                         rc=rc)          
 !
 !       Set adjustable settings of array object  
 !
-        call ESMF_ArraySet (array=models(Iatmos)%grid(i)%lat%array,     &
-                        name=trim(models(Iatmos)%grid(i)%lat%data%name),&
+        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lat%array,     &
+                        name=trim(models(Iatmos)%mesh(i,n)%lat%name),&
                         rc=rc)
-        call ESMF_ArraySet (array=models(Iatmos)%grid(i)%lon%array,     &
-                        name=trim(models(Iatmos)%grid(i)%lon%data%name),&
+        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lon%array,     &
+                        name=trim(models(Iatmos)%mesh(i,n)%lon%name),&
                         rc=rc)
 !  
 !       Add array to export state
 !   
         call ESMF_StateAdd (models(Iatmos)%stateExport,                 &
-                           (/ models(Iatmos)%grid(i)%lat%array,         &
-                              models(Iatmos)%grid(i)%lon%array /),      &
+                           (/ models(Iatmos)%mesh(i,n)%lat%array,         &
+                              models(Iatmos)%mesh(i,n)%lon%array /),      &
                            rc=rc)
 !
 !       Initialize the grid array
 !
-        models(Iatmos)%grid(i)%lat%data%field = 0.0d0
-        models(Iatmos)%grid(i)%lon%data%field = 0.0d0
+        models(Iatmos)%mesh(i,n)%lat%field = 0.0d0
+        models(Iatmos)%mesh(i,n)%lon%field = 0.0d0
       end do 
+      end do
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -628,19 +638,21 @@
 !
 !***********************************************************************
 !
-      integer :: i, j, jj
+      integer :: i, j, n, jj
 !     
 !-----------------------------------------------------------------------
 !     Load grid data for cross points 
 !-----------------------------------------------------------------------
 !
-      do j = 1 , jxp
-        do i = 1 , iym2
+      do n = 1, nNest(Iatmos)
+      do j = 1, jxp
+        do i = 1, iym2
           jj = jxp*localPet+j
-          models(Iatmos)%grid(1)%lat%data%field(i,jj) = mddom%xlon(i,j)
-          models(Iatmos)%grid(1)%lon%data%field(i,jj) = mddom%xlon(i,j)
+          models(Iatmos)%mesh(1,n)%lat%field(i,jj) = mddom%xlon(i,j)
+          models(Iatmos)%mesh(1,n)%lon%field(i,jj) = mddom%xlon(i,j)
         end do
       end do 
+      end do
 !      call ESMF_ArrayPrint(models(Iatmos)%grid(1)%lat%array, rc=status)
 !      call ESMF_ArrayPrint(models(Iatmos)%grid(1)%lon%array, rc=status)
 !

@@ -99,7 +99,7 @@ module mod_che_semdde
 !
     call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,         &
                      src0, iy*mpy*ntr*jxp,mpi_real8,         &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do itr = 1 , ntr
         do m = 1 , mpy
@@ -155,9 +155,9 @@ module mod_che_semdde
                             1,11),l=1,11),m=1,11),n=1,11)
         close (iutopt)
       end if
-      call mpi_bcast(dextmix,4*19*11*11*11*11,mpi_real,0,mpi_comm_world,ierr)
-      call mpi_bcast(dssamix,4*19*11*11*11*11,mpi_real,0,mpi_comm_world,ierr)
-      call mpi_bcast(dgmix,4*19*11*11*11*11,mpi_real,0,mpi_comm_world,ierr)
+      call mpi_bcast(dextmix,4*19*11*11*11*11,mpi_real,0,mycomm,ierr)
+      call mpi_bcast(dssamix,4*19*11*11*11*11,mpi_real,0,mycomm,ierr)
+      call mpi_bcast(dgmix,4*19*11*11*11*11,mpi_real,0,mycomm,ierr)
 
 !     Check !
    

@@ -379,10 +379,10 @@ module mod_atm_interface
       isendcount = iy*kz
       call mpi_sendrecv(invar%u(:,:,jxp),isendcount,mpi_real8,ieast,30, &
                         invar%u(:,:,0),isendcount,mpi_real8,iwest,30,   &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       call mpi_sendrecv(invar%v(:,:,jxp),isendcount,mpi_real8,ieast,31, &
                         invar%v(:,:,0),isendcount,mpi_real8,iwest,31,   &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
 
       ! Set j-loop boundaries
       jb = jbegin

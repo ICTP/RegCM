@@ -178,11 +178,11 @@ module mod_bdycod
       end if
     end if
 !
-    call date_bcast(bdydate2,0,mpi_comm_world,ierr)
+    call date_bcast(bdydate2,0,mycomm,ierr)
 !
     call mpi_scatter(sav_0,iy*(kz*4+2)*jxp,mpi_real8,        &
                      sav0, iy*(kz*4+2)*jxp,mpi_real8,        &
-                     0,mpi_comm_world,ierr)
+                     0,mycomm,ierr)
     do j = 1 , jendl
       do k = 1 , kz
         do i = 1 , iy
@@ -200,7 +200,7 @@ module mod_bdycod
     if ( ehso4 ) then
       call mpi_scatter(sav_0s,iy*kz*jxp,mpi_real8,  &
                        sav0s, iy*kz*jxp,mpi_real8,  &
-                       0,mpi_comm_world,ierr)
+                       0,mycomm,ierr)
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -225,7 +225,7 @@ module mod_bdycod
 !
     call mpi_sendrecv(xpsb%b1(:,jxp),iy,mpi_real8,ieast,1,   &
                       xpsb%b1(:,0),  iy,mpi_real8,iwest,1,   &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       do i = 2 , iym1
         psdot(i,j) = d_rfour*(xpsb%b1(i,j)+xpsb%b1(i-1,j) + &
@@ -459,7 +459,7 @@ module mod_bdycod
     end if
 
     bdydate1 = bdydate2
-    call date_bcast(bdydate1,0,mpi_comm_world,ierr)
+    call date_bcast(bdydate1,0,mycomm,ierr)
 
     do j = 1 , jendx
       do i = 1 , iym1
@@ -571,7 +571,7 @@ module mod_bdycod
 !
     call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1,   &
                       sps1%ps(1,0),  iy,mpi_real8,iwest,1,   &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 !
 !   interior points:
 !
@@ -753,7 +753,7 @@ module mod_bdycod
 #endif
     call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,ieast,1,    &
                       var1rcv(1,1),kz*8,mpi_real8,iwest,1,    &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= 0 ) then
 #endif
@@ -789,7 +789,7 @@ module mod_bdycod
 #endif
     call mpi_sendrecv(var1snd(1,1),kz*8,mpi_real8,iwest,2,     &
                       var1rcv(1,1),kz*8,mpi_real8,ieast,2,     &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= nproc-1 ) then
 #endif

@@ -182,10 +182,10 @@ module mod_tendency
     end do
     call mpi_sendrecv(sps1%ps(1,jxp),iy,mpi_real8,ieast,1, &
                       sps1%ps(1,0),  iy,mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
     call mpi_sendrecv(sps1%ps(1,1),    iy,mpi_real8,iwest,2, &
                       sps1%ps(1,jxp+1),iy,mpi_real8,ieast,2, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 !
 !   decouple u, v, t, qv, and qc
 !
@@ -412,7 +412,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,ieast,1, &
                       tvar1rcv,iy*numrec,mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= 0 ) then
 #endif
@@ -505,7 +505,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(tvar1snd,iy*numrec,mpi_real8,iwest,2, &
                       tvar1rcv,iy*numrec,mpi_real8,ieast,2, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= nproc-1 ) then
 #endif
@@ -655,7 +655,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,ieast,1, &
                       var2rcv,iy*numrec,mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= 0 ) then
 #endif
@@ -742,7 +742,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(var2snd,iy*numrec,mpi_real8,iwest,2, &
                       var2rcv,iy*numrec,mpi_real8,ieast,2, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= nproc-1 ) then
 #endif
@@ -856,10 +856,10 @@ module mod_tendency
     end do
     call mpi_sendrecv(qdot(:,:,jxp),iy*kzp1,mpi_real8,ieast,1, &
                       qdot(:,:,0),  iy*kzp1,mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
     call mpi_sendrecv(qdot(:,:,1),    iy*kzp1,mpi_real8,iwest,2, &
                       qdot(:,:,jxp+1),iy*kzp1,mpi_real8,ieast,2, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 !
 !   compute omega
 !
@@ -918,7 +918,7 @@ module mod_tendency
       end do
       call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,ieast,1, &
                         bdyewrcv,iy*(kz*16+4),mpi_real8,iwest,1, &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         if ( myid == nproc-1 ) then
           xpsb%eb(i,jendl) = bdyewrcv(i,1)
@@ -997,7 +997,7 @@ module mod_tendency
       end do
       call mpi_sendrecv(bdyewsnd,iy*(kz*16+4),mpi_real8,iwest,2, &
                         bdyewrcv,iy*(kz*16+4),mpi_real8,ieast,2, &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       do i = 1 , iy
         xpsb%eb(i,0) = bdyewrcv(i,1)
         xpsb%ebt(i,0) = bdyewrcv(i,3)
@@ -1061,7 +1061,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,ieast,1, &
                       bdynsrcv,nspgx*(kz*16+4),mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= 0 ) then
 #endif
@@ -1126,7 +1126,7 @@ module mod_tendency
 #endif
     call mpi_sendrecv(bdynssnd,nspgx*(kz*16+4),mpi_real8,iwest,2, &
                       bdynsrcv,nspgx*(kz*16+4),mpi_real8,ieast,2, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 #ifndef BAND
     if ( myid /= nproc-1 ) then
 #endif
@@ -1223,7 +1223,7 @@ module mod_tendency
     end do
     call mpi_sendrecv(psd(1,jxp),iy,mpi_real8,ieast,1,                &
                       psd(1,0),iy,mpi_real8,iwest,1,                  &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
 !
 !   compute bleck (1977) noise parameters:
 !
@@ -1237,7 +1237,7 @@ module mod_tendency
     end do
     call mpi_gather(ps4, iy*4*jxp,mpi_real8, &
                     ps_4,iy*4*jxp,mpi_real8, &
-                    0,mpi_comm_world,ierr)
+                    0,mycomm,ierr)
     iptn = 0
     ptntot = d_zero
     pt2tot = d_zero
@@ -1258,9 +1258,9 @@ module mod_tendency
         end if
       end do
     end if
-    call mpi_bcast(iptn,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ptntot,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(pt2tot,1,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(iptn,1,mpi_integer,0,mycomm,ierr)
+    call mpi_bcast(ptntot,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(pt2tot,1,mpi_real8,0,mycomm,ierr)
 !
     do j = jbegin , jendx
       jp1 = j+1
@@ -1890,7 +1890,7 @@ module mod_tendency
     end do
     call mpi_sendrecv(phi(1,1,jxp),iy*kz,mpi_real8,ieast,1, &
                       phi(1,1,0),  iy*kz,mpi_real8,iwest,1, &
-                      mpi_comm_world,mpi_status_ignore,ierr)
+                      mycomm,mpi_status_ignore,ierr)
     do j = jbegin , jendx
       jm1 = j-1
 !
@@ -2131,7 +2131,7 @@ module mod_tendency
         icons = icons + icon(j)
       end do
       icons_mpi = 0
-      call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,mpi_comm_world,ierr)
+      call mpi_allreduce(icons,icons_mpi,1,mpi_integer,mpi_sum,mycomm,ierr)
       ! Added a check for nan... The following inequality is wanted.
       if ((ptnbar /= ptnbar) .or. &
          ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then

@@ -354,10 +354,10 @@ module mod_cu_kuo
       end do
       call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,               &
                         wr(1,0),iy,mpi_real8,iwest,1,                 &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,                 &
                         wr(1,jxp+1),iy,mpi_real8,ieast,2,             &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       do j = jbegin , jendm
 #ifdef BAND
         jm1 = j - 1
@@ -391,10 +391,10 @@ module mod_cu_kuo
       end do
       call mpi_sendrecv(wr(1,jxp),iy,mpi_real8,ieast,1,         &
                         wr(1,0),iy,mpi_real8,iwest,1,           &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       call mpi_sendrecv(wr(1,1),iy,mpi_real8,iwest,2,           &
                         wr(1,jxp+1),iy,mpi_real8,ieast,2,       &
-                        mpi_comm_world,mpi_status_ignore,ierr)
+                        mycomm,mpi_status_ignore,ierr)
       do j = jbegin , jendm
 #ifdef BAND
         jm1 = j - 1
