@@ -19,6 +19,16 @@
 !
 module mod_rad_colmod3
 !
+  use m_realkinds
+  use mod_dynparam
+  use mod_rad_radiation
+  use mod_rad_common
+  use mod_rad_outrad
+!
+  private
+!
+  public :: colmod3
+!
 !-----------------------------NOTICE------------------------------------
 !
 !            NCAR COMMUNITY CLIMATE MODEL, VERSION 3.0
@@ -86,15 +96,7 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  use mod_dynparam
-  use mod_rad_radiation
-  use mod_rad_common
-  use mod_rad_outrad
-!
-  private
-!
-  public :: colmod3
-  real(8) , parameter :: lowcld = 1.0D-30
+  real(dp) , parameter :: lowcld = 1.0D-30
 !
   contains
 !
@@ -106,20 +108,19 @@ module mod_rad_colmod3
     integer , intent(in) :: iyear
     logical , intent(in) :: lout
     integer , intent(in) :: j
-    real(8) , intent(in) :: eccf
+    real(dp) , intent(in) :: eccf
 !
-    real(8) , dimension(iym1) :: alb , albc , aldif , aldir , asdif , &
-                                 asdir , alat , coslat , flns ,      &
-                                 flnsc , flnt , flntc , flwds ,      &
-                                 fsds , fsnirt , fsnirtsq , fsnrtc , &
-                                 fsns , fsnsc , fsnt , fsntc ,       &
-                                 solin , soll , solld ,     &
-                                 sols , solsd , srfrad , ps , ts
-    real(8) , dimension(iym1,kzp1) :: cld , effcld , pilnm1 , pintm1
-    real(8) , dimension(iym1,kz) :: clwp , emis , fice , h2ommr ,  &
+    real(dp) , dimension(iym1) :: alb , albc , alat , coslat , flns ,   &
+                                 flnsc , flnt , flntc , flwds , fsds ,  &
+                                 fsnirt , fsnirtsq , fsnrtc , fsns ,    &
+                                 fsnsc , fsnt , fsntc , solin , soll ,  &
+                                 solld , sols , solsd , srfrad , ps , ts
+    real(dp) , dimension(iym1,kzp1) :: cld , effcld , pilnm1 , pintm1
+    real(dp) , dimension(iym1,kz) :: clwp , emis , fice , h2ommr ,    &
            o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei ,  &
            rel , tm1
     integer , dimension(iym1) :: ioro
+!
     integer :: i , ii0 , ii1 , ii2 , k , n
 !
 !   Fields specified by the user in getdat()
@@ -203,10 +204,6 @@ module mod_rad_colmod3
 !
     alb(:) = d_zero
     albc(:) = d_zero
-    aldif(:) = d_zero
-    aldir(:) = d_zero
-    asdif(:) = d_zero
-    asdir(:) = d_zero
     alat(:) = d_zero
     coslat(:) = d_zero
     flns(:) = d_zero
@@ -249,7 +246,7 @@ module mod_rad_colmod3
     tm1(:,:) = d_zero
     ioro(:) = 0
 !
-!   Set parameters in common block comtim : dosw,dolw,doabsems
+!   Set parameters dosw , dolw , doabsems
 !
     dosw = .true.
     dolw = .true.
@@ -282,8 +279,6 @@ module mod_rad_colmod3
       if ( ii2 > ii0 .and. ii2 > ii1 ) ioro(i) = 2
     end do
 !
-!   getdat() also sets calday (used in zenith() and radinp()).
-!
     call getdat(j,h2ommr,alat,cld,clwp,coslat,o3mmr,o3vmr,  &
                 pilnm1,pintm1,pmidm1,pmlnm1,ps,qm1,tm1,ts)
 !
@@ -297,17 +292,6 @@ module mod_rad_colmod3
 !   not in albland() and albocean() located below
 !   but in albedov() called from subroutine vecbats()
 !   therefore, the following subroutines are not called here
-!
-!   NB:
-!   albedos are copied from module bats2,
-!   because variable names for albedos are somewhat different
-!
-    do i = 1 , iym1
-      asdir(i) = swdiralb(i)
-      asdif(i) = swdifalb(i)
-      aldir(i) = lwdiralb(i)
-      aldif(i) = lwdifalb(i)
-    end do
 !
 !   Cloud particle size and fraction of ice
 !
@@ -336,11 +320,11 @@ module mod_rad_colmod3
 !   NB: All fluxes returned from radctl() have already been converted
 !   to MKS.
 !
-    call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1, &
-                qm1,cld,effcld,clwp,asdir,asdif,aldir,aldif,fsns,qrs,  &
-                qrl,flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,    &
-                fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc, &
-                fsds,fsnirt,fsnrtc,fsnirtsq,eccf,o3vmr)
+    call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
+                qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,fice,    &
+                sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns, &
+                flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq, &
+                eccf,o3vmr)
 !
 !   subroutine radout() is not included in the ccm3 crm itself
 !   but introduced from the former regcm2 radiation package
@@ -351,9 +335,9 @@ module mod_rad_colmod3
 !   Names of some output variables (in MKS) have been changed
 !   from those in the CCM2 radiation package.
 !
-    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,&
-                qrl,flwds,srfrad,sols,soll,solsd,solld,alb,albc,fsds, &
-                fsnirt,fsnrtc,fsnirtsq,j,h2ommr,cld,clwp)
+    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,flntc,flnsc,  &
+                qrl,flwds,srfrad,sols,soll,solsd,solld,alb,albc,fsds,fsnirt, &
+                fsnrtc,fsnirtsq,j,h2ommr,cld,clwp)
 !
   end subroutine colmod3
 !
@@ -379,10 +363,6 @@ module mod_rad_colmod3
 ! rel    - liquid effective drop size (microns)
 ! rei    - ice effective drop size (microns)
 ! fice   - fractional ice content within cloud
-! pirnge - nrmlzd pres range for ice particle changes
-! picemn - normalized pressure below which rei=reimax
-! rirnge - range of ice radii (reimax - 10 microns)
-! reimax - maximum ice effective radius
 ! pnrml  - normalized pressure
 ! weight - coef. for determining rei as fn of P/PS
 !
@@ -392,14 +372,26 @@ module mod_rad_colmod3
 !
     implicit none
 !
-    real(8) , dimension(iym1,kz) :: fice , pmid , rei , rel , t
+    real(dp) , dimension(iym1,kz) :: fice , pmid , rei , rel , t
     integer , dimension(iym1) :: ioro
-    real(8) , dimension(iym1) :: ps
+    real(dp) , dimension(iym1) :: ps
     intent (in) ioro , pmid , ps , t
     intent (out) fice , rei , rel
 !
     integer :: i , k
-    real(8) :: picemn , pirnge , pnrml , reimax , rirnge , rliq , weight
+    real(dp) :: pnrml , rliq , weight
+!
+!   reimax - maximum ice effective radius
+    real(dp) , parameter :: reimax = 30.0D0
+!   rirnge - range of ice radii (reimax - 10 microns)
+    real(dp) , parameter :: rirnge = 20.0D0
+!   pirnge - nrmlzd pres range for ice particle changes
+    real(dp) , parameter :: pirnge = 0.4D0
+!   picemn - normalized pressure below which rei=reimax
+    real(dp) , parameter :: picemn = 0.4D0
+!   Temperatures in K (263.16 , 243.16)
+    real(dp) , parameter :: minus10 = wattp-d_10
+    real(dp) , parameter :: minus30 = wattp-(d_three*d_10)
 !
     do k = 1 , kz
       do i = 1 , iym1
@@ -415,7 +407,8 @@ module mod_rad_colmod3
 !
 !         Effective liquid radius over land
 !
-          rliq = d_five+d_five*dmin1(d_one,dmax1(d_zero,(263.16D0-t(i,k))*0.05D0))
+          rliq = d_five+d_five* & 
+                  dmin1(d_one,dmax1(d_zero,(minus10-t(i,k))*0.05D0))
         end if
 !
         rel(i,k) = rliq
@@ -427,11 +420,6 @@ module mod_rad_colmod3
 !
 !       Determine rei as function of normalized pressure
 !
-        reimax = 30.0D0
-        rirnge = 20.0D0
-        pirnge = 0.4D0
-        picemn = 0.4D0
-!
         pnrml = pmid(i,k)/ps(i)
         weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
         rei(i,k) = reimax - rirnge*weight
@@ -440,16 +428,16 @@ module mod_rad_colmod3
 !
 !       if warmer than -10 degrees C then water phase
 !
-        if ( t(i,k) > 263.16D0 ) fice(i,k) = d_zero
+        if ( t(i,k) > minus10 ) fice(i,k) = d_zero
 !
 !       if colder than -10 degrees C but warmer than -30 C mixed phase
 !
-        if ( t(i,k) <= 263.16D0 .and. t(i,k) >= 243.16D0 ) &
-          fice(i,k) = (263.16D0-t(i,k))/20.0D0
+        if ( t(i,k) <= minus10 .and. t(i,k) >= minus30 ) &
+          fice(i,k) = (minus10-t(i,k))/20.0D0
 !
 !       if colder than -30 degrees C then ice phase
 !
-        if ( t(i,k) < 243.16D0 ) fice(i,k) = d_one
+        if ( t(i,k) < minus30 ) fice(i,k) = d_one
 !
 !       Turn off ice radiative properties by setting fice = 0.0
 !
@@ -489,20 +477,19 @@ module mod_rad_colmod3
 !
     implicit none
 !
-    real(8) , dimension(iym1,kz) :: clwp , emis , fice , rei
+    real(dp) , dimension(iym1,kz) :: clwp , emis , fice , rei
     intent (in) clwp , fice , rei
     intent (out) emis
 !
 !   longwave absorption coeff (m**2/g)
 !
-    real(8) , parameter :: kabsl = 0.090361D0
+    real(dp) , parameter :: kabsl = 0.090361D0
 !
-! i, k    - longitude, level indices
-! kabs    - longwave absorption coeff (m**2/g)
-! kabsi   - ice absorption coefficient
+!   kabs    - longwave absorption coeff (m**2/g)
+!   kabsi   - ice absorption coefficient
 !
     integer :: i , k
-    real(8) :: kabs , kabsi
+    real(dp) :: kabs , kabsi
 !
     do k = 1 , kz
       do i = 1 , iym1
@@ -551,25 +538,23 @@ module mod_rad_colmod3
     implicit none
 !
     integer :: j
-    real(8) , dimension(iym1) :: alat , coslat ,  ps , ts
-    real(8) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
-    real(8) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr , &
+    real(dp) , dimension(iym1) :: alat , coslat ,  ps , ts
+    real(dp) , dimension(iym1,kzp1) :: cld , pilnm1 , pintm1
+    real(dp) , dimension(iym1,kz) :: clwp , h2ommr , o3mmr , o3vmr , &
                                     pmidm1 , pmlnm1 , qm1 , tm1
     intent (in) j
     intent (out) clwp , coslat , o3vmr , pilnm1 , pmlnm1 , qm1 , ts
     intent (inout) alat , cld , h2ommr , o3mmr , pintm1 , pmidm1 , ps , tm1
 !
-    real(8) :: ccvtem , clwtem , vmmr
-    real(8) , dimension(iym1,kz) :: deltaz
+    real(dp) :: ccvtem , clwtem , vmmr
+    real(dp) , dimension(iym1,kz) :: deltaz
     integer :: i , k , kj , ncldm1
-    real(8) , dimension(iym1) :: rlat
+    real(dp) , dimension(iym1) :: rlat
 !
-    real(8) , parameter :: amd = 28.9644D0
-    real(8) , parameter :: amo = 48.0000D0
+    real(dp) , parameter :: amd = 28.9644D0
+    real(dp) , parameter :: amo = 48.0000D0
 !
-!   begin read of data:
-!
-!   surface pressure and scaled pressure, from which level pressures are computed
+!   surface pressure and scaled pressure, from which level are computed
     do i = 1 , iym1
       ps(i) = (sfps(i,j)+ptp)*d_10
       do k = 1 , kz
@@ -600,9 +585,6 @@ module mod_rad_colmod3
         tm1(i,k) = tatms(i,k,j)
       end do
     end do
-!
-!   surface air temperature
-!
 !
 !   h2o mass mixing ratio
 !

@@ -326,11 +326,7 @@ module mod_rad_radiation
 
   subroutine allocate_mod_rad_radiation 
     implicit none        
-    character (len=64) :: subroutine_name='allocate_mod_radiation'
-    integer :: indx = 0
 !
-    call time_begin(subroutine_name,indx)
-
     call getmem4d(absnxt,1,iym1,1,kz,1,4,1,jxp,'radiation:absnxt')
     call getmem4d(absnxt0,1,iym1,1,kz,1,4,1,jxp,'radiation:absnxt0')
     call getmem4d(abstot,1,iym1,1,kzp1,1,kzp1,1,jxp,'radiation:abstot')
@@ -338,8 +334,6 @@ module mod_rad_radiation
     call getmem3d(emstot,1,iym1,1,kzp1,1,jxp,'radiation:emstot')
     call getmem3d(emstot0,1,iym1,1,kzp1,1,jxp,'radiation:emstot0')
     call getmem4d(xuinpl,1,iym1,1,kzp1,1,4,1,jxp,'radiation:xuinpl')
-
-    call time_end(subroutine_name,indx)
 
   end subroutine allocate_mod_rad_radiation 
 !
@@ -482,7 +476,7 @@ module mod_rad_radiation
 !-----------------------------------------------------------------------
 !
   subroutine radctl(jslc,ktau,alat,coslat,ts,pmid,pint,pmln,piln,t,  &
-                    h2ommr,cld,effcld,clwp,albs,albsd,albl,albld,    &
+                    h2ommr,cld,effcld,clwp, &
                     fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd, &
                     solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns,flntc,    &
                     flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,         &
@@ -525,12 +519,11 @@ module mod_rad_radiation
     integer(8) , intent(in) :: ktau
     real(8) , intent(in) :: eccf
     integer :: jslc
-    real(8) , dimension(iym1) :: alb , albc , albl , albld , albs ,  &
-                                 albsd , alat , coslat , emsvt ,     &
-                                 flns , flnsc , flnt , flntc ,       &
-                                 flwds , fsds , fsnirt , fsnirtsq ,  &
-                                 fsnrtc , fsns , fsnsc , fsnt ,      &
-                                 fsntc , solin , soll , solld ,      &
+    real(8) , dimension(iym1) :: alb , albc , alat , coslat , emsvt , &
+                                 flns , flnsc , flnt , flntc ,        &
+                                 flwds , fsds , fsnirt , fsnirtsq ,   &
+                                 fsnrtc , fsns , fsnsc , fsnt ,       &
+                                 fsntc , solin , soll , solld ,       &
                                  sols , solsd , ts
     real(8) , dimension(iym1,kzp1) :: cld , effcld , piln , pint
     real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , pmid ,  &
@@ -601,10 +594,9 @@ module mod_rad_radiation
  
       call aeroppt(rh,pint)
 !
-      call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,albs,   &
-                  albsd,albl,albld,solin,qrs,fsns,fsnt,fsds,fsnsc,    &
-                  fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq, &
-                  aeradfo,aeradfos)
+      call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,    &
+                  solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
+                  solsd,solld,fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
 !
 !     call aerout(jslc,aeradfo,aeradfos)
 !
@@ -766,9 +758,8 @@ module mod_rad_radiation
 !-----------------------------------------------------------------------
 !
   subroutine radcsw(pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,   &
-                    asdir,asdif,aldir,aldif,solin,qrs,fsns,fsnt,    &
-                    fsds,fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,  &
-                    fsnrtc,fsnirtsq,aeradfo,aeradfos)
+                    solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
+                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,aeradfo,aeradfos)
 ! 
     implicit none
 !
@@ -784,10 +775,6 @@ module mod_rad_radiation
 ! rei     - Ice effective drop size (microns)
 ! fice    - Fractional ice content within cloud
 ! eccf    - Eccentricity factor (d_one/earth-sun dist ** 2)
-! asdir   - 0.2-0.7 micro-meter srfc alb to direct rad
-! aldir   - 0.7-5.0 micro-meter srfc alb to direct rad
-! asdif   - 0.2-0.7 micro-meter srfc alb to diffuse mod_rad
-! aldif   - 0.7-5.0 micro-meter srfc alb to diffuse mod_rad
 !
 !     Output arguments
 !
@@ -808,16 +795,14 @@ module mod_rad_radiation
 !
 !
     real(8) :: eccf
-    real(8) , dimension(iym1) :: aeradfo , aeradfos , aldif , aldir ,&
-                                  asdif , asdir , fsds , fsnirt ,     &
+    real(8) , dimension(iym1) :: aeradfo , aeradfos , fsds , fsnirt , &
                                   fsnirtsq , fsnrtc , fsns , fsnsc ,  &
                                   fsnt , fsntc , solin , soll ,       &
                                   solld , sols , solsd
     real(8) , dimension(iym1,kzp1) :: cld , pint
     real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , o3mmr , &
            qrs , rei , rel
-    intent (in) aldif , aldir , asdif , asdir , cld , clwp , eccf ,   &
-                fice , h2ommr , o3mmr , pint , rei , rel
+    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel
     intent (out) aeradfo , aeradfos , fsds , qrs
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , soll , solld , sols , solsd
@@ -1262,8 +1247,8 @@ module mod_rad_radiation
       if ( wavmid < 0.7D0 ) then
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            diralb(i) = asdir(i)
-            difalb(i) = asdif(i)
+            diralb(i) = swdiralb(i)
+            difalb(i) = swdifalb(i)
           end do
         end do
 !
@@ -1272,8 +1257,8 @@ module mod_rad_radiation
       else
         do n = 1 , nloop
           do i = is(n) , ie(n)
-            diralb(i) = aldir(i)
-            difalb(i) = aldif(i)
+            diralb(i) = lwdiralb(i)
+            difalb(i) = lwdifalb(i)
           end do
         end do
       end if
@@ -1369,7 +1354,8 @@ module mod_rad_radiation
 !           conversion factors
           if ( wavmid < 0.7D0 ) then
             sols(i) = sols(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
-            solsd(i) = solsd(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
+            solsd(i) = solsd(i) + &
+                   (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
 !KN         added below
             abveg(i) = abveg(i) + (solflx(i) *            &
                        (fluxdn(i,kzp1)-fluxup(i,kz + 1)))*  &
@@ -1377,7 +1363,8 @@ module mod_rad_radiation
 !KN         added above
           else
             soll(i) = soll(i) + exptdn(i,kzp1)*solflx(i)*d_r1000
-            solld(i) = solld(i) + (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
+            solld(i) = solld(i) + &
+                   (fluxdn(i,kzp1)-exptdn(i,kz + 1))*solflx(i)*d_r1000
             fsnirtsq(i) = fsnirtsq(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
 !KN         added below
             abveg(i) = abveg(i)+(solflx(i)*(fluxdn(i,kzp1)-fluxup(i,kz + 1)))* &
@@ -1385,7 +1372,6 @@ module mod_rad_radiation
 !KN         added above
           end if
           fsnirt(i) = fsnirt(i) + wgtint*solflx(i) * (fluxdn(i,0)-fluxup(i,0))
-   
 !
         end do
       end do
@@ -1482,7 +1468,8 @@ module mod_rad_radiation
           do i = is(n) , ie(n)
             x0fsntc(i) = x0fsntc(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
             x0fsnsc(i) = x0fsnsc(i) + solflx(i)*(fluxdn(i,2)-fluxup(i,2))
-            x0fsnrtc(i) = x0fsnrtc(i) + wgtint*solflx(i)*(fluxdn(i,0)-fluxup(i,0))
+            x0fsnrtc(i) = x0fsnrtc(i) + &
+                     wgtint*solflx(i)*(fluxdn(i,0)-fluxup(i,0))
    
 !           SAVE the ref net TOA flux ( and put back the cumul variables to 0.)
           end do
@@ -1551,7 +1538,6 @@ module mod_rad_radiation
           fsntc(i) = fsntc(i) + solflx(i)*(fluxdn(i,0)-fluxup(i,0))
           fsnsc(i) = fsnsc(i) + solflx(i)*(fluxdn(i,2)-fluxup(i,2))
           fsnrtc(i) = fsnrtc(i) + wgtint*solflx(i) * (fluxdn(i,0)-fluxup(i,0))
-   
         end do
       end do
 !
@@ -1612,10 +1598,9 @@ module mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
-  subroutine radclw(jslc,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2,&
-                    plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,  &
-                    flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,   &
-                    aerlwfos)
+  subroutine radclw(jslc,ktau,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,plco2, &
+                    plh2o,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,   &
+                    flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos)
 !
     implicit none
 !
@@ -2006,7 +1991,7 @@ module mod_rad_radiation
 
 !     surface lw net ! fsul(i,plevp) - fsdl(i,plevp)
 !     aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
-      aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))-                    &
+      aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))- &
                     (fsul(:,kzp1) - fsdl(:,kzp1))
        
 !     return to no aerosol LW effect  situation if idirect ==1
@@ -2140,7 +2125,8 @@ module mod_rad_radiation
       do ii = 1 , iym1c
         i = indx(ii)
         if ( k <= khivm(i) ) then
-          fdl(i,k2) = fdl(i,k2) + fsdl(i,k2)*(tclrsf(i,k1)*rtclrsf(i,kzp1-khiv(i)))
+          fdl(i,k2) = fdl(i,k2) + &
+                  fsdl(i,k2)*(tclrsf(i,k1)*rtclrsf(i,kzp1-khiv(i)))
         end if
       end do
     end do  ! k = 1 , khighest-1

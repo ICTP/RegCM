@@ -38,20 +38,35 @@ module mod_rad_common
   real(8) , pointer , dimension(:,:) :: tground ! sfsta%tgbb
   real(8) , pointer , dimension(:,:) :: xlat ! mddom%xlat
 
+  ! vegetation absorbed radiation (full solar spectrum)
   real(8) , pointer , dimension(:) :: abveg   ! sabveg
+  ! Incident solar flux
   real(8) , pointer , dimension(:) :: solar   ! solis
+  ! Direct Solar radiation
   real(8) , pointer , dimension(:) :: soldir  ! solvs
+  ! Diffuse Solar radiation
   real(8) , pointer , dimension(:) :: soldif  ! solvd
+  ! Cosine of zenithal solar angle
   real(8) , pointer , dimension(:) :: coszen  ! coszrs
+  ! 0.2-0.7 micro-meter srfc alb to direct radiation
   real(8) , pointer , dimension(:) :: swdiralb ! aldirs
+  ! 0.2-0.7 micro-meter srfc alb to diffuse radiation
   real(8) , pointer , dimension(:) :: swdifalb ! aldifs
+  ! 0.7-5.0 micro-meter srfc alb to direct radiation
   real(8) , pointer , dimension(:) :: lwdiralb ! aldirl
+  ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
   real(8) , pointer , dimension(:) :: lwdifalb ! aldifl
+  ! Total direct albedo
   real(8) , pointer , dimension(:) :: diralb  ! albdir
+  ! Total diffuse albedo
   real(8) , pointer , dimension(:) :: difalb  ! albdif
+  ! Total Short wave albedo (0.2-0.7 micro-meter)
   real(8) , pointer , dimension(:) :: swalb   ! albvs
+  ! Total Long wave albedo (0.7-5.0 micro-meter)
   real(8) , pointer , dimension(:) :: lwalb   ! albvl
+  ! Emissivity at surface
   real(8) , pointer , dimension(:) :: emsvt   ! emiss
+  ! Bidimensional collector storage for above
   real(8) , pointer , dimension(:,:) :: abveg2d ! sabv2d
   real(8) , pointer , dimension(:,:) :: solar2d ! sol2d
   real(8) , pointer , dimension(:,:) :: totsol2d ! sinc2d
@@ -64,6 +79,8 @@ module mod_rad_common
   real(8) , pointer , dimension(:,:) :: srfabswflx ! fsw2d
   real(8) , pointer , dimension(:,:) :: srflwflxup ! flw2d
   real(8) , pointer , dimension(:,:) :: srflwflxdw ! flwd2d
+
+  ! Land Ocean Ice (1,0,2) mask
   integer , pointer , dimension(:,:,:) :: lndocnicemsk ! ocld2d
 
   real(8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia

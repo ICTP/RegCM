@@ -34,10 +34,11 @@ module mod_rad_aerosol
   public :: tauxar , tauasc
   public :: gtota , ftota
   public :: idust
-  public :: allocate_mod_rad_aerosol , aermix , aeroppt , aerout
   public :: aerasp , aerext , aerssa
   public :: aersrrf , aertarf
   public :: aertalwrf , aersrlwrf
+!
+  public :: allocate_mod_rad_aerosol , aermix , aeroppt , aerout
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
 !
