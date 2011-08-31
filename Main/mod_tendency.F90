@@ -1507,22 +1507,20 @@ module mod_tendency
     if ( icup == 1 ) then
       call htdiff(dxsq,akht1)
     end if
+#ifndef BAND
+      ! diagnostic on total evaporation
+      if (debug_level > 2) call conqeva
+#endif
 !
 !   Call medium resolution PBL
 !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
-#ifndef BAND
-      if (debug_level > 2) call conqeva
-#endif
       call uwtcm
       call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
-#ifndef BAND
-      if (debug_level > 2) call conqeva
-#endif
       call holtbl
     end if
 

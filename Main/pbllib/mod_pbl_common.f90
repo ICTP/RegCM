@@ -95,6 +95,8 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:) :: qcuwten   ! uwten%qc
   real(dp) , pointer , dimension(:,:,:) :: uatm      ! atms%ubx3d
   real(dp) , pointer , dimension(:,:,:) :: vatm      ! atms%vbx3d
+  real(dp) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
+  real(dp) , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
   real(dp) , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: qvatm     ! atms%qv
   real(dp) , pointer , dimension(:,:,:) :: qcatm     ! atms%qc
@@ -109,6 +111,7 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:,:) :: chten   ! chiten
   real(dp) , pointer , dimension(:,:,:) :: drmr      ! remdrd
   real(dp) , pointer , dimension(:,:) :: sfcps       ! sps2%ps
+  real(dp) , pointer , dimension(:,:) :: sfcpd       ! sps2%pdot
   real(dp) , pointer , dimension(:,:) :: tg          ! sts2%tg
   real(dp) , pointer , dimension(:,:) :: qfx         ! sfsta%qfx
   real(dp) , pointer , dimension(:,:) :: hfx         ! sfsta%hfx

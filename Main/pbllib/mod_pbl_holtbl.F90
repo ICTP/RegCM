@@ -126,7 +126,7 @@ module mod_pbl_holtbl
 !
   implicit none
 !
-  real(8) :: drgdot , dumr , kzmax , oblen , xps , ps2 , ri , &
+  real(8) :: drgdot , kzmax , oblen , xps , ps2 , ri , &
              sf , sh10 , ss , uflxsf , uflxsfx , vflxsf ,     &
              vflxsfx
   integer :: jdx , jm1
@@ -138,7 +138,7 @@ module mod_pbl_holtbl
 !
 !----------------------------------------------------------------------
 !-----some of the storage spaces for high-resolution pbl
-!     are use mod_to store the variables in this subroutine.
+!     are used store the variables in this subroutine.
 !     difft(i,k,j)   : temperature tendency (tten)
 !     diffq(i,k,j)   : water vapor tendency (qvten)
 !
@@ -438,16 +438,16 @@ module mod_pbl_holtbl
  
     do i = 2 , iym1
       coefe(i,1) = coef1(i,1)/coef2(i,1)
-      coeff1(i,1) = uatm(i,1,j)/coef2(i,1)
-      coeff2(i,1) = vatm(i,1,j)/coef2(i,1)
+      coeff1(i,1) = udatm(i,1,j)/coef2(i,1)
+      coeff2(i,1) = vdatm(i,1,j)/coef2(i,1)
     end do
  
     do k = 2 , kz - 1
       do i = 2 , iym1
         coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff1(i,k) = (uatm(i,k,j)+coef3(i,k)*coeff1(i,k-1))/       &
+        coeff1(i,k) = (udatm(i,k,j)+coef3(i,k)*coeff1(i,k-1))/       &
                       (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-        coeff2(i,k) = (vatm(i,k,j)+coef3(i,k)*coeff2(i,k-1))/       &
+        coeff2(i,k) = (vdatm(i,k,j)+coef3(i,k)*coeff2(i,k-1))/       &
                       (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
       end do
     end do
@@ -469,17 +469,16 @@ module mod_pbl_holtbl
       drgdot = (uvdrag(idxm1,jdxm1)+uvdrag(idxm1,jdx)+  &
               uvdrag(idx,jdxm1)+uvdrag(idx,jdx))*d_rfour
 #endif
-      uflxsf = drgdot*uatm(i,kz,j)
-      vflxsf = drgdot*vatm(i,kz,j)
+      uflxsf = drgdot*udatm(i,kz,j)
+      vflxsf = drgdot*vdatm(i,kz,j)
  
       coefe(i,kz) = d_zero
-      coeff1(i,kz) = (uatm(i,kz,j)-dtpbl*alphak(i,kz)*uflxsf+          &
+      coeff1(i,kz) = (udatm(i,kz,j)-dtpbl*alphak(i,kz)*uflxsf+          &
                       coef3(i,kz)*coeff1(i,kz-1))/                  &
                      (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
-      coeff2(i,kz) = (vatm(i,kz,j)-dtpbl*alphak(i,kz)*vflxsf+          &
+      coeff2(i,kz) = (vdatm(i,kz,j)-dtpbl*alphak(i,kz)*vflxsf+          &
                       coef3(i,kz)*coeff2(i,kz-1))/                  &
                      (coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
- 
     end do
 !
 !       all coefficients have been computed, predict field and put it in
@@ -503,12 +502,10 @@ module mod_pbl_holtbl
 !
     do k = 1 , kz
       do i = 2 , iym1
-        dumr = (sfcps(i,j)  +sfcps(i,jm1) +  &
-                sfcps(i-1,j)+sfcps(i-1,jm1))*d_rfour
         uten(i,k,j) = uten(i,k,j) + &
-                        (tpred1(i,k)-uatm(i,k,j))/dtpbl*dumr
+                        (tpred1(i,k)-udatm(i,k,j))/dtpbl*sfcpd(i,j)
         vten(i,k,j) = vten(i,k,j) + &
-                        (tpred2(i,k)-vatm(i,k,j))/dtpbl*dumr
+                        (tpred2(i,k)-vdatm(i,k,j))/dtpbl*sfcpd(i,j)
       end do
     end do
  
