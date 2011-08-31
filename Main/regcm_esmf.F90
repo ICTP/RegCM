@@ -136,6 +136,16 @@
                                      exportState=models(i)%stateExport, &
                                      rc=rc)  
       end do
+!
+!**********************************************************************
+!
+!     Set start time, stop time and time step 
+!
+!**********************************************************************
+!
+      do i = 1, Nmodels
+        print*, "--", i, localPet, trim(models(i)%time%stamp)
+      end do
 ! 
 !**********************************************************************
 !

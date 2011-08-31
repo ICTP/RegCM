@@ -158,12 +158,42 @@
                       rc=rc)
 !
 !-----------------------------------------------------------------------
-!     Initialize the gridded component
+!     Initialize the meshded component
 !-----------------------------------------------------------------------
 !
       flag = .TRUE.
       call MPI_Comm_dup(comm, models(Iocean)%comm, ierr)
       call ROMS_initialize(flag, MyCOMM=models(Iocean)%comm)
+!
+!-----------------------------------------------------------------------
+!     Set-up ESMF internal clock for meshded component 
+!-----------------------------------------------------------------------
+!
+      call ROMS_SetClock(clock, rc)
+!
+!-----------------------------------------------------------------------
+!     Set-up excgange mesh for meshded component 
+!-----------------------------------------------------------------------
+!
+      call ROMS_SetGridArrays(comp, rc)
+!
+!-----------------------------------------------------------------------
+!     Load ROMS exchange mesh arrays
+!-----------------------------------------------------------------------
+!
+!      call ROMS_PutGridData(Myrank, ng, status)
+!
+!-----------------------------------------------------------------------
+!     Set-up import/export states
+!-----------------------------------------------------------------------
+!
+!      call ROMS_SetStates(ImportState, ExportState, ng, MyRank, status)
+!
+!-----------------------------------------------------------------------
+!     Load export initial conditions data.
+!-----------------------------------------------------------------------
+!
+!      call ROMS_PutExportData(Myrank, ng, status)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -240,4 +270,509 @@
 !
       end subroutine ROMS_SetFinalize
 !    
+      subroutine ROMS_SetClock(clock, status)
+!
+!**********************************************************************
+!
+!     Imported modules 
+!
+!**********************************************************************
+!
+      use mod_param
+      use mod_scalars
+!
+!**********************************************************************
+!
+!     Imported variable declarations 
+!
+!**********************************************************************
+!
+      TYPE(ESMF_Clock), intent(inout) :: clock
+      integer, intent(inout) :: status
+!
+!**********************************************************************
+!
+!     Local variable declarations 
+!
+!**********************************************************************
+!
+      integer :: ref_year,   str_year,   end_year
+      integer :: ref_month,  str_month,  end_month
+      integer :: ref_day,    str_day,    end_day
+      integer :: ref_hour,   str_hour,   end_hour
+      integer :: ref_minute, str_minute, end_minute
+      integer :: ref_second, str_second, end_second
+!
+      integer :: ng, MyTimeStep
+      real(r8) :: MyStartTime, MyStopTime
+      real(r8) :: hour, minute, yday
+      character (len=80) :: name
+!
+!**********************************************************************
+!
+!     Create meshded component clock 
+!
+!**********************************************************************
+!
+!-----------------------------------------------------------------------
+!     Create ESMF calendar
+!-----------------------------------------------------------------------
+!
+      IF (INT(time_ref).eq.-2) THEN
+        ref_year=1968
+        ref_month=5
+        ref_day=23
+        ref_hour=0
+        ref_minute=0
+        ref_second=0
+        name='Modified Julian day number, Gregorian Calendar'
+        models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
+                                                 name=TRIM(name),       &
+                                                 rc=status)
+      ELSE IF (INT(time_ref).eq.-1) THEN
+        ref_year=1
+        ref_month=1
+        ref_day=1
+        ref_hour=0
+        ref_minute=0
+        ref_second=0
+        name='360-day, 30 days per month'
+        models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_360DAY,   &
+                                                 name=TRIM(name),       &
+                                                 rc=status)
+      ELSE IF (INT(time_ref).eq.0) THEN
+        ref_year=1
+        ref_month=1
+        ref_day=1
+        ref_hour=0
+        ref_minute=0
+        ref_second=0
+        name='Julian Calendar, leap year if divisible by 4'
+        models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_JULIAN,   &
+                                                 name=TRIM(name),       &
+                                                 rc=status)
+      ELSE IF (time_ref.gt.0.0_r8) THEN
+        ref_year=INT(r_date(2))
+        ref_month=INT(r_date(4))
+        ref_day=INT(r_date(5))
+        ref_hour=INT(r_date(6))
+        ref_minute=INT(r_date(7))
+        ref_second=INT(r_date(8))
+        name='Gregorian Calendar'
+        models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
+                                                 name=TRIM(name),       &
+                                                 rc=status)
+      END IF
+!
+!-----------------------------------------------------------------------
+!     Set Reference time.
+!-----------------------------------------------------------------------
+!
+      CALL ESMF_TimeSet (models(Iocean)%refTime,                        &
+                         yy=ref_year,                                   &
+                         mm=ref_month,                                  &
+                         dd=ref_day,                                    &
+                         h=ref_hour,                                    &
+                         m=ref_minute,                                  &
+                         s=ref_second,                                  &
+                         calendar=models(Iocean)%cal,                   &
+                         rc=status)
+!
+!-----------------------------------------------------------------------
+!     Set start time
+!-----------------------------------------------------------------------
+!
+      MyStartTime = MINVAL(tdays)
+      CALL caldate (r_date, MyStartTime, str_year, yday, str_month,     &
+                    str_day, hour)
+      minute=(hour-AINT(hour))*60.0_r8
+      str_hour=INT(hour)
+      str_minute=INT(minute)
+      str_second=INT((minute-AINT(minute))*60.0_r8)
+!
+      CALL ESMF_TimeSet (models(Iocean)%strTime,                        &
+                         yy=str_year,                                   &
+                         mm=str_month,                                  &
+                         dd=str_day,                                    &
+                         h=str_hour,                                    &
+                         m=str_minute,                                  &
+                         s=str_second,                                  &
+                         calendar=models(Iocean)%cal,                   &
+                         rc=status)
+!
+!-----------------------------------------------------------------------
+!     Set stop time
+!-----------------------------------------------------------------------
+!
+      MyStopTime=0.0_r8
+      DO ng = 1, nNest(Iocean)
+        MyStopTime=MAX(MyStopTime,                                      &
+                       tdays(ng)+(REAL(ntimes(ng),r8)*dt(ng))*sec2day)
+      END DO
+      CALL caldate (r_date, MyStopTime, end_year, yday, end_month,      &
+                    end_day, hour)
+      minute=(hour-AINT(hour))*60.0_r8
+      end_hour=INT(hour)
+      end_minute=INT(minute)
+      end_second=INT((minute-AINT(minute))*60.0_r8)
+!
+      CALL ESMF_TimeSet (models(Iocean)%endTime,                        &
+                         yy=end_year,                                   &
+                         mm=end_month,                                  &
+                         dd=end_day,                                    &
+                         h=end_hour,                                    &
+                         m=end_minute,                                  &
+                         s=end_second,                                  &
+                         calendar=models(Iocean)%cal,                   &
+                         rc=status)
+!
+!-----------------------------------------------------------------------
+!     Set time interval
+!-----------------------------------------------------------------------
+!
+      MyTimeStep = INT(MINVAL(dt))
+      call ESMF_TimeIntervalSet (models(Iocean)%dtsec,                  &
+                                 s=MyTimeStep,                          &
+                                 rc=status)  
+!
+!-----------------------------------------------------------------------
+!     Create time clock.
+!-----------------------------------------------------------------------
+!
+      name='ROMS model time clock'
+      models(Iocean)%clock = ESMF_ClockCreate (name=TRIM(name),         &
+                                  refTime=models(Iocean)%refTime,       &
+                                  timeStep=models(Iocean)%dtsec,        &
+                                  startTime=models(Iocean)%strTime,     &
+                                  stopTime=models(Iocean)%endTime,      &
+                                  rc=status)
+!
+!-----------------------------------------------------------------------
+!     Copy clock
+!-----------------------------------------------------------------------
+!
+      clock = ESMF_ClockCreate (models(Iocean)%clock, rc=status)
+!
+!-----------------------------------------------------------------------
+!     Validate time clock
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockValidate (models(Iocean)%clock,                    &
+                               rc=status)
+!
+!-----------------------------------------------------------------------
+!     Get meshded component internal clock current time
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockGet (models(Iocean)%clock,                         &
+                          currTime=models(Iocean)%curTime,              &
+                          rc=status)
+!
+!-----------------------------------------------------------------------
+!     Put current time into ESM_Time variable
+!-----------------------------------------------------------------------
+!
+      CALL ESMF_TimeGet (models(Iocean)%curTime,                        &
+                         yy=models(Iocean)%time%year,                   &
+                         mm=models(Iocean)%time%month,                  &
+                         dd=models(Iocean)%time%day,                    &
+                         h=models(Iocean)%time%hour,                    &
+                         m=models(Iocean)%time%minute,                  &
+                         s=models(Iocean)%time%second,                  &
+                         timeZone=models(Iocean)%time%zone,             &
+                         timeStringISOFrac=models(Iocean)%time%stamp,   &
+                         dayOfYear=models(Iocean)%time%yday,            &
+                         rc=status)
+!
+!-----------------------------------------------------------------------
+!  Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      status = ESMF_SUCCESS
+!
+      end subroutine ROMS_SetClock
+!
+      subroutine ROMS_SetGridArrays (gcomp, status)
+!
+!**********************************************************************
+!
+!     Used module declarations 
+!
+!**********************************************************************
+!
+      use mod_param, only : NtileI, NtileJ, BOUNDS, Lm, Mm
+!
+!***********************************************************************
+!
+!     Imported variable declarations 
+!
+!***********************************************************************
+!
+      type(ESMF_GridComp), intent(inout) :: gcomp
+      integer, intent(out) :: status
+!
+!**********************************************************************
+!
+!     Local variable declarations 
+!
+!**********************************************************************
+!
+      integer :: i, n, tile 
+      integer :: myRank, nNodes, myComm
+      integer, allocatable :: deBlockList(:,:,:) 
+      integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
+      integer, allocatable :: CLW_r(:,:), CUW_r(:,:)
+      integer, allocatable :: CLW_u(:,:), CUW_u(:,:)
+      integer, allocatable :: CLW_v(:,:), CUW_v(:,:)
+      integer, dimension(2) :: CLW, CUW, TLW, TUW
+      integer, dimension(2) :: deCount, minCorner, maxCorner
+      TYPE (ESMF_ARRAY) :: grdArray
+!
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+!  
+      call ESMF_GridCompGet (gcomp,                                     &
+                             vm=models(Iocean)%vm,                      &
+                             rc=status)
+
+      call ESMF_VMGet (models(Iocean)%vm,                               &
+                       localPet=myRank,                                 &
+                       petCount=nNodes,                                 &
+                       mpiCommunicator=myComm,                          &
+                       rc=status)
+!
+!-----------------------------------------------------------------------
+!     Set RCM domain decomposition variables
+!-----------------------------------------------------------------------
+!
+!     Loop over number of nested/composed meshs.
+      do n = 1, nNest(Iocean)
+!
+!-----------------------------------------------------------------------
+!     Set ESMF Layout and distribution objects
+!-----------------------------------------------------------------------
+!
+      deCount = (/ NtileI(n), NtileJ(n) /)
+!
+      models(Iocean)%deLayout(n) = ESMF_DELayoutCreate(models(Iocean)%vm,  &
+                                         deCountList=deCount,           &
+                                         petList=models(Iocean)%petList,&
+                                         rc=status)
+!
+!-----------------------------------------------------------------------
+!     Create ESMF DistGrid based on model domain decomposition
+!-----------------------------------------------------------------------
+!
+      if (.not.allocated(deBlockList)) then
+        allocate (deBlockList(2, 2, NtileI(n)*NtileJ(n)))
+      end if 
+!
+      do tile = 0, NtileI(n)*NtileJ(n)-1
+          deBlockList(1,1,tile+1) = BOUNDS(n)%Istr(tile)
+          deBlockList(1,2,tile+1) = BOUNDS(n)%Iend(tile)
+          deBlockList(2,1,tile+1) = BOUNDS(n)%Jstr(tile)
+          deBlockList(2,2,tile+1) = BOUNDS(n)%Jend(tile)
+      end do 
+!
+!     Cordinates of the lower and upper corner of the patch
+!
+      minCorner = (/ 1, 1 /)
+      maxCorner = (/ Lm(n), Mm(n) /)
+!
+      models(Iocean)%distGrid(n) = ESMF_DistGridCreate(minCorner,          &
+                                     maxCorner,                         &
+                                     deBlockList=deBlockList,           &
+                                     deLayout=models(Iocean)%deLayout(n),  &
+                                     vm=models(Iocean)%vm,              &
+                                     rc=status)
+!
+!-----------------------------------------------------------------------
+!     Set array descriptor
+!-----------------------------------------------------------------------
+!
+      call ESMF_ArraySpecSet(models(Iocean)%arrSpec(n),                    &
+                             rank=2,                                    &
+                             typekind=ESMF_TYPEKIND_R8,                 &
+                             rc=status)
+!
+!-----------------------------------------------------------------------
+!     Define computational and total (memory) regions
+!-----------------------------------------------------------------------
+!
+      if (.not. allocated(TLWidth)) then
+        allocate(TLWidth(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(TUWidth(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CLW_r(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CUW_r(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CLW_u(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CUW_u(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CLW_v(2,0:NtileI(n)*NtileJ(n)-1))
+        allocate(CUW_v(2,0:NtileI(n)*NtileJ(n)-1))
+      end if 
+!
+      do tile = 0, NtileI(n)*NtileJ(n)-1
+        TLWidth(1,tile) = BOUNDS(n)%Istr(tile)-BOUNDS(n)%LBi(tile)
+        TLWidth(2,tile) = BOUNDS(n)%Jstr(tile)-BOUNDS(n)%LBj(tile)
+        TUWidth(1,tile) = BOUNDS(n)%UBi(tile)-BOUNDS(n)%Iend(tile)
+        TUWidth(2,tile) = BOUNDS(n)%UBj(tile)-BOUNDS(n)%Jend(tile)
+!
+        CLW_r(1,tile) = BOUNDS(n)%Istr(tile)-BOUNDS(n)%IstrR(tile)
+        CLW_r(2,tile) = BOUNDS(n)%Jstr(tile)-BOUNDS(n)%JstrR(tile)
+        CUW_r(1,tile) = BOUNDS(n)%IendR(tile)-BOUNDS(n)%Iend(tile)
+        CUW_r(2,tile) = BOUNDS(n)%JendR(tile)-BOUNDS(n)%Jend(tile)
+!
+        CLW_u(1,tile) = 0
+        CLW_u(2,tile) = CLW_r(2,tile)
+        CUW_u(1,tile) = CUW_r(1,tile)
+        CUW_u(2,tile) = CUW_r(2,tile)
+!
+        CLW_v(1,tile) = CLW_r(1,tile)
+        CLW_v(2,tile) = 0
+        CUW_v(1,tile) = CUW_r(1,tile)
+        CUW_v(2,tile) = CUW_r(2,tile)
+      end do
+!
+      TLW = (/ TLWidth(1,MyRank), TLWidth(2,MyRank) /)
+      TUW = (/ TUWidth(1,MyRank), TUWidth(2,MyRank) /)
+!
+!-----------------------------------------------------------------------
+!     Print out the information
+!-----------------------------------------------------------------------
+!
+      if (myRank == 0) then
+        print *, ' '
+        print *, 'Horizontal decomposition indices per tile:'
+        print *, ' '
+        print 10, 'Istr   = ',(BOUNDS(n)%Istr(tile),tile=0,Nnodes-1)
+        print 10, 'IstrU  = ',(BOUNDS(n)%IstrU(tile),tile=0,Nnodes-1)
+        print 10, 'Iend   = ',(BOUNDS(n)%Iend(tile),tile=0,Nnodes-1)
+        print 10, 'Jstr   = ',(BOUNDS(n)%Jstr(tile),tile=0,Nnodes-1)
+        print 10, 'JstrV  = ',(BOUNDS(n)%JstrV(tile),tile=0,Nnodes-1)
+        print 10, 'Jend   = ',(BOUNDS(n)%Jend(tile),tile=0,Nnodes-1)
+        print *, ' '
+        print 10, 'LBi    = ',(BOUNDS(n)%LBi(tile),tile=0,Nnodes-1)
+        print 10, 'UBi    = ',(BOUNDS(n)%UBi(tile),tile=0,Nnodes-1)
+        print 10, 'LBj    = ',(BOUNDS(n)%LBj(tile),tile=0,Nnodes-1)
+        print 10, 'UBj    = ',(BOUNDS(n)%UBj(tile),tile=0,Nnodes-1)
+        print *, ' '
+        print 10, 'TLWi   = ',(TLWidth(1,tile),tile=0,Nnodes-1)
+        print 10, 'TLWj   = ',(TLWidth(2,tile),tile=0,Nnodes-1)
+        print 10, 'TUWi   = ',(TUWidth(1,tile),tile=0,Nnodes-1)
+        print 10, 'TUWj   = ',(TUWidth(2,tile),tile=0,Nnodes-1)
+        print *, ' '
+        print 10, 'CLWi_r = ',(CLW_r(1,tile),tile=0,Nnodes-1)
+        print 10, 'CLWj_r = ',(CLW_r(2,tile),tile=0,Nnodes-1)
+        print 10, 'CUWi_r = ',(CUW_r(1,tile),tile=0,Nnodes-1)
+        print 10, 'CUWj_r = ',(CUW_r(2,tile),tile=0,Nnodes-1)
+        print *, ' '
+        print 10, 'CLWi_u = ',(CLW_u(1,tile),tile=0,Nnodes-1)
+        print 10, 'CLWj_u = ',(CLW_u(2,tile),tile=0,Nnodes-1)
+        print 10, 'CUWi_u = ',(CUW_u(1,tile),tile=0,Nnodes-1)
+        print 10, 'CUWj_u = ',(CUW_u(2,tile),tile=0,Nnodes-1)
+        print *, ' '
+        print 10, 'CLWi_v = ',(CLW_u(1,tile),tile=0,Nnodes-1)
+        print 10, 'CLWj_v = ',(CLW_u(2,tile),tile=0,Nnodes-1)
+        print 10, 'CUWi_v = ',(CUW_u(1,tile),tile=0,Nnodes-1)
+        print 10, 'CUWj_v = ',(CUW_u(2,tile),tile=0,Nnodes-1)
+ 10     format(1x,a,64i5)
+      end if
+!
+!
+!-----------------------------------------------------------------------    
+!     Create exchange arrays
+!-----------------------------------------------------------------------    
+!
+      do i = 1, ubound(models(Iocean)%mesh, dim=1)
+!
+        if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
+          CLW = (/ CLW_u(1,myRank), CLW_u(2,myRank) /)
+          CUW = (/ CUW_u(1,myRank), CUW_u(2,myRank) /)
+        else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) THEN
+          CLW = (/ CLW_v(1,myRank), CLW_v(2,myRank) /)
+          CUW = (/ CUW_v(1,myRank), CUW_v(2,myRank) /)
+        else
+          CLW = (/ CLW_r(1,myRank), CLW_r(2,myRank)/)
+          CUW = (/ CUW_r(1,myRank), CUW_r(2,myRank)/)
+        end if
+!
+        grdArray = ESMF_ArrayCreate (           &
+                                  arrayspec=models(Iocean)%arrSpec(n),     &
+                                  distgrid=models(Iocean)%distGrid(n),     &
+                                  computationalLWidth=CLW,              &
+                                  computationalUWidth=CUW,              &
+                                  totalLWidth=TLW,                      &
+                                  totalUWidth=TUW,                      &
+                                  indexflag=ESMF_INDEX_GLOBAL,          &
+                                  rc=status)
+        models(Iocean)%mesh(i,n)%lat%array = grdArray
+        grdArray = ESMF_ArrayCreate (           &
+                                  arrayspec=models(Iocean)%arrSpec(n),     &
+                                  distgrid=models(Iocean)%distGrid(n),     &
+                                  computationalLWidth=CLW,              &
+                                  computationalUWidth=CUW,              &
+                                  totalLWidth=TLW,                      &
+                                  totalUWidth=TUW,                      &
+                                  indexflag=ESMF_INDEX_GLOBAL,          &
+                                  rc=status)
+        models(Iocean)%mesh(i,n)%lon%array = grdArray
+!
+!       Get array pointer
+!
+        call ESMF_ArrayGet(models(Iocean)%mesh(i,n)%lat%array,            &
+                 farrayPtr=models(Iocean)%mesh(i,n)%lat%field,       &
+                 rc=status) 
+        call ESMF_ArrayGet(models(Iocean)%mesh(i,n)%lon%array,            &
+                 farrayPtr=models(Iocean)%mesh(i,n)%lon%field,       &
+                 rc=status) 
+!
+!       Set adjustable settings of array object  
+!
+        call ESMF_ArraySet(array=models(Iocean)%mesh(i,n)%lat%array,      &
+                 name=trim(models(Iocean)%mesh(i,n)%lat%long_name),  &
+                 rc=status)
+        call ESMF_ArraySet(array=models(Iocean)%mesh(i,n)%lon%array,      &
+                 name=trim(models(Iocean)%mesh(i,n)%lon%long_name),  &
+                 rc=status)
+!  
+!       Add array to export state
+!        
+        call ESMF_StateAdd(models(Iocean)%stateExport,                  &
+                           (/ models(Iocean)%mesh(i,n)%lat%array /),      &
+                           rc=status)
+        call ESMF_StateAdd(models(Iocean)%stateExport,                  &
+                           (/ models(Iocean)%mesh(i,n)%lon%array /),      &
+                           rc=status)
+!
+!       Initialize the mesh array
+!
+        models(Iocean)%mesh(i,n)%lat%field = 0.0d0
+        models(Iocean)%mesh(i,n)%lon%field = 0.0d0
+        print*, i, n, lbound(models(Iocean)%mesh(i,n)%lat%field, dim=1),&
+                      lbound(models(Iocean)%mesh(i,n)%lat%field, dim=2),&
+                      ubound(models(Iocean)%mesh(i,n)%lat%field, dim=1),&
+                      ubound(models(Iocean)%mesh(i,n)%lat%field, dim=2)
+      end do
+      end do
+!
+!     Deallocate temporary arrays
+!
+      deallocate (TLWidth)
+      deallocate (TUWidth)
+      deallocate (CLW_r)
+      deallocate (CUW_r)
+      deallocate (CLW_u)
+      deallocate (CUW_u)
+      deallocate (CLW_v)
+      deallocate (CUW_v)
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      status = ESMF_SUCCESS
+!
+      end subroutine ROMS_SetGridArrays
+!
       end module mod_esmf_ocn

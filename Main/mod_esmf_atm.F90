@@ -213,14 +213,69 @@
 !
 !***********************************************************************
 !
-!     
+      logical :: first
+      integer :: localPet, petCount, comm
 !
 !***********************************************************************
 !
-!     Call RCM initialization routines
+!     Call RCM run routines
 !
 !***********************************************************************
 !
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+! 
+      call ESMF_VMGet(models(Iatmos)%vm,                                &
+                      localPet=localPet,                                &
+                      petCount=petCount,                                &
+                      mpiCommunicator=comm,                             &
+                      rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get RCM internal clock current time
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockGet (models(Iatmos)%clock,                         &
+                          currTime=models(Iatmos)%curTime,              &
+                          rc=rc)
+!
+      CALL ESMF_TimeGet (models(Iatmos)%curTime,                        &
+                         yy=models(Iatmos)%time%year,                   &
+                         mm=models(Iatmos)%time%month,                  &
+                         dd=models(Iatmos)%time%day,                    &
+                         h=models(Iatmos)%time%hour,                    &
+                         m=models(Iatmos)%time%minute,                  &
+                         s=models(Iatmos)%time%second,                  &
+                         timeZone=models(Iatmos)%time%zone,             &
+                         timeStringISOFrac=models(Iatmos)%time%stamp,   &
+                         dayOfYear=models(Iatmos)%time%yday,            &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Write current time (debug)
+!-----------------------------------------------------------------------
+!
+      write(*, 20) localPet, 'Current Time',                            &
+                   trim(models(Iatmos)%time%stamp)
+!
+!-----------------------------------------------------------------------
+!     Set start and end time 
+!-----------------------------------------------------------------------
+!
+!      first = .true.
+!      timestr = d_zero
+!      tdif = idate2 - idate1
+!      timeend = tohours(tdif) * secph
+!
+!      call RCM_run(timestr, timeend, first)
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 20   format(' PET (', I2, ') - RCM Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -464,10 +519,10 @@
       integer, allocatable :: deBlockList(:,:,:)
       integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
       integer, allocatable :: CLW_c(:,:), CUW_c(:,:)
-      integer, allocatable :: CLW_d(:,:), CUW_d(:,:)
       integer, dimension(2) :: CLW, CUW, TLW, TUW
       integer, dimension(2) :: deCount, minIndex, maxIndex
       TYPE (ESMF_ARRAY) :: GrdArray
+       real(ESMF_KIND_R8), pointer :: farrayPtr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
@@ -519,12 +574,12 @@
         deBlockList(2,1,tile) = (tile-1)*jxp+1
         deBlockList(2,2,tile) = tile*jxp 
       end do
-      if (localPet == 0) then
+!      if (localPet == 0) then
         print 10, 'Istr = ',(deBlockList(1,1,tile),tile=1,nproc)
         print 10, 'Iend = ',(deBlockList(1,2,tile),tile=1,nproc)
         print 10, 'Jstr = ',(deBlockList(2,1,tile),tile=1,nproc)
         print 10, 'Jend = ',(deBlockList(2,2,tile),tile=1,nproc)
-      end if
+!      end if
 10    format(1x,a,64i5)
 !
 !     Cordinates of the lower and upper corner of the patch
@@ -551,20 +606,70 @@
 !-----------------------------------------------------------------------
 !
       call ESMF_ArraySpecSet (models(Iatmos)%arrSpec(n),                &
-                              rank=2,                                   &
                               typekind=ESMF_TYPEKIND_R8,                &
+                              rank=2,                                   &
                               rc=rc)
+!
+!-----------------------------------------------------------------------    
+!     Set computational region widths
+!-----------------------------------------------------------------------    
+!
+      if (.not. allocated(CLW_c)) then
+        allocate(CLW_c(2, 0:nproc-1))
+        allocate(CUW_c(2, 0:nproc-1))
+        allocate(TLWidth(2, 0:nproc-1))
+        allocate(TUWidth(2, 0:nproc-1))
+      end if
+!
+      do tile = 0, nproc-1
+        TLWidth(1,tile) = 1 
+        TLWidth(2,tile) = 1
+        TUWidth(1,tile) = 1
+        TUWidth(2,tile) = 1
+        CLW_c(1,tile) = 1       
+        CLW_c(2,tile) = 1       
+        CUW_c(1,tile) = 1       
+        CUW_c(2,tile) = 1
+      end do
+!
+      TLW = (/TLWidth(1,localPet), TLWidth(2,localPet)/)
+      TUW = (/TUWidth(1,localPet), TUWidth(2,localPet)/)
+      CLW = (/CLW_c(1,localPet), CLW_c(2,localPet)/)
+      CUW = (/CUW_c(1,localPet), CUW_c(2,localPet)/)
 !
 !-----------------------------------------------------------------------    
 !     Create exchange arrays
 !-----------------------------------------------------------------------    
 !
       do i = 1, ubound(models(Iatmos)%mesh, dim=1)
-        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec(n),&
-                               distgrid=models(Iatmos)%distGrid(n),     &
-                               indexflag=ESMF_INDEX_GLOBAL,             &
-                               rc=rc)
+!
+!       Create array
+!
+        grdArray = ESMF_ArrayCreate(arrayspec=models(Iatmos)%arrSpec(n),&
+                                    distgrid=models(Iatmos)%distGrid(n),&
+!                                    computationalLWidth=CLW,            &
+!                                    computationalUWidth=CUW,            &
+!                                    totalLWidth=TLW,                    &
+!                                    totalUWidth=TUW,                    &
+                                    indexflag=ESMF_INDEX_GLOBAL,        &
+                                    rc=rc)
         models(Iatmos)%mesh(i,n)%lat%array = grdArray
+!
+!       Get data pointer from array
+!
+        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lon%array,           &
+                        farrayPtr=models(Iatmos)%mesh(i,n)%lon%field,&
+                        rc=rc)
+        print*, ubound(models(Iatmos)%mesh(i,n)%lon%field, dim=1),      &
+                ubound(models(Iatmos)%mesh(i,n)%lon%field, dim=2)
+!
+!       Set adjustable settings of array object  
+!
+        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lat%array,     &
+                           name=trim(models(Iatmos)%mesh(i,n)%lat%name),&
+                            rc=rc)
+!
+!       Create array
 !
         grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec(n),& 
                                distgrid=models(Iatmos)%distGrid(n),     &
@@ -572,20 +677,14 @@
                                rc=rc)
         models(Iatmos)%mesh(i,n)%lon%array = grdArray
 !
-!       Get array pointer
+!       Get data pointer from array
 !
-        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lat%array,           &
-                        farrayPtr=models(Iatmos)%mesh(i,n)%lat%field,&
-                        rc=rc)          
         call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lon%array,           &
                         farrayPtr=models(Iatmos)%mesh(i,n)%lon%field,&
                         rc=rc)          
 !
 !       Set adjustable settings of array object  
 !
-        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lat%array,     &
-                        name=trim(models(Iatmos)%mesh(i,n)%lat%name),&
-                        rc=rc)
         call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lon%array,     &
                         name=trim(models(Iatmos)%mesh(i,n)%lon%name),&
                         rc=rc)
@@ -599,6 +698,10 @@
 !
 !       Initialize the grid array
 !
+      print*, "1L ", i,n, localPet, lbound(models(Iatmos)%mesh(i,n)%lat%field, dim=1)
+      print*, "1U ", i,n, localPet, ubound(models(Iatmos)%mesh(i,n)%lat%field, dim=1)
+      print*, "2L ", i,n, localPet, lbound(models(Iatmos)%mesh(i,n)%lat%field, dim=2)
+      print*, "2U ", i,n, localPet, ubound(models(Iatmos)%mesh(i,n)%lat%field, dim=2)
         models(Iatmos)%mesh(i,n)%lat%field = 0.0d0
         models(Iatmos)%mesh(i,n)%lon%field = 0.0d0
       end do 
@@ -645,11 +748,19 @@
 !-----------------------------------------------------------------------
 !
       do n = 1, nNest(Iatmos)
+      print*, "1L ", n, localPet, lbound(models(Iatmos)%mesh(1,n)%lat%field, dim=1)
+      print*, "1U ", n, localPet, ubound(models(Iatmos)%mesh(1,n)%lat%field, dim=1)
+      print*, "2L ", n, localPet, lbound(models(Iatmos)%mesh(1,n)%lat%field, dim=2)
+      print*, "2U ", n, localPet, ubound(models(Iatmos)%mesh(1,n)%lat%field, dim=2)
+      print*, "*1L ", n, localPet, lbound(mddom%xlon)
+      print*, "*1U ", n, localPet, ubound(mddom%xlon)
+      print*, "*2L ", n, localPet, lbound(mddom%xlon)
+      print*, "*2U ", n, localPet, ubound(mddom%xlon)
       do j = 1, jxp
         do i = 1, iym2
-          jj = jxp*localPet+j
-          models(Iatmos)%mesh(1,n)%lat%field(i,jj) = mddom%xlon(i,j)
-          models(Iatmos)%mesh(1,n)%lon%field(i,jj) = mddom%xlon(i,j)
+          !jj = jxp*localPet+j
+          models(Iatmos)%mesh(1,n)%lat%field(i,j) = mddom%xlat(i,j)
+          models(Iatmos)%mesh(1,n)%lon%field(i,j) = mddom%xlon(i,j)
         end do
       end do 
       end do
