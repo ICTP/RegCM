@@ -517,6 +517,7 @@ module mod_bats_vecbats
         v10m_o(j,i-1) = 0.0
         tg_o(j,i-1) = 0.0
         t2m_o(j,i-1) = 0.0
+        q2m_o(j,i-1) = 0.0
         aldirs_o(j,i-1) = 0.0
         aldifs_o(j,i-1) = 0.0
         do n = 1 , nnsg
@@ -535,6 +536,7 @@ module mod_bats_vecbats
             u10m1d(n,i) = us1d(i)*(d_one-factuv)
             v10m1d(n,i) = vs1d(i)*(d_one-factuv)
             t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+            q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
           else 
             if ( iocnflx == 1 ) then
               fact = z2fra(n,i)/zlgocn(n,i)
@@ -542,16 +544,19 @@ module mod_bats_vecbats
               u10m1d(n,i) = us1d(i)*(d_one-factuv)
               v10m1d(n,i) = vs1d(i)*(d_one-factuv)
               t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+              q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
             end if
           end if
           tg_s(n,j,i-1) = real(tg1d(n,i))
           u10m_s(n,j,i-1) = real(u10m1d(n,i))
           v10m_s(n,j,i-1) = real(v10m1d(n,i))
           t2m_s(n,j,i-1) = real(t2m1d(n,i))
+          q2m_s(n,j,i-1) = real(q2m1d(n,i))
  
           u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
           v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
           t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m1d(n,i))
+          q2m_o(j,i-1) = real(q2m_o(j,i-1) + q2m1d(n,i))
           tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
           aldirs_o(j,i-1) = aldirs_o(j,i-1) + real(aldirs1d(n,i))
           aldifs_o(j,i-1) = aldifs_o(j,i-1) + real(aldifs1d(n,i))
@@ -559,6 +564,7 @@ module mod_bats_vecbats
         u10m_o(j,i-1) = u10m_o(j,i-1)*rrnnsg
         v10m_o(j,i-1) = v10m_o(j,i-1)*rrnnsg
         t2m_o(j,i-1) = t2m_o(j,i-1)*rrnnsg
+        q2m_o(j,i-1) = q2m_o(j,i-1)*rrnnsg
         tg_o(j,i-1) = tg_o(j,i-1)*rrnnsg
         aldirs_o(j,i-1) = aldirs_o(j,i-1)*rrnnsg
         aldifs_o(j,i-1) = aldifs_o(j,i-1)*rrnnsg
@@ -586,7 +592,6 @@ module mod_bats_vecbats
         end if
         do i = istart, iend
           drag_o(j,i-1) = 0.0
-          q2m_o(j,i-1) = 0.0
           evpa_o(j,i-1) = 0.0
           sena_o(j,i-1) = 0.0
           do n = 1 , nnsg
@@ -598,14 +603,11 @@ module mod_bats_vecbats
               facb = z2fra(n,i)/zlglnd(n,i)
               facs = z2fra(n,i)/zlgsno(n,i)
               fact = fracv*facv + fracb*facb + fracs*facs
-              q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
             else
               if ( iocnflx == 1 ) then
                 fact = z2fra(n,i)/zlgocn(n,i)
-                q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
               end if
             end if
-            q2m_s(n,j,i-1) = real(q2m1d(n,i))
             drag_s(n,j,i-1) = real(drag1d(n,i))
             evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
             sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
@@ -613,13 +615,11 @@ module mod_bats_vecbats
             prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
             ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
-            q2m_o(j,i-1) = real(q2m_o(j,i-1) + q2m1d(n,i))
             drag_o(j,i-1) = real(drag_o(j,i-1) + drag1d(n,i))
             evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,i,j))
             sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,i,j))
           end do
           tpr_o(j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-          q2m_o(j,i-1) = q2m_o(j,i-1)*rrnnsg
           drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
           evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
           sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)

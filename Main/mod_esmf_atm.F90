@@ -158,31 +158,31 @@
 !     Set-up ESMF internal clock for gridded component
 !-----------------------------------------------------------------------
 !
-!      call RCM_SetClock(clock, rc)
+      call RCM_SetClock(clock, rc)
 !
 !-----------------------------------------------------------------------
 !     Set-up excgange grid for gridded component 
 !-----------------------------------------------------------------------
 !
-!      call RCM_SetGridArrays(comp, rc)
+      call RCM_SetGridArrays(comp, rc)
 !
 !-----------------------------------------------------------------------
 !     Load ROMS exchange grid arrays
 !-----------------------------------------------------------------------
 !
-!      call RCM_PutGridData(localPet, rc)
+      call RCM_PutGridData(localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states
 !-----------------------------------------------------------------------
 !
-!      call RCM_SetStates(ImportState, ExportState, MyRank, status)
+      call RCM_SetStates(ImportState, ExportState, localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Load export initial conditions data.
 !-----------------------------------------------------------------------
 !
-!      call RCM_PutExportData(Myrank, status)
+      call RCM_PutExportData(localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -356,7 +356,7 @@
 !     Set stop time
 !-----------------------------------------------------------------------
 !
-      call split_idate(idate1, end_year, end_month, end_day, end_hour)
+      call split_idate(idate2, end_year, end_month, end_day, end_hour)
       end_minute = 0
       end_second = 0
 !
@@ -502,8 +502,8 @@
 !     Validate and print DELayout
 !-----------------------------------------------------------------------
 !
-      call ESMF_DELayoutValidate(models(Iatmos)%deLayout(n), rc=rc)
-      call ESMF_DELayoutPrint(models(Iatmos)%deLayout(n), rc=rc)
+!      call ESMF_DELayoutValidate(models(Iatmos)%deLayout(n), rc=rc)
+!      call ESMF_DELayoutPrint(models(Iatmos)%deLayout(n), rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
@@ -543,8 +543,8 @@
 !     Validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
-      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+!      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+!      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Set array descriptor
@@ -663,5 +663,226 @@
       rc = ESMF_SUCCESS
 !
       end subroutine RCM_PutGridData
+!
+      subroutine RCM_SetStates (importState, exportState, localPet,     &
+                                rc)
+!
+!**********************************************************************
+!
+!     Used module declarations 
+!
+!**********************************************************************
+!
+      use mod_dynparam, only : nproc, iy, jx, jxp, jendl
+!
+!***********************************************************************
+!
+!     Imported variable declarations 
+!
+!***********************************************************************
+!
+      type(ESMF_State), intent(inout) :: importState
+      type(ESMF_State), intent(inout) :: exportState
+      integer, intent(in) :: localPet
+      integer, intent(inout) :: rc
+!
+!**********************************************************************
+!
+!     Local variable declarations 
+!
+!**********************************************************************
+!
+      integer :: i, j, n
+!
+!-----------------------------------------------------------------------
+!     Initialize the import and export fields 
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
+!     Create export state arrays.
+!-----------------------------------------------------------------------
+!
+      do i = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
+!
+!       Create ESMF array
+!
+        models(Iatmos)%dataExport(i,n)%array = ESMF_ArrayCreate (       &
+                                    arrayspec=models(Iatmos)%arrSpec(n),&
+                                    distgrid=models(Iatmos)%distGrid(n),&
+                                    rc=rc)
+!
+!       Get data pointer from ESMF array 
+!
+        call ESMF_ArrayGet (models(Iatmos)%dataExport(i,n)%array,       &
+                       farrayPtr=models(Iatmos)%dataExport(i,n)%field,  &
+                       rc=rc)
+!
+!       Set array name
+        call ESMF_ArraySet (array=models(Iatmos)%dataExport(i,n)%array, &
+                        name=trim(models(Iatmos)%dataExport(i,n)%name), &
+                        rc=rc)
+!
+!       Add array to export state
+!
+        call ESMF_StateAdd (models(Iatmos)%stateExport,                 &
+                           (/ models(Iatmos)%dataExport(i,n)%array /),  &
+                           rc=rc)
+!
+!       Initialize export field to zero to avoid infinities or NaNs.
+!
+        models(Iatmos)%dataExport(i,n)%field = 0.0d0
+      end do
+!     
+!-----------------------------------------------------------------------
+!     Create import state arrays.
+!-----------------------------------------------------------------------
+!
+!      print*, "**", ubound(models(Iatmos)%dataImport(:,n), dim=1), "**"
+!      print*, "**", ubound(models(Iatmos)%dataExport(:,n), dim=1), "**"
+      do i = 1, ubound(models(Iatmos)%dataImport(:,n), dim=1)
+!
+!       Create ESMF array
+!        
+        models(Iatmos)%dataImport(i,n)%array = ESMF_ArrayCreate (       &
+                                    arrayspec=models(Iatmos)%arrSpec(n),&
+                                    distgrid=models(Iatmos)%distGrid(n),&
+                                    rc=rc)
+!
+!       Get data pointer from ESMF array 
+!
+        call ESMF_ArrayGet (models(Iatmos)%dataImport(i,n)%array,       &
+                       farrayPtr=models(Iatmos)%dataImport(i,n)%field,  &
+                       rc=rc)
+!
+!       Set array name
+        call ESMF_ArraySet (array=models(Iatmos)%dataImport(i,n)%array, &
+                        name=trim(models(Iatmos)%dataImport(i,n)%name), &
+                        rc=rc)
+!
+!       Add array to export state
+!
+        call ESMF_StateAdd (models(Iatmos)%stateImport,                 &
+                           (/ models(Iatmos)%dataImport(i,n)%array /),  &
+                           rc=rc)
+!
+!       Initialize export field to zero to avoid infinities or NaNs.
+!
+        models(Iatmos)%dataImport(i,n)%field = 0.0d0
+      end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      rc = ESMF_SUCCESS
+!
+      end subroutine RCM_SetStates
+!
+      subroutine RCM_PutExportData (localPet, rc)
+!
+!**********************************************************************
+!
+!     Used module declarations 
+!
+!**********************************************************************
+!
+      use mod_bats_common !, only : fbat
+      use mod_dynparam, only : iy, iym2, jxp
+!
+!***********************************************************************
+!
+!     Imported variable declarations 
+!     
+!***********************************************************************
+!
+      integer, intent(in) :: localPet
+      integer, intent(inout) :: rc
+!
+!**********************************************************************
+!
+!     Local variable declarations 
+!
+!**********************************************************************
+!
+      character (len=80) :: name
+      integer :: i, j, k, n
+!
+!-----------------------------------------------------------------------
+!     Put data into ESMF arrays 
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
+!     Load export fields
+!-----------------------------------------------------------------------
+!
+      do k = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
+        name = models(Iatmos)%dataExport(i,n)%name
+        if (trim(adjustl(name)) == "Pair") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = (sfps(i,j)+ptop)*  &
+                                                      d_1000 
+            end do        
+          end do
+        else if (trim(adjustl(name)) == "Tair") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = thatm(i,kz,j) 
+            end do
+          end do
+        else if (trim(adjustl(name)) == "Qair") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = qvatm(i,kz,j)/     &
+                                                  (d_one+qvatm(i,kz,j)) 
+            end do
+          end do
+        else if (trim(adjustl(name)) == "Uwind") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = uatm(i,kz,j) 
+            end do
+          end do
+        else if (trim(adjustl(name)) == "Vwind") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = vatm(i,kz,j)
+            end do
+          end do
+        else if (trim(adjustl(name)) == "rain") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = pptnc(i,j) +       &
+                                                     pptc(i,j)
+            end do
+          end do
+        else if (trim(adjustl(name)) == "swrad") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = fsw2d(i,j) 
+            end do
+          end do
+        else if (trim(adjustl(name)) == "lwrad_down") then
+          do j = 1 , jxp
+            do i = 1 , iym2
+              models(Iatmos)%dataExport(k,n)%field = flw2d(i,j) 
+            end do
+          end do
+        end if
+      end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      rc = ESMF_SUCCESS
+!
+      end subroutine RCM_PutExportData
 !
       end module mod_esmf_atm

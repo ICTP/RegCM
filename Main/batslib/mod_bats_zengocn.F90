@@ -204,10 +204,10 @@ module mod_bats_zengocn
           u10m1d(n,i) = uatm(i,kz,j)*uv10/uv995
           v10m1d(n,i) = vatm(i,kz,j)*uv10/uv995
           t2m1d(n,i) = t995 + tzero - dth*facttq
+          q2m1d(n,i) = q995 - dqh*facttq
 !
           if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            q2m1d(n,i) = q995 - dqh*facttq
             tgb2d(n,i,j) = tground2(i,j)
           end if
         end if

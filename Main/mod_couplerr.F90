@@ -37,6 +37,8 @@
 !-----------------------------------------------------------------------
 !
       type ESM_Field
+        integer :: fid
+        integer :: gtype        
         character (len=40) :: name
         character (len=80) :: long_name
         character (len=80) :: units
@@ -51,9 +53,6 @@
       type ESM_Mesh
         integer :: gid
         integer :: gtype
-        character (len=40) :: name
-        character (len=80) :: long_name
-        character (len=80) :: units
         type(ESM_Field) :: lat
         type(ESM_Field) :: lon
         type(ESM_Field) :: mask
@@ -63,9 +62,10 @@
 !     Earth System Model (ESM) high-level generic data type 
 !-----------------------------------------------------------------------
 !
-      type ESM_Model 
-        type(ESMF_VM) :: vm 
+      type ESM_Model
+        integer :: mid 
         integer :: comm
+        type(ESMF_VM) :: vm 
         integer, allocatable :: petList(:) 
         type(ESMF_GridComp) :: comp
         type(ESM_Mesh), allocatable :: mesh(:,:)        
@@ -155,11 +155,13 @@
 !     Initialize the coupler variables
 !-----------------------------------------------------------------------
 !
-      ! no nested grid (not supported in this version)
+      ! number of nested grid for each gridded component
+      ! the nested grid is not supported in this version (only mother)
       nNest = 1
-
+!
       if (.not. allocated(models)) then
-        ! check number of model greater than number of available pets
+        ! check for number of pets
+        ! number of model must be less or equal than number of pets 
         if (nModels > petCount) then
           call abort_all(rc)
         end if          
@@ -169,29 +171,23 @@
 
         do i = 1, nModels
           ! allocate array to store pet list
-          !if (i .eq. nModels) then
-          !  nPets = (petCount/nModels)+mod(petCount, nModels)
-          !else
-          !  nPets = petCount/nModels
-          !end if
-          nPets = 2
+          if (i .eq. 1) then
+            nPets = (petCount/nModels)+mod(petCount, nModels)
+          else
+            nPets = petCount/nModels
+          end if
           if (.not. allocated(models(i)%petList)) then
             allocate(models(i)%petList(nPets))
           end if
 
           ! assign pets to model (each component has its own pet) 
-          ! nModels > petCount - not allowed 
-          ! nModels < petCount - last component gets more pet
-          ! nModels = petCount - each model gets equal number of pets
-          !k = 0
-          !do j = ((i-1)*petCount/nModels)+1, i*petCount/nModels
-          !  k = k+1
-          !  models(i)%petList(k) = j-1 
-          !end do 
-          !print*, i, models(i)%petList
+          ! For example; two models and seven cpu (or pet)
+          ! model a - 0, 2, 4, 6
+          ! model b - 1, 3, 5
+          do j = 1, nPets 
+            models(i)%petList(j) = (i+(j-1)*nModels)-1
+          end do
         end do
-          models(Iatmos)%petList(:) = (/ 0, 1 /)
-          models(Iocean)%petList(:) = (/ 2, 3 /)
       end if
 !
 !-----------------------------------------------------------------------
@@ -220,51 +216,99 @@
 !           cross (or cell center) points (t, p etc.)
             models(i)%mesh(1,j)%gid = 1
             models(i)%mesh(1,j)%gtype = Icross
-            models(i)%mesh(1,j)%name = 'xlon'
-            models(i)%mesh(1,j)%long_name = 'longitude at cross'
-            models(i)%mesh(1,j)%units = 'degrees_east'
-            models(i)%mesh(1,j)%name = 'xlat'
-            models(i)%mesh(1,j)%long_name = 'latitude at cross'
-            models(i)%mesh(1,j)%units = 'degrees_north'
+!
+            models(i)%mesh(1,j)%lon%gtype = Icross
+            models(i)%mesh(1,j)%lon%name = 'xlon'
+            models(i)%mesh(1,j)%lon%long_name = 'longitude at cross'
+            models(i)%mesh(1,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(1,j)%lat%gtype = Icross
+            models(i)%mesh(1,j)%lat%name = 'xlat'
+            models(i)%mesh(1,j)%lat%long_name = 'latitude at cross'
+            models(i)%mesh(1,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(1,j)%mask%gtype = Icross
+            models(i)%mesh(1,j)%mask%name = 'mask'
+            models(i)%mesh(1,j)%mask%long_name = 'land sea mask'
+            models(i)%mesh(1,j)%mask%units = '1'
+!
 !           dot (or cell corners) points (u and v)
             models(i)%mesh(2,j)%gid = 2
             models(i)%mesh(2,j)%gtype = Idot
-            models(i)%mesh(2,j)%name = 'dlon'
-            models(i)%mesh(2,j)%long_name = 'longitude at dot'
-            models(i)%mesh(2,j)%units = 'degrees_east'
-            models(i)%mesh(2,j)%name = 'dlat'
-            models(i)%mesh(2,j)%long_name = 'latitude at dot'
-            models(i)%mesh(2,j)%units = 'degrees_north'
+!
+            models(i)%mesh(2,j)%lon%gtype = Idot
+            models(i)%mesh(2,j)%lon%name = 'dlon'
+            models(i)%mesh(2,j)%lon%long_name = 'longitude at dot'
+            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(2,j)%lat%gtype = Idot
+            models(i)%mesh(2,j)%lat%name = 'dlat'
+            models(i)%mesh(2,j)%lat%long_name = 'latitude at dot'
+            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(2,j)%mask%gtype = Idot
+            models(i)%mesh(2,j)%mask%name = 'mask'
+            models(i)%mesh(2,j)%mask%long_name = 'land sea mask'
+            models(i)%mesh(2,j)%mask%units = '1'
           end do
         else if (i == Iocean) then
           do j = 1, nNest(i)
 !           rho (or cell center) points
             models(i)%mesh(1,j)%gid = 1
             models(i)%mesh(1,j)%gtype = Icross
-            models(i)%mesh(1,j)%name = 'lonr'
-            models(i)%mesh(1,j)%long_name = 'longitude at rho'
-            models(i)%mesh(1,j)%units = 'degrees_east'
-            models(i)%mesh(1,j)%name = 'latr'
-            models(i)%mesh(1,j)%long_name = 'latitude at rho'
-            models(i)%mesh(1,j)%units = 'degrees_north'
+!
+            models(i)%mesh(1,j)%lon%gtype = Icross
+            models(i)%mesh(1,j)%lon%name = 'lonr'
+            models(i)%mesh(1,j)%lon%long_name = 'longitude at rho'
+            models(i)%mesh(1,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(1,j)%lat%gtype = Icross
+            models(i)%mesh(1,j)%lat%name = 'latr'
+            models(i)%mesh(1,j)%lat%long_name = 'latitude at rho'
+            models(i)%mesh(1,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(1,j)%mask%gtype = Icross
+            models(i)%mesh(1,j)%mask%name = 'mask_rho'
+            models(i)%mesh(1,j)%mask%long_name = 'mask on rho'
+            models(i)%mesh(1,j)%mask%units = '1'
+!
 !           u points
             models(i)%mesh(2,j)%gid = 2
             models(i)%mesh(2,j)%gtype = Iupoint
-            models(i)%mesh(2,j)%name = 'lonu'
-            models(i)%mesh(2,j)%long_name = 'longitude at u'
-            models(i)%mesh(2,j)%units = 'degrees_east'
-            models(i)%mesh(2,j)%name = 'latu'
-            models(i)%mesh(2,j)%long_name = 'latitude at u'
-            models(i)%mesh(2,j)%units = 'degrees_north'
+!
+            models(i)%mesh(2,j)%lon%gtype = Iupoint
+            models(i)%mesh(2,j)%lon%name = 'lonu'
+            models(i)%mesh(2,j)%lon%long_name = 'longitude at u'
+            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(2,j)%lat%gtype = Iupoint
+            models(i)%mesh(2,j)%lat%name = 'latu'
+            models(i)%mesh(2,j)%lat%long_name = 'latitude at u'
+            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(2,j)%mask%gtype = Iupoint
+            models(i)%mesh(2,j)%mask%name = 'mask_u'
+            models(i)%mesh(2,j)%mask%long_name = 'mask on u'
+            models(i)%mesh(2,j)%mask%units = '1'
+!
 !           v points
             models(i)%mesh(3,j)%gid = 3
             models(i)%mesh(3,j)%gtype = Ivpoint
-            models(i)%mesh(3,j)%name = 'lonv'
-            models(i)%mesh(3,j)%long_name = 'longitude at v'
-            models(i)%mesh(3,j)%units = 'degrees_east'
-            models(i)%mesh(3,j)%name = 'latv'
-            models(i)%mesh(3,j)%long_name = 'latitude at v'
-            models(i)%mesh(3,j)%units = 'degrees_north'
+!
+            models(i)%mesh(3,j)%lon%gtype = Ivpoint
+            models(i)%mesh(3,j)%lon%name = 'lonv'
+            models(i)%mesh(3,j)%lon%long_name = 'longitude at v'
+            models(i)%mesh(3,j)%lon%units = 'degrees_east'
+!
+            models(i)%mesh(3,j)%lat%gtype = Ivpoint
+            models(i)%mesh(3,j)%lat%name = 'latv'
+            models(i)%mesh(3,j)%lat%long_name = 'latitude at v'
+            models(i)%mesh(3,j)%lat%units = 'degrees_north'
+!
+            models(i)%mesh(3,j)%mask%gtype = Ivpoint
+            models(i)%mesh(3,j)%mask%name = 'mask_v'
+            models(i)%mesh(3,j)%mask%long_name = 'mask on v'
+            models(i)%mesh(3,j)%mask%units = '1'
           end do 
         end if
 !
@@ -281,6 +325,43 @@
         if (.not. allocated(models(i)%arrSpec)) then
           allocate(models(i)%arrSpec(nNest(i)))
         end if
+!
+!-----------------------------------------------------------------------
+!       Set import and export fields 
+!-----------------------------------------------------------------------
+!
+        if (i == Iatmos) then
+          if (.not. allocated(models(i)%dataExport)) then 
+            allocate(models(i)%dataExport(8,nNest(i)))
+          end if       
+          if (.not. allocated(models(i)%dataImport)) then 
+            allocate(models(i)%dataImport(1,nNest(i)))
+          end if 
+!      
+!          do n = 1, nNest(i)
+!           import fields
+!            models(i)%dataImport(1,n)%fid = 1
+!            models(i)%dataImport(1,n)%gtype = Icross
+!            models(i)%dataImport(1,n)%name = "sst"
+!            models(i)%dataImport(1,n)%long_name = "SST"
+!            models(i)%dataImport(1,n)%units = "Celsius"
+!
+!           export fields
+!            models(i)%dataExport(1,n)%fid = 1
+!            models(i)%dataExport(1,n)%gtype = Icross
+!            models(i)%dataExport(1,n)%name = "Pair"
+!            models(i)%dataExport(1,n)%long_name = "surface air pressure"
+!            models(i)%dataExport(1,n)%units = "millibar"
+!
+!          end do
+        else if (i == Iocean) then
+          if (.not. allocated(models(i)%dataExport)) then
+            allocate(models(i)%dataExport(1,nNest(i)))
+          end if
+          if (.not. allocated(models(i)%dataImport)) then
+            allocate(models(i)%dataImport(8,nNest(i)))
+          end if
+        end if   
       end do
 !
 !-----------------------------------------------------------------------
@@ -361,4 +442,6 @@
       stop
       end subroutine abort_all
 !
+
+
       end module mod_couplerr
