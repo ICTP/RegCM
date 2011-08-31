@@ -93,7 +93,7 @@ module mod_pbl_uwtcm
   real(dp) :: atwo = 15.0D0
         
   ! Variables that hold frequently-done calculations
-  real(dp) :: rdt , rcp , rczero
+  real(dp) :: rcp , rczero
 
   ! local variables on full levels
   real(dp) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
@@ -144,7 +144,6 @@ module mod_pbl_uwtcm
 
     ! Variables that hold frequently-done calculations
 
-    rdt = d_one/dtpbl
     rcp = d_one/cpd
     rczero = d_one/czero
 
@@ -245,7 +244,7 @@ module mod_pbl_uwtcm
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
         zqx(kzp1+1) = d_zero
-        tke(kzp1) = tkeatm(i,kzp1,j)
+        tke(kzp1) = tkests(i,kzp1,j)
 
         kinitloop: &
         do k = kz , 1 , -1
@@ -254,7 +253,7 @@ module mod_pbl_uwtcm
           zqx(k) = zqx(k+1) + rgas/egrav*tatm(i,k,j)*   &
                    log((flev(k+1)+cell)/(flev(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
-          tke(k) = tkeatm(i,k,j)
+          tke(k) = tkests(i,k,j)
           tx(k)  = tatm(i,k,j)
           qx(k)  = qvatm(i,k,j)
           qcx(k) = qcatm(i,k,j)
@@ -637,17 +636,17 @@ module mod_pbl_uwtcm
         tcmtend: &
         do k = 1 , kz
           ! Zonal wind tendency
-          uuwten(i,k,j)= psbx*(ux(k)-uxs(k))*rdt
+          uuwten(i,k,j)= psbx*(ux(k)-uxs(k))*rdtpbl
           ! Meridional wind tendency
-          vuwten(i,k,j)= psbx*(vx(k)-vxs(k))*rdt
+          vuwten(i,k,j)= psbx*(vx(k)-vxs(k))*rdtpbl
           ! TKE tendency
-          tkeuwten(i,k,j) = (tke(k)-tkes(k))*rdt
+          tkeuwten(i,k,j) = (tke(k)-tkes(k))*rdtpbl
           ! Temperature tendency
-          tuwten(i,k,j)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
+          tuwten(i,k,j)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdtpbl
           ! Water vapor tendency
-          qvuwten(i,k,j) = psbx*(qx(k)-qxs(k))*rdt
+          qvuwten(i,k,j) = psbx*(qx(k)-qxs(k))*rdtpbl
           ! Cloud water tendency
-          qcuwten(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdt
+          qcuwten(i,k,j) = psbx*(qcx(k)-qcxs(k))*rdtpbl
 
           ! Momentum diffusivity
           uwstateb%kzm(i,k,j) = kzm(k)

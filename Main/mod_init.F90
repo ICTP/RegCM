@@ -113,9 +113,9 @@ module mod_init
 !chem2_
 !------set the variables related to blackadar pbl equal to 0 initially.
 !
-    if ( ibltyp /= 0 ) then
-      sfsta%hfx = d_zero
-      sfsta%qfx = d_zero
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      atm1%tke = tkemin
+      atm2%tke = tkemin
     end if
 !
     if ( icup == 1 ) then
@@ -1106,6 +1106,7 @@ module mod_init
     dt = dt2    ! First timestep successfully read in
     dtcum = dt2
     dtpbl = dt2
+    rdtpbl = d_one/dt2
     dttke = dt2
 !
 !-----end of initial/restart if test

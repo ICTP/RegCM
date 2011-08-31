@@ -75,6 +75,7 @@ module mod_pbl_common
   type(tcm_state) :: uwstatea , uwstateb
 
   real(dp) :: dtpbl ! dt
+  real(dp) :: rdtpbl ! 1/dt
   real(dp) :: dttke ! TKE time step
   real(dp) :: tkemin
 
@@ -100,7 +101,7 @@ module mod_pbl_common
   real(dp) , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
   real(dp) , pointer , dimension(:,:,:) :: qvatm     ! atms%qv
   real(dp) , pointer , dimension(:,:,:) :: qcatm     ! atms%qc
-  real(dp) , pointer , dimension(:,:,:) :: tkeatm    ! atms%tke
+  real(dp) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
   real(dp) , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
   real(dp) , pointer , dimension(:,:,:) :: difft     ! adf%difft
   real(dp) , pointer , dimension(:,:,:) :: diffq     ! adf%diffq

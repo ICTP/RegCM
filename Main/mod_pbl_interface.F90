@@ -76,6 +76,7 @@ module mod_pbl_interface
 
     dttke = dt
     dtpbl = dt
+    rdtpbl = d_one/dtpbl
     tkemin = 1.0D-8
 
     call assignpnt(aten%u,uten)
@@ -90,6 +91,7 @@ module mod_pbl_interface
     call assignpnt(uwten%tke,tkeuwten)
     call assignpnt(uwten%qv,qvuwten)
     call assignpnt(uwten%qc,qcuwten)
+    call assignpnt(atm2%tke,tkests)
     call assignpnt(atms%ubx3d,uatm)
     call assignpnt(atms%vbx3d,vatm)
     call assignpnt(atms%ubd3d,udatm)
@@ -98,7 +100,6 @@ module mod_pbl_interface
     call assignpnt(atms%qvb3d,qvatm)
     call assignpnt(atms%qcb3d,qcatm)
     call assignpnt(atms%chib3d,chmx)
-    call assignpnt(atm2%tke,tkeatm)
     call assignpnt(atms%thx3d,thxatm)
     call assignpnt(adf%difft,difft)
     call assignpnt(adf%diffq,diffq)

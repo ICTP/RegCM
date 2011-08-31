@@ -298,6 +298,8 @@ module mod_atm_interface
       call allocate_atmstate(aten,ibltyp,.true.,0,0)
       if ( ibltyp == 99 ) then
         call allocate_atmstate(holtten,ibltyp,.true.,0,0)
+      end if
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
         call allocate_atmstate(uwten,ibltyp,.true.,0,1)
       end if
 
