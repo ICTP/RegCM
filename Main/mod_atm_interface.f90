@@ -19,6 +19,7 @@
 
 module mod_atm_interface
 !
+  use mod_dynparam
   use mod_constants , only : d_rfour
   use mod_runparams
   use mod_memutil
