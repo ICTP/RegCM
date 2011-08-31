@@ -35,7 +35,7 @@ module mod_pbl_holtbl
   real(8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
                                        ustr , xhfx , xqfx
 !
-  real(8) , pointer , dimension(:,:) :: alphak , betak , chix , &
+  real(8) , pointer , dimension(:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
   real(8) , pointer , dimension(:,:) :: kzm , rc , ttnp
@@ -109,7 +109,6 @@ module mod_pbl_holtbl
     call getmem3d(rhohf,1,iy,1,kz,1,jxp,'mod_holtbl:rhohf')
     if ( ichem == 1 ) then
       if ( ichdrdepo == 1 ) then
-        call getmem2d(chix,1,iy,1,kz,'mod_holtbl:chix')
         call getmem2d(vdep,1,iym1,1,ntr,'mod_holtbl:vdep')
       end if
       call getmem3d(kvc,1,iy,1,kz,1,jxp,'mod_holtbl:kvc')
@@ -837,23 +836,16 @@ module mod_pbl_holtbl
 !
       do itr = 1 , ntr
 !
-        do k = 1 , kz
-          do i = 2 , iym1
-            chix(i,k) = chmx(i,k,j,itr)/sfcps(i,j)
-          end do
-        end do
-!
         do i = 2 , iym1
           coefe(i,1) = coef1(i,1)/coef2(i,1)
-          coeff1(i,1) = chix(i,1)/coef2(i,1)
+          coeff1(i,1) = chmx(i,1,j,itr)/coef2(i,1)
         end do
 !
         do k = 2 , kz - 1
           do i = 2 , iym1
-            coefe(i,k) = coef1(i,k)                                 &
-                         /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
-            coeff1(i,k) = (chix(i,k)+coef3(i,k)*coeff1(i,k-1))      &
-                          /(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coefe(i,k) = coef1(i,k)/(coef2(i,k)-coef3(i,k)*coefe(i,k-1))
+            coeff1(i,k) = (chmx(i,k,j,itr)+coef3(i,k)*coeff1(i,k-1)) / &
+                          (coef2(i,k)-coef3(i,k)*coefe(i,k-1))
           end do
         end do
  
@@ -861,7 +853,7 @@ module mod_pbl_holtbl
           coefe(i,kz) = d_zero
  
 !             add dry deposition option1
-          coeff1(i,kz) = (chix(i,kz)-dtpbl*alphak(i,kz)*chix(i,kz)     &
+          coeff1(i,kz) = (chmx(i,kz,j,itr)-dtpbl*alphak(i,kz)*chmx(i,kz,j,itr) &
                          *vdep(i,itr)*rhox2d(i,j)+coef3(i,kz)       &
                          *coeff1(i,kz-1))                           &
                          /(coef2(i,kz)-coef3(i,kz)*coefe(i,kz-1))
@@ -891,13 +883,13 @@ module mod_pbl_holtbl
 !qian       chten(i,k,j,itr)=chten(i,k,j,itr)
 !CGAFFE     TEST diffusion/10
             chten(i,k,j,itr) = chten(i,k,j,itr) +  &
-                        (tpred1(i,k)-chix(i,k))/dtpbl*sfcps(i,j)
+                        (tpred1(i,k)-chmx(i,k,j,itr))/dtpbl*sfcps(i,j)
           end do
         end do
         do i = 2 , iym1
  
           if ( chname(itr) /= 'DUST' ) &
-            drmr(i,j,itr) = drmr(i,j,itr) + chix(i,kz)* &
+            drmr(i,j,itr) = drmr(i,j,itr) + chmx(i,kz,j,itr)* &
                 vdep(i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
                 egrav/(sfcps(i,j)*d_1000*dlev(kz))
  
