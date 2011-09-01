@@ -428,7 +428,6 @@ module mod_regcm_interface
     if ( myid == 0 ) then
       call for_next
     end if
-    call mpi_finalize(ierr)
 #ifdef CLM
     call t_prf('timing_all',mpicom)
     call t_finalizef()
