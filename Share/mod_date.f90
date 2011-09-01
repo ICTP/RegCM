@@ -119,7 +119,7 @@ module mod_date
   public :: operator(>) , operator(<) , operator(>=) , &
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
-  public :: setcal , date_to_internal , internal_to_date
+  public :: setcal , date_time_to_internal , internal_to_date_time
   public :: tochar , toint10 , tohours
   public :: date_bcast
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
