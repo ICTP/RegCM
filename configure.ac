@@ -259,7 +259,7 @@ AM_CONDITIONAL(COMPILER_IBM, [test x"$FC" = xxlf90])
 AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
 AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
-AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90])
+AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90 -o x"$FC" = xpgf95])
 AM_CONDITIONAL(COMPILER_INTEL, [test x"$FC" = xifort])
 
 AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
@@ -327,7 +327,7 @@ if eval "test x$DEBUG = x1"; then
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xpgf90"; then
+  if eval "test x"$FC" = xpgf90 -o x"$FC" = xpgf95"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
              -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g $FCFLAGS"
     AC_SUBST(FCFLAGS)
@@ -355,7 +355,7 @@ else
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xpgf90"; then
+  if eval "test x"$FC" = xpgf90 -o x"$FC" = xpgf95"; then
     FCFLAGS="-fastsse $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi

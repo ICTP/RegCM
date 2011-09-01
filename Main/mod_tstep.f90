@@ -61,7 +61,6 @@ module mod_tstep
     if ( ktau /= 0 ) then
       dt = dt2
     end if
-    intmdl = rcm_time_interval(idnint(dt),usec)
 !
   end subroutine tstep
 !
