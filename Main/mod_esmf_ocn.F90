@@ -181,13 +181,13 @@
 !     Load ROMS exchange mesh arrays
 !-----------------------------------------------------------------------
 !
-!      call ROMS_PutGridData(Myrank, ng, status)
+      call ROMS_PutGridData(MyRank, rc)
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states
 !-----------------------------------------------------------------------
 !
-!      call ROMS_SetStates(ImportState, ExportState, ng, MyRank, status)
+      call ROMS_SetStates(ImportState, ExportState, MyRank, rc)
 !
 !-----------------------------------------------------------------------
 !     Load export initial conditions data.
@@ -558,8 +558,10 @@
 !
       models(Iocean)%deLayout(n) = ESMF_DELayoutCreate(models(Iocean)%vm,  &
                                          deCountList=deCount,           &
-                                         petList=models(Iocean)%petList,&
+!                                         petList=models(Iocean)%petList,&
                                          rc=status)
+!      call ESMF_DELayoutPrint(models(Iocean)%deLayout(n))
+!      print*, "** turuncu ** PET LIST =", models(Iocean)%petList
 !
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
@@ -707,6 +709,13 @@
                                   indexflag=ESMF_INDEX_GLOBAL,          &
                                   rc=status)
         models(Iocean)%mesh(i,n)%lat%array = grdArray
+!
+!       Get array pointer
+!
+        call ESMF_ArrayGet(models(Iocean)%mesh(i,n)%lat%array,            &
+                 farrayPtr=models(Iocean)%mesh(i,n)%lat%field,       &
+                 rc=status)
+!
         grdArray = ESMF_ArrayCreate (           &
                                   arrayspec=models(Iocean)%arrSpec(n),     &
                                   distgrid=models(Iocean)%distGrid(n),     &
@@ -720,9 +729,6 @@
 !
 !       Get array pointer
 !
-        call ESMF_ArrayGet(models(Iocean)%mesh(i,n)%lat%array,            &
-                 farrayPtr=models(Iocean)%mesh(i,n)%lat%field,       &
-                 rc=status) 
         call ESMF_ArrayGet(models(Iocean)%mesh(i,n)%lon%array,            &
                  farrayPtr=models(Iocean)%mesh(i,n)%lon%field,       &
                  rc=status) 
@@ -749,10 +755,7 @@
 !
         models(Iocean)%mesh(i,n)%lat%field = 0.0d0
         models(Iocean)%mesh(i,n)%lon%field = 0.0d0
-        print*, i, n, lbound(models(Iocean)%mesh(i,n)%lat%field, dim=1),&
-                      lbound(models(Iocean)%mesh(i,n)%lat%field, dim=2),&
-                      ubound(models(Iocean)%mesh(i,n)%lat%field, dim=1),&
-                      ubound(models(Iocean)%mesh(i,n)%lat%field, dim=2)
+!        models(Iocean)%mesh(i,n)%mask%field = 0.0d0
       end do
       end do
 !
@@ -774,5 +777,269 @@
       status = ESMF_SUCCESS
 !
       end subroutine ROMS_SetGridArrays
+!
+      subroutine ROMS_PutGridData (localPet, status)
+!
+!**********************************************************************
+!
+!     Used module declarations 
+!
+!**********************************************************************
+!
+      use mod_param, only : BOUNDS
+      use mod_grid , only : GRID
+!
+!***********************************************************************
+!
+!     Imported variable declarations 
+!
+!***********************************************************************
+!
+      integer, intent(in) :: localPet
+      integer, intent(inout) :: status
+!
+!***********************************************************************
+!
+!     Local variable declarations 
+!
+!***********************************************************************
+!
+      integer :: i, j, k, n
+      integer :: Istr, Jstr, IstrR, IendR, JstrR, JendR
+!
+!-----------------------------------------------------------------------
+!     Loop over number of nested/composed meshs.
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iocean)
+!
+!-----------------------------------------------------------------------
+!     Get limits of the arrays (based on PET and grid id)
+!-----------------------------------------------------------------------
+!
+      Istr  = BOUNDS(n)%Istr (localPet)
+      Jstr  = BOUNDS(n)%Jstr (localPet)
+      IstrR = BOUNDS(n)%IstrR(localPet)
+      IendR = BOUNDS(n)%IendR(localPet)
+      JstrR = BOUNDS(n)%JstrR(localPet)
+      JendR = BOUNDS(n)%JendR(localPet)
+!     
+!-----------------------------------------------------------------------
+!     Load grid data for grid points 
+!-----------------------------------------------------------------------
+! 
+      do k = 1, ubound(models(Iocean)%mesh, dim=1)
+!       RHO 
+        if (models(Iocean)%mesh(k,n)%gtype == Icross) then
+          do j = JstrR, JendR
+            do i = IstrR, IendR
+              models(Iocean)%mesh(k,n)%lon%field(i,j)=GRID(n)%lonr(i,j)
+              models(Iocean)%mesh(k,n)%lat%field(i,j)=GRID(n)%latr(i,j)
+!              models(Iocean)%mesh(k,n)%mask%field(i,j)=GRID(n)%rmask(i,j)
+            end do
+          end do
+!       U
+        else if (models(Iocean)%mesh(k,n)%gtype == Iupoint) then
+          do j = JstrR, JendR
+            do i = Istr, IendR
+              models(Iocean)%mesh(k,n)%lon%field(i,j)=GRID(n)%lonu(i,j)
+              models(Iocean)%mesh(k,n)%lat%field(i,j)=GRID(n)%latu(i,j)
+!              models(Iocean)%mesh(k,n)%mask%field(i,j)=GRID(n)%umask(i,j)
+            end do
+          end do
+!       V
+        else if (models(Iocean)%mesh(k,n)%gtype == Ivpoint) then  
+          do j = Jstr, JendR
+            do i = IstrR, IendR
+              models(Iocean)%mesh(k,n)%lon%field(i,j)=GRID(n)%lonv(i,j)
+              models(Iocean)%mesh(k,n)%lat%field(i,j)=GRID(n)%latv(i,j)
+!              models(Iocean)%mesh(k,n)%mask%field(i,j)=GRID(n)%vmask(i,j)
+            end do
+          end do
+        end if
+      end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      status = ESMF_SUCCESS
+!
+      end subroutine ROMS_PutGridData
+!
+      subroutine ROMS_SetStates (importState, exportState, MyRank,      &
+                                 status)
+!
+!**********************************************************************
+!
+!     Used module declarations 
+!
+!**********************************************************************
+!
+      use mod_param, only : NtileI, NtileJ, BOUNDS, Lm, Mm
+!
+!***********************************************************************
+!
+!     Imported variable declarations 
+!
+!***********************************************************************
+!
+      type(ESMF_State), intent(inout) :: importState
+      type(ESMF_State), intent(inout) :: exportState
+      integer, intent(in) :: MyRank
+      integer, intent(inout) :: status
+!
+!**********************************************************************
+!
+!     Local variable declarations 
+!
+!**********************************************************************
+!
+      integer :: i, n
+      integer, dimension(2) :: CLW, CUW, TLW, TUW
+      integer, dimension(2) :: CLW_r, CUW_r
+      integer, dimension(2) :: CLW_u, CUW_u
+      integer, dimension(2) :: CLW_v, CUW_v
+!
+!-----------------------------------------------------------------------
+!     Loop over number of nested/composed meshs.
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iocean)
+!
+!-----------------------------------------------------------------------
+!     Set ROMS domain decomposition variables
+!-----------------------------------------------------------------------
+!
+      TLW(1)=BOUNDS(n)%Istr(MyRank)-BOUNDS(n)%LBi(MyRank)
+      TLW(2)=BOUNDS(n)%Jstr(MyRank)-BOUNDS(n)%LBj(MyRank)
+      TUW(1)=BOUNDS(n)%UBi(MyRank)-BOUNDS(n)%Iend(MyRank)
+      TUW(2)=BOUNDS(n)%UBj(MyRank)-BOUNDS(n)%Jend(MyRank)
+!
+      CLW_r(1)=BOUNDS(n)%Istr(MyRank)-BOUNDS(n)%IstrR(MyRank)
+      CLW_r(2)=BOUNDS(n)%Jstr(MyRank)-BOUNDS(n)%JstrR(MyRank)
+      CUW_r(1)=BOUNDS(n)%IendR(MyRank)-BOUNDS(n)%Iend(MyRank)
+      CUW_r(2)=BOUNDS(n)%JendR(MyRank)-BOUNDS(n)%Jend(MyRank)
+!
+      CLW_u(1)=0
+      CLW_u(2)=CLW_r(2)
+      CUW_u(1)=CUW_r(1)
+      CUW_u(2)=CUW_r(2)
+!
+      CLW_v(1)=CLW_r(1)
+      CLW_v(2)=0
+      CUW_v(1)=CUW_r(1)
+      CUW_v(2)=CUW_r(2)
+!
+!-----------------------------------------------------------------------
+!     Create export state arrays.
+!-----------------------------------------------------------------------
+!
+      do i = 1, ubound(models(Iocean)%dataExport, dim=1)
+        if (models(Iocean)%dataExport(i,n)%gtype == Iupoint) then
+          CLW = (/ CLW_u(1), CLW_u(2) /)
+          CUW = (/ CUW_u(1), CUW_u(2) /)
+        else if (models(Iocean)%dataExport(i,n)%gtype == Ivpoint) then 
+          CLW = (/ CLW_v(1), CLW_v(2) /)
+          CUW = (/ CUW_v(1), CUW_v(2) /)
+        else
+          CLW = (/ CLW_r(1), CLW_r(2)/)
+          CUW = (/ CUW_r(1), CUW_r(2)/)
+        end if
+!
+!       Create array
+!
+        models(Iocean)%export(i)%array = ESMF_ArrayCreate (             &
+                                     arrayspec=models(Iocean)%arrSpec,  &
+                                     distgrid=models(Iocean)%distGrid,  &
+                                     computationalLWidth=CLW,           &
+                                     computationalUWidth=CUW,           &
+                                     totalLWidth=TLW,                   &
+                                     totalUWidth=TUW,                   &
+                                     indexflag=ESMF_INDEX_GLOBAL,       &
+                                     rc=status)
+!
+!       Get data pointer from array
+!
+        call ESMF_ArrayGet (models(Iocean)%export(i)%array,             &
+                 farrayPtr=models(Iocean)%export(i)%data%field,         &
+                 rc=status) 
+!
+!       Set array name
+!
+        call ESMF_ArraySet (array=models(Iocean)%export(i)%array,       &
+                 name=trim(models(Iocean)%export(i)%data%long_name),    &
+                 rc=status)
+!
+!       Add array to export state
+!     
+        call ESMF_StateAdd (models(Iocean)%stateExport,                 &
+                            (/ models(Iocean)%export(i)%array /),       &
+                            rc=status)
+!
+!       Initialize export field to zero to avoid infinities or NaNs.
+!
+        models(Iocean)%export(i)%data%field = 0.0d0
+      end do
+!
+!-----------------------------------------------------------------------
+!     Create import state arrays.
+!-----------------------------------------------------------------------
+!
+      do i = 1, models(Iocean)%nImport
+        if (models(Iocean)%import(i)%gridType == Iupoint) then
+          CLW = (/ CLW_u(1), CLW_u(2) /)
+          CUW = (/ CUW_u(1), CUW_u(2) /)
+        else if (models(Iocean)%import(i)%gridType == Ivpoint) then 
+          CLW = (/ CLW_v(1), CLW_v(2) /)
+          CUW = (/ CUW_v(1), CUW_v(2) /)
+        else
+          CLW = (/ CLW_r(1), CLW_r(2)/)
+          CUW = (/ CUW_r(1), CUW_r(2)/)
+        end if
+!
+!       Create array
+!
+        models(Iocean)%import(i)%array = ESMF_ArrayCreate (             &
+                                     arrayspec=models(Iocean)%arrSpec,  &
+                                     distgrid=models(Iocean)%distGrid,  &
+                                     computationalLWidth=CLW,           &
+                                     computationalUWidth=CUW,           &
+                                     totalLWidth=TLW,                   &
+                                     totalUWidth=TUW,                   &
+                                     indexflag=ESMF_INDEX_GLOBAL,       &
+                                     rc=status)
+!
+!       Get data pointer from array
+!
+        call ESMF_ArrayGet (models(Iocean)%import(i)%array,             &
+                 farrayPtr=models(Iocean)%import(i)%data%field,         &
+                 rc=status)
+!
+!       Set array name
+!
+        call ESMF_ArraySet (array=models(Iocean)%import(i)%array,       &
+                 name=trim(models(Iocean)%import(i)%data%long_name),    &
+                 rc=status)
+!
+!       Add array to export state
+!     
+        call ESMF_StateAdd (models(Iocean)%stateImport,                 &
+                            (/ models(Iocean)%import(i)%array /),       &
+                            rc=status)
+!
+!       Initialize import field to zero to avoid infinities or NaNs.
+!
+        models(Iocean)%import(i)%data%field = 0.0d0
+      end do
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      status=ESMF_SUCCESS
+!
+      end subroutine ROMS_SetStates
 !
       end module mod_esmf_ocn

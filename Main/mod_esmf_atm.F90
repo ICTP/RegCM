@@ -521,7 +521,7 @@
       integer, allocatable :: CLW_c(:,:), CUW_c(:,:)
       integer, dimension(2) :: CLW, CUW, TLW, TUW
       integer, dimension(2) :: deCount, minIndex, maxIndex
-      TYPE (ESMF_ARRAY) :: GrdArray
+      TYPE (ESMF_ARRAY) :: grdArray
        real(ESMF_KIND_R8), pointer :: farrayPtr(:,:)
 !
 !-----------------------------------------------------------------------
@@ -550,7 +550,7 @@
       models(Iatmos)%deLayout(n) = ESMF_DELayoutCreate (                &
                                         models(Iatmos)%vm,              &
                                         deCountList=deCount,            &
-                                        petList=models(Iatmos)%petList, &
+!                                        petList=models(Iatmos)%petList, &
                                         rc=rc)
 !
 !-----------------------------------------------------------------------
@@ -570,22 +570,22 @@
 !
       do tile = 1, nproc 
         deBlockList(1,1,tile) = 1
-        deBlockList(1,2,tile) = iym2 
+        deBlockList(1,2,tile) = iy
         deBlockList(2,1,tile) = (tile-1)*jxp+1
-        deBlockList(2,2,tile) = tile*jxp 
+        deBlockList(2,2,tile) = tile*jxp
       end do
-!      if (localPet == 0) then
+      if (localPet == 0) then
         print 10, 'Istr = ',(deBlockList(1,1,tile),tile=1,nproc)
         print 10, 'Iend = ',(deBlockList(1,2,tile),tile=1,nproc)
         print 10, 'Jstr = ',(deBlockList(2,1,tile),tile=1,nproc)
         print 10, 'Jend = ',(deBlockList(2,2,tile),tile=1,nproc)
-!      end if
+      end if
 10    format(1x,a,64i5)
 !
 !     Cordinates of the lower and upper corner of the patch
 !
       minIndex = (/ 1, 1 /)
-      maxIndex = (/ iym2, jx /)
+      maxIndex = (/ iy, jx /)
 !
       models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex,       &
                                    maxIndex,                            &
@@ -622,14 +622,14 @@
       end if
 !
       do tile = 0, nproc-1
-        TLWidth(1,tile) = 1 
-        TLWidth(2,tile) = 1
-        TUWidth(1,tile) = 1
-        TUWidth(2,tile) = 1
-        CLW_c(1,tile) = 1       
-        CLW_c(2,tile) = 1       
-        CUW_c(1,tile) = 1       
-        CUW_c(2,tile) = 1
+        TLWidth(1,tile) = 0 
+        TLWidth(2,tile) = 0
+        TUWidth(1,tile) = 0
+        TUWidth(2,tile) = 0
+        CLW_c(1,tile) = 0       
+        CLW_c(2,tile) = 0       
+        CUW_c(1,tile) = 0       
+        CUW_c(2,tile) = 0
       end do
 !
       TLW = (/TLWidth(1,localPet), TLWidth(2,localPet)/)
@@ -657,11 +657,9 @@
 !
 !       Get data pointer from array
 !
-        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lon%array,           &
-                        farrayPtr=models(Iatmos)%mesh(i,n)%lon%field,&
+        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lat%array,           &
+                        farrayPtr=models(Iatmos)%mesh(i,n)%lat%field,&
                         rc=rc)
-        print*, ubound(models(Iatmos)%mesh(i,n)%lon%field, dim=1),      &
-                ubound(models(Iatmos)%mesh(i,n)%lon%field, dim=2)
 !
 !       Set adjustable settings of array object  
 !
@@ -698,12 +696,10 @@
 !
 !       Initialize the grid array
 !
-      print*, "1L ", i,n, localPet, lbound(models(Iatmos)%mesh(i,n)%lat%field, dim=1)
-      print*, "1U ", i,n, localPet, ubound(models(Iatmos)%mesh(i,n)%lat%field, dim=1)
-      print*, "2L ", i,n, localPet, lbound(models(Iatmos)%mesh(i,n)%lat%field, dim=2)
-      print*, "2U ", i,n, localPet, ubound(models(Iatmos)%mesh(i,n)%lat%field, dim=2)
         models(Iatmos)%mesh(i,n)%lat%field = 0.0d0
         models(Iatmos)%mesh(i,n)%lon%field = 0.0d0
+!        call ESMF_ArrayPrint(models(Iatmos)%mesh(i,n)%lat%array, rc=rc)
+!        call ESMF_ArrayPrint(models(Iatmos)%mesh(i,n)%lon%array, rc=rc)
       end do 
       end do
 !
@@ -741,31 +737,23 @@
 !
 !***********************************************************************
 !
-      integer :: i, j, n, jj
+      integer :: n, i, j, jj 
 !     
 !-----------------------------------------------------------------------
 !     Load grid data for cross points 
 !-----------------------------------------------------------------------
 !
       do n = 1, nNest(Iatmos)
-      print*, "1L ", n, localPet, lbound(models(Iatmos)%mesh(1,n)%lat%field, dim=1)
-      print*, "1U ", n, localPet, ubound(models(Iatmos)%mesh(1,n)%lat%field, dim=1)
-      print*, "2L ", n, localPet, lbound(models(Iatmos)%mesh(1,n)%lat%field, dim=2)
-      print*, "2U ", n, localPet, ubound(models(Iatmos)%mesh(1,n)%lat%field, dim=2)
-      print*, "*1L ", n, localPet, lbound(mddom%xlon)
-      print*, "*1U ", n, localPet, ubound(mddom%xlon)
-      print*, "*2L ", n, localPet, lbound(mddom%xlon)
-      print*, "*2U ", n, localPet, ubound(mddom%xlon)
       do j = 1, jxp
-        do i = 1, iym2
-          !jj = jxp*localPet+j
-          models(Iatmos)%mesh(1,n)%lat%field(i,j) = mddom%xlat(i,j)
-          models(Iatmos)%mesh(1,n)%lon%field(i,j) = mddom%xlon(i,j)
+        do i = 1, iy
+          jj = jxp*localPet+j
+          models(Iatmos)%mesh(1,n)%lat%field(i,jj) = mddom%xlat(i,j)
+          models(Iatmos)%mesh(1,n)%lon%field(i,jj) = mddom%xlon(i,j)
         end do
       end do 
+      !call ESMF_ArrayPrint(models(Iatmos)%mesh(1,n)%lat%array)
+      !call ESMF_ArrayPrint(models(Iatmos)%mesh(1,n)%lon%array)
       end do
-!      call ESMF_ArrayPrint(models(Iatmos)%grid(1)%lat%array, rc=status)
-!      call ESMF_ArrayPrint(models(Iatmos)%grid(1)%lon%array, rc=status)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -919,7 +907,7 @@
 !**********************************************************************
 !
       character (len=80) :: name
-      integer :: i, j, k, n
+      integer :: i, j, jj, k, n
 !
 !-----------------------------------------------------------------------
 !     Put data into ESMF arrays 
@@ -931,57 +919,66 @@
 !     Load export fields
 !-----------------------------------------------------------------------
 !
+      print*, "** turuncu **", ubound(sfps)
       do k = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
-        name = models(Iatmos)%dataExport(i,n)%name
+        name = models(Iatmos)%dataExport(k,n)%name
         if (trim(adjustl(name)) == "Pair") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = (sfps(i,j)+ptop)*  &
-                                                      d_1000 
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) =              &
+                                                 (sfps(i,j)+ptop)*d_1000
             end do        
           end do
         else if (trim(adjustl(name)) == "Tair") then
           do j = 1 , jxp
             do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = thatm(i,kz,j) 
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) =thatm(i,kz,j) 
             end do
           end do
         else if (trim(adjustl(name)) == "Qair") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = qvatm(i,kz,j)/     &
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = qvatm(i,kz,j)/ &
                                                   (d_one+qvatm(i,kz,j)) 
             end do
           end do
         else if (trim(adjustl(name)) == "Uwind") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = uatm(i,kz,j) 
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = uatm(i,kz,j) 
             end do
           end do
         else if (trim(adjustl(name)) == "Vwind") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = vatm(i,kz,j)
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = vatm(i,kz,j)
             end do
           end do
         else if (trim(adjustl(name)) == "rain") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = pptnc(i,j) +       &
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = pptnc(i,j) +       &
                                                      pptc(i,j)
             end do
           end do
         else if (trim(adjustl(name)) == "swrad") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = fsw2d(i,j) 
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = fsw2d(i,j) 
             end do
           end do
         else if (trim(adjustl(name)) == "lwrad_down") then
           do j = 1 , jxp
-            do i = 1 , iym2
-              models(Iatmos)%dataExport(k,n)%field = flw2d(i,j) 
+            do i = 1 , iy
+              jj = jxp*localPet+j
+              models(Iatmos)%dataExport(k,n)%field(i,jj) = flw2d(i,j) 
             end do
           end do
         end if

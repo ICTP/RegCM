@@ -143,9 +143,9 @@
 !
 !**********************************************************************
 !
-      do i = 1, Nmodels
-        print*, "--", i, localPet, trim(models(i)%time%stamp)
-      end do
+!      do i = 1, Nmodels
+!        print*, "--", i, localPet, trim(models(i)%time%stamp)
+!      end do
 ! 
 !**********************************************************************
 !
@@ -167,4 +167,5 @@
 !**********************************************************************
 !
       call ESMF_Finalize(rc=rc)
+!
       end program regcm

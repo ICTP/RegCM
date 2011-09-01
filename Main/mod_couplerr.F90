@@ -163,7 +163,7 @@
         ! check for number of pets
         ! number of model must be less or equal than number of pets 
         if (nModels > petCount) then
-          call abort_all(rc)
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if          
 
         ! allocate user defined data types for models
@@ -337,23 +337,7 @@
           if (.not. allocated(models(i)%dataImport)) then 
             allocate(models(i)%dataImport(1,nNest(i)))
           end if 
-!      
-!          do n = 1, nNest(i)
-!           import fields
-!            models(i)%dataImport(1,n)%fid = 1
-!            models(i)%dataImport(1,n)%gtype = Icross
-!            models(i)%dataImport(1,n)%name = "sst"
-!            models(i)%dataImport(1,n)%long_name = "SST"
-!            models(i)%dataImport(1,n)%units = "Celsius"
 !
-!           export fields
-!            models(i)%dataExport(1,n)%fid = 1
-!            models(i)%dataExport(1,n)%gtype = Icross
-!            models(i)%dataExport(1,n)%name = "Pair"
-!            models(i)%dataExport(1,n)%long_name = "surface air pressure"
-!            models(i)%dataExport(1,n)%units = "millibar"
-!
-!          end do
         else if (i == Iocean) then
           if (.not. allocated(models(i)%dataExport)) then
             allocate(models(i)%dataExport(1,nNest(i)))
@@ -361,8 +345,10 @@
           if (.not. allocated(models(i)%dataImport)) then
             allocate(models(i)%dataImport(8,nNest(i)))
           end if
+!
         end if   
       end do
+
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -372,7 +358,7 @@
 !
       end subroutine allocate_cpl
 !
-      function check_err(error_flag, source, routine, message)
+      subroutine check_err(rc)
       implicit none
 !
 !***********************************************************************
@@ -381,10 +367,7 @@
 !
 !***********************************************************************
 !
-      integer, intent(in) :: error_flag 
-      character(*), intent(in) :: source
-      character(*), intent(in) :: routine
-      character(*), intent(in) :: message
+      integer, intent(in) :: rc 
 !
 !***********************************************************************
 !
@@ -392,56 +375,20 @@
 !
 !***********************************************************************
 !
-      logical :: check_err
-      integer :: rc, rc2, rc3
-!
-!-----------------------------------------------------------------------
-!     Check error flag
-!-----------------------------------------------------------------------
-!
-      check_err = .false.
-      if (error_flag .ne. ESMF_SUCCESS) then
-        check_err = .true.
-      end if
-!
-!-----------------------------------------------------------------------
-!     Report error message
-!-----------------------------------------------------------------------
-!
-
-
-!      if (ESMF_LogFoundError(localrc,                                   &
-!                             msg=trim(msg),                             &
-!                             rcToReturn=rc)) then
-!        call ESMF_LogWrite(trim(msg),                                   &
-!                           ESMF_LOGMSG_INFO,                            &
-!                           line=__LINE__,                               &
-!                           file=trim(fname),                            &
-!                           method=trim(mname),                          &
-!                           rc=rc2)
-!        call ESMF_Finalize(rc=rc3, endflag=ESMF_END_ABORT)
-!      end if
-      end function check_err 
-!
-      subroutine abort_all(rc)
-      implicit none
-!
-!***********************************************************************
-!
-!     Imported variable declarations 
-!
-!***********************************************************************
-!
-      integer, intent(inout) :: rc 
+      integer :: rclocal
 !
 !-----------------------------------------------------------------------
 !     Terminate execution due to fatal error 
 !-----------------------------------------------------------------------
 !      
-      call ESMF_Finalize(rc=rc, endflag=ESMF_END_ABORT)
-      stop
-      end subroutine abort_all
+      if (ESMF_LogFoundError(rcToCheck=rc,                              &
+                             msg=ESMF_LOGERR_PASSTHRU,                  &
+                             line=__LINE__,                             &
+                             file=__FILE__,                             &
+                             rcToReturn=rclocal)) then
+        call ESMF_Finalize(endflag=ESMF_END_ABORT, rc=rclocal)
+      end if
 !
-
-
+      end subroutine check_err
+!
       end module mod_couplerr

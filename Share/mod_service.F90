@@ -59,7 +59,7 @@ MODULE mod_service
 
 #ifdef DEBUG
 
-  use mod_dynparam , only : debug_level
+  use mod_dynparam , only : mycomm, debug_level
 
 !!! definition of single and double precision 
 
@@ -149,8 +149,8 @@ CONTAINS
     CALL MPI_initialized(called_mpi,ierr1)
 
     ! Number of processes 
-    CALL MPI_COMM_RANK( MPI_COMM_WORLD,node,ierr1)
-    CALL MPI_COMM_SIZE( MPI_COMM_WORLD,mxnode,ierr1)
+    CALL MPI_COMM_RANK( mycomm,node,ierr1)
+    CALL MPI_COMM_SIZE( mycomm,mxnode,ierr1)
 
     !! allocate and initialize this vector needed in timing routines..
     ALLOCATE(a_tmp(0:mxnode-1))
@@ -373,7 +373,7 @@ CONTAINS
     CHARACTER (len=64) :: name
     CHARACTER (len=64) :: sub='time_print'
 
-    CALL MPI_BARRIER(MPI_COMM_WORLD,ierr1)
+    CALL MPI_BARRIER(mycomm,ierr1)
 
     L_ENTRY=.TRUE.
     IF (node==0) THEN
@@ -421,7 +421,7 @@ CONTAINS
              IF (a_tmp(i)/=test) THEN 
                 L_times_on_pe=.TRUE.
              END IF
-             CALL MPI_barrier(MPI_COMM_WORLD,ierr1)
+             CALL MPI_barrier(mycomm,ierr1)
           END DO
           ! set to zero times less then 0.1 microseconds
           IF (info_serial(ENTRY)%total_time<=0.0000001) & 
@@ -549,7 +549,7 @@ CONTAINS
     Nword_send=1
     Nword_receive=Nword_send
     CALL MPI_Allgather(f_sub,Nword_send,MPI_DOUBLE_PRECISION,f_collect, &
-         Nword_receive,MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
+         Nword_receive,MPI_DOUBLE_PRECISION,mycomm,ierr)
     IF (ierr /=0) THEN
        CALL error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
             message=' error in MPI_allgather!! ')
@@ -578,7 +578,7 @@ CONTAINS
     Nword_send=1
     Nword_receive=Nword_send
     CALL MPI_Allgather(f_sub,Nword_send,MPI_INTEGER,f_collect, &
-         Nword_receive,MPI_INTEGER,MPI_COMM_WORLD,ierr)
+         Nword_receive,MPI_INTEGER,mycomm,ierr)
     IF (ierr /=0) THEN
        CALL error_prot(sub='gather_in_timing_mod',err_code=ierr,  &
             message=' error in MPI_allgather!! ')
@@ -679,7 +679,7 @@ CONTAINS
     IF (err_code > 0) THEN
 
        CLOSE (nrite)
-       CALL MPI_BARRIER(MPI_COMM_WORLD,ierr) 
+       CALL MPI_BARRIER(mycomm,ierr) 
        CALL MPI_finalize(ierr) 
     ENDIF
 
