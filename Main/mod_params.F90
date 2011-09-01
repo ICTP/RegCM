@@ -877,7 +877,7 @@ module mod_params
   call split_idate(idatex,xyear,xmonth,xday,xhour)
 !
   if ( myid == 0 ) then
-    call open_domain(ptop,dx,sigma)
+    call open_domain(dx,sigma)
   end if
   call mpi_bcast(clat,1,mpi_real,0,mycomm,ierr)
   call mpi_bcast(plon,1,mpi_real,0,mycomm,ierr)

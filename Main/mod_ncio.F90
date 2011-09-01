@@ -421,12 +421,11 @@ contains
     end if
   end subroutine init_mod_ncio
 
-  subroutine open_domain(ptop , dx , sigma)
+  subroutine open_domain(dx , sigma)
     use netcdf
     implicit none
 
     real(8) , intent(out) :: dx
-    real(8) , intent(out) :: ptop
     real(8) , dimension(kzp1) :: sigma
 
     integer :: ivarid , idimid
