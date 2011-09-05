@@ -1,9 +1,9 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.F90 $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/MCT/mpi-serial
-vpath %.f90 $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/MCT/mpi-serial
-vpath %.c $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/MCT/mpi-serial
+vpath %.F90 $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/mpi-serial
+vpath %.f90 $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/mpi-serial
+vpath %.c $(REGCM_ROOT)/external/mpeu:$(REGCM_ROOT)/external/mpi-serial
 vpath %.h $(REGCM_ROOT)/external/MCT/mpi-serial
 
 if REGCM_PARALLEL
