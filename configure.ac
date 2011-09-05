@@ -376,11 +376,11 @@ AC_SUBST(AM_LDFLAGS)
 if eval "test x$PARALLEL = x1"; then
   ACX_MPI
   FC=$MPIFC
-  LIBS="$LIBS -lmpeu -lmct"
+  LIBS="$LIBS -lmpeu"
 else
   FORT_SIZE="real4double8"
   MPIFC=$FC
-  LIBS="$LIBS -lmpeu -lmct -lmpiser"
+  LIBS="$LIBS -lmpeu -lmpiser"
   AC_SUBST(MPIFC)
   AC_SUBST(FORT_SIZE)
 fi
