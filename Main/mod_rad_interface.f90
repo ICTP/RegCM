@@ -114,10 +114,10 @@ module mod_rad_interface
     call assignpnt(flwd2d,srflwflxdw)
     call assignpnt(ocld2d,lndocnicemsk)
     call assignpnt(chia,chspmix)
-    chdextmix => dextmix
-    chdssamix => dssamix
-    chdgmix => dgmix
-    tracname => chtrname
+    if ( associated(dextmix) ) chdextmix => dextmix
+    if ( associated(dssamix) ) chdssamix => dssamix
+    if ( associated(dgmix) ) chdgmix => dgmix
+    if ( associated(chtrname) ) tracname => chtrname
 
   end subroutine init_rad
 !

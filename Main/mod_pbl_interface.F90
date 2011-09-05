@@ -122,7 +122,7 @@ module mod_pbl_interface
     call assignpnt(sigma,flev)
     call assignpnt(dsigma,dlev)
     call assignpnt(chtrdpv,depvel)
-    chname => chtrname
+    if ( associated(chtrname) ) chname => chtrname
 
   end subroutine init_pbl
 

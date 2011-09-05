@@ -765,15 +765,18 @@ contains
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
+    character(len=32) :: appdat1, appdat2
     if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
       icbc_search = -1
     else
       tdif = idate-icbc_idate(1)
       ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1
       if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
-        write (6,*) 'Record is not found in ICBC file for ',tochar(idate)
-        write (6,*) 'Range is : ', tochar(icbc_idate(1)) , '-', &
-                     tochar(icbc_idate(ibcnrec))
+        appdat1 = tochar(idate)
+        write (6,*) 'Record is not found in ICBC file for ',appdat1
+        appdat1 = tochar(icbc_idate(1))
+        appdat2 = tochar(icbc_idate(ibcnrec))
+        write (6,*) 'Range is : ', appdat1, '-', appdat2
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       icbc_search = ibcrec

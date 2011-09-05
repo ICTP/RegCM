@@ -90,6 +90,7 @@ module mod_params
   integer :: n , len_path
   logical :: lband
   integer :: ierr
+  character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
 #ifndef CLM
   real(8) :: clmfrq
@@ -861,11 +862,11 @@ module mod_params
     end if
   end if
 !
-  write (aline,*) 'initial date of this '// &
-                  'simulation: ' , tochar(idate1)
+  appdat = tochar(idate1)
+  write (aline,*) 'initial date of this '//'simulation: ' , appdat
   call say(myid)
-  write (aline,*) '  final date of this '// &
-                  'simulation: ' , tochar(idate2)
+  appdat = tochar(idate2)
+  write (aline,*) '  final date of this '//'simulation: ' , appdat
   call say(myid)
   write (aline,'(a,i10,a)')  &
        'total simulation lenght ' , idnint(tohours(bdif)), ' hours'
@@ -886,8 +887,9 @@ module mod_params
   call mpi_bcast(sigma,kzp1,mpi_real8,0,mycomm,ierr)
  
 !rst-fix
+  appdat = tochar(idate0)
   write (aline, *) 'initial date of the global '// &
-                   'simulation: idate  = ' , tochar(idate0)
+                   'simulation: idate  = ' , appdat
   call say(myid)
 !
 !-----specify the constants used in the model.

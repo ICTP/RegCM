@@ -2035,156 +2035,260 @@ module mod_memutil
   subroutine assignp1d_l(a,b)
     logical , pointer , dimension(:) , intent(in) :: a
     logical , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_l
 
   subroutine assignp1d_s(a,b)
     integer(2) , pointer , dimension(:) , intent(in) :: a
     integer(2) , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_s
 
   subroutine assignp1d_i(a,b)
     integer , pointer , dimension(:) , intent(in) :: a
     integer , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_i
 
   subroutine assignp1d_r(a,b)
     real(sp) , pointer , dimension(:) , intent(in) :: a
     real(sp) , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_r
 
   subroutine assignp1d_d(a,b)
     real(dp) , pointer , dimension(:) , intent(in) :: a
     real(dp) , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_d
 
   subroutine assignp1d_t(a,b)
     type(rcm_time_and_date) , pointer , dimension(:) , intent(in) :: a
     type(rcm_time_and_date) , pointer , dimension(:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):) => a
   end subroutine assignp1d_t
 
   subroutine assignp2d_l(a,b)
     logical , pointer , dimension(:,:) , intent(in) :: a
     logical , pointer , dimension(:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):) => a
   end subroutine assignp2d_l
 
   subroutine assignp2d_s(a,b)
     integer(2) , pointer , dimension(:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):) => a
   end subroutine assignp2d_s
 
   subroutine assignp2d_i(a,b)
     integer , pointer , dimension(:,:) , intent(in) :: a
     integer , pointer , dimension(:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):) => a
   end subroutine assignp2d_i
 
   subroutine assignp2d_r(a,b)
     real(sp) , pointer , dimension(:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):) => a
   end subroutine assignp2d_r
 
   subroutine assignp2d_d(a,b)
     real(dp) , pointer , dimension(:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):) => a
   end subroutine assignp2d_d
 
   subroutine assignp3d_l(a,b)
     logical , pointer , dimension(:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
   end subroutine assignp3d_l
 
   subroutine assignp3d_s(a,b)
     integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
   end subroutine assignp3d_s
 
   subroutine assignp3d_i(a,b)
     integer , pointer , dimension(:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
   end subroutine assignp3d_i
 
   subroutine assignp3d_r(a,b)
     real(sp) , pointer , dimension(:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
   end subroutine assignp3d_r
 
   subroutine assignp3d_d(a,b)
     real(dp) , pointer , dimension(:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
   end subroutine assignp3d_d
 
   subroutine assignp4d_l(a,b)
     logical , pointer , dimension(:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
   end subroutine assignp4d_l
 
   subroutine assignp4d_s(a,b)
     integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
   end subroutine assignp4d_s
 
   subroutine assignp4d_i(a,b)
     integer , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
   end subroutine assignp4d_i
 
   subroutine assignp4d_r(a,b)
     real(sp) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
   end subroutine assignp4d_r
 
   subroutine assignp4d_d(a,b)
     real(dp) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
   end subroutine assignp4d_d
 
   subroutine assignp5d_l(a,b)
     logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
   end subroutine assignp5d_l
 
   subroutine assignp5d_s(a,b)
     integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
   end subroutine assignp5d_s
 
   subroutine assignp5d_i(a,b)
     integer , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     integer , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
   end subroutine assignp5d_i
 
   subroutine assignp5d_r(a,b)
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     real(sp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
   end subroutine assignp5d_r
 
   subroutine assignp5d_d(a,b)
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
     real(dp) , pointer , dimension(:,:,:,:,:) , intent(out) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
   end subroutine assignp5d_d
 

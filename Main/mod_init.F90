@@ -70,6 +70,7 @@ module mod_init
   real(8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   integer :: jp1 , jm1
   real(8) , dimension(iy,jxp) :: psdot
+  character(len=32) :: appdat
   integer :: mmrec , allrec , ierr , l
 
   tgmx_o = -1.E30
@@ -132,11 +133,13 @@ module mod_init
     if ( myid == 0 ) then
       mmrec = icbc_search(bdydate1)
       if (mmrec < 0) then
+        appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__, &
-                   'ICBC for '//tochar(bdydate2)//' not found')
+                   'ICBC for '//appdat//' not found')
       end if
       call read_icbc(ps0_io,ts0_io,ub0_io,vb0_io,tb0_io,qb0_io,so0_io)
-      write (6,*) 'READY IC DATA for ', tochar(bdydate1)
+      appdat = tochar(bdydate1)
+      write (6,*) 'READY IC DATA for ', appdat
       ps0_io = ps0_io*d_r10
       do j = 1 , jx
         do k = 1 , kz
@@ -402,7 +405,8 @@ module mod_init
       do k = 1 , kzp1
         write (6,'(1x,7E12.4)') o3prof_io(3,3,k)
       end do
-      print 99001 , nbdytime, ktau , tochar(idatex)
+      appdat = tochar(idatex)
+      print 99001 , nbdytime, ktau, appdat
     end if
 !
     if ( lakemod == 1 ) then

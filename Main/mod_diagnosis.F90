@@ -435,6 +435,7 @@ module mod_diagnosis
 !
     real(8) :: error1 , error2 , tcmass , tcrai , tdrym , tncrai ,    &
                tqmass , tttmp , tvmass
+    character(len=32) :: appdat
     integer :: i , j , k
     integer :: ierr
 !
@@ -540,7 +541,8 @@ module mod_diagnosis
 !
     if ( myid == 0 ) then
       if ( debug_level > 3 .and. mod(ktau,kdbg) == 0 ) then
-        write(6,*)  '***** ' , tochar(idatex), ' *****'
+        appdat = tochar(idatex)
+        write(6,*)  '***** ' , appdat, ' *****'
         write(6,99001) tdrym , error1
         write(6,99002) tdadv
         write(6,99003) tqmass , error2
@@ -794,6 +796,7 @@ module mod_diagnosis
 !
     integer :: i , itr , j , k
     real(8) :: tttmp
+    character(len=32) :: appdat
     integer :: ierr , l
 !
 !   add tracers,  tremlsc, tremcvc, tremdrd are total amount mass
@@ -942,9 +945,10 @@ module mod_diagnosis
    
 !       tracers
    
+        appdat = tochar(idatex)
         write(6,*)  '************************************************'
         write(6,*)  ' Budgets for tracers (intergrated quantitites)'
-        write(6,*)  ' day = ' , tochar(idatex) , ' *****'
+        write(6,*)  ' day = ' , appdat, ' *****'
         write(6,*)  '************************************************'
    
         do itr = 1 , ntr

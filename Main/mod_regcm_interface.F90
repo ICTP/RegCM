@@ -298,6 +298,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     real(8) :: extime
+    character(len=32) :: appdat
     integer :: iexec
 !
 !**********************************************************************
@@ -360,7 +361,8 @@ module mod_regcm_interface
       extime = extime + dtinc
       if (debug_level > 3) then
         if (myid == 0) then
-          write(6,'(a,a,f12.2)') 'Simulation time: ', tochar(idatex), extime
+          appdat = tochar(idatex)
+          write(6,'(a,a,f12.2)') 'Simulation time: ', appdat, extime
         end if
       end if
 !
@@ -394,6 +396,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
     integer :: ierr
+    character(len=32) :: appdat
     type(rcm_time_interval) :: tdif
 !
 !**********************************************************************
@@ -416,7 +419,8 @@ module mod_regcm_interface
     tdif = idate2 - idate1
     idate1 = idate2
     idate2 = idate1 + tdif
-    write (aline, *) ' *** new max DATE will be ' , tochar(idate2)
+    appdat = tochar(idate2)
+    write (aline, *) ' *** new max DATE will be ' , appdat
     call say(myid)
 !
 !**********************************************************************

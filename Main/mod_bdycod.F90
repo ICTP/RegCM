@@ -124,6 +124,7 @@ module mod_bdycod
 #ifndef BAND
     integer :: nkk
 #endif
+    character(len=32) :: appdat
     real(8) , dimension(iy,jxp) :: psdot , tdum
     integer :: n
     character (len=64) :: subroutine_name='bdyin'
@@ -148,7 +149,8 @@ module mod_bdycod
         call open_icbc(monfirst(bdydate2))
         mmrec = icbc_search(bdydate2)
         if (mmrec < 0) then
-          call fatal(__FILE__,__LINE__,'ICBC for '//tochar(bdydate2)//' not found')
+          appdat = tochar(bdydate2)
+          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
         end if
       end if
       call read_icbc(ps1_io,ts1_io,ub1_io,vb1_io,tb1_io,qb1_io,so1_io)

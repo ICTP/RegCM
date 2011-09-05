@@ -141,6 +141,7 @@ module mod_tendency
     integer :: jm1, jp1
     integer :: ierr , icons_mpi , numrec
     logical :: loutrad
+    character (len=32) :: appdat
     character (len=64) :: subroutine_name='tend'
     integer :: idindx=0
 !
@@ -2146,7 +2147,8 @@ module mod_tendency
       end if
       if ( myid == 0 ) then
         if ( mod(ktau,irep) == 0 ) then
-          write(6,99001) tochar(idatex) , ktau , ptnbar , pt2bar , icons_mpi
+          appdat = tochar(idatex)
+          write(6,99001) appdat , ktau , ptnbar , pt2bar , icons_mpi
         end if
       end if
 
