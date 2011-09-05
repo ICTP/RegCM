@@ -144,6 +144,8 @@ module mod_params
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
+
+  namelist /cplparam/ dtcpl
 !
 !
 !----------------------------------------------------------------------
@@ -414,6 +416,10 @@ module mod_params
   lband = .false.
 #endif
 
+!------namelist timeparam:
+!
+  dtcpl = 21600.0D0    ! coupling time step in seconds
+
 !---------------------------------------------------------------------
 !
   if ( (lband .and. i_band /= 1) .or. &
@@ -549,6 +555,7 @@ module mod_params
   call mpi_bcast(imask,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(clmfrq,1,mpi_real8,0,mycomm,ierr)
 #endif
+  call mpi_bcast(dtcpl,1,mpi_real8,0,mycomm,ierr)
 
   if ( ipptls == 1 ) then
     call mpi_bcast(ncld,1,mpi_integer,0,mycomm,ierr)

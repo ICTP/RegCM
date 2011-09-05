@@ -30,6 +30,9 @@
       use mod_couplerr
       use mod_esmf_atm
       use mod_esmf_ocn
+      use mod_esmf_cpl
+!
+      use mod_runparams, only : dtcpl
 !
 !**********************************************************************
 !
@@ -37,9 +40,8 @@
 !
 !**********************************************************************
 !
-      type(ESMF_VM) :: vm
-      type(ESMF_GridComp) :: gcomp
-!
+      real*8 :: dt
+      integer :: iarr(6)
       integer :: i, j, rc, localPet, petCount, comm
       character (len=80) :: name, istr, estr
 !
@@ -89,6 +91,13 @@
                                         rc=rc)
       end do
 !
+!-----------------------------------------------------------------------
+!     Create coupler component. The coupler component run all PETs
+!-----------------------------------------------------------------------
+!
+      name = 'Coupler Component'
+      comp = ESMF_CplCompCreate(name=name, rc=rc)
+!
 !**********************************************************************
 !
 !     Register gridded components
@@ -101,6 +110,9 @@
       call ESMF_GridCompSetServices(models(Iocean)%comp,                &
                                     ROMS_SetServices,                   &
                                     rc=rc)
+      call ESMF_CplCompSetServices(comp,                                &
+                                   CPL_SetServices,                     &
+                                   rc=rc)
 !
 !**********************************************************************
 !
@@ -139,12 +151,29 @@
 !
 !**********************************************************************
 !
-!     Set start time, stop time and time step 
+!     Reconcile time (set start time, stop time and time step) 
 !
 !**********************************************************************
 !
-!      do i = 1, Nmodels
-!        print*, "--", i, localPet, trim(models(i)%time%stamp)
+      call time_reconcile() 
+!      print*, "** turuncu **", localPet, 
+!
+!-----------------------------------------------------------------------
+!  Set time interval to exchange data between gridded components
+!-----------------------------------------------------------------------
+!
+!      dt = 21600.0
+!      call ESMF_TimeIntervalSet(timeStep,                               &
+!     &                          s_r8=dt,                                &
+!     &                          rc=rc)
+!
+!-----------------------------------------------------------------------
+!  Print out times for each component including cpl (for debug purposes)
+!-----------------------------------------------------------------------
+!
+!      do i = 1, nModels
+!        call ESMF_TimePrint(models(i)%strTime, options="string", rc=rc)
+!        call ESMF_TimePrint(models(i)%endTime, options="string", rc=rc)
 !      end do
 ! 
 !**********************************************************************

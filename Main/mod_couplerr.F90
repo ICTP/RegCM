@@ -129,6 +129,16 @@
       integer :: Iupoint = 3
       integer :: Ivpoint = 4
 !
+!-----------------------------------------------------------------------
+!     Coupler component variables 
+!-----------------------------------------------------------------------
+!
+      type(ESMF_CplComp) :: comp
+      type(ESMF_VM) :: vm
+      type(ESMF_Time) :: startTime, stopTime
+      type(ESMF_TimeInterval) :: timeStep
+      type(ESMF_Clock) :: clock
+!
       contains
 !
       subroutine allocate_cpl(petCount, rc)
@@ -336,8 +346,70 @@
           end if       
           if (.not. allocated(models(i)%dataImport)) then 
             allocate(models(i)%dataImport(1,nNest(i)))
-          end if 
+          end if
 !
+          do j = 1, nNest(i)      
+            models(i)%dataImport(1,j)%fid = 1
+            models(i)%dataImport(1,j)%gtype = Icross
+            models(i)%dataImport(1,j)%name = 'SST'
+            models(i)%dataImport(1,j)%long_name = 'Ground Temperature'
+            models(i)%dataImport(1,j)%units = 'Celsius'
+!
+            models(i)%dataExport(1,j)%fid = 1
+            models(i)%dataExport(1,j)%gtype = Icross
+            models(i)%dataExport(1,j)%name = 'Pair'
+            models(i)%dataExport(1,j)%long_name = 'Surface Pressure'
+            models(i)%dataExport(1,j)%units = '?'
+!
+            models(i)%dataExport(2,j)%fid = 2
+            models(i)%dataExport(2,j)%gtype = Icross
+            models(i)%dataExport(2,j)%name = 'Tair'
+            models(i)%dataExport(2,j)%long_name = &
+                                              'Surface Air Temperature'
+            models(i)%dataExport(2,j)%units = 'Celsius'             
+!
+            models(i)%dataExport(3,j)%fid = 3
+            models(i)%dataExport(3,j)%gtype = Icross
+            models(i)%dataExport(3,j)%name = 'Qair'
+            models(i)%dataExport(3,j)%long_name = &
+                                         'Surface Air Specific Humidity'
+            models(i)%dataExport(3,j)%units = 'g/kg'
+!
+            models(i)%dataExport(4,j)%fid = 4
+            models(i)%dataExport(4,j)%gtype = Icross
+            models(i)%dataExport(4,j)%name = 'swrad'
+            models(i)%dataExport(4,j)%long_name = &
+                                        'solar shortwave radiation flux'
+            models(i)%dataExport(4,j)%units = 'watt meter-2'
+!
+            models(i)%dataExport(5,j)%fid = 5
+            models(i)%dataExport(5,j)%gtype = Icross
+            models(i)%dataExport(5,j)%name = 'lwrad_down'
+            models(i)%dataExport(5,j)%long_name = &
+                                   'downwelling longwave radiation flux'
+            models(i)%dataExport(5,j)%units = 'watt meter-2'
+!
+            models(i)%dataExport(6,j)%fid = 6
+            models(i)%dataExport(6,j)%gtype = Icross
+            models(i)%dataExport(6,j)%name = 'rain'
+            models(i)%dataExport(6,j)%long_name = &
+                                         'rain fall rate'
+            models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
+!
+            models(i)%dataExport(7,j)%fid = 7
+            models(i)%dataExport(7,j)%gtype = Icross
+            models(i)%dataExport(7,j)%name = 'Uwind'
+            models(i)%dataExport(7,j)%long_name = &
+                                         'surface u-wind component'
+            models(i)%dataExport(7,j)%units = 'meter second-1'
+!
+            models(i)%dataExport(8,j)%fid = 8
+            models(i)%dataExport(8,j)%gtype = Icross
+            models(i)%dataExport(8,j)%name = 'Vwind'
+            models(i)%dataExport(8,j)%long_name = &
+                                         'surface v-wind component'
+            models(i)%dataExport(8,j)%units = 'meter second-1'
+          end do 
         else if (i == Iocean) then
           if (.not. allocated(models(i)%dataExport)) then
             allocate(models(i)%dataExport(1,nNest(i)))
@@ -346,6 +418,68 @@
             allocate(models(i)%dataImport(8,nNest(i)))
           end if
 !
+          do j = 1, nNest(i)
+            models(i)%dataExport(1,j)%fid = 1
+            models(i)%dataExport(1,j)%gtype = Icross
+            models(i)%dataExport(1,j)%name = 'SST'
+            models(i)%dataExport(1,j)%long_name = 'Ground Temperature'
+            models(i)%dataExport(1,j)%units = 'Celsius'
+!
+            models(i)%dataImport(1,j)%fid = 1
+            models(i)%dataImport(1,j)%gtype = Icross
+            models(i)%dataImport(1,j)%name = 'Pair'
+            models(i)%dataImport(1,j)%long_name = 'Surface Pressure'
+            models(i)%dataImport(1,j)%units = '?'
+!
+            models(i)%dataImport(2,j)%fid = 2
+            models(i)%dataImport(2,j)%gtype = Icross
+            models(i)%dataImport(2,j)%name = 'Tair'
+            models(i)%dataImport(2,j)%long_name = &
+                                              'Surface Air Temperature'
+            models(i)%dataImport(2,j)%units = 'Celsius'
+!
+            models(i)%dataImport(3,j)%fid = 3
+            models(i)%dataImport(3,j)%gtype = Icross
+            models(i)%dataImport(3,j)%name = 'Qair'
+            models(i)%dataImport(3,j)%long_name = &
+                                         'Surface Air Specific Humidity'
+            models(i)%dataImport(3,j)%units = 'g/kg'
+!
+            models(i)%dataImport(4,j)%fid = 4
+            models(i)%dataImport(4,j)%gtype = Icross
+            models(i)%dataImport(4,j)%name = 'swrad'
+            models(i)%dataImport(4,j)%long_name = &
+                                      'solar shortwave radiation flux'
+            models(i)%dataImport(4,j)%units = 'watt meter-2'
+!
+            models(i)%dataImport(5,j)%fid = 5
+            models(i)%dataImport(5,j)%gtype = Icross
+            models(i)%dataImport(5,j)%name = 'lwrad_down'
+            models(i)%dataImport(5,j)%long_name = &
+                                 'downwelling longwave radiation flux'
+            models(i)%dataImport(5,j)%units = 'watt meter-2'
+!
+            models(i)%dataImport(6,j)%fid = 6
+            models(i)%dataImport(6,j)%gtype = Icross
+            models(i)%dataImport(6,j)%name = 'rain'
+            models(i)%dataImport(6,j)%long_name = &
+                                       'rain fall rate'
+            models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
+!
+            models(i)%dataImport(7,j)%fid = 7
+            models(i)%dataImport(7,j)%gtype = Icross
+            models(i)%dataImport(7,j)%name = 'Uwind'
+            models(i)%dataImport(7,j)%long_name = &
+                                       'surface u-wind component'
+            models(i)%dataImport(7,j)%units = 'meter second-1'
+!
+            models(i)%dataImport(8,j)%fid = 8
+            models(i)%dataImport(8,j)%gtype = Icross
+            models(i)%dataImport(8,j)%name = 'Vwind'
+            models(i)%dataImport(8,j)%long_name = &
+                                       'surface v-wind component'
+            models(i)%dataImport(8,j)%units = 'meter second-1'
+          end do
         end if   
       end do
 
@@ -357,6 +491,134 @@
       rc = ESMF_SUCCESS
 !
       end subroutine allocate_cpl
+!
+      subroutine time_reconcile()
+      implicit none
+
+      integer :: iarr(6)
+      integer :: i, j, petCount, localPet, comm, mysec, rc
+      character(len=80) :: timeString, name
+
+!
+!-----------------------------------------------------------------------
+!     Get information from VM (MPI Communicator, number of PETs etc.)
+!-----------------------------------------------------------------------
+!
+      call ESMF_VMGet(vm,                                               &
+                      petCount=petCount,                                &
+                      localPet=localPet,                                &
+                      mpiCommunicator=comm,                             &
+                      rc=rc)
+!
+      do i = 1, nModels
+!
+!-----------------------------------------------------------------------
+!       Reconcile export state of the gridded components 
+!-----------------------------------------------------------------------
+!
+        call ESMF_StateReconcile(models(i)%stateExport,                 &
+                                 vm=vm,                                 &
+                                 attreconflag=ESMF_ATTRECONCILE_ON,     &
+                                 rc=rc)
+!
+!-----------------------------------------------------------------------
+!       Get coupler time step and set time interval to exchange 
+!       data between gridded components
+!-----------------------------------------------------------------------
+!  
+        if (i == Iatmos) then
+          call ESMF_AttributeGet(models(i)%stateExport,                 &
+                                 name='coupler time step',              &
+                                 value=j,                               &
+                                 rc=rc)
+          call ESMF_TimeIntervalSet(timeStep,                           &
+                                    s=j,                                &
+                                    rc=rc)
+        end if
+!
+!-----------------------------------------------------------------------
+!       Get start time
+!-----------------------------------------------------------------------
+!  
+        j = ubound(iarr,dim=1)
+        call ESMF_AttributeGet(models(i)%stateExport,                   &
+                               name='start time',                       &
+                               valueList=iarr,                          &
+                               itemCount=j,                             &
+                               rc=rc)
+        call ESMF_TimeSet (models(i)%strTime,                           &
+                           yy=iarr(1),                                  &
+                           mm=iarr(2),                                  &
+                           dd=iarr(3),                                  &
+                           h=iarr(4),                                   &
+                           m=iarr(5),                                   &
+                           s=iarr(6),                                   &
+                           calkindflag=ESMF_CALKIND_GREGORIAN,          &
+                           rc=rc)
+!
+!-----------------------------------------------------------------------
+!       Get stop time
+!-----------------------------------------------------------------------
+!  
+        call ESMF_AttributeGet(models(i)%stateExport,                   &
+                               name='stop time',                        &
+                               valueList=iarr,                          &
+                               itemCount=j,                             &
+                               rc=rc)
+        call ESMF_TimeSet (models(i)%endTime,                           &
+                           yy=iarr(1),                                  &
+                           mm=iarr(2),                                  &
+                           dd=iarr(3),                                  &
+                           h=iarr(4),                                   &
+                           m=iarr(5),                                   &
+                           s=iarr(6),                                   &
+                           calkindflag=ESMF_CALKIND_GREGORIAN,          &
+                           rc=rc)
+      end do
+!
+!-----------------------------------------------------------------------
+!     Create coupler component clock 
+!-----------------------------------------------------------------------
+!
+      startTime = models(Iatmos)%strTime
+      stopTime = models(Iatmos)%endTime
+      do i = 1, nModels
+        if (models(i)%strTime < startTime) then
+          startTime = models(i)%strTime
+        end if      
+        if (models(i)%endTime < stopTime) then
+          stopTime = models(i)%endTime
+        end if 
+      end do     
+!
+      name = 'Coupler component clock'
+      clock = ESMF_ClockCreate (name=trim(name),                        &
+                                timeStep=timeStep,                      &
+                                startTime=startTime,                    &
+                                stopTime=stopTime,                      &
+                                rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Validate external time clock.
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockValidate (clock, rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Print
+!-----------------------------------------------------------------------
+!
+      call ESMF_TimeGet(startTime, timeString=timeString, rc=rc)
+      write(*,30) localPet, 'Start Time   ', trim(timeString)
+      call ESMF_TimeGet(stopTime, timeString=timeString, rc=rc)
+      write(*,30) localPet, 'Stop Time    ', trim(timeString)
+      call ESMF_TimeIntervalGet(timeStep, s = mysec, rc=rc)
+      write(*,40) localPet, 'Time Interval', mysec
+!
+ 30   format (' PET (', I2, ') - ', A, ' = ', A)
+ 40   format (' PET (', I2, ') - ', A, ' = ', I10)
+!
+      end subroutine time_reconcile
 !
       subroutine check_err(rc)
       implicit none

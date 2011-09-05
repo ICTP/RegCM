@@ -354,7 +354,7 @@
       integer :: ref_hour,   str_hour,   end_hour
       integer :: ref_minute, str_minute, end_minute
       integer :: ref_second, str_second, end_second
-      character (len=80) :: str
+      character (len=80) :: name
 !
 !***********************************************************************
 !
@@ -366,9 +366,9 @@
 !     Create ESMF calendar
 !-----------------------------------------------------------------------
 !
-      str = 'Mixed Gregorian/Julian calendar'
+      name = 'Mixed Gregorian/Julian calendar'
       models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,  &
-                                        name=TRIM(str),                 &
+                                        name=trim(name),                &
                                         rc=rc)
 !
 !-----------------------------------------------------------------------
@@ -437,8 +437,8 @@
 !     Create time clock.
 !-----------------------------------------------------------------------
 !
-      str = 'Model clock (Atmosphere)'
-      models(Iatmos)%clock = ESMF_ClockCreate (name=TRIM(str),          &
+      name = 'Model clock (Atmosphere)'
+      models(Iatmos)%clock = ESMF_ClockCreate (name=trim(name),         &
                                   refTime=models(Iatmos)%refTime,       &
                                   timeStep=models(Iatmos)%dtsec,        &
                                   startTime=models(Iatmos)%strTime,     &
@@ -483,13 +483,45 @@
                          rc=rc)
 !
 !-----------------------------------------------------------------------
+!     Attach time information to export state as attribute
+!-----------------------------------------------------------------------
+!
+      name = 'start time'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             valueList=(/ str_year  , str_month,        &
+                                          str_day   , str_hour ,        &
+                                          str_minute, str_second /),    &
+                             rc=rc)
+!
+      name = 'stop time'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             valueList=(/ end_year  , end_month,        &
+                                          end_day   , end_hour ,        &
+                                          end_minute, end_second /),    &
+                             rc=rc)
+!
+      name = 'time step'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=int(dtsec),                          &
+                             rc=rc)
+!
+      name = 'coupler time step'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=int(dtcpl),                          &
+                             rc=rc)
+!
+!-----------------------------------------------------------------------
 !     Set return flag to success
 !-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
       end subroutine RCM_SetClock
 !
-     subroutine RCM_SetGridArrays (comp, rc)
+      subroutine RCM_SetGridArrays (comp, rc)
 !
 !***********************************************************************
 !
@@ -546,12 +578,12 @@
 !     Set ESMF Layout and distribution objects
 !-----------------------------------------------------------------------
 !
-      deCount = (/ 1, nproc /)       
-      models(Iatmos)%deLayout(n) = ESMF_DELayoutCreate (                &
-                                        models(Iatmos)%vm,              &
-                                        deCountList=deCount,            &
+!      deCount = (/ 1, nproc /)       
+!      models(Iatmos)%deLayout(n) = ESMF_DELayoutCreate (                &
+!                                        models(Iatmos)%vm,              &
+!                                        deCountList=deCount,            &
 !                                        petList=models(Iatmos)%petList, &
-                                        rc=rc)
+!                                        rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Validate and print DELayout
@@ -587,12 +619,16 @@
       minIndex = (/ 1, 1 /)
       maxIndex = (/ iy, jx /)
 !
-      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex,       &
-                                   maxIndex,                            &
-                                   deBlockList=deBlockList,             &
-                                   deLayout=models(Iatmos)%deLayout(n), &
-                                   vm=models(Iatmos)%vm,                &
-                                   rc=rc)
+!      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex,       &
+!                                   maxIndex,                            &
+!                                   deBlockList=deBlockList,             &
+!                                   deLayout=models(Iatmos)%deLayout(n), &
+!                                   vm=models(Iatmos)%vm,                &
+!                                   rc=rc)
+      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex=minIndex,&
+                                                        maxIndex=maxIndex,&
+                                                        regDecomp=(/1,nproc/),&
+                                                        rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Validate and print DistGrid
@@ -645,14 +681,18 @@
 !
 !       Create array
 !
-        grdArray = ESMF_ArrayCreate(arrayspec=models(Iatmos)%arrSpec(n),&
-                                    distgrid=models(Iatmos)%distGrid(n),&
+!        grdArray = ESMF_ArrayCreate(arrayspec=models(Iatmos)%arrSpec(n),&
+!                                    distgrid=models(Iatmos)%distGrid(n),&
 !                                    computationalLWidth=CLW,            &
 !                                    computationalUWidth=CUW,            &
 !                                    totalLWidth=TLW,                    &
 !                                    totalUWidth=TUW,                    &
-                                    indexflag=ESMF_INDEX_GLOBAL,        &
-                                    rc=rc)
+!                                    indexflag=ESMF_INDEX_GLOBAL,        &
+!                                    rc=rc)
+        grdArray = ESMF_ArrayCreate (distgrid=models(Iatmos)%distGrid(n),&
+                                     arrayspec=models(Iatmos)%arrSpec(n),&
+                                     indexflag=ESMF_INDEX_GLOBAL,        &
+                                     rc=rc)
         models(Iatmos)%mesh(i,n)%lat%array = grdArray
 !
 !       Get data pointer from array
@@ -919,68 +959,68 @@
 !     Load export fields
 !-----------------------------------------------------------------------
 !
-      print*, "** turuncu **", ubound(sfps)
       do k = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
         name = models(Iatmos)%dataExport(k,n)%name
         if (trim(adjustl(name)) == "Pair") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) =              &
-                                                 (sfps(i,j)+ptop)*d_1000
-            end do        
-          end do
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) =              &
+!                                                 (sfps(i,j)+ptop)*d_1000
+!            end do        
+!          end do
         else if (trim(adjustl(name)) == "Tair") then
           do j = 1 , jxp
             do i = 1 , iym2
               jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) =thatm(i,kz,j) 
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) =thatm(i,kz,j) 
+          !print*, "** turuncu **", models(Iatmos)%dataExport(k,n)%field(i,jj) 
             end do
           end do
-        else if (trim(adjustl(name)) == "Qair") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = qvatm(i,kz,j)/ &
-                                                  (d_one+qvatm(i,kz,j)) 
-            end do
-          end do
-        else if (trim(adjustl(name)) == "Uwind") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = uatm(i,kz,j) 
-            end do
-          end do
-        else if (trim(adjustl(name)) == "Vwind") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = vatm(i,kz,j)
-            end do
-          end do
-        else if (trim(adjustl(name)) == "rain") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = pptnc(i,j) +       &
-                                                     pptc(i,j)
-            end do
-          end do
-        else if (trim(adjustl(name)) == "swrad") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = fsw2d(i,j) 
-            end do
-          end do
-        else if (trim(adjustl(name)) == "lwrad_down") then
-          do j = 1 , jxp
-            do i = 1 , iy
-              jj = jxp*localPet+j
-              models(Iatmos)%dataExport(k,n)%field(i,jj) = flw2d(i,j) 
-            end do
-          end do
+!        else if (trim(adjustl(name)) == "Qair") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = qvatm(i,kz,j)/ &
+!                                                  (d_one+qvatm(i,kz,j)) 
+!            end do
+!          end do
+!        else if (trim(adjustl(name)) == "Uwind") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = uatm(i,kz,j) 
+!            end do
+!          end do
+!        else if (trim(adjustl(name)) == "Vwind") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = vatm(i,kz,j)
+!            end do
+!          end do
+!        else if (trim(adjustl(name)) == "rain") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = pptnc(i,j) +       &
+!                                                     pptc(i,j)
+!            end do
+!          end do
+!        else if (trim(adjustl(name)) == "swrad") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = fsw2d(i,j) 
+!            end do
+!          end do
+!        else if (trim(adjustl(name)) == "lwrad_down") then
+!          do j = 1 , jxp
+!            do i = 1 , iy
+!              jj = jxp*localPet+j
+!              models(Iatmos)%dataExport(k,n)%field(i,jj) = flw2d(i,j) 
+!            end do
+!          end do
         end if
       end do
       end do
