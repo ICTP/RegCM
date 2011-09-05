@@ -83,7 +83,7 @@ module mod_sst_gnmnc
   call zeit_ci('sst_gnmnc')
 
   ufac = 0.0
-  if ( ssttyp == "CAM2N" ) then
+  if ( ssttyp == "CAM4N" ) then
     inpfile = trim(inpglob)//'/SST/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
     varname(2) = 'SST_cpl'
     ufac = 273.15

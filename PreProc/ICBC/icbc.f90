@@ -40,7 +40,7 @@ program icbc
 !                                                                      !
 !   CCSMN: unpacked CCSM NETCDF (six hourly) data                      !
 !          Get from EarthSystemGrid                                    !
-!   CAM2N: CAM2 NETCDF (six hourly) data                               !
+!   CAM4N: CAM2 NETCDF (six hourly) data                               !
 !   NNRP1: NCEP/NCAR Reanalysis datasets are available at:             !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/            !
 !          Current holdings: 1948 - present, 2.5x2.5L13, netCDF.       !
@@ -162,7 +162,7 @@ program icbc
   call init_grid(iy,jx,kz)
   call init_output
 
-  if (dattyp == 'CCSMN' .or. dattyp == 'CAM2N' .or. &
+  if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. &
       dattyp(1:3) == 'CA_' ) then
     if (ical /= noleap ) then
       write(stderr,*) 'Calendar should be set to noleap'
@@ -216,7 +216,7 @@ program icbc
     call headerfv
   else if ( dattyp == 'FNEST' ) then
     call headernest
-  else if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' .or. &
+  else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
     call headgn6hnc
   else
@@ -254,7 +254,7 @@ program icbc
       call getfvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
-    else if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' .or. &
+    else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' ) then
       call get_gn6hnc(idate)
     end if

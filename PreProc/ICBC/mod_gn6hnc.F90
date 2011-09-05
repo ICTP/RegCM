@@ -139,7 +139,7 @@ module mod_gn6hnc
 !
     call zeit_ci('headgn6hnc')
 !
-    if ( dattyp == 'CAM2N' ) then
+    if ( dattyp == 'CAM4N' ) then
       pathaddname = trim(inpglob)// &
             '/CAM2/USGS-gtopo30_0.9x1.25_remap_c051027.nc'
     else if ( dattyp == 'CCSMN' ) then
@@ -231,7 +231,7 @@ module mod_gn6hnc
 
     npl = nipl
 
-    if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' ) then
+    if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
       istatus = nf90_get_var(inet1,ivar1,ak)
@@ -335,7 +335,7 @@ module mod_gn6hnc
     h3 => b3(:,:,npl+1:2*npl)
     q3 => b3(:,:,2*npl+1:3*npl)
 
-    if ( dattyp == 'CAM2N' ) then
+    if ( dattyp == 'CAM4N' ) then
       refdate = 1989122700
       call setcal(refdate,noleap)
     end if
@@ -591,7 +591,7 @@ module mod_gn6hnc
 
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
         if (inet(1) > 0) then
-          if ( dattyp == 'CAM2N' ) then
+          if ( dattyp == 'CAM4N' ) then
             istatus = nf90_close(inet(1))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
             filedate = filedate + tdif
@@ -602,7 +602,7 @@ module mod_gn6hnc
             end do
           end if
         else
-          if ( dattyp == 'CAM2N' ) then
+          if ( dattyp == 'CAM4N' ) then
             pdate = refdate
             filedate = refdate
             do while (idate >= pdate)
@@ -612,7 +612,7 @@ module mod_gn6hnc
           end if
         end if
 
-        if ( dattyp == 'CAM2N' ) then
+        if ( dattyp == 'CAM4N' ) then
           call split_idate(filedate,fyear,fmonth,fday,fhour)
           ! All variables just in a single file. Simpler case.
           write (inname,99002) trim(cambase) , fyear, &
@@ -757,7 +757,7 @@ module mod_gn6hnc
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
-      if ( dattyp == 'CAM2N' .or. dattyp == 'CCSMN' ) then
+      if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' ) then
         ! We have geopotential HGT in m, on hybrid sigma pressure levels
         istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))

@@ -76,7 +76,7 @@ program sst
   else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
             ssttyp == 'FV_B2' ) then
     call sst_fvgcm
-  else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM2N' .or. &
+  else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM4N' .or. &
             ssttyp == 'CA_RF' .or. ssttyp == 'CA_26' .or. &
             ssttyp == 'CA_45' .or. ssttyp == 'CA_85') then
     if (ical /= noleap) then
