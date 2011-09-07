@@ -19,11 +19,9 @@
 !
       module mod_esmf_atm
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Used module declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       use ESMF
       use mod_regcm_interface
@@ -32,11 +30,9 @@
       implicit none
       private
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Public subroutines 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       public  :: RCM_SetServices
       public  :: RCM_SetRun
@@ -46,60 +42,43 @@
 !
       subroutine RCM_SetServices(comp, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
-!     Local variable declarations 
-!
-!***********************************************************************
-!
-!
-!***********************************************************************
-!
-!     Register "initialize" routine
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
+!     Register "initialize" routine     
+!-----------------------------------------------------------------------
+! 
       call ESMF_GridCompSetEntryPoint(comp,                             &
                                       methodflag=ESMF_METHOD_INITIALIZE,&
                                       userRoutine=RCM_SetInitialize,    &
                                       rc=rc)
 !
-!***********************************************************************
-!
-!     Register "run" routine
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
+!     Register "run" routine    
+!-----------------------------------------------------------------------
+! 
       call ESMF_GridCompSetEntryPoint(comp,                             &
                                       methodflag=ESMF_METHOD_RUN,       &
                                       userRoutine=RCM_SetRun,           &
                                       rc=rc)
 !
-!***********************************************************************
-!
-!     Register "finalize" routine
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
+!     Register "finalize" routine    
+!-----------------------------------------------------------------------
+! 
       call ESMF_GridCompSetEntryPoint(comp,                             &
                                       methodflag=ESMF_METHOD_FINALIZE,  &
                                       userRoutine=RCM_SetFinalize,      &
                                       rc=rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Set return flag to success 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
 !
@@ -108,11 +87,9 @@
       subroutine RCM_SetInitialize(comp, importState, exportState,      &
                                    clock, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -120,20 +97,15 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       integer :: localPet, petCount, comm, ierr
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Call RCM initialization routines
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
 !     communicator handle     
@@ -161,28 +133,16 @@
       call RCM_SetClock(clock, rc)
 !
 !-----------------------------------------------------------------------
-!     Set-up excgange grid for gridded component 
+!     Set-up grid and load coordinate data 
 !-----------------------------------------------------------------------
 !
-      call RCM_SetGridArrays(comp, rc)
+      call RCM_SetGridArrays(rc)
 !
 !-----------------------------------------------------------------------
-!     Load ROMS exchange grid arrays
+!     Set-up import/export states and load initial data
 !-----------------------------------------------------------------------
 !
-      call RCM_PutGridData(localPet, rc)
-!
-!-----------------------------------------------------------------------
-!     Set-up import/export states
-!-----------------------------------------------------------------------
-!
-      call RCM_SetStates(ImportState, ExportState, localPet, rc)
-!
-!-----------------------------------------------------------------------
-!     Load export initial conditions data.
-!-----------------------------------------------------------------------
-!
-      call RCM_PutExportData(localPet, rc)
+      call RCM_SetStates(localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -192,14 +152,11 @@
 !
       end subroutine RCM_SetInitialize
 !
-      subroutine RCM_SetRun(comp, importState, exportState,             &
-                            clock, rc)
+      subroutine RCM_SetRun(comp, importState, exportState, clock, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -207,21 +164,16 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       logical :: first
       integer :: localPet, petCount, comm
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Call RCM run routines
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
 !     communicator handle     
@@ -288,11 +240,9 @@
       subroutine RCM_SetFinalize(comp, importState, exportState,        &
                                  clock, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -322,31 +272,25 @@
 !    
       subroutine RCM_SetClock(clock, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported modules 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       use mod_runparams
       use mod_date
 !
       implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       TYPE(ESMF_Clock), intent(inout) :: clock
       integer, intent(inout) :: rc 
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       integer :: ref_year,   str_year,   end_year
       integer :: ref_month,  str_month,  end_month
@@ -356,12 +300,9 @@
       integer :: ref_second, str_second, end_second
       character (len=80) :: name
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Create gridded component clock 
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Create ESMF calendar
 !-----------------------------------------------------------------------
@@ -521,40 +462,33 @@
       rc = ESMF_SUCCESS
       end subroutine RCM_SetClock
 !
-      subroutine RCM_SetGridArrays (comp, rc)
+      subroutine RCM_SetGridArrays (rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Used module declarations 
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+      use mod_dynparam, only : nproc, iy, iym2, jx, jxp, jendx,         &
+                               jendl, debug_level
+      use mod_atm_interface, only : mddom
 !
-      use mod_dynparam, only : nproc, iy, iym2, jx, jxp, jendx, jendl
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
-!
-      type(ESMF_GridComp), intent(inout) :: comp
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+      integer :: i, j, n
+      integer :: localPet, petCount, comm, localDECount
+      character (len=40) :: name
 !
-      integer :: ng, tile, i, j, n
-      integer :: localPet, petCount, comm
-      integer, allocatable :: deBlockList(:,:,:)
-      integer, allocatable :: TLWidth(:,:), TUWidth(:,:)
-      integer, allocatable :: CLW_c(:,:), CUW_c(:,:)
-      integer, dimension(2) :: CLW, CUW, TLW, TUW
-      integer, dimension(2) :: deCount, minIndex, maxIndex
-      TYPE (ESMF_ARRAY) :: grdArray
-       real(ESMF_KIND_R8), pointer :: farrayPtr(:,:)
+      type(ESMF_Field) :: grdField
+      type(ESMF_StaggerLoc) :: staggerLoc
+      real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
 !
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
@@ -571,71 +505,26 @@
 !     Set RCM domain decomposition variables
 !-----------------------------------------------------------------------
 !
-!     Loop over number of nested/composed grids.
       do n = 1, nNest(Iatmos)
-!
-!-----------------------------------------------------------------------
-!     Set ESMF Layout and distribution objects
-!-----------------------------------------------------------------------
-!
-!      deCount = (/ 1, nproc /)       
-!      models(Iatmos)%deLayout(n) = ESMF_DELayoutCreate (                &
-!                                        models(Iatmos)%vm,              &
-!                                        deCountList=deCount,            &
-!                                        petList=models(Iatmos)%petList, &
-!                                        rc=rc)
-!
-!-----------------------------------------------------------------------
-!     Validate and print DELayout
-!-----------------------------------------------------------------------
-!
-!      call ESMF_DELayoutValidate(models(Iatmos)%deLayout(n), rc=rc)
-!      call ESMF_DELayoutPrint(models(Iatmos)%deLayout(n), rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
-!     
-      if (.not.allocated(deBlockList)) then
-        allocate (deBlockList(2, 2, nproc))
-      end if
 !
-      do tile = 1, nproc 
-        deBlockList(1,1,tile) = 1
-        deBlockList(1,2,tile) = iy
-        deBlockList(2,1,tile) = (tile-1)*jxp+1
-        deBlockList(2,2,tile) = tile*jxp
-      end do
-      if (localPet == 0) then
-        print 10, 'Istr = ',(deBlockList(1,1,tile),tile=1,nproc)
-        print 10, 'Iend = ',(deBlockList(1,2,tile),tile=1,nproc)
-        print 10, 'Jstr = ',(deBlockList(2,1,tile),tile=1,nproc)
-        print 10, 'Jend = ',(deBlockList(2,2,tile),tile=1,nproc)
-      end if
-10    format(1x,a,64i5)
-!
-!     Cordinates of the lower and upper corner of the patch
-!
-      minIndex = (/ 1, 1 /)
-      maxIndex = (/ iy, jx /)
-!
-!      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex,       &
-!                                   maxIndex,                            &
-!                                   deBlockList=deBlockList,             &
-!                                   deLayout=models(Iatmos)%deLayout(n), &
-!                                   vm=models(Iatmos)%vm,                &
-!                                   rc=rc)
-      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (minIndex=minIndex,&
-                                                        maxIndex=maxIndex,&
-                                                        regDecomp=(/1,nproc/),&
-                                                        rc=rc)
+      models(Iatmos)%distGrid(n) = ESMF_DistGridCreate (                &
+                                        minIndex=(/ 1, 1 /),            &
+                                        maxIndex=(/ iy, jx /),          &
+                                        regDecomp=(/1,nproc/),          &
+                                        rc=rc)
 !
 !-----------------------------------------------------------------------
-!     Validate and print DistGrid
+!     Debug: validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-!      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
-!      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+      if ((debug_level > 3) .and. (localPet == 0)) then
+        call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+        call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Set array descriptor
@@ -646,101 +535,77 @@
                               rank=2,                                   &
                               rc=rc)
 !
-!-----------------------------------------------------------------------    
-!     Set computational region widths
-!-----------------------------------------------------------------------    
+      do i = 1, ubound(models(Iatmos)%mesh, dim=1) 
 !
-      if (.not. allocated(CLW_c)) then
-        allocate(CLW_c(2, 0:nproc-1))
-        allocate(CUW_c(2, 0:nproc-1))
-        allocate(TLWidth(2, 0:nproc-1))
-        allocate(TUWidth(2, 0:nproc-1))
+!-----------------------------------------------------------------------
+!     Set staggering type 
+!-----------------------------------------------------------------------
+!
+      if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
+        staggerLoc = ESMF_STAGGERLOC_CENTER
+      else if (models(Iatmos)%mesh(i,n)%gtype == Idot) then
+        staggerLoc = ESMF_STAGGERLOC_CORNER
       end if
 !
-      do tile = 0, nproc-1
-        TLWidth(1,tile) = 0 
-        TLWidth(2,tile) = 0
-        TUWidth(1,tile) = 0
-        TUWidth(2,tile) = 0
-        CLW_c(1,tile) = 0       
-        CLW_c(2,tile) = 0       
-        CUW_c(1,tile) = 0       
-        CUW_c(2,tile) = 0
+!-----------------------------------------------------------------------
+!     Create ESMF Grid
+!-----------------------------------------------------------------------
+!
+      models(Iatmos)%mesh(i,n)%grid = ESMF_GridCreate (                 &
+                                    distgrid=models(Iatmos)%distGrid(n),&
+                                    name="atm_grid",                    &
+                                    rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Allocate coordinates 
+!-----------------------------------------------------------------------
+!
+      call ESMF_GridAddCoord (models(Iatmos)%mesh(i,n)%grid,            &
+                              staggerLoc=staggerLoc,                    &
+                              rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Allocate items for masking
+!-----------------------------------------------------------------------
+!
+!      call ESMF_GridAddItem (models(Iatmos)%mesh(i,n)%grid,             &
+!                             staggerLoc=staggerLoc,                     &
+!                             itemflag=ESMF_GRIDITEM_MASK,               &
+!                             rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get number of local DEs
+!-----------------------------------------------------------------------
+! 
+      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+                         localDECount=localDECount,                     &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get pointers and set coordinates for the grid 
+!-----------------------------------------------------------------------
+! 
+      do j = 0, localDECount-1
+        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+                                localDE=j,                              &
+                                staggerLoc=staggerLoc,                  &
+                                coordDim=1,                             &
+                                farrayPtr=ptrY,                         &
+                                rc=rc)
+        ptrY = mddom%xlat
+!
+        call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
+                                localDE=j,                              &
+                                staggerLoc=staggerLoc,                  &
+                                coordDim=2,                             &
+                                farrayPtr=ptrX,                         &
+                                rc=rc)
+        ptrX = mddom%xlon
+!
+!       There is no need to define mask
+!
       end do
-!
-      TLW = (/TLWidth(1,localPet), TLWidth(2,localPet)/)
-      TUW = (/TUWidth(1,localPet), TUWidth(2,localPet)/)
-      CLW = (/CLW_c(1,localPet), CLW_c(2,localPet)/)
-      CUW = (/CUW_c(1,localPet), CUW_c(2,localPet)/)
-!
-!-----------------------------------------------------------------------    
-!     Create exchange arrays
-!-----------------------------------------------------------------------    
-!
-      do i = 1, ubound(models(Iatmos)%mesh, dim=1)
-!
-!       Create array
-!
-!        grdArray = ESMF_ArrayCreate(arrayspec=models(Iatmos)%arrSpec(n),&
-!                                    distgrid=models(Iatmos)%distGrid(n),&
-!                                    computationalLWidth=CLW,            &
-!                                    computationalUWidth=CUW,            &
-!                                    totalLWidth=TLW,                    &
-!                                    totalUWidth=TUW,                    &
-!                                    indexflag=ESMF_INDEX_GLOBAL,        &
-!                                    rc=rc)
-        grdArray = ESMF_ArrayCreate (distgrid=models(Iatmos)%distGrid(n),&
-                                     arrayspec=models(Iatmos)%arrSpec(n),&
-                                     indexflag=ESMF_INDEX_GLOBAL,        &
-                                     rc=rc)
-        models(Iatmos)%mesh(i,n)%lat%array = grdArray
-!
-!       Get data pointer from array
-!
-        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lat%array,           &
-                        farrayPtr=models(Iatmos)%mesh(i,n)%lat%field,&
-                        rc=rc)
-!
-!       Set adjustable settings of array object  
-!
-        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lat%array,     &
-                           name=trim(models(Iatmos)%mesh(i,n)%lat%name),&
-                            rc=rc)
-!
-!       Create array
-!
-        grdArray = ESMF_ArrayCreate (arrayspec=models(Iatmos)%arrSpec(n),& 
-                               distgrid=models(Iatmos)%distGrid(n),     &
-                               indexflag=ESMF_INDEX_GLOBAL,             &
-                               rc=rc)
-        models(Iatmos)%mesh(i,n)%lon%array = grdArray
-!
-!       Get data pointer from array
-!
-        call ESMF_ArrayGet (models(Iatmos)%mesh(i,n)%lon%array,           &
-                        farrayPtr=models(Iatmos)%mesh(i,n)%lon%field,&
-                        rc=rc)          
-!
-!       Set adjustable settings of array object  
-!
-        call ESMF_ArraySet (array=models(Iatmos)%mesh(i,n)%lon%array,     &
-                        name=trim(models(Iatmos)%mesh(i,n)%lon%name),&
-                        rc=rc)
-!  
-!       Add array to export state
-!   
-        call ESMF_StateAdd (models(Iatmos)%stateExport,                 &
-                           (/ models(Iatmos)%mesh(i,n)%lat%array,         &
-                              models(Iatmos)%mesh(i,n)%lon%array /),      &
-                           rc=rc)
-!
-!       Initialize the grid array
-!
-        models(Iatmos)%mesh(i,n)%lat%field = 0.0d0
-        models(Iatmos)%mesh(i,n)%lon%field = 0.0d0
-!        call ESMF_ArrayPrint(models(Iatmos)%mesh(i,n)%lat%array, rc=rc)
-!        call ESMF_ArrayPrint(models(Iatmos)%mesh(i,n)%lon%array, rc=rc)
-      end do 
+      end do
       end do
 !
 !-----------------------------------------------------------------------
@@ -751,87 +616,30 @@
 !
       end subroutine RCM_SetGridArrays
 !
-      subroutine RCM_PutGridData (localPet, rc)
+      subroutine RCM_SetStates (localPet, rc)
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Used module declarations 
-!
-!**********************************************************************
-!
-      use mod_dynparam, only : iy, iym2, jxp
-      use mod_atm_interface, only : mddom 
-!
-!***********************************************************************
-!
-!     Imported variable declarations 
-!
-!***********************************************************************
-!
-      integer, intent(in) :: localPet
-      integer, intent(inout) :: rc
-!
-!***********************************************************************
-!
-!     Local variable declarations 
-!
-!***********************************************************************
-!
-      integer :: n, i, j, jj 
-!     
 !-----------------------------------------------------------------------
-!     Load grid data for cross points 
-!-----------------------------------------------------------------------
-!
-      do n = 1, nNest(Iatmos)
-      do j = 1, jxp
-        do i = 1, iy
-          jj = jxp*localPet+j
-          models(Iatmos)%mesh(1,n)%lat%field(i,jj) = mddom%xlat(i,j)
-          models(Iatmos)%mesh(1,n)%lon%field(i,jj) = mddom%xlon(i,j)
-        end do
-      end do 
-      !call ESMF_ArrayPrint(models(Iatmos)%mesh(1,n)%lat%array)
-      !call ESMF_ArrayPrint(models(Iatmos)%mesh(1,n)%lon%array)
-      end do
-!
-!-----------------------------------------------------------------------
-!     Set return flag to success.
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
-!
-      end subroutine RCM_PutGridData
-!
-      subroutine RCM_SetStates (importState, exportState, localPet,     &
-                                rc)
-!
-!**********************************************************************
-!
-!     Used module declarations 
-!
-!**********************************************************************
 !
       use mod_dynparam, only : nproc, iy, jx, jxp, jendl
+      use mod_bats_common
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
-!
-      type(ESMF_State), intent(inout) :: importState
-      type(ESMF_State), intent(inout) :: exportState
       integer, intent(in) :: localPet
       integer, intent(inout) :: rc
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
+!-----------------------------------------------------------------------
 !
-!**********************************************************************
-!
-      integer :: i, j, n
+      integer :: i, j, n, localDECount
+      character (len=40) :: name
+      type(ESMF_StaggerLoc) :: staggerLoc
+      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Initialize the import and export fields 
@@ -840,76 +648,129 @@
       do n = 1, nNest(Iatmos)
 !
 !-----------------------------------------------------------------------
-!     Create export state arrays.
+!     Create export state fields 
 !-----------------------------------------------------------------------
 !
       do i = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
 !
-!       Create ESMF array
+!-----------------------------------------------------------------------
+!     Set staggering type 
+!-----------------------------------------------------------------------
 !
-        models(Iatmos)%dataExport(i,n)%array = ESMF_ArrayCreate (       &
-                                    arrayspec=models(Iatmos)%arrSpec(n),&
-                                    distgrid=models(Iatmos)%distGrid(n),&
-                                    rc=rc)
+      if (models(Iatmos)%dataExport(i,n)%gtype == Icross) then
+        staggerLoc = ESMF_STAGGERLOC_CENTER
+      else if (models(Iatmos)%dataExport(i,n)%gtype == Idot) then
+        staggerLoc = ESMF_STAGGERLOC_CORNER
+      end if
 !
-!       Get data pointer from ESMF array 
+!-----------------------------------------------------------------------
+!     Create field 
+!-----------------------------------------------------------------------
 !
-        call ESMF_ArrayGet (models(Iatmos)%dataExport(i,n)%array,       &
-                       farrayPtr=models(Iatmos)%dataExport(i,n)%field,  &
-                       rc=rc)
+      name = models(Iatmos)%dataExport(i,n)%name
+      models(Iatmos)%dataExport(i,n)%field = ESMF_FieldCreate (         &
+                                  models(Iatmos)%mesh(i,n)%grid,        &
+                                  models(Iatmos)%arrSpec(n),            &
+                                  staggerloc=staggerLoc,                &
+                                  name=trim(name),                      &
+                                  rc=rc)
 !
-!       Set array name
-        call ESMF_ArraySet (array=models(Iatmos)%dataExport(i,n)%array, &
-                        name=trim(models(Iatmos)%dataExport(i,n)%name), &
-                        rc=rc)
+!-----------------------------------------------------------------------
+!     Get number of local DEs
+!-----------------------------------------------------------------------
+! 
+      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+                         localDECount=localDECount,                     &
+                         rc=rc)
 !
-!       Add array to export state
+!-----------------------------------------------------------------------
+!     Put data into state 
+!-----------------------------------------------------------------------
+! 
+      do j = 0, localDECount-1
 !
-        call ESMF_StateAdd (models(Iatmos)%stateExport,                 &
-                           (/ models(Iatmos)%dataExport(i,n)%array /),  &
-                           rc=rc)
+!-----------------------------------------------------------------------
+!     Get pointer from ESMF Field 
+!-----------------------------------------------------------------------
 !
-!       Initialize export field to zero to avoid infinities or NaNs.
+      call ESMF_FieldGet (models(Iatmos)%dataExport(i,n)%field,         &
+                          localDe=j,                                    &
+                          farrayPtr=ptr,                                &
+                          rc=rc)
 !
-        models(Iatmos)%dataExport(i,n)%field = 0.0d0
+!-----------------------------------------------------------------------
+!     Put data     
+!-----------------------------------------------------------------------
+!      
+      if (trim(adjustl(name)) == "Tair") then
+        ptr = thatm(i,kz,j)
+      end if
+!
+      end do
       end do
 !     
 !-----------------------------------------------------------------------
-!     Create import state arrays.
+!     Create import state arrays
 !-----------------------------------------------------------------------
 !
-!      print*, "**", ubound(models(Iatmos)%dataImport(:,n), dim=1), "**"
-!      print*, "**", ubound(models(Iatmos)%dataExport(:,n), dim=1), "**"
       do i = 1, ubound(models(Iatmos)%dataImport(:,n), dim=1)
 !
-!       Create ESMF array
-!        
-        models(Iatmos)%dataImport(i,n)%array = ESMF_ArrayCreate (       &
-                                    arrayspec=models(Iatmos)%arrSpec(n),&
-                                    distgrid=models(Iatmos)%distGrid(n),&
-                                    rc=rc)
+!-----------------------------------------------------------------------
+!     Set staggering type 
+!-----------------------------------------------------------------------
 !
-!       Get data pointer from ESMF array 
+      if (models(Iatmos)%dataImport(i,n)%gtype == Icross) then
+        staggerLoc = ESMF_STAGGERLOC_CENTER
+      else if (models(Iatmos)%dataImport(i,n)%gtype == Idot) then
+        staggerLoc = ESMF_STAGGERLOC_CORNER
+      end if
 !
-        call ESMF_ArrayGet (models(Iatmos)%dataImport(i,n)%array,       &
-                       farrayPtr=models(Iatmos)%dataImport(i,n)%field,  &
-                       rc=rc)
+!-----------------------------------------------------------------------
+!     Create field 
+!-----------------------------------------------------------------------
 !
-!       Set array name
-        call ESMF_ArraySet (array=models(Iatmos)%dataImport(i,n)%array, &
-                        name=trim(models(Iatmos)%dataImport(i,n)%name), &
-                        rc=rc)
+      name = models(Iatmos)%dataImport(i,n)%name
+      models(Iatmos)%dataImport(i,n)%field = ESMF_FieldCreate (         &
+                                  models(Iatmos)%mesh(i,n)%grid,        &
+                                  models(Iatmos)%arrSpec(n),            &
+                                  staggerloc=staggerLoc,                &
+                                  name=trim(name),                      &
+                                  rc=rc)
 !
-!       Add array to export state
+!-----------------------------------------------------------------------
+!     Get number of local DEs
+!-----------------------------------------------------------------------
+! 
+      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+                         localDECount=localDECount,                     &
+                         rc=rc)
 !
-        call ESMF_StateAdd (models(Iatmos)%stateImport,                 &
-                           (/ models(Iatmos)%dataImport(i,n)%array /),  &
-                           rc=rc)
+!-----------------------------------------------------------------------
+!     Put data into state 
+!-----------------------------------------------------------------------
+! 
+      do j = 0, localDECount-1
 !
-!       Initialize export field to zero to avoid infinities or NaNs.
+!-----------------------------------------------------------------------
+!     Get pointer from ESMF Field 
+!-----------------------------------------------------------------------
 !
-        models(Iatmos)%dataImport(i,n)%field = 0.0d0
+      call ESMF_FieldGet (models(Iatmos)%dataImport(i,n)%field,         &
+                          localDe=j,                                    &
+                          farrayPtr=ptr,                                &
+                          rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Put data     
+!-----------------------------------------------------------------------
+!      
+      if (trim(adjustl(name)) == "SST") then
+        ptr = 0.0
+      end if
+!
       end do
+      end do
+!
       end do
 !
 !-----------------------------------------------------------------------
@@ -919,118 +780,5 @@
       rc = ESMF_SUCCESS
 !
       end subroutine RCM_SetStates
-!
-      subroutine RCM_PutExportData (localPet, rc)
-!
-!**********************************************************************
-!
-!     Used module declarations 
-!
-!**********************************************************************
-!
-      use mod_bats_common !, only : fbat
-      use mod_dynparam, only : iy, iym2, jxp
-!
-!***********************************************************************
-!
-!     Imported variable declarations 
-!     
-!***********************************************************************
-!
-      integer, intent(in) :: localPet
-      integer, intent(inout) :: rc
-!
-!**********************************************************************
-!
-!     Local variable declarations 
-!
-!**********************************************************************
-!
-      character (len=80) :: name
-      integer :: i, j, jj, k, n
-!
-!-----------------------------------------------------------------------
-!     Put data into ESMF arrays 
-!-----------------------------------------------------------------------
-!
-      do n = 1, nNest(Iatmos)
-!
-!-----------------------------------------------------------------------
-!     Load export fields
-!-----------------------------------------------------------------------
-!
-      do k = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
-        name = models(Iatmos)%dataExport(k,n)%name
-        if (trim(adjustl(name)) == "Pair") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) =              &
-!                                                 (sfps(i,j)+ptop)*d_1000
-!            end do        
-!          end do
-        else if (trim(adjustl(name)) == "Tair") then
-          do j = 1 , jxp
-            do i = 1 , iym2
-              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) =thatm(i,kz,j) 
-          !print*, "** turuncu **", models(Iatmos)%dataExport(k,n)%field(i,jj) 
-            end do
-          end do
-!        else if (trim(adjustl(name)) == "Qair") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = qvatm(i,kz,j)/ &
-!                                                  (d_one+qvatm(i,kz,j)) 
-!            end do
-!          end do
-!        else if (trim(adjustl(name)) == "Uwind") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = uatm(i,kz,j) 
-!            end do
-!          end do
-!        else if (trim(adjustl(name)) == "Vwind") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = vatm(i,kz,j)
-!            end do
-!          end do
-!        else if (trim(adjustl(name)) == "rain") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = pptnc(i,j) +       &
-!                                                     pptc(i,j)
-!            end do
-!          end do
-!        else if (trim(adjustl(name)) == "swrad") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = fsw2d(i,j) 
-!            end do
-!          end do
-!        else if (trim(adjustl(name)) == "lwrad_down") then
-!          do j = 1 , jxp
-!            do i = 1 , iy
-!              jj = jxp*localPet+j
-!              models(Iatmos)%dataExport(k,n)%field(i,jj) = flw2d(i,j) 
-!            end do
-!          end do
-        end if
-      end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Set return flag to success.
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
-!
-      end subroutine RCM_PutExportData
 !
       end module mod_esmf_atm

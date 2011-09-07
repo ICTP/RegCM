@@ -127,7 +127,13 @@
 !
       logical :: flag
       type(ESMF_Config) :: config
-      integer :: MyRank, Nnodes, comm, ierr, i 
+      integer :: localPet, petCount, comm, ierr
+      integer :: i, j, dir1, dir2
+!
+      integer :: itemCount
+      character(ESMF_MAXSTR), allocatable :: itemNames(:)
+      type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
+      type(ESMF_Field) :: dstField, srcField
 !
 !***********************************************************************
 !
@@ -145,8 +151,8 @@
                            rc=rc)
 
       call ESMF_VMGet(vm,                                               &
-                      localPet=MyRank,                                  &
-                      petCount=Nnodes,                                  &
+                      localPet=localPet,                                &
+                      petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)
 !
@@ -156,21 +162,110 @@
 !
 !     Import state
 !
-      do i = 1, ubound(models, dim=1)
-        call ESMF_StateReconcile(models(i)%stateImport,                 &
-                                 vm=vm,                                 &
-                                 attreconflag=ESMF_ATTRECONCILE_ON,     &
-                                 rc=rc)
-      end do
+      call ESMF_StateReconcile(importState,                             &
+                               vm=vm,                                   &
+                               attreconflag=ESMF_ATTRECONCILE_ON,       &
+                               rc=rc)
 ! 
 !     Export state
 !
-      do i = 1, ubound(models, dim=1)
-        call ESMF_StateReconcile(models(i)%stateExport,                 &
-                                 vm=vm,                                 &
-                                 attreconflag=ESMF_ATTRECONCILE_ON,     &
-                                 rc=rc)
-      end do
+      call ESMF_StateReconcile(exportState,                             &
+                               vm=vm,                                   &
+                               attreconflag=ESMF_ATTRECONCILE_ON,       &
+                               rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get direction of coupling initialization
+!-----------------------------------------------------------------------
+!       
+!     Forward
+!
+      call ESMF_AttributeGet(importState,                               &
+                             name=trim(FORWARD_INIT),                   &
+                             value=dir1,                                &
+                             rc=rc)
+!       
+!     Backward
+!
+      call ESMF_AttributeGet(importState,                               &
+                             name=trim(BACKWARD_INIT),                  &
+                             value=dir2,                                &
+                             rc=rc)
+!
+!     Print coupling direction info (for debugging)
+!  
+      if (dir1 == FORWARD_ON) then
+        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+      else
+        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+      end if
+!
+!-----------------------------------------------------------------------
+!     Save import state field names 
+!-----------------------------------------------------------------------
+!
+!     Get import state item count
+!
+!      call ESMF_StateGet(importState,                                   &
+!                         itemCount=itemCount,                           &
+!                         rc=rc) 
+!
+!     Allocate temporary arrays 
+!
+!      if (.not. allocated(itemNames)) allocate(itemNames(itemCount))
+!      if (.not. allocated(itemTypes)) allocate(itemTypes(itemCount))
+! 
+!     Get import state item names and types 
+!
+!      call ESMF_StateGet(importState,                                   &
+!                         itemNameList=itemNames,                        &
+!                         itemTypeList=itemTypes,                        &
+!                         rc=rc)      
+!
+!     Get required item count 
+!
+!      j = 0
+!      do i = 1, ItemCount
+!        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
+!            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
+!          j = j+1
+!        end if
+!      end do
+!
+!     Save import state field names
+!
+!      if (dir1 == FORWARD_ON) then
+!      print*, "** turuncu ** itemCount", itemCount  
+!
+!-----------------------------------------------------------------------
+!     Save export state field names 
+!-----------------------------------------------------------------------
+!
+
+!
+!-----------------------------------------------------------------------
+!     Forward coupling initialization
+!-----------------------------------------------------------------------
+!
+!      if (dir1 == FORWARD_ON) then
+!        call ESMF_StateGet (importState,                                &
+!                            '',                                     &
+!                            srcArray,                                   &
+!                            rc=rc)
+!
+!        call ESMF_StateGet (exportState,                                &
+!                            'Pair',                                     &
+!                            dstArray,                                   &
+!                            rc=rc) 
+!
+!        call ESMF_FieldRegridStore (srcField=srcField,                  &
+!                                dstField=dstField,                      &
+!                                routeHandle=routeHandleF,               &
+!                                indices=indices,                        &
+!                                weights=weights,                        &
+!                                regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
+!                                rc=rc)
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

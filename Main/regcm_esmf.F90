@@ -19,11 +19,9 @@
 
       program regcm
 !
-!**********************************************************************
-!
-!     Used module declarations 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
+!     Used module declarations  
+!-----------------------------------------------------------------------
 !
       use ESMF
 !
@@ -34,16 +32,14 @@
 !
       use mod_runparams, only : dtcpl
 !
-!**********************************************************************
-!
-!     Local variable declarations 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
+!     Local variable declarations  
+!-----------------------------------------------------------------------
 !
       real*8 :: dt
       integer :: iarr(6)
-      integer :: i, j, rc, localPet, petCount, comm
-      character (len=80) :: name, istr, estr
+      integer :: i, j, localPet, petCount, comm, rc
+      character (len=80) :: str1, str2
 !
 !***********************************************************************
 !
@@ -82,11 +78,11 @@
 !
       do i = 1, nModels 
         if (i == Iatmos) then
-          name = 'Gridded Component I - Atmosphere' 
+          str1 = 'Gridded Component I - Atmosphere' 
         else if (i == Iocean) then
-          name = 'Gridded Component II - Ocean' 
+          str1 = 'Gridded Component II - Ocean' 
         end if
-        models(i)%comp = ESMF_GridCompCreate(name=TRIM(name),           &
+        models(i)%comp = ESMF_GridCompCreate(name=trim(str1),           &
                                         petList=models(i)%petList,      &
                                         rc=rc)
       end do
@@ -95,8 +91,8 @@
 !     Create coupler component. The coupler component run all PETs
 !-----------------------------------------------------------------------
 !
-      name = 'Coupler Component'
-      comp = ESMF_CplCompCreate(name=name, rc=rc)
+      str1 = 'Coupler Component'
+      comp = ESMF_CplCompCreate(name=trim(str1), rc=rc)
 !
 !**********************************************************************
 !
@@ -122,16 +118,16 @@
 !
       do i = 1, nModels
         if (i == Iatmos) then
-          istr = 'Import state (Atmosphere)'
-          estr = 'Export state (Atmosphere)'
+          str1 = 'Import state (Atmosphere)'
+          str2 = 'Export state (Atmosphere)'
         else if (i == Iocean) then
-          istr = 'Import state (Ocean)' 
-          estr = 'Export state (Ocean)'
+          str1 = 'Import state (Ocean)' 
+          str2 = 'Export state (Ocean)'
         end if
-        models(i)%stateExport = ESMF_StateCreate(name=trim(estr),       &
+        models(i)%stateExport = ESMF_StateCreate(name=trim(str2),       &
                                 stateintent=ESMF_STATEINTENT_EXPORT,    &
                                 rc=rc)
-        models(i)%stateImport = ESMF_StateCreate(name=trim(istr),       &
+        models(i)%stateImport = ESMF_StateCreate(name=trim(str1),       &
                                 stateintent=ESMF_STATEINTENT_IMPORT,    &
                                 rc=rc)
       end do
@@ -156,25 +152,32 @@
 !**********************************************************************
 !
       call time_reconcile() 
-!      print*, "** turuncu **", localPet, 
 !
 !-----------------------------------------------------------------------
-!  Set time interval to exchange data between gridded components
+!     Initialize coupler component
 !-----------------------------------------------------------------------
 !
-!      dt = 21600.0
-!      call ESMF_TimeIntervalSet(timeStep,                               &
-!     &                          s_r8=dt,                                &
-!     &                          rc=rc)
+!     Forward coupling
 !
-!-----------------------------------------------------------------------
-!  Print out times for each component including cpl (for debug purposes)
-!-----------------------------------------------------------------------
+      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
+                              name=FORWARD_INIT,                        &
+                              value=FORWARD_ON,                         &
+                              rc=rc)
 !
-!      do i = 1, nModels
-!        call ESMF_TimePrint(models(i)%strTime, options="string", rc=rc)
-!        call ESMF_TimePrint(models(i)%endTime, options="string", rc=rc)
-!      end do
+      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
+                              name=BACKWARD_INIT,                       &
+                              value=BACKWARD_OFF,                       &
+                              rc=rc)
+!
+      call ESMF_CplCompInitialize(comp,                                 &
+                                 importState=models(Iatmos)%stateExport,&
+                                 exportState=models(Iocean)%stateImport,&
+                                 rc=rc)
+!      
+      call ESMF_VMBarrier(vm, rc=rc)
+
+
+
 ! 
 !**********************************************************************
 !
