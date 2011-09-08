@@ -486,6 +486,7 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
+      use mod_grid , only : GRID
       use mod_param, only : NtileI, NtileJ, BOUNDS, Lm, Mm
       use mod_dynparam, only : debug_level
 !
@@ -500,13 +501,19 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n 
+      integer :: i, j, ii, jj, n, tile 
       integer :: localPet, petCount, comm, localDECount
+      integer :: IstrR, IendR, JstrR, JendR
+      integer :: IstrU, IendU, JstrU, JendU     
+      integer :: IstrV, IendV, JstrV, JendV     
+      integer :: staggerEdgeLWidth(2)
+      integer :: staggerEdgeUWidth(2)
 !
+      type(ESMF_Decomp_Flag) :: deCompFlag(2)
       type(ESMF_Field) :: grdField
       type(ESMF_StaggerLoc) :: staggerLoc
       real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
-      integer, pointer :: ptrMask(:,:)
+      integer, pointer :: ptrM(:,:)
 !
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
@@ -526,13 +533,35 @@
       do n = 1, nNest(Iocean)
 !
 !-----------------------------------------------------------------------
+!     Get limits of the arrays (based on PET and grid id)
+!-----------------------------------------------------------------------
+!
+      IstrR = BOUNDS(n)%IstrR(localPet)
+      IendR = BOUNDS(n)%IendR(localPet)
+      JstrR = BOUNDS(n)%JstrR(localPet)
+      JendR = BOUNDS(n)%JendR(localPet)
+!
+      IstrU = BOUNDS(n)%Istr(localPet)
+      IendU = BOUNDS(n)%IendR(localPet)
+      JstrU = BOUNDS(n)%JstrR(localPet)
+      JendU = BOUNDS(n)%JendR(localPet)
+!
+      IstrV = BOUNDS(n)%IstrR(localPet)
+      IendV = BOUNDS(n)%IendR(localPet)
+      JstrV = BOUNDS(n)%Jstr(localPet)
+      JendV = BOUNDS(n)%JendR(localPet)
+!
+!-----------------------------------------------------------------------
 !     Create ESMF DistGrid based on model domain decomposition
 !-----------------------------------------------------------------------
+!
+      deCompFlag = (/ ESMF_DECOMP_RESTFIRST, ESMF_DECOMP_RESTFIRST /)
 !
       models(Iocean)%distGrid(n) = ESMF_DistGridCreate (                &
                                    minIndex=(/ 1, 1 /),                 &
                                    maxIndex=(/ Lm(n), Mm(n) /),         &
                                    regDecomp=(/ NtileI(n), NtileJ(n) /),&
+                                   decompflag=deCompFlag,               &
                                    rc=rc)
 !
 !-----------------------------------------------------------------------
@@ -561,10 +590,16 @@
 !
       if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
         staggerLoc = ESMF_STAGGERLOC_EDGE1
+        staggerEdgeLWidth = (/0,1/)
+        staggerEdgeUWidth = (/1,1/)
       else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
         staggerLoc = ESMF_STAGGERLOC_EDGE2
-      else
+        staggerEdgeLWidth = (/1,0/)
+        staggerEdgeUWidth = (/1,1/)
+      else if (models(Iocean)%mesh(i,n)%gtype == Icross) then
         staggerLoc = ESMF_STAGGERLOC_CENTER
+        staggerEdgeLWidth = (/1,1/)
+        staggerEdgeUWidth = (/1,1/)
       end if
 !
 !-----------------------------------------------------------------------
@@ -573,6 +608,9 @@
 !
       models(Iocean)%mesh(i,n)%grid = ESMF_GridCreate (                 &
                                     distgrid=models(Iocean)%distGrid(n),&
+                                    indexflag=ESMF_INDEX_GLOBAL,        &
+                                    gridEdgeLWidth=(/1,1/),             &
+                                    gridEdgeUWidth=(/1,1/),             &
                                     name="ocn_grid",                    &
                                     rc=rc)
 !
@@ -582,6 +620,8 @@
 !
       call ESMF_GridAddCoord (models(Iocean)%mesh(i,n)%grid,            &
                               staggerLoc=staggerLoc,                    &
+                              staggerEdgeLWidth=staggerEdgeLWidth,      &
+                              staggerEdgeUWidth=staggerEdgeUWidth,      &
                               rc=rc)
 !
 !-----------------------------------------------------------------------
@@ -612,7 +652,6 @@
                                 coordDim=1,                             &
                                 farrayPtr=ptrY,                         &
                                 rc=rc)
-        ptrY = 0.0
 !
         call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,          &
                                 localDE=j,                              &
@@ -620,15 +659,58 @@
                                 coordDim=2,                             &
                                 farrayPtr=ptrX,                         &
                                 rc=rc)
-        ptrX = 0.0
 !
         call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,           &
                                localDE=j,                               &
                                staggerLoc=staggerLoc,                   &
                                itemflag=ESMF_GRIDITEM_MASK,             &
-                               farrayPtr=ptrMask,                       &
+                               farrayPtr=ptrM,                          &
                                rc=rc)
-        ptrMask = 0
+!
+        if (models(Iocean)%mesh(i,n)%gtype == Icross) then
+          do jj = JstrR, JendR
+            do ii = IstrR, IendR
+              ptrX(ii,jj) = GRID(n)%lonr(ii,jj)
+              ptrY(ii,jj) = GRID(n)%latr(ii,jj)
+              ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
+            end do
+          end do       
+          if (debug_level > 3) then
+            write(*,99) localPet, j, 'R-I', IstrR, IendR,  JstrR, JendR
+            write(*,99) localPet, j, 'R-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2) 
+          end if
+        else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
+          do jj = JstrU, JendU
+            do ii = IstrU, IendU
+              ptrX(ii,jj) = GRID(n)%lonu(ii,jj)
+              ptrY(ii,jj) = GRID(n)%latu(ii,jj)
+              ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
+            end do
+          end do
+          if (debug_level > 3) then
+            write(*,99) localPet, j, 'U-I', IstrU, IendU,  JstrU, JendU
+            write(*,99) localPet, j, 'U-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2)
+          end if
+        else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
+          do jj = JstrV, JendV
+            do ii = IstrV, IendV
+              ptrX(ii,jj) = GRID(n)%lonv(ii,jj)
+              ptrY(ii,jj) = GRID(n)%latv(ii,jj)
+              ptrM(ii,jj) = int(GRID(n)%vmask(ii,jj))
+            end do
+          end do
+          if (debug_level > 3) then
+            write(*,99) localPet, j, 'V-I', IstrU, IendU,  JstrU, JendU
+            write(*,99) localPet, j, 'V-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2)
+          end if
+        end if
+ 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
       end do
       end do
       end do

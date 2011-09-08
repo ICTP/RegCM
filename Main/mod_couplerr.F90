@@ -117,13 +117,13 @@
 !
 !-----------------------------------------------------------------------
 !     Staggered grid point indices
-!     d --------- d   ----- v -----  
+!     d --------- d   d --- v --- d  
 !     |           |   |           |
 !     |     c     |   u     c     u
 !     |           |   |           |
-!     d --------- d   ----- v -----     
+!     d --------- d   d --- v --- d     
 !     Arakawa - B     Arakawa - C
-!     RegCM           ROMS
+!     RegCM           ROMS (c = rho, d = psi)
 !-----------------------------------------------------------------------
 !
       integer :: Icross  = 1
@@ -231,7 +231,7 @@
 !
       do i = 1, nModels
         if (i == Iatmos) then
-          k = 2 ! cross and dot points (dot is not used actually)
+          k = 1 !2 ! cross and dot points (dot is not used actually)
         else if (i == Iocean) then
           k = 3 ! cross, u and v points
         end if
@@ -268,23 +268,23 @@
             models(i)%mesh(1,j)%mask%units = '1'
 !
 !           dot (or cell corners) points (u and v)
-            models(i)%mesh(2,j)%gid = 2
-            models(i)%mesh(2,j)%gtype = Idot
+!            models(i)%mesh(2,j)%gid = 2
+!            models(i)%mesh(2,j)%gtype = Idot
 !
-            models(i)%mesh(2,j)%lon%gtype = Idot
-            models(i)%mesh(2,j)%lon%name = 'dlon'
-            models(i)%mesh(2,j)%lon%long_name = 'longitude at dot'
-            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+!            models(i)%mesh(2,j)%lon%gtype = Idot
+!            models(i)%mesh(2,j)%lon%name = 'dlon'
+!            models(i)%mesh(2,j)%lon%long_name = 'longitude at dot'
+!            models(i)%mesh(2,j)%lon%units = 'degrees_east'
 !
-            models(i)%mesh(2,j)%lat%gtype = Idot
-            models(i)%mesh(2,j)%lat%name = 'dlat'
-            models(i)%mesh(2,j)%lat%long_name = 'latitude at dot'
-            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+!            models(i)%mesh(2,j)%lat%gtype = Idot
+!            models(i)%mesh(2,j)%lat%name = 'dlat'
+!            models(i)%mesh(2,j)%lat%long_name = 'latitude at dot'
+!            models(i)%mesh(2,j)%lat%units = 'degrees_north'
 !
-            models(i)%mesh(2,j)%mask%gtype = Idot
-            models(i)%mesh(2,j)%mask%name = 'mask'
-            models(i)%mesh(2,j)%mask%long_name = 'land sea mask'
-            models(i)%mesh(2,j)%mask%units = '1'
+!            models(i)%mesh(2,j)%mask%gtype = Idot
+!            models(i)%mesh(2,j)%mask%name = 'mask'
+!            models(i)%mesh(2,j)%mask%long_name = 'land sea mask'
+!            models(i)%mesh(2,j)%mask%units = '1'
           end do
         else if (i == Iocean) then
           do j = 1, nNest(i)
