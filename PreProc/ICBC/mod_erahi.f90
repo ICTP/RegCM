@@ -67,7 +67,7 @@ module mod_erahi
 !
   type(rcm_time_and_date) , intent(in) :: idate
 !
-  character(14) :: finame
+  character(256) :: finame
   integer :: i , j , k , nrec
   logical :: there
   real(sp) :: slonmax , slonmin , xlonmax , xlonmin
