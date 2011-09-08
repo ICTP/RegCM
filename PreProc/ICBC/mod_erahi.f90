@@ -69,6 +69,7 @@ module mod_erahi
 !
   character(14) :: finame
   integer :: i , j , k , nrec
+  logical :: there
   real(sp) :: slonmax , slonmin , xlonmax , xlonmin
 !
   call zeit_ci('geterahi')
@@ -91,7 +92,11 @@ module mod_erahi
     end do
     write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
   end if
-  write (finame,99001) toint10(idate)
+  write (finame,99001) dirglob,pthsep,toint10(idate)
+  inquire (file=finame,exist=there)
+  if ( .not. there ) then
+    call die('ERAHI', finame//' is not available',1)
+  end if
   open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte, &
         access='direct')
   nrec = 0
@@ -205,7 +210,7 @@ module mod_erahi
 !
   call zeit_co('geterahi')
 !
-99001 format ('EHI_',i10)
+99001 format (a,a,'EHI_',i10)
 !
   end subroutine geterahi
 
