@@ -79,8 +79,6 @@ module mod_sst_1deg
 !
   call zeit_ci('sst_1deg')
 
-  call split_idate(idate,year,month,day,hour)
-
   if ( ssttyp == 'GISST' ) then
     if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
       write (stderr,*) 'GISST data required are not available'
@@ -154,6 +152,8 @@ module mod_sst_1deg
   idate = idateo
 
   if ( ssttyp /= 'OI_WK' .and. ssttyp /= 'OI2WK' ) then
+
+    call split_idate(idate,year,month,day,hour)
 
     do k = 1 , nsteps
 
