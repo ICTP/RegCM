@@ -63,8 +63,6 @@ module mod_sst_fvgcm
 !
   call zeit_ci('sst_fvgcm')
 
-  call split_idate(idate,year,month,day,hour)
-
   if ( ssttyp == 'FV_RF' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',exist=there)
     if ( .not.there ) then
@@ -122,6 +120,8 @@ module mod_sst_fvgcm
  
   idate = idateo
   do k = 1 , nsteps
+
+    call split_idate(idate,year,month,day,hour)
 
     if ( ssttyp == 'FV_RF' ) then
       it = (year-1959)*12 + month
