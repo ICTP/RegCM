@@ -149,10 +149,11 @@ module mod_era40
   real(dp) :: xadd , xscale
 
   integer , dimension(10) , save :: icount , istart
-  real(dp) , dimension(6,4) , save :: xoff , xscl
-  integer , dimension(6,4) , save :: inet6
-  integer , dimension(6,4) , save :: ivar6
-  character(5) , dimension(6) :: varname
+  real(dp) , dimension(5,4) , save :: xoff , xscl
+  integer , dimension(5,4) , save :: inet6
+  integer , dimension(5,4) , save :: ivar6
+  character(5) , dimension(5) :: filename
+  character(5) , dimension(5) :: varname
 !
 !     This is the latitude, longitude dimension of the grid to be read.
 !     This corresponds to the lat and lon dimension variables in the
@@ -164,7 +165,8 @@ module mod_era40
 !
 !     DATA ARRAY AND WORK ARRAY
 !
-  data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega'/
+  data filename/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
+  data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
 !     Below in the ncopen call is the file name of the netCDF file.
 !     You may want to add code to read in the file name and the
@@ -180,7 +182,7 @@ module mod_era40
  
   if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then 
     do k4 = 1 , 4
-      do kkrec = 1 , 5 ! Just skip omega
+      do kkrec = 1 , 5
         if ( kkrec == 1 ) then
           if ( k4 == 1 ) then
             write (inname,99001) year , 'air.' , year
@@ -190,7 +192,6 @@ module mod_era40
             write (inname,99003) year , 'air.' , year
           else if ( k4 == 4 ) then
             write (inname,99004) year , 'air.' , year
-          else
           end if
         else if ( kkrec == 2 ) then
           if ( k4 == 1 ) then
@@ -201,7 +202,6 @@ module mod_era40
             write (inname,99003) year , 'hgt.' , year
           else if ( k4 == 4 ) then
             write (inname,99004) year , 'hgt.' , year
-          else
           end if
         else if ( kkrec == 3 ) then
           if ( k4 == 1 ) then
@@ -212,7 +212,6 @@ module mod_era40
             write (inname,99007) year , 'rhum.' , year
           else if ( k4 == 4 ) then
             write (inname,99008) year , 'rhum.' , year
-          else
           end if
         else if ( kkrec == 4 ) then
           if ( k4 == 1 ) then
@@ -223,7 +222,6 @@ module mod_era40
             write (inname,99007) year , 'uwnd.' , year
           else if ( k4 == 4 ) then
             write (inname,99008) year , 'uwnd.' , year
-          else
           end if
         else if ( kkrec == 5 ) then
           if ( k4 == 1 ) then
@@ -234,23 +232,10 @@ module mod_era40
             write (inname,99007) year , 'vwnd.' , year
           else if ( k4 == 4 ) then
             write (inname,99008) year , 'vwnd.' , year
-          else
           end if
-        else if ( kkrec == 6 ) then
-          if ( k4 == 1 ) then
-            write (inname,99009) year , 'omega.' , year
-          else if ( k4 == 2 ) then
-            write (inname,99010) year , 'omega.' , year
-          else if ( k4 == 3 ) then
-            write (inname,99011) year , 'omega.' , year
-          else if ( k4 == 4 ) then
-            write (inname,99012) year , 'omega.' , year
-          else
-          end if
-        else
         end if
  
-        pathaddname = trim(inpglob)//dattyp//'/'//inname
+        pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec,k4))
         call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
         istatus = nf90_inq_varid(inet6(kkrec,k4),varname(kkrec),ivar6(kkrec,k4))
