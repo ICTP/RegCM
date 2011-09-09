@@ -553,6 +553,7 @@
 !
       models(Iatmos)%mesh(i,n)%grid = ESMF_GridCreate (                 &
                                     distgrid=models(Iatmos)%distGrid(n),&
+                                    indexflag=ESMF_INDEX_GLOBAL,        &
                                     name="atm_grid",                    &
                                     rc=rc)
 !
@@ -592,6 +593,15 @@
                                 coordDim=1,                             &
                                 farrayPtr=ptrY,                         &
                                 rc=rc)
+          write(*,99) localPet, j, '*-I', lbound(mddom%xlat, dim=1),          &
+                      ubound(mddom%xlat, dim=1), lbound(mddom%xlat, dim=2),         &
+                      ubound(mddom%xlat, dim=2)
+          write(*,99) localPet, j, '*-E', lbound(ptrY, dim=1),          &
+                      ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
+                      ubound(ptrY, dim=2)
+ 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+
+
         ptrY = mddom%xlat
 !
         call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
@@ -604,7 +614,21 @@
 !
 !       There is no need to define mask
 !
+
+!
+!-----------------------------------------------------------------------
+!     Get pointers and set coordinates for the grid 
+!-----------------------------------------------------------------------
+!
+!        if (associated(ptrY)) then
+!          nullify(ptrY)
+!        end if
+!        if (associated(ptrX)) then
+!          nullify(ptrX)
+!        end if
+!
       end do
+        print*, "** turuncu **", localPet, ptrY
       end do
       end do
 !
@@ -699,14 +723,47 @@
                           rc=rc)
 !
 !-----------------------------------------------------------------------
+!     Initialize pointer 
+!-----------------------------------------------------------------------
+!
+      ptr = 0.0d0
+!
+!-----------------------------------------------------------------------
 !     Put data     
 !-----------------------------------------------------------------------
 !      
       if (trim(adjustl(name)) == "Tair") then
-        ptr = thatm(i,kz,j)
+        ptr = thatm(:,kz,:)
+!        print*, "** BURDA **", ptr
       end if
+!          write(*,99) localPet, j, '*-I', lbound(thatm(:,kz,:), dim=1),    &
+!                      ubound(thatm(:,kz,:), dim=1), lbound(thatm(:,kz,:), dim=2),         &
+!                      ubound(thatm(:,kz,:), dim=2)
+!
+!          write(*,99) localPet, j, '*-E', lbound(ptr, dim=1),          &
+!                      ubound(ptr, dim=1), lbound(ptr, dim=2),         &
+!                      ubound(ptr, dim=2)
+! 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+
 !
       end do
+!
+!-----------------------------------------------------------------------
+!     Add fields to export state
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateAdd (models(Iatmos)%stateExport,                   &
+                         (/ models(Iatmos)%dataExport(i,n)%field /),    &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Nullify pointer to make sure that it does not point on a random 
+!     part in the memory 
+!-----------------------------------------------------------------------
+!
+      if (associated(ptr)) then
+        nullify(ptr)
+      end if
       end do
 !     
 !-----------------------------------------------------------------------
@@ -767,10 +824,25 @@
       if (trim(adjustl(name)) == "SST") then
         ptr = 0.0
       end if
-!
-      end do
       end do
 !
+!-----------------------------------------------------------------------
+!     Add fields to import state
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateAdd (models(Iatmos)%stateImport,                   &
+                         (/ models(Iatmos)%dataImport(i,n)%field /),    &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Nullify pointer to make sure that it does not point on a random 
+!     part in the memory 
+!-----------------------------------------------------------------------
+!
+      if (associated(ptr)) then
+        nullify(ptr)
+      end if
+      end do
       end do
 !
 !-----------------------------------------------------------------------

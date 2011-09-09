@@ -132,7 +132,7 @@
       integer :: Ivpoint = 4
 !
 !-----------------------------------------------------------------------
-!     Variables for coupling direction  
+!     Variables for coupling (direction, import and export variables)  
 !-----------------------------------------------------------------------
 !
       character(len=40), parameter :: FORWARD_INIT  = 'FORWARD_INIT'
@@ -144,6 +144,11 @@
       integer, parameter :: FORWARD_OFF  = 0
       integer, parameter :: BACKWARD_ON  = 1
       integer, parameter :: BACKWARD_OFF = 0
+!
+      character(ESMF_MAXSTR), allocatable :: itemNamesImportF(:)
+      character(ESMF_MAXSTR), allocatable :: itemNamesExportF(:)
+      character(ESMF_MAXSTR), allocatable :: itemNamesImportB(:)
+      character(ESMF_MAXSTR), allocatable :: itemNamesExportB(:)
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -383,7 +388,7 @@
 !
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
-            models(i)%dataExport(1,j)%name = 'Pair'
+            models(i)%dataExport(1,j)%name = 'Tair'
             models(i)%dataExport(1,j)%long_name = 'Surface Pressure'
             models(i)%dataExport(1,j)%units = '?'
 !

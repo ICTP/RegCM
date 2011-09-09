@@ -201,71 +201,193 @@
       end if
 !
 !-----------------------------------------------------------------------
-!     Save import state field names 
+!     Get and save import state field names 
 !-----------------------------------------------------------------------
+      call ESMF_StateGet(importState,                                   &
+                         itemCount=itemCount,                           &
+                         rc=rc) 
 !
-!     Get import state item count
-!
-!      call ESMF_StateGet(importState,                                   &
-!                         itemCount=itemCount,                           &
-!                         rc=rc) 
-!
+!-----------------------------------------------------------------------
 !     Allocate temporary arrays 
+!-----------------------------------------------------------------------
 !
-!      if (.not. allocated(itemNames)) allocate(itemNames(itemCount))
-!      if (.not. allocated(itemTypes)) allocate(itemTypes(itemCount))
+      if (.not. allocated(itemNames)) allocate(itemNames(itemCount))
+      if (.not. allocated(itemTypes)) allocate(itemTypes(itemCount))
 ! 
+!-----------------------------------------------------------------------
 !     Get import state item names and types 
+!-----------------------------------------------------------------------
 !
-!      call ESMF_StateGet(importState,                                   &
-!                         itemNameList=itemNames,                        &
-!                         itemTypeList=itemTypes,                        &
-!                         rc=rc)      
+      call ESMF_StateGet(importState,                                   &
+                         itemNameList=itemNames,                        &
+                         itemTypeList=itemTypes,                        &
+                         rc=rc)      
 !
+!-----------------------------------------------------------------------
 !     Get required item count 
+!-----------------------------------------------------------------------
 !
-!      j = 0
-!      do i = 1, ItemCount
-!        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
-!            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
-!          j = j+1
-!        end if
-!      end do
+      j = 0
+      do i = 1, ItemCount
+        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
+            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
+          j = j+1
+          write(*,30) localPet, j, '>'//trim(itemNames(j))//'<'
+        end if
+      end do
+ 30   format(' PET (', I2, ') - Import Item (',I2,') = ',A)
 !
+!-----------------------------------------------------------------------
 !     Save import state field names
-!
-!      if (dir1 == FORWARD_ON) then
-!      print*, "** turuncu ** itemCount", itemCount  
-!
-!-----------------------------------------------------------------------
-!     Save export state field names 
 !-----------------------------------------------------------------------
 !
-
+      if (dir1 == FORWARD_ON) then
+        if (.not. allocated(itemNamesImportF)) then
+          allocate(itemNamesImportF(j))
+        end if
+      else
+        if (.not. allocated(itemNamesImportB)) then
+          allocate(itemNamesImportB(j))
+        end if
+      end if
+!
+      j = 0
+      do i = 1, ItemCount
+        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
+            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
+          j = j+1
+          if (dir1 == FORWARD_ON) then          
+            itemNamesImportF(j) = trim(itemNames(i))
+          else
+            itemNamesImportB(j) = trim(itemNames(i))
+          end if
+        end if
+      end do
+!
+!-----------------------------------------------------------------------
+!     Deallocate temporary arrays 
+!-----------------------------------------------------------------------
+!
+      if (allocated(itemNames)) deallocate(itemNames)
+      if (allocated(itemTypes)) deallocate(itemTypes)
+!
+!-----------------------------------------------------------------------
+!     Get and save export state field names 
+!-----------------------------------------------------------------------
+      call ESMF_StateGet(exportState,                                   &
+                         itemCount=itemCount,                           &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Allocate temporary arrays 
+!-----------------------------------------------------------------------
+!
+      if (.not. allocated(itemNames)) allocate(itemNames(itemCount))
+      if (.not. allocated(itemTypes)) allocate(itemTypes(itemCount))
+! 
+!-----------------------------------------------------------------------
+!     Get export state item names and types 
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(exportState,                                   &
+                         itemNameList=itemNames,                        &
+                         itemTypeList=itemTypes,                        &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get required item count 
+!-----------------------------------------------------------------------
+!
+      j = 0
+      do i = 1, ItemCount
+        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
+            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
+          j = j+1
+          write(*,40) localPet, j, '>'//trim(itemNames(j))//'<'
+        end if
+      end do
+ 40   format(' PET (', I2, ') - Export Item (',I2,') = ',A)
+!
+!-----------------------------------------------------------------------
+!     Save export state field names
+!-----------------------------------------------------------------------
+!
+      if (dir1 == FORWARD_ON) then
+        if (.not. allocated(itemNamesExportF)) then
+          allocate(itemNamesExportF(j))
+        end if
+      else
+        if (.not. allocated(itemNamesExportB)) then
+          allocate(itemNamesExportB(j))
+        end if
+      end if
+!
+      j = 0
+      do i = 1, ItemCount
+        if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
+            (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
+          j = j+1
+          if (dir1 == FORWARD_ON) then
+            itemNamesExportF(j) = trim(itemNames(i))
+          else
+            itemNamesExportB(j) = trim(itemNames(i))
+          end if
+        end if
+      end do
+!
+!-----------------------------------------------------------------------
+!     Deallocate temporary arrays 
+!-----------------------------------------------------------------------
+!
+      if (allocated(itemNames)) deallocate(itemNames)
+      if (allocated(itemTypes)) deallocate(itemTypes)
 !
 !-----------------------------------------------------------------------
 !     Forward coupling initialization
 !-----------------------------------------------------------------------
 !
-!      if (dir1 == FORWARD_ON) then
-!        call ESMF_StateGet (importState,                                &
-!                            '',                                     &
-!                            srcArray,                                   &
-!                            rc=rc)
+      if (dir1 == FORWARD_ON) then
 !
-!        call ESMF_StateGet (exportState,                                &
-!                            'Pair',                                     &
-!                            dstArray,                                   &
-!                            rc=rc) 
+!-----------------------------------------------------------------------
+!     Compute weight matrix between gridded component grids. It creates 
+!     a sparse matrix operation (stored in routehandle) that contains 
+!     the calculations and communications necessary to interpolate from 
+!     source field to destination field.
+!-----------------------------------------------------------------------
+!                
+      do i = 1, size(itemNamesImportF, 1)
 !
-!        call ESMF_FieldRegridStore (srcField=srcField,                  &
-!                                dstField=dstField,                      &
-!                                routeHandle=routeHandleF,               &
-!                                indices=indices,                        &
-!                                weights=weights,                        &
-!                                regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
-!                                rc=rc)
-!      end if
+!-----------------------------------------------------------------------
+!     Get import field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(importState,                                   &
+                         trim(itemNamesImportF(1)),                        &
+                         srcField,                                      &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Get export field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(exportState,                                   &
+                         trim(itemNamesExportF(1)),                        &
+                         dstField,                                      &
+                         rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Create ESMF routhandle 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldRegridStore (srcField=srcField,                    &
+                                dstField=dstField,                      &
+                                routeHandle=routeHandleF,               &
+                                indices=indices,                        &
+                                weights=weights,                        &
+                                regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
+                                rc=rc)
+      end do
+      end if
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
