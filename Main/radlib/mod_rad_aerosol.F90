@@ -73,11 +73,13 @@ module mod_rad_aerosol
   real(dp) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
   real(dp) , dimension(nwav,2,nih) :: ksslt , wsslt , gsslt
   real(dp) , dimension(nspi,4) :: gsdust , ksdust , wsdust
+  real(dp) , dimension(nspi,2) :: gssslt , kssslt , wssslt
   !
   real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
   real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
   real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
   integer , pointer , dimension(:) :: idust
+  real(dp) , dimension(8) :: rhp
 !
 ! Aerosol mass mixing ratio
 !
@@ -511,6 +513,8 @@ module mod_rad_aerosol
     0.81550D0 , 0.88280D0 , 0.82420D0 , 0.88730D0 , 0.87450D0 , 0.93080D0 , &
     0.80830D0 , 0.90060D0 , 0.80830D0 , 0.90060D0/
 !
+  data rhp /0.0D0,0.5D0,0.7D0,0.8D0,0.9D0,0.95D0,0.98D0,0.99D0/
+!
   contains
 ! 
   subroutine allocate_mod_rad_aerosol
@@ -665,8 +669,8 @@ module mod_rad_aerosol
     real(dp) , dimension(iym1,kz) :: rh
     intent (in) pint , rh
 !
-    integer :: i , i1 , i2 , i3 , i4 , ibin , itr , k , k1, k2 , ns
-    real(dp) :: path , uaerdust , qabslw
+    integer :: i , l , i1 , i2 , i3 , i4 , ibin , jbin , itr , k , k1, k2 , ns
+    real(dp) :: path , uaerdust , qabslw , rh0
 !
     if ( .not. lchem ) then
       tauxar(:,:) = d_zero
@@ -745,6 +749,7 @@ module mod_rad_aerosol
           do i = 1 , iym1
             path = (pint(i,k+1)-pint(i,k))*regravgts
             ibin = 0
+            jbin = 0
             do itr = 1 , ntr
               uaer(i,k,itr) = d_zero
               if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) then
@@ -780,7 +785,22 @@ module mod_rad_aerosol
                          (rh(i,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(i,k)+gscoef(ns,5)))
 !
                 fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-! 
+              else if ( tracname(itr) == 'SSLT' ) then
+                rh0 = dmin1(0.99D0,dmax1(d_zero,rh(i,k)))
+                jbin = jbin+1
+                if ( jbin > 4 ) print * , 'SSALT OP PBLEME !!!!'
+                do l = 1 , 7
+                  if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
+                    kssslt(ns,jbin) = ksslt(ns,jbin,l)
+                    gssslt(ns,jbin) = gsslt(ns,jbin,l)
+                    wssslt(ns,jbin) = wsslt(ns,jbin,l)
+                  end if
+                end do
+                uaer(i,k,itr) = aermmr(i,k,itr)*path
+                tx(i,k,itr) = d10e5*uaer(i,k,itr)*kssslt(ns,jbin)
+                wa(i,k,itr) = wssslt(ns,jbin)
+                ga(i,k,itr) = gssslt(ns,jbin)
+                fa(i,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
               else if ( tracname(itr) == 'OC_HL' ) then
                 uaer(i,k,itr) = aermmr(i,k,itr)*path
 !               Humidity effect !
