@@ -765,7 +765,9 @@ module mod_rad_aerosol
 !               gaffe au facteur !!
 !               gaffe au ntr/bins
                 ibin = ibin + 1
-                if ( ibin > 4 ) print * , 'DUST OP PBLEME !!!!'
+                if ( ibin > 4 ) then
+                  call fatal(__FILE__,__LINE__,'DUST BINS MAX is 4')
+                end if
 !
                 tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
                 wa(i,k,itr) = wsdust(ns,ibin)
@@ -788,7 +790,9 @@ module mod_rad_aerosol
               else if ( tracname(itr) == 'SSLT' ) then
                 rh0 = dmin1(0.99D0,dmax1(d_zero,rh(i,k)))
                 jbin = jbin+1
-                if ( jbin > 2 ) print * , 'SSALT OP PBLEME !!!!'
+                if ( jbin > 2 ) then
+                  call fatal(__FILE__,__LINE__,'SEA SALT BINS MAX is 2')
+                end if
                 do l = 1 , 7
                   if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
                     kssslt(ns,jbin) = ksslt(ns,jbin,l)
