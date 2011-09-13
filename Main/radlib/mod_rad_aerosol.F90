@@ -788,7 +788,7 @@ module mod_rad_aerosol
               else if ( tracname(itr) == 'SSLT' ) then
                 rh0 = dmin1(0.99D0,dmax1(d_zero,rh(i,k)))
                 jbin = jbin+1
-                if ( jbin > 4 ) print * , 'SSALT OP PBLEME !!!!'
+                if ( jbin > 2 ) print * , 'SSALT OP PBLEME !!!!'
                 do l = 1 , 7
                   if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
                     kssslt(ns,jbin) = ksslt(ns,jbin,l)
