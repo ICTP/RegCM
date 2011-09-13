@@ -25,8 +25,9 @@ module mod_che_param
 !
   logical :: lch
   integer :: ichdir
+  integer :: ichaer
 
-  real(dp) :: chfrq , rafrq , mdfrq
+  real(dp) :: chfrq , rafrq , dtche
 
   real(dp) , pointer , dimension(:) :: chlevs
 !

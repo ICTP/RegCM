@@ -58,6 +58,8 @@ module mod_che_common
   real(sp) , pointer , dimension(:,:,:,:,:,:) :: dextmix , dgmix , dssamix
   integer :: mixtype
 
+  real(dp) , pointer , dimension(:,:) :: sfcp
+
   contains
 
   subroutine allocate_mod_che_common(ichem)

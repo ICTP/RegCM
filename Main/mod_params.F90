@@ -849,7 +849,7 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
-  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,icumtop,icumbot)
+  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps2,icumtop,icumbot)
   call init_rad(ichem,mixtype,ptop,a,sigma,sps1,sps2,atms,sfsta, &
                 mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
                 aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &

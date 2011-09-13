@@ -154,7 +154,7 @@ module mod_che_seasalt
                 seasalt_flx(i,ib)*egrav/(chlevs(kz)*1.D3)
         ! diagnostic source
         cemtr(i,j,isslt(ib)) = cemtr(i,j,isslt(ib)) + &
-                 seasalt_flx(i,ib)*mdfrq/d_two
+                 seasalt_flx(i,ib)*dtche/d_two
 
       end do
     end do

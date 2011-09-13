@@ -2083,6 +2083,7 @@ module mod_tendency
     if ( iexec == 2 ) then
       dt = dt2
       dtcum = dt2
+      dtche = dt2
       dtpbl = dt2
       rdtpbl = d_one/dt2
       dttke = dt2

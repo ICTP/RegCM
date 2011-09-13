@@ -1110,6 +1110,7 @@ module mod_init
     dt = dt2    ! First timestep successfully read in
     dtcum = dt2
     dtpbl = dt2
+    dtche = dt2
     rdtpbl = d_one/dt2
     dttke = dt2
 !
