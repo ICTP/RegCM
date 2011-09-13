@@ -591,30 +591,26 @@
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=1,                             &
-                                farrayPtr=ptrY,                         &
+                                farrayPtr=ptrX,                         &
                                 rc=rc)
-          write(*,99) localPet, j, '*-I', lbound(mddom%xlat, dim=1),          &
-                      ubound(mddom%xlat, dim=1), lbound(mddom%xlat, dim=2),         &
-                      ubound(mddom%xlat, dim=2)
-          write(*,99) localPet, j, '*-E', lbound(ptrY, dim=1),          &
-                      ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
-                      ubound(ptrY, dim=2)
- 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+!          write(*,99) localPet, j, '*-E', lbound(ptrX, dim=1),          &
+!                      ubound(ptrX, dim=1), lbound(ptrX, dim=2),         &
+!                      ubound(ptrX, dim=2)
+! 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+!
 
-
-        ptrY = mddom%xlat
+        ptrX = mddom%xlon
 !
         call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=2,                             &
-                                farrayPtr=ptrX,                         &
+                                farrayPtr=ptrY,                         &
                                 rc=rc)
-        ptrX = mddom%xlon
+        ptrY = mddom%xlat
 !
 !       There is no need to define mask
 !
-
 !
 !-----------------------------------------------------------------------
 !     Get pointers and set coordinates for the grid 
@@ -628,7 +624,8 @@
 !        end if
 !
       end do
-        print*, "** turuncu **", localPet, ptrY
+      call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,             &
+                            filename="atmos_src")
       end do
       end do
 !

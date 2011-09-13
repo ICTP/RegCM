@@ -643,14 +643,14 @@
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=1,                             &
-                                farrayPtr=ptrY,                         &
+                                farrayPtr=ptrX,                         &
                                 rc=rc)
 !
         call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,          &
                                 localDE=j,                              &
                                 staggerLoc=staggerLoc,                  &
                                 coordDim=2,                             &
-                                farrayPtr=ptrX,                         &
+                                farrayPtr=ptrY,                         &
                                 rc=rc)
 !
         call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,           &
@@ -672,6 +672,8 @@
           write(*,99) localPet, j, 'R-E', lbound(ptrY, dim=1),          &
                       ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
                       ubound(ptrY, dim=2) 
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_dst_RHOpoint")
         else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
           do jj = JstrU, JendU
             do ii = IstrU, IendU
@@ -684,6 +686,8 @@
           write(*,99) localPet, j, 'U-E', lbound(ptrY, dim=1),          &
                       ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
                       ubound(ptrY, dim=2)
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_dst_Upoint")
         else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
           do jj = JstrV, JendV
             do ii = IstrV, IendV
@@ -696,6 +700,8 @@
           write(*,99) localPet, j, 'V-E', lbound(ptrY, dim=1),          &
                       ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
                       ubound(ptrY, dim=2)
+          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
+                                 filename="ocean_dst_Vpoint")
         end if
  99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
       end do
