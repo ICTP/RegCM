@@ -22,15 +22,14 @@ module mod_che_interface
   use m_realkinds
   use mod_atm_interface , only : surfpstate
   use mod_che_common
-  use mod_che_carbonaer
   use mod_che_cumtran
   use mod_che_dust
   use mod_che_indices
   use mod_che_mppio
   use mod_che_ncio
   use mod_che_param
-  use mod_che_seasalt
   use mod_che_semdde
+  use mod_che_emission
   use mod_che_species
 !
   public

@@ -33,7 +33,6 @@ module mod_rad_aerosol
   public :: gtota3d , ftota3d
   public :: tauxar , tauasc
   public :: gtota , ftota
-  public :: idust
   public :: aerasp , aerext , aerssa
   public :: aersrrf , aertarf
   public :: aertalwrf , aersrlwrf
@@ -78,7 +77,6 @@ module mod_rad_aerosol
   real(dp) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
   real(dp) , pointer , dimension(:,:) :: aersrrf , aertarf
   real(dp) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
-  integer , pointer , dimension(:) :: idust
   real(dp) , dimension(8) :: rhp
 !
 ! Aerosol mass mixing ratio
@@ -519,7 +517,6 @@ module mod_rad_aerosol
 ! 
   subroutine allocate_mod_rad_aerosol
     implicit none   
-    call getmem1d(idust,1,nbin,'aerosol:idust')
     call getmem3d(aermm,1,iym1,1,kz,1,jxp,'aerosol:aermm')
     call getmem2d(aermmb,1,iym1,1,kz,'aerosol:aermmb')
     call getmem3d(ftota3d,1,iym1,0,kz,1,nspi,'aerosol:ftota3d')
@@ -659,12 +656,13 @@ module mod_rad_aerosol
 !
 ! SUBROUTINE AEROPPT
 !
-  subroutine aeroppt(rh,pint)
+  subroutine aeroppt(idust,rh,pint)
 !
     implicit none
 !
 !   Interface pressure, relative humidity
 !
+    integer , dimension(nbin) :: idust
     real(dp) , dimension(iym1,kzp1) :: pint
     real(dp) , dimension(iym1,kz) :: rh
     intent (in) pint , rh

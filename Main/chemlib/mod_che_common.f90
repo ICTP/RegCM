@@ -50,7 +50,7 @@ module mod_che_common
 !
   integer , public :: ichcumtra , ichdrdepo , ichremcvc , ichremlsc , ichsursrc
 !
-  integer , pointer , dimension(:) :: isslt , icarb
+  integer , pointer , dimension(:) :: isslt , icarb , idust
 !
   real(dp) , pointer , dimension(:,:,:) :: cemtr , cemtrac , remdrd
   real(dp) , pointer , dimension(:,:) :: rembc , remrat
@@ -103,6 +103,7 @@ module mod_che_common
 
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
       call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
+      call getmem1d(idust,1,nbin,'mod_che_common:idust')
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
       call getmem1d(icarb,1,5,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')

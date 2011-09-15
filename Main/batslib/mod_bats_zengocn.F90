@@ -265,11 +265,11 @@ module mod_bats_zengocn
 !
     implicit none
 !
-    real(kind=8) , intent (in) :: hgt , q , t , u , zi , ts , ps
-    real(kind=8) , intent (out) :: alh , ash , tau , u10
-    real(kind=8) , intent (inout) :: dqh , dth , qs , ustar , zo
+    real(dp) , intent (in) :: hgt , q , t , u , zi , ts , ps
+    real(dp) , intent (out) :: alh , ash , tau , u10
+    real(dp) , intent (inout) :: dqh , dth , qs , ustar , zo
 !
-    real(kind=8) :: dthv , hq , ht , hu , obu , qstar , rb , rho , &
+    real(dp) :: dthv , hq , ht , hu , obu , qstar , rb , rho , &
                th , thv , thvstar , tstar , um , visa , zot , wc , &
                xlv , zeta , zoq
     integer :: i
@@ -435,9 +435,9 @@ module mod_bats_zengocn
       implicit none
 !
       integer , intent(in) :: k
-      real(kind=8) , intent(in) :: zeta
+      real(dp) , intent(in) :: zeta
 !
-      real(kind=8) :: chik , psi
+      real(dp) :: chik , psi
 !
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
@@ -456,8 +456,8 @@ module mod_bats_zengocn
     function qsat(t,p)
       implicit none
 !
-      real(kind=8) , intent (in) :: p , t
-      real(kind=8) :: qsat
+      real(dp) , intent (in) :: p , t
+      real(dp) :: qsat
 !
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
 !
@@ -471,11 +471,11 @@ module mod_bats_zengocn
 !
     implicit none
 !
-    real(kind=8) , intent (in) :: ustar , visa
-    real(kind=8) , intent (out) :: zoq , zot
-    real(kind=8) , intent (inout) :: zo
+    real(dp) , intent (in) :: ustar , visa
+    real(dp) , intent (out) :: zoq , zot
+    real(dp) , intent (inout) :: zo
 !
-    real(kind=8) :: re , xtq
+    real(dp) :: re , xtq
 !
 !   Graziano: make this selectable on iocnrough flag
     if ( iocnrough == 2 ) then

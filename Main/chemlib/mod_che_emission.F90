@@ -1,0 +1,282 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+module mod_che_emission
+!
+! Chemical and aerosol surface emission 
+!
+  use netcdf
+  use mod_constants
+  use mod_message
+  use mod_service 
+  use mod_dynparam
+  use mod_che_common
+  use mod_che_param
+  use mod_che_mppio
+  use mod_che_dust
+  use mod_che_ncio
+  use mod_che_indices
+!
+  private
+!
+  public :: chem_emission , chsrfem , emis_tend 
+!
+  contains
+!
+! SURFACE EMIOSSION flux
+!
+  subroutine chem_emission(lmonth)
+
+#ifndef IBM
+    use mpi
+#endif 
+    implicit none
+#ifdef IBM 
+    include 'mpif.h'
+#endif
+!
+    integer , intent(in) :: lmonth
+    integer :: i , j , m
+    integer :: itr , ierr
+!
+    character (len=64) :: subroutine_name = 'chem_emission'
+    integer :: idindx = 0
+!
+    call time_begin(subroutine_name,idindx)
+
+    ! read the monthly aerosol emission files
+
+    write(*,*) 'DISTIBUTE EMISSION -----------------'
+
+    if ( myid == 0 ) then
+      chemsrc_io(:,:,:,:) = d_zero
+      call read_emission(chtrname,lmonth,chemsrc_io)
+      do j = 1 , jx
+        do itr = 1 , ntr
+          do m = 1 , mpy
+            do i = 1 , iy
+              src_0(i,m,itr,j) = chemsrc_io(i,j,lmonth,itr)
+            end do
+          end do
+        end do
+      end do
+    end if
+
+    call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8,  &
+                     src0, iy*mpy*ntr*jxp,mpi_real8,  &
+                     0,mpi_comm_world,ierr)
+    do j = 1 , jendl
+      do itr = 1 , ntr
+        do m = 1 , mpy
+          do i = 1 , iy
+            chemsrc(i,j,lmonth,itr) = src0(i,m,itr,j)
+          end do
+        end do
+      end do
+    end do
+
+    ! sulfates sources
+
+    do m = 1 , mpy
+      do j = 1 , jendl
+        do i = 1 , iy
+          if ( iso4 > 0 ) then
+            chemsrc(i,j,m,iso4) = 0.02D0*chemsrc(i,j,m,iso2)
+          end if
+          if ( iso2 > 0 ) then
+            chemsrc(i,j,m,iso2) = 0.98D0*chemsrc(i,j,m,iso2)
+          end if
+          !  partition hydrophilic hydrophonic ( cooke et al.1999)
+          if ( ibchb > 0 .and. ibchl > 0 ) then
+            chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
+            chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
+          end if
+          if ( iochb > 0 .and. iochl > 0 ) then
+            chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
+            chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
+          end if
+        end do
+      end do
+    end do
+
+    call time_end(subroutine_name,idindx) 
+  end subroutine chem_emission
+!
+! this routine is the standard emission reading routine 
+!
+  subroutine chsrfem
+#ifndef IBM
+    use mpi
+#endif
+    implicit none
+#ifdef IBM
+    include 'mpif.h'
+#endif 
+!
+    integer :: i , j , m
+    integer :: itr , ierr
+!
+    character (len=64) :: subroutine_name ='chsrfem'
+    integer :: idindx = 0
+!
+    call time_begin(subroutine_name,idindx)
+
+    if ( idust(1) > 0 ) then
+      ! fisrt activate dust initialization
+      write (aline, *) 'Calling inidust'
+      call say(myid)
+      call inidust
+    end if
+
+    ! read the monthly aerosol emission files
+    if ( myid == 0 ) then
+      chemsrc_io = d_zero
+      if (aertyp(4:5).ne.'00') then
+        call read_aerosol(chtrname,chemsrc_io)
+      end if
+      do j = 1 , jx
+        do itr = 1 , ntr
+          do m = 1 , mpy
+            do i = 1 , iy
+              src_0(i,m,itr,j) = chemsrc_io(i,j,m,itr)
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatter(src_0,iy*mpy*ntr*jxp,mpi_real8, &
+                     src0, iy*mpy*ntr*jxp,mpi_real8, &
+                     0,mpi_comm_world,ierr)
+    do j = 1 , jendl
+      do itr = 1 , ntr
+        do m = 1 , mpy
+          do i = 1 , iy
+            chemsrc(i,j,m,itr) = src0(i,m,itr,j)
+          end do
+        end do
+      end do
+    end do
+
+    ! sulfates sources
+
+    do m = 1 , mpy
+      do j = 1 , jendl
+        do i = 1 , iy
+          if ( iso4 > 0 ) then
+            chemsrc(i,j,m,iso4) = 0.02D0*chemsrc(i,j,m,iso2)
+          end if
+          if ( iso2 > 0 ) then
+            chemsrc(i,j,m,iso2) = 0.98D0*chemsrc(i,j,m,iso2)
+          end if
+          ! partition hydrophilic hydrophonic ( cooke et al.1999)
+          ! BC
+          if ( ibchb > 0 .and. ibchl > 0 ) then
+            chemsrc(i,j,m,ibchl) = 0.2D0*chemsrc(i,j,m,ibchb)
+            chemsrc(i,j,m,ibchb) = 0.8D0*chemsrc(i,j,m,ibchb)
+          end if
+          ! OC
+          if ( iochb > 0 .and. iochl > 0 ) then
+            chemsrc(i,j,m,iochl) = 0.5D0*chemsrc(i,j,m,iochb)
+            chemsrc(i,j,m,iochb) = 0.5D0*chemsrc(i,j,m,iochb)
+          end if
+        end do
+      end do
+    end do
+
+    call time_end(subroutine_name,idindx) 
+  end subroutine chsrfem
+!
+! Calculation of emission tendency
+!
+#ifdef CLM
+  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin, &
+                       c2r_voc,bvoc_trmask,dsigma)
+#else
+  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+#endif
+
+    implicit none
+
+    integer , intent(in) :: j , lmonth
+    integer(8) , intent(in) :: ktau
+    real(dp) , intent(in) , dimension(iy) :: coszrs
+    real(dp) , intent(in) , dimension(kz) :: dsigma
+    real(dp) , intent(in) , dimension(iy,jxp) :: xlat
+    real(dp) , intent(in) :: declin
+    integer :: jj ! Full grid j-component
+
+    integer :: ib , itr , i , k
+    real(dp) :: daylen , fact , maxelev , dayhr , isosrc , amp
+    
+    ! calculate the tendency linked to emissions from emission fluxes
+    ! In the future split these acalculation in corresponding module  ??
+#ifdef CLM
+#if (defined VOC)
+    jj = j+(jxp*myid)
+#endif
+#endif
+
+    ! 1 General case. In the future: add injection heights.
+    do itr = 1 , ntr
+      do i = 2 , iym2
+        if ( chtrname(itr).ne.'DUST' .or. &
+             chtrname(itr).ne.'SSALT' ) then 
+          daylen = d_two*acos(-tan(declin)*tan(xlat(i,j)*degrad))*raddeg
+          daylen = daylen*24.0D0/360.0D0
+          ! Maximum sun elevation
+          maxelev = halfpi - ((xlat(i,j)*degrad)-declin)
+          fact = (halfpi-acos(coszrs(i)))/(d_two*maxelev)
+          amp = 12.0D0*mathpi/daylen
+#ifdef CLM
+#if (defined VOC)
+          ! test if CLM BVOC is activated and overwrite chemsrc.
+          ! Below included in order to include CLM-MEGAN biogenic emission
+          ! into the gas phase chemistry scheme
+          ! bvoc_trmask is used to identify which tracer is also a biogenic
+          ! emission species contained in MEGAN.  If it is included then
+          ! then include MEGAN emissions into the source value
+          ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
+          ! zero when using BATS
+           if ( bvoc_trmask(itr) /= 0 ) then
+             if ( ktau == 0 ) c2r_voc(jj,i,bvoc_trmask(itr)) = d_zero
+             chemsrc(i,j,lmonth,itr) = c2r_voc(jj,i,bvoc_trmask(itr))/d_1
+           end if
+#endif
+#endif
+           ! update emission tendency according to chemsrc value
+           if ( chtrname(itr) == 'ISOP' ) then
+             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
+                           (amp)*chemsrc(i,j,lmonth,itr) * &
+                          sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
+             ! diagnostic for source, cumul
+             cemtr(i,j,itr) = cemtr(i,j,itr) + (amp)*chemsrc(i,j,lmonth,itr) * &
+                           sin(mathpi*fact)*dtche/d_two
+           else
+             chiten(i,kz,j,itr) = chiten(i,kz,j,itr) + &
+                           chemsrc(i,j,lmonth,itr)*egrav/(dsigma(kz)*1.0D3)
+             ! diagnostic for source, cumul
+             cemtr(i,j,itr) = cemtr(i,j,itr) + &
+                           chemsrc(i,j,lmonth,itr)*dtche/d_two
+           end if
+         end if
+       end do
+     end do
+   end subroutine emis_tend
+!
+end module mod_che_emission

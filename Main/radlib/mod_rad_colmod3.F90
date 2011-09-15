@@ -100,11 +100,12 @@ module mod_rad_colmod3
 !
   contains
 !
-  subroutine colmod3(ktau,iyear,eccf,lout,j)
+  subroutine colmod3(ktau,iyear,eccf,lout,idust,j)
 !
     implicit none
 !
     integer(8) , intent(in) :: ktau
+    integer , dimension(nbin) , intent(in) :: idust
     integer , intent(in) :: iyear
     logical , intent(in) :: lout
     integer , intent(in) :: j
@@ -321,10 +322,10 @@ module mod_rad_colmod3
 !   to MKS.
 !
     call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
-                qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,fice,    &
-                sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns, &
-                flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq, &
-                eccf,o3vmr)
+                idust,qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,   &
+                fice,sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt, &
+                flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,     &
+                fsnirtsq,eccf,o3vmr)
 !
 !   subroutine radout() is not included in the ccm3 crm itself
 !   but introduced from the former regcm2 radiation package

@@ -1082,8 +1082,8 @@ module mod_bats_vecbats
 !
     implicit none
 !
-    real(kind=8) , intent (in) :: alat , dec , fjd
-    real(kind=8) , intent (out) , dimension(iy) :: coszrs , frac
+    real(dp) , intent (in) :: alat , dec , fjd
+    real(dp) , intent (out) , dimension(iy) :: coszrs , frac
 !
     real(dp) :: cc , cosz , dlon , ha , ss , tpifjd
     integer :: i
