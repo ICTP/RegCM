@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
-module mod_che_semdde
+module mod_che_drydep
 !
 ! Chemical and aerosol surface emission and dry deposition
 !
@@ -515,4 +515,4 @@ module mod_che_semdde
 ! 
   end subroutine chdrydep
 !
-end module mod_che_semdde
+end module mod_che_drydep
