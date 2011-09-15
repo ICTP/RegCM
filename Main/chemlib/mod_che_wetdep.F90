@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-module mod_chem_wetdep
+module mod_che_wetdep
 
 ! This module contains routines for wet scavenging of gas and aerosols
  
@@ -904,4 +904,4 @@ module mod_chem_wetdep
   end do 
   end subroutine cas    !subroutine cas
 !
-end module mod_chem_wetdep
+end module mod_che_wetdep
