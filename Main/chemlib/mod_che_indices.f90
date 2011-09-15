@@ -26,10 +26,6 @@ module mod_che_indices
   !ah   we did this just for flexibility
   integer :: iso2 , iso4 , idms , ibchl , ibchb , iochl , iochb
 
-!**abt commented
-!  integer :: mixtype , isslt , imsa , idust
-!**abt commented
-
   integer :: imsa
   integer :: io3 , ino , ino2 , ino3 , ioh , iho2 , ih2o2
   integer :: ihno2 , ihno3 , ihno4

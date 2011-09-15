@@ -28,7 +28,8 @@ module mod_che_common
   public
 !
   integer , parameter :: maxntr = 20
-  integer , parameter :: maxnbin = 20
+  integer , parameter :: maxnbin = 4
+  integer , parameter :: maxnssl = 2
 !
   real(dp) , pointer , dimension(:,:,:,:) :: chi
   real(dp) , pointer , dimension(:,:,:,:) :: chic , chiten

@@ -28,6 +28,19 @@
     integer , parameter :: nchsp = 25
     integer , parameter :: noxsp = 5
 
+    integer , parameter :: ninchcodes = 46
+    character(len=8) , dimension(ninchcodes) :: inchtrnames =  &
+     (/'O3      ','NO      ','NO2     ','NO3     ','OH      ', &
+       'HO2     ','H2O2    ','HNO2    ','HNO3    ','HNO4    ', &
+       'SULF    ','SO4     ','H2SO4   ','HONO    ','N2O5    ', &
+       'HC      ','HCR     ','C2H4    ','OLT     ','OLI     ', &
+       'ALK4    ','ALK7    ','CO      ','HCHO    ','ALD2    ', &
+       'ETHENE  ','C2H6    ','C3H8    ','ISOP    ','TOLUENE ', &
+       'XYL     ','NH3     ','PAN     ','ROOH    ','ACET    ', &
+       'BENZ    ','CH4     ','MOH     ','EOH     ','ACO2    ', &
+       'CO2     ','DMS     ','NOX     ','HOX     ','SOX     ', &
+       'PAR     '/)
+
     integer , parameter :: ich_o3       = 1
     integer , parameter :: ich_no       = 2
     integer , parameter :: ich_no2      = 3
