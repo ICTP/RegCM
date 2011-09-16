@@ -67,7 +67,7 @@ module mod_runparams
 
   integer :: iboudy , ichem , ipgf , ipptls
 
-  logical :: ifrest , rfstrt , doing_restart
+  logical :: ifrest , rfstrt , doing_restart, vtk_on
 
   integer :: ispgd , ispgx , kchi , kclo , kcmd
 !

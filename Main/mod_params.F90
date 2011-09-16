@@ -145,7 +145,7 @@ module mod_params
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
 
-  namelist /cplparam/ dtcpl
+  namelist /cplparam/ vtk_on, dtcpl 
 !
 !
 !----------------------------------------------------------------------
@@ -209,6 +209,7 @@ module mod_params
 !     iocnflx: type of ocean flux parameterization
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
+!     = 3 ; ROMS
 !
 !     iocnrough: Zeng Ocean Model Roughness model
 !     = 1 ; (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
@@ -418,6 +419,7 @@ module mod_params
 
 !------namelist timeparam:
 !
+  vtk_on = .false.     ! write grid definitions in VTK format
   dtcpl = 21600.0D0    ! coupling time step in seconds
 
 !---------------------------------------------------------------------
@@ -504,6 +506,10 @@ module mod_params
     read (ipunit , clmparam)
     print * , 'CLMPARAM namelist READ IN'
 #endif
+    if (iocnflx == 3) then
+      read (ipunit , cplparam)
+      print *, 'CPLPARAM namelist READ IN'
+    end if
   end if 
 
   call mpi_barrier(mycomm,ierr) 
@@ -555,7 +561,11 @@ module mod_params
   call mpi_bcast(imask,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(clmfrq,1,mpi_real8,0,mycomm,ierr)
 #endif
-  call mpi_bcast(dtcpl,1,mpi_real8,0,mycomm,ierr)
+
+  if (iocnflx == 3) then
+    call mpi_bcast(vtk_on,1,mpi_logical,0,mycomm,ierr)
+    call mpi_bcast(dtcpl,1,mpi_real8,0,mycomm,ierr)
+  end if
 
   if ( ipptls == 1 ) then
     call mpi_bcast(ncld,1,mpi_integer,0,mycomm,ierr)

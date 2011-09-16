@@ -19,11 +19,9 @@
 !
       module mod_esmf_cpl
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Used module declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       use ESMF
       use mod_couplerr
@@ -31,11 +29,9 @@
       implicit none
       private
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Public subroutines 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       public  :: CPL_SetServices
       public  :: CPL_SetRun
@@ -44,61 +40,51 @@
       contains
 !
       subroutine CPL_SetServices(comp, rc)
+      implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_CplComp), intent(inout) :: comp
       integer, intent(out) :: rc 
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
-!
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !     Register "initialize" routine
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+      call ESMF_CplCompSetEntryPoint(comp,                              &
+                                     methodflag=ESMF_METHOD_INITIALIZE, &
+                                     userRoutine=CPL_SetInitialize,     &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_CplCompSetEntryPoint(comp,                             &
-                                      methodflag=ESMF_METHOD_INITIALIZE,&
-                                      userRoutine=CPL_SetInitialize,    &
-                                      rc=rc)
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Register "run" routine
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+      call ESMF_CplCompSetEntryPoint(comp,                              &
+                                     methodflag=ESMF_METHOD_RUN,        &
+                                     userRoutine=CPL_SetRun,            &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_CplCompSetEntryPoint(comp,                             &
-                                      methodflag=ESMF_METHOD_RUN,       &
-                                      userRoutine=CPL_SetRun,           &
-                                      rc=rc)
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Register "finalize" routine
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+      call ESMF_CplCompSetEntryPoint(comp,                              &
+                                     methodflag=ESMF_METHOD_FINALIZE,   &
+                                     userRoutine=CPL_SetFinalize,       &
+                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_CplCompSetEntryPoint(comp,                             &
-                                      methodflag=ESMF_METHOD_FINALIZE,  &
-                                      userRoutine=CPL_SetFinalize,      &
-                                      rc=rc)
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Set return flag to success 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
 !
@@ -106,12 +92,11 @@
 !
       subroutine CPL_SetInitialize(comp, importState, exportState,     &
                                    clock, rc)
+      implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_CplComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -119,11 +104,9 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       logical :: flag
       type(ESMF_Config) :: config
@@ -135,12 +118,11 @@
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
 !
-!***********************************************************************
+      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
+!-----------------------------------------------------------------------
 !     Call ROMS initialization routines
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
 !     communicator handle     
@@ -149,12 +131,14 @@
       call ESMF_CplCompGet(comp,                                        &
                            vm=vm,                                       &
                            rc=rc)
-
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       call ESMF_VMGet(vm,                                               &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Reconcile import and export states. Consistent view in all PETs.
@@ -166,6 +150,7 @@
                                vm=vm,                                   &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
 !     Export state
 !
@@ -173,6 +158,7 @@
                                vm=vm,                                   &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get direction of coupling initialization
@@ -184,6 +170,7 @@
                              name=trim(FORWARD_INIT),                   &
                              value=dir1,                                &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !       
 !     Backward
 !
@@ -191,6 +178,7 @@
                              name=trim(BACKWARD_INIT),                  &
                              value=dir2,                                &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !     Print coupling direction info (for debugging)
 !  
@@ -206,6 +194,7 @@
       call ESMF_StateGet(importState,                                   &
                          itemCount=itemCount,                           &
                          rc=rc) 
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate temporary arrays 
@@ -222,6 +211,7 @@
                          itemNameList=itemNames,                        &
                          itemTypeList=itemTypes,                        &
                          rc=rc)      
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get required item count 
@@ -274,9 +264,11 @@
 !-----------------------------------------------------------------------
 !     Get and save export state field names 
 !-----------------------------------------------------------------------
+!
       call ESMF_StateGet(exportState,                                   &
                          itemCount=itemCount,                           &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate temporary arrays 
@@ -293,6 +285,7 @@
                          itemNameList=itemNames,                        &
                          itemTypeList=itemTypes,                        &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get required item count 
@@ -362,18 +355,20 @@
 !-----------------------------------------------------------------------
 !
       call ESMF_StateGet(importState,                                   &
-                         trim(itemNamesImportF(1)),                        &
+                         trim(itemNamesImportF(1)),                     &
                          srcField,                                      &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get export field
 !-----------------------------------------------------------------------
 !
       call ESMF_StateGet(exportState,                                   &
-                         trim(itemNamesExportF(1)),                        &
+                         trim(itemNamesExportF(1)),                     &
                          dstField,                                      &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Create ESMF routhandle 
@@ -386,6 +381,30 @@
                                 weights=weights,                        &
                                 regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Regrid fields 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Write field to NetCDF (debug)
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldPrint(dstField, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      do j = 0, 0 !localDeCount-1
+        call ESMF_FieldGet(dstField, localDe=j, farrayPtr=ptr, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        ptr = 1.99
+      end do
+
+      call ESMF_FieldWrite(dstField, 'dst_field.nc', rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
       end if
 !
@@ -397,14 +416,11 @@
 !
       end subroutine CPL_SetInitialize
 !
-      subroutine CPL_SetRun(comp, importState, exportState,            &
-                             clock, rc)
+      subroutine CPL_SetRun(comp, importState, exportState, clock, rc)
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_CplComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -412,19 +428,12 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!***********************************************************************
-!
-!     
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !     Call CPL initialization routines
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
 !
 !-----------------------------------------------------------------------
@@ -437,12 +446,11 @@
 !
       subroutine CPL_SetFinalize(comp, importState, exportState,       &
                                   clock, rc)
+      implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_CplComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -459,7 +467,6 @@
 !-----------------------------------------------------------------------
 !     Terminate CPL execution.  Close all NetCDF files.
 !-----------------------------------------------------------------------
-!
 !
       end subroutine CPL_SetFinalize
 !

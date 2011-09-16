@@ -31,6 +31,9 @@
       use mod_esmf_cpl
 !
       use mod_runparams, only : dtcpl
+      use mod_regcm_interface, only : RCM_run
+!
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations  
@@ -38,21 +41,20 @@
 !
       real*8 :: dt
       integer :: iarr(6)
+      logical :: first
       integer :: i, j, localPet, petCount, comm, rc
+      integer, allocatable :: localPetComp(:)
       character (len=80) :: str1, str2
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Coupled Model Initialization
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Initialize ESMF framework and get default VM
 !-----------------------------------------------------------------------
 !
-      call ESMF_Initialize(vm=vm,                                       &
-                           rc=rc)
+      call ESMF_Initialize(vm=vm, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get information from VM (MPI Communicator, number of PETs etc.)
@@ -63,6 +65,7 @@
                       localPet=localPet,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate coupler variables
@@ -70,11 +73,13 @@
 !
       call allocate_cpl(petCount, rc)
 !
-!***********************************************************************
+      if (.not. allocated(localPetComp)) then
+        allocate(localPetComp(petCount))
+      end if
 !
+!-----------------------------------------------------------------------
 !     Create gridded components
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       do i = 1, nModels 
         if (i == Iatmos) then
@@ -85,6 +90,7 @@
         models(i)%comp = ESMF_GridCompCreate(name=trim(str1),           &
                                         petList=models(i)%petList,      &
                                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
 !
 !-----------------------------------------------------------------------
@@ -93,28 +99,30 @@
 !
       str1 = 'Coupler Component'
       comp = ESMF_CplCompCreate(name=trim(str1), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Register gridded components
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       call ESMF_GridCompSetServices(models(Iatmos)%comp,                &
                                     RCM_SetServices,                    &
                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       call ESMF_GridCompSetServices(models(Iocean)%comp,                &
                                     ROMS_SetServices,                   &
                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       call ESMF_CplCompSetServices(comp,                                &
                                    CPL_SetServices,                     &
                                    rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Create gridded components export/import state objects 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       do i = 1, nModels
         if (i == Iatmos) then
@@ -124,34 +132,45 @@
           str1 = 'Import state (Ocean)' 
           str2 = 'Export state (Ocean)'
         end if
+!
         models(i)%stateExport = ESMF_StateCreate(name=trim(str2),       &
                                 stateintent=ESMF_STATEINTENT_EXPORT,    &
                                 rc=rc)
+!
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
+!
         models(i)%stateImport = ESMF_StateCreate(name=trim(str1),       &
                                 stateintent=ESMF_STATEINTENT_IMPORT,    &
                                 rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       end do
-!
-!**********************************************************************
-!
-!     Initialize gridded components 
-!
-!**********************************************************************
 !
       do i = 1, nModels
-        call ESMF_GridCompInitialize(models(i)%comp,                    &
-                                     importState=models(i)%stateImport, &
-                                     exportState=models(i)%stateExport, &
-                                     rc=rc)  
+!
+!-----------------------------------------------------------------------
+!     Initialize gridded components 
+!-----------------------------------------------------------------------
+!
+      call ESMF_GridCompInitialize(models(i)%comp,                      &
+                                   importState=models(i)%stateImport,   &
+                                   exportState=models(i)%stateExport,   &
+                                   rc=rc) 
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Reconcile time (set start time, stop time and time step) and
+!     coupled model parameters. It is called in the loop because we 
+!     need to use coupled model parameters in ocean component
+!-----------------------------------------------------------------------
+!
+      first = .false.
+      if (i == Iatmos) first = .true.
+      call time_reconcile(first) 
       end do
-!
-!**********************************************************************
-!
-!     Reconcile time (set start time, stop time and time step) 
-!
-!**********************************************************************
-!
-      call time_reconcile() 
 !
 !-----------------------------------------------------------------------
 !     Initialize coupler component
@@ -163,33 +182,33 @@
                               name=FORWARD_INIT,                        &
                               value=FORWARD_ON,                         &
                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
                               name=BACKWARD_INIT,                       &
                               value=BACKWARD_OFF,                       &
                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       call ESMF_CplCompInitialize(comp,                                 &
                                  importState=models(Iatmos)%stateExport,&
                                  exportState=models(Iocean)%stateImport,&
                                  rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !      
       call ESMF_VMBarrier(vm, rc=rc)
-
-
-
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Finalize gridded components 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       do i = 1, nModels
         call ESMF_GridCompFinalize (models(i)%comp,                     &
                                     exportState=models(i)%stateExport,  &
                                     importState=models(i)%stateImport,  &
                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do 
 ! 
 !**********************************************************************

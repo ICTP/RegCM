@@ -41,6 +41,7 @@
       contains
 !
       subroutine RCM_SetServices(comp, rc)
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -57,6 +58,7 @@
                                       methodflag=ESMF_METHOD_INITIALIZE,&
                                       userRoutine=RCM_SetInitialize,    &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Register "run" routine    
@@ -66,6 +68,7 @@
                                       methodflag=ESMF_METHOD_RUN,       &
                                       userRoutine=RCM_SetRun,           &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Register "finalize" routine    
@@ -75,6 +78,7 @@
                                       methodflag=ESMF_METHOD_FINALIZE,  &
                                       userRoutine=RCM_SetFinalize,      &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success 
@@ -86,6 +90,15 @@
 !
       subroutine RCM_SetInitialize(comp, importState, exportState,      &
                                    clock, rc)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_constants, only : d_zero
+      use mod_runparams, only : dtsec
+!
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -101,6 +114,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
+      logical :: first
       integer :: localPet, petCount, comm, ierr
 !
 !-----------------------------------------------------------------------
@@ -112,12 +126,14 @@
 !-----------------------------------------------------------------------
 ! 
       call ESMF_GridCompGet(comp, vm=models(Iatmos)%vm, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       call ESMF_VMGet(models(Iatmos)%vm,                                &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)  
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Initialize the gridded component 
@@ -130,19 +146,27 @@
 !     Set-up ESMF internal clock for gridded component
 !-----------------------------------------------------------------------
 !
-      call RCM_SetClock(clock, rc)
+      call RCM_SetClock(clock)
+!
+!-----------------------------------------------------------------------
+!     Run atmospheric model for only one time step (dt) to get initial
+!     output from BATS to feed ocean model
+!-----------------------------------------------------------------------
+!
+      first = .true.
+      call RCM_run(d_zero, dtsec, first)
 !
 !-----------------------------------------------------------------------
 !     Set-up grid and load coordinate data 
 !-----------------------------------------------------------------------
 !
-      call RCM_SetGridArrays(rc)
+      call RCM_SetGridArrays()
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states and load initial data
 !-----------------------------------------------------------------------
 !
-      call RCM_SetStates(localPet, rc)
+      call RCM_SetStates(localPet)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -153,6 +177,7 @@
       end subroutine RCM_SetInitialize
 !
       subroutine RCM_SetRun(comp, importState, exportState, clock, rc)
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -184,6 +209,7 @@
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get RCM internal clock current time
@@ -192,8 +218,9 @@
       call ESMF_ClockGet (models(Iatmos)%clock,                         &
                           currTime=models(Iatmos)%curTime,              &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      CALL ESMF_TimeGet (models(Iatmos)%curTime,                        &
+      call ESMF_TimeGet (models(Iatmos)%curTime,                        &
                          yy=models(Iatmos)%time%year,                   &
                          mm=models(Iatmos)%time%month,                  &
                          dd=models(Iatmos)%time%day,                    &
@@ -204,6 +231,7 @@
                          timeStringISOFrac=models(Iatmos)%time%stamp,   &
                          dayOfYear=models(Iatmos)%time%yday,            &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Write current time (debug)
@@ -239,6 +267,7 @@
 !
       subroutine RCM_SetFinalize(comp, importState, exportState,        &
                                  clock, rc)
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -249,12 +278,6 @@
       type(ESMF_State), intent(inout) :: exportState
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
-!
-!-----------------------------------------------------------------------
-!     Initialize return flag to success.
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
 !
 !-----------------------------------------------------------------------
 !     Call RCM finalize routines
@@ -270,7 +293,7 @@
 !
       end subroutine RCM_SetFinalize
 !    
-      subroutine RCM_SetClock(clock, rc)
+      subroutine RCM_SetClock(clock)
 !
 !-----------------------------------------------------------------------
 !     Imported modules 
@@ -286,7 +309,6 @@
 !-----------------------------------------------------------------------
 !
       TYPE(ESMF_Clock), intent(inout) :: clock
-      integer, intent(inout) :: rc 
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
@@ -299,6 +321,7 @@
       integer :: ref_minute, str_minute, end_minute
       integer :: ref_second, str_second, end_second
       character (len=80) :: name
+      integer :: rc
 !
 !-----------------------------------------------------------------------
 !     Create gridded component clock 
@@ -311,6 +334,7 @@
       models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,  &
                                         name=trim(name),                &
                                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set Reference time.
@@ -329,6 +353,7 @@
                          s=ref_second,                                  &
                          calendar=models(Iatmos)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set start time
@@ -347,6 +372,7 @@
                          s=str_second,                                  &
                          calendar=models(Iatmos)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set stop time
@@ -365,6 +391,7 @@
                          s=end_second,                                  &
                          calendar=models(Iatmos)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set time interval
@@ -372,7 +399,8 @@
 !
       call ESMF_TimeIntervalSet (models(Iatmos)%dtsec,                  &
                                  s_r8=dtsec,                            &
-                                 rc=rc)  
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Create time clock.
@@ -385,19 +413,21 @@
                                   startTime=models(Iatmos)%strTime,     &
                                   stopTime=models(Iatmos)%endTime,      &
                                   rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Copy clock
 !-----------------------------------------------------------------------
 !
       clock = ESMF_ClockCreate (models(Iatmos)%clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Validate time clock
 !-----------------------------------------------------------------------
 !
-      call ESMF_ClockValidate (models(Iatmos)%clock,                    &
-                               rc=rc)
+      call ESMF_ClockValidate (models(Iatmos)%clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get gridded component internal clock current time
@@ -406,6 +436,7 @@
       call ESMF_ClockGet (models(Iatmos)%clock,                         &
                           currTime=models(Iatmos)%curTime,              &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Put current time into ESM_Time variable
@@ -422,6 +453,7 @@
                          timeStringISOFrac=models(Iatmos)%time%stamp,   &
                          dayOfYear=models(Iatmos)%time%yday,            &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Attach time information to export state as attribute
@@ -434,6 +466,7 @@
                                           str_day   , str_hour ,        &
                                           str_minute, str_second /),    &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = 'stop time'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
@@ -442,47 +475,64 @@
                                           end_day   , end_hour ,        &
                                           end_minute, end_second /),    &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = 'time step'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
                              value=int(dtsec),                          &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Attach coupled model parameters to export state as attribute 
+!-----------------------------------------------------------------------
+!
+      name = 'VTK on/off'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=vtk_on,                              &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      name = 'debug level'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=debug_level,                         &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = 'coupler time step'
       call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
                              name=trim(name),                           &
                              value=int(dtcpl),                          &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success
 !-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
+!
       end subroutine RCM_SetClock
 !
-      subroutine RCM_SetGridArrays (rc)
+      subroutine RCM_SetGridArrays ()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
+      use mod_runparams, only : vtk_on
       use mod_dynparam, only : nproc, iy, iym2, jx, jxp, jendx,         &
                                jendl, debug_level
       use mod_atm_interface, only : mddom
 !
 !-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(out) :: rc
-!
-!-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n
+      integer :: i, j, n, rc
       integer :: localPet, petCount, comm, localDECount
       character (len=40) :: name
 !
@@ -500,6 +550,7 @@
                        petCount=petCount,                               &
                        mpiCommunicator=comm,                            &
                        rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set RCM domain decomposition variables
@@ -516,14 +567,21 @@
                                         maxIndex=(/ iy, jx /),          &
                                         regDecomp=(/1,nproc/),          &
                                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Debug: validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-      if ((debug_level > 3) .and. (localPet == 0)) then
+      if ((localPet == 0) .and. (debug_level > 2)) then
         call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
         call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -534,6 +592,7 @@
                               typekind=ESMF_TYPEKIND_R8,                &
                               rank=2,                                   &
                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       do i = 1, ubound(models(Iatmos)%mesh, dim=1) 
 !
@@ -556,6 +615,7 @@
                                     indexflag=ESMF_INDEX_GLOBAL,        &
                                     name="atm_grid",                    &
                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate coordinates 
@@ -564,15 +624,7 @@
       call ESMF_GridAddCoord (models(Iatmos)%mesh(i,n)%grid,            &
                               staggerLoc=staggerLoc,                    &
                               rc=rc)
-!
-!-----------------------------------------------------------------------
-!     Allocate items for masking
-!-----------------------------------------------------------------------
-!
-!      call ESMF_GridAddItem (models(Iatmos)%mesh(i,n)%grid,             &
-!                             staggerLoc=staggerLoc,                     &
-!                             itemflag=ESMF_GRIDITEM_MASK,               &
-!                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -581,6 +633,7 @@
       call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get pointers and set coordinates for the grid 
@@ -593,13 +646,9 @@
                                 coordDim=1,                             &
                                 farrayPtr=ptrX,                         &
                                 rc=rc)
-!          write(*,99) localPet, j, '*-E', lbound(ptrX, dim=1),          &
-!                      ubound(ptrX, dim=1), lbound(ptrX, dim=2),         &
-!                      ubound(ptrX, dim=2)
-! 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
-!
-
-        ptrX = mddom%xlon
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
 !
         call ESMF_GridGetCoord (models(Iatmos)%mesh(i,n)%grid,          &
                                 localDE=j,                              &
@@ -607,25 +656,40 @@
                                 coordDim=2,                             &
                                 farrayPtr=ptrY,                         &
                                 rc=rc)
-        ptrY = mddom%xlat
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)       
+        end if
 !
-!       There is no need to define mask
-!
+        if (models(Iatmos)%mesh(i,n)%gtype == Icross) then
+          ptrX = mddom%xlon
+          ptrY = mddom%xlat
+        end if
 !
 !-----------------------------------------------------------------------
-!     Get pointers and set coordinates for the grid 
+!     Nullify pointers 
 !-----------------------------------------------------------------------
 !
-!        if (associated(ptrY)) then
-!          nullify(ptrY)
-!        end if
-!        if (associated(ptrX)) then
-!          nullify(ptrX)
-!        end if
-!
+        if (associated(ptrY)) then
+          nullify(ptrY)
+        end if
+        if (associated(ptrX)) then
+          nullify(ptrX)
+        end if
       end do
-      call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,             &
-                            filename="atmos_src")
+!
+!-----------------------------------------------------------------------
+!     Write ESMF Grid in VTK format (debug) 
+!-----------------------------------------------------------------------
+!
+      if (vtk_on) then
+        call ESMF_GridWriteVTK(models(Iatmos)%mesh(i,n)%grid,           &
+                               filename="atmos_src",                    &
+                               rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
+      end if
+!
       end do
       end do
 !
@@ -637,7 +701,7 @@
 !
       end subroutine RCM_SetGridArrays
 !
-      subroutine RCM_SetStates (localPet, rc)
+      subroutine RCM_SetStates (localPet)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -651,13 +715,12 @@
 !-----------------------------------------------------------------------
 !
       integer, intent(in) :: localPet
-      integer, intent(inout) :: rc
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n, localDECount
+      integer :: i, j, n, rc, localDECount
       character (len=40) :: name
       type(ESMF_StaggerLoc) :: staggerLoc
       real(ESMF_KIND_R8), pointer :: ptr(:,:)
@@ -695,6 +758,7 @@
                                   staggerloc=staggerLoc,                &
                                   name=trim(name),                      &
                                   rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -703,6 +767,7 @@
       call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Put data into state 
@@ -718,6 +783,7 @@
                           localDe=j,                                    &
                           farrayPtr=ptr,                                &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Initialize pointer 
@@ -731,7 +797,7 @@
 !      
       if (trim(adjustl(name)) == "Tair") then
         ptr = thatm(:,kz,:)
-!        print*, "** BURDA **", ptr
+        print*, "** BURDA **", ptr
       end if
 !          write(*,99) localPet, j, '*-I', lbound(thatm(:,kz,:), dim=1),    &
 !                      ubound(thatm(:,kz,:), dim=1), lbound(thatm(:,kz,:), dim=2),         &
@@ -752,6 +818,7 @@
       call ESMF_StateAdd (models(Iatmos)%stateExport,                   &
                          (/ models(Iatmos)%dataExport(i,n)%field /),    &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 
@@ -790,6 +857,7 @@
                                   staggerloc=staggerLoc,                &
                                   name=trim(name),                      &
                                   rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -798,6 +866,7 @@
       call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Put data into state 
@@ -813,6 +882,7 @@
                           localDe=j,                                    &
                           farrayPtr=ptr,                                &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Put data     
@@ -830,6 +900,7 @@
       call ESMF_StateAdd (models(Iatmos)%stateImport,                   &
                          (/ models(Iatmos)%dataImport(i,n)%field /),    &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 

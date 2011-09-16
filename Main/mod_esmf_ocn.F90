@@ -49,6 +49,7 @@
       contains
 !
       subroutine ROMS_SetServices(comp, rc)
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -65,6 +66,7 @@
                                       methodflag=ESMF_METHOD_INITIALIZE,&
                                       userRoutine=ROMS_SetInitialize,   &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Register "run" routine    
@@ -74,6 +76,7 @@
                                       methodflag=ESMF_METHOD_RUN,       &
                                       userRoutine=ROMS_SetRun,          &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Register "finalize" routine    
@@ -83,6 +86,7 @@
                                       methodflag=ESMF_METHOD_FINALIZE,  &
                                       userRoutine=ROMS_SetFinalize,     &
                                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success 
@@ -94,6 +98,7 @@
 !
       subroutine ROMS_SetInitialize(comp, importState, exportState,     &
                                    clock, rc)
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -121,12 +126,14 @@
 !-----------------------------------------------------------------------
 !     
       call ESMF_GridCompGet(comp, vm=models(Iocean)%vm, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       call ESMF_VMGet(models(Iocean)%vm,                                &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Initialize the gridded component
@@ -140,25 +147,19 @@
 !     Set-up ESMF internal clock for grided component 
 !-----------------------------------------------------------------------
 !
-      call ROMS_SetClock(clock, rc)
+      call ROMS_SetClock(clock)
 !
 !-----------------------------------------------------------------------
 !     Set-up excgange mesh for meshded component 
 !-----------------------------------------------------------------------
 !
-      call ROMS_SetGridArrays(comp, rc)
+      call ROMS_SetGridArrays()
 !
 !-----------------------------------------------------------------------
 !     Set-up import/export states
 !-----------------------------------------------------------------------
 !
-      call ROMS_SetStates(rc)
-!
-!-----------------------------------------------------------------------
-!     Load export initial conditions data.
-!-----------------------------------------------------------------------
-!
-!      call ROMS_PutExportData(Myrank, rc)
+      call ROMS_SetStates()
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -168,14 +169,12 @@
 !
       end subroutine ROMS_SetInitialize
 !
-      subroutine ROMS_SetRun(comp, importState, exportState,            &
-                             clock, rc)
+      subroutine ROMS_SetRun(comp, importState, exportState, clock, rc)
+      implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -183,20 +182,17 @@
       type(ESMF_Clock), intent(inout) :: clock
       integer, intent(out) :: rc
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
+
 !
-!     
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Call ROMS initialization routines
+!-----------------------------------------------------------------------
 !
-!***********************************************************************
-!
+
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -208,12 +204,11 @@
 !
       subroutine ROMS_SetFinalize(comp, importState, exportState,       &
                                   clock, rc)
+      implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESMF_GridComp), intent(inout) :: comp
       type(ESMF_State), intent(inout) :: importState
@@ -235,7 +230,7 @@
 !
       end subroutine ROMS_SetFinalize
 !    
-      subroutine ROMS_SetClock(clock, rc)
+      subroutine ROMS_SetClock(clock)
 !
 !-----------------------------------------------------------------------
 !     Imported modules 
@@ -251,7 +246,6 @@
 !-----------------------------------------------------------------------
 !
       type(ESMF_Clock), intent(inout) :: clock
-      integer, intent(inout) :: rc
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
@@ -268,6 +262,7 @@
       real(r8) :: MyStartTime, MyStopTime
       real(r8) :: hour, minute, yday
       character (len=80) :: name
+      integer :: rc
 !
 !-----------------------------------------------------------------------
 !     Create gridded component clock 
@@ -287,6 +282,9 @@
         models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
                                                  name=trim(name),       &
                                                  rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       else if (int(time_ref) == -1) then
         ref_year=1
         ref_month=1
@@ -298,6 +296,9 @@
         models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_360DAY,   &
                                                  name=trim(name),       &
                                                  rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       else if (int(time_ref) == 0) then
         ref_year=1
         ref_month=1
@@ -309,6 +310,9 @@
         models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_JULIAN,   &
                                                  name=trim(name),       &
                                                  rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       else if (time_ref > 0.0_r8) then
         ref_year=int(r_date(2))
         ref_month=int(r_date(4))
@@ -320,6 +324,9 @@
         models(Iocean)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
                                                  name=trim(name),       &
                                                  rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -335,6 +342,7 @@
                          s=ref_second,                                  &
                          calendar=models(Iocean)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set start time
@@ -357,6 +365,7 @@
                          s=str_second,                                  &
                          calendar=models(Iocean)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set stop time
@@ -383,6 +392,7 @@
                          s=end_second,                                  &
                          calendar=models(Iocean)%cal,                   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set time interval
@@ -392,6 +402,7 @@
       call ESMF_TimeIntervalSet (models(Iocean)%dtsec,                  &
                                  s=myTimeStep,                          &
                                  rc=rc)  
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Create time clock.
@@ -404,19 +415,21 @@
                                   startTime=models(Iocean)%strTime,     &
                                   stopTime=models(Iocean)%endTime,      &
                                   rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Copy clock
 !-----------------------------------------------------------------------
 !
       clock = ESMF_ClockCreate (models(Iocean)%clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Validate time clock
 !-----------------------------------------------------------------------
 !
-      call ESMF_ClockValidate (models(Iocean)%clock,                    &
-                               rc=rc)
+      call ESMF_ClockValidate (models(Iocean)%clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get meshded component internal clock current time
@@ -425,6 +438,7 @@
       call ESMF_ClockGet (models(Iocean)%clock,                         &
                           currTime=models(Iocean)%curTime,              &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Put current time into ESM_Time variable
@@ -441,6 +455,7 @@
                          timeStringISOFrac=models(Iocean)%time%stamp,   &
                          dayOfYear=models(Iocean)%time%yday,            &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Attach time information to export state as attribute
@@ -453,6 +468,8 @@
                                           str_day   , str_hour ,        &
                                           str_minute, str_second /),    &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       name = 'stop time'
       call ESMF_AttributeSet(models(Iocean)%stateExport,                &
                              name=trim(name),                           &
@@ -460,11 +477,14 @@
                                           end_day   , end_hour ,        &
                                           end_minute, end_second /),    &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
       name = 'time step'
       call ESMF_AttributeSet(models(Iocean)%stateExport,                &
                              name=trim(name),                           &
                              value=myTimeStep,                          &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success
@@ -474,7 +494,7 @@
 !
       end subroutine ROMS_SetClock
 !
-      subroutine ROMS_SetGridArrays (gcomp, rc)
+      subroutine ROMS_SetGridArrays ()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -483,18 +503,13 @@
       use mod_grid , only : GRID
       use mod_param, only : NtileI, NtileJ, BOUNDS, Lm, Mm
 !
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      type(ESMF_GridComp), intent(inout) :: gcomp
-      integer, intent(out) :: rc
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, n, tile 
+      integer :: i, j, ii, jj, n, rc 
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
@@ -503,7 +518,6 @@
       integer :: staggerEdgeUWidth(2)
 !
       type(ESMF_Decomp_Flag) :: deCompFlag(2)
-      type(ESMF_Field) :: grdField
       type(ESMF_StaggerLoc) :: staggerLoc
       real(ESMF_KIND_R8), pointer :: ptrX(:,:), ptrY(:,:)
       integer, pointer :: ptrM(:,:)
@@ -518,6 +532,7 @@
                        petCount=petCount,                               &
                        mpiCommunicator=comm,                            &
                        rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Set RCM domain decomposition variables
@@ -556,14 +571,21 @@
                                    regDecomp=(/ NtileI(n), NtileJ(n) /),&
                                    decompflag=deCompFlag,               &
                                    rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Debug: validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-      if (localPet == 0) then
+      if ((localPet == 0) .and. (cpl_debug_level > 2)) then
         call ESMF_DistGridValidate(models(Iocean)%distGrid(n), rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
         call ESMF_DistGridPrint(models(Iocean)%distGrid(n), rc=rc)
+        if (rc /= ESMF_SUCCESS) then
+          call ESMF_Finalize(endflag=ESMF_END_ABORT)
+        end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -574,6 +596,7 @@
                              typekind=ESMF_TYPEKIND_R8,                 &
                              rank=2,                                    &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       do i = 1, ubound(models(Iocean)%mesh, dim=1)
 !
@@ -606,6 +629,7 @@
                                     gridEdgeUWidth=(/1,1/),             &
                                     name="ocn_grid",                    &
                                     rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate coordinates 
@@ -616,6 +640,7 @@
                               staggerEdgeLWidth=staggerEdgeLWidth,      &
                               staggerEdgeUWidth=staggerEdgeUWidth,      &
                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Allocate items for masking
@@ -625,6 +650,7 @@
                              staggerLoc=staggerLoc,                     &
                              itemflag=ESMF_GRIDITEM_MASK,               &
                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -633,6 +659,7 @@
       call ESMF_GridGet (models(Iocean)%mesh(i,n)%grid,                 &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get pointers and set coordinates for the grid 
@@ -645,6 +672,7 @@
                                 coordDim=1,                             &
                                 farrayPtr=ptrX,                         &
                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
         call ESMF_GridGetCoord (models(Iocean)%mesh(i,n)%grid,          &
                                 localDE=j,                              &
@@ -652,6 +680,7 @@
                                 coordDim=2,                             &
                                 farrayPtr=ptrY,                         &
                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
         call ESMF_GridGetItem (models(Iocean)%mesh(i,n)%grid,           &
                                localDE=j,                               &
@@ -659,6 +688,7 @@
                                itemflag=ESMF_GRIDITEM_MASK,             &
                                farrayPtr=ptrM,                          &
                                rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
         if (models(Iocean)%mesh(i,n)%gtype == Icross) then
           do jj = JstrR, JendR
@@ -668,12 +698,19 @@
               ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
             end do
           end do       
-          write(*,99) localPet, j, 'R-I', IstrR, IendR,  JstrR, JendR
-          write(*,99) localPet, j, 'R-E', lbound(ptrY, dim=1),          &
-                      ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
-                      ubound(ptrY, dim=2) 
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_dst_RHOpoint")
+!
+          if (cpl_debug_level > 2) then
+            write(*,99) localPet, j, 'R-M', IstrR, IendR,  JstrR, JendR
+            write(*,99) localPet, j, 'R-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2) 
+          end if
+!
+          if (cpl_vtk_on) then
+            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
+                                   filename="ocean_RHOpoint")
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
         else if (models(Iocean)%mesh(i,n)%gtype == Iupoint) then
           do jj = JstrU, JendU
             do ii = IstrU, IendU
@@ -682,12 +719,19 @@
               ptrM(ii,jj) = int(GRID(n)%rmask(ii,jj))
             end do
           end do
-          write(*,99) localPet, j, 'U-I', IstrU, IendU,  JstrU, JendU
-          write(*,99) localPet, j, 'U-E', lbound(ptrY, dim=1),          &
-                      ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
-                      ubound(ptrY, dim=2)
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_dst_Upoint")
+!
+          if (cpl_debug_level > 2) then
+            write(*,99) localPet, j, 'U-M', IstrU, IendU,  JstrU, JendU
+            write(*,99) localPet, j, 'U-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2)
+          end if
+!
+          if (cpl_vtk_on) then
+            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
+                                   filename="ocean_Upoint")
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
         else if (models(Iocean)%mesh(i,n)%gtype == Ivpoint) then
           do jj = JstrV, JendV
             do ii = IstrV, IendV
@@ -696,17 +740,44 @@
               ptrM(ii,jj) = int(GRID(n)%vmask(ii,jj))
             end do
           end do
-          write(*,99) localPet, j, 'V-I', IstrU, IendU,  JstrU, JendU
-          write(*,99) localPet, j, 'V-E', lbound(ptrY, dim=1),          &
-                      ubound(ptrY, dim=1), lbound(ptrY, dim=2),         &
-                      ubound(ptrY, dim=2)
-          call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,         &
-                                 filename="ocean_dst_Vpoint")
+!
+          if (cpl_debug_level > 2) then
+            write(*,99) localPet, j, 'V-M', IstrU, IendU,  JstrU, JendU
+            write(*,99) localPet, j, 'V-E', lbound(ptrY, dim=1),        &
+                        ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
+                        ubound(ptrY, dim=2)
+          end if
+!        
+          if (cpl_vtk_on) then       
+            call ESMF_GridWriteVTK(models(Iocean)%mesh(i,n)%grid,       &
+                                   filename="ocean_Vpoint")
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+          end if
         end if
- 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+!
+!-----------------------------------------------------------------------
+!     Nullify pointers 
+!-----------------------------------------------------------------------
+!
+        if (associated(ptrY)) then
+          nullify(ptrY)
+        end if
+        if (associated(ptrX)) then
+          nullify(ptrX)
+        end if
+        if (associated(ptrM)) then
+          nullify(ptrM)
+        end if
+!
       end do
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Format definition 
+!-----------------------------------------------------------------------
+!
+ 99   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -716,7 +787,7 @@
 !
       end subroutine ROMS_SetGridArrays
 !
-      subroutine ROMS_SetStates (rc)
+      subroutine ROMS_SetStates ()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -727,17 +798,13 @@
       use mod_stepping, only : nstp
       use mod_param, only : NtileI, NtileJ, BOUNDS, N, Lm, Mm
 !
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(inout) :: rc
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, ng
+      integer :: i, j, ii, jj, ng, rc
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
@@ -759,6 +826,7 @@
                        petCount=petCount,                               &
                        mpiCommunicator=comm,                            &
                        rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Loop over number of nested/composed meshs.
@@ -819,6 +887,7 @@
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataExport(i,ng)%name),&
                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -827,6 +896,7 @@
       call ESMF_GridGet (models(Iocean)%mesh(i,ng)%grid,                &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get pointers and put data 
@@ -837,6 +907,7 @@
                           localDE=j,                                    &
                           farrayPtr=ptr,                                &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Initialize pointer 
@@ -870,6 +941,7 @@
       call ESMF_StateAdd (models(Iocean)%stateExport,                   &
                          (/ models(Iocean)%dataExport(i,ng)%field /),   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 
@@ -915,6 +987,7 @@
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataImport(i,ng)%name),&
                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get number of local DEs
@@ -923,6 +996,7 @@
       call ESMF_GridGet (models(Iocean)%mesh(i,ng)%grid,                &
                          localDECount=localDECount,                     &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get pointers and put data 
@@ -933,6 +1007,7 @@
                           localDE=j,                                    &
                           farrayPtr=ptr,                                &
                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       name = models(Iocean)%dataImport(i,ng)%name
 !
@@ -945,6 +1020,7 @@
       call ESMF_StateAdd (models(Iocean)%stateImport,                   &
                          (/ models(Iocean)%dataImport(i,ng)%field /),   &
                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 
@@ -967,36 +1043,31 @@
 !
       end subroutine ROMS_SetStates
 !
-      subroutine ROMS_PutExportData (MyRank, rc)
+      subroutine ROMS_PutExportData (localPet)
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Used module declarations 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       use mod_param, only : BOUNDS, N
       use mod_ocean, only : OCEAN
       use mod_scalars, only : itemp
       use mod_stepping, only : nstp
 !
-!***********************************************************************
+      implicit none
 !
+!-----------------------------------------------------------------------
 !     Imported variable declarations 
-!     
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
-      integer, intent(in) :: MyRank
-      integer, intent(inout) :: rc
+      integer, intent(in) :: localPet 
 !
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       character (len=80) :: name
-      integer :: i, j, k, ng
+      integer :: i, j, k, ng, rc
       integer :: Istr, Iend, Jstr, Jend
       integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
 !
@@ -1010,16 +1081,16 @@
 !     Load export fields.
 !-----------------------------------------------------------------------
 !
-      Istr =BOUNDS(ng)%Istr (MyRank)
-      Iend =BOUNDS(ng)%Iend (MyRank)
-      Jstr =BOUNDS(ng)%Jstr (MyRank)
-      Jend =BOUNDS(ng)%Jend (MyRank)
-      IstrR=BOUNDS(ng)%IstrR(MyRank)
-      IendR=BOUNDS(ng)%IendR(MyRank)
-      IstrU=BOUNDS(ng)%IstrU(MyRank)
-      JstrR=BOUNDS(ng)%JstrR(MyRank)
-      JendR=BOUNDS(ng)%JendR(MyRank)
-      JstrV=BOUNDS(ng)%JstrV(MyRank)      
+      Istr =BOUNDS(ng)%Istr (localPet)
+      Iend =BOUNDS(ng)%Iend (localPet)
+      Jstr =BOUNDS(ng)%Jstr (localPet)
+      Jend =BOUNDS(ng)%Jend (localPet)
+      IstrR=BOUNDS(ng)%IstrR(localPet)
+      IendR=BOUNDS(ng)%IendR(localPet)
+      IstrU=BOUNDS(ng)%IstrU(localPet)
+      JstrR=BOUNDS(ng)%JstrR(localPet)
+      JendR=BOUNDS(ng)%JendR(localPet)
+      JstrV=BOUNDS(ng)%JstrV(localPet) 
 !
       do k = 1, ubound(models(Iocean)%dataExport(:,ng), dim=1) 
         name = models(Iocean)%dataExport(k,ng)%name
@@ -1039,7 +1110,7 @@
 !  Set return flag to success.
 !-----------------------------------------------------------------------
 !
-      rc=ESMF_SUCCESS
+      rc = ESMF_SUCCESS
 !
       end subroutine ROMS_PutExportData
 

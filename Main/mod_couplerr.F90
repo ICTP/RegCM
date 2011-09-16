@@ -151,6 +151,13 @@
       character(ESMF_MAXSTR), allocatable :: itemNamesExportB(:)
 !
 !-----------------------------------------------------------------------
+!     Variables for coupled model parameters  
+!-----------------------------------------------------------------------
+!
+      integer :: cpl_dtsec, cpl_debug_level
+      logical :: cpl_vtk_on
+!
+!-----------------------------------------------------------------------
 !     Coupler component variables 
 !-----------------------------------------------------------------------
 !
@@ -524,89 +531,144 @@
 !
       end subroutine allocate_cpl
 !
-      subroutine time_reconcile()
+      subroutine time_reconcile(first)
       implicit none
-
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      logical, intent(in) :: first
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
       integer :: iarr(6)
-      integer :: i, j, petCount, localPet, comm, mysec, rc
+      integer :: i, nitems, petCount, localPet, comm, mysec, rc
       character(len=80) :: timeString, name
-
 !
 !-----------------------------------------------------------------------
 !     Get information from VM (MPI Communicator, number of PETs etc.)
 !-----------------------------------------------------------------------
 !
-      call ESMF_VMGet(vm,                                               &
-                      petCount=petCount,                                &
-                      localPet=localPet,                                &
-                      mpiCommunicator=comm,                             &
-                      rc=rc)
+      call ESMF_VMGet (vm,                                              &
+                       petCount=petCount,                               &
+                       localPet=localPet,                               &
+                       mpiCommunicator=comm,                            &
+                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       do i = 1, nModels
 !
 !-----------------------------------------------------------------------
-!       Reconcile export state of the gridded components 
+!     Reconcile export state of the gridded components 
 !-----------------------------------------------------------------------
 !
-        call ESMF_StateReconcile(models(i)%stateExport,                 &
-                                 vm=vm,                                 &
-                                 attreconflag=ESMF_ATTRECONCILE_ON,     &
+      call ESMF_StateReconcile (models(i)%stateExport,                  &
+                                vm=vm,                                  &
+                                attreconflag=ESMF_ATTRECONCILE_ON,      &
+                                rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      if (i == Iatmos) then
+!
+!-----------------------------------------------------------------------
+!     Get parameter for writing grid definitions in VTK format
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='VTK on/off',                        &
+                              value=cpl_vtk_on,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for debug level 
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='debug level',                       &
+                              value=cpl_debug_level,                    &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get parameter for coupler component time step and set time 
+!     interval to exchange data between gridded components
+!-----------------------------------------------------------------------
+!  
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='coupler time step',                 &
+                              value=cpl_dtsec,                          &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimeIntervalSet (timeStep,                              &
+                                 s=cpl_dtsec,                           &
                                  rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+      end do
 !
 !-----------------------------------------------------------------------
-!       Get coupler time step and set time interval to exchange 
-!       data between gridded components
+!     Write coupled model parameters
 !-----------------------------------------------------------------------
-!  
-        if (i == Iatmos) then
-          call ESMF_AttributeGet(models(i)%stateExport,                 &
-                                 name='coupler time step',              &
-                                 value=j,                               &
-                                 rc=rc)
-          call ESMF_TimeIntervalSet(timeStep,                           &
-                                    s=j,                                &
-                                    rc=rc)
-        end if
+!
+      write(*, 20) localPet, 'VTK ON/OFF  ', cpl_vtk_on       
+      write(*, 30) localPet, 'DEBUG LEVEL ', cpl_debug_level       
+      write(*, 30) localPet, 'TIME STEP   ', cpl_dtsec       
+!
+ 20   format(' PET (', I2, ') - Parameter ', A, ' = ', L)      
+ 30   format(' PET (', I2, ') - Parameter ', A, ' = ', I8)      
+!
+      if (.not. first) then
+      do i = 1, nModels
 !
 !-----------------------------------------------------------------------
-!       Get start time
+!     Get start time
 !-----------------------------------------------------------------------
 !  
-        j = ubound(iarr,dim=1)
-        call ESMF_AttributeGet(models(i)%stateExport,                   &
-                               name='start time',                       &
-                               valueList=iarr,                          &
-                               itemCount=j,                             &
-                               rc=rc)
-        call ESMF_TimeSet (models(i)%strTime,                           &
-                           yy=iarr(1),                                  &
-                           mm=iarr(2),                                  &
-                           dd=iarr(3),                                  &
-                           h=iarr(4),                                   &
-                           m=iarr(5),                                   &
-                           s=iarr(6),                                   &
-                           calkindflag=ESMF_CALKIND_GREGORIAN,          &
-                           rc=rc)
+      nitems = size(iarr, dim=1)
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='start time',                        &
+                              valueList=iarr,                           &
+                              itemCount=nitems,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimeSet (models(i)%strTime,                             &
+                         yy=iarr(1),                                    &
+                         mm=iarr(2),                                    &
+                         dd=iarr(3),                                    &
+                         h=iarr(4),                                     &
+                         m=iarr(5),                                     &
+                         s=iarr(6),                                     &
+                         calkindflag=ESMF_CALKIND_GREGORIAN,            &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!       Get stop time
+!     Get stop time
 !-----------------------------------------------------------------------
 !  
-        call ESMF_AttributeGet(models(i)%stateExport,                   &
-                               name='stop time',                        &
-                               valueList=iarr,                          &
-                               itemCount=j,                             &
-                               rc=rc)
-        print*, "** turuncu **", i, localPet, iarr
-        call ESMF_TimeSet (models(i)%endTime,                           &
-                           yy=iarr(1),                                  &
-                           mm=iarr(2),                                  &
-                           dd=iarr(3),                                  &
-                           h=iarr(4),                                   &
-                           m=iarr(5),                                   &
-                           s=iarr(6),                                   &
-                           calkindflag=ESMF_CALKIND_GREGORIAN,          &
-                           rc=rc)
+      call ESMF_AttributeGet (models(i)%stateExport,                    &
+                              name='stop time',                         &
+                              valueList=iarr,                           &
+                              itemCount=nitems,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimeSet (models(i)%endTime,                             &
+                         yy=iarr(1),                                    &
+                         mm=iarr(2),                                    &
+                         dd=iarr(3),                                    &
+                         h=iarr(4),                                     &
+                         m=iarr(5),                                     &
+                         s=iarr(6),                                     &
+                         calkindflag=ESMF_CALKIND_GREGORIAN,            &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do
 !
 !-----------------------------------------------------------------------
@@ -630,26 +692,34 @@
                                 startTime=startTime,                    &
                                 stopTime=stopTime,                      &
                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Validate external time clock.
 !-----------------------------------------------------------------------
 !
       call ESMF_ClockValidate (clock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Print
 !-----------------------------------------------------------------------
 !
       call ESMF_TimeGet(startTime, timeString=timeString, rc=rc)
-      write(*,30) localPet, 'Start Time   ', trim(timeString)
-      call ESMF_TimeGet(stopTime, timeString=timeString, rc=rc)
-      write(*,30) localPet, 'Stop Time    ', trim(timeString)
-      call ESMF_TimeIntervalGet(timeStep, s = mysec, rc=rc)
-      write(*,40) localPet, 'Time Interval', mysec
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      write(*,40) localPet, 'Start Time   ', trim(timeString)
 !
- 30   format (' PET (', I2, ') - ', A, ' = ', A)
- 40   format (' PET (', I2, ') - ', A, ' = ', I10)
+      call ESMF_TimeGet(stopTime, timeString=timeString, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      write(*,40) localPet, 'Stop Time    ', trim(timeString)
+!
+      call ESMF_TimeIntervalGet(timeStep, s = mysec, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      write(*,50) localPet, 'Time Interval', mysec
+      end if
+!
+ 40   format (' PET (', I2, ') - ', A, ' = ', A)
+ 50   format (' PET (', I2, ') - ', A, ' = ', I10)
 !
       end subroutine time_reconcile
 !
@@ -679,38 +749,5 @@
       end do
 
       end function getIndex
-!
-      subroutine check_err(rc)
-      implicit none
-!
-!***********************************************************************
-!
-!     Imported variable declarations 
-!
-!***********************************************************************
-!
-      integer, intent(in) :: rc 
-!
-!***********************************************************************
-!
-!     Local variable declarations 
-!
-!***********************************************************************
-!
-      integer :: rclocal
-!
-!-----------------------------------------------------------------------
-!     Terminate execution due to fatal error 
-!-----------------------------------------------------------------------
-!      
-      if (ESMF_LogFoundError(rcToCheck=rc,                              &
-                             msg=ESMF_LOGERR_PASSTHRU,                  &
-                             line=__LINE__,                             &
-                             file=__FILE__,                             &
-                             rcToReturn=rclocal)) then
-        call ESMF_Finalize(endflag=ESMF_END_ABORT, rc=rclocal)
-      end if
-!
-      end subroutine check_err
 !
       end module mod_couplerr
