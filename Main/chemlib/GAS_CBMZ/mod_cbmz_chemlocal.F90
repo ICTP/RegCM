@@ -1,14 +1,33 @@
-! 
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+module mod_cbmz_chemlocal
+!
+  use m_realkinds
+  use mod_cbmz_chemmech
+!
+  public
+!
 ! chemlocal.EXT    April, 2007
-!   INCLUDE and COMMON file 
 !     for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
-!  Note:  This file includes 'IMPLICIT NONE'.
-!  Note:  This file uses KVEC.  
-!    Its include statement must come AFTER chemvars.EXT
-!
-!  This file includes declarations and common blocks 
 !   for SOLVER VARIABLES 
 !   which are shared among the solver subroutines in common blocks
 !   but are not saved or passed to the main program.  
@@ -27,9 +46,6 @@
 ! History:
 !  12/06. Program written by Sandy Sillman based on commq7.EXT
 ! -------------------------------------------------------------
-! IMPLICIT - added to each  subroutine
-!      implicit none
-!
 ! LOCAL SPECIES CONCENTRATIONS 
 !     (see also input-output variables in chemvars.EXT)
 !
@@ -43,10 +59,9 @@
 !
 ! xclastq : OPTION, xc after last aquasolve,  used in next aquasolve
 ! 
-       double precision xc( c_kvec,c_cdim) ! concentration molec/cm3
-       double precision xcfinr( c_kvec,c_cdim) ! ratio FINAL/AVG cncn
-       double precision xclastq( c_kvec,c_cdim) ! conc molec/cm3
-       common/CHEMCONC/ xc,xcfinr,  xclastq
+  real(dp) ::  xc( c_kvec,c_cdim) ! concentration molec/cm3
+  real(dp) ::  xcfinr( c_kvec,c_cdim) ! ratio FINAL/AVG cncn
+  real(dp) ::  xclastq( c_kvec,c_cdim) ! conc molec/cm3
 
 ! CHEMICAL REACTION RATES
 !     (see also rate parameters in chemmech.EXT
@@ -69,46 +84,14 @@
 ! 2009 addition
 ! ratero2(kk,nr,2) = rate constants for parameterized RO2-RO2: 1 self 2 cross R
 !
-      double precision ratek(c_kvec,c_rdim)  ! Rate constants
-      double precision rateh(c_kvec,c_rdim)  ! Henry's law constants
-      double precision rateq(c_kvec,c_rdim)  ! Aqueous equil. constants
-      double precision rateqq(c_kvec,c_rdim) ! Special equil. constants
-      double precision rhdif(c_kvec,c_rdim) ! H. modified by diffusion
-      double precision egasaq(c_kvec,c_rdim) ! Gas-to-aq transfer s-1
-      double precision ratero2(c_kvec,c_rdim,2)  ! Rate constants for RO2-RO2
+  real(dp) :: ratek(c_kvec,c_rdim)     ! Rate constants
+  real(dp) :: rateh(c_kvec,c_rdim)     ! Henry's law constants
+  real(dp) :: rateq(c_kvec,c_rdim)     ! Aqueous equil. constants
+  real(dp) :: rateqq(c_kvec,c_rdim)    ! Special equil. constants
+  real(dp) :: rhdif(c_kvec,c_rdim)     ! H. modified by diffusion
+  real(dp) :: egasaq(c_kvec,c_rdim)    ! Gas-to-aq transfer s-1
+  real(dp) :: ratero2(c_kvec,c_rdim,2) ! Rate constants for RO2-RO2
 
-      common/CHEMRATEK/ ratek, rateh, rateq, rateqq, rhdif, egasaq    &
-        ,ratero2
-!
-!  CHEMISTRY PARAMETERS (not in common; parameter values set here)
-!
-!  avogadrl   Avogadro's number * liters/cm3 =6.020e-20
-!  atmos      Atmospheric surface pressure = 2.247E+19 mol/cm3
-!              (used to convert Henry's law coeff moles/L-atm)
-! pii          Pi
-!  rtcon      Conversion parameter for Henry's law rate calculations
-!               R=8.314E-02. L-atm/mol-K   (8.206 in old program)
-! RUMOLEC      RU parameter for molecular speed (Barth, personal comm)
-!   (8.314e7 g-cm2/s2-mol-K)   (note: 8.314e0 kg-m2/s2-mol-K)
-! DROPDIF      Droplet diffusion coefficient - 2e-5 cm2/sec, Lelieveld 1991
-! DIFGAS       Gas-phase diffusion coeff. - 0.1 cm2/sec, Lelieveld 1991
-
-      double precision avogadrl       ! Avogadro N * lit/cm3 (6.020e-20)
-      PARAMETER (avogadrl=6.0221367D20)
-      double precision atmos          ! Atmos. surface pressure mol/cm3
-      PARAMETER (atmos=2.247D19)
-      double precision pii
-      PARAMETER (pii=3.141592653559)  !  PI           
-      double precision rtcon          ! Conversion parameter for Henry
-      PARAMETER (rtcon=8.314D-02)     ! L-atm/mol-K
-      double precision RUMOLEC        ! RU g-cm2/s2-mol-K
-      PARAMETER (RUMOLEC=8.314D7)     ! g-cm2/s2-mol-K
-      double precision DROPDIF        ! Droplet diffusion coefficient
-      PARAMETER (DROPDIF=2.0D-05)     ! 2e-5 cm2/sec, Lelieveld+Crutzen 1991
-      double precision DIFGAS         ! Gas-phase diffusion coeff.
-      PARAMETER (DIFGAS=0.1D0   )     ! 0.1 cm2/s Lelieveld and Crutzen, 1991.
-!
-!
 ! LOCAL CHEMICAL SOLVER VARIABLES:  
 ! PRODUCTION AND LOSS RATES AND INTERIM CONCENTRATIONS
 ! SINGLE SPECIES AND LINKED PAIR SOLUTIONS
@@ -169,45 +152,37 @@
 !       (used in chemsolve only, not nec. in common)
 !
 ! 
-      double precision cpm(c_kvec, c_cdim, c_cdim) !Cross-prod for multi
-      double precision cpro(c_kvec,c_cdim, c_cdim)   ! Cross-production 
+  real(dp) :: cpm(c_kvec,c_cdim,c_cdim)   ! Cross-prod for multi
+  real(dp) :: cpro(c_kvec,c_cdim,c_cdim)  ! Cross-production 
 ! 
-      double precision history(c_kvec,c_cdim,400)  ! Cncn for each iter
-      double precision geomavg(c_kvec,c_cdim)   ! Geom. avg factor
+  real(dp) :: history(c_kvec,c_cdim,400)  ! Cncn for each iter
+  real(dp) :: geomavg(c_kvec,c_cdim)      ! Geom. avg factor
 !
-      double precision rlm(c_kvec,c_cdim)    ! Loss for multi-spec 
-      double precision rlmulti(c_kvec       ) ! Loss group sum for multi
-      double precision rloss(c_kvec,c_cdim)  ! Solver loss rate
-      double precision rloss1(c_kvec,c_cdim) ! Interim rloss w/out cpro
-      double precision rlpair(c_kvec,c_cdim) ! Loss rate for pair grp
-      double precision rpm(c_kvec,c_cdim)    ! Production rate for multi
-      double precision rpmulti(c_kvec       ) !Product'n multi group sum
-      double precision rppair(c_kvec,c_cdim) ! Production for pair grp
-      double precision rpro(c_kvec,c_cdim)   ! Solver production rate
-      double precision rpro1(c_kvec,c_cdim)  ! Interim rpro w/out cpro 
-      double precision rrp(c_kvec,c_cdim)    ! Interim production rate 
-      double precision rrl(c_kvec,c_cdim)    ! Interim loss rate 
+  real(dp) :: rlm(c_kvec,c_cdim)          ! Loss for multi-spec 
+  real(dp) :: rlmulti(c_kvec)             ! Loss group sum for multi
+  real(dp) :: rloss(c_kvec,c_cdim)        ! Solver loss rate
+  real(dp) :: rloss1(c_kvec,c_cdim)       ! Interim rloss w/out cpro
+  real(dp) :: rlpair(c_kvec,c_cdim)       ! Loss rate for pair grp
+  real(dp) :: rpm(c_kvec,c_cdim)          ! Production rate for multi
+  real(dp) :: rpmulti(c_kvec)             ! Product'n multi group sum
+  real(dp) :: rppair(c_kvec,c_cdim)       ! Production for pair grp
+  real(dp) :: rpro(c_kvec,c_cdim)         ! Solver production rate
+  real(dp) :: rpro1(c_kvec,c_cdim)        ! Interim rpro w/out cpro 
+  real(dp) :: rrp(c_kvec,c_cdim)          ! Interim production rate 
+  real(dp) :: rrl(c_kvec,c_cdim)          ! Interim loss rate 
 ! 
-      double precision xrm(c_kvec,c_cdim)    !  Initial conc. for multi
-      double precision xrp(c_kvec,c_cdim)    !Solver prior concentration
-      double precision xrppair(c_kvec)     ! Solver prior pair group cn.
-      double precision xrr(c_kvec,c_cdim)    ! Solver concentration
-      double precision xrrm(c_kvec,c_cdim)   !Initial solution for multi
-      double precision xrrpair(c_kvec)     ! Solution for pair group sum
+  real(dp) :: xrm(c_kvec,c_cdim)          ! Initial conc. for multi
+  real(dp) :: xrp(c_kvec,c_cdim)          ! Solver prior concentration
+  real(dp) :: xrppair(c_kvec)             ! Solver prior pair group cn.
+  real(dp) :: xrr(c_kvec,c_cdim)          ! Solver concentration
+  real(dp) :: xrrm(c_kvec,c_cdim)         ! Initial solution for multi
+  real(dp) :: xrrpair(c_kvec)             ! Solution for pair group sum
 
 ! OPTION - iteration counter is in common for output, may cut from common.
 !          -> moved to chemvars as c_iter
 !     integer iter                     ! Iteration counter
 
 ! LCHEMRATES,  LREAC  
-
-      common/CHEMSOLVARS/ xrp, xrr, rpro, rloss, rpro1, rloss1  & 
-           ,rrp, rrl, cpro                                     &
-           ,xrm, xrrm, rpm, rlm,cpm, rpmulti, rlmulti          & 
-           ,rppair, rlpair, xrppair, xrrpair                   &
-           ,history, geomavg
-
-
 ! VARIABLES ASSOCIATED WITH ODD HYDROGEN RADICALS AND ODD NITROGEN
 !
 ! foh(kk)           OH/HO2 fraction. (ohsolv and presolve. not common)
@@ -254,35 +229,25 @@
 ! xohtest          Convergence test ratio for OH (nonvectorized)
 !                     =(OHp-OH)/OHp
 
-      double precision foh(c_kvec)       ! OH/HO2.  not common
+  real(dp) :: foh(c_kvec)        ! OH/HO2.  not common
 
-      double precision oddhdel(c_kvec,2)   ! Summed Hx sens to Oh, mol/cm3
-      double precision oddhloh(c_kvec,2)   ! Hx loss from OH,  mol/cm3
-      double precision oddhlho2(c_kvec,2)   ! Hx loss from HO2,  mol/cm3
-      double precision oddhsrc(c_kvec,2)   ! Summed P Hx, mol/cm3
-      double precision oddhsum(c_kvec,2)   ! Summed net P/L Hx, mol/cm3
-      double precision senshx(c_kvec,2)   ! Hx sens: d ln(pHx)/d ln([OH])
-      double precision senhcat( c_kvec,99) ! Hx sens. by species categ.
+  real(dp) :: oddhdel(c_kvec,2)  ! Summed Hx sens to Oh, mol/cm3
+  real(dp) :: oddhloh(c_kvec,2)  ! Hx loss from OH,  mol/cm3
+  real(dp) :: oddhlho2(c_kvec,2) ! Hx loss from HO2,  mol/cm3
+  real(dp) :: oddhsrc(c_kvec,2)  ! Summed P Hx, mol/cm3
+  real(dp) :: oddhsum(c_kvec,2)  ! Summed net P/L Hx, mol/cm3
+  real(dp) :: senshx(c_kvec,2)   ! Hx sens: d ln(pHx)/d ln([OH])
+  real(dp) :: senhcat(c_kvec,99) ! Hx sens. by species categ.
 !
-      double precision sourcnx(c_kvec)   ! Summed NOx source, mol/cm3
-      double precision sinknx(c_kvec)    ! Summed NOx sink, mol/cm3
+  real(dp) :: sourcnx(c_kvec)    ! Summed NOx source, mol/cm3
+  real(dp) :: sinknx(c_kvec)     ! Summed NOx sink, mol/cm3
 
-      double precision xfohtest            ! OH/HO2 convergence test 
-!     double precision xnotest            ! NOx convergence test ratio
-!     double precision xohtest            ! OH convergence test ratio
+  real(dp) :: xfohtest           ! OH/HO2 convergence test 
 
-      double precision oddhfacp(c_kvec) ! Factor for OH from prior iteration
-      double precision oddhsump(c_kvec) ! Net pro/loss of OH from prior it.
-
-      common/ODDHX/ senshx, senhcat, oddhsum, oddhdel        &
-       , oddhsrc, oddhloh, oddhlho2                         &
-       ,sourcnx, sinknx                                     &
-       , xfohtest                                           &
-       , oddhfacp, oddhsump                                 
-!  ,xnotest,xohtest - moved to chemvars
+  real(dp) :: oddhfacp(c_kvec)   ! Factor for OH from prior iteration
+  real(dp) :: oddhsump(c_kvec)   ! Net pro/loss of OH from prior it.
 !
 ! SPECIES INDICES AND COUNTERS FOR CHEMISTRY SOLVER. 
-!  (Mostly local,not in common - except 'nsdim' - elim. in future.
 
 ! ncsol(nc)              Chem. species number for head of pair group
 !                        being solved for.  
@@ -314,16 +279,13 @@
 !                   (excluding pair chains).
 !       (in quadchem, chemsolve, chemread. Must be in common for now.)
 !
-      integer nsol          ! Number of pair groups being solved for
-      integer nsolv         ! Number of species being solved for
-      integer nsdim         ! Maximum number of pair groups being solved
-      integer ncdim         ! Maximum Number of species being solved for
-      integer ncsolv(c_cdim) ! Species number (ic) for species in solver
-      integer nssolv(c_cdim) ! Pair group number (is) for spec. in solver
-
-      common/CHEMX/ncdim, nsdim
+  integer :: nsol           ! Number of pair groups being solved for
+  integer :: nsolv          ! Number of species being solved for
+  integer :: nsdim          ! Maximum number of pair groups being solved
+  integer :: ncdim          ! Maximum Number of species being solved for
+  integer :: ncsolv(c_cdim) ! Species number (ic) for species in solver
+  integer :: nssolv(c_cdim) ! Pair group number (is) for spec. in solver
 !
-
 ! LOCAL VARIABLES USED IN CHEMISTRY SUBROUTINES 
 !        (not passed between subroutines or included in common block)
 ! 
@@ -349,27 +311,38 @@
 ! kk                            :          Vectorization counter
 ! kw       :   Index for vector diagnostic output (see c_kkw)
 
-      double precision alpha(c_kvec)   ! General vector variable
-      double precision  beta(c_kvec)   ! General vector variable
-      double precision gamma(c_kvec)   ! General vector variable
-      double precision prior(c_kvec)   ! Prior species conc (molec/cm3)
+  real(dp) :: alpha(c_kvec)  ! General vector variable
+  real(dp) :: beta(c_kvec)   ! General vector variable
+  real(dp) :: cgamma(c_kvec) ! General vector variable
+  real(dp) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
 
+  real(dp) :: stoicx            ! stoichiometry sum
 
-      double precision stoicx            ! stoichiometry sum
-      integer ic, ic1, ic2, ic3, icc, ics, ics2, icc1, icc2, icc3  !Chem index
-      integer is, iss, iscs,isc2                      !Chem local index
-      integer ich, icq, icx, icx1, icx2, icy1, icy2,icp, icp1,icp2   !Chem index
-      integer icr1, icr2,icr, isr1, isr2, icpair   !chem index - pair and multi
-      integer ionsum                             ! aquasolve ion counter
-      integer ica1, ica2, icb1, icb2, nra1,nra2,nrb1,nrb2 !Aquasolve chem index
-      integer neq                         !Aqueous counters
-      integer nc, nc1, nc2, ncc,  ncf, nn,nne     !Chem species counters
-      integer nr, nr1, nr2, nrh, nrq, nrqq, nrx, np   ! Reaction counters
-      integer icat1, icat2,icatp, icatp2  ! indices used for species categories
-      integer kk, kw                            ! Vectorization counters
-      integer i, j, k, ii, ij, iii, n           ! General counters
+  ! Chem index
+  integer :: ic , ic1 , ic2 , ic3 , icc , ics , ics2 , icc1 , icc2 , icc3
+  ! Chem local index
+  integer :: is , iss , iscs , isc2
+  ! Chem index
+  integer :: ich , icq , icx , icx1 , icx2 , icy1 , icy2 , icp , icp1 , icp2
+  ! chem index - pair and multi
+  integer :: icr1 , icr2 , icr , isr1 , isr2 , icpair
+  ! aquasolve ion counter
+  integer :: ionsum
+  ! Aquasolve chem index
+  integer :: ica1 , ica2 , icb1 , icb2 , nra1 , nra2 , nrb1 , nrb2
+  ! Aqueous counters
+  integer :: neq
+  ! Chem species counters
+  integer :: nc , nc1 , nc2 , ncc , ncf , nn , nne
+  ! Reaction counters
+  integer :: nr , nr1 , nr2 , nrh , nrq , nrqq , nrx , np
+  ! indices used for species categories
+  integer :: icat1 , icat2 , icatp , icatp2
+  ! Vectorization counters
+  integer :: kk , kw
+  ! General counters
+  integer :: i , j , k , ii , ij , iii , n
 ! 
-!
 ! CUT LOCAL VARIABLES  - Local in individual subroutines
 !
 ! lloss        Local: Flag for identifying exchange loss reaction
@@ -390,3 +363,4 @@
 !
 !  ncsol(c_cdim)      Species list passed in call to chemsolve
 
+end module mod_cbmz_chemlocal
