@@ -44,6 +44,11 @@ module mod_che_common
   character(len=5) , pointer , dimension(:) :: chtrname
 !
   real(dp) , pointer , dimension(:,:) :: chtrdpv
+
+  ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
+  ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
+  real(dp) , pointer , dimension(:,:) :: chevap , checum
+
   real(dp) , pointer , dimension(:,:) :: chtrsize , dustbsiz
   real(dp) , pointer , dimension(:,:) :: ssltbsiz
   real(dp) , pointer , dimension(:) :: chtrsol
@@ -56,9 +61,6 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:) :: rembc , remrat
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(sp) , pointer , dimension(:,:,:,:,:,:) :: dextmix , dgmix , dssamix
-  integer :: mixtype
-
   real(dp) , pointer , dimension(:,:) :: sfcp
 
   contains
@@ -83,10 +85,6 @@ module mod_che_common
 
     call getmem2d(rembc,1,iy,1,kz,'mod_che_common:rembc')
     call getmem2d(remrat,1,iy,1,kz,'mod_che_common:remrat')
-
-    allocate(dextmix(4,19,11,11,11,11))
-    allocate(dgmix(4,19,11,11,11,11))
-    allocate(dssamix(4,19,11,11,11,11))
 
     if ( lch ) then
       call getmem3d(cemtr,1,iy,1,jxp,1,ntr,'mod_che_common:cemtr')
@@ -123,6 +121,8 @@ module mod_che_common
       call getmem3d(wdlsc,1,iy,1,jxp,1,ntr,'mod_che_common:wdlsc')
       call getmem3d(wxaq,1,iy,1,jxp,1,ntr,'mod_che_common:wxaq')
       call getmem3d(wxsg,1,iy,1,jxp,1,ntr,'mod_che_common:wxsg')
+      call getmem2d(chevap,1,iy,1,kz,'mod_che_common:chevap')
+      call getmem2d(checum,1,iy,1,kz,'mod_che_common:checum')
     end if
 
   end subroutine allocate_mod_che_common

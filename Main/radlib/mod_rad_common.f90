@@ -26,7 +26,6 @@ module mod_rad_common
   public
 
   logical :: lchem ! ichem logical equiv
-  integer :: chmixtyp ! mixtype
   real(8) :: ptp ! ptop
   real(8) , pointer , dimension(:) :: flev , hlev ! sigma , a
   real(8) , pointer , dimension(:,:) :: sfps    ! sps2%ps
@@ -84,10 +83,6 @@ module mod_rad_common
   integer , pointer , dimension(:,:,:) :: lndocnicemsk ! ocld2d
 
   real(8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
-
-  real(4) , pointer , dimension(:,:,:,:,:,:) :: chdextmix ! dextmix
-  real(4) , pointer , dimension(:,:,:,:,:,:) :: chdssamix ! dssamix
-  real(4) , pointer , dimension(:,:,:,:,:,:) :: chdgmix   ! dgmix
 
   character(len=5) , pointer , dimension(:) :: tracname ! chtrname
 

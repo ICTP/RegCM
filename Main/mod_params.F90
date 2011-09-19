@@ -136,7 +136,7 @@ module mod_params
     cprcon , nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
-    ichcumtra , idirect , mixtype , inpchtrname , inpchtrsol ,      &
+    ichcumtra , idirect , inpchtrname , inpchtrsol ,      &
     inpchtrdpv , inpdustbsiz
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
@@ -404,7 +404,6 @@ module mod_params
   ichdrdepo = 1     ! tracer dry deposition
   ichcumtra = 1     ! tracer convective transport
   idirect = 1       ! tracer direct effect
-  mixtype = 1
   inpchtrname(:) = "XXXXX"
 #ifdef CLM
 !c------CLM Specific
@@ -860,12 +859,11 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps2,icumtop,icumbot)
-  call init_rad(ichem,mixtype,ptop,a,sigma,sps1,sps2,atms,sfsta, &
-                mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
-                aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &
-                emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,       &
-                fsw2d,flw2d,flwd2d,ocld2d,chia,dextmix,dssamix,  &
-                dgmix,chtrname)
+  call init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta,        &
+                mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,   &
+                aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl, &
+                emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,      &
+                fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

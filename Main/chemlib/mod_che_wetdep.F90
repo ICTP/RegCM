@@ -29,12 +29,6 @@ module mod_che_wetdep
   use mod_che_drydep
 
   public :: sethet , wetdepa
-  public :: chevap , checum
-
-  ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
-  real(dp), allocatable :: chevap(:,:)
-  ! h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-  real(dp), allocatable :: checum(:,:)
 
   contains
 !

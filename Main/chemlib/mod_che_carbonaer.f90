@@ -26,19 +26,21 @@ module mod_che_carbonaer
   use mod_che_species
   use mod_che_indices
 
+  private
+
   ! Parameter usefull for wet and dry deposition of carbon aerosol 
   ! densities in kg/m3
-  real(dp) , parameter :: chrhobc   = 2000.0D0
-  real(dp) , parameter :: chrhobchl = 1600.0D0
-  real(dp) , parameter :: chrhooc   = 1200.0D0
-  real(dp) , parameter :: chrhoochl = 1200.0D0
+  real(dp) , public , parameter :: chrhobc   = 2000.0D0
+  real(dp) , public , parameter :: chrhobchl = 1600.0D0
+  real(dp) , public , parameter :: chrhooc   = 1200.0D0
+  real(dp) , public , parameter :: chrhoochl = 1200.0D0
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? ) 
-  real(dp) , parameter :: chreffbc   = 0.05D0
-  real(dp) , parameter :: chreffbchl = 0.3D0
-  real(dp) , parameter :: chreffoc   = 0.2D0
-  real(dp) , parameter :: chreffochl = 0.3D0
+  real(dp) , public , parameter :: chreffbc   = 0.05D0
+  real(dp) , public , parameter :: chreffbchl = 0.3D0
+  real(dp) , public , parameter :: chreffoc   = 0.2D0
+  real(dp) , public , parameter :: chreffochl = 0.3D0
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.
@@ -46,14 +48,9 @@ module mod_che_carbonaer
   !
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(dp) , dimension(5,2) :: carbsiz
-
-  private
+  real(dp) , public , dimension(5,2) :: carbsiz
 
   public :: aging_carb
-  public :: chrhobc , chrhobchl , chrhooc , chrhoochl
-  public :: chreffbc , chreffbchl , chreffoc , chreffochl
-  public :: carbsiz
 
   contains
 

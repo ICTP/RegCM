@@ -706,363 +706,187 @@ module mod_rad_aerosol
    
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
-!   Option 1  melange externe
+!   Melange externe
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+!
+!   Spectral loop
+!
+    do ns = 1 , nspi
 
-    if ( chmixtyp == 1 ) then
+      tauxar(:,ns) = d_zero
+      tauasc(:,ns) = d_zero
+      gtota(:,ns) = d_zero
+      ftota(:,ns) = d_zero
 !
-!     Spectral loop
+      tauxar3d(:,:,ns) = d_zero
+      tauasc3d(:,:,ns) = d_zero
+      gtota3d(:,:,ns) = d_zero
+      ftota3d(:,:,ns) = d_zero
 !
-      do ns = 1 , nspi
-
-        tauxar(:,ns) = d_zero
-        tauasc(:,ns) = d_zero
-        gtota(:,ns) = d_zero
-        ftota(:,ns) = d_zero
-!
-        tauxar3d(:,:,ns) = d_zero
-        tauasc3d(:,:,ns) = d_zero
-        gtota3d(:,:,ns) = d_zero
-        ftota3d(:,:,ns) = d_zero
-!
-        uaer(:,0,:) = d_zero
-        tx(:,0,:) = d_zero
-        wa(:,0,:) = d_zero
-        ga(:,0,:) = d_zero
-        fa(:,0,:) = d_zero
-        utaer(:,:) = d_zero
-        tauaer(:,:) = d_zero
-        waer(:,:) = d_zero
-        gaer(:,:) = d_zero
-        faer(:,:) = d_zero
+      uaer(:,0,:) = d_zero
+      tx(:,0,:) = d_zero
+      wa(:,0,:) = d_zero
+      ga(:,0,:) = d_zero
+      fa(:,0,:) = d_zero
+      utaer(:,:) = d_zero
+      tauaer(:,:) = d_zero
+      waer(:,:) = d_zero
+      gaer(:,:) = d_zero
+      faer(:,:) = d_zero
 ! 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
-!       calculate optical properties of each aerosol component
+!     calculate optical properties of each aerosol component
 !
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
-        do k = 1 , kz
-          do i = 1 , iym1
-            path = (pint(i,k+1)-pint(i,k))*regravgts
-            ibin = 0
-            jbin = 0
-            do itr = 1 , ntr
-              uaer(i,k,itr) = d_zero
-              if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) then
-                print * , i , k , rh(i,k) , '  RH WARNING !!!!!'
-              end if
-!
-              if ( tracname(itr) == 'XXXXX') then
-                continue
-              end if
-!
-              if ( tracname(itr) == 'DUST' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-!               gaffe au facteur !!
-!               gaffe au ntr/bins
-                ibin = ibin + 1
-                if ( ibin > 4 ) then
-                  call fatal(__FILE__,__LINE__,'DUST BINS MAX is 4')
-                end if
-!
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
-                wa(i,k,itr) = wsdust(ns,ibin)
-                ga(i,k,itr) = gsdust(ns,ibin)
-                fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
-! 
-              else if ( tracname(itr) == 'SO4' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbase(ns) *               &
-                         dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(i,k)+kscoef(ns,3)) + &
-                              kscoef(ns,4)/(rh(i,k)+kscoef(ns,5)))
-!
-                wa(i,k,itr) = d_one - wsbase(ns) * dexp(wscoef(ns,1)+wscoef(ns,2) / &
-                         (rh(i,k)+wscoef(ns,3))+wscoef(ns,4)/(rh(i,k)+wscoef(ns,5)))
-!
-                ga(i,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
-                         (rh(i,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(i,k)+gscoef(ns,5)))
-!
-                fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-              else if ( tracname(itr) == 'SSLT' ) then
-                rh0 = dmin1(0.99D0,dmax1(d_zero,rh(i,k)))
-                jbin = jbin+1
-                if ( jbin > 2 ) then
-                  call fatal(__FILE__,__LINE__,'SEA SALT BINS MAX is 2')
-                end if
-                do l = 1 , 7
-                  if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
-                    kssslt(ns,jbin) = ksslt(ns,jbin,l)
-                    gssslt(ns,jbin) = gsslt(ns,jbin,l)
-                    wssslt(ns,jbin) = wsslt(ns,jbin,l)
-                  end if
-                end do
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*kssslt(ns,jbin)
-                wa(i,k,itr) = wssslt(ns,jbin)
-                ga(i,k,itr) = gssslt(ns,jbin)
-                fa(i,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
-              else if ( tracname(itr) == 'OC_HL' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-!               Humidity effect !
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hl(ns) *    &
-                                  (d_one-rh(i,k))**(-0.2D0)
-                wa(i,k,itr) = wsoc_hl(ns)
-                ga(i,k,itr) = gsoc_hl(ns)
-                fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-              else if ( tracname(itr) == 'BC_HL' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-!               Humidity effect !
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hl(ns) *    &
-                                  (d_one-rh(i,k))**(-0.25D0)
-                wa(i,k,itr) = wsbc_hl(ns)
-                ga(i,k,itr) = gsbc_hl(ns)
-                fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
-              else if ( tracname(itr) == 'OC_HB' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hb(ns)
-                wa(i,k,itr) = wsoc_hb(ns)
-                ga(i,k,itr) = gsoc_hb(ns)
-                fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
-              else if ( tracname(itr) == 'BC_HB' ) then
-                uaer(i,k,itr) = aermmr(i,k,itr)*path
-!               Absorbing aerosols (soot type)
-                tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hb(ns)
-                wa(i,k,itr) = wsbc_hb(ns)
-                ga(i,k,itr) = gsbc_hb(ns)
-                fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
-              end if
-            end do  ! end tracer loop
-          end do
-        end do
-!
-!       optical properties for the clear sky diagnostic
-!
+      do k = 1 , kz
         do i = 1 , iym1
+          path = (pint(i,k+1)-pint(i,k))*regravgts
+          ibin = 0
+          jbin = 0
           do itr = 1 , ntr
-            do k = 1 , kz
-              utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
-              tauaer(i,itr) = tauaer(i,itr) + tx(i,k,itr)
-              waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
-              gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
-              faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
-            end do
-            if ( utaer(i,itr) <= minimum_utaer ) utaer(i,itr) = minimum_utaer
-            waer(i,itr) = waer(i,itr)/utaer(i,itr)
-            gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
-            faer(i,itr) = faer(i,itr)/utaer(i,itr)
-          end do
-        end do
-!
-!       Calculate the EXTERNAL Mixing of aerosols
-!       melange externe
-!
-        do i = 1 , iym1
-          do itr = 1 , ntr
-!           only for climatic feedback allowed
-            do k = 0 , kz
-              tauxar3d(i,k,ns) = tauxar3d(i,k,ns) + tx(i,k,itr)
-              tauasc3d(i,k,ns) = tauasc3d(i,k,ns) + tx(i,k,itr)*wa(i,k,itr)
-              gtota3d(i,k,ns) = gtota3d(i,k,ns) + ga(i,k,itr) * &
-                                  tx(i,k,itr)*wa(i,k,itr)
-              ftota3d(i,k,ns) = ftota3d(i,k,ns) + fa(i,k,itr) * &
-                                  tx(i,k,itr)*wa(i,k,itr)
-            end do
-!
-!           Clear sky (always calcuated if ichdir >=1 for
-!           diagnostic radiative forcing)
-!
-            tauxar(i,ns) = tauxar(i,ns) + tauaer(i,itr)
-            if (waer(i,itr) > minimum_waer) then
-              tauasc(i,ns) = tauasc(i,ns) + tauaer(i,itr)*waer(i,itr)
-            end if
-            if (gaer(i,itr) > minimum_gaer .and.  &
-                waer(i,itr) > minimum_gaer) then
-              gtota(i,ns) = gtota(i,ns) + gaer(i,itr) * &
-                                tauaer(i,itr)*waer(i,itr)
-              ftota(i,ns) = ftota(i,ns) + faer(i,itr) * &
-                                tauaer(i,itr)*waer(i,itr)
-            end if
-          end do
-        end do
-!
-      end do ! end spectral loop
-!
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!
-!   Option 2  melange interne
-!
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!
-    else if ( chmixtyp == 2 ) then
-!
-!CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-!
-!     Spectral loop
-!
-      do ns = 1 , nspi
-
-        tauxar(:,ns) = d_zero
-        tauasc(:,ns) = d_zero
-        gtota(:,ns)  = d_zero
-        ftota(:,ns)  = d_zero
-        tauxar3d(:,:,ns)  = d_zero
-        tauasc3d(:,:,ns)  = d_zero
-        gtota3d(:,:,ns)   = d_zero
-        ftota3d(:,:,ns)   = d_zero
-! 
-        uaer(:,0,:)   = d_zero
-        tx(:,0,:) = d_zero
-        wa(:,0,:)     = d_zero
-        ga(:,0,:)     = d_zero
-        fa(:,0,:)     = d_zero
-        utaer(:,:)    = d_zero
-        tauaer(:,:)   = d_zero
-        waer(:,:)     = d_zero
-        gaer(:,:)     = d_zero
-        faer(:,:)     = d_zero
-!
-!       calculate optical properties of each aerosol component
-!
-        do i = 1 , iym1
-          do k = 1 , kz
-            path = (pint(i,k+1)-pint(i,k))*regravgts
+            uaer(i,k,itr) = d_zero
             if ( rh(i,k) < d_zero .or. rh(i,k) > d_one ) then
-              write ( 6,* ) 'WARNING RH : ' , i , k , rh(i,k)
-            end if
-!           sum of hydrophilic aerosols
-            aervtot(i,k) = d_zero
-            aermtot(i,k) = d_zero
-!
-            if ( ichso4 /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichso4)/rhoso4
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichso4)
-            end if
-! 
-            if ( ichbc /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichbc)/rhobc
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichbc)
+              print * , i , k , rh(i,k) , '  RH WARNING !!!!!'
             end if
 !
-            if ( ichoc /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + aermmr(i,k,ichoc)/rhooc
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,ichoc)
+            if ( tracname(itr) == 'XXXXX') then
+              continue
             end if
+!
+            if ( tracname(itr) == 'DUST' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+!             gaffe au facteur !!
+!             gaffe au ntr/bins
+              ibin = ibin + 1
+              if ( ibin > 4 ) then
+                call fatal(__FILE__,__LINE__,'DUST BINS MAX is 4')
+              end if
+!
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksdust(ns,ibin)
+              wa(i,k,itr) = wsdust(ns,ibin)
+              ga(i,k,itr) = gsdust(ns,ibin)
+              fa(i,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
 ! 
-            if ( idust(1) /= 0 ) then
-              aervtot(i,k) = aervtot(i,k) + &
-                             aermmr(i,k,idust(1))/rhodust
-              aermtot(i,k) = aermtot(i,k) + aermmr(i,k,idust(1))
+            else if ( tracname(itr) == 'SO4' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbase(ns) *               &
+                   dexp(kscoef(ns,1)+kscoef(ns,2)/(rh(i,k)+kscoef(ns,3)) + &
+                   kscoef(ns,4)/(rh(i,k)+kscoef(ns,5)))
+!
+              wa(i,k,itr) = d_one - wsbase(ns) * &
+                   dexp(wscoef(ns,1)+wscoef(ns,2) / &
+                   (rh(i,k)+wscoef(ns,3))+wscoef(ns,4)/(rh(i,k)+wscoef(ns,5)))
+!
+              ga(i,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
+                   (rh(i,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(i,k)+gscoef(ns,5)))
+!
+              fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+            else if ( tracname(itr) == 'SSLT' ) then
+              rh0 = dmin1(0.99D0,dmax1(d_zero,rh(i,k)))
+              jbin = jbin+1
+              if ( jbin > 2 ) then
+                call fatal(__FILE__,__LINE__,'SEA SALT BINS MAX is 2')
+              end if
+              do l = 1 , 7
+                if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
+                  kssslt(ns,jbin) = ksslt(ns,jbin,l)
+                  gssslt(ns,jbin) = gsslt(ns,jbin,l)
+                  wssslt(ns,jbin) = wsslt(ns,jbin,l)
+                end if
+              end do
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*kssslt(ns,jbin)
+              wa(i,k,itr) = wssslt(ns,jbin)
+              ga(i,k,itr) = gssslt(ns,jbin)
+              fa(i,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
+            else if ( tracname(itr) == 'OC_HL' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+!             Humidity effect !
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hl(ns) *    &
+                                (d_one-rh(i,k))**(-0.2D0)
+              wa(i,k,itr) = wsoc_hl(ns)
+              ga(i,k,itr) = gsoc_hl(ns)
+              fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+            else if ( tracname(itr) == 'BC_HL' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+!             Humidity effect !
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hl(ns) *    &
+                                (d_one-rh(i,k))**(-0.25D0)
+              wa(i,k,itr) = wsbc_hl(ns)
+              ga(i,k,itr) = gsbc_hl(ns)
+              fa(i,k,itr) = ga(i,k,itr)*ga(i,k,itr)
+            else if ( tracname(itr) == 'OC_HB' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksoc_hb(ns)
+              wa(i,k,itr) = wsoc_hb(ns)
+              ga(i,k,itr) = gsoc_hb(ns)
+              fa(i,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
+            else if ( tracname(itr) == 'BC_HB' ) then
+              uaer(i,k,itr) = aermmr(i,k,itr)*path
+!             Absorbing aerosols (soot type)
+              tx(i,k,itr) = d10e5*uaer(i,k,itr)*ksbc_hb(ns)
+              wa(i,k,itr) = wsbc_hb(ns)
+              ga(i,k,itr) = gsbc_hb(ns)
+              fa(i,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
             end if
-!           minimum quantity of total aerosol
-            if ( aermtot(i,k) > minimum_aerosol ) then
-!             indexes in the internal mixing table
-              prop(1) = (aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k)
-              prop(2) = (aermmr(i,k,ichbc)/rhobc)/aervtot(i,k)
-              prop(3) = (aermmr(i,k,ichoc)/rhooc)/aervtot(i,k)
-              prop(4) = (aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
-!             FIND THE GREATEST FRACTIONAL PART
-              if ( ichso4 /= 0 ) then
-                i1 = idnint(d_10*prop(1)) + 1
-              else
-                i1 = 0 + 1
-              end if
-              if ( ichbc /= 0 ) then
-                i2 = idnint(d_10*prop(2)) + 1
-              else
-                i2 = 0 + 1
-              end if
-              if ( ichoc /= 0 ) then
-                i3 = idnint(d_10*prop(3)) + 1
-              else
-                i3 = 0 + 1
-              end if
-              if ( idust(1) /= 0 ) then
-                i4 = idnint(d_10*prop(4)) + 1
-              else
-                i4 = 0 + 1
-              end if
+          end do  ! end tracer loop
+        end do
+      end do
 !
-!             final optical parameters
+!     optical properties for the clear sky diagnostic
 !
-              if ( i1+i2+i3+i4 == 13 ) i4 = i4 + 1
-              if ( i1+i2+i3+i4 == 15 ) then
-                if ( i4 /= 1 ) i4 = i4 - 1
-              end if
-! 
-              if ( i1+i2+i3+i4 == 15 ) then
-                if ( i1 /= 1 ) i1 = i1 - 1
-              end if
-! 
-              if ( i1+i2+i3+i4 == 15 ) then
-                if ( i3 /= 1 ) i3 = i3 - 1
-              end if
-! 
-              if ( i1+i2+i3+i4 == 15 ) then
-                call fatal(__FILE__,__LINE__,'WRONG COMBINATION. SHOULD NEVER HAPPEN')
-              end if
-! 
-              if ( i1+i2+i3+i4 /= 14 ) then
-                print * , i1 , i2 , i3 , i4 , i1 + i2 + i3 + i4
-                print * , idust(1) , ichoc , ichbc , ichso4
-                print * , 'OC HL' , aermmr(i,k,ichoc)/rhooc
-                print * , 'BC HL' , aermmr(i,k,ichbc)/rhobc
-                print * , 'SO4' , aermmr(i,k,ichso4)/rhoso4
-                print * , 'DUST' , aermmr(i,k,idust(1))/rhodust
-                print * , 'VOL TOT' , aervtot(i,k)
-                print * , 'OC HL%' , d_10*(aermmr(i,k,ichoc)/rhooc)/aervtot(i,k)
-                print * , 'BC HL%' , d_10*(aermmr(i,k,ichbc)/rhobc)/aervtot(i,k)
-                print * , 'SO4 %' , d_10*(aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k)
-                print * , 'SO4 %' ,idnint(d_10*(aermmr(i,k,ichso4)/rhoso4)/aervtot(i,k))
-                print * , 'DUST %',d_10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k)
-                print * , 'DUST %',                             &
-                     idnint(d_10*(aermmr(i,k,idust(1))/rhodust)/aervtot(i,k))
-                call fatal(__FILE__,__LINE__,'SOMETHING WRONG ON SPECIES ABUNDANCE')
-              end if
+      do i = 1 , iym1
+        do itr = 1 , ntr
+          do k = 1 , kz
+            utaer(i,itr) = utaer(i,itr) + uaer(i,k,itr)
+            tauaer(i,itr) = tauaer(i,itr) + tx(i,k,itr)
+            waer(i,itr) = waer(i,itr) + wa(i,k,itr)*uaer(i,k,itr)
+            gaer(i,itr) = gaer(i,itr) + ga(i,k,itr)*uaer(i,k,itr)
+            faer(i,itr) = faer(i,itr) + fa(i,k,itr)*uaer(i,k,itr)
+          end do
+          if ( utaer(i,itr) <= minimum_utaer ) utaer(i,itr) = minimum_utaer
+          waer(i,itr) = waer(i,itr)/utaer(i,itr)
+          gaer(i,itr) = gaer(i,itr)/utaer(i,itr)
+          faer(i,itr) = faer(i,itr)/utaer(i,itr)
+        end do
+      end do
 !
-              tauxar3d(i,k,ns) = chdextmix(1,ns,i4,i2,i3,i1)* &
-                                   aermtot(i,k)*path*d10e5
-              tauasc3d(i,k,ns) = chdssamix(1,ns,i4,i2,i3,i1)*tauxar3d(i,k,ns)
-              gtota3d(i,k,ns) = chdgmix(1,ns,i4,i2,i3,i1) * &
-                                tauasc3d(i,k,ns)*tauxar3d(i,k,ns)
-              ftota3d(i,k,ns) = chdgmix(1,ns,i4,i2,i3,i1) * &
-                                chdgmix(1,ns,i4,i2,i3,i1) * &
-                                tauasc3d(i,k,ns)*tauxar3d(i,k,ns)
-! 
-!             clear sky dignostic
+!     Calculate the EXTERNAL Mixing of aerosols
+!     melange externe
 !
-              utaer(i,1) = utaer(i,1) + aermtot(i,k)*path
-   
-              tauaer(i,1) = tauaer(i,1) + chdextmix(1,ns,i4,i2,i3,i1) * &
-                            aermtot(i,k)*path*d10e5
-              waer(i,1) = waer(i,1) + chdssamix(1,ns,i4,i2,i3,i1) *     &
-                          aermtot(i,k)*path
-              gaer(i,1) = gaer(i,1) + chdgmix(1,ns,i4,i2,i3,i1) *       &
-                          aermtot(i,k)*path
-              faer(i,1) = gaer(i,1) + chdgmix(1,ns,i4,i2,i3,i1) *       &
-                          chdgmix(1,ns,i4,i2,i3,i1)*aermtot(i,k)*path
-! 
-            end if ! end minimum concentration conditions
-          end do ! end k loop
-! 
-          if ( utaer(i,1) > minimum_utaer ) then
-            waer(i,1) = waer(i,1)/utaer(i,1)
-            gaer(i,1) = gaer(i,1)/utaer(i,1)
-            faer(i,1) = faer(i,1)/utaer(i,1)
+      do i = 1 , iym1
+        do itr = 1 , ntr
+!         only for climatic feedback allowed
+          do k = 0 , kz
+            tauxar3d(i,k,ns) = tauxar3d(i,k,ns) + tx(i,k,itr)
+            tauasc3d(i,k,ns) = tauasc3d(i,k,ns) + tx(i,k,itr)*wa(i,k,itr)
+            gtota3d(i,k,ns) = gtota3d(i,k,ns) + ga(i,k,itr) * &
+                                tx(i,k,itr)*wa(i,k,itr)
+            ftota3d(i,k,ns) = ftota3d(i,k,ns) + fa(i,k,itr) * &
+                                tx(i,k,itr)*wa(i,k,itr)
+          end do
+!
+!         Clear sky (always calcuated if ichdir >=1 for
+!         diagnostic radiative forcing)
+!
+          tauxar(i,ns) = tauxar(i,ns) + tauaer(i,itr)
+          if (waer(i,itr) > minimum_waer) then
+            tauasc(i,ns) = tauasc(i,ns) + tauaer(i,itr)*waer(i,itr)
           end if
-!           clear sky final effective optical properties
-          tauxar(i,ns) = tauaer(i,1)
-          tauasc(i,ns) = waer(i,1)*tauaer(i,1)
-          gtota(i,ns) = gaer(i,1)*waer(i,1)*tauaer(i,1)
-          ftota(i,ns) = faer(i,1)*waer(i,1)*tauaer(i,1)
-        end do ! end i loop
-      end do ! end spectral loop
+          if (gaer(i,itr) > minimum_gaer .and.  &
+              waer(i,itr) > minimum_gaer) then
+            gtota(i,ns) = gtota(i,ns) + gaer(i,itr) * &
+                              tauaer(i,itr)*waer(i,itr)
+            ftota(i,ns) = ftota(i,ns) + faer(i,itr) * &
+                              tauaer(i,itr)*waer(i,itr)
+          end if
+        end do
+      end do
 !
-    else
-      write ( 6,* ) 'MIXTYPE = ', chmixtyp
-      call fatal(__FILE__,__LINE__,'UNSUPPORTED MIXTYPE IN AEROPPT')
-    end if
+    end do ! end spectral loop
 !
 !   FAB 
 !   DUST LW emissivity 

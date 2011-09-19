@@ -35,14 +35,13 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,mixtype,ptop,a,sigma,sps1,sps2,atms,sfsta, &
+  subroutine init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta, &
                       mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
                       aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &
                       emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,     &
-                      fsw2d,flw2d,flwd2d,ocld2d,chia,dextmix,dssamix,  &
-                      dgmix,chtrname)
+                      fsw2d,flw2d,flwd2d,ocld2d,chia,chtrname)
     implicit none
-    integer , intent(in) :: ichem , mixtype
+    integer , intent(in) :: ichem
     real(8) , intent(in) :: ptop
     real(8) , pointer , dimension(:) :: a , sigma
     type(surfpstate) , intent(in) :: sps1 , sps2
@@ -73,13 +72,9 @@ module mod_rad_interface
     real(8) , pointer , intent(in) , dimension(:,:) :: flwd2d
     integer , pointer , intent(in) , dimension(:,:,:) :: ocld2d
     real(8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
-    real(4) , pointer , intent(in) , dimension(:,:,:,:,:,:) :: dextmix
-    real(4) , pointer , intent(in) , dimension(:,:,:,:,:,:) :: dssamix
-    real(4) , pointer , intent(in) , dimension(:,:,:,:,:,:) :: dgmix
     character(len=5) , pointer , intent(in) , dimension(:) :: chtrname
 
     if ( ichem == 1 ) lchem = .true.
-    chmixtyp = mixtype
     ptp = ptop
     call assignpnt(sigma,flev)
     call assignpnt(a,hlev)
@@ -114,9 +109,6 @@ module mod_rad_interface
     call assignpnt(flwd2d,srflwflxdw)
     call assignpnt(ocld2d,lndocnicemsk)
     call assignpnt(chia,chspmix)
-    if ( associated(dextmix) ) chdextmix => dextmix
-    if ( associated(dssamix) ) chdssamix => dssamix
-    if ( associated(dgmix) ) chdgmix => dgmix
     if ( associated(chtrname) ) tracname => chtrname
 
   end subroutine init_rad
