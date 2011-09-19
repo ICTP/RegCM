@@ -37,22 +37,22 @@ module mod_che_drydep
 !
 ! Dynamic Viscosity Parameters
 !
-  real(dp) , parameter :: a1 = 145.8D0
-  real(dp) , parameter :: a2 = 1.5D0
-  real(dp) , parameter :: a3 = 110.4D0
+  real(dp) , parameter , public :: a1 = 145.8D0
+  real(dp) , parameter , public :: a2 = 1.5D0
+  real(dp) , parameter , public :: a3 = 110.4D0
 !
 ! Molecular Free Path calculation parameters
 !
-  real(dp) , parameter :: c1 = 6.54D-8
-  real(dp) , parameter :: c2 = 1.818D-5
-  real(dp) , parameter :: c3 = 1.013D5
-  real(dp) , parameter :: c4 = 293.15D0
+  real(dp) , parameter , public :: c1 = 6.54D-8
+  real(dp) , parameter , public :: c2 = 1.818D-5
+  real(dp) , parameter , public :: c3 = 1.013D5
+  real(dp) , parameter , public :: c4 = 293.15D0
 !
 ! Cunningham slip correction factor parameters
 !
-  real(dp) , parameter :: aa1 = 1.257D0
-  real(dp) , parameter :: aa2 = 0.4D0
-  real(dp) , parameter :: aa3 = 1.1D0
+  real(dp) , parameter , public :: aa1 = 1.257D0
+  real(dp) , parameter , public :: aa2 = 0.4D0
+  real(dp) , parameter , public :: aa3 = 1.1D0
 !
   contains
 !

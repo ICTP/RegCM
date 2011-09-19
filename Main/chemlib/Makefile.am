@@ -24,7 +24,8 @@ libchem_a_SOURCES = mod_che_param.f90 mod_che_common.f90 \
                     mod_che_mppio.F90 mod_che_ncio.F90 mod_che_dust.F90 \
                     mod_che_drydep.F90 mod_che_species.f90 mod_che_indices.f90 \
                     mod_che_carbonaer.f90 mod_che_seasalt.f90 \
-                    mod_che_cumtran.F90 mod_che_sox.f90 mod_che_emission.F90
+                    mod_che_cumtran.F90 mod_che_sox.f90 mod_che_emission.F90 \
+                    mod_che_wetdep.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -80,3 +81,6 @@ mod_che_emission.o mod_che_emission.mod: mod_che_emission.F90 \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_service.mod \
   mod_che_common.o mod_che_param.o mod_che_mppio.o mod_che_indices.o \
   mod_che_ncio.o mod_che_dust.o
+mod_che_wetdep.o mod_che_wetdep.mod: mod_che_wetdep.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_constants.mod \
+  mod_che_common.o mod_che_indices.o mod_che_drydep.o

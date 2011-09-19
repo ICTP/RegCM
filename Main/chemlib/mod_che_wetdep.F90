@@ -190,7 +190,7 @@ module mod_che_wetdep
   !	... the 2 and .6 multipliers are from a formula by frossling (1938)
   !-----------------------------------------------------------------
   xkgm = xdg/xrm * d_two + xdg/xrm * 0.6D0 * &
-         sqrt( xrm*xum/xvv ) * (xvv/xdg)**(d_one/d_three) 
+         dsqrt( xrm*xum/xvv ) * (xvv/xdg)**(d_one/d_three) 
   do k = ktop + 1 , kz
     precip(:,k) = nrain(:,k)        ! = cmfdqr(:,k) + nrain(:,k) - nevapr(:,k)
     rain(:,k)   = mass_air*precip(:,k)*xhnm(:,k) / mass_h2o
@@ -272,12 +272,12 @@ module mod_che_wetdep
     xgas2(:) = xh2o2(i,:)  ! different levels wash 
   level_loop1 : &
     do kk = ktop + 1 , kz
-      stay = 1.
+      stay = d_one
       if ( dabs(rain(i,kk)) > d_zero ) then  ! finding rain cloud
         all1 = d_zero ! accumulation to justisfy saturation
         all2 = d_zero
         stay = ((zmid(i,kk) - zsurf(i))*km2cm)/(xum*delt)
-        stay = dmin1(stay,d_oen)
+        stay = dmin1(stay,d_one)
         !-----------------------------------------------------------
         !  calculate the saturation concentration eqca
         !-----------------------------------------------------------
@@ -362,7 +362,7 @@ module mod_che_wetdep
     end if
 
     work3(:) = dmax1(rain(:,k)/(h2o_mol*(work1(:) + &
-             d_one/(xhen_ch3ooh(:,k)*work2(:)))),d_zero)
+               d_one/(xhen_ch3ooh(:,k)*work2(:)))),d_zero)
     if ( ich3ooh > 0 ) then
       het_rates(:,k,ich3ooh)  = work3(:)
     end if
@@ -440,8 +440,8 @@ module mod_che_wetdep
       het_rates(:,k,ionit) = work3(:)
     end if
      !**** PB is lead
-    if ( iPb > 0 ) then
-      het_rates(:,k,iPb) = work3(:)
+    if ( ipb > 0 ) then
+      het_rates(:,k,ipb) = work3(:)
     end if
     !  MARCROOH is oxidation product of methacrolein
     if ( imacrooh > 0 ) then
@@ -585,7 +585,8 @@ module mod_che_wetdep
             wetrem(indp(n)) = d_zero
             if ( remrat(i,k) > d_zero ) then
               wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
-                 chib(i,k,j,indp(n))*(dexp(-remrat(i,k)/fracloud(i,k)*dt)-d_one)
+                 chib(i,k,j,indp(n))* &
+                 (dexp(-remrat(i,k)/fracloud(i,k)*dtche)-d_one)
               chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &
                  wetrem(indp(n))/dtche
               remlsc(i,k,j,indp(n)) = remlsc(i,k,j,indp(n)) - &
@@ -601,8 +602,8 @@ module mod_che_wetdep
       ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
       ! remcum = 1.e-3
       do i = 2 , iym2
-        if ( icumtop(i,j) /= 0 ) then
-          do k = icumtop(i,j) , kz
+        if ( kcumtop(i,j) /= 0 ) then
+          do k = kcumtop(i,j) , kz
             wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
                  chib(i,k,j,indp(n))*(dexp(-remcum*dtche)-d_one)
             chiten(i,k,j,indp(n)) = chiten(i,k,j,indp(n)) + &
@@ -656,8 +657,9 @@ module mod_che_wetdep
     implicit none 
  
     integer :: mbin , j
-    real(dp) ::  tmin , dm,tend , t1s , tl
-    real(dp) ::  rrm , xold , xnew
+    real(dp) :: tmin , dm , tend , t1s , tl
+    real(dp) :: rrm , xold , xnew
+    real(dp) , dimension(iy) :: pressg
     ! index of the correponding aerosol in the chi table
     integer , dimension(mbin) , intent(in) :: indp
 
@@ -776,7 +778,7 @@ module mod_che_wetdep
                       ! characteristic capture length (for snow)
   real(dp) :: alpha(iy) 
   integer :: n , k , i
-  real(dp) :: rgasi, tl, r, t1s, t2s , tmin, amob 
+  real(dp) :: tl, r, t1s, t2s , amob 
 
   ! Cunningham slip correction factor parameters for rain
 
@@ -790,7 +792,7 @@ module mod_che_wetdep
   real(dp) , parameter :: zcolleff = 0.1D0
   real(dp) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
  
-  colef(:,:,:) = d_0
+  colef(:,:,:) = d_zero
   do n = 1 , mbin 
     do k = 1 , kz
       do i = 2 , iym2
@@ -852,7 +854,7 @@ module mod_che_wetdep
           !c rrm = characteristic capture length                c
           !c----------------------------------------------------c
           !c needle-snow scavenging:
-          if ( t(i,k) <= tzero .and. t(i,k)>= tzero-8.0D 0) then
+          if ( t(i,k) <= tzero .and. t(i,k)>= tzero-8.0D0 ) then
             vpr(i) = 50.0D-2
             rrm(i) = 10.D-6
             alpha(i) = 1.0D0
@@ -879,7 +881,7 @@ module mod_che_wetdep
           rr = rhsize(i,k,n)/rrm(i)
           vr = amuw/amu
           sstar = (1.2D0+(d_one/12.0D0)* &
-                  dlog(d_one+re))/(d_one+log(d_one+re))
+                  dlog(d_one+re))/(d_one+dlog(d_one+re))
           if ( st > sstar ) then
             colimp = ((st-sstar)/(st-sstar+d_two/d_three))**(d_three/d_two) * &
                     dsqrt(d_1000/rhop(i,k,n))
@@ -902,6 +904,6 @@ module mod_che_wetdep
       end do
     end do 
   end do 
-  end subroutine cas    !subroutine cas
+  end subroutine cas
 !
 end module mod_che_wetdep
