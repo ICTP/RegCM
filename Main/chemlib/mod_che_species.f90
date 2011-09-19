@@ -84,69 +84,6 @@
     type(che_sp_bc) :: chbc0 , chbc1
     type(che_ox_bc) :: oxbc0
 
-    real , parameter :: w_no2 = 46.0D0
-    real , parameter :: w_no  = 30.0D0
-
-    real , parameter :: w_hono = 47.0D0
-    real , parameter :: w_no3  = 62.0D0
-    real , parameter :: w_n2o5 = 108.0D0
-    real , parameter :: w_hno4 = 79.0D0
-    real , parameter :: w_hno3 = 63.0D0
-    real , parameter :: w_o3   = 48.0D0
-    real , parameter :: w_h2o2 = 34.0D0
-    real , parameter :: w_h2o  = 18.0D0
-
-    real , parameter :: w_so2  = 64.0D0
-    real , parameter :: w_sulf = 98.0D0
-    real , parameter :: w_co   = 28.0D0
-    real , parameter :: w_co2  = 44.0D0
-    real , parameter :: w_h2   = 2.0D0
-
-    real , parameter :: w_oh   = 17.0D0
-    real , parameter :: w_ho2  = 33.0D0
-
-    real , parameter :: w_ch4    = 16.0D0
-    real , parameter :: w_ethan  = 30.0D0
-    real , parameter :: w_hc3    = 44.0D0
-    real , parameter :: w_hc5    = 72.0D0
-    real , parameter :: w_hc8    = 114.0D0
-
-    real , parameter :: w_ethene = 28.0D0
-    real , parameter :: w_ol2    = 28.0D0
-    real , parameter :: w_olt    = 42.0D0
-    real , parameter :: w_prpe   = 42.0D0
-    real , parameter :: w_bute   = 56.0D0
-    real , parameter :: w_oli    = 56.0D0
-    real , parameter :: w_isop   = 68.0D0
-
-    real , parameter :: w_tolu   = 92.0D0
-    real , parameter :: w_csl    = 108.0D0
-    real , parameter :: w_xyle   = 106.0D0
-
-    real , parameter :: w_hcho    = 30.0D0
-    real , parameter :: w_ald2    = 44.0D0
-    real , parameter :: w_ket     = 72.0D0
-    real , parameter :: w_onit    = 119.0D0
-    real , parameter :: w_gly     = 58.0D0
-    real , parameter :: w_mgly    = 72.0D0
-
-    real , parameter :: w_pan     = 121.0D0
-    real , parameter :: w_tpan    = 147.0D0
-    real , parameter :: w_alco    = 32.0D0
-
-    real , parameter :: w_dms     = 62.0D0
-    real , parameter :: w_rooh    = 48.0D0
-    real , parameter :: w_nh3     = 17.0D0
-    real , parameter :: w_c2h6    = 30.07D0
-    real , parameter :: w_c3h8    = 44.1D0
-    real , parameter :: w_alk4    = 58.12D0
-    real , parameter :: w_alk7    = 100.20D0
-    real , parameter :: w_mo2     = 47.0D0
-    real , parameter :: w_acet    = 58.08D0
-    real , parameter :: w_moh     = 32.04D0
-    real , parameter :: w_eoh     = 46.07D0
-    real , parameter :: w_benz    = 78.11D0
-
   contains
 
     subroutine allocate_che_species_bc
