@@ -1,15 +1,36 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+module mod_cbmz_chemvars
+!
+  use m_realkinds
+  use mod_cbmz_chemmech
+!
+  public
+!
 ! chemvars.EXT    April, 2007
-!   INCLUDE and COMMON file 
-!     for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
+!
+!  for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
 ! NOTE- chemvars.EXT and chemmech.EXT must always go together
 !       with chemmech.EXT first - it contains indices. (change 7/07)
-!
-!  This file includes declarations and common blocks
-!   for INPUT-OUTPUT VARIABLES
-!   which are passed to and  from the solver for photochemistry 
-!   at each time step.
 !
 !  Divided into ESSENTIAL input/output 
 !    and OPTIONAL output which is rarely used.
@@ -36,29 +57,26 @@
 ! 
 ! c_xcin :
 ! c_xcin:       input  species  concentration, molec/cm3
-!                  including emissions during the time step
-! c_xcout:         final species concentrations, molec/cm3
-!                  for gas species: sum of gas + linked aqueous,
-!                   in gas units (molec/cm3).
-!                  for aqueous species: M/liter.  
+!               including emissions during the time step
+! c_xcout:      final species concentrations, molec/cm3
+!               for gas species: sum of gas + linked aqueous,
+!               in gas units (molec/cm3).
+!               for aqueous species: M/liter.  
 ! c_xcav:       average species concentration during the time step
-!                 (to be used for wet deposition: 
-!                xcwdep(M/cm2) = xcav(M/L)*rainfr*alt(cm)*.01 (dm2/cm2)
+!               (to be used for wet deposition: 
+!               xcwdep(M/cm2) = xcav(M/L)*rainfr*alt(cm)*.01 (dm2/cm2)
 ! c_xcemit:     emissions during time step, molec/cm3
 !               (only used in expo. decay solution, usually zero)
 ! c_xcwdep:     Wet deposition in solver - Not used.
-! c_time:              time step (sec)
+! c_time:       time step (sec)
 !         
-       double precision c_xcin( c_kvec,c_cdim) ! concentration molec/cm3
-       double precision c_xcout( c_kvec,c_cdim) ! concentration, mol/cm3
-       double precision c_xcav( c_kvec,c_cdim)  ! concentration, mol/cm3
-       double precision c_xcemit( c_kvec,c_cdim) ! emissions, molec/cm3
-       double precision c_time         ! time step (sec)
-       double precision c_jval(c_kvec,56)
+   real(dp) :: c_xcin(c_kvec,c_cdim)   ! concentration molec/cm3
+   real(dp) :: c_xcout(c_kvec,c_cdim)  ! concentration, mol/cm3
+   real(dp) :: c_xcav(c_kvec,c_cdim)   ! concentration, mol/cm3
+   real(dp) :: c_xcemit(c_kvec,c_cdim) ! emissions, molec/cm3
+   real(dp) :: c_time                  ! time step (sec)
+   real(dp) :: c_jval(c_kvec,56)
 ! 
-       common/CHEM_BASIC/c_xcin, c_xcout, c_xcav, c_xcemit,  c_time, &
-                         c_jval
-
 ! (note = separate out TIME?)
 
 !  CHEMISTRY INPUT PARAMETERS (CPARAMS):  
@@ -80,23 +98,18 @@
 ! c_lexpo(kvec)         Flag for modified backward Euler solution
 !                        with exponential decay
 ! 
-       double precision c_temp(c_kvec)    ! temperature K
-       double precision c_dens(c_kvec)    ! density molec cm-3
-       double precision c_h2oliq(c_kvec)   ! LWC grams cm-3
-       double precision c_rainfr(c_kvec)  ! rainout fraction
-       double precision c_saersa(c_kvec)  ! s aerosol surf area cm2/cm3
-       double precision c_h2ogas(c_kvec)   ! H2O absolute humidity molec/cm3
+   real(dp) :: c_temp(c_kvec)          ! temperature K
+   real(dp) :: c_dens(c_kvec)          ! density molec cm-3
+   real(dp) :: c_h2oliq(c_kvec)        ! LWC grams cm-3
+   real(dp) :: c_rainfr(c_kvec)        ! rainout fraction
+   real(dp) :: c_saersa(c_kvec)        ! s aerosol surf area cm2/cm3
+   real(dp) :: c_h2ogas(c_kvec)        ! H2O absolute humidity molec/cm3
 
-       double precision c_rgasaq(c_kvec,c_rdim)  ! Input gas->aq rate
-       double precision c_DROPLET(c_kvec) ! droplet radius, cm
-       logical c_lgasaq(c_kvec)       ! Flag to calc. gas-aq rate
-       logical c_lstsaq(c_kvec)       ! Flag for steady state gas-aq
-       logical c_lexpo(c_kvec)        ! Flag for expo decay solution
-
-      common/CHEMPARAMS/  c_temp, c_dens, c_h2oliq        &
-      ,c_rainfr, c_saersa, c_h2ogas                      &
-      , c_rgasaq, c_DROPLET, c_lgasaq, c_lstsaq, c_lexpo
-
+   real(dp) :: c_rgasaq(c_kvec,c_rdim) ! Input gas->aq rate
+   real(dp) :: c_DROPLET(c_kvec)       ! droplet radius, cm
+   logical :: c_lgasaq(c_kvec)         ! Flag to calc. gas-aq rate
+   logical :: c_lstsaq(c_kvec)         ! Flag for steady state gas-aq
+   logical :: c_lexpo(c_kvec)          ! Flag for expo decay solution
 
 !  PHOTOLYSIS INPUT PARAMETERS (HVPARAMS):  
 !      Parameters used in calculating HV RATES.
@@ -133,13 +146,11 @@
 !                   Note, ZEN1 has alt.for YYYYDDD
 !        (lat, lon, hour and date used in SOLAR ZENITH ANGLE  calc.)
 !
-      double precision  c_lat(c_kvec)    ! Latitude, degrees
-      double precision  c_lon(c_kvec)    ! Longitude, degrees
-      double precision c_hour            ! Hour at end , EST (hrs)
-      integer c_IDATE                    ! Date YYMMDD (YY=100 for 2000)
-      double precision c_jparam(       22) ! J-value input parameters
-
-      common/HVPARAMS/ c_lat, c_lon, c_hour,c_IDATE, c_jparam
+  real(dp) :: c_lat(c_kvec) ! Latitude, degrees
+  real(dp) :: c_lon(c_kvec) ! Longitude, degrees
+  real(dp) :: c_hour        ! Hour at end , EST (hrs)
+  integer :: c_idate        ! Date YYMMDD (YY=100 for 2000)
+  real(dp) :: c_jparam(22)  ! J-value input parameters
 
 ! OPTIONAL CHEM OUTPUT VALUES:    
 !  May be used for subsequent analysis but not necessary.
@@ -149,18 +160,16 @@
 !  c_rl(c_kvec,c_cdim)  Rate of loss  of species ic, molec/cm3/timestep
 !  c_rr(c_kvec,c_rdim)    Rate of reaction, molec/cm3/timestep
 
-      double precision c_rp(c_kvec,c_cdim)  ! Production, molec/cm3
-      double precision c_rl(c_kvec,c_cdim)  ! Loss, molec/cm3
-      double precision c_rr(c_kvec,c_rdim)  ! Reaction rate m/cm3
-      common/CHEM_OPTIONAL/ c_rp, c_rl, c_rr
+  real(dp) :: c_rp(c_kvec,c_cdim)  ! Production, molec/cm3
+  real(dp) :: c_rl(c_kvec,c_cdim)  ! Loss, molec/cm3
+  real(dp) :: c_rr(c_kvec,c_rdim)  ! Reaction rate m/cm3
 
 ! OPTIONAL OUTPUTS RELATING TO NUMERICS: 
 !   Currently in chemlocal:  
 !    xohtest, xnotest, fohtest, final iter, history, geomavg
 
-      double precision c_ohtest       ! test: dOH/OH or dOH/HO2
-      double precision c_notest       ! test: dNO2/NO2
-      integer c_iter                  ! chem. number of iterations
-      common/CHEMTEST/ c_ohtest, c_notest, c_iter
+  real(dp) :: c_ohtest   ! test: dOH/OH or dOH/HO2
+  real(dp) :: c_notest   ! test: dNO2/NO2
+  integer :: c_iter      ! chem. number of iterations
 
-! END OF chemvars.EXT
+end module mod_cbmz_chemvars

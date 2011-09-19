@@ -1,14 +1,35 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+module mod_cbmz_chemmech
+!
+  use m_realkinds
+!
+  public
 !
 ! chemmech.EXT    April, 2007    
-!      November 2007 - added common variables for tracer calculations
-!   INCLUDE and COMMON file 
 !     for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
 ! NOTE- chemvars.EXT and chemmech.EXT must always go together
 !       with chemmech.EXT first - it contains indices. (changed 7/07)
 !
-!  This file includes declarations and common blocks
 !   for MECHANISM and NUMERICAL VARIABLES:  reaction and j-value data
 !   which are read and/or set up  once at the start of the program
 !   and then remain unchanged during calls to the solver.
@@ -19,8 +40,8 @@
 !   c_cdim and c_rdim = maximum number of species and reactions
 !                       (Currently 1511,3211. Can be increased.)
 !
-!   Real vs double precision:  (Double precision is standard)
-!   If double precision, change 'real' to 'double precision'
+!   Real vs real(dp):  (Double precision is standard)
+!   If real(dp), change 'real' to 'double precision'
 !    throughout this file and all fortran files.
 !    also change exponents (DO vs EO) in BOD and YTN
 ! ----------------------------
@@ -36,23 +57,19 @@
 !  12/06. Program written by Sandy Sillman based on commq7.EXT
 !   7/07  Modified to put critical indices in chemmech.
 ! -------------------------------------------------------------
-!      implicit none  -- IMPLICIT  is in boxvars.EXT, chemlocal.EXT
-!      implicit double precision (a-h,o-z)
 
 ! ESSENTIAL index parameters:  
-!                    (values set here; no need for common block)
 !     c_kvec:  maximum index for vectorization
 !     c_icdim: maximum dimension for the number of species
 !     c_rdim: maximum dimension for the number of reactions
 
-       integer c_kvec
-       PARAMETER (c_kvec=1)      ! Maximum dimension for vectorization
-!      PARAMETER (c_kvec=31)
+  ! Maximum dimension for vectorization
+  integer , parameter :: c_kvec = 1
 
-       integer c_cdim
-       PARAMETER (c_cdim=1511)   ! max dimension for number of species
-       integer c_rdim
-       PARAMETER (c_rdim=3211)   ! max dimension for number of reactions
+  ! max dimension for number of species
+  integer , parameter :: c_cdim = 1511
+  ! max dimension for number of reactions
+  integer , parameter :: c_rdim = 3211
 !
 ! READ/WRITE AND VECTOR INDICES
 ! c_kkw               Index for diagnostic write output (0 for none)
@@ -62,15 +79,12 @@
 ! c_rin               Input file index for REACTION.DAT (mechanism)
 ! c_hvin              Input file index for TUVGRID2 (hv data)
 !
-      integer c_kkw     ! Index for diagnostic write output (0 for none)
-      integer c_kmax    ! Maximum number for vectorization
-      integer c_out     ! Output file index
-      integer c_rin     ! Input file index for REACTION.DAT (mechanism)
-      integer c_hvin    ! Input file index for TUVGRID2 (hv data)
-      parameter (c_rin=25,c_hvin=26,c_out=27)
-
+  integer :: c_kkw ! Index for diagnostic write output (0 for none)
+  integer :: c_kmax    ! Maximum number for vectorization
 !
-       common/CHEMIO/ c_kkw, c_kmax
+  integer , parameter :: c_out = 27  ! Output unit
+  integer , parameter :: c_rin = 25  ! Input unit for REACTION.DAT (mechanism)
+  integer , parameter :: c_hvin = 26 ! Input unit for TUVGRID2 (hv data)
 !
 ! REACTION RATE PARAMETERS:  
 !
@@ -89,24 +103,19 @@
 !  c_accom(c_rdim)   Accomodation coefficients
 !  c_molwt(c_rdim)   Molecular weights
 
+  real(dp) :: c_rk(7,c_rdim)   ! gas-phase rate parameters
+  real(dp) :: c_rkh(2,c_rdim)  ! Henry's law parameters
+  real(dp) :: c_rkq(2,c_rdim)  ! Aqueous equilib. params.
+  real(dp) :: c_rkqq(2,c_rdim) ! Special equilib. params.
+!
+  integer :: c_nrk(c_rdim)     ! Format index for reaction rate
+  integer :: c_nrkh(c_rdim)    ! Format index for Henry's law coef.
+  integer :: c_nrkq(c_rdim)    ! Format index for equilibrium constant
+  integer :: c_nrkqq(c_rdim)   ! Format index for special eq constant
+!
+  real(dp) :: c_accom(c_rdim)  ! Accomodation coefficients
+  real(dp) :: c_molwt(c_rdim)  ! Molecular weights
 
-      double precision c_rk(7,c_rdim)    ! gas-phase rate parameters
-      double precision c_rkh(2,c_rdim)   ! Henry's law parameters
-      double precision c_rkq(2,c_rdim)   ! Aqueous equilib. params.
-      double precision c_rkqq(2,c_rdim)  ! Special equilib. params.
-!
-      integer c_nrk(c_rdim)    ! Format index for reaction rate
-      integer c_nrkh(c_rdim)   ! Format index for Henry's law coef.
-      integer c_nrkq(c_rdim)   ! Format index for equilibrium constant
-      integer c_nrkqq(c_rdim)  ! Format index for special eq constant
-!
-      double precision c_accom(c_rdim)  ! Accomodation coefficients
-      double precision c_molwt(c_rdim)  ! Molecular weights
-
-       common/CHEMRVARS/ c_rk, c_rkh, c_rkq, c_rkqq          &
-                     ,c_nrk, c_nrkh, c_nrkq, c_nrkqq        &
-                      ,c_accom, c_molwt
-!
 ! CHEMICAL MECHANISM AND SPECIES INDICES
 !  c_reactant(c_rdim,2):   Index for reactant species in A+B=C..
 !  c_product(c_rdim,20)    Index for product species in A+B=C...
@@ -135,33 +144,27 @@
 !
 !  (nk() and iarray() - from old NR solver - cut.)
 
-      integer c_reactant(c_rdim,2)     ! Reactant species numbers
-      integer c_product(c_rdim,20)     ! Product  species numbers
-      integer  c_nnpro(c_rdim)         ! Number of reaction products
-      double precision c_stoich(c_rdim,20)  ! Stoich. for products
-      double  precision c_prodarr(c_rdim, c_cdim)  ! Stoich. nr for ic
-      integer c_henry(c_rdim,2)        ! Henry's law species numbers
-      integer c_aqueous(c_rdim,3)      ! Aqueous equil. species numbers
-      integer c_aqspec(c_rdim,3)     ! Special equil. species numbers
+  integer :: c_reactant(c_rdim,2)       ! Reactant species numbers
+  integer :: c_product(c_rdim,20)       ! Product  species numbers
+  integer :: c_nnpro(c_rdim)            ! Number of reaction products
+  real(dp) :: c_stoich(c_rdim,20)       ! Stoich. for products
+  real(dp) :: c_prodarr(c_rdim,c_cdim)  ! Stoich. nr for ic
+  integer :: c_henry(c_rdim,2)          ! Henry's law species numbers
+  integer :: c_aqueous(c_rdim,3)        ! Aqueous equil. species numbers
+  integer :: c_aqspec(c_rdim,3)         ! Special equil. species numbers
 
-      integer c_nreac    ! Number of chemical reactions
-      integer c_nreach   ! Number of Henry's law equilibrium constants
-      integer c_nreacq   ! Number of regular equilibrium constants 
-      integer c_nreaqq   ! Number of special equilibrium constants
+  integer :: c_nreac    ! Number of chemical reactions
+  integer :: c_nreach   ! Number of Henry's law equilibrium constants
+  integer :: c_nreacq   ! Number of regular equilibrium constants 
+  integer :: c_nreaqq   ! Number of special equilibrium constants
+  integer :: c_nchem1   ! Number if input/output (transported) species
+  integer :: c_nchem2   ! Number of total species 
 !
-      integer c_nchem1   ! Number if input/output (transported) species
-      integer c_nchem2   ! Number of total species 
-      integer c_icat(c_cdim)  ! Category of chemical species
-      logical c_lsts(c_cdim)  ! Flag to identify steady state species
-      integer c_lump(c_cdim,3)  ! Lumped species:  n1= sum n2 to n3
-      logical c_llump(c_cdim)  ! Flag to identify lumped species (n1)
+  integer :: c_icat(c_cdim)   ! Category of chemical species
+  logical :: c_lsts(c_cdim)   ! Flag to identify steady state species
+  integer :: c_lump(c_cdim,3) ! Lumped species:  n1= sum n2 to n3
+  logical :: c_llump(c_cdim)  ! Flag to identify lumped species (n1)
 
-       common /CHEMMECH/ c_reactant, c_product, c_nnpro             &
-      ,  c_aqueous,  c_henry, c_aqspec, c_stoich, c_prodarr        &
-                      , c_nreac, c_nreach,c_nreacq,c_nreaqq        &
-                      , c_nchem1, c_nchem2,c_icat, c_lsts, c_lump  & 
-                      , c_llump
-! 
 ! INDICES FOR CHEMICAL REACTION SOLUTION PROCEDURE (CASCADE)
 
 !  c_cascade(ic,n)  Array of cascade species: identified species 
@@ -193,28 +196,20 @@
 !                    exchange species is, number of reactions i
 ! c_exspec(ic,is)    Exchange species number for species #is
 !                    that is in back-forth reaction with species ic
+  integer :: c_cascade(c_cdim,c_cdim)  ! Array to call cascade
+  integer :: c_nppair(c_cdim,23)       ! Pointers to paired species
+  integer :: c_npmulti(c_cdim,1)       ! Pointer to multi spec. head
 
-      integer c_cascade(c_cdim,c_cdim)  ! Array to call cascade
-      integer c_nppair(c_cdim,23)       ! Pointers to paired species
-      integer c_npmulti(c_cdim,1)       ! Pointer to multi spec. head
+  integer :: c_nnrchem(c_cdim)         ! Number of reactions linked to spec.
+  integer :: c_nrchem(c_cdim, c_rdim)  ! Reaction numbers for spec. 
+  integer :: c_nnrchp(c_cdim)          ! Number of product reactions for ic
+  integer :: c_nrchmp(c_cdim, c_rdim)  ! Productreaction numbers for ic
+  integer :: c_nicreac(c_rdim)         ! Species ic associated with reaction nr
 
-      integer c_nnrchem(c_cdim)   ! Number of reactions linked to spec.
-      integer c_nrchem(c_cdim, c_rdim)  ! Reaction numbers for spec. 
-      integer c_nnrchp(c_cdim)   ! Number of product reactions for ic
-      integer c_nrchmp(c_cdim, c_rdim)  ! Productreaction numbers for ic
-      integer c_nicreac(c_rdim) ! Species ic associated with reaction nr
+  integer :: c_exloss(c_cdim,20,5)   ! Exchange loss reaction number
+  integer :: c_expro(c_cdim,20,5)    ! Exchange product reaction number
+  integer :: c_exspec(c_cdim,20)     ! Exchange species number
 
-      integer c_exloss(c_cdim,20,5)   ! Exchange loss reaction number
-      integer c_expro(c_cdim,20,5)    ! Exchange product reaction number
-      integer c_exspec(c_cdim,20)   ! Exchange species number
-
-!     common/CHEMSOL/ 
-      common/CHEMCASCADE/                                    &
-                       c_cascade, c_nppair, c_npmulti       &
-                      , c_nnrchem, c_nrchem, c_nnrchp, c_nrchmp  &
-                      , c_nicreac                                &
-                      , c_exloss, c_expro,  c_exspec
-!
 !  CHEMISTRY REACTION COUNTERS:  
 !   c_stoiloss(c_rdim): counter for net loss of reactant per reaction
 !                     (used to ID self-reaction or product=reactant)
@@ -229,16 +224,13 @@
 ! c_multfac(c_cdim)  Multi group conservation  of mass factor per spec.
 !                    Counts double for C=A+B, for A, B in pair group
 !
-      double precision c_stoiloss(c_rdim)  ! net reactant loss
-      double precision c_oddhx(c_rdim,2)     ! counter for net odd-H
-      double precision c_pronox(c_rdim)    ! counter for net P(NOx)
+  real(dp) :: c_stoiloss(c_rdim)  ! net reactant loss
+  real(dp) :: c_oddhx(c_rdim,2)   ! counter for net odd-H
+  real(dp) :: c_pronox(c_rdim)    ! counter for net P(NOx)
 
-      double  precision c_pairfac(c_cdim)  ! Pair group net rp factor
-      double  precision c_multfac(c_cdim)  ! Multi group net rp factor
+  real(dp) :: c_pairfac(c_cdim)  ! Pair group net rp factor
+  real(dp) :: c_multfac(c_cdim)  ! Multi group net rp factor
 
-      common/CHEMCOUNT/ c_stoiloss, c_oddhx,  c_pronox  &
-         ,c_pairfac, c_multfac
-!
 ! INDICES AND POINTERS FOR AQUEOUS EQUILIBRIA
 ! c_nequil(c_cdim)   Number of aqueous/eq species linked to gas ic
 ! c_npequil(c_cdim)  Pointer to linked gas-master species
@@ -248,14 +240,11 @@
 !                      for species associated with each gas-master.
 ! c_ion(c_cdim)       Charge associated with each species
 ! 
-      integer c_nequil(c_cdim)   ! Number of aq species linked to gas ic
-      integer c_npequil(c_cdim)  ! Pointer to linked gas-master species
-      integer c_ncequil(c_cdim,6) ! List of aq species for gas-master
-      integer c_nrequil(c_cdim,6) ! nrh/nrq for linked aqueous spec.
-      integer c_ion(c_cdim)       ! Charge associated with each species
-!
-       common/CHEMEQUILX/ c_nequil, c_ncequil, c_nrequil, c_npequil,  &
-                          c_ion
+  integer :: c_nequil(c_cdim)    ! Number of aq species linked to gas ic
+  integer :: c_npequil(c_cdim)   ! Pointer to linked gas-master species
+  integer :: c_ncequil(c_cdim,6) ! List of aq species for gas-master
+  integer :: c_nrequil(c_cdim,6) ! nrh/nrq for linked aqueous spec.
+  integer :: c_ion(c_cdim)       ! Charge associated with each species
 !
 ! INDICES AND POINTERS FOR AQUEOUS EQUILIBRIA
 ! 
@@ -266,14 +255,12 @@
 ! c_treacq(3, c_rdim)      Equilibrium spec names:  A<=>B+C
 ! c_treacqq(3, c_rdim)     Special eq spec names:   A<=>B+C
 
-      character*8 c_tchem(c_cdim)         ! Chem. species name
-      character*8 c_treac(6, c_rdim)      ! Chem reaction species names
-      character*8 c_treach(2, c_rdim)     ! Henrys law species names
-      character*8 c_treacq(3, c_rdim)     ! Equilibrium spec names
-      character*8 c_treaqq(3, c_rdim)    ! Special eq spec names
+  character(len=8) :: c_tchem(c_cdim)       ! Chem. species name
+  character(len=8) :: c_treac(6,c_rdim)     ! Chem reaction species names
+  character(len=8) :: c_treach(2,c_rdim)    ! Henrys law species names
+  character(len=8) :: c_treacq(3,c_rdim)    ! Equilibrium spec names
+  character(len=8) :: c_treaqq(3,c_rdim)    ! Special eq spec names
 
-       common/CHEMNAMES/ c_tchem, c_treac, c_treach, c_treacq, c_treaqq
-!
 ! CHEM INDICES FOR SPECIAL SPECIES: To identify H2O, H+, OH, etc.
 
 ! c_nh2o    Index to identify H2O  in species list
@@ -290,27 +277,22 @@
 ! c_nn2o5   Index to identify N2O5 in species list
 ! c_nhno3   Index to identify HNO3 in species list
 ! 
-      integer c_nh2o   ! Index to identify H2O  in species list
-      integer c_nco2   ! Index to identify CO2  in species list
-      integer c_nhplus ! Index to identify H+   in species list
-      integer c_nohmin ! Index to identify OH-  in species list
-      integer c_noh    ! Index to identify OH   in species list
-      integer c_nho2   ! Index to identify HO2  in species list
-      integer c_nh2o2  ! Index to identify H2O2 in species list
-      integer c_no3    ! Index to identify O3   in species list
-      integer c_nno2   ! Index to identify NO2  in species list
-      integer c_nno    ! Index to identify NO   in species list
-      integer c_nno3   ! Index to identify NO3  in species list
-      integer c_nn2o5  ! Index to identify N2O5 in species list
-      integer c_nhno3  ! Index to identify HNO3 in species list
-      integer c_nco    ! Index to identify CO   in species list
-      integer c_nch4   ! Index to identify CH4  in species list
-      integer c_nco3   ! Index to identify CO3- in species list
-
-      common/CHEMSPECIAL/ c_nh2o, c_nco2, c_nhplus, c_nohmin   &
-            ,c_noh, c_nho2, c_nh2o2, c_no3, c_nno2, c_nno     & 
-            ,c_nno3, c_nn2o5, c_nhno3                         &
-            ,c_nco  ,c_nch4 , c_nco3 
+  integer :: c_nh2o   ! Index to identify H2O  in species list
+  integer :: c_nco2   ! Index to identify CO2  in species list
+  integer :: c_nhplus ! Index to identify H+   in species list
+  integer :: c_nohmin ! Index to identify OH-  in species list
+  integer :: c_noh    ! Index to identify OH   in species list
+  integer :: c_nho2   ! Index to identify HO2  in species list
+  integer :: c_nh2o2  ! Index to identify H2O2 in species list
+  integer :: c_no3    ! Index to identify O3   in species list
+  integer :: c_nno2   ! Index to identify NO2  in species list
+  integer :: c_nno    ! Index to identify NO   in species list
+  integer :: c_nno3   ! Index to identify NO3  in species list
+  integer :: c_nn2o5  ! Index to identify N2O5 in species list
+  integer :: c_nhno3  ! Index to identify HNO3 in species list
+  integer :: c_nco    ! Index to identify CO   in species list
+  integer :: c_nch4   ! Index to identify CH4  in species list
+  integer :: c_nco3   ! Index to identify CO3- in species list
 
 ! HVRATES:  Data input for J-value parameterization
 !            (jval2.f, developed at Michigan based on Madronich TUV)
@@ -325,31 +307,25 @@
 !                 for matrix of 510 altitudes and zenith angles (ig)
 !                 and 80 conditions (k): 1=base value, >1 adjustments
 
-       integer c_nhv(22)                   
-       double precision c_hvmat(22,40)     
-       double precision c_hvmatb(22)        
-       double precision c_jarray(80,510,56)
-
-       common/HVRVARS/c_nhv, c_hvmat, c_hvmatb, c_jarray
+   integer :: c_nhv(22)                   
+   real(dp) :: c_hvmat(22,40)     
+   real(dp) :: c_hvmatb(22)        
+   real(dp) :: c_jarray(80,510,56)
 
 !!NUMERICAL SOLUTION  PARAMETERS
 !  c_numitr              Maximum number of iterations
 !  c_converge            Convergence criteria (1e-02)
 
-      integer c_numitr               ! Maximum number of iterations
-      double precision c_converge    ! Convergence criteria (1E-02)
-
-      common/CHEMNUMER/   c_numitr,       c_converge
+  integer :: c_numitr               ! Maximum number of iterations
+  real(dp) :: c_converge    ! Convergence criteria (1E-02)
 
 ! NOTE  OPTIONAL OUTPUTS RELATING TO NUMERICS:
 !    currently in chemvars.EXT
 !    xohtest, xnotest, fohtest, final iter, history, geomavg
 
-!     double precision c_ohtest       ! test: dOH/OH or dOH/HO2
-!     double precision c_notest       ! test: dNO2/NO2
+!     real(dp) c_ohtest       ! test: dOH/OH or dOH/HO2
+!     real(dp) c_notest       ! test: dNO2/NO2
 !     integer c_iter                  ! chem. number of iterations
-!     common/CHEMTEST/ c_ohtest, c_notest, c_iter
-
 ! NOVEMBER 2007 ADDITION: 
 !   chemistry mechanism parameters to be used in tracer calculations
 ! 
@@ -359,31 +335,25 @@
 !                6-13:   NOx->PAN, PAN->NOx;  N<->HNO3;  N<->RNO3, N<=>H+RNO3
 !
 
-       common/RPSTOIC/ c_noxchem
-! 
 ! REACTION NUMBERS IDENTIFIED FOR SPECIAL REACTIONS.
 !   (used in preliminary calculation, oh solution, and global tracers)
 !   (2009 addition: include nr for RO2-RO2 reactions for CBMZ special rate calc)
 !  c_nro3no   = nr for O3+NO=>NO2
 !  c_nrno2x   = nr for NO2+hv=>NO+O3
 
-       double precision c_noxchem(13, c_rdim)   ! net rp Ox NOx PAN HNO3 RNO3
-       integer c_nro3no                         ! nr for O3+NO=>NO2
-       integer c_nrno2x                         ! nr for NO2+hv
-       integer c_nro3hv                         ! nr for  O3+hv->2OH
-       integer c_nrohno2                        ! nr for OH+NO2->HNO3
-       integer c_nrohco                         ! nr for OH+CO
-       integer c_nrho2no                        ! nr for HO2+NO
-       integer c_nrho22                         ! nr for HO2+HO2
-       integer c_nro3no2                        ! nr for O3+NO2->NO3
-       integer c_nroho3                         ! nr for OH+O3
-       integer c_nrohch4                        ! nr for OH+CH4
+   real(dp) :: c_noxchem(13,c_rdim) ! net rp Ox NOx PAN HNO3 RNO3
+   integer :: c_nro3no              ! nr for O3+NO=>NO2
+   integer :: c_nrno2x              ! nr for NO2+hv
+   integer :: c_nro3hv              ! nr for  O3+hv->2OH
+   integer :: c_nrohno2             ! nr for OH+NO2->HNO3
+   integer :: c_nrohco              ! nr for OH+CO
+   integer :: c_nrho2no             ! nr for HO2+NO
+   integer :: c_nrho22              ! nr for HO2+HO2
+   integer :: c_nro3no2             ! nr for O3+NO2->NO3
+   integer :: c_nroho3              ! nr for OH+O3
+   integer :: c_nrohch4             ! nr for OH+CH4
 ! 2009 addition
-       integer c_nnrro2                  ! Number of special RO2-RO2 reactions 
-       integer c_nrro2(c_rdim)           ! nr for special RO2-RO2 reactions
+   integer :: c_nnrro2              ! Number of special RO2-RO2 reactions 
+   integer :: c_nrro2(c_rdim)       ! nr for special RO2-RO2 reactions
 
-       common/NRSPECIAL/ c_nro3no, c_nrno2x      &
-       , c_nro3hv, c_nrohno2, c_nrohco, c_nrho2no &
-       , c_nrho22, c_nro3no2, c_nroho3, c_nrohch4 &
-       , c_nnrro2, c_nrro2
-
+end module mod_cbmz_chemmech
