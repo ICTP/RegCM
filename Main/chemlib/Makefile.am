@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = GAS_KPP_GEOS GAS_CBMZ
+SUBDIRS = GAS_CBMZ
 
 noinst_LIBRARIES = libchem.a
 libchem_a_SOURCES = mod_che_param.f90 mod_che_common.f90 \
