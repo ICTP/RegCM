@@ -144,6 +144,19 @@
       real(8) , parameter :: boltzk = 1.3806504D-23
       ! Avogadro Constant
       real(8) , parameter :: navgdr = 6.02214084D23
+      ! Same in lit/cm3
+      real(8) , parameter :: avogadrl = navgdr*d_1000
+
+      ! Atmos. surface pressure mol/cm3
+      real(8) , parameter :: atmos = 2.247D19
+      ! Conversion parameter for Henry L-atm/mol-K
+      real(8) , parameter :: rtcon = 8.314D-02
+      ! RU g-cm2/s2-mol-K
+      real(8) , parameter :: rumolec = 8.314D7
+      ! Droplet diffusion coefficient Lelieveld+Crutzen 1991 cm2/sec
+      real(8) , parameter :: dropdif = 2.0D-05
+      ! Gas-phase diffusion coeff. Lelieveld and Crutzen, 1991 cm2/s
+      real(8) , parameter :: difgas = 0.1D0
 
       ! Fixed emissivity of water
       real(8) , parameter :: emsw = 0.97D+00
