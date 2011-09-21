@@ -31,7 +31,7 @@
       use mod_esmf_cpl
 !
       use mod_runparams, only : dtcpl
-      use mod_regcm_interface, only : RCM_run
+      use mod_regcm_interface , only : RCM_run
 !
       implicit none
 !
@@ -53,14 +53,14 @@
 !     Initialize ESMF framework and get default VM
 !-----------------------------------------------------------------------
 !
-      call ESMF_Initialize(vm=vm, rc=rc)
+      call ESMF_Initialize(vm=cplVM, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Get information from VM (MPI Communicator, number of PETs etc.)
 !-----------------------------------------------------------------------
 !
-      call ESMF_VMGet(vm,                                               &
+      call ESMF_VMGet(cplVM,                                            &
                       petCount=petCount,                                &
                       localPet=localPet,                                &
                       mpiCommunicator=comm,                             &
@@ -98,7 +98,7 @@
 !-----------------------------------------------------------------------
 !
       str1 = 'Coupler Component'
-      comp = ESMF_CplCompCreate(name=trim(str1), rc=rc)
+      cplComp = ESMF_CplCompCreate(name=trim(str1), rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
@@ -115,7 +115,7 @@
                                     rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_CplCompSetServices(comp,                                &
+      call ESMF_CplCompSetServices(cplComp,                             &
                                    CPL_SetServices,                     &
                                    rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -175,29 +175,66 @@
 !-----------------------------------------------------------------------
 !     Initialize coupler component
 !-----------------------------------------------------------------------
-!
+!-----------------------------------------------------------------------
 !     Forward coupling
+!-----------------------------------------------------------------------
 !
       call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
-                              name=FORWARD_INIT,                        &
+                              name=trim(DIRECTION),                     &
                               value=FORWARD_ON,                         &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
-                              name=BACKWARD_INIT,                       &
-                              value=BACKWARD_OFF,                       &
-                              rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      call ESMF_CplCompInitialize(comp,                                 &
+      call ESMF_CplCompInitialize(cplComp,                              &
                                  importState=models(Iatmos)%stateExport,&
                                  exportState=models(Iocean)%stateImport,&
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !      
-      call ESMF_VMBarrier(vm, rc=rc)
+      call ESMF_VMBarrier(cplVM, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Backward coupling
+!-----------------------------------------------------------------------
+!
+      call ESMF_AttributeSet (models(Iocean)%stateExport,               &
+                              name=trim(DIRECTION),                     &
+                              value=FORWARD_OFF,                        &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_CplCompInitialize(cplComp,                              &
+                                 importState=models(Iocean)%stateExport,&
+                                 exportState=models(Iatmos)%stateImport,&
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      
+      call ESMF_VMBarrier(cplVM, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Run components
+!-----------------------------------------------------------------------
+!
+!      do while (.not. ESMF_ClockIsStopTime(clock))
+!
+!-----------------------------------------------------------------------
+!     Run gridded components
+!-----------------------------------------------------------------------
+!
+!      do i = 1, 1 !nModels
+        i = Iatmos
+        call ESMF_GridCompRun (models(i)%comp,                          &
+                               importState=models(i)%stateImport,       &
+                               exportState=models(i)%stateExport,       &
+                               clock=cplClock,                          &
+                               rc=rc)
+
+
+
+!      end do
+!      end do
 ! 
 !-----------------------------------------------------------------------
 !     Finalize gridded components 

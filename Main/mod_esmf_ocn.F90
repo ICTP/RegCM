@@ -804,7 +804,7 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, ng, rc
+      integer :: i, j, ii, jj, id, ng, rc
       integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
@@ -964,14 +964,17 @@
 !-----------------------------------------------------------------------
 !
       if (models(Iocean)%dataImport(i,ng)%gtype == Iupoint) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Iupoint)
         staggerLoc = ESMF_STAGGERLOC_EDGE1
         staggerEdgeLWidth = (/0,1/)
         staggerEdgeUWidth = (/1,1/)
       else if (models(Iocean)%dataImport(i,ng)%gtype == Ivpoint) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Ivpoint)
         staggerLoc = ESMF_STAGGERLOC_EDGE2
         staggerEdgeLWidth = (/1,0/)
         staggerEdgeUWidth = (/1,1/)
       else if (models(Iocean)%dataImport(i,ng)%gtype == Icross) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Icross)
         staggerLoc = ESMF_STAGGERLOC_CENTER
         staggerEdgeLWidth = (/1,1/)
         staggerEdgeUWidth = (/1,1/)
@@ -982,7 +985,7 @@
 !-----------------------------------------------------------------------
 !
       models(Iocean)%dataImport(i,ng)%field = ESMF_FieldCreate (        &
-                        models(Iocean)%mesh(i,ng)%grid,                 &
+                        models(Iocean)%mesh(id,ng)%grid,                &
                         models(Iocean)%arrSpec(ng),                     &
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataImport(i,ng)%name),&
@@ -993,13 +996,13 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(i,ng)%grid,                &
+      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Get pointers and put data 
+!     Get pointers and initialize it 
 !-----------------------------------------------------------------------
 ! 
       do j = 0, localDECount-1
@@ -1009,9 +1012,13 @@
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      name = models(Iocean)%dataImport(i,ng)%name
-!
+      ptr = 0.0d0
       end do
+!
+      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,        &
+                           'dst_field.nc',                              &
+                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Add fields to import state

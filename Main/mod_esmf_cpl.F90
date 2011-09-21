@@ -111,10 +111,11 @@
       logical :: flag
       type(ESMF_Config) :: config
       integer :: localPet, petCount, comm, ierr
-      integer :: i, j, dir1, dir2
+      integer :: i, j, dir
 !
       integer :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
+      type(ESMF_VM) :: vm_cpl
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
 !
@@ -129,11 +130,11 @@
 !-----------------------------------------------------------------------
 !     
       call ESMF_CplCompGet(comp,                                        &
-                           vm=vm,                                       &
+                           vm=vm_cpl,                                   &
                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_VMGet(vm,                                               &
+      call ESMF_VMGet(vm_cpl,                                           &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
@@ -147,7 +148,7 @@
 !     Import state
 !
       call ESMF_StateReconcile(importState,                             &
-                               vm=vm,                                   &
+                               vm=vm_cpl,                               &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -155,7 +156,7 @@
 !     Export state
 !
       call ESMF_StateReconcile(exportState,                             &
-                               vm=vm,                                   &
+                               vm=vm_cpl,                               &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -164,25 +165,15 @@
 !     Get direction of coupling initialization
 !-----------------------------------------------------------------------
 !       
-!     Forward
-!
       call ESMF_AttributeGet(importState,                               &
-                             name=trim(FORWARD_INIT),                   &
-                             value=dir1,                                &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!       
-!     Backward
-!
-      call ESMF_AttributeGet(importState,                               &
-                             name=trim(BACKWARD_INIT),                  &
-                             value=dir2,                                &
+                             name=trim(DIRECTION),                      &
+                             value=dir,                                 &
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !     Print coupling direction info (for debugging)
 !  
-      if (dir1 == FORWARD_ON) then
+      if (dir == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
       else
         write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
@@ -231,7 +222,7 @@
 !     Save import state field names
 !-----------------------------------------------------------------------
 !
-      if (dir1 == FORWARD_ON) then
+      if (dir == FORWARD_ON) then
         if (.not. allocated(itemNamesImportF)) then
           allocate(itemNamesImportF(j))
         end if
@@ -246,7 +237,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (dir1 == FORWARD_ON) then          
+          if (dir == FORWARD_ON) then          
             itemNamesImportF(j) = trim(itemNames(i))
           else
             itemNamesImportB(j) = trim(itemNames(i))
@@ -305,7 +296,7 @@
 !     Save export state field names
 !-----------------------------------------------------------------------
 !
-      if (dir1 == FORWARD_ON) then
+      if (dir == FORWARD_ON) then
         if (.not. allocated(itemNamesExportF)) then
           allocate(itemNamesExportF(j))
         end if
@@ -320,7 +311,7 @@
         if ((itemTypes(i) == ESMF_STATEITEM_FIELD) .or.                 &
             (itemTypes(i) == ESMF_STATEITEM_ARRAY)) then
           j = j+1
-          if (dir1 == FORWARD_ON) then
+          if (dir == FORWARD_ON) then
             itemNamesExportF(j) = trim(itemNames(i))
           else
             itemNamesExportB(j) = trim(itemNames(i))
@@ -339,7 +330,7 @@
 !     Forward coupling initialization
 !-----------------------------------------------------------------------
 !
-      if (dir1 == FORWARD_ON) then
+      if (dir == FORWARD_ON) then
 !
 !-----------------------------------------------------------------------
 !     Compute weight matrix between gridded component grids. It creates 
@@ -348,14 +339,14 @@
 !     source field to destination field.
 !-----------------------------------------------------------------------
 !                
-      do i = 1, size(itemNamesImportF, 1)
+      do i = 1, size(itemNamesImportF, dim=1)
 !
 !-----------------------------------------------------------------------
 !     Get import field
 !-----------------------------------------------------------------------
 !
       call ESMF_StateGet(importState,                                   &
-                         trim(itemNamesImportF(1)),                     &
+                         trim(itemNamesImportF(i)),                     &
                          srcField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -365,7 +356,7 @@
 !-----------------------------------------------------------------------
 !
       call ESMF_StateGet(exportState,                                   &
-                         trim(itemNamesExportF(1)),                     &
+                         trim(itemNamesExportF(i)),                     &
                          dstField,                                      &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -377,8 +368,8 @@
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                                 dstField=dstField,                      &
                                 routeHandle=routeHandleF,               &
-                                indices=indices,                        &
-                                weights=weights,                        &
+!                                indices=indices,                        &
+!                                weights=weights,                        &
                                 regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
                                 rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -387,24 +378,96 @@
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
-      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Write field to NetCDF (debug)
 !-----------------------------------------------------------------------
 !
-      call ESMF_FieldPrint(dstField, rc=rc)
+!      flag = .false.
+!      if (any(models(Iatmos)%petList == localpet)) flag = .true.
+!      if (flag) then
+!      call ESMF_FieldWrite(srcField, 'src_field2.nc', rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      else
+!      call ESMF_FieldWrite(dstField, 'dst_field2.nc', rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      end if
+      end do
+!
+!-----------------------------------------------------------------------
+!     Backward coupling initialization
+!-----------------------------------------------------------------------
+!
+      else
+!
+!-----------------------------------------------------------------------
+!     Compute weight matrix between gridded component grids. It creates 
+!     a sparse matrix operation (stored in routehandle) that contains 
+!     the calculations and communications necessary to interpolate from 
+!     source field to destination field.
+!-----------------------------------------------------------------------
+!                
+      do i = 1, size(itemNamesImportB, dim=1)
+!
+!-----------------------------------------------------------------------
+!     Get import field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(importState,                                   &
+                         trim(itemNamesImportB(i)),                     &
+                         srcField,                                      &
+                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      do j = 0, 0 !localDeCount-1
-        call ESMF_FieldGet(dstField, localDe=j, farrayPtr=ptr, rc=rc)
+!-----------------------------------------------------------------------
+!     Get export field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(exportState,                                   &
+                         trim(itemNamesExportB(i)),                     &
+                         dstField,                                      &
+                         rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-        ptr = 1.99
-      end do
-
-      call ESMF_FieldWrite(dstField, 'dst_field.nc', rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Create ESMF routhandle 
+!
+!     The ESMF_UNMAPPEDACTION_IGNORE flag is set because ocean model 
+!     grid is smaller than atmosphere model grid.
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldRegridStore (srcField=srcField,                    &
+                              dstField=dstField,                        &
+                              unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
+                              routeHandle=routeHandleB,                 &
+!                              indices=indices,                          &
+!                              weights=weights,                          &
+                              regridmethod=ESMF_REGRIDMETHOD_BILINEAR,  &
+                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Regrid fields 
+!-----------------------------------------------------------------------
+!
+!      call ESMF_FieldRegrid(srcField, dstField, routeHandleB, rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Write field to NetCDF (debug)
+!-----------------------------------------------------------------------
+!
+!      flag = .false.
+!      if (any(models(Iatmos)%petList == localpet)) flag = .true.
+!      if (flag) then
+!      call ESMF_FieldWrite(srcField, 'src_field2.nc', rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      else
+!      call ESMF_FieldWrite(dstField, 'dst_field2.nc', rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      end if
       end do
       end if
 !

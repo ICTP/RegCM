@@ -1,21 +1,16 @@
       module mod_couplerr
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Imported modules 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       use ESMF
 !
       implicit none
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     User defined data types for coupling interface 
-!
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     Earth System Model (ESM) time data type 
 !-----------------------------------------------------------------------
@@ -88,11 +83,9 @@
         type(ESM_Time) :: time 
       end type ESM_Model
 !
-!***********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Global module variables 
-!
-!***********************************************************************
+!-----------------------------------------------------------------------
 !
       type(ESM_Model), allocatable :: models(:) 
 !
@@ -135,15 +128,10 @@
 !     Variables for coupling (direction, import and export variables)  
 !-----------------------------------------------------------------------
 !
-      character(len=40), parameter :: FORWARD_INIT  = 'FORWARD_INIT'
-      character(len=40), parameter :: FORWARD_RUN   = 'FORWARD_RUN'
-      character(len=40), parameter :: BACKWARD_INIT = 'BACKWARD_INIT'
-      character(len=40), parameter :: BACKWARD_RUN  = 'BACKWARD_RUN'
+      character(len=40), parameter :: DIRECTION = 'DIRECTION'
 !
       integer, parameter :: FORWARD_ON   = 1
       integer, parameter :: FORWARD_OFF  = 0
-      integer, parameter :: BACKWARD_ON  = 1
-      integer, parameter :: BACKWARD_OFF = 0
 !
       character(ESMF_MAXSTR), allocatable :: itemNamesImportF(:)
       character(ESMF_MAXSTR), allocatable :: itemNamesExportF(:)
@@ -151,7 +139,7 @@
       character(ESMF_MAXSTR), allocatable :: itemNamesExportB(:)
 !
 !-----------------------------------------------------------------------
-!     Variables for coupled model parameters  
+!     Coupled model parameters
 !-----------------------------------------------------------------------
 !
       integer :: cpl_dtsec, cpl_debug_level
@@ -161,11 +149,11 @@
 !     Coupler component variables 
 !-----------------------------------------------------------------------
 !
-      type(ESMF_CplComp) :: comp
-      type(ESMF_VM) :: vm
-      type(ESMF_Time) :: startTime, stopTime
-      type(ESMF_TimeInterval) :: timeStep
-      type(ESMF_Clock) :: clock
+      type(ESMF_CplComp) :: cplComp
+      type(ESMF_VM) :: cplVM
+      type(ESMF_Time) :: cplStartTime, cplStopTime
+      type(ESMF_TimeInterval) :: cplTimeStep
+      type(ESMF_Clock) :: cplClock
 !
 !-----------------------------------------------------------------------
 !     Coupler component variables 
@@ -234,6 +222,13 @@
           do j = 1, nPets 
             models(i)%petList(j) = (i+(j-1)*nModels)-1
           end do
+!
+!          if (.not. allocated(models(i)%petList)) then
+!            allocate(models(i)%petList(petCount))
+!          end if
+!          do j = 1, petCount
+!            models(i)%petList(j) = j-1
+!          end do
         end do
       end if
 !
@@ -243,9 +238,9 @@
 !
       do i = 1, nModels
         if (i == Iatmos) then
-          k = 1 !2 ! cross and dot points (dot is not used actually)
+          k = 1 ! (2) cross and dot points (dot is not used actually)
         else if (i == Iocean) then
-          k = 3 ! cross, u and v points
+          k = 1 ! (3) cross, u and v points
         end if
 !
         if (.not. allocated(models(i)%mesh)) then
@@ -320,42 +315,42 @@
             models(i)%mesh(1,j)%mask%units = '1'
 !
 !           u points
-            models(i)%mesh(2,j)%gid = 2
-            models(i)%mesh(2,j)%gtype = Iupoint
+!            models(i)%mesh(2,j)%gid = 2
+!            models(i)%mesh(2,j)%gtype = Iupoint
 !
-            models(i)%mesh(2,j)%lon%gtype = Iupoint
-            models(i)%mesh(2,j)%lon%name = 'lonu'
-            models(i)%mesh(2,j)%lon%long_name = 'longitude at u'
-            models(i)%mesh(2,j)%lon%units = 'degrees_east'
+!            models(i)%mesh(2,j)%lon%gtype = Iupoint
+!            models(i)%mesh(2,j)%lon%name = 'lonu'
+!            models(i)%mesh(2,j)%lon%long_name = 'longitude at u'
+!            models(i)%mesh(2,j)%lon%units = 'degrees_east'
 !
-            models(i)%mesh(2,j)%lat%gtype = Iupoint
-            models(i)%mesh(2,j)%lat%name = 'latu'
-            models(i)%mesh(2,j)%lat%long_name = 'latitude at u'
-            models(i)%mesh(2,j)%lat%units = 'degrees_north'
+!            models(i)%mesh(2,j)%lat%gtype = Iupoint
+!            models(i)%mesh(2,j)%lat%name = 'latu'
+!            models(i)%mesh(2,j)%lat%long_name = 'latitude at u'
+!            models(i)%mesh(2,j)%lat%units = 'degrees_north'
 !
-            models(i)%mesh(2,j)%mask%gtype = Iupoint
-            models(i)%mesh(2,j)%mask%name = 'mask_u'
-            models(i)%mesh(2,j)%mask%long_name = 'mask on u'
-            models(i)%mesh(2,j)%mask%units = '1'
+!            models(i)%mesh(2,j)%mask%gtype = Iupoint
+!            models(i)%mesh(2,j)%mask%name = 'mask_u'
+!            models(i)%mesh(2,j)%mask%long_name = 'mask on u'
+!            models(i)%mesh(2,j)%mask%units = '1'
 !
 !           v points
-            models(i)%mesh(3,j)%gid = 3
-            models(i)%mesh(3,j)%gtype = Ivpoint
+!            models(i)%mesh(3,j)%gid = 3
+!            models(i)%mesh(3,j)%gtype = Ivpoint
 !
-            models(i)%mesh(3,j)%lon%gtype = Ivpoint
-            models(i)%mesh(3,j)%lon%name = 'lonv'
-            models(i)%mesh(3,j)%lon%long_name = 'longitude at v'
-            models(i)%mesh(3,j)%lon%units = 'degrees_east'
+!            models(i)%mesh(3,j)%lon%gtype = Ivpoint
+!            models(i)%mesh(3,j)%lon%name = 'lonv'
+!            models(i)%mesh(3,j)%lon%long_name = 'longitude at v'
+!            models(i)%mesh(3,j)%lon%units = 'degrees_east'
 !
-            models(i)%mesh(3,j)%lat%gtype = Ivpoint
-            models(i)%mesh(3,j)%lat%name = 'latv'
-            models(i)%mesh(3,j)%lat%long_name = 'latitude at v'
-            models(i)%mesh(3,j)%lat%units = 'degrees_north'
+!            models(i)%mesh(3,j)%lat%gtype = Ivpoint
+!            models(i)%mesh(3,j)%lat%name = 'latv'
+!            models(i)%mesh(3,j)%lat%long_name = 'latitude at v'
+!            models(i)%mesh(3,j)%lat%units = 'degrees_north'
 !
-            models(i)%mesh(3,j)%mask%gtype = Ivpoint
-            models(i)%mesh(3,j)%mask%name = 'mask_v'
-            models(i)%mesh(3,j)%mask%long_name = 'mask on v'
-            models(i)%mesh(3,j)%mask%units = '1'
+!            models(i)%mesh(3,j)%mask%gtype = Ivpoint
+!            models(i)%mesh(3,j)%mask%name = 'mask_v'
+!            models(i)%mesh(3,j)%mask%long_name = 'mask on v'
+!            models(i)%mesh(3,j)%mask%units = '1'
           end do 
         end if
 !
@@ -379,8 +374,7 @@
 !
         if (i == Iatmos) then
           if (.not. allocated(models(i)%dataExport)) then 
-            !allocate(models(i)%dataExport(8,nNest(i)))
-            allocate(models(i)%dataExport(1,nNest(i)))
+            allocate(models(i)%dataExport(8,nNest(i)))
           end if       
           if (.not. allocated(models(i)%dataImport)) then 
             allocate(models(i)%dataImport(1,nNest(i)))
@@ -390,78 +384,79 @@
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
             models(i)%dataImport(1,j)%name = 'SST'
-            models(i)%dataImport(1,j)%long_name = 'Ground Temperature'
+            models(i)%dataImport(1,j)%long_name = &
+            'Sea Surface Temperature'
             models(i)%dataImport(1,j)%units = 'Celsius'
 !
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
-            models(i)%dataExport(1,j)%name = 'Tair'
+            models(i)%dataExport(1,j)%name = 'Pair'
             models(i)%dataExport(1,j)%long_name = 'Surface Pressure'
-            models(i)%dataExport(1,j)%units = '?'
+            models(i)%dataExport(1,j)%units = 'Pascal'
 !
-!            models(i)%dataExport(2,j)%fid = 2
-!            models(i)%dataExport(2,j)%gtype = Icross
-!            models(i)%dataExport(2,j)%name = 'Tair'
-!            models(i)%dataExport(2,j)%long_name = &
-!                                              'Surface Air Temperature'
-!            models(i)%dataExport(2,j)%units = 'Celsius'             
+            models(i)%dataExport(2,j)%fid = 2
+            models(i)%dataExport(2,j)%gtype = Icross
+            models(i)%dataExport(2,j)%name = 'Tair'
+            models(i)%dataExport(2,j)%long_name = &
+            'Surface Air Temperature'
+            models(i)%dataExport(2,j)%units = 'Celsius'             
 !
-!            models(i)%dataExport(3,j)%fid = 3
-!            models(i)%dataExport(3,j)%gtype = Icross
-!            models(i)%dataExport(3,j)%name = 'Qair'
-!            models(i)%dataExport(3,j)%long_name = &
-!                                         'Surface Air Specific Humidity'
-!            models(i)%dataExport(3,j)%units = 'g/kg'
+            models(i)%dataExport(3,j)%fid = 3
+            models(i)%dataExport(3,j)%gtype = Icross
+            models(i)%dataExport(3,j)%name = 'Qair'
+            models(i)%dataExport(3,j)%long_name = &
+            'Surface Air Specific Humidity'
+            models(i)%dataExport(3,j)%units = 'g/kg'
 !
-!            models(i)%dataExport(4,j)%fid = 4
-!            models(i)%dataExport(4,j)%gtype = Icross
-!            models(i)%dataExport(4,j)%name = 'swrad'
-!            models(i)%dataExport(4,j)%long_name = &
-!                                        'solar shortwave radiation flux'
-!            models(i)%dataExport(4,j)%units = 'watt meter-2'
+            models(i)%dataExport(4,j)%fid = 4
+            models(i)%dataExport(4,j)%gtype = Icross
+            models(i)%dataExport(4,j)%name = 'swrad'
+            models(i)%dataExport(4,j)%long_name = &
+            'solar shortwave radiation flux'
+            models(i)%dataExport(4,j)%units = 'watt meter-2'
 !
-!            models(i)%dataExport(5,j)%fid = 5
-!            models(i)%dataExport(5,j)%gtype = Icross
-!            models(i)%dataExport(5,j)%name = 'lwrad_down'
-!            models(i)%dataExport(5,j)%long_name = &
-!                                   'downwelling longwave radiation flux'
-!            models(i)%dataExport(5,j)%units = 'watt meter-2'
+            models(i)%dataExport(5,j)%fid = 5
+            models(i)%dataExport(5,j)%gtype = Icross
+            models(i)%dataExport(5,j)%name = 'lwrad_down'
+            models(i)%dataExport(5,j)%long_name = &
+            'downwelling longwave radiation flux'
+            models(i)%dataExport(5,j)%units = 'watt meter-2'
 !
-!            models(i)%dataExport(6,j)%fid = 6
-!            models(i)%dataExport(6,j)%gtype = Icross
-!            models(i)%dataExport(6,j)%name = 'rain'
-!            models(i)%dataExport(6,j)%long_name = &
-!                                         'rain fall rate'
-!            models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
+            models(i)%dataExport(6,j)%fid = 6
+            models(i)%dataExport(6,j)%gtype = Icross
+            models(i)%dataExport(6,j)%name = 'rain'
+            models(i)%dataExport(6,j)%long_name = &
+            'rain fall rate'
+            models(i)%dataExport(6,j)%units ='kilogram meter-2 second-1'
 !
-!            models(i)%dataExport(7,j)%fid = 7
-!            models(i)%dataExport(7,j)%gtype = Icross
-!            models(i)%dataExport(7,j)%name = 'Uwind'
-!            models(i)%dataExport(7,j)%long_name = &
-!                                         'surface u-wind component'
-!            models(i)%dataExport(7,j)%units = 'meter second-1'
+            models(i)%dataExport(7,j)%fid = 7
+            models(i)%dataExport(7,j)%gtype = Icross
+            models(i)%dataExport(7,j)%name = 'Uwind'
+            models(i)%dataExport(7,j)%long_name = &
+            'surface u-wind component'
+            models(i)%dataExport(7,j)%units = 'meter second-1'
 !
-!            models(i)%dataExport(8,j)%fid = 8
-!            models(i)%dataExport(8,j)%gtype = Icross
-!            models(i)%dataExport(8,j)%name = 'Vwind'
-!            models(i)%dataExport(8,j)%long_name = &
-!                                         'surface v-wind component'
-!            models(i)%dataExport(8,j)%units = 'meter second-1'
+            models(i)%dataExport(8,j)%fid = 8
+            models(i)%dataExport(8,j)%gtype = Icross
+            models(i)%dataExport(8,j)%name = 'Vwind'
+            models(i)%dataExport(8,j)%long_name = &
+            'surface v-wind component'
+            models(i)%dataExport(8,j)%units = 'meter second-1'
           end do 
         else if (i == Iocean) then
           if (.not. allocated(models(i)%dataExport)) then
             allocate(models(i)%dataExport(1,nNest(i)))
           end if
           if (.not. allocated(models(i)%dataImport)) then
-            !allocate(models(i)%dataImport(8,nNest(i)))
-            allocate(models(i)%dataImport(1,nNest(i)))
+            allocate(models(i)%dataImport(8,nNest(i)))
           end if
 !
           do j = 1, nNest(i)
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
             models(i)%dataExport(1,j)%name = 'SST'
-            models(i)%dataExport(1,j)%long_name = 'Ground Temperature'
+            models(i)%dataExport(1,j)%long_name = & 
+           'Sea Surface Temperature'
             models(i)%dataExport(1,j)%units = 'Celsius'
 !
             models(i)%dataImport(1,j)%fid = 1
@@ -470,54 +465,54 @@
             models(i)%dataImport(1,j)%long_name = 'Surface Pressure'
             models(i)%dataImport(1,j)%units = '?'
 !
-!            models(i)%dataImport(2,j)%fid = 2
-!            models(i)%dataImport(2,j)%gtype = Icross
-!            models(i)%dataImport(2,j)%name = 'Tair'
-!            models(i)%dataImport(2,j)%long_name = &
-!                                              'Surface Air Temperature'
-!            models(i)%dataImport(2,j)%units = 'Celsius'
+            models(i)%dataImport(2,j)%fid = 2
+            models(i)%dataImport(2,j)%gtype = Icross
+            models(i)%dataImport(2,j)%name = 'Tair'
+            models(i)%dataImport(2,j)%long_name = &
+            'Surface Air Temperature'
+            models(i)%dataImport(2,j)%units = 'Celsius'
 !
-!            models(i)%dataImport(3,j)%fid = 3
-!            models(i)%dataImport(3,j)%gtype = Icross
-!            models(i)%dataImport(3,j)%name = 'Qair'
-!            models(i)%dataImport(3,j)%long_name = &
-!                                         'Surface Air Specific Humidity'
-!            models(i)%dataImport(3,j)%units = 'g/kg'
+            models(i)%dataImport(3,j)%fid = 3
+            models(i)%dataImport(3,j)%gtype = Icross
+            models(i)%dataImport(3,j)%name = 'Qair'
+            models(i)%dataImport(3,j)%long_name = &
+            'Surface Air Specific Humidity'
+            models(i)%dataImport(3,j)%units = 'g/kg'
 !
-!            models(i)%dataImport(4,j)%fid = 4
-!            models(i)%dataImport(4,j)%gtype = Icross
-!            models(i)%dataImport(4,j)%name = 'swrad'
-!            models(i)%dataImport(4,j)%long_name = &
-!                                      'solar shortwave radiation flux'
-!            models(i)%dataImport(4,j)%units = 'watt meter-2'
+            models(i)%dataImport(4,j)%fid = 4
+            models(i)%dataImport(4,j)%gtype = Icross
+            models(i)%dataImport(4,j)%name = 'swrad'
+            models(i)%dataImport(4,j)%long_name = &
+            'solar shortwave radiation flux'
+            models(i)%dataImport(4,j)%units = 'watt meter-2'
 !
-!            models(i)%dataImport(5,j)%fid = 5
-!            models(i)%dataImport(5,j)%gtype = Icross
-!            models(i)%dataImport(5,j)%name = 'lwrad_down'
-!            models(i)%dataImport(5,j)%long_name = &
-!                                 'downwelling longwave radiation flux'
-!            models(i)%dataImport(5,j)%units = 'watt meter-2'
+            models(i)%dataImport(5,j)%fid = 5
+            models(i)%dataImport(5,j)%gtype = Icross
+            models(i)%dataImport(5,j)%name = 'lwrad_down'
+            models(i)%dataImport(5,j)%long_name = &
+            'downwelling longwave radiation flux'
+            models(i)%dataImport(5,j)%units = 'watt meter-2'
 !
-!            models(i)%dataImport(6,j)%fid = 6
-!            models(i)%dataImport(6,j)%gtype = Icross
-!            models(i)%dataImport(6,j)%name = 'rain'
-!            models(i)%dataImport(6,j)%long_name = &
-!                                       'rain fall rate'
-!            models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
+            models(i)%dataImport(6,j)%fid = 6
+            models(i)%dataImport(6,j)%gtype = Icross
+            models(i)%dataImport(6,j)%name = 'rain'
+            models(i)%dataImport(6,j)%long_name = &
+            'rain fall rate'
+            models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
 !
-!            models(i)%dataImport(7,j)%fid = 7
-!            models(i)%dataImport(7,j)%gtype = Icross
-!            models(i)%dataImport(7,j)%name = 'Uwind'
-!            models(i)%dataImport(7,j)%long_name = &
-!                                       'surface u-wind component'
-!            models(i)%dataImport(7,j)%units = 'meter second-1'
+            models(i)%dataImport(7,j)%fid = 7
+            models(i)%dataImport(7,j)%gtype = Icross
+            models(i)%dataImport(7,j)%name = 'Uwind'
+            models(i)%dataImport(7,j)%long_name = &
+            'surface u-wind component'
+            models(i)%dataImport(7,j)%units = 'meter second-1'
 !
-!            models(i)%dataImport(8,j)%fid = 8
-!            models(i)%dataImport(8,j)%gtype = Icross
-!            models(i)%dataImport(8,j)%name = 'Vwind'
-!            models(i)%dataImport(8,j)%long_name = &
-!                                       'surface v-wind component'
-!            models(i)%dataImport(8,j)%units = 'meter second-1'
+            models(i)%dataImport(8,j)%fid = 8
+            models(i)%dataImport(8,j)%gtype = Icross
+            models(i)%dataImport(8,j)%name = 'Vwind'
+            models(i)%dataImport(8,j)%long_name = &
+            'surface v-wind component'
+            models(i)%dataImport(8,j)%units = 'meter second-1'
           end do
         end if   
       end do
@@ -552,7 +547,7 @@
 !     Get information from VM (MPI Communicator, number of PETs etc.)
 !-----------------------------------------------------------------------
 !
-      call ESMF_VMGet (vm,                                              &
+      call ESMF_VMGet (cplVM,                                           &
                        petCount=petCount,                               &
                        localPet=localPet,                               &
                        mpiCommunicator=comm,                            &
@@ -566,7 +561,7 @@
 !-----------------------------------------------------------------------
 !
       call ESMF_StateReconcile (models(i)%stateExport,                  &
-                                vm=vm,                                  &
+                                vm=cplVM,                               &
                                 attreconflag=ESMF_ATTRECONCILE_ON,      &
                                 rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -604,7 +599,7 @@
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      call ESMF_TimeIntervalSet (timeStep,                              &
+      call ESMF_TimeIntervalSet (cplTimeStep,                           &
                                  s=cpl_dtsec,                           &
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -675,45 +670,45 @@
 !     Create coupler component clock 
 !-----------------------------------------------------------------------
 !
-      startTime = models(Iatmos)%strTime
-      stopTime = models(Iatmos)%endTime
+      cplStartTime = models(Iatmos)%strTime
+      cplStopTime = models(Iatmos)%endTime
       do i = 1, nModels
-        if (models(i)%strTime < startTime) then
-          startTime = models(i)%strTime
+        if (models(i)%strTime < cplStartTime) then
+          cplStartTime = models(i)%strTime
         end if      
-        if (models(i)%endTime < stopTime) then
-          stopTime = models(i)%endTime
+        if (models(i)%endTime < cplStopTime) then
+          cplStopTime = models(i)%endTime
         end if 
       end do     
 !
       name = 'Coupler component clock'
-      clock = ESMF_ClockCreate (name=trim(name),                        &
-                                timeStep=timeStep,                      &
-                                startTime=startTime,                    &
-                                stopTime=stopTime,                      &
-                                rc=rc)
+      cplClock = ESMF_ClockCreate (name=trim(name),                     &
+                                   timeStep=cplTimeStep,                &
+                                   startTime=cplStartTime,              &
+                                   stopTime=cplStopTime,                &
+                                   rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Validate external time clock.
 !-----------------------------------------------------------------------
 !
-      call ESMF_ClockValidate (clock, rc=rc)
+      call ESMF_ClockValidate (cplClock, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
 !     Print
 !-----------------------------------------------------------------------
 !
-      call ESMF_TimeGet(startTime, timeString=timeString, rc=rc)
+      call ESMF_TimeGet(cplStartTime, timeString=timeString, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       write(*,40) localPet, 'Start Time   ', trim(timeString)
 !
-      call ESMF_TimeGet(stopTime, timeString=timeString, rc=rc)
+      call ESMF_TimeGet(cplStopTime, timeString=timeString, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       write(*,40) localPet, 'Stop Time    ', trim(timeString)
 !
-      call ESMF_TimeIntervalGet(timeStep, s = mysec, rc=rc)
+      call ESMF_TimeIntervalGet(cplTimeStep, s = mysec, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       write(*,50) localPet, 'Time Interval', mysec
       end if
@@ -749,5 +744,52 @@
       end do
 
       end function getIndex
+!
+      integer function getMeshID(list, gtype)
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      type(ESM_Mesh), intent(in) :: list(:)
+      integer, intent(in) :: gtype
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i
+!     
+!-----------------------------------------------------------------------
+!     Find index of specified mesh 
+!-----------------------------------------------------------------------
+!
+      do i = 1, size(list, dim=1) 
+        if (list(i)%gtype == gtype) then
+          getMeshID = i
+          return
+        end if
+      end do
+      end function getMeshId
+!
+      real*8 function viscair(tair)
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      real*8, intent(in) :: tair
+!
+!-----------------------------------------------------------------------
+!     Computes viscosity of air (Andreas (1989), CRREL Report 89-11).
+!     Input air temperature (tair) is in degree Celsius
+!-----------------------------------------------------------------------
+!
+      viscair = 1.326d-5*                                               &
+                (1+6.542d-3*tair+8.301d-6*tair**2-4.84e-9*tair**3)
+!   
+      end function viscair
 !
       end module mod_couplerr

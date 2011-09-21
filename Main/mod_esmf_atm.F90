@@ -25,6 +25,7 @@
 !
       use ESMF
       use mod_regcm_interface
+      use mod_atm_interface
       use mod_couplerr
 !
       implicit none
@@ -117,6 +118,8 @@
       logical :: first
       integer :: localPet, petCount, comm, ierr
 !
+      type(ESMF_TimeInterval) :: dtrun     
+!
 !-----------------------------------------------------------------------
 !     Call RCM initialization routines
 !-----------------------------------------------------------------------
@@ -157,6 +160,18 @@
       call RCM_run(d_zero, dtsec, first)
 !
 !-----------------------------------------------------------------------
+!     Update model clock 
+!-----------------------------------------------------------------------
+!
+      call ESMF_TimeIntervalSet(dtrun, s_r8=dtsec, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_ClockAdvance(models(Iatmos)%clock,                      &
+                             timeStep=dtrun,                            &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Set-up grid and load coordinate data 
 !-----------------------------------------------------------------------
 !
@@ -195,6 +210,11 @@
 !
       logical :: first
       integer :: localPet, petCount, comm
+      real*8 :: timestr, timeend
+!
+      type(ESMF_Time) :: currTime
+      type(ESMF_Time) :: time1, time2
+      type(ESMF_TimeInterval) :: dt1
 !
 !-----------------------------------------------------------------------
 !     Call RCM run routines
@@ -241,14 +261,37 @@
                    trim(models(Iatmos)%time%stamp)
 !
 !-----------------------------------------------------------------------
+!     Get coupler current time
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockGet (clock,                                        &
+                          currTime=currTime,                            &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
 !     Set start and end time 
 !-----------------------------------------------------------------------
 !
-!      first = .true.
-!      timestr = d_zero
-!      tdif = idate2 - idate1
-!      timeend = tohours(tdif) * secph
+      dt1 = models(Iatmos)%curTime-models(Iatmos)%strTime
+      call ESMF_TimeIntervalGet (dt1,                                   &
+                                 s_r8=timestr,                          &
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
+      if (models(Iatmos)%curTime > currTime) then
+         dt1 = cplTimeStep-dt1
+      else
+         dt1 = dt1+cplTimeStep 
+      end if
+!
+      call ESMF_TimeIntervalGet (dt1,                                   &
+                                 s_r8=timeend,                          &
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      print*, "** turuncu ** ", timestr, timeend
+!
+!      first = .false.
 !      call RCM_run(timestr, timeend, first)
 !
 !-----------------------------------------------------------------------
@@ -707,7 +750,8 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_dynparam, only : nproc, iy, jx, jxp, jendl
+      use mod_runparams, only : debug_level
+      use mod_dynparam, only : nproc, iy, iym1, iym2, jx, jxp, ptop
       use mod_bats_common
 !
 !-----------------------------------------------------------------------
@@ -720,7 +764,8 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n, rc, localDECount
+      integer :: i, j, id, n, rc, localDECount
+      logical :: flag
       character (len=40) :: name
       type(ESMF_StaggerLoc) :: staggerLoc
       real(ESMF_KIND_R8), pointer :: ptr(:,:)
@@ -735,7 +780,7 @@
 !     Create export state fields 
 !-----------------------------------------------------------------------
 !
-      do i = 1, ubound(models(Iatmos)%dataExport(:,n), dim=1)
+      do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
 !
 !-----------------------------------------------------------------------
 !     Set staggering type 
@@ -743,8 +788,10 @@
 !
       if (models(Iatmos)%dataExport(i,n)%gtype == Icross) then
         staggerLoc = ESMF_STAGGERLOC_CENTER
+        id = getMeshID(models(Iatmos)%mesh(:,n), Icross)
       else if (models(Iatmos)%dataExport(i,n)%gtype == Idot) then
         staggerLoc = ESMF_STAGGERLOC_CORNER
+        id = getMeshID(models(Iatmos)%mesh(:,n), Idot)
       end if
 !
 !-----------------------------------------------------------------------
@@ -753,7 +800,7 @@
 !
       name = models(Iatmos)%dataExport(i,n)%name
       models(Iatmos)%dataExport(i,n)%field = ESMF_FieldCreate (         &
-                                  models(Iatmos)%mesh(i,n)%grid,        &
+                                  models(Iatmos)%mesh(id,n)%grid,       &
                                   models(Iatmos)%arrSpec(n),            &
                                   staggerloc=staggerLoc,                &
                                   name=trim(name),                      &
@@ -764,7 +811,7 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -795,21 +842,53 @@
 !     Put data     
 !-----------------------------------------------------------------------
 !      
-      if (trim(adjustl(name)) == "Tair") then
-        ptr = thatm(:,kz,:)
-        print*, "** BURDA **", ptr
+      if (trim(adjustl(name)) == "Pair") then
+!       unit: millibar       
+        ptr = (sfps(:,1:jxp)+ptop)*d_10
+      else if (trim(adjustl(name)) == "Tair") then 
+!       unit: celsius
+!        ptr = sts2%tg(:,1:jxp)-tzero
+        ptr(2:iym1,:) = transpose(t2m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Qair") then
+!       unit: kg/kg
+        ptr(2:iym1,:) = transpose(q2m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "swrad") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
+        ptr(1:iym1,:) = fsw2d
+        ptr(iym1,:) = fsw2d(iym2,:) 
+      else if (trim(adjustl(name)) == "lwrad_down") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
+        ptr(1:iym1,:) = flw2d
+        ptr(iym1,:) = flw2d(iym2,:)
+      else if (trim(adjustl(name)) == "rain") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
+        ptr(1:iym1,:) = pptnc+pptc 
+        ptr(iym1,:) = pptnc(iym2,:)+pptc(iym2,:)
+      else if (trim(adjustl(name)) == "Uwind") then
+!       unit: meter/second
+        ptr(2:iym1,:) = transpose(u10m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Vwind") then
+!       unit: meter/second
+        ptr(2:iym1,:) = transpose(v10m_o)
       end if
-!          write(*,99) localPet, j, '*-I', lbound(thatm(:,kz,:), dim=1),    &
-!                      ubound(thatm(:,kz,:), dim=1), lbound(thatm(:,kz,:), dim=2),         &
-!                      ubound(thatm(:,kz,:), dim=2)
-!
-!          write(*,99) localPet, j, '*-E', lbound(ptr, dim=1),          &
-!                      ubound(ptr, dim=1), lbound(ptr, dim=2),         &
-!                      ubound(ptr, dim=2)
-! 99     format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
-
-!
       end do
+!
+!-----------------------------------------------------------------------
+!     Write field to file (debug)     
+!-----------------------------------------------------------------------
+!  
+      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
+                           'atm_export_'//trim(adjustl(name))//'.nc',   &
+                           rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Add fields to export state

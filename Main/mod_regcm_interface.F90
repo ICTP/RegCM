@@ -55,6 +55,7 @@ module mod_regcm_interface
   public :: RCM_finalize
 
   real(8) :: dtinc
+  real(8) :: extime
 
   contains
  
@@ -297,7 +298,6 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    real(8) :: extime
     character(len=32) :: appdat
     integer :: iexec
 !
