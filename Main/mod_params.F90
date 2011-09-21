@@ -550,6 +550,9 @@ module mod_params
   call mpi_bcast(iemiss,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(lakemod,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(ichem,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(ntr,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(nbin,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(sbin,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(scenario,3,mpi_character,0,mycomm,ierr)
   call mpi_bcast(idcsst,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
@@ -858,7 +861,9 @@ module mod_params
   call init_cuscheme(ichem,dtsec,ntsrf,mddom,atm1,aten,atms,     &
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
-  call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps2,icumtop,icumbot)
+  if ( ichem == 1 ) then
+    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps2,icumtop,icumbot)
+  end if
   call init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta,        &
                 mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,   &
                 aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl, &
