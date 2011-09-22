@@ -24,6 +24,7 @@ module mod_che_common
   use mod_memutil
   use mod_message
   use mod_che_param
+  use mod_che_species
 
   public
 !
@@ -39,6 +40,8 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:,:) :: srclp2
   real(dp) , pointer , dimension(:,:,:) :: ddsfc , dtrace , wdcvc , &
                                            wdlsc , wxaq , wxsg
+  real(dp) , pointer , dimension(:,:,:) :: taucld
+  real(dp) , pointer , dimension(:,:,:,:) :: chemall
   integer , pointer , dimension(:,:) :: kcumtop , kcumbot
 !
   character(len=5) , pointer , dimension(:) :: chtrname
@@ -108,12 +111,14 @@ module mod_che_common
       call getmem2d(dustbsiz,1,nbin,1,2,'mod_che_common:dustbsiz')
       call getmem2d(ssltbsiz,1,sbin,1,2,'mod_che_common:ssltbsiz')
 
+      call getmem4d(chemall,1,iy,1,kz,1,jxp,1,totsp,'mod_che_common:chemall')
       call getmem4d(chi,1,iy,1,kz,0,jxp+1,1,ntr,'mod_che_common:chi')
       call getmem4d(chic,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chic')
       call getmem4d(chiten,1,iy,1,kz,1,jxp,1,ntr,'mod_che_common:chiten')
       call getmem4d(chemsrc,1,iy,1,jxp,1,mpy,1,ntr,'mod_che_common:chemsrc')
       call getmem4d(chia,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chia')
       call getmem4d(chib,1,iy,1,kz,-1,jxp+2,1,ntr,'mod_che_common:chib')
+      call getmem3d(taucld,1,iy,1,kz,1,jxp,'mod_che_common:taucld')
       call getmem3d(srclp2,1,iy,1,jxp,1,ntr,'mod_che_common:srclp2')
       call getmem3d(ddsfc,1,iy,1,jxp,1,ntr,'mod_che_common:ddsfc')
       call getmem3d(dtrace,1,iy,1,jxp,1,ntr,'mod_che_common:dtrace')

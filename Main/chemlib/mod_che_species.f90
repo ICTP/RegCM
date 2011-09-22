@@ -25,6 +25,7 @@
 
     public
 
+    integer , parameter :: totsp = 68
     integer , parameter :: nchsp = 25
     integer , parameter :: noxsp = 5
 
