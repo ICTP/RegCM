@@ -311,15 +311,15 @@ module mod_cbmz_chemlocal
 ! kk                            :          Vectorization counter
 ! kw       :   Index for vector diagnostic output (see c_kkw)
 
-  real(dp) :: alpha(c_kvec)  ! General vector variable
-  real(dp) :: beta(c_kvec)   ! General vector variable
+  real(dp) :: calpha(c_kvec) ! General vector variable
+  real(dp) :: cbeta(c_kvec)  ! General vector variable
   real(dp) :: cgamma(c_kvec) ! General vector variable
   real(dp) :: prior(c_kvec)  ! Prior species conc (molec/cm3)
 
   real(dp) :: stoicx            ! stoichiometry sum
 
   ! Chem index
-  integer :: ic , ic1 , ic2 , ic3 , icc , ics , ics2 , icc1 , icc2 , icc3
+  integer :: ic , ic1 , ic2 , ic3 , iic , icc , ics , ics2 , icc1 , icc2 , icc3
   ! Chem local index
   integer :: is , iss , iscs , isc2
   ! Chem index

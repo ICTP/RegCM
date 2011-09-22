@@ -20,6 +20,7 @@
 module mod_cbmz_solve1
 !
   use m_realkinds
+  use mod_constants
   use mod_cbmz_chemmech
   use mod_cbmz_chemvars
   use mod_cbmz_chemlocal
@@ -90,8 +91,6 @@ module mod_cbmz_solve1
 !                  based on interim chemical production rates.
 !    postlump:   Sums lumped species and aqueous species into gas master
 !                  after calculation is complete.
-!    ohwrite:    Writes details of odd hydrogen balance.
-!
 !
 !  Time tests of versions - see quadchv7.f and fort.43test1106,407
 !
@@ -367,10 +366,6 @@ module mod_cbmz_solve1
       ! ---------------------------------------------------------------
       runiter: &
       do c_iter = 1 , c_numitr
-        if ( c_kkw > 0 ) then
-          write(c_out,1901) c_iter
-          write(c_out,1902)
-        end if
 
         ! RE-SET PARTITIONING OF LUMPED SPECIES BASED ON CHEM. PRODUCTION.
         if ( c_iter >= 2 ) call midlump
@@ -392,12 +387,6 @@ module mod_cbmz_solve1
             if ( (ii == 8 .or. ii == 9 .or. ii == 10) .or. ii == 3) is = 1
             senhcat(kk,ii) = dble(is)
           end do
-        end if
-
-        ! WRITE SENHCAT
-        if ( c_kkw > 0 ) then
-          write(c_out,1611) (senhcat(c_kkw,ii),ii=1,20), &
-                            (senhcat(c_kkw,ii),ii=31,40)
         end if
 
         ! ZERO ACCUMULATED SUMS AT START OF EACH CASCADE LOOP:
@@ -510,65 +499,8 @@ module mod_cbmz_solve1
         ! END OF ITERATION.  WRITE, TEST AND EXIT.
         ! --------------------------------------
 
-        ! -------------------------------------------------------
-        !  SUMMARY ITERATIVE WRITE:  THIS SECTION (ALONG WITH OHWRITE)
-        !  CAN BE COPIED AND USED OUTSIDE QUADCHEM. (see CHEMWRIT)
-        ! -------------------------------------------------------
-        ! IF LPRT OPTION (KKW>0) WRITE FULL SUMMARY FOR ITERATION.
-        ! (WRITES FOR NOX AND HX ARE IN NOXSOLVE AND OHSOLVE)
-        !
-        ! QUADCHEM ITERATIVE WRITE:
-        ! NOTE:  WRITE GAS+AQUEOUS SUM HERE,  AND LIST OF REACTIONS.
-        !        GAS-AQUEOUS PARTITIONING ITER SUMMARY is in AQUASOLVE.
-        if ( c_kkw > 0 ) then
-          write(c_out,1801) c_iter, c_kkw
-          write(c_out,1804) c_IDATE, c_hour,  c_lat(1), c_lon(1),c_temp(1)
-          write(c_out,1805) (c_jparam(i),i=1,13),c_jparam(20)
-          write(c_out,1802)
-
-          ! OPTION:  WRITE GAS-AQUEOUS SUMS
-          !   MAKE XR,  RP, RL=sum ; write gas-masters only
-
-          do j = 1 , c_nchem2
-            if ( c_npequil(j) == j ) then
-              xrr(c_kkw,1) = d_zero
-              rpro(c_kkw,1) = d_zero
-              rloss(c_kkw,1) = d_zero
-              do neq = 1 , (c_nequil(j)+1)
-                ic = j
-                if ( neq > 1 ) ic = c_ncequil(j,(neq-1))
-                alpha(c_kkw) = d_one
-                if ( neq > 1 ) alpha(1)= c_h2oliq(1)*avogadrl
-                rloss(c_kkw,1) = rloss(c_kkw,1)+c_rl(c_kkw,ic)
-                rpro(c_kkw,1)  = rpro(c_kkw,1) +c_rp(c_kkw,ic)
-                xrr(c_kkw,1)   = xrr(c_kkw,1)  +xc(c_kkw,ic)*alpha(c_kkw)
-              end do
-              beta(1)   = xrr(c_kkw,1) - c_xcin(c_kkw,j)
-              cgamma(1) = rpro(c_kkw,1) - rloss(c_kkw,1)
-              if ( .not. c_lsts(ic) ) cgamma(1) = cgamma(1)-beta(1)
-              write(c_out,1803) j, c_tchem(j), xrr(c_kkw,1), &
-                 c_xcin(c_kkw,j), xcfinr(c_kkw,j), rloss(c_kkw,1), &
-                 rpro(c_kkw,1), beta(1), cgamma(1)
-            end if
-          end do
-
-          ! OPTION - INCLUDE REACTIONS
-          write(c_out,1806) c_iter,c_kkw
-          do nr = 1 , c_nreac
-            write(c_out,1807) nr, (c_treac(j,nr),j=1,5), &
-               c_rr(c_kkw ,nr), ratek(c_kkw ,nr)
-          end do
-        end if
-        ! END SUMMARY WRITE
-        ! --------------------------------------------------------
-
-        ! IF KMAX=1, USE CONTROLS TO TEST FOR CONVERGENCE AND EXIT.
-        !   NOTE NIGHTTIME ADDED EXIT ABOVE: XOHTEST,FOHTEST*0.001.
-
-        if ( c_kkw > 0 ) write(c_out,1701) c_iter,c_ohtest,c_notest
-
         if ( c_kmax == 1 ) then
-          if ( ratek(1,1) >= 1.00D-04 .and. c_ohtest < xfohtesti ) then
+          if ( ratek(1,1) >= 1.00D-04 .and. c_ohtest < xfohtest ) then
             c_ohtest = xfohtest
           end if
           if ( c_iter > 3 .and. (c_ohtest < c_converge .and. &
@@ -1257,11 +1189,11 @@ module mod_cbmz_solve1
               icc = ncsolv(ncc)
               rpro(kk,nc) = rpro(kk,nc) + &
                   cpro(kk,ncc,nc) * (rpro(kk,ncc)/rloss(kk,ncc))
-              alpha(kk) = cpro(kk,ncc,nc)*(cpro(kk,nc,ncc)/rloss(kk,ncc))
-              rloss(kk,nc) = rloss(kk,nc) - alpha(kk)
+              calpha(kk) = cpro(kk,ncc,nc)*(cpro(kk,nc,ncc)/rloss(kk,ncc))
+              rloss(kk,nc) = rloss(kk,nc) - calpha(kk)
               if ( rloss(kk,nc) <= d_zero ) then
                 write(c_out,121 ) c_tchem(ncsol(1)), ncsol(1),        &
-                  nc, ncc, rloss(kk,nc), alpha(kk), cpro(kk,ncc,nc),  &
+                  nc, ncc, rloss(kk,nc), calpha(kk), cpro(kk,ncc,nc),  &
                   cpro(kk,nc,ncc), rloss(kk,ncc)
               end if
             end if
@@ -1306,7 +1238,7 @@ module mod_cbmz_solve1
         !   xcfinr = Cf/Cavg  (used in postlump to get xcout)
         !   NOTE: xcfinr=1 in BACK-EULER solution.
         ! NOTE ERROR CORRECTIONS:
-        !     beta: form A(1-exp) + B(exp) , not A + (B-A)*exp
+        !     cbeta: form A(1-exp) + B(exp) , not A + (B-A)*exp
         !        (else large-number error and negative value)
         !     ZERO PROTECT for xrr
         !     Use back-Euler for very small values.
@@ -1315,28 +1247,28 @@ module mod_cbmz_solve1
           if ( xrp(kk,nc) > 0  .and. &
               ( rloss(kk,nc)-xrp(kk,nc) > d_zero ) .and. &
               ( rloss(kk,nc)+rpro(kk,nc) > d_one ) ) then
-            alpha(kk) = rloss(kk,nc)/xrp(kk,nc) - d_one
-            ! beta = rt/kt = (rpro-xcin+xcemit)/alpha
-            beta(kk) = (rpro(kk,nc)-c_xcin(kk,ics) + &
-                        c_xcemit(kk,ics))/alpha(kk)
+            calpha(kk) = rloss(kk,nc)/xrp(kk,nc) - d_one
+            ! cbeta = rt/kt = (rpro-xcin+xcemit)/calpha
+            cbeta(kk) = (rpro(kk,nc)-c_xcin(kk,ics) + &
+                        c_xcemit(kk,ics))/calpha(kk)
             !    Cf =   r/k + (    Co     - r/k) exp(-kt)
-            !    Cf =  beta + (xcin-xcemit-beta)*exp(-alpha)
+            !    Cf =  cbeta + (xcin-xcemit-cbeta)*exp(-calpha)
             !    NOTE: This must be greater than (xcin-xcemit)
             !
             ! The following line caused LARGE-NUMBER NUMERICAL ERRORS
-            !    xcfinr(kk,ic) = beta(kk)
-            !              +(c_xcin(kk,ic) - c_xcemit(kk,ic) - beta(kk))
-            !              *exp(0.-alpha(kk))
+            !    xcfinr(kk,ic) = cbeta(kk)
+            !              +(c_xcin(kk,ic) - c_xcemit(kk,ic) - cbeta(kk))
+            !              *exp(0.-calpha(kk))
             !
             ! Corrected:
             !
-            xcfinr(kk,ics) = beta(kk) * (d_one - exp(d_zero-alpha(kk)) ) + &
-                   (c_xcin(kk,ics) - c_xcemit(kk,ics))*exp(d_zero-alpha(kk))
+            xcfinr(kk,ics) = cbeta(kk) * (d_one - exp(d_zero-calpha(kk)) ) + &
+                   (c_xcin(kk,ics) - c_xcemit(kk,ics))*exp(d_zero-calpha(kk))
             !    Cav = (    Co     -Cf)/kt    + r/k
-            !    Cav = (xcin-xcemit-Cf)/alpha + beta
+            !    Cav = (xcin-xcemit-Cf)/calpha + cbeta
             !
-            xrr(kk,nc) = beta(kk) + (c_xcin(kk,ics) - c_xcemit(kk,ics) - &
-                         xcfinr(kk,ics))/alpha(kk)
+            xrr(kk,nc) = cbeta(kk) + (c_xcin(kk,ics) - c_xcemit(kk,ics) - &
+                         xcfinr(kk,ics))/calpha(kk)
             !
             ! Cf/Cav  - with ZERO PROTECT
             if ( xrr(kk,nc) > 0 ) then
@@ -1394,7 +1326,7 @@ module mod_cbmz_solve1
         !    with geometric avg - messes up NOx
         !
         !
-        if ( c_tchem(ics) == '     NO3' .or.
+        if ( c_tchem(ics) == '     NO3' .or. &
              c_tchem(ics) == '    N2O5' ) lself = .false.
         !
         ! CONVERGENCE OPTION - ADD THIS CONTROL if geom avg used for 1st iters
@@ -1434,7 +1366,7 @@ module mod_cbmz_solve1
         !  (For NO3->HNO3->NOx error with high BR)
         !  (HNO3 icat 16;  may also use for all slow species icat=1)
         !
-        if ( c_iter <= 3 .and. c_icat(ics) == 16i ) then
+        if ( c_iter <= 3 .and. c_icat(ics) == 16 ) then
           if ( xrr(kk, nc) > 5.0D0*xrp(kk,nc) ) then
             xrr(kk, nc) =  5.0D0*xrp(kk,nc)
           end if
@@ -1545,18 +1477,18 @@ module mod_cbmz_solve1
           ! (note, XRM different from XRPAIR:  XRPAIR includes PAIRFAC)
           !
           if ( nsol > 1 ) then
-            alpha(kk) = d_one
+            calpha(kk) = d_one
             if ( xrrm(kk,is) > 0 ) then
-              alpha(kk) = xrm(kk,is)/xrrm(kk,is)
+              calpha(kk) = xrm(kk,is)/xrrm(kk,is)
             end if
             !
             ! PAIR GROUP NORMALIZATION FACTOR:
             ! Group sum = RP/RL.  Adj*XRR = XRP*RP/RL, Adj=(XRP/XRR)*(RP/RL)
             !
           else
-            alpha(kk) = d_one
+            calpha(kk) = d_one
             if ( rlpair(kk,icpair) > 0 .and. xrrpair(kk) > 0 ) then
-              alpha(kk) = (xrppair(kk)/xrrpair(kk)) * &
+              calpha(kk) = (xrppair(kk)/xrrpair(kk)) * &
                           (rppair(kk,icpair)/rlpair(kk,icpair))
             end if
           end if
@@ -1582,7 +1514,7 @@ module mod_cbmz_solve1
               if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
               ! TEST 2008 OPTION:  skip if XRP=RPRO
               if ( xrp(kk,nc) /= rpro(kk,nc) ) then
-                xc(kk,ic) = xc(kk,ic) *alpha(kk)
+                xc(kk,ic) = xc(kk,ic) *calpha(kk)
               end if
             end do
           end do
@@ -1707,21 +1639,21 @@ module mod_cbmz_solve1
           !  MULTISOLVE NORMALIZATION OPTION
           !
           cgamma(kk) = d_zero
-          beta(kk) = d_zero
+          cbeta(kk) = d_zero
           do is = 1 , nsol
             ic = c_nppair(ncsol(is),2)
             cgamma(kk) = cgamma(kk) + xrm(kk,is)*c_multfac(ic)
-            beta(kk) = beta(kk) + xrm(kk,is)*xrrm(kk,is)*c_multfac(ic)
+            cbeta(kk) = cbeta(kk) + xrm(kk,is)*xrrm(kk,is)*c_multfac(ic)
           end do
-          alpha(kk) = d_one
-          if ( rlmulti(kk) > 0 .and. beta(kk) > 0 ) then
-            alpha(kk) = (cgamma(kk)/beta(kk))*(rpmulti(kk)/rlmulti(kk))
+          calpha(kk) = d_one
+          if ( rlmulti(kk) > 0 .and. cbeta(kk) > 0 ) then
+            calpha(kk) = (cgamma(kk)/cbeta(kk))*(rpmulti(kk)/rlmulti(kk))
           end if
           do is = 1 , nsol
             !
             ! OPTION HERE
             !
-            xrrm(kk,is) = xrrm(kk,is) * alpha(kk)
+            xrrm(kk,is) = xrrm(kk,is) * calpha(kk)
           end do
         end if
         !  ---------
@@ -1873,8 +1805,8 @@ module mod_cbmz_solve1
   121 format(/,'MAJOR ERROR IN CHEMSOLVE: ',             &
               'RLOSS = 0 FROM CPRO ADJUSTMENT.',/,        &
               ' ic1, nc, ncc=  ', a8,3i4,/,               &
-              ' rloss, alpha, cpro-nc, cpro-ncc, rl-ncc=',/, (5(1pe10.3)))
-                   rloss(kk,nc) = rloss(kk,nc) + alpha(kk)
+              ' rloss, calpha, cpro-nc, cpro-ncc, rl-ncc=',/, (5(1pe10.3)))
+                   rloss(kk,nc) = rloss(kk,nc) + calpha(kk)
       !
     end subroutine chemsolve
 !
@@ -2094,7 +2026,7 @@ module mod_cbmz_solve1
           oddhsrc(kk,i) = oddhsrc(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)
         end if
         if ( ic1 == c_noh ) then
-          ddhloh(kk,i) = oddhloh(kk,i) - c_rr(kk,nr)*c_oddhx(nr,i)
+          oddhloh(kk,i) = oddhloh(kk,i) - c_rr(kk,nr)*c_oddhx(nr,i)
         end if
         if ( ic1 == c_nho2 ) then
           oddhlho2(kk,i) = oddhlho2(kk,i) - c_rr(kk,nr)*c_oddhx(nr,i)
@@ -2169,6 +2101,7 @@ module mod_cbmz_solve1
      subroutine excorr(ic1)
 !
       implicit none
+      integer , intent(in) :: ic1
 !
 ! LOCAL VARIABLES
 !
@@ -2260,23 +2193,23 @@ module mod_cbmz_solve1
             do neq = 1 , (c_nequil(ics)+1)
               ic = ics
               if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
-              alpha(kk) = d_one
-              if ( neq > 1 ) alpha(kk)= c_h2oliq(kk)*avogadrl
+              calpha(kk) = d_one
+              if ( neq > 1 ) calpha(kk)= c_h2oliq(kk)*avogadrl
               rloss(kk,is) = rloss(kk,is) + rrl(kk,ic)
               rpro(kk,is) = rpro(kk,is) + rrp(kk,ic)
-              xrp(kk,is) = xrp(kk,is) + xc(kk,ic)*alpha(kk)
-              prior(kk) = prior(kk) + c_xcin(kk,ic)*alpha(kk)
+              xrp(kk,is) = xrp(kk,is) + xc(kk,ic)*calpha(kk)
+              prior(kk) = prior(kk) + c_xcin(kk,ic)*calpha(kk)
             end do
           end do
           !
           ! POSSIBLE ERROR, MUST SUBTRACT CPRO FROM RPRO - ELSE ITS INCLUDED!
           ! SOLUTION FOR RATEX.
           !   (If denominator is zero, use single-species solution instead)
-          beta(kk) = (rloss(kk,1)+xrp(kk,1))*(rloss(kk,2)+xrp(kk,2)) - &
+          cbeta(kk) = (rloss(kk,1)+xrp(kk,1))*(rloss(kk,2)+xrp(kk,2)) - &
                       cpro(kk,1,2)*cpro(kk,2,1)
-          if ( beta(kk) > 0 ) then
+          if ( cbeta(kk) > 0 ) then
             ratex(kk) = cpro(kk,1,2)*(cpro(kk,2,1)*(rpro(kk,1) + &
-                        rpro(kk,2) + prior(kk))/beta(kk) )
+                        rpro(kk,2) + prior(kk))/cbeta(kk) )
           else
             ratex(kk) = cpro(kk,1,2)
             if ( ratex(kk) > cpro(kk,2,1) ) ratex(kk) = cpro(kk,2,1)
@@ -2372,15 +2305,16 @@ module mod_cbmz_solve1
               if ( c_pronox(nr) < 0 ) then
                 sinknx(kk) =  sinknx(kk)-c_pronox(nr)*undo(kk)
               end if
-           end do
-         end do
-         !
-         ! END UNDO LOOP FOR INDIVIDUAL REACTIONS
-         !
-       end do
-       !
-       ! END MAIN LOOP  FOR  MULTIPLE EXCHANGED SPECIES
-       !
+            end if
+          end do
+        end do
+      !
+      ! END UNDO LOOP FOR INDIVIDUAL REACTIONS
+      !
+      end do
+     !
+     ! END MAIN LOOP  FOR  MULTIPLE EXCHANGED SPECIES
+     !
      end subroutine excorr
 !
 ! --------------------------------
@@ -2423,6 +2357,7 @@ module mod_cbmz_solve1
     subroutine noxsolve(ic1,ic2,ic3)
 !
       implicit none
+      integer , intent(in) :: ic1 , ic2 , ic3
 !
 ! LOCAL VARIABLES
 ! xnox     NOx concentration (NO+NO2) molec/cm3
@@ -2567,13 +2502,13 @@ module mod_cbmz_solve1
       !
       !   NOTE:  DIVIDES ADD COMPUTER TIME BUT PREVENT OVERFLOWS
       ! --------------------------------------
-      alpha(kk) =  cpm(kk,1,2)/( xrm(kk,3)* xrm(kk,1))
+      calpha(kk) =  cpm(kk,1,2)/( xrm(kk,3)* xrm(kk,1))
       cgamma(kk) = rpm(kk,3) + (cpm(kk,2,1)/ xrm(kk,2)) * xnox(kk)
-      beta(kk) = (rlm(kk,3) - cpm(kk,1,2))/xrm(kk,3) + &
+      cbeta(kk) = (rlm(kk,3) - cpm(kk,1,2))/xrm(kk,3) + &
                               cpm(kk,2,1)/xrm(kk,2) +  &
                  (cpm(kk,1,2)/(xrm(kk,1)*xrm(kk,3))) * (xox(kk)-xnox(kk))
-      xrrm(kk,3) = 0.5D0 * (dsqrt(beta(kk)**d_two + &
-                     d_four*alpha(kk)*cgamma(kk)) - beta(kk))/alpha(kk)
+      xrrm(kk,3) = 0.5D0 * (dsqrt(cbeta(kk)**d_two + &
+                     d_four*calpha(kk)*cgamma(kk)) - cbeta(kk))/calpha(kk)
       xrrm(kk,2) = xnox(kk) - xrrm(kk,3)
       xrrm(kk,1) = xox(kk) - xrrm(kk,2)
       !
@@ -2600,10 +2535,10 @@ module mod_cbmz_solve1
       !
       ! QUADRATIC ANALYSIS:  xk2 + (xk2n+xrln) = xjnx + xrpn
       !                     (~NO**2)  (~NO)        (~1)
-      !                   alpha*NO**2 + beta*NO = cgamma  with new NO.
+      !                   calpha*NO**2 + cbeta*NO = cgamma  with new NO.
       !
       if ( xrrm(c_kkw,3) == 0 ) xrrm(c_kkw,3) = d_one
-      xk2 = (xrrm(c_kkw,3)**d_two) * alpha(c_kkw)
+      xk2 = (xrrm(c_kkw,3)**d_two) * calpha(c_kkw)
       xk2n = xrrm(c_kkw,3) * (cpm(c_kkw,1,2)/(xrm(c_kkw,1)*xrm(c_kkw,3))) * &
              (xox(c_kkw)-xnox(c_kkw))
       xrln = xrrm(c_kkw,3) * (rlm(c_kkw,3) - cpm(c_kkw,1,2))/xrm(c_kkw,3)
@@ -2712,6 +2647,7 @@ module mod_cbmz_solve1
     subroutine ohsolve(ic1,ic2,ic3)
 !
       implicit none
+      integer , intent(in) :: ic1 , ic2 , ic3
 !
 ! LOCAL VARIABLES:
 !
@@ -2862,7 +2798,7 @@ module mod_cbmz_solve1
       !  NO+HO2 8e-12  6e4 7e2  (->4e2) 1.8e3  -> 6e-1
       ! HO2+HO2 2e-12 7e2 7e2 1.8e3  -> 2e-3  correct in REACTION RATE
       !
-      !  but alpha, beta very different!  unit change?
+      !  but calpha, cbeta very different!  unit change?
       ! round 2 rl -ho2 is much much lower, rp H2O2 unchanged.
       !
       ! Q:
@@ -2899,29 +2835,29 @@ module mod_cbmz_solve1
              .not. c_lsts(ic) .and. .not. c_llump(ic) )  then
           if ( ic == c_npequil(ic) ) then
             oddhsum(kk,1) = oddhsum(kk,1) + c_xcin(kk,ic) - xc(kk,ic)
-            alpha(kk) = d_zero
+            calpha(kk) = d_zero
             if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
-              alpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
+              calpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
                           (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
               !   TEMPORARY 2005 BUG CHANGE!!!! 2005 -
               !     SHOULDN'T oddhdel include PRIOR MINUS ANY SENSITIVITY????
-              !            alpha(kk) =  (xc(kk,ic)          )*xc(kk,ic)
+              !            calpha(kk) =  (xc(kk,ic)          )*xc(kk,ic)
               !    *           /(c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
-              oddhdel(kk,1) = oddhdel(kk,1) - senhcat(kk,c_icat(ic))*alpha(kk)
+              oddhdel(kk,1) = oddhdel(kk,1) - senhcat(kk,c_icat(ic))*calpha(kk)
             end if
           else
             if ( c_h2oliq(kk) > 0 ) then
               oddhsum(kk,1) = oddhsum(kk,1) + &
                        (c_xcin(kk,ic)-xc(kk,ic)) * c_h2oliq(kk)*avogadrl
-              alpha(kk) = d_zero
+              calpha(kk) = d_zero
               if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
-                alpha(kk) = &
+                calpha(kk) = &
                   (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic)*c_h2oliq(kk)*avogadrl / &
                   (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic)*c_h2oliq(kk)*avogadrl)
                 oddhdel(kk,1) = oddhdel(kk,1) - &
-                     senhcat(kk,c_icat(ic)) * alpha(kk)
+                     senhcat(kk,c_icat(ic)) * calpha(kk)
               end if
             end if
           end if
@@ -2938,29 +2874,29 @@ module mod_cbmz_solve1
               .not. c_lsts(ic) .and. .not. c_llump(ic) )  then
           if ( ic == c_npequil(ic) ) then
             oddhsum(kk,2) = oddhsum(kk,2) + c_xcin(kk,ic) - xc(kk,ic)
-            alpha(kk) = d_zero
+            calpha(kk) = d_zero
             if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
-              alpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
+              calpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
                           (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
               !   TEMPORARY 2005 BUG CHANGE!!!! 2005 -
               !     SHOULDN'T oddhdel include PRIOR MINUS ANY SENSITIVITY????
-              !            alpha(kk) =  (xc(kk,ic)          )*xc(kk,ic)
+              !            calpha(kk) =  (xc(kk,ic)          )*xc(kk,ic)
               !    *           /(c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
-              oddhdel(kk,2) = oddhdel(kk,2) - senhcat(kk,c_icat(ic))*alpha(kk)
+              oddhdel(kk,2) = oddhdel(kk,2) - senhcat(kk,c_icat(ic))*calpha(kk)
             end if
           else
             if ( c_h2oliq(kk) > 0 ) then
               oddhsum(kk,2) = oddhsum(kk,2) + &
                         (c_xcin(kk,ic)-xc(kk,ic))*c_h2oliq(kk)*avogadrl
-              alpha(kk) = d_zero
+              calpha(kk) = d_zero
               if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
-                alpha(kk) = &
+                calpha(kk) = &
                   (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic)*c_h2oliq(kk)*avogadrl / &
                   (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic)*c_h2oliq(kk)*avogadrl)
                 oddhdel(kk,2) = oddhdel(kk,2) - &
-                      senhcat(kk,c_icat(ic)) * alpha(kk)
+                      senhcat(kk,c_icat(ic)) * calpha(kk)
               end if
             end if
           end if
@@ -2978,16 +2914,16 @@ module mod_cbmz_solve1
           do neq = 1 , (c_nequil(ic1)+1)
             ic = ic1
             if ( neq > 1 ) ic = c_ncequil(ic1,(neq-1))
-            alpha(kk) = d_one
-            if ( neq > 1 ) alpha(kk) = c_h2oliq(kk)*avogadrl
-            oddhloh(kk,i) = oddhloh(kk,i) + xc(kk,ic)*alpha(kk)
+            calpha(kk) = d_one
+            if ( neq > 1 ) calpha(kk) = c_h2oliq(kk)*avogadrl
+            oddhloh(kk,i) = oddhloh(kk,i) + xc(kk,ic)*calpha(kk)
           end do
           do neq = 1 , (c_nequil(ic2)+1)
             ic = ic2
             if ( neq > 1 ) ic = c_ncequil(ic2,(neq-1))
-            alpha(kk) = d_one
-            if ( neq > 1 ) alpha(kk) = c_h2oliq(kk)*avogadrl
-            oddhlho2(kk,i) = oddhlho2(kk,i) + xc(kk,ic)*alpha(kk)
+            calpha(kk) = d_one
+            if ( neq > 1 ) calpha(kk) = c_h2oliq(kk)*avogadrl
+            oddhlho2(kk,i) = oddhlho2(kk,i) + xc(kk,ic)*calpha(kk)
           end do
         end do
       end if
@@ -3106,9 +3042,9 @@ module mod_cbmz_solve1
         !     OK:  oddhloh represents loss of Hx linked to OH, not source (=OHin
         !     Prior OH counts as loss in nonsteady state case only.)
         !
-        alpha(kk) = oddhfac1(kk)*oddhloh(kk,1)+oddhfac2(kk)*oddhloh(kk,2)
-        beta(kk) = oddhfac1(kk)*oddhlho2(kk,1)+oddhfac2(kk)*oddhlho2(kk,2)
-        if ( alpha(kk) > d_zero .and. beta(kk) > d_zero ) then
+        calpha(kk) = oddhfac1(kk)*oddhloh(kk,1)+oddhfac2(kk)*oddhloh(kk,2)
+        cbeta(kk) = oddhfac1(kk)*oddhlho2(kk,1)+oddhfac2(kk)*oddhlho2(kk,2)
+        if ( calpha(kk) > d_zero .and. cbeta(kk) > d_zero ) then
           xc(kk,ic1) = xc(kk,ic1)*(oddhloh(kk,2)+oddhlho2(kk,2)) / &
                                   (oddhloh(kk,2)+oddhlho2(kk,2) / &
                        (foh(kk)*xrp(kk,3)/xrp(kk,1)))
@@ -3140,22 +3076,22 @@ module mod_cbmz_solve1
       ! CONVERGENCE TEST FOR OH
       !
       ! rloss, rpro already include
-      alpha(1) = rloss(1,1) - rpro(1,1)
-!     if ( .not. c_lsts(ic1) ) alpha(1) = alpha(1) + xc(1,ic1) - c_xcin(1,ic1)
-      beta(1) = 0.5D0*(rloss(1,1)+rpro(1,1))
-      if ( xc(1,ic1) > beta(1) ) beta(1) = xc(1,ic1)
-      if ( beta(1) <= d_zero ) beta(1) = 1.0D-8
-      c_ohtest = dabs(alpha(1)/beta(1) )
+      calpha(1) = rloss(1,1) - rpro(1,1)
+!     if ( .not. c_lsts(ic1) ) calpha(1) = calpha(1) + xc(1,ic1) - c_xcin(1,ic1)
+      cbeta(1) = 0.5D0*(rloss(1,1)+rpro(1,1))
+      if ( xc(1,ic1) > cbeta(1) ) cbeta(1) = xc(1,ic1)
+      if ( cbeta(1) <= d_zero ) cbeta(1) = 1.0D-8
+      c_ohtest = dabs(calpha(1)/cbeta(1) )
       !
       ! CONVERGENCE TEST FOR HO2 (note, rpro(1,3) for HO2)
       !
       ! rloss, rpro include xc-xcin
-      alpha(1) = rloss(1,3) - rpro(1,3)
-!     if ( .not. c_lsts(ic2) ) alpha(1) = alpha(1) + xc(1,ic2) - c_xcin(1,ic2)
-      beta(1) = 0.5D0*(rloss(1,3)+rpro(1,3))
-      if ( xc(1,ic2) > beta(1) ) beta(1) = xc(1,ic2)
-      if ( beta(1) <= d_zero ) beta(1) = 1.0D-8
-      cgamma(1) = dabs(alpha(1)/beta(1) )
+      calpha(1) = rloss(1,3) - rpro(1,3)
+!     if ( .not. c_lsts(ic2) ) calpha(1) = calpha(1) + xc(1,ic2) - c_xcin(1,ic2)
+      cbeta(1) = 0.5D0*(rloss(1,3)+rpro(1,3))
+      if ( xc(1,ic2) > cbeta(1) ) cbeta(1) = xc(1,ic2)
+      if ( cbeta(1) <= d_zero ) cbeta(1) = 1.0D-8
+      cgamma(1) = dabs(calpha(1)/cbeta(1) )
       if ( cgamma(1) > c_ohtest ) c_ohtest = cgamma(1)
       !
       ! ADDED CONVERGENCE EXIT AT NIGHT:  IF XOH IS LOW AND NOX CONVERGES.
@@ -3199,16 +3135,16 @@ module mod_cbmz_solve1
       !
       ics = namechem('     CO3')
       if ( ics > 0 ) then
-        alpha(kk) = d_zero`
+        calpha(kk) = d_zero
         do neq = 1 , (c_nequil(ics)+1)
           icc = ics
           if ( neq > 1 )icc = c_ncequil(ics,(neq-1))
-          alpha(kk) = alpha(kk) + c_rp(kk,icc)
+          calpha(kk) = calpha(kk) + c_rp(kk,icc)
         end do
         do neq = 1 , (c_nequil(ics)+1)
           icc = ics
           if ( neq > 1 )icc = c_ncequil(ics,(neq-1))
-          if ( alpha(kk) >= 0.1D0*oddhsrc(kk,1) ) then
+          if ( calpha(kk) >= 0.1D0*oddhsrc(kk,1) ) then
 !           xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**0.5)
             xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**geomavg(kk,ic2) )
           end if
@@ -3282,32 +3218,32 @@ module mod_cbmz_solve1
       !
       ! SUM GAS AND AQUEOUS:  RLOSS(HO2), RPRO(H2O2)
       !
-      alpha(kk) = c_rl(kk,ic2)
-      beta(kk) = c_rp(kk,ic3)
+      calpha(kk) = c_rl(kk,ic2)
+      cbeta(kk) = c_rp(kk,ic3)
       if ( c_nequil(ic2) > 0 ) then
         do neq = 1 , c_nequil(ic2)
           ic = c_ncequil(ic2,neq)
-          alpha(kk) = alpha(kk) + c_rl(kk,ic)
+          calpha(kk) = calpha(kk) + c_rl(kk,ic)
         end do
       end if
       if ( c_nequil(ic3) > 0 ) then
         do neq = 1 , c_nequil(ic3)
           ic = c_ncequil(ic3,neq)
-          beta(kk) = beta(kk) + c_rp(kk,ic)
+          cbeta(kk) = cbeta(kk) + c_rp(kk,ic)
         end do
       end if
       !
-      ! 2009 correction: beta (ph2o2) < alpha (lho2)
+      ! 2009 correction: cbeta (ph2o2) < calpha (lho2)
       !    protects against pH2O2 from source other than HO2 (TERP+O3->0.02 H2
       !
-      if ( beta(kk) > alpha(kk) ) beta(kk) = alpha(kk)
+      if ( cbeta(kk) > calpha(kk) ) cbeta(kk) = calpha(kk)
       !
       ! MAIN SENHCAT CALCULATION.
       !
       ! 1996 VERSION
       ! 2005:  GEOM MEAN for DIFFICULT CONVERGENCE (HO2-MCO3-PAN oscillation)
       !
-      senhcat(kk,10) = alpha(kk) / (alpha(kk) + d_two*beta(kk))
+      senhcat(kk,10) = calpha(kk) / (calpha(kk) + d_two*cbeta(kk))
       !
       ! OPTION w/o  GEOM MEAN
       !
@@ -3419,44 +3355,44 @@ module mod_cbmz_solve1
       !     A>0:  monotone increase/decrease
       !     A=> 0:  approaching convergence
       !
-      alpha(kk) = d_zero
+      calpha(kk) = d_zero
       if ( history(kk,ic,(c_iter-2)) /= 0 .and. &
            history(kk,ic,(c_iter-3)) /= 0) then
         !
         ! DELTA OPTION
         !
-        !  beta(kk) = history(kk,ic,(c_iter -1 )) - &
+        !  cbeta(kk) = history(kk,ic,(c_iter -1 )) - &
         !             history(kk,ic,(c_iter-2))
         !  cgamma(kk) = history(kk,ic,(c_iter-2)) - &
         !               history(kk,ic,(c_iter-3))
         !
         ! RATIO OPTION
         !
-        beta(kk) = history(kk,ic,(c_iter-1))/history(kk,ic,(c_iter-2))-d_one
+        cbeta(kk) = history(kk,ic,(c_iter-1))/history(kk,ic,(c_iter-2))-d_one
         cgamma(kk) = history(kk,ic,(c_iter-2))/history(kk,ic,(c_iter-3))-d_one
-        alpha(kk) = beta(kk)/cgamma(kk)
+        calpha(kk) = cbeta(kk)/cgamma(kk)
       end if
-      if ( alpha(kk) >  d_one ) alpha(kk) =  d_one
-      if ( alpha(kk) < -d_one ) alpha(kk) = -d_one
+      if ( calpha(kk) >  d_one ) calpha(kk) =  d_one
+      if ( calpha(kk) < -d_one ) calpha(kk) = -d_one
       !
       ! DIFFICULT CONVERGENCE  OPTION:  MULTIPLY SETGEOM BY DAMPENING FACTOR.
       !    Multiply by 1:  moves factor towards 1 or 0.5 instantly.
       !    Multiply by 0.5 (standard):  moves factor more slowly.
       !
-      alpha(kk) = alpha(kk) * 0.5D0
+      calpha(kk) = calpha(kk) * 0.5D0
       !
       ! ADJUST GEOMETRIC AVERAGING FACTOR:
       !   If A<0 (oscillating), move towards minimum (0.5)(0.1)(geomin)
       !   If A>0 (steady trend),move towards maximum (1.)
       !
-      if ( alpha(kk) > 0.2D0 ) then
-        geomavg(kk,ic) = geomavg(kk,ic) + alpha(kk)*(d_one-geomavg(kk,ic))
+      if ( calpha(kk) > 0.2D0 ) then
+        geomavg(kk,ic) = geomavg(kk,ic) + calpha(kk)*(d_one-geomavg(kk,ic))
       end if
-      if ( alpha(kk) < -0.2D0 ) then
-        geomavg(kk,ic) = geomavg(kk,ic) + alpha(kk)*(geomavg(kk,ic)-geomin)
+      if ( calpha(kk) < -0.2D0 ) then
+        geomavg(kk,ic) = geomavg(kk,ic) + calpha(kk)*(geomavg(kk,ic)-geomin)
       end if
       !
-    end subroutine geomag
+    end subroutine setgeom
 !
 ! ----------------------------------------
 !
@@ -3517,7 +3453,7 @@ module mod_cbmz_solve1
        do i = 1 , 40
          nspecial(i) = 0
        end do
-       alpha(kk) = d_one
+       calpha(kk) = d_one
        cgamma(kk) = d_one
        do nr = 1 , c_nreac
          !
@@ -3551,7 +3487,7 @@ module mod_cbmz_solve1
               (c_reactant(nr,1) == c_no3 .and. &
                c_reactant(nr,2) == c_nno2) ) nspecial(3) = nr
          !
-         ! IDENTIFY OH+CO,HC OR O3 REACTIONS BY CATEGORY. SUM AS 'CRATE'(alpha).
+         ! IDENTIFY OH+CO,HC OR O3 REACTIONS BY CATEGORY. SUM AS 'CRATE'(calpha).
          !
          icat1 = 0
          icat2 = 0
@@ -3569,7 +3505,7 @@ module mod_cbmz_solve1
            icr = c_reactant(nr,1)
          end if
          if ( icr > 0) then
-           alpha(kk) = alpha(kk)+ratek(kk,nr)*xc(kk,icr)
+           calpha(kk) = calpha(kk)+ratek(kk,nr)*xc(kk,icr)
          end if
          !
          ! IDENTIFY NO3 LOSS REACTIONS (cgamma)
@@ -3583,78 +3519,77 @@ module mod_cbmz_solve1
          if ( icr == 0 ) then
            cgamma(kk) = cgamma(kk)+ratek(kk,nr)
          end if
+       end do
+       !
+       ! NOX: A PRECISE INITIALIZATION WOULD SET EQUILIBRIUM BTWEEN NO+O3=NO2.
+       ! EQUATION:  (NO)**2 + NO (Ox-NOx+j1/k2) - NOx j1/k2 = 0
+       ! WHERE j1:  NO2+hv; k2: NO+O3.
+       !
+       if ( nspecial(1) > 0 .and. nspecial(2) > 0 ) then
+         cbeta(kk) = ratek(kk,nspecial(1))/ratek(kk,nspecial(2))
+         xc(kk,c_nno) = 0.5D0 * &
+              (dsqrt((c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+cbeta(kk))**d_two + &
+                    d_four*cbeta(kk)*(c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)))- &
+                    (c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+cbeta(kk)))
+         xc(kk,c_nno2) = c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)-xc(kk,c_nno)
+         xc(kk,c_no3) = c_xcin(kk,c_no3)+  c_xcin(kk,c_nno2)-xc(kk,c_nno2)
          !
-         ! NOX: A PRECISE INITIALIZATION WOULD SET EQUILIBRIUM BTWEEN NO+O3=NO2.
-         ! EQUATION:  (NO)**2 + NO (Ox-NOx+j1/k2) - NOx j1/k2 = 0
-         ! WHERE j1:  NO2+hv; k2: NO+O3.
+         ! ZERO-PROTECT SHOULD APPLY ONLY IF ERROR IN FORMULA.
          !
-         if ( nspecial(1) > 0 .and. nspecial(2) > 0 ) then
-           beta(kk) = ratek(kk,nspecial(1))/ratek(kk,nspecial(2))
-           xc(kk,c_nno) = 0.5D0 * &
-                (dsqrt((c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+beta(kk))**d_two + &
-                      d_four*beta(kk)*(c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)))- &
-                      (c_xcin(kk,c_no3)-c_xcin(kk,c_nno)+beta(kk)))
-           xc(kk,c_nno2) = c_xcin(kk,c_nno2)+c_xcin(kk,c_nno)-xc(kk,c_nno)
-           xc(kk,c_no3) = c_xcin(kk,c_no3)+  c_xcin(kk,c_nno2)-xc(kk,c_nno2)
-           !
-           ! ZERO-PROTECT SHOULD APPLY ONLY IF ERROR IN FORMULA.
-           !
-           if ( xc(kk,c_nno2) <= d_zero ) xc(kk,c_nno2) = 0.1D0
-           if ( xc(kk,c_nno) <= d_zero ) xc(kk,c_nno) = 0.1D0
-           if ( xc(kk,c_no3) <= d_zero ) xc(kk,c_no3) = 0.1D0
-           !
-           ! INITIAL NOX REDUCED BASED ON 5-HOUR LIFETIME
-           !  COMMENT OUT IF PRESET NOx OPTION)
-           !
-           if ( .not. c_lsts(c_nno2) .and. .not. c_lsts(c_nno)) then
-             xc(kk,c_nno) = xc(kk,c_nno)/(d_one+c_time/18000.0D0)
-             xc(kk,c_nno2) = xc(kk,c_nno2)/(d_one+c_time/18000.0D0)
-           end if
+         if ( xc(kk,c_nno2) <= d_zero ) xc(kk,c_nno2) = 0.1D0
+         if ( xc(kk,c_nno) <= d_zero ) xc(kk,c_nno) = 0.1D0
+         if ( xc(kk,c_no3) <= d_zero ) xc(kk,c_no3) = 0.1D0
+         !
+         ! INITIAL NOX REDUCED BASED ON 5-HOUR LIFETIME
+         !  COMMENT OUT IF PRESET NOx OPTION)
+         !
+         if ( .not. c_lsts(c_nno2) .and. .not. c_lsts(c_nno)) then
+           xc(kk,c_nno) = xc(kk,c_nno)/(d_one+c_time/18000.0D0)
+           xc(kk,c_nno2) = xc(kk,c_nno2)/(d_one+c_time/18000.0D0)
          end if
-         !
-         ! NO3:  PRELIMINARY VALUE SET FROM BACK-EULER FORMULA:
-         ! NO2+O3 SOURCE, ALL NO3 SINKS. (Added to deal with large-isop. crash.)
-         xc(kk,c_nno3) = c_xcin(kk,c_nno3)
-         if ( nspecial(3) > 0 ) then
-           xc(kk,c_nno3) = xc(kk,c_nno3) + &
-                           ratek(kk,nspecial(3))*xc(kk,c_no3)*xc(kk,c_nno2)
-         end if
-         xc(kk,c_nno3) = xc(kk,c_nno3) / (d_one + cgamma(kk) )
-         !
-         ! xno, xno2, xo3, xoh, xho2 - ALL CUT.
-         ! oxno, oxno2, oxo3, rno, rno1, rno2, xnox - ALL CUT
-         !
-         ! OH, HO2 INIITIALIZE:REQUIRES PRE-SET REACTION NUMBERS (see above)
-         !  PLUS AUTOMATED CRATE = #16, OH+CO, #17 OH+O3,#46 OH+CH4->HO2.
-         !  DECEMBER 1994:  CHANGE TO FULL QUADRATIC WITH PRIOR OH, HO2
-         !  AND PROTECT AGAINST NIGHTTIME STEADY STATE ZERO.  HO2 prior>1E6.
-         !
-         foh(kk ) = 0.01D0
-         if ( ratek(kk ,nspecial(1)) >= 1.0D-03 ) then
-           foh(kk ) = ratek(kk,nspecial(18)) * xc(kk,c_nno)/alpha(kk)
-         end if
-         !
-         ! FULL QUADRATIC SOLVE WITH PRIOR OH, HO2
-         cgamma(kk ) = d_two*c_time*ratek(kk ,nspecial(9))*xc(kk ,c_no3) + &
-                       c_xcin(kk,c_noh)+c_xcin(kk,c_nho2)
-         if ( cgamma(kk ) < 1.01D+04 ) then
-           c_xcin(kk,c_nho2) = c_xcin(kk,c_nho2) + 1.0D+04
-           c_xcin(kk,c_noh) = c_xcin(kk,c_noh) + 1.0D+02
-           cgamma(kk) = cgamma(kk) + 1.01D+04
-         end if
-
-         beta(kk ) = d_one + d_one/foh(kk ) +  &
-                     c_time*ratek(kk,nspecial(12))*xc(kk,c_nno2)
-         alpha(kk ) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
-         if ( alpha(kk )*cgamma(kk ) < beta(kk)**d_two ) then
-           xc(kk,c_noh) = cgamma(kk)/beta(kk)
-         else
-           xc(kk,c_noh) = (dsqrt(beta(kk)**d_two + &
-                  d_four*alpha(kk )*cgamma(kk)-beta(kk))/(d_two*alpha(kk))
-         end if
-         xc(kk,c_nho2) = xc(kk,c_noh)/foh(kk)
-         !
        end if
+       !
+       ! NO3:  PRELIMINARY VALUE SET FROM BACK-EULER FORMULA:
+       ! NO2+O3 SOURCE, ALL NO3 SINKS. (Added to deal with large-isop. crash.)
+       xc(kk,c_nno3) = c_xcin(kk,c_nno3)
+       if ( nspecial(3) > 0 ) then
+         xc(kk,c_nno3) = xc(kk,c_nno3) + &
+                         ratek(kk,nspecial(3))*xc(kk,c_no3)*xc(kk,c_nno2)
+       end if
+       xc(kk,c_nno3) = xc(kk,c_nno3) / (d_one + cgamma(kk) )
+       !
+       ! xno, xno2, xo3, xoh, xho2 - ALL CUT.
+       ! oxno, oxno2, oxo3, rno, rno1, rno2, xnox - ALL CUT
+       !
+       ! OH, HO2 INIITIALIZE:REQUIRES PRE-SET REACTION NUMBERS (see above)
+       !  PLUS AUTOMATED CRATE = #16, OH+CO, #17 OH+O3,#46 OH+CH4->HO2.
+       !  DECEMBER 1994:  CHANGE TO FULL QUADRATIC WITH PRIOR OH, HO2
+       !  AND PROTECT AGAINST NIGHTTIME STEADY STATE ZERO.  HO2 prior>1E6.
+       !
+       foh(kk ) = 0.01D0
+       if ( ratek(kk ,nspecial(1)) >= 1.0D-03 ) then
+         foh(kk ) = ratek(kk,nspecial(18)) * xc(kk,c_nno)/calpha(kk)
+       end if
+       !
+       ! FULL QUADRATIC SOLVE WITH PRIOR OH, HO2
+       !
+       cgamma(kk ) = d_two*c_time*ratek(kk ,nspecial(9))*xc(kk ,c_no3) + &
+                     c_xcin(kk,c_noh)+c_xcin(kk,c_nho2)
+       if ( cgamma(kk ) < 1.01D+04 ) then
+         c_xcin(kk,c_nho2) = c_xcin(kk,c_nho2) + 1.0D+04
+         c_xcin(kk,c_noh) = c_xcin(kk,c_noh) + 1.0D+02
+         cgamma(kk) = cgamma(kk) + 1.01D+04
+       end if
+       cbeta(kk ) = d_one + d_one/foh(kk ) +  &
+                   c_time*ratek(kk,nspecial(12))*xc(kk,c_nno2)
+       calpha(kk ) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
+       if ( calpha(kk )*cgamma(kk ) < cbeta(kk)**d_two ) then
+         xc(kk,c_noh) = cgamma(kk)/cbeta(kk)
+       else
+         xc(kk,c_noh) = (dsqrt(cbeta(kk)**d_two + &
+                d_four*calpha(kk)*cgamma(kk))-cbeta(kk))/(d_two*calpha(kk))
+       end if
+       xc(kk,c_nho2) = xc(kk,c_noh)/foh(kk)
        !
        ! INITIAL CONCENTRATION FOR H+
        ! --------------------------
@@ -3766,39 +3701,39 @@ module mod_cbmz_solve1
            ! ALTERNATIVE OPTION: LEAVE PARTITIONED XR=0 AND CORRECT AT MIDLUMP.
            ! TO IMPLEMENT, SEE 'LUMPED SPECIES' BELOW.
            !
-           alpha(kk) = d_zero
-           do ic = ic1 , ic2
-             alpha(kk) = alpha(kk) + xc(kk,ic)
+           calpha(kk) = d_zero
+           do iic = ic1 , ic2
+             calpha(kk) = calpha(kk) + xc(kk,iic)
            end do
-           if ( alpha(kk) == 0 ) then
+           if ( calpha(kk) == 0 ) then
              xc(kk,ic1) = d_one
-             alpha(kk) = d_one
+             calpha(kk) = d_one
            end if
            !
            ! CONVERT PARTITION FRACTIONS INTO CONCENTRATIONS. ALSO ENTER XXO.
            ! ALSO ZERO-PROTECT AND ENTER XXO.
            !
-           do ic = ic1 , ic2
-             c_lsts(ic) = c_lsts(ics)
+           do iic = ic1 , ic2
+             c_lsts(iic) = c_lsts(ics)
              !
              ! ORIGINAL VERSION - SET LUMPED SPECIES HERE.
-             !            xc(kk,ic) = xc(kk,ic)*xc(kk,ics)/alpha(kk)
+             !            xc(kk,ic) = xc(kk,ic)*xc(kk,ics)/calpha(kk)
              !            if(xc(kk,ic) <= 0.1) xc(kk,ic) = 0.1
              ! ALTERNATIVE OPTION:  SET LUMPED SPECIES = 0. FOR FIRST ITERATION;
              !          THEN RESET BASED ON RP IN MIDLUMP.
-             xc(kk,ic) = 0.1D0
+             xc(kk,iic) = 0.1D0
              !
              ! PUT LUMPED VALUES IN xcin
              !
-             c_xcin(kk,ic) = xc(kk,ic)
+             c_xcin(kk,iic) = xc(kk,iic)
            end do
            !
            ! SET EMISSIONS TO BE LESS THAN INPUT CONCENTRATION
            !   (Input concentration includes emissions;
            !      emissions are only used for timing in expo decay solution)
-           do ic = 1 , c_nchem2
-             if ( c_xcemit(kk,ic) > 0.99D0*c_xcin(kk,ic) ) then
-               c_xcemit(kk,ic) = 0.99D0*c_xcin(kk,ic)
+           do iic = 1 , c_nchem2
+             if ( c_xcemit(kk,iic) > 0.99D0*c_xcin(kk,iic) ) then
+               c_xcemit(kk,iic) = 0.99D0*c_xcin(kk,iic)
              end if
            end do
          end do
@@ -3927,16 +3862,16 @@ module mod_cbmz_solve1
         !
         ! SUM PARTITION CHEM. PRODUCTION RATES
         !
-        alpha(kk) = d_zero
+        calpha(kk) = d_zero
         do ic = ic1 , ic2
           !
           ! 2006 ORIGINAL
           !
-          alpha(kk) = alpha(kk) + c_rp(kk,ic)
+          calpha(kk) = calpha(kk) + c_rp(kk,ic)
           !
           ! 2008 LUMP OPTION
           !
-          ! alpha(kk) = alpha(kk) + c_rp(kk,ic)/(1.+c_rl(kk,ic))
+          ! calpha(kk) = calpha(kk) + c_rp(kk,ic)/(1.+c_rl(kk,ic))
           !
           ! END OPTION
           !
@@ -3948,16 +3883,16 @@ module mod_cbmz_solve1
         !  SUM OF LUMPED SPECIES AND GAS+AQUEOUS.
         !
         do ic = ic1 , ic2
-          if ( alpha(kk) > d_zero ) then
+          if ( calpha(kk) > d_zero ) then
             !
             ! 2006 ORIGINAL
             !
-            c_xcin(kk,ic) = c_xcin(kk,ics)*c_rp(kk,ic)/alpha(kk)
+            c_xcin(kk,ic) = c_xcin(kk,ics)*c_rp(kk,ic)/calpha(kk)
             !
             ! 2008 LUMP OPTION
             !
             ! c_xcin(kk,ic) = c_xcin(kk,ics) * &
-            !           (c_rp(kk,ic)/(d_one+c_rl(kk,ic)))/alpha(kk))
+            !           (c_rp(kk,ic)/(d_one+c_rl(kk,ic)))/calpha(kk))
             !
             ! END OPTION
             !
@@ -4050,9 +3985,9 @@ module mod_cbmz_solve1
          !
          ic1 = c_npequil(ic)
          if ( ic1 /= ic ) then
-           alpha(kk) = c_xcav(kk,ic)*c_h2oliq(kk)*avogadrl
-           c_xcav(kk,ic1) = c_xcav(kk,ic1) + alpha(kk)
-           c_xcout(kk,ic1) = c_xcout(kk,ic1) + alpha(kk)*xcfinr(kk,ic)
+           calpha(kk) = c_xcav(kk,ic)*c_h2oliq(kk)*avogadrl
+           c_xcav(kk,ic1) = c_xcav(kk,ic1) + calpha(kk)
+           c_xcout(kk,ic1) = c_xcout(kk,ic1) + calpha(kk)*xcfinr(kk,ic)
          end if
        end do
        !
@@ -4145,6 +4080,7 @@ module mod_cbmz_solve1
        implicit none
 
        if ( c_nnrro2 == 0 ) return
+       !
        kk = 1
        !
        ! LOOP FOR PARAMETERIZED RO2 REACTIONS
@@ -4158,15 +4094,15 @@ module mod_cbmz_solve1
          !   and assumes summed RO2 = HO2 or HO2/2
          !
          if ( c_lsts(ic) .and. c_iter == 1 ) then
-           alpha(kk) = xc(kk,c_nho2)/(0.5D0*dble(c_nnrro2))
+           calpha(kk) = xc(kk,c_nho2)/(0.5D0*dble(c_nnrro2))
          else
-           alpha(kk) = xc(kk,ic)
+           calpha(kk) = xc(kk,ic)
          end if
          !
          ! PSEUDO-RATE CONSTANT FOR RO2-RO2 SELF-REACTION
          ! (Doubled so that RO2->PROD parameterized reaction represents RO2+RO2
          !
-         ratek(kk,nr) = d_two*ratero2(kk,i,1)* alpha(kk)
+         ratek(kk,nr) = d_two*ratero2(kk,i,1)* calpha(kk)
          !
          ! LOOP TO ADD RO2-RO2 CROSS REACTIONS
          !
@@ -4190,332 +4126,6 @@ module mod_cbmz_solve1
 !
 ! -------------------------------------
 !
-     subroutine ohwrite(kw)
-
-! This prints a summary of odd-h radical sources by category,
-!  and also sensitivity to OH (d(lnHx)/d(lnOH)) by category.
-!
-! (Representing the components of oddhsum and oddhdel
-!   used in the odd-h radical solution.)
-
-!
-! Inputs:    Species concentrations (xc), reaction rates (rr),
-!              odd-h sums
-!
-! Outputs:   None
-!
-!
-! Called by:    boxmain,  ohsolve
-!
-! Calls to:     None.
-!
-! ---------------------------------------------
-! History:
-!  12/06 Written by Sandy Sillman from boxchemv7.f
-!
-! -------------------------------------------------------------------
-
-! -------------------------------------------------------
-
-      implicit none
-
-! LOCAL VARIABLES:
-
-! hxsum(20,2):  Summed (1) net Hx source and
-!                (2) Hx sensitivity to OH (as dHx/dOH*[OH])
-!                for different source categories
-
-                                    ! Summed Hx source and dH/dOH*[OH]
-      real(dp) hxsum(20,2)
-
-! -------------------------------------------------------
-
-       kk=1
-
-         if(kw <= 0) return
-
-        write(c_out,1858) senhcat(kw,10), senhcat(kw,3)
- 1858   format(/,' OH-SENSITIVITY COEFF:  HO2, RO2=',2f10.4)
-
-! HX WRITE MATRIX FOR HX SOURCES.
-        write(c_out,1859)
- 1859   format(/,'ODD-H RADICAL SOURCES AND SINKS:')
-
-! INITIAL ZERO
-        do 1860 ii=1,20
-         hxsum(ii,1) = 0.
-         hxsum(ii,2) = 0.
- 1860   continue
-
-! PRIOR ODD HYDROGEN (16).  (COPY FROM PRIOR IN 'OHSOLVE').
-      do 1865 ic=1,c_nchem2
-        if((c_icat(ic) == 3.or.c_icat(ic) == 9.or.c_icat(ic) == 10      &
-     &        .or.c_icat(ic) == 8).and.                                 &
-     &          .not.c_lsts(ic))  then
-
-         if(ic == c_npequil(ic)) then
-            hxsum(16,1) = hxsum(16,1) +   c_xcin(kk,ic) - xc(kk,ic)
-            alpha(kk)=0.
-            if(c_rl(kk,ic)+xc(kk,ic) > 0) then
-             alpha(kk) =  (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic)           &
-     &           /(c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
-             hxsum(16,2) = hxsum(16,2) - senhcat(kk,c_icat(ic))         &
-     &         * alpha(kk)
-            end if
-         else
-
-           if(c_h2oliq(kk) > 0) then
-               hxsum(16,1) = hxsum(16,1) + (  c_xcin(kk,ic) - xc(kk,ic))&
-     &            *c_h2oliq(kk)*avogadrl
-
-               alpha(kk)=0.
-               if(c_rl(kk,ic)+xc(kk,ic) > 0) then
-                 alpha(kk) = ( c_rp(kk,ic)+c_rl(kk,ic))                 &
-     &                            *xc(kk,ic)*c_h2oliq(kk)*avogadrl      &
-     &              /(c_rp(kk,ic)+c_rl(kk,ic)                           &
-     &                       +xc(kk,ic)*c_h2oliq(kk)*avogadrl)
-                  hxsum(16,1) = hxsum(16,1) - senhcat(kk,c_icat(ic))    &
-     &              * alpha(kk)
-               end if
-           end if
-
-         end if
-
-       end if
- 1865 continue
-
-! LOOP THROUGH REACTIONS, SET SENHCAT FOR EACH.
-! THEN SUM ODDHSUM ODDHDEL BY SPECIES CATEGORIES
-        do 1870 nr=1,c_nreac
-         icat1 = 0
-         icat2 = 0
-         icatp = 0
-         icatp2 = 0
-         if(c_reactant(nr,1) > 0) then
-             icat1=c_icat(c_reactant(nr,1))
-         end if
-         if(c_reactant(nr,2) > 0) then
-            icat2=c_icat(c_reactant(nr,2))
-         end if
-         if(c_product(nr,1) > 0) then
-            icatp=c_icat(c_product(nr,1))
-         end if
-         if(c_product(nr,2) > 0) then
-            icatp2=c_icat(c_product(nr,2))
-         end if
-         senshx( kw,1) = 0.
-         if(icat1 > 0) senshx( kw,1) = senshx( kw,1)                   &
-     &     + senhcat( kw,icat1)
-         if(icat2 > 0) senshx( kw,1) = senshx( kw,1)                   &
-     &     + senhcat( kw,icat2)
-
-!           if(nr >= 370.and.nr <= 372) write(c_out,*)  nr, icat1,
-!    *        icat2,icatp,icatp2,c_oddhx(nr)
-
-! SUM BY SPECIES CATEGORIES:
-! (1) HO2+HO2->H2O2.
-         if(icat1 == 10.and.icat2 == 10) then
-           hxsum(1,1) = hxsum(1,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(1,2) = hxsum(1,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-! (2) HO2+RO2->ROOH
-!      excluding CO3 (HCO3, icatp=20)
-         if( (  (icat1 == 10.and.icat2 == 3)                            &
-     &    .or.(icat2 == 10.and.icat1 == 3)  )                           &
-     &    .and.(icatp /= 20.and.icatp2 /= 20)                           &
-     &                                      )then
-           hxsum(2,1) = hxsum(2,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(2,2) = hxsum(2,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-! (3) RO2+RO2->products
-         if ((icat1 ==  3.and.icat2 == 3).or.c_nrk(nr) == -13) then
-           hxsum(3,1) = hxsum(3,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(3,2) = hxsum(3,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-! TEMPORARY TEST
-!          write(c_out,12001) nr, (c_treac(ir,nr),ir=1,5),
-!    *      c_rr( kw,nr),c_oddhx(nr,1), hxsum(3,1)
-! 12001      format(i5,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,/,3(1pe10.3))
-         end if
-! (4) H2O2, ROOH+hv
-         if(icat1 == 4.or.icat2 == 4) then
-           hxsum(4,1) = hxsum(4,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(4,2) = hxsum(4,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-! (5) OH+HO2
-         if( (icat1 == 9.and.icat2 == 10)                               &
-     &   .or.(icat2 == 9.and.icat1 == 10) ) then
-           hxsum(5,1) = hxsum(5,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(5,2) = hxsum(5,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-
-! (6)  HNO3 production;  including aqueous NO3L+HO2-.
-         if((      (icat1 == 9.and.icat2 == 12)                         &
-     &       .or.  (icat2 == 9.and.icat1 == 12)                         &
-     &       .or. (icat1 == 14.and.icat2 == 10)                         &
-     &       .or. (icat1 == 10.and.icat2 == 14)                         &
-     & ) .and. icatp /= 6)  then
-           hxsum(6,1) = hxsum(6,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(6,2) = hxsum(6,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-
-! (7,8)  HNOx:  SEPARATE INTO SINKS AND SOURCES
-! JUST SO THAT 'EXCHANGE' CAN BE REMOVED.
-         if (icat1 == 6.or.icat2 == 6              ) then
-           hxsum(7,1) = hxsum(7,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(7,2) = hxsum(7,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-
-         if (                            icatp == 6) then
-           hxsum(8,1) = hxsum(8,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(8,2) = hxsum(8,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-
-! (9,10) PANs SINKS, SOURCES.  (Note: ODDHDEL for PAN is re-set below.)
-         if (icat1 == 5.or.icat2 == 5              ) then
-           hxsum(9,1) = hxsum(9,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(9,2) = hxsum(9,2)+ c_rr( kw,nr)*c_oddhx(nr,1)          &
-     &   *senshx( kw,1)
-         end if
-
-         if (                            icatp == 5) then
-           hxsum(10,1) = hxsum(10,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(10,2) = hxsum(10,2)+ c_rr( kw,nr)*c_oddhx(nr,1)        &
-     &   *senshx( kw,1)
-         end if
-
-! (11) RNO3
-         if  (icatp /= 5.and.                                           &
-     &    (   (icat1 == 3.and.icat2 == 13)                              &
-     &   .or. (icat2 == 3.and.icat1 == 13)  )    )then
-           hxsum(11,1) = hxsum(11,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(11,2) = hxsum(11,2)+ c_rr( kw,nr)*c_oddhx(nr,1)
-         end if
-
-! (12) O3+hv
-         if  (icat1 == 11.and.icat2 == 0)   then
-           hxsum(12,1) = hxsum(12,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(12,2) = hxsum(12,2)+ c_rr( kw,nr)*c_oddhx(nr,1)        &
-     &   *senshx( kw,1)
-         end if
-! (13)  ALD+hv
-         if  (icat1 <=  2.and.icat2 == 0                                &
-     &                        .and.c_reactant(nr,2) == -1) then
-           hxsum(13,1) = hxsum(13,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(13,2) = hxsum(13,2)+ c_rr( kw,nr)*c_oddhx(nr,1)        &
-     &   *senshx( kw,1)
-         end if
-! (14)  O3+OLEFIN
-         if( (icat1 == 11.and.(icat2 == 1.or.icat2 == 2))               &
-     &   .or.(icat2 == 11.and.(icat1 == 1.or.icat1 == 2))  )then
-           hxsum(14,1) = hxsum(14,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(14,2) = hxsum(14,2)+ c_rr( kw,nr)*c_oddhx(nr,1)        &
-     &   *senshx( kw,1)
-         end if
-
-! (15)  AQUEOUS O2- + HCO3-.   (expand to include H+, OH- = cat 17,18?)
-         if( (icat1 == 20.or.icat2 == 20.or.                            &
-     &                           icatp == 20.or.icatp2 == 20) .or.      &
-     &       (icat1 == 0.or.(icat2 == 0.and.c_reactant(nr,2) > 0.))    &
-     &     .or.(icat1 == 8.or.icat2 == 8)                               &
-     &       ) then
-           hxsum(15,1) = hxsum(15,1)+ c_rr( kw,nr)*c_oddhx(nr,1)
-           hxsum(15,2) = hxsum(15,2)+ c_rr( kw,nr)*c_oddhx(nr,1)        &
-     &   *senshx( kw,1)
-!           if(nr >= 370.and.nr <= 372) write(c_out,*)  nr, icat1,
-!    *        icat2,icatp,icatp2,c_oddhx(nr,1)
-         end if
- 1870  continue
-
-! CORRECTION FOR 'EXCHANGE' REACTIONS:  PAN, HNOx EXCHANGE
-!  IS REMOVED (APPROXIMATELY) FROM ODDHDEL
-!   (NOTE:  THIS CAUSES ERROR WITH HONO)
-       if((0.-hxsum(8,1)) > hxsum(7,1).and.hxsum(8,1) /= 0) then
-         hxsum(8,2) = hxsum(8,2)*(1.+hxsum(7,1)/hxsum(8,1))
-        else
-         hxsum(8,2) = 0.
-        end if
-
-! APPROXIMATE RE-SET FOR PAN ODDHDEL.
-       if((0.-hxsum(10,1)) > hxsum(9,1).and.hxsum(10,1) /= 0) then
-         hxsum(10,2) = hxsum(10,2)*(1.+hxsum(10,1)/hxsum(10,1) )
-        else
-         hxsum(10,2) = 0.
-        end if
-
-! MISCELLANEOUS(17) AND TOTAL SUM (18) AND SUM WITHOUT RO2 (19)
-!   (NOTE MISCELLANEOUS OFTEN CORRECTS FOR APPROXIMATION IN PAN ODDHDEL)
-       hxsum(17,1) = oddhsum( kw,1)
-       hxsum(17,2) = oddhdel( kw,1)
-       hxsum(18,1) = oddhsum( kw,1)
-       hxsum(18,2) = oddhdel( kw,1)
-       hxsum(19,1) = oddhsum( kw,2)
-       hxsum(19,2) = oddhdel( kw,2)
-       do 1875 ii=1,16
-        hxsum(17,1) = hxsum(17,1)-hxsum(ii,1)
-        hxsum(17,2) = hxsum(17,2)-hxsum(ii,2)
- 1875  continue
-
-! WRITE ODD-H SOURCES AND SINKS.  NOTE DISCREPANCY IN PRIOR HX.
-! THE true ODDHSUM USES (XXO-XRP, prior) IN THE CALC FOR NEW OH.
-! HXSUM RECORDS (XXO-XRP) for RO2 + (XXO-XR,new) for OH+HO2.
-! THIS CAUSES A SMALL DISCREPANCY BETWEEN HXSUM AND ODDHSUM
-! THE DISCREPANCY IS ADDED INTO HXSUM-MISCELLANEOUS.
-
-      write(c_out,1876) ((hxsum(ii,i),i=1,2),ii=1,19)
- 1876 format(/,' ---ODD-H SOURCES---     ODDHSUM   ODDHDEL',/,          &
-     &         ' HO2+HO2->H2O2        ',2(1pe10.3),/,                   &
-     &         ' HO2+RO2->ROOH        ',2(1pe10.3),/,                   &
-     &         ' RO2+RO2-> prod       ',2(1pe10.3),/,                   &
-     &         ' H2O2,ROOH+hv         ',2(1pe10.3),/,                   &
-     &         ' OH+HO2 -> SINK       ',2(1pe10.3),/,                   &
-     &         ' OH+NO2->HNO3         ',2(1pe10.3),/,                   &
-     &         ' HONO, HNO4 SINK      ',2(1pe10.3),/,                   &
-     &         ' HONO, HNO4 SOURCE    ',2(1pe10.3),/,                   &
-     &         ' PANS SINK            ',2(1pe10.3),/,                   &
-     &         ' PANS SOURCE          ',2(1pe10.3),/,                   &
-     &         ' RO2+NO->RNO3         ',2(1pe10.3),/,                   &
-     &         ' O3+hv->2OH           ',2(1pe10.3),/,                   &
-     &         ' ALD+hv               ',2(1pe10.3),/,                   &
-     &         ' O3+OLEFIN            ',2(1pe10.3),/,                   &
-     &         ' AQUEOUS HCO3-        ',2(1pe10.3),/,                   &
-     &         ' PRIOR OH, HO2,RO2    ',2(1pe10.3),/,                   &
-     &         ' MISCELLANEOUS        ',2(1pe10.3),/,                   &
-     &         ' FINAL SUM            ',2(1pe10.3),/,                   &
-     &         ' FINAL SUM w/o RO2    ',2(1pe10.3)        )
-!
-!
-! SPECIAL AQUEOUS DEBUG WRITE - TEMPORARY. aqueous reactions 370-376
-!         do 1385 nr=384,386
-!          write(c_out,102) nr,(c_treac(i,nr),i=1,5),
-!    *      c_rr( kw,nr) , ratek( kw,nr)
-! 1385      continue
-
-  102  format(i4,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,2x,3((1pe10.3),2x))
-
-! END OHWRITE
- 2000 return
-      END
-! ----------------------------------------------------
-!
-! --------------------------------------------------------------
-!
-! --------------------
-! END  OF chemsolve/quadchem. (aquasolve may be attached below.)
-! --------------------
-!
-! ==============================================================
-!
-
-      subroutine aquasolve
-
 ! THIS  CALCULATES (H+) AND AQUEOUS SPECIES CONCENTRATIONS
 !   (MOLES PER LITER)  BASED ON PRIOR (H+).
 !
@@ -4571,1124 +4181,665 @@ module mod_cbmz_solve1
 !
 ! -------------------------------------------------------------------
 
-! ---------------------------------------------------------------
-      implicit none
-
-      character*8 tsum
-      real(dp) sum
-
-                                         ! 1/[H+]
-      real(dp) xhinv(c_kvec)
-                                         ! 1/[OH]
-      real(dp) xohinv(c_kvec)
-                                         ! 1/Kw =1/[H+][OH-}
-      real(dp)  xkwinv(c_kvec)
-
-                                         ! Test for LWC>0 in loop
-      real(dp) xtest
-                                         ! Variable for write statement
-      real(dp) xxx1
-                                         ! Variable for write statement
-      real(dp) xxx2
-                                      ! Aq conversion fac for write
-      real(dp) acquacon
-
-      kk=1
-
-! IF ACQUA=0, RETURN.  ONLY FOR NONVECTORIZED VERSION.
-      xtest=0.
-!     do 16001 kk=1,c_kmax
-       if(c_h2oliq(kk) > xtest) xtest=c_h2oliq(kk)
-16001 continue
-!     if(xtest == 0.) return
-      if(xtest <= 1.000E-25) return
-
-! AVOGADRL converts MOLES/LITER to MOLECULES/CM3.-> entered in chemvars
-! RTCON
-!     avogadrl = 6.02E+20
-
-! pi (if not built-in special)-> entered in chemvars
-
-! H+ species number  -ih, ioh replaced with c_nhplus, c_nohmin
-!      c_nhplus=c_aqueous(1,2)
-!      c_nohmin = c_aqueous(1,3)
-
-! DROPLET RADIUS (.001 cm) AND DIFFUSION COEFFICENT (2E-5 cm2/sec)
-! AND GAS-PHASE DIFFUSION COEFFICIENT (0.1 cm2/sec)
-!   (all with values from Lelieveld and Crutzen, 1991)
-! AND "RU" PARAMETER FOR  molecular speed (Barth, personal comm)
-!   (8.314e7 g-cm2/s2-mol-K)   (note: 8.314e0 kg-m2/s2-mol-K)
-
-! v      do kk=1,c_kmax
-!      c_DROPLET(kk) = .001   => now INPUT VALUE
-!        end do              ! do kk=1,c_kmax
-
-!      DROPDIF = 2.0E-05  - entered as parameter in chemvar1
-!      DIFGAS  = 0.1  - entered as parameter in chemvar1
-!       RUMOLEC = 8.314E7 - entered as parameter in chemvar1
-
-!  (   VMOLEC = MOLECULAR SPEED, CALCULATED BELOW)
-
-
-! NEW PRELIMINARY:  CALCULATE ADJUSTMENT TO HENRY'S LAW COEFFICIENTS
-!  TO REPRESENT DROPLET DIFFUSION LIMITATION
-!  (Lelieveld, J. At. Chem 12, 229, 1991 - see p. 241).
+     subroutine aquasolve
 !
-!  Q = Cavg/Csurf = 3 (coth q /q - 1/q**2)**-1;  q=r*(ka/Da)**0.5
+       implicit none
 !
-!   where r= droplet radius (.001cm)  Da=droplet diffusion (2e-5 cm)
-!   ka = pseudo-1st-order aqueous loss rate.
-!  This Q applies only to the species component that originated in the
-!   gas phase and was transported to aqueous (Sg) as opposed to being
-!   produced chemically in the aqueous phase (Pa).
-!
-!  Total Q' = (Pa + QSg)/(Pa+Sg);  Sg=source to aqueous from gas.
-!
-!  (Pa, Sg should be from prior iteration.  Here,
-!   Sg = (rpgas+c_xcin) * prior aq/gas ratio (= rlaq/(rlaq+rlgas).  Slig
-!   other options:  (i)= (Pgas+c_xcin)*(xraq/xrtot).  (ii)=rlaq-rpaq  )
-!
+       character(len=8) :: tsum
+       real(dp) :: xsum
 
-! ------------
-! BEGIN LOOP FOR DIFFUSION-HENRY'S LAW MODIFICATION.
-! ------------
-        do  nrh=1,c_nreach
+       ! 1/[H+]
+       real(dp) :: xhinv(c_kvec)
+       ! 1/[OH]
+       real(dp) :: xohinv(c_kvec)
+       ! 1/Kw =1/[H+][OH-}
+       real(dp) :: xkwinv(c_kvec)
+       ! Test for LWC>0 in loop
+       real(dp) :: xtest
+       ! Variable for write statement
+       real(dp) :: xxx1
+       ! Variable for write statement
+       real(dp) :: xxx2
+       ! Aq conversion fac for write
+       real(dp) :: acquacon
+!
+       kk=1
+       !
+       ! IF ACQUA=0, RETURN.  ONLY FOR NONVECTORIZED VERSION.
+       !
+       xtest = d_zero
+       !
+       if ( c_h2oliq(kk) > xtest ) xtest = c_h2oliq(kk)
+       if ( xtest <= 1.000D-25 ) return
+       !
+       ! NEW PRELIMINARY:  CALCULATE ADJUSTMENT TO HENRY'S LAW COEFFICIENTS
+       !  TO REPRESENT DROPLET DIFFUSION LIMITATION
+       !  (Lelieveld, J. At. Chem 12, 229, 1991 - see p. 241).
+       !
+       !  Q = Cavg/Csurf = 3 (coth q /q - 1/q**2)**-1;  q=r*(ka/Da)**0.5
+       !
+       !   where r= droplet radius (.001cm)  Da=droplet diffusion (2e-5 cm)
+       !   ka = pseudo-1st-order aqueous loss rate.
+       !  This Q applies only to the species component that originated in the
+       !   gas phase and was transported to aqueous (Sg) as opposed to being
+       !   produced chemically in the aqueous phase (Pa).
+       !
+       !  Total Q' = (Pa + QSg)/(Pa+Sg);  Sg=source to aqueous from gas.
+       !
+       !  (Pa, Sg should be from prior iteration.  Here,
+       !   Sg = (rpgas+c_xcin) * prior aq/gas ratio (= rlaq/(rlaq+rlgas).  Slig
+       !   other options:  (i)= (Pgas+c_xcin)*(xraq/xrtot).  (ii)=rlaq-rpaq  )
+       !
+       ! ------------
+       ! BEGIN LOOP FOR DIFFUSION-HENRY'S LAW MODIFICATION.
+       ! ------------
+       do nrh = 1 , c_nreach
          ic = c_henry(nrh,1)
-         ich=c_ncequil(ic,1)
-
-! DIFFUSION-MODIFIED HENRY'S LAW COEFFICIENT: FIRST SET EQUAL TO ONE
-! ALSO, SAVE PRIOR RHDIF
-!        do kk=1,c_kmax
-           prior(kk) = rhdif(kk,nrh)
-           rhdif(kk,nrh) = 1.
-!        end do
-
-! FOR ITER>1, USE PRIOR RP, RL TO SET DIFFUSION-MODIFICATION.
-
-         if(c_iter > 1.and.c_nequil(ic) > 0)  then
-
-! PRELIMINARY ZERO
-           do i=1,3
-!            do kk=1,c_kmax
-              rpro(kk,i) = 0.
-              rloss(kk,i) = 0.
-              xrp(kk,i) = 0.
-!             rpro(kk,i) = 0.00001
-!             rloss(kk,i) = 0.00001
-!             xrp(kk,i) = 0.1
-!            end do
+         ich = c_ncequil(ic,1)
+         !
+         ! DIFFUSION-MODIFIED HENRY'S LAW COEFFICIENT: FIRST SET EQUAL TO ONE
+         ! ALSO, SAVE PRIOR RHDIF
+         prior(kk) = rhdif(kk,nrh)
+         rhdif(kk,nrh) = d_one
+         !
+         ! FOR ITER>1, USE PRIOR RP, RL TO SET DIFFUSION-MODIFICATION.
+         !
+         if ( c_iter > 1 .and. c_nequil(ic) > 0 )  then
+           !
+           ! PRELIMINARY ZERO
+           !
+           do i = 1 , 3
+             rpro(kk,i) = d_zero
+             rloss(kk,i) = d_zero
+             xrp(kk,i) = d_zero
+!            rpro(kk,i) = 0.00001
+!            rloss(kk,i) = 0.00001
+!            xrp(kk,i) = 0.1
            end do
-
-! SUM AQUEOUS CONCENTRATIONS IN GAS-EQUIVALENT UNITS (xrp1)
-! ALSO SUM AQUEOUS PRODUCTION (rpro1) AND LOSS (rloss1)
-           do    neq=1,c_nequil(ic)
-            icq = c_ncequil(ic,neq)
-            if(icq > 0) then
-
-! v           do  kk=1,c_kmax
-              if(c_h2oliq(kk) > 0) then
-                if(c_iter <= 2) then
-                 xrp(kk,1) =xrp(kk,1) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
-                else
-! xclastq = from prior iteration (=xc end of last aquasolve)
-!
-! OPTION and possible ERROR:
-!    (1)  Why use xclastq and not current xr?
-!    (2)  Were rp preserved from prior iteration?
-!
-                 xrp(kk,1) =xrp(kk,1)                                   &
-     &             + xc     (kk,icq)*c_h2oliq(kk)*avogadrl
-!    *             + xclastq(kk,icq)*c_h2oliq(kk)*avogadrl
-                end if
-                rpro(kk,1) = rpro(kk,1) + c_rp(kk,icq)
-                rloss(kk,1) = rloss(kk,1) + c_rl(kk,icq)
-                if(neq == 1)  xrp(kk,2) =  xrp(kk,1)
-              end if
-! v           end do
-
-             end if
-           end do
-
-! PSEUDO-FIRST-ORDER AQUEOUS LOSS CONSTANT (alpha)
-!  (NOTE:  if RL and XR=0, initial values above make lifetime long.)
-
-!          do kk=1,c_kmax
-           if(c_h2oliq(kk) > 0) then
-             alpha(kk) = 0.00001
-             if(xrp(kk,1) > 0.and.rloss(kk,1) > 0)                    &
-     &        alpha(kk) = rloss(kk,1)/(xrp(kk,1)*c_time)
-           end if
-!          end do
-
-! Lelieveld Q-FACTOR FOR AQUEOUS DIFFUSION  (beta)
-!
-! v        do kk=1,c_kmax
-           if(c_h2oliq(kk) > 0) then
-             cgamma(kk) = c_DROPLET(kk) * sqrt(alpha(kk)/DROPDIF)
-
-! PROTECT AGAINST EXTREME q (=droplet ratio)
-             if(cgamma(kk) < .01) then
-              beta(kk)=1.
-             else
-              if(cgamma(kk) > 100.) then
-               beta(kk)=0.001
-              else
-
-               beta(kk) = (exp(cgamma(kk)) + exp(0.-cgamma(kk)) )         &
-     &                  / (exp(cgamma(kk)) - exp(0.-cgamma(kk)) )
-                if(c_kkw > 0) then
-                  xxx1 = beta(c_kkw)
-                end if
-               beta(kk) = 3.* (beta(kk)/cgamma(kk) - 1./(cgamma(kk)**2) )
-                if(c_kkw > 0) then
-                 xxx2 = beta(c_kkw)
-                end if
-               if(beta(kk) > 1.) beta(kk)=1.
-               if(beta(kk) < 0.) beta(kk)=0.
-              end if
-             end if
-
-           end if
-! v        end do
-
-! TEST WRITE
-! c          if(c_kkw > 0) write(c_out,19104) xxx1, xxx2
-! c 19104      format(' TEST Q (0-1). coth q, formula Q=',2e10.3)
-!          if(c_kkw > 0) write(c_out, 19101)
-!    *      nrh, beta(c_kkw), cgamma(c_kkw), alpha(c_kkw)
-! 19101      format(/,' TEST AQUEOUS DIFF: NRHENRY, Q, q, La(sec-1)='
-!    *        ,i5,3e10.3)
-
-! Lelieveld Q-FACTOR, ADJUSTED FOR AQUEOUS PRODUCTION VS DIFFUSION FROM
-! Q APPLIED TO GAS DIFFUSION ONLY:  Q' = (Sgas*Q + Saq)/(Sgas+Saq)
-!
-! (Final option for S=source of aqueous from gas:
-!  S = (rpgas+c_xcin) * aq/gas ratio (= rlaq/(rlaq+rlgas).  Slight overe
-!
-!  alternatives: (i)  aq/gas=1; aq/gas=Ca/Ct where H=Ca/Cg
-!               (ii) S = aqueous rl-rp if >0.
-! )
-
-! v          do kk=1,c_kmax
-             if(c_h2oliq(kk) > 0) then
-
-              cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic))
-              if(rloss(kk,1) > 0)                                      &
-     &         cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic))              &
-     &                  *rloss(kk,1)/(rloss(kk,1)+c_rl(kk,ic))
-
-! Options
-!             cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic))
-
-!             cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic)) *rateh(kk,nrh)
-!    *                             /(rateh(kk,nrh)+1.)
-
-!             cgamma(kk) = rloss(kk,1) - rpro(kk,1)
-!             if(cgamma(kk) < 0) cgamma(kk) == 0.)
-
-
-! Q adjustment:  Q'=rhdif;  Q=beta; Sgas=cgamma; Saq=rpro
-!  Apply only if aqueous concentration is not zero.
-
-              if(xrp(kk,1) > 0.and.(cgamma(kk)+rpro(kk,1) > 0))        &
-     &        rhdif(kk,nrh)  = (beta(kk)*cgamma(kk) + rpro(kk,1))        &
-     &                       / (cgamma(kk) +          rpro(kk,1))
-
-             end if
-! v          end do
-
-!  TEST WRITE
-!              if(c_kkw > 0) write(c_out, 19107) rateh(c_kkw,nrh),
-!    *         rpro(c_kkw,1),   c_xcin(c_kkw,ic), c_rp(c_kkw,ic)
-! 19107        format(' TEST rateh rproq c_xcin rpgas=',4e10.3)
-!            if(c_kkw > 0) write(c_out,19108) c_rl(c_kkw,ic)
-!    *         ,rloss(c_kkw,1) ,alpha(c_kkw)
-! 19108        format(' TEST rlgas rlaq, Laq(s-1)=',3e10.3)
-!            if(c_kkw > 0) write(c_out,19103) cgamma(c_kkw)
-!    *         , rhdif(c_kkw,nrh)
-! 19103        format(' TEST S (=RPGAS*(aq/gas)); MODIFIED Q (0-1): '
-!    *             ,2e10.3)
-
-
-         end if
-! END IF FOR ITER>1, AQUEOUS>0.
-
-! ENTER COMBINED HENRY-S LAW-w AQ DIFFUSION (relative units).
-
-!        do kk=1,c_kmax
-         if(c_h2oliq(kk) > 0) then
-          rhdif(kk,nrh) = rhdif(kk,nrh)*rateh(kk,nrh)
-         end if
-!        end do
-!
-
-! DIAGNOSTIC WRITE
-           if(c_kkw > 0) then
-             write(c_out,19105) (c_treach(i,nrh),i=1,2)                 &
-     &        ,rateh(c_kkw,nrh), rhdif(c_kkw,nrh)
-19105         format(a8,'=',a8,'  HENRYs LAW COEFF.=',1pe10.3,          &
-     &       '  H+DROPLET DIFF COEF=', 1pe10.3)
-           end if
-
-! -----------------------------------------------------------
-! GAS-PHASE DIFFUSION MODIFICATION:
-! ADJUST GAS/AQUEOUS RATIO TO ACCOUNT FOR CASE WHERE AQUEOUS LOSS RATE
-!  (FROM AQUEOUS AND IONIC EQUILIBRIA SPECIES)
-!  IS FASTER THEN THE NEEDED GAS-AQUEOUS TRANSFER.
-! -----------------------------------------------------------
-!
-!
-! USES ACCOMODATION COEFFICIENTS, FORMULAS IN Lelieveld AND INFO
-!  FROM MARY BARTH.
-
-! PARTITION COEFFICIENT IS BASED ON STEADY STATE BETWEEN Pg, Pa,
-! Lg, La, Eg, Ea=Eg/H.  Eg calculated from Lelieveld, Barth.
-! Lg, La, Eg in s-1;  Pg, Pa in equivalent units.
-!
-! (note rpro(kk,1) = aqueous production; rloss(kk,1)=aqloss,
-!  c_rp(kk,ic) = gas pro, c_rl(kk,ic) = aqueous pro; xc(kk,ic) = gas cnc
-!  xrp(kk,2) = aqueous concentr (w/o ion sum), gas units.
-!
-!  (Pg-(Lg+Eg)Cg+Ea"Ca' = 0.;  Pa'+EgCg-(Ea'+La')Ca' = 0.
-!    where Ca', Pa', La',Ea' are for sum of aq-equil species;
-!    See hand notes in Lelieveld 1991)
-!
-! AQUEOUS/GAS = (H*(Pa+Pg) + H(Lg/Eg)*Pa)/(Pa+Pg+H(La/Eg)*Pg)
-! HENRY ADJUSTMENT = (Pa + Pg + (Lg/Eg)Pa)/(Pa+Pg+H(La/Eg)Pg)
-
-! *** ONLY IF c_iter>1. AND WITH SOFTENING.
-! ----------------------------------------------------
-
-! ESTABLISH GAS=>AQUEOUS EXCHANGE RATE (Eg).
-!  MOLEC SPEED (VMOLEC, cgamma) = sqrt(8*ru*temp/(pi*c_molwt))
-!    = 3e4 cm/s, speed of sound.  (Barth).
-!
-!   Eg (s-1) = [(DROPLET**2/3DIFGAS) + 4DROPLET/(3*VMOLEC*ACCOM)]**-1
-!   (Lelieveld).
-!   THEN MULTIPLY BY LIQUID WATER CONTENT (acqua)
-!
-! (STILL WITHIN HENRY'S LAW LOOP)
-! ----------------------------------------------------
-!
-! OPTION:  INCLUDE OR OMIT, WITH ITER CONTROL HERE.
-
-         if(c_iter > 1) then
-!        if(c_iter < 0) then
-
-! v       do kk=1,c_kmax
-           cgamma(kk) = sqrt( 8.*RUMOLEC*c_temp(kk)/(pii*c_molwt(nrh)) )
-           egasaq(kk,nrh) = c_h2oliq(kk)/                               &
-     &             ( (c_DROPLET(kk)**2/(3.*DIFGAS))                     &
-     &             + (4.*c_DROPLET(kk)/(3.*cgamma(kk)*c_accom(nrh)))  )
-
-
-           beta(kk) = rpro(kk,1) + c_rp(kk,ic)
-
-! TEST WRITE
-           if(c_kkw > 0)                                               &
-     &       write(c_out,18099) cgamma(kk), egasaq(kk,nrh), beta(kk)
-18099      format(8(1pe10.3))
-
-! GOT HERE
-! 2009 CORRECTION
-! THESE NEXT LINES WERE COMMENTED OUT IN quadchv7.f
-!   WHICH GENERATES A SUCCESSFUL SOLUTION
-!   (w/ these lines commented in GAS DIFF ADJUST alpha = 1.000)
-
-!          if(beta(kk) < 0.) beta(kk) = 0.
-!          cgamma(kk) = beta(kk)
-!          if( c_rl(kk,ic) > 0.and.(xc(kk,ic)-xrp(kk,1)) > 0
-!    *         .and.rpro(kk,1) > 0.and.egasaq(kk,nrh) > 0)
-!    *     beta(kk) = beta(kk) + (
-!    *                 ( c_rl(kk,ic)/(xc(kk,ic)-xrp(kk,1)) )
-!    *                 /(c_time*egasaq(kk,nrh) ))     *rpro(kk,1)
-
-! TEST WRITE
-!          if(c_kkw > 0)
-!    *       write(c_out,18099) c_rl(kk,ic), xc(kk,ic), xrp(kk,1),
-!    *      rpro(kk,1), beta(kk)
-
-! OLD  CRASH HERE
-           if( rloss(kk,1) > 0.and.(xrp(kk,2)) > 0                    &
-     &         .and.c_rp(kk,ic) > 0.and.egasaq(kk,nrh) > 0            &
-     &         .and.rhdif(kk,nrh) /= 0)                                 &
-     &     cgamma(kk) = cgamma(kk) + (                                    &
-     &                ( (rloss(kk,1)/(xrp(kk,2)))                       &
-     &                 /(c_time*egasaq(kk,nrh) )*rhdif(kk,nrh)) )       &
-     &                  *c_rp(kk,ic)
-
-! TEST WRITE
-!          if(c_kkw > 0)
-!    *       write(c_out,18099) rloss(kk,1), xrp(kk,2), c_rp(kk,ic),
-!    *       cgamma(kk)
-
-           alpha(kk) = 1.
-           if(beta(kk) > 0.and.cgamma(kk) > 0)                         &
-     &       alpha(kk) = beta(kk)/cgamma(kk)
-
-           rhdif(kk,nrh) = rhdif(kk,nrh)*alpha(kk)
-
-! v       end do
-
-! TEST WRITE
-!           if(c_kkw > 0) write(c_out,19097)
-!    *      egasaq(c_kkw,nrh),c_rl(c_kkw,ic), rloss(c_kkw,1)
-!    *      ,xc(c_kkw,ic), xrp(c_kkw,2), xrp(c_kkw,1)
-!    *      ,c_rp(c_kkw,ic), rpro(c_kkw,1)
-! 19097     format('TEST: EGAS  RLgas  RLaq  XRgas XRaq XRaqall  RPgas'
-!    *      , '  RPaq',/,8(1pe10.3))
-
-! DIAGNOSTIC WRITE
-           if(c_kkw > 0) then
-             write(c_out,19095) (c_treach(i,nrh),i=1,2)                 &
-     &        ,alpha(c_kkw), rhdif(c_kkw,nrh)
-19095         format(a8,'=',a8,'  GAS DIFF. ADJUST.=',1pe10.3,          &
-     &       '  HENRY+ DIFFUS COEFS=', 1pe10.3)
-           end if
-
-         end if
-! END GAS-PHASE DIFFUSION MODIFICATION:
-!
-! MODIFY GAS/AQ RATIO FOR TROUBLESOME CONVERGENCE
-         if(c_iter > 2) then
-! v       do kk=1,c_kmax
-           rhdif(kk,nrh) = (rhdif(kk,nrh)**0.5)*(prior(kk)**0.5)
-! v       end do
-         end if
-
-! DIAGNOSTIC WRITE
-           if(c_kkw > 0) then
-              write(c_out,19096) (c_treach(i,nrh),i=1,2)                &
-     &        ,rateh(c_kkw,nrh), rhdif(c_kkw,nrh)
-19096         format(a8,'=',a8,'  HENRYs LAW COEFF.=',1pe10.3,          &
-     &       '  H+GAS+DROP DIF COEF=', 1pe10.3)
-           end if
-
-! -----------------------------------------------------------
-        end do
-! -----------------------------------------------------------
-! END LOOP FOR GAS-MASTER SPECIES FOR AQUEOUS DIFFUSION MODIFICATION
-! -----------------------------------------------------------
-
-! PRELIMINARY:  ZERO XR PRIOR (USED IN AQUEOUS SUMS). INITIALIZE H+,OH-.
-! SUM PRIOR GAS AND AQUEOUS SPECIES INTO THE GAS-MASTER
-! ALSO SUM PRODUCTION (RP in gas units)
-!        RPRO1 =  SUMMED NET RP FOR THE INDIV. SPECIES
-!        RPRO2 =  RUNNING SUM OF NET RP FOR IONS.
-!        RPRO3 =  RUNNING SUM OF PRIOR ION CONCENTRATION
-!         RPRO2/3, EFFECT OF PRIOR CHEM PRODUCTION OF IONS
-!         WILL BE FACTORED INTO BETA (d/dH slope).
-
-!     do 16002 kk=1,c_kmax
-      if(c_h2oliq(kk) > 0) then
-       rpro(kk,1) = 0.
-       rpro(kk,2) = 0.
-       rpro(kk,3) = 0.
-       if(xc(kk,c_nhplus) <= 0) then
-         xc(kk,c_nhplus) = 1.0E-05
-         xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
-       end if
-       if(xc(kk,c_nohmin) <= 0) then
-         xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
-       end if
-      end if
-16002 continue
-
-      do 50 nrh=1,c_nreach
-       ic = c_henry(nrh,1)
-
-       if(c_nequil(ic) > 0)  then
-
-!        do 16003 kk=1,c_kmax
-         if(c_h2oliq(kk) > 0) then
-          rpro(kk,1) = c_rp(kk,ic)-c_rl(kk,ic)
-         end if
-16003    continue
-
-! SUM AQUEOUS SPECIES INTO THE GAS-MASTER, SUM GAS+AQUEOUS RPRO1.
-         do 60 neq=1,c_nequil(ic)
-          icq = c_ncequil(ic,neq)
-          if(icq > 0) then
-
-!    TEST WRITE - TEMPORARY
-!               if(c_kkw > 0) write(c_out, 19004) c_tchem(ic)
-!    *                , xc(c_kkw,ic)
-! 19004           format(' AQUEOUS CALCULATION:   ', a8,2x,1pe10.3)
-
-!           do 16004 kk=1,c_kmax
-            if(c_h2oliq(kk) > 0) then
-             xc(kk,ic) = xc(kk,ic) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
-             rpro(kk,1) = rpro(kk,1) + c_rp(kk,icq)-c_rl(kk,icq)
-
-!            if(c_kkw > 0) write(c_out, 19004) c_tchem(ic),xc(c_kkw,ic)
-
-            end if
-16004       continue
-          end if
-   60    continue
-
-! SUM PRIOR NET CHEM ION PRODUCTION (RPRO2) AND ION SUM (RPRO3)
-! ION CHEM. INFERRED FROM PRIOR GAS-AQ-ION PARTITIONING AND RPRO1.
-! ALSO ZERO AQUEOUS CONCENTRATIONS
-
-         do 65 neq=1,c_nequil(ic)
-          icq = c_ncequil(ic,neq)
-          if(icq > 0) then
-
-            if(c_iter > 1) then
-!            do kk=1,c_kmax     ! kk vector loop
-              if(c_h2oliq(kk) > 0) then
-               if(xc(kk,ic) > 0) then
-                 rpro(kk,3) = rpro(kk,3) + (rpro(kk,1)/xc(kk,ic))       &
-     &            * abs(c_ion(icq))*c_h2oliq(kk)*avogadrl*xc(kk,icq)
-                                     !if(xc(kk,ic) > 0) then
+           !
+           ! SUM AQUEOUS CONCENTRATIONS IN GAS-EQUIVALENT UNITS (xrp1)
+           ! ALSO SUM AQUEOUS PRODUCTION (rpro1) AND LOSS (rloss1)
+           do neq = 1 , c_nequil(ic)
+             icq = c_ncequil(ic,neq)
+             if ( icq > 0 ) then
+               if ( c_h2oliq(kk) > 0 ) then
+                 if ( c_iter <= 2 ) then
+                   xrp(kk,1) =xrp(kk,1) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
+                 else
+                   ! xclastq = from prior iteration (=xc end of last aquasolve)
+                   !
+                   ! OPTION and possible ERROR:
+                   !    (1)  Why use xclastq and not current xr?
+                   !    (2)  Were rp preserved from prior iteration?
+                   !
+                   xrp(kk,1) = xrp(kk,1) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
+                 end if
+                 rpro(kk,1) = rpro(kk,1) + c_rp(kk,icq)
+                 rloss(kk,1) = rloss(kk,1) + c_rl(kk,icq)
+                 if ( neq == 1 ) xrp(kk,2) = xrp(kk,1)
                end if
-               rpro(kk,2) = rpro(kk,2) +                                &
-     &            abs(c_ion(icq)) * c_h2oliq(kk)*avogadrl*xc(kk,icq)
-                                 !if(c_h2oliq(kk) > 0) then
-              end if
-!            end do           !kk vector loop
-                           !if(c_iter > 1) then
-            end if
-
-! INTERIM DIAGNOSTIC WRITE
-!         if(c_kkw > 0) then
-!           write(c_out,19104) c_tchem(ic),c_tchem(icq),xc(c_kkw,ic),
-!    *        xc(c_kkw,icq)
-! 19104       format(/'TEST AQ. ADJUSTMENT FOR PRIOR ION PRODUCTION:',
-!    *      /,' TCHEM ION XR XRQ=   ',a8,2x,a8,2x,2(1pe10.3))
-!           write(c_out,19105) rpro(c_kkw,1),rpro(c_kkw,2),rpro(c_kkw,3)
-! 19105       format(/,' GAS-EQUIV RP FOR GAS+AQ    =',1pe10.3,/,
-!    *               ' GAS-EQUIVALENT ION SUM     =',1pe10.3,/,
-!    *               ' GAS-EQUIVALENT ION RP SUM  =',1pe10.3)
-!         end if
-
-! ZERO AQUEOUS CONCENTRATIONS
-!           do 16006 kk=1,c_kmax
-             xc(kk,icq)=0.
-16006       continue
-          end if
-   65    continue
-
-       end if
-   50 continue
-
-! WRITE FOR RPRO AQUEOUS SUM -  DIAGNOSTIC WRITE
-          if(c_kkw > 0) then
-            write(c_out,19106)  rpro(c_kkw,2),rpro(c_kkw,3)
-19106       format(/,' AQUEOUS ION PRODUCTION SUMMARY:'   ,/,           &
-     &               ' GAS-EQUIVALENT ION SUM     =',1pe10.3,/,         &
-     &               ' GAS-EQUIVALENT ION RP SUM  =',1pe10.3)
-          end if
-
-! --------------------------------------------------
-! CALCULATE AQUEOUS CONCENTRATIONS BASED ON PRIOR H+.
-! ALSO CALCULATE ACIDSUM, NET SUM OF AQUEOUS IONS (=ALPHA)
-!  AND ACIDDEL, d(ACIDSUM)/dH+  (=BETA).
-! THESE ARE THE NEWTON-RAFSON PARAMETERS.
-
-! -------------------------------------------------------------
-! FOR A GAS+AQUEOUS GROUP Xg, Xa, X1, X2 w/ constants Kh,K1, K2
-! where Xa = Kh*Xg  X1*H = Xa*K1  X2*H=X1*K2  and Kw=H*OH:
-!
-! UNITS:  Kh was converted from (MOLES/LITER)/ATMOSPHERE
-! to (MOLES/LITER)/(MOLEC/CM3) to (RELATIVE UNITS) in BRATES.
-! K1, K2 are in MOLES/LITER.  Xg is converted to MOLES/LITER here.
-! The MOLES/LITER conversion is based on LIQUID WATER (acqua).
-!
-! DOUBLE CATION:    (Xt=Xg+Xa+X1+X2)
-!  Xg = Xt/ (1 + Kh*(1 + K1/H*(1 + K2/H) ) )
-!  Xa = Xg*Kh   X1=Xa*K1/H  X2=X1*K2/H
-!           ( X1 = Xt*Rh*R1*H / (H**2*(1+Kh) + H*Kh*K1 + Kh*K1*K2)   )
-!  dX1/dH= X1/H - (X1**2/(Xt*Kh*K1*H) (2H(1+Kh)+Kh*K1)
-!           ( X2 = XtKhK1K2/(H**2(1+Kh)+ H*Kh*K1 + Kh*K1*K2)         )
-!  dX2/dH = (X2**2/(Xt*Kh*K1*K2)(2H(1+Kh)+Kh*K1)
-! SINGLE CATION:    (K2=0)
-!  dX1/dt = -(X1**2/(Xt*Kh*K1*H))*(1+Kh)
-!
-! DOUBLE ANION:
-! Xg = Xt/ (1 + Kh*(1 + R1/OH*(1 + R2/OH) ) )
-! Xa = Xg*Kh    X1=Xa*K1/OH   X2=X1*K2/OH
-!           ( X1=XtKhK1OH/( OH**2(1+Kh) + OHKhK1 + KhK1K2 )
-!           ( dX1/dH = -(OH/H)*dX1/dOH                                )
-! dX1/dt= -X1/H + (X1**2/Xt*Kh*K1*H)*(2OH*(1+Kh)+Kh*K1) )
-!           ( X2=XtKhK1K2/(OH**2(1+Kh)+OH*K1*Kh + K2*K1*Kh )
-! dX2/dH =  (OH/H) * (X2**2/Xt*Kh*K1*K2)*(2OH(1+Kh)*Kh*K1)
-
-! SINGLE ANION:
-! dX1/dH =  (OH/H)* (X1**2)/(Xt*Kh*K1)*(1+Kh)
-!        (   dX1/dH = (X1*Xg/Xt*H)*(1+Kh)                             )
-!
-! -------------------------------------------------------------
-!
-! SET INITIAL ALPHA (=ion sum) AND BETA (=d/dH)
-! TO INCLUDE THE IMPACT OF (H+) and (OH-).  (Note:  H+>0, above.)
-!
-! SPECIAL FUNCTIONS:  1/H=xhinv(kk)   1/OH = xohinv(kk)
-!                     1/Kw = xkwinv(kk)  1/Xt = cgamma(kk)
-!
-!     do 16014 kk=1,c_kmax
-      if(c_h2oliq(kk) > 0) then
-           xkwinv(kk) = 1./rateq(kk,1)
-           xhinv(kk) = xkwinv(kk)*xc(kk,c_nohmin)
-           xohinv(kk) = xkwinv(kk)*xc(kk,c_nhplus)
-           alpha(kk) = xc(kk,c_nohmin)  - xc(kk,c_nhplus)
-           beta(kk) =  1.+ xc(kk,c_nohmin)*xhinv(kk)
-      end if
-16014 continue
-!
-! DIAGNOSTIC TEST WRITE FOR H+ SOLVER
-          if(c_kkw > 0) then
-           write(c_out,1201) c_tchem(c_nhplus), alpha(c_kkw)            &
-     &              , beta (c_kkw)
- 1201      format(' AQ SPECIES, IONSUM, ION d/dH=',2x,a8,2(1pe12.3))
-          end if
-
-!         TEST WRITE
-!         write(c_out,*) c_aqueous(1,2), c_aqueous(1,3)
-!           write(c_out,*) rateq(1,1),xc(1,c_nhplus)
-!         write(c_out,*) alpha(1), beta(1), xc(1,c_nhplus)
-
-! BEGIN XR CALCULATION.
-! LOOP THROUGH HENRY'S LAW TO IDENTIFY GAS-MASTER
-! AND SOLVE FOR THE ASSOCIATED AQUEOUS GROUP.
-      do 100 nrh=1,c_nreach
-       ic = c_henry(nrh,1)
-       ich=c_henry(nrh,2)
-!               write(c_out,*) nrh,ic,ich
-       if(c_nequil(ic) <= 0) go to 100
-
-! ZERO COUNTER FOR ION CHARGE
-! AND INDICES FOR FIRST, SECOND ACID  OR BASE REACTIONS
-      ionsum=0
-      ica1 = 0
-      ica2 = 0
-      icb1 = 0
-      icb2 = 0
-      nra1 = 0
-      nra2 = 0
-      nrb1 = 0
-      nrb2 = 0
-
-!  CONVERT GAS-MASTER SUM TO LIQUID-EQUIVALENT UNITS (MOLES/LITER)
-!  WITH ZERO-PROTECT
-!        do 16017 kk=1,c_kmax
-          if(c_h2oliq(kk) > 0) then
-
-!   TEST WRITE - TEMPORARY
-!            if(c_kkw > 0) write(c_out, 19004) c_tchem(ic),xc(c_kkw,ic)
-
-             xc(kk,ic)=xc(kk,ic)/(c_h2oliq(kk)*avogadrl)
-
-!  TEST WRITE - TEMPORARY
-!            if(c_kkw > 0) write(c_out, 19004) c_tchem(ic),xc(c_kkw,ic)
-
-          end if
-16017    continue
-
-
-! HENRY'S LAW CALCULATION FOR SPECIES WITH NO AQUEOUS EQUILIBRIA
-!  (dimensionless H=Ca/Cg, Cg=Ct/(1+H), Ca=Ct*H/(1+H) )
-
-       if(c_nequil(ic) == 1)  then
-!        do 16021 kk=1,c_kmax
-         if(c_h2oliq(kk) > 0) then
-         cgamma(kk) = 1.                                                 &
-     &        /(rhdif(kk,nrh) + 1.)
-         xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-         end if
-16021    continue
-
-! LOOP FOR AQUEOUS EQUILIBRIA.  (c_nequil(ic) > 1)
-       else
-
-! PRELIMINARY: IDENTIFICATION OF FIRST AND SECOND ACID-FORMING
-! OR BASE-FORMING REACTIONS FOR THE AQUEOUS GROUP (ICA,NRA,ICB,NRB).
-! THIS ESTABLISHES SOLUTION PROCEDURE FOR THE GROUP, TO BE USED BELOW.
-
-         do 90 neq=2,c_nequil(ic)
-          icq = c_ncequil(ic,neq)
-          nrq = c_nrequil(ic,neq)
-!               write(c_out,*) neq,nrq,icq,ic
-          if(icq > 0.and.nrq > 0) then
-            if(c_aqueous(nrq,3) ==  c_nhplus) then
-              if(ica1 == 0) then
-                ica1=icq
-                nra1=nrq
-              else
-                ica2=icq
-                nra2=nrq
-              end if
-            end if
-            if(c_aqueous(nrq,3) ==  c_aqueous(1,3)) then
-              if(icb1 == 0) then
-                icb1=icq
-                nrb1=nrq
-              else
-                icb2=icq
-                nrb2=nrq
-              end if
-            end if
-          end if
-   90    continue
-
-! AQUEOUS IC, NR RECORDED FOR FIRST AQUEOUS REACTION
-!  (USED IF IT IS NOT ACID OR BASE REACTION).
-        icq = c_ncequil(ic,2)
-        nrq = c_nrequil(ic,2)
-
-        if(icq <= 0.and.nrq <= 0)                                       &
-     &     write(c_out,91) ic, c_tchem(ic), icq,nrq
-   91   format(/,' CHEMISTRY INDEX ERROR IN AQUASOLVE:',/,              &
-     &   ' IC, TCHEM =  ', i5, 2x,a8,/,                                 &
-     &   ' 2ND AQUEOUS IC, NR <=0 IN AQUEOUS LOOP; = ',2i5)
-
-!               write(c_out,*) neq,nrq,icq
-!               write(c_out,*) ica1, ica2, icb1, icb2
-!               write(c_out,*) nra1, nra2, nrb1, nrb2
-
-
-
-! MAIN SOLVER FOR AQUEOUS IONS.
-! OPTIONS FOR: NEUTRAL ION, SINGLE OR DOUBLE CATION, ANION.
-
-! NEUTRAL AQUEOUS EQUILIBRIA:  GAS <-> AQUEOUS <-> NEUTRAL AQUEOUS.
-!   THIS WORKS ONLY FOR A SINGLE CHAIN:  ONE NEUTRAL ION.
-
-! Xa = Xg*Kh    X1=Xa*K1
-
-            if(ica1 == 0.and.icb1 == 0) then
-
-!                   TEST WRITE
-!               if(c_kkw > 0) write(c_out,19003)
-! 19003           format('NEUTRAL SPEC.')
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-!      do 16022 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0) then
-         cgamma(kk) = 1.                                                 &
-     &        /((rateq(kk,nrq)+1.)*rhdif(kk,nrh) + 1.)
-         xc(kk, icq) = xc(kk,ic)*(rateq(kk,nrq)*rhdif(kk,nrh))          &
-     &                 * cgamma(kk)
-         xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-       end if
-16022  continue
-
-!              TEST WRITE
-!              if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-            end if
-
-! SINGLE CATION  - NOTE, SOLVE X1 FIRST, IN CASE Xgas, Xaq => 0.
-!  Xg = Xt/ (1 + Kh*(1 + K1/H            ) )
-!  Xa = Xg*Kh   X1=Xa*K1/H
-!  dX1/dt = -(X1**2/(Xt*Kh*K1*H))*(1+Kh)
-! NOTE:  SOLVE X1 FIRST, INCASE Xgas, Xaq =>0.
-! ALSO:  Initially use XR(IC) = TOTAL GAS+AQUEOUS, in aq. units.
-! Then solve for GAS at the end.
-
-            if(ica1 > 0.and.ica2 == 0) then
-
-!               TEST WRITE
-!               if(c_kkw > 0) write(c_out,19005)
-! 19005           format('SINGLE CATION')
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-!     do 16027 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0.and.xc(kk,ic) > 1.0D-40) then
-
-         cgamma(kk) = 1.                                                 &
-     &        /((rateq(kk,nra1)*xhinv(kk) + 1.)*rhdif(kk,nrh) + 1.)
-
-         xc(kk, ica1)  =                                                &
-     &         (xc(kk,ic)*xhinv(kk)*rhdif(kk,nrh)*rateq(kk,nra1))       &
-     &        *cgamma(kk)
-
-         xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
-
-! ION SUM (alpha), d/dH ION SUM (beta):
-         alpha(kk) = alpha(kk) - xc(kk,ica1)*c_ion(ica1)
-
-         beta(kk) = beta(kk) - c_ion(ica1)*(                            &
-     &   (1. + rhdif(kk,nrh))                                           &
-     &   *(xc(kk,ica1)/xc(kk,ic))                                       &
-     &   *(xc(kk,ica1)/(rhdif(kk,nrh)*rateq(kk,nra1)) )                 &
-     &    )
-
-! GAS SUM, converted to GAS units.
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-
-       end if
-16027 continue
-!              TEST WRITE
-!              if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-! DETAILED TEST WRITE
-! 19011   format(8(1pe10.3))
-!       if (c_kkw > 0) write(c_out,19011) xc(c_kkw,ica1)
-!       if (c_kkw > 0) write(c_out,19011)
-!    *    xc(c_kkw,ic), xhinv(c_kkw), rhdif(c_kkw,nrh)
-!    *   , rateq(c_kkw,nra1), cgamma(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ich)
-!        if(c_kkw > 0) write(c_out,19011) rhdif(c_kkw,nrh)
-!    *      , cgamma(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ic)
-!        if(c_kkw > 0) write(c_out,19011)  cgamma(c_kkw)
-!    *      , c_h2oliq(c_kkw),    avogadrl
-! END TEST WRITES
-
-            end if
-
-! DOUBLE CATION
-!  Xg = Xt/ (1 + Kh*(1 + K1/H*(1 + K2/H) ) )
-!  Xa = Xg*Kh   X1=Xa*K1/H  X2=X1*K2/H
-!  dX1/dH= X1/H - (X1**2/(Xt*Kh*K1*H) (2H(1+Kh)+Kh*K1)
-!  dX2/dH = (X2**2/(Xt*Kh*K1*K2)(2H(1+Kh)+Kh*K1)
-
-            if(ica1 > 0.and.ica2 > 0) then
-
-!               TEST WRITE
-!               if(c_kkw > 0) write(c_out,19006)
-! 19006           format('DOUBLE CATION')
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-!     do 16031 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0.and.xc(kk,ic) > 1.0D-40) then
-
-         cgamma(kk) = 1.                                                 &
-     &        /(((rateq(kk,nra2)*xhinv(kk) + 1.)                        &
-     &           *rateq(kk,nra1)*xhinv(kk) + 1.)*rhdif(kk,nrh) + 1.)
-
-         xc(kk, ica1)  =                                                &
-     &         (xc(kk,ic)*xhinv(kk)*rhdif(kk,nrh)*rateq(kk,nra1))       &
-     &        *cgamma(kk)
-
-         xc(kk, ica2) = xc(kk,ica1)*rateq(kk,nra2)*xhinv(kk)
-
-         xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
-
-! ION SUM (alpha), d/dH ION SUM (beta):
-         alpha(kk) = alpha(kk) - xc(kk,ica1)*c_ion(ica1)                &
-     &                         - xc(kk,ica2)*c_ion(ica2)
-
-         beta(kk) = beta(kk)                                            &
-     &    + c_ion(ica1) *xc(kk,ica1)*xhinv(kk)                          &
-     &    - (2.*xc(kk,c_nhplus)*(1.+rhdif(kk,nrh))                      &
-     &               + rhdif(kk,nrh)*rateq(kk,nra1)  )                  &
-     &    * (                                                           &
-     &    c_ion(ica1)*(xc(kk,ica1)/xc(kk,ic))                           &
-     &    *(xc(kk,ica1)/(rhdif(kk,nrh)*rateq(kk,nra1)*xc(kk,c_nhplus)) )&
-     &    + c_ion(ica2)*(xc(kk,ica2)/xc(kk,ic))                         &
-     &   *(xc(kk,ica2)/(rhdif(kk,nrh)*rateq(kk,nra1)*rateq(kk,nra2)) )  &
-     &    )
-
-
-
-
-! GAS SUM, converted to GAS units.
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-
-       end if
-16031 continue
-
-!     TEST WRITE
-!              if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-! DETAILED TEST WRITE
-!       if (c_kkw > 0) write(c_out,19011) xc(c_kkw,ica1)
-!       if (c_kkw > 0) write(c_out,19011)
-!    *    xc(c_kkw,ic), xhinv(c_kkw), rhdif(c_kkw,nrh)
-!    *   , rateq(c_kkw,nra1), cgamma(c_kkw)
-
-!       if (c_kkw > 0) write(c_out,19011) xc(c_kkw,ica2)
-!       if (c_kkw > 0) write(c_out,19011) rateq(c_kkw,nra2)
-!    *    , xhinv(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ich)
-!        if(c_kkw > 0) write(c_out,19011) rhdif(c_kkw,nrh)
-!    *    , cgamma(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ic)
-!        if(c_kkw > 0) write(c_out,19011)  cgamma(c_kkw)
-!    *    , c_h2oliq(c_kkw),   avogadrl
-! END TEST WRITE
-
-
-            end if
-
-
-! SINGLE ANION
-! Xg = Xt/ (1 + Kh*(1 + R1/OH             ) )
-! Xa = Xg*Kh    X1=Xa*K1/OH
-! dX1/dH =  (OH/H)* (X1**2)/(Xt*Kh*K1)*(1+Kh)
-
-            if(icb1 > 0.and.icb2 == 0) then
-
-!               TEST WRITE
-!               if(c_kkw > 0) write(c_out,19007)
-! 19007           format('SINGLE ANION ')
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-!     do 16037 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0.and.xc(kk,ic) > 1.0D-40) then
-
-
-         cgamma(kk) = 1.                                                 &
-     &        /((rateq(kk,nrb1)*xohinv(kk) + 1.)*rhdif(kk,nrh) + 1.)
-
-         xc(kk, icb1)  =                                                &
-     &         (xc(kk,ic)*xohinv(kk)*rhdif(kk,nrh)*rateq(kk,nrb1))      &
-     &        *cgamma(kk)
-
-         xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
-
-! ION SUM (alpha), d/dH ION SUM (beta):
-         alpha(kk) = alpha(kk) - xc(kk,icb1)*c_ion(icb1)
-
-         beta(kk) = beta(kk) + c_ion(icb1)*(                            &
-     &   (xc(kk,c_nohmin)*xhinv(kk))   *  (1. + rhdif(kk,nrh))          &
-     &   *(xc(kk,icb1)/xc(kk,ic))                                       &
-     &   *(xc(kk,icb1)/(rhdif(kk,nrh)*rateq(kk,nrb1)) )                 &
-     &    )
-
-! GAS SUM, converted to GAS units.
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-
-       end if
-16037 continue
-
-!               TEST WRITE
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-            end if
-
-! DOUBLE ANION
-! Xg = Xt/ (1 + Kh*(1 + R1/OH*(1 + R2/OH) ) )
-! Xa = Xg*Kh    X1=Xa*K1/OH   X2=X1*K2/OH
-! dX1/dt= -X1/H + (X1**2/Xt*Kh*K1*H)*(2OH*(1+Kh)+Kh*K1) )
-! dX2/dH =  (OH/H) * (X2**2/Xt*Kh*K1*K2)*(2OH(1+Kh)*Kh*K1)
-
-            if(icb1 > 0.and.icb2 > 0) then
-
-! TEST WRITE
-!               if(c_kkw > 0) write(c_out,19008)
-! 19008           format('DOUBLE ANION ')
-!               if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-!     do 16041 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0.and.xc(kk,ic) > 1.0D-40) then
-
-         cgamma(kk) = 1.                                                 &
-     &        /(((rateq(kk,nrb2)*xohinv(kk) + 1.)                       &
-     &           *rateq(kk,nrb1)*xohinv(kk) + 1.)*rhdif(kk,nrh) + 1.)
-
-         xc(kk, icb1)  = xc(kk,ic) * (                                  &
-     &         (          xohinv(kk)*rhdif(kk,nrh)*rateq(kk,nrb1))      &
-     &        *cgamma(kk)  )
-
-
-         xc(kk, icb2) = xc(kk,icb1)*(rateq(kk,nrb2)*xohinv(kk))
-
-         xc(kk, ich) = xc(kk,ic)*(rhdif(kk,nrh) * cgamma(kk) )
-
-! ION SUM (alpha), d/dH ION SUM (beta):
-         alpha(kk) = alpha(kk) - xc(kk,icb1)*c_ion(icb1)                &
-     &                         - xc(kk,icb2)*c_ion(icb2)
-
-         beta(kk) = beta(kk)                                            &
-     &    - c_ion(icb1) *xc(kk,icb1)*xhinv(kk)
-
-         beta(kk) = beta(kk)                                            &
-     &    + (2.*xc(kk,c_nohmin)*(1.+rhdif(kk,nrh))                      &
-     &               + rhdif(kk,nrh)*rateq(kk,nrb1)  )                  &
-     &    * (                                                           &
-     &    c_ion(icb1)*(xc(kk,icb1)/xc(kk,ic))                           &
-     &    *(xc(kk,icb1)/(rhdif(kk,nrh)*rateq(kk,nrb1)*xc(kk,c_nhplus)) )&
-     &    + c_ion(icb2)*(xc(kk,icb2)/xc(kk,ic))                         &
-     &                    *(xc(kk,c_nohmin)*xhinv(kk) )                 &
-     &   *(xc(kk,icb2)/(rhdif(kk,nrh)*rateq(kk,nrb1)*rateq(kk,nrb2)) )  &
-     &    )
-
-
-
-! GAS SUM, converted to GAS units.
-         xc(kk, ic)  = xc(kk,ic) *                                      &
-     &        (cgamma(kk)*(c_h2oliq(kk)*avogadrl) )
-
-
-       end if
-16041 continue
-
-!              TEST WRITE
-!              if(c_kkw > 0) write(c_out,19004)c_tchem(icq), xc(1,icq)
-
-! DETAILED TEST WRITE
-!       if (c_kkw > 0) write(c_out,19011) xc(c_kkw,icb1)
-!       if (c_kkw > 0) write(c_out,19011)
-!    *    xc(c_kkw,ic), xohinv(c_kkw), rhdif(c_kkw,nrh)
-!    *  , rateq(c_kkw,nrb1), cgamma(c_kkw)
-
-!       if (c_kkw > 0) write(c_out,19011) xc(c_kkw,icb2)
-!       if (c_kkw > 0) write(c_out,19011) rateq(c_kkw,nrb2)
-!    *    , xohinv(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ich)
-!        if(c_kkw > 0) write(c_out,19011) rhdif(c_kkw,nrh)
-!    *    , cgamma(c_kkw)
-
-!        if(c_kkw > 0) write(c_out,19011) xc(c_kkw,ic)
-!        if(c_kkw > 0) write(c_out,19011)  cgamma(c_kkw)
-!    *    , c_h2oliq(c_kkw),    avogadrl
-! END TEST WRITE
-
-            end if
-
-! 2006 ERROR CORRECTION - PROTECT AGAINST ZERO AQUEOUS - CUT
-!     if(xc(1,ich) == 0.) then
-!       if(rhdif(1,nrh) > 1.0e-10) xc(1,ich) = 1.0e-34
-!     end if                        !if(xc(kk,ich) == 0.) then
-
-! DIAGNOSTIC TEST WRITE FOR H+ SOLVER
-          if(c_kkw > 0) then
-           write(c_out,1201) c_tchem(ic), alpha(c_kkw), beta (c_kkw)
-          end if
-
-
-!               TEST WRITE
-!               write(c_out,*) xc( 1,icq),c_ion(icq),xc( 1,ic)
-!               write(c_out,*) xc(1,ich), alpha(1),beta(1)
-
-! END LOOP FOR AQUEOUS EQUILIBRIUM SPECIES
-       end if
-
-
-  100 continue
-
-! ----------------------------------------------
-! END OF LOOP TO CALCULATE AQUEOUS CONCENTRATIONS
-! ----------------------------------------------
-!
-!
-! -------------------------------
-! CALCULATE H+ (AND OH-) FROM NEWTON-RAPHSON
-! -------------------------------
-!
-! MODIFICATION FOR DIFFICULT CONVERGENCE: H+=geometric mean w/ prior H+
-!   (To prevent oscillation with H+/SO2->HSO3-->SO4=.)
-
-! ALSO:  INCREASE BETA BY RATIO:  ION RPRO/PRIOR ION SUM
-! TO ACCOUNT FOR CHEM PRODUCTION ->H+ FEEDBACK.
-
-!      do 16071 kk=1,c_kmax
-       if(c_h2oliq(kk) > 0) then
-       if(rpro(kk,2) > rpro(kk,3).and.rpro(kk,3) > 0)                 &
-     &   beta(kk) = beta(kk)                                            &
-     &       *(1.+rpro(kk,3)/(rpro(kk,2)-rpro(kk,3))  )
-!
-       if(beta(kk) /= 0) alpha(kk)  = alpha(kk)/beta(kk)
-!      if(alpha(kk) < -0.9*xc(kk,c_nhplus))
-!    *          alpha(kk)=-0.9*xc(kk,c_nhplus)
-!      if(alpha(kk) > 10*xc(kk,c_nhplus)) alpha(kk)=10.*xc(kk,c_nhplus)
-!      xc(kk,c_nhplus) = xc(kk,c_nhplus) +  alpha(kk)
-       if(alpha(kk) < -0.99*xc(kk,c_nhplus))                           &
-     &        alpha(kk)=-0.9*xc(kk,c_nhplus)
-       if(alpha(kk) > 100*xc(kk,c_nhplus))                             &
-     &        alpha(kk)=10.*xc(kk,c_nhplus)
-       xc(kk,c_nhplus) =                                                &
-     &        sqrt( xc(kk,c_nhplus) * (xc(kk,c_nhplus)+alpha(kk)) )
-       if(xc(kk,c_nhplus) > 0) then
-           xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
-       end if
-
-       end if
-16071  continue
-
-
-! ----------------------------------------------
-! SUMMARY WRITE:   WRITE RESULTS OF ITERATION IF LPRT AND ACQUA>0.
-! ----------------------------------------------
-
-       if(c_kkw > 0) then
-         if(c_h2oliq(c_kkw) > 0) then
-           write(c_out,1301)   c_h2oliq(c_kkw)
-           acquacon = c_h2oliq( c_kkw)*avogadrl
-           write(c_out,1303) acquacon
-! 1303       format(/,'AQUATIC CONVERSION FACTOR:',
-!    *          ' MOLE/LITER per MOLEC/CM3 =', 1pe10.3)
- 1303       format( ' GAS SPECIES is gas only, molec/cm3. ',            &
-     &      ' AQUEOUS moles/liter.',/,                                  &
-     &       '                             CONVERSION= ', 1pe10.3)
-           if(c_aqueous(1,2) > 0) then
-             write(c_out,1302) xc(c_kkw,c_aqueous(1,2))
+             end if
+           end do
+           !
+           ! PSEUDO-FIRST-ORDER AQUEOUS LOSS CONSTANT (calpha)
+           !  (NOTE:  if RL and XR=0, initial values above make lifetime long.)
+           !
+           if ( c_h2oliq(kk) > 0 ) then
+             calpha(kk) = 0.00001D0
+             if ( xrp(kk,1) > d_zero .and. rloss(kk,1) > d_zero) then
+               calpha(kk) = rloss(kk,1)/(xrp(kk,1)*c_time)
+             end if
            end if
- 1301       format(/,'AQUEOUS CHEMISTRY ',/,'WATER (grams/cm3) =',      &
-     &          1pe10.3)
- 1302       format( ' [H+] (moles per liter) =',1pe10.3)
-
-! NOTE:  GAS species given in molec/cm3; AQUEOUS in moles/liter
-!        GAS is NOT YET GAS-AQ SUM.
-           tsum = '     SUM'
-           do 1300 ic=1,c_nchem2
-            if(c_nequil(ic) > 0)  then
-              sum = xc(c_kkw,ic)
-              do i=1,c_nequil(ic)
-               sum = sum + xc(c_kkw,c_ncequil(ic,i))*acquacon
-              end do
-              write(c_out,1304) c_tchem(ic), xc(c_kkw,ic),              &
-     &        ( c_tchem(c_ncequil(ic,i)),xc(c_kkw,c_ncequil(ic,i))      &
-     &                                      ,i=1,c_nequil(ic) )         &
-     &        ,tsum, sum
- 1304          format(4(a8,1pe10.3),/,                                  &
-     &        '         0.000E+00',3(a8,1pe10.3))
-            end if
- 1300      continue
+           !
+           ! Lelieveld Q-FACTOR FOR AQUEOUS DIFFUSION  (cbeta)
+           !
+           if ( c_h2oliq(kk) > d_zero ) then
+             cgamma(kk) = c_droplet(kk) * dsqrt(calpha(kk)/dropdif)
+             !
+             ! PROTECT AGAINST EXTREME q (=droplet ratio)
+             !
+             if ( cgamma(kk) < 0.01D0 ) then
+               cbeta(kk) = d_one
+             else
+               if ( cgamma(kk) > 100.0D0 ) then
+                 cbeta(kk) = 0.001D0
+               else
+                 cbeta(kk) = (dexp(cgamma(kk)) + dexp(d_zero-cgamma(kk))) / &
+                            (dexp(cgamma(kk)) - dexp(d_zero-cgamma(kk)))
+                 if ( c_kkw > d_zero ) then
+                   xxx1 = cbeta(c_kkw)
+                 end if
+                 cbeta(kk) = d_three*(cbeta(kk)/cgamma(kk) - &
+                            d_one/(cgamma(kk)**d_two) )
+                 if ( c_kkw > d_zero ) then
+                   xxx2 = cbeta(c_kkw)
+                 end if
+                 if ( cbeta(kk) > d_one ) cbeta(kk) = d_one
+                 if ( cbeta(kk) < d_zero ) cbeta(kk) = d_zero
+               end if
+             end if
+           end if
+           !
+           ! Lelieveld Q-FACTOR, ADJUSTED FOR AQUEOUS PRODUCTION VS DIFFUSION
+           ! FROM Q APPLIED TO GAS DIFFUSION ONLY:
+           !    Q' = (Sgas*Q + Saq)/(Sgas+Saq)
+           !
+           ! (Final option for S=source of aqueous from gas:
+           !  S = (rpgas+c_xcin) * aq/gas ratio (= rlaq/(rlaq+rlgas).  Slight overe
+           !
+           !  alternatives: (i)  aq/gas=1; aq/gas=Ca/Ct where H=Ca/Cg
+           !               (ii) S = aqueous rl-rp if >0.
+           !
+           if ( c_h2oliq(kk) > d_zero ) then
+             cgamma(kk) = (c_xcin(kk,ic) + c_rp(kk,ic))
+             if ( rloss(kk,1) > d_zero ) then
+               cgamma(kk) = (c_xcin(kk,ic) + c_rp(kk,ic)) * &
+                            rloss(kk,1)/(rloss(kk,1)+c_rl(kk,ic))
+             end if
+             !
+             ! Options
+             ! cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic))
+             ! cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic)) *rateh(kk,nrh) /
+             !              (rateh(kk,nrh)+1.)
+             ! cgamma(kk) = rloss(kk,1) - rpro(kk,1)
+             ! if(cgamma(kk) < 0) cgamma(kk) == 0.)
+             !
+             ! Q adjustment:  Q'=rhdif;  Q=cbeta; Sgas=cgamma; Saq=rpro
+             !  Apply only if aqueous concentration is not zero.
+             !
+             if ( xrp(kk,1) > d_zero .and. &
+                  (cgamma(kk)+rpro(kk,1) > d_zero) ) then
+               rhdif(kk,nrh) = (cbeta(kk)*cgamma(kk) + rpro(kk,1)) / &
+                               (cgamma(kk) + rpro(kk,1))
+             end if
+           end if
+         end if
+         !
+         ! END IF FOR ITER>1, AQUEOUS>0.
+         !
+         ! ENTER COMBINED HENRY-S LAW-w AQ DIFFUSION (relative units).
+         !
+         if ( c_h2oliq(kk) > d_zero ) then
+           rhdif(kk,nrh) = rhdif(kk,nrh)*rateh(kk,nrh)
+         end if
+         !
+         ! -----------------------------------------------------------
+         ! GAS-PHASE DIFFUSION MODIFICATION:
+         ! ADJUST GAS/AQUEOUS RATIO TO ACCOUNT FOR CASE WHERE AQUEOUS LOSS RATE
+         !  (FROM AQUEOUS AND IONIC EQUILIBRIA SPECIES)
+         !  IS FASTER THEN THE NEEDED GAS-AQUEOUS TRANSFER.
+         ! -----------------------------------------------------------
+         !
+         !
+         ! USES ACCOMODATION COEFFICIENTS, FORMULAS IN Lelieveld AND INFO
+         !  FROM MARY BARTH.
+         !
+         ! PARTITION COEFFICIENT IS BASED ON STEADY STATE BETWEEN Pg, Pa,
+         ! Lg, La, Eg, Ea=Eg/H.  Eg calculated from Lelieveld, Barth.
+         ! Lg, La, Eg in s-1;  Pg, Pa in equivalent units.
+         !
+         ! (note rpro(kk,1) = aqueous production; rloss(kk,1)=aqloss,
+         !  c_rp(kk,ic) = gas pro, 
+         !  c_rl(kk,ic) = aqueous pro; xc(kk,ic) = gas cnc
+         !  xrp(kk,2) = aqueous concentr (w/o ion sum), gas units.
+         !
+         !  (Pg-(Lg+Eg)Cg+Ea"Ca' = 0.;  Pa'+EgCg-(Ea'+La')Ca' = 0.
+         !    where Ca', Pa', La',Ea' are for sum of aq-equil species;
+         !    See hand notes in Lelieveld 1991)
+         !
+         ! AQUEOUS/GAS = (H*(Pa+Pg) + H(Lg/Eg)*Pa)/(Pa+Pg+H(La/Eg)*Pg)
+         ! HENRY ADJUSTMENT = (Pa + Pg + (Lg/Eg)Pa)/(Pa+Pg+H(La/Eg)Pg)
+         !
+         ! *** ONLY IF c_iter>1. AND WITH SOFTENING.
+         ! ----------------------------------------------------
+         !
+         ! ESTABLISH GAS=>AQUEOUS EXCHANGE RATE (Eg).
+         !  MOLEC SPEED (VMOLEC, cgamma) = sqrt(8*ru*temp/(pi*c_molwt))
+         !    = 3e4 cm/s, speed of sound.  (Barth).
+         !
+         !   Eg (s-1) = [(DROPLET**2/3DIFGAS) + 4DROPLET/(3*VMOLEC*ACCOM)]**-1
+         !   (Lelieveld).
+         !   THEN MULTIPLY BY LIQUID WATER CONTENT (acqua)
+         !
+         ! (STILL WITHIN HENRY'S LAW LOOP)
+         ! ----------------------------------------------------
+         !
+         ! OPTION:  INCLUDE OR OMIT, WITH ITER CONTROL HERE.
+         !
+         if ( c_iter > 1 ) then
+           cgamma(kk) = dsqrt(8.0D0*rumolec*c_temp(kk)/(mathpi*c_molwt(nrh)))
+           egasaq(kk,nrh) = c_h2oliq(kk) / &
+                ((c_droplet(kk)**d_two/(d_three*difgas)) + &
+                 (d_four*c_droplet(kk)/(d_three*cgamma(kk)*c_accom(nrh))))
+           cbeta(kk) = rpro(kk,1) + c_rp(kk,ic)
+           !
+           ! GOT HERE
+           ! 2009 CORRECTION
+           ! THESE NEXT LINES WERE COMMENTED OUT IN quadchv7.f
+           !   WHICH GENERATES A SUCCESSFUL SOLUTION
+           !   (w/ these lines commented in GAS DIFF ADJUST calpha = 1.000)
+           !
+!          if ( cbeta(kk) < 0. ) cbeta(kk) = 0.
+!          cgamma(kk) = cbeta(kk)
+!          if ( c_rl(kk,ic) > 0 .and. (xc(kk,ic)-xrp(kk,1) ) > 0 .and. &
+!               rpro(kk,1) > 0 .and. egasaq(kk,nrh) > 0 ) then
+!            cbeta(kk) = cbeta(kk) + &
+!                      ( ( c_rl(kk,ic)/(xc(kk,ic)-xrp(kk,1)) ) / &
+!                        (c_time*egasaq(kk,nrh)) ) *rpro(kk,1)
 !
-          write(c_out,1306)
- 1306      format(/,'HENRYS LAW RATES(+DIFFUSION ADJUSTMENT)',          &
-     &       ' AND EQUILIBRIUM CONSTANTS:')
-          if(c_nreach > 0) then
-!           write(c_out,1307) ((c_treach(j,i),j=1,2),
-!    *         rateh(c_kkw,i),rhdif(c_kkw,i),i=1,c_nreach)
-            do i=1,c_nreach
-             write(c_out,1307) (c_treach(j,i),j=1,2),                   &
-     &         rateh(c_kkw,i),  rhdif(c_kkw,i)
-            end do
- 1307      format(a8,'=',a8,2x,2(1pe10.3))
-          end if
-
-          if(c_nreacq > 0) then
-            write(c_out,1308) (c_treacq(j,1),j=1,3),                    &
-     &       rateq(c_kkw,1), c_ion(c_aqueous(1,2))
- 1308      format(a8,'=',a8,'+',a8,2x,e10.3,'    ION2=',i2)
-          end if
-
-          if(c_nreacq > 1) then
-!           write(c_out,1308) ((c_treacq(j,i),j=1,3),
-!    *       rateq(c_kkw,i), c_ion(c_aqueous(i,2))  ,i=2,c_nreacq)
-            do i=2,c_nreacq
-             write(c_out,1308) (c_treacq(j,i),j=1,3),                   &
-     &       rateq(c_kkw,i), c_ion(c_aqueous(i,2))
-            end do
-          end if
-
+           !
+           ! OLD  CRASH HERE
+           !
+           if ( rloss(kk,1) > d_zero .and. (xrp(kk,2)) > d_zero .and.    &
+                c_rp(kk,ic) > d_zero .and. egasaq(kk,nrh) > d_zero .and. &
+                dabs(rhdif(kk,nrh)) < dlowval ) then
+             cgamma(kk) = cgamma(kk) + (((rloss(kk,1)/(xrp(kk,2))) / &
+                     (c_time*egasaq(kk,nrh))*rhdif(kk,nrh)))*c_rp(kk,ic)
+           end if
+           calpha(kk) = d_one
+           if ( cbeta(kk) > d_zero .and. cgamma(kk) > d_zero ) then
+             calpha(kk) = cbeta(kk)/cgamma(kk)
+           end if
+           rhdif(kk,nrh) = rhdif(kk,nrh)*calpha(kk)
+         end if
+         !
+         ! END GAS-PHASE DIFFUSION MODIFICATION:
+         !
+         ! MODIFY GAS/AQ RATIO FOR TROUBLESOME CONVERGENCE
+         !
+         if ( c_iter > 2 ) then
+           rhdif(kk,nrh) = (rhdif(kk,nrh)**0.5D0)*(prior(kk)**0.5D0)
+         end if
+       end do
+       ! -----------------------------------------------------------
+       ! END LOOP FOR GAS-MASTER SPECIES FOR AQUEOUS DIFFUSION MODIFICATION
+       ! -----------------------------------------------------------
+       !
+       ! PRELIMINARY:  ZERO XR PRIOR (USED IN AQUEOUS SUMS). INITIALIZE H+,OH-.
+       ! SUM PRIOR GAS AND AQUEOUS SPECIES INTO THE GAS-MASTER
+       ! ALSO SUM PRODUCTION (RP in gas units)
+       !        RPRO1 =  SUMMED NET RP FOR THE INDIV. SPECIES
+       !        RPRO2 =  RUNNING SUM OF NET RP FOR IONS.
+       !        RPRO3 =  RUNNING SUM OF PRIOR ION CONCENTRATION
+       !         RPRO2/3, EFFECT OF PRIOR CHEM PRODUCTION OF IONS
+       !         WILL BE FACTORED INTO BETA (d/dH slope).
+       !
+       if ( c_h2oliq(kk) > d_zero ) then
+         rpro(kk,1) = d_zero
+         rpro(kk,2) = d_zero
+         rpro(kk,3) = d_zero
+         if ( xc(kk,c_nhplus) <= d_zero ) then
+           xc(kk,c_nhplus) = 1.0D-05
+           xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
+         end if
+         if ( xc(kk,c_nohmin) <= d_zero ) then
+           xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
          end if
        end if
-! ----------------------------------------------
-! END LOOP:  SUMMARY WRITE
-! ----------------------------------------------
+       do nrh = 1 , c_nreach
+         ic = c_henry(nrh,1)
+         if ( c_nequil(ic) > 0 )  then
+           if ( c_h2oliq(kk) > 0 ) then
+             rpro(kk,1) = c_rp(kk,ic)-c_rl(kk,ic)
+           end if
+           !
+           ! SUM AQUEOUS SPECIES INTO THE GAS-MASTER, SUM GAS+AQUEOUS RPRO1.
+           !
+           do neq = 1 , c_nequil(ic)
+             icq = c_ncequil(ic,neq)
+             if ( icq > 0 ) then
+               if ( c_h2oliq(kk) > 0 ) then
+                 xc(kk,ic) = xc(kk,ic) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
+                 rpro(kk,1) = rpro(kk,1) + c_rp(kk,icq)-c_rl(kk,icq)
+               end if
+             end if
+           end do
+           !
+           ! SUM PRIOR NET CHEM ION PRODUCTION (RPRO2) AND ION SUM (RPRO3)
+           ! ION CHEM. INFERRED FROM PRIOR GAS-AQ-ION PARTITIONING AND RPRO1.
+           ! ALSO ZERO AQUEOUS CONCENTRATIONS
+           !
+           do neq = 1 , c_nequil(ic)
+             icq = c_ncequil(ic,neq)
+             if ( icq > 0 ) then
+               if ( c_iter > 1 ) then
+                 if ( c_h2oliq(kk) > 0 ) then
+                   if ( xc(kk,ic) > 0 ) then
+                     rpro(kk,3) = rpro(kk,3) + (rpro(kk,1)/xc(kk,ic)) * &
+                                  iabs(c_ion(icq))*c_h2oliq(kk)*avogadrl * &
+                                  xc(kk,icq)
+                   end if
+                   rpro(kk,2) = rpro(kk,2) + iabs(c_ion(icq)) * &
+                                 c_h2oliq(kk)*avogadrl*xc(kk,icq)
+                 end if
+               end if
+               !
+               ! ZERO AQUEOUS CONCENTRATIONS
+               !
+               xc(kk,icq) = d_zero
+             end if
+           end do
+         end if
+       end do
+       !
+       ! --------------------------------------------------
+       ! CALCULATE AQUEOUS CONCENTRATIONS BASED ON PRIOR H+.
+       ! ALSO CALCULATE ACIDSUM, NET SUM OF AQUEOUS IONS (=ALPHA)
+       !  AND ACIDDEL, d(ACIDSUM)/dH+  (=BETA).
+       ! THESE ARE THE NEWTON-RAFSON PARAMETERS.
+       ! -------------------------------------------------------------
+       ! FOR A GAS+AQUEOUS GROUP Xg, Xa, X1, X2 w/ constants Kh,K1, K2
+       ! where Xa = Kh*Xg  X1*H = Xa*K1  X2*H=X1*K2  and Kw=H*OH:
+       !
+       ! UNITS:  Kh was converted from (MOLES/LITER)/ATMOSPHERE
+       ! to (MOLES/LITER)/(MOLEC/CM3) to (RELATIVE UNITS) in BRATES.
+       ! K1, K2 are in MOLES/LITER.  Xg is converted to MOLES/LITER here.
+       ! The MOLES/LITER conversion is based on LIQUID WATER (acqua).
+       !
+       ! DOUBLE CATION:    (Xt=Xg+Xa+X1+X2)
+       !  Xg = Xt/ (1 + Kh*(1 + K1/H*(1 + K2/H) ) )
+       !  Xa = Xg*Kh   X1=Xa*K1/H  X2=X1*K2/H
+       !           ( X1 = Xt*Rh*R1*H / (H**2*(1+Kh) + H*Kh*K1 + Kh*K1*K2)   )
+       !  dX1/dH= X1/H - (X1**2/(Xt*Kh*K1*H) (2H(1+Kh)+Kh*K1)
+       !           ( X2 = XtKhK1K2/(H**2(1+Kh)+ H*Kh*K1 + Kh*K1*K2)         )
+       !  dX2/dH = (X2**2/(Xt*Kh*K1*K2)(2H(1+Kh)+Kh*K1)
+       ! SINGLE CATION:    (K2=0)
+       !  dX1/dt = -(X1**2/(Xt*Kh*K1*H))*(1+Kh)
+       !
+       ! DOUBLE ANION:
+       ! Xg = Xt/ (1 + Kh*(1 + R1/OH*(1 + R2/OH) ) )
+       ! Xa = Xg*Kh    X1=Xa*K1/OH   X2=X1*K2/OH
+       !           ( X1=XtKhK1OH/( OH**2(1+Kh) + OHKhK1 + KhK1K2 )
+       !           ( dX1/dH = -(OH/H)*dX1/dOH                                )
+       ! dX1/dt= -X1/H + (X1**2/Xt*Kh*K1*H)*(2OH*(1+Kh)+Kh*K1) )
+       !           ( X2=XtKhK1K2/(OH**2(1+Kh)+OH*K1*Kh + K2*K1*Kh )
+       ! dX2/dH =  (OH/H) * (X2**2/Xt*Kh*K1*K2)*(2OH(1+Kh)*Kh*K1)
+       !
+       ! SINGLE ANION:
+       ! dX1/dH =  (OH/H)* (X1**2)/(Xt*Kh*K1)*(1+Kh)
+       !        (   dX1/dH = (X1*Xg/Xt*H)*(1+Kh)                             )
+       !
+       ! -------------------------------------------------------------
+       !
+       ! SET INITIAL ALPHA (=ion sum) AND BETA (=d/dH)
+       ! TO INCLUDE THE IMPACT OF (H+) and (OH-).  (Note:  H+>0, above.)
+       !
+       ! SPECIAL FUNCTIONS:  1/H=xhinv(kk)   1/OH = xohinv(kk)
+       !                     1/Kw = xkwinv(kk)  1/Xt = cgamma(kk)
+       !
+       if ( c_h2oliq(kk) > 0 ) then
+         xkwinv(kk) = d_one/rateq(kk,1)
+         xhinv(kk) = xkwinv(kk)*xc(kk,c_nohmin)
+         xohinv(kk) = xkwinv(kk)*xc(kk,c_nhplus)
+         calpha(kk) = xc(kk,c_nohmin)  - xc(kk,c_nhplus)
+         cbeta(kk) =  d_one + xc(kk,c_nohmin)*xhinv(kk)
+       end if
+       !
+       ! BEGIN XR CALCULATION.
+       ! LOOP THROUGH HENRY'S LAW TO IDENTIFY GAS-MASTER
+       ! AND SOLVE FOR THE ASSOCIATED AQUEOUS GROUP.
+       !
+       do nrh = 1 , c_nreach
+         ic = c_henry(nrh,1)
+         ich = c_henry(nrh,2)
+         if ( c_nequil(ic) <= 0 ) exit
+         !
+         ! ZERO COUNTER FOR ION CHARGE
+         ! AND INDICES FOR FIRST, SECOND ACID  OR BASE REACTIONS
+         !
+         ionsum = 0
+         ica1 = 0
+         ica2 = 0
+         icb1 = 0
+         icb2 = 0
+         nra1 = 0
+         nra2 = 0
+         nrb1 = 0
+         nrb2 = 0
+         !
+         !  CONVERT GAS-MASTER SUM TO LIQUID-EQUIVALENT UNITS (MOLES/LITER)
+         !  WITH ZERO-PROTECT
+         !
+         if ( c_h2oliq(kk) > 0 ) then
+           xc(kk,ic) = xc(kk,ic)/(c_h2oliq(kk)*avogadrl)
+         end if
+         !
+         ! HENRY'S LAW CALCULATION FOR SPECIES WITH NO AQUEOUS EQUILIBRIA
+         !  (dimensionless H=Ca/Cg, Cg=Ct/(1+H), Ca=Ct*H/(1+H) )
+         !
+         if ( c_nequil(ic) == 1 ) then
+           if ( c_h2oliq(kk) > 0 ) then
+             cgamma(kk) = d_one/(rhdif(kk,nrh) + d_one)
+             xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
+             xc(kk,ic) = xc(kk,ic) * (cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+           end if
+           !
+           ! LOOP FOR AQUEOUS EQUILIBRIA.  (c_nequil(ic) > 1)
+           !
+         else
+           !
+           ! PRELIMINARY: IDENTIFICATION OF FIRST AND SECOND ACID-FORMING
+           ! OR BASE-FORMING REACTIONS FOR THE AQUEOUS GROUP (ICA,NRA,ICB,NRB).
+           ! THIS ESTABLISHES SOLUTION PROCEDURE FOR THE GROUP,
+           ! TO BE USED BELOW.
+           do neq = 2 , c_nequil(ic)
+             icq = c_ncequil(ic,neq)
+             nrq = c_nrequil(ic,neq)
+             if ( icq > 0 .and. nrq > 0 ) then
+               if ( c_aqueous(nrq,3) == c_nhplus ) then
+                 if ( ica1 == 0 ) then
+                   ica1 = icq
+                   nra1 = nrq
+                 else
+                   ica2 = icq
+                   nra2 = nrq
+                 end if
+               end if
+               if ( c_aqueous(nrq,3) == c_aqueous(1,3) ) then
+                 if ( icb1 == 0 )  then
+                   icb1 = icq
+                   nrb1 = nrq
+                 else
+                   icb2 = icq
+                   nrb2 = nrq
+                 end if
+               end if
+             end if
+           end do
+           !
+           ! AQUEOUS IC, NR RECORDED FOR FIRST AQUEOUS REACTION
+           !  (USED IF IT IS NOT ACID OR BASE REACTION).
+           !
+           icq = c_ncequil(ic,2)
+           nrq = c_nrequil(ic,2)
+           if ( icq <= 0 .and. nrq <= 0 ) then
+             write(c_out,91) ic, c_tchem(ic), icq,nrq
+           end if
+           !
+           ! MAIN SOLVER FOR AQUEOUS IONS.
+           ! OPTIONS FOR: NEUTRAL ION, SINGLE OR DOUBLE CATION, ANION.
+           !
+           ! NEUTRAL AQUEOUS EQUILIBRIA:  GAS <-> AQUEOUS <-> NEUTRAL AQUEOUS.
+           !   THIS WORKS ONLY FOR A SINGLE CHAIN:  ONE NEUTRAL ION.
+           !
+           ! Xa = Xg*Kh    X1=Xa*K1
+           !
+           if ( ica1 == 0 .and. icb1 == 0 ) then
+             if ( c_h2oliq(kk) > 0 ) then
+               cgamma(kk) = d_one/((rateq(kk,nrq)+d_one)*rhdif(kk,nrh)+d_one)
+               xc(kk,icq) = xc(kk,ic)*(rateq(kk,nrq)*rhdif(kk,nrh))*cgamma(kk)
+               xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
+               xc(kk,ic) = xc(kk,ic) * (cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+             end if
+           end if
+           !
+           ! SINGLE CATION  - NOTE, SOLVE X1 FIRST, IN CASE Xgas, Xaq => 0.
+           !  Xg = Xt/ (1 + Kh*(1 + K1/H            ) )
+           !  Xa = Xg*Kh   X1=Xa*K1/H
+           !  dX1/dt = -(X1**2/(Xt*Kh*K1*H))*(1+Kh)
+           ! NOTE:  SOLVE X1 FIRST, INCASE Xgas, Xaq =>0.
+           ! ALSO:  Initially use XR(IC) = TOTAL GAS+AQUEOUS, in aq. units.
+           ! Then solve for GAS at the end.
+           !
+           if ( ica1 > 0 .and. ica2 == 0 ) then
+             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+               cgamma(kk) = d_one / &
+                 ((rateq(kk,nra1)*xhinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
+               xc(kk,ica1) = (xc(kk,ic)*xhinv(kk) * &
+                           rhdif(kk,nrh)*rateq(kk,nra1))*cgamma(kk)
+               xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
+               !
+               ! ION SUM (calpha), d/dH ION SUM (cbeta):
+               !
+               calpha(kk) = calpha(kk) - xc(kk,ica1)*c_ion(ica1)
+               cbeta(kk) = cbeta(kk) - c_ion(ica1)*((d_one + rhdif(kk,nrh)) * &
+                           (xc(kk,ica1)/xc(kk,ic))*(xc(kk,ica1) / &
+                           (rhdif(kk,nrh)*rateq(kk,nra1))))
+               !
+               ! GAS SUM, converted to GAS units.
+               !
+               xc(kk,ic) = xc(kk,ic) * (cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+             end if
+           end if
+           !
+           ! DOUBLE CATION
+           !  Xg = Xt/ (1 + Kh*(1 + K1/H*(1 + K2/H) ) )
+           !  Xa = Xg*Kh   X1=Xa*K1/H  X2=X1*K2/H
+           !  dX1/dH= X1/H - (X1**2/(Xt*Kh*K1*H) (2H(1+Kh)+Kh*K1)
+           !  dX2/dH = (X2**2/(Xt*Kh*K1*K2)(2H(1+Kh)+Kh*K1)
+           !
+           if ( ica1 > 0 .and. ica2 > 0 ) then
+             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+               cgamma(kk) = d_one/(((rateq(kk,nra2)*xhinv(kk) + d_one) * &
+                            rateq(kk,nra1)*xhinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
+               xc(kk,ica1) = (xc(kk,ic)*xhinv(kk) * &
+                     rhdif(kk,nrh)*rateq(kk,nra1))*cgamma(kk)
+               xc(kk,ica2) = xc(kk,ica1)*rateq(kk,nra2)*xhinv(kk)
+               xc(kk, ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
+               !
+               ! ION SUM (calpha), d/dH ION SUM (cbeta):
+               !
+               calpha(kk) = calpha(kk) - xc(kk,ica1)*c_ion(ica1) - &
+                           xc(kk,ica2)*c_ion(ica2)
+               cbeta(kk) = cbeta(kk) + c_ion(ica1)*xc(kk,ica1)*xhinv(kk) - &
+                          (d_two*xc(kk,c_nhplus)*(d_one+rhdif(kk,nrh)) + &
+                          rhdif(kk,nrh)*rateq(kk,nra1)) * &
+                        (c_ion(ica1)*(xc(kk,ica1)/xc(kk,ic)) * &
+                        (xc(kk,ica1)/(rhdif(kk,nrh)*rateq(kk,nra1) * &
+                         xc(kk,c_nhplus)))+c_ion(ica2) * &
+                        (xc(kk,ica2)/xc(kk,ic))*(xc(kk,ica2) / &
+                        (rhdif(kk,nrh)*rateq(kk,nra1)*rateq(kk,nra2))))
+               !
+               ! GAS SUM, converted to GAS units.
+               !
+               xc(kk,ic) = xc(kk,ic)*(cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+             end if
+           end if
+           !
+           ! SINGLE ANION
+           ! Xg = Xt/ (1 + Kh*(1 + R1/OH             ) )
+           ! Xa = Xg*Kh    X1=Xa*K1/OH
+           ! dX1/dH =  (OH/H)* (X1**2)/(Xt*Kh*K1)*(1+Kh)
+           !
+           if ( icb1 > 0 .and. icb2 == 0 ) then
+             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+               cgamma(kk) = d_one / &
+                 ((rateq(kk,nrb1)*xohinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
+               xc(kk,icb1) = (xc(kk,ic)*xohinv(kk) * &
+                      rhdif(kk,nrh)*rateq(kk,nrb1))*cgamma(kk)
+               xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
+               !
+               ! ION SUM (calpha), d/dH ION SUM (cbeta):
+               !
+               calpha(kk) = calpha(kk) - xc(kk,icb1)*c_ion(icb1)
+               cbeta(kk) = cbeta(kk) + & 
+                 c_ion(icb1)*((xc(kk,c_nohmin)*xhinv(kk)) * &
+                 (d_one+rhdif(kk,nrh))*(xc(kk,icb1)/xc(kk,ic)) * &
+                 (xc(kk,icb1)/(rhdif(kk,nrh)*rateq(kk,nrb1))))
+               !
+               ! GAS SUM, converted to GAS units.
+               !
+               xc(kk,ic) = xc(kk,ic)*(cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+             end if
+           end if
+           !
+           ! DOUBLE ANION
+           ! Xg = Xt/ (1 + Kh*(1 + R1/OH*(1 + R2/OH) ) )
+           ! Xa = Xg*Kh    X1=Xa*K1/OH   X2=X1*K2/OH
+           ! dX1/dt= -X1/H + (X1**2/Xt*Kh*K1*H)*(2OH*(1+Kh)+Kh*K1) )
+           ! dX2/dH =  (OH/H) * (X2**2/Xt*Kh*K1*K2)*(2OH(1+Kh)*Kh*K1)
+           !
+           if ( icb1 > 0 .and. icb2 > 0 ) then
+             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+               cgamma(kk) = d_one/(((rateq(kk,nrb2)*xohinv(kk)+d_one) * &
+                  rateq(kk,nrb1)*xohinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
+               xc(kk,icb1)  = xc(kk,ic) * &
+                 ((xohinv(kk)*rhdif(kk,nrh)*rateq(kk,nrb1))*cgamma(kk))
+               xc(kk,icb2) = xc(kk,icb1)*(rateq(kk,nrb2)*xohinv(kk))
+               xc(kk,ich) = xc(kk,ic)*(rhdif(kk,nrh) * cgamma(kk) )
+               !
+               ! ION SUM (calpha), d/dH ION SUM (cbeta):
+               !
+               calpha(kk) = calpha(kk) - xc(kk,icb1)*c_ion(icb1) - &
+                           xc(kk,icb2)*c_ion(icb2)
+               cbeta(kk) = cbeta(kk) - c_ion(icb1) *xc(kk,icb1)*xhinv(kk)
+               cbeta(kk) = cbeta(kk) + &
+                 (d_two*xc(kk,c_nohmin)*(d_one+rhdif(kk,nrh)) + &
+                  rhdif(kk,nrh)*rateq(kk,nrb1)) * &
+                 (c_ion(icb1)*(xc(kk,icb1)/xc(kk,ic))*(xc(kk,icb1) / &
+                  (rhdif(kk,nrh)*rateq(kk,nrb1)*xc(kk,c_nhplus))) + &
+                  c_ion(icb2)*(xc(kk,icb2)/xc(kk,ic)) * &
+                  (xc(kk,c_nohmin)*xhinv(kk))*(xc(kk,icb2) / &
+                  (rhdif(kk,nrh)*rateq(kk,nrb1)*rateq(kk,nrb2))))
+               !
+               ! GAS SUM, converted to GAS units.
+               !
+               xc(kk,ic) = xc(kk,ic) * (cgamma(kk)*(c_h2oliq(kk)*avogadrl))
+             end if
+           end if
+           !
+           ! 2006 ERROR CORRECTION - PROTECT AGAINST ZERO AQUEOUS - CUT
+           !     if(xc(1,ich) == 0.) then
+           !       if(rhdif(1,nrh) > 1.0e-10) xc(1,ich) = 1.0e-34
+           !     end if                        !if(xc(kk,ich) == 0.) then
+         end if
+       end do
+       !
+       ! ----------------------------------------------
+       ! END OF LOOP TO CALCULATE AQUEOUS CONCENTRATIONS
+       ! ----------------------------------------------
+       !
+       ! -------------------------------
+       ! CALCULATE H+ (AND OH-) FROM NEWTON-RAPHSON
+       ! -------------------------------
+       !
+       ! MODIFICATION FOR DIFFICULT CONVERGENCE: H+=geometric mean w/ prior H+
+       !   (To prevent oscillation with H+/SO2->HSO3-->SO4=.)
+       !
+       ! ALSO:  INCREASE BETA BY RATIO:  ION RPRO/PRIOR ION SUM
+       ! TO ACCOUNT FOR CHEM PRODUCTION ->H+ FEEDBACK.
+       !
+       if ( c_h2oliq(kk) > 0 ) then
+         if ( rpro(kk,2) > rpro(kk,3) .and. rpro(kk,3) > 0 ) then
+           cbeta(kk) = cbeta(kk)*(d_one+rpro(kk,3)/(rpro(kk,2)-rpro(kk,3)))
+         end if
+         if ( dabs(cbeta(kk)) < dlowval ) calpha(kk) = calpha(kk)/cbeta(kk)
+         if ( calpha(kk) < -0.99D0*xc(kk,c_nhplus)) then
+           calpha(kk) = -0.9D0*xc(kk,c_nhplus)
+         end if
+         if ( calpha(kk) > 100.0D0*xc(kk,c_nhplus)) then
+           calpha(kk) = 10.0D0*xc(kk,c_nhplus)
+         end if
+         xc(kk,c_nhplus) = dsqrt(xc(kk,c_nhplus)*(xc(kk,c_nhplus)+calpha(kk)))
+         if ( xc(kk,c_nhplus) > 0 ) then
+           xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
+         end if
+       end if
 
+   91  format(/,' CHEMISTRY INDEX ERROR IN AQUASOLVE:',/,   &
+                ' IC, TCHEM =  ', i5, 2x,a8,/,              &
+                ' 2ND AQUEOUS IC, NR <=0 IN AQUEOUS LOOP; = ',2i5)
 
-! END AQUASOLVE
- 2000  return
-      END
-
+     end subroutine aquasolve
+!
 end module mod_cbmz_solve1
