@@ -376,7 +376,7 @@ module mod_cbmz_solve1
         !
         ! CALL AQEOUS CHEMISTRY SOLVER FROM WITHIN ITERATION
         !
-        if ( c_h2oliq(1) >= 1.0D-20) call aquasolve
+        if ( c_h2oliq(1) >= 1.0D-20 ) call aquasolve
 
         ! SET SENHCAT FOR FIRST ITERATION. (sensitivity to change in OH).
         ! INITIAL SENHCAT = 1 FOR ODD HYDROGEN; 0 FOR OTHER SPECIES
@@ -686,7 +686,7 @@ module mod_cbmz_solve1
 
       llexpo(kk) = .false.
       if ( c_lexpo(kk) ) then
-        if ( (nsolv == 1) .and. (c_nequil(ncsol(1))== 0) .and. &
+        if ( (nsolv == 1) .and. (c_nequil(ncsol(1)) == 0) .and. &
              (c_tchem(ncsol(1) ) /= '    H2O2') .and. &
              (.not. c_lsts(ncsol(1))) ) llexpo(kk) = .true.
       end if
@@ -858,7 +858,7 @@ module mod_cbmz_solve1
             ! (note prodarr=gas-master product)
             !
             do ncc = 1 , nsolv
-              if ( c_prodarr(nr,ncsolv(ncc)) /= 0 ) then
+              if ( dabs(c_prodarr(nr,ncsolv(ncc))) > dlowval ) then
                 icc = ncsolv(ncc)
                 !
                 ! Adjust LOSS if PRODUCT EQUALS REACTANT, skip PRO.
@@ -921,7 +921,7 @@ module mod_cbmz_solve1
             ! CALCULATE NET PRODUCTION AND LOSS FOR PAIR GROUP
             !  (FOR NORMALIZATION OF GROUP w>3 MEMBERS)
             !
-            if (nsolv >= 3 .and. nsol == 1) then
+            if ( nsolv >= 3 .and. nsol == 1 ) then
               xpair = d_zero
               if ( c_nppair(icr1,2) == icpair ) then
                 xpair = xpair - c_pairfac(icr1)
@@ -1049,10 +1049,10 @@ module mod_cbmz_solve1
         !   (note RPPAIR already includes XXO)
         !
         if ( nsolv >= 3 .and. nsol == 1 ) then
-          if ( .not. c_lsts(ics) .or. rloss(kk,nc) == 0 ) then
+          if ( .not. c_lsts(ics) .or. dabs(rloss(kk,nc)) < dlowval ) then
             rlpair(kk,icpair) = rlpair(kk,icpair) + xrp(kk,nc)*c_pairfac(ics)
           end if
-          if ( rloss(kk,nc) <=  d_zero ) then
+          if ( rloss(kk,nc) <= d_zero ) then
             rlpair(kk,icpair) = rlpair(kk,icpair) + 1.0D-08*c_pairfac(ics)
           end if
         end if
@@ -1061,7 +1061,7 @@ module mod_cbmz_solve1
         !   (ahead of STEADY STATE ADJUSTMENT to use RLOSS=0)
         !
         if ( nsol > 1 ) then
-          if ( .not. c_lsts(ics) .or. rloss(kk,nc) == 0 ) then
+          if ( .not. c_lsts(ics) .or. dabs(rloss(kk,nc)) < dlowval ) then
             rlm(kk,iscs) = rlm(kk,iscs) + xrp(kk,nc)
             rlmulti(kk) = rlmulti(kk) + xrp(kk,nc)*c_multfac(ics)
           end if
@@ -1077,10 +1077,10 @@ module mod_cbmz_solve1
         !   FOR STEADY STATE XXO SHOULD EQUAL EITHER EMISSIONS OR ZERO.)
         !    (XXO SET IN PRELUMP)
         ! WITH ZERO PROTECT FOR RLOSS
-        if ( .not. c_lsts(ics) .or. rloss(kk,nc) == 0 ) then
+        if ( .not. c_lsts(ics) .or. dabs(rloss(kk,nc)) < dlowval ) then
           rloss(kk,nc) = rloss(kk,nc) + xrp(kk,nc)
         end if
-        if ( rloss(kk,nc) <= 0. ) rloss(kk,nc) = 1.0D-08
+        if ( rloss(kk,nc) <= d_zero ) rloss(kk,nc) = 1.0D-08
         !
         !  (OPTION: FOR A SELF-REACTION (stoiloss>1, e.g. HO2+HO2, stoiloss=2.)
         !  AN EXACT LINEARIZED NR SOLUTION WOULD REQUIRE
@@ -1244,7 +1244,7 @@ module mod_cbmz_solve1
         !     Use back-Euler for very small values.
         doneexpo(kk) = .false.
         if ( llexpo(kk) ) then
-          if ( xrp(kk,nc) > 0  .and. &
+          if ( xrp(kk,nc) > d_zero .and. &
               ( rloss(kk,nc)-xrp(kk,nc) > d_zero ) .and. &
               ( rloss(kk,nc)+rpro(kk,nc) > d_one ) ) then
             calpha(kk) = rloss(kk,nc)/xrp(kk,nc) - d_one
@@ -1271,7 +1271,8 @@ module mod_cbmz_solve1
                          xcfinr(kk,ics))/calpha(kk)
             !
             ! Cf/Cav  - with ZERO PROTECT
-            if ( xrr(kk,nc) > 0 ) then
+            !
+            if ( xrr(kk,nc) > d_zero ) then
               xcfinr(kk,ics) = xcfinr(kk,ics)/xrr(kk,nc)
               !
               ! Done-expo flag. (within ZERO PROTECT loop)
@@ -1302,7 +1303,7 @@ module mod_cbmz_solve1
             !
             ! ZERO PROTECT CORRECTION 52004 - cut, should never be zero
             !  --> if it  goes below 1e-30 can be zero!!!
-            !           if(xrr(kk, 1) < 1.0e-30) xrr(kk,1)=1.0e-30
+            !           if (xrr(kk, 1) < 1.0e-30) xrr(kk,1)=1.0e-30
           end if
           !
           ! (THIS LINE REPLACED WITH SECTION IMMEDIATELY BELOW.)
@@ -1331,7 +1332,7 @@ module mod_cbmz_solve1
         !
         ! CONVERGENCE OPTION - ADD THIS CONTROL if geom avg used for 1st iters
         ! geom avg
-        if ( (c_iter > 1.or..not.c_lsts(ics) ) .and. &
+        if ( (c_iter > 1 .or. .not. c_lsts(ics) ) .and. &
               c_tchem(ics) /= '     NO3' .and. &
               c_tchem(ics) /= '    N2O5' ) then
           if ( (lself) .or. c_tchem(ics) == '    H2O2' ) then
@@ -1436,16 +1437,16 @@ module mod_cbmz_solve1
         !
         !  FUTURE CHANGE - use this instead of UPDATE CPRO, RPRO just above.
         ! UPDATE CPRO AND RPRO for sub-species only
-        !        if(nsolv > nc) then
+        !        if (nsolv > nc) then
         !          do ncc=(nc+1), nsolv
-        !            if(nssolv(nc) == nssolv(ncc)) then
+        !            if (nssolv(nc) == nssolv(ncc)) then
         ! c              do kk=1,c_kmax      ! kk vector loop
         !                cpro(kk,nc,ncc) = cpro(kk,nc,ncc) * xrr(kk,nc)
         !                rpro(kk,ncc) = rpro(kk,ncc) + cpro(kk,nc,ncc)
         ! c              end do               ! kk vector loop
-        !            end if              !if(nssolv(nc) == nssolv(ncc))
+        !            end if              !if (nssolv(nc) == nssolv(ncc))
         !          end do              !do ncc=(nc+1), nsolv
-        !        end if           !if(nsolv > nc)
+        !        end if           !if (nsolv > nc)
       end do
       ! ---------
       !  END LOOP TO SOLVE SPECIES CONCENTRATIONS- INTERNAL PAIRS
@@ -1478,7 +1479,7 @@ module mod_cbmz_solve1
           !
           if ( nsol > 1 ) then
             calpha(kk) = d_one
-            if ( xrrm(kk,is) > 0 ) then
+            if ( xrrm(kk,is) > d_zero ) then
               calpha(kk) = xrm(kk,is)/xrrm(kk,is)
             end if
             !
@@ -1487,7 +1488,7 @@ module mod_cbmz_solve1
             !
           else
             calpha(kk) = d_one
-            if ( rlpair(kk,icpair) > 0 .and. xrrpair(kk) > 0 ) then
+            if ( rlpair(kk,icpair) > d_zero .and. xrrpair(kk) > d_zero ) then
               calpha(kk) = (xrppair(kk)/xrrpair(kk)) * &
                           (rppair(kk,icpair)/rlpair(kk,icpair))
             end if
@@ -1513,7 +1514,7 @@ module mod_cbmz_solve1
               ic = ics
               if ( neq > 1 ) ic = c_ncequil(ics,(neq-1))
               ! TEST 2008 OPTION:  skip if XRP=RPRO
-              if ( xrp(kk,nc) /= rpro(kk,nc) ) then
+              if ( dabs(xrp(kk,nc)-rpro(kk,nc)) > dlowval ) then
                 xc(kk,ic) = xc(kk,ic) *calpha(kk)
               end if
             end do
@@ -1565,7 +1566,7 @@ module mod_cbmz_solve1
       !  ---------
       !  MULTISOLVE CONTROL:  DO ONLY IF MULTISOLVE SPECIES NONZERO
       !  ---------
-      !      if(nssolv(nsolv) > 1) then
+      !      if (nssolv(nsolv) > 1) then
       if ( nsol > 1 ) then
         !
         ! ---------
@@ -1646,7 +1647,7 @@ module mod_cbmz_solve1
             cbeta(kk) = cbeta(kk) + xrm(kk,is)*xrrm(kk,is)*c_multfac(ic)
           end do
           calpha(kk) = d_one
-          if ( rlmulti(kk) > 0 .and. cbeta(kk) > 0 ) then
+          if ( rlmulti(kk) > d_zero .and. cbeta(kk) > d_zero ) then
             calpha(kk) = (cgamma(kk)/cbeta(kk))*(rpmulti(kk)/rlmulti(kk))
           end if
           do is = 1 , nsol
@@ -1699,11 +1700,11 @@ module mod_cbmz_solve1
       !  *** END IF-LOOP -1 TO SKIP LOSS AND XR CALC FOR SLOW-SPECIES 'PRE'.
       !          (END OF ONESOLVE  'POST' LOOP)
       !  CUT JANUARY 2005
-      !  end if               ! if(ic2 /= -1.and.ic2 /= -3) then
+      !  end if               ! if (ic2 /= -1.and.ic2 /= -3) then
       !  *** IF-LOOP -2 TO SKIP DOWN-CASCADE CALC. FOR SLOW-SPECIES 'POST'.
       !         (LOOP EXECUTED FOR full ONESOLVE AND FOR 'PRE')
       !  CUT JANUARY 2005
-      !             if(ic2 /= -2) then
+      !             if (ic2 /= -2) then
       !  ***
       !
 
@@ -1795,7 +1796,7 @@ module mod_cbmz_solve1
       !  *** END IF-LOOP -2 TO SKIP DOWN-CASCADE CALC FOR SLOW SPECIES 'POST'.
       !        (END OF LOOP FOR full ONESOLVE AND 'PRE')
       !  CUT JAUNARY 2005
-      !             end if                  ! if(ic2 /= -2) then
+      !             end if                  ! if (ic2 /= -2) then
       !  ***
       !
       ! ----------------------------------------------------------------
@@ -1923,10 +1924,10 @@ module mod_cbmz_solve1
         end if
         !
         ! IF 2ND REACTANT IS KEY SPECIES - can't handle, would make adj. below m
-        !           if(c_nicreac(nr) == ic2) then
-        !             if(c_nppair(ic2,2) /= c_nppair(ic1,2) )
+        !           if (c_nicreac(nr) == ic2) then
+        !             if (c_nppair(ic2,2) /= c_nppair(ic1,2) )
         !    *             i       icpair = c_nppair(ic1,2)
-        !           end if                !if(c_nicreac(nr) == ic1) then
+        !           end if                !if (c_nicreac(nr) == ic1) then
       end if
       !
       ! ENTER RATE AS LOSS (RL) FOR REACTANTS:
@@ -2022,7 +2023,7 @@ module mod_cbmz_solve1
       do i = 1 , 2
         oddhsum(kk,i) = oddhsum(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)
         oddhdel(kk,i) = oddhdel(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)*senshx(kk,i)
-        if ( c_oddhx(nr,i) > 0 ) then
+        if ( c_oddhx(nr,i) > d_zero ) then
           oddhsrc(kk,i) = oddhsrc(kk,i) + c_rr(kk,nr)*c_oddhx(nr,i)
         end if
         if ( ic1 == c_noh ) then
@@ -2041,10 +2042,10 @@ module mod_cbmz_solve1
         end if
       end do
 !
-      if ( c_pronox(nr) > 0 ) then
+      if ( c_pronox(nr) > d_zero ) then
         sourcnx(kk) = sourcnx(kk) + c_rr(kk,nr)*c_pronox(nr)
       end if
-      if ( c_pronox(nr) < 0 ) then
+      if ( c_pronox(nr) < d_zero ) then
         sinknx(kk) =  sinknx(kk) + c_rr(kk,nr)*c_pronox(nr)
       end if
     end subroutine brpro
@@ -2162,7 +2163,7 @@ module mod_cbmz_solve1
         !
         if ( icx <= 0 ) then
           ratex(kk) = cpro(kk,1,2)
-          if ( ratex(kk) > cpro(kk,2,1) ) ratex(kk)=cpro(kk,2,1)
+          if ( ratex(kk) > cpro(kk,2,1) ) ratex(kk) = cpro(kk,2,1)
           if ( cpro(kk,1,2) > 0 ) then
             ratex(kk) = ratex(kk)*(cpro(kk,1,2)/(cpro(kk,1,2)+xc(kk,ic1)))
           end if
@@ -2207,7 +2208,7 @@ module mod_cbmz_solve1
           !   (If denominator is zero, use single-species solution instead)
           cbeta(kk) = (rloss(kk,1)+xrp(kk,1))*(rloss(kk,2)+xrp(kk,2)) - &
                       cpro(kk,1,2)*cpro(kk,2,1)
-          if ( cbeta(kk) > 0 ) then
+          if ( cbeta(kk) > d_zero ) then
             ratex(kk) = cpro(kk,1,2)*(cpro(kk,2,1)*(rpro(kk,1) + &
                         rpro(kk,2) + prior(kk))/cbeta(kk) )
           else
@@ -2240,12 +2241,12 @@ module mod_cbmz_solve1
             if ( nr > 0 ) then
               if ( i == 1 ) then
                 undo(kk) = d_zero
-                if ( cpro(kk,1,2) > 0 ) then
+                if ( cpro(kk,1,2) > d_zero ) then
                   undo(kk) = ratex(kk)*c_rr(kk,nr)/cpro(kk,1,2)
                 end if
               else
                 undo(kk) = d_zero
-                if ( cpro(kk,2,1) > 0 ) then
+                if ( cpro(kk,2,1) > d_zero ) then
                   undo(kk) = ratex(kk)*c_rr(kk,nr)/cpro(kk,2,1)
                 end if
               end if
@@ -2299,10 +2300,10 @@ module mod_cbmz_solve1
                 oddhdel(kk,n) = oddhdel(kk,n) - &
                         c_oddhx(nr,n)*undo(kk)*senshx(kk,n)
               end do
-              if ( c_pronox(nr) > 0 ) then
+              if ( c_pronox(nr) > d_zero ) then
                 sourcnx(kk) = sourcnx(kk)-c_pronox(nr)*undo(kk)
               end if
-              if ( c_pronox(nr) < 0 ) then
+              if ( c_pronox(nr) < d_zero ) then
                 sinknx(kk) =  sinknx(kk)-c_pronox(nr)*undo(kk)
               end if
             end if
@@ -2537,7 +2538,7 @@ module mod_cbmz_solve1
       !                     (~NO**2)  (~NO)        (~1)
       !                   calpha*NO**2 + cbeta*NO = cgamma  with new NO.
       !
-      if ( xrrm(c_kkw,3) == 0 ) xrrm(c_kkw,3) = d_one
+      if ( dabs(xrrm(c_kkw,3)) < dlowval ) xrrm(c_kkw,3) = d_one
       xk2 = (xrrm(c_kkw,3)**d_two) * calpha(c_kkw)
       xk2n = xrrm(c_kkw,3) * (cpm(c_kkw,1,2)/(xrm(c_kkw,1)*xrm(c_kkw,3))) * &
              (xox(c_kkw)-xnox(c_kkw))
@@ -2550,13 +2551,13 @@ module mod_cbmz_solve1
       ! ZERO PROTECT: THIS ALGORITHM SHOULD NEVER GENERATE NEGATIVE
       ! UNLESS THERE IS A MATH ERROR OR TINY NUMERICAL NEGATIVE.
       !
-      if ( xrrm(kk,1) <= 0 ) then
+      if ( xrrm(kk,1) <= d_zero ) then
         xrrm(kk,1) = 0.001D0
       end if
-      if ( xrrm(kk,2) <= 0 ) then
+      if ( xrrm(kk,2) <= d_zero ) then
         xrrm(kk,2) = 0.001D0
       end if
-      if ( xrrm(kk,3) <= 0 ) then
+      if ( xrrm(kk,3) <= d_zero ) then
         xrrm(kk,3) = 0.001D0
       end if
       !
@@ -2769,7 +2770,7 @@ module mod_cbmz_solve1
         !
         ! NONSTEADY STATE ADJ:  IF NONSTEADY STATE OR ZERO RLOSS, ADD XRP to RPR
         !
-        if ( .not. c_lsts(ics) .or. rloss(kk,is) == 0 ) then
+        if ( .not. c_lsts(ics) .or. dabs(rloss(kk,is)) < dlowval ) then
           rloss(kk,is) = rloss(kk,is) + xrp(kk,is)
         end if
         if ( rloss(kk,is) <= d_zero ) rloss(kk,is) = 1.0D-08
@@ -2836,7 +2837,7 @@ module mod_cbmz_solve1
           if ( ic == c_npequil(ic) ) then
             oddhsum(kk,1) = oddhsum(kk,1) + c_xcin(kk,ic) - xc(kk,ic)
             calpha(kk) = d_zero
-            if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
+            if ( c_rl(kk,ic)+xc(kk,ic) > d_zero ) then
               calpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
                           (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
@@ -2848,11 +2849,11 @@ module mod_cbmz_solve1
               oddhdel(kk,1) = oddhdel(kk,1) - senhcat(kk,c_icat(ic))*calpha(kk)
             end if
           else
-            if ( c_h2oliq(kk) > 0 ) then
+            if ( c_h2oliq(kk) > d_zero ) then
               oddhsum(kk,1) = oddhsum(kk,1) + &
                        (c_xcin(kk,ic)-xc(kk,ic)) * c_h2oliq(kk)*avogadrl
               calpha(kk) = d_zero
-              if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
+              if ( c_rl(kk,ic)+xc(kk,ic) > d_zero ) then
                 calpha(kk) = &
                   (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic)*c_h2oliq(kk)*avogadrl / &
                   (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic)*c_h2oliq(kk)*avogadrl)
@@ -2875,7 +2876,7 @@ module mod_cbmz_solve1
           if ( ic == c_npequil(ic) ) then
             oddhsum(kk,2) = oddhsum(kk,2) + c_xcin(kk,ic) - xc(kk,ic)
             calpha(kk) = d_zero
-            if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
+            if ( c_rl(kk,ic)+xc(kk,ic) > d_zero ) then
               calpha(kk) = (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic) / &
                           (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic))
               !
@@ -2887,11 +2888,11 @@ module mod_cbmz_solve1
               oddhdel(kk,2) = oddhdel(kk,2) - senhcat(kk,c_icat(ic))*calpha(kk)
             end if
           else
-            if ( c_h2oliq(kk) > 0 ) then
+            if ( c_h2oliq(kk) > d_zero ) then
               oddhsum(kk,2) = oddhsum(kk,2) + &
                         (c_xcin(kk,ic)-xc(kk,ic))*c_h2oliq(kk)*avogadrl
               calpha(kk) = d_zero
-              if ( c_rl(kk,ic)+xc(kk,ic) > 0 ) then
+              if ( c_rl(kk,ic)+xc(kk,ic) > d_zero ) then
                 calpha(kk) = &
                   (c_rp(kk,ic)+c_rl(kk,ic))*xc(kk,ic)*c_h2oliq(kk)*avogadrl / &
                   (c_rp(kk,ic)+c_rl(kk,ic)+xc(kk,ic)*c_h2oliq(kk)*avogadrl)
@@ -3016,12 +3017,12 @@ module mod_cbmz_solve1
       oddhro2f(kk) = oddhro2f(kk)/(oddhro2f(kk)+ d_one/c_time)
       !
       oddhfac1(kk) = d_one
-      if ( oddhdel(kk,1) /= 0 ) then
+      if ( dabs(oddhdel(kk,1)) > dlowval ) then
         oddhfac1(kk) = d_one - oddhsum(kk,1)/oddhdel(kk,1)
         if ( oddhfac1(kk) <= d_zero ) oddhfac1(kk) = 0.2D0
       end if
       oddhfac2(kk) = d_one
-      if ( oddhdel(kk,2) /= 0 ) then
+      if ( dabs(oddhdel(kk,2)) > dlowval ) then
         oddhfac2(kk) = d_one - oddhsum(kk,2)/oddhdel(kk,2)
         if ( oddhfac2(kk) <= d_zero ) oddhfac2(kk) = 0.2D0
       end if
@@ -3035,7 +3036,7 @@ module mod_cbmz_solve1
       ! APPLY HX FACTOR TO OH, HO2
       ! --------------------------
       xc(kk,ic1) = xrp(kk,1)*oddhfac(kk)
-      if ( foh(kk) /= 0 ) then
+      if ( dabs(foh(kk)) > dlowval ) then
         !
         ! 2005 OPTION
         !  (2009 NOTE: what about steady state? Included in foh, added for oddhl
@@ -3138,12 +3139,12 @@ module mod_cbmz_solve1
         calpha(kk) = d_zero
         do neq = 1 , (c_nequil(ics)+1)
           icc = ics
-          if ( neq > 1 )icc = c_ncequil(ics,(neq-1))
+          if ( neq > 1 ) icc = c_ncequil(ics,(neq-1))
           calpha(kk) = calpha(kk) + c_rp(kk,icc)
         end do
         do neq = 1 , (c_nequil(ics)+1)
           icc = ics
-          if ( neq > 1 )icc = c_ncequil(ics,(neq-1))
+          if ( neq > 1 ) icc = c_ncequil(ics,(neq-1))
           if ( calpha(kk) >= 0.1D0*oddhsrc(kk,1) ) then
 !           xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**0.5)
             xc(kk,icc) = xc(kk,icc) * (oddhfac(kk)**geomavg(kk,ic2) )
@@ -3356,8 +3357,8 @@ module mod_cbmz_solve1
       !     A=> 0:  approaching convergence
       !
       calpha(kk) = d_zero
-      if ( history(kk,ic,(c_iter-2)) /= 0 .and. &
-           history(kk,ic,(c_iter-3)) /= 0) then
+      if ( dabs(history(kk,ic,(c_iter-2))) > dlowval .and. &
+           dabs(history(kk,ic,(c_iter-3))) > dlowval ) then
         !
         ! DELTA OPTION
         !
@@ -3372,7 +3373,7 @@ module mod_cbmz_solve1
         cgamma(kk) = history(kk,ic,(c_iter-2))/history(kk,ic,(c_iter-3))-d_one
         calpha(kk) = cbeta(kk)/cgamma(kk)
       end if
-      if ( calpha(kk) >  d_one ) calpha(kk) =  d_one
+      if ( calpha(kk) > d_one ) calpha(kk) = d_one
       if ( calpha(kk) < -d_one ) calpha(kk) = -d_one
       !
       ! DIFFICULT CONVERGENCE  OPTION:  MULTIPLY SETGEOM BY DAMPENING FACTOR.
@@ -3567,23 +3568,23 @@ module mod_cbmz_solve1
        !  AND PROTECT AGAINST NIGHTTIME STEADY STATE ZERO.  HO2 prior>1E6.
        !
        foh(kk ) = 0.01D0
-       if ( ratek(kk ,nspecial(1)) >= 1.0D-03 ) then
+       if ( ratek(kk,nspecial(1)) >= 1.0D-03 ) then
          foh(kk ) = ratek(kk,nspecial(18)) * xc(kk,c_nno)/calpha(kk)
        end if
        !
        ! FULL QUADRATIC SOLVE WITH PRIOR OH, HO2
        !
-       cgamma(kk ) = d_two*c_time*ratek(kk ,nspecial(9))*xc(kk ,c_no3) + &
-                     c_xcin(kk,c_noh)+c_xcin(kk,c_nho2)
-       if ( cgamma(kk ) < 1.01D+04 ) then
+       cgamma(kk) = d_two*c_time*ratek(kk ,nspecial(9))*xc(kk ,c_no3) + &
+                    c_xcin(kk,c_noh)+c_xcin(kk,c_nho2)
+       if ( cgamma(kk) < 1.01D+04 ) then
          c_xcin(kk,c_nho2) = c_xcin(kk,c_nho2) + 1.0D+04
          c_xcin(kk,c_noh) = c_xcin(kk,c_noh) + 1.0D+02
          cgamma(kk) = cgamma(kk) + 1.01D+04
        end if
-       cbeta(kk ) = d_one + d_one/foh(kk ) +  &
+       cbeta(kk) = d_one + d_one/foh(kk ) +  &
                    c_time*ratek(kk,nspecial(12))*xc(kk,c_nno2)
-       calpha(kk ) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
-       if ( calpha(kk )*cgamma(kk ) < cbeta(kk)**d_two ) then
+       calpha(kk) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
+       if ( calpha(kk)*cgamma(kk) < cbeta(kk)**d_two ) then
          xc(kk,c_noh) = cgamma(kk)/cbeta(kk)
        else
          xc(kk,c_noh) = (dsqrt(cbeta(kk)**d_two + &
@@ -3705,7 +3706,7 @@ module mod_cbmz_solve1
            do iic = ic1 , ic2
              calpha(kk) = calpha(kk) + xc(kk,iic)
            end do
-           if ( calpha(kk) == 0 ) then
+           if ( dabs(calpha(kk)) < dlowval ) then
              xc(kk,ic1) = d_one
              calpha(kk) = d_one
            end if
@@ -3718,7 +3719,7 @@ module mod_cbmz_solve1
              !
              ! ORIGINAL VERSION - SET LUMPED SPECIES HERE.
              !            xc(kk,ic) = xc(kk,ic)*xc(kk,ics)/calpha(kk)
-             !            if(xc(kk,ic) <= 0.1) xc(kk,ic) = 0.1
+             !            if (xc(kk,ic) <= 0.1) xc(kk,ic) = 0.1
              ! ALTERNATIVE OPTION:  SET LUMPED SPECIES = 0. FOR FIRST ITERATION;
              !          THEN RESET BASED ON RP IN MIDLUMP.
              xc(kk,iic) = 0.1D0
@@ -4262,7 +4263,7 @@ module mod_cbmz_solve1
            do neq = 1 , c_nequil(ic)
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
-               if ( c_h2oliq(kk) > 0 ) then
+               if ( c_h2oliq(kk) > d_zero ) then
                  if ( c_iter <= 2 ) then
                    xrp(kk,1) =xrp(kk,1) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
                  else
@@ -4284,7 +4285,7 @@ module mod_cbmz_solve1
            ! PSEUDO-FIRST-ORDER AQUEOUS LOSS CONSTANT (calpha)
            !  (NOTE:  if RL and XR=0, initial values above make lifetime long.)
            !
-           if ( c_h2oliq(kk) > 0 ) then
+           if ( c_h2oliq(kk) > d_zero ) then
              calpha(kk) = 0.00001D0
              if ( xrp(kk,1) > d_zero .and. rloss(kk,1) > d_zero) then
                calpha(kk) = rloss(kk,1)/(xrp(kk,1)*c_time)
@@ -4306,12 +4307,12 @@ module mod_cbmz_solve1
                else
                  cbeta(kk) = (dexp(cgamma(kk)) + dexp(d_zero-cgamma(kk))) / &
                             (dexp(cgamma(kk)) - dexp(d_zero-cgamma(kk)))
-                 if ( c_kkw > d_zero ) then
+                 if ( c_kkw > 0 ) then
                    xxx1 = cbeta(c_kkw)
                  end if
                  cbeta(kk) = d_three*(cbeta(kk)/cgamma(kk) - &
                             d_one/(cgamma(kk)**d_two) )
-                 if ( c_kkw > d_zero ) then
+                 if ( c_kkw > 0 ) then
                    xxx2 = cbeta(c_kkw)
                  end if
                  if ( cbeta(kk) > d_one ) cbeta(kk) = d_one
@@ -4342,7 +4343,7 @@ module mod_cbmz_solve1
              ! cgamma(kk) = (  c_xcin(kk,ic) + c_rp(kk,ic)) *rateh(kk,nrh) /
              !              (rateh(kk,nrh)+1.)
              ! cgamma(kk) = rloss(kk,1) - rpro(kk,1)
-             ! if(cgamma(kk) < 0) cgamma(kk) == 0.)
+             ! if (cgamma(kk) < 0) cgamma(kk) == 0.)
              !
              ! Q adjustment:  Q'=rhdif;  Q=cbeta; Sgas=cgamma; Saq=rpro
              !  Apply only if aqueous concentration is not zero.
@@ -4479,7 +4480,7 @@ module mod_cbmz_solve1
        do nrh = 1 , c_nreach
          ic = c_henry(nrh,1)
          if ( c_nequil(ic) > 0 )  then
-           if ( c_h2oliq(kk) > 0 ) then
+           if ( c_h2oliq(kk) > d_zero ) then
              rpro(kk,1) = c_rp(kk,ic)-c_rl(kk,ic)
            end if
            !
@@ -4488,7 +4489,7 @@ module mod_cbmz_solve1
            do neq = 1 , c_nequil(ic)
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
-               if ( c_h2oliq(kk) > 0 ) then
+               if ( c_h2oliq(kk) > d_zero ) then
                  xc(kk,ic) = xc(kk,ic) + xc(kk,icq)*c_h2oliq(kk)*avogadrl
                  rpro(kk,1) = rpro(kk,1) + c_rp(kk,icq)-c_rl(kk,icq)
                end if
@@ -4503,8 +4504,8 @@ module mod_cbmz_solve1
              icq = c_ncequil(ic,neq)
              if ( icq > 0 ) then
                if ( c_iter > 1 ) then
-                 if ( c_h2oliq(kk) > 0 ) then
-                   if ( xc(kk,ic) > 0 ) then
+                 if ( c_h2oliq(kk) > d_zero ) then
+                   if ( xc(kk,ic) > d_zero ) then
                      rpro(kk,3) = rpro(kk,3) + (rpro(kk,1)/xc(kk,ic)) * &
                                   iabs(c_ion(icq))*c_h2oliq(kk)*avogadrl * &
                                   xc(kk,icq)
@@ -4567,7 +4568,7 @@ module mod_cbmz_solve1
        ! SPECIAL FUNCTIONS:  1/H=xhinv(kk)   1/OH = xohinv(kk)
        !                     1/Kw = xkwinv(kk)  1/Xt = cgamma(kk)
        !
-       if ( c_h2oliq(kk) > 0 ) then
+       if ( c_h2oliq(kk) > d_zero ) then
          xkwinv(kk) = d_one/rateq(kk,1)
          xhinv(kk) = xkwinv(kk)*xc(kk,c_nohmin)
          xohinv(kk) = xkwinv(kk)*xc(kk,c_nhplus)
@@ -4600,7 +4601,7 @@ module mod_cbmz_solve1
          !  CONVERT GAS-MASTER SUM TO LIQUID-EQUIVALENT UNITS (MOLES/LITER)
          !  WITH ZERO-PROTECT
          !
-         if ( c_h2oliq(kk) > 0 ) then
+         if ( c_h2oliq(kk) > d_zero ) then
            xc(kk,ic) = xc(kk,ic)/(c_h2oliq(kk)*avogadrl)
          end if
          !
@@ -4608,7 +4609,7 @@ module mod_cbmz_solve1
          !  (dimensionless H=Ca/Cg, Cg=Ct/(1+H), Ca=Ct*H/(1+H) )
          !
          if ( c_nequil(ic) == 1 ) then
-           if ( c_h2oliq(kk) > 0 ) then
+           if ( c_h2oliq(kk) > d_zero ) then
              cgamma(kk) = d_one/(rhdif(kk,nrh) + d_one)
              xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
              xc(kk,ic) = xc(kk,ic) * (cgamma(kk)*(c_h2oliq(kk)*avogadrl))
@@ -4665,7 +4666,7 @@ module mod_cbmz_solve1
            ! Xa = Xg*Kh    X1=Xa*K1
            !
            if ( ica1 == 0 .and. icb1 == 0 ) then
-             if ( c_h2oliq(kk) > 0 ) then
+             if ( c_h2oliq(kk) > d_zero ) then
                cgamma(kk) = d_one/((rateq(kk,nrq)+d_one)*rhdif(kk,nrh)+d_one)
                xc(kk,icq) = xc(kk,ic)*(rateq(kk,nrq)*rhdif(kk,nrh))*cgamma(kk)
                xc(kk,ich) = (xc(kk,ic)*rhdif(kk,nrh)) * cgamma(kk)
@@ -4682,7 +4683,7 @@ module mod_cbmz_solve1
            ! Then solve for GAS at the end.
            !
            if ( ica1 > 0 .and. ica2 == 0 ) then
-             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+             if ( c_h2oliq(kk) > d_zero .and. xc(kk,ic) > 1.0D-40 ) then
                cgamma(kk) = d_one / &
                  ((rateq(kk,nra1)*xhinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
                xc(kk,ica1) = (xc(kk,ic)*xhinv(kk) * &
@@ -4709,7 +4710,7 @@ module mod_cbmz_solve1
            !  dX2/dH = (X2**2/(Xt*Kh*K1*K2)(2H(1+Kh)+Kh*K1)
            !
            if ( ica1 > 0 .and. ica2 > 0 ) then
-             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+             if ( c_h2oliq(kk) > d_zero .and. xc(kk,ic) > 1.0D-40 ) then
                cgamma(kk) = d_one/(((rateq(kk,nra2)*xhinv(kk) + d_one) * &
                             rateq(kk,nra1)*xhinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
                xc(kk,ica1) = (xc(kk,ic)*xhinv(kk) * &
@@ -4742,7 +4743,7 @@ module mod_cbmz_solve1
            ! dX1/dH =  (OH/H)* (X1**2)/(Xt*Kh*K1)*(1+Kh)
            !
            if ( icb1 > 0 .and. icb2 == 0 ) then
-             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+             if ( c_h2oliq(kk) > d_zero .and. xc(kk,ic) > 1.0D-40 ) then
                cgamma(kk) = d_one / &
                  ((rateq(kk,nrb1)*xohinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
                xc(kk,icb1) = (xc(kk,ic)*xohinv(kk) * &
@@ -4770,7 +4771,7 @@ module mod_cbmz_solve1
            ! dX2/dH =  (OH/H) * (X2**2/Xt*Kh*K1*K2)*(2OH(1+Kh)*Kh*K1)
            !
            if ( icb1 > 0 .and. icb2 > 0 ) then
-             if ( c_h2oliq(kk) > 0 .and. xc(kk,ic) > 1.0D-40 ) then
+             if ( c_h2oliq(kk) > d_zero .and. xc(kk,ic) > 1.0D-40 ) then
                cgamma(kk) = d_one/(((rateq(kk,nrb2)*xohinv(kk)+d_one) * &
                   rateq(kk,nrb1)*xohinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
                xc(kk,icb1)  = xc(kk,ic) * &
@@ -4799,9 +4800,9 @@ module mod_cbmz_solve1
            end if
            !
            ! 2006 ERROR CORRECTION - PROTECT AGAINST ZERO AQUEOUS - CUT
-           !     if(xc(1,ich) == 0.) then
-           !       if(rhdif(1,nrh) > 1.0e-10) xc(1,ich) = 1.0e-34
-           !     end if                        !if(xc(kk,ich) == 0.) then
+           !     if (xc(1,ich) == 0.) then
+           !       if (rhdif(1,nrh) > 1.0e-10) xc(1,ich) = 1.0e-34
+           !     end if                        !if (xc(kk,ich) == 0.) then
          end if
        end do
        !
@@ -4819,8 +4820,8 @@ module mod_cbmz_solve1
        ! ALSO:  INCREASE BETA BY RATIO:  ION RPRO/PRIOR ION SUM
        ! TO ACCOUNT FOR CHEM PRODUCTION ->H+ FEEDBACK.
        !
-       if ( c_h2oliq(kk) > 0 ) then
-         if ( rpro(kk,2) > rpro(kk,3) .and. rpro(kk,3) > 0 ) then
+       if ( c_h2oliq(kk) > d_zero ) then
+         if ( rpro(kk,2) > rpro(kk,3) .and. rpro(kk,3) > d_zero ) then
            cbeta(kk) = cbeta(kk)*(d_one+rpro(kk,3)/(rpro(kk,2)-rpro(kk,3)))
          end if
          if ( dabs(cbeta(kk)) < dlowval ) calpha(kk) = calpha(kk)/cbeta(kk)
@@ -4831,7 +4832,7 @@ module mod_cbmz_solve1
            calpha(kk) = 10.0D0*xc(kk,c_nhplus)
          end if
          xc(kk,c_nhplus) = dsqrt(xc(kk,c_nhplus)*(xc(kk,c_nhplus)+calpha(kk)))
-         if ( xc(kk,c_nhplus) > 0 ) then
+         if ( xc(kk,c_nhplus) > d_zero ) then
            xc(kk,c_nohmin) = rateq(kk,1)/xc(kk,c_nhplus)
          end if
        end if
