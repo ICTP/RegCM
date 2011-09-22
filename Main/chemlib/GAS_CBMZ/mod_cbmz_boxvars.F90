@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cbmz_bozvars
+module mod_cbmz_boxvars
 !
   use m_realkinds
 !
@@ -156,4 +156,4 @@ module mod_cbmz_bozvars
   real(dp) :: altabove   ! Cloud above weighted altitude
   real(dp) :: altbelow   ! Cloud below weighted altitude
 !
-end module mod_cbmz_bozvars
+end module mod_cbmz_boxvars
