@@ -120,8 +120,6 @@ module mod_cbmz_main1
 !
       implicit none
 !
-      integer :: icq
-      integer :: neq
       !
       ! Index for vector arrays, =1 unless vector loop entered
       !

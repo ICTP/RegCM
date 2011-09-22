@@ -29,11 +29,11 @@ module mod_cbmz_jval1
 
   contains
 
-    subroutine jvalpro(nhv,hvmat,hvmatb,jarray,jparam,jval)
+    subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
       implicit none
 !
       real(dp) , dimension(22,40) :: hvmat
-      real(dp) , dimension(22) :: hvmatb , jparam
+      real(dp) , dimension(22) :: jparam
       real(dp) , dimension(80,510,56) :: jarray
       real(dp) , dimension(56) :: jval
       integer , dimension(22) :: nhv
@@ -42,7 +42,7 @@ module mod_cbmz_jval1
 !
       real(dp) , dimension(56) :: cfac , jfaerz , jfsur
       real(dp) :: falt , fzen , x
-      real :: fkn
+      real(dp) :: fkn
       integer :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
                  ig22 , ij , im , iwri , iy , izen , j , jaer , jalb ,  &
                  jc , jcld , jct , jtem , k , kn

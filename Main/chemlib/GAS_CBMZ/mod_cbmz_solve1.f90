@@ -517,21 +517,6 @@ module mod_cbmz_solve1
       ! TO LUMP-PARTITION FRACTIONS.  (Also sum Aq-Equil species?)
 
       call postlump
-
- 1611 format(/,'TEST SENHCAT 1-20,31-40:',/,(10f6.3))
- 1701 format(/' TEST FOR OH,NO CONVERGENCE =',i3,2(1pe10.3))
- 1801 format(//,' SUMMARY WRITE:  ITER =',i3, '    VECTOR KKW=',i3)
- 1802 format(/,' #  IC     XCOUT     XCIN  XCF/AV       RL',       &
-                    '        RP        dXC      dR')
- 1803 format(i4,a8,2(1pe10.3),0pf7.3,1x,(4(1pe10.3)))
- 1804 format('IDATE xhour lat lon temp=',i8,4f8.2)
- 1805 format('JPARAMS: zenith altmid dobson so2 no2 aaerx aerssa', &
-        ' albedo',/,'cld-below cld-above claltB claltA temp date', &
-         /,(8f10.3))
- 1806 format(//,' REACTION RATES:  ITER =',i3, '    VECTOR KKW=',i3)
- 1807 format(i4,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,2(1pe10.3))
- 1901 format(//,70('-'),/,'BEGIN ITERATION =',i3)
- 1902 format(70('-'),/)
 !
     end subroutine quadchem
 !
@@ -2665,10 +2650,6 @@ module mod_cbmz_solve1
 !
       ! OH/HO2 from prior iteration
       real(dp) :: foh1(c_kvec)
-      ! Prod HO2 from OH, mol/cm3
-      real(dp) :: foh1a(c_kvec)
-      ! Prod HO2 from other, mol/cm3
-      real(dp) :: foh1b(c_kvec)
       ! Factor for updating OH
       real(dp) :: oddhfac(c_kvec)
 
@@ -2680,22 +2661,9 @@ module mod_cbmz_solve1
       real(dp) :: oddhro2f(c_kvec)
 
       ! Species list passed to chemsolve
-      integer ncsol(c_cdim)
+      integer :: ncsol(c_cdim)
       ! Function to return chem index ic
-      integer namechem
-
-      ! Sum for written output
-      real(dp) :: pansum
-      ! Sum for written output
-      real(dp) :: hnosum
-      ! Sum for written output
-      real(dp) :: xrooh
-      ! Sum for written output
-      real(dp) :: xhno4
-      ! Sum for written output
-      real(dp) :: xhno3
-      ! Sum for written output
-      real(dp) :: xco3
+      integer :: namechem
 !
       kk = 1
       !
@@ -3567,9 +3535,9 @@ module mod_cbmz_solve1
        !  DECEMBER 1994:  CHANGE TO FULL QUADRATIC WITH PRIOR OH, HO2
        !  AND PROTECT AGAINST NIGHTTIME STEADY STATE ZERO.  HO2 prior>1E6.
        !
-       foh(kk ) = 0.01D0
+       foh(kk) = 0.01D0
        if ( ratek(kk,nspecial(1)) >= 1.0D-03 ) then
-         foh(kk ) = ratek(kk,nspecial(18)) * xc(kk,c_nno)/calpha(kk)
+         foh(kk) = ratek(kk,nspecial(18)) * xc(kk,c_nno)/calpha(kk)
        end if
        !
        ! FULL QUADRATIC SOLVE WITH PRIOR OH, HO2
@@ -3581,7 +3549,7 @@ module mod_cbmz_solve1
          c_xcin(kk,c_noh) = c_xcin(kk,c_noh) + 1.0D+02
          cgamma(kk) = cgamma(kk) + 1.01D+04
        end if
-       cbeta(kk) = d_one + d_one/foh(kk ) +  &
+       cbeta(kk) = d_one + d_one/foh(kk) +  &
                    c_time*ratek(kk,nspecial(12))*xc(kk,c_nno2)
        calpha(kk) = c_time* ratek(kk,nspecial(22))/(foh(kk)**d_two)
        if ( calpha(kk)*cgamma(kk) < cbeta(kk)**d_two ) then
@@ -4186,9 +4154,6 @@ module mod_cbmz_solve1
 !
        implicit none
 !
-       character(len=8) :: tsum
-       real(dp) :: xsum
-
        ! 1/[H+]
        real(dp) :: xhinv(c_kvec)
        ! 1/[OH]
@@ -4201,8 +4166,6 @@ module mod_cbmz_solve1
        real(dp) :: xxx1
        ! Variable for write statement
        real(dp) :: xxx2
-       ! Aq conversion fac for write
-       real(dp) :: acquacon
 !
        kk=1
        !
@@ -4774,16 +4737,16 @@ module mod_cbmz_solve1
              if ( c_h2oliq(kk) > d_zero .and. xc(kk,ic) > 1.0D-40 ) then
                cgamma(kk) = d_one/(((rateq(kk,nrb2)*xohinv(kk)+d_one) * &
                   rateq(kk,nrb1)*xohinv(kk)+d_one)*rhdif(kk,nrh)+d_one)
-               xc(kk,icb1)  = xc(kk,ic) * &
+               xc(kk,icb1) = xc(kk,ic) * &
                  ((xohinv(kk)*rhdif(kk,nrh)*rateq(kk,nrb1))*cgamma(kk))
                xc(kk,icb2) = xc(kk,icb1)*(rateq(kk,nrb2)*xohinv(kk))
-               xc(kk,ich) = xc(kk,ic)*(rhdif(kk,nrh) * cgamma(kk) )
+               xc(kk,ich) = xc(kk,ic)*(rhdif(kk,nrh)*cgamma(kk))
                !
                ! ION SUM (calpha), d/dH ION SUM (cbeta):
                !
                calpha(kk) = calpha(kk) - xc(kk,icb1)*c_ion(icb1) - &
                            xc(kk,icb2)*c_ion(icb2)
-               cbeta(kk) = cbeta(kk) - c_ion(icb1) *xc(kk,icb1)*xhinv(kk)
+               cbeta(kk) = cbeta(kk) - c_ion(icb1)*xc(kk,icb1)*xhinv(kk)
                cbeta(kk) = cbeta(kk) + &
                  (d_two*xc(kk,c_nohmin)*(d_one+rhdif(kk,nrh)) + &
                   rhdif(kk,nrh)*rateq(kk,nrb1)) * &

@@ -94,7 +94,7 @@ module mod_cbmz_boxvars
   real(dp) :: topxr(nnb)     ! Concentin entrainment layer
   real(dp) :: depo(nnb)      ! Dry dep velocity cm/s
   real(dp) :: xdepo(nnb)     ! Dry dep velocity cm/s
-  character*4 ttchem(nnb)    ! Chemistry species name
+  character(len=4) :: ttchem(nnb)    ! Chemistry species name
 !   real(dp) :: rrec(3,nnb)    ! Record reaction rates
   real(dp) :: xh2o           ! H2O molec/cm3
   real(dp) :: xnacl          ! NaCl concentration M/lit

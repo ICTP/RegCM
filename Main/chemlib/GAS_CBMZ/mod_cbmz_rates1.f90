@@ -424,8 +424,6 @@ module mod_cbmz_rates1
       real(dp) :: hvrate(c_kvec,56)
       ! j-value output from jval2.f
       real(dp) :: jval(56)
-      ! zenith angle, degrees
-      real(dp) :: zen(c_kvec)
       ! Partition btwen time intervals
       real(dp) :: fhvint
       ! Counter for time intervals
@@ -483,7 +481,7 @@ module mod_cbmz_rates1
         !
         ! CALL JVALPRO FOR THESE CONDITIONS - sets jvalues
         !
-        call jvalpro(c_nhv,c_hvmat,c_hvmatb,c_jarray,c_jparam,jval)
+        call jvalpro(c_nhv,c_hvmat,c_jarray,c_jparam,jval)
         !
         ! ADD TO ARRAY SUM FOR AVERAGE JVAL OVER TIME PERIOD WITH X INTERVALS.
         !
