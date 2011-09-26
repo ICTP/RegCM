@@ -21,6 +21,7 @@ module mod_cbmz_init1
 !
   use m_realkinds
   use mod_constants
+  use mod_message
   use mod_cbmz_chemmech
   use mod_cbmz_chemlocal
 !
@@ -34,7 +35,7 @@ module mod_cbmz_init1
 !
 !    4-2009: error with ifort, but not with -C compile option.
 !      indices c_noh, etc. are written incorrectly, possibly related to
-!       warning message about double precision in COMMON.
+!       warning message about real(dp) :: in COMMON.
 !
 !     Nov 2007 addition: save net RP stoich for tracers.
 !  NOTE CHANGES:  rbchemmech.EXT, quadinit.f
@@ -1403,585 +1404,576 @@ module mod_cbmz_init1
       !
       write(c_out,1321)
       1321 format(/,'HENRYs LAW AND LINKED AQUEOUS EQUILIBRIUM SPECIES',/)
-
-        write(c_out,1322) c_tchem(c_aqueous(1,2)),                      &
-     &                c_tchem(c_aqueous(1,3))
-        do  nrh=1,c_nreach
-          ic = c_henry(nrh,1)
-          if(c_nequil(ic) > 0)  then
-            write(c_out, 1322) c_tchem(ic),                             &
-     &        ( c_tchem(c_ncequil(ic,i))                                &
-     &                                      ,i=1,c_nequil(ic) )
-! 1322            format(5(4x,a4,        2x))
- 1322           format(5(   a8,        2x))
-                                   !if(c_nequil(ic) > 0)  then
-          end if
-                                !do  nrh=1,c_nreach
-        end do
-
-! -----------------------------------------
-!  END ASSIGN-AQUEOUS
-! -----------------------------------------
-!
-!
-! -----------------------------------------
-!  CONVERT SPECIAL EQUILIBRIUM SPECIES TO BACK-FORTH REACTIONS
-! -----------------------------------------
-!  Special equilibrium forward reaction 1e8 sec-1,
-!   backward reaction based on equilibrium coefficient.
-!
-!  (Special equilibrium reactions NOT entered into cascade pair.)
-
-! LOOP FOR SPECIAL AQUEOUS EQUILIBRIUM SPECIES
-
-       nr = c_nreac
-
-       do     nrqq=1,c_nreaqq
-        if(c_aqspec(nrqq,1) /= 0.and.c_aqspec(nrqq,2) /= 0) then
+      write(c_out,1322) c_tchem(c_aqueous(1,2)),c_tchem(c_aqueous(1,3))
+      do nrh = 1 , c_nreach
+        ic = c_henry(nrh,1)
+        if ( c_nequil(ic) > 0 ) then
+          write(c_out, 1322) c_tchem(ic), &
+            (c_tchem(c_ncequil(ic,i)),i=1,c_nequil(ic))
+          1322 format(5(a8,2x))
+        end if
+      end do
+      !
+      ! -----------------------------------------
+      !  END ASSIGN-AQUEOUS
+      ! -----------------------------------------
+      !
+      ! -----------------------------------------
+      !  CONVERT SPECIAL EQUILIBRIUM SPECIES TO BACK-FORTH REACTIONS
+      ! -----------------------------------------
+      !  Special equilibrium forward reaction 1e8 sec-1,
+      !   backward reaction based on equilibrium coefficient.
+      !
+      !  (Special equilibrium reactions NOT entered into cascade pair.)
+      !
+      ! LOOP FOR SPECIAL AQUEOUS EQUILIBRIUM SPECIES
+      !
+      nr = c_nreac
+      do nrqq = 1 , c_nreaqq
+        if ( c_aqspec(nrqq,1) /= 0 .and. c_aqspec(nrqq,2) /= 0 ) then
           icc1 = c_aqspec(nrqq,1)
           icc2 = c_aqspec(nrqq,2)
           icc3 = c_aqspec(nrqq,3)
-
           ic1 = c_npequil(icc1)
           ic2 = c_npequil(icc2)
           ic3 = c_npequil(icc3)
-
-! ENTER INTO CASCADE PAIR - CUT.
-! Note:  1st SPECIAL EQUIL species is secondary paired species
-!        2nd species is primary paired species  (A <=> B + C)
-!        3rd species is totally independent
-! If this is included, also change 'ncasp =' above.
-
-!         caspair(nrqq,  1 ) = icc2
-!         caspair(nrqq,  2 ) = icc1
-
-! ENTER FORWARD REACTION
+          !
+          ! ENTER INTO CASCADE PAIR - CUT.
+          ! Note:  1st SPECIAL EQUIL species is secondary paired species
+          !        2nd species is primary paired species  (A <=> B + C)
+          !        3rd species is totally independent
+          ! If this is included, also change 'ncasp =' above.
+          !         caspair(nrqq,  1 ) = icc2
+          !         caspair(nrqq,  2 ) = icc1
+          !
+          ! ENTER FORWARD REACTION
+          !
           nr = nr+1
-          if(nr == 1711.or.nr == 1911.or.nr == 3211)                    &
-     &      write(c_out,906) nr
+          if ( nr == 1711 .or. nr == 1911 .or. nr == 3211 ) then
+            write(c_out,906) nr
+          end if
           c_treac(1,nr) = c_tchem(icc1)
           c_treac(3,nr) = c_tchem(icc2)
           c_reactant(nr,1) = icc1
           c_product(nr,1) = icc2
-          c_stoich(nr,1) = 1.
+          c_stoich(nr,1) = d_one
           c_nnpro(nr) = 1
-          c_prodarr(nr,ic2 ) = 1.
-          if(icc3 > 0) then
-           c_treac(4,nr) = c_tchem(icc3)
-           c_product(nr,2) = icc3
-           c_stoich(nr,2) = 1.
-           c_nnpro(nr) = 2
-           c_prodarr(nr,ic3 ) = 1.
+          c_prodarr(nr,ic2 ) = d_one
+          if ( icc3 > 0 ) then
+            c_treac(4,nr) = c_tchem(icc3)
+            c_product(nr,2) = icc3
+            c_stoich(nr,2) = d_one
+            c_nnpro(nr) = 2
+            c_prodarr(nr,ic3 ) = d_one
           end if
-! FORWARD RATE CONSTANT:  1e8 s-1.
-! OPTION - maybe  this causes cncn-> 0.  alt 1e2 s-1
+          !
+          ! FORWARD RATE CONSTANT:  1e8 s-1.
+          ! OPTION - maybe  this causes cncn-> 0.  alt 1e2 s-1
+          !
 !         c_rk(1,nr) = 1.0D+08
           c_rk(1,nr) = 1.0D+02
-
-! ENTER BACKWARD REACTION
+          !
+          ! ENTER BACKWARD REACTION
+          !
           nr = nr+1
-          if(nr == 711.or.nr == 911.or.nr == 1211)                      &
-     &      write(c_out,906) nr
+          if ( nr == 711 .or. nr == 911 .or. nr == 1211) then
+            write(c_out,906) nr
+          end if
           c_treac(1,nr) = c_tchem(icc2)
           c_treac(3,nr) = c_tchem(icc1)
           c_reactant(nr,1) = icc2
           c_product(nr,1) = icc1
-          c_stoich(nr,1) = 1.
+          c_stoich(nr,1) = d_one
           c_nnpro(nr) = 1
-          c_prodarr(nr,ic1 ) = 1.
-          if(icc3 > 0) then
-           c_treac(2,nr) = c_tchem(icc3)
-           c_reactant(nr,2) = icc3
+          c_prodarr(nr,ic1) = d_one
+          if ( icc3 > 0 ) then
+            c_treac(2,nr) = c_tchem(icc3)
+            c_reactant(nr,2) = icc3
           end if
-! BACKWARD RATE CONSTANT
-!  Equil  constant in  moles/liter A exp(-B * (1/temp - 1/298) )
-!  A<->B+C  KA = BC  K in moles/liter
-!  k1a = k2BC,  k1/k2=K,  k2=k1/K,  k2 as A2 exp(-B2/temp) also moles/li
-!  k1=1e8 s-1.  A2=k1/(Aexp(+B/298),  B2=-B
-          c_rk(1,nr) = 1.0D+08/                                         &
-     &                  ( c_rkqq(1,nrqq)*exp(c_rkqq(2,nrqq)/298.) )
-          c_rk(2,nr) = 0. - c_rkqq(2, nrqq )
-
+          !
+          ! BACKWARD RATE CONSTANT
+          !  Equil  constant in  moles/liter A exp(-B * (1/temp - 1/298) )
+          !  A<->B+C  KA = BC  K in moles/liter
+          !  k1a = k2BC, k1/k2=K, k2=k1/K, k2 as A2 exp(-B2/temp) also moles/li
+          !  k1=1e8 s-1.  A2=k1/(Aexp(+B/298),  B2=-B
+          c_rk(1,nr) = 1.0D+08/(c_rkqq(1,nrqq)*dexp(c_rkqq(2,nrqq)/298.0D0))
+          c_rk(2,nr) = d_zero - c_rkqq(2,nrqq)
         end if
-       end do
-! END LOOP FOR SPECIAL EQUILIBRIUM SPECIES
-
-       c_nreac = nr
-! -----------------------------------------
-!  END CONVERT SPECIAL EQUILIBRIUM SPECIES TO BACK-FORTH REACTIONS
-! -----------------------------------------
-!
-! -----------------------------------------
-!  ADD NO3-N2O5 (hard-wired) INTO CASCADE PAIR LIST
-! -----------------------------------------
-       ncasp = ncasp + 1
-       caspair(ncasp,  1 ) = c_nno3
-       caspair(ncasp,  2 ) = c_nn2o5
-!
-! -----------------------------------------
-! GENERATE POINTERS FOR CASCADE PAIRS
-! -----------------------------------------
-
-!  Notes:
-!   A primary species may be paired with many secondary pair species.
-!   The secondary pair species may then have its own pair subspecies.
-!   Typically there are rapid reactions between directly linked pairs.
-!   It is OK for the paired species to have no interactions
-!      (e.g. species that interact only in aqueous phase)
-!
-!   The chain of paired  species is built
-!     with parent primary species first,
-!       followed by its secondary pair  species,
-!          each with its  own pair subspecies.
-!
-!   Pointers all point from and to gas-master species
-!
-!   The pair chain pointers are:
-!  c_nppair(ic,1) = ics:  pointer from species ic
-!       to its directly linked primary pair species ics (or self)
-!  c_nppair(ic,2) = ics:  pointer from species ic
-!    to ultimate primary pair species ics (or self)
-!  c_nppair(ics,3) = number of chemical pairs associated w/ species ics.
-!  c_nppair(ics,np),np>=4:  identifies nth pair species or subspecies
-!    for species ics, for total number given by nppair(ics,3).
-!
-!    (old format: pointers as with nequil:
-!      npair(ics) = # of chem pairs  associated with the species
-!      nppair(ic) = ics:  pointer to primary  pair species (or self)
-!     ncpair(ics,np) = ic:  Identifies nth  pair species orsubspec.
-!    )
-!
-!
-!      GENERATE PAIR POINTERS
-!    - if c_nppair(2nd spec) does not equal self, error
-!    - make 2nd species and its subspecies point to primary of 1st spec.
-!    - if 2nd has subspecies, make point to 1st species
-!    - if 1st species points elsewhere, make 2nd and its subspecies
-!       also point there.
-!
-
-! LOOP THROUGH CASCADE PAIRS
-      do i=1,ncasp
+      end do
+      !
+      ! END LOOP FOR SPECIAL EQUILIBRIUM SPECIES
+      !
+      c_nreac = nr
+      !
+      ! -----------------------------------------
+      !  END CONVERT SPECIAL EQUILIBRIUM SPECIES TO BACK-FORTH REACTIONS
+      ! -----------------------------------------
+      !
+      ! -----------------------------------------
+      !  ADD NO3-N2O5 (hard-wired) INTO CASCADE PAIR LIST
+      ! -----------------------------------------
+      ncasp = ncasp + 1
+      caspair(ncasp,1) = c_nno3
+      caspair(ncasp,2) = c_nn2o5
+      !
+      ! -----------------------------------------
+      ! GENERATE POINTERS FOR CASCADE PAIRS
+      ! -----------------------------------------
+      !  Notes:
+      !   A primary species may be paired with many secondary pair species.
+      !   The secondary pair species may then have its own pair subspecies.
+      !   Typically there are rapid reactions between directly linked pairs.
+      !   It is OK for the paired species to have no interactions
+      !      (e.g. species that interact only in aqueous phase)
+      !
+      !   The chain of paired  species is built
+      !     with parent primary species first,
+      !       followed by its secondary pair  species,
+      !          each with its  own pair subspecies.
+      !
+      !   Pointers all point from and to gas-master species
+      !
+      !   The pair chain pointers are:
+      !  c_nppair(ic,1) = ics:  pointer from species ic
+      !       to its directly linked primary pair species ics (or self)
+      !  c_nppair(ic,2) = ics:  pointer from species ic
+      !    to ultimate primary pair species ics (or self)
+      !  c_nppair(ics,3) = number of chemical pairs associated w/ species ics.
+      !  c_nppair(ics,np),np>=4:  identifies nth pair species or subspecies
+      !    for species ics, for total number given by nppair(ics,3).
+      !
+      !    (old format: pointers as with nequil:
+      !      npair(ics) = # of chem pairs  associated with the species
+      !      nppair(ic) = ics:  pointer to primary  pair species (or self)
+      !     ncpair(ics,np) = ic:  Identifies nth  pair species orsubspec.
+      !    )
+      !
+      !
+      !      GENERATE PAIR POINTERS
+      !    - if c_nppair(2nd spec) does not equal self, error
+      !    - make 2nd species and its subspecies point to primary of 1st spec.
+      !    - if 2nd has subspecies, make point to 1st species
+      !    - if 1st species points elsewhere, make 2nd and its subspecies
+      !       also point there.
+      !
+      ! LOOP THROUGH CASCADE PAIRS
+      !
+      do i = 1 , ncasp
         icc1 = caspair(i,1)
         icc2 = caspair(i,2)
         ic1 = 0
         ic2 = 0
-        if(icc1 > 0) then
+        if ( icc1 > 0 ) then
           ic1 = c_npequil(icc1)
         end if
-        if(icc2 > 0) then
+        if ( icc2 > 0 ) then
           ic2 = c_npequil(icc2)
         end if
         ic3 = 0
-        if(ic2 > 0) then
-         ic3=c_nppair(ic2,1)
+        if ( ic2 > 0 ) then
+          ic3 = c_nppair(ic2,1)
         end if
-
-! ERROR CHECK:  IF 2ND SPECIES IS ALREADY PAIRED, MAJOR ERROR
-        if(ic3 /= ic2.or.icc1 == 0.or.icc2 == 0.or.                     &
-     &                       ic1 == 0.or.ic2 == 0)  then
+        !
+        ! ERROR CHECK:  IF 2ND SPECIES IS ALREADY PAIRED, MAJOR ERROR
+        !
+        if ( ic3 /= ic2 .or. icc1 == 0 .or. icc2 == 0 .or. &
+            ic1 == 0 .or. ic2 == 0 )  then
           write(c_out,667) i, icc1, icc2, ic1, ic2, c_nppair(ic2,1)
-          write( 6  ,667) i, icc1, icc2, ic1, ic2, c_nppair(ic2,1)
-  667     format(/,' MAJOR ERROR IN CASCADE PAIR SETUP:',/,             &
-     &     '   EITHER ZERO OR SECOND CASCADE PAIR ALREADY PAIRED.',     &
-     &    /,' PAIR NUMBER, icc1, icc2, ic1, ic2, c_nppair(ic2,1)=', 6i5)
-          if(icc1 > 0) write (c_out,309) c_tchem(icc1)
-          if(icc2 > 0) write (c_out,309) c_tchem(icc2)
-          if(ic1 > 0) write (c_out,309) c_tchem(ic1)
-          if(ic2 > 0) write (c_out,309) c_tchem(ic2)
-          if(icc1 > 0) write (c_out,309) c_tchem(icc1)
-          if(icc1 > 0) write ( 6  ,309) c_tchem(icc1)
-          if(icc2 > 0) write ( 6  ,309) c_tchem(icc2)
-          if(ic1 > 0) write ( 6  ,309) c_tchem(ic1)
-          if(ic2 > 0) write ( 6  ,309) c_tchem(ic2)
-          if(icc1 > 0) write ( 6  ,309) c_tchem(icc1)
+          write(6,667) i, icc1, icc2, ic1, ic2, c_nppair(ic2,1)
+          667 format(/,' MAJOR ERROR IN CASCADE PAIR SETUP:',/, &
+                       '  EITHER ZERO OR SECOND CASCADE PAIR ALREADY PAIRED.', &
+                     /,' PAIR NUMBER, icc1, icc2, ic1, ic2, c_nppair(ic2,1)=', &
+                     6i5)
+          if ( icc1 > 0 ) write (c_out,309) c_tchem(icc1)
+          if ( icc2 > 0 ) write (c_out,309) c_tchem(icc2)
+          if ( ic1 > 0 )  write (c_out,309) c_tchem(ic1)
+          if ( ic2 > 0 )  write (c_out,309) c_tchem(ic2)
+          if ( icc1 > 0 ) write (c_out,309) c_tchem(icc1)
+          if ( icc1 > 0 ) write (6,309) c_tchem(icc1)
+          if ( icc2 > 0 ) write (6,309) c_tchem(icc2)
+          if ( ic1 > 0 )  write (6,309) c_tchem(ic1)
+          if ( i c2 > 0 ) write (6,309) c_tchem(ic2)
+          if ( icc1 > 0 ) write (6,309) c_tchem(icc1)
         else
-
-! Assign all species and subspecies to the primary species
-!               of the first of the pair.
-!  Note:  npair(ic2,3) = number of subspecies;
-!         npair(ic2,4) = 1st subsp, etc.
-!  Also assign direct pair species - just for this secondary species.
-
+          !
+          ! Assign all species and subspecies to the primary species
+          !               of the first of the pair.
+          !  Note:  npair(ic2,3) = number of subspecies;
+          !         npair(ic2,4) = 1st subsp, etc.
+          !  Also assign direct pair species - just for this secondary species.
+          !
           c_nppair(ic2,1) = ic1
-
-          ic3=c_nppair(ic1,2)
-          do ii = 1, (c_nppair(ic2,3)+1)
-            ic  = ic2
-            if(ii > 1) ic  = c_nppair(ic2,(ii+2))
+          ic3 = c_nppair(ic1,2)
+          do ii = 1 , (c_nppair(ic2,3)+1)
+            ic = ic2
+            if ( ii > 1 ) ic = c_nppair(ic2,(ii+2))
             c_nppair(ic ,2) = ic3
             c_nppair(ic3,3) = c_nppair(ic3,3) + 1
             np = c_nppair(ic3,3) + 3
             c_nppair(ic3,np) = ic
-
-! Assign CATEGORY and STEADY STATE INDEX to secondary species
-!  also assign to all its subspecies, including aqueous equil. species.
-
-!           do neq=1, (c_nequil(ic )+1)
+            !
+            ! Assign CATEGORY and STEADY STATE INDEX to secondary species
+            ! also assign to all its subspecies, including aqueous 
+            ! equil. species.
+            !
+!           do neq = 1 , (c_nequil(ic )+1)
 !             icc = ic
-!             if(neq > 1) icc = c_ncequil(ic, (neq-1) )
+!             if ( neq > 1 ) icc = c_ncequil(ic, (neq-1) )
 !             c_nppair(ic ,1) = ic3
 !             c_icat(icc) = c_icat(ic3)
 !             c_lsts(icc) = c_lsts(ic3)
 !           end do
-
           end do
-! End Assign loop
-
+          !
+          ! End Assign loop
+          !
         end if
-! End error check if
-
+        !
+        ! End error check if
+        !
       end do
-! END LOOP THROUGH CASCADE PAIRS
-!
-! -----------------------------------------
-! END GENERATE POINTERS FOR CASCADE PAIRS
-! -----------------------------------------
-
-! -------------------------------------------------------
-! RUN CASCADE - IDENTIFY MISSING SPECIES.
-!   ALSO IDENTIFY MAX. NUMBER OF SPECIES SOLVED TOGETHER (NCDIM)
-!   AND MAXIMUM MULTISOLVE GROUP (NSDIM)
-! TEST CATEGORY LIST.  VARIABLES W/O CATEGORIES ARE ASSIGNED 'xx'
-!  AND A WARNING ISSUED
-! -------------------------------------------------------
-!
-!  Set LCASTEST = false initially
-!   Set LCASTEST = true for H+, OH-, CO2, H2O
-!                   - these should never be in cascade
-      do ic=1,c_nchem2
+      !
+      ! END LOOP THROUGH CASCADE PAIRS
+      !
+      ! -----------------------------------------
+      ! END GENERATE POINTERS FOR CASCADE PAIRS
+      ! -----------------------------------------
+      !
+      ! -------------------------------------------------------
+      ! RUN CASCADE - IDENTIFY MISSING SPECIES.
+      !   ALSO IDENTIFY MAX. NUMBER OF SPECIES SOLVED TOGETHER (NCDIM)
+      !   AND MAXIMUM MULTISOLVE GROUP (NSDIM)
+      ! TEST CATEGORY LIST.  VARIABLES W/O CATEGORIES ARE ASSIGNED 'xx'
+      !  AND A WARNING ISSUED
+      ! -------------------------------------------------------
+      !
+      !  Set LCASTEST = false initially
+      !   Set LCASTEST = true for H+, OH-, CO2, H2O
+      !                   - these should never be in cascade
+      !
+      do ic = 1 , c_nchem2
         lcastest(ic) = .false.
-        if(ic == c_aqueous(1,2).or.ic == c_aqueous(1,3))                &
-     &        lcastest(ic) = .true.
-        if(c_tchem(c_npequil(ic )) == '     CO2') lcastest(ic) = .true.
-        if(c_tchem(c_npequil(ic )) == '     H2O') lcastest(ic) = .true.
-                       !do ic=1,c_nchem2
+        if ( ic == c_aqueous(1,2) .or. ic == c_aqueous(1,3)) then
+          lcastest(ic) = .true.
+        end if
+        if ( c_tchem(c_npequil(ic )) == '     CO2' ) lcastest(ic) = .true.
+        if ( c_tchem(c_npequil(ic )) == '     H2O' ) lcastest(ic) = .true.
       end do
-
-!   Set LCASTEST = true for LUMPED SPECIES - these are never included.
-      do     i=1,nlump
-         icc=c_lump(i,1)
-         lcastest(icc)=.true.
+      !
+      !   Set LCASTEST = true for LUMPED SPECIES - these are never included.
+      !
+      do i = 1 , nlump
+        icc = c_lump(i,1)
+        lcastest(icc) = .true.
       end do
-
-! SET COUNTERS (NSOL, NSOLV) AND MAXIMA (NCDIM, NSDIM)
+      !
+      ! SET COUNTERS (NSOL, NSOLV) AND MAXIMA (NCDIM, NSDIM)
+      !
       ncdim = 1
       nsdim = 1
-
-! TEST WRITE CASCADE
-      if(c_kkw > 0) write(c_out,347)
-  347 format(/,'CASCADE TEST: LIST OF SPECIES IN ORDER OF SOLUTION')
-
-!  RUN  CASCADE.  IDENTIFY INCLUDED SPECIES.
-!   COUNT SPECIES IN CASCADE GROUP.   ALSO ASSIGN NMULTI
-!
-      do     i=1,c_nchem2
-        if(c_cascade(i,1) == 0) go to 332
+      !
+      ! TEST WRITE CASCADE
+      !
+      if ( c_kkw > 0 ) write(c_out,347)
+      347 format(/,'CASCADE TEST: LIST OF SPECIES IN ORDER OF SOLUTION')
+      !
+      !  RUN  CASCADE.  IDENTIFY INCLUDED SPECIES.
+      !   COUNT SPECIES IN CASCADE GROUP.   ALSO ASSIGN NMULTI
+      !
+      do i = 1 , c_nchem2
+        if ( c_cascade(i,1) == 0 ) exit
         nsolv = 0
         nsol = 0
-        do     ii=1,c_nchem2
-          ics =c_cascade(i,ii)
-          if(ics == 0) go to 331
-          ics =c_nppair(c_npequil(ics ) , 2)
-          if(ii == 1)  ic1=ics
+        loopcount: &
+        do ii = 1 , c_nchem2
+          ics = c_cascade(i,ii)
+          if ( ics == 0 ) exit loopcount
+          ics = c_nppair(c_npequil(ics ),2)
+          if ( ii == 1 ) ic1 = ics
           nsol = nsol + 1
           nsolv = nsolv + 1 + c_nppair(ics,3)
-
-          do n=1,(c_nppair(ics,3)+1)
+          do n = 1 , (c_nppair(ics,3)+1)
             icc = ics
-            if(n > 1) then
-              icc=c_nppair(ics,n+2)
+            if ( n > 1 ) then
+              icc = c_nppair(ics,n+2)
             end if
-
-! TEST WRITE CASCADE
-               if(c_kkw >= 1.and.icc > 0) write(c_out,348)n,           &
-     &                                              c_tchem(icc)
-  348        format(i4,4x,a8)
-
-            do  neq=1,(c_nequil(icc)+1)
-              ic=icc
-              if(neq > 1) ic = c_ncequil(icc,(neq-1))
+            !
+            ! TEST WRITE CASCADE
+            !
+            if ( c_kkw >= 1 .and. icc > 0 ) then
+              write(c_out,348) n, c_tchem(icc)
+              348 format(i4,4x,a8)
+            end if
+            do neq = 1 , (c_nequil(icc)+1)
+              ic = icc
+              if ( neq > 1 ) ic = c_ncequil(icc,(neq-1))
               lcastest(ic) = .true.
               c_npmulti(ic,1) = ic1
-                                   !do  neq=1,(c_nequil(icc)+1)
             end do
-                                 !do n=1,(c_nppair(ic,3)+1)
           end do
-                             !do     ii=1,c_nchem2
-        end do
-  331   continue
-        if(ncdim < nsolv) ncdim=nsolv
-        if(nsdim < nsol)  nsdim=nsol
-                           !do     i=1,c_nchem2
+        end do loopcount
+        if ( ncdim < nsolv ) ncdim=nsolv
+        if ( nsdim < nsol ) nsdim=nsol
       end do
-  332 continue
-
-!  INCLUDE FAMILY SPECIES, SAME AS FOR CASCADE.
-!
-      do     i=1,7
-       nsolv = 0
-       nsol = 0
-       do ii=1,3
-                                        ! ADDED 2009
-        ics = 0
-        if(i == 1.and.ii == 1) ics=c_nhno3
-        if(i == 2.and.ii == 1) ics=c_nno3
-!       if(i == 3.and.ii == 1) ics=c_nn2o5
-        if(i == 4.and.ii == 1) ics=c_no3
-        if(i == 5.and.ii == 1) ics=c_nno2
-        if(i == 6.and.ii == 1) ics=c_nno
-        if(i == 7.and.ii == 1) ics=c_noh
-        if(i == 7.and.ii == 2) ics=c_nho2
-        if(i == 7.and.ii == 3) ics=c_nh2o2
-
-         if(ics > 0) then
-          ics =c_nppair(c_npequil(ics ) , 2)
-          nsol = nsol + 1
-          nsolv = nsolv + 1 + c_nppair(ics,3)
-
-          do n=1,(c_nppair(ics,3)+1)
-            icc = ics
-            if(n > 1) then
-              icc=c_nppair(ics,n+2)
-            end if
-
-! TEST WRITE CASCADE - SPECIAL ASSIGNED SPECIES
-            if(c_kkw >= 1) write(c_out, *   )                           &
-     &       'AUTOMATIC CASCADE SPECIES:', n,c_tchem(icc)
-
-
-            do  neq=1,(c_nequil(icc)+1)
-              ic=icc
-              if(neq > 1) ic = c_ncequil(icc,(neq-1))
-              lcastest(ic) = .true.
-                                   !do  neq=1,(c_nequil(icc)+1)
+      !
+      !  INCLUDE FAMILY SPECIES, SAME AS FOR CASCADE.
+      !
+      do i = 1 , 7
+        nsolv = 0
+        nsol = 0
+        do ii = 1 , 3
+          ! ADDED 2009
+          ics = 0
+          if ( i == 1 .and. ii == 1 ) ics = c_nhno3
+          if ( i == 2 .and. ii == 1 ) ics = c_nno3
+!         if ( i == 3 .and. ii == 1 ) ics = c_nn2o5
+          if ( i == 4 .and. ii == 1 ) ics = c_no3
+          if ( i == 5 .and. ii == 1 ) ics = c_nno2
+          if ( i == 6 .and. ii == 1 ) ics = c_nno
+          if ( i == 7 .and. ii == 1 ) ics = c_noh
+          if ( i == 7 .and. ii == 2 ) ics = c_nho2
+          if ( i == 7 .and. ii == 3 ) ics = c_nh2o2
+          if ( ics > 0 ) then
+            ics = c_nppair(c_npequil(ics ) , 2)
+            nsol = nsol + 1
+            nsolv = nsolv + 1 + c_nppair(ics,3)
+            do n = 1 , (c_nppair(ics,3)+1)
+              icc = ics
+              if ( n > 1 ) then
+                icc = c_nppair(ics,n+2)
+              end if
+              !
+              ! TEST WRITE CASCADE - SPECIAL ASSIGNED SPECIES
+              !
+              if ( c_kkw >= 1 ) then
+                write(c_out,*) 'AUTOMATIC CASCADE SPECIES:', n,c_tchem(icc)
+              end if
+              do neq = 1 , (c_nequil(icc)+1)
+                ic = icc
+                if ( neq > 1 ) ic = c_ncequil(icc,(neq-1))
+                lcastest(ic) = .true.
+              end do
             end do
-                                 !do n=1,(c_nppair(ic,3)+1)
-          end do
-                                !if(ics > 0) then
-         end if
-                        ! do ii=1,3
+          end if
         end do
-
-        if(ncdim < nsolv) ncdim=nsolv
-        if(nsdim < nsol)  nsdim=nsol
-                           !do     i=1,9
+        if ( ncdim < nsolv ) ncdim = nsolv
+        if ( nsdim < nsol ) nsdim = nsol
       end do
-!
-! TEST WRITE
-      if(c_kkw > 0) write(c_out,336) ncdim, nsdim
-  336 format(/,' MAXIMUM CASCADE SPECIES, PAIR GROUPS = ', 2i5)
-
-       if(c_kkw == 1.or.c_kkw == 5) write(c_out,342)
-  342  format(/'TEST IC CHEM ICAT ISTS  NEQUIL PRIMARY  NPAIR PRIMARY')
-
-! CATEGORY TEST LOOP AMONG SPECIES.
-!   IDENTIFY SPECIES MISSING FROM CASCADE AND MISSING CATEGORIES.
-
-       do ic=1,c_nchem2
-!  Control for diagnostic write
-         if(c_kkw == 1.or.c_kkw == 5) then
-           write(c_out,343) ic, c_tchem(ic), c_icat(ic), c_lsts(ic),    &
-     &       c_nequil(ic),c_npequil(ic),  c_nppair(ic,3)                &
-     &       , c_nppair(ic,2)  ,c_nppair(ic,1)
-  343       format(i4,2x,a8,2x,i5,l4,2x,8i5)
-           if(c_npequil(ic) > 0) then
-             write(c_out,309) c_tchem(c_npequil(ic))
-           end if
-           if(c_nppair(ic,2) > 0) then
-             write(c_out,309) c_tchem(c_nppair(ic,2))
-           end if
-           if(c_nppair(ic,1) > 0) then
-             write(c_out,309) c_tchem(c_nppair(ic,1))
-           end if
-           if(c_nequil(ic) > 0) then
-             write(c_out,344) (c_ncequil(ic,i),i=1,c_nequil(ic))
-  344        format(' c_ncequil(aqueous subspecies) = ',10i5)
-             do i=1, c_nequil(ic)
-               if(c_ncequil(ic,i) > 0) then
-                 write(c_out,309) c_tchem(c_ncequil(ic,i))
-               end if
-             end do
-           end if
-           if(c_nppair(ic,3) > 0) then
-             write(c_out,345) ( c_nppair(ic,i),i=4,(3+c_nppair(ic,3)) )
-  345        format(' ncpair (chem. paired subspecies)  = ',10i5)
-             do i=4, (3+c_nppair(ic,3))
-               if(c_nppair(ic,i) > 0) then
-                 write(c_out,309) c_tchem(c_nppair(ic,i))
-               end if
-             end do
-           end if
-         end if
-! End control for diagnostic write.
-
-         if(c_icat(ic) <= 0) then
-          write(c_out,341) ic,c_tchem(ic), c_icat(ic)
-  341     format(/,' WARNING:  MISSING SPECIES CATEGORY',/,             &
-     &   'SPECIES =',i4,2x,a8,'  CATEGORY=',i4)
-!         c_icat(ic) = 23
-         end if
-
-         if(.not.lcastest(ic))                                          &
-     &    write(c_out,352) ic,c_tchem(ic), c_npequil(ic)                &
-     &  ,c_tchem(c_npequil(ic))
-  352     format(/,' WARNING:  SPECIES OMITTED FROM CASCADE',/,         &
-     &    'SPECIES =',i4,4x,a8,'  NPEQUIL =',i4,2x, a8)
-
-                 !do ic=1,c_nchem2
-       end do
-! END OF CATEGORY TEST LOOP
-!
-! -------------------------------------------------------
-! CASCADE TEST:  RUN THROUGH CASCADE TO MAKE SURE THAT
-! THERE ARE NO SPECIES SOURCES AFTER THE SPECIES HAS BEEN
-! SOLVED FOR.
-!
-! NOTE:  IN REVISED VERSION, PRODUCTION FURTHER DOWN THE CHAIN
-!  IS COUNTED IN THE NEXT ITERATION.
-!  (This is retained as a warning for sources of nonconvergence only)
-!
-!  OLD NOTE:  THE 'PRE' LABEL IN THE CASCADE RUNS REACTIONS ASSOCIATED
-!  WITH A SPECIES USING PRIOR VALUES. THIS OBTAINS REACTION PRODUCTS
-!  EVEN BEFORE THE SPECIES HAS BEEN SOLVED FOR (SLOW SPEC. ONLY.)
-!  BUT THERE MUST BE NO FURTHER PRODUCTION AFTER SOLVE.
-
-       do 350 i=1,c_nchem2
-        lcastest(i) = .false.
-  350  continue
-
-! RUN CASCADE.  SET INDEX=1 AS EACH SPECIES IS SOLVED FOR.
-! ( DO WHILE NCASCADE(1).NE.0)
-
-! LOOP:  RUN CASCADE
-      do     i=1,c_cdim
-       if(c_cascade(i,1) == 0) go to 401
-
-! LOOP:  TEST REACTIONS CALLED BY THE CASCADE SPECIES
-       do     ii=1,c_cdim
-        icc=c_cascade(i,ii)
-        if(icc > 0) then
-         icc=c_npequil(      (icc))
-         ic=icc
-!
-! NOTE PROBLEM HERE (write 419): TEST OF REACTANTS AND PRODUCTS
-!   BELONGS IN QUADINIT
-
-! FIRST TEST REACTANTS AND PRODUCTS FROM CASCADE REACTIONS.
-!  EXCEPT FOR 'POST' FLAG, PRODUCTS SHOULD BE ALL DOWN-CASCADE.
-!  CASCADE MODIFIED TO REFLECT ALL CHEMICAL PAIRS
-!                                ->POINT TO PRIMARY SPEC.
-          if(c_cascade(i,2) /= -2) then
-            nnr=c_nnrchem(ic)
-            if(nnr > 0) then
-              do 420 n=1,nnr
-               nr= c_nrchem(ic,n)
-               if(nr > 0) then
-                 icr1=c_reactant(nr,1)
-                 if(icr1 > 0) then
-                   icr1=c_nppair( c_npequil(icr1), 2 )
-                 end if
-                 icr2=c_reactant(nr,2)
-                 if(icr2 > 0) then
-                   icr2=c_nppair( c_npequil(icr2), 2 )
-                 end if
-                 if(c_nnpro(nr) > 0) then
-                   do 425 nn=1,c_nnpro(nr)
-                     icp=c_product(nr,nn)
-                     if(icp > 0) then
-                       icp=c_nppair( c_npequil(icp), 2 )
-                     end if
-                     if(icp == icr1) then
-                       icr1=0
-                       icp=0
-                     end if
-                     if(icp == icr2) then
-                       icr2=0
-                       icp=0
-                     end if
-! PRODUCT TEST
-                      if(icp > 0) then
-                         if(lcastest(icp)) then
-                           write(c_out,419)                             &
-     &                        c_tchem(icp),nr,c_tchem(ic)               &
-     &                            ,(c_treac(jj,nr),jj=1,5)
-                           write(   6,419)                              &
-     &                        c_tchem(icp),nr,c_tchem(ic)               &
-     &                            ,(c_treac(jj,nr),jj=1,5)
-                        end if
-                      end if
-  425              continue
-                 end if
-! REACTANT TEST
-                 if(icr1 > 0) then
-                   if(lcastest(icr1)) then
-                      write(c_out,419)                                  &
-     &                  c_tchem(icr1),nr,c_tchem(ic)                    &
-     &                    ,(c_treac(jj,nr),jj=1,5)
-                      write(   6,419)                                   &
-     &                  c_tchem(icr1),nr,c_tchem(ic)                    &
-     &                    ,(c_treac(jj,nr),jj=1,5)
-                   end if
-                 end if
-                 if(icr2 > 0) then
-                   if(lcastest(icr2))then
-                     write(c_out,419)                                   &
-     &                  c_tchem(icr2),nr,c_tchem(ic)                    &
-     &                    ,(c_treac(jj,nr),jj=1,5)
-                     write(   6,419)                                    &
-     &                  c_tchem(icr2),nr,c_tchem(ic)                    &
-     &                    ,(c_treac(jj,nr),jj=1,5)
-                   end if
-                 end if
-
-               end if
-  420         continue
-            end if
+      !
+      ! TEST WRITE
+      !
+      if ( c_kkw > 0 ) then
+        write(c_out,336) ncdim, nsdim
+        336 format(/,' MAXIMUM CASCADE SPECIES, PAIR GROUPS = ', 2i5)
+      end if
+      if ( c_kkw == 1 .or. c_kkw == 5) then
+        write(c_out,342)
+        342 format(/'TEST IC CHEM ICAT ISTS  NEQUIL PRIMARY  NPAIR PRIMARY')
+      end if
+      !
+      ! CATEGORY TEST LOOP AMONG SPECIES.
+      !   IDENTIFY SPECIES MISSING FROM CASCADE AND MISSING CATEGORIES.
+      !
+      do ic = 1 , c_nchem2
+        !
+        !  Control for diagnostic write
+        !
+        if ( c_kkw == 1 .or. c_kkw == 5 ) then
+          write(c_out,343) ic, c_tchem(ic), c_icat(ic), c_lsts(ic), &
+                      c_nequil(ic), c_npequil(ic),  c_nppair(ic,3), &
+                      c_nppair(ic,2), c_nppair(ic,1)
+          343 format(i4,2x,a8,2x,i5,l4,2x,8i5)
+          if ( c_npequil(ic) > 0 ) then
+            write(c_out,309) c_tchem(c_npequil(ic))
           end if
-
-! LAST, ADD CASCADE REACTIONS TO REACTION LIST, UNLESS 'pre' FLAG
-          if(c_cascade(i,2) /= -1) then
-             if(lcastest(ic)) then
-               write(c_out,418) c_tchem(ic),i, (c_cascade(i,jj),jj=1,3)
-               write(   6,418) c_tchem(ic),i, (c_cascade(i,jj),jj=1,3)
-             end if
-             lcastest(ic) = .true.
+          if ( c_nppair(ic,2) > 0 ) then
+            write(c_out,309) c_tchem(c_nppair(ic,2))
           end if
-
+          if ( c_nppair(ic,1) > 0 ) then
+            write(c_out,309) c_tchem(c_nppair(ic,1))
+          end if
+          if ( c_nequil(ic) > 0 ) then
+            write(c_out,344) (c_ncequil(ic,i),i=1,c_nequil(ic))
+            344 format(' c_ncequil(aqueous subspecies) = ',10i5)
+            do i = 1 , c_nequil(ic)
+              if ( c_ncequil(ic,i) > 0 ) then
+                write(c_out,309) c_tchem(c_ncequil(ic,i))
+              end if
+            end do
+          end if
+          if ( c_nppair(ic,3) > 0 ) then
+            write(c_out,345) ( c_nppair(ic,i),i=4,(3+c_nppair(ic,3)) )
+            345 format(' ncpair (chem. paired subspecies)  = ',10i5)
+            do i = 4 , (3+c_nppair(ic,3))
+              if ( c_nppair(ic,i) > 0 ) then
+                write(c_out,309) c_tchem(c_nppair(ic,i))
+              end if
+            end do
+          end if
         end if
-       end do
-! END LOOP:  TEST REACTIONS CALLED BY THE CASCADE SPECIES
-
+        !
+        ! End control for diagnostic write.
+        !
+        if ( c_icat(ic) <= 0 ) then
+          write(c_out,341) ic,c_tchem(ic), c_icat(ic)
+          341 format(/,' WARNING:  MISSING SPECIES CATEGORY',/, &
+                      'SPECIES =',i4,2x,a8,'  CATEGORY=',i4)
+!         c_icat(ic) = 23
+        end if
+        if ( .not.lcastest(ic) ) then
+          write(c_out,352) ic, c_tchem(ic), c_npequil(ic), &
+                          c_tchem(c_npequil(ic))
+          352 format(/,' WARNING:  SPECIES OMITTED FROM CASCADE',/, &
+                       'SPECIES =',i4,4x,a8,'  NPEQUIL =',i4,2x,a8)
+        end if
       end do
-! END LOOP:  RUN CASCADE
+      !
+      ! END OF CATEGORY TEST LOOP
+      !
+      ! -------------------------------------------------------
+      ! CASCADE TEST:  RUN THROUGH CASCADE TO MAKE SURE THAT
+      ! THERE ARE NO SPECIES SOURCES AFTER THE SPECIES HAS BEEN
+      ! SOLVED FOR.
+      !
+      ! NOTE:  IN REVISED VERSION, PRODUCTION FURTHER DOWN THE CHAIN
+      !  IS COUNTED IN THE NEXT ITERATION.
+      !  (This is retained as a warning for sources of nonconvergence only)
+      !
+      !  OLD NOTE:  THE 'PRE' LABEL IN THE CASCADE RUNS REACTIONS ASSOCIATED
+      !  WITH A SPECIES USING PRIOR VALUES. THIS OBTAINS REACTION PRODUCTS
+      !  EVEN BEFORE THE SPECIES HAS BEEN SOLVED FOR (SLOW SPEC. ONLY.)
+      !  BUT THERE MUST BE NO FURTHER PRODUCTION AFTER SOLVE.
+      !
+      do i = 1 , c_nchem2
+        lcastest(i) = .false.
+      end do
+      !
+      ! RUN CASCADE.  SET INDEX=1 AS EACH SPECIES IS SOLVED FOR.
+      ! ( DO WHILE NCASCADE(1).NE.0)
+      ! LOOP:  RUN CASCADE
+      !
+      do i = 1 , c_cdim
+        if ( c_cascade(i,1) == 0 ) exit
+        !
+        ! LOOP:  TEST REACTIONS CALLED BY THE CASCADE SPECIES
+        !
+        do ii = 1 , c_cdim
+          icc = c_cascade(i,ii)
+          if ( icc > 0 ) then
+            icc = c_npequil(icc)
+            ic = icc
+            !
+            ! NOTE PROBLEM HERE (write 419): TEST OF REACTANTS AND PRODUCTS
+            !   BELONGS IN QUADINIT
+            ! FIRST TEST REACTANTS AND PRODUCTS FROM CASCADE REACTIONS.
+            !  EXCEPT FOR 'POST' FLAG, PRODUCTS SHOULD BE ALL DOWN-CASCADE.
+            !  CASCADE MODIFIED TO REFLECT ALL CHEMICAL PAIRS
+            !  ->POINT TO PRIMARY SPEC.
+            !
+            if ( c_cascade(i,2) /= -2 ) then
+              nnr = c_nnrchem(ic)
+              if ( nnr > 0 ) then
+                do n = 1 , nnr
+                  nr = c_nrchem(ic,n)
+                  if ( nr > 0 ) then
+                    icr1 = c_reactant(nr,1)
+                    if ( icr1 > 0 ) then
+                      icr1 = c_nppair(c_npequil(icr1),2)
+                    end if
+                    icr2 = c_reactant(nr,2)
+                    if ( icr2 > 0 ) then
+                      icr2 = c_nppair(c_npequil(icr2),2)
+                    end if
+                    if ( c_nnpro(nr) > 0 ) then
+                      do nn = 1 , c_nnpro(nr)
+                        icp = c_product(nr,nn)
+                        if ( icp > 0 ) then
+                          icp = c_nppair(c_npequil(icp),2)
+                        end if
+                        if ( icp == icr1 ) then
+                          icr1 = 0
+                          icp = 0
+                        end if
+                        if ( icp == icr2 ) then
+                          icr2 = 0
+                          icp = 0
+                        end if
+                        !
+                        ! PRODUCT TEST
+                        !
+                        if ( icp > 0 ) then
+                          if ( lcastest(icp) ) then
+                            write(c_out,419) c_tchem(icp), nr, c_tchem(ic), &
+                                            (c_treac(jj,nr),jj=1,5)
+                            write(6,419) c_tchem(icp), nr, c_tchem(ic), &
+                                            (c_treac(jj,nr),jj=1,5)
+                          end if
+                        end if
+                      end do
+                    end if
+                    !
+                    ! REACTANT TEST
+                    !
+                    if ( icr1 > 0 ) then
+                      if ( lcastest(icr1) ) then
+                        write(c_out,419) c_tchem(icr1), nr, c_tchem(ic), &
+                                        (c_treac(jj,nr),jj=1,5)
+                        write(6,419) c_tchem(icr1), nr, c_tchem(ic), &
+                                        (c_treac(jj,nr),jj=1,5)
+                      end if
+                    end if
+                    if ( icr2 > 0 ) then
+                      if ( lcastest(icr2) )then
+                        write(c_out,419) c_tchem(icr2), nr, c_tchem(ic), &
+                                        (c_treac(jj,nr),jj=1,5)
+                        write(6,419) c_tchem(icr2), nr, c_tchem(ic), &
+                                        (c_treac(jj,nr),jj=1,5)
+                      end if
+                    end if
+                  end if
+                end do
+              end if
+            end if
+            !
+            ! LAST, ADD CASCADE REACTIONS TO REACTION LIST, UNLESS 'pre' FLAG
+            !
+            if ( c_cascade(i,2) /= -1 ) then
+              if ( lcastest(ic) ) then
+                write(c_out,418) c_tchem(ic), i, (c_cascade(i,jj),jj=1,3)
+                write(6,418) c_tchem(ic), i, (c_cascade(i,jj),jj=1,3)
+              end if
+              lcastest(ic) = .true.
+            end if
+          end if
+        end do
+        !
+        ! END LOOP:  TEST REACTIONS CALLED BY THE CASCADE SPECIES
+        !
+      end do
+      !
+      ! END LOOP:  RUN CASCADE
+      !
+      419 format(/,'WARNING:  CASCADE OUT OF SEQUENCE FOR SPECIES NAME=  ', &
+            a8,/,'PRODUCED AT REACTION #',i5,'  CALLED FOR SPECIES= ',      &
+            a8,/,' REACTION: ',a8,'+',a8,'=>',a8,'+',a8,'+',a8)
 
-  401 continue
-
-  419 format(/,'WARNING:  CASCADE OUT OF SEQUENCE FOR SPECIES NAME=  ', &
-     &  a8,/,'PRODUCED AT REACTION #',i5,'  CALLED FOR SPECIES= ',      &
-     &  a8,/,' REACTION: ',a8,'+',a8,'=>',a8,'+',a8,'+',a8)
-
-  418 format(/,'WARNING:  SPECIES CALLED TWICE IN CASCADE. SPECIES=',   &
-     &  a8,/,' SECOND CALL AT CASCADE#',i3,' WITH INDICES=',3i3)
-
-
-! -------------------------------------------------------
-! END CASCADE TEST
-! -------------------------------------------------------
-
-! OPTION:  call cheminit here to set initial chemistry parameters
-
-! ----------------------------------------------------------------
-!  END READ.
-! ----------------------------------------------------------------
-
-! END CHEMREAD
- 2000 return
-      END
+      418 format(/,'WARNING:  SPECIES CALLED TWICE IN CASCADE. SPECIES=',   &
+            a8,/,' SECOND CALL AT CASCADE#',i3,' WITH INDICES=',3i3)
+      !
+      ! -------------------------------------------------------
+      ! END CASCADE TEST
+      ! -------------------------------------------------------
+      !
+      ! OPTION:  call cheminit here to set initial chemistry parameters
+      !
+      ! ----------------------------------------------------------------
+      !  END READ.
+      ! ----------------------------------------------------------------
+    end subroutine chemread
 !
 ! ----------------------------------------------------------------
 !
-!      integer function namechem(titl)
+! integer function namechem(titl)
 !
 ! INPUT:  chemical species name, char*8
 ! OUTPUT: Species index number (integer)  associated with the name,
@@ -1993,7 +1985,6 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
 !
-
     integer function namechem(titl)
 !
       implicit none
@@ -2012,8 +2003,6 @@ module mod_cbmz_init1
 !
 ! ----------------------------------------------------------------
 !
-    subroutine hvread
-
 ! This reads the MADRONICH LOOKUP TABLE (2002 VERSION).
 !   Input file:  TUVGRID2  (kept in dhvmad/TUVcode4.1a)
 !    (see TUVINFO in /l/kudzu/k-1/sillman/dhvmad)
@@ -2033,23 +2022,15 @@ module mod_cbmz_init1
 !  12/06 Written by Sandy Sillman from boxchemv7.f
 !
 ! -------------------------------------------------------------------
-      IMPLICIT NONE
+    subroutine hvread
+!
+      implicit none
+!
+      call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
 
-      include 'chemmech.EXT'
-!     INCLUDE 'chemvars.EXT'
-! c     include 'chemlocal.EXT'
-
-       call readhv(c_hvin,c_nhv,c_hvmat, c_hvmatb, c_jarray)
-
-! END HVREAD
- 2000  return
-      END
+    end subroutine hvread
+!
 ! --------------------------------------------------------------
-!
-!
-
-          subroutine cheminit
-!                   (quadinit)
 !
 ! QUADINIT does a preliminary analysis of the chemical mechanism
 !  to link reactions with individual species for the solution procedure
@@ -2088,10 +2069,6 @@ module mod_cbmz_init1
 !      and in chem, do reactions only when species is called
 !           - if LWC=0 skip aqueous
 !
-!
-!
-!
-
 ! ****NOTE, TREATMENT OF AQUEOUS EQUILIBRIUM SPECIES NEEDS TO
 !     BE REWRITTEN AND CHANGED.
 !
@@ -2106,608 +2083,556 @@ module mod_cbmz_init1
 !  12/06 Written by Sandy Sillman from boxchemv7.f
 ! ---------------------------------------------------------------------
 !
-      IMPLICIT NONE
-
-      include 'chemmech.EXT'
-!     INCLUDE 'chemvars.EXT'
-      include 'chemlocal.EXT'
+    subroutine cheminit
+!
+      implicit none
 !
 ! LOCAL VARIABLES
 ! lloss        Local: Flag for identifying exchange loss reaction
 ! lpro         Local: Flag for identifying exchange production reaction
-
 !  xoddhx      Counter for net change in odd hydrogen in reaction
 !                (intermediate for c_oddhx) - split into RO2; OH-HO2-CO3
 !  xpronox     Counter for net production of odd nitrogen in reaction
 !                (intermediate for c_pronox)
-
-                      ! Flag for identifying exchange loss reaction
-      logical lloss
-                      ! Flag for id exchange production reaction
-      logical  lpro
-
-                                   ! Counter for odd hydrogen RO2 only
-      double precision xoddhx
-                                   ! Counter for odd hydrogen w/o RO2
-      double precision xoddhx2
-                                   ! Counter for odd nitrogen
-      double precision xpronox
-                                   ! Counter for product reactions
+!
+      ! Flag for identifying exchange loss reaction
+      logical :: lloss
+      ! Flag for id exchange production reaction
+      logical :: lpro
+      ! Counter for odd hydrogen RO2 only
+      real(dp) :: xoddhx
+      ! Counter for odd hydrogen w/o RO2
+      real(dp) :: xoddhx2
+      ! Counter for odd nitrogen
+      real(dp) :: xpronox
+      ! Counter for product reactions
       integer nrp
-
-!
-! LOCAL DIMENSION
-!         integer neqread(6)
-
-! GENERAL FORMATS
-   11 format(///////,a1)
-! 12    format(i6)
-! 13    format((1pe10.3))
-
-!
-! -----------------------------------------
-!  ANALYZE CHEMICAL MECHANISM:
-!   FOR EACH REACTION IDENTIFY THE (ONE) SPECIES THAT THE REACTION
-!   IS LINKED WITH IN THE SOLVER.  ALWAYS GAS-PHASE.
-!    ALSO CALCULATE ODD HYDROGEN AND ODD NITROGEN CHANGE
-! -----------------------------------------
-!
-! REACTIONS ARE ASSIGNED TO SPECIES IN REACTANT-TO-PRODUCT SEQUENCE
-! WITH SPECIAL CATEGORIES (NO3, NOx, Hx) AT THE END.
-!
-! REACTIONS LINKED WITH A (GAS-PHASE) SPECIES INCLUDE:
-!   (1) ALL SPECIES LOSS REACTIONS
-!   (2) SPECIES PRODUCTION REACTIONS ONLY IF PRODUCTION IS FROM A
-!       "SPECIAL" CATEGORY THAT IS NOT INCLUDED
-!                    IN THE REACTION-TO-PRODUCT CASCADE.
-!   (3) REACTIONS FOR ASSOCIATED AQUEOUS SPECIES.
-!   (4) REACTIONS FOR SPECIES LINKED THROUGH SPECIAL AQUEOUS EQUILIBRIA.
-
-! THE IDENTIFICATION OF REACTIONS WITH SPECIES INSURES THAT
-! ALL REACTIONS WILL BE PROCESSED AT THE PROPER PLACE IN THE CASCADE.
-
-! (NEW) LOSS AND PRODUCTION REACTIONS ARE ID'D SEPARATELY.
-! -----------------------------------------
-
-       kk=1
-
-
-!  ZERO THE IMPORTANT ARRAYS
-       do 160 ic=1,c_nchem2
+      !
+      ! GENERAL FORMATS
+      11 format(///////,a1)
+      !
+      ! -----------------------------------------
+      !  ANALYZE CHEMICAL MECHANISM:
+      !   FOR EACH REACTION IDENTIFY THE (ONE) SPECIES THAT THE REACTION
+      !   IS LINKED WITH IN THE SOLVER.  ALWAYS GAS-PHASE.
+      !    ALSO CALCULATE ODD HYDROGEN AND ODD NITROGEN CHANGE
+      ! -----------------------------------------
+      !
+      ! REACTIONS ARE ASSIGNED TO SPECIES IN REACTANT-TO-PRODUCT SEQUENCE
+      ! WITH SPECIAL CATEGORIES (NO3, NOx, Hx) AT THE END.
+      !
+      ! REACTIONS LINKED WITH A (GAS-PHASE) SPECIES INCLUDE:
+      !   (1) ALL SPECIES LOSS REACTIONS
+      !   (2) SPECIES PRODUCTION REACTIONS ONLY IF PRODUCTION IS FROM A
+      !       "SPECIAL" CATEGORY THAT IS NOT INCLUDED
+      !                    IN THE REACTION-TO-PRODUCT CASCADE.
+      !   (3) REACTIONS FOR ASSOCIATED AQUEOUS SPECIES.
+      !   (4) REACTIONS FOR SPECIES LINKED THROUGH SPECIAL AQUEOUS EQUILIBRIA.
+      !
+      ! THE IDENTIFICATION OF REACTIONS WITH SPECIES INSURES THAT
+      ! ALL REACTIONS WILL BE PROCESSED AT THE PROPER PLACE IN THE CASCADE.
+      !
+      ! (NEW) LOSS AND PRODUCTION REACTIONS ARE ID'D SEPARATELY.
+      ! -----------------------------------------
+      kk = 1
+      !
+      !  ZERO THE IMPORTANT ARRAYS
+      !
+      do ic = 1 , c_nchem2
         c_nnrchem(ic) = 0
         c_nnrchp(ic) = 0
-        do 157 i=1,25
-         c_nrchem(ic,i) = 0
-         c_nrchmp(ic,i) = 0
-  157   continue
-  160  continue
-
-       do 165 nr=1,c_nreac
-         c_stoiloss(nr) = 0.
-  165  continue
-
-! LOOP FOR EACH INDIVIDUAL REACTION
-       do 1000 nr=1,c_nreac
-
-! ZERO INDEX FOR IC ASSOCIATED WITH REACTION.
-         ic = 0
-
-! ESTABLISH REACTANT CATEGORIES.
-!     NOTE: REACTION IS ASSIGNED ONLY FOR ICAT>0.  CHECK ERROR.
-!
-       icat1 = 0
-       icat2 = 0
-       if(c_reactant(nr,1) > 0) then
-         icat1 = c_icat(c_reactant(nr,1))
-       end if
-       if(c_reactant(nr,2) > 0) then
-         icat2 = c_icat(c_reactant(nr,2))
-       end if
-
-! FIRST ELIMINATE REDUNDANT REACTANTS:
-!   REACTANTS THAT ARE ALSO PRODUCTS,  AND ALSO H2O
-!
-!  (This is for reactions RCO3+RO2=> products.
-!    Entered as two reactions:
-!       RCO3+RO2=>RCO3+productB
-!       RCO3+RO2=>RO2 +productA
-!    Assign reaction with RO2 products to RO2, not RCO3.)
-
-      if(c_nnpro(nr) > 0) then
-       do 305 n=1,c_nnpro(nr)
-        if(c_reactant(nr,1) == c_product(nr,n).and.c_stoich(nr,n) >= 1) &
-     &    icat1 = 0 - icat1
-        if(c_reactant(nr,2) == c_product(nr,n).and.c_stoich(nr,n) >= 1) &
-     &    icat2 = 0 - icat2
-  305  continue
-      end if
-
-! FIRST ASSOCIATE REACTION WITH REACTANTS
-       if(icat1 < 9.and.icat1 > 0                ) then
-         ic = c_reactant(nr,1)
-       else
-         if(icat2 < 9.and.icat2 > 0                ) then
-           ic = c_reactant(nr,2)
-         end if
-       end if
-
-! RESTORE CATEGORY OF REDUNDANT REACTIONS (RCO3+RO2)
-       icat1 = abs(icat1)
-       icat2 = abs(icat2)
-
-! (PRIOR:  Look for NO3-N2O5 reactants before non-special products.
-!  Now, Look for nonspecial products first, then NO3-N2O5 reactants.)
-
-
-! IF NEITHER REACTANT IS A NON-SPECIAL SPECIES, THEN CHECK PRODUCTS
-!  (e.g. HNO3, H2O2)
-       if(ic <= 0) then
-         if(c_nnpro(nr) > 0) then
-          do 310 n=1,c_nnpro(nr)
-            icatp = c_icat(c_npequil(c_product(nr,n)))
-
-
-            if(icatp < 9.and.icatp > 0                ) then
-              ic = c_product(nr,n)
-              go to 311
-            end if
-  310     continue
-  311     continue
-         end if
-       end if
-
-! IF NEITHER REACTANT IS A NON-SPECIAL SPECIES, LOOK FOR NO3-N2O5-HNO3.
-
-
-       if(ic <= 0) then
-         if(icat1 == 14.or.icat1 == 15.or.icat1 == 16) then
-           ic = c_reactant(nr,1)
-         else
-           if(icat2 == 14.or.icat2 == 15.or.icat2 == 16) then
-             ic = c_reactant(nr,2)
-           end if
-         end if
-       end if
-
-
-! IF NOTHING, LOOK FOR NO3/N2O5/HNO3 IN PRODUCTS
-       if(ic <= 0) then
-            if(c_nnpro(nr) > 0) then
-             do 320 n=1,c_nnpro(nr)
-              icatp = c_icat(c_npequil(c_product(nr,n)))
-              if(icatp == 14.or.icatp == 15.or.icatp == 16) then
-                ic = c_product(nr,n)
-                go to 321
-              end if
-  320        continue
-  321        continue
-            end if
-       end if
-
-! IF STILL NOTHING, LOOK FOR O3 or NOx IN REACTANTS OR PRODUCTS
-!    O3 (11), NO2 (12) or NO (13)
-
-! 2005 CHANGE   O3, NO, NO2 ORDER DOESN'T MATTER,
-!   BUT DECLARE THROUGH REACTANTS NOT PRODUCTS - else brpro too early
-!   (HO2+NO=>NO2+OH must  be assigned to NO2)
-!   MUST BE  11 or 12 or 13 here
-
-       if(ic <= 0) then
-!        if(icat1 == 11.or.icat1 == 12) then
-         if(icat1 == 11.or.icat1 == 12.or.icat1 == 13) then
-           ic = c_reactant(nr,1)
-         else
-!          if(icat2 == 11.or.icat2 == 12) then
-           if(icat2 == 11.or.icat2 == 12.or.icat2 == 13) then
-             ic = c_reactant(nr,2)
-           else
-            if(c_nnpro(nr) > 0) then
-             do 330 n=1,c_nnpro(nr)
-              icatp = c_icat(c_npequil(c_product(nr,n)))
-!             if(icatp == 11.or.icatp == 12) then
-              if(icatp == 11.or.icatp == 12.or.icatp == 13) then
-                ic = c_product(nr,n)
-                go to 331
-              end if
-  330        continue
-  331        continue
-            end if
-           end if
-         end if
-       end if
-!
-! H2O2 OPTION:  MAKE H2O2 A SPECIAL SPECIES FOR ASSIGNING REACTIONS:
-! LOOK FOR H2O2 (19 ) IN REACTANTS OR PRODUCTS.
-       if(ic <= 0) then
-         if(               icat1 == 19) then
-           ic = c_reactant(nr,1)
-         else
-           if(               icat2 == 19) then
-             ic = c_reactant(nr,2)
-           else
-            if(c_nnpro(nr) > 0) then
-             do 345 n=1,c_nnpro(nr)
-              icatp = c_icat(c_npequil(c_product(nr,n)))
-              if(               icatp == 19) then
-                ic = c_product(nr,n)
-                go to 346
-              end if
-  345        continue
-  346        continue
-            end if
-           end if
-         end if
-       end if
-
-! IF STILL NOTHING, THE REMAINDER HAD BETTER HAVE OH OR HO2!
-!  (MAYBE TRY TO USE OH RATHER THAN HO2?)
-       if(ic <= 0) then
-         if(icat1 == 9.or.icat1 == 10) then
-           ic = c_reactant(nr,1)
-         else
-           if(icat2 == 9.or.icat2 == 10) then
-             ic = c_reactant(nr,2)
-           else
-            if(c_nnpro(nr) > 0) then
-             do 350 n=1,c_nnpro(nr)
-              icatp = c_icat(c_npequil(c_product(nr,n)))
-              if(icatp == 9.or.icatp == 10) then
-                ic = c_product(nr,n)
-                go to 351
-              end if
-  350        continue
-  351        continue
-            end if
-           end if
-         end if
-       end if
-
-!
-! IF STILL IC=0, ERROR AND EXIT!! (unless reaction=0)
-      if(ic <= 0.and.                                                   &
-     &     (c_reactant(nr,1) > 0.or.c_reactant(nr,2) > 0)) then
-      write(c_out,355) nr, c_reactant(nr,1), icat1,                     &
-     &                  c_reactant(nr,2), icat2,                        &
-     &  (c_product(nr,n),n=1,c_nnpro(nr) )
-      write(6,355) nr, c_reactant(nr,1), icat1,                         &
-     &                  c_reactant(nr,2), icat2,                        &
-     &  (c_product(nr,n),n=1,c_nnpro(nr) )
-  355 format(//,'MAJOR ERROR:  REACTION NOT IDENTIFIED WITH SPECIES',   &
-     & //,' REACTION NUMBER =',i4,/,                                    &
-     &    ' FIRST REACTANT =', i4,'  CATEGORY =',i3,/,                  &
-     &    ' SECOND REACTANT=', i4,'  CATEGORY =',i3,/,                  &
-     &    ' PRODUCTS =', (10i5)  )
- 3000  stop 3000
-      end if
-!
-
-! FINALLY!  ENTER REACTION INTO PROPER SPECIES LIST
-! NEW - SEPARATE LIST FOR SPECIES-LOSS REACTIONS AND PRODUCT REACTIONS,
-!       AND CALC OF STOILOSS FOR LOSS REACTIONS.
-! 2000-REACTIONS ASSIGNED TO MAIN SPECIES FOR SPECIAL AQUEOUS LINKS.
-
-!  FUTURE ADD:   Modify to skip aqueous reactions if LWC=0:
-!      assign reactants to direct species, not gas pointer
-!      and in chem, do reactions only when species is called
-!           - if LWC=0 skip aqueous
-!
-! 92407 PROBLEM HERE:  EXCHANGE reactions.
-!    They should have the same KEY SPECIES
-!
-!   possibility:  set c_nicreac(nr) here; modify in EXCHANGE analysis be
-!    so that both have the same key species (product of A+B=C),
-!   then do this process below.
-!   ALT: require link for paired species??
-
-      if(ic > 0) then
-        icc = c_npequil(ic)
-        if(ic == c_reactant(nr,1).or.ic == c_reactant(nr,2)) then
-          c_nnrchem(icc) = c_nnrchem(icc) + 1
-          c_nrchem(icc,c_nnrchem(icc)) = nr
-          c_nicreac(nr) = icc
-          c_stoiloss(nr) = 1.
-          if(c_reactant(nr,1) == c_reactant(nr,2)) c_stoiloss(nr) = 2.
-          if(c_nnpro(nr) > 0) then
-            do 360 n=1,c_nnpro(nr)
-             if(ic == c_product(nr,n))                                  &
-     &          c_stoiloss(nr) = c_stoiloss(nr)-c_stoich(nr,n)
-  360       continue
-          end if
-        else
-          c_nnrchp(icc) = c_nnrchp(icc) + 1
-          c_nrchmp(icc,c_nnrchp(icc)) = nr
-        end if
-      end if
-
-! END ANALYSIS OF SPECIES-LINK WITH REACTIONS.
-
-
-!  CALCULATE CHANGE IN ODD HYDROGEN (ODDHX)
-!  AND NET PRODUCTION OF ODD NITROGEN (PRONOX, >0).
-!  (CURRENT OPTION - RECORD NET PRONOX, THEN IN PROGRAM
-!   SUM NOx PRODUCTION-ONLY.)
-!  (ODDHX IS NET CHANGE, +/-.  BUT PRONOX IS PRODUCTION ONLY.
-!   NET CHANGE IN NOX CAN BE OBTAINED FROM RP, RL FOR NO AND NO2,
-!   BUT NOX ANALYSIS REQUIRES SEPARATION OF NOX SOURCES AND SINKS.
-!   NOTE - PAN->NOX AND HNO3->NOX OVERPRODUCTION IS FIXED
-!   BY PANCORR AND NO3CORR - DISCOUNTS BACK-FORTH NOX PRODUCTION.)
-
-      xoddhx = 0.
-      xoddhx2 = 0.
-      xpronox = 0.
-
-      if(icat1 == 9.or.icat1 == 10.or.icat1 == 8)                       &
-     &                                          xoddhx2 = xoddhx2 - 1.
-      if(icat2 == 9.or.icat2 == 10.or.icat1 == 8)                       &
-     &                                          xoddhx2 = xoddhx2 - 1.
-      if(icat1 == 3)                                                    &
-     &                                            xoddhx = xoddhx - 1.
-      if(icat2 == 3)                                                    &
-     &                                            xoddhx = xoddhx - 1.
-      if(icat1 == 12.or.icat1 == 13) xpronox = xpronox - 1.
-      if(icat2 == 12.or.icat2 == 13) xpronox = xpronox - 1.
-
-! TEMPORARY TEST
-!     if(icat1 == 3.and.icat2 == 3)
-!    *     write(c_out,12001) nr, (c_treac(ir,nr),ir=1,5),
-!    *         xoddhx
-
-          if(c_nnpro(nr) > 0) then
-      do 410 n=1,c_nnpro(nr)
-       icatp = c_icat(c_npequil(c_product(nr,n)))
-
-       if(icatp == 9.or.icatp == 10.or.icatp == 8)                      &
-     &     xoddhx2 = xoddhx2 + c_stoich(nr,n)
-       if(icatp == 3)                                                   &
-     &     xoddhx = xoddhx + c_stoich(nr,n)
-       if(icatp == 12.or.icatp == 13)                                   &
-     &     xpronox = xpronox + c_stoich(nr,n)
-
-
-! TEMPORARY TEST
-!     if(icat1 == 3.and.icat2 == 3) write(c_out,*) icatp
-!     if(icat1 == 3.and.icat2 == 3)
-!    *     write(c_out,12001) nr, (c_treac(ir,nr),ir=1,5),
-!    *         xoddhx
-! 12001      format(i5,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,/,3(1pe10.3))
-
-
-  410 continue
-           end if
-
-! GOT HERE
-       c_oddhx(nr,1) = xoddhx + xoddhx2
-       c_oddhx(nr,2) = xoddhx2
-       c_pronox(nr) = xpronox
-
-! DEBUG -  TEST WRITE
-        if(c_kkw > 0) then
-          write(c_out,1001) nr,(c_treac(j,nr),j=1,5),ic,c_tchem(ic)     &
-     &    , c_oddhx(nr,1),c_oddhx(nr,2), c_pronox(nr)
- 1001   format('REACTION #',i4,': ',a8,'+',a8,'=>',a8,',',a8,',',a8,/,  &
-     &     ' KEY SPECIES =',i4,2x,a8,'  ODD-H=',2f8.2,'  PRONOX=',f8.2)
-          write(c_out,1002) icc, c_nicreac(nr), c_nnrchem(icc)          &
-     &                      , c_nnrchp(icc)
- 1002     format('ICC,NICREAC, NNRCHEM NNRCHMP=',4i5)
-          if(c_nnrchem(icc) > 0) write(c_out,1003)                     &
-     &               c_nrchem(icc,c_nnrchem(icc)),c_stoiloss(nr)
- 1003     format('NRCHEM, STOILOSS=',i5,f8.2)
-          if(c_nnrchp(icc) > 0)                                        &
-     &       write(c_out,1004) c_nrchmp(icc,c_nnrchp(icc))
- 1004     format('NRCHEMP=',2i5)
-        end if
-
-! ADDITION FOR ODD HYDROGEN:  IDENTIFY THE HO2->OH DIRECT REACTIONS.
-!
-!        if( (c_npequil(c_reactant(nr,1)) == c_nho2     .or.
-!    *        c_npequil(c_reactant(nr,2)) == c_nho2     ).and.
-!    *        c_nnpro(nr) > 0)    then
-!
-         if(c_nnpro(nr) > 0)      then
-                if(c_npequil(c_reactant(nr,1)) /= c_nho2     ) then
-                  if(c_reactant(nr,2) <= 0) then
-                    go to 431
-                  else
-                    if(c_reactant(nr,2) /= c_nho2     ) go to 431
-                  end if
-                end if
-          do 430 n=1,c_nnpro(nr)
-            if( c_npequil(c_product(nr,n)) == c_noh      ) then
-              go to 431
-            end if
-  430     continue
-  431     continue
-
-         end if
-
- 1000   continue
-! END REACTION LOOP - END MECHANISM ANALYSIS.
-
-
-! ----------------------------------------------------------
-! IDENTIFY 'EXCHANGE' REACTIONS WITH THE FORM A+B=>C; C=>A+B.
-! AND PAIRFAC/MULTIFAC CONSERVATION INDICES.
-!
-! THESE REACTION NUMBERS ARE RECORDED IN EXPRO(IC,I) AND EXLOSS(IC,I)
-! WHERE IC IS FOR THE PRODUCT C  (GAS-PHASE).
-
-! THE EXCHANGE COEFFICIENTS INVOKE THE SUBROUTINE HNCORR (w/PANCORR)
-! TO INSURE THAT THE BACK-AND-FORTH PRODUCTION AND LOSS
-! DO NOT INTERFERE WITH BACK-EULER SOLUTION FOR PRODUCT SPECIES
-!  (USUALLY NOX OR HX).
-! THIS IS ALSO IMPORTANT FOR AQUEOUS:  HCO3+O2- ->HO2- + CO3-.
-!
-! NOTE:  THIS ONLY WORKS IF EXCHANGE REACTIONS HAVE THE SAME KEY SPECIES
-! OR IF THE TWO KEY SPECIES ARE DONE WITH TWOSOLVE (RCO3-PAN).
-!
-! NOTE:  EXLOSS AND EXPRO ARE ENTERED AS PAIRED REACTIONS;
-!  BUT SAME EXPRO MAY GO TO MORE THAN ONE EXLOSS, OR  VICE VERSUS.
-!  (so same reaction may be listed twice)
-
-! ----------------------------------------------------------
-!  ZERO THE IMPORTANT ARRAYS
-       do  ic=1,c_nchem2
-        do i=1,20
-         c_exspec(ic,i) = 0
-         do ii=1,5
-           c_expro(ic,i,ii) = 0
-           c_exloss(ic,i,ii) = 0
-                             !do ii=1,5
-         end do
-                          !do i=1,20
+        do i = 1 , 25
+          c_nrchem(ic,i) = 0
+          c_nrchmp(ic,i) = 0
         end do
-                        !do  ic=1,c_nchem2
-       end do
-
-! INITIALIZE PAIRFAC (conservation parameter for pair species)
-!   = 1 unless adjusted by EXCHANGE REACTIONS
-
-       do ic=1,c_nchem2
-         c_pairfac(ic) = 1.
-         c_multfac(ic) = 1.
-                         !do ic=1,c_nchem2
-       end do
-!
-! --------
-! BEGIN REACTION LOOP FOR EXCHANGE REACTIONS (1200)
-
-       do nrx=1,c_nreac
-
-! EXLOSS REACTION:
-!  ICX (NICREAC) is key species for reaction (1st non-special reactant).
-          icx = c_nicreac(nrx)
-
-!  Identify up to two REACTANTS ICY1, ICY2;
-!               and up to two PRODUCTS ICX1,ICX2.
-
-          icy1 = c_npequil(c_reactant(nrx,1))
-          icy2 = 0
-          if (c_reactant(nrx,2) > 0) then
-            icy2 = c_npequil(c_reactant(nrx,2))
+      end do
+      do nr = 1 , c_nreac
+        c_stoiloss(nr) = d_zero
+      end do
+      !
+      ! LOOP FOR EACH INDIVIDUAL REACTION
+      !
+      loopmechanal: &
+      do nr = 1 , c_nreac
+        !
+        ! ZERO INDEX FOR IC ASSOCIATED WITH REACTION.
+        !
+        ic = 0
+        !
+        ! ESTABLISH REACTANT CATEGORIES.
+        !     NOTE: REACTION IS ASSIGNED ONLY FOR ICAT>0.  CHECK ERROR.
+        !
+        icat1 = 0
+        icat2 = 0
+        if ( c_reactant(nr,1) > 0 ) then
+          icat1 = c_icat(c_reactant(nr,1))
+        end if
+        if ( c_reactant(nr,2) > 0 ) then
+          icat2 = c_icat(c_reactant(nr,2))
+        end if
+        !
+        ! FIRST ELIMINATE REDUNDANT REACTANTS:
+        !   REACTANTS THAT ARE ALSO PRODUCTS,  AND ALSO H2O
+        !
+        !  (This is for reactions RCO3+RO2=> products.
+        !    Entered as two reactions:
+        !       RCO3+RO2=>RCO3+productB
+        !       RCO3+RO2=>RO2 +productA
+        !    Assign reaction with RO2 products to RO2, not RCO3.)
+        !
+        if ( c_nnpro(nr) > 0 ) then
+          do n = 1 , c_nnpro(nr)
+            if ( c_reactant(nr,1) == c_product(nr,n) .and. &
+                 c_stoich(nr,n) >= d_one ) then
+              icat1 = 0 - icat1
+            end if
+            if ( c_reactant(nr,2) == c_product(nr,n) .and. &
+                 c_stoich(nr,n) >= d_one ) then
+              icat2 = 0 - icat2
+            end if
+          end do
+        end if
+        !
+        ! FIRST ASSOCIATE REACTION WITH REACTANTS
+        !
+        if ( icat1 < 9 .and. icat1 > 0 ) then
+          ic = c_reactant(nr,1)
+        else
+          if ( icat2 < 9 .and. icat2 > 0 ) then
+            ic = c_reactant(nr,2)
           end if
-
-          icx1 = 0
-          icx2 = 0
-          if(c_product(nrx,1) > 0) icx1=c_npequil(c_product(nrx,1))
-          if(c_product(nrx,2) > 0) icx2=c_npequil(c_product(nrx,2))
-
-          icat1 = 0
-          icat2 = 0
-          icatp = 0
-          if(icy1 > 0) then
-             icat1 = c_icat(icy1)
+        end if
+        !
+        ! RESTORE CATEGORY OF REDUNDANT REACTIONS (RCO3+RO2)
+        !
+        icat1 = iabs(icat1)
+        icat2 = iabs(icat2)
+        !
+        ! (PRIOR:  Look for NO3-N2O5 reactants before non-special products.
+        !  Now, Look for nonspecial products first, then NO3-N2O5 reactants.)
+        !
+        ! IF NEITHER REACTANT IS A NON-SPECIAL SPECIES, THEN CHECK PRODUCTS
+        !  (e.g. HNO3, H2O2)
+        !
+        if ( ic <= 0 ) then
+          if ( c_nnpro(nr) > 0 ) then
+            do n = 1 , c_nnpro(nr)
+              icatp = c_icat(c_npequil(c_product(nr,n)))
+              if ( icatp < 9 .and. icatp > 0 ) then
+                ic = c_product(nr,n)
+                exit
+              end if
+            end do
           end if
-          if(icy2 > 0) then
-             icat2 = c_icat(icy2)
-          end if
-          if(icx1 > 0) then
-             icatp = c_icat(icx1)
-          end if
-
-
-! CONTROLS TO SKIP LOOP (1200):
-!
-! SKIP AND CONTINUE LOOP IF (a) TWO REACTANTS, ONE PRODUCT;
-!  OR IF (b) KEY SPECIES IS A PRODUCT SPECIES.  (IN WHICH CASE
-!  THIS REACTION WOULD BE THE EXCHANGE 'RETURN' - EXPRO, not EXLOSS)
-          if(icy2 > 0.and.icx2 == 0) then
+        end if
+        !
+        ! IF NEITHER REACTANT IS A NON-SPECIAL SPECIES, LOOK FOR NO3-N2O5-HNO3.
+        !
+        if ( ic <= 0 ) then
+          if ( icat1 == 14 .or. icat1 == 15 .or. icat1 == 16 ) then
+            ic = c_reactant(nr,1)
           else
-           if(icx /= icy1.and.icx /= icy2.and.icy2 > 0) then
-           else
-
-! OPTIONAL CRITERIA:  EXCHANGE FOR FAST SPECIES ONLY.  FOR SLOW SPECIES,
-! SKIP AND CONTINUE LOOP
-            if(c_icat(icy1) == 1.or.c_icat(icy1) == 4) then
+            if ( icat2 == 14 .or. icat2 == 15 .or. icat2 == 16 ) then
+              ic = c_reactant(nr,2)
+            end if
+          end if
+        end if
+        !
+        ! IF NOTHING, LOOK FOR NO3/N2O5/HNO3 IN PRODUCTS
+        !
+        if ( ic <= 0 ) then
+          if ( c_nnpro(nr) > 0 ) then
+            do n = 1 , c_nnpro(nr)
+              icatp = c_icat(c_npequil(c_product(nr,n)))
+              if ( icatp == 14 .or. icatp == 15 .or. icatp == 16 ) then
+                ic = c_product(nr,n)
+                exit
+              end if
+            end do
+          end if
+        end if
+        !
+        ! IF STILL NOTHING, LOOK FOR O3 or NOx IN REACTANTS OR PRODUCTS
+        !    O3 (11), NO2 (12) or NO (13)
+        ! 2005 CHANGE   O3, NO, NO2 ORDER DOESN'T MATTER,
+        !   BUT DECLARE THROUGH REACTANTS NOT PRODUCTS - else brpro too early
+        !   (HO2+NO=>NO2+OH must  be assigned to NO2)
+        !   MUST BE  11 or 12 or 13 here
+        !
+        if ( ic <= 0 ) then
+!         if ( icat1 == 11 .or. icat1 == 12 ) then
+          if ( icat1 == 11 .or. icat1 == 12 .or. icat1 == 13 ) then
+            ic = c_reactant(nr,1)
+          else
+!           if ( icat2 == 11 .or. icat2 == 12 ) then
+            if ( icat2 == 11 .or. icat2 == 12 .or. icat2 == 13 ) then
+              ic = c_reactant(nr,2)
             else
-
-! SEARCH THROUGH REACTIONS TO FIND MATCHING EXPRO REACTION(s) (1300)
-              do nrp=1,c_nreac
-
-!  ICP (NICREAC) is key species for EXPRO reaction
-               icp = c_nicreac(nrp)
-
-!  Identify EXPRO reactants IC1,  IC2 and products ICP1, ICP2.
-               ic1=0
-               ic2=0
-               if(c_reactant(nrp,1) > 0) then
-                  ic1=c_npequil(c_reactant(nrp,1))
-               end if
-               if(c_reactant(nrp,2) > 0) then
-                  ic2=c_npequil(c_reactant(nrp,2))
-               end if
-               icp1=0
-               icp2=0
-               if(c_product(nrp,1) > 0) then
-                  icp1=c_npequil(c_product(nrp,1))
-               end if
-               if(c_product(nrp,2) > 0) then
-                  icp2=c_npequil(c_product(nrp,2))
-               end if
-
-! CONTROLS TO IDENTIFY  EXCHANGE REACTION (EXLOSS-EXPRO):  A+B=C, C=A+B
-               if( (icy1 == icp1.and.icy2 == icp2).or.                  &
-     &                  (icy1 == icp2.and.icy2 == icp1) )  then
-                 if( (icx1 == ic1.and.icx2 == ic2).or.                  &
-     &                  (icx1 == ic2.and.icx2 == ic1) )  then
-
-! SET PAIRFAC (pair group conservation of mass)
-!   FOR EXCHANGE REACTIONS A+B=C
-!    (note A+B=>C must be return reaction)
-
-                 if(ic1 /= 0.and.ic2 /= 0.and.icp1 /= 0) then
-                   if(c_nppair(ic1,2) == c_nppair(ic2,2)) then
-                     if(c_nppair(icp1,2) == c_nppair(ic1,2)) then
-                       if(icp2 == 0) then
-                          c_pairfac(icp1) =                             &
-     &                       c_pairfac(ic1)+c_pairfac(ic2)
-! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
-                          if(c_kkw > 0) write(c_out,1209)              &
-     &                     c_tchem(ic1), c_tchem(ic2), c_tchem(icp1),   &
-     &                     c_pairfac(ic1), c_pairfac(ic2),              &
-     &                     c_pairfac(icp1)
- 1209                      format(' SET PAIRFAC:  species A + B <->C.', &
-     &                            ' SPECIES AND PAIRFACS = ',/,         &
-     &                            3(a8,2x), 3(1pe10.3)                )
-                       else
-                          if(c_nppair(icp2,2) /= c_nppair(ic1,2)) then
-                            c_pairfac(icp2) =                           &
-     &                         c_pairfac(ic1)+c_pairfac(ic2)
-! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
-                            if(c_kkw > 0) write(c_out,1209)            &
-     &                       c_tchem(ic1), c_tchem(ic2), c_tchem(icp1)
+              if ( c_nnpro(nr) > 0 ) then
+              do n = 1 , c_nnpro(nr)
+                icatp = c_icat(c_npequil(c_product(nr,n)))
+!               if ( icatp == 11 .or. icatp == 12 ) then
+                if ( icatp == 11 .or. icatp == 12 .or. icatp == 13 ) then
+                  ic = c_product(nr,n)
+                  exit
+                end if
+              end do
+            end if
+          end if
+        end if
+        !
+        ! H2O2 OPTION:  MAKE H2O2 A SPECIAL SPECIES FOR ASSIGNING REACTIONS:
+        ! LOOK FOR H2O2 (19 ) IN REACTANTS OR PRODUCTS.
+        !
+        if ( ic <= 0 ) then
+          if ( icat1 == 19 ) then
+            ic = c_reactant(nr,1)
+          else
+            if ( icat2 == 19 ) then
+              ic = c_reactant(nr,2)
+            else
+              if ( c_nnpro(nr) > 0 ) then
+                do n = 1 , c_nnpro(nr)
+                  icatp = c_icat(c_npequil(c_product(nr,n)))
+                  if ( icatp == 19 ) then
+                    ic = c_product(nr,n)
+                    exit
+                  end if
+                end do
+              end if
+            end if
+          end if
+        end if
+        !
+        ! IF STILL NOTHING, THE REMAINDER HAD BETTER HAVE OH OR HO2!
+        !  (MAYBE TRY TO USE OH RATHER THAN HO2?)
+        !
+        if ( ic <= 0 ) then
+          if ( icat1 == 9 .or. icat1 == 10 ) then
+            ic = c_reactant(nr,1)
+          else
+            if ( icat2 == 9 .or. icat2 == 10 ) then
+              ic = c_reactant(nr,2)
+            else
+              if ( c_nnpro(nr) > 0 ) then
+                do n = 1 , c_nnpro(nr)
+                  icatp = c_icat(c_npequil(c_product(nr,n)))
+                  if ( icatp == 9 .or. icatp == 10 ) then
+                    ic = c_product(nr,n)
+                    exit
+                  end if
+                end do
+              end if
+            end if
+          end if
+        end if
+        !
+        ! IF STILL IC=0, ERROR AND EXIT!! (unless reaction=0)
+        !
+        if ( ic <= 0 .and. &
+            (c_reactant(nr,1) > 0 .or. c_reactant(nr,2) > 0) ) then
+          write(c_out,355) nr, c_reactant(nr,1), icat1, &
+                c_reactant(nr,2), icat2, (c_product(nr,n),n=1,c_nnpro(nr) )
+          write(6,355) nr, c_reactant(nr,1), icat1, c_reactant(nr,2), icat2, &
+                           (c_product(nr,n),n=1,c_nnpro(nr) )
+          355 format(//,'MAJOR ERROR:  REACTION NOT IDENTIFIED WITH SPECIES', &
+               //,' REACTION NUMBER =',i4,/,                                  &
+                  ' FIRST REACTANT =', i4,'  CATEGORY =',i3,/,                &
+                  ' SECOND REACTANT=', i4,'  CATEGORY =',i3,/,                &
+                  ' PRODUCTS =', (10i5)  )
+          call fatal(__FILE__,__LINE__,'MAJOR ERROR IN CBMZ CODE')
+        end if
+        !
+        ! FINALLY!  ENTER REACTION INTO PROPER SPECIES LIST
+        ! NEW - SEPARATE LIST FOR SPECIES-LOSS REACTIONS AND PRODUCT REACTIONS,
+        !       AND CALC OF STOILOSS FOR LOSS REACTIONS.
+        ! 2000-REACTIONS ASSIGNED TO MAIN SPECIES FOR SPECIAL AQUEOUS LINKS.
+        !
+        !  FUTURE ADD:   Modify to skip aqueous reactions if LWC=0:
+        !      assign reactants to direct species, not gas pointer
+        !      and in chem, do reactions only when species is called
+        !           - if LWC=0 skip aqueous
+        !
+        ! 92407 PROBLEM HERE:  EXCHANGE reactions.
+        !    They should have the same KEY SPECIES
+        !
+        !   possibility:  set c_nicreac(nr) here; modify in EXCHANGE analysis be
+        !    so that both have the same key species (product of A+B=C),
+        !   then do this process below.
+        !   ALT: require link for paired species??
+        !
+        if ( ic > 0 ) then
+          icc = c_npequil(ic)
+          if ( ic == c_reactant(nr,1) .or. ic == c_reactant(nr,2) ) then
+            c_nnrchem(icc) = c_nnrchem(icc) + 1
+            c_nrchem(icc,c_nnrchem(icc)) = nr
+            c_nicreac(nr) = icc
+            c_stoiloss(nr) = d_one
+            if ( c_reactant(nr,1 ) == c_reactant(nr,2) ) c_stoiloss(nr) = d_two
+            if ( c_nnpro(nr) > 0 ) then
+              do n = 1 , c_nnpro(nr)
+                if ( ic == c_product(nr,n) ) then
+                  c_stoiloss(nr) = c_stoiloss(nr)-c_stoich(nr,n)
+                end if
+              end do
+            end if
+          else
+            c_nnrchp(icc) = c_nnrchp(icc) + 1
+            c_nrchmp(icc,c_nnrchp(icc)) = nr
+          end if
+        end if
+        !
+        ! END ANALYSIS OF SPECIES-LINK WITH REACTIONS.
+        !
+        !  CALCULATE CHANGE IN ODD HYDROGEN (ODDHX)
+        !  AND NET PRODUCTION OF ODD NITROGEN (PRONOX, >0).
+        !  (CURRENT OPTION - RECORD NET PRONOX, THEN IN PROGRAM
+        !   SUM NOx PRODUCTION-ONLY.)
+        !  (ODDHX IS NET CHANGE, +/-.  BUT PRONOX IS PRODUCTION ONLY.
+        !   NET CHANGE IN NOX CAN BE OBTAINED FROM RP, RL FOR NO AND NO2,
+        !   BUT NOX ANALYSIS REQUIRES SEPARATION OF NOX SOURCES AND SINKS.
+        !   NOTE - PAN->NOX AND HNO3->NOX OVERPRODUCTION IS FIXED
+        !   BY PANCORR AND NO3CORR - DISCOUNTS BACK-FORTH NOX PRODUCTION.)
+        !
+        xoddhx = d_zero
+        xoddhx2 = d_zero
+        xpronox = d_zero
+        if ( icat1 == 9 .or. icat1 == 10 .or. icat1 == 8) then
+          xoddhx2 = xoddhx2 - d_one
+        end if
+        if ( icat2 == 9 .or. icat2 == 10 .or. icat1 == 8) then
+          xoddhx2 = xoddhx2 - d_one
+        end if
+        if ( icat1 == 3 ) then
+          xoddhx = xoddhx - d_one
+        end if
+        if ( icat2 == 3 ) then
+          xoddhx = xoddhx - d_one
+        end if
+        if ( icat1 == 12 .or. icat1 == 13 ) xpronox = xpronox - d_one
+        if ( icat2 == 12 .or. icat2 == 13 ) xpronox = xpronox - d_one
+        if ( c_nnpro(nr) > 0 ) then
+          do n = 1 , c_nnpro(nr)
+            icatp = c_icat(c_npequil(c_product(nr,n)))
+            if ( icatp == 9 .or. icatp == 10 .or. icatp == 8) then
+              xoddhx2 = xoddhx2 + c_stoich(nr,n)
+            end if
+            if ( icatp == 3 ) xoddhx = xoddhx + c_stoich(nr,n)
+            if ( icatp == 12 .or. icatp == 13 ) then
+              xpronox = xpronox + c_stoich(nr,n)
+            end if
+          end do
+        end if
+        !
+        ! GOT HERE
+        !
+        c_oddhx(nr,1) = xoddhx + xoddhx2
+        c_oddhx(nr,2) = xoddhx2
+        c_pronox(nr) = xpronox
+        !
+        ! ADDITION FOR ODD HYDROGEN:  IDENTIFY THE HO2->OH DIRECT REACTIONS.
+        !
+        if ( c_nnpro(nr) > 0 ) then
+          if ( c_npequil(c_reactant(nr,1)) /= c_nho2 ) then
+            if ( c_reactant(nr,2) > 0 ) then
+              if ( c_reactant(nr,2) == c_nho2 ) 
+                do n = 1 , c_nnpro(nr)
+                  if ( c_npequil(c_product(nr,n)) == c_noh ) then
+                    exit
+                  end if
+                end do
+              end if
+            end if
+          end if
+        end if
+      end do loopmechanal
+      !
+      ! END REACTION LOOP - END MECHANISM ANALYSIS.
+      !
+      ! ----------------------------------------------------------
+      ! IDENTIFY 'EXCHANGE' REACTIONS WITH THE FORM A+B=>C; C=>A+B.
+      ! AND PAIRFAC/MULTIFAC CONSERVATION INDICES.
+      !
+      ! THESE REACTION NUMBERS ARE RECORDED IN EXPRO(IC,I) AND EXLOSS(IC,I)
+      ! WHERE IC IS FOR THE PRODUCT C  (GAS-PHASE).
+      !
+      ! THE EXCHANGE COEFFICIENTS INVOKE THE SUBROUTINE HNCORR (w/PANCORR)
+      ! TO INSURE THAT THE BACK-AND-FORTH PRODUCTION AND LOSS
+      ! DO NOT INTERFERE WITH BACK-EULER SOLUTION FOR PRODUCT SPECIES
+      !  (USUALLY NOX OR HX).
+      ! THIS IS ALSO IMPORTANT FOR AQUEOUS:  HCO3+O2- ->HO2- + CO3-.
+      !
+      ! NOTE:  THIS ONLY WORKS IF EXCHANGE REACTIONS HAVE THE SAME KEY SPECIES
+      ! OR IF THE TWO KEY SPECIES ARE DONE WITH TWOSOLVE (RCO3-PAN).
+      !
+      ! NOTE:  EXLOSS AND EXPRO ARE ENTERED AS PAIRED REACTIONS;
+      !  BUT SAME EXPRO MAY GO TO MORE THAN ONE EXLOSS, OR  VICE VERSUS.
+      !  (so same reaction may be listed twice)
+      !
+      ! ----------------------------------------------------------
+      !  ZERO THE IMPORTANT ARRAYS
+      !
+      do ic = 1 , c_nchem2
+        do i = 1 , 20
+          c_exspec(ic,i) = 0
+          do ii = 1 , 5
+            c_expro(ic,i,ii) = 0
+            c_exloss(ic,i,ii) = 0
+          end do
+        end do
+      end do
+      !
+      ! INITIALIZE PAIRFAC (conservation parameter for pair species)
+      !   = 1 unless adjusted by EXCHANGE REACTIONS
+      !
+      do ic = 1 , c_nchem2
+        c_pairfac(ic) = d_one
+        c_multfac(ic) = d_one
+      end do
+      !
+      ! --------
+      ! BEGIN REACTION LOOP FOR EXCHANGE REACTIONS (1200)
+      !
+      do nrx = 1 , c_nreac
+        !
+        ! EXLOSS REACTION:
+        !  ICX (NICREAC) is key species for reaction (1st non-special reactant).
+        !
+        icx = c_nicreac(nrx)
+        !
+        !  Identify up to two REACTANTS ICY1, ICY2;
+        !               and up to two PRODUCTS ICX1,ICX2.
+        !
+        icy1 = c_npequil(c_reactant(nrx,1))
+        icy2 = 0
+        if ( c_reactant(nrx,2) > 0 ) then
+          icy2 = c_npequil(c_reactant(nrx,2))
+        end if
+        icx1 = 0
+        icx2 = 0
+        if ( c_product(nrx,1) > 0 ) icx1 = c_npequil(c_product(nrx,1))
+        if ( c_product(nrx,2) > 0 ) icx2 = c_npequil(c_product(nrx,2))
+        icat1 = 0
+        icat2 = 0
+        icatp = 0
+        if ( icy1 > 0 ) then
+          icat1 = c_icat(icy1)
+        end if
+        if ( icy2 > 0 ) then
+          icat2 = c_icat(icy2)
+        end if
+        if ( icx1 > 0 ) then
+          icatp = c_icat(icx1)
+        end if
+        !
+        ! CONTROLS TO SKIP LOOP (1200):
+        !
+        ! SKIP AND CONTINUE LOOP IF (a) TWO REACTANTS, ONE PRODUCT;
+        !  OR IF (b) KEY SPECIES IS A PRODUCT SPECIES.  (IN WHICH CASE
+        !  THIS REACTION WOULD BE THE EXCHANGE 'RETURN' - EXPRO, not EXLOSS)
+        if ( icy2 > 0 .and. icx2 == 0 ) then
+        else
+          if ( icx /= icy1 .and. icx /= icy2 .and. icy2 > 0 ) then
+          else
+            !
+            ! OPTIONAL CRITERIA:  EXCHANGE FOR FAST SPECIES ONLY.
+            ! FOR SLOW SPECIES, SKIP AND CONTINUE LOOP
+            !
+            if ( c_icat(icy1) == 1 .or. c_icat(icy1) == 4 ) then
+            else
+              !
+              ! SEARCH THROUGH REACTIONS TO FIND MATCHING EXPRO
+              ! REACTION(s) (1300)
+              do nrp = 1 , c_nreac
+                !
+                !  ICP (NICREAC) is key species for EXPRO reaction
+                !
+                icp = c_nicreac(nrp)
+                !
+                !  Identify EXPRO reactants IC1,  IC2 and products ICP1, ICP2.
+                ic1 = 0
+                ic2 = 0
+                if ( c_reactant(nrp,1) > 0 ) then
+                  ic1 = c_npequil(c_reactant(nrp,1))
+                end if
+                if ( c_reactant(nrp,2) > 0 ) then
+                  ic2 = c_npequil(c_reactant(nrp,2))
+                end if
+                icp1 = 0
+                icp2 = 0
+                if ( c_product(nrp,1) > 0 ) then
+                  icp1 = c_npequil(c_product(nrp,1))
+                end if
+                if ( c_product(nrp,2) > 0 ) then
+                  icp2 = c_npequil(c_product(nrp,2))
+                end if
+                !
+                ! CONTROLS TO IDENTIFY  EXCHANGE REACTION 
+                ! (EXLOSS-EXPRO):  A+B=C, C=A+B
+                if ( (icy1 == icp1 .and. icy2 == icp2) .or. &
+                     (icy1 == icp2 .and. icy2 == icp1) ) then
+                  if ( (icx1 == ic1 .and. icx2 == ic2) .or. &
+                       (icx1 == ic2 .and. icx2 == ic1) ) then
+                    !
+                    ! SET PAIRFAC (pair group conservation of mass)
+                    !   FOR EXCHANGE REACTIONS A+B=C
+                    !    (note A+B=>C must be return reaction)
+                    !
+                    if ( ic1 /= 0 .and. ic2 /= 0 .and. icp1 /= 0 ) then
+                      if ( c_nppair(ic1,2) == c_nppair(ic2,2) ) then
+                        if ( c_nppair(icp1,2) == c_nppair(ic1,2) ) then
+                          if ( icp2 == 0 ) then
+                            c_pairfac(icp1) = c_pairfac(ic1)+c_pairfac(ic2)
+                            !
+                            ! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
+                            !
+                            if ( c_kkw > 0 ) then
+                              write(c_out,1209) c_tchem(ic1), c_tchem(ic2), &
+                                c_tchem(icp1), c_pairfac(ic1), c_pairfac(ic2), &
+                                c_pairfac(icp1)
+                              1209 format(' SET PAIRFAC: species A + B <->C.', &
+                                  ' SPECIES AND PAIRFACS = ',/,         &
+                                  3(a8,2x), 3(1pe10.3)                )
+                            end if
+                          else
+                            if ( c_nppair(icp2,2) /= c_nppair(ic1,2) ) then
+                              c_pairfac(icp2) =  c_pairfac(ic1)+c_pairfac(ic2)
+                              !
+                              ! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
+                              !
+                              if ( c_kkw > 0 ) then
+                                write(c_out,1209) c_tchem(ic1), c_tchem(ic2), &
+                                                  c_tchem(icp1)
+                              end if
+                            end if
                           end if
-                                           !if(icp2 == 0) then
-                       end if
-                                  !if(c_nppair(icp1,2) == ...
-                     else
-                       if(icp2 > 0) then
-                          if(c_nppair(icp2,2) == c_nppair(ic1,2)) then
-                            c_pairfac(icp2) =                           &
-     &                         c_pairfac(ic1)+c_pairfac(ic2)
-! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
-                            if(c_kkw > 0) write(c_out,1209)            &
-     &                       c_tchem(ic1), c_tchem(ic2), c_tchem(icp1)
+                        else
+                          if ( icp2 > 0 ) then
+                            if ( c_nppair(icp2,2) == c_nppair(ic1,2) ) then
+                              c_pairfac(icp2) = c_pairfac(ic1)+c_pairfac(ic2)
+                              !
+                              ! TEST WRITE - QUADINIT PAIRFAC (STANDARD)
+                              !
+                              if ( c_kkw > 0 ) then
+                                write(c_out,1209) c_tchem(ic1), c_tchem(ic2), &
+                                                  c_tchem(icp1)
+                              end if
+                            end if
                           end if
-                                           !if(icp2 > 0) then
-                       end if
-                                     !if(c_nppair(icp1,2) == ...
-                     end if
-                                  !if(c_nppair(ic1,2) == ...
-                   end if
-                              !if(ic1 /= 0.and.ic2 /= 0.and.icp1 /= 0)..
-                 end if
-
-!
-! SET MULTIFAC (multi group conservation of mass)
-!   FOR EXCHANGE REACTIONS A+B=C
-!    (note A+B=>C must be return reaction)
-
-                 if(ic1 /= 0.and.ic2 /= 0.and.icp1 /= 0) then
-                   if(c_npmulti(ic1,1) == c_npmulti(ic2,1)) then
-                     if(c_npmulti(icp1,1) == c_npmulti(ic1,1)) then
-                       if(icp2 == 0) then
-                          c_multfac(icp1) =                             &
-     &                       c_multfac(ic1)+c_multfac(ic2)
+                        end if
+                      end if
+                    end if
+                    !
+                    !
+                    ! SET MULTIFAC (multi group conservation of mass)
+                    !   FOR EXCHANGE REACTIONS A+B=C
+                    !    (note A+B=>C must be return reaction)
+                    !
+                    if ( ic1 /= 0 .and. ic2 /= 0 .and. icp1 /= 0 ) then
+                      if ( c_npmulti(ic1,1) == c_npmulti(ic2,1) ) then
+                        if ( c_npmulti(icp1,1) == c_npmulti(ic1,1) ) then
+                          if ( icp2 == 0 ) then
+                            c_multfac(icp1) = c_multfac(ic1)+c_multfac(ic2)
 ! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
                           if(c_kkw > 0) write(c_out,1208)              &
      &                     c_tchem(ic1), c_tchem(ic2), c_tchem(icp1),   &
@@ -3249,11 +3174,6 @@ module mod_cbmz_init1
  2000     return
       END
 
-
-
-
-       subroutine chemwrit( kw)
-
 ! This writes chemical concentrations and reaction rates (gas+aqueous)
 !   for the specified vector loop (kw).
 !
@@ -3268,206 +3188,178 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
 
-
-
-! -------------------------------------------------------------------
-      IMPLICIT NONE
-
-      include 'chemmech.EXT'
-      INCLUDE 'chemvars.EXT'
-      include 'chemlocal.EXT'
-
-                                  ! 'SUM' name for output
-        character*8 tsum
-                                  ! Gas phase concentration
-        double precision xcgas
-                                  ! Aqueous   concentration
-        double precision acquacon
-
-        if( kw <= 0) return
-        kk=1
-
-!  SPECIES CONCENTRATIONS.
-       write(c_out,1141)  c_hour
- 1141  format(/,' SPECIES CONCENTRATIONS AT  XHOUR =',  f6.2)
-       ncf = int(0.2*(float(c_nchem2)-0.01))+1
-       do      nc=1,ncf
-         nc1 = 4*(nc-1) + 1
-          nc2 = nc1 + 3
-          if(nc1 > c_nchem2)nc1=c_nchem2
-          if(nc2 > c_nchem2)nc2=c_nchem2
-           write(c_out,1142)                                            &
-     &        ( c_tchem(nn),c_xcout(kw ,(nn)) , nn=nc1,nc2 )
- 1142    format(4(a8,1pe10.3,2x ))
-       end do
-
-!   AQUEOUS SPECIES CONCENTRATIONS
-
-! NOTE  c_xcout(kw,ic) for GAS SPECIES IS GAS+AQ SUM, molec/cm3 equiv.
-!       c_xcout(kw,icq) for AQUEOUS SPECIES is moles/liter
-!    .  GAS-ONLY IS CALCULATED HERE.
-
-! NOTE!  WRITE error for lumped species such as  MP (in rooh);
-!        c_xcout(kw,ic) is preserved as species fraction, not sum?
-
-          if(c_h2oliq(kw ) > 0) then
-           acquacon = c_h2oliq( kw)*avogadrl
-           write(c_out,1301)   c_h2oliq(kw )
-           write(c_out,1303) acquacon
-           if(c_aqueous(1,2) > 0) then
-           write(c_out,1302) c_xcout(kw ,c_aqueous(1,2))
-          end if
-
- 1301       format(/,'AQUEOUS CHEMISTRY ',/,'WATER (grams/cm3) =',      &
-     &    1pe10.3)
- 1302       format( ' [H+] (moles per liter) =',1pe10.3)
- 1303       format( ' GAS SPECIES and G-A SUM molec/cm3. ',             &
-     &      ' AQUEOUS moles/liter. CONVERSION= ', 1pe10.3)
-
-! 1303        format( ' GAS SPECIES is G+A sum, molec/cm3. ',
-!    *      ' AQUEOUS moles/liter. CONVERSION= ', 1pe10.3)
-
-            tsum = '     SUM'
-!          do      ic=1,c_nchem2
-           do  nrh=1,c_nreach
-             ic = c_henry(nrh,1)
-             if(c_nequil(ic) > 0)  then
-               xcgas = c_xcout(kw,ic)
-             do i=1,c_nequil(ic)
-               xcgas = xcgas - c_xcout(kw,c_ncequil(ic,i))*acquacon
-             end do
-!             write(c_out,1305) c_tchem(ic), c_xcout(kw ,ic),
-!    *        ( c_tchem(c_ncequil(ic,i)),c_xcout(kw ,c_ncequil(ic,i))
-!    *                                      ,i=1,c_nequil(ic) )
-               write(c_out,1305) c_tchem(ic), xcgas,                    &
-     &        ( c_tchem(c_ncequil(ic,i)),c_xcout(kw ,c_ncequil(ic,i))   &
-     &                                      ,i=1,c_nequil(ic) )         &
-     &        ,tsum, c_xcout(kw,ic)
- 1305          format(4(a8,1pe10.3,2x),/,                               &
-     &          '         0.000E+00  ',3(a8,1pe10.3,2x))
-               if(rhdif(kw,nrh) > 0)                                   &
-     &         xcgas = (c_xcout(kw,c_ncequil(ic,1))*acquacon)           &
-     &         /rhdif(kw,nrh)
-              write(c_out,1306)xcgas, rateh(kw ,nrh), rhdif(kw ,nrh)
- 1306        format('   (',1pe10.3,                                     &
-     &       ')                      HENRY, Hw/DIFF=', 3(1pe10.3))
-!             write(c_out,1306) rateh(kw ,nrh), rhdif(kw ,nrh)
-! 1306         format('                                ',
-!    *       '     HENRY, Hw/DIFF=',2(1pe10.3))
-            end if
-           end do
-         end if
-
-
-! --------------
-! CHEMWRIT  SUMMARY WRITE:
-!    CONCENTRATIONS, XCIN, RP, RL from QUADCHEM
-! --------------
-
-        write(c_out,1801) c_iter, kw
- 1801   format(//,' SUMMARY WRITE:  ITER =',i3, '    VECTOR KKW=',i3)
-       write(c_out,1804) c_IDATE, c_hour,  c_lat(1), c_lon(1),c_temp(1)
- 1804  format('IDATE xhour lat lon temp=',i8,4f8.2)
-       write(c_out,1805) (c_jparam(i),i=1,13),c_jparam(20)
- 1805  format('JPARAMS: zenith altmid dobson so2 no2 aaerx aerssa',     &
-     &  ' albedo',/,'cld-below cld-above claltB claltA temp date',      &
-     &   /,(8f10.3))
-        write(c_out,1802)
- 1802   format(/,' #  IC     XCOUT     XCIN  XCF/AV       RL',          &
-     &              '        RP        dXC      dR')
- 1803    format(i4,a8,2(1pe10.3),0pf7.3,1x,(4(1pe10.3)))
-
-! WRITE GAS-AQUEOUS SUMS
-!   MAKE XC,  RP, RL=GAS+AQ SUM for gas species.
-!    CONVERT AQUEOUS XC TO GAS UNITS
-!     (Note, sum aqueous into gas for xc, but not for xcout.
-!      xcout is made gas-aqueous sum in postlump)
+    subroutine chemwrit(kw)
 !
-        do j=1,c_nchem2
-          if(c_npequil(j) == j) then
-            xrr( kw,1) = 0.
-            rpro( kw,1) = 0.
-            rloss( kw,1) = 0.
-            do  neq=1,(c_nequil(  j)+1)
-              ic=j
-              if(neq > 1) ic = c_ncequil(  j,(neq-1))
-              alpha(  kw) = 1.
-              if(neq > 1) alpha( 1)= c_h2oliq( 1)*avogadrl
-              rloss( kw,1) = rloss( kw,1)+c_rl( kw,ic)
-              rpro( kw,1)  = rpro( kw,1) +c_rp( kw,ic)
-! GAS-AQUEOUS SUM + CONVERSION
-!             xrr( kw,1)   = xrr( kw,1)  +c_xcout( kw,ic)*alpha( kw)
-! AQUEOUS CONVERSION, NO GAS-AQ SUM
-              xrr( kw,1)   = c_xcout( kw,ic)*alpha( kw)
-                              !do  neq=1,(c_nequil(  j)+1)
-            end do
-                                          ! CORRECTION- XR IS GAS-AQ SUM
-            xrr( kw,1) = c_xcout( kw,j)
-            beta(1)  = xrr( kw,1) -   c_xcin( kw,j)
-            gamma(1) = rpro( kw,1) - rloss( kw,1)
+      implicit none
 
-            write(c_out,1803) j, c_tchem(j),                            &
-     &       xrr( kw,1),  c_xcin( kw,j), xcfinr(kw,j)                   &
-     &       ,rloss( kw,1), rpro( kw,1)                                 &
-     &       ,beta(1), gamma(1)
-                            !if(c_npequil(j) == j) then
+      integer , intent(in) :: kw
+
+      ! 'SUM' name for output
+      character(len=8) :: tsum
+      ! Gas phase concentration
+      real(dp) :: xcgas
+      ! Aqueous   concentration
+      real(dp) :: acquacon
+!
+      if ( kw <= 0 ) return
+      kk = 1
+      !
+      ! SPECIES CONCENTRATIONS.
+      !
+      write(c_out,1141) c_hour
+      ncf = idint(0.2D0*(dble(c_nchem2)-0.01D0))+1
+      do nc = 1 , ncf
+        nc1 = 4*(nc-1) + 1
+        nc2 = nc1 + 3
+        if ( nc1 > c_nchem2 ) nc1 = c_nchem2
+        if ( nc2 > c_nchem2 ) nc2 = c_nchem2
+        write(c_out,1142) (c_tchem(nn),c_xcout(kw,(nn)),nn=nc1,nc2)
+      end do
+      !
+      !   AQUEOUS SPECIES CONCENTRATIONS
+      !
+      ! NOTE  c_xcout(kw,ic) for GAS SPECIES IS GAS+AQ SUM, molec/cm3 equiv.
+      !       c_xcout(kw,icq) for AQUEOUS SPECIES is moles/liter
+      !    .  GAS-ONLY IS CALCULATED HERE.
+      ! NOTE!  WRITE error for lumped species such as  MP (in rooh);
+      !        c_xcout(kw,ic) is preserved as species fraction, not sum?
+      !
+      if ( c_h2oliq(kw ) > d_zero ) then
+        acquacon = c_h2oliq(kw)*avogadrl
+        write(c_out,1301) c_h2oliq(kw )
+        write(c_out,1303) acquacon
+        if ( c_aqueous(1,2) > 0 ) then
+          write(c_out,1302) c_xcout(kw ,c_aqueous(1,2))
+        end if
+        tsum = '     SUM'
+!       do ic = 1 , c_nchem2
+        do nrh = 1 , c_nreach
+          ic = c_henry(nrh,1)
+          if ( c_nequil(ic) > 0 )  then
+            xcgas = c_xcout(kw,ic)
+            do i = 1 , c_nequil(ic)
+              xcgas = xcgas - c_xcout(kw,c_ncequil(ic,i))*acquacon
+            end do
+            write(c_out,1305) c_tchem(ic), xcgas, (c_tchem(c_ncequil(ic,i)), &
+                  c_xcout(kw,c_ncequil(ic,i)),i=1,c_nequil(ic)), &
+                  tsum, c_xcout(kw,ic)
+            if ( rhdif(kw,nrh) > 0 ) then
+              xcgas = (c_xcout(kw,c_ncequil(ic,1))*acquacon)/rhdif(kw,nrh)
+            end if
+            write(c_out,1306)xcgas, rateh(kw ,nrh), rhdif(kw ,nrh)
           end if
-                         !do j=1,c_nchem2
         end do
+      end if
+      !
+      ! --------------
+      ! CHEMWRIT  SUMMARY WRITE:
+      !    CONCENTRATIONS, XCIN, RP, RL from QUADCHEM
+      ! --------------
+      write(c_out,1801) c_iter, kw
+      write(c_out,1804) c_idate, c_hour, c_lat(1), c_lon(1), c_temp(1)
+      write(c_out,1805) (c_jparam(i),i=1,13),c_jparam(20)
+      write(c_out,1802)
+      !
+      ! WRITE GAS-AQUEOUS SUMS
+      !   MAKE XC,  RP, RL=GAS+AQ SUM for gas species.
+      !    CONVERT AQUEOUS XC TO GAS UNITS
+      !     (Note, sum aqueous into gas for xc, but not for xcout.
+      !      xcout is made gas-aqueous sum in postlump)
+      !
+      do j = 1 , c_nchem2
+        if ( c_npequil(j) == j ) then
+          xrr(kw,1) = d_zero
+          rpro(kw,1) = d_zero
+          rloss(kw,1) = d_zero
+          do neq = 1 , (c_nequil(j)+1)
+            ic = j
+            if ( neq > 1 ) ic = c_ncequil(j,(neq-1))
+            alpha(kw) = d_one
+            if ( neq > 1 ) alpha(1) = c_h2oliq(1)*avogadrl
+            rloss(kw,1) = rloss(kw,1) + c_rl(kw,ic)
+            rpro(kw,1) = rpro(kw,1) + c_rp(kw,ic)
+            !
+            ! GAS-AQUEOUS SUM + CONVERSION
+            !
+!           xrr(kw,1) = xrr(kw,1) + c_xcout(kw,ic)*alpha( kw)
+            !
+            ! AQUEOUS CONVERSION, NO GAS-AQ SUM
+            !
+            xrr(kw,1) = c_xcout(kw,ic)*alpha(kw)
+          end do
+          !
+          ! CORRECTION- XR IS GAS-AQ SUM
+          !
+          xrr(kw,1) = c_xcout(kw,j)
+          cbeta(1) = xrr(kw,1) - c_xcin(kw,j)
+          cgamma(1) = rpro(kw,1) - rloss(kw,1)
+          write(c_out,1803) j, c_tchem(j), xrr(kw,1), c_xcin(kw,j), &
+                   xcfinr(kw,j), rloss( kw,1), rpro( kw,1),c beta(1), cgamma(1)
+        end if
+      end do
+      !
+      ! ------
+      ! END SUMMARY WRITE OPTION
+      ! ------
+      !
+      ! GAS-PHASE REACTION RATES
+      !
+      write(c_out,1143)
+      do nr = 1 , c_nreac
+        write(c_out,1144) nr, (c_treac(j,nr),j=1,5), &
+                     c_rr(kw ,nr), ratek(kw ,nr)
+      end do
 
+      write(c_out,1146)
+      if ( c_nreach > 0 ) then
+        do i = 1 , c_nreach
+          write(c_out,1147) (c_treach(j,i),j=1,2), rateh(kw ,i), rhdif(kw ,i)
+        end do
+      end if
+      !
+      ! AQUEOUS EQUILIBRIUM CONSTANTS
+      !
+      write(c_out,1153)
+      do nrq = 1 , c_nreacq
+        write(c_out,1154) nrq, (c_treacq(j,nrq),j=1,3), rateq(kw ,nrq)
+      end do
+      !
+      ! SPECIAL EQUILIBRIUM CONSTANTS
+      !
+      write(c_out,1156)
+      do nrqq = 1 , c_nreaqq
+        write(c_out,1154) nrqq, (c_treaqq(j,nrqq),j=1,3), rateqq(kw,nrqq)
+      end do
+!
+ 1141 format(/,' SPECIES CONCENTRATIONS AT  XHOUR =',f6.2)
+ 1142 format(4(a8,1pe10.3,2x))
+ 1301 format(/,'AQUEOUS CHEMISTRY ',/,'WATER (grams/cm3) =',1pe10.3)
+ 1302 format( ' [H+] (moles per liter) =',1pe10.3)
+ 1303 format( ' GAS SPECIES and G-A SUM molec/cm3. ',  &
+              ' AQUEOUS moles/liter. CONVERSION= ', 1pe10.3)
+ 1305 format(4(a8,1pe10.3,2x),/,'         0.000E+00  ',3(a8,1pe10.3,2x))
+ 1306 format('   (',1pe10.3,')                      HENRY, Hw/DIFF=',3(1pe10.3))
+ 1801 format(//,' SUMMARY WRITE:  ITER =',i3, '    VECTOR KKW=',i3)
+ 1802 format(/,' #  IC     XCOUT     XCIN  XCF/AV       RL',          &
+               '        RP        dXC      dR')
+ 1803 format(i4,a8,2(1pe10.3),0pf7.3,1x,(4(1pe10.3)))
+ 1804 format('IDATE xhour lat lon temp=',i8,4f8.2)
+ 1805 format('JPARAMS: zenith altmid dobson so2 no2 aaerx aerssa',      &
+             ' albedo',/,'cld-below cld-above claltB claltA temp date', &
+             /,(8f10.3))
+ 1143 format(/' GAS-PHASE REACTION RATES')
+ 1144 format(i4,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,2(1pe10.3))
+ 1146 format(/,'HENRYS LAW CONSTANT + MODIFIED CONSTANT', &
+               ' WITH DIFFUSION ADJUSTMENT:')
+ 1147 format(a8,'=',a8,2x,2(1pe10.3))
+ 1153 format(/,' AQUEOUS EQUILIBRIUM CONSTANTS (H+)')
+ 1154 format(i4,2x,a8,'<=>',a8,'+',a8,2(1pe10.3))
+ 1156 format(/,' SPECIAL EQUILIBRIUM CONSTANTS ')
 
-! ------
-! END SUMMARY WRITE OPTION
-! ------
-
-
-! GAS-PHASE REACTION RATES
-         write(c_out,1143)
- 1143    format(/' GAS-PHASE REACTION RATES')
-         do      nr=1,c_nreac
-          write(c_out,1144) nr, (c_treac(j,nr),j=1,5), c_rr(kw ,nr),    &
-     &    ratek(kw ,nr)
- 1144     format(i4,2x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,2(1pe10.3))
-         end do
-
-          write(c_out,1146)
- 1146      format(/,'HENRYS LAW CONSTANT + MODIFIED CONSTANT',          &
-     &       ' WITH DIFFUSION ADJUSTMENT:')
-          if(c_nreach > 0) then
-            do i=1,c_nreach
-               write(c_out,1147) (c_treach(j,i),j=1,2),                 &
-     &         rateh(kw ,i),rhdif(kw ,i)
-            end do
-!           write(c_out,1147) ((c_treach(j,i),j=1,2),
-!    *         rateh(kw ,i),rhdif(kw ,i),i=1,c_nreach)
- 1147      format(a8,'=',a8,2x,2(1pe10.3))
-          end if
-
-! AQUEOUS EQUILIBRIUM CONSTANTS
-         write(c_out,1153)
- 1153    format(/,' AQUEOUS EQUILIBRIUM CONSTANTS (H+)')
-         do  nrq = 1,c_nreacq
-          write(c_out,1154) nrq, (c_treacq(j,nrq),j=1,3),               &
-     &    rateq(kw ,nrq)
- 1154     format(i4,2x,a8,'<=>',a8,'+',a8,2(1pe10.3))
-         end do
-
-! SPECIAL EQUILIBRIUM CONSTANTS
-         write(c_out,1156)
- 1156    format(/,' SPECIAL EQUILIBRIUM CONSTANTS ')
-         do  nrqq = 1,c_nreaqq
-          write(c_out,1154) nrqq, (c_treaqq(j,nrqq),j=1,3),             &
-     &    rateqq(kw ,nrqq)
-         end do
-
-
- 2000  return
-      END
-
-
+     end subroutine chemwrit
+!
 ! --------------------------------------------------------------
-        subroutine analyze(titl, kw)
-
+!
 ! This generates and writes a summary of chemistry
 !  for the specified species (TITL) and vector dimension (KW).
 !
@@ -3491,240 +3383,232 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
 !
+    subroutine analyze(titl, kw)
 !
-! -------------------------------------------------------------------
-      IMPLICIT NONE
+      implicit none
 
-      include 'chemmech.EXT'
-      INCLUDE 'chemvars.EXT'
-      include 'chemlocal.EXT'
-
-                                   ! Name of specified chem species
-        character*8 titl
-                                   ! Gas phase concentration
-        double precision xcgas
-                                  ! Aqueous   concentration
-        double precision acquacon
-                                   ! Dimensionless Henry coefficient
-        double precision xcoeff
-                                   ! Droplet diffusion factor
-        double precision xcoeff2
+      ! Name of specified chem species
+      character(len=8) , intent(in) :: titl
+      ! Gas phase concentration
+      real(dp) :: xcgas
+      ! Aqueous   concentration
+      real(dp) :: acquacon
+      ! Dimensionless Henry coefficient
+      real(dp) :: xcoeff
+      ! Droplet diffusion factor
+      real(dp) :: xcoeff2
+      ! Chem. reaction rate molec/cm3/step
+      real(dp) :: tpro
+      ! Species production  molec/cm3/step
+      real(dp) :: xpro
+      ! Stoichiometry for spec. production
+      real(dp) :: stopro
 !
-                                   ! Chem. reaction rate molec/cm3/step
-        double precision tpro
-                                   ! Species production  molec/cm3/step
-        double precision xpro
-                                   ! Stoichiometry for spec. production
-        double precision stopro
+      ! Chem. reaction loss molec/cm3/step
+      real(dp) :: tloss
+      ! Species loss rate   molec/cm3/step
+      real(dp) :: xloss
+      ! Stoichiometry for species loss
+      real(dp) :: stoloss
 !
-                                   ! Chem. reaction loss molec/cm3/step
-        double precision tloss
-                                   ! Species loss rate   molec/cm3/step
-        double precision xloss
-                                   ! Stoichiometry for species loss
-        double precision stoloss
+      ! Net production minus loss /cm3/step
+      real(dp) :: tnetpro
+      ! Change in species conc molec/cm3
+      real(dp) :: tdelta
 !
-                                   ! Net production minus loss /cm3/step
-        double precision tnetpro
-                                   ! Change in species conc molec/cm3
-        double precision tdelta
-
-                                   ! counter for  aqueous  spec
-        integer neq1
-                              ! function to return chem species index
-        integer namechem
-
-        if( kw <= 0) return
-        kk=1
-
-!        (Replaced by parameter values in common)
-!       avogadrl = 6.02E20
-!       atmos = 2.247E+19
-
-        ics=namechem(titl)
-        if(ics <= 0) then
-           write(c_out,21) titl, ics
-   21     format(/,'WARNING:  UNKNOWN CHEMICAL NAME IN SUBROUTINE',     &
-     &    'ANALYZE',/,'NAME = ',a8,'  IC=',i5)
-           return
-        end if
-
+      ! counter for  aqueous  spec
+      integer :: neq1
 !
-! LOOP FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS  - CUT
-        ic=ics
-
-        write(c_out,22) titl,ic
-   22   format(/,'CHEMICAL PRODUCTION AND LOSS ANALYSIS FOR:',/,        &
-     &  'SPECIES = ',a8,'  IC=',i5)
-
-        if(              c_nequil(ic) > 0)                             &
-     &     write(c_out,23) c_h2oliq( kw)
-   23  format(/,'LIQUID WATER (gr/cm3) =', 1pe10.3)
-
-!  IF ACQUA>0, WRITE ASSOCIATED HENRY'S LAW AND EQUILIBRIA.
-        acquacon = c_h2oliq( kw)*avogadrl
-      if(c_nequil(ic) > 0.and.c_h2oliq( kw) > 0)                      &
-     &  write(c_out,31) acquacon
-   31   format(/,'AQUATIC CONVERSION FACTOR:',                          &
-     &  ' MOLE/LITER per MOLEC/CM3 =', 1pe10.3)
-
-
-!  IF ACQUA>0, LOOP FOR AQUEOUS PHASE SPECIES
-        if(c_nequil(ic) > 0.and.c_h2oliq( kw) > 0) then
-
-! CONCENTRATION OF GAS-SPECIES ONLY
-         xcgas = c_xcout( kw,ic)
-         do 40 n=1,c_nequil(ic)
-          icc=c_ncequil(ic,n)
-          xcgas = xcgas - c_xcout( kw,icc)*acquacon
-                 write(c_out,10031) icc, c_tchem(icc),c_xcout(kw,icc),  &
-     &              acquacon, xcgas
-10031            format(' TEST ICC TCHEM XR*AQUACON subtr fr XGSUM',/,  &
-     &              i5,2x,a8,2x,8(1pe10.3))
-   40    continue
-
-         write(c_out,32) c_xcout( kw,ic), xcgas
-   32    format(/,'  TOTAL SPECIES CONCENTRATION =',1pe10.3,/,          &
-     &           '    GAS SPECIES CONCENTRATION =',1pe10.3)
-
-! AQUEOUS CONCENTRATIONS AND CORRESPONDING HENRY'S LAW COEFFICIENTS
-! OR EQUILIBRIUM CONSTANTS
-        do 50 n=1,c_nequil(ic)
-         icc = c_ncequil(ic,n)
-         nrq = c_nrequil(ic,n)
-         nrh = c_nrequil(ic,1)
-         if(n == 1) then
-           xcoeff = rateh( kw,nrh)*atmos/acquacon
-           xcoeff2 = 0.
-           if(rateh(kw,nrh) > 0)                                       &
-     &       xcoeff2 = rhdif(kw,nrh)/rateh(kw,nrh)
-           write(c_out,51) c_tchem(icc),c_xcout( kw,icc)
-   51      format(/,'AQUEOUS SPECIES = ',a8,' MOLES/LITER=',1pe10.3)
-           write(c_out,52) (c_treach(i,nrh),i=1,2)                      &
-     &        ,xcoeff, xcoeff2
-   52      format(a8,'=',a8,'  HENRYs LAW COEF=',1pe10.3,               &
-     &       '  DROPLET DIFF FAC=', 1pe10.3)
-         else
-!          if(xcoeff > 0) then
-!            xcoeff = rateq( kw,nrq)/xcoeff
-!          else
-!            xcoeff = rateq( kw,nrq)
-!          end if
-             xcoeff = rateq( kw,nrq)
-           write(c_out,51) c_tchem(icc),c_xcout( kw,icc)
-           write(c_out,53) (c_treacq(i,nrq),i=1,3),xcoeff
-   53      format(a8,'=',a8,'+',a8,                                     &
-     &      '  EQUILIBRIUM CONSTANT= ',1pe10.3)
-         end if
-   50   continue
-! END IF FOR AQUEOUS SPECIES
+      if ( kw <= 0 ) return
+      kk = 1
+      !
+      ics = namechem(titl)
+      if ( ics <= 0 ) then
+        write(c_out,21) titl, ics
+        return
       end if
-
-
-!  SUM AND WRITE CHEMICAL PRODUCTION  (RATE MOL CM-3 PER TIME STEP)
-       tpro  = 0.
-
-       write(c_out,201)
-  201  format(/,'PHOTOCHEMICAL PRODUCTION:',/,                          &
-     & '         REACTION                ',                             &
-     &    ' PRODUCTION  RATE        RATEK     ')
-
-! DO FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT.
-        ic=ics
-
-! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
-       do 280 neq1=1,(c_nequil(ic)+1)
-        if(neq1 == 1) then
-          acquacon = 1.
-          icc=ic
+      !
+      ! LOOP FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS  - CUT
+      !
+      ic = ics
+      write(c_out,22) titl, ic
+      if ( c_nequil(ic) > 0 ) then
+        write(c_out,23) c_h2oliq(kw)
+      end if
+      !
+      !  IF ACQUA>0, WRITE ASSOCIATED HENRY'S LAW AND EQUILIBRIA.
+      !
+      acquacon = c_h2oliq(kw)*avogadrl
+      if ( c_nequil(ic) > 0 .and. c_h2oliq(kw) > d_zero ) then
+        write(c_out,31) acquacon
+      end if
+      !
+      !  IF ACQUA>0, LOOP FOR AQUEOUS PHASE SPECIES
+      !
+      if ( c_nequil(ic) > 0 .and. c_h2oliq( kw) > d_zero ) then
+        !
+        ! CONCENTRATION OF GAS-SPECIES ONLY
+        !
+        xcgas = c_xcout( kw,ic)
+        do n = 1 , c_nequil(ic)
+          icc = c_ncequil(ic,n)
+          xcgas = xcgas - c_xcout( kw,icc)*acquacon
+          write(c_out,10031) icc, c_tchem(icc),c_xcout(kw,icc),  &
+                            acquacon, xcgas
+        end do
+        write(c_out,32) c_xcout( kw,ic), xcgas
+        !
+        ! AQUEOUS CONCENTRATIONS AND CORRESPONDING HENRY'S LAW COEFFICIENTS
+        ! OR EQUILIBRIUM CONSTANTS
+        do n = 1 , c_nequil(ic)
+          icc = c_ncequil(ic,n)
+          nrq = c_nrequil(ic,n)
+          nrh = c_nrequil(ic,1)
+          if ( n == 1 ) then
+            xcoeff = rateh( kw,nrh)*atmos/acquacon
+            xcoeff2 = d_zero
+            if ( rateh(kw,nrh) > d_zero ) then
+              xcoeff2 = rhdif(kw,nrh)/rateh(kw,nrh)
+              write(c_out,51) c_tchem(icc),c_xcout( kw,icc)
+              write(c_out,52) (c_treach(i,nrh),i=1,2), xcoeff, xcoeff2
+            else
+!             if ( xcoeff > 0 ) then
+!               xcoeff = rateq(kw,nrq)/xcoeff
+!             else
+!               xcoeff = rateq(kw,nrq)
+!             end if
+              xcoeff = rateq( kw,nrq)
+              write(c_out,51) c_tchem(icc),c_xcout( kw,icc)
+              write(c_out,53) (c_treacq(i,nrq),i=1,3),xcoeff
+            end if
+          end if
+        end do
+        !
+        ! END IF FOR AQUEOUS SPECIES
+        !
+      end if
+      !
+      !  SUM AND WRITE CHEMICAL PRODUCTION  (RATE MOL CM-3 PER TIME STEP)
+      !
+      tpro = d_zero
+      write(c_out,201)
+      !
+      ! DO FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT.
+      !
+      ic = ics
+      !
+      ! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
+      !
+      do neq1 = 1 , (c_nequil(ic)+1)
+        if ( neq1 == 1 ) then
+          acquacon = d_one
+          icc = ic
         else
           acquacon = c_h2oliq( kw)*avogadrl
-          neq=neq1-1
-          icc=c_ncequil(ic,neq)
+          neq = neq1-1
+          icc = c_ncequil(ic,neq)
         end if
-        if(acquacon == 0) go to 280
-
-! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
-! NOTE THAT RR, REACTION RATE, IS ALREADY IN GAS UNITS FOR  AQ SPECIES.
-        do 270 nr=1,c_nreac
-         stopro  = 0.
-         if(c_reactant(nr,1) == icc) stopro  = stopro  - 1.
-         if(c_reactant(nr,2) == icc) stopro  = stopro  - 1.
-         do 265 i=1,20
-          if(c_product(nr,i) == icc) stopro  = stopro  + c_stoich(nr,i)
-  265     continue
-         if(stopro  > 0.) then
-           xpro  = c_rr( kw,nr)*         stopro
-           tpro  = tpro  + xpro
-           write(c_out,102) nr, (c_treac(i,nr),i=1,5),                  &
-     &       xpro, c_rr( kw,nr) , ratek( kw,nr)
-         end if
-  270   continue
-  280  continue
-
-!  SUM AND WRITE CHEMICAL LOSSES
-       tloss = 0.
-
-       write(c_out,101)
-  101  format(/,'PHOTOCHEMICAL LOSSES:',/,                              &
-     & '         REACTION                ',                             &
-     &   ' LOSS        RATE        RATEK')
-  102  format(i4,1x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,3(1pe10.3   ))
-
-
-! DO FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT
-        ic=ics
-! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
-       do 180 neq1=1,(c_nequil(ic)+1)
-        if(neq1 == 1) then
-          acquacon = 1.
-          icc=ic
+        if ( acquacon == 0 ) cycle
+        !
+        ! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
+        ! NOTE THAT RR, REACTION RATE, IS ALREADY IN GAS UNITS FOR  AQ SPECIES.
+        !
+        do nr = 1 , c_nreac
+          stopro  = d_zero
+          if (c_reactant(nr,1) == icc) stopro = stopro - d_one
+          if (c_reactant(nr,2) == icc) stopro = stopro - d_one
+          do i = 1 , 20
+            if ( c_product(nr,i) == icc ) stopro = stopro + c_stoich(nr,i)
+          end do
+          if ( stopro  > d_zero ) then
+            xpro = c_rr(kw,nr) * stopro
+            tpro = tpro + xpro
+            write(c_out,102) nr, (c_treac(i,nr),i=1,5), &
+                  xpro, c_rr( kw,nr) , ratek( kw,nr)
+          end if
+        end do
+      end do
+      !
+      ! SUM AND WRITE CHEMICAL LOSSES
+      !
+      tloss = d_zero
+      write(c_out,101)
+      !
+      ! DO FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT
+      !
+      ic = ics
+      !
+      ! DO FOR GAS AND ALL ACQUEOUS EQUIVALENT SPECIES
+      !
+      do neq1 = 1 , (c_nequil(ic)+1)
+        if ( neq1 == 1 ) then
+          acquacon = d_one
+          icc = ic
         else
-          acquacon = c_h2oliq( kw)*avogadrl
-          neq=neq1-1
-          icc=c_ncequil(ic,neq)
+          acquacon = c_h2oliq(kw)*avogadrl
+          neq = neq1-1
+          icc = c_ncequil(ic,neq)
         end if
-        if(acquacon == 0) go to 180
-
-! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
-        do 170 nr=1,c_nreac
-         stoloss = 0.
-         if(c_reactant(nr,1) == icc) stoloss = stoloss + 1
-         if(c_reactant(nr,2) == icc) stoloss = stoloss + 1
-         do 165 i=1,20
-          if(c_product(nr,i) == icc) stoloss = stoloss - c_stoich(nr,i)
-  165     continue
-         if(stoloss > 0.) then
-           xloss = c_rr( kw,nr)*         stoloss
-           tloss = tloss + xloss
-           write(c_out,102) nr,(c_treac(i,nr),i=1,5),                   &
-     &      xloss, c_rr( kw,nr) , ratek( kw,nr)
-         end if
-  170   continue
-  180  continue
-
-! WRITE FINAL SUMMARY
-       tnetpro = tpro-tloss
-
-       write(c_out,301) titl, tpro, tloss, tnetpro
-  301  format(/,'SPECIES = ',a8,/,                                      &
-     &          ' SUMMED PHOTOCHEMICAL PRODUCTION = ',1pe10.3,/,        &
-     &          ' SUMMED PHOTOCHEMICAL LOSS       = ',1pe10.3,/,        &
-     &          ' NET    PHOTOCHEMICAL PRODUCTION = ',1pe10.3)
-
-!    FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT
-        ic=ics
-!
-       tdelta = c_xcout(kw,ic) -   c_xcin(kw,ic)
-       write(c_out,302) c_tchem(ic),                                    &
-     &    c_xcout( kw,ic),  c_xcin( kw,ic), tdelta,                     &
-     &          c_rp( kw,ic),c_rl( kw,ic)
-  302  format(/,                                                        &
-     & ' SPEC GAS+AQ CONC. PRIOR CONC. NET CHANGE   ',                  &
-     &     '(INTERNAL RPRO     RLOSS)',/                                &
-     & , a8, 3(1pe12.4),2x,2(1pe12.4))
-
- 2000  return
-      END
+        if ( acquacon == 0 ) cycle
+        !
+        ! LOOP THROUGH ALL REACTIONS TO FIND LOSSES FOR SPECIES
+        !
+        do nr = 1 , c_nreac
+          stoloss = d_zero
+          if ( c_reactant(nr,1) == icc ) stoloss = stoloss + d_one
+          if ( c_reactant(nr,2) == icc ) stoloss = stoloss + d_one
+          do i = 1 , 20
+            if ( c_product(nr,i) == icc ) stoloss = stoloss - c_stoich(nr,i)
+          end do
+          if ( stoloss > d_zero ) then
+            xloss = c_rr(kw,nr) * stoloss
+            tloss = tloss + xloss
+            write(c_out,102) nr,(c_treac(i,nr),i=1,5), &
+                      xloss, c_rr( kw,nr) , ratek( kw,nr)
+          end if
+        end do
+      end do
+      !
+      ! WRITE FINAL SUMMARY
+      !
+      tnetpro = tpro-tloss
+      write(c_out,301) titl, tpro, tloss, tnetpro
+      !
+      ! FOR ALL SPECIES LINKED THROUGH CHEMICAL PAIRS - CUT
+      !
+      ic = ics
+      tdelta = c_xcout(kw,ic) - c_xcin(kw,ic)
+      write(c_out,302) c_tchem(ic), c_xcout(kw,ic), c_xcin(kw,ic), tdelta,  &
+                       c_rp(kw,ic), c_rl(kw,ic)
+    
+   21 format(/,'WARNING:  UNKNOWN CHEMICAL NAME IN SUBROUTINE', &
+              'ANALYZE',/,'NAME = ',a8,'  IC=',i5)
+   22 format(/,'CHEMICAL PRODUCTION AND LOSS ANALYSIS FOR:',/,  &
+               'SPECIES = ',a8,'  IC=',i5)
+   23 format(/,'LIQUID WATER (gr/cm3) =', 1pe10.3)
+   31 format(/,'AQUATIC CONVERSION FACTOR:', &
+               ' MOLE/LITER per MOLEC/CM3 =', 1pe10.3)
+   32 format(/,'  TOTAL SPECIES CONCENTRATION =',1pe10.3,/,  &
+               '    GAS SPECIES CONCENTRATION =',1pe10.3)
+10031 format(' TEST ICC TCHEM XR*AQUACON subtr fr XGSUM',/,  &
+             i5,2x,a8,2x,8(1pe10.3))
+   51 format(/,'AQUEOUS SPECIES = ',a8,' MOLES/LITER=',1pe10.3)
+   52 format(a8,'=',a8,'  HENRYs LAW COEF=',1pe10.3,  &
+             '  DROPLET DIFF FAC=', 1pe10.3)
+   53 format(a8,'=',a8,'+',a8,'  EQUILIBRIUM CONSTANT= ',1pe10.3)
+  101 format(/,'PHOTOCHEMICAL LOSSES:',/,           &
+               '         REACTION                ', &
+               ' LOSS        RATE        RATEK')
+  102 format(i4,1x,a8,'+',a8,'=>',a8,'+',a8,'+',a8,3(1pe10.3   ))
+  201 format(/,'PHOTOCHEMICAL PRODUCTION:',/,          &
+               '         REACTION                ',    &
+               ' PRODUCTION  RATE        RATEK     ')
+  301 format(/,'SPECIES = ',a8,/,                            &
+               ' SUMMED PHOTOCHEMICAL PRODUCTION = ',1pe10.3,/,  &
+               ' SUMMED PHOTOCHEMICAL LOSS       = ',1pe10.3,/,  &
+               ' NET    PHOTOCHEMICAL PRODUCTION = ',1pe10.3)
+  302 format(/,' SPEC GAS+AQ CONC. PRIOR CONC. NET CHANGE   ', &
+               '(INTERNAL RPRO     RLOSS)',/,a8,3(1pe12.4),2x,2(1pe12.4))
+    end subroutine analyze
 
 end module mod_cbmz_init1
