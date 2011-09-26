@@ -24,10 +24,11 @@ module mod_cbmz_init1
   use mod_message
   use mod_cbmz_chemmech
   use mod_cbmz_chemlocal
+  use mod_cbmz_chemvars
 !
   private
 !
-  public :: chemread , namechem , hvread
+  public :: chemread , namechem , hvread , cheminit
 !
   contains
 !
@@ -154,13 +155,6 @@ module mod_cbmz_init1
       ! Set vector variable for non-vectorized case
       kk = 1
       !
-      ! GENERAL FORMATS
-      ! 11    format(///////,a1)
-      11 format(a4)
-      ! 11    format(a8)
-      12 format(i6)
-      13 format(1pe10.3)
-      !
       ! PRELIMINARY ZERO FOR READ
       !
       do nr = 1 , c_rdim
@@ -267,8 +261,6 @@ module mod_cbmz_init1
       do i = 1 , c_cdim
         read(c_rin,29) (tdum(ii) , ndum(ii) , ii=1,5)
         if ( c_kkw == 5 ) write(c_out,29) (tdum(ii) , ndum(ii), ii=1,5)
-        ! 29     format(5(7x,a4,i3,2x))
-        29 format(5(3x,a8,i3,2x))
         !
         ! WHILE NAME NE 'END', ENTER DUMMY READ INTO TCHEM ARRAY.
         ! AT 'END' BREAK AND LEAVE LOOP
@@ -280,8 +272,6 @@ module mod_cbmz_init1
           if ( ic == c_cdim ) then
             write(c_out,901) ic
             write(6,901) ic
-            901 format(/,'WARNING: NCHEM MAY EXCEED DIMENSION', &
-                         ' IN COMMON BLOCK.  NCHEM=',i4)
           end if
           c_tchem(ic) = tdum(ii)
           c_icat(ic) = ndum(ii)
@@ -292,13 +282,10 @@ module mod_cbmz_init1
       !
       c_nchem1 = ic
       if ( c_kkw > 0 ) write(c_out,49) c_nchem1
-      49 format(' TOTAL NUMBER OF CHEMICALS READ =', i5)
       !
       ! SUMMARY WRITE:  INPUT/OUTPUT SPECIES
       !
       write(c_out,1301)
-      1301 format(/,'TRANSPORTED (INPUT) SPECIES:  ',  &
-                    '  (negative=steady state)'   ,/)
       ncf = idint(0.2D0*(dble(c_nchem1)-0.01D0))+1
       do nc = 1 , ncf
         nc1 = 5*(nc-1) + 1
@@ -306,9 +293,6 @@ module mod_cbmz_init1
         if ( nc1 > c_nchem1 ) nc1 = c_nchem1
         if ( nc2 > c_nchem1 ) nc2 = c_nchem1
         write(c_out, 1302) (nn, c_tchem(nn),c_icat(nn) , nn=nc1,nc2 )
-!       1302 format(5(i3,4x,a4,i3,2x))
-        1302 format(5(i3,   a8,i3,2x))
-!       1302 format(1(i3,   a8,i3,2x))
       end do
       !
       ! SET CATEGORY AND STEADY STATE INDEX (after WRITE)
@@ -356,13 +340,10 @@ module mod_cbmz_init1
       if ( c_kkw == 5 ) write(c_out,11) titl
       loopindex: &
       do i = 1 , 20
-!       read(c_rin,209) (tdum(ii),ii=1,3)
         read(c_rin,209) (tdum(ii),ii=1,1)
         if ( c_kkw == 5 ) write(c_out,209) (tdum(ii),ii=1,1)
-!       209 format(3(4x,a4,3x))
-        209 format(3(   a8,3x))
         if ( tdum(1) == '     END' .or. &
-             tdum(1) == '    END ') exit
+             tdum(1) == '    END ') exit loopindex
         !
         ! ADVANCE COUNTER, SET SPECIES INDICES AT ZERO.
         !
@@ -378,13 +359,11 @@ module mod_cbmz_init1
         if ( ic == 0 ) then
           write(c_out,219) (tdum(j),j=1,1),ii
           write(6,219) (tdum(j),j=1,1),ii
-          219 format(/,'MAJOR ERROR: UNKNOWN SPECIES IN LUMPED SPECIES READ', &
-                     /, 'SPECIES LIST = ',1(a8,4x),'UNKNOWN #',i3)
           c_lump(nlump,1) = 0
           c_lump(nlump,2) = 0
           c_lump(nlump,3) = 0
           nlump = nlump-1
-          cycle
+          cycle loopindex
         end if
         c_lump(nlump,1) = ic
         c_llump(ic) = .true.
@@ -395,8 +374,6 @@ module mod_cbmz_init1
         do jj = 1 , 111
           read(c_rin,39) (tdum(ii),ii=1,5)
           if ( c_kkw == 5 ) write(c_out,39) (tdum(ii),ii=1,5)
-!         39 format(5(7x,a4,5x))
-          39 format(5(3x,a8,5x))
           do ii = 1 , 5
             if ( tdum(ii) == '       x' .or. &
                  tdum(ii) == '        ' .or. &
@@ -424,8 +401,6 @@ module mod_cbmz_init1
               !  IF LUMPED SPECIES ALREADY INCLUDED, ERROR AND EXIT LUMP LOOP
               write(c_out,218) (tdum(j),j=1,1)
               write(6,218) (tdum(j),j=1,1)
-              218 format(/,'MAJOR ERROR: PREVIOUSLY SET SPECIES IN ', &
-                         /, 'LUMPED LIST SPECIES = ',1(a8   ))
               c_lump(nlump,1) = 0
               c_lump(nlump,2) = 0
               c_lump(nlump,3) = 0
@@ -447,9 +422,7 @@ module mod_cbmz_init1
         ! SUMMARY WRITE: LUMPED SPECIES  SUMMARY
         !
         if ( nlump == 1 ) write(c_out, 1310)
-        1310 format(/, 'LUMPED SPECIES: NAME AND SPECIES CONTENTS')
         write(c_out,1311) c_tchem(c_lump(nlump,1))
-        1311 format(/,   a8)
         ncf = idint(0.2D0*(dble(c_lump(nlump,3) - &
                                 c_lump(nlump,2)+d_one)-0.01D0))+1
         do nc = 1 , ncf
@@ -490,12 +463,8 @@ module mod_cbmz_init1
           write(c_out,903) ic
           write(6,903) ic
         end if
-        903 format(/,'WARNING: NHENRY MAY EXCEED DIMENSION', &
-                     ' IN COMMON BLOCK.  NHENRY=',i4)
         read(c_rin, 59) tdum(1),tdum(2)
         if ( c_kkw == 5 ) write(c_out, 59) tdum(1),tdum(2)
-        ! 59 format(3(4x,a4,3x))
-        59 format(3(   a8,3x))
         !
         ! ENTER NAMES INTO HENRY'S LAW MATRIX
         ! 'END' BREAKS THE LOOP TO END THE HENRY'S LAW READ.
@@ -537,8 +506,6 @@ module mod_cbmz_init1
               write(c_out, 69) tdum(iii), nrh,iii,(tdum(j),j=1,2)
               write(6, 69) tdum(iii), nrh,iii,(tdum(j),j=1,2)
             end if
-            69 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
-                        ' NRH=',i4,'  NAME # ',i4,'  HENRY:  ',a8,'=',a8)
           end if
         end do
         !
@@ -561,7 +528,6 @@ module mod_cbmz_init1
         if ( c_kkw == 5 ) write(c_out, 33)  &
            c_nrkh(nrh), c_rkh(1,nrh), c_rkh(2,nrh), &
            c_accom(nrh) , c_molwt(nrh)
-        33 format(5x,i5, 1pe10.3, 0pf10.0, 1pe10.3, 0pf10.0)
       end do loophenry
       !
       ! --------------------------------------------------------
@@ -569,8 +535,6 @@ module mod_cbmz_init1
       ! --------------------------------------------------------
       c_nreach = nrh-1
       if ( c_kkw > 0 ) write(c_out,57) c_nreach
-      57 format(' TOTAL NUMBER OF HENRYS-LAW COEFFICIENTS READ =', i5)
-      !
       ! ------------------------------------
       ! READ LOOP:  AQUEUS EQUILIBRIUM CONSTANTS WITH H+
       ! ------------------------------------
@@ -592,8 +556,6 @@ module mod_cbmz_init1
         nrq = nrq+1
         if ( nrq == 161 .or. nrq == 121 .or. nrq == c_cdim) then
           write(c_out,904) nrq
-          904 format(/,'WARNING: NAQUEOUS MAY EXCEED DIMENSION', &
-                       ' IN COMMON BLOCK.  NAQUEOUS=',i4)
         end if
         !
         ! --------------------------------
@@ -623,9 +585,6 @@ module mod_cbmz_init1
               tdum(2) = tdum(3)
               tdum(3) = tdum(4)
               if ( c_kkw > 0 ) write(c_out,88) nrq,tdum(1),tdum(2),tdum(3)
-              88 format(/,'AQUEOUS ORDER SWITCH: NUMBER:',i3,'  REACTION:',&
-                        a8,'=',a8,'&',a8)
-
             end if
           end if
         end if
@@ -670,8 +629,6 @@ module mod_cbmz_init1
               write(c_out, 89) tdum(iii), nrq,iii,(tdum(j),j=1,3)
               write(   6, 89) tdum(iii), nrq,iii,(tdum(j),j=1,3)
             end if
-            89 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
-                ' NRQ=',i4,'  NAME # ',i4,' AQUEOUS:  ',a8,'=',a8,' + ',a8)
           end if
         end do
         !
@@ -680,11 +637,10 @@ module mod_cbmz_init1
         read(c_rin,33) c_nrkq(nrq), c_rkq(1,nrq), c_rkq(2,nrq)
         if ( c_kkw == 5 ) write(c_out,33) c_nrkq(nrq), &
                        c_rkq(1,nrq), c_rkq(2,nrq)
-      end do llopeq
+      end do loopeq
 
       c_nreacq = nrq-1
       if ( c_kkw > 0 ) write(c_out,79) c_nreacq
-      79 format(' TOTAL NUMBER OF AQUEOUS EQUILIBRIUM CONSTANTS =', i5)
       !
       ! ------------------------------------
       ! READ LOOP:  AQUEUS SPECIAL EQUILIBRIUM CONSTANTS WITHOUT H+/OH-
@@ -711,8 +667,6 @@ module mod_cbmz_init1
         nrqq = nrqq+1
         if ( nrqq == 121 .or. nrqq ==  91 .or. nrqq == c_cdim ) then
           write(c_out,905) nrqq
-          905 format(/,'WARNING: NAQUEOUSQ MAY EXCEED DIMENSION', &
-                       ' IN COMMON BLOCK.  NAQUEOUSQ=',i4)
         end if
         !
         ! --------------------------------
@@ -745,8 +699,6 @@ module mod_cbmz_init1
               write(c_out, 87) tdum(iii), nrqq,iii,(tdum(j),j=1,3)
               write(   6, 87) tdum(iii), nrqq,iii,(tdum(j),j=1,3)
             end if
-            87 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
-                   ' NRQQ=',i4,'  NAME # ',i4,' AQUEOUSQ:  ',a8,'=',a8,' + ',a8)
           end if
         end do
         !
@@ -760,7 +712,6 @@ module mod_cbmz_init1
       end do loopaqeq
       c_nreaqq = nrqq-1
       if ( c_kkw > 0 ) write(c_out,99) c_nreaqq
-      99 format(' TOTAL NUMBER OF AQUEOUSQ EQUILIBRIUM CONSTANTS =', i5)
       !
       ! --------------------------------------
       ! READ LOOP:  REACTION RATES; REACTANTS, PRODUCTS AND STOICHIOMETRIES
@@ -783,8 +734,6 @@ module mod_cbmz_init1
         nr = nr+1
         if ( nr == 1711 .or. nr == 1911 .or. nr == 3211 ) then
           write(c_out,906) nr
-          906 format(/,'WARNING: NREACT MAY EXCEED DIMENSION', &
-                       ' IN COMMON BLOCK.  NREACT  =',i4)
         end if
         !
         ! --------------------------------------------------------
@@ -797,7 +746,6 @@ module mod_cbmz_init1
                           xdum(4), tdum(4), xdum(5), tdum(5)
           if ( c_kkw == 5 ) write(c_out,109) tdum(1), tdum(2), xdum(3), &
                   tdum(3), xdum(4), tdum(4), xdum(5), tdum(5)
-          109 format(   a8,3x,a8,4x,2(f6.3,2x,a8,3x),f6.3,2x,a8)
           !
           ! ENTER NAMES INTO REACTANT OR PRODUCT MATRIX. (also TREAC)
           ! 'NEXT' BREAKS THE LOOP TO ADVANCE TO NEXT REACTION
@@ -835,9 +783,6 @@ module mod_cbmz_init1
                 if ( c_kkw > 0 ) write(c_out,127) nr, c_rk(1,nr), tdum
                 if ( c_kkw > 0 ) write(c_out,128) &
                                j, ic, c_stoich(nr,j), c_prodarr(nr,ic)
-                127 format(' ID PRODUCTS:  NR, RK1=', i5,1pe10.3,/, &
-                           '  TREACT= ',a8,'+',a8,'->',a8,'+',a8,'+',a8)
-                128 format(' J IC STOIC PRODARR = ', 2i5,2f10.3)
               end if
             else
               !
@@ -864,9 +809,6 @@ module mod_cbmz_init1
                 write(c_out,139) tdum(iii), nr,iii,tdum
                 write(   6,139) tdum(iii), nr,iii,tdum
               end if
-              139 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
-                   ' NR=',i4,'  NAME # ',i4,'  TREACT= ', &
-                   a8,'+',a8,'->',a8,'+',a8,'+',a8)
             end if
           end do
         end do loopreactant
@@ -880,7 +822,6 @@ module mod_cbmz_init1
         ! --------------------------------------------------------
         read(c_rin,131) ii, c_nrk(nr)
         if ( c_kkw == 5 ) write(c_out,131) ii, c_nrk(nr)
-        131 format(2i5)
         !
         ! READ OPTIONS AND FLAG FOR READ
         !
@@ -888,7 +829,6 @@ module mod_cbmz_init1
           read(c_rin,132) c_rk(1,nr), c_rk(2,nr)
           if ( c_kkw == 5 ) write(c_out,132) c_rk(1,nr), c_rk(2,nr)
         end if
-        132 format(10x,1pe10.3,0pf8.0,0pf8.3)
         if ( c_nrk(nr) == -2 .or. c_nrk(nr) == -5 .or. c_nrk(nr) == -6) then
           read(c_rin,132) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr)
           if ( c_kkw == 5 ) write(c_out,132) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr)
@@ -899,29 +839,24 @@ module mod_cbmz_init1
           if ( c_kkw == 5 ) write(c_out,133) c_rk(1,nr), c_rk(2,nr), &
                           c_rk(3,nr), c_rk(4,nr), c_rk(5,nr)
         end if
-        133 format(10x,0pf6.2,1pe10.3,0pf6.1,1pe10.3,0pf6.1)
         if ( c_nrk(nr) == -4 ) then
           read(c_rin,134) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr), &
                           c_rk(4,nr), c_rk(5,nr),c_rk(6,nr), c_rk(7,nr)
           if ( c_kkw == 5 ) write(c_out,134) c_rk(1,nr), c_rk(2,nr), &
                    c_rk(3,nr), c_rk(4,nr), c_rk(5,nr),c_rk(6,nr), c_rk(7,nr)
         end if
-        134 format(10x,1pe10.3,0pf8.0,0pf6.2,1pe10.3,0pf6.1,1pe10.3,0pf6.1)
         if ( c_nrk(nr) == -7 ) then
           read(c_rin,135) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr), &
                           c_rk(4,nr), c_rk(5,nr), c_rk(6,nr)
           if ( c_kkw == 5 ) write(c_out,135) c_rk(1,nr), c_rk(2,nr), &
                c_rk(3,nr), c_rk(4,nr), c_rk(5,nr), c_rk(6,nr)
         end if
-        135 format(10x,1pe10.3,0pf8.0,4(1pe10.3))
         if ( c_nrk(nr) == -8 ) then
           read(c_rin,136) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr), &
                           c_rk(4,nr), c_rk(5,nr)
           if ( c_kkw == 5 ) write(c_out,136) c_rk(1,nr), c_rk(2,nr), &
                           c_rk(3,nr), c_rk(4,nr), c_rk(5,nr)
         end if
-        ! format used for others
-        136 format(10x,3(1pe10.3,0pf8.0) )
         if ( c_nrk(nr) == -9 .or. c_nrk(nr) == -10 ) then
           read(c_rin,136) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr), &
                           c_rk(4,nr), c_rk(5,nr), c_rk(6,nr)
@@ -934,8 +869,6 @@ module mod_cbmz_init1
           if ( c_kkw == 5 ) write(c_out,137) c_rk(1,nr), c_rk(2,nr), &
                           c_rk(3,nr), c_rk(4,nr), c_rk(5,nr)
         end if
-        137 format(10x,1pe10.3,0pf8.0,1pe10.3,0pf8.3,0pf8.0)
-
         if ( c_nrk(nr) == -12 .or. c_nrk(nr) == -13 ) then
           read(c_rin,136) c_rk(1,nr), c_rk(2,nr), c_rk(3,nr), c_rk(4,nr)
           if ( c_kkw == 5 ) write(c_out,136) c_rk(1,nr), c_rk(2,nr), &
@@ -954,7 +887,6 @@ module mod_cbmz_init1
           if ( c_kkw == 5 ) write(c_out,142) c_rk(1,nr), c_rk(2,nr), &
                          c_rk(3,nr), c_rk(4,nr)
         end if
-        142 format(10x,1pe10.3,1x,1pe10.3,1x,1pe10.3,1x,1pe10.3)
         !
         ! READ FOR hv REACTIONS
         !
@@ -1057,7 +989,6 @@ module mod_cbmz_init1
       loopcascade: &
       do i = 1 , c_cdim
         read(c_rin,309)(tdum(ii),ii=1,3)
-        309 format(3(   a8,2x))
         !
         ! LOOP TO READ THREE SPECIES AND CONVERT TO SPECIES NUMBERS
         !   NOTE:  This read loop repeats to read full group
@@ -1099,8 +1030,6 @@ module mod_cbmz_init1
           if ( ic == 0 ) then
             write(c_out,319) (tdum(j),j=1,3),ii
             write(6,319) (tdum(j),j=1,3),ii
-            319 format(/,'MAJOR ERROR: UNKNOWN SPECIES IN CASCADE SPEC READ.', &
-                       /, 'SPECIES LIST = ',3(a8,4x),'UNKNOWN #',i3)
             exit
           end if
           !
@@ -1263,32 +1192,6 @@ module mod_cbmz_init1
       if ( c_nn2o5  == 0 ) write(c_out, 1392)
       if ( c_nhno3  == 0 ) write(c_out, 1393)
       !
-      1381 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  H2O')
-      1382 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  CO2')
-      1383 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:   H+')
-      1384 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  OH-')
-      1385 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:   OH')
-      1386 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  HO2')
-      1387 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED: H2O2')
-      1388 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:   O3')
-      1389 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  NO2')
-      1390 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:   NO')
-      1391 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED:  NO3')
-      1392 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED: N2O5')
-      1393 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
-                    ' OR MISNAMED: HNO3')
       !
       ! ----------------------
       ! ASSIGN AQUEOUS SPECIES TO ASSOCIATED GAS-MASTER SPECIES
@@ -1387,7 +1290,6 @@ module mod_cbmz_init1
               c_ion(ic1) = c_ion(ic1) - c_ion(c_aqueous(nrq,3))
               if ( c_kkw > 0 ) write(c_out,659) &
                 (c_treacq(j,nrq),j=1,3), c_ion(ic1), c_ion(c_aqueous(nrq,3))
-              659 format(a8,'=',a8,'+',a8,2x, 'ION2=',i3, '  ION3=',i3)
             end if
             !
             ! CHANGE PRODUCT ARRAY TO GAS-MASTER.
@@ -1403,14 +1305,12 @@ module mod_cbmz_init1
       ! SUMMARY WRITE: HENRY'S LAW AND AQUEOUS EQUILIBRIUM SPECIES (ncf)
       !
       write(c_out,1321)
-      1321 format(/,'HENRYs LAW AND LINKED AQUEOUS EQUILIBRIUM SPECIES',/)
       write(c_out,1322) c_tchem(c_aqueous(1,2)),c_tchem(c_aqueous(1,3))
       do nrh = 1 , c_nreach
         ic = c_henry(nrh,1)
         if ( c_nequil(ic) > 0 ) then
           write(c_out, 1322) c_tchem(ic), &
             (c_tchem(c_ncequil(ic,i)),i=1,c_nequil(ic))
-          1322 format(5(a8,2x))
         end if
       end do
       !
@@ -1580,10 +1480,6 @@ module mod_cbmz_init1
             ic1 == 0 .or. ic2 == 0 )  then
           write(c_out,667) i, icc1, icc2, ic1, ic2, c_nppair(ic2,1)
           write(6,667) i, icc1, icc2, ic1, ic2, c_nppair(ic2,1)
-          667 format(/,' MAJOR ERROR IN CASCADE PAIR SETUP:',/, &
-                       '  EITHER ZERO OR SECOND CASCADE PAIR ALREADY PAIRED.', &
-                     /,' PAIR NUMBER, icc1, icc2, ic1, ic2, c_nppair(ic2,1)=', &
-                     6i5)
           if ( icc1 > 0 ) write (c_out,309) c_tchem(icc1)
           if ( icc2 > 0 ) write (c_out,309) c_tchem(icc2)
           if ( ic1 > 0 )  write (c_out,309) c_tchem(ic1)
@@ -1592,7 +1488,7 @@ module mod_cbmz_init1
           if ( icc1 > 0 ) write (6,309) c_tchem(icc1)
           if ( icc2 > 0 ) write (6,309) c_tchem(icc2)
           if ( ic1 > 0 )  write (6,309) c_tchem(ic1)
-          if ( i c2 > 0 ) write (6,309) c_tchem(ic2)
+          if ( ic2 > 0 )  write (6,309) c_tchem(ic2)
           if ( icc1 > 0 ) write (6,309) c_tchem(icc1)
         else
           !
@@ -1675,7 +1571,6 @@ module mod_cbmz_init1
       ! TEST WRITE CASCADE
       !
       if ( c_kkw > 0 ) write(c_out,347)
-      347 format(/,'CASCADE TEST: LIST OF SPECIES IN ORDER OF SOLUTION')
       !
       !  RUN  CASCADE.  IDENTIFY INCLUDED SPECIES.
       !   COUNT SPECIES IN CASCADE GROUP.   ALSO ASSIGN NMULTI
@@ -1702,7 +1597,6 @@ module mod_cbmz_init1
             !
             if ( c_kkw >= 1 .and. icc > 0 ) then
               write(c_out,348) n, c_tchem(icc)
-              348 format(i4,4x,a8)
             end if
             do neq = 1 , (c_nequil(icc)+1)
               ic = icc
@@ -1764,11 +1658,9 @@ module mod_cbmz_init1
       !
       if ( c_kkw > 0 ) then
         write(c_out,336) ncdim, nsdim
-        336 format(/,' MAXIMUM CASCADE SPECIES, PAIR GROUPS = ', 2i5)
       end if
       if ( c_kkw == 1 .or. c_kkw == 5) then
         write(c_out,342)
-        342 format(/'TEST IC CHEM ICAT ISTS  NEQUIL PRIMARY  NPAIR PRIMARY')
       end if
       !
       ! CATEGORY TEST LOOP AMONG SPECIES.
@@ -1782,7 +1674,6 @@ module mod_cbmz_init1
           write(c_out,343) ic, c_tchem(ic), c_icat(ic), c_lsts(ic), &
                       c_nequil(ic), c_npequil(ic),  c_nppair(ic,3), &
                       c_nppair(ic,2), c_nppair(ic,1)
-          343 format(i4,2x,a8,2x,i5,l4,2x,8i5)
           if ( c_npequil(ic) > 0 ) then
             write(c_out,309) c_tchem(c_npequil(ic))
           end if
@@ -1794,7 +1685,6 @@ module mod_cbmz_init1
           end if
           if ( c_nequil(ic) > 0 ) then
             write(c_out,344) (c_ncequil(ic,i),i=1,c_nequil(ic))
-            344 format(' c_ncequil(aqueous subspecies) = ',10i5)
             do i = 1 , c_nequil(ic)
               if ( c_ncequil(ic,i) > 0 ) then
                 write(c_out,309) c_tchem(c_ncequil(ic,i))
@@ -1803,7 +1693,6 @@ module mod_cbmz_init1
           end if
           if ( c_nppair(ic,3) > 0 ) then
             write(c_out,345) ( c_nppair(ic,i),i=4,(3+c_nppair(ic,3)) )
-            345 format(' ncpair (chem. paired subspecies)  = ',10i5)
             do i = 4 , (3+c_nppair(ic,3))
               if ( c_nppair(ic,i) > 0 ) then
                 write(c_out,309) c_tchem(c_nppair(ic,i))
@@ -1816,15 +1705,11 @@ module mod_cbmz_init1
         !
         if ( c_icat(ic) <= 0 ) then
           write(c_out,341) ic,c_tchem(ic), c_icat(ic)
-          341 format(/,' WARNING:  MISSING SPECIES CATEGORY',/, &
-                      'SPECIES =',i4,2x,a8,'  CATEGORY=',i4)
 !         c_icat(ic) = 23
         end if
         if ( .not.lcastest(ic) ) then
           write(c_out,352) ic, c_tchem(ic), c_npequil(ic), &
                           c_tchem(c_npequil(ic))
-          352 format(/,' WARNING:  SPECIES OMITTED FROM CASCADE',/, &
-                       'SPECIES =',i4,4x,a8,'  NPEQUIL =',i4,2x,a8)
         end if
       end do
       !
@@ -1953,12 +1838,6 @@ module mod_cbmz_init1
       !
       ! END LOOP:  RUN CASCADE
       !
-      419 format(/,'WARNING:  CASCADE OUT OF SEQUENCE FOR SPECIES NAME=  ', &
-            a8,/,'PRODUCED AT REACTION #',i5,'  CALLED FOR SPECIES= ',      &
-            a8,/,' REACTION: ',a8,'+',a8,'=>',a8,'+',a8,'+',a8)
-
-      418 format(/,'WARNING:  SPECIES CALLED TWICE IN CASCADE. SPECIES=',   &
-            a8,/,' SECOND CALL AT CASCADE#',i3,' WITH INDICES=',3i3)
       !
       ! -------------------------------------------------------
       ! END CASCADE TEST
@@ -1969,6 +1848,113 @@ module mod_cbmz_init1
       ! ----------------------------------------------------------------
       !  END READ.
       ! ----------------------------------------------------------------
+
+   11 format(a4)
+   12 format(i6)
+   13 format(1pe10.3)
+   29 format(5(3x,a8,i3,2x))
+  901 format(/,'WARNING: NCHEM MAY EXCEED DIMENSION', &
+               ' IN COMMON BLOCK.  NCHEM=',i4)
+   49 format(' TOTAL NUMBER OF CHEMICALS READ =', i5)
+ 1301 format(/,'TRANSPORTED (INPUT) SPECIES:  ',  &
+               '  (negative=steady state)'   ,/)
+ 1302 format(5(i3,   a8,i3,2x))
+  209 format(3(   a8,3x))
+  219 format(/,'MAJOR ERROR: UNKNOWN SPECIES IN LUMPED SPECIES READ', &
+             /, 'SPECIES LIST = ',1(a8,4x),'UNKNOWN #',i3)
+   39 format(5(3x,a8,5x))
+  218 format(/,'MAJOR ERROR: PREVIOUSLY SET SPECIES IN ', &
+             /, 'LUMPED LIST SPECIES = ',1(a8   ))
+ 1310 format(/, 'LUMPED SPECIES: NAME AND SPECIES CONTENTS')
+ 1311 format(/,   a8)
+  903 format(/,'WARNING: NHENRY MAY EXCEED DIMENSION', &
+               ' IN COMMON BLOCK.  NHENRY=',i4)
+   59 format(3(   a8,3x))
+   69 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
+               ' NRH=',i4,'  NAME # ',i4,'  HENRY:  ',a8,'=',a8)
+   33 format(5x,i5, 1pe10.3, 0pf10.0, 1pe10.3, 0pf10.0)
+   57 format(' TOTAL NUMBER OF HENRYS-LAW COEFFICIENTS READ =', i5)
+  904 format(/,'WARNING: NAQUEOUS MAY EXCEED DIMENSION', &
+               ' IN COMMON BLOCK.  NAQUEOUS=',i4)
+   88 format(/,'AQUEOUS ORDER SWITCH: NUMBER:',i3,'  REACTION:',&
+             a8,'=',a8,'&',a8)
+   89 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
+               ' NRQ=',i4,'  NAME # ',i4,' AQUEOUS:  ',a8,'=',a8,' + ',a8)
+   79 format(' TOTAL NUMBER OF AQUEOUS EQUILIBRIUM CONSTANTS =', i5)
+  905 format(/,'WARNING: NAQUEOUSQ MAY EXCEED DIMENSION', &
+               ' IN COMMON BLOCK.  NAQUEOUSQ=',i4)
+   87 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
+               ' NRQQ=',i4,'  NAME # ',i4,' AQUEOUSQ:  ',a8,'=',a8,' + ',a8)
+   99 format(' TOTAL NUMBER OF AQUEOUSQ EQUILIBRIUM CONSTANTS =', i5)
+  906 format(/,'WARNING: NREACT MAY EXCEED DIMENSION', &
+               ' IN COMMON BLOCK.  NREACT  =',i4)
+  109 format(a8,3x,a8,4x,2(f6.3,2x,a8,3x),f6.3,2x,a8)
+  127 format(' ID PRODUCTS:  NR, RK1=', i5,1pe10.3,/, &
+             '  TREACT= ',a8,'+',a8,'->',a8,'+',a8,'+',a8)
+  128 format(' J IC STOIC PRODARR = ', 2i5,2f10.3)
+  139 format(/,'WARNING:  UNRECOGNIZED CHEMICAL NAME:',a8,/, &
+               ' NR=',i4,'  NAME # ',i4,'  TREACT= ', &
+               a8,'+',a8,'->',a8,'+',a8,'+',a8)
+  131 format(2i5)
+  132 format(10x,1pe10.3,0pf8.0,0pf8.3)
+  133 format(10x,0pf6.2,1pe10.3,0pf6.1,1pe10.3,0pf6.1)
+  134 format(10x,1pe10.3,0pf8.0,0pf6.2,1pe10.3,0pf6.1,1pe10.3,0pf6.1)
+  135 format(10x,1pe10.3,0pf8.0,4(1pe10.3))
+  136 format(10x,3(1pe10.3,0pf8.0) )
+  137 format(10x,1pe10.3,0pf8.0,1pe10.3,0pf8.3,0pf8.0)
+  142 format(10x,1pe10.3,1x,1pe10.3,1x,1pe10.3,1x,1pe10.3)
+  309 format(3(a8,2x))
+  347 format(/,'CASCADE TEST: LIST OF SPECIES IN ORDER OF SOLUTION')
+  348 format(i4,4x,a8)
+  336 format(/,' MAXIMUM CASCADE SPECIES, PAIR GROUPS = ', 2i5)
+  342 format(/'TEST IC CHEM ICAT ISTS  NEQUIL PRIMARY  NPAIR PRIMARY')
+  343 format(i4,2x,a8,2x,i5,l4,2x,8i5)
+  344 format(' c_ncequil(aqueous subspecies) = ',10i5)
+  345 format(' ncpair (chem. paired subspecies)  = ',10i5)
+  319 format(/,'MAJOR ERROR: UNKNOWN SPECIES IN CASCADE SPEC READ.', &
+             /, 'SPECIES LIST = ',3(a8,4x),'UNKNOWN #',i3)
+ 1381 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  H2O')
+ 1382 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  CO2')
+ 1383 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:   H+')
+ 1384 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  OH-')
+ 1385 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:   OH')
+ 1386 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  HO2')
+ 1387 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED: H2O2')
+ 1388 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:   O3')
+ 1389 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  NO2')
+ 1390 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:   NO')
+ 1391 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED:  NO3')
+ 1392 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED: N2O5')
+ 1393 format(/,'WARNING. THE FOLLOWING SPECIES MAY BE MISSING', &
+               ' OR MISNAMED: HNO3')
+  659 format(a8,'=',a8,'+',a8,2x, 'ION2=',i3, '  ION3=',i3)
+ 1321 format(/,'HENRYs LAW AND LINKED AQUEOUS EQUILIBRIUM SPECIES',/)
+ 1322 format(5(a8,2x))
+  667 format(/,' MAJOR ERROR IN CASCADE PAIR SETUP:',/, &
+               '  EITHER ZERO OR SECOND CASCADE PAIR ALREADY PAIRED.', &
+               /,' PAIR NUMBER, icc1, icc2, ic1, ic2, c_nppair(ic2,1)=',6i5)
+  341 format(/,' WARNING:  MISSING SPECIES CATEGORY',/, &
+               'SPECIES =',i4,2x,a8,'  CATEGORY=',i4)
+  352 format(/,' WARNING:  SPECIES OMITTED FROM CASCADE',/, &
+               'SPECIES =',i4,4x,a8,'  NPEQUIL =',i4,2x,a8)
+  419 format(/,'WARNING:  CASCADE OUT OF SEQUENCE FOR SPECIES NAME=  ', &
+            a8,/,'PRODUCED AT REACTION #',i5,'  CALLED FOR SPECIES= ',  &
+            a8,/,' REACTION: ',a8,'+',a8,'=>',a8,'+',a8,'+',a8)
+  418 format(/,'WARNING:  SPECIES CALLED TWICE IN CASCADE. SPECIES=',   &
+            a8,/,' SECOND CALL AT CASCADE#',i3,' WITH INDICES=',3i3)
+
     end subroutine chemread
 !
 ! ----------------------------------------------------------------
@@ -1986,11 +1972,8 @@ module mod_cbmz_init1
 ! -------------------------------------------------------------------
 !
     integer function namechem(titl)
-!
       implicit none
-!
-      character(len=8) :: titl
-
+      character(len=8) , intent(in) :: titl
       namechem = 0
       if ( titl == '        ' ) return
       do i = 1 , c_nchem2
@@ -2023,11 +2006,8 @@ module mod_cbmz_init1
 !
 ! -------------------------------------------------------------------
     subroutine hvread
-!
       implicit none
-!
       call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
-
     end subroutine hvread
 !
 ! --------------------------------------------------------------
@@ -2260,23 +2240,21 @@ module mod_cbmz_init1
         !   MUST BE  11 or 12 or 13 here
         !
         if ( ic <= 0 ) then
-!         if ( icat1 == 11 .or. icat1 == 12 ) then
           if ( icat1 == 11 .or. icat1 == 12 .or. icat1 == 13 ) then
             ic = c_reactant(nr,1)
           else
-!           if ( icat2 == 11 .or. icat2 == 12 ) then
             if ( icat2 == 11 .or. icat2 == 12 .or. icat2 == 13 ) then
               ic = c_reactant(nr,2)
             else
               if ( c_nnpro(nr) > 0 ) then
-              do n = 1 , c_nnpro(nr)
-                icatp = c_icat(c_npequil(c_product(nr,n)))
-!               if ( icatp == 11 .or. icatp == 12 ) then
-                if ( icatp == 11 .or. icatp == 12 .or. icatp == 13 ) then
-                  ic = c_product(nr,n)
-                  exit
-                end if
-              end do
+                do n = 1 , c_nnpro(nr)
+                  icatp = c_icat(c_npequil(c_product(nr,n)))
+                  if ( icatp == 11 .or. icatp == 12 .or. icatp == 13 ) then
+                    ic = c_product(nr,n)
+                    exit
+                  end if
+                end do
+              end if
             end if
           end if
         end if
@@ -2335,11 +2313,6 @@ module mod_cbmz_init1
                 c_reactant(nr,2), icat2, (c_product(nr,n),n=1,c_nnpro(nr) )
           write(6,355) nr, c_reactant(nr,1), icat1, c_reactant(nr,2), icat2, &
                            (c_product(nr,n),n=1,c_nnpro(nr) )
-          355 format(//,'MAJOR ERROR:  REACTION NOT IDENTIFIED WITH SPECIES', &
-               //,' REACTION NUMBER =',i4,/,                                  &
-                  ' FIRST REACTANT =', i4,'  CATEGORY =',i3,/,                &
-                  ' SECOND REACTANT=', i4,'  CATEGORY =',i3,/,                &
-                  ' PRODUCTS =', (10i5)  )
           call fatal(__FILE__,__LINE__,'MAJOR ERROR IN CBMZ CODE')
         end if
         !
@@ -2435,7 +2408,7 @@ module mod_cbmz_init1
         if ( c_nnpro(nr) > 0 ) then
           if ( c_npequil(c_reactant(nr,1)) /= c_nho2 ) then
             if ( c_reactant(nr,2) > 0 ) then
-              if ( c_reactant(nr,2) == c_nho2 ) 
+              if ( c_reactant(nr,2) == c_nho2 ) then
                 do n = 1 , c_nnpro(nr)
                   if ( c_npequil(c_product(nr,n)) == c_noh ) then
                     exit
@@ -2445,6 +2418,7 @@ module mod_cbmz_init1
             end if
           end if
         end if
+
       end do loopmechanal
       !
       ! END REACTION LOOP - END MECHANISM ANALYSIS.
@@ -2590,9 +2564,6 @@ module mod_cbmz_init1
                               write(c_out,1209) c_tchem(ic1), c_tchem(ic2), &
                                 c_tchem(icp1), c_pairfac(ic1), c_pairfac(ic2), &
                                 c_pairfac(icp1)
-                              1209 format(' SET PAIRFAC: species A + B <->C.', &
-                                  ' SPECIES AND PAIRFACS = ',/,         &
-                                  3(a8,2x), 3(1pe10.3)                )
                             end if
                           else
                             if ( c_nppair(icp2,2) /= c_nppair(ic1,2) ) then
@@ -2633,547 +2604,534 @@ module mod_cbmz_init1
                         if ( c_npmulti(icp1,1) == c_npmulti(ic1,1) ) then
                           if ( icp2 == 0 ) then
                             c_multfac(icp1) = c_multfac(ic1)+c_multfac(ic2)
-! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
-                          if(c_kkw > 0) write(c_out,1208)              &
-     &                     c_tchem(ic1), c_tchem(ic2), c_tchem(icp1),   &
-     &                     c_multfac(ic1), c_multfac(ic2),              &
-     &                               c_multfac(icp1)
- 1208                      format(' SET MULTIFAC:  species A + B <->C.',&
-     &                            ' SPECIES AND MULTIFACS = ',/,        &
-     &                            3(a8,2x), 3(1pe10.3)                )
-                       else
-                          if(c_npmulti(icp2,1) /= c_npmulti(ic1,1)) then
-                           c_multfac(icp2) =                            &
-     &                          c_multfac(ic1)+c_multfac(ic2)
-! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
-                            if(c_kkw > 0) write(c_out,1208)            &
-     &                       c_tchem(ic1), c_tchem(ic2), c_tchem(icp1)
+                            !
+                            ! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
+                            !
+                            if ( c_kkw > 0 ) then
+                              write(c_out,1208) c_tchem(ic1), c_tchem(ic2), &
+                                c_tchem(icp1), c_multfac(ic1), c_multfac(ic2), &
+                                c_multfac(icp1)
+                            end if
+                          else
+                            if ( c_npmulti(icp2,1) /= c_npmulti(ic1,1) ) then
+                              c_multfac(icp2) = c_multfac(ic1)+c_multfac(ic2)
+                              !
+                              ! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
+                              !
+                              if ( c_kkw > 0 ) then
+                                write(c_out,1208) c_tchem(ic1), c_tchem(ic2), &
+                                  c_tchem(icp1)
+                              end if
+                            end if
                           end if
-                                           !if(icp2 == 0) then
-                       end if
-                                     !if(c_npmulti(icp1,1) == ...
-                     else
-                       if(icp2 > 0) then
-                          if(c_npmulti(icp2,1) == c_npmulti(ic1,1)) then
-                           c_multfac(icp2) =                            &
-     &                        c_multfac(ic1)+c_multfac(ic2)
-! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
-                            if(c_kkw > 0) write(c_out,1208)            &
-     &                       c_tchem(ic1), c_tchem(ic2), c_tchem(icp1)
+                        else
+                          if ( icp2 > 0 ) then
+                            if ( c_npmulti(icp2,1) == c_npmulti(ic1,1) ) then
+                              c_multfac(icp2) = c_multfac(ic1)+c_multfac(ic2)
+                              !
+                              ! TEST WRITE - QUADINIT MULTIFAC (STANDARD)
+                              !
+                              if ( c_kkw > 0 ) then
+                                write(c_out,1208) c_tchem(ic1), c_tchem(ic2), &
+                                  c_tchem(icp1)
+                              end if
+                            end if
                           end if
-                                           !if(icp2 > 0) then
-                       end if
-                                     !if(c_npmulti(icp1,1) == ...
-                     end if
-                                  !if(c_npmulti(ic1,1) == ...
-                   end if
-                              !if(ic1 /= 0.and.ic2 /= 0.and.icp1 /= 0)
-                 end if
-
-! SET LOGIC FLAGS TO TEST IF REACTION IS ALREADY LISTED
-                   lloss = .true.
-                   lpro  = .true.
-
-! LOOP TO TEST WHETHER EXCHANGE REACTION IS ALREADY LISTED IN REVERSE
-!   If listed, EXPRO reaction would be  EXLOSS for its key species
-
-                   if(icp > 0) then
-                    do i=1,20
-                     do ii=1,5
-! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO, LLOSS to ID reaction as
-                      if(c_exloss(icp,i,ii) == nrp) then
-                       lloss= .false.
-                       lpro= .false.
-                      end if
-                                    !do ii=1,5
-                     end do
-                                 !do i=1,20
-                    end do
-                               !if(icp > 0)
-                   end if
-
-! LOOP TO TEST WHETHER EXLOSS, PRO REACTIONS ARE ALREADY IN FORWARD LIST
-
-                   do i=1,20
-                    do ii=1,5
-! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO, LLOSS to ID reaction as
-                     if(c_exloss(icx,i,ii) == nrx) lloss = .false.
-                     if( c_expro(icx,i,ii) == nrp)  lpro = .false.
-                                   !do ii=1,5
-                    end do
-                                !do i=1,20
-                   end do
-
-! IDENTIFY EXCHANGED SPECIES (icp):
-!  Record species only if base and exchanged species
-!                                         are in same pair group.
-!   and if exchanged  species is in reaction product list
-!  If no exchanged species, flag  species number as -1.
-                   if(icp > 0) then
-                    if( icp /= icx1.and.icp /= icx2)   icp=0
-                    if(c_nppair(icx,2) /= c_nppair(icp,2)) icp=0
-                                   !if(icp > 0)
-                   end if
-                   if(icp == 0)  icp=-1
-
-! RECORD EXCHANGE SPECIES ONLY IF MAIN AND EXCHANGE SPECIES ARE PAIRED
-!  AND IF KEY SPECIES OF 2ND REACTION IS PRODUCT OF 1ST
-!
-!  ( EXCORR must be called for single species also, e.g. HNO4.
-
-! LOOP TO ADD EXCHANGED SPECIES TO EXSPEC LIST
-
-                  if(lloss.or.lpro) then
-                    do i=1,20
-                     is=i
-                     if(c_exspec(icx,i) == icp) go to 1205
-                     if(c_exspec(icx,i) == 0) then
-                       c_exspec(icx,i)  = icp
-                       go to 1205
-                     end if
-                     if(i == 20) write(c_out,1206)
-                     if(i == 20) write(  6 ,1206)
- 1206                format(/,' MAJOR ERROR IN QUADINIT: ',             &
-     &                'EXCHANGED SPECIES INDEX EXCEEDED LIMIT' ,        &
-     &                ' (i=1,20, 1205)',/)
-                                    !   do i=1,20
-                    end do
- 1205               continue
-                                 !if(lloss.or.lpro)
-                  end if
-
-! LOOP TO ADD EXLOSS REACTION
-                  if(lloss) then
-                   do ii=1,5
-! ENTER THE EXCHANGE REACTION
-                    if(c_exloss(icx,is,ii) == 0) then
-                      c_exloss(icx,is,ii)=nrx
-! TEST WRITE - QUADINIT EXCHANGE(STANDARD)
-                      if(c_kkw > 0)                                    &
-     &                   write(c_out,1212) icx,icp, is,i,nrx,           &
-     &                   c_reactant(nrx,1),c_reactant(nrx,2),           &
-     &                   c_product(nrx,1),c_product(nrx,2)
- 1212                    format (/,'EXLOSS(ICX,IS,I)=NRX. ',            &
-     &                   'ICX,ICP,IS,I,NRX=', 5i5,/,                    &
-     &                   ' REACTANTS=',2i5, '  PRODUCTS=',2i5   )
-                      if(c_kkw > 0.and.c_reactant(nrx,1) > 0)         &
-     &                 write(c_out,*) c_tchem(c_reactant(nrx,1))
-                      if(c_kkw > 0.and.c_reactant(nrx,2) > 0)         &
-     &                 write(c_out,*) c_tchem(c_reactant(nrx,2))
-                      if(c_kkw > 0.and.c_product(nrx,1) > 0)          &
-     &                 write(c_out,*) c_tchem( c_product(nrx,1))
-                      if(c_kkw > 0.and. c_product(nrx,2) > 0)         &
-     &                 write(c_out,*) c_tchem( c_product(nrx,2))
-
-! HAVING ENTERED THE REACTION, BREAK THE LOOP
-                      go to 1211
-! ERROR WRITE
-                      write(c_out,1213)
-                      write( 6  ,1213)
- 1213                format(/,' MAJOR ERROR IN QUADINIT: ',             &
-     &                'EXLOSS INDEX EXCEEDED LIMIT' ,                   &
-     &                ' (ii=1,5, 1213)',/)
-
-                                    ! if(c_exloss(icx,is,ii) == 0
-                    end if
-                              !do ii=1,5 (1210)
-                   end do
-                                !if(lloss)
-                  end if
-! END LOOP TO ADD EXLOSS REACTION (1210)
-!    CONTINUE AFTER BREAK LOOP
- 1211             continue
-!
-
-! LOOP TO ADD EXPRO  REACTION
-                  if(lpro ) then
-                   do ii=1,5
-! ENTER THE EXCHANGE REACTION
-                    if( c_expro(icx,is,ii) == 0) then
-                       c_expro(icx,is,ii)=nrp
-! TEST WRITE - QUADINIT EXCHANGE(STANDARD)
-                      if(c_kkw > 0)                                    &
-     &                   write(c_out,1222) icx,icp, is,i,nrp,           &
-     &                   c_reactant(nrp,1),c_reactant(nrp,2),           &
-     &                   c_product(nrp,1),c_product(nrp,2)
- 1222                    format (/,' EXPRO(ICX,IS,I)=NRX.  ',           &
-     &                   'ICX,ICP,IS,I,NRX=', 5i5,/,                    &
-     &                   ' REACTANTS=',2i5,'  PRODUCTS=',2i5   )
-                      if(c_kkw > 0.and.c_reactant(nrp,1) > 0)         &
-     &                 write(c_out,*) c_tchem(c_reactant(nrp,1))
-                      if(c_kkw > 0.and.c_reactant(nrp,2) > 0)         &
-     &                 write(c_out,*) c_tchem(c_reactant(nrp,2))
-                      if(c_kkw > 0.and.c_product(nrp,1) > 0)          &
-     &                 write(c_out,*) c_tchem( c_product(nrp,1))
-                      if(c_kkw > 0.and. c_product(nrp,2) > 0)         &
-     &                 write(c_out,*) c_tchem( c_product(nrp,2))
-
-! ENTER WARNING FOR EXCHANGE REACTION AMONG UNPAIRED SPECIES
-                      if(icp < 0) then
-                        if ( (c_reactant(nrp,1) > 11)                  &
-     &                       .or. (c_reactant(nrp,2) > 11)) then
-!                        write(6    ,1224) nrp,  (c_treac(j,nrp),j=1,5)
-                         write(c_out,1224) nrp,  (c_treac(j,nrp),j=1,5)
- 1224                    format(/,'WARNING: POSSIBLE EXCHANGE REACTION '&
-     &                           ,'AMONG UNPAIRED SPECIES: nr =',       &
-     &                          /, i5, a8,'+',a8,'=>',a8,'+',a8,'+', a8)
                         end if
                       end if
-
-! HAVING ENTERED THE REACTION, BREAK THE LOOP
-                      go to 1221
-! ERROR WRITE
-                      write(c_out,1223)
-                      write( 6  ,1223)
- 1223                format(/,' MAJOR ERROR IN QUADINIT: ',             &
-     &                'EXPRO INDEX EXCEEDED LIMIT' ,                    &
-     &                ' (ii=1,5, 1223)',/)
-
                     end if
-                              !do ii=1,5 (1220)
-                   end do
-                               !if(lpro )
+                    !
+                    ! SET LOGIC FLAGS TO TEST IF REACTION IS ALREADY LISTED
+                    !
+                    lloss = .true.
+                    lpro  = .true.
+                    !
+                    ! LOOP TO TEST WHETHER EXCHANGE REACTION IS ALREADY LISTED
+                    ! IN REVERSE
+                    !   If listed, EXPRO reaction would be  EXLOSS
+                    !    for its key species
+                    !
+                    if ( icp > 0 ) then
+                      do i = 1 , 20
+                        do ii = 1 , 5
+                          !
+                          ! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO,
+                          ! LLOSS to ID reaction as
+                          if ( c_exloss(icp,i,ii) == nrp ) then
+                            lloss= .false.
+                            lpro= .false.
+                          end if
+                        end do
+                      end do
+                    end if
+                    !
+                    ! LOOP TO TEST WHETHER EXLOSS, PRO REACTIONS ARE ALREADY
+                    ! IN FORWARD LIST
+                    do i = 1 , 20
+                      do ii = 1 , 5
+                        !
+                        ! IF EXCHANGE RN IS LISTED IN REVERSE, USE LPRO,
+                        ! LLOSS to ID reaction as
+                        !
+                        if ( c_exloss(icx,i,ii) == nrx ) lloss = .false.
+                        if ( c_expro(icx,i,ii) == nrp )  lpro = .false.
+                      end do
+                    end do
+                    !
+                    ! IDENTIFY EXCHANGED SPECIES (icp):
+                    !  Record species only if base and exchanged species
+                    !  are in same pair group.
+                    !   and if exchanged  species is in reaction product list
+                    !  If no exchanged species, flag  species number as -1.
+                    if ( icp > 0 ) then
+                      if ( icp /= icx1 .and. icp /= icx2 ) icp = 0
+                      if ( c_nppair(icx,2) /= c_nppair(icp,2) ) icp = 0
+                    end if
+                    if ( icp == 0 ) icp = -1
+                    !
+                    ! RECORD EXCHANGE SPECIES ONLY IF MAIN AND EXCHANGE
+                    ! SPECIES ARE PAIRED
+                    !  AND IF KEY SPECIES OF 2ND REACTION IS PRODUCT OF 1ST
+                    !
+                    ! (EXCORR must be called for single species also, e.g. HNO4.
+                    ! LOOP TO ADD EXCHANGED SPECIES TO EXSPEC LIST
+                    !
+                    if ( lloss .or. lpro ) then
+                      do i = 1 , 20
+                        is = i
+                        if ( c_exspec(icx,i) == icp ) exit
+                        if ( c_exspec(icx,i) == 0 ) then
+                          c_exspec(icx,i) = icp
+                          exit
+                        end if
+                        if ( i == 20 ) write(c_out,1206)
+                        if ( i == 20 ) write(  6 ,1206)
+                      end do
+                    end if
+                    !
+                    ! LOOP TO ADD EXLOSS REACTION
+                    !
+                    if ( lloss ) then
+                      loop1210: &
+                      do ii = 1 , 5
+                        !
+                        ! ENTER THE EXCHANGE REACTION
+                        !
+                        if ( c_exloss(icx,is,ii) == 0 ) then
+                          c_exloss(icx,is,ii) = nrx
+                          !
+                          ! TEST WRITE - QUADINIT EXCHANGE(STANDARD)
+                          !
+                          if ( c_kkw > 0 ) then
+                            write(c_out,1212) icx ,icp, is, i, nrx,  &
+                               c_reactant(nrx,1),c_reactant(nrx,2),  &
+                               c_product(nrx,1),c_product(nrx,2)
+                          end if
+                          if ( c_kkw > 0 .and. c_reactant(nrx,1) > 0 ) then
+                            write(c_out,*) c_tchem(c_reactant(nrx,1))
+                          end if
+                          if ( c_kkw > 0 .and. c_reactant(nrx,2) > 0 ) then
+                            write(c_out,*) c_tchem(c_reactant(nrx,2))
+                          end if
+                          if ( c_kkw > 0 .and. c_product(nrx,1) > 0 ) then
+                            write(c_out,*) c_tchem( c_product(nrx,1))
+                          end if
+                          if ( c_kkw > 0 .and. c_product(nrx,2) > 0 ) then
+                            write(c_out,*) c_tchem( c_product(nrx,2))
+                          end if
+                          !
+                          ! HAVING ENTERED THE REACTION, BREAK THE LOOP
+                          !
+                          exit loop1210
+                          ! ERROR WRITE
+                          write(c_out,1213)
+                          write( 6  ,1213)
+                        end if
+                      end do loop1210
+                    end if
+                    !
+                    ! END LOOP TO ADD EXLOSS REACTION (1210)
+                    !    CONTINUE AFTER BREAK LOOP
+                    !
+                    ! LOOP TO ADD EXPRO  REACTION
+                    !
+                    if ( lpro ) then
+                      loop1220: &
+                      do ii = 1 , 5
+                        !
+                        ! ENTER THE EXCHANGE REACTION
+                        !
+                        if ( c_expro(icx,is,ii) == 0 ) then
+                          c_expro(icx,is,ii)=nrp
+                          !
+                          ! TEST WRITE - QUADINIT EXCHANGE(STANDARD)
+                          !
+                          if ( c_kkw > 0 ) then
+                             write(c_out,1222) icx, icp, is, i, nrp,   &
+                                 c_reactant(nrp,1), c_reactant(nrp,2), &
+                                 c_product(nrp,1), c_product(nrp,2)
+                          end if
+                          if ( c_kkw > 0 .and. c_reactant(nrp,1) > 0 ) then
+                            write(c_out,*) c_tchem(c_reactant(nrp,1))
+                          end if
+                          if ( c_kkw > 0 .and. c_reactant(nrp,2) > 0 ) then
+                            write(c_out,*) c_tchem(c_reactant(nrp,2))
+                          end if
+                          if ( c_kkw > 0 .and. c_product(nrp,1) > 0 ) then
+                            write(c_out,*) c_tchem( c_product(nrp,1))
+                          end if
+                          if ( c_kkw > 0 .and. c_product(nrp,2) > 0 ) then
+                            write(c_out,*) c_tchem( c_product(nrp,2))
+                          end if
+                          !
+                          ! ENTER WARNING FOR EXCHANGE REACTION AMONG
+                          ! UNPAIRED SPECIES
+                          !
+                          if ( icp < 0 ) then
+                            if ( (c_reactant(nrp,1) > 11) .or. &
+                                 (c_reactant(nrp,2) > 11)) then
+                              write(c_out,1224) nrp,  (c_treac(j,nrp),j=1,5)
+                            end if
+                          end if
+                          !
+                          ! HAVING ENTERED THE REACTION, BREAK THE LOOP
+                          !
+                          exit loop1220
+                          !
+                          ! ERROR WRITE
+                          !
+                          write(c_out,1223)
+                          write( 6  ,1223)
+                        end if
+                      end do loop1220
+                    end if
+                    !
+                    ! END LOOP TO ADD EXPRO  REACTION (1220)
+                    !    CONTINUE AFTER BREAK LOOP
+                    !
+                    !
+                    ! END CONTROLS TO IDENTIFY EXCHANGE REACTIONS
                   end if
-! END LOOP TO ADD EXPRO  REACTION (1220)
-!    CONTINUE AFTER BREAK LOOP
- 1221             continue
-
-
-! END CONTROLS TO IDENTIFY EXCHANGE REACTIONS
-                          !if( (icx1 == ic1.and.icx2 == ic2) etc.
-                 end if
-                        !if( (icy1 == icp1.and.icy2 == icp2) etc.
-               end if
-
-                        !do nrp=1,c_nreac
+                end if
               end do
-! END LOOP - SEARCH THROUGH REACTIONS TO FIND MATCHING EXPRO REACTION (1
-
-
-! END - CONTROLS TO SKIP AND CONTINUE LOOP
-                         !if(c_icat(icy1) == 1.or.c_icat(icy1) == 4)
+              !
+              ! END LOOP - SEARCH THROUGH REACTIONS TO FIND MATCHING
+              ! EXPRO REACTION (1
+              ! END - CONTROLS TO SKIP AND CONTINUE LOOP
             end if
-                       !if(icx /= icy1.and.icx /= icy2.and.icy2 > 0)
-           end if
-                     !if(icy2 > 0.and.icx2 == 0)
           end if
-
-                 !do nrx=1,c_nreac
-       end do
-! END   REACTION LOOP FOR EXCHANGE REACTIONS (1200)
-
-
-! END EXCHANGE ANALYSIS.
-! ----------------------
-!
-!
-!   IDENTIFY 'CROSS' REACTIONS FOR PAIRED SPECIES IN CASCADE
-! NNRCPRO, NRCPRO, STOICPRO WITH SAME FORMAT AS NRCHEM, ABOVE.
-!  THESE REPRESENT REACTIONS THAT PRODUCE THE SPECIES FROM 1/2 PAIR.
-
-! NNRCPRX, NRCPRX, STOICPRX REPRESENT PRODUCTION REACTIONS ASSOCIATED
-!  WITH THE THIRD PAIR IN A TRIPLET - USED ONLY FOR O3-NO-NO2.
-!
-! JANUARY 2005:  THIS HAS BEEN DELETED.   IT RELATES TO OLD TWOSOLVE
-!  AND NOXSOLVE - REPLACED BY NEW PAIR AND MULTISOLVE TREATMENTS.
-!
-!
-!
-! END CROSS-REACTION ANALYSIS.  END MECHANISM ANALYSIS.
-! ----------------------
-!
-! ----------------------
-!  NOV 2007:  Identify net RP for NOx, Ox tracers
-! IDENTIFY REACTION NUMBERS FOR 'SPECIAL' REACTIONS
-!  (used in preliminary chem, oh solver and in NOx-Ox global tracers)
-! ----------------------
-
-! ZERO
-      do i=1,13
-       do nr=1,c_nreac
-        c_noxchem(i,nr) = 0.
-       end do
+        end if
+      end do
+      !
+      ! END   REACTION LOOP FOR EXCHANGE REACTIONS (1200)
+      !
+      ! END EXCHANGE ANALYSIS.
+      ! ----------------------
+      !
+      !   IDENTIFY 'CROSS' REACTIONS FOR PAIRED SPECIES IN CASCADE
+      ! NNRCPRO, NRCPRO, STOICPRO WITH SAME FORMAT AS NRCHEM, ABOVE.
+      !  THESE REPRESENT REACTIONS THAT PRODUCE THE SPECIES FROM 1/2 PAIR.
+      !
+      ! NNRCPRX, NRCPRX, STOICPRX REPRESENT PRODUCTION REACTIONS ASSOCIATED
+      !  WITH THE THIRD PAIR IN A TRIPLET - USED ONLY FOR O3-NO-NO2.
+      !
+      ! JANUARY 2005:  THIS HAS BEEN DELETED.   IT RELATES TO OLD TWOSOLVE
+      !  AND NOXSOLVE - REPLACED BY NEW PAIR AND MULTISOLVE TREATMENTS.
+      !
+      ! END CROSS-REACTION ANALYSIS.  END MECHANISM ANALYSIS.
+      !
+      ! ----------------------
+      !  NOV 2007:  Identify net RP for NOx, Ox tracers
+      ! IDENTIFY REACTION NUMBERS FOR 'SPECIAL' REACTIONS
+      !  (used in preliminary chem, oh solver and in NOx-Ox global tracers)
+      ! ----------------------
+      do i = 1 , 13
+        do nr = 1 , c_nreac
+          c_noxchem(i,nr) = d_zero
+        end do
       end do
       c_nro3no = 0
       c_nrno2x = 0
-      c_nro3hv=0
-      c_nrohno2 =0
-      c_nrohco =0
-      c_nrho2no=0
-      c_nrho22 =0
-      c_nro3no2 =0
-      c_nroho3 =0
-      c_nrohch4 =0
-
-! SPECIAL REACTIONS: LOOP FOR EACH INDIVIDUAL REACTION
-!    moved from presolve
-
-      do nr=1,c_nreac
-!  c_nro3no
-
-        if(                                                             &
-     &    (c_reactant(nr,1) == c_nno.and.c_reactant(nr,2) == c_no3      &
-     &     .and.c_product(nr,1) == c_nno2)                              &
-     &    .or.                                                          &
-     &    (c_reactant(nr,2) == c_nno.and.c_reactant(nr,1) == c_no3      &
-     &     .and.c_product(nr,1) == c_nno2)                              &
-     &      ) c_nro3no = nr
-
-! c_nrno2hv
-        if(                                                             &
-     &    (c_product (nr,1) == c_nno.and.c_product (nr,2) == c_no3      &
-     &     .and.c_reactant(nr,1) == c_nno2)                             &
-     &    .or.                                                          &
-     &    (c_product (nr,2) == c_nno.and.c_product (nr,1) == c_no3      &
-     &     .and.c_reactant(nr,1) == c_nno2)                             &
-     &      )c_nrno2x = nr
-
-         if(c_reactant(nr,1) == c_no3.and.c_reactant(nr,2) == -1        &
-     &       .and.c_product(nr,1) == c_noh)                             &
-     &    c_nro3hv   =nr
-
-         if( (c_reactant(nr,1) == c_nno2.and.c_reactant(nr,2) == c_noh) &
-     &   .or.(c_reactant(nr,1) == c_noh.and.c_reactant(nr,2) == c_nno2))&
-     &    c_nrohno2   =nr
-
-         if( (c_reactant(nr,1) == c_nco .and.c_reactant(nr,2) == c_noh) &
-     &   .or.(c_reactant(nr,1) == c_noh.and.c_reactant(nr,2) == c_nco ))&
-     &    c_nrohco    =nr
-
-
-         if( (c_reactant(nr,1) == c_nno.and.c_reactant(nr,2) == c_nho2) &
-     &   .or.(c_reactant(nr,1) == c_nho2.and.c_reactant(nr,2) == c_nno))&
-     &    c_nrho2no   =nr
-
-         if(c_reactant(nr,1) == c_nho2.and.c_reactant(nr,2) == c_nho2)  &
-     &    c_nrho22    =nr
-
-         if( (c_reactant(nr,1) == c_nno2.and.c_reactant(nr,2) == c_no3) &
-     &   .or.(c_reactant(nr,1) == c_no3.and.c_reactant(nr,2) == c_nno2))&
-     &    c_nro3no2    =nr
-
-         if( (c_reactant(nr,1) == c_no3 .and.c_reactant(nr,2) == c_noh) &
-     &   .or.(c_reactant(nr,1) == c_noh.and.c_reactant(nr,2) == c_no3 ))&
-     &    c_nroho3    =nr
-
-         if( (c_reactant(nr,1) == c_nch4.and.c_reactant(nr,2) == c_noh) &
-     &   .or.(c_reactant(nr,1) == c_noh.and.c_reactant(nr,2) == c_nch4))&
-     &    c_nrohch4   =nr
-
-
-
-
-                        !do nr=1,c_nreac
+      c_nro3hv = 0
+      c_nrohno2 = 0
+      c_nrohco = 0
+      c_nrho2no = 0
+      c_nrho22 = 0
+      c_nro3no2 = 0
+      c_nroho3 = 0
+      c_nrohch4 = 0
+      !
+      ! SPECIAL REACTIONS: LOOP FOR EACH INDIVIDUAL REACTION
+      !    moved from presolve
+      !
+      do nr = 1 , c_nreac
+        if ( (c_reactant(nr,1) == c_nno .and. &
+              c_reactant(nr,2) == c_no3 .and. &
+              c_product(nr,1) == c_nno2) .or. &
+             (c_reactant(nr,2) == c_nno .and. &
+              c_reactant(nr,1) == c_no3 .and. &
+              c_product(nr,1) == c_nno2) ) c_nro3no = nr
+        if ( (c_product (nr,1) == c_nno .and. &
+              c_product (nr,2) == c_no3 .and. &
+              c_reactant(nr,1) == c_nno2) .or. &
+             (c_product (nr,2) == c_nno .and. &
+              c_product (nr,1) == c_no3 .and. &
+              c_reactant(nr,1) == c_nno2) ) c_nrno2x = nr
+        if ( c_reactant(nr,1) == c_no3 .and. &
+             c_reactant(nr,2) == -1 .and. &
+             c_product(nr,1) == c_noh) c_nro3hv = nr
+        if ( (c_reactant(nr,1) == c_nno2 .and. &
+              c_reactant(nr,2) == c_noh) .or. &
+             (c_reactant(nr,1) == c_noh .and. &
+              c_reactant(nr,2) == c_nno2) ) c_nrohno2 = nr
+        if ( (c_reactant(nr,1) == c_nco .and. &
+              c_reactant(nr,2) == c_noh) .or. &
+             (c_reactant(nr,1) == c_noh .and. &
+              c_reactant(nr,2) == c_nco) ) c_nrohco = nr
+        if ( (c_reactant(nr,1) == c_nno .and. &
+              c_reactant(nr,2) == c_nho2) .or. &
+             (c_reactant(nr,1) == c_nho2 .and. &
+              c_reactant(nr,2) == c_nno) ) c_nrho2no = nr
+        if ( c_reactant(nr,1) == c_nho2 .and. &
+             c_reactant(nr,2) == c_nho2 ) c_nrho22 = nr
+        if ( (c_reactant(nr,1) == c_nno2 .and. &
+              c_reactant(nr,2) == c_no3) .or. &
+             (c_reactant(nr,1) == c_no3 .and. &
+              c_reactant(nr,2) == c_nno2) ) c_nro3no2 = nr
+        if ( (c_reactant(nr,1) == c_no3 .and. &
+              c_reactant(nr,2) == c_noh) .or. &
+             (c_reactant(nr,1) == c_noh .and. &
+              c_reactant(nr,2) == c_no3 ) ) c_nroho3 = nr
+        if ( (c_reactant(nr,1) == c_nch4 .and. &
+              c_reactant(nr,2) == c_noh) .or. &
+             (c_reactant(nr,1) == c_noh .and. &
+              c_reactant(nr,2) == c_nch4) ) c_nrohch4 = nr
       end do
-
-! TRACER ANALYSIS:
-! LOOP FOR EACH INDIVIDUAL REACTION
-       do  nr=1,c_nreac
-
-
-!  noxchem(i,nr) = net rp O3 NOx PANs HNO3 RNO3;  NOx-PAN, PAN-NOX; HNO3
-! REACTANT1
-        if( c_icat(c_reactant(nr,1)) == 11                              &
-     &    .or.  c_icat(c_reactant(nr,1)) == 12                          &
-     &                   )  c_noxchem(1,nr) = c_noxchem(1,nr) - 1.
-
-        if( c_icat(c_reactant(nr,1)) == 6                               &
-     &    .or.  (c_icat(c_reactant(nr,1)) >= 12.and.                    &
-     &           c_icat(c_reactant(nr,1)) <= 15)                        &
-     &                   )  c_noxchem(2,nr) = c_noxchem(2,nr) - 1.
-
-        if( c_icat(c_reactant(nr,1)) ==  5.                             &
-     &                   )  c_noxchem(3,nr) = c_noxchem(3,nr) - 1.
-
-        if( c_icat(c_reactant(nr,1)) == 16.                             &
-     &                   )  c_noxchem(4,nr) = c_noxchem(4,nr) - 1.
-
-        if( c_icat(c_reactant(nr,1)) ==  7.                             &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    R4N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    R3N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    R7N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    R6N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    R5N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    ISN1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,1)) == '    ISNR'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-! REACTANT2
-
-       if(c_reactant(nr,2) > 0) then
-        if( c_icat(c_reactant(nr,2)) == 11                              &
-     &    .or.  c_icat(c_reactant(nr,2)) == 12                          &
-     &                   )  c_noxchem(1,nr) = c_noxchem(1,nr) - 1.
-
-        if( c_icat(c_reactant(nr,2)) == 6                               &
-     &    .or.  (c_icat(c_reactant(nr,2)) >= 12.and.                    &
-     &           c_icat(c_reactant(nr,2)) <= 15)                        &
-     &                   )  c_noxchem(2,nr) = c_noxchem(2,nr) - 1.
-
-        if( c_icat(c_reactant(nr,2)) ==  5.                             &
-     &                   )  c_noxchem(3,nr) = c_noxchem(3,nr) - 1.
-
-        if( c_icat(c_reactant(nr,2)) == 16.                             &
-     &                   )  c_noxchem(4,nr) = c_noxchem(4,nr) - 1.
-
-        if( c_icat(c_reactant(nr,2)) ==  7.                             &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    R4N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    R3N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    R7N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    R6N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    R5N1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    ISN1'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-
-         if(c_tchem(c_reactant(nr,2)) == '    ISNR'                     &
-     &                   )  c_noxchem(5,nr) = c_noxchem(5,nr) - 1.
-                                 !if(c_reactant(nr,2) > 0) then
+      !
+      ! TRACER ANALYSIS:
+      ! LOOP FOR EACH INDIVIDUAL REACTION
+      !
+      do nr = 1 , c_nreac
+        !
+        !  noxchem(i,nr) = net rp O3 NOx PANs HNO3 RNO3;  NOx-PAN, PAN-NOX; HNO3
+        !
+        ! REACTANT1
+        !
+        if ( c_icat(c_reactant(nr,1)) == 11 .or. &
+             c_icat(c_reactant(nr,1)) == 12 )  then
+          c_noxchem(1,nr) = c_noxchem(1,nr) - d_one
         end if
-
-! PRODUCTS
-
-       do  n=1,c_nnpro(nr)
-       if(c_product (nr,n) > 0) then
-        if( c_icat(c_product (nr,n)) == 11                              &
-     &    .or.  c_icat(c_product (nr,n)) == 12                          &
-     &           )  c_noxchem(1,nr) = c_noxchem(1,nr) + c_stoich(nr,n)
-
-        if( c_icat(c_product (nr,n)) == 6                               &
-     &    .or.  (c_icat(c_product (nr,n)) >= 12.and.                    &
-     &           c_icat(c_product (nr,n)) <= 15)                        &
-     &           )  c_noxchem(2,nr) = c_noxchem(2,nr) + c_stoich(nr,n)
-
-        if( c_icat(c_product (nr,n)) ==  5.                             &
-     &           )  c_noxchem(3,nr) = c_noxchem(3,nr) + c_stoich(nr,n)
-
-        if( c_icat(c_product (nr,n)) == 16.                             &
-     &           )  c_noxchem(4,nr) = c_noxchem(4,nr) + c_stoich(nr,n)
-
-        if( c_icat(c_product (nr,n)) ==  7.                             &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    R4N1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    R3N1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    R7N1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    R6N1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    R5N1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    ISN1'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-
-         if(c_tchem(c_product (nr,n)) == '    ISNR'                     &
-     &           )  c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
-                                 !if(c_product (nr,n) > 0) then
+        if ( c_icat(c_reactant(nr,1)) == 6 .or. &
+            (c_icat(c_reactant(nr,1)) >= 12 .and. &
+             c_icat(c_reactant(nr,1)) <= 15) )  then
+          c_noxchem(2,nr) = c_noxchem(2,nr) - d_one
         end if
-                                 !do  n=1,c_nnpro(nr)
+        if ( c_icat(c_reactant(nr,1)) ==  5 ) then
+          c_noxchem(3,nr) = c_noxchem(3,nr) - d_one
+        end if
+        if ( c_icat(c_reactant(nr,1)) == 16 )  then
+          c_noxchem(4,nr) = c_noxchem(4,nr) - d_one
+        end if
+        if ( c_icat(c_reactant(nr,1)) ==  7 ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    R4N1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    R3N1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    R7N1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    R6N1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    R5N1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    ISN1' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        if ( c_tchem(c_reactant(nr,1)) == '    ISNR' ) then
+          c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+        end if
+        !
+        ! REACTANT2
+        !
+        if ( c_reactant(nr,2) > 0 ) then
+          if ( c_icat(c_reactant(nr,2)) == 11 .or. &
+               c_icat(c_reactant(nr,2)) == 12 ) then
+            c_noxchem(1,nr) = c_noxchem(1,nr) - d_one
+          end if
+          if ( c_icat(c_reactant(nr,2)) == 6 .or. &
+              (c_icat(c_reactant(nr,2)) >= 12 .and. &
+               c_icat(c_reactant(nr,2)) <= 15) ) then
+            c_noxchem(2,nr) = c_noxchem(2,nr) - d_one
+          end if
+          if ( c_icat(c_reactant(nr,2)) == 5 ) then
+            c_noxchem(3,nr) = c_noxchem(3,nr) - d_one
+          end if
+          if ( c_icat(c_reactant(nr,2)) == 16 ) then
+            c_noxchem(4,nr) = c_noxchem(4,nr) - d_one
+          end if
+          if ( c_icat(c_reactant(nr,2)) == 7 ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    R4N1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    R3N1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    R7N1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    R6N1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    R5N1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    ISN1' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+          if ( c_tchem(c_reactant(nr,2)) == '    ISNR' ) then
+            c_noxchem(5,nr) = c_noxchem(5,nr) - d_one
+          end if
+        end if
+        !
+        ! PRODUCTS
+        !
+        do n = 1 , c_nnpro(nr)
+          if ( c_product (nr,n) > 0 ) then
+            if ( c_icat(c_product (nr,n)) == 11 .or. &
+                 c_icat(c_product (nr,n)) == 12 ) then
+              c_noxchem(1,nr) = c_noxchem(1,nr) + c_stoich(nr,n)
+            end if
+            if ( c_icat(c_product (nr,n)) == 6 .or. &
+                (c_icat(c_product (nr,n)) >= 12 .and. &
+                 c_icat(c_product (nr,n)) <= 15) ) then
+              c_noxchem(2,nr) = c_noxchem(2,nr) + c_stoich(nr,n)
+            end if
+            if ( c_icat(c_product (nr,n)) ==  5 ) then
+              c_noxchem(3,nr) = c_noxchem(3,nr) + c_stoich(nr,n)
+            end if
+            if ( c_icat(c_product (nr,n)) == 16 ) then
+              c_noxchem(4,nr) = c_noxchem(4,nr) + c_stoich(nr,n)
+            end if
+            if ( c_icat(c_product (nr,n)) ==  7 ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if (c_tchem(c_product (nr,n)) == '    R4N1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if ( c_tchem(c_product (nr,n)) == '    R3N1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if ( c_tchem(c_product (nr,n)) == '    R7N1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if ( c_tchem(c_product (nr,n)) == '    R6N1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if ( c_tchem(c_product (nr,n)) == '    R5N1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if ( c_tchem(c_product (nr,n)) == '    ISN1' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+            if (c_tchem(c_product (nr,n)) == '    ISNR' ) then
+              c_noxchem(5,nr) = c_noxchem(5,nr) + c_stoich(nr,n)
+            end if
+          end if
         end do
-
-! ENTER STOICHIOMETRIES FOR
-!    6 and 7:  NOx=>PAN, PAN=>NOx
-!    8 and 9:  NOx=>HNO3, HNO3=>NOX
-!   10 and 11:  NOx=>RNO3;  RNO3=>NOx
-!   12 and 13:  NOx=>H+RNO3; H+RNO3=>NOx
-
-       if(c_noxchem(3,nr) > 0) c_noxchem(6,nr) = c_noxchem(3,nr)
-       if(0.-c_noxchem(2,nr) < c_noxchem(6,nr) )                       &
-     &       c_noxchem(6,nr) = 0.-c_noxchem(2,nr)
-       if(c_noxchem(6,nr) < 0.) c_noxchem(6,nr)=0.
-
-       if(c_noxchem(3,nr) < 0) c_noxchem(7,nr) =0.- c_noxchem(3,nr)
-       if(   c_noxchem(2,nr) < c_noxchem(7,nr) )                       &
-     &       c_noxchem(7,nr) =    c_noxchem(2,nr)
-       if(c_noxchem(7,nr) < 0.) c_noxchem(7,nr)=0.
-
-       if(c_noxchem(4,nr) > 0) c_noxchem(8,nr) = c_noxchem(4,nr)
-       if(0.-c_noxchem(2,nr) < c_noxchem(8,nr) )                       &
-     &       c_noxchem(8,nr) = 0.-c_noxchem(2,nr)
-       if(c_noxchem(8,nr) < 0.) c_noxchem(8,nr)=0.
-
-       if(c_noxchem(4,nr) < 0) c_noxchem(9,nr) =0.- c_noxchem(4,nr)
-       if(   c_noxchem(2,nr) < c_noxchem(9,nr) )                       &
-     &       c_noxchem(9,nr) =    c_noxchem(2,nr)
-       if(c_noxchem(9,nr) < 0.) c_noxchem(9,nr)=0.
-
-       if(c_noxchem(5,nr) > 0) c_noxchem(10,nr) = c_noxchem(5,nr)
-       if(0.-c_noxchem(2,nr) < c_noxchem(10,nr) )                      &
-     &       c_noxchem(10,nr) = 0.-c_noxchem(2,nr)
-       if(c_noxchem(10,nr) < 0.) c_noxchem(10,nr)=0.
-
-       if(c_noxchem(5,nr) < 0) c_noxchem(11,nr) =0.- c_noxchem(5,nr)
-       if(   c_noxchem(2,nr) < c_noxchem(11,nr) )                      &
-     &       c_noxchem(11,nr) =    c_noxchem(2,nr)
-       if(c_noxchem(11,nr) < 0.) c_noxchem(11,nr)=0.
-
-       if((c_noxchem(4,nr)+c_noxchem(5,nr) > 0) )                      &
-     &         c_noxchem(12,nr) = c_noxchem(4,nr) + c_noxchem(5,nr)
-       if(0.-c_noxchem(2,nr) < c_noxchem(12,nr) )                      &
-     &       c_noxchem(12,nr) = 0.-c_noxchem(2,nr)
-       if(c_noxchem(12,nr) < 0.) c_noxchem(12,nr)=0.
-
-       if((c_noxchem(4,nr)+c_noxchem(5,nr) < 0) )                      &
-     &         c_noxchem(13,nr) =0.- c_noxchem(4,nr) - c_noxchem(5,nr)
-       if(   c_noxchem(2,nr) < c_noxchem(13,nr) )                      &
-     &       c_noxchem(13,nr) =    c_noxchem(2,nr)
-       if(c_noxchem(13,nr) < 0.) c_noxchem(13,nr)=0.
-
-! TEST WRITE - DEBUG   treac
-!      if(c_kkw  > 0) then
-!        if(nr == 1) write(c_out,1231)
-! 1231     format(/,'TEST REACTION INDICES FOR OX, NOX, PAN, HNO3, RNO3:
-!        write(c_out, 1233) nr,  (c_treac(j,nr ),j=1,5)
-! 1233     format( i5, a8,'+',a8,'=>',a8,'+',a8,'+', a8)
-!        write(c_out,1235) (c_noxchem(n,nr),n=1,13)
-! 1235     format(13f6.2)
-!        if(c_nro3no == nr) write(c_out,*) 'c_nro3no =', nr
-!        if(c_nrno2x == nr) write(c_out,*) 'c_nrno2x =', nr
-!      end if          ! if(c_kkw  > 0) then
-
-
-                             !do  nr=1,c_nreac
-       end do
-
+        !
+        ! ENTER STOICHIOMETRIES FOR
+        !    6 and 7:  NOx=>PAN, PAN=>NOx
+        !    8 and 9:  NOx=>HNO3, HNO3=>NOX
+        !   10 and 11:  NOx=>RNO3;  RNO3=>NOx
+        !   12 and 13:  NOx=>H+RNO3; H+RNO3=>NOx
+        !
+        if ( c_noxchem(3,nr) > 0 ) c_noxchem(6,nr) = c_noxchem(3,nr)
+        if ( d_zero-c_noxchem(2,nr) < c_noxchem(6,nr) ) then
+          c_noxchem(6,nr) = 0.-c_noxchem(2,nr)
+        end if
+        if ( c_noxchem(6,nr) < d_zero ) c_noxchem(6,nr) = d_zero
+        if ( c_noxchem(3,nr) < d_zero ) then
+          c_noxchem(7,nr) = d_zero-c_noxchem(3,nr)
+        end if
+        if ( c_noxchem(2,nr) < c_noxchem(7,nr) ) then
+          c_noxchem(7,nr) =    c_noxchem(2,nr)
+        end if
+       if ( c_noxchem(7,nr) < d_zero ) c_noxchem(7,nr) = d_zero
+       if ( c_noxchem(4,nr) > d_zero ) c_noxchem(8,nr) = c_noxchem(4,nr)
+       if ( d_zero-c_noxchem(2,nr) < c_noxchem(8,nr) ) then
+         c_noxchem(8,nr) = d_zero-c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(8,nr) < d_zero ) c_noxchem(8,nr) = d_zero
+       if ( c_noxchem(4,nr) < 0 ) then
+         c_noxchem(9,nr) = d_zero - c_noxchem(4,nr)
+       end if
+       if ( c_noxchem(2,nr) < c_noxchem(9,nr) ) then
+         c_noxchem(9,nr) = c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(9,nr) < d_zero ) c_noxchem(9,nr) = d_zero
+       if ( c_noxchem(5,nr) > d_zero ) c_noxchem(10,nr) = c_noxchem(5,nr)
+       if ( d_zero-c_noxchem(2,nr) < c_noxchem(10,nr) ) then
+         c_noxchem(10,nr) = d_zero-c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(10,nr) < d_zero ) c_noxchem(10,nr) = d_zero
+       if ( c_noxchem(5,nr) < d_zero ) then
+         c_noxchem(11,nr) = d_zero - c_noxchem(5,nr)
+       end if
+       if ( c_noxchem(2,nr) < c_noxchem(11,nr) ) then
+         c_noxchem(11,nr) = c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(11,nr) < d_zero ) c_noxchem(11,nr) = d_zero
+       if ( (c_noxchem(4,nr) + c_noxchem(5,nr) > d_zero) ) then
+         c_noxchem(12,nr) = c_noxchem(4,nr) + c_noxchem(5,nr)
+       end if
+       if ( d_zero-c_noxchem(2,nr) < c_noxchem(12,nr) ) then
+         c_noxchem(12,nr) = d_zero-c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(12,nr) < d_zero ) c_noxchem(12,nr) = d_zero
+       if ( (c_noxchem(4,nr)+c_noxchem(5,nr) < 0) ) then
+         c_noxchem(13,nr) = d_zero - c_noxchem(4,nr) - c_noxchem(5,nr)
+       end if
+       if ( c_noxchem(2,nr) < c_noxchem(13,nr) ) then
+         c_noxchem(13,nr) = c_noxchem(2,nr)
+       end if
+       if ( c_noxchem(13,nr) < d_zero ) c_noxchem(13,nr) = d_zero
+     end do
 !
+  355 format(//,'MAJOR ERROR:  REACTION NOT IDENTIFIED WITH SPECIES', &
+             //,' REACTION NUMBER =',i4,/,                            &
+                ' FIRST REACTANT =', i4,'  CATEGORY =',i3,/,          &
+                ' SECOND REACTANT=', i4,'  CATEGORY =',i3,/,          &
+                ' PRODUCTS =', (10i5)  )
+ 1209 format(' SET PAIRFAC: species A + B <->C.', &
+             ' SPECIES AND PAIRFACS = ',/,3(a8,2x),3(1pe10.3))
+ 1208 format(' SET MULTIFAC:  species A + B <->C.',&
+             ' SPECIES AND MULTIFACS = ',/,3(a8,2x),3(1pe10.3))
+ 1206 format(/,' MAJOR ERROR IN QUADINIT: ', &
+               'EXCHANGED SPECIES INDEX EXCEEDED LIMIT' ,' (i=1,20, 1205)',/)
+ 1212 format (/,'EXLOSS(ICX,IS,I)=NRX. ','ICX,ICP,IS,I,NRX=',5i5,/, &
+                ' REACTANTS=',2i5, '  PRODUCTS=',2i5   )
+ 1213 format(/,' MAJOR ERROR IN QUADINIT: ','EXLOSS INDEX EXCEEDED LIMIT' , &
+               ' (ii=1,5, 1213)',/)
+ 1222 format (/,' EXPRO(ICX,IS,I)=NRX.  ','ICX,ICP,IS,I,NRX=', 5i5,/, &
+                ' REACTANTS=',2i5,'  PRODUCTS=',2i5   )
+ 1224 format(/,'WARNING: POSSIBLE EXCHANGE REACTION '&
+               ,'AMONG UNPAIRED SPECIES: nr =',       &
+               /, i5, a8,'+',a8,'=>',a8,'+',a8,'+', a8)
+ 1223 format(/,' MAJOR ERROR IN QUADINIT: ', 'EXPRO INDEX EXCEEDED LIMIT' , &
+               ' (ii=1,5, 1223)',/)
 
-! ----------------------
-!  END QUADINIT
- 2000     return
-      END
-
+    end subroutine cheminit
+!
+! ---------------------------------------------
+!
 ! This writes chemical concentrations and reaction rates (gas+aqueous)
 !   for the specified vector loop (kw).
 !
@@ -3274,18 +3232,18 @@ module mod_cbmz_init1
           do neq = 1 , (c_nequil(j)+1)
             ic = j
             if ( neq > 1 ) ic = c_ncequil(j,(neq-1))
-            alpha(kw) = d_one
-            if ( neq > 1 ) alpha(1) = c_h2oliq(1)*avogadrl
+            calpha(kw) = d_one
+            if ( neq > 1 ) calpha(1) = c_h2oliq(1)*avogadrl
             rloss(kw,1) = rloss(kw,1) + c_rl(kw,ic)
             rpro(kw,1) = rpro(kw,1) + c_rp(kw,ic)
             !
             ! GAS-AQUEOUS SUM + CONVERSION
             !
-!           xrr(kw,1) = xrr(kw,1) + c_xcout(kw,ic)*alpha( kw)
+!           xrr(kw,1) = xrr(kw,1) + c_xcout(kw,ic)*calpha( kw)
             !
             ! AQUEOUS CONVERSION, NO GAS-AQ SUM
             !
-            xrr(kw,1) = c_xcout(kw,ic)*alpha(kw)
+            xrr(kw,1) = c_xcout(kw,ic)*calpha(kw)
           end do
           !
           ! CORRECTION- XR IS GAS-AQ SUM
@@ -3294,7 +3252,7 @@ module mod_cbmz_init1
           cbeta(1) = xrr(kw,1) - c_xcin(kw,j)
           cgamma(1) = rpro(kw,1) - rloss(kw,1)
           write(c_out,1803) j, c_tchem(j), xrr(kw,1), c_xcin(kw,j), &
-                   xcfinr(kw,j), rloss( kw,1), rpro( kw,1),c beta(1), cgamma(1)
+                   xcfinr(kw,j), rloss( kw,1), rpro( kw,1), cbeta(1), cgamma(1)
         end if
       end do
       !
@@ -3389,6 +3347,8 @@ module mod_cbmz_init1
 
       ! Name of specified chem species
       character(len=8) , intent(in) :: titl
+      integer , intent(in) :: kw
+
       ! Gas phase concentration
       real(dp) :: xcgas
       ! Aqueous   concentration
