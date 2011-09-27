@@ -217,24 +217,62 @@
 !     Run components
 !-----------------------------------------------------------------------
 !
-!      do while (.not. ESMF_ClockIsStopTime(clock))
+      do while (.not. ESMF_ClockIsStopTime(cplClock))
 !
 !-----------------------------------------------------------------------
 !     Run gridded components
 !-----------------------------------------------------------------------
 !
-!      do i = 1, 1 !nModels
-        i = Iatmos
+      do i = 1, nModels
         call ESMF_GridCompRun (models(i)%comp,                          &
                                importState=models(i)%stateImport,       &
                                exportState=models(i)%stateExport,       &
                                clock=cplClock,                          &
                                rc=rc)
-
-
-
-!      end do
-!      end do
+!
+!-----------------------------------------------------------------------
+!     Set coupling direction 
+!-----------------------------------------------------------------------
+!
+      if (i == Iatmos) then
+      call ESMF_AttributeSet (models(Iocean)%stateExport,               &
+                              name=trim(DIRECTION),                     &
+                              value=FORWARD_OFF,                        &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      j = Iocean
+      else
+      call ESMF_AttributeSet (models(Iatmos)%stateExport,               &
+                              name=trim(DIRECTION),                     &
+                              value=FORWARD_ON,                         &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      j = Iatmos
+      end if
+!
+!-----------------------------------------------------------------------
+!     Run coupler component
+!-----------------------------------------------------------------------
+!
+      call ESMF_CplCompRun(cplComp,                                     &
+                           importState=models(i)%stateExport,           &
+                           exportState=models(j)%stateImport,           &
+                           rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end do
+!
+!-----------------------------------------------------------------------
+!     Update coupler component clock 
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockAdvance(cplClock, rc=rc)
+!
+      end do
+!
+      call ESMF_VMBarrier(cplVM, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
 !-----------------------------------------------------------------------
 !     Finalize gridded components 
@@ -247,12 +285,20 @@
                                     rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end do 
+!
+!-----------------------------------------------------------------------
+!     Finalize coupler components.
+!-----------------------------------------------------------------------
+!
+      call ESMF_CplCompFinalize (cplComp,                               &
+                                 exportState=models(Iatmos)%stateExport,&
+                                 importState=models(Iocean)%stateImport,&
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
-!**********************************************************************
-!
+!-----------------------------------------------------------------------
 !     Terminates all the ESMF/MPI processing 
-!
-!**********************************************************************
+!-----------------------------------------------------------------------
 !
       call ESMF_Finalize(rc=rc)
 !

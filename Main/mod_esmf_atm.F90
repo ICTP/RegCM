@@ -192,6 +192,13 @@
       end subroutine RCM_SetInitialize
 !
       subroutine RCM_SetRun(comp, importState, exportState, clock, rc)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_runparams, only : dtsec
+!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -210,11 +217,10 @@
 !
       logical :: first
       integer :: localPet, petCount, comm
-      real*8 :: timestr, timeend
+      real*8 :: timestr1, timestr2, timeend, timepass
 !
       type(ESMF_Time) :: currTime
-      type(ESMF_Time) :: time1, time2
-      type(ESMF_TimeInterval) :: dt1
+      type(ESMF_TimeInterval) :: dt1, dt2, dt3, dt4
 !
 !-----------------------------------------------------------------------
 !     Call RCM run routines
@@ -257,48 +263,97 @@
 !     Write current time (debug)
 !-----------------------------------------------------------------------
 !
-      write(*, 20) localPet, 'Current Time',                            &
-                   trim(models(Iatmos)%time%stamp)
+      if (localPet .eq. models(Iatmos)%petList(1)) then
+        write(*, 20) localPet, 'Current Time',                          &
+                     trim(models(Iatmos)%time%stamp)
+      end if
 !
 !-----------------------------------------------------------------------
 !     Get coupler current time
 !-----------------------------------------------------------------------
 !
-      call ESMF_ClockGet (clock,                                        &
+      call ESMF_ClockGet (cplClock,                                     &
                           currTime=currTime,                            &
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Set start and end time 
+!     Set RCM start time (timestr1)
 !-----------------------------------------------------------------------
 !
       dt1 = models(Iatmos)%curTime-models(Iatmos)%strTime
       call ESMF_TimeIntervalGet (dt1,                                   &
-                                 s_r8=timestr,                          &
+                                 s_r8=timestr1,                         &
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      if (models(Iatmos)%curTime > currTime) then
-         dt1 = cplTimeStep-dt1
+!-----------------------------------------------------------------------
+!     Get coupler component start time (timestr2)
+!-----------------------------------------------------------------------
+!
+      dt2 = currTime-cplStartTime
+      call ESMF_TimeIntervalGet (dt2,                                   &
+                                 s_r8=timestr2,                         &
+                                 rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Set RCM end time (timeend) and simulation lenght (timepass) 
+!-----------------------------------------------------------------------
+!
+      if (timestr1 > timestr2) then
+         dt3 = cplTimeStep
       else
-         dt1 = dt1+cplTimeStep 
+         dt3 = dt1+cplTimeStep 
       end if
 !
-      call ESMF_TimeIntervalGet (dt1,                                   &
+      call ESMF_TimeIntervalGet (dt3,                                   &
                                  s_r8=timeend,                          &
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      print*, "** turuncu ** ", timestr, timeend
 !
-!      first = .false.
-!      call RCM_run(timestr, timeend, first)
+      timepass = timeend-timestr1
+!
+!-----------------------------------------------------------------------
+!     Run RCM
+!-----------------------------------------------------------------------
+!
+      if (localPet .eq. models(Iatmos)%petList(1)) then
+        write(*, fmt="(A2,4F15.2)") 'TR', timestr1, timeend,            &
+             timepass, timestr2
+      end if
+!
+      first = .false.
+      call RCM_run(timestr1, timeend, first)
+!
+!-----------------------------------------------------------------------
+!     Update model clock 
+!-----------------------------------------------------------------------
+!
+      call ESMF_TimeIntervalSet(dt4, s_r8=timepass, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_ClockAdvance(models(Iatmos)%clock, timeStep=dt4, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Sync the PETs 
+!-----------------------------------------------------------------------
+!
+      call ESMF_VMBarrier(models(Iatmos)%vm, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Put export data
+!-----------------------------------------------------------------------
+!
+      call RCM_PutExportData(localPet)
 !
 !-----------------------------------------------------------------------
 !     Formats 
 !-----------------------------------------------------------------------
 !
- 20   format(' PET (', I2, ') - RCM Model ', A, ' = ', A)
+ 20   format(' PET (', I2, ') - ATM Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -880,15 +935,19 @@
 !       unit: meter/second
         ptr(2:iym1,:) = transpose(v10m_o)
       end if
+!
+      if (associated(ptr)) then
+        models(Iatmos)%dataExport(i,n)%ptr => ptr
+      end if
       end do
 !
 !-----------------------------------------------------------------------
 !     Write field to file (debug)     
 !-----------------------------------------------------------------------
 !  
-      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
-                           'atm_export_'//trim(adjustl(name))//'.nc',   &
-                           rc=rc)
+!      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
+!                           'atm_export_'//trim(adjustl(name))//'.nc',   &
+!                           rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Add fields to export state
@@ -1000,4 +1059,94 @@
 !
       end subroutine RCM_SetStates
 !
+      subroutine RCM_PutExportData (localPet)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_runparams, only : debug_level
+      use mod_dynparam, only : nproc, iy, iym1, iym2, jx, jxp, ptop
+      use mod_bats_common
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer, intent(in) :: localPet
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j, id, n, rc, localDECount
+      logical :: flag
+      character (len=40) :: name
+      type(ESMF_StaggerLoc) :: staggerLoc
+      real(ESMF_KIND_R8), pointer :: ptr(:,:)
+!
+!-----------------------------------------------------------------------
+!     Initialize the import and export fields 
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
+!     Create export state fields 
+!-----------------------------------------------------------------------
+!
+      do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
+      name = models(Iatmos)%dataExport(i,n)%name
+!
+      if (associated(models(Iatmos)%dataExport(i,n)%ptr)) then
+        ptr => models(Iatmos)%dataExport(i,n)%ptr
+      end if
+!
+      if (trim(adjustl(name)) == "Pair") then
+!       unit: millibar       
+        ptr = (sfps(:,1:jxp)+ptop)*d_10
+      else if (trim(adjustl(name)) == "Tair") then 
+!       unit: celsius
+        ptr(2:iym1,:) = transpose(t2m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Qair") then
+!       unit: kg/kg
+        ptr(2:iym1,:) = transpose(q2m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "swrad") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
+        ptr(1:iym1,:) = fsw2d
+        ptr(iym1,:) = fsw2d(iym2,:) 
+      else if (trim(adjustl(name)) == "lwrad_down") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
+        ptr(1:iym1,:) = flw2d
+        ptr(iym1,:) = flw2d(iym2,:)
+      else if (trim(adjustl(name)) == "rain") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
+        ptr(1:iym1,:) = pptnc+pptc 
+        ptr(iym1,:) = pptnc(iym2,:)+pptc(iym2,:)
+      else if (trim(adjustl(name)) == "Uwind") then
+!       unit: meter/second
+        ptr(2:iym1,:) = transpose(u10m_o)
+        ptr(1,:) = ptr(2,:)
+        ptr(iy,:) = ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Vwind") then
+!       unit: meter/second
+        ptr(2:iym1,:) = transpose(v10m_o)
+      end if
+!
+      if (associated(ptr)) then
+        nullify(ptr)
+      end if
+      end do
+      end do
+!
+      end subroutine RCM_PutExportData
       end module mod_esmf_atm

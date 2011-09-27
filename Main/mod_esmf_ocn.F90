@@ -170,6 +170,15 @@
       end subroutine ROMS_SetInitialize
 !
       subroutine ROMS_SetRun(comp, importState, exportState, clock, rc)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_param, only : Ngrids
+      use mod_scalars, only : ntstart, ntend
+      use mod_stepping, only : kstp, nstp
+!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -186,13 +195,141 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-
+      logical, save :: first = .true.
+      integer, save :: tstr(Ngrids)
+      integer, save :: tend(Ngrids)
+      integer :: localPet, petCount, comm, nsteps, ng, rc2
+!
+      type(ESMF_Time) :: currTime
 !
 !-----------------------------------------------------------------------
 !     Call ROMS initialization routines
 !-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+! 
+      call ESMF_VMGet(models(Iocean)%vm,                                &
+                      localPet=localPet,                                &
+                      petCount=petCount,                                &
+                      mpiCommunicator=comm,                             &
+                      rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-
+!-----------------------------------------------------------------------
+!     Get RCM internal clock current time
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockGet (models(Iocean)%clock,                         &
+                          currTime=models(Iocean)%curTime,              &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimeGet (models(Iocean)%curTime,                        &
+                         yy=models(Iocean)%time%year,                   &
+                         mm=models(Iocean)%time%month,                  &
+                         dd=models(Iocean)%time%day,                    &
+                         h=models(Iocean)%time%hour,                    &
+                         m=models(Iocean)%time%minute,                  &
+                         s=models(Iocean)%time%second,                  &
+                         timeZone=models(Iocean)%time%zone,             &
+                         timeStringISOFrac=models(Iocean)%time%stamp,   &
+                         dayOfYear=models(Iocean)%time%yday,            &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Write current time (debug)
+!-----------------------------------------------------------------------
+!
+      if (localPet .eq. models(Iocean)%petList(1)) then
+        write(*, 20) localPet, 'Current Time',                          &
+                     trim(models(Iocean)%time%stamp)
+      end if
+!
+!-----------------------------------------------------------------------
+!     Get coupler current time
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockGet (cplClock,                                     &
+                          currTime=currTime,                            &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Set RCM start and end time steps
+!-----------------------------------------------------------------------
+!
+!      nsteps=int((currTime-models(Iocean)%curTime)/models(Iocean)%dtsec)
+      nsteps = int(cplTimeStep/models(Iocean)%dtsec) 
+!
+      if (first) then
+        first = .false.
+        do ng = 1, Ngrids
+          tstr(ng) = ntstart(ng)
+          tend(ng) = tstr(ng)+nsteps-1
+        end do
+      else
+        do ng = 1, Ngrids
+          tstr(ng) = tend(ng)+1 
+          tend(ng) = tstr(ng)+nsteps-1
+        end do
+      end if
+!
+!-----------------------------------------------------------------------
+!     Add extra time step at stop time to finalize ROMS IO 
+!-----------------------------------------------------------------------
+!
+      do ng = 1, Ngrids
+        if (tend(ng) == ntend(ng)) then
+          tend(ng) = tend(ng)+1
+        end if
+      end do      
+!
+!-----------------------------------------------------------------------
+!     Get import data 
+!-----------------------------------------------------------------------
+!
+!      call ROMS_GetImportData (localPet, kstp, nstp, rc2)
+!
+!-----------------------------------------------------------------------
+!     Run ROMS
+!-----------------------------------------------------------------------
+!
+      if (localPet .eq. models(Iocean)%petList(1)) then
+        write(*, fmt="(A2,3I10)") 'TR', tstr, tend, nsteps
+      end if
+!
+      call ROMS_run (tstr, tend)
+!
+!-----------------------------------------------------------------------
+!     Put export data
+!-----------------------------------------------------------------------
+!
+!      call ROMS_PutExportData (localPet, kstp, nstp, rc2)
+!
+!-----------------------------------------------------------------------
+!     Update model clock 
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockAdvance (models(Iocean)%clock,                     &
+                              timeStep=cplTimeStep,                     &
+                              rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Sync the PETs 
+!-----------------------------------------------------------------------
+!
+      call ESMF_VMBarrier(models(Iocean)%vm, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Formats 
+!-----------------------------------------------------------------------
+!
+ 20   format(' PET (', I2, ') - OCN Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
