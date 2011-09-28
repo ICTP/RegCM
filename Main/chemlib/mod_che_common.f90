@@ -64,7 +64,11 @@ module mod_che_common
   real(dp) , pointer , dimension(:,:) :: rembc , remrat
   real(dp) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
-  real(dp) , pointer , dimension(:,:) :: sfcp
+  real(dp) , pointer , dimension(:,:,:) :: tatm , qvatm
+  real(dp) , pointer , dimension(:,:) :: sfcp , psfcp
+  real(dp) , pointer , dimension(:) :: hlev
+  real(dp) , pointer , dimension(:) :: czen
+  real(dp) :: chptop
 
   contains
 

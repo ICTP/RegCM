@@ -28,10 +28,40 @@ module mod_che_chemistry
   use mod_cbmz_boxvars
   use mod_cbmz_chemmech
   use mod_cbmz_chemvars
+  use mod_cbmz_molwg
 
   private
 
-  public :: chemistry
+  public :: gas_phase
+
+  integer , parameter :: jvO2 = 1
+  integer , parameter :: jvO3a = 2
+  integer , parameter :: jvO3b = 3
+  integer , parameter :: jvNO2 = 4
+  integer , parameter :: jvNO3a = 5
+  integer , parameter :: jvNO3b = 6
+  integer , parameter :: jvN2O5a = 7
+  integer , parameter :: jvN2O5b = 8
+  integer , parameter :: jvN2O = 9
+  integer , parameter :: jvHO2 = 10
+  integer , parameter :: jvH2O2 = 11
+  integer , parameter :: jvHNO2 = 12
+  integer , parameter :: jvHNO3 = 13
+  integer , parameter :: jvHNO4 = 14
+  integer , parameter :: jvCH2Oa = 15
+  integer , parameter :: jvCH2Ob = 16
+  integer , parameter :: jvCH3CHOa = 17
+  integer , parameter :: jvCH3CHOb = 18
+  integer , parameter :: jvCH3CHOc = 19
+  integer , parameter :: jvC2H5CHO = 20
+  integer , parameter :: jvCHOCHO = 21
+  integer , parameter :: jvCH3COCHO = 22
+  integer , parameter :: jvCH3COCH3 = 23
+  integer , parameter :: jvCH3OOH = 24
+  integer , parameter :: jvCH3ONO2 = 25
+  integer , parameter :: jvPAN = 26
+
+  real(dp) , parameter :: kb = 1.380658E-19
 
   contains
 
@@ -41,7 +71,7 @@ module mod_che_chemistry
       implicit none
 
       integer , intent(in) :: jj
-      integer , intent(in) :: ktau
+      integer(8) , intent(in) :: ktau
       integer , intent(in) :: idatein
       real(dp) , intent(in) :: tod ! abt added for time of day
       real(dp) , dimension(2:iym2,1:kz,totsp) , intent(in) :: chemin
@@ -50,7 +80,6 @@ module mod_che_chemistry
       real(dp) , dimension(2:iym2) , intent(in) :: zena
       ! LOCAL VARIABLES
       real(dp) , dimension(2:iym2,1:kz) :: cfactor
-      real(dp) , parameter :: kb=1.380658E-19
       real(dp) , dimension(2:iym2,1:kz,1:56) :: jphoto
       !ah  variable for photolysis
       real(dp) , dimension(1:kz) :: taucab , taucbl
@@ -201,4 +230,107 @@ module mod_che_chemistry
       end do
     end subroutine chemistry
 !
+!c -------------------------------------------------------------------
+    subroutine gas_phase(j,ktau,secofday,lyear,lmonth,lday)
+
+      implicit none
+
+      integer , intent(in) :: j
+      integer , intent(in) :: lyear , lmonth , lday
+      integer(8) :: ktau
+      real(dp) , intent(in) :: secofday
+
+      real(dp) , dimension(2:iym2,1:kz) :: taa , psaa , rhoa
+      real(dp) , dimension(2:iym2,1:kz,1:jxp,totsp) :: chemin , chemox
+      real(dp) , dimension(1:iym2,1:kz,56) :: jphoto
+      real(dp) , dimension(iy,jxp) :: psdot
+      real(dp) :: airmw , cfactor , ccfactor , pfact , ro3 , rh2o2 , kb
+      real(dp) , dimension(2:iym2) :: zena
+      real(dp) , dimension(iym1,ntr) :: vdep
+      real(dp) :: fact1 , fact2 , srctemp , tod
+      integer :: idatein , tstart
+      integer :: itr , i , k , nn
+
+      chemin(:,:,j,:) = d_zero
+      chemox(:,:,j,:) = d_zero
+
+      do k = 1 , kz
+        do i = 2 , iym2
+          taa(i,k) = tatm(i,k,j)
+          psaa(i,k)= (sfcp(i,j)*hlev(k)+chptop)
+        end do
+      end do 
+
+      do k = 1 , kz
+        do i = 2 , iym2
+          cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
+          cfactor = cfactor/psfcp(i,j)
+          zena(i) = dacos(czen(i)*degrad)
+          chemin(i,k,j,ind_H2O)  = qvatm(i,k,j)*cfactor
+          chemin(i,k,j,ind_O3)   = chib(i,k,j,io3)*cfactor*amd/W_O3
+          chemin(i,k,j,ind_NO2)  = chib(i,k,j,ino2)*cfactor*amd/W_NO2
+          chemin(i,k,j,ind_NO)   = chib(i,k,j,ino)*cfactor*amd/W_NO
+          chemin(i,k,j,ind_CO)   = chib(i,k,j,ico)*cfactor*amd/W_CO
+          chemin(i,k,j,ind_H2O2) = chib(i,k,j,ih2o2)*cfactor*amd/W_H2O2
+          chemin(i,k,j,ind_HNO3) = chib(i,k,j,ihno3)*cfactor*amd/W_HNO3
+          chemin(i,k,j,ind_N2O5) = chib(i,k,j,in2o5)*cfactor*amd/W_N2O5
+          chemin(i,k,j,ind_SO2)  = chib(i,k,j,iso2)*cfactor*amd/W_SO2
+          chemin(i,k,j,ind_SULF) = chib(i,k,j,iso4)*cfactor*amd/W_SULF
+          chemin(i,k,j,ind_DMS)  = chib(i,k,j,idms)*cfactor*amd/W_DMS
+          chemin(i,k,j,ind_HCHO) = chib(i,k,j,ihcho)*cfactor*amd/W_HCHO
+          chemin(i,k,j,ind_ALD2) = chib(i,k,j,iald2)*cfactor*amd/W_ALD2
+          chemin(i,k,j,ind_ISOP) = chib(i,k,j,iisop)*cfactor*amd/W_ISOP
+          chemin(i,k,j,ind_C2H6) = chib(i,k,j,ic2h6)*cfactor*amd/W_C2H6
+          chemin(i,k,j,ind_PAR)  = chib(i,k,j,ipar)*cfactor*amd/W_C3H8
+          chemin(i,k,j,ind_ETHE) = chib(i,k,j,iethe)*cfactor*amd/W_ETHENE
+          chemin(i,k,j,ind_PRPE) = chib(i,k,j,iolt)*cfactor*amd/W_OLT
+          chemin(i,k,j,ind_BUTE) = chib(i,k,j,ioli)*cfactor*amd/W_OLI
+          chemin(i,k,j,ind_TOLU) = chib(i,k,j,itolue)*cfactor*amd/W_TOLU
+          chemin(i,k,j,ind_XYLE) = chib(i,k,j,ixyl)*cfactor*amd/W_XYLE
+          chemin(i,k,j,ind_PAN)  = chib(i,k,j,ipan)*cfactor*amd/W_PAN
+          chemin(i,k,j,ind_CH4)  = chib(i,k,j,ich4)*cfactor*amd/W_CH4
+          chemin(i,k,j,ind_MOH)  = chib(i,k,j,imoh)*cfactor*amd/W_MOH
+          chemin(i,k,j,ind_ACET) = chib(i,k,j,iacet)*cfactor*amd/W_ACET
+        end do
+      end do
+
+      tod = secofday/3600.0D0
+      idatein = (lyear-1900)*10000+lmonth*100+lday
+
+      call chemistry(j,chemin(:,:,j,:),chemox(:,:,j,:),      &
+                     taa,psaa,zena,ktau,idatein,tod)
+
+      do k = 1 , kz
+        do i = 2 , iym2
+          cfactor = psaa(i,k)*d_10/(kb*taa(i,k))
+          pfact = psfcp(i,j)/(cfactor*amd)
+          ! pfact to convert chemox to kg/kg
+          chia(i,k,j,io3)    = chemox(i,k,j,ind_O3)*pfact*W_O3
+          chia(i,k,j,ino2)   = chemox(i,k,j,ind_NO2)*pfact*W_NO2
+          chia(i,k,j,ino)    = chemox(i,k,j,ind_NO)*pfact*W_NO
+          chia(i,k,j,ico)    = chemox(i,k,j,ind_CO)*pfact*W_CO
+          chia(i,k,j,ih2o2)  = chemox(i,k,j,ind_H2O2)*pfact*W_H2O2
+          chia(i,k,j,ihno3)  = chemox(i,k,j,ind_HNO3)*pfact*W_HNO3
+          chia(i,k,j,in2o5)  = chemox(i,k,j,ind_N2O5)*pfact*W_N2O5
+          chia(i,k,j,iso2)   = chemox(i,k,j,ind_SO2)*pfact*W_SO2
+          chia(i,k,j,iso4)   = chemox(i,k,j,ind_SULF)*pfact*W_SULF
+          chia(i,k,j,idms)   = chemox(i,k,j,ind_DMS)*pfact*W_DMS
+          chia(i,k,j,ihcho)  = chemox(i,k,j,ind_HCHO)*pfact*W_HCHO
+          chia(i,k,j,iald2)  = chemox(i,k,j,ind_ALD2)*pfact*W_ALD2
+          chia(i,k,j,iisop)  = chemox(i,k,j,ind_ISOP)*pfact*W_ISOP
+          chia(i,k,j,ic2h6)  = chemox(i,k,j,ind_C2H6)*pfact*W_C2H6
+          chia(i,k,j,ipar)   = chemox(i,k,j,ind_PAR)*pfact*W_C3H8
+          chia(i,k,j,itolue) = chemox(i,k,j,ind_TOLU)*pfact*W_TOLU
+          chia(i,k,j,ixyl)   = chemox(i,k,j,ind_XYLE)*pfact*W_XYLE
+          chia(i,k,j,iethe)  = chemox(i,k,j,ind_ETHE)*pfact*W_ETHENE
+          chia(i,k,j,ipan)   = chemox(i,k,j,ind_PAN)*pfact*W_PAN
+          chia(i,k,j,ich4)   = chemox(i,k,j,ind_CH4)*pfact*W_CH4
+          chia(i,k,j,iolt)   = chemox(i,k,j,ind_PRPE)*pfact*W_OLT
+          chia(i,k,j,ioli)   = chemox(i,k,j,ind_BUTE)*pfact*W_OLI
+          chia(i,k,j,imoh)   = chemox(i,k,j,ind_MOH)*pfact*W_MOH
+          chia(i,k,j,iacet)  = chemox(i,k,j,ind_ACET)*pfact*W_ACET
+        end do
+      end do
+    end subroutine gas_phase
+
 end module mod_che_chemistry

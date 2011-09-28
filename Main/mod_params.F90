@@ -862,7 +862,8 @@ module mod_params
                      sfsta,sps1,sps2,za,qdot,pptc,ldmsk,sigma,a, &
                      dsigma,qcon,cldfra,cldlwc)
   if ( ichem == 1 ) then
-    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,sps2,icumtop,icumbot)
+    call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,atms,sps1, &
+                   sps2,a,ptop,coszrs,icumtop,icumbot)
   end if
   call init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta,        &
                 mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,   &

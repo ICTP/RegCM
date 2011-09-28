@@ -20,7 +20,7 @@
 module mod_che_interface
 !
   use m_realkinds
-  use mod_atm_interface , only : surfpstate
+  use mod_atm_interface , only : slice , surfpstate
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust
@@ -37,13 +37,18 @@ module mod_che_interface
 !
   contains 
 !
-  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,sps2,icutop,icubot)
+  subroutine init_chem(idirect,dt,chemfrq,dtrad,dsigma,atms,sps1, &
+                       sps2,a,ptop,coszrs,icutop,icubot)
     implicit none
     integer , intent(in) :: idirect
     real(dp) , intent(in) :: dt , chemfrq , dtrad
     real(dp) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     integer , pointer , dimension(:,:) :: icutop , icubot
-    type(surfpstate) , intent(in) :: sps2
+    type(surfpstate) , intent(in) :: sps1 , sps2
+    type(slice) , intent(in) :: atms
+    real(dp) , pointer , dimension(:) :: a
+    real(dp) , pointer , dimension(:) :: coszrs
+    real(dp) :: ptop
     integer :: ibin , jbin , kbin , itr
 
     ichdir = idirect
@@ -51,11 +56,17 @@ module mod_che_interface
     chfrq = chemfrq
     rafrq = dtrad
     dtche = dt
+    chptop = ptop
 
     call assignpnt(dsigma,chlevs)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
+    call assignpnt(sps1%ps,psfcp)
     call assignpnt(sps2%ps,sfcp)
+    call assignpnt(atms%tb3d,tatm)
+    call assignpnt(atms%qvb3d,qvatm)
+    call assignpnt(a,hlev)
+    call assignpnt(coszrs,czen)
         
     iso2  = 0
     iso4  = 0
