@@ -284,7 +284,8 @@ module mod_cu_tiedtke
          zqp1 , zqsat , zqu , zqude , ztp1 , ztu , ztvp1 , zup1 ,   &
          zvp1 , zxp1
   real(dp) , dimension(kbdim) :: zrain , ztopmax
-  real(dp) :: zxip1 , zxlp1
+  real(dp) :: zxip1 , zxlp1 , akclth
+  integer :: kk , kclth
   real(dp) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
 !
 !  Executable statements
@@ -373,6 +374,17 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       if ( ilab(jl,jk)==2 .and. itopec2(jl)==klevp1 ) itopec2(jl) = jk
     end do
+  end do
+  do jl = 1 , kproma
+    if ( ktype(jl) /= 0 ) then
+      kclth = ictop(jl) - icbot(jl) + 1
+      akclth = d_one/dble(kclth)
+      do jk = icbot(jl) , ictop(jl)
+        kk = klev - jk + 1
+        rcldlwc(jl,kk) = cllwcv
+        rcldfra(jl,kk) = d_one - (d_one-clfrcv)**akclth
+      end do
+    end if
   end do
 !
   ztopmax(1:kproma) = ptopmax(1:kproma)

@@ -1471,7 +1471,7 @@ module mod_tendency
  
 !     call ccm3 radiative transfer package
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        loutrad = (ktau == 0 .or. mod(ktau,krad) == 0)
+        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
         call colmod3(ktau,xyear,eccf,loutrad,idust,j)
       end if
  
