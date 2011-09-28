@@ -1550,6 +1550,8 @@ module mod_params
     call say(myid)
     write (aline, *) '  CAPE ADJUSTMENT TIMESCALE PARAMETER: ', cmtcape
     call say(myid)
+    write (aline, *) '  RESTRICT RAINFALL LEVEL: ', zdlev
+    call say(myid)
     write (aline, *) '  COEFF. FOR CONV. FROM CLOUD WATER TO RAIN: ', cprcon
     call say(myid)
     write (aline, *) '  MAX. LEVEL FOR CLOUD BASE OF MID LEVEL CONV.: ', nmctop
