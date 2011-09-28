@@ -131,9 +131,10 @@ module mod_params
     sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
     dtmax , alphae , damp
  
-  namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,     &
-    entrdd , cmfcmax , cmfcmin , cmfdeps , rhcdd ,       &
-    cprcon , nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
+  namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
+    entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
+    cmtcape , zdlev , cprcon , nmctop , lmfpen , lmfscv ,        &
+    lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ ichremlsc , ichremcvc , ichdrdepo ,          &
     ichcumtra , idirect , inpchtrname , inpchtrsol ,      &
@@ -381,6 +382,8 @@ module mod_params
   cmfcmin  = 1.0D-10
   cmfdeps  = 0.3D0
   rhcdd    = 1.0D0
+  cmtcape  = 40.0D0
+  zdlev    = 1.5D4
 ! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
   nmctop   = 4
   cmfctop  = 0.35D0
@@ -640,6 +643,8 @@ module mod_params
     call mpi_bcast(cmfcmin,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(cmfdeps,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(rhcdd,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(cmtcape,1,mpi_real8,0,mycomm,ierr)
+    call mpi_bcast(zdlev,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(cprcon,1,mpi_real8,0,mycomm,ierr)
     call mpi_bcast(nmctop,1,mpi_integer,0,mycomm,ierr)
     call mpi_bcast(lmfpen,1,mpi_logical,0,mycomm,ierr)
@@ -1542,6 +1547,8 @@ module mod_params
     write (aline, *) '  FRACTIONAL MASSFLUX FOR DOWNDRAFTS AT LFS: ', cmfdeps
     call say(myid)
     write (aline, *) '  RELATIVE SATURATION IN DOWNDRAFTS: ', rhcdd
+    call say(myid)
+    write (aline, *) '  CAPE ADJUSTMENT TIMESCALE PARAMETER: ', cmtcape
     call say(myid)
     write (aline, *) '  COEFF. FOR CONV. FROM CLOUD WATER TO RAIN: ', cprcon
     call say(myid)

@@ -295,6 +295,30 @@
  damp = 0.1,      ! Controls the approach rate to quasi-equilibrium
  /
 !
+! Tiedtke Cumulus scheme control
+!
+ &tiedtkeparam
+ iconv = 1,         ! Actual used scheme.
+ entrpen = 1.0D-4,  ! Entrainment rate for penetrative convection
+ entrscv = 3.0D-4,  ! Entrainment rate for shallow convection
+ entrmid = 1.0D-4,  ! Entrainment rate for midlevel convection
+ entrdd = 2.0D-4,   ! Entrainment rate for cumulus downdrafts
+ cmfcmax = 1.0D0,   ! Maximum massflux value
+ cmfcmin = 1.0D-10, ! Minimum massflux value (for safety)
+ cmfdeps = 0.3D0,   ! Fractional massflux for downdrafts at lfs
+ rhcdd = 1.0D0,     ! Relative saturation in downdrafts
+ cmtcape = 40.0D0,  ! CAPE adjustment timescale parameter
+ zdlev = 1.5D4,     ! Restrict rainfall up to this elevation
+ cprcon = 1.0D-4,   ! Coefficients for determining conversion
+ nmctop = 4,        ! max. level for cloud base of mid level conv.
+ cmfctop = 0.35D0,  ! Relat. cloud massflux at level above nonbuoyancy
+ lmfpen = .true.,   ! true if penetrative convection is switched on
+ lmfscv = .true.,   ! true if shallow convection is switched on
+ lmfmid = .true.,   ! true if midlevel convection is switched on
+ lmfdd = .true.,    ! true if cumulus downdraft is switched on
+ lmfdudv = .true.,  ! true if cumulus friction is switched on
+ /
+!
 ! UW PBL scheme control
 !
  &uwparam

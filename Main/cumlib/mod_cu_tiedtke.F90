@@ -33,24 +33,26 @@ module mod_cu_tiedtke
 !
   public :: entrpen , entrscv , entrmid , entrdd , cmfctop , cmfcmax , &
             cmfcmin , cmfdeps , rhcdd , cprcon , iconv , nmctop ,      &
-            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
+            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv , cmtcape , zdlev
 !
   ! evaporation coefficient for kuo0
   real(dp) , pointer , dimension(:) :: cevapcu
 
   real(dp) , parameter :: centrmax = 3.0D-4
 
-  real(dp) :: entrpen      !    entrainment rate for penetrative convection
-  real(dp) :: entrscv      !    entrainment rate for shallow convection
-  real(dp) :: entrmid      !    entrainment rate for midlevel convection
-  real(dp) :: entrdd       !    entrainment rate for cumulus downdrafts
-  real(dp) :: cmfctop      !    relat. cloud massflux at level above nonbuoyanc
-  real(dp) :: cmfcmax      !    maximum massflux value allowed for
-  real(dp) :: cmfcmin      !    minimum massflux value (for safety)
-  real(dp) :: cmfdeps      !    fractional massflux for downdrafts at lfs
-  real(dp) :: rhcdd        !    relative saturation in downdrafts
-  real(dp) :: cprcon       !    coefficients for determining conversion
-                          !    from cloud water to rain
+  real(dp) :: entrpen      ! entrainment rate for penetrative convection
+  real(dp) :: entrscv      ! entrainment rate for shallow convection
+  real(dp) :: entrmid      ! entrainment rate for midlevel convection
+  real(dp) :: entrdd       ! entrainment rate for cumulus downdrafts
+  real(dp) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
+  real(dp) :: cmtcape      ! CAPE adjustment timescale parameter
+  real(dp) :: zdlev        ! Restrict rainfall up to this elevation
+  real(dp) :: cmfcmax      ! maximum massflux value allowed for
+  real(dp) :: cmfcmin      ! minimum massflux value (for safety)
+  real(dp) :: cmfdeps      ! fractional massflux for downdrafts at lfs
+  real(dp) :: rhcdd        ! relative saturation in downdrafts
+  real(dp) :: cprcon       ! coefficients for determining conversion
+                           ! from cloud water to rain
   integer :: iconv
   integer :: nmctop    !  max. level for cloud base of mid level conv.
   logical :: lmfpen    !  true if penetrative convection is switched on
@@ -530,11 +532,9 @@ module mod_cu_tiedtke
 ! this paramter is the CAPE adjustment timescale which in the global model
 ! was a function of horizontal resolution (nn wavenumber of a spectral model)
 ! this is translated roughly into horizontal resolution in meters
-! !!!WARNING: this is defined twice and should be removed into a module!!!!
 !
 !      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
-  ztau=min(3.0D0*3600.0D0,22.7D0*ds)
-
+       ztau=min(3.0D0*3600.0D0,cmtcape*ds)
 !
 !----------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -642,10 +642,10 @@ module mod_cu_tiedtke
 !!    DEEP CONVECTION IF CLOUD DEPTH > 200 HPA, ELSE SHALLOW
 !!    (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
 !!
-!     DO jl=1,kproma
-!     ktype(jl)=MERGE(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
-!     zentr(jl)=MERGE(entrpen,entrscv,ktype(jl) == 1)
-!     ENDDO
+     DO jl=1,kproma
+       ktype(jl)=MERGE(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
+       zentr(jl)=MERGE(entrpen,entrscv,ktype(jl) == 1)
+     ENDDO
 !!
   if ( lookupoverflow ) then
     call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
@@ -838,6 +838,8 @@ module mod_cu_tiedtke
   do jl = 1 , kproma
     if ( ldcum(jl) ) zmfub(jl) = zmfub1(jl)
   end do
+
+
 !
 !-----------------------------------------------------------------------
 !*    6.0          DETERMINE FINAL CLOUD ASCENT FOR ENTRAINING PLUME
@@ -871,6 +873,12 @@ module mod_cu_tiedtke
               pten,ptte,pqte,pxtte,pxtec,zmfuxt,zmfdxt,zmfus,zmfds, &
               zmfuq,zmfdq,zmful,zdmfup,zdmfdp,plude,zdpmel,zrfl,    &
               zsfl,zcpen,pqtec,pqude,prsfc,pssfc,paprc,paprs)
+
+!*AMT*
+!  do jl = 1 , kproma
+!    if (ktype(jl)>0) write (50,*) zcape(jl),ktype(jl),prsfc(jl)
+!  end do
+!*AMT*
 !
 !-----------------------------------------------------------------------
 !*    9.0          UPDATE TENDENCIES FOR U AND U IN SUBROUTINE CUDUDV
@@ -1982,7 +1990,7 @@ module mod_cu_tiedtke
 !
   integer :: icall , ik , ikb , ikt , jk , jl , jt
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zalvs , zbuo , zbuoyz , zcons2 , zdlev , zdmfdu ,      &
+  real(dp) :: zalvs , zbuo , zbuoyz , zcons2 , zdmfdu ,      &
              zdmfeu , zdnoprc , zdprho , zdrodz , zdt , zdz , zfac ,&
              zga , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,     &
              zmfusk , zmfuxtk , zmse , znevn , zodmax , zprcon ,    &
@@ -2002,8 +2010,7 @@ module mod_cu_tiedtke
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
 ! below a certain pressure (from the surface) is hard wired according to the 
-! vertical resolution of the model - This has been fixed to 150 hPa.
-! WARNING - this should be set outside of the routines.
+! vertical resolution of the model
 !      if ( klev/=11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn==21 ) then
@@ -2013,8 +2020,6 @@ module mod_cu_tiedtke
 !      else
 !        zdlev = 3.0D4
 !      end if
-   zdlev = 1.5D4
-
 !
 !----------------------------------------------------------------------
 !     2.           SET DEFAULT VALUES
@@ -2486,7 +2491,7 @@ module mod_cu_tiedtke
 !
   integer :: icall , ik , jk , jl , jt
   logical , dimension(kbdim) :: loflag
-  real(dp) :: zbuo , zcons2 , zdlev , zdmfdu , zdmfeu , zdnoprc ,    &
+  real(dp) :: zbuo , zcons2 , zdmfdu , zdmfeu , zdnoprc ,    &
              zfac , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,    &
              zmfusk , zmfuxtk , zprcon , zqeen , zqude , zscde ,    &
              zseen , ztglace , zxteen , zxtude , zz , zzdmf
@@ -2502,8 +2507,7 @@ module mod_cu_tiedtke
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
 ! below a certain pressure (from the surface) is hard wired according to the 
-! vertical resolution of the model - This has been fixed to 150 hPa.
-! WARNING - this should be set outside of the routines.
+! vertical resolution of the model
 !      if ( klev/=11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn==21 ) then
@@ -2513,8 +2517,6 @@ module mod_cu_tiedtke
 !      else
 !        zdlev = 3.0D4
 !      end if
-   zdlev = 1.5D4
-
 !
 !----------------------------------------------------------------------
 !     2.           SET DEFAULT VALUES
