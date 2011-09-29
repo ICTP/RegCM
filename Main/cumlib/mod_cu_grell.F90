@@ -619,8 +619,9 @@ module mod_cu_grell
               pwco(i,k) = c0*dzo*(qco(i,k)-qrcho)
               qcko(i) = qco(i,k)
               pwcavo(i) = pwcavo(i) + pwco(i,k)
-              xao(i) = xao(i) + dz2*(egrav/(cpd*((tn(i,k)+tn(i,k-1))*d_half))) * &
-                       dbyo(i,k-1)/(d_one+d_half*(agammo+agammo0))
+              xao(i) = xao(i) + &
+                  dz2*(egrav/(cpd*((tn(i,k)+tn(i,k-1))*d_half))) * &
+                  dbyo(i,k-1)/(d_one+d_half*(agammo+agammo0))
             end if
           end if
         end if
@@ -980,7 +981,8 @@ module mod_cu_grell
             dg = d_half*(agamma1+agamma2)
             dh = d_half*(xhes(i,kk)+xhes(i,kk+1))
             dz = (xz(i,kk)-xz(i,kk+1))*dkk(i,kk)
-            xxac(i) = xxac(i) + edtx(i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+            xxac(i) = xxac(i) + edtx(i)*dz * &
+                      (egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
           end if
         end if
       end do

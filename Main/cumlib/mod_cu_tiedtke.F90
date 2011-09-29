@@ -75,8 +75,9 @@ module mod_cu_tiedtke
   real(dp) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx
 
-  real(dp) , pointer , dimension(:,:) :: xpt , xpu , xpv , xpqv , &
-        xpqc , xpw , xpg
+  real(dp) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
+        pxlte , pverv , xpg
+  integer , pointer , dimension(:) :: kctop , kcbot
 
   contains
 !
@@ -86,12 +87,12 @@ module mod_cu_tiedtke
     implicit none
 
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
-    call getmem2d(xpt,1,iym3,1,kz,'mod_cu_tiedtke:xpt')
-    call getmem2d(xpu,1,iym3,1,kz,'mod_cu_tiedtke:xpu')
-    call getmem2d(xpv,1,iym3,1,kz,'mod_cu_tiedtke:xpv')
-    call getmem2d(xpqv,1,iym3,1,kz,'mod_cu_tiedtke:xpqv')
-    call getmem2d(xpqc,1,iym3,1,kz,'mod_cu_tiedtke:xpqc')
-    call getmem2d(xpw,1,iym3,1,kz,'mod_cu_tiedtke:xpw')
+    call getmem2d(ptte,1,iym3,1,kz,'mod_cu_tiedtke:ptte')
+    call getmem2d(pvom,1,iym3,1,kz,'mod_cu_tiedtke:pvom')
+    call getmem2d(pvol,1,iym3,1,kz,'mod_cu_tiedtke:pvol')
+    call getmem2d(pqte,1,iym3,1,kz,'mod_cu_tiedtke:pqte')
+    call getmem2d(pxlte,1,iym3,1,kz,'mod_cu_tiedtke:pxlte')
+    call getmem2d(pverv,1,iym3,1,kz,'mod_cu_tiedtke:pverv')
     call getmem2d(xpg,1,iym3,1,kz,'mod_cu_tiedtke:xpg')
     call getmem3d(pxtm1,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
     call getmem3d(pxtte,1,iym3,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
@@ -107,6 +108,8 @@ module mod_cu_tiedtke
     call getmem2d(papp1,1,iym3,1,kz,'mod_cu_tiedtke:papp1')
     call getmem2d(pxtec,1,iym3,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,iym3,1,kz,'mod_cu_tiedtke:pqtec')
+    call getmem1d(kctop,1,iym3,'mod_cu_tiedtke:kctop')
+    call getmem1d(kcbot,1,iym3,'mod_cu_tiedtke:kcbot')
     call getmem2d(paphp1,1,iym3,1,kzp1,'mod_cu_tiedtke:paphp1')
     call getmem1d(prsfc,1,iym3,'mod_cu_tiedtke:prsfc')
     call getmem1d(pssfc,1,iym3,'mod_cu_tiedtke:pssfc')
@@ -127,7 +130,8 @@ module mod_cu_tiedtke
     integer(8) , intent(in) :: ktau
 
 !   local variables
-    integer :: i , k , ii
+    integer :: i , k , ii , kclth
+    real(dp) :: akclth
 
 !   need to translate REGCM to TIEDTKE vars...
 
@@ -164,69 +168,79 @@ module mod_cu_tiedtke
         pqm1(ii,k)  = qvas(i,k,j) ! humidity
         pxlm1(ii,k) = qcas(i,k,j) ! cloud liquid water
 
-        xpt(ii,k)  = tten(i,k,j)/sfcps(i,j)
-        xpu(ii,k)  = uten(i,k,j)/sfcps(i,j)
-        xpv(ii,k)  = vten(i,k,j)/sfcps(i,j)
-        xpqv(ii,k) = qvten(i,k,j)/sfcps(i,j)
-        xpqc(ii,k) = qcten(i,k,j)/sfcps(i,j)
+        ptte(ii,k)  = tten(i,k,j)/sfcps(i,j)
+        pvom(ii,k)  = uten(i,k,j)/sfcps(i,j)
+        pvol(ii,k)  = vten(i,k,j)/sfcps(i,j)
+        pqte(ii,k)  = qvten(i,k,j)/sfcps(i,j)
+        pxlte(ii,k) = qcten(i,k,j)/sfcps(i,j)
 
         ! IS vertical velocity in Pa/s or in m/s?
-        xpw(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
+        pverv(ii,k)  = d_half*(svv(i,k,j)+svv(i,k+1,j))
 
-        pxim1(ii,k) = d_zero                      ! cloud ice water
-        pxite(ii,k) = d_zero                      ! ice tend
+        pxim1(ii,k) = d_zero ! cloud ice water
+        pxite(ii,k) = d_zero ! ice tend
 
-! scheme diagnostic output - tendencies due to convection
-        pxtec(ii,k) = d_zero  ! detrained cloud water tendancy
-        pqtec(ii,k) = d_zero  ! detrained humidity tendancy
-! 1st guess pressure at full levels
+        ! scheme diagnostic output - tendencies due to convection
+        pxtec(ii,k) = d_zero ! detrained cloud water tendancy
+        pqtec(ii,k) = d_zero ! detrained humidity tendancy
+
         xpg(ii,k) = hgt(i,k,j)*egrav  !   geopotential
       end do
     end do
     do k = 1 , kzp1
       do i = 2 , iym2
         ii = i - 1
+        ! 1st guess pressure at full levels
         paphp1(ii,k) = (flev(k)*sfcps(i,j)+ptop)*d_1000
       end do
     end do
 
-!   Output variables (1d)
+    ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
     pssfc(:) = d_zero ! CHECK - surface snow flux      
     paprc(:) = d_zero ! total precip cumulative 
     paprs(:) = d_zero ! total snow cumulative 
 
     ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
+    kctop(:) = 0
+    kcbot(:) = 0
 
-    call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
-                pqm1,pum1,pvm1,pxlm1,pxim1,xpt,xpqv,xpu,xpv,xpqc,   &
-                pxite,xpw,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
-                pssfc,paprc,paprs,ktype,ldland,ptopmax)
+    call cucall(iym3,iym3,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
+                pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
+                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
+                pssfc,paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
+    !
     icon(j) = 0
+    rcldlwc(:,:) = d_zero
+    rcldfra(:,:) = d_zero
     do i = 2 , iym2
       ii = i - 1
       if (ktype(ii) > 0) then
-        icon(j) = icon(j) + 1
-        ! total precip cumulative 
-        rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
-        if ( ktau == 0 ) then
-          lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
-        else
-          lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+        if ( paprc(ii)+paprs(ii) > dlowval ) then
+          icon(j) = icon(j) + 1
+          ! total precip cumulative 
+          rainc(i,j) = rainc(i,j) + paprc(ii)+paprs(ii)
+          if ( ktau == 0 ) then
+            lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))
+          else
+            lmpcpc(i,j)= lmpcpc(i,j) + (prsfc(ii)+pssfc(ii))*aprdiv
+          end if
+          do k = 1 , kz
+            ! NOTE: there is an iconsistency here for the latent heating,
+            ! as heat of fusion used inside the conv. scheme - please correct!
+            qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
+            qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
+          end do
+          kclth = kcbot(ii) - kctop(ii) + 1
+          akclth = d_one/dble(kclth)
+          do k = kctop(ii) , kcbot(ii)
+            rcldlwc(i,k) = cllwcv
+            rcldfra(i,k) = d_one - (d_one-clfrcv)**akclth
+          end do
         end if
       end if
-    end do
-
-    do k = 1 , kz
-      do i = 2 , iym2
-        ii = i - 1
-!       NOTE: there is an iconsistency here for the latent heating,
-!       as heat of fusion used inside the convection scheme - please correct!
-        qcten(i,k,j) = qcten(i,k,j)+pxtec(ii,k)*sfcps(i,j)
-        qvten(i,k,j) = qvten(i,k,j)+pqtec(ii,k)*sfcps(i,j)
-      end do
     end do
 
   end subroutine tiedtkedrv
@@ -235,7 +249,7 @@ module mod_cu_tiedtke
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec,    &
                     pqtec,pqhfla,papp1,paphp1,pgeo,prsfc,pssfc,     &
-                    paprc,paprs,ktype,ldland,ptopmax)
+                    paprc,paprs,ktype,ldland,kctop,kcbot,ptopmax)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -272,20 +286,20 @@ module mod_cu_tiedtke
          pxim1 , pxite , pxlm1 , pxlte , pxtec
   real(dp) , dimension(kbdim) :: paprc , paprs , pqhfla , prsfc ,    &
                                 pssfc , ptopmax
+  integer , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(dp) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
   intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , pxite ,   &
               pxlm1 , pxlte , pxtm1
   intent (inout) ptopmax
 !
-  integer , dimension(kbdim) :: icbot , ictop , itopec2
+  integer , dimension(kbdim) :: itopec2
   integer :: ilevmin , it , jk , jl , jt
   logical , dimension(kbdim) :: locum
   real(dp) , dimension(kbdim,klev) :: zlu , zlude , zmfd , zmfu ,    &
          zqp1 , zqsat , zqu , zqude , ztp1 , ztu , ztvp1 , zup1 ,   &
          zvp1 , zxp1
   real(dp) , dimension(kbdim) :: zrain , ztopmax
-  real(dp) :: zxip1 , zxlp1 , akclth
-  integer :: kk , kclth
+  real(dp) :: zxip1 , zxlp1
   real(dp) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
 !
 !  Executable statements
@@ -340,21 +354,21 @@ module mod_cu_tiedtke
                  zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,pxtte,&
                  pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,pvom,pvol,&
                  prsfc,pssfc,paprc,paprs,pxtec,pqtec,zqude,locum,   &
-                 ktype,icbot,ictop,ztu,zqu,zlu,zlude,zmfu,zmfd,     &
+                 ktype,kcbot,kctop,ztu,zqu,zlu,zlude,zmfu,zmfd,     &
                  zrain)
   case (2)
     call cumastrt(kproma,kbdim,klev,klevp1,klevm1,ilab,ztp1,zqp1,   &
                   zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,     &
                   pxtte,pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,   &
                   pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec,    &
-                  zqude,locum,ktype,icbot,ictop,ztu,zqu,zlu,zlude,  &
+                  zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
   case (3)
     call cumastrh(kproma,kbdim,klev,klevp1,klevm1,ilab,ztp1,zqp1,   &
                   zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,     &
                   pxtte,pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,   &
                   pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec,    &
-                  zqude,locum,ktype,icbot,ictop,ztu,zqu,zlu,zlude,  &
+                  zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
  
   case default
@@ -375,17 +389,7 @@ module mod_cu_tiedtke
       if ( ilab(jl,jk)==2 .and. itopec2(jl)==klevp1 ) itopec2(jl) = jk
     end do
   end do
-  do jl = 1 , kproma
-    if ( ktype(jl) /= 0 ) then
-      kclth = ictop(jl) - icbot(jl) + 1
-      akclth = d_one/dble(kclth)
-      do jk = icbot(jl) , ictop(jl)
-        kk = klev - jk + 1
-        rcldlwc(jl,kk) = cllwcv
-        rcldfra(jl,kk) = d_one - (d_one-clfrcv)**akclth
-      end do
-    end if
-  end do
+
 !
   ztopmax(1:kproma) = ptopmax(1:kproma)
  
