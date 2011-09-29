@@ -395,7 +395,7 @@ module mod_cu_tiedtke
   do jl = 1 , kproma
     if ( itopec2(jl) == 1 ) then
       ptopmax(jl) = papp1(jl,1)
-    else if ( itopec2(jl)/=klevp1 ) then
+    else if ( itopec2(jl) /= klevp1 ) then
       ptopmax(jl) = paphp1(jl,itopec2(jl))
     else
       ptopmax(jl) = 99999.0D0
@@ -2026,7 +2026,7 @@ module mod_cu_tiedtke
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
 ! below a certain pressure (from the surface) is hard wired according to the 
 ! vertical resolution of the model
-!      if ( klev/=11 ) then
+!      if ( klev /= 11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn == 21 ) then
 !        zdlev = 1.5D4
@@ -2523,7 +2523,7 @@ module mod_cu_tiedtke
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
 ! below a certain pressure (from the surface) is hard wired according to the 
 ! vertical resolution of the model
-!      if ( klev/=11 ) then
+!      if ( klev /= 11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn == 21 ) then
 !        zdlev = 1.5D4
@@ -2896,7 +2896,7 @@ module mod_cu_tiedtke
       loflag(jl) = klab(jl,jk+1) == 1
       zph(jl) = paph(jl,jk)
     end do
-    if ( is/=0 ) then
+    if ( is /= 0 ) then
       do jl = 1 , kproma
         if ( loflag(jl) ) then
           pqu(jl,jk) = pqu(jl,jk+1)
@@ -3130,7 +3130,7 @@ module mod_cu_tiedtke
       llo2(jl) = lddraf(jl) .and. pmfd(jl,jk-1) < d_zero
       is = is + merge(1,0,llo2(jl))
     end do
-    if ( is/=0 ) then
+    if ( is /= 0 ) then
       do jl = 1 , kproma
         if ( llo2(jl) ) then
           zentr = entrdd*pmfd(jl,jk-1)*rgas*ptenh(jl,jk-1)          &
@@ -3326,7 +3326,7 @@ module mod_cu_tiedtke
                    (jk < kcbot(jl) .and. jk > kctop(jl))
         is = is + merge(1,0,llo2(jl))
       end do
-      if ( is/=0 ) then
+      if ( is /= 0 ) then
 !
         ik = jk
         icall = 2
