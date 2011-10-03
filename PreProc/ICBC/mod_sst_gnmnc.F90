@@ -44,7 +44,7 @@ module mod_sst_gnmnc
   real(dp) , pointer ::  work1(:)
   real(sp) , pointer , dimension (:, :) :: work2 , work3
   real(sp) , pointer , dimension(:,:) :: sst
-  type(rcm_time_and_date) :: fidate1
+  type(rcm_time_and_date) , save :: fidate1
   character(64) :: cunit , ccal
   character(256) :: inpfile
   character(len=8), dimension(2) :: varname

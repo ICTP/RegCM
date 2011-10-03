@@ -59,7 +59,7 @@ module mod_ncio
   real(8) :: tpd, cfd
   real(8) :: xns2d
   real(4) :: xns2r
-  type(rcm_time_and_date) :: cordex_refdate
+  type(rcm_time_and_date) , save :: cordex_refdate
 
   ! DIM1 is iy ,   DIM2 is jx , DIM3 is time ,       DIM4 is kz
   ! DIM5 is m10 ,  DIM6 is m2 , DIM7 is soil_layer , DIM8 is nv

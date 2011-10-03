@@ -71,12 +71,12 @@ module mod_ecens
   integer , parameter :: ibctime = 6
   integer , dimension(5) :: inet5, ivar5
   integer , dimension(4) :: icount , istart
-  type(rcm_time_and_date) :: ilastdate
+  type(rcm_time_and_date) , save :: ilastdate
   type(rcm_time_and_date) , pointer , dimension(:) :: enstime
   real(dp) , pointer , dimension(:) :: xtime
   character(len=256) :: pathaddname , fname
   character(len=4) :: ensbase = 'f8qe'
-  type(rcm_time_and_date) :: fmon
+  type(rcm_time_and_date) , save :: fmon
   integer :: ifmon
 
   public :: getecens , headerecens

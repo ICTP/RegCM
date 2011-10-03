@@ -22,5 +22,7 @@ SVNDEF := -D'SVN_REV="$(shell svnversion -n .)"'
 ifeq ($(OSNAME),AIX)
 null :=
 cpre := $(null)-WF,-D$(null)
+SVNDEF := $(patsubst -D%,$(cpre)%,$(SVNDEF))
 CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
+MPEUFCFLAGS := $(patsubst -D%,$(cpre)%,$(MPEUFCFLAGS))
 endif

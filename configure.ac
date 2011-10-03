@@ -171,7 +171,13 @@ fi
 if eval "test x$NCAUTO = xno"; then
   NC_INCLUDES="-I$NC_PREFIX/include"
 else
-  NC_INCLUDES="-I`nc-config --includedir`"
+  NCVER=`nc-config --version | cut -d " " -f 2`
+  if eval "test x$NCVER = x4.0.1"; then
+    NC_INCLUDES="`nc-config --fflags`"
+  else
+    # new netcdf library has this
+    NC_INCLUDES="-I`nc-config --includedir`"
+  fi
 fi
 
 if eval "test x$NCAUTO = xno"; then
@@ -197,6 +203,8 @@ case $ac_cv_fc_mangling in
     name_mangling="FORTRAN_CAPS_";;
   "lower case, double underscore")
     name_mangling="FORTRAN_GNUF2C";;
+  "lower case, no underscore, no extra underscore")
+    name_mangling="FORTRAN_SAME";;
   *)
     name_mangling="FORTRAN_MANGLING_UNKNOWN"
     AC_MSG_WARN([UNKNOWN FORTRAN NAME-MANGLING SCHEME]);;
@@ -288,7 +296,7 @@ if eval "test x"$FC" = xpgf90"; then
   AC_SUBST(FCFLAGS)
 fi
 if eval "test x"$FC" = xxlf90"; then
-  AM_CPPFLAGS="-DIBM $AM_CPPFLAGS"
+  AM_CPPFLAGS="-WF,-DIBM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
   CPRDEF="XLF"
 fi

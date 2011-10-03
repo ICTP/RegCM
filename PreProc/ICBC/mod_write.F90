@@ -32,7 +32,7 @@ module mod_write
 
   integer :: ncout
   character(256) :: ofname
-  type(rcm_time_and_date) :: irefdate
+  type(rcm_time_and_date) , save :: irefdate
   integer :: itime
   integer , dimension(5) :: idims
   integer , dimension(8) :: ivar

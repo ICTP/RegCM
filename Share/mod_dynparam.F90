@@ -252,8 +252,8 @@ module mod_dynparam
 
 ! Global Begin and End date for Input Pre processing
 
-  type(rcm_time_and_date) :: globidate1 ! BEGIN
-  type(rcm_time_and_date) :: globidate2 ! END
+  type(rcm_time_and_date) , save :: globidate1 ! BEGIN
+  type(rcm_time_and_date) , save :: globidate2 ! END
 
 ! Days per year and degrees per day
 

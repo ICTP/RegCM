@@ -33,7 +33,7 @@ module mod_sst_grid
   integer :: ncid
   integer , dimension(4) :: idims
   integer , dimension(4) :: ivar
-  type (rcm_time_and_date) :: refdate
+  type (rcm_time_and_date) , save :: refdate
   integer :: itime
 
   real(sp) , public , pointer , dimension(:,:) :: lu , sstmm , icemm ,   &

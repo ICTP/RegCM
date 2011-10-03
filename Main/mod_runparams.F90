@@ -27,15 +27,15 @@ module mod_runparams
 
   implicit none
  
-  type(rcm_time_and_date) :: idate0 , idate1 , idate2
+  type(rcm_time_and_date) , save :: idate0 , idate1 , idate2
 
-  type(rcm_time_and_date) :: idatex
+  type(rcm_time_and_date) , save :: idatex
   integer :: xyear , xmonth , xday , xhour
 
-  type(rcm_time_and_date) :: bdydate1 , bdydate2
+  type(rcm_time_and_date) , save :: bdydate1 , bdydate2
 
-  type(rcm_time_interval) :: intmdl
-  type(rcm_time_interval) :: intbdy
+  type(rcm_time_interval) , save :: intmdl
+  type(rcm_time_interval) , save :: intbdy
 
   real(8) :: declin , deltmx
   real(8) :: xbctime

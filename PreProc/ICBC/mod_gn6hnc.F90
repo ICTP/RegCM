@@ -96,8 +96,8 @@ module mod_gn6hnc
   public :: get_gn6hnc , headgn6hnc
 
   character(256) :: pathaddname
-  type(rcm_time_and_date) :: refdate
-  type(rcm_time_and_date) :: filedate
+  type(rcm_time_and_date) , save :: refdate
+  type(rcm_time_and_date) , save :: filedate
 
   data inet /nvars*-1/
 

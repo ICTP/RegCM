@@ -39,7 +39,7 @@ module mod_wrtoxd
 
   integer :: ncid , ncidox
   character(256) :: ofname
-  type(rcm_time_and_date) :: irefdate
+  type(rcm_time_and_date) , save :: irefdate
   integer :: itimech , itimeox
   integer , dimension(5) :: idims
   integer :: istatus
