@@ -24,7 +24,7 @@ module mod_ncio
   use mod_lm_interface
   use mod_rad_interface , only : iemiss
   use mod_pbl_interface , only : ibltyp
-  use mod_message
+  use mod_mpmessage
   use mod_che_interface
   use mod_memutil
 !
@@ -435,13 +435,13 @@ contains
     real(4) , dimension(kzp1) :: rsdum
 
     write (aline,*) 'open_domain: READING HEADER FILE:', dname
-    call say(myid)
+    call say
     istatus = nf90_open(dname, nf90_nowrite, idmin)
     call check_ok(__FILE__,__LINE__,'Error Opening Domain file '//trim(dname), &
                   'DOMAIN FILE')
     if ( nsg > 1 ) then
       write (aline,*) 'READING HEADER SUBDOMAIN FILE:', sdname
-      call say(myid)
+      call say
       istatus = nf90_open(sdname, nf90_nowrite, isdmin)
       call check_ok(__FILE__,__LINE__, &
            'Error Opening SubDomain file '//trim(sdname), 'SUBDOM FILE')
@@ -479,9 +479,9 @@ contains
     if ( iyy /= iy .or. jxx /= jx .or. kzz /= kzp1 ) then
       write (6,*) 'Error: dims from regcm.in and DOMAIN file differ.'
       write (aline,*) 'Input namelist : IY=', iy , '  JX=', jx , '  KZ=', kz
-      call say(myid)
+      call say
       write (aline,*) 'DOMAIN file    : IY=', iyy ,'  JX=', jxx, '  KZ=', kzz-1
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
     if (dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00) then
@@ -815,9 +815,9 @@ contains
     if ( iyy /= iy .or. jxx /= jx .or. kzz /= kz ) then
       write (6,*) 'Error: dims from regcm.in and ICBC file differ.'
       write (aline,*) 'Input namelist : IY=', iy , '  JX=',  jx , '  KZ=', kz
-      call say(myid)
+      call say
       write (aline,*) 'ICBC file      : IY=', iyy, '  JX=',  jxx, '  KZ=', kzz
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'DIMENSION MISMATCH')
     end if
     istatus = nf90_inq_dimid(ibcin, 'time', idimid)
@@ -1052,9 +1052,9 @@ contains
       ilakrec = 1
     else
       write (aline,*) 'UNKNOWN IO TYPE : ', ctype
-      call say(myid)
+      call say
       write (aline,*) 'NOTHING TO DO'
-      call say(myid)
+      call say
       return
     end if
 
@@ -1066,7 +1066,7 @@ contains
              '_'//trim(fbname)//'.nc'
     ctime = tochar(cordex_refdate)
     write (aline, *) 'Opening new output file ', trim(ofname)
-    call say(myid)
+    call say
 
 #ifdef NETCDF4_HDF5
     istatus = nf90_create(ofname, &

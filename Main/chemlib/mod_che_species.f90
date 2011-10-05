@@ -19,7 +19,7 @@
 
   module mod_che_species
 
-    use m_realkinds
+    use mod_realkinds
     use mod_dynparam
     use mod_memutil
 

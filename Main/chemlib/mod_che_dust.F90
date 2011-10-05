@@ -21,10 +21,10 @@ module mod_che_dust
 !
 ! DUST module
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_memutil
   use mod_che_common
   use mod_che_ncio
@@ -555,7 +555,7 @@ module mod_che_dust
  
       if ( soilw(i) < d_zero ) then
         write (aline,*) 'hc, rc =' , soilw(i) , ' less than zero'
-        call say(myid)
+        call say
         call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
       else if ( soilw(i) < 0.03D0 ) then
         hc(i) = dexp(22.7D0*soilw(i))

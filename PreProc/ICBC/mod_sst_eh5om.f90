@@ -19,11 +19,10 @@
 
 module mod_sst_eh5om
 
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
   use netcdf
+  use mod_realkinds
+  use mod_stdio
+  use mod_message
   use mod_dynparam
   use mod_sst_grid
   use mod_interp
@@ -68,7 +67,6 @@ module mod_sst_eh5om
   real(sp) , dimension(ilon) :: loni
   logical :: there
 !
-  call zeit_ci('sst_eh5om')
 !
   it_base = 0
 
@@ -415,7 +413,6 @@ module mod_sst_eh5om
 
   end do
 
-  call zeit_co('sst_eh5om')
  
   end subroutine sst_eh5om
 !

@@ -19,7 +19,7 @@
 
 module mod_che_param
 
-  use m_realkinds
+  use mod_realkinds
 
   public
 !

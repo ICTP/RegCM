@@ -25,7 +25,7 @@ module mod_sun
   use mod_dynparam
   use mod_runparams
   use mod_atm_interface
-  use mod_message
+  use mod_mpmessage
   use mod_service
 !
 #ifdef CLM
@@ -100,7 +100,7 @@ module mod_sun
 !
 #endif
     write (aline, 99001) calday, decdeg
-    call say(myid)
+    call say
 99001 format (11x,'*** Day ',f12.4,' solar declination angle = ',f12.8,&
         &   ' degrees.')
 !

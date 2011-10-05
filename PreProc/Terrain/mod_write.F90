@@ -19,7 +19,7 @@
 
 module mod_write
 
-  use m_stdio
+  use mod_stdio
   use mod_constants
   use mod_message
   use mod_memutil

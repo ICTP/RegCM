@@ -19,7 +19,7 @@
 
 module mod_projections
 
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
 
   real(dp) :: conefac

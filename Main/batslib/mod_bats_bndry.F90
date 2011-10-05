@@ -19,7 +19,7 @@
  
 module mod_bats_bndry
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_service
   use mod_bats_common

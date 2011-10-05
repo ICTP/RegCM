@@ -22,6 +22,7 @@ module mod_init
 ! RegCM Init module
 !
   use mod_runparams
+  use mod_mppparam
   use mod_lm_interface
   use mod_atm_interface
   use mod_che_interface
@@ -30,7 +31,7 @@ module mod_init
   use mod_pbl_interface
   use mod_precip
   use mod_bdycod
-  use mod_message
+  use mod_mpmessage
   use mod_sun
   use mod_ncio
   use mod_savefile

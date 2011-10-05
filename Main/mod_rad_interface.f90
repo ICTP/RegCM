@@ -19,7 +19,7 @@
 
 module mod_rad_interface
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_atm_interface , only : atmstate , slice , surfpstate , surfstate , &
                                  domain
   use mod_rad_common

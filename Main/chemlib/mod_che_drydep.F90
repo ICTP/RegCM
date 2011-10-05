@@ -21,12 +21,12 @@ module mod_che_drydep
 !
 ! Chemical and aerosol surface emission and dry deposition
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_dynparam
   use mod_che_common
   use mod_che_dust
-  use mod_message
+  use mod_mpmessage
   use mod_che_ncio
   use mod_che_mppio
   use mod_che_indices

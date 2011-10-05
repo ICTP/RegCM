@@ -19,10 +19,9 @@
 
 module mod_date
 
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use mpi
+  use mod_realkinds
+  use mod_stdio
+  use mod_message
 
   private
 
@@ -121,7 +120,6 @@ module mod_date
   public :: print_rcm_time_and_date , print_rcm_time_interval
   public :: setcal , date_time_to_internal , internal_to_date_time
   public :: tochar , toint10 , tohours
-  public :: date_bcast
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek , idayofyear
@@ -1475,20 +1473,6 @@ module mod_date
     yeardayfrac = dble(idayofyear(d)) + dble(t%hour)/24.0D+00 + &
                   dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)
   end function yeardayfrac
-
-  subroutine date_bcast(x,from,comm,ierr)
-    type (rcm_time_and_date) , intent(inout) :: x
-    integer , intent(in) :: from , comm
-    integer , intent(out) :: ierr
-    integer :: lerr
-    ierr = 0
-    call mpi_bcast(x%calendar,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
-    call mpi_bcast(x%days_from_reference,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
-    call mpi_bcast(x%second_of_day,1,mpi_integer,from,comm,lerr)
-    ierr = ierr+lerr
-  end subroutine date_bcast
 
   integer function getyear(x)
     implicit none

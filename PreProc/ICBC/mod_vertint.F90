@@ -19,9 +19,8 @@
 
 module mod_vertint
 !
-  use m_realkinds
-  use m_die
-  use m_stdio
+  use mod_realkinds
+  use mod_stdio
   use mod_constants
   use mod_message
 !

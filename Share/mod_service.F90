@@ -55,7 +55,7 @@
 !!<
 MODULE mod_service
 
-  use m_realkinds
+  use mod_realkinds
 
 #ifdef DEBUG
 

@@ -20,10 +20,8 @@
 module mod_era40
 
   use mod_dynparam
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_memutil
   use mod_grid
   use mod_write
@@ -73,7 +71,6 @@ module mod_era40
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-  call zeit_ci('getera40')
   call era6hour(dattyp,idate,globidate1)
   write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
 !
@@ -131,7 +128,6 @@ module mod_era40
 !     F4  DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('getera40')
   end subroutine getera40
 
   subroutine era6hour(dattyp,idate,idate0)

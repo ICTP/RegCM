@@ -19,7 +19,7 @@
 
 module mod_cbmz_jval1
 
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_dynparam
 

@@ -20,29 +20,34 @@
 module mod_interp
  
   use mod_memutil
-  use m_realkinds
-  use m_die
-  use m_stdio
+  use mod_realkinds
+  use mod_stdio
+  use mod_message
 
   use mod_constants , only : degrad
 
-  real(sp) :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
-              glonmn , glonmx
-  real(sp) :: dlatmax , dlonmax
-  integer :: imxmn , lcross , ldot
+  private
 
-  real(sp) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
+  real(sp) , public :: alatmn , alatmx , alonmn , alonmx , glatmn , glatmx , &
+              glonmn , glonmx
+  real(sp) , public :: dlatmax , dlonmax
+  integer , public :: imxmn , lcross , ldot
+
+  real(sp) , public , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc ,&
                                             dc1xd , dc1xt
-  integer , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
+  integer , public , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul ,  &
                               ic1ur , jc1dl , jc1dr , jc1ul , jc1ur
-  real(sp) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
+  real(sp) , public , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc ,&
                                              dd1xd , dd1xt
-  integer , pointer, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
+  integer , public , pointer, dimension(:,:) :: id1dl , id1dr , id1ul ,  &
                               id1ur , jd1dl , jd1dr , jd1ul , jd1ur
+
+  public :: bilinx , bilinx2 , cressmcr , cressmdt
 
   data imxmn /0/
   data lcross /0/
   data ldot /0/
+
   contains
 !
 !-----------------------------------------------------------------------
@@ -248,7 +253,7 @@ module mod_interp
         i2 = 1
       end if
       if ( i1 == 1000 ) then
-        call die('cressmdt','Could not find the right longitude',1)
+        call die('bilinx2','Could not find the right longitude',1)
       end if
       j1 = 1000
       do jj = 1 , nlat - 1
@@ -272,7 +277,7 @@ module mod_interp
         end if
       end do
       if ( j1 == 1000 ) then
-        call die('cressmdt','Could not find the right latitude',1)
+        call die('bilinx2','Could not find the right latitude',1)
       end if
       if ( j1 > 0 .and. j1 < nlat ) then
         do l = 1 , llev

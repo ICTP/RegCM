@@ -19,7 +19,7 @@
 
 module mod_cbmz_linslv
 
-  use m_realkinds
+  use mod_realkinds
 
   private
 

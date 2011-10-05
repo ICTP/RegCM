@@ -19,9 +19,9 @@
 
 module mod_param_clm
 
-  use m_realkinds
-  use m_stdio
-  use m_die
+  use mod_realkinds
+  use mod_message
+  use mod_stdio
 
   implicit none
 !

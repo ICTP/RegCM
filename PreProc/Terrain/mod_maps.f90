@@ -19,7 +19,7 @@
 
 module mod_maps
 
-  use m_realkinds
+  use mod_realkinds
   use mod_memutil
 
   real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon ,  &

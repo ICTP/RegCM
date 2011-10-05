@@ -19,10 +19,8 @@
 
 module mod_sst_ersst
 
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use netcdf
   use mod_dynparam
   use mod_sst_grid
@@ -65,7 +63,6 @@ module mod_sst_ersst
   real(sp) , dimension(ilon,jlat) :: sst
   character(256) :: inpfile
 !
-  call zeit_ci('sst_ersst')
 !
   if ( ssttyp /= 'ERSST' .and. ssttyp /= 'ERSKT' ) then
     write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
@@ -117,7 +114,6 @@ module mod_sst_ersst
 
   end do
 
-  call zeit_co('sst_ersst')
  
   end subroutine sst_ersst
 !
@@ -156,7 +152,6 @@ module mod_sst_ersst
   data varname/'sst','skt'/
   data lfirst /.true./
 !
-  call zeit_ci('read_sst_era')
   if ( lfirst ) then
     istatus = nf90_open(pathaddname,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(pathaddname))
@@ -195,7 +190,6 @@ module mod_sst_ersst
     end do
   end do
 !
-  call zeit_co('read_sst_era')
 !
   end subroutine sst_erain
 !

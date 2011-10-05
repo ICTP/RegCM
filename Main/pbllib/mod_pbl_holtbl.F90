@@ -23,7 +23,7 @@ module mod_pbl_holtbl
 ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
 !
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_pbl_common
 !
   private

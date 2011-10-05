@@ -21,10 +21,9 @@ module mod_ecwcp
 
   use mod_dynparam
   use mod_memutil
-  use m_stdio
-  use m_realkinds
-  use m_die
-  use m_zeit
+  use mod_stdio
+  use mod_realkinds
+  use mod_message
 
   private
 
@@ -90,7 +89,6 @@ module mod_ecwcp
             'ECT421997JUL' , 'ECT421997AUG' , 'ECT421997SEP' ,  &
             'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
 !
-  call zeit_ci('getecwcp')
  
   call split_idate(idate,year,month,day,hour)
 !
@@ -178,7 +176,6 @@ module mod_ecwcp
 !     F4     DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('getecwcp')
   end subroutine getecwcp
 !
   subroutine headerec

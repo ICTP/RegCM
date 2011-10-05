@@ -21,7 +21,7 @@ module mod_runparams
 
   use mod_constants
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_service 
   use mod_memutil
 

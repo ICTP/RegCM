@@ -19,10 +19,10 @@
 
 module mod_che_mppio
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_message
+  use mod_mpmessage
   use mod_che_param
   use mod_che_species
 !

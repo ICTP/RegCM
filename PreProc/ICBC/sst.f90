@@ -21,16 +21,15 @@ program sst
 
   use mod_header
   use mod_dynparam
+  use mod_memutil
+  use mod_stdio
+  use mod_message
   use mod_sst_grid
   use mod_sst_1deg
   use mod_sst_eh5om
   use mod_sst_ersst
   use mod_sst_fvgcm
   use mod_sst_gnmnc
-  use mod_memutil
-  use m_die
-  use m_stdio
-  use m_zeit
 
   implicit none
 
@@ -55,7 +54,6 @@ program sst
   end if
 
   if (debug_level > 2) then
-    call zeit_ci('sst')
   end if
 
   call memory_init
@@ -101,8 +99,6 @@ program sst
   call memory_destroy
 
   if (debug_level > 2) then
-    call zeit_co('sst')
-    call zeit_flush(stdout)
   end if
 
   call finaltime(0)

@@ -19,7 +19,7 @@
 
 module mod_che_interface
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_atm_interface , only : slice , surfpstate
   use mod_che_common
   use mod_che_cumtran

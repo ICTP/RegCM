@@ -21,7 +21,7 @@ module mod_pbl_common
 !
 ! Storage parameters and constants related to the boundary layer
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_dynparam
   use mod_memutil

@@ -21,10 +21,9 @@ module mod_erahi
 
   use mod_dynparam
   use mod_memutil
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_message
+  use mod_stdio
   use mod_grid
   use mod_write
   use mod_interp
@@ -72,7 +71,6 @@ module mod_erahi
   logical :: there
   real(sp) :: slonmax , slonmin , xlonmax , xlonmin
 !
-  call zeit_ci('geterahi')
   if ( idate == globidate1 ) then
     xlonmin = 400.
     xlonmax = -400.
@@ -207,7 +205,6 @@ module mod_erahi
 !     F4     DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('geterahi')
 !
 99001 format (a,a,a,a,'EHI_',i10)
 !

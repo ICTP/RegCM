@@ -23,7 +23,7 @@ module mod_bats_leaftemp
 !     documented in NCAR Tech Note, Dickinson et al., 1986.
 !     modifications by Klaus Blumel, 1988.
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_bats_common

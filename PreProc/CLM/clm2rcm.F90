@@ -28,9 +28,8 @@ program clm2rcm
   use mod_date
   use mod_clm3grid
   use mod_memutil
-  use m_realkinds
-  use m_stdio
-  use m_die
+  use mod_realkinds
+  use mod_stdio
 
   implicit none
 !

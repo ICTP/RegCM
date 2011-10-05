@@ -19,10 +19,8 @@
 
 module mod_sst_grid
 
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use netcdf
   use mod_dynparam
   use mod_memutil
@@ -68,7 +66,6 @@ module mod_sst_grid
     integer :: iyy , jxx
     integer :: istatus , incin , idimid , ivarid
 
-    call zeit_ci('read_domain')
     istatus = nf90_open(terfile, nf90_nowrite, incin)
     call checkncerr(istatus,__FILE__,__LINE__,'Error Opening file '//trim(terfile))
 
@@ -108,7 +105,6 @@ module mod_sst_grid
     xlon = transpose(finmat)
     istatus = nf90_close(incin)
     call checkncerr(istatus,__FILE__,__LINE__,('Error closing file '//trim(terfile)))
-    call zeit_co('read_domain')
 
   end subroutine read_domain
 
@@ -126,7 +122,6 @@ module mod_sst_grid
     integer , dimension(8) :: tvals
     integer :: i , j
 
-    call zeit_ci('newfile')
     refdate = idate1
     csdate = tochar(refdate)
     itime = 1
@@ -357,7 +352,6 @@ module mod_sst_grid
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlat write')
     istatus = nf90_put_var(ncid, illvar(2), transpose(xlon))
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable xlon write')
-    call zeit_co('newfile')
 
   end subroutine open_sstfile
 
@@ -378,7 +372,6 @@ module mod_sst_grid
     real(dp) , dimension(1) :: xdate
     type(rcm_time_interval) :: tdiff
 
-    call zeit_ci('writerec')
     istart(3) = itime
     istart(2) = 1
     istart(1) = 1
@@ -404,7 +397,6 @@ module mod_sst_grid
       call checkncerr(istatus,__FILE__,__LINE__,'Error sync output file')
     end if
     itime = itime + 1
-    call zeit_co('writerec')
   end subroutine writerec
 
 end module mod_sst_grid

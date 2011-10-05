@@ -19,7 +19,7 @@
 
 module mod_ensemble
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_memutil
   use mod_constants
 !------------------------------------------------------------------------------

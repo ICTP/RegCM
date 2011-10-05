@@ -49,9 +49,10 @@ mod_cu_grell.o mod_cu_grell.mod: mod_cu_grell.F90 \
 mod_cu_kuo.o mod_cu_kuo.mod: mod_cu_kuo.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   mod_cu_common.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_cu_tables.o mod_cu_tables.mod: mod_cu_tables.f90 \
-  $(REGCM_ROOT)/external/m_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o
+  $(REGCM_ROOT)/Share/mod_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o
 mod_cu_tiedtke.o mod_cu_tiedtke.mod: mod_cu_tiedtke.F90 \
-  $(REGCM_ROOT)/external/m_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o \
+  $(REGCM_ROOT)/Share/mod_realkinds.o $(REGCM_ROOT)/Share/mod_constants.o \
   $(REGCM_ROOT)/Share/mod_dynparam.o $(REGCM_ROOT)/Share/mod_memutil.o \
   $(REGCM_ROOT)/Share/mod_message.o mod_cu_common.o mod_cu_tables.o

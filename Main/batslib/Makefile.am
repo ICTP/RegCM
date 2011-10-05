@@ -54,6 +54,7 @@ mod_bats_drag.o mod_bats_drag.mod : mod_bats_drag.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_bats_common.o
 mod_bats_lake.o mod_bats_lake.mod : mod_bats_lake.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_bats_common.o mod_bats_mppio.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_bats_leaftemp.o mod_bats_leaftemp.mod : mod_bats_leaftemp.f90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   mod_bats_common.o

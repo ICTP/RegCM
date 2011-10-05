@@ -20,12 +20,11 @@
 module mod_read_domain
 
   use netcdf
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
   use mod_message
-  use m_stdio
-  use m_die
+  use mod_stdio
 
   private
 

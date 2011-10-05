@@ -19,10 +19,10 @@
 
 module mod_che_common
 
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_message
+  use mod_mpmessage
   use mod_che_param
   use mod_che_species
 
@@ -81,12 +81,12 @@ module mod_che_common
 
     if ( ntr>maxntr ) then
       write (aline , *) 'In mod_che_common, resetting ntr to maxntr ', maxntr
-      call say(myid)
+      call say
       ntr = maxntr
     end if
     if ( nbin>maxnbin ) then
       write (aline , *) 'In mod_che_common, resetting nbin to maxnbin ', maxnbin
-      call say(myid)
+      call say
       nbin = maxnbin
     end if
 

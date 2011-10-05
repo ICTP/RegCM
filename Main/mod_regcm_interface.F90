@@ -30,7 +30,8 @@ module mod_regcm_interface
   use mod_service
   use mod_che_interface
   use mod_runparams
-  use mod_message
+  use mod_mppparam
+  use mod_mpmessage
   use mod_ncio
   use mod_output
   use mod_split
@@ -143,9 +144,9 @@ module mod_regcm_interface
 
     if ( ncpu /= nproc ) then
       write (aline,*) 'The number of CPU is not well set'
-      call say(myid)
+      call say
       write (aline,*) 'NCPU = ' , ncpu , '    nproc =' , nproc
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'CPU Count mismatch')
     end if
 !      print * , "process" , myid , "of" , nproc
@@ -171,16 +172,16 @@ module mod_regcm_interface
     end if
     if ( jxp < 3 ) then
       write (aline,*) 'The number of jxp must be greater than 2'
-      call say(myid)
+      call say
       write (aline,*) 'jxp = ' , jxp , '   jx = ' , jx
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'Domain too small')
     end if
     if ( jxp*nproc /= jx ) then
       write (aline,*) 'jx should be divided by nproc'
-      call say(myid)
+      call say
       write (aline,*) 'jx = ' , jx , '   nproc = ' , nproc
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
                & 'Domain dimension not multiple of' //                &
                & ' processor number')
@@ -338,7 +339,7 @@ module mod_regcm_interface
             call tstep(extime,dtinc)
             write (aline, 99001) extime , dtinc , dt , dt2 ,          &
                                & dtsec , ktau , xyear
-            call say(myid)
+            call say
           end if
         end if
       end if
@@ -408,7 +409,7 @@ module mod_regcm_interface
     call release_mod_ncio
 !
     write (aline, 99002) xbctime , ktau , xyear
-    call say(myid)
+    call say
 !
 !**********************************************************************
 !
@@ -421,7 +422,7 @@ module mod_regcm_interface
     idate2 = idate1 + tdif
     appdat = tochar(idate2)
     write (aline, *) ' *** new max DATE will be ' , appdat
-    call say(myid)
+    call say
 !
 !**********************************************************************
 !

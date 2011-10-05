@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_header
-  use m_stdio
+  use mod_stdio
 
   contains
 

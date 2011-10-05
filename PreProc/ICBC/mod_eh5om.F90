@@ -20,10 +20,8 @@
 module mod_eh5om
 
   use mod_dynparam
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use netcdf
   use mod_grid
   use mod_memutil
@@ -124,7 +122,6 @@ module mod_eh5om
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-  call zeit_ci('get_eh5om')
 
   call split_idate(idate,year,month,day,hour)
  
@@ -1094,7 +1091,6 @@ module mod_eh5om
 !
   end if
 
-  call zeit_co('get_eh5om')
   end subroutine geteh5om
 
   subroutine headermpi(ehso4)

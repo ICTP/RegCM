@@ -21,7 +21,7 @@ module mod_bats_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_memutil
   use mod_dynparam
   use mod_bats_param

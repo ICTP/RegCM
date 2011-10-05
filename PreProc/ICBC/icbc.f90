@@ -101,6 +101,10 @@ program icbc
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   use mod_dynparam
+  use mod_message
+  use mod_header
+  use mod_stdio
+  use mod_memutil
   use mod_mksst
   use mod_date
   use mod_grid
@@ -116,11 +120,6 @@ program icbc
   use mod_nest
   use mod_gn6hnc
   use mod_write
-  use mod_header
-  use m_stdio
-  use m_die
-  use m_zeit
-  use mod_memutil
 
   implicit none
 !
@@ -154,7 +153,6 @@ program icbc
   end if
 !
   if (debug_level > 2) then
-    call zeit_ci('icbc')
   end if
 
   call memory_init
@@ -269,8 +267,6 @@ program icbc
   call closesst
  
   if (debug_level > 2) then
-    call zeit_co('icbc')
-    call zeit_flush(stdout)
   end if
 
   call memory_destroy

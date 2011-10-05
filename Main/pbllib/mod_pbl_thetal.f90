@@ -20,7 +20,7 @@
 module mod_pbl_thetal
 
   use mod_constants
-  use m_realkinds
+  use mod_realkinds
 
   private
 

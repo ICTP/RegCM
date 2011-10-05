@@ -19,11 +19,8 @@
 
 module mod_sst_gnmnc
 
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_mall
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_dynparam
   use mod_memutil
   use mod_sst_grid
@@ -80,7 +77,6 @@ module mod_sst_gnmnc
   integer , dimension(20) :: lund
   real(sp) :: ufac
 !
-  call zeit_ci('sst_gnmnc')
 
   ufac = 0.0
   if ( ssttyp == "CAM4N" ) then
@@ -228,7 +224,6 @@ module mod_sst_gnmnc
 
   end do
  
-  call zeit_co('sst_gnmnc')
 
   end subroutine sst_gnmnc
 !
@@ -247,7 +242,6 @@ module mod_sst_gnmnc
   integer :: it , i , j
   type(rcm_time_interval) :: tdiff1 , tdiff2
 
-  call zeit_ci('read_gnmnc')
 
   it = imondiff(idate,fidate1) + 1
   icount(1) = ilon
@@ -275,7 +269,6 @@ module mod_sst_gnmnc
     end do
   end do
 
-  call zeit_co('read_gnmnc')
   end subroutine gnmnc_sst
 !
 end module mod_sst_gnmnc

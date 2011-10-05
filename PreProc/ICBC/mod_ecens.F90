@@ -20,10 +20,8 @@
 module mod_ecens
 
   use mod_dynparam
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_memutil
   use mod_grid
   use mod_write

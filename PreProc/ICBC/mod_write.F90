@@ -19,9 +19,7 @@
 
 module mod_write
 
-  use m_die
-  use m_zeit
-  use m_realkinds
+  use mod_realkinds
   use netcdf
   use mod_dynparam
   use mod_grid
@@ -91,7 +89,6 @@ module mod_write
     real(sp) , dimension(2) :: trlat
     real(sp) :: hptop
 
-    call zeit_ci('newfile')
 
     if (ncout > 0) then
       istatus = nf90_close(ncout)
@@ -402,7 +399,6 @@ module mod_write
     istatus = nf90_sync(ncout)
     call checkncerr(istatus,__FILE__,__LINE__,'Error file sync')
 
-    call zeit_co('newfile')
 
 99001 format (a,a,a,a,i10,a)
 
@@ -417,7 +413,6 @@ module mod_write
     integer , dimension(4) :: istart , icount
     real(dp) , dimension(1) :: xdate
 !
-    call zeit_ci('writef')
 !
     istart1(1) = itime
     icount1(1) = 1
@@ -462,7 +457,6 @@ module mod_write
     end if
     itime = itime + 1
 !
-    call zeit_co('writef')
   end subroutine writef
 !
 end module mod_write

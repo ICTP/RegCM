@@ -20,7 +20,7 @@
 module mod_tendency
 
   use mod_runparams
-  use mod_message
+  use mod_mpmessage
   use mod_service
   use mod_memutil
   use mod_atm_interface

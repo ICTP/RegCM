@@ -19,7 +19,7 @@
 
 module mod_interp
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
 !
   private
@@ -393,8 +393,8 @@ module mod_interp
   subroutine interp(iy,jx,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
                     ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
  
-  use m_stdio
-  use m_die
+  use mod_stdio
+  use mod_message
 
   implicit none
 !

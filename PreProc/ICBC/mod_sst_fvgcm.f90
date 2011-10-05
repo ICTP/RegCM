@@ -19,13 +19,12 @@
 
 module mod_sst_fvgcm
 
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
+  use mod_message
   use mod_dynparam
-  use mod_sst_grid
   use mod_interp
+  use mod_sst_grid
 
   private
 
@@ -61,7 +60,6 @@ module mod_sst_fvgcm
   integer :: year , month , day , hour
   logical :: there
 !
-  call zeit_ci('sst_fvgcm')
 
   if ( ssttyp == 'FV_RF' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',exist=there)
@@ -187,7 +185,6 @@ module mod_sst_fvgcm
 
   end do
  
-  call zeit_co('sst_fvgcm')
 
   end subroutine sst_fvgcm
 !

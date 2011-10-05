@@ -19,7 +19,7 @@
 
 module mod_clm3grid
 
-  use m_realkinds
+  use mod_realkinds
 
   contains
 

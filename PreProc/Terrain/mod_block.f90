@@ -19,9 +19,9 @@
 
 module mod_block
   
-  use m_stdio
-  use m_realkinds
-  use m_die
+  use mod_stdio
+  use mod_realkinds
+  use mod_message
   use mod_constants
 
   real(dp) :: grdlnmn , grdltmn , grdlnma , grdltma

@@ -20,10 +20,8 @@
 module mod_grid
 
   use mod_memutil
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_message
 
   real(sp) , pointer , dimension(:,:) :: coriol , dlat , dlon , &
@@ -72,7 +70,6 @@ module mod_grid
     character(256) :: fname
     integer :: jx_in , iy_in , kz_in , k
 
-    call zeit_ci('readdom')
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
 
     istatus = nf90_open(fname, nf90_nowrite, incin)
@@ -142,7 +139,6 @@ module mod_grid
       dsigma(k) = sigmaf(k+1) - sigmaf(k)
     end do
 
-    call zeit_co('readdom')
 !
   end subroutine read_domain
 !

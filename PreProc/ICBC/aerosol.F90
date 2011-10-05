@@ -36,10 +36,8 @@ program aerosol
   use mod_memutil
   use mod_message
   use netcdf
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
 
   implicit none
 !
@@ -91,7 +89,6 @@ program aerosol
   call memory_init
 !
   if (debug_level > 2) then
-    call zeit_ci('aerosol')
   end if
 
   call getmem2d(aermm,1,iy,1,jx,'aerosol:aermm')
@@ -453,8 +450,6 @@ program aerosol
   call memory_destroy
 
   if (debug_level > 2) then
-    call zeit_co('aerosol')
-    call zeit_flush(stdout)
   end if
 
   write(stdout,*) 'Successfully built aerosol data for domain ',trim(domname)

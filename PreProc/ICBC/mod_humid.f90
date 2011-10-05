@@ -20,7 +20,7 @@
 module mod_humid
 
   use mod_constants
-  use m_realkinds
+  use mod_realkinds
 !
   real(4) , parameter :: rt0 = real(rtzero)
   real(4) , parameter :: t0 = real(tzero)

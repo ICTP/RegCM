@@ -19,8 +19,8 @@
 
 module mod_vectutil
 
-  use m_realkinds
-  use m_stdio
+  use mod_realkinds
+  use mod_stdio
 
   contains
 

@@ -20,8 +20,7 @@
 module mod_rdldtr
 
   use mod_block
-  use m_stdio
-  use m_die
+  use mod_stdio
   use mod_constants
   use mod_memutil
   use mod_message

@@ -25,8 +25,7 @@ module mod_ch_oxcl
   use mod_wrtoxd
   use mod_interp
   use mod_date
-  use m_die
-  use m_realkinds
+  use mod_realkinds
   use netcdf
 
   private

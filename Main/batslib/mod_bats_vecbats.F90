@@ -19,9 +19,9 @@
  
 module mod_bats_vecbats
 
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_constants
   use mod_service
   use mod_bats_common

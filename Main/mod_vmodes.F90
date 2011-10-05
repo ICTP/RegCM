@@ -21,7 +21,7 @@ module mod_vmodes
 
   use mod_runparams
   use mod_memutil
-  use mod_message
+  use mod_mpmessage
   use mod_service
   use linpack
   use eispack
@@ -150,13 +150,13 @@ module mod_vmodes
     pd = xps - ptop
 !
     write (aline,*) 'Calculating Vertical Modes'
-    call say(myid)
+    call say
     if ( lstand ) then
       write (aline,*) '- Linearization about standard atmosphere'
-      call say(myid)
+      call say
     else
       write (aline,*) '- Linearization about horizontal mean of data'
-      call say(myid)
+      call say
     end if
 !
     lsigma = .false.
@@ -166,7 +166,7 @@ module mod_vmodes
       if ( sigma(k+1) < sigma(k) ) then
         lsigma = .true.
         write (aline,99001) k , sigma(k+1) , sigma(k)
-        call say(myid)
+        call say
       end if
     end do
     if ( lsigma ) then
@@ -722,7 +722,7 @@ module mod_vmodes
     call sgefa(v,n,n,ip,ier)
     if ( ier /= 0 ) then
       write (aline,*) 'sgefa error info = ' , ier
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'sgefa error')
     end if
     call sgedi(v,n,n,ip,d,work,11)

@@ -20,7 +20,7 @@
 module mod_rad_radiation
 
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_service
   use mod_memutil
 
@@ -389,7 +389,7 @@ module mod_rad_radiation
       cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
     else
       write (aline,*) '  Simulation year:  ' , iyear
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
     end if

@@ -19,10 +19,8 @@
 
 module mod_mksst
 
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use netcdf
   use mod_memutil
   use mod_constants
@@ -60,7 +58,6 @@ module mod_mksst
     type(rcm_time_interval) :: ks1 , ks2
     real(sp) :: wt
 
-    call zeit_ci('readsst')
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
@@ -179,7 +176,6 @@ module mod_mksst
         end do
       end do
     end if
-    call zeit_co('readsst')
   end subroutine readsst
 
   subroutine closesst

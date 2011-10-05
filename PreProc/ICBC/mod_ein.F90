@@ -20,10 +20,8 @@
 module mod_ein
 
   use mod_dynparam
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_memutil
   use mod_grid
   use mod_write
@@ -71,7 +69,6 @@ module mod_ein
 !
 !     READ DATA AT IDATE
 !
-  call zeit_ci('get')
 
   call ein6hour(dattyp,idate,globidate1)
 
@@ -128,7 +125,6 @@ module mod_ein
 !     F4  DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('get')
 !
   end subroutine getein
 !
@@ -158,7 +154,6 @@ module mod_ein
 !
   data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 !
-  call zeit_ci('readein')
 !
   if ( idate < imindat .or. idate > imaxdat ) then
     write (stderr, *) 'EIN data for resolution ',xres,' degrees ', &
@@ -444,7 +439,6 @@ module mod_ein
     end if
   end do
 
-  call zeit_co('readein')
 
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')

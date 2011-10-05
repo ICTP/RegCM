@@ -19,7 +19,7 @@
 
 module mod_cbmz_chemmech
 !
-  use m_realkinds
+  use mod_realkinds
 !
   public
 !

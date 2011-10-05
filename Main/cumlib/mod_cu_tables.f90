@@ -19,7 +19,7 @@
 
 module mod_cu_tables
 
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
 
   implicit none

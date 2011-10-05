@@ -20,11 +20,8 @@
 module mod_ncep
 
   use mod_dynparam
-  use m_realkinds
-  use m_die
-  use m_stdio
-  use m_mall
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_grid
   use mod_write
   use mod_interp
@@ -72,7 +69,6 @@ module mod_ncep
 !
 !     D      BEGIN LOOP OVER NTIMES
 !
-  call zeit_ci('getncep')
 !
   call split_idate(idate,year,month,day,hour)
 !
@@ -138,7 +134,6 @@ module mod_ncep
 !     F4  DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('getncep')
   end subroutine getncep
 
   subroutine cdc6hour(idate,idate0)
@@ -170,7 +165,6 @@ module mod_ncep
 !     variable name.
 !     OPEN FILE AND GET FILES ID AND VARIABLE ID(S)
 !
-  call zeit_ci('read_cdc')
   xadd = 0.0D0
   xscale = 1.0D0
 !fix  do kkrec = 1,7
@@ -339,7 +333,6 @@ module mod_ncep
     end if
   end do
 
-  call zeit_co('read_cdc')
 
 99001 format (i4,'/',a4,i4,'.nc')
 99002 format (i4,'/',a5,i4,'.nc')
@@ -376,7 +369,6 @@ module mod_ncep
 !
   data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd' , 'omega' , 'pres'/
 !
-  call zeit_ci('read_cdc_window')
   xadd = 0.0D0
   xscale = 1.0D0
 
@@ -622,7 +614,6 @@ module mod_ncep
     end if
   end do
 
-  call zeit_co('read_cdc_window')
 
 99001 format (i4,'/',a8,i4,'.nc')
 99002 format (i4,'/',a9,i4,'.nc')

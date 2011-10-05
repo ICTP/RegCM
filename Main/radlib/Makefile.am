@@ -38,7 +38,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 mod_rad_aerosol.o mod_rad_aerosol.mod: mod_rad_aerosol.F90 \
-  $(REGCM_ROOT)/external/m_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod \
+  $(REGCM_ROOT)/Share/mod_realkinds.mod $(REGCM_ROOT)/Share/mod_message.mod \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
 	$(REGCM_ROOT)/Share/mod_memutil.mod mod_rad_common.o
 mod_rad_common.o mod_rad_common.mod: mod_rad_common.f90 \

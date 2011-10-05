@@ -22,7 +22,7 @@
 module mod_mtrxclm
 
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_clm
   use mod_bats_common
   use mod_bats_vecbats

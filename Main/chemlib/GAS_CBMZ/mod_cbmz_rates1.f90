@@ -19,7 +19,7 @@
 
 module mod_cbmz_rates1
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_cbmz_chemvars
   use mod_cbmz_chemmech

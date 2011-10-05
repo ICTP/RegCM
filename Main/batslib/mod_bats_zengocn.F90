@@ -22,7 +22,7 @@ module mod_bats_zengocn
 ! Ocean flux model
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_service
   use mod_bats_common

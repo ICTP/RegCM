@@ -19,9 +19,9 @@
 !
 module mod_che_ncio
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_che_indices
   use netcdf
 !
@@ -96,7 +96,7 @@ module mod_che_ncio
     do itr = 1 , ntr
       aerctl = chtrname(itr)
       write (aline, *) itr , aerctl
-      call say(myid)
+      call say
       if ( aerctl(1:4) /= 'DUST') then
         if ( aerctl(1:3) == 'SO2' ) then
           if ( aertyp(4:4) == '1' ) then

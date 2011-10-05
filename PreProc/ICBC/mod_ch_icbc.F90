@@ -24,8 +24,7 @@ module mod_ch_icbc
   use mod_wrtoxd
   use mod_interp
   use mod_date
-  use m_die
-  use m_realkinds
+  use mod_realkinds
   use mod_memutil
   use mod_message
   use netcdf

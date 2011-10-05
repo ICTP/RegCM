@@ -19,9 +19,9 @@
  
 module mod_cu_tiedtke
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
   use mod_memutil
   use mod_constants
   use mod_cu_common

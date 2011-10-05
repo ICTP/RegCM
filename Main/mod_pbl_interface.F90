@@ -19,7 +19,7 @@
 
 module mod_pbl_interface
 
-  use m_realkinds
+  use mod_realkinds
   use mod_service
   use mod_constants
   use mod_atm_interface , only : atmstate , diffx , slice , surfstate , &

@@ -28,7 +28,7 @@ module mod_mppio
   use mod_rad_interface
   use mod_pbl_interface , only : ibltyp , tcm_state , allocate_tcm_state
   use mod_memutil
-  use mod_message
+  use mod_mpmessage
 !
   integer , pointer , dimension(:,:,:) :: ocld2d_io , veg2d1_io
   integer , pointer , dimension(:,:) :: veg2d_io , ldmsk_io

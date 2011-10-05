@@ -20,7 +20,8 @@
 module mod_params
 
   use mod_runparams
-  use mod_message
+  use mod_mppparam
+  use mod_mpmessage
   use mod_cu_interface
   use mod_lm_interface
   use mod_atm_interface
@@ -718,22 +719,22 @@ module mod_params
 ! 
   if ( myid == 0 ) then
     write (aline,*) 'starting first checks' 
-    call say(myid)
+    call say
     if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTRAD=' , dtrad , 'DT=' , dt
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTSRF=' , dtsrf , 'DT=' , dt
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
     end if
     if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
       write (aline,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT SURFACE/RADIATION TIMESTEPS SPECIFIED')
     end if
@@ -741,10 +742,10 @@ module mod_params
       if ( lakfrq < srffrq .or. &
            mod(idnint(lakfrq),idnint(srffrq)) /= 0 ) then
         write (aline,*) 'BATFRQ=' , srffrq , ' LAKFRQ=' , lakfrq
-        call say(myid)
+        call say
         write (aline,*) 'Lake frequency needs to be an integer ',&
                         ' multiple of srffrq.'
-        call say(myid)
+        call say
         if (myid == 0) then
           call fatal(__FILE__,__LINE__, &
                     'INCONSISTENT LAKE/SURFACE TIMESTEPS SPECIFIED')
@@ -753,7 +754,7 @@ module mod_params
     end if
     if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
       write (aline,*) 'DTABEM=' , dtabem , 'DT=' , dt
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,                                   &
                  'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
     end if
@@ -765,7 +766,7 @@ module mod_params
     end if
     if ( ichem == 1 .and. chemfrq <=  d_zero) then
       write (aline,*) 'CHEMFRQ=' ,chemfrq
-      call say(myid)
+      call say
       call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
     end if
   end if
@@ -842,7 +843,7 @@ module mod_params
     dtau(ns) = dtsplit(ns)
   end do
   write (aline, *) 'dtau = ' , dtau
-  call say(myid)
+  call say
   ntabem = idnint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
   dt2 = d_two*dt
 !
@@ -890,16 +891,16 @@ module mod_params
 !
   appdat = tochar(idate1)
   write (aline,*) 'initial date of this '//'simulation: ' , appdat
-  call say(myid)
+  call say
   appdat = tochar(idate2)
   write (aline,*) '  final date of this '//'simulation: ' , appdat
-  call say(myid)
+  call say
   write (aline,'(a,i10,a)')  &
        'total simulation lenght ' , idnint(tohours(bdif)), ' hours'
-  call say(myid)
+  call say
   write (aline,'(a,f9.4)')  &
        'dtsec (timestep in seconds)' , dtsec
-  call say(myid)
+  call say
   idatex = idate1
   call split_idate(idatex,xyear,xmonth,xday,xhour)
 !
@@ -916,7 +917,7 @@ module mod_params
   appdat = tochar(idate0)
   write (aline, *) 'initial date of the global '// &
                    'simulation: idate  = ' , appdat
-  call say(myid)
+  call say
 !
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
@@ -941,119 +942,119 @@ module mod_params
   conf = d_one
  
   write (aline, *) 'input/output parameters '
-  call say(myid)
+  call say
   write (aline,*) 'if true(T) create SAV files for '// &
                   'restart: ifsave = ' , ifsave  
-  call say(myid) 
+  call say 
   write (aline,*) 'Frequency in hours to create SAV: savfrq = ' , &
                   savfrq
-  call say(myid) 
+  call say 
   write (aline,*) 'if true (T) Output ATM files:  ifatm = ' , &
                    ifatm 
-  call say(myid) 
+  call say 
   write (aline,*) 'Frequency in hours to write  ATM: atmfrq = ' , &
                   atmfrq 
-  call say(myid)  
+  call say  
   write (aline,*) 'Frequency in hours to write  RAD: radfrq = ' , &
                   radfrq 
-  call say(myid)
+  call say
   write (aline,*) 'Frequency in hours to write  SRF: srffrq = ' , &
                   srffrq  
-  call say(myid)
+  call say
   if ( lakemod == 1 ) then
     write (aline,*) 'Frequency in hours to write  LAK: lakfrq = ' , &
                     lakfrq
   end if
   write (aline,*) 'if true (T) output CHEM files:  ifchem = ' , &
                   ifchem 
-  call say(myid) 
+  call say 
   write (aline,*) 'Frequency in hours to write CHEM: chemfrq =' , &
                   chemfrq
-  call say(myid)  
+  call say  
   write (aline,*) 'Frequency in hours to write CLM: clmfrq = ', &
                   clmfrq
-  call say(myid)
+  call say
   write (aline,*) ' '
-  call say(myid)
+  call say
   write (aline,*) 'physical parameterizations '
-  call say(myid)
+  call say
   write (aline,'(a,i2)') ' Lateral Boundary conditions '// &
                           'scheme: iboudy = ' , iboudy
-  call say(myid)  
+  call say  
   write (aline,'(a,i2)') ' Cumulus convection scheme: icup = ' , &
                          icup
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Grell Scheme Cumulus closure '// &
                           'scheme: igcc =' , igcc 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Moisture scheme: ipptls = ' , ipptls 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Ocean Flux scheme: iocnflx = ' , iocnflx
-  call say(myid)
+  call say
   if ( iocnflx == 2 ) then
     write  (aline,'(a,i2)') ' Zeng roughness formula: iocnrough = ', iocnrough
-    call say(myid)
+    call say
   end if
   write  (aline,'(a,i2)') ' Pressure gradient force scheme: ipgf = ' , ipgf 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Prescribed a surface LW emissivity: '// &
                           'iemiss = ' , iemiss 
-  call say(myid) 
+  call say 
   write  (aline,'(a,i2)') ' Use lake model lakemod = ' , lakemod 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Use Chemical/aerosol model '// &
                           '(0=no,1=yes):  ichem =' , ichem 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Use diurnal sst cycle effect '// &
                           '(0=no,1=yes):  idcsst =' , idcsst 
-  call say(myid) 
+  call say 
   write  (aline,'(a,i2)') ' Use sea ice effect '// &
                           '(0=no,1=yes):  iseaice =' , iseaice 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Use desert seasonal effect '// &
                           '(0=no,1=yes):  idesseas =' , idesseas 
 
-  call say(myid)
+  call say
   write  (aline,'(a,i2)') ' Use convective LWP parameterization '// &
                      'for large-scale '// &
                      'clouds (0=no,1=yes):  iconvlwp =' , iconvlwp 
-  call say(myid)
+  call say
   write  (aline,'(a,f9.6)') ' Nudge value high range   =', &
                             high_nudge 
-  call say(myid)
+  call say
   write  (aline,'(a,f9.6)') ' Nudge value medium range =', &
                             medium_nudge 
-  call say(myid)
+  call say
   write  (aline,'(a,f9.6)') ' Nudge value low range    =', &
                             low_nudge 
-  call say(myid)
+  call say
 #ifdef CLM 
    write  (aline,'(a,i2)' ) '  imask=' , imask 
-  call say(myid)
+  call say
 #endif
   write (aline, *) ' '
-  call say(myid)
+  call say
   write (aline, *) 'model parameters '
-  call say(myid)
+  call say
   write (aline,'(a,f12.6)')  ' time step for radiation '// &
           'model in minutes:  dtrad = ' , dtrad 
-  call say(myid) 
+  call say 
   write (aline,'(a,f12.6)')  ' time step for land surface '// &
           'model in seconds :  dtsrf  = ' , dtsrf 
-  call say(myid)
+  call say
   write (aline,'(a,f12.6)')  ' time step for LW absorption/'// &
           'emissivity in hours:  dtabem  = ' , dtabem 
-  call say(myid)
+  call say
   write (aline,'(a,f12.6)')  ' time step for atmosphere model '// &
           ' in seconds:  dt     = ' , dt
-  call say(myid)
+  call say
   write (aline, *) ' '
-  call say(myid)
+  call say
   write (aline,'(a,i2)' ) '# of bottom model levels '// &
                           'with no clouds:  ncld = ' , ncld
-  call say(myid)
+  call say
   write (aline, *) ' '
-  call say(myid)
+  call say
 
   if ( ichem == 1 ) then
     if ( myid == 0 ) then
@@ -1071,7 +1072,7 @@ module mod_params
   end if
 
   write (aline, *) 'Reading in DOMAIN data'
-  call say(myid)
+  call say
 
   if ( myid == 0 ) then
     call read_domain(mddom_io%ht,mddom_io%lndcat, &
@@ -1251,54 +1252,54 @@ module mod_params
   end do
   write (aline, '(a,i3)') 'Index of highest allowed pbl:'// &
                           '  kmxpbl = ' , kmxpbl
-  call say(myid)
+  call say
   write (aline, *) ' '
-  call say(myid)
+  call say
 !
   if ( ipptls == 1 ) then
     write (aline, '(a,f11.6,a,f11.6)')                        &
              'Auto-conversion rate:  Land = ' , qck1land ,    &
              '                      Ocean = ' , qck1oce
-    call say(myid)
+    call say
     write (aline, *) 'Relative humidity thresholds:  Land = ' ,   &
              rh0land , '                              Ocean = ' , &
              rh0oce
-    call say(myid)
+    call say
     write (aline, *) 'Gultepe factors:  Land=' , gulland ,   &
             '                 Ocean=' , guloce
-    call say(myid)
+    call say
     write (aline, *) 'Maximum cloud cover for radiation: ' , fcmax
-    call say(myid)
+    call say
     write (aline, *) 'Maximum relative humidity: ' , rhmax
-    call say(myid)
+    call say
     write (aline, *) 'rh0 temperature threshold: ' , tc0
-    call say(myid)
+    call say
     if ( cevap <= d_zero ) then
       write (aline, *) 'Raindrop evaporation not included'
-      call say(myid)
+      call say
       cevap = d_zero
     end if
     cevapu = cevap
     if ( caccr <= d_zero ) then
       write (aline, *) 'Raindrop accretion not included'
-      call say(myid)
+      call say
     end if
     write (aline, *) 'Raindrop Evaporation Rate' , cevap
-    call say(myid)
+    call say
     write (aline, *) 'Raindrop Accretion Rate' , caccr
-    call say(myid)
+    call say
     write (aline, *) 'Maximum total cloud cover for radiation: ' ,  &
          cftotmax
-    call say(myid)
+    call say
   end if
  
   write (aline, *) ' '
-  call say(myid)
+  call say
  
   if (icup == 99) then
     write (aline,*) 'Variable cumulus scheme: will use Grell '// &
          'over land and Emanuel over ocean.'
-    call say(myid)
+    call say
     where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
       cucontrol = 4
     elsewhere
@@ -1308,7 +1309,7 @@ module mod_params
   if (icup == 98) then
     write (aline,*) 'Variable cumulus scheme: will use Emanuel '// &
          'over land and Grell over ocean.'
-    call say(myid)
+    call say
     where ( mddom%lndcat > 14.5D0 .and. mddom%lndcat < 15.5D0 )
       cucontrol = 2
     elsewhere
@@ -1319,11 +1320,11 @@ module mod_params
   if ( icup == 1 ) then
     call allocate_mod_cu_kuo
     write (aline, *) '*********************************'
-    call say(myid)
+    call say
     write (aline, *) '***** Anthes-Kuo Convection *****'
-    call say(myid)
+    call say
     write (aline, *) '*********************************'
-    call say(myid)
+    call say
 !
 !   specify heating profile (twght) and weighted function
 !   for moisture fluxes due to convection (vqflx)
@@ -1392,51 +1393,51 @@ module mod_params
       if ( a(k) <= skbmax ) kbmax = kz - k
     end do
     write (aline, *) '*********************************' 
-    call say(myid)
+    call say
     write (aline, *) '*****    Grell Convection   *****'
-    call say(myid)
+    call say
     write (aline, *) '*********************************'
-    call say(myid)
+    call say
     write (aline, *) '   Max Shear:' , shrmax
-    call say(myid)
+    call say
     write (aline, *) '   Min Shear:' , shrmin
-    call say(myid)
+    call say
     write (aline, *) '   Max PPT eff:' , edtmax
-    call say(myid)
+    call say
     write (aline, *) '   Min PPT eff:' , edtmin
-    call say(myid)
+    call say
     write (aline, *) '   Max PPT eff(o):' , edtmaxo
-    call say(myid)
+    call say
     write (aline, *) '   Min PPT eff(o):' , edtmino
-    call say(myid)
+    call say
     write (aline, *) '   Max PPT eff(x):' , edtmaxx
-    call say(myid)
+    call say
     write (aline, *) '   Min PPT eff(x):' , edtminx
-    call say(myid)
+    call say
     write (aline, *) '   Max PBC (pbcmax):' , pbcmax
-    call say(myid)
+    call say
     write (aline, *) '   Min Cloud Depth:' , mincld
-    call say(myid)
+    call say
     write (aline, *) '   Max Cloud Base:' , kbmax , skbmax
-    call say(myid)
+    call say
     write (aline, *) '   Max Heating:' , htmax
-    call say(myid)
+    call say
     write (aline, *) '   Min Heating:' , htmin
-    call say(myid)
+    call say
     if ( igcc == 1 ) then
       write (aline, *)                                              &
             '   Arakawa-Schubert (1974) Closure Assumption'
-      call say(myid)
+      call say
     else if ( igcc == 2 ) then
       write (aline, *)                                              &
             '   Fritsch-Chappell (1980) Closure Assumption'
-      call say(myid)
+      call say
       write (aline, *) '     ABE removal timescale: dtauc=' , dtauc
-      call say(myid)
+      call say
     end if
 
     write (aline, *) '*********************************'
-    call say(myid)
+    call say
     do j = 1 , jendx
       do i = 1 , iym1
         if ( mddom%lndcat(i,j) > 14.5D0 .and. &
@@ -1472,7 +1473,7 @@ module mod_params
     call allocate_mod_cu_bm
     write (aline,*) ' The Betts-Miller Convection scheme is not' ,  &
                     ' properly implemented'
-    call say(myid)
+    call say
     call fatal(__FILE__,__LINE__,'BETTS-MILLER NOT WORKING')
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
@@ -1484,88 +1485,88 @@ module mod_params
       if ( a(k) <= minsig ) minorig = kz - k
     end do
     write (aline, *) ' '
-    call say(myid)
+    call say
     write (aline, *) 'EMANUEL (1991) CONVECTION V4.3C (20 May, 2002)'
-    call say(myid)
+    call say
     write (aline, *) '  MIN CONVECTION ORIGIN (minsig/orig): ', minsig, minorig
-    call say(myid)
+    call say
     write (aline, *)'  AUTOCONVERSION THERSHOLD (elcrit): ' , elcrit
-    call say(myid)
+    call say
     write (aline, *)'  AUTOCONVERSION THRESHOLD TO ZERO (tlcrit): ', tlcrit
-    call say(myid)
+    call say
     write (aline, *)'  ENTRAINMENT COEFFICIENT (entp): ' , entp
-    call say(myid)
+    call say
     write (aline, *) '  FRACTIONAL AREA OF UNSATURATED DNDRAFT (sigd): ', sigd
-    call say(myid)
+    call say
     write (aline, *)'  PRECIP FRACTION OUTSIDE OF CLOUD (sigs): ', sigs
-    call say(myid)
+    call say
     write (aline, *)'  FALL SPEED OF RAIN (omtrain): ' , omtrain
-    call say(myid)
+    call say
     write (aline, *)'  FALL SPEED OF SNOW (omtsnow): ' , omtsnow
-    call say(myid)
+    call say
     write (aline, *)'  RAIN EVAPORATION COEFFICIENT (coeffr): ' , coeffr
-    call say(myid)
+    call say
     write (aline, *)'  SNOW EVAPORATION COEFFICIENT (coeffs): ' , coeffs
-    call say(myid)
+    call say
     write (aline, *) '  CONVECTIVE MOMENTUM TRANSPORT COEFFICIENT (cu): ', cu
-    call say(myid)
+    call say
     write (aline, *)'  DOWNDRAFT VELOCITY SCALE (betae): ' , betae
-    call say(myid)
+    call say
     write (aline, *) '  MAX NEGATIVE PERTURBATION BELOW LFC (dtmax): ' , dtmax
-    call say(myid)
+    call say
     write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (alphae): ' , alphae
-    call say(myid)
+    call say
     write (aline, *)'  QUASI-EQUILIBRIUM APPROACH RATE (damp): ' , damp
-    call say(myid)
+    call say
     write (aline, *) ' '
-    call say(myid)
+    call say
     write (aline, *) ' '
-    call say(myid)
+    call say
   end if
   if ( icup == 5 ) then
     call allocate_mod_cu_tiedtke
     write (aline, *) ' '
-    call say(myid)
+    call say
     write (aline, *) 'TIEDTKE (1986) CONVECTION SCHEME FROM ECHAM 5.4'
-    call say(myid)
+    call say
     write (aline, *) '  USED SCHEME: ', iconv
-    call say(myid)
+    call say
     write (aline, *) '  ENTRAINMENT RATE FOR PENETRATIVE CONVECTION: ', entrpen
-    call say(myid)
+    call say
     write (aline, *) '  ENTRAINMENT RATE FOR SHALLOW CONVECTION: ', entrscv
-    call say(myid)
+    call say
     write (aline, *) '  ENTRAINMENT RATE FOR MIDLEVEL CONVECTION: ', entrmid
-    call say(myid)
+    call say
     write (aline, *) '  ENTRAINMENT RATE FOR CUMULUS DOWNDRAFT: ', entrdd
-    call say(myid)
+    call say
     write (aline, *) '  RELAT. CLOUD MASSFLUX AT LEVEL ABV NONBUOY: ', cmfctop
-    call say(myid)
+    call say
     write (aline, *) '  MAXIMUM MASSFLUX VALUE ALLOWED: ', cmfcmax
-    call say(myid)
+    call say
     write (aline, *) '  MINIMUM MASSFLUX VALUE ALLOWED: ', cmfcmin
-    call say(myid)
+    call say
     write (aline, *) '  FRACTIONAL MASSFLUX FOR DOWNDRAFTS AT LFS: ', cmfdeps
-    call say(myid)
+    call say
     write (aline, *) '  RELATIVE SATURATION IN DOWNDRAFTS: ', rhcdd
-    call say(myid)
+    call say
     write (aline, *) '  CAPE ADJUSTMENT TIMESCALE PARAMETER: ', cmtcape
-    call say(myid)
+    call say
     write (aline, *) '  RESTRICT RAINFALL LEVEL: ', zdlev
-    call say(myid)
+    call say
     write (aline, *) '  COEFF. FOR CONV. FROM CLOUD WATER TO RAIN: ', cprcon
-    call say(myid)
+    call say
     write (aline, *) '  MAX. LEVEL FOR CLOUD BASE OF MID LEVEL CONV.: ', nmctop
-    call say(myid)
+    call say
     write (aline, *) '  PENETRATIVE CONVECTION IS SWITCHED ON: ', lmfpen
-    call say(myid)
+    call say
     write (aline, *) '  SHALLOW CONVECTION IS SWITCHED ON: ', lmfscv
-    call say(myid)
+    call say
     write (aline, *) '  MIDLEVEL CONVECTION IS SWITCHED ON: ', lmfmid
-    call say(myid)
+    call say
     write (aline, *) '  CUMULUS DOWNDRAFT IS SWITCHED ON: ', lmfdd
-    call say(myid)
+    call say
     write (aline, *) '  CUMULUS FRICTON IS SWITCHED ON: ', lmfdudv
-    call say(myid)
+    call say
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
@@ -1589,19 +1590,19 @@ module mod_params
            *((dlargc-dxtemc)/(dlargc-dsmalc))**d_two
   clfrcv = dmin1(clfrcv,clfrcvmax)
   write (aline, *) ' '
-  call say(myid)
+  call say
   write (aline, *) 'CONVECTIVE CLOUD FRACTION/WATER'
-  call say(myid)
+  call say
   write (aline, *) '   Maximum Convective Cloud Cover'
-  call say(myid)
+  call say
   write (aline, *) '     before resolution scaling: ' , clfrcvmax
-  call say(myid)
+  call say
   write (aline, *) '   Maximum Convective Cloud Cover'
-  call say(myid)
+  call say
   write (aline, *) '     after resolution scaling: ' , clfrcv
-  call say(myid)
+  call say
   write (aline, *) '   Convective Cloud Water: ' , cllwcv
-  call say(myid)
+  call say
 !
 !-----compute the vertical interpolation coefficients for t and qv.
 !

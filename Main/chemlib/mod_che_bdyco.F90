@@ -27,7 +27,7 @@ module mod_che_bdyco
 
   use mod_dynparam
   use mod_service
-  use mod_message
+  use mod_mpmessage
   use mod_memutil
   use mod_che_common
   use mod_che_mppio

@@ -23,7 +23,7 @@ module mod_che_emission
 !
   use netcdf
   use mod_constants
-  use mod_message
+  use mod_mpmessage
   use mod_service 
   use mod_dynparam
   use mod_che_common
@@ -140,7 +140,7 @@ module mod_che_emission
     if ( idust(1) > 0 ) then
       ! fisrt activate dust initialization
       write (aline, *) 'Calling inidust'
-      call say(myid)
+      call say
       call inidust
     end if
 

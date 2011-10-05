@@ -19,7 +19,7 @@
 
 module mod_cbmz_chemvars
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_cbmz_chemmech
 !
   public

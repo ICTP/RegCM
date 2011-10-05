@@ -21,9 +21,8 @@ module mod_fvgcm
 
   use mod_dynparam
   use mod_memutil
-  use m_realkinds
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_message
   use mod_grid
   use mod_write
   use mod_interp
@@ -94,7 +93,6 @@ module mod_fvgcm
   data chmon/'JAN' , 'FEB' , 'MAR' , 'APR' , 'MAY' , 'JUN' , 'JUL' , &
              'AUG' , 'SEP' , 'OCT' , 'NOV' , 'DEC'/
 !
-  call zeit_ci('getfvgcm')
 
   call split_idate(idate,year,month,day,hour)
 
@@ -368,7 +366,6 @@ module mod_fvgcm
 !     F4     DETERMINE H
   call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 !
-  call zeit_co('getfvgcm')
   end subroutine getfvgcm
 !
 !

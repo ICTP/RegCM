@@ -22,8 +22,7 @@ module mod_wrtoxd
   use mod_dynparam
   use mod_date
   use mod_grid
-  use m_realkinds
-  use m_die
+  use mod_realkinds
   use netcdf
   use mod_memutil
   use mod_message

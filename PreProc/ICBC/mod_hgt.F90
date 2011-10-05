@@ -21,7 +21,7 @@ module mod_hgt
 
   use mod_constants
   use mod_message
-  use m_realkinds
+  use mod_realkinds
 
   real(sp) , private , parameter :: segrav = real(egrav)
   real(sp) , private , parameter :: srgas = real(rgas)

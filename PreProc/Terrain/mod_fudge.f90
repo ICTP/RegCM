@@ -19,14 +19,15 @@
 
 module mod_fudge
 
-  use m_stdio
-  use m_realkinds
-  use m_die
-  use m_ioutil
+  use mod_stdio
+  use mod_realkinds
+  use mod_message
 
   private
 
   public :: lndfudge , texfudge , lakfudge
+
+  integer , parameter :: iunit = 777
 
   contains
 
@@ -41,10 +42,9 @@ module mod_fudge
   intent (in) char_lnd , fudge , iy , jx
   intent (inout) htgrid , lndout
 !
-  integer :: i , j , iunit
+  integer :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
-  iunit = luavail( )
   if ( fudge ) then
     inquire (file=char_lnd,exist=there)
     if ( .not.there ) then
@@ -196,10 +196,9 @@ module mod_fudge
   intent (out) htgrid
   intent (inout) texout
 !
-  integer :: i , j , iunit
+  integer :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
-  iunit = luavail( )
   if ( fudge ) then
     inquire (file=char_tex,exist=there)
     if ( .not.there ) then
@@ -330,10 +329,9 @@ module mod_fudge
   intent (in) char_lak , fudge , iy , jx , lnd
   intent (inout) dpth
 !
-  integer :: i , j , iunit
+  integer :: i , j
   character(1) , dimension(iy,jx) :: ch
 !
-  iunit = luavail( )
   if ( fudge ) then
     inquire (file=char_lak,exist=there)
     if ( .not.there ) then

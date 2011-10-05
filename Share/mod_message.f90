@@ -19,8 +19,7 @@
 
 module mod_message
 
-  use m_die
-  use m_stdio
+  use mod_stdio
   use netcdf
 
   private
@@ -28,30 +27,37 @@ module mod_message
   character(512) :: aline
   character(8) :: cline
 
-  public :: aline , say , note , cry , fatal , checkalloc , checkncerr
+  public :: die , aline , say , note , cry , fatal , checkalloc , checkncerr
+
+  interface die
+    module procedure die0
+    module procedure die1
+    module procedure die2
+    module procedure die4
+  end interface die
 
   contains
 
-  subroutine say(myid)
+  subroutine say
     implicit none
-    integer , intent(in) :: myid
-    if ( myid == 0 ) write (stdout,*) trim(aline)
+    write (stdout,*) trim(aline)
   end subroutine say
  
-  subroutine note(myid)
+  subroutine note
     implicit none
-    integer , intent(in) :: myid
-    write (stderr,*) ' Processor ' , myid , ' : ' , trim(aline)
+    write (aline,*) '------------------ NOTICE -----------------'
+    write (stderr,*) trim(aline)
+    write (aline,*) '-------------------------------------------'
   end subroutine note
  
-  subroutine cry(myid)
+  subroutine cry
     implicit none
-    integer , intent(in) :: myid
-    if ( myid == 0 ) write (stderr,*) trim(aline)
+    write (aline,*) '------------- IMPORTANT NOTICE ------------'
+    write (stderr,*) trim(aline)
+    write (aline,*) '-------------------------------------------'
   end subroutine cry
  
   subroutine fatal(filename,line,str)
-    use mpi
     implicit none
 !
     character(*) , intent(in) :: filename , str
@@ -60,15 +66,15 @@ module mod_message
 !
     write (cline,'(i8)') line
     write (aline,*) '-------------- FATAL CALLED ---------------'
-    call cry(0)
+    call cry
     if ( line > 0 ) then
       write (aline,*) 'Fatal in file: '//filename//' at line: '//trim(cline)
-      call cry(0)
+      call cry
     end if
     write (aline,*) str
-    call cry(0)
+    call cry
     write (aline,*) '-------------------------------------------'
-    call cry(0)
+    call cry
     call die(filename,trim(cline),1)
   end subroutine fatal
 
@@ -93,5 +99,35 @@ module mod_message
       call die(filename,trim(cline)//':'//arg,ival)
     end if
   end subroutine checkncerr
+
+  subroutine die0(msg)
+    implicit none
+    character (len=*) , intent(in) :: msg
+    write (stderr,*) msg
+    call abort
+  end subroutine die0
+
+  subroutine die1(msg,msg1)
+    implicit none
+    character (len=*) , intent(in) :: msg , msg1
+    write (stderr,*) msg , ' : ', msg1
+    call abort
+  end subroutine die1
+
+  subroutine die2(msg,msg1,ier1)
+    implicit none
+    character (len=*) , intent(in) :: msg , msg1
+    integer , intent(in) :: ier1
+    write (stderr,*) msg , ' : ', msg1 , ': ', ier1
+    call abort
+  end subroutine die2
+
+  subroutine die4(msg,msg1,ier1,msg2,ier2)
+    implicit none
+    character (len=*) , intent(in) :: msg , msg1 , msg2
+    integer , intent(in) :: ier1 , ier2
+    write (stderr,*) msg , ' : ', msg1 , ': ', ier1 , ' : ', msg2 , ': ', ier2
+    call abort
+  end subroutine die4
 
 end module mod_message

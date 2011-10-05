@@ -19,11 +19,11 @@
 
 module mod_nclib
 
-  use mod_memutil
   use netcdf
-  use m_stdio
-  use m_die
-  use m_realkinds
+  use mod_memutil
+  use mod_message
+  use mod_stdio
+  use mod_realkinds
 
   contains
 

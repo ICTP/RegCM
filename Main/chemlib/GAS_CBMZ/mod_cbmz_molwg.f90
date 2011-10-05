@@ -19,7 +19,7 @@
 
 module mod_cbmz_molwg
 !
-  use m_realkinds
+  use mod_realkinds
 !
   public
 !

@@ -21,7 +21,7 @@ module mod_memutil
 
   use mod_space
   use mod_message
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
   use mod_date , only : rcm_time_and_date
 

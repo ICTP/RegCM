@@ -21,7 +21,7 @@ module mod_che_tend
 !
 ! Tendency and budget for tracer transport and chemicals
 !
-  use mod_message
+  use mod_mpmessage
   use mod_runparams
   use mod_cu_interface
   use mod_che_interface
@@ -170,7 +170,7 @@ module mod_che_tend
 
             if ( kdwd < kt ) then
               write (aline, *) 'Problem in tractend2 !'
-              call say(myid)
+              call say
             end if
             do k = kt , kdwd
               cutend_up(i,k) = mflx(i,1)*egrav*d_r1000 * &

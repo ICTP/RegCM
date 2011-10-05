@@ -19,11 +19,11 @@
 
 module mod_rad_aerosol
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_constants
   use mod_memutil
-  use mod_message
+  use mod_mpmessage
   use mod_rad_common
 !
   private

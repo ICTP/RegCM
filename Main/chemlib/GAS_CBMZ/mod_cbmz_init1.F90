@@ -19,9 +19,9 @@
 
 module mod_cbmz_init1
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_constants
-  use mod_message
+  use mod_mpmessage
   use mod_cbmz_chemmech
   use mod_cbmz_chemlocal
   use mod_cbmz_chemvars

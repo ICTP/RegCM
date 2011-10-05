@@ -19,7 +19,7 @@
 
 module mod_smooth
 
-  use m_realkinds
+  use mod_realkinds
 
   contains
 
@@ -126,7 +126,7 @@ module mod_smooth
 
   subroutine smthtr(slab1,is1,is2)
 
-  use m_stdio
+  use mod_stdio
 
   implicit none
 !

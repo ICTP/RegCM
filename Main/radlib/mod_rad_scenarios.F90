@@ -24,7 +24,7 @@ module mod_rad_scenarios
 !     ftp://crgd.atmos.uiuc.edu/pub/post-sres
 !
   use mod_dynparam
-  use mod_message
+  use mod_mpmessage
 !
   private
 !
@@ -204,7 +204,7 @@ module mod_rad_scenarios
     integer :: is
 !
     write (aline , *) 'Setting IPCC scenario to ', csc
-    call say(myid)
+    call say
 !
     is = 0
     do i = 1 , nsc

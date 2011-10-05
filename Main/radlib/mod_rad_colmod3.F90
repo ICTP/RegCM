@@ -19,7 +19,7 @@
 !
 module mod_rad_colmod3
 !
-  use m_realkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_rad_radiation
   use mod_rad_common

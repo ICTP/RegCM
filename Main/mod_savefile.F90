@@ -20,7 +20,7 @@
 module mod_savefile
 
   use mod_runparams
-  use mod_message
+  use mod_mpmessage
   use mod_atm_interface
   use mod_lm_interface
   use mod_che_interface
@@ -73,7 +73,7 @@ module mod_savefile
       if ( .not.existing ) then
         write (aline,*) 'The following SAV File does not exist: ', &
                          trim(ffin), ' please check location'
-        call say(myid)
+        call say
         call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
       else
         open (iutrst,file=ffin,form='unformatted',status='old')
@@ -234,7 +234,7 @@ module mod_savefile
       if ( .not.existing ) then
         write (aline,*) 'The SAV File cannot be created: ' , &
                          trim(ffout), ' please check directory'
-        call say(myid)
+        call say
         call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
       end if
 

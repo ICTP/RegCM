@@ -26,10 +26,8 @@ module mod_gn6hnc
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-  use m_realkinds
-  use m_stdio
-  use m_die
-  use m_zeit
+  use mod_realkinds
+  use mod_stdio
   use mod_dynparam
   use mod_memutil
   use mod_constants
@@ -137,7 +135,6 @@ module mod_gn6hnc
     character(256) :: pathaddname
     real(8) :: dp0
 !
-    call zeit_ci('headgn6hnc')
 !
     if ( dattyp == 'CAM4N' ) then
       pathaddname = trim(inpglob)// &
@@ -357,7 +354,6 @@ module mod_gn6hnc
 
     write (stdout,*) 'Read in Static fields'
 
-    call zeit_co('headgn6hnc')
 
   end subroutine headgn6hnc
 !
@@ -371,7 +367,6 @@ module mod_gn6hnc
 !
     type(rcm_time_and_date) , intent(in) :: idate
 !
-    call zeit_ci('get_gn6hnc')
 !
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
@@ -451,7 +446,6 @@ module mod_gn6hnc
     ! Calculate geopotential for RegCM using internal formula
     call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
  
-    call zeit_co('get_gn6hnc')
   end subroutine get_gn6hnc
 !
 !-----------------------------------------------------------------------
@@ -475,7 +469,6 @@ module mod_gn6hnc
     integer :: year , month , day , hour
     integer :: fyear , fmonth , fday , fhour
 !
-    call zeit_ci('readgn6hnc')
 !
     call split_idate(idate,year,month,day,hour)
 !
@@ -813,7 +806,6 @@ module mod_gn6hnc
 
     end if ! Other data types not the GFS11
  
-    call zeit_co('readgn6hnc')
 
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
 99002   format (a,i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
