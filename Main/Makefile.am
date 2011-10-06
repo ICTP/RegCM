@@ -69,7 +69,7 @@ regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
                 mod_regcm_interface.F90 mod_vmodes.F90 mod_split.F90  \
                 mod_lm_interface.F90 regcm.F90
 
-FCLINK = $(MPIFC)
+FCLD = $(MPIFC)
 
 if DO_COMPILE_LIBESMF
 regcm_SOURCES += mod_esmf_atm.F90 mod_esmf_ocn.F90 \
