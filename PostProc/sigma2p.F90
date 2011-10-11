@@ -36,9 +36,10 @@ program sigma2p
   real(4) , allocatable , dimension(:,:,:) :: pvar
   real(4) , allocatable , dimension(:,:) :: ps
   real(4) , allocatable , dimension(:) :: avar
+  character , allocatable , dimension(:) :: tvar
   real(4) , allocatable , dimension(:) :: apvar
   real(8) , allocatable , dimension(:) :: times
-  logical , allocatable , dimension(:) :: lkvarflag , ltvarflag
+  logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
   integer , allocatable , dimension(:) :: varsize
   integer , allocatable , dimension(:) :: intscheme
   integer , allocatable , dimension(:) :: nvdims
@@ -50,7 +51,7 @@ program sigma2p
   integer :: ipsvarid
   integer :: jx , iy , kz , nt
   real(4) :: ptop
-  integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d
+  integer :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer :: n3d , ip3d
 #ifdef __PGI
   integer , external :: iargc
@@ -152,6 +153,8 @@ program sigma2p
   call check_alloc('Memory error allocating lkvarflag')
   allocate(ltvarflag(nvars), stat=istatus)
   call check_alloc('Memory error allocating ltvarflag')
+  allocate(lchnameflag(nvars), stat=istatus)
+  call check_alloc('Memory error allocating lchnameflag')
   allocate(varsize(nvars), stat=istatus)
   call check_alloc('Memory error allocating varsize')
   allocate(intscheme(nvars), stat=istatus)
@@ -179,6 +182,7 @@ program sigma2p
   do i = 1 , nvars
     lkvarflag(i) = .false.
     ltvarflag(i) = .false.
+    lchnameflag(i) = .false.
     varsize(i) = 1
     intscheme(i) = 1
     dimsize(:,i) = 1
@@ -197,6 +201,8 @@ program sigma2p
       ipsvarid = i
     else if (varname == 't') then
       intscheme(i) = 2
+    else if (varname == 'chtrname') then
+      lchnameflag(i) = .true.
     end if
     iv = 1
     do j = 1 , nvdims(i)
@@ -268,16 +274,29 @@ program sigma2p
       cycle
     end if
     if (.not. ltvarflag(i)) then
-      allocate(avar(varsize(i)), stat=istatus)
-      call check_alloc('Memory error allocating avar')
-      iv = nvdims(i)
-      istart(:) = 1
-      icount(1:iv) = dimsize(1:iv,i)
-      istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
-      call check_ok('Error reading variable.')
-      istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
-      call check_ok('Error writing variable.')
-      deallocate(avar)
+      if ( .not. lchnameflag(i) ) then
+        allocate(avar(varsize(i)), stat=istatus)
+        call check_alloc('Memory error allocating avar')
+        iv = nvdims(i)
+        istart(:) = 1
+        icount(1:iv) = dimsize(1:iv,i)
+        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+        call check_ok('Error reading variable.')
+        istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
+        call check_ok('Error writing variable.')
+        deallocate(avar)
+      else
+        allocate(tvar(varsize(i)), stat=istatus)
+        call check_alloc('Memory error allocating tvar')
+        iv = nvdims(i)
+        istart(:) = 1
+        icount(1:iv) = dimsize(1:iv,i)
+        istatus = nf90_get_var(ncid, i, tvar, istart(1:iv), icount(1:iv))
+        call check_ok('Error reading variable.')
+        istatus = nf90_put_var(ncout, i, tvar, istart(1:iv), icount(1:iv))
+        call check_ok('Error writing variable.')
+        deallocate(tvar)
+      end if
     end if
   end do
 
@@ -309,37 +328,75 @@ program sigma2p
 !       Do interpolation
 
         iv = nvdims(i)
-        istart(iv) = it
-        icount(iv) = 1
-        istart(1:iv-1) = 1
-        icount(1:iv-1) = dimsize(1:iv-1,i)
-        allocate(avar(varsize(i)),stat=istatus)
-        call check_alloc('Memory error allocating avar')
-        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
-        call check_ok('Error reading variable to interpolate.')
 
-        n3d = varsize(i) / i3d
-        ip3d = p3d*n3d
+        if ( iv == 4 ) then
+          istart(iv) = it
+          icount(iv) = 1
+          istart(1:iv-1) = 1
+          icount(1:iv-1) = dimsize(1:iv-1,i)
+          allocate(avar(varsize(i)),stat=istatus)
+          call check_alloc('Memory error allocating avar')
+          istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+          call check_ok('Error reading var to interpolate.')
+          n3d = varsize(i) / i3d
+          ip3d = p3d*n3d
 
-        allocate(apvar(ip3d),stat=istatus)
-        call check_alloc('Memory error allocating apvar')
-        do ii = 1 , n3d
-          xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
-          if (intscheme(i) == 1) then
-            call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
-          else if (intscheme(i) == 2) then
-            call intlog(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
-          end if
-          apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
-        end do
+          allocate(apvar(ip3d),stat=istatus)
+          call check_alloc('Memory error allocating apvar')
+          do ii = 1 , n3d
+            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
+            if (intscheme(i) == 1) then
+              call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+            else if (intscheme(i) == 2) then
+              call intlog(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+            end if
+            apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
+          end do
+          icount(iv-1) = np
+          istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
+          call check_ok('Error writing interpolated variable.')
 
-        icount(3) = np
-        istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
-        call check_ok('Error writing interpolated variable.')
+          deallocate(avar)
+          deallocate(apvar)
+        else if ( iv == 5 ) then
+          istart(iv) = it
+          icount(iv) = 1
+          istart(1:iv-1) = 1
+          icount(1:iv-1) = dimsize(1:iv-1,i)
+          allocate(avar(varsize(i)),stat=istatus)
+          call check_alloc('Memory error allocating avar')
+          istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+          call check_ok('Error reading var to interpolate.')
+          n3d = varsize(i) / dimsize(iv-1,i) / i3d
+          ip3d = p3d*n3d
+          do ich = 1 , dimsize(iv-1,i)
+            istart(iv) = it
+            icount(iv) = 1
+            istart(iv-1) = ich
+            icount(iv-1) = 1
+            istart(1:iv-2) = 1
+            icount(1:iv-2) = dimsize(1:iv-2,i)
+            icount(iv-2) = np
+            allocate(apvar(ip3d),stat=istatus)
+            call check_alloc('Memory error allocating apvar')
+            do ii = 1 , n3d
+              xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
+                             (/jx,iy,kz/))
+              if (intscheme(i) == 1) then
+                call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+              else if (intscheme(i) == 2) then
+                call intlog(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
+              end if
+              apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
+            end do
 
-        deallocate(avar)
-        deallocate(apvar)
-
+            istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
+            call check_ok('Error writing interp variable.')
+            deallocate(apvar)
+          end do
+          deallocate(avar)
+        end if
+ 
       else
 
 !       No interpolation
