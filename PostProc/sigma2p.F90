@@ -354,7 +354,7 @@ program sigma2p
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
           end do
 
-          icount(3) = np
+          icount(iv-1) = np
           istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__,'Error writing interp variable.')
 
@@ -370,19 +370,21 @@ program sigma2p
           istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__,'Error reading var to interpolate.')
 
-          do ich = 1 , dimsize(iv-2,i)
+          n3d = varsize(i) / dimsize(iv-1,i) / i3d
+          ip3d = p3d*n3d
+          do ich = 1 , dimsize(iv-1,i)
             istart(iv) = it
             icount(iv) = 1
-            istart(1:iv-1) = 1
+            istart(iv-1) = ich
             icount(iv-1) = 1
+            istart(1:iv-2) = 1
             icount(1:iv-2) = dimsize(1:iv-2,i)
-            n3d = varsize(i) / dimsize(iv-2,i) / i3d
-            ip3d = p3d*n3d
-
+            icount(iv-2) = np
             allocate(apvar(ip3d),stat=istatus)
             call checkalloc(istatus,__FILE__,__LINE__,'apvar')
             do ii = 1 , n3d
-              xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
+              xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
+                             (/jx,iy,kz/))
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,ps,sigma,jx,iy,kz,plevs,np)
               else if (intscheme(i) == 2) then
@@ -390,12 +392,9 @@ program sigma2p
               end if
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
             end do
-
-            icount(3) = np
             istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__,'Error writing interp variable.')
             deallocate(apvar)
-
           end do
           deallocate(avar)
         end if
