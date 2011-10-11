@@ -1900,8 +1900,8 @@
                 tyx,.false.,isrfvar(13))
             call addvara(ncid,ctype,'runoff','surface_runoff_flux', &
                 'Surface runoff','kg m-2 day-1',tyx,.true.,isrfvar(14))
-            call addvara(ncid,ctype,'scv','snowfall_flux', &
-                'Snow precipitation','kg m-2 day-1',tyx,.true.,isrfvar(15))
+            call addvara(ncid,ctype,'scv','snowfall_depth', &
+                'Snow precipitation','mm',tyx,.true.,isrfvar(15))
             call addvara(ncid,ctype,'sena', &
                 'surface_downward_sensible_heat_flux', &
                 'Sensible heat flux','W m-2',tyx,.false.,isrfvar(16))
