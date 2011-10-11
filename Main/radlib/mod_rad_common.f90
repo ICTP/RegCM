@@ -28,6 +28,7 @@ module mod_rad_common
   logical :: lchem ! ichem logical equiv
   real(8) :: ptp ! ptop
   real(8) , pointer , dimension(:) :: flev , hlev ! sigma , a
+  real(8),  pointer , dimension(:,:) :: twtr
   real(8) , pointer , dimension(:,:) :: sfps    ! sps2%ps
   real(8) , pointer , dimension(:,:) :: psfps   ! sps1%ps
 

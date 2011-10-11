@@ -24,6 +24,7 @@ module mod_rad_colmod3
   use mod_rad_radiation
   use mod_rad_common
   use mod_rad_outrad
+  use mod_rrtmg_driver
 !
   private
 !
@@ -326,6 +327,12 @@ module mod_rad_colmod3
                 flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,     &
                 fsnirtsq,eccf,o3vmr)
 !
+
+
+!TEST RRTMSW : this overwrite fluxes and heating rates 
+!uncomment for tesying RRTM SW
+!   call  rrtmg_driver(ktau,iyear,j,solin,fsns,fsnt,fsntc,fsnsc,qrs,clwp,cld(:,1:kz))
+
 !   subroutine radout() is not included in the ccm3 crm itself
 !   but introduced from the former regcm2 radiation package
 !   for the output of results from radiation calculations

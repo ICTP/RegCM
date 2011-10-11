@@ -17,16 +17,39 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
+SUBDIRS = RRTMG_SW
+RRTMGSW = RRTMG_SW/librrtmgsw.a
+
+
 noinst_LIBRARIES = librad.a
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
                    mod_rad_common.f90 mod_rad_radiation.F90 mod_rad_tracer.f90 \
-                   mod_rad_aerosol.F90 mod_rad_scenarios.F90
+                   mod_rad_aerosol.F90 mod_rad_scenarios.F90\
+                   mod_rrtmg_driver.f90 rrtmg_sw_cldprmc.f90  rrtmg_sw_read_nc.f90 \
+                   rrtmg_sw_spcvmc.f90  rrtmg_sw_vrtqdr.f90 rrtmg_sw_cldprop.f90 \
+                   rrtmg_sw_rad.f90 rrtmg_sw_reftra.f90 rrtmg_sw_spcvrt.f90 \
+                   rrtmg_sw_init.f90 rrtmg_sw_rad.nomcica.f90  rrtmg_sw_setcoef.f90 \
+                   rrtmg_sw_taumol.f90 mcica_random_numbers.f90  mcica_subcol_gen_sw.f90
+
+if COMPILER_SUN
+  CPPFLAGS += -MRRTMG_SW
+else
+  CPPFLAGS += -IRRTMG_SW
+endif
+
+
+
+
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+
+rrtmg_sw_k_g.o: rrtmg_sw_k_g.f90
+		$(FC) $(CPPFLAGS) -O0 -convert big_endian -assume byterecl -heap-arrays -c $<
 
 distclean-local:
 	rm -f *.mod
@@ -49,7 +72,7 @@ mod_rad_o3blk.o mod_rad_o3blk.mod: mod_rad_o3blk.F90 \
 	$(REGCM_ROOT)/Share/mod_memutil.mod mod_rad_common.o
 mod_rad_colmod3.o mod_rad_colmod3.mod: mod_rad_colmod3.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_rad_common.o mod_rad_radiation.o \
-  mod_rad_outrad.o
+  mod_rad_outrad.o mod_rrtmg_driver.o
 mod_rad_outrad.o mod_rad_outrad.mod: mod_rad_outrad.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod mod_rad_common.o
 mod_rad_scenarios.o mod_rad_scenarios.mod: mod_rad_scenarios.F90 \
@@ -60,3 +83,22 @@ mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
   $(REGCM_ROOT)/Share/mod_message.mod $(REGCM_ROOT)/Share/mod_memutil.mod \
   mod_rad_tracer.o mod_rad_scenarios.o mod_rad_aerosol.o
+mod_rrtmg_driver.o mod_rrtmg_driver.mod: mod_rrtmg_driver.f90 \
+  $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
+  $(RRTMGSW) rrtmg_sw_rad.o mcica_subcol_gen_sw.o
+rrtmg_sw_cldprmc.o rrtmg_sw_cldprmc.mod : rrtmg_sw_cldprmc.f90 $(RRTMGSW)
+rrtmg_sw_read_nc.o rrtmg_sw_read_nc.mod : rrtmg_sw_read_nc.f90  $(RRTMGSW)
+rrtmg_sw_spcvmc.o  rrtmg_sw_spcvmc.mod : rrtmg_sw_spcvmc.f90   $(RRTMGSW) rrtmg_sw_reftra.o \
+	rrtmg_sw_taumol.o rrtmg_sw_vrtqdr.o
+rrtmg_sw_vrtqdr.o  rrtmg_sw_vrtqdr.mod : rrtmg_sw_vrtqdr.f90  $(RRTMGSW)
+rrtmg_sw_cldprop.o  rrtmg_sw_cldprop.mod :rrtmg_sw_cldprop.f90  $(RRTMGSW)
+rrtmg_sw_rad.o rrtmg_sw_rad.mod : rrtmg_sw_rad.f90  $(RRTMGSW) mcica_subcol_gen_sw.o rrtmg_sw_cldprmc.o \
+	rrtmg_sw_setcoef.o rrtmg_sw_spcvmc.o
+rrtmg_sw_reftra.o  rrtmg_sw_reftra.mod : rrtmg_sw_reftra.f90   $(RRTMGSW)
+rrtmg_sw_spcvrt.o rrtmg_sw_spcvrt.mod : rrtmg_sw_spcvrt.f90  $(RRTMGSW)
+rrtmg_sw_init.o rrtmg_sw_init.mod : rrtmg_sw_init.f90  $(RRTMGSW)
+rrtmg_sw_rad.nomcica.o  rrtmg_sw_rad.nomcica.mod : rrtmg_sw_rad.nomcica.f90  $(RRTMGSW)
+rrtmg_sw_setcoef.o rrtmg_sw_setcoef.mod  : rrtmg_sw_setcoef.f90   $(RRTMGSW)
+rrtmg_sw_taumol.o rrtmg_sw_taumol.mod : rrtmg_sw_taumol.f90   $(RRTMGSW)
+mcica_random_numbers.o mcica_random_numbers.mod : mcica_random_numbers.f90   $(RRTMGSW)
+mcica_subcol_gen_sw.o mcica_subcol_gen_sw.mod : mcica_subcol_gen_sw.f90  $(RRTMGSW) mcica_random_numbers.o
