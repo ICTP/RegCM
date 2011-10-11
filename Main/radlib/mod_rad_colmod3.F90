@@ -330,7 +330,7 @@ module mod_rad_colmod3
 
 
 !TEST RRTMSW : this overwrite fluxes and heating rates 
-!uncomment for tesying RRTM SW
+!uncomment for testing RRTM SW
 !   call  rrtmg_driver(ktau,iyear,j,solin,fsns,fsnt,fsntc,fsnsc,qrs,clwp,cld(:,1:kz))
 
 !   subroutine radout() is not included in the ccm3 crm itself
