@@ -25,6 +25,7 @@ module mod_rad_interface
   use mod_rad_common
   use mod_rad_aerosol
   use mod_rad_colmod3
+  use mod_rrtmg_driver
   use mod_rad_o3blk
   use mod_rad_outrad
   use mod_rad_radiation
@@ -35,7 +36,7 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta, &
+  subroutine init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta, &
                       mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,    &
                       aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl,  &
                       emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,     &
@@ -62,6 +63,7 @@ module mod_rad_interface
     real(8) , pointer , intent(in) , dimension(:) :: albvs
     real(8) , pointer , intent(in) , dimension(:) :: albvl
     real(8) , pointer , intent(in) , dimension(:) :: emiss
+    real(8) , pointer , intent(in) , dimension(:,:) :: twt
     real(8) , pointer , intent(in) , dimension(:,:) :: sabv2d
     real(8) , pointer , intent(in) , dimension(:,:) :: sol2d
     real(8) , pointer , intent(in) , dimension(:,:) :: sinc2d
@@ -78,6 +80,7 @@ module mod_rad_interface
     ptp = ptop
     call assignpnt(sigma,flev)
     call assignpnt(a,hlev)
+    call assignpnt(twt,twtr)
     call assignpnt(sps1%ps,psfps)
     call assignpnt(sps2%ps,sfps)
     call assignpnt(atms%tb3d,tatms)

@@ -28,6 +28,7 @@ module mod_init
   use mod_che_interface
   use mod_cu_interface
   use mod_rad_interface
+  use rrtmg_sw_init
   use mod_pbl_interface
   use mod_precip
   use mod_bdycod
@@ -37,6 +38,7 @@ module mod_init
   use mod_savefile
   use mod_diagnosis
   use mod_mppio
+  use mod_constants
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : init_tgb , init_grid , numdays
@@ -1277,7 +1279,11 @@ module mod_init
         write (6,'(1x,7E12.4)') o3prof(3,k,2)
       end do
     end if
+! RRTM_SW gas / abs constant initialisation
+    call rrtmg_sw_ini(cpd)
   end if
+
+  
  
   end subroutine inirad
 !

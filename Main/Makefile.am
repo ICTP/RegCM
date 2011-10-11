@@ -11,6 +11,8 @@ CUMLIBPTH = ./cumlib
 RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ
+RRTMSWLIBPTH = radlib/RRTMG_SW
+
 
 CLMLIB = $(CLMLIBPTH)/libclm.a
 BATLIB = $(BATLIBPTH)/libbats.a
@@ -20,6 +22,8 @@ CUMLIB = $(CUMLIBPTH)/libcum.a
 RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
+RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
+
 
 if REGCM_PARALLEL
 rcsuffix = MPI
@@ -45,17 +49,18 @@ LCUMLIB = -L$(CUMLIBPTH) -lcum
 LRADLIB = -L$(RADLIBPTH) -lrad
 LPBLLIB = -L$(PBLLIBPTH) -lpbl
 LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
+LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 
 if COMPILER_SUN
   CPPFLAGS += -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) -M$(CHELIBPTH) \
-              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH)
+              -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH)
 else
   CPPFLAGS += -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) -I$(CHELIBPTH) \
-              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH)
+              -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH)
 endif
 
 LIBS += $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LCUMLIB) \
-        $(LRADLIB) $(LPBLLIB)
+        $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB)
 
 bin_PROGRAMS = regcm
 
@@ -121,7 +126,7 @@ mod_init.o: mod_init.F90 mod_bdycod.o mod_pbl_interface.o \
   mod_diagnosis.o mod_atm_interface.o mod_precip.o \
   mod_runparams.o mod_cu_interface.o mod_rad_interface.o \
   mod_mppio.o mod_ncio.o mod_che_interface.o \
-  mod_lm_interface.o mod_sun.o mod_savefile.o
+  mod_lm_interface.o mod_sun.o mod_savefile.o $(RADLIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_lm_interface.o: mod_lm_interface.F90 mod_atm_interface.o $(BATLIB) $(CLMLIB)
 mod_mppio.o: mod_mppio.F90 mod_runparams.o mod_pbl_interface.o \
