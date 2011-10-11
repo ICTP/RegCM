@@ -697,7 +697,7 @@ module mod_params
   call allocate_mod_rad_common
   call allocate_mod_rad_radiation 
   call allocate_mod_rad_o3blk
-  call allocate_mod_rad_aerosol
+  call allocate_mod_rad_aerosol(ichem)
   call allocate_mod_rad_outrad
 
 #ifndef BAND
@@ -817,6 +817,7 @@ module mod_params
   nchefrq = idnint(secph*chemfrq)
   nbdyfrq = idnint(dtbdys)
   klak = idnint(lakfrq/srffrq)
+  chfrovrradfr = chemfrq/radfrq
 
   ntsrf = idnint(dtsrf/dtsec)
   ntrad = idnint(dtrad/(dtsec/secpm))
@@ -1578,7 +1579,7 @@ module mod_params
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chib,chiten,remdrd, &
                 sps2,sts2,sfsta,mddom,ldmsk,a,sigma,dsigma,ptop, &
-                depvel,chname,ichem,ichdrdepo,dt)
+                chtrdpv,chtrname,ichem,ichdrdepo,dt)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg

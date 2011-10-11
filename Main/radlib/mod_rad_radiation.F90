@@ -476,7 +476,7 @@ module mod_rad_radiation
 !-----------------------------------------------------------------------
 !
   subroutine radctl(jslc,ktau,alat,coslat,ts,pmid,pint,pmln,piln,t,  &
-                    idust,h2ommr,cld,effcld,clwp, &
+                    h2ommr,cld,effcld,clwp, &
                     fsns,qrs,qrl,flwds,rel,rei,fice,sols,soll,solsd, &
                     solld,emsvt,fsnt,fsntc,fsnsc,flnt,flns,flntc,    &
                     flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,         &
@@ -495,7 +495,6 @@ module mod_rad_radiation
 !   fice    - fractional ice content within cloud
 !   piln    - Natural log of pint
 !   t       - Model level temperatures
-!   idust   - Activated dust bin indices
 !   h2ommr  - Model level specific humidity
 !   cld     - Fractional cloud cover
 !   effcld  - Effective fractional cloud cover
@@ -530,7 +529,6 @@ module mod_rad_radiation
     real(8) , dimension(iym1,kz) :: clwp , fice , h2ommr , pmid ,  &
            pmln , qrl , qrs , rei , rel , t
     real(8) , dimension(iym1,kz) :: o3vmr
-    integer , dimension(nbin) :: idust
     intent (out) alb , albc
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
@@ -594,7 +592,7 @@ module mod_rad_radiation
 !
       call aermix(pnm,rh,jslc,1,iym1,iym1,kz,ntr)
  
-      call aeroppt(idust,rh,pint)
+      call aeroppt(rh,pint)
 !
       call radcsw(pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,    &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &

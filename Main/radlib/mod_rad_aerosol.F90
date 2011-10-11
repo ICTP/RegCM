@@ -515,8 +515,9 @@ module mod_rad_aerosol
 !
   contains
 ! 
-  subroutine allocate_mod_rad_aerosol
-    implicit none   
+  subroutine allocate_mod_rad_aerosol(ichem)
+    implicit none
+    integer , intent(in) :: ichem
     call getmem3d(aermm,1,iym1,1,kz,1,jxp,'aerosol:aermm')
     call getmem2d(aermmb,1,iym1,1,kz,'aerosol:aermmb')
     call getmem3d(ftota3d,1,iym1,0,kz,1,nspi,'aerosol:ftota3d')
@@ -537,7 +538,7 @@ module mod_rad_aerosol
     call getmem2d(aertalwrf,1,iym1,1,jxp,'mod_che_common:aertalwrf')
     call getmem2d(aersrlwrf,1,iym1,1,jxp,'mod_che_common:aersrlwrf')
     call getmem2d(aertarf,1,iym1,1,jxp,'mod_che_common:aertarf')
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       call getmem3d(aermmr,1,iym1,1,kz,1,ntr,'aerosol:aermmr')
       call getmem3d(fa,1,iym1,0,kz,1,ntr,'aerosol:fa')
       call getmem3d(ga,1,iym1,0,kz,1,ntr,'aerosol:ga')
@@ -656,18 +657,17 @@ module mod_rad_aerosol
 !
 ! SUBROUTINE AEROPPT
 !
-  subroutine aeroppt(idust,rh,pint)
+  subroutine aeroppt(rh,pint)
 !
     implicit none
 !
 !   Interface pressure, relative humidity
 !
-    integer , dimension(nbin) :: idust
     real(dp) , dimension(iym1,kzp1) :: pint
     real(dp) , dimension(iym1,kz) :: rh
     intent (in) pint , rh
 !
-    integer :: i , l , i1 , i2 , i3 , i4 , ibin , jbin , itr , k , k1, k2 , ns
+    integer :: i , l , ibin , jbin , itr , k , k1, k2 , ns
     real(dp) :: path , uaerdust , qabslw , rh0
 !
     if ( .not. lchem ) then

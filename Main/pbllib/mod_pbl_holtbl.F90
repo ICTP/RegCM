@@ -748,7 +748,7 @@ module mod_pbl_holtbl
 !   compute the tendencies:
 !
     do i = 2 , iym1
-      difft(i,kz,j) = difft(i,kz,j) - hydf(k)*ttnp(i,kz)/cpd
+      difft(i,kz,j) = difft(i,kz,j) - hydf(kz)*ttnp(i,kz)/cpd
     end do
 !
     do k = 1 , kzm1
@@ -858,7 +858,7 @@ module mod_pbl_holtbl
           if ( chname(itr) /= 'DUST' ) &
             drmr(i,j,itr) = drmr(i,j,itr) + chmx(i,kz,j,itr)* &
                 vdep(i,itr)*sfcps(i,j)*dtpbl*d_half*rhox2d(i,j)* &
-                hydf(k)/sfcps(i,j)
+                hydf(kz)/sfcps(i,j)
  
         end do
       end do

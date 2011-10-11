@@ -110,7 +110,6 @@ module mod_rad_interface
     call assignpnt(ocld2d,lndocnicemsk)
     call assignpnt(chia,chspmix)
     if ( associated(chtrname) ) tracname => chtrname
-
   end subroutine init_rad
 !
   subroutine init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
