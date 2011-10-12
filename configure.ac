@@ -274,7 +274,7 @@ AM_CONDITIONAL(REGCM_PARALLEL, [test x$PARALLEL = x1])
 
 # Force Big endian I/O for known compilers
 if eval "test x"$FC" = xgfortran"; then
-  FCFLAGS="-fconvert=big-endian"
+  FCFLAGS="-fconvert=big-endian -fno-range-check"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
@@ -315,7 +315,8 @@ if eval "test x$DEBUG = x1"; then
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
-            -Wunused-parameter -Wno-align-commons $FCFLAGS -fbounds-check"
+            -Wunused-parameter -Wno-align-commons $FCFLAGS -fbounds-check \
+            -fno-range-check"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xifort"; then
@@ -437,8 +438,9 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ/Makefile \
-                 Main/cumlib/Makefile Main/radlib/Makefile Main/radlib/RRTMG_SW/Makefile\
-                 Main/pbllib/Makefile Tools/Programs/CheckSun/Makefile \
+                 Main/cumlib/Makefile Main/radlib/Makefile \
+                 Main/radlib/RRTMG_SW/Makefile Main/pbllib/Makefile \
+                 Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/SAV_read/Makefile])
 
