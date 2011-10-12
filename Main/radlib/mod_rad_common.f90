@@ -25,6 +25,8 @@ module mod_rad_common
 
   public
 
+  integer :: irrtm
+
   logical :: lchem ! ichem logical equiv
   real(8) :: ptp ! ptop
   real(8) , pointer , dimension(:) :: flev , hlev ! sigma , a

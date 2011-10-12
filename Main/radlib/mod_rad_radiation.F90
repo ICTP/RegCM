@@ -2375,9 +2375,9 @@ module mod_rad_radiation
           taugab(i) = abh2o(ns)*uth2o(i) + abco2(ns)*utco2(i) + abo2(ns)*uto2(i)
           if ( lzero ) then
             tautot = tauray(i) + taugab(i)
-            wtot = wray*tauray(i)
-            gtot = gray*wray*tauray(i)
-            ftot = fray*wray*tauray(i)
+            wtot = (wray*tauray(i))/tautot
+            gtot = (gray*wray*tauray(i))/(wtot*tautot)
+            ftot = (fray*wray*tauray(i)/(wtot*tautot))
           else
             tautot = tauray(i) + taugab(i) + tauxar(i,ns)
             wtot = (wray*tauray(i)+tauasc(i,ns))/tautot

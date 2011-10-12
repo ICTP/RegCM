@@ -309,6 +309,7 @@ module mod_params
   iseaice = 0
   idesseas = 1
   iconvlwp = 1
+  irrtm = 0
 !
 !----------------------------------------------------------------------
 !------namelist subexparam:
@@ -872,7 +873,7 @@ module mod_params
     call init_chem(idirect,dtsec,chemfrq,dtrad,dsigma,atms,sps1, &
                    sps2,a,ptop,coszrs,icumtop,icumbot)
   end if
-  call init_rad(ichem,ptop,a,sigma,sps1,sps2,atms,sfsta,        &
+  call init_rad(ichem,ptop,a,sigma,twt,sps1,sps2,atms,sfsta,    &
                 mddom,sabveg,solis,solvs,solvd,coszrs,aldirs,   &
                 aldifs,aldirl,aldifl,albdir,albdif,albvs,albvl, &
                 emiss,sabv2d,sol2d,sinc2d,solvs2d,solvd2d,      &

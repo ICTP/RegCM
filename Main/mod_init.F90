@@ -1279,11 +1279,11 @@ module mod_init
         write (6,'(1x,7E12.4)') o3prof(3,k,2)
       end do
     end if
-! RRTM_SW gas / abs constant initialisation
-    call rrtmg_sw_ini(cpd)
+    ! RRTM_SW gas / abs constant initialisation
+    if ( irrtm == 1 ) then
+      call rrtmg_sw_ini(cpd)
+    end if
   end if
-
-  
  
   end subroutine inirad
 !
