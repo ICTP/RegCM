@@ -437,7 +437,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ/Makefile \
-                 Main/cumlib/Makefile Main/radlib/Makefile \
+                 Main/cumlib/Makefile Main/radlib/Makefile Main/radlib/RRTMG_SW/Makefile\
                  Main/pbllib/Makefile Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/SAV_read/Makefile])
