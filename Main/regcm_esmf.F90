@@ -217,7 +217,7 @@
 !     Run components
 !-----------------------------------------------------------------------
 !
-      do while (.not. ESMF_ClockIsStopTime(cplClock))
+!      do while (.not. ESMF_ClockIsStopTime(cplClock))
 !
 !-----------------------------------------------------------------------
 !     Run gridded components
@@ -269,7 +269,7 @@
 !
       call ESMF_ClockAdvance(cplClock, rc=rc)
 !
-      end do
+!      end do
 !
       call ESMF_VMBarrier(cplVM, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

@@ -404,18 +404,21 @@ AC_SUBST(MPEUFCFLAGS)
 F90FLAGS="$FCFLAGS"
 AC_SUBST(F90FLAGS)
 
+AC_SUBST(ESMFINCPTH)
+AC_SUBST(ESMFLIBPTH)
 if eval "test x$USECPL = x1"; then
   tmp_inc="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90COMPILEPATHS | awk -F= '{print $2}'`"
   tmp_lib="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90LINKPATHS | awk -F= '{print $2}'`"
   tmp_lib="$tmp_lib `cat $ESMF_LIB/esmf.mk | grep ESMF_F90ESMFLINKLIBS | awk -F= '{print $2}'`"
-  FCFLAGS="$FCFLAGS $tmp_inc"
-  LIBS="$LIBS $tmp_lib"
+  ESMFINCPTH="$tmp_inc"
+  ESMFLIBPTH="$tmp_lib"
 fi
 
+AC_SUBST(ROMS_ROOT)
 if eval "test x$USEROMS = x1"; then
-  FCFLAGS="$FCFLAGS -I$ROMS_PREFIX"
-  CPPFLAGS="$CPPFLAGS -I$ROMS_PREFIX"
-  LIBS="$LIBS -L$ROMS_PREFIX -lUTIL"
+  ESMFINCPTH="$ESMFINCPTH -I$ROMS_PREFIX"
+  ESMFLIBPTH="$ESMFLIBPTH -L$ROMS_PREFIX -lUTIL"
+  ROMS_ROOT="$ROMS_PREFIX"
 fi
 
 REGCM_ROOT=${PWD}

@@ -109,17 +109,13 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      type(ESMF_Config) :: config
-      integer :: localPet, petCount, comm, ierr
+      integer :: localPet, petCount, comm
       integer :: i, j, dir
 !
       integer :: itemCount
       character(ESMF_MAXSTR), allocatable :: itemNames(:)
-      type(ESMF_VM) :: vm_cpl
       type(ESMF_StateItem_Flag), allocatable :: itemTypes(:)
       type(ESMF_Field) :: dstField, srcField
-!
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Call ROMS initialization routines
@@ -129,12 +125,7 @@
 !     communicator handle     
 !-----------------------------------------------------------------------
 !     
-      call ESMF_CplCompGet(comp,                                        &
-                           vm=vm_cpl,                                   &
-                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      call ESMF_VMGet(vm_cpl,                                           &
+      call ESMF_VMGet(cplVM,                                            &
                       localPet=localPet,                                &
                       petCount=petCount,                                &
                       mpiCommunicator=comm,                             &
@@ -148,7 +139,7 @@
 !     Import state
 !
       call ESMF_StateReconcile(importState,                             &
-                               vm=vm_cpl,                               &
+                               vm=cplVM,                                &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -156,7 +147,7 @@
 !     Export state
 !
       call ESMF_StateReconcile(exportState,                             &
-                               vm=vm_cpl,                               &
+                               vm=cplVM,                                &
                                attreconflag=ESMF_ATTRECONCILE_ON,       &
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -494,10 +485,141 @@
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
+!
+      logical :: flag
+      integer :: i, j, dir
+      integer :: localPet, petCount, comm
+!
+      type(ESMF_Field) :: dstField, srcField
+!
 !-----------------------------------------------------------------------
-!     Call CPL initialization routines
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+!     
+      call ESMF_VMGet(cplVM,                                            &
+                      localPet=localPet,                                &
+                      petCount=petCount,                                &
+                      mpiCommunicator=comm,                             &
+                      rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Reconcile import and export states. Consistent view in all PETs.
 !-----------------------------------------------------------------------
 !
+!     Import state
+!
+      call ESMF_StateReconcile(importState,                             &
+                               vm=cplVM,                                &
+                               attreconflag=ESMF_ATTRECONCILE_ON,       &
+                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+! 
+!     Export state
+!
+      call ESMF_StateReconcile(exportState,                             &
+                               vm=cplVM,                                &
+                               attreconflag=ESMF_ATTRECONCILE_ON,       &
+                               rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get direction of coupling initialization
+!-----------------------------------------------------------------------
+!       
+      call ESMF_AttributeGet(importState,                               &
+                             name=trim(DIRECTION),                      &
+                             value=dir,                                 &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Print coupling direction info (for debugging)
+!-----------------------------------------------------------------------
+!  
+      if (localPet == 0) then
+      if (dir == FORWARD_ON) then
+        write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
+      else
+        write(*,fmt="(' PET (', I2, ') Direction = Backward')") localPet
+      end if
+      end if
+!
+!-----------------------------------------------------------------------
+!     Forward coupling run 
+!-----------------------------------------------------------------------
+!
+      if (dir == FORWARD_ON) then
+!
+      do i = 1, size(itemNamesImportF, dim=1)
+!
+!-----------------------------------------------------------------------
+!     Get import field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(importState,                                   &
+                         trim(itemNamesImportF(i)),                     &
+                         srcField,                                      &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get export field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(exportState,                                   &
+                         trim(itemNamesExportF(i)),                     &
+                         dstField,                                      &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Regrid fields 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      end do
+!
+!-----------------------------------------------------------------------
+!     Backward coupling run 
+!-----------------------------------------------------------------------
+!
+      else
+!
+      do i = 1, size(itemNamesImportB, dim=1)
+!
+!-----------------------------------------------------------------------
+!     Get import field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(importState,                                   &
+                         trim(itemNamesImportB(i)),                     &
+                         srcField,                                      &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get export field
+!-----------------------------------------------------------------------
+!
+      call ESMF_StateGet(exportState,                                   &
+                         trim(itemNamesExportB(i)),                     &
+                         dstField,                                      &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Regrid fields 
+!-----------------------------------------------------------------------
+!
+      call ESMF_FieldRegrid(srcField, dstField, routeHandleB, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      end do
+      end if
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.

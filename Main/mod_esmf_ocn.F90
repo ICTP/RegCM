@@ -1152,9 +1152,9 @@
       ptr = 0.0d0
       end do
 !
-      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,        &
-                           'dst_field.nc',                              &
-                           rc=rc)
+!      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,        &
+!                           'dst_field.nc',                              &
+!                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------

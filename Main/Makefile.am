@@ -77,6 +77,8 @@ regcm_SOURCES = mod_diagnosis.F90 mod_header.F90 mod_cu_interface.f90 \
 FCLD = $(MPIFC)
 
 if DO_COMPILE_LIBESMF
+LIBS += $(ESMFLIBPTH) 
+CPPFLAGS += $(ESMFINCPTH) -I$(ROMS_PREFIX)
 regcm_SOURCES += mod_esmf_atm.F90 mod_esmf_ocn.F90 \
                  mod_esmf_cpl.F90 mod_couplerr.F90
 skip_files  = $(ROMS_PREFIX)/master.o
