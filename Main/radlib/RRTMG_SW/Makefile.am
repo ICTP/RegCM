@@ -6,7 +6,12 @@ librrtmgsw_a_SOURCES =    parkind.f90  parrrsw.f90  rrsw_cld.f90   \
   rrsw_kg18.f90  rrsw_kg21.f90  rrsw_kg24.f90  rrsw_kg27.f90 \
   rrsw_ncpar.f90  rrsw_vsn.f90 rrsw_aer.f90  rrsw_kg16.f90  \
   rrsw_kg19.f90  rrsw_kg22.f90  rrsw_kg25.f90  rrsw_kg28.f90 \
-  rrsw_ref.f90    rrsw_wvn.f90
+  rrsw_ref.f90    rrsw_wvn.f90 \
+  rrlw_con.f90   rrlw_kg03.f90  rrlw_kg06.f90  rrlw_kg09.f90  rrlw_kg12.f90 \
+  rrlw_kg15.f90   rrlw_ref.f90  rrlw_wvn.f90 parrrtm.f90   rrlw_kg01.f90 \
+  rrlw_kg04.f90  rrlw_kg07.f90  rrlw_kg10.f90  rrlw_kg13.f90  rrlw_kg16.f90   rrlw_tbl.f90 \
+  rrlw_cld.f90  rrlw_kg02.f90  rrlw_kg05.f90  rrlw_kg08.f90  rrlw_kg11.f90 \
+  rrlw_kg14.f90  rrlw_ncpar.f90  rrlw_vsn.f90
 
 
 %.o: %.f90
@@ -49,4 +54,27 @@ rrsw_kg25.o  rrsw_kg25.mod: rrsw_kg25.f90
 rrsw_kg28.o rrsw_kg28.mod: rrsw_kg28.f90
 rrsw_ref.o  rrsw_ref.mod: rrsw_ref.f90 
 rrsw_wvn.o  rrsw_wvn.mod: rrsw_wvn.f90 
-
+parrrtm.o  parrrtm.mod: parrrtm.f90 
+rrlw_con.o   rrlw_con.mod:  rrlw_con.f90  
+rrlw_kg03.o rrlw_kg03.mod: rrlw_kg03.f90
+rrlw_kg06.o rrlw_kg06.mod: rrlw_kg06.f90
+rrlw_kg09.o   rrlw_kg09.mod:  rrlw_kg09.f90 
+rrlw_kg12.o  rrlw_kg12.mod:   rrlw_kg12.f90 
+rrlw_kg15.o  rrlw_kg15.mod: rrlw_kg15.f90 
+rrlw_ref.o  rrlw_ref.mod:  rrlw_ref.f90 
+rrlw_wvn.o rrlw_wvn.mod:  rrlw_wvn.f90 parrrtm.o
+rrlw_kg01.o  rrlw_kg01.mod: rrlw_kg01.f90 
+rrlw_kg04.o  rrlw_kg04.mod: rrlw_kg04.f90 
+rrlw_kg07.o  rrlw_kg07.mod: rrlw_kg07.f90 
+rrlw_kg10.o  rrlw_kg10.mod: rrlw_kg10.f90 
+rrlw_kg13.o  rrlw_kg13.mod:  rrlw_kg13.f90 
+rrlw_kg16.o   rrlw_kg16.mod:   rrlw_kg16.f90 
+rrlw_tbl.o  rrlw_tbl.mod:  rrlw_tbl.f90 
+rrlw_cld.o  rrlw_cld.mod:  rrlw_cld.f90 
+rrlw_kg02.o  rrlw_kg02.mod: rrlw_kg02.f90 
+rrlw_kg05.o   rrlw_kg05.mod:  rrlw_kg05.f90 
+rrlw_kg08.o  rrlw_kg08.mod:  rrlw_kg08.f90 
+rrlw_kg11.o   rrlw_kg11.mod:    rrlw_kg11.f90  
+rrlw_kg14.o  rrlw_kg14.mod:  rrlw_kg14.f90
+rrlw_ncpar.o rrlw_ncpar.mod:  rrlw_ncpar.f90
+rrlw_vsn.o   rrlw_vsn.mod:  rrlw_vsn.f90
