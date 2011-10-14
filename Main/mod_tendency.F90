@@ -1472,7 +1472,10 @@ module mod_tendency
 !     call ccm3 radiative transfer package
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-        call colmod3(ktau,xyear,eccf,loutrad,j)
+        if (irrtm ==1 ) call rrtmg_driver(ktau,xyear,eccf,j,loutrad)
+
+        if (irrtm ==0 ) call colmod3(ktau,xyear,eccf,loutrad,j)
+
       end if
  
 #ifndef CLM

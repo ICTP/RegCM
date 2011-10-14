@@ -29,6 +29,7 @@ module mod_init
   use mod_cu_interface
   use mod_rad_interface
   use rrtmg_sw_init
+  use rrtmg_lw_init
   use mod_pbl_interface
   use mod_precip
   use mod_bdycod
@@ -1282,6 +1283,7 @@ module mod_init
     ! RRTM_SW gas / abs constant initialisation
     if ( irrtm == 1 ) then
       call rrtmg_sw_ini(cpd)
+      call rrtmg_lw_ini(cpd)
     end if
   end if
  

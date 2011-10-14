@@ -116,7 +116,7 @@ module mod_params
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocnrough , ichem ,       &
-    scenario , idcsst , iseaice , idesseas , iconvlwp
+    scenario , idcsst , iseaice , idesseas , iconvlwp, irrtm
 
   namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
     gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
@@ -563,6 +563,8 @@ module mod_params
   call mpi_bcast(iseaice,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(idesseas,1,mpi_integer,0,mycomm,ierr)
   call mpi_bcast(iconvlwp,1,mpi_integer,0,mycomm,ierr)
+  call mpi_bcast(irrtm,1,mpi_integer,0,mycomm,ierr)
+
 #ifdef CLM
   call mpi_bcast(dirclm,256,mpi_character,0,mycomm,ierr)
   call mpi_bcast(imask,1,mpi_integer,0,mycomm,ierr)
