@@ -31,36 +31,49 @@ module mod_rrtmg_driver
   use mcica_subcol_gen_sw
   use parrrsw
   use rrsw_wvn
+  use parrrtm
+  use rrtmg_lw_rad
+  use mod_rad_outrad
+
 private
 !
   public :: rrtmg_driver
 
   contains
 !
-  subroutine rrtmg_driver(ktau,iyear,j,solin,frsa,sabtp,clrst,clrss,qrs,clwp_int,cld_int)
+  subroutine rrtmg_driver(ktau,iyear,eccf,j,lout)
 
   implicit none
 
   integer(8) , intent(in) :: ktau
   integer , intent(in) :: iyear
   integer , intent(in) :: j
+  logical, intent(in) :: lout
+  real(dp), intent(in) :: eccf
 ! these are temporary passed to colmod to test RRTM SW only 
 ! when RRTMLW is implemented , radout will be called in this module. The driver will be called from tendency.
 ! 
-real(dp), dimension (iym1), intent(out) :: solin,frsa,sabtp,clrst,clrss
-real(dp), dimension (iym1,kz),intent(out) :: qrs  ,clwp_int, cld_int
 
 !local variables
 
- integer:: dyofyr , inflgsw, iceflgsw, liqflgsw, icld, permuteseed,irng,iplon,ns,k,kj
+real(dp), dimension (iym1)  :: solin,frsa,sabtp,clrst,clrss, firtp, frla, clrlt, clrls , empty1,srfrad,sols,soll,solsd,solld,slwd
+real(dp), dimension (iym1,kz)  :: qrs  ,qrl, clwp_int, cld_int,empty2
+
+
+integer:: dyofyr , inflgsw, iceflgsw, liqflgsw, icld, idrv, permuteseed,irng,iplon,ns,k,kj, &
+          inflglw ,iceflglw,liqflglw
  
  real(dp) :: adjes
 
- real(dp) , dimension(iym1,kzp1) :: plev,tlev,swuflx,swdflx,swuflxc,swdflxc
+ real(dp) , dimension(iym1,kzp1) :: plev,tlev,swuflx,swdflx,swuflxc,swdflxc,&
+                                    lwuflx ,lwdflx, lwuflxc ,lwdflxc ,&
+                                    swddiruviflx, swddifuviflx ,& 
+                                    swddirpirflx, swddifpirflx,swdvisflx
 
-
- real(dp) , dimension(iym1,kz) :: play,tlay,h2ovmr , o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , &
-                                reicmcl, relqmcl,swhr,swhrc,ciwp,clwp,rei,rel,cldf
+ real(dp) , dimension(iym1,kz) :: play,tlay,h2ovmr , o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , & 
+                                 cfc11vmr, cfc12vmr,  cfc22vmr, ccl4vmr,    &
+                                 reicmcl, relqmcl,swhr,swhrc,ciwp,clwp,rei,rel,cldf,  &
+                                 lwhr,lwhrc,duflx_dt,duflxc_dt
                                
  real(dp) , dimension(iym1):: tsfc, psfc
 
@@ -68,70 +81,77 @@ real(dp), dimension (iym1,kz),intent(out) :: qrs  ,clwp_int, cld_int
  real(dp) , dimension(ngptsw,iym1,kz) :: cldfmcl, taucmcl, ssacmcl, asmcmcl, fsfcmcl, &
                                           ciwpmcl, clwpmcl 
 
- real(dp) , dimension(iym1,kz,nbndsw) :: tauaer, ssaaer, asmaer, ecaer
 
- 
+! spectral dependant quantities
+ real(dp) , dimension(iym1,kz,nbndsw) :: tauaer, ssaaer, asmaer, ecaer
  real(dp), dimension(nbndsw,iym1,kz) :: tauc,ssac,asmc,fsfc      
 
 
+real(dp), dimension(iym1,nbndlw) :: emis_surf 
+real(dp), dimension(nbndlw,iym1,kz) :: tauc_lw 
+real(dp),dimension( iym1,kz,nbndlw) :: tauaer_lw 
+
+real(dp) , dimension(ngptlw,iym1,kz) :: cldfmcl_lw, taucmcl_lw, &
+                                          ciwpmcl_lw, clwpmcl_lw 
 !-----------------------------------------------------------------------
 
 
-solin(:) = d_zero
-frsa(:) =  d_zero
-sabtp(:) = d_zero 
-clrst(:) = d_zero 
-clrss(:) = d_zero 
-qrs(:,:) = d_zero
+iplon=1 ! not effectively used
+
+!adjustment of earthsun distance:
+! if dyofyr = 0, we pass directly the ecc. factor in adjes, 
+! otherwise it is calculated in RRTM as a function of day of the year.
+dyofyr = 0
+adjes = eccf
+
+! options for optical properties of cloud calculation
+
+!inflgsw  = 0 : use the optical properties calculated in perp_dat_rrtm (same as standard radiation)
+!inflgsw  = 2 : use RRTM option to calculate cloud optical prperties from water path and cloud drop radius
+!check the diferent param available in rrtmg_rad (iceflgsw / liqflgsw  should be nameliste interactive) 
+inflgsw  = 2 
+iceflgsw = 3
+liqflgsw = 1
+
+! IN LW : optical depth is calculated internally 
+!from water path and cloud radius / tauc_LW is not requested
+inflglw  = 2
+iceflglw = 3
+liqflglw = 1
+tauc_lw = dlowval
+!
+!McICA parameteres
+icld  = 1 ! Cloud Overlapp hypothesis ( should be interactive) 
+!
+irng = 1 ! mersenne twister random generator for McICA
+! Cloud Overlapp hypothesis flag ( return if 0)
 
 
-
-
-! use the get dat routine to retrive some of he SW inputs:
-
-
-call prep_dat_rrtm (j,iyear,plev,play,tlev,tlay,tsfc,psfc,         &
+call prep_dat_rrtm (j,iyear,inflgsw,plev,play,tlev,tlay,tsfc,psfc,         &
                      cldf,h2ovmr,o3vmr,n2ovmr,co2vmr,ch4vmr,o2vmr, & 
+                     cfc11vmr,cfc12vmr, cfc22vmr, ccl4vmr, &
                      tauc,ssac,asmc,fsfc,ciwp,clwp,rei,rel)
 
 
+! Call to the shortwave radiation code as soon one element of coszen is > 0.
+! 
+
+ if ( maxval (coszen) > dlowval) then
 
 ! generates cloud properties:
-
-
-iplon=1 ! not effectively used
 permuteseed = 1
-irng = 1 ! mersenne twister random generator
-! Cloud Overlapp hypothesis flag ( return if 0)
-icld  = 1
-
-
 call mcica_subcol_sw( iplon, iym1, kz, icld, permuteseed, irng, play, &
                        cldf , ciwp, clwp, rei, rel, tauc, ssac, asmc, fsfc, &
                        cldfmcl, ciwpmcl, clwpmcl, reicmcl, relqmcl, &
                        taucmcl, ssacmcl, asmcmcl, fsfcmcl)
 
-
-
-!adjustment of earthsun distance: here set as constant
-adjes = d_one 
-dyofyr = 0
-
-! option for optical properties of cloud 
-! here calculated out of rrtnm_sw, but there are options to calulate within !
-inflgsw  = 0
-iceflgsw = 3
-liqflgsw = 1
-
-
-! for now initialise aerosol to zero:
-
+! for now initialise aerosol OP to zero:
 tauaer = d_zero
 ssaaer = d_one
 asmaer = 0.85D0
 ecaer =0.78D0
 
- if ( maxval (coszen) > dlowval) then
+
      call rrtmg_sw &
             (iym1    , kz   ,icld    , &
              play    ,plev   ,tlay    ,tlev    ,tsfc   , &
@@ -142,10 +162,44 @@ ecaer =0.78D0
              taucmcl ,ssacmcl ,asmcmcl ,fsfcmcl , &
              ciwpmcl ,clwpmcl ,reicmcl ,relqmcl , &
              tauaer  ,ssaaer  ,asmaer  ,ecaer   , &
-             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc)
-end if
+             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc, &
+             swddiruviflx, swddifuviflx ,& 
+             swddirpirflx, swddifpirflx, swdvisflx     )
+
+      
+end if ! end shortwave call 
 
 
+! LW call :
+
+  permuteseed = 150
+  call  mcica_subcol_lw(iplon, iym1, kz, icld, permuteseed, irng, play, &
+                       cldf, ciwp, clwp, rei, rel, tauc_lw, cldfmcl_lw, &
+                       ciwpmcl_lw, clwpmcl_lw, reicmcl, relqmcl, taucmcl_lw)
+
+tauaer_lw = d_zero
+
+!  provisoire
+do k = 1,nbndlw
+emis_surf(:,k) = 0.97D0
+! = emsvt(:)
+end do 
+
+  idrv = 0
+  call  rrtmg_lw &
+            (iym1    ,kz    ,icld    ,idrv    , &
+             play    ,plev    ,tlay    ,tlev    ,tsfc    , & 
+             h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr , &
+             cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr ,emis_surf   , &
+             inflglw ,iceflglw,liqflglw,cldfmcl_lw , &
+             taucmcl_lw ,ciwpmcl_lw ,clwpmcl_lw ,reicmcl ,relqmcl , &
+             tauaer_lw  , &
+             lwuflx ,lwdflx,lwhr, lwuflxc ,lwdflxc,lwhrc, &    
+             duflx_dt,duflxc_dt )
+
+
+! Output and interface 
+! 
 ! solin  - instantaneous incident solar
 ! sabtp  - total column absorbed solar flux
 ! frsa   - surface absorbed solar flux
@@ -158,7 +212,7 @@ end if
 ! clrls  - clr sky lw cooling of srf (up-dwn flx)
 ! qrl    - longwave cooling rate
 ! slwd   - surface longwave down flux
-! srfrad - surface radiative heat flux (frsa+slwd)
+! srfrad - surface radiative heating flux (frsa+slwd)
 ! h2ommr - ozone mixing ratio
 ! cld    - cloud fractional cover
 ! clwp   - cloud liquid water path
@@ -166,8 +220,9 @@ end if
 ! solld  - Downward solar rad onto surface (lw diffuse)
 ! sols   - Downward solar rad onto surface (sw direct)
 ! solsd  - Downward solar rad onto surface (sw diffuse)
+! solar = visible band only downard SW radiation 
 !
-!EES  next 3 added, they are calculated in radcsw
+!EES  next 3 added, they are calculated in radcsw : but not used further
 ! fsnirt   - Near-IR flux absorbed at toa
 ! fsnrtc   - Clear sky near-IR flux absorbed at toa
 ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
@@ -180,32 +235,68 @@ sabtp(:) =  swdflx(:,kzp1) -  swuflx(:,kzp1)
 clrst(:) =   swdflxc(:,kzp1) -  swuflxc(:,kzp1)
 clrss(:) =   swdflxc(:,1) -  swuflxc(:,1)
 
+firtp(:) =  -d_one*(lwdflx(:,kzp1) -  lwuflx(:,kzp1))
+frla(:) =   -d_one*(lwdflx(:,1) - lwuflx(:,1))
+!!$
+clrlt(:) =  -d_one* (lwdflxc(:,kzp1) -  lwuflxc(:,kzp1))
+clrls(:) =   -d_one*(lwdflxc(:,1) -  lwuflxc(:,1))
+
+! coupling with  BATS
+!  abveg set to frsa (as in standard version : potential inconsieny if soil fraction is large)
+abveg(:) = frsa(:) 
+! solar is normally the visible band only total incident surface flux
+solar(:) = swdvisflx(:,1)
+! surface SW incident
+sols(:) =  swddiruviflx(:,1)
+solsd(:) =  swddifuviflx(:,1)
+soll(:) =  swddirpirflx(:,1)
+solld(:) =  swddifpirflx(:,1)
+!LW incident 
+slwd(:) = lwdflx(:,1)
+
 !3d heating rate back on regcm grid and converted to K.S-1
 do k=1,kz
 kj = kzp1-k
 qrs(:,kj) = swhr(:,k) / secpd
-cld_int(:,kj) = cldf(:,k)
+qrl(:,kj) = lwhr(:,k) / secpd
+
+cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics  
 clwp_int(:,kj) = clwp(:,k)
 end do 
+
+
+! Finally call radout for coupling to BATS/CLM/ATM and outputing fields in RAD files
+! these are diagnostics that are passed to radout but not used furthermore
+empty1 = dmissval
+empty2 = dmissval
+!!$
+!!$
+    call radout (lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,frla,  &
+                    clrlt,clrls,qrl,slwd,srfrad,sols,soll,solsd,solld, &
+                    empty1,empty1,empty1,empty1,empty1,empty1,j,empty2,cld_int,clwp_int)
+
+
 
 end subroutine  rrtmg_driver
 
 
 
 
-subroutine prep_dat_rrtm (j,iyear,plev,play,tlev,tlay,ts,ps,         &
+subroutine prep_dat_rrtm (j,iyear,inflagsw,plev,play,tlev,tlay,ts,ps,         &
                           cldf,h2ovmr,o3vmr,n2ovmr,co2vmr,ch4vmr,o2vmr,&
+                          cfc11vmr,cfc12vmr,cfc22vmr, ccl4vmr,                   &                  
                           tauc,ssac,asmc,fsfc,ciwp,clwp,rei,rel )
 !
     implicit none
 !
     integer :: j
-    integer , intent(in) :: iyear
+    integer , intent(in) :: iyear, inflagsw
     real(dp) , dimension(iym1) :: alat , coslat ,  ps , ts
     real(dp) , dimension(iym1,kzp1) ::  plev,tlev
     real(dp) , dimension(iym1,kz):: play  , tlay,  &
                                    h2ovmr,o3vmr ,n2ovmr,co2vmr,ch4vmr,o2vmr, &
-                                   cfc11mmr,cfc12mmr, rei,rel,fice, &
+                                   cfc11vmr,cfc12vmr, cfc22vmr, ccl4vmr, &
+                                   rei,rel,fice, &
                                    wcl,wci,gcl,gci,fcl,fci, tauxcl,tauxci
  
 
@@ -225,12 +316,12 @@ real(dp)  :: cldf(iym1,kz)
 
 
     intent (in) j
-    intent (out)  o3vmr ,n2ovmr,co2vmr,ch4vmr,o2vmr , ts , cldf , h2ovmr ,& 
+    intent (out)  o3vmr ,n2ovmr,co2vmr,ch4vmr,o2vmr ,cfc11vmr,cfc12vmr, cfc22vmr, ccl4vmr, ts , cldf , h2ovmr ,& 
        plev , play , ps , tlay, tauc, ssac, asmc, fsfc, ciwp,clwp, rei,  rel
 !
     
       
-    real(dp) , dimension(iym1,kz) ::  h2ommr , o3mmr, n2ommr,co2mmr,ch4mmr 
+    real(dp) , dimension(iym1,kz) ::  h2ommr , o3mmr, n2ommr,co2mmr,ch4mmr, cfc11mmr,cfc12mmr
     real(dp) , dimension(iym1,kz) :: deltaz
     real(dp) :: c287,ccvtem,clwtem,w1,w2,wmin,wmax
     integer :: i , k , kj , ncldm1, indxsl,ns,n,nrr,ii0,ii1,ii2
@@ -410,7 +501,14 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
   ch4vmr (i,k) =  ch4mmr (i,k) * (16.D0/amd)
   co2vmr(i,k)  = cgas(2,iyear)*1.0D-6
   o2vmr(i,k) =  0.23143D0 * (32.D0/amd)
- end do
+  cfc11vmr(i,k) =  cfc11mmr (i,k) / (163.1278D0 /amd)
+  cfc12vmr(i,k) =  cfc12mmr (i,k) / (175.1385D0 /amd)
+!
+! No data FOR NOW : IMPROVE !!
+   cfc22vmr(i,k) = d_zero
+   ccl4vmr (i,k) =d_zero 
+
+  end do 
  end do
 
 
@@ -479,7 +577,7 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
     end do
 !
 !
-! CLOUD AND OPTICAL PROPERTIES :treated as standard scheme for now 
+! CLOUD Properties:
 !
 ! cloud effective radius 
 !   NB: orography types are specified in the following
@@ -518,7 +616,13 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
     end do
 
 ! 
-! Cloud optical propperties
+! Cloud optical properties(tau,ssa,g,f) :
+! 2 options :
+! inflgsw == 0 :  treated as the standard radiation scheme and passed to McICA/ RRTM
+! inflgsw == 2 : direcly calculated within RRTMsw 
+
+
+
 !initialise and  begin spectral loop
 !
         tauc  =  d_zero
@@ -526,6 +630,8 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
         asmc  =  0.850D0
         fsfc  =  0.725D0
            
+if (inflagsw == 0) then 
+
     do ns = 1 ,nbndsw
  
 !      nrr = ns + jpb1 -1
@@ -590,6 +696,8 @@ data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
 !     Set reflectivities
 
      end do ! spectral loop
+
+end if  ! inflagsw
 
 !
   end subroutine prep_dat_rrtm

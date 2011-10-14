@@ -30,7 +30,13 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
                    rrtmg_sw_spcvmc.f90  rrtmg_sw_vrtqdr.f90 rrtmg_sw_cldprop.f90 \
                    rrtmg_sw_rad.f90 rrtmg_sw_reftra.f90 rrtmg_sw_spcvrt.f90 \
                    rrtmg_sw_init.f90 rrtmg_sw_rad.nomcica.f90  rrtmg_sw_setcoef.f90 \
-                   rrtmg_sw_taumol.f90 mcica_random_numbers.f90  mcica_subcol_gen_sw.f90
+                   rrtmg_sw_taumol.f90 mcica_random_numbers.f90  mcica_subcol_gen_sw.f90\
+                   rrtmg_lw_cldprop.f90  rrtmg_lw_rad.f90     rrtmg_lw_rtrn.f90 \
+                   rrtmg_lw_setcoef.f90 mcica_subcol_gen_lw.f90   rrtmg_lw_init.f90 \
+                   rrtmg_lw_rad.nomcica.f90 rrtmg_lw_rtrnmc.f90  rrtmg_lw_taumol.f90  \
+                   rrtmg_lw_cldprmc.f90  rrtmg_lw_read_nc.f90    rrtmg_lw_rtrnmr.f90
+
+
 
 if COMPILER_SUN
   CPPFLAGS += -MRRTMG_SW
@@ -85,7 +91,8 @@ mod_rad_radiation.o mod_rad_radiation.mod: mod_rad_radiation.F90 \
   mod_rad_tracer.o mod_rad_scenarios.o mod_rad_aerosol.o
 mod_rrtmg_driver.o mod_rrtmg_driver.mod: mod_rrtmg_driver.f90 \
   $(REGCM_ROOT)/Share/mod_constants.mod $(REGCM_ROOT)/Share/mod_dynparam.mod \
-  $(RRTMGSW) rrtmg_sw_rad.o mcica_subcol_gen_sw.o
+  $(RRTMGSW) rrtmg_sw_rad.o rrtmg_lw_rad.o mcica_subcol_gen_sw.o mod_rad_common.o \
+  mod_rad_scenarios.o mod_rad_tracer.o mod_rad_outrad.o 
 rrtmg_sw_cldprmc.o rrtmg_sw_cldprmc.mod : rrtmg_sw_cldprmc.f90 $(RRTMGSW)
 rrtmg_sw_read_nc.o rrtmg_sw_read_nc.mod : rrtmg_sw_read_nc.f90  $(RRTMGSW)
 rrtmg_sw_spcvmc.o  rrtmg_sw_spcvmc.mod : rrtmg_sw_spcvmc.f90   $(RRTMGSW) rrtmg_sw_reftra.o \
@@ -102,3 +109,17 @@ rrtmg_sw_setcoef.o rrtmg_sw_setcoef.mod  : rrtmg_sw_setcoef.f90   $(RRTMGSW)
 rrtmg_sw_taumol.o rrtmg_sw_taumol.mod : rrtmg_sw_taumol.f90   $(RRTMGSW)
 mcica_random_numbers.o mcica_random_numbers.mod : mcica_random_numbers.f90   $(RRTMGSW)
 mcica_subcol_gen_sw.o mcica_subcol_gen_sw.mod : mcica_subcol_gen_sw.f90  $(RRTMGSW) mcica_random_numbers.o
+rrtmg_lw_cldprop.o rrtmg_lw_cldprop.mod:  rrtmg_lw_cldprop.f90  $(RRTMGSW)
+rrtmg_lw_rad.o  rrtmg_lw_rad.mod: rrtmg_lw_rad.f90  $(RRTMGSW)  mcica_subcol_gen_lw.o rrtmg_lw_cldprmc.o \
+	rrtmg_lw_setcoef.o  rrtmg_lw_rtrnmc.o rrtmg_lw_taumol.o
+rrtmg_lw_rtrn.o rrtmg_lw_rtrn.mod:  rrtmg_lw_rtrn.f90  $(RRTMGSW)
+rrtmg_lw_setcoef.o rrtmg_lw_setcoef.mod:  rrtmg_lw_setcoef.f90  $(RRTMGSW)
+mcica_subcol_gen_lw.o mcica_subcol_gen_lw.mod: mcica_subcol_gen_lw.f90  $(RRTMGSW)  mcica_random_numbers.o
+rrtmg_lw_init.o   rrtmg_lw_init.mod:  rrtmg_lw_init.f90  $(RRTMGSW) rrtmg_lw_setcoef.o
+rrtmg_lw_rad.nomcica.o rrtmg_lw_rad.nomcica.mod: rrtmg_lw_rad.nomcica.f90  $(RRTMGSW) rrtmg_lw_rtrnmr.o rrtmg_lw_rtrn.o rrtmg_lw_setcoef.o \
+	rrtmg_lw_taumol.o
+rrtmg_lw_rtrnmc.o  rrtmg_lw_rtrnmc.mod:  rrtmg_lw_rtrnmc.f90   $(RRTMGSW) 
+rrtmg_lw_taumol.o  rrtmg_lw_taumol.mod:  rrtmg_lw_taumol.f90   $(RRTMGSW)
+rrtmg_lw_cldprmc.o rrtmg_lw_cldprmc.mod: rrtmg_lw_cldprmc.f90 $(RRTMGSW)
+rrtmg_lw_read_nc.o    rrtmg_lw_read_nc.mod:  rrtmg_lw_read_nc.f90  $(RRTMGSW)
+rrtmg_lw_rtrnmr.o   rrtmg_lw_rtrnmr.mod:  rrtmg_lw_rtrnmr.f90  $(RRTMGSW)

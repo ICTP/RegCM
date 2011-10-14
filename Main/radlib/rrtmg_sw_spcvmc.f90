@@ -41,7 +41,8 @@
              fac00, fac01, fac10, fac11, &
              selffac, selffrac, indself, forfac, forfrac, indfor, &
              pbbfd, pbbfu, pbbcd, pbbcu, puvfd, puvcd, pnifd, pnicd, &
-             pbbfddir, pbbcddir, puvfddir, puvcddir, pnifddir, pnicddir)
+             pbbfddir, pbbcddir, puvfddir, puvcddir, pnifddir, pnicddir,&
+             pvsfd )
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes, 
@@ -71,6 +72,8 @@
 ! Revision: Uniform formatting for RRTMG: MJIacono, AER, Jul 2006 
 ! Revision: Use exponential lookup table for transmittance: MJIacono, AER, 
 !           Aug 2007 
+
+! RegCM : pass also the downward in the visible band (fsolmon) 
 !
 ! ------------------------------------------------------------------
 
@@ -199,7 +202,8 @@
 !      real(kind=rb), intent(out) :: pnifu(:)
 !      real(kind=rb), intent(out) :: pvscd(:)
 !      real(kind=rb), intent(out) :: pvscu(:)
-!      real(kind=rb), intent(out) :: pvsfd(:)
+! REGCM interface (solmon)
+      real(kind=rb), intent(out) :: pvsfd(:)
 !      real(kind=rb), intent(out) :: pvsfu(:)
 
 ! ------- Local -------
@@ -280,6 +284,7 @@
          pnifd(jk)=0._rb
          pnicddir(jk)=0._rb
          pnifddir(jk)=0._rb
+         pvsfd(jk)= 0._rb
       enddo
 
 
@@ -593,6 +598,9 @@
                if (ibm >= 10 .and. ibm <= 13) then
                   puvcd(ikl) = puvcd(ikl) + zincflx(iw)*zcd(jk,iw)
                   puvfd(ikl) = puvfd(ikl) + zincflx(iw)*zfd(jk,iw)
+!FAB REGCM 
+                  if(ibm==10) pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
+!
                   if (idelm .eq. 0) then 
                      puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)

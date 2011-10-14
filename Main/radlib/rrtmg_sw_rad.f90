@@ -87,7 +87,9 @@
              taucmcl ,ssacmcl ,asmcmcl ,fsfcmcl , &
              ciwpmcl ,clwpmcl ,reicmcl ,relqmcl , &
              tauaer  ,ssaaer  ,asmaer  ,ecaer   , &
-             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc)
+             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc, &
+             swddiruviflx, swddifuviflx ,& 
+             swddirpirflx, swddifpirflx , swdvisflx)
 
 ! ------- Description -------
 
@@ -180,6 +182,9 @@
 !   delta scaling based on setting of idelm flag. 
 !     Dec 2008: M. J. Iacono, AER, Inc.
 
+
+!ICTP/REGCM modification (fsolmon) 
+!-include diffuse/direct - uv-vis-Pir fuxes in the interface 
 ! --------- Modules ---------
 
       use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
@@ -298,6 +303,10 @@
                                                       !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out) :: swhrc(:,:)        ! Clear sky shortwave radiative heating rate (K/d)
                                                       !    Dimensions: (ncol,nlay)
+      real(kind=rb), intent(out) :: swddiruviflx(:,:), swddifuviflx(:,:), &! total sky downward sw flux / dif/dir/vis/pir 
+                                    swddirpirflx(:,:), swddifpirflx(:,:), swdvisflx(:,:)!(ncol,nlay) (W/m2)
+
+
 
 ! ----- Local -----
 
@@ -456,7 +465,8 @@
 !      real(kind=rb) :: zuvcu(nlay+2)         ! temporary clear sky upward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zuvcd(nlay+2)         ! temporary clear sky downward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zvsfu(nlay+2)         ! temporary upward visible shortwave flux (w/m2)
-!      real(kind=rb) :: zvsfd(nlay+2)         ! temporary downward visible shortwave flux (w/m2)
+!FAB REGCM
+      real(kind=rb) :: zvsfd(nlay+2)         ! temporary downward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscu(nlay+2)         ! temporary clear sky upward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscd(nlay+2)         ! temporary clear sky downward visible shortwave flux (w/m2)
 !      real(kind=rb) :: znifu(nlay+2)         ! temporary upward near-IR shortwave flux (w/m2)
@@ -681,6 +691,7 @@
             znifd(i) = 0._rb
             znicddir(i) = 0._rb
             znifddir(i) = 0._rb
+            zvsfd(i) = 0._rb
          enddo
 
 
@@ -694,7 +705,8 @@
               fac00, fac01, fac10, fac11, &
               selffac, selffrac, indself, forfac, forfrac, indfor, &
               zbbfd, zbbfu, zbbcd, zbbcu, zuvfd, zuvcd, znifd, znicd, &
-              zbbfddir, zbbcddir, zuvfddir, zuvcddir, znifddir, znicddir)
+              zbbfddir, zbbcddir, zuvfddir, zuvcddir, znifddir, znicddir,&
+              zvsfd )
 
 ! Transfer up and down, clear and total sky fluxes to output arrays.
 ! Vertical indexing goes from bottom to top; reverse here for GCM if necessary.
@@ -709,12 +721,19 @@
 !  Direct/diffuse fluxes
             dirdflux(i) = zbbfddir(i)
             difdflux(i) = swdflx(iplon,i) - dirdflux(i)
+            
 !  UV/visible direct/diffuse fluxes
             dirdnuv(i) = zuvfddir(i)
             difdnuv(i) = zuvfd(i) - dirdnuv(i)
+            swddiruviflx(iplon,i) =  dirdnuv(i)
+            swddifuviflx(iplon,i) =  difdnuv(i)
 !  Near-IR direct/diffuse fluxes
             dirdnir(i) = znifddir(i)
             difdnir(i) = znifd(i) - dirdnir(i)
+            swddirpirflx(iplon,i) =  dirdnir(i)
+            swddifpirflx(iplon,i) =  difdnir(i)
+! FAB : Vis down flx
+            swdvisflx(iplon,i) = zvsfd(i)
          enddo
 
 !  Total and clear sky net fluxes

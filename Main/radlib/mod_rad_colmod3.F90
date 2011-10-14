@@ -321,17 +321,14 @@ module mod_rad_colmod3
 !   NB: All fluxes returned from radctl() have already been converted
 !   to MKS.
 !
+    print*, 'FAB colmod emsvt',  emsvt(:)  
+
     call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
                 qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,   &
                 fice,sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt, &
                 flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt,fsnrtc,     &
                 fsnirtsq,eccf,o3vmr)
 !
-
-
-!TEST RRTMSW : this overwrite fluxes and heating rates 
-!uncomment for testing RRTM SW
-!   call  rrtmg_driver(ktau,iyear,j,solin,fsns,fsnt,fsntc,fsnsc,qrs,clwp,cld(:,1:kz))
 
 !   subroutine radout() is not included in the ccm3 crm itself
 !   but introduced from the former regcm2 radiation package
