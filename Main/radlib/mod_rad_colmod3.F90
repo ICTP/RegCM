@@ -321,8 +321,6 @@ module mod_rad_colmod3
 !   NB: All fluxes returned from radctl() have already been converted
 !   to MKS.
 !
-    print*, 'FAB colmod emsvt',  emsvt(:)  
-
     call radctl(j,ktau,alat,coslat,ts,pmidm1,pintm1,pmlnm1,pilnm1,tm1,  &
                 qm1,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,   &
                 fice,sols,soll,solsd,solld,emsvt,fsnt,fsntc,fsnsc,flnt, &

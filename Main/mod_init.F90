@@ -965,7 +965,7 @@ module mod_init
         end do
         do i = 1 , iym1
           sav_2a(i,nnsg*2+1,j) = veg2d_io(i,j)
-          sav_2a(i,nnsg*2+2,j) = ldmsk(i,j)
+          sav_2a(i,nnsg*2+2,j) = ldmsk_io(i,j)
         end do
       end do
     end if
