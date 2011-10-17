@@ -21,7 +21,8 @@ noinst_LIBRARIES = libbats.a
 libbats_a_SOURCES = mod_bats_common.F90 mod_bats_param.f90 mod_bats_bndry.F90 \
                     mod_bats_co2.f90 mod_bats_drag.F90 mod_bats_lake.F90 \
                     mod_bats_leaftemp.f90 mod_bats_vecbats.F90 \
-                    mod_bats_mppio.F90 mod_bats_zengocn.F90
+                    mod_bats_mppio.F90 mod_bats_zengocn.F90 \
+                    mod_bats_romsocn.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -62,7 +63,10 @@ mod_bats_vecbats.o mod_bats_vecbats.mod : mod_bats_vecbats.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_message.mod \
   $(REGCM_ROOT)/Share/mod_service.mod $(REGCM_ROOT)/Share/mod_constants.o \
   mod_bats_common.o mod_bats_lake.o mod_bats_bndry.o mod_bats_drag.o \
-  mod_bats_mppio.o mod_bats_zengocn.o
+  mod_bats_mppio.o mod_bats_zengocn.o mod_bats_romsocn.o
 mod_bats_zengocn.o mod_bats_zengocn.mod : mod_bats_zengocn.F90 \
   $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
 	mod_bats_common.o
+mod_bats_romsocn.o mod_bats_romsocn.mod : mod_bats_romsocn.F90 \
+  $(REGCM_ROOT)/Share/mod_dynparam.mod $(REGCM_ROOT)/Share/mod_service.mod \
+        mod_bats_common.o

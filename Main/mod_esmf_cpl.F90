@@ -135,8 +135,9 @@
 !-----------------------------------------------------------------------
 !     Reconcile import and export states. Consistent view in all PETs.
 !-----------------------------------------------------------------------
-!
+!-----------------------------------------------------------------------
 !     Import state
+!-----------------------------------------------------------------------
 !
       call ESMF_StateReconcile(importState,                             &
                                vm=cplVM,                                &
@@ -144,7 +145,9 @@
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
+!-----------------------------------------------------------------------
 !     Export state
+!-----------------------------------------------------------------------
 !
       call ESMF_StateReconcile(exportState,                             &
                                vm=cplVM,                                &
@@ -162,7 +165,9 @@
                              rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!     Print coupling direction info (for debugging)
+!-----------------------------------------------------------------------
+!     Print coupling direction info (debug)
+!-----------------------------------------------------------------------
 !  
       if (dir == FORWARD_ON) then
         write(*,fmt="(' PET (', I2, ') Direction = Forward ')") localPet
@@ -353,38 +358,16 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Create ESMF routhandle 
+!     Create ESMF routhandle (atm --> ocn) 
 !-----------------------------------------------------------------------
 !
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                                 dstField=dstField,                      &
                                 routeHandle=routeHandleF,               &
-!                                indices=indices,                        &
-!                                weights=weights,                        &
                                 regridmethod=ESMF_REGRIDMETHOD_BILINEAR,&
                                 rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!-----------------------------------------------------------------------
-!     Regrid fields 
-!-----------------------------------------------------------------------
-!
-!      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Write field to NetCDF (debug)
-!-----------------------------------------------------------------------
-!
-!      flag = .false.
-!      if (any(models(Iatmos)%petList == localpet)) flag = .true.
-!      if (flag) then
-!      call ESMF_FieldWrite(srcField, 'src_field2.nc', rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!      else
-!      call ESMF_FieldWrite(dstField, 'dst_field2.nc', rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!      end if
       end do
 !
 !-----------------------------------------------------------------------
@@ -423,7 +406,7 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Create ESMF routhandle 
+!     Create ESMF routhandle (ocn --> atm)
 !
 !     The ESMF_UNMAPPEDACTION_IGNORE flag is set because ocean model 
 !     grid is smaller than atmosphere model grid.
@@ -431,34 +414,13 @@
 !
       call ESMF_FieldRegridStore (srcField=srcField,                    &
                               dstField=dstField,                        &
+                              srcMaskValues=(/0/),                      &
                               unmappedaction=ESMF_UNMAPPEDACTION_IGNORE,&
                               routeHandle=routeHandleB,                 &
-!                              indices=indices,                          &
-!                              weights=weights,                          &
                               regridmethod=ESMF_REGRIDMETHOD_BILINEAR,  &
                               rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!-----------------------------------------------------------------------
-!     Regrid fields 
-!-----------------------------------------------------------------------
-!
-!      call ESMF_FieldRegrid(srcField, dstField, routeHandleB, rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Write field to NetCDF (debug)
-!-----------------------------------------------------------------------
-!
-!      flag = .false.
-!      if (any(models(Iatmos)%petList == localpet)) flag = .true.
-!      if (flag) then
-!      call ESMF_FieldWrite(srcField, 'src_field2.nc', rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!      else
-!      call ESMF_FieldWrite(dstField, 'dst_field2.nc', rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!      end if
       end do
       end if
 !
@@ -507,8 +469,9 @@
 !-----------------------------------------------------------------------
 !     Reconcile import and export states. Consistent view in all PETs.
 !-----------------------------------------------------------------------
-!
+!-----------------------------------------------------------------------
 !     Import state
+!-----------------------------------------------------------------------
 !
       call ESMF_StateReconcile(importState,                             &
                                vm=cplVM,                                &
@@ -516,7 +479,9 @@
                                rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 ! 
+!-----------------------------------------------------------------------
 !     Export state
+!-----------------------------------------------------------------------
 !
       call ESMF_StateReconcile(exportState,                             &
                                vm=cplVM,                                &
@@ -535,7 +500,7 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Print coupling direction info (for debugging)
+!     Print coupling direction info (debug)
 !-----------------------------------------------------------------------
 !  
       if (localPet == 0) then

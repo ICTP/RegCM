@@ -30,6 +30,7 @@ module mod_bats_vecbats
   use mod_bats_drag
   use mod_bats_mppio
   use mod_bats_zengocn
+  use mod_bats_romsocn
 
   private
 
@@ -179,6 +180,9 @@ module mod_bats_vecbats
 
 !   Zeng ocean flux model
     if ( iocnflx == 2 ) call zengocndrv(j,2,iym1,ktau)
+
+!   ROMS ocean model
+    if ( iocnflx == 3 ) call romsocndrv(j,2,iym1,ktau)
 
 !   Hostetler lake model for every BATS timestep at lake points
     if ( llake ) then

@@ -37,6 +37,8 @@
         character (len=40) :: name
         character (len=80) :: long_name
         character (len=80) :: units
+        real*8 :: scale_factor
+        real*8 :: add_offset
         type(ESMF_Array) :: array
         type(ESMF_Field) :: field
         real*8, dimension(:,:), pointer :: ptr
@@ -141,6 +143,10 @@
 !-----------------------------------------------------------------------
 !     Coupled model parameters
 !-----------------------------------------------------------------------
+!
+      real, parameter :: MISSING_R4 = 1.0e20
+      real*8, parameter :: MISSING_R8 = 1.0d20
+      integer, parameter :: MISSING_I4 = -99999
 !
       integer :: cpl_dtsec, cpl_debug_level
       logical :: cpl_vtk_on
@@ -673,7 +679,7 @@
       cplStartTime = models(Iatmos)%strTime
       cplStopTime = models(Iatmos)%endTime
       do i = 1, nModels
-        if (models(i)%strTime < cplStartTime) then
+        if (models(i)%strTime > cplStartTime) then
           cplStartTime = models(i)%strTime
         end if      
         if (models(i)%endTime < cplStopTime) then

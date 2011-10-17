@@ -30,20 +30,14 @@
       use mod_esmf_ocn
       use mod_esmf_cpl
 !
-      use mod_runparams, only : dtcpl
-      use mod_regcm_interface , only : RCM_run
-!
       implicit none
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations  
 !-----------------------------------------------------------------------
 !
-      real*8 :: dt
-      integer :: iarr(6)
       logical :: first
       integer :: i, j, localPet, petCount, comm, rc
-      integer, allocatable :: localPetComp(:)
       character (len=80) :: str1, str2
 !
 !-----------------------------------------------------------------------
@@ -72,10 +66,6 @@
 !-----------------------------------------------------------------------
 !
       call allocate_cpl(petCount, rc)
-!
-      if (.not. allocated(localPetComp)) then
-        allocate(localPetComp(petCount))
-      end if
 !
 !-----------------------------------------------------------------------
 !     Create gridded components
@@ -217,7 +207,7 @@
 !     Run components
 !-----------------------------------------------------------------------
 !
-!      do while (.not. ESMF_ClockIsStopTime(cplClock))
+      do while (.not. ESMF_ClockIsStopTime(cplClock))
 !
 !-----------------------------------------------------------------------
 !     Run gridded components
@@ -268,8 +258,16 @@
 !-----------------------------------------------------------------------
 !
       call ESMF_ClockAdvance(cplClock, rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-!      end do
+!-----------------------------------------------------------------------
+!     Debug: print clock 
+!-----------------------------------------------------------------------
+!
+      call ESMF_ClockPrint (cplClock, "currTime string", rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      end do
 !
       call ESMF_VMBarrier(cplVM, rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)

@@ -693,6 +693,7 @@ module mod_params
   call allocate_mod_bats_leaftemp
   call allocate_mod_bats_mppio(lakemod)
   call allocate_mod_bats_lake(lakemod)
+  call allocate_mod_bats_romsocn
 #ifdef CLM
   call allocate_mod_clm(lband)
 #endif

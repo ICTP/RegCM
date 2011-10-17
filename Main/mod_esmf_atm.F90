@@ -197,6 +197,7 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
+      use mod_dynparam,  only : debug_level
       use mod_runparams, only : dtsec
 !
       implicit none
@@ -260,12 +261,14 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Write current time (debug)
+!     Debug: write current time
 !-----------------------------------------------------------------------
 !
-      if (localPet .eq. models(Iatmos)%petList(1)) then
-        write(*, 20) localPet, 'Current Time',                          &
-                     trim(models(Iatmos)%time%stamp)
+      if (debug_level > 2) then
+        if (localPet .eq. models(Iatmos)%petList(1)) then
+          write(*, 20) localPet, 'Current Time',                        &
+                       trim(models(Iatmos)%time%stamp)
+        end if
       end if
 !
 !-----------------------------------------------------------------------
@@ -315,12 +318,28 @@
       timepass = timeend-timestr1
 !
 !-----------------------------------------------------------------------
+!     Get import data
+!-----------------------------------------------------------------------
+!
+      if (localPet == models(Iatmos)%petList(1)) then
+        if (debug_level > 2) then        
+          print*, "[debug] -- Getting import data from OCN component." 
+        end if
+      end if
+!
+      if (dt3 .gt. cplTimeStep) then 
+        call RCM_GetImportData()
+      end if
+!
+!-----------------------------------------------------------------------
 !     Run RCM
 !-----------------------------------------------------------------------
 !
       if (localPet .eq. models(Iatmos)%petList(1)) then
-        write(*, fmt="(A2,4F15.2)") 'TR', timestr1, timeend,            &
-             timepass, timestr2
+        if (debug_level > 2) then
+          write(*, fmt="(A28,4F15.2)") '[debug] -- Run ATM component',  &
+                timestr1, timeend, timepass, timestr2
+        end if
       end if
 !
       first = .false.
@@ -397,8 +416,9 @@
 !     Imported modules 
 !-----------------------------------------------------------------------
 !
+      use mod_date 
       use mod_runparams
-      use mod_date
+      use mod_dynparam, only : debug_level
 !
       implicit none
 !
@@ -583,31 +603,6 @@
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------
-!     Attach coupled model parameters to export state as attribute 
-!-----------------------------------------------------------------------
-!
-      name = 'VTK on/off'
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=vtk_on,                              &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      name = 'debug level'
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=debug_level,                         &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-      name = 'coupler time step'
-      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
-                             name=trim(name),                           &
-                             value=int(dtcpl),                          &
-                             rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
 !     Set return flag to success
 !-----------------------------------------------------------------------
 !
@@ -621,10 +616,10 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_runparams, only : vtk_on
-      use mod_dynparam, only : nproc, iy, iym2, jx, jxp, jendx,         &
-                               jendl, debug_level
-      use mod_atm_interface, only : mddom
+      use mod_runparams,     only : vtk_on, dtcpl
+      use mod_dynparam,      only : iy, jx, nproc, debug_level
+!
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
@@ -671,15 +666,11 @@
 !     Debug: validate and print DistGrid
 !-----------------------------------------------------------------------
 !
-      if ((localPet == 0) .and. (debug_level > 2)) then
-        call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
-        if (rc /= ESMF_SUCCESS) then
-          call ESMF_Finalize(endflag=ESMF_END_ABORT)
-        end if
-        call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
-        if (rc /= ESMF_SUCCESS) then
-          call ESMF_Finalize(endflag=ESMF_END_ABORT)
-        end if
+      if (debug_level > 2) then
+      call ESMF_DistGridValidate(models(Iatmos)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      call ESMF_DistGridPrint(models(Iatmos)%distGrid(n), rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
       end if
 !
 !-----------------------------------------------------------------------
@@ -805,9 +796,11 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_runparams, only : debug_level
-      use mod_dynparam, only : nproc, iy, iym1, iym2, jx, jxp, ptop
       use mod_bats_common
+      use mod_runparams, only : vtk_on, dtcpl
+      use mod_dynparam,  only : debug_level
+!
+      implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations 
@@ -823,7 +816,6 @@
       logical :: flag
       character (len=40) :: name
       type(ESMF_StaggerLoc) :: staggerLoc
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Initialize the import and export fields 
@@ -883,7 +875,7 @@
 !
       call ESMF_FieldGet (models(Iatmos)%dataExport(i,n)%field,         &
                           localDe=j,                                    &
-                          farrayPtr=ptr,                                &
+                          farrayPtr=models(Iatmos)%dataExport(i,n)%ptr, &
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -891,7 +883,7 @@
 !     Initialize pointer 
 !-----------------------------------------------------------------------
 !
-      ptr = 0.0d0
+      models(Iatmos)%dataExport(i,n)%ptr = 0.0d0
 !
 !-----------------------------------------------------------------------
 !     Put data     
@@ -899,55 +891,61 @@
 !      
       if (trim(adjustl(name)) == "Pair") then
 !       unit: millibar       
-        ptr = (sfps(:,1:jxp)+ptop)*d_10
-      else if (trim(adjustl(name)) == "Tair") then 
+        models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
+      elseif (trim(adjustl(name)) == "Tair") then 
 !       unit: celsius
 !        ptr = sts2%tg(:,1:jxp)-tzero
-        ptr(2:iym1,:) = transpose(t2m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(t2m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "Qair") then
 !       unit: kg/kg
-        ptr(2:iym1,:) = transpose(q2m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "swrad") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
-        ptr(1:iym1,:) = fsw2d
-        ptr(iym1,:) = fsw2d(iym2,:) 
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = fsw2d(iym2,:) 
       else if (trim(adjustl(name)) == "lwrad_down") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
-        ptr(1:iym1,:) = flw2d
-        ptr(iym1,:) = flw2d(iym2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = flw2d(iym2,:)
       else if (trim(adjustl(name)) == "rain") then
         ! one less
         ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
-        ptr(1:iym1,:) = pptnc+pptc 
-        ptr(iym1,:) = pptnc(iym2,:)+pptc(iym2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) =                    &
+                       pptnc(iym2,:)+pptc(iym2,:)
       else if (trim(adjustl(name)) == "Uwind") then
 !       unit: meter/second
-        ptr(2:iym1,:) = transpose(u10m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(u10m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       else if (trim(adjustl(name)) == "Vwind") then
 !       unit: meter/second
-        ptr(2:iym1,:) = transpose(v10m_o)
-      end if
-!
-      if (associated(ptr)) then
-        models(Iatmos)%dataExport(i,n)%ptr => ptr
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(v10m_o)
       end if
       end do
 !
 !-----------------------------------------------------------------------
-!     Write field to file (debug)     
+!     Debug: write field to file
 !-----------------------------------------------------------------------
-!  
+!
+!      if (debug_level > 2) then      
 !      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
 !                           'atm_export_'//trim(adjustl(name))//'.nc',   &
 !                           rc=rc)
+!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      end if
 !
 !-----------------------------------------------------------------------
 !     Add fields to export state
@@ -957,15 +955,6 @@
                          (/ models(Iatmos)%dataExport(i,n)%field /),    &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Nullify pointer to make sure that it does not point on a random 
-!     part in the memory 
-!-----------------------------------------------------------------------
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
       end do
 !     
 !-----------------------------------------------------------------------
@@ -1018,7 +1007,7 @@
 !
       call ESMF_FieldGet (models(Iatmos)%dataImport(i,n)%field,         &
                           localDe=j,                                    &
-                          farrayPtr=ptr,                                &
+                          farrayPtr=models(Iatmos)%dataImport(i,n)%ptr, &
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -1027,7 +1016,7 @@
 !-----------------------------------------------------------------------
 !      
       if (trim(adjustl(name)) == "SST") then
-        ptr = 0.0
+        models(Iatmos)%dataImport(i,n)%ptr = 0.0
       end if
       end do
 !
@@ -1039,6 +1028,240 @@
                          (/ models(Iatmos)%dataImport(i,n)%field /),    &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Attach coupled model parameters to export state as attribute 
+!-----------------------------------------------------------------------
+!
+      name = 'VTK on/off'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=vtk_on,                              &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      name = 'debug level'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=debug_level,                         &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      name = 'coupler time step'
+      call ESMF_AttributeSet(models(Iatmos)%stateExport,                &
+                             name=trim(name),                           &
+                             value=int(dtcpl),                          &
+                             rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      rc = ESMF_SUCCESS
+!
+      end subroutine RCM_SetStates
+!
+      subroutine RCM_PutExportData (localPet)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_bats_common
+      use mod_dynparam, only : debug_level
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer, intent(in) :: localPet
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j, id, n, rc, localDECount
+      logical :: flag
+      character (len=40) :: name
+      type(ESMF_StaggerLoc) :: staggerLoc
+!
+!-----------------------------------------------------------------------
+!     Initialize the import and export fields 
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
+!     Create export state fields 
+!-----------------------------------------------------------------------
+!
+      do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
+      name = models(Iatmos)%dataExport(i,n)%name
+      if (trim(adjustl(name)) == "Pair") then
+!       unit: millibar       
+        models(Iatmos)%dataExport(i,n)%ptr = (sfps(:,1:jxp)+ptop)*d_10
+      else if (trim(adjustl(name)) == "Tair") then 
+!       unit: celsius
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(t2m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Qair") then
+!       unit: kg/kg
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(q2m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+      else if (trim(adjustl(name)) == "swrad") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = fsw2d
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = fsw2d(iym2,:) 
+      else if (trim(adjustl(name)) == "lwrad_down") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = flw2d
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) = flw2d(iym2,:)
+      else if (trim(adjustl(name)) == "rain") then
+        ! one less
+        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
+        models(Iatmos)%dataExport(i,n)%ptr(1:iym1,:) = pptnc+pptc 
+        models(Iatmos)%dataExport(i,n)%ptr(iym1,:) =                    &
+                       pptnc(iym2,:)+pptc(iym2,:)
+      else if (trim(adjustl(name)) == "Uwind") then
+!       unit: meter/second
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(u10m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+      else if (trim(adjustl(name)) == "Vwind") then
+!       unit: meter/second
+        models(Iatmos)%dataExport(i,n)%ptr(2:iym1,:) = transpose(v10m_o)
+        models(Iatmos)%dataExport(i,n)%ptr(1,:) =                       &
+                       models(Iatmos)%dataExport(i,n)%ptr(2,:)
+        models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
+                       models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
+      end if
+      end do
+      end do
+!
+      end subroutine RCM_PutExportData
+!
+      subroutine RCM_GetImportData
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_dynparam, only : jxp, debug_level
+      use mod_bats_romsocn, only : sst2d
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j, n, rc
+      integer :: localPet, petCount, comm, localDECount
+      character (len=40) :: name
+      character (len=100) :: outfile
+      logical :: file_exists
+!
+      real(ESMF_KIND_R8), pointer :: ptr(:,:)
+!
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+!  
+      call ESMF_VMGet (models(Iatmos)%vm,                               &
+                       localPet=localPet,                               &
+                       petCount=petCount,                               &
+                       mpiCommunicator=comm,                            &
+                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Loop over number of nested/composed meshs 
+!-----------------------------------------------------------------------
+!
+      do n = 1, nNest(Iatmos)
+!
+!-----------------------------------------------------------------------
+!     Get import fields 
+!-----------------------------------------------------------------------
+!
+      do i = 1, size(models(Iatmos)%dataImport(:,n), dim=1)
+      name = models(Iatmos)%dataImport(i,n)%name
+!
+!-----------------------------------------------------------------------
+!     Get number of local DEs
+!-----------------------------------------------------------------------
+! 
+      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+                         localDECount=localDECount,                     &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get pointer
+!-----------------------------------------------------------------------
+! 
+      do j = 0, localDECount-1
+      call ESMF_FieldGet (models(Iatmos)%dataImport(i,n)%field,         &
+                          localDE=j,                                    &
+                          farrayPtr=ptr,                                &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Put data to RCM variable
+!-----------------------------------------------------------------------
+!
+      select case (trim(adjustl(name)))
+      case('SST')      
+        !where (ptr .ne. 0.0d0) sts1%tg(:,1:jxp) = ptr
+        !where (ptr .ne. 0.0d0) sts2%tg(:,1:jxp) = ptr
+        !sts1%tg(:,1:jxp) = ptr
+        !sts2%tg(:,1:jxp) = ptr
+        !print*, "** turuncu ** sst2d = ", localPet, &
+        !lbound(sst2d, dim=1), ubound(sst2d, dim=1), lbound(sst2d, dim=2), &
+        !ubound(sst2d, dim=2)
+        !print*, "** turuncu ** ptr = ", localPet, &
+        !lbound(ptr, dim=1), ubound(ptr, dim=1), lbound(ptr, dim=2), &
+        !ubound(ptr, dim=2)
+        sst2d = ptr
+      end select
+      end do
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to file    
+!-----------------------------------------------------------------------
+!
+      print*, "** turuncu ** debug_level = ",                           &
+              debug_level, cpl_debug_level
+!     
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'atm_import',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iatmos)%time%year,                                   &
+            models(Iatmos)%time%month,                                  &
+            models(Iatmos)%time%day,                                    &
+            models(Iatmos)%time%hour
+!
+      call ESMF_FieldWrite(models(Iatmos)%dataImport(i,n)%field,        &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
 !
 !-----------------------------------------------------------------------
 !     Nullify pointer to make sure that it does not point on a random 
@@ -1057,96 +1280,6 @@
 !
       rc = ESMF_SUCCESS
 !
-      end subroutine RCM_SetStates
+      end subroutine RCM_GetImportData
 !
-      subroutine RCM_PutExportData (localPet)
-!
-!-----------------------------------------------------------------------
-!     Used module declarations 
-!-----------------------------------------------------------------------
-!
-      use mod_runparams, only : debug_level
-      use mod_dynparam, only : nproc, iy, iym1, iym2, jx, jxp, ptop
-      use mod_bats_common
-!
-      implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(in) :: localPet
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer :: i, j, id, n, rc, localDECount
-      logical :: flag
-      character (len=40) :: name
-      type(ESMF_StaggerLoc) :: staggerLoc
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
-!
-!-----------------------------------------------------------------------
-!     Initialize the import and export fields 
-!-----------------------------------------------------------------------
-!
-      do n = 1, nNest(Iatmos)
-!
-!-----------------------------------------------------------------------
-!     Create export state fields 
-!-----------------------------------------------------------------------
-!
-      do i = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
-      name = models(Iatmos)%dataExport(i,n)%name
-!
-      if (associated(models(Iatmos)%dataExport(i,n)%ptr)) then
-        ptr => models(Iatmos)%dataExport(i,n)%ptr
-      end if
-!
-      if (trim(adjustl(name)) == "Pair") then
-!       unit: millibar       
-        ptr = (sfps(:,1:jxp)+ptop)*d_10
-      else if (trim(adjustl(name)) == "Tair") then 
-!       unit: celsius
-        ptr(2:iym1,:) = transpose(t2m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
-      else if (trim(adjustl(name)) == "Qair") then
-!       unit: kg/kg
-        ptr(2:iym1,:) = transpose(q2m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
-      else if (trim(adjustl(name)) == "swrad") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - fsw2d:1-87,1-16
-        ptr(1:iym1,:) = fsw2d
-        ptr(iym1,:) = fsw2d(iym2,:) 
-      else if (trim(adjustl(name)) == "lwrad_down") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - flw2d:1-87,1-16
-        ptr(1:iym1,:) = flw2d
-        ptr(iym1,:) = flw2d(iym2,:)
-      else if (trim(adjustl(name)) == "rain") then
-        ! one less
-        ! ptr: 1-88,1-16,17-32,33-48,49-64 - pptc:1-87,1-16
-        ptr(1:iym1,:) = pptnc+pptc 
-        ptr(iym1,:) = pptnc(iym2,:)+pptc(iym2,:)
-      else if (trim(adjustl(name)) == "Uwind") then
-!       unit: meter/second
-        ptr(2:iym1,:) = transpose(u10m_o)
-        ptr(1,:) = ptr(2,:)
-        ptr(iy,:) = ptr(iym1,:)
-      else if (trim(adjustl(name)) == "Vwind") then
-!       unit: meter/second
-        ptr(2:iym1,:) = transpose(v10m_o)
-      end if
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
-      end do
-      end do
-!
-      end subroutine RCM_PutExportData
       end module mod_esmf_atm

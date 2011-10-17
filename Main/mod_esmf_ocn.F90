@@ -97,7 +97,7 @@
       end subroutine ROMS_SetServices
 !
       subroutine ROMS_SetInitialize(comp, importState, exportState,     &
-                                   clock, rc)
+                                    clock, rc)
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -244,7 +244,7 @@
 !-----------------------------------------------------------------------
 !
       if (localPet .eq. models(Iocean)%petList(1)) then
-        write(*, 20) localPet, 'Current Time',                          &
+        write(*, 30) localPet, 'Current Time',                          &
                      trim(models(Iocean)%time%stamp)
       end if
 !
@@ -261,7 +261,6 @@
 !     Set RCM start and end time steps
 !-----------------------------------------------------------------------
 !
-!      nsteps=int((currTime-models(Iocean)%curTime)/models(Iocean)%dtsec)
       nsteps = int(cplTimeStep/models(Iocean)%dtsec) 
 !
       if (first) then
@@ -307,7 +306,7 @@
 !     Put export data
 !-----------------------------------------------------------------------
 !
-!      call ROMS_PutExportData (localPet, kstp, nstp, rc2)
+      call ROMS_PutExportData (localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Update model clock 
@@ -329,7 +328,7 @@
 !     Formats 
 !-----------------------------------------------------------------------
 !
- 20   format(' PET (', I2, ') - OCN Model ', A, ' = ', A)
+ 30   format(' PET (', I2, ') - OCN Model ', A, ' = ', A)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -837,8 +836,8 @@
           end do       
 !
           if (cpl_debug_level > 2) then
-            write(*,99) localPet, j, 'R-M', IstrR, IendR,  JstrR, JendR
-            write(*,99) localPet, j, 'R-E', lbound(ptrY, dim=1),        &
+            write(*,40) localPet, j, 'R-M', IstrR, IendR,  JstrR, JendR
+            write(*,40) localPet, j, 'R-E', lbound(ptrY, dim=1),        &
                         ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
                         ubound(ptrY, dim=2) 
           end if
@@ -858,8 +857,8 @@
           end do
 !
           if (cpl_debug_level > 2) then
-            write(*,99) localPet, j, 'U-M', IstrU, IendU,  JstrU, JendU
-            write(*,99) localPet, j, 'U-E', lbound(ptrY, dim=1),        &
+            write(*,40) localPet, j, 'U-M', IstrU, IendU,  JstrU, JendU
+            write(*,40) localPet, j, 'U-E', lbound(ptrY, dim=1),        &
                         ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
                         ubound(ptrY, dim=2)
           end if
@@ -879,8 +878,8 @@
           end do
 !
           if (cpl_debug_level > 2) then
-            write(*,99) localPet, j, 'V-M', IstrU, IendU,  JstrU, JendU
-            write(*,99) localPet, j, 'V-E', lbound(ptrY, dim=1),        &
+            write(*,40) localPet, j, 'V-M', IstrU, IendU,  JstrU, JendU
+            write(*,40) localPet, j, 'V-E', lbound(ptrY, dim=1),        &
                         ubound(ptrY, dim=1), lbound(ptrY, dim=2),       &
                         ubound(ptrY, dim=2)
           end if
@@ -914,7 +913,7 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 99   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
+ 40   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -951,7 +950,6 @@
       character (len=40) :: name
 !
       type(ESMF_StaggerLoc) :: staggerLoc
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
@@ -1042,7 +1040,7 @@
       do j = 0, localDECount-1
       call ESMF_FieldGet (models(Iocean)%dataExport(i,ng)%field,        &
                           localDE=j,                                    &
-                          farrayPtr=ptr,                                &
+                          farrayPtr=models(Iocean)%dataExport(i,ng)%ptr,&
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
@@ -1050,7 +1048,7 @@
 !     Initialize pointer 
 !-----------------------------------------------------------------------
 !
-      ptr = 0.0d0
+      models(Iocean)%dataExport(i,ng)%ptr = 0.0d0
 !
 !-----------------------------------------------------------------------
 !     Put data in it 
@@ -1061,13 +1059,10 @@
       if (trim(adjustl(name)) == "SST") then
         do jj = JstrR, JendR
           do ii = IstrR, IendR
-            ptr(ii,jj) = OCEAN(ng)%t(ii,jj,N(ng),nstp(ng),itemp) 
+            models(Iocean)%dataExport(i,ng)%ptr(ii,jj) =                &
+                           OCEAN(ng)%t(ii,jj,N(ng),nstp(ng),itemp)
           end do
         end do 
-        write(*,99) localPet, j, 'R-I', IstrR, IendR,  JstrR, JendR
-        write(*,99) localPet, j, 'R-E', lbound(ptr, dim=1),             &
-                    ubound(ptr, dim=1), lbound(ptr, dim=2),             &
-                    ubound(ptr, dim=2)         
       end if        
       end do
 !
@@ -1079,15 +1074,6 @@
                          (/ models(Iocean)%dataExport(i,ng)%field /),   &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Nullify pointer to make sure that it does not point on a random 
-!     part in the memory 
-!-----------------------------------------------------------------------
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
       end do
 !
 !-----------------------------------------------------------------------
@@ -1145,17 +1131,18 @@
       do j = 0, localDECount-1
       call ESMF_FieldGet (models(Iocean)%dataImport(i,ng)%field,        &
                           localDE=j,                                    &
-                          farrayPtr=ptr,                                &
+                          farrayPtr=models(Iocean)%dataImport(i,ng)%ptr,&
                           rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
-      ptr = 0.0d0
+      models(Iocean)%dataImport(i,ng)%ptr = 0.0d0
       end do
 !
-!      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,        &
-!                           'dst_field.nc',                              &
-!                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!-----------------------------------------------------------------------
+!     Debug: write field to file
+!-----------------------------------------------------------------------
+!
+!     TODO: FieldWrite
 !
 !-----------------------------------------------------------------------
 !     Add fields to import state
@@ -1165,19 +1152,8 @@
                          (/ models(Iocean)%dataImport(i,ng)%field /),   &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Nullify pointer to make sure that it does not point on a random 
-!     part in the memory 
-!-----------------------------------------------------------------------
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
       end do
       end do
-!
- 99   format(" PET(",I1,") - DE(",I1,") - ", A3, " : ", 4I8)
 !
 !-----------------------------------------------------------------------
 !     Set return flag to success.
@@ -1187,7 +1163,7 @@
 !
       end subroutine ROMS_SetStates
 !
-      subroutine ROMS_PutExportData (localPet)
+      subroutine ROMS_PutExportData (localPet, rc)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
@@ -1205,15 +1181,15 @@
 !-----------------------------------------------------------------------
 !
       integer, intent(in) :: localPet 
+      integer, intent(inout) :: rc
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
+      integer :: i, j, k, ng
+      integer :: IstrR, IendR, JstrR, JendR
       character (len=80) :: name
-      integer :: i, j, k, ng, rc
-      integer :: Istr, Iend, Jstr, Jend
-      integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
 !
 !-----------------------------------------------------------------------
 !     Loop over number of nested/composed meshs.
@@ -1222,40 +1198,142 @@
       do ng = 1, nNest(Iocean)
 !
 !-----------------------------------------------------------------------
+!     Get limits of the arrays (based on PET and grid id)
+!-----------------------------------------------------------------------
+!
+      IstrR=BOUNDS(ng)%IstrR(localPet)
+      IendR=BOUNDS(ng)%IendR(localPet)
+      JstrR=BOUNDS(ng)%JstrR(localPet)
+      JendR=BOUNDS(ng)%JendR(localPet)
+!
+!-----------------------------------------------------------------------
 !     Load export fields.
 !-----------------------------------------------------------------------
 !
-      Istr =BOUNDS(ng)%Istr (localPet)
-      Iend =BOUNDS(ng)%Iend (localPet)
-      Jstr =BOUNDS(ng)%Jstr (localPet)
-      Jend =BOUNDS(ng)%Jend (localPet)
-      IstrR=BOUNDS(ng)%IstrR(localPet)
-      IendR=BOUNDS(ng)%IendR(localPet)
-      IstrU=BOUNDS(ng)%IstrU(localPet)
-      JstrR=BOUNDS(ng)%JstrR(localPet)
-      JendR=BOUNDS(ng)%JendR(localPet)
-      JstrV=BOUNDS(ng)%JstrV(localPet) 
-!
       do k = 1, ubound(models(Iocean)%dataExport(:,ng), dim=1) 
-        name = models(Iocean)%dataExport(k,ng)%name
 !
-        if (trim(adjustl(name)) == "SST") then 
-          do j = JstrR, JendR
-            do i = IstrR, IendR
-              models(Iocean)%dataExport(k,ng)%ptr =                    &
-                        OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)
-            end do
+!-----------------------------------------------------------------------
+!     Set initial value to missing 
+!-----------------------------------------------------------------------
+!
+      models(Iocean)%dataExport(k,ng)%ptr = MISSING_R8
+!
+!-----------------------------------------------------------------------
+!     Get name of the field 
+!-----------------------------------------------------------------------
+!
+      name = trim(adjustl(models(Iocean)%dataExport(k,ng)%name))
+!
+      select case (trim(adjustl(name)))
+      case ('SST')
+        do j = JstrR, JendR
+          do i = IstrR, IendR
+            models(Iocean)%dataExport(k,ng)%ptr(i,j) =                  &
+                      OCEAN(ng)%t(i,j,N(ng),nstp(ng),itemp)+273.15
           end do
-        end if
+        end do
+      end select
+!
       end do
       end do
 !
 !-----------------------------------------------------------------------
-!  Set return flag to success.
+!     Format definition 
+!-----------------------------------------------------------------------
+!     
+ 60   format(' PET (', I2, ') - ', 2I4, ' - ', 2F15.4)
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success
 !-----------------------------------------------------------------------
 !
       rc = ESMF_SUCCESS
 !
       end subroutine ROMS_PutExportData
-
+!
+      subroutine ROMS_GetImportData
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_param, only : NtileI, NtileJ, BOUNDS, N, Lm, Mm
+!
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, ng, rc
+      integer :: localPet, petCount, comm
+      integer :: IstrR, IendR, JstrR, JendR
+      integer :: IstrU, IendU, JstrU, JendU     
+      integer :: IstrV, IendV, JstrV, JendV
+      integer :: LBi, UBi, LBj, UBj
+      character (len=80) :: name
+!
+!-----------------------------------------------------------------------
+!     Query Virtual Machine (VM) environment for the MPI
+!     communicator handle     
+!-----------------------------------------------------------------------
+!  
+      call ESMF_VMGet (models(Iocean)%vm,                               &
+                       localPet=localPet,                               &
+                       petCount=petCount,                               &
+                       mpiCommunicator=comm,                            &
+                       rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Loop over number of nested/composed meshs.
+!-----------------------------------------------------------------------
+!
+      do ng = 1, nNest(Iocean)
+!
+!-----------------------------------------------------------------------
+!     Get limits of the arrays (based on PET and grid id)
+!-----------------------------------------------------------------------
+!
+      IstrR = BOUNDS(ng)%IstrR(localPet)
+      IendR = BOUNDS(ng)%IendR(localPet)
+      JstrR = BOUNDS(ng)%JstrR(localPet)
+      JendR = BOUNDS(ng)%JendR(localPet)
+!
+      IstrU = BOUNDS(ng)%Istr(localPet)
+      IendU = BOUNDS(ng)%IendR(localPet)
+      JstrU = BOUNDS(ng)%JstrR(localPet)
+      JendU = BOUNDS(ng)%JendR(localPet)
+!
+      IstrV = BOUNDS(ng)%IstrR(localPet)
+      IendV = BOUNDS(ng)%IendR(localPet)
+      JstrV = BOUNDS(ng)%Jstr(localPet)
+      JendV = BOUNDS(ng)%JendR(localPet)
+!
+      LBi = BOUNDS(ng)%LBi(localPet)
+      UBi = BOUNDS(ng)%UBi(localPet)
+      LBj = BOUNDS(ng)%LBj(localPet)
+      UBj = BOUNDS(ng)%UBj(localPet)
+!
+!-----------------------------------------------------------------------
+!     Get import fields
+!-----------------------------------------------------------------------
+!
+      do i = 1, ubound(models(Iocean)%dataImport(:,ng), dim=1)
+        name = models(Iocean)%dataImport(i,ng)%name
+!
+        select case (trim(adjustl(name)))
+          case ('Tair')
+          case ('Qair')
+          case ('Pair')
+          case ('swrad')
+          case ('lwrad_down')
+          case ('rain')
+          case ('Uwind')
+          case ('Vwind')
+        end select
+      end do
+      end do
+      end subroutine ROMS_GetImportData
+!
       end module mod_esmf_ocn
