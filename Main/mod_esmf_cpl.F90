@@ -543,7 +543,10 @@
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
-      call ESMF_FieldRegrid(srcField, dstField, routeHandleF, rc=rc)
+      call ESMF_FieldRegrid(srcField,                                   &
+                            dstField,                                   &
+                            routeHandleF,                               &
+                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do
@@ -580,7 +583,11 @@
 !     Regrid fields 
 !-----------------------------------------------------------------------
 !
-      call ESMF_FieldRegrid(srcField, dstField, routeHandleB, rc=rc)
+      call ESMF_FieldRegrid(srcField,                                   &
+                            dstField,                                   &
+                            routeHandleB,                               &
+                            zeroregion=ESMF_REGION_SELECT,              &
+                            rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
       end do

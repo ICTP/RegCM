@@ -386,13 +386,15 @@
             allocate(models(i)%dataImport(1,nNest(i)))
           end if
 !
-          do j = 1, nNest(i)      
+          do j = 1, nNest(i)
             models(i)%dataImport(1,j)%fid = 1
             models(i)%dataImport(1,j)%gtype = Icross
             models(i)%dataImport(1,j)%name = 'SST'
             models(i)%dataImport(1,j)%long_name = &
             'Sea Surface Temperature'
-            models(i)%dataImport(1,j)%units = 'Celsius'
+            models(i)%dataImport(1,j)%units = 'Kelvin'
+            models(i)%dataImport(1,j)%scale_factor = 0.0d0
+            models(i)%dataImport(1,j)%add_offset = 273.15d0
 !
             models(i)%dataExport(1,j)%fid = 1
             models(i)%dataExport(1,j)%gtype = Icross
@@ -469,7 +471,9 @@
             models(i)%dataImport(1,j)%gtype = Icross
             models(i)%dataImport(1,j)%name = 'Pair'
             models(i)%dataImport(1,j)%long_name = 'Surface Pressure'
-            models(i)%dataImport(1,j)%units = '?'
+            models(i)%dataImport(1,j)%units = 'milibar'
+            models(i)%dataImport(1,j)%scale_factor = 1.0d0
+            models(i)%dataImport(1,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(2,j)%fid = 2
             models(i)%dataImport(2,j)%gtype = Icross
@@ -477,6 +481,8 @@
             models(i)%dataImport(2,j)%long_name = &
             'Surface Air Temperature'
             models(i)%dataImport(2,j)%units = 'Celsius'
+            models(i)%dataImport(2,j)%scale_factor = 1.0d0
+            models(i)%dataImport(2,j)%add_offset = -273.15d0
 !
             models(i)%dataImport(3,j)%fid = 3
             models(i)%dataImport(3,j)%gtype = Icross
@@ -484,6 +490,8 @@
             models(i)%dataImport(3,j)%long_name = &
             'Surface Air Specific Humidity'
             models(i)%dataImport(3,j)%units = 'g/kg'
+            models(i)%dataImport(3,j)%scale_factor = 1.0d3 
+            models(i)%dataImport(3,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(4,j)%fid = 4
             models(i)%dataImport(4,j)%gtype = Icross
@@ -491,6 +499,8 @@
             models(i)%dataImport(4,j)%long_name = &
             'solar shortwave radiation flux'
             models(i)%dataImport(4,j)%units = 'watt meter-2'
+            models(i)%dataImport(4,j)%scale_factor = 1.0d0
+            models(i)%dataImport(4,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(5,j)%fid = 5
             models(i)%dataImport(5,j)%gtype = Icross
@@ -498,6 +508,8 @@
             models(i)%dataImport(5,j)%long_name = &
             'downwelling longwave radiation flux'
             models(i)%dataImport(5,j)%units = 'watt meter-2'
+            models(i)%dataImport(5,j)%scale_factor = 1.0d0
+            models(i)%dataImport(5,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(6,j)%fid = 6
             models(i)%dataImport(6,j)%gtype = Icross
@@ -505,6 +517,8 @@
             models(i)%dataImport(6,j)%long_name = &
             'rain fall rate'
             models(i)%dataImport(6,j)%units ='kilogram meter-2 second-1'
+            models(i)%dataImport(6,j)%scale_factor = 1.0d0
+            models(i)%dataImport(6,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(7,j)%fid = 7
             models(i)%dataImport(7,j)%gtype = Icross
@@ -512,6 +526,8 @@
             models(i)%dataImport(7,j)%long_name = &
             'surface u-wind component'
             models(i)%dataImport(7,j)%units = 'meter second-1'
+            models(i)%dataImport(7,j)%scale_factor = 1.0d0
+            models(i)%dataImport(7,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(8,j)%fid = 8
             models(i)%dataImport(8,j)%gtype = Icross
@@ -519,6 +535,8 @@
             models(i)%dataImport(8,j)%long_name = &
             'surface v-wind component'
             models(i)%dataImport(8,j)%units = 'meter second-1'
+            models(i)%dataImport(8,j)%scale_factor = 1.0d0
+            models(i)%dataImport(8,j)%add_offset = 0.0d0
           end do
         end if   
       end do

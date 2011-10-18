@@ -32,12 +32,14 @@ module mod_bats_romsocn
   public :: allocate_mod_bats_romsocn
 !
   real(dp), public, pointer, dimension(:,:) :: sst2d
+  real(dp), parameter :: MISSING_R8 = 1.0d20 
 !
   contains
 
   subroutine allocate_mod_bats_romsocn()
     implicit none
     call getmem2d(sst2d,1,iy,1,jxp,'roms:sst2d') 
+    sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 
   subroutine romsocndrv(j,istart,iend,ktau)
@@ -45,6 +47,7 @@ module mod_bats_romsocn
     implicit none
 !
     integer i, n
+    
 !
     character (len=64) :: subroutine_name='romsocndrv'
     integer :: idindx=0
@@ -56,9 +59,10 @@ module mod_bats_romsocn
 !
     do i = istart , iend
       do n = 1 , nnsg
-        if (sst2d(i,j) .gt. d_zero) then  
-        tg1d(n,i) = sst2d(i,j)
-        tgb1d(n,i) = sst2d(i,j)
+!       Feed back ground temperature (in Kelvin) 
+        if (sst2d(i,j) .lt. MISSING_R8) then  
+          tg1d(n,i) = sst2d(i,j)
+          tgb1d(n,i) = sst2d(i,j)
         end if
       end do
     end do

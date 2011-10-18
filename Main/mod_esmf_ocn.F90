@@ -98,6 +98,14 @@
 !
       subroutine ROMS_SetInitialize(comp, importState, exportState,     &
                                     clock, rc)
+!
+!-----------------------------------------------------------------------
+!     Used module declarations 
+!-----------------------------------------------------------------------
+!
+      use mod_param, only : BOUNDS, Ngrids
+      use ocean_coupler_mod, only : allocate_atm2ocn, initialize_atm2ocn
+!
       implicit none
 !
 !-----------------------------------------------------------------------
@@ -115,7 +123,8 @@
 !-----------------------------------------------------------------------
 !
       logical :: flag
-      integer :: localPet, petCount, comm, ierr 
+      integer :: localPet, petCount, comm, ierr, n 
+      integer :: LBi, UBi, LBj, UBj
 !
 !-----------------------------------------------------------------------
 !     Call ROMS initialization routines
@@ -142,6 +151,19 @@
       flag = .TRUE.
       call MPI_Comm_dup(comm, models(Iocean)%comm, ierr)
       call ROMS_initialize(flag, MyCOMM=models(Iocean)%comm)
+!
+!-----------------------------------------------------------------------
+!     Allocate exchange arrays 
+!-----------------------------------------------------------------------
+!
+      do n = 1, Ngrids
+        LBi = BOUNDS(n)%LBi(localPet)
+        UBi = BOUNDS(n)%UBi(localPet)
+        LBj = BOUNDS(n)%LBj(localPet)
+        UBj = BOUNDS(n)%UBj(localPet)
+        call allocate_atm2ocn (n, LBi, UBi, LBj, UBj)      
+        call initialize_atm2ocn (n, LBi, UBi, LBj, UBj)
+      end do
 !
 !-----------------------------------------------------------------------
 !     Set-up ESMF internal clock for grided component 
@@ -290,7 +312,7 @@
 !     Get import data 
 !-----------------------------------------------------------------------
 !
-!      call ROMS_GetImportData (localPet, kstp, nstp, rc2)
+      call ROMS_GetImportData () !, kstp, nstp, rc2)
 !
 !-----------------------------------------------------------------------
 !     Run ROMS
@@ -999,14 +1021,17 @@
 !-----------------------------------------------------------------------
 !
       if (models(Iocean)%dataExport(i,ng)%gtype == Iupoint) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Iupoint)
         staggerLoc = ESMF_STAGGERLOC_EDGE1
         staggerEdgeLWidth = (/0,1/)
         staggerEdgeUWidth = (/1,1/)
       else if (models(Iocean)%dataExport(i,ng)%gtype == Ivpoint) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Ivpoint)
         staggerLoc = ESMF_STAGGERLOC_EDGE2
         staggerEdgeLWidth = (/1,0/)
         staggerEdgeUWidth = (/1,1/)
       else if (models(Iocean)%dataExport(i,ng)%gtype == Icross) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Icross)
         staggerLoc = ESMF_STAGGERLOC_CENTER
         staggerEdgeLWidth = (/1,1/)
         staggerEdgeUWidth = (/1,1/)
@@ -1017,7 +1042,7 @@
 !-----------------------------------------------------------------------
 !
       models(Iocean)%dataExport(i,ng)%field = ESMF_FieldCreate (        &
-                        models(Iocean)%mesh(i,ng)%grid,                 &
+                        models(Iocean)%mesh(id,ng)%grid,                &
                         models(Iocean)%arrSpec(ng),                     &
                         staggerLoc=staggerLoc,                          &
                         name=trim(models(Iocean)%dataExport(i,ng)%name),&
@@ -1028,7 +1053,7 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iocean)%mesh(i,ng)%grid,                &
+      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1139,12 +1164,6 @@
       end do
 !
 !-----------------------------------------------------------------------
-!     Debug: write field to file
-!-----------------------------------------------------------------------
-!
-!     TODO: FieldWrite
-!
-!-----------------------------------------------------------------------
 !     Add fields to import state
 !-----------------------------------------------------------------------
 !
@@ -1190,6 +1209,7 @@
       integer :: i, j, k, ng
       integer :: IstrR, IendR, JstrR, JendR
       character (len=80) :: name
+      character (len=100) :: outfile
 !
 !-----------------------------------------------------------------------
 !     Loop over number of nested/composed meshs.
@@ -1234,6 +1254,22 @@
         end do
       end select
 !
+!-----------------------------------------------------------------------
+!     Debug: write field to file    
+!-----------------------------------------------------------------------
+!
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'ocn_export',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour
+!
+      call ESMF_FieldWrite(models(Iocean)%dataExport(k,ng)%field,       &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
       end do
       end do
 !
@@ -1251,27 +1287,38 @@
 !
       end subroutine ROMS_PutExportData
 !
-      subroutine ROMS_GetImportData
+      subroutine ROMS_GetImportData ()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
+      use ocean_coupler_mod, only : rdata 
       use mod_param, only : NtileI, NtileJ, BOUNDS, N, Lm, Mm
 !
       implicit none
 !
 !-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+!      integer, intent(in) :: localPet
+!
+!-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, ng, rc
-      integer :: localPet, petCount, comm
+      integer :: i, j, ii, jj, id, ng, rc
+      integer :: localPet, petCount, comm, localDECount
       integer :: IstrR, IendR, JstrR, JendR
       integer :: IstrU, IendU, JstrU, JendU     
       integer :: IstrV, IendV, JstrV, JendV
       integer :: LBi, UBi, LBj, UBj
-      character (len=80) :: name
+      character (len=40) :: name
+      character (len=100) :: outfile
+      real*8 :: scale_factor, add_offset
+!
+      real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
 !-----------------------------------------------------------------------
 !     Query Virtual Machine (VM) environment for the MPI
@@ -1322,18 +1369,129 @@
       do i = 1, ubound(models(Iocean)%dataImport(:,ng), dim=1)
         name = models(Iocean)%dataImport(i,ng)%name
 !
-        select case (trim(adjustl(name)))
-          case ('Tair')
-          case ('Qair')
-          case ('Pair')
-          case ('swrad')
-          case ('lwrad_down')
-          case ('rain')
-          case ('Uwind')
-          case ('Vwind')
-        end select
+!-----------------------------------------------------------------------
+!     Set staggering type 
+!-----------------------------------------------------------------------
+!
+      if (models(Iocean)%dataImport(i,ng)%gtype == Icross) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Icross)
+      else if (models(Iocean)%dataImport(i,ng)%gtype == Idot) then
+        id = getMeshID(models(Iocean)%mesh(:,ng), Idot)
+      end if
+!
+!-----------------------------------------------------------------------
+!     Get number of local DEs
+!-----------------------------------------------------------------------
+! 
+      call ESMF_GridGet (models(Iocean)%mesh(id,ng)%grid,               &
+                         localDECount=localDECount,                     &
+                         rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Get pointer
+!-----------------------------------------------------------------------
+! 
+      do j = 0, localDECount-1
+      call ESMF_FieldGet (models(Iocean)%dataImport(i,ng)%field,        &
+                          localDE=j,                                    &
+                          farrayPtr=ptr,                                &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+!-----------------------------------------------------------------------
+!     Put data to ROMS variable
+!-----------------------------------------------------------------------
+!
+      scale_factor = models(Iocean)%dataImport(i,ng)%scale_factor
+      add_offset = models(Iocean)%dataImport(i,ng)%add_offset
+!
+      select case (trim(adjustl(name)))
+      case ('Tair')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%Tair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Qair')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%Qair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Pair')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%Pair(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do 
+        end do
+      case ('swrad')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%swrad(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('lwrad_down')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%lwrad_down(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('rain')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%rain(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Uwind')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%Uwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      case ('Vwind')
+        do jj = JstrR, JendR
+          do ii = IstrR, IendR
+            rdata(ng)%Vwind(ii,jj) = (ptr(ii,jj)*scale_factor)+add_offset
+          end do
+        end do
+      end select
+      end do
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to file    
+!-----------------------------------------------------------------------
+!
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'ocn_import',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iocean)%time%year,                                   &
+            models(Iocean)%time%month,                                  &
+            models(Iocean)%time%day,                                    &
+            models(Iocean)%time%hour
+!
+      call ESMF_FieldWrite(models(Iocean)%dataImport(i,ng)%field,       &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
+!
+!-----------------------------------------------------------------------
+!     Nullify pointer to make sure that it does not point on a random 
+!     part in the memory 
+!-----------------------------------------------------------------------
+!
+      if (associated(ptr)) then
+        nullify(ptr)
+      end if
       end do
       end do
+!
+!-----------------------------------------------------------------------
+!     Set return flag to success.
+!-----------------------------------------------------------------------
+!
+      rc = ESMF_SUCCESS
+!
       end subroutine ROMS_GetImportData
 !
       end module mod_esmf_ocn

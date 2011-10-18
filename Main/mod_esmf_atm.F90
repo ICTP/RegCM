@@ -937,17 +937,6 @@
       end do
 !
 !-----------------------------------------------------------------------
-!     Debug: write field to file
-!-----------------------------------------------------------------------
-!
-!      if (debug_level > 2) then      
-!      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
-!                           'atm_export_'//trim(adjustl(name))//'.nc',   &
-!                           rc=rc)
-!      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!      end if
-!
-!-----------------------------------------------------------------------
 !     Add fields to export state
 !-----------------------------------------------------------------------
 !
@@ -969,8 +958,10 @@
 !
       if (models(Iatmos)%dataImport(i,n)%gtype == Icross) then
         staggerLoc = ESMF_STAGGERLOC_CENTER
+        id = getMeshID(models(Iatmos)%mesh(:,n), Icross)        
       else if (models(Iatmos)%dataImport(i,n)%gtype == Idot) then
         staggerLoc = ESMF_STAGGERLOC_CORNER
+        id = getMeshID(models(Iatmos)%mesh(:,n), Idot)        
       end if
 !
 !-----------------------------------------------------------------------
@@ -990,7 +981,7 @@
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1016,7 +1007,7 @@
 !-----------------------------------------------------------------------
 !      
       if (trim(adjustl(name)) == "SST") then
-        models(Iatmos)%dataImport(i,n)%ptr = 0.0
+        models(Iatmos)%dataImport(i,n)%ptr = MISSING_R8 
       end if
       end do
 !
@@ -1088,6 +1079,8 @@
       integer :: i, j, id, n, rc, localDECount
       logical :: flag
       character (len=40) :: name
+      character (len=100) :: outfile
+!
       type(ESMF_StaggerLoc) :: staggerLoc
 !
 !-----------------------------------------------------------------------
@@ -1150,6 +1143,23 @@
         models(Iatmos)%dataExport(i,n)%ptr(iy,:) =                      &
                        models(Iatmos)%dataExport(i,n)%ptr(iym1,:)
       end if
+!
+!-----------------------------------------------------------------------
+!     Debug: write field to file
+!-----------------------------------------------------------------------
+!
+      write(outfile,                                                    &
+            fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
+            'atm_export',                                               &
+            trim(adjustl(name)),                                        &
+            models(Iatmos)%time%year,                                   &
+            models(Iatmos)%time%month,                                  &
+            models(Iatmos)%time%day,                                    &
+            models(Iatmos)%time%hour
+!
+      call ESMF_FieldWrite(models(Iatmos)%dataExport(i,n)%field,        &
+                           trim(adjustl(outfile)),                      &
+                           rc=rc)
       end do
       end do
 !
@@ -1170,11 +1180,11 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, n, rc
+      integer :: i, j, id, n, rc
       integer :: localPet, petCount, comm, localDECount
       character (len=40) :: name
       character (len=100) :: outfile
-      logical :: file_exists
+      real*8 :: scale_factor, add_offset
 !
       real(ESMF_KIND_R8), pointer :: ptr(:,:)
 !
@@ -1204,10 +1214,20 @@
       name = models(Iatmos)%dataImport(i,n)%name
 !
 !-----------------------------------------------------------------------
+!     Set staggering type 
+!-----------------------------------------------------------------------
+!
+      if (models(Iatmos)%dataImport(i,n)%gtype == Icross) then
+        id = getMeshID(models(Iatmos)%mesh(:,n), Icross)
+      else if (models(Iatmos)%dataImport(i,n)%gtype == Idot) then
+        id = getMeshID(models(Iatmos)%mesh(:,n), Idot)
+      end if
+!
+!-----------------------------------------------------------------------
 !     Get number of local DEs
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%mesh(i,n)%grid,                 &
+      call ESMF_GridGet (models(Iatmos)%mesh(id,n)%grid,                 &
                          localDECount=localDECount,                     &
                          rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
@@ -1227,19 +1247,12 @@
 !     Put data to RCM variable
 !-----------------------------------------------------------------------
 !
+      scale_factor = models(Iatmos)%dataImport(i,n)%scale_factor
+      add_offset = models(Iatmos)%dataImport(i,n)%add_offset
+!
       select case (trim(adjustl(name)))
       case('SST')      
-        !where (ptr .ne. 0.0d0) sts1%tg(:,1:jxp) = ptr
-        !where (ptr .ne. 0.0d0) sts2%tg(:,1:jxp) = ptr
-        !sts1%tg(:,1:jxp) = ptr
-        !sts2%tg(:,1:jxp) = ptr
-        !print*, "** turuncu ** sst2d = ", localPet, &
-        !lbound(sst2d, dim=1), ubound(sst2d, dim=1), lbound(sst2d, dim=2), &
-        !ubound(sst2d, dim=2)
-        !print*, "** turuncu ** ptr = ", localPet, &
-        !lbound(ptr, dim=1), ubound(ptr, dim=1), lbound(ptr, dim=2), &
-        !ubound(ptr, dim=2)
-        sst2d = ptr
+        sst2d = (ptr*scale_factor)+add_offset
       end select
       end do
 !
@@ -1247,9 +1260,6 @@
 !     Debug: write field to file    
 !-----------------------------------------------------------------------
 !
-      print*, "** turuncu ** debug_level = ",                           &
-              debug_level, cpl_debug_level
-!     
       write(outfile,                                                    &
             fmt='(A10,"_",A3,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")') &
             'atm_import',                                               &
