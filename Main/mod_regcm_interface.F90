@@ -27,6 +27,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
   use mod_memutil
+  use mod_mppgrid
   use mod_service
   use mod_che_interface
   use mod_runparams
@@ -121,7 +122,10 @@ module mod_regcm_interface
       end if
     end if
 !
+    call broadcast_params
+
     call memory_init
+!    call setup_domain(jx,iy,i_band,mycomm)
 !
     if ( myid == 0 ) then
 #ifdef BAND
@@ -138,8 +142,6 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-    call broadcast_params
-
     call set_nproc(ncpu)
 
     if ( ncpu /= nproc ) then
@@ -438,6 +440,7 @@ module mod_regcm_interface
     call t_finalizef()
 #endif
 !
+!    call delete_domain
     call memory_destroy
     call finaltime(myid)
 !

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module domain_mpp
+module mod_mppgrid
 
   use mpi
   use mod_realkinds
@@ -5363,4 +5363,4 @@ module domain_mpp
       call mpi_abort(gspace%global_communicator,233,ierr)
     end subroutine mpi_fatal
 
-end module domain_mpp
+end module mod_mppgrid

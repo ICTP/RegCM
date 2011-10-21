@@ -354,10 +354,6 @@ module mod_era40
 99006 format (i4,'/',a5,i4,'.06.nc')
 99007 format (i4,'/',a5,i4,'.12.nc')
 99008 format (i4,'/',a5,i4,'.18.nc')
-99009 format (i4,'/',a6,i4,'.00.nc')
-99010 format (i4,'/',a6,i4,'.06.nc')
-99011 format (i4,'/',a6,i4,'.12.nc')
-99012 format (i4,'/',a6,i4,'.18.nc')
 !
   end subroutine era6hour
 
