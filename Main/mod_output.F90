@@ -277,9 +277,11 @@ module mod_output
  
   if ( ifsrf ) then
     if ( ldosrf ) then
+#ifndef CLM
       if ( lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
        call lakegather
       end if
+#endif
       if ( iseaice == 1 .or. lakemod == 1 ) then
         do j = 1 , jendx
           do i = 1 , iym1
@@ -615,7 +617,9 @@ module mod_output
 !
   if ( ifsave ) then
     if ( ldosav .or. ldotmp ) then
+#ifndef CLM
       if ( lakemod == 1 ) call lakegather
+#endif
       do j = 1 , jendl
         do k = 1 , kz
           do i = 1 , iy
@@ -1484,11 +1488,13 @@ module mod_output
   call writerec_srf(j,i,numbat,fbat_io,ldmsk_io,idatex)
   print *, 'SRF variables written at ' , tochar(idatex)
  
+#ifndef CLM
   if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
     call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
                       hsnow2d_io,tlak3d_io,idatex)
     print *, 'LAK variables written at ' , tochar(idatex)
   end if
+#endif
 
   end subroutine outsrf
 !

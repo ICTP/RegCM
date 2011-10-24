@@ -179,10 +179,12 @@ module mod_savefile
         call restchemdiag(iutrst)
 #endif
       end if
+#ifndef CLM
 !------lake model
       if ( lakemod == 1 ) then
         call lakesav_i(iutrst)
       end if
+#endif
       lrp1 = .true.
     end if
   end subroutine read_savefile_part1
@@ -340,9 +342,11 @@ module mod_savefile
         call savechemdiag(iutsav)
 #endif
       end if
+#ifndef CLM
       if ( lakemod == 1 ) then
         call lakesav_o(iutsav)
       end if
+#endif
       write (iutsav) dstor_io
       write (iutsav) hstor_io
 #ifndef BAND

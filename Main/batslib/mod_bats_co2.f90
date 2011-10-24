@@ -23,6 +23,7 @@ module mod_bats_co2
   use mod_dynparam
   use mod_bats_common
   use mod_bats_leaftemp
+  use mod_bats_internal
 !
   private
 !
@@ -59,42 +60,45 @@ module mod_bats_co2
 !
 !=======================================================================
 !
-  subroutine co2
-!
+  subroutine co2(jstart,jend,istart,iend)
     implicit none
+    integer , intent(in) :: jstart , jend , istart , iend
 !
-    real(dp) , dimension(nnsg,iym1) :: cari
-    integer :: n , i
+    integer :: n , i , j
     real(dp) :: rap , resps , rsp , rt , rcar
     real(dp) , parameter :: rmp = 800.0D0
 !
-    do i = 2 , iym1
-      do n = 1 , nnsg
-        if ( ldoc1d(n,i) /= 0 ) then
-          if ( sigf(n,i) > 0.001D0 ) then
-            rsp = lftrs(n,i)*1.7D0
-            rap = lftra(n,i)*1.5D0
-            rt = rsp + rap + rmp
-            rcar = carbon(solis(i)*rlai(n,i),tlef1d(n,i),rt, &
-                          tg1d(n,i),xlai(n,i),xlsai(n,i))
-            cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)*rcar
-            pbp1d(n,i) = pbp1d(n,i) + cari(n,i)*dtbat
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i) /= 0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
+              rsp = lftrs(n,i)*1.7D0
+              rap = lftra(n,i)*1.5D0
+              rt = rsp + rap + rmp
+              rcar = carbon(solis(i)*rlai(n,i),tlef1d(n,i),rt, &
+                            tg1d(n,i),xlai(n,i),xlsai(n,i))
+              cari(n,i) = sigf(n,i)*xlsai(n,i)*fdry(n,i)*rcar
+              pbp1d(n,i) = pbp1d(n,i) + cari(n,i)*dtbat
+            end if
           end if
-        end if
+        end do
       end do
     end do
    
-    do i = 2 , iym1
-      do n = 1 , nnsg
-        if ( ldoc1d(n,i) /= 0 ) then
-          if ( sigf(n,i) > 0.001D0 ) then
-            if ( pbp1d(n,i) < 0 ) pbp1d(n,i) = d_zero
-            resps = 0.7D-7*resp1d(n,i)*dexp(0.1D0*(tg1d(n,i)-300.0D0)) * &
-                    dmin1(d_one,ssw1d(n,i)/(0.6D0*gwmx0(n,i)))
-            resp1d(n,i) = resp1d(n,i) + (cari(n,i)-resps)*dtbat
-            if ( resp1d(n,i) < d_zero ) resp1d(n,i) = d_zero
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i) /= 0 ) then
+            if ( sigf(n,i) > 0.001D0 ) then
+              if ( pbp1d(n,i) < 0 ) pbp1d(n,i) = d_zero
+              resps = 0.7D-7*resp1d(n,i)*dexp(0.1D0*(tg1d(n,i)-300.0D0)) * &
+                      dmin1(d_one,ssw1d(n,i)/(0.6D0*gwmx0(n,i)))
+              resp1d(n,i) = resp1d(n,i) + (cari(n,i)-resps)*dtbat
+              if ( resp1d(n,i) < d_zero ) resp1d(n,i) = d_zero
+            end if
           end if
-        end if
+        end do
       end do
     end do
   end subroutine co2
@@ -121,32 +125,24 @@ module mod_bats_co2
     real(dp) :: carbon
     intent (in) rm , tg , vf , xlai , xlsai
 !
-    real(dp) :: a , ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
-               cco2i , ccold , gt , p , pm , pml , rt , sl , tmx , w ,&
+    real(dp) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+               cco2i , ccold , gt , p , pm , pml , rt , w , &
                wd , wp , xk , xkb , xl
-    real(dp) :: e , g , r
     integer :: it
 !
 !====================================================================
-!     this fn is not in si - vf (radn) and rm (res) handed in are in si
-!     result of fn (carbon) is handed back in si (kg/m**2/s)
+!   this fn is not in si - vf (radn) and rm (res) handed in are in si
+!   result of fn (carbon) is handed back in si (kg/m**2/s)
 !======================================================================
 !
-    g(t,tmx,sl) = dexp(sl*(d_one/tmx-d_one/t)) / &
-                 (d_one+(dexp(sl*(d_one/tmx-d_one/t)*6.0D0)))*5.0D-3*t
-!     ***  temperature dependence of dark respiration
-    r(t) = dexp(30.0D0-9.0D3/t)
-!     ****  light dependence of photosynthesis
-    e(xl,a,pml) = a*xl/(d_one+(a*xl/pml)**d_two)**d_half
-   
     p = d_zero
     rt = r(t)
-!     ****    alphtl=sai/lai     betatl=rai/lai  (rai=root area index)
+    ! alphtl=sai/lai     betatl=rai/lai  (rai=root area index)
     alphtl = (xlsai-xlai)/xlai
     betatl = d_half
     if ( vf < d_two ) then
    
-!       ***   nighttime maintenance respiration only
+      ! nighttime maintenance respiration only
       carbon = -0.36D-8*((d_one+alphtl)*0.877D0*rt+ &
                  betatl*(r(tg)-0.123D0*rt))
     else
@@ -193,7 +189,27 @@ module mod_bats_co2
                p-3.0D-4*(alphtl*rt+betatl*r(tg)))
       return
     end if
-! 
+
+    contains
+
+      real(dp) function g(t,tmx,sl)
+        implicit none
+        real(dp) , intent(in) :: t , tmx , sl
+        g = dexp(sl*(d_one/tmx-d_one/t)) / &
+            (d_one+(dexp(sl*(d_one/tmx-d_one/t)*6.0D0)))*5.0D-3*t
+      end function g
+      ! temperature dependence of dark respiration
+      real(dp) function r(t)
+        implicit none
+        real(dp) , intent(in) :: t
+        r = dexp(30.0D0-9.0D3/t)
+      end function r
+      ! light dependence of photosynthesis
+      real(dp) function e(xl,a,pml)
+        implicit none
+        real(dp) , intent(in) :: xl , a , pml
+        e = a*xl/(d_one+(a*xl/pml)**d_two)**d_half
+      end function e
   end function carbon
 !
 end module mod_bats_co2

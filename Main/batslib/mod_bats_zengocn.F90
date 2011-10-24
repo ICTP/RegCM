@@ -64,16 +64,16 @@ module mod_bats_zengocn
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
 !
-  subroutine zengocndrv(j,istart,iend,ktau)
+  subroutine zengocndrv(jstart,jend,istart,iend,ktau)
 !
     implicit none
 !
-    integer , intent(in) :: j , istart , iend
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
-    integer :: i , n
+    integer :: i , j , n
 #ifdef CLM
     integer :: jj
 #endif
@@ -90,127 +90,129 @@ module mod_bats_zengocn
     jj = (jxp*myid) + j
 #endif
     do i = istart , iend
-      do n = 1 , nnsg
+      do j = jstart , jend
+        do n = 1 , nnsg
 #ifdef CLM
-        if ( ocld2d(n,i,j) == 0 .or. lmask(jj,i) == 3 ) then
+          if ( ocld2d(n,i,j) == 0 .or. lmask(jj,i) == 3 ) then
 #else
-        if ( ocld2d(n,i,j) == 0 ) then
+          if ( ocld2d(n,i,j) == 0 ) then
 #endif
-          uv995 = dsqrt(uatm(i,kz,j)**d_two+vatm(i,kz,j)**d_two)
-          tsurf = tground2(i,j) - tzero
-          t995 = tatm(i,kz,j) - tzero
-          q995 = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
-          z995 = hgt(i,kz,j)
-          zi = zpbl(i,j)
-          psurf = (sfps(i,j)+ptop)*d_10
-          call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
-                       uv10,tau,lh,sh,dth,dqh,ustar,zo)
-          if ( ldcsst ) then
-!           time step considered for the integration of prognostic skin
-!           temperature , equal to BATS time step
-            dtsst = dtbat
-!           handle the first call of the scheme
-            if ( .not.firstcall(i,j) ) then
-              deltas(i,j) = 0.001D0
-              tdeltas(i,j) = tground2(i,j) - 0.001D0
-              firstcall(i,j) = .true.
-              td = tdeltas(i,j)
-            end if
-!           Init local variables
-            delta = deltas(i,j)
-            tdelta = tdeltas(i,j)
-!           td is now the 3m bulk SST from the forcing variable
-            td = ts(i,j)
-!
-!           deep impact of aod on sst
-!           if ( sum(aerext(i,:,j)) <= 1 ) then
-!             td = ts(i,j) - sum(aerext(i,:,j))*0.8D0
-!           else if ( sum(aerext(i,:,j)) > 1 ) then
-!             td = ts(i,j)- d_one*0.8D0
-!           end if
-!
-!           rs is the net surface sw flux (sw energy absorbed)
-            rs = fsw2d(i,j)
-!           rd is sw flux at 3m
-            rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
-!           ustar water (with air density ==1)
-            ustarw = d_half*ustar*(rho(i,j)/rhoh2o)**d_half
-!           lwds =  flwd2d(i,j)
-!           lwus =  emsw*sigm*(tsurf+273.16)**4
-!           q is the skin cooling term inckude net lw flux from
-!           the radiative scheme
-!           q = -(lh+sh+(lwus-lwds))
-            q = -(lh+sh+flw2d(i,j))
-!           fraction of solar radiation abosrbed in the sublayer
-            fs = 0.065D0+11.0D0*delta-(6.6D-5/delta)*&
-                        (d_one-dexp(-delta/8.0D-4))
-!           dts= temperature difference between bulk level and skin level
-!                determined from previous time step (via tdelta and td)
-            dts = tdelta-td
-!           m.o lenght calculation
-            if ( dts > d_zero ) then
-              fd = (nu*egrav*alphaw/(d_five*d))**d_half*    &
-                     rhoh2o*cpw0*ustarw**d_two*dts**d_half
-            else
-              fd = egrav*alphaw*(q+rs-rd)
-            end if
-            l = rhoh2o*cpw0*ustarw**d_three/(vonkar*fd)
-!           calulation of phidl (stability function)
-            if ( (d/l) >= d_zero ) then
-              phidl = d_one+d_five*(d/l)
-            else
-              phidl = (d_one-16.0D0*(d/l))**(-d_half)
-            end if
-!           prognostic evolution of dts
-!           we can split the tendencies ddts/dt = a - b * dts
-!           with a and b are ultimately function of dts through q
-            aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
-            bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
-!           exponential solution
-            dtstend = aa - dts*(d_one-dexp(-bb*dtsst))/dtsst
-!           update dts
-            dts = dts + dtstend * dtsst
-!           update tdelta
-            tdelta = dts + td
-!           update delta thickness  and cool skin tempearture
-            aa = -16.0D0*egrav*alphaw*rhoh2o*cpw0*nuw**d_three/ &
-                        (ustarw**d_four *kw**d_two)
-            bb =  aa *(q+rs*fs)
-            if ( bb > d_zero ) then
-!             case of cool skin layer correction
-              lamb=6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
-              delta = lamb*nuw/ustarw
-              tskin= delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
-            else
-!             no cool skin layer in this case, tskin = warm layer temperature
-              tskin=tdelta
-            end if
-!           save the temperature difference and skin layer thickness
-!           for next time step
-            deltas(i,j) = delta
-            tdeltas(i,j) = tdelta
-            dtskin(i,j) = tskin-td
-!           now feedback tskin in surface variable
-            tground2(i,j) = tskin
-          end if ! dcsst
+            uv995 = dsqrt(uatm(i,kz,j)**d_two+vatm(i,kz,j)**d_two)
+            tsurf = tground2(i,j) - tzero
+            t995 = tatm(i,kz,j) - tzero
+            q995 = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
+            z995 = hgt(i,kz,j)
+            zi = zpbl(i,j)
+            psurf = (sfps(i,j)+ptop)*d_10
+            call zengocn(uv995,tsurf,t995,q995,z995,zi,psurf,qs, &
+                         uv10,tau,lh,sh,dth,dqh,ustar,zo)
+            if ( ldcsst ) then
+              ! time step considered for the integration of prognostic skin
+              ! temperature , equal to BATS time step
+              dtsst = dtbat
+              ! handle the first call of the scheme
+              if ( .not.firstcall(i,j) ) then
+                deltas(i,j) = 0.001D0
+                tdeltas(i,j) = tground2(i,j) - 0.001D0
+                firstcall(i,j) = .true.
+                td = tdeltas(i,j)
+              end if
+              ! Init local variables
+              delta = deltas(i,j)
+              tdelta = tdeltas(i,j)
+              ! td is now the 3m bulk SST from the forcing variable
+              td = ts(i,j)
+              !
+              ! deep impact of aod on sst
+              ! if ( sum(aerext(i,:,j)) <= 1 ) then
+              !   td = ts(i,j) - sum(aerext(i,:,j))*0.8D0
+              ! else if ( sum(aerext(i,:,j)) > 1 ) then
+              !   td = ts(i,j)- d_one*0.8D0
+              ! end if
+              !
+              ! rs is the net surface sw flux (sw energy absorbed)
+              rs = fsw2d(i,j)
+              ! rd is sw flux at 3m
+              rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
+              ! ustar water (with air density ==1)
+              ustarw = d_half*ustar*(rho(i,j)/rhoh2o)**d_half
+              ! lwds =  flwd2d(i,j)
+              ! lwus =  emsw*sigm*(tsurf+273.16)**4
+              ! q is the skin cooling term inckude net lw flux from
+              ! the radiative scheme
+              ! q = -(lh+sh+(lwus-lwds))
+              q = -(lh+sh+flw2d(i,j))
+              ! fraction of solar radiation abosrbed in the sublayer
+              fs = 0.065D0+11.0D0*delta-(6.6D-5/delta) * &
+                          (d_one-dexp(-delta/8.0D-4))
+              ! dts= temperature difference between bulk level and skin level
+              ! determined from previous time step (via tdelta and td)
+              dts = tdelta-td
+              ! m.o lenght calculation
+              if ( dts > d_zero ) then
+                fd = (nu*egrav*alphaw/(d_five*d))**d_half*    &
+                       rhoh2o*cpw0*ustarw**d_two*dts**d_half
+              else
+                fd = egrav*alphaw*(q+rs-rd)
+              end if
+              l = rhoh2o*cpw0*ustarw**d_three/(vonkar*fd)
+              ! calulation of phidl (stability function)
+              if ( (d/l) >= d_zero ) then
+                phidl = d_one+d_five*(d/l)
+              else
+                phidl = (d_one-16.0D0*(d/l))**(-d_half)
+              end if
+              ! prognostic evolution of dts
+              ! we can split the tendencies ddts/dt = a - b * dts
+              ! with a and b are ultimately function of dts through q
+              aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
+              bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
+              ! exponential solution
+              dtstend = aa - dts*(d_one-dexp(-bb*dtsst))/dtsst
+              ! update dts
+              dts = dts + dtstend * dtsst
+              ! update tdelta
+              tdelta = dts + td
+              ! update delta thickness  and cool skin tempearture
+              aa = -16.0D0*egrav*alphaw*rhoh2o*cpw0*nuw**d_three/ &
+                          (ustarw**d_four *kw**d_two)
+              bb =  aa *(q+rs*fs)
+              if ( bb > d_zero ) then
+                ! case of cool skin layer correction
+                lamb = 6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
+                delta = lamb*nuw/ustarw
+                tskin = delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
+              else
+                ! no cool skin layer in this case, tskin = warm layer temp
+                tskin = tdelta
+              end if
+              ! save the temperature difference and skin layer thickness
+              ! for next time step
+              deltas(i,j) = delta
+              tdeltas(i,j) = tdelta
+              dtskin(i,j) = tskin-td
+              ! now feedback tskin in surface variable
+              tground2(i,j) = tskin
+            end if ! dcsst
 
-          tg1d(n,i) = tground2(i,j)
-          tgb1d(n,i) = tground2(i,j)
-          sent1d(n,i) = sh
-          evpr1d(n,i) = lh/wlhv
-!         Back out Drag Coefficient
-          drag1d(n,i) = ustar**d_two*rho(i,j)/uv995
-          facttq = dlog(z995*d_half)/dlog(z995/zo)
-          u10m1d(n,i) = uatm(i,kz,j)*uv10/uv995
-          v10m1d(n,i) = vatm(i,kz,j)*uv10/uv995
-          t2m1d(n,i) = t995 + tzero - dth*facttq
-          q2m1d(n,i) = q995 - dqh*facttq
-!
-          if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
+            tg1d(n,i) = tground2(i,j)
+            tgb1d(n,i) = tground2(i,j)
+            sent1d(n,i) = sh
+            evpr1d(n,i) = lh/wlhv
+            ! Back out Drag Coefficient
+            drag1d(n,i) = ustar**d_two*rho(i,j)/uv995
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            tgb2d(n,i,j) = tground2(i,j)
+            u10m1d(n,i) = uatm(i,kz,j)*uv10/uv995
+            v10m1d(n,i) = vatm(i,kz,j)*uv10/uv995
+            t2m1d(n,i) = t995 + tzero - dth*facttq
+            q2m1d(n,i) = q995 - dqh*facttq
+            !
+            if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
+              facttq = dlog(z995*d_half)/dlog(z995/zo)
+              tgb2d(n,i,j) = tground2(i,j)
+            end if
           end if
-        end if
+        end do
       end do
     end do
 

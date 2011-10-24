@@ -205,8 +205,12 @@ module mod_che_emission
 ! Calculation of emission tendency
 !
 #ifdef CLM
+#if (defined VOC)
   subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin, &
                        c2r_voc,bvoc_trmask,dsigma)
+#else
+  subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
+#endif  
 #else
   subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
 #endif
@@ -218,6 +222,12 @@ module mod_che_emission
     real(dp) , intent(in) , dimension(iy) :: coszrs
     real(dp) , intent(in) , dimension(kz) :: dsigma
     real(dp) , intent(in) , dimension(iy,jxp) :: xlat
+#ifdef CLM
+#if (defined VOC)
+    real(dp) , intent(in) , dimension(:,:,:) :: c2r_voc
+    integer , intent(in) , dimension(:) :: bvoc_trmask
+#endif
+#endif
     real(dp) , intent(in) :: declin
     integer :: jj ! Full grid j-component
 

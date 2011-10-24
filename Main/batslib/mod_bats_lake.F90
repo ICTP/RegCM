@@ -25,6 +25,7 @@ module mod_bats_lake
   use mod_realkinds
   use mod_dynparam
   use mod_bats_common
+  use mod_bats_internal
   use mod_bats_mppio
 !
   private
@@ -43,15 +44,15 @@ module mod_bats_lake
 !
   real(dp) , dimension(ndpmax) :: de , dnsty , tt
 !
-!     surface thickness
+  ! surface thickness
   real(dp) , parameter :: surf = d_one
-!     vertical grid spacing in m
+  ! vertical grid spacing in m
   real(dp) , parameter :: dz = surf
-!     minimum ice depth in mm: less that this is removed
+  ! minimum ice depth in mm: less that this is removed
   real(dp) , parameter :: iceminh = d_10
-!     reference hgt in mm for latent heat removal from ice
+  ! reference hgt in mm for latent heat removal from ice
   real(dp) , parameter :: href = d_two * iceminh
-!     steepness factor of latent heat removal
+  ! steepness factor of latent heat removal
   real(dp) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
   contains
@@ -72,11 +73,12 @@ module mod_bats_lake
     end if
   end subroutine allocate_mod_bats_lake
 
-  subroutine initlake
+  subroutine initlake(jstart,jend,istart,iend)
 #ifndef IBM
   use mpi
 #endif
   implicit none
+  integer , intent(in) :: jstart , jend , istart , iend
 #ifdef IBM
   include 'mpif.h'
 #endif
@@ -91,8 +93,8 @@ module mod_bats_lake
   tlak3d   = 6.0D0
   idep2d   = 0
 
-  do j = jbegin , jendx
-    do i = 2 , iym1
+  do i = istart , iend
+    do j = jstart , jend
       do n = 1 , nnsg
 
 !     ******  initialize hostetler lake model
@@ -134,67 +136,68 @@ module mod_bats_lake
   end do
 
   call mpi_gather(idep2d,   nnsg*iym1*jxp,mpi_integer, &
-                & idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                & 0, mycomm,ierr)
+                  idep2d_io,nnsg*iym1*jxp,mpi_integer, &
+                  0, mycomm,ierr)
   end subroutine initlake
 !
-  subroutine lakedrv(jslc)
+  subroutine lakedrv(jstart,jend,istart,iend)
   implicit none
-!
-  integer , intent(in) :: jslc
+  integer , intent(in) :: jstart , jend , istart , iend
 !
   real(dp) :: flw , fsw , hsen , prec , &
-           & ql , tgl , tl , vl , zl , xl , evp , toth
-  integer :: i , n
+             ql , tgl , tl , vl , zl , xl , evp , toth
+  integer :: i , j , n
 !
-  do i = 2 , iym1
-    do n = 1 , nnsg
-      if ( idep2d(n,i,jslc) > 1 ) then
-        tl = ts1d(n,i)
-        vl = dsqrt(us1d(i)**d_two+vs1d(i)**d_two)
-        zl = z1d(n,i)
-        ql = qs1d(n,i)
-        fsw = fsw1d(i)
-        flw = -d_one*flw1d(i)
-        prec = prcp1d(n,i)*dtbat
-        hsen = -d_one*sent1d(n,i)
-        evp = evpr1d(n,i)
-        if (nnsg == 1) then
-          xl = xlat(i,jslc)
-        else
-          xl = xlat1(n,i,jslc)
-        end if
+  do i = istart , iend
+    do j = jstart , jend
+      do n = 1 , nnsg
+        if ( idep2d(n,i,j) > 1 ) then
+          tl = ts1d(n,i)
+          vl = dsqrt(us1d(i)**d_two+vs1d(i)**d_two)
+          zl = z1d(n,i)
+          ql = qs1d(n,i)
+          fsw = fsw1d(i)
+          flw = -d_one*flw1d(i)
+          prec = prcp1d(n,i)*dtbat
+          hsen = -d_one*sent1d(n,i)
+          evp = evpr1d(n,i)
+          if (nnsg == 1) then
+            xl = xlat(i,j)
+          else
+            xl = xlat1(n,i,j)
+          end if
 
-        call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,    &
-                &  tgl,prec,idep2d(n,i,jslc),eta2d(n,i,jslc),  &
-                &  hi2d(n,i,jslc),aveice2d(n,i,jslc),          &
-                &  hsnow2d(n,i,jslc),evp,tlak3d(:,n,i,jslc) )
+          call lake( dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,    &
+                     tgl,prec,idep2d(n,i,j),eta2d(n,i,j),  &
+                     hi2d(n,i,j),aveice2d(n,i,j),          &
+                     hsnow2d(n,i,j),evp,tlak3d(:,n,i,j) )
 
-!           Feed back ground temperature
-        tg1d(n,i) = tgl
-        tgb1d(n,i) = tgl
+          ! Feed back ground temperature
+          tg1d(n,i) = tgl
+          tgb1d(n,i) = tgl
 
-        if ( aveice2d(n,i,jslc) <= iceminh ) then
-          ocld2d(n,i,jslc) = 0 
-          ldoc1d(n,i) = 0
-          lveg(n,i) = 14
-          sice1d(n,i) = d_zero
-          scv1d(n,i) = d_zero
-          sag1d(n,i) = d_zero
-        else
-          ocld2d(n,i,jslc) = 2 
-          ldoc1d(n,i) = 2
-          lveg(n,i) = 12
-          sice1d(n,i) = aveice2d(n,i,jslc)  !  units of ice = mm
-          scv1d(n,i)  = hsnow2d(n,i,jslc)   !  units of snw = mm
-          evpr1d(n,i) = evp                 !  units of evp = mm/sec
-          ! Reduce sensible heat flux for ice presence
-          toth = sice1d(n,i) + scv1d(n,i)
-          if ( toth > href ) then
-            sent1d(n,i) = sent1d(n,i) * (href/toth)**steepf
+          if ( aveice2d(n,i,j) <= iceminh ) then
+            ocld2d(n,i,j) = 0 
+            ldoc1d(n,i) = 0
+            lveg(n,i) = 14
+            sice1d(n,i) = d_zero
+            scv1d(n,i) = d_zero
+            sag1d(n,i) = d_zero
+          else
+            ocld2d(n,i,j) = 2 
+            ldoc1d(n,i) = 2
+            lveg(n,i) = 12
+            sice1d(n,i) = aveice2d(n,i,j)  !  units of ice = mm
+            scv1d(n,i)  = hsnow2d(n,i,j)   !  units of snw = mm
+            evpr1d(n,i) = evp                 !  units of evp = mm/sec
+            ! Reduce sensible heat flux for ice presence
+            toth = sice1d(n,i) + scv1d(n,i)
+            if ( toth > href ) then
+              sent1d(n,i) = sent1d(n,i) * (href/toth)**steepf
+            end if
           end if
         end if
-      end if
+      end do
     end do
   end do
  
@@ -203,12 +206,12 @@ module mod_bats_lake
 !-----------------------------------------------------------------------
 !
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
-                & prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
+                  prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
  
   implicit none
 !
   real(dp) :: dtlake , evl , aveice , hsen , hsnow , flw , &
-           & prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
+             prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
   real(dp) , dimension(ndpmax) :: tprof
   integer :: ndpt
   intent (in) hsen , ql , tl , vl , zl
@@ -478,7 +481,7 @@ module mod_bats_lake
   intent (inout) hi , aveice , hs , fsw , tprof
 !
   real(dp) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-           & t2 , tf , theta , rho , xlexpc
+             t2 , tf , theta , rho , xlexpc
   real(dp) :: xea , xeb , xec
   integer :: nits
 !
@@ -576,9 +579,9 @@ module mod_bats_lake
  
       if ( hs > d_zero ) then
         ds = dtx*                                            &
-           & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
-           &  theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
-           & (rhosnow*li)
+             ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
+              theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
+             (rhosnow*li)
         if ( ds > d_zero ) ds = d_zero
         hs = hs + ds
         if ( hs < d_zero ) then
@@ -588,7 +591,7 @@ module mod_bats_lake
       end if
       if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
         di = dtx*                                        &
-          & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
+            ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
              theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
              (rhoice*li)
         if ( di > d_zero ) di = d_zero
@@ -644,7 +647,7 @@ module mod_bats_lake
     real(dp) :: eomb
     real(dp) , intent(in) :: x
     eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**d_two   &
-       &   -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
+           -0.6445D0*tr1(x)**d_three- 0.1299D0*tr1(x)**d_four)
    end function eomb
   function f(x)
     implicit none
@@ -671,20 +674,20 @@ module mod_bats_lake
   integer :: ierr
 !
   call mpi_gather(eta2d,   nnsg*iym1*jxp,mpi_real8, &
-                & eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mycomm,ierr)
+                  eta2d_io,nnsg*iym1*jxp,mpi_real8, &
+                  0, mycomm,ierr)
   call mpi_gather(hi2d,   nnsg*iym1*jxp,mpi_real8, &
-                & hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mycomm,ierr)
+                  hi2d_io,nnsg*iym1*jxp,mpi_real8, &
+                  0, mycomm,ierr)
   call mpi_gather(aveice2d,   nnsg*iym1*jxp,mpi_real8, &
-                & aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mycomm,ierr)
+                  aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
+                  0, mycomm,ierr)
   call mpi_gather(hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
-                & hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                & 0, mycomm,ierr)
+                  hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
+                  0, mycomm,ierr)
   call mpi_gather(tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                & tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                & 0, mycomm,ierr)
+                  tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                  0, mycomm,ierr)
 
   end subroutine lakegather
 !
@@ -703,23 +706,23 @@ module mod_bats_lake
   integer :: ierr
 !
   call mpi_scatter(idep2d_io,nnsg*iym1*jxp,mpi_integer, &
-                 & idep2d,   nnsg*iym1*jxp,mpi_integer, &
-                 & 0, mycomm,ierr)
+                   idep2d,   nnsg*iym1*jxp,mpi_integer, &
+                   0, mycomm,ierr)
   call mpi_scatter(eta2d_io,nnsg*iym1*jxp,mpi_real8, &
-                 & eta2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mycomm,ierr)
+                   eta2d,   nnsg*iym1*jxp,mpi_real8, &
+                   0, mycomm,ierr)
   call mpi_scatter(hi2d_io,nnsg*iym1*jxp,mpi_real8, &
-                 & hi2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mycomm,ierr)
+                   hi2d,   nnsg*iym1*jxp,mpi_real8, &
+                   0, mycomm,ierr)
   call mpi_scatter(aveice2d_io,nnsg*iym1*jxp,mpi_real8, &
-                 & aveice2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mycomm,ierr)
+                   aveice2d,   nnsg*iym1*jxp,mpi_real8, &
+                   0, mycomm,ierr)
   call mpi_scatter(hsnow2d_io,nnsg*iym1*jxp,mpi_real8, &
-                 & hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mycomm,ierr)
+                   hsnow2d,   nnsg*iym1*jxp,mpi_real8, &
+                   0, mycomm,ierr)
   call mpi_scatter(tlak3d_io,ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                 & tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
-                 & 0, mycomm,ierr)
+                   tlak3d,   ndpmax*nnsg*iym1*jxp,mpi_real8, &
+                   0, mycomm,ierr)
 
   end subroutine lakescatter
 !

@@ -103,11 +103,11 @@ contains
         zavm5 = zavi5
       end if
       tlucuc(it)  = zldcp
-      tlucua(it)  = exp((zavm1/ztt+zavm2+zavm3*0.01_dp* &
-                    ztt+zavm4*ztt*ztt*1.e-5_dp+zavm5*log(ztt)))*rgas/rwat
-      tlucub(it)  = zcvm5*(1.0_dp/(ztt-zcvm4))**2
-      tlucuaw(it) = exp((zavl1/ztt+zavl2+zavl3*0.01_dp* &
-                    ztt+zavl4*ztt*ztt*1.e-5_dp+zavl5*log(ztt)))*rgas/rwat
+      tlucua(it)  = dexp((zavm1/ztt+zavm2+zavm3*0.01_dp* &
+                    ztt+zavm4*ztt*ztt*1.e-5_dp+zavm5*dlog(ztt)))*rgas/rwat
+      tlucub(it)  = zcvm5*(1.0_dp/(ztt-zcvm4))**2.0_dp
+      tlucuaw(it) = dexp((zavl1/ztt+zavl2+zavl3*0.01_dp* &
+                    ztt+zavl4*ztt*ztt*1.e-5_dp+zavl5*dlog(ztt)))*rgas/rwat
     end do
     
   end subroutine init_convect_tables

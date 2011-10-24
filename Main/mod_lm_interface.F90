@@ -27,6 +27,8 @@ module mod_lm_interface
 #ifdef CLM
   use mod_mtrxclm
   use mod_clm
+  use mod_bats_mppio
+  use mod_bats_vecbats
 #else
   use mod_bats_param
   use mod_bats_mppio

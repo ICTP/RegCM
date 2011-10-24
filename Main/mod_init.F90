@@ -42,6 +42,7 @@ module mod_init
   use mod_constants
 #ifdef CLM
   use mod_clm
+  use mod_lm_interface
   use clm_varsur , only : init_tgb , init_grid , numdays
 #endif
 !
@@ -304,6 +305,7 @@ module mod_init
         end do
       end do
     end if
+#ifndef CLM
     if ( lakemod == 1 ) then
       do j = 1 , jendx
         do i = 1 , iym1
@@ -321,6 +323,7 @@ module mod_init
         end do
       end do
     end if
+#endif
     if (icup == 3) then
       do k = 1 , kz
         do j = 1 , jendl
@@ -413,9 +416,11 @@ module mod_init
       print 99001 , nbdytime, ktau, appdat
     end if
 !
+#ifndef CLM
     if ( lakemod == 1 ) then
       call lakescatter
     endif
+#endif
 
     if ( myid == 0 ) then
       do j = 1 , jx
@@ -1156,7 +1161,7 @@ module mod_init
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****** initialize and define constants for vector bats
  
-  if ( ktau == 0 ) call initb
+  if ( ktau == 0 ) call initb(jbegin,jendx,2,iym1)
 
   if ( iemiss == 1 .and. .not. ifrest ) then
     do j = 1 , jendx

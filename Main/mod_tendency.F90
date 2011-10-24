@@ -1457,15 +1457,15 @@ module mod_tendency
       if ( ktau == 0 .or. &
            mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
         call zenitm(coszrs,iy,j)
-        call slice1D(j)
+        call slice1D(j,j,2,iym1)
       end if
  
 !     calculate albedo
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
-        call albedoclm(xmonth,j)
+        call albedoclm(xmonth,j,j,2,iym1)
 #else
-        call albedov(xmonth,j)
+        call albedov(xmonth,j,j,2,iym1)
 #endif
       end if
  
@@ -1483,7 +1483,7 @@ module mod_tendency
       if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
         dtbat = dt*d_half*dble(ntsrf)
         if ( ktau == 0 ) dtbat = dt
-        call vecbats(j,ktau)
+        call vecbats(j,j,2,iym1,ktau)
       end if
 #endif
  

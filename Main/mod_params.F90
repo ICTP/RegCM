@@ -690,11 +690,11 @@ module mod_params
   call allocate_mod_mppio(lband)
 
   call allocate_mod_bats_common(ichem,idcsst)
-  call allocate_mod_bats_leaftemp
   call allocate_mod_bats_mppio(lakemod)
+#ifndef CLM
   call allocate_mod_bats_lake(lakemod)
   call allocate_mod_bats_romsocn
-#ifdef CLM
+#else
   call allocate_mod_clm(lband)
 #endif
 
@@ -1085,9 +1085,13 @@ module mod_params
                      mddom_io%msfd,mddom_io%coriol)
     if ( nsg > 1 ) then
       call read_subdomain(ht1_io,lndcat1_io,xlat1_io,xlon1_io)
+#ifndef CLM
       if ( lakemod == 1 ) call read_subdomain_lake(dhlake1_io)
+#endif
     else
+#ifndef CLM
       if ( lakemod == 1 ) call read_domain_lake(dhlake1_io)
+#endif
       do j = 1 , jx
         do i = 1 , iy
           ht1_io(1,i,j) = mddom_io%ht(i,j)*egrav
@@ -1130,11 +1134,13 @@ module mod_params
     end do
   end if  ! end if (myid == 0)
 
+#ifndef CLM
   if ( lakemod == 1 ) then
     call mpi_scatter(dhlake1_io,iy*nnsg*jxp,mpi_real8,   &
                      dhlake1,   iy*nnsg*jxp,mpi_real8,   &
                      0,mycomm,ierr)
   endif
+#endif
  
   call mpi_scatter(inisrf_0,iy*(nnsg*4+7)*jxp,mpi_real8,   &
                    inisrf0, iy*(nnsg*4+7)*jxp,mpi_real8,   &

@@ -153,11 +153,11 @@ module mod_bats_vecbats
 !                            in mm/s.
 !=======================================================================
 ! 
-  subroutine vecbats(j,ktau)
+  subroutine vecbats(jstart,jend,istart,iend,ktau)
 !
     implicit none
 !
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
     character (len=64) :: subroutine_name='vecbats'
     integer :: idindx=0
@@ -168,30 +168,30 @@ module mod_bats_vecbats
 !
 !   Excange from model to BATS
 
-    call interf(1,j,2,iym1,ktau)
+    call interf(1,jstart,jend,istart,iend,ktau)
 
 !   Calculate surface fluxes and hydrology budgets
 
-    call soilbc
+    call soilbc(jstart,jend,istart,iend)
 
 !   Albedo is calculated in mod_tendency
 
-    call bndry
+    call bndry(jstart,jend,istart,iend)
 
 !   Zeng ocean flux model
-    if ( iocnflx == 2 ) call zengocndrv(j,2,iym1,ktau)
+    if ( iocnflx == 2 ) call zengocndrv(jstart,jend,istart,iend,ktau)
 
 !   ROMS ocean model
-    if ( iocnflx == 3 ) call romsocndrv(j,2,iym1,ktau)
+    if ( iocnflx == 3 ) call romsocndrv(jstart,jend,istart,iend,ktau)
 
 !   Hostetler lake model for every BATS timestep at lake points
     if ( llake ) then
-      call lakedrv(j)
+      call lakedrv(jstart,jend,istart,iend)
     endif
 
 !   Accumulate quantities for energy and moisture budgets
 
-    call interf(2,j,2,iym1,ktau)
+    call interf(2,jstart,jend,istart,iend,ktau)
 ! 
     call time_end(subroutine_name,idindx)
 !
@@ -207,87 +207,85 @@ module mod_bats_vecbats
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine initb
-!
+  subroutine initb(jstart,jend,istart,iend)
     implicit none
+    integer , intent(in) :: jstart , jend , istart , iend
 ! 
-    integer :: ill , is , itex , jll , k , nlveg
+    integer :: i , is , itex , j , n , nlveg
 !
     character (len=64) :: subroutine_name='initb'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
 !
-    do jll = 1 , jendx
-      do ill = 1 , iym1
-        pptnc(ill,jll) = d_zero
-        pptc(ill,jll) = d_zero
-        veg2d(ill,jll) = idnint(lndcat(ill,jll)+0.1D0)
-      end do
-      do ill = 1 , iym1
-        do k = 1 , nnsg
-          veg2d1(k,ill,jll) = idnint(lndcat1(k,ill,jll)+0.1D0)
+    do i = istart , iend
+      do j = jstart , jend
+        pptnc(i,j) = d_zero
+        pptc(i,j) = d_zero
+        veg2d(i,j) = idnint(lndcat(i,j)+0.1D0)
+        do n = 1 , nnsg
+          veg2d1(n,i,j) = idnint(lndcat1(n,i,j)+0.1D0)
         end do
       end do
     end do
 
 !   initialize hostetler lake model
-    if ( llake ) call initlake
+    if ( llake ) call initlake(jstart,jend,istart,iend)
  
-    do jll = 1 , jendx
-      do ill = 1 , iym1
-        do k = 1 , nnsg
-          tg2d(k,ill,jll) = tground2(ill,jll)
-          tgb2d(k,ill,jll) = tground2(ill,jll)
-          taf2d(k,ill,jll) = tground2(ill,jll)
-          tlef2d(k,ill,jll) = tground2(ill,jll)
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          tg2d(n,i,j) = tground2(i,j)
+          tgb2d(n,i,j) = tground2(i,j)
+          taf2d(n,i,j) = tground2(i,j)
+          tlef2d(n,i,j) = tground2(i,j)
 
-          if ( ocld2d(k,ill,jll) == 2 ) then
+          if ( ocld2d(n,i,j) == 2 ) then
             if ( lseaice .or. llake ) then
-              sice2d(k,ill,jll) = d_1000
-              scv2d(k,ill,jll) = d_zero
+              sice2d(n,i,j) = d_1000
+              scv2d(n,i,j) = d_zero
             end if
             nlveg = 12
-          else if ( ocld2d(k,ill,jll) == 1 ) then
-            sice2d(k,ill,jll) = d_zero
-            scv2d(k,ill,jll) = dmax1(scv2d(k,ill,jll),d_zero)
-            nlveg = veg2d1(k,ill,jll)
+          else if ( ocld2d(n,i,j) == 1 ) then
+            sice2d(n,i,j) = d_zero
+            scv2d(n,i,j) = dmax1(scv2d(n,i,j),d_zero)
+            nlveg = veg2d1(n,i,j)
           else
-            sice2d(k,ill,jll) = d_zero
-            scv2d(k,ill,jll) = d_zero
-            nlveg = veg2d1(k,ill,jll)
+            sice2d(n,i,j) = d_zero
+            scv2d(n,i,j) = d_zero
+            nlveg = veg2d1(n,i,j)
           end if
 !         Initialize soil moisture in the 3 layers
-          is = idint(lndcat1(k,ill,jll))
+          is = idint(lndcat1(n,i,j))
           itex = iexsol(nlveg)
-          swt2d(k,ill,jll) = deptv(nlveg)*xmopor(itex)*slmo(is)
-          srw2d(k,ill,jll) = deprv(nlveg)*xmopor(itex)*slmo(is)
-          ssw2d(k,ill,jll) = depuv(nlveg)*xmopor(itex)*slmo(is)
+          swt2d(n,i,j) = deptv(nlveg)*xmopor(itex)*slmo(is)
+          srw2d(n,i,j) = deprv(nlveg)*xmopor(itex)*slmo(is)
+          ssw2d(n,i,j) = depuv(nlveg)*xmopor(itex)*slmo(is)
 
-          dew2d(k,ill,jll) = d_zero
-          sag2d(k,ill,jll) = d_zero
-          gwet2d(k,ill,jll) = d_half
-          sena2d(k,ill,jll) = d_zero
-          evpa2d(k,ill,jll) = d_zero
-          rnos2d(k,ill,jll) = d_zero
-          rno2d(k,ill,jll) = d_zero
-          ircp2d(k,ill,jll) = d_zero
+          dew2d(n,i,j) = d_zero
+          sag2d(n,i,j) = d_zero
+          gwet2d(n,i,j) = d_half
+          sena2d(n,i,j) = d_zero
+          evpa2d(n,i,j) = d_zero
+          rnos2d(n,i,j) = d_zero
+          rno2d(n,i,j) = d_zero
+          ircp2d(n,i,j) = d_zero
         end do
       end do
     end do
  
-    do jll = 1 , jendx
-      do ill = 1 , iym1
-        fsw2d(ill,jll) = d_zero
-        flw2d(ill,jll) = d_zero
-        sabv2d(ill,jll) = d_zero
-        sol2d(ill,jll) = d_zero
-        fswa2d(ill,jll) = d_zero
-        flwa2d(ill,jll) = d_zero
-        prca2d(ill,jll) = d_zero
-        prnca2d(ill,jll) = d_zero
-        svga2d(ill,jll) = d_zero
-        sina2d(ill,jll) = d_zero
+    do i = istart , iend
+      do j = jstart , jend
+        fsw2d(i,j) = d_zero
+        flw2d(i,j) = d_zero
+        sabv2d(i,j) = d_zero
+        sol2d(i,j) = d_zero
+        fswa2d(i,j) = d_zero
+        flwa2d(i,j) = d_zero
+        prca2d(i,j) = d_zero
+        prnca2d(i,j) = d_zero
+        svga2d(i,j) = d_zero
+        sina2d(i,j) = d_zero
       end do
     end do
 ! 
@@ -304,17 +302,17 @@ module mod_bats_vecbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine interf(ivers,j,istart,iend,ktau)
+  subroutine interf(ivers,jstart,jend,istart,iend,ktau)
 !
     implicit none
 !
-    integer , intent (in) :: ivers , j , istart , iend
+    integer , intent (in) :: ivers , jstart , jend , istart , iend
     integer(8) , intent(in) :: ktau
 !
     real(dp) :: amxtem , facb , facs , fact , factuv , facv , fracb ,  &
                fracs , fracv , hl , mmpd , rh0 , satvp , sfac ,       &
                solvt , wpm2
-    integer :: i , n , nnn
+    integer :: i , j , n , nnn
     real(sp) :: real_4
     logical , save :: first_pass
 !
@@ -328,259 +326,265 @@ module mod_bats_vecbats
     if ( ivers == 1 ) then ! regcm2d --> bats
 
       do i = istart, iend
-        do n = 1 , nnsg
-          p1d0(n,i) = (sfps(i,j)+ptop)*d_1000
-          ts1d0(n,i) = thatm(i,kz,j)
-          qs1d0(n,i) = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
-          qs1d(n,i) = qs1d0(n,i)
+        do j = jstart, jend
+          do n = 1 , nnsg
+            p1d0(n,i) = (sfps(i,j)+ptop)*d_1000
+            ts1d0(n,i) = thatm(i,kz,j)
+            qs1d0(n,i) = qvatm(i,kz,j)/(d_one+qvatm(i,kz,j))
+            qs1d(n,i) = qs1d0(n,i)
  
-          hl = lh0 - lh1*(ts1d0(n,i)-tzero)
-          satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts1d0(n,i)))
-          rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01D0-satvp)),d_zero)
+            hl = lh0 - lh1*(ts1d0(n,i)-tzero)
+            satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts1d0(n,i)))
+            rh0 = dmax1(qs1d0(n,i)/(ep2*satvp/(p1d0(n,i)*0.01D0-satvp)),d_zero)
  
-          ts1d(n,i) = ts1d0(n,i)-lrate*regrav*(ht1(n,i,j)-ht(i,j))
-          p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
+            ts1d(n,i) = ts1d0(n,i)-lrate*regrav*(ht1(n,i,j)-ht(i,j))
+            p1d(n,i) = p1d0(n,i)*(ts1d(n,i)/ts1d0(n,i))
  
-          hl = lh0 - lh1*(ts1d(n,i)-tzero)
-          satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts1d(n,i)))
-          qs1d(n,i) = dmax1(rh0*ep2*satvp/(p1d(n,i)*0.01D0-satvp),d_zero)
+            hl = lh0 - lh1*(ts1d(n,i)-tzero)
+            satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts1d(n,i)))
+            qs1d(n,i) = dmax1(rh0*ep2*satvp/(p1d(n,i)*0.01D0-satvp),d_zero)
  
-          tg1d(n,i) = tg2d(n,i,j)
-          rhs1d(n,i) = p1d(n,i)/(rgas*ts1d(n,i))
-          prcp1d(n,i) = pptnc(i,j) + pptc(i,j)
-!
-!         quantities stored on 2d surface array for bats use only
-!
-          tgb1d(n,i) = tgb2d(n,i,j)
-          taf1d(n,i) = taf2d(n,i,j)
-          tlef1d(n,i) = tlef2d(n,i,j)
-          tsw1d(n,i) = swt2d(n,i,j)
-          rsw1d(n,i) = srw2d(n,i,j)
-          ssw1d(n,i) = ssw2d(n,i,j)
-          ldew1d(n,i) = dew2d(n,i,j)
-          sag1d(n,i) = sag2d(n,i,j)
-          scv1d(n,i) = scv2d(n,i,j)
-          sice1d(n,i) = sice2d(n,i,j)
-          gwet1d(n,i) = gwet2d(n,i,j)
-          sent1d(n,i) = hfx(i,j)
-          evpr1d(n,i) = qfx(i,j)
-          ldoc1d(n,i) = ocld2d(n,i,j)
-          ircp1d(n,i) = ircp2d(n,i,j)
-          lveg(n,i) = veg2d1(n,i,j)
-          oveg(n,i) = lveg(n,i)
-          if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
-          amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
-          sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-          veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-          emiss1d(n,i) = emiss2d(n,i,j)
-          z1d(n,i) = hgt(i,kz,j)
-          z1log(n,i)  = dlog(z1d(n,i))
-          z2fra(n,i)  = dlog(z1d(n,i)*d_half)
-          z10fra(n,i) = dlog(z1d(n,i)*d_r10)
-          zlgocn(n,i) = dlog(z1d(n,i)/zoce)
-          zlglnd(n,i) = dlog(z1d(n,i)/zlnd)
-          zlgsno(n,i) = dlog(z1d(n,i)/zsno)
-          zlgveg(n,i) = dlog(z1d(n,i)/rough(lveg(n,i)))
-          zlgdis(n,i) = dlog(z1d(n,i)-displa(lveg(n,i))/rough(lveg(n,i)))
+            tg1d(n,i) = tg2d(n,i,j)
+            rhs1d(n,i) = p1d(n,i)/(rgas*ts1d(n,i))
+            prcp1d(n,i) = pptnc(i,j) + pptc(i,j)
+            !
+            ! quantities stored on 2d surface array for bats use only
+            !
+            tgb1d(n,i) = tgb2d(n,i,j)
+            taf1d(n,i) = taf2d(n,i,j)
+            tlef1d(n,i) = tlef2d(n,i,j)
+            tsw1d(n,i) = swt2d(n,i,j)
+            rsw1d(n,i) = srw2d(n,i,j)
+            ssw1d(n,i) = ssw2d(n,i,j)
+            ldew1d(n,i) = dew2d(n,i,j)
+            sag1d(n,i) = sag2d(n,i,j)
+            scv1d(n,i) = scv2d(n,i,j)
+            sice1d(n,i) = sice2d(n,i,j)
+            gwet1d(n,i) = gwet2d(n,i,j)
+            sent1d(n,i) = hfx(i,j)
+            evpr1d(n,i) = qfx(i,j)
+            ldoc1d(n,i) = ocld2d(n,i,j)
+            ircp1d(n,i) = ircp2d(n,i,j)
+            lveg(n,i) = veg2d1(n,i,j)
+            oveg(n,i) = lveg(n,i)
+            if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
+            amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
+            sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
+            veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
+            emiss1d(n,i) = emiss2d(n,i,j)
+            z1d(n,i) = hgt(i,kz,j)
+            z1log(n,i)  = dlog(z1d(n,i))
+            z2fra(n,i)  = dlog(z1d(n,i)*d_half)
+            z10fra(n,i) = dlog(z1d(n,i)*d_r10)
+            zlgocn(n,i) = dlog(z1d(n,i)/zoce)
+            zlglnd(n,i) = dlog(z1d(n,i)/zlnd)
+            zlgsno(n,i) = dlog(z1d(n,i)/zsno)
+            zlgveg(n,i) = dlog(z1d(n,i)/rough(lveg(n,i)))
+            zlgdis(n,i) = dlog(z1d(n,i)-displa(lveg(n,i))/rough(lveg(n,i)))
+          end do
+ 
+          rh0 = d_zero
+          do n = 1 , nnsg
+            rh0 = rh0 + (qs1d(n,i)-qs1d0(n,i))
+          end do
+          rh0 = rh0/nnsg
+          do n = 1 , nnsg
+            qs1d(n,i) = dmax1(qs1d(n,i)-rh0,d_zero)
+          end do
+ 
+          us1d(i) = uatm(i,kz,j)
+          vs1d(i) = vatm(i,kz,j)
+          fsw1d(i) = fsw2d(i,j)
+          flw1d(i) = flw2d(i,j)
+          solis(i) = sol2d(i,j)
+          sabveg(i) = sabv2d(i,j)
+          solvt = solvd2d(i,j) + solvs2d(i,j)
+          if ( solvt > d_zero ) then
+            fracd(i) = solvd2d(i,j)/solvt
+          else
+            fracd(i) = 0.2D0
+          end if
+          czen(i) = dmax1(coszrs(i),d_zero)
         end do
- 
-        rh0 = d_zero
-        do n = 1 , nnsg
-          rh0 = rh0 + (qs1d(n,i)-qs1d0(n,i))
-        end do
-        rh0 = rh0/nnsg
-        do n = 1 , nnsg
-          qs1d(n,i) = dmax1(qs1d(n,i)-rh0,d_zero)
-        end do
- 
-        us1d(i) = uatm(i,kz,j)
-        vs1d(i) = vatm(i,kz,j)
-        fsw1d(i) = fsw2d(i,j)
-        flw1d(i) = flw2d(i,j)
-        solis(i) = sol2d(i,j)
-        sabveg(i) = sabv2d(i,j)
-        solvt = solvd2d(i,j) + solvs2d(i,j)
-        if ( solvt > d_zero ) then
-          fracd(i) = solvd2d(i,j)/solvt
-        else
-          fracd(i) = 0.2D0
-        end if
-        czen(i) = dmax1(coszrs(i),d_zero)
       end do
  
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
       do i = istart, iend
-        uvdrag(i,j) = d_zero
-        hfx(i,j) = d_zero
-        qfx(i,j) = d_zero
-        tground2(i,j) = d_zero
-        tground1(i,j) = d_zero
-        tgbb(i,j) = d_zero
-        if ( lchem ) then
-          ssw2da(i,j) = d_zero
-          sdeltk2d(i,j) = d_zero
-          sdelqk2d(i,j) = d_zero
-          sfracv2d(i,j) = d_zero
-          sfracb2d(i,j) = d_zero
-          sfracs2d(i,j) = d_zero
-          svegfrac2d(i,j) = d_zero
-        end if
-
-        do n = 1 , nnsg
-          uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
-          hfx(i,j) = hfx(i,j) + sent1d(n,i)
-          qfx(i,j) = qfx(i,j) + evpr1d(n,i)
-          tground2(i,j) = tground2(i,j) + tg1d(n,i)
-          tground1(i,j) = tground1(i,j) + tg1d(n,i)
+        do j = jstart, jend
+          uvdrag(i,j) = d_zero
+          hfx(i,j) = d_zero
+          qfx(i,j) = d_zero
+          tground2(i,j) = d_zero
+          tground1(i,j) = d_zero
+          tgbb(i,j) = d_zero
           if ( lchem ) then
-            ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
-            sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
-            sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
-            sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,i)
-            sfracb2d(i,j) = sfracb2d(i,j)+(d_one-veg1d(n,i))*(d_one-scvk(n,i))
-            sfracs2d(i,j) = sfracs2d(i,j) + &
-                     veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-            svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
+            ssw2da(i,j) = d_zero
+            sdeltk2d(i,j) = d_zero
+            sdelqk2d(i,j) = d_zero
+            sfracv2d(i,j) = d_zero
+            sfracb2d(i,j) = d_zero
+            sfracs2d(i,j) = d_zero
+            svegfrac2d(i,j) = d_zero
           end if
-          if ( iocnflx == 1 .or. &
-              (iocnflx == 2 .and. ldoc1d(n,i) /= 0 ) ) then
-            tgbb(i,j) = tgbb(i,j) +                 &
-                       ((d_one-veg1d(n,i))*tg1d(n,i)**d_four +  &
-                       veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
-          else
-            tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
-          end if
-          if ( ldoc1d(n,i) == 0 ) then
-            ssw1d(n,i)  = dmissval
-            rsw1d(n,i)  = dmissval
-            tsw1d(n,i)  = dmissval
-            rno1d(n,i)  = dmissval
-            rnos1d(n,i) = dmissval
-            scv1d(n,i)  = dmissval
-          end if
-        end do
-        uvdrag(i,j) = uvdrag(i,j)*rdnnsg
-        hfx(i,j) = hfx(i,j)*rdnnsg
-        qfx(i,j) = qfx(i,j)*rdnnsg
-        tground2(i,j) = tground2(i,j)*rdnnsg
-        tground1(i,j) = tground1(i,j)*rdnnsg
-        tgbb(i,j) = tgbb(i,j)*rdnnsg
 
-        if ( lchem ) then
-          ssw2da(i,j) = ssw2da(i,j)*rdnnsg
-          sdeltk2d(i,j) = sdeltk2d(i,j)*rdnnsg
-          sdelqk2d(i,j) = sdelqk2d(i,j)*rdnnsg
-          sfracv2d(i,j) = sfracv2d(i,j)*rdnnsg
-          sfracb2d(i,j) = sfracb2d(i,j)*rdnnsg
-          sfracs2d(i,j) = sfracs2d(i,j)*rdnnsg
-          svegfrac2d(i,j) = svegfrac2d(i,j)*rdnnsg
-        end if
-        do n = 1 , nnsg
-          scv2d(n,i,j) = scv1d(n,i)
-          tg2d(n,i,j) = tg1d(n,i)
-          tgb2d(n,i,j) = tgb1d(n,i)
-          taf2d(n,i,j) = taf1d(n,i)
-          tlef2d(n,i,j) = tlef1d(n,i)
-          swt2d(n,i,j) = tsw1d(n,i)
-          srw2d(n,i,j) = rsw1d(n,i)
-          ssw2d(n,i,j) = ssw1d(n,i)
-          dew2d(n,i,j) = ldew1d(n,i)
-          sag2d(n,i,j) = sag1d(n,i)
-          sice2d(n,i,j) = sice1d(n,i)
-          gwet2d(n,i,j) = gwet1d(n,i)
-          ocld2d(n,i,j) = ldoc1d(n,i)
-          ircp2d(n,i,j) = ircp1d(n,i)
-          evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
-          sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
-          if ( dabs(rnos1d(n,i)) > 1.0D-10 ) then
-            rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)*dtbat
+          do n = 1 , nnsg
+            uvdrag(i,j) = uvdrag(i,j) + drag1d(n,i)
+            hfx(i,j) = hfx(i,j) + sent1d(n,i)
+            qfx(i,j) = qfx(i,j) + evpr1d(n,i)
+            tground2(i,j) = tground2(i,j) + tg1d(n,i)
+            tground1(i,j) = tground1(i,j) + tg1d(n,i)
+            if ( lchem ) then
+              ssw2da(i,j) = ssw2da(i,j) + ssw1d(n,i)
+              sdeltk2d(i,j) = sdeltk2d(i,j) + delt1d(n,i)
+              sdelqk2d(i,j) = sdelqk2d(i,j) + delq1d(n,i)
+              sfracv2d(i,j) = sfracv2d(i,j) + sigf(n,i)
+              sfracb2d(i,j) = sfracb2d(i,j)+(d_one-veg1d(n,i))*(d_one-scvk(n,i))
+              sfracs2d(i,j) = sfracs2d(i,j) + &
+                       veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
+              svegfrac2d(i,j) = svegfrac2d(i,j) + veg1d(n,i)
+            end if
+            if ( iocnflx == 1 .or. &
+                (iocnflx == 2 .and. ldoc1d(n,i) /= 0 ) ) then
+              tgbb(i,j) = tgbb(i,j) +                 &
+                         ((d_one-veg1d(n,i))*tg1d(n,i)**d_four +  &
+                         veg1d(n,i)*tlef1d(n,i)**d_four)**d_rfour
+            else
+              tgbb(i,j) = tgbb(i,j) + tg1d(n,i)
+            end if
+            if ( ldoc1d(n,i) == 0 ) then
+              ssw1d(n,i)  = dmissval
+              rsw1d(n,i)  = dmissval
+              tsw1d(n,i)  = dmissval
+              rno1d(n,i)  = dmissval
+              rnos1d(n,i) = dmissval
+              scv1d(n,i)  = dmissval
+            end if
+          end do
+          uvdrag(i,j) = uvdrag(i,j)*rdnnsg
+          hfx(i,j) = hfx(i,j)*rdnnsg
+          qfx(i,j) = qfx(i,j)*rdnnsg
+          tground2(i,j) = tground2(i,j)*rdnnsg
+          tground1(i,j) = tground1(i,j)*rdnnsg
+          tgbb(i,j) = tgbb(i,j)*rdnnsg
+
+          if ( lchem ) then
+            ssw2da(i,j) = ssw2da(i,j)*rdnnsg
+            sdeltk2d(i,j) = sdeltk2d(i,j)*rdnnsg
+            sdelqk2d(i,j) = sdelqk2d(i,j)*rdnnsg
+            sfracv2d(i,j) = sfracv2d(i,j)*rdnnsg
+            sfracb2d(i,j) = sfracb2d(i,j)*rdnnsg
+            sfracs2d(i,j) = sfracs2d(i,j)*rdnnsg
+            svegfrac2d(i,j) = svegfrac2d(i,j)*rdnnsg
           end if
-          if ( dabs(rnos1d(n,i))  > 1.0D-10 .and. &
-               dabs(rno1d(n,i))   > 1.0D-10 ) then
-            rno2d(n,i,j) = rno2d(n,i,j) + &
-                   (rno1d(n,i)-rnos1d(n,i))*dtbat
-          end if
+          do n = 1 , nnsg
+            scv2d(n,i,j) = scv1d(n,i)
+            tg2d(n,i,j) = tg1d(n,i)
+            tgb2d(n,i,j) = tgb1d(n,i)
+            taf2d(n,i,j) = taf1d(n,i)
+            tlef2d(n,i,j) = tlef1d(n,i)
+            swt2d(n,i,j) = tsw1d(n,i)
+            srw2d(n,i,j) = rsw1d(n,i)
+            ssw2d(n,i,j) = ssw1d(n,i)
+            dew2d(n,i,j) = ldew1d(n,i)
+            sag2d(n,i,j) = sag1d(n,i)
+            sice2d(n,i,j) = sice1d(n,i)
+            gwet2d(n,i,j) = gwet1d(n,i)
+            ocld2d(n,i,j) = ldoc1d(n,i)
+            ircp2d(n,i,j) = ircp1d(n,i)
+            evpa2d(n,i,j) = evpa2d(n,i,j) + dtbat*evpr1d(n,i)
+            sena2d(n,i,j) = sena2d(n,i,j) + dtbat*sent1d(n,i)
+            if ( dabs(rnos1d(n,i)) > 1.0D-10 ) then
+              rnos2d(n,i,j) = rnos2d(n,i,j) + rnos1d(n,i)*dtbat
+            end if
+            if ( dabs(rnos1d(n,i))  > 1.0D-10 .and. &
+                 dabs(rno1d(n,i))   > 1.0D-10 ) then
+              rno2d(n,i,j) = rno2d(n,i,j) + &
+                     (rno1d(n,i)-rnos1d(n,i))*dtbat
+            end if
+          end do
+          !
+          ! quantities stored on 2d surface array for bats use only
+          !
+          prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
+          prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
+          flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
+          flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
+          fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
+          svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
+          sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
+          pptnc(i,j) = d_zero
+          pptc(i,j) = d_zero
         end do
-!
-!         quantities stored on 2d surface array for bats use only
-!
-        prca2d(i,j) = prca2d(i,j) + dtbat*pptc(i,j)
-        prnca2d(i,j) = prnca2d(i,j) + dtbat*pptnc(i,j)
-        flwa2d(i,j) = flwa2d(i,j) + dtbat*flw1d(i)
-        flwda2d(i,j) = flwda2d(i,j) + dtbat*flwd2d(i,j)
-        fswa2d(i,j) = fswa2d(i,j) + dtbat*fsw1d(i)
-        svga2d(i,j) = svga2d(i,j) + dtbat*sabveg(i)
-        sina2d(i,j) = sina2d(i,j) + dtbat*sinc2d(i,j)
-        pptnc(i,j) = d_zero
-        pptc(i,j) = d_zero
       end do
 
       do i = istart, iend
-        u10m_o(j,i-1) = 0.0
-        v10m_o(j,i-1) = 0.0
-        tg_o(j,i-1) = 0.0
-        t2m_o(j,i-1) = 0.0
-        q2m_o(j,i-1) = 0.0
-        aldirs_o(j,i-1) = 0.0
-        aldifs_o(j,i-1) = 0.0
-        do n = 1 , nnsg
-          if ( ldoc1d(n,i) /= 0 ) then
-            fracv = sigf(n,i)
-            fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-            fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-            facv = z2fra(n,i)/zlgveg(n,i)
-            facb = z2fra(n,i)/zlglnd(n,i)
-            facs = z2fra(n,i)/zlgsno(n,i)
-            fact = fracv*facv + fracb*facb + fracs*facs
-            facv = z10fra(n,i)/zlgveg(n,i)
-            facb = z10fra(n,i)/zlglnd(n,i)
-            facs = z10fra(n,i)/zlgsno(n,i)
-            factuv = fracv*facv + fracb*facb + fracs*facs
-            u10m1d(n,i) = us1d(i)*(d_one-factuv)
-            v10m1d(n,i) = vs1d(i)*(d_one-factuv)
-            t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
-            q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
-          else 
-            if ( iocnflx == 1 ) then
-              fact = z2fra(n,i)/zlgocn(n,i)
-              factuv = z10fra(n,i)/zlgocn(n,i)
+        do j = jstart, jend
+          u10m_o(j,i-1) = 0.0
+          v10m_o(j,i-1) = 0.0
+          tg_o(j,i-1) = 0.0
+          t2m_o(j,i-1) = 0.0
+          q2m_o(j,i-1) = 0.0
+          aldirs_o(j,i-1) = 0.0
+          aldifs_o(j,i-1) = 0.0
+          do n = 1 , nnsg
+            if ( ldoc1d(n,i) /= 0 ) then
+              fracv = sigf(n,i)
+              fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
+              fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
+              facv = z2fra(n,i)/zlgveg(n,i)
+              facb = z2fra(n,i)/zlglnd(n,i)
+              facs = z2fra(n,i)/zlgsno(n,i)
+              fact = fracv*facv + fracb*facb + fracs*facs
+              facv = z10fra(n,i)/zlgveg(n,i)
+              facb = z10fra(n,i)/zlglnd(n,i)
+              facs = z10fra(n,i)/zlgsno(n,i)
+              factuv = fracv*facv + fracb*facb + fracs*facs
               u10m1d(n,i) = us1d(i)*(d_one-factuv)
               v10m1d(n,i) = vs1d(i)*(d_one-factuv)
               t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
               q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+            else 
+              if ( iocnflx == 1 ) then
+                fact = z2fra(n,i)/zlgocn(n,i)
+                factuv = z10fra(n,i)/zlgocn(n,i)
+                u10m1d(n,i) = us1d(i)*(d_one-factuv)
+                v10m1d(n,i) = vs1d(i)*(d_one-factuv)
+                t2m1d(n,i) = ts1d(n,i) - delt1d(n,i)*fact
+                q2m1d(n,i) = qs1d(n,i) - delq1d(n,i)*fact
+              end if
             end if
-          end if
-          tg_s(n,j,i-1) = real(tg1d(n,i))
-          u10m_s(n,j,i-1) = real(u10m1d(n,i))
-          v10m_s(n,j,i-1) = real(v10m1d(n,i))
-          t2m_s(n,j,i-1) = real(t2m1d(n,i))
-          q2m_s(n,j,i-1) = real(q2m1d(n,i))
+            tg_s(n,j,i-1) = real(tg1d(n,i))
+            u10m_s(n,j,i-1) = real(u10m1d(n,i))
+            v10m_s(n,j,i-1) = real(v10m1d(n,i))
+            t2m_s(n,j,i-1) = real(t2m1d(n,i))
+            q2m_s(n,j,i-1) = real(q2m1d(n,i))
  
-          u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
-          v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
-          t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m1d(n,i))
-          q2m_o(j,i-1) = real(q2m_o(j,i-1) + q2m1d(n,i))
-          tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
-          aldirs_o(j,i-1) = aldirs_o(j,i-1) + real(aldirs1d(n,i))
-          aldifs_o(j,i-1) = aldifs_o(j,i-1) + real(aldifs1d(n,i))
+            u10m_o(j,i-1) = u10m_o(j,i-1) + real(u10m1d(n,i))
+            v10m_o(j,i-1) = v10m_o(j,i-1) + real(v10m1d(n,i))
+            t2m_o(j,i-1) = t2m_o(j,i-1) + real(t2m1d(n,i))
+            q2m_o(j,i-1) = real(q2m_o(j,i-1) + q2m1d(n,i))
+            tg_o(j,i-1) = tg_o(j,i-1) + real(tg1d(n,i))
+            aldirs_o(j,i-1) = aldirs_o(j,i-1) + real(aldirs1d(n,i))
+            aldifs_o(j,i-1) = aldifs_o(j,i-1) + real(aldifs1d(n,i))
+          end do
+          u10m_o(j,i-1) = u10m_o(j,i-1)*rrnnsg
+          v10m_o(j,i-1) = v10m_o(j,i-1)*rrnnsg
+          t2m_o(j,i-1) = t2m_o(j,i-1)*rrnnsg
+          q2m_o(j,i-1) = q2m_o(j,i-1)*rrnnsg
+          tg_o(j,i-1) = tg_o(j,i-1)*rrnnsg
+          aldirs_o(j,i-1) = aldirs_o(j,i-1)*rrnnsg
+          aldifs_o(j,i-1) = aldifs_o(j,i-1)*rrnnsg
+ 
+          tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
+          tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
+          t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
+          t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
+          w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
+                          sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
+          real_4 = real((sfps(i,j)+ptop)*d_10)
+          psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
         end do
-        u10m_o(j,i-1) = u10m_o(j,i-1)*rrnnsg
-        v10m_o(j,i-1) = v10m_o(j,i-1)*rrnnsg
-        t2m_o(j,i-1) = t2m_o(j,i-1)*rrnnsg
-        q2m_o(j,i-1) = q2m_o(j,i-1)*rrnnsg
-        tg_o(j,i-1) = tg_o(j,i-1)*rrnnsg
-        aldirs_o(j,i-1) = aldirs_o(j,i-1)*rrnnsg
-        aldifs_o(j,i-1) = aldifs_o(j,i-1)*rrnnsg
- 
-        tgmx_o(j,i-1) = amax1(tgmx_o(j,i-1),tg_o(j,i-1))
-        tgmn_o(j,i-1) = amin1(tgmn_o(j,i-1),tg_o(j,i-1))
-        t2mx_o(j,i-1) = amax1(t2mx_o(j,i-1),t2m_o(j,i-1))
-        t2mn_o(j,i-1) = amin1(t2mn_o(j,i-1),t2m_o(j,i-1))
-        w10x_o(j,i-1) = amax1(w10x_o(j,i-1), &
-                        sqrt(u10m_o(j,i-1)**2.0+v10m_o(j,i-1)**2.0))
-        real_4 = real((sfps(i,j)+ptop)*d_10)
-        psmn_o(j,i-1) = amin1(psmn_o(j,i-1),real_4)
       end do
 
       if ( mod(ktau+1,kbats) == 0 .or. first_pass ) then
@@ -595,110 +599,108 @@ module mod_bats_vecbats
           wpm2 = d_one/(srffrq*secph)
         end if
         do i = istart, iend
-          drag_o(j,i-1) = 0.0
-          evpa_o(j,i-1) = 0.0
-          sena_o(j,i-1) = 0.0
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              fracv = sigf(n,i)
-              fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
-              fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
-              facv = z2fra(n,i)/zlgveg(n,i)
-              facb = z2fra(n,i)/zlglnd(n,i)
-              facs = z2fra(n,i)/zlgsno(n,i)
-              fact = fracv*facv + fracb*facb + fracs*facs
-            else
-              if ( iocnflx == 1 ) then
-                fact = z2fra(n,i)/zlgocn(n,i)
+          do j = jstart, jend
+            drag_o(j,i-1) = 0.0
+            evpa_o(j,i-1) = 0.0
+            sena_o(j,i-1) = 0.0
+            do n = 1 , nnsg
+              if ( ldoc1d(n,i) /= 0 ) then
+                fracv = sigf(n,i)
+                fracb = (d_one-veg1d(n,i))*(d_one-scvk(n,i))
+                fracs = veg1d(n,i)*wt(n,i) + (d_one-veg1d(n,i))*scvk(n,i)
+                facv = z2fra(n,i)/zlgveg(n,i)
+                facb = z2fra(n,i)/zlglnd(n,i)
+                facs = z2fra(n,i)/zlgsno(n,i)
+                fact = fracv*facv + fracb*facb + fracs*facs
+              else
+                if ( iocnflx == 1 ) then
+                  fact = z2fra(n,i)/zlgocn(n,i)
+                end if
               end if
-            end if
-            drag_s(n,j,i-1) = real(drag1d(n,i))
-            evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
-            sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
-            tpr_s(n,j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-            prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
-            ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
+              drag_s(n,j,i-1) = real(drag1d(n,i))
+              evpa_s(n,j,i-1) = real(evpa2d(n,i,j)*mmpd)
+              sena_s(n,j,i-1) = real(sena2d(n,i,j)*wpm2)
+              tpr_s(n,j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
+              prcv_s(n,j,i-1) = real(prca2d(i,j)*mmpd)
+              ps_s(n,j,i-1) = real(p1d(n,i)*0.01D0)
  
-            drag_o(j,i-1) = real(drag_o(j,i-1) + drag1d(n,i))
-            evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,i,j))
-            sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,i,j))
-          end do
-          tpr_o(j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
-          drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
-          evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
-          sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)
-          flwa_o(j,i-1) = real(flwa2d(i,j)*wpm2)
-          fswa_o(j,i-1) = real(fswa2d(i,j)*wpm2)
-          flwd_o(j,i-1) = real(flwda2d(i,j)*wpm2)
-          sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
-          prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
-          ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
-          zpbl_o(j,i-1) = real(zpbl(i,j))
+              drag_o(j,i-1) = real(drag_o(j,i-1) + drag1d(n,i))
+              evpa_o(j,i-1) = real(evpa_o(j,i-1) + evpa2d(n,i,j))
+              sena_o(j,i-1) = real(sena_o(j,i-1) + sena2d(n,i,j))
+            end do
+            tpr_o(j,i-1) = real((prnca2d(i,j)+prca2d(i,j))*mmpd)
+            drag_o(j,i-1) = drag_o(j,i-1)*rrnnsg
+            evpa_o(j,i-1) = evpa_o(j,i-1)*rrnnsg*real(mmpd)
+            sena_o(j,i-1) = sena_o(j,i-1)*rrnnsg*real(wpm2)
+            flwa_o(j,i-1) = real(flwa2d(i,j)*wpm2)
+            fswa_o(j,i-1) = real(fswa2d(i,j)*wpm2)
+            flwd_o(j,i-1) = real(flwda2d(i,j)*wpm2)
+            sina_o(j,i-1) = real(sina2d(i,j)*wpm2)
+            prcv_o(j,i-1) = real(prca2d(i,j)*mmpd)
+            ps_o(j,i-1) = real((sfps(i,j)+ptop)*d_10)
+            zpbl_o(j,i-1) = real(zpbl(i,j))
  
-          tlef_o(j,i-1) = 0.0
-          ssw_o(j,i-1) = 0.0
-          rsw_o(j,i-1) = 0.0
-          rnos_o(j,i-1) = 0.0
-          scv_o(j,i-1) = 0.0
-          nnn = 0
-          do n = 1 , nnsg
-            if ( ldoc1d(n,i) /= 0 ) then
-              tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef1d(n,i))
-              ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
-              rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
-              rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,i,j))
-              scv_o(j,i-1) = scv_o(j,i-1) + real(scv1d(n,i))
-              tlef_s(n,j,i-1) = real(tlef1d(n,i))
-              ssw_s(n,j,i-1) = real(ssw1d(n,i))
-              rsw_s(n,j,i-1) = real(rsw1d(n,i))
-              rnos_s(n,j,i-1) = real(rnos2d(n,i,j)*mmpd)
-              scv_s(n,j,i-1) = real(scv1d(n,i))
-              nnn = nnn + 1
+            tlef_o(j,i-1) = 0.0
+            ssw_o(j,i-1) = 0.0
+            rsw_o(j,i-1) = 0.0
+            rnos_o(j,i-1) = 0.0
+            scv_o(j,i-1) = 0.0
+            nnn = 0
+            do n = 1 , nnsg
+              if ( ldoc1d(n,i) /= 0 ) then
+                tlef_o(j,i-1) = tlef_o(j,i-1) + real(tlef1d(n,i))
+                ssw_o(j,i-1) = ssw_o(j,i-1) + real(ssw1d(n,i))
+                rsw_o(j,i-1) = rsw_o(j,i-1) + real(rsw1d(n,i))
+                rnos_o(j,i-1) = rnos_o(j,i-1) + real(rnos2d(n,i,j))
+                scv_o(j,i-1) = scv_o(j,i-1) + real(scv1d(n,i))
+                tlef_s(n,j,i-1) = real(tlef1d(n,i))
+                ssw_s(n,j,i-1) = real(ssw1d(n,i))
+                rsw_s(n,j,i-1) = real(rsw1d(n,i))
+                rnos_s(n,j,i-1) = real(rnos2d(n,i,j)*mmpd)
+                scv_s(n,j,i-1) = real(scv1d(n,i))
+                nnn = nnn + 1
+              else
+                tlef_s(n,j,i-1) = smissval
+                ssw_s(n,j,i-1) = smissval
+                rsw_s(n,j,i-1) = smissval
+                rnos_s(n,j,i-1) = smissval
+                scv_s(n,j,i-1) = smissval
+              end if
+            end do
+            if ( nnn >= max0(nnsg/2,1) ) then
+              tlef_o(j,i-1) = tlef_o(j,i-1)/real(nnn)
+              ssw_o(j,i-1) = ssw_o(j,i-1)/real(nnn)
+              rsw_o(j,i-1) = rsw_o(j,i-1)/real(nnn)
+              rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
+              scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
             else
-              tlef_s(n,j,i-1) = smissval
-              ssw_s(n,j,i-1) = smissval
-              rsw_s(n,j,i-1) = smissval
-              rnos_s(n,j,i-1) = smissval
-              scv_s(n,j,i-1) = smissval
+              tlef_o(j,i-1) = smissval
+              ssw_o(j,i-1) = smissval
+              rsw_o(j,i-1) = smissval
+              rnos_o(j,i-1) = smissval
+              scv_o(j,i-1) = smissval
             end if
+            !
+            ! reset accumulation arrays to zero
+            !
+            do n = 1 , nnsg
+              evpa2d(n,i,j) = d_zero
+              rnos2d(n,i,j) = d_zero
+              sena2d(n,i,j) = d_zero
+            end do
+            prnca2d(i,j) = d_zero
+            prca2d(i,j) = d_zero
+            flwa2d(i,j) = d_zero
+            flwda2d(i,j) = d_zero
+            fswa2d(i,j) = d_zero
+            svga2d(i,j) = d_zero
+            sina2d(i,j) = d_zero
           end do
-          if ( nnn >= max0(nnsg/2,1) ) then
-            tlef_o(j,i-1) = tlef_o(j,i-1)/real(nnn)
-            ssw_o(j,i-1) = ssw_o(j,i-1)/real(nnn)
-            rsw_o(j,i-1) = rsw_o(j,i-1)/real(nnn)
-            rnos_o(j,i-1) = rnos_o(j,i-1)/real(nnn)*real(mmpd)
-            scv_o(j,i-1) = scv_o(j,i-1)/real(nnn)
-          else
-            tlef_o(j,i-1) = smissval
-            ssw_o(j,i-1) = smissval
-            rsw_o(j,i-1) = smissval
-            rnos_o(j,i-1) = smissval
-            scv_o(j,i-1) = smissval
-          end if
-!
-!         reset accumulation arrays to zero
-!
-          do n = 1 , nnsg
-            evpa2d(n,i,j) = d_zero
-            rnos2d(n,i,j) = d_zero
-            sena2d(n,i,j) = d_zero
-          end do
-          prnca2d(i,j) = d_zero
-          prca2d(i,j) = d_zero
-          flwa2d(i,j) = d_zero
-          flwda2d(i,j) = d_zero
-          fswa2d(i,j) = d_zero
-          svga2d(i,j) = d_zero
-          sina2d(i,j) = d_zero
         end do
       end if
-!
     end if
-!
     first_pass = .false.
-!
     call time_end(subroutine_name,idindx)
-!
   end subroutine interf
 !
 ! Albedo calculates fragmented albedos (direct and diffuse) in
@@ -724,11 +726,10 @@ module mod_bats_vecbats
 ! (depuv/10.0)= the ratio of upper soil layer to total root depth
 ! Used to compute "wet" for soil albedo
 !
-  subroutine albedov(imon,j)
-! 
+  subroutine albedov(imon,jstart,jend,istart,iend)
     implicit none
-!
-    integer , intent (in) :: imon , j
+    integer , intent(in) :: jstart , jend , istart , iend
+    integer , intent (in) :: imon
 !
     real(dp) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
@@ -737,32 +738,32 @@ module mod_bats_vecbats
                sl2 , sli , snal0 , snal1 , tdiff , tdiffs , wet
     real(dp) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
                                  aldifs_s , aldirl_s , aldirs_s
-    integer :: kolour , n , i
+    integer :: kolour , n , i , j
     character (len=64) :: subroutine_name='albedov'
     integer :: idindx=0
 !
     call time_begin(subroutine_name,idindx)
-!
-!   =================================================================
-!   1. set initial parameters
-!   =================================================================
-!
-!   1.1 constants
-!
-!   Solar flux partitioned at wavelength of 0.7micr
+    !
+    ! =================================================================
+    ! 1. set initial parameters
+    ! =================================================================
+    !
+    ! 1.1 constants
+    !
+    ! Solar flux partitioned at wavelength of 0.7micr
     fsol1 = 0.5D0
     fsol2 = 0.5D0
-!   Short and long wave albedo for new snow
+    ! Short and long wave albedo for new snow
     snal0 = 0.95D0
     snal1 = 0.65D0
-!   Short and long wave albedo for sea ice
+    ! Short and long wave albedo for sea ice
     sical0 = 0.6D0
     sical1 = 0.4D0
-!
-!   Desert seasonal albedo
-!   Works for Sahara desert and generally northern emisphere
-!   In souther emisphere only some points have this class
-!
+    !
+    ! Desert seasonal albedo
+    ! Works for Sahara desert and generally northern emisphere
+    ! In souther emisphere only some points have this class
+    !
     if ( ldesseas ) then
       if ( imon == 1 .or. imon == 2 .or. imon == 12 ) then
         solour(1) = 0.12D0
@@ -777,207 +778,191 @@ module mod_bats_vecbats
         solour(1) = 0.15D0
       endif
     end if
-!
-!   In depth, wt is frac of grid square covered by snow;
-!   depends on average snow depth, vegetation, etc.
-!
-    call depth
-!
-!   1.2  set default vegetation and albedo
-! 
-    do i = 2 , iym1
-      czen(i) = dmax1(coszrs(i),d_zero)
-      czeta = czen(i)
-      do n = 1 , nnsg
-        albgs = d_zero
-        albgl = d_zero
-        albgsd = d_zero
-        albgld = d_zero
-        albs = d_zero
-        albl = d_zero
-        albsd = d_zero
-        albld = d_zero
+    !
+    ! In depth, wt is frac of grid square covered by snow;
+    ! depends on average snow depth, vegetation, etc.
+    !
+    call depth(jstart,jend,istart,iend)
+    !
+    ! 1.2  set default vegetation and albedo
+    ! 
+    do i = istart , iend
+      do j = jstart , jend
+        czen(i) = dmax1(coszrs(i),d_zero)
+        czeta = czen(i)
+        do n = 1 , nnsg
+          albgs = d_zero
+          albgl = d_zero
+          albgsd = d_zero
+          albgld = d_zero
+          albs = d_zero
+          albl = d_zero
+          albsd = d_zero
+          albld = d_zero
  
-        albvs_s(n) = d_zero
-        albvl_s(n) = d_zero
-! 
-!================================================================
-!       2.   get albedo over land
-!================================================================
-!
-        if ( ldoc1d(n,i) == 2 ) then
-          tdiffs = ts1d(n,i) - tzero
-          tdiff = dmax1(tdiffs,d_zero)
-          tdiffs = dmin1(tdiff,20.0D0)
-          albgl = sical1 - 1.1D-2*tdiffs
-          albgs = sical0 - 2.45D-2*tdiffs
-          albg = fsol1*albgs + fsol2*albgl
-          albgsd = albgs
-          albgld = albgl
-        else if ( ldoc1d(n,i) == 1 ) then
-          sfac = d_one - fseas(tgb1d(n,i))
-!
-!         ccm tests here on land mask for veg and soils data
-!     *** reduces albedo at low temps !!!!!
-!         should respond to moisture too (commented out) (pat, 27 oct 86)
-!         veg1d(i) = vegc(lveg(i)) - seasf(lveg(i)) * sfac
-!
-          albs = albvgs(lveg(n,i))
-          albl = albvgl(lveg(n,i))
- 
-!----------------------------------------------------------------------
-          if ( (lveg(n,i) < 12) .or. (lveg(n,i) > 15) ) then
-
-!           2.1  bare soil albedos
-!           (soil albedo depends on moisture)
-            kolour = kolsol(lveg(n,i))
-            wet = ssw1d(n,i)/depuv(lveg(n,i))
-            alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
-            alwet = dmin1(alwet,solour(kolour))
-            albg = solour(kolour) + alwet
-            albgs = albg
-            albgl = d_two*albg
-
-!           higher nir albedos set diffuse albedo
-            albgld = albgl
+          albvs_s(n) = d_zero
+          albvl_s(n) = d_zero
+          ! 
+          !================================================================
+          !       2.   get albedo over land
+          !================================================================
+          !
+          if ( ldoc1d(n,i) == 2 ) then
+            tdiffs = ts1d(n,i) - tzero
+            tdiff = dmax1(tdiffs,d_zero)
+            tdiffs = dmin1(tdiff,20.0D0)
+            albgl = sical1 - 1.1D-2*tdiffs
+            albgs = sical0 - 2.45D-2*tdiffs
+            albg = fsol1*albgs + fsol2*albgl
             albgsd = albgs
-            albsd = albs
-            albld = albl
-!           Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*czen(i))
-!           Dec. 12, 2008
-            albzn = d_one
-!           Dec. 15, 2008
-!
-!           leafless hardwood canopy: no or inverse zen dep
-            if ( lveg(n,i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
-!           multiply by zenith angle correction
-            albs = albs*albzn
-            albl = albl*albzn
-
-!           albedo over vegetation after zenith angle corr
-            albvs_s(n) = albs
-            albvl_s(n) = albl
-
-          else if ( lveg(n,i) == 12 ) then
- 
-!           2.2   permanent ice sheet
-            albgs = 0.8D0
-            albgsd = 0.8D0
-            albgl = 0.55D0
-            albgld = 0.55D0
-          else
- 
-!           2.3  inland water, swamps, rice paddies etc.
-            albg = 0.05D0/(czeta+0.15D0)
-            albgs = albg
-            albgsd = albg
-            albgl = albg
-            albgld = albg
+            albgld = albgl
+          else if ( ldoc1d(n,i) == 1 ) then
+            sfac = d_one - fseas(tgb1d(n,i))
+            !
+            ! ccm tests here on land mask for veg and soils data
+            ! reduces albedo at low temps !!!!!
+            ! should respond to moisture too (commented out) (pat, 27 oct 86)
+            ! veg1d(i) = vegc(lveg(i)) - seasf(lveg(i)) * sfac
+            !
+            albs = albvgs(lveg(n,i))
+            albl = albvgl(lveg(n,i))
+            !---------------------------------------------------------------
+            if ( (lveg(n,i) < 12) .or. (lveg(n,i) > 15) ) then
+              ! 2.1  bare soil albedos
+              !      (soil albedo depends on moisture)
+              kolour = kolsol(lveg(n,i))
+              wet = ssw1d(n,i)/depuv(lveg(n,i))
+              alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
+              alwet = dmin1(alwet,solour(kolour))
+              albg = solour(kolour) + alwet
+              albgs = albg
+              albgl = d_two*albg
+              ! higher nir albedos set diffuse albedo
+              albgld = albgl
+              albgsd = albgs
+              albsd = albs
+              albld = albl
+              ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*czen(i))
+              ! Dec. 12, 2008
+              albzn = d_one
+              ! Dec. 15, 2008
+              !
+              ! leafless hardwood canopy: no or inverse zen dep
+              if ( lveg(n,i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
+              ! multiply by zenith angle correction
+              albs = albs*albzn
+              albl = albl*albzn
+              ! albedo over vegetation after zenith angle corr
+              albvs_s(n) = albs
+              albvl_s(n) = albl
+            else if ( lveg(n,i) == 12 ) then
+              ! 2.2   permanent ice sheet
+              albgs = 0.8D0
+              albgsd = 0.8D0
+              albgl = 0.55D0
+              albgld = 0.55D0
+            else
+              ! 2.3  inland water, swamps, rice paddies etc.
+              albg = 0.05D0/(czeta+0.15D0)
+              albgs = albg
+              albgsd = albg
+              albgl = albg
+              albgld = albg
+            end if
           end if
- 
-        end if
-
-! ===================================================================
-!       4.  correct for snow cover
-! ===================================================================
-
-        if ( scv1d(n,i) > d_zero ) then
-!         Snow albedo depends on snow-age, zenith angle, and thickness of snow
-!         snow albedoes for visible and ir solar rad
-!         visible albedo depends on snow age
-!         age gives reduction of visible rad snow albedo due to age
-          cons = 0.2D0
-          conn = 0.5D0
-          age = (d_one-d_one/(d_one+sag1d(n,i)))
-!         sl helps control albedo zenith dependence
-          sl = d_two
-          sli = d_one/sl
-          sl2 = d_two*sl
-!         snal0= new snow albedo for vis rad, sol zen le 6
-!         snal1= new snow albedo for long-wave rad
-          dfalbs = snal0*(d_one-cons*age)
-!         czf corrects albedo of new snow for solar zenith
-          cf1 = ((d_one+sli)/(d_one+sl2*czen(i))-sli)
-          cff = dmax1(cf1,d_zero)
-          czf = 0.4D0*cff*(d_one-dfalbs)
-          dralbs = dfalbs + czf
-          dfalbl = snal1*(d_one-conn*age)
-          czf = 0.4D0*cff*(d_one-dfalbl)
-          dralbl = dfalbl + czf
- 
-          if ( veg1d(n,i) > 0.001D0 ) then
-!           effective albedo over vegetation with snow
-            albl = (d_one-wt(n,i))*albl + dralbl*wt(n,i)
-            albld = (d_one-wt(n,i))*albld + dfalbl*wt(n,i)
-            albs = (d_one-wt(n,i))*albs + dralbs*wt(n,i)
-            albsd = (d_one-wt(n,i))*albsd + dfalbs*wt(n,i)
+          ! ===================================================================
+          ! 4.  correct for snow cover
+          ! ===================================================================
+          if ( scv1d(n,i) > d_zero ) then
+            ! Snow albedo depends on snow-age, zenith angle, and thickness
+            ! of snow. snow albedoes for visible and ir solar rad visible
+            ! albedo depends on snow age
+            ! age gives reduction of visible rad snow albedo due to age
+            cons = 0.2D0
+            conn = 0.5D0
+            age = (d_one-d_one/(d_one+sag1d(n,i)))
+            ! sl helps control albedo zenith dependence
+            sl = d_two
+            sli = d_one/sl
+            sl2 = d_two*sl
+            ! snal0= new snow albedo for vis rad, sol zen le 6
+            ! snal1= new snow albedo for long-wave rad
+            dfalbs = snal0*(d_one-cons*age)
+            ! czf corrects albedo of new snow for solar zenith
+            cf1 = ((d_one+sli)/(d_one+sl2*czen(i))-sli)
+            cff = dmax1(cf1,d_zero)
+            czf = 0.4D0*cff*(d_one-dfalbs)
+            dralbs = dfalbs + czf
+            dfalbl = snal1*(d_one-conn*age)
+            czf = 0.4D0*cff*(d_one-dfalbl)
+            dralbl = dfalbl + czf
+            if ( veg1d(n,i) > 0.001D0 ) then
+              ! effective albedo over vegetation with snow
+              albl = (d_one-wt(n,i))*albl + dralbl*wt(n,i)
+              albld = (d_one-wt(n,i))*albld + dfalbl*wt(n,i)
+              albs = (d_one-wt(n,i))*albs + dralbs*wt(n,i)
+              albsd = (d_one-wt(n,i))*albsd + dfalbs*wt(n,i)
+            end if
+            !----------------------------------------------------------------
+            !         4.1  compute albedo for snow on bare ground
+            !----------------------------------------------------------------
+            albgs = (d_one-scvk(n,i))*albgs + dralbs*scvk(n,i)
+            albgl = (d_one-scvk(n,i))*albgl + dralbl*scvk(n,i)
+            albgsd = (d_one-scvk(n,i))*albgsd + dfalbs*scvk(n,i)
+            albgld = (d_one-scvk(n,i))*albgld + dfalbl*scvk(n,i)
           end if
- 
-!----------------------------------------------------------------------
-!         4.1  compute albedo for snow on bare ground
-!----------------------------------------------------------------------
+          !=====================================================================
+          !       5.  albedo over open ocean
+          !=====================================================================
 
-          albgs = (d_one-scvk(n,i))*albgs + dralbs*scvk(n,i)
-          albgl = (d_one-scvk(n,i))*albgl + dralbl*scvk(n,i)
-          albgsd = (d_one-scvk(n,i))*albgsd + dfalbs*scvk(n,i)
-          albgld = (d_one-scvk(n,i))*albgld + dfalbl*scvk(n,i)
-
-        end if
- 
-!=====================================================================
-!       5.  albedo over open ocean
-!=====================================================================
-
-        if ( ldoc1d(n,i) == 0 ) then
-!         ocean albedo depends on zenith angle
-          if ( czeta >= d_zero ) then
-!           albedo independent of wavelength
-            albg = 0.05D0/(czeta+0.15D0)
-            albgs = albg
-            albgl = albg
-            albgsd = 0.08D0
-            albgld = 0.08D0
+          if ( ldoc1d(n,i) == 0 ) then
+            ! ocean albedo depends on zenith angle
+            if ( czeta >= d_zero ) then
+              ! albedo independent of wavelength
+              albg = 0.05D0/(czeta+0.15D0)
+              albgs = albg
+              albgl = albg
+              albgsd = 0.08D0
+              albgld = 0.08D0
+            end if
           end if
-        end if
-!
-!       not part of albedo in the ccm
-!
-        aldirs_s(n) = (d_one-veg1d(n,i))*albgs + veg1d(n,i)*albs
-        aldirl_s(n) = (d_one-veg1d(n,i))*albgl + veg1d(n,i)*albl
-        aldifs_s(n) = (d_one-veg1d(n,i))*albgsd + veg1d(n,i)*albsd
-        aldifl_s(n) = (d_one-veg1d(n,i))*albgld + veg1d(n,i)*albld
-!
+          !
+          ! not part of albedo in the ccm
+          !
+          aldirs_s(n) = (d_one-veg1d(n,i))*albgs + veg1d(n,i)*albs
+          aldirl_s(n) = (d_one-veg1d(n,i))*albgl + veg1d(n,i)*albl
+          aldifs_s(n) = (d_one-veg1d(n,i))*albgsd + veg1d(n,i)*albsd
+          aldifl_s(n) = (d_one-veg1d(n,i))*albgld + veg1d(n,i)*albld
+        end do
+        albvs(i) = albvs_s(1)
+        albvl(i) = albvl_s(1)
+        aldirs(i) = aldirs_s(1)
+        aldirl(i) = aldirl_s(1)
+        aldifs(i) = aldifs_s(1)
+        aldifl(i) = aldifl_s(1)
+        if ( lemiss ) emiss(i) = emiss2d(1,i,j)
+        aldirs1d(1,i) = aldirs_s(1)
+        aldifs1d(1,i) = aldifs_s(1)
+        do n = 2 , nnsg
+          albvs(i) = albvs(i) + albvs_s(n)
+          albvl(i) = albvl(i) + albvl_s(n)
+          aldirs(i) = aldirs(i) + aldirs_s(n)
+          aldirl(i) = aldirl(i) + aldirl_s(n)
+          aldifs(i) = aldifs(i) + aldifs_s(n)
+          aldifl(i) = aldifl(i) + aldifl_s(n)
+          if ( lemiss ) emiss(i) = emiss(i) + emiss2d(n,i,j)
+          aldirs1d(n,i) = aldirs_s(n)
+          aldifs1d(n,i) = aldifs_s(n)
+        end do
+        albvs(i) = albvs(i)*rdnnsg
+        albvl(i) = albvl(i)*rdnnsg
+        aldirs(i) = aldirs(i)*rdnnsg
+        aldirl(i) = aldirl(i)*rdnnsg
+        aldifs(i) = aldifs(i)*rdnnsg
+        aldifl(i) = aldifl(i)*rdnnsg
+        if ( lemiss ) emiss(i) = emiss(i)*rdnnsg
+        ! fsw1d(i),sabveg(i),solis(i) computed in colrad
       end do
-      albvs(i) = albvs_s(1)
-      albvl(i) = albvl_s(1)
-      aldirs(i) = aldirs_s(1)
-      aldirl(i) = aldirl_s(1)
-      aldifs(i) = aldifs_s(1)
-      aldifl(i) = aldifl_s(1)
-      if ( lemiss ) emiss(i) = emiss2d(1,i,j)
-      aldirs1d(1,i) = aldirs_s(1)
-      aldifs1d(1,i) = aldifs_s(1)
-      do n = 2 , nnsg
-        albvs(i) = albvs(i) + albvs_s(n)
-        albvl(i) = albvl(i) + albvl_s(n)
-        aldirs(i) = aldirs(i) + aldirs_s(n)
-        aldirl(i) = aldirl(i) + aldirl_s(n)
-        aldifs(i) = aldifs(i) + aldifs_s(n)
-        aldifl(i) = aldifl(i) + aldifl_s(n)
-        if ( lemiss ) emiss(i) = emiss(i) + emiss2d(n,i,j)
-        aldirs1d(n,i) = aldirs_s(n)
-        aldifs1d(n,i) = aldifs_s(n)
-      end do
-      albvs(i) = albvs(i)*rdnnsg
-      albvl(i) = albvl(i)*rdnnsg
-      aldirs(i) = aldirs(i)*rdnnsg
-      aldirl(i) = aldirl(i)*rdnnsg
-      aldifs(i) = aldifs(i)*rdnnsg
-      aldifl(i) = aldifl(i)*rdnnsg
-      if ( lemiss ) emiss(i) = emiss(i)*rdnnsg
- 
-!     fsw1d(i),sabveg(i),solis(i) computed in colrad
- 
     end do
  
     call time_end(subroutine_name,idindx)
@@ -1000,12 +985,11 @@ module mod_bats_vecbats
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine soilbc
-!
+  subroutine soilbc(jstart,jend,istart,iend)
     implicit none
-!
+    integer , intent(in) :: jstart , jend , istart , iend
     real(dp) :: ck , dmax , dmin , dmnor , phi0 , tweak1
-    integer :: itex , n , i
+    integer :: itex , n , i , j
 !
 !   ================================================================
 !   new soils data as a fn of texture make porosity, soil suction,
@@ -1020,34 +1004,36 @@ module mod_bats_vecbats
 !
     call time_begin(subroutine_name,idindx)
  
-    do i = 2 , iym1
-      do n = 1 , nnsg
-        if ( ldoc1d(n,i) /= 0 ) then
-!         lveg is set in subr. interf
-          freza(lveg(n,i)) = 0.15D0*deprv(lveg(n,i))
-          frezu(lveg(n,i)) = 0.15D0*depuv(lveg(n,i))
-          itex = iexsol(lveg(n,i))
-          texrat(n,i) = skrat(itex)
-          porsl(n,i) = xmopor(itex)
-          xkmx(n,i) = xmohyd(itex)
-          bsw(n,i) = bee(itex)
-          bfc(n,i) = 5.8D0 - bsw(n,i)*(0.8D0+0.12D0*(bsw(n,i)-d_four)* &
-                     dlog10(1.0D2*xkmx(n,i)))
-          phi0 = xmosuc(itex)
-          dmax = bsw(n,i)*phi0*xkmx(n,i)/porsl(n,i)
-          dmin = 1.0D-3
-          dmnor = 1550.0D0*dmin/dmax
-          tweak1 = (bsw(n,i)*(bsw(n,i)-6.0D0)+10.3D0) / &
-                   (bsw(n,i)*bsw(n,i)+40.0D0*bsw(n,i))
-          ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
-          evmx0(n,i) = 1.02D0*dmax*ck/dsqrt(depuv(lveg(n,i))*deprv(lveg(n,i)))
-          gwmx0(n,i) = depuv(lveg(n,i))*porsl(n,i)
-          gwmx1(n,i) = deprv(lveg(n,i))*porsl(n,i)
-          gwmx2(n,i) = deptv(lveg(n,i))*porsl(n,i)
-          wiltr(n,i) = xmowil(itex)
-!         force irrigated crop to be at field capacity
-          relfc(n,i) = xmofc(itex)
-        end if
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          if ( ldoc1d(n,i) /= 0 ) then
+            ! lveg is set in subr. interf
+            freza(lveg(n,i)) = 0.15D0*deprv(lveg(n,i))
+            frezu(lveg(n,i)) = 0.15D0*depuv(lveg(n,i))
+            itex = iexsol(lveg(n,i))
+            texrat(n,i) = skrat(itex)
+            porsl(n,i) = xmopor(itex)
+            xkmx(n,i) = xmohyd(itex)
+            bsw(n,i) = bee(itex)
+            bfc(n,i) = 5.8D0 - bsw(n,i)*(0.8D0+0.12D0*(bsw(n,i)-d_four)* &
+                       dlog10(1.0D2*xkmx(n,i)))
+            phi0 = xmosuc(itex)
+            dmax = bsw(n,i)*phi0*xkmx(n,i)/porsl(n,i)
+            dmin = 1.0D-3
+            dmnor = 1550.0D0*dmin/dmax
+            tweak1 = (bsw(n,i)*(bsw(n,i)-6.0D0)+10.3D0) / &
+                     (bsw(n,i)*bsw(n,i)+40.0D0*bsw(n,i))
+            ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
+            evmx0(n,i) = 1.02D0*dmax*ck/dsqrt(depuv(lveg(n,i))*deprv(lveg(n,i)))
+            gwmx0(n,i) = depuv(lveg(n,i))*porsl(n,i)
+            gwmx1(n,i) = deprv(lveg(n,i))*porsl(n,i)
+            gwmx2(n,i) = deptv(lveg(n,i))*porsl(n,i)
+            wiltr(n,i) = xmowil(itex)
+            ! force irrigated crop to be at field capacity
+            relfc(n,i) = xmofc(itex)
+          end if
+        end do
       end do
     end do
  
@@ -1119,29 +1105,29 @@ module mod_bats_vecbats
 ! This is taken from subroutine interf so that radiation can be
 ! called in tend (not vecbats).
 !
-  subroutine slice1D(j)
-! 
+  subroutine slice1D(jstart,jend,istart,iend)
     implicit none
-!
-    integer , intent(in) :: j
+    integer , intent(in) :: jstart , jend , istart , iend
 !
     real(dp) :: amxtem , sfac
-    integer :: n , i
-    do i = 2 , iym1
-      do n = 1 , nnsg
-        ldoc1d(n,i) = ocld2d(n,i,j)
-        sice1d(n,i) = sice2d(n,i,j)
-        tgb1d(n,i) = tgb2d(n,i,j)
-        ssw1d(n,i) = ssw2d(n,i,j)
-        lveg(n,i) = veg2d1(n,i,j)
-        oveg(n,i) = lveg(n,i)
-        if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
-        amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
-        sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
-        veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
-        ts1d(n,i) = thatm(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-ht(i,j))
-        scv1d(n,i) = scv2d(n,i,j)
-        sag1d(n,i) = sag2d(n,i,j)
+    integer :: n , i , j
+    do i = istart , iend
+      do j = jstart , jend
+        do n = 1 , nnsg
+          ldoc1d(n,i) = ocld2d(n,i,j)
+          sice1d(n,i) = sice2d(n,i,j)
+          tgb1d(n,i) = tgb2d(n,i,j)
+          ssw1d(n,i) = ssw2d(n,i,j)
+          lveg(n,i) = veg2d1(n,i,j)
+          oveg(n,i) = lveg(n,i)
+          if ( ldoc1d(n,i) == 2 ) lveg(n,i) = 12
+          amxtem = dmax1(298.0D0-tgb1d(n,i),d_zero)
+          sfac = d_one - dmax1(d_zero,d_one-0.0016D0*amxtem**d_two)
+          veg1d(n,i) = vegc(lveg(n,i)) - seasf(lveg(n,i))*sfac
+          ts1d(n,i) = thatm(i,kz,j)-6.5D-3*regrav*(ht1(n,i,j)-ht(i,j))
+          scv1d(n,i) = scv2d(n,i,j)
+          sag1d(n,i) = sag2d(n,i,j)
+        end do
       end do
     end do
 !

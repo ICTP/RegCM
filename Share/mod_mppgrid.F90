@@ -90,11 +90,16 @@ module mod_mppgrid
     integer :: lhb = mpi_proc_null
     integer :: lhs = mpi_proc_null
     integer :: rhs = mpi_proc_null
+  end type processor_domain
+
+  type procbounds
     integer :: icompstart
     integer :: icompend
+    integer :: icompnp
     integer :: jcompstart
     integer :: jcompend
-  end type processor_domain
+    integer :: jcompnp
+  end type procbounds
 
   integer :: csize                                                          
   integer :: gsize                                                          
@@ -128,6 +133,7 @@ module mod_mppgrid
   type (model_domain) :: gspace
   type (processor_domain) :: pspace
   type (masternode) :: mnode
+  type (procbounds) , protected :: pbnds
 
   interface getgrid
     module procedure getgrid2d_d
@@ -350,20 +356,20 @@ module mod_mppgrid
       if ( xproc%total_cpus > 1 ) then
         ! Some trivial cases
         if ( xproc%total_cpus == 2 ) then
-          xproc%cpus_per_dim(1) = 1
-          xproc%cpus_per_dim(2) = 2
+          xproc%cpus_per_dim(1) = 2
+          xproc%cpus_per_dim(2) = 1
         else if ( xproc%total_cpus == 3 ) then
           if ( gspace%g_i > gspace%g_j ) then
-            xproc%cpus_per_dim(1) = 3
-            xproc%cpus_per_dim(2) = 1
-          else
             xproc%cpus_per_dim(1) = 1
             xproc%cpus_per_dim(2) = 3
+          else
+            xproc%cpus_per_dim(1) = 3
+            xproc%cpus_per_dim(2) = 1
           end if
         else
           dimfac = real(gspace%g_j)/real(gspace%g_i+real(gspace%g_j))
-          xproc%cpus_per_dim(2) = int(real(xproc%total_cpus)**dimfac)
-          xproc%cpus_per_dim(1) = xproc%total_cpus / xproc%cpus_per_dim(2)
+          xproc%cpus_per_dim(1) = int(real(xproc%total_cpus)**dimfac)
+          xproc%cpus_per_dim(2) = xproc%total_cpus / xproc%cpus_per_dim(1)
         end if
       end if
       imaxcpus = xproc%cpus_per_dim(1)*xproc%cpus_per_dim(2)
@@ -375,7 +381,7 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__,'Scheme not working')
       end if
       if ( iband == 1 ) then
-        xproc%dim_period(2) = .true.
+        xproc%dim_period(1) = .true.
       end if
       call mpi_cart_create(gspace%global_communicator,2,               &
                            xproc%cpus_per_dim,xproc%dim_period,.true., &
@@ -387,38 +393,40 @@ module mod_mppgrid
       call mpi_cart_coords(pspace%cartesian_communicator, &
                            pspace%cartesian_rank,2,pspace%location,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
-      jbj = gspace%g_j / xproc%cpus_per_dim(2)
-      jbi = gspace%g_i / xproc%cpus_per_dim(1)
-      pspace%g_j1 = pspace%location(2) * jbj + 1
-      pspace%g_i1 = pspace%location(1) * jbi + 1
-      max_pj = xproc%cpus_per_dim(2) - 1
-      max_pi = xproc%cpus_per_dim(1) - 1
-      if ( pspace%location(2) == max_pj ) then
+      jbj = gspace%g_j / xproc%cpus_per_dim(1)
+      jbi = gspace%g_i / xproc%cpus_per_dim(2)
+      pspace%g_j1 = pspace%location(1) * jbj + 1
+      pspace%g_i1 = pspace%location(2) * jbi + 1
+      max_pj = xproc%cpus_per_dim(1) - 1
+      max_pi = xproc%cpus_per_dim(2) - 1
+      if ( pspace%location(1) == max_pj ) then
         pspace%p_j = jbj + mod(gspace%g_j,jbj)
       else
         pspace%p_j = jbj
       end if
-      if ( pspace%location(1) == max_pi ) then
+      if ( pspace%location(2) == max_pi ) then
         pspace%p_i = jbi + mod(gspace%g_i,jbi)
       else
         pspace%p_i = jbi
       end if
       pspace%totalpoints = pspace%p_i*pspace%p_j
+      pbnds%icompnp = pspace%p_i
+      pbnds%jcompnp = pspace%p_j
       if ( xproc%total_cpus > 1 ) then
         ! Search neigh processors ranks
-        if ( pspace%location(1) < max_pi ) then
-          search_coord(1) = pspace%location(1) + 1
-          search_coord(2) = pspace%location(2)
+        if ( pspace%location(2) < max_pi ) then
+          search_coord(1) = pspace%location(1)
+          search_coord(2) = pspace%location(2) + 1
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
                              pspace%top,ierr)
-          pspace%icompend = pspace%p_i
+          pbnds%icompend = pspace%p_i
         else
-          pspace%icompend = pspace%p_i-1
+          pbnds%icompend = pspace%p_i-1
         end if
-        if ( pspace%location(1) < max_pi .and. &
-            (pspace%location(2) > 0 .or. iband == 1) ) then
-          search_coord(1) = pspace%location(1) + 1
-          search_coord(2) = pspace%location(2) - 1
+        if ( pspace%location(2) < max_pi .and. &
+            (pspace%location(1) > 0 .or. iband == 1) ) then
+          search_coord(1) = pspace%location(1) - 1
+          search_coord(2) = pspace%location(2) + 1
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
                              pspace%lht,ierr)
         end if
@@ -429,42 +437,42 @@ module mod_mppgrid
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
                              pspace%rht,ierr)
         end if
-        if ( pspace%location(2) < max_pj .or. iband == 1 ) then
-          search_coord(1) = pspace%location(1)
-          search_coord(2) = pspace%location(2) + 1
+        if ( pspace%location(1) < max_pj .or. iband == 1 ) then
+          search_coord(1) = pspace%location(1) + 1
+          search_coord(2) = pspace%location(2)
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
                              pspace%rhs,ierr)
-          pspace%jcompend = pspace%p_j
+          pbnds%jcompend = pspace%p_j
         else
-          pspace%jcompend = pspace%p_j-1
+          pbnds%jcompend = pspace%p_j-1
         end if
-        if ( pspace%location(2) > 0 .or. iband == 1 ) then
-          search_coord(1) = pspace%location(1)
-          search_coord(2) = pspace%location(2) - 1
-          call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
-                             pspace%lhs,ierr)
-          pspace%jcompstart = 1
-        else
-          pspace%jcompstart = 2
-        end if
-        if ( pspace%location(1) > 0 ) then
+        if ( pspace%location(1) > 0 .or. iband == 1 ) then
           search_coord(1) = pspace%location(1) - 1
           search_coord(2) = pspace%location(2)
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
-                             pspace%btm,ierr)
-          pspace%icompstart = 1
+                             pspace%lhs,ierr)
+          pbnds%jcompstart = 1
         else
-          pspace%icompstart = 2
+          pbnds%jcompstart = 2
         end if
-        if ( pspace%location(1) > 0 .and. &
-            (pspace%location(2) < max_pj .or. iband == 1) ) then
-          search_coord(1) = pspace%location(1) - 1
-          search_coord(2) = pspace%location(2) + 1
+        if ( pspace%location(2) > 0 ) then
+          search_coord(1) = pspace%location(1)
+          search_coord(2) = pspace%location(2) - 1
+          call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
+                             pspace%btm,ierr)
+          pbnds%icompstart = 1
+        else
+          pbnds%icompstart = 2
+        end if
+        if ( pspace%location(2) > 0 .and. &
+            (pspace%location(1) < max_pj .or. iband == 1) ) then
+          search_coord(1) = pspace%location(1) + 1
+          search_coord(2) = pspace%location(2) - 1
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
                            pspace%rhb,ierr)
         end if
-        if ( pspace%location(1) > 0 .and. &
-            (pspace%location(2) > 0 .or. iband == 1) ) then
+        if ( pspace%location(2) > 0 .and. &
+            (pspace%location(1) > 0 .or. iband == 1) ) then
           search_coord(1) = pspace%location(1) - 1
           search_coord(2) = pspace%location(2) - 1
           call mpi_cart_rank(pspace%cartesian_communicator,search_coord, &
@@ -474,16 +482,16 @@ module mod_mppgrid
         if ( iband == 1 ) then
           pspace%rhs = pspace%cartesian_rank
           pspace%lhs = pspace%cartesian_rank
-          pspace%jcompstart = 1
-          pspace%jcompend = pspace%p_j
+          pbnds%jcompstart = 1
+          pbnds%jcompend = pspace%p_j
         else
-          pspace%jcompstart = 2
-          pspace%jcompend = pspace%p_j-1
+          pbnds%jcompstart = 2
+          pbnds%jcompend = pspace%p_j-1
         end if
-        pspace%icompstart = 2
-        pspace%icompend = pspace%p_i-1
+        pbnds%icompstart = 2
+        pbnds%icompend = pspace%p_i-1
       end if
-      if ( cantalk( ) ) then
+      if ( cantalk( ) .and. .false. ) then
         write(stdout, *) '----------------------------------------------'
         write(stdout,'(a,i0,a,i0)') 'Domain decomp               : ', &
                         xproc%cpus_per_dim(1),' x ',xproc%cpus_per_dim(2)
@@ -577,7 +585,7 @@ module mod_mppgrid
       call getmem1d(excbuf2di,1,pspace%totalpoints,__FILE__)
       call getmem1d(excbuf2ds,1,pspace%totalpoints,__FILE__)
       call getmem1d(excbuf2dl,1,pspace%totalpoints,__FILE__)
-      if ( cantalk( ) ) then
+      if ( cantalk( ) .and. .false. ) then
         write(stdout, *) '----------------------------------------------'
       end if
       is_setup = .true.
@@ -660,7 +668,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem2d(g,i1,i2,j1,j2,__FILE__)
+      call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_d
 
     subroutine getgrid2d_r(g,lglobal,lexchange,lstagger)
@@ -677,7 +685,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem2d(g,i1,i2,j1,j2,__FILE__)
+      call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_r
 
     subroutine getgrid2d_i(g,lglobal,lexchange,lstagger)
@@ -694,7 +702,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem2d(g,i1,i2,j1,j2,__FILE__)
+      call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_i
 
     subroutine getgrid2d_s(g,lglobal,lexchange,lstagger)
@@ -711,7 +719,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem2d(g,i1,i2,j1,j2,__FILE__)
+      call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_s
 
     subroutine getgrid2d_l(g,lglobal,lexchange,lstagger)
@@ -728,7 +736,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem2d(g,i1,i2,j1,j2,__FILE__)
+      call getmem2d(g,j1,j2,i1,i2,__FILE__)
     end subroutine getgrid2d_l
 
     subroutine getgrid3d_d(g,k1,k2,lglobal,lexchange,lstagger)
@@ -746,7 +754,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem3d(g,i1,i2,k1,k2,j1,j2,__FILE__)
+      call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_d
 
     subroutine getgrid3d_r(g,k1,k2,lglobal,lexchange,lstagger)
@@ -764,7 +772,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem3d(g,i1,i2,k1,k2,j1,j2,__FILE__)
+      call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_r
 
     subroutine getgrid3d_i(g,k1,k2,lglobal,lexchange,lstagger)
@@ -782,7 +790,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem3d(g,i1,i2,k1,k2,j1,j2,__FILE__)
+      call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_i
 
     subroutine getgrid3d_s(g,k1,k2,lglobal,lexchange,lstagger)
@@ -800,7 +808,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem3d(g,i1,i2,k1,k2,j1,j2,__FILE__)
+      call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_s
 
     subroutine getgrid3d_l(g,k1,k2,lglobal,lexchange,lstagger)
@@ -818,7 +826,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem3d(g,i1,i2,k1,k2,j1,j2,__FILE__)
+      call getmem3d(g,j1,j2,i1,i2,k1,k2,__FILE__)
     end subroutine getgrid3d_l
 
     subroutine getgrid4d_d(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
@@ -836,7 +844,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem4d(g,i1,i2,k1,k2,t1,t2,j1,j2,__FILE__)
+      call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_d
 
     subroutine getgrid4d_r(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
@@ -854,7 +862,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem4d(g,i1,i2,k1,k2,t1,t2,j1,j2,__FILE__)
+      call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_r
 
     subroutine getgrid4d_i(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
@@ -872,7 +880,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem4d(g,i1,i2,k1,k2,t1,t2,j1,j2,__FILE__)
+      call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_i
 
     subroutine getgrid4d_s(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
@@ -890,7 +898,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem4d(g,i1,i2,k1,k2,t1,t2,j1,j2,__FILE__)
+      call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_s
 
     subroutine getgrid4d_l(g,k1,k2,t1,t2,lglobal,lexchange,lstagger)
@@ -908,7 +916,7 @@ module mod_mppgrid
       if ( present(lexchange) ) isexchange = lexchange
       if ( present(lstagger) )  isstagger  = lstagger
       call getextrema(isglobal,isexchange,isstagger,i1,i2,j1,j2)
-      call getmem4d(g,i1,i2,k1,k2,t1,t2,j1,j2,__FILE__)
+      call getmem4d(g,j1,j2,i1,i2,k1,k2,t1,t2,__FILE__)
     end subroutine getgrid4d_l
 
     subroutine exchange_internal2d_d(l)
@@ -923,50 +931,50 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nii = ubound(l,1) - 1
-      njj = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
+      nii = ubound(l,2) - 1
       if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dd(1:njj) = l(1,1:njj)
+        sndbuf1dd(1:njj) = l(1:njj,1)
       end if
       call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
                         rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
-        l(nii+1,1:njj) = rcvbuf1dd(1:njj)
+        l(1:njj,nii+1) = rcvbuf1dd(1:njj)
       end if
       if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dd(1:nii) = l(1:nii,njj)
+        sndbuf1dd(1:nii) = l(njj,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
                         rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
-        l(1:nii,0) = rcvbuf1dd(1:nii)
+        l(0,1:nii) = rcvbuf1dd(1:nii)
       end if
       if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dd(1:nii) = l(1:nii,1)
+        sndbuf1dd(1:nii) = l(1,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
                         rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
-        l(1:nii,njj+1) = rcvbuf1dd(1:nii)
+        l(njj+1,1:nii) = rcvbuf1dd(1:nii)
       end if
       if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dd(1:njj) = l(nii,1:njj)
+        sndbuf1dd(1:njj) = l(1:njj,nii)
       end if
       call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
                         rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
-        l(0,1:njj) = rcvbuf1dd(1:njj)
+        l(1:njj,0) = rcvbuf1dd(1:njj)
       end if
       if ( pspace%rht /= mpi_proc_null ) then
-        sndcrnpd(1) = l(nii,njj)
+        sndcrnpd(1) = l(njj,nii)
       end if
       call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rht,1, &
                         rcvcrnpd,1,mpi_real8,pspace%lhb,1, &
@@ -983,27 +991,27 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        l(nii+1,njj+1) = rcvcrnpd(1)
+        l(njj+1,nii+1) = rcvcrnpd(1)
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        sndcrnpd(1) = l(1,njj)
+        sndcrnpd(1) = l(njj,1)
       end if
       call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rhb,3, &
                         rcvcrnpd,1,mpi_real8,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        l(nii+1,0) = rcvcrnpd(1)
+        l(0,nii+1) = rcvcrnpd(1)
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        sndcrnpd(1) = l(nii,1)
+        sndcrnpd(1) = l(1,nii)
       end if
       call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%lht,4, &
                         rcvcrnpd,1,mpi_real8,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        l(0,njj+1) = rcvcrnpd(1)
+        l(njj+1,0) = rcvcrnpd(1)
       end if
     end subroutine exchange_internal2d_d
 
@@ -1019,50 +1027,50 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nii = ubound(l,1) - 1
-      njj = ubound(l,2) - 1
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dr(1:njj) = l(1,1:njj)
+        sndbuf1dr(1:njj) = l(1:njj,1)
       end if
       call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
                         rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
-        l(nii+1,1:njj) = rcvbuf1dr(1:njj)
+        l(1:njj,nii+1) = rcvbuf1dr(1:njj)
       end if
       if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dr(1:nii) = l(1:nii,njj)
+        sndbuf1dr(1:nii) = l(njj,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
                         rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
-        l(1:nii,0) = rcvbuf1dr(1:nii)
+        l(0,1:nii) = rcvbuf1dr(1:nii)
       end if
       if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dr(1:nii) = l(1:nii,1)
+        sndbuf1dr(1:nii) = l(1,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
                         rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
-        l(1:nii,njj+1) = rcvbuf1dr(1:nii)
+        l(njj+1,1:nii) = rcvbuf1dr(1:nii)
       end if
       if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dr(1:njj) = l(nii,1:njj)
+        sndbuf1dr(1:njj) = l(1:njj,nii)
       end if
       call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
                         rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
-        l(0,1:njj) = rcvbuf1dr(1:njj)
+        l(1:njj,0) = rcvbuf1dr(1:njj)
       end if
       if ( pspace%rht /= mpi_proc_null ) then
-        sndcrnpr(1) = l(nii,njj)
+        sndcrnpr(1) = l(njj,nii)
       end if
       call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rht,1, &
                         rcvcrnpr,1,mpi_real4,pspace%lhb,1, &
@@ -1079,27 +1087,27 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        l(nii+1,njj+1) = rcvcrnpr(1)
+        l(njj+1,nii+1) = rcvcrnpr(1)
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        sndcrnpr(1) = l(1,njj)
+        sndcrnpr(1) = l(njj,1)
       end if
       call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rhb,3, &
                         rcvcrnpr,1,mpi_real4,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        l(nii+1,0) = rcvcrnpr(1)
+        l(0,nii+1) = rcvcrnpr(1)
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        sndcrnpr(1) = l(nii,1)
+        sndcrnpr(1) = l(1,nii)
       end if
       call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%lht,4, &
                         rcvcrnpr,1,mpi_real4,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        l(0,njj+1) = rcvcrnpr(1)
+        l(njj+1,0) = rcvcrnpr(1)
       end if
     end subroutine exchange_internal2d_r
 
@@ -1115,50 +1123,50 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nii = ubound(l,1) - 1
-      njj = ubound(l,2) - 1
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1di(1:njj) = l(1,1:njj)
+        sndbuf1di(1:njj) = l(1:njj,1)
       end if
       call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1,&
                         rcvbuf1di,csize,mpi_integer,pspace%top,1,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
-        l(nii+1,1:njj) = rcvbuf1di(1:njj)
+        l(1:njj,nii+1) = rcvbuf1di(1:njj)
       end if
       if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1di(1:nii) = l(1:nii,njj)
+        sndbuf1di(1:nii) = l(njj,1:nii)
       end if
       call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2,&
                         rcvbuf1di,csize,mpi_integer,pspace%lhs,2,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
-        l(1:nii,0) = rcvbuf1di(1:nii)
+        l(0,1:nii) = rcvbuf1di(1:nii)
       end if
       if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1di(1:nii) = l(1:nii,1)
+        sndbuf1di(1:nii) = l(1,1:nii)
       end if
       call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3,&
                         rcvbuf1di,csize,mpi_integer,pspace%rhs,3,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
-        l(1:nii,njj+1) = rcvbuf1di(1:nii)
+        l(njj+1,1:nii) = rcvbuf1di(1:nii)
       end if
       if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1di(1:njj) = l(nii,1:njj)
+        sndbuf1di(1:njj) = l(1:njj,nii)
       end if
       call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4,&
                         rcvbuf1di,csize,mpi_integer,pspace%btm,4,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
-        l(0,1:njj) = rcvbuf1di(1:njj)
+        l(1:njj,0) = rcvbuf1di(1:njj)
       end if
       if ( pspace%rht /= mpi_proc_null ) then
-        sndcrnpi(1) = l(nii,njj)
+        sndcrnpi(1) = l(njj,nii)
       end if
       call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rht,1, &
                         rcvcrnpi,1,mpi_integer,pspace%lhb,1, &
@@ -1175,27 +1183,27 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        l(nii+1,njj+1) = rcvcrnpi(1)
+        l(njj+1,nii+1) = rcvcrnpi(1)
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        sndcrnpi(1) = l(1,njj)
+        sndcrnpi(1) = l(njj,1)
       end if
       call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rhb,3, &
                         rcvcrnpi,1,mpi_integer,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        l(nii+1,0) = rcvcrnpi(1)
+        l(0,nii+1) = rcvcrnpi(1)
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        sndcrnpi(1) = l(nii,1)
+        sndcrnpi(1) = l(1,nii)
       end if
       call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%lht,4, &
                         rcvcrnpi,1,mpi_integer,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        l(0,njj+1) = rcvcrnpi(1)
+        l(njj+1,0) = rcvcrnpi(1)
       end if
     end subroutine exchange_internal2d_i
 
@@ -1211,50 +1219,50 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nii = ubound(l,1) - 1
-      njj = ubound(l,2) - 1
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1ds(1:njj) = l(1,1:njj)
+        sndbuf1ds(1:njj) = l(1:njj,1)
       end if
       call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1,&
                         rcvbuf1ds,csize,mpi_short,pspace%top,1,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
-        l(nii+1,1:njj) = rcvbuf1ds(1:njj)
+        l(1:njj,nii+1) = rcvbuf1ds(1:njj)
       end if
       if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1ds(1:nii) = l(1:nii,njj)
+        sndbuf1ds(1:nii) = l(njj,1:nii)
       end if
       call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2,&
                         rcvbuf1ds,csize,mpi_short,pspace%lhs,2,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
-        l(1:nii,0) = rcvbuf1ds(1:nii)
+        l(0,1:nii) = rcvbuf1ds(1:nii)
       end if
       if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1ds(1:nii) = l(1:nii,1)
+        sndbuf1ds(1:nii) = l(1,1:nii)
       end if
       call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3,&
                         rcvbuf1ds,csize,mpi_short,pspace%rhs,3,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
-        l(1:nii,njj+1) = rcvbuf1ds(1:nii)
+        l(njj+1,1:nii) = rcvbuf1ds(1:nii)
       end if
       if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1ds(1:njj) = l(nii,1:njj)
+        sndbuf1ds(1:njj) = l(1:njj,nii)
       end if
       call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4,&
                         rcvbuf1ds,csize,mpi_short,pspace%btm,4,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
-        l(0,1:njj) = rcvbuf1ds(1:njj)
+        l(1:njj,0) = rcvbuf1ds(1:njj)
       end if
       if ( pspace%rht /= mpi_proc_null ) then
-        sndcrnps(1) = l(nii,njj)
+        sndcrnps(1) = l(njj,nii)
       end if
       call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
                         rcvcrnps,1,mpi_short,pspace%lhb,1, &
@@ -1271,27 +1279,27 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        l(nii+1,njj+1) = rcvcrnps(1)
+        l(njj+1,nii+1) = rcvcrnps(1)
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        sndcrnps(1) = l(1,njj)
+        sndcrnps(1) = l(njj,1)
       end if
       call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
                         rcvcrnps,1,mpi_short,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        l(nii+1,0) = rcvcrnps(1)
+        l(0,nii+1) = rcvcrnps(1)
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        sndcrnps(1) = l(nii,1)
+        sndcrnps(1) = l(1,nii)
       end if
       call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
                         rcvcrnps,1,mpi_short,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        l(0,njj+1) = rcvcrnps(1)
+        l(njj+1,0) = rcvcrnps(1)
       end if
     end subroutine exchange_internal2d_s
 
@@ -1307,50 +1315,50 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nii = ubound(l,1) - 1
-      njj = ubound(l,2) - 1
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       if ( pspace%btm /= mpi_proc_null ) then
-        sndbuf1dl(1:njj) = l(1,1:njj)
+        sndbuf1dl(1:njj) = l(1:njj,1)
       end if
       call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1,&
                         rcvbuf1dl,csize,mpi_logical,pspace%top,1,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%top /= mpi_proc_null ) then
-        l(nii+1,1:njj) = rcvbuf1dl(1:njj)
+        l(1:njj,nii+1) = rcvbuf1dl(1:njj)
       end if
       if ( pspace%rhs /= mpi_proc_null ) then
-        sndbuf1dl(1:nii) = l(1:nii,njj)
+        sndbuf1dl(1:nii) = l(njj,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2,&
                         rcvbuf1dl,csize,mpi_logical,pspace%lhs,2,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lhs /= mpi_proc_null ) then
-        l(1:nii,0) = rcvbuf1dl(1:nii)
+        l(0,1:nii) = rcvbuf1dl(1:nii)
       end if
       if ( pspace%lhs /= mpi_proc_null ) then
-        sndbuf1dl(1:nii) = l(1:nii,1)
+        sndbuf1dl(1:nii) = l(1,1:nii)
       end if
       call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3,&
                         rcvbuf1dl,csize,mpi_logical,pspace%rhs,3,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhs /= mpi_proc_null ) then
-        l(1:nii,njj+1) = rcvbuf1dl(1:nii)
+        l(njj+1,1:nii) = rcvbuf1dl(1:nii)
       end if
       if ( pspace%top /= mpi_proc_null ) then
-        sndbuf1dl(1:njj) = l(nii,1:njj)
+        sndbuf1dl(1:njj) = l(1:njj,nii)
       end if
       call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4,&
                         rcvbuf1dl,csize,mpi_logical,pspace%btm,4,&
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%btm /= mpi_proc_null ) then
-        l(0,1:njj) = rcvbuf1dl(1:njj)
+        l(1:njj,0) = rcvbuf1dl(1:njj)
       end if
       if ( pspace%rht /= mpi_proc_null ) then
-        sndcrnpl(1) = l(nii,njj)
+        sndcrnpl(1) = l(njj,nii)
       end if
       call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rht,1, &
                         rcvcrnpl,1,mpi_logical,pspace%lhb,1, &
@@ -1367,27 +1375,27 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rht /= mpi_proc_null ) then
-        l(nii+1,njj+1) = rcvcrnpl(1)
+        l(njj+1,nii+1) = rcvcrnpl(1)
       end if
       if ( pspace%rhb /= mpi_proc_null ) then
-        sndcrnpl(1) = l(1,njj)
+        sndcrnpl(1) = l(njj,1)
       end if
       call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rhb,3, &
                         rcvcrnpl,1,mpi_logical,pspace%lht,3, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%lht /= mpi_proc_null ) then
-        l(nii+1,0) = rcvcrnpl(1)
+        l(0,nii+1) = rcvcrnpl(1)
       end if
       if ( pspace%lht /= mpi_proc_null ) then
-        sndcrnpl(1) = l(nii,1)
+        sndcrnpl(1) = l(1,nii)
       end if
       call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%lht,4, &
                         rcvcrnpl,1,mpi_logical,pspace%rhb,4, &
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
       if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
       if ( pspace%rhb /= mpi_proc_null ) then
-        l(0,njj+1) = rcvcrnpl(1)
+        l(njj+1,0) = rcvcrnpl(1)
       end if
     end subroutine exchange_internal2d_l
 
@@ -1399,93 +1407,93 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,3) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,3) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do k = nk1 , nk2
         if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dd(1:njj) = l(1,k,1:njj)
+          sndbuf1dd(1:njj) = l(1:njj,1,k)
         end if
         call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
                           rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
-          l(nii+1,k,1:njj) = rcvbuf1dd(1:njj)
+          l(1:njj,nii+1,k) = rcvbuf1dd(1:njj)
         end if
         if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dd(1:nii) = l(1:nii,k,njj)
+          sndbuf1dd(1:nii) = l(njj,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
                           rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
-          l(1:nii,k,0) = rcvbuf1dd(1:nii)
+          l(0,1:nii,k) = rcvbuf1dd(1:nii)
         end if
         if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dd(1:nii) = l(1:nii,k,1)
+          sndbuf1dd(1:nii) = l(1,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
                           rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
-          l(1:nii,k,njj+1) = rcvbuf1dd(1:nii)
+          l(njj+1,1:nii,k) = rcvbuf1dd(1:nii)
         end if
         if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dd(1:njj) = l(nii,k,1:njj)
+          sndbuf1dd(1:njj) = l(1:njj,nii,k)
         end if
         call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
                           rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
-          l(0,k,1:njj) = rcvbuf1dd(1:njj)
+          l(1:njj,0,k) = rcvbuf1dd(1:njj)
         end if
         if ( pspace%rht /= mpi_proc_null ) then
-          sndcrnpd(1) = l(nii,k,njj)
+          sndcrnpd(1) = l(njj,nii,k)
         end if
         call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rht,1, &
                           rcvcrnpd,1,mpi_real8,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          l(0,k,0) = rcvcrnpd(1)
+          l(0,0,k) = rcvcrnpd(1)
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          sndcrnpd(1) = l(1,k,1)
+          sndcrnpd(1) = l(1,1,k)
         end if
         call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%lhb,2, &
                           rcvcrnpd,1,mpi_real8,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          l(nii+1,k,njj+1) = rcvcrnpd(1)
+          l(njj+1,nii+1,k) = rcvcrnpd(1)
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          sndcrnpd(1) = l(1,k,njj)
+          sndcrnpd(1) = l(njj,1,k)
         end if
         call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rhb,3, &
                           rcvcrnpd,1,mpi_real8,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          l(nii+1,k,0) = rcvcrnpd(1)
+          l(0,nii+1,k) = rcvcrnpd(1)
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          sndcrnpd(1) = l(nii,k,1)
+          sndcrnpd(1) = l(1,nii,k)
         end if
         call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%lht,4, &
                           rcvcrnpd,1,mpi_real8,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          l(0,k,njj+1) = rcvcrnpd(1)
+          l(njj+1,0,k) = rcvcrnpd(1)
         end if
       end do
     end subroutine exchange_internal3d_d
@@ -1498,93 +1506,93 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,3) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,3) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do k = nk1 , nk2
         if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dr(1:njj) = l(1,k,1:njj)
+          sndbuf1dr(1:njj) = l(1:njj,1,k)
         end if
         call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
                           rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
-          l(nii+1,k,1:njj) = rcvbuf1dr(1:njj)
+          l(1:njj,nii+1,k) = rcvbuf1dr(1:njj)
         end if
         if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dr(1:nii) = l(1:nii,k,njj)
+          sndbuf1dr(1:nii) = l(njj,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
                           rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
-          l(1:nii,k,0) = rcvbuf1dr(1:nii)
+          l(0,1:nii,k) = rcvbuf1dr(1:nii)
         end if
         if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dr(1:nii) = l(1:nii,k,1)
+          sndbuf1dr(1:nii) = l(1,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
                           rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
-          l(1:nii,k,njj+1) = rcvbuf1dr(1:nii)
+          l(njj+1,1:nii,k) = rcvbuf1dr(1:nii)
         end if
         if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dr(1:njj) = l(nii,k,1:njj)
+          sndbuf1dr(1:njj) = l(1:njj,nii,k)
         end if
         call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
                           rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
-          l(0,k,1:njj) = rcvbuf1dr(1:njj)
+          l(1:njj,0,k) = rcvbuf1dr(1:njj)
         end if
         if ( pspace%rht /= mpi_proc_null ) then
-          sndcrnpr(1) = l(nii,k,njj)
+          sndcrnpr(1) = l(njj,nii,k)
         end if
         call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rht,1, &
                           rcvcrnpr,1,mpi_real4,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          l(0,k,0) = rcvcrnpr(1)
+          l(0,0,k) = rcvcrnpr(1)
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          sndcrnpr(1) = l(1,k,1)
+          sndcrnpr(1) = l(1,1,k)
         end if
         call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%lhb,2, &
                           rcvcrnpr,1,mpi_real4,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          l(nii+1,k,njj+1) = rcvcrnpr(1)
+          l(njj+1,nii+1,k) = rcvcrnpr(1)
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          sndcrnpr(1) = l(1,k,njj)
+          sndcrnpr(1) = l(njj,1,k)
         end if
         call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rhb,3, &
                           rcvcrnpr,1,mpi_real4,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          l(nii+1,k,0) = rcvcrnpr(1)
+          l(0,nii+1,k) = rcvcrnpr(1)
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          sndcrnpr(1) = l(nii,k,1)
+          sndcrnpr(1) = l(1,nii,k)
         end if
         call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%lht,4, &
                           rcvcrnpr,1,mpi_real4,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          l(0,k,njj+1) = rcvcrnpr(1)
+          l(njj+1,0,k) = rcvcrnpr(1)
         end if
       end do
     end subroutine exchange_internal3d_r
@@ -1597,93 +1605,93 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,3) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,3) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do k = nk1 , nk2
         if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1di(1:njj) = l(1,k,1:njj)
+          sndbuf1di(1:njj) = l(1:njj,1,k)
         end if
         call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
                           rcvbuf1di,csize,mpi_integer,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
-          l(nii+1,k,1:njj) = rcvbuf1di(1:njj)
+          l(1:njj,nii+1,k) = rcvbuf1di(1:njj)
         end if
         if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1di(1:nii) = l(1:nii,k,njj)
+          sndbuf1di(1:nii) = l(njj,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
                           rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
-          l(1:nii,k,0) = rcvbuf1di(1:nii)
+          l(0,1:nii,k) = rcvbuf1di(1:nii)
         end if
         if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1di(1:nii) = l(1:nii,k,1)
+          sndbuf1di(1:nii) = l(1,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
                           rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
-          l(1:nii,k,njj+1) = rcvbuf1di(1:nii)
+          l(njj+1,1:nii,k) = rcvbuf1di(1:nii)
         end if
         if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1di(1:njj) = l(nii,k,1:njj)
+          sndbuf1di(1:njj) = l(1:njj,nii,k)
         end if
         call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
                           rcvbuf1di,csize,mpi_integer,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
-          l(0,k,1:njj) = rcvbuf1di(1:njj)
+          l(1:njj,0,k) = rcvbuf1di(1:njj)
         end if
         if ( pspace%rht /= mpi_proc_null ) then
-          sndcrnpi(1) = l(nii,k,njj)
+          sndcrnpi(1) = l(njj,nii,k)
         end if
         call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rht,1, &
                           rcvcrnpi,1,mpi_integer,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          l(0,k,0) = rcvcrnpi(1)
+          l(0,0,k) = rcvcrnpi(1)
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          sndcrnpi(1) = l(1,k,1)
+          sndcrnpi(1) = l(1,1,k)
         end if
         call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%lhb,2, &
                           rcvcrnpi,1,mpi_integer,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          l(nii+1,k,njj+1) = rcvcrnpi(1)
+          l(njj+1,nii+1,k) = rcvcrnpi(1)
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          sndcrnpi(1) = l(1,k,njj)
+          sndcrnpi(1) = l(njj,1,k)
         end if
         call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rhb,3, &
                           rcvcrnpi,1,mpi_integer,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          l(nii+1,k,0) = rcvcrnpi(1)
+          l(0,nii+1,k) = rcvcrnpi(1)
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          sndcrnpi(1) = l(nii,k,1)
+          sndcrnpi(1) = l(1,nii,k)
         end if
         call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%lht,4, &
                           rcvcrnpi,1,mpi_integer,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          l(0,k,njj+1) = rcvcrnpi(1)
+          l(njj+1,0,k) = rcvcrnpi(1)
         end if
       end do
     end subroutine exchange_internal3d_i
@@ -1696,93 +1704,93 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,3) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,3) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do k = nk1 , nk2
         if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1ds(1:njj) = l(1,k,1:njj)
+          sndbuf1ds(1:njj) = l(1:njj,1,k)
         end if
         call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1, &
                           rcvbuf1ds,csize,mpi_short,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
-          l(nii+1,k,1:njj) = rcvbuf1ds(1:njj)
+          l(1:njj,nii+1,k) = rcvbuf1ds(1:njj)
         end if
         if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1ds(1:nii) = l(1:nii,k,njj)
+          sndbuf1ds(1:nii) = l(njj,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2, &
                           rcvbuf1ds,csize,mpi_short,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
-          l(1:nii,k,0) = rcvbuf1ds(1:nii)
+          l(0,1:nii,k) = rcvbuf1ds(1:nii)
         end if
         if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1ds(1:nii) = l(1:nii,k,1)
+          sndbuf1ds(1:nii) = l(1,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3, &
                           rcvbuf1ds,csize,mpi_short,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
-          l(1:nii,k,njj+1) = rcvbuf1ds(1:nii)
+          l(njj+1,1:nii,k) = rcvbuf1ds(1:nii)
         end if
         if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1ds(1:njj) = l(nii,k,1:njj)
+          sndbuf1ds(1:njj) = l(1:njj,nii,k)
         end if
         call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4, &
                           rcvbuf1ds,csize,mpi_short,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
-          l(0,k,1:njj) = rcvbuf1ds(1:njj)
+          l(1:njj,0,k) = rcvbuf1ds(1:njj)
         end if
         if ( pspace%rht /= mpi_proc_null ) then
-          sndcrnps(1) = l(nii,k,njj)
+          sndcrnps(1) = l(njj,nii,k)
         end if
         call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
                           rcvcrnps,1,mpi_short,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          l(0,k,0) = rcvcrnps(1)
+          l(0,0,k) = rcvcrnps(1)
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          sndcrnps(1) = l(1,k,1)
+          sndcrnps(1) = l(1,1,k)
         end if
         call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lhb,2, &
                           rcvcrnps,1,mpi_short,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          l(nii+1,k,njj+1) = rcvcrnps(1)
+          l(njj+1,nii+1,k) = rcvcrnps(1)
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          sndcrnps(1) = l(1,k,njj)
+          sndcrnps(1) = l(njj,1,k)
         end if
         call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
                           rcvcrnps,1,mpi_short,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          l(nii+1,k,0) = rcvcrnps(1)
+          l(0,nii+1,k) = rcvcrnps(1)
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          sndcrnps(1) = l(nii,k,1)
+          sndcrnps(1) = l(1,nii,k)
         end if
         call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
                           rcvcrnps,1,mpi_short,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          l(0,k,njj+1) = rcvcrnps(1)
+          l(njj+1,0,k) = rcvcrnps(1)
         end if
       end do
     end subroutine exchange_internal3d_s
@@ -1795,93 +1803,93 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,3) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,3) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do k = nk1 , nk2
         if ( pspace%btm /= mpi_proc_null ) then
-          sndbuf1dl(1:njj) = l(1,k,1:njj)
+          sndbuf1dl(1:njj) = l(1:njj,1,k)
         end if
         call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
                           rcvbuf1dl,csize,mpi_logical,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%top /= mpi_proc_null ) then
-          l(nii+1,k,1:njj) = rcvbuf1dl(1:njj)
+          l(1:njj,nii+1,k) = rcvbuf1dl(1:njj)
         end if
         if ( pspace%rhs /= mpi_proc_null ) then
-          sndbuf1dl(1:nii) = l(1:nii,k,njj)
+          sndbuf1dl(1:nii) = l(njj,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
                           rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhs /= mpi_proc_null ) then
-          l(1:nii,k,0) = rcvbuf1dl(1:nii)
+          l(0,1:nii,k) = rcvbuf1dl(1:nii)
         end if
         if ( pspace%lhs /= mpi_proc_null ) then
-          sndbuf1dl(1:nii) = l(1:nii,k,1)
+          sndbuf1dl(1:nii) = l(1,1:nii,k)
         end if
         call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
                           rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhs /= mpi_proc_null ) then
-          l(1:nii,k,njj+1) = rcvbuf1dl(1:nii)
+          l(njj+1,1:nii,k) = rcvbuf1dl(1:nii)
         end if
         if ( pspace%top /= mpi_proc_null ) then
-          sndbuf1dl(1:njj) = l(nii,k,1:njj)
+          sndbuf1dl(1:njj) = l(1:njj,nii,k)
         end if
         call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
                           rcvbuf1dl,csize,mpi_logical,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%btm /= mpi_proc_null ) then
-          l(0,k,1:njj) = rcvbuf1dl(1:njj)
+          l(1:njj,0,k) = rcvbuf1dl(1:njj)
         end if
         if ( pspace%rht /= mpi_proc_null ) then
-          sndcrnpl(1) = l(nii,k,njj)
+          sndcrnpl(1) = l(njj,nii,k)
         end if
         call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rht,1, &
                           rcvcrnpl,1,mpi_logical,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lhb /= mpi_proc_null ) then
-          l(0,k,0) = rcvcrnpl(1)
+          l(0,0,k) = rcvcrnpl(1)
         end if
         if ( pspace%lhb /= mpi_proc_null ) then
-          sndcrnpl(1) = l(1,k,1)
+          sndcrnpl(1) = l(1,1,k)
         end if
         call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%lhb,2, &
                           rcvcrnpl,1,mpi_logical,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rht /= mpi_proc_null ) then
-          l(nii+1,k,njj+1) = rcvcrnpl(1)
+          l(njj+1,nii+1,k) = rcvcrnpl(1)
         end if
         if ( pspace%rhb /= mpi_proc_null ) then
-          sndcrnpl(1) = l(1,k,njj)
+          sndcrnpl(1) = l(njj,1,k)
         end if
         call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rhb,3, &
                           rcvcrnpl,1,mpi_logical,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%lht /= mpi_proc_null ) then
-          l(nii+1,k,0) = rcvcrnpl(1)
+          l(0,nii+1,k) = rcvcrnpl(1)
         end if
         if ( pspace%lht /= mpi_proc_null ) then
-          sndcrnpl(1) = l(nii,k,1)
+          sndcrnpl(1) = l(1,nii,k)
         end if
         call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%lht,4, &
                           rcvcrnpl,1,mpi_logical,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         if ( pspace%rhb /= mpi_proc_null ) then
-          l(0,k,njj+1) = rcvcrnpl(1)
+          l(njj+1,0,k) = rcvcrnpl(1)
         end if
       end do
     end subroutine exchange_internal3d_l
@@ -1894,96 +1902,96 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 4 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nt1 = lbound(l,3)
-      nt2 = ubound(l,3)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,4) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nt1 = lbound(l,4)
+      nt2 = ubound(l,4)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do t = nt1 , nt2
         do k = nk1 , nk2
           if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dd(1:njj) = l(1,k,t,1:njj)
+            sndbuf1dd(1:njj) = l(1:njj,1,k,t)
           end if
           call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%btm,1, &
                           rcvbuf1dd,csize,mpi_real8,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
-            l(nii+1,k,t,1:njj) = rcvbuf1dd(1:njj)
+            l(1:njj,nii+1,k,t) = rcvbuf1dd(1:njj)
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dd(1:nii) = l(1:nii,k,t,njj)
+            sndbuf1dd(1:nii) = l(njj,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%rhs,2, &
                           rcvbuf1dd,csize,mpi_real8,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
-            l(1:nii,k,t,0) = rcvbuf1dd(1:nii)
+            l(0,1:nii,k,t) = rcvbuf1dd(1:nii)
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dd(1:nii) = l(1:nii,k,t,1)
+            sndbuf1dd(1:nii) = l(1,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%lhs,3, &
                           rcvbuf1dd,csize,mpi_real8,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
-            l(1:nii,k,t,njj+1) = rcvbuf1dd(1:nii)
+            l(njj+1,1:nii,k,t) = rcvbuf1dd(1:nii)
           end if
           if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dd(1:njj) = l(nii,k,t,1:njj)
+            sndbuf1dd(1:njj) = l(1:njj,nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dd,csize,mpi_real8,pspace%top,4, &
                           rcvbuf1dd,csize,mpi_real8,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
-            l(0,k,t,1:njj) = rcvbuf1dd(1:njj)
+            l(1:njj,0,k,t) = rcvbuf1dd(1:njj)
           end if
           if ( pspace%rht /= mpi_proc_null ) then
-            sndcrnpd(1) = l(nii,k,t,njj)
+            sndcrnpd(1) = l(njj,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rht,1, &
                           rcvcrnpd,1,mpi_real8,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            l(0,k,t,0) = rcvcrnpd(1)
+            l(0,0,k,t) = rcvcrnpd(1)
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            sndcrnpd(1) = l(1,k,t,1)
+            sndcrnpd(1) = l(1,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%lhb,2, &
                           rcvcrnpd,1,mpi_real8,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            l(nii+1,k,t,njj+1) = rcvcrnpd(1)
+            l(njj+1,nii+1,k,t) = rcvcrnpd(1)
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            sndcrnpd(1) = l(1,k,t,njj)
+            sndcrnpd(1) = l(njj,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%rhb,3, &
                           rcvcrnpd,1,mpi_real8,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            l(nii+1,k,t,0) = rcvcrnpd(1)
+            l(0,nii+1,k,t) = rcvcrnpd(1)
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            sndcrnpd(1) = l(nii,k,t,1)
+            sndcrnpd(1) = l(1,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpd,1,mpi_real8,pspace%lht,4, &
                           rcvcrnpd,1,mpi_real8,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            l(0,k,t,njj+1) = rcvcrnpd(1)
+            l(njj+1,0,k,t) = rcvcrnpd(1)
           end if
         end do
       end do
@@ -2000,93 +2008,93 @@ module mod_mppgrid
       if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nt1 = lbound(l,3)
-      nt2 = ubound(l,3)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,4) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nt1 = lbound(l,4)
+      nt2 = ubound(l,4)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do t = nt1 , nt2
         do k = nk1 , nk2
           if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dr(1:njj) = l(1,k,t,1:njj)
+            sndbuf1dr(1:njj) = l(1:njj,1,k,t)
           end if
           call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%btm,1, &
                           rcvbuf1dr,csize,mpi_real4,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
-            l(nii+1,k,t,1:njj) = rcvbuf1dr(1:njj)
+            l(1:njj,nii+1,k,t) = rcvbuf1dr(1:njj)
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dr(1:nii) = l(1:nii,k,t,njj)
+            sndbuf1dr(1:nii) = l(njj,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%rhs,2, &
                           rcvbuf1dr,csize,mpi_real4,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
-            l(1:nii,k,t,0) = rcvbuf1dr(1:nii)
+            l(0,1:nii,k,t) = rcvbuf1dr(1:nii)
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dr(1:nii) = l(1:nii,k,t,1)
+            sndbuf1dr(1:nii) = l(1,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%lhs,3, &
                           rcvbuf1dr,csize,mpi_real4,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
-            l(1:nii,k,t,njj+1) = rcvbuf1dr(1:nii)
+            l(njj+1,1:nii,k,t) = rcvbuf1dr(1:nii)
           end if
           if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dr(1:njj) = l(nii,k,t,1:njj)
+            sndbuf1dr(1:njj) = l(1:njj,nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dr,csize,mpi_real4,pspace%top,4, &
                           rcvbuf1dr,csize,mpi_real4,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
-            l(0,k,t,1:njj) = rcvbuf1dr(1:njj)
+            l(1:njj,0,k,t) = rcvbuf1dr(1:njj)
           end if
           if ( pspace%rht /= mpi_proc_null ) then
-            sndcrnpr(1) = l(nii,k,t,njj)
+            sndcrnpr(1) = l(njj,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rht,1, &
                           rcvcrnpr,1,mpi_real4,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            l(0,k,t,0) = rcvcrnpr(1)
+            l(0,0,k,t) = rcvcrnpr(1)
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            sndcrnpr(1) = l(1,k,t,1)
+            sndcrnpr(1) = l(1,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%lhb,2, &
                           rcvcrnpr,1,mpi_real4,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            l(nii+1,k,t,njj+1) = rcvcrnpr(1)
+            l(njj+1,nii+1,k,t) = rcvcrnpr(1)
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            sndcrnpr(1) = l(1,k,t,njj)
+            sndcrnpr(1) = l(njj,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%rhb,3, &
                           rcvcrnpr,1,mpi_real4,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            l(nii+1,k,t,0) = rcvcrnpr(1)
+            l(0,nii+1,k,t) = rcvcrnpr(1)
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            sndcrnpr(1) = l(nii,k,t,1)
+            sndcrnpr(1) = l(1,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpr,1,mpi_real4,pspace%lht,4, &
                           rcvcrnpr,1,mpi_real4,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            l(0,k,t,njj+1) = rcvcrnpr(1)
+            l(njj+1,0,k,t) = rcvcrnpr(1)
           end if
         end do
       end do
@@ -2100,96 +2108,96 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,4) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nt1 = lbound(l,3)
-      nt2 = ubound(l,3)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,4) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nt1 = lbound(l,4)
+      nt2 = ubound(l,4)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do t = nt1 , nt2
         do k = nk1 , nk2
           if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1di(1:njj) = l(1,k,t,1:njj)
+            sndbuf1di(1:njj) = l(1:njj,1,k,t)
           end if
           call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%btm,1, &
                           rcvbuf1di,csize,mpi_integer,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
-            l(nii+1,k,t,1:njj) = rcvbuf1di(1:njj)
+            l(1:njj,nii+1,k,t) = rcvbuf1di(1:njj)
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1di(1:nii) = l(1:nii,k,t,njj)
+            sndbuf1di(1:nii) = l(njj,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%rhs,2, &
                           rcvbuf1di,csize,mpi_integer,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
-            l(1:nii,k,t,0) = rcvbuf1di(1:nii)
+            l(0,1:nii,k,t) = rcvbuf1di(1:nii)
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1di(1:nii) = l(1:nii,k,t,1)
+            sndbuf1di(1:nii) = l(1,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%lhs,3, &
                           rcvbuf1di,csize,mpi_integer,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
-            l(1:nii,k,t,njj+1) = rcvbuf1di(1:nii)
+            l(njj+1,1:nii,k,t) = rcvbuf1di(1:nii)
           end if
           if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1di(1:njj) = l(nii,k,t,1:njj)
+            sndbuf1di(1:njj) = l(1:njj,nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1di,csize,mpi_integer,pspace%top,4, &
                           rcvbuf1di,csize,mpi_integer,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
-            l(0,k,t,1:njj) = rcvbuf1di(1:njj)
+            l(1:njj,0,k,t) = rcvbuf1di(1:njj)
           end if
           if ( pspace%rht /= mpi_proc_null ) then
-            sndcrnpi(1) = l(nii,k,t,njj)
+            sndcrnpi(1) = l(njj,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rht,1, &
                           rcvcrnpi,1,mpi_integer,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            l(0,k,t,0) = rcvcrnpi(1)
+            l(0,0,k,t) = rcvcrnpi(1)
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            sndcrnpi(1) = l(1,k,t,1)
+            sndcrnpi(1) = l(1,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%lhb,2, &
                           rcvcrnpi,1,mpi_integer,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            l(nii+1,k,t,njj+1) = rcvcrnpi(1)
+            l(njj+1,nii+1,k,t) = rcvcrnpi(1)
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            sndcrnpi(1) = l(1,k,t,njj)
+            sndcrnpi(1) = l(njj,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%rhb,3, &
                           rcvcrnpi,1,mpi_integer,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            l(nii+1,k,t,0) = rcvcrnpi(1)
+            l(0,nii+1,k,t) = rcvcrnpi(1)
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            sndcrnpi(1) = l(nii,k,t,1)
+            sndcrnpi(1) = l(1,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpi,1,mpi_integer,pspace%lht,4, &
                           rcvcrnpi,1,mpi_integer,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            l(0,k,t,njj+1) = rcvcrnpi(1)
+            l(njj+1,0,k,t) = rcvcrnpi(1)
           end if
         end do
       end do
@@ -2203,96 +2211,96 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,4) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nt1 = lbound(l,3)
-      nt2 = ubound(l,3)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,4) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nt1 = lbound(l,4)
+      nt2 = ubound(l,4)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do t = nt1 , nt2
         do k = nk1 , nk2
           if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1ds(1:njj) = l(1,k,t,1:njj)
+            sndbuf1ds(1:njj) = l(1:njj,1,k,t)
           end if
           call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%btm,1, &
                           rcvbuf1ds,csize,mpi_short,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
-            l(nii+1,k,t,1:njj) = rcvbuf1ds(1:njj)
+            l(1:njj,nii+1,k,t) = rcvbuf1ds(1:njj)
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1ds(1:nii) = l(1:nii,k,t,njj)
+            sndbuf1ds(1:nii) = l(njj,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%rhs,2, &
                           rcvbuf1ds,csize,mpi_short,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
-            l(1:nii,k,t,0) = rcvbuf1ds(1:nii)
+            l(0,1:nii,k,t) = rcvbuf1ds(1:nii)
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1ds(1:nii) = l(1:nii,k,t,1)
+            sndbuf1ds(1:nii) = l(1,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%lhs,3, &
                           rcvbuf1ds,csize,mpi_short,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
-            l(1:nii,k,t,njj+1) = rcvbuf1ds(1:nii)
+            l(njj+1,1:nii,k,t) = rcvbuf1ds(1:nii)
           end if
           if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1ds(1:njj) = l(nii,k,t,1:njj)
+            sndbuf1ds(1:njj) = l(1:njj,nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1ds,csize,mpi_short,pspace%top,4, &
                           rcvbuf1ds,csize,mpi_short,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
-            l(0,k,t,1:njj) = rcvbuf1ds(1:njj)
+            l(1:njj,0,k,t) = rcvbuf1ds(1:njj)
           end if
           if ( pspace%rht /= mpi_proc_null ) then
-            sndcrnps(1) = l(nii,k,t,njj)
+            sndcrnps(1) = l(njj,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rht,1, &
                           rcvcrnps,1,mpi_short,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            l(0,k,t,0) = rcvcrnps(1)
+            l(0,0,k,t) = rcvcrnps(1)
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            sndcrnps(1) = l(1,k,t,1)
+            sndcrnps(1) = l(1,1,k,t)
           end if
           call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lhb,2, &
                           rcvcrnps,1,mpi_short,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            l(nii+1,k,t,njj+1) = rcvcrnps(1)
+            l(njj+1,nii+1,k,t) = rcvcrnps(1)
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            sndcrnps(1) = l(1,k,t,njj)
+            sndcrnps(1) = l(njj,1,k,t)
           end if
           call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%rhb,3, &
                           rcvcrnps,1,mpi_short,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            l(nii+1,k,t,0) = rcvcrnps(1)
+            l(0,nii+1,k,t) = rcvcrnps(1)
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            sndcrnps(1) = l(nii,k,t,1)
+            sndcrnps(1) = l(1,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnps,1,mpi_short,pspace%lht,4, &
                           rcvcrnps,1,mpi_short,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            l(0,k,t,njj+1) = rcvcrnps(1)
+            l(njj+1,0,k,t) = rcvcrnps(1)
           end if
         end do
       end do
@@ -2306,96 +2314,96 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling exchange_internal before domain_setup')
       end if
-      if ( lbound(l,1) /= 0 .and. lbound(l,4) /= 0 ) then
+      if ( lbound(l,1) /= 0 .and. lbound(l,2) /= 0 ) then
         return
       end if
-      nk1 = lbound(l,2)
-      nk2 = ubound(l,2)
-      nt1 = lbound(l,3)
-      nt2 = ubound(l,3)
-      nii = ubound(l,1) - 1
-      njj = ubound(l,4) - 1
+      nk1 = lbound(l,3)
+      nk2 = ubound(l,3)
+      nt1 = lbound(l,4)
+      nt2 = ubound(l,4)
+      nii = ubound(l,2) - 1
+      njj = ubound(l,1) - 1
       do t = nt1 , nt2
         do k = nk1 , nk2
           if ( pspace%btm /= mpi_proc_null ) then
-            sndbuf1dl(1:njj) = l(1,k,t,1:njj)
+            sndbuf1dl(1:njj) = l(1:njj,1,k,t)
           end if
           call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%btm,1, &
                           rcvbuf1dl,csize,mpi_logical,pspace%top,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%top /= mpi_proc_null ) then
-            l(nii+1,k,t,1:njj) = rcvbuf1dl(1:njj)
+            l(1:njj,nii+1,k,t) = rcvbuf1dl(1:njj)
           end if
           if ( pspace%rhs /= mpi_proc_null ) then
-            sndbuf1dl(1:nii) = l(1:nii,k,t,njj)
+            sndbuf1dl(1:nii) = l(njj,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%rhs,2, &
                           rcvbuf1dl,csize,mpi_logical,pspace%lhs,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhs /= mpi_proc_null ) then
-            l(1:nii,k,t,0) = rcvbuf1dl(1:nii)
+            l(0,1:nii,k,t) = rcvbuf1dl(1:nii)
           end if
           if ( pspace%lhs /= mpi_proc_null ) then
-            sndbuf1dl(1:nii) = l(1:nii,k,t,1)
+            sndbuf1dl(1:nii) = l(1,1:nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%lhs,3, &
                           rcvbuf1dl,csize,mpi_logical,pspace%rhs,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhs /= mpi_proc_null ) then
-            l(1:nii,k,t,njj+1) = rcvbuf1dl(1:nii)
+            l(njj+1,1:nii,k,t) = rcvbuf1dl(1:nii)
           end if
           if ( pspace%top /= mpi_proc_null ) then
-            sndbuf1dl(1:njj) = l(nii,k,t,1:njj)
+            sndbuf1dl(1:njj) = l(1:njj,nii,k,t)
           end if
           call mpi_sendrecv(sndbuf1dl,csize,mpi_logical,pspace%top,4, &
                           rcvbuf1dl,csize,mpi_logical,pspace%btm,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%btm /= mpi_proc_null ) then
-            l(0,k,t,1:njj) = rcvbuf1dl(1:njj)
+            l(1:njj,0,k,t) = rcvbuf1dl(1:njj)
           end if
           if ( pspace%rht /= mpi_proc_null ) then
-            sndcrnpl(1) = l(nii,k,t,njj)
+            sndcrnpl(1) = l(njj,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rht,1, &
                           rcvcrnpl,1,mpi_logical,pspace%lhb,1, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lhb /= mpi_proc_null ) then
-            l(0,k,t,0) = rcvcrnpl(1)
+            l(0,0,k,t) = rcvcrnpl(1)
           end if
           if ( pspace%lhb /= mpi_proc_null ) then
-            sndcrnpl(1) = l(1,k,t,1)
+            sndcrnpl(1) = l(1,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%lhb,2, &
                           rcvcrnpl,1,mpi_logical,pspace%rht,2, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rht /= mpi_proc_null ) then
-            l(nii+1,k,t,njj+1) = rcvcrnpl(1)
+            l(njj+1,nii+1,k,t) = rcvcrnpl(1)
           end if
           if ( pspace%rhb /= mpi_proc_null ) then
-            sndcrnpl(1) = l(1,k,t,njj)
+            sndcrnpl(1) = l(njj,1,k,t)
           end if
           call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%rhb,3, &
                           rcvcrnpl,1,mpi_logical,pspace%lht,3, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%lht /= mpi_proc_null ) then
-            l(nii+1,k,t,0) = rcvcrnpl(1)
+            l(0,nii+1,k,t) = rcvcrnpl(1)
           end if
           if ( pspace%lht /= mpi_proc_null ) then
-            sndcrnpl(1) = l(nii,k,t,1)
+            sndcrnpl(1) = l(1,nii,k,t)
           end if
           call mpi_sendrecv(sndcrnpl,1,mpi_logical,pspace%lht,4, &
                           rcvcrnpl,1,mpi_logical,pspace%rhb,4, &
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           if ( pspace%rhb /= mpi_proc_null ) then
-            l(0,k,t,njj+1) = rcvcrnpl(1)
+            l(njj+1,0,k,t) = rcvcrnpl(1)
           end if
         end do
       end do
@@ -2411,17 +2419,17 @@ module mod_mppgrid
           'Calling global_to_proc before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      l(1:nii,1:njj) = g(lbgii:ubgii,lbgjj:ubgjj)
+      l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
     end subroutine global_to_proc2d_d
 
     subroutine proc_to_global2d_d(l,g)
@@ -2434,17 +2442,17 @@ module mod_mppgrid
           'Calling proc_to_global before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      g(lbgii:ubgii,lbgjj:ubgjj) = l(1:nii,1:njj)
+      g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
     end subroutine proc_to_global2d_d
 
     subroutine global_to_proc2d_r(g,l)
@@ -2457,17 +2465,17 @@ module mod_mppgrid
           'Calling global_to_proc before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      l(1:nii,1:njj) = g(lbgii:ubgii,lbgjj:ubgjj)
+      l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
     end subroutine global_to_proc2d_r
 
     subroutine proc_to_global2d_r(l,g)
@@ -2480,17 +2488,17 @@ module mod_mppgrid
           'Calling proc_to_global before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      g(lbgii:ubgii,lbgjj:ubgjj) = l(1:nii,1:njj)
+      g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
     end subroutine proc_to_global2d_r
 
     subroutine global_to_proc2d_i(g,l)
@@ -2503,17 +2511,17 @@ module mod_mppgrid
           'Calling global_to_proc before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      l(1:nii,1:njj) = g(lbgii:ubgii,lbgjj:ubgjj)
+      l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
     end subroutine global_to_proc2d_i
 
     subroutine proc_to_global2d_i(l,g)
@@ -2526,17 +2534,17 @@ module mod_mppgrid
           'Calling proc_to_global before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      g(lbgii:ubgii,lbgjj:ubgjj) = l(1:nii,1:njj)
+      g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
     end subroutine proc_to_global2d_i
 
     subroutine global_to_proc2d_s(g,l)
@@ -2549,17 +2557,17 @@ module mod_mppgrid
           'Calling global_to_proc before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      l(1:nii,1:njj) = g(lbgii:ubgii,lbgjj:ubgjj)
+      l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
     end subroutine global_to_proc2d_s
 
     subroutine proc_to_global2d_s(l,g)
@@ -2572,17 +2580,17 @@ module mod_mppgrid
           'Calling proc_to_global before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      g(lbgii:ubgii,lbgjj:ubgjj) = l(1:nii,1:njj)
+      g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
     end subroutine proc_to_global2d_s
 
     subroutine global_to_proc2d_l(g,l)
@@ -2595,17 +2603,17 @@ module mod_mppgrid
           'Calling global_to_proc before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      l(1:nii,1:njj) = g(lbgii:ubgii,lbgjj:ubgjj)
+      l(1:njj,1:nii) = g(lbgjj:ubgjj,lbgii:ubgii)
     end subroutine global_to_proc2d_l
 
     subroutine proc_to_global2d_l(l,g)
@@ -2618,17 +2626,17 @@ module mod_mppgrid
           'Calling proc_to_global before domain_setup')
       end if
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,2)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,2)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
-      g(lbgii:ubgii,lbgjj:ubgjj) = l(1:nii,1:njj)
+      g(lbgjj:ubgjj,lbgii:ubgii) = l(1:njj,1:nii)
     end subroutine proc_to_global2d_l
 
     subroutine global_to_proc3d_d(g,l)
@@ -2640,21 +2648,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        l(1:nii,k,1:njj) = g(lbgii:ubgii,k,lbgjj:ubgjj)
+        l(1:njj,1:nii,k) = g(lbgjj:ubgjj,lbgii:ubgii,k)
       end do
     end subroutine global_to_proc3d_d
 
@@ -2667,21 +2675,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        g(lbgii:ubgii,k,lbgjj:ubgjj) = l(1:nii,k,1:njj)
+        g(lbgjj:ubgjj,lbgii:ubgii,k) = l(1:njj,1:nii,k)
       end do
     end subroutine proc_to_global3d_d
 
@@ -2694,21 +2702,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        l(1:nii,k,1:njj) = g(lbgii:ubgii,k,lbgjj:ubgjj)
+        l(1:njj,1:nii,k) = g(lbgjj:ubgjj,lbgii:ubgii,k)
       end do
     end subroutine global_to_proc3d_r
 
@@ -2721,21 +2729,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        g(lbgii:ubgii,k,lbgjj:ubgjj) = l(1:nii,k,1:njj)
+        g(lbgjj:ubgjj,lbgii:ubgii,k) = l(1:njj,1:nii,k)
       end do
     end subroutine proc_to_global3d_r
 
@@ -2748,21 +2756,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        l(1:nii,k,1:njj) = g(lbgii:ubgii,k,lbgjj:ubgjj)
+        l(1:njj,1:nii,k) = g(lbgjj:ubgjj,lbgii:ubgii,k)
       end do
     end subroutine global_to_proc3d_i
 
@@ -2775,21 +2783,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        g(lbgii:ubgii,k,lbgjj:ubgjj) = l(1:nii,k,1:njj)
+        g(lbgjj:ubgjj,lbgii:ubgii,k) = l(1:njj,1:nii,k)
       end do
     end subroutine proc_to_global3d_i
 
@@ -2802,21 +2810,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        l(1:nii,k,1:njj) = g(lbgii:ubgii,k,lbgjj:ubgjj)
+        l(1:njj,1:nii,k) = g(lbgjj:ubgjj,lbgii:ubgii,k)
       end do
     end subroutine global_to_proc3d_s
 
@@ -2829,21 +2837,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        g(lbgii:ubgii,k,lbgjj:ubgjj) = l(1:nii,k,1:njj)
+        g(lbgjj:ubgjj,lbgii:ubgii,k) = l(1:njj,1:nii,k)
       end do
     end subroutine proc_to_global3d_s
 
@@ -2856,21 +2864,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        l(1:nii,k,1:njj) = g(lbgii:ubgii,k,lbgjj:ubgjj)
+        l(1:njj,1:nii,k) = g(lbgjj:ubgjj,lbgii:ubgii,k)
       end do
     end subroutine global_to_proc3d_l
 
@@ -2883,21 +2891,21 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,3)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,3)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
       ubgii = lbgii+nii-1
       ubgjj = lbgjj+njj-1
       do k = k1 , k2
-        g(lbgii:ubgii,k,lbgjj:ubgjj) = l(1:nii,k,1:njj)
+        g(lbgjj:ubgjj,lbgii:ubgii,k) = l(1:njj,1:nii,k)
       end do
     end subroutine proc_to_global3d_l
 
@@ -2911,16 +2919,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -2928,7 +2936,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          l(1:nii,k,t,1:njj) = g(lbgii:ubgii,k,t,lbgjj:ubgjj)
+          l(1:njj,1:nii,k,t) = g(lbgjj:ubgjj,lbgii:ubgii,k,t)
         end do
       end do
     end subroutine global_to_proc4d_d
@@ -2943,16 +2951,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -2960,7 +2968,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          g(lbgii:ubgii,k,t,lbgjj:ubgjj) = l(1:nii,k,t,1:njj)
+          g(lbgjj:ubgjj,lbgii:ubgii,k,t) = l(1:njj,1:nii,k,t)
         end do
       end do
     end subroutine proc_to_global4d_d
@@ -2975,16 +2983,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -2992,7 +3000,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          l(1:nii,k,t,1:njj) = g(lbgii:ubgii,k,t,lbgjj:ubgjj)
+          l(1:njj,1:nii,k,t) = g(lbgjj:ubgjj,lbgii:ubgii,k,t)
         end do
       end do
     end subroutine global_to_proc4d_r
@@ -3007,16 +3015,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3024,7 +3032,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          g(lbgii:ubgii,k,t,lbgjj:ubgjj) = l(1:nii,k,t,1:njj)
+          g(lbgjj:ubgjj,lbgii:ubgii,k,t) = l(1:njj,1:nii,k,t)
         end do
       end do
     end subroutine proc_to_global4d_r
@@ -3039,16 +3047,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3056,7 +3064,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          l(1:nii,k,t,1:njj) = g(lbgii:ubgii,k,t,lbgjj:ubgjj)
+          l(1:njj,1:nii,k,t) = g(lbgjj:ubgjj,lbgii:ubgii,k,t)
         end do
       end do
     end subroutine global_to_proc4d_i
@@ -3071,16 +3079,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3088,7 +3096,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          g(lbgii:ubgii,k,t,lbgjj:ubgjj) = l(1:nii,k,t,1:njj)
+          g(lbgjj:ubgjj,lbgii:ubgii,k,t) = l(1:njj,1:nii,k,t)
         end do
       end do
     end subroutine proc_to_global4d_i
@@ -3103,16 +3111,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3120,7 +3128,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          l(1:nii,k,t,1:njj) = g(lbgii:ubgii,k,t,lbgjj:ubgjj)
+          l(1:njj,1:nii,k,t) = g(lbgjj:ubgjj,lbgii:ubgii,k,t)
         end do
       end do
     end subroutine global_to_proc4d_s
@@ -3135,16 +3143,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3152,7 +3160,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          g(lbgii:ubgii,k,t,lbgjj:ubgjj) = l(1:nii,k,t,1:njj)
+          g(lbgjj:ubgjj,lbgii:ubgii,k,t) = l(1:njj,1:nii,k,t)
         end do
       end do
     end subroutine proc_to_global4d_s
@@ -3167,16 +3175,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling global_to_proc before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3184,7 +3192,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          l(1:nii,k,t,1:njj) = g(lbgii:ubgii,k,t,lbgjj:ubgjj)
+          l(1:njj,1:nii,k,t) = g(lbgjj:ubgjj,lbgii:ubgii,k,t)
         end do
       end do
     end subroutine global_to_proc4d_l
@@ -3199,16 +3207,16 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling proc_to_global before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( lbound(l,1) == 0 ) then
-        nii = ubound(l,1)-1
-        njj = ubound(l,4)-1
+        nii = ubound(l,2)-1
+        njj = ubound(l,1)-1
       else
-        nii = ubound(l,1)
-        njj = ubound(l,4)
+        nii = ubound(l,2)
+        njj = ubound(l,1)
       end if
       lbgii = pspace%g_i1
       lbgjj = pspace%g_j1
@@ -3216,7 +3224,7 @@ module mod_mppgrid
       ubgjj = lbgjj+njj-1
       do t = t1 , t2
         do k = k1 , k2
-          g(lbgii:ubgii,k,t,lbgjj:ubgjj) = l(1:nii,k,t,1:njj)
+          g(lbgjj:ubgjj,lbgii:ubgii,k,t) = l(1:njj,1:nii,k,t)
         end do
       end do
     end subroutine proc_to_global4d_l
@@ -3373,9 +3381,9 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                mnode%excbuf2dd(icount) = g(i,j)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                mnode%excbuf2dd(icount) = g(j,i)
                 icount = icount + 1
               end do
             end do
@@ -3395,9 +3403,9 @@ module mod_mppgrid
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            l(i,j) = excbuf2dd(icount)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            l(j,i) = excbuf2dd(icount)
             icount = icount + 1
           end do
         end do
@@ -3426,9 +3434,9 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                mnode%excbuf2dr(icount) = g(i,j)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                mnode%excbuf2dr(icount) = g(j,i)
                 icount = icount + 1
               end do
             end do
@@ -3448,9 +3456,9 @@ module mod_mppgrid
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            l(i,j) = excbuf2dr(icount)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            l(j,i) = excbuf2dr(icount)
             icount = icount + 1
           end do
         end do
@@ -3479,9 +3487,9 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                mnode%excbuf2di(icount) = g(i,j)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                mnode%excbuf2di(icount) = g(j,i)
                 icount = icount + 1
               end do
             end do
@@ -3501,9 +3509,9 @@ module mod_mppgrid
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            l(i,j) = excbuf2di(icount)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            l(j,i) = excbuf2di(icount)
             icount = icount + 1
           end do
         end do
@@ -3532,9 +3540,9 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                mnode%excbuf2ds(icount) = g(i,j)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                mnode%excbuf2ds(icount) = g(j,i)
                 icount = icount + 1
               end do
             end do
@@ -3554,9 +3562,9 @@ module mod_mppgrid
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            l(i,j) = excbuf2ds(icount)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            l(j,i) = excbuf2ds(icount)
             icount = icount + 1
           end do
         end do
@@ -3585,9 +3593,9 @@ module mod_mppgrid
         do inode = 0 , xproc%total_cpus-1
           if ( inode /= masterproc ) then
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                mnode%excbuf2dl(icount) = g(i,j)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                mnode%excbuf2dl(icount) = g(j,i)
                 icount = icount + 1
               end do
             end do
@@ -3607,9 +3615,9 @@ module mod_mppgrid
                       pspace%cartesian_communicator,mpi_status_ignore,ierr)
         if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            l(i,j) = excbuf2dl(icount)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            l(j,i) = excbuf2dl(icount)
             icount = icount + 1
           end do
         end do
@@ -3626,20 +3634,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3647,9 +3655,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  mnode%excbuf2dd(icount) = g(i,k,j)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  mnode%excbuf2dd(icount) = g(j,i,k)
                   icount = icount + 1
                 end do
               end do
@@ -3671,9 +3679,9 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              l(i,k,j) = excbuf2dd(icount)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              l(j,i,k) = excbuf2dd(icount)
               icount = icount + 1
             end do
           end do
@@ -3691,20 +3699,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3712,9 +3720,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  mnode%excbuf2dr(icount) = g(i,k,j)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  mnode%excbuf2dr(icount) = g(j,i,k)
                   icount = icount + 1
                 end do
               end do
@@ -3736,9 +3744,9 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              l(i,k,j) = excbuf2dr(icount)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              l(j,i,k) = excbuf2dr(icount)
               icount = icount + 1
             end do
           end do
@@ -3756,20 +3764,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3777,9 +3785,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  mnode%excbuf2di(icount) = g(i,k,j)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  mnode%excbuf2di(icount) = g(j,i,k)
                   icount = icount + 1
                 end do
               end do
@@ -3801,9 +3809,9 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              l(i,k,j) = excbuf2di(icount)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              l(j,i,k) = excbuf2di(icount)
               icount = icount + 1
             end do
           end do
@@ -3821,20 +3829,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3842,9 +3850,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  mnode%excbuf2ds(icount) = g(i,k,j)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  mnode%excbuf2ds(icount) = g(j,i,k)
                   icount = icount + 1
                 end do
               end do
@@ -3866,9 +3874,9 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              l(i,k,j) = excbuf2ds(icount)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              l(j,i,k) = excbuf2ds(icount)
               icount = icount + 1
             end do
           end do
@@ -3886,20 +3894,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3907,9 +3915,9 @@ module mod_mppgrid
           if ( inode /= masterproc ) then
             do k = gk1 , gk2
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  mnode%excbuf2dl(icount) = g(i,k,j)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  mnode%excbuf2dl(icount) = g(j,i,k)
                   icount = icount + 1
                 end do
               end do
@@ -3931,9 +3939,9 @@ module mod_mppgrid
                         pspace%cartesian_communicator,mpi_status_ignore,ierr)
           if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              l(i,k,j) = excbuf2dl(icount)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              l(j,i,k) = excbuf2dl(icount)
               icount = icount + 1
             end do
           end do
@@ -3952,24 +3960,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -3978,9 +3986,9 @@ module mod_mppgrid
             do t = gt1 , gt2
               do k = gk1 , gk2
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    mnode%excbuf2dd(icount) = g(i,k,t,j)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    mnode%excbuf2dd(icount) = g(j,i,k,t)
                     icount = icount + 1
                   end do
                 end do
@@ -4006,9 +4014,9 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                l(i,k,t,j) = excbuf2dd(icount)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                l(j,i,k,t) = excbuf2dd(icount)
                 icount = icount + 1
               end do
             end do
@@ -4028,24 +4036,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4054,9 +4062,9 @@ module mod_mppgrid
             do t = gt1 , gt2
               do k = gk1 , gk2
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    mnode%excbuf2dr(icount) = g(i,k,t,j)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    mnode%excbuf2dr(icount) = g(j,i,k,t)
                     icount = icount + 1
                   end do
                 end do
@@ -4082,9 +4090,9 @@ module mod_mppgrid
                           pspace%cartesian_communicator,mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                l(i,k,t,j) = excbuf2dr(icount)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                l(j,i,k,t) = excbuf2dr(icount)
                 icount = icount + 1
               end do
             end do
@@ -4104,24 +4112,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4130,9 +4138,9 @@ module mod_mppgrid
             do t = gt1 , gt2
               do k = gk1 , gk2
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    mnode%excbuf2di(icount) = g(i,k,t,j)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    mnode%excbuf2di(icount) = g(j,i,k,t)
                     icount = icount + 1
                   end do
                 end do
@@ -4159,9 +4167,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                l(i,k,t,j) = excbuf2di(icount)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                l(j,i,k,t) = excbuf2di(icount)
                 icount = icount + 1
               end do
             end do
@@ -4181,24 +4189,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4207,9 +4215,9 @@ module mod_mppgrid
             do t = gt1 , gt2
               do k = gk1 , gk2
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    mnode%excbuf2ds(icount) = g(i,k,t,j)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    mnode%excbuf2ds(icount) = g(j,i,k,t)
                     icount = icount + 1
                   end do
                 end do
@@ -4236,9 +4244,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                l(i,k,t,j) = excbuf2ds(icount)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                l(j,i,k,t) = excbuf2ds(icount)
                 icount = icount + 1
               end do
             end do
@@ -4258,24 +4266,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4284,9 +4292,9 @@ module mod_mppgrid
             do t = gt1 , gt2
               do k = gk1 , gk2
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    mnode%excbuf2dl(icount) = g(i,k,t,j)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    mnode%excbuf2dl(icount) = g(j,i,k,t)
                     icount = icount + 1
                   end do
                 end do
@@ -4313,9 +4321,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                l(i,k,t,j) = excbuf2dl(icount)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                l(j,i,k,t) = excbuf2dl(icount)
                 icount = icount + 1
               end do
             end do
@@ -4350,9 +4358,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                g(i,j) = mnode%excbuf2dd(icount)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                g(j,i) = mnode%excbuf2dd(icount)
                 icount = icount + 1
               end do
             end do
@@ -4366,9 +4374,9 @@ module mod_mppgrid
           'Master node using nodes_to_master as non master')
         end if
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            excbuf2dd(icount) = l(i,j)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            excbuf2dd(icount) = l(j,i)
             icount = icount + 1
           end do
         end do
@@ -4404,9 +4412,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                g(i,j) = mnode%excbuf2dr(icount)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                g(j,i) = mnode%excbuf2dr(icount)
                 icount = icount + 1
               end do
             end do
@@ -4420,9 +4428,9 @@ module mod_mppgrid
           'Master node using nodes_to_master as non master')
         end if
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            excbuf2dr(icount) = l(i,j)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            excbuf2dr(icount) = l(j,i)
             icount = icount + 1
           end do
         end do
@@ -4458,9 +4466,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                g(i,j) = mnode%excbuf2di(icount)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                g(j,i) = mnode%excbuf2di(icount)
                 icount = icount + 1
               end do
             end do
@@ -4474,9 +4482,9 @@ module mod_mppgrid
           'Master node using nodes_to_master as non master')
         end if
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            excbuf2di(icount) = l(i,j)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            excbuf2di(icount) = l(j,i)
             icount = icount + 1
           end do
         end do
@@ -4512,9 +4520,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                g(i,j) = mnode%excbuf2ds(icount)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                g(j,i) = mnode%excbuf2ds(icount)
                 icount = icount + 1
               end do
             end do
@@ -4528,9 +4536,9 @@ module mod_mppgrid
           'Master node using nodes_to_master as non master')
         end if
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            excbuf2ds(icount) = l(i,j)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            excbuf2ds(icount) = l(j,i)
             icount = icount + 1
           end do
         end do
@@ -4566,9 +4574,9 @@ module mod_mppgrid
                           mpi_status_ignore,ierr)
             if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
             icount = 1
-            do j = mnode%pgjs(inode) , mnode%pgje(inode)
-              do i = mnode%pgis(inode) , mnode%pgie(inode)
-                g(i,j) = mnode%excbuf2dl(icount)
+            do i = mnode%pgis(inode) , mnode%pgie(inode)
+              do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                g(j,i) = mnode%excbuf2dl(icount)
                 icount = icount + 1
               end do
             end do
@@ -4582,9 +4590,9 @@ module mod_mppgrid
           'Master node using nodes_to_master as non master')
         end if
         icount = 1
-        do j = 1 , pspace%p_j
-          do i = 1 , pspace%p_i
-            excbuf2dl(icount) = l(i,j)
+        do i = 1 , pspace%p_i
+          do j = 1 , pspace%p_j
+            excbuf2dl(icount) = l(j,i)
             icount = icount + 1
           end do
         end do
@@ -4604,20 +4612,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4629,9 +4637,9 @@ module mod_mppgrid
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  g(i,k,j) = mnode%excbuf2dd(icount)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  g(j,i,k) = mnode%excbuf2dd(icount)
                   icount = icount + 1
                 end do
               end do
@@ -4647,9 +4655,9 @@ module mod_mppgrid
         end if
         do k = k1 , k2
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              excbuf2dd(icount) = l(i,k,j)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              excbuf2dd(icount) = l(j,i,k)
               icount = icount + 1
             end do
           end do
@@ -4670,20 +4678,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4695,9 +4703,9 @@ module mod_mppgrid
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  g(i,k,j) = mnode%excbuf2dr(icount)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  g(j,i,k) = mnode%excbuf2dr(icount)
                   icount = icount + 1
                 end do
               end do
@@ -4713,9 +4721,9 @@ module mod_mppgrid
         end if
         do k = k1 , k2
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              excbuf2dr(icount) = l(i,k,j)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              excbuf2dr(icount) = l(j,i,k)
               icount = icount + 1
             end do
           end do
@@ -4736,20 +4744,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4761,9 +4769,9 @@ module mod_mppgrid
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  g(i,k,j) = mnode%excbuf2di(icount)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  g(j,i,k) = mnode%excbuf2di(icount)
                   icount = icount + 1
                 end do
               end do
@@ -4779,9 +4787,9 @@ module mod_mppgrid
         end if
         do k = k1 , k2
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              excbuf2di(icount) = l(i,k,j)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              excbuf2di(icount) = l(j,i,k)
               icount = icount + 1
             end do
           end do
@@ -4802,20 +4810,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4827,9 +4835,9 @@ module mod_mppgrid
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  g(i,k,j) = mnode%excbuf2ds(icount)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  g(j,i,k) = mnode%excbuf2ds(icount)
                   icount = icount + 1
                 end do
               end do
@@ -4845,9 +4853,9 @@ module mod_mppgrid
         end if
         do k = k1 , k2
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              excbuf2ds(icount) = l(i,k,j)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              excbuf2ds(icount) = l(j,i,k)
               icount = icount + 1
             end do
           end do
@@ -4868,20 +4876,20 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4893,9 +4901,9 @@ module mod_mppgrid
                             mpi_status_ignore,ierr)
               if ( ierr /= mpi_success ) call mpi_fatal(__FILE__,__LINE__,ierr)
               icount = 1
-              do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                do i = mnode%pgis(inode) , mnode%pgie(inode)
-                  g(i,k,j) = mnode%excbuf2dl(icount)
+              do i = mnode%pgis(inode) , mnode%pgie(inode)
+                do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                  g(j,i,k) = mnode%excbuf2dl(icount)
                   icount = icount + 1
                 end do
               end do
@@ -4911,9 +4919,9 @@ module mod_mppgrid
         end if
         do k = k1 , k2
           icount = 1
-          do j = 1 , pspace%p_j
-            do i = 1 , pspace%p_i
-              excbuf2dl(icount) = l(i,k,j)
+          do i = 1 , pspace%p_i
+            do j = 1 , pspace%p_j
+              excbuf2dl(icount) = l(j,i,k)
               icount = icount + 1
             end do
           end do
@@ -4935,24 +4943,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -4967,9 +4975,9 @@ module mod_mppgrid
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    g(i,k,t,j) = mnode%excbuf2dd(icount)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    g(j,i,k,t) = mnode%excbuf2dd(icount)
                     icount = icount + 1
                   end do
                 end do
@@ -4987,9 +4995,9 @@ module mod_mppgrid
         do t = t1 , t2
           do k = k1 , k2
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                excbuf2dd(icount) = l(i,k,t,j)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                excbuf2dd(icount) = l(j,i,k,t)
                 icount = icount + 1
               end do
             end do
@@ -5012,24 +5020,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -5044,9 +5052,9 @@ module mod_mppgrid
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    g(i,k,t,j) = mnode%excbuf2dr(icount)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    g(j,i,k,t) = mnode%excbuf2dr(icount)
                     icount = icount + 1
                   end do
                 end do
@@ -5064,9 +5072,9 @@ module mod_mppgrid
         do t = t1 , t2
           do k = k1 , k2
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                excbuf2dr(icount) = l(i,k,t,j)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                excbuf2dr(icount) = l(j,i,k,t)
                 icount = icount + 1
               end do
             end do
@@ -5089,24 +5097,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -5121,9 +5129,9 @@ module mod_mppgrid
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    g(i,k,t,j) = mnode%excbuf2di(icount)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    g(j,i,k,t) = mnode%excbuf2di(icount)
                     icount = icount + 1
                   end do
                 end do
@@ -5141,9 +5149,9 @@ module mod_mppgrid
         do t = t1 , t2
           do k = k1 , k2
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                excbuf2di(icount) = l(i,k,t,j)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                excbuf2di(icount) = l(j,i,k,t)
                 icount = icount + 1
               end do
             end do
@@ -5166,24 +5174,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -5198,9 +5206,9 @@ module mod_mppgrid
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    g(i,k,t,j) = mnode%excbuf2ds(icount)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    g(j,i,k,t) = mnode%excbuf2ds(icount)
                     icount = icount + 1
                   end do
                 end do
@@ -5218,9 +5226,9 @@ module mod_mppgrid
         do t = t1 , t2
           do k = k1 , k2
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                excbuf2ds(icount) = l(i,k,t,j)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                excbuf2ds(icount) = l(j,i,k,t)
                 icount = icount + 1
               end do
             end do
@@ -5243,24 +5251,24 @@ module mod_mppgrid
         call fatal(__FILE__,__LINE__, &
           'Calling master_to_nodes before domain_setup')
       end if
-      t1 = lbound(l,3)
-      t2 = ubound(l,3)
-      k1 = lbound(l,2)
-      k2 = ubound(l,2)
+      t1 = lbound(l,4)
+      t2 = ubound(l,4)
+      k1 = lbound(l,3)
+      k2 = ubound(l,3)
       if ( present(g) ) then
         if ( .not. am_i_master( ) ) then
           call fatal(__FILE__,__LINE__, &
           'Non master node using master_to_nodes as master')
         end if
-        gt1 = lbound(g,3)
-        gt2 = ubound(g,3)
-        gk1 = lbound(g,2)
-        gk2 = ubound(g,2)
+        gt1 = lbound(g,4)
+        gt2 = ubound(g,4)
+        gk1 = lbound(g,3)
+        gk2 = ubound(g,3)
         if ( gk1 /= k1 .or. gk2 /= k2 .or. gt1 /= t1 .or. gt2 /= t2 ) then
           call fatal(__FILE__,__LINE__, &
           'Not equal vertical bounds in master_to_nodes')
         end if
-        if ( product(shape(g(:,1,1,:))) /= gsize ) then
+        if ( product(shape(g(:,:,1,1))) /= gsize ) then
           call fatal(__FILE__,__LINE__, &
           'Non global data in master_to_nodes from master')
         end if
@@ -5275,9 +5283,9 @@ module mod_mppgrid
                   call mpi_fatal(__FILE__,__LINE__,ierr)
                 end if
                 icount = 1
-                do j = mnode%pgjs(inode) , mnode%pgje(inode)
-                  do i = mnode%pgis(inode) , mnode%pgie(inode)
-                    g(i,k,t,j) = mnode%excbuf2dl(icount)
+                do i = mnode%pgis(inode) , mnode%pgie(inode)
+                  do j = mnode%pgjs(inode) , mnode%pgje(inode)
+                    g(j,i,k,t) = mnode%excbuf2dl(icount)
                     icount = icount + 1
                   end do
                 end do
@@ -5295,9 +5303,9 @@ module mod_mppgrid
         do t = t1 , t2
           do k = k1 , k2
             icount = 1
-            do j = 1 , pspace%p_j
-              do i = 1 , pspace%p_i
-                excbuf2dl(icount) = l(i,k,t,j)
+            do i = 1 , pspace%p_i
+              do j = 1 , pspace%p_j
+                excbuf2dl(icount) = l(j,i,k,t)
                 icount = icount + 1
               end do
             end do

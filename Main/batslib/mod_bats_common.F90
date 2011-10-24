@@ -25,6 +25,7 @@ module mod_bats_common
   use mod_memutil
   use mod_dynparam
   use mod_bats_param
+  use mod_bats_internal
 !
   real(dp) :: xdtsec ! Atmosferic Model dt in seconds
   real(dp) :: dtbat  ! BATS1e internal timestep
@@ -36,34 +37,11 @@ module mod_bats_common
 
   integer :: iocnrough , iocnflx
 
-  real(dp) , pointer , dimension(:,:) :: p1d0 , qs1d0 , ts1d0
-!
-  integer , pointer , dimension(:,:) :: ldoc1d
   real(dp) , pointer , dimension(:,:) :: delq1d , delt1d , aldifs1d , &
-         drag1d , emiss1d , evpr1d , gwet1d , ircp1d , ldew1d ,      &
-         p1d , pbp1d , prcp1d , q2m1d , qg1d , qs1d , resp1d ,       &
-         rhs1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,   &
-         sice1d , ssw1d , t2m1d , taf1d , tg1d , tgb1d , tlef1d ,    &
-         ts1d , tsw1d , u10m1d , v10m1d , veg1d , z1d , aldirs1d
-!
-  real(dp) , pointer , dimension(:,:) :: bfc , bsw , evmx0 , fdry ,   &
-         fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc , rnet ,       &
-         texrat , vegt , wiltr , wt , xkmx
-!
-  real(dp) , pointer , dimension(:,:) :: cdr , cdrn , cdrx , cf ,     &
-         cgrnd , cgrndl , cgrnds , clead , densi , efpr , eg ,       &
-         etr , etrrun , evaps , evapw , fevpg , flnet , flneto ,     &
-         fseng , htvp , ps , pw , qice , qsatl , rhosw , ribd ,      &
-         rlai , rpp , scrat , scvk , sdrop , seasb , sigf , sm ,     &
-         tm , uaf , vspda , wata , watr , watt , watu , wta , xlai , &
-         xlsai , xrun , z1log , z2fra , z10fra , zlgocn , zlglnd ,   &
-         zlgsno , zlgveg , zlgdis
-!
-  real(dp) , pointer , dimension(:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
-         wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
-         wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
-!
-  integer , pointer , dimension(:,:) :: lveg , oveg
+         drag1d , evpr1d , gwet1d , ircp1d , ldew1d , aldirs1d ,      &
+         p1d , q2m1d , rno1d , rnos1d , rsw1d , sag1d , scv1d , sent1d ,   &
+         sice1d , ssw1d , t2m1d , tg1d , tgb1d , tlef1d ,    &
+         tsw1d , u10m1d , v10m1d , veg1d
 !
   real(dp) :: rdnnsg
   real(sp) :: rrnnsg
@@ -212,26 +190,15 @@ module mod_bats_common
       call getmem2d(firstcall,1,iy,1,jxp,'bats:firstcall')
     end if
 
-    call getmem2d(ldoc1d,1,nnsg,1,iym1,'bats:ldoc1d')
-    call getmem2d(p1d0,1,nnsg,1,iym1,'bats:p1d0')
-    call getmem2d(qs1d0,1,nnsg,1,iym1,'bats:qs1d0')
-    call getmem2d(ts1d0,1,nnsg,1,iym1,'bats:ts1d0')
     call getmem2d(delq1d,1,nnsg,1,iym1,'bats:delq1d')
     call getmem2d(delt1d,1,nnsg,1,iym1,'bats:delt1d')
     call getmem2d(drag1d,1,nnsg,1,iym1,'bats:drag1d')
-    call getmem2d(emiss1d,1,nnsg,1,iym1,'bats:emiss1d')
     call getmem2d(evpr1d,1,nnsg,1,iym1,'bats:evpr1d')
     call getmem2d(gwet1d,1,nnsg,1,iym1,'bats:gwet1d')
     call getmem2d(ircp1d,1,nnsg,1,iym1,'bats:ircp1d')
     call getmem2d(ldew1d,1,nnsg,1,iym1,'bats:ldew1d')
     call getmem2d(p1d,1,nnsg,1,iym1,'bats:lp1d')
-    call getmem2d(pbp1d,1,nnsg,1,iym1,'bats:pbp1d')
-    call getmem2d(prcp1d,1,nnsg,1,iym1,'bats:prcp1d')
     call getmem2d(q2m1d,1,nnsg,1,iym1,'bats:q2m1d')
-    call getmem2d(qg1d,1,nnsg,1,iym1,'bats:qg1d')
-    call getmem2d(qs1d,1,nnsg,1,iym1,'bats:qs1d')
-    call getmem2d(resp1d,1,nnsg,1,iym1,'bats:resp1d')
-    call getmem2d(rhs1d,1,nnsg,1,iym1,'bats:rhs1d')
     call getmem2d(rno1d,1,nnsg,1,iym1,'bats:rno1d')
     call getmem2d(rnos1d,1,nnsg,1,iym1,'bats:rnos1d')
     call getmem2d(rsw1d,1,nnsg,1,iym1,'bats:rsw1d')
@@ -241,110 +208,15 @@ module mod_bats_common
     call getmem2d(sice1d,1,nnsg,1,iym1,'bats:sice1d')
     call getmem2d(ssw1d,1,nnsg,1,iym1,'bats:ssw1d')
     call getmem2d(t2m1d,1,nnsg,1,iym1,'bats:t2m1d')
-    call getmem2d(taf1d,1,nnsg,1,iym1,'bats:taf1d')
     call getmem2d(tg1d,1,nnsg,1,iym1,'bats:tg1d')
     call getmem2d(tgb1d,1,nnsg,1,iym1,'bats:tgb1d')
     call getmem2d(tlef1d,1,nnsg,1,iym1,'bats:tlef1d')
-    call getmem2d(ts1d,1,nnsg,1,iym1,'bats:ts1d')
     call getmem2d(tsw1d,1,nnsg,1,iym1,'bats:tsw1d')
     call getmem2d(u10m1d,1,nnsg,1,iym1,'bats:u10m1d')
     call getmem2d(v10m1d,1,nnsg,1,iym1,'bats:v10m1d')
     call getmem2d(veg1d,1,nnsg,1,iym1,'bats:veg1d')
-    call getmem2d(z1d,1,nnsg,1,iym1,'bats:z1d')
-    call getmem2d(bfc,1,nnsg,1,iym1,'bats:bfc')
-    call getmem2d(bsw,1,nnsg,1,iym1,'bats:bsw')
-    call getmem2d(evmx0,1,nnsg,1,iym1,'bats:evmx0')
-    call getmem2d(gwmx0,1,nnsg,1,iym1,'bats:gwmx0')
-    call getmem2d(gwmx1,1,nnsg,1,iym1,'bats:gwmx1')
-    call getmem2d(gwmx2,1,nnsg,1,iym1,'bats:gwmx2')
-    call getmem2d(fdry,1,nnsg,1,iym1,'bats:fdry')
-    call getmem2d(fwet,1,nnsg,1,iym1,'bats:fwet')
-    call getmem2d(porsl,1,nnsg,1,iym1,'bats:porsl')
-    call getmem2d(relfc,1,nnsg,1,iym1,'bats:relfc')
-    call getmem2d(rnet,1,nnsg,1,iym1,'bats:rnet')
-    call getmem2d(texrat,1,nnsg,1,iym1,'bats:texrat')
-    call getmem2d(vegt,1,nnsg,1,iym1,'bats:vegt')
-    call getmem2d(wiltr,1,nnsg,1,iym1,'bats:wiltr')
-    call getmem2d(wt,1,nnsg,1,iym1,'bats:wt')
-    call getmem2d(xkmx,1,nnsg,1,iym1,'bats:xkmx')
-    call getmem2d(cdr,1,nnsg,1,iym1,'bats:cdr')
-    call getmem2d(cdrn,1,nnsg,1,iym1,'bats:cdrn')
-    call getmem2d(cdrx,1,nnsg,1,iym1,'bats:cdrx')
-    call getmem2d(cf,1,nnsg,1,iym1,'bats:cf')
-    call getmem2d(cgrnd,1,nnsg,1,iym1,'bats:cgrnd')
-    call getmem2d(cgrndl,1,nnsg,1,iym1,'bats:cgrndl')
-    call getmem2d(cgrnds,1,nnsg,1,iym1,'bats:cgrnds')
-    call getmem2d(clead,1,nnsg,1,iym1,'bats:clead')
-    call getmem2d(densi,1,nnsg,1,iym1,'bats:densi')
-    call getmem2d(efpr,1,nnsg,1,iym1,'bats:efpr')
-    call getmem2d(eg,1,nnsg,1,iym1,'bats:eg')
-    call getmem2d(etr,1,nnsg,1,iym1,'bats:etr')
-    call getmem2d(etrrun,1,nnsg,1,iym1,'bats:etrrun')
-    call getmem2d(evaps,1,nnsg,1,iym1,'bats:evaps')
-    call getmem2d(evapw,1,nnsg,1,iym1,'bats:evapw')
-    call getmem2d(fevpg,1,nnsg,1,iym1,'bats:fevpg')
-    call getmem2d(flnet,1,nnsg,1,iym1,'bats:flnet')
-    call getmem2d(flneto,1,nnsg,1,iym1,'bats:flneto')
-    call getmem2d(fseng,1,nnsg,1,iym1,'bats:fseng')
-    call getmem2d(htvp,1,nnsg,1,iym1,'bats:htvp')
-    call getmem2d(ps,1,nnsg,1,iym1,'bats:ps')
-    call getmem2d(pw,1,nnsg,1,iym1,'bats:pw')
-    call getmem2d(qice,1,nnsg,1,iym1,'bats:qice')
-    call getmem2d(qsatl,1,nnsg,1,iym1,'bats:qsatl')
-    call getmem2d(rhosw,1,nnsg,1,iym1,'bats:rhosw')
-    call getmem2d(ribd,1,nnsg,1,iym1,'bats:ribd')
-    call getmem2d(rlai,1,nnsg,1,iym1,'bats:rlai')
-    call getmem2d(rpp,1,nnsg,1,iym1,'bats:rpp')
-    call getmem2d(scrat,1,nnsg,1,iym1,'bats:scrat')
-    call getmem2d(scvk,1,nnsg,1,iym1,'bats:scvk')
-    call getmem2d(sdrop,1,nnsg,1,iym1,'bats:sdrop')
-    call getmem2d(seasb,1,nnsg,1,iym1,'bats:seasb')
-    call getmem2d(sigf,1,nnsg,1,iym1,'bats:sigf')
-    call getmem2d(sm,1,nnsg,1,iym1,'bats:sm')
-    call getmem2d(tm,1,nnsg,1,iym1,'bats:tm')
-    call getmem2d(uaf,1,nnsg,1,iym1,'bats:uaf')
-    call getmem2d(vspda,1,nnsg,1,iym1,'bats:vspda')
-    call getmem2d(wata,1,nnsg,1,iym1,'bats:wata')
-    call getmem2d(watr,1,nnsg,1,iym1,'bats:watr')
-    call getmem2d(watt,1,nnsg,1,iym1,'bats:watt')
-    call getmem2d(watu,1,nnsg,1,iym1,'bats:watu')
-    call getmem2d(wta,1,nnsg,1,iym1,'bats:wta')
-    call getmem2d(xlai,1,nnsg,1,iym1,'bats:xlai')
-    call getmem2d(xlsai,1,nnsg,1,iym1,'bats:xlsai')
-    call getmem2d(xrun,1,nnsg,1,iym1,'bats:xrun')
-    call getmem2d(cn1,1,nnsg,1,iym1,'bats:cn1')
-    call getmem2d(df,1,nnsg,1,iym1,'bats:df')
-    call getmem2d(rgr,1,nnsg,1,iym1,'bats:rgr')
-    call getmem2d(wta0,1,nnsg,1,iym1,'bats:wta0')
-    call getmem2d(wtaq0,1,nnsg,1,iym1,'bats:wtaq0')
-    call getmem2d(wtg,1,nnsg,1,iym1,'bats:wtg')
-    call getmem2d(wtg0,1,nnsg,1,iym1,'bats:wtg0')
-    call getmem2d(wtg2,1,nnsg,1,iym1,'bats:wtg2')
-    call getmem2d(wtga,1,nnsg,1,iym1,'bats:wtga')
-    call getmem2d(wtgaq,1,nnsg,1,iym1,'bats:wtgaq')
-    call getmem2d(wtgl,1,nnsg,1,iym1,'bats:wtgl')
-    call getmem2d(wtglq,1,nnsg,1,iym1,'bats:wtglq')
-    call getmem2d(wtgq,1,nnsg,1,iym1,'bats:wtgq')
-    call getmem2d(wtgq0,1,nnsg,1,iym1,'bats:wtgq0')
-    call getmem2d(wtl0,1,nnsg,1,iym1,'bats:wtl0')
-    call getmem2d(wtlh,1,nnsg,1,iym1,'bats:wtlh')
-    call getmem2d(wtlq,1,nnsg,1,iym1,'bats:wtlq')
-    call getmem2d(wtlq0,1,nnsg,1,iym1,'bats:wtlq0')
-    call getmem2d(wtshi,1,nnsg,1,iym1,'bats:wtshi')
-    call getmem2d(wtsqi,1,nnsg,1,iym1,'bats:wtsqi')
-    call getmem2d(z2fra,1,nnsg,1,iym1,'bats:z2fra')
-    call getmem2d(z10fra,1,nnsg,1,iym1,'bats:z10fra')
-    call getmem2d(z1log,1,nnsg,1,iym1,'bats:z1log')
-    call getmem2d(zlgocn,1,nnsg,1,iym1,'bats:zlgocn')
-    call getmem2d(zlglnd,1,nnsg,1,iym1,'bats:zlglnd')
-    call getmem2d(zlgsno,1,nnsg,1,iym1,'bats:zlgsno')
-    call getmem2d(zlgveg,1,nnsg,1,iym1,'bats:zlgveg')
-    call getmem2d(zlgdis,1,nnsg,1,iym1,'bats:zlgdis')
     call getmem2d(aldirs1d,1,nnsg,1,iym1,'bats:aldirs1d')
     call getmem2d(aldifs1d,1,nnsg,1,iym1,'bats:aldifs1d')
-    call getmem2d(lveg,1,nnsg,1,iym1,'bats:lveg')
-    call getmem2d(oveg,1,nnsg,1,iym1,'bats:oveg')
-
     call getmem1d(coszrs,1,iy,'bats:coszrs')
     call getmem1d(flw1d,1,iym1,'bats:flw1d')
     call getmem1d(fsw1d,1,iym1,'bats:fsw1d')
@@ -419,6 +291,8 @@ module mod_bats_common
     scv_s  => fsub(:,:,:,14)
     sena_s => fsub(:,:,:,15)
     prcv_s => fsub(:,:,:,16)
+!
+    call allocate_mod_bats_internal
 !
   end subroutine allocate_mod_bats_common
 !

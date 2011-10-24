@@ -12,33 +12,33 @@ vpath %.F90 $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
             $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
             $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
             $(CLMSRC)/src/main:$(CLMSRC)/src/biogeophys:\
-						$(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute:\
-						$(REGCM_ROOT)/Config:$(REGCM_ROOT)/Main
+            $(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute:\
+            $(REGCM_ROOT)/Config:$(REGCM_ROOT)/Main
 
 vpath %.f90 $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
             $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
             $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
             $(CLMSRC)/src/main:$(CLMSRC)/src/biogeophys:\
-						$(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute:\
-						$(REGCM_ROOT)/Config:$(REGCM_ROOT)/Main
+            $(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute:\
+            $(REGCM_ROOT)/Config:$(REGCM_ROOT)/Main
 
 vpath %.inc $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
             $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
             $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
             $(CLMSRC)/src/main:$(CLMSRC)/src/biogeophys:\
-						$(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
+            $(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
 
 vpath %.c $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
           $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
           $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
           $(CLMSRC)/src/main:$(CLMSRC)/src/biogeophys:\
-					$(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
+          $(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
 
 vpath %.h $(BSP):$(CLMSRC)/src/csm_share/shr:$(CLMSRC)/src/csm_share/eshr:\
           $(CLMSRC)/src/utils/timing:$(CLMSRC)/src/utils/mct/mpeu:\
           $(CLMSRC)/src/utils/mct/mct:$(CLMSRC)/src/utils/esmf_wrf_timemgr:\
           $(CLMSRC)/src/main:$(CLMSRC)/src/biogeophys:\
-					$(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
+          $(CLMSRC)/src/biogeochem:$(CLMSRC)/src/riverroute
 
 PATCHSRC = $(BSP)/accFldsMod.F90 $(BSP)/atmdrvMod.F90 \
   $(BSP)/BareGroundFluxesMod.F90 $(BSP)/BiogeophysicsLakeMod.F90 \
@@ -171,8 +171,9 @@ mod_clm.o: mod_clm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_constants.mod
 mod_mtrxclm.o: mod_mtrxclm.F90 $(REGCM_ROOT)/Share/mod_dynparam.mod \
            $(REGCM_ROOT)/Share/mod_message.mod mod_clm.o \
-           $(BATS)/mod_bats.mod $(BATS)/mod_vecbats.o \
-           $(BATS)/mod_drag.o
+           $(BATS)/mod_bats_common.mod $(BATS)/mod_bats_vecbats.o \
+           $(BATS)/mod_bats_drag.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 accFldsMod.o: $(BSP)/accFldsMod.F90
 atmdrvMod.o: $(BSP)/atmdrvMod.F90

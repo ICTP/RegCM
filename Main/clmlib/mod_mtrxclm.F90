@@ -765,41 +765,42 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
  
   end subroutine initclm
 !
-  subroutine albedoclm(imon,j)
+  subroutine albedoclm(imon,jstart,jend,istart,iend)
  
   use clm_varsur , only : landfrac
   implicit none
+  integer , intent(in) :: jstart , jend , istart , iend
+  integer , intent(in) :: imon
+  integer :: i , j , jj
 !
-  integer , intent(in) :: imon , j
-!
-  integer :: i , jj
-!
-  call albedov(imon,j)
+  call albedov(imon,jstart,jend,istart,iend)
 ! 
 !     ****** Section Below added for albedo to be corrected by CLM
 !     ****** calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
 !     ****** to be equal to 1 which can cause a FPE.  To avoid this
 !     ****** use albedo calculated with BATS method when albedo=1
 !
-  do i = 2 , iym1
-    jj = j+(jxp*myid)
-    if (ocld2d(1,i,j) /= 0 .and. &
-        (d_one-aldirs2d(i,j)) > 1.0D-10) then
-      aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + &
-                  aldirs(i)*(d_one-landfrac(jj,i))
-      aldirl(i) = aldirl2d(i,j)*landfrac(jj,i) + &
-                  aldirl(i)*(d_one-landfrac(jj,i))
-      aldifs(i) = aldifs2d(i,j)*landfrac(jj,i) + &
-                  aldifs(i)*(d_one-landfrac(jj,i))
-      aldifl(i) = aldifl2d(i,j)*landfrac(jj,i) + &
-                  aldifl(i)*(d_one-landfrac(jj,i))
-      albvs(i)  = aldirs2d(i,j)*landfrac(jj,i) + &
-                  albvs(i) *(d_one-landfrac(jj,i))
-      albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) + &
-                  albvl(i) *(d_one-landfrac(jj,i)) 
-    end if
-    aldirs_o(j,i-1) = real(aldirs(i))
-    aldifs_o(j,i-1) = real(aldifs(i))
+  do i = istart , iend
+    do j = jstart , jend
+      jj = j+(jxp*myid)
+      if (ocld2d(1,i,j) /= 0 .and. &
+          (d_one-aldirs2d(i,j)) > 1.0D-10) then
+        aldirs(i) = aldirs2d(i,j)*landfrac(jj,i) + &
+                    aldirs(i)*(d_one-landfrac(jj,i))
+        aldirl(i) = aldirl2d(i,j)*landfrac(jj,i) + &
+                    aldirl(i)*(d_one-landfrac(jj,i))
+        aldifs(i) = aldifs2d(i,j)*landfrac(jj,i) + &
+                    aldifs(i)*(d_one-landfrac(jj,i))
+        aldifl(i) = aldifl2d(i,j)*landfrac(jj,i) + &
+                    aldifl(i)*(d_one-landfrac(jj,i))
+        albvs(i)  = aldirs2d(i,j)*landfrac(jj,i) + &
+                    albvs(i) *(d_one-landfrac(jj,i))
+        albvl(i)  = aldirl2d(i,j)*landfrac(jj,i) + &
+                    albvl(i) *(d_one-landfrac(jj,i)) 
+      end if
+      aldirs_o(j,i-1) = real(aldirs(i))
+      aldifs_o(j,i-1) = real(aldifs(i))
+    end do
   end do
  
   end subroutine albedoclm
@@ -1045,10 +1046,10 @@ subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf)
     do j = jbegin , jendx
       jj = (jxp*myid) + j
  
-      call interf(1,j,2,iym1,ktau)
+      call interf(1,j,j,2,iym1,ktau)
 
       if ( iocnflx==2 ) then
-        call zengocndrv(j,2,iym1,ktau)
+        call zengocndrv(j,j,2,iym1,ktau)
       end if
  
       do i = 2 , iym1

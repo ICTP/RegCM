@@ -32,7 +32,7 @@ module mod_bats_romsocn
   public :: allocate_mod_bats_romsocn
 !
   real(dp), public, pointer, dimension(:,:) :: sst2d
-  real(dp), parameter :: MISSING_R8 = 1.0d20 
+  real(dp), parameter :: MISSING_R8 = 1.0d20
 !
   contains
 
@@ -42,28 +42,26 @@ module mod_bats_romsocn
     sst2d = MISSING_R8
   end subroutine allocate_mod_bats_romsocn
 
-  subroutine romsocndrv(j,istart,iend,ktau)
-!
+  subroutine romsocndrv(jstart,jend,istart,iend,ktau)
     implicit none
+    integer , intent(in) :: jstart , jend , istart , iend
+    integer(8) , intent(in) :: ktau
 !
-    integer i, n
-    
-!
+    integer i , j , n
     character (len=64) :: subroutine_name='romsocndrv'
     integer :: idindx=0
-!
-    integer , intent(in) :: j , istart , iend
-    integer(8) , intent(in) :: ktau
 !
     call time_begin(subroutine_name,idindx)
 !
     do i = istart , iend
-      do n = 1 , nnsg
-!       Feed back ground temperature (in Kelvin) 
-        if (sst2d(i,j) .lt. MISSING_R8) then  
-          tg1d(n,i) = sst2d(i,j)
-          tgb1d(n,i) = sst2d(i,j)
-        end if
+      do j = jstart , jend
+        do n = 1 , nnsg
+          ! Feed back ground temperature (in Kelvin) 
+          if (sst2d(i,j) .lt. MISSING_R8) then  
+            tg1d(n,i) = sst2d(i,j)
+            tgb1d(n,i) = sst2d(i,j)
+          end if
+        end do
       end do
     end do
 !
